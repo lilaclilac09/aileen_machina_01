@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aileen • - •</title>
+    <!-- GSAP Core + ScrollTrigger -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* Custom Cursor */
+        .cursor {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.1s ease;
+            mix-blend-mode: difference;
+        }
+        .cursor-dot {
+            width: 4px;
+            height: 4px;
+            background: #fff;
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.05s ease;
+        }
+        .cursor.hover { transform: scale(1.5); border-color: #fff; }
+        nav a:hover ~ .cursor { transform: scale(1.5); }
+
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 30px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            mix-blend-mode: difference;
+            transition: background 0.3s;
+        }
+        header.scrolled {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            mix-blend-mode: normal;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: 300;
+            letter-spacing: 6px;
+            cursor: pointer;
+        }
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            margin-left: 40px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.8;
+            transition: opacity 0.3s, transform 0.3s;
+            position: relative;
+        }
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: #fff;
+            transition: width 0.3s ease;
+        }
+        nav a:hover { 
+            opacity: 1; 
+            transform: translateY(-2px);
+        }
+        nav a:hover::after { width: 100%; }
+        .menu-icon {
+            font-size: 24px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .menu-icon:hover { transform: rotate(90deg); }
+
+        /* Loading Screen */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .loader-text {
+            font-size: 18px;
+            letter-spacing: 8px;
+            opacity: 0.6;
+            margin-top: 20px;
+        }
+        .loader-bar {
+            width: 200px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .loader-progress {
+            height: 100%;
+            background: #fff;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        /* Hero 全屏轮播背景 */
+        .hero {
+            height: 100vh;
+            position: relative;
+            background: #000;
+            overflow: hidden;
+        }
+        .hero-slider {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .slide {
+            position: absolute;
+            inset: 0;
+            background: center/cover no-repeat;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            transform: scale(1.1);
+        }
+        .slide.active { 
+            opacity: 1;
+            transform: scale(1);
+            transition: opacity 1.5s ease-in-out, transform 8s ease-out;
+        }
+        .slide:nth-child(1) { background-image: url('mechanical-side.jpg'); }
+        .slide:nth-child(2) { background-image: url('mechanical-back.jpg'); }
+        .slide:nth-child(3) { background-image: url('mechanical-detail.jpg'); }
+
+        .slider-dots {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 10;
+        }
+        .dot {
+            width: 10px;
+            height: 10px;
+            background: rgba(255,255,255,0.4);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.4s;
+            position: relative;
+        }
+        .dot::before {
+            content: '';
+            position: absolute;
+            inset: -5px;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+        .dot:hover::before { opacity: 1; }
+        .dot.active { 
+            background: #fff;
+            transform: scale(1.2);
+        }
+
+        .hero-content {
+            position: absolute;
+            bottom: 15%;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            width: 100%;
+            padding: 0 50px;
+            z-index: 10;
+        }
+        .main-title {
+            font-size: 120px;
+            font-weight: 200;
+            letter-spacing: 12px;
+            line-height: 1;
+            margin-bottom: 20px;
+            text-shadow: 0 0 30px rgba(255,255,255,0.3);
+        }
+        .series-name {
+            font-size: 18px;
+            letter-spacing: 8px;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+        .series-name:hover { opacity: 1; }
+        .corner-elements {
+            position: absolute;
+            bottom: 80px;
+            right: 50px;
+            text-align: right;
+            font-size: 14px;
+            letter-spacing: 3px;
+            opacity: 0.6;
+            line-height: 2;
+            z-index: 10;
+            transition: opacity 0.3s;
+        }
+        .corner-elements:hover { opacity: 1; }
+        .corner-elements .small-icon {
+            font-size: 24px;
+            margin-top: 40px;
+            display: block;
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(10px); }
+        }
+
+        /* Scroll Indicator */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            opacity: 0.6;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* 后续内容区（用于展示滚动动画） */
+        .content-section {
+            min-height: 100vh;
+            padding: 140px 60px;
+            background: #000;
+            position: relative;
+        }
+        .section-title {
+            font-size: 80px;
+            font-weight: 200;
+            letter-spacing: 8px;
+            margin-bottom: 100px;
+            opacity: 0.8;
+            position: relative;
+        }
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            width: 100px;
+            height: 1px;
+            background: rgba(255,255,255,0.5);
+        }
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 60px;
+        }
+        .gallery-item {
+            aspect-ratio: 3/4;
+            background: center/cover no-repeat;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.5s ease, box-shadow 0.5s ease;
+        }
+        .gallery-item::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.3);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .gallery-item:hover {
+            transform: scale(1.05) translateY(-10px);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+        }
+        .gallery-item:hover::before { opacity: 1; }
+
+        /* Progress Bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 2px;
+            background: rgba(255,255,255,0.3);
+            z-index: 1000;
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+
+        @media (max-width: 1024px) {
+            .main-title { font-size: 90px; }
+            header { padding: 20px 40px; }
+            .section-title { font-size: 60px; }
+            .cursor, .cursor-dot { display: none; }
+            body { cursor: auto; }
+        }
+        @media (max-width: 768px) {
+            .main-title { font-size: 60px; }
+            .hero-content { bottom: 10%; }
+            nav { display: none; }
+            .menu-icon { display: block; }
+            .gallery-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div class="loader" id="loader">
+        <div class="loader-bar">
+            <div class="loader-progress" id="loaderProgress"></div>
+        </div>
+        <div class="loader-text">LOADING</div>
+    </div>
+
+    <!-- Custom Cursor -->
+    <div class="cursor" id="cursor"></div>
+    <div class="cursor-dot" id="cursorDot"></div>
+
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <header id="header">
+        <div class="logo">AILEEN • - •</div>
+        <nav>
+            <a href="#gallery">Gallery</a>
+            <a href="#blog">Blog</a>
+            <a href="#works">Works</a>
+            <a href="#about">About</a>
+            <a href="#contact">Contact</a>
+        </nav>
+        <div class="menu-icon">☰</div>
+    </header>
+
+    <section class="hero" id="hero">
+        <div class="hero-slider">
+            <div class="slide active"></div>
+            <div class="slide"></div>
+            <div class="slide"></div>
+        </div>
+
+        <div class="hero-content">
+            <h1 class="main-title">AILEEN</h1>
+            <div class="series-name">MECHANICALA • 01</div>
+        </div>
+
+        <div class="corner-elements">
+            POETRY IN MOTION<br>
+            METAL & LIGHT<br>
+            <span class="small-icon">↓</span>
+        </div>
+
+        <div class="scroll-indicator">SCROLL</div>
+
+        <div class="slider-dots">
+            <div class="dot active" onclick="currentSlide(0)"></div>
+            <div class="dot" onclick="currentSlide(1)"></div>
+            <div class="dot" onclick="currentSlide(2)"></div>
+        </div>
+    </section>
+
+    <!-- 示例后续内容区：Gallery（滚动触发动画） -->
+    <section class="content-section" id="gallery">
+        <h2 class="section-title">GALLERY</h2>
+        <div class="gallery-grid">
+            <div class="gallery-item" style="background-image: url('mechanical-side.jpg');"></div>
+            <div class="gallery-item" style="background-image: url('mechanical-back.jpg');"></div>
+            <div class="gallery-item" style="background-image: url('mechanical-detail.jpg');"></div>
+        </div>
+    </section>
+
+    <!-- 另一个示例区（可继续扩展 Blog 等） -->
+    <section class="content-section" style="background: #111;">
+        <h2 class="section-title">NEXT</h2>
+        <p style="font-size: 18px; opacity: 0.7; max-width: 800px; line-height: 1.8;">
+            Scroll down for more mechanical aesthetics, technical explorations, and brutal light series.
+        </p>
+    </section>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Loading Screen
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('loader');
+            const progress = document.getElementById('loaderProgress');
+            let width = 0;
+            const interval = setInterval(() => {
+                width += 10;
+                progress.style.width = width + '%';
+                if (width >= 100) {
+                    clearInterval(interval);
+                    gsap.to(loader, { opacity: 0, duration: 0.5, onComplete: () => loader.style.display = 'none' });
+                }
+            }, 50);
+        });
+
+        // Custom Cursor
+        const cursor = document.getElementById('cursor');
+        const cursorDot = document.getElementById('cursorDot');
+        let mouseX = 0, mouseY = 0;
+        let cursorX = 0, cursorY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        function animateCursor() {
+            cursorX += (mouseX - cursorX) * 0.1;
+            cursorY += (mouseY - cursorY) * 0.1;
+            cursor.style.left = cursorX - 10 + 'px';
+            cursor.style.top = cursorY - 10 + 'px';
+            cursorDot.style.left = mouseX - 2 + 'px';
+            cursorDot.style.top = mouseY - 2 + 'px';
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+
+        document.querySelectorAll('a, button, .dot, .gallery-item').forEach(el => {
+            el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+            el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+        });
+
+        // Progress Bar
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.pageYOffset;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrollPercent = (scrollTop / docHeight) * 100;
+            document.getElementById('progressBar').style.width = scrollPercent + '%';
+        });
+
+        // Header Scroll Effect
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('header');
+            if (window.scrollY > 100) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Hero 进入动画
+        gsap.from(".main-title", { y: 120, opacity: 0, duration: 1.6, ease: "power3.out", delay: 0.5 });
+        gsap.from(".series-name", { y: 80, opacity: 0, duration: 1.4, delay: 0.9, ease: "power3.out" });
+        gsap.from(".corner-elements", { opacity: 0, x: 100, duration: 1.2, delay: 1.3 });
+        gsap.from(".slider-dots", { y: 50, opacity: 0, duration: 1, delay: 1.5 });
+        gsap.from(".scroll-indicator", { opacity: 0, y: 20, duration: 1, delay: 1.7 });
+
+        // Hero 内容在滚动时轻微缩小 + 淡出（增强沉浸感）
+        gsap.to(".hero-content", {
+            scrollTrigger: {
+                trigger: ".hero",
+                start: "top top",
+                end: "bottom top",
+                scrub: true
+            },
+            scale: 0.8,
+            opacity: 0.6
+        });
+
+        // 背景滑块轻微视差（滚动时背景慢动）
+        gsap.to(".hero-slider", {
+            scrollTrigger: {
+                trigger: ".hero",
+                start: "top top",
+                end: "bottom top",
+                scrub: true
+            },
+            yPercent: 20
+        });
+
+        // Gallery 项目滚动进入动画
+        gsap.utils.toArray(".gallery-item").forEach((item, i) => {
+            gsap.from(item, {
+                scrollTrigger: {
+                    trigger: item,
+                    start: "top 85%",
+                    toggleActions: "play none none reverse"
+                },
+                y: 200,
+                opacity: 0,
+                duration: 1.4,
+                delay: i * 0.2,
+                ease: "power3.out"
+            });
+        });
+
+        // Section 标题滚动进入
+        gsap.utils.toArray(".section-title").forEach(title => {
+            gsap.from(title, {
+                scrollTrigger: {
+                    trigger: title,
+                    start: "top 80%",
+                },
+                x: -200,
+                opacity: 0,
+                duration: 1.4,
+                ease: "power3.out"
+            });
+        });
+
+        // 轮播逻辑（保持原有）
+        const slides = document.querySelectorAll('.slide');
+        const dots = document.querySelectorAll('.dot');
+        let currentIndex = 0;
+        const intervalTime = 6000;
+
+        function showSlide(index) {
+            slides.forEach((slide, i) => {
+                slide.classList.toggle('active', i === index);
+            });
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('active', i === index);
+            });
+        }
+
+        function nextSlide() {
+            currentIndex = (currentIndex + 1) % slides.length;
+            showSlide(currentIndex);
+        }
+
+        function currentSlide(n) {
+            currentIndex = n;
+            showSlide(currentIndex);
+        }
+
+        let slideInterval = setInterval(nextSlide, intervalTime);
+        document.querySelector('.hero').addEventListener('mouseenter', () => clearInterval(slideInterval));
+        document.querySelector('.hero').addEventListener('mouseleave', () => slideInterval = setInterval(nextSlide, intervalTime));
+    </script>
+
+</body>
+</html>
