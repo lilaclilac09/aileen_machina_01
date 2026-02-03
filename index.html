@@ -4,16 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AILEENA</title>
-    <!-- Blackletter Font -->
+    <!-- Akzidenz-Grotesk Font (瘦长版本) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=MedievalSharp&family=New+Rocker&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700&family=Oswald:wght@200;300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         @font-face {
-            font-family: 'Blackletter';
-            src: local('Old English Text MT'), local('Engravers MT'),
-                 local('Blackletter'), local('Fraktur');
-            font-weight: 400;
+            font-family: 'Akzidenz-Grotesk';
+            src: local('Helvetica Neue Condensed'), local('Helvetica Neue'), local('Helvetica'), local('Arial');
+            font-weight: 300 700;
             font-style: normal;
         }
     </style>
@@ -26,7 +25,7 @@
         body {
             background: #000;
             color: #fff;
-            font-family: 'UnifrakturMaguntia', 'MedievalSharp', 'Blackletter', serif;
+            font-family: 'Barlow Condensed', 'Oswald', 'Inter', 'Akzidenz-Grotesk', sans-serif;
             overflow-x: hidden;
             cursor: none;
             font-weight: 400;
@@ -90,7 +89,7 @@
             font-weight: 400;
             letter-spacing: 8px;
             cursor: pointer;
-            font-family: 'UnifrakturMaguntia', 'MedievalSharp', 'Blackletter', serif;
+            font-family: 'Barlow Condensed', 'Oswald', 'Inter', 'Akzidenz-Grotesk', sans-serif;
             text-transform: uppercase;
             color: #fff;
             text-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
@@ -110,7 +109,7 @@
             opacity: 0.9;
             transition: all 0.3s ease;
             position: relative;
-            font-family: 'UnifrakturMaguntia', 'MedievalSharp', 'Blackletter', serif;
+            font-family: 'Barlow Condensed', 'Oswald', 'Inter', 'Akzidenz-Grotesk', sans-serif;
             font-weight: 500;
             text-shadow: 0 1px 5px rgba(255, 255, 255, 0.1);
             font-style: normal;
@@ -157,7 +156,7 @@
             letter-spacing: 8px;
             opacity: 0.6;
             margin-top: 20px;
-            font-family: 'UnifrakturMaguntia', 'MedievalSharp', 'Blackletter', serif;
+            font-family: 'Barlow Condensed', 'Oswald', 'Inter', 'Akzidenz-Grotesk', sans-serif;
             font-weight: 500;
             text-transform: uppercase;
             font-style: normal;
@@ -241,11 +240,11 @@
             visibility: visible !important;
             display: block !important;
         }
-        /* 04 - First slide (首页第一张，用bg_pic/04.jpeg，cover模式) */
+        /* 04 - First slide (首页第一张，用bg_pic/04.jpeg，60%大小) */
         .slide:nth-child(1) { 
             background-image: url('bg_pic/04.jpeg') !important;
-            background-size: cover !important;
-            background-position: center center !important;
+            background-size: 60% !important;
+            background-position: center 45% !important;
             background-repeat: no-repeat !important;
             filter: drop-shadow(0 0 80px rgba(255, 255, 255, 0.2)) drop-shadow(0 0 150px rgba(200, 200, 255, 0.15));
             position: relative;
@@ -265,7 +264,8 @@
         }
         .slide:nth-child(1).active {
             opacity: 1 !important;
-            background-size: cover !important;
+            background-size: 60% !important;
+            background-position: center 45% !important;
             visibility: visible !important;
             display: block !important;
             z-index: 10 !important;
@@ -300,14 +300,27 @@
         .slide:nth-child(1).active {
             background-size: cover;
         }
-        /* 02 - Second slide (首页第二张，用bg_pic/02.jpeg，cover模式) */
+        /* 02 - Second slide (首页第二张，用bg_pic/02.jpeg，75%大小，显示人物头部) */
         .slide:nth-child(2) { 
             background-image: url('bg_pic/02.jpeg');
-            background-size: cover;
-            background-position: center center;
+            background-size: 75%;
+            background-position: center 45%;
+            background-repeat: no-repeat;
+            filter: drop-shadow(0 0 60px rgba(255, 255, 255, 0.15)) drop-shadow(0 0 120px rgba(200, 200, 255, 0.1));
+            position: relative;
+            image-rendering: auto;
+            -webkit-backface-visibility: hidden;
+            -moz-backface-visibility: hidden;
+            backface-visibility: hidden;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            will-change: opacity, transform;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
         .slide:nth-child(2).active {
-            background-size: cover;
+            background-size: 75%;
+            background-position: center 45%;
         }
         /* 03 - 移除第三张slide，03放在gallery里 */
         .slide:nth-child(3) { 
@@ -364,7 +377,7 @@
             line-height: 1.1;
             margin-bottom: 20px;
             text-shadow: 0 0 30px rgba(255,255,255,0.3);
-            font-family: 'UnifrakturMaguntia', 'MedievalSharp', 'Blackletter', serif;
+            font-family: 'Barlow Condensed', 'Oswald', 'Inter', 'Akzidenz-Grotesk', sans-serif;
             font-style: normal;
             /* Didone characteristics: high contrast, refined proportions, thin unbracketed serifs */
             -webkit-font-smoothing: antialiased;
@@ -376,7 +389,7 @@
             letter-spacing: 8px;
             opacity: 0.7;
             transition: opacity 0.3s;
-            font-family: 'UnifrakturMaguntia', 'MedievalSharp', 'Blackletter', serif;
+            font-family: 'Barlow Condensed', 'Oswald', 'Inter', 'Akzidenz-Grotesk', sans-serif;
             font-weight: 500;
             text-transform: uppercase;
             font-style: normal;
@@ -393,7 +406,7 @@
             line-height: 2;
             z-index: 10;
             transition: opacity 0.3s;
-            font-family: 'UnifrakturMaguntia', 'MedievalSharp', 'Blackletter', serif;
+            font-family: 'Barlow Condensed', 'Oswald', 'Inter', 'Akzidenz-Grotesk', sans-serif;
             font-weight: 500;
             text-transform: uppercase;
             font-style: normal;
@@ -419,7 +432,7 @@
             z-index: 10;
             opacity: 0.6;
             animation: pulse 2s infinite;
-            font-family: 'UnifrakturMaguntia', 'MedievalSharp', 'Blackletter', serif;
+            font-family: 'Barlow Condensed', 'Oswald', 'Inter', 'Akzidenz-Grotesk', sans-serif;
             font-weight: 500;
             letter-spacing: 4px;
             text-transform: uppercase;
@@ -444,7 +457,7 @@
             margin-bottom: 100px;
             opacity: 0.8;
             position: relative;
-            font-family: 'UnifrakturMaguntia', 'MedievalSharp', 'Blackletter', serif;
+            font-family: 'Barlow Condensed', 'Oswald', 'Inter', 'Akzidenz-Grotesk', sans-serif;
             text-transform: uppercase;
             font-style: normal;
         }
@@ -539,7 +552,7 @@
         }
         .track-title {
             font-size: 24px;
-            font-family: 'UnifrakturMaguntia', 'MedievalSharp', 'Blackletter', serif;
+            font-family: 'Barlow Condensed', 'Oswald', 'Inter', 'Akzidenz-Grotesk', sans-serif;
             font-weight: 600;
             letter-spacing: 4px;
             margin-bottom: 15px;
@@ -549,7 +562,7 @@
         }
         .track-info {
             font-size: 14px;
-            font-family: 'UnifrakturMaguntia', 'MedievalSharp', 'Blackletter', serif;
+            font-family: 'Barlow Condensed', 'Oswald', 'Inter', 'Akzidenz-Grotesk', sans-serif;
             font-weight: 400;
             letter-spacing: 2px;
             opacity: 0.6;
