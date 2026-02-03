@@ -3,7 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aileen • - •</title>
+    <title>AILEENA</title>
+    <!-- Blackletter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=MedievalSharp&family=New+Rocker&display=swap" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'Blackletter';
+            src: local('Old English Text MT'), local('Engravers MT'),
+                 local('Blackletter'), local('Fraktur');
+            font-weight: 400;
+            font-style: normal;
+        }
+    </style>
     <!-- GSAP Core + ScrollTrigger -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
@@ -13,9 +26,14 @@
         body {
             background: #000;
             color: #fff;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-family: 'UnifrakturMaguntia', 'MedievalSharp', 'Blackletter', serif;
             overflow-x: hidden;
             cursor: none;
+            font-weight: 400;
+            font-style: normal;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
         }
 
         /* Custom Cursor */
@@ -53,19 +71,34 @@
             justify-content: space-between;
             align-items: center;
             z-index: 100;
-            mix-blend-mode: difference;
-            transition: background 0.3s;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
         }
         header.scrolled {
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
-            mix-blend-mode: normal;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
         }
         .logo {
             font-size: 32px;
-            font-weight: 300;
-            letter-spacing: 6px;
+            font-weight: 400;
+            letter-spacing: 8px;
             cursor: pointer;
+            font-family: 'UnifrakturMaguntia', 'MedievalSharp', 'Blackletter', serif;
+            text-transform: uppercase;
+            color: #fff;
+            text-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        .logo:hover {
+            text-shadow: 0 2px 20px rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
         }
         nav a {
             color: #fff;
@@ -73,11 +106,16 @@
             margin-left: 40px;
             font-size: 13px;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            opacity: 0.8;
-            transition: opacity 0.3s, transform 0.3s;
+            letter-spacing: 3px;
+            opacity: 0.9;
+            transition: all 0.3s ease;
             position: relative;
+            font-family: 'UnifrakturMaguntia', 'MedievalSharp', 'Blackletter', serif;
+            font-weight: 500;
+            text-shadow: 0 1px 5px rgba(255, 255, 255, 0.1);
+            font-style: normal;
         }
+        nav a[href="#sound"] { display: inline-block; }
         nav a::after {
             content: '';
             position: absolute;
@@ -119,6 +157,10 @@
             letter-spacing: 8px;
             opacity: 0.6;
             margin-top: 20px;
+            font-family: 'UnifrakturMaguntia', 'MedievalSharp', 'Blackletter', serif;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-style: normal;
         }
         .loader-bar {
             width: 200px;
@@ -147,22 +189,130 @@
             width: 100%;
             height: 100%;
         }
+        /* 背景光效层 - 暗暗透光，增强层次深度 */
+        .hero-slider::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 45%, 
+                rgba(255, 255, 255, 0.1) 0%, 
+                rgba(240, 240, 255, 0.06) 25%, 
+                rgba(200, 200, 255, 0.04) 40%, 
+                transparent 70%);
+            z-index: 0;
+            pointer-events: none;
+            filter: blur(60px);
+        }
+        .hero-slider::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 45%, 
+                rgba(180, 180, 220, 0.08) 0%, 
+                rgba(150, 150, 200, 0.05) 30%, 
+                transparent 65%);
+            z-index: 0;
+            pointer-events: none;
+            filter: blur(80px);
+        }
         .slide {
             position: absolute;
             inset: 0;
-            background: center/cover no-repeat;
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
             opacity: 0;
             transition: opacity 1.5s ease-in-out;
             transform: scale(1.1);
+            background-color: #000;
+            image-rendering: auto;
+            -webkit-backface-visibility: hidden;
+            -moz-backface-visibility: hidden;
+            backface-visibility: hidden;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            will-change: opacity, transform;
+            z-index: 3;
         }
         .slide.active { 
-            opacity: 1;
+            opacity: 1 !important;
             transform: scale(1);
             transition: opacity 1.5s ease-in-out, transform 8s ease-out;
+            visibility: visible !important;
+            display: block !important;
         }
-        .slide:nth-child(1) { background-image: url('mechanical-side.jpg'); }
-        .slide:nth-child(2) { background-image: url('mechanical-back.jpg'); }
-        .slide:nth-child(3) { background-image: url('mechanical-detail.jpg'); }
+        /* 04 - First slide (首页第一张，用bg_pic/04.jpeg，cover模式) */
+        .slide:nth-child(1) { 
+            background-image: url('bg_pic/04.jpeg') !important;
+            background-size: cover !important;
+            background-position: center center !important;
+            background-repeat: no-repeat !important;
+            filter: drop-shadow(0 0 80px rgba(255, 255, 255, 0.2)) drop-shadow(0 0 150px rgba(200, 200, 255, 0.15));
+            position: relative;
+            image-rendering: auto;
+            -webkit-backface-visibility: hidden;
+            -moz-backface-visibility: hidden;
+            backface-visibility: hidden;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            will-change: opacity, transform;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            opacity: 1 !important;
+            visibility: visible !important;
+            display: block !important;
+            z-index: 10 !important;
+        }
+        .slide:nth-child(1).active {
+            opacity: 1 !important;
+            background-size: cover !important;
+            visibility: visible !important;
+            display: block !important;
+            z-index: 10 !important;
+        }
+        .slide:nth-child(1)::before {
+            content: '';
+            position: absolute;
+            inset: -30%;
+            background: radial-gradient(ellipse at 50% 45%, 
+                rgba(255, 255, 255, 0.15) 0%, 
+                rgba(220, 220, 255, 0.1) 20%, 
+                rgba(180, 180, 255, 0.08) 35%, 
+                transparent 60%);
+            z-index: -1;
+            filter: blur(100px);
+            opacity: 0.8;
+            pointer-events: none;
+        }
+        .slide:nth-child(1)::after {
+            content: '';
+            position: absolute;
+            inset: -40%;
+            background: radial-gradient(ellipse at 50% 45%, 
+                rgba(150, 150, 200, 0.1) 0%, 
+                rgba(100, 100, 150, 0.06) 30%, 
+                transparent 70%);
+            z-index: -2;
+            filter: blur(120px);
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        .slide:nth-child(1).active {
+            background-size: cover;
+        }
+        /* 02 - Second slide (首页第二张，用bg_pic/02.jpeg，cover模式) */
+        .slide:nth-child(2) { 
+            background-image: url('bg_pic/02.jpeg');
+            background-size: cover;
+            background-position: center center;
+        }
+        .slide:nth-child(2).active {
+            background-size: cover;
+        }
+        /* 03 - 移除第三张slide，03放在gallery里 */
+        .slide:nth-child(3) { 
+            display: none;
+        }
 
         .slider-dots {
             position: absolute;
@@ -209,17 +359,27 @@
         }
         .main-title {
             font-size: 120px;
-            font-weight: 200;
-            letter-spacing: 12px;
-            line-height: 1;
+            font-weight: 700;
+            letter-spacing: 6px;
+            line-height: 1.1;
             margin-bottom: 20px;
             text-shadow: 0 0 30px rgba(255,255,255,0.3);
+            font-family: 'UnifrakturMaguntia', 'MedievalSharp', 'Blackletter', serif;
+            font-style: normal;
+            /* Didone characteristics: high contrast, refined proportions, thin unbracketed serifs */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
         }
         .series-name {
             font-size: 18px;
             letter-spacing: 8px;
             opacity: 0.7;
             transition: opacity 0.3s;
+            font-family: 'UnifrakturMaguntia', 'MedievalSharp', 'Blackletter', serif;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-style: normal;
         }
         .series-name:hover { opacity: 1; }
         .corner-elements {
@@ -228,11 +388,15 @@
             right: 50px;
             text-align: right;
             font-size: 14px;
-            letter-spacing: 3px;
+            letter-spacing: 4px;
             opacity: 0.6;
             line-height: 2;
             z-index: 10;
             transition: opacity 0.3s;
+            font-family: 'UnifrakturMaguntia', 'MedievalSharp', 'Blackletter', serif;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-style: normal;
         }
         .corner-elements:hover { opacity: 1; }
         .corner-elements .small-icon {
@@ -255,6 +419,11 @@
             z-index: 10;
             opacity: 0.6;
             animation: pulse 2s infinite;
+            font-family: 'UnifrakturMaguntia', 'MedievalSharp', 'Blackletter', serif;
+            font-weight: 500;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-style: normal;
         }
         @keyframes pulse {
             0%, 100% { opacity: 0.6; }
@@ -270,11 +439,14 @@
         }
         .section-title {
             font-size: 80px;
-            font-weight: 200;
+            font-weight: 700;
             letter-spacing: 8px;
             margin-bottom: 100px;
             opacity: 0.8;
             position: relative;
+            font-family: 'UnifrakturMaguntia', 'MedievalSharp', 'Blackletter', serif;
+            text-transform: uppercase;
+            font-style: normal;
         }
         .section-title::after {
             content: '';
@@ -292,12 +464,22 @@
         }
         .gallery-item {
             aspect-ratio: 3/4;
-            background: center/cover no-repeat;
+            background-size: 70%;
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-color: #000;
             box-shadow: 0 20px 40px rgba(0,0,0,0.6);
             position: relative;
             overflow: hidden;
             cursor: pointer;
             transition: transform 0.5s ease, box-shadow 0.5s ease;
+            image-rendering: auto;
+            -webkit-backface-visibility: hidden;
+            -moz-backface-visibility: hidden;
+            backface-visibility: hidden;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            will-change: transform;
         }
         .gallery-item::before {
             content: '';
@@ -312,6 +494,80 @@
             box-shadow: 0 30px 60px rgba(0,0,0,0.8);
         }
         .gallery-item:hover::before { opacity: 1; }
+
+        /* Sound Section */
+        .sound-section {
+            min-height: 100vh;
+            padding: 140px 60px;
+            background: #000;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .sound-player {
+            width: 100%;
+            max-width: 800px;
+            margin: 60px 0;
+        }
+        .audio-track {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            position: relative;
+            min-height: 300px;
+            overflow: hidden;
+        }
+        .audio-track video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+            opacity: 0.2;
+        }
+        .audio-track:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-5px);
+        }
+        .track-title {
+            font-size: 24px;
+            font-family: 'UnifrakturMaguntia', 'MedievalSharp', 'Blackletter', serif;
+            font-weight: 600;
+            letter-spacing: 4px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            opacity: 0.9;
+            font-style: normal;
+        }
+        .track-info {
+            font-size: 14px;
+            font-family: 'UnifrakturMaguntia', 'MedievalSharp', 'Blackletter', serif;
+            font-weight: 400;
+            letter-spacing: 2px;
+            opacity: 0.6;
+            margin-bottom: 20px;
+            font-style: normal;
+        }
+        .audio-controls {
+            width: 100%;
+            margin-top: 20px;
+        }
+        audio {
+            width: 100%;
+            height: 50px;
+            filter: invert(1);
+        }
+        audio::-webkit-media-controls-panel {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
 
         /* Progress Bar */
         .progress-bar {
@@ -359,9 +615,10 @@
     <div class="progress-bar" id="progressBar"></div>
 
     <header id="header">
-        <div class="logo">AILEEN • - •</div>
+        <div class="logo">AILEENA</div>
         <nav>
             <a href="#gallery">Gallery</a>
+            <a href="#sound">Sound</a>
             <a href="#blog">Blog</a>
             <a href="#works">Works</a>
             <a href="#about">About</a>
@@ -372,13 +629,12 @@
 
     <section class="hero" id="hero">
         <div class="hero-slider">
-            <div class="slide active"></div>
-            <div class="slide"></div>
-            <div class="slide"></div>
+            <div class="slide active" style="background-image: url('bg_pic/04.jpeg');"></div>
+            <div class="slide" style="background-image: url('bg_pic/02.jpeg');"></div>
         </div>
 
         <div class="hero-content">
-            <h1 class="main-title">AILEEN</h1>
+            <h1 class="main-title">AILEENA</h1>
             <div class="series-name">MECHANICALA • 01</div>
         </div>
 
@@ -393,7 +649,6 @@
         <div class="slider-dots">
             <div class="dot active" onclick="currentSlide(0)"></div>
             <div class="dot" onclick="currentSlide(1)"></div>
-            <div class="dot" onclick="currentSlide(2)"></div>
         </div>
     </section>
 
@@ -401,16 +656,35 @@
     <section class="content-section" id="gallery">
         <h2 class="section-title">GALLERY</h2>
         <div class="gallery-grid">
-            <div class="gallery-item" style="background-image: url('mechanical-side.jpg');"></div>
-            <div class="gallery-item" style="background-image: url('mechanical-back.jpg');"></div>
-            <div class="gallery-item" style="background-image: url('mechanical-detail.jpg');"></div>
+            <div class="gallery-item" style="background-image: url('bg_pic/03.jpeg'); background-size: contain; background-position: center center;"></div>
+        </div>
+    </section>
+
+    <!-- Sound Section -->
+    <section class="sound-section" id="sound">
+        <h2 class="section-title">SOUND</h2>
+        <div class="sound-player">
+            <div class="audio-track">
+                <video autoplay loop muted playsinline>
+                    <source src="bg_pic/01v.MP4" type="video/mp4">
+                </video>
+                <div class="track-title">MECHANICALA • 01</div>
+                <div class="track-info">ORIGINAL SOUNDTRACK</div>
+                <div class="audio-controls">
+                    <audio controls preload="metadata">
+                        <source src="sound/mechanicala-01.mp3" type="audio/mpeg">
+                        <source src="sound/mechanicala-01.ogg" type="audio/ogg">
+                        Your browser does not support the audio element.
+                    </audio>
+                </div>
+            </div>
         </div>
     </section>
 
     <!-- 另一个示例区（可继续扩展 Blog 等） -->
     <section class="content-section" style="background: #111;">
         <h2 class="section-title">NEXT</h2>
-        <p style="font-size: 18px; opacity: 0.7; max-width: 800px; line-height: 1.8;">
+        <p style="font-size: 18px; opacity: 0.7; max-width: 800px; line-height: 1.8; font-family: 'Akzidenz-Grotesk', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif; font-weight: 400; font-style: normal;">
             Scroll down for more mechanical aesthetics, technical explorations, and brutal light series.
         </p>
     </section>
@@ -538,10 +812,26 @@
             });
         });
 
+        // Sound Section 音频轨道滚动进入动画
+        gsap.utils.toArray(".audio-track").forEach((track, i) => {
+            gsap.from(track, {
+                scrollTrigger: {
+                    trigger: track,
+                    start: "top 85%",
+                    toggleActions: "play none none reverse"
+                },
+                y: 100,
+                opacity: 0,
+                duration: 1.2,
+                delay: i * 0.15,
+                ease: "power3.out"
+            });
+        });
+
         // 轮播逻辑（保持原有）
         const slides = document.querySelectorAll('.slide');
         const dots = document.querySelectorAll('.dot');
-        let currentIndex = 0;
+        let currentIndex = 0; // 首页默认显示第一张 (01)
         const intervalTime = 6000;
 
         function showSlide(index) {
