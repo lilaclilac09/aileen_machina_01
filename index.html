@@ -240,35 +240,18 @@
             visibility: visible !important;
             display: block !important;
         }
-        /* 04 - First slide (首页第一张，用bg_pic/04.jpeg，60%大小) */
+        /* 04 - First slide (首页第一张，用bg_pic/04.jpeg，60%大小，居中) */
         .slide:nth-child(1) { 
-            background-image: url('bg_pic/04.jpeg') !important;
-            background-size: 60% !important;
-            background-position: center 45% !important;
-            background-repeat: no-repeat !important;
+            background-image: url('bg_pic/04.jpeg');
+            background-size: 60%;
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-color: #000;
             filter: drop-shadow(0 0 80px rgba(255, 255, 255, 0.2)) drop-shadow(0 0 150px rgba(200, 200, 255, 0.15));
-            position: relative;
-            image-rendering: auto;
-            -webkit-backface-visibility: hidden;
-            -moz-backface-visibility: hidden;
-            backface-visibility: hidden;
-            -webkit-transform: translateZ(0);
-            transform: translateZ(0);
-            will-change: opacity, transform;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            opacity: 1 !important;
-            visibility: visible !important;
-            display: block !important;
-            z-index: 10 !important;
         }
         .slide:nth-child(1).active {
-            opacity: 1 !important;
-            background-size: 60% !important;
-            background-position: center 45% !important;
-            visibility: visible !important;
-            display: block !important;
-            z-index: 10 !important;
+            background-size: 60%;
+            background-position: center center;
         }
         .slide:nth-child(1)::before {
             content: '';
@@ -300,27 +283,18 @@
         .slide:nth-child(1).active {
             background-size: cover;
         }
-        /* 02 - Second slide (首页第二张，用bg_pic/02.jpeg，75%大小，显示人物头部) */
+        /* 02 - Second slide (首页第二张，用bg_pic/02.jpeg，60%大小，居中) */
         .slide:nth-child(2) { 
             background-image: url('bg_pic/02.jpeg');
-            background-size: 75%;
-            background-position: center 45%;
+            background-size: 60%;
+            background-position: center center;
             background-repeat: no-repeat;
+            background-color: #000;
             filter: drop-shadow(0 0 60px rgba(255, 255, 255, 0.15)) drop-shadow(0 0 120px rgba(200, 200, 255, 0.1));
-            position: relative;
-            image-rendering: auto;
-            -webkit-backface-visibility: hidden;
-            -moz-backface-visibility: hidden;
-            backface-visibility: hidden;
-            -webkit-transform: translateZ(0);
-            transform: translateZ(0);
-            will-change: opacity, transform;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
         .slide:nth-child(2).active {
-            background-size: 75%;
-            background-position: center 45%;
+            background-size: 60%;
+            background-position: center center;
         }
         /* 03 - 移除第三张slide，03放在gallery里 */
         .slide:nth-child(3) { 
