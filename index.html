@@ -137,7 +137,7 @@
         }
         .menu-icon:hover { transform: rotate(90deg); }
 
-        /* Loading Screen */
+        /* Liquid Metal Loader - Oakley × Meta Style */
         .loader {
             position: fixed;
             top: 0;
@@ -150,29 +150,133 @@
             justify-content: center;
             align-items: center;
             flex-direction: column;
+            overflow: hidden;
         }
+        
+        /* Liquid metal container */
+        .liquid-metal {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            filter: url(#liquid);
+        }
+        
+        /* Liquid blob base - Mars edition */
+        .liquid-blob {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #d4a574 0%, #8b5a3c 25%, #a67c52 50%, #6b4423 75%, #c9956a 100%);
+            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+            animation: morph 4s ease-in-out infinite;
+            box-shadow: 
+                inset 10px 10px 30px rgba(255,200,150,0.3),
+                inset -10px -10px 30px rgba(80,40,20,0.3),
+                0 0 60px rgba(180,100,60,0.5),
+                0 0 100px rgba(140,70,40,0.3);
+        }
+        
+        .liquid-blob:nth-child(2) {
+            background: linear-gradient(225deg, #b8956a 0%, #7a4e35 25%, #9a6b4a 50%, #5d3a25 75%, #c49060 100%);
+            animation: morph 4s ease-in-out infinite reverse;
+            animation-delay: -2s;
+            opacity: 0.7;
+        }
+        
+        .liquid-blob:nth-child(3) {
+            background: linear-gradient(180deg, #c9a075 0%, #8b6045 30%, #a87855 60%, #5c3822 100%);
+            animation: morph 4s ease-in-out infinite;
+            animation-delay: -1s;
+            opacity: 0.5;
+            filter: blur(3px);
+        }
+        
+        /* Metallic shine effect */
+        .liquid-shine {
+            position: absolute;
+            top: 20%;
+            left: 20%;
+            width: 30%;
+            height: 20%;
+            background: linear-gradient(180deg, rgba(255,220,180,0.7) 0%, rgba(255,200,150,0) 100%);
+            border-radius: 50%;
+            animation: shine 2s ease-in-out infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes morph {
+            0% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; transform: rotate(0deg) scale(1); }
+            25% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; transform: rotate(90deg) scale(1.05); }
+            50% { border-radius: 50% 50% 33% 67% / 55% 27% 73% 45%; transform: rotate(180deg) scale(0.95); }
+            75% { border-radius: 33% 67% 58% 42% / 63% 68% 32% 37%; transform: rotate(270deg) scale(1.02); }
+            100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; transform: rotate(360deg) scale(1); }
+        }
+        
+        /* Metallic shine effect */
+        .liquid-shine {
+            position: absolute;
+            top: 20%;
+            left: 20%;
+            width: 30%;
+            height: 20%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 100%);
+            border-radius: 50%;
+            animation: shine 2s ease-in-out infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes shine {
+            0%, 100% { opacity: 0.5; transform: translateX(0) scale(1); }
+            50% { opacity: 0.8; transform: translateX(20px) scale(1.2); }
+        }
+        
+        /* Loader text */
         .loader-text {
-            font-size: 18px;
-            letter-spacing: 8px;
-            opacity: 0.6;
-            margin-top: 20px;
+            font-size: 14px;
+            letter-spacing: 12px;
+            opacity: 0.8;
+            margin-top: 60px;
             font-family: 'Barlow Condensed', 'Oswald', 'Inter', 'Akzidenz-Grotesk', sans-serif;
             font-weight: 500;
             text-transform: uppercase;
             font-style: normal;
+            color: #fff;
+            animation: pulse-text 1.5s ease-in-out infinite;
         }
-        .loader-bar {
-            width: 200px;
-            height: 2px;
-            background: rgba(255, 255, 255, 0.2);
-            position: relative;
-            overflow: hidden;
+        
+        @keyframes pulse-text {
+            0%, 100% { opacity: 0.5; letter-spacing: 12px; }
+            50% { opacity: 1; letter-spacing: 16px; }
         }
-        .loader-progress {
-            height: 100%;
-            background: #fff;
-            width: 0%;
-            transition: width 0.3s;
+        
+        /* Loading progress dots */
+        .loader-dots {
+            display: flex;
+            gap: 8px;
+            margin-top: 20px;
+        }
+        
+        .loader-dot {
+            width: 6px;
+            height: 6px;
+            background: rgba(255,255,255,0.4);
+            border-radius: 50%;
+            animation: dot-pulse 1s ease-in-out infinite;
+        }
+        
+        .loader-dot:nth-child(2) { animation-delay: 0.2s; }
+        .loader-dot:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes dot-pulse {
+            0%, 100% { transform: scale(1); opacity: 0.4; }
+            50% { transform: scale(1.5); opacity: 1; }
+        }
+        
+        /* SVG filter for liquid effect */
+        .liquid-filter {
+            position: absolute;
+            width: 0;
+            height: 0;
         }
 
         /* Hero 全屏轮播背景 */
@@ -182,6 +286,111 @@
             background: #000;
             overflow: hidden;
         }
+        
+        /* Mars/Space Background Gradient */
+        .mars-bg {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            background: 
+                radial-gradient(ellipse at 70% 20%, rgba(180, 80, 50, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 30% 80%, rgba(140, 60, 40, 0.12) 0%, transparent 45%),
+                radial-gradient(ellipse at 50% 50%, rgba(200, 100, 60, 0.08) 0%, transparent 60%),
+                radial-gradient(circle at 20% 30%, rgba(255, 200, 150, 0.05) 0%, transparent 30%),
+                linear-gradient(180deg, #0a0505 0%, #1a0a08 50%, #0d0605 100%);
+            animation: mars-pulse 10s ease-in-out infinite;
+        }
+        
+        @keyframes mars-pulse {
+            0%, 100% { opacity: 0.9; }
+            50% { opacity: 1; }
+        }
+        
+        /* Stars layer */
+        .stars {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #fff;
+            border-radius: 50%;
+            animation: twinkle 3s ease-in-out infinite;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+        
+        /* Particle overlay layer */
+        .hero-particles {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            animation: float-particle 15s infinite linear;
+        }
+        
+        @keyframes float-particle {
+            0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) translateX(100px); opacity: 0; }
+        }
+        
+        /* Noise grain overlay */
+        .hero-noise {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            animation: noise-shift 0.5s steps(10) infinite;
+        }
+        
+        @keyframes noise-shift {
+            0% { transform: translate(0, 0); }
+            20% { transform: translate(-5px, 5px); }
+            40% { transform: translate(5px, -5px); }
+            60% { transform: translate(-5px, -5px); }
+            80% { transform: translate(5px, 5px); }
+            100% { transform: translate(0, 0); }
+        }
+        
+        /* Ambient light rays - Mars inspired */
+        .hero-rays {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            background: 
+                radial-gradient(ellipse at 70% 25%, rgba(200, 90, 60, 0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at 25% 75%, rgba(160, 70, 50, 0.08) 0%, transparent 40%),
+                radial-gradient(ellipse at 50% 50%, rgba(180, 80, 55, 0.06) 0%, transparent 45%);
+            animation: mars-glow 8s ease-in-out infinite;
+        }
+        
+        @keyframes mars-glow {
+            0%, 100% { opacity: 0.7; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+        
         .hero-slider {
             position: absolute;
             inset: 0;
@@ -221,7 +430,7 @@
             background-position: center center;
             background-repeat: no-repeat;
             opacity: 0;
-            transition: opacity 1.5s ease-in-out;
+            transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
             transform: scale(1.1);
             background-color: #000;
             image-rendering: auto;
@@ -236,9 +445,39 @@
         .slide.active { 
             opacity: 1 !important;
             transform: scale(1);
-            transition: opacity 1.5s ease-in-out, transform 8s ease-out;
+            transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1), transform 8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             visibility: visible !important;
             display: block !important;
+        }
+        
+        /* Slide transition glow */
+        .slide-glow {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at center, rgba(255,255,255,0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 1.5s ease;
+            pointer-events: none;
+            z-index: 4;
+        }
+        .slide.active .slide-glow {
+            opacity: 1;
+        }
+        
+        /* Diagonal lines overlay */
+        .hero-lines {
+            position: absolute;
+            inset: 0;
+            z-index: 5;
+            pointer-events: none;
+            opacity: 0.03;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 2px,
+                rgba(255,255,255,0.03) 2px,
+                rgba(255,255,255,0.03) 4px
+            );
         }
         /* 04 - First slide (首页第一张，用bg_pic/04.jpeg，60%大小，居中) */
         .slide:nth-child(1) { 
@@ -357,6 +596,15 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             text-rendering: optimizeLegibility;
+            /* 3D text effect */
+            transform: perspective(500px) rotateX(0deg);
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease;
+        }
+        
+        .main-title:hover {
+            transform: perspective(500px) rotateX(2deg) translateZ(10px);
+            text-shadow: 0 0 50px rgba(255,255,255,0.5);
         }
         .series-name {
             font-size: 18px;
@@ -459,7 +707,7 @@
             position: relative;
             overflow: hidden;
             cursor: pointer;
-            transition: transform 0.5s ease, box-shadow 0.5s ease;
+            transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             image-rendering: auto;
             -webkit-backface-visibility: hidden;
             -moz-backface-visibility: hidden;
@@ -468,19 +716,45 @@
             transform: translateZ(0);
             will-change: transform;
         }
+        
+        /* Gallery item overlay */
         .gallery-item::before {
             content: '';
             position: absolute;
             inset: 0;
-            background: rgba(0,0,0,0.3);
+            background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 50%);
             opacity: 0;
             transition: opacity 0.5s ease;
+            z-index: 1;
         }
+        
+        /* Gallery item shine sweep */
+        .gallery-item::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+            transition: left 0.8s ease;
+            z-index: 2;
+            pointer-events: none;
+        }
+        
+        .gallery-item:hover::before {
+            opacity: 1;
+        }
+        
+        .gallery-item:hover::after {
+            left: 100%;
+        }
+        
         .gallery-item:hover {
             transform: scale(1.05) translateY(-10px);
             box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            filter: brightness(1.1);
         }
-        .gallery-item:hover::before { opacity: 1; }
 
         /* Sound Section */
         .sound-section {
@@ -582,16 +856,315 @@
             .menu-icon { display: block; }
             .gallery-grid { grid-template-columns: 1fr; }
         }
+
+        /* Blog Section */
+        .blog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+            margin-top: 60px;
+        }
+        .blog-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            transition: all 0.4s ease;
+            cursor: pointer;
+        }
+        .blog-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-8px);
+        }
+        .blog-date {
+            font-size: 12px;
+            letter-spacing: 3px;
+            opacity: 0.5;
+            margin-bottom: 20px;
+            font-family: 'Barlow Condensed', sans-serif;
+            text-transform: uppercase;
+        }
+        .blog-title {
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            font-family: 'Barlow Condensed', 'Oswald', sans-serif;
+            text-transform: uppercase;
+        }
+        .blog-excerpt {
+            font-size: 14px;
+            line-height: 1.8;
+            opacity: 0.7;
+            margin-bottom: 20px;
+        }
+        .blog-link {
+            color: #fff;
+            text-decoration: none;
+            font-size: 13px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+        .blog-link:hover { opacity: 1; }
+
+        /* Works Section */
+        .works-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 40px;
+            margin-top: 60px;
+        }
+        .work-item {
+            position: relative;
+            aspect-ratio: 4/3;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.5s ease;
+        }
+        .work-item:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: scale(1.02);
+        }
+        .work-image {
+            position: absolute;
+            inset: 0;
+            background-color: #000;
+            background-repeat: no-repeat;
+            opacity: 0.7;
+            transition: all 0.5s ease;
+        }
+        .work-item:hover .work-image {
+            opacity: 0.9;
+            transform: scale(1.05);
+        }
+        .work-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 30px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+        }
+        .work-number {
+            font-size: 48px;
+            font-weight: 700;
+            opacity: 0.2;
+            position: absolute;
+            top: -30px;
+            right: 20px;
+            font-family: 'Barlow Condensed', 'Oswald', sans-serif;
+        }
+        .work-title {
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: 3px;
+            margin-bottom: 5px;
+            font-family: 'Barlow Condensed', 'Oswald', sans-serif;
+            text-transform: uppercase;
+        }
+        .work-category {
+            font-size: 11px;
+            letter-spacing: 3px;
+            opacity: 0.6;
+            text-transform: uppercase;
+        }
+
+        /* About Section */
+        .about-section {
+            background: linear-gradient(180deg, #000 0%, #0a0a0a 50%, #000 100%);
+        }
+        .about-content {
+            max-width: 900px;
+            margin: 60px auto 0;
+        }
+        .about-lead {
+            font-size: 28px;
+            font-weight: 500;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            letter-spacing: 1px;
+            font-family: 'Barlow Condensed', 'Oswald', sans-serif;
+        }
+        .about-description {
+            font-size: 16px;
+            line-height: 2;
+            opacity: 0.7;
+            margin-bottom: 60px;
+        }
+        .about-stats {
+            display: flex;
+            gap: 80px;
+            padding-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .stat {
+            display: flex;
+            flex-direction: column;
+        }
+        .stat-number {
+            font-size: 48px;
+            font-weight: 700;
+            font-family: 'Barlow Condensed', 'Oswald', sans-serif;
+            letter-spacing: 2px;
+        }
+        .stat-label {
+            font-size: 12px;
+            letter-spacing: 3px;
+            opacity: 0.5;
+            text-transform: uppercase;
+            margin-top: 10px;
+        }
+
+        /* Contact Section */
+        .contact-section {
+            background: linear-gradient(180deg, #000 0%, #080808 100%);
+            padding-bottom: 100px;
+        }
+        .contact-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            margin-top: 60px;
+            max-width: 1200px;
+        }
+        .contact-lead {
+            font-size: 24px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            margin-bottom: 40px;
+            font-family: 'Barlow Condensed', 'Oswald', sans-serif;
+        }
+        .contact-details {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        .contact-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .contact-label {
+            font-size: 11px;
+            letter-spacing: 3px;
+            opacity: 0.5;
+            text-transform: uppercase;
+        }
+        .contact-link, .contact-text {
+            font-size: 16px;
+            color: #fff;
+            text-decoration: none;
+            opacity: 0.9;
+            transition: opacity 0.3s;
+        }
+        .contact-link:hover { opacity: 1; }
+        .social-links {
+            display: flex;
+            gap: 20px;
+        }
+        .social-link {
+            font-size: 14px;
+            color: #fff;
+            text-decoration: none;
+            opacity: 0.8;
+            letter-spacing: 1px;
+            transition: opacity 0.3s;
+        }
+        .social-link:hover { opacity: 1; }
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 20px;
+            color: #fff;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        .submit-btn {
+            background: #fff;
+            color: #000;
+            border: none;
+            padding: 18px 40px;
+            font-size: 13px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            cursor: pointer;
+            font-family: 'Barlow Condensed', 'Oswald', sans-serif;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .submit-btn:hover {
+            background: rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .contact-content {
+                grid-template-columns: 1fr;
+                gap: 60px;
+            }
+            .about-stats {
+                gap: 40px;
+            }
+            .works-grid {
+                grid-template-columns: 1fr;
+            }
+            .blog-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <!-- Loading Screen -->
+    <!-- Liquid Metal Loader -->
     <div class="loader" id="loader">
-        <div class="loader-bar">
-            <div class="loader-progress" id="loaderProgress"></div>
+        <!-- SVG Filter for Liquid Effect -->
+        <svg class="liquid-filter">
+            <defs>
+                <filter id="liquid">
+                    <feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="3" result="noise" />
+                    <feDisplacementMap in="SourceGraphic" in2="noise" scale="15" xChannelSelector="R" yChannelSelector="G" />
+                    <feGaussianBlur stdDeviation="0.5" />
+                </filter>
+            </defs>
+        </svg>
+        
+        <!-- Liquid Metal Animation -->
+        <div class="liquid-metal">
+            <div class="liquid-blob"></div>
+            <div class="liquid-blob"></div>
+            <div class="liquid-blob"></div>
+            <div class="liquid-shine"></div>
         </div>
-        <div class="loader-text">LOADING</div>
+        
+        <div class="loader-text">AILEENA</div>
+        <div class="loader-dots">
+            <div class="loader-dot"></div>
+            <div class="loader-dot"></div>
+            <div class="loader-dot"></div>
+        </div>
     </div>
 
     <!-- Custom Cursor -->
@@ -615,9 +1188,31 @@
     </header>
 
     <section class="hero" id="hero">
+        <!-- Mars/Space Background -->
+        <div class="mars-bg"></div>
+        
+        <!-- Stars -->
+        <div class="stars" id="stars"></div>
+        
+        <!-- Ambient Light Rays -->
+        <div class="hero-rays"></div>
+        
+        <!-- Noise Grain Overlay -->
+        <div class="hero-noise"></div>
+        
+        <!-- Floating Particles -->
+        <div class="hero-particles" id="particles"></div>
+        
+        <!-- Diagonal Lines Overlay -->
+        <div class="hero-lines"></div>
+        
         <div class="hero-slider">
-            <div class="slide active" style="background-image: url('bg_pic/04.jpeg');"></div>
-            <div class="slide" style="background-image: url('bg_pic/02.jpeg');"></div>
+            <div class="slide active" style="background-image: url('bg_pic/04.jpeg');">
+                <div class="slide-glow"></div>
+            </div>
+            <div class="slide" style="background-image: url('bg_pic/02.jpeg');">
+                <div class="slide-glow"></div>
+            </div>
         </div>
 
         <div class="hero-content">
@@ -668,6 +1263,127 @@
         </div>
     </section>
 
+    <!-- Blog Section -->
+    <section class="content-section" id="blog">
+        <h2 class="section-title">BLOG</h2>
+        <div class="blog-grid">
+            <article class="blog-card">
+                <div class="blog-date">2024.12.15</div>
+                <h3 class="blog-title">The Art of Mechanical Aesthetics</h3>
+                <p class="blog-excerpt">Exploring the intersection of machinery and artistic expression through careful composition and lighting.</p>
+                <a href="#" class="blog-link">Read More →</a>
+            </article>
+            <article class="blog-card">
+                <div class="blog-date">2024.11.28</div>
+                <h3 class="blog-title">Brutal Light Series: Behind the Scenes</h3>
+                <p class="blog-excerpt">A deep dive into the creative process behind our latest photography collection.</p>
+                <a href="#" class="blog-link">Read More →</a>
+            </article>
+            <article class="blog-card">
+                <div class="blog-date">2024.10.10</div>
+                <h3 class="blog-title">Material Studies in Metal</h3>
+                <p class="blog-excerpt">Understanding how different metals interact with light and shadow in visual storytelling.</p>
+                <a href="#" class="blog-link">Read More →</a>
+            </article>
+        </div>
+    </section>
+
+    <!-- Works Section -->
+    <section class="content-section" id="works">
+        <h2 class="section-title">WORKS</h2>
+        <div class="works-grid">
+            <div class="work-item">
+                <div class="work-image" style="background-image: url('bg_pic/04.jpeg'); background-size: contain; background-position: center;"></div>
+                <div class="work-info">
+                    <div class="work-number">01</div>
+                    <h3 class="work-title">MECHANICALA</h3>
+                    <p class="work-category">PHOTOGRAPHY SERIES</p>
+                </div>
+            </div>
+            <div class="work-item">
+                <div class="work-image" style="background-image: url('bg_pic/02.jpeg'); background-size: contain; background-position: center;"></div>
+                <div class="work-info">
+                    <div class="work-number">02</div>
+                    <h3 class="work-title">BRUTAL LIGHT</h3>
+                    <p class="work-category">VISUAL ART</p>
+                </div>
+            </div>
+            <div class="work-item">
+                <div class="work-image" style="background-image: url('bg_pic/03.jpeg'); background-size: contain; background-position: center;"></div>
+                <div class="work-info">
+                    <div class="work-number">03</div>
+                    <h3 class="work-title">METAL STUDIES</h3>
+                    <p class="work-category">RESEARCH</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="content-section about-section" id="about">
+        <h2 class="section-title">ABOUT</h2>
+        <div class="about-content">
+            <div class="about-text">
+                <p class="about-lead">AILEENA is a multidisciplinary creative studio specializing in mechanical aesthetics, brutalist photography, and visual storytelling.</p>
+                <p class="about-description">Founded on the belief that machinery possesses an inherent poetry, we explore the beauty of industrial forms through careful observation and artistic interpretation. Our work bridges the gap between technical precision and emotional resonance.</p>
+                <div class="about-stats">
+                    <div class="stat">
+                        <span class="stat-number">15+</span>
+                        <span class="stat-label">Projects</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">8</span>
+                        <span class="stat-label">Awards</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">3</span>
+                        <span class="stat-label">Years</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="content-section contact-section" id="contact">
+        <h2 class="section-title">CONTACT</h2>
+        <div class="contact-content">
+            <div class="contact-info">
+                <p class="contact-lead">Let's create something extraordinary together.</p>
+                <div class="contact-details">
+                    <div class="contact-item">
+                        <span class="contact-label">Email</span>
+                        <a href="mailto:hello@aileena.studio" class="contact-link">hello@aileena.studio</a>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-label">Location</span>
+                        <span class="contact-text">Shanghai, China</span>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-label">Social</span>
+                        <div class="social-links">
+                            <a href="#" class="social-link">Instagram</a>
+                            <a href="#" class="social-link">Behance</a>
+                            <a href="#" class="social-link">Twitter</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <form class="contact-form" onsubmit="event.preventDefault(); alert('Thank you for your message!');">
+                <div class="form-group">
+                    <input type="text" name="name" placeholder="Your Name" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" name="email" placeholder="Your Email" required>
+                </div>
+                <div class="form-group">
+                    <textarea name="message" placeholder="Your Message" rows="5" required></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Send Message</button>
+            </form>
+        </div>
+    </section>
+
     <!-- 另一个示例区（可继续扩展 Blog 等） -->
     <section class="content-section" style="background: #111;">
         <h2 class="section-title">NEXT</h2>
@@ -679,20 +1395,62 @@
     <script>
         gsap.registerPlugin(ScrollTrigger);
 
-        // Loading Screen
+        // Liquid Metal Loader
         window.addEventListener('load', () => {
             const loader = document.getElementById('loader');
-            const progress = document.getElementById('loaderProgress');
-            let width = 0;
-            const interval = setInterval(() => {
-                width += 10;
-                progress.style.width = width + '%';
-                if (width >= 100) {
-                    clearInterval(interval);
-                    gsap.to(loader, { opacity: 0, duration: 0.5, onComplete: () => loader.style.display = 'none' });
-                }
-            }, 50);
+            // Hide loader after content loads
+            setTimeout(() => {
+                gsap.to(loader, { 
+                    opacity: 0, 
+                    duration: 0.8, 
+                    ease: "power2.inOut",
+                    onComplete: () => loader.style.display = 'none' 
+                });
+            }, 2000); // Minimum display time
         });
+
+        // Generate floating particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            if (!container) return;
+            
+            const particleCount = 30;
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+                particle.style.width = (1 + Math.random() * 2) + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.opacity = 0.3 + Math.random() * 0.5;
+                // Mars reddish tint for particles
+                particle.style.background = Math.random() > 0.5 ? 'rgba(255, 180, 140, 0.6)' : 'rgba(255, 255, 255, 0.6)';
+                container.appendChild(particle);
+            }
+        }
+        createParticles();
+        
+        // Generate stars
+        function createStars() {
+            const container = document.getElementById('stars');
+            if (!container) return;
+            
+            const starCount = 50;
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                star.style.animationDuration = (2 + Math.random() * 2) + 's';
+                const size = 1 + Math.random() * 2;
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+                container.appendChild(star);
+            }
+        }
+        createStars();
 
         // Custom Cursor
         const cursor = document.getElementById('cursor');
@@ -739,34 +1497,129 @@
             }
         });
 
-        // Hero 进入动画
-        gsap.from(".main-title", { y: 120, opacity: 0, duration: 1.6, ease: "power3.out", delay: 0.5 });
-        gsap.from(".series-name", { y: 80, opacity: 0, duration: 1.4, delay: 0.9, ease: "power3.out" });
-        gsap.from(".corner-elements", { opacity: 0, x: 100, duration: 1.2, delay: 1.3 });
-        gsap.from(".slider-dots", { y: 50, opacity: 0, duration: 1, delay: 1.5 });
-        gsap.from(".scroll-indicator", { opacity: 0, y: 20, duration: 1, delay: 1.7 });
+        // Hero entrance animations with smoother easing
+        gsap.from(".main-title", { 
+            y: 150, 
+            opacity: 0, 
+            duration: 1.8, 
+            ease: "expo.out", 
+            delay: 0.8 
+        });
+        gsap.from(".series-name", { 
+            y: 100, 
+            opacity: 0, 
+            duration: 1.6, 
+            delay: 1.2, 
+            ease: "expo.out" 
+        });
+        gsap.from(".corner-elements", { 
+            opacity: 0, 
+            x: 150, 
+            duration: 1.4, 
+            delay: 1.5,
+            ease: "expo.out"
+        });
+        gsap.from(".slider-dots", { 
+            y: 60, 
+            opacity: 0, 
+            duration: 1.2, 
+            delay: 1.8,
+            ease: "expo.out"
+        });
+        gsap.from(".scroll-indicator", { 
+            opacity: 0, 
+            y: 30, 
+            duration: 1.2, 
+            delay: 2.0,
+            ease: "expo.out"
+        });
+        
+        // Hero particles fade in
+        gsap.from(".hero-particles .particle", {
+            opacity: 0,
+            scale: 0,
+            duration: 1,
+            stagger: 0.1,
+            delay: 1.5,
+            ease: "expo.out"
+        });
+        
+        // Hero rays animation
+        gsap.from(".hero-rays", {
+            opacity: 0,
+            duration: 2,
+            delay: 0.5,
+            ease: "power2.out"
+        });
 
-        // Hero 内容在滚动时轻微缩小 + 淡出（增强沉浸感）
+        // Hero content parallax and fade on scroll
         gsap.to(".hero-content", {
             scrollTrigger: {
                 trigger: ".hero",
                 start: "top top",
                 end: "bottom top",
-                scrub: true
+                scrub: 1
             },
-            scale: 0.8,
-            opacity: 0.6
+            scale: 0.7,
+            opacity: 0,
+            y: -50
         });
 
-        // 背景滑块轻微视差（滚动时背景慢动）
+        // Hero rays parallax
+        gsap.to(".hero-rays", {
+            scrollTrigger: {
+                trigger: ".hero",
+                start: "top top",
+                end: "bottom top",
+                scrub: 1.5
+            },
+            yPercent: 30,
+            scale: 1.2
+        });
+        
+        // Mars background parallax
+        gsap.to(".mars-bg", {
+            scrollTrigger: {
+                trigger: ".hero",
+                start: "top top",
+                end: "bottom top",
+                scrub: 2
+            },
+            yPercent: 15,
+            opacity: 0.5
+        });
+        
+        // Stars parallax
+        gsap.to(".stars", {
+            scrollTrigger: {
+                trigger: ".hero",
+                start: "top top",
+                end: "bottom top",
+                scrub: 0.8
+            },
+            yPercent: 40
+        });
+
+        // Background slider parallax
         gsap.to(".hero-slider", {
             scrollTrigger: {
                 trigger: ".hero",
                 start: "top top",
                 end: "bottom top",
-                scrub: true
+                scrub: 1.2
             },
-            yPercent: 20
+            yPercent: 25
+        });
+
+        // Hero particles parallax (move faster)
+        gsap.to(".hero-particles", {
+            scrollTrigger: {
+                trigger: ".hero",
+                start: "top top",
+                end: "bottom top",
+                scrub: 0.5
+            },
+            yPercent: 50
         });
 
         // Gallery 项目滚动进入动画
@@ -815,16 +1668,105 @@
             });
         });
 
-        // 轮播逻辑（保持原有）
+        // Blog Section 滚动进入动画
+        gsap.utils.toArray(".blog-card").forEach((card, i) => {
+            gsap.from(card, {
+                scrollTrigger: {
+                    trigger: card,
+                    start: "top 85%",
+                    toggleActions: "play none none reverse"
+                },
+                y: 80,
+                opacity: 0,
+                duration: 1,
+                delay: i * 0.15,
+                ease: "power3.out"
+            });
+        });
+
+        // Works Section 滚动进入动画
+        gsap.utils.toArray(".work-item").forEach((work, i) => {
+            gsap.from(work, {
+                scrollTrigger: {
+                    trigger: work,
+                    start: "top 85%",
+                    toggleActions: "play none none reverse"
+                },
+                y: 100,
+                opacity: 0,
+                duration: 1.2,
+                delay: i * 0.2,
+                ease: "power3.out"
+            });
+        });
+
+        // About Section 动画
+        gsap.from(".about-content", {
+            scrollTrigger: {
+                trigger: ".about-section",
+                start: "top 70%",
+            },
+            y: 60,
+            opacity: 0,
+            duration: 1.4,
+            ease: "power3.out"
+        });
+        gsap.from(".stat", {
+            scrollTrigger: {
+                trigger: ".about-stats",
+                start: "top 80%",
+            },
+            y: 40,
+            opacity: 0,
+            duration: 1,
+            stagger: 0.15,
+            ease: "power3.out"
+        });
+
+        // Contact Section 动画
+        gsap.from(".contact-info", {
+            scrollTrigger: {
+                trigger: ".contact-section",
+                start: "top 70%",
+            },
+            x: -60,
+            opacity: 0,
+            duration: 1.2,
+            ease: "power3.out"
+        });
+        gsap.from(".contact-form", {
+            scrollTrigger: {
+                trigger: ".contact-section",
+                start: "top 70%",
+            },
+            x: 60,
+            opacity: 0,
+            duration: 1.2,
+            delay: 0.2,
+            ease: "power3.out"
+        });
+
+        // Carousel logic with smoother transitions
         const slides = document.querySelectorAll('.slide');
         const dots = document.querySelectorAll('.dot');
-        let currentIndex = 0; // 首页默认显示第一张 (01)
+        let currentIndex = 0;
         const intervalTime = 6000;
 
         function showSlide(index) {
+            // Smooth transition out for current slide
             slides.forEach((slide, i) => {
-                slide.classList.toggle('active', i === index);
+                if (i !== index) {
+                    slide.classList.remove('active');
+                }
             });
+            
+            // Add active class to new slide with delay for smooth transition
+            setTimeout(() => {
+                slides.forEach((slide, i) => {
+                    slide.classList.toggle('active', i === index);
+                });
+            }, 50);
+            
             dots.forEach((dot, i) => {
                 dot.classList.toggle('active', i === index);
             });
