@@ -829,6 +829,57 @@
         audio::-webkit-media-controls-panel {
             background-color: rgba(0, 0, 0, 0.8);
         }
+        
+        /* SoundCloud Embed Styles */
+        .soundcloud-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 30px 0;
+        }
+        .soundcloud-track {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 25px;
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+        }
+        .soundcloud-track:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        .soundcloud-track iframe {
+            width: 100%;
+            border-radius: 4px;
+        }
+        .soundcloud-label {
+            font-size: 12px;
+            font-family: 'Barlow Condensed', 'Oswald', 'Inter', sans-serif;
+            font-weight: 500;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #ff5500;
+            margin-bottom: 15px;
+            font-style: normal;
+        }
+        .soundcloud-add {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 25px;
+            background: transparent;
+            border: 1px solid rgba(255, 85, 0, 0.5);
+            color: #ff5500;
+            font-family: 'Barlow Condensed', 'Oswald', 'Inter', sans-serif;
+            font-size: 14px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        .soundcloud-add:hover {
+            background: #ff5500;
+            color: #000;
+        }
 
         /* Progress Bar */
         .progress-bar {
@@ -906,6 +957,126 @@
             text-transform: uppercase;
             opacity: 0.8;
             transition: opacity 0.3s;
+        }
+        
+        /* Twitter/X Embed Styles */
+        .blog-posts-container {
+            width: 100%;
+            max-width: 900px;
+            margin: 60px auto;
+        }
+        .blog-post-featured {
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+            border: 1px solid rgba(255,255,255,0.12);
+            padding: 50px;
+            margin-bottom: 50px;
+            transition: all 0.4s ease;
+            cursor: pointer;
+        }
+        .blog-post-featured:hover {
+            background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%);
+            border-color: rgba(255,255,255,0.25);
+            transform: translateY(-5px);
+        }
+        .blog-post-featured .blog-title {
+            font-size: 32px;
+        }
+        .blog-post-featured .blog-excerpt {
+            font-size: 16px;
+        }
+        
+        /* Twitter/X Tweet Embed */
+        .tweet-embed {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 30px;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .tweet-embed:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(29, 161, 242, 0.4);
+            transform: translateY(-3px);
+        }
+        .tweet-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .tweet-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .tweet-user {
+            display: flex;
+            flex-direction: column;
+        }
+        .tweet-name {
+            font-weight: 600;
+            font-size: 15px;
+            color: #fff;
+            letter-spacing: 0.5px;
+        }
+        .tweet-handle {
+            font-size: 13px;
+            opacity: 0.5;
+        }
+        .tweet-content {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #fff;
+            opacity: 0.85;
+            margin-bottom: 15px;
+        }
+        .tweet-content a {
+            color: #1da1f2;
+            text-decoration: none;
+        }
+        .tweet-content a:hover {
+            text-decoration: underline;
+        }
+        .tweet-date {
+            font-size: 12px;
+            opacity: 0.4;
+            letter-spacing: 1px;
+        }
+        .tweet-link {
+            display: inline-flex;
+            align-items: center;
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: rgba(29, 161, 242, 0.15);
+            border: 1px solid rgba(29, 161, 242, 0.3);
+            color: #1da1f2;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .tweet-link:hover {
+            background: #1da1f2;
+            color: #fff;
+        }
+        
+        /* Social Embed Section Title */
+        .social-embed-label {
+            font-size: 12px;
+            font-family: 'Barlow Condensed', 'Oswald', sans-serif;
+            font-weight: 500;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #1da1f2;
+            margin-bottom: 30px;
+            font-style: normal;
         }
         .blog-link:hover { opacity: 1; }
 
@@ -1156,7 +1327,6 @@
             <div class="liquid-blob"></div>
             <div class="liquid-blob"></div>
             <div class="liquid-blob"></div>
-            <div class="liquid-shine"></div>
         </div>
         
         <div class="loader-text">AILEENA</div>
@@ -1261,30 +1431,85 @@
                 </div>
             </div>
         </div>
+        
+        <!-- SoundCloud Embed Section -->
+        <div class="soundcloud-container">
+            <div class="soundcloud-track">
+                <div class="soundcloud-label">▶ SoundCloud Tracks</div>
+                <!-- Replace the src URL below with your own SoundCloud embed URL -->
+                <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" 
+                    src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/293&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true">
+                </iframe>
+            </div>
+            <div class="soundcloud-track">
+                <div class="soundcloud-label">▶ Your Music Track</div>
+                <!-- Replace the src URL below with your own SoundCloud embed URL -->
+                <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" 
+                    src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/293&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true">
+                </iframe>
+            </div>
+            <a href="https://soundcloud.com" target="_blank" class="soundcloud-add">
+                + Add Your SoundCloud Track
+            </a>
+        </div>
     </section>
 
     <!-- Blog Section -->
     <section class="content-section" id="blog">
         <h2 class="section-title">BLOG</h2>
-        <div class="blog-grid">
-            <article class="blog-card">
+        <div class="blog-posts-container">
+            <!-- Featured Article -->
+            <article class="blog-post-featured" onclick="window.open('https://your-article-link.com', '_blank')">
                 <div class="blog-date">2024.12.15</div>
                 <h3 class="blog-title">The Art of Mechanical Aesthetics</h3>
-                <p class="blog-excerpt">Exploring the intersection of machinery and artistic expression through careful composition and lighting.</p>
-                <a href="#" class="blog-link">Read More →</a>
+                <p class="blog-excerpt">Exploring the intersection of machinery and artistic expression through careful composition and lighting. Discover the techniques behind our latest visual journey.</p>
+                <span class="blog-link">Read Article →</span>
             </article>
-            <article class="blog-card">
-                <div class="blog-date">2024.11.28</div>
-                <h3 class="blog-title">Brutal Light Series: Behind the Scenes</h3>
-                <p class="blog-excerpt">A deep dive into the creative process behind our latest photography collection.</p>
-                <a href="#" class="blog-link">Read More →</a>
-            </article>
-            <article class="blog-card">
-                <div class="blog-date">2024.10.10</div>
-                <h3 class="blog-title">Material Studies in Metal</h3>
-                <p class="blog-excerpt">Understanding how different metals interact with light and shadow in visual storytelling.</p>
-                <a href="#" class="blog-link">Read More →</a>
-            </article>
+            
+            <!-- Twitter/X Embeds Section -->
+            <div class="social-embed-label">𝕏 Latest Posts</div>
+            
+            <!-- Tweet 1 - Replace with your tweet URL -->
+            <div class="tweet-embed" onclick="window.open('https://twitter.com/yourhandle/status/123456789', '_blank')">
+                <div class="tweet-header">
+                    <div class="tweet-avatar">📷</div>
+                    <div class="tweet-user">
+                        <span class="tweet-name">Your Name</span>
+                        <span class="tweet-handle">@yourhandle</span>
+                    </div>
+                </div>
+                <p class="tweet-content">Check out our latest work on mechanical aesthetics. The intersection of machinery and art creates something truly beautiful. <a href="#">#Art #Photography</a></p>
+                <div class="tweet-date">DEC 15, 2024</div>
+                <span class="tweet-link">View on 𝕏 →</span>
+            </div>
+            
+            <!-- Tweet 2 - Replace with your tweet URL -->
+            <div class="tweet-embed" onclick="window.open('https://twitter.com/yourhandle/status/123456789', '_blank')">
+                <div class="tweet-header">
+                    <div class="tweet-avatar">🎥</div>
+                    <div class="tweet-user">
+                        <span class="tweet-name">Your Name</span>
+                        <span class="tweet-handle">@yourhandle</span>
+                    </div>
+                </div>
+                <p class="tweet-content">Behind the scenes of our brutal light series. Every shadow tells a story. <a href="#">#BehindTheScenes #Creative</a></p>
+                <div class="tweet-date">NOV 28, 2024</div>
+                <span class="tweet-link">View on 𝕏 →</span>
+            </div>
+            
+            <!-- Tweet 3 - Replace with your tweet URL -->
+            <div class="tweet-embed" onclick="window.open('https://twitter.com/yourhandle/status/123456789', '_blank')">
+                <div class="tweet-header">
+                    <div class="tweet-avatar">⚙️</div>
+                    <div class="tweet-user">
+                        <span class="tweet-name">Your Name</span>
+                        <span class="tweet-handle">@yourhandle</span>
+                    </div>
+                </div>
+                <p class="tweet-content">Material studies in metal - understanding how different metals interact with light and shadow. <a href="#">#Materials #Photography</a></p>
+                <div class="tweet-date">OCT 10, 2024</div>
+                <span class="tweet-link">View on 𝕏 →</span>
+            </div>
         </div>
     </section>
 
