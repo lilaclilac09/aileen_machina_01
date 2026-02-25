@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AILEENA - Mechanical aesthetics, brutalist photography, and visual storytelling. Exploring the poetry of industrial forms through careful observation and artistic interpretation.">
+    <meta property="og:title" content="AILEENA Machina Studio">
+    <meta property="og:description" content="Mechanical aesthetics & brutalist photography">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://aileena.xyz">
     <title>AILEENA</title>
     <!-- Akzidenz-Grotesk Font (瘦长版本) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -756,6 +761,235 @@
             filter: brightness(1.1);
         }
 
+        /* ============================================
+           GALLERY LIGHTBOX (Prompt 4)
+           ============================================ */
+        .gallery-lightbox {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 8000;
+            opacity: 0;
+            animation: fadeIn 0.3s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+
+        .gallery-lightbox.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .lightbox-background {
+            position: absolute;
+            inset: 0;
+            background: #000;
+            opacity: 0.95;
+        }
+
+        .lightbox-container {
+            position: relative;
+            width: 90%;
+            max-width: 1200px;
+            height: 80vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 8001;
+        }
+
+        /* Image Container */
+        .lightbox-image-container {
+            flex: 1;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .lightbox-image-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            box-shadow: 0 0 30px rgba(0, 224, 255, 0.2);
+            border: 2px solid #444;
+            animation: imageZoomIn 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        @keyframes imageZoomIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Navigation Arrows */
+        .lightbox-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 80px;
+            height: 100px;
+            background: #1F1F1F;
+            border: 3px solid #444;
+            border-radius: 2px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FF2A00;
+            font-size: 28px;
+            font-weight: bold;
+            transition: all cubic-bezier(0.23, 1, 0.32, 1) 0.3s;
+            z-index: 8002;
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.8),
+                0 0 15px rgba(0, 224, 255, 0.15);
+        }
+
+        .lightbox-arrow:hover {
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.8),
+                0 0 25px rgba(0, 224, 255, 0.3);
+            transform: translateY(-50%) scale(1.05);
+        }
+
+        .lightbox-arrow:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+
+        .lightbox-prev {
+            left: 20px;
+        }
+
+        .lightbox-next {
+            right: 20px;
+        }
+
+        /* Rivets on arrows */
+        .rivet-top, .rivet-bottom {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: radial-gradient(circle at 30% 30%, #777, #333);
+            border-radius: 50%;
+            box-shadow: inset -1px -1px 2px rgba(0, 0, 0, 0.8), 1px 1px 2px rgba(255, 255, 255, 0.2);
+        }
+
+        .rivet-top {
+            top: 8px;
+            right: 8px;
+        }
+
+        .rivet-bottom {
+            bottom: 8px;
+            left: 8px;
+        }
+
+        /* Bottom Info Bar */
+        .lightbox-bottom-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1F1F1F;
+            border: 2px solid #444;
+            border-bottom: none;
+            border-top: 2px double #666;
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 0 15px rgba(0, 224, 255, 0.1);
+            z-index: 8003;
+        }
+
+        .image-counter {
+            font-size: 11px;
+            letter-spacing: 2px;
+            opacity: 0.6;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .image-title {
+            flex: 1;
+            text-align: center;
+            font-size: 13px;
+            letter-spacing: 2px;
+            color: #00E0FF;
+            text-shadow: 0 0 8px #00E0FF;
+            opacity: 0.9;
+        }
+
+        .lightbox-close {
+            width: 40px;
+            height: 40px;
+            background: #FF2A00;
+            color: #000;
+            border: none;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all cubic-bezier(0.23, 1, 0.32, 1) 0.3s;
+            box-shadow: 0 0 12px #FF2A00;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox-close:hover {
+            background: #FF5533;
+            box-shadow: 0 0 20px #FF2A00;
+            transform: scale(1.1);
+        }
+
+        .lightbox-close:active {
+            transform: scale(0.9);
+        }
+
+        @media (max-width: 768px) {
+            .lightbox-container {
+                width: 95%;
+                height: 75vh;
+            }
+
+            .lightbox-arrow {
+                width: 50px;
+                height: 80px;
+                font-size: 20px;
+            }
+
+            .lightbox-prev {
+                left: 10px;
+            }
+
+            .lightbox-next {
+                right: 10px;
+            }
+
+            .lightbox-bottom-bar {
+                padding: 12px 15px;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .image-title {
+                font-size: 11px;
+            }
+
+            .lightbox-close {
+                width: 35px;
+                height: 35px;
+                font-size: 18px;
+            }
+        }
+
         /* Sound Section */
         .sound-section {
             min-height: 100vh;
@@ -1144,6 +1378,299 @@
             text-transform: uppercase;
         }
 
+        /* ============================================
+           WORKS PROJECT MODAL (Prompt 5)
+           ============================================ */
+        .works-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(8px);
+            display: none;
+            z-index: 7000;
+            opacity: 0;
+            transition: opacity 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .works-modal-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .works-modal {
+            position: fixed;
+            inset: 40px;
+            max-width: 1200px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            background: #0A0A0A;
+            border: 2px solid #444;
+            border-radius: 2px;
+            display: none;
+            flex-direction: column;
+            z-index: 7001;
+            opacity: 0;
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.8),
+                0 0 30px rgba(0, 224, 255, 0.2);
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .works-modal.active {
+            display: flex;
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* Control Bar */
+        .works-control-bar {
+            background: #1F1F1F;
+            border-bottom: 2px double #666;
+            padding: 20px 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+        }
+
+        .works-number {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            color: #FF2A00;
+            text-shadow: 0 0 8px #FF2A00;
+        }
+
+        .works-modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            background: linear-gradient(to right, #C0C0C0, #666);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .works-spacer {
+            flex: 1;
+        }
+
+        /* Main Content */
+        .works-main-content {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 30px;
+            padding: 30px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        /* Carousel Section */
+        .works-carousel-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            position: relative;
+        }
+
+        .carousel-image-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #111;
+            border: 2px solid #444;
+            border-radius: 2px;
+            position: relative;
+            min-height: 300px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        .carousel-image-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            padding: 20px;
+        }
+
+        /* Carousel Arrows */
+        .carousel-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 60px;
+            background: #1F1F1F;
+            border: 2px solid #444;
+            color: #FF2A00;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all cubic-bezier(0.23, 1, 0.32, 1) 0.3s;
+            z-index: 100;
+        }
+
+        .carousel-arrow:hover {
+            box-shadow: 0 0 15px rgba(0, 224, 255, 0.3);
+            transform: translateY(-50%) scale(1.05);
+        }
+
+        .carousel-prev {
+            left: 10px;
+        }
+
+        .carousel-next {
+            right: 10px;
+        }
+
+        /* Thumbnail Strip */
+        .carousel-thumbnails {
+            display: flex;
+            gap: 10px;
+            background: #1F1F1F;
+            border: 2px solid #444;
+            padding: 8px;
+            border-radius: 2px;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+        }
+
+        .carousel-thumbnails::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .carousel-thumbnails::-webkit-scrollbar-track {
+            background: #0A0A0A;
+        }
+
+        .carousel-thumbnails::-webkit-scrollbar-thumb {
+            background: #00E0FF;
+            border-radius: 2px;
+        }
+
+        .thumbnail {
+            min-width: 60px;
+            height: 60px;
+            background-size: cover;
+            background-position: center;
+            border: 2px solid #555;
+            cursor: pointer;
+            transition: all cubic-bezier(0.23, 1, 0.32, 1) 0.3s;
+        }
+
+        .thumbnail:hover,
+        .thumbnail.active {
+            border-color: #00E0FF;
+            box-shadow: 0 0 10px #00E0FF;
+            transform: scale(1.05);
+        }
+
+        /* Description Panel */
+        .works-description-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 25px;
+        }
+
+        .works-description {
+            font-size: 14px;
+            line-height: 1.8;
+            opacity: 0.8;
+            color: #DDD;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .works-view-button {
+            margin-top: auto;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        /* Close Button */
+        .works-modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 45px;
+            height: 45px;
+            background: #FF2A00;
+            color: #000;
+            border: none;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all cubic-bezier(0.23, 1, 0.32, 1) 0.3s;
+            box-shadow: 0 0 12px #FF2A00;
+            z-index: 102;
+        }
+
+        .works-modal-close:hover {
+            background: #FF5533;
+            box-shadow: 0 0 20px #FF2A00;
+            transform: scale(1.1);
+        }
+
+        .works-modal-close:active {
+            transform: scale(0.9);
+        }
+
+        @media (max-width: 1024px) {
+            .works-main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .works-modal {
+                inset: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .works-modal {
+                inset: 0;
+                border-radius: 0;
+                max-width: none;
+            }
+
+            .works-main-content {
+                padding: 20px;
+                gap: 20px;
+            }
+
+            .works-control-bar {
+                padding: 15px 20px;
+            }
+
+            .works-modal-title {
+                font-size: 18px;
+            }
+
+            .carousel-arrow {
+                width: 40px;
+                height: 50px;
+                font-size: 16px;
+            }
+
+            .carousel-image-container {
+                min-height: 200px;
+            }
+
+            .thumbnail {
+                min-width: 50px;
+                height: 50px;
+            }
+
+            .works-description-panel {
+                padding: 15px;
+            }
+        }
         /* About Section */
         .about-section {
             background: linear-gradient(180deg, #000 0%, #0a0a0a 50%, #000 100%);
@@ -1246,54 +1773,206 @@
             transition: opacity 0.3s;
         }
         .social-link:hover { opacity: 1; }
+
+        /* ============================================
+           MECHANICAL CONTACT FORM (Prompt 3)
+           ============================================ */
         .contact-form {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 25px;
+            padding: 40px;
+            border-radius: 2px;
         }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            font-size: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            opacia: 0.7;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .rivet-label {
+            color: #FF2A00;
+            font-size: 8px;
+        }
+
         .form-group input,
         .form-group textarea {
             width: 100%;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 20px;
-            color: #fff;
-            font-size: 14px;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.3s ease;
+            background: #1F1F1F;
+            border: 2px inset #555;
+            padding: 15px;
+            color: #DDD;
+            font-size: 13px;
+            font-family: 'Barlow Condensed', monospace;
+            letter-spacing: 1px;
+            transition: all cubic-bezier(0.23, 1, 0.32, 1) 0.3s;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
+            caret-color: #00E0FF;
         }
+
         .form-group input:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: rgba(255, 255, 255, 0.4);
-            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid #00E0FF;
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.8),
+                0 0 12px rgba(0, 224, 255, 0.4);
+            background: #252525;
         }
+
+        /* Blinking cursor animation */
+        @keyframes blink-cursor {
+            0%, 49% { border-left: 2px solid #00E0FF; }
+            50%, 100% { border-left: 2px solid transparent; }
+        }
+
         .form-group input::placeholder,
         .form-group textarea::placeholder {
-            color: rgba(255, 255, 255, 0.4);
+            color: rgba(255, 255, 255, 0.3);
+            font-weight: 300;
         }
+
+        /* Submit Button */
         .submit-btn {
-            background: #fff;
-            color: #000;
-            border: none;
-            padding: 18px 40px;
-            font-size: 13px;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            cursor: pointer;
-            font-family: 'Barlow Condensed', 'Oswald', sans-serif;
-            font-weight: 600;
-            transition: all 0.3s ease;
+            position: relative;
+            margin-top: 10px;
+            overflow: hidden;
         }
-        .submit-btn:hover {
-            background: rgba(255, 255, 255, 0.9);
-            transform: translateY(-2px);
+
+        .btn-text {
+            display: block;
+            transition: all cubic-bezier(0.23, 1, 0.32, 1) 0.3s;
+        }
+
+        .btn-indicator {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 6px;
+            height: 6px;
+            background: #333;
+            border-radius: 50%;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        .submit-btn:hover .btn-text {
+            text-shadow: 0 0 10px #FF2A00;
+        }
+
+        /* Loading state */
+        .submit-btn.loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .submit-btn.loading .btn-text::after {
+            content: ' ⚙';
+            display: inline-block;
+            animation: gear-spin 1s linear infinite;
+        }
+
+        .submit-btn.loading .btn-indicator {
+            background: #00E0FF;
+            box-shadow: 
+                inset 0 1px 2px rgba(0, 0, 0, 0.8),
+                0 0 8px #00E0FF;
+            animation: pulse 1s infinite;
+        }
+
+        /* Form Status (Errors) */
+        .form-status {
+            padding: 15px;
+            background: #FF2A00;
+            border: 2px solid #FF5533;
+            color: #000;
+            font-size: 12px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 600;
+            border-radius: 2px;
+            animation: warning-flash 0.3s;
+        }
+
+        @keyframes warning-flash {
+            0%, 100% { background: #FF2A00; }
+            50% { background: #FF5533; }
+        }
+
+        /* Success State */
+        .success-state {
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(0, 255, 170, 0.1), rgba(0, 224, 255, 0.05));
+            border: 2px solid #00FFAA;
+            border-radius: 2px;
+            text-align: center;
+            animation: successSlideIn 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        @keyframes successSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success-light {
+            width: 12px;
+            height: 12px;
+            background: #00FFAA;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            box-shadow: 0 0 15px #00FFAA;
+            animation: pulse 1s infinite;
+        }
+
+        .success-text {
+            color: #00FFAA;
+            font-size: 12px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 600;
+            animation: typewriter 1.5s steps(40) forwards;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        @keyframes typewriter {
+            from { width: 0; }
+            to { width: 100%; }
         }
 
         @media (max-width: 768px) {
             .contact-content {
                 grid-template-columns: 1fr;
                 gap: 60px;
+            }
+            .contact-form {
+                padding: 30px 20px;
+            }
+            .form-label {
+                font-size: 10px;
+            }
+            .form-group input,
+            .form-group textarea {
+                padding: 12px;
+                font-size: 12px;
             }
             .about-stats {
                 gap: 40px;
@@ -1305,7 +1984,519 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* ============================================
+           MECHANICAL AUDIO PLAYER (Prompt 1)
+           ============================================ */
+        .mech-audio-player {
+            max-width: 600px;
+            margin: 60px auto;
+            background: #1F1F1F;
+            border: 2px solid #444;
+            border-radius: 4px;
+            padding: 40px;
+            position: relative;
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.8),
+                0 0 15px rgba(0, 224, 255, 0.15),
+                0 0 30px rgba(0, 0, 0, 0.6);
+        }
+
+        /* Rivets */
+        .player-rivet {
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle at 30% 30%, #777, #333);
+            border-radius: 50%;
+            box-shadow: inset -1px -1px 2px rgba(0, 0, 0, 0.8), 1px 1px 2px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Title */
+        .player-title {
+            text-align: center;
+            font-size: 14px;
+            letter-spacing: 4px;
+            font-weight: 300;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+            color: #00E0FF;
+            text-shadow: 0 0 10px #00E0FF, 0 0 20px #00E0FF;
+            font-family: 'Barlow Condensed', monospace;
+        }
+
+        /* Control Panel */
+        .player-controls {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        /* Play Button - 68px diameter gear knob */
+        .play-button {
+            width: 68px;
+            height: 68px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #555, #222);
+            border: 3px solid #666;
+            cursor: pointer;
+            font-size: 24px;
+            color: #FF2A00;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all cubic-bezier(0.23, 1, 0.32, 1) 0.3s;
+            box-shadow: 
+                inset -2px -2px 4px rgba(0, 0, 0, 0.8),
+                inset 2px 2px 4px rgba(255, 255, 255, 0.1),
+                0 0 15px rgba(255, 42, 0, 0.3);
+            position: relative;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .play-button:hover {
+            box-shadow: 
+                inset -2px -2px 4px rgba(0, 0, 0, 0.8),
+                inset 2px 2px 4px rgba(255, 255, 255, 0.1),
+                0 0 25px rgba(255, 42, 0, 0.6);
+            transform: scale(1.05);
+        }
+
+        .play-button:active {
+            transform: scale(0.95);
+        }
+
+        .play-button.playing .play-icon {
+            animation: gear-spin infinite linear;
+        }
+
+        /* Progress Section */
+        .progress-section {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .progress-bar-container {
+            position: relative;
+            height: 8px;
+            background: #333;
+            border: 1px solid #555;
+            margin-bottom: 8px;
+            border-radius: 2px;
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        .progress-bar-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: repeating-linear-gradient(
+                90deg,
+                rgba(0, 224, 255, 0.1) 0px,
+                rgba(0, 224, 255, 0.1) 2px,
+                transparent 2px,
+                transparent 4px
+            );
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, #00D4E0, #00E0FF);
+            width: 0%;
+            transition: width 0.1s linear;
+            box-shadow: 0 0 10px #00E0FF;
+            position: relative;
+            z-index: 2;
+        }
+
+        .progress-handle {
+            position: absolute;
+            top: 50%;
+            left: 0%;
+            width: 14px;
+            height: 14px;
+            background: radial-gradient(circle at 30% 30%, #C0C0C0, #666);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            border: 2px solid #888;
+            box-shadow: 0 2px 6px rgba(0, 224, 255, 0.5);
+            z-index: 3;
+            cursor: grab;
+        }
+
+        .progress-handle:active {
+            cursor: grabbing;
+        }
+
+        /* Time Display */
+        .time-display {
+            font-size: 11px;
+            letter-spacing: 2px;
+            opacity: 0.7;
+            font-family: monospace;
+            margin-top: 6px;
+        }
+
+        .time-separator {
+            margin: 0 4px;
+            opacity: 0.5;
+        }
+
+        /* Volume Control */
+        .volume-control {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .volume-label {
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: 0.6;
+            font-weight: 600;
+        }
+
+        .knob-container {
+            position: relative;
+            width: 50px;
+            height: 50px;
+        }
+
+        .volume-knob {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 10;
+            border-radius: 50%;
+        }
+
+        .knob-pointer {
+            position: absolute;
+            top: 5px;
+            left: 50%;
+            width: 3px;
+            height: 12px;
+            background: #FF2A00;
+            border-radius: 2px;
+            transform: translateX(-50%);
+            pointer-events: none;
+            box-shadow: 0 0 6px #FF2A00;
+        }
+
+        /* Knob visual (circle with degree markers) */
+        .knob-container::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border: 3px solid #666;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #555, #222);
+            box-shadow: 
+                inset -2px -2px 4px rgba(0, 0, 0, 0.8),
+                inset 2px 2px 4px rgba(255, 255, 255, 0.1),
+                0 0 10px rgba(255, 42, 0, 0.2);
+        }
+
+        /* Knob degree lines */
+        .knob-container::after {
+            content: '';
+            position: absolute;
+            inset: 6px;
+            border: 1px solid transparent;
+            border-radius: 50%;
+            background: 
+                repeating-conic-gradient(
+                    from 0deg,
+                    #666 0deg 1deg,
+                    transparent 1deg 9deg
+                );
+            pointer-events: none;
+        }
+
+        /* Status LED (small indicator) */
+        .status-led {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            width: 6px;
+            height: 6px;
+            background: #333;
+            border-radius: 50%;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        .status-led.playing {
+            background: #00E0FF;
+            box-shadow: 
+                inset 0 1px 2px rgba(0, 0, 0, 0.8),
+                0 0 8px #00E0FF;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .mech-audio-player {
+                padding: 30px 20px;
+            }
+
+            .player-title {
+                font-size: 12px;
+                margin-bottom: 30px;
+            }
+
+            .player-controls {
+                gap: 20px;
+            }
+
+            .play-button {
+                width: 56px;
+                height: 56px;
+                font-size: 20px;
+            }
+
+            .progress-section {
+                min-width: 150px;
+            }
+        }
+
+        /* ============================================
+           BLOG MODALS (Prompt 2)
+           ============================================ */
+        .blog-modal-container {
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 10, 10, 0.9);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9000;
+            opacity: 0;
+            animation: fadeIn 0.3s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .blog-modal-content {
+            max-width: 700px;
+            max-height: 90vh;
+            background: #1F1F1F;
+            border: 4px double #444;
+            border-radius: 2px;
+            padding: 50px;
+            position: relative;
+            box-shadow: 
+                0 0 30px rgba(0, 224, 255, 0.3),
+                inset 0 2px 4px rgba(0, 0, 0, 0.8);
+            background-image: 
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(0, 224, 255, 0.02) 0px,
+                    rgba(0, 224, 255, 0.02) 1px,
+                    transparent 1px,
+                    transparent 4px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    rgba(0, 224, 255, 0.02) 0px,
+                    rgba(0, 224, 255, 0.02) 1px,
+                    transparent 1px,
+                    transparent 4px
+                );
+            overflow-y: auto;
+            animation: slideInFromLeft 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+
+        @keyframes slideInFromLeft {
+            from {
+                transform: translateX(-100px) rotateY(5deg);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0) rotateY(0deg);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutToLeft {
+            from {
+                transform: translateX(0) rotateY(0deg);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(-100px) rotateY(-5deg) scale(0.9);
+                opacity: 0;
+            }
+        }
+
+        .blog-modal-content.closing {
+            animation: slideOutToLeft 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+
+        /* Title Section */
+        .blog-modal-title {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            background: linear-gradient(to right, #C0C0C0, #666);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(0, 224, 255, 0.3);
+        }
+
+        /* Date with warning light */
+        .blog-modal-date {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            letter-spacing: 3px;
+            opacity: 0.7;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+        }
+
+        .warning-light {
+            width: 8px;
+            height: 8px;
+            background: #FF2A00;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #FF2A00;
+            animation: warning-blink 1s infinite;
+        }
+
+        @keyframes warning-blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Content Text */
+        .blog-modal-content-text {
+            font-size: 15px;
+            line-height: 1.8;
+            opacity: 0.85;
+            color: #DDD;
+            font-family: 'Inter', 'Barlow Condensed', sans-serif;
+        }
+
+        .blog-modal-content-text p {
+            margin-bottom: 20px;
+        }
+
+        .blog-modal-content-text p:first-letter {
+            font-size: 2.2em;
+            font-weight: 700;
+            float: left;
+            line-height: 1;
+            padding-right: 8px;
+            color: #00E0FF;
+            text-shadow: 0 0 10px #00E0FF;
+        }
+
+        /* Close Button */
+        .blog-modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: #FF2A00;
+            color: #000;
+            border: none;
+            font-weight: 700;
+            font-size: 28px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all cubic-bezier(0.23, 1, 0.32, 1) 0.3s;
+            box-shadow: 0 0 15px #FF2A00;
+            border-radius: 2px;
+        }
+
+        .blog-modal-close:hover {
+            background: #FF5533;
+            box-shadow: 0 0 25px #FF2A00;
+            transform: scale(1.1);
+            animation: shake 0.15s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateY(0) scale(1.1); }
+            25% { transform: translateY(-2px) scale(1.1); }
+            75% { transform: translateY(2px) scale(1.1); }
+        }
+
+        .blog-modal-close:active {
+            transform: scale(0.95);
+        }
+
+        /* Scrollbar styling */
+        .blog-modal-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .blog-modal-content::-webkit-scrollbar-track {
+            background: #0A0A0A;
+        }
+
+        .blog-modal-content::-webkit-scrollbar-thumb {
+            background: #00E0FF;
+            border-radius: 4px;
+            box-shadow: 0 0 8px #00E0FF;
+        }
+
+        .blog-modal-content::-webkit-scrollbar-thumb:hover {
+            background: #00D4E0;
+        }
+
+        @media (max-width: 768px) {
+            .blog-modal-content {
+                max-width: 90%;
+                padding: 30px 20px;
+                max-height: 85vh;
+            }
+
+            .blog-modal-title {
+                font-size: 24px;
+            }
+
+            .blog-modal-close {
+                width: 40px;
+                height: 40px;
+                font-size: 22px;
+            }
+        }
     </style>
+    <!-- Main Mechanical Aesthetic Engine -->
+    <script src="main.js"></script>
 </head>
 <body>
 
@@ -1408,27 +2599,95 @@
     <section class="content-section" id="gallery">
         <h2 class="section-title">GALLERY</h2>
         <div class="gallery-grid">
-            <div class="gallery-item" style="background-image: url('bg_pic/03.jpeg'); background-size: contain; background-position: center center;"></div>
+            <div class="gallery-item" data-index="0" onclick="window.mechGalleryLightbox && window.mechGalleryLightbox.open(0)" style="background-image: url('bg_pic/03.jpeg'); background-size: contain; background-position: center center;" title="MECHANICALA Series - 03"></div>
+            <div class="gallery-item" data-index="1" onclick="window.mechGalleryLightbox && window.mechGalleryLightbox.open(1)" style="background-image: url('bg_pic/01.jpeg'); background-size: contain; background-position: center center;" title="BRUTAL LIGHT Study"></div>
+            <div class="gallery-item" data-index="2" onclick="window.mechGalleryLightbox && window.mechGalleryLightbox.open(2)" style="background-image: url('bg_pic/02.jpeg'); background-size: contain; background-position: center center;" title="METAL REFLECTION 01"></div>
         </div>
     </section>
+
+    <!-- Gallery Lightbox Modal -->
+    <div class="gallery-lightbox" id="galleryLightbox">
+        <div class="lightbox-background" onclick="window.mechGalleryLightbox && window.mechGalleryLightbox.close()"></div>
+        <div class="lightbox-container">
+            <!-- Previous Arrow -->
+            <button class="lightbox-arrow lightbox-prev" onclick="window.mechGalleryLightbox && window.mechGalleryLightbox.prev()">
+                <span class="arrow-icon">◀</span>
+                <div class="rivet-top"></div>
+                <div class="rivet-bottom"></div>
+            </button>
+
+            <!-- Image Display -->
+            <div class="lightbox-image-container">
+                <img id="lightboxImage" src="" alt="Gallery image" loading="lazy">
+            </div>
+
+            <!-- Next Arrow -->
+            <button class="lightbox-arrow lightbox-next" onclick="window.mechGalleryLightbox && window.mechGalleryLightbox.next()">
+                <span class="arrow-icon">▶</span>
+                <div class="rivet-top"></div>
+                <div class="rivet-bottom"></div>
+            </button>
+
+            <!-- Bottom Info Bar -->
+            <div class="lightbox-bottom-bar">
+                <div class="image-counter" id="imageCounter">1 / 3</div>
+                <div class="image-title" id="imageTitle">MECHANICALA Series - 03</div>
+                <button class="lightbox-close" onclick="window.mechGalleryLightbox && window.mechGalleryLightbox.close()">✕</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Sound Section -->
     <section class="sound-section" id="sound">
         <h2 class="section-title">SOUND</h2>
         <div class="sound-player">
-            <div class="audio-track">
-                <video autoplay loop muted playsinline>
-                    <source src="bg_pic/01v.MP4" type="video/mp4">
-                </video>
-                <div class="track-title">MECHANICALA • 01</div>
-                <div class="track-info">ORIGINAL SOUNDTRACK</div>
-                <div class="audio-controls">
-                    <audio controls preload="metadata">
-                        <source src="sound/mechanicala-01.mp3" type="audio/mpeg">
-                        <source src="sound/mechanicala-01.ogg" type="audio/ogg">
-                        Your browser does not support the audio element.
-                    </audio>
+            <div class="mech-audio-player">
+                <!-- Top rivets -->
+                <div class="player-rivet" style="position: absolute; top: 20px; left: 30px;"></div>
+                <div class="player-rivet" style="position: absolute; top: 20px; right: 30px;"></div>
+                <div class="player-rivet" style="position: absolute; bottom: 20px; left: 30px;"></div>
+                <div class="player-rivet" style="position: absolute; bottom: 20px; right: 30px;"></div>
+
+                <!-- Title -->
+                <div class="player-title neon-pulse">MECHANICALA • 01 ORIGINAL SOUNDTRACK</div>
+
+                <!-- Hidden audio element -->
+                <audio id="mechAudio" preload="metadata">
+                    <source src="assets/sounds/mechanical-hum-loop.mp3" type="audio/mpeg">
+                </audio>
+
+                <!-- Control Panel -->
+                <div class="player-controls">
+                    <!-- Play Button -->
+                    <button class="play-button" id="playBtn" aria-label="Play">
+                        <div class="play-icon">▶</div>
+                    </button>
+
+                    <!-- Progress Section -->
+                    <div class="progress-section">
+                        <div class="progress-bar-container scanline-hover">
+                            <div class="progress-bar" id="progressBar"></div>
+                            <div class="progress-handle" id="progressHandle"></div>
+                        </div>
+                        <div class="time-display">
+                            <span class="time-current" id="timeCurrent">0:00</span>
+                            <span class="time-separator">/</span>
+                            <span class="time-total" id="timeTotal">0:00</span>
+                        </div>
+                    </div>
+
+                    <!-- Volume Knob -->
+                    <div class="volume-control">
+                        <div class="volume-label">VOL</div>
+                        <div class="knob-container">
+                            <input type="range" id="volumeKnob" class="volume-knob" min="0" max="100" value="50" aria-label="Volume">
+                            <div class="knob-pointer"></div>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Status LED -->
+                <div class="status-led" id="statusLed"></div>
             </div>
         </div>
         
@@ -1458,66 +2717,102 @@
     <section class="content-section" id="blog">
         <h2 class="section-title">BLOG</h2>
         <div class="blog-posts-container">
-            <!-- Featured Article -->
-            <article class="blog-post-featured" onclick="window.open('https://your-article-link.com', '_blank')">
+            <!-- Featured Article 1 -->
+            <article class="blog-post-featured" onclick="window.mechBlogModals && window.mechBlogModals.openModal('blog-article-01')">
                 <div class="blog-date">2024.12.15</div>
                 <h3 class="blog-title">The Art of Mechanical Aesthetics</h3>
                 <p class="blog-excerpt">Exploring the intersection of machinery and artistic expression through careful composition and lighting. Discover the techniques behind our latest visual journey.</p>
-                <span class="blog-link">Read Article →</span>
+                <span class="blog-link">Read More →</span>
             </article>
             
-            <!-- Twitter/X Embeds Section -->
-            <div class="social-embed-label">𝕏 Latest Posts</div>
-            
-            <!-- Tweet 1 - Replace with your tweet URL -->
-            <div class="tweet-embed" onclick="window.open('https://twitter.com/yourhandle/status/123456789', '_blank')">
-                <div class="tweet-header">
-                    <div class="tweet-avatar">📷</div>
-                    <div class="tweet-user">
-                        <span class="tweet-name">Your Name</span>
-                        <span class="tweet-handle">@yourhandle</span>
-                    </div>
-                </div>
-                <p class="tweet-content">Check out our latest work on mechanical aesthetics. The intersection of machinery and art creates something truly beautiful. <a href="#">#Art #Photography</a></p>
-                <div class="tweet-date">DEC 15, 2024</div>
-                <span class="tweet-link">View on 𝕏 →</span>
-            </div>
-            
-            <!-- Tweet 2 - Replace with your tweet URL -->
-            <div class="tweet-embed" onclick="window.open('https://twitter.com/yourhandle/status/123456789', '_blank')">
-                <div class="tweet-header">
-                    <div class="tweet-avatar">🎥</div>
-                    <div class="tweet-user">
-                        <span class="tweet-name">Your Name</span>
-                        <span class="tweet-handle">@yourhandle</span>
-                    </div>
-                </div>
-                <p class="tweet-content">Behind the scenes of our brutal light series. Every shadow tells a story. <a href="#">#BehindTheScenes #Creative</a></p>
-                <div class="tweet-date">NOV 28, 2024</div>
-                <span class="tweet-link">View on 𝕏 →</span>
-            </div>
-            
-            <!-- Tweet 3 - Replace with your tweet URL -->
-            <div class="tweet-embed" onclick="window.open('https://twitter.com/yourhandle/status/123456789', '_blank')">
-                <div class="tweet-header">
-                    <div class="tweet-avatar">⚙️</div>
-                    <div class="tweet-user">
-                        <span class="tweet-name">Your Name</span>
-                        <span class="tweet-handle">@yourhandle</span>
-                    </div>
-                </div>
-                <p class="tweet-content">Material studies in metal - understanding how different metals interact with light and shadow. <a href="#">#Materials #Photography</a></p>
-                <div class="tweet-date">OCT 10, 2024</div>
-                <span class="tweet-link">View on 𝕏 →</span>
-            </div>
+            <!-- Featured Article 2 -->
+            <article class="blog-post-featured" onclick="window.mechBlogModals && window.mechBlogModals.openModal('blog-article-02')">
+                <div class="blog-date">2024.11.28</div>
+                <h3 class="blog-title">Behind the Brutal Light Series</h3>
+                <p class="blog-excerpt">Every shadow tells a story. In this deep dive, we explore the technical and artistic methodology behind our most challenging work to date.</p>
+                <span class="blog-link">Read More →</span>
+            </article>
+
+            <!-- Featured Article 3 -->
+            <article class="blog-post-featured" onclick="window.mechBlogModals && window.mechBlogModals.openModal('blog-article-03')">
+                <div class="blog-date">2024.10.10</div>
+                <h3 class="blog-title">Material Studies: Metal & Reflection</h3>
+                <p class="blog-excerpt">Understanding how different metals interact with light and shadow is fundamental to mechanical aesthetics. A comprehensive exploration.</p>
+                <span class="blog-link">Read More →</span>
+            </article>
         </div>
     </section>
+
+    <!-- Blog Modals -->
+    <div class="blog-modal-container" id="blog-modal-01">
+        <div class="blog-modal-content">
+            <button class="blog-modal-close" onclick="window.mechBlogModals && window.mechBlogModals.closeModal('blog-article-01')">×</button>
+            <h2 class="blog-modal-title" id="modal-title-01">The Art of Mechanical Aesthetics</h2>
+            <div class="blog-modal-date">
+                <span>2024.12.15</span>
+                <span class="warning-light"></span>
+            </div>
+            <div class="blog-modal-content-text" id="modal-content-01">
+                <p>Photography has long been the medium through which we observe and celebrate the mechanical world. The intersection of machinery and artistic expression creates a unique visual language—one that speaks to both the technical precision and the poetic beauty inherent in industrial forms.</p>
+                
+                <p>In our exploration of mechanical aesthetics, we believe that every gear, every bolt, every surface carries with it a narrative of human ingenuity and creative purpose. The careful composition of light and shadow across metallic surfaces reveals layers of meaning that simple observation might miss. It is in these careful moments of seeing that photography becomes not merely documentation, but dialogue.</p>
+                
+                <p>Our methodology focuses on three core principles: precision, restraint, and revelation. We approach each subject with the understanding that the mechanical world has already done the hard work of creation. Our role is to illuminate what already exists, to find the poetry in the practical, and to present the viewer with a new way of seeing the ordinary extraordinary.</p>
+                
+                <p>Through careful consideration of lighting angles, surface treatments, and compositional balance, we discovered that the most profound mechanical images emerge when we honor both the technical and the emotional aspects of the work. Every photograph becomes a meditation on form, function, and beauty.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="blog-modal-container" id="blog-modal-02">
+        <div class="blog-modal-content">
+            <button class="blog-modal-close" onclick="window.mechBlogModals && window.mechBlogModals.closeModal('blog-article-02')">×</button>
+            <h2 class="blog-modal-title" id="modal-title-02">Behind the Brutal Light Series</h2>
+            <div class="blog-modal-date">
+                <span>2024.11.28</span>
+                <span class="warning-light"></span>
+            </div>
+            <div class="blog-modal-content-text" id="modal-content-02">
+                <p>The "Brutal Light" series represents our most ambitious exploration to date. Spanning six months of intensive production, this project challenged our assumptions about what mechanical photography could achieve. The concept was deceptively simple: use harsh, directional lighting to expose the raw reality of industrial materials.</p>
+                
+                <p>What emerged was far more complex. We discovered that brutal light, when applied with intention and understanding, revealed not harshness but honesty. The unforgiving glare of industrial lighting, the way it exposed every imperfection and texture, created a visual narrative of authenticity that softer approaches could not achieve.</p>
+                
+                <p>Our production process involved custom lighting rigs, extensive metallic surface preparation, and multiple exposure sequences. We worked with surfaces that had been weathered by time and use, finding beauty in corrosion and wear. The shadows became as important as the highlights—each dark area told a story of depth and dimension.</p>
+                
+                <p>The technical challenges were significant. Heat management, precision alignment, and color temperature control all demanded careful attention. Yet these constraints ultimately served the creative vision, forcing us to work with intention and purpose.</p>
+                
+                <p>What we learned through this series is that truly seeing requires uncompromising vision. The "Brutal Light" approach demands that both photographer and viewer engage fully with the subject. It strips away comfortable aesthetics in favor of profound truth. Every image in this series represents a commitment to revealing what lies beneath the surface.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="blog-modal-container" id="blog-modal-03">
+        <div class="blog-modal-content">
+            <button class="blog-modal-close" onclick="window.mechBlogModals && window.mechBlogModals.closeModal('blog-article-03')">×</button>
+            <h2 class="blog-modal-title" id="modal-title-03">Material Studies: Metal & Reflection</h2>
+            <div class="blog-modal-date">
+                <span>2024.10.10</span>
+                <span class="warning-light"></span>
+            </div>
+            <div class="blog-modal-content-text" id="modal-content-03">
+                <p>To understand mechanical aesthetics, one must first understand materials. Metal, in all its varieties, presents a complex and fascinating subject for study. The way different alloys respond to light—their reflectivity, their color temperature, their tendency toward reflection or absorption—forms the foundation of mechanical visual exploration.</p>
+                
+                <p>Steel, aluminum, copper, brass, titanium: each has its own acoustic and visual signature. Steel presents cold, precise geometry. Aluminum offers lighter reflections with subtle gradient shifts. Copper reveals warm amber tones and complex oxidation patterns. Brass speaks of antiquity and precision engineering combined. Titanium suggests the future with its pristine, almost ethereal reflective qualities.</p>
+                
+                <p>Our material studies involved systematic photography of each metal type under controlled lighting conditions. We documented how each material behaves across different color temperatures, from cool daylight at 5600K to warm artificial light at 3200K. We explored how surface finishes transform material character: brushed surfaces scatter light differently than polished ones; oxidized surfaces create depth that raw metal cannot achieve.</p>
+                
+                <p>Beyond simple documentation, we began to understand the emotional resonance of different materials. A polished steel surface suggests precision and control. A weathered copper plate speaks of time and process. The interplay between material, surface, light, and observer creates a rich vocabulary for visual communication.</p>
+                
+                <p>This research continues to inform our work. Every mechanical photograph benefits from deep knowledge of how materials behave in light. As we move forward, we carry these lessons as foundation stones of our creative practice. The mechanical aesthetic is, at its core, a meditation on the authentic properties of the materials from which our world is built.</p>
+            </div>
+        </div>
+    </div>
 
     <!-- Works Section -->
     <section class="content-section" id="works">
         <h2 class="section-title">WORKS</h2>
         <div class="works-grid">
-            <div class="work-item">
+            <div class="work-item" onclick="window.mechWorksModal && window.mechWorksModal.openProject(0)">
                 <div class="work-image" style="background-image: url('bg_pic/04.jpeg'); background-size: contain; background-position: center;"></div>
                 <div class="work-info">
                     <div class="work-number">01</div>
@@ -1525,7 +2820,7 @@
                     <p class="work-category">PHOTOGRAPHY SERIES</p>
                 </div>
             </div>
-            <div class="work-item">
+            <div class="work-item" onclick="window.mechWorksModal && window.mechWorksModal.openProject(1)">
                 <div class="work-image" style="background-image: url('bg_pic/02.jpeg'); background-size: contain; background-position: center;"></div>
                 <div class="work-info">
                     <div class="work-number">02</div>
@@ -1533,7 +2828,7 @@
                     <p class="work-category">VISUAL ART</p>
                 </div>
             </div>
-            <div class="work-item">
+            <div class="work-item" onclick="window.mechWorksModal && window.mechWorksModal.openProject(2)">
                 <div class="work-image" style="background-image: url('bg_pic/03.jpeg'); background-size: contain; background-position: center;"></div>
                 <div class="work-info">
                     <div class="work-number">03</div>
@@ -1543,6 +2838,46 @@
             </div>
         </div>
     </section>
+
+    <!-- Works Project Modal -->
+    <div class="works-modal-overlay" id="worksModalOverlay" onclick="window.mechWorksModal && window.mechWorksModal.closeProject()"></div>
+    <div class="works-modal" id="worksModal">
+        <button class="works-modal-close" onclick="window.mechWorksModal && window.mechWorksModal.closeProject()">✕</button>
+        
+        <!-- Control Bar -->
+        <div class="works-control-bar">
+            <span class="works-number" id="worksNumber">01</span>
+            <h2 class="works-modal-title" id="worksTitle">MECHANICALA</h2>
+            <div class="works-spacer"></div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="works-main-content">
+            <!-- Image Carousel -->
+            <div class="works-carousel-section">
+                <button class="carousel-arrow carousel-prev" onclick="window.mechWorksModal && window.mechWorksModal.prevImage()">◀</button>
+                <div class="carousel-image-container">
+                    <img id="worksCarouselImage" src="" alt="Project image" loading="lazy">
+                </div>
+                <button class="carousel-arrow carousel-next" onclick="window.mechWorksModal && window.mechWorksModal.nextImage()">▶</button>
+
+                <!-- Thumbnail Strip -->
+                <div class="carousel-thumbnails" id="carouselThumbnails">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+
+            <!-- Description Panel -->
+            <div class="works-description-panel mech-panel">
+                <p class="works-description" id="worksDescription">
+                    <!-- Will be populated by JS -->
+                </p>
+                <a href="#" class="works-view-button metal-button" target="_blank">
+                    VIEW FULL SERIES ↗
+                </a>
+            </div>
+        </div>
+    </div>
 
     <!-- About Section -->
     <section class="content-section about-section" id="about">
@@ -1594,17 +2929,49 @@
                     </div>
                 </div>
             </div>
-            <form class="contact-form" onsubmit="event.preventDefault(); alert('Thank you for your message!');">
+            <!-- Mechanical Contact Form -->
+            <form class="contact-form mech-panel" id="mechContactForm" onsubmit="event.preventDefault(); window.mechContact && window.mechContact.handleSubmit();">
+                <!-- Name Field -->
                 <div class="form-group">
-                    <input type="text" name="name" placeholder="Your Name" required>
+                    <label class="form-label" for="contact-name">
+                        <span class="rivet-label">◆</span>
+                        NAME
+                    </label>
+                    <input type="text" id="contact-name" name="name" placeholder="Enter your name" required>
                 </div>
+
+                <!-- Email Field -->
                 <div class="form-group">
-                    <input type="email" name="email" placeholder="Your Email" required>
+                    <label class="form-label" for="contact-email">
+                        <span class="rivet-label">◆</span>
+                        EMAIL
+                    </label>
+                    <input type="email" id="contact-email" name="email" placeholder="Enter your email" required>
                 </div>
+
+                <!-- Message Field -->
                 <div class="form-group">
-                    <textarea name="message" placeholder="Your Message" rows="5" required></textarea>
+                    <label class="form-label" for="contact-message">
+                        <span class="rivet-label">◆</span>
+                        MESSAGE
+                    </label>
+                    <textarea id="contact-message" name="message" placeholder="Type your message" rows="5" required></textarea>
                 </div>
-                <button type="submit" class="submit-btn">Send Message</button>
+
+                <!-- Validation Status -->
+                <div class="form-status" id="formStatus" style="display: none;"></div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="submit-btn metal-button" id="submitBtn">
+                    <span class="btn-text">TRANSMIT MESSAGE</span>
+                    <span class="btn-indicator" id="btnIndicator"></span>
+                </button>
+
+                <!-- Success State -->
+                <div class="success-state" id="successState" style="display: none;">
+                    <div class="success-light"></div>
+                    <div class="success-text">◆ MESSAGE TRANSMITTED SUCCESSFULLY ◆</div>
+                </div>
             </form>
         </div>
     </section>
@@ -2010,6 +3377,607 @@
         let slideInterval = setInterval(nextSlide, intervalTime);
         document.querySelector('.hero').addEventListener('mouseenter', () => clearInterval(slideInterval));
         document.querySelector('.hero').addEventListener('mouseleave', () => slideInterval = setInterval(nextSlide, intervalTime));
+
+        /* ============================================
+           MECHANICAL AUDIO PLAYER (Prompt 1)
+           ============================================ */
+        class MechanicalAudioPlayer {
+            constructor() {
+                this.audio = document.getElementById('mechAudio');
+                this.playBtn = document.getElementById('playBtn');
+                this.progressBar = document.getElementById('progressBar');
+                this.progressHandle = document.getElementById('progressHandle');
+                this.progressContainer = document.querySelector('.progress-bar-container');
+                this.volumeKnob = document.getElementById('volumeKnob');
+                this.knobPointer = document.querySelector('.knob-pointer');
+                this.timeCurrent = document.getElementById('timeCurrent');
+                this.timeTotal = document.getElementById('timeTotal');
+                this.statusLed = document.getElementById('statusLed');
+                this.playerContainer = document.querySelector('.mech-audio-player');
+                this.isPlaying = false;
+                this.isDragging = false;
+
+                this.init();
+            }
+
+            init() {
+                // Play button
+                this.playBtn.addEventListener('click', () => this.togglePlay());
+
+                // Audio events
+                this.audio.addEventListener('timeupdate', () => this.updateProgress());
+                this.audio.addEventListener('loadedmetadata', () => this.updateTotalTime());
+                this.audio.addEventListener('play', () => this.onPlay());
+                this.audio.addEventListener('pause', () => this.onPause());
+                this.audio.addEventListener('ended', () => this.onEnded());
+
+                // Progress bar interaction
+                this.progressContainer.addEventListener('click', (e) => this.seek(e));
+                this.progressHandle.addEventListener('mousedown', () => this.startDrag());
+                document.addEventListener('mousemove', (e) => this.drag(e));
+                document.addEventListener('mouseup', () => this.stopDrag());
+
+                // Volume control
+                this.volumeKnob.addEventListener('input', (e) => this.setVolume(e.target.value));
+
+                // Hover effect on player
+                this.playerContainer.addEventListener('mouseenter', () => this.onHover());
+
+                // Set initial values
+                this.audio.volume = 0.5;
+                this.volumeKnob.value = 50;
+                this.updateKnobPointer(50);
+            }
+
+            togglePlay() {
+                if (this.isPlaying) {
+                    this.audio.pause();
+                } else {
+                    this.audio.play().catch(err => {
+                        console.log('Playback prevented by browser policy');
+                    });
+                }
+            }
+
+            onPlay() {
+                this.isPlaying = true;
+                this.playBtn.classList.add('playing');
+                this.statusLed.classList.add('playing');
+                this.playBtn.innerHTML = '<div class="play-icon">⏸</div>';
+            }
+
+            onPause() {
+                this.isPlaying = false;
+                this.playBtn.classList.remove('playing');
+                this.statusLed.classList.remove('playing');
+                this.playBtn.innerHTML = '<div class="play-icon">▶</div>';
+            }
+
+            onEnded() {
+                this.audio.currentTime = 0;
+                this.onPause();
+                // Loop by replaying
+                setTimeout(() => {
+                    this.audio.play().catch(err => {
+                        console.log('Playback prevented');
+                    });
+                }, 500);
+            }
+
+            updateProgress() {
+                if (!this.isDragging && this.audio.duration) {
+                    const percent = (this.audio.currentTime / this.audio.duration) * 100;
+                    this.progressBar.style.width = percent + '%';
+                    this.progressHandle.style.left = percent + '%';
+                    this.updateCurrentTime();
+                }
+            }
+
+            updateCurrentTime() {
+                this.timeCurrent.textContent = this.formatTime(this.audio.currentTime);
+            }
+
+            updateTotalTime() {
+                this.timeTotal.textContent = this.formatTime(this.audio.duration);
+            }
+
+            formatTime(seconds) {
+                if (!seconds || isNaN(seconds)) return '0:00';
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            }
+
+            seek(e) {
+                if (this.audio.duration) {
+                    const rect = this.progressContainer.getBoundingClientRect();
+                    const percent = (e.clientX - rect.left) / rect.width;
+                    this.audio.currentTime = percent * this.audio.duration;
+                    this.updateProgress();
+                }
+            }
+
+            startDrag() {
+                this.isDragging = true;
+            }
+
+            drag(e) {
+                if (!this.isDragging || !this.audio.duration) return;
+
+                const rect = this.progressContainer.getBoundingClientRect();
+                const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                
+                this.progressBar.style.width = (percent * 100) + '%';
+                this.progressHandle.style.left = (percent * 100) + '%';
+                this.timeCurrent.textContent = this.formatTime(percent * this.audio.duration);
+            }
+
+            stopDrag() {
+                if (this.isDragging && this.audio.duration) {
+                    const percent = parseFloat(this.progressHandle.style.left) / 100;
+                    this.audio.currentTime = percent * this.audio.duration;
+                    this.isDragging = false;
+                }
+            }
+
+            setVolume(value) {
+                this.audio.volume = value / 100;
+                this.updateKnobPointer(value);
+            }
+
+            updateKnobPointer(value) {
+                // Rotate pointer from -135deg to +135deg (270 degree range)
+                const angle = (value / 100) * 270 - 135;
+                this.knobPointer.style.transform = `translateX(-50%) rotate(${angle}deg)`;
+            }
+
+            onHover() {
+                // Add subtle scanline animation on hover
+                const scanlines = document.createElement('div');
+                scanlines.style.cssText = `
+                    position: absolute;
+                    inset: 0;
+                    background-image: repeating-linear-gradient(
+                        0deg,
+                        rgba(0, 224, 255, 0.05) 0px,
+                        rgba(0, 224, 255, 0.05) 1px,
+                        transparent 1px,
+                        transparent 2px
+                    );
+                    border-radius: 4px;
+                    pointer-events: none;
+                    animation: scanlinePass 0.8s ease-in-out forwards;
+                `;
+
+                // Add animation if not exists
+                if (!document.querySelector('style[data-scanline]')) {
+                    const style = document.createElement('style');
+                    style.setAttribute('data-scanline', '');
+                    style.textContent = `
+                        @keyframes scanlinePass {
+                            from { opacity: 0; }
+                            50% { opacity: 0.3; }
+                            to { opacity: 0; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+
+                this.playerContainer.appendChild(scanlines);
+                setTimeout(() => scanlines.remove(), 800);
+            }
+        }
+
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                window.mechPlayer = new MechanicalAudioPlayer();
+            });
+        } else {
+            window.mechPlayer = new MechanicalAudioPlayer();
+        }
+
+        /* ============================================
+           BLOG MODALS (Prompt 2)
+           ============================================ */
+        class BlogModalManager {
+            constructor() {
+                this.currentModal = null;
+                this.setupEventListeners();
+            }
+
+            setupEventListeners() {
+                // Close on escape key
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && this.currentModal) {
+                        this.closeModal(this.currentModal);
+                    }
+                });
+
+                // Close on background click
+                document.querySelectorAll('.blog-modal-container').forEach(modal => {
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal) {
+                            const contentId = modal.id.replace('blog-modal-', 'blog-article-');
+                            this.closeModal(contentId);
+                        }
+                    });
+                });
+
+                // Prevent event bubbling on content click
+                document.querySelectorAll('.blog-modal-content').forEach(content => {
+                    content.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                    });
+                });
+            }
+
+            openModal(articleId) {
+                // Close any open modal first
+                if (this.currentModal) {
+                    this.closeModal(this.currentModal);
+                }
+
+                const modalId = 'blog-modal-' + articleId.replace('blog-article-', '');
+                const modal = document.getElementById(modalId);
+                const content = modal.querySelector('.blog-modal-content');
+
+                if (modal) {
+                    content.classList.remove('closing');
+                    modal.style.display = 'flex';
+                    this.currentModal = articleId;
+
+                    // Play modal open sound
+                    if (window.mechAesthetic) {
+                        window.mechAesthetic.playSound('assets/sounds/modal-open.mp3', false);
+                    }
+
+                    // Small animation delay for visual effect
+                    setTimeout(() => {
+                        modal.style.opacity = '1';
+                    }, 50);
+
+                    // Prevent body scroll
+                    document.body.style.overflow = 'hidden';
+
+                    // Add particle effect
+                    if (window.mechAesthetic) {
+                        window.mechAesthetic.createClickParticles({
+                            clientX: window.innerWidth / 2,
+                            clientY: window.innerHeight / 2
+                        });
+                    }
+                }
+            }
+
+            closeModal(articleId) {
+                const modalId = 'blog-modal-' + articleId.replace('blog-article-', '');
+                const modal = document.getElementById(modalId);
+                const content = modal.querySelector('.blog-modal-content');
+
+                if (modal) {
+                    content.classList.add('closing');
+
+                    // Play modal close sound
+                    if (window.mechAesthetic) {
+                        window.mechAesthetic.playSound('assets/sounds/modal-close.mp3', false);
+                    }
+
+                    setTimeout(() => {
+                        modal.style.display = 'none';
+                        modal.style.opacity = '0';
+                        this.currentModal = null;
+
+                        // Restore body scroll
+                        document.body.style.overflow = 'auto';
+                    }, 400);
+                }
+            }
+        }
+
+        // Initialize blog modals
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                window.mechBlogModals = new BlogModalManager();
+            });
+        } else {
+            window.mechBlogModals = new BlogModalManager();
+        }
+
+        /* ============================================
+           MECHANICAL CONTACT FORM (Prompt 3)
+           ============================================ */
+        class MechanicalContactForm {
+            constructor() {
+                this.form = document.getElementById('mechContactForm');
+                this.submitBtn = document.getElementById('submitBtn');
+                this.formStatus = document.getElementById('formStatus');
+                this.successState = document.getElementById('successState');
+                this.isSubmitting = false;
+
+                // EmailJS config (TO BE FILLED BY USER)
+                // emailjs.init('YOUR_PUBLIC_KEY_HERE');
+                
+                this.init();
+            }
+
+            init() {
+                this.form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleSubmit();
+                });
+
+                // Real-time validation
+                this.form.querySelectorAll('input, textarea').forEach(field => {
+                    field.addEventListener('blur', () => this.validateField(field));
+                    field.addEventListener('focus', () => {
+                        this.formStatus.style.display = 'none';
+                    });
+                });
+            }
+
+            validateField(field) {
+                let valid = true;
+                let errorMsg = '';
+
+                if (field.name === 'email' && field.value) {
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    valid = emailRegex.test(field.value);
+                    if (!valid) {
+                        errorMsg = 'Invalid email format';
+                    }
+                }
+
+                if (field.value.trim() === '') {
+                    valid = false;
+                    errorMsg = field.name + ' is required';
+                }
+
+                if (!valid) {
+                    field.style.borderColor = '#FF2A00';
+                    field.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.8), 0 0 12px rgba(255, 42, 0, 0.3)';
+                    return false;
+                } else {
+                    field.style.borderColor = '#555';
+                    field.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.8)';
+                }
+                return true;
+            }
+
+            async handleSubmit() {
+                if (this.isSubmitting) return;
+
+                // Validate all fields
+                const fields = this.form.querySelectorAll('input[required], textarea[required]');
+                let allValid = true;
+
+                for (const field of fields) {
+                    if (!this.validateField(field)) {
+                        allValid = false;
+                    }
+                }
+
+                if (!allValid) {
+                    this.showError('Please fill in all required fields correctly');
+                    if (window.mechAesthetic) {
+                        window.mechAesthetic.playSound('assets/sounds/error-beep.mp3', false);
+                    }
+                    return;
+                }
+
+                this.isSubmitting = true;
+                this.setLoadingState();
+
+                try {
+                    const formData = {
+                        name: this.form.querySelector('[name="name"]').value,
+                        email: this.form.querySelector('[name="email"]').value,
+                        message: this.form.querySelector('[name="message"]').value
+                    };
+
+                    // Try EmailJS first (if configured)
+                    if (typeof emailjs !== 'undefined') {
+                        await emailjs.send(
+                            'YOUR_SERVICE_ID',  // User to fill this in
+                            'YOUR_TEMPLATE_ID', // User to fill this in
+                            {
+                                to_email: 'hello@aileena.studio',
+                                from_name: formData.name,
+                                from_email: formData.email,
+                                message: formData.message
+                            }
+                        );
+                    } else {
+                        // Fallback: use mailto
+                        const mailtoLink = `mailto:hello@aileena.studio?subject=Contact: ${encodeURIComponent(formData.name)}&body=${encodeURIComponent(formData.message + '\n\nFrom: ' + formData.email)}`;
+                        window.open(mailtoLink);
+                    }
+
+                    // Simulate transmission delay (0.8s)
+                    await new Promise(resolve => setTimeout(resolve, 800));
+
+                    this.showSuccess();
+                    this.form.reset();
+
+                    // Reset form after 3 seconds
+                    setTimeout(() => {
+                        this.resetForm();
+                    }, 3000);
+
+                } catch (error) {
+                    console.error('Form submission error:', error);
+                    this.showError('Transmission failed. Please try again.');
+                    if (window.mechAesthetic) {
+                        window.mechAesthetic.playSound('assets/sounds/error-beep.mp3', false);
+                    }
+                } finally {
+                    this.isSubmitting = false;
+                }
+            }
+
+            setLoadingState() {
+                this.submitBtn.classList.add('loading');
+                this.submitBtn.disabled = true;
+                this.successState.style.display = 'none';
+                this.formStatus.style.display = 'none';
+
+                if (window.mechAesthetic) {
+                    window.mechAesthetic.playSound('assets/sounds/button-hover.mp3', false);
+                }
+            }
+
+            showSuccess() {
+                this.submitBtn.classList.remove('loading');
+                this.submitBtn.disabled = false;
+                this.successState.style.display = 'block';
+                this.formStatus.style.display = 'none';
+
+                if (window.mechAesthetic) {
+                    window.mechAesthetic.playSound('assets/sounds/success-chime.mp3', false);
+                }
+            }
+
+            showError(message) {
+                this.submitBtn.classList.remove('loading');
+                this.submitBtn.disabled = false;
+                this.formStatus.textContent = '⚠ ' + message + ' ⚠';
+                this.formStatus.style.display = 'block';
+                this.successState.style.display = 'none';
+            }
+
+            resetForm() {
+                this.submitBtn.classList.remove('loading');
+                this.successState.style.display = 'none';
+                
+                // Clear field borders
+                this.form.querySelectorAll('input, textarea').forEach(field => {
+                    field.style.borderColor = '#555';
+                    field.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.8)';
+                });
+            }
+        }
+
+        // Initialize contact form
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                window.mechContact = new MechanicalContactForm();
+            });
+        } else {
+            window.mechContact = new MechanicalContactForm();
+        }
+
+        /* ============================================
+           GALLERY LIGHTBOX (Prompt 4)
+           ============================================ */
+        class GalleryLightbox {
+            constructor() {
+                this.lightbox = document.getElementById('galleryLightbox');
+                this.lightboxImage = document.getElementById('lightboxImage');
+                this.imageCounter = document.getElementById('imageCounter');
+                this.imageTitle = document.getElementById('imageTitle');
+                this.currentIndex = 0;
+
+                // Gallery images (from gallery-item elements)
+                this.images = [
+                    {
+                        src: 'bg_pic/03.jpeg',
+                        title: 'MECHANICALA Series - 03'
+                    },
+                    {
+                        src: 'bg_pic/01.jpeg',
+                        title: 'BRUTAL LIGHT Study'
+                    },
+                    {
+                        src: 'bg_pic/02.jpeg',
+                        title: 'METAL REFLECTION 01'
+                    }
+                ];
+
+                this.setupEventListeners();
+            }
+
+            setupEventListeners() {
+                // Keyboard navigation
+                document.addEventListener('keydown', (e) => {
+                    if (!this.lightbox.classList.contains('active')) return;
+
+                    switch (e.key) {
+                        case 'ArrowLeft':
+                            this.prev();
+                            break;
+                        case 'ArrowRight':
+                            this.next();
+                            break;
+                        case 'Escape':
+                            this.close();
+                            break;
+                    }
+                });
+
+                // Close on background click
+                const background = document.querySelector('.lightbox-background');
+                background.addEventListener('click', () => this.close());
+            }
+
+            open(index) {
+                this.currentIndex = index;
+                this.loadImage();
+                this.lightbox.classList.add('active');
+                document.body.style.overflow = 'hidden';
+
+                if (window.mechAesthetic) {
+                    window.mechAesthetic.playSound('assets/sounds/modal-open.mp3', false);
+                }
+            }
+
+            close() {
+                this.lightbox.classList.remove('active');
+                document.body.style.overflow = 'auto';
+
+                if (window.mechAesthetic) {
+                    window.mechAesthetic.playSound('assets/sounds/modal-close.mp3', false);
+                }
+            }
+
+            next() {
+                this.currentIndex = (this.currentIndex + 1) % this.images.length;
+                this.loadImage();
+            }
+
+            prev() {
+                this.currentIndex = (this.currentIndex - 1 + this.images.length) % this.images.length;
+                this.loadImage();
+            }
+
+            loadImage() {
+                const image = this.images[this.currentIndex];
+                
+                // Fade out animation
+                this.lightboxImage.style.opacity = '0';
+                
+                setTimeout(() => {
+                    this.lightboxImage.src = image.src;
+                    this.imageTitle.textContent = image.title;
+                    this.imageCounter.textContent = `${this.currentIndex + 1} / ${this.images.length}`;
+                    
+                    // Fade in animation
+                    this.lightboxImage.style.opacity = '1';
+                    
+                    if (window.mechAesthetic) {
+                        window.mechAesthetic.playSound('assets/sounds/button-hover.mp3', false);
+                    }
+                }, 200);
+            }
+        }
+
+        // Initialize gallery lightbox
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                window.mechGalleryLightbox = new GalleryLightbox();
+            });
+        } else {
+            window.mechGalleryLightbox = new GalleryLightbox();
+        }
     </script>
 
 </body>
