@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SOUND — Aileen</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; }
+  </style>
+</head>
+<body class="bg-black text-white min-h-screen">
+
+  <nav class="fixed top-0 w-full bg-black/90 backdrop-blur border-b border-zinc-800 z-50">
+    <div class="max-w-5xl mx-auto px-6 py-6 flex justify-between items-center">
+      <a href="index.html" class="text-lg font-medium hover:text-zinc-400 transition-colors">← Back to Aileen</a>
+      <div class="text-sm tracking-widest text-zinc-400">SOUND / PODCAST</div>
+    </div>
+  </nav>
+
+  <div class="max-w-5xl mx-auto px-6 pt-28 pb-24">
+
+    <!-- 上方文字（完全复制你图片里的内容） -->
+    <div class="prose prose-invert prose-lg max-w-none mb-16">
+      <p>expressive potential of color and form with an emphasis on free and personal expression. His method is emotional and intuitive, and the result is a body of work characterized by spontaneity, personal expression, as well as freedom and openness.</p>
+      
+      <p class="mt-8">When viewing the paintings, as one's eyes follow the differently colored pictorial signs—seemingly placed at random—across the canvas, melodies appear to form in the mind. At the same time, they evoke afterimages: those flickering patterns, dots, and flashes of light one sees after gazing for a long time into the sunny sky on a spring day and then closing one's eyes.</p>
+    </div>
+
+    <!-- Spotify 播放器卡片（100% 还原你发的截图风格） -->
+    <div class="bg-zinc-900 rounded-3xl p-6 border border-zinc-800 shadow-2xl">
+      <div class="flex gap-6">
+        <!-- 左侧专辑图 -->
+        <div class="w-32 h-32 flex-shrink-0 rounded-xl overflow-hidden border border-zinc-700">
+          <img src="https://placeholder.pics/svg/400x400/1a1a1a-FFFFFF/666666-666666/Franz%20Stein" 
+               alt="Franz Stein" 
+               class="w-full h-full object-cover">
+        </div>
+
+        <!-- 右侧信息 -->
+        <div class="flex-1 min-w-0">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="text-white text-lg font-medium leading-tight">
+                ... mit Franz Stein über radikale Einfachheit und Kunst aus Knappheit
+              </p>
+              <p class="text-zinc-400 text-sm mt-2">
+                Jul 28 • Was mit Kunst - Ein Podcast von und mit Johann König | Podimo
+              </p>
+            </div>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg" 
+                 class="w-8 h-8 opacity-80" alt="Spotify">
+          </div>
+
+          <!-- Save on Spotify -->
+          <button onclick="window.open('https://open.spotify.com/', '_blank')" 
+                  class="mt-6 flex items-center gap-2 text-sm text-white border border-zinc-700 hover:border-white px-5 py-2 rounded-full transition-all hover:bg-zinc-800">
+            <span class="text-xl leading-none">+</span> 
+            Save on Spotify
+          </button>
+
+          <!-- 进度条 -->
+          <div class="mt-8">
+            <div class="h-1 bg-zinc-700 rounded-full relative">
+              <div class="absolute left-0 top-0 h-1 bg-white w-[65%] rounded-full"></div>
+            </div>
+            <div class="flex justify-between text-xs text-zinc-500 mt-2">
+              <div>1:00:06</div>
+              <div class="flex gap-6">
+                <span>15</span>
+                <span>15</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 播放控制 -->
+          <div class="flex items-center justify-between mt-6">
+            <div class="flex gap-6 text-2xl">
+              <button class="hover:text-zinc-400 transition-colors">⤢</button>
+              <button class="hover:text-zinc-400 transition-colors">◀◀</button>
+              <button class="text-4xl -mt-1 hover:text-zinc-400 transition-colors">▶</button>
+              <button class="hover:text-zinc-400 transition-colors">▶▶</button>
+            </div>
+            <div class="text-zinc-500 cursor-pointer hover:text-zinc-400 transition-colors">⋯</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 可选：更多播客列表 -->
+    <div class="mt-12 space-y-4">
+      <h3 class="text-2xl font-bold mb-6">More Episodes</h3>
+      
+      <!-- 播客项目 1 -->
+      <div class="bg-zinc-900 rounded-2xl p-5 border border-zinc-800 hover:border-zinc-700 transition-all cursor-pointer">
+        <div class="flex gap-4">
+          <div class="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border border-zinc-700">
+            <img src="https://placeholder.pics/svg/200x200/1a1a1a-FFFFFF/666666-666666/Episode%202" 
+                 alt="Episode" 
+                 class="w-full h-full object-cover">
+          </div>
+          <div class="flex-1">
+            <p class="text-white font-medium">Episode 2: The Art of Simplicity</p>
+            <p class="text-zinc-400 text-sm mt-1">Sep 12 • 45:30</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 播客项目 2 -->
+      <div class="bg-zinc-900 rounded-2xl p-5 border border-zinc-800 hover:border-zinc-700 transition-all cursor-pointer">
+        <div class="flex gap-4">
+          <div class="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border border-zinc-700">
+            <img src="https://placeholder.pics/svg/200x200/1a1a1a-FFFFFF/666666-666666/Episode%203" 
+                 alt="Episode" 
+                 class="w-full h-full object-cover">
+          </div>
+          <div class="flex-1">
+            <p class="text-white font-medium">Episode 3: Color Theory in Modern Art</p>
+            <p class="text-zinc-400 text-sm mt-1">Oct 5 • 52:18</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="border-t border-zinc-800 py-8 mt-24">
+    <div class="max-w-5xl mx-auto px-6 text-center text-zinc-600 text-sm">
+      <p>© 2026 AILEENA MACHINA STUDIO • Curated by Aileen</p>
+    </div>
+  </footer>
+
+</body>
+</html>

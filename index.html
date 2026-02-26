@@ -1997,6 +1997,214 @@
                 padding: 15px;
             }
         }
+
+        /* ============================================
+           ELSEWHERE EXHIBITION SECTION
+           ============================================ */
+        .elsewhere-section {
+            background: #000;
+            padding: 100px 0;
+        }
+
+        .elsewhere-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 50px;
+        }
+
+        .elsewhere-teaser {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            aspect-ratio: 16/9;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            display: block;
+            text-decoration: none;
+        }
+
+        .elsewhere-teaser:hover {
+            border-color: #FF2A00;
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(255, 42, 0, 0.3);
+        }
+
+        .elsewhere-teaser img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .elsewhere-teaser:hover img {
+            transform: scale(1.05);
+        }
+
+        .elsewhere-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 50%, transparent 100%);
+        }
+
+        .elsewhere-content {
+            position: absolute;
+            bottom: 50px;
+            left: 50px;
+            color: #fff;
+            z-index: 10;
+        }
+
+        .elsewhere-label {
+            font-size: 12px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-weight: 500;
+            margin-bottom: 8px;
+            opacity: 0.8;
+        }
+
+        .elsewhere-title {
+            font-size: 64px;
+            font-weight: 700;
+            letter-spacing: -2px;
+            margin-bottom: 8px;
+            font-family: 'Barlow Condensed', 'Oswald', sans-serif;
+        }
+
+        .elsewhere-artist {
+            font-size: 28px;
+            font-weight: 300;
+            opacity: 0.7;
+        }
+
+        .elsewhere-cta {
+            position: absolute;
+            bottom: 50px;
+            right: 50px;
+            background: #fff;
+            color: #000;
+            padding: 16px 40px;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 2px;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .elsewhere-teaser:hover .elsewhere-cta {
+            background: #FF2A00;
+            color: #fff;
+            transform: translateX(-8px);
+        }
+
+        @media (max-width: 768px) {
+            .elsewhere-section {
+                padding: 60px 0;
+            }
+
+            .elsewhere-container {
+                padding: 0 20px;
+            }
+
+            .elsewhere-content {
+                bottom: 30px;
+                left: 30px;
+            }
+
+            .elsewhere-title {
+                font-size: 40px;
+            }
+
+            .elsewhere-artist {
+                font-size: 18px;
+            }
+
+            .elsewhere-cta {
+                bottom: 30px;
+                right: 30px;
+                padding: 12px 24px;
+                font-size: 11px;
+            }
+        }
+
+        /* ============================================
+           SOUND SECTION
+           ============================================ */
+        .sound-section {
+            background: #000;
+            padding: 100px 0;
+        }
+
+        .sound-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 50px;
+        }
+
+        .sound-teaser {
+            display: block;
+            background: #141414;
+            border-radius: 24px;
+            padding: 60px;
+            border: 1px solid #333;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            text-decoration: none;
+        }
+
+        .sound-teaser:hover {
+            border-color: #555;
+            background: #1a1a1a;
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .sound-label {
+            color: #FF2A00;
+            font-size: 12px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+
+        .sound-title {
+            font-size: 48px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 16px;
+            font-family: 'Barlow Condensed', 'Oswald', sans-serif;
+        }
+
+        .sound-description {
+            font-size: 18px;
+            color: #999;
+            margin-top: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .sound-section {
+                padding: 60px 0;
+            }
+
+            .sound-container {
+                padding: 0 20px;
+            }
+
+            .sound-teaser {
+                padding: 40px 30px;
+            }
+
+            .sound-title {
+                font-size: 32px;
+            }
+
+            .sound-description {
+                font-size: 16px;
+            }
+        }
+
         /* About Section */
         .about-section {
             background: linear-gradient(180deg, #000 0%, #0a0a0a 50%, #000 100%);
@@ -3163,6 +3371,39 @@
                     <p class="work-category">RESEARCH</p>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <!-- ELSEWHERE Exhibition Teaser -->
+    <section class="elsewhere-section">
+        <div class="elsewhere-container">
+            <a href="elsewhere.html" class="elsewhere-teaser">
+                <img src="https://placeholder.pics/svg/1920x1080/000000-FF0000/FFFFFF-FFFFFF/HERO%20%E2%80%A2%20Oil%20Tanker%20%E2%80%A2%20Replace%20with%20your%20image" 
+                     alt="Monira Al Qadiri - HERO">
+                
+                <div class="elsewhere-overlay"></div>
+                
+                <div class="elsewhere-content">
+                    <div class="elsewhere-label">ELSEWHERE</div>
+                    <div class="elsewhere-title">HERO</div>
+                    <div class="elsewhere-artist">Monira Al Qadiri</div>
+                </div>
+                
+                <div class="elsewhere-cta">
+                    ENTER EXHIBITION →
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <!-- SOUND Teaser -->
+    <section class="sound-section">
+        <div class="sound-container">
+            <a href="sound.html" class="sound-teaser">
+                <div class="sound-label">SOUND</div>
+                <div class="sound-title">Music &amp; Podcast</div>
+                <div class="sound-description">Listen to the latest episodes and curated playlists</div>
+            </a>
         </div>
     </section>
 
