@@ -130,5 +130,45 @@
     </div>
   </footer>
 
+  <!-- Aileena 心脏故事 - 极简版 -->
+  <div id="heart" style="position:absolute; top:25px; right:35px; font-size:32px; cursor:pointer; transition:0.3s;">❤️</div>
+
+  <div id="popup" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#111; border:3px solid #333; border-radius:16px; padding:25px; width:360px; text-align:center; z-index:999; box-shadow:0 0 50px rgba(255,80,80,0.4);">
+    <img id="chestImg" src="" style="width:100%; border-radius:10px; margin-bottom:15px;">
+    <p id="msg" style="color:#ddd; font-size:15px; line-height:1.5;"></p>
+    <button onclick="hidePop()" style="margin-top:10px; background:#222; color:#fff; border:none; padding:12px 30px; border-radius:8px; cursor:pointer;">Transmit</button>
+  </div>
+
+  <script>
+  let v = parseInt(localStorage.getItem('aileenaVisits')||0) + 1;
+  localStorage.setItem('aileenaVisits', v);
+  let lv = v>=11 ? 3 : v>=6 ? 2 : v>=3 ? 1 : 0;
+
+  const hearts = ['❤️','🖤','🟠','🔵'];
+  document.getElementById('heart').innerHTML = hearts[lv];
+
+  document.getElementById('heart').onclick = () => {
+    const imgs = [
+      'https://i.imgur.com/empty-chest.jpg',     // ← 换成你的空箱图
+      'https://i.imgur.com/mech-heart.jpg',      // ← 换成你的机械心脏图
+      'https://i.imgur.com/gold-heart.jpg',      // ← 换成你的黄金心脏图
+      'https://i.imgur.com/crystal-heart.jpg'    // ← 换成你的水晶心脏图
+    ];
+    const texts = [
+      '信号太弱……<br>Bandwidth too low.',
+      '机械心脏启动了……<br>但还缺节奏。',
+      '黄金心脏在熔化……<br>你的信号好强！',
+      'Root bandwidth achieved.<br>The core is yours.<br>❤️'
+    ];
+    document.getElementById('chestImg').src = imgs[lv];
+    document.getElementById('msg').innerHTML = texts[lv];
+    document.getElementById('popup').style.display = 'block';
+  };
+
+  function hidePop() {
+    document.getElementById('popup').style.display = 'none';
+  }
+  </script>
+
 </body>
 </html>
