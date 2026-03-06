@@ -2401,103 +2401,119 @@
         }
 
         /* ============================================
-           CLEAN VOLUME KNOB
+           MARS VOLUME KNOB SECTION
            ============================================ */
         .volume-knob-section {
             text-align: center;
-            padding: 40px 0;
+            padding: 60px 0 80px;
         }
 
-        .knob-container-new {
+        .mars-knob-wrapper {
+            margin: 0 auto 60px;
             display: inline-block;
         }
 
-        .knob-new {
-            width: 110px;
-            height: 110px;
-            background: #1f1f1f;
-            border: 10px solid #333;
+        .mars-knob {
+            width: 260px;
+            height: 260px;
+            margin: 0 auto;
             border-radius: 50%;
             position: relative;
-            box-shadow: 
-                0 0 30px rgba(255, 60, 60, 0.6),
-                inset 0 15px 25px rgba(0, 0, 0, 0.9);
             cursor: grab;
-            transition: box-shadow 0.3s;
+            box-shadow: 0 0 70px rgba(255, 80, 40, 0.7);
+            transition: box-shadow 0.3s ease;
         }
 
-        .knob-new:hover {
-            box-shadow: 
-                0 0 45px rgba(255, 60, 60, 0.8),
-                inset 0 15px 25px rgba(0, 0, 0, 0.9);
+        .mars-knob:active {
+            cursor: grabbing;
         }
 
-        .knob-new::after {
-            content: '';
+        .mars-knob:hover {
+            box-shadow: 0 0 90px rgba(255, 80, 40, 0.9);
+        }
+
+        .mars-surface {
             position: absolute;
-            top: 12%;
-            left: 50%;
-            width: 8px;
-            height: 42px;
-            background: #ff3c3c;
-            border-radius: 4px;
-            transform: translateX(-50%) rotate(var(--knob-rotation, -45deg));
-            transform-origin: bottom center;
-            box-shadow: 0 0 12px #ff3c3c;
-            transition: transform 0.1s ease-out;
-        }
-
-        .vol-label {
-            display: block;
-            margin-top: 12px;
-            color: #00ffff;
-            font-size: 0.95rem;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-        }
-
-        .knob-play-btn {
-            position: absolute;
-            bottom: -40px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 50px;
-            height: 50px;
-            background: #FF2A00;
-            border: 2px solid #FF2A00;
+            inset: 0;
             border-radius: 50%;
-            color: #fff;
-            font-size: 18px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 15px rgba(255, 42, 0, 0.5);
+            background: radial-gradient(circle at 40% 30%, #c1440e 8%, #9b2d0e 25%, #5c1a08 55%, #2e0f05 100%);
+            box-shadow: 
+                inset 0 0 90px rgba(0,0,0,0.9),
+                inset 50px 30px 70px rgba(255,180,100,0.3);
+        }
+
+        .volume-ring {
+            position: absolute;
+            inset: 14px;
+            border-radius: 50%;
+            border: 16px solid transparent;
+            border-top-color: #00ffff;
+            border-right-color: #00ffff;
+            transform: rotate(-90deg);
+            transition: transform 0.08s linear;
+            pointer-events: none;
+        }
+
+        .knob-center {
+            position: absolute;
+            inset: 78px;
+            background: #111;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            box-shadow: 0 0 35px #ff3c3c;
+            pointer-events: none;
+        }
+
+        .vol-text {
+            color: #00ffff;
+            font-size: 1.15rem;
+            letter-spacing: 7px;
             font-weight: bold;
+            font-family: 'Barlow Condensed', 'Oswald', 'Inter', sans-serif;
+            text-transform: uppercase;
         }
 
-        .knob-play-btn:hover {
-            background: #FF5533;
-            box-shadow: 0 0 25px rgba(255, 42, 0, 0.8);
-            transform: translateX(-50%) scale(1.1);
+        .play-btn {
+            width: 96px;
+            height: 96px;
+            background: #111;
+            border: 6px solid #00ffff;
+            color: #00ffff;
+            font-size: 2.6rem;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 0 35px #00ffff;
+            transition: all 0.4s;
+            font-weight: bold;
+            padding-left: 8px;
         }
 
-        .knob-play-btn:active {
-            transform: translateX(-50%) scale(0.95);
-        }
-
-        .knob-play-btn.playing {
+        .play-btn:hover {
             background: #00ffff;
-            border-color: #00ffff;
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
             color: #000;
+            box-shadow: 0 0 55px #00ffff;
+            transform: scale(1.05);
         }
 
-        .knob-container-new {
-            position: relative;
-            display: inline-block;
-            margin-bottom: 60px;
+        .play-btn:active {
+            transform: scale(0.95);
+        }
+
+        .play-btn.playing {
+            background: #ff3c3c;
+            border-color: #ff3c3c;
+            color: #fff;
+            box-shadow: 0 0 45px #ff3c3c;
+        }
+
+        .play-btn.playing:hover {
+            background: #ff5533;
+            border-color: #ff5533;
         }
 
         /* ============================================
@@ -3380,13 +3396,18 @@
             <source src="assets/sounds/mechanical-hum-loop.mp3" type="audio/mpeg">
         </audio>
         
-        <!-- Clean Volume Knob -->
+        <!-- === 火星音量旋钮 (Mars Volume Knob) === -->
         <div class="volume-knob-section">
-            <div class="knob-container-new">
-                <div id="volumeKnob" class="knob-new"></div>
-                <span class="vol-label">VOL</span>
-                <button class="knob-play-btn" id="knobPlayBtn" title="Play audio">▶</button>
+            <div class="mars-knob-wrapper">
+                <div class="mars-knob" id="marsKnob">
+                    <div class="mars-surface"></div>
+                    <div class="volume-ring" id="volumeRing"></div>
+                    <div class="knob-center">
+                        <span class="vol-text">VOL</span>
+                    </div>
+                </div>
             </div>
+            <button class="play-btn" id="playBtn">▶</button>
         </div>
         
         <!-- SoundCloud Embed Section -->
@@ -4173,94 +4194,89 @@
         document.querySelector('.hero').addEventListener('mouseleave', () => slideInterval = setInterval(nextSlide, intervalTime));
 
         /* ============================================
-           INTERACTIVE VOLUME KNOB
+           INTERACTIVE MARS VOLUME KNOB
            ============================================ */
-        class VolumeKnob {
+        class MarsVolumeKnob {
             constructor() {
-                this.knob = document.getElementById('volumeKnob');
-                this.playBtn = document.getElementById('knobPlayBtn');
+                this.knob = document.getElementById('marsKnob');
+                this.ring = document.getElementById('volumeRing');
+                this.playBtn = document.getElementById('playBtn');
                 this.audio = document.getElementById('masterAudio');
+                
                 if (!this.knob || !this.audio) return;
                 
+                this.rotation = -90; // Start at middle position
                 this.isDragging = false;
-                this.volume = 50; // 0-100
-                this.centerX = 0;
-                this.centerY = 0;
                 
                 this.init();
             }
             
             init() {
+                // Mouse events
                 this.knob.addEventListener('mousedown', (e) => this.startDrag(e));
-                document.addEventListener('mousemove', (e) => this.drag(e));
-                document.addEventListener('mouseup', () => this.stopDrag());
                 
-                // Touch support
-                this.knob.addEventListener('touchstart', (e) => this.startDrag(e.touches[0]));
-                document.addEventListener('touchmove', (e) => this.drag(e.touches[0]));
-                document.addEventListener('touchend', () => this.stopDrag());
+                // Touch events for mobile
+                this.knob.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    this.startDrag(e.touches[0]);
+                });
                 
-                // Play/pause button
+                // Play button
                 if (this.playBtn) {
                     this.playBtn.addEventListener('click', () => this.togglePlay());
-                    this.audio.addEventListener('play', () => this.playBtn.classList.add('playing'));
-                    this.audio.addEventListener('pause', () => this.playBtn.classList.remove('playing'));
+                    this.audio.addEventListener('play', () => {
+                        this.playBtn.classList.add('playing');
+                        this.playBtn.textContent = '❚❚';
+                    });
+                    this.audio.addEventListener('pause', () => {
+                        this.playBtn.classList.remove('playing');
+                        this.playBtn.textContent = '▶';
+                    });
                 }
                 
-                // Set initial position and volume
-                this.updateKnobRotation();
-                this.audio.volume = this.volume / 100;
+                // Set initial volume (50%)
+                this.updateVolume();
             }
             
             startDrag(e) {
                 this.isDragging = true;
-                const rect = this.knob.getBoundingClientRect();
-                this.centerX = rect.left + rect.width / 2;
-                this.centerY = rect.top + rect.height / 2;
-                this.knob.style.cursor = 'grabbing';
+                const startY = e.clientY;
+                const startRotation = this.rotation;
+                
+                const onMouseMove = (e) => {
+                    if (!this.isDragging) return;
+                    
+                    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+                    const delta = (clientY - startY) * -1.5; // Inverted for natural feel
+                    this.rotation = Math.max(-135, Math.min(135, startRotation + delta));
+                    
+                    // Update visuals
+                    this.knob.style.transform = `rotate(${this.rotation}deg)`;
+                    this.ring.style.transform = `rotate(${this.rotation}deg)`;
+                    
+                    // Update audio volume in real-time
+                    this.updateVolume();
+                };
+                
+                const onMouseUp = () => {
+                    this.isDragging = false;
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+                    document.removeEventListener('touchmove', onMouseMove);
+                    document.removeEventListener('touchend', onMouseUp);
+                };
+                
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+                document.addEventListener('touchmove', onMouseMove, { passive: false });
+                document.addEventListener('touchend', onMouseUp);
             }
             
-            drag(e) {
-                if (!this.isDragging) return;
-                
-                const deltaX = e.clientX - this.centerX;
-                const deltaY = e.clientY - this.centerY;
-                
-                // Calculate angle (-180 to 180)
-                let angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
-                
-                // Map angle to volume (0-100)
-                // Knob range: -135° to +135° (270° total)
-                // Normalize to 0-270 range
-                let normalizedAngle = angle + 135;
-                if (normalizedAngle < 0) normalizedAngle += 360;
-                
-                // Clamp to knob range
-                if (normalizedAngle > 270 && normalizedAngle < 315) {
-                    normalizedAngle = 270;
-                } else if (normalizedAngle >= 315) {
-                    normalizedAngle = 0;
-                }
-                
-                // Convert to volume (0-100)
-                this.volume = Math.max(0, Math.min(100, (normalizedAngle / 270) * 100));
-                this.updateKnobRotation();
-            }
-            
-            stopDrag() {
-                this.isDragging = false;
-                this.knob.style.cursor = 'grab';
-            }
-            
-            updateKnobRotation() {
-                // Rotate pointer from -135° to +135°
-                const rotation = (this.volume / 100) * 270 - 135;
-                this.knob.style.setProperty('--knob-rotation', `${rotation}deg`);
-                this.knob.setAttribute('data-rotation', rotation);
-                
-                // Update audio volume
+            updateVolume() {
+                // Convert rotation (-135 to 135) to volume (0 to 1)
+                const volume = (this.rotation + 135) / 270;
                 if (this.audio) {
-                    this.audio.volume = this.volume / 100;
+                    this.audio.volume = Math.max(0, Math.min(1, volume));
                 }
             }
             
@@ -4275,13 +4291,13 @@
             }
         }
         
-        // Initialize volume knob when DOM ready
+        // Initialize Mars volume knob when DOM ready
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
-                window.volumeKnob = new VolumeKnob();
+                window.marsKnob = new MarsVolumeKnob();
             });
         } else {
-            window.volumeKnob = new VolumeKnob();
+            window.marsKnob = new MarsVolumeKnob();
         }
 
         /* ============================================
