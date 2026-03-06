@@ -1,86 +1,796 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ELSEWHERE — HERO | Monira Al Qadiri</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body { font-family: system-ui, -apple-system, sans-serif; }
-    .hero-text { text-shadow: 0 4px 30px rgba(0,0,0,0.9); }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AILEENA - Elsewhere. Curated art experiences and collaborations.">
+    <meta property="og:title" content="AILEENA - Elsewhere">
+    <meta property="og:description" content="Curated art experiences">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://aileena.xyz/elsewhere">
+    <title>AILEENA - ELSEWHERE</title>
+    <!-- Akzidenz-Grotesk Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700&family=Oswald:wght@200;300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'Akzidenz-Grotesk';
+            src: local('Helvetica Neue Condensed'), local('Helvetica Neue'), local('Helvetica'), local('Arial');
+            font-weight: 300 700;
+            font-style: normal;
+        }
+    </style>
+    <!-- GSAP Core + ScrollTrigger -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Barlow Condensed', 'Oswald', 'Inter', 'Akzidenz-Grotesk', sans-serif;
+            overflow-x: hidden;
+            cursor: none;
+            font-weight: 400;
+            font-style: normal;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+
+        /* Custom Cursor */
+        .cursor {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.1s ease;
+            mix-blend-mode: difference;
+        }
+        .cursor-dot {
+            width: 4px;
+            height: 4px;
+            background: #fff;
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.05s ease;
+        }
+        .cursor.hover { transform: scale(1.5); border-color: #fff; }
+        nav a:hover ~ .cursor { transform: scale(1.5); }
+
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 30px 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+        }
+        header.scrolled {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        nav a {
+            display: none;
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: #fff;
+            transition: width 0.3s ease;
+        }
+
+        nav a:hover { 
+            opacity: 1; 
+            transform: translateY(-2px);
+        }
+
+        nav a:hover::after { width: 100%; }
+
+        .menu-icon {
+            font-size: 24px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .menu-icon:hover { transform: rotate(90deg); }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-top: 80px;
+            text-align: center;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('https://placeholder.pics/svg/1920x1080/000000-FF0000/FFFFFF-FFFFFF/HERO%20-%20Oil%20Tanker') center/cover;
+            opacity: 0.6;
+            z-index: 0;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.6), rgba(0,0,0,0.9));
+            z-index: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            padding: 0 40px;
+        }
+
+        .hero-subtitle {
+            font-size: 14px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: #FF2A00;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .hero-title {
+            font-size: clamp(60px, 12vw, 120px);
+            font-weight: 300;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 30px rgba(0,0,0,0.8);
+            line-height: 1;
+        }
+
+        .hero-description {
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: 1px;
+            color: #ccc;
+            text-shadow: 0 2px 20px rgba(0,0,0,0.8);
+            line-height: 1.6;
+        }
+
+        /* Content Section */
+        .content-section {
+            max-width: 1000px;
+            margin: 60px auto;
+            padding: 60px 50px;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .section-title {
+            font-size: 48px;
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            margin-bottom: 40px;
+            font-weight: 500;
+            border-bottom: 2px solid #444;
+            padding-bottom: 20px;
+        }
+
+        .content-text {
+            font-size: 18px;
+            line-height: 1.8;
+            color: #ccc;
+            margin-bottom: 30px;
+        }
+
+        .content-text strong {
+            color: #FF2A00;
+        }
+
+        .content-highlight {
+            font-size: 22px;
+            line-height: 1.8;
+            color: #fff;
+            margin-bottom: 30px;
+            padding-left: 20px;
+            border-left: 3px solid #00E0FF;
+        }
+
+        .meta-info {
+            margin-top: 40px;
+            padding-top: 40px;
+            border-top: 1px solid #444;
+            color: #999;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .meta-title {
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #fff;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        /* Button */
+        .cta-button {
+            background: linear-gradient(to bottom, #C0C0C0, #666);
+            color: #FF2A00;
+            border: 2px solid #555;
+            padding: 16px 40px;
+            font-size: 12px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all cubic-bezier(0.23, 1, 0.32, 1) 0.3s;
+            font-weight: 600;
+            box-shadow: 0 0 10px rgba(255, 42, 0, 0.3);
+            border-radius: 2px;
+            font-family: 'Barlow Condensed', monospace;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+        }
+
+        .cta-button:hover {
+            box-shadow: 
+                0 0 20px rgba(255, 42, 0, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+        }
+
+        .cta-button:active {
+            transform: translateY(-1px);
+        }
+
+        /* Back Button */
+        .back-button {
+            position: fixed;
+            top: 35px;
+            left: 50px;
+            font-size: 14px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #fff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            z-index: 102;
+            font-weight: 500;
+        }
+
+        .back-button:hover {
+            transform: translateX(-5px);
+            color: #00E0FF;
+        }
+
+        /* Membership Footnote */
+        .membership-footnote {
+            background: #0A0A0A;
+            border-top: 1px solid #444;
+            border-bottom: 1px solid #444;
+            padding: 40px 60px;
+            margin: 60px 0 0 0;
+            position: relative;
+        }
+
+        .footnote-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .footnote-text {
+            font-size: 16px;
+            font-weight: 400;
+            letter-spacing: 1.5px;
+            color: #ccc;
+            line-height: 1.8;
+            max-width: 600px;
+        }
+
+        .footnote-text strong {
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .footnote-actions {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .membership-btn {
+            background: transparent;
+            color: #fff;
+            border: 1px solid #666;
+            padding: 10px 20px;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-family: 'Barlow Condensed', monospace;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .membership-btn:hover {
+            border-color: #fff;
+            color: #00E0FF;
+        }
+
+        .social-links-small {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .social-icon-small {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 1px solid #666;
+            border-radius: 50%;
+            text-decoration: none;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .social-icon-small:hover {
+            border-color: #00E0FF;
+            color: #00E0FF;
+        }
+
+        /* Mechanical Footer */
+        .mechanical-footer {
+            background: #0A0A0A;
+            border-top: 2px solid #444;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.6);
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            margin-top: 60px;
+            z-index: 100;
+        }
+
+        .mechanical-footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                #00E0FF 20%, 
+                #00E0FF 80%, 
+                transparent);
+            opacity: 0.3;
+        }
+
+        .footer-content {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 40px;
+            height: 80px;
+        }
+
+        .footer-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .footer-left {
+            flex: 1;
+            justify-content: flex-start;
+        }
+
+        .footer-right {
+            flex: 1;
+            justify-content: flex-end;
+        }
+
+        .copyright-text {
+            font-size: 10px;
+            letter-spacing: 2px;
+            opacity: 0.5;
+            text-transform: uppercase;
+            font-weight: 400;
+            font-family: 'Barlow Condensed', monospace;
+        }
+
+        .social-icon {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #1F1F1F;
+            border: 2px solid #444;
+            border-radius: 50%;
+            text-decoration: none;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all cubic-bezier(0.23, 1, 0.32, 1) 0.3s;
+            box-shadow: 
+                inset 0 1px 2px rgba(0, 0, 0, 0.8),
+                0 0 10px rgba(0, 224, 255, 0.1);
+        }
+
+        .social-icon:hover {
+            border-color: #00E0FF;
+            box-shadow: 
+                inset 0 1px 2px rgba(0, 0, 0, 0.8),
+                0 0 15px #00E0FF;
+            transform: rotate(360deg) scale(1.1);
+        }
+
+        .back-to-top-btn {
+            background: linear-gradient(to bottom, #C0C0C0, #666);
+            color: #FF2A00;
+            border: 2px solid #555;
+            padding: 8px 16px;
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all cubic-bezier(0.23, 1, 0.32, 1) 0.3s;
+            font-weight: 600;
+            box-shadow: 
+                0 0 10px rgba(255, 42, 0, 0.3);
+            border-radius: 2px;
+            font-family: 'Barlow Condensed', monospace;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .back-to-top-btn:hover {
+            box-shadow: 
+                0 0 20px rgba(255, 42, 0, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            header {
+                padding: 20px 30px;
+            }
+
+            .logo {
+                font-size: 28px;
+                letter-spacing: 6px;
+            }
+
+            nav a {
+                margin-left: 25px;
+                font-size: 12px;
+            }
+
+            .hero-title {
+                font-size: 60px;
+            }
+
+            .hero-description {
+                font-size: 18px;
+            }
+
+            .content-section {
+                padding: 40px 30px;
+                margin: 40px auto;
+            }
+
+            .section-title {
+                font-size: 36px;
+            }
+
+            .content-text {
+                font-size: 16px;
+            }
+
+            .footnote-content {
+                gap: 20px;
+            }
+
+            .membership-footnote {
+                padding: 30px 40px;
+            }
+
+            .footer-content {
+                padding: 0 40px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: 15px 20px;
+            }
+
+            .logo {
+                font-size: 22px;
+                letter-spacing: 4px;
+            }
+
+            nav a {
+                margin-left: 15px;
+                font-size: 11px;
+                letter-spacing: 2px;
+            }
+
+            .back-button {
+                top: 20px;
+                left: 20px;
+                font-size: 12px;
+            }
+
+            .hero {
+                margin-top: 60px;
+                height: 80vh;
+            }
+
+            .hero-title {
+                font-size: 40px;
+                letter-spacing: 4px;
+            }
+
+            .hero-description {
+                font-size: 16px;
+            }
+
+            .content-section {
+                padding: 30px 20px;
+                margin: 30px auto;
+            }
+
+            .section-title {
+                font-size: 28px;
+                letter-spacing: 4px;
+            }
+
+            .content-text {
+                font-size: 14px;
+            }
+
+            .content-highlight {
+                font-size: 16px;
+                padding-left: 15px;
+            }
+
+            .cta-button {
+                padding: 12px 24px;
+                font-size: 11px;
+            }
+
+            .membership-footnote {
+                padding: 25px 20px;
+            }
+
+            .footnote-text {
+                font-size: 14px;
+            }
+
+            .footnote-actions {
+                gap: 15px;
+            }
+
+            .membership-btn {
+                padding: 8px 16px;
+                font-size: 10px;
+            }
+
+            .mechanical-footer {
+                min-height: 120px;
+            }
+
+            .footer-content {
+                padding: 0 20px;
+                flex-direction: column;
+                gap: 15px;
+                height: auto;
+            }
+
+            .footer-section {
+                width: 100%;
+                justify-content: center;
+                gap: 15px;
+            }
+
+            .copyright-text {
+                font-size: 9px;
+            }
+        }
+    </style>
 </head>
-<body class="bg-black text-white min-h-screen">
+<body>
 
-  <!-- 顶部导航 -->
-  <nav class="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-md border-b border-zinc-800">
-    <div class="max-w-6xl mx-auto px-6 py-5 flex justify-between items-center">
-      <a href="index.html" class="text-xl font-medium hover:text-red-500 transition-colors">← Back to Aileen</a>
-      <div class="text-sm tracking-widest uppercase">Monira Al Qadiri • HERO</div>
-    </div>
-  </nav>
+    <div class="cursor"></div>
+    <div class="cursor-dot"></div>
 
-  <!-- 英雄大图 -->
-  <div class="relative h-screen flex items-center justify-center pt-20">
-    <img src="https://placeholder.pics/svg/1920x1080/000000-FF0000/FFFFFF-FFFFFF/HERO%20-%20Oil%20Tanker%20%E2%80%A2%20Replace%20with%20your%20image" 
-         alt="Monira Al Qadiri - HERO"
-         class="absolute inset-0 w-full h-full object-cover">
-    
-    <div class="absolute inset-0 bg-gradient-to-b from-black/40 via-black/70 to-black"></div>
-    
-    <div class="relative z-10 text-center px-6 max-w-4xl mx-auto">
-      <div class="uppercase tracking-[6px] text-red-500 text-sm mb-4">ELSEWHERE</div>
-      <h1 class="text-7xl md:text-8xl font-bold tracking-tighter hero-text">HERO</h1>
-      <p class="text-3xl md:text-4xl font-light text-zinc-300 mt-4">Monira Al Qadiri</p>
-    </div>
-  </div>
+    <a href="index.html" class="back-button">← BACK</a>
 
-  <!-- 文字内容 -->
-  <div class="max-w-4xl mx-auto px-6 py-20 text-zinc-300 leading-relaxed">
-    <div class="prose prose-invert prose-lg max-w-none">
-      <p class="text-2xl font-light mb-12">
-        A monumental 25-meter mural of a colossal oil tanker dominates the gallery space — 
-        painted in dramatic shades of black and blood red, it floats like a ghost from the future.
-      </p>
-      
-      <h2 class="text-3xl font-medium text-white mt-16 mb-6">The Work</h2>
-      <p class="text-lg">
-        In her solo exhibition <span class="text-red-500">HERO</span>, Kuwaiti artist Monira Al Qadiri 
-        transforms the oil tanker into a modern mythological figure. The ship is both hero and villain — 
-        a symbol of prosperity, extraction, and inevitable collapse.
-      </p>
-      
-      <p class="text-lg mt-8">
-        Surrounding the mural are sculptural miniatures of tankers and oil droplets, 
-        creating an immersive environment that questions humanity's complicated relationship with fossil fuels.
-      </p>
+    <header id="header">
+        <nav>
+            <a href="index.html#gallery">Gallery</a>
+            <a href="index.html#sound">Sound</a>
+            <a href="index.html#blog">Blog</a>
+            <a href="index.html#works">Works</a>
+            <a href="elsewhere.html">Elsewhere</a>
+            <a href="index.html#contact">Contact</a>
+        </nav>
+        <div class="menu-icon">☰</div>
+    </header>
 
-      <h2 class="text-3xl font-medium text-white mt-16 mb-6">Exhibition Period</h2>
-      <p class="text-xl">11 July 2025 – 17 August 2026<br>
-      <span class="text-red-500">Berlinerische Galerie, Berlin</span></p>
+    <section class="hero" id="hero">
+        <div class="hero-content">
+            <div class="hero-subtitle">ELSEWHERE</div>
+            <h1 class="hero-title">HERO</h1>
+            <p class="hero-description">Monira Al Qadiri</p>
+        </div>
+    </section>
 
-      <div class="mt-20 border-t border-zinc-800 pt-12 text-sm text-zinc-500">
-        <p>Curated as part of a larger investigation into the social, cultural, and environmental legacies of the oil industry.</p>
-        <p class="mt-4">The exhibition continues Al Qadiri's practice of using sculpture, video, and large-scale painting to examine the hidden infrastructures that shape our world.</p>
-      </div>
-    </div>
-  </div>
+    <section class="content-section">
+        <h2 class="section-title">THE WORK</h2>
+        <p class="content-highlight">
+            A monumental 25-meter mural of a colossal oil tanker dominates the gallery space — 
+            painted in dramatic shades of black and blood red, it floats like a ghost from the future.
+        </p>
+        <p class="content-text">
+            In her solo exhibition <strong>HERO</strong>, Kuwaiti artist Monira Al Qadiri 
+            transforms the oil tanker into a modern mythological figure. The ship is both hero and villain — 
+            a symbol of prosperity, extraction, and inevitable collapse.
+        </p>
+        <p class="content-text">
+            Surrounding the mural are sculptural miniatures of tankers and oil droplets, 
+            creating an immersive environment that questions humanity's complicated relationship with fossil fuels.
+        </p>
+        <div class="meta-info">
+            <div class="meta-title">Exhibition Period</div>
+            <p>11 July 2025 – 17 August 2026</p>
+            <p style="color: #FF2A00;">Berlinerische Galerie, Berlin</p>
+        </div>
+        <div class="meta-info" style="margin-top: 30px; border-top: 1px solid #444;">
+            <p style="font-size: 13px; line-height: 1.8;">
+                Curated as part of a larger investigation into the social, cultural, and environmental legacies of the oil industry. 
+                The exhibition continues Al Qadiri's practice of using sculpture, video, and large-scale painting to examine the hidden infrastructures that shape our world.
+            </p>
+        </div>
+        <a href="https://www.berlinischegalerie.de/en/exhibitions/" target="_blank" class="cta-button">OFFICIAL EXHIBITION PAGE →</a>
+    </section>
 
-  <!-- 底部 READ MORE -->
-  <div class="text-center pb-24">
-    <a href="https://www.berlinischegalerie.de/en/exhibitions/current/monira-al-qadiri/" 
-       target="_blank"
-       class="inline-block bg-white text-black hover:bg-red-600 hover:text-white px-12 py-5 text-sm font-medium tracking-widest transition-all">
-      OFFICIAL EXHIBITION PAGE →
-    </a>
-  </div>
+    <!-- Membership Footnote -->
+    <section class="membership-footnote">
+        <div class="footnote-content">
+            <div class="footnote-text">
+                Become a member & make <strong>Aileena.xyz</strong> one of your favorite places!
+            </div>
+            <div class="footnote-actions">
+                <a href="#donate" class="membership-btn">💝 DONATE</a>
+                <a href="#register" class="membership-btn">✨ JOIN</a>
+                <div class="social-links-small">
+                    <a href="https://instagram.com" target="_blank" class="social-icon-small" title="Instagram">📷</a>
+                    <a href="https://xiaohongshu.com" target="_blank" class="social-icon-small" title="小红书">🎨</a>
+                    <a href="https://wechat.com" target="_blank" class="social-icon-small" title="WeChat">💬</a>
+                </div>
+            </div>
+        </div>
+    </section>
 
-  <!-- Footer -->
-  <footer class="border-t border-zinc-800 py-8">
-    <div class="max-w-6xl mx-auto px-6 text-center text-zinc-600 text-sm">
-      <p>© 2026 AILEENA MACHINA STUDIO • Curated by Aileen</p>
-    </div>
-  </footer>
+    <!-- Footer -->
+    <footer class="mechanical-footer">
+        <div class="footer-content">
+            <div class="footer-section footer-left">
+                <span class="copyright-text">© 2025 AILEENA MACHINA STUDIO</span>
+            </div>
+            <div class="footer-section footer-right">
+                <a href="https://instagram.com" target="_blank" class="social-icon" title="Instagram">📷</a>
+                <a href="https://xiaohongshu.com" target="_blank" class="social-icon" title="小红书">🎨</a>
+                <a href="https://wechat.com" target="_blank" class="social-icon" title="WeChat">💬</a>
+                <button class="back-to-top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'});"><span>↑ TOP</span></button>
+            </div>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+    <script>
+        // Custom cursor
+        const cursor = document.querySelector('.cursor');
+        const cursorDot = document.querySelector('.cursor-dot');
+        
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX - 10 + 'px';
+            cursor.style.top = e.clientY - 10 + 'px';
+            cursorDot.style.left = e.clientX - 2 + 'px';
+            cursorDot.style.top = e.clientY - 2 + 'px';
+        });
+
+        // Header scroll effect
+        const header = document.querySelector('header');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Content fade-in on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.content-section').forEach(section => {
+            observer.observe(section);
+        });
+
+        // Menu toggle for mobile
+        const menuIcon = document.querySelector('.menu-icon');
+        const nav = document.querySelector('nav');
+        
+        menuIcon.addEventListener('click', () => {
+            nav.style.display = nav.style.display === 'none' ? 'flex' : 'none';
+        });
+    </script>
 
 </body>
 </html>

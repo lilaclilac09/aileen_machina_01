@@ -3029,6 +3029,149 @@
             }
         }
 
+        /* ============================================
+           MEMBERSHIP FOOTNOTE - MINIMAL STYLE
+           ============================================ */
+        .membership-footnote {
+            background: #0A0A0A;
+            border-top: 1px solid #444;
+            border-bottom: 1px solid #444;
+            padding: 40px 60px;
+            margin: 60px 0 0 0;
+            position: relative;
+        }
+
+        .footnote-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .footnote-text {
+            font-size: 16px;
+            font-weight: 400;
+            letter-spacing: 1.5px;
+            color: #ccc;
+            line-height: 1.8;
+            max-width: 600px;
+        }
+
+        .footnote-text strong {
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .footnote-actions {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .membership-btn {
+            background: transparent;
+            color: #fff;
+            border: 1px solid #666;
+            padding: 10px 20px;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-family: 'Barlow Condensed', monospace;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .membership-btn:hover {
+            border-color: #fff;
+            color: #00E0FF;
+        }
+
+        .membership-btn.secondary {
+            border-color: #666;
+            color: #ccc;
+        }
+
+        .membership-btn.secondary:hover {
+            border-color: #fff;
+            color: #fff;
+        }
+
+        .social-links-small {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .social-icon-small {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 1px solid #666;
+            border-radius: 50%;
+            text-decoration: none;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .social-icon-small:hover {
+            border-color: #00E0FF;
+            color: #00E0FF;
+        }
+
+        @media (max-width: 1024px) {
+            .footnote-content {
+                gap: 20px;
+            }
+
+            .membership-footnote {
+                padding: 30px 40px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .membership-footnote {
+                padding: 25px 20px;
+            }
+
+            .footnote-text {
+                font-size: 14px;
+                max-width: 95%;
+            }
+
+            .footnote-actions {
+                gap: 15px;
+            }
+
+            .membership-btn {
+                padding: 8px 16px;
+                font-size: 10px;
+            }
+
+            .social-links-small {
+                gap: 15px;
+            }
+
+            .social-icon-small {
+                width: 30px;
+                height: 30px;
+                font-size: 14px;
+            }
+        }
+
     </style>
     <!-- Main Mechanical Aesthetic Engine -->
     <script src="main.js"></script>
@@ -3077,7 +3220,7 @@
             <a href="#sound">Sound</a>
             <a href="#blog">Blog</a>
             <a href="#works">Works</a>
-            <a href="#about">About</a>
+            <a href="elsewhere.html">Elsewhere</a>
             <a href="#contact">Contact</a>
         </nav>
         <div class="menu-icon">☰</div>
@@ -4796,6 +4939,24 @@
             }
         });
     </script>
+
+    <!-- Membership Footnote -->
+    <section class="membership-footnote">
+        <div class="footnote-content">
+            <div class="footnote-text">
+                Become a member & make <strong>Aileena.xyz</strong> one of your favorite places!
+            </div>
+            <div class="footnote-actions">
+                <a href="#donate" class="membership-btn" onclick="if(window.mechAesthetic) window.mechAesthetic.playSound('assets/sounds/button-hover.mp3');">💝 DONATE</a>
+                <a href="#register" class="membership-btn secondary" onclick="if(window.mechAesthetic) window.mechAesthetic.playSound('assets/sounds/button-hover.mp3');">✨ JOIN</a>
+                <div class="social-links-small">
+                    <a href="https://instagram.com" target="_blank" class="social-icon-small" title="Instagram" onclick="if(window.mechAesthetic) window.mechAesthetic.playSound('assets/sounds/button-hover.mp3');">📷</a>
+                    <a href="https://xiaohongshu.com" target="_blank" class="social-icon-small" title="小红书" onclick="if(window.mechAesthetic) window.mechAesthetic.playSound('assets/sounds/button-hover.mp3');">🎨</a>
+                    <a href="https://wechat.com" target="_blank" class="social-icon-small" title="WeChat" onclick="if(window.mechAesthetic) window.mechAesthetic.playSound('assets/sounds/button-hover.mp3');">💬</a>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Footer (Prompt 7) -->
     <footer class="mechanical-footer">
