@@ -2063,6 +2063,7 @@
                 padding: 12px 24px;
                 font-size: 11px;
             }
+
         }
 
         /* ============================================
@@ -3224,6 +3225,77 @@
             .ticker-inner { animation-duration: 45s; }
         }
 
+        /* Announcement Bar */
+        .announcement-bar {
+            height: 46px;
+            background: #0a0a0a;
+            border-bottom: 1px solid rgba(0, 249, 255, 0.15);
+            position: fixed;
+            top: 88px;
+            left: 0;
+            width: 100%;
+            z-index: 90;
+            overflow: hidden;
+            font-family: system-ui, -apple-system, sans-serif;
+            font-size: 13.2px;
+            font-weight: 500;
+            letter-spacing: 1.8px;
+            text-transform: uppercase;
+            color: #00f9ff;
+            text-shadow: 0 0 12px rgba(0, 249, 255, 0.6);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 20px;
+        }
+
+        .ticker-content {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+        }
+
+        .sep {
+            color: #555;
+            font-size: 15px;
+            opacity: 0.6;
+        }
+
+        /* Center circle (exact match) */
+        .center-circle {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ring {
+            width: 22px;
+            height: 22px;
+            border: 1.5px solid #ddd;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .dot {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background: #ddd;
+            border-radius: 50%;
+        }
+
+        /* Hover glow on whole bar */
+        .announcement-bar:hover {
+            text-shadow: 0 0 20px #00f9ff;
+            border-bottom-color: rgba(0, 249, 255, 0.4);
+        }
+
     </style>
     <!-- Main Mechanical Aesthetic Engine -->
     <script src="main.js"></script>
@@ -3277,6 +3349,29 @@
         </nav>
         <div class="menu-icon">☰</div>
     </header>
+
+    <!-- TOP ANNOUNCEMENT BAR -->
+    <div class="announcement-bar">
+        <div class="ticker-content">
+            SOUNDTRACK NOW LIVE
+            <span class="sep">|</span>
+            NEW VINYL DROP MARCH 2026
+            <span class="sep">•</span>
+            PRE-ORDER OPEN
+            <span class="sep">|</span>
+            BERLIN TECHNO NIGHT 28 MAR
+            <span class="sep">•</span>
+            TICKETS →
+            <span class="sep">|</span>
+            AMSTERDAM BLACK VINYL DIGGING WEEK
+        </div>
+        
+        <!-- exact center circle from your screenshot -->
+        <div class="center-circle">
+            <div class="ring"></div>
+            <div class="dot"></div>
+        </div>
+    </div>
 
     <!-- === AILEENA 永久滚动公告栏（Rough Trade 同款风格，无关闭）=== -->
     <div class="aileen-ticker">
@@ -3644,17 +3739,7 @@
                     ENTER EXHIBITION →
                 </div>
             </a>
-        </div>
-    </section>
 
-    <!-- SOUND Teaser -->
-    <section class="sound-section">
-        <div class="sound-container">
-            <a href="sound.html" class="sound-teaser">
-                <div class="sound-label">SOUND</div>
-                <div class="sound-title">Music &amp; Podcast</div>
-                <div class="sound-description">Listen to the latest episodes and curated playlists</div>
-            </a>
         </div>
     </section>
 
@@ -5034,56 +5119,6 @@
             }
         });
     </script>
-
-    <!-- Membership Footnote -->
-    <section class="membership-footnote">
-        <div class="footnote-content">
-            <div class="footnote-text">
-                Become a member & make <strong>Aileena.xyz</strong> one of your favorite places!
-            </div>
-            <div class="footnote-actions">
-                <a href="#donate" class="membership-btn" onclick="if(window.mechAesthetic) window.mechAesthetic.playSound('assets/sounds/button-hover.mp3');">💝 DONATE</a>
-                <a href="#register" class="membership-btn secondary" onclick="if(window.mechAesthetic) window.mechAesthetic.playSound('assets/sounds/button-hover.mp3');">✨ JOIN</a>
-                <div class="social-links-small">
-                    <a href="https://instagram.com" target="_blank" class="social-icon-small" title="Instagram" onclick="if(window.mechAesthetic) window.mechAesthetic.playSound('assets/sounds/button-hover.mp3');">📷</a>
-                    <a href="https://xiaohongshu.com" target="_blank" class="social-icon-small" title="小红书" onclick="if(window.mechAesthetic) window.mechAesthetic.playSound('assets/sounds/button-hover.mp3');">🎨</a>
-                    <a href="https://wechat.com" target="_blank" class="social-icon-small" title="WeChat" onclick="if(window.mechAesthetic) window.mechAesthetic.playSound('assets/sounds/button-hover.mp3');">💬</a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer (Prompt 7) -->
-    <footer class="mechanical-footer">
-        <div class="footer-content">
-            <!-- Left: Copyright -->
-            <div class="footer-section footer-left">
-                <span class="copyright-text">© 2025 AILEENA MACHINA STUDIO</span>
-            </div>
-
-            <!-- Center: ICP Info -->
-            <div class="footer-section footer-center">
-                <div class="icp-plate">ICP 备案号：XXXX</div>
-            </div>
-
-            <!-- Right: Social Links & Back to Top -->
-            <div class="footer-section footer-right">
-                <a href="https://instagram.com" target="_blank" class="social-icon" title="Instagram">
-                    📷
-                </a>
-                <a href="https://xiaohongshu.com" target="_blank" class="social-icon" title="小红书">
-                    🎨
-                </a>
-                <a href="https://wechat.com" target="_blank" class="social-icon" title="WeChat">
-                    💬
-                </a>
-                <button class="back-to-top-btn" id="backToTopBtn" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); if(window.mechAesthetic) window.mechAesthetic.playSound('assets/sounds/button-hover.mp3');"><span>↑ TOP</span></button>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Voice Agent: interactive voice commands, dynamic greeting, ambient music, find the heart -->
-    <script src="voice-agent.js"></script>
 
 </body>
 </html>
