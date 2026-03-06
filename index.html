@@ -589,19 +589,23 @@
             z-index: 10;
         }
         .main-title {
-            font-size: 120px;
-            font-weight: 700;
-            letter-spacing: 6px;
+            font-size: 11rem;
+            font-weight: 900;
+            letter-spacing: -6px;
+            color: #fff;
+            text-shadow: 
+                0 0 40px #00ffff,
+                0 0 80px #ff3c3c,
+                0 0 120px #00ffff;
+            margin: 0;
+            text-align: center;
             line-height: 1.1;
             margin-bottom: 20px;
-            text-shadow: 0 0 30px rgba(255,255,255,0.3);
             font-family: 'Barlow Condensed', 'Oswald', 'Inter', 'Akzidenz-Grotesk', sans-serif;
             font-style: normal;
-            /* Didone characteristics: high contrast, refined proportions, thin unbracketed serifs */
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             text-rendering: optimizeLegibility;
-            /* 3D text effect */
             transform: perspective(500px) rotateX(0deg);
             transform-style: preserve-3d;
             transition: transform 0.5s ease;
@@ -685,26 +689,6 @@
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(10px); }
-        }
-
-        /* Scroll Indicator */
-        .scroll-indicator {
-            position: absolute;
-            bottom: 120px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            opacity: 0.6;
-            animation: pulse 2s infinite;
-            font-family: 'Barlow Condensed', 'Oswald', 'Inter', 'Akzidenz-Grotesk', sans-serif;
-            font-weight: 500;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            font-style: normal;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 0.6; }
-            50% { opacity: 1; }
         }
 
         /* 后续内容区（用于展示滚动动画） */
@@ -3408,8 +3392,6 @@
             <span class="small-icon">↓</span>
         </div>
 
-        <div class="scroll-indicator">SCROLL</div>
-
         <div class="slider-dots">
             <div class="dot active" onclick="currentSlide(0)"></div>
             <div class="dot" onclick="currentSlide(1)"></div>
@@ -3527,9 +3509,9 @@
 
                 <div class="track-info">
                     <span class="track-type">SOUNDCLOUD TRACKS</span>
-                    <h3>Forss — Flickermood</h3>
+                    <h3>Rostom - Carne</h3>
                     <button onclick="toggleDeck('left')" class="neon-btn">▶ PLAY LEFT DECK</button>
-                    <a href="https://soundcloud.com/your-left-track-link" target="_blank" class="sc-link">LISTEN ON SOUNDCLOUD</a>
+                    <a href="https://hardwax.com/87746/rostom/carne/" target="_blank" class="sc-link">LISTEN ON SOUNDCLOUD</a>
                 </div>
             </div>
 
@@ -3556,9 +3538,9 @@
 
                 <div class="track-info">
                     <span class="track-type">YOUR MUSIC TRACK</span>
-                    <h3>Forss — Flickermood</h3>
+                    <h3>Second Woman - Second Woman</h3>
                     <button onclick="toggleDeck('right')" class="neon-btn">▶ PLAY RIGHT DECK</button>
-                    <a href="https://soundcloud.com/your-right-track-link" target="_blank" class="sc-link">LISTEN ON SOUNDCLOUD</a>
+                    <a href="https://hardwax.com/58477/second-woman/second-woman/" target="_blank" class="sc-link">LISTEN ON SOUNDCLOUD</a>
                 </div>
             </div>
 
