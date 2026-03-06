@@ -70,7 +70,7 @@
             top: 0;
             left: 0;
             width: 100%;
-            padding: 30px 50px;
+            padding: 28px 60px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -80,7 +80,7 @@
             -webkit-backdrop-filter: blur(25px) saturate(180%);
             border-bottom: 1px solid rgba(255, 255, 255, 0.15);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         header.scrolled {
             background: rgba(0, 0, 0, 0.4);
@@ -88,6 +88,7 @@
             -webkit-backdrop-filter: blur(25px) saturate(180%);
             border-bottom: 1px solid rgba(255, 255, 255, 0.15);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            padding: 22px 60px;
         }
         .logo {
             font-size: 32px;
@@ -98,49 +99,76 @@
             text-transform: uppercase;
             color: #fff;
             text-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .logo:hover {
-            text-shadow: 0 2px 20px rgba(255, 255, 255, 0.4);
+            text-shadow: 0 4px 25px rgba(255, 255, 255, 0.6), 0 0 15px rgba(255, 255, 255, 0.3);
             transform: translateY(-2px);
+            letter-spacing: 9px;
+        }
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
         nav a {
             color: #fff;
             text-decoration: none;
-            margin-left: 40px;
-            font-size: 13px;
+            padding: 10px 20px;
+            font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: 3px;
-            opacity: 0.9;
-            transition: all 0.3s ease;
+            letter-spacing: 2.5px;
+            opacity: 0.85;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             font-family: 'Barlow Condensed', 'Oswald', 'Inter', 'Akzidenz-Grotesk', sans-serif;
             font-weight: 500;
-            text-shadow: 0 1px 5px rgba(255, 255, 255, 0.1);
-            font-style: normal;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            border-radius: 3px;
         }
         nav a[href="#sound"] { display: inline-block; }
+        nav a::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+            opacity: 0;
+            transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
         nav a::after {
             content: '';
             position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 0;
-            height: 1px;
-            background: #fff;
-            transition: width 0.3s ease;
+            bottom: 6px;
+            left: 20px;
+            right: 20px;
+            height: 1.5px;
+            background: linear-gradient(90deg, transparent, #fff, transparent);
+            transform: scaleX(0);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        nav a:hover { 
-            opacity: 1; 
-            transform: translateY(-2px);
+        nav a:hover {
+            opacity: 1;
+            text-shadow: 0 2px 12px rgba(255, 255, 255, 0.5), 0 0 8px rgba(255, 255, 255, 0.2);
+            letter-spacing: 3px;
         }
-        nav a:hover::after { width: 100%; }
+        nav a:hover::before {
+            opacity: 1;
+        }
+        nav a:hover::after {
+            transform: scaleX(1);
+        }
         .menu-icon {
+            display: none;
             font-size: 24px;
             cursor: pointer;
-            transition: transform 0.3s;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0.9;
         }
-        .menu-icon:hover { transform: rotate(90deg); }
+        .menu-icon:hover {
+            transform: rotate(90deg);
+            opacity: 1;
+        }
 
         /* Liquid Metal Loader - Oakley × Meta Style */
         .loader {
@@ -1094,10 +1122,10 @@
            MECHANICAL FOOTER (Prompt 7)
            ============================================ */
         .mechanical-footer {
-            background: #0A0A0A;
-            border-top: 2px solid #444;
-            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.6);
-            min-height: 80px;
+            background: linear-gradient(to bottom, #0A0A0A, #050505);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+            min-height: 70px;
             display: flex;
             align-items: center;
             position: relative;
@@ -1109,15 +1137,11 @@
             content: '';
             position: absolute;
             top: 0;
-            left: 0;
-            right: 0;
+            left: 20%;
+            right: 20%;
             height: 1px;
-            background: linear-gradient(90deg, 
-                transparent, 
-                #00E0FF 20%, 
-                #00E0FF 80%, 
-                transparent);
-            opacity: 0.3;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            opacity: 0.6;
         }
 
         .footer-content {
@@ -1129,13 +1153,13 @@
             align-items: center;
             justify-content: space-between;
             gap: 40px;
-            height: 80px;
+            height: 70px;
         }
 
         .footer-section {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 16px;
         }
 
         .footer-left {
@@ -1152,88 +1176,91 @@
             justify-content: flex-end;
         }
 
-        /* Copyright Text */
         .copyright-text {
             font-size: 10px;
             letter-spacing: 2px;
-            opacity: 0.5;
+            opacity: 0.4;
             text-transform: uppercase;
             font-weight: 400;
-            font-family: 'Barlow Condensed', monospace;
+            font-family: 'Barlow Condensed', sans-serif;
+            transition: opacity 0.3s ease;
         }
 
-        /* ICP Plate Style */
+        .copyright-text:hover {
+            opacity: 0.7;
+        }
+
         .icp-plate {
             font-size: 9px;
             letter-spacing: 1.5px;
-            opacity: 0.6;
-            background: #1F1F1F;
-            border: 1px solid #555;
-            padding: 6px 12px;
-            border-radius: 2px;
-            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.8);
-            font-family: 'Barlow Condensed', monospace;
+            opacity: 0.5;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 5px 12px;
+            border-radius: 3px;
+            font-family: 'Barlow Condensed', sans-serif;
             text-transform: uppercase;
+            transition: all 0.3s ease;
         }
 
-        /* Social Icons - Metal Ring Buttons */
+        .icp-plate:hover {
+            opacity: 0.7;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
         .social-icon {
-            width: 36px;
-            height: 36px;
+            width: 34px;
+            height: 34px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #1F1F1F;
-            border: 2px solid #444;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 50%;
             text-decoration: none;
-            font-size: 16px;
+            font-size: 15px;
             cursor: pointer;
-            transition: all cubic-bezier(0.23, 1, 0.32, 1) 0.3s;
-            box-shadow: 
-                inset 0 1px 2px rgba(0, 0, 0, 0.8),
-                0 0 10px rgba(0, 224, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0.7;
         }
 
         .social-icon:hover {
-            border-color: #00E0FF;
-            box-shadow: 
-                inset 0 1px 2px rgba(0, 0, 0, 0.8),
-                0 0 15px #00E0FF;
-            transform: rotate(360deg) scale(1.1);
-            animation: none;
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+            transform: scale(1.1) translateY(-2px);
+            opacity: 1;
         }
 
-        /* Back to Top Button */
         .back-to-top-btn {
-            background: linear-gradient(to bottom, #C0C0C0, #666);
-            color: #FF2A00;
-            border: 2px solid #555;
-            padding: 8px 16px;
-            font-size: 11px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 18px;
+            font-size: 10px;
             letter-spacing: 2px;
             text-transform: uppercase;
             cursor: pointer;
-            transition: all cubic-bezier(0.23, 1, 0.32, 1) 0.3s;
-            font-weight: 600;
-            box-shadow: 
-                0 0 10px rgba(255, 42, 0, 0.3);
-            border-radius: 2px;
-            font-family: 'Barlow Condensed', monospace;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
+            border-radius: 3px;
+            font-family: 'Barlow Condensed', sans-serif;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
+            opacity: 0.7;
         }
 
         .back-to-top-btn:hover {
-            box-shadow: 
-                0 0 20px rgba(255, 42, 0, 0.6),
-                inset 0 1px 0 rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+            opacity: 1;
         }
 
         .back-to-top-btn:active {
-            transform: translateY(0);
+            transform: translateY(-1px);
         }
 
         .back-to-top-btn span {
@@ -1310,15 +1337,6 @@
             }
 
             /* Audio player mobile */
-            .mech-audio-player {
-                max-width: 100% !important;
-                margin: 30px auto !important;
-            }
-
-            .player-controls {
-                flex-direction: column;
-            }
-
             /* Contact form mobile */
             .contact-content {
                 grid-template-columns: 1fr !important;
@@ -1394,6 +1412,9 @@
         @media (max-width: 1024px) {
             .main-title { font-size: 90px; }
             header { padding: 20px 40px; }
+            header.scrolled { padding: 18px 40px; }
+            nav { gap: 0; }
+            nav a { padding: 8px 16px; font-size: 11px; }
             .section-title { font-size: 60px; }
             .cursor, .cursor-dot { display: none; }
             body { cursor: auto; }
@@ -1401,6 +1422,7 @@
         @media (max-width: 768px) {
             .main-title { font-size: 60px; }
             .hero-content { bottom: 10%; }
+            .menu-icon { display: block; }
             nav { display: none; }
             .menu-icon { display: block; }
             .gallery-grid { grid-template-columns: 1fr; }
@@ -2858,6 +2880,186 @@
             .ticker-inner { animation-duration: 45s; }
         }
 
+        /* === 高端双黑胶转盘（wheelsofsteel + needledrop 质感）=== */
+        .dual-vinyl-section { 
+            padding: 80px 20px; 
+            background: #0a0a0a; 
+            text-align: center; 
+        }
+
+        .decks-container {
+            display: flex;
+            justify-content: center;
+            gap: 80px;
+            flex-wrap: wrap;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .deck {
+            width: 420px;
+        }
+
+        .turntable {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            margin: 0 auto 30px;
+        }
+
+        .vinyl {
+            width: 320px;
+            height: 320px;
+            background: #111;
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 
+                0 0 60px rgba(255,60,60,0.7),
+                inset 0 0 80px rgba(0,0,0,0.95),
+                0 25px 50px rgba(0,0,0,0.8);
+            transition: transform 0.4s linear;
+            cursor: grab;
+        }
+
+        .vinyl:hover {
+            animation: vinyl-spin 3.5s linear infinite;
+        }
+
+        .grooves {
+            position: absolute;
+            inset: 18px;
+            background: repeating-radial-gradient(circle, #222 0px, transparent 3px, #222 7px);
+            border-radius: 50%;
+            box-shadow: inset 0 0 40px #000;
+        }
+
+        .center-label {
+            position: absolute;
+            inset: 78px;
+            background: #000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            box-shadow: 0 0 30px #00ffff,
+                        inset 0 0 25px rgba(255,255,255,0.15);
+            overflow: hidden;
+        }
+
+        .cover-art {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            border: 7px solid #00ffff;
+            box-shadow: 0 0 20px #00ffff;
+        }
+
+        .label-text {
+            color: #00ffff;
+            font-size: 0.9rem;
+            letter-spacing: 4px;
+            margin-top: 10px;
+            text-shadow: 0 0 10px #00ffff;
+        }
+
+        .tonearm {
+            position: absolute;
+            width: 180px;
+            height: 14px;
+            background: linear-gradient(#444, #222);
+            top: 55px;
+            right: -35px;
+            transform-origin: left center;
+            border-radius: 8px;
+            box-shadow: 0 0 20px #ff3c3c;
+            z-index: 10;
+        }
+
+        .tonearm::after {
+            content: '';
+            position: absolute;
+            right: -12px;
+            top: -8px;
+            width: 28px;
+            height: 28px;
+            background: #ff3c3c;
+            border-radius: 50%;
+            box-shadow: 0 0 25px #ff3c3c;
+        }
+
+        .left-arm { transform: rotate(-42deg); }
+        .right-arm { transform: rotate(-138deg); }
+
+        /* 播放时自动旋转 */
+        .vinyl.playing {
+            animation: vinyl-spin 2.8s linear infinite !important;
+        }
+
+        @keyframes vinyl-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* 信息区 */
+        .deck-info h3 { 
+            color: #ff3c3c; 
+            font-size: 1.1rem; 
+            margin-bottom: 6px; 
+            letter-spacing: 2px;
+        }
+        .deck-info h2 { 
+            color: #fff; 
+            font-size: 1.65rem; 
+            margin-bottom: 25px; 
+            letter-spacing: 1px; 
+        }
+
+        .neon-play {
+            background: transparent;
+            border: 3px solid #00ffff;
+            color: #00ffff;
+            padding: 16px 50px;
+            font-size: 1.15rem;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 0 25px #00ffff;
+            transition: all 0.4s;
+            font-family: 'Barlow Condensed', 'Oswald', 'Inter', 'Akzidenz-Grotesk', sans-serif;
+            font-weight: 500;
+        }
+        .neon-play:hover {
+            background: #00ffff;
+            color: #000;
+            box-shadow: 0 0 45px #00ffff;
+        }
+
+        .sc-link {
+            display: block;
+            margin-top: 20px;
+            color: #ff3c3c;
+            text-decoration: none;
+            font-size: 0.95rem;
+            letter-spacing: 3px;
+            transition: all 0.3s;
+        }
+        .sc-link:hover {
+            color: #fff;
+            text-shadow: 0 0 15px #ff3c3c;
+        }
+
+        /* 手机优化 */
+        @media (max-width: 768px) {
+            .decks-container { gap: 50px; }
+            .deck { width: 100%; max-width: 380px; }
+            .turntable { width: 280px; height: 280px; }
+            .vinyl { width: 280px; height: 280px; }
+            .tonearm { width: 150px; }
+            .deck-info h2 { font-size: 1.4rem; }
+            .neon-play { padding: 14px 40px; font-size: 1rem; }
+        }
+
     </style>
     <!-- Main Mechanical Aesthetic Engine -->
     <script src="main.js"></script>
@@ -3023,29 +3225,52 @@
         </div>
     </div>
 
-    <!-- Sound Section -->
-    <section class="sound-section" id="sound">
-        <h2 class="section-title">SOUND</h2>
-        
-        <!-- SoundCloud Embed Section -->
-        <div class="soundcloud-container">
-            <div class="soundcloud-track">
-                <div class="soundcloud-label">▶ SoundCloud Tracks</div>
-                <!-- Replace the src URL below with your own SoundCloud embed URL -->
-                <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" 
-                    src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/293&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true">
-                </iframe>
+    <!-- === 高端双黑胶转盘（wheelsofsteel + needledrop 质感）=== -->
+    <section class="dual-vinyl-section" id="sound">
+        <h2 class="section-title"><span style="color: #ff3c3c;">▶</span> DJ SET — DOUBLE DECK</h2>
+
+        <div class="decks-container">
+
+            <!-- LEFT DECK -->
+            <div class="deck">
+                <div class="turntable">
+                    <div class="vinyl" id="vinyl-left">
+                        <div class="grooves"></div>
+                        <div class="center-label">
+                            <img src="https://via.placeholder.com/140/0a0a0a/00ffff?text=AILEENA" alt="AILEENA" class="cover-art">
+                            <div class="label-text">AILEENA</div>
+                        </div>
+                    </div>
+                    <div class="tonearm left-arm"></div>
+                </div>
+                <div class="deck-info">
+                    <h3>SOUNDCLOUD TRACKS</h3>
+                    <h2>Forss — Flickermood</h2>
+                    <button onclick="playDeck('left')" class="neon-play">▶ PLAY LEFT DECK</button>
+                    <a href="https://soundcloud.com/forss/flickermood" target="_blank" class="sc-link">LISTEN ON SOUNDCLOUD</a>
+                </div>
             </div>
-            <div class="soundcloud-track">
-                <div class="soundcloud-label">▶ Your Music Track</div>
-                <!-- Replace the src URL below with your own SoundCloud embed URL -->
-                <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" 
-                    src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/293&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true">
-                </iframe>
+
+            <!-- RIGHT DECK -->
+            <div class="deck">
+                <div class="turntable">
+                    <div class="vinyl" id="vinyl-right">
+                        <div class="grooves"></div>
+                        <div class="center-label">
+                            <img src="https://via.placeholder.com/140/0a0a0a/ff3c3c?text=AILEENA" alt="AILEENA" class="cover-art">
+                            <div class="label-text">AILEENA</div>
+                        </div>
+                    </div>
+                    <div class="tonearm right-arm"></div>
+                </div>
+                <div class="deck-info">
+                    <h3>YOUR MUSIC TRACK</h3>
+                    <h2>Forss — Flickermood</h2>
+                    <button onclick="playDeck('right')" class="neon-play">▶ PLAY RIGHT DECK</button>
+                    <a href="https://soundcloud.com/forss/flickermood" target="_blank" class="sc-link">LISTEN ON SOUNDCLOUD</a>
+                </div>
             </div>
-            <a href="https://soundcloud.com" target="_blank" class="soundcloud-add">
-                + Add Your SoundCloud Track
-            </a>
+
         </div>
     </section>
 
@@ -4647,6 +4872,14 @@
 
     <!-- Voice Agent: interactive voice commands, dynamic greeting, ambient music, find the heart -->
     <script src="voice-agent.js"></script>
+
+    <!-- 双黑胶转盘播放控制 -->
+    <script>
+    function playDeck(side) {
+        const vinyl = document.getElementById('vinyl-' + side);
+        vinyl.classList.toggle('playing');
+    }
+    </script>
 
 </body>
 </html>
