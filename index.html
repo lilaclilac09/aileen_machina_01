@@ -3180,6 +3180,88 @@
             }
         }
 
+        /* NEW MEMBERSHIP SECTION STYLES */
+        .membership {
+          padding: 90px 20px 70px;
+          text-align: center;
+          background: #0a0a0a;
+        }
+
+        .member-text {
+          font-size: 21px;
+          max-width: 660px;
+          margin: 0 auto 46px;
+          color: #ddd;
+          line-height: 1.45;
+        }
+
+        .member-buttons {
+          display: flex;
+          gap: 18px;
+          justify-content: center;
+          align-items: center;
+          flex-wrap: wrap;
+        }
+
+        .btn {
+          padding: 16px 38px;
+          border: 1px solid rgba(255,255,255,0.35);
+          border-radius: 12px;
+          color: #fff;
+          font-size: 15px;
+          font-weight: 500;
+          text-decoration: none;
+          transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+          background: rgba(255,255,255,0.07);
+          border-color: #00f9ff;
+          box-shadow: 0 0 25px rgba(0,249,255,0.25);
+        }
+
+        .icon-group {
+          display: flex;
+          gap: 14px;
+        }
+
+        .icon-btn {
+          width: 56px;
+          height: 56px;
+          border: 1px solid rgba(255,255,255,0.25);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 23px;
+          color: #ccc;
+          transition: all 0.3s ease;
+          text-decoration: none;
+        }
+
+        .icon-btn:hover {
+          border-color: #00f9ff;
+          color: #00f9ff;
+          transform: scale(1.1);
+        }
+
+        .divider {
+          height: 1px;
+          background: rgba(255,255,255,0.08);
+          max-width: 620px;
+          margin: 70px auto 30px;
+        }
+
+        .icp-box {
+          display: inline-block;
+          padding: 9px 26px;
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 6px;
+          font-size: 12px;
+          color: #666;
+          letter-spacing: 1px;
+        }
+
         /* === AILEENA 永久滚动公告栏（Rough Trade 风格）=== */
         .aileen-ticker {
             background: #0a0a0a;
@@ -3231,7 +3313,7 @@
             background: #0a0a0a;
             border-bottom: 1px solid rgba(0, 249, 255, 0.15);
             position: fixed;
-            top: 88px;
+            top: 92px;
             left: 0;
             width: 100%;
             z-index: 90;
@@ -3248,12 +3330,15 @@
             align-items: center;
             justify-content: center;
             padding: 0 20px;
+            margin: 0;
+            line-height: 46px;
         }
 
         .ticker-content {
             display: flex;
             align-items: center;
             gap: 22px;
+            height: 46px;
         }
 
         .sep {
@@ -3742,6 +3827,31 @@
 
         </div>
     </section>
+
+    <!-- SOUND SECTION - paste here -->
+    <div class="sound-wrapper">
+      <div class="floating-heart">♡</div>
+      
+      <div class="sound-card">
+        <!-- the exact top hole from your screenshot -->
+        <div class="top-hole">
+          <div class="hole-ring"></div>
+          <div class="hole-dot"></div>
+        </div>
+        
+        <div class="sound-label">SOUND</div>
+        <h2>Music & Podcast</h2>
+        <p>Listen to the latest episodes and curated playlists</p>
+        
+        <!-- your glowing cyan play button (already linked to oculus) -->
+        <a href="oculus.html" class="neon-play-btn">
+          <svg width="92" height="92" viewBox="0 0 200 200">
+            <circle cx="100" cy="100" r="88" fill="none" stroke="#00f9ff" stroke-width="11"/>
+            <polygon points="68,62 68,138 145,100" fill="#00f9ff"/>
+          </svg>
+        </a>
+      </div>
+    </div>
 
     <!-- Works Project Modal -->
     <div class="works-modal-overlay" id="worksModalOverlay" onclick="window.mechWorksModal && window.mechWorksModal.closeProject()"></div>
@@ -5119,6 +5229,27 @@
             }
         });
     </script>
+
+    <!-- MEMBERSHIP SECTION -->
+    <section class="membership">
+      <p class="member-text">Become a member & make Aileena.xyz one of your favorite places!</p>
+      
+      <div class="member-buttons">
+        <a href="#" class="btn">❤️ DONATE</a>
+        <a href="#" class="btn">✨ JOIN</a>
+        
+        <div class="icon-group">
+          <a href="#" class="icon-btn">📷</a>
+          <a href="#" class="icon-btn">🎨</a>
+          <a href="#" class="icon-btn">💬</a>
+        </div>
+      </div>
+      
+      <!-- thin divider from your screenshot -->
+      <div class="divider"></div>
+      
+      <div class="icp-box">ICP 备案号: XXXX</div>
+    </section>
 
 </body>
 </html>
