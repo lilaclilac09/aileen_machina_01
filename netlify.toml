@@ -1,8 +1,35 @@
 [build]
   publish = "."
-  command = "echo 'No build needed'"
+  # Build Next.js chat app
+  command = "cd chat && npm install && npm run build"
 
+# Next.js chat app functions
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Redirect /chat/* to Next.js app
+[[redirects]]
+  from = "/chat/*"
+  to = "/.netlify/functions/___netlify-handler/:splat"
+  status = 200
+
+# Redirect /chat to Next.js app (no trailing slash)
+[[redirects]]
+  from = "/chat"
+  to = "/.netlify/functions/___netlify-handler"
+  status = 200
+
+# SPA fallback for main static site (excluding /chat)
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Environment variables documentation (set these in Netlify UI)
+# NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+# NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+# UPSTASH_REDIS_REST_URL=your_upstash_url
+# UPSTASH_REDIS_REST_TOKEN=your_upstash_token
+# POE_API_KEY=your_poe_api_key
+# POE_BOT_NAME=your_poe_bot_name
+# ELEVENLABS_API_KEY=your_elevenlabs_api_key

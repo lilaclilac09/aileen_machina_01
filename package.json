@@ -1,0 +1,14 @@
+{
+  "name": "aileen-machina-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "install:chat": "cd chat && npm install",
+    "dev:chat": "cd chat && npm run dev",
+    "build:chat": "cd chat && npm run build",
+    "deploy": "netlify deploy --prod"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}
