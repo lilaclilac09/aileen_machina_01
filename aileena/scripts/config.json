@@ -1,0 +1,62 @@
+{
+  "equities": {
+    "tickers": ["RCL", "MU", "LLY", "MAR", "HLT"],
+    "data_sources": {
+      "RCL": {
+        "name": "Royal Caribbean Group",
+        "ir_url": "https://royalcaribbeangrouppresscenter.com/news",
+        "yahoo_finance": "https://finance.yahoo.com/quote/RCL",
+        "sector": "Leisure & Travel"
+      },
+      "MU": {
+        "name": "Micron Technology",
+        "ir_url": "https://investors.micron.com/news-releases",
+        "yahoo_finance": "https://finance.yahoo.com/quote/MU",
+        "sector": "Semiconductors"
+      },
+      "LLY": {
+        "name": "Eli Lilly and Company",
+        "ir_url": "https://investor.lilly.com/news-releases",
+        "yahoo_finance": "https://finance.yahoo.com/quote/LLY",
+        "sector": "Pharmaceuticals"
+      },
+      "MAR": {
+        "name": "Marriott International",
+        "ir_url": "https://marriott.gcs-web.com/news-releases",
+        "yahoo_finance": "https://finance.yahoo.com/quote/MAR",
+        "sector": "Hospitality"
+      },
+      "HLT": {
+        "name": "Hilton Worldwide Holdings",
+        "ir_url": "https://ir.hiltonworldwide.com/news-releases",
+        "yahoo_finance": "https://finance.yahoo.com/quote/HLT",
+        "sector": "Hospitality"
+      }
+    },
+    "cache_ttl_hours": 12
+  },
+  "cislunar": {
+    "data_sources": {
+      "nasa_clps": "https://www.nasa.gov/commercial-lunar-payload-services/clps-providers",
+      "nasa_lunar_delivery": "https://science.nasa.gov/lunar-discovery/deliveries",
+      "spacenews": "https://spacenews.com"
+    },
+    "companies": {
+      "tier1": [
+        {"name": "SpaceX", "focus": "Starship Lunar Lander"},
+        {"name": "Lockheed Martin", "focus": "Nuclear Power, Orbital Refueling"}
+      ],
+      "tier2": [
+        {"name": "Intuitive Machines", "focus": "Lunar Lander, Earth-to-Lunar Access"},
+        {"name": "Firefly Aerospace", "focus": "Blue Ghost Lander, Lunar Surface Access"},
+        {"name": "Astrobotic Technology", "focus": "Griffin Lander, ISRU"}
+      ],
+      "tier3": [
+        {"name": "Axiom Space", "focus": "Commercial Space Station"},
+        {"name": "iSpace", "focus": "Lunar Lander (Japan)"},
+        {"name": "Relativity Space", "focus": "3D Printed Rockets"}
+      ]
+    },
+    "cache_ttl_hours": 24
+  }
+}

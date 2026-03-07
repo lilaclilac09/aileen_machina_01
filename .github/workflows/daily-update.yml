@@ -1,0 +1,49 @@
+name: Daily Data Update
+
+on:
+  schedule:
+    - cron: '0 9 * * *'  # Daily at 9 AM UTC
+  workflow_dispatch:     # Manual trigger option
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          cd aileena/scripts
+          pip install -r requirements.txt
+      
+      - name: Run equity scraper
+        run: cd aileena && python scripts/update_equities.py
+      
+      - name: Run cislunar scraper
+        run: cd aileena && python scripts/update_cislunar.py
+      
+      - name: Configure Git
+        run: |
+          git config user.name "Data Bot"
+          git config user.email "bot@aileena.xyz"
+      
+      - name: Commit & Push updates
+        run: |
+          cd aileena
+          git add content/equities/*.md content/cislunar/**/*.md || true
+          
+          # Check if there are changes to commit
+          if git diff --cached --quiet; then
+            echo "No data changes detected"
+          else
+            git commit -m "chore: auto-update equity & cislunar data [$(date +%Y-%m-%d)]"
+            git push origin main
+            echo "✅ Data updated and pushed"
+          fi
