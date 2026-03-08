@@ -1,7 +1,7 @@
 ---
 ticker: MAR
 name: Marriott International
-last_updated: 2026-03-07 15:13 UTC
+last_updated: 2026-03-07 15:55 UTC
 ---
 
 ## Marriott International (MAR)
@@ -25,4 +25,4 @@ Luxury brand momentum; pipeline at record levels
 *[Investment thesis to be written manually - this section does not auto-update]*
 
 ### Data Source
-Last updated: 2026-03-07T15:13:29.163186
+Last updated: 2026-03-07T15:55:31.281322

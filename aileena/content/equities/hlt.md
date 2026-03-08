@@ -1,7 +1,7 @@
 ---
 ticker: HLT
 name: Hilton Worldwide Holdings
-last_updated: 2026-03-07 15:13 UTC
+last_updated: 2026-03-07 15:55 UTC
 ---
 
 ## Hilton Worldwide Holdings (HLT)
@@ -25,4 +25,4 @@ Curio Collection, LXR expansion; Owner economics strong
 *[Investment thesis to be written manually - this section does not auto-update]*
 
 ### Data Source
-Last updated: 2026-03-07T15:13:31.171834
+Last updated: 2026-03-07T15:55:33.153193

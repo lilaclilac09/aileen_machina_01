@@ -1,7 +1,7 @@
 ---
 ticker: MU
 name: Micron Technology
-last_updated: 2026-03-07 15:13 UTC
+last_updated: 2026-03-07 15:55 UTC
 ---
 
 ## Micron Technology (MU)
@@ -25,4 +25,4 @@ HBM3 production ramp; 232-layer NAND progress
 *[Investment thesis to be written manually - this section does not auto-update]*
 
 ### Data Source
-Last updated: 2026-03-07T15:13:25.248847
+Last updated: 2026-03-07T15:55:27.257028

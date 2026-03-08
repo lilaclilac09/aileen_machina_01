@@ -1,7 +1,7 @@
 ---
 ticker: LLY
 name: Eli Lilly and Company
-last_updated: 2026-03-07 15:13 UTC
+last_updated: 2026-03-07 15:55 UTC
 ---
 
 ## Eli Lilly and Company (LLY)
@@ -25,4 +25,4 @@ GLP-1 market expansion; tirzepatide sales growth
 *[Investment thesis to be written manually - this section does not auto-update]*
 
 ### Data Source
-Last updated: 2026-03-07T15:13:27.179519
+Last updated: 2026-03-07T15:55:29.354095
