@@ -1,0 +1,23 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "hono dev",
+    "deploy": "vercel deploy",
+    "db:push": "drizzle-kit push"
+  },
+  "dependencies": {
+    "hono": "^4.6.0",
+    "drizzle-orm": "^0.40.0",
+    "postgres": "^3.4.5",
+    "zod": "^3.24.0",
+    "technicalindicators": "^3.1.0",
+    "papaparse": "^5.4.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "drizzle-kit": "^0.30.0",
+    "vercel": "latest"
+  }
+}
