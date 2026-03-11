@@ -32,6 +32,16 @@
 # DEVELOPMENT-LOG.md
 最后更新：2026-03-11 14:00 HKT
 
+## 本次记录（2026-03-11 第7步）
+进度：finance.aileena.xyz 完成 - /api/stock/:symbol 精确匹配前端卡片
+卡点：数据更新问题已解决（实时 quote + news）
+数据库状态：OK
+部署状态：Vercel 未链接（可下一步）
+本次操作：api.stock-detail.ts + 结构对齐截图
+耗时：12 分钟
+下一步：Vercel 部署 或 前端 fetch 示例
+备注：RCL 页面所有指标已能拉取，前端直接用即可！
+
 ## 本次记录
 日期：2026-03-11
 进度：写完整体架构文档 + 开发日志模板

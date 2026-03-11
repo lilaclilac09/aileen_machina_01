@@ -5,6 +5,7 @@ import type { User } from '@supabase/supabase-js';
 import { getSupabaseClient } from '@/lib/supabase';
 import { MessageBubble } from './MessageBubble';
 import { VoiceControls } from './VoiceControls';
+import { StockSearch } from './StockSearch';
 import { Mic, Send, Trash2, LogOut } from 'lucide-react';
 
 interface Message {
@@ -14,82 +15,85 @@ interface Message {
   timestamp: number;
 }
 
-interface ChatInterfaceProps {
-  user: User;
-}
+  return (
+    <div className="min-h-screen flex flex-col">
+      {/* Header */}
+      <header className="mech-panel m-4 mb-0 flex items-center justify-between">
+        <div>
+          <h1 className="neon-text text-2xl font-barlow font-bold">AILEEN MACHINA</h1>
+          <p className="text-xs text-gray-400 mt-1">Neural link established • {user.email}</p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setIsVoiceMode(!isVoiceMode)}
+            className="metal-button !p-2"
+            title={isVoiceMode ? 'Text mode' : 'Voice mode'}
+          >
+            <Mic className={isVoiceMode ? 'text-neon-cyan' : ''} size={20} />
+          </button>
+          <button
+            onClick={handleClearHistory}
+            className="metal-button !p-2"
+            title="Clear history"
+          >
+            <Trash2 size={20} />
+          </button>
+          <button
+            onClick={handleLogout}
+            className="metal-button !p-2"
+            title="Logout"
+          >
+            <LogOut size={20} />
+          </button>
+        </div>
+      </header>
 
-export function ChatInterface({ user }: ChatInterfaceProps) {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isVoiceMode, setIsVoiceMode] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+      {/* 股票自选搜索/添加区块 */}
+      <StockSearch user={user} />
 
-  useEffect(() => {
-    loadChatHistory();
-  }, [user]);
+      {/* Messages */}
+      <main className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.length === 0 && (
+          <div className="text-center text-gray-400 mt-20">
+            <p className="neon-text text-xl mb-2">Welcome to the neural link...</p>
+            <p className="text-sm">I'm Aileen. What brings you here today?</p>
+          </div>
+        )}
+        
+        {messages.map((message) => (
+          <MessageBubble key={message.id} message={message} />
+        ))}
+        <div ref={messagesEndRef} />
+      </main>
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const loadChatHistory = async () => {
-    try {
-      const response = await fetch(`/chat/api/memory?userId=${user.id}`);
-      const data = await response.json();
-      
-      if (data.messages) {
-        setMessages(
-          data.messages.map((msg: any, idx: number) => ({
-            id: `${msg.timestamp}-${idx}`,
-            role: msg.role,
-            content: msg.content,
-            timestamp: msg.timestamp,
-          }))
-        );
-      }
-    } catch (error) {
-      console.error('Failed to load chat history:', error);
-    }
-  };
-
-  const sendMessage = async (text: string) => {
-    if (!text.trim() || isLoading) return;
-
-    const userMessage: Message = {
-      id: `user-${Date.now()}`,
-      role: 'user',
-      content: text,
-      timestamp: Date.now(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInput('');
-    setIsLoading(true);
-
-    try {
-      const response = await fetch('/chat/api/bot', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: text,
-          userId: user.id,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.response) {
-        const assistantMessage: Message = {
-          id: `assistant-${Date.now()}`,
-          role: 'assistant',
-          content: data.response,
-          timestamp: Date.now(),
-        };
+      {/* Input */}
+      <form
+        className="mech-panel m-4 mt-0 flex items-center gap-2"
+        onSubmit={handleSubmit}
+      >
+        <input
+          className="metal-input flex-1"
+          placeholder={isVoiceMode ? 'Speak...' : 'Type your message...'}
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          disabled={isLoading || isVoiceMode}
+        />
+        <button
+          className="metal-button"
+          type="submit"
+          disabled={isLoading || !input.trim() || isVoiceMode}
+        >
+          <Send size={20} />
+        </button>
+        <VoiceControls
+          isVoiceMode={isVoiceMode}
+          setIsVoiceMode={setIsVoiceMode}
+          onSend={sendMessage}
+          disabled={isLoading}
+        />
+      </form>
+    </div>
+  );
         setMessages((prev) => [...prev, assistantMessage]);
       }
     } catch (error) {
