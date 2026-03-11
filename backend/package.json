@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "npx hono dev",
-    "deploy": "vercel deploy",
-    "db:push": "drizzle-kit push --config ./drizzle.config.ts"
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc"
   },
   "dependencies": {
     "hono": "^4.6.0",
