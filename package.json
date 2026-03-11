@@ -9,6 +9,11 @@
     "deploy": "netlify deploy --prod"
   },
   "devDependencies": {
-    "@hono/cli": "^0.1.10"
+    "@hono/cli": "^0.1.10",
+    "@types/dotenv": "^6.1.1"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.99.0",
+    "dotenv": "^17.3.1"
   }
 }
