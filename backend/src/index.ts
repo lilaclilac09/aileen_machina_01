@@ -16,7 +16,6 @@ const app = new Hono();
 app.use('*', cors({ origin: ['https://aileen.xyz', 'https://mev.aileena.xyz', 'https://finance.aileena.xyz'] }));
 app.use('/api/*', keyshiled);
 
-
 app.route('/api/mev', mev);
 app.route('/api/finance', finance);
 app.route('/api/blog', blog);
@@ -27,10 +26,12 @@ app.route('/api/alpha', alpha);
 app.route('/api', data);
 
 import apiData from './routes/api.data.js';
+import apiStocks from './routes/api.stocks.js';
 
 // ... 你的原有代码 ...
 
 // 挂载万能路由
 app.route('/api', apiData);
+app.route('/api', apiStocks); // ← 新增这一行（挂载 /api/stocks/*）
 
 export default app;
