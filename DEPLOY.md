@@ -1,3 +1,45 @@
+# Vercel 一键部署指南（AILEENA 全栈项目）
+
+## 1. 前提准备
+- 注册并登录 [Vercel](https://vercel.com/)
+- GitHub 账号已绑定 Vercel
+- 项目已 push 到 GitHub 仓库
+
+## 2. 新建 Vercel 项目
+1. 打开 Vercel 控制台，点击 **Add New Project**
+2. 选择你的 aileen_machina_01 仓库，点击 **Import**
+3. 选择 `chat/` 作为前端目录，`backend/` 作为后端（API）目录
+
+## 3. 配置环境变量
+在 Vercel 项目设置中，添加以下环境变量：
+
+### chat/ 前端
+- `NEXT_PUBLIC_SUPABASE_URL`：你的 Supabase 项目 URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`：Supabase 匿名 Key
+
+### backend/ 后端
+- `SUPABASE_URL`：你的 Supabase 项目 URL
+- `SUPABASE_KEY`：服务端 Key（service_role）
+- `FINNHUB_KEY`：Finnhub API Key
+- `ALPHA_VANTAGE_KEY`：Alpha Vantage API Key
+
+## 4. 部署
+- 点击 **Deploy**，等待自动构建和部署完成
+- 成功后，Vercel 会分配预览域名，可自定义为 `finance.aileena.xyz`、`api.aileena.xyz` 等
+
+## 5. 路由说明
+- 前端站点：`/`、`/chat`、`/finance` 等
+- 后端 API：`/api/data`、`/api/stocks/my`、`/api/stocks/add`、`/api/stocks/remove/:symbol`
+
+## 6. 常见问题
+- 环境变量漏填会导致 500 错误，请务必检查
+- Supabase 权限建议仅开放当前用户可读写自己的数据
+
+---
+
+> ![vercel-deploy-screenshot](https://assets.vercel.com/image/upload/v1669991234/front/vercel-dashboard.png)
+
+如需详细截图或遇到问题，随时微信联系！
 # 🚀 Deployment Guide
 
 ## Option 1: Netlify (Easiest - Drag & Drop) ⭐ RECOMMENDED
