@@ -7,7 +7,7 @@ const route = new Hono();
 
 route.get('/fetch', async (c) => {
   // Finance Polygon（你原来的python_generator逻辑）
-  const res = await fetch(`https://api.polygon.io/v2/aggs/ticker/AAPL/range/1/day/...?apiKey=${process.env.POLYGON_KEY}`);
+  const res = await fetch(`https://api.polygon.io/v2/aggs/ticker/AAPL/range/1/day/2025-01-01/2026-03-11?adjusted=true&sort=asc&limit=500&apiKey=${process.env.POLYGON_KEY}`);
   const data = await res.json();
   const signal = calculateBottomSignal(data);
 

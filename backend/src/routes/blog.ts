@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { db } from '../db';
 import { blogPosts } from '../db/schema';
+import { eq } from 'drizzle-orm';   // ←←← 这行必须有！
 
 const route = new Hono();
 

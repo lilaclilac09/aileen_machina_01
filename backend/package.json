@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "hono dev",
     "deploy": "vercel deploy",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push --config ./drizzle.config.ts"
   },
   "dependencies": {
     "hono": "^4.6.0",

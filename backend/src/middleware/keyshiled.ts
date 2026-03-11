@@ -1,5 +1,9 @@
-import { keyshiledGuard } from 'your-keyshiled-package';
 
-export const keyshiled = keyshiledGuard({
-  // 你的完整配置（轮换、加密、rate limit、支付agent保护）
-});
+import { Hono } from 'hono';
+
+// 临时 pass-through，后续再接真实 keyshiled
+export const keyshiled = async (c: any, next: any) => {
+  return await next();
+};
+
+// The previous implementation has been replaced with a temporary pass-through version.
