@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { StockService } from '../services/stock.service.js';
+import { CacheService } from '../services/cache.service.js';
 import { fetchFinnhub } from '../utils/fetcher.js';
 
 const apiStockDetail = new Hono();
@@ -9,7 +9,7 @@ apiStockDetail.get('/:symbol', async (c) => {
   const symbol = c.req.param('symbol').toUpperCase();
 
   // 1. 基础数据（quote + profile + metrics + fundamentals）
-  const base = await StockService.getStockData(symbol, ['quote', 'profile', 'metrics', 'income', 'cashflow']);
+  const base = await CacheService.getLatest(symbol, ['quote', 'profile', 'metrics', 'income', 'cashflow']);
 
   // 2. 最新新闻（用来填充 Latest Orders / Developments）
   const newsRes = await fetchFinnhub('/company-news', { symbol, from: '2025-01-01', to: new Date().toISOString().split('T')[0] });
