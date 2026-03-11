@@ -28,6 +28,7 @@ app.route('/api', data);
 import apiData from './routes/api.data.js';
 import apiStocks from './routes/api.stocks.js';
 import apiStockDetail from './routes/api.stock-detail.js';
+import apiStockIntraday from './routes/api.stock-intraday.js';
 
 // ... 你的原有代码 ...
 
@@ -36,5 +37,6 @@ app.route('/api', apiData);
 app.route('/api', apiStocks); // ← 新增这一行（挂载 /api/stocks/*）
 
 app.route('/api/stock', apiStockDetail);   // ← 新增这一行
+app.route('/api/stock', apiStockIntraday); // ← 新增 intraday 路由
 
 export default app;
