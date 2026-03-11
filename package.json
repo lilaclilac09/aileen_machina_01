@@ -7,8 +7,5 @@
     "dev:chat": "cd chat && npm run dev",
     "build:chat": "cd chat && npm run build",
     "deploy": "netlify deploy --prod"
-  },
-  "devDependencies": {
-    "netlify-cli": "^17.0.0"
   }
 }
