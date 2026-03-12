@@ -2926,18 +2926,21 @@
         /* === AILEENA 永久滚动公告栏（Rough Trade 风格）=== */
         .aileen-ticker {
             background: #0a0a0a;
-            border-bottom: 1px solid #222;
+            /* border-bottom: 1px solid #222; */
             overflow: hidden;
             white-space: nowrap;
             padding: 12px 0;
             position: fixed;
-            top: 88px;
+            top: 76px; /* 更贴近nav/header */
             left: 0;
             width: 100%;
             z-index: 90;
             font-size: 0.95rem;
             letter-spacing: 1.5px;
             text-transform: uppercase;
+            font-family: 'Barlow Condensed', 'Oswald', 'Inter', 'Akzidenz-Grotesk', sans-serif;
+            font-weight: 500;
+            font-style: normal;
             transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -2954,6 +2957,9 @@
         .ticker-text {
             color: #00ffff;
             display: inline-block;
+            font-family: inherit;
+            font-weight: inherit;
+            font-style: inherit;
         }
 
         /* 关键：无缝循环 */
