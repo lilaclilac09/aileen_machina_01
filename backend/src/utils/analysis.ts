@@ -15,6 +15,3 @@ export function calculateBottomSignal(priceData: any) {
   return { signal, rsi: lastRsi, ma50, ma200, volatility: TI.StandardDeviation.calculate({ period: 20, values: closes })[0] };
 }
 
-export function calculateMEVRisk(attack: any) {
-  return Math.min(100, Math.floor((attack.netProfitSol || 0) * 3.5 + (attack.oracleLatency || 0) * 10));
-}

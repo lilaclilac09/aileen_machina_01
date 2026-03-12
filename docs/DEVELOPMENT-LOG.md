@@ -7,7 +7,7 @@
 本次操作：api.stocks.ts + Supabase 表
 耗时：10 分钟
 下一步：Vercel 部署 或 估值模型
-备注：MEV 已暂停，手机加/删股票已实现！finance 主站骨架完成！
+备注：手机加/删股票已实现！finance 主站骨架完成！
 
 ## 本次记录（2026-03-11 第3步）
 进度：重构 StockService + api.data 路由精简

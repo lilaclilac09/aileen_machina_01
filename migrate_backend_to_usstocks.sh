@@ -26,7 +26,6 @@ cp "$SRC_DIR/src/services/stock.service.ts" "$DEST_DIR/src/services/stock.servic
 cp "$SRC_DIR/src/services/cache.service.ts" "$DEST_DIR/src/services/cache.service.ts"
 cp "$SRC_DIR/src/db/index.ts" "$DEST_DIR/src/db/index.ts"
 
-# 可选：复制 schema，如有自定义表结构
 if [ -f "$SRC_DIR/src/db/schema.ts" ]; then
   cp "$SRC_DIR/src/db/schema.ts" "$DEST_DIR/src/db/schema.ts"
 fi

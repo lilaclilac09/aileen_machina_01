@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { db } from '../db';
-import { financeAnalyses, mevAttacks } from '../db/schema';
+import { financeAnalyses } from '../db/schema';
 import { calculateBottomSignal } from '../utils/analysis';
 
 const route = new Hono();
@@ -22,8 +22,6 @@ route.get('/fetch', async (c) => {
     priceData: data
   });
 
-  // MEV Helius（实时替换你CSV）
-  // ... 可后续扩展
 
   return c.json({ success: true });
 });

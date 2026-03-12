@@ -1,15 +1,3 @@
-import { pgTable, text, real, integer, json, timestamp } from 'drizzle-orm/pg-core';
-
-export const mevAttacks = pgTable('mev_attacks', {
-  id: text('id').primaryKey(),
-  attackType: text('attack_type'),
-  netProfitSol: real('net_profit_sol'),
-  validator: text('validator'),
-  riskScore: integer('risk_score'),
-  oracleLatency: real('oracle_latency'),
-  rawData: json('raw_data'),
-  createdAt: timestamp('created_at').defaultNow(),
-});
 
 export const financeAnalyses = pgTable('finance_analyses', {
   id: text('id').primaryKey(),

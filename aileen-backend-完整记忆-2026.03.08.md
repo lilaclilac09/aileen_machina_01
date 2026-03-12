@@ -3,16 +3,15 @@
 **用户核心需求（原话 + 所有后续确认）**：
 - 只做一个纯后端，不要复杂多agent结构（现在过度，后期agent用Vercel AI SDK加几行即可）。
 - 主站 aileen.xyz：展示成功个人IP、用户共鸣、强势输出世界观+文化（殖民感）、机械美学+voice-agent+GSAP。
-- subsite视觉完全隔离：finance（大量美股数据+抄底输出）、MEV（价值获取+数据）、block（blockbuilding+validator）、privacy（技术原理+演技隐私）、exhibitions（看展）。
+- subsite视觉完全隔离：finance（大量美股数据+抄底输出）、block（blockbuilding+validator）、privacy（技术原理+演技隐私）、exhibitions（看展）。
 - finance（US-STOCKS-DEEP-ANALYSIS仓库）：Polygon大量数据（价格波动、RSI、MA50/MA200、Golden Cross、fundamentals），自动抄底信号。
-- MEV（solana-pamm-MEV-binary-monte仓库）：Helius/Jito + fat sandwich + contagious pools + oracle latency + validator + XGBoost/Monte Carlo，支持CSV一键导入。
 - block：blockbuilding + validator 数据（Helius + Dune）。
 - privacy：技术原理 + 演技隐私（手动内容为主）。
 - exhibitions：图片 + 机械殖民美学展示。
 - 目前多个Vercel项目要统一成一个后端API。
 - 大量数据API自己管理key（永不暴露前端）。
 - keyshiled作为全局安全官（轮换、加密、rate limit、支付agent也用）。
-- 手机端2分钟添加/更新状态（世界观、抄底、MEV数据）。
+- 手机端2分钟添加/更新状态（世界观、抄底数据）。
 - 前端还没想好（要加星球设计），所以前后端彻底分开。
 - 讨厌丑admin，要手机友好干净界面（Supabase Studio）。
 - 最新路径要求：全部后端放在 /Users/aileen/aileen_machina/backend 文件夹里（直接叫 backend）。
@@ -48,7 +47,6 @@
 
 **所有可直接复制的Prompts（以后直接发我）**：
 - “给我全套代码压缩包结构”
-- “给我MEV Python完整导入脚本”
 - “给我Finance python_generator.py完整Node移植版”
 - “给我星球前端模板（带 React Three Fiber + 所有API调用）”
 - “跑起来了帮debug” + 贴报错

@@ -12,7 +12,6 @@ aileen_machina_01/                  ← 根目录（GitHub 主仓库）
 │   ├── finance/                    ← finance.aileena.xyz（金融数据站）
 │   ├── blog/                       ← blog.aileena.xyz（文章系统）
 │   ├── music/                      ← music.aileena.xyz（音乐/音轨站）
-│   ├── mev/                        ← mev.aileena.xyz（MEV 区块链子站）
 │   └── chat/                       ← 已有 chat 子项目（Netlify）
 ├── backend/                        ← 独立后端（Hono + Drizzle）
 │   └── src/                        ← 所有业务逻辑（见下文）
@@ -32,7 +31,7 @@ aileen_machina_01/                  ← 根目录（GitHub 主仓库）
 
 ### 2. 数据库 & 部署现状（实时记录）
 - **数据库**：Supabase PostgreSQL（已配置 Drizzle ORM）
-  - 表：`user_stocks`、`valuation_assumptions`、`mev_history`、`blog_posts`（未来）
+  - 表：`user_stocks`、`valuation_assumptions`、`blog_posts`（未来）
   - 连接方式：backend/src/db/supabase.ts（已存在）
   - 为什么选 Supabase：免费、Realtime、手机上也能看仪表盘
 - **Vercel 状态**：**尚未链接**
@@ -58,8 +57,6 @@ aileen_machina_01/                  ← 根目录（GitHub 主仓库）
 - **music.aileena.xyz**  
   音轨列表 + 播放器 + vinyl 风格。手机改 music-playlist.md → 自动部署。
 
-- **mev.aileena.xyz**  
-  区块链 MEV 数据展示（用你自己的 Helius/Jito 数据源）。独立后端路由。
 
 ### 4. 完整开发计划（分 4 个阶段，手机随时看进度）
 
@@ -77,13 +74,12 @@ aileen_machina_01/                  ← 根目录（GitHub 主仓库）
 - 创建 blog 和 music 的 Markdown 驱动系统
 - 手机修改 docs/CONTENT-TEMPLATES/ → 自动部署
 
-**阶段 3（两周后：MEV + 估值模型）**  
-- 接入 mev-custom.ts（你的数据源）
+**阶段 3（两周后：估值模型）**  
 - 实现简单 DCF 估值路由
 - Supabase 存用户自选股票
 
 **阶段 4（未来）**  
-- 加 WebSocket 实时推送（MEV + 股票）
+-- 加 WebSocket 实时推送（股票）
 - Claude 集成自动生成分析报告
 - 多语言 / PWA 支持
 
