@@ -1,7 +1,946 @@
 <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>AILEENA</title>
+  
+    <!-- Fonts (保持你原来的，或换成更工业的) -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Barlow+Condensed:wght@300;500;700&display=swap" rel="stylesheet">
+  
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        html, body { height:100%; overflow-x:hidden; background:#000; color:#eee; font-family:'Barlow Condensed', 'Orbitron', sans-serif; cursor:none; }
+    
+        /* Fullscreen Hero - 单张图主导 */
+        .hero {
+            position:fixed;
+            inset:0;
+            background: url('bg_pic/04.jpeg') no-repeat center/cover;
+            z-index:1;
+        }
+    
+        /* 无边框 Ticker - 顶部融合式滚动条 */
+        .ticker {
+            position:fixed;
+            top:0; left:0; right:0;
+            height:40px;
+            background:rgba(0,0,0,0.4);
+            backdrop-filter:blur(8px);
+            overflow:hidden;
+            white-space:nowrap;
+            z-index:10;
+            color:#00ffea;
+            font-size:1rem;
+            letter-spacing:0.25em;
+            line-height:40px;
+            text-transform:uppercase;
+        }
+        .ticker span {
+            display:inline-block;
+            padding:0 4rem;
+            animation:marquee 80s linear infinite;
+        }
+        @keyframes marquee {
+            0% { transform:translateX(100%); }
+            100% { transform:translateX(-100%); }
+        }
+    
+        /* 右边竖向侧边菜单 - 默认隐藏，拉出 */
+        .side-nav {
+            position:fixed;
+            top:0; right:-300px;
+            width:300px; height:100%;
+            background:rgba(10,10,10,0.85);
+            backdrop-filter:blur(12px);
+            border-left:1px solid rgba(255,255,255,0.08);
+            z-index:999;
+            transition:right 0.5s cubic-bezier(0.77,0,0.175,1);
+            padding:80px 40px 40px;
+            display:flex; flex-direction:column; justify-content:flex-start; gap:2.5rem;
+            font-size:1.4rem; letter-spacing:0.3em; text-transform:uppercase;
+        }
+        .side-nav.open { right:0; }
+        .side-nav a {
+            color:#eee; text-decoration:none; opacity:0.85; transition:all 0.4s;
+        }
+        .side-nav a:hover { opacity:1; transform:translateX(10px); color:#00ffea; }
+    
+        /* Hamburger 按钮 - 右上角 */
+        .hamburger {
+            position:fixed;
+            top:30px; right:40px;
+            z-index:1000;
+            font-size:2.2rem;
+            color:#fff;
+            cursor:pointer;
+            mix-blend-mode:difference;
+            transition:transform 0.4s;
+        }
+        .hamburger:hover { transform:rotate(90deg); }
+    
+        /* Logo - 左上或底部，保持低调 */
+        .logo {
+            position:fixed;
+            top:30px; left:40px;
+            z-index:10;
+            font-size:2.5rem;
+            letter-spacing:0.5em;
+            color:#fff;
+            mix-blend-mode:difference;
+        }
+    
+        /* Custom Cursor (保持你原有的) */
+        #cursor, #cursorDot { position:fixed; pointer-events:none; z-index:9999; mix-blend-mode:difference; }
+        #cursor { width:30px; height:30px; border:1px solid #fff; border-radius:50%; transform:translate(-50%,-50%); }
+        #cursorDot { width:6px; height:6px; background:#fff; border-radius:50%; transform:translate(-50%,-50%); }
+    </style>
+</head>
+<body>
+
+    <!-- 极简主视觉区（顶部固定） -->
+    <div class="hero"></div>
+    <div class="ticker">
+        <span>
+            TECHNO NIGHT 28 MAR • TICKETS → | AMSTERDAM BLACK VINYL DIGGING WEEKEND • KILLACUTZ + RUSH HOUR | FOLLOW @AILEENA ON SOUNDCLOUD FOR EXCLUSIVE TRACKS | HARD WAX • OYE • HHV • SOUND METAPHORS • INDEEP'N'DANCE | AILEENA • EST 2025 • MACHINA MODE ACTIVATED +++ 
+            TECHNO NIGHT 28 MAR • TICKETS → | AMSTERDAM BLACK VINYL DIGGING WEEKEND • KILLACUTZ + RUSH HOUR | FOLLOW @AILEENA ON SOUNDCLOUD FOR EXCLUSIVE TRACKS | HARD WAX • OYE • HHV • SOUND METAPHORS • INDEEP'N'DANCE | AILEENA • EST 2025 • MACHINA MODE ACTIVATED +++ 
+        </span>
+    </div>
+    <div class="logo">AILEENA</div>
+    <div class="hamburger" id="menuToggle">≡</div>
+        <nav class="side-nav" id="sideNav" style="display:none;">
+                <!-- 保留原结构但隐藏，方便随时恢复 -->
+                <a href="#gallery">GALLERY</a>
+                <a href="#sound">SOUND</a>
+                <a href="#blog">BLOG</a>
+                <a href="#works">WORKS</a>
+                <a href="#elsewhere">ELSEWHERE</a>
+                <a href="#chain">CHAIN</a>
+                <a href="#contact">CONTACT</a>
+        </nav>
+
+        <!-- Nav Flip Page / Overlay -->
+        <div class="nav-overlay" id="navPage">
+            <div class="nav-close" onclick="closeNavPage()">×</div>
+            <div class="nav-content">
+                <ul class="nav-list">
+                    <li><a href="#gallery" onclick="closeNavPage()">GALLERY</a></li>
+                    <li><a href="#sound" onclick="closeNavPage()">SOUND</a></li>
+                    <li><a href="#blog" onclick="closeNavPage()">BLOG</a></li>
+                    <li><a href="#works" onclick="closeNavPage()">WORKS</a></li>
+                    <li><a href="#elsewhere" onclick="closeNavPage()">ELSEWHERE</a></li>
+                    <li><a href="#chain" onclick="closeNavPage()">CHAIN</a></li>
+                    <li><a href="#contact" onclick="closeNavPage()">CONTACT</a></li>
+                </ul>
+            </div>
+        </div>
+    <div id="cursor"></div>
+    <div id="cursorDot"></div>
+    <script src="main.js"></script>
+    <script>
+        document.getElementById('menuToggle').addEventListener('click', () => {
+            document.getElementById('sideNav').classList.toggle('open');
+        });
+        gsap.to(".ticker span", { y: "-=10", duration: 4, yoyo: true, repeat: -1, ease: "sine.inOut" });
+    </script>
+
+    <!-- 主视觉下方内容区（全部保留） -->
+    <div style="position:relative; z-index:2; background:rgba(0,0,0,0.92); margin-top:100vh;">
+        <!-- GALLERY -->
+        <section class="content-section" id="gallery">
+            <h2 class="section-title">GALLERY</h2>
+            <div class="gallery-grid">
+                <div class="gallery-item" data-index="0" onclick="window.mechGalleryLightbox && window.mechGalleryLightbox.open(0)" style="background-image: url('bg_pic/03.jpeg'); background-size: contain; background-position: center center;" title="MECHANICALA Series - 03"></div>
+                <div class="gallery-item" data-index="1" onclick="window.mechGalleryLightbox && window.mechGalleryLightbox.open(1)" style="background-image: url('bg_pic/01.jpeg'); background-size: contain; background-position: center center;" title="BRUTAL LIGHT Study"></div>
+                <div class="gallery-item" data-index="2" onclick="window.mechGalleryLightbox && window.mechGalleryLightbox.open(2)" style="background-image: url('bg_pic/02.jpeg'); background-size: contain; background-position: center center;" title="METAL REFLECTION 01"></div>
+            </div>
+        </section>
+        <!-- Gallery Lightbox Modal -->
+        <div class="gallery-lightbox" id="galleryLightbox">
+            <div class="lightbox-background" onclick="window.mechGalleryLightbox && window.mechGalleryLightbox.close()"></div>
+            <div class="lightbox-container">
+                <button class="lightbox-arrow lightbox-prev" onclick="window.mechGalleryLightbox && window.mechGalleryLightbox.prev()">
+                    <span class="arrow-icon">◀</span>
+                    <div class="rivet-top"></div>
+                    <div class="rivet-bottom"></div>
+                </button>
+                <div class="lightbox-image-container">
+                    <img id="lightboxImage" src="" alt="Gallery image" loading="lazy">
+                </div>
+                <button class="lightbox-arrow lightbox-next" onclick="window.mechGalleryLightbox && window.mechGalleryLightbox.next()">
+                    <span class="arrow-icon">▶</span>
+                    <div class="rivet-top"></div>
+                    <div class="rivet-bottom"></div>
+                </button>
+                <div class="lightbox-bottom-bar">
+                    <div class="image-counter" id="imageCounter">1 / 3</div>
+                    <div class="image-title" id="imageTitle">MECHANICALA Series - 03</div>
+                    <button class="lightbox-close" onclick="window.mechGalleryLightbox && window.mechGalleryLightbox.close()">✕</button>
+                </div>
+            </div>
+        </div>
+        <!-- SOUND -->
+        <section class="sound-section" id="sound">
+            <h2 class="section-title">SOUND</h2>
+            <div class="soundcloud-container">
+                <div class="soundcloud-track">
+                    <div class="soundcloud-label">▶ SoundCloud Tracks</div>
+                    <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" 
+                        src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/293&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true">
+                    </iframe>
+                </div>
+                <div class="soundcloud-track">
+                    <div class="soundcloud-label">▶ Your Music Track</div>
+                    <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" 
+                        src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/293&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true">
+                    </iframe>
+                </div>
+                <a href="https://soundcloud.com" target="_blank" class="soundcloud-add">
+                    + Add Your SoundCloud Track
+                </a>
+            </div>
+        </section>
+        <!-- DJ SET -->
+        <section class="real-dj-section">
+            <h2 class="dj-title"><span class="red-play">▶</span> DJ SET — DOUBLE DECK</h2>
+            <div class="dj-booth">
+                <!-- LEFT DECK -->
+                <div class="deck">
+                    <div class="turntable">
+                        <div class="vinyl" id="vinyl-left">
+                            <div class="grooves"></div>
+                            <div class="grooves2"></div>
+                            <div class="label">
+                                <div class="label-text">AILEENA</div>
+                            </div>
+                        </div>
+                        <div class="tonearm" id="arm-left">
+                            <div class="arm-bar"></div>
+                            <div class="needle-head" id="needle-left"></div>
+                        </div>
+                    </div>
+                    <div class="speed-controls">
+                        <button onclick="setSpeed('left', 33)" class="speed-btn" id="speed33-left">33 RPM</button>
+                        <button onclick="setSpeed('left', 45)" class="speed-btn active" id="speed45-left">45 RPM</button>
+                    </div>
+                    <div class="track-info">
+                        <span class="track-type">SOUNDCLOUD TRACKS</span>
+                        <h3>Rostom - Carne</h3>
+                        <button onclick="toggleDeck('left')" class="neon-btn">▶ PLAY LEFT DECK</button>
+                        <a href="https://hardwax.com/87746/rostom/carne/" target="_blank" class="sc-link">LISTEN ON SOUNDCLOUD</a>
+                    </div>
+                </div>
+                <!-- RIGHT DECK -->
+                <div class="deck">
+                    <div class="turntable">
+                        <div class="vinyl" id="vinyl-right">
+                            <div class="grooves"></div>
+                            <div class="grooves2"></div>
+                            <div class="label">
+                                <div class="label-text">AILEENA</div>
+                            </div>
+                        </div>
+                        <div class="tonearm" id="arm-right">
+                            <div class="arm-bar"></div>
+                            <div class="needle-head" id="needle-right"></div>
+                        </div>
+                    </div>
+                    <div class="speed-controls">
+                        <button onclick="setSpeed('right', 33)" class="speed-btn" id="speed33-right">33 RPM</button>
+                        <button onclick="setSpeed('right', 45)" class="speed-btn active" id="speed45-right">45 RPM</button>
+                    </div>
+                    <div class="track-info">
+                        <span class="track-type">YOUR MUSIC TRACK</span>
+                        <h3>Second Woman - Second Woman</h3>
+                        <button onclick="toggleDeck('right')" class="neon-btn">▶ PLAY RIGHT DECK</button>
+                        <a href="https://hardwax.com/58477/second-woman/second-woman/" target="_blank" class="sc-link">LISTEN ON SOUNDCLOUD</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- BLOG -->
+        <section class="content-section" id="blog">
+            <h2 class="section-title">BLOG</h2>
+            <div class="blog-posts-container">
+                <!-- Featured Article 1 -->
+                <article class="blog-post-featured" onclick="window.mechBlogModals && window.mechBlogModals.openModal('blog-article-01')">
+                    <div class="blog-date">2024.12.15</div>
+                    <h3 class="blog-title">The Art of Mechanical Aesthetics</h3>
+                    <p class="blog-excerpt">Exploring the intersection of machinery and artistic expression through careful composition and lighting. Discover the techniques behind our latest visual journey.</p>
+                    <span class="blog-link">Read More →</span>
+                </article>
+                <!-- Featured Article 2 -->
+                <article class="blog-post-featured" onclick="window.mechBlogModals && window.mechBlogModals.openModal('blog-article-02')">
+                    <div class="blog-date">2024.11.28</div>
+                    <h3 class="blog-title">Behind the Brutal Light Series</h3>
+                    <p class="blog-excerpt">Every shadow tells a story. In this deep dive, we explore the technical and artistic methodology behind our most challenging work to date.</p>
+                    <span class="blog-link">Read More →</span>
+                </article>
+                <!-- Featured Article 3 -->
+                <article class="blog-post-featured" onclick="window.mechBlogModals && window.mechBlogModals.openModal('blog-article-03')">
+                    <div class="blog-date">2024.10.10</div>
+                    <h3 class="blog-title">Material Studies: Metal & Reflection</h3>
+                    <p class="blog-excerpt">Understanding how different metals interact with light and shadow is fundamental to mechanical aesthetics. A comprehensive exploration.</p>
+                    <span class="blog-link">Read More →</span>
+                </article>
+            </div>
+        </section>
+        <!-- BLOG MODALS -->
+        <div class="blog-modal-container" id="blog-modal-01">
+            <div class="blog-modal-content">
+                <button class="blog-modal-close" onclick="window.mechBlogModals && window.mechBlogModals.closeModal('blog-article-01')">×</button>
+                <h2 class="blog-modal-title" id="modal-title-01">The Art of Mechanical Aesthetics</h2>
+                <div class="blog-modal-date">
+                    <span>2024.12.15</span>
+                    <span class="warning-light"></span>
+                </div>
+                <div class="blog-modal-content-text" id="modal-content-01">
+                    <p>Photography has long been the medium through which we observe and celebrate the mechanical world. The intersection of machinery and artistic expression creates a unique visual language—one that speaks to both the technical precision and the poetic beauty inherent in industrial forms.</p>
+                    <p>In our exploration of mechanical aesthetics, we believe that every gear, every bolt, every surface carries with it a narrative of human ingenuity and creative purpose. The careful composition of light and shadow across metallic surfaces reveals layers of meaning that simple observation might miss. It is in these careful moments of seeing that photography becomes not merely documentation, but dialogue.</p>
+                    <p>Our methodology focuses on three core principles: precision, restraint, and revelation. We approach each subject with the understanding that the mechanical world has already done the hard work of creation. Our role is to illuminate what already exists, to find the poetry in the practical, and to present the viewer with a new way of seeing the ordinary extraordinary.</p>
+                    <p>Through careful consideration of lighting angles, surface treatments, and compositional balance, we discovered that the most profound mechanical images emerge when we honor both the technical and the emotional aspects of the work. Every photograph becomes a meditation on form, function, and beauty.</p>
+                </div>
+            </div>
+        </div>
+        <div class="blog-modal-container" id="blog-modal-02">
+            <div class="blog-modal-content">
+                <button class="blog-modal-close" onclick="window.mechBlogModals && window.mechBlogModals.closeModal('blog-article-02')">×</button>
+                <h2 class="blog-modal-title" id="modal-title-02">Behind the Brutal Light Series</h2>
+                <div class="blog-modal-date">
+                    <span>2024.11.28</span>
+                    <span class="warning-light"></span>
+                </div>
+                <div class="blog-modal-content-text" id="modal-content-02">
+                    <p>The "Brutal Light" series represents our most ambitious exploration to date. Spanning six months of intensive production, this project challenged our assumptions about what mechanical photography could achieve. The concept was deceptively simple: use harsh, directional lighting to expose the raw reality of industrial materials.</p>
+                    <p>What emerged was far more complex. We discovered that brutal light, when applied with intention and understanding, revealed not harshness but honesty. The unforgiving glare of industrial lighting, the way it exposed every imperfection and texture, created a visual narrative of authenticity that softer approaches could not achieve.</p>
+                    <p>Our production process involved custom lighting rigs, extensive metallic surface preparation, and multiple exposure sequences. We worked with surfaces that had been weathered by time and use, finding beauty in corrosion and wear. The shadows became as important as the highlights—each dark area told a story of depth and dimension.</p>
+                    <p>The technical challenges were significant. Heat management, precision alignment, and color temperature control all demanded careful attention. Yet these constraints ultimately served the creative vision, forcing us to work with intention and purpose.</p>
+                    <p>What we learned through this series is that truly seeing requires uncompromising vision. The "Brutal Light" approach demands that both photographer and viewer engage fully with the subject. It strips away comfortable aesthetics in favor of profound truth. Every image in this series represents a commitment to revealing what lies beneath the surface.</p>
+                </div>
+            </div>
+        </div>
+        <div class="blog-modal-container" id="blog-modal-03">
+            <div class="blog-modal-content">
+                <button class="blog-modal-close" onclick="window.mechBlogModals && window.mechBlogModals.closeModal('blog-article-03')">×</button>
+                <h2 class="blog-modal-title" id="modal-title-03">Material Studies: Metal & Reflection</h2>
+                <div class="blog-modal-date">
+                    <span>2024.10.10</span>
+                    <span class="warning-light"></span>
+                </div>
+                <div class="blog-modal-content-text" id="modal-content-03">
+                    <p>To understand mechanical aesthetics, one must first understand materials. Metal, in all its varieties, presents a complex and fascinating subject for study. The way different alloys respond to light—their reflectivity, their color temperature, their tendency toward reflection or absorption—forms the foundation of mechanical visual exploration.</p>
+                    <p>Steel, aluminum, copper, brass, titanium: each has its own acoustic and visual signature. Steel presents cold, precise geometry. Aluminum offers lighter reflections with subtle gradient shifts. Copper reveals warm amber tones and complex oxidation patterns. Brass speaks of antiquity and precision engineering combined. Titanium suggests the future with its pristine, almost ethereal reflective qualities.</p>
+                    <p>Our material studies involved systematic photography of each metal type under controlled lighting conditions. We documented how each material behaves across different color temperatures, from cool daylight at 5600K to warm artificial light at 3200K. We explored how surface finishes transform material character: brushed surfaces scatter light differently than polished ones; oxidized surfaces create depth that raw metal cannot achieve.</p>
+                    <p>Beyond simple documentation, we began to understand the emotional resonance of different materials. A polished steel surface suggests precision and control. A weathered copper plate speaks of time and process. The interplay between material, surface, light, and observer creates a rich vocabulary for visual communication.</p>
+                    <p>This research continues to inform our work. Every mechanical photograph benefits from deep knowledge of how materials behave in light. As we move forward, we carry these lessons as foundation stones of our creative practice. The mechanical aesthetic is, at its core, a meditation on the authentic properties of the materials from which our world is built.</p>
+                </div>
+            </div>
+        </div>
+        <!-- WORKS -->
+        <section class="content-section" id="works">
+            <h2 class="section-title">WORKS</h2>
+            <div class="works-grid">
+                <div class="work-item" onclick="window.mechWorksModal && window.mechWorksModal.openProject(0)">
+                    <div class="work-image" style="background-image: url('bg_pic/04.jpeg'); background-size: contain; background-position: center;"></div>
+                    <div class="work-info">
+                        <div class="work-number">01</div>
+                        <h3 class="work-title">MECHANICALA</h3>
+                        <p class="work-category">PHOTOGRAPHY SERIES</p>
+                    </div>
+                </div>
+                <div class="work-item" onclick="window.mechWorksModal && window.mechWorksModal.openProject(1)">
+                    <div class="work-image" style="background-image: url('bg_pic/02.jpeg'); background-size: contain; background-position: center;"></div>
+                    <div class="work-info">
+                        <div class="work-number">02</div>
+                        <h3 class="work-title">BRUTAL LIGHT</h3>
+                        <p class="work-category">VISUAL ART</p>
+                    </div>
+                </div>
+                <div class="work-item" onclick="window.mechWorksModal && window.mechWorksModal.openProject(2)">
+                    <div class="work-image" style="background-image: url('bg_pic/03.jpeg'); background-size: contain; background-position: center;"></div>
+                    <div class="work-info">
+                        <div class="work-number">03</div>
+                        <h3 class="work-title">METAL STUDIES</h3>
+                        <p class="work-category">RESEARCH</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- ELSEWHERE -->
+        <section class="elsewhere-section">
+            <div class="elsewhere-container">
+                <a href="elsewhere.html" class="elsewhere-teaser">
+                    <img src="https://placeholder.pics/svg/1920x1080/000000-FF0000/FFFFFF-FFFFFF/HERO%20%E2%80%A2%20Oil%20Tanker%20%E2%80%A2%20Replace%20with%20your%20image" 
+                         alt="Monira Al Qadiri - HERO">
+                    <div class="elsewhere-overlay"></div>
+                    <div class="elsewhere-content">
+                        <div class="elsewhere-label">ELSEWHERE</div>
+                        <div class="elsewhere-title">HERO</div>
+                        <div class="elsewhere-artist">Monira Al Qadiri</div>
+                    </div>
+                    <div class="elsewhere-cta">
+                        ENTER EXHIBITION →
+                    </div>
+                </a>
+            </div>
+        </section>
+        <!-- WORKS MODAL -->
+        <div class="works-modal-overlay" id="worksModalOverlay" onclick="window.mechWorksModal && window.mechWorksModal.closeProject()"></div>
+        <div class="works-modal" id="worksModal">
+            <button class="works-modal-close" onclick="window.mechWorksModal && window.mechWorksModal.closeProject()">✕</button>
+            <div class="works-control-bar">
+                <span class="works-number" id="worksNumber">01</span>
+                <h2 class="works-modal-title" id="worksTitle">MECHANICALA</h2>
+                <div class="works-spacer"></div>
+            </div>
+            <div class="works-main-content">
+                <div class="works-carousel-section">
+                    <button class="carousel-arrow carousel-prev" onclick="window.mechWorksModal && window.mechWorksModal.prevImage()">◀</button>
+                    <div class="carousel-image-container">
+                        <img id="worksCarouselImage" src="" alt="Project image" loading="lazy">
+                    </div>
+                    <button class="carousel-arrow carousel-next" onclick="window.mechWorksModal && window.mechWorksModal.nextImage()">▶</button>
+                    <div class="carousel-thumbnails" id="carouselThumbnails"></div>
+                </div>
+                <div class="works-description-panel mech-panel">
+                    <p class="works-description" id="worksDescription"></p>
+                    <a href="#" class="works-view-button metal-button" target="_blank">VIEW FULL SERIES ↗</a>
+                </div>
+            </div>
+        </div>
+        <!-- ABOUT -->
+        <section class="content-section about-section" id="about">
+            <h2 class="section-title">ABOUT</h2>
+            <div class="about-content">
+                <div class="about-text">
+                    <p class="about-lead">AILEENA is a multidisciplinary creative studio specializing in mechanical aesthetics, brutalist photography, and visual storytelling.</p>
+                    <p class="about-description">Founded on the belief that machinery possesses an inherent poetry, we explore the beauty of industrial forms through careful observation and artistic interpretation. Our work bridges the gap between technical precision and emotional resonance.</p>
+                    <div class="about-stats">
+                        <div class="stat">
+                            <span class="stat-number">15+</span>
+                            <span class="stat-label">Projects</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number">8</span>
+                            <span class="stat-label">Awards</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number">3</span>
+                            <span class="stat-label">Years</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- CONTACT -->
+        <section class="contact-section">
+            <div class="contact-card">
+                <h2 class="contact-title">TRANSMIT MESSAGE</h2>
+                <form id="contactForm">
+                    <div class="form-group">
+                        <label>NAME</label>
+                        <input type="text" name="name" placeholder="Enter your name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>EMAIL</label>
+                        <input type="email" name="email" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>MESSAGE</label>
+                        <textarea name="message" placeholder="Type your message" rows="6" required></textarea>
+                    </div>
+                    <button type="submit" class="transmit-btn">TRANSMIT MESSAGE</button>
+                </form>
+            </div>
+            <div class="floating-icons">
+                <div class="icon-circle music"><span>♪</span></div>
+                <div class="icon-circle coil"><span>⚙︎</span></div>
+            </div>
+        </section>
+        <!-- NEXT/扩展区 -->
+        <section class="content-section" style="background: #111;">
+            <h2 class="section-title">NEXT</h2>
+            <p style="font-size: 18px; opacity: 0.7; max-width: 800px; line-height: 1.8; font-family: 'Akzidenz-Grotesk', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif; font-weight: 400; font-style: normal;">
+                Scroll down for more mechanical aesthetics, technical explorations, and brutal light series.
+            </p>
+        </section>
+    </div>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>AILEENA</title>
+  
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Barlow+Condensed:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  
+        <style>
+        .nav-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(10px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+        .nav-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+        .nav-content {
+            text-align: center;
+        }
+        .nav-list {
+            list-style: none;
+            font-size: 3.5rem;
+            letter-spacing: 0.5em;
+            text-transform: uppercase;
+            padding: 0;
+            margin: 0;
+        }
+        .nav-list li {
+            margin: 1.5rem 0;
+        }
+        .nav-list a {
+            color: #eee;
+            text-decoration: none;
+            transition: all 0.4s;
+        }
+        .nav-list a:hover {
+            color: #00ffea;
+            transform: scale(1.1);
+        }
+        .nav-close {
+            position: absolute;
+            top: 5vh;
+            right: 5vw;
+            font-size: 4rem;
+            cursor: pointer;
+            color: #fff;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            height:100vh;
+            background:#000;
+            color:#eee;
+            font-family:'Barlow Condensed', 'Orbitron', sans-serif;
+            overflow:hidden;
+            cursor:none;
+        }
+
+        /* 全屏英雄 - 人物稍微缩小，整剑可见 */
+        .hero {
+            position:fixed;
+            inset:0;
+            background: url('bg_pic/04.jpeg') no-repeat 70% 50% / auto 85%;
+            z-index:1;
+        }
+
+        /* Ticker - 居中、取代 nav、更大字体、无边框融合 */
+        .ticker {
+            position:fixed;
+            top:50%;
+            left:50%;
+            transform:translate(-50%, -50%);
+            z-index:5;
+            width:90%;
+            text-align:center;
+            color:#00ffea;
+            font-size:1.8rem;
+            letter-spacing:0.4em;
+            text-transform:uppercase;
+            line-height:1.4;
+            mix-blend-mode:screen;
+            pointer-events:none;
+        }
+        .ticker span {
+            display:inline-block;
+            white-space:nowrap;
+            animation:scroll 120s linear infinite;
+        }
+        @keyframes scroll {
+            0% { transform:translateX(100vw); }
+            100% { transform:translateX(-100%); }
+        }
+
+        /* Logo - 简化，只 AILEENA，左上 */
+        .logo {
+            position:fixed;
+            top:4vh;
+            left:5vw;
+            z-index:10;
+            font-size:3.5rem;
+            letter-spacing:0.6em;
+            color:#fff;
+            mix-blend-mode:difference;
+        }
+
+        /* Hamburger & 右竖 nav */
+        .hamburger {
+            position:fixed;
+            top:4vh;
+            right:5vw;
+            z-index:20;
+            font-size:3rem;
+            color:#fff;
+            cursor:pointer;
+            mix-blend-mode:difference;
+            transition:0.4s;
+        }
+        .hamburger:hover { transform:rotate(90deg); }
+
+        .side-nav {
+            position:fixed;
+            top:0; right:-320px;
+            width:320px;
+            height:100%;
+            background:rgba(0,0,0,0.92);
+            backdrop-filter:blur(15px);
+            z-index:15;
+            transition:right 0.6s ease;
+            padding:10vh 4vw;
+            display:flex;
+            flex-direction:column;
+            justify-content:center;
+            gap:3vh;
+            font-size:2rem;
+            letter-spacing:0.3em;
+            text-transform:uppercase;
+        }
+        .side-nav.open { right:0; }
+        .side-nav a {
+            color:#ccc;
+            text-decoration:none;
+            transition:0.4s;
+        }
+        .side-nav a:hover {
+            color:#00ffea;
+            transform:translateX(15px);
+        }
+
+        @media (max-width:768px) {
+            .ticker { font-size:1.2rem; }
+            .side-nav { width:80vw; right:-80vw; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 英雄背景 -->
+    <div class="hero"></div>
+
+    <!-- Ticker 居中突出 -->
+    <div class="ticker">
+        <span>
+            SOUNDTRACK NOW LIVE • NEW VINYL DROP MARCH 2026 • PRE-ORDER OPEN • TECHNO NIGHT 28 MAR • TICKETS → • AMSTERDAM BLACK VINYL DIGGING WEEKEND • KILLACUTZ + RUSH HOUR • FOLLOW @AILEENA ON SOUNDCLOUD • HARD WAX • OYE • HHV • SOUND METAPHORS • INDEEP'N'DANCE • AILEENA • MACHINA MODE • EST 2025 +++ 
+            SOUNDTRACK NOW LIVE • NEW VINYL DROP MARCH 2026 • PRE-ORDER OPEN • TECHNO NIGHT 28 MAR • TICKETS → • AMSTERDAM BLACK VINYL DIGGING WEEKEND • KILLACUTZ + RUSH HOUR • FOLLOW @AILEENA ON SOUNDCLOUD • HARD WAX • OYE • HHV • SOUND METAPHORS • INDEEP'N'DANCE • AILEENA • MACHINA MODE • EST 2025 +++ 
+        </span>
+    </div>
+
+    <!-- Logo -->
+    <div class="logo">AILEENA</div>
+
+    <!-- Hamburger -->
+    <div class="hamburger" id="menuToggle">≡</div>
+
+    <!-- 右竖 nav -->
+    <nav class="side-nav" id="sideNav">
+        <a href="#gallery">GALLERY</a>
+        <a href="#sound">SOUND</a>
+        <a href="#blog">BLOG</a>
+        <a href="#works">WORKS</a>
+        <a href="#elsewhere">ELSEWHERE</a>
+        <a href="#chain">CHAIN</a>
+        <a href="#contact">CONTACT</a>
+    </nav>
+
+    <script>
+        // 简单 toggle 侧边栏
+        document.getElementById('menuToggle').addEventListener('click', () => {
+            document.getElementById('sideNav').classList.toggle('open');
+        });
+
+        // 可选 GSAP：轻微呼吸动画给 ticker 或 hero
+        gsap.to(".ticker span", { y: "-=10", duration: 4, yoyo: true, repeat: -1, ease: "sine.inOut" });
+    </script>
+
+    <!-- 如果有 main.js，保留引入 -->
+    <!-- <script src="main.js" defer></script> -->
+</body>
+</html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+            <style>
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }
+                html, body {
+                    height: 100%;
+                    background: #000;
+                    color: #eee;
+                    font-family: 'Barlow Condensed', 'Oswald', 'Inter', 'Akzidenz-Grotesk', 'Courier New', Courier, monospace;
+                    overflow-x: hidden;
+                }
+                .container {
+                    max-width: 1600px;
+                    margin: 0 auto;
+                    padding: 0 5vw;
+                }
+                nav {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    z-index: 999;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 2rem 5vw;
+                    background: rgba(0,0,0,0.6);
+                    backdrop-filter: blur(10px);
+                    font-size: 1.1rem;
+                    letter-spacing: 0.15em;
+                    text-transform: uppercase;
+                }
+                nav .logo {
+                    font-weight: bold;
+                    font-size: 1.4rem;
+                }
+                nav .menu {
+                    display: flex;
+                    gap: 3rem;
+                    align-items: center;
+                }
+                nav .menu a {
+                    color: #eaffff;
+                    text-decoration: none;
+                    font-size: 1.1rem;
+                    letter-spacing: 0.08em;
+                    font-weight: 500;
+                    transition: color 0.2s;
+                }
+                nav .menu a:hover {
+                    color: #00ffeaaa;
+                }
+                nav .menu span {
+                    font-size: 1.8rem;
+                    cursor: pointer;
+                }
+                .ticker {
+                    background: #0a0a0a;
+                    color: #00ffea;
+                    font-size: 1rem;
+                    letter-spacing: 0.2em;
+                    padding: 1.2rem 0;
+                    overflow: hidden;
+                    white-space: nowrap;
+                    border-top: 1px solid #222;
+                    border-bottom: 1px solid #222;
+                }
+                .ticker span {
+                    display: inline-block;
+                    padding-right: 4rem;
+                    animation: marquee 60s linear infinite;
+                }
+                @keyframes marquee {
+                    0% { transform: translateX(0); }
+                    100% { transform: translateX(-100%); }
+                }
+                .hero {
+                    height: 100vh;
+                    position: relative;
+                    overflow: hidden;
+                }
+                .hero img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    object-position: 60% center;
+                }
+                @media (max-width: 768px) {
+                    nav { padding: 1.2rem 4vw; font-size: 0.95rem; }
+                    nav .menu { gap: 1.5rem; flex-wrap: wrap; justify-content: center; }
+                    .ticker { font-size: 0.85rem; padding: 0.8rem 0; }
+                    .hero img { object-position: center; }
+                }
+            </style>
     <meta charset="UTF-8">
+    ...existing code...
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>AILEENA</title>
+  
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Barlow+Condensed:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            height:100vh;
+            background:#000;
+            color:#eee;
+            font-family:'Barlow Condensed', 'Orbitron', sans-serif;
+            overflow:hidden;
+            cursor:none;
+        }
+
+        /* 全屏英雄 - 人物稍微缩小，整剑可见 */
+        .hero {
+            position:fixed;
+            inset:0;
+            background: url('bg_pic/04.jpeg') no-repeat 70% 50% / auto 85%;
+            z-index:1;
+        }
+
+        /* Ticker - 居中、取代 nav、更大字体、无边框融合 */
+        .ticker {
+            position:fixed;
+            top:50%;
+            left:50%;
+            transform:translate(-50%, -50%);
+            z-index:5;
+            width:90%;
+            text-align:center;
+            color:#00ffea;
+            font-size:1.8rem;
+            letter-spacing:0.4em;
+            text-transform:uppercase;
+            line-height:1.4;
+            mix-blend-mode:screen;
+            pointer-events:none;
+        }
+        .ticker span {
+            display:inline-block;
+            white-space:nowrap;
+            animation:scroll 120s linear infinite;
+        }
+        @keyframes scroll {
+            0% { transform:translateX(100vw); }
+            100% { transform:translateX(-100%); }
+        }
+
+        /* Logo - 简化，只 AILEENA，左上 */
+        .logo {
+            position:fixed;
+            top:4vh;
+            left:5vw;
+            z-index:10;
+            font-size:3.5rem;
+            letter-spacing:0.6em;
+            color:#fff;
+            mix-blend-mode:difference;
+        }
+
+        /* Hamburger & 右竖 nav */
+        .hamburger {
+            position:fixed;
+            top:4vh;
+            right:5vw;
+            z-index:20;
+            font-size:3rem;
+            color:#fff;
+            cursor:pointer;
+            mix-blend-mode:difference;
+            transition:0.4s;
+        }
+        .hamburger:hover { transform:rotate(90deg); }
+
+        .side-nav {
+            position:fixed;
+            top:0; right:-320px;
+            width:320px;
+            height:100%;
+            background:rgba(0,0,0,0.92);
+            backdrop-filter:blur(15px);
+            z-index:15;
+            transition:right 0.6s ease;
+            padding:10vh 4vw;
+            display:flex;
+            flex-direction:column;
+            justify-content:center;
+            gap:3vh;
+            font-size:2rem;
+            letter-spacing:0.3em;
+            text-transform:uppercase;
+        }
+        .side-nav.open { right:0; }
+        .side-nav a {
+            color:#ccc;
+            text-decoration:none;
+            transition:0.4s;
+        }
+        .side-nav a:hover {
+            color:#00ffea;
+            transform:translateX(15px);
+        }
+
+        @media (max-width:768px) {
+            .ticker { font-size:1.2rem; }
+            .side-nav { width:80vw; right:-80vw; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 英雄背景 -->
+    <div class="hero"></div>
+
+    <!-- Ticker 居中突出 -->
+    <div class="ticker">
+        <span>
+            SOUNDTRACK NOW LIVE • NEW VINYL DROP MARCH 2026 • PRE-ORDER OPEN • TECHNO NIGHT 28 MAR • TICKETS → • AMSTERDAM BLACK VINYL DIGGING WEEKEND • KILLACUTZ + RUSH HOUR • FOLLOW @AILEENA ON SOUNDCLOUD • HARD WAX • OYE • HHV • SOUND METAPHORS • INDEEP'N'DANCE • AILEENA • MACHINA MODE • EST 2025 +++ 
+            SOUNDTRACK NOW LIVE • NEW VINYL DROP MARCH 2026 • PRE-ORDER OPEN • TECHNO NIGHT 28 MAR • TICKETS → • AMSTERDAM BLACK VINYL DIGGING WEEKEND • KILLACUTZ + RUSH HOUR • FOLLOW @AILEENA ON SOUNDCLOUD • HARD WAX • OYE • HHV • SOUND METAPHORS • INDEEP'N'DANCE • AILEENA • MACHINA MODE • EST 2025 +++ 
+        </span>
+    </div>
+
+    <!-- Logo -->
+    <div class="logo">AILEENA</div>
+
+    <!-- Hamburger -->
+    <div class="hamburger" id="menuToggle">≡</div>
+
+    <!-- 右竖 nav -->
+    <nav class="side-nav" id="sideNav">
+        <a href="#gallery">GALLERY</a>
+        <a href="#sound">SOUND</a>
+        <a href="#blog">BLOG</a>
+        <a href="#works">WORKS</a>
+        <a href="#elsewhere">ELSEWHERE</a>
+        <a href="#chain">CHAIN</a>
+        <a href="#contact">CONTACT</a>
+    </nav>
+
+    <script>
+        // 简单 toggle 侧边栏
+        document.getElementById('menuToggle').addEventListener('click', () => {
+            document.getElementById('sideNav').classList.toggle('open');
+        });
+
+        // 可选 GSAP：轻微呼吸动画给 ticker 或 hero
+        gsap.to(".ticker span", { y: "-=10", duration: 4, yoyo: true, repeat: -1, ease: "sine.inOut" });
+    </script>
+
+    <!-- 如果有 main.js，保留引入 -->
+    <!-- <script src="main.js" defer></script> -->
+</body>
+</html>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="AILEENA - Mechanical aesthetics, brutalist photography, and visual storytelling. Exploring the poetry of industrial forms through careful observation and artistic interpretation.">
     <meta property="og:title" content="AILEENA Machina Studio">
@@ -14,6 +953,128 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700&family=Oswald:wght@200;300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+
+/* ======= NAV & TICKER 终极美化 ======= */
+header, nav, .navbar, .main-nav, .nav-container {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100%;
+    padding: 0 60px !important;
+    height: 60px !important;
+    margin-bottom: 0 !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+    background: rgba(0,0,0,0.82) !important;
+    backdrop-filter: blur(8px) !important;
+}
+nav {
+    flex: 1;
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    gap: 40px !important;
+}
+nav a {
+    white-space: nowrap;
+    padding: 0 !important;
+    font-size: 14px !important;
+    letter-spacing: 0.5px !important;
+    color: #eaffff !important;
+    opacity: 0.92;
+    font-weight: 500 !important;
+    transition: color 0.2s, opacity 0.2s;
+}
+nav a:hover {
+    color: #00ffeaaa !important;
+    opacity: 1 !important;
+}
+.aileen-ticker {
+    margin-top: -2px !important;
+    height: 28px !important;
+    line-height: 28px !important;
+    font-size: 13px !important;
+    font-family: 'Barlow Condensed', 'Oswald', 'Inter', 'Akzidenz-Grotesk', 'Roboto Mono', monospace, sans-serif !important;
+    letter-spacing: 1px !important;
+    font-weight: 500 !important;
+    padding: 0 24px !important;
+    background: rgba(0,0,0,0.92) !important;
+    border-top: 1px solid rgba(0,255,234,0.12) !important;
+    border-bottom: 1px solid rgba(0,255,234,0.08) !important;
+    overflow: hidden !important;
+    color: #00ffeaaa !important;
+    z-index: 5 !important;
+    top: 60px !important;
+}
+.ticker-inner {
+    animation-duration: 80s !important;
+}
+.ticker-inner:hover {
+    animation-play-state: paused !important;
+    color: #00ffea !important;
+}
+
+/* ======= NAV & TICKER 高端美化 ======= */
+header, nav, .navbar, .main-nav, .nav-container {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100%;
+    padding: 0 40px !important;
+    height: 60px !important;
+    margin-bottom: 0 !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+    background: rgba(0,0,0,0.82) !important;
+    backdrop-filter: blur(8px) !important;
+}
+nav {
+    flex: 1;
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    gap: 36px !important;
+}
+nav a {
+    white-space: nowrap;
+    padding: 0 !important;
+    font-size: 14px !important;
+    letter-spacing: 0.5px !important;
+    color: #eaffff !important;
+    opacity: 0.92;
+    transition: color 0.2s, opacity 0.2s;
+}
+nav a:hover {
+    color: #00ffeaaa !important;
+    opacity: 1 !important;
+}
+
+/* ticker 美化 */
+.aileen-ticker, .ticker-container, .marquee-wrapper, [class*="ticker"], [class*="scroll"], marquee {
+    margin-top: -2px !important;
+    height: 28px !important;
+    line-height: 28px !important;
+    font-size: 13px !important;
+    font-family: 'Barlow Condensed', 'Oswald', 'Inter', 'Akzidenz-Grotesk', monospace, sans-serif !important;
+    letter-spacing: 1px !important;
+    padding: 0 24px !important;
+    background: rgba(0,0,0,0.92) !important;
+    border-top: 1px solid rgba(0,255,234,0.12) !important;
+    border-bottom: 1px solid rgba(0,255,234,0.08) !important;
+    overflow: hidden !important;
+    color: #00ffeaaa !important;
+    z-index: 5 !important;
+}
+.aileen-ticker {
+    top: 60px !important;
+}
+.ticker-inner {
+    animation-duration: 80s !important;
+}
+.ticker-inner:hover {
+    animation-play-state: paused !important;
+    color: #00ffea !important;
+}
 
         /* ====== NAV & TICKER 修复专用 ====== */
         header, nav, .navbar, .main-nav, .nav-container {
@@ -58,6 +1119,8 @@
     <!-- GSAP Core + ScrollTrigger -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <!-- WaveSurfer.js for waveform visualization -->
+    <script src="https://unpkg.com/wavesurfer.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html { scroll-behavior: smooth; }
@@ -3055,88 +4118,30 @@
     <!-- Progress Bar -->
     <div class="progress-bar" id="progressBar"></div>
 
-    <header id="header">
-        <div class="logo">AILEENA</div>
         <nav>
-            <a href="#gallery">Gallery</a>
-            <a href="#sound">Sound</a>
-            <a href="#blog">Blog</a>
-            <a href="#works">Works</a>
-            <a href="elsewhere.html">Elsewhere</a>
-            <a href="#contact">Contact</a>
+            <div class="container">
+                <div class="logo">AILEENA</div>
+                <div class="menu">
+                    <a href="#gallery">GALLERY</a>
+                    <a href="#sound">SOUND</a>
+                    <a href="#blog">BLOG</a>
+                    <a href="#works">WORKS</a>
+                    <a href="elsewhere.html" target="_blank">ELSEWHERE</a>
+                    <a href="https://mev.aileena.xyz" target="_blank">CHAIN</a>
+                    <a href="#contact">CONTACT</a>
+                    <span>≡</span>
+                </div>
+            </div>
         </nav>
-        <div class="menu-icon">☰</div>
-    </header>
 
 
 
-    <!-- === AILEENA 永久滚动公告栏（Rough Trade 同款风格，无关闭）=== -->
-    <div class="aileen-ticker">
-        <div class="ticker-inner">
-            <span class="ticker-text">
-                AILEENA • EST. 2025 &nbsp; | &nbsp; 
-                MECHANICALA • 01 ORIGINAL SOUNDTRACK NOW LIVE &nbsp; | &nbsp; 
-                NEW VINYL DROP MARCH 2026 • PRE-ORDER OPEN &nbsp; | &nbsp; 
-                BERLIN TECHNO NIGHT 28 MAR • TICKETS → &nbsp; | &nbsp; 
-                AMSTERDAM BLACK VINYL DIGGING WEEKEND • KILLACUTZ + RUSH HOUR &nbsp; | &nbsp; 
-                FOLLOW @AILEENA ON SOUNDCLOUD FOR EXCLUSIVE TRACKS &nbsp; | &nbsp; 
-                HARD WAX • OYE • HHV • SOUND METAPHORS • INDEEP'N'DANCE &nbsp; | &nbsp; 
-                AILEENA • EST. 2025 &nbsp; | &nbsp; 
-                MECHANICALA • 01 ORIGINAL SOUNDTRACK NOW LIVE &nbsp; | &nbsp; 
-                NEW VINYL DROP MARCH 2026 • PRE-ORDER OPEN &nbsp; | &nbsp; 
-                BERLIN TECHNO NIGHT 28 MAR • TICKETS → &nbsp; | &nbsp; 
-                AMSTERDAM BLACK VINYL DIGGING WEEKEND • KILLACUTZ + RUSH HOUR &nbsp; | &nbsp; 
-                FOLLOW @AILEENA ON SOUNDCLOUD FOR EXCLUSIVE TRACKS &nbsp; | &nbsp; 
-                HARD WAX • OYE • HHV • SOUND METAPHORS • INDEEP'N'DANCE
-            </span>
-        </div>
+    <div class="ticker container">
+      <span>TECHNO NIGHT 28 MAR • TICKETS → | AMSTERDAM BLACK VINYL DIGGING WEEKEND • KILLACUTZ + RUSH HOUR | FOLLOW @AILEENA ON SOUNDCLOUD | HARD WAX • OYE • HHV • SOUND METAPHORS • INDEEP'N'DANCE | AILEENA • EST. 2025 • MECHANICALA • 01 ORIGINAL SOUNDTRACK NOW LIVE • NEW VINYL DROP MARCH 2026 • PRE-ORDER OPEN | TECHNO NIGHT 28 MAR • TICKETS → | AMSTERDAM BLACK VINYL DIGGING WEEKEND • KILLACUTZ + RUSH HOUR | FOLLOW @AILEENA ON SOUNDCLOUD | HARD WAX • OYE • HHV • SOUND METAPHORS • INDEEP'N'DANCE | AILEENA • EST. 2025</span>
     </div>
 
-    <section class="hero" id="hero">
-        <!-- Mars/Space Background -->
-        <div class="mars-bg"></div>
-        
-        <!-- Stars -->
-        <div class="stars" id="stars"></div>
-        
-        <!-- Ambient Light Rays -->
-        <div class="hero-rays"></div>
-        
-        <!-- Noise Grain Overlay -->
-        <div class="hero-noise"></div>
-        
-        <!-- Floating Particles -->
-        <div class="hero-particles" id="particles"></div>
-        
-        <!-- Diagonal Lines Overlay -->
-        <div class="hero-lines"></div>
-        
-        <div class="hero-slider">
-            <div class="slide active" style="background-image: url('bg_pic/04.jpeg');">
-                <div class="slide-glow"></div>
-            </div>
-            <div class="slide" style="background-image: url('bg_pic/02.jpeg');">
-                <div class="slide-glow"></div>
-            </div>
-        </div>
-
-        <div class="hero-content">
-            <h1 class="main-title">AILEENA</h1>
-            <div class="series-name">MECHANICALA • 01</div>
-            
-
-        </div>
-
-        <div class="corner-elements">
-            POETRY IN MOTION<br>
-            METAL & LIGHT<br>
-            <span class="small-icon">↓</span>
-        </div>
-
-        <div class="slider-dots">
-            <div class="dot active" onclick="currentSlide(0)"></div>
-            <div class="dot" onclick="currentSlide(1)"></div>
-        </div>
+    <section class="hero container">
+      <img src="bg_pic/04.jpeg" alt="Aileena Machina">
     </section>
 
     <!-- 示例后续内容区：Gallery（滚动触发动画） -->
@@ -3538,11 +4543,11 @@
             setTimeout(() => {
                 gsap.to(loader, { 
                     opacity: 0, 
-                    duration: 0.8, 
+                    duration: 0.5, 
                     ease: "power2.inOut",
                     onComplete: () => loader.style.display = 'none' 
                 });
-            }, 2000); // Minimum display time
+            }, 800); // Minimum display time, now shorter
         });
 
         // Generate floating particles
