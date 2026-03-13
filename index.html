@@ -14,6 +14,40 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700&family=Oswald:wght@200;300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+
+        /* ====== NAV & TICKER 修复专用 ====== */
+        header, nav, .navbar, .main-nav, .nav-container {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            height: 60px !important;
+            line-height: 1 !important;
+            padding-bottom: 6px !important;
+            margin-bottom: 0 !important;
+            border-bottom: none !important;
+            box-shadow: none !important;
+            position: relative !important;
+            z-index: 10 !important;
+        }
+        nav a, .nav-list li, .nav-links a {
+            display: inline-flex !important;
+            align-items: center !important;
+            height: 100% !important;
+            padding: 0 1.2rem !important;
+            line-height: 1.4 !important;
+            vertical-align: middle !important;
+        }
+        .aileen-ticker, .ticker-container, .ticker-wrapper, .marquee, div[class*="ticker"], div[class*="scroll"] {
+            margin-top: -1px !important;
+            padding-top: 2px !important;
+            padding-bottom: 2px !important;
+            position: relative !important;
+            z-index: 5 !important;
+            border-top: 1px solid rgba(0, 255, 234, 0.15) !important;
+        }
+        .aileen-ticker {
+            top: 62px !important; /* header 高度+2px，确保不重叠 */
+        }
         @font-face {
             font-family: 'Akzidenz-Grotesk';
             src: local('Helvetica Neue Condensed'), local('Helvetica Neue'), local('Helvetica'), local('Arial');
@@ -70,15 +104,17 @@
             top: 0;
             left: 0;
             width: 100%;
-            padding: 30px 50px;
+            padding: 30px 50px 0 50px; /* 去掉底部 padding */
+            margin-bottom: 0 !important;
             display: flex;
+            flex-direction: row;
             justify-content: space-between;
             align-items: center;
             z-index: 100;
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(25px) saturate(180%);
             -webkit-backdrop-filter: blur(25px) saturate(180%);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            border-bottom: none !important; /* 去掉底部线 */
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
             transition: all 0.3s ease;
         }
@@ -86,7 +122,7 @@
             background: rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(25px) saturate(180%);
             -webkit-backdrop-filter: blur(25px) saturate(180%);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            border-bottom: none !important;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
         }
         .logo {
@@ -2926,12 +2962,13 @@
         /* === AILEENA 永久滚动公告栏（Rough Trade 风格）=== */
         .aileen-ticker {
             background: #0a0a0a;
-            /* border-bottom: 1px solid #222; */
+            border-top: 1px solid #00ffea33; /* 半透青色淡线 */
             overflow: hidden;
             white-space: nowrap;
-            padding: 12px 0;
+            padding: 0 0 12px 0; /* 去掉顶部 padding */
+            margin-top: -2px; /* 让 ticker 贴 header */
             position: fixed;
-            top: 76px; /* 更贴近nav/header */
+            top: 76px;
             left: 0;
             width: 100%;
             z-index: 90;
@@ -2974,79 +3011,7 @@
             .ticker-inner { animation-duration: 45s; }
         }
 
-        /* Announcement Bar */
-        .announcement-bar {
-            height: 46px;
-            background: #0a0a0a;
-            border-bottom: 1px solid rgba(0, 249, 255, 0.15);
-            position: fixed;
-            top: 92px;
-            left: 0;
-            width: 100%;
-            z-index: 90;
-            overflow: hidden;
-            font-family: system-ui, -apple-system, sans-serif;
-            font-size: 13.2px;
-            font-weight: 500;
-            letter-spacing: 1.8px;
-            text-transform: uppercase;
-            color: #00f9ff;
-            text-shadow: 0 0 12px rgba(0, 249, 255, 0.6);
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 20px;
-            margin: 0;
-            line-height: 46px;
-        }
 
-        .ticker-content {
-            display: flex;
-            align-items: center;
-            gap: 22px;
-            height: 46px;
-        }
-
-        .sep {
-            color: #555;
-            font-size: 15px;
-            opacity: 0.6;
-        }
-
-        /* Center circle (exact match) */
-        .center-circle {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 22px;
-            height: 22px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .ring {
-            width: 22px;
-            height: 22px;
-            border: 1.5px solid #ddd;
-            border-radius: 50%;
-            position: relative;
-        }
-
-        .dot {
-            position: absolute;
-            width: 5px;
-            height: 5px;
-            background: #ddd;
-            border-radius: 50%;
-        }
-
-        /* Hover glow on whole bar */
-        .announcement-bar:hover {
-            text-shadow: 0 0 20px #00f9ff;
-            border-bottom-color: rgba(0, 249, 255, 0.4);
-        }
 
 
     </style>
@@ -3103,28 +3068,7 @@
         <div class="menu-icon">☰</div>
     </header>
 
-    <!-- TOP ANNOUNCEMENT BAR -->
-    <div class="announcement-bar">
-        <div class="ticker-content">
-            SOUNDTRACK NOW LIVE
-            <span class="sep">|</span>
-            NEW VINYL DROP MARCH 2026
-            <span class="sep">•</span>
-            PRE-ORDER OPEN
-            <span class="sep">|</span>
-            BERLIN TECHNO NIGHT 28 MAR
-            <span class="sep">•</span>
-            TICKETS →
-            <span class="sep">|</span>
-            AMSTERDAM BLACK VINYL DIGGING WEEK
-        </div>
-        
-        <!-- exact center circle from your screenshot -->
-        <div class="center-circle">
-            <div class="ring"></div>
-            <div class="dot"></div>
-        </div>
-    </div>
+
 
     <!-- === AILEENA 永久滚动公告栏（Rough Trade 同款风格，无关闭）=== -->
     <div class="aileen-ticker">
@@ -3180,10 +3124,7 @@
             <h1 class="main-title">AILEENA</h1>
             <div class="series-name">MECHANICALA • 01</div>
             
-            <!-- AI Chat CTA Button -->
-            <a href="/chat" class="metal-button" id="chatCTA" style="margin-top: 2rem; display: inline-block; text-decoration: none;">
-                <span class="button-icon">◈</span> NEURAL LINK <span class="button-pulse">●</span>
-            </a>
+
         </div>
 
         <div class="corner-elements">
