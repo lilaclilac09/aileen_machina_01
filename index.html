@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>AILEENA</title>
+    <title></title>
   
     <!-- Fonts (保持你原来的，或换成更工业的) -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Barlow+Condensed:wght@300;500;700&display=swap" rel="stylesheet">
@@ -14,7 +14,7 @@
   
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
-        html, body { height:100%; overflow-x:hidden; background:#000; color:#eee; font-family:'Barlow Condensed', 'Orbitron', sans-serif; cursor:none; }
+        html, body { height:100%; overflow-x:hidden; background:#000; color:#eee; font-family:'Barlow Condensed', 'Orbitron', sans-serif; }
     
         /* Fullscreen Hero - 单张图主导 */
         .hero {
@@ -24,104 +24,253 @@
             z-index:1;
         }
     
-        /* 无边框 Ticker - 顶部融合式滚动条 */
-        .ticker {
-            position:fixed;
-            top:0; left:0; right:0;
-            height:40px;
-            background:rgba(0,0,0,0.4);
-            backdrop-filter:blur(8px);
-            overflow:hidden;
-            white-space:nowrap;
-            z-index:10;
-            color:#00ffea;
-            font-size:1rem;
-            letter-spacing:0.25em;
-            line-height:40px;
-            text-transform:uppercase;
-        }
-        .ticker span {
-            display:inline-block;
-            padding:0 4rem;
-            animation:marquee 80s linear infinite;
-        }
-        @keyframes marquee {
-            0% { transform:translateX(100%); }
-            100% { transform:translateX(-100%); }
-        }
-    
-        /* 右边竖向侧边菜单 - 默认隐藏，拉出 */
-        .side-nav {
-            position:fixed;
-            top:0; right:-300px;
-            width:300px; height:100%;
-            background:rgba(10,10,10,0.85);
-            backdrop-filter:blur(12px);
-            border-left:1px solid rgba(255,255,255,0.08);
-            z-index:999;
-            transition:right 0.5s cubic-bezier(0.77,0,0.175,1);
-            padding:80px 40px 40px;
-            display:flex; flex-direction:column; justify-content:flex-start; gap:2.5rem;
-            font-size:1.4rem; letter-spacing:0.3em; text-transform:uppercase;
-        }
-        .side-nav.open { right:0; }
-        .side-nav a {
-            color:#eee; text-decoration:none; opacity:0.85; transition:all 0.4s;
-        }
-        .side-nav a:hover { opacity:1; transform:translateX(10px); color:#00ffea; }
-    
-        /* Hamburger 按钮 - 右上角 */
-        .hamburger {
-            position:fixed;
-            top:30px; right:40px;
-            z-index:1000;
-            font-size:2.2rem;
-            color:#fff;
-            cursor:pointer;
-            mix-blend-mode:difference;
-            transition:transform 0.4s;
-        }
-        .hamburger:hover { transform:rotate(90deg); }
-    
-        /* Logo - 左上或底部，保持低调 */
-        .logo {
-            position:fixed;
-            top:30px; left:40px;
-            z-index:10;
-            font-size:2.5rem;
-            letter-spacing:0.5em;
-            color:#fff;
-            mix-blend-mode:difference;
-        }
-    
-        /* Custom Cursor (保持你原有的) */
-        #cursor, #cursorDot { position:fixed; pointer-events:none; z-index:9999; mix-blend-mode:difference; }
-        #cursor { width:30px; height:30px; border:1px solid #fff; border-radius:50%; transform:translate(-50%,-50%); }
-        #cursorDot { width:6px; height:6px; background:#fff; border-radius:50%; transform:translate(-50%,-50%); }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            html, body {
+                height: 100%;
+                background: #000;
+                color: #eee;
+                font-family: 'Orbitron', 'Barlow Condensed', 'Courier New', Courier, monospace;
+                overflow-x: hidden;
+            }
+            .container {
+                max-width: 1600px;
+                margin: 0 auto;
+                padding: 0 5vw;
+            }
+            nav {
+                position: fixed;
+                top: 0; left: 0; right: 0;
+                z-index: 999;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 2rem 5vw;
+                background: rgba(0,0,0,0.6);
+                backdrop-filter: blur(10px);
+                font-size: 1.1rem;
+                letter-spacing: 0.15em;
+                text-transform: uppercase;
+            }
+            nav .logo {
+                font-weight: bold;
+                font-size: 1.4rem;
+            }
+            nav .menu {
+                display: flex;
+                gap: 3rem;
+                align-items: center;
+            }
+            nav .menu span {
+                font-size: 1.8rem;
+                cursor: pointer;
+            }
+            .ticker {
+                background: #0a0a0a;
+                color: #00ffea;
+                font-size: 1rem;
+                letter-spacing: 0.2em;
+                padding: 1.2rem 0;
+                overflow: hidden;
+                white-space: nowrap;
+            }
+            .ticker span {
+                display: inline-block;
+                padding-right: 4rem;
+                animation: marquee 60s linear infinite;
+            }
+            @keyframes marquee {
+                0% { transform: translateX(0); }
+                100% { transform: translateX(-100%); }
+            }
+            .hero {
+                height: 100vh;
+                position: relative;
+                overflow: hidden;
+            }
+            .hero img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                object-position: 60% center;
+            }
+            @media (max-width: 768px) {
+                nav { padding: 1.2rem 4vw; font-size: 0.95rem; }
+                nav .menu { gap: 1.5rem; flex-wrap: wrap; justify-content: center; }
+                .ticker { font-size: 0.85rem; padding: 0.8rem 0; }
+                .hero img { object-position: center; }
+            }
     </style>
 </head>
 <body>
 
-    <!-- 极简主视觉区（顶部固定） -->
-    <div class="hero"></div>
-    <div class="ticker">
-        <span>
-            TECHNO NIGHT 28 MAR • TICKETS → | AMSTERDAM BLACK VINYL DIGGING WEEKEND • KILLACUTZ + RUSH HOUR | FOLLOW @AILEENA ON SOUNDCLOUD FOR EXCLUSIVE TRACKS | HARD WAX • OYE • HHV • SOUND METAPHORS • INDEEP'N'DANCE | AILEENA • EST 2025 • MACHINA MODE ACTIVATED +++ 
-            TECHNO NIGHT 28 MAR • TICKETS → | AMSTERDAM BLACK VINYL DIGGING WEEKEND • KILLACUTZ + RUSH HOUR | FOLLOW @AILEENA ON SOUNDCLOUD FOR EXCLUSIVE TRACKS | HARD WAX • OYE • HHV • SOUND METAPHORS • INDEEP'N'DANCE | AILEENA • EST 2025 • MACHINA MODE ACTIVATED +++ 
-        </span>
-    </div>
-    <div class="logo">AILEENA</div>
-    <div class="hamburger" id="menuToggle">≡</div>
-        <nav class="side-nav" id="sideNav" style="display:none;">
-                <!-- 保留原结构但隐藏，方便随时恢复 -->
-                <a href="#gallery">GALLERY</a>
-                <a href="#sound">SOUND</a>
-                <a href="#blog">BLOG</a>
-                <a href="#works">WORKS</a>
-                <a href="#elsewhere">ELSEWHERE</a>
-                <a href="#chain">CHAIN</a>
-                <a href="#contact">CONTACT</a>
-        </nav>
+        <!-- Minimalist custom cursor -->
+        <div id="cursor" style="position:fixed; width:32px; height:32px; border:2px solid #ffb6c1; border-radius:50%; pointer-events:none; z-index:9999; mix-blend-mode:difference; left:-100px; top:-100px; transition:transform 0.1s;"></div>
+        <div id="cursorDot" style="position:fixed; width:8px; height:8px; background:#ffb6c1; border-radius:50%; pointer-events:none; z-index:9999; mix-blend-mode:difference; left:-100px; top:-100px; transition:transform 0.1s;"></div>
+                        <!-- Minimalist menu overlay (second page) -->
+                        <div id="menuOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.96); z-index:1000; flex-direction:column; justify-content:center; align-items:center;">
+                            <ul style="list-style:none; display:flex; flex-direction:column; gap:2.5rem; font-size:2.2rem; font-family:'Orbitron',sans-serif; color:#fff; margin:0; padding:0;">
+                                <li><a href="#gallery" style="color:#fff; text-decoration:none;">Gallery</a></li>
+                                <li><a href="#sound" style="color:#fff; text-decoration:none;">Sound</a></li>
+                                <li><a href="#blog" style="color:#fff; text-decoration:none;">Blog</a></li>
+                                <li><a href="#works" style="color:#fff; text-decoration:none;">Works</a></li>
+                                <li><a href="#elsewhere" style="color:#fff; text-decoration:none;">Elsewhere</a></li>
+                                <li><a href="#chain" style="color:#fff; text-decoration:none;">Chain</a></li>
+                                <li><a href="#contact" style="color:#fff; text-decoration:none;">Contact</a></li>
+                            </ul>
+                        </div>
+                <!-- Top Bar: Logo, Seamless Marquee, Language Switcher -->
+                <div class="top-bar" style="position:fixed; top:0; left:0; width:100vw; height:70px; display:flex; align-items:center; z-index:20; background:rgba(0,0,0,0.22);">
+                      <!-- Logo removed as requested -->
+                      <div class="marquee" style="position:absolute; left:3in; width:calc(100vw - 3in - 1.5in); height:70px; overflow:hidden; display:flex; align-items:center; top:35px;">
+                        <div class="marquee-inner" id="marquee-inner" style="font-family:'Orbitron',sans-serif; font-weight:900; font-size:3rem; letter-spacing:0.5em; color:#00ffea; text-transform:uppercase; white-space:nowrap; background:transparent; padding:0 2vw; display:inline-block; animation:marquee-loop 64s linear infinite;">
+                            <span id="marquee-text">MACHINA UNDER CONSTRUCTION +++ AILEENA IS +++ MECHANICAL VISIONS +++ SOUND & BRUTALIST REALMS +++ LATEST DJ DROP MARCH 2026 +++ …&nbsp;</span>
+                            <span id="marquee-text-dup">MACHINA UNDER CONSTRUCTION +++ AILEENA IS +++ MECHANICAL VISIONS +++ SOUND & BRUTALIST REALMS +++ LATEST DJ DROP MARCH 2026 +++ …&nbsp;</span>
+                        </div>
+                    </div>
+                    <style>
+                        @keyframes marquee-loop {
+                            0% { transform:translateX(0); }
+                            100% { transform:translateX(-50%); }
+                        }
+                    </style>
+                    <!-- Language switcher moved above hamburger menu -->
+                    <div style="position:absolute; top:10px; right:2vw; display:flex; flex-direction:column; align-items:flex-end; z-index:30;">
+                        <div class="lang-switch" id="lang-switch" style="font-family:'Barlow Condensed',sans-serif; font-size:1.1rem; color:#eee; letter-spacing:0.2em; text-transform:uppercase; cursor:pointer; margin-bottom:8px;">
+                            <span data-lang="de" style="margin-right:8px;">DE</span>
+                            <span data-lang="cn">CN</span>
+                        </div>
+                    </div>
+                </div>
+                <style>
+                    .marquee {
+                        position:relative;
+                        overflow:hidden;
+                    }
+                    .marquee-inner {
+                        animation: marquee-loop 32s linear infinite;
+                    }
+                    @keyframes marquee-loop {
+                        0% { transform:translateX(0); }
+                        100% { transform:translateX(-100%); }
+                    }
+                </style>
+                <script>
+                            // Minimalist cursor logic
+                            document.addEventListener('mousemove', function(e) {
+                                const cursor = document.getElementById('cursor');
+                                const dot = document.getElementById('cursorDot');
+                                if(cursor && dot) {
+                                    cursor.style.left = (e.clientX-16) + 'px';
+                                    cursor.style.top = (e.clientY-16) + 'px';
+                                    dot.style.left = (e.clientX-4) + 'px';
+                                    dot.style.top = (e.clientY-4) + 'px';
+                                }
+                            });
+                            // Hamburger triggers menu overlay
+                            const hamburger = document.getElementById('menuToggle');
+                            const menuOverlay = document.getElementById('menuOverlay');
+                            hamburger.addEventListener('click', function() {
+                                if(menuOverlay.style.display === 'flex') {
+                                    menuOverlay.style.display = 'none';
+                                } else {
+                                    menuOverlay.style.display = 'flex';
+                                }
+                            });
+                            // Click outside or Esc closes menu overlay
+                            menuOverlay.addEventListener('click', function(e) {
+                                if(e.target === menuOverlay) menuOverlay.style.display = 'none';
+                            });
+                            document.addEventListener('keydown', function(e) {
+                                if(e.key === 'Escape') menuOverlay.style.display = 'none';
+                            });
+                    // Language switcher functionality
+                    document.getElementById('lang-switch').addEventListener('click', function(e) {
+                        if(e.target.dataset.lang) {
+                            const lang = e.target.dataset.lang;
+                            document.documentElement.lang = lang === 'cn' ? 'zh-CN' : lang;
+                            // Update ticker text for each language
+                            const ticker = document.querySelector('.marquee-inner span');
+                            if(lang === 'en') {
+                                ticker.textContent = 'MACHINA UNDER CONSTRUCTION +++ AILEENA IS +++ MECHANICAL VISIONS +++ SOUND & BRUTALIST REALMS +++ LATEST DJ DROP MARCH 2026 +++ …';
+                            } else if(lang === 'de') {
+                                ticker.textContent = 'MACHINA IM AUFBAU +++ AILEENA IST +++ MECHANISCHE VISIONEN +++ SOUND & BRUTALISTISCHE REALMS +++ NEUER DJ DROP MÄRZ 2026 +++ …';
+                            } else if(lang === 'cn') {
+                                ticker.textContent = '机械正在建设中 +++ AILEENA 是 +++ 机械视觉 +++ 声音与野蛮领域 +++ 最新DJ发布2026年3月 +++ …';
+                            }
+                            // Highlight selected
+                            Array.from(document.querySelectorAll('#lang-switch span')).forEach(s => s.style.color = '#eee');
+                            e.target.style.color = '#00ffea';
+                        }
+                    });
+                    // Make marquee seamless
+                    window.addEventListener('DOMContentLoaded', function() {
+                        const m1 = document.getElementById('marquee-inner');
+                        const m2 = document.getElementById('marquee-inner-2');
+                        m2.style.left = m1.offsetWidth + 'px';
+                    });
+                </script>
+        <!-- HERO SECTION: Only image, no overlays/text -->
+                <section class="hero" style="position:relative; min-height:100vh; width:100vw; overflow:hidden; background:#0A0A0A;">
+                    <img src="bg_pic/04.jpeg" alt="Aileena Hero" style="position:absolute; left:50%; width:96vw; height:120vh; object-fit:contain; object-position:center bottom; transform:translateX(-50%) translateY(calc(10vh - 1in)); bottom:0; z-index:0; border:none;">
+                    <!-- Centered More Information overlay -->
+                    <div id="more-info" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:10; display:flex; flex-direction:column; align-items:center;">
+                        <span style="font-family:'Orbitron',sans-serif; font-size:2.6rem; font-weight:900; color:#ffb6c1; background:rgba(0,0,0,0.0); padding:0.5rem 2rem; border-radius:12px; letter-spacing:0.12em; text-shadow:0 2px 12px #0008; display:flex; align-items:center;">
+                            More Information
+                            <span style="font-size:2.8rem; color:#ffb6c1; margin-left:1.2rem; opacity:0.92;">&#8594;</span>
+                        </span>
+                    </div>
+                    <!-- Snow effect container -->
+                    <div id="snow-container" style="position:absolute; top:0; left:0; width:100vw; height:100vh; pointer-events:none; z-index:4;"></div>
+                    <!-- Removed any extra logo overlays from hero background -->
+                </section>
+                <script>
+                    // Snow effect with random particle movement
+                    setTimeout(function() {
+                        const snowContainer = document.getElementById('snow-container');
+                        for(let i=0;i<24;i++){
+                            const snow=document.createElement('div');
+                            snow.style.position='absolute';
+                            snow.style.left=Math.random()*100+'vw';
+                            snow.style.top=Math.random()*100+'vh';
+                            snow.style.width=(Math.random()*2+2)+'px';
+                            snow.style.height=snow.style.width;
+                            snow.style.background='#fff';
+                            snow.style.opacity=Math.random()*0.7+0.3;
+                            snow.style.borderRadius='50%';
+                            snow.style.filter='blur('+Math.random()*2+'px)';
+                            snow.style.zIndex=4;
+                            snow.style.pointerEvents='none';
+                            snowContainer.appendChild(snow);
+                            // Random direction and speed
+                            const angle = Math.random()*2*Math.PI;
+                            const dx = Math.cos(angle)*((Math.random()*0.5+0.5)*0.5);
+                            const dy = Math.sin(angle)*((Math.random()*0.5+0.5)*0.5);
+                            let x = parseFloat(snow.style.left);
+                            let y = parseFloat(snow.style.top);
+                            function animateSnow() {
+                                x += dx;
+                                y += dy;
+                                // Wrap around edges
+                                if(x>100) x=0;
+                                if(x<0) x=100;
+                                if(y>100) y=0;
+                                if(y<0) y=100;
+                                snow.style.left = x+'vw';
+                                snow.style.top = y+'vh';
+                                requestAnimationFrame(animateSnow);
+                            }
+                            setTimeout(animateSnow, Math.random()*1200);
+                        }
+                    }, 1200);
+                    // Seamless marquee
+                    window.addEventListener('DOMContentLoaded', function() {
+                        const m1 = document.getElementById('marquee-inner');
+                        const m2 = document.getElementById('marquee-inner-2');
+                        m2.style.left = m1.offsetWidth + 'px';
+                    });
+                </script>
+                </section>
+        <!-- 其他内容建议也加 .container 包裹 -->
 
         <!-- Nav Flip Page / Overlay -->
         <div class="nav-overlay" id="navPage">
@@ -215,7 +364,7 @@
                             <div class="grooves"></div>
                             <div class="grooves2"></div>
                             <div class="label">
-                                <div class="label-text">AILEENA</div>
+                                <!-- Removed label-text logo -->
                             </div>
                         </div>
                         <div class="tonearm" id="arm-left">
@@ -241,7 +390,7 @@
                             <div class="grooves"></div>
                             <div class="grooves2"></div>
                             <div class="label">
-                                <div class="label-text">AILEENA</div>
+                                <!-- Removed label-text logo -->
                             </div>
                         </div>
                         <div class="tonearm" id="arm-right">
@@ -417,7 +566,7 @@
             <h2 class="section-title">ABOUT</h2>
             <div class="about-content">
                 <div class="about-text">
-                    <p class="about-lead">AILEENA is a multidisciplinary creative studio specializing in mechanical aesthetics, brutalist photography, and visual storytelling.</p>
+                    <!-- Removed about-lead logo reference -->
                     <p class="about-description">Founded on the belief that machinery possesses an inherent poetry, we explore the beauty of industrial forms through careful observation and artistic interpretation. Our work bridges the gap between technical precision and emotional resonance.</p>
                     <div class="about-stats">
                         <div class="stat">
@@ -476,7 +625,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>AILEENA</title>
+    <title></title>
   
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Barlow+Condensed:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
@@ -574,8 +723,8 @@
             100% { transform:translateX(-100%); }
         }
 
-        /* Logo - 简化，只 AILEENA，左上 */
-        .logo {
+        /* Logo removed */
+        /* .logo removed */
             position:fixed;
             top:4vh;
             left:5vw;
@@ -648,11 +797,8 @@
         </span>
     </div>
 
-    <!-- Logo -->
-    <div class="logo">AILEENA</div>
+    <!-- Logo removed -->
 
-    <!-- Hamburger -->
-    <div class="hamburger" id="menuToggle">≡</div>
 
     <!-- 右竖 nav -->
     <nav class="side-nav" id="sideNav">
