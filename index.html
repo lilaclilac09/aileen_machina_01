@@ -13,6 +13,43 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   
     <style>
+                    #page2 {
+                        position: relative;
+                        height: 100vh;
+                        width: 100%;
+                        display: flex;
+                        align-items: flex-end;
+                        justify-content: flex-start;
+                        padding: 0 5vw 10vh 5vw;
+                        background: #000;
+                    }
+                    nav {
+                        position: relative;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 1.8vh;
+                        text-align: left;
+                    }
+                    nav a {
+                        font-size: 1.6rem;
+                        font-weight: 400;
+                        color: #fff;
+                        text-decoration: none;
+                        text-transform: uppercase;
+                        letter-spacing: 0.08em;
+                        opacity: 0.9;
+                        transition: none;
+                    }
+                    nav a:nth-child(1) { margin-left: 0; opacity: 1; }
+                    nav a:nth-child(2) { margin-left: 1.5vw; opacity: 0.95; }
+                    nav a:nth-child(3) { margin-left: 3vw; opacity: 0.9; }
+                    nav a:nth-child(4) { margin-left: 4.5vw; opacity: 0.85; }
+                    nav a:nth-child(5) { margin-left: 6vw; opacity: 0.8; }
+                    @media (max-width: 768px) {
+                        #page2 { padding: 0 8vw 15vh 8vw; }
+                        nav a { font-size: 1.4rem; gap: 2.5vh; }
+                        nav a:nth-child(n) { margin-left: 0 !important; }
+                    }
         * { margin:0; padding:0; box-sizing:border-box; }
         html, body { height:100%; overflow-x:hidden; background:#000; color:#eee; font-family:'Barlow Condensed', 'Orbitron', sans-serif; }
     
@@ -102,6 +139,59 @@
     </style>
 </head>
 <body>
+        <!-- Gentle floating snow effect -->
+        <canvas id="particle-canvas" style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:2;"></canvas>
+        <script>
+        // Gentle floating particle effect (cyberpunk snow/particles)
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let w = window.innerWidth;
+        let h = window.innerHeight;
+        canvas.width = w;
+        canvas.height = h;
+        window.addEventListener('resize',()=>{
+            w = window.innerWidth;
+            h = window.innerHeight;
+            canvas.width = w;
+            canvas.height = h;
+        });
+        // Particle config
+        const particles = Array.from({length:70},()=>({
+            x: Math.random()*w,
+            y: Math.random()*h,
+            r: 1.2+Math.random()*2.2,
+            speed: 0.2+Math.random()*0.6,
+            drift: 0.3+Math.random()*0.5,
+            angle: Math.random()*2*Math.PI,
+            color: `rgba(${200+Math.floor(Math.random()*55)},${200+Math.floor(Math.random()*55)},255,${0.5+Math.random()*0.4})`,
+            alpha: 0.5+Math.random()*0.4
+        }));
+        function drawParticles() {
+            ctx.clearRect(0,0,w,h);
+            for(const p of particles) {
+                ctx.beginPath();
+                ctx.arc(p.x,p.y,p.r,0,2*Math.PI);
+                ctx.fillStyle = p.color;
+                ctx.shadowColor = '#fff';
+                ctx.shadowBlur = 10;
+                ctx.globalAlpha = p.alpha;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.globalAlpha = 1;
+                // Gentle floating movement
+                p.y += p.speed*Math.cos(p.angle)*0.7;
+                p.x += p.drift*Math.sin(p.angle)*0.7;
+                p.angle += 0.003+Math.random()*0.002;
+                // Wrap around
+                if(p.y > h+10) { p.y = -10; p.x = Math.random()*w; }
+                if(p.y < -10) { p.y = h+10; p.x = Math.random()*w; }
+                if(p.x > w+10) { p.x = -10; p.y = Math.random()*h; }
+                if(p.x < -10) { p.x = w+10; p.y = Math.random()*h; }
+            }
+            requestAnimationFrame(drawParticles);
+        }
+        drawParticles();
+        </script>
 
         <!-- Minimalist custom cursor -->
         <div id="cursor" style="position:fixed; width:32px; height:32px; border:2px solid #ff4500; border-radius:50%; pointer-events:none; z-index:9999; mix-blend-mode:screen; left:-100px; top:-100px; transition:transform 0.1s; box-shadow:0 0 32px #00e0ff, 0 0 16px #ff4500;"></div>
@@ -112,12 +202,12 @@
                                 <!-- Removed ENTER heading for minimalism -->
                             </section>
                             <section id="page2" style="height:100vh;width:100%;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:0 5vw;text-align:center;">
-                                <nav style="position:absolute;left:3vw;bottom:3vh;display:flex;flex-direction:column;gap:1.2vh;align-items:flex-start;">
-                                    <a href="#" style="font-size:1.2rem;font-weight:400;color:#fff;text-decoration:none;text-transform:uppercase;letter-spacing:0.08em;transition:none;">Gallery</a>
-                                    <a href="#" style="font-size:1.2rem;font-weight:400;color:#fff;text-decoration:none;text-transform:uppercase;letter-spacing:0.08em;transition:none;">Sound</a>
-                                    <a href="#" style="font-size:1.2rem;font-weight:400;color:#fff;text-decoration:none;text-transform:uppercase;letter-spacing:0.08em;transition:none;">Blog</a>
-                                    <a href="#" style="font-size:1.2rem;font-weight:400;color:#fff;text-decoration:none;text-transform:uppercase;letter-spacing:0.08em;transition:none;">Chain</a>
-                                    <a href="#" style="font-size:1.2rem;font-weight:400;color:#fff;text-decoration:none;text-transform:uppercase;letter-spacing:0.08em;transition:none;">Contact</a>
+                                <nav>
+                                    <a href="#">GALLERY</a>
+                                    <a href="#">SOUND</a>
+                                    <a href="#">BLOG</a>
+                                    <a href="#">CHAIN</a>
+                                    <a href="#">CONTACT</a>
                                 </nav>
                             </section>
                         </div>
