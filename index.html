@@ -106,18 +106,22 @@
         <!-- Minimalist custom cursor -->
         <div id="cursor" style="position:fixed; width:32px; height:32px; border:2px solid #ff4500; border-radius:50%; pointer-events:none; z-index:9999; mix-blend-mode:screen; left:-100px; top:-100px; transition:transform 0.1s; box-shadow:0 0 32px #00e0ff, 0 0 16px #ff4500;"></div>
         <div id="cursorDot" style="position:fixed; width:8px; height:8px; background:#ff4500; border-radius:50%; pointer-events:none; z-index:9999; mix-blend-mode:screen; left:-100px; top:-100px; transition:transform 0.1s; box-shadow:0 0 32px #00e0ff, 0 0 16px #ff4500;"></div>
-                        <!-- Minimalist menu overlay (second page) -->
-                        <div id="menuOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.96); z-index:1000; flex-direction:column; justify-content:center; align-items:center;">
-                            <ul style="list-style:none; display:flex; flex-direction:column; gap:2.5rem; font-size:2.2rem; font-family:'Orbitron',sans-serif; color:#fff; margin:0; padding:0;">
-                                <li><a href="#gallery" style="color:#fff; text-decoration:none;">Gallery</a></li>
-                                <li><a href="#sound" style="color:#fff; text-decoration:none;">Sound</a></li>
-                                <li><a href="#blog" style="color:#fff; text-decoration:none;">Blog</a></li>
-                                <li><a href="#works" style="color:#fff; text-decoration:none;">Works</a></li>
-                                <li><a href="#elsewhere" style="color:#fff; text-decoration:none;">Elsewhere</a></li>
-                                <li><a href="#chain" style="color:#fff; text-decoration:none;">Chain</a></li>
-                                <li><a href="#contact" style="color:#fff; text-decoration:none;">Contact</a></li>
-                            </ul>
+                        <!-- Header removed for full transparency and no language setting -->
+                        <div id="wrapper" style="height:100vh;overflow-y:auto;scroll-snap-type:y proximity;scroll-behavior:smooth;background:#000;color:#fff;font-family:'Helvetica Neue',Arial,sans-serif;">
+                            <section id="page1" style="height:100vh;width:100%;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;background:url('bg_pic/04.jpeg') center/cover no-repeat;padding-bottom:15vh;text-align:center;">
+                                <!-- Removed ENTER heading for minimalism -->
+                            </section>
+                            <section id="page2" style="height:100vh;width:100%;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:0 5vw;text-align:center;">
+                                <nav style="position:absolute;left:3vw;bottom:3vh;display:flex;flex-direction:column;gap:1.2vh;align-items:flex-start;">
+                                    <a href="#" style="font-size:1.2rem;font-weight:400;color:#fff;text-decoration:none;text-transform:uppercase;letter-spacing:0.08em;transition:none;">Gallery</a>
+                                    <a href="#" style="font-size:1.2rem;font-weight:400;color:#fff;text-decoration:none;text-transform:uppercase;letter-spacing:0.08em;transition:none;">Sound</a>
+                                    <a href="#" style="font-size:1.2rem;font-weight:400;color:#fff;text-decoration:none;text-transform:uppercase;letter-spacing:0.08em;transition:none;">Blog</a>
+                                    <a href="#" style="font-size:1.2rem;font-weight:400;color:#fff;text-decoration:none;text-transform:uppercase;letter-spacing:0.08em;transition:none;">Chain</a>
+                                    <a href="#" style="font-size:1.2rem;font-weight:400;color:#fff;text-decoration:none;text-transform:uppercase;letter-spacing:0.08em;transition:none;">Contact</a>
+                                </nav>
+                            </section>
                         </div>
+                        <!-- Footer removed for minimalism -->
                 <!-- Top Bar: Logo, Seamless Marquee, Language Switcher -->
                 <div class="top-bar" style="position:fixed; top:0; left:0; width:100vw; height:70px; display:flex; align-items:center; z-index:20; background:rgba(0,0,0,0.22);">
                       <!-- Logo removed as requested -->
@@ -188,8 +192,7 @@
                     const menuOverlay = document.getElementById('menuOverlay');
                     function setLanguage(lang) {
                         document.documentElement.lang = lang === 'cn' ? 'zh-CN' : lang;
-                        // Update ticker text
-                        const tickerSpans = document.querySelectorAll('.marquee-inner span');
+                        // Update ticker text for both spans
                         let tickerText = '';
                         if(lang === 'de') {
                             tickerText = 'MACHINA IM AUFBAU +++ AILEENA IST +++ MECHANISCHE VISIONEN +++ SOUND & BRUTALISTISCHE REALMS +++ NEUER DJ DROP MÄRZ 2026 +++ …';
@@ -198,7 +201,10 @@
                         } else {
                             tickerText = 'MACHINA UNDER CONSTRUCTION +++ AILEENA IS +++ MECHANICAL VISIONS +++ SOUND & BRUTALIST REALMS +++ LATEST DJ DROP MARCH 2026 +++ …';
                         }
-                        tickerSpans.forEach(s => s.textContent = tickerText);
+                        const marqueeText = document.getElementById('marquee-text');
+                        const marqueeTextDup = document.getElementById('marquee-text-dup');
+                        if(marqueeText) marqueeText.textContent = tickerText;
+                        if(marqueeTextDup) marqueeTextDup.textContent = tickerText;
                         // Highlight selected
                         Array.from(langSwitch.querySelectorAll('span')).forEach(s => s.style.color = '#eee');
                         const active = langSwitch.querySelector(`[data-lang="${lang}"]`);
