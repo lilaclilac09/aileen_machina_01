@@ -104,8 +104,8 @@
 <body>
 
         <!-- Minimalist custom cursor -->
-        <div id="cursor" style="position:fixed; width:32px; height:32px; border:2px solid #ffb6c1; border-radius:50%; pointer-events:none; z-index:9999; mix-blend-mode:difference; left:-100px; top:-100px; transition:transform 0.1s;"></div>
-        <div id="cursorDot" style="position:fixed; width:8px; height:8px; background:#ffb6c1; border-radius:50%; pointer-events:none; z-index:9999; mix-blend-mode:difference; left:-100px; top:-100px; transition:transform 0.1s;"></div>
+        <div id="cursor" style="position:fixed; width:32px; height:32px; border:2px solid #ff4500; border-radius:50%; pointer-events:none; z-index:9999; mix-blend-mode:screen; left:-100px; top:-100px; transition:transform 0.1s; box-shadow:0 0 32px #00e0ff, 0 0 16px #ff4500;"></div>
+        <div id="cursorDot" style="position:fixed; width:8px; height:8px; background:#ff4500; border-radius:50%; pointer-events:none; z-index:9999; mix-blend-mode:screen; left:-100px; top:-100px; transition:transform 0.1s; box-shadow:0 0 32px #00e0ff, 0 0 16px #ff4500;"></div>
                         <!-- Minimalist menu overlay (second page) -->
                         <div id="menuOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.96); z-index:1000; flex-direction:column; justify-content:center; align-items:center;">
                             <ul style="list-style:none; display:flex; flex-direction:column; gap:2.5rem; font-size:2.2rem; font-family:'Orbitron',sans-serif; color:#fff; margin:0; padding:0;">
@@ -184,24 +184,47 @@
                                 if(e.key === 'Escape') menuOverlay.style.display = 'none';
                             });
                     // Language switcher functionality
-                    document.getElementById('lang-switch').addEventListener('click', function(e) {
-                        if(e.target.dataset.lang) {
-                            const lang = e.target.dataset.lang;
-                            document.documentElement.lang = lang === 'cn' ? 'zh-CN' : lang;
-                            // Update ticker text for each language
-                            const ticker = document.querySelector('.marquee-inner span');
-                            if(lang === 'en') {
-                                ticker.textContent = 'MACHINA UNDER CONSTRUCTION +++ AILEENA IS +++ MECHANICAL VISIONS +++ SOUND & BRUTALIST REALMS +++ LATEST DJ DROP MARCH 2026 +++ …';
-                            } else if(lang === 'de') {
-                                ticker.textContent = 'MACHINA IM AUFBAU +++ AILEENA IST +++ MECHANISCHE VISIONEN +++ SOUND & BRUTALISTISCHE REALMS +++ NEUER DJ DROP MÄRZ 2026 +++ …';
+                    const langSwitch = document.getElementById('lang-switch');
+                    const menuOverlay = document.getElementById('menuOverlay');
+                    function setLanguage(lang) {
+                        document.documentElement.lang = lang === 'cn' ? 'zh-CN' : lang;
+                        // Update ticker text
+                        const tickerSpans = document.querySelectorAll('.marquee-inner span');
+                        let tickerText = '';
+                        if(lang === 'de') {
+                            tickerText = 'MACHINA IM AUFBAU +++ AILEENA IST +++ MECHANISCHE VISIONEN +++ SOUND & BRUTALISTISCHE REALMS +++ NEUER DJ DROP MÄRZ 2026 +++ …';
+                        } else if(lang === 'cn') {
+                            tickerText = '机械正在建设中 +++ AILEENA 是 +++ 机械视觉 +++ 声音与野蛮领域 +++ 最新DJ发布2026年3月 +++ …';
+                        } else {
+                            tickerText = 'MACHINA UNDER CONSTRUCTION +++ AILEENA IS +++ MECHANICAL VISIONS +++ SOUND & BRUTALIST REALMS +++ LATEST DJ DROP MARCH 2026 +++ …';
+                        }
+                        tickerSpans.forEach(s => s.textContent = tickerText);
+                        // Highlight selected
+                        Array.from(langSwitch.querySelectorAll('span')).forEach(s => s.style.color = '#eee');
+                        const active = langSwitch.querySelector(`[data-lang="${lang}"]`);
+                        if(active) active.style.color = '#00ffea';
+                        // Update menu overlay text
+                        if(menuOverlay) {
+                            const menuLinks = menuOverlay.querySelectorAll('a');
+                            if(lang === 'de') {
+                                const deLabels = ['Galerie','Sound','Blog','Werke','Anderswo','Kette','Kontakt'];
+                                menuLinks.forEach((a,i) => a.textContent = deLabels[i] || a.textContent);
                             } else if(lang === 'cn') {
-                                ticker.textContent = '机械正在建设中 +++ AILEENA 是 +++ 机械视觉 +++ 声音与野蛮领域 +++ 最新DJ发布2026年3月 +++ …';
+                                const cnLabels = ['画廊','声音','博客','作品','其他','链','联系'];
+                                menuLinks.forEach((a,i) => a.textContent = cnLabels[i] || a.textContent);
+                            } else {
+                                const enLabels = ['Gallery','Sound','Blog','Works','Elsewhere','Chain','Contact'];
+                                menuLinks.forEach((a,i) => a.textContent = enLabels[i] || a.textContent);
                             }
-                            // Highlight selected
-                            Array.from(document.querySelectorAll('#lang-switch span')).forEach(s => s.style.color = '#eee');
-                            e.target.style.color = '#00ffea';
+                        }
+                    }
+                    langSwitch.addEventListener('click', function(e) {
+                        if(e.target.dataset.lang) {
+                            setLanguage(e.target.dataset.lang);
                         }
                     });
+                    // Default to EN
+                    setLanguage('en');
                     // Make marquee seamless
                     window.addEventListener('DOMContentLoaded', function() {
                         const m1 = document.getElementById('marquee-inner');
@@ -214,9 +237,9 @@
                     <img src="bg_pic/04.jpeg" alt="Aileena Hero" style="position:absolute; left:50%; width:96vw; height:120vh; object-fit:contain; object-position:center bottom; transform:translateX(-50%) translateY(calc(10vh - 1in)); bottom:0; z-index:0; border:none;">
                     <!-- Centered More Information overlay -->
                     <div id="more-info" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:10; display:flex; flex-direction:column; align-items:center;">
-                        <span style="font-family:'Orbitron',sans-serif; font-size:2.6rem; font-weight:900; color:#ffb6c1; background:rgba(0,0,0,0.0); padding:0.5rem 2rem; border-radius:12px; letter-spacing:0.12em; text-shadow:0 2px 12px #0008; display:flex; align-items:center;">
-                            More Information
-                            <span style="font-size:2.8rem; color:#ffb6c1; margin-left:1.2rem; opacity:0.92;">&#8594;</span>
+                        <span style="font-family:'Orbitron',sans-serif; font-size:2.6rem; font-weight:900; color:#fff; background:rgba(0,0,0,0.0); padding:0.5rem 2rem; border-radius:12px; letter-spacing:0.12em; display:flex; align-items:center; position:fixed; left:50%; bottom:5in; transform:translateX(-50%);">
+                            <span style="color:#fff; text-shadow:none; mix-blend-mode:normal;">More Information</span>
+                            <span style="font-size:2.8rem; color:#fff; margin-left:1.2rem; opacity:0.92; text-shadow:none; mix-blend-mode:normal;">&#8595;</span>
                         </span>
                     </div>
                     <!-- Snow effect container -->
@@ -224,10 +247,10 @@
                     <!-- Removed any extra logo overlays from hero background -->
                 </section>
                 <script>
-                    // Snow effect with random particle movement
+                    // Soft, gentle snow effect with more particles
                     setTimeout(function() {
                         const snowContainer = document.getElementById('snow-container');
-                        for(let i=0;i<24;i++){
+                        for(let i=0;i<60;i++){
                             const snow=document.createElement('div');
                             snow.style.position='absolute';
                             snow.style.left=Math.random()*100+'vw';
@@ -235,18 +258,17 @@
                             snow.style.width=(Math.random()*2+2)+'px';
                             snow.style.height=snow.style.width;
                             snow.style.background='#fff';
-                            snow.style.opacity=Math.random()*0.7+0.3;
+                            snow.style.opacity=Math.random()*0.5+0.5;
                             snow.style.borderRadius='50%';
                             snow.style.filter='blur('+Math.random()*2+'px)';
                             snow.style.zIndex=4;
                             snow.style.pointerEvents='none';
                             snowContainer.appendChild(snow);
-                            // Random direction and speed
-                            const angle = Math.random()*2*Math.PI;
-                            const dx = Math.cos(angle)*((Math.random()*0.5+0.5)*0.5);
-                            const dy = Math.sin(angle)*((Math.random()*0.5+0.5)*0.5);
+                            // Gentle floating movement
                             let x = parseFloat(snow.style.left);
                             let y = parseFloat(snow.style.top);
+                            const dx = Math.sin(i)*0.08 + Math.random()*0.04;
+                            const dy = Math.cos(i)*0.12 + Math.random()*0.06;
                             function animateSnow() {
                                 x += dx;
                                 y += dy;
