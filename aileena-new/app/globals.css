@@ -1,6 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Barlow+Condensed:wght@300;400;700&display=swap');
 
 @import "tailwindcss";
+@source "../components/**/*.tsx";
+@source "../app/**/*.tsx";
 
 body {
   font-family: 'Barlow Condensed', system-ui, sans-serif;
@@ -89,6 +91,64 @@ html {
 @keyframes acrylicPulse {
   0%, 100% { opacity: 0.7; box-shadow: 0 0 22px rgba(60,200,235,0.65), inset 0 0 12px rgba(80,210,240,0.15); }
   50%       { opacity: 1;   box-shadow: 0 0 36px rgba(60,200,235,0.9),  inset 0 0 20px rgba(80,210,240,0.25); }
+}
+
+/* ── Loading Screen ── */
+.loading-orb-wrap {
+  position: relative;
+  width: 280px;
+  height: 280px;
+}
+.loading-orb {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 28%,
+    rgba(255,245,190,0.98) 0%,
+    rgba(255,155,30,0.94) 38%,
+    rgba(255,85,15,0.82) 65%,
+    rgba(200,45,0,0.55) 85%
+  );
+  box-shadow:
+    0 0 110px rgba(255,170,40,0.98),
+    0 0 220px rgba(255,115,25,0.75),
+    0 0 340px rgba(255,70,15,0.45),
+    inset 0 0 80px rgba(255,255,230,0.6),
+    inset -45px -45px 90px rgba(255,195,90,0.4);
+  border: 2.5px solid rgba(255,230,160,0.45);
+  backdrop-filter: blur(18px);
+  animation: orbBreath 4.6s ease-in-out infinite;
+}
+.loading-orb::before {
+  content: '';
+  position: absolute;
+  top: 16%; left: 20%;
+  width: 58%; height: 58%;
+  background: radial-gradient(circle, rgba(255,255,255,0.78) 12%, transparent 68%);
+  border-radius: 50%;
+  animation: orbHighlight 6.8s ease-in-out infinite alternate;
+}
+.loading-orb-rotate {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  animation: orbRotate 36s linear infinite;
+}
+@keyframes orbBreath {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.085); }
+}
+@keyframes orbRotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes orbHighlight {
+  0%   { transform: scale(1) translate(0, 0); opacity: 0.75; }
+  100% { transform: scale(1.22) translate(14px, -16px); opacity: 0.96; }
+}
+@keyframes orbStatusPulse {
+  from { opacity: 0.6; }
+  to   { opacity: 0.95; }
 }
 
 main {

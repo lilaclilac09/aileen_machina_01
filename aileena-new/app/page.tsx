@@ -1,8 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import Header from '../components/Header';
 import DJStation from '../components/DJStation';
+import LoadingScreen from '../components/LoadingScreen';
 import { SnapContainer, SnapSection } from '../components/SnapScroll';
 import { useLanguage } from '../components/LanguageProvider';
 import { t } from '../lib/translations';
@@ -10,9 +12,11 @@ import { t } from '../lib/translations';
 export default function Home() {
   const { language } = useLanguage();
   const tx = t[language];
+  const [loaded, setLoaded] = useState(false);
 
   return (
     <>
+      {!loaded && <LoadingScreen onDone={() => setLoaded(true)} />}
       <Header />
       <SnapContainer key={language}>
 
@@ -88,7 +92,9 @@ export default function Home() {
             {/* Right — images */}
             <div className="grid grid-rows-2 grid-cols-2 gap-px h-full">
               <div className="col-span-2 anim-fade bg-cover bg-center" style={{ backgroundImage: "url('/bg_pic/03.jpeg')" }} />
-              <div className="anim-fade bg-cover bg-center" style={{ backgroundImage: "url('/bg_pic/01.jpeg')", animationDelay: '0.1s' }} />
+              <div className="anim-fade overflow-hidden relative" style={{ animationDelay: '0.1s' }}>
+                <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover" src="/bg_pic/01v.MP4" />
+              </div>
               <div className="anim-fade bg-cover bg-center" style={{ backgroundImage: "url('/bg_pic/02.jpeg')", animationDelay: '0.2s' }} />
             </div>
           </div>

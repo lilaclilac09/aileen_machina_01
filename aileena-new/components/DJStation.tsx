@@ -314,7 +314,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive,
                   border: '1px solid rgba(255,255,255,0.045)' }} />
               ))}
               {/* Album art */}
-              <div style={{ position: 'absolute', inset: '28%', borderRadius: '50%', overflow: 'hidden',
+              <div style={{ position: 'absolute', inset: '18%', borderRadius: '50%', overflow: 'hidden',
                 border: `1.5px solid rgba(255,255,255,0.15)`,
                 boxShadow: playing ? `0 0 16px ${C.cyan}50` : 'none',
                 transition: 'box-shadow 0.8s ease',
@@ -431,7 +431,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive,
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {/* Play/Pause */}
           <button onClick={onToggle} style={{
-            width: 38, height: 38, borderRadius: '50%', cursor: 'pointer', border: 'none',
+            width: 38, height: 38, borderRadius: '50%', cursor: 'pointer',
             background: playing ? `${C.green}20` : '#252530',
             border: playing ? `1px solid ${C.green}60` : `1px solid ${C.border}`,
             boxShadow: playing ? `0 0 12px ${C.green}40` : 'inset 0 2px 5px rgba(0,0,0,0.5)',
