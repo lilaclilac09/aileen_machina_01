@@ -1,10 +1,102 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Barlow+Condensed:wght@300;400;700&display=swap');
 
+@import "tailwindcss";
+
 body {
   font-family: 'Barlow Condensed', system-ui, sans-serif;
   background: #000;
   color: #fff;
-  overflow-x: hidden;
+  height: 100%;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+html {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Fullscreen scroll-snap */
+.snap-container {
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.snap-section {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Entrance animations */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideLeft {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.snap-section.in-view .anim-up {
+  animation: slideUp 0.7s cubic-bezier(0.16,1,0.3,1) both;
+}
+.snap-section.in-view .anim-up-2 {
+  animation: slideUp 0.7s 0.12s cubic-bezier(0.16,1,0.3,1) both;
+}
+.snap-section.in-view .anim-up-3 {
+  animation: slideUp 0.7s 0.24s cubic-bezier(0.16,1,0.3,1) both;
+}
+.snap-section.in-view .anim-left {
+  animation: slideLeft 0.7s 0.08s cubic-bezier(0.16,1,0.3,1) both;
+}
+.snap-section.in-view .anim-fade {
+  animation: fadeIn 1s 0.1s ease both;
+}
+
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes turntableSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes iridescent {
+  0%   { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes acrylicPulse {
+  0%, 100% { opacity: 0.7; box-shadow: 0 0 22px rgba(60,200,235,0.65), inset 0 0 12px rgba(80,210,240,0.15); }
+  50%       { opacity: 1;   box-shadow: 0 0 36px rgba(60,200,235,0.9),  inset 0 0 20px rgba(80,210,240,0.25); }
+}
+
+main {
+  animation: pageFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+a, button {
+  transition: color 0.2s ease, background-color 0.25s ease, border-color 0.25s ease, opacity 0.2s ease, transform 0.2s ease;
 }
 
 .marquee {
