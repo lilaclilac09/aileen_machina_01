@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import TrackLibraryBrowser from './TrackLibraryBrowser';
 
 /* ─── Palette ────────────────────────────────────────────── */
 const C = {
@@ -73,7 +74,6 @@ export default function DJStation() {
   const [rightPitch,   setRightPitch]   = useState(0);
   const [xfade,        setXfade]        = useState(50);
   const [dropSide,     setDropSide]     = useState<'left'|'right'|null>(null);
-  const [query,        setQuery]        = useState('');
 
   const leftContainerRef  = useRef<HTMLDivElement>(null);
   const rightContainerRef = useRef<HTMLDivElement>(null);
@@ -151,13 +151,6 @@ export default function DJStation() {
     return { type: 'hint' as const, diff };
   }, [leftTrack, rightTrack, leftPitch, rightPitch]);
 
-  /* Filtered crate */
-  const filteredTracks = useMemo(() =>
-    TRACKS.filter(t =>
-      !query || t.title.toLowerCase().includes(query.toLowerCase()) ||
-      String(t.bpm).includes(query) || t.key.toLowerCase().includes(query.toLowerCase())
-    ), [query]);
-
   const leftDim  = xfade > 80 ? (100 - xfade) / 20 : 1;
   const rightDim = xfade < 20 ? xfade / 20 : 1;
 
@@ -172,7 +165,7 @@ export default function DJStation() {
           return (
             <div key={side} style={{
               borderRadius: 6, overflow: 'hidden', background: '#0a0a0c',
-              border: `1px solid ${C.border}`, position: 'relative',
+              border: 'none', position: 'relative',
             }}>
               <div ref={ref} style={{ minHeight: 80 }} />
               {!track && (
@@ -190,17 +183,17 @@ export default function DJStation() {
         })}
       </div>
 
-      {/* ── Main console ── */}
+      {/* ── Main console (deck + mixer layout) ── */}
       <div style={{
         borderRadius: 10, padding: '10px 10px 8px',
         background: C.panel,
-        border: `1px solid ${C.border}`,
+        border: 'none',
         boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
       }}>
         {/* system bar */}
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          borderBottom: `1px solid ${C.border}`, paddingBottom: 6, marginBottom: 8,
+          borderBottom: 'none', paddingBottom: 6, marginBottom: 8,
         }}>
           <span style={{ fontFamily: 'monospace', fontSize: '0.34rem', letterSpacing: '0.5em', color: C.dim, textTransform: 'uppercase' }}>
             AILEENA DJ
@@ -210,7 +203,7 @@ export default function DJStation() {
               fontFamily: 'monospace', fontSize: '0.34rem', letterSpacing: '0.3em',
               color: bpmHint.type === 'sync' ? C.green : C.orange,
               textTransform: 'uppercase',
-              border: `1px solid ${bpmHint.type === 'sync' ? C.green : C.orange}40`,
+              border: `1px solid ${bpmHint.type === 'sync' ? C.green : C.orange}00`,
               padding: '2px 6px', borderRadius: 3,
             }}>
               {bpmHint.type === 'sync' ? '⟺ SYNC' : `${bpmHint.diff > 0 ? '+' : ''}${bpmHint.diff.toFixed(1)} BPM`}
@@ -221,7 +214,8 @@ export default function DJStation() {
           </span>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 110px 1fr', gap: 8 }}>
+        {/* Deck + Mixer grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 1fr', gap: 8, marginBottom: 10 }}>
           <DeckPanel
             side="left" track={leftTrack} playing={leftPlaying}
             pos={leftPos} dur={leftDur || (leftTrack?.dur ?? 0) * 1000}
@@ -248,17 +242,16 @@ export default function DJStation() {
         </div>
       </div>
 
-      {/* ── Crate / Track Strip ── */}
-      <CrateStrip
-        tracks={filteredTracks}
-        query={query}
-        onQuery={setQuery}
-        loadedLeft={leftTrack}
-        loadedRight={rightTrack}
-        onDragStart={t => { dragTrack.current = t; }}
-        onDragEnd={() => { dragTrack.current = null; }}
-        onLoad={loadTrack}
-      />
+      {/* ── Track Library Browser (Film Strip Carousel) ── */}
+      <div style={{
+        borderRadius: 10,
+        border: `1px solid ${C.border}`,
+        background: C.panel,
+        marginTop: 10,
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
+      }}>
+        <TrackLibraryBrowser tracks={TRACKS} onLoadTrack={loadTrack} onSetDragTrack={(t) => { dragTrack.current = t; }} />
+      </div>
     </div>
   );
 }
@@ -304,7 +297,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive,
             <div style={{
               position: 'absolute', inset: 0, borderRadius: '50%',
               background: 'radial-gradient(circle at 50% 50%, #2a2a30 0%, #1a1a1e 55%, #111114 100%)',
-              border: `1px solid rgba(255,255,255,0.1)`,
+              border: `1px solid rgba(255,255,255,0)`,
               animation: playing ? 'turntableSpin 2.4s linear infinite' : 'none',
               overflow: 'hidden',
             }}>
@@ -403,7 +396,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive,
       {/* Info row */}
       <div style={{
         borderRadius: 5, padding: '5px 8px',
-        background: C.deck, border: `1px solid ${C.border}`,
+        background: C.deck, border: 'none',
         display: 'flex', flexDirection: 'column', gap: 3,
       }}>
         <p style={{ fontSize: '0.44rem', letterSpacing: '0.12em',
@@ -425,7 +418,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive,
       {/* Controls */}
       <div style={{
         borderRadius: 6, padding: '7px 7px',
-        background: C.deck, border: `1px solid ${C.border}`,
+        background: C.deck, border: 'none',
         display: 'flex', alignItems: 'center', gap: 6,
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -433,7 +426,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive,
           <button onClick={onToggle} style={{
             width: 38, height: 38, borderRadius: '50%', cursor: 'pointer',
             background: playing ? `${C.green}20` : '#252530',
-            border: playing ? `1px solid ${C.green}60` : `1px solid ${C.border}`,
+            border: 'none',
             boxShadow: playing ? `0 0 12px ${C.green}40` : 'inset 0 2px 5px rgba(0,0,0,0.5)',
             color: playing ? C.green : C.sub,
             fontSize: '0.8rem',
@@ -443,7 +436,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive,
           {/* CUE */}
           <button style={{
             width: 38, height: 38, borderRadius: '50%', cursor: 'pointer',
-            background: '#252530', border: `1px solid ${C.border}`,
+            background: '#252530', border: 'none',
             color: C.dim, fontSize: '0.34rem', letterSpacing: '0.04em',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>CUE</button>
@@ -472,12 +465,12 @@ function MixerPanel({ xfade, onXfade }: { xfade: number; onXfade(v: number): voi
   return (
     <div style={{
       borderRadius: 6, padding: '8px 6px',
-      background: C.deck, border: `1px solid ${C.border}`,
+      background: C.deck, border: 'none',
       display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
     }}>
       {/* BPM */}
       <div style={{ width: '100%', textAlign: 'center', borderRadius: 4, padding: '3px 0',
-        background: '#080a0c', border: `1px solid rgba(0,220,80,0.15)` }}>
+        background: '#080a0c', border: `1px solid rgba(0,220,80,0)` }}>
         <p style={{ fontFamily: 'monospace', fontSize: '0.28rem', color: 'rgba(0,200,80,0.4)', letterSpacing: '0.3em' }}>BPM</p>
         <p style={{ fontFamily: 'monospace', fontSize: '0.9rem', color: C.green, lineHeight: 1.1,
           textShadow: `0 0 10px ${C.green}90` }}>128</p>
@@ -546,7 +539,7 @@ function CrateStrip({ tracks, query, onQuery, loadedLeft, loadedRight, onDragSta
       <div style={{
         display: 'flex', alignItems: 'center', gap: 10,
         padding: '6px 10px', borderRadius: '6px 6px 0 0',
-        background: C.panel, border: `1px solid ${C.border}`, borderBottom: 'none',
+        background: C.panel, border: 'none', borderBottom: 'none',
       }}>
         <span style={{ fontFamily: 'monospace', fontSize: '0.32rem', letterSpacing: '0.45em', color: C.dim, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
           CRATE
@@ -571,7 +564,7 @@ function CrateStrip({ tracks, query, onQuery, loadedLeft, loadedRight, onDragSta
         display: 'grid',
         gridTemplateColumns: '32px 1fr 110px 52px 38px 52px 60px',
         gap: 0, padding: '4px 10px',
-        background: '#0f0f12', border: `1px solid ${C.border}`, borderTop: 'none', borderBottom: 'none',
+        background: '#0f0f12', border: 'none', borderTop: 'none', borderBottom: 'none',
       }}>
         {['#','TITLE','WAVEFORM','BPM','KEY','DUR','DECK'].map(h => (
           <span key={h} style={{ fontFamily: 'monospace', fontSize: '0.26rem', letterSpacing: '0.35em',
@@ -580,7 +573,7 @@ function CrateStrip({ tracks, query, onQuery, loadedLeft, loadedRight, onDragSta
       </div>
 
       {/* Track rows */}
-      <div style={{ border: `1px solid ${C.border}`, borderTop: 'none', borderRadius: '0 0 6px 6px', overflow: 'hidden' }}>
+      <div style={{ border: 'none', borderTop: 'none', borderRadius: '0 0 6px 6px', overflow: 'hidden' }}>
         {tracks.map((track, i) => (
           <TrackRow
             key={track.id}
@@ -685,14 +678,14 @@ function TrackRow({ index, track, isLeft, isRight, onDragStart, onDragEnd, onLoa
       {/* Load A / B buttons */}
       <div style={{ display: 'flex', gap: 4 }}>
         <button onClick={e => { e.stopPropagation(); onLoadLeft(); }} style={{
-          padding: '2px 5px', borderRadius: 3, border: `1px solid ${C.cyan}50`,
+          padding: '2px 5px', borderRadius: 3, border: `1px solid ${C.cyan}00`,
           background: isLeft ? `${C.cyan}25` : 'transparent',
           color: isLeft ? C.cyan : C.sub,
           fontFamily: 'monospace', fontSize: '0.28rem', cursor: 'pointer',
           letterSpacing: '0.1em',
         }}>A</button>
         <button onClick={e => { e.stopPropagation(); onLoadRight(); }} style={{
-          padding: '2px 5px', borderRadius: 3, border: `1px solid ${C.blue}50`,
+          padding: '2px 5px', borderRadius: 3, border: `1px solid ${C.blue}00`,
           background: isRight ? `${C.blue}25` : 'transparent',
           color: isRight ? C.blue : C.sub,
           fontFamily: 'monospace', fontSize: '0.28rem', cursor: 'pointer',
@@ -713,7 +706,7 @@ function MKnob({ size = 28, lit }: { size?: number; lit?: boolean }) {
         width: '100%', height: '100%', borderRadius: '50%',
         background: 'radial-gradient(circle at 33% 28%, #484850 0%, #282830 45%, #141418 100%)',
         boxShadow: `0 ${size * .1}px ${size * .25}px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1)`,
-        border: `1px solid ${C.border}`, position: 'relative',
+        border: 'none', position: 'relative',
       }}>
         <div style={{
           position: 'absolute', width: Math.max(2, size * .09), height: Math.max(3, size * .24),
@@ -733,7 +726,7 @@ function PitchFader({ pitch, onChange }: { pitch: number; onChange(v: number): v
       <p style={{ fontFamily: 'monospace', fontSize: '0.26rem', letterSpacing: '0.4em', color: C.dim }}>PITCH</p>
       <div style={{ position: 'relative', width: 14, height: 78 }}>
         <div style={{ position: 'absolute', left: 5, width: 4, height: '100%', borderRadius: 3,
-          background: '#070708', border: `1px solid ${C.border}`,
+          background: '#070708', border: 'none',
           boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.8)' }} />
         <div style={{ position: 'absolute', left: 2, width: 10, top: '50%', height: 1,
           background: `${C.cyan}40` }} />
@@ -745,7 +738,7 @@ function PitchFader({ pitch, onChange }: { pitch: number; onChange(v: number): v
           borderRadius: 2, pointerEvents: 'none',
           background: 'linear-gradient(to bottom, #ccc, #999 40%, #777)',
           boxShadow: '0 2px 7px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.6)',
-          border: '1px solid rgba(255,255,255,0.25)',
+          border: 'none',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
         }}>
           {[0,1].map(i => <div key={i} style={{ width: '55%', height: 1,

@@ -26,24 +26,25 @@ export default function Home() {
             className="absolute inset-0"
             style={{
               backgroundImage: "linear-gradient(to bottom, rgba(0,0,0,.08) 0%, rgba(0,0,0,.5) 55%, rgba(0,0,0,.98) 100%), url('/bg_pic/04.jpeg')",
-              backgroundSize: 'auto 100%',
-              backgroundPosition: '58% center',
+              backgroundSize: 'auto 70%',
+              backgroundPosition: '58% calc(50% - 48px)',
+              backgroundRepeat: 'no-repeat',
             }}
             aria-hidden
           />
           <div className="relative z-10 h-full mx-auto max-w-[1600px] grid grid-cols-1 lg:grid-cols-2 px-5 sm:px-10 lg:px-12">
-            <div className="flex items-end pb-16">
-              <h1 className="anim-up text-[clamp(4rem,11vw,10rem)] font-black leading-[0.86] tracking-[0.06em] text-white">
+            <div className="flex items-end pb-8 sm:pb-16">
+              <h1 className="anim-up text-[clamp(2.4rem,18vw,10rem)] font-black leading-[0.86] tracking-[0.04em] sm:tracking-[0.06em] text-white">
                 <span className="block">AILEENA</span>
                 <span className="block text-[#00ffea]">MACHINA</span>
               </h1>
             </div>
-            <div className="flex items-end justify-start pb-16 lg:justify-end">
-              <div className="anim-left max-w-xs">
-                <p className="text-xs uppercase tracking-[0.5em] text-white/50">{tx.hero.tag}</p>
-                <h2 className="mt-4 text-lg font-light tracking-[0.22em] text-white/85">{tx.hero.heading}</h2>
-                <p className="mt-4 text-sm leading-7 text-white/55">{tx.hero.body}</p>
-                <div className="mt-8 text-xs uppercase tracking-[0.4em] text-white/35">{tx.hero.footer}</div>
+            <div className="flex items-end justify-start pb-10 sm:pb-16 lg:justify-end">
+              <div className="anim-left max-w-md lg:max-w-xs">
+                <p className="text-[0.65rem] uppercase tracking-[0.35em] sm:tracking-[0.5em] text-white/50">{tx.hero.tag}</p>
+                <h2 className="mt-3 sm:mt-4 text-base sm:text-lg font-light tracking-[0.15em] sm:tracking-[0.22em] text-white/85">{tx.hero.heading}</h2>
+                <p className="mt-3 sm:mt-4 text-sm leading-6 sm:leading-7 text-white/55">{tx.hero.body}</p>
+                <div className="mt-6 sm:mt-8 text-[0.62rem] sm:text-xs uppercase tracking-[0.3em] sm:tracking-[0.4em] text-white/35">{tx.hero.footer}</div>
               </div>
             </div>
           </div>
@@ -65,12 +66,12 @@ export default function Home() {
               <div>
                 {tx.programme.items.map((item, i) => (
                   <Link key={item.index} href={item.href}
-                    className={`group grid grid-cols-[3rem_1fr_auto] items-center gap-8 border-b border-white/6 py-7 hover:border-white/15 transition-colors anim-up-${i + 1 > 3 ? 3 : i + 1}`}
+                    className={`group grid grid-cols-[2rem_1fr_auto] sm:grid-cols-[3rem_1fr_auto] items-center gap-4 sm:gap-8 border-b border-white/6 py-5 sm:py-7 hover:border-white/15 transition-colors anim-up-${i + 1 > 3 ? 3 : i + 1}`}
                   >
                     <span className="font-mono text-xs tracking-widest text-white/35">{item.index}</span>
                     <div>
-                      <h3 className="text-[clamp(1.4rem,3.5vw,2.8rem)] font-semibold tracking-[0.1em] text-white group-hover:text-[#00ffea] transition-colors">{item.title}</h3>
-                      <p className="mt-1 text-xs uppercase tracking-[0.35em] text-white/45">{item.meta}</p>
+                      <h3 className="text-[clamp(1.05rem,6vw,2.8rem)] font-semibold tracking-[0.07em] sm:tracking-[0.1em] text-white group-hover:text-[#00ffea] transition-colors">{item.title}</h3>
+                      <p className="mt-1 text-[0.62rem] sm:text-xs uppercase tracking-[0.24em] sm:tracking-[0.35em] text-white/45">{item.meta}</p>
                     </div>
                     <span className="text-[#00ffea] opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all text-xl">→</span>
                   </Link>
@@ -143,11 +144,11 @@ export default function Home() {
               <h2 className="anim-up-2 mb-12 text-[clamp(2rem,6vw,6rem)] font-semibold tracking-[0.1em]">{tx.blog.heading}</h2>
               <div>
                 {tx.blog.posts.map((title, i) => (
-                  <div key={title} className={`group grid grid-cols-[7rem_1fr] items-start gap-8 border-b border-white/8 py-7 anim-up-${Math.min(i + 1, 3)}`}>
-                    <p className="font-mono text-xs tracking-widest text-white/40 pt-1">2026.0{i + 1}.15</p>
+                  <div key={title} className={`group grid grid-cols-1 sm:grid-cols-[7rem_1fr] items-start gap-3 sm:gap-8 border-b border-white/8 py-5 sm:py-7 anim-up-${Math.min(i + 1, 3)}`}>
+                    <p className="font-mono text-[0.68rem] sm:text-xs tracking-[0.22em] sm:tracking-widest text-white/40 pt-1">2026.0{i + 1}.15</p>
                     <div>
-                      <h3 className="text-[clamp(1rem,2.5vw,2rem)] tracking-[0.1em] text-white/85 group-hover:text-white transition-colors">{title}</h3>
-                      <p className="mt-3 text-sm leading-7 text-white/50">{tx.blog.body}</p>
+                      <h3 className="text-[clamp(0.95rem,5vw,2rem)] tracking-[0.07em] sm:tracking-[0.1em] text-white/85 group-hover:text-white transition-colors">{title}</h3>
+                      <p className="mt-2 sm:mt-3 text-sm leading-6 sm:leading-7 text-white/50">{tx.blog.body}</p>
                     </div>
                   </div>
                 ))}
@@ -158,12 +159,12 @@ export default function Home() {
 
         {/* ── 07 CONTACT ── */}
         <SnapSection id="contact">
-          <div className="h-full flex flex-col justify-center bg-[#050505] px-5 sm:px-10 lg:px-16">
-            <div className="mx-auto w-full max-w-[1400px] grid gap-16 lg:grid-cols-[0.5fr_1fr] items-center">
+          <div className="h-full flex flex-col justify-center bg-[#050505] px-5 sm:px-10 lg:px-16 py-10 sm:py-0">
+            <div className="mx-auto w-full max-w-[1400px] grid gap-8 sm:gap-12 lg:gap-16 lg:grid-cols-[0.5fr_1fr] items-center">
               <div>
-                <div className="anim-up flex items-center gap-3 mb-8">
+                <div className="anim-up flex items-center gap-2 sm:gap-3 mb-5 sm:mb-8">
                   <div className="h-px flex-1" style={{ background: 'rgba(0,255,234,0.18)' }} />
-                  <span className="font-mono text-[0.58rem] tracking-[0.5em] text-[#00ffea]/30">SAT-LINK · NODE-7</span>
+                  <span className="font-mono text-[0.52rem] sm:text-[0.58rem] tracking-[0.25em] sm:tracking-[0.5em] text-[#00ffea]/30">SAT-LINK · NODE-7</span>
                   <div className="h-px flex-1" style={{ background: 'rgba(0,255,234,0.18)' }} />
                 </div>
                 <h2 className="anim-up-2 font-mono text-[clamp(1.9rem,4vw,4rem)] font-light tracking-[0.15em] text-white">{tx.contact.heading}</h2>
@@ -179,7 +180,7 @@ export default function Home() {
 
               <div className="anim-left font-mono">
                 <div className="flex items-center justify-between border border-[#00ffea]/10 px-4 py-2" style={{ background: 'rgba(0,255,234,0.025)' }}>
-                  <span className="text-[0.58rem] tracking-[0.5em] text-[#00ffea]/40 uppercase">TRANSMISSION TERMINAL</span>
+                  <span className="text-[0.52rem] sm:text-[0.58rem] tracking-[0.2em] sm:tracking-[0.5em] text-[#00ffea]/40 uppercase">TRANSMISSION TERMINAL</span>
                   <div className="flex items-center gap-2">
                     <div className="h-1.5 w-1.5 rounded-full bg-[#00ffea]/55 shadow-[0_0_4px_rgba(0,255,234,0.5)] animate-pulse" />
                   </div>
@@ -197,10 +198,10 @@ export default function Home() {
                     <p className="mb-2 text-[0.52rem] tracking-[0.5em] text-white/30">PAYLOAD ·</p>
                     <textarea className="w-full bg-transparent text-sm tracking-[0.2em] text-white/60 outline-none placeholder:text-white/25 focus:text-white/85 min-h-20 resize-none" placeholder={tx.contact.message} />
                   </div>
-                  <div className="flex items-center justify-between pt-5">
-                    <span className="text-[0.5rem] tracking-[0.4em] text-white/20">PKT · AUTO · ENC · ON</span>
+                  <div className="flex items-center justify-between gap-3 pt-5">
+                    <span className="text-[0.5rem] tracking-[0.2em] sm:tracking-[0.4em] text-white/20">PKT · AUTO · ENC · ON</span>
                     <button className="group flex items-center gap-2 hover:opacity-70 transition-opacity">
-                      <span className="text-[0.65rem] tracking-[0.55em] text-[#00ffea]/70 group-hover:text-[#00ffea]">{tx.contact.send}</span>
+                      <span className="text-[0.62rem] sm:text-[0.65rem] tracking-[0.28em] sm:tracking-[0.55em] text-[#00ffea]/70 group-hover:text-[#00ffea]">{tx.contact.send}</span>
                       <span className="text-sm text-[#00ffea]/55 group-hover:text-[#00ffea] transition-colors">↗</span>
                     </button>
                   </div>
@@ -219,7 +220,7 @@ export default function Home() {
               </div>
               <div className="grid gap-8 md:grid-cols-[1fr_auto]">
                 <p className="anim-up text-sm leading-7 text-white/45 max-w-sm">{tx.footer.body}</p>
-                <div className="anim-left grid grid-cols-3 gap-10">
+                <div className="anim-left grid grid-cols-1 min-[420px]:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10">
                   {tx.footer.columns.map((col) => (
                     <div key={col.heading}>
                       <h3 className="text-xs uppercase tracking-[0.45em] text-white/40 mb-5">{col.heading}</h3>
