@@ -1,4 +1,4 @@
-export type Language = 'EN' | 'DE' | 'CN';
+export type Language = 'EN' | 'DE';
 
 export const t = {
   EN: {
@@ -7,6 +7,7 @@ export const t = {
       heading: 'AILEENA MACHINA',
       body: 'Dimensional substrate established. Signal pathway stabilized. Spectral coherence verified across all operational vectors. Proceed with systematic exploration.',
       footer: 'OPERATIONAL SINCE 2025 / AILEENA / MACHINA / VERIFIED',
+      scroll: 'scroll',
     },
     programme: {
       tag: 'SYSTEMATIC NAVIGATION',
@@ -67,11 +68,40 @@ export const t = {
     blog: {
       tag: 'DATA ARCHIVE',
       heading: 'Research Dispatch',
-      body: 'Empirical observations from systematic analysis. Signal pattern documentation. Structural hypothesis validation. Current architectural substrate: stable.',
+      watch: 'Watch →',
+      read: 'Read →',
       posts: [
-        'Mechanical Consciousness: A Quantitative Framework',
-        'Harmonic Resonance in Dimensional Fields: Experimental Results',
-        'Material Singularities & Consciousness Metrics: A Mathematical Model',
+        {
+          date: '2025.03.18',
+          title: 'How Robots Learn to Be Robots',
+          body: 'Everything that moves will be autonomous. The continuous loop of simulation, training, testing, and real-world deployment — powered by NVIDIA Omniverse and Cosmos. Synthetic data at scale. Robot policies across embodied intelligence architectures.',
+        },
+        {
+          date: '2026.02.15',
+          title: "Don't Be a Sheep — Be a Lion",
+          body: 'You will be lonely, but you will never be alone. Decisiveness is not cruelty — it is extreme self-discipline. Stripping emotion from judgment at critical moments. Comfort is never neutral: it shrinks your tolerance, softens your edges, trains you to fear what is merely unfamiliar.',
+        },
+        {
+          date: '2026.03.15',
+          title: 'Misread — But She Can Become Anyone',
+          body: 'Feminism is not a battle cry, not a manifesto against any system, not persuasion, not violence, not conformity. It is expression. It is the quiet, relentless work of making women\'s abilities visible — and making sure that visibility translates into real economic value. She can be an engineer. She can be everything. The point was never the slogan.',
+        },
+      ],
+    },
+    research: {
+      tag: 'RESEARCH ARCHIVE',
+      heading: 'Research Dispatch',
+      subheading: 'Primary Research Transmissions',
+      papers: [
+        {
+          index: '01',
+          year: '2025',
+          title: 'How Robots Learn to Be Robots',
+          tags: ['Physical AI', 'Robotics', 'Simulation'],
+          abstract: 'Everything that moves will be autonomous. Explore the continuous loop of robot AI simulation, training, testing, and real-world deployment powered by NVIDIA Omniverse and Cosmos — generating massive synthetic data to train robot policies across embodied intelligence architectures.',
+          link: 'https://www.youtube.com/watch?v=S4tvirlG8sQ',
+          type: 'video' as const,
+        },
       ],
     },
     contact: {
@@ -81,6 +111,11 @@ export const t = {
       email: 'Your email',
       message: 'Your message',
       send: 'Transmit',
+      terminal: 'TRANSMISSION TERMINAL',
+      origin: 'SIGNAL ORIGIN',
+      frequency: 'RETURN FREQUENCY',
+      payload: 'PAYLOAD',
+      standby: 'STANDBY',
     },
     footer: {
       body: 'System topology verified. Frequency signature encrypted. Data substrate mapped. Dimensional model recalibrated through rational mechanical analysis. Consciousness algorithm detected in architecture.',
@@ -97,7 +132,8 @@ export const t = {
           heading: 'TOPOLOGY',
           links: [
             { label: 'Constructs', href: '#works' },
-            { label: 'Elsewhere', href: 'https://farayan.me/garden' },
+            { label: 'Elsewhere', href: 'https://www.jonesicecream.com' },
+            { label: 'Best Granola', href: 'https://sofiberlin.com' },
             { label: 'Elsewhere', href: '#contact' },
           ],
         },
@@ -118,6 +154,7 @@ export const t = {
       heading: 'AILEENA MACHINA',
       body: 'Dimensionales Substrat etabliert. Signalweg stabilisiert. Spektrale Kohärenz über alle Betriebsvektoren verifiziert. Fortfahren mit systematischer Erkundung.',
       footer: 'IN BETRIEB SEIT 2025 / AILEENA / MACHINA / VERIFIZIERT',
+      scroll: 'scrollen',
     },
     programme: {
       tag: 'SYSTEMISCHE NAVIGATION',
@@ -178,11 +215,40 @@ export const t = {
     blog: {
       tag: 'DATENARCHIV',
       heading: 'Forschungsversand',
-      body: 'Empirische Beobachtungen aus systematischer Analyse. Signalmusterdokumentation. Strukturhypothese-Validierung. Aktuelles Architektursubstrat: stabil.',
+      watch: 'Ansehen →',
+      read: 'Lesen →',
       posts: [
-        'Maschinelles Bewusstsein: Ein quantitatives Rahmenwerk',
-        'Harmonische Resonanz in dimensionalen Feldern: Experimentelle Ergebnisse',
-        'Materialsingularitäten & Bewusstseinsmessungen: Ein mathematisches Modell',
+        {
+          date: '2025.03.18',
+          title: 'How Robots Learn to Be Robots',
+          body: 'Alles, was sich bewegt, wird autonom sein. Der kontinuierliche Kreislauf aus Simulation, Training, Test und realem Einsatz — angetrieben von NVIDIA Omniverse und Cosmos. Synthetische Daten in großem Maßstab. Roboter-Policies über verkörperte Intelligenzarchitekturen.',
+        },
+        {
+          date: '2026.02.15',
+          title: "Sei kein Schaf — sei ein Löwe",
+          body: 'Du wirst einsam sein, aber niemals allein. Entschlossenheit ist keine Grausamkeit — sie ist extreme Selbstdisziplin. In kritischen Momenten Emotionen vom Urteil trennen. Komfort ist niemals neutral: Er schrumpft deine Toleranz, macht deine Kanten weicher, trainiert dich, das Unbekannte zu fürchten.',
+        },
+        {
+          date: '2026.03.15',
+          title: 'Missverstanden — Aber Sie Kann Alles Sein',
+          body: 'Feminismus ist kein Kampfruf, kein Manifest gegen ein System, keine Überzeugungsarbeit, keine Gewalt, kein Konformismus. Er ist Ausdruck. Er ist die stille, unermüdliche Arbeit, die Fähigkeiten von Frauen sichtbar zu machen — und sicherzustellen, dass diese Sichtbarkeit in echten wirtschaftlichen Wert übersetzt wird. Sie kann Ingenieurin sein. Sie kann alles sein. Darum ging es nie bei Slogans.',
+        },
+      ],
+    },
+    research: {
+      tag: 'FORSCHUNGSARCHIV',
+      heading: 'Forschungsversand',
+      subheading: 'Primäre Forschungsübertragungen',
+      papers: [
+        {
+          index: '01',
+          year: '2025',
+          title: 'How Robots Learn to Be Robots',
+          tags: ['Physical AI', 'Robotics', 'Simulation'],
+          abstract: 'Everything that moves will be autonomous. Explore the continuous loop of robot AI simulation, training, testing, and real-world deployment powered by NVIDIA Omniverse and Cosmos — generating massive synthetic data to train robot policies across embodied intelligence architectures.',
+          link: 'https://www.youtube.com/watch?v=S4tvirlG8sQ',
+          type: 'video' as const,
+        },
       ],
     },
     contact: {
@@ -192,6 +258,11 @@ export const t = {
       email: 'Deine E-Mail',
       message: 'Deine Nachricht',
       send: 'Senden',
+      terminal: 'SENDE-TERMINAL',
+      origin: 'SIGNALURSPRUNG',
+      frequency: 'RÜCKKANAL',
+      payload: 'NACHRICHT',
+      standby: 'BEREIT',
     },
     footer: {
       body: 'Systemtopologie verifiziert. Frequenzsignatur verschlüsselt. Datensustrat kartiert. Dimensionales Modell durch rationale mechanische Analyse neu kalibriert. Bewusstseinsalgorithmus in Architektur erkannt.',
@@ -208,7 +279,8 @@ export const t = {
           heading: 'TOPOLOGIE',
           links: [
             { label: 'Konstrukte', href: '#works' },
-            { label: 'Elsewhere', href: 'https://farayan.me/garden' },
+            { label: 'Elsewhere', href: 'https://www.jonesicecream.com' },
+            { label: 'Best Granola', href: 'https://sofiberlin.com' },
             { label: 'Elsewhere', href: '#contact' },
           ],
         },
@@ -218,117 +290,6 @@ export const t = {
             { label: 'AILEENA KNOTEN', href: 'https://aileena.xyz' },
             { label: 'MEV SUBSTRAT', href: 'https://mev.aileena.xyz' },
             { label: 'HARMONISCHE MATRIX', href: 'https://soundcloud.com' },
-          ],
-        },
-      ],
-    },
-  },
-  CN: {
-    hero: {
-      tag: '系统初始化完成',
-      heading: 'AILEENA MACHINA',
-      body: '维度基质已建立。信号路径稳定化。光谱相干性在所有工作向量上已验证。继续进行系统性探索。',
-      footer: '运行于 2025 年 / AILEENA / MACHINA / 已验证',
-    },
-    programme: {
-      tag: '系统导航',
-      heading: '初级研究向量',
-      more: '启动',
-      items: [
-        {
-          index: '01',
-          title: '机械现象学',
-          meta: '视觉数据流',
-          description: 'AILEENA 机械语法的经验文献。无伪制品干扰的光谱分析。量化的美学参数。原始维度数据渲染。',
-          href: '#gallery',
-        },
-        {
-          index: '02',
-          title: '声学共鸣实验室',
-          meta: '频域分析',
-          description: '与人类神经学频率同步的振荡模式。统一于谐波基质。嵌入架构拓扑。信号相干性维持。',
-          href: '#sound',
-        },
-        {
-          index: '03',
-          title: 'ELSEWHERE',
-          meta: '网络拓扑',
-          description: '分布式节点坐标。平行研究路径。通往扩展网络拓扑的门户。跨维度信息架构。',
-          href: 'https://farayan.me/garden',
-        },
-      ],
-    },
-    gallery: {
-      tag: '色度波长研究',
-      heading: '物质基质分析',
-      body: '未被中介的视觉谱段。通过机械发光渲染的签名。测量对比度。频率响应无妥协。零假设拒绝—视觉完整性已确认。',
-    },
-    sound: {
-      tag: '声学拓扑',
-      heading: '谐波频率节点',
-      body: '电磁振荡嵌入结构矩阵。跨空间坐标维持信号叠加。测得零相位失真。相干函数优化。',
-      djLabel: '声学传输向量',
-      track1Tag: '载波频率档案库',
-      track1Title: '数据矩阵 01',
-      track1Body: '信号层已嵌入。替代频率拓扑可用。光谱带宽优化。',
-      track2Tag: '维度音频基质',
-      track2Title: '数据矩阵 02',
-      track2Body: '平行频域实例化。独立源向量。信号保真参数保留。',
-    },
-    works: {
-      tag: '实验性结构',
-      heading: '研究案例研究',
-      body: '精密工程基质。应用于维度拓扑的数学严谨性。每个工件承载量化的机械参数。美学妥协 = 零。',
-      items: ['晶体拓扑系列', '折射指数研究', '金属共鸣分析'],
-    },
-    elsewhere: {
-      tag: '网络向量',
-      heading: '分布式节点',
-      linkLabel: '拓扑链接',
-    },
-    blog: {
-      tag: '数据档案库',
-      heading: '研究通讯',
-      body: '来自系统分析的经验观察。信号模式文献。结构假说验证。当前架构基质：稳定。',
-      posts: [
-        '机械意识：一个定量框架',
-        '维度场中的谐波共鸣：实验结果',
-        '物质奇点与意识度量：一个数学模型',
-      ],
-    },
-    contact: {
-      tag: '联系',
-      heading: '发送消息',
-      name: '你的名字',
-      email: '你的邮箱',
-      message: '你的留言',
-      send: '发送',
-    },
-    footer: {
-      body: '系统拓扑已验证。频率签名已加密。数据基质已制图。通过理性机械分析重新校准的维度模型。在架构中检测到意识算法。',
-      columns: [
-        {
-          heading: '向量',
-          links: [
-            { label: '现象学', href: '#gallery' },
-            { label: '共鸣', href: '#sound' },
-            { label: '档案库', href: '#blog' },
-          ],
-        },
-        {
-          heading: '拓扑',
-          links: [
-            { label: '结构', href: '#works' },
-            { label: 'Elsewhere', href: 'https://farayan.me/garden' },
-            { label: 'Elsewhere', href: '#contact' },
-          ],
-        },
-        {
-          heading: '节点',
-          links: [
-            { label: 'AILEENA 节点', href: 'https://aileena.xyz' },
-            { label: 'MEV 基质', href: 'https://mev.aileena.xyz' },
-            { label: '谐波矩阵', href: 'https://soundcloud.com' },
           ],
         },
       ],

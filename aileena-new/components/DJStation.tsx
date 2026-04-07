@@ -28,6 +28,7 @@ const TRACKS = [
   { id: '7b1uaIR2va05jHG5fnVbMu', title: 'Lab Rat 3',      bpm: 130, key: '5B', dur: 185, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02fad7ae8dfc681c2f9f8333ef' },
   { id: '2lFp0xJL7yGD7CtiQPqpwb', title: '700358bc5',      bpm: 126, key: '7A', dur: 210, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e0214e8b7396634f604692c67ff' },
   { id: '3rw4HfYW3XJMSm11Z5Qn4c', title: 'Roses + Thorns', bpm: 116, key: '9B', dur: 198, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0225de4144381ec14d111c5380' },
+  { id: '7i1qsbXNf6C8Zdo3COMzJY', title: 'WISE',           bpm: 129, key: '5A', dur: 204, thumb: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/b3/73/e9/b373e9b8-9ead-e9a7-0825-f8d8a30dabd6/3617221727448_cover.png/600x600bb.jpg' },
 ];
 type Track = typeof TRACKS[0];
 
@@ -81,6 +82,8 @@ export default function DJStation() {
   const rightCtrl         = useRef<SpotifyController | null>(null);
   const dragTrack         = useRef<Track | null>(null);
   const prevXfade         = useRef(50);
+  const leftWasPlaying    = useRef(false);
+  const rightWasPlaying   = useRef(false);
 
   /* ── Spotify API ── */
   useEffect(() => {
@@ -225,6 +228,8 @@ export default function DJStation() {
             onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('left', dragTrack.current); setDropSide(null); }}
             onToggle={() => leftCtrl.current?.togglePlay()}
             onPitch={setLeftPitch}
+            onScratchStart={() => { leftWasPlaying.current = leftPlaying; if (leftPlaying) leftCtrl.current?.togglePlay(); }}
+            onScratchEnd={() => { if (leftWasPlaying.current) leftCtrl.current?.togglePlay(); }}
           />
 
           <MixerPanel xfade={xfade} onXfade={handleXfade} />
@@ -238,19 +243,25 @@ export default function DJStation() {
             onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('right', dragTrack.current); setDropSide(null); }}
             onToggle={() => rightCtrl.current?.togglePlay()}
             onPitch={setRightPitch}
+            onScratchStart={() => { rightWasPlaying.current = rightPlaying; if (rightPlaying) rightCtrl.current?.togglePlay(); }}
+            onScratchEnd={() => { if (rightWasPlaying.current) rightCtrl.current?.togglePlay(); }}
           />
         </div>
       </div>
 
       {/* ── Track Library Browser (Film Strip Carousel) ── */}
       <div style={{
-        borderRadius: 10,
-        border: `1px solid ${C.border}`,
-        background: C.panel,
         marginTop: 10,
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
       }}>
-        <TrackLibraryBrowser tracks={TRACKS} onLoadTrack={loadTrack} onSetDragTrack={(t) => { dragTrack.current = t; }} />
+        <TrackLibraryBrowser
+          tracks={TRACKS}
+          onLoadTrack={loadTrack}
+          onSetDragTrack={(t) => { dragTrack.current = t; }}
+          playingLeft={leftPlaying ? (leftTrack?.id ?? null) : null}
+          playingRight={rightPlaying ? (rightTrack?.id ?? null) : null}
+          leftPos={leftPos} leftDur={leftDur}
+          rightPos={rightPos} rightDur={rightDur}
+        />
       </div>
     </div>
   );
@@ -258,20 +269,65 @@ export default function DJStation() {
 
 /* ─── Deck Panel ─────────────────────────────────────────── */
 function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive,
-  onDragOver, onDragLeave, onDrop, onToggle, onPitch }: {
+  onDragOver, onDragLeave, onDrop, onToggle, onPitch, onScratchStart, onScratchEnd }: {
   side: 'left'|'right'; track: Track|null; playing: boolean;
   pos: number; dur: number; pitch: number; dim: number; dropActive: boolean;
   onDragOver(e: React.DragEvent): void; onDragLeave(): void; onDrop(e: React.DragEvent): void;
   onToggle(): void; onPitch(v: number): void;
+  onScratchStart(): void; onScratchEnd(): void;
 }) {
-  const D    = 172;   // disc diameter px
+  const D    = 172;
   const R    = D / 2;
-  const r    = R - 7; // ring radius
+  const r    = R - 7;
   const circ = 2 * Math.PI * r;
-  const prog = dur > 0 ? Math.min(1, pos / dur) : 0;
+  const prog   = dur > 0 ? Math.min(1, pos / dur) : 0;
   const offset = circ * (1 - prog);
   const remaining = dur > 0 ? fmt(Math.max(0, dur - pos)) : (track ? `-${fmt((track.dur) * 1000)}` : '--:--');
   const elapsed   = dur > 0 ? fmt(pos) : '0:00';
+
+  // Scratch state
+  const [scratchAngle, setScratchAngle] = useState(0);
+  const [isScratching, setIsScratching] = useState(false);
+  const lastPtrAngle = useRef(0);
+  const discRef = useRef<HTMLDivElement>(null);
+
+  function getPtrAngle(e: React.PointerEvent): number {
+    const el = discRef.current;
+    if (!el) return 0;
+    const rect = el.getBoundingClientRect();
+    return Math.atan2(e.clientY - (rect.top + rect.height / 2),
+                      e.clientX - (rect.left + rect.width  / 2)) * (180 / Math.PI);
+  }
+  function onDiscDown(e: React.PointerEvent) {
+    if (!track) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    lastPtrAngle.current = getPtrAngle(e);
+    setIsScratching(true);
+    onScratchStart();
+  }
+  function onDiscMove(e: React.PointerEvent) {
+    if (!isScratching) return;
+    const cur = getPtrAngle(e);
+    let delta = cur - lastPtrAngle.current;
+    if (delta > 180) delta -= 360;
+    if (delta < -180) delta += 360;
+    lastPtrAngle.current = cur;
+    setScratchAngle(prev => prev + delta);
+  }
+  function onDiscUp() {
+    if (!isScratching) return;
+    setIsScratching(false);
+    onScratchEnd();
+  }
+
+  // Tonearm: two fixed positions only — parked vs on outer groove
+  // Left deck pivot: top-right. Right deck pivot: top-left.
+  const pivotX = side === 'right' ? D * 0.10 : D * 0.90;
+  const pivotY = D * 0.09;
+  const tipX   = playing
+    ? (side === 'right' ? D * 0.34 : D * 0.66)   // on outer groove, fixed
+    : (side === 'right' ? D * 0.14 : D * 0.86);   // parked near pivot
+  const tipY   = playing ? D * 0.26 : D * 0.0;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 5,
@@ -279,49 +335,77 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive,
 
       {/* Platter drop zone */}
       <div onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop} style={{
-        position: 'relative', height: D + 16, borderRadius: 8,
+        position: 'relative', height: D + 16, borderRadius: 10,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: C.deck,
-        border: dropActive ? `1px solid ${C.cyan}` : `1px solid ${C.border}`,
-        boxShadow: dropActive ? `inset 0 0 20px ${C.cyan}15` : 'inset 0 2px 12px rgba(0,0,0,0.6)',
+        background: '#000',
+        border: dropActive ? `1px solid rgba(100,220,210,0.5)` : `1px solid rgba(255,255,255,0.04)`,
+        boxShadow: dropActive ? `inset 0 0 30px rgba(100,220,210,0.1)` : 'none',
         transition: 'border 0.15s, box-shadow 0.15s',
       }}>
         {!track ? (
           <p style={{ fontSize: '0.34rem', letterSpacing: '0.5em', textTransform: 'uppercase',
-            color: dropActive ? C.cyan : C.dim }}>
+            color: dropActive ? 'rgba(100,220,210,0.8)' : C.dim }}>
             {dropActive ? '↓ DROP' : 'drag record'}
           </p>
         ) : (
           <div style={{ position: 'relative', width: D, height: D }}>
-            {/* Disc body */}
-            <div style={{
+
+            {/* Disc body — AT-style glowing translucent platter */}
+            <div
+              ref={discRef}
+              onPointerDown={onDiscDown}
+              onPointerMove={onDiscMove}
+              onPointerUp={onDiscUp}
+              onPointerLeave={onDiscUp}
+              style={{
               position: 'absolute', inset: 0, borderRadius: '50%',
-              background: 'radial-gradient(circle at 50% 50%, #2a2a30 0%, #1a1a1e 55%, #111114 100%)',
-              border: `1px solid rgba(255,255,255,0)`,
-              animation: playing ? 'turntableSpin 2.4s linear infinite' : 'none',
-              overflow: 'hidden',
+              background: `radial-gradient(circle at 50% 50%,
+                #020c0a 0%,
+                #051612 10%,
+                #092820 20%,
+                #134840 30%,
+                #227a68 40%,
+                #38b8a4 49%,
+                #5ccec0 57%,
+                #84e0d4 65%,
+                #a6ece2 72%,
+                #bef2e9 78%,
+                #c8f4ed 83%,
+                #b8f0e6 88%,
+                #94e4d8 93%,
+                #6cd0c2 97%,
+                #52c4b6 100%
+              )`,
+              boxShadow: playing
+                ? '0 0 55px rgba(80,210,196,0.5), 0 0 110px rgba(60,190,178,0.2), inset 0 0 35px rgba(0,0,0,0.45)'
+                : '0 0 22px rgba(60,190,178,0.22), 0 0 50px rgba(40,170,158,0.08), inset 0 0 20px rgba(0,0,0,0.35)',
+              animation: isScratching ? 'none' : (playing ? 'turntableSpin 2.4s linear infinite' : 'none'),
+              transform: isScratching ? `rotate(${scratchAngle}deg)` : undefined,
+              transition: 'box-shadow 1.8s ease',
+              cursor: track ? (isScratching ? 'grabbing' : 'grab') : 'default',
             }}>
-              {/* Groove rings */}
-              {[22,33,44,55,66,77].map(r => (
-                <div key={r} style={{ position: 'absolute', borderRadius: '50%', inset: `${r}%`,
-                  border: '1px solid rgba(255,255,255,0.045)' }} />
+              {/* Concentric depth bands — subtle tone variation like frosted acrylic */}
+              {[18, 30, 42].map((pct, i) => (
+                <div key={pct} style={{
+                  position: 'absolute', borderRadius: '50%', inset: `${pct}%`,
+                  border: `1px solid rgba(255,255,255,${0.06 + i * 0.03})`,
+                }} />
               ))}
-              {/* Album art */}
-              <div style={{ position: 'absolute', inset: '18%', borderRadius: '50%', overflow: 'hidden',
-                border: `1.5px solid rgba(255,255,255,0.15)`,
-                boxShadow: playing ? `0 0 16px ${C.cyan}50` : 'none',
-                transition: 'box-shadow 0.8s ease',
-              }}>
-                <img src={track.thumb} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              </div>
-              {/* Spindle */}
+              {/* Center void — deep dark portal */}
               <div style={{
-                position: 'absolute', width: 9, height: 9,
-                top: 'calc(50% - 4.5px)', left: 'calc(50% - 4.5px)',
-                borderRadius: '50%', zIndex: 5,
-                background: '#e8e8e8',
-                boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.7)',
-              }} />
+                position: 'absolute', borderRadius: '50%', inset: '36%',
+                background: 'radial-gradient(circle, #010808 0%, #040f0c 45%, #081c16 80%, #102820 100%)',
+                boxShadow: 'inset 0 0 18px rgba(0,0,0,0.98), 0 0 8px rgba(0,0,0,0.6)',
+              }}>
+                {/* Spindle pin */}
+                <div style={{
+                  position: 'absolute', width: 6, height: 6,
+                  top: 'calc(50% - 3px)', left: 'calc(50% - 3px)',
+                  borderRadius: '50%',
+                  background: 'radial-gradient(circle, #2a2a26 0%, #181814 100%)',
+                  boxShadow: '0 0 3px rgba(0,0,0,0.9)',
+                }} />
+              </div>
             </div>
 
             {/* Progress ring (SVG — does NOT rotate) */}
@@ -329,64 +413,83 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive,
               viewBox={`0 0 ${D} ${D}`}>
               {/* Track ring */}
               <circle cx={R} cy={R} r={r} fill="none"
-                stroke="rgba(255,255,255,0.06)" strokeWidth="5" />
+                stroke="rgba(255,255,255,0.07)" strokeWidth="3.5" />
               {/* Progress fill */}
               <circle cx={R} cy={R} r={r} fill="none"
-                stroke={C.cyan} strokeWidth="5"
+                stroke="rgba(255,255,255,0.85)" strokeWidth="3.5"
                 strokeDasharray={circ} strokeDashoffset={offset}
                 strokeLinecap="round"
                 style={{ transform: 'rotate(-90deg)', transformOrigin: `${R}px ${R}px`,
                   transition: 'stroke-dashoffset 0.3s linear',
-                  filter: `drop-shadow(0 0 4px ${C.cyan}80)`,
+                  filter: 'drop-shadow(0 0 3px rgba(255,255,255,0.6))',
                 }} />
             </svg>
 
-            {/* Tonearm */}
+            {/* Tonearm — Audio-Technica carbon fibre style */}
             <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible', pointerEvents: 'none' }}
               viewBox={`0 0 ${D} ${D}`}>
               <defs>
-                <filter id={`dsh-${side}`}><feDropShadow dx="0" dy="1.5" stdDeviation="2" floodOpacity="0.9"/></filter>
+                <filter id={`arm-shadow-${side}`}>
+                  <feDropShadow dx="0" dy="2" stdDeviation="3.5" floodColor="#000" floodOpacity="1"/>
+                </filter>
+                <linearGradient id={`arm-shine-${side}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="rgba(255,255,255,0.18)"/>
+                  <stop offset="50%" stopColor="rgba(255,255,255,0.04)"/>
+                  <stop offset="100%" stopColor="rgba(0,0,0,0.2)"/>
+                </linearGradient>
               </defs>
-              {/* Arm */}
+
+              {/* Arm body — dark carbon fibre */}
               <line
-                x1={side === 'right' ? D * 0.1 : D * 0.9}
-                y1={D * 0.09}
-                x2={playing ? D * 0.5 : (side === 'right' ? D * 0.25 : D * 0.75)}
-                y2={playing ? D * 0.48 : D * 0.30}
-                stroke="#5a5a64" strokeWidth="4" strokeLinecap="round"
-                filter={`url(#dsh-${side})`}
-                style={{ transition: 'all 1.5s cubic-bezier(0.4,0,0.2,1)' }}
+                x1={pivotX} y1={pivotY}
+                x2={tipX} y2={tipY}
+                stroke="#0e0e12" strokeWidth="6" strokeLinecap="round"
+                filter={`url(#arm-shadow-${side})`}
+                style={{ transition: playing ? 'x2 0.8s linear, y2 0.8s linear' : 'all 0.35s ease' }}
               />
+              {/* Arm highlight */}
               <line
-                x1={side === 'right' ? D * 0.1 : D * 0.9}
-                y1={D * 0.09}
-                x2={playing ? D * 0.5 : (side === 'right' ? D * 0.25 : D * 0.75)}
-                y2={playing ? D * 0.48 : D * 0.30}
-                stroke="rgba(255,255,255,0.13)" strokeWidth="1.2" strokeLinecap="round"
-                style={{ transition: 'all 1.5s cubic-bezier(0.4,0,0.2,1)' }}
+                x1={pivotX} y1={D * 0.09}
+                x2={tipX} y2={tipY}
+                stroke="rgba(255,255,255,0.11)" strokeWidth="1.4" strokeLinecap="round"
+                style={{ transition: playing ? 'x2 0.8s linear, y2 0.8s linear' : 'all 0.35s ease' }}
               />
-              {/* Pivot */}
-              <circle cx={side === 'right' ? D * 0.1 : D * 0.9} cy={D * 0.09} r={10}
-                fill="#28282e" stroke="rgba(255,255,255,0.1)" strokeWidth="1"/>
-              <circle cx={side === 'right' ? D * 0.1 : D * 0.9} cy={D * 0.09} r={4}
-                fill={playing ? C.cyan : `${C.cyan}55`}
-                style={{ filter: playing ? `drop-shadow(0 0 4px ${C.cyan})` : 'none', transition: 'all 0.5s' }}/>
-              {/* Headshell */}
+
+              {/* Pivot — bearing housing */}
+              <circle cx={pivotX} cy={pivotY} r={13}
+                fill="#0c0c10" stroke="rgba(255,255,255,0.12)" strokeWidth="1.2"/>
+              <circle cx={pivotX} cy={pivotY} r={8}
+                fill="#141418" stroke="rgba(255,255,255,0.08)" strokeWidth="0.8"/>
+              <circle cx={pivotX} cy={pivotY} r={3.5}
+                fill={playing ? 'rgba(80,210,196,0.9)' : '#242428'}
+                style={{ filter: playing ? 'drop-shadow(0 0 4px rgba(80,210,196,0.9))' : 'none', transition: 'all 0.6s ease' }}/>
+
+              {/* Headshell body */}
               <rect
-                x={(playing ? D * 0.5 : (side === 'right' ? D * 0.25 : D * 0.75)) - 8}
-                y={(playing ? D * 0.48 : D * 0.30) - 5}
-                width="16" height="10" rx="2.5"
-                fill="#2e2e36" stroke="rgba(255,255,255,0.2)" strokeWidth="0.8"
-                style={{ transition: 'all 1.5s cubic-bezier(0.4,0,0.2,1)' }}
+                x={tipX - 10} y={tipY - 5}
+                width="20" height="11" rx="2"
+                fill="#0e0e12" stroke="rgba(255,255,255,0.16)" strokeWidth="0.8"
+                style={{ transition: playing ? 'x 0.8s linear, y 0.8s linear' : 'all 0.35s ease' }}
               />
-              {/* Stylus */}
+              {/* Cartridge body */}
+              <rect
+                x={tipX - 6} y={tipY + 6}
+                width="13" height="8" rx="1.5"
+                fill="#151518" stroke="rgba(255,255,255,0.1)" strokeWidth="0.6"
+                style={{ transition: playing ? 'x 0.8s linear, y 0.8s linear' : 'all 0.35s ease' }}
+              />
+              {/* Stylus cantilever */}
               <line
-                x1={playing ? D * 0.5 : (side === 'right' ? D * 0.25 : D * 0.75)}
-                y1={(playing ? D * 0.48 : D * 0.30) + 5}
-                x2={(playing ? D * 0.5 : (side === 'right' ? D * 0.25 : D * 0.75)) - 1}
-                y2={(playing ? D * 0.48 : D * 0.30) + 14}
-                stroke="rgba(190,195,215,0.7)" strokeWidth="1.2"
-                style={{ transition: 'all 1.5s cubic-bezier(0.4,0,0.2,1)' }}
+                x1={tipX - 1} y1={tipY + 14}
+                x2={tipX - 2} y2={tipY + 21}
+                stroke="rgba(180,188,210,0.8)" strokeWidth="1"
+                style={{ transition: playing ? 'x1 0.8s linear, y1 0.8s linear, x2 0.8s linear, y2 0.8s linear' : 'all 0.35s ease' }}
+              />
+              {/* Stylus tip */}
+              <circle
+                cx={tipX - 2} cy={tipY + 21} r="1.2"
+                fill={playing ? 'rgba(80,210,196,0.9)' : 'rgba(180,188,210,0.5)'}
+                style={{ filter: playing ? 'drop-shadow(0 0 2px rgba(80,210,196,0.8))' : 'none', transition: 'all 0.6s' }}
               />
             </svg>
           </div>
