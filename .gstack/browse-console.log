@@ -1,9 +1,0 @@
-[2026-04-07T08:26:14.446Z] [error] Failed to load resource: the server responded with a status of 403 ()
-[2026-04-07T08:26:24.880Z] [error] Failed to load resource: the server responded with a status of 403 ()
-[2026-04-07T08:51:31.884Z] [error] Failed to load resource: net::ERR_CONNECTION_CLOSED
-[2026-04-07T08:51:32.724Z] [info] LegacyDataMixin will be applied to all legacy elements.
-Set `_legacyUndefinedCheck: true` on element class to enable.
-[2026-04-07T08:51:40.431Z] [error] Failed to load resource: the server responded with a status of 403 ()
-[2026-04-07T08:51:41.518Z] [error] Failed to load resource: net::ERR_CONNECTION_CLOSED
-[2026-04-07T08:51:43.149Z] [error] Failed to load resource: net::ERR_CONNECTION_CLOSED
-[2026-04-07T09:01:43.782Z] [error] Failed to load resource: net::ERR_CONNECTION_CLOSED
