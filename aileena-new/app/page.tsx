@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Link from 'next/link';
 import Header from '../components/Header';
 import DJStation from '../components/DJStation';
@@ -13,6 +13,11 @@ export default function Home() {
   const { language } = useLanguage();
   const tx = t[language];
   const [loaded, setLoaded] = useState(false);
+  const [formName, setFormName] = useState('');
+  const [formEmail, setFormEmail] = useState('');
+  const [formMsg, setFormMsg] = useState('');
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
 
   return (
     <>
@@ -179,21 +184,35 @@ export default function Home() {
                 <div className="border border-t-0 border-[#00ffea]/10 p-5 space-y-0">
                   <div className="border-b border-white/6 py-4">
                     <p className="mb-2 text-[0.52rem] tracking-[0.5em] text-white/30">{tx.contact.origin} ·</p>
-                    <input className="w-full bg-transparent text-sm tracking-[0.2em] text-white/60 outline-none placeholder:text-white/25 focus:text-white/85" placeholder={tx.contact.name} />
+                    <input value={formName} onChange={e => setFormName(e.target.value)} className="w-full bg-transparent text-sm tracking-[0.2em] text-white/60 outline-none placeholder:text-white/25 focus:text-white/85" placeholder={tx.contact.name} />
                   </div>
                   <div className="border-b border-white/6 py-4">
                     <p className="mb-2 text-[0.52rem] tracking-[0.5em] text-white/30">{tx.contact.frequency} ·</p>
-                    <input className="w-full bg-transparent text-sm tracking-[0.2em] text-white/60 outline-none placeholder:text-white/25 focus:text-white/85" placeholder={tx.contact.email} />
+                    <input value={formEmail} onChange={e => setFormEmail(e.target.value)} className="w-full bg-transparent text-sm tracking-[0.2em] text-white/60 outline-none placeholder:text-white/25 focus:text-white/85" placeholder={tx.contact.email} />
                   </div>
                   <div className="border-b border-white/6 py-4">
                     <p className="mb-2 text-[0.52rem] tracking-[0.5em] text-white/30">{tx.contact.payload} ·</p>
-                    <textarea className="w-full bg-transparent text-sm tracking-[0.2em] text-white/60 outline-none placeholder:text-white/25 focus:text-white/85 min-h-20 resize-none" placeholder={tx.contact.message} />
+                    <textarea value={formMsg} onChange={e => setFormMsg(e.target.value)} className="w-full bg-transparent text-sm tracking-[0.2em] text-white/60 outline-none placeholder:text-white/25 focus:text-white/85 min-h-20 resize-none" placeholder={tx.contact.message} />
                   </div>
                   <div className="flex items-center justify-between gap-3 pt-5">
-                    <span className="text-[0.5rem] tracking-[0.2em] sm:tracking-[0.4em] text-white/20">PKT · AUTO · ENC · ON</span>
-                    <button className="group flex items-center gap-2 hover:opacity-70 transition-opacity">
-                      <span className="text-[0.62rem] sm:text-[0.65rem] tracking-[0.28em] sm:tracking-[0.55em] text-[#00ffea]/70 group-hover:text-[#00ffea]">{tx.contact.send}</span>
-                      <span className="text-sm text-[#00ffea]/55 group-hover:text-[#00ffea] transition-colors">↗</span>
+                    <span className="text-[0.5rem] tracking-[0.2em] sm:tracking-[0.4em] text-white/20">
+                      {sent ? 'TRANSMISSION SENT ·' : 'PKT · AUTO · ENC · ON'}
+                    </span>
+                    <button
+                      disabled={sending || sent}
+                      onClick={async () => {
+                        setSending(true);
+                        await fetch('/api/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: formName, email: formEmail, message: formMsg }) });
+                        setSending(false);
+                        setSent(true);
+                        setFormName(''); setFormEmail(''); setFormMsg('');
+                      }}
+                      className="group flex items-center gap-2 hover:opacity-70 transition-opacity disabled:opacity-40"
+                    >
+                      <span className="text-[0.62rem] sm:text-[0.65rem] tracking-[0.28em] sm:tracking-[0.55em] text-[#00ffea]/70 group-hover:text-[#00ffea]">
+                        {sending ? 'SENDING...' : sent ? 'SENT ✓' : tx.contact.send}
+                      </span>
+                      {!sent && <span className="text-sm text-[#00ffea]/55 group-hover:text-[#00ffea] transition-colors">↗</span>}
                     </button>
                   </div>
                 </div>
