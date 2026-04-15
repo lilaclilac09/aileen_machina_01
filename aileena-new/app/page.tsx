@@ -228,7 +228,33 @@ export default function Home() {
                   ))}
                 </div>
               </div>
-              <p className="anim-fade font-mono text-[0.62rem] tracking-[0.45em] text-white/30 mt-8">EST 2025 · AILEENA · MACHINA</p>
+              <div className="anim-fade mt-8 flex flex-col gap-2">
+                <a
+                  href="https://ryo.lu"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-fit"
+                  style={{
+                    fontFamily: "'Cormorant Garamond', serif",
+                    fontStyle: 'italic',
+                    fontWeight: 300,
+                    fontSize: 'clamp(0.85rem, 1.5vw, 1.1rem)',
+                    letterSpacing: '0.04em',
+                    background: 'linear-gradient(90deg, #9a7c3a 0%, #e8c96a 30%, #fdeea0 50%, #e8c96a 70%, #9a7c3a 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    textShadow: 'none',
+                    opacity: 0.85,
+                    transition: 'opacity 0.3s',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
+                  onMouseLeave={e => (e.currentTarget.style.opacity = '0.85')}
+                >
+                  spiritually supported by Ryo Lu
+                </a>
+                <p className="font-mono text-[0.62rem] tracking-[0.45em] text-white/30">EST 2025 · AILEENA · MACHINA</p>
+              </div>
             </div>
           </div>
         </SnapSection>
