@@ -32,6 +32,7 @@ const TRACKS = [
   { id: '62PSNt68BxMaxl9U50PIdW', title: 'Crush On You',   bpm: 120, key: '4B', dur: 180, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02f3d67ea5769af25963f86120' },
   { id: '3WwFjc24162Ab0WEN57y8t', title: 'Recall',         bpm: 122, key: '6A', dur: 195, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e029b5655efccff58f7a1c87d9d' },
   { id: '0DO0NtFn6hB4Brt44Z8Tkz', title: '扉をあけて',     bpm: 118, key: '3B', dur: 240, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e0222541d2b659c617d90ccfc6c' },
+  { id: '6Yj8kVuVR3UPxx9r5eFEoV', title: 'Miniskirt',      bpm: 128, key: '7B', dur: 210, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02b8f16e1e9b3bf7b57c7b7b57' },
 ];
 type Track = typeof TRACKS[0];
 
