@@ -29,6 +29,8 @@ const TRACKS = [
   { id: '2lFp0xJL7yGD7CtiQPqpwb', title: '700358bc5',      bpm: 126, key: '7A', dur: 210, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e0214e8b7396634f604692c67ff' },
   { id: '3rw4HfYW3XJMSm11Z5Qn4c', title: 'Roses + Thorns', bpm: 116, key: '9B', dur: 198, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0225de4144381ec14d111c5380' },
   { id: '7i1qsbXNf6C8Zdo3COMzJY', title: 'WISE',           bpm: 129, key: '5A', dur: 204, thumb: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/b3/73/e9/b373e9b8-9ead-e9a7-0825-f8d8a30dabd6/3617221727448_cover.png/600x600bb.jpg' },
+  { id: '62PSNt68BxMaxl9U50PIdW', title: 'Crush On You',   bpm: 120, key: '4B', dur: 180, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02f3d67ea5769af25963f86120' },
+  { id: '3WwFjc24162Ab0WEN57y8t', title: 'Recall',         bpm: 122, key: '6A', dur: 195, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e029b5655efccff58f7a1c87d9d' },
 ];
 type Track = typeof TRACKS[0];
 
