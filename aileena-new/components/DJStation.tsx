@@ -66,8 +66,22 @@ function fmt(ms: number) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
+/* ─── Responsive hook ────────────────────────────────────── */
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 639px)');
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  return isMobile;
+}
+
 /* ─── Main ───────────────────────────────────────────────── */
 export default function DJStation() {
+  const isMobile = useIsMobile();
   const [leftTrack,    setLeftTrack]    = useState<Track | null>(TRACKS[0]);
   const [rightTrack,   setRightTrack]   = useState<Track | null>(TRACKS[3]);
   const [leftPlaying,  setLeftPlaying]  = useState(false);
@@ -166,7 +180,7 @@ export default function DJStation() {
     <div style={{ userSelect: 'none', width: '100%', background: C.bg }}>
 
       {/* ── Spotify embed containers (functional audio) ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 8 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 6, marginBottom: 8 }}>
         {(['left','right'] as const).map(side => {
           const track = side === 'left' ? leftTrack : rightTrack;
           const ref   = side === 'left' ? leftContainerRef : rightContainerRef;
