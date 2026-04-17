@@ -109,6 +109,11 @@ html {
   to   { transform: rotate(360deg); }
 }
 
+@keyframes waveGlow {
+  0%, 100% { opacity: 0.75; }
+  50%       { opacity: 1; }
+}
+
 @keyframes iridescent {
   0%   { filter: hue-rotate(0deg); }
   100% { filter: hue-rotate(360deg); }

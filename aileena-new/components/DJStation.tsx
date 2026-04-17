@@ -264,6 +264,8 @@ export default function DJStation() {
           onSetDragTrack={(t) => { dragTrack.current = t; }}
           playingLeft={leftPlaying ? (leftTrack?.id ?? null) : null}
           playingRight={rightPlaying ? (rightTrack?.id ?? null) : null}
+          leftPos={leftPos} leftDur={leftDur}
+          rightPos={rightPos} rightDur={rightDur}
         />
       </div>
     </div>

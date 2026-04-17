@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 
 type Track = {
   id: string;
@@ -15,6 +15,20 @@ type ViewMode = 'list' | 'playlist';
 /* ─── Duration formatter ─────────────────────────────────── */
 function fmtDur(s: number): string {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
+/* ─── Waveform generator (same seed logic as DJStation) ──── */
+const WAVE_BARS = 48;
+function generateWaveform(seed: string): number[] {
+  let h = 0;
+  for (const c of seed) h = (h << 5) - h + c.charCodeAt(0);
+  const out: number[] = [];
+  for (let i = 0; i < WAVE_BARS; i++) {
+    h = ((h * 1103515245) + 12345) & 0x7fffffff;
+    const env = Math.sin((i / WAVE_BARS) * Math.PI) * 0.45 + 0.55;
+    out.push(0.06 + ((h % 100) / 100) * env * 0.94);
+  }
+  return out;
 }
 
 /* ─── Design tokens — 2-material system ─────────────────── */
@@ -55,12 +69,16 @@ const T = {
 };
 
 export default function TrackLibraryBrowser({ tracks, onLoadTrack, onSetDragTrack,
-  playingLeft, playingRight }: {
+  playingLeft, playingRight, leftPos, leftDur, rightPos, rightDur }: {
   tracks: Track[];
   onLoadTrack?: (side: 'left' | 'right', track: Track) => void;
   onSetDragTrack?: (track: Track) => void;
   playingLeft?: string | null;
   playingRight?: string | null;
+  leftPos?: number;
+  leftDur?: number;
+  rightPos?: number;
+  rightDur?: number;
 }) {
   const [mode, setMode] = useState<ViewMode>('playlist');
   const [playlistIdx, setPlaylistIdx] = useState(0);
@@ -81,6 +99,8 @@ export default function TrackLibraryBrowser({ tracks, onLoadTrack, onSetDragTrac
           tracks={filtered} query={query} onQuery={setQuery}
           onSetDragTrack={onSetDragTrack}
           playingLeft={playingLeft} playingRight={playingRight}
+          leftPos={leftPos} leftDur={leftDur}
+          rightPos={rightPos} rightDur={rightDur}
         />
       ) : (
         <PlaylistCarousel
@@ -165,11 +185,13 @@ export default function TrackLibraryBrowser({ tracks, onLoadTrack, onSetDragTrac
 /* ─── LIST VIEW ─────────────────────────────────────────── */
 function ListView({
   tracks, query, onQuery, onSetDragTrack,
-  playingLeft, playingRight,
+  playingLeft, playingRight, leftPos, leftDur, rightPos, rightDur,
 }: {
   tracks: Track[]; query: string; onQuery: (q: string) => void;
   onSetDragTrack?: (track: Track) => void;
   playingLeft?: string | null; playingRight?: string | null;
+  leftPos?: number; leftDur?: number;
+  rightPos?: number; rightDur?: number;
 }) {
   const [sortField, setSortField] = useState<'title' | 'bpm'>('title');
   const [sortDir,   setSortDir]   = useState<'asc' | 'desc'>('asc');
@@ -284,6 +306,8 @@ function ListView({
           <ListTrackRow
             key={track.id} index={i + 1} track={track}
             isPlayingLeft={isLeft} isPlayingRight={isRight}
+            pos={isLeft ? (leftPos ?? 0) : isRight ? (rightPos ?? 0) : 0}
+            dur={isLeft ? (leftDur ?? 0) : isRight ? (rightDur ?? 0) : 0}
             onSetDragTrack={onSetDragTrack}
           />
         );
@@ -292,16 +316,20 @@ function ListView({
   );
 }
 
-function ListTrackRow({ index, track, isPlayingLeft, isPlayingRight,
+function ListTrackRow({ index, track, isPlayingLeft, isPlayingRight, pos, dur,
   onSetDragTrack }: {
   index: number; track: Track;
   isPlayingLeft: boolean; isPlayingRight: boolean;
+  pos: number; dur: number;
   onSetDragTrack?: (track: Track) => void;
 }) {
   const [hov, setHov] = useState(false);
-  const isPlaying  = isPlayingLeft || isPlayingRight;
-  const deckLabel  = isPlayingLeft ? 'A' : isPlayingRight ? 'B' : null;
-  const deckColor  = isPlayingLeft ? T.deckA : T.deckB;
+  const isPlaying = isPlayingLeft || isPlayingRight;
+  const deckLabel = isPlayingLeft ? 'A' : isPlayingRight ? 'B' : null;
+  const deckColor = isPlayingLeft ? T.deckA : T.deckB;
+  const progress  = dur > 0 ? Math.min(1, pos / dur) : 0;
+  const bars      = useMemo(() => generateWaveform(track.id), [track.id]);
+  const beatMs    = 60000 / track.bpm;
 
   return (
     <div
@@ -310,77 +338,95 @@ function ListTrackRow({ index, track, isPlayingLeft, isPlayingRight,
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
-        height: 44,
         display: 'grid',
-        gridTemplateColumns: '32px 1fr auto 52px',
+        gridTemplateColumns: '36px 1fr 120px 64px',
         alignItems: 'center',
         paddingRight: 14,
-        // Chassis slot material with border separators
+        minHeight: 52,
         background: isPlaying
-          ? 'rgba(92,210,255,0.04)'
-          : hov ? 'rgba(255,255,255,0.012)' : T.chassis,
+          ? 'rgba(92,210,255,0.05)'
+          : hov ? 'rgba(255,255,255,0.018)' : T.chassis,
         borderTop: `1px solid ${T.rowTop}`,
         boxShadow: `inset 0 -1px 0 ${T.rowBot}`,
-        // Left status bar — active indicator, not full row color
-        borderLeft: isPlaying
-          ? `2px solid ${deckColor}`
-          : `2px solid transparent`,
+        borderLeft: isPlaying ? `2px solid ${deckColor}` : `2px solid transparent`,
         cursor: 'grab',
         transition: 'background 0.12s, border-left-color 0.18s',
       }}
     >
-      {/* ── Deck indicator / index — Layer 1 when active, Layer 2 when idle ── */}
+      {/* Index / deck badge */}
       <span style={{
-        fontFamily: 'monospace',
-        fontSize: '0.34rem',
-        fontWeight: 600,
-        letterSpacing: '0.10em',
-        color: isPlaying ? deckColor : T.l2,
-        textAlign: 'center',
-        transition: 'color 0.2s',
+        fontFamily: 'monospace', fontSize: '0.72rem', fontWeight: 600,
+        letterSpacing: '0.06em', color: isPlaying ? deckColor : T.l2,
+        textAlign: 'center', transition: 'color 0.2s',
       }}>
         {deckLabel ?? String(index).padStart(2, '0')}
       </span>
 
-      {/* ── Track title — Layer 3 title, Layer 1 when active ── */}
-      <span style={{
-        fontFamily: 'monospace',
-        fontSize: '0.40rem',
-        fontWeight: 500,
-        letterSpacing: '0.01em',
-        color: isPlaying ? T.l1 : T.l3t,
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-        paddingRight: 10,
-        transition: 'color 0.2s',
-      }}>
-        {track.title}
-      </span>
+      {/* Title + waveform stacked */}
+      <div style={{ minWidth: 0, paddingRight: 12 }}>
+        <span style={{
+          display: 'block',
+          fontFamily: 'monospace', fontSize: '0.82rem', fontWeight: 500,
+          letterSpacing: '0.02em',
+          color: isPlaying ? T.l1 : T.l3t,
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          marginBottom: 5,
+          transition: 'color 0.2s',
+        }}>
+          {track.title}
+        </span>
+        {/* Waveform */}
+        <svg width="100%" height="20" viewBox={`0 0 ${WAVE_BARS * 2.5} 20`}
+          preserveAspectRatio="none" style={{ display: 'block' }}>
+          {bars.map((h, i) => {
+            const barH   = Math.max(1.5, h * 18);
+            const x      = i * 2.5;
+            const played = i / WAVE_BARS < progress;
+            const color  = !isPlaying
+              ? 'rgba(255,255,255,0.18)'
+              : played
+                ? (isPlayingLeft ? T.cyanCore : T.cyanSoft)
+                : `${deckColor}44`;
+            return (
+              <rect
+                key={i}
+                x={x} y={(20 - barH) / 2} width={1.6} height={barH}
+                fill={color} rx="0.5"
+                style={isPlaying && played ? {
+                  animation: `waveGlow ${beatMs}ms ease-in-out infinite`,
+                  animationDelay: `${(i / WAVE_BARS) * beatMs * 0.5}ms`,
+                } : undefined}
+              />
+            );
+          })}
+          {/* Playhead */}
+          {isPlaying && dur > 0 && (
+            <line
+              x1={progress * WAVE_BARS * 2.5} y1={0}
+              x2={progress * WAVE_BARS * 2.5} y2={20}
+              stroke={deckColor} strokeWidth="1.5"
+              style={{ filter: `drop-shadow(0 0 2px ${deckColor})` }}
+            />
+          )}
+        </svg>
+      </div>
 
-      {/* ── BPM · KEY — Layer 3 meta ── */}
+      {/* BPM · KEY */}
       <span style={{
-        fontFamily: 'monospace',
-        fontSize: '0.28rem',
-        fontWeight: 400,
-        letterSpacing: '0.08em',
-        color: T.l3m,
-        whiteSpace: 'nowrap',
-        paddingRight: 12,
+        fontFamily: 'monospace', fontSize: '0.70rem', fontWeight: 400,
+        letterSpacing: '0.06em', color: isPlaying ? T.cyanSoft : T.l3m,
+        whiteSpace: 'nowrap', paddingRight: 12,
+        transition: 'color 0.2s',
       }}>
         {track.bpm} · {track.key}
       </span>
 
-      {/* ── Duration — tabular, layer 3 meta, brightens when playing ── */}
+      {/* Duration */}
       <span style={{
-        fontFamily: 'monospace',
-        fontSize: '0.28rem',
-        fontWeight: 400,
-        letterSpacing: '0.04em',
-        fontVariantNumeric: 'tabular-nums',
+        fontFamily: 'monospace', fontSize: '0.70rem', fontWeight: 400,
+        letterSpacing: '0.04em', fontVariantNumeric: 'tabular-nums',
         color: isPlaying ? T.cyanSoft : T.l3m,
-        textAlign: 'right',
-        transition: 'color 0.2s',
+        textAlign: 'right', transition: 'color 0.2s',
       }}>
         {fmtDur(track.dur)}
       </span>
