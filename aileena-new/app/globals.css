@@ -1,11 +1,14 @@
+/* !! LOCKED — DO NOT ADD, REMOVE, OR CHANGE ANY FONT IMPORTS !! */
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Barlow+Condensed:wght@300;400;700&display=swap');
+/* !! LOCKED !! */
 
 @import "tailwindcss";
 @source "../components/**/*.tsx";
 @source "../app/**/*.tsx";
 
+/* !! LOCKED — DO NOT CHANGE body font-family !! */
 body {
-  font-family: 'Barlow Condensed', system-ui, sans-serif;
+  font-family: 'Barlow Condensed', system-ui, sans-serif; /* LOCKED */
   background: #000;
   color: #fff;
   height: 100%;

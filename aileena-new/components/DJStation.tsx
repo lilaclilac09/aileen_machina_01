@@ -265,6 +265,7 @@ export default function DJStation() {
               onPitch={setLeftPitch}
               onScratchStart={() => { leftWasPlaying.current = leftPlaying; if (leftPlaying) leftCtrl.current?.togglePlay(); }}
               onScratchEnd={() => { if (leftWasPlaying.current) leftCtrl.current?.togglePlay(); }}
+              onSync={handleSyncLeft}
             />
             <MixerPanel xfade={xfade} onXfade={handleXfade} isMobile={true} />
             <DeckPanel
@@ -278,6 +279,7 @@ export default function DJStation() {
               onPitch={setRightPitch}
               onScratchStart={() => { rightWasPlaying.current = rightPlaying; if (rightPlaying) rightCtrl.current?.togglePlay(); }}
               onScratchEnd={() => { if (rightWasPlaying.current) rightCtrl.current?.togglePlay(); }}
+              onSync={handleSyncRight}
             />
           </div>
         ) : (
@@ -293,6 +295,7 @@ export default function DJStation() {
               onPitch={setLeftPitch}
               onScratchStart={() => { leftWasPlaying.current = leftPlaying; if (leftPlaying) leftCtrl.current?.togglePlay(); }}
               onScratchEnd={() => { if (leftWasPlaying.current) leftCtrl.current?.togglePlay(); }}
+              onSync={handleSyncLeft}
             />
             <MixerPanel xfade={xfade} onXfade={handleXfade} />
             <DeckPanel
@@ -306,6 +309,7 @@ export default function DJStation() {
               onPitch={setRightPitch}
               onScratchStart={() => { rightWasPlaying.current = rightPlaying; if (rightPlaying) rightCtrl.current?.togglePlay(); }}
               onScratchEnd={() => { if (rightWasPlaying.current) rightCtrl.current?.togglePlay(); }}
+              onSync={handleSyncRight}
             />
           </div>
         )}
@@ -331,13 +335,14 @@ export default function DJStation() {
 
 /* ─── Deck Panel ─────────────────────────────────────────── */
 function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isMobile, synced,
-  onDragOver, onDragLeave, onDrop, onToggle, onPitch, onScratchStart, onScratchEnd }: {
+  onDragOver, onDragLeave, onDrop, onToggle, onPitch, onScratchStart, onScratchEnd, onSync }: {
   side: 'left'|'right'; track: Track|null; playing: boolean;
   pos: number; dur: number; pitch: number; dim: number; dropActive: boolean;
   isMobile?: boolean; synced?: boolean;
   onDragOver(e: React.DragEvent): void; onDragLeave(): void; onDrop(e: React.DragEvent): void;
   onToggle(): void; onPitch(v: number): void;
   onScratchStart(): void; onScratchEnd(): void;
+  onSync: () => void;
 }) {
   const D    = isMobile ? 130 : 172;
   const R    = D / 2;
@@ -347,6 +352,9 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
   const offset = circ * (1 - prog);
   const remaining = dur > 0 ? fmt(Math.max(0, dur - pos)) : (track ? `-${fmt((track.dur) * 1000)}` : '--:--');
   const elapsed   = dur > 0 ? fmt(pos) : '0:00';
+
+  // CUE state
+  const [cueMs, setCueMs] = useState<number | null>(null);
 
   // Scratch state
   const [scratchAngle, setScratchAngle] = useState(0);
@@ -606,12 +614,17 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
             transition: 'all 0.15s',
           }}>{playing ? '⏸' : '▶'}</button>
           {/* CUE */}
-          <button style={{
+          <button onClick={() => setCueMs(pos > 0 ? pos : null)} style={{
             width: 38, height: 38, borderRadius: '50%', cursor: 'pointer',
-            background: '#252530', border: 'none',
-            color: C.dim, fontSize: '0.34rem', letterSpacing: '0.04em',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>CUE</button>
+            background: cueMs !== null ? '#3b82f625' : '#252530', border: 'none',
+            boxShadow: cueMs !== null ? '0 0 8px rgba(59,130,246,0.35), inset 0 1px 0 rgba(255,255,255,0.06)' : 'inset 0 2px 5px rgba(0,0,0,0.5)',
+            color: cueMs !== null ? '#60a5fa' : C.dim, fontSize: '0.28rem', letterSpacing: '0.04em',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 1,
+            transition: 'all 0.15s',
+          }}>
+            <span style={{ fontFamily: 'monospace' }}>CUE</span>
+            {cueMs !== null && <span style={{ fontFamily: 'monospace', fontSize: '0.22rem', opacity: 0.7 }}>{fmt(cueMs)}</span>}
+          </button>
         </div>
         <PitchFader pitch={pitch} onChange={onPitch} />
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
@@ -630,7 +643,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
       </div>
 
       {/* ── Pioneer section: Sync + Loop + Hot Cues ── */}
-      <PioneerControls side={side} playing={playing} synced={!!synced} />
+      <PioneerControls side={side} playing={playing} synced={!!synced} pos={pos} onSync={onSync} />
 
       </div>{/* end info+controls wrapper */}
     </div>
@@ -640,15 +653,27 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
 /* ─── Pioneer Controls ───────────────────────────────────── */
 const HOT_CUE_COLORS = ['#3b82f6','#f97316','#a3e635','#a855f7','#22d3ee','#ef4444','#10b981','#f472b6'];
 
-function PioneerControls({ side, playing, synced }: { side: 'left'|'right'; playing: boolean; synced: boolean }) {
-  const [loopActive, setLoopActive]     = useState(false);
-  const [activeCues, setActiveCues]     = useState<number[]>([]);
-  const [loopSize,   setLoopSize]       = useState(2); // beats
+function PioneerControls({ side, playing, synced, pos, onSync }: {
+  side: 'left'|'right'; playing: boolean; synced: boolean;
+  pos: number; onSync: () => void;
+}) {
+  const [loopActive, setLoopActive]   = useState(false);
+  const [loopIn,     setLoopIn]       = useState<number | null>(null);
+  const [loopOut,    setLoopOut]      = useState<number | null>(null);
+  const [loopSize,   setLoopSize]     = useState(2);
+  // hot cue: index → stored position ms (first press = set, second press = clear)
+  const [cuePositions, setCuePositions] = useState<{[i: number]: number}>({});
 
   const loopSizes = [1/4, 1/2, 1, 2, 4, 8];
 
-  function toggleCue(i: number) {
-    setActiveCues(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i]);
+  function handleCuePad(i: number) {
+    if (cuePositions[i] !== undefined) {
+      // Second press: clear the cue point
+      setCuePositions(prev => { const n = {...prev}; delete n[i]; return n; });
+    } else {
+      // First press: record current playback position
+      setCuePositions(prev => ({...prev, [i]: pos}));
+    }
   }
 
   return (
@@ -657,10 +682,10 @@ function PioneerControls({ side, playing, synced }: { side: 'left'|'right'; play
       {/* ── Row 1: SYNC + LOOP controls ── */}
       <div style={{
         background: '#0f0f13', borderRadius: 6, padding: '6px 8px',
-        display: 'flex', alignItems: 'center', gap: 5,
+        display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap',
       }}>
-        {/* SYNC */}
-        <button style={{
+        {/* SYNC — adjusts pitch to match the other deck's BPM */}
+        <button onClick={onSync} style={{
           padding: '4px 10px', borderRadius: 4, cursor: 'pointer', border: 'none',
           background: synced ? '#0ea5e920' : '#1a1a22',
           boxShadow: synced
@@ -673,26 +698,46 @@ function PioneerControls({ side, playing, synced }: { side: 'left'|'right'; play
           minWidth: 52,
         }}>
           SYNC
-          {synced && <span style={{ display: 'block', fontSize: '0.3rem', letterSpacing: '0.2em', opacity: 0.7 }}>LOCKED</span>}
+          {synced && <span style={{ display: 'block', fontSize: '0.3rem', letterSpacing: '0.2em', opacity: 0.7, fontFamily: 'monospace' }}>LOCKED</span>}
         </button>
 
-        {/* LOOP IN / OUT */}
-        {(['IN','OUT'] as const).map(lbl => (
-          <button key={lbl} onClick={() => lbl === 'IN' && setLoopActive(true)} style={{
-            padding: '4px 8px', borderRadius: 4, cursor: 'pointer', border: 'none',
-            background: loopActive && lbl === 'OUT' ? '#f9731618' : '#1a1a22',
-            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04)',
-            fontFamily: 'monospace', fontSize: '0.48rem', fontWeight: 600,
-            letterSpacing: '0.1em',
-            color: loopActive ? '#f97316' : 'rgba(255,255,255,0.35)',
-            transition: 'all 0.15s',
-          }}>
-            {lbl === 'IN' ? '⌐' : '¬'} {lbl}
-          </button>
-        ))}
+        {/* LOOP IN — mark in-point at current position */}
+        <button onClick={() => { setLoopIn(pos); setLoopActive(false); }} style={{
+          padding: '4px 8px', borderRadius: 4, cursor: 'pointer', border: 'none',
+          background: loopIn !== null ? '#3b82f618' : '#1a1a22',
+          boxShadow: loopIn !== null
+            ? 'inset 0 0 0 1px rgba(59,130,246,0.5)'
+            : 'inset 0 2px 4px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04)',
+          fontFamily: 'monospace', fontSize: '0.44rem', fontWeight: 600,
+          letterSpacing: '0.08em',
+          color: loopIn !== null ? '#60a5fa' : 'rgba(255,255,255,0.35)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
+          transition: 'all 0.15s',
+        }}>
+          <span>⌐ IN</span>
+          {loopIn !== null && <span style={{ fontFamily: 'monospace', fontSize: '0.22rem', opacity: 0.7 }}>{fmt(loopIn)}</span>}
+        </button>
 
-        {/* Loop size */}
-        <div style={{ display: 'flex', gap: 2, marginLeft: 2 }}>
+        {/* LOOP OUT — mark out-point and activate loop */}
+        <button onClick={() => { if (loopIn !== null) { setLoopOut(pos); setLoopActive(true); } }} style={{
+          padding: '4px 8px', borderRadius: 4, cursor: 'pointer', border: 'none',
+          background: loopActive ? '#f9731618' : '#1a1a22',
+          boxShadow: loopActive
+            ? 'inset 0 0 0 1px rgba(249,115,22,0.5)'
+            : 'inset 0 2px 4px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04)',
+          fontFamily: 'monospace', fontSize: '0.44rem', fontWeight: 600,
+          letterSpacing: '0.08em',
+          color: loopActive ? '#f97316' : loopIn !== null ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.2)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
+          transition: 'all 0.15s',
+          opacity: loopIn === null ? 0.4 : 1,
+        }}>
+          <span>¬ OUT</span>
+          {loopOut !== null && loopActive && <span style={{ fontFamily: 'monospace', fontSize: '0.22rem', opacity: 0.7 }}>{fmt(loopOut)}</span>}
+        </button>
+
+        {/* Loop size selector */}
+        <div style={{ display: 'flex', gap: 2 }}>
           {loopSizes.map(s => (
             <button key={s} onClick={() => setLoopSize(s)} style={{
               width: 26, height: 22, borderRadius: 3, cursor: 'pointer', border: 'none',
@@ -711,7 +756,7 @@ function PioneerControls({ side, playing, synced }: { side: 'left'|'right'; play
 
         {/* EXIT LOOP */}
         {loopActive && (
-          <button onClick={() => setLoopActive(false)} style={{
+          <button onClick={() => { setLoopActive(false); setLoopIn(null); setLoopOut(null); }} style={{
             padding: '4px 7px', borderRadius: 4, cursor: 'pointer', border: 'none',
             background: '#f9731618',
             boxShadow: 'inset 0 0 0 1px rgba(249,115,22,0.4)',
@@ -721,7 +766,7 @@ function PioneerControls({ side, playing, synced }: { side: 'left'|'right'; play
         )}
       </div>
 
-      {/* ── Row 2: Hot Cue Pads (8 pads, 4x2) ── */}
+      {/* ── Row 2: Hot Cue Pads (8 pads, 4×2) ── */}
       <div style={{
         background: '#0c0c10', borderRadius: 6, padding: '7px 8px',
         border: '1px solid rgba(255,255,255,0.04)',
@@ -734,46 +779,55 @@ function PioneerControls({ side, playing, synced }: { side: 'left'|'right'; play
             {side === 'left' ? 'DECK A' : 'DECK B'}
           </span>
         </div>
-        <div style={{
-          display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4,
-        }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4 }}>
           {HOT_CUE_COLORS.map((color, i) => {
-            const isActive = activeCues.includes(i);
+            const hasPos = cuePositions[i] !== undefined;
             return (
               <button
                 key={i}
-                onPointerDown={() => toggleCue(i)}
+                onPointerDown={() => handleCuePad(i)}
+                title={hasPos ? `Press to clear cue ${String.fromCharCode(65+i)} (${fmt(cuePositions[i])})` : `Press to set cue ${String.fromCharCode(65+i)} at ${fmt(pos)}`}
                 style={{
-                  height: 32, borderRadius: 4, cursor: 'pointer',
+                  height: hasPos ? 38 : 32, borderRadius: 4, cursor: 'pointer',
                   border: 'none',
-                  background: isActive
+                  background: hasPos
                     ? `${color}30`
                     : 'linear-gradient(to bottom, #1e1e26, #16161e)',
-                  boxShadow: isActive
+                  boxShadow: hasPos
                     ? `0 0 8px ${color}60, inset 0 0 0 1px ${color}80, inset 0 1px 0 ${color}40`
                     : 'inset 0 2px 5px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.04)',
                   position: 'relative',
                   transition: 'all 0.08s',
-                  transform: isActive ? 'scale(0.97)' : 'scale(1)',
+                  transform: 'scale(1)',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1,
+                  paddingTop: 6,
                 }}
               >
                 {/* LED dot */}
                 <div style={{
-                  position: 'absolute', top: 4, left: '50%', transform: 'translateX(-50%)',
                   width: 5, height: 5, borderRadius: '50%',
-                  background: isActive ? color : 'rgba(255,255,255,0.08)',
-                  boxShadow: isActive ? `0 0 6px ${color}` : 'none',
-                  transition: 'all 0.1s',
+                  background: hasPos ? color : 'rgba(255,255,255,0.08)',
+                  boxShadow: hasPos ? `0 0 6px ${color}` : 'none',
+                  transition: 'all 0.1s', flexShrink: 0,
                 }} />
-                {/* Label */}
+                {/* Letter label */}
                 <span style={{
-                  position: 'absolute', bottom: 3, left: '50%', transform: 'translateX(-50%)',
                   fontFamily: 'monospace', fontSize: '0.28rem', fontWeight: 700,
-                  color: isActive ? color : 'rgba(255,255,255,0.15)',
+                  color: hasPos ? color : 'rgba(255,255,255,0.15)',
                   letterSpacing: '0.05em',
                 }}>
                   {String.fromCharCode(65 + i)}
                 </span>
+                {/* Time label when cue is set */}
+                {hasPos && (
+                  <span style={{
+                    fontFamily: 'monospace', fontSize: '0.22rem',
+                    color: color, opacity: 0.8,
+                    letterSpacing: '0.02em',
+                  }}>
+                    {fmt(cuePositions[i])}
+                  </span>
+                )}
               </button>
             );
           })}
