@@ -176,6 +176,21 @@ export default function DJStation() {
   const leftDim  = xfade > 80 ? (100 - xfade) / 20 : 1;
   const rightDim = xfade < 20 ? xfade / 20 : 1;
 
+  /* ── SYNC: adjust pitch so deck BPMs match ── */
+  const handleSyncLeft = useCallback(() => {
+    if (!leftTrack || !rightTrack) return;
+    const targetBpm = rightTrack.bpm * (1 + rightPitch / 100);
+    const newPitch = (targetBpm / leftTrack.bpm - 1) * 100;
+    setLeftPitch(Math.max(-8, Math.min(8, +newPitch.toFixed(1))));
+  }, [leftTrack, rightTrack, rightPitch]);
+
+  const handleSyncRight = useCallback(() => {
+    if (!leftTrack || !rightTrack) return;
+    const targetBpm = leftTrack.bpm * (1 + leftPitch / 100);
+    const newPitch = (targetBpm / rightTrack.bpm - 1) * 100;
+    setRightPitch(Math.max(-8, Math.min(8, +newPitch.toFixed(1))));
+  }, [leftTrack, rightTrack, leftPitch]);
+
   return (
     <div style={{ userSelect: 'none', width: '100%', background: C.bg }}>
 
