@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Header from '../components/Header';
 import DJStation from '../components/DJStation';
 import LoadingScreen from '../components/LoadingScreen';
+import OscilloscopeBackground from '../components/OscilloscopeBackground';
 import { SnapContainer, SnapSection } from '../components/SnapScroll';
 import { useLanguage } from '../components/LanguageProvider';
 import { t } from '../lib/translations';
@@ -62,7 +63,8 @@ export default function Home() {
 
         {/* ── 02 PROGRAMME ── */}
         <SnapSection id="programme">
-          <div className="h-full flex flex-col justify-center bg-black px-5 sm:px-10 lg:px-16">
+          <OscilloscopeBackground />
+          <div className="relative z-10 h-full flex flex-col justify-center px-5 sm:px-10 lg:px-16">
             <div className="mx-auto w-full max-w-[1400px]">
               <div className="anim-up flex items-end justify-between border-b border-white/8 pb-5 mb-12">
                 <p className="text-xs uppercase tracking-[0.5em] text-white/45">{tx.programme.tag}</p>
