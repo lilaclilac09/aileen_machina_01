@@ -110,9 +110,9 @@ export default function Home() {
 
         {/* ── 04 SOUND / DJ ── */}
         <SnapSection id="sound">
-          <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-12 pt-6 pb-4 overflow-y-auto">
+          <div className="h-full flex flex-col bg-black px-3 sm:px-10 lg:px-12 pt-3 sm:pt-6 pb-2 sm:pb-4 overflow-y-auto" style={{ overscrollBehavior: 'contain' }}>
             <div className="mx-auto w-full max-w-[1400px]">
-              <div className="flex items-end border-b border-white/8 pb-3 mb-6">
+              <div className="flex items-end border-b border-white/8 pb-2 mb-3 sm:pb-3 sm:mb-6">
                 <p className="text-[0.58rem] uppercase tracking-[0.55em] text-white/25">{tx.sound.tag}</p>
               </div>
               <DJStation />
