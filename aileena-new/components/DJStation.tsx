@@ -4,18 +4,27 @@ import TrackLibraryBrowser from './TrackLibraryBrowser';
 
 /* ─── Palette ────────────────────────────────────────────── */
 const C = {
-  bg:      '#111114',
-  deck:    '#18181c',
-  panel:   '#1e1e24',
-  border:  'rgba(255,255,255,0.07)',
-  muted:   'rgba(255,255,255,0.22)',
-  dim:     'rgba(255,255,255,0.12)',
-  green:   '#22c55e',   // ready / ok
-  orange:  '#f97316',   // warning
-  blue:    '#3b82f6',   // selected
-  cyan:    '#06b6d4',   // playback
-  text:    'rgba(255,255,255,0.88)',
-  sub:     'rgba(255,255,255,0.38)',
+  // backgrounds
+  bg:          '#0b0d10',
+  deck:        '#12161b',
+  panel:       '#12161b',
+  // text
+  text:        '#edf2f7',
+  sub:         '#94a0ad',
+  dim:         '#94a0ad',
+  muted:       'rgba(237,242,247,0.22)',
+  // functional
+  green:       '#22c55e',
+  orange:      '#ff9b5e',   // desaturated — small accents only
+  blue:        '#7db7ff',   // ice blue
+  cyan:        '#63f3d8',   // cooler cyan-green
+  cyanGlow:    'rgba(99,243,216,0.28)',
+  // silver/brushed metal
+  silver:      '#b9c0c7',
+  silverDark:  '#8e979f',
+  silverLight: '#d9e0e6',
+  silverBorder:'#aab3bb',
+  border:      'rgba(170,179,187,0.18)',
 };
 
 /* ─── Track catalogue ────────────────────────────────────── */
@@ -192,7 +201,7 @@ export default function DJStation() {
   }, [leftTrack, rightTrack, leftPitch]);
 
   return (
-    <div style={{ userSelect: 'none', width: '100%', background: C.bg }}>
+    <div style={{ userSelect: 'none', width: '100%', background: '#0b0d10' }}>
 
       {/* ── Spotify embed containers (functional audio) ── */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 6, marginBottom: 8 }}>
@@ -201,8 +210,8 @@ export default function DJStation() {
           const ref   = side === 'left' ? leftContainerRef : rightContainerRef;
           return (
             <div key={side} style={{
-              borderRadius: 6, overflow: 'hidden', background: '#0a0a0c',
-              border: 'none', position: 'relative',
+              borderRadius: 6, overflow: 'hidden', background: C.bg,
+              border: '1px solid rgba(170,179,187,0.12)', position: 'relative',
             }}>
               <div ref={ref} style={{ minHeight: 80 }} />
               {!track && (
@@ -224,8 +233,8 @@ export default function DJStation() {
       <div style={{
         borderRadius: 10, padding: '10px 10px 8px',
         background: C.panel,
-        border: 'none',
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
+        border: '1px solid rgba(170,179,187,0.1)',
+        boxShadow: 'inset 0 1px 0 rgba(217,224,230,0.04)',
       }}>
         {/* system bar */}
         <div style={{
@@ -411,9 +420,9 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
       <div onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop} style={{
         position: 'relative', height: D + 16, borderRadius: 10,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: '#000',
-        border: dropActive ? `1px solid rgba(100,220,210,0.5)` : `1px solid rgba(255,255,255,0.04)`,
-        boxShadow: dropActive ? `inset 0 0 30px rgba(100,220,210,0.1)` : 'none',
+        background: C.bg,
+        border: dropActive ? `1px solid rgba(99,243,216,0.5)` : `1px solid rgba(170,179,187,0.12)`,
+        boxShadow: dropActive ? `inset 0 0 30px rgba(99,243,216,0.08)` : 'none',
         transition: 'border 0.15s, box-shadow 0.15s',
       }}>
         {!track ? (
@@ -451,8 +460,8 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
                 #52c4b6 100%
               )`,
               boxShadow: playing
-                ? '0 0 55px rgba(80,210,196,0.5), 0 0 110px rgba(60,190,178,0.2), inset 0 0 35px rgba(0,0,0,0.45)'
-                : '0 0 22px rgba(60,190,178,0.22), 0 0 50px rgba(40,170,158,0.08), inset 0 0 20px rgba(0,0,0,0.35)',
+                ? '0 0 55px rgba(99,243,216,0.45), 0 0 110px rgba(99,243,216,0.18), inset 0 0 35px rgba(0,0,0,0.45)'
+                : '0 0 22px rgba(99,243,216,0.18), 0 0 50px rgba(99,243,216,0.06), inset 0 0 20px rgba(0,0,0,0.35)',
               animation: isScratching ? 'none' : (playing ? 'turntableSpin 2.4s linear infinite' : 'none'),
               transform: isScratching ? `rotate(${scratchAngle}deg)` : undefined,
               transition: 'box-shadow 1.8s ease',
@@ -485,17 +494,17 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
             {/* Progress ring (SVG — does NOT rotate) */}
             <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
               viewBox={`0 0 ${D} ${D}`}>
-              {/* Track ring */}
+              {/* Track ring — silver metal channel */}
               <circle cx={R} cy={R} r={r} fill="none"
-                stroke="rgba(255,255,255,0.07)" strokeWidth="3.5" />
-              {/* Progress fill */}
+                stroke="rgba(142,151,159,0.25)" strokeWidth="4" />
+              {/* Progress fill — brushed silver */}
               <circle cx={R} cy={R} r={r} fill="none"
-                stroke="rgba(255,255,255,0.85)" strokeWidth="3.5"
+                stroke="#b9c0c7" strokeWidth="4"
                 strokeDasharray={circ} strokeDashoffset={offset}
                 strokeLinecap="round"
                 style={{ transform: 'rotate(-90deg)', transformOrigin: `${R}px ${R}px`,
                   transition: 'stroke-dashoffset 0.3s linear',
-                  filter: 'drop-shadow(0 0 3px rgba(255,255,255,0.6))',
+                  filter: 'drop-shadow(0 0 2px rgba(185,192,199,0.5))',
                 }} />
             </svg>
 
@@ -513,57 +522,57 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
                 </linearGradient>
               </defs>
 
-              {/* Arm body — dark carbon fibre */}
+              {/* Arm body — brushed silver aluminum tube */}
               <line
                 x1={pivotX} y1={pivotY}
                 x2={tipX} y2={tipY}
-                stroke="#0e0e12" strokeWidth="6" strokeLinecap="round"
+                stroke="#2c3038" strokeWidth="6" strokeLinecap="round"
                 filter={`url(#arm-shadow-${side})`}
                 style={{ transition: playing ? 'x2 0.8s linear, y2 0.8s linear' : 'all 0.35s ease' }}
               />
-              {/* Arm highlight */}
+              {/* Arm shine — silver highlight along the tube */}
               <line
                 x1={pivotX} y1={D * 0.09}
                 x2={tipX} y2={tipY}
-                stroke="rgba(255,255,255,0.11)" strokeWidth="1.4" strokeLinecap="round"
+                stroke="rgba(185,192,199,0.35)" strokeWidth="1.8" strokeLinecap="round"
                 style={{ transition: playing ? 'x2 0.8s linear, y2 0.8s linear' : 'all 0.35s ease' }}
               />
 
-              {/* Pivot — bearing housing */}
+              {/* Pivot — machined bearing housing (silver) */}
               <circle cx={pivotX} cy={pivotY} r={13}
-                fill="#0c0c10" stroke="rgba(255,255,255,0.12)" strokeWidth="1.2"/>
+                fill="#1a1e24" stroke="rgba(170,179,187,0.28)" strokeWidth="1.4"/>
               <circle cx={pivotX} cy={pivotY} r={8}
-                fill="#141418" stroke="rgba(255,255,255,0.08)" strokeWidth="0.8"/>
+                fill="#222830" stroke="rgba(185,192,199,0.18)" strokeWidth="1"/>
               <circle cx={pivotX} cy={pivotY} r={3.5}
-                fill={playing ? 'rgba(80,210,196,0.9)' : '#242428'}
-                style={{ filter: playing ? 'drop-shadow(0 0 4px rgba(80,210,196,0.9))' : 'none', transition: 'all 0.6s ease' }}/>
+                fill={playing ? '#63f3d8' : '#394048'}
+                style={{ filter: playing ? 'drop-shadow(0 0 4px rgba(99,243,216,0.9))' : 'none', transition: 'all 0.6s ease' }}/>
 
-              {/* Headshell body */}
+              {/* Headshell body — silver aluminum */}
               <rect
                 x={tipX - 10} y={tipY - 5}
                 width="20" height="11" rx="2"
-                fill="#0e0e12" stroke="rgba(255,255,255,0.16)" strokeWidth="0.8"
+                fill="#262c34" stroke="rgba(170,179,187,0.32)" strokeWidth="0.9"
                 style={{ transition: playing ? 'x 0.8s linear, y 0.8s linear' : 'all 0.35s ease' }}
               />
-              {/* Cartridge body */}
+              {/* Cartridge body — dark anodised */}
               <rect
                 x={tipX - 6} y={tipY + 6}
                 width="13" height="8" rx="1.5"
-                fill="#151518" stroke="rgba(255,255,255,0.1)" strokeWidth="0.6"
+                fill="#1c2028" stroke="rgba(170,179,187,0.22)" strokeWidth="0.7"
                 style={{ transition: playing ? 'x 0.8s linear, y 0.8s linear' : 'all 0.35s ease' }}
               />
               {/* Stylus cantilever */}
               <line
                 x1={tipX - 1} y1={tipY + 14}
                 x2={tipX - 2} y2={tipY + 21}
-                stroke="rgba(180,188,210,0.8)" strokeWidth="1"
+                stroke="rgba(185,192,199,0.75)" strokeWidth="1"
                 style={{ transition: playing ? 'x1 0.8s linear, y1 0.8s linear, x2 0.8s linear, y2 0.8s linear' : 'all 0.35s ease' }}
               />
               {/* Stylus tip */}
               <circle
                 cx={tipX - 2} cy={tipY + 21} r="1.2"
-                fill={playing ? 'rgba(80,210,196,0.9)' : 'rgba(180,188,210,0.5)'}
-                style={{ filter: playing ? 'drop-shadow(0 0 2px rgba(80,210,196,0.8))' : 'none', transition: 'all 0.6s' }}
+                fill={playing ? '#63f3d8' : 'rgba(170,179,187,0.5)'}
+                style={{ filter: playing ? 'drop-shadow(0 0 2px rgba(99,243,216,0.8))' : 'none', transition: 'all 0.6s' }}
               />
             </svg>
           </div>
@@ -576,7 +585,8 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
       {/* Info row */}
       <div style={{
         borderRadius: 5, padding: '5px 8px',
-        background: C.deck, border: 'none',
+        background: C.deck,
+        border: '1px solid rgba(170,179,187,0.1)',
         display: 'flex', flexDirection: 'column', gap: 3,
       }}>
         <p style={{ fontSize: '0.44rem', letterSpacing: '0.12em',
@@ -598,17 +608,18 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
       {/* Controls */}
       <div style={{
         borderRadius: 6, padding: '7px 7px',
-        background: C.deck, border: 'none',
+        background: C.deck,
+        border: '1px solid rgba(170,179,187,0.08)',
         display: 'flex', alignItems: 'center', gap: 6,
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {/* Play/Pause */}
           <button onClick={onToggle} style={{
             width: 38, height: 38, borderRadius: '50%', cursor: 'pointer',
-            background: playing ? `${C.green}20` : '#252530',
-            border: 'none',
-            boxShadow: playing ? `0 0 12px ${C.green}40` : 'inset 0 2px 5px rgba(0,0,0,0.5)',
-            color: playing ? C.green : C.sub,
+            background: playing ? `rgba(99,243,216,0.1)` : '#14181e',
+            border: `1px solid ${playing ? 'rgba(99,243,216,0.6)' : 'rgba(170,179,187,0.22)'}`,
+            boxShadow: playing ? `0 0 10px rgba(99,243,216,0.28)` : 'inset 0 2px 5px rgba(0,0,0,0.4)',
+            color: playing ? C.cyan : C.silver,
             fontSize: '0.8rem',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             transition: 'all 0.15s',
@@ -616,9 +627,10 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
           {/* CUE */}
           <button onClick={() => setCueMs(pos > 0 ? pos : null)} style={{
             width: 38, height: 38, borderRadius: '50%', cursor: 'pointer',
-            background: cueMs !== null ? '#3b82f625' : '#252530', border: 'none',
-            boxShadow: cueMs !== null ? '0 0 8px rgba(59,130,246,0.35), inset 0 1px 0 rgba(255,255,255,0.06)' : 'inset 0 2px 5px rgba(0,0,0,0.5)',
-            color: cueMs !== null ? '#60a5fa' : C.dim, fontSize: '0.28rem', letterSpacing: '0.04em',
+            background: cueMs !== null ? 'rgba(125,183,255,0.1)' : '#14181e',
+            border: `1px solid ${cueMs !== null ? 'rgba(125,183,255,0.55)' : 'rgba(170,179,187,0.22)'}`,
+            boxShadow: cueMs !== null ? '0 0 8px rgba(125,183,255,0.25)' : 'inset 0 2px 5px rgba(0,0,0,0.4)',
+            color: cueMs !== null ? C.blue : C.silverDark, fontSize: '0.28rem', letterSpacing: '0.04em',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 1,
             transition: 'all 0.15s',
           }}>
@@ -630,7 +642,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
           <VU active={playing} />
           <MKnob size={22} />
-          <span style={{ fontFamily: 'monospace', fontSize: '0.28rem', letterSpacing: '0.3em', color: C.dim }}>GAIN</span>
+          <span style={{ fontFamily: 'monospace', fontSize: '0.28rem', letterSpacing: '0.3em', color: C.sub }}>GAIN</span>
           {/* Pitch readout */}
           <span style={{
             fontFamily: 'monospace', fontSize: '0.36rem', letterSpacing: '0.1em',
@@ -681,36 +693,32 @@ function PioneerControls({ side, playing, synced, pos, onSync }: {
 
       {/* ── Row 1: SYNC + LOOP controls ── */}
       <div style={{
-        background: '#0f0f13', borderRadius: 6, padding: '6px 8px',
+        background: C.bg, borderRadius: 6, padding: '6px 8px',
+        border: '1px solid rgba(170,179,187,0.1)',
         display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap',
       }}>
-        {/* SYNC — adjusts pitch to match the other deck's BPM */}
+        {/* SYNC */}
         <button onClick={onSync} style={{
-          padding: '4px 10px', borderRadius: 4, cursor: 'pointer', border: 'none',
-          background: synced ? '#0ea5e920' : '#1a1a22',
-          boxShadow: synced
-            ? '0 0 8px rgba(14,165,233,0.5), inset 0 1px 0 rgba(255,255,255,0.1)'
-            : 'inset 0 2px 4px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04)',
-          fontFamily: 'monospace', fontSize: '0.52rem', fontWeight: 700,
-          letterSpacing: '0.12em',
-          color: synced ? '#38bdf8' : 'rgba(255,255,255,0.3)',
-          transition: 'all 0.2s',
-          minWidth: 52,
+          padding: '4px 10px', borderRadius: 4, cursor: 'pointer',
+          background: synced ? 'rgba(99,243,216,0.1)' : '#14181e',
+          border: `1px solid ${synced ? 'rgba(99,243,216,0.5)' : 'rgba(170,179,187,0.22)'}`,
+          boxShadow: synced ? '0 0 8px rgba(99,243,216,0.25)' : 'inset 0 2px 4px rgba(0,0,0,0.5)',
+          fontFamily: 'monospace', fontSize: '0.52rem', fontWeight: 700, letterSpacing: '0.12em',
+          color: synced ? C.cyan : C.silverDark,
+          transition: 'all 0.2s', minWidth: 52,
         }}>
           SYNC
           {synced && <span style={{ display: 'block', fontSize: '0.3rem', letterSpacing: '0.2em', opacity: 0.7, fontFamily: 'monospace' }}>LOCKED</span>}
         </button>
 
-        {/* LOOP IN — mark in-point at current position */}
+        {/* LOOP IN */}
         <button onClick={() => { setLoopIn(pos); setLoopActive(false); }} style={{
-          padding: '4px 8px', borderRadius: 4, cursor: 'pointer', border: 'none',
-          background: loopIn !== null ? '#3b82f618' : '#1a1a22',
-          boxShadow: loopIn !== null
-            ? 'inset 0 0 0 1px rgba(59,130,246,0.5)'
-            : 'inset 0 2px 4px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04)',
-          fontFamily: 'monospace', fontSize: '0.44rem', fontWeight: 600,
-          letterSpacing: '0.08em',
-          color: loopIn !== null ? '#60a5fa' : 'rgba(255,255,255,0.35)',
+          padding: '4px 8px', borderRadius: 4, cursor: 'pointer',
+          background: loopIn !== null ? 'rgba(125,183,255,0.08)' : '#14181e',
+          border: `1px solid ${loopIn !== null ? 'rgba(125,183,255,0.45)' : 'rgba(170,179,187,0.22)'}`,
+          boxShadow: loopIn !== null ? '0 0 6px rgba(125,183,255,0.2)' : 'inset 0 2px 4px rgba(0,0,0,0.5)',
+          fontFamily: 'monospace', fontSize: '0.44rem', fontWeight: 600, letterSpacing: '0.08em',
+          color: loopIn !== null ? C.blue : C.silverDark,
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
           transition: 'all 0.15s',
         }}>
@@ -718,19 +726,16 @@ function PioneerControls({ side, playing, synced, pos, onSync }: {
           {loopIn !== null && <span style={{ fontFamily: 'monospace', fontSize: '0.22rem', opacity: 0.7 }}>{fmt(loopIn)}</span>}
         </button>
 
-        {/* LOOP OUT — mark out-point and activate loop */}
+        {/* LOOP OUT */}
         <button onClick={() => { if (loopIn !== null) { setLoopOut(pos); setLoopActive(true); } }} style={{
-          padding: '4px 8px', borderRadius: 4, cursor: 'pointer', border: 'none',
-          background: loopActive ? '#f9731618' : '#1a1a22',
-          boxShadow: loopActive
-            ? 'inset 0 0 0 1px rgba(249,115,22,0.5)'
-            : 'inset 0 2px 4px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04)',
-          fontFamily: 'monospace', fontSize: '0.44rem', fontWeight: 600,
-          letterSpacing: '0.08em',
-          color: loopActive ? '#f97316' : loopIn !== null ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.2)',
+          padding: '4px 8px', borderRadius: 4, cursor: 'pointer',
+          background: loopActive ? 'rgba(255,155,94,0.08)' : '#14181e',
+          border: `1px solid ${loopActive ? 'rgba(255,155,94,0.45)' : 'rgba(170,179,187,0.22)'}`,
+          boxShadow: loopActive ? '0 0 6px rgba(255,155,94,0.2)' : 'inset 0 2px 4px rgba(0,0,0,0.5)',
+          fontFamily: 'monospace', fontSize: '0.44rem', fontWeight: 600, letterSpacing: '0.08em',
+          color: loopActive ? C.orange : loopIn !== null ? C.silver : C.silverDark,
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
-          transition: 'all 0.15s',
-          opacity: loopIn === null ? 0.4 : 1,
+          transition: 'all 0.15s', opacity: loopIn === null ? 0.4 : 1,
         }}>
           <span>¬ OUT</span>
           {loopOut !== null && loopActive && <span style={{ fontFamily: 'monospace', fontSize: '0.22rem', opacity: 0.7 }}>{fmt(loopOut)}</span>}
@@ -740,13 +745,11 @@ function PioneerControls({ side, playing, synced, pos, onSync }: {
         <div style={{ display: 'flex', gap: 2 }}>
           {loopSizes.map(s => (
             <button key={s} onClick={() => setLoopSize(s)} style={{
-              width: 26, height: 22, borderRadius: 3, cursor: 'pointer', border: 'none',
-              background: loopSize === s ? (loopActive ? '#f9731630' : '#1e2a36') : '#141418',
-              boxShadow: loopSize === s
-                ? `inset 0 0 0 1px ${loopActive ? '#f97316' : '#3b82f6'}60`
-                : 'inset 0 1px 3px rgba(0,0,0,0.5)',
+              width: 26, height: 22, borderRadius: 3, cursor: 'pointer',
+              background: loopSize === s ? (loopActive ? 'rgba(255,155,94,0.12)' : 'rgba(125,183,255,0.1)') : '#14181e',
+              border: `1px solid ${loopSize === s ? (loopActive ? 'rgba(255,155,94,0.4)' : 'rgba(125,183,255,0.4)') : 'rgba(170,179,187,0.15)'}`,
               fontFamily: 'monospace', fontSize: '0.34rem', fontWeight: 600,
-              color: loopSize === s ? (loopActive ? '#f97316' : '#60a5fa') : 'rgba(255,255,255,0.2)',
+              color: loopSize === s ? (loopActive ? C.orange : C.blue) : C.silverDark,
               transition: 'all 0.1s',
             }}>
               {s < 1 ? `1/${1/s}` : s}
@@ -757,19 +760,19 @@ function PioneerControls({ side, playing, synced, pos, onSync }: {
         {/* EXIT LOOP */}
         {loopActive && (
           <button onClick={() => { setLoopActive(false); setLoopIn(null); setLoopOut(null); }} style={{
-            padding: '4px 7px', borderRadius: 4, cursor: 'pointer', border: 'none',
-            background: '#f9731618',
-            boxShadow: 'inset 0 0 0 1px rgba(249,115,22,0.4)',
+            padding: '4px 7px', borderRadius: 4, cursor: 'pointer',
+            background: 'rgba(255,155,94,0.08)',
+            border: '1px solid rgba(255,155,94,0.4)',
             fontFamily: 'monospace', fontSize: '0.40rem', fontWeight: 600,
-            letterSpacing: '0.08em', color: '#f97316',
+            letterSpacing: '0.08em', color: C.orange,
           }}>EXIT</button>
         )}
       </div>
 
       {/* ── Row 2: Hot Cue Pads (8 pads, 4×2) ── */}
       <div style={{
-        background: '#0c0c10', borderRadius: 6, padding: '7px 8px',
-        border: '1px solid rgba(255,255,255,0.04)',
+        background: C.bg, borderRadius: 6, padding: '7px 8px',
+        border: '1px solid rgba(170,179,187,0.1)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
           <span style={{ fontFamily: 'monospace', fontSize: '0.38rem', letterSpacing: '0.35em', color: 'rgba(255,255,255,0.2)' }}>
@@ -789,13 +792,11 @@ function PioneerControls({ side, playing, synced, pos, onSync }: {
                 title={hasPos ? `Press to clear cue ${String.fromCharCode(65+i)} (${fmt(cuePositions[i])})` : `Press to set cue ${String.fromCharCode(65+i)} at ${fmt(pos)}`}
                 style={{
                   height: hasPos ? 38 : 32, borderRadius: 4, cursor: 'pointer',
-                  border: 'none',
-                  background: hasPos
-                    ? `${color}30`
-                    : 'linear-gradient(to bottom, #1e1e26, #16161e)',
+                  background: hasPos ? `${color}18` : '#14181e',
+                  border: `1px solid ${hasPos ? `${color}80` : 'rgba(170,179,187,0.18)'}`,
                   boxShadow: hasPos
-                    ? `0 0 8px ${color}60, inset 0 0 0 1px ${color}80, inset 0 1px 0 ${color}40`
-                    : 'inset 0 2px 5px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.04)',
+                    ? `0 0 8px ${color}40`
+                    : 'inset 0 2px 4px rgba(0,0,0,0.5)',
                   position: 'relative',
                   transition: 'all 0.08s',
                   transform: 'scale(1)',
@@ -849,12 +850,12 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
   return (
     <div style={{
       borderRadius: 6, padding: isMobile ? '8px 14px' : '8px 7px',
-      background: '#14141a',
-      border: '1px solid rgba(255,255,255,0.05)',
+      background: 'linear-gradient(to bottom, #1a1e24, #14181d 55%, #1a1e24)',
+      border: '1px solid rgba(170,179,187,0.22)',
       display: 'flex', flexDirection: isMobile ? 'row' : 'column',
       alignItems: 'center', gap: isMobile ? 16 : 8,
       flexWrap: isMobile ? 'wrap' : undefined,
-      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
+      boxShadow: 'inset 0 1px 0 rgba(217,224,230,0.07), inset 0 -1px 0 rgba(0,0,0,0.3), 0 0 0 1px rgba(0,0,0,0.3)',
     }}>
 
       {/* ── Beat FX ── */}
@@ -862,23 +863,20 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
         <div style={{ display: 'flex', gap: 3 }}>
           {(['ECHO','REVERB','FLANGER'] as const).map(fx => (
             <button key={fx} onClick={() => { setFxType(fx); setFxOn(true); }} style={{
-              flex: 1, padding: '3px 0', borderRadius: 3, cursor: 'pointer', border: 'none',
-              background: fxOn && fxType === fx ? '#f9731622' : '#1a1a22',
-              boxShadow: fxOn && fxType === fx
-                ? 'inset 0 0 0 1px rgba(249,115,22,0.5)'
-                : 'inset 0 1px 3px rgba(0,0,0,0.6)',
-              fontFamily: 'monospace', fontSize: '0.30rem', fontWeight: 600,
-              letterSpacing: '0.08em',
-              color: fxOn && fxType === fx ? '#f97316' : 'rgba(255,255,255,0.2)',
+              flex: 1, padding: '3px 0', borderRadius: 3, cursor: 'pointer',
+              background: fxOn && fxType === fx ? 'rgba(255,155,94,0.1)' : '#14181e',
+              border: `1px solid ${fxOn && fxType === fx ? 'rgba(255,155,94,0.45)' : 'rgba(170,179,187,0.18)'}`,
+              fontFamily: 'monospace', fontSize: '0.30rem', fontWeight: 600, letterSpacing: '0.08em',
+              color: fxOn && fxType === fx ? C.orange : C.silverDark,
               transition: 'all 0.12s',
             }}>{fx}</button>
           ))}
           <button onClick={() => setFxOn(false)} style={{
-            padding: '3px 6px', borderRadius: 3, cursor: 'pointer', border: 'none',
-            background: !fxOn ? '#ef444420' : '#1a1a22',
+            padding: '3px 6px', borderRadius: 3, cursor: 'pointer',
+            background: !fxOn ? 'rgba(255,155,94,0.08)' : '#14181e',
+            border: `1px solid ${!fxOn ? 'rgba(255,155,94,0.35)' : 'rgba(170,179,187,0.18)'}`,
             fontFamily: 'monospace', fontSize: '0.28rem',
-            color: !fxOn ? '#ef4444' : 'rgba(255,255,255,0.2)',
-            boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.6)',
+            color: !fxOn ? C.orange : C.silverDark,
           }}>OFF</button>
         </div>
         <div style={{ display: 'flex', justifyContent: 'center' }}>
@@ -925,8 +923,8 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
           textAlign: 'center', marginBottom: 4 }}>CROSSFADER</p>
         <div style={{
           position: 'relative', height: 18, borderRadius: 3,
-          background: `linear-gradient(to right, ${C.cyan}30, rgba(20,20,24,0.9) 50%, ${C.orange}25)`,
-          border: '1px solid rgba(255,255,255,0.06)',
+          background: `linear-gradient(to right, rgba(99,243,216,0.18), rgba(18,22,27,0.9) 50%, rgba(255,155,94,0.15))`,
+          border: '1px solid rgba(170,179,187,0.15)',
           boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.7)',
         }}>
           <input type="range" min={0} max={100} value={xfade} onChange={e => onXfade(+e.target.value)}
@@ -934,9 +932,9 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
           <div style={{
             position: 'absolute', width: 18, height: 30, left: `calc(${xfade}% - 9px)`,
             borderRadius: 3, pointerEvents: 'none', top: -6,
-            background: 'linear-gradient(to bottom, #e5e5e5, #b0b0b0 45%, #888)',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.6)',
-            border: '1px solid rgba(0,0,0,0.4)',
+            background: 'linear-gradient(160deg, #d9e0e6 0%, #b9c0c7 30%, #8e979f 65%, #72797f 100%)',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.9), inset 0 1px 0 rgba(217,224,230,0.7)',
+            border: '1px solid rgba(100,108,116,0.6)',
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
           }}>
             {[0,1,2,3].map(i => <div key={i} style={{ width: '60%', height: 1,
@@ -944,7 +942,7 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
           </div>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
-          <span style={{ fontFamily: 'monospace', fontSize: '0.32rem', fontWeight: 700, color: C.cyan, letterSpacing: '0.1em' }}>A</span>
+          <span style={{ fontFamily: 'monospace', fontSize: '0.32rem', fontWeight: 700, color: C.cyan, letterSpacing: '0.1em', textShadow: '0 0 6px rgba(99,243,216,0.5)' }}>A</span>
           <span style={{ fontFamily: 'monospace', fontSize: '0.32rem', fontWeight: 700, color: C.orange, letterSpacing: '0.1em' }}>B</span>
         </div>
       </div>
@@ -995,27 +993,29 @@ function EQKnob({ label, value, size, color, onChange }: {
       onPointerUp={onPointerUp}
     >
       <div style={{ position: 'relative', width: size, height: size }}>
-        {/* Outer ring */}
+        {/* Outer ring — silver channel */}
         <svg width={size} height={size} viewBox="0 0 40 40" style={{ position: 'absolute', inset: 0 }}>
-          <circle cx="20" cy="20" r="18" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="3"/>
-          {/* Arc track */}
+          <circle cx="20" cy="20" r="18" fill="none" stroke="rgba(142,151,159,0.2)" strokeWidth="3"/>
+          {/* Arc — silver fill, glows with color at center */}
           <circle cx="20" cy="20" r="18" fill="none"
-            stroke={isCenter ? color : `${color}60`}
+            stroke={isCenter ? color : 'rgba(185,192,199,0.55)'}
             strokeWidth="2.5"
             strokeDasharray={`${(localVal / 100) * 113} 200`}
             strokeDashoffset="85"
             strokeLinecap="round"
-            style={{ transition: dragging ? 'none' : 'stroke 0.2s' }}
+            style={{ transition: dragging ? 'none' : 'stroke 0.2s',
+              filter: isCenter ? `drop-shadow(0 0 3px ${color}80)` : 'none' }}
           />
         </svg>
-        {/* Knob body */}
+        {/* Knob body — dark brushed metal */}
         <div style={{
           position: 'absolute', inset: size * 0.12,
           borderRadius: '50%',
-          background: `radial-gradient(circle at 38% 35%, #2e2e3a, #111116)`,
-          boxShadow: `inset 0 2px 4px rgba(0,0,0,0.8), inset 0 -1px 0 rgba(255,255,255,0.06),
-            0 0 ${isCenter ? 8 : 0}px ${color}60`,
+          background: `radial-gradient(circle at 38% 35%, #2a2e36, #0e1014)`,
+          boxShadow: `inset 0 2px 4px rgba(0,0,0,0.8), inset 0 -1px 0 rgba(185,192,199,0.08),
+            0 0 ${isCenter ? 8 : 0}px ${color}50`,
           transition: 'box-shadow 0.2s',
+          border: '1px solid rgba(170,179,187,0.12)',
         }}>
           {/* Indicator line */}
           <div style={{
@@ -1242,19 +1242,19 @@ function PitchFader({ pitch, onChange }: { pitch: number; onChange(v: number): v
       <p style={{ fontFamily: 'monospace', fontSize: '0.26rem', letterSpacing: '0.4em', color: C.dim }}>PITCH</p>
       <div style={{ position: 'relative', width: 14, height: 78 }}>
         <div style={{ position: 'absolute', left: 5, width: 4, height: '100%', borderRadius: 3,
-          background: '#070708', border: 'none',
-          boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.8)' }} />
+          background: '#0a0c0f',
+          boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(170,179,187,0.1)' }} />
         <div style={{ position: 'absolute', left: 2, width: 10, top: '50%', height: 1,
-          background: `${C.cyan}40` }} />
+          background: `rgba(170,179,187,0.25)` }} />
         <input type="range" min={-8} max={8} step={0.1} value={pitch} onChange={e => onChange(+e.target.value)}
           style={{ writingMode: 'vertical-lr', direction: 'rtl', position: 'absolute',
             height: '100%', width: 30, left: -8, opacity: 0, cursor: 'pointer', margin: 0 }} />
         <div style={{
           position: 'absolute', width: 26, height: 11, top: `calc(${pct}% - 5.5px)`, left: -6,
           borderRadius: 2, pointerEvents: 'none',
-          background: 'linear-gradient(to bottom, #ccc, #999 40%, #777)',
-          boxShadow: '0 2px 7px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.6)',
-          border: 'none',
+          background: 'linear-gradient(160deg, #d9e0e6 0%, #b9c0c7 30%, #8e979f 65%, #72797f 100%)',
+          boxShadow: '0 2px 7px rgba(0,0,0,0.8), inset 0 1px 0 rgba(217,224,230,0.7)',
+          border: '1px solid rgba(100,108,116,0.55)',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
         }}>
           {[0,1].map(i => <div key={i} style={{ width: '55%', height: 1,
