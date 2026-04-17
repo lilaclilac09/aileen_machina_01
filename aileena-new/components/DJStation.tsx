@@ -237,35 +237,63 @@ export default function DJStation() {
         </div>
 
         {/* Deck + Mixer grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 1fr', gap: 8, marginBottom: 10 }}>
-          <DeckPanel
-            side="left" track={leftTrack} playing={leftPlaying}
-            pos={leftPos} dur={leftDur || (leftTrack?.dur ?? 0) * 1000}
-            pitch={leftPitch} dim={leftDim} dropActive={dropSide === 'left'}
-            onDragOver={e => { e.preventDefault(); setDropSide('left'); }}
-            onDragLeave={() => setDropSide(null)}
-            onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('left', dragTrack.current); setDropSide(null); }}
-            onToggle={() => leftCtrl.current?.togglePlay()}
-            onPitch={setLeftPitch}
-            onScratchStart={() => { leftWasPlaying.current = leftPlaying; if (leftPlaying) leftCtrl.current?.togglePlay(); }}
-            onScratchEnd={() => { if (leftWasPlaying.current) leftCtrl.current?.togglePlay(); }}
-          />
-
-          <MixerPanel xfade={xfade} onXfade={handleXfade} />
-
-          <DeckPanel
-            side="right" track={rightTrack} playing={rightPlaying}
-            pos={rightPos} dur={rightDur || (rightTrack?.dur ?? 0) * 1000}
-            pitch={rightPitch} dim={rightDim} dropActive={dropSide === 'right'}
-            onDragOver={e => { e.preventDefault(); setDropSide('right'); }}
-            onDragLeave={() => setDropSide(null)}
-            onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('right', dragTrack.current); setDropSide(null); }}
-            onToggle={() => rightCtrl.current?.togglePlay()}
-            onPitch={setRightPitch}
-            onScratchStart={() => { rightWasPlaying.current = rightPlaying; if (rightPlaying) rightCtrl.current?.togglePlay(); }}
-            onScratchEnd={() => { if (rightWasPlaying.current) rightCtrl.current?.togglePlay(); }}
-          />
-        </div>
+        {isMobile ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 10 }}>
+            <DeckPanel
+              side="left" track={leftTrack} playing={leftPlaying} isMobile={true}
+              pos={leftPos} dur={leftDur || (leftTrack?.dur ?? 0) * 1000}
+              pitch={leftPitch} dim={leftDim} dropActive={dropSide === 'left'}
+              onDragOver={e => { e.preventDefault(); setDropSide('left'); }}
+              onDragLeave={() => setDropSide(null)}
+              onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('left', dragTrack.current); setDropSide(null); }}
+              onToggle={() => leftCtrl.current?.togglePlay()}
+              onPitch={setLeftPitch}
+              onScratchStart={() => { leftWasPlaying.current = leftPlaying; if (leftPlaying) leftCtrl.current?.togglePlay(); }}
+              onScratchEnd={() => { if (leftWasPlaying.current) leftCtrl.current?.togglePlay(); }}
+            />
+            <MixerPanel xfade={xfade} onXfade={handleXfade} isMobile={true} />
+            <DeckPanel
+              side="right" track={rightTrack} playing={rightPlaying} isMobile={true}
+              pos={rightPos} dur={rightDur || (rightTrack?.dur ?? 0) * 1000}
+              pitch={rightPitch} dim={rightDim} dropActive={dropSide === 'right'}
+              onDragOver={e => { e.preventDefault(); setDropSide('right'); }}
+              onDragLeave={() => setDropSide(null)}
+              onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('right', dragTrack.current); setDropSide(null); }}
+              onToggle={() => rightCtrl.current?.togglePlay()}
+              onPitch={setRightPitch}
+              onScratchStart={() => { rightWasPlaying.current = rightPlaying; if (rightPlaying) rightCtrl.current?.togglePlay(); }}
+              onScratchEnd={() => { if (rightWasPlaying.current) rightCtrl.current?.togglePlay(); }}
+            />
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 1fr', gap: 8, marginBottom: 10 }}>
+            <DeckPanel
+              side="left" track={leftTrack} playing={leftPlaying}
+              pos={leftPos} dur={leftDur || (leftTrack?.dur ?? 0) * 1000}
+              pitch={leftPitch} dim={leftDim} dropActive={dropSide === 'left'}
+              onDragOver={e => { e.preventDefault(); setDropSide('left'); }}
+              onDragLeave={() => setDropSide(null)}
+              onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('left', dragTrack.current); setDropSide(null); }}
+              onToggle={() => leftCtrl.current?.togglePlay()}
+              onPitch={setLeftPitch}
+              onScratchStart={() => { leftWasPlaying.current = leftPlaying; if (leftPlaying) leftCtrl.current?.togglePlay(); }}
+              onScratchEnd={() => { if (leftWasPlaying.current) leftCtrl.current?.togglePlay(); }}
+            />
+            <MixerPanel xfade={xfade} onXfade={handleXfade} />
+            <DeckPanel
+              side="right" track={rightTrack} playing={rightPlaying}
+              pos={rightPos} dur={rightDur || (rightTrack?.dur ?? 0) * 1000}
+              pitch={rightPitch} dim={rightDim} dropActive={dropSide === 'right'}
+              onDragOver={e => { e.preventDefault(); setDropSide('right'); }}
+              onDragLeave={() => setDropSide(null)}
+              onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('right', dragTrack.current); setDropSide(null); }}
+              onToggle={() => rightCtrl.current?.togglePlay()}
+              onPitch={setRightPitch}
+              onScratchStart={() => { rightWasPlaying.current = rightPlaying; if (rightPlaying) rightCtrl.current?.togglePlay(); }}
+              onScratchEnd={() => { if (rightWasPlaying.current) rightCtrl.current?.togglePlay(); }}
+            />
+          </div>
+        )}
       </div>
 
       {/* ── Track Library Browser (Film Strip Carousel) ── */}
@@ -287,15 +315,15 @@ export default function DJStation() {
 }
 
 /* ─── Deck Panel ─────────────────────────────────────────── */
-function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive,
+function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isMobile,
   onDragOver, onDragLeave, onDrop, onToggle, onPitch, onScratchStart, onScratchEnd }: {
   side: 'left'|'right'; track: Track|null; playing: boolean;
-  pos: number; dur: number; pitch: number; dim: number; dropActive: boolean;
+  pos: number; dur: number; pitch: number; dim: number; dropActive: boolean; isMobile?: boolean;
   onDragOver(e: React.DragEvent): void; onDragLeave(): void; onDrop(e: React.DragEvent): void;
   onToggle(): void; onPitch(v: number): void;
   onScratchStart(): void; onScratchEnd(): void;
 }) {
-  const D    = 172;
+  const D    = isMobile ? 130 : 172;
   const R    = D / 2;
   const r    = R - 7;
   const circ = 2 * Math.PI * r;
@@ -349,8 +377,11 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive,
   const tipY   = playing ? D * 0.26 : D * 0.0;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 5,
-      opacity: 0.4 + 0.6 * dim, transition: 'opacity 0.4s ease' }}>
+    <div style={{
+      display: 'flex', flexDirection: isMobile ? 'row' : 'column',
+      gap: isMobile ? 10 : 5, alignItems: isMobile ? 'flex-start' : 'stretch',
+      opacity: 0.4 + 0.6 * dim, transition: 'opacity 0.4s ease',
+    }}>
 
       {/* Platter drop zone */}
       <div onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop} style={{
@@ -515,6 +546,9 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive,
         )}
       </div>
 
+      {/* Info + Controls wrapper — takes remaining space on mobile */}
+      <div style={{ flex: isMobile ? 1 : undefined, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>
+
       {/* Info row */}
       <div style={{
         borderRadius: 5, padding: '5px 8px',
@@ -578,17 +612,20 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive,
           </span>
         </div>
       </div>
+      </div>{/* end info+controls wrapper */}
     </div>
   );
 }
 
 /* ─── Mixer Panel ────────────────────────────────────────── */
-function MixerPanel({ xfade, onXfade }: { xfade: number; onXfade(v: number): void }) {
+function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: number): void; isMobile?: boolean }) {
   return (
     <div style={{
-      borderRadius: 6, padding: '8px 6px',
+      borderRadius: 6, padding: isMobile ? '8px 12px' : '8px 6px',
       background: C.deck, border: 'none',
-      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+      display: 'flex', flexDirection: isMobile ? 'row' : 'column',
+      alignItems: 'center', gap: 8,
+      flexWrap: isMobile ? 'wrap' : undefined,
     }}>
       {/* BPM */}
       <div style={{ width: '100%', textAlign: 'center', borderRadius: 4, padding: '3px 0',
@@ -608,7 +645,7 @@ function MixerPanel({ xfade, onXfade }: { xfade: number; onXfade(v: number): voi
       ))}
 
       {/* Crossfader */}
-      <div style={{ width: '100%' }}>
+      <div style={{ width: '100%', flexBasis: isMobile ? '100%' : undefined }}>
         <p style={{ fontFamily: 'monospace', fontSize: '0.26rem', letterSpacing: '0.35em', color: C.dim,
           textAlign: 'center', marginBottom: 4 }}>XFADE</p>
         <div style={{
