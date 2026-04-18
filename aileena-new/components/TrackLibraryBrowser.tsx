@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 
 type Track = {
   id: string;
@@ -454,6 +454,17 @@ function PlaylistCarousel({
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const active = tracks[activeIdx];
 
+  // Detect touch-capable devices so we can disable HTML5 `draggable` on them —
+  // on iOS Safari the draggable attribute breaks touch gestures (shows image
+  // callout / selection) without providing any real drag behavior.
+  const [isTouch, setIsTouch] = useState(false);
+  useEffect(() => {
+    const touch =
+      typeof window !== 'undefined' &&
+      ('ontouchstart' in window || (navigator.maxTouchPoints ?? 0) > 0);
+    setIsTouch(!!touch);
+  }, []);
+
   function onCardHover(i: number, rel: number) {
     if (isDragging || rel === 0) return;
     if (hoverTimer.current) clearTimeout(hoverTimer.current);
@@ -463,21 +474,47 @@ function PlaylistCarousel({
     if (hoverTimer.current) { clearTimeout(hoverTimer.current); hoverTimer.current = null; }
   }
 
-  function onPtrDown(e: React.PointerEvent<HTMLDivElement>) {
-    e.currentTarget.setPointerCapture(e.pointerId);
-    setPtrStart(e.clientX);
+  // Drag handling uses document-level listeners attached on pointerdown.
+  // Safari iOS has fired flaky pointermove events through React's synthetic
+  // bubbling + setPointerCapture when the initial target is a child element;
+  // attaching to document sidesteps that and guarantees drag continues even
+  // if the pointer leaves the wrapper.
+  const dragState = useRef<{ startX: number; offset: number; swiped: boolean } | null>(null);
+
+  function beginDrag(clientX: number) {
+    dragState.current = { startX: clientX, offset: 0, swiped: false };
+    setPtrStart(clientX);
     setDragOffset(0);
   }
-  function onPtrMove(e: React.PointerEvent<HTMLDivElement>) {
-    if (ptrStart === null) return;
-    setDragOffset(e.clientX - ptrStart);
+  function moveDrag(clientX: number) {
+    const s = dragState.current;
+    if (!s) return;
+    s.offset = clientX - s.startX;
+    setDragOffset(s.offset);
   }
-  function onPtrUp() {
-    if (ptrStart === null) return;
-    if (dragOffset < -55 && activeIdx < tracks.length - 1) setActiveIdx(activeIdx + 1);
-    else if (dragOffset > 55 && activeIdx > 0) setActiveIdx(activeIdx - 1);
+  function endDrag() {
+    const s = dragState.current;
+    if (!s) return;
+    if (s.offset < -55 && activeIdx < tracks.length - 1) setActiveIdx(activeIdx + 1);
+    else if (s.offset > 55 && activeIdx > 0) setActiveIdx(activeIdx - 1);
+    dragState.current = null;
     setPtrStart(null);
     setDragOffset(0);
+  }
+
+  function onPtrDown(e: React.PointerEvent<HTMLDivElement>) {
+    if (dragState.current) return;
+    beginDrag(e.clientX);
+    const onMove = (ev: PointerEvent) => moveDrag(ev.clientX);
+    const onEnd = () => {
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onEnd);
+      document.removeEventListener('pointercancel', onEnd);
+      endDrag();
+    };
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onEnd);
+    document.addEventListener('pointercancel', onEnd);
   }
 
   const CARD = 154;
@@ -513,10 +550,13 @@ function PlaylistCarousel({
         {/* Cards */}
         <div
           onPointerDown={onPtrDown}
-          onPointerMove={onPtrMove}
-          onPointerUp={onPtrUp}
-          onPointerCancel={onPtrUp}
-          style={{ position: 'absolute', inset: 0, cursor: isDragging ? 'grabbing' : 'grab' }}
+          style={{
+            position: 'absolute', inset: 0,
+            cursor: isDragging ? 'grabbing' : 'grab',
+            touchAction: 'pan-y',
+            WebkitUserSelect: 'none',
+            WebkitTouchCallout: 'none',
+          }}
         >
           {tracks.map((track, i) => {
             const rel = i - activeIdx;
@@ -531,11 +571,15 @@ function PlaylistCarousel({
             return (
               <div
                 key={track.id}
-                draggable
+                draggable={!isTouch}
                 onDragStart={e => { e.stopPropagation(); onSetDragTrack?.(track); }}
                 onMouseEnter={() => onCardHover(i, rel)}
                 onMouseLeave={onCardLeave}
-                onClick={() => rel !== 0 && setActiveIdx(i)}
+                onClick={() => {
+                  // Swallow clicks fired at the end of a swipe drag.
+                  if (Math.abs(dragOffset) > 4) return;
+                  if (rel !== 0) setActiveIdx(i);
+                }}
                 style={{
                   position: 'absolute',
                   width: CARD, height: CARD,
@@ -544,6 +588,9 @@ function PlaylistCarousel({
                   transition: isDragging ? 'opacity 0.15s, box-shadow 0.3s' : 'all 0.42s cubic-bezier(0.4,0,0.2,1)',
                   zIndex, opacity,
                   cursor: rel === 0 ? (isDragging ? 'grabbing' : 'grab') : 'pointer',
+                  touchAction: 'pan-y',
+                  WebkitUserSelect: 'none',
+                  WebkitTouchCallout: 'none',
                 }}
               >
                 {/* Card face */}

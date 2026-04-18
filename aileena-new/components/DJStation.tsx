@@ -614,16 +614,26 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {/* Play/Pause */}
-          <button onClick={onToggle} style={{
+          <button onClick={onToggle} aria-label={playing ? 'Pause' : 'Play'} style={{
             width: 38, height: 38, borderRadius: '50%', cursor: 'pointer',
             background: playing ? `rgba(99,243,216,0.1)` : '#14181e',
             border: `1px solid ${playing ? 'rgba(99,243,216,0.6)' : 'rgba(170,179,187,0.22)'}`,
             boxShadow: playing ? `0 0 10px rgba(99,243,216,0.28)` : 'inset 0 2px 5px rgba(0,0,0,0.4)',
             color: playing ? C.cyan : C.silver,
-            fontSize: '0.8rem',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             transition: 'all 0.15s',
-          }}>{playing ? '⏸' : '▶'}</button>
+          }}>
+            {playing ? (
+              <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true">
+                <rect x="1"  y="0" width="3" height="12" fill="currentColor" />
+                <rect x="7"  y="0" width="3" height="12" fill="currentColor" />
+              </svg>
+            ) : (
+              <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true">
+                <path d="M1 0.5 L10 6 L1 11.5 Z" fill="currentColor" />
+              </svg>
+            )}
+          </button>
           {/* CUE */}
           <button onClick={() => setCueMs(pos > 0 ? pos : null)} style={{
             width: 38, height: 38, borderRadius: '50%', cursor: 'pointer',

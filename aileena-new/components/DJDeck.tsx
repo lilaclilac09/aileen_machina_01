@@ -101,7 +101,7 @@ export default function DJDeck() {
         onClick={() => setPlaying(p => !p)}
         className="mt-6 text-[0.58rem] uppercase tracking-[0.55em] text-[#00ffea] hover:opacity-50 transition-opacity"
       >
-        {playing ? '⏸ PAUSE' : '▶ PLAY'}
+        {playing ? 'PAUSE' : 'PLAY'}
       </button>
     </div>
   );
