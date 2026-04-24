@@ -45,6 +45,7 @@ html {
   position: relative;
 }
 
+
 @media (max-width: 768px) {
   .snap-container {
     scroll-snap-type: y proximity;

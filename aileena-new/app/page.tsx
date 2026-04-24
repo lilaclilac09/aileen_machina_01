@@ -137,7 +137,7 @@ export default function Home() {
 
         {/* ── 06 BLOG ── */}
         <SnapSection id="blog">
-          <div className="h-full flex flex-col justify-center bg-black px-5 sm:px-10 lg:px-16 py-8 overflow-y-auto" style={{ overscrollBehavior: 'contain' }}>
+          <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-16 pt-20 pb-8 overflow-y-auto" style={{ overscrollBehavior: 'contain' }}>
             <div className="mx-auto w-full max-w-[1400px]">
               <div className="anim-up flex items-end border-b border-white/8 pb-3 mb-5">
                 <p className="text-xs uppercase tracking-[0.5em] text-white/45">{tx.blog.tag}</p>
