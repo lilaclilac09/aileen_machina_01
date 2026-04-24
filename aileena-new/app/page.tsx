@@ -137,31 +137,23 @@ export default function Home() {
 
         {/* ── 06 BLOG ── */}
         <SnapSection id="blog">
-          <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-16 pt-20 pb-8 overflow-y-auto" style={{ overscrollBehavior: 'contain' }}>
+          <div className="h-full flex flex-col justify-center bg-black px-5 sm:px-10 lg:px-16" style={{ overscrollBehavior: 'contain' }}>
             <div className="mx-auto w-full max-w-[1400px]">
-              <div className="anim-up flex items-end border-b border-white/8 pb-3 mb-5">
+              <div className="anim-up flex items-end justify-between border-b border-white/8 pb-3 mb-6">
                 <p className="text-xs uppercase tracking-[0.5em] text-white/45">{tx.blog.tag}</p>
+                <p className="text-xs uppercase tracking-[0.4em] text-white/30">{tx.blog.heading}</p>
               </div>
-              <h2 className="anim-up-2 mb-6 text-[clamp(1.6rem,4vw,4rem)] font-semibold tracking-[0.1em]">{tx.blog.heading}</h2>
               <div>
                 {tx.blog.posts.map((post, i) => {
                   const hrefs = ['/blog/robots', '/blog/lion', '/blog/misread', '/blog/harassment'];
                   const href = hrefs[i] ?? '#';
-                  const inner = (
-                    <>
-                      <p className="font-mono text-[0.68rem] sm:text-xs tracking-[0.22em] sm:tracking-widest text-white/40 pt-1">{post.date}</p>
-                      <div>
-                        <h3 className="text-[clamp(0.95rem,3vw,1.6rem)] tracking-[0.07em] sm:tracking-[0.1em] text-white/85 group-hover:text-white transition-colors">{post.title}</h3>
-                        <p className="mt-1 sm:mt-2 text-sm leading-5 sm:leading-6 text-white/50">{post.body}</p>
-                        <p className="mt-2 font-mono text-[0.6rem] tracking-[0.35em] text-[#00ffea]/50 group-hover:text-[#00ffea] transition-colors uppercase">
-                          {i === 0 ? tx.blog.watch : tx.blog.read}
-                        </p>
-                      </div>
-                    </>
-                  );
                   return (
-                    <Link key={post.title} href={href} className={`group grid grid-cols-1 sm:grid-cols-[7rem_1fr] items-start gap-3 sm:gap-6 border-b border-white/8 py-3 sm:py-4 anim-up-${Math.min(i + 1, 3)} cursor-pointer no-underline`}>
-                      {inner}
+                    <Link key={post.title} href={href} className={`group grid grid-cols-[5rem_1fr_auto] sm:grid-cols-[8rem_1fr_auto] items-center gap-4 sm:gap-8 border-b border-white/6 py-5 sm:py-6 hover:border-white/15 transition-colors anim-up-${Math.min(i + 1, 3)} cursor-pointer no-underline`}>
+                      <span className="font-mono text-[0.65rem] tracking-widest text-white/35">{post.date}</span>
+                      <h3 className="text-[clamp(0.9rem,2.5vw,1.5rem)] tracking-[0.07em] sm:tracking-[0.1em] text-white/80 group-hover:text-white transition-colors">{post.title}</h3>
+                      <span className="font-mono text-[0.58rem] tracking-[0.35em] text-[#00ffea]/40 group-hover:text-[#00ffea] transition-colors uppercase whitespace-nowrap">
+                        {i === 0 ? tx.blog.watch : tx.blog.read}
+                      </span>
                     </Link>
                   );
                 })}
