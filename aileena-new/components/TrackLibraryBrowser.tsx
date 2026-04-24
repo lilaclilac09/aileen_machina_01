@@ -1,6 +1,18 @@
 'use client';
 import { useState, useRef, useMemo, useEffect } from 'react';
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 639px)');
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  return isMobile;
+}
+
 type Track = {
   id: string;
   title: string;
@@ -80,6 +92,7 @@ export default function TrackLibraryBrowser({ tracks, onLoadTrack, onSetDragTrac
   rightPos?: number;
   rightDur?: number;
 }) {
+  const isMobile = useIsMobile();
   const [mode, setMode] = useState<ViewMode>('playlist');
   const [playlistIdx, setPlaylistIdx] = useState(0);
   const [query, setQuery] = useState('');
@@ -97,10 +110,12 @@ export default function TrackLibraryBrowser({ tracks, onLoadTrack, onSetDragTrac
       {mode === 'list' ? (
         <ListView
           tracks={filtered} query={query} onQuery={setQuery}
+          onLoadTrack={onLoadTrack}
           onSetDragTrack={onSetDragTrack}
           playingLeft={playingLeft} playingRight={playingRight}
           leftPos={leftPos} leftDur={leftDur}
           rightPos={rightPos} rightDur={rightDur}
+          isMobile={isMobile}
         />
       ) : (
         <PlaylistCarousel
@@ -109,6 +124,7 @@ export default function TrackLibraryBrowser({ tracks, onLoadTrack, onSetDragTrac
           setActiveIdx={setPlaylistIdx}
           onLoadTrack={onLoadTrack}
           onSetDragTrack={onSetDragTrack}
+          isMobile={isMobile}
         />
       )}
 
@@ -184,14 +200,16 @@ export default function TrackLibraryBrowser({ tracks, onLoadTrack, onSetDragTrac
 
 /* ─── LIST VIEW ─────────────────────────────────────────── */
 function ListView({
-  tracks, query, onQuery, onSetDragTrack,
-  playingLeft, playingRight, leftPos, leftDur, rightPos, rightDur,
+  tracks, query, onQuery, onLoadTrack, onSetDragTrack,
+  playingLeft, playingRight, leftPos, leftDur, rightPos, rightDur, isMobile,
 }: {
   tracks: Track[]; query: string; onQuery: (q: string) => void;
+  onLoadTrack?: (side: 'left' | 'right', track: Track) => void;
   onSetDragTrack?: (track: Track) => void;
   playingLeft?: string | null; playingRight?: string | null;
   leftPos?: number; leftDur?: number;
   rightPos?: number; rightDur?: number;
+  isMobile?: boolean;
 }) {
   const [sortField, setSortField] = useState<'title' | 'bpm'>('title');
   const [sortDir,   setSortDir]   = useState<'asc' | 'desc'>('asc');
@@ -262,8 +280,8 @@ function ListView({
       {/* ── Column headers — layer 2 ── */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: '32px 1fr auto 52px',
-        padding: '5px 14px 5px 0',
+        gridTemplateColumns: '36px 1fr 120px 54px 52px',
+        padding: '5px 8px 5px 0',
         background: T.chassisHi,
         borderBottom: `1px solid ${T.border}`,
       }}>
@@ -280,13 +298,18 @@ function ListView({
         <span style={{
           fontFamily: 'monospace', fontSize: '0.26rem',
           fontWeight: 500, letterSpacing: '0.12em',
-          color: T.l2, paddingRight: 14, textTransform: 'uppercase',
+          color: T.l2, textTransform: 'uppercase',
         }}>INFO</span>
         <span style={{
           fontFamily: 'monospace', fontSize: '0.26rem',
           fontWeight: 500, letterSpacing: '0.12em',
-          color: T.l2, textAlign: 'right', textTransform: 'uppercase',
+          color: T.l2, textAlign: 'right', paddingRight: 8, textTransform: 'uppercase',
         }}>DUR</span>
+        <span style={{
+          fontFamily: 'monospace', fontSize: '0.26rem',
+          fontWeight: 500, letterSpacing: '0.12em',
+          color: T.l2, textTransform: 'uppercase', textAlign: 'center',
+        }}>LOAD</span>
       </div>
 
       {/* ── Track rows ── */}
@@ -309,6 +332,8 @@ function ListView({
             pos={isLeft ? (leftPos ?? 0) : isRight ? (rightPos ?? 0) : 0}
             dur={isLeft ? (leftDur ?? 0) : isRight ? (rightDur ?? 0) : 0}
             onSetDragTrack={onSetDragTrack}
+            onLoadTrack={onLoadTrack}
+            isMobile={isMobile}
           />
         );
       })}
@@ -317,11 +342,13 @@ function ListView({
 }
 
 function ListTrackRow({ index, track, isPlayingLeft, isPlayingRight, pos, dur,
-  onSetDragTrack }: {
+  onSetDragTrack, onLoadTrack, isMobile }: {
   index: number; track: Track;
   isPlayingLeft: boolean; isPlayingRight: boolean;
   pos: number; dur: number;
   onSetDragTrack?: (track: Track) => void;
+  onLoadTrack?: (side: 'left' | 'right', track: Track) => void;
+  isMobile?: boolean;
 }) {
   const [hov, setHov] = useState(false);
   const isPlaying = isPlayingLeft || isPlayingRight;
@@ -333,15 +360,15 @@ function ListTrackRow({ index, track, isPlayingLeft, isPlayingRight, pos, dur,
 
   return (
     <div
-      draggable={true}
+      draggable={!isMobile}
       onDragStart={() => onSetDragTrack?.(track)}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
         display: 'grid',
-        gridTemplateColumns: '36px 1fr 120px 64px',
+        gridTemplateColumns: '36px 1fr 120px 54px 52px',
         alignItems: 'center',
-        paddingRight: 14,
+        paddingRight: 8,
         minHeight: 52,
         background: isPlaying
           ? 'rgba(92,210,255,0.05)'
@@ -426,10 +453,42 @@ function ListTrackRow({ index, track, isPlayingLeft, isPlayingRight, pos, dur,
         fontFamily: 'monospace', fontSize: '0.70rem', fontWeight: 400,
         letterSpacing: '0.04em', fontVariantNumeric: 'tabular-nums',
         color: isPlaying ? T.cyanSoft : T.l3m,
-        textAlign: 'right', transition: 'color 0.2s',
+        textAlign: 'right', paddingRight: 8, transition: 'color 0.2s',
       }}>
         {fmtDur(track.dur)}
       </span>
+
+      {/* Load A / B */}
+      <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+        <button
+          onPointerDown={e => e.stopPropagation()}
+          onClick={e => { e.stopPropagation(); onLoadTrack?.('left', track); }}
+          style={{
+            width: 26, height: 26, borderRadius: 4, cursor: 'pointer',
+            background: isPlayingLeft ? `${T.deckA}22` : 'transparent',
+            border: `1px solid ${isPlayingLeft ? T.deckA : 'rgba(255,255,255,0.12)'}`,
+            fontFamily: 'monospace', fontSize: '0.60rem', fontWeight: 700,
+            color: isPlayingLeft ? T.deckA : T.l2,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'all 0.15s',
+            touchAction: 'manipulation',
+            WebkitTapHighlightColor: 'transparent',
+          } as React.CSSProperties}>A</button>
+        <button
+          onPointerDown={e => e.stopPropagation()}
+          onClick={e => { e.stopPropagation(); onLoadTrack?.('right', track); }}
+          style={{
+            width: 26, height: 26, borderRadius: 4, cursor: 'pointer',
+            background: isPlayingRight ? `${T.deckB}22` : 'transparent',
+            border: `1px solid ${isPlayingRight ? T.deckB : 'rgba(255,255,255,0.12)'}`,
+            fontFamily: 'monospace', fontSize: '0.60rem', fontWeight: 700,
+            color: isPlayingRight ? T.deckB : T.l2,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'all 0.15s',
+            touchAction: 'manipulation',
+            WebkitTapHighlightColor: 'transparent',
+          } as React.CSSProperties}>B</button>
+      </div>
     </div>
   );
 }
@@ -441,29 +500,20 @@ function PlaylistCarousel({
   setActiveIdx,
   onLoadTrack,
   onSetDragTrack,
+  isMobile,
 }: {
   tracks: Track[];
   activeIdx: number;
   setActiveIdx: (i: number) => void;
   onLoadTrack?: (side: 'left' | 'right', track: Track) => void;
   onSetDragTrack?: (track: Track) => void;
+  isMobile?: boolean;
 }) {
   const [ptrStart, setPtrStart] = useState<number | null>(null);
   const [dragOffset, setDragOffset] = useState(0);
   const isDragging = dragOffset !== 0 || ptrStart !== null;
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const active = tracks[activeIdx];
-
-  // Detect touch-capable devices so we can disable HTML5 `draggable` on them —
-  // on iOS Safari the draggable attribute breaks touch gestures (shows image
-  // callout / selection) without providing any real drag behavior.
-  const [isTouch, setIsTouch] = useState(false);
-  useEffect(() => {
-    const touch =
-      typeof window !== 'undefined' &&
-      ('ontouchstart' in window || (navigator.maxTouchPoints ?? 0) > 0);
-    setIsTouch(!!touch);
-  }, []);
 
   function onCardHover(i: number, rel: number) {
     if (isDragging || rel === 0) return;
@@ -517,8 +567,8 @@ function PlaylistCarousel({
     document.addEventListener('pointercancel', onEnd);
   }
 
-  const CARD = 154;
-  const SPACING = 128;
+  const CARD    = isMobile ? 108 : 154;
+  const SPACING = isMobile ? 88  : 128;
 
   return (
     <div style={{ padding: '16px 0 8px' }}>
@@ -571,7 +621,7 @@ function PlaylistCarousel({
             return (
               <div
                 key={track.id}
-                draggable={!isTouch}
+                draggable={!isMobile}
                 onDragStart={e => { e.stopPropagation(); onSetDragTrack?.(track); }}
                 onMouseEnter={() => onCardHover(i, rel)}
                 onMouseLeave={onCardLeave}
@@ -613,24 +663,55 @@ function PlaylistCarousel({
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                     draggable={false}
                   />
-                  {/* Caption overlay — layer 1 typography on active card */}
+                  {/* Caption + load buttons on active card */}
                   {rel === 0 && (
                     <div style={{
                       position: 'absolute', bottom: 0, left: 0, right: 0,
-                      padding: '22px 10px 8px',
-                      background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%)',
+                      padding: '22px 6px 6px',
+                      background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, transparent 100%)',
                     }}>
                       <p style={{
                         fontFamily: 'monospace',
-                        fontSize: '0.32rem',
+                        fontSize: '0.30rem',
                         fontWeight: 600,
                         letterSpacing: '0.10em',
                         color: T.l1,
                         textTransform: 'uppercase',
                         textAlign: 'center',
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                        margin: 0,
+                        margin: '0 0 4px',
                       }}>{track.title}</p>
+                      {/* Load A / B — tap-friendly on mobile */}
+                      {onLoadTrack && (
+                        <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
+                          <button
+                            onPointerDown={e => e.stopPropagation()}
+                            onClick={e => { e.stopPropagation(); onLoadTrack('left', track); }}
+                            style={{
+                              flex: 1, height: 28, borderRadius: 4, cursor: 'pointer',
+                              background: 'rgba(121,216,255,0.15)',
+                              border: `1px solid ${T.cyanSoft}88`,
+                              fontFamily: 'monospace', fontSize: '0.60rem', fontWeight: 700,
+                              letterSpacing: '0.1em', color: T.cyanCore,
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              touchAction: 'manipulation',
+                              WebkitTapHighlightColor: 'transparent',
+                            } as React.CSSProperties}>A</button>
+                          <button
+                            onPointerDown={e => e.stopPropagation()}
+                            onClick={e => { e.stopPropagation(); onLoadTrack('right', track); }}
+                            style={{
+                              flex: 1, height: 28, borderRadius: 4, cursor: 'pointer',
+                              background: 'rgba(137,168,224,0.15)',
+                              border: `1px solid ${T.deckB}88`,
+                              fontFamily: 'monospace', fontSize: '0.60rem', fontWeight: 700,
+                              letterSpacing: '0.1em', color: T.deckB,
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              touchAction: 'manipulation',
+                              WebkitTapHighlightColor: 'transparent',
+                            } as React.CSSProperties}>B</button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

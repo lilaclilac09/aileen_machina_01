@@ -20,6 +20,7 @@ export function SnapSection({ children, id }: { children: ReactNode; id?: string
       ([entry]) => {
         if (entry.isIntersecting) {
           el.classList.add('in-view');
+          if (id) document.dispatchEvent(new CustomEvent('section-view', { detail: { id } }));
         } else {
           el.classList.remove('in-view');
         }

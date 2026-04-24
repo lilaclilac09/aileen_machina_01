@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Header from '../components/Header';
 import DJStation from '../components/DJStation';
@@ -9,6 +9,7 @@ import OscilloscopeBackground from '../components/OscilloscopeBackground';
 import { SnapContainer, SnapSection } from '../components/SnapScroll';
 import { useLanguage } from '../components/LanguageProvider';
 import { t } from '../lib/translations';
+import { useAnalytics } from '../hooks/useAnalytics';
 
 export default function Home() {
   const { language } = useLanguage();
@@ -19,6 +20,20 @@ export default function Home() {
   const [formMsg, setFormMsg] = useState('');
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const { track } = useAnalytics();
+  const formTouched = useRef(false);
+
+  useEffect(() => {
+    track('page_view');
+  }, [track]);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      track('section_view', { id: (e as CustomEvent).detail.id });
+    };
+    document.addEventListener('section-view', handler);
+    return () => document.removeEventListener('section-view', handler);
+  }, [track]);
 
   return (
     <>
@@ -110,12 +125,12 @@ export default function Home() {
 
         {/* ── 04 SOUND / DJ ── */}
         <SnapSection id="sound">
-          <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-12 pt-6 pb-4 overflow-y-auto">
+          <div className="h-full flex flex-col bg-black px-3 sm:px-10 lg:px-12 pt-3 sm:pt-6 pb-2 sm:pb-4 overflow-y-auto" style={{ overscrollBehavior: 'contain' }}>
             <div className="mx-auto w-full max-w-[1400px]">
-              <div className="flex items-end border-b border-white/8 pb-3 mb-6">
+              <div className="flex items-end border-b border-white/8 pb-2 mb-3 sm:pb-3 sm:mb-6">
                 <p className="text-[0.58rem] uppercase tracking-[0.55em] text-white/25">{tx.sound.tag}</p>
               </div>
-              <DJStation />
+              <DJStation onTrackLoad={(side, title) => track('dj_play', { side, track: title })} />
             </div>
           </div>
         </SnapSection>
@@ -130,7 +145,8 @@ export default function Home() {
               <h2 className="anim-up-2 mb-12 text-[clamp(2rem,6vw,6rem)] font-semibold tracking-[0.1em]">{tx.blog.heading}</h2>
               <div>
                 {tx.blog.posts.map((post, i) => {
-                  const href = i === 2 ? '/blog/misread' : i === 1 ? '/blog/lion' : '/blog/robots';
+                  const hrefs = ['/blog/robots', '/blog/lion', '/blog/misread', '/blog/harassment'];
+                  const href = hrefs[i] ?? '#';
                   const inner = (
                     <>
                       <p className="font-mono text-[0.68rem] sm:text-xs tracking-[0.22em] sm:tracking-widest text-white/40 pt-1">{post.date}</p>
@@ -186,7 +202,7 @@ export default function Home() {
                 <div className="border border-t-0 border-[#00ffea]/10 p-5 space-y-0">
                   <div className="border-b border-white/6 py-4">
                     <p className="mb-2 text-[0.52rem] tracking-[0.5em] text-white/30">{tx.contact.origin} ·</p>
-                    <input value={formName} onChange={e => setFormName(e.target.value)} className="w-full bg-transparent text-sm tracking-[0.2em] text-white/60 outline-none placeholder:text-white/25 focus:text-white/85" placeholder={tx.contact.name} />
+                    <input value={formName} onChange={e => setFormName(e.target.value)} onFocus={() => { if (!formTouched.current) { formTouched.current = true; track('form_start'); } }} className="w-full bg-transparent text-sm tracking-[0.2em] text-white/60 outline-none placeholder:text-white/25 focus:text-white/85" placeholder={tx.contact.name} />
                   </div>
                   <div className="border-b border-white/6 py-4">
                     <p className="mb-2 text-[0.52rem] tracking-[0.5em] text-white/30">{tx.contact.frequency} ·</p>
@@ -204,6 +220,7 @@ export default function Home() {
                       disabled={sending || sent}
                       onClick={async () => {
                         setSending(true);
+                        track('form_submit', { name: formName, email: formEmail });
                         await fetch('/api/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: formName, email: formEmail, message: formMsg }) });
                         setSending(false);
                         setSent(true);

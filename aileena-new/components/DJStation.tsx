@@ -89,7 +89,7 @@ function useIsMobile() {
 }
 
 /* ─── Main ───────────────────────────────────────────────── */
-export default function DJStation() {
+export default function DJStation({ onTrackLoad }: { onTrackLoad?: (side: 'left' | 'right', title: string) => void }) {
   const isMobile = useIsMobile();
   const [leftTrack,    setLeftTrack]    = useState<Track | null>(TRACKS[0]);
   const [rightTrack,   setRightTrack]   = useState<Track | null>(TRACKS[3]);
@@ -165,7 +165,8 @@ export default function DJStation() {
   const loadTrack = useCallback((side: 'left'|'right', track: Track) => {
     if (side === 'left') { setLeftTrack(track); setLeftPos(0); setLeftDur(0); leftCtrl.current?.loadUri(`spotify:track:${track.id}`); }
     else                 { setRightTrack(track); setRightPos(0); setRightDur(0); rightCtrl.current?.loadUri(`spotify:track:${track.id}`); }
-  }, []);
+    onTrackLoad?.(side, track.title);
+  }, [onTrackLoad]);
 
   const handleXfade = useCallback((v: number) => {
     const prev = prevXfade.current;
@@ -203,8 +204,12 @@ export default function DJStation() {
   return (
     <div style={{ userSelect: 'none', width: '100%', background: '#0b0d10' }}>
 
-      {/* ── Spotify embed containers (functional audio) ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 6, marginBottom: 8 }}>
+      {/* ── Spotify embed containers (functional audio; hidden on mobile) ── */}
+      <div style={{
+        display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+        gap: 6, marginBottom: isMobile ? 0 : 8,
+        height: isMobile ? 0 : undefined, overflow: 'hidden',
+      }}>
         {(['left','right'] as const).map(side => {
           const track = side === 'left' ? leftTrack : rightTrack;
           const ref   = side === 'left' ? leftContainerRef : rightContainerRef;
@@ -262,34 +267,38 @@ export default function DJStation() {
 
         {/* Deck + Mixer grid */}
         {isMobile ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 10 }}>
-            <DeckPanel
-              side="left" track={leftTrack} playing={leftPlaying} isMobile={true} synced={bpmHint?.type === 'sync'}
-              pos={leftPos} dur={leftDur || (leftTrack?.dur ?? 0) * 1000}
-              pitch={leftPitch} dim={leftDim} dropActive={dropSide === 'left'}
-              onDragOver={e => { e.preventDefault(); setDropSide('left'); }}
-              onDragLeave={() => setDropSide(null)}
-              onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('left', dragTrack.current); setDropSide(null); }}
-              onToggle={() => leftCtrl.current?.togglePlay()}
-              onPitch={setLeftPitch}
-              onScratchStart={() => { leftWasPlaying.current = leftPlaying; if (leftPlaying) leftCtrl.current?.togglePlay(); }}
-              onScratchEnd={() => { if (leftWasPlaying.current) leftCtrl.current?.togglePlay(); }}
-              onSync={handleSyncLeft}
-            />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 6 }}>
+            {/* Two decks side by side */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+              <DeckPanel
+                side="left" track={leftTrack} playing={leftPlaying} isMobile={true} synced={bpmHint?.type === 'sync'}
+                pos={leftPos} dur={leftDur || (leftTrack?.dur ?? 0) * 1000}
+                pitch={leftPitch} dim={leftDim} dropActive={dropSide === 'left'}
+                onDragOver={e => { e.preventDefault(); setDropSide('left'); }}
+                onDragLeave={() => setDropSide(null)}
+                onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('left', dragTrack.current); setDropSide(null); }}
+                onToggle={() => leftCtrl.current?.togglePlay()}
+                onPitch={setLeftPitch}
+                onScratchStart={() => { leftWasPlaying.current = leftPlaying; if (leftPlaying) leftCtrl.current?.togglePlay(); }}
+                onScratchEnd={() => { if (leftWasPlaying.current) leftCtrl.current?.togglePlay(); }}
+                onSync={handleSyncLeft}
+              />
+              <DeckPanel
+                side="right" track={rightTrack} playing={rightPlaying} isMobile={true} synced={bpmHint?.type === 'sync'}
+                pos={rightPos} dur={rightDur || (rightTrack?.dur ?? 0) * 1000}
+                pitch={rightPitch} dim={rightDim} dropActive={dropSide === 'right'}
+                onDragOver={e => { e.preventDefault(); setDropSide('right'); }}
+                onDragLeave={() => setDropSide(null)}
+                onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('right', dragTrack.current); setDropSide(null); }}
+                onToggle={() => rightCtrl.current?.togglePlay()}
+                onPitch={setRightPitch}
+                onScratchStart={() => { rightWasPlaying.current = rightPlaying; if (rightPlaying) rightCtrl.current?.togglePlay(); }}
+                onScratchEnd={() => { if (rightWasPlaying.current) rightCtrl.current?.togglePlay(); }}
+                onSync={handleSyncRight}
+              />
+            </div>
+            {/* Crossfader only on mobile */}
             <MixerPanel xfade={xfade} onXfade={handleXfade} isMobile={true} />
-            <DeckPanel
-              side="right" track={rightTrack} playing={rightPlaying} isMobile={true} synced={bpmHint?.type === 'sync'}
-              pos={rightPos} dur={rightDur || (rightTrack?.dur ?? 0) * 1000}
-              pitch={rightPitch} dim={rightDim} dropActive={dropSide === 'right'}
-              onDragOver={e => { e.preventDefault(); setDropSide('right'); }}
-              onDragLeave={() => setDropSide(null)}
-              onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('right', dragTrack.current); setDropSide(null); }}
-              onToggle={() => rightCtrl.current?.togglePlay()}
-              onPitch={setRightPitch}
-              onScratchStart={() => { rightWasPlaying.current = rightPlaying; if (rightPlaying) rightCtrl.current?.togglePlay(); }}
-              onScratchEnd={() => { if (rightWasPlaying.current) rightCtrl.current?.togglePlay(); }}
-              onSync={handleSyncRight}
-            />
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 1fr', gap: 8, marginBottom: 10 }}>
@@ -353,7 +362,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
   onScratchStart(): void; onScratchEnd(): void;
   onSync: () => void;
 }) {
-  const D    = isMobile ? 130 : 172;
+  const D    = isMobile ? 88 : 172;
   const R    = D / 2;
   const r    = R - 7;
   const circ = 2 * Math.PI * r;
@@ -411,8 +420,8 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
 
   return (
     <div style={{
-      display: 'flex', flexDirection: isMobile ? 'row' : 'column',
-      gap: isMobile ? 10 : 5, alignItems: isMobile ? 'flex-start' : 'stretch',
+      display: 'flex', flexDirection: 'column',
+      gap: 5, alignItems: 'stretch',
       opacity: 0.4 + 0.6 * dim, transition: 'opacity 0.4s ease',
     }}>
 
@@ -579,8 +588,8 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
         )}
       </div>
 
-      {/* Info + Controls wrapper — takes remaining space on mobile */}
-      <div style={{ flex: isMobile ? 1 : undefined, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>
+      {/* Info + Controls wrapper */}
+      <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: isMobile ? 4 : 5 }}>
 
       {/* Info row */}
       <div style={{
@@ -606,37 +615,37 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
       </div>
 
       {/* Controls */}
-      <div style={{
-        borderRadius: 6, padding: '7px 7px',
-        background: C.deck,
-        border: '1px solid rgba(170,179,187,0.08)',
-        display: 'flex', alignItems: 'center', gap: 6,
-      }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      {isMobile ? (
+        /* ── Mobile: compact play + CUE row ── */
+        <div style={{
+          borderRadius: 6, padding: '6px 8px',
+          background: C.deck, border: '1px solid rgba(170,179,187,0.08)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6,
+        }}>
           {/* Play/Pause */}
           <button onClick={onToggle} aria-label={playing ? 'Pause' : 'Play'} style={{
-            width: 38, height: 38, borderRadius: '50%', cursor: 'pointer',
-            background: playing ? `rgba(99,243,216,0.1)` : '#14181e',
+            width: 40, height: 40, borderRadius: '50%', cursor: 'pointer',
+            background: playing ? 'rgba(99,243,216,0.1)' : '#14181e',
             border: `1px solid ${playing ? 'rgba(99,243,216,0.6)' : 'rgba(170,179,187,0.22)'}`,
-            boxShadow: playing ? `0 0 10px rgba(99,243,216,0.28)` : 'inset 0 2px 5px rgba(0,0,0,0.4)',
+            boxShadow: playing ? '0 0 10px rgba(99,243,216,0.28)' : 'inset 0 2px 5px rgba(0,0,0,0.4)',
             color: playing ? C.cyan : C.silver,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            transition: 'all 0.15s',
+            transition: 'all 0.15s', flexShrink: 0,
           }}>
             {playing ? (
-              <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true">
-                <rect x="1"  y="0" width="3" height="12" fill="currentColor" />
-                <rect x="7"  y="0" width="3" height="12" fill="currentColor" />
+              <svg width="12" height="13" viewBox="0 0 11 12" fill="none" aria-hidden="true">
+                <rect x="1" y="0" width="3" height="12" fill="currentColor" />
+                <rect x="7" y="0" width="3" height="12" fill="currentColor" />
               </svg>
             ) : (
-              <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true">
+              <svg width="12" height="13" viewBox="0 0 11 12" fill="none" aria-hidden="true">
                 <path d="M1 0.5 L10 6 L1 11.5 Z" fill="currentColor" />
               </svg>
             )}
           </button>
           {/* CUE */}
           <button onClick={() => setCueMs(pos > 0 ? pos : null)} style={{
-            width: 38, height: 38, borderRadius: '50%', cursor: 'pointer',
+            flex: 1, height: 40, borderRadius: 6, cursor: 'pointer',
             background: cueMs !== null ? 'rgba(125,183,255,0.1)' : '#14181e',
             border: `1px solid ${cueMs !== null ? 'rgba(125,183,255,0.55)' : 'rgba(170,179,187,0.22)'}`,
             boxShadow: cueMs !== null ? '0 0 8px rgba(125,183,255,0.25)' : 'inset 0 2px 5px rgba(0,0,0,0.4)',
@@ -647,25 +656,79 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
             <span style={{ fontFamily: 'monospace' }}>CUE</span>
             {cueMs !== null && <span style={{ fontFamily: 'monospace', fontSize: '0.22rem', opacity: 0.7 }}>{fmt(cueMs)}</span>}
           </button>
+          {/* SYNC */}
+          <button onClick={onSync} style={{
+            flex: 1, height: 40, borderRadius: 6, cursor: 'pointer',
+            background: '#14181e',
+            border: '1px solid rgba(170,179,187,0.22)',
+            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.5)',
+            fontFamily: 'monospace', fontSize: '0.28rem', fontWeight: 700, letterSpacing: '0.08em',
+            color: C.silverDark,
+            transition: 'all 0.2s',
+          }}>SYNC</button>
         </div>
-        <PitchFader pitch={pitch} onChange={onPitch} />
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-          <VU active={playing} />
-          <MKnob size={22} />
-          <span style={{ fontFamily: 'monospace', fontSize: '0.28rem', letterSpacing: '0.3em', color: C.sub }}>GAIN</span>
-          {/* Pitch readout */}
-          <span style={{
-            fontFamily: 'monospace', fontSize: '0.36rem', letterSpacing: '0.1em',
-            color: Math.abs(pitch) > 0.5 ? C.orange : C.sub,
-            transition: 'color 0.3s',
-          }}>
-            {pitch >= 0 ? '+' : ''}{pitch.toFixed(1)}%
-          </span>
+      ) : (
+        /* ── Desktop: full controls ── */
+        <div style={{
+          borderRadius: 6, padding: '7px 7px',
+          background: C.deck,
+          border: '1px solid rgba(170,179,187,0.08)',
+          display: 'flex', alignItems: 'center', gap: 6,
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {/* Play/Pause */}
+            <button onClick={onToggle} aria-label={playing ? 'Pause' : 'Play'} style={{
+              width: 38, height: 38, borderRadius: '50%', cursor: 'pointer',
+              background: playing ? `rgba(99,243,216,0.1)` : '#14181e',
+              border: `1px solid ${playing ? 'rgba(99,243,216,0.6)' : 'rgba(170,179,187,0.22)'}`,
+              boxShadow: playing ? `0 0 10px rgba(99,243,216,0.28)` : 'inset 0 2px 5px rgba(0,0,0,0.4)',
+              color: playing ? C.cyan : C.silver,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'all 0.15s',
+            }}>
+              {playing ? (
+                <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true">
+                  <rect x="1" y="0" width="3" height="12" fill="currentColor" />
+                  <rect x="7" y="0" width="3" height="12" fill="currentColor" />
+                </svg>
+              ) : (
+                <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true">
+                  <path d="M1 0.5 L10 6 L1 11.5 Z" fill="currentColor" />
+                </svg>
+              )}
+            </button>
+            {/* CUE */}
+            <button onClick={() => setCueMs(pos > 0 ? pos : null)} style={{
+              width: 38, height: 38, borderRadius: '50%', cursor: 'pointer',
+              background: cueMs !== null ? 'rgba(125,183,255,0.1)' : '#14181e',
+              border: `1px solid ${cueMs !== null ? 'rgba(125,183,255,0.55)' : 'rgba(170,179,187,0.22)'}`,
+              boxShadow: cueMs !== null ? '0 0 8px rgba(125,183,255,0.25)' : 'inset 0 2px 5px rgba(0,0,0,0.4)',
+              color: cueMs !== null ? C.blue : C.silverDark, fontSize: '0.28rem', letterSpacing: '0.04em',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 1,
+              transition: 'all 0.15s',
+            }}>
+              <span style={{ fontFamily: 'monospace' }}>CUE</span>
+              {cueMs !== null && <span style={{ fontFamily: 'monospace', fontSize: '0.22rem', opacity: 0.7 }}>{fmt(cueMs)}</span>}
+            </button>
+          </div>
+          <PitchFader pitch={pitch} onChange={onPitch} />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+            <VU active={playing} />
+            <MKnob size={22} />
+            <span style={{ fontFamily: 'monospace', fontSize: '0.28rem', letterSpacing: '0.3em', color: C.sub }}>GAIN</span>
+            <span style={{
+              fontFamily: 'monospace', fontSize: '0.36rem', letterSpacing: '0.1em',
+              color: Math.abs(pitch) > 0.5 ? C.orange : C.sub,
+              transition: 'color 0.3s',
+            }}>
+              {pitch >= 0 ? '+' : ''}{pitch.toFixed(1)}%
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* ── Pioneer section: Sync + Loop + Hot Cues ── */}
-      <PioneerControls side={side} playing={playing} synced={!!synced} pos={pos} onSync={onSync} />
+      {/* ── Pioneer section: Sync + Loop + Hot Cues (desktop only) ── */}
+      {!isMobile && <PioneerControls side={side} playing={playing} synced={!!synced} pos={pos} onSync={onSync} />}
 
       </div>{/* end info+controls wrapper */}
     </div>
@@ -859,76 +922,77 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
 
   return (
     <div style={{
-      borderRadius: 6, padding: isMobile ? '8px 14px' : '8px 7px',
+      borderRadius: 6, padding: isMobile ? '6px 10px' : '8px 7px',
       background: 'linear-gradient(to bottom, #1a1e24, #14181d 55%, #1a1e24)',
       border: '1px solid rgba(170,179,187,0.22)',
-      display: 'flex', flexDirection: isMobile ? 'row' : 'column',
-      alignItems: 'center', gap: isMobile ? 16 : 8,
-      flexWrap: isMobile ? 'wrap' : undefined,
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', gap: 8,
       boxShadow: 'inset 0 1px 0 rgba(217,224,230,0.07), inset 0 -1px 0 rgba(0,0,0,0.3), 0 0 0 1px rgba(0,0,0,0.3)',
     }}>
 
-      {/* ── Beat FX ── */}
-      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 4 }}>
-        <div style={{ display: 'flex', gap: 3 }}>
-          {(['ECHO','REVERB','FLANGER'] as const).map(fx => (
-            <button key={fx} onClick={() => { setFxType(fx); setFxOn(true); }} style={{
-              flex: 1, padding: '3px 0', borderRadius: 3, cursor: 'pointer',
-              background: fxOn && fxType === fx ? 'rgba(255,155,94,0.1)' : '#14181e',
-              border: `1px solid ${fxOn && fxType === fx ? 'rgba(255,155,94,0.45)' : 'rgba(170,179,187,0.18)'}`,
-              fontFamily: 'monospace', fontSize: '0.30rem', fontWeight: 600, letterSpacing: '0.08em',
-              color: fxOn && fxType === fx ? C.orange : C.silverDark,
-              transition: 'all 0.12s',
-            }}>{fx}</button>
-          ))}
-          <button onClick={() => setFxOn(false)} style={{
-            padding: '3px 6px', borderRadius: 3, cursor: 'pointer',
-            background: !fxOn ? 'rgba(255,155,94,0.08)' : '#14181e',
-            border: `1px solid ${!fxOn ? 'rgba(255,155,94,0.35)' : 'rgba(170,179,187,0.18)'}`,
-            fontFamily: 'monospace', fontSize: '0.28rem',
-            color: !fxOn ? C.orange : C.silverDark,
-          }}>OFF</button>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <EQKnob label="FX" value={50} size={22} color="#f97316" />
-        </div>
-      </div>
-
-      <div style={{ width: '100%', height: 1, background: 'rgba(255,255,255,0.05)' }} />
-
-      {/* ── Channel EQ ── */}
-      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <span style={{ fontFamily: 'monospace', fontSize: '0.28rem', letterSpacing: '0.4em', color: 'rgba(255,255,255,0.2)', textAlign: 'center' }}>EQ</span>
-        {(['hi','mid','lo'] as const).map(band => (
-          <div key={band} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <EQKnob
-              label={band.toUpperCase()}
-              value={eqVals[band]}
-              size={24}
-              color={band === 'hi' ? '#38bdf8' : band === 'mid' ? '#a3e635' : '#f97316'}
-              onChange={v => setEqVals(p => ({ ...p, [band]: v }))}
-            />
+      {/* ── Beat FX, EQ, Filter — desktop only ── */}
+      {!isMobile && (
+        <>
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div style={{ display: 'flex', gap: 3 }}>
+              {(['ECHO','REVERB','FLANGER'] as const).map(fx => (
+                <button key={fx} onClick={() => { setFxType(fx); setFxOn(true); }} style={{
+                  flex: 1, padding: '3px 0', borderRadius: 3, cursor: 'pointer',
+                  background: fxOn && fxType === fx ? 'rgba(255,155,94,0.1)' : '#14181e',
+                  border: `1px solid ${fxOn && fxType === fx ? 'rgba(255,155,94,0.45)' : 'rgba(170,179,187,0.18)'}`,
+                  fontFamily: 'monospace', fontSize: '0.30rem', fontWeight: 600, letterSpacing: '0.08em',
+                  color: fxOn && fxType === fx ? C.orange : C.silverDark,
+                  transition: 'all 0.12s',
+                }}>{fx}</button>
+              ))}
+              <button onClick={() => setFxOn(false)} style={{
+                padding: '3px 6px', borderRadius: 3, cursor: 'pointer',
+                background: !fxOn ? 'rgba(255,155,94,0.08)' : '#14181e',
+                border: `1px solid ${!fxOn ? 'rgba(255,155,94,0.35)' : 'rgba(170,179,187,0.18)'}`,
+                fontFamily: 'monospace', fontSize: '0.28rem',
+                color: !fxOn ? C.orange : C.silverDark,
+              }}>OFF</button>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <EQKnob label="FX" value={50} size={22} color="#f97316" />
+            </div>
           </div>
-        ))}
-      </div>
 
-      <div style={{ width: '100%', height: 1, background: 'rgba(255,255,255,0.05)' }} />
+          <div style={{ width: '100%', height: 1, background: 'rgba(255,255,255,0.05)' }} />
 
-      {/* ── Filter knobs A / B ── */}
-      <div style={{ width: '100%', display: 'flex', justifyContent: 'space-around' }}>
-        {([['A', filterA, setFilterA, C.cyan], ['B', filterB, setFilterB, C.orange]] as const).map(([lbl, val, set, col]) => (
-          <div key={lbl} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <EQKnob label="FILTER" value={val as number} size={20} color={col as string}
-              onChange={v => (set as (n: number) => void)(v)} />
-            <span style={{ fontFamily: 'monospace', fontSize: '0.28rem', color: col as string, letterSpacing: '0.1em' }}>{lbl}</span>
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <span style={{ fontFamily: 'monospace', fontSize: '0.28rem', letterSpacing: '0.4em', color: 'rgba(255,255,255,0.2)', textAlign: 'center' }}>EQ</span>
+            {(['hi','mid','lo'] as const).map(band => (
+              <div key={band} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                <EQKnob
+                  label={band.toUpperCase()}
+                  value={eqVals[band]}
+                  size={24}
+                  color={band === 'hi' ? '#38bdf8' : band === 'mid' ? '#a3e635' : '#f97316'}
+                  onChange={v => setEqVals(p => ({ ...p, [band]: v }))}
+                />
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      <div style={{ width: '100%', height: 1, background: 'rgba(255,255,255,0.05)' }} />
+          <div style={{ width: '100%', height: 1, background: 'rgba(255,255,255,0.05)' }} />
 
-      {/* ── Crossfader ── */}
-      <div style={{ width: '100%', flexBasis: isMobile ? '100%' : undefined }}>
+          <div style={{ width: '100%', display: 'flex', justifyContent: 'space-around' }}>
+            {([['A', filterA, setFilterA, C.cyan], ['B', filterB, setFilterB, C.orange]] as const).map(([lbl, val, set, col]) => (
+              <div key={lbl} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                <EQKnob label="FILTER" value={val as number} size={20} color={col as string}
+                  onChange={v => (set as (n: number) => void)(v)} />
+                <span style={{ fontFamily: 'monospace', fontSize: '0.28rem', color: col as string, letterSpacing: '0.1em' }}>{lbl}</span>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ width: '100%', height: 1, background: 'rgba(255,255,255,0.05)' }} />
+        </>
+      )}
+
+      {/* ── Crossfader — always visible ── */}
+      <div style={{ width: '100%' }}>
         <p style={{ fontFamily: 'monospace', fontSize: '0.26rem', letterSpacing: '0.35em', color: 'rgba(255,255,255,0.2)',
           textAlign: 'center', marginBottom: 4 }}>CROSSFADER</p>
         <div style={{
@@ -957,10 +1021,12 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
         </div>
       </div>
 
-      {/* ── Master ── */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-        <EQKnob label="MASTER" value={75} size={28} color="#22c55e" />
-      </div>
+      {/* ── Master — desktop only ── */}
+      {!isMobile && (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+          <EQKnob label="MASTER" value={75} size={28} color="#22c55e" />
+        </div>
+      )}
 
     </div>
   );

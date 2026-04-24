@@ -86,6 +86,11 @@ export const t = {
           title: 'Misread — But She Can Become Anyone',
           body: 'Feminism is not a battle cry, not a manifesto against any system, not persuasion, not violence, not conformity. It is expression. It is the quiet, relentless work of making women\'s abilities visible — and making sure that visibility translates into real economic value. She can be an engineer. She can be everything. The point was never the slogan.',
         },
+        {
+          date: '2026.04.23',
+          title: 'Backing Female Founders and Women in Tech: Every One Has a #MeToo Story',
+          body: 'It always comes from someone you know. Harassment is not impulsive — it is a calculated assertion of power over someone who cannot easily push back. A research dispatch on recognizing the patterns: supervisory coercion, retaliation threats, bystander silence, and the intersection of race, gender, and class. What to do when they come for your job.',
+        },
       ],
     },
     research: {
@@ -232,6 +237,11 @@ export const t = {
           date: '2026.03.15',
           title: 'Missverstanden — Aber Sie Kann Alles Sein',
           body: 'Feminismus ist kein Kampfruf, kein Manifest gegen ein System, keine Überzeugungsarbeit, keine Gewalt, kein Konformismus. Er ist Ausdruck. Er ist die stille, unermüdliche Arbeit, die Fähigkeiten von Frauen sichtbar zu machen — und sicherzustellen, dass diese Sichtbarkeit in echten wirtschaftlichen Wert übersetzt wird. Sie kann Ingenieurin sein. Sie kann alles sein. Darum ging es nie bei Slogans.',
+        },
+        {
+          date: '2026.04.23',
+          title: 'Backing Female Founders and Women in Tech: Every One Has a #MeToo Story',
+          body: 'Es kommt immer von jemandem, den man kennt. Belästigung ist kein Impuls — sie ist eine kalkulierte Machtdemonstration über jemanden, der sich nicht einfach wehren kann. Ein Research Dispatch zu den Mustern: Vorgesetzte als Täter, Vergeltungsdrohungen, Zuschauerschweigen, Rasse, Geschlecht und Klasse. Was tun, wenn der Job bedroht wird.',
         },
       ],
     },
