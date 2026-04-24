@@ -89,7 +89,7 @@ function useIsMobile() {
 }
 
 /* ─── Main ───────────────────────────────────────────────── */
-export default function DJStation() {
+export default function DJStation({ onTrackLoad }: { onTrackLoad?: (side: 'left' | 'right', title: string) => void }) {
   const isMobile = useIsMobile();
   const [leftTrack,    setLeftTrack]    = useState<Track | null>(TRACKS[0]);
   const [rightTrack,   setRightTrack]   = useState<Track | null>(TRACKS[3]);
@@ -165,7 +165,8 @@ export default function DJStation() {
   const loadTrack = useCallback((side: 'left'|'right', track: Track) => {
     if (side === 'left') { setLeftTrack(track); setLeftPos(0); setLeftDur(0); leftCtrl.current?.loadUri(`spotify:track:${track.id}`); }
     else                 { setRightTrack(track); setRightPos(0); setRightDur(0); rightCtrl.current?.loadUri(`spotify:track:${track.id}`); }
-  }, []);
+    onTrackLoad?.(side, track.title);
+  }, [onTrackLoad]);
 
   const handleXfade = useCallback((v: number) => {
     const prev = prevXfade.current;
