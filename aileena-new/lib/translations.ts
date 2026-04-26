@@ -88,8 +88,8 @@ export const t = {
         },
         {
           date: '2026.04.23',
-          title: 'Backing Female Founders and Women in Tech: Every One Has a #MeToo Story',
-          body: 'It always comes from someone you know. Harassment is not impulsive — it is a calculated assertion of power over someone who cannot easily push back. A research dispatch on recognizing the patterns: supervisory coercion, retaliation threats, bystander silence, and the intersection of race, gender, and class. What to do when they come for your job.',
+          title: 'Every Woman in Tech Has a #MeToo Story',
+          body: 'It always comes from someone you know. Harassment is not impulsive — it is a calculated assertion of power over someone who cannot easily push back. A research dispatch on recognizing the patterns: supervisory coercion, retaliation threats, bystander silence, and what to do when they come for your job.',
         },
       ],
     },
@@ -240,8 +240,8 @@ export const t = {
         },
         {
           date: '2026.04.23',
-          title: 'Female Founders und Frauen in Tech unterstützen: Jede hat eine #MeToo-Geschichte',
-          body: 'Es kommt fast immer von jemandem, den du kennst. Belästigung ist nicht impulsiv — sie ist eine kalkulierte Machtdemonstration gegen jemanden, der sich nicht leicht wehren kann. Ein Forschungsbericht über die Muster: Vorgesetzten-Zwang, Vergeltungsdrohungen, Schweigen der Zuschauer, und die Überschneidung von Rasse, Geschlecht und Klasse. Was zu tun ist, wenn sie deinen Job bedrohen.',
+          title: 'Jede Frau in Tech hat eine #MeToo-Geschichte',
+          body: 'Es kommt fast immer von jemandem, den du kennst. Belästigung ist nicht impulsiv — sie ist eine kalkulierte Machtdemonstration gegen jemanden, der sich nicht leicht wehren kann. Ein Forschungsbericht über die Muster: Vorgesetzten-Zwang, Vergeltungsdrohungen, Schweigen der Zuschauer, und was zu tun ist, wenn sie deinen Job bedrohen.',
         },
       ],
     },
