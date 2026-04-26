@@ -130,7 +130,8 @@ export default function Home() {
               <h2 className="anim-up-2 mb-12 text-[clamp(2rem,6vw,6rem)] font-semibold tracking-[0.1em]">{tx.blog.heading}</h2>
               <div>
                 {tx.blog.posts.map((post, i) => {
-                  const href = i === 2 ? '/blog/misread' : i === 1 ? '/blog/lion' : '/blog/robots';
+                  const hrefs = ['/blog/robots', '/blog/lion', '/blog/misread', '/blog/harassment'];
+                  const href = hrefs[i] ?? '/blog/robots';
                   const inner = (
                     <>
                       <p className="font-mono text-[0.68rem] sm:text-xs tracking-[0.22em] sm:tracking-widest text-white/40 pt-1">{post.date}</p>
