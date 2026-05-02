@@ -43,6 +43,12 @@ const TRACKS = [
   { id: '3WwFjc24162Ab0WEN57y8t', title: 'Recall',         bpm: 122, key: '6A', dur: 195, thumb: '/recall.jpg' },
   { id: '0DO0NtFn6hB4Brt44Z8Tkz', title: '扉をあけて',     bpm: 118, key: '3B', dur: 240, thumb: '/tobira.jpg' },
   { id: '6Yj8kVuVR3UPxx9r5eFEoV', title: 'Miniskirt',      bpm: 128, key: '7B', dur: 210, thumb: '/miniskirt.jpg' },
+  { id: '4UBt00S6TNsKwgfxMcfNal', title: 'Let Me Be With You',     bpm: 120, key: '4A', dur: 200, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e026ccb362e8e30b8a214b65be7' },
+  { id: '4XRaGryj589Fee9HqIDwup', title: 'Count What You Have Now', bpm: 120, key: '4A', dur: 200, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0259075304010757bf60fb7f61' },
+  { id: '4rrlf0gsr4dFJe6534PhZG', title: 'Mujin no Shima',           bpm: 120, key: '4A', dur: 200, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e0225177555cad370de26a2e96b' },
+  { id: '69xZrRwScYMhlCMcxrF958', title: 'Luxurious',               bpm: 120, key: '4A', dur: 200, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e027c7136a182372ccdffb3d3c4' },
+  { id: '1mBzeQjQPxdT693fIlmA4k', title: 'Small City',              bpm: 120, key: '4A', dur: 200, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02722d5a45a1f8246fd620cb22' },
+  { id: '5RUJ1B8Yrh7w4PT0W8KVPk', title: 'Ba-Da-Ba',                bpm: 120, key: '4A', dur: 200, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e0252f54296b90eee374de846e3' },
 ];
 type Track = typeof TRACKS[0];
 
