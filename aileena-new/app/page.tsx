@@ -120,6 +120,38 @@ export default function Home() {
           </div>
         </SnapSection>
 
+        {/* ── 05 FEATURED REPO ── */}
+        <SnapSection id="featured-repo">
+          <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-16">
+            <div className="mx-auto w-full max-w-[1400px] flex h-full flex-col py-6 sm:py-12">
+              <div className="anim-up flex items-end border-b border-white/8 pb-3 mb-4 sm:mb-8">
+                <p className="text-xs uppercase tracking-[0.5em] text-white/45">{tx.pow.tag}</p>
+              </div>
+              <h2 className="anim-up-2 mb-4 sm:mb-8 text-[clamp(1.5rem,6vw,6rem)] font-semibold tracking-[0.1em]">{tx.pow.heading}</h2>
+              <div className="flex-1 overflow-y-auto pr-1">
+                <div className="grid gap-3 sm:gap-6 md:grid-cols-2 xl:grid-cols-3">
+                  {tx.pow.items.map((item, i) => (
+                    <Link key={item.name} href={item.href} target="_blank" rel="noopener noreferrer" className={`group anim-up-${Math.min(i + 1, 3)} flex min-h-[160px] sm:min-h-[200px] flex-col justify-between rounded-lg border border-white/8 bg-white/[0.02] p-4 sm:p-7 transition-colors hover:border-[#00ffea]/30 hover:bg-white/[0.04] no-underline`}>
+                      <div>
+                        <div className="flex flex-wrap gap-2 mb-3 sm:mb-4">
+                          {item.tags.map(tag => (
+                            <span key={tag} className="font-mono text-[0.55rem] tracking-[0.3em] text-[#00ffea]/40 uppercase border border-[#00ffea]/15 rounded px-2 py-0.5">{tag}</span>
+                          ))}
+                        </div>
+                        <h3 className="text-[clamp(1rem,3vw,1.8rem)] tracking-[0.07em] text-white/85 group-hover:text-white transition-colors">{item.name}</h3>
+                        <p className="mt-2 sm:mt-3 text-sm leading-6 text-white/50" style={{ display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 3, overflow: 'hidden' }}>{item.description}</p>
+                      </div>
+                      <div className="mt-4 sm:mt-6">
+                        <span className="font-mono text-[0.6rem] tracking-[0.35em] text-[#00ffea]/50 group-hover:text-[#00ffea] transition-colors uppercase">{item.cta}</span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </SnapSection>
+
         {/* ── 06 RESEARCH DISPATCH ── */}
         <SnapSection id="blog">
           <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-16">

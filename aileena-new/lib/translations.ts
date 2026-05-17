@@ -65,6 +65,54 @@ export const t = {
       heading: 'Distributed Nodes',
       linkLabel: 'Topology Link',
     },
+    pow: {
+      tag: 'FEATURED REPO',
+      heading: 'Featured Repo',
+      items: [
+        {
+          name: 'KeyShield',
+          tags: ['TypeScript', 'Rust', 'API Security'],
+          description: 'Zero-raw-key API vault with wallet-based authentication. Proxies Helius and OpenAI calls so credentials never touch the client — wallet signatures replace API keys entirely.',
+          href: 'https://github.com/lilaclilac09/keyshield',
+          cta: 'View →',
+        },
+        {
+          name: 'RPCsol P&L',
+          tags: ['JavaScript', 'Rust', 'Solana'],
+          description: 'Solana wallet P&L tracker on Helius RPC. Ships a sol_balance algorithm with 15 research iterations across Bayesian optimization, CMA-ES, differential evolution, and TPE.',
+          href: 'https://github.com/lilaclilac09/RPCsol_pnl',
+          cta: 'View →',
+        },
+        {
+          name: 'PAMM MEV Analysis',
+          tags: ['Python', 'Solana', 'Monte Carlo'],
+          description: 'Binary Monte Carlo analysis of MEV contagion in Solana Prop AMM pools. Models adversarial pool interactions and information spread across liquidity topologies.',
+          href: 'https://github.com/lilaclilac09/solana-pamm-MEV-binary-monte-analysis-contagious-pools',
+          cta: 'View →',
+        },
+        {
+          name: 'US Stocks Analysis',
+          tags: ['TypeScript', 'Payload CMS', 'Supabase'],
+          description: 'Production stock analysis platform at finance.aileena.xyz. Payload CMS backend, Supabase DB, GitHub Actions CI/CD — deep analysis pipeline for US equities.',
+          href: 'https://github.com/lilaclilac09/US-STOCKS-DEEP-ANALYSIS',
+          cta: 'View →',
+        },
+        {
+          name: 'Prop AMM',
+          tags: ['Rust', 'Solana', 'DeFi'],
+          description: 'Rust implementation of a Proportional AMM on Solana. Research-grade liquidity mechanism exploring alternative bonding curves and pool dynamics for DeFi protocols.',
+          href: 'https://github.com/lilaclilac09/pamm-a',
+          cta: 'View →',
+        },
+        {
+          name: 'Zen Fortune Cookie',
+          tags: ['TypeScript', 'Gesture UI'],
+          description: 'Gesture-driven fortune cookie — draw to crack, receive a message. Explores touch input as primary interaction model for generative text delivery in browser.',
+          href: 'https://github.com/lilaclilac09/Zen-Fortune-Cookie',
+          cta: 'View →',
+        },
+      ],
+    },
     blog: {
       researchDispatch: {
         tag: 'DATA ARCHIVE',
@@ -235,6 +283,54 @@ export const t = {
       tag: 'NETZWERK-VEKTOR',
       heading: 'Verteilte Knoten',
       linkLabel: 'Topologie-Link',
+    },
+    pow: {
+      tag: 'FEATURED REPO',
+      heading: 'Featured Repo',
+      items: [
+        {
+          name: 'KeyShield',
+          tags: ['TypeScript', 'Rust', 'API Security'],
+          description: 'Zero-Raw-Key API-Tresor mit wallet-basierter Authentifizierung. Proxyt Helius- und OpenAI-Aufrufe, sodass Credentials den Client nie berühren — Wallet-Signaturen ersetzen API-Keys vollständig.',
+          href: 'https://github.com/lilaclilac09/keyshield',
+          cta: 'Ansehen →',
+        },
+        {
+          name: 'RPCsol P&L',
+          tags: ['JavaScript', 'Rust', 'Solana'],
+          description: 'Solana Wallet P&L-Tracker auf Helius RPC. Enthält einen sol_balance-Algorithmus mit 15 Forschungsiterationen über Bayesian Optimization, CMA-ES, Differential Evolution und TPE.',
+          href: 'https://github.com/lilaclilac09/RPCsol_pnl',
+          cta: 'Ansehen →',
+        },
+        {
+          name: 'PAMM MEV-Analyse',
+          tags: ['Python', 'Solana', 'Monte Carlo'],
+          description: 'Binäre Monte-Carlo-Analyse von MEV-Kontagion in Solana Prop-AMM-Pools. Modelliert adversarielle Pool-Interaktionen und Informationsausbreitung über Liquiditätstopologien.',
+          href: 'https://github.com/lilaclilac09/solana-pamm-MEV-binary-monte-analysis-contagious-pools',
+          cta: 'Ansehen →',
+        },
+        {
+          name: 'US-Aktienanalyse',
+          tags: ['TypeScript', 'Payload CMS', 'Supabase'],
+          description: 'Produktive Aktienanalyseplattform unter finance.aileena.xyz. Payload-CMS-Backend, Supabase-DB, GitHub-Actions-CI/CD — Tiefenanalyse-Pipeline für US-Aktien.',
+          href: 'https://github.com/lilaclilac09/US-STOCKS-DEEP-ANALYSIS',
+          cta: 'Ansehen →',
+        },
+        {
+          name: 'Prop AMM',
+          tags: ['Rust', 'Solana', 'DeFi'],
+          description: 'Rust-Implementierung eines Proportionalen AMM auf Solana. Forschungsbasierter Liquiditätsmechanismus, der alternative Bonding-Kurven und Pool-Dynamiken für DeFi-Protokolle untersucht.',
+          href: 'https://github.com/lilaclilac09/pamm-a',
+          cta: 'Ansehen →',
+        },
+        {
+          name: 'Zen Fortune Cookie',
+          tags: ['TypeScript', 'Gesture UI'],
+          description: 'Gestengesteuertes Fortune-Cookie — zeichnen zum Knacken, Nachricht erhalten. Untersucht Touch-Input als primäres Interaktionsmodell für generative Textausgabe im Browser.',
+          href: 'https://github.com/lilaclilac09/Zen-Fortune-Cookie',
+          cta: 'Ansehen →',
+        },
+      ],
     },
     blog: {
       researchDispatch: {
