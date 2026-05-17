@@ -66,32 +66,45 @@ export const t = {
       linkLabel: 'Topology Link',
     },
     blog: {
-      tag: 'DATA ARCHIVE',
-      heading: 'Research Dispatch',
-      watch: 'Watch →',
-      read: 'Read →',
-      posts: [
-        {
-          date: '2025.03.18',
-          title: 'How Robots Learn to Be Robots',
-          body: 'Everything that moves will be autonomous. The continuous loop of simulation, training, testing, and real-world deployment — powered by NVIDIA Omniverse and Cosmos. Synthetic data at scale. Robot policies across embodied intelligence architectures.',
-        },
-        {
-          date: '2026.02.15',
-          title: "Don't Be a Sheep — Be a Lion",
-          body: 'You will be lonely, but you will never be alone. Decisiveness is not cruelty — it is extreme self-discipline. Stripping emotion from judgment at critical moments. Comfort is never neutral: it shrinks your tolerance, softens your edges, trains you to fear what is merely unfamiliar.',
-        },
-        {
-          date: '2026.03.15',
-          title: 'Misread — But She Can Become Anyone',
-          body: 'Feminism is not a battle cry, not a manifesto against any system, not persuasion, not violence, not conformity. It is expression. It is the quiet, relentless work of making women\'s abilities visible — and making sure that visibility translates into real economic value. She can be an engineer. She can be everything. The point was never the slogan.',
-        },
-        {
-          date: '2026.04.23',
-          title: 'Every Woman in Tech Has a #MeToo Story',
-          body: 'It always comes from someone you know. Harassment is not impulsive — it is a calculated assertion of power over someone who cannot easily push back. A research dispatch on recognizing the patterns: supervisory coercion, retaliation threats, bystander silence, and what to do when they come for your job.',
-        },
-      ],
+      researchDispatch: {
+        tag: 'DATA ARCHIVE',
+        heading: 'Research Dispatch',
+        watch: 'Watch →',
+        read: 'Read →',
+        posts: [
+          {
+            date: '2025.03.18',
+            href: '/blog/robots',
+            title: 'How Robots Learn to Be Robots',
+            body: 'Everything that moves will be autonomous. The continuous loop of simulation, training, testing, and real-world deployment — powered by NVIDIA Omniverse and Cosmos. Synthetic data at scale. Robot policies across embodied intelligence architectures.',
+          },
+        ],
+      },
+      womanInTech: {
+        tag: 'PERSPECTIVE',
+        heading: 'Woman in Tech',
+        read: 'Read →',
+        posts: [
+          {
+            date: '2026.02.15',
+            href: '/blog/lion',
+            title: "Don't Be a Sheep — Be a Lion",
+            body: 'You will be lonely, but you will never be alone. Decisiveness is not cruelty — it is extreme self-discipline. Stripping emotion from judgment at critical moments. Comfort is never neutral: it shrinks your tolerance, softens your edges, trains you to fear what is merely unfamiliar.',
+          },
+          {
+            date: '2026.03.15',
+            href: '/blog/misread',
+            title: 'Misread — But She Can Become Anyone',
+            body: 'Feminism is not a battle cry, not a manifesto against any system, not persuasion, not violence, not conformity. It is expression. It is the quiet, relentless work of making women\'s abilities visible — and making sure that visibility translates into real economic value. She can be an engineer. She can be everything. The point was never the slogan.',
+          },
+          {
+            date: '2026.04.23',
+            href: '/blog/harassment',
+            title: 'Every Woman in Tech Has a #MeToo Story',
+            body: 'It always comes from someone you know. Harassment is not impulsive — it is a calculated assertion of power over someone who cannot easily push back. A research dispatch on recognizing the patterns: supervisory coercion, retaliation threats, bystander silence, and what to do when they come for your job.',
+          },
+        ],
+      },
     },
     research: {
       tag: 'RESEARCH ARCHIVE',
@@ -218,32 +231,45 @@ export const t = {
       linkLabel: 'Topologie-Link',
     },
     blog: {
-      tag: 'DATENARCHIV',
-      heading: 'Forschungsversand',
-      watch: 'Ansehen →',
-      read: 'Lesen →',
-      posts: [
-        {
-          date: '2025.03.18',
-          title: 'How Robots Learn to Be Robots',
-          body: 'Alles, was sich bewegt, wird autonom sein. Der kontinuierliche Kreislauf aus Simulation, Training, Test und realem Einsatz — angetrieben von NVIDIA Omniverse und Cosmos. Synthetische Daten in großem Maßstab. Roboter-Policies über verkörperte Intelligenzarchitekturen.',
-        },
-        {
-          date: '2026.02.15',
-          title: "Sei kein Schaf — sei ein Löwe",
-          body: 'Du wirst einsam sein, aber niemals allein. Entschlossenheit ist keine Grausamkeit — sie ist extreme Selbstdisziplin. In kritischen Momenten Emotionen vom Urteil trennen. Komfort ist niemals neutral: Er schrumpft deine Toleranz, macht deine Kanten weicher, trainiert dich, das Unbekannte zu fürchten.',
-        },
-        {
-          date: '2026.03.15',
-          title: 'Missverstanden — Aber Sie Kann Alles Sein',
-          body: 'Feminismus ist kein Kampfruf, kein Manifest gegen ein System, keine Überzeugungsarbeit, keine Gewalt, kein Konformismus. Er ist Ausdruck. Er ist die stille, unermüdliche Arbeit, die Fähigkeiten von Frauen sichtbar zu machen — und sicherzustellen, dass diese Sichtbarkeit in echten wirtschaftlichen Wert übersetzt wird. Sie kann Ingenieurin sein. Sie kann alles sein. Darum ging es nie bei Slogans.',
-        },
-        {
-          date: '2026.04.23',
-          title: 'Jede Frau in Tech hat eine #MeToo-Geschichte',
-          body: 'Es kommt fast immer von jemandem, den du kennst. Belästigung ist nicht impulsiv — sie ist eine kalkulierte Machtdemonstration gegen jemanden, der sich nicht leicht wehren kann. Ein Forschungsbericht über die Muster: Vorgesetzten-Zwang, Vergeltungsdrohungen, Schweigen der Zuschauer, und was zu tun ist, wenn sie deinen Job bedrohen.',
-        },
-      ],
+      researchDispatch: {
+        tag: 'DATENARCHIV',
+        heading: 'Forschungsversand',
+        watch: 'Ansehen →',
+        read: 'Lesen →',
+        posts: [
+          {
+            date: '2025.03.18',
+            href: '/blog/robots',
+            title: 'How Robots Learn to Be Robots',
+            body: 'Alles, was sich bewegt, wird autonom sein. Der kontinuierliche Kreislauf aus Simulation, Training, Test und realem Einsatz — angetrieben von NVIDIA Omniverse und Cosmos. Synthetische Daten in großem Maßstab. Roboter-Policies über verkörperte Intelligenzarchitekturen.',
+          },
+        ],
+      },
+      womanInTech: {
+        tag: 'PERSPEKTIVE',
+        heading: 'Frau in Tech',
+        read: 'Lesen →',
+        posts: [
+          {
+            date: '2026.02.15',
+            href: '/blog/lion',
+            title: "Sei kein Schaf — sei ein Löwe",
+            body: 'Du wirst einsam sein, aber niemals allein. Entschlossenheit ist keine Grausamkeit — sie ist extreme Selbstdisziplin. In kritischen Momenten Emotionen vom Urteil trennen. Komfort ist niemals neutral: Er schrumpft deine Toleranz, macht deine Kanten weicher, trainiert dich, das Unbekannte zu fürchten.',
+          },
+          {
+            date: '2026.03.15',
+            href: '/blog/misread',
+            title: 'Missverstanden — Aber Sie Kann Alles Sein',
+            body: 'Feminismus ist kein Kampfruf, kein Manifest gegen ein System, keine Überzeugungsarbeit, keine Gewalt, kein Konformismus. Er ist Ausdruck. Er ist die stille, unermüdliche Arbeit, die Fähigkeiten von Frauen sichtbar zu machen — und sicherzustellen, dass diese Sichtbarkeit in echten wirtschaftlichen Wert übersetzt wird. Sie kann Ingenieurin sein. Sie kann alles sein. Darum ging es nie bei Slogans.',
+          },
+          {
+            date: '2026.04.23',
+            href: '/blog/harassment',
+            title: 'Jede Frau in Tech hat eine #MeToo-Geschichte',
+            body: 'Es kommt fast immer von jemandem, den du kennst. Belästigung ist nicht impulsiv — sie ist eine kalkulierte Machtdemonstration gegen jemanden, der sich nicht leicht wehren kann. Ein Forschungsbericht über die Muster: Vorgesetzten-Zwang, Vergeltungsdrohungen, Schweigen der Zuschauer, und was zu tun ist, wenn sie deinen Job bedrohen.',
+          },
+        ],
+      },
     },
     research: {
       tag: 'FORSCHUNGSARCHIV',
