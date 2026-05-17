@@ -91,6 +91,11 @@ export const t = {
           title: 'Every Woman in Tech Has a #MeToo Story',
           body: 'It always comes from someone you know. Harassment is not impulsive — it is a calculated assertion of power over someone who cannot easily push back. A research dispatch on recognizing the patterns: supervisory coercion, retaliation threats, bystander silence, and what to do when they come for your job.',
         },
+        {
+          date: '2026.05.17',
+          title: 'The Order Book That Doesn\'t Break',
+          body: 'On-chain CLOBs were supposed to be impossible. Solana proved they weren\'t. Manifest vs Phoenix, the 0x aggregation layer, and Titan MEV economics — a technical dispatch on building order book infrastructure that actually survives production.',
+        },
       ],
     },
     research: {
@@ -242,6 +247,11 @@ export const t = {
           date: '2026.04.23',
           title: 'Jede Frau in Tech hat eine #MeToo-Geschichte',
           body: 'Es kommt fast immer von jemandem, den du kennst. Belästigung ist nicht impulsiv — sie ist eine kalkulierte Machtdemonstration gegen jemanden, der sich nicht leicht wehren kann. Ein Forschungsbericht über die Muster: Vorgesetzten-Zwang, Vergeltungsdrohungen, Schweigen der Zuschauer, und was zu tun ist, wenn sie deinen Job bedrohen.',
+        },
+        {
+          date: '2026.05.17',
+          title: 'Das Orderbuch, das nicht bricht',
+          body: 'On-Chain-CLOBs galten als unmöglich. Solana bewies das Gegenteil. Manifest vs. Phoenix, die 0x-Aggregationsschicht und Titan-MEV-Ökonomie — ein technischer Bericht über den Bau von Orderbuch-Infrastruktur, die in Produktion standhält.',
         },
       ],
     },
