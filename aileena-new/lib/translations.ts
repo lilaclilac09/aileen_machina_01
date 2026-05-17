@@ -78,6 +78,12 @@ export const t = {
             title: 'How Robots Learn to Be Robots',
             body: 'Everything that moves will be autonomous. The continuous loop of simulation, training, testing, and real-world deployment — powered by NVIDIA Omniverse and Cosmos. Synthetic data at scale. Robot policies across embodied intelligence architectures.',
           },
+          {
+            date: '2026.05.17',
+            href: '/blog/clob',
+            title: 'The Order Book That Doesn\'t Break',
+            body: 'On-chain CLOBs were supposed to be impossible. Solana proved they weren\'t. Manifest vs Phoenix, the 0x aggregation layer, and Titan MEV economics — a technical dispatch on building order book infrastructure that actually survives production.',
+          },
         ],
       },
       womanInTech: {
@@ -242,6 +248,12 @@ export const t = {
             href: '/blog/robots',
             title: 'How Robots Learn to Be Robots',
             body: 'Alles, was sich bewegt, wird autonom sein. Der kontinuierliche Kreislauf aus Simulation, Training, Test und realem Einsatz — angetrieben von NVIDIA Omniverse und Cosmos. Synthetische Daten in großem Maßstab. Roboter-Policies über verkörperte Intelligenzarchitekturen.',
+          },
+          {
+            date: '2026.05.17',
+            href: '/blog/clob',
+            title: 'Das Orderbuch, das nicht bricht',
+            body: 'On-Chain-CLOBs galten als unmöglich. Solana bewies das Gegenteil. Manifest vs. Phoenix, die 0x-Aggregationsschicht und Titan-MEV-Ökonomie — ein technischer Bericht über den Bau von Orderbuch-Infrastruktur, die in Produktion standhält.',
           },
         ],
       },

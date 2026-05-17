@@ -127,14 +127,14 @@ export default function Home() {
               <div className="anim-up flex items-end border-b border-white/8 pb-5 mb-12">
                 <p className="text-xs uppercase tracking-[0.5em] text-white/45">{tx.blog.researchDispatch.tag}</p>
               </div>
-              <h2 className="anim-up-2 mb-12 text-[clamp(2rem,6vw,6rem)] font-semibold tracking-[0.1em]">{tx.blog.researchDispatch.heading}</h2>
-              <div className="dispatch-scroll relative flex-1 overflow-y-auto pr-1 sm:pr-2">
-                <div className="grid gap-5 sm:gap-6 md:grid-cols-2 xl:grid-cols-3">
+              <h2 className="anim-up-2 mb-8 text-[clamp(1.5rem,6vw,6rem)] font-semibold tracking-[0.1em]">{tx.blog.researchDispatch.heading}</h2>
+              <div className="flex-1 overflow-y-auto pr-1">
+                <div className="grid gap-3 sm:gap-6 md:grid-cols-2 xl:grid-cols-3">
                   {tx.blog.researchDispatch.posts.map((post, i) => (
                     <Link
                       key={post.title}
                       href={post.href}
-                      className={`group anim-up-${Math.min(i + 1, 3)} flex min-h-[240px] flex-col justify-between rounded-lg border border-white/8 bg-white/[0.02] p-6 sm:p-7 transition-colors hover:border-white/20 hover:bg-white/[0.05] no-underline`}
+                      className={`group anim-up-${Math.min(i + 1, 3)} flex min-h-[160px] sm:min-h-[200px] flex-col justify-between rounded-lg border border-white/8 bg-white/[0.02] p-4 sm:p-7 transition-colors hover:border-white/20 hover:bg-white/[0.05] no-underline`}
                     >
                       <div>
                         <p className="font-mono text-[0.68rem] sm:text-xs tracking-[0.22em] sm:tracking-widest text-white/40">{post.date}</p>
@@ -150,7 +150,6 @@ export default function Home() {
                     </Link>
                   ))}
                 </div>
-                <div className="pointer-events-none sticky bottom-0 h-12 bg-gradient-to-t from-black to-transparent" />
               </div>
             </div>
           </div>
