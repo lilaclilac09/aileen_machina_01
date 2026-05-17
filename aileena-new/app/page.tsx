@@ -120,36 +120,72 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 06 BLOG ── */}
+        {/* ── 06 RESEARCH DISPATCH ── */}
         <SnapSection id="blog">
-          <div className="h-full flex flex-col justify-center bg-black px-5 sm:px-10 lg:px-16">
-            <div className="mx-auto w-full max-w-[1400px]">
+          <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-16">
+            <div className="mx-auto w-full max-w-[1400px] flex h-full flex-col py-10 sm:py-12">
               <div className="anim-up flex items-end border-b border-white/8 pb-5 mb-12">
-                <p className="text-xs uppercase tracking-[0.5em] text-white/45">{tx.blog.tag}</p>
+                <p className="text-xs uppercase tracking-[0.5em] text-white/45">{tx.blog.researchDispatch.tag}</p>
               </div>
-              <h2 className="anim-up-2 mb-12 text-[clamp(2rem,6vw,6rem)] font-semibold tracking-[0.1em]">{tx.blog.heading}</h2>
-              <div>
-                {tx.blog.posts.map((post, i) => {
-                  const hrefs = ['/blog/robots', '/blog/lion', '/blog/misread', '/blog/harassment', '/blog/clob'];
-                  const href = hrefs[i] ?? '/blog/robots';
-                  const inner = (
-                    <>
-                      <p className="font-mono text-[0.68rem] sm:text-xs tracking-[0.22em] sm:tracking-widest text-white/40 pt-1">{post.date}</p>
+              <h2 className="anim-up-2 mb-8 text-[clamp(1.5rem,6vw,6rem)] font-semibold tracking-[0.1em]">{tx.blog.researchDispatch.heading}</h2>
+              <div className="flex-1 overflow-y-auto pr-1">
+                <div className="grid gap-3 sm:gap-6 md:grid-cols-2 xl:grid-cols-3">
+                  {tx.blog.researchDispatch.posts.map((post, i) => (
+                    <Link
+                      key={post.title}
+                      href={post.href}
+                      className={`group anim-up-${Math.min(i + 1, 3)} flex min-h-[160px] sm:min-h-[200px] flex-col justify-between rounded-lg border border-white/8 bg-white/[0.02] p-4 sm:p-7 transition-colors hover:border-white/20 hover:bg-white/[0.05] no-underline`}
+                    >
                       <div>
-                        <h3 className="text-[clamp(0.95rem,5vw,2rem)] tracking-[0.07em] sm:tracking-[0.1em] text-white/85 group-hover:text-white transition-colors">{post.title}</h3>
-                        <p className="mt-2 sm:mt-3 text-sm leading-6 sm:leading-7 text-white/50">{post.body}</p>
-                        <p className="mt-3 font-mono text-[0.6rem] tracking-[0.35em] text-[#00ffea]/50 group-hover:text-[#00ffea] transition-colors uppercase">
-                          {i === 0 ? tx.blog.watch : tx.blog.read}
+                        <p className="font-mono text-[0.68rem] sm:text-xs tracking-[0.22em] sm:tracking-widest text-white/40">{post.date}</p>
+                        <h3 className="mt-3 text-[clamp(1.05rem,3.5vw,2rem)] tracking-[0.07em] sm:tracking-[0.1em] text-white/85 group-hover:text-white transition-colors">{post.title}</h3>
+                        <p className="mt-3 text-sm leading-6 sm:leading-7 text-white/55" style={{ display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 4, overflow: 'hidden' }}>
+                          {post.body}
                         </p>
                       </div>
-                    </>
-                  );
-                  return (
-                    <Link key={post.title} href={href} className={`group grid grid-cols-1 sm:grid-cols-[7rem_1fr] items-start gap-3 sm:gap-8 border-b border-white/8 py-5 sm:py-7 anim-up-${Math.min(i + 1, 3)} cursor-pointer no-underline`}>
-                      {inner}
+                      <div className="mt-6 flex items-center justify-between">
+                        <span className="font-mono text-[0.6rem] tracking-[0.35em] text-[#00ffea]/50 group-hover:text-[#00ffea] transition-colors uppercase">{tx.blog.researchDispatch.watch}</span>
+                        <span className="text-[#00ffea]/50 group-hover:text-[#00ffea] transition-colors">→</span>
+                      </div>
                     </Link>
-                  );
-                })}
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </SnapSection>
+
+        {/* ── 07 WOMAN IN TECH ── */}
+        <SnapSection id="woman-in-tech">
+          <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-16">
+            <div className="mx-auto w-full max-w-[1400px] flex h-full flex-col py-10 sm:py-12">
+              <div className="anim-up flex items-end border-b border-white/8 pb-5 mb-12">
+                <p className="text-xs uppercase tracking-[0.5em] text-white/45">{tx.blog.womanInTech.tag}</p>
+              </div>
+              <h2 className="anim-up-2 mb-12 text-[clamp(2rem,6vw,6rem)] font-semibold tracking-[0.1em]">{tx.blog.womanInTech.heading}</h2>
+              <div className="dispatch-scroll relative flex-1 overflow-y-auto pr-1 sm:pr-2">
+                <div className="grid gap-5 sm:gap-6 md:grid-cols-2 xl:grid-cols-3">
+                  {tx.blog.womanInTech.posts.map((post, i) => (
+                    <Link
+                      key={post.title}
+                      href={post.href}
+                      className={`group anim-up-${Math.min(i + 1, 3)} flex min-h-[240px] flex-col justify-between rounded-lg border border-white/8 bg-white/[0.02] p-6 sm:p-7 transition-colors hover:border-white/20 hover:bg-white/[0.05] no-underline`}
+                    >
+                      <div>
+                        <p className="font-mono text-[0.68rem] sm:text-xs tracking-[0.22em] sm:tracking-widest text-white/40">{post.date}</p>
+                        <h3 className="mt-3 text-[clamp(1.05rem,3.5vw,2rem)] tracking-[0.07em] sm:tracking-[0.1em] text-white/85 group-hover:text-white transition-colors">{post.title}</h3>
+                        <p className="mt-3 text-sm leading-6 sm:leading-7 text-white/55" style={{ display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 4, overflow: 'hidden' }}>
+                          {post.body}
+                        </p>
+                      </div>
+                      <div className="mt-6 flex items-center justify-between">
+                        <span className="font-mono text-[0.6rem] tracking-[0.35em] text-[#00ffea]/50 group-hover:text-[#00ffea] transition-colors uppercase">{tx.blog.womanInTech.read}</span>
+                        <span className="text-[#00ffea]/50 group-hover:text-[#00ffea] transition-colors">→</span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+                <div className="pointer-events-none sticky bottom-0 h-12 bg-gradient-to-t from-black to-transparent" />
               </div>
             </div>
           </div>

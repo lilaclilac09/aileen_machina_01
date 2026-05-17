@@ -45,6 +45,31 @@ html {
   position: relative;
 }
 
+/* Research Dispatch scroll area */
+.dispatch-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 255, 234, 0.35) rgba(255, 255, 255, 0.05);
+}
+
+.dispatch-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dispatch-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 999px;
+}
+
+.dispatch-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 234, 0.35);
+  border-radius: 999px;
+  border: 2px solid rgba(0, 0, 0, 0.7);
+}
+
+.dispatch-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 255, 234, 0.55);
+}
+
 @media (max-width: 768px) {
   .snap-container {
     scroll-snap-type: y proximity;
