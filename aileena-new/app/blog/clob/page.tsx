@@ -1,8 +1,12 @@
 'use client';
 import Link from 'next/link';
 import ScrollUnlock from '../ScrollUnlock';
+import { useLanguage } from '../../../components/LanguageProvider';
 
 export default function ClobArticle() {
+  const { language } = useLanguage();
+  const isDE = language === 'DE';
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -44,7 +48,7 @@ export default function ClobArticle() {
           onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}
         >
           <span style={{ fontSize: '1rem', lineHeight: 1 }}>←</span>
-          Archive
+          {isDE ? 'Archiv' : 'Archive'}
         </Link>
         <span style={{
           fontFamily: 'monospace',
@@ -71,20 +75,10 @@ export default function ClobArticle() {
           }}>
             ANALYSIS
           </span>
-          <span style={{
-            fontFamily: 'monospace',
-            fontSize: '0.55rem',
-            letterSpacing: '0.3em',
-            color: 'rgba(255,255,255,0.3)',
-          }}>
+          <span style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.3em', color: 'rgba(255,255,255,0.3)' }}>
             2026.05.17
           </span>
-          <span style={{
-            fontFamily: 'monospace',
-            fontSize: '0.55rem',
-            letterSpacing: '0.3em',
-            color: 'rgba(255,255,255,0.3)',
-          }}>
+          <span style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.3em', color: 'rgba(255,255,255,0.3)' }}>
             DeFi · Solana · CLOB · MEV
           </span>
         </div>
@@ -97,7 +91,11 @@ export default function ClobArticle() {
           marginBottom: 32,
           color: '#fff',
         }}>
-          链上订单簿，<br /><span style={{ color: '#00ffea' }}>能活下去的那种</span>
+          {isDE ? (
+            <>Das Orderbuch,<br /><span style={{ color: '#00ffea' }}>das nicht bricht</span></>
+          ) : (
+            <>The Order Book<br /><span style={{ color: '#00ffea' }}>That Doesn't Break</span></>
+          )}
         </h1>
 
         <p style={{
@@ -107,10 +105,10 @@ export default function ClobArticle() {
           letterSpacing: '0.03em',
           borderLeft: '2px solid rgba(0,255,234,0.4)',
           paddingLeft: 20,
-          marginBottom: 0,
         }}>
-          把交易所的撮合系统放到链上，以前大家都觉得不可能。Solana 证明了可以做。
-          但订单簿本身不是最难的——谁来买你的单、你会不会被抢跑，才是真正要命的问题。
+          {isDE
+            ? 'On-Chain-Orderbücher galten als unmöglich. Solana bewies das Gegenteil. Aber das eigentliche Problem beginnt erst danach.'
+            : 'On-chain order books were supposed to be impossible. Solana proved they weren\'t. The real problem starts after that.'}
         </p>
       </section>
 
@@ -118,43 +116,47 @@ export default function ClobArticle() {
         <div style={{ height: 1, background: 'rgba(255,255,255,0.07)' }} />
       </div>
 
-      {/* ── Body ── */}
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
 
-        <SectionLabel>01 — 为什么以前做不到</SectionLabel>
+        <SectionLabel>01 — {isDE ? 'Warum es vorher nicht ging' : 'Why it didn\'t work before'}</SectionLabel>
         <p style={bodyStyle}>
-          链上订单簿的原理其实简单：把交易所的买卖列表放到区块链上，任何人都能挂单、撮合、成交，没有中间人，没有人能跑路。
+          {isDE
+            ? 'Eine Blockchain hat eine Regel: Auf dasselbe Konto kann zur gleichen Zeit nur eine Person schreiben. Ein Orderbuch ist ein einziges Konto. Alle Orders, Stornierungen und Ausführungen müssen nacheinander. Bei wenig Traffic kein Problem. Bei viel Traffic: alles steckt fest.'
+            : 'A blockchain has one hard rule: only one person can write to the same account at the same time. An order book is one account. Every order, cancel, and fill has to queue up. Low traffic — fine. High traffic — everything jams.'}
         </p>
         <p style={bodyStyle}>
-          问题在于区块链有个规则：同一个账户同一时间只能有一个人写它。订单簿就是一个账户。你、我、他同时下单，只能排队一个一个来。人少还好，人多就全部堵死。
+          {isDE
+            ? 'Auf Ethereum war das fatal. Jede Preisänderung kostet Gas. Professionelle Market Maker müssen Preise sekündlich aktualisieren — das war schlicht unbezahlbar. Die echte Lösung auf EVM war nie ein echtes On-Chain-Orderbuch: 0x Protocol baute 2017 das Kompromissmodell — Preise Off-Chain, nur Abschlüsse On-Chain. Hyperliquid zog auf eine eigene Chain um.'
+            : 'On Ethereum this was fatal. Every price update costs gas. Professional market makers update quotes every second — completely unaffordable. The real EVM answer was never a true on-chain order book: 0x Protocol built the compromise in 2017 — quotes off-chain, only settlement on-chain. Hyperliquid moved to its own chain entirely.'}
         </p>
         <p style={bodyStyle}>
-          以太坊上试过。失败了。每次改一次报价都要付 gas 费，频繁更新贵到亏钱，根本不现实。最后大家的解法是妥协：报价放在链下，只把成交结果放到链上。不是真正的链上订单簿。
-        </p>
-        <p style={bodyStyle}>
-          Solana 不一样。每 400 毫秒出一个块，手续费极低。速度够了，成本够低了，链上订单簿第一次变得可能。
-        </p>
-
-        <SectionLabel>02 — Phoenix：第一个证明可以的</SectionLabel>
-        <p style={bodyStyle}>
-          以前的 Serum（Solana 上的第一代订单簿）有个设计：你下单，订单进队列，然后需要一个"搬运工"程序定期来处理队列、做撮合、更新账本。这个搬运工要有人一直在链下跑着，是个额外的依赖。
-        </p>
-        <p style={bodyStyle}>
-          Phoenix 把搬运工这个步骤直接塞进你下单的那笔交易里。你一笔交易发出去，里面同时包含：检查订单簿、找到对手方、撮合、更新余额。一步完成，不需要等任何人，不需要任何额外程序在旁边跑。
-        </p>
-        <p style={bodyStyle}>
-          听起来简单，工程上不容易。Solana 每笔交易有计算量上限，把撮合逻辑全部塞进去还不超限，需要极度优化的代码。Phoenix 做到了，证明了这件事可行。
+          {isDE
+            ? 'Solana änderte die Rechnung. 400ms Blöcke, Sub-Cent-Gebühren. Zum ersten Mal war ein echtes On-Chain-Orderbuch wirtschaftlich machbar.'
+            : 'Solana changed the math. 400ms blocks, sub-cent fees. For the first time, a real on-chain order book was economically viable.'}
         </p>
 
-        <SectionLabel>03 — Manifest：更激进的做法</SectionLabel>
+        <SectionLabel>02 — Phoenix: {isDE ? 'Der Beweis' : 'Proof it works'}</SectionLabel>
         <p style={bodyStyle}>
-          Manifest 在 Phoenix 的基础上再往前走了一步，而且在几个关键地方更激进。
+          {isDE
+            ? 'Serum, das erste Solana-Orderbuch, brauchte einen "Crank" — ein externes Programm, das ständig lief und Ereignisse verarbeitete, Matches ausführte und Salden aktualisierte. Eine externe Abhängigkeit, die gepflegt werden musste.'
+            : 'Serum, the first Solana order book, needed a "crank" — an external program that ran constantly, processing events, executing matches, updating balances. An external dependency that had to be maintained.'}
         </p>
         <p style={bodyStyle}>
-          开一个新市场，Phoenix 要 3 SOL 以上，Manifest 不到一分钱。手续费永久为零。这意味着任何人都可以为任何代币创建市场，不需要许可，不需要成本。
+          {isDE
+            ? 'Phoenix eliminierte den Crank vollständig. Deine Order-Transaktion erledigt alles auf einmal: Orderbuch prüfen, Gegenpartei finden, matchen, Salden aktualisieren. Ein Schritt, eine Transaktion, keine externen Programme. Das klingt einfach, ist es technisch aber nicht — Solana hat ein Compute-Budget pro Transaktion, und die gesamte Match-Logik hineinzubekommen ohne dieses zu überschreiten, erfordert extrem optimierten Code.'
+            : 'Phoenix eliminated the crank entirely. Your order transaction does everything at once: check the book, find a counterparty, match, update balances. One step, one transaction, no external programs. Sounds simple — technically it\'s not. Solana has a compute budget per transaction, and fitting all the matching logic inside it without blowing the limit requires extremely optimized code.'}
+        </p>
+
+        <SectionLabel>03 — Manifest: {isDE ? 'Noch aggressiver' : 'Going further'}</SectionLabel>
+        <p style={bodyStyle}>
+          {isDE
+            ? 'Manifest baut auf Phoenix auf und geht in jedem entscheidenden Bereich weiter. Einen neuen Markt erstellen kostet weniger als einen Cent — Phoenix verlangt über 3 SOL. Gebühren: dauerhaft null. Jeder kann für jeden Token einen Markt starten, ohne Erlaubnis, ohne Kosten.'
+            : 'Manifest builds on what Phoenix proved and pushes further in every important dimension. Creating a new market costs less than a cent — Phoenix charges 3+ SOL. Fees: permanently zero. Anyone can spin up a market for any token, no permission, no cost.'}
         </p>
         <p style={bodyStyle}>
-          但 Manifest 最核心的创新是 <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Global Orders</strong>——一个让做市商资金利用率大幅提升的机制。
+          {isDE
+            ? 'Die Kerninnovation ist Global Orders: ein Mechanismus, der die Kapitaleffizienz von Market Makern dramatisch verbessert.'
+            : 'The core innovation is Global Orders: a mechanism that dramatically improves how efficiently market makers can deploy capital.'}
         </p>
 
         <blockquote style={{
@@ -168,21 +170,26 @@ export default function ClobArticle() {
           lineHeight: 1.5,
           color: 'rgba(255,255,255,0.9)',
         }}>
-          "订单簿本身不是最难的。难的是上面一层和下面一层同时搞清楚。"
+          {isDE
+            ? '"Das Orderbuch ist nicht das schwierige Teil. Schwierig ist, das Ökosystem darum herum zu überleben."'
+            : '"The order book is not the hard part. The hard part is surviving the ecosystem around it."'}
         </blockquote>
 
-        <SectionLabel>04 — Global Orders：链上版的保证金制度</SectionLabel>
+        <SectionLabel>04 — Global Orders: {isDE ? 'On-Chain Cross Margin' : 'On-chain cross margin'}</SectionLabel>
         <p style={bodyStyle}>
-          普通做法（包括 Phoenix）：你要在 SOL/USDC 市场做市，就要把钱锁进这个市场的账户。同时想在 WIF/USDC 做市，再锁一份钱进那个账户。五个市场，五份资金，全部分开锁死。
+          {isDE
+            ? 'Normale Herangehensweise (auch Phoenix): Du willst an fünf Märkten Market Making betreiben, also sperrst du Geld in fünf separate Konten. Dasselbe Kapital kann nicht gleichzeitig an mehreren Orten arbeiten.'
+            : 'Normal approach — Phoenix included: you want to market-make on five pairs, so you lock money into five separate accounts. The same capital can\'t work in multiple places at once.'}
         </p>
         <p style={bodyStyle}>
-          Manifest 的 Global Orders：你的钱放在你自己的账户里，不预先锁进任何市场。在十个市场同时挂单，钱还在你那里。等到真的有人来成交了，那一刻才把钱划走——叫 JIT 结算（Just In Time）。
+          {isDE
+            ? 'Manifest\'s Global Orders: Dein Kapital bleibt in deinem eigenen Konto. Du stellst gleichzeitig an zehn Märkten Quotes. Das Geld bewegt sich erst im Moment des Abschlusses — JIT Settlement (Just In Time). Mit denselben $100.000 kannst du zehnmal so viel Liquidität anbieten.'
+            : 'Manifest\'s Global Orders: your capital stays in your own account. You quote across ten markets simultaneously. The money only moves at the moment of settlement — JIT, just in time. The same $100k can back ten times the liquidity.'}
         </p>
         <p style={bodyStyle}>
-          结果是：同样 10 万美元，Phoenix 方式分成五份每个市场 2 万，Manifest 方式十个市场同时挂满 10 万。做市商用同样的本金，能提供多倍的流动性。
-        </p>
-        <p style={bodyStyle}>
-          本质上就是 <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Cross Margin</strong>——所有市场共用一个资金池，和 Binance 合约的全仓模式是同一个逻辑。区别是 Manifest 上没有杠杆，你挂的是限价单，成交了就划钱，没成交钱就在那里，没有爆仓风险。
+          {isDE
+            ? 'Das ist im Kern Cross Margin — dasselbe Prinzip wie der Gesamtmargenmodus auf Binance Futures. Der Unterschied: kein Hebel, kein Liquidationsrisiko. Du bietest Limit-Orders an, kein gehebeltes Exposure. Abgewickelt wird nur, was tatsächlich getroffen wird.'
+            : 'This is cross margin in everything but name — same principle as portfolio margin on a futures exchange. The difference: no leverage, no liquidation risk. You\'re quoting limit orders, not leveraged exposure. Only what actually gets hit gets settled.'}
         </p>
 
         {/* Risk box */}
@@ -199,38 +206,41 @@ export default function ClobArticle() {
             color: 'rgba(255,100,100,0.7)',
             textTransform: 'uppercase',
             marginBottom: 16,
-          }}>风险：多个市场同时成交</p>
+          }}>{isDE ? 'Das Risiko: gleichzeitige Fills' : 'The risk: simultaneous fills'}</p>
           <p style={{ ...bodyStyle, marginBottom: 12 }}>
-            你有 10 万，在十个市场各挂了 5 万的买单。正常情况下不会同时全部成交，没有问题。
-          </p>
-          <p style={{ ...bodyStyle, marginBottom: 12 }}>
-            但行情剧烈波动时，多个市场可能同时有人来吃你的单。Manifest 的处理是先到先得：第一笔成交划钱，第二笔划钱，第三笔检查余额不够——失败。后面全部失败。
+            {isDE
+              ? 'Du hast $100.000 und hast an zehn Märkten je $50.000 geboten. Normalerweise werden nicht alle gleichzeitig getroffen. Aber bei starker Marktbewegung können mehrere Märkte gleichzeitig gegen dich laufen.'
+              : 'You have $100k and you\'ve quoted $50k bids across ten markets. Normally they don\'t all get hit at once. But during a sharp market move, multiple markets can come for you simultaneously.'}
           </p>
           <p style={{ ...bodyStyle, marginBottom: 0 }}>
-            你没有损失，但你以为自己在十个市场提供了流动性，实际上只有前几个有效。做市商要自己算好：挂出去的总额不能远超账户余额，否则大部分单在关键时刻都是虚的。
+            {isDE
+              ? 'Manifest verarbeitet nach dem Prinzip "Wer zuerst kommt, mahlt zuerst": Der erste Abschluss bucht das Geld, der zweite prüft den Saldo, wenn nicht genug da ist — gescheitert. Alle weiteren ebenfalls. Du verlierst nichts, aber deine Quotes an den verbleibenden Märkten sind in dem Moment, in dem du sie am meisten brauchst, wertlos. Market Maker müssen ihr gesamtes offenes Exposure im Blick behalten, nicht nur jeden Markt einzeln.'
+              : 'Manifest processes first-come-first-served: the first fill books the money, the second checks the balance, not enough — failed. All subsequent ones too. You lose nothing, but your quotes on the remaining markets are worthless at exactly the moment you need them most. Market makers have to track total open exposure, not just each market individually.'}
           </p>
         </div>
 
-        <SectionLabel>05 — 谁来买你的单：聚合器这一层</SectionLabel>
+        <SectionLabel>05 — {isDE ? 'Wer deine Orders kauft: Die Aggregator-Schicht' : 'Who buys your orders: the aggregator layer'}</SectionLabel>
         <p style={bodyStyle}>
-          0x 是以太坊上的老牌协议，2017 年他们也试过链上订单簿，做不成，最后变成"报价在链下、成交在链上"的模式。现在他们的 Swap API 也支持 Solana 了，会自动在所有市场里比价，把用户的交易路由到最便宜的地方——Phoenix、Manifest、Orca、Raydium 都在比较范围内。
+          {isDE
+            ? '0x Protocol entwickelte 2017 auf Ethereum das Kompromissmodell für DEX-Handel und baut heute eine Swap API, die Liquidität über mehrere Chains aggregiert — einschließlich Solana, wo sie durch Jupiter zu Phoenix, Manifest, Orca und Raydium routen. Wer das beste Angebot hat, bekommt den Trade.'
+            : '0x Protocol built the EVM compromise model for DEX trading in 2017 and now builds a swap API that aggregates liquidity across chains — including Solana, where they route through Jupiter to Phoenix, Manifest, Orca, and Raydium. Best price wins the trade.'}
         </p>
         <p style={bodyStyle}>
-          对做市商来说，被聚合器接入意味着流量来了。但聚合器只看价格，谁便宜路由谁。你的价差如果比别人宽哪怕 0.1%，交易就不会来你这里。
-        </p>
-        <p style={bodyStyle}>
-          另一个好处是：聚合器带来的是散户流量，不是高频套利机器人。散户不会盯着你的报价抢跑，对做市商来说是质量更好的流量。
+          {isDE
+            ? 'Aggregator-Flow ist besser als HFT-Flow. Es sind Retail-Nutzer, keine adversariellen Bots — weniger wahrscheinlich, dich zu frontrunnen, einfacher zu quotieren dagegen. Aber Aggregatoren erzwingen auch enge Spreads: 0,1% zu breit und der Trade geht woanders hin. Um auf dem Routing-Pfad zu sein, musst du konstant wettbewerbsfähig sein.'
+            : 'Aggregator flow is better than HFT flow. It\'s retail users, not adversarial bots — less likely to front-run you, easier to quote against. But aggregators also force tight spreads: 0.1% too wide and the trade goes elsewhere. To be on the routing path, you need to be consistently competitive.'}
         </p>
 
-        <SectionLabel>06 — 被抢跑的成本：Jito 这一层</SectionLabel>
+        <SectionLabel>06 — {isDE ? 'Die Kosten des Frontrunnings: Die MEV-Schicht' : 'The cost of being front-run: the MEV layer'}</SectionLabel>
         <p style={bodyStyle}>
-          做市商最怕的场景：你报了一个价，一笔大单来了，你知道这单成交后价格会动，想赶紧撤掉旧单重新报价。但还没来得及撤，机器人已经抢在前面把你的旧价格全部吃掉，转手以新价格卖出去。你的单全成交了，但价格已经跑掉了。这叫被抢跑。
+          {isDE
+            ? 'Du bist Market Maker. Du quotierst SOL bei 100. Ein großer Kauf kommt — du weißt, der Preis wird steigen. Du willst deinen Quote sofort canceln und bei 101 neu quotieren. Aber bevor deine Cancellation landet, hat ein Suchbot deinen 100er-Quote gesehen, ihn gecancelt, für 101 zurückgekauft. Dein Abschluss hat stattgefunden, aber zu einem Preis, der dir bereits weggeglitten ist.'
+            : 'You\'re a market maker. You\'re quoting SOL at 100. A large buy comes in — you know the price will move. You want to cancel your quote immediately and re-quote at 101. But before your cancel lands, a search bot has seen your 100 quote, eaten it, and flipped it for 101. Your fill happened, but at a price that already moved against you.'}
         </p>
         <p style={bodyStyle}>
-          Jito 是 Solana 上专门处理这类问题的基础设施。它让你可以把"撤单 + 报新价 + 成交"打包成一个原子操作——要么全部成功，要么全部失败，中间没有缝隙给机器人钻。
-        </p>
-        <p style={bodyStyle}>
-          但用 Jito 要付竞价费，而且是跟其他人竞价——你出价越高，你的交易越先被处理。最后做市商把这个成本加进了价差里。你看到的买卖价差，有一块其实是在替做市商承担被抢跑的风险。价差不只是做市商的利润，也是他们的保险费。
+          {isDE
+            ? 'Jito\'s Block Engine lässt dich Cancel + Re-Quote als atomare Operation bündeln — entweder beides passiert oder keines. Keine Lücke für Bots. Aber das kostet Gebühren in einer kompetitiven Auktion. Market Maker wälzen diese Kosten auf die Spreads um. Der Spread, den du als Trader zahlst, ist nicht nur Profit des Market Makers — es ist teilweise auch seine Versicherungsprämie gegen Frontrunning.'
+            : 'Jito\'s block engine lets you bundle cancel + re-quote as an atomic operation — either both happen or neither does. No gap for bots. But this costs fees in a competitive auction. Market makers pass this cost into spreads. The spread you pay as a trader isn\'t just the market maker\'s profit — part of it is their insurance premium against being front-run.'}
         </p>
 
         <div style={{
@@ -248,9 +258,13 @@ export default function ClobArticle() {
             color: 'rgba(255,255,255,0.88)',
             margin: 0,
           }}>
-            订单簿的代码写好，只是开始。<br />
+            {isDE
+              ? 'Den Orderbuch-Code fertigzuschreiben ist erst der Anfang.'
+              : 'Getting the order book code right is just the beginning.'}<br />
             <span style={{ color: '#00ffea' }}>
-              谁来买你的单、你会不会被抢跑——是另外两个完全不同的问题，但都直接决定你能不能活。
+              {isDE
+                ? 'Wer deine Orders kauft und was dich das Frontrunning kostet — das sind zwei völlig andere Probleme, die beide entscheiden, ob du überlebst.'
+                : 'Who buys your orders and what front-running costs you — those are two completely separate problems that both decide whether you survive.'}
             </span>
           </p>
           <p style={{
@@ -276,9 +290,8 @@ export default function ClobArticle() {
             color: 'rgba(255,255,255,0.35)',
             textDecoration: 'none',
             textTransform: 'uppercase',
-            transition: 'color 0.2s',
           }}>
-            ← Back to Archive
+            ← {isDE ? 'Zurück zum Archiv' : 'Back to Archive'}
           </Link>
         </div>
 
