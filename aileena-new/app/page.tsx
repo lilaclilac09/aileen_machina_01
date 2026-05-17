@@ -133,7 +133,14 @@ export default function Home() {
                   {tx.pow.items.map((item, i) => (
                     <Link key={item.name} href={item.href} target="_blank" rel="noopener noreferrer" className={`group anim-up-${Math.min(i + 1, 3)} flex flex-col rounded-lg border border-white/8 bg-white/[0.02] overflow-hidden transition-colors hover:border-[#00ffea]/30 hover:bg-white/[0.04] no-underline`}>
                       <div className="relative h-32 sm:h-40 w-full overflow-hidden bg-black/50">
-                        <img src={item.image} alt={item.name} className="h-full w-full object-cover object-top opacity-70 group-hover:opacity-90 transition-opacity duration-300" />
+                        {item.image ? (
+                          <img src={item.image} alt={item.name} className="h-full w-full object-cover object-top opacity-80 group-hover:opacity-100 transition-opacity duration-300" />
+                        ) : (
+                          <div className="h-full w-full flex flex-col items-center justify-center bg-gradient-to-br from-white/[0.03] to-white/[0.01]">
+                            <span className="font-mono text-[0.5rem] tracking-[0.5em] text-[#00ffea]/25 uppercase">Under Construction</span>
+                            <span className="mt-2 font-mono text-[0.45rem] tracking-[0.3em] text-white/15 uppercase">Frontend coming soon</span>
+                          </div>
+                        )}
                       </div>
                       <div className="flex flex-col justify-between flex-1 p-4 sm:p-6">
                         <div>
