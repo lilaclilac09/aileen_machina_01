@@ -31,7 +31,7 @@ const C = {
 const TRACKS = [
   { id: '7Gi8h4mk92A5akMQBGnDXj', title: 'Berlin',         bpm: 125, key: '6A', dur: 200, thumb: '/berlin.jpg' },
   { id: '4DBeUcBD2zVZzhf2oX1PLc', title: "I Can't Quit",   bpm: 124, key: '2A', dur: 195, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e028508f29ab91bfcce74f86ef5' },
-  { id: '56NkIxSZZiMpFP5ZNSxtnT', title: 'Someday',        bpm: 120, key: '4A', dur: 212, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02a388a3f20d1bf2123249cc79' },
+  { id: '56NkIxSZZiMpFP5ZNSxtnT', title: 'Someday',        bpm: 120, key: '4A', dur: 212, thumb: 'https://i.scdn.co/image/ab67616d00001e0213f2466b83507515291acce4' },
   { id: '3CYFxT3dBwOd9Ap0zKXHk7', title: 'GALA',           bpm: 128, key: '6B', dur: 178, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02c1456e351abb6d5b1a8ffbef' },
   { id: '2pIUpMhHL6L9Z5lnKxJJr9', title: 'Attention',      bpm: 122, key: '8A', dur: 200, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e029d28fd01859073a3ae6ea209' },
   { id: '1qbEfJ6F5Ryn1RYfJheZem', title: 'Late Night Job', bpm: 118, key: '3A', dur: 225, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e023108f7d165756b51d81ea3ba' },
