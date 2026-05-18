@@ -88,7 +88,7 @@ export const t = {
         {
           name: 'PAMM MEV Analysis',
           tags: ['Python', 'Solana', 'Monte Carlo'],
-          description: 'Monte Carlo model of MEV contagion in Solana AMM pools. Maps how adversarial trades spread.',
+          description: 'Monte Carlo model of MEV contagion in Solana AMM pools. Live dashboard at pamm.aileena.xyz.',
           href: 'https://github.com/lilaclilac09/solana-pamm-MEV-binary-monte-analysis-contagious-pools',
           image: '/projects/pamm-mev.png',
           cta: 'Source →',
@@ -107,7 +107,7 @@ export const t = {
         {
           name: 'Prop AMM',
           tags: ['Rust', 'Solana', 'DeFi'],
-          description: 'EWMA dynamic fee AMM on Solana. Live risk terminal: fee model trace, reader bot PnL, circuit breaker signals.',
+          description: 'EWMA dynamic fee AMM on Solana. Live risk terminal at pamm.aileena.xyz — fee model trace, reader bot PnL, circuit breaker signals.',
           href: 'https://github.com/lilaclilac09/pamm-a',
           image: '/projects/prop-amm.png',
           cta: 'Source →',
@@ -323,7 +323,7 @@ export const t = {
         {
           name: 'PAMM MEV-Analyse',
           tags: ['Python', 'Solana', 'Monte Carlo'],
-          description: 'Monte-Carlo-Modell der MEV-Kontagion in Solana-AMM-Pools. Bildet ab, wie adversarielle Trades sich ausbreiten.',
+          description: 'Monte-Carlo-Modell der MEV-Kontagion in Solana-AMM-Pools. Live-Dashboard auf pamm.aileena.xyz.',
           href: 'https://github.com/lilaclilac09/solana-pamm-MEV-binary-monte-analysis-contagious-pools',
           image: '/projects/pamm-mev.png',
           cta: 'Source →',
@@ -342,7 +342,7 @@ export const t = {
         {
           name: 'Prop AMM',
           tags: ['Rust', 'Solana', 'DeFi'],
-          description: 'EWMA Dynamic Fee AMM auf Solana. Live-Risk-Terminal: Fee-Model-Trace, Reader-Bot-PnL, Circuit-Breaker-Signale.',
+          description: 'EWMA Dynamic Fee AMM auf Solana. Live-Risk-Terminal auf pamm.aileena.xyz — Fee-Model-Trace, Reader-Bot-PnL, Circuit-Breaker-Signale.',
           href: 'https://github.com/lilaclilac09/pamm-a',
           image: '/projects/prop-amm.png',
           cta: 'Source →',
