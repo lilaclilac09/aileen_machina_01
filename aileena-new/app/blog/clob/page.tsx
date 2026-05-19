@@ -271,28 +271,107 @@ export default function ClobArticle() {
           The downside: aggregator integration is binary. If your price is the best, you get the fill. If it&apos;s not, you get nothing. There&apos;s no loyalty, no relationship, no &quot;you filled me last time so I&apos;ll route to you again.&quot; Pure price competition, every single order.
         </p>
 
-        <SectionLabel>06 — MEV and Jito: The Cost of Being Seen</SectionLabel>
+        <SectionLabel>06 — Cancel Latency: The Market Maker&apos;s Real Problem</SectionLabel>
         <p style={bodyStyle}>
-          Every transaction on Solana is visible in the mempool before it lands in a block. A market maker posts a quote. A large buy order appears in the mempool. A bot sees both. The bot sends its own transaction to buy ahead of the large order, pushing the price up, then sells into the large order at the higher price. The market maker&apos;s quote gets filled, but at a stale price. This is sandwich MEV.
+          For a market maker on a centralized exchange, canceling an order is instantaneous — a message over a WebSocket, acknowledged in microseconds. No fee, no queue, no race. On a Solana CLOB, a cancel is a transaction. It must be submitted, propagated, included in a block, and confirmed. At Solana&apos;s baseline, that&apos;s 400ms per slot — an eternity when prices are moving.
         </p>
         <p style={bodyStyle}>
-          The market maker&apos;s defense: cancel stale quotes before they get picked off. But the cancel is also a transaction that has to land. If the bot&apos;s transaction has higher priority (higher fee), the bot fills the stale quote before the cancel arrives. The market maker&apos;s only option is to pay more for priority.
+          This asymmetry is the defining constraint of on-chain market making. Posting a quote is a commitment that can&apos;t be undone instantly. Every resting order is a liability: a promise to trade at a fixed price, regardless of what the market does before the cancel lands. When a large order hits the mempool and moves price, the window between &quot;price moved&quot; and &quot;cancel confirmed&quot; is where market makers bleed. Sophisticated actors — termed &quot;snipers&quot; — exist specifically to fill stale quotes in that window before the cancel arrives.
         </p>
+
+        {/* Cancel latency data box */}
+        <div style={{ margin: '40px 0', padding: '28px 32px', background: 'rgba(0,255,234,0.03)', border: '1px solid rgba(0,255,234,0.12)' }}>
+          <p style={{ fontFamily: 'monospace', fontSize: '0.52rem', letterSpacing: '0.4em', color: 'rgba(0,255,234,0.6)', textTransform: 'uppercase', marginBottom: 16 }}>Cancel Latency in Practice</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 24 }}>
+            {[
+              { stat: '~400ms', label: 'Solana slot time — baseline cancel window' },
+              { stat: '50–200ms', label: 'Practical landing time with priority fee' },
+              { stat: '&lt;1ms', label: 'CEX cancel acknowledgment (WebSocket)' },
+              { stat: '~80%', label: 'Solana validators running Jito software (2024)' },
+            ].map((d, i) => (
+              <div key={i}>
+                <p style={{ fontFamily: 'monospace', fontSize: 'clamp(1.4rem, 3vw, 2rem)', fontWeight: 700, color: '#00ffea', margin: '0 0 6px', letterSpacing: '0.02em' }} dangerouslySetInnerHTML={{ __html: d.stat }} />
+                <p style={{ fontFamily: 'monospace', fontSize: '0.6rem', letterSpacing: '0.05em', color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.5 }}>{d.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <p style={bodyStyle}>
-          Jito is Solana&apos;s MEV infrastructure. It provides two mechanisms that market makers use:
+          The cancel problem cascades into quoting strategy. A market maker who quotes tight spreads on many price levels is most exposed: more resting orders means more potential fills at stale prices during a move. The rational response is to either quote wider (reducing sniper profitability but also reducing competitiveness) or to invest heavily in cancel infrastructure — colocation with validators, low-latency RPC nodes, priority fee tuning. This is why professional on-chain market making is expensive. The edge is not in the pricing model; it&apos;s in the infrastructure that gets cancels on-chain faster than competitors.
+        </p>
+
+        <SectionLabel>06b — Jito: Block Auctions, Bundles, and the Private Mempool</SectionLabel>
+        <p style={bodyStyle}>
+          Jito is not a single tool — it is a layered MEV infrastructure that runs across most of Solana&apos;s validator set. Understanding it requires separating four distinct components.
         </p>
 
         <div style={{ margin: '32px 0', padding: '0 0 0 24px', borderLeft: '2px solid rgba(255,255,255,0.1)' }}>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Bundles.</strong> You package &quot;cancel old quote + place new quote + fill incoming order&quot; into a single atomic bundle. All three execute in sequence within the same slot, or none do. No gap for bots to exploit between cancel and requote.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Block Engine.</strong> Jito operates a block engine — a service that validators (running Jito-patched software) connect to. The block engine receives bundles and individual transactions, simulates them, and assembles the most profitable ordering for the validator. As of 2024, approximately 80% of Solana validators run Jito software, which means most blocks are built through the Jito block engine. A transaction sent only to standard RPC has no path into a Jito block unless it is also forwarded.
+          </p>
+          <p style={{ ...bodyStyle, marginBottom: 16 }}>
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Bundles.</strong> A bundle is an ordered sequence of up to five transactions submitted atomically. All five execute in sequence, or none do. The canonical MM use case: [cancel stale bid] → [cancel stale ask] → [place new bid] → [place new ask]. No bot can insert a transaction between the cancel and the requote because the entire sequence lands as one unit. Bundles can also include a fill: [fill incoming order] → [hedge on another venue], ensuring the hedge lands in the same slot as the fill.
+          </p>
+          <p style={{ ...bodyStyle, marginBottom: 16 }}>
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Tips.</strong> Every bundle includes a tip — a direct SOL payment to the validator (via a Jito tip account). This is separate from the base transaction fee. The tip is the auction price for block ordering priority. Median tips are a fraction of a cent during quiet markets. During high-volatility events (token launches, major liquidations), tips spike: competitive bundles have been observed paying 1–5 SOL (~$150–750 at $150/SOL) for a single bundle to ensure first-in-block execution. The tip market is a second-price auction dynamic — you need to outbid the next competitor, not maximize your payment.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 0 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Tips.</strong> You attach a tip (in SOL) to your bundle. Higher tip means higher priority in the block. This is an auction: you&apos;re bidding against other bundles for execution order. During volatile markets, tips spike because everyone is racing to cancel and requote.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>ShredStream.</strong> Shreds are the raw data fragments Solana validators broadcast as they build blocks — before the block is complete or confirmed. Jito&apos;s ShredStream service lets subscribers receive shreds directly from validators in real time, giving them the earliest possible view of what is landing on-chain. For market makers, this is the cancel signal: when ShredStream shows a large order approaching their resting quotes, they have ~50–100ms to submit a cancel bundle before the order lands. Without ShredStream, you are reacting to confirmed state — already too late.
           </p>
         </div>
 
         <p style={bodyStyle}>
-          The spread you see on a Solana CLOB is not just the market maker&apos;s profit margin. Part of it is the cost of Jito tips. Part of it is the expected loss from times the cancel didn&apos;t land fast enough. The tighter the spread, the more the market maker bleeds to MEV. The wider the spread, the less competitive they are on aggregators. This is the fundamental tension of on-chain market making.
+          The difference between regular trading and Jito-mediated trading is architectural. A standard transaction goes to a public RPC node, propagates through gossip, and competes for inclusion based on base fee alone. It is visible to anyone watching the mempool. A Jito bundle goes through a private channel directly to the block engine, is simulated off-chain, and is only revealed to the network when it lands in a confirmed block. No front-running window. No public visibility. The bundle either executes as written or is dropped silently.
+        </p>
+
+        {/* Jito vs regular comparison table */}
+        <div style={{ margin: '40px 0', overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'monospace', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
+                <th style={thStyle}></th>
+                <th style={thStyle}>Standard tx</th>
+                <th style={thStyle}>Jito bundle</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Visibility before landing</td>
+                <td style={tdStyle}>Public mempool — anyone can see</td>
+                <td style={tdStyle}>Private — only block engine sees</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Atomicity</td>
+                <td style={tdStyle}>Single tx — can be reordered around</td>
+                <td style={tdStyle}>Up to 5 txs — all land in order or none do</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Priority mechanism</td>
+                <td style={tdStyle}>Priority fee (lamports/CU)</td>
+                <td style={tdStyle}>Tip (flat SOL) + priority fee</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Failure mode</td>
+                <td style={tdStyle}>Tx included but reverts — fee still paid</td>
+                <td style={tdStyle}>Bundle dropped if simulation fails — no fee</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Front-run risk</td>
+                <td style={tdStyle}>High — visible in gossip</td>
+                <td style={tdStyle}>None — private until confirmed</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Typical cost</td>
+                <td style={tdStyle}>~0.000005 SOL base fee</td>
+                <td style={tdStyle}>0.0001–5 SOL tip (market-rate dependent)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p style={bodyStyle}>
+          The spread you see on a Solana CLOB encodes all of this. It is not the market maker&apos;s profit margin. It is the sum of: expected adverse selection from fills before cancels land, Jito tip cost amortized across expected fill volume, infrastructure costs (ShredStream, colocation, low-latency RPC), and the actual profit target — likely the smallest component of the four during volatile periods. A 5 bps spread on a liquid pair on Phoenix may represent 1 bps of actual profit and 4 bps of operational overhead that does not exist on a centralized exchange.
         </p>
 
         <SectionLabel>07 — The Mechanism Landscape: AMM, RFQ, Intent, CLOB</SectionLabel>
@@ -521,14 +600,19 @@ export default function ClobArticle() {
             {[
               { label: 'Phoenix Protocol — On-Chain CLOB Architecture', href: 'https://github.com/Ellipsis-Labs/phoenix-v1' },
               { label: 'Manifest — Permissionless CLOB & Global Orders', href: 'https://github.com/CKS-Systems/manifest' },
-              { label: 'Jito — MEV Infrastructure on Solana', href: 'https://www.jito.network/' },
+              { label: 'Jito Labs — Block Engine & Bundle Documentation', href: 'https://docs.jito.wtf/lowlatencytxnsend/' },
+              { label: 'Jito ShredStream — Real-Time Validator Data', href: 'https://github.com/jito-foundation/shredstream-proxy' },
+              { label: 'Jito MEV Dashboard — On-Chain Tip & Bundle Data', href: 'https://explorer.jito.wtf/' },
               { label: 'Jupiter Aggregator — Routing Across Solana Venues', href: 'https://station.jup.ag/docs' },
               { label: 'Solana Transaction Compute Budget', href: 'https://solana.com/docs/core/transactions/compute' },
+              { label: 'Solana Validator Economics & Jito Adoption (Helius)', href: 'https://www.helius.dev/blog/solana-mev-an-introduction' },
               { label: 'Hyperliquid — HIP-1 & HIP-2 Specification', href: 'https://hyperliquid.gitbook.io/hyperliquid-docs/hyperliquid-improvement-proposals-hips/hip-1-and-hip-2' },
+              { label: 'Hyperliquid — HLP Vault & Liquidity Design', href: 'https://hyperliquid.gitbook.io/hyperliquid-docs/trading/hlp' },
               { label: 'dYdX v4 — Cosmos App-Chain Architecture', href: 'https://dydx.exchange/blog/dydx-chain' },
               { label: 'GMX — GLP Pool and Oracle Pricing Model', href: 'https://gmx-io.notion.site/gmx-io/GMX-Whitepaper-3a06fba7a6a64bda8bc70e9ca8f56de4' },
               { label: 'CoW Protocol — Intent-Based Settlement', href: 'https://docs.cow.fi/cow-protocol/concepts/introduction/intents' },
               { label: 'UniswapX — Solver Auction Design', href: 'https://blog.uniswap.org/uniswapx-protocol' },
+              { label: 'Flashbots — MEV Research & Bundle Auction Theory', href: 'https://writings.flashbots.net/mev-auction-theory' },
             ].map((ref, i) => (
               <li key={i} style={{
                 fontFamily: 'monospace',
