@@ -106,9 +106,9 @@ export const t = {
           name: 'Prop AMM',
           tags: ['Rust', 'Solana', 'DeFi'],
           description: 'Rust PAMM on Solana. Research into alternative bonding curves for DeFi liquidity design.',
-          href: 'https://github.com/lilaclilac09/pamm-a',
+          href: 'https://pamm.aileena.xyz',
           image: '/projects/prop-amm.png',
-          cta: 'Source →',
+          cta: 'Live →',
         },
         {
           name: 'Zen Fortune Cookie',
@@ -338,9 +338,9 @@ export const t = {
           name: 'Prop AMM',
           tags: ['Rust', 'Solana', 'DeFi'],
           description: 'Rust-PAMM auf Solana. Forschung zu alternativen Bonding-Kurven für DeFi-Liquiditätsdesign.',
-          href: 'https://github.com/lilaclilac09/pamm-a',
+          href: 'https://pamm.aileena.xyz',
           image: '/projects/prop-amm.png',
-          cta: 'Source →',
+          cta: 'Live →',
         },
         {
           name: 'Zen Fortune Cookie',
