@@ -295,7 +295,170 @@ export default function ClobArticle() {
           The spread you see on a Solana CLOB is not just the market maker&apos;s profit margin. Part of it is the cost of Jito tips. Part of it is the expected loss from times the cancel didn&apos;t land fast enough. The tighter the spread, the more the market maker bleeds to MEV. The wider the spread, the less competitive they are on aggregators. This is the fundamental tension of on-chain market making.
         </p>
 
-        <SectionLabel>07 — Where This Goes</SectionLabel>
+        <SectionLabel>07 — The Mechanism Landscape: AMM, RFQ, Intent, CLOB</SectionLabel>
+        <p style={bodyStyle}>
+          A CLOB is one answer to the price discovery problem. Three others coexist on-chain, each making different trade-offs.
+        </p>
+
+        <div style={{ margin: '40px 0', overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'monospace', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
+                <th style={thStyle}>Mechanism</th>
+                <th style={thStyle}>Examples</th>
+                <th style={thStyle}>Price discovery</th>
+                <th style={thStyle}>Who takes risk</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>AMM (x·y=k)</td>
+                <td style={tdStyle}>Uniswap, Orca, Raydium</td>
+                <td style={tdStyle}>Formula — price moves with each swap</td>
+                <td style={tdStyle}>LPs (impermanent loss)</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>RFQ</td>
+                <td style={tdStyle}>0x, Hashflow</td>
+                <td style={tdStyle}>Market makers quote on request, off-chain</td>
+                <td style={tdStyle}>Market maker</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Intent-based</td>
+                <td style={tdStyle}>UniswapX, Across, CoW Protocol</td>
+                <td style={tdStyle}>Solver competition — best fill wins</td>
+                <td style={tdStyle}>Solver (short window)</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>On-chain CLOB</td>
+                <td style={tdStyle}>Phoenix, Manifest</td>
+                <td style={tdStyle}>Transparent book — FIFO matching</td>
+                <td style={tdStyle}>Market maker</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p style={bodyStyle}>
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>AMMs</strong> trade execution simplicity for capital efficiency. Liquidity providers deposit once; the formula handles everything. But the formula is predictable — every large order is sandwichable, LPs absorb adverse selection by design, and there are no limit orders. AMMs work for passive liquidity. They fail for tight spreads.
+        </p>
+        <p style={bodyStyle}>
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>RFQ</strong> flips the model: no public book, no formula. A user requests a quote, market makers compete to respond, the best bid wins. Zero MEV exposure — the price is agreed before the tx broadcasts. But it requires market makers to be online, responsive, and willing to quote every token. Long-tail assets get no coverage.
+        </p>
+        <p style={bodyStyle}>
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Intent-based routing</strong> (UniswapX, CoW Protocol) abstracts the venue entirely. The user signs an intent: &quot;give me at least X for Y.&quot; Solvers — bots competing to fill — find the optimal path across AMMs, CLOBs, private inventory. The user gets best execution. The solver captures the surplus. MEV is redirected from extractors to solvers and partially returned to users. The risk: solver centralization. A handful of solvers handle the majority of flow.
+        </p>
+        <p style={bodyStyle}>
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>On-chain CLOBs</strong> are the only model where price is transparent before the trade and limit orders are native. Every resting order is a public commitment. Market makers compete on spread. Takers see the full depth. The cost: write-lock contention, compute constraints, MEV exposure on every cancel-requote cycle.
+        </p>
+
+        <SectionLabel>08 — Derivative Markets: Hyperliquid, dYdX, GMX</SectionLabel>
+        <p style={bodyStyle}>
+          Spot CLOBs solve one problem: matching buyers and sellers of existing assets. Derivatives add a second layer — synthetic exposure, leverage, funding rates, liquidation engines, oracle pricing. Each solved it differently.
+        </p>
+
+        <div style={{ margin: '32px 0', padding: '0 0 0 24px', borderLeft: '2px solid rgba(255,255,255,0.1)' }}>
+          <p style={{ ...bodyStyle, marginBottom: 16 }}>
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>GMX / GLP model.</strong> No order book. Liquidity providers deposit a basket of assets into a pool (GLP). Traders open long or short positions against the pool as counterparty. Prices come from Chainlink oracles — no book depth, no spread. The pool earns fees when traders lose; it bleeds when traders win. Capital efficient for LPs when traders are net unprofitable. Structurally fragile when they are not.
+          </p>
+          <p style={{ ...bodyStyle, marginBottom: 16 }}>
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>dYdX v4 (Cosmos app-chain).</strong> Off-chain order book, on-chain settlement. Validators run the matching engine off-chain in their local state; only fills hit the Cosmos chain. Sub-second latency. The trade-off: validators must be trusted to match orders honestly. Censorship is possible at the validator level. dYdX chose performance over full on-chain transparency.
+          </p>
+          <p style={{ ...bodyStyle, marginBottom: 0 }}>
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Hyperliquid.</strong> Purpose-built L1 (HyperBFT consensus, Tendermint-derived). The entire matching engine runs on-chain on their own chain — no shared congestion with other applications. Order acknowledgment under 1ms. The validator set is small (~20 initially), which is the central trust assumption. HIP-1 defines the native token standard for deploying assets directly on Hyperliquid&apos;s L1. HIP-2 provides automatic liquidity seeding for new HIP-1 spot markets — the protocol bootstraps initial order book depth at the auction clearing price, preventing empty-book cold-start failure. The HLP (Hyperliquidity Provider) vault acts as the native market maker, absorbing flow the external maker ecosystem doesn&apos;t cover.
+          </p>
+        </div>
+
+        <p style={bodyStyle}>
+          The structural difference between Phoenix and Hyperliquid comes down to one question: who controls the sequencer? On Solana, Solana&apos;s decentralized validator set sequences your transactions. On Hyperliquid, Hyperliquid&apos;s validator set does. You get 400x the speed in exchange for trusting a smaller committee. Whether that trade-off is acceptable depends on what you&apos;re trading and how much you&apos;re putting at risk.
+        </p>
+
+        <div style={{ margin: '40px 0', overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'monospace', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
+                <th style={thStyle}></th>
+                <th style={thStyle}>Phoenix</th>
+                <th style={thStyle}>Hyperliquid</th>
+                <th style={thStyle}>dYdX v4</th>
+                <th style={thStyle}>GMX</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Chain</td>
+                <td style={tdStyle}>Solana</td>
+                <td style={tdStyle}>Own L1 (HyperBFT)</td>
+                <td style={tdStyle}>Own L1 (Cosmos)</td>
+                <td style={tdStyle}>Arbitrum / Avalanche</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Matching</td>
+                <td style={tdStyle}>On-chain, inline</td>
+                <td style={tdStyle}>On-chain, own chain</td>
+                <td style={tdStyle}>Off-chain (validators)</td>
+                <td style={tdStyle}>Oracle — no book</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Latency</td>
+                <td style={tdStyle}>~400ms</td>
+                <td style={tdStyle}>&lt;1ms ack, ~2s finality</td>
+                <td style={tdStyle}>~500ms</td>
+                <td style={tdStyle}>Oracle refresh rate</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Validator trust</td>
+                <td style={tdStyle}>1,800+ Solana validators</td>
+                <td style={tdStyle}>~20 (semi-centralised)</td>
+                <td style={tdStyle}>dYdX validator set</td>
+                <td style={tdStyle}>Chainlink oracle network</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Derivatives</td>
+                <td style={tdStyle}>Spot only</td>
+                <td style={tdStyle}>Perps + spot</td>
+                <td style={tdStyle}>Perps</td>
+                <td style={tdStyle}>Perps (synthetic)</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>MEV exposure</td>
+                <td style={tdStyle}>High (Solana mempool)</td>
+                <td style={tdStyle}>Low (own mempool)</td>
+                <td style={tdStyle}>Low (off-chain matching)</td>
+                <td style={tdStyle}>Oracle latency arb</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <SectionLabel>09 — Scalability: Where Each Model Breaks</SectionLabel>
+        <p style={bodyStyle}>
+          Every trading architecture has a ceiling. The question is where it cracks under load — and whether that ceiling is infrastructure, economics, or trust.
+        </p>
+
+        <div style={{ margin: '32px 0', padding: '0 0 0 24px', borderLeft: '2px solid rgba(255,255,255,0.1)' }}>
+          <p style={{ ...bodyStyle, marginBottom: 16 }}>
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>AMMs scale until MEV does.</strong> Each swap is O(1) — no book to traverse, no matching logic. Solana AMMs handle millions of swaps. But as TVL grows, so does the size of sandwichable trades. MEV extraction scales with liquidity. Concentrated liquidity (Orca Whirlpools) improves capital efficiency but narrows the range that earns fees, concentrating IL risk. The model doesn&apos;t break; it just becomes more extractive at scale.
+          </p>
+          <p style={{ ...bodyStyle, marginBottom: 16 }}>
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>On-chain CLOBs (Solana) hit write-lock ceilings.</strong> Phoenix and Manifest are bottlenecked by Solana&apos;s account write-lock rule: one writer per account per slot. At low volume, fine. At high volume, the order book account becomes a serial resource. Multiple market makers targeting the same account in the same slot means most of them fail. The practical throughput for a single Phoenix market under contested conditions is far below Solana&apos;s theoretical 65,000 TPS. Compute limits per transaction add a second ceiling: deep order walks that touch many price levels hit the 1.4M CU cap.
+          </p>
+          <p style={{ ...bodyStyle, marginBottom: 16 }}>
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Own-chain CLOBs (Hyperliquid, dYdX) remove the shared congestion problem.</strong> No other applications compete for the same write locks. The matching engine has the full validator throughput. Hyperliquid processes 100,000+ orders per second in their own benchmarks. But the ceiling shifts: it&apos;s now the validator set size and the trust model. Fewer validators means faster BFT consensus but a smaller security set. A cartel of validators could front-run orders or censor cancels. This is a governance and decentralization problem, not an infrastructure one — and it gets harder to solve as the platform grows more valuable.
+          </p>
+          <p style={{ ...bodyStyle, marginBottom: 16 }}>
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>RFQ scales with market maker capital, not infrastructure.</strong> There&apos;s no order book to contend for, no write-lock bottleneck. Throughput is limited by how many quote requests market makers can respond to per second. For liquid pairs, this is effectively unlimited. For long-tail assets, market makers simply don&apos;t show up. The model scales horizontally — add more market makers — but fails vertically: there&apos;s no native price discovery, so takers depend entirely on the market maker being honest and competitive.
+          </p>
+          <p style={{ ...bodyStyle, marginBottom: 0 }}>
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Intent-based routing scales with solver infrastructure.</strong> Solvers run off-chain, spin up as needed, and compete on every order independently. The on-chain footprint is a single settlement tx per fill. This is the most scalable model from a pure throughput perspective. The risk is solver centralization: if three solvers handle 90% of flow, the &quot;competitive solver auction&quot; becomes oligopolistic pricing in practice. The user sees best execution today; whether that holds as solver market structure consolidates is the open question.
+          </p>
+        </div>
+
+        <p style={bodyStyle}>
+          No model wins cleanly. AMMs win on simplicity and passive liquidity. RFQ wins on MEV protection for liquid pairs. Intent-based wins on user execution quality. On-chain CLOBs win on transparency and limit order support. Own-chain CLOBs win on raw throughput — at the cost of the decentralization properties that make on-chain trading meaningful in the first place.
+        </p>
+
+        <SectionLabel>10 — Where This Goes</SectionLabel>
         <p style={bodyStyle}>
           The technical stack for on-chain CLOBs on Solana is production-ready. Phoenix and Manifest both work. Orders match, settlements clear, the matching engines survive real load. The solved problem is the matching engine.
         </p>
@@ -303,7 +466,7 @@ export default function ClobArticle() {
           The unsolved problems are all economic. Capital efficiency vs. settlement guarantees (Global Orders). Spread compression vs. MEV exposure (Jito costs). Aggregator integration vs. adverse selection (flow quality). These are the same problems centralized exchanges have spent decades optimizing. The difference is that on-chain, every parameter is visible, every trade-off is measurable, and every design decision plays out in public.
         </p>
         <p style={bodyStyle}>
-          The interesting question isn&apos;t whether on-chain order books can work. They can. The interesting question is whether the economic equilibrium they converge to is better than AMMs for the median user. That answer depends on how many sophisticated market makers show up, how much capital they deploy, and how much MEV they&apos;re willing to absorb. The matching engine was the prerequisite. Now the game is about who plays it.
+          The interesting question isn&apos;t whether on-chain order books can work. They can. The interesting question is whether the economic equilibrium they converge to is better than AMMs for the median user — and whether own-chain CLOBs like Hyperliquid can maintain their speed advantage without sacrificing the decentralization that makes the whole model trustworthy. That answer depends on how many sophisticated market makers show up, how much capital they deploy, how much MEV they&apos;re willing to absorb, and whether the validator sets running these systems stay honest as the stakes grow. The matching engine was the prerequisite. Now the game is about who plays it, on which chain, under which rules.
         </p>
 
         <div style={{
@@ -361,6 +524,11 @@ export default function ClobArticle() {
               { label: 'Jito — MEV Infrastructure on Solana', href: 'https://www.jito.network/' },
               { label: 'Jupiter Aggregator — Routing Across Solana Venues', href: 'https://station.jup.ag/docs' },
               { label: 'Solana Transaction Compute Budget', href: 'https://solana.com/docs/core/transactions/compute' },
+              { label: 'Hyperliquid — HIP-1 & HIP-2 Specification', href: 'https://hyperliquid.gitbook.io/hyperliquid-docs/hyperliquid-improvement-proposals-hips/hip-1-and-hip-2' },
+              { label: 'dYdX v4 — Cosmos App-Chain Architecture', href: 'https://dydx.exchange/blog/dydx-chain' },
+              { label: 'GMX — GLP Pool and Oracle Pricing Model', href: 'https://gmx-io.notion.site/gmx-io/GMX-Whitepaper-3a06fba7a6a64bda8bc70e9ca8f56de4' },
+              { label: 'CoW Protocol — Intent-Based Settlement', href: 'https://docs.cow.fi/cow-protocol/concepts/introduction/intents' },
+              { label: 'UniswapX — Solver Auction Design', href: 'https://blog.uniswap.org/uniswapx-protocol' },
             ].map((ref, i) => (
               <li key={i} style={{
                 fontFamily: 'monospace',
