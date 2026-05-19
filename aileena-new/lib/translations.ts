@@ -142,12 +142,6 @@ export const t = {
             title: 'The Order Book That Doesn\'t Break',
             body: 'The matching engine was the easy part. Capital efficiency vs. settlement guarantees, aggregator routing, MEV economics — three separate games deciding whether on-chain order books actually survive production.',
           },
-          {
-            date: '2026.05.18',
-            href: '/blog/degen',
-            title: 'The SF Degen Playbook: Building Your Own Edge',
-            body: 'In SF, the best traders are the ones who write their own tools. Wallet tracking, MEV exposure mapping, liquidity skew detection — not alpha you buy, alpha you build. A field guide to on-chain research methods from the Solana trenches.',
-          },
         ],
       },
       womanInTech: {
@@ -376,12 +370,6 @@ export const t = {
             href: '/blog/clob',
             title: 'Das Orderbuch, das nicht bricht',
             body: 'Die Matching Engine war der einfache Teil. Kapitaleffizienz vs. Settlement-Garantien, Aggregator-Routing, MEV-Ökonomie — drei separate Spiele, die entscheiden, ob On-Chain-Orderbücher in Produktion bestehen.',
-          },
-          {
-            date: '2026.05.18',
-            href: '/blog/degen',
-            title: 'Das SF-Degen-Playbook: Eigene Edge aufbauen',
-            body: 'In SF sind die besten Trader diejenigen, die ihre eigenen Tools schreiben. Wallet-Tracking, MEV-Exposure-Mapping, Liquiditäts-Skew-Erkennung — kein Alpha, das man kauft, sondern Alpha, das man baut. Ein Feldführer zu On-Chain-Forschungsmethoden aus den Solana-Schützengräben.',
           },
         ],
       },
