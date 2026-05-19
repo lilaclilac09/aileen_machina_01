@@ -154,6 +154,9 @@ export default function Home() {
                         </div>
                         <div className="mt-4 flex items-center gap-4">
                           <span className="font-mono text-[0.6rem] tracking-[0.35em] text-[#00ffea]/50 group-hover:text-[#00ffea] transition-colors uppercase">{item.cta}</span>
+                          {'liveHref' in item && item.liveHref && (
+                            <span onClick={(e) => { e.preventDefault(); window.open(item.liveHref as string, '_blank'); }} className="font-mono text-[0.6rem] tracking-[0.35em] text-[#00ffea]/30 hover:text-[#00ffea] transition-colors uppercase cursor-pointer">Live →</span>
+                          )}
                           {'pdfHref' in item && item.pdfHref && (
                             <span onClick={(e) => { e.preventDefault(); window.open(item.pdfHref as string, '_blank'); }} className="font-mono text-[0.6rem] tracking-[0.35em] text-white/30 hover:text-white/70 transition-colors uppercase cursor-pointer">PDF →</span>
                           )}

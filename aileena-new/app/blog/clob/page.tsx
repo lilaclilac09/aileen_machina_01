@@ -192,11 +192,7 @@ export default function ClobArticle() {
                 <td style={tdStyle}>No (siloed per market)</td>
                 <td style={tdStyle}>Yes (Global Orders)</td>
               </tr>
-              <tr style={trStyle}>
-                <td style={tdLabelStyle}>Market curation</td>
-                <td style={tdStyle}>Permissioned</td>
-                <td style={tdStyle}>Permissionless</td>
-              </tr>
+
             </tbody>
           </table>
         </div>
@@ -204,10 +200,6 @@ export default function ClobArticle() {
         <p style={bodyStyle}>
           The fee structure matters. Zero fees means there&apos;s no protocol revenue, which means no protocol-level incentive to direct flow to specific markets. This is a deliberate design: the protocol is infrastructure, not a business. Market makers set their own spreads; the protocol takes nothing on top.
         </p>
-        <p style={bodyStyle}>
-          Permissionless market creation means anyone can spin up an order book for any SPL token pair. The long tail of tokens that would never justify the cost of a Phoenix listing can have functioning CLOBs. Whether those markets attract enough liquidity to be useful is a separate question.
-        </p>
-
         <SectionLabel>04 — Global Orders: Cross-Margin Without Leverage</SectionLabel>
         <p style={bodyStyle}>
           This is Manifest&apos;s most consequential design decision and the part worth understanding in detail.
@@ -344,6 +336,52 @@ export default function ClobArticle() {
           }}>
             — AILEENA MACHINA / 2026
           </p>
+        </div>
+
+        {/* ── References ── */}
+        <div style={{ marginTop: 64 }}>
+          <p style={{
+            fontFamily: 'monospace',
+            fontSize: '0.52rem',
+            letterSpacing: '0.45em',
+            color: 'rgba(255,255,255,0.25)',
+            textTransform: 'uppercase',
+            marginBottom: 24,
+          }}>References</p>
+          <ol style={{
+            paddingLeft: 20,
+            margin: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+          }}>
+            {[
+              { label: 'Phoenix Protocol — On-Chain CLOB Architecture', href: 'https://github.com/Ellipsis-Labs/phoenix-v1' },
+              { label: 'Manifest — Permissionless CLOB & Global Orders', href: 'https://github.com/CKS-Systems/manifest' },
+              { label: 'Jito — MEV Infrastructure on Solana', href: 'https://www.jito.network/' },
+              { label: 'Jupiter Aggregator — Routing Across Solana Venues', href: 'https://station.jup.ag/docs' },
+              { label: 'Solana Transaction Compute Budget', href: 'https://solana.com/docs/core/transactions/compute' },
+            ].map((ref, i) => (
+              <li key={i} style={{
+                fontFamily: 'monospace',
+                fontSize: '0.72rem',
+                letterSpacing: '0.03em',
+                color: 'rgba(255,255,255,0.35)',
+                lineHeight: 1.6,
+              }}>
+                <a
+                  href={ref.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: 'rgba(0,255,234,0.6)', textDecoration: 'none' }}
+                  onMouseEnter={e => (e.currentTarget.style.color = '#00ffea')}
+                  onMouseLeave={e => (e.currentTarget.style.color = 'rgba(0,255,234,0.6)')}
+                >
+                  {ref.label}
+                </a>
+              </li>
+            ))}
+          </ol>
         </div>
 
         <div style={{ marginTop: 48 }}>
