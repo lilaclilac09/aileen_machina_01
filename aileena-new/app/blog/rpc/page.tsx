@@ -465,7 +465,116 @@ const info = await conn.getAccountInfo(new PublicKey("..."));`}</code></pre>
           <code style={codeStyle}>getProgramAccounts</code> is the famously punishing call — the vanilla implementation scans every account owned by the program and serializes it. This is why Triton sells Steamboat (a maintained side-index), why Helius offers <code style={codeStyle}>getTransactionsForAddress</code> as the operation people actually wanted instead, and why the &quot;cheap RPC&quot; question collapses the moment your indexer issues even one of these per minute. The cost on the spreadsheet isn&apos;t $/credit — it is $/credit × bytes-per-call × calls-per-second. A polling-heavy frontend hitting <code style={codeStyle}>getAccountInfo</code> a thousand times a minute and a streaming indexer that subscribes once and listens forever live in completely different price regimes on the same provider. The wire format determines which regime you are in.
         </p>
 
-        <SectionLabel>11 — Cross-Comparison Matrix</SectionLabel>
+        <SectionLabel>11 — How a Block Actually Works (and What Dragon&apos;s Mouth Hands You)</SectionLabel>
+        <p style={bodyStyle}>
+          Every subscription type in the previous sections filters or returns one of the same five primitives: a slot, a block, an entry, a transaction, or an account update. Without understanding what those primitives <em>are</em>, the gRPC stream is opaque bytes and the JSON-RPC response is unreadable nesting. This is the &quot;mental model&quot; section. The Triton docs for <a href="https://docs.triton.one/project-yellowstone/dragons-mouth-grpc-subscriptions" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(0,255,234,0.75)' }}>Dragon&apos;s Mouth subscriptions</a> are the canonical reference; what follows is the working developer&apos;s digest.
+        </p>
+
+        <p style={bodyStyle}>
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>1. Slot, block, entry, transaction — the hierarchy.</strong> A <strong>slot</strong> is a 400ms time bucket. The leader assigned to that slot tries to produce a <strong>block</strong>; if it succeeds, the slot has a block, if it skips, the slot is empty. A block contains a sequence of <strong>entries</strong> — sub-block batches that exist primarily so validators can execute non-conflicting transactions in parallel. Each entry contains a list of <strong>transactions</strong>, the atomic unit of state change. A transaction in turn contains one or more <strong>instructions</strong>, each targeting a specific program. The thing most developers underestimate: roughly 85–90% of mainnet transactions are <em>vote transactions</em> — validators voting on consensus, not user activity. Filter them out (<code style={codeStyle}>vote: false</code>) or your stream is mostly noise.
+        </p>
+
+        <p style={bodyStyle}>
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>2. The block as a struct.</strong> A Dragon&apos;s Mouth <code style={codeStyle}>SubscribeUpdate</code> for <code style={codeStyle}>blocks</code> hands you, in order: <code style={codeStyle}>slot</code>, <code style={codeStyle}>blockhash</code>, <code style={codeStyle}>parent_slot</code>, <code style={codeStyle}>parent_blockhash</code>, <code style={codeStyle}>block_height</code>, <code style={codeStyle}>block_time</code> (Unix seconds), <code style={codeStyle}>executed_transaction_count</code>, optionally the transactions array and optionally the updated-accounts array. The fields that actually matter for chain logic are <code style={codeStyle}>slot</code> (for ordering and fork resolution), <code style={codeStyle}>parent_slot</code> (to verify chain continuity), and <code style={codeStyle}>blockhash</code> (the unique identifier you reference when signing a transaction so it can&apos;t be replayed on a different fork).
+        </p>
+
+        <p style={bodyStyle}>
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>3. The slot lifecycle (why fork-aware code matters).</strong> A slot doesn&apos;t appear in your stream as a single event. It transitions through stages, and Dragon&apos;s Mouth surfaces each one as a <code style={codeStyle}>SlotUpdate</code>: <code style={codeStyle}>SLOT_FIRST_SHRED_RECEIVED</code> (first piece of block data hit your validator), <code style={codeStyle}>SLOT_CREATED_BANK</code> (a fresh execution bank for the slot was instantiated), <code style={codeStyle}>SLOT_COMPLETED</code> (all shreds in, bank fully populated), then eventually <code style={codeStyle}>SLOT_DEAD</code> (the fork containing this slot was abandoned) or finalized (32+ confirmation lockouts deep, will never be reverted). The reason this matters: if you act on a transaction at <code style={codeStyle}>processed</code> commitment and the slot later goes <code style={codeStyle}>DEAD</code>, that transaction is gone — never happened, never charged, never landed. Fork-aware code listens for slot status before treating an account update as &quot;real.&quot;
+        </p>
+
+        <p style={bodyStyle}>
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>4. Commitment: same slot, three timings.</strong> Every subscription takes a commitment level — <code style={codeStyle}>processed</code> (live, can be reverted), <code style={codeStyle}>confirmed</code> (supermajority of stake voted for it), <code style={codeStyle}>finalized</code> (~31 slot lockout, never reverted). The Yellowstone server buffers updates per slot at confirmed/finalized and releases them in slot order when the threshold is reached. The Triton-recommended optimization: subscribe at <code style={codeStyle}>processed</code> and buffer client-side, then release on your own slot notifications. You get the lowest latency and you keep control of the fork-handling logic. Reading from confirmed-only is what most teams ship initially and what they usually regret.
+        </p>
+
+        <p style={bodyStyle}>
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>5. The seven Dragon&apos;s Mouth subscriptions.</strong> A single Subscribe call carries a request with multiple filter maps, each scoped to a stream type. The same connection can carry accounts + transactions + slots + blocks + block_meta + entries + deshred simultaneously. Each map key is a label of your choosing (you get it back in the update so you know which filter matched).
+        </p>
+
+        <pre style={codeBlockStyle}><code>{`// One Subscribe call, multiple streams, one connection.
+const request = {
+  slots:        { all: {} },                                  // every slot status change
+  accounts:     { wsol_usdc: {
+                    account: ["8BnEgHoWFysVcuFFX7QztDmzuH8r5ZFvyP3sYwn1XTh6"]
+                }},                                           // one specific account
+  transactions: { non_vote: { vote: false, failed: false } }, // user activity only
+  blocks:       {},                                           // off
+  blocksMeta:   { headers: {} },                              // light block headers
+  entries:      {},                                           // off
+  commitment:   CommitmentLevel.PROCESSED                    // live, buffer client-side
+};
+for await (const update of stream) {
+  if (update.slot)        handleSlot(update.slot);
+  if (update.account)     handleAccount(update.account);
+  if (update.transaction) handleTx(update.transaction);
+  if (update.blockMeta)   handleBlockMeta(update.blockMeta);
+}`}</code></pre>
+
+        <p style={bodyStyle}>
+          Each of those seven streams hands back a differently shaped payload. The table makes the surface concrete.
+        </p>
+
+        <div style={{ margin: '40px 0', overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'monospace', fontSize: '0.7rem', letterSpacing: '0.04em' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
+                <th style={thStyle}>Stream</th>
+                <th style={thStyle}>Filter you send</th>
+                <th style={thStyle}>What lands in your update</th>
+                <th style={thStyle}>Typical use</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>accounts</td>
+                <td style={tdStyle}>account[], owner[], memcmp, dataSlice, tokenAccountState</td>
+                <td style={tdStyle}>slot, pubkey, lamports, owner, data (full or sliced), executable, rentEpoch, writeVersion</td>
+                <td style={tdStyle}>Index a program&apos;s accounts; watch a market or oracle</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>transactions</td>
+                <td style={tdStyle}>vote, failed, accountInclude[], accountExclude[], accountRequired[], signature</td>
+                <td style={tdStyle}>slot, signature, vote flag, failed flag, raw tx bytes, status, logs, inner instructions, balance changes, compute units</td>
+                <td style={tdStyle}>Build sniper bot, mempool monitor, parsed history</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>slots</td>
+                <td style={tdStyle}>(none — receive all status transitions)</td>
+                <td style={tdStyle}>slot, parent_slot, status (FIRST_SHRED / CREATED_BANK / COMPLETED / DEAD / finalized)</td>
+                <td style={tdStyle}>Fork detection; client-side commitment buffering</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>blocks</td>
+                <td style={tdStyle}>includeTransactions, includeAccounts, accountInclude[]</td>
+                <td style={tdStyle}>slot, blockhash, parent_slot, block_time, transactions[] (opt), updated_accounts[] (opt)</td>
+                <td style={tdStyle}>Full historical replay; archival ingest pipeline</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>blocksMeta</td>
+                <td style={tdStyle}>(none)</td>
+                <td style={tdStyle}>slot, blockhash, parent_slot, block_time, executed_transaction_count, rewards</td>
+                <td style={tdStyle}>Cheap heartbeat: know a block landed without paying for its bytes</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>entries</td>
+                <td style={tdStyle}>(filter shape minimal)</td>
+                <td style={tdStyle}>slot, index, num_hashes, hash, executed_transaction_count</td>
+                <td style={tdStyle}>Sub-block-level parallelism analysis; advanced indexers</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>deshred (beta)</td>
+                <td style={tdStyle}>vote, accountInclude[], accountExclude[], accountRequired[]</td>
+                <td style={tdStyle}>slot, signature, vote flag, raw tx, loaded_writable_addresses, loaded_readonly_addresses — no execution metadata</td>
+                <td style={tdStyle}>Earliest possible signal — see a tx before it lands. MEV / cancel-race territory</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p style={bodyStyle}>
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>The closing point.</strong> A &quot;fast&quot; provider is not faster than physics — every provider is constrained by leader propagation. What providers actually differ on is how soon a particular slot&apos;s data appears in your stream after the leader produces it (gRPC + co-location wins), how cheaply you can replay if you disconnect (LaserStream&apos;s slot replay), and how much of the parsing they do for you (Helius Enhanced Transactions, Triton Vixen). The Triton Dragon&apos;s Mouth interface is the original gRPC surface; LaserStream is byte-compatible with it. Once you understand the primitives above, switching providers is changing an endpoint and an auth token. The data model is the same data model.
+        </p>
+
+        <SectionLabel>12 — Cross-Comparison Matrix</SectionLabel>
         <p style={bodyStyle}>
           The three providers are not competing on a single axis. Helius sells developer time. Triton sells physical edge. FluxRPC sells a different architectural assumption. The matrix below makes the feature surface comparable.
         </p>
@@ -575,7 +684,7 @@ const info = await conn.getAccountInfo(new PublicKey("..."));`}</code></pre>
           </table>
         </div>
 
-        <SectionLabel>12 — Use Case Mapping</SectionLabel>
+        <SectionLabel>13 — Use Case Mapping</SectionLabel>
         <p style={bodyStyle}>
           The matrix is dense. The decision tree underneath is short — pick the provider that aligns with what your binding constraint actually is.
         </p>
@@ -622,7 +731,7 @@ const info = await conn.getAccountInfo(new PublicKey("..."));`}</code></pre>
           </p>
         </div>
 
-        <SectionLabel>13 — Who Actually Uses This: The Roster</SectionLabel>
+        <SectionLabel>14 — Who Actually Uses This: The Roster</SectionLabel>
         <p style={bodyStyle}>
           The abstract decision tree above is fine. The concrete version — who actually runs which provider behind which product, and what specifically they do with it — makes the picture sharper.
         </p>
@@ -696,7 +805,7 @@ const info = await conn.getAccountInfo(new PublicKey("..."));`}</code></pre>
           The pattern that falls out of this roster is not &quot;one provider wins.&quot; It is that serious teams mix providers per workload. A pump.fun sniper runs Helius webhooks for new-token signal, Jito ShredStream for the cancel window, and may keep a FluxRPC + Lantern path for the analytics dashboard the trader watches alongside. A Magic Eden runs Helius DAS for the catalog and Triton for any latency-sensitive trade path. The interesting strategic question is no longer &quot;which RPC&quot; — it is &quot;which combination, in what order, for which code path.&quot;
         </p>
 
-        <SectionLabel>14 — Where This Goes</SectionLabel>
+        <SectionLabel>15 — Where This Goes</SectionLabel>
         <p style={bodyStyle}>
           Helius, Triton, and FluxRPC are not competing for the same dollar. Helius is selling developer time — pay $49 to $999 a month and skip a quarter of backend work. Triton is selling physical edge — pay $2,900+ and get the same network position a validator has. FluxRPC is selling an architectural bet: an RPC layer that doesn&apos;t pretend to be a validator can be cheaper, faster on cached reads, and more horizontally scalable than either alternative. The Colosseum prize was a recognition that the assumption &quot;RPC = a special-mode validator&quot; had been unexamined for too long.
         </p>
@@ -770,6 +879,7 @@ const info = await conn.getAccountInfo(new PublicKey("..."));`}</code></pre>
               { label: 'Triton One — Pricing', href: 'https://triton.one/pricing' },
               { label: 'Project Yellowstone & Geyser Streaming FAQs (Triton Blog)', href: 'https://blog.triton.one/project-yellowstone-geyser-streaming-faqs/' },
               { label: 'Yellowstone gRPC — Dragon\'s Mouth (GitHub)', href: 'https://github.com/rpcpool/yellowstone-grpc' },
+              { label: 'Triton Docs — Dragon\'s Mouth gRPC subscription types & payload shapes', href: 'https://docs.triton.one/project-yellowstone/dragons-mouth-grpc-subscriptions' },
               { label: 'Complete Guide to Solana RPC Providers in 2026 (Sanctum)', href: 'https://sanctum.so/blog/complete-guide-solana-rpc-providers-2026' },
               { label: 'Helius — Customer roster: Phantom, Jupiter, Magic Eden, Coinbase, Bitwise, Helium', href: 'https://www.helius.dev/' },
               { label: 'What Is Helius? Backpack Learn — Customer attribution', href: 'https://learn.backpack.exchange/articles/what-is-helius' },
