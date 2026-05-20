@@ -150,6 +150,12 @@ export const t = {
           },
           {
             date: '2026.05.20',
+            href: '/blog/cli',
+            title: 'The CLI Was Always the Trading Floor',
+            body: 'Two CLIs share a prompt and almost nothing else. The dev CLI moves files; the trader CLI moves money. Pyth Hermes is the generator, OKX is the sink, OpenClaw is the slow brain — wired through a 60-line thin CLI that does almost nothing itself.',
+          },
+          {
+            date: '2026.05.20',
             href: '/blog/wire-speed',
             title: 'Solana at Wire Speed',
             body: 'Four open-source repos racing to make the 400ms validator faster, surgically modifiable, rewindable, and dissectible on a laptop. Firedancer, Samba, Delorean, pmm-sim — what each one does, who uses it on mainnet today, and a builder\'s cheat sheet for picking the right tool for the job.',
@@ -388,6 +394,12 @@ export const t = {
             href: '/blog/rpc',
             title: 'Die RPC-Schicht, die sich abgekoppelt hat',
             body: 'Helius verkauft Entwicklerzeit. Triton One verkauft institutionellen Vorsprung. FluxRPC — der Breakout-Infrastructure-Sieger 2025 — verkauft die Wette, dass die RPC-Node nie eine Validator-Node hätte sein müssen. Devnet vs. Mainnet, Funktions-Cross-Vergleich und wo jeder Anbieter tatsächlich gewinnt.',
+          },
+          {
+            date: '2026.05.20',
+            href: '/blog/cli',
+            title: 'Die CLI war schon immer der Trading-Floor',
+            body: 'Zwei CLIs teilen sich einen Prompt und sonst kaum etwas. Die Dev-CLI bewegt Dateien; die Trader-CLI bewegt Geld. Pyth Hermes ist der Generator, OKX ist die Senke, OpenClaw ist das langsame Gehirn — verbunden durch eine 60-Zeilen-CLI, die selbst fast nichts tut.',
           },
           {
             date: '2026.05.20',
