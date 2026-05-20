@@ -330,7 +330,142 @@ export default function RpcArticle() {
           The interesting move isn&apos;t making RPC faster. It&apos;s noticing that the RPC node never needed to be a validator in the first place.
         </blockquote>
 
-        <SectionLabel>09 — Cross-Comparison Matrix</SectionLabel>
+        <SectionLabel>09 — Calling It: What the Wire Actually Looks Like</SectionLabel>
+        <p style={bodyStyle}>
+          The providers differentiate on features in their marketing. On a latency dashboard the differentiator is the wire format. A JSON-RPC call is text over HTTP/1; a gRPC stream is binary protobuf over HTTP/2; a Lantern read never leaves your process. Same data on the screen, three orders of magnitude apart on the chart. What follows is the same read — &quot;tell me the state of this account&quot; — executed four ways, with the cost of each made explicit.
+        </p>
+
+        <p style={bodyStyle}>
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>1. HTTP JSON-RPC.</strong> Every Solana endpoint — Helius, Triton, FluxRPC, public RPC — accepts the same protocol: POST a JSON envelope, parse a JSON envelope back. <code style={codeStyle}>id</code> is yours to echo, <code style={codeStyle}>method</code> is the call name, <code style={codeStyle}>params</code> is a positional array.
+        </p>
+        <pre style={codeBlockStyle}><code>{`curl https://mainnet.helius-rpc.com/?api-key=<KEY> -X POST \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "jsonrpc":"2.0","id":1,"method":"getAccountInfo",
+    "params":["So11111111111111111111111111111111111111112",
+              {"encoding":"base64","commitment":"confirmed"}]
+  }'`}</code></pre>
+        <p style={bodyStyle}>
+          What the wire costs: one TCP round-trip (three for cold TLS), one HTTP request, one JSON parse on each side. The response carries the full account state — lamports, owner, executable flag, and the raw account <code style={codeStyle}>data</code> base64-encoded. Roughly 200–500 bytes for a small account, KBs for an SPL mint, larger for an AMM pool. There is no streaming; if the account changes a second later you have to ask again.
+        </p>
+
+        <p style={bodyStyle}>
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>2. WebSocket subscription.</strong> Same JSON envelope, persistent connection, server pushes when the account changes. The first response is a subscription handle (an integer); after that every change ships a notification through the same socket.
+        </p>
+        <pre style={codeBlockStyle}><code>{`const ws = new WebSocket("wss://mainnet.helius-rpc.com/?api-key=<KEY>");
+ws.onopen = () => ws.send(JSON.stringify({
+  jsonrpc: "2.0", id: 1, method: "accountSubscribe",
+  params: ["7XSQ...", {encoding: "jsonParsed", commitment: "confirmed"}]
+}));
+ws.onmessage = e => handle(JSON.parse(e.data));`}</code></pre>
+        <p style={bodyStyle}>
+          Why this is faster than polling: zero per-update round trips, no rate-limit budget burned re-asking the same question, and latency drops to leader-to-you propagation (~400ms at <code style={codeStyle}>confirmed</code>) instead of leader-to-you-plus-your-poll-interval. The remaining cost is JSON parse per message plus WebSocket framing overhead — which is precisely what gRPC removes.
+        </p>
+
+        <p style={bodyStyle}>
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>3. gRPC stream (Yellowstone / LaserStream / Dragon&apos;s Mouth).</strong> All three providers&apos; streaming products wrap the same <code style={codeStyle}>Geyser.Subscribe</code> service. You send a <code style={codeStyle}>SubscribeRequest</code> declaring which accounts, programs, and transactions you care about; the server returns a <code style={codeStyle}>SubscribeUpdate</code> stream of binary protobuf messages.
+        </p>
+        <pre style={codeBlockStyle}><code>{`import { LaserstreamClient } from "@helius/laserstream";
+const client = new LaserstreamClient({ endpoint: "...", apiKey: "..." });
+const stream = client.subscribe({
+  accounts: { mine: {
+    owner: ["TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"],
+    filters: []
+  }}
+});
+for await (const update of stream) { handle(update); }`}</code></pre>
+        <p style={bodyStyle}>
+          Why this is the fastest network call available. <strong>(a) Binary protobuf, not JSON.</strong> A <code style={codeStyle}>SubscribeUpdate</code> for a 165-byte token account is ~200 bytes on the wire; the same payload over JSON-RPC is ~600 bytes after base64-encoding <code style={codeStyle}>data</code> plus the envelope overhead. Zstd compression on LaserStream cuts another 70–80%. <strong>(b) HTTP/2 multiplexing.</strong> Many subscriptions share one TCP/TLS connection — WSS gets you this too, raw HTTP JSON-RPC does not. <strong>(c) No event-loop tax</strong> (the LaserStream JS SDK move): the Rust core decodes protobuf and tracks slots off the JS thread, hands decoded objects in via zero-copy NAPI. Pure-JS Yellowstone clients saturate at ~30 MB/s; the LaserStream JS SDK sustains ~1.3 GB/s.
+        </p>
+
+        <p style={bodyStyle}>
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>4. Lantern local cache.</strong> The architectural outlier. The call goes to <code style={codeStyle}>http://localhost</code>: your application talks to a sidecar process on the same host, which holds the account state in RAM, fed by an upstream FluxRPC push stream. No network round-trip, no TLS, no JSON over the wire at all.
+        </p>
+        <pre style={codeBlockStyle}><code>{`const conn = new Connection("http://localhost:8080"); // not a remote URL
+const info = await conn.getAccountInfo(new PublicKey("..."));`}</code></pre>
+        <p style={bodyStyle}>
+          Why this is the fastest call, full stop. You are reading from a hash map in RAM rather than from a remote validator. Latency drops to 0.1–0.25ms, throughput climbs past 10k req/s. The trade-off: freshness depends on how aggressively the upstream pushes — for fast-moving accounts (active CLOB markets, oracle feeds) you still want an upstream HEAD-slot read on the critical write path, with Lantern serving everything else.
+        </p>
+
+        <SectionLabel>10 — What Each Call Actually Retrieves</SectionLabel>
+        <p style={bodyStyle}>
+          The wire cost is only half the cost. The other half is the payload — what bytes the call actually has to move. <code style={codeStyle}>getAccountInfo</code> on a token mint is two orders of magnitude cheaper than <code style={codeStyle}>getProgramAccounts</code> on the same program. A streaming subscription is cheaper per update than the equivalent polling pattern but uses bandwidth continuously. The matrix below is the back-of-envelope every Solana team builds at some point.
+        </p>
+
+        <div style={{ margin: '40px 0', overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'monospace', fontSize: '0.7rem', letterSpacing: '0.04em' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
+                <th style={thStyle}>Call</th>
+                <th style={thStyle}>Returns</th>
+                <th style={thStyle}>Typical payload</th>
+                <th style={thStyle}>Round trip</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>getAccountInfo (1 acct)</td>
+                <td style={tdStyle}>Full account state</td>
+                <td style={tdStyle}>0.2–2 KB</td>
+                <td style={tdStyle}>50–200 ms (provider RTT)</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>getMultipleAccounts (100)</td>
+                <td style={tdStyle}>Batched account state</td>
+                <td style={tdStyle}>20 KB – MB</td>
+                <td style={tdStyle}>50–200 ms (one call)</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>getProgramAccounts</td>
+                <td style={tdStyle}>All accounts matching filter</td>
+                <td style={tdStyle}>MB – GB</td>
+                <td style={tdStyle}>1–30 s, frequent timeouts</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>getTransaction (1 sig)</td>
+                <td style={tdStyle}>Full tx + meta + logs</td>
+                <td style={tdStyle}>1–10 KB</td>
+                <td style={tdStyle}>100–500 ms</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>getSignaturesForAddress</td>
+                <td style={tdStyle}>Paginated signature list</td>
+                <td style={tdStyle}>10–100 KB</td>
+                <td style={tdStyle}>200–800 ms</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>accountSubscribe (notif)</td>
+                <td style={tdStyle}>Delta-style account update</td>
+                <td style={tdStyle}>0.2–2 KB</td>
+                <td style={tdStyle}>Leader prop (~400 ms confirmed)</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Yellowstone account update</td>
+                <td style={tdStyle}>Binary account update + slot</td>
+                <td style={tdStyle}>100–800 B</td>
+                <td style={tdStyle}>Leader prop, no JSON tax</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Helius DAS getAssetsByOwner</td>
+                <td style={tdStyle}>Unified token + NFT + cNFT list</td>
+                <td style={tdStyle}>10 KB – MB</td>
+                <td style={tdStyle}>200–600 ms (indexed)</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Lantern getAccountInfo</td>
+                <td style={tdStyle}>Cached account from RAM</td>
+                <td style={tdStyle}>0.2–2 KB</td>
+                <td style={tdStyle}>0.1–0.25 ms (no network)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p style={bodyStyle}>
+          <code style={codeStyle}>getProgramAccounts</code> is the famously punishing call — the vanilla implementation scans every account owned by the program and serializes it. This is why Triton sells Steamboat (a maintained side-index), why Helius offers <code style={codeStyle}>getTransactionsForAddress</code> as the operation people actually wanted instead, and why the &quot;cheap RPC&quot; question collapses the moment your indexer issues even one of these per minute. The cost on the spreadsheet isn&apos;t $/credit — it is $/credit × bytes-per-call × calls-per-second. A polling-heavy frontend hitting <code style={codeStyle}>getAccountInfo</code> a thousand times a minute and a streaming indexer that subscribes once and listens forever live in completely different price regimes on the same provider. The wire format determines which regime you are in.
+        </p>
+
+        <SectionLabel>11 — Cross-Comparison Matrix</SectionLabel>
         <p style={bodyStyle}>
           The three providers are not competing on a single axis. Helius sells developer time. Triton sells physical edge. FluxRPC sells a different architectural assumption. The matrix below makes the feature surface comparable.
         </p>
@@ -440,7 +575,7 @@ export default function RpcArticle() {
           </table>
         </div>
 
-        <SectionLabel>10 — Use Case Mapping</SectionLabel>
+        <SectionLabel>12 — Use Case Mapping</SectionLabel>
         <p style={bodyStyle}>
           The matrix is dense. The decision tree underneath is short — pick the provider that aligns with what your binding constraint actually is.
         </p>
@@ -487,7 +622,7 @@ export default function RpcArticle() {
           </p>
         </div>
 
-        <SectionLabel>11 — Who Actually Uses This: The Roster</SectionLabel>
+        <SectionLabel>13 — Who Actually Uses This: The Roster</SectionLabel>
         <p style={bodyStyle}>
           The abstract decision tree above is fine. The concrete version — who actually runs which provider behind which product, and what specifically they do with it — makes the picture sharper.
         </p>
@@ -561,7 +696,7 @@ export default function RpcArticle() {
           The pattern that falls out of this roster is not &quot;one provider wins.&quot; It is that serious teams mix providers per workload. A pump.fun sniper runs Helius webhooks for new-token signal, Jito ShredStream for the cancel window, and may keep a FluxRPC + Lantern path for the analytics dashboard the trader watches alongside. A Magic Eden runs Helius DAS for the catalog and Triton for any latency-sensitive trade path. The interesting strategic question is no longer &quot;which RPC&quot; — it is &quot;which combination, in what order, for which code path.&quot;
         </p>
 
-        <SectionLabel>12 — Where This Goes</SectionLabel>
+        <SectionLabel>14 — Where This Goes</SectionLabel>
         <p style={bodyStyle}>
           Helius, Triton, and FluxRPC are not competing for the same dollar. Helius is selling developer time — pay $49 to $999 a month and skip a quarter of backend work. Triton is selling physical edge — pay $2,900+ and get the same network position a validator has. FluxRPC is selling an architectural bet: an RPC layer that doesn&apos;t pretend to be a validator can be cheaper, faster on cached reads, and more horizontally scalable than either alternative. The Colosseum prize was a recognition that the assumption &quot;RPC = a special-mode validator&quot; had been unexamined for too long.
         </p>
@@ -707,6 +842,20 @@ const codeStyle: React.CSSProperties = {
   padding: '2px 6px',
   borderRadius: 3,
   letterSpacing: 0,
+};
+
+const codeBlockStyle: React.CSSProperties = {
+  background: 'rgba(0,255,234,0.04)',
+  border: '1px solid rgba(0,255,234,0.15)',
+  padding: '20px 24px',
+  fontFamily: 'monospace',
+  fontSize: '0.72rem',
+  lineHeight: 1.7,
+  color: 'rgba(0,255,234,0.85)',
+  letterSpacing: '0.02em',
+  overflowX: 'auto',
+  margin: '24px 0 32px',
+  whiteSpace: 'pre',
 };
 
 const thStyle: React.CSSProperties = {
