@@ -449,7 +449,72 @@ export default function RpcArticle() {
           </p>
         </div>
 
-        <SectionLabel>10 — Where This Goes</SectionLabel>
+        <SectionLabel>10 — Who Actually Uses This: The Roster</SectionLabel>
+        <p style={bodyStyle}>
+          The abstract decision tree above is fine. The concrete version — who actually runs which provider behind which product, and what specifically they do with it — makes the picture sharper.
+        </p>
+
+        <div style={{ margin: '32px 0', padding: '0 0 0 24px', borderLeft: '2px solid rgba(255,255,255,0.1)' }}>
+          <p style={{ ...bodyStyle, marginBottom: 16 }}>
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>The pump.fun stack.</strong> Pump.fun&apos;s token-creation events ride on <strong style={{ color: '#00ffea' }}>Helius webhooks</strong> — when a new token launches, a webhook fires to anyone subscribed, with the parsed payload already shaped. Sniper bots layer Helius gRPC for transaction listening, <strong style={{ color: '#00ffea' }}>Jito ShredStream</strong> for sub-block-propagation reads of incoming buys, and Jito bundles for cancel-resistant entries. Frontends — <strong style={{ color: '#00ffea' }}>Photon, BullX, Axiom, GMGN</strong> — sit on top, with Photon claiming sub-0.3s execution. The reason BullX gets criticized vs. competitors is exactly the absence of ShredStream + priority fees + direct validator routing: it&apos;s fast, but it doesn&apos;t have the fastlane. Realistic infra floor for a new sniper in 2026: $50–$200/month on Helius or QuickNode before writing trading logic, four-figures/month with co-located nodes and ShredStream for serious operations.
+          </p>
+          <p style={{ ...bodyStyle, marginBottom: 16 }}>
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Telegram trading bots.</strong> <strong style={{ color: '#00ffea' }}>BonkBot</strong> has done $14.1B lifetime volume across 526,000+ users. <strong style={{ color: '#00ffea' }}>Trojan</strong> and <strong style={{ color: '#00ffea' }}>Maestro</strong> are in the same category. The shared shape: premium RPC (Helius / QuickNode / private endpoints) for transaction building, Jupiter for routing, proprietary routing logic on top, and increasingly Jito bundles for landing during congestion. These bots ride retail flow — the trade-offs they make on infrastructure are different from a serious MEV searcher because their median user is paying 1% slippage and doesn&apos;t notice 50ms.
+          </p>
+          <p style={{ ...bodyStyle, marginBottom: 16 }}>
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>MEV searchers and market makers.</strong> <strong style={{ color: '#00ffea' }}>Wintermute, GSR, Jump, Cumberland</strong> and the on-chain firms running serious quoting on Phoenix, Drift, and Zeta reach for <strong style={{ color: '#00ffea' }}>Triton</strong>. Dragon&apos;s Mouth gRPC for account-state updates with the 400ms cancel-race edge, dedicated nodes co-located with validators, Cascade for guaranteed bandwidth, Old Faithful for historical replay when building strategies, and Jito ShredStream for the absolute earliest signal. Triton&apos;s Professional Trading Centers — co-located bundles with local Jupiter and validator-direct paths — are designed for exactly this customer profile.
+          </p>
+          <p style={{ ...bodyStyle, marginBottom: 16 }}>
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>NFT marketplaces and wallets.</strong> <strong style={{ color: '#00ffea' }}>Magic Eden</strong> uses Helius for metadata indexing, mint-event tracking, and compressed-NFT support — DAS is the only unified API that returns ownership across tokens, regular NFTs, and cNFTs in one shape. <strong style={{ color: '#00ffea' }}>Tensor</strong> and <strong style={{ color: '#00ffea' }}>Drip Haus</strong> (the largest cNFT distributor on Solana) sit on DAS for the same reason. <strong style={{ color: '#00ffea' }}>Phantom, Backpack, Solflare</strong> use Helius Enhanced Transactions to render parsed transaction history — instead of every wallet writing its own program decoder, they consume Helius&apos;s already-parsed payloads directly into the UI.
+          </p>
+          <p style={{ ...bodyStyle, marginBottom: 16 }}>
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Aggregators and DEXes.</strong> <strong style={{ color: '#00ffea' }}>Jupiter</strong> — Solana&apos;s dominant aggregator — uses Helius for real-time transaction data and liquidity routing, and Triton for the deep account streams the routing engine consumes. <strong style={{ color: '#00ffea' }}>Drift</strong> and <strong style={{ color: '#00ffea' }}>Mango</strong> (perp DEXes) use Triton gRPC for orderbook state. The recent strategically interesting move: Helius + Triton + Jupiter + Anza + the Solana Foundation are jointly building <strong style={{ color: '#00ffea' }}>RPC 2.0</strong>, a purpose-built read layer designed to replace the validator-as-RPC model at the protocol level. FluxRPC is the hackathon-winning expression of the same hypothesis from outside the incumbent alliance — the divergence is whether the replacement comes top-down through the Foundation or bottom-up through independent teams.
+          </p>
+          <p style={{ ...bodyStyle, marginBottom: 0 }}>
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Indexers, dashboards, leaderboards.</strong> <strong style={{ color: '#00ffea' }}>DexScreener, Birdeye, Solscan</strong>, and the long tail of analytics dashboards are exactly the workload bandwidth pricing was designed for. Millions of <code style={codeStyle}>getAccountInfo</code> and <code style={codeStyle}>getMultipleAccounts</code> calls per day, mostly returning small payloads. On Helius credits this gets expensive fast; on a Triton dedicated node it costs $2,900/month minimum even when you don&apos;t need the latency edge; on FluxRPC at $0.06/GB with Lantern caching hot accounts locally, the same workload is multiple times cheaper. This is where FluxRPC most obviously wins on a spreadsheet — and where the bandwidth-vs-requests pricing fight will be decided over the next 18 months.
+          </p>
+        </div>
+
+        {/* Roster summary table */}
+        <div style={{ margin: '40px 0', overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'monospace', fontSize: '0.72rem', letterSpacing: '0.04em' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
+                <th style={thStyle}>Provider</th>
+                <th style={thStyle}>Named users / products</th>
+                <th style={thStyle}>What they actually do with it</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Helius</td>
+                <td style={tdStyle}>Pump.fun, Phantom, Backpack, Solflare, Magic Eden, Tensor, Drip Haus, Jupiter, BonkBot, Trojan, Coinbase, Bitwise, Helium</td>
+                <td style={tdStyle}>Webhooks for token launches, DAS for NFT/cNFT, Enhanced Tx for wallet UIs, Sender for landing, LaserStream for indexers</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Triton One</td>
+                <td style={tdStyle}>Wintermute, GSR, Cumberland, Jump, Drift, Mango, Phoenix MMs, Pyth, Jupiter routing</td>
+                <td style={tdStyle}>Dragon&apos;s Mouth for cancel races, Cascade for inclusion bandwidth, Old Faithful for backtests, PTC co-location</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>FluxRPC</td>
+                <td style={tdStyle}>Indexers, analytics dashboards, self-hosted trading-bot read paths, Fogo SVM L2 builders (early adopters — the ecosystem is younger)</td>
+                <td style={tdStyle}>Bulk reads at $0.06/GB, Lantern local cache for hot accounts, mainnet HEAD-slot reads without per-request gating</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Jito ShredStream</td>
+                <td style={tdStyle}>Photon, top-tier pump.fun snipers, serious MEV searchers (typically alongside Triton or Helius)</td>
+                <td style={tdStyle}>Pre-block-confirmation reads of incoming transactions — the 50–100ms cancel window</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p style={bodyStyle}>
+          The pattern that falls out of this roster is not &quot;one provider wins.&quot; It is that serious teams mix providers per workload. A pump.fun sniper runs Helius webhooks for new-token signal, Jito ShredStream for the cancel window, and may keep a FluxRPC + Lantern path for the analytics dashboard the trader watches alongside. A Magic Eden runs Helius DAS for the catalog and Triton for any latency-sensitive trade path. The interesting strategic question is no longer &quot;which RPC&quot; — it is &quot;which combination, in what order, for which code path.&quot;
+        </p>
+
+        <SectionLabel>11 — Where This Goes</SectionLabel>
         <p style={bodyStyle}>
           Helius, Triton, and FluxRPC are not competing for the same dollar. Helius is selling developer time — pay $49 to $999 a month and skip a quarter of backend work. Triton is selling physical edge — pay $2,900+ and get the same network position a validator has. FluxRPC is selling an architectural bet: an RPC layer that doesn&apos;t pretend to be a validator can be cheaper, faster on cached reads, and more horizontally scalable than either alternative. The Colosseum prize was a recognition that the assumption &quot;RPC = a special-mode validator&quot; had been unexamined for too long.
         </p>
