@@ -154,6 +154,12 @@ export const t = {
             title: 'The CLI Was Always the Trading Floor',
             body: 'Two CLIs share a prompt and almost nothing else. The dev CLI moves files; the trader CLI moves money. Pyth Hermes is the generator, OKX is the sink, OpenClaw is the slow brain — wired through a 60-line thin CLI that does almost nothing itself.',
           },
+          {
+            date: '2026.05.20',
+            href: '/blog/wire',
+            title: 'The Wire — How Solana Actually Moves Bytes',
+            body: 'Everything that happens between your getAccountInfo call and the bytes coming back. Slots, shreds, turbine, the leader schedule, RPC nodes, commitment levels, forks, ShredStream — and why every fast product on Solana is selling a way to skip a layer the documentation pretends is invisible.',
+          },
         ],
       },
       womanInTech: {
@@ -394,6 +400,12 @@ export const t = {
             href: '/blog/cli',
             title: 'Die CLI war schon immer der Trading-Floor',
             body: 'Zwei CLIs teilen sich einen Prompt und sonst kaum etwas. Die Dev-CLI bewegt Dateien; die Trader-CLI bewegt Geld. Pyth Hermes ist der Generator, OKX ist die Senke, OpenClaw ist das langsame Gehirn — verbunden durch eine 60-Zeilen-CLI, die selbst fast nichts tut.',
+          },
+          {
+            date: '2026.05.20',
+            href: '/blog/wire',
+            title: 'The Wire — Wie Solana tatsächlich Bytes bewegt',
+            body: 'Alles, was zwischen deinem getAccountInfo-Aufruf und den zurückkommenden Bytes passiert. Slots, Shreds, Turbine, der Leader-Schedule, RPC-Nodes, Commitment-Levels, Forks, ShredStream — und warum jedes „schnelle" Solana-Produkt einen Weg verkauft, eine Schicht zu überspringen, die die Dokumentation als unsichtbar tut.',
           },
         ],
       },
