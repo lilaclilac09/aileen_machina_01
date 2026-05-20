@@ -135,8 +135,11 @@ export default function RpcArticle() {
         <p style={bodyStyle}>
           Pricing is four tiers: Free ($0), Developer ($49), Business ($499), Professional ($999). The April 2026 unlock moved LaserStream gRPC down from Pro-only to Business (10 concurrent connections), and made Enhanced WebSockets with <code style={codeStyle}>transactionSubscribe</code> available on Developer (up to 100 subscriptions per connection). Streaming traffic is metered at 20 credits per 1MB — about $100/TB after the 33% cut earlier in 2026.
         </p>
+        <p style={bodyStyle}>
+          What is actually unique to Helius — and not just a wrapper around vanilla RPC — is the DAS API (one query returns ownership and metadata for SPL tokens, regular NFTs, and ZK-compressed NFTs in a single shape), the webhook system (push, not poll, with parsed payloads), Enhanced Transactions, and the LaserStream stack covered in section 04. Everyone else either matches these by integrating Helius, builds them from scratch, or ignores them. Use Helius when the binding constraint on your team is engineering time, not microseconds.
+        </p>
 
-        <SectionLabel>03 — Devnet vs Mainnet on Helius</SectionLabel>
+        <SectionLabel>03 — Devnet vs Mainnet, Three Stances</SectionLabel>
         <p style={bodyStyle}>
           Helius is the only one of the three that treats devnet as a first-class environment. Devnet on the $0 plan gives you 1M credits/month, the full DAS API, webhooks, and Enhanced Transactions. From April 2026 the Developer tier added LaserStream on devnet too. The implication for builders is concrete: prototype an NFT marketplace, indexer, or DeFi UI against the devnet endpoint, exercise the same webhook payloads and DAS queries you will use in production, and pay nothing until traffic moves you up a tier.
         </p>
@@ -211,15 +214,35 @@ export default function RpcArticle() {
         </div>
 
         <p style={bodyStyle}>
-          What is actually unique to Helius — and not just a wrapper around vanilla RPC — is the DAS API (one query returns ownership and metadata for SPL tokens, regular NFTs, and ZK-compressed NFTs in a single shape), the webhook system (push, not poll, with parsed payloads), and Enhanced Transactions. Everyone else either matches these by integrating Helius, builds them from scratch, or ignores them. Use Helius when the binding constraint on your team is engineering time, not microseconds.
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Triton on devnet.</strong> Triton lists devnet in their network coverage and the Yellowstone gRPC interface works against it, which is useful when you are testing a gRPC client integration before pointing it at a mainnet stream that is metering you. But the products that justify Triton&apos;s price floor — Professional Trading Centers, dedicated co-located nodes, Cascade SWQoS bandwidth, Old Faithful historical archive — are mainnet-only by design. There is no MEV competition on devnet to race against, no liquidity to make markets in, and nothing to backtest from a historical archive that does not exist. The pragmatic Triton devnet workflow is &quot;wire up the client, hit shared RPC, then move to mainnet with the dedicated node on the day you go live.&quot;
+        </p>
+        <p style={bodyStyle}>
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>FluxRPC on devnet.</strong> Not currently advertised in 2026. The public endpoints, the Lantern sidecar binary, the bandwidth-priced billing, and the EU/US regional routing are all mainnet-shaped. FluxRPC&apos;s whole value proposition — caching hot mainnet account state next to your application — does not have a meaningful devnet analogue because devnet accounts are throwaway and rarely hot. The realistic FluxRPC adoption path is to prototype against Helius free-tier devnet, validate the integration, then migrate the production read path to FluxRPC mainnet on launch day. Lantern + a FluxRPC mainnet key is a deployment-day change, not a development-time one.
+        </p>
+        <p style={bodyStyle}>
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>What actually differs at the RPC-call level.</strong> The JSON-RPC method names are identical — <code style={codeStyle}>getAccountInfo</code>, <code style={codeStyle}>getProgramAccounts</code>, <code style={codeStyle}>sendTransaction</code>, <code style={codeStyle}>getRecentPrioritizationFees</code> — but the behavior diverges in ways worth rehearsing on devnet before they bite you on mainnet. <code style={codeStyle}>requestAirdrop</code> works on devnet (and is rate-limited by the faucet) and is a no-op on mainnet. <code style={codeStyle}>getRecentPrioritizationFees</code> returns near-zero on devnet and returns the real, contested distribution on mainnet — your priority-fee logic ships untested if you only ever read devnet values. <code style={codeStyle}>sendTransaction</code> lands trivially on devnet with the default settings; on mainnet under congestion it fails silently unless you bundle through Jito, route through Helius Sender, or buy Triton Cascade bandwidth. Account-state freshness is essentially never an issue on devnet because there is no leader contention; on mainnet it is the central problem FluxRPC&apos;s HEAD-slot reads and LaserStream replay both target. Devnet teaches you that your client decodes correctly. Mainnet teaches you that landing a transaction is its own business.
         </p>
 
-        <SectionLabel>04 — Triton One: Validator-Adjacent Infrastructure</SectionLabel>
+        <SectionLabel>04 — LaserStream SDKs: 40× Throughput Behind a Drop-In</SectionLabel>
+        <p style={bodyStyle}>
+          If LaserStream is Helius&apos;s answer to &quot;build me a reliable Yellowstone consumer,&quot; the LaserStream SDKs released in 2026 are the answer to &quot;do it in one line of code.&quot; Three SDKs ship today — JavaScript/TypeScript, Rust, and Go. All three present an interface byte-compatible with Yellowstone gRPC: swap the endpoint and the auth token in an existing Yellowstone client and the rest of the application is untouched. Everything else — connection, retry, slot tracking, decompression, regional failover — happens inside the library.
+        </p>
+        <p style={bodyStyle}>
+          The JavaScript SDK is the architecturally interesting one. The streaming engine, gRPC connection management, protobuf serialization, and slot tracking are all written in Rust; only the application logic runs in JavaScript. NAPI bindings move data across the boundary zero-copy. The published throughput is 1.3 GB/s sustained versus roughly 30 MB/s for a pure-JS Yellowstone client — about 40×. The win is mechanical: the JavaScript event loop is no longer in the hot path, so the moment your consumer needs to keep up with mainnet block velocity, the SDK lets it do that without burning CPU on JSON deserialization. For Go and Rust users the headline matters less — they were already fast — but the parity of features across all three languages is the bigger deal.
+        </p>
+        <p style={bodyStyle}>
+          Slot-based replay is the headline reliability feature. The SDK tracks the last slot it acknowledged; on disconnect it asks the upstream to resume from exactly that point. The advertised recovery window is up to 24 hours, which means a multi-hour incident no longer means a missed-events postmortem — the consumer catches up and continues. Dedicated nodes that don&apos;t support replay simply opt out with <code style={codeStyle}>replay: false</code>. Auto-reconnect uses exponential backoff and multi-region failover routes around regional outages. Zstd compression on the wire delivers a stated 70–80% bandwidth reduction — which matters because LaserStream traffic is metered at 20 credits per 1MB, so the compression is also a direct cost cut.
+        </p>
+        <p style={bodyStyle}>
+          The named adopter is <strong style={{ color: '#00ffea' }}>DFlow</strong>, which uses LaserStream to power real-time order flow and execution monitoring — a workload where a missed account update is a missed trade. The broader strategic point is that LaserStream SDKs collapse a category of work. A serious gRPC consumer used to require a small infrastructure team to build retry, resume, decompression, and language-specific protobuf handling on top of raw Yellowstone. With the SDKs that work becomes &quot;import the library.&quot; The gating constraint shifts from &quot;do we have the engineers to maintain a gRPC client&quot; to &quot;do we have the engineers to write the strategy that consumes it.&quot;
+        </p>
+
+        <SectionLabel>05 — Triton One: Validator-Adjacent Infrastructure</SectionLabel>
         <p style={bodyStyle}>
           Triton One is the older operator and the more technically uncompromising one. Triton authored the open-source Yellowstone gRPC plugin that the rest of the ecosystem — including Helius&apos;s LaserStream — is either a drop-in for or a fork of. Their pricing model telegraphs their audience: pay-as-you-go on shared RPC, ~$2,900/month and up for dedicated nodes, no tier-gated throttling or overage premiums. The customer is a market maker, a validator operator, or a trading firm that already knows it needs co-location and gRPC.
         </p>
 
-        <SectionLabel>05 — Project Yellowstone, Component by Component</SectionLabel>
+        <SectionLabel>06 — Project Yellowstone, Component by Component</SectionLabel>
         <p style={bodyStyle}>
           &quot;Project Yellowstone&quot; is the umbrella name for Triton&apos;s stack. The components map cleanly to use cases and are worth naming individually because each is a deliberate piece of infrastructure, not a marketing bundle.
         </p>
@@ -249,7 +272,7 @@ export default function RpcArticle() {
           The Triton extreme is the Professional Trading Center: a co-located, optimized package with local Jupiter, direct validator paths, gRPC streams, and custom indexes deployed next to the validator. You don&apos;t reach for that on devnet. Devnet on Triton exists but is not the focus — devnet&apos;s value proposition is iteration speed, and Triton sells you the opposite. Use Triton when you have to win a transaction race against another team that is also reaching for Triton.
         </p>
 
-        <SectionLabel>06 — FluxRPC: The Validator Layer, Removed</SectionLabel>
+        <SectionLabel>07 — FluxRPC: The Validator Layer, Removed</SectionLabel>
         <p style={bodyStyle}>
           FluxRPC is the architecturally interesting one and the reason it took the Infrastructure Track ($25,000 USDC) at the Solana Breakout Hackathon in May 2025. Both Helius and Triton ultimately serve data from RPC-mode validators. Even when they wrap a beautiful product layer on top, the bottom of the stack is still a validator process. FluxRPC&apos;s claim is that the RPC layer doesn&apos;t need to <em>be</em> a validator at all. They ingest chain state through their own pipeline, hold it in a purpose-built store, and serve it without paying the consensus tax. The user-visible consequence is three things.
         </p>
@@ -285,7 +308,7 @@ export default function RpcArticle() {
           <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Third, FluxRPC ships a local cache — Lantern.</strong> This is the design choice that separates the architecture from a standard hosted RPC. A standard RPC sells you a URL; FluxRPC sells you a URL <em>and</em> a binary you run next to your application, fed by selective streams from the upstream. Account reads hit your local process, not the wire.
         </p>
 
-        <SectionLabel>07 — Lantern: The Cache You Run Yourself</SectionLabel>
+        <SectionLabel>08 — Lantern: The Cache You Run Yourself</SectionLabel>
         <p style={bodyStyle}>
           Lantern is a sidecar process. You hand it your FluxRPC API key once, declare which programs and accounts you care about, and it maintains a live, edge-cached copy of that subset in RAM or on disk. Your application then points <code style={codeStyle}>Connection</code> at <code style={codeStyle}>http://localhost</code> and reads from the local process. Latency on <code style={codeStyle}>getAccountInfo</code> and <code style={codeStyle}>getMultipleAccounts</code> drops to 0.1–0.25ms, throughput climbs past 10k requests per second, and the upstream API key never leaves the ops box.
         </p>
@@ -307,7 +330,7 @@ export default function RpcArticle() {
           The interesting move isn&apos;t making RPC faster. It&apos;s noticing that the RPC node never needed to be a validator in the first place.
         </blockquote>
 
-        <SectionLabel>08 — Cross-Comparison Matrix</SectionLabel>
+        <SectionLabel>09 — Cross-Comparison Matrix</SectionLabel>
         <p style={bodyStyle}>
           The three providers are not competing on a single axis. Helius sells developer time. Triton sells physical edge. FluxRPC sells a different architectural assumption. The matrix below makes the feature surface comparable.
         </p>
@@ -417,7 +440,7 @@ export default function RpcArticle() {
           </table>
         </div>
 
-        <SectionLabel>09 — Use Case Mapping</SectionLabel>
+        <SectionLabel>10 — Use Case Mapping</SectionLabel>
         <p style={bodyStyle}>
           The matrix is dense. The decision tree underneath is short — pick the provider that aligns with what your binding constraint actually is.
         </p>
@@ -444,12 +467,27 @@ export default function RpcArticle() {
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
             <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Self-hosted trading bot.</strong> FluxRPC + Lantern inside your VPC for the read path, fall back to Triton Dragon&apos;s Mouth if the cancel-race edge matters.
           </p>
-          <p style={{ ...bodyStyle, marginBottom: 0 }}>
+          <p style={{ ...bodyStyle, marginBottom: 16 }}>
             <strong style={{ color: 'rgba(255,255,255,0.85)' }}>SVM L2 / Fogo / appchain work.</strong> FluxRPC is the only one advertising SVM-beyond-Solana support today. A hint at where they think the moat is.
+          </p>
+          <p style={{ ...bodyStyle, marginBottom: 16 }}>
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Real-time order flow / execution monitoring.</strong> Helius LaserStream SDK — drop-in, 40× throughput over a raw JS Yellowstone consumer, slot replay for incident recovery. DFlow&apos;s stack is the case study; payment-for-order-flow and MEV-aware routing live or die on a stream that does not drop events under load.
+          </p>
+          <p style={{ ...bodyStyle, marginBottom: 16 }}>
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Polyglot infrastructure team.</strong> Helius LaserStream SDKs — JavaScript, Rust, and Go all maintained against the same protocol, with the same replay and reconnect semantics. The frontend team consumes the JS SDK, the indexer team uses Rust, the analytics service runs Go, and a bug fix in one ships to all three.
+          </p>
+          <p style={{ ...bodyStyle, marginBottom: 16 }}>
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Live cluster / validator monitoring dashboards.</strong> Triton — Dragon&apos;s Mouth gRPC against the cluster gives you account, slot, and vote-account streams without paying the Helius streaming meter, and Old Faithful answers historical questions when the dashboard needs to show last week.
+          </p>
+          <p style={{ ...bodyStyle, marginBottom: 16 }}>
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Compliance archiving for regulated entities.</strong> Triton Old Faithful — the only commercial path to query arbitrary historical Solana transactions without running your own archival validator. Custodians and exchanges that owe regulators a query interface buy this.
+          </p>
+          <p style={{ ...bodyStyle, marginBottom: 0 }}>
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Wallet showing parsed transaction history.</strong> Helius Enhanced Transactions. Building a wallet UI that decodes Jupiter swaps, Tensor sales, Drift trades, and Kamino borrows from raw instructions is months of work per program; Helius ships them pre-parsed. Phantom, Backpack, and Solflare consume this so they don&apos;t have to maintain decoders.
           </p>
         </div>
 
-        <SectionLabel>10 — Who Actually Uses This: The Roster</SectionLabel>
+        <SectionLabel>11 — Who Actually Uses This: The Roster</SectionLabel>
         <p style={bodyStyle}>
           The abstract decision tree above is fine. The concrete version — who actually runs which provider behind which product, and what specifically they do with it — makes the picture sharper.
         </p>
@@ -470,8 +508,17 @@ export default function RpcArticle() {
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
             <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Aggregators and DEXes.</strong> <strong style={{ color: '#00ffea' }}>Jupiter</strong> — Solana&apos;s dominant aggregator — uses Helius for real-time transaction data and liquidity routing, and Triton for the deep account streams the routing engine consumes. <strong style={{ color: '#00ffea' }}>Drift</strong> and <strong style={{ color: '#00ffea' }}>Mango</strong> (perp DEXes) use Triton gRPC for orderbook state. The recent strategically interesting move: Helius + Triton + Jupiter + Anza + the Solana Foundation are jointly building <strong style={{ color: '#00ffea' }}>RPC 2.0</strong>, a purpose-built read layer designed to replace the validator-as-RPC model at the protocol level. FluxRPC is the hackathon-winning expression of the same hypothesis from outside the incumbent alliance — the divergence is whether the replacement comes top-down through the Foundation or bottom-up through independent teams.
           </p>
-          <p style={{ ...bodyStyle, marginBottom: 0 }}>
+          <p style={{ ...bodyStyle, marginBottom: 16 }}>
             <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Indexers, dashboards, leaderboards.</strong> <strong style={{ color: '#00ffea' }}>DexScreener, Birdeye, Solscan</strong>, and the long tail of analytics dashboards are exactly the workload bandwidth pricing was designed for. Millions of <code style={codeStyle}>getAccountInfo</code> and <code style={codeStyle}>getMultipleAccounts</code> calls per day, mostly returning small payloads. On Helius credits this gets expensive fast; on a Triton dedicated node it costs $2,900/month minimum even when you don&apos;t need the latency edge; on FluxRPC at $0.06/GB with Lantern caching hot accounts locally, the same workload is multiple times cheaper. This is where FluxRPC most obviously wins on a spreadsheet — and where the bandwidth-vs-requests pricing fight will be decided over the next 18 months.
+          </p>
+          <p style={{ ...bodyStyle, marginBottom: 16 }}>
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Payment-for-order-flow and execution monitoring.</strong> <strong style={{ color: '#00ffea' }}>DFlow</strong> — Solana&apos;s PFOF infrastructure for wallets and aggregators — uses Helius LaserStream as the streaming substrate for real-time order flow and execution monitoring. The shape: a stream that must not drop events under load, must replay cleanly through a disconnect, and must keep up with mainnet block velocity from a Node-based service. LaserStream&apos;s Rust-cored JS SDK gives them 1.3 GB/s throughput without rebuilding their backend in Rust. DFlow is the named flagship; the same shape applies to any team running pre-trade or post-trade analytics off live Solana state.
+          </p>
+          <p style={{ ...bodyStyle, marginBottom: 16 }}>
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>SVM L2 and appchain builders.</strong> <strong style={{ color: '#00ffea' }}>Fogo</strong> and the smaller SVM-compatible L2s being built in 2026 face a chicken-and-egg problem: no Helius DAS for their chain, no Triton Yellowstone plugin yet, no incumbent infrastructure. FluxRPC is the only one of the three meaningfully advertising SVM-beyond-Solana support today. The early-adopter list is small but strategic — the team that becomes the default RPC for SVM L2s now is positioned for whatever fraction of mainnet flow ends up rolled-up.
+          </p>
+          <p style={{ ...bodyStyle, marginBottom: 0 }}>
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Enterprise on-ramps, custodians, and TradFi.</strong> <strong style={{ color: '#00ffea' }}>Coinbase, Bitwise, Helium</strong> — and the long tail of compliance-driven entities that need Solana exposure with audit trails — sit on Helius enterprise plans. The reason isn&apos;t latency; it&apos;s SOC 2, support SLAs, predictable invoicing, and parsed transaction payloads that downstream compliance tooling can ingest without writing program-specific decoders. Triton&apos;s Old Faithful covers the archival side when the audit asks for a five-year transaction lookup. FluxRPC is not yet positioned for this customer because the relationship is bought, not metered.
           </p>
         </div>
 
@@ -488,8 +535,8 @@ export default function RpcArticle() {
             <tbody>
               <tr style={trStyle}>
                 <td style={tdLabelStyle}>Helius</td>
-                <td style={tdStyle}>Pump.fun, Phantom, Backpack, Solflare, Magic Eden, Tensor, Drip Haus, Jupiter, BonkBot, Trojan, Coinbase, Bitwise, Helium</td>
-                <td style={tdStyle}>Webhooks for token launches, DAS for NFT/cNFT, Enhanced Tx for wallet UIs, Sender for landing, LaserStream for indexers</td>
+                <td style={tdStyle}>Pump.fun, Phantom, Backpack, Solflare, Magic Eden, Tensor, Drip Haus, Jupiter, BonkBot, Trojan, DFlow, Coinbase, Bitwise, Helium</td>
+                <td style={tdStyle}>Webhooks for token launches, DAS for NFT/cNFT, Enhanced Tx for wallet UIs, Sender for landing, LaserStream SDKs (JS/Rust/Go) for order-flow and indexers</td>
               </tr>
               <tr style={trStyle}>
                 <td style={tdLabelStyle}>Triton One</td>
@@ -514,7 +561,7 @@ export default function RpcArticle() {
           The pattern that falls out of this roster is not &quot;one provider wins.&quot; It is that serious teams mix providers per workload. A pump.fun sniper runs Helius webhooks for new-token signal, Jito ShredStream for the cancel window, and may keep a FluxRPC + Lantern path for the analytics dashboard the trader watches alongside. A Magic Eden runs Helius DAS for the catalog and Triton for any latency-sensitive trade path. The interesting strategic question is no longer &quot;which RPC&quot; — it is &quot;which combination, in what order, for which code path.&quot;
         </p>
 
-        <SectionLabel>11 — Where This Goes</SectionLabel>
+        <SectionLabel>12 — Where This Goes</SectionLabel>
         <p style={bodyStyle}>
           Helius, Triton, and FluxRPC are not competing for the same dollar. Helius is selling developer time — pay $49 to $999 a month and skip a quarter of backend work. Triton is selling physical edge — pay $2,900+ and get the same network position a validator has. FluxRPC is selling an architectural bet: an RPC layer that doesn&apos;t pretend to be a validator can be cheaper, faster on cached reads, and more horizontally scalable than either alternative. The Colosseum prize was a recognition that the assumption &quot;RPC = a special-mode validator&quot; had been unexamined for too long.
         </p>
@@ -580,7 +627,9 @@ export default function RpcArticle() {
               { label: 'FluxRPC Quickstart — Query Solana in 5 Minutes (dev.to)', href: 'https://dev.to/shivamsspirit/fluxrpc-quickstart-query-solana-in-5-minutes-mgk' },
               { label: 'Helius — Plans and Pricing', href: 'https://www.helius.dev/docs/billing/plans' },
               { label: 'Helius — Introducing LaserStream', href: 'https://www.helius.dev/blog/introducing-laserstream' },
+              { label: 'Helius — LaserStream SDKs (JS/Rust/Go, 40× throughput, slot replay)', href: 'https://www.helius.dev/blog/laserstream-sdks' },
               { label: 'Helius — LaserStream Now Powers All WebSockets', href: 'https://www.helius.dev/blog/laserstream-websockets' },
+              { label: 'DFlow — Payment-for-order-flow on Solana (uses LaserStream)', href: 'https://www.dflow.net/' },
               { label: 'Helius RPC Provider: A Practical Overview (Chainstack, 2026)', href: 'https://chainstack.com/helius-rpc-provider-a-practical-overview/' },
               { label: 'Triton One — Solana RPC Infrastructure', href: 'https://triton.one/chains/solana' },
               { label: 'Triton One — Pricing', href: 'https://triton.one/pricing' },
