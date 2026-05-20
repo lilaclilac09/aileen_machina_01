@@ -142,6 +142,12 @@ export const t = {
             title: 'The Order Book That Doesn\'t Break',
             body: 'The matching engine was the easy part. Capital efficiency vs. settlement guarantees, aggregator routing, MEV economics — three separate games deciding whether on-chain order books actually survive production.',
           },
+          {
+            date: '2026.05.20',
+            href: '/blog/rpc',
+            title: 'The RPC Layer That Cut the Cord',
+            body: 'Helius sells developer time. Triton One sells institutional edge. FluxRPC — the 2025 Breakout Infrastructure winner — sells the bet that the RPC node never needed to be a validator at all. Devnet vs mainnet, function cross-comparison, and where each one actually wins.',
+          },
         ],
       },
       womanInTech: {
@@ -370,6 +376,12 @@ export const t = {
             href: '/blog/clob',
             title: 'Das Orderbuch, das nicht bricht',
             body: 'Die Matching Engine war der einfache Teil. Kapitaleffizienz vs. Settlement-Garantien, Aggregator-Routing, MEV-Ökonomie — drei separate Spiele, die entscheiden, ob On-Chain-Orderbücher in Produktion bestehen.',
+          },
+          {
+            date: '2026.05.20',
+            href: '/blog/rpc',
+            title: 'Die RPC-Schicht, die sich abgekoppelt hat',
+            body: 'Helius verkauft Entwicklerzeit. Triton One verkauft institutionellen Vorsprung. FluxRPC — der Breakout-Infrastructure-Sieger 2025 — verkauft die Wette, dass die RPC-Node nie eine Validator-Node hätte sein müssen. Devnet vs. Mainnet, Funktions-Cross-Vergleich und wo jeder Anbieter tatsächlich gewinnt.',
           },
         ],
       },
