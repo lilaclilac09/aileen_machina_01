@@ -148,6 +148,12 @@ export const t = {
             title: 'The RPC Layer That Cut the Cord',
             body: 'Helius sells developer time. Triton One sells institutional edge. FluxRPC — the 2025 Breakout Infrastructure winner — sells the bet that the RPC node never needed to be a validator at all. Devnet vs mainnet, function cross-comparison, and where each one actually wins.',
           },
+          {
+            date: '2026.05.20',
+            href: '/blog/wire-speed',
+            title: 'Solana at Wire Speed',
+            body: 'Four open-source repos racing to make the 400ms validator faster, surgically modifiable, rewindable, and dissectible on a laptop. Firedancer, Samba, Delorean, pmm-sim — what each one does, who uses it on mainnet today, and a builder\'s cheat sheet for picking the right tool for the job.',
+          },
         ],
       },
       womanInTech: {
@@ -382,6 +388,12 @@ export const t = {
             href: '/blog/rpc',
             title: 'Die RPC-Schicht, die sich abgekoppelt hat',
             body: 'Helius verkauft Entwicklerzeit. Triton One verkauft institutionellen Vorsprung. FluxRPC — der Breakout-Infrastructure-Sieger 2025 — verkauft die Wette, dass die RPC-Node nie eine Validator-Node hätte sein müssen. Devnet vs. Mainnet, Funktions-Cross-Vergleich und wo jeder Anbieter tatsächlich gewinnt.',
+          },
+          {
+            date: '2026.05.20',
+            href: '/blog/wire-speed',
+            title: 'Solana auf Wire Speed',
+            body: 'Vier Open-Source-Repos im Rennen, den 400-ms-Validator schneller, chirurgisch modifizierbar, zurückspulbar und auf dem Laptop seziertbar zu machen. Firedancer, Samba, Delorean, pmm-sim — was jedes Tool tut, wer es heute auf Mainnet einsetzt, und ein Builder-Spickzettel zur Auswahl des richtigen Werkzeugs.',
           },
         ],
       },
