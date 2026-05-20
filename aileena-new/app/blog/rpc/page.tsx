@@ -587,6 +587,16 @@ export default function RpcArticle() {
               { label: 'Project Yellowstone & Geyser Streaming FAQs (Triton Blog)', href: 'https://blog.triton.one/project-yellowstone-geyser-streaming-faqs/' },
               { label: 'Yellowstone gRPC — Dragon\'s Mouth (GitHub)', href: 'https://github.com/rpcpool/yellowstone-grpc' },
               { label: 'Complete Guide to Solana RPC Providers in 2026 (Sanctum)', href: 'https://sanctum.so/blog/complete-guide-solana-rpc-providers-2026' },
+              { label: 'Helius — Customer roster: Phantom, Jupiter, Magic Eden, Coinbase, Bitwise, Helium', href: 'https://www.helius.dev/' },
+              { label: 'What Is Helius? Backpack Learn — Customer attribution', href: 'https://learn.backpack.exchange/articles/what-is-helius' },
+              { label: 'Building Production-Grade Solana Sniper Bots — pump.fun infrastructure economics (Dysnix)', href: 'https://dysnix.com/blog/complete-stack-competitive-solana-sniper-bots' },
+              { label: 'Top 8 Pump.fun Sniper Bots in 2026 (QuickNode Builders Guide)', href: 'https://www.quicknode.com/builders-guide/best/top-8-pump-fun-sniper-bots' },
+              { label: 'BonkBot — Dune stats ($14.1B lifetime volume, 526k+ users)', href: 'https://bonkbot.io/' },
+              { label: 'BonkBot vs Trojan — Telegram bot architecture comparison (Coinmonks)', href: 'https://medium.com/coinmonks/best-solana-telegram-trading-bot-bonkbot-vs-trojan-which-one-wins-3c2c9e635171' },
+              { label: 'Top 7 Solana Sniper Bots in 2026 — Photon, BullX, Axiom comparison (RPC Fast)', href: 'https://rpcfast.com/blog/top-solana-sniper-bot' },
+              { label: 'Jito ShredStream Proxy — Pre-block transaction streaming (GitHub)', href: 'https://github.com/jito-foundation/shredstream-proxy' },
+              { label: 'Jito Low-Latency Transaction Send & Bundles (docs)', href: 'https://docs.jito.wtf/lowlatencytxnsend/' },
+              { label: 'Solana on X — RPC 2.0 alliance (Triton + Helius + Jupiter + Anza + Solana Foundation)', href: 'https://x.com/solana/status/2044058449298792557' },
             ].map((ref, i) => (
               <li key={i} style={{
                 fontFamily: 'monospace',
