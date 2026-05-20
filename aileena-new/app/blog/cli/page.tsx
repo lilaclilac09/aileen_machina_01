@@ -203,7 +203,7 @@ gh pr list --json title,number | jq '.[] | select(.title | test("WIP"))' | head 
               <tr style={trStyle}>
                 <td style={tdLabelStyle}>Aggregator</td>
                 <td style={tdStyle}>Route a swap or order across multiple venues</td>
-                <td style={tdStyle}>Jupiter, 1inch, Kamino router, DFlow</td>
+                <td style={tdStyle}>Jupiter, 1inch, Kamino router, DFlow, Titan (meta-aggregator)</td>
               </tr>
               <tr style={trStyle}>
                 <td style={tdLabelStyle}>Bot framework</td>
@@ -463,7 +463,144 @@ curl -sN 'https://hermes.pyth.network/v2/updates/price/stream?ids%5B%5D=ef0d...5
           </table>
         </div>
 
-        <SectionLabel>10 — The Three Operating Postures</SectionLabel>
+        <SectionLabel>10 — The Other Two Patterns: MCP Servers and Codegen Skills</SectionLabel>
+        <p style={bodyStyle}>
+          The thin-CLI / monolithic-framework split isn&apos;t the only axis. A third tradition has taken shape in 2026 around <em>structured</em> agent-tool protocols — and it solves real problems the thin CLI ignores. Two flavours are worth naming individually: MCP servers, and codegen skills. They are not competing with the CLI pattern. They sit at different points in the stack.
+        </p>
+
+        <p style={bodyStyle}>
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>MCP — Model Context Protocol.</strong> An Anthropic-authored open protocol for exposing tools to LLMs in a standardized way. The shape is client/server over stdio (or HTTP): an MCP server declares a list of tools, each with a name, a JSON schema for arguments, and a callback. The LLM client — Claude Desktop, Cursor, Zed — discovers the tools, picks one, asks the user for permission, and invokes it. The server returns a structured result. The QuickNode Solana MCP server is the canonical demo: register <code style={codeStyle}>getBalance</code>, <code style={codeStyle}>getTokenAccounts</code>, <code style={codeStyle}>simulateTransaction</code> as MCP tools backed by Solana Kit, and Claude can call them in chat without any shell glue.
+        </p>
+
+        <p style={bodyStyle}>
+          The Solana ecosystem has settled on a small set of MCP-shaped toolkits. <strong style={{ color: '#00ffea' }}>Solana Agent Kit</strong> (SendAI) ships 60+ pre-built actions covering tokens, NFTs, and DeFi. <strong style={{ color: '#00ffea' }}>GOAT</strong> (Crossmint) ships 200+ plugins across Solana <em>and</em> EVM. <strong style={{ color: '#00ffea' }}>ElizaOS</strong> bundles MCP into a persistent-agent runtime with Twitter, Discord, and Telegram channels baked in. <strong style={{ color: '#00ffea' }}>Rig</strong> (a Rust framework) targets the inverse use case — the lowest-latency path from LLM decision to on-chain execution, for trading loops that can&apos;t afford the Node round-trip.
+        </p>
+
+        <p style={bodyStyle}>
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Codegen skills — the Titan pattern.</strong> <code style={codeStyle}>@titanexchange/titan-api-skill</code> is a different shape entirely. It is not a runtime. It is a Claude Code skill — a documented bundle that ships with the protocol&apos;s quirks pre-encoded so an LLM can generate <em>correct</em> integration code on the first try. The quirks are specific and ugly: WebSocket + MessagePack instead of JSON-REST, <code style={codeStyle}>BigInt</code> for amounts, <code style={codeStyle}>Uint8Array</code> for token mints via <code style={codeStyle}>bs58.decode()</code>, deeply nested parameter objects where <code style={codeStyle}>slippageBps</code> lives in <code style={codeStyle}>swap</code> and <code style={codeStyle}>intervalMs</code> lives in <code style={codeStyle}>update</code>. Skip a nesting level and the LLM writes plausible-looking code that fails at runtime.
+        </p>
+
+        <div style={{ margin: '32px 0', padding: '24px 28px', background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <p style={{ fontFamily: 'monospace', fontSize: '0.52rem', letterSpacing: '0.4em', color: 'rgba(0,255,234,0.7)', textTransform: 'uppercase', marginBottom: 16 }}>
+            What the Titan skill protects against
+          </p>
+          <pre style={preStyle}>{`// The LLM, unaided, writes this — and it fails silently:
+client.newSwapQuoteStream({
+  inputMint: "So111...",       // ✗ string, should be Uint8Array
+  outputMint: "EPjF...",
+  amount: 100_000_000,          // ✗ number, should be BigInt
+  slippageBps: 50,              // ✗ at root, should be nested in .swap
+});
+
+// With the skill loaded, it writes this — and it works:
+client.newSwapQuoteStream({
+  swap: {
+    inputMint:  bs58.decode("So111..."),
+    outputMint: bs58.decode("EPjF..."),
+    amount:     BigInt(100_000_000),
+    slippageBps: 50,
+  },
+  transaction: { userPublicKey: bs58.decode(pubkey) },
+});`}</pre>
+        </div>
+
+        <p style={bodyStyle}>
+          The reason Titan needed a codegen skill is a clue to the broader pattern. Titan is a <em>meta</em>-aggregator — its Argos router sits on top of Jupiter, OKX&apos;s router, and DFlow, evaluating all of them on the same simulated block and routing through whichever wins. Public benchmarks have Argos beating competing engines on 87% of swap comparisons since launch in September 2025. That sophistication earned them a wire format that is not REST — and the moment a protocol leaves the well-trodden REST path, LLMs start writing broken integration code. The skill exists so the model doesn&apos;t have to guess.
+        </p>
+
+        <p style={bodyStyle}>
+          Titan also ships <code style={codeStyle}>llms.txt</code> and <code style={codeStyle}>llms-full.txt</code> at their docs root — a 2025 convention for serving LLM-optimized documentation that GitBook now auto-generates. The fact that this is now a default tells you something specific: the primary consumer of API docs in 2026 is increasingly an agent rather than a human reading a sidebar.
+        </p>
+
+        <SectionLabel>11 — Three Patterns, Three Deadlines</SectionLabel>
+        <p style={bodyStyle}>
+          The clean way to read the field is that each pattern wins on a different deadline.
+        </p>
+
+        <div style={{ margin: '32px 0', padding: '0 0 0 24px', borderLeft: '2px solid rgba(255,255,255,0.1)' }}>
+          <p style={{ ...bodyStyle, marginBottom: 16 }}>
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>The thin CLI wins on runtime.</strong> When the price feed ticks and a decision has to land in milliseconds, a Unix pipe beats a permission dialog. There is no model call in the hot path; the LLM, if present at all, sits in a slower outer loop adjusting parameters.
+          </p>
+          <p style={{ ...bodyStyle, marginBottom: 16 }}>
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>MCP wins on operator ergonomics.</strong> Natural-language tool use from a chat client, with a permission gate on every action and an audit trail of every approval. The fit is the off-hours operator — &quot;close half the SOL perp&quot; typed into Claude Desktop, with the model picking the OKX-place-order tool and waiting for a yes before it fires.
+          </p>
+          <p style={{ ...bodyStyle, marginBottom: 0 }}>
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Codegen skills win on integration time.</strong> Getting a tricky protocol — Titan&apos;s MessagePack, a non-REST exchange, a Solana program with byte-packed account layouts — wired up correctly without a week of debugging the wire format. The skill is paid for in saved engineering hours, not runtime latency.
+          </p>
+        </div>
+
+        <p style={bodyStyle}>
+          A serious stack uses all three. The thin CLI runs production. MCP runs the operator console. The codegen skill helps you write the thin CLI in the first place. The mistake is forcing one pattern to do all three jobs.
+        </p>
+
+        <div style={{ margin: '40px 0', overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'monospace', fontSize: '0.7rem', letterSpacing: '0.04em' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
+                <th style={thStyle}>Axis</th>
+                <th style={thStyle}>Thin CLI + agent</th>
+                <th style={thStyle}>MCP server</th>
+                <th style={thStyle}>Codegen skill (Titan)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>What it is</td>
+                <td style={tdStyle}>Pipe of processes</td>
+                <td style={tdStyle}>Stdio/HTTP tool registry</td>
+                <td style={tdStyle}>Doc bundle + examples</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Where it runs</td>
+                <td style={tdStyle}>VPS, headless, 24/7</td>
+                <td style={tdStyle}>Local, beside Claude/Cursor</td>
+                <td style={tdStyle}>Inside the IDE, design-time</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Latency floor</td>
+                <td style={tdStyle}>Network + subprocess (~10ms)</td>
+                <td style={tdStyle}>LLM call + permission (~1s+)</td>
+                <td style={tdStyle}>N/A — not in the hot path</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>LLM role</td>
+                <td style={tdStyle}>Slow outer brain</td>
+                <td style={tdStyle}>Interactive operator</td>
+                <td style={tdStyle}>Code author</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Permissioning</td>
+                <td style={tdStyle}>Filesystem perms, env vars</td>
+                <td style={tdStyle}>Per-tool approval prompt</td>
+                <td style={tdStyle}>Not applicable</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Best for</td>
+                <td style={tdStyle}>Production trading loop</td>
+                <td style={tdStyle}>Operator console, ad-hoc</td>
+                <td style={tdStyle}>Non-REST or quirky wire format</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Representative</td>
+                <td style={tdStyle}>tradectl + OpenClaw</td>
+                <td style={tdStyle}>Solana Agent Kit, GOAT, ElizaOS</td>
+                <td style={tdStyle}>@titanexchange/titan-api-skill</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Failure mode</td>
+                <td style={tdStyle}>Pipe dies silently</td>
+                <td style={tdStyle}>User clicks-through dialog</td>
+                <td style={tdStyle}>Skill goes stale on API change</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p style={bodyStyle}>
+          The Titan column is the most architecturally interesting because it tells you what the API design itself has been doing. Argos required MessagePack for the byte savings on streaming quotes. MessagePack required <code style={codeStyle}>BigInt</code> and <code style={codeStyle}>Uint8Array</code> in the client. Those two requirements made the integration unreachable for an LLM writing TypeScript from memory. The skill is the protocol-author admitting that the wire format is now an LLM-ergonomics problem — and shipping the fix in the same repo. That admission is the actually new thing in 2026, more than MCP or any specific agent kit. The protocol layer and the agent layer have noticed each other.
+        </p>
+
+        <SectionLabel>12 — The Three Operating Postures</SectionLabel>
         <p style={bodyStyle}>
           Watching how this style of stack gets used in the wild, three postures recur. They are not exclusive — a trader will switch between them inside the same week — but they shape which tools get reached for.
         </p>
@@ -484,7 +621,7 @@ curl -sN 'https://hermes.pyth.network/v2/updates/price/stream?ids%5B%5D=ef0d...5
           A common configuration is two loops at different speeds. The inner loop, deterministic and millisecond-scoped, fires on every tick. The outer loop, LLM-driven and second-scoped, evaluates state once a minute and writes parameters into a file the inner loop reads. The agent is the slow brain; the script is the fast hand. The CLI is the table they share.
         </p>
 
-        <SectionLabel>11 — What the Agent Layer Actually Buys You</SectionLabel>
+        <SectionLabel>13 — What the Agent Layer Actually Buys You</SectionLabel>
         <p style={bodyStyle}>
           A reasonable objection: if the inner loop is plain code, what does the agent layer earn? Three answers, ordered by how often they actually pay off.
         </p>
@@ -501,7 +638,7 @@ curl -sN 'https://hermes.pyth.network/v2/updates/price/stream?ids%5B%5D=ef0d...5
           </p>
         </div>
 
-        <SectionLabel>12 — What This Doesn&apos;t Solve</SectionLabel>
+        <SectionLabel>14 — What This Doesn&apos;t Solve</SectionLabel>
         <p style={bodyStyle}>
           The thin-CLI pattern is not magic. It does not give you alpha. It does not give you a colocated server in NY4 or AWS Tokyo. It does not protect you from a flash crash, a custodial outage, or your own conviction. Three specific things it explicitly punts on:
         </p>
@@ -518,9 +655,9 @@ curl -sN 'https://hermes.pyth.network/v2/updates/price/stream?ids%5B%5D=ef0d...5
           </p>
         </div>
 
-        <SectionLabel>13 — Where This Goes</SectionLabel>
+        <SectionLabel>15 — Where This Goes</SectionLabel>
         <p style={bodyStyle}>
-          The terminal didn&apos;t lose to the GUI in trading; it absorbed it. Every chart on a Bloomberg or a TradingView panel is a side car to a CLI session somewhere. The new layer — agent runtimes that hold context, schedule work, and route messages — is doing the same thing the shell did: becoming the substrate on which automation compiles. OpenClaw, Hermes, OKX&apos;s AI Agent SDK, and the dozen similar runtimes shipping in 2026 are not competing with the CLI. They are extending it.
+          The terminal didn&apos;t lose to the GUI in trading; it absorbed it. Every chart on a Bloomberg or a TradingView panel is a side car to a CLI session somewhere. The new layer — agent runtimes that hold context, MCP servers that gate tool use behind permissions, codegen skills that translate quirky wire formats — is doing the same thing the shell did: becoming the substrate on which automation compiles. OpenClaw, Hermes, OKX&apos;s AI Agent SDK, Solana Agent Kit, GOAT, Titan&apos;s skill, and the dozen similar runtimes shipping in 2026 are not competing with the CLI. They are extending it at different points in the stack — runtime, console, design-time.
         </p>
         <p style={bodyStyle}>
           The honest version of the &quot;will AI replace traders&quot; question is sharper than the question itself: it has already replaced the manual-clicks layer for anyone who was willing to write a script, and that was already most serious traders. What it adds, when it&apos;s wired right, is a slow brain that doesn&apos;t sleep, an operator interface that doesn&apos;t require a dashboard, and the ability to narrate its own failures. That isn&apos;t a new product category. It&apos;s another stage in the pipe.
@@ -592,6 +729,19 @@ curl -sN 'https://hermes.pyth.network/v2/updates/price/stream?ids%5B%5D=ef0d...5
               { label: 'Drift Protocol — Vaults SDK (Solana perp DEX)', href: 'https://drift-labs.github.io/v2-teacher/' },
               { label: 'Jito — Low-latency transaction send and bundles', href: 'https://docs.jito.wtf/lowlatencytxnsend/' },
               { label: 'Pyth — Sponsored feeds and the pull-oracle model (whitepaper)', href: 'https://www.pyth.network/whitepaper.pdf' },
+              { label: 'Titan Developer Docs — AI / LLM Integration overview', href: 'https://titan-exchange.gitbook.io/titan/developer-doc/resources/ai-llm-integration' },
+              { label: '@titanexchange/titan-api-skill — Claude Code skill for Titan’s WebSocket + MessagePack protocol (npm)', href: 'https://www.npmjs.com/package/@titanexchange/titan-api-skill' },
+              { label: 'What Is Titan? The Meta DEX Aggregator (Backpack Learn)', href: 'https://learn.backpack.exchange/articles/what-is-titan-aggregator-solana' },
+              { label: 'Titan Exchange — DefiLlama protocol stats', href: 'https://defillama.com/protocol/titan-exchange' },
+              { label: 'llms.txt — the LLM-optimized documentation convention (spec)', href: 'https://llmstxt.org/' },
+              { label: 'Model Context Protocol — official specification (modelcontextprotocol.io)', href: 'https://modelcontextprotocol.io/' },
+              { label: 'How to Build a Solana MCP Server for LLM Integration (QuickNode)', href: 'https://www.quicknode.com/guides/ai/solana-mcp-server' },
+              { label: 'How to Build Solana AI Agents in 2026 — layered architecture guide (Alchemy)', href: 'https://www.alchemy.com/blog/how-to-build-solana-ai-agents-in-2026' },
+              { label: 'Solana Agent Kit (SendAI) — 60+ pre-built actions (GitHub)', href: 'https://github.com/sendaifun/solana-agent-kit' },
+              { label: 'GOAT SDK (Crossmint) — 200+ plugins across Solana and EVM (GitHub)', href: 'https://github.com/goat-sdk/goat' },
+              { label: 'ElizaOS — persistent agent runtime with multi-channel routing (GitHub)', href: 'https://github.com/elizaOS/eliza' },
+              { label: 'Rig — Rust framework for low-latency LLM-to-on-chain execution', href: 'https://github.com/0xPlaygrounds/rig' },
+              { label: 'awesome-solana-ai — Solana Foundation curated AI tooling list', href: 'https://github.com/solana-foundation/awesome-solana-ai' },
             ].map((ref, i) => (
               <li key={i} style={{
                 fontFamily: 'monospace',
