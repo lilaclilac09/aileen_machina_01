@@ -166,6 +166,12 @@ export const t = {
             title: 'Solana at Wire Speed',
             body: 'Four open-source repos racing to make the 400ms validator faster, surgically modifiable, rewindable, and dissectible on a laptop. Firedancer, Samba, Delorean, pmm-sim — what each one does, who uses it on mainnet today, and a builder\'s cheat sheet for picking the right tool for the job.',
           },
+          {
+            date: '2026.05.21',
+            href: '/blog/cex-dex-arb',
+            title: 'The Darkest Trade — How CEX-DEX Arbitrage Actually Works',
+            body: '$233.8M extracted, 7.2M trades, 19 searchers — three of whom captured 75% of it. Inside the largest single MEV category on Ethereum and the quietest game on Solana: the two-flavor mechanism, the off-chain leg that makes it "dark", the Dune dashboard that finally measures it, and what Solana\'s 400ms slot changes.',
+          },
         ],
       },
       womanInTech: {
@@ -418,6 +424,12 @@ export const t = {
             href: '/blog/wire-speed',
             title: 'Solana auf Wire Speed',
             body: 'Vier Open-Source-Repos im Rennen, den 400-ms-Validator schneller, chirurgisch modifizierbar, zurückspulbar und auf dem Laptop seziertbar zu machen. Firedancer, Samba, Delorean, pmm-sim — was jedes Tool tut, wer es heute auf Mainnet einsetzt, und ein Builder-Spickzettel zur Auswahl des richtigen Werkzeugs.',
+          },
+          {
+            date: '2026.05.21',
+            href: '/blog/cex-dex-arb',
+            title: 'Der dunkelste Trade — Wie CEX-DEX-Arbitrage tatsächlich funktioniert',
+            body: '233,8 Mio. USD extrahiert, 7,2 Mio. Trades, 19 Searcher — drei davon haben 75 % davon eingesammelt. Innerhalb der größten einzelnen MEV-Kategorie auf Ethereum und dem leisesten Spiel auf Solana: der zweigeteilte Mechanismus, das Off-Chain-Bein, das ihn „dunkel" macht, das Dune-Dashboard, das ihn endlich misst, und was Solanas 400-ms-Slot daran ändert.',
           },
         ],
       },
