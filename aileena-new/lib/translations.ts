@@ -160,6 +160,12 @@ export const t = {
             title: 'The Wire — How Solana Actually Moves Bytes',
             body: 'Everything that happens between your getAccountInfo call and the bytes coming back. Slots, shreds, turbine, the leader schedule, RPC nodes, commitment levels, forks, ShredStream — and why every fast product on Solana is selling a way to skip a layer the documentation pretends is invisible.',
           },
+          {
+            date: '2026.05.20',
+            href: '/blog/wire-speed',
+            title: 'Solana at Wire Speed',
+            body: 'Four open-source repos racing to make the 400ms validator faster, surgically modifiable, rewindable, and dissectible on a laptop. Firedancer, Samba, Delorean, pmm-sim — what each one does, who uses it on mainnet today, and a builder\'s cheat sheet for picking the right tool for the job.',
+          },
         ],
       },
       womanInTech: {
@@ -406,6 +412,12 @@ export const t = {
             href: '/blog/wire',
             title: 'The Wire — Wie Solana tatsächlich Bytes bewegt',
             body: 'Alles, was zwischen deinem getAccountInfo-Aufruf und den zurückkommenden Bytes passiert. Slots, Shreds, Turbine, der Leader-Schedule, RPC-Nodes, Commitment-Levels, Forks, ShredStream — und warum jedes „schnelle" Solana-Produkt einen Weg verkauft, eine Schicht zu überspringen, die die Dokumentation als unsichtbar tut.',
+          },
+          {
+            date: '2026.05.20',
+            href: '/blog/wire-speed',
+            title: 'Solana auf Wire Speed',
+            body: 'Vier Open-Source-Repos im Rennen, den 400-ms-Validator schneller, chirurgisch modifizierbar, zurückspulbar und auf dem Laptop seziertbar zu machen. Firedancer, Samba, Delorean, pmm-sim — was jedes Tool tut, wer es heute auf Mainnet einsetzt, und ein Builder-Spickzettel zur Auswahl des richtigen Werkzeugs.',
           },
         ],
       },
