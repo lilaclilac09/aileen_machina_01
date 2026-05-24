@@ -4,13 +4,21 @@ import { useEffect, useRef, useState, ReactNode } from 'react';
 
 export function SnapContainer({ children }: { children: ReactNode }) {
   return (
-    <div className="snap-container">
+    <div className="snap-container flex flex-col">
       {children}
     </div>
   );
 }
 
-export function SnapSection({ children, id }: { children: ReactNode; id?: string }) {
+export function SnapSection({
+  children,
+  id,
+  className,
+}: {
+  children: ReactNode;
+  id?: string;
+  className?: string;
+}) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -31,7 +39,7 @@ export function SnapSection({ children, id }: { children: ReactNode; id?: string
   }, []);
 
   return (
-    <div ref={ref} id={id} className="snap-section">
+    <div ref={ref} id={id} className={`snap-section${className ? ' ' + className : ''}`}>
       {children}
     </div>
   );

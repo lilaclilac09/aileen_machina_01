@@ -65,9 +65,28 @@ export const t = {
       heading: 'Elsewhere',
       linkLabel: 'Visit',
     },
+    openToWork: {
+      tag: 'OPEN TO WORK',
+      heading: 'Available',
+      body: 'I work across engineering, research, and product-minded technical systems. Open to roles where depth, speed, and judgment all matter.',
+      focusLabel: 'Focus',
+      areas: [
+        'Crypto infra',
+        'Applied AI',
+        'Data products',
+        'Research engineering',
+      ],
+      modeLabel: 'How I work',
+      modes: [
+        'Small, high-conviction teams',
+        'Real constraints, real systems',
+        'Production rigor, editorial taste',
+      ],
+      cta: 'Get in touch →',
+    },
     pow: {
-      tag: 'FEATURED REPO',
-      heading: 'Featured Repo',
+      tag: 'SELECTED WORK',
+      heading: 'Selected Work',
       items: [
         {
           name: 'KeyShield',
@@ -336,9 +355,28 @@ export const t = {
       heading: 'Anderswo',
       linkLabel: 'Besuchen',
     },
+    openToWork: {
+      tag: 'OFFEN FÜR ANFRAGEN',
+      heading: 'Verfügbar',
+      body: 'Ich arbeite quer durch Engineering, Research und produktorientierte technische Systeme. Offen für Rollen, in denen Tiefe, Tempo und Urteilsvermögen zählen.',
+      focusLabel: 'Fokus',
+      areas: [
+        'Crypto-Infrastruktur',
+        'Applied AI',
+        'Datenprodukte',
+        'Research Engineering',
+      ],
+      modeLabel: 'Arbeitsweise',
+      modes: [
+        'Kleine, überzeugte Teams',
+        'Echte Constraints, echte Systeme',
+        'Production-Rigor, redaktioneller Geschmack',
+      ],
+      cta: 'Kontakt aufnehmen →',
+    },
     pow: {
-      tag: 'FEATURED REPO',
-      heading: 'Featured Repo',
+      tag: 'AUSGEWÄHLTE ARBEITEN',
+      heading: 'Ausgewählte Arbeiten',
       items: [
         {
           name: 'KeyShield',
