@@ -115,11 +115,11 @@ export const t = {
         {
           name: 'PAMM MEV Analysis',
           tags: ['Python', 'Solana', 'Monte Carlo'],
-          description: 'Monte Carlo model of MEV contagion in Solana AMM pools. Live dashboard at pamm.aileena.xyz.',
+          description: 'Monte Carlo model of MEV contagion in Solana AMM pools. Live dashboard at mev.aileena.xyz.',
           href: 'https://github.com/lilaclilac09/solana-pamm-MEV-binary-monte-analysis-contagious-pools',
           image: '/projects/pamm-mev.png',
           cta: 'Source →',
-          liveHref: 'https://pamm.aileena.xyz',
+          liveHref: 'https://mev.aileena.xyz',
           pdfHref: 'https://raw.githubusercontent.com/lilaclilac09/solana-pamm-MEV-binary-monte-analysis-contagious-pools/main/public/Solana_PAMM_MEV_Analysis_Report.pdf',
         },
         {
@@ -408,11 +408,11 @@ export const t = {
         {
           name: 'PAMM MEV-Analyse',
           tags: ['Python', 'Solana', 'Monte Carlo'],
-          description: 'Monte-Carlo-Modell der MEV-Kontagion in Solana-AMM-Pools. Live-Dashboard auf pamm.aileena.xyz.',
+          description: 'Monte-Carlo-Modell der MEV-Kontagion in Solana-AMM-Pools. Live-Dashboard auf mev.aileena.xyz.',
           href: 'https://github.com/lilaclilac09/solana-pamm-MEV-binary-monte-analysis-contagious-pools',
           image: '/projects/pamm-mev.png',
           cta: 'Source →',
-          liveHref: 'https://pamm.aileena.xyz',
+          liveHref: 'https://mev.aileena.xyz',
           pdfHref: 'https://raw.githubusercontent.com/lilaclilac09/solana-pamm-MEV-binary-monte-analysis-contagious-pools/main/public/Solana_PAMM_MEV_Analysis_Report.pdf',
         },
         {
