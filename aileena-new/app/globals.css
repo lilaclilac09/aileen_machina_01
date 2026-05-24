@@ -43,6 +43,7 @@ html {
   height: 100dvh;
   overflow: hidden;
   position: relative;
+  flex-shrink: 0;
 }
 
 /* Research Dispatch scroll area */
@@ -78,6 +79,16 @@ html {
 
   .snap-section {
     scroll-snap-stop: normal;
+  }
+
+  /* Mobile-friendly: looser body reading rhythm */
+  body {
+    line-height: 1.55;
+  }
+
+  /* Make taps feel intentional — no rapid double-tap zoom on interactive items */
+  a, button, [role="button"] {
+    touch-action: manipulation;
   }
 }
 
