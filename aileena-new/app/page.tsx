@@ -215,7 +215,7 @@ export default function Home() {
                     <Link
                       key={post.title}
                       href={post.href}
-                      className={`group anim-up-${Math.min(i + 1, 3)} flex min-h-[160px] sm:min-h-[200px] flex-col justify-between rounded-lg border border-white/8 bg-white/[0.02] p-4 sm:p-7 transition-colors hover:border-white/20 hover:bg-white/[0.05] no-underline`}
+                      className={`group anim-up-${Math.min(i + 1, 3)} flex min-h-[160px] sm:min-h-[200px] flex-col justify-between rounded-lg bg-white/[0.02] p-4 sm:p-7 transition-colors hover:bg-white/[0.06] no-underline`}
                     >
                       <div>
                         <p className="font-mono text-[0.68rem] sm:text-xs tracking-[0.22em] sm:tracking-widest text-white/40">{post.date}</p>
@@ -250,7 +250,7 @@ export default function Home() {
                     <Link
                       key={post.title}
                       href={post.href}
-                      className={`group anim-up-${Math.min(i + 1, 3)} flex min-h-[240px] flex-col justify-between rounded-lg border border-white/8 bg-white/[0.02] p-6 sm:p-7 transition-colors hover:border-white/20 hover:bg-white/[0.05] no-underline`}
+                      className={`group anim-up-${Math.min(i + 1, 3)} flex min-h-[240px] flex-col justify-between rounded-lg bg-white/[0.02] p-6 sm:p-7 transition-colors hover:bg-white/[0.06] no-underline`}
                     >
                       <div>
                         <p className="font-mono text-[0.68rem] sm:text-xs tracking-[0.22em] sm:tracking-widest text-white/40">{post.date}</p>
