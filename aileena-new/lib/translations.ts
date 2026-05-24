@@ -180,22 +180,10 @@ export const t = {
             body: 'Everything that happens between your getAccountInfo call and the bytes coming back. Slots, shreds, turbine, the leader schedule, RPC nodes, commitment levels, forks, ShredStream — and why every fast product on Solana is selling a way to skip a layer the documentation pretends is invisible.',
           },
           {
-            date: '2026.05.20',
-            href: '/blog/wire-speed',
-            title: 'Solana at Wire Speed',
-            body: 'Four open-source repos racing to make the 400ms validator faster, surgically modifiable, rewindable, and dissectible on a laptop. Firedancer, Samba, Delorean, pmm-sim — what each one does, who uses it on mainnet today, and a builder\'s cheat sheet for picking the right tool for the job.',
-          },
-          {
             date: '2026.05.21',
             href: '/blog/cex-dex-arb',
             title: 'The Darkest Trade — How CEX-DEX Arbitrage Actually Works',
             body: '$233.8M extracted, 7.2M trades, 19 searchers — three of whom captured 75% of it. Inside the largest single MEV category on Ethereum and the quietest game on Solana: the two-flavor mechanism, the off-chain leg that makes it "dark", the Dune dashboard that finally measures it, and what Solana\'s 400ms slot changes.',
-          },
-          {
-            date: '2026.05.21',
-            href: '/blog/cex-dex-dashboard',
-            title: 'The Darkest Dashboard — Build the CEX-DEX Arb View on Dune',
-            body: 'The SQL companion to The Darkest Trade. Four queries — block-level profit, markout panel, searcher clustering, Solana variant — plus a funding-rate addendum. Real dex.trades / prices.usd schema, real heuristics, and the methodological caveat the public dashboards bake in but never spell out.',
           },
           {
             date: '2026.05.23',
@@ -470,22 +458,10 @@ export const t = {
             body: 'Alles, was zwischen deinem getAccountInfo-Aufruf und den zurückkommenden Bytes passiert. Slots, Shreds, Turbine, der Leader-Schedule, RPC-Nodes, Commitment-Levels, Forks, ShredStream — und warum jedes „schnelle" Solana-Produkt einen Weg verkauft, eine Schicht zu überspringen, die die Dokumentation als unsichtbar tut.',
           },
           {
-            date: '2026.05.20',
-            href: '/blog/wire-speed',
-            title: 'Solana auf Wire Speed',
-            body: 'Vier Open-Source-Repos im Rennen, den 400-ms-Validator schneller, chirurgisch modifizierbar, zurückspulbar und auf dem Laptop seziertbar zu machen. Firedancer, Samba, Delorean, pmm-sim — was jedes Tool tut, wer es heute auf Mainnet einsetzt, und ein Builder-Spickzettel zur Auswahl des richtigen Werkzeugs.',
-          },
-          {
             date: '2026.05.21',
             href: '/blog/cex-dex-arb',
             title: 'Der dunkelste Trade — Wie CEX-DEX-Arbitrage tatsächlich funktioniert',
             body: '233,8 Mio. USD extrahiert, 7,2 Mio. Trades, 19 Searcher — drei davon haben 75 % davon eingesammelt. Innerhalb der größten einzelnen MEV-Kategorie auf Ethereum und dem leisesten Spiel auf Solana: der zweigeteilte Mechanismus, das Off-Chain-Bein, das ihn „dunkel" macht, das Dune-Dashboard, das ihn endlich misst, und was Solanas 400-ms-Slot daran ändert.',
-          },
-          {
-            date: '2026.05.21',
-            href: '/blog/cex-dex-dashboard',
-            title: 'Das dunkelste Dashboard — Den CEX-DEX-Arb-Blick auf Dune bauen',
-            body: 'Die SQL-Begleitung zu „Der dunkelste Trade". Vier Queries — Profit pro Block, Markout-Panel, Searcher-Clustering, Solana-Variante — plus ein Funding-Rate-Anhang. Echtes dex.trades-/prices.usd-Schema, echte Heuristiken und die methodische Einschränkung, die die öffentlichen Dashboards einbauen, aber nie aussprechen.',
           },
           {
             date: '2026.05.23',

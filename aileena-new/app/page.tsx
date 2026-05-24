@@ -89,7 +89,7 @@ export default function Home() {
         </SnapSection>
 
         {/* ── 03 GALLERY ── (mobile: pushed later) */}
-        <SnapSection id="gallery" className="order-3 max-sm:order-8">
+        <SnapSection id="gallery" className="order-8">
           <div className="h-full grid lg:grid-cols-[0.55fr_1fr] bg-[#050505]">
             {/* Left */}
             <div className="flex flex-col justify-end px-5 pb-8 sm:px-10 sm:pb-12 lg:px-12">
@@ -109,7 +109,7 @@ export default function Home() {
         </SnapSection>
 
         {/* ── 04 SOUND / DJ ── (mobile: collapsed by default, pushed later) */}
-        <SnapSection id="sound" className="order-4 max-sm:order-7">
+        <SnapSection id="sound" className="order-7">
           <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-12 pt-6 pb-4 overflow-y-auto">
             <div className="mx-auto w-full max-w-[1400px]">
               <div className="flex items-end border-b border-white/10 pb-3 mb-5 sm:mb-6">
@@ -121,7 +121,7 @@ export default function Home() {
         </SnapSection>
 
         {/* ── 05 SELECTED WORK ── */}
-        <SnapSection id="featured-repo" className="order-5 max-sm:order-3">
+        <SnapSection id="featured-repo" className="order-4">
           <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-16">
             <div className="mx-auto w-full max-w-[1400px] flex h-full flex-col py-6 sm:py-12">
               <div className="anim-up flex items-end border-b border-white/10 pb-3 mb-4 sm:mb-8">
@@ -171,7 +171,7 @@ export default function Home() {
         </SnapSection>
 
         {/* ── 06 RESEARCH DISPATCH ── */}
-        <SnapSection id="blog" className="order-6 max-sm:order-4">
+        <SnapSection id="blog" className="order-5">
           <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-16">
             <div className="mx-auto w-full max-w-[1400px] flex h-full flex-col py-6 sm:py-12">
               <div className="anim-up flex items-end border-b border-white/10 pb-3 sm:pb-5 mb-4 sm:mb-12">
@@ -206,7 +206,7 @@ export default function Home() {
         </SnapSection>
 
         {/* ── 07 WOMAN IN TECH ── */}
-        <SnapSection id="woman-in-tech" className="order-7 max-sm:order-5">
+        <SnapSection id="woman-in-tech" className="order-6">
           <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-16">
             <div className="mx-auto w-full max-w-[1400px] flex h-full flex-col py-6 sm:py-12">
               <div className="anim-up flex items-end border-b border-white/10 pb-3 sm:pb-5 mb-4 sm:mb-12">
@@ -242,7 +242,7 @@ export default function Home() {
         </SnapSection>
 
         {/* ── 08 OPEN TO WORK ── */}
-        <SnapSection id="open-to-work" className="order-8 max-sm:order-6">
+        <SnapSection id="open-to-work" className="order-3">
           <div className="h-full flex flex-col justify-center bg-[#070707] px-5 sm:px-10 lg:px-16 py-10 sm:py-12">
             <div className="mx-auto w-full max-w-[1100px]">
               <div className="anim-up flex items-center gap-3 mb-4 sm:mb-6">
