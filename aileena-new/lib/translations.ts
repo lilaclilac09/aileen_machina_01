@@ -178,6 +178,12 @@ export const t = {
             title: 'The Darkest Dashboard — Build the CEX-DEX Arb View on Dune',
             body: 'The SQL companion to The Darkest Trade. Four queries — block-level profit, markout panel, searcher clustering, Solana variant — plus a funding-rate addendum. Real dex.trades / prices.usd schema, real heuristics, and the methodological caveat the public dashboards bake in but never spell out.',
           },
+          {
+            date: '2026.05.23',
+            href: '/blog/prop-amm-dict',
+            title: 'The Pool That Wasn\'t a Pool',
+            body: 'Ten closed-source prop AMMs do most of the quiet flow on Solana mainnet. Eight had public byte-level pool layouts; two were blank. Aquifier took 90 seconds and a public RPC — no API key. Humidifi turned out to be a price-tick registry, not a pool: the offsets don\'t exist because the mints aren\'t stored on chain at all.',
+          },
         ],
       },
       womanInTech: {
@@ -442,6 +448,12 @@ export const t = {
             href: '/blog/cex-dex-dashboard',
             title: 'Das dunkelste Dashboard — Den CEX-DEX-Arb-Blick auf Dune bauen',
             body: 'Die SQL-Begleitung zu „Der dunkelste Trade". Vier Queries — Profit pro Block, Markout-Panel, Searcher-Clustering, Solana-Variante — plus ein Funding-Rate-Anhang. Echtes dex.trades-/prices.usd-Schema, echte Heuristiken und die methodische Einschränkung, die die öffentlichen Dashboards einbauen, aber nie aussprechen.',
+          },
+          {
+            date: '2026.05.23',
+            href: '/blog/prop-amm-dict',
+            title: 'Der Pool, der kein Pool war',
+            body: 'Zehn Closed-Source-Prop-AMMs wickeln den leisen Flow auf Solana Mainnet ab. Acht hatten ihre Pool-Layouts byteweise öffentlich; zwei waren leer. Aquifier brauchte 90 Sekunden und nur die öffentliche RPC — kein API-Key. Humidifi entpuppte sich als Preis-Tick-Registry statt Pool: Die Offsets existieren nicht, weil die Mints überhaupt nicht on-chain stehen.',
           },
         ],
       },
