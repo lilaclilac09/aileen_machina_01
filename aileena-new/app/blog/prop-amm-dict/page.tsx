@@ -361,26 +361,6 @@ not enough candidate offsets`}
           <li><strong style={strong}>Humidifi-specific.</strong> Subscribe to changes on the 1728-byte account class and decode the tick format above. The repeating <code style={codeStyle}>XX5a XX7c XX6f XX96</code> pattern is enough of a foothold to back out what each field encodes, slot by slot.</li>
         </ul>
 
-        <SectionLabel>06 — Notes &amp; Credits</SectionLabel>
-
-        <p style={bodyStyle}>
-          The entire reversal ran on <code style={codeStyle}>https://api.mainnet-beta.solana.com</code> — the public
-          mainnet RPC, no API key required. The only heavyweight call is <code style={codeStyle}>getProgramAccounts</code>,
-          and it worked here for every program. If you do get throttled in the wild,
-          <a href="https://helius.dev" target="_blank" rel="noopener noreferrer" style={inlineLink}> Helius</a> and
-          <a href="https://www.ironforge.network" target="_blank" rel="noopener noreferrer" style={inlineLink}> Ironforge</a> both have generous free tiers.
-        </p>
-
-        <p style={bodyStyle}>
-          The full reference implementation — auto-reverse script, dashboard, off-chain flow signal, the
-          flow-aware EWMA fee strategy that consumes it — is open source at <a href="https://github.com/lilaclilac09/pamm-a" target="_blank" rel="noopener noreferrer" style={inlineLink}>github.com/lilaclilac09/pamm-a</a>.
-        </p>
-
-        <p style={bodyStyle}>
-          Eight of the ten offsets came from <a href="https://gist.github.com/mubarizkyc/959ac9b33dae4f3a86c6e00c331a9901" target="_blank" rel="noopener noreferrer" style={inlineLink}>mubarizkyc&apos;s original gist</a>;
-          aquifier and the humidifi diagnosis are from this work.
-        </p>
-
         <div style={{ marginTop: 56 }}>
           <Link href="/#blog" style={{
             display: 'inline-flex',
