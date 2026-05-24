@@ -191,6 +191,12 @@ export const t = {
             title: 'The Pool That Wasn\'t a Pool',
             body: 'Ten closed-source prop AMMs do most of the quiet flow on Solana mainnet. Eight had public byte-level pool layouts; two were blank. Aquifier took 90 seconds and a public RPC — no API key. Humidifi turned out to be a price-tick registry, not a pool: the offsets don\'t exist because the mints aren\'t stored on chain at all.',
           },
+          {
+            date: '2026.05.24',
+            href: '/blog/humidifi-decoded',
+            title: 'Humidifi, Decoded',
+            body: 'Part II of the prop AMM reversal. Part I said humidifi\'s mints don\'t live on chain. Part II goes back in to map what does. 3.3% of the 1728-byte account is live, spread across six narrow ranges, including two u16 price ticks and a monotonic e18 counter. The byte map is enough to build a real-time humidifi quote firehose without humidifi\'s cooperation.',
+          },
         ],
       },
       womanInTech: {
@@ -468,6 +474,12 @@ export const t = {
             href: '/blog/prop-amm-dict',
             title: 'Der Pool, der kein Pool war',
             body: 'Zehn Closed-Source-Prop-AMMs wickeln den leisen Flow auf Solana Mainnet ab. Acht hatten ihre Pool-Layouts byteweise öffentlich; zwei waren leer. Aquifier brauchte 90 Sekunden und nur die öffentliche RPC — kein API-Key. Humidifi entpuppte sich als Preis-Tick-Registry statt Pool: Die Offsets existieren nicht, weil die Mints überhaupt nicht on-chain stehen.',
+          },
+          {
+            date: '2026.05.24',
+            href: '/blog/humidifi-decoded',
+            title: 'Humidifi, entschlüsselt',
+            body: 'Teil II der Prop-AMM-Reversal. Teil I hat festgestellt, dass humidifis Mints nicht on-chain liegen. Teil II geht zurück und kartiert, was on-chain liegt. 3,3 % des 1728-Byte-Accounts sind live, verteilt auf sechs schmale Bereiche, darunter zwei u16-Preis-Ticks und ein monotoner e18-Zähler. Die Byte-Map reicht aus, um einen Echtzeit-humidifi-Quote-Firehose ohne humidifis Mitwirkung zu bauen.',
           },
         ],
       },
