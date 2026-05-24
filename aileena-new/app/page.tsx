@@ -90,47 +90,63 @@ export default function Home() {
 
         {/* ── 03 OPEN TO WORK ── */}
         <SnapSection id="open-to-work" className="order-3">
-          <div className="h-full flex flex-col justify-center bg-[#070707] px-5 sm:px-10 lg:px-16 py-10 sm:py-12">
-            <div className="mx-auto w-full max-w-[1100px]">
-              <div className="anim-up flex items-center gap-3 mb-4 sm:mb-6">
+          <div className="h-full flex flex-col bg-[#070707] px-5 sm:px-10 lg:px-16 py-8 sm:py-12">
+            <div className="mx-auto w-full max-w-[1100px] flex h-full flex-col">
+              <div className="anim-up flex items-center gap-3 mb-3 sm:mb-4">
                 <span className="h-1.5 w-1.5 rounded-full bg-[#00ffea] shadow-[0_0_8px_rgba(0,255,234,0.7)] animate-pulse" />
                 <p className="font-mono text-xs uppercase tracking-[0.5em] text-[#00ffea]/70">{tx.openToWork.tag}</p>
               </div>
-              <h2 className="anim-up-2 mb-6 text-[clamp(2rem,6vw,5rem)] font-semibold tracking-[0.1em] text-white">{tx.openToWork.heading}</h2>
-              <p className="anim-up-3 mb-10 max-w-2xl text-sm sm:text-base leading-7 sm:leading-8 text-white/70">
-                {tx.openToWork.body}
-              </p>
+              <h2 className="anim-up-2 mb-3 sm:mb-5 text-[clamp(1.8rem,6vw,4.5rem)] font-semibold tracking-[0.1em] text-white">{tx.openToWork.heading}</h2>
 
-              <div className="grid gap-8 sm:gap-10 sm:grid-cols-2 mb-10">
-                <div className="anim-up">
-                  <p className="font-mono text-[0.6rem] tracking-[0.4em] text-white/40 uppercase mb-4">{tx.openToWork.focusLabel}</p>
-                  <ul className="flex flex-wrap gap-2">
-                    {tx.openToWork.areas.map(area => (
-                      <li key={area} className="text-sm tracking-[0.05em] text-white/85 border border-white/15 rounded-full px-3 py-1.5">
-                        {area}
-                      </li>
-                    ))}
-                  </ul>
+              <div className="dispatch-scroll flex-1 overflow-y-auto pr-1 sm:pr-2 -mx-1 px-1">
+                <p className="anim-up-3 mb-6 sm:mb-8 max-w-2xl text-sm sm:text-base leading-7 sm:leading-8 text-white/75">
+                  {tx.openToWork.body}
+                </p>
+
+                <div className="grid gap-6 sm:gap-10 sm:grid-cols-2 mb-6 sm:mb-8">
+                  <div className="anim-up">
+                    <p className="font-mono text-[0.6rem] tracking-[0.4em] text-white/40 uppercase mb-3 sm:mb-4">{tx.openToWork.stackLabel}</p>
+                    <ul className="space-y-2 sm:space-y-2.5">
+                      {tx.openToWork.stack.map(row => (
+                        <li key={row.tag} className="text-sm leading-6 text-white/75">
+                          <span className="font-mono text-[0.62rem] tracking-[0.25em] uppercase text-[#00ffea]/70 mr-2">{row.tag}</span>
+                          <span>{row.items}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="anim-up-2">
+                    <p className="font-mono text-[0.6rem] tracking-[0.4em] text-white/40 uppercase mb-3 sm:mb-4">{tx.openToWork.builtLabel}</p>
+                    <ul className="space-y-2 sm:space-y-2.5">
+                      {tx.openToWork.built.map(item => (
+                        <li key={item} className="flex items-start gap-2 text-sm leading-6 text-white/75">
+                          <span className="mt-2 h-1 w-1 rounded-full bg-[#00ffea]/60 shrink-0" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
-                <div className="anim-up-2">
-                  <p className="font-mono text-[0.6rem] tracking-[0.4em] text-white/40 uppercase mb-4">{tx.openToWork.modeLabel}</p>
-                  <ul className="space-y-2.5">
+
+                <div className="anim-up-3 mb-6 sm:mb-8">
+                  <p className="font-mono text-[0.6rem] tracking-[0.4em] text-white/40 uppercase mb-3 sm:mb-4">{tx.openToWork.modeLabel}</p>
+                  <ul className="space-y-2 sm:space-y-2.5 max-w-3xl">
                     {tx.openToWork.modes.map(mode => (
-                      <li key={mode} className="flex items-start gap-2 text-sm leading-7 text-white/70">
+                      <li key={mode} className="flex items-start gap-2 text-sm leading-6 text-white/75">
                         <span className="mt-2 h-1 w-1 rounded-full bg-[#00ffea]/60 shrink-0" />
                         <span>{mode}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
-              </div>
 
-              <Link
-                href="#contact"
-                className="anim-up-3 inline-flex items-center gap-2 rounded-md border border-[#00ffea]/40 bg-[#00ffea]/5 px-5 py-3 font-mono text-xs tracking-[0.4em] uppercase text-[#00ffea] hover:bg-[#00ffea]/15 transition-colors"
-              >
-                {tx.openToWork.cta}
-              </Link>
+                <Link
+                  href="#contact"
+                  className="anim-up-3 inline-flex items-center gap-2 rounded-md border border-[#00ffea]/40 bg-[#00ffea]/5 px-5 py-3 font-mono text-xs tracking-[0.4em] uppercase text-[#00ffea] hover:bg-[#00ffea]/15 transition-colors"
+                >
+                  {tx.openToWork.cta}
+                </Link>
+              </div>
             </div>
           </div>
         </SnapSection>
