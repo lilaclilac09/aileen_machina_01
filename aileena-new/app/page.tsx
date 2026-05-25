@@ -5,7 +5,6 @@ import Link from 'next/link';
 import Header from '../components/Header';
 import DJStation from '../components/DJStation';
 import LoadingScreen from '../components/LoadingScreen';
-import OscilloscopeBackground from '../components/OscilloscopeBackground';
 import { SnapContainer, SnapSection } from '../components/SnapScroll';
 import { useLanguage } from '../components/LanguageProvider';
 import { t } from '../lib/translations';
@@ -28,16 +27,6 @@ export default function Home() {
 
         {/* ── 01 HERO ── */}
         <SnapSection id="hero" className="order-1">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: "linear-gradient(to bottom, rgba(0,0,0,.08) 0%, rgba(0,0,0,.5) 55%, rgba(0,0,0,.98) 100%), url('/bg_pic/04.jpeg')",
-              backgroundSize: 'auto 70%',
-              backgroundPosition: '58% calc(50% - 48px)',
-              backgroundRepeat: 'no-repeat',
-            }}
-            aria-hidden
-          />
           <div className="relative z-10 h-full mx-auto max-w-[1600px] grid grid-cols-1 lg:grid-cols-2 px-5 sm:px-10 lg:px-12">
             <div className="flex items-end pb-8 sm:pb-16">
               <h1 className="anim-up text-[clamp(4rem,11vw,10rem)] font-black leading-[0.86] tracking-[0.06em] text-white">
@@ -61,35 +50,8 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 02 PROGRAMME ── */}
-        <SnapSection id="programme" className="order-2">
-          <OscilloscopeBackground />
-          <div className="relative z-10 h-full flex flex-col justify-center px-5 sm:px-10 lg:px-16">
-            <div className="mx-auto w-full max-w-[1400px]">
-              <div className="anim-up flex items-end justify-between border-b border-white/8 pb-5 mb-12">
-                <p className="text-xs uppercase tracking-[0.5em] text-white/45">{tx.programme.tag}</p>
-                <p className="text-xs uppercase tracking-[0.4em] text-white/35">{tx.programme.heading}</p>
-              </div>
-              <div>
-                {tx.programme.items.map((item, i) => (
-                  <Link key={item.index} href={item.href}
-                    className={`group grid grid-cols-[2rem_1fr_auto] sm:grid-cols-[3rem_1fr_auto] items-center gap-4 sm:gap-8 border-b border-white/6 py-5 sm:py-7 hover:border-white/15 transition-colors anim-up-${i + 1 > 3 ? 3 : i + 1}`}
-                  >
-                    <span className="font-mono text-xs tracking-widest text-white/35">{item.index}</span>
-                    <div>
-                      <h3 className="text-[clamp(1.05rem,6vw,2.8rem)] font-semibold tracking-[0.07em] sm:tracking-[0.1em] text-white group-hover:text-[#00ffea] transition-colors">{item.title}</h3>
-                      <p className="mt-1 text-[0.62rem] sm:text-xs uppercase tracking-[0.24em] sm:tracking-[0.35em] text-white/45">{item.meta}</p>
-                    </div>
-                    <span className="text-[#00ffea] opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all text-xl">→</span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
-        </SnapSection>
-
-        {/* ── 03 OPEN TO WORK ── */}
-        <SnapSection id="open-to-work" className="order-3">
+        {/* ── 02 OPEN TO WORK ── */}
+        <SnapSection id="open-to-work" className="order-2">
           <div className="h-full flex flex-col bg-[#070707] px-5 sm:px-10 lg:px-16 py-8 sm:py-12">
             <div className="mx-auto w-full max-w-[1100px] flex h-full flex-col">
               <div className="anim-up flex items-center gap-3 mb-3 sm:mb-4">
@@ -139,7 +101,7 @@ export default function Home() {
         </SnapSection>
 
         {/* ── 04 FEATURED REPO ── */}
-        <SnapSection id="featured-repo" className="order-4">
+        <SnapSection id="featured-repo" className="order-3">
           <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-16">
             <div className="mx-auto w-full max-w-[1400px] flex h-full flex-col py-6 sm:py-12">
               <div className="anim-up flex items-end border-b border-white/8 pb-3 mb-4 sm:mb-8">
@@ -189,7 +151,7 @@ export default function Home() {
         </SnapSection>
 
         {/* ── 05 RESEARCH DISPATCH ── */}
-        <SnapSection id="blog" className="order-5">
+        <SnapSection id="blog" className="order-4">
           <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-16">
             <div className="mx-auto w-full max-w-[1400px] flex h-full flex-col py-10 sm:py-12">
               <div className="anim-up flex items-end border-b border-white/8 pb-5 mb-12">
@@ -224,7 +186,7 @@ export default function Home() {
         </SnapSection>
 
         {/* ── 06 WOMAN IN TECH ── */}
-        <SnapSection id="woman-in-tech" className="order-6">
+        <SnapSection id="woman-in-tech" className="order-5">
           <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-16">
             <div className="mx-auto w-full max-w-[1400px] flex h-full flex-col py-10 sm:py-12">
               <div className="anim-up flex items-end border-b border-white/8 pb-5 mb-12">
@@ -260,7 +222,7 @@ export default function Home() {
         </SnapSection>
 
         {/* ── 07 SOUND / DJ ── */}
-        <SnapSection id="sound" className="order-7">
+        <SnapSection id="sound" className="order-6">
           <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-12 pt-6 pb-4 overflow-y-auto">
             <div className="mx-auto w-full max-w-[1400px]">
               <div className="flex items-end border-b border-white/8 pb-3 mb-6">
@@ -271,28 +233,8 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 08 GALLERY ── */}
-        <SnapSection id="gallery" className="order-8">
-          <div className="h-full grid lg:grid-cols-[0.55fr_1fr] bg-[#050505]">
-            {/* Left */}
-            <div className="flex flex-col justify-end px-5 pb-12 sm:px-10 lg:px-12">
-              <p className="anim-up text-xs uppercase tracking-[0.5em] text-white/45">{tx.gallery.tag}</p>
-              <h2 className="anim-up-2 mt-4 text-[clamp(2rem,5vw,5rem)] font-semibold tracking-[0.12em]">{tx.gallery.heading}</h2>
-              <p className="anim-up-3 mt-5 max-w-sm text-sm leading-7 text-white/55">{tx.gallery.body}</p>
-            </div>
-            {/* Right — images */}
-            <div className="grid grid-rows-2 grid-cols-2 gap-px h-full">
-              <div className="col-span-2 anim-fade bg-cover bg-center" style={{ backgroundImage: "url('/bg_pic/03.jpeg')" }} />
-              <div className="anim-fade overflow-hidden relative" style={{ animationDelay: '0.1s' }}>
-                <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover" src="/bg_pic/01v.MP4" />
-              </div>
-              <div className="anim-fade bg-cover bg-center" style={{ backgroundImage: "url('/bg_pic/02.jpeg')", animationDelay: '0.2s' }} />
-            </div>
-          </div>
-        </SnapSection>
-
-        {/* ── 09 CONTACT ── */}
-        <SnapSection id="contact" className="order-9">
+        {/* ── 07 CONTACT ── */}
+        <SnapSection id="contact" className="order-7">
           <div className="h-full flex flex-col justify-center bg-[#050505] px-5 sm:px-10 lg:px-16 py-10 sm:py-0">
             <div className="mx-auto w-full max-w-[1400px] grid gap-8 sm:gap-12 lg:gap-16 lg:grid-cols-[0.5fr_1fr] items-center">
               <div>
@@ -360,7 +302,7 @@ export default function Home() {
         </SnapSection>
 
         {/* ── 10 FOOTER ── */}
-        <SnapSection className="order-10">
+        <SnapSection className="order-8">
           <div className="h-full flex flex-col justify-between bg-[#030303] px-5 sm:px-10 lg:px-16 py-16">
             <div className="mx-auto w-full max-w-[1400px] flex-1 flex flex-col justify-between">
               <div className="anim-up border-b border-white/8 pb-12">
