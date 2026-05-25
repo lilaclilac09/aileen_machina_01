@@ -103,32 +103,19 @@ export default function Home() {
                   {tx.openToWork.body}
                 </p>
 
-                <div className="grid gap-6 sm:gap-10 sm:grid-cols-2 mb-6 sm:mb-8">
-                  <div className="anim-up">
-                    <p className="font-mono text-[0.6rem] tracking-[0.4em] text-white/40 uppercase mb-3 sm:mb-4">{tx.openToWork.stackLabel}</p>
-                    <ul className="space-y-2 sm:space-y-2.5">
-                      {tx.openToWork.stack.map(row => (
-                        <li key={row.tag} className="text-sm leading-6 text-white/75">
-                          <span className="font-mono text-[0.62rem] tracking-[0.25em] uppercase text-[#00ffea]/70 mr-2">{row.tag}</span>
-                          <span>{row.items}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="anim-up-2">
-                    <p className="font-mono text-[0.6rem] tracking-[0.4em] text-white/40 uppercase mb-3 sm:mb-4">{tx.openToWork.builtLabel}</p>
-                    <ul className="space-y-2 sm:space-y-2.5">
-                      {tx.openToWork.built.map(item => (
-                        <li key={item} className="flex items-start gap-2 text-sm leading-6 text-white/75">
-                          <span className="mt-2 h-1 w-1 rounded-full bg-[#00ffea]/60 shrink-0" />
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                <div className="anim-up mb-6 sm:mb-8">
+                  <p className="font-mono text-[0.6rem] tracking-[0.4em] text-white/40 uppercase mb-3 sm:mb-4">{tx.openToWork.stackLabel}</p>
+                  <ul className="space-y-2 sm:space-y-2.5 max-w-3xl">
+                    {tx.openToWork.stack.map(row => (
+                      <li key={row.tag} className="text-sm leading-6 text-white/75">
+                        <span className="font-mono text-[0.62rem] tracking-[0.25em] uppercase text-[#00ffea]/70 mr-2">{row.tag}</span>
+                        <span>{row.items}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
 
-                <div className="anim-up-3 mb-6 sm:mb-8">
+                <div className="anim-up-2 mb-6 sm:mb-8">
                   <p className="font-mono text-[0.6rem] tracking-[0.4em] text-white/40 uppercase mb-3 sm:mb-4">{tx.openToWork.modeLabel}</p>
                   <ul className="space-y-2 sm:space-y-2.5 max-w-3xl">
                     {tx.openToWork.modes.map(mode => (
