@@ -76,14 +76,6 @@ export const t = {
         { tag: 'AI agents', items: 'RAG · prompt engineering · agentic automation pipelines · LLM integration' },
         { tag: 'Web + analytics', items: 'TypeScript · Next.js · Supabase · Dune · Flipside · ClickHouse · SQL · BigQuery' },
       ],
-      builtLabel: 'Built recently',
-      built: [
-        'PAMM MEV — 18-stage on-chain pipeline. Found 80% of sandwich attacks span multi-pool jumps. mev.aileena.xyz',
-        "Prop AMM — reverse-engineered Jupiter's prop-AMM architecture; EWMA dynamic fee with live risk terminal. pamm.aileena.xyz",
-        'KeyShield — API vault where wallet signatures replace keys; credentials never leave the server.',
-        'RPCsol P&L — Solana wallet P&L on Helius RPC; balance-reconciliation tuned across 15 iterations (BO, CMA-ES, DE, TPE).',
-        'aileena.xyz — RAG pipeline in production with streaming LLM responses + Supabase vector store + session memory.',
-      ],
       modeLabel: 'How I work',
       modes: [
         'Stay at the technical frontier. Solana SG Mini Hackathon winner 2026 · Colosseum 2026.',
@@ -368,14 +360,6 @@ export const t = {
         { tag: 'Data + ML', items: 'Python · Monte Carlo · scikit-learn · GMM / PCA · R' },
         { tag: 'AI-Agenten', items: 'RAG · Prompt Engineering · Agentic Automation Pipelines · LLM-Integration' },
         { tag: 'Web + Analytics', items: 'TypeScript · Next.js · Supabase · Dune · Flipside · ClickHouse · SQL · BigQuery' },
-      ],
-      builtLabel: 'Zuletzt gebaut',
-      built: [
-        'PAMM MEV — 18-stufige On-Chain-Pipeline. Ergebnis: 80 % der Sandwich-Angriffe spannen mehrere Pools. mev.aileena.xyz',
-        'Prop AMM — Reverse Engineering von Jupiters Prop-AMM-Architektur; EWMA Dynamic Fee mit Live-Risk-Terminal. pamm.aileena.xyz',
-        'KeyShield — API-Tresor: Wallet-Signaturen ersetzen Keys, Credentials verlassen den Server nie.',
-        'RPCsol P&L — Solana-Wallet-P&L auf Helius RPC; Balance-Reconciliation über 15 Iterationen (BO, CMA-ES, DE, TPE) optimiert.',
-        'aileena.xyz — RAG-Pipeline in Production mit Streaming-LLM-Responses + Supabase Vector Store + Session Memory.',
       ],
       modeLabel: 'Arbeitsweise',
       modes: [
