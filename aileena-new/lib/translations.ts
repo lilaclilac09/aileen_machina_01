@@ -9,39 +9,6 @@ export const t = {
       footer: 'SINCE 2025 / AILEENA / MACHINA',
       scroll: 'scroll',
     },
-    programme: {
-      tag: 'NAVIGATION',
-      heading: 'Explore',
-      more: 'Go',
-      items: [
-        {
-          index: '01',
-          title: 'GALLERY',
-          meta: 'Visual Portfolio',
-          description: 'Photography, video, and visual work.',
-          href: '#gallery',
-        },
-        {
-          index: '02',
-          title: 'SOUND',
-          meta: 'Music & DJ Sets',
-          description: 'DJ mixes and music production.',
-          href: '#sound',
-        },
-        {
-          index: '03',
-          title: 'ELSEWHERE',
-          meta: 'External Links',
-          description: 'Other places on the internet.',
-          href: 'https://farayan.me/garden',
-        },
-      ],
-    },
-    gallery: {
-      tag: 'VISUAL PORTFOLIO',
-      heading: 'Gallery',
-      body: 'Photography, video, and visual experiments. No filters, no edits. What you see is what was there.',
-    },
     sound: {
       tag: 'SOUND',
       heading: 'Sound Lab',
@@ -261,7 +228,6 @@ export const t = {
         {
           heading: 'EXPLORE',
           links: [
-            { label: 'Gallery', href: '#gallery' },
             { label: 'Sound', href: '#sound' },
             { label: 'Blog', href: '#blog' },
           ],
@@ -293,39 +259,6 @@ export const t = {
       body: 'Software-Ingenieurin, DeFi-Researcherin, DJ. Systeme bauen, die funktionieren, und fragen, was es bedeutet, wenn sie anfangen, eigenständig zu arbeiten.',
       footer: 'SEIT 2025 / AILEENA / MACHINA',
       scroll: 'scrollen',
-    },
-    programme: {
-      tag: 'NAVIGATION',
-      heading: 'Erkunden',
-      more: 'Los',
-      items: [
-        {
-          index: '01',
-          title: 'GALERIE',
-          meta: 'Visuelles Portfolio',
-          description: 'Fotografie, Video und visuelle Arbeiten.',
-          href: '#gallery',
-        },
-        {
-          index: '02',
-          title: 'SOUND',
-          meta: 'Musik & DJ Sets',
-          description: 'DJ-Mixes und Musikproduktion.',
-          href: '#sound',
-        },
-        {
-          index: '03',
-          title: 'ELSEWHERE',
-          meta: 'Externe Links',
-          description: 'Andere Orte im Internet.',
-          href: 'https://farayan.me/garden',
-        },
-      ],
-    },
-    gallery: {
-      tag: 'VISUELLES PORTFOLIO',
-      heading: 'Galerie',
-      body: 'Fotografie, Video und visuelle Experimente. Keine Filter, keine Bearbeitung. Was du siehst, war auch da.',
     },
     sound: {
       tag: 'SOUND',
@@ -546,7 +479,6 @@ export const t = {
         {
           heading: 'ERKUNDEN',
           links: [
-            { label: 'Galerie', href: '#gallery' },
             { label: 'Sound', href: '#sound' },
             { label: 'Blog', href: '#blog' },
           ],
