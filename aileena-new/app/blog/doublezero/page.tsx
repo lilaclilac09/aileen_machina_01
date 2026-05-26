@@ -475,10 +475,28 @@ doublezero status        # confirm connection`}
           with no contention from public-internet traffic on the same thread.
         </p>
         <p style={bodyStyle}>
-          I haven&apos;t yet seen a published Firedancer+DoubleZero <code style={codeStyle}>net_tile</code> patch
-          as of this writing — but the architectural fit is clean enough that someone will ship one within
-          a quarter, either upstream or as a fork. The hard work (the tile abstraction itself) already
-          exists; the integration is configuration plus a small amount of glue.
+          The upstream <code style={codeStyle}>net_tile</code> patch that ties Firedancer&apos;s userspace
+          directly to <code style={codeStyle}>doublezero0</code> isn&apos;t public yet — but the
+          kernel-side half already exists.{' '}
+          <a href="https://github.com/cavemanloverboy/agave-xdp-rx-ebpf" target="_blank" rel="noopener noreferrer" style={inlineLink}>cavemanloverboy/agave-xdp-rx-ebpf</a>{' '}
+          is an XDP/eBPF program for Solana traffic that explicitly does <strong style={strong}>GRE
+          tunnel decapsulation</strong>, supports variable-length IPv4 headers, and a dynamic port count.
+          GRE decap is exactly the work DoubleZero packets need before they hit the validator&apos;s
+          normal socket layer — strip the protocol-47 outer header in kernel, hand the inner Solana
+          packet to either an Agave socket or an AF_XDP-backed Firedancer <code style={codeStyle}>net_tile</code>.
+          This is the layer <em>below</em> <code style={codeStyle}>net_tile</code>. The tile-side
+          integration (subscription, group membership, reconciliation) is the next missing piece, but the
+          kernel plumbing is already shipping.
+        </p>
+        <p style={bodyStyle}>
+          Worth watching the same author&apos;s{' '}
+          <a href="https://github.com/cavemanloverboy/firedancer" target="_blank" rel="noopener noreferrer" style={inlineLink}>firedancer fork</a>{' '}
+          and{' '}
+          <a href="https://github.com/cavemanloverboy/agave-pr" target="_blank" rel="noopener noreferrer" style={inlineLink}>agave-pr</a>{' '}
+          workspace — they&apos;ve been landing upstream Firedancer PRs (recent example: #8218,
+          &quot;resolv: use exact block height check&quot;) and are an obvious candidate to ship the
+          tile-side glue. If you&apos;re looking for the first concrete Firedancer ↔ DZ integration to
+          benchmark, that&apos;s probably where it lands.
         </p>
 
         <div style={calloutInfo}>
@@ -671,6 +689,8 @@ doublezero status        # confirm connection`}
               { label: 'Multicast groups — live', href: 'https://data.malbeclabs.com/dz/multicast-groups' },
               { label: 'Firedancer net_tile internals', href: 'https://docs.firedancer.io/guide/internals/net_tile.html' },
               { label: 'Firedancer (Jump Crypto)', href: 'https://github.com/firedancer-io/firedancer' },
+              { label: 'cavemanloverboy/agave-xdp-rx-ebpf — XDP+GRE decap for Solana traffic', href: 'https://github.com/cavemanloverboy/agave-xdp-rx-ebpf' },
+              { label: 'cavemanloverboy GitHub profile (firedancer + agave-pr workspaces)', href: 'https://github.com/cavemanloverboy' },
               { label: 'Solana at Wire Speed — validator architecture (companion piece)', href: '/blog/wire' },
             ].map((ref, i) => (
               <li key={i} style={{
