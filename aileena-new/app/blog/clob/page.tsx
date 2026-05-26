@@ -205,10 +205,10 @@ export default function ClobArticle() {
           Standard CLOB capital flow: you deposit USDC into a specific market&apos;s vault account. Those funds are locked. You can place orders, cancel orders, but the capital stays in that market until you withdraw. If you market-make on five pairs, you need five separate deposits. Capital is fragmented.
         </p>
         <p style={bodyStyle}>
-          Manifest Global Orders change the settlement model. Your funds stay in your own global account. When you place a Global Order on SOL/USDC, no USDC moves. The order sits on the book as a claim against your global balance. When a taker fills your order, the settlement happens at fill time: your USDC leaves the global account and goes to the taker, the SOL comes to you. This is JIT (Just In Time) settlement.
+          Manifest changes that. With a Global Order, your USDC never leaves your account when you place the order. The order sits on the book as a promise to spend the money if someone fills it — the funds only move at the moment of the fill.
         </p>
         <p style={bodyStyle}>
-          The capital efficiency gain is multiplicative. With $100K in a global account, you can quote across ten markets simultaneously. Each market sees $100K of available liquidity on your orders. Same capital, 10x the on-book depth. This is the same logic as cross-margin on a centralized exchange, except there&apos;s no leverage and no liquidation risk. Every order is fully backed at the moment of placement. The risk is only that multiple orders fill simultaneously.
+          One $100K balance can sit on ten different markets at once. Each market shows the full $100K of liquidity on your orders — same capital, 10x the on-book depth. The catch: if two markets try to fill against you in the same slot and the balance can&apos;t cover both, one of them fails.
         </p>
 
         <blockquote style={{
