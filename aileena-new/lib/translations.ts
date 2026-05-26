@@ -280,7 +280,6 @@ export const t = {
             { label: 'Works', href: '#works' },
             { label: 'Elsewhere', href: 'https://www.jonesicecream.com' },
             { label: 'Best Granola', href: 'https://sofiberlin.com' },
-            { label: 'Ryo Lu', href: 'https://ryo.lu' },
           ],
         },
         {
@@ -573,7 +572,6 @@ export const t = {
             { label: 'Arbeiten', href: '#works' },
             { label: 'Elsewhere', href: 'https://www.jonesicecream.com' },
             { label: 'Best Granola', href: 'https://sofiberlin.com' },
-            { label: 'Ryo Lu', href: 'https://ryo.lu' },
           ],
         },
         {
