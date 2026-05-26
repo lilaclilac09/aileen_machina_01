@@ -65,6 +65,22 @@ export default function Home() {
                   {tx.openToWork.body}
                 </p>
 
+                <div className="anim-up mb-8 sm:mb-10 rounded-lg border border-[#00ffea]/35 bg-gradient-to-br from-[#00ffea]/[0.06] to-[#00ffea]/[0.01] p-5 sm:p-8 shadow-[0_0_40px_-15px_rgba(0,255,234,0.4)]">
+                  <div className="flex items-center gap-2 mb-4 sm:mb-5">
+                    <span className="h-2 w-2 rounded-full bg-[#00ffea] shadow-[0_0_10px_rgba(0,255,234,0.9)] animate-pulse" />
+                    <p className="font-mono text-[0.6rem] sm:text-[0.65rem] tracking-[0.4em] sm:tracking-[0.5em] text-[#00ffea] uppercase">{tx.openToWork.aiAgents.tag}</p>
+                  </div>
+                  <h3 className="text-[clamp(1.6rem,5.5vw,3rem)] font-semibold tracking-[0.04em] sm:tracking-[0.05em] leading-[1.1] text-white mb-4 sm:mb-5">
+                    {tx.openToWork.aiAgents.heading}
+                  </h3>
+                  <p className="text-[0.95rem] sm:text-base leading-7 sm:leading-8 text-white/80 mb-4 sm:mb-5 max-w-2xl">
+                    {tx.openToWork.aiAgents.body}
+                  </p>
+                  <p className="font-mono text-[0.66rem] sm:text-[0.72rem] tracking-[0.25em] sm:tracking-[0.32em] text-[#00ffea]/90 uppercase">
+                    → {tx.openToWork.aiAgents.footer}
+                  </p>
+                </div>
+
                 <div className="anim-up mb-6 sm:mb-8">
                   <p className="font-mono text-[0.6rem] tracking-[0.4em] text-white/40 uppercase mb-3 sm:mb-4">{tx.openToWork.stackLabel}</p>
                   <ul className="space-y-2 sm:space-y-2.5 max-w-3xl">
