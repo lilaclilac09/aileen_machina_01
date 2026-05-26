@@ -165,6 +165,12 @@ export const t = {
             title: 'Humidifi, Decoded',
             body: 'Part II of the prop AMM reversal. Part I said humidifi\'s mints don\'t live on chain. Part II goes back in to map what does. 3.3% of the 1728-byte account is live, spread across six narrow ranges, including two u16 price ticks and a monotonic e18 counter. The byte map is enough to build a real-time humidifi quote firehose without humidifi\'s cooperation.',
           },
+          {
+            date: '2026.05.26',
+            href: '/blog/centaur',
+            title: 'Centaur, and the Market It\'s Landing In',
+            body: 'Paradigm and Tempo open-sourced Centaur — a self-hosted runtime for multiplayer, secure AI agents — on May 21. Not another coding agent: the backend that lets a whole team share one. Why Paradigm built it themselves, the PM bets inside each of the five components (Slack-first, durable workflows, K8s sandboxes, iron-proxy secrets gateway, bring-your-own harness), how they\'re framing the launch, and where it lands against Devin, E2B, kagent and the rest of the agent-infra grid.',
+          },
         ],
       },
       womanInTech: {
@@ -415,6 +421,12 @@ export const t = {
             href: '/blog/humidifi-decoded',
             title: 'Humidifi, entschlüsselt',
             body: 'Teil II der Prop-AMM-Reversal. Teil I hat festgestellt, dass humidifis Mints nicht on-chain liegen. Teil II geht zurück und kartiert, was on-chain liegt. 3,3 % des 1728-Byte-Accounts sind live, verteilt auf sechs schmale Bereiche, darunter zwei u16-Preis-Ticks und ein monotoner e18-Zähler. Die Byte-Map reicht aus, um einen Echtzeit-humidifi-Quote-Firehose ohne humidifis Mitwirkung zu bauen.',
+          },
+          {
+            date: '2026.05.26',
+            href: '/blog/centaur',
+            title: 'Centaur und der Markt, in den es landet',
+            body: 'Paradigm und Tempo haben am 21. Mai Centaur open-sourced — eine self-hosted Runtime für „multiplayer, secure" AI-Agenten. Kein weiterer Coding-Agent, sondern das Backend, mit dem ein ganzes Team sich einen Agenten teilt. Warum Paradigm es selbst gebaut hat, die PM-Entscheidungen hinter den fünf Komponenten (Slack-first, durable Workflows, K8s-Sandboxes, iron-proxy Secrets-Gateway, Bring-your-own-Harness), wie das Launch-Narrativ gerahmt ist, und wo das Ganze gegen Devin, E2B, kagent und den Rest des Agent-Infra-Marktes landet.',
           },
         ],
       },
