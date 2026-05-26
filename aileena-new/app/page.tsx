@@ -348,6 +348,10 @@ export default function Home() {
                 </div>
               </div>
               <p className="anim-fade font-mono text-[0.62rem] tracking-[0.45em] text-white/30 mt-8">EST 2025 · AILEENA · MACHINA</p>
+              <p className="anim-fade font-mono text-[0.55rem] tracking-[0.3em] text-white/20 mt-2">
+                Open source · AGPL-3.0 ·{' '}
+                <a href="https://github.com/lilaclilac09/aileen_machina_01" target="_blank" rel="noopener noreferrer" className="hover:text-white/50 transition-colors">github.com/lilaclilac09/aileen_machina_01</a>
+              </p>
             </div>
           </div>
         </SnapSection>
