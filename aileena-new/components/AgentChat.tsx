@@ -4,9 +4,19 @@ import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { useEffect, useRef, useState } from 'react';
 
-const GREETING =
-  "I'm Aileen's site agent. Ask me about her projects, writing, stack, or what she's looking for next. I'll point you to the right link.";
+const STARTER_PROMPTS = [
+  "what's her solana stack?",
+  'show me her writing on mev',
+  'is she available for hire?',
+];
 
+/**
+ * Aileena · Console
+ *
+ * Not a chat widget. A command-palette-style overlay that matches the site's
+ * SAT-LINK / terminal language. Invoked via `/` from anywhere on the site or
+ * via the typographic launcher line at the bottom-left of the viewport.
+ */
 export default function AgentChat() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
@@ -19,117 +29,148 @@ export default function AgentChat() {
 
   const busy = status === 'submitted' || status === 'streaming';
 
-  // Auto-scroll to bottom whenever messages change or status updates.
   useEffect(() => {
     if (!scrollRef.current) return;
     scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages, status]);
 
-  // Focus the input when the panel opens.
+  // `/` opens, Esc closes, ignore when user is typing in a form field.
   useEffect(() => {
-    if (open) {
-      const t = setTimeout(() => inputRef.current?.focus(), 80);
-      return () => clearTimeout(t);
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setOpen(false);
+        return;
+      }
+      if (e.key === '/' && !open) {
+        const t = e.target as HTMLElement | null;
+        const tag = t?.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || t?.isContentEditable) return;
+        e.preventDefault();
+        setOpen(true);
+      }
     }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, [open]);
 
-  // Allow other components to open the chat with `window.dispatchEvent(new Event('open-agent-chat'))`.
+  // Listen for external open events (e.g. AI Agents callout button).
   useEffect(() => {
     const handler = () => setOpen(true);
     window.addEventListener('open-agent-chat', handler);
     return () => window.removeEventListener('open-agent-chat', handler);
   }, []);
 
-  // Close on Escape.
+  // Focus input when opened.
   useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    if (open) {
+      const t = setTimeout(() => inputRef.current?.focus(), 60);
+      return () => clearTimeout(t);
+    }
   }, [open]);
 
-  function handleSend() {
-    const text = input.trim();
-    if (!text || busy) return;
+  function ask(text: string) {
+    const trimmed = text.trim();
+    if (!trimmed || busy) return;
     setInput('');
-    sendMessage({ text });
+    sendMessage({ text: trimmed });
   }
-
-  const showGreeting = messages.length === 0;
 
   return (
     <>
-      {/* Launcher button */}
+      {/* Launcher — a typographic line, not a pill */}
       <button
+        type="button"
         onClick={() => setOpen(true)}
-        aria-label="Open chat with Aileen's site agent"
-        className={`fixed bottom-5 right-5 z-[60] sm:bottom-6 sm:right-6 flex items-center gap-2 rounded-full border border-[#00ffea]/40 bg-black/80 px-4 py-3 font-mono text-[0.62rem] tracking-[0.3em] uppercase text-[#00ffea] backdrop-blur-md shadow-[0_0_24px_-6px_rgba(0,255,234,0.5)] transition-all hover:bg-[#00ffea]/10 hover:border-[#00ffea]/70 active:scale-95 ${open ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+        aria-label="Open Aileena console"
+        className={`fixed bottom-3 left-1/2 -translate-x-1/2 sm:bottom-5 sm:left-5 sm:translate-x-0 z-[60] flex items-center gap-2 font-mono text-[0.6rem] sm:text-[0.62rem] tracking-[0.3em] sm:tracking-[0.35em] uppercase text-[#00ffea]/70 hover:text-[#00ffea] transition-colors py-1 px-2 ${open ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
       >
-        <span className="h-1.5 w-1.5 rounded-full bg-[#00ffea] shadow-[0_0_8px_rgba(0,255,234,0.9)] animate-pulse" />
-        <span>Talk to agent</span>
+        <span className="h-1 w-1 rounded-full bg-[#00ffea] shadow-[0_0_6px_rgba(0,255,234,0.9)] animate-pulse" />
+        <span className="whitespace-nowrap">[ talk to the agent · /]</span>
       </button>
 
       {/* Backdrop */}
-      {open && (
-        <div
-          className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm"
-          onClick={() => setOpen(false)}
-          aria-hidden
-        />
-      )}
-
-      {/* Panel */}
       <div
-        className={`fixed z-[80] inset-x-3 bottom-3 sm:inset-auto sm:right-6 sm:bottom-6 sm:w-[420px] sm:max-w-[calc(100vw-3rem)] max-h-[80vh] sm:max-h-[640px] flex flex-col rounded-xl border border-[#00ffea]/30 bg-[#0a0a0a]/95 backdrop-blur-md shadow-[0_0_40px_-8px_rgba(0,255,234,0.4)] transition-all ${open ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-3 pointer-events-none'}`}
+        onClick={() => setOpen(false)}
+        aria-hidden
+        className={`fixed inset-0 z-[70] bg-black/70 backdrop-blur-md transition-opacity duration-200 ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+      />
+
+      {/* Console card */}
+      <div
         role="dialog"
-        aria-label="Aileena site agent"
         aria-modal="true"
+        aria-label="Aileena Console"
+        className={`fixed z-[80] inset-x-3 top-1/2 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 -translate-y-1/2 sm:w-[640px] sm:max-w-[calc(100vw-3rem)] max-h-[80vh] flex flex-col bg-[#08080a]/95 border border-[#00ffea]/30 shadow-[0_0_60px_-15px_rgba(0,255,234,0.45)] backdrop-blur-md transition-all duration-200 ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-[0.96] pointer-events-none'} font-mono`}
+        style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace' }}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/8 px-4 py-3">
+        {/* Header bar */}
+        <div className="flex items-center justify-between border-b border-[#00ffea]/15 px-4 py-2.5">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#00ffea] shadow-[0_0_8px_rgba(0,255,234,0.9)] animate-pulse shrink-0" />
-            <p className="font-mono text-[0.6rem] tracking-[0.35em] sm:tracking-[0.4em] text-[#00ffea]/80 uppercase truncate">
-              Aileena · Site Agent
-            </p>
+            <span className="text-[0.6rem] tracking-[0.3em] text-[#00ffea]/80 uppercase truncate">aileena · console</span>
           </div>
-          <button
-            onClick={() => setOpen(false)}
-            aria-label="Close chat"
-            className="font-mono text-sm text-white/60 hover:text-white px-2 py-1 leading-none"
-          >
-            ×
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#00ffea] shadow-[0_0_6px_rgba(0,255,234,0.9)] animate-pulse" />
+              <span className="text-[0.55rem] tracking-[0.25em] text-[#00ffea]/60 uppercase">live</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label="Close console"
+              className="text-[0.65rem] tracking-[0.2em] text-white/40 hover:text-white/90 uppercase px-1"
+            >
+              esc
+            </button>
+          </div>
         </div>
 
-        {/* Messages */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-          {showGreeting && (
-            <Bubble role="assistant" text={GREETING} />
+        {/* Transcript */}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-5 space-y-3 min-h-[180px]">
+          {messages.length === 0 ? (
+            <>
+              <p className="text-[0.62rem] tracking-[0.25em] text-white/35 uppercase mb-2">
+                ▸ ready · ask anything about aileen's work
+              </p>
+              <ul className="space-y-1.5">
+                {STARTER_PROMPTS.map((p) => (
+                  <li key={p}>
+                    <button
+                      type="button"
+                      onClick={() => ask(p)}
+                      className="text-left text-[0.82rem] sm:text-sm leading-6 text-white/50 hover:text-[#00ffea] transition-colors w-full"
+                    >
+                      <span className="text-[#00ffea]/40 mr-2">&gt;</span>
+                      {p}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            messages.map((m) => (
+              <Line
+                key={m.id}
+                role={m.role === 'user' ? 'user' : 'assistant'}
+                text={getMessageText(m)}
+              />
+            ))
           )}
 
-          {messages.map((m) => (
-            <Bubble
-              key={m.id}
-              role={m.role === 'user' ? 'user' : 'assistant'}
-              text={getMessageText(m)}
-            />
-          ))}
-
           {busy && messages[messages.length - 1]?.role !== 'assistant' && (
-            <Bubble role="assistant" text="…" muted />
+            <Line role="assistant" text="…" muted />
           )}
 
           {error && (
-            <p className="font-mono text-[0.62rem] tracking-[0.18em] text-red-400/80 uppercase">
-              Connection error. Try again or use the contact form.
+            <p className="text-[0.62rem] tracking-[0.18em] text-red-400/80 uppercase">
+              ▸ connection error · try again
             </p>
           )}
         </div>
 
-        {/* Composer */}
-        <div className="border-t border-white/8 px-3 py-3">
-          <div className="flex items-end gap-2">
+        {/* Input row */}
+        <div className="border-t border-[#00ffea]/15 px-5 py-3">
+          <div className="flex items-center gap-2">
+            <span className="text-[#00ffea] text-sm">&gt;</span>
             <textarea
               ref={inputRef}
               value={input}
@@ -137,23 +178,24 @@ export default function AgentChat() {
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
-                  handleSend();
+                  ask(input);
                 }
               }}
-              placeholder="Ask about projects, writing, stack…"
+              placeholder=""
               rows={1}
-              className="flex-1 resize-none bg-transparent text-sm leading-6 text-white/90 placeholder:text-white/30 outline-none max-h-32 py-2 px-2"
+              className="flex-1 resize-none bg-transparent text-sm leading-6 text-white/90 placeholder:text-white/25 outline-none max-h-32 caret-[#00ffea]"
+              spellCheck={false}
+              autoCorrect="off"
+              autoCapitalize="off"
             />
-            <button
-              onClick={handleSend}
-              disabled={busy || !input.trim()}
-              className="font-mono text-[0.62rem] tracking-[0.3em] uppercase text-[#00ffea] border border-[#00ffea]/40 rounded-md px-3 py-2 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#00ffea]/10 transition-colors shrink-0"
-            >
-              {busy ? '…' : 'Send'}
-            </button>
+            {busy && (
+              <span className="text-[0.55rem] tracking-[0.25em] text-[#00ffea]/60 uppercase animate-pulse">
+                streaming
+              </span>
+            )}
           </div>
-          <p className="mt-2 font-mono text-[0.5rem] tracking-[0.3em] text-white/25 uppercase">
-            Streaming · Press Enter to send · Shift+Enter for newline
+          <p className="mt-2 text-[0.52rem] tracking-[0.3em] text-white/25 uppercase">
+            ↵ send · esc close · / open from anywhere
           </p>
         </div>
       </div>
@@ -161,7 +203,7 @@ export default function AgentChat() {
   );
 }
 
-function Bubble({
+function Line({
   role,
   text,
   muted,
@@ -172,25 +214,26 @@ function Bubble({
 }) {
   if (role === 'user') {
     return (
-      <div className="flex justify-end">
-        <p className="max-w-[85%] rounded-lg bg-white/5 px-3 py-2 text-sm leading-6 text-white/90 whitespace-pre-wrap break-words">
-          {text}
-        </p>
-      </div>
+      <p className="text-[0.82rem] sm:text-sm leading-6 text-[#00ffea]/85 whitespace-pre-wrap break-words">
+        <span className="text-[#00ffea]/55 mr-2">&gt;</span>
+        {text}
+      </p>
     );
   }
   return (
-    <div className="flex justify-start">
-      <p className={`max-w-[90%] text-sm leading-6 whitespace-pre-wrap break-words ${muted ? 'text-white/40' : 'text-white/85'}`}>
+    <div className="flex gap-3">
+      <span className="text-[#00ffea]/30 select-none leading-6">│</span>
+      <p
+        className={`flex-1 text-[0.82rem] sm:text-sm leading-6 whitespace-pre-wrap break-words ${
+          muted ? 'text-white/35' : 'text-white/85'
+        }`}
+      >
         {linkify(text)}
       </p>
     </div>
   );
 }
 
-/**
- * Pull plain text out of a v6 UIMessage (which is `parts: [...]`).
- */
 function getMessageText(m: { parts?: Array<{ type: string; text?: string }> }): string {
   if (!m.parts) return '';
   return m.parts
@@ -199,9 +242,6 @@ function getMessageText(m: { parts?: Array<{ type: string; text?: string }> }): 
     .join('');
 }
 
-/**
- * Turn bare URLs into clickable links. Plain regex; no markdown parsing.
- */
 function linkify(text: string) {
   const re = /(https?:\/\/[^\s)]+)/g;
   const parts: Array<string | { url: string }> = [];
