@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Header from '../components/Header';
 import DJStation from '../components/DJStation';
 import LoadingScreen from '../components/LoadingScreen';
+import ContactAgent from '../components/ContactAgent';
 import { SnapContainer, SnapSection } from '../components/SnapScroll';
 import { useLanguage } from '../components/LanguageProvider';
 import { t } from '../lib/translations';
@@ -76,13 +77,12 @@ export default function Home() {
                   <p className="text-[0.95rem] sm:text-base leading-7 sm:leading-8 text-white/80 mb-4 sm:mb-5 max-w-2xl">
                     {tx.openToWork.aiAgents.body}
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => window.dispatchEvent(new Event('open-agent-chat'))}
-                    className="font-mono text-[0.66rem] sm:text-[0.72rem] tracking-[0.25em] sm:tracking-[0.32em] text-[#00ffea]/90 uppercase hover:text-[#00ffea] transition-colors text-left cursor-pointer"
+                  <a
+                    href="#contact"
+                    className="font-mono text-[0.66rem] sm:text-[0.72rem] tracking-[0.25em] sm:tracking-[0.32em] text-[#00ffea]/90 uppercase hover:text-[#00ffea] transition-colors no-underline"
                   >
                     → {tx.openToWork.aiAgents.footer}
-                  </button>
+                  </a>
                 </div>
 
                 <div className="anim-up mb-6 sm:mb-8">
@@ -255,16 +255,19 @@ export default function Home() {
 
         {/* ── 07 CONTACT ── */}
         <SnapSection id="contact" className="order-7">
-          <div className="h-full flex flex-col justify-center bg-[#050505] px-5 sm:px-10 lg:px-16 py-10 sm:py-0">
-            <div className="mx-auto w-full max-w-[1400px] grid gap-8 sm:gap-12 lg:gap-16 lg:grid-cols-[0.5fr_1fr] items-center">
+          <div className="h-full flex flex-col bg-[#050505] px-5 sm:px-10 lg:px-16 py-6 sm:py-10 overflow-y-auto">
+            <div className="mx-auto w-full max-w-[1400px] grid gap-6 sm:gap-10 lg:gap-16 lg:grid-cols-[0.5fr_1fr] lg:items-start my-auto">
               <div>
-                <div className="anim-up flex items-center gap-2 sm:gap-3 mb-5 sm:mb-8">
+                <div className="anim-up flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
                   <div className="h-px flex-1" style={{ background: 'rgba(0,255,234,0.18)' }} />
                   <span className="font-mono text-[0.52rem] sm:text-[0.58rem] tracking-[0.25em] sm:tracking-[0.5em] text-[#00ffea]/30">SAT-LINK · NODE-7</span>
                   <div className="h-px flex-1" style={{ background: 'rgba(0,255,234,0.18)' }} />
                 </div>
-                <h2 className="anim-up-2 font-mono text-[clamp(1.9rem,4vw,4rem)] font-light tracking-[0.15em] text-white">{tx.contact.heading}</h2>
-                <div className="anim-up-3 mt-8 space-y-2">
+                <h2 className="anim-up-2 font-mono text-[clamp(1.6rem,4vw,4rem)] font-light tracking-[0.15em] text-white">{tx.contact.heading}</h2>
+                <p className="anim-up-3 mt-3 sm:mt-5 max-w-md text-sm leading-7 text-white/45">
+                  Ask the site agent first — it knows her projects, writing, and stack. If it can&apos;t help, the terminal below routes straight to her inbox.
+                </p>
+                <div className="anim-up-3 mt-6 sm:mt-8 space-y-2">
                   <p className="font-mono text-[0.58rem] tracking-[0.4em] text-white/30">UPLINK · 2.4 GHz · SAT-A7</p>
                   <p className="font-mono text-[0.58rem] tracking-[0.4em] text-white/30">ENCRYPTION · AES-256 · ACTIVE</p>
                   <div className="flex items-center gap-2 pt-1">
@@ -274,7 +277,12 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="anim-left font-mono">
+              <div className="space-y-5 sm:space-y-6">
+                <div className="anim-up">
+                  <ContactAgent />
+                </div>
+
+                <div className="anim-left font-mono">
                 <div className="flex items-center justify-between border border-[#00ffea]/10 px-4 py-2" style={{ background: 'rgba(0,255,234,0.025)' }}>
                   <span className="text-[0.52rem] sm:text-[0.58rem] tracking-[0.2em] sm:tracking-[0.5em] text-[#00ffea]/40 uppercase">{tx.contact.terminal}</span>
                   <div className="flex items-center gap-2">
@@ -315,6 +323,7 @@ export default function Home() {
                       {!sent && <span className="text-sm text-[#00ffea]/55 group-hover:text-[#00ffea] transition-colors">↗</span>}
                     </button>
                   </div>
+                </div>
                 </div>
               </div>
             </div>
