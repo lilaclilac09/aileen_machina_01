@@ -76,9 +76,13 @@ export default function Home() {
                   <p className="text-[0.95rem] sm:text-base leading-7 sm:leading-8 text-white/80 mb-4 sm:mb-5 max-w-2xl">
                     {tx.openToWork.aiAgents.body}
                   </p>
-                  <p className="font-mono text-[0.66rem] sm:text-[0.72rem] tracking-[0.25em] sm:tracking-[0.32em] text-[#00ffea]/90 uppercase">
+                  <button
+                    type="button"
+                    onClick={() => window.dispatchEvent(new Event('open-agent-chat'))}
+                    className="font-mono text-[0.66rem] sm:text-[0.72rem] tracking-[0.25em] sm:tracking-[0.32em] text-[#00ffea]/90 uppercase hover:text-[#00ffea] transition-colors text-left cursor-pointer"
+                  >
                     → {tx.openToWork.aiAgents.footer}
-                  </p>
+                  </button>
                 </div>
 
                 <div className="anim-up mb-6 sm:mb-8">
