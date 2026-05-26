@@ -498,6 +498,17 @@ doublezero status        # confirm connection`}
           tile-side glue. If you&apos;re looking for the first concrete Firedancer ↔ DZ integration to
           benchmark, that&apos;s probably where it lands.
         </p>
+        <p style={bodyStyle}>
+          The other validator client likely to integrate DoubleZero is{' '}
+          <a href="https://github.com/jito-foundation/jito-solana" target="_blank" rel="noopener noreferrer" style={inlineLink}>jito-foundation/jito-solana</a>{' '}
+          — Jito&apos;s Agave fork that adds the block engine and bundle relayer hooks. Most MEV-active
+          validators today run jito-solana, so once the Jito relayer is no longer load-bearing for
+          latency-to-leader (see §5), the obvious next move is for{' '}
+          <a href="https://github.com/jito-foundation" target="_blank" rel="noopener noreferrer" style={inlineLink}>Jito Foundation</a>{' '}
+          to ship a jito-solana variant that talks to <code style={codeStyle}>doublezero0</code> directly.
+          The production stack becomes &quot;jito-solana + DZ port&quot; instead of &quot;jito-solana +
+          relayer over public internet&quot; — bundles still flow, but the transport is deterministic.
+        </p>
 
         <div style={calloutInfo}>
           <p style={calloutTitle}>MULTICAST SUBSCRIBE AT THE TILE LEVEL</p>
@@ -691,6 +702,8 @@ doublezero status        # confirm connection`}
               { label: 'Firedancer (Jump Crypto)', href: 'https://github.com/firedancer-io/firedancer' },
               { label: 'cavemanloverboy/agave-xdp-rx-ebpf — XDP+GRE decap for Solana traffic', href: 'https://github.com/cavemanloverboy/agave-xdp-rx-ebpf' },
               { label: 'cavemanloverboy GitHub profile (firedancer + agave-pr workspaces)', href: 'https://github.com/cavemanloverboy' },
+              { label: 'jito-foundation/jito-solana — MEV Solana client (third candidate for DZ integration)', href: 'https://github.com/jito-foundation/jito-solana' },
+              { label: 'Jito Foundation GitHub org', href: 'https://github.com/jito-foundation' },
               { label: 'Solana at Wire Speed — validator architecture (companion piece)', href: '/blog/wire' },
             ].map((ref, i) => (
               <li key={i} style={{
