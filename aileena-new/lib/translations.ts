@@ -206,6 +206,12 @@ export const t = {
             title: 'Humidifi, Decoded',
             body: 'Part II of the prop AMM reversal. Part I said humidifi\'s mints don\'t live on chain. Part II goes back in to map what does. 3.3% of the 1728-byte account is live, spread across six narrow ranges, including two u16 price ticks and a monotonic e18 counter. The byte map is enough to build a real-time humidifi quote firehose without humidifi\'s cooperation.',
           },
+          {
+            date: '2026.05.24',
+            href: '/blog/doublezero',
+            title: 'DoubleZero, Multicast Fiber',
+            body: 'Mainnet-beta since October 2025, ~40% of Solana validators already on it. The bet: stop sending consensus packets over best-effort BGP, put them on dedicated fiber. The twist the public internet structurally can\'t do: native multicast replicated at the switch fabric — Frankfurt shred delivery saw >16ms gains per hop. Frankendancer integration via the net_tile is the obvious next milestone, and the on-chain TWAMP telemetry feed is open for anyone to build against.',
+          },
         ],
       },
       womanInTech: {
@@ -498,6 +504,12 @@ export const t = {
             href: '/blog/humidifi-decoded',
             title: 'Humidifi, entschlüsselt',
             body: 'Teil II der Prop-AMM-Reversal. Teil I hat festgestellt, dass humidifis Mints nicht on-chain liegen. Teil II geht zurück und kartiert, was on-chain liegt. 3,3 % des 1728-Byte-Accounts sind live, verteilt auf sechs schmale Bereiche, darunter zwei u16-Preis-Ticks und ein monotoner e18-Zähler. Die Byte-Map reicht aus, um einen Echtzeit-humidifi-Quote-Firehose ohne humidifis Mitwirkung zu bauen.',
+          },
+          {
+            date: '2026.05.24',
+            href: '/blog/doublezero',
+            title: 'DoubleZero, Multicast-Glasfaser',
+            body: 'Mainnet-Beta seit Oktober 2025, ~40 % der Solana-Validatoren sind bereits dabei. Die Wette: Konsens-Pakete nicht mehr über Best-Effort-BGP schicken, sondern über dediziertes Glasfaser. Der Twist, den das öffentliche Internet strukturell nicht kann: natives Multicast, in der Switch-Fabric repliziert — Frankfurter Shred-Zustellung gewann >16 ms pro Hop. Die Frankendancer-Integration über das net_tile ist der naheliegende nächste Meilenstein, und der On-Chain-TWAMP-Telemetrie-Feed steht jedem offen.',
           },
         ],
       },
