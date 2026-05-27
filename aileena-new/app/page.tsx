@@ -174,8 +174,8 @@ export default function Home() {
                 <p className="text-xs uppercase tracking-[0.5em] text-white/45">{tx.blog.researchDispatch.tag}</p>
               </div>
               <h2
-                className="anim-up-2 mb-10 text-[clamp(1.8rem,5vw,3.4rem)] font-bold tracking-[-0.005em] text-white"
-                style={{ fontFamily: "'Iowan Old Style', 'Charter', 'Source Serif Pro', 'Georgia', serif" }}
+                className="anim-up-2 mb-10 text-[clamp(1.6rem,4.2vw,2.6rem)] tracking-tight text-white/95"
+                style={{ fontFamily: "'Nunito', system-ui, -apple-system, sans-serif", fontWeight: 500 }}
               >
                 {tx.blog.researchDispatch.heading}
               </h2>
