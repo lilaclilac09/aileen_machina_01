@@ -15,7 +15,6 @@ If you run a modified version of this code on a network-accessible server, AGPL 
 - Next.js 16 (App Router), React 19, TypeScript
 - Tailwind CSS 4
 - Vercel AI SDK + `@ai-sdk/anthropic` (site agent)
-- Resend (contact form)
 - Vercel (deployment)
 
 ## Project layout
@@ -27,7 +26,6 @@ app/
   blog/                 # Article pages
   api/
     chat/               # Streaming chat endpoint for the site agent
-    send/               # Contact-form email endpoint
 components/
   AgentChat.tsx         # Chat overlay UI
   DJStation.tsx         # Two-deck audio player
@@ -52,7 +50,6 @@ Environment variables:
 | Var | Required? | Purpose |
 | --- | --- | --- |
 | `ANTHROPIC_API_KEY` | yes | Streams replies in `/api/chat` |
-| `RESEND_API_KEY` | yes | Sends email from `/api/send` |
 | `CHAT_QUOTA_SECRET` | optional | HMAC-signs the per-visitor daily-quota cookie so it can't be trivially edited. Any random string works. Without it the cookie counter still functions, just isn't tamper-proof. |
 
 Rate limits on `/api/chat`:

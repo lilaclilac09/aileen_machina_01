@@ -13,11 +13,6 @@ export default function Home() {
   const { language } = useLanguage();
   const tx = t[language];
   const [loaded, setLoaded] = useState(false);
-  const [formName, setFormName] = useState('');
-  const [formEmail, setFormEmail] = useState('');
-  const [formMsg, setFormMsg] = useState('');
-  const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
 
   return (
     <>
@@ -109,12 +104,21 @@ export default function Home() {
                   </ul>
                 </div>
 
-                <Link
-                  href="#contact"
-                  className="anim-up-3 inline-flex items-center gap-2 rounded-md border border-[#00ffea]/40 bg-[#00ffea]/5 px-5 py-3 font-mono text-xs tracking-[0.4em] uppercase text-[#00ffea] hover:bg-[#00ffea]/15 transition-colors"
-                >
-                  {tx.openToWork.cta}
-                </Link>
+                <div className="anim-up-3 flex flex-wrap items-center gap-3">
+                  <a
+                    href="mailto:rosazxc0915@gmail.com"
+                    className="inline-flex items-center gap-2 rounded-md border border-[#00ffea]/40 bg-[#00ffea]/5 px-5 py-3 font-mono text-xs tracking-[0.4em] uppercase text-[#00ffea] hover:bg-[#00ffea]/15 transition-colors no-underline"
+                  >
+                    {tx.openToWork.cta}
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => window.dispatchEvent(new Event('open-agent-chat'))}
+                    className="inline-flex items-center gap-2 rounded-md border border-white/15 px-5 py-3 font-mono text-xs tracking-[0.4em] uppercase text-white/70 hover:text-white hover:border-white/30 transition-colors cursor-pointer"
+                  >
+                    Ask the agent →
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -253,76 +257,8 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 07 CONTACT ── */}
-        <SnapSection id="contact" className="order-7">
-          <div className="h-full flex flex-col justify-center bg-[#050505] px-5 sm:px-10 lg:px-16 py-10 sm:py-0">
-            <div className="mx-auto w-full max-w-[1400px] grid gap-8 sm:gap-12 lg:gap-16 lg:grid-cols-[0.5fr_1fr] items-center">
-              <div>
-                <div className="anim-up flex items-center gap-2 sm:gap-3 mb-5 sm:mb-8">
-                  <div className="h-px flex-1" style={{ background: 'rgba(0,255,234,0.18)' }} />
-                  <span className="font-mono text-[0.52rem] sm:text-[0.58rem] tracking-[0.25em] sm:tracking-[0.5em] text-[#00ffea]/30">SAT-LINK · NODE-7</span>
-                  <div className="h-px flex-1" style={{ background: 'rgba(0,255,234,0.18)' }} />
-                </div>
-                <h2 className="anim-up-2 font-mono text-[clamp(1.9rem,4vw,4rem)] font-light tracking-[0.15em] text-white">{tx.contact.heading}</h2>
-                <div className="anim-up-3 mt-8 space-y-2">
-                  <p className="font-mono text-[0.58rem] tracking-[0.4em] text-white/30">UPLINK · 2.4 GHz · SAT-A7</p>
-                  <p className="font-mono text-[0.58rem] tracking-[0.4em] text-white/30">ENCRYPTION · AES-256 · ACTIVE</p>
-                  <div className="flex items-center gap-2 pt-1">
-                    <div className="h-1.5 w-1.5 rounded-full bg-[#00ffea]/50 shadow-[0_0_6px_rgba(0,255,234,0.6)] animate-pulse" />
-                    <p className="font-mono text-[0.58rem] tracking-[0.4em] text-[#00ffea]/50">{tx.contact.standby}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="anim-left font-mono">
-                <div className="flex items-center justify-between border border-[#00ffea]/10 px-4 py-2" style={{ background: 'rgba(0,255,234,0.025)' }}>
-                  <span className="text-[0.52rem] sm:text-[0.58rem] tracking-[0.2em] sm:tracking-[0.5em] text-[#00ffea]/40 uppercase">{tx.contact.terminal}</span>
-                  <div className="flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-[#00ffea]/55 shadow-[0_0_4px_rgba(0,255,234,0.5)] animate-pulse" />
-                  </div>
-                </div>
-                <div className="border border-t-0 border-[#00ffea]/10 p-5 space-y-0">
-                  <div className="border-b border-white/6 py-4">
-                    <p className="mb-2 text-[0.52rem] tracking-[0.5em] text-white/30">{tx.contact.origin} ·</p>
-                    <input value={formName} onChange={e => setFormName(e.target.value)} className="w-full bg-transparent text-sm tracking-[0.2em] text-white/60 outline-none placeholder:text-white/25 focus:text-white/85" placeholder={tx.contact.name} />
-                  </div>
-                  <div className="border-b border-white/6 py-4">
-                    <p className="mb-2 text-[0.52rem] tracking-[0.5em] text-white/30">{tx.contact.frequency} ·</p>
-                    <input value={formEmail} onChange={e => setFormEmail(e.target.value)} className="w-full bg-transparent text-sm tracking-[0.2em] text-white/60 outline-none placeholder:text-white/25 focus:text-white/85" placeholder={tx.contact.email} />
-                  </div>
-                  <div className="border-b border-white/6 py-4">
-                    <p className="mb-2 text-[0.52rem] tracking-[0.5em] text-white/30">{tx.contact.payload} ·</p>
-                    <textarea value={formMsg} onChange={e => setFormMsg(e.target.value)} className="w-full bg-transparent text-sm tracking-[0.2em] text-white/60 outline-none placeholder:text-white/25 focus:text-white/85 min-h-20 resize-none" placeholder={tx.contact.message} />
-                  </div>
-                  <div className="flex items-center justify-between gap-3 pt-5">
-                    <span className="text-[0.5rem] tracking-[0.2em] sm:tracking-[0.4em] text-white/20">
-                      {sent ? 'TRANSMISSION SENT ·' : 'PKT · AUTO · ENC · ON'}
-                    </span>
-                    <button
-                      disabled={sending || sent}
-                      onClick={async () => {
-                        setSending(true);
-                        await fetch('/api/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: formName, email: formEmail, message: formMsg }) });
-                        setSending(false);
-                        setSent(true);
-                        setFormName(''); setFormEmail(''); setFormMsg('');
-                      }}
-                      className="group flex items-center gap-2 hover:opacity-70 transition-opacity disabled:opacity-40"
-                    >
-                      <span className="text-[0.62rem] sm:text-[0.65rem] tracking-[0.28em] sm:tracking-[0.55em] text-[#00ffea]/70 group-hover:text-[#00ffea]">
-                        {sending ? 'SENDING...' : sent ? 'SENT ✓' : tx.contact.send}
-                      </span>
-                      {!sent && <span className="text-sm text-[#00ffea]/55 group-hover:text-[#00ffea] transition-colors">↗</span>}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </SnapSection>
-
-        {/* ── 10 FOOTER ── */}
-        <SnapSection className="order-8">
+        {/* ── 07 FOOTER ── */}
+        <SnapSection className="order-7">
           <div className="h-full flex flex-col justify-between bg-[#030303] px-5 sm:px-10 lg:px-16 py-16">
             <div className="mx-auto w-full max-w-[1400px] flex-1 flex flex-col justify-between">
               <div className="anim-up border-b border-white/8 pb-12">
