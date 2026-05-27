@@ -21,77 +21,97 @@ export default function Home() {
       <Header />
       <SnapContainer key={language}>
 
-        {/* ── 01 HERO ── */}
-        <SnapSection id="hero" className="order-1">
-          {/* Intentionally bare — the AgentChat launcher (top-left) is the only focal point. */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 anim-fade">
-            <div className="w-px h-12 bg-gradient-to-b from-transparent to-white/30" />
-            <span className="text-[0.6rem] uppercase tracking-[0.5em] text-white/35">{tx.hero.scroll}</span>
-          </div>
-        </SnapSection>
-
-        {/* ── 02 OPEN TO WORK ── */}
-        <SnapSection id="open-to-work" className="order-2">
-          <div className="h-full flex flex-col bg-[#070707] px-5 sm:px-10 lg:px-16 py-8 sm:py-12">
-            <div className="mx-auto w-full max-w-[1100px] flex h-full flex-col">
-              <div className="anim-up flex items-center gap-3 mb-3 sm:mb-4">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#00ffea] shadow-[0_0_8px_rgba(0,255,234,0.7)] animate-pulse" />
-                <p className="font-mono text-xs uppercase tracking-[0.5em] text-[#00ffea]/70">{tx.openToWork.tag}</p>
-              </div>
-              <h2 className="anim-up-2 mb-3 sm:mb-5 text-[clamp(1.8rem,6vw,4.5rem)] font-semibold tracking-[0.1em] text-white">{tx.openToWork.heading}</h2>
+        {/* ── 01 OPEN TO WORK (landing) ── */}
+        <SnapSection id="open-to-work" className="order-1">
+          <div className="h-full flex flex-col bg-[#070707] px-5 sm:px-10 lg:px-16 py-10 sm:py-14"
+               style={{ fontFamily: "'Nunito', system-ui, -apple-system, sans-serif" }}>
+            <div className="mx-auto w-full max-w-[920px] flex h-full flex-col">
 
               <div className="dispatch-scroll flex-1 overflow-y-auto pr-1 sm:pr-2 -mx-1 px-1">
-                <p className="anim-up-3 mb-6 sm:mb-8 max-w-2xl text-sm sm:text-base leading-7 sm:leading-8 text-white/75">
+
+                {/* status + headline */}
+                <div className="anim-up flex items-center gap-3 mb-5 sm:mb-6">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#00ffea] shadow-[0_0_10px_rgba(0,255,234,0.75)] animate-pulse" />
+                  <p className="text-[0.72rem] uppercase tracking-[0.32em] text-white/60" style={{ fontWeight: 500 }}>
+                    {tx.openToWork.tag}
+                  </p>
+                </div>
+
+                <h1 className="anim-up-2 mb-5 sm:mb-6 text-[clamp(2.4rem,7vw,4.8rem)] tracking-tight text-white"
+                    style={{ fontWeight: 600, lineHeight: 1.05 }}>
+                  {tx.openToWork.heading}
+                </h1>
+
+                <p className="anim-up-3 mb-10 sm:mb-12 max-w-2xl text-base sm:text-[1.05rem] leading-relaxed text-white/65"
+                   style={{ fontWeight: 400 }}>
                   {tx.openToWork.body}
                 </p>
 
-                <div className="anim-up mb-8 sm:mb-10 rounded-lg border border-[#00ffea]/35 bg-gradient-to-br from-[#00ffea]/[0.06] to-[#00ffea]/[0.01] p-5 sm:p-8 shadow-[0_0_40px_-15px_rgba(0,255,234,0.4)]">
-                  <div className="flex items-center gap-2 mb-4 sm:mb-5">
-                    <span className="h-2 w-2 rounded-full bg-[#00ffea] shadow-[0_0_10px_rgba(0,255,234,0.9)] animate-pulse" />
-                    <p className="font-mono text-[0.6rem] sm:text-[0.65rem] tracking-[0.4em] sm:tracking-[0.5em] text-[#00ffea] uppercase">{tx.openToWork.aiAgents.tag}</p>
+                {/* Featured AI Agent CTA — the centerpiece */}
+                <div className="anim-up mb-12 sm:mb-14 rounded-2xl bg-gradient-to-br from-[#00ffea]/[0.06] via-[#00ffea]/[0.02] to-transparent border border-[#00ffea]/25 p-6 sm:p-9 shadow-[0_0_80px_-25px_rgba(0,255,234,0.45)]">
+                  <div className="flex items-center gap-2.5 mb-4 sm:mb-5">
+                    <span className="h-2 w-2 rounded-full bg-[#00ffea] shadow-[0_0_12px_rgba(0,255,234,0.9)] animate-pulse" />
+                    <p className="text-[0.68rem] sm:text-[0.72rem] tracking-[0.34em] text-[#00ffea]/85 uppercase" style={{ fontWeight: 500 }}>
+                      {tx.openToWork.aiAgents.tag}
+                    </p>
                   </div>
-                  <h3 className="text-[clamp(1.6rem,5.5vw,3rem)] font-semibold tracking-[0.04em] sm:tracking-[0.05em] leading-[1.1] text-white mb-4 sm:mb-5">
+
+                  <h2 className="text-[clamp(1.5rem,4.2vw,2.4rem)] leading-tight text-white mb-4 sm:mb-5"
+                      style={{ fontWeight: 600 }}>
                     {tx.openToWork.aiAgents.heading}
-                  </h3>
-                  <p className="text-[0.95rem] sm:text-base leading-7 sm:leading-8 text-white/80 mb-4 sm:mb-5 max-w-2xl">
+                  </h2>
+
+                  <p className="text-[0.95rem] sm:text-[1.02rem] leading-relaxed text-white/72 max-w-2xl mb-6 sm:mb-7"
+                     style={{ fontWeight: 400 }}>
                     {tx.openToWork.aiAgents.body}
                   </p>
+
                   <button
                     type="button"
                     onClick={() => window.dispatchEvent(new Event('open-agent-chat'))}
-                    className="font-mono text-[0.66rem] sm:text-[0.72rem] tracking-[0.25em] sm:tracking-[0.32em] text-[#00ffea]/90 uppercase hover:text-[#00ffea] transition-colors text-left cursor-pointer"
+                    className="inline-flex items-center gap-2 rounded-full bg-[#00ffea] px-5 sm:px-6 py-2.5 sm:py-3 text-[0.74rem] sm:text-[0.78rem] tracking-[0.18em] uppercase text-black hover:bg-[#00ffea]/85 transition-colors cursor-pointer"
+                    style={{ fontWeight: 700 }}
                   >
-                    → {tx.openToWork.aiAgents.footer}
+                    {tx.openToWork.aiAgents.footer}
+                    <span aria-hidden>→</span>
                   </button>
                 </div>
 
-                <div className="anim-up mb-6 sm:mb-8">
-                  <p className="font-mono text-[0.6rem] tracking-[0.4em] text-white/40 uppercase mb-3 sm:mb-4">{tx.openToWork.stackLabel}</p>
-                  <ul className="space-y-2 sm:space-y-2.5 max-w-3xl">
-                    {tx.openToWork.stack.map(row => (
-                      <li key={row.tag} className="text-sm leading-6 text-white/75">
-                        <span className="font-mono text-[0.62rem] tracking-[0.25em] uppercase text-[#00ffea]/70 mr-2">{row.tag}</span>
-                        <span>{row.items}</span>
-                      </li>
-                    ))}
-                  </ul>
+                {/* Stack + How I Work — two clean columns, no boxes */}
+                <div className="anim-up grid grid-cols-1 md:grid-cols-2 gap-10 sm:gap-14 mb-12 sm:mb-14">
+                  <div>
+                    <p className="text-[0.66rem] tracking-[0.32em] text-white/40 uppercase mb-5" style={{ fontWeight: 500 }}>
+                      {tx.openToWork.stackLabel}
+                    </p>
+                    <ul className="space-y-4">
+                      {tx.openToWork.stack.map(row => (
+                        <li key={row.tag}>
+                          <p className="text-[0.68rem] tracking-[0.22em] text-[#00ffea]/75 uppercase mb-1.5" style={{ fontWeight: 600 }}>{row.tag}</p>
+                          <p className="text-[0.92rem] leading-relaxed text-white/65" style={{ fontWeight: 400 }}>{row.items}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="text-[0.66rem] tracking-[0.32em] text-white/40 uppercase mb-5" style={{ fontWeight: 500 }}>
+                      {tx.openToWork.modeLabel}
+                    </p>
+                    <ul className="space-y-3.5">
+                      {tx.openToWork.modes.map((mode, i) => (
+                        <li key={i} className="flex gap-3 text-[0.92rem] leading-relaxed text-white/65" style={{ fontWeight: 400 }}>
+                          <span className="mt-2 h-1 w-1 rounded-full bg-[#00ffea]/55 shrink-0" />
+                          <span>{mode}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
 
-                <div className="anim-up-2 mb-6 sm:mb-8">
-                  <p className="font-mono text-[0.6rem] tracking-[0.4em] text-white/40 uppercase mb-3 sm:mb-4">{tx.openToWork.modeLabel}</p>
-                  <ul className="space-y-2 sm:space-y-2.5 max-w-3xl">
-                    {tx.openToWork.modes.map(mode => (
-                      <li key={mode} className="flex items-start gap-2 text-sm leading-6 text-white/75">
-                        <span className="mt-2 h-1 w-1 rounded-full bg-[#00ffea]/60 shrink-0" />
-                        <span>{mode}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
+                {/* CTA */}
                 <a
                   href="mailto:rosazxc0915@gmail.com"
-                  className="anim-up-3 inline-flex items-center gap-2 rounded-md border border-[#00ffea]/40 bg-[#00ffea]/5 px-5 py-3 font-mono text-xs tracking-[0.4em] uppercase text-[#00ffea] hover:bg-[#00ffea]/15 transition-colors no-underline"
+                  className="anim-up-3 inline-flex items-center gap-2 text-[0.82rem] sm:text-[0.88rem] tracking-[0.14em] text-white/80 hover:text-white transition-colors no-underline border-b border-white/25 hover:border-white pb-1"
+                  style={{ fontWeight: 500 }}
                 >
                   {tx.openToWork.cta}
                 </a>
@@ -100,8 +120,8 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 04 FEATURED REPO ── */}
-        <SnapSection id="featured-repo" className="order-3">
+        {/* ── 02 FEATURED REPO ── */}
+        <SnapSection id="featured-repo" className="order-2">
           <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-16">
             <div className="mx-auto w-full max-w-[1400px] flex h-full flex-col py-6 sm:py-12">
               <div className="anim-up flex items-end border-b border-white/8 pb-3 mb-4 sm:mb-8">
@@ -150,8 +170,8 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 05 RESEARCH DISPATCH ── */}
-        <SnapSection id="blog" className="order-4">
+        {/* ── 03 RESEARCH DISPATCH ── */}
+        <SnapSection id="blog" className="order-3">
           <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-16">
             <div className="mx-auto w-full max-w-[760px] flex h-full flex-col py-10 sm:py-12">
               <div className="anim-up flex items-end pb-5 mb-8">
@@ -175,8 +195,8 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 06 WOMAN IN TECH ── */}
-        <SnapSection id="woman-in-tech" className="order-5">
+        {/* ── 04 WOMAN IN TECH ── */}
+        <SnapSection id="woman-in-tech" className="order-4">
           <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-16">
             <div className="mx-auto w-full max-w-[1400px] flex h-full flex-col py-10 sm:py-12">
               <div className="anim-up flex items-end border-b border-white/8 pb-5 mb-12">
@@ -211,8 +231,8 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 07 SOUND / DJ ── */}
-        <SnapSection id="sound" className="order-6">
+        {/* ── 05 SOUND / DJ ── */}
+        <SnapSection id="sound" className="order-5">
           <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-12 pt-6 pb-4 overflow-y-auto">
             <div className="mx-auto w-full max-w-[1400px]">
               <div className="flex items-end border-b border-white/8 pb-3 mb-6">
@@ -223,8 +243,8 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 07 FOOTER ── */}
-        <SnapSection className="order-7">
+        {/* ── 06 FOOTER ── */}
+        <SnapSection className="order-6">
           <div className="h-full flex flex-col justify-between bg-[#030303] px-5 sm:px-10 lg:px-16 py-16">
             <div className="mx-auto w-full max-w-[1400px] flex-1 flex flex-col justify-between">
               <div className="anim-up border-b border-white/8 pb-12">
