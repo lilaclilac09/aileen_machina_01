@@ -635,6 +635,81 @@ doublezero status        # confirm connection`}
           propagation has to land in 200ms.
         </p>
 
+        <SectionLabel>The outer ring — where DoubleZero quietly uses FPGA</SectionLabel>
+
+        <p style={bodyStyle}>
+          Most of DoubleZero is fiber, switching, and userspace daemons. There is one place where it does reach for silicon: the <strong style={strong}>outer ring</strong>. Before a packet hits a subscribing validator&apos;s NIC, it crosses a DZ edge node that runs an <strong style={strong}>FPGA pre-gossip filter</strong> — line-rate inspection that drops duplicate, malformed, and obviously-low-quality transactions before they touch the inner ring at all. The validator never sees the noise; its <code style={codeStyle}>verify</code> and <code style={codeStyle}>dedup</code> tiles get a cleaner stream to chew on.
+        </p>
+
+        <p style={bodyStyle}>
+          This is the FPGA use-case the <Link href="/blog/validator-clients" style={inlineLink}>full-FPGA-validator math couldn&apos;t justify</Link>, finally landing where it makes sense: a single stream, one job, one card, sitting on the network side of PCIe. The filter isn&apos;t doing validation, it isn&apos;t executing transactions, it isn&apos;t holding any of the validator&apos;s state — all the un-FPGA-friendly work stays on the CPU where it belongs. The hardware shows up exactly at the seam where stream-friendly work meets the rest of the pipeline, which is what tile-style architectures were designed to allow.
+        </p>
+
+        <SectionLabel>Phase II — paying validators to leave Frankfurt</SectionLabel>
+
+        <p style={bodyStyle}>
+          The geographic concentration problem is older than DoubleZero: cheap European bare-metal pulled the early Solana validator set into Frankfurt and a few adjacent cities. A 2026 stake snapshot still showed central Europe holding the plurality of stake, which is a structural disadvantage for users on every other continent.
+        </p>
+
+        <p style={bodyStyle}>
+          On <strong style={strong}>March 9, 2026</strong>, DoubleZero launched its Phase II delegation program: <strong style={strong}>2.4 million SOL</strong> redirected out of a 13M-SOL pool toward validators operating in <strong style={strong}>São Paulo, Singapore, Hong Kong, and Tokyo</strong> — explicitly underrepresented regions. The point is to give a stake premium to operators who relocate or open new sites, while the fiber side simultaneously removes the latency tax that historically made those locations uneconomic. The two mechanisms close on the same problem from opposite directions.
+        </p>
+
+        <p style={bodyStyle}>
+          The funding model is direct: validator operators pay a <strong style={strong}>5% &quot;seat fee&quot;</strong> on validator-side income (inflation and block rewards, MEV excluded), which is either paid to DoubleZero contributors pro-rata to measured network quality, or burned. It&apos;s the same shape as the Solana validator commission curve — a small percentage of a recurring revenue stream — applied to a piece of infrastructure that didn&apos;t previously have one.
+        </p>
+
+        <SectionLabel>What DoubleZero does not fix</SectionLabel>
+
+        <p style={bodyStyle}>
+          The honest counterpart to the &quot;what it unlocks&quot; list is what stays unsolved. DoubleZero is a network-layer product. The map of what that does and doesn&apos;t cover:
+        </p>
+
+        <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.22)' }}>
+                <th style={thStyle}>Problem</th>
+                <th style={thStyle}>DoubleZero&apos;s answer</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Validator-to-validator shred jitter</td>
+                <td style={tdStyle}>Fixed. Private fiber, deterministic links.</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Redundant broadcast bandwidth</td>
+                <td style={tdStyle}>Fixed. Native multicast replaces N-way unicast.</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Junk-transaction noise on the gossip plane</td>
+                <td style={tdStyle}>Fixed. Outer-ring FPGA drops it before it enters.</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Geographic stake concentration in Europe</td>
+                <td style={tdStyle}>Partially fixed. Phase II delegation pushes stake to São Paulo / Singapore / HK / Tokyo, but cannot mint validators that don&apos;t exist.</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Leader-location-dependent end-to-end latency</td>
+                <td style={tdStyle}>Not fixed. The speed of light is the speed of light.</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Execution-layer throughput</td>
+                <td style={tdStyle}>Not fixed. That&apos;s the Firedancer / Alpenglow lane.</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Alpenglow-class bandwidth requirements</td>
+                <td style={tdStyle}>Enabled. Alpenglow&apos;s relayer pattern asks validators for high simultaneous fan-out; DoubleZero is the fiber that makes that affordable.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p style={bodyStyle}>
+          The cleanest framing: DoubleZero and Firedancer are complementary, not competitive. One optimizes the network path between validators, the other optimizes the work each validator does. Alpenglow sits on top of both and asks them to cooperate.
+        </p>
+
         <SectionLabel>What this unlocks, and the counter-thesis</SectionLabel>
         <p style={bodyStyle}>If this works at scale, three things happen:</p>
         <ol style={{ paddingLeft: 24, margin: '24px 0 32px', lineHeight: 1.9, color: 'rgba(255,255,255,0.65)' }}>
