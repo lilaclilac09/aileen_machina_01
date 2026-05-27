@@ -238,7 +238,11 @@ for await (const update of stream) {
           The window this opens is roughly 50 to 100 milliseconds — the time between a transaction being broadcast by the leader and the corresponding block being finalized at <code style={codeStyle}>confirmed</code>. The pump.fun cancel race lives in this window: a sniper bot sees an incoming buy on ShredStream, races a cancel-or-flip transaction through Jito bundles to the next leader before the original transaction reaches <code style={codeStyle}>confirmed</code>. You do not get execution metadata from a shred-level read (no logs, no status, no compute units consumed) — you get the raw transaction, ahead of consensus.
         </p>
         <p style={bodyStyle}>
-          The validator client itself is being optimized at this layer too. Agave <a href="https://github.com/anza-xyz/agave/pull/12428" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(0,255,234,0.75)' }}>PR #12428</a>, merged 2026-05-20, modifies the broadcast stage so the next scheduled leader is unconditionally included in shred broadcast targets — trimming the leader-to-leader handoff window. The implication: every cancel-race benchmark from 2025 was measured against a network with a slower handoff. Post-12428 mainnet is incrementally faster at this layer.
+          The validator client itself is being optimized at this layer too. A recently-merged upstream
+          Agave patch (May 2026) modifies the broadcast stage so the next scheduled leader is
+          unconditionally included in shred broadcast targets — trimming the leader-to-leader handoff
+          window. The implication: every cancel-race benchmark from 2025 was measured against a network
+          with a slower handoff. Post-patch mainnet is incrementally faster at this layer.
         </p>
 
         <SectionLabel>Writing Back: sendTransaction, TPU, Bundles, SWQoS</SectionLabel>

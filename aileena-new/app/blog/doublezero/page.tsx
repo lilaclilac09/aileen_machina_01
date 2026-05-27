@@ -197,12 +197,10 @@ export default function DoubleZeroArticle() {
           routing.&quot; Same protocol, completely different blast radius.
         </p>
         <p style={bodyStyle}>
-          The live multicast group state, contributor list, and per-link telemetry are published at{' '}
-          <a href="https://data.malbeclabs.com/" target="_blank" rel="noopener noreferrer" style={inlineLink}>data.malbeclabs.com</a>{' '}
-          — including{' '}
-          <a href="https://data.malbeclabs.com/dz/multicast-groups" target="_blank" rel="noopener noreferrer" style={inlineLink}>/dz/multicast-groups</a>{' '}
-          for the multicast topology specifically. The transparency is part of the design: contributors
-          get paid based on measured service quality, so the measurements have to be public.
+          The live multicast group state, contributor list, and per-link telemetry are published on a
+          public telemetry dashboard, including a dedicated view for multicast topology specifically.
+          The transparency is part of the design: contributors get paid based on measured service quality,
+          so the measurements have to be public.
         </p>
 
         <SectionLabel>The multicast trick</SectionLabel>
@@ -483,10 +481,9 @@ doublezero status        # confirm connection`}
         </p>
         <p style={bodyStyle}>
           <strong style={strong}>The integration shape is the <code style={codeStyle}>net_tile</code>.</strong>{' '}
-          Firedancer&apos;s{' '}
-          <a href="https://docs.firedancer.io/guide/internals/net_tile.html" target="_blank" rel="noopener noreferrer" style={inlineLink}>net_tile</a>{' '}
-          is the per-CPU thread that owns one NIC. The natural integration point with DoubleZero is binding
-          a specific <code style={codeStyle}>net_tile</code> to the <code style={codeStyle}>doublezero0</code> interface —
+          Firedancer&apos;s <code style={codeStyle}>net_tile</code> is the per-CPU thread that owns one NIC.
+          The natural integration point with DoubleZero is binding a specific{' '}
+          <code style={codeStyle}>net_tile</code> to the <code style={codeStyle}>doublezero0</code> interface —
           consensus traffic to peers also on the mesh routes through that tile; everything else routes
           through a separate <code style={codeStyle}>net_tile</code> bound to the regular uplink. Tile-level
           affinity means you can pin DoubleZero traffic to the cores closest to its NIC&apos;s PCIe slot,
@@ -495,36 +492,33 @@ doublezero status        # confirm connection`}
         <p style={bodyStyle}>
           The upstream <code style={codeStyle}>net_tile</code> patch that ties Firedancer&apos;s userspace
           directly to <code style={codeStyle}>doublezero0</code> isn&apos;t public yet — but pieces of
-          the integration are already shipping. Three workspaces to watch:
+          the integration are already shipping. Three layers of the integration to watch:
         </p>
 
         <CardGrid cards={[
           {
             num: '01',
             tag: 'Kernel',
-            title: 'cavemanloverboy/agave-xdp-rx-ebpf',
-            href: 'https://github.com/cavemanloverboy/agave-xdp-rx-ebpf',
-            body: <>XDP/eBPF program for Solana traffic that does <strong style={strong}>GRE tunnel decapsulation</strong> — strip the protocol-47 outer header in kernel, hand the inner packet to Agave or an AF_XDP-backed Firedancer <code style={codeStyle}>net_tile</code>. This is the layer <em>below</em> <code style={codeStyle}>net_tile</code>, and it already ships.</>,
+            title: 'XDP / eBPF, GRE decap in kernel',
+            body: <>An XDP/eBPF program for Solana traffic that does <strong style={strong}>GRE tunnel decapsulation</strong> — strip the protocol-47 outer header in kernel, hand the inner packet to the validator or an AF_XDP-backed Firedancer <code style={codeStyle}>net_tile</code>. This is the layer <em>below</em> <code style={codeStyle}>net_tile</code>, and it already ships in public form.</>,
           },
           {
             num: '02',
             tag: 'Tile glue',
-            title: 'cavemanloverboy/firedancer + agave-pr',
-            href: 'https://github.com/cavemanloverboy',
-            body: <>Active workspace landing upstream Firedancer PRs (recent: #8218, <em>resolv: use exact block height check</em>). The likely site for the userspace tile-side glue — subscription, group membership, reconciliation between unicast and multicast paths.</>,
+            title: 'Firedancer net_tile + Agave forks',
+            body: <>Active workspaces landing upstream Firedancer PRs (recent: <em>resolv: use exact block height check</em>). The likely site for the userspace tile-side glue — subscription, group membership, reconciliation between unicast and multicast paths.</>,
           },
           {
             num: '03',
             tag: 'MEV client',
-            title: 'jito-foundation/jito-solana',
-            href: 'https://github.com/jito-foundation/jito-solana',
-            body: <>Jito&apos;s Agave fork with block engine + bundle relayer hooks. The client most MEV-active validators run today. Inherits Agave&apos;s network stack, so any DZ integration lands via the same kernel-side hooks as on stock Agave. A packaged Jito-shipped DZ variant is unannounced.</>,
+            title: 'Jito-Solana fork with DZ wiring',
+            body: <>The MEV-aware Agave fork with block-engine + bundle-relayer hooks — the client most MEV-active validators run today. It inherits Agave&apos;s network stack, so any DZ integration lands via the same kernel-side hooks as on stock Agave. A packaged MEV-shipped DZ variant is unannounced.</>,
           },
         ]} />
 
         <p style={bodyStyle}>
-          The kernel-side plumbing is already shipping. The tile-side glue and a Jito-Foundation-packaged
-          variant are the two missing pieces — both are mechanically obvious, neither is published yet.
+          The kernel-side plumbing is already shipping. The tile-side glue and a packaged MEV-fork variant
+          are the two missing pieces — both are mechanically obvious, neither is published yet.
         </p>
 
         <div style={calloutInfo}>
@@ -542,17 +536,15 @@ doublezero status        # confirm connection`}
 
         <SectionLabel>What developers can build on top</SectionLabel>
         <p style={bodyStyle}>
-          The{' '}
-          <a href="https://github.com/doublezerofoundation/" target="_blank" rel="noopener noreferrer" style={inlineLink}>DoubleZero Foundation GitHub org</a>{' '}
-          is the entry point. The interesting pieces published as of mainnet-beta:
+          The public surface as of mainnet-beta includes a few pieces worth knowing about:
         </p>
 
         <ul style={listStyle}>
           <li><strong style={strong}><code style={codeStyle}>doublezero-solana</code> Rust crate</strong> (v0.3.0 as of late 2025) — primary client integration. If you&apos;re writing a Solana service that wants to be DZ-aware, this is what you depend on.</li>
           <li><strong style={strong}><code style={codeStyle}>doublezero-edge-solana</code> shred receiver example</strong> — a minimal program that subscribes to shreds over DoubleZero and prints throughput. The shortest possible &quot;hello world&quot; for the multicast subscription API.</li>
-          <li><strong style={strong}>Package sidecar</strong> — polls Cloudsmith for new <code style={codeStyle}>doublezero</code> releases and runs <code style={codeStyle}>apt-update</code>. Boring infra, but the kind of thing you want pinned and audited if you&apos;re running validators at scale.</li>
-          <li><strong style={strong}>On-chain DZ ledger program</strong> — telemetry and serviceability state are written to a Solana program. Anyone can build a third-party telemetry consumer without permission from Malbec, just RPC access.</li>
-          <li><strong style={strong}>TWAMP telemetry feed</strong> via <a href="https://data.malbeclabs.com/" target="_blank" rel="noopener noreferrer" style={inlineLink}>data.malbeclabs.com</a> — the same data that drives contributor payouts. Public, structured, queryable.</li>
+          <li><strong style={strong}>Package sidecar</strong> — polls a release feed for new <code style={codeStyle}>doublezero</code> versions and runs <code style={codeStyle}>apt-update</code>. Boring infra, but the kind of thing you want pinned and audited if you&apos;re running validators at scale.</li>
+          <li><strong style={strong}>On-chain DZ ledger program</strong> — telemetry and serviceability state are written to a Solana program. Anyone can build a third-party telemetry consumer without permission, just RPC access.</li>
+          <li><strong style={strong}>TWAMP telemetry feed</strong> — the same data that drives contributor payouts. Public, structured, queryable from the public telemetry dashboard.</li>
         </ul>
 
         <p style={bodyStyle}>
@@ -630,10 +622,10 @@ doublezero status        # confirm connection`}
         </p>
         <p style={bodyStyle}>
           <strong style={strong}>Real-time link-level telemetry.</strong> TWAMP measurements between
-          every DZD pair are published to the on-chain ledger and visible on{' '}
-          <a href="https://data.malbeclabs.com/" target="_blank" rel="noopener noreferrer" style={inlineLink}>data.malbeclabs.com</a>.
-          This is unusual — most private networks publish nothing — and it&apos;s load-bearing for the
-          economic model. Contributors get paid based on what TWAMP says, so the measurements are the asset.
+          every DZD pair are published to the on-chain ledger and visible on the public telemetry
+          dashboard. This is unusual — most private networks publish nothing — and it&apos;s
+          load-bearing for the economic model. Contributors get paid based on what TWAMP says, so the
+          measurements are the asset.
         </p>
         <p style={bodyStyle}>
           For the <em>median</em> validator the win is less dramatic than the tail number suggests. The
@@ -692,8 +684,8 @@ doublezero status        # confirm connection`}
 
         <SectionLabel>What to watch over the next year</SectionLabel>
         <ul style={listStyle}>
-          <li><strong style={strong}>Skip rate distribution by region.</strong> Tokyo/Singapore validators on DoubleZero converging with Frankfurt validators = thesis working. Track via standard validator leaderboards plus the <a href="https://data.malbeclabs.com/" target="_blank" rel="noopener noreferrer" style={inlineLink}>DZ telemetry dashboard</a>.</li>
-          <li><strong style={strong}>Multicast group adoption.</strong> Visible directly at <a href="https://data.malbeclabs.com/dz/multicast-groups" target="_blank" rel="noopener noreferrer" style={inlineLink}>data.malbeclabs.com/dz/multicast-groups</a>. The interesting curve is how many validators move from unicast-over-DZ to multicast-over-DZ.</li>
+          <li><strong style={strong}>Skip rate distribution by region.</strong> Tokyo/Singapore validators on DoubleZero converging with Frankfurt validators = thesis working. Track via standard validator leaderboards plus the public DZ telemetry dashboard.</li>
+          <li><strong style={strong}>Multicast group adoption.</strong> Visible on the public multicast-groups view of the same dashboard. The interesting curve is how many validators move from unicast-over-DZ to multicast-over-DZ.</li>
           <li><strong style={strong}>Jito relayer&apos;s share of bundle flow.</strong> If it drops as searcher DZ ports proliferate, the unbundling is happening.</li>
           <li><strong style={strong}>Contributor growth and POP coverage.</strong> Each new DZX in a new metro pulls in the validators racked nearby. Network effects compound.</li>
           <li><strong style={strong}>Firedancer&apos;s net_tile integration.</strong> Clean tile-level integration with <code style={codeStyle}>doublezero0</code> is the obvious next milestone. First public patch is the signal to watch.</li>
@@ -719,13 +711,8 @@ doublezero status        # confirm connection`}
               { label: 'Breakpoint 25 tech talk — Malbec Labs (Solana Compass writeup)', href: 'https://solanacompass.com/learn/breakpoint-25/tech-talk-malbec-labs' },
               { label: 'Live telemetry dashboard', href: 'https://data.malbeclabs.com/' },
               { label: 'Multicast groups — live', href: 'https://data.malbeclabs.com/dz/multicast-groups' },
-              { label: 'Firedancer net_tile internals', href: 'https://docs.firedancer.io/guide/internals/net_tile.html' },
-              { label: 'Firedancer (Jump Crypto)', href: 'https://github.com/firedancer-io/firedancer' },
-              { label: 'cavemanloverboy/agave-xdp-rx-ebpf — XDP+GRE decap for Solana traffic', href: 'https://github.com/cavemanloverboy/agave-xdp-rx-ebpf' },
-              { label: 'cavemanloverboy GitHub profile (firedancer + agave-pr workspaces)', href: 'https://github.com/cavemanloverboy' },
-              { label: 'jito-foundation/jito-solana — MEV Solana client (third candidate for DZ integration)', href: 'https://github.com/jito-foundation/jito-solana' },
-              { label: 'Jito Foundation GitHub org', href: 'https://github.com/jito-foundation' },
               { label: 'Solana at Wire Speed — validator architecture (companion piece)', href: '/blog/wire' },
+              { label: 'The Shred Economy — DoubleZero Edge revenue analysis (companion piece)', href: '/blog/shred-economy' },
             ].map((ref, i) => (
               <li key={i} style={{
                 fontFamily: 'monospace',

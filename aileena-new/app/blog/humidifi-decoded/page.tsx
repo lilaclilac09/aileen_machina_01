@@ -199,8 +199,8 @@ off=676   u8   examples: [109, 109, 109, 109, 109, …]`}
 
         <SectionLabel>Reproducing</SectionLabel>
         <p style={bodyStyle}>
-          Two scripts in <Link href="https://github.com/lilaclilac09/pamm-a" style={inlineLink}>pamm-a</Link> reproduce
-          everything in this post on a public RPC:
+          Two reproduction scripts published alongside this work let anyone re-run the analysis on a
+          public RPC:
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>

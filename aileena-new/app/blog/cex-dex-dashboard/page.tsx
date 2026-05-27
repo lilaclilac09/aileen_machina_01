@@ -125,9 +125,9 @@ export default function CexDexDashboardArticle() {
 
         <SectionLabel>Why Build Your Own</SectionLabel>
         <p style={bodyStyle}>
-          The <a href="https://dune.com/rig_ef/cex-dex-dash" target="_blank" rel="noopener noreferrer" style={inlineLink}>rig_ef CEX-DEX dashboard</a> on
-          Dune is excellent. It gives you the headline numbers — $233.8M extracted, 7.2M trades, the top-three
-          oligopoly — for the full 19-month window the paper studied. What it does not give you is the question
+          The public CEX-DEX dashboard on Dune is excellent. It gives you the headline numbers —
+          $233.8M extracted, 7.2M trades, the top-three oligopoly — for the full 19-month window the
+          paper studied. What it does not give you is the question
           you actually want answered: was last week different? Which pool is bleeding into Binance the most right
           now? Are the searchers I think I see on Solana the same names that show up on Ethereum?
         </p>

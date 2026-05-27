@@ -166,64 +166,42 @@ export default function CexDexArbArticle() {
         </p>
 
         <div style={{ margin: '32px 0 40px' }}>
-          <a
-            href="https://dune.com/rig_ef/cex-dex-dash"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
-          >
-            <div style={{
-              padding: '24px 28px',
-              border: '1px solid rgba(0,255,234,0.2)',
-              background: 'rgba(0,255,234,0.03)',
-              borderRadius: 4,
-              marginBottom: 16,
-              transition: 'border-color 0.2s, background 0.2s',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(0,255,234,0.5)'; e.currentTarget.style.background = 'rgba(0,255,234,0.06)'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(0,255,234,0.2)'; e.currentTarget.style.background = 'rgba(0,255,234,0.03)'; }}
-            >
-              <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.4em', color: '#00ffea', textTransform: 'uppercase', margin: '0 0 10px' }}>
-                Dashboard · dune.com/rig_ef/cex-dex-dash
-              </p>
-              <p style={{ fontSize: '1rem', lineHeight: 1.6, color: 'rgba(255,255,255,0.85)', margin: '0 0 6px', fontWeight: 600 }}>
-                CEX-DEX Arbitrage 💰
-              </p>
-              <p style={{ fontSize: '0.85rem', lineHeight: 1.6, color: 'rgba(255,255,255,0.55)', margin: 0 }}>
-                The full dashboard that accompanies the arxiv paper. Volume, value, leaderboard, pool
-                breakdown, and per-searcher profitability across the entire 19-month window.
-              </p>
-            </div>
-          </a>
+          <div style={{
+            padding: '24px 28px',
+            border: '1px solid rgba(0,255,234,0.2)',
+            background: 'rgba(0,255,234,0.03)',
+            borderRadius: 4,
+            marginBottom: 16,
+          }}>
+            <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.4em', color: '#00ffea', textTransform: 'uppercase', margin: '0 0 10px' }}>
+              Public dashboard
+            </p>
+            <p style={{ fontSize: '1rem', lineHeight: 1.6, color: 'rgba(255,255,255,0.85)', margin: '0 0 6px', fontWeight: 600 }}>
+              CEX-DEX Arbitrage — full coverage view
+            </p>
+            <p style={{ fontSize: '0.85rem', lineHeight: 1.6, color: 'rgba(255,255,255,0.55)', margin: 0 }}>
+              The full dashboard that accompanies the arxiv paper. Volume, value, leaderboard, pool
+              breakdown, and per-searcher profitability across the entire 19-month window.
+            </p>
+          </div>
 
-          <a
-            href="https://dune.com/queries/3999754"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
-          >
-            <div style={{
-              padding: '24px 28px',
-              border: '1px solid rgba(0,255,234,0.2)',
-              background: 'rgba(0,255,234,0.03)',
-              borderRadius: 4,
-              transition: 'border-color 0.2s, background 0.2s',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(0,255,234,0.5)'; e.currentTarget.style.background = 'rgba(0,255,234,0.06)'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(0,255,234,0.2)'; e.currentTarget.style.background = 'rgba(0,255,234,0.03)'; }}
-            >
-              <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.4em', color: '#00ffea', textTransform: 'uppercase', margin: '0 0 10px' }}>
-                Query · dune.com/queries/3999754
-              </p>
-              <p style={{ fontSize: '1rem', lineHeight: 1.6, color: 'rgba(255,255,255,0.85)', margin: '0 0 6px', fontWeight: 600 }}>
-                Arbitrage profit per block, DEX ↔ CEX
-              </p>
-              <p style={{ fontSize: '0.85rem', lineHeight: 1.6, color: 'rgba(255,255,255,0.55)', margin: 0 }}>
-                Forkable single query. The atomic building block — block-by-block view of how much
-                CEX-DEX profit is being captured, by who, on which pool.
-              </p>
-            </div>
-          </a>
+          <div style={{
+            padding: '24px 28px',
+            border: '1px solid rgba(0,255,234,0.2)',
+            background: 'rgba(0,255,234,0.03)',
+            borderRadius: 4,
+          }}>
+            <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.4em', color: '#00ffea', textTransform: 'uppercase', margin: '0 0 10px' }}>
+              Single query
+            </p>
+            <p style={{ fontSize: '1rem', lineHeight: 1.6, color: 'rgba(255,255,255,0.85)', margin: '0 0 6px', fontWeight: 600 }}>
+              Arbitrage profit per block, DEX ↔ CEX
+            </p>
+            <p style={{ fontSize: '0.85rem', lineHeight: 1.6, color: 'rgba(255,255,255,0.55)', margin: 0 }}>
+              Forkable single query. The atomic building block — block-by-block view of how much
+              CEX-DEX profit is being captured, by who, on which pool.
+            </p>
+          </div>
         </div>
 
         <p style={bodyStyle}>
@@ -325,58 +303,34 @@ export default function CexDexArbArticle() {
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16, margin: '32px 0 40px' }}>
-          <a
-            href="https://github.com/solidquant/cex-dex-arb-research"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
-          >
-            <div style={{
-              padding: '20px 22px',
-              border: '1px solid rgba(0,255,234,0.15)',
-              background: 'rgba(0,255,234,0.02)',
-              borderRadius: 4,
-              height: '100%',
-              transition: 'border-color 0.2s',
-            }}
-              onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(0,255,234,0.5)')}
-              onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(0,255,234,0.15)')}
-            >
-              <p style={{ fontFamily: 'monospace', fontSize: '0.6rem', letterSpacing: '0.35em', color: '#00ffea', margin: '0 0 8px' }}>CEX-DEX-ARB-RESEARCH</p>
-              <p style={{ fontSize: '0.85rem', lineHeight: 1.55, color: 'rgba(255,255,255,0.7)', margin: '0 0 10px' }}>
-                Solid Quant&apos;s open-source research template. Real-time CEX and DEX feeds, spread
-                detection, and a hookable execution layer. The starting point most builders use.
-              </p>
-              <p style={{ fontFamily: 'monospace', fontSize: '0.6rem', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.3)', margin: 0 }}>github.com/solidquant</p>
-            </div>
-          </a>
+          <div style={{
+            padding: '20px 22px',
+            border: '1px solid rgba(0,255,234,0.15)',
+            background: 'rgba(0,255,234,0.02)',
+            borderRadius: 4,
+            height: '100%',
+          }}>
+            <p style={{ fontFamily: 'monospace', fontSize: '0.6rem', letterSpacing: '0.35em', color: '#00ffea', margin: '0 0 8px' }}>CEX-DEX ARB RESEARCH</p>
+            <p style={{ fontSize: '0.85rem', lineHeight: 1.55, color: 'rgba(255,255,255,0.7)', margin: 0 }}>
+              An open-source research template (real-time CEX and DEX feeds, spread detection, hookable
+              execution layer) circulating in the MEV builder community. The starting point most builders use.
+            </p>
+          </div>
 
-          <a
-            href="https://medium.com/@solidquant/how-i-built-my-first-mev-arbitrage-bot-introducing-whack-a-mole-66d91657152e"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
-          >
-            <div style={{
-              padding: '20px 22px',
-              border: '1px solid rgba(0,255,234,0.15)',
-              background: 'rgba(0,255,234,0.02)',
-              borderRadius: 4,
-              height: '100%',
-              transition: 'border-color 0.2s',
-            }}
-              onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(0,255,234,0.5)')}
-              onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(0,255,234,0.15)')}
-            >
-              <p style={{ fontFamily: 'monospace', fontSize: '0.6rem', letterSpacing: '0.35em', color: '#00ffea', margin: '0 0 8px' }}>WHACK-A-MOLE</p>
-              <p style={{ fontSize: '0.85rem', lineHeight: 1.55, color: 'rgba(255,255,255,0.7)', margin: '0 0 10px' }}>
-                Solid Quant&apos;s public write-up on building the first version of the bot. Useful as a
-                pedagogical walk-through — what works, what doesn&apos;t, and which assumptions about
-                latency turn out to be wrong in production.
-              </p>
-              <p style={{ fontFamily: 'monospace', fontSize: '0.6rem', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.3)', margin: 0 }}>medium.com/@solidquant</p>
-            </div>
-          </a>
+          <div style={{
+            padding: '20px 22px',
+            border: '1px solid rgba(0,255,234,0.15)',
+            background: 'rgba(0,255,234,0.02)',
+            borderRadius: 4,
+            height: '100%',
+          }}>
+            <p style={{ fontFamily: 'monospace', fontSize: '0.6rem', letterSpacing: '0.35em', color: '#00ffea', margin: '0 0 8px' }}>WHACK-A-MOLE WRITEUP</p>
+            <p style={{ fontSize: '0.85rem', lineHeight: 1.55, color: 'rgba(255,255,255,0.7)', margin: 0 }}>
+              A public long-form writeup walking through the first version of such a bot. Useful as
+              a pedagogical walk-through — what works, what doesn&apos;t, and which assumptions about
+              latency turn out to be wrong in production.
+            </p>
+          </div>
         </div>
 
         <p style={bodyStyle}>
