@@ -47,10 +47,18 @@ pnpm install
 pnpm dev          # starts at http://localhost:3000
 ```
 
-Environment variables required at runtime:
+Environment variables:
 
-- `ANTHROPIC_API_KEY` — for the site agent (`/api/chat`)
-- `RESEND_API_KEY` — for the contact form (`/api/send`)
+| Var | Required? | Purpose |
+| --- | --- | --- |
+| `ANTHROPIC_API_KEY` | yes | Streams replies in `/api/chat` |
+| `RESEND_API_KEY` | yes | Sends email from `/api/send` |
+| `CHAT_QUOTA_SECRET` | optional | HMAC-signs the per-visitor daily-quota cookie so it can't be trivially edited. Any random string works. Without it the cookie counter still functions, just isn't tamper-proof. |
+
+Rate limits on `/api/chat`:
+
+- Per browser session: 5 messages (client-side, via `sessionStorage`, resets on tab close).
+- Per visitor per day: 50 messages (server-side, via signed cookie, resets at UTC midnight).
 
 ## Deploy
 
