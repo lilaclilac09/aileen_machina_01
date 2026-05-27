@@ -1,149 +1,23 @@
 'use client';
 import Link from 'next/link';
-import ScrollUnlock from '../ScrollUnlock';
 import { useLanguage } from '../../../components/LanguageProvider';
+import SubstackShell from '../_substack/SubstackShell';
 
 export default function LionArticle() {
   const { language } = useLanguage();
   const isDE = language === 'DE';
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#000',
-      color: '#fff',
-      fontFamily: "'Barlow Condensed', system-ui, sans-serif",
-      overflowY: 'auto',
-      WebkitFontSmoothing: 'antialiased',
-      position: 'relative',
-    }}>
-      <ScrollUnlock />
-
-      {/* ── Nav bar ── */}
-      <header style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 50,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '20px 32px 20px 128px',
-        background: 'rgba(0,0,0,0.85)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-      }}>
-        <Link href="/#blog" style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          fontFamily: 'monospace',
-          fontSize: '0.65rem',
-          letterSpacing: '0.3em',
-          color: 'rgba(255,255,255,0.4)',
-          textDecoration: 'none',
-          textTransform: 'uppercase',
-        }}>
-          <span style={{ fontSize: '1rem', lineHeight: 1 }}>←</span>
-          {isDE ? 'Archiv' : 'Archive'}
-        </Link>
-        <span style={{
-          fontFamily: 'monospace',
-          fontSize: '0.55rem',
-          letterSpacing: '0.4em',
-          color: 'rgba(255,255,255,0.2)',
-          textTransform: 'uppercase',
-        }}>
-          AILEENA MACHINA
-        </span>
-      </header>
-
-      {/* ── Hero ── */}
-      <section style={{ padding: '80px 32px 64px', maxWidth: 800, margin: '0 auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: 40 }}>
-          <span style={{
-            fontFamily: 'monospace',
-            fontSize: '0.55rem',
-            letterSpacing: '0.45em',
-            color: '#00ffea',
-            textTransform: 'uppercase',
-            padding: '4px 10px',
-            border: '1px solid rgba(0,255,234,0.3)',
-          }}>
-            {isDE ? 'ESSAY' : 'ESSAY'}
-          </span>
-          <span style={{
-            fontFamily: 'monospace',
-            fontSize: '0.55rem',
-            letterSpacing: '0.3em',
-            color: 'rgba(255,255,255,0.3)',
-          }}>
-            2026.02.15
-          </span>
-          <span style={{
-            fontFamily: 'monospace',
-            fontSize: '0.55rem',
-            letterSpacing: '0.3em',
-            color: 'rgba(255,255,255,0.3)',
-          }}>
-            6 MIN READ
-          </span>
-        </div>
-
-        <p style={{
-          fontFamily: 'monospace',
-          fontSize: '0.65rem',
-          letterSpacing: '0.5em',
-          color: 'rgba(255,255,255,0.28)',
-          textTransform: 'uppercase',
-          marginBottom: 16,
-        }}>
-          {isDE ? 'SEI KEIN SCHAF —' : "DON'T BE A SHEEP —"}
-        </p>
-
-        <h1 style={{
-          fontSize: 'clamp(2.4rem, 7vw, 5.5rem)',
-          fontWeight: 700,
-          letterSpacing: '0.04em',
-          lineHeight: 1.08,
-          marginBottom: 12,
-          color: '#fff',
-        }}>
-          <span style={{ color: '#00ffea' }}>
-            {isDE ? 'Sei ein Löwe.' : 'Be a Lion.'}
-          </span>
-        </h1>
-
-        <p style={{
-          fontFamily: 'monospace',
-          fontSize: 'clamp(0.8rem, 1.8vw, 1rem)',
-          letterSpacing: '0.12em',
-          color: 'rgba(255,255,255,0.35)',
-          marginBottom: 40,
-          textTransform: 'uppercase',
-        }}>
-          {isDE
-            ? 'Du wirst einsam sein — aber du wirst niemals allein sein.'
-            : 'You will be lonely — but you will never be alone.'}
-        </p>
-
-        <p style={{
-          fontSize: 'clamp(1rem, 2.5vw, 1.35rem)',
-          lineHeight: 1.75,
-          color: 'rgba(255,255,255,0.55)',
-          letterSpacing: '0.03em',
-          borderLeft: '2px solid rgba(0,255,234,0.4)',
-          paddingLeft: 20,
-        }}>
-          {isDE
-            ? 'Wenn der Zweifel sich auflöst, folgt Klarheit. Nicht Härte — nur das Ende des Kampfes gegen eine Antwort, die du bereits kanntest.'
-            : 'When doubt dissolves, clarity follows. Not becoming harder — just finally stopping the waste of fighting an answer you already knew.'}
-        </p>
-      </section>
-
-      <div style={{ maxWidth: 800, margin: '0 auto', padding: '0 32px' }}>
-        <div style={{ height: 1, background: 'rgba(255,255,255,0.07)' }} />
-      </div>
-
+    <SubstackShell
+      isDE={isDE}
+      category="Essay"
+      date="2026.02.15"
+      tags={isDE ? 'Selbstdisziplin · Mut · Klarheit' : 'Self-discipline · Courage · Clarity'}
+      title={isDE ? "Sei kein Schaf — sei ein Löwe" : "Don't Be a Sheep — Be a Lion"}
+      dek={isDE
+        ? 'Du wirst einsam sein — aber du wirst niemals allein sein. Wenn der Zweifel sich auflöst, folgt Klarheit. Nicht Härte — nur das Ende des Kampfes gegen eine Antwort, die du bereits kanntest.'
+        : 'You will be lonely — but you will never be alone. When doubt dissolves, clarity follows. Not becoming harder — just finally stopping the waste of fighting an answer you already knew.'}
+    >
       {/* ── Body ── */}
       <article style={{ maxWidth: 800, margin: '0 auto', padding: '64px 32px 120px' }}>
 
@@ -327,7 +201,7 @@ export default function LionArticle() {
         </div>
 
       </article>
-    </div>
+    </SubstackShell>
   );
 }
 

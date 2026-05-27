@@ -1,97 +1,16 @@
 'use client';
 import Link from 'next/link';
-import ScrollUnlock from '../ScrollUnlock';
+import SubstackShell from '../_substack/SubstackShell';
 
 export default function HarassmentArticle() {
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#000',
-      position: 'relative',
-      color: '#fff',
-      fontFamily: "'Barlow Condensed', system-ui, sans-serif",
-      overflowY: 'auto',
-      WebkitFontSmoothing: 'antialiased',
-    }}>
-      <ScrollUnlock />
-
-      {/* ── Nav bar ── */}
-      <header style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 50,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '20px 32px 20px 128px',
-        background: 'rgba(0,0,0,0.92)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-      }}>
-        <Link href="/#blog" style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          fontFamily: 'monospace', fontSize: '0.65rem', letterSpacing: '0.3em',
-          color: 'rgba(255,255,255,0.4)', textDecoration: 'none',
-          textTransform: 'uppercase', transition: 'color 0.2s',
-        }}
-          onMouseEnter={e => (e.currentTarget.style.color = '#00ffea')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}
-        >
-          <span style={{ fontSize: '1rem', lineHeight: 1 }}>←</span>
-          Archive
-        </Link>
-        <span style={{
-          fontFamily: 'monospace', fontSize: '0.55rem',
-          letterSpacing: '0.4em', color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase',
-        }}>
-          AILEENA MACHINA
-        </span>
-      </header>
-
-      {/* ── Hero ── */}
-      <section style={{ padding: '80px 32px 64px', maxWidth: 800, margin: '0 auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 40, flexWrap: 'wrap' }}>
-          {/* RESEARCH DISPATCH — highlighted */}
-          <span style={{
-            fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.45em',
-            color: '#000', textTransform: 'uppercase',
-            padding: '5px 12px',
-            background: '#00ffea',
-            fontWeight: 700,
-          }}>
-            RESEARCH DISPATCH
-          </span>
-          <span style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.3em', color: 'rgba(255,255,255,0.3)' }}>
-            2026.04.23
-          </span>
-          <span style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.3em', color: 'rgba(255,255,255,0.3)' }}>
-            18 MIN READ
-          </span>
-        </div>
-
-        <h1 style={{
-          fontSize: 'clamp(2rem, 6vw, 5rem)',
-          fontWeight: 700, letterSpacing: '0.04em',
-          lineHeight: 1.08, marginBottom: 32, color: '#fff',
-        }}>
-          Backing Female Founders<br />and Women in Tech:<br />
-          <span style={{ color: '#00ffea' }}>Every One Has a<br />#MeToo Story</span>
-        </h1>
-
-        <p style={{
-          fontSize: 'clamp(1rem, 2.5vw, 1.25rem)',
-          lineHeight: 1.75, color: 'rgba(255,255,255,0.55)',
-          letterSpacing: '0.03em', fontStyle: 'italic',
-          borderLeft: '3px solid #00ffea', paddingLeft: 20, marginBottom: 0,
-        }}>
-          &ldquo;When nobody is listening, every woman in tech has a MeToo story.&rdquo;
-        </p>
-      </section>
-
-      <div style={{ maxWidth: 800, margin: '0 auto' }}>
-        <div style={{ height: 1, background: 'rgba(255,255,255,0.07)' }} />
-      </div>
-
+    <SubstackShell
+      category="Essay"
+      date="2026.04.23"
+      tags="Women in Tech · #MeToo · Crypto"
+      title="Every Woman in Tech Has a #MeToo Story"
+      dek={<>&ldquo;When nobody is listening, every woman in tech has a MeToo story.&rdquo; Not most. Every one.</>}
+    >
       {/* ── Body ── */}
       <article style={{ maxWidth: 800, margin: '0 auto', padding: '64px 32px 120px' }}>
 
@@ -383,7 +302,7 @@ export default function HarassmentArticle() {
         </div>
 
       </article>
-    </div>
+    </SubstackShell>
   );
 }
 
