@@ -8,6 +8,7 @@ import LoadingScreen from '../components/LoadingScreen';
 import { SnapContainer, SnapSection } from '../components/SnapScroll';
 import { useLanguage } from '../components/LanguageProvider';
 import { t } from '../lib/translations';
+import './blog/_substack/substack.css';
 
 export default function Home() {
   const { language } = useLanguage();
@@ -168,33 +169,24 @@ export default function Home() {
         {/* ── 05 RESEARCH DISPATCH ── */}
         <SnapSection id="blog" className="order-4">
           <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-16">
-            <div className="mx-auto w-full max-w-[1400px] flex h-full flex-col py-10 sm:py-12">
-              <div className="anim-up flex items-end border-b border-white/8 pb-5 mb-12">
+            <div className="mx-auto w-full max-w-[760px] flex h-full flex-col py-10 sm:py-12">
+              <div className="anim-up flex items-end pb-5 mb-8">
                 <p className="text-xs uppercase tracking-[0.5em] text-white/45">{tx.blog.researchDispatch.tag}</p>
               </div>
-              <h2 className="anim-up-2 mb-8 text-[clamp(1.5rem,6vw,6rem)] font-semibold tracking-[0.1em]">{tx.blog.researchDispatch.heading}</h2>
-              <div className="flex-1 overflow-y-auto pr-1">
-                <div className="grid gap-3 sm:gap-6 md:grid-cols-2 xl:grid-cols-3">
-                  {tx.blog.researchDispatch.posts.map((post, i) => (
-                    <Link
-                      key={post.title}
-                      href={post.href}
-                      className={`group anim-up-${Math.min(i + 1, 3)} flex min-h-[160px] sm:min-h-[200px] flex-col justify-between rounded-lg bg-white/[0.02] p-4 sm:p-7 transition-colors hover:bg-white/[0.06] no-underline`}
-                    >
-                      <div>
-                        <p className="font-mono text-[0.68rem] sm:text-xs tracking-[0.22em] sm:tracking-widest text-white/40">{post.date}</p>
-                        <h3 className="mt-3 text-[clamp(1.05rem,3.5vw,2rem)] tracking-[0.07em] sm:tracking-[0.1em] text-white/85 group-hover:text-white transition-colors">{post.title}</h3>
-                        <p className="mt-3 text-sm leading-6 sm:leading-7 text-white/55" style={{ display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 4, overflow: 'hidden' }}>
-                          {post.body}
-                        </p>
-                      </div>
-                      <div className="mt-6 flex items-center justify-between">
-                        <span className="font-mono text-[0.6rem] tracking-[0.35em] text-[#00ffea]/50 group-hover:text-[#00ffea] transition-colors uppercase">{tx.blog.researchDispatch.watch}</span>
-                        <span className="text-[#00ffea]/50 group-hover:text-[#00ffea] transition-colors">→</span>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
+              <h2
+                className="anim-up-2 mb-10 text-[clamp(1.8rem,5vw,3.4rem)] font-bold tracking-[-0.005em] text-white"
+                style={{ fontFamily: "'Iowan Old Style', 'Charter', 'Source Serif Pro', 'Georgia', serif" }}
+              >
+                {tx.blog.researchDispatch.heading}
+              </h2>
+              <div className="flex-1 overflow-y-auto pr-1 substack-list">
+                {tx.blog.researchDispatch.posts.map((post) => (
+                  <Link key={post.title} href={post.href}>
+                    <p className="sl-date">{post.date}</p>
+                    <h3 className="sl-title">{post.title}</h3>
+                    <p className="sl-body">{post.body}</p>
+                  </Link>
+                ))}
               </div>
             </div>
           </div>

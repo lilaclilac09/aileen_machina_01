@@ -1,0 +1,397 @@
+/* ─────────────────────────────────────────────────────────────
+   Substack-style overrides for research dispatch articles.
+   Inline styles in existing pages are neutralised with !important
+   so the same posts can be re-skinned without rewriting bodies.
+   ──────────────────────────────────────────────────────────── */
+
+.substack-article {
+  min-height: 100vh;
+  background: #0a0a0a;
+  color: rgba(255, 255, 255, 0.86);
+  font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', 'Georgia', 'Times New Roman', serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-y: auto;
+}
+
+.substack-article ::selection {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* ── Nav ─────────────────────────────────────────────────── */
+.substack-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: 18px 24px;
+  background: rgba(10, 10, 10, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.substack-nav-inner {
+  max-width: 680px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.substack-back {
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.substack-back:hover {
+  color: #fff;
+}
+.substack-brand {
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+}
+
+/* ── Hero ────────────────────────────────────────────────── */
+.substack-hero {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 72px 24px 32px;
+}
+.substack-meta {
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0 0 28px;
+}
+.substack-title {
+  font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', 'Georgia', 'Times New Roman', serif;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: #fff;
+  margin: 0 0 20px;
+}
+.substack-dek {
+  font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', 'Georgia', 'Times New Roman', serif;
+  font-size: clamp(1.05rem, 2vw, 1.3rem);
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.62);
+  font-style: italic;
+  margin: 0 0 28px;
+}
+.substack-dek a {
+  color: rgba(255, 255, 255, 0.92);
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.3);
+  text-underline-offset: 3px;
+}
+.substack-dek a:hover {
+  text-decoration-color: rgba(255, 255, 255, 0.85);
+}
+.substack-dek code {
+  font-family: 'JetBrains Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-style: normal;
+  font-size: 0.92em;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1px 6px;
+  border-radius: 3px;
+  color: rgba(255, 255, 255, 0.95);
+}
+.substack-tags {
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
+}
+
+.substack-rule {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.substack-rule > div {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ── Article container ───────────────────────────────────── */
+.substack-article article {
+  max-width: 680px !important;
+  margin: 0 auto !important;
+  padding: 48px 24px 120px !important;
+}
+
+/* Body paragraphs */
+.substack-article article p {
+  font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', 'Georgia', 'Times New Roman', serif !important;
+  font-size: 1.13rem !important;
+  line-height: 1.72 !important;
+  color: rgba(255, 255, 255, 0.82) !important;
+  letter-spacing: 0 !important;
+  margin: 0 0 1.35em !important;
+}
+
+.substack-article article strong {
+  color: #fff !important;
+  font-weight: 700 !important;
+}
+
+.substack-article article em {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+/* Inline links inside body — clean underline, no cyan */
+.substack-article article a {
+  color: #fff !important;
+  text-decoration: underline !important;
+  text-decoration-color: rgba(255, 255, 255, 0.35) !important;
+  text-underline-offset: 3px !important;
+  text-decoration-thickness: 1px !important;
+}
+.substack-article article a:hover {
+  text-decoration-color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* ── Lists: completely borderless ────────────────────────── */
+.substack-article article ul,
+.substack-article article ol {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 0 0 1.4em !important;
+  margin: 0 0 1.5em !important;
+  list-style-position: outside !important;
+}
+.substack-article article ul {
+  list-style: disc !important;
+}
+.substack-article article ol {
+  list-style: decimal !important;
+}
+.substack-article article li {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 0 0.55em !important;
+  font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', 'Georgia', 'Times New Roman', serif !important;
+  font-size: 1.1rem !important;
+  line-height: 1.7 !important;
+  color: rgba(255, 255, 255, 0.82) !important;
+  letter-spacing: 0 !important;
+}
+.substack-article article li::marker {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+/* ── Section labels (former cyan monospace SectionLabel) ─── */
+.substack-article article > p[style*="0.45em"],
+.substack-article article > p[style*="0.4em"],
+.substack-article article > p[style*="0.5em"] {
+  font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', 'Georgia', 'Times New Roman', serif !important;
+  font-size: 1.6rem !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+  color: #fff !important;
+  text-transform: none !important;
+  letter-spacing: -0.01em !important;
+  opacity: 1 !important;
+  margin: 3rem 0 1rem !important;
+}
+
+/* ── Blockquotes ─────────────────────────────────────────── */
+.substack-article article blockquote {
+  border: none !important;
+  border-left: 3px solid rgba(255, 255, 255, 0.45) !important;
+  background: transparent !important;
+  font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', 'Georgia', 'Times New Roman', serif !important;
+  font-style: italic !important;
+  font-weight: 400 !important;
+  font-size: 1.35rem !important;
+  line-height: 1.5 !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+  padding: 0.4rem 0 0.4rem 1.5rem !important;
+  margin: 2.4rem 0 !important;
+  letter-spacing: 0 !important;
+}
+
+/* ── Boxed divs flattened (data boxes, risk boxes, etc.) ─ */
+.substack-article article > div[style*="border"],
+.substack-article article > div[style*="background"] {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 1.6rem 0 !important;
+}
+
+/* Nested boxes inside an article get the same treatment */
+.substack-article article div[style*="border:"],
+.substack-article article div[style*="background:"] {
+  border: none !important;
+  background: transparent !important;
+}
+
+/* But keep grids of stats readable (the cancel-latency etc.) */
+.substack-article article div[style*="grid-template-columns"] {
+  margin: 1.5rem 0 !important;
+  padding: 1.25rem 0 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Tables: clean, borderless except subtle row dividers */
+.substack-article article table {
+  border-collapse: collapse !important;
+  width: 100% !important;
+  margin: 2rem 0 !important;
+  font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', 'Georgia', serif !important;
+  font-size: 1rem !important;
+}
+.substack-article article thead tr,
+.substack-article article tbody tr {
+  border: none !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: transparent !important;
+}
+.substack-article article thead tr {
+  border-bottom-color: rgba(255, 255, 255, 0.22) !important;
+}
+.substack-article article th {
+  border: none !important;
+  background: transparent !important;
+  color: rgba(255, 255, 255, 0.55) !important;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  text-align: left !important;
+  padding: 10px 16px 10px 0 !important;
+}
+.substack-article article td {
+  border: none !important;
+  background: transparent !important;
+  color: rgba(255, 255, 255, 0.82) !important;
+  font-family: 'Iowan Old Style', 'Charter', 'Georgia', serif !important;
+  font-size: 1rem !important;
+  letter-spacing: 0 !important;
+  padding: 14px 16px 14px 0 !important;
+  vertical-align: top !important;
+  line-height: 1.55 !important;
+}
+
+/* ── Pre / code blocks ───────────────────────────────────── */
+.substack-article article pre {
+  border: none !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  padding: 20px 22px !important;
+  border-radius: 6px !important;
+  font-family: 'JetBrains Mono', 'Menlo', 'Monaco', 'Consolas', monospace !important;
+  font-size: 0.85rem !important;
+  line-height: 1.6 !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  overflow-x: auto !important;
+  margin: 1.8rem 0 !important;
+  letter-spacing: 0 !important;
+}
+.substack-article article code {
+  font-family: 'JetBrains Mono', 'Menlo', 'Monaco', 'Consolas', monospace !important;
+  font-size: 0.92em !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  padding: 1px 6px !important;
+  border-radius: 3px !important;
+  color: #fff !important;
+}
+
+/* ── Image / video frames: drop neon, keep content ───────── */
+.substack-article article iframe {
+  border: none !important;
+}
+
+/* References list — make borderless, simple */
+.substack-article article ol[style*="paddingLeft"] {
+  padding-left: 1.4em !important;
+}
+.substack-article article ol[style*="paddingLeft"] li {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  font-size: 0.95rem !important;
+  color: rgba(255, 255, 255, 0.65) !important;
+}
+.substack-article article ol[style*="paddingLeft"] li a {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* "Back to archive" trailing link */
+.substack-article article a[href="/#blog"] {
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif !important;
+  font-size: 0.85rem !important;
+  color: rgba(255, 255, 255, 0.55) !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  text-decoration: none !important;
+}
+.substack-article article a[href="/#blog"]:hover {
+  color: #fff !important;
+}
+
+/* Final footer-style "kicker" block (the bordered closer) */
+.substack-article article > div[style*="borderTop"] {
+  border-top: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: transparent !important;
+  padding: 2rem 0 !important;
+  margin: 3rem 0 1.5rem !important;
+}
+
+/* ── Homepage Substack list (no borders, no cards) ───────── */
+.substack-list {
+  display: flex;
+  flex-direction: column;
+}
+.substack-list a {
+  display: block;
+  padding: 22px 0;
+  border: none;
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  text-decoration: none;
+  transition: color 0.18s;
+}
+.substack-list a:last-child {
+  border-bottom: none;
+}
+.substack-list .sl-date {
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+  margin: 0 0 8px;
+}
+.substack-list .sl-title {
+  font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', 'Georgia', serif;
+  font-size: clamp(1.25rem, 2.4vw, 1.7rem);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+  color: rgba(255, 255, 255, 0.92);
+  margin: 0 0 10px;
+}
+.substack-list a:hover .sl-title {
+  color: #fff;
+}
+.substack-list .sl-body {
+  font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', 'Georgia', serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}

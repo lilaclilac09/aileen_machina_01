@@ -1,195 +1,40 @@
 'use client';
 import Link from 'next/link';
-import ScrollUnlock from '../ScrollUnlock';
 import { useLanguage } from '../../../components/LanguageProvider';
+import SubstackShell from '../_substack/SubstackShell';
 
 export default function RobotsArticle() {
   const { language } = useLanguage();
   const isDE = language === 'DE';
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#000',
-      position: 'relative',
-      color: '#fff',
-      fontFamily: "'Barlow Condensed', system-ui, sans-serif",
-      overflowY: 'auto',
-      WebkitFontSmoothing: 'antialiased',
-    }}>
-      <ScrollUnlock />
-
-      {/* ── Nav bar ── */}
-      <header style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 50,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '20px 32px 20px 128px',
-        background: 'rgba(0,0,0,0.85)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-      }}>
-        <Link href="/#blog" style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          fontFamily: 'monospace',
-          fontSize: '0.65rem',
-          letterSpacing: '0.3em',
-          color: 'rgba(255,255,255,0.4)',
-          textDecoration: 'none',
-          textTransform: 'uppercase',
-          transition: 'color 0.2s',
-        }}
-          onMouseEnter={e => (e.currentTarget.style.color = '#00ffea')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}
-        >
-          <span style={{ fontSize: '1rem', lineHeight: 1 }}>←</span>
-          {isDE ? 'Archiv' : 'Archive'}
-        </Link>
-        <span style={{
-          fontFamily: 'monospace',
-          fontSize: '0.55rem',
-          letterSpacing: '0.4em',
-          color: 'rgba(255,255,255,0.2)',
-          textTransform: 'uppercase',
-        }}>
-          AILEENA MACHINA
-        </span>
-      </header>
-
-      {/* ── Hero ── */}
-      <section style={{ padding: '80px 32px 64px', maxWidth: 900, margin: '0 auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: 40 }}>
-          <span style={{
-            fontFamily: 'monospace',
-            fontSize: '0.55rem',
-            letterSpacing: '0.45em',
-            color: '#00ffea',
-            textTransform: 'uppercase',
-            padding: '4px 10px',
-            border: '1px solid rgba(0,255,234,0.3)',
-          }}>
-            VIDEO
-          </span>
-          <span style={{
-            fontFamily: 'monospace',
-            fontSize: '0.55rem',
-            letterSpacing: '0.3em',
-            color: 'rgba(255,255,255,0.3)',
-          }}>
-            2025.03.18
-          </span>
-          <span style={{
-            fontFamily: 'monospace',
-            fontSize: '0.55rem',
-            letterSpacing: '0.3em',
-            color: 'rgba(255,255,255,0.3)',
-          }}>
-            Physical AI · Robotics · Simulation
-          </span>
-        </div>
-
-        <h1 style={{
-          fontSize: 'clamp(2.4rem, 7vw, 5.5rem)',
-          fontWeight: 700,
-          letterSpacing: '0.04em',
-          lineHeight: 1.08,
-          marginBottom: 32,
-          color: '#fff',
-        }}>
-          {isDE ? (
-            <>Wie Roboter lernen,<br /><span style={{ color: '#00ffea' }}>Roboter zu sein</span></>
-          ) : (
-            <>How Robots Learn<br /><span style={{ color: '#00ffea' }}>to Be Robots</span></>
-          )}
-        </h1>
-
-        <p style={{
-          fontSize: 'clamp(1rem, 2.5vw, 1.25rem)',
-          lineHeight: 1.75,
-          color: 'rgba(255,255,255,0.55)',
-          letterSpacing: '0.03em',
-          borderLeft: '2px solid rgba(0,255,234,0.4)',
-          paddingLeft: 20,
-          marginBottom: 0,
-        }}>
-          {isDE
-            ? 'Alles, was sich bewegt, wird autonom sein. Der kontinuierliche Kreislauf aus Simulation, Training, Test und realem Einsatz — angetrieben von NVIDIA Omniverse und Cosmos.'
-            : 'Everything that moves will be autonomous. The continuous loop of simulation, training, testing, and real-world deployment — powered by NVIDIA Omniverse and Cosmos.'}
-        </p>
-      </section>
-
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 32px' }}>
-        <div style={{ height: 1, background: 'rgba(255,255,255,0.07)' }} />
-      </div>
-
+    <SubstackShell
+      isDE={isDE}
+      category="Video"
+      date="2025.03.18"
+      tags="Physical AI · Robotics · Simulation"
+      title={isDE ? 'Wie Roboter lernen, Roboter zu sein' : 'How Robots Learn to Be Robots'}
+      dek={isDE
+        ? 'Alles, was sich bewegt, wird autonom sein. Der kontinuierliche Kreislauf aus Simulation, Training, Test und realem Einsatz — angetrieben von NVIDIA Omniverse und Cosmos.'
+        : 'Everything that moves will be autonomous. The continuous loop of simulation, training, testing, and real-world deployment — powered by NVIDIA Omniverse and Cosmos.'}
+    >
       {/* ── Video ── */}
-      <section style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 0' }}>
-        {/* Scanline frame */}
-        <div style={{
-          position: 'relative',
-          background: 'rgba(0,255,234,0.03)',
-          border: '1px solid rgba(0,255,234,0.15)',
-          padding: 2,
-        }}>
-          {/* Corner accents */}
-          <div style={{ position: 'absolute', top: -1, left: -1, width: 20, height: 20, borderTop: '2px solid #00ffea', borderLeft: '2px solid #00ffea' }} />
-          <div style={{ position: 'absolute', top: -1, right: -1, width: 20, height: 20, borderTop: '2px solid #00ffea', borderRight: '2px solid #00ffea' }} />
-          <div style={{ position: 'absolute', bottom: -1, left: -1, width: 20, height: 20, borderBottom: '2px solid #00ffea', borderLeft: '2px solid #00ffea' }} />
-          <div style={{ position: 'absolute', bottom: -1, right: -1, width: 20, height: 20, borderBottom: '2px solid #00ffea', borderRight: '2px solid #00ffea' }} />
-
-          <div style={{ position: 'relative', aspectRatio: '16/9', width: '100%' }}>
-            <iframe
-              src="https://www.youtube.com/embed/S4tvirlG8sQ?rel=0&modestbranding=1&color=white"
-              title="How Robots Learn to Be Robots"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              style={{
-                position: 'absolute',
-                inset: 0,
-                width: '100%',
-                height: '100%',
-                border: 'none',
-                display: 'block',
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Status bar below video */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '10px 12px',
-          background: 'rgba(0,255,234,0.04)',
-          borderLeft: '1px solid rgba(0,255,234,0.15)',
-          borderRight: '1px solid rgba(0,255,234,0.15)',
-          borderBottom: '1px solid rgba(0,255,234,0.15)',
-        }}>
-          <span style={{
-            fontFamily: 'monospace',
-            fontSize: '0.52rem',
-            letterSpacing: '0.4em',
-            color: '#00ffea',
-            textTransform: 'uppercase',
-            opacity: 0.7,
-          }}>
-            SIGNAL ACTIVE — STREAM ONLINE
-          </span>
-          <span style={{
-            fontFamily: 'monospace',
-            fontSize: '0.52rem',
-            letterSpacing: '0.3em',
-            color: 'rgba(255,255,255,0.25)',
-            textTransform: 'uppercase',
-          }}>
-            NVIDIA / OMNIVERSE / COSMOS
-          </span>
+      <section style={{ maxWidth: 680, margin: '0 auto', padding: '48px 24px 0' }}>
+        <div style={{ position: 'relative', aspectRatio: '16/9', width: '100%', overflow: 'hidden', borderRadius: 4 }}>
+          <iframe
+            src="https://www.youtube.com/embed/S4tvirlG8sQ?rel=0&modestbranding=1&color=white"
+            title="How Robots Learn to Be Robots"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              border: 'none',
+              display: 'block',
+            }}
+          />
         </div>
       </section>
 
@@ -300,7 +145,7 @@ export default function RobotsArticle() {
         </div>
 
       </article>
-    </div>
+    </SubstackShell>
   );
 }
 
