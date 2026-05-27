@@ -10,16 +10,27 @@ const STARTER_PROMPTS = [
   'is she available for hire?',
 ];
 
+const SESSION_LIMIT = 5;
+const SESSION_KEY = 'aileena_chat_count';
+
 /**
  * Aileena · Console
  *
  * Not a chat widget. A command-palette-style overlay that matches the site's
  * SAT-LINK / terminal language. Invoked via `/` from anywhere on the site or
- * via the typographic launcher line at the bottom-left of the viewport.
+ * via the machina-portrait launcher at the bottom-left of the viewport.
+ *
+ * Rate limiting:
+ *   - Client/session: SESSION_LIMIT messages per browser session (sessionStorage,
+ *     resets when the tab closes).
+ *   - Server/daily: 50 messages per visitor per day, enforced by a signed
+ *     cookie in /api/chat. When the server returns 429 it shows up in the
+ *     error display below.
  */
 export default function AgentChat() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
+  const [sessionCount, setSessionCount] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -28,6 +39,17 @@ export default function AgentChat() {
   });
 
   const busy = status === 'submitted' || status === 'streaming';
+  const sessionMaxed = sessionCount >= SESSION_LIMIT;
+
+  // Restore session counter from sessionStorage on first client render.
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem(SESSION_KEY);
+      if (stored) setSessionCount(Math.min(Number(stored) || 0, 99));
+    } catch {
+      /* sessionStorage unavailable — ignore */
+    }
+  }, []);
 
   useEffect(() => {
     if (!scrollRef.current) return;
@@ -70,10 +92,21 @@ export default function AgentChat() {
 
   function ask(text: string) {
     const trimmed = text.trim();
-    if (!trimmed || busy) return;
+    if (!trimmed || busy || sessionMaxed) return;
     setInput('');
     sendMessage({ text: trimmed });
+
+    const next = sessionCount + 1;
+    setSessionCount(next);
+    try {
+      sessionStorage.setItem(SESSION_KEY, String(next));
+    } catch {
+      /* sessionStorage unavailable — counter still works in-memory for this tab */
+    }
   }
+
+  const remaining = Math.max(0, SESSION_LIMIT - sessionCount);
+  const serverErrorText = error?.message?.trim();
 
   return (
     <>
@@ -88,11 +121,15 @@ export default function AgentChat() {
         <span className="relative inline-block">
           <span
             aria-hidden
-            className="block h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-cover border border-[#00ffea]/35 shadow-[0_0_18px_-6px_rgba(0,255,234,0.4)] transition-all duration-200 group-hover:border-[#00ffea]/80 group-hover:shadow-[0_0_24px_-4px_rgba(0,255,234,0.7)] group-hover:scale-[1.04]"
+            className="block h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-no-repeat shadow-[0_0_18px_-6px_rgba(0,255,234,0.35)] transition-all duration-200 group-hover:shadow-[0_0_28px_-4px_rgba(0,255,234,0.65)] group-hover:scale-[1.05]"
             style={{
               backgroundImage: "url('/bg_pic/03.jpeg')",
-              backgroundPosition: '30% 14%',
-              backgroundSize: '320%',
+              // 03.jpeg is 1792x2400 portrait. Face silhouette sits in the
+              // upper-left ~35% of the frame. backgroundSize 230% + position
+              // 22% 6% centers the full profile (hair, forehead, eye, nose,
+              // lips, chin, chrome neck) inside the circle.
+              backgroundPosition: '24% 16%',
+              backgroundSize: '210%',
             }}
           />
           {/* Scan line — subtle horizontal sweep */}
@@ -188,8 +225,16 @@ export default function AgentChat() {
           )}
 
           {error && (
-            <p className="text-[0.62rem] tracking-[0.18em] text-red-400/80 uppercase">
-              ▸ connection error · try again
+            <p className="text-[0.7rem] leading-5 tracking-[0.05em] text-red-400/85 whitespace-pre-wrap">
+              <span className="font-mono text-[0.55rem] tracking-[0.3em] uppercase mr-1.5">▸ error</span>
+              {serverErrorText || 'connection failed · try again'}
+            </p>
+          )}
+
+          {sessionMaxed && (
+            <p className="text-[0.7rem] leading-5 tracking-[0.05em] text-[#00ffea]/70 whitespace-pre-wrap">
+              <span className="font-mono text-[0.55rem] tracking-[0.3em] uppercase mr-1.5">▸ limit</span>
+              Session limit reached ({SESSION_LIMIT} messages). Refresh the tab to start a new session, or use the contact form below.
             </p>
           )}
         </div>
@@ -197,7 +242,7 @@ export default function AgentChat() {
         {/* Input row */}
         <div className="border-t border-[#00ffea]/15 px-5 py-3">
           <div className="flex items-center gap-2">
-            <span className="text-[#00ffea] text-sm">&gt;</span>
+            <span className={`text-sm ${sessionMaxed ? 'text-white/20' : 'text-[#00ffea]'}`}>&gt;</span>
             <textarea
               ref={inputRef}
               value={input}
@@ -208,9 +253,10 @@ export default function AgentChat() {
                   ask(input);
                 }
               }}
-              placeholder=""
+              placeholder={sessionMaxed ? 'session limit reached' : ''}
+              disabled={sessionMaxed}
               rows={1}
-              className="flex-1 resize-none bg-transparent text-sm leading-6 text-white/90 placeholder:text-white/25 outline-none max-h-32 caret-[#00ffea]"
+              className="flex-1 resize-none bg-transparent text-sm leading-6 text-white/90 placeholder:text-white/25 outline-none max-h-32 caret-[#00ffea] disabled:cursor-not-allowed"
               spellCheck={false}
               autoCorrect="off"
               autoCapitalize="off"
@@ -221,8 +267,11 @@ export default function AgentChat() {
               </span>
             )}
           </div>
-          <p className="mt-2 text-[0.52rem] tracking-[0.3em] text-white/25 uppercase">
-            ↵ send · esc close · / open from anywhere
+          <p className="mt-2 flex items-center justify-between gap-3 text-[0.52rem] tracking-[0.3em] text-white/25 uppercase">
+            <span>↵ send · esc close · / open from anywhere</span>
+            <span className={remaining === 0 ? 'text-red-400/60' : remaining <= 2 ? 'text-[#00ffea]/50' : 'text-white/25'}>
+              {remaining}/{SESSION_LIMIT} left this session
+            </span>
           </p>
         </div>
       </div>
