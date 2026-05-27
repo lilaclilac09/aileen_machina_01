@@ -95,7 +95,15 @@ export default function DoubleZeroArticle() {
         </p>
       </section>
 
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 32px' }}>
+      {/* ── Stats wall ── */}
+      <StatsWall stats={[
+        { value: '~500 ms', label: 'worst-case tx land', sub: 'vs >1.5s on public internet' },
+        { value: '>16 ms', label: 'per-shred multicast gain', sub: 'Frankfurt subscribers, BP25' },
+        { value: '~40 %', label: 'Solana validators on DZ', sub: 'as of mainnet-beta' },
+        { value: 'Oct 2025', label: 'mainnet-beta launch', sub: 'whitepaper Dec 2024' },
+      ]} />
+
+      <div style={{ maxWidth: 900, margin: '56px auto 0', padding: '0 32px' }}>
         <div style={{ height: 1, background: 'rgba(255,255,255,0.07)' }} />
       </div>
 
@@ -226,28 +234,38 @@ export default function DoubleZeroArticle() {
           the entire slot window.
         </p>
 
-        <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
-          <pre style={preStyle}>
-{`Public internet Turbine:
-   leader ──► root ──► child ──► grandchild ──► ...  (N copies, N hops)
+        <Diagram caption="Replication moves from the leader's upstream NIC into the DZD switch fabric.">
+{`  ┌─ PUBLIC INTERNET — UNICAST TURBINE ──────────────────────────────┐
+  │                                                                   │
+  │   leader ──► root ──► child ──► grandchild ──► …                  │
+  │                                                                   │
+  │   N copies of every shred · N hops of compound jitter             │
+  │                                                                   │
+  └───────────────────────────────────────────────────────────────────┘
 
-DoubleZero multicast:
-   publisher ──► group address
-                    │
-              ┌─────┼─────┐         (1 copy in, replicated at each DZD)
-              ▼     ▼     ▼
-          subscriber subscriber subscriber`}
-          </pre>
-          <p style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'rgba(255,255,255,0.35)', margin: '8px 0 0', letterSpacing: '0.1em' }}>
-            Replication moves from the leader&apos;s upstream NIC into the DZD switch fabric.
-          </p>
-        </div>
+  ┌─ DOUBLEZERO — NATIVE MULTICAST ──────────────────────────────────┐
+  │                                                                   │
+  │   publisher ─► group ──────╮                                      │
+  │                            │   (1 copy in, hardware replicated    │
+  │                       ┌────┴────┐    at each DZD switch fabric)   │
+  │                       ▼    ▼    ▼                                 │
+  │                     sub  sub  sub  …                              │
+  │                                                                   │
+  │   1 send · 1 receive per subscriber · sub-ms jitter               │
+  │                                                                   │
+  └───────────────────────────────────────────────────────────────────┘`}
+        </Diagram>
 
         <p style={bodyStyle}>
           You can run Turbine over DoubleZero unicast and still win on jitter. You can run shred
           distribution over DoubleZero multicast and additionally win 16+ms per hop. The multicast path
           is the harder integration and the bigger payoff.
         </p>
+
+        <PullQuote>
+          The public internet has no choice but unicast at that scale. DoubleZero adds multicast back
+          as a network primitive — the harder integration, and the bigger payoff.
+        </PullQuote>
 
         <SectionLabel>04 — Connecting a validator</SectionLabel>
         <p style={bodyStyle}>
@@ -476,37 +494,37 @@ doublezero status        # confirm connection`}
         </p>
         <p style={bodyStyle}>
           The upstream <code style={codeStyle}>net_tile</code> patch that ties Firedancer&apos;s userspace
-          directly to <code style={codeStyle}>doublezero0</code> isn&apos;t public yet — but the
-          kernel-side half already exists.{' '}
-          <a href="https://github.com/cavemanloverboy/agave-xdp-rx-ebpf" target="_blank" rel="noopener noreferrer" style={inlineLink}>cavemanloverboy/agave-xdp-rx-ebpf</a>{' '}
-          is an XDP/eBPF program for Solana traffic that explicitly does <strong style={strong}>GRE
-          tunnel decapsulation</strong>, supports variable-length IPv4 headers, and a dynamic port count.
-          GRE decap is exactly the work DoubleZero packets need before they hit the validator&apos;s
-          normal socket layer — strip the protocol-47 outer header in kernel, hand the inner Solana
-          packet to either an Agave socket or an AF_XDP-backed Firedancer <code style={codeStyle}>net_tile</code>.
-          This is the layer <em>below</em> <code style={codeStyle}>net_tile</code>. The tile-side
-          integration (subscription, group membership, reconciliation) is the next missing piece, but the
-          kernel plumbing is already shipping.
+          directly to <code style={codeStyle}>doublezero0</code> isn&apos;t public yet — but pieces of
+          the integration are already shipping. Three workspaces to watch:
         </p>
+
+        <CardGrid cards={[
+          {
+            num: '01',
+            tag: 'Kernel',
+            title: 'cavemanloverboy/agave-xdp-rx-ebpf',
+            href: 'https://github.com/cavemanloverboy/agave-xdp-rx-ebpf',
+            body: <>XDP/eBPF program for Solana traffic that does <strong style={strong}>GRE tunnel decapsulation</strong> — strip the protocol-47 outer header in kernel, hand the inner packet to Agave or an AF_XDP-backed Firedancer <code style={codeStyle}>net_tile</code>. This is the layer <em>below</em> <code style={codeStyle}>net_tile</code>, and it already ships.</>,
+          },
+          {
+            num: '02',
+            tag: 'Tile glue',
+            title: 'cavemanloverboy/firedancer + agave-pr',
+            href: 'https://github.com/cavemanloverboy',
+            body: <>Active workspace landing upstream Firedancer PRs (recent: #8218, <em>resolv: use exact block height check</em>). The likely site for the userspace tile-side glue — subscription, group membership, reconciliation between unicast and multicast paths.</>,
+          },
+          {
+            num: '03',
+            tag: 'MEV client',
+            title: 'jito-foundation/jito-solana',
+            href: 'https://github.com/jito-foundation/jito-solana',
+            body: <>Jito&apos;s Agave fork with block engine + bundle relayer hooks. The client most MEV-active validators run today. Inherits Agave&apos;s network stack, so any DZ integration lands via the same kernel-side hooks as on stock Agave. A packaged Jito-shipped DZ variant is unannounced.</>,
+          },
+        ]} />
+
         <p style={bodyStyle}>
-          Worth watching the same author&apos;s{' '}
-          <a href="https://github.com/cavemanloverboy/firedancer" target="_blank" rel="noopener noreferrer" style={inlineLink}>firedancer fork</a>{' '}
-          and{' '}
-          <a href="https://github.com/cavemanloverboy/agave-pr" target="_blank" rel="noopener noreferrer" style={inlineLink}>agave-pr</a>{' '}
-          workspace — they&apos;ve been landing upstream Firedancer PRs (recent example: #8218,
-          &quot;resolv: use exact block height check&quot;) and are an obvious candidate to ship the
-          tile-side glue. If you&apos;re looking for the first concrete Firedancer ↔ DZ integration to
-          benchmark, that&apos;s probably where it lands.
-        </p>
-        <p style={bodyStyle}>
-          The third validator client in scope here is{' '}
-          <a href="https://github.com/jito-foundation/jito-solana" target="_blank" rel="noopener noreferrer" style={inlineLink}>jito-foundation/jito-solana</a>{' '}
-          — Jito&apos;s Agave fork that adds the block engine and bundle relayer hooks, and the client
-          most MEV-active validators run today. Because it inherits Agave&apos;s network stack, any
-          DoubleZero integration would land via the same kernel-side hooks as on stock Agave — the
-          XDP/GRE decap path described above applies to jito-solana directly. Whether{' '}
-          <a href="https://github.com/jito-foundation" target="_blank" rel="noopener noreferrer" style={inlineLink}>Jito Foundation</a>{' '}
-          ships a packaged DZ integration is unannounced as of this writing.
+          The kernel-side plumbing is already shipping. The tile-side glue and a Jito-Foundation-packaged
+          variant are the two missing pieces — both are mechanically obvious, neither is published yet.
         </p>
 
         <div style={calloutInfo}>
@@ -541,34 +559,38 @@ doublezero status        # confirm connection`}
           Concretely, the things a competent dev can build this quarter without asking permission:
         </p>
 
-        <ol style={{ paddingLeft: 24, margin: '24px 0 40px', lineHeight: 1.9, color: 'rgba(255,255,255,0.65)' }}>
-          <li style={{ marginBottom: 14 }}>
-            <strong style={strong}>A jitter-aware RPC router.</strong> Read live TWAMP telemetry, route
-            reads/writes to the validator with the best path-quality for the requesting region. Useful
-            for any RPC provider that wants to undercut Helius/Triton on tail latency without owning fiber.
-          </li>
-          <li style={{ marginBottom: 14 }}>
-            <strong style={strong}>A multicast data feed.</strong> Publish a custom data stream (oracle
-            prices, orderbook events, anything time-sensitive) into a DoubleZero multicast group.
-            Subscribers on the mesh receive at near-line-rate with sub-ms jitter. Pyth-style feeds are
-            the obvious early use case; private market-maker feeds are the spicier one.
-          </li>
-          <li style={{ marginBottom: 14 }}>
-            <strong style={strong}>A skip-rate alerting service.</strong> Validators on DZ should post
-            measurably better skip rates than identical hardware off DZ. Build the diff, alert when the
-            gap collapses (suggesting DZ degradation or a routing misconfiguration).
-          </li>
-          <li style={{ marginBottom: 14 }}>
-            <strong style={strong}>A relayer that replaces Jito&apos;s latency role.</strong> Bundle
-            semantics still need a coordinator; lowest-latency-to-leader does not, on DZ. A small,
-            focused relayer that handles bundle tip routing but assumes DZ for transport is a
-            meaningfully smaller piece of software than Jito&apos;s full stack.
-          </li>
-          <li style={{ marginBottom: 14 }}>
-            <strong style={strong}>A Firedancer/Frankendancer integration fork.</strong> The clean
-            architectural fit described in §7 is open work. Someone will publish it.
-          </li>
-        </ol>
+        <CardGrid cards={[
+          {
+            num: '01',
+            tag: 'RPC',
+            title: 'Jitter-aware RPC router',
+            body: <>Read live TWAMP telemetry, route reads/writes to the validator with the best path-quality for the requesting region. Useful for any RPC provider that wants to undercut Helius/Triton on tail latency without owning fiber.</>,
+          },
+          {
+            num: '02',
+            tag: 'Feed',
+            title: 'Multicast data feed',
+            body: <>Publish a custom data stream (oracle prices, orderbook events) into a DZ multicast group. Subscribers receive at near-line-rate with sub-ms jitter. Pyth-style feeds are the obvious early case; private MM feeds are the spicier one.</>,
+          },
+          {
+            num: '03',
+            tag: 'Alert',
+            title: 'Skip-rate alerting',
+            body: <>Validators on DZ should post measurably better skip rates than identical hardware off DZ. Build the diff, alert when the gap collapses — suggests DZ degradation or a routing misconfig.</>,
+          },
+          {
+            num: '04',
+            tag: 'Relayer',
+            title: 'Thin bundle relayer',
+            body: <>Bundle semantics still need a coordinator; lowest-latency-to-leader does not, on DZ. A focused relayer that handles tip routing but assumes DZ for transport is a meaningfully smaller piece of software than Jito&apos;s full stack.</>,
+          },
+          {
+            num: '05',
+            tag: 'Fork',
+            title: 'Firedancer × DZ fork',
+            body: <>The clean architectural fit described in §7 is open work — net_tile bound to <code style={codeStyle}>doublezero0</code>, shred tile subscribing to multicast groups. Someone will publish it.</>,
+          },
+        ]} />
 
         <p style={bodyStyle}>
           <strong style={strong}>Target dev audience.</strong> Mostly Solana validator operators, MEV
@@ -885,5 +907,205 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
     }}>
       {children}
     </p>
+  );
+}
+
+/* ── Stats wall ── */
+function StatsWall({ stats }: { stats: { value: string; label: string; sub?: string }[] }) {
+  return (
+    <div style={{
+      maxWidth: 1100,
+      margin: '48px auto 0',
+      padding: '0 32px',
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+      gap: 1,
+      background: 'rgba(0,255,234,0.12)',
+      border: '1px solid rgba(0,255,234,0.18)',
+    }}>
+      {stats.map((s, i) => (
+        <div key={i} style={{
+          background: '#000',
+          padding: '32px 28px',
+          display: 'flex', flexDirection: 'column', gap: 8,
+          position: 'relative',
+        }}>
+          <span style={{
+            fontFamily: 'monospace', fontSize: '0.5rem', letterSpacing: '0.4em',
+            color: 'rgba(0,255,234,0.55)', textTransform: 'uppercase',
+          }}>
+            {String(i + 1).padStart(2, '0')}
+          </span>
+          <span style={{
+            fontFamily: "'Barlow Condensed', system-ui, sans-serif",
+            fontSize: 'clamp(1.8rem, 4vw, 2.6rem)',
+            fontWeight: 700, letterSpacing: '0.02em',
+            color: '#00ffea', lineHeight: 1,
+          }}>
+            {s.value}
+          </span>
+          <span style={{
+            fontFamily: 'monospace', fontSize: '0.6rem', letterSpacing: '0.25em',
+            color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase',
+            marginTop: 6,
+          }}>
+            {s.label}
+          </span>
+          {s.sub && (
+            <span style={{
+              fontSize: '0.78rem', color: 'rgba(255,255,255,0.4)',
+              lineHeight: 1.45, letterSpacing: '0.02em', marginTop: 2,
+            }}>
+              {s.sub}
+            </span>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ── Card grid for integration candidates / dev build ideas ── */
+function CardGrid({ cards, columns = 3 }: {
+  cards: { num: string; tag: string; title: string; href?: string; body: React.ReactNode }[];
+  columns?: number;
+}) {
+  return (
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: `repeat(auto-fit, minmax(${columns === 2 ? 280 : 240}px, 1fr))`,
+      gap: 14,
+      margin: '32px 0 40px',
+    }}>
+      {cards.map((c, i) => {
+        const inner = (
+          <>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 14 }}>
+              <span style={{
+                fontFamily: 'monospace', fontSize: '0.62rem', letterSpacing: '0.3em',
+                color: 'rgba(0,255,234,0.55)',
+              }}>
+                {c.num}
+              </span>
+              <span style={{
+                fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.4em',
+                color: '#00ffea', textTransform: 'uppercase',
+              }}>
+                {c.tag}
+              </span>
+            </div>
+            <p style={{
+              fontFamily: 'monospace', fontSize: '0.78rem',
+              color: 'rgba(255,255,255,0.92)', margin: '0 0 12px',
+              wordBreak: 'break-word', letterSpacing: '0.01em',
+            }}>
+              {c.title}
+            </p>
+            <p style={{
+              fontSize: '0.85rem', lineHeight: 1.65,
+              color: 'rgba(255,255,255,0.55)', margin: 0,
+              letterSpacing: '0.02em',
+            }}>
+              {c.body}
+            </p>
+          </>
+        );
+        const baseCardStyle: React.CSSProperties = {
+          padding: '20px 22px',
+          background: 'rgba(0,255,234,0.025)',
+          border: '1px solid rgba(0,255,234,0.15)',
+          borderTop: '2px solid rgba(0,255,234,0.5)',
+          textDecoration: 'none',
+          display: 'block',
+          transition: 'background 0.18s, border-color 0.18s',
+        };
+        if (c.href) {
+          return (
+            <a key={i} href={c.href} target="_blank" rel="noopener noreferrer" style={baseCardStyle}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = 'rgba(0,255,234,0.06)';
+                e.currentTarget.style.borderColor = 'rgba(0,255,234,0.4)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'rgba(0,255,234,0.025)';
+                e.currentTarget.style.borderColor = 'rgba(0,255,234,0.15)';
+              }}
+            >
+              {inner}
+            </a>
+          );
+        }
+        return <div key={i} style={baseCardStyle}>{inner}</div>;
+      })}
+    </div>
+  );
+}
+
+/* ── Pull quote (big inline quote, less heavy than blockquote) ── */
+function PullQuote({ children, attribution }: { children: React.ReactNode; attribution?: string }) {
+  return (
+    <div style={{
+      margin: '48px -8px',
+      padding: '28px 32px 28px 28px',
+      borderLeft: '3px solid #00ffea',
+      background: 'linear-gradient(90deg, rgba(0,255,234,0.08), rgba(0,255,234,0.0))',
+    }}>
+      <p style={{
+        fontSize: 'clamp(1.05rem, 2.4vw, 1.4rem)',
+        lineHeight: 1.5, letterSpacing: '0.02em',
+        color: 'rgba(255,255,255,0.92)', fontStyle: 'italic',
+        margin: 0, fontWeight: 500,
+      }}>
+        &ldquo;{children}&rdquo;
+      </p>
+      {attribution && (
+        <p style={{
+          fontFamily: 'monospace', fontSize: '0.6rem', letterSpacing: '0.3em',
+          color: 'rgba(0,255,234,0.7)', textTransform: 'uppercase',
+          margin: '14px 0 0',
+        }}>
+          — {attribution}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/* ── Diagram frame (wraps ASCII/code as a visual figure) ── */
+function Diagram({ caption, children }: { caption?: string; children: React.ReactNode }) {
+  return (
+    <figure style={{ margin: '40px 0 48px' }}>
+      <div style={{
+        padding: '4px',
+        background: 'linear-gradient(135deg, rgba(0,255,234,0.25), rgba(0,255,234,0.04))',
+      }}>
+        <div style={{
+          background: '#000',
+          padding: '28px 32px',
+          overflowX: 'auto',
+          boxShadow: 'inset 0 0 40px rgba(0,255,234,0.05)',
+        }}>
+          <pre style={{
+            fontFamily: 'monospace',
+            fontSize: '0.78rem',
+            lineHeight: 1.6,
+            color: 'rgba(255,255,255,0.85)',
+            margin: 0,
+            letterSpacing: '0.01em',
+          }}>
+            {children}
+          </pre>
+        </div>
+      </div>
+      {caption && (
+        <figcaption style={{
+          fontFamily: 'monospace', fontSize: '0.6rem', letterSpacing: '0.18em',
+          color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase',
+          margin: '10px 0 0', textAlign: 'left',
+        }}>
+          {caption}
+        </figcaption>
+      )}
+    </figure>
   );
 }
