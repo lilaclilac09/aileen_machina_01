@@ -499,15 +499,14 @@ doublezero status        # confirm connection`}
           benchmark, that&apos;s probably where it lands.
         </p>
         <p style={bodyStyle}>
-          The other validator client likely to integrate DoubleZero is{' '}
+          The third validator client in scope here is{' '}
           <a href="https://github.com/jito-foundation/jito-solana" target="_blank" rel="noopener noreferrer" style={inlineLink}>jito-foundation/jito-solana</a>{' '}
-          — Jito&apos;s Agave fork that adds the block engine and bundle relayer hooks. Most MEV-active
-          validators today run jito-solana, so once the Jito relayer is no longer load-bearing for
-          latency-to-leader (see §5), the obvious next move is for{' '}
+          — Jito&apos;s Agave fork that adds the block engine and bundle relayer hooks, and the client
+          most MEV-active validators run today. Because it inherits Agave&apos;s network stack, any
+          DoubleZero integration would land via the same kernel-side hooks as on stock Agave — the
+          XDP/GRE decap path described above applies to jito-solana directly. Whether{' '}
           <a href="https://github.com/jito-foundation" target="_blank" rel="noopener noreferrer" style={inlineLink}>Jito Foundation</a>{' '}
-          to ship a jito-solana variant that talks to <code style={codeStyle}>doublezero0</code> directly.
-          The production stack becomes &quot;jito-solana + DZ port&quot; instead of &quot;jito-solana +
-          relayer over public internet&quot; — bundles still flow, but the transport is deterministic.
+          ships a packaged DZ integration is unannounced as of this writing.
         </p>
 
         <div style={calloutInfo}>
