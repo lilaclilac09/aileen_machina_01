@@ -188,6 +188,12 @@ export const t = {
             title: 'The Pairing VM Nobody Inherited',
             body: 'The Zcash Foundation funded an open-source FPGA accelerator in 2019 that ships with a sixteen-opcode coprocessor for BLS12-381 pairings — an actual instruction set, with eight typed operand classes, sitting in a public repo under GPL-3.0. Mainnet-tested on AWS F1 and Bittware VVH. What\'s in the repo, why it\'s strikingly good engineering, and why every team that needed it in 2024 wrote their own from scratch instead of forking it.',
           },
+          {
+            date: '2026.05.28',
+            href: '/blog/shred-economy',
+            title: 'The Shred Economy Has a Revenue Line Now',
+            body: 'DoubleZero Edge sells the right to read Solana shreds first, in USDC, priced by city. $8,890 this epoch · ~$133k monthly run-rate · ~$1.6M annualised. 400+ validators exposing shreds, ~50% of Solana stake covered. 10% burned, the rest split three ways: fibre contributors take ~50%, validators take ~32.5% (pro-rata to shreds, not stake), client-software teams take ~17.5%. The data was always there. What\'s new is that someone is finally getting paid for delivering it — and validators have a new income line that doesn\'t care how much SOL they\'re staking.',
+          },
         ],
       },
       womanInTech: {
@@ -448,6 +454,12 @@ export const t = {
             href: '/blog/zcash-fpga',
             title: 'Die Pairing-VM, die niemand geerbt hat',
             body: 'Die Zcash Foundation hat 2019 einen Open-Source-FPGA-Beschleuniger finanziert, der einen sechzehn-Opcode-Coprozessor für BLS12-381-Pairings mitliefert — eine echte Instruction Set Architecture mit acht typisierten Operandenklassen, in einem öffentlichen Repo unter GPL-3.0. Mainnet-getestet auf AWS F1 und Bittware VVH. Was im Repo steht, warum es auffallend gute Engineering-Arbeit ist, und warum jedes Team, das 2024 so etwas brauchte, lieber alles selbst neu geschrieben hat, statt zu forken.',
+          },
+          {
+            date: '2026.05.28',
+            href: '/blog/shred-economy',
+            title: 'Die Shred Economy hat jetzt eine Umsatzlinie',
+            body: 'DoubleZero Edge verkauft das Recht, Solana-Shreds zuerst zu lesen — in USDC, prepaid, nach Stadt gestaffelt (Tokyo und NYC oben, kleinere Städte günstiger). 8.890 USD diese Epoche · ~133k USD Monats-Run-Rate · ~1,6 Mio. USD annualisiert. 400+ Validatoren machen Shreds verfügbar, ~50% des Solana-Stakes abgedeckt. 10% verbrannt, der Rest in drei Lanes: Fibre-Beitragende ~50%, Validatoren ~32,5% (pro Shred, nicht pro Stake), Client-Teams ~17,5%. Die Daten waren immer da. Neu ist, dass endlich jemand fürs Ausliefern bezahlt wird — und Validatoren eine Einkommenslinie haben, die nicht davon abhängt, wie viel SOL sie staken.',
           },
         ],
       },
