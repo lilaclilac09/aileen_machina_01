@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Header from '../components/Header';
+import DJStation from '../components/DJStation';
 import LoadingScreen from '../components/LoadingScreen';
 import { SnapContainer, SnapSection } from '../components/SnapScroll';
 import { useLanguage } from '../components/LanguageProvider';
@@ -144,47 +145,16 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 04 SOUND — minimal player teaser ── */}
+        {/* ── 04 SOUND — full DJ station ── */}
         <SnapSection id="sound" className="order-4">
-          <div className="h-full flex flex-col justify-center bg-black px-6 sm:px-10 lg:px-16">
-            <div className="mx-auto w-full max-w-[680px]" style={{ fontFamily: nunito }}>
-              <p className="anim-up text-[0.7rem] uppercase tracking-[0.32em] text-white/40 mb-4" style={{ fontWeight: 500 }}>
-                {tx.sound.tag}
-              </p>
-              <h2 className="anim-up-2 mb-5 text-[clamp(1.6rem,4.2vw,2.6rem)] tracking-tight text-white/95" style={{ fontWeight: 500 }}>
-                {tx.sound.heading}
-              </h2>
-              <p className="anim-up-3 mb-10 text-[1rem] leading-relaxed text-white/60 max-w-md" style={{ fontWeight: 400 }}>
-                {tx.sound.teaser}
-              </p>
-
-              {/* Minimal player teaser — no full deck */}
-              <div className="anim-up mb-10 flex items-center gap-4 py-4 border-y border-white/10">
-                <button
-                  type="button"
-                  onClick={() => { window.location.href = '/sound'; }}
-                  className="h-11 w-11 rounded-full bg-white/5 border border-white/15 flex items-center justify-center hover:bg-white/10 hover:border-white/30 transition-colors cursor-pointer"
-                  aria-label="Open the full DJ station"
-                >
-                  <span className="text-white/70 text-sm leading-none ml-0.5">▶</span>
-                </button>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[0.78rem] uppercase tracking-[0.18em] text-white/40 mb-1" style={{ fontWeight: 500 }}>
-                    {tx.sound.track1Tag} · Berlin
-                  </p>
-                  <p className="text-[0.95rem] text-white/80 truncate" style={{ fontWeight: 500 }}>
-                    {tx.sound.track1Title}
-                  </p>
-                </div>
+          <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-12 pt-6 pb-4 overflow-y-auto">
+            <div className="mx-auto w-full max-w-[1400px]" style={{ fontFamily: nunito }}>
+              <div className="flex items-end border-b border-white/8 pb-3 mb-6">
+                <p className="text-[0.58rem] uppercase tracking-[0.55em] text-white/25" style={{ fontWeight: 500 }}>
+                  {tx.sound.tag}
+                </p>
               </div>
-
-              <Link
-                href="/sound"
-                className="anim-up-3 inline-block text-[0.8rem] text-white/55 hover:text-white transition-colors no-underline border-b border-white/15 hover:border-white pb-0.5"
-                style={{ fontWeight: 500 }}
-              >
-                {tx.sound.viewAll}
-              </Link>
+              <DJStation />
             </div>
           </div>
         </SnapSection>
