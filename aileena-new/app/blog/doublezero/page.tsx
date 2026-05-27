@@ -1,100 +1,16 @@
 'use client';
 import Link from 'next/link';
-import ScrollUnlock from '../ScrollUnlock';
+import SubstackShell from '../_substack/SubstackShell';
 
 export default function DoubleZeroArticle() {
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#000',
-      position: 'relative',
-      color: '#fff',
-      fontFamily: "'Barlow Condensed', system-ui, sans-serif",
-      overflowY: 'auto',
-      WebkitFontSmoothing: 'antialiased',
-    }}>
-      <ScrollUnlock />
-
-      {/* ── Nav bar ── */}
-      <header style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 50,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '20px 32px 20px 128px',
-        background: 'rgba(0,0,0,0.85)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-      }}>
-        <Link href="/#blog" style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          fontFamily: 'monospace', fontSize: '0.65rem', letterSpacing: '0.3em',
-          color: 'rgba(255,255,255,0.4)', textDecoration: 'none', textTransform: 'uppercase',
-          transition: 'color 0.2s',
-        }}
-          onMouseEnter={e => (e.currentTarget.style.color = '#00ffea')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}
-        >
-          <span style={{ fontSize: '1rem', lineHeight: 1 }}>←</span>
-          Archive
-        </Link>
-        <span style={{
-          fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.4em',
-          color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase',
-        }}>
-          AILEENA MACHINA
-        </span>
-      </header>
-
-      {/* ── Hero ── */}
-      <section style={{ padding: '80px 32px 64px', maxWidth: 900, margin: '0 auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: 40, flexWrap: 'wrap' }}>
-          <span style={{
-            fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.45em',
-            color: '#00ffea', textTransform: 'uppercase',
-            padding: '4px 10px', border: '1px solid rgba(0,255,234,0.3)',
-          }}>
-            INFRASTRUCTURE
-          </span>
-          <span style={{
-            fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.3em',
-            color: 'rgba(255,255,255,0.3)',
-          }}>
-            2026.05.24
-          </span>
-          <span style={{
-            fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.3em',
-            color: 'rgba(255,255,255,0.3)',
-          }}>
-            Solana · DoubleZero · Multicast · Frankendancer
-          </span>
-        </div>
-
-        <h1 style={{
-          fontSize: 'clamp(2.4rem, 7vw, 5.5rem)',
-          fontWeight: 700, letterSpacing: '0.04em',
-          lineHeight: 1.08, marginBottom: 32, color: '#fff',
-        }}>
-          DoubleZero,<br /><span style={{ color: '#00ffea' }}>Multicast Fiber</span>
-        </h1>
-
-        <p style={{
-          fontSize: 'clamp(1rem, 2.5vw, 1.25rem)',
-          lineHeight: 1.75, color: 'rgba(255,255,255,0.55)',
-          letterSpacing: '0.03em',
-          borderLeft: '2px solid rgba(0,255,234,0.4)',
-          paddingLeft: 20, marginBottom: 0,
-        }}>
-          A Solana slot is 400ms. Inside it a validator has to receive the previous block, replay it, build
-          its own, and fan out shreds before the next leader takes over. The compute is solved.
-          The bottleneck is the public internet between validators. Mainnet-beta since October 2025,
-          DoubleZero is the bet that the right answer is the same one HFT shops made fifteen years ago —
-          private fiber — plus one thing the public internet structurally cannot do: <em>multicast</em>.
-        </p>
-      </section>
-
+    <SubstackShell
+      category="Infrastructure"
+      date="2026.05.24"
+      tags="Solana · DoubleZero · Multicast · Frankendancer"
+      title="DoubleZero, Multicast Fiber"
+      dek={<>A Solana slot is 400ms. The compute is solved. The bottleneck is the public internet between validators. Mainnet-beta since October 2025, DoubleZero is the bet that the answer is the one HFT shops made fifteen years ago — private fiber — plus what the public internet structurally cannot do: <em>multicast</em>.</>}
+    >
       {/* ── Stats wall ── */}
       <StatsWall stats={[
         { value: '~500 ms', label: 'worst-case tx land', sub: 'vs >1.5s on public internet' },
@@ -102,10 +18,6 @@ export default function DoubleZeroArticle() {
         { value: '~40 %', label: 'Solana validators on DZ', sub: 'as of mainnet-beta' },
         { value: 'Oct 2025', label: 'mainnet-beta launch', sub: 'whitepaper Dec 2024' },
       ]} />
-
-      <div style={{ maxWidth: 900, margin: '56px auto 0', padding: '0 32px' }}>
-        <div style={{ height: 1, background: 'rgba(255,255,255,0.07)' }} />
-      </div>
 
       {/* ── Body ── */}
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
@@ -827,7 +739,7 @@ doublezero status        # confirm connection`}
         </div>
 
       </article>
-    </div>
+    </SubstackShell>
   );
 }
 

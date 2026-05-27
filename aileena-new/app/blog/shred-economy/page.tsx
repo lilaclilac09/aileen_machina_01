@@ -1,103 +1,16 @@
 'use client';
 import Link from 'next/link';
-import ScrollUnlock from '../ScrollUnlock';
+import SubstackShell from '../_substack/SubstackShell';
 
 export default function ShredEconomyArticle() {
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#000',
-      position: 'relative',
-      color: '#fff',
-      fontFamily: "'Barlow Condensed', system-ui, sans-serif",
-      overflowY: 'auto',
-      WebkitFontSmoothing: 'antialiased',
-    }}>
-      <ScrollUnlock />
-
-      {/* ── Nav bar ── */}
-      <header style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 50,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '20px 32px 20px 128px',
-        background: 'rgba(0,0,0,0.85)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-      }}>
-        <Link href="/#blog" style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          fontFamily: 'monospace', fontSize: '0.65rem', letterSpacing: '0.3em',
-          color: 'rgba(255,255,255,0.4)', textDecoration: 'none', textTransform: 'uppercase',
-          transition: 'color 0.2s',
-        }}
-          onMouseEnter={e => (e.currentTarget.style.color = '#00ffea')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}
-        >
-          <span style={{ fontSize: '1rem', lineHeight: 1 }}>←</span>
-          Archive
-        </Link>
-        <span style={{
-          fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.4em',
-          color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase',
-        }}>
-          AILEENA MACHINA
-        </span>
-      </header>
-
-      {/* ── Hero ── */}
-      <section style={{ padding: '80px 32px 64px', maxWidth: 900, margin: '0 auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: 40, flexWrap: 'wrap' }}>
-          <span style={{
-            fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.45em',
-            color: '#00ffea', textTransform: 'uppercase',
-            padding: '4px 10px', border: '1px solid rgba(0,255,234,0.3)',
-          }}>
-            ECONOMICS
-          </span>
-          <span style={{
-            fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.3em',
-            color: 'rgba(255,255,255,0.3)',
-          }}>
-            2026.05.28
-          </span>
-          <span style={{
-            fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.3em',
-            color: 'rgba(255,255,255,0.3)',
-          }}>
-            Solana · DoubleZero · Validators · MEV
-          </span>
-        </div>
-
-        <h1 style={{
-          fontSize: 'clamp(2.4rem, 7vw, 5.5rem)',
-          fontWeight: 700, letterSpacing: '0.04em',
-          lineHeight: 1.08, marginBottom: 32, color: '#fff',
-        }}>
-          The Shred Economy<br /><span style={{ color: '#00ffea' }}>has a revenue line now</span>
-        </h1>
-
-        <p style={{
-          fontSize: 'clamp(1rem, 2.5vw, 1.25rem)',
-          lineHeight: 1.75, color: 'rgba(255,255,255,0.55)',
-          letterSpacing: '0.03em',
-          borderLeft: '2px solid rgba(0,255,234,0.4)',
-          paddingLeft: 20, marginBottom: 0,
-        }}>
-          A Solana validator already produces shreds. Anyone can read them &mdash; eventually. DoubleZero
-          Edge sells the right to read them <em>first</em>, in USDC, prepaid, deducted per epoch, priced
-          by city (Tokyo and NYC at the top, smaller hubs cheaper).{' '}
-          <strong style={strong}>$8,890 this epoch</strong>. ~$133k monthly run-rate. ~$1.6M annualised at
-          the current pace. 400+ validators already exposing shreds, covering ~50% of Solana stake. Ten
-          percent burned, the rest split three ways: fibre contributors take ~50%, shred-producing
-          validators take ~32.5% (pro-rata to shreds, not stake), client-software teams take ~17.5%. The
-          data was always there. What&apos;s new is that someone is finally getting paid for delivering it.
-        </p>
-      </section>
-
+    <SubstackShell
+      category="Economics"
+      date="2026.05.28"
+      tags="Solana · DoubleZero · Validators · MEV"
+      title="The Shred Economy has a revenue line now"
+      dek={<>DoubleZero Edge sells the right to read Solana shreds <em>first</em>, in USDC, priced by city. $8,890 this epoch, ~$133k monthly, ~$1.6M annualised. 400+ validators exposing shreds, ~50% of Solana stake. 10% burned, the rest split three ways: fibre ~50%, validators ~32.5%, client-software ~17.5%.</>}
+    >
       {/* ── Stats wall ── */}
       <StatsWall stats={[
         { value: '$8,890', label: 'this epoch', sub: 'edge revenue earned in the current epoch' },
@@ -107,10 +20,6 @@ export default function ShredEconomyArticle() {
         { value: '~50%', label: 'of solana stake', sub: 'covered by participating validators' },
         { value: '10%', label: 'burned', sub: 'removed from supply before the three-way split' },
       ]} />
-
-      <div style={{ maxWidth: 900, margin: '64px auto 0', padding: '0 32px' }}>
-        <div style={{ height: 1, background: 'rgba(255,255,255,0.07)' }} />
-      </div>
 
       {/* ── Body ── */}
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
@@ -426,7 +335,7 @@ export default function ShredEconomyArticle() {
         </div>
 
       </article>
-    </div>
+    </SubstackShell>
   );
 }
 
