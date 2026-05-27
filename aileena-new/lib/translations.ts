@@ -194,6 +194,12 @@ export const t = {
             title: 'The Shred Economy Has a Revenue Line Now',
             body: 'DoubleZero Edge sells the right to read Solana shreds first, in USDC, priced by city. $8,890 this epoch · ~$133k monthly run-rate · ~$1.6M annualised. 400+ validators exposing shreds, ~50% of Solana stake covered. 10% burned, the rest split three ways: fibre contributors take ~50%, validators take ~32.5% (pro-rata to shreds, not stake), client-software teams take ~17.5%. The data was always there. What\'s new is that someone is finally getting paid for delivering it — and validators have a new income line that doesn\'t care how much SOL they\'re staking.',
           },
+          {
+            date: '2026.05.27',
+            href: '/blog/validator-clients',
+            title: 'Five Validator Clients, One Pipeline, No Full-FPGA',
+            body: 'Agave, Jito-Solana, Frankendancer, Firedancer, Sig. Jump has a working FPGA verify engine doing 1M signatures per second — eight cards scale to 8M. They still didn\'t ship a full-FPGA validator. Why the tile architecture is FPGA-shaped on purpose, where exactly two of nine tiles are FPGA-friendly, and why protocol velocity, branchy execution, and economics close the door on the rest. Solana is a CPU chain that learned to think like an FPGA.',
+          },
         ],
       },
       womanInTech: {
@@ -460,6 +466,12 @@ export const t = {
             href: '/blog/shred-economy',
             title: 'Die Shred Economy hat jetzt eine Umsatzlinie',
             body: 'DoubleZero Edge verkauft das Recht, Solana-Shreds zuerst zu lesen — in USDC, prepaid, nach Stadt gestaffelt (Tokyo und NYC oben, kleinere Städte günstiger). 8.890 USD diese Epoche · ~133k USD Monats-Run-Rate · ~1,6 Mio. USD annualisiert. 400+ Validatoren machen Shreds verfügbar, ~50% des Solana-Stakes abgedeckt. 10% verbrannt, der Rest in drei Lanes: Fibre-Beitragende ~50%, Validatoren ~32,5% (pro Shred, nicht pro Stake), Client-Teams ~17,5%. Die Daten waren immer da. Neu ist, dass endlich jemand fürs Ausliefern bezahlt wird — und Validatoren eine Einkommenslinie haben, die nicht davon abhängt, wie viel SOL sie staken.',
+          },
+          {
+            date: '2026.05.27',
+            href: '/blog/validator-clients',
+            title: 'Fünf Validator-Clients, eine Pipeline, kein Voll-FPGA',
+            body: 'Agave, Jito-Solana, Frankendancer, Firedancer, Sig. Jump hat eine funktionierende FPGA-Verify-Engine, die 1 Million Ed25519-Signaturen pro Sekunde verifiziert — acht Karten skalieren linear auf 8 Mio./Sek. Trotzdem haben sie keinen Voll-FPGA-Validator ausgeliefert. Warum die Tile-Architektur absichtlich FPGA-förmig ist, warum genau zwei von neun Tiles FPGA-freundlich sind, und warum Protokoll-Velocity, branchige Execution und Ökonomie dem Rest die Tür schließen. Solana ist eine CPU-Chain, die gelernt hat, wie ein FPGA zu denken.',
           },
         ],
       },
