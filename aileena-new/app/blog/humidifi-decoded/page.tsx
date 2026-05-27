@@ -14,7 +14,7 @@ export default function HumidifiDecodedArticle() {
       {/* ── Body ── */}
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
 
-        <SectionLabel>01 — The dead-pool problem</SectionLabel>
+        <SectionLabel>The dead-pool problem</SectionLabel>
         <p style={bodyStyle}>
           Part I picked one humidifi pool more or less at random — <code style={codeStyle}>41cK…duRN</code>
           — and concluded humidifi was a price-tick registry based on the 50-sigs-in-one-slot pattern.
@@ -51,7 +51,7 @@ slot=385921704  age=166.2 days ago`}
           and <code style={codeStyle}>DB3s…RoRwW</code>.
         </p>
 
-        <SectionLabel>02 — Polling the live bytes</SectionLabel>
+        <SectionLabel>Polling the live bytes</SectionLabel>
         <p style={bodyStyle}>
           The recording loop is dull. Every two seconds, batch-fetch the pool account and a handful
           of Pyth price feeds (SOL, BTC, ETH, USDC, USDT, BONK) in one <code style={codeStyle}>getMultipleAccounts</code> call.
@@ -67,7 +67,7 @@ slot=385921704  age=166.2 days ago`}
           not. Whatever humidifi is pricing against lives off chain.
         </p>
 
-        <SectionLabel>03 — The byte map</SectionLabel>
+        <SectionLabel>The byte map</SectionLabel>
         <p style={bodyStyle}>
           Diffing every consecutive pair of snapshots and grouping the changed byte positions into
           contiguous runs produces six ranges:
@@ -95,7 +95,7 @@ slot=385921704  age=166.2 days ago`}
           live part is, it&apos;s 57 bytes wide and laid out in six neat clusters.
         </p>
 
-        <SectionLabel>04 — What the live bytes do</SectionLabel>
+        <SectionLabel>What the live bytes do</SectionLabel>
         <p style={bodyStyle}>
           For each hot range, try the four reasonable u-encodings — u8, u16-LE, u32-LE, u64-LE — at
           every offset inside it, and classify the resulting time series. A monotonically increasing
@@ -145,7 +145,7 @@ bytes [624–660]   u32-LE @ off 657   monotonic ↑
           numbers mean, the moment they move is the moment humidifi&apos;s quote changed.
         </p>
 
-        <SectionLabel>05 — The constants tell you something too</SectionLabel>
+        <SectionLabel>The constants tell you something too</SectionLabel>
         <p style={bodyStyle}>
           Inside the active range, two bytes are nearly invariant across all sixty snapshots:
         </p>
@@ -165,7 +165,7 @@ off=676   u8   examples: [109, 109, 109, 109, 109, …]`}
           is almost certainly the same instrument class as <code style={codeStyle}>Fksff…qVuH</code>.
         </p>
 
-        <SectionLabel>06 — What this is good for</SectionLabel>
+        <SectionLabel>What this is good for</SectionLabel>
         <p style={bodyStyle}>
           Humidifi quoted <a href="https://www.helius.dev/blog/solanas-proprietary-amm-revolution" target="_blank" rel="noopener noreferrer" style={inlineLink}>$8.55B in a single week</a> in
           late 2025 and was, briefly, Solana&apos;s top DEX by volume. The interesting thing about Part
@@ -197,7 +197,7 @@ off=676   u8   examples: [109, 109, 109, 109, 109, …]`}
             is to ask humidifi.</li>
         </ul>
 
-        <SectionLabel>07 — Reproducing</SectionLabel>
+        <SectionLabel>Reproducing</SectionLabel>
         <p style={bodyStyle}>
           Two scripts in <Link href="https://github.com/lilaclilac09/pamm-a" style={inlineLink}>pamm-a</Link> reproduce
           everything in this post on a public RPC:

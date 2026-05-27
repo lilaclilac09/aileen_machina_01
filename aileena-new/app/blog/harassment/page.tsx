@@ -127,7 +127,7 @@ export default function HarassmentArticle() {
         </p>
 
         {/* Section 01 */}
-        <SectionLabel>01 — It Almost Always Comes From Someone You Know</SectionLabel>
+        <SectionLabel>It Almost Always Comes From Someone You Know</SectionLabel>
         <p style={bodyStyle}>
           The stranger model is wrong and it has always been wrong.
         </p>
@@ -142,7 +142,7 @@ export default function HarassmentArticle() {
         </p>
 
         {/* Section 02 */}
-        <SectionLabel>02 — It Is About Power. It Was Always About Power.</SectionLabel>
+        <SectionLabel>It Is About Power. It Was Always About Power.</SectionLabel>
         <p style={bodyStyle}>
           Harassment is not impulsive. It is not a compliment that went too far. Organizational psychology research, including foundational work on power and social hierarchy (Fiske, 1993; Pratto &amp; Walker, 2004), documents that individuals in positions of power frequently use sexual behavior as a dominance signal — not out of attraction, but out of control-seeking.
         </p>
@@ -168,7 +168,7 @@ export default function HarassmentArticle() {
         </blockquote>
 
         {/* Section 03 */}
-        <SectionLabel>03 — Why You May Not Defend Yourself — And Why That Is Not Your Failure</SectionLabel>
+        <SectionLabel>Why You May Not Defend Yourself — And Why That Is Not Your Failure</SectionLabel>
         <p style={bodyStyle}>
           There is a physiological and psychological reason why many women freeze, go silent, or disengage in the moment harassment occurs — and why they often don&apos;t report it afterward.
         </p>
@@ -183,7 +183,7 @@ export default function HarassmentArticle() {
         </p>
 
         {/* Section 04 */}
-        <SectionLabel>04 — The Ambiguous Manager</SectionLabel>
+        <SectionLabel>The Ambiguous Manager</SectionLabel>
         <p style={bodyStyle}>
           This form is the most difficult to name because it is constructed specifically to resist naming.
         </p>
@@ -216,7 +216,7 @@ export default function HarassmentArticle() {
         </div>
 
         {/* Section 05 */}
-        <SectionLabel>05 — Seniority Does Not Protect You</SectionLabel>
+        <SectionLabel>Seniority Does Not Protect You</SectionLabel>
         <p style={bodyStyle}>
           Many women survive their early careers on a specific belief: <em>if I get senior enough, powerful enough, established enough, this will stop.</em>
         </p>
@@ -237,7 +237,7 @@ export default function HarassmentArticle() {
         </p>
 
         {/* Section 06 */}
-        <SectionLabel>06 — The People Who Watched</SectionLabel>
+        <SectionLabel>The People Who Watched</SectionLabel>
         <p style={bodyStyle}>
           In groups, responsibility diffuses. The bystander effect, documented by Darley and Latané in 1968, establishes that the presence of multiple observers decreases the likelihood that any individual will intervene. The more witnesses, in many cases, the less action.
         </p>
@@ -252,7 +252,7 @@ export default function HarassmentArticle() {
         </p>
 
         {/* Section 07 */}
-        <SectionLabel>07 — If They Threaten Your Job</SectionLabel>
+        <SectionLabel>If They Threaten Your Job</SectionLabel>
         <p style={bodyStyle}>
           Threatening employment in response to refusal or reporting is illegal retaliation in most jurisdictions. It is a separate offense from the harassment itself, often easier to demonstrate because it has a clear before and after.
         </p>
@@ -272,7 +272,7 @@ export default function HarassmentArticle() {
         </div>
 
         {/* Section 08 */}
-        <SectionLabel>08 — If They Threaten You Directly</SectionLabel>
+        <SectionLabel>If They Threaten You Directly</SectionLabel>
         <p style={bodyStyle}>
           A threat is evidence. It is the moment the other person has demonstrated, on record, that they know they have done something they need you to stay quiet about.
         </p>
@@ -293,7 +293,7 @@ export default function HarassmentArticle() {
         </p>
 
         {/* Section 09 */}
-        <SectionLabel>09 — The Cycle</SectionLabel>
+        <SectionLabel>The Cycle</SectionLabel>
         <p style={bodyStyle}>
           Women speak. Nobody catches it. It gets treated as a personal problem, an isolated incident, an overreaction. They are told to consider the team. They are told to think about what they want their reputation to be. Eventually they stop speaking. The outside world concludes the problem is smaller than it is. No structure changes. The next woman arrives and the cycle begins again.
         </p>
@@ -302,7 +302,7 @@ export default function HarassmentArticle() {
         </p>
 
         {/* Section 10 */}
-        <SectionLabel>10 — What You Are Actually Dealing With</SectionLabel>
+        <SectionLabel>What You Are Actually Dealing With</SectionLabel>
         <p style={bodyStyle}>
           You are not dealing with individual men who lack social awareness. You are dealing with a system that has processed thousands of these incidents before yours and found the most efficient route to absorb them without producing consequences. It knows how to wait. It knows how to make you doubt. It knows how long most people can sustain a complaint before they need to get back to their lives.
         </p>

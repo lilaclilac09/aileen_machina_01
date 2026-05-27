@@ -110,7 +110,7 @@ export default function DoubleZeroArticle() {
       {/* ── Body ── */}
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
 
-        <SectionLabel>01 — The bottleneck is jitter, not latency</SectionLabel>
+        <SectionLabel>The bottleneck is jitter, not latency</SectionLabel>
         <p style={bodyStyle}>
           Two different things get called &quot;latency.&quot;
         </p>
@@ -163,7 +163,7 @@ export default function DoubleZeroArticle() {
           doesn&apos;t move the speed of light. What it does is collapse the tail.
         </p>
 
-        <SectionLabel>02 — What DoubleZero actually is</SectionLabel>
+        <SectionLabel>What DoubleZero actually is</SectionLabel>
         <p style={bodyStyle}>
           Three layers stacked. Real terminology this time, not marketing.
         </p>
@@ -205,7 +205,7 @@ export default function DoubleZeroArticle() {
           get paid based on measured service quality, so the measurements have to be public.
         </p>
 
-        <SectionLabel>03 — The multicast trick</SectionLabel>
+        <SectionLabel>The multicast trick</SectionLabel>
         <p style={bodyStyle}>
           Here is what makes DoubleZero structurally different from &quot;we leased fiber.&quot;
         </p>
@@ -267,7 +267,7 @@ export default function DoubleZeroArticle() {
           as a network primitive — the harder integration, and the bigger payoff.
         </PullQuote>
 
-        <SectionLabel>04 — Connecting a validator</SectionLabel>
+        <SectionLabel>Connecting a validator</SectionLabel>
         <p style={bodyStyle}>
           The part people get wrong: the original DoubleZero pitch sounded like &quot;lease a wavelength,
           rebuild your validator.&quot; The actual story is much smaller.
@@ -317,7 +317,7 @@ doublezero status        # confirm connection`}
           or care that the better path is on dedicated fiber.
         </p>
 
-        <SectionLabel>05 — Connecting a searcher or extractor</SectionLabel>
+        <SectionLabel>Connecting a searcher or extractor</SectionLabel>
         <p style={bodyStyle}>
           The searcher geometry is different. You don&apos;t need to talk to every validator. You need to
           talk to the current leader, and the next few leaders, with the lowest possible tail latency.
@@ -350,7 +350,7 @@ doublezero status        # confirm connection`}
           port works out at much smaller scales for searchers than it does for validators.
         </p>
 
-        <SectionLabel>06 — Compared to renting your own fiber</SectionLabel>
+        <SectionLabel>Compared to renting your own fiber</SectionLabel>
         <p style={bodyStyle}>
           HFT firms have been solving this problem since ~2010, and the comparison is worth making
           explicit because it&apos;s exactly why DoubleZero is structured as a shared substrate.
@@ -461,7 +461,7 @@ doublezero status        # confirm connection`}
           network can do and a per-firm lease structurally cannot.
         </p>
 
-        <SectionLabel>07 — Frankendancer and the integration surface</SectionLabel>
+        <SectionLabel>Frankendancer and the integration surface</SectionLabel>
         <p style={bodyStyle}>
           This is the part that gets undersold in the Malbec docs and is the most interesting for anyone
           who actually writes validator code.
@@ -540,7 +540,7 @@ doublezero status        # confirm connection`}
           </p>
         </div>
 
-        <SectionLabel>08 — What developers can build on top</SectionLabel>
+        <SectionLabel>What developers can build on top</SectionLabel>
         <p style={bodyStyle}>
           The{' '}
           <a href="https://github.com/doublezerofoundation/" target="_blank" rel="noopener noreferrer" style={inlineLink}>DoubleZero Foundation GitHub org</a>{' '}
@@ -612,7 +612,7 @@ doublezero status        # confirm connection`}
           </p>
         </div>
 
-        <SectionLabel>09 — Performance, with real numbers where they exist</SectionLabel>
+        <SectionLabel>Performance, with real numbers where they exist</SectionLabel>
         <p style={bodyStyle}>
           Three things to measure, in order of how much they matter to participants:
         </p>
@@ -643,7 +643,7 @@ doublezero status        # confirm connection`}
           propagation has to land in 200ms.
         </p>
 
-        <SectionLabel>10 — What this unlocks, and the counter-thesis</SectionLabel>
+        <SectionLabel>What this unlocks, and the counter-thesis</SectionLabel>
         <p style={bodyStyle}>If this works at scale, three things happen:</p>
         <ol style={{ paddingLeft: 24, margin: '24px 0 32px', lineHeight: 1.9, color: 'rgba(255,255,255,0.65)' }}>
           <li style={{ marginBottom: 12 }}>
@@ -690,7 +690,7 @@ doublezero status        # confirm connection`}
           evidence the bet is paying.
         </blockquote>
 
-        <SectionLabel>11 — What to watch over the next year</SectionLabel>
+        <SectionLabel>What to watch over the next year</SectionLabel>
         <ul style={listStyle}>
           <li><strong style={strong}>Skip rate distribution by region.</strong> Tokyo/Singapore validators on DoubleZero converging with Frankfurt validators = thesis working. Track via standard validator leaderboards plus the <a href="https://data.malbeclabs.com/" target="_blank" rel="noopener noreferrer" style={inlineLink}>DZ telemetry dashboard</a>.</li>
           <li><strong style={strong}>Multicast group adoption.</strong> Visible directly at <a href="https://data.malbeclabs.com/dz/multicast-groups" target="_blank" rel="noopener noreferrer" style={inlineLink}>data.malbeclabs.com/dz/multicast-groups</a>. The interesting curve is how many validators move from unicast-over-DZ to multicast-over-DZ.</li>

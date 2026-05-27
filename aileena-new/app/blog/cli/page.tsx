@@ -14,7 +14,7 @@ export default function CliArticle() {
       {/* ── Body ── */}
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
 
-        <SectionLabel>01 — The Two CLIs</SectionLabel>
+        <SectionLabel>The Two CLIs</SectionLabel>
         <p style={bodyStyle}>
           The shell prompt looks the same in both contexts: a blinking cursor over a black background, the muscle memory of <code style={codeStyle}>↑</code> for the last command, <code style={codeStyle}>|</code> to chain one tool into another. But the physics underneath are different. A developer running <code style={codeStyle}>git push</code> can wait two seconds and lose nothing. A trader running <code style={codeStyle}>cancel</code> on a stale quote can wait two hundred milliseconds and lose everything. The interface is identical. The deadline is not.
         </p>
@@ -22,7 +22,7 @@ export default function CliArticle() {
           That difference shapes the whole tooling stack. The dev CLI optimizes for ergonomics — readable output, helpful errors, sensible defaults, retries that recover gracefully. The trader CLI optimizes for the inverse — silent on the happy path, terse on errors, deterministic latency, retries that fail loud because a retry on a filled order is a double-position. Both are CLIs. They are not the same artifact.
         </p>
 
-        <SectionLabel>02 — Normal-Case CLI: The Universal Joint</SectionLabel>
+        <SectionLabel>Normal-Case CLI: The Universal Joint</SectionLabel>
         <p style={bodyStyle}>
           The normal-case CLI is the one most developers have a relationship with. <code style={codeStyle}>git</code>, <code style={codeStyle}>npm</code>, <code style={codeStyle}>kubectl</code>, <code style={codeStyle}>aws</code>, <code style={codeStyle}>gh</code>, <code style={codeStyle}>ssh</code>, <code style={codeStyle}>jq</code>, <code style={codeStyle}>curl</code>. Each does one thing, exposes it through flags and stdin, and emits text on stdout that another tool can read. The shell is the universal joint between them. The script is the unit of repeatability.
         </p>
@@ -38,7 +38,7 @@ export default function CliArticle() {
 gh pr list --json title,number | jq '.[] | select(.title | test("WIP"))' | head -5`}</pre>
         </div>
 
-        <SectionLabel>03 — Trading-Case CLI: Why Traders Refuse to Leave the Terminal</SectionLabel>
+        <SectionLabel>Trading-Case CLI: Why Traders Refuse to Leave the Terminal</SectionLabel>
         <p style={bodyStyle}>
           Walk into any prop shop or any one-person Solana-bot operation and you will find a terminal multiplexer — tmux, zellij, kitty — with eight panes split across two monitors. One pane runs a price stream. One runs the strategy log. One has an open <code style={codeStyle}>shell</code> on the exchange&apos;s API, ready to flatten the book if something goes wrong. There is usually no chart. The chart is a downstream artifact. The CLI is the floor.
         </p>
@@ -64,7 +64,7 @@ gh pr list --json title,number | jq '.[] | select(.title | test("WIP"))' | head 
           </p>
         </div>
 
-        <SectionLabel>04 — The Trader&apos;s Toolbox in 2026</SectionLabel>
+        <SectionLabel>The Trader&apos;s Toolbox in 2026</SectionLabel>
         <p style={bodyStyle}>
           The set of CLIs a working crypto trader actually has installed has narrowed and deepened over the last two years. The category list reads short. The implementation list is long.
         </p>
@@ -122,7 +122,7 @@ gh pr list --json title,number | jq '.[] | select(.title | test("WIP"))' | head 
           Three of these — Pyth Hermes for the price feed, OpenClaw as the agent runtime, OKX for execution — are the substrate of a workable single-trader stack. Wired through a thin CLI, they go from a list of services into a single command line.
         </p>
 
-        <SectionLabel>05 — Hermes: The Pull Oracle as a Curl Target</SectionLabel>
+        <SectionLabel>Hermes: The Pull Oracle as a Curl Target</SectionLabel>
         <p style={bodyStyle}>
           Hermes is the Pyth Network price service. It speaks HTTP, SSE, and WebSocket. It serves both an off-chain JSON view of the latest aggregated price and a binary VAA blob that can be posted on-chain to push the price into a Pyth oracle contract. Two interfaces, one binary. For a CLI-first trader, the relevant one is the JSON.
         </p>
@@ -149,7 +149,7 @@ curl -sN 'https://hermes.pyth.network/v2/updates/price/stream?ids%5B%5D=ef0d8b6f
           The trade-off Hermes makes is honesty about freshness. Each price object carries a <code style={codeStyle}>publish_time</code> and a <code style={codeStyle}>conf</code> (confidence band). A strategy that ignores either is making an assumption the API explicitly refuses to make. For a market-making loop, the conf band is part of the decision: widen the quote when conf widens, pull the quote when <code style={codeStyle}>publish_time</code> drifts beyond a threshold.
         </p>
 
-        <SectionLabel>06 — OpenClaw: An Agent Runtime That Lives in the Terminal</SectionLabel>
+        <SectionLabel>OpenClaw: An Agent Runtime That Lives in the Terminal</SectionLabel>
         <p style={bodyStyle}>
           OpenClaw is an agent runtime that runs locally, holds long-lived workspaces and identities, schedules tasks on cron, and routes messages across channels (Telegram, web, shell). For trading, the relevant primitives are four: workspaces (a per-strategy directory with its own state), skills (small scripts the agent can invoke), cron (timed triggers), and subagents (parallel reasoning workers under a coordinator).
         </p>
@@ -177,7 +177,7 @@ curl -sN 'https://hermes.pyth.network/v2/updates/price/stream?ids%5B%5D=ef0d8b6f
           The skill manifest tells the agent <em>when</em> to reach for the tool. The agent supplies arguments. The executable runs in a sandboxed subprocess and returns JSON on stdout. From the agent&apos;s perspective it is the same shape as any other tool call. From the trader&apos;s perspective it is a script they can run manually with the same arguments — which is exactly the property an audit trail needs.
         </p>
 
-        <SectionLabel>07 — OKX as the Execution Sink</SectionLabel>
+        <SectionLabel>OKX as the Execution Sink</SectionLabel>
         <p style={bodyStyle}>
           OKX exposes a V5 REST API and a parallel WebSocket. For agent-driven trading the REST path is the simpler surface: every order is one HTTP call with an HMAC signature derived from the timestamp, method, path, and body. The same shape works for spot, perpetuals, options, and margin — only the <code style={codeStyle}>instId</code> and <code style={codeStyle}>tdMode</code> change. The exchange is also one of the first majors to publish an explicit AI Agent SDK that wraps order placement, balance queries, and position management in a typed interface designed to be reached by an LLM.
         </p>
@@ -218,7 +218,7 @@ await fetch('https://www.okx.com/api/v5/trade/order', {
           The reason this is fifteen lines and not five hundred is that the protocol is small. Signing is HMAC-SHA256. There is no order-state machine in the SDK that the API itself does not also expose. Once you have this snippet wrapped as an OpenClaw skill, an agent can place orders by emitting a JSON argument object — no exchange adapter framework required.
         </p>
 
-        <SectionLabel>08 — The Thin Wrapper: Wiring It Together</SectionLabel>
+        <SectionLabel>The Thin Wrapper: Wiring It Together</SectionLabel>
         <p style={bodyStyle}>
           The whole architecture lands in one diagram: a price feed (Hermes) on the left, an execution sink (OKX or a Solana RPC) on the right, an agent runtime (OpenClaw) in the middle as the coordinator, and a thin TypeScript CLI as the glue. The CLI does almost nothing — it parses one command, hands the work to a skill, prints the result. The agent does the reasoning. The exchange and the oracle do the work.
         </p>
@@ -300,7 +300,7 @@ curl -sN 'https://hermes.pyth.network/v2/updates/price/stream?ids%5B%5D=ef0d...5
           The agent doesn&apos;t replace the CLI. It becomes another stage in the pipe — one that happens to reason.
         </blockquote>
 
-        <SectionLabel>09 — Why Thin Wins Over Monolithic</SectionLabel>
+        <SectionLabel>Why Thin Wins Over Monolithic</SectionLabel>
         <p style={bodyStyle}>
           The temptation in trading-bot design is to write the universe inside one process: strategy, risk, exchange adapter, paper-trading sandbox, dashboard. Hummingbot does this. Freqtrade does this. They are good products and they have a real audience. They are also enormous and opinionated, and the cost of swapping out their orderbook reader, their exchange client, or their notification layer is non-trivial.
         </p>
@@ -357,7 +357,7 @@ curl -sN 'https://hermes.pyth.network/v2/updates/price/stream?ids%5B%5D=ef0d...5
           </table>
         </div>
 
-        <SectionLabel>10 — The Other Two Patterns: MCP Servers and Codegen Skills</SectionLabel>
+        <SectionLabel>The Other Two Patterns: MCP Servers and Codegen Skills</SectionLabel>
         <p style={bodyStyle}>
           The thin-CLI / monolithic-framework split isn&apos;t the only axis. A third tradition has taken shape in 2026 around <em>structured</em> agent-tool protocols — and it solves real problems the thin CLI ignores. Two flavours are worth naming individually: MCP servers, and codegen skills. They are not competing with the CLI pattern. They sit at different points in the stack.
         </p>
@@ -406,7 +406,7 @@ client.newSwapQuoteStream({
           Titan also ships <code style={codeStyle}>llms.txt</code> and <code style={codeStyle}>llms-full.txt</code> at their docs root — a 2025 convention for serving LLM-optimized documentation that GitBook now auto-generates. The fact that this is now a default tells you something specific: the primary consumer of API docs in 2026 is increasingly an agent rather than a human reading a sidebar.
         </p>
 
-        <SectionLabel>11 — Three Patterns, Three Deadlines</SectionLabel>
+        <SectionLabel>Three Patterns, Three Deadlines</SectionLabel>
         <p style={bodyStyle}>
           The clean way to read the field is that each pattern wins on a different deadline.
         </p>
@@ -494,7 +494,7 @@ client.newSwapQuoteStream({
           The Titan column is the most architecturally interesting because it tells you what the API design itself has been doing. Argos required MessagePack for the byte savings on streaming quotes. MessagePack required <code style={codeStyle}>BigInt</code> and <code style={codeStyle}>Uint8Array</code> in the client. Those two requirements made the integration unreachable for an LLM writing TypeScript from memory. The skill is the protocol-author admitting that the wire format is now an LLM-ergonomics problem — and shipping the fix in the same repo. That admission is the actually new thing in 2026, more than MCP or any specific agent kit. The protocol layer and the agent layer have noticed each other.
         </p>
 
-        <SectionLabel>12 — The Three Operating Postures</SectionLabel>
+        <SectionLabel>The Three Operating Postures</SectionLabel>
         <p style={bodyStyle}>
           Watching how this style of stack gets used in the wild, three postures recur. They are not exclusive — a trader will switch between them inside the same week — but they shape which tools get reached for.
         </p>
@@ -515,7 +515,7 @@ client.newSwapQuoteStream({
           A common configuration is two loops at different speeds. The inner loop, deterministic and millisecond-scoped, fires on every tick. The outer loop, LLM-driven and second-scoped, evaluates state once a minute and writes parameters into a file the inner loop reads. The agent is the slow brain; the script is the fast hand. The CLI is the table they share.
         </p>
 
-        <SectionLabel>13 — What the Agent Layer Actually Buys You</SectionLabel>
+        <SectionLabel>What the Agent Layer Actually Buys You</SectionLabel>
         <p style={bodyStyle}>
           A reasonable objection: if the inner loop is plain code, what does the agent layer earn? Three answers, ordered by how often they actually pay off.
         </p>
@@ -532,7 +532,7 @@ client.newSwapQuoteStream({
           </p>
         </div>
 
-        <SectionLabel>14 — What This Doesn&apos;t Solve</SectionLabel>
+        <SectionLabel>What This Doesn&apos;t Solve</SectionLabel>
         <p style={bodyStyle}>
           The thin-CLI pattern is not magic. It does not give you alpha. It does not give you a colocated server in NY4 or AWS Tokyo. It does not protect you from a flash crash, a custodial outage, or your own conviction. Three specific things it explicitly punts on:
         </p>
@@ -549,7 +549,7 @@ client.newSwapQuoteStream({
           </p>
         </div>
 
-        <SectionLabel>15 — Where This Goes</SectionLabel>
+        <SectionLabel>Where This Goes</SectionLabel>
         <p style={bodyStyle}>
           The terminal didn&apos;t lose to the GUI in trading; it absorbed it. Every chart on a Bloomberg or a TradingView panel is a side car to a CLI session somewhere. The new layer — agent runtimes that hold context, MCP servers that gate tool use behind permissions, codegen skills that translate quirky wire formats — is doing the same thing the shell did: becoming the substrate on which automation compiles. OpenClaw, Hermes, OKX&apos;s AI Agent SDK, Solana Agent Kit, GOAT, Titan&apos;s skill, and the dozen similar runtimes shipping in 2026 are not competing with the CLI. They are extending it at different points in the stack — runtime, console, design-time.
         </p>

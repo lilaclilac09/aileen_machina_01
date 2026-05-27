@@ -103,7 +103,7 @@ export default function ZcashFpgaArticle() {
       {/* ── Body ── */}
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
 
-        <SectionLabel>01 &mdash; The artifact</SectionLabel>
+        <SectionLabel>The artifact</SectionLabel>
         <p style={bodyStyle}>
           A Zcash Foundation grant produced one repository, <a href="https://github.com/ZcashFoundation/zcash-fpga" target="_blank" rel="noopener noreferrer" style={inlineLink}>ZcashFoundation/zcash-fpga</a>,
           authored by Benjamin Devlin. It contains three independently-buildable hardware engines for FPGA targets:
@@ -126,7 +126,7 @@ export default function ZcashFpgaArticle() {
           200&nbsp;MHz, and is freely licensed.
         </p>
 
-        <SectionLabel>02 &mdash; What zcash-fpga actually is</SectionLabel>
+        <SectionLabel>What zcash-fpga actually is</SectionLabel>
         <p style={bodyStyle}>
           Top-level: a SystemVerilog source tree with three optional engines, a shared <code style={code}>ip_cores/</code>{' '}
           library, and project files for two FPGA targets &mdash; AWS F1 (Xilinx VU9P + 64&nbsp;GB DDR4) and Bittware
@@ -157,7 +157,7 @@ export default function ZcashFpgaArticle() {
           with different constants.
         </p>
 
-        <SectionLabel>03 &mdash; The Equihash engine, briefly</SectionLabel>
+        <SectionLabel>The Equihash engine, briefly</SectionLabel>
         <p style={bodyStyle}>
           The Equihash 200,9 engine verifies a Zcash block header&apos;s proof-of-work solution and applies the
           difficulty filter. It exists because Zcash uses Equihash, Equihash is memory-hard by design, and
@@ -170,7 +170,7 @@ export default function ZcashFpgaArticle() {
           works, it&apos;s correct, and nobody is racing to integrate it.
         </p>
 
-        <SectionLabel>04 &mdash; The secp256k1 engine: the one that&apos;s actually useful</SectionLabel>
+        <SectionLabel>The secp256k1 engine: the one that&apos;s actually useful</SectionLabel>
         <p style={bodyStyle}>
           Zcash supports both shielded (zk-SNARK) and transparent (Bitcoin-style) addresses. Transparent transactions
           use secp256k1 ECDSA, the same curve as Bitcoin and Ethereum. The FPGA engine verifies these signatures
@@ -187,7 +187,7 @@ export default function ZcashFpgaArticle() {
           repo uses, is the most underrated piece of the whole grant.
         </p>
 
-        <SectionLabel>05 &mdash; The Pairing VM in detail</SectionLabel>
+        <SectionLabel>The Pairing VM in detail</SectionLabel>
         <p style={bodyStyle}>
           Now the interesting part. The BLS12-381 coprocessor is not built around &ldquo;one circuit per operation.&rdquo;
           It is built around an instruction set. You load a program into the 2&nbsp;KB instruction memory, point the
@@ -251,7 +251,7 @@ FP2_JB  // G2 point, Jacobian`}</pre>
           systems with many auxiliary commitments, and even then you can stream from DDR4.
         </p>
 
-        <SectionLabel>06 &mdash; Why an instruction set instead of a pipeline</SectionLabel>
+        <SectionLabel>Why an instruction set instead of a pipeline</SectionLabel>
         <p style={bodyStyle}>
           The default move for FPGA crypto accelerators is to bake one specific operation into one specific
           pipeline. Twelve stages of multiplication and reduction, optimised for exactly one curve, exactly one
@@ -274,7 +274,7 @@ FP2_JB  // G2 point, Jacobian`}</pre>
           chose the right point.
         </p>
 
-        <SectionLabel>07 &mdash; The IP cores: quietly excellent engineering</SectionLabel>
+        <SectionLabel>The IP cores: quietly excellent engineering</SectionLabel>
         <p style={bodyStyle}>
           Two design choices in <code style={code}>ip_cores/</code> are worth flagging.
         </p>
@@ -302,7 +302,7 @@ FP2_JB  // G2 point, Jacobian`}</pre>
           cores. This one is.
         </p>
 
-        <SectionLabel>08 &mdash; Why nobody inherited it</SectionLabel>
+        <SectionLabel>Why nobody inherited it</SectionLabel>
         <p style={bodyStyle}>
           With the artifact described, the question is why it&apos;s not infrastructure today. Four reasons,
           ordered roughly by how decisive each was.
@@ -338,7 +338,7 @@ FP2_JB  // G2 point, Jacobian`}</pre>
           window closed quietly.
         </p>
 
-        <SectionLabel>09 &mdash; What you&apos;d build with it today</SectionLabel>
+        <SectionLabel>What you&apos;d build with it today</SectionLabel>
         <p style={bodyStyle}>
           The repo is not dead, just dormant. If you wanted to lift pieces of it into 2026 infrastructure, three
           targets are obvious:
@@ -364,7 +364,7 @@ FP2_JB  // G2 point, Jacobian`}</pre>
           Pairing VM is curve-agnostic given the right base-field constants.
         </p>
 
-        <SectionLabel>10 &mdash; The takeaway</SectionLabel>
+        <SectionLabel>The takeaway</SectionLabel>
         <p style={bodyStyle}>
           The gap between published cryptography and deployed cryptography runs through a layer almost nobody
           writes about: production hardware. The Zcash Foundation funded one of the cleanest open-source examples

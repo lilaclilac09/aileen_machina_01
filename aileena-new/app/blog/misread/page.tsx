@@ -130,7 +130,7 @@ export default function MisreadArticle() {
       {/* ── Body ── */}
       <article style={{ maxWidth: 800, margin: '0 auto', padding: '64px 32px 120px' }}>
 
-        <SectionLabel>01 — {isDE ? 'Woher das Missverständnis kommt' : 'Where Misreading Comes From'}</SectionLabel>
+        <SectionLabel>{isDE ? 'Woher das Missverständnis kommt' : 'Where Misreading Comes From'}</SectionLabel>
         <p style={bodyStyle}>
           {isDE
             ? 'Missverständnisse kommen selten aus Böswilligkeit. Meistens ist es kognitive Trägheit — eine Standardannahme darüber, "wie Frauen sein sollten", so oft verstärkt, dass sie zur Luft wird. Unsichtbar. Überall.'
@@ -163,7 +163,7 @@ export default function MisreadArticle() {
             : '"She is not trying to prove anything. She is only becoming what she always could have been."'}
         </blockquote>
 
-        <SectionLabel>02 — {isDE ? 'Nicht Opposition, nicht Slogans' : 'Not Opposition, Not Slogans'}</SectionLabel>
+        <SectionLabel>{isDE ? 'Nicht Opposition, nicht Slogans' : 'Not Opposition, Not Slogans'}</SectionLabel>
         <p style={bodyStyle}>
           {isDE
             ? 'Lange lebte der Diskurs über Feminismus in der Sprache des Krieges: Patriarchat widerstehen, Systeme demontieren, Regeln brechen. Das hat historische Logik. Aber wenn "Opposition" die einzige Grammatik wird, wird Feminismus erschöpfend — man muss immer wütend, immer wachsam, immer Linien ziehend sein.'
@@ -180,7 +180,7 @@ export default function MisreadArticle() {
             : 'Conformity has never been the answer. In any direction.'}
         </p>
 
-        <SectionLabel>03 — {isDE ? 'Es geht um Ausdruck' : "It's About Expression"}</SectionLabel>
+        <SectionLabel>{isDE ? 'Es geht um Ausdruck' : "It's About Expression"}</SectionLabel>
         <p style={bodyStyle}>
           {isDE
             ? 'Was wirklich wichtig ist, ist Ausdruck.'
@@ -202,7 +202,7 @@ export default function MisreadArticle() {
             : 'Feminist practice is often this simple: do your work. Ask for what you\'re owed. Let your name be present.'}
         </p>
 
-        <SectionLabel>04 — {isDE ? 'Wirtschaftliche Anerkennung ist die Sprache des Respekts' : 'Economic Recognition Is the Language of Respect'}</SectionLabel>
+        <SectionLabel>{isDE ? 'Wirtschaftliche Anerkennung ist die Sprache des Respekts' : 'Economic Recognition Is the Language of Respect'}</SectionLabel>
         <p style={bodyStyle}>
           {isDE
             ? 'Gesehen zu werden ist nur der erste Schritt. Fair vergütet zu werden ist die systemische Anerkennung.'
@@ -219,7 +219,7 @@ export default function MisreadArticle() {
             : 'Fighting for fair economic return is not "competing with men." It is establishing a different baseline — one where ability itself is the unit of measure, not ability after a gender discount is applied.'}
         </p>
 
-        <SectionLabel>05 — {isDE ? 'Positiv. Optimistisch. Gegenseitig.' : 'Positive. Optimistic. Mutual.'}</SectionLabel>
+        <SectionLabel>{isDE ? 'Positiv. Optimistisch. Gegenseitig.' : 'Positive. Optimistic. Mutual.'}</SectionLabel>
         <p style={bodyStyle}>
           {isDE
             ? 'Zuletzt, und am wichtigsten: Das muss nicht in Trauer und Wut geschehen.'

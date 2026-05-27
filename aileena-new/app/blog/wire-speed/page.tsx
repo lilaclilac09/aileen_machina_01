@@ -123,7 +123,7 @@ export default function WireSpeedArticle() {
       {/* ── Body ── */}
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
 
-        <SectionLabel>01 — The 400-Millisecond Machine</SectionLabel>
+        <SectionLabel>The 400-Millisecond Machine</SectionLabel>
         <p style={bodyStyle}>
           Every Solana transaction passes through a piece of software called a <strong style={strong}>validator</strong>. A validator is
           a state machine: it reads transactions off the network, verifies their signatures, executes the
@@ -173,7 +173,7 @@ export default function WireSpeedArticle() {
           ride on top.
         </p>
 
-        <SectionLabel>02 — Firedancer: The C Engine</SectionLabel>
+        <SectionLabel>Firedancer: The C Engine</SectionLabel>
         <p style={bodyStyle}>
           Firedancer is what happens when a high-frequency-trading firm writes a blockchain validator. Jump Crypto
           built it from scratch in C, with no garbage collection, no shared memory between threads, and one job per
@@ -241,7 +241,7 @@ export default function WireSpeedArticle() {
           </p>
         </div>
 
-        <SectionLabel>03 — The Pipeline: A Transaction&apos;s Six Checkpoints</SectionLabel>
+        <SectionLabel>The Pipeline: A Transaction&apos;s Six Checkpoints</SectionLabel>
         <p style={bodyStyle}>
           Imagine you click <em>Swap</em> on Jupiter. In the next 400 milliseconds, your transaction passes through six
           distinct checkpoints inside a Firedancer validator before it is committed to the chain. Every checkpoint
@@ -283,7 +283,7 @@ export default function WireSpeedArticle() {
           yours).
         </p>
 
-        <SectionLabel>04 — Samba: MEV at Wire Speed</SectionLabel>
+        <SectionLabel>Samba: MEV at Wire Speed</SectionLabel>
         <p style={bodyStyle}>
           <strong style={strong}>MEV</strong> — Maximum Extractable Value — is money that exists purely in the ordering of
           transactions. If your arbitrage trade lands one slot after a large price-moving swap and one slot before
@@ -334,7 +334,7 @@ samba/src/discof/resolv/   ← Modified: resolv tile with MEV routing`}
           </p>
         </div>
 
-        <SectionLabel>05 — Delorean: The Time Machine</SectionLabel>
+        <SectionLabel>Delorean: The Time Machine</SectionLabel>
         <p style={bodyStyle}>
           A trading bot loses $40,000 on a transaction that should have succeeded. The transaction is buried in a
           block from three days ago. How do you debug it? Without Delorean, you cannot — the on-chain state has
@@ -426,7 +426,7 @@ samba/src/discof/resolv/   ← Modified: resolv tile with MEV routing`}
           </p>
         </div>
 
-        <SectionLabel>06 — pmm-sim: The Private AMM Dissection Lab</SectionLabel>
+        <SectionLabel>pmm-sim: The Private AMM Dissection Lab</SectionLabel>
         <p style={bodyStyle}>
           You swap 15,000 USDC into WSOL on Jupiter. Your friend calls the exact same private AMM contract directly,
           same pool, same amount. She gets less WSOL. Same code, same liquidity, different result. Why?
@@ -505,7 +505,7 @@ svm.add_program_from_file(program_id, path_to_elf);`}
           routing through one aggregator versus another.
         </p>
 
-        <SectionLabel>07 — Client Diversity: Why Three Engines Beat One</SectionLabel>
+        <SectionLabel>Client Diversity: Why Three Engines Beat One</SectionLabel>
         <p style={bodyStyle}>
           In March 2023, a bug in Agave caused a 4.5-hour mainnet outage. Every validator was running the same code,
           so every validator was vulnerable to the same bug. The fix had to come from one team. The chain stopped.
@@ -570,7 +570,7 @@ svm.add_program_from_file(program_id, path_to_elf);`}
           alone.
         </blockquote>
 
-        <SectionLabel>08 — Who Uses What, When</SectionLabel>
+        <SectionLabel>Who Uses What, When</SectionLabel>
         <p style={bodyStyle}>
           Every project in this stack solves a different problem for a different kind of user. Before reaching for one,
           ask yourself which seat you are sitting in. Below are the eight most common ones, the tool that fits each,
@@ -641,7 +641,7 @@ svm.add_program_from_file(program_id, path_to_elf);`}
           gotcha="Do not start with the runtime. Start with networking. The interesting design decisions in modern blockchains are in how packets move, not in how the language executes — by the time you reach the runtime, half the design space has already been settled by the pipeline."
         />
 
-        <SectionLabel>09 — A Builder&apos;s Quickstart Path</SectionLabel>
+        <SectionLabel>A Builder&apos;s Quickstart Path</SectionLabel>
         <p style={bodyStyle}>
           If you are coming in cold and want a concrete sequence to follow, this is the shortest path that produces
           something running:
@@ -664,7 +664,7 @@ svm.add_program_from_file(program_id, path_to_elf);`}
           ))}
         </ol>
 
-        <SectionLabel>10 — The Bigger Picture</SectionLabel>
+        <SectionLabel>The Bigger Picture</SectionLabel>
         <p style={bodyStyle}>
           Four teams. Four open-source repos. One observable thread: Solana is no longer one validator and one
           runtime and one debugger. It is becoming a stack where the validator layer competes on architecture, the
