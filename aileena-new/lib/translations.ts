@@ -8,6 +8,8 @@ export const t = {
       body: 'Software engineer, DeFi researcher, DJ. Building things that work — and asking what it means when they start working on their own.',
       footer: 'SINCE 2025 / AILEENA / MACHINA',
       scroll: 'scroll',
+      line: 'I build things in code, write about why they break, and DJ while they keep running.',
+      talkAgent: 'Talk to the agent →',
     },
     sound: {
       tag: 'SOUND',
@@ -20,6 +22,19 @@ export const t = {
       track2Tag: 'Deck B',
       track2Title: 'Mix 02',
       track2Body: 'Alternate mix. Different energy.',
+      teaser: 'Two decks, recorded in Berlin. Press play, or open the full station.',
+      viewAll: 'Open the DJ station →',
+    },
+    visual: {
+      tag: 'VISUAL',
+      heading: 'Visual',
+      body: 'Photographs and objects from the years before everything became code.',
+      items: [
+        { src: '/berlin.jpg', alt: 'Berlin' },
+        { src: '/tobira.jpg', alt: 'Tobira' },
+        { src: '/recall.jpg', alt: 'Recall' },
+        { src: '/miniskirt.jpg', alt: 'Miniskirt' },
+      ],
     },
     works: {
       tag: 'WORKS',
@@ -58,7 +73,21 @@ export const t = {
     },
     pow: {
       tag: 'SELECTED WORK',
-      heading: 'Selected Work',
+      heading: 'Selected work',
+      viewAll: 'See all work →',
+      featured: [
+        {
+          name: 'KeyShield',
+          why: 'Wallet signatures replace API keys. A small experiment in trust without exposure.',
+          href: 'https://github.com/lilaclilac09/keyshield',
+        },
+        {
+          name: 'PAMM MEV',
+          why: 'Watching how MEV moves through a Solana pool, one Monte Carlo at a time.',
+          href: 'https://github.com/lilaclilac09/solana-pamm-MEV-binary-monte-analysis-contagious-pools',
+          liveHref: 'https://mev.aileena.xyz',
+        },
+      ],
       items: [
         {
           name: 'KeyShield',
@@ -203,9 +232,9 @@ export const t = {
         ],
       },
       womanInTech: {
-        tag: 'PERSPECTIVE',
-        heading: 'Woman in Tech',
-        read: 'Read →',
+        tag: 'NOTES',
+        heading: 'Notes',
+        read: 'Read',
         posts: [
           {
             date: '2026.02.15',
@@ -250,25 +279,18 @@ export const t = {
         {
           heading: 'EXPLORE',
           links: [
-            { label: 'Sound', href: '#sound' },
-            { label: 'Blog', href: '#blog' },
+            { label: 'Dispatch', href: '#dispatch' },
+            { label: 'Work', href: '/works' },
+            { label: 'Sound', href: '/sound' },
+            { label: 'Notes', href: '#notes' },
           ],
         },
         {
-          heading: 'LINKS',
+          heading: 'PROJECTS',
           links: [
-            { label: 'Works', href: '#works' },
-            { label: 'Elsewhere', href: 'https://www.jonesicecream.com' },
-            { label: 'Best Granola', href: 'https://sofiberlin.com' },
-            { label: 'Ryo Lu', href: 'https://ryo.lu' },
-          ],
-        },
-        {
-          heading: 'CONNECT',
-          links: [
-            { label: 'AILEENA.XYZ', href: 'https://aileena.xyz' },
             { label: 'MEV Dashboard', href: 'https://mev.aileena.xyz' },
-            { label: 'SoundCloud', href: 'https://soundcloud.com' },
+            { label: 'Finance', href: 'https://finance.aileena.xyz' },
+            { label: 'GitHub', href: 'https://github.com/lilaclilac09' },
           ],
         },
       ],
@@ -281,6 +303,8 @@ export const t = {
       body: 'Software-Ingenieurin, DeFi-Researcherin, DJ. Systeme bauen, die funktionieren, und fragen, was es bedeutet, wenn sie anfangen, eigenständig zu arbeiten.',
       footer: 'SEIT 2025 / AILEENA / MACHINA',
       scroll: 'scrollen',
+      line: 'Ich baue Dinge in Code, schreibe darüber, warum sie kaputtgehen, und lege auf, während sie laufen.',
+      talkAgent: 'Mit dem Agent sprechen →',
     },
     sound: {
       tag: 'SOUND',
@@ -293,6 +317,19 @@ export const t = {
       track2Tag: 'Deck B',
       track2Title: 'Mix 02',
       track2Body: 'Alternativer Mix. Andere Energie.',
+      teaser: 'Zwei Decks, aufgenommen in Berlin. Drück Play, oder öffne die ganze Station.',
+      viewAll: 'DJ-Station öffnen →',
+    },
+    visual: {
+      tag: 'VISUAL',
+      heading: 'Visuell',
+      body: 'Fotografien und Objekte aus den Jahren, bevor alles zu Code wurde.',
+      items: [
+        { src: '/berlin.jpg', alt: 'Berlin' },
+        { src: '/tobira.jpg', alt: 'Tobira' },
+        { src: '/recall.jpg', alt: 'Recall' },
+        { src: '/miniskirt.jpg', alt: 'Miniskirt' },
+      ],
     },
     works: {
       tag: 'ARBEITEN',
@@ -332,6 +369,20 @@ export const t = {
     pow: {
       tag: 'AUSGEWÄHLTE ARBEITEN',
       heading: 'Ausgewählte Arbeiten',
+      viewAll: 'Alle Arbeiten ansehen →',
+      featured: [
+        {
+          name: 'KeyShield',
+          why: 'Wallet-Signaturen ersetzen API-Keys. Ein kleines Experiment zu Vertrauen ohne Exposition.',
+          href: 'https://github.com/lilaclilac09/keyshield',
+        },
+        {
+          name: 'PAMM MEV',
+          why: 'Wie MEV durch einen Solana-Pool wandert — ein Monte-Carlo-Durchlauf nach dem anderen.',
+          href: 'https://github.com/lilaclilac09/solana-pamm-MEV-binary-monte-analysis-contagious-pools',
+          liveHref: 'https://mev.aileena.xyz',
+        },
+      ],
       items: [
         {
           name: 'KeyShield',
@@ -476,9 +527,9 @@ export const t = {
         ],
       },
       womanInTech: {
-        tag: 'PERSPEKTIVE',
-        heading: 'Frau in Tech',
-        read: 'Lesen →',
+        tag: 'NOTIZEN',
+        heading: 'Notizen',
+        read: 'Lesen',
         posts: [
           {
             date: '2026.02.15',
@@ -523,25 +574,18 @@ export const t = {
         {
           heading: 'ERKUNDEN',
           links: [
-            { label: 'Sound', href: '#sound' },
-            { label: 'Blog', href: '#blog' },
+            { label: 'Dispatch', href: '#dispatch' },
+            { label: 'Arbeit', href: '/works' },
+            { label: 'Sound', href: '/sound' },
+            { label: 'Notizen', href: '#notes' },
           ],
         },
         {
-          heading: 'LINKS',
+          heading: 'PROJEKTE',
           links: [
-            { label: 'Arbeiten', href: '#works' },
-            { label: 'Elsewhere', href: 'https://www.jonesicecream.com' },
-            { label: 'Best Granola', href: 'https://sofiberlin.com' },
-            { label: 'Ryo Lu', href: 'https://ryo.lu' },
-          ],
-        },
-        {
-          heading: 'VERBINDEN',
-          links: [
-            { label: 'AILEENA.XYZ', href: 'https://aileena.xyz' },
             { label: 'MEV Dashboard', href: 'https://mev.aileena.xyz' },
-            { label: 'SoundCloud', href: 'https://soundcloud.com' },
+            { label: 'Finance', href: 'https://finance.aileena.xyz' },
+            { label: 'GitHub', href: 'https://github.com/lilaclilac09' },
           ],
         },
       ],
