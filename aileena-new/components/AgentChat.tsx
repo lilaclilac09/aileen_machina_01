@@ -77,15 +77,42 @@ export default function AgentChat() {
 
   return (
     <>
-      {/* Launcher — a typographic line, not a pill */}
+      {/* Launcher — machina portrait + caption, not a pill */}
       <button
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open Aileena console"
-        className={`fixed bottom-3 left-1/2 -translate-x-1/2 sm:bottom-5 sm:left-5 sm:translate-x-0 z-[60] flex items-center gap-2 font-mono text-[0.6rem] sm:text-[0.62rem] tracking-[0.3em] sm:tracking-[0.35em] uppercase text-[#00ffea]/70 hover:text-[#00ffea] transition-colors py-1 px-2 ${open ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+        className={`group fixed bottom-4 left-4 sm:bottom-5 sm:left-5 z-[60] flex items-center gap-3 transition-opacity duration-200 ${open ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
       >
-        <span className="h-1 w-1 rounded-full bg-[#00ffea] shadow-[0_0_6px_rgba(0,255,234,0.9)] animate-pulse" />
-        <span className="whitespace-nowrap">[ talk to the agent · /]</span>
+        {/* Portrait */}
+        <span className="relative inline-block">
+          <span
+            aria-hidden
+            className="block h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-cover border border-[#00ffea]/35 shadow-[0_0_18px_-6px_rgba(0,255,234,0.4)] transition-all duration-200 group-hover:border-[#00ffea]/80 group-hover:shadow-[0_0_24px_-4px_rgba(0,255,234,0.7)] group-hover:scale-[1.04]"
+            style={{
+              backgroundImage: "url('/bg_pic/03.jpeg')",
+              backgroundPosition: '30% 14%',
+              backgroundSize: '320%',
+            }}
+          />
+          {/* Scan line — subtle horizontal sweep */}
+          <span aria-hidden className="agent-scan pointer-events-none absolute inset-0 rounded-full overflow-hidden" />
+          {/* Live dot */}
+          <span
+            aria-hidden
+            className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-[#00ffea] shadow-[0_0_8px_rgba(0,255,234,0.9)] animate-pulse ring-2 ring-black"
+          />
+        </span>
+
+        {/* Caption — desktop only, mobile keeps it just the portrait */}
+        <span className="hidden sm:flex flex-col items-start font-mono uppercase select-none">
+          <span className="text-[0.62rem] tracking-[0.3em] text-[#00ffea]/85 group-hover:text-[#00ffea] transition-colors">
+            talk to the agent
+          </span>
+          <span className="mt-0.5 text-[0.5rem] tracking-[0.3em] text-white/35 group-hover:text-white/60 transition-colors">
+            press / for console
+          </span>
+        </span>
       </button>
 
       {/* Backdrop */}

@@ -354,3 +354,32 @@ a, button {
   0%, 100% { transform: scaleY(1);   opacity: 1; }
   50%       { transform: scaleY(0.3); opacity: 0.7; }
 }
+
+/* Agent launcher portrait — slow scan line for "live" feel */
+.agent-scan::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 255, 234, 0.18) 48%,
+    rgba(0, 255, 234, 0.32) 50%,
+    rgba(0, 255, 234, 0.18) 52%,
+    transparent 100%
+  );
+  background-size: 100% 220%;
+  background-position: 0 -100%;
+  animation: agentScan 4.5s linear infinite;
+  mix-blend-mode: screen;
+  opacity: 0.7;
+}
+
+@keyframes agentScan {
+  0%   { background-position: 0% -100%; }
+  100% { background-position: 0% 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agent-scan::before { animation: none; opacity: 0; }
+}
