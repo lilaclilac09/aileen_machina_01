@@ -23,7 +23,7 @@ export default function PropAmmDictArticle() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '20px 32px',
+        padding: '20px 32px 20px 128px',
         background: 'rgba(0,0,0,0.85)',
         backdropFilter: 'blur(12px)',
         borderBottom: '1px solid rgba(255,255,255,0.06)',

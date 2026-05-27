@@ -128,48 +128,36 @@ export default function AgentChat() {
 
   return (
     <>
-      {/* Launcher — machina portrait + caption, not a pill */}
+      {/* Launcher — system-level indicator in the top-left, present on
+          every page. Reads as part of the page chrome (like the EN/DE
+          toggle on the right), not a chatbot widget. */}
       <button
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open Aileena console"
-        className={`group fixed bottom-4 left-4 sm:bottom-5 sm:left-5 z-[60] flex items-center gap-3 transition-opacity duration-200 ${open ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+        className={`group fixed top-3 left-3 sm:top-4 sm:left-5 lg:left-6 z-[60] flex items-center gap-2 sm:gap-2.5 transition-opacity duration-200 ${open ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
       >
-        {/* Portrait */}
+        {/* Portrait — compact, sits like an avatar in a system header */}
         <span className="relative inline-block">
           <span
             aria-hidden
-            className="block h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-no-repeat shadow-[0_0_18px_-6px_rgba(0,255,234,0.35)] transition-all duration-200 group-hover:shadow-[0_0_28px_-4px_rgba(0,255,234,0.65)] group-hover:scale-[1.05]"
+            className="block h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-no-repeat ring-1 ring-[#00ffea]/30 transition-all duration-200 group-hover:ring-[#00ffea]/70 group-hover:scale-[1.05]"
             style={{
               backgroundImage: "url('/bg_pic/03.jpeg')",
-              // 03.jpeg is 1792x2400 portrait. Frame so the circle shows:
-              // - the blonde curls on top
-              // - the closed eye + freckles + nose + lips + chin
-              // - the chrome neck and chrome shoulder armor underneath
-              // (bg-size 175% renders the image 98×131 in a 56 circle, which
-              // exposes source x∈[8%,65%] and y∈[3%,46%] — wide enough to
-              // capture hair → face → chrome shoulder in one frame.)
               backgroundPosition: '18% 5%',
               backgroundSize: '175%',
             }}
           />
-          {/* Scan line — subtle horizontal sweep */}
           <span aria-hidden className="agent-scan pointer-events-none absolute inset-0 rounded-full overflow-hidden" />
-          {/* Live dot */}
           <span
             aria-hidden
-            className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-[#00ffea] shadow-[0_0_8px_rgba(0,255,234,0.9)] animate-pulse ring-2 ring-black"
+            className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-[#00ffea] shadow-[0_0_6px_rgba(0,255,234,0.9)] animate-pulse ring-2 ring-black"
           />
         </span>
 
-        {/* Caption — desktop only, mobile keeps it just the portrait */}
-        <span className="hidden sm:flex flex-col items-start font-mono uppercase select-none">
-          <span className="text-[0.62rem] tracking-[0.3em] text-[#00ffea]/85 group-hover:text-[#00ffea] transition-colors">
-            talk to the agent
-          </span>
-          <span className="mt-0.5 text-[0.5rem] tracking-[0.3em] text-white/35 group-hover:text-white/60 transition-colors">
-            press / for console
-          </span>
+        {/* Label — same typographic weight as EN/DE/menu on the right */}
+        <span className="font-mono text-[0.6rem] sm:text-[0.62rem] tracking-[0.3em] uppercase text-[#00ffea]/70 group-hover:text-[#00ffea] transition-colors select-none">
+          machina
         </span>
       </button>
 
