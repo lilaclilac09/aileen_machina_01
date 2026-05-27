@@ -184,7 +184,6 @@ export default function Home() {
                   <Link key={post.title} href={post.href}>
                     <p className="sl-date">{post.date}</p>
                     <h3 className="sl-title">{post.title}</h3>
-                    <p className="sl-body">{post.body}</p>
                   </Link>
                 ))}
               </div>
