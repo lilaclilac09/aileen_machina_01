@@ -176,6 +176,12 @@ export const t = {
             title: 'Centaur, and the Market It\'s Landing In',
             body: 'Paradigm and Tempo open-sourced Centaur — a self-hosted runtime for multiplayer, secure AI agents — on May 21. Not another coding agent: the backend that lets a whole team share one. Why Paradigm built it themselves, the PM bets inside each of the five components (Slack-first, durable workflows, K8s sandboxes, iron-proxy secrets gateway, bring-your-own harness), how they\'re framing the launch, and where it lands against Devin, E2B, kagent and the rest of the agent-infra grid.',
           },
+          {
+            date: '2026.05.27',
+            href: '/blog/zcash-fpga',
+            title: 'The Pairing VM Nobody Inherited',
+            body: 'The Zcash Foundation funded an open-source FPGA accelerator in 2019 that ships with a sixteen-opcode coprocessor for BLS12-381 pairings — an actual instruction set, with eight typed operand classes, sitting in a public repo under GPL-3.0. Mainnet-tested on AWS F1 and Bittware VVH. What\'s in the repo, why it\'s strikingly good engineering, and why every team that needed it in 2024 wrote their own from scratch instead of forking it.',
+          },
         ],
       },
       womanInTech: {
@@ -424,6 +430,12 @@ export const t = {
             href: '/blog/centaur',
             title: 'Centaur und der Markt, in den es landet',
             body: 'Paradigm und Tempo haben am 21. Mai Centaur open-sourced — eine self-hosted Runtime für „multiplayer, secure" AI-Agenten. Kein weiterer Coding-Agent, sondern das Backend, mit dem ein ganzes Team sich einen Agenten teilt. Warum Paradigm es selbst gebaut hat, die PM-Entscheidungen hinter den fünf Komponenten (Slack-first, durable Workflows, K8s-Sandboxes, iron-proxy Secrets-Gateway, Bring-your-own-Harness), wie das Launch-Narrativ gerahmt ist, und wo das Ganze gegen Devin, E2B, kagent und den Rest des Agent-Infra-Marktes landet.',
+          },
+          {
+            date: '2026.05.27',
+            href: '/blog/zcash-fpga',
+            title: 'Die Pairing-VM, die niemand geerbt hat',
+            body: 'Die Zcash Foundation hat 2019 einen Open-Source-FPGA-Beschleuniger finanziert, der einen sechzehn-Opcode-Coprozessor für BLS12-381-Pairings mitliefert — eine echte Instruction Set Architecture mit acht typisierten Operandenklassen, in einem öffentlichen Repo unter GPL-3.0. Mainnet-getestet auf AWS F1 und Bittware VVH. Was im Repo steht, warum es auffallend gute Engineering-Arbeit ist, und warum jedes Team, das 2024 so etwas brauchte, lieber alles selbst neu geschrieben hat, statt zu forken.',
           },
         ],
       },
