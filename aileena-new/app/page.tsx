@@ -244,55 +244,35 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 07 CONTACT / FOOTER ── */}
+        {/* ── 07 FOOTER ── */}
         <SnapSection className="order-7">
-          <div className="h-full flex flex-col justify-between bg-[#030303] px-6 sm:px-10 lg:px-16 py-14 sm:py-16" style={{ fontFamily: nunito }}>
-            <div className="mx-auto w-full max-w-[920px] flex-1 flex flex-col justify-between gap-12">
+          <div className="h-full flex flex-col justify-end bg-[#030303] px-6 sm:px-10 lg:px-16 py-14 sm:py-16" style={{ fontFamily: nunito }}>
+            <div className="mx-auto w-full max-w-[920px]">
 
-              {/* Top: contact CTA */}
-              <div>
-                <p className="anim-up text-[0.7rem] uppercase tracking-[0.32em] text-white/40 mb-5" style={{ fontWeight: 500 }}>
-                  Contact
-                </p>
-                <h2 className="anim-up-2 mb-6 text-[clamp(1.6rem,4.2vw,2.6rem)] tracking-tight text-white/95 max-w-xl" style={{ fontWeight: 500 }}>
-                  Write to me.
-                </h2>
-                <a
-                  href="mailto:rosazxc0915@gmail.com"
-                  className="anim-up-3 inline-block text-[0.95rem] text-white/80 hover:text-[#00ffea] transition-colors no-underline border-b border-white/20 hover:border-[#00ffea]/60 pb-0.5"
-                  style={{ fontWeight: 500 }}
-                >
-                  rosazxc0915@gmail.com
-                </a>
+              <p className="anim-up text-sm leading-7 text-white/45 mb-10 max-w-md" style={{ fontWeight: 400 }}>
+                {tx.footer.body}
+              </p>
+              <div className="grid grid-cols-2 gap-10 sm:gap-14 mb-10">
+                {tx.footer.columns.map((col) => (
+                  <div key={col.heading} className="anim-left">
+                    <h3 className="text-[0.66rem] uppercase tracking-[0.28em] text-white/35 mb-4" style={{ fontWeight: 500 }}>
+                      {col.heading}
+                    </h3>
+                    <ul className="space-y-2.5 text-[0.92rem] text-white/55" style={{ fontWeight: 400 }}>
+                      {col.links.map((link) => (
+                        <li key={link.label}>
+                          {link.href.startsWith('http')
+                            ? <a href={link.href} className="hover:text-white transition-colors">{link.label}</a>
+                            : <Link href={link.href} className="hover:text-white transition-colors">{link.label}</Link>}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
               </div>
-
-              {/* Footer */}
-              <div>
-                <p className="anim-up text-sm leading-7 text-white/45 mb-10 max-w-md" style={{ fontWeight: 400 }}>
-                  {tx.footer.body}
-                </p>
-                <div className="grid grid-cols-2 gap-10 sm:gap-14 mb-10">
-                  {tx.footer.columns.map((col) => (
-                    <div key={col.heading} className="anim-left">
-                      <h3 className="text-[0.66rem] uppercase tracking-[0.28em] text-white/35 mb-4" style={{ fontWeight: 500 }}>
-                        {col.heading}
-                      </h3>
-                      <ul className="space-y-2.5 text-[0.92rem] text-white/55" style={{ fontWeight: 400 }}>
-                        {col.links.map((link) => (
-                          <li key={link.label}>
-                            {link.href.startsWith('http')
-                              ? <a href={link.href} className="hover:text-white transition-colors">{link.label}</a>
-                              : <Link href={link.href} className="hover:text-white transition-colors">{link.label}</Link>}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-                <p className="anim-fade text-[0.6rem] tracking-[0.3em] text-white/25" style={{ fontWeight: 500 }}>
-                  EST 2025 · AILEENA · MACHINA
-                </p>
-              </div>
+              <p className="anim-fade text-[0.6rem] tracking-[0.3em] text-white/25" style={{ fontWeight: 500 }}>
+                EST 2025 · AILEENA · MACHINA
+              </p>
             </div>
           </div>
         </SnapSection>
