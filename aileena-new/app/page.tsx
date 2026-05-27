@@ -104,21 +104,12 @@ export default function Home() {
                   </ul>
                 </div>
 
-                <div className="anim-up-3 flex flex-wrap items-center gap-3">
-                  <a
-                    href="mailto:rosazxc0915@gmail.com"
-                    className="inline-flex items-center gap-2 rounded-md border border-[#00ffea]/40 bg-[#00ffea]/5 px-5 py-3 font-mono text-xs tracking-[0.4em] uppercase text-[#00ffea] hover:bg-[#00ffea]/15 transition-colors no-underline"
-                  >
-                    {tx.openToWork.cta}
-                  </a>
-                  <button
-                    type="button"
-                    onClick={() => window.dispatchEvent(new Event('open-agent-chat'))}
-                    className="inline-flex items-center gap-2 rounded-md border border-white/15 px-5 py-3 font-mono text-xs tracking-[0.4em] uppercase text-white/70 hover:text-white hover:border-white/30 transition-colors cursor-pointer"
-                  >
-                    Ask the agent →
-                  </button>
-                </div>
+                <a
+                  href="mailto:rosazxc0915@gmail.com"
+                  className="anim-up-3 inline-flex items-center gap-2 rounded-md border border-[#00ffea]/40 bg-[#00ffea]/5 px-5 py-3 font-mono text-xs tracking-[0.4em] uppercase text-[#00ffea] hover:bg-[#00ffea]/15 transition-colors no-underline"
+                >
+                  {tx.openToWork.cta}
+                </a>
               </div>
             </div>
           </div>
