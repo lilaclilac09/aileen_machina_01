@@ -124,12 +124,15 @@ export default function AgentChat() {
             className="block h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-no-repeat shadow-[0_0_18px_-6px_rgba(0,255,234,0.35)] transition-all duration-200 group-hover:shadow-[0_0_28px_-4px_rgba(0,255,234,0.65)] group-hover:scale-[1.05]"
             style={{
               backgroundImage: "url('/bg_pic/03.jpeg')",
-              // 03.jpeg is 1792x2400 portrait. Face silhouette sits in the
-              // upper-left ~35% of the frame. backgroundSize 230% + position
-              // 22% 6% centers the full profile (hair, forehead, eye, nose,
-              // lips, chin, chrome neck) inside the circle.
-              backgroundPosition: '24% 16%',
-              backgroundSize: '210%',
+              // 03.jpeg is 1792x2400 portrait. Frame so the circle shows:
+              // - the blonde curls on top
+              // - the closed eye + freckles + nose + lips + chin
+              // - the chrome neck and chrome shoulder armor underneath
+              // (bg-size 175% renders the image 98×131 in a 56 circle, which
+              // exposes source x∈[8%,65%] and y∈[3%,46%] — wide enough to
+              // capture hair → face → chrome shoulder in one frame.)
+              backgroundPosition: '18% 5%',
+              backgroundSize: '175%',
             }}
           />
           {/* Scan line — subtle horizontal sweep */}
