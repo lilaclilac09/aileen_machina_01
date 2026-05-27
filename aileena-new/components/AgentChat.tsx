@@ -106,7 +106,25 @@ export default function AgentChat() {
   }
 
   const remaining = Math.max(0, SESSION_LIMIT - sessionCount);
-  const serverErrorText = error?.message?.trim();
+
+  // useChat surfaces the raw response body as error.message when the server
+  // returns a non-2xx. Our /api/chat returns `{"error":"..."}` for those, so
+  // strip the JSON wrapper before showing it to the user.
+  const serverErrorText = (() => {
+    const raw = error?.message?.trim();
+    if (!raw) return '';
+    if (raw.startsWith('{') && raw.endsWith('}')) {
+      try {
+        const parsed = JSON.parse(raw) as { error?: unknown };
+        if (typeof parsed.error === 'string' && parsed.error.length > 0) {
+          return parsed.error;
+        }
+      } catch {
+        /* fall through */
+      }
+    }
+    return raw;
+  })();
 
   return (
     <>
