@@ -88,8 +88,7 @@ export default function ZcashFpgaArticle() {
           paddingLeft: 20, marginBottom: 0,
         }}>
           The Zcash Foundation funded an open-source FPGA accelerator in 2019. Inside it is a sixteen-opcode
-          coprocessor for BLS12-381 pairings &mdash; an actual instruction set, with its own assembler types, sitting
-          in <a href="https://github.com/ZcashFoundation/zcash-fpga" target="_blank" rel="noopener noreferrer" style={inlineLink}>ZcashFoundation/zcash-fpga</a>{' '}
+          coprocessor for BLS12-381 pairings &mdash; an actual instruction set, with its own assembler types,
           under GPL-3.0. Mainnet-tested on AWS F1 and Bittware VVH. Last meaningful commit in 2020. This is a
           read on what&apos;s in the repo, why it&apos;s strikingly good engineering, and why every team that needed
           this in 2024 wrote their own from scratch instead of forking it.
@@ -105,11 +104,11 @@ export default function ZcashFpgaArticle() {
 
         <SectionLabel>The artifact</SectionLabel>
         <p style={bodyStyle}>
-          A Zcash Foundation grant produced one repository, <a href="https://github.com/ZcashFoundation/zcash-fpga" target="_blank" rel="noopener noreferrer" style={inlineLink}>ZcashFoundation/zcash-fpga</a>,
-          authored by Benjamin Devlin. It contains three independently-buildable hardware engines for FPGA targets:
-          Equihash proof-of-work verification, secp256k1 ECDSA signature verification, and a BLS12-381 zk-SNARK
-          coprocessor. Each engine is gated behind a build-time parameter so you can synthesise just the one you
-          need. The whole thing is SystemVerilog with self-checking testbenches per module.
+          A Zcash Foundation grant produced one repository. It contains three independently-buildable
+          hardware engines for FPGA targets: Equihash proof-of-work verification, secp256k1 ECDSA
+          signature verification, and a BLS12-381 zk-SNARK coprocessor. Each engine is gated behind a
+          build-time parameter so you can synthesise just the one you need. The whole thing is
+          SystemVerilog with self-checking testbenches per module.
         </p>
         <p style={bodyStyle}>
           The Equihash engine and the secp256k1 engine are roughly what you&apos;d expect: fixed-function pipelines
@@ -347,8 +346,8 @@ FP2_JB  // G2 point, Jacobian`}</pre>
           <strong style={strong}>Ethereum BLS aggregate signature verification.</strong> Ethereum&apos;s consensus
           (LMD-GHOST + Casper FFG) verifies BLS12-381 signatures every slot. A beacon node validating attestations
           spends real CPU on this. The Pairing VM&apos;s multi-pairing batching is exactly the operation you&apos;d
-          want, and a separately-developed fork (<a href="https://github.com/bsdevlin/fpga_snark_prover" target="_blank" rel="noopener noreferrer" style={inlineLink}>bsdevlin/fpga_snark_prover</a>)
-          already reuses these IP cores as a submodule for Eth 2.0 SNARK work.
+          want, and a separately-developed downstream FPGA SNARK prover project already reuses these IP cores
+          as a submodule for Eth 2.0 SNARK work.
         </p>
         <p style={bodyStyle}>
           <strong style={strong}>L2 rollup pairing verification at the bridge.</strong> Optimistic and zk-rollup

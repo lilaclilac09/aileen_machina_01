@@ -9,7 +9,7 @@ export default function PropAmmDictArticle() {
       date="2026.05.23"
       tags="Solana · Prop AMM · Reverse Engineering"
       title="The Pool That Wasn't a Pool"
-      dek={<>Ten closed-source proprietary AMMs are doing most of the quiet flow on Solana mainnet. Eight have their byte-level pool layouts in <a href="https://gist.github.com/mubarizkyc/959ac9b33dae4f3a86c6e00c331a9901" target="_blank" rel="noopener noreferrer">a single public gist</a>. The other two — humidifi and aquifier — were blank. I tried to finish the table.</>}
+      dek={<>Ten closed-source proprietary AMMs are doing most of the quiet flow on Solana mainnet. Eight have their byte-level pool layouts in a single public gist. The other two — humidifi and aquifier — were blank. I tried to finish the table.</>}
     >
       {/* ── Body ── */}
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
@@ -27,9 +27,9 @@ export default function PropAmmDictArticle() {
           byte offsets. Steps one and three are pure static knowledge — once published, anyone can reuse them.
         </p>
         <p style={bodyStyle}>
-          <a href="https://github.com/mubarizkyc" target="_blank" rel="noopener noreferrer" style={inlineLink}>mubarizkyc</a> did the heavy lifting last year:
-          ten program IDs, eight pairs of offsets, one bash script, freely published.
-          The two blank rows were aquifier and humidifi. This post is what happened when I tried to fill them in.
+          The heavy lifting was done last year by a separate reverser: ten program IDs, eight pairs of
+          offsets, one bash script, freely published. The two blank rows were aquifier and humidifi.
+          This post is what happened when I tried to fill them in.
         </p>
 
         <SectionLabel>The Ten Programs</SectionLabel>
@@ -200,7 +200,7 @@ not enough candidate offsets`}
         <div style={calloutAccent}>
           <p style={calloutTitle}>WHY THE GIST LEFT IT BLANK</p>
           <p style={{ ...bodyStyle, marginBottom: 0 }}>
-            mubarizkyc&apos;s gist didn&apos;t publish humidifi&apos;s offsets because they don&apos;t exist. There is no place
+            The earlier gist didn&apos;t publish humidifi&apos;s offsets because they don&apos;t exist. There is no place
             in the pool account where a mint pubkey lives. The mint pair for a given humidifi pool sits in
             humidifi&apos;s own off-chain registry, not on chain. The blank row in the gist wasn&apos;t laziness — it was
             the correct entry.
@@ -236,7 +236,6 @@ not enough candidate offsets`}
             textTransform: 'uppercase',
           }}>
             PAMM Terminal — RADAR drawer rendering live competitor coverage across 10 prop AMMs.
-            Source: <a href="https://github.com/lilaclilac09/pamm-a" target="_blank" rel="noopener noreferrer" style={inlineLink}>github.com/lilaclilac09/pamm-a</a>
           </figcaption>
         </figure>
 

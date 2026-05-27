@@ -295,9 +295,9 @@ export default function ShredEconomyArticle() {
 
         <SectionLabel>07 &mdash; Why this matters for clients</SectionLabel>
         <p style={bodyStyle}>
-          Agave is maintained by Anza. Firedancer and Frankendancer are maintained by Jump Crypto. Jito-Solana
-          is maintained by Jito Labs. Each of these teams has a different funding model today &mdash; some
-          token-funded, some foundation-funded, some operating as for-profit infrastructure providers.
+          The four major validator clients today — Agave, Firedancer, Frankendancer, Jito-Solana — are
+          each maintained by different organisations with different funding models, ranging from
+          token-funded to foundation-funded to for-profit infrastructure operators.
         </p>
         <p style={bodyStyle}>
           Edge gives all of them the same new revenue surface: <strong style={strong}>per-epoch payout
@@ -348,8 +348,8 @@ export default function ShredEconomyArticle() {
           <strong style={strong}>Two: subscriber stability.</strong> HFT subscriptions don&apos;t renew
           automatically. The buyers run quarterly cost reviews. If the alpha they extract from earlier
           shred access compresses (because everyone subscribes, the edge disappears), some will drop the
-          subscription and try to capture the data via other paths &mdash; including the cavemanloverboy
-          XDP+GRE-decap technique surfaced in the previous piece. Edge has to either price for that
+          subscription and try to capture the data via other paths &mdash; including the kernel-side
+          XDP / GRE-decap workaround surfaced in the previous piece. Edge has to either price for that
           compression or build features (more granular feeds, more validator coverage) faster than the
           alpha decays.
         </p>
@@ -391,10 +391,6 @@ export default function ShredEconomyArticle() {
               { label: 'DoubleZero — Official Site & Documentation', href: 'https://doublezero.xyz/' },
               { label: 'DoubleZero Protocol — Architecture Whitepaper', href: 'https://docs.doublezero.xyz/' },
               { label: 'Solana Turbine — Block Propagation Protocol', href: 'https://docs.solana.com/cluster/turbine-block-propagation' },
-              { label: 'Solana Shred Specification — Validator Codebase', href: 'https://github.com/solana-labs/solana/blob/master/ledger/src/shred.rs' },
-              { label: 'Jito Labs — Block Engine & MEV Architecture', href: 'https://docs.jito.wtf/lowlatencytxnsend/' },
-              { label: 'Firedancer — Jump Crypto Validator Client', href: 'https://github.com/firedancer-io/firedancer' },
-              { label: 'Agave — Anza Solana Validator Client', href: 'https://github.com/anza-xyz/agave' },
               { label: 'Companion Piece — DoubleZero, Multicast Fiber', href: '/blog/doublezero' },
               { label: 'CEX-DEX Arbitrage — How the Buy Side Uses This Data', href: '/blog/cex-dex-arb' },
               { label: 'The Wire — How Solana Actually Moves Bytes', href: '/blog/wire' },

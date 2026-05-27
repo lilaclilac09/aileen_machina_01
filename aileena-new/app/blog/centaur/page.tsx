@@ -9,7 +9,7 @@ export default function CentaurArticle() {
       date="2026.05.26"
       tags="Paradigm · Centaur · Agent Infra"
       title="Centaur, and the market it's landing in"
-      dek={<>On May 21, 2026, Paradigm and Tempo open-sourced <a href="https://github.com/paradigmxyz/centaur" target="_blank" rel="noopener noreferrer">Centaur</a> — a self-hosted runtime for &quot;multiplayer, secure agents.&quot; It isn&apos;t another coding agent. It&apos;s the backend that lets a whole team share one.</>}
+      dek={<>On May 21, 2026, Paradigm and Tempo open-sourced Centaur — a self-hosted runtime for &quot;multiplayer, secure agents.&quot; It isn&apos;t another coding agent. It&apos;s the backend that lets a whole team share one.</>}
     >
       {/* ── Body ── */}
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
