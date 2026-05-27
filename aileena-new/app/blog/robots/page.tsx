@@ -41,7 +41,7 @@ export default function RobotsArticle() {
       {/* ── Body ── */}
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
 
-        <SectionLabel>01 — {isDE ? 'Synthetische Daten in großem Maßstab' : 'Synthetic Data at Scale'}</SectionLabel>
+        <SectionLabel>{isDE ? 'Synthetische Daten in großem Maßstab' : 'Synthetic Data at Scale'}</SectionLabel>
         <p style={bodyStyle}>
           {isDE
             ? 'NVIDIA Omniverse und Cosmos ermöglichen die Generierung massiver synthetischer Datensätze — fotorealistisch, physikalisch korrekt, unendlich variierbar. Was früher Jahre dauerte, dauert heute Stunden. Der Engpass ist nicht mehr das Sammeln von Daten. Er ist das Entwerfen der richtigen Verteilung.'
@@ -69,7 +69,7 @@ export default function RobotsArticle() {
             : '"Everything that moves will be autonomous. The question is not if — it is when and how fast."'}
         </blockquote>
 
-        <SectionLabel>02 — {isDE ? 'Der Trainingskreislauf' : 'The Training Loop'}</SectionLabel>
+        <SectionLabel>{isDE ? 'Der Trainingskreislauf' : 'The Training Loop'}</SectionLabel>
         <p style={bodyStyle}>
           {isDE
             ? 'Simulation → Training → Test → realer Einsatz → Datenerfassung → Simulation. Der Kreislauf ist selbstverstärkend. Jeder reale Einsatz erzeugt Kantenfälle, die in die Simulation zurückfließen. Jede Verbesserung der Simulation beschleunigt das Training.'
@@ -81,7 +81,7 @@ export default function RobotsArticle() {
             : 'What has changed: robot policies are no longer built for single tasks in single environments. They are generalized across embodied intelligence architectures — the same core policy stack running in a warehouse, a kitchen, a hospital.'}
         </p>
 
-        <SectionLabel>03 — {isDE ? 'Was das bedeutet' : 'What This Means'}</SectionLabel>
+        <SectionLabel>{isDE ? 'Was das bedeutet' : 'What This Means'}</SectionLabel>
         <p style={bodyStyle}>
           {isDE
             ? 'Physische KI ist keine Nische mehr. Sie ist die nächste Schicht über dem Internet — eine Infrastruktur, die die physische Welt so verarbeitet wie das Netz die Informationswelt verarbeitet hat. Jedes Gerät, das sich bewegt, trägt bald einen Intelligenz-Stack.'

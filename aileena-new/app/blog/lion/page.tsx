@@ -147,7 +147,7 @@ export default function LionArticle() {
       {/* ── Body ── */}
       <article style={{ maxWidth: 800, margin: '0 auto', padding: '64px 32px 120px' }}>
 
-        <SectionLabel>01 — {isDE ? 'Entschlossenheit ist nicht das, was du denkst' : 'Decisive Power Is Not What You Think'}</SectionLabel>
+        <SectionLabel>{isDE ? 'Entschlossenheit ist nicht das, was du denkst' : 'Decisive Power Is Not What You Think'}</SectionLabel>
         <p style={bodyStyle}>
           {isDE
             ? 'Das Wort trägt von sich aus ein schlechtes Image. Menschen hören es und denken an Kälte, Berechnung, jemanden der über andere hinweggeht. Aber das ist eine Fehllesung.'
@@ -180,7 +180,7 @@ export default function LionArticle() {
             : '"Weighing outcomes clearly is not cold. It is being honest — with yourself, and with everyone else."'}
         </blockquote>
 
-        <SectionLabel>02 — {isDE ? 'Komfort war niemals neutral' : 'Comfort Has Never Been Neutral'}</SectionLabel>
+        <SectionLabel>{isDE ? 'Komfort war niemals neutral' : 'Comfort Has Never Been Neutral'}</SectionLabel>
         <p style={bodyStyle}>
           {isDE
             ? 'Hier ist etwas, das die meisten Menschen nicht erkennen: Komfort ist keine Ruhe. Er ist ein kontinuierlicher Konditionierungsmechanismus.'
@@ -238,7 +238,7 @@ export default function LionArticle() {
           ))}
         </div>
 
-        <SectionLabel>03 — {isDE ? 'Die meisten Menschen driften hinein' : 'Most People Drift Into It'}</SectionLabel>
+        <SectionLabel>{isDE ? 'Die meisten Menschen driften hinein' : 'Most People Drift Into It'}</SectionLabel>
         <p style={bodyStyle}>
           {isDE
             ? 'Niemand wählt aktiv, ein Schaf zu werden. Es ist ein gradueller Prozess — jeder Schritt sieht vernünftig aus, jeder Kompromiss trägt genug Rechtfertigung.'
@@ -255,7 +255,7 @@ export default function LionArticle() {
             : 'But that is not the truth. It is only conditioned reflex. You were not born fragile. You were trained in a greenhouse until you forgot what you were always capable of surviving.'}
         </p>
 
-        <SectionLabel>04 — {isDE ? 'Überwinde die Angst. Dann erlaube dir zu brechen.' : 'Overcome Fear. Then Allow Yourself To Break.'}</SectionLabel>
+        <SectionLabel>{isDE ? 'Überwinde die Angst. Dann erlaube dir zu brechen.' : 'Overcome Fear. Then Allow Yourself To Break.'}</SectionLabel>
         <p style={bodyStyle}>
           {isDE
             ? 'Hier ist ein Paradoxon, und es ist real: Die Menschen, die am fähigsten sind, Einsamkeit zu ertragen und klare Entscheidungen zu treffen, sind oft auch die, die sich am ehesten erlauben können zu brechen.'
