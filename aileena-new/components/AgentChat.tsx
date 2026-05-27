@@ -12,6 +12,8 @@ const STARTER_PROMPTS = [
 
 const SESSION_LIMIT = 5;
 const SESSION_KEY = 'aileena_chat_count';
+const LEAD_THRESHOLD = 2; // start prompting for an email after the visitor has sent N messages
+const LEAD_DISMISS_KEY = 'aileena_lead_state'; // 'dismissed' | 'sent' | (unset)
 
 /**
  * Aileena · Console
@@ -27,10 +29,16 @@ const SESSION_KEY = 'aileena_chat_count';
  *     cookie in /api/chat. When the server returns 429 it shows up in the
  *     error display below.
  */
+type LeadState = 'idle' | 'submitting' | 'sent' | 'dismissed';
+
 export default function AgentChat() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
   const [sessionCount, setSessionCount] = useState(0);
+  const [leadEmail, setLeadEmail] = useState('');
+  const [leadName, setLeadName] = useState('');
+  const [leadState, setLeadState] = useState<LeadState>('idle');
+  const [leadError, setLeadError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -41,11 +49,13 @@ export default function AgentChat() {
   const busy = status === 'submitted' || status === 'streaming';
   const sessionMaxed = sessionCount >= SESSION_LIMIT;
 
-  // Restore session counter from sessionStorage on first client render.
+  // Restore session counter + lead state from sessionStorage on first client render.
   useEffect(() => {
     try {
       const stored = sessionStorage.getItem(SESSION_KEY);
       if (stored) setSessionCount(Math.min(Number(stored) || 0, 99));
+      const lead = sessionStorage.getItem(LEAD_DISMISS_KEY);
+      if (lead === 'dismissed' || lead === 'sent') setLeadState(lead);
     } catch {
       /* sessionStorage unavailable — ignore */
     }
@@ -106,6 +116,66 @@ export default function AgentChat() {
   }
 
   const remaining = Math.max(0, SESSION_LIMIT - sessionCount);
+
+  // Lead-capture panel: show after LEAD_THRESHOLD messages, unless the visitor
+  // already dismissed or already submitted it (tracked in sessionStorage).
+  const showLeadPanel =
+    leadState !== 'sent' &&
+    leadState !== 'dismissed' &&
+    sessionCount >= LEAD_THRESHOLD;
+
+  function persistLeadState(next: LeadState) {
+    setLeadState(next);
+    try {
+      if (next === 'sent' || next === 'dismissed') {
+        sessionStorage.setItem(LEAD_DISMISS_KEY, next);
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function dismissLead() {
+    persistLeadState('dismissed');
+  }
+
+  async function submitLead() {
+    const email = leadEmail.trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setLeadError('Enter a valid email.');
+      return;
+    }
+    setLeadError(null);
+    setLeadState('submitting');
+
+    // Flatten the live transcript into the shape the API expects.
+    const transcript = messages.map((m) => ({
+      role: m.role === 'user' ? 'user' : 'assistant',
+      text: getMessageText(m),
+    }));
+
+    try {
+      const res = await fetch('/api/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          name: leadName.trim() || undefined,
+          transcript,
+        }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        setLeadError(body.error || 'Send failed. Try again.');
+        setLeadState('idle');
+        return;
+      }
+      persistLeadState('sent');
+    } catch {
+      setLeadError('Network error. Try again.');
+      setLeadState('idle');
+    }
+  }
 
   // useChat surfaces the raw response body as error.message when the server
   // returns a non-2xx. Our /api/chat returns `{"error":"..."}` for those, so
@@ -243,10 +313,77 @@ export default function AgentChat() {
           {sessionMaxed && (
             <p className="text-[0.7rem] leading-5 tracking-[0.05em] text-[#00ffea]/70 whitespace-pre-wrap">
               <span className="font-mono text-[0.55rem] tracking-[0.3em] uppercase mr-1.5">▸ limit</span>
-              Session limit reached ({SESSION_LIMIT} messages). Refresh the tab to start a new session, or use the contact form below.
+              Session limit reached ({SESSION_LIMIT} messages). Refresh the tab to start a new session, or leave an email below so Aileen can follow up.
+            </p>
+          )}
+
+          {leadState === 'sent' && (
+            <p className="text-[0.7rem] leading-5 tracking-[0.05em] text-[#00ffea]/85 whitespace-pre-wrap">
+              <span className="font-mono text-[0.55rem] tracking-[0.3em] uppercase mr-1.5">▸ sent</span>
+              She&apos;ll see your message and the transcript. Thanks.
             </p>
           )}
         </div>
+
+        {/* Lead capture panel — appears after LEAD_THRESHOLD user messages */}
+        {showLeadPanel && (
+          <div className="border-t border-[#00ffea]/15 px-5 py-3 bg-[#00ffea]/[0.025]">
+            <div className="flex items-center justify-between mb-2.5">
+              <p className="font-mono text-[0.55rem] tracking-[0.35em] uppercase text-[#00ffea]/85">
+                ▸ leave an email · aileena will follow up
+              </p>
+              <button
+                type="button"
+                onClick={dismissLead}
+                aria-label="Dismiss lead capture"
+                className="font-mono text-[0.55rem] tracking-[0.25em] uppercase text-white/40 hover:text-white/80 px-1"
+              >
+                not now
+              </button>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              <input
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                value={leadEmail}
+                onChange={(e) => setLeadEmail(e.target.value)}
+                placeholder="email"
+                disabled={leadState === 'submitting'}
+                className="flex-1 min-w-0 bg-transparent border border-[#00ffea]/25 px-3 py-2 text-sm text-white/90 placeholder:text-white/30 outline-none focus:border-[#00ffea]/60 caret-[#00ffea] disabled:opacity-50"
+                spellCheck={false}
+                autoCorrect="off"
+                autoCapitalize="off"
+              />
+              <input
+                type="text"
+                value={leadName}
+                onChange={(e) => setLeadName(e.target.value)}
+                placeholder="name / context (optional)"
+                disabled={leadState === 'submitting'}
+                className="flex-1 min-w-0 bg-transparent border border-[#00ffea]/25 px-3 py-2 text-sm text-white/90 placeholder:text-white/30 outline-none focus:border-[#00ffea]/60 caret-[#00ffea] disabled:opacity-50"
+                spellCheck={false}
+                autoCorrect="off"
+              />
+              <button
+                type="button"
+                onClick={submitLead}
+                disabled={leadState === 'submitting' || !leadEmail.trim()}
+                className="font-mono text-[0.62rem] tracking-[0.3em] uppercase text-[#00ffea] border border-[#00ffea]/45 px-3 py-2 hover:bg-[#00ffea]/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+              >
+                {leadState === 'submitting' ? 'sending…' : 'send ↗'}
+              </button>
+            </div>
+            {leadError && (
+              <p className="mt-2 font-mono text-[0.55rem] tracking-[0.25em] uppercase text-red-400/85">
+                ▸ {leadError}
+              </p>
+            )}
+            <p className="mt-2 font-mono text-[0.5rem] tracking-[0.28em] uppercase text-white/30">
+              the chat transcript is included so she has context
+            </p>
+          </div>
+        )}
 
         {/* Input row */}
         <div className="border-t border-[#00ffea]/15 px-5 py-3">
