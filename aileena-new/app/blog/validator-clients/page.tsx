@@ -121,6 +121,26 @@ export default function ValidatorClientsArticle() {
           Substitute &quot;tile&quot; with &quot;module&quot; and &quot;ring buffer&quot; with &quot;wire&quot; and this is verbatim how a modern FPGA validator would be described. Jump did not reinvent FPGA design as a metaphor — they built the FPGA architecture in C, on commodity CPUs, because the FPGA card was the part they could remove.
         </p>
 
+        <SectionLabel>The three pieces that make the architecture work</SectionLabel>
+
+        <p style={bodyStyle}>
+          <strong style={strong}>AF_XDP, in <code style={codeStyle}>drv</code> mode.</strong> The <code style={codeStyle}>net</code> tile binds the NIC&apos;s receive queues directly into userspace memory using Linux&apos;s <code style={codeStyle}>AF_XDP</code> socket family. In <code style={codeStyle}>drv</code> mode the NIC writes packets straight into a userspace ring buffer with DMA, skipping the kernel routing stack, the per-packet syscall, and the copy that a normal Linux socket would force. The tile busy-polls the ring on its dedicated core and wakes the kernel only about 20,000 times per second to batch RX/TX completions — small enough to be free, large enough to keep packets flowing. The <code style={codeStyle}>skb</code> fallback exists for NICs without driver-mode support, at the cost of giving up the zero-copy.
+        </p>
+
+        <p style={bodyStyle}>
+          <strong style={strong}>SIMD-vectorised Ed25519.</strong> The <code style={codeStyle}>verify</code> tile runs signature verification in batches of eight using AVX-512 lanes. One AVX-512 instruction does the work of eight scalar instructions; one verify tile does the work of eight scalar cores. Tile count is a runtime parameter — spin up four verify tiles and you get 32× scalar throughput on a single socket. The horizontal scaling is what makes a pure-CPU verify path competitive with the FPGA path on workloads the network actually sees.
+        </p>
+
+        <p style={bodyStyle}>
+          <strong style={strong}>fd_quic, custom QUIC.</strong> Jump couldn&apos;t find a C QUIC library that met their licence + performance + reliability bar, so they wrote one. On a single CPU core the custom stack pushes <strong style={strong}>5.8 Gbps</strong>, hits <strong style={strong}>270k TPS</strong> on large-transaction workloads and <strong style={strong}>1.4M TPS</strong> on small-transaction workloads. The library is conservative about allocation — every datastructure pre-sized at startup, no growth in the hot path — which is the same memory discipline you would see in any production FPGA pipeline.
+        </p>
+
+        <SectionLabel>Security as a side effect</SectionLabel>
+
+        <p style={bodyStyle}>
+          The tile model produces an attack-surface reduction almost incidentally. Linux exposes more than 200 syscalls; every one is an entry point for a kernel exploit reachable from validator code. By design the hot tiles — quic, verify, dedup, pack, poh — issue <em>zero</em> syscalls during steady-state operation. Firedancer enforces this with a <code style={codeStyle}>seccomp</code> blacklist generated per tile, so a tile that tries to call <code style={codeStyle}>execve</code> or <code style={codeStyle}>open</code> gets killed by the kernel before it can do damage. The architecture chose performance and got security included.
+        </p>
+
         <SectionLabel>The FPGA temptation Jump actually tested</SectionLabel>
 
         <p style={bodyStyle}>
@@ -210,20 +230,103 @@ export default function ValidatorClientsArticle() {
           </li>
         </ul>
 
+        <SectionLabel>Production numbers from a real switchover</SectionLabel>
+
+        <p style={bodyStyle}>
+          Figment cut their primary Solana validator over to Frankendancer at <strong style={strong}>epoch 871</strong> on October 30, 2025. Early performance numbers were unambiguously positive:
+        </p>
+
+        <ul style={listStyle}>
+          <li>
+            Gross stake-weighted reward rate (SRR) up <strong style={strong}>+18 basis points</strong> immediately after the switch, climbing to <strong style={strong}>+28 bps</strong> in some later epochs.
+          </li>
+          <li>
+            Median block production time up <strong style={strong}>18%</strong> — from <strong style={strong}>355.7 ms</strong> to <strong style={strong}>398.4 ms</strong>. Counter-intuitively this is the point. The pack tile&apos;s smarter scheduling lets each block absorb more high-priority transactions and more MEV before it has to close.
+          </li>
+          <li>
+            Client diversity arrived as a side effect. Before Frankendancer, the Jito-Solana fork ran on <strong style={strong}>~78% of validators</strong>, with a single critical vulnerability potentially exposing <strong style={strong}>~88% of total stake</strong>. An independent codebase decorrelates that risk the way multiple aircraft-engine manufacturers do.
+          </li>
+        </ul>
+
+        <p style={bodyStyle}>
+          The interpretation: Frankendancer ships measurable rewards <em>today</em>, on commodity hardware, with no FPGA in the loop. The pack-tile scheduling — which is the part that is most aggressively un-FPGA-friendly — is doing most of the work.
+        </p>
+
         <SectionLabel>What Firedancer actually proves</SectionLabel>
 
         <p style={bodyStyle}>
-          Jump&apos;s contribution is not that they considered FPGA. It is that they showed the FPGA-shaped solution does not need FPGA silicon. The tile architecture, busy polling, kernel bypass, preallocated arenas, SIMD verification, seccomp lockdown — every one of these is an FPGA design constraint implemented in software. Frankendancer is in production today running this architecture on commodity Epyc and Genoa boxes, getting +18 to +28 basis points of SRR improvement over plain Agave, with 18% longer median block times because the pack tile is fitting more value into each slot.
+          Jump&apos;s contribution is not that they considered FPGA. It is that they showed the FPGA-shaped solution does not need FPGA silicon. The tile architecture, busy polling, kernel bypass, preallocated arenas, SIMD verification, seccomp lockdown — every one of these is an FPGA design constraint implemented in software. Frankendancer is in production today running this architecture on commodity Epyc and Genoa boxes, with the +18-to-+28 bps SRR delta over plain Agave to prove it.
         </p>
 
         <p style={bodyStyle}>
           The validator client question for 2026 is not <em>which one is fastest</em> — it is <em>which architecture absorbs the next protocol change without a rewrite</em>. Agave and Firedancer both clear that bar; Sig is betting it can do so for the read path. FPGA validators, in the &quot;replace the whole machine with silicon&quot; sense, do not. The math has not changed since Jump first ran the numbers, and they are the team most qualified to know.
         </p>
 
+        <SectionLabel>The honest roadmap, if you still want hardware</SectionLabel>
+
+        <p style={bodyStyle}>
+          If a team or shop wants to ride the curve from &quot;CPU validator&quot; toward &quot;hardware-accelerated&quot;, the order matters. Each step has a fundamentally different cost/benefit profile, and the cheap wins come first:
+        </p>
+
+        <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.22)' }}>
+                <th style={thStyle}>Horizon</th>
+                <th style={thStyle}>Move</th>
+                <th style={thStyle}>What you get</th>
+                <th style={thStyle}>Risk</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Now</td>
+                <td style={tdStyle}>Switch to Frankendancer on Epyc/Genoa</td>
+                <td style={tdStyle}>+18 to +28 bps SRR, client diversity</td>
+                <td style={tdStyle}>Low — production-validated</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Near</td>
+                <td style={tdStyle}>Read the Firedancer tile source, build mental model</td>
+                <td style={tdStyle}>Knowing where the actual seams are</td>
+                <td style={tdStyle}>Zero — it&apos;s reading</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Mid</td>
+                <td style={tdStyle}>SmartNIC / DPU offload for the net tile (Nvidia BlueField, AMD Pensando)</td>
+                <td style={tdStyle}>Network-layer latency cut without bespoke silicon</td>
+                <td style={tdStyle}>Medium — driver-level work</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Mid</td>
+                <td style={tdStyle}>Replace AF_XDP with DPDK underneath the net tile</td>
+                <td style={tdStyle}>Slightly more aggressive bypass, marginal gain</td>
+                <td style={tdStyle}>Medium — divergence from Firedancer mainline</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Long</td>
+                <td style={tdStyle}>FPGA verify tile on Xilinx Alveo U250 — Ed25519 as lookup tables</td>
+                <td style={tdStyle}>Up to 1M sigs/sec/card, validated by Jump&apos;s demo</td>
+                <td style={tdStyle}>High — bitstream churn, talent scarcity</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Long</td>
+                <td style={tdStyle}>FPGA shred tile — Reed-Solomon FEC in hardware</td>
+                <td style={tdStyle}>Line-rate FEC, useful for ShredStream operators</td>
+                <td style={tdStyle}>High — narrow audience justifies the build</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p style={bodyStyle}>
+          The pattern is the same across rows: every step keeps the rest of the CPU validator intact. Even the long-horizon FPGA work is a <em>tile replacement</em>, not a re-platforming. That is exactly what the tile architecture was designed to allow.
+        </p>
+
         <SectionLabel>The takeaway</SectionLabel>
 
         <p style={bodyStyle}>
-          Five clients, one pipeline. Two clients (Agave, Jito-Solana) hold the stake. One (Frankendancer) is the practical performance upgrade. One (Firedancer) is the long bet. One (Sig) is the read-side outlier. The shared trajectory is more concurrency, more kernel bypass, more SIMD, more cores — not more silicon. Solana is not an FPGA chain. It is a CPU chain that learned to think like an FPGA.
+          Five clients, one pipeline. Two clients (Agave, Jito-Solana) hold the stake. One (Frankendancer) is the practical performance upgrade. One (Firedancer) is the long bet. One (Sig) is the read-side outlier. The shared trajectory is more concurrency, more kernel bypass, more SIMD, more cores — not more silicon. Solana is not an FPGA chain. It is a CPU chain that learned to think like an FPGA, and the only honest FPGA use cases are tile-shaped: one stream, one function, one card.
         </p>
 
         <div style={{ marginTop: 56 }}>
