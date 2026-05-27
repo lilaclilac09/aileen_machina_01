@@ -14,7 +14,7 @@ export default function ClobArticle() {
       {/* ── Body ── */}
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
 
-        <SectionLabel>01 — The Write Lock Problem</SectionLabel>
+        <SectionLabel>The Write Lock Problem</SectionLabel>
         <p style={bodyStyle}>
           An order book is a sorted list. Every new order inserts into that list, every fill removes from it, every cancel modifies it. On a centralized exchange, this is a single-threaded data structure in memory. Fast. On a blockchain, this list is an on-chain account, and Solana&apos;s runtime enforces a rule: only one transaction can hold the write lock on an account at a time. Conflicting writes get serialized — they execute one after another, never in parallel.
         </p>
@@ -28,7 +28,7 @@ export default function ClobArticle() {
           Solana changes the economics. A new block every 400ms. Transaction fees measured in fractions of a cent. But it doesn&apos;t change the write-lock constraint. The engineering challenge isn&apos;t cost. It&apos;s concurrency.
         </p>
 
-        <SectionLabel>02 — Phoenix: Inline Matching</SectionLabel>
+        <SectionLabel>Phoenix: Inline Matching</SectionLabel>
         <p style={bodyStyle}>
           Serum was Solana&apos;s first CLOB. Its architecture separated order submission from order matching. Orders entered a request queue (an on-chain account). A separate program called the &quot;crank&quot; periodically read the queue, matched orders against the book, and wrote the results back. The crank was an off-chain process that someone had to run and pay for. If the crank operator went down, the order book froze. Orders would sit in the queue, unmatched.
         </p>
@@ -39,7 +39,7 @@ export default function ClobArticle() {
           Phoenix uses a FIFO (First In, First Out) matching priority. At the same price level, the order that arrived first gets filled first. This is the same model as CME and most traditional exchanges. It rewards speed: if you can get your order on-chain first, you have priority. For market makers, this means the game becomes about transaction landing latency, not just pricing.
         </p>
 
-        <SectionLabel>03 — Manifest: Zero Fees, Permissionless Markets</SectionLabel>
+        <SectionLabel>Manifest: Zero Fees, Permissionless Markets</SectionLabel>
         <p style={bodyStyle}>
           Manifest takes a different position in the design space. Where Phoenix prioritizes execution quality and tight spreads for a curated set of markets, Manifest prioritizes accessibility.
         </p>
@@ -89,7 +89,7 @@ export default function ClobArticle() {
         <p style={bodyStyle}>
           The fee structure matters. Zero fees means there&apos;s no protocol revenue, which means no protocol-level incentive to direct flow to specific markets. This is a deliberate design: the protocol is infrastructure, not a business. Market makers set their own spreads; the protocol takes nothing on top.
         </p>
-        <SectionLabel>04 — Global Orders: Cross-Margin Without Leverage</SectionLabel>
+        <SectionLabel>Global Orders: Cross-Margin Without Leverage</SectionLabel>
         <p style={bodyStyle}>
           This is Manifest&apos;s most consequential design decision and the part worth understanding in detail.
         </p>
@@ -143,7 +143,7 @@ export default function ClobArticle() {
           </p>
         </div>
 
-        <SectionLabel>05 — Aggregator Routing: Who Fills Your Orders</SectionLabel>
+        <SectionLabel>Aggregator Routing: Who Fills Your Orders</SectionLabel>
         <p style={bodyStyle}>
           A CLOB can have perfect matching logic and still see zero volume if nobody sends orders to it. This is the aggregator problem: how does trade flow reach the book?
         </p>
@@ -160,7 +160,7 @@ export default function ClobArticle() {
           The downside: aggregator integration is binary. If your price is the best, you get the fill. If it&apos;s not, you get nothing. There&apos;s no loyalty, no relationship, no &quot;you filled me last time so I&apos;ll route to you again.&quot; Pure price competition, every single order.
         </p>
 
-        <SectionLabel>06 — Cancel Latency: The Market Maker&apos;s Real Problem</SectionLabel>
+        <SectionLabel>Cancel Latency: The Market Maker&apos;s Real Problem</SectionLabel>
         <p style={bodyStyle}>
           For a market maker on a centralized exchange, canceling an order is instantaneous — a message over a WebSocket, acknowledged in microseconds. No fee, no queue, no race. On a Solana CLOB, a cancel is a transaction. It must be submitted, propagated, included in a block, and confirmed. At Solana&apos;s baseline, that&apos;s 400ms per slot — an eternity when prices are moving.
         </p>
@@ -190,7 +190,7 @@ export default function ClobArticle() {
           The cancel problem cascades into quoting strategy. A market maker who quotes tight spreads on many price levels is most exposed: more resting orders means more potential fills at stale prices during a move. The rational response is to either quote wider (reducing sniper profitability but also reducing competitiveness) or to invest heavily in cancel infrastructure — colocation with validators, low-latency RPC nodes, priority fee tuning. This is why professional on-chain market making is expensive. The edge is not in the pricing model; it&apos;s in the infrastructure that gets cancels on-chain faster than competitors.
         </p>
 
-        <SectionLabel>06b — Jito: Block Auctions, Bundles, and the Private Mempool</SectionLabel>
+        <SectionLabel>Jito: Block Auctions, Bundles, and the Private Mempool</SectionLabel>
         <p style={bodyStyle}>
           Jito is not a single tool — it is a layered MEV infrastructure that runs across most of Solana&apos;s validator set. Understanding it requires separating four distinct components.
         </p>
@@ -263,7 +263,7 @@ export default function ClobArticle() {
           The spread you see on a Solana CLOB encodes all of this. It is not the market maker&apos;s profit margin. It is the sum of: expected adverse selection from fills before cancels land, Jito tip cost amortized across expected fill volume, infrastructure costs (ShredStream, colocation, low-latency RPC), and the actual profit target — likely the smallest component of the four during volatile periods. A 5 bps spread on a liquid pair on Phoenix may represent 1 bps of actual profit and 4 bps of operational overhead that does not exist on a centralized exchange.
         </p>
 
-        <SectionLabel>07 — The Mechanism Landscape: AMM, RFQ, Intent, CLOB</SectionLabel>
+        <SectionLabel>The Mechanism Landscape: AMM, RFQ, Intent, CLOB</SectionLabel>
         <p style={bodyStyle}>
           A CLOB is one answer to the price discovery problem. Three others coexist on-chain, each making different trade-offs.
         </p>
@@ -320,7 +320,7 @@ export default function ClobArticle() {
           <strong style={{ color: 'rgba(255,255,255,0.85)' }}>On-chain CLOBs</strong> are the only model where price is transparent before the trade and limit orders are native. Every resting order is a public commitment. Market makers compete on spread. Takers see the full depth. The cost: write-lock contention, compute constraints, MEV exposure on every cancel-requote cycle.
         </p>
 
-        <SectionLabel>08 — Derivative Markets: Hyperliquid, dYdX, GMX</SectionLabel>
+        <SectionLabel>Derivative Markets: Hyperliquid, dYdX, GMX</SectionLabel>
         <p style={bodyStyle}>
           Spot CLOBs solve one problem: matching buyers and sellers of existing assets. Derivatives add a second layer — synthetic exposure, leverage, funding rates, liquidation engines, oracle pricing. Each solved it differently.
         </p>
@@ -399,7 +399,7 @@ export default function ClobArticle() {
           </table>
         </div>
 
-        <SectionLabel>09 — Scalability: Where Each Model Breaks</SectionLabel>
+        <SectionLabel>Scalability: Where Each Model Breaks</SectionLabel>
         <p style={bodyStyle}>
           Every trading architecture has a ceiling. The question is where it cracks under load — and whether that ceiling is infrastructure, economics, or trust.
         </p>
@@ -426,7 +426,7 @@ export default function ClobArticle() {
           No model wins cleanly. AMMs win on simplicity and passive liquidity. RFQ wins on MEV protection for liquid pairs. Intent-based wins on user execution quality. On-chain CLOBs win on transparency and limit order support. Own-chain CLOBs win on raw throughput — at the cost of the decentralization properties that make on-chain trading meaningful in the first place.
         </p>
 
-        <SectionLabel>10 — Where This Goes</SectionLabel>
+        <SectionLabel>Where This Goes</SectionLabel>
         <p style={bodyStyle}>
           The technical stack for on-chain CLOBs on Solana is production-ready. Phoenix and Manifest both work. Orders match, settlements clear, the matching engines survive real load. The solved problem is the matching engine.
         </p>

@@ -14,7 +14,7 @@ export default function PropAmmDictArticle() {
       {/* ── Body ── */}
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
 
-        <SectionLabel>01 — The Question Behind The Question</SectionLabel>
+        <SectionLabel>The Question Behind The Question</SectionLabel>
         <p style={bodyStyle}>
           Prop AMMs are where a lot of Solana&apos;s flow actually clears — quietly, off Jupiter&apos;s headline screen.
           HumidiFi alone <a href="https://www.helius.dev/blog/solanas-proprietary-amm-revolution" target="_blank" rel="noopener noreferrer" style={inlineLink}>hit $8.55B weekly volume in late 2025</a>.
@@ -32,7 +32,7 @@ export default function PropAmmDictArticle() {
           The two blank rows were aquifier and humidifi. This post is what happened when I tried to fill them in.
         </p>
 
-        <SectionLabel>02 — The Ten Programs</SectionLabel>
+        <SectionLabel>The Ten Programs</SectionLabel>
         <p style={bodyStyle}>
           All ten are owner-controlled, no public IDLs, no LP tokens, no external liquidity providers.
           The <code style={codeStyle}>dataSize</code> column is the fixed account size used to enumerate pool accounts under each program.
@@ -73,7 +73,7 @@ humidifi   ???`}
           </pre>
         </div>
 
-        <SectionLabel>03 — Aquifier — 90 Seconds, No API Key</SectionLabel>
+        <SectionLabel>Aquifier — 90 Seconds, No API Key</SectionLabel>
         <p style={bodyStyle}>
           I didn&apos;t want to look up a known aquifier pool on Birdeye and feed it into a search. I wanted the whole
           thing to be automatic — given a program ID and an account size, walk away with the offsets.
@@ -125,7 +125,7 @@ humidifi   ???`}
           Then I ran the same script on humidifi.
         </p>
 
-        <SectionLabel>04 — Humidifi — Same Script, Zero Hits</SectionLabel>
+        <SectionLabel>Humidifi — Same Script, Zero Hits</SectionLabel>
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
           <pre style={preStyle}>
 {`$ python3 scripts/auto-reverse.py \\
@@ -207,7 +207,7 @@ not enough candidate offsets`}
           </p>
         </div>
 
-        <SectionLabel>05 — What This Unlocks</SectionLabel>
+        <SectionLabel>What This Unlocks</SectionLabel>
         <p style={bodyStyle}>
           With aquifier added, nine of ten prop AMMs are now enumerable end-to-end with public RPC and roughly
           thirty lines of Python. The dictionary is complete enough to drive a live radar across the whole

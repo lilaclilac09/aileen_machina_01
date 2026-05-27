@@ -123,7 +123,7 @@ export default function CexDexDashboardArticle() {
       {/* ── Body ── */}
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
 
-        <SectionLabel>01 — Why Build Your Own</SectionLabel>
+        <SectionLabel>Why Build Your Own</SectionLabel>
         <p style={bodyStyle}>
           The <a href="https://dune.com/rig_ef/cex-dex-dash" target="_blank" rel="noopener noreferrer" style={inlineLink}>rig_ef CEX-DEX dashboard</a> on
           Dune is excellent. It gives you the headline numbers — $233.8M extracted, 7.2M trades, the top-three
@@ -138,7 +138,7 @@ export default function CexDexDashboardArticle() {
           on top of these four.
         </p>
 
-        <SectionLabel>02 — Query 1: The Atomic Block-Level Profit</SectionLabel>
+        <SectionLabel>Query 1: The Atomic Block-Level Profit</SectionLabel>
         <p style={bodyStyle}>
           This is the building block. For every block in a window, identify the DEX trades large enough to be a
           plausible arbitrage leg, then estimate the spread they captured against the CEX reference price at the
@@ -223,7 +223,7 @@ ORDER BY block_number DESC;`}
           searcher could have hedged in the same window.
         </p>
 
-        <SectionLabel>03 — Query 2: The Markout</SectionLabel>
+        <SectionLabel>Query 2: The Markout</SectionLabel>
         <p style={bodyStyle}>
           The single biggest methodological wrinkle in the paper. The CEX leg is invisible, so you cannot ask
           &quot;when exactly did the searcher hedge?&quot;. Instead you check the CEX price at the block time and at
@@ -289,7 +289,7 @@ ORDER BY extracted_t30 DESC;`}
           the market — money the searcher would have lost if they had hedged five seconds late.
         </p>
 
-        <SectionLabel>04 — Query 3: Searcher Clustering</SectionLabel>
+        <SectionLabel>Query 3: Searcher Clustering</SectionLabel>
         <p style={bodyStyle}>
           The paper&apos;s headline result is that three searchers captured 75% of the extracted value. The only
           way to make that claim with public data is to cluster wallet addresses into searcher identities. The
@@ -360,7 +360,7 @@ LIMIT 100;`}
           </p>
         </div>
 
-        <SectionLabel>05 — Query 4: The Solana Variant</SectionLabel>
+        <SectionLabel>Query 4: The Solana Variant</SectionLabel>
         <p style={bodyStyle}>
           The Ethereum version of this dashboard is the well-trodden path. The Solana version is harder, mostly
           because the on-chain leg is more entangled with non-arbitrage activity in the same transaction. A
@@ -419,7 +419,7 @@ LIMIT 50;`}
           how those feeds work.
         </p>
 
-        <SectionLabel>06 — Funding-Rate Variant</SectionLabel>
+        <SectionLabel>Funding-Rate Variant</SectionLabel>
         <p style={bodyStyle}>
           The price-arb queries above don&apos;t cover the second flavour of CEX-DEX arb: funding rate
           arbitrage on perpetuals. That one needs different tables. The good news is Dune has them — Drift,
@@ -464,7 +464,7 @@ LIMIT 200;`}
           has a structural inventory imbalance no single trader can fully offset.
         </p>
 
-        <SectionLabel>07 — Putting It Together</SectionLabel>
+        <SectionLabel>Putting It Together</SectionLabel>
         <p style={bodyStyle}>
           A working dashboard is the four queries above arranged into six panels:
         </p>
@@ -499,7 +499,7 @@ LIMIT 200;`}
           on toxic flow. Everything else is bookkeeping. Build that one first, even if you skip the rest.
         </p>
 
-        <SectionLabel>08 — The Limit</SectionLabel>
+        <SectionLabel>The Limit</SectionLabel>
         <blockquote style={blockquoteStyle}>
           Every number in this dashboard is the on-chain shadow of a two-legged trade. The shadow is enough to
           rank the searchers and watch the market move; it is never enough to know exactly what they made.

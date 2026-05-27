@@ -14,7 +14,7 @@ export default function CentaurArticle() {
       {/* ── Body ── */}
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
 
-        <SectionLabel>01 — What it actually is</SectionLabel>
+        <SectionLabel>What it actually is</SectionLabel>
         <p style={bodyStyle}>
           Centaur is a self-hosted platform that gives a team <em>one</em> shared AI agent instead
           of N one-off local setups. You talk to it from Slack or an API. Every conversation runs
@@ -50,7 +50,7 @@ plugins / workflows   Python tools + checkpointable workflow steps`}
           custom CLI harness drops into the sandbox. Centaur is the chassis, not the engine.
         </p>
 
-        <SectionLabel>02 — Why Paradigm built it themselves</SectionLabel>
+        <SectionLabel>Why Paradigm built it themselves</SectionLabel>
         <p style={bodyStyle}>
           Paradigm is a venture firm of roughly fifty people running a multi-billion crypto book
           plus the Reth / Foundry stacks. They&apos;ve been using Centaur internally since January
@@ -86,7 +86,7 @@ plugins / workflows   Python tools + checkpointable workflow steps`}
           coworker.
         </p>
 
-        <SectionLabel>03 — The PM bets, component by component</SectionLabel>
+        <SectionLabel>The PM bets, component by component</SectionLabel>
         <p style={bodyStyle}>
           Each of the five components is a deliberate scope choice. Reading them as PM decisions
           rather than as a list of services is the most informative way to look at the repo.
@@ -134,7 +134,7 @@ plugins / workflows   Python tools + checkpointable workflow steps`}
           platform.
         </p>
 
-        <SectionLabel>04 — How they&apos;re telling the story</SectionLabel>
+        <SectionLabel>How they&apos;re telling the story</SectionLabel>
         <p style={bodyStyle}>
           The launch communication is as deliberate as the architecture. Four pieces of it are
           worth noticing.
@@ -171,7 +171,7 @@ plugins / workflows   Python tools + checkpointable workflow steps`}
           fifty-person firm produces a list of jobs-to-be-done that a vendor demo never can.
         </p>
 
-        <SectionLabel>05 — The competitive grid</SectionLabel>
+        <SectionLabel>The competitive grid</SectionLabel>
         <p style={bodyStyle}>
           Centaur sits at the intersection of four adjacent markets. None of them contain a
           direct equivalent yet, which is the most interesting thing about the launch.
@@ -228,7 +228,7 @@ Coding-only agent      Sweep, Tusk, GH Copilot         OpenDevin-style forks
           the PR-bot pattern is one of many workflows you could implement on top of it.
         </p>
 
-        <SectionLabel>06 — Where this leaves the market</SectionLabel>
+        <SectionLabel>Where this leaves the market</SectionLabel>
         <p style={bodyStyle}>
           The interesting position Centaur stakes out is the top-right quadrant of that grid:{' '}
           <strong style={strong}>open-source, self-hosted, full-stack team agent runtime</strong>.

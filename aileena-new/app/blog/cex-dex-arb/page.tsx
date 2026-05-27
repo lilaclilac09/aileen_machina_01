@@ -14,7 +14,7 @@ export default function CexDexArbArticle() {
       {/* ── Body ── */}
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
 
-        <SectionLabel>01 — The Two-Cent Spread</SectionLabel>
+        <SectionLabel>The Two-Cent Spread</SectionLabel>
         <p style={bodyStyle}>
           SOL is quoted at <strong style={strong}>$172.41</strong> on Binance. The same SOL is quoted at
           <strong style={strong}> $172.46</strong> on a Solana DEX twenty milliseconds later. The two prices
@@ -37,7 +37,7 @@ export default function CexDexArbArticle() {
           and malleshpai — released a custom Dune dataset that finally let outsiders see it.
         </p>
 
-        <SectionLabel>02 — Two Flavors of the Trade</SectionLabel>
+        <SectionLabel>Two Flavors of the Trade</SectionLabel>
         <p style={bodyStyle}>
           There are two distinct CEX-DEX strategies, and they live on different parts of the orderbook.
         </p>
@@ -77,7 +77,7 @@ export default function CexDexArbArticle() {
           fast enough that the spread does not close while you are mid-trade.
         </p>
 
-        <SectionLabel>03 — Why It Is Called &quot;Dark&quot;</SectionLabel>
+        <SectionLabel>Why It Is Called &quot;Dark&quot;</SectionLabel>
         <p style={bodyStyle}>
           Sandwich attacks, JIT liquidity, and on-chain DEX-to-DEX arbitrage all leave a complete fingerprint
           on the blockchain. The bot&apos;s transaction is there. The pool it touched is there. The user it
@@ -99,7 +99,7 @@ export default function CexDexArbArticle() {
           the size of the market.
         </p>
 
-        <SectionLabel>04 — The Numbers</SectionLabel>
+        <SectionLabel>The Numbers</SectionLabel>
         <p style={bodyStyle}>
           From <strong style={strong}>August 2023 to March 2025</strong> — 19 months — the researchers identified
           7,203,560 CEX-DEX arbitrage trades and estimated $233.8 million in extracted value across them.
@@ -159,7 +159,7 @@ export default function CexDexArbArticle() {
           to avoid signalling your own trades to the market. A solo searcher does not have any of those things.
         </p>
 
-        <SectionLabel>05 — The Dashboard</SectionLabel>
+        <SectionLabel>The Dashboard</SectionLabel>
         <p style={bodyStyle}>
           The paper&apos;s authors open-sourced the Dune queries that drive the analysis. You can fork them and
           watch the market live. Two are worth knowing by name.
@@ -241,7 +241,7 @@ export default function CexDexArbArticle() {
           the raw CSV and run your own analysis offline.
         </p>
 
-        <SectionLabel>06 — Why Solana Changes the DEX Leg</SectionLabel>
+        <SectionLabel>Why Solana Changes the DEX Leg</SectionLabel>
         <p style={bodyStyle}>
           Almost all of the public research on CEX-DEX arbitrage uses Ethereum data. The DEX leg in that data
           is Uniswap V3 or Curve, and the on-chain economics are dominated by Ethereum&apos;s 12-second blocks
@@ -319,7 +319,7 @@ export default function CexDexArbArticle() {
           </p>
         </div>
 
-        <SectionLabel>07 — The Builder&apos;s Map</SectionLabel>
+        <SectionLabel>The Builder&apos;s Map</SectionLabel>
         <p style={bodyStyle}>
           Two pieces of work are worth reading if you want to build instead of just measure.
         </p>
@@ -387,7 +387,7 @@ export default function CexDexArbArticle() {
           stake-weighted relay so your DEX-leg transactions don&apos;t sit behind public traffic.
         </p>
 
-        <SectionLabel>08 — Where to Read the Spread on Solana</SectionLabel>
+        <SectionLabel>Where to Read the Spread on Solana</SectionLabel>
         <p style={bodyStyle}>
           If you want to watch the same kind of trade happen on Solana rather than Ethereum, the place to
           start is the layer below the DEX swap — the mempool-equivalent. Solana doesn&apos;t have a public
@@ -405,7 +405,7 @@ export default function CexDexArbArticle() {
           is the trade that pays for that infrastructure.
         </p>
 
-        <SectionLabel>09 — The Mental Model</SectionLabel>
+        <SectionLabel>The Mental Model</SectionLabel>
         <blockquote style={blockquoteStyle}>
           A CEX-DEX arbitrage is a single trade with two execution clocks: a 1-millisecond clock for the CEX
           leg, and a 400-millisecond (or 12-second) clock for the DEX leg. The job is to keep both clocks
