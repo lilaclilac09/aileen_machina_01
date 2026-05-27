@@ -18,7 +18,7 @@ export default function Home() {
   const [loaded, setLoaded] = useState(false);
 
   const dispatchTop3 = tx.blog.researchDispatch.posts.slice(-3).reverse();
-  const notesTop2 = tx.blog.womanInTech.posts.slice(0, 2);
+  const womanInTechTop2 = tx.blog.womanInTech.posts.slice(0, 2);
 
   return (
     <>
@@ -190,8 +190,8 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 06 NOTES (formerly Woman in Tech) ── */}
-        <SnapSection id="notes" className="order-6">
+        {/* ── 06 WOMAN IN TECH ── */}
+        <SnapSection id="woman-in-tech" className="order-6">
           <div className="h-full flex flex-col bg-black px-6 sm:px-10 lg:px-16">
             <div className="mx-auto w-full max-w-[760px] flex h-full flex-col py-12 sm:py-16" style={{ fontFamily: nunito }}>
               <p className="anim-up text-[0.7rem] uppercase tracking-[0.32em] text-white/40 mb-4" style={{ fontWeight: 500 }}>
@@ -202,7 +202,7 @@ export default function Home() {
               </h2>
 
               <div className="flex-1 overflow-y-auto pr-1 substack-list">
-                {notesTop2.map((post) => (
+                {womanInTechTop2.map((post) => (
                   <Link key={post.title} href={post.href}>
                     <p className="sl-date">{post.date}</p>
                     <h3 className="sl-title">{post.title}</h3>

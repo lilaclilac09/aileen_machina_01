@@ -232,10 +232,16 @@ export const t = {
         ],
       },
       womanInTech: {
-        tag: 'NOTES',
-        heading: 'Notes',
+        tag: 'PERSPECTIVE',
+        heading: 'Woman in Tech',
         read: 'Read',
         posts: [
+          {
+            date: '2026.04.23',
+            href: '/blog/harassment',
+            title: 'Every Woman in Tech Has a #MeToo Story',
+            body: 'At a Monad Foundation event in Singapore, alone, someone came up behind me and squeezed my shoulder — deliberately, threatening, with senior people watching and saying nothing. It always comes from someone you know. Harassment is not impulsive — it is a calculated assertion of power over someone who cannot easily push back. Recognizing the patterns: supervisory coercion, retaliation threats, bystander silence, and what to do when they come for your job.',
+          },
           {
             date: '2026.02.15',
             href: '/blog/lion',
@@ -247,12 +253,6 @@ export const t = {
             href: '/blog/misread',
             title: 'Misread — But She Can Become Anyone',
             body: 'Feminism is not a battle cry, not a manifesto against any system, not persuasion, not violence, not conformity. It is expression. It is the quiet, relentless work of making women\'s abilities visible — and making sure that visibility translates into real economic value. She can be an engineer. She can be everything. The point was never the slogan.',
-          },
-          {
-            date: '2026.04.23',
-            href: '/blog/harassment',
-            title: 'Every Woman in Tech Has a #MeToo Story',
-            body: 'It always comes from someone you know. Harassment is not impulsive — it is a calculated assertion of power over someone who cannot easily push back. A research dispatch on recognizing the patterns: supervisory coercion, retaliation threats, bystander silence, and what to do when they come for your job.',
           },
         ],
       },
@@ -282,7 +282,7 @@ export const t = {
             { label: 'Dispatch', href: '#dispatch' },
             { label: 'Work', href: '/works' },
             { label: 'Sound', href: '/sound' },
-            { label: 'Notes', href: '#notes' },
+            { label: 'Woman in Tech', href: '#woman-in-tech' },
           ],
         },
         {
@@ -527,10 +527,16 @@ export const t = {
         ],
       },
       womanInTech: {
-        tag: 'NOTIZEN',
-        heading: 'Notizen',
+        tag: 'PERSPEKTIVE',
+        heading: 'Frau in Tech',
         read: 'Lesen',
         posts: [
+          {
+            date: '2026.04.23',
+            href: '/blog/harassment',
+            title: 'Jede Frau in Tech hat eine #MeToo-Geschichte',
+            body: 'Bei einem Event der Monad Foundation in Singapur, allein, kam jemand von hinten und drückte meine Schulter — bewusst, bedrohlich, während ranghohe Leute zusahen und nichts sagten. Es kommt fast immer von jemandem, den du kennst. Belästigung ist nicht impulsiv — sie ist eine kalkulierte Machtdemonstration gegen jemanden, der sich nicht leicht wehren kann. Die Muster erkennen: Vorgesetzten-Zwang, Vergeltungsdrohungen, Schweigen der Zuschauer, und was zu tun ist, wenn sie deinen Job bedrohen.',
+          },
           {
             date: '2026.02.15',
             href: '/blog/lion',
@@ -542,12 +548,6 @@ export const t = {
             href: '/blog/misread',
             title: 'Missverstanden — Aber Sie Kann Alles Sein',
             body: 'Feminismus ist kein Kampfruf, kein Manifest gegen ein System, keine Überzeugungsarbeit, keine Gewalt, kein Konformismus. Er ist Ausdruck. Er ist die stille, unermüdliche Arbeit, die Fähigkeiten von Frauen sichtbar zu machen — und sicherzustellen, dass diese Sichtbarkeit in echten wirtschaftlichen Wert übersetzt wird. Sie kann Ingenieurin sein. Sie kann alles sein. Darum ging es nie bei Slogans.',
-          },
-          {
-            date: '2026.04.23',
-            href: '/blog/harassment',
-            title: 'Jede Frau in Tech hat eine #MeToo-Geschichte',
-            body: 'Es kommt fast immer von jemandem, den du kennst. Belästigung ist nicht impulsiv — sie ist eine kalkulierte Machtdemonstration gegen jemanden, der sich nicht leicht wehren kann. Ein Forschungsbericht über die Muster: Vorgesetzten-Zwang, Vergeltungsdrohungen, Schweigen der Zuschauer, und was zu tun ist, wenn sie deinen Job bedrohen.',
           },
         ],
       },
@@ -577,7 +577,7 @@ export const t = {
             { label: 'Dispatch', href: '#dispatch' },
             { label: 'Arbeit', href: '/works' },
             { label: 'Sound', href: '/sound' },
-            { label: 'Notizen', href: '#notes' },
+            { label: 'Frau in Tech', href: '#woman-in-tech' },
           ],
         },
         {
