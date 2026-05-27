@@ -53,8 +53,8 @@ export default function DoubleZeroArticle() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: 40, flexWrap: 'wrap' }}>
           <span style={{
             fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.45em',
-            color: '#00ffea', textTransform: 'uppercase',
-            padding: '4px 10px', border: '1px solid rgba(0,255,234,0.3)',
+            color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase',
+            padding: '4px 10px', border: '1px solid rgba(255,255,255,0.2)',
           }}>
             INFRASTRUCTURE
           </span>
@@ -82,9 +82,9 @@ export default function DoubleZeroArticle() {
 
         <p style={{
           fontSize: 'clamp(1rem, 2.5vw, 1.25rem)',
-          lineHeight: 1.75, color: 'rgba(255,255,255,0.55)',
+          lineHeight: 1.75, color: 'rgba(255,255,255,0.7)',
           letterSpacing: '0.03em',
-          borderLeft: '2px solid rgba(0,255,234,0.4)',
+          borderLeft: '2px solid rgba(255,255,255,0.25)',
           paddingLeft: 20, marginBottom: 0,
         }}>
           A Solana slot is 400ms. Inside it a validator has to receive the previous block, replay it, build
@@ -112,29 +112,34 @@ export default function DoubleZeroArticle() {
 
         <SectionLabel>01 — The bottleneck is jitter, not latency</SectionLabel>
         <p style={bodyStyle}>
-          Two different things get called &quot;latency.&quot;
+          People throw around the word &quot;latency&quot; to mean two different things. Pull them apart
+          and the bottleneck becomes obvious.
         </p>
         <p style={bodyStyle}>
-          <strong style={strong}>Latency</strong> is the median time a packet takes from A to B.
-          NYC ↔ Frankfurt is ~76ms great-circle. Light in fiber goes ~2/3 of c, so the physical
-          floor is around 38ms one-way. You don&apos;t beat that without a lower-latitude path.
+          <strong style={strong}>Latency</strong> is the typical time a packet takes to get from one
+          machine to another. New York to Frankfurt is about 76 milliseconds in a straight line.
+          Light in glass fiber moves at roughly two-thirds the speed of light in vacuum, so the
+          physical floor for that route is about 38 ms one-way. You cannot beat that. Physics.
         </p>
         <p style={bodyStyle}>
-          <strong style={strong}>Jitter</strong> is the variance. P50 might be 80ms; P99 is 140ms;
-          P99.9 might be 400ms because some packet hit a congested peering point and got buffered for
-          300ms. That tail is the part that kills you.
+          <strong style={strong}>Jitter</strong> is how much that number wobbles. Most packets arrive
+          in 80 ms. One in a hundred takes 140 ms because it sat behind something else at a router.
+          One in a thousand takes 400 ms because it hit a congested handoff between two networks and
+          waited 300 ms in a queue. The average is fine. The tail is what hurts you.
         </p>
         <p style={bodyStyle}>
-          Solana shred propagation under Turbine is a unicast fan-out tree. The leader sends shreds
-          to a small root set; they forward to children; the tree fans down. A single late shred at
-          any layer delays everyone beneath it. The block isn&apos;t reconstructed until enough shreds
-          arrive, and the next leader can&apos;t safely build on top until that happens. P99 jitter at
-          any intermediate hop compounds into P99+ jitter at the root of the next block.
+          Solana&apos;s block propagation is built on top of regular point-to-point traffic — every
+          validator sends a private copy to every other validator that needs it. The block leader
+          breaks a block into small pieces called <em>shreds</em>, sends them to a handful of root
+          validators, and each root forwards copies to its children. Shreds fan out down a tree. If
+          one shred is late at any level of that tree, every validator below it is also late. The
+          next leader cannot safely build the next block until enough shreds have arrived. Slowness
+          at one hop ripples into slowness at the next block&apos;s start.
         </p>
         <p style={bodyStyle}>
-          The Malbec Labs team frames it directly in the Breakpoint 25 talk:{' '}
+          The Malbec Labs team puts it plainly in their Breakpoint 25 talk:{' '}
           <em>&quot;latency without control, you get a lot of jitter and it makes predictions that much harder.&quot;</em>{' '}
-          Their headline number is the worst-case time to land a transaction:
+          Their headline number is the worst-case time to land a transaction.
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -165,44 +170,50 @@ export default function DoubleZeroArticle() {
 
         <SectionLabel>02 — What DoubleZero actually is</SectionLabel>
         <p style={bodyStyle}>
-          Three layers stacked. Real terminology this time, not marketing.
+          DoubleZero is three layers. None of them are mysterious; they just have unfamiliar names.
         </p>
         <p style={bodyStyle}>
-          <strong style={strong}>Physical layer.</strong> Network Bandwidth Contributors provide
-          dedicated bandwidth with IPv4 connectivity and an MTU of 2048 bytes between two data centers —
-          in practice, wavelength services on existing long-haul fiber. Three flavors: L1 wavelength on
-          DWDM/CWDM, L2 packet-switched VLAN extension, or L3 dedicated third-party bandwidth. Each
-          contributed link terminates at a <strong style={strong}>DZD</strong> (DoubleZero Device — a
-          physical switch, in practice a pair of Arista 7280CR3As plus AMD V80 NICs, in a 4U/4KW rack at
-          each end).
+          <strong style={strong}>The physical layer is the actual fiber.</strong> Companies that own
+          long-haul fiber — telecoms, data center operators, hyperscalers — donate a slice of capacity
+          between two cities. In telecom terms this is a &quot;wavelength service&quot;: one color of
+          light on a much fatter cable. At each end of the slice sits a switch in someone&apos;s data
+          center. DoubleZero calls these switches <strong style={strong}>DZDs</strong> (DoubleZero
+          Devices). In practice each one is a pair of Arista 7280CR3A switches and AMD V80 network
+          cards, sharing about a server-rack&apos;s worth of space and four kilowatts of power.
         </p>
         <p style={bodyStyle}>
-          <strong style={strong}>Exchange layer.</strong> Contributor links bridge to each other at{' '}
-          <strong style={strong}>DZXs</strong> (DoubleZero Exchanges) — interconnect points in major
-          metros. This is what turns N point-to-point contributions into a real mesh.
+          <strong style={strong}>The exchange layer stitches the fiber pieces into a network.</strong>{' '}
+          One donated link goes from city A to city B; another goes from B to C. To turn a bag of
+          point-to-point links into something a validator can plug in and reach anyone, the links
+          have to meet somewhere. DoubleZero calls these meeting points{' '}
+          <strong style={strong}>DZXs</strong> (DoubleZero Exchanges) — physical interconnects in
+          major metros, exactly like the internet exchanges carriers already use.
         </p>
-        <p style={bodyStyle}><strong style={strong}>Software layer.</strong></p>
+        <p style={bodyStyle}>
+          <strong style={strong}>The software layer is what makes it programmable.</strong> Four
+          pieces:
+        </p>
         <ul style={listStyle}>
-          <li><strong style={strong}>Controller</strong> — derives device configuration from on-chain state.</li>
-          <li><strong style={strong}>Config Agent + Telemetry Agent</strong> — run on each DZD. Config Agent applies whatever the Controller says; Telemetry Agent measures latency, jitter, and packet loss via <strong style={strong}>TWAMP</strong> and publishes results.</li>
-          <li><code style={codeStyle}>doublezerod</code> — the daemon that runs on the validator or RPC host. Manages a <code style={codeStyle}>doublezero0</code> tunnel interface, the routing table, and the BGP session into the mesh.</li>
-          <li><strong style={strong}>On-chain ledger</strong> — serviceability state and telemetry are written to a Solana program. Network state is verifiable; routing isn&apos;t a black box.</li>
+          <li>A <strong style={strong}>controller</strong> reads the on-chain configuration and tells every switch what to do.</li>
+          <li>A <strong style={strong}>config agent</strong> on each switch applies what the controller says.</li>
+          <li>A <strong style={strong}>telemetry agent</strong> on each switch measures latency, jitter, and packet loss between every pair of devices using <strong style={strong}>TWAMP</strong> — a standard protocol for active network measurement — and publishes the numbers in real time.</li>
+          <li><code style={codeStyle}>doublezerod</code> is the daemon you install on your validator. It manages a virtual interface (<code style={codeStyle}>doublezero0</code>) and a small routing table. Whenever your validator talks to a peer that&apos;s also on the mesh, the traffic goes out the fast path instead of the public internet.</li>
+          <li>An <strong style={strong}>on-chain ledger</strong> on Solana stores membership and telemetry. Anyone can read it.</li>
         </ul>
         <p style={bodyStyle}>
-          What it isn&apos;t: it&apos;s not &quot;BGP-free.&quot; DoubleZero actually <em>uses</em> BGP — but
-          inside its own permissioned mesh, on <code style={codeStyle}>169.254.0.0/16</code> link-local
-          addresses over GRE (IP protocol 47), with all peers and policies known. The distinction from
-          the public internet isn&apos;t &quot;no BGP,&quot; it&apos;s &quot;BGP across a deterministic mesh of
-          N participants&quot; vs &quot;BGP across tens of thousands of unknown ASes doing best-effort policy
-          routing.&quot; Same protocol, completely different blast radius.
+          One point of confusion worth clearing up: DoubleZero is not &quot;BGP-free.&quot; It runs BGP —
+          the same routing protocol the public internet runs — but inside a closed network where every
+          participant is known and every policy is auditable. The public internet has tens of thousands
+          of independent networks running BGP at each other, making best-effort decisions and trusting
+          each other. DoubleZero runs BGP across a few dozen participants who agreed on the rules ahead
+          of time. Same protocol, very different failure modes.
         </p>
         <p style={bodyStyle}>
-          The live multicast group state, contributor list, and per-link telemetry are published at{' '}
-          <a href="https://data.malbeclabs.com/" target="_blank" rel="noopener noreferrer" style={inlineLink}>data.malbeclabs.com</a>{' '}
-          — including{' '}
-          <a href="https://data.malbeclabs.com/dz/multicast-groups" target="_blank" rel="noopener noreferrer" style={inlineLink}>/dz/multicast-groups</a>{' '}
-          for the multicast topology specifically. The transparency is part of the design: contributors
-          get paid based on measured service quality, so the measurements have to be public.
+          Telemetry lives at{' '}
+          <a href="https://data.malbeclabs.com/" target="_blank" rel="noopener noreferrer" style={inlineLink}>data.malbeclabs.com</a>,
+          including the live multicast topology at{' '}
+          <a href="https://data.malbeclabs.com/dz/multicast-groups" target="_blank" rel="noopener noreferrer" style={inlineLink}>/dz/multicast-groups</a>.
+          The data has to be public because contributors get paid based on what it measures.
         </p>
 
         <SectionLabel>03 — The multicast trick</SectionLabel>
@@ -352,14 +363,17 @@ doublezero status        # confirm connection`}
 
         <SectionLabel>06 — Compared to renting your own fiber</SectionLabel>
         <p style={bodyStyle}>
-          HFT firms have been solving this problem since ~2010, and the comparison is worth making
-          explicit because it&apos;s exactly why DoubleZero is structured as a shared substrate.
+          High-frequency trading firms have been solving the &quot;public internet is too jittery&quot;
+          problem since about 2010. Looking at how they solved it makes it clearer why DoubleZero is
+          shaped the way it is.
         </p>
         <p style={bodyStyle}>
-          <strong style={strong}>The HFT model.</strong> A trading firm signs a dark-fiber lease (or
-          microwave path, McKay/Anova-style) on a specific route — say NYC → Aurora for CME, or NYC →
-          London for LSE. They light their own wavelength, terminate at colocation cages on both ends,
-          own every meter exclusively.
+          <strong style={strong}>The HFT playbook.</strong> A firm picks a route that matters —
+          Chicago to New York for futures, New York to London for cross-Atlantic trading — and signs
+          a private deal for fiber along that route. They light a single wavelength on the cable, run
+          it from their server in one data center to their server in the other, and own every meter
+          end to end. Nobody else&apos;s packets touch it. The trade-off: they get the best latency
+          physically possible on that route, and they pay for the whole pipe whether they use it or not.
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -397,17 +411,17 @@ doublezero status        # confirm connection`}
         </div>
 
         <p style={bodyStyle}>
-          You get the absolute best latency on earth for that route. You also pay for the entire pipe
-          regardless of how much you push through it. For a firm doing $100M/year of MEV that math
-          works. For a 50-validator cluster trying to recover skipped-slot APY, it doesn&apos;t.
+          For a firm pulling $100M/year of MEV on that route, the math is easy. For a fifty-validator
+          cluster trying to claw back a few percent of skipped slots a year, it isn&apos;t.
         </p>
         <p style={bodyStyle}>
-          <strong style={strong}>The DoubleZero model.</strong> A bandwidth contributor dedicates a
-          wavelength to the shared substrate, terminates it on a DZD pair (Arista 7280CR3A + AMD V80,
-          ~4U/4KW per side), and bridges to the rest of the network at the nearest DZX. Many validators
-          and searchers share ports into that substrate. Capacity is multiplexed, telemetry is published,
-          contributors get paid via the on-chain Shapley-value reward program proportional to their
-          measured contribution to network quality.
+          <strong style={strong}>The DoubleZero playbook.</strong> Instead of one firm leasing a whole
+          route end-to-end, many firms each donate a slice of fiber they already own. The slices get
+          glued together at exchanges, and validators plug into the combined network with a regular
+          port. Capacity is shared. Telemetry is public. Contributors get paid in proportion to how
+          much their slice actually improved the network — measured by the telemetry, not negotiated.
+          The payout formula is borrowed from game theory and called Shapley values; it asks &quot;how
+          much worse would the network be if this contributor weren&apos;t there?&quot; and pays accordingly.
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -739,9 +753,9 @@ doublezero status        # confirm connection`}
                   href={ref.href}
                   target={ref.href.startsWith('http') ? '_blank' : undefined}
                   rel={ref.href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                  style={{ color: 'rgba(0,255,234,0.6)', textDecoration: 'none' }}
+                  style={{ color: 'rgba(255,255,255,0.55)', textDecoration: 'none' }}
                   onMouseEnter={e => (e.currentTarget.style.color = '#00ffea')}
-                  onMouseLeave={e => (e.currentTarget.style.color = 'rgba(0,255,234,0.6)')}
+                  onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.55)')}
                 >
                   {ref.label}
                 </a>
@@ -786,11 +800,10 @@ const strong: React.CSSProperties = {
 const codeStyle: React.CSSProperties = {
   fontFamily: 'monospace',
   fontSize: '0.85em',
-  background: 'rgba(0,255,234,0.08)',
+  background: 'rgba(255,255,255,0.06)',
   padding: '1px 6px',
-  border: '1px solid rgba(0,255,234,0.18)',
   borderRadius: 2,
-  color: 'rgba(0,255,234,0.9)',
+  color: 'rgba(255,255,255,0.85)',
 };
 
 const preStyle: React.CSSProperties = {
@@ -798,8 +811,8 @@ const preStyle: React.CSSProperties = {
   fontSize: '0.78rem',
   lineHeight: 1.6,
   color: 'rgba(255,255,255,0.75)',
-  background: 'rgba(0,255,234,0.025)',
-  border: '1px solid rgba(0,255,234,0.12)',
+  background: 'rgba(255,255,255,0.025)',
+  border: '1px solid rgba(255,255,255,0.08)',
   padding: '20px 24px',
   overflowX: 'auto',
   letterSpacing: '0.01em',
@@ -826,7 +839,7 @@ const tableStyle: React.CSSProperties = {
 const thStyle: React.CSSProperties = {
   padding: '12px 16px',
   textAlign: 'left',
-  color: '#00ffea',
+  color: 'rgba(255,255,255,0.7)',
   fontSize: '0.65rem',
   letterSpacing: '0.3em',
   textTransform: 'uppercase',
@@ -854,8 +867,7 @@ const trStyle: React.CSSProperties = {
 const blockquoteStyle: React.CSSProperties = {
   margin: '48px 0',
   padding: '28px 32px',
-  background: 'rgba(0,255,234,0.04)',
-  borderLeft: '3px solid #00ffea',
+  borderLeft: '2px solid rgba(255,255,255,0.4)',
   fontSize: 'clamp(1.1rem, 2.5vw, 1.5rem)',
   fontWeight: 600,
   letterSpacing: '0.05em',
@@ -866,8 +878,8 @@ const blockquoteStyle: React.CSSProperties = {
 const calloutAccent: React.CSSProperties = {
   margin: '32px 0',
   padding: '22px 26px',
-  background: 'rgba(0,255,234,0.04)',
-  border: '1px solid rgba(0,255,234,0.18)',
+  background: 'rgba(255,255,255,0.025)',
+  border: '1px solid rgba(255,255,255,0.1)',
 };
 
 const calloutInfo: React.CSSProperties = {
@@ -881,7 +893,7 @@ const calloutTitle: React.CSSProperties = {
   fontFamily: 'monospace',
   fontSize: '0.55rem',
   letterSpacing: '0.4em',
-  color: 'rgba(0,255,234,0.8)',
+  color: 'rgba(255,255,255,0.45)',
   textTransform: 'uppercase',
   margin: '0 0 14px',
 };
@@ -899,11 +911,10 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
       fontFamily: 'monospace',
       fontSize: '0.6rem',
       letterSpacing: '0.45em',
-      color: '#00ffea',
+      color: 'rgba(255,255,255,0.4)',
       textTransform: 'uppercase',
       marginBottom: 20,
       marginTop: 56,
-      opacity: 0.8,
     }}>
       {children}
     </p>
@@ -920,8 +931,8 @@ function StatsWall({ stats }: { stats: { value: string; label: string; sub?: str
       display: 'grid',
       gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
       gap: 1,
-      background: 'rgba(0,255,234,0.12)',
-      border: '1px solid rgba(0,255,234,0.18)',
+      background: 'rgba(255,255,255,0.08)',
+      border: '1px solid rgba(255,255,255,0.1)',
     }}>
       {stats.map((s, i) => (
         <div key={i} style={{
@@ -932,7 +943,7 @@ function StatsWall({ stats }: { stats: { value: string; label: string; sub?: str
         }}>
           <span style={{
             fontFamily: 'monospace', fontSize: '0.5rem', letterSpacing: '0.4em',
-            color: 'rgba(0,255,234,0.55)', textTransform: 'uppercase',
+            color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase',
           }}>
             {String(i + 1).padStart(2, '0')}
           </span>
@@ -940,7 +951,8 @@ function StatsWall({ stats }: { stats: { value: string; label: string; sub?: str
             fontFamily: "'Barlow Condensed', system-ui, sans-serif",
             fontSize: 'clamp(1.8rem, 4vw, 2.6rem)',
             fontWeight: 700, letterSpacing: '0.02em',
-            color: '#00ffea', lineHeight: 1,
+            color: i === 0 ? '#00ffea' : 'rgba(255,255,255,0.95)',
+            lineHeight: 1,
           }}>
             {s.value}
           </span>
@@ -983,13 +995,13 @@ function CardGrid({ cards, columns = 3 }: {
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 14 }}>
               <span style={{
                 fontFamily: 'monospace', fontSize: '0.62rem', letterSpacing: '0.3em',
-                color: 'rgba(0,255,234,0.55)',
+                color: 'rgba(255,255,255,0.35)',
               }}>
                 {c.num}
               </span>
               <span style={{
                 fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.4em',
-                color: '#00ffea', textTransform: 'uppercase',
+                color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase',
               }}>
                 {c.tag}
               </span>
@@ -1012,9 +1024,8 @@ function CardGrid({ cards, columns = 3 }: {
         );
         const baseCardStyle: React.CSSProperties = {
           padding: '20px 22px',
-          background: 'rgba(0,255,234,0.025)',
-          border: '1px solid rgba(0,255,234,0.15)',
-          borderTop: '2px solid rgba(0,255,234,0.5)',
+          background: 'rgba(255,255,255,0.02)',
+          border: '1px solid rgba(255,255,255,0.08)',
           textDecoration: 'none',
           display: 'block',
           transition: 'background 0.18s, border-color 0.18s',
@@ -1023,12 +1034,12 @@ function CardGrid({ cards, columns = 3 }: {
           return (
             <a key={i} href={c.href} target="_blank" rel="noopener noreferrer" style={baseCardStyle}
               onMouseEnter={e => {
-                e.currentTarget.style.background = 'rgba(0,255,234,0.06)';
-                e.currentTarget.style.borderColor = 'rgba(0,255,234,0.4)';
+                e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)';
               }}
               onMouseLeave={e => {
-                e.currentTarget.style.background = 'rgba(0,255,234,0.025)';
-                e.currentTarget.style.borderColor = 'rgba(0,255,234,0.15)';
+                e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
               }}
             >
               {inner}
@@ -1047,8 +1058,7 @@ function PullQuote({ children, attribution }: { children: React.ReactNode; attri
     <div style={{
       margin: '48px -8px',
       padding: '28px 32px 28px 28px',
-      borderLeft: '3px solid #00ffea',
-      background: 'linear-gradient(90deg, rgba(0,255,234,0.08), rgba(0,255,234,0.0))',
+      borderLeft: '2px solid rgba(255,255,255,0.35)',
     }}>
       <p style={{
         fontSize: 'clamp(1.05rem, 2.4vw, 1.4rem)',
@@ -1061,7 +1071,7 @@ function PullQuote({ children, attribution }: { children: React.ReactNode; attri
       {attribution && (
         <p style={{
           fontFamily: 'monospace', fontSize: '0.6rem', letterSpacing: '0.3em',
-          color: 'rgba(0,255,234,0.7)', textTransform: 'uppercase',
+          color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase',
           margin: '14px 0 0',
         }}>
           — {attribution}
@@ -1076,26 +1086,21 @@ function Diagram({ caption, children }: { caption?: string; children: React.Reac
   return (
     <figure style={{ margin: '40px 0 48px' }}>
       <div style={{
-        padding: '4px',
-        background: 'linear-gradient(135deg, rgba(0,255,234,0.25), rgba(0,255,234,0.04))',
+        background: '#000',
+        padding: '28px 32px',
+        overflowX: 'auto',
+        border: '1px solid rgba(255,255,255,0.08)',
       }}>
-        <div style={{
-          background: '#000',
-          padding: '28px 32px',
-          overflowX: 'auto',
-          boxShadow: 'inset 0 0 40px rgba(0,255,234,0.05)',
+        <pre style={{
+          fontFamily: 'monospace',
+          fontSize: '0.78rem',
+          lineHeight: 1.6,
+          color: 'rgba(255,255,255,0.85)',
+          margin: 0,
+          letterSpacing: '0.01em',
         }}>
-          <pre style={{
-            fontFamily: 'monospace',
-            fontSize: '0.78rem',
-            lineHeight: 1.6,
-            color: 'rgba(255,255,255,0.85)',
-            margin: 0,
-            letterSpacing: '0.01em',
-          }}>
-            {children}
-          </pre>
-        </div>
+          {children}
+        </pre>
       </div>
       {caption && (
         <figcaption style={{
