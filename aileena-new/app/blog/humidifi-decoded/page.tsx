@@ -4,15 +4,14 @@ import ScrollUnlock from '../ScrollUnlock';
 
 /* ── Tokens ─────────────────────────────────────────────────────────────── */
 const T = {
-  bg:      '#fbfaf7',
-  text:    '#20201d',
-  muted:   '#7b776f',
-  faint:   '#aaa39a',
-  border:  '#e6ded2',
-  rule:    '#ece5d8',
-  codeBg:  '#f3f0e9',
-  codeBd:  '#e5ded3',
-  accent:  '#5f6f52',
+  bg:      '#0e0e0e',
+  panel:   '#161616',
+  panelBd: '#222222',
+  text:    'rgba(255,255,255,0.88)',
+  muted:   'rgba(255,255,255,0.52)',
+  faint:   'rgba(255,255,255,0.32)',
+  rule:    'rgba(255,255,255,0.08)',
+  accent:  '#00ffea',
   sans:    "'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif",
   mono:    "'JetBrains Mono', 'SF Mono', ui-monospace, Menlo, monospace",
 };
@@ -34,65 +33,63 @@ export default function HumidifiDecodedArticle() {
         position: 'sticky', top: 0, zIndex: 50,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '14px 28px',
-        background: 'rgba(251,250,247,0.92)',
+        background: 'rgba(14,14,14,0.85)',
         backdropFilter: 'blur(10px)',
         borderBottom: `1px solid ${T.rule}`,
       }}>
-        <Link href="/#blog" style={railLinkStyle}>
-          <span style={{ fontSize: 13, lineHeight: 1 }}>←</span>
+        <Link href="/#blog" style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          fontSize: 13, color: T.muted, textDecoration: 'none',
+        }}>
+          <span style={{ fontSize: 14, lineHeight: 1 }}>←</span>
           Archive
         </Link>
-        <span style={{
-          fontFamily: T.mono, fontSize: 10.5, letterSpacing: '0.32em',
-          color: T.faint, textTransform: 'uppercase',
-        }}>
-          Aileena Machina · Archive
+        <span style={{ fontSize: 12, color: T.faint }}>
+          Aileena Machina
         </span>
       </header>
 
       {/* ── Masthead ─────────────────────────────────────────────────── */}
       <section style={{
-        maxWidth: 720, margin: '0 auto', padding: '88px 28px 40px',
+        maxWidth: 720, margin: '0 auto', padding: '88px 28px 36px',
       }}>
         <div style={{
-          display: 'flex', flexWrap: 'wrap', gap: 14,
-          fontFamily: T.mono, fontSize: 11, letterSpacing: '0.18em',
-          color: T.muted, textTransform: 'uppercase',
-          marginBottom: 36,
+          display: 'flex', flexWrap: 'wrap', gap: 12,
+          fontSize: 13, color: T.muted, marginBottom: 32,
         }}>
           <span>Analysis</span>
           <Dot />
           <span>2026.05.24</span>
           <Dot />
-          <span>Solana · Prop AMM · Reverse Engineering</span>
+          <span>Solana · Prop AMM · Reverse engineering</span>
         </div>
 
         <h1 style={{
           fontFamily: T.sans,
           fontSize: 'clamp(2rem, 5vw, 2.875rem)',
           fontWeight: 600,
-          letterSpacing: '-0.012em',
+          letterSpacing: '-0.015em',
           lineHeight: 1.08,
-          color: T.text,
-          margin: '0 0 24px',
+          color: 'rgba(255,255,255,0.96)',
+          margin: '0 0 22px',
         }}>
           Humidifi, Decoded
         </h1>
 
         <p style={{
           fontSize: 17, lineHeight: 1.6, color: T.muted,
-          letterSpacing: '0.005em', margin: '0 0 8px',
+          margin: 0,
         }}>
           Part II of <Link href="/blog/prop-amm-dict" style={inlineLink}>
-          The Pool That Wasn&apos;t a Pool</Link>. A 1728-byte account. Six live
-          ranges. Fifty-seven moving bytes.
+          The Pool That Wasn&apos;t a Pool</Link>. A 1728-byte account.
+          Six live ranges. Fifty-seven moving bytes.
         </p>
       </section>
 
       {/* ── Body ─────────────────────────────────────────────────────── */}
       <article style={{ maxWidth: 720, margin: '0 auto', padding: '24px 28px 96px' }}>
 
-        <SectionLabel n="01" title="The dead-pool problem" />
+        <Section n={1} title="The dead-pool problem" />
         <p style={bodyStyle}>
           Part I picked one humidifi pool more or less at random
           — <code style={codeInline}>41cK…duRN</code> — and concluded humidifi was a
@@ -129,7 +126,7 @@ slot=385921704  age=166.2 days ago`}</Pre>
           <code style={codeInline}>DB3s…RoRwW</code>.
         </p>
 
-        <SectionLabel n="02" title="Polling the live bytes" />
+        <Section n={2} title="Polling the live bytes" />
         <p style={bodyStyle}>
           The recording loop is dull. Every two seconds, batch-fetch the pool account
           and a handful of Pyth price feeds (SOL, BTC, ETH, USDC, USDT, BONK) in one{' '}
@@ -149,59 +146,41 @@ slot=385921704  age=166.2 days ago`}</Pre>
           chain.
         </p>
 
-        <SectionLabel n="03" title="The byte map" />
+        <Section n={3} title="The byte map" />
         <p style={bodyStyle}>
           Diffing every consecutive pair of snapshots and grouping the changed byte
           positions into contiguous runs produces six ranges:
         </p>
 
-        {/* ── Compact data block ───────────────────────────────────── */}
+        {/* ── Quiet data block ─────────────────────────────────────── */}
         <div style={{
-          margin: '28px 0 32px',
-          border: `1px solid ${T.codeBd}`,
-          borderRadius: 10,
-          background: T.codeBg,
-          overflow: 'hidden',
+          margin: '24px 0 28px',
+          fontFamily: T.mono, fontSize: 13, lineHeight: 1.9,
+          color: T.text,
         }}>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1.2fr 0.6fr 1fr',
-            fontFamily: T.mono, fontSize: 11, letterSpacing: '0.16em',
-            color: T.muted, textTransform: 'uppercase',
-            padding: '12px 20px',
-            borderBottom: `1px solid ${T.codeBd}`,
-            background: '#efeadf',
-          }}>
-            <span>Range</span>
-            <span>Width</span>
-            <span>Change / snap</span>
-          </div>
           {[
-            ['[576 – 580]', '5',  '0.814'],
-            ['[600 – 603]', '4',  '0.780'],
-            ['[616 – 617]', '2',  '0.517'],
-            ['[624 – 660]', '37', '0.366'],
-            ['[672 – 676]', '5',  '0.346'],
-            ['[680 – 683]', '4',  '0.398'],
+            ['576 – 580',  '5',  '0.814'],
+            ['600 – 603',  '4',  '0.780'],
+            ['616 – 617',  '2',  '0.517'],
+            ['624 – 660',  '37', '0.366'],
+            ['672 – 676',  '5',  '0.346'],
+            ['680 – 683',  '4',  '0.398'],
           ].map((row, i) => (
             <div key={i} style={{
               display: 'grid',
-              gridTemplateColumns: '1.2fr 0.6fr 1fr',
-              fontFamily: T.mono, fontSize: 13, lineHeight: 1.6,
-              color: T.text, padding: '10px 20px',
-              borderTop: i === 0 ? 'none' : `1px solid ${T.codeBd}`,
+              gridTemplateColumns: '160px 80px 1fr',
+              padding: '2px 0',
+              borderBottom: i === 5 ? 'none' : `1px solid ${T.rule}`,
             }}>
-              <span>{row[0]}</span>
+              <span style={{ color: T.muted }}>{row[0]}</span>
               <span>{row[1]}</span>
               <span>{row[2]}</span>
             </div>
           ))}
           <div style={{
-            fontFamily: T.mono, fontSize: 12, color: T.muted,
-            padding: '12px 20px', borderTop: `1px solid ${T.codeBd}`,
-            background: '#efeadf',
+            marginTop: 10, fontSize: 12, color: T.faint,
           }}>
-            total bytes ever changing: 57 / 1728 (3.3%)
+            57 / 1728 bytes ever change · 3.3%
           </div>
         </div>
 
@@ -212,7 +191,7 @@ slot=385921704  age=166.2 days ago`}</Pre>
           laid out in six neat clusters.
         </p>
 
-        <SectionLabel n="04" title="What the live bytes do" />
+        <Section n={4} title="What the live bytes do" />
         <p style={bodyStyle}>
           For each hot range, try the four reasonable u-encodings — u8, u16-LE, u32-LE,
           u64-LE — at every offset inside it, and classify the resulting time series.
@@ -261,7 +240,7 @@ bytes [624–660]   u32-LE @ off 657   monotonic ↑
           mean, the moment they move is the moment humidifi&apos;s quote changed.
         </p>
 
-        <SectionLabel n="05" title="The constants tell you something too" />
+        <Section n={5} title="The constants tell you something too" />
         <p style={bodyStyle}>
           Inside the active range, two bytes are nearly invariant across all sixty
           snapshots:
@@ -280,7 +259,7 @@ off=676   u8   examples: [109, 109, 109, 109, 109, …]`}</Pre>
           instrument class as <code style={codeInline}>Fksff…qVuH</code>.
         </p>
 
-        <SectionLabel n="06" title="What this is good for" />
+        <Section n={6} title="What this is good for" />
         <p style={bodyStyle}>
           Humidifi quoted{' '}
           <a
@@ -296,16 +275,16 @@ off=676   u8   examples: [109, 109, 109, 109, 109, …]`}</Pre>
         </p>
 
         <p style={bodyStyle}>
-          With the byte map from Part II, four things become buildable without any
-          cooperation from humidifi:
+          With the byte map, four things become buildable without any cooperation from
+          humidifi:
         </p>
 
-        <dl style={{ margin: '28px 0 8px' }}>
+        <dl style={{ margin: '24px 0 8px' }}>
           <Buildable title="Account-change firehose">
             Subscribe to <code style={codeInline}>accountSubscribe</code> on every
             active humidifi pool. Every notification is a quote update. Even without
-            decoding the exact price field yet, the <em>timing</em> of updates is
-            itself a leading indicator — humidifi only pings when it wants to re-quote.
+            decoding the exact price field, the <em>timing</em> of updates is itself a
+            leading indicator — humidifi only pings when it wants to re-quote.
           </Buildable>
           <Buildable title="Per-pool fingerprinting">
             Cluster pools by their constant-byte signature (93, 109, …) and you can
@@ -319,35 +298,19 @@ off=676   u8   examples: [109, 109, 109, 109, 109, …]`}</Pre>
             offsets 616 and 675 will resolve to a real instrument.
           </Buildable>
           <Buildable title="Quote-firehose product">
-            Once the u16 ticks are pinned to instruments, a 200-line TypeScript
-            service can subscribe to the active pool set and emit a real-time humidifi
-            quote feed to any consumer that wants one. Currently the only way to get a
+            Once the u16 ticks are pinned to instruments, a 200-line TypeScript service
+            can subscribe to the active pool set and emit a real-time humidifi quote
+            feed to any consumer that wants one. Currently the only way to get a
             humidifi quote is to ask humidifi.
           </Buildable>
         </dl>
 
-        <SectionLabel n="07" title="Reproducing" />
-
-        {/* ── Repository artifact ──────────────────────────────────── */}
-        <div style={{ marginTop: 24, marginBottom: 24 }}>
-          <FieldLabel>Repository</FieldLabel>
-          <Link
-            href="https://github.com/lilaclilac09/pamm-a"
-            style={{
-              ...inlineLink,
-              display: 'inline-block',
-              fontFamily: T.mono,
-              fontSize: 14,
-              marginTop: 6,
-            }}
-          >
-            pamm-a ↗
-          </Link>
-        </div>
-
-        <div style={{ marginTop: 24, marginBottom: 8 }}>
-          <FieldLabel>Run</FieldLabel>
-        </div>
+        <Section n={7} title="Reproducing" />
+        <p style={bodyStyle}>
+          Two scripts in{' '}
+          <Link href="https://github.com/lilaclilac09/pamm-a" style={inlineLink}>pamm-a</Link>{' '}
+          reproduce everything in this post on a public RPC:
+        </p>
 
         <Pre>{`# 1) Record 120s of pool snapshots + Pyth feeds
 python3 scripts/humidifi-watch.py --mode record \\
@@ -369,12 +332,13 @@ python3 scripts/humidifi-decode.py --input trace.jsonl`}</Pre>
 
         {/* ── Footer ─────────────────────────────────────────────── */}
         <div style={{
-          marginTop: 80, paddingTop: 28,
+          marginTop: 72, paddingTop: 24,
           borderTop: `1px solid ${T.rule}`,
           display: 'flex', gap: 28, flexWrap: 'wrap',
+          fontSize: 13,
         }}>
           <Link href="/blog/prop-amm-dict" style={footerLink}>← Part I</Link>
-          <Link href="/#blog" style={footerLink}>← Back to Archive</Link>
+          <Link href="/#blog" style={footerLink}>← Back to archive</Link>
         </div>
 
       </article>
@@ -387,40 +351,26 @@ function Dot() {
   return <span aria-hidden style={{ color: T.faint }}>·</span>;
 }
 
-function SectionLabel({ n, title }: { n: string; title: string }) {
+function Section({ n, title }: { n: number; title: string }) {
   return (
-    <div style={{ marginTop: 80, marginBottom: 18 }}>
-      <div style={{
-        fontFamily: T.mono, fontSize: 11, letterSpacing: '0.3em',
-        color: T.muted, textTransform: 'uppercase', marginBottom: 8,
-      }}>
-        {n}
-      </div>
+    <div style={{ marginTop: 72, marginBottom: 16 }}>
       <h2 style={{
         fontFamily: T.sans, fontSize: 22, lineHeight: 1.35,
         fontWeight: 600, letterSpacing: '-0.005em',
-        color: T.text, margin: 0,
+        color: 'rgba(255,255,255,0.94)', margin: 0,
       }}>
+        <span style={{ color: T.faint, fontWeight: 400, marginRight: 12 }}>
+          {String(n).padStart(2, '0')}
+        </span>
         {title}
       </h2>
     </div>
   );
 }
 
-function FieldLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{
-      fontFamily: T.mono, fontSize: 11, letterSpacing: '0.28em',
-      color: T.muted, textTransform: 'uppercase',
-    }}>
-      {children}
-    </div>
-  );
-}
-
 function Pre({ children }: { children: string }) {
   return (
-    <div style={{ margin: '24px 0 28px', overflowX: 'auto' }}>
+    <div style={{ margin: '22px 0 26px', overflowX: 'auto' }}>
       <pre style={preStyle}>{children}</pre>
     </div>
   );
@@ -428,16 +378,15 @@ function Pre({ children }: { children: string }) {
 
 function Buildable({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ marginBottom: 22 }}>
+    <div style={{ marginBottom: 20 }}>
       <dt style={{
-        fontFamily: T.sans, fontSize: 15, fontWeight: 600,
-        color: T.text, marginBottom: 4, letterSpacing: '-0.003em',
+        fontFamily: T.sans, fontSize: 16, fontWeight: 500,
+        color: 'rgba(255,255,255,0.92)', marginBottom: 4,
       }}>
         {title}
       </dt>
       <dd style={{
-        margin: 0, fontSize: 16, lineHeight: 1.75,
-        color: T.muted, letterSpacing: '0.003em',
+        margin: 0, fontSize: 16, lineHeight: 1.75, color: T.muted,
       }}>
         {children}
       </dd>
@@ -448,51 +397,43 @@ function Buildable({ title, children }: { title: string; children: React.ReactNo
 /* ── Shared styles ─────────────────────────────────────────────────────── */
 const bodyStyle: React.CSSProperties = {
   fontSize: 16, lineHeight: 1.75,
-  color: T.text, letterSpacing: '0.003em',
-  margin: '0 0 20px',
+  color: T.text, margin: '0 0 20px',
 };
 
 const listStyle: React.CSSProperties = {
   fontSize: 16, lineHeight: 1.75, color: T.text,
-  letterSpacing: '0.003em', margin: '0 0 20px', paddingLeft: 20,
+  margin: '0 0 20px', paddingLeft: 20,
 };
 
 const listItem: React.CSSProperties = { marginBottom: 6 };
 
 const codeInline: React.CSSProperties = {
   fontFamily: T.mono, fontSize: '0.86em',
-  background: T.codeBg, padding: '1px 6px',
-  border: `1px solid ${T.codeBd}`, borderRadius: 4,
-  color: T.text,
+  background: 'rgba(255,255,255,0.05)',
+  padding: '1px 6px',
+  borderRadius: 4,
+  color: 'rgba(255,255,255,0.92)',
 };
 
 const inlineLink: React.CSSProperties = {
   color: T.accent,
   textDecoration: 'underline',
-  textDecorationColor: '#c8c2b3',
+  textDecorationColor: 'rgba(0,255,234,0.3)',
   textUnderlineOffset: 3,
 };
 
 const preStyle: React.CSSProperties = {
-  fontFamily: T.mono, fontSize: 13, lineHeight: 1.6,
-  color: T.text,
-  background: T.codeBg,
-  border: `1px solid ${T.codeBd}`,
-  borderRadius: 10,
-  padding: '18px 20px',
+  fontFamily: T.mono, fontSize: 13, lineHeight: 1.65,
+  color: 'rgba(255,255,255,0.82)',
+  background: T.panel,
+  border: `1px solid ${T.panelBd}`,
+  borderRadius: 8,
+  padding: '16px 18px',
   overflowX: 'auto',
-  letterSpacing: '0.005em',
   margin: 0,
   whiteSpace: 'pre',
 };
 
-const railLinkStyle: React.CSSProperties = {
-  display: 'flex', alignItems: 'center', gap: 6,
-  fontFamily: T.mono, fontSize: 11, letterSpacing: '0.28em',
-  color: T.muted, textDecoration: 'none', textTransform: 'uppercase',
-};
-
 const footerLink: React.CSSProperties = {
-  fontFamily: T.mono, fontSize: 11, letterSpacing: '0.28em',
-  color: T.muted, textDecoration: 'none', textTransform: 'uppercase',
+  color: T.muted, textDecoration: 'none',
 };
