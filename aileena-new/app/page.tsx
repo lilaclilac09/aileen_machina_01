@@ -23,23 +23,7 @@ export default function Home() {
 
         {/* ── 01 HERO ── */}
         <SnapSection id="hero" className="order-1">
-          <div className="relative z-10 h-full mx-auto max-w-[1600px] grid grid-cols-1 lg:grid-cols-2 px-5 sm:px-10 lg:px-12">
-            <div className="flex items-end pb-8 sm:pb-16">
-              <h1 className="anim-up text-[clamp(4rem,11vw,10rem)] font-black leading-[0.86] tracking-[0.06em] text-white">
-                <span className="block">AILEENA</span>
-                <span className="block text-[#00ffea]">MACHINA</span>
-              </h1>
-            </div>
-            <div className="flex items-end justify-start pb-10 sm:pb-16 lg:justify-end">
-              <div className="anim-left max-w-md lg:max-w-xs">
-                <p className="text-[0.65rem] uppercase tracking-[0.35em] sm:tracking-[0.5em] text-white/50">{tx.hero.tag}</p>
-                <h2 className="mt-3 sm:mt-4 text-base sm:text-lg font-light tracking-[0.15em] sm:tracking-[0.22em] text-white/85">{tx.hero.heading}</h2>
-                <p className="mt-3 sm:mt-4 text-sm leading-6 sm:leading-7 text-white/55">{tx.hero.body}</p>
-                <div className="mt-6 sm:mt-8 text-[0.62rem] sm:text-xs uppercase tracking-[0.3em] sm:tracking-[0.4em] text-white/35">{tx.hero.footer}</div>
-              </div>
-            </div>
-          </div>
-          {/* Scroll hint */}
+          {/* Intentionally bare — the AgentChat launcher (top-left) is the only focal point. */}
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 anim-fade">
             <div className="w-px h-12 bg-gradient-to-b from-transparent to-white/30" />
             <span className="text-[0.6rem] uppercase tracking-[0.5em] text-white/35">{tx.hero.scroll}</span>
