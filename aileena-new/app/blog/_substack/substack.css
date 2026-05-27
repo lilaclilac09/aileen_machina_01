@@ -249,7 +249,8 @@
   width: 100% !important;
   margin: 2rem 0 !important;
   font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', 'Georgia', serif !important;
-  font-size: 1rem !important;
+  font-size: 0.92rem !important;
+  table-layout: auto !important;
 }
 .substack-article article thead tr,
 .substack-article article tbody tr {
@@ -265,23 +266,43 @@
   background: transparent !important;
   color: rgba(255, 255, 255, 0.55) !important;
   font-family: system-ui, -apple-system, 'Segoe UI', sans-serif !important;
-  font-size: 0.78rem !important;
+  font-size: 0.7rem !important;
   font-weight: 600 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.05em !important;
   text-align: left !important;
-  padding: 10px 16px 10px 0 !important;
+  padding: 10px 12px 10px 0 !important;
+  white-space: nowrap !important;
+  vertical-align: bottom !important;
 }
 .substack-article article td {
   border: none !important;
   background: transparent !important;
   color: rgba(255, 255, 255, 0.82) !important;
   font-family: 'Iowan Old Style', 'Charter', 'Georgia', serif !important;
-  font-size: 1rem !important;
+  font-size: 0.92rem !important;
   letter-spacing: 0 !important;
-  padding: 14px 16px 14px 0 !important;
+  padding: 12px 14px 12px 0 !important;
   vertical-align: top !important;
-  line-height: 1.55 !important;
+  line-height: 1.5 !important;
+}
+
+/* Table wrapper — let multi-column tables break out of the 680px column on wide screens */
+.substack-article article > div[style*="overflow-x"],
+.substack-article article div[style*="overflow-x"] {
+  overflow-x: auto !important;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 880px) {
+  .substack-article article > div[style*="overflow-x"] {
+    /* extend beyond the centered 680px column, up to ~960px total */
+    margin-left: -140px !important;
+    margin-right: -140px !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
 }
 
 /* ── Pre / code blocks ───────────────────────────────────── */

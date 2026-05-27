@@ -87,6 +87,29 @@ export const t = {
           href: 'https://github.com/lilaclilac09/solana-pamm-MEV-binary-monte-analysis-contagious-pools',
           liveHref: 'https://mev.aileena.xyz',
         },
+        {
+          name: 'RPCsol P&L',
+          why: 'Reconstructing what a Solana wallet actually earned — fifteen optimization passes deep.',
+          href: 'https://github.com/lilaclilac09/RPCsol_pnl',
+        },
+        {
+          name: 'Prop AMM',
+          why: 'An EWMA fee curve, a reader bot, and the circuit breaker that decides when to stop quoting.',
+          href: 'https://github.com/lilaclilac09/pamm-a',
+          liveHref: 'https://pamm.aileena.xyz',
+        },
+        {
+          name: 'US Stocks Analysis',
+          why: 'Live US equity analysis, the way an engineer would build a Bloomberg terminal alone.',
+          href: 'https://github.com/lilaclilac09/US-STOCKS-DEEP-ANALYSIS',
+          liveHref: 'https://finance.aileena.xyz',
+        },
+        {
+          name: 'Zen Fortune Cookie',
+          why: 'Draw to crack. A gesture-first fortune dApp on Solana — touch as the only interface.',
+          href: 'https://github.com/lilaclilac09/fortune_cookie',
+          liveHref: 'https://fortune-cookie-sand.vercel.app',
+        },
       ],
       items: [
         {
@@ -381,6 +404,29 @@ export const t = {
           why: 'Wie MEV durch einen Solana-Pool wandert — ein Monte-Carlo-Durchlauf nach dem anderen.',
           href: 'https://github.com/lilaclilac09/solana-pamm-MEV-binary-monte-analysis-contagious-pools',
           liveHref: 'https://mev.aileena.xyz',
+        },
+        {
+          name: 'RPCsol P&L',
+          why: 'Rekonstruieren, was ein Solana-Wallet wirklich verdient hat — fünfzehn Optimierungsdurchläufe tief.',
+          href: 'https://github.com/lilaclilac09/RPCsol_pnl',
+        },
+        {
+          name: 'Prop AMM',
+          why: 'Eine EWMA-Fee-Kurve, ein Reader-Bot, und der Circuit Breaker, der entscheidet, wann das Quoten stoppt.',
+          href: 'https://github.com/lilaclilac09/pamm-a',
+          liveHref: 'https://pamm.aileena.xyz',
+        },
+        {
+          name: 'US Stocks Analysis',
+          why: 'Live-US-Aktienanalyse, gebaut wie ein Bloomberg-Terminal von einer Engineerin allein.',
+          href: 'https://github.com/lilaclilac09/US-STOCKS-DEEP-ANALYSIS',
+          liveHref: 'https://finance.aileena.xyz',
+        },
+        {
+          name: 'Zen Fortune Cookie',
+          why: 'Zum Knacken zeichnen. Eine Gesten-erste Fortune-dApp auf Solana — Berührung als einziges Interface.',
+          href: 'https://github.com/lilaclilac09/fortune_cookie',
+          liveHref: 'https://fortune-cookie-sand.vercel.app',
         },
       ],
       items: [
