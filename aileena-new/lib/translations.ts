@@ -177,6 +177,12 @@ export const t = {
             body: 'Paradigm and Tempo open-sourced Centaur — a self-hosted runtime for multiplayer, secure AI agents — on May 21. Not another coding agent: the backend that lets a whole team share one. Why Paradigm built it themselves, the PM bets inside each of the five components (Slack-first, durable workflows, K8s sandboxes, iron-proxy secrets gateway, bring-your-own harness), how they\'re framing the launch, and where it lands against Devin, E2B, kagent and the rest of the agent-infra grid.',
           },
           {
+            date: '2026.05.24',
+            href: '/blog/doublezero',
+            title: 'DoubleZero, Multicast Fiber',
+            body: 'A Solana slot is 400ms. The compute is solved; the bottleneck is the public internet between validators. DoubleZero — mainnet-beta since October 2025 — bets the answer is the same one HFT shops made fifteen years ago: private fiber, plus the thing the public internet structurally cannot do — multicast. A read on the DZD/DZX architecture, why native multicast wins 16+ms per hop on Turbine shred distribution, the XDP+GRE-decap path cavemanloverboy surfaced, and the integration question for Jito.',
+          },
+          {
             date: '2026.05.27',
             href: '/blog/zcash-fpga',
             title: 'The Pairing VM Nobody Inherited',
@@ -430,6 +436,12 @@ export const t = {
             href: '/blog/centaur',
             title: 'Centaur und der Markt, in den es landet',
             body: 'Paradigm und Tempo haben am 21. Mai Centaur open-sourced — eine self-hosted Runtime für „multiplayer, secure" AI-Agenten. Kein weiterer Coding-Agent, sondern das Backend, mit dem ein ganzes Team sich einen Agenten teilt. Warum Paradigm es selbst gebaut hat, die PM-Entscheidungen hinter den fünf Komponenten (Slack-first, durable Workflows, K8s-Sandboxes, iron-proxy Secrets-Gateway, Bring-your-own-Harness), wie das Launch-Narrativ gerahmt ist, und wo das Ganze gegen Devin, E2B, kagent und den Rest des Agent-Infra-Marktes landet.',
+          },
+          {
+            date: '2026.05.24',
+            href: '/blog/doublezero',
+            title: 'DoubleZero, Multicast Fiber',
+            body: 'Ein Solana-Slot dauert 400 ms. Die Rechenleistung ist gelöst, der Flaschenhals ist das öffentliche Internet zwischen den Validatoren. DoubleZero — seit Oktober 2025 auf Mainnet-Beta — setzt darauf, dass die Antwort dieselbe ist, die HFT-Trader vor fünfzehn Jahren gefunden haben: private Fiber, plus das, was das öffentliche Internet strukturell nicht kann — Multicast. Eine Analyse der DZD/DZX-Architektur, warum natives Multicast bei der Turbine-Shred-Verteilung 16+ ms pro Hop spart, der XDP+GRE-Decap-Pfad, den cavemanloverboy ans Licht gebracht hat, und die Integrationsfrage für Jito.',
           },
           {
             date: '2026.05.27',
