@@ -492,22 +492,22 @@ doublezero status        # confirm connection`}
         ]} />
 
         <p style={bodyStyle}>
-          <strong style={strong}>Target dev audience.</strong> Mostly Solana validator operators, MEV
-          searchers, oracle providers, and RPC providers — people whose business is denominated in
+          <strong style={strong}>Who&apos;s this for?</strong> Mostly Solana validator operators, MEV
+          searchers, oracle providers, and RPC providers — anyone whose business is denominated in
           tail-latency reduction. Secondary audience: anyone running a private financial protocol with
           latency-sensitive participants (perp DEXes with their own market-maker programs, orderbook
           venues with non-validator participants who still care about tx submission speed). Tertiary:
           blockchain projects beyond Solana — DZ&apos;s transport layer is chain-agnostic, and Malbec has
-          been explicit that the network isn&apos;t Solana-exclusive in principle.
+          been clear that the network isn&apos;t Solana-exclusive in principle.
         </p>
 
         <div style={calloutAccent}>
           <p style={calloutTitle}>THE UNUSUAL PROPERTY</p>
           <p style={{ ...bodyStyle, marginBottom: 0 }}>
             The source-of-truth telemetry is <strong style={strong}>public</strong>, the integration
-            crate is published, and the example code runs. You don&apos;t have to take anyone&apos;s word
-            for performance numbers — you can subscribe to the same TWAMP feed Malbec uses to pay
-            contributors.
+            crate is published, and the example code actually runs. You don&apos;t have to take anyone&apos;s
+            word for the performance numbers — you can subscribe to the same TWAMP feed Malbec uses to pay
+            contributors and check for yourself.
           </p>
         </div>
 
@@ -518,58 +518,57 @@ doublezero status        # confirm connection`}
         <p style={bodyStyle}>
           <strong style={strong}>Worst-case tx land time.</strong> Malbec&apos;s published figure: ~500ms
           on DoubleZero vs &gt;1.5s on public internet at the tail. This is the headline number from the
-          BP25 talk and the one most likely to move both validator skip rate and searcher inclusion rate.
+          BP25 talk, and the one most likely to move both validator skip rate and searcher inclusion rate.
         </p>
         <p style={bodyStyle}>
-          <strong style={strong}>Multicast vs unicast shred delivery.</strong> Frankfurt subscribers saw
+          <strong style={strong}>Multicast vs unicast shred delivery.</strong> Frankfurt subscribers saw a
           &gt;16ms improvement per delivery in published testing. For a leader sitting on a 400ms slot,
-          that&apos;s ~4% of the entire window recovered, per shred, per hop. Compounded across Turbine
-          depth, the slot window loosens meaningfully — and the leader can keep tx ingress open longer
+          that&apos;s ~4% of the entire window recovered — per shred, per hop. Compound that across Turbine
+          depth and the slot window loosens meaningfully, which lets the leader keep tx ingress open longer
           without risking a skip.
         </p>
         <p style={bodyStyle}>
           <strong style={strong}>Real-time link-level telemetry.</strong> TWAMP measurements between
           every DZD pair are published to the on-chain ledger and visible on the public telemetry
-          dashboard. This is unusual — most private networks publish nothing — and it&apos;s
-          load-bearing for the economic model. Contributors get paid based on what TWAMP says, so the
-          measurements are the asset.
+          dashboard. That&apos;s unusual — most private networks publish nothing — and it&apos;s
+          load-bearing for the whole economic model. Contributors get paid based on what TWAMP says, so the
+          measurements <em>are</em> the asset.
         </p>
         <p style={bodyStyle}>
-          For the <em>median</em> validator the win is less dramatic than the tail number suggests. The
-          median validator&apos;s path on public internet is fine most of the time. The pitch for joining
-          is the tail: P99 jitter and skip rate during congested hours, particularly when the leader
-          schedule puts a Frankfurt validator next after a Tokyo validator and the trans-Pacific shred
-          propagation has to land in 200ms.
+          For the <em>median</em> validator, the win is less dramatic than the tail number suggests. Their
+          path on public internet is fine most of the time. The pitch for joining is the tail: P99 jitter and
+          skip rate during congested hours, especially when the leader schedule puts a Frankfurt validator
+          right after a Tokyo validator and the trans-Pacific shred propagation has to land in 200ms.
         </p>
 
         <SectionLabel>The outer ring — where DoubleZero quietly uses FPGA</SectionLabel>
 
         <p style={bodyStyle}>
-          Most of DoubleZero is fiber, switching, and userspace daemons. There is one place where it does reach for silicon: the <strong style={strong}>outer ring</strong>. Before a packet hits a subscribing validator&apos;s NIC, it crosses a DZ edge node that runs an <strong style={strong}>FPGA pre-gossip filter</strong> — line-rate inspection that drops duplicate, malformed, and obviously-low-quality transactions before they touch the inner ring at all. The validator never sees the noise; its <code style={codeStyle}>verify</code> and <code style={codeStyle}>dedup</code> tiles get a cleaner stream to chew on.
+          Most of DoubleZero is fiber, switching, and userspace daemons. There&apos;s one place where it does reach for silicon: the <strong style={strong}>outer ring</strong>. Before a packet hits a subscribing validator&apos;s NIC, it crosses a DZ edge node running an <strong style={strong}>FPGA pre-gossip filter</strong> — line-rate inspection that drops duplicate, malformed, and obviously-low-quality transactions before they ever touch the inner ring. The validator never sees the noise; its <code style={codeStyle}>verify</code> and <code style={codeStyle}>dedup</code> tiles get a cleaner stream to chew on.
         </p>
 
         <p style={bodyStyle}>
-          This is the FPGA use-case the <Link href="/blog/validator-clients" style={inlineLink}>full-FPGA-validator math couldn&apos;t justify</Link>, finally landing where it makes sense: a single stream, one job, one card, sitting on the network side of PCIe. The filter isn&apos;t doing validation, it isn&apos;t executing transactions, it isn&apos;t holding any of the validator&apos;s state — all the un-FPGA-friendly work stays on the CPU where it belongs. The hardware shows up exactly at the seam where stream-friendly work meets the rest of the pipeline, which is what tile-style architectures were designed to allow.
+          This is the FPGA use-case the <Link href="/blog/validator-clients" style={inlineLink}>full-FPGA-validator math couldn&apos;t justify</Link>, finally landing where it actually makes sense: a single stream, one job, one card, sitting on the network side of PCIe. The filter isn&apos;t doing validation, it isn&apos;t executing transactions, and it isn&apos;t holding any of the validator&apos;s state — all the un-FPGA-friendly work stays on the CPU where it belongs. The hardware shows up exactly at the seam where stream-friendly work meets the rest of the pipeline, which is precisely what tile-style architectures were designed to allow.
         </p>
 
         <SectionLabel>Phase II — paying validators to leave Frankfurt</SectionLabel>
 
         <p style={bodyStyle}>
-          The geographic concentration problem is older than DoubleZero: cheap European bare-metal pulled the early Solana validator set into Frankfurt and a few adjacent cities. A 2026 stake snapshot still showed central Europe holding the plurality of stake, which is a structural disadvantage for users on every other continent.
+          The geographic concentration problem is older than DoubleZero. Cheap European bare-metal pulled the early Solana validator set into Frankfurt and a few neighboring cities. A 2026 stake snapshot still showed central Europe holding the plurality of stake — which is a structural disadvantage for users on every other continent.
         </p>
 
         <p style={bodyStyle}>
-          On <strong style={strong}>March 9, 2026</strong>, DoubleZero launched its Phase II delegation program: <strong style={strong}>2.4 million SOL</strong> redirected out of a 13M-SOL pool toward validators operating in <strong style={strong}>São Paulo, Singapore, Hong Kong, and Tokyo</strong> — explicitly underrepresented regions. The point is to give a stake premium to operators who relocate or open new sites, while the fiber side simultaneously removes the latency tax that historically made those locations uneconomic. The two mechanisms close on the same problem from opposite directions.
+          On <strong style={strong}>March 9, 2026</strong>, DoubleZero launched its Phase II delegation program: <strong style={strong}>2.4 million SOL</strong> redirected out of a 13M-SOL pool toward validators operating in <strong style={strong}>São Paulo, Singapore, Hong Kong, and Tokyo</strong> — explicitly underrepresented regions. The idea is to hand a stake premium to operators who relocate or open new sites, while the fiber side simultaneously strips away the latency tax that historically made those locations uneconomic. The two mechanisms come at the same problem from opposite directions.
         </p>
 
         <p style={bodyStyle}>
-          The funding model is direct: validator operators pay a <strong style={strong}>5% &quot;seat fee&quot;</strong> on validator-side income (inflation and block rewards, MEV excluded), which is either paid to DoubleZero contributors pro-rata to measured network quality, or burned. It&apos;s the same shape as the Solana validator commission curve — a small percentage of a recurring revenue stream — applied to a piece of infrastructure that didn&apos;t previously have one.
+          The funding model is simple: validator operators pay a <strong style={strong}>5% &quot;seat fee&quot;</strong> on their validator-side income (inflation and block rewards, MEV excluded), which is then either paid out to DoubleZero contributors pro-rata to measured network quality, or burned. It&apos;s the same shape as the Solana validator commission curve — a small slice of a recurring revenue stream — applied to a piece of infrastructure that didn&apos;t previously have one.
         </p>
 
         <SectionLabel>What DoubleZero does not fix</SectionLabel>
 
         <p style={bodyStyle}>
-          The honest counterpart to the &quot;what it unlocks&quot; list is what stays unsolved. DoubleZero is a network-layer product. The map of what that does and doesn&apos;t cover:
+          The honest flip side of the &quot;what it unlocks&quot; list is what stays unsolved. DoubleZero is a network-layer product, and here&apos;s the map of what that does and doesn&apos;t cover:
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -614,7 +613,7 @@ doublezero status        # confirm connection`}
         </div>
 
         <p style={bodyStyle}>
-          The cleanest framing: DoubleZero and Firedancer are complementary, not competitive. One optimizes the network path between validators, the other optimizes the work each validator does. Alpenglow sits on top of both and asks them to cooperate.
+          The cleanest way to think about it: DoubleZero and Firedancer are complementary, not competitive. One optimizes the network path between validators, the other optimizes the work each validator does. Alpenglow sits on top of both and asks them to cooperate.
         </p>
 
         <SectionLabel>What this unlocks, and the counter-thesis</SectionLabel>
@@ -622,40 +621,40 @@ doublezero status        # confirm connection`}
         <ol style={{ paddingLeft: 24, margin: '24px 0 32px', lineHeight: 1.9, color: 'rgba(255,255,255,0.65)' }}>
           <li style={{ marginBottom: 12 }}>
             <strong style={strong}>Skip rate compresses geographically.</strong> A Tokyo validator and a
-            Frankfurt validator stop paying a permanent tax for being far from the consensus center of
+            Frankfurt validator stop paying a permanent tax just for being far from the consensus center of
             mass. The leader schedule becomes location-agnostic in practice.
           </li>
           <li style={{ marginBottom: 12 }}>
-            <strong style={strong}>The Jito relayer becomes one of several options.</strong> It still
-            owns bundle semantics and tip routing. It stops owning &quot;lowest jitter to the leader&quot;
-            because the underlying network already provides that.
+            <strong style={strong}>The Jito relayer becomes one option among several.</strong> It still
+            owns bundle semantics and tip routing. What it stops owning is &quot;lowest jitter to the leader,&quot;
+            because the underlying network already gives you that.
           </li>
           <li style={{ marginBottom: 12 }}>
             <strong style={strong}>Programmable network primitives become possible.</strong> Native
-            multicast is the first one shipped. In-network ordering, hardware-timestamped attestations,
-            and deterministic shred reconstruction are all things that a private substrate can do and
-            the public internet cannot.
+            multicast is just the first one to ship. In-network ordering, hardware-timestamped attestations,
+            and deterministic shred reconstruction are all things a private substrate can do and the public
+            internet can&apos;t.
           </li>
         </ol>
         <p style={bodyStyle}>
           The counter-thesis is worth saying out loud.{' '}
           <strong style={strong}>Maybe Solana ships protocol-level improvements that close the jitter
           gap without anyone needing private fiber.</strong> Async block production, better Turbine
-          fanout, QUIC tuning, smarter repair — each chips at the same problem from inside the protocol.
-          If the median validator&apos;s skip rate gets to 0.3% on plain internet, the marginal case for
-          DoubleZero on the validator side weakens.
+          fanout, QUIC tuning, smarter repair — each one chips at the same problem from inside the protocol.
+          If the median validator&apos;s skip rate gets down to 0.3% on plain internet, the marginal case for
+          DoubleZero on the validator side gets weaker.
         </p>
         <p style={bodyStyle}>
-          The MEV/searcher side is more durable. Tail-latency for tx submission is going to matter
-          regardless of consensus internals, and the multicast primitive isn&apos;t reproducible at the
-          protocol layer — it requires the network layer to cooperate.
+          The MEV/searcher side is more durable. Tail-latency for tx submission is going to matter no matter
+          what happens inside consensus, and the multicast primitive can&apos;t be reproduced at the protocol
+          layer — it needs the network layer to cooperate.
         </p>
         <p style={bodyStyle}>
           The bet Malbec is making is that <em>both</em> fronts move — protocol improvements happen, AND
           a dedicated network is still worth it for the participants who care most. That&apos;s a
-          reasonable bet because the participants who care most are the ones with the budget to pay for
-          it. The network has a real two-sided business model: validators pay to capture skipped-slot
-          APY, searchers pay to capture inclusion-rate edge, contributors get paid in proportion to
+          reasonable bet, because the participants who care most are exactly the ones with the budget to pay
+          for it. The network has a real two-sided business model: validators pay to capture skipped-slot
+          APY, searchers pay to capture inclusion-rate edge, and contributors get paid in proportion to
           measured quality.
         </p>
 
@@ -666,17 +665,17 @@ doublezero status        # confirm connection`}
 
         <SectionLabel>What to watch over the next year</SectionLabel>
         <ul style={listStyle}>
-          <li><strong style={strong}>Skip rate distribution by region.</strong> Tokyo/Singapore validators on DoubleZero converging with Frankfurt validators = thesis working. Track via standard validator leaderboards plus the public DZ telemetry dashboard.</li>
-          <li><strong style={strong}>Multicast group adoption.</strong> Visible on the public multicast-groups view of the same dashboard. The interesting curve is how many validators move from unicast-over-DZ to multicast-over-DZ.</li>
+          <li><strong style={strong}>Skip rate distribution by region.</strong> Tokyo/Singapore validators on DoubleZero converging with Frankfurt validators means the thesis is working. Track it via standard validator leaderboards plus the public DZ telemetry dashboard.</li>
+          <li><strong style={strong}>Multicast group adoption.</strong> Visible on the public multicast-groups view of the same dashboard. The curve to watch is how many validators move from unicast-over-DZ to multicast-over-DZ.</li>
           <li><strong style={strong}>Jito relayer&apos;s share of bundle flow.</strong> If it drops as searcher DZ ports proliferate, the unbundling is happening.</li>
           <li><strong style={strong}>Contributor growth and POP coverage.</strong> Each new DZX in a new metro pulls in the validators racked nearby. Network effects compound.</li>
-          <li><strong style={strong}>Firedancer&apos;s net_tile integration.</strong> Clean tile-level integration with <code style={codeStyle}>doublezero0</code> is the obvious next milestone. First public patch is the signal to watch.</li>
+          <li><strong style={strong}>Firedancer&apos;s net_tile integration.</strong> Clean tile-level integration with <code style={codeStyle}>doublezero0</code> is the obvious next milestone. The first public patch is the signal to watch.</li>
         </ul>
         <p style={bodyStyle}>
-          The simplest test: in twelve months, look at the top 50 validators by stake, count how many
-          have a DoubleZero port. If most of them, the bet paid. If a handful, public internet was good
-          enough after all. Right now the answer is somewhere in the middle and rapidly converging
-          upward.
+          The simplest test: in twelve months, look at the top 50 validators by stake and count how many
+          have a DoubleZero port. If it&apos;s most of them, the bet paid off. If it&apos;s a handful, public
+          internet was good enough after all. Right now the answer is somewhere in the middle, and rapidly
+          climbing.
         </p>
 
         <SectionLabel>References</SectionLabel>

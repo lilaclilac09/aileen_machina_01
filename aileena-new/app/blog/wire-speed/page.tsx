@@ -16,22 +16,23 @@ export default function WireSpeedArticle() {
 
         <SectionLabel>The 400-Millisecond Machine</SectionLabel>
         <p style={bodyStyle}>
-          Every Solana transaction passes through a piece of software called a <strong style={strong}>validator</strong>. A validator is
-          a state machine: it reads transactions off the network, verifies their signatures, executes the
-          program calls, updates the affected accounts, and writes the result into a block. Then it does it again,
-          starting from the new state, in the next 400-millisecond slot.
+          Every Solana transaction passes through a piece of software called a <strong style={strong}>validator</strong> — the program
+          that runs the network. A validator is a state machine: it reads transactions off the network, checks
+          their signatures, runs the program calls, updates the affected accounts, and writes the result into a
+          block. Then it does the whole thing again, starting from the new state, in the next 400-millisecond slot
+          (Solana&apos;s basic time unit).
         </p>
         <p style={bodyStyle}>
-          Think of an air traffic control center. Thousands of planes (transactions) arrive per second from every
-          direction. Each one needs to be cleared, sequenced, and routed onto exactly one runway (the block). The
+          Think of an air traffic control center. Thousands of planes (transactions) arrive every second from every
+          direction. Each one has to be cleared, sequenced, and routed onto exactly one runway (the block). The
           tower never sleeps. It never gets to say &quot;come back later.&quot; Every second of delay costs someone money,
-          and a single mistake can crash a flight. That is the job description for a validator — except the volume
-          is closer to 5,000 transactions per second and the deadline to produce a block is shorter than a human
+          and one mistake can crash a flight. That&apos;s the job description for a validator — except the volume is
+          closer to 5,000 transactions per second and the deadline to produce a block is shorter than a human
           blink.
         </p>
         <p style={bodyStyle}>
           The pressure to make this machine faster has spawned three entirely different engineering projects, plus
-          a fourth tool that does not sit inside the validator at all but lets you replay and dissect what one of
+          a fourth tool that doesn&apos;t sit inside the validator at all but lets you replay and dissect what one of
           them did. The four projects you should know by name:
         </p>
 
@@ -58,25 +59,25 @@ export default function WireSpeedArticle() {
 
         <p style={bodyStyle}>
           The incumbent in this picture is <strong style={strong}>Agave</strong>, the original Solana validator maintained by Anza
-          (formerly Solana Labs). Most of mainnet still runs Agave. Firedancer is the challenger; Samba is a fork of
-          Firedancer that adds one capability the chain could not otherwise express; Delorean is the debugger for
-          what the validators produce; pmm-sim is the laboratory bench for the private market-making programs that
-          ride on top.
+          (formerly Solana Labs). Most of mainnet still runs Agave. Firedancer is the challenger; Samba is a fork
+          (a modified copy) of Firedancer that adds one capability the chain couldn&apos;t otherwise express; Delorean
+          is the debugger for what the validators produce; pmm-sim is the lab bench for the private market-making
+          programs that ride on top.
         </p>
 
         <SectionLabel>Firedancer: The C Engine</SectionLabel>
         <p style={bodyStyle}>
           Firedancer is what happens when a high-frequency-trading firm writes a blockchain validator. Jump Crypto
           built it from scratch in C, with no garbage collection, no shared memory between threads, and one job per
-          CPU core. The unifying design idea is the <strong style={strong}>tile</strong>.
+          CPU core. The idea that ties it all together is the <strong style={strong}>tile</strong>.
         </p>
         <p style={bodyStyle}>
           A tile is one thread on one CPU core that does exactly one thing — receive packets, or verify signatures,
           or deduplicate transactions, or pack a block. Tiles never call each other and never share memory directly.
           They pass work down the pipeline through a shared-memory ring buffer called <strong style={strong}>Tango</strong>, which
-          Jump borrowed from the HFT world. The result is a system that scales by adding more CPU cores: need more
-          ingress bandwidth? Add more NIC tiles. Need more signature throughput? Add more SigVerify tiles. No lock
-          contention, no coordination overhead.
+          Jump borrowed from the HFT (high-frequency-trading) world. The result is a system that scales by adding
+          more CPU cores: need more ingress bandwidth? Add more NIC tiles. Need more signature throughput? Add more
+          SigVerify tiles. No lock contention, no coordination overhead.
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -111,13 +112,14 @@ export default function WireSpeedArticle() {
 
         <p style={bodyStyle}>
           The source tree mirrors the pipeline. <code style={codeStyle}>tango/</code> is the nervous system — the
-          IPC layer every tile uses to talk to the next one. <code style={codeStyle}>ballet/</code> is the math library
-          where SHA-256, ed25519, and base58 are reimplemented in vector C for maximum speed. <code style={codeStyle}>disco/</code>
-          holds the common pipeline tiles; <code style={codeStyle}>flamenco/</code> is where the Solana VM runtime
-          actually executes program bytecode. <code style={codeStyle}>funk/</code> is the in-memory, fork-aware accounts
-          database. <code style={codeStyle}>waltz/</code> is the networking layer; <code style={codeStyle}>wiredancer/</code>
-          contains the FPGA modules — yes, Jump is building hardware-accelerated tiles for the truly throughput-bound
-          stages.
+          IPC layer (how separate processes pass messages) that every tile uses to talk to the next one.
+          <code style={codeStyle}>ballet/</code> is the math library, where SHA-256, ed25519, and base58 are rewritten in
+          vector C for maximum speed. <code style={codeStyle}>disco/</code> holds the common pipeline tiles;
+          <code style={codeStyle}>flamenco/</code> is where the Solana VM runtime actually executes program bytecode.
+          <code style={codeStyle}>funk/</code> is the in-memory, fork-aware accounts database.
+          <code style={codeStyle}>waltz/</code> is the networking layer; <code style={codeStyle}>wiredancer/</code> holds
+          the FPGA modules — yes, Jump is building hardware-accelerated tiles for the stages that are truly
+          throughput-bound.
         </p>
 
         <div style={calloutAccent}>
@@ -125,20 +127,21 @@ export default function WireSpeedArticle() {
           <p style={{ ...bodyStyle, marginBottom: 0 }}>
             <strong style={strong}>Frankendancer</strong> is the production-ready hybrid running on mainnet today: Firedancer
             does the networking, packet processing, and block packing, then hands off to the Agave runtime to actually
-            execute the transactions. <strong style={strong}>Full Firedancer</strong> is the all-C version still under
+            execute the transactions. <strong style={strong}>Full Firedancer</strong> is the all-C version still in
             development — its own runtime (flamenco), its own consensus (choreo), its own everything. Frankendancer
-            is the bridge that lets you adopt Firedancer&apos;s speed without waiting for the entire stack to be
-            independent.
+            is the bridge that lets you adopt Firedancer&apos;s speed without waiting for the entire stack to stand on
+            its own.
           </p>
         </div>
 
         <SectionLabel>The Pipeline: A Transaction&apos;s Six Checkpoints</SectionLabel>
         <p style={bodyStyle}>
-          Imagine you click <em>Swap</em> on Jupiter. In the next 400 milliseconds, your transaction passes through six
-          distinct checkpoints inside a Firedancer validator before it is committed to the chain. Every checkpoint
+          Say you click <em>Swap</em> on Jupiter. In the next 400 milliseconds, your transaction passes through six
+          distinct checkpoints inside a Firedancer validator before it&apos;s committed to the chain. Each checkpoint
           either stamps it <em>valid, continue</em> or silently drops it. Nothing goes backward. Nothing is copied —
-          the NIC tile writes your bytes once into a shared <code style={codeStyle}>dcache</code> region, and every
-          downstream tile reads from the same pointer. This is the zero-copy insight that makes Firedancer fast.
+          the NIC tile (the one that handles the network card) writes your bytes once into a shared
+          <code style={codeStyle}>dcache</code> region, and every downstream tile reads from the same pointer. This is
+          the zero-copy trick that makes Firedancer fast.
         </p>
 
         <ol style={{ paddingLeft: 0, listStyle: 'none', margin: '32px 0 48px' }}>
@@ -170,24 +173,24 @@ export default function WireSpeedArticle() {
           debugging in five minutes and debugging for two days. &quot;Transaction never confirmed&quot; almost always means
           step 3 (deduped — you sent it twice and the validator silently dropped the second copy). &quot;Transaction failed
           with simulation error&quot; means step 5 (SVM execution rejected it). &quot;Transaction is taking too long to land&quot;
-          usually means step 4 (your priority fee is too low and the Pack tile is choosing other transactions ahead of
-          yours).
+          usually means step 4 (your priority fee is too low, so the Pack tile keeps picking other transactions ahead
+          of yours).
         </p>
 
         <SectionLabel>Samba: MEV at Wire Speed</SectionLabel>
         <p style={bodyStyle}>
-          <strong style={strong}>MEV</strong> — Maximum Extractable Value — is money that exists purely in the ordering of
-          transactions. If your arbitrage trade lands one slot after a large price-moving swap and one slot before
-          anyone else reacts, you capture the spread. Application-layer solutions cannot guarantee this ordering;
-          only the validator can. Harmonic Finance forked Firedancer to build that guarantee directly into the
-          validator. The fork is called <strong style={strong}>Samba</strong>.
+          <strong style={strong}>MEV</strong> — Maximum Extractable Value — is money that exists purely in the order
+          transactions land in. If your arbitrage trade lands one slot after a big price-moving swap and one slot
+          before anyone else reacts, you capture the spread. Nothing at the application layer can guarantee that
+          ordering; only the validator can. So Harmonic Finance forked Firedancer to bake the guarantee straight
+          into the validator. The fork is called <strong style={strong}>Samba</strong>.
         </p>
         <p style={bodyStyle}>
           A <strong style={strong}>bundle</strong> in Samba is an ordered group of transactions that must land together,
-          in the exact submitted order, or all of them are rejected. The Samba pack tile holds a separate queue for
-          bundles. When the validator is the upcoming leader for a slot, the bundle queue is drained first, with
-          bundles locked into consecutive block positions before any regular fee-priority transactions are packed
-          around them.
+          in the exact order you submitted them, or all of them are rejected. The Samba pack tile keeps a separate
+          queue for bundles. When the validator is the upcoming leader for a slot, that bundle queue is drained
+          first, with bundles locked into consecutive block positions before any regular fee-priority transactions
+          are packed around them.
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -202,10 +205,10 @@ samba/src/discof/resolv/   ← Modified: resolv tile with MEV routing`}
         </div>
 
         <p style={bodyStyle}>
-          Why fork Firedancer rather than build the same thing on Agave? The tile architecture makes it surgically
-          modifiable: to add bundle support, Harmonic added a new tile (the bundle sender) and modified one
+          Why fork Firedancer instead of building the same thing on Agave? The tile architecture makes it surgically
+          modifiable. To add bundle support, Harmonic added one new tile (the bundle sender) and changed one
           existing tile (pack). The same change inside Agave&apos;s Rust monolith would mean threading MEV logic
-          through a much more complex codebase. Firedancer&apos;s &quot;one tile, one job&quot; rule turned MEV from an
+          through a much more tangled codebase. Firedancer&apos;s &quot;one tile, one job&quot; rule turned MEV from an
           architectural rewrite into a 6-tile diff.
         </p>
 
@@ -214,31 +217,32 @@ samba/src/discof/resolv/   ← Modified: resolv tile with MEV routing`}
           <p style={{ ...bodyStyle, marginBottom: 12 }}>
             Both deliver MEV bundles, but at different layers. <strong style={strong}>Jito</strong> patches the Agave validator
             and runs a centralized block engine that auctions bundle ordering off-chain, then forwards the winning
-            bundle to a Jito-patched validator. It is the dominant solution on mainnet today (~80% of stake runs Jito
+            bundle to a Jito-patched validator. It&apos;s the dominant solution on mainnet today (~80% of stake runs Jito
             software).
           </p>
           <p style={{ ...bodyStyle, marginBottom: 0 }}>
-            <strong style={strong}>Samba</strong> moves the bundle pipeline inside the validator itself, fully native, no
-            external block engine. Trade-off: Jito has the network effect; Samba has the cleaner architecture and the
-            speed of the C engine. They are not mutually exclusive — a validator can run Samba <em>and</em> participate
-            in Jito&apos;s auction, choosing per-slot.
+            <strong style={strong}>Samba</strong> moves the bundle pipeline inside the validator itself — fully native, no
+            external block engine. The trade-off: Jito has the network effect; Samba has the cleaner architecture and
+            the speed of the C engine. They aren&apos;t mutually exclusive — a validator can run Samba <em>and</em> take
+            part in Jito&apos;s auction, choosing per-slot.
           </p>
         </div>
 
         <SectionLabel>Delorean: The Time Machine</SectionLabel>
         <p style={bodyStyle}>
           A trading bot loses $40,000 on a transaction that should have succeeded. The transaction is buried in a
-          block from three days ago. How do you debug it? Without Delorean, you cannot — the on-chain state has
+          block from three days ago. How do you debug it? Without Delorean, you can&apos;t — the on-chain state has
           moved on, the program may have been upgraded, the feature flags may have changed. The transaction is a
           fossil with no surrounding context.
         </p>
         <p style={bodyStyle}>
           <strong style={strong}>Delorean</strong> is the time machine for Solana transactions. It pairs with a service called
           <strong style={strong}> Penrose</strong>, built by Temporal XYZ, which captures a complete snapshot — a
-          <strong style={strong}> fixture</strong> — of every account, program bytecode, and Solana system variable that any
+          <strong style={strong}> fixture</strong> — of every account, program bytecode, and Solana system variable that a
           transaction touched, at the exact slot it ran. Penrose serves these fixtures over a custom RPC method. The
-          Delorean CLI fetches one, builds an in-memory mock bank, runs the transaction through the real Solana VM
-          on your laptop, and tells you whether the replay matches the original.
+          Delorean CLI fetches one, builds an in-memory mock bank (a fake copy of the chain state), runs the
+          transaction through the real Solana VM on your laptop, and tells you whether the replay matches the
+          original.
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -271,8 +275,8 @@ samba/src/discof/resolv/   ← Modified: resolv tile with MEV routing`}
         </div>
 
         <p style={bodyStyle}>
-          The fixture format is itself worth understanding because it answers the question: <em>what does the SVM need
-          to execute a transaction?</em> Look at the Rust struct:
+          The fixture format is worth understanding on its own, because it answers a basic question: <em>what does the
+          SVM actually need to execute a transaction?</em> Look at the Rust struct:
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -298,36 +302,39 @@ samba/src/discof/resolv/   ← Modified: resolv tile with MEV routing`}
         </div>
 
         <p style={bodyStyle}>
-          Read it like a forensic kit: <code style={codeStyle}>slot</code> pins the moment in time;
-          <code style={codeStyle}> enabled_features</code> captures which of Solana&apos;s ~221 feature flags were active
-          (a flag flip can change how a transaction executes); <code style={codeStyle}>pre_accounts</code> is every
-          wallet and contract state before the transaction; <code style={codeStyle}>programs</code> is the bytecode of
-          every smart contract involved <em>as it was deployed at that slot</em>; <code style={codeStyle}>post_accounts</code>
-          is the ground-truth result. With all of this in hand, you can replay the transaction in isolation, perfectly,
-          three days or three years later.
+          Read it like a forensic kit. <code style={codeStyle}>slot</code> pins the moment in time;
+          <code style={codeStyle}> enabled_features</code> captures which of Solana&apos;s ~221 feature flags (on/off
+          switches that change network behavior) were active at the time — a single flip can change how a transaction
+          executes; <code style={codeStyle}>pre_accounts</code> is every wallet and contract state before the
+          transaction; <code style={codeStyle}>programs</code> is the bytecode of every smart contract involved <em>as it
+          was deployed at that slot</em>; <code style={codeStyle}>post_accounts</code> is the ground-truth result. With
+          all of that in hand, you can replay the transaction in isolation, perfectly, three days or three years
+          later.
         </p>
 
         <div style={calloutAccent}>
           <p style={calloutTitle}>THE --REPLACE-PROGRAM FLAG</p>
           <p style={{ ...bodyStyle, marginBottom: 0 }}>
-            Delorean&apos;s killer feature: you can swap out any program&apos;s bytecode before the replay. Testing
-            whether your bug fix actually works? Replace the deployed program with your patched ELF, replay the
-            historical failing transaction, and see whether it passes now. Same accounts, same feature flags, same
-            block height, <em>your</em> code. This is historical simulation as a debugging primitive.
+            Delorean&apos;s killer feature: you can swap out any program&apos;s bytecode before the replay. Want to test
+            whether your bug fix actually works? Replace the deployed program with your patched ELF (the compiled
+            program binary), replay the historical failing transaction, and see if it passes now. Same accounts, same
+            feature flags, same block height, <em>your</em> code. This is historical simulation turned into a debugging
+            tool.
           </p>
         </div>
 
         <SectionLabel>pmm-sim: The Private AMM Dissection Lab</SectionLabel>
         <p style={bodyStyle}>
-          You swap 15,000 USDC into WSOL on Jupiter. Your friend calls the exact same private AMM contract directly,
-          same pool, same amount. She gets less WSOL. Same code, same liquidity, different result. Why?
+          You swap 15,000 USDC into WSOL on Jupiter. Your friend calls the exact same private AMM (automated market
+          maker — the on-chain program that quotes a price and does the swap) directly: same pool, same amount. She
+          gets less WSOL. Same code, same liquidity, different result. Why?
         </p>
         <p style={bodyStyle}>
-          The answer is that some Solana AMMs are not neutral. They are <strong style={strong}>private AMMs</strong> (also
-          called proprietary or prop AMMs) — programs whose pricing logic is closed-source and which look at the
-          identity of the calling program to decide what quote to give. If your call originated from an aggregator
-          on their whitelist, you get the VIP price. If it came from a random wallet, you get the public price.
-          <strong style={strong}> pmm-sim</strong>, built by LimeChain, is the laboratory for measuring that gap.
+          Because some Solana AMMs aren&apos;t neutral. They&apos;re <strong style={strong}>private AMMs</strong> (also
+          called proprietary or prop AMMs) — programs whose pricing logic is closed-source, and which look at
+          <em>who</em> is calling to decide what quote to give. If your call came from an aggregator on their
+          whitelist, you get the VIP price. If it came from a random wallet, you get the public price.
+          <strong style={strong}> pmm-sim</strong>, built by LimeChain, is the lab for measuring that gap.
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14, margin: '32px 0' }}>
@@ -350,20 +357,20 @@ samba/src/discof/resolv/   ← Modified: resolv tile with MEV routing`}
         </div>
 
         <p style={bodyStyle}>
-          pmm-sim uses <strong style={strong}>LiteSVM</strong> — a lightweight, in-process Solana VM — to spin up a clean
-          environment in milliseconds, inject only the accounts and programs you need, and run swaps over and over
-          while measuring exchange rates and compute usage. No mainnet calls, no validator startup, no historical
-          fossil. Where Delorean is an archaeologist replaying a real event, pmm-sim is a chemistry bench: fresh
-          glassware every run.
+          pmm-sim uses <strong style={strong}>LiteSVM</strong> — a lightweight Solana VM that runs inside your own
+          process — to spin up a clean environment in milliseconds, inject only the accounts and programs you need,
+          and run swaps over and over while measuring exchange rates and compute usage. No mainnet calls, no validator
+          startup, no historical fossil. Where Delorean is an archaeologist replaying a real event, pmm-sim is a
+          chemistry bench: fresh glassware every run.
         </p>
         <p style={bodyStyle}>
-          The core trick is <strong style={strong}>CPI impersonation</strong>. Private AMMs identify their caller by reading
-          the upstream program ID in the CPI (Cross-Program Invocation) chain. pmm-sim substitutes the program ID of
-          its own router with the ID of a real aggregator — Jupiter (<code style={codeStyle}>route_v2</code>), DFlow
-          (<code style={codeStyle}>swap2</code>), Titan (<code style={codeStyle}>swap_route_v2</code>), OKX Labs
-          (<code style={codeStyle}>swap_v3_with_cpi_event</code>) — making the private AMM believe it is being called
-          by a whitelisted entity. You can now measure, in numbers, exactly how much better the VIP price is for each
-          identity, for each pool, at each size.
+          The core trick is <strong style={strong}>CPI impersonation</strong>. Private AMMs figure out who&apos;s calling
+          them by reading the upstream program ID in the CPI (Cross-Program Invocation — one program calling another)
+          chain. pmm-sim swaps the program ID of its own router for the ID of a real aggregator — Jupiter
+          (<code style={codeStyle}>route_v2</code>), DFlow (<code style={codeStyle}>swap2</code>), Titan
+          (<code style={codeStyle}>swap_route_v2</code>), OKX Labs (<code style={codeStyle}>swap_v3_with_cpi_event</code>)
+          — making the private AMM believe a whitelisted entity is calling it. Now you can measure, in actual numbers,
+          exactly how much better the VIP price is for each identity, for each pool, at each size.
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -389,25 +396,25 @@ svm.add_program_from_file(program_id, path_to_elf);`}
 
         <p style={bodyStyle}>
           The fact that you <em>can</em> do this matters for the ecosystem. Private AMMs publish their on-chain bytecode
-          (you cannot deploy a Solana program without publishing the ELF) even when their off-chain pricing service is
-          closed-source. pmm-sim makes &quot;what does this program actually do given input X?&quot; an empirical question
-          again, instead of a leak of faith. Aggregators that integrate prop AMMs use it to validate quotes; researchers
-          use it to expose pricing asymmetries; market makers use it to estimate how much edge they are giving up by
-          routing through one aggregator versus another.
+          (you can&apos;t deploy a Solana program without publishing the ELF) even when their off-chain pricing service
+          stays closed-source. pmm-sim turns &quot;what does this program actually do given input X?&quot; back into a question
+          you can answer by measurement, instead of a leap of faith. Aggregators that integrate prop AMMs use it to
+          validate quotes; researchers use it to expose pricing asymmetries; market makers use it to estimate how much
+          edge they&apos;re giving up by routing through one aggregator versus another.
         </p>
 
         <SectionLabel>Client Diversity: Why Three Engines Beat One</SectionLabel>
         <p style={bodyStyle}>
           In March 2023, a bug in Agave caused a 4.5-hour mainnet outage. Every validator was running the same code,
-          so every validator was vulnerable to the same bug. The fix had to come from one team. The chain stopped.
+          so every validator had the same bug. The fix had to come from one team. The chain stopped.
         </p>
         <p style={bodyStyle}>
-          With Firedancer running an increasing share of mainnet stake — already past 30% by 2025 — a future similar
-          bug looks different. The two implementations were written independently from the same protocol spec.
-          When they agree, the network keeps moving. When they disagree, the disagreement itself is the signal: there
-          is a protocol ambiguity that needs to be fixed in the spec, not in one team&apos;s codebase. This is
-          <strong style={strong}> consensus diversity</strong>, and it is the same reason ATMs and aircraft systems have
-          redundant computers from different vendors.
+          With Firedancer now running a growing share of mainnet stake — already past 30% by 2025 — a similar bug in
+          the future plays out differently. The two implementations were written independently from the same
+          protocol spec. When they agree, the network keeps moving. When they disagree, the disagreement itself is
+          the signal: there&apos;s an ambiguity in the protocol that needs to be fixed in the spec, not in one team&apos;s
+          codebase. This is <strong style={strong}>consensus diversity</strong>, and it&apos;s the same reason ATMs and
+          aircraft systems carry redundant computers from different vendors.
         </p>
 
         <div style={{ margin: '40px 0', overflowX: 'auto' }}>
@@ -463,9 +470,9 @@ svm.add_program_from_file(program_id, path_to_elf);`}
 
         <SectionLabel>Who Uses What, When</SectionLabel>
         <p style={bodyStyle}>
-          Every project in this stack solves a different problem for a different kind of user. Before reaching for one,
-          ask yourself which seat you are sitting in. Below are the eight most common ones, the tool that fits each,
-          and the concrete scenario that triggers reaching for it.
+          Every project in this stack solves a different problem for a different kind of user. Before you reach for one,
+          ask yourself which seat you&apos;re sitting in. Below are the eight most common ones, the tool that fits each,
+          and the concrete situation that makes you reach for it.
         </p>
 
         <PersonaCard
@@ -534,8 +541,8 @@ svm.add_program_from_file(program_id, path_to_elf);`}
 
         <SectionLabel>A Builder&apos;s Quickstart Path</SectionLabel>
         <p style={bodyStyle}>
-          If you are coming in cold and want a concrete sequence to follow, this is the shortest path that produces
-          something running:
+          If you&apos;re coming in cold and want a concrete sequence to follow, this is the shortest path to something
+          actually running:
         </p>
 
         <ol style={{ paddingLeft: 24, margin: '32px 0 48px' }}>
@@ -557,10 +564,10 @@ svm.add_program_from_file(program_id, path_to_elf);`}
 
         <SectionLabel>The Bigger Picture</SectionLabel>
         <p style={bodyStyle}>
-          Four teams. Four open-source repos. One observable thread: Solana is no longer one validator and one
-          runtime and one debugger. It is becoming a stack where the validator layer competes on architecture, the
-          MEV layer competes on guarantees, the tooling layer competes on fidelity, and the trading layer competes on
-          measurement. Each project we covered started from a different question:
+          Four teams. Four open-source repos. One thread running through them: Solana is no longer one validator and
+          one runtime and one debugger. It&apos;s becoming a stack where the validator layer competes on architecture,
+          the MEV layer competes on guarantees, the tooling layer competes on fidelity, and the trading layer competes
+          on measurement. Each project we covered started from a different question:
         </p>
 
         <ul style={{ paddingLeft: 24, margin: '24px 0 32px', lineHeight: 1.9, color: 'rgba(255,255,255,0.65)' }}>
