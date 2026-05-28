@@ -50,10 +50,10 @@ export default function ZecArbitrageArticle() {
               </tr>
             </thead>
             <tbody>
-              <tr style={trStyle}><td style={tdLabelStyle}>Transparent</td><td style={tdStyle}>public (t-addr)</td><td style={tdStyle}>genesis, 2016</td><td style={tdStyle}>none</td></tr>
-              <tr style={trStyle}><td style={tdLabelStyle}>Sprout</td><td style={tdStyle}>shielded, 1st gen</td><td style={tdStyle}>Oct 2016 (genesis)</td><td style={tdStyle}>BCTV14 (trusted setup)</td></tr>
-              <tr style={trStyle}><td style={tdLabelStyle}>Sapling</td><td style={tdStyle}>shielded</td><td style={tdStyle}>Oct 2018 (block 419,200)</td><td style={tdStyle}>Groth16 (trusted setup)</td></tr>
-              <tr style={trStyle}><td style={tdLabelStyle}>Orchard</td><td style={tdStyle}>shielded</td><td style={tdStyle}>~May 2022 (NU5)</td><td style={tdStyle}>Halo 2 (no trusted setup)</td></tr>
+              <tr style={trStyle}><td style={tdLabelStyle}>Transparent</td><td style={tdStyle}>public (t-addr)</td><td style={tdStyle}>at launch</td><td style={tdStyle}>none</td></tr>
+              <tr style={trStyle}><td style={tdLabelStyle}>Sprout</td><td style={tdStyle}>shielded, 1st gen</td><td style={tdStyle}>at launch</td><td style={tdStyle}>BCTV14 (trusted setup)</td></tr>
+              <tr style={trStyle}><td style={tdLabelStyle}>Sapling</td><td style={tdStyle}>shielded</td><td style={tdStyle}>later upgrade</td><td style={tdStyle}>Groth16 (trusted setup)</td></tr>
+              <tr style={trStyle}><td style={tdLabelStyle}>Orchard</td><td style={tdStyle}>shielded</td><td style={tdStyle}>NU5 upgrade</td><td style={tdStyle}>Halo 2 (no trusted setup)</td></tr>
             </tbody>
           </table>
         </div>
@@ -74,9 +74,9 @@ export default function ZecArbitrageArticle() {
           invisible by definition. But forged coins still have to <em>exit</em> eventually &mdash; and
           when they did, more would leave the pool than ever entered, turning the pool&apos;s public
           total negative. That negative is the alarm bell. This isn&apos;t hypothetical: a real
-          counterfeiting vulnerability (CVE-2019-7167) lived in Sprout&apos;s original proving setup, was
-          found in 2018, and was quietly fixed at the Sapling upgrade; turnstile accounting was the tool
-          used afterward to argue no one had actually exploited it.
+          counterfeiting bug once lived in Sprout&apos;s original proving setup, was caught, and was
+          quietly fixed at the Sapling upgrade &mdash; and turnstile accounting was the tool used
+          afterward to argue no one had actually exploited it.
         </p>
         <p style={bodyStyle}>
           So here&apos;s the punchline for anyone hunting an arb: <strong style={strong}>there is no
@@ -89,10 +89,10 @@ export default function ZecArbitrageArticle() {
           are even possible. The thing people picture as a trade is really a privacy decision.
         </p>
         <p style={bodyStyle}>
-          The one genuinely observable dynamic is migration. By late 2025, on the order of{' '}
-          <strong style={strong}>29% of all ZEC</strong> sat shielded (per Coin Metrics) &mdash; the
-          bulk of it in Orchard (~4.2M ZEC), with Sapling a distant second (~636K) and Sprout all but
-          empty (~26K). That shift is real and trackable. It just isn&apos;t a trade.
+          The one genuinely observable dynamic is migration. A large and growing share of all ZEC now
+          sits shielded, and the bulk of it has drained into <strong style={strong}>Orchard</strong> as
+          the newest pool &mdash; Sapling holds a thin slice, and Sprout is all but empty. That shift is
+          real and trackable. It just isn&apos;t a trade.
         </p>
 
         <SectionLabel>Angle 2 — The real-but-thin trade: cross-venue (CEX/DEX)</SectionLabel>
@@ -112,11 +112,11 @@ export default function ZecArbitrageArticle() {
               </tr>
             </thead>
             <tbody>
-              <tr style={trStyle}><td style={tdLabelStyle}>Binance</td><td style={tdStyle}>listed + perps</td><td style={tdStyle}>survived Apr 2025 delisting vote; ZEC/USDC perp (Nov 2025, up to 75&times;)</td></tr>
-              <tr style={trStyle}><td style={tdLabelStyle}>OKX</td><td style={tdStyle}>relisted Nov 2025</td><td style={tdStyle}>had delisted ZEC in Jan 2024</td></tr>
+              <tr style={trStyle}><td style={tdLabelStyle}>Binance</td><td style={tdStyle}>listed + perps</td><td style={tdStyle}>survived a community delisting vote, then added perpetual futures</td></tr>
+              <tr style={trStyle}><td style={tdLabelStyle}>OKX</td><td style={tdStyle}>relisted</td><td style={tdStyle}>back on after an earlier delisting</td></tr>
               <tr style={trStyle}><td style={tdLabelStyle}>Coinbase</td><td style={tdStyle}>listed</td><td style={tdStyle}>transparent-address deposits only</td></tr>
               <tr style={trStyle}><td style={tdLabelStyle}>Kraken / Gemini</td><td style={tdStyle}>listed</td><td style={tdStyle}>Gemini: first regulated venue with shielded ZEC withdrawals</td></tr>
-              <tr style={trStyle}><td style={tdLabelStyle}>Robinhood</td><td style={tdStyle}>listed ~Apr 2026</td><td style={tdStyle}>retail on-ramp</td></tr>
+              <tr style={trStyle}><td style={tdLabelStyle}>Robinhood</td><td style={tdStyle}>listed</td><td style={tdStyle}>retail on-ramp</td></tr>
               <tr style={trStyle}><td style={tdLabelStyle}>Uniswap / native DEX</td><td style={tdStyle}>none</td><td style={tdStyle}>ZEC is a non-EVM UTXO coin &mdash; no native AMM pool</td></tr>
               <tr style={trStyle}><td style={tdLabelStyle}>THORChain / Maya</td><td style={tdStyle}>native swaps</td><td style={tdStyle}>cross-chain pools, not a wrapped token</td></tr>
             </tbody>
@@ -139,10 +139,10 @@ export default function ZecArbitrageArticle() {
             before the funds are even movable.
           </li>
           <li>
-            <strong style={strong}>Finality is slow.</strong> Zcash targets a ~75-second block, and
-            exchanges want several confirmations before crediting a deposit. That stretches the
-            round-trip to many minutes &mdash; minutes during which the spread you spotted can simply
-            evaporate.
+            <strong style={strong}>Finality is slow.</strong> A new Zcash block only lands about once a
+            minute, and exchanges want several of them to confirm before crediting a deposit. That
+            stretches the round-trip into many minutes &mdash; minutes during which the spread you
+            spotted can simply evaporate.
           </li>
           <li>
             <strong style={strong}>The books are thin.</strong> Privacy-coin order books are shallow
@@ -181,9 +181,9 @@ export default function ZecArbitrageArticle() {
               <tr style={trStyle}><td style={tdLabelStyle}>renZEC (RenVM)</td><td style={tdStyle}>Ethereum + others</td><td style={tdStyle}>defunct &mdash; RenVM shut down Dec 2022</td></tr>
               <tr style={trStyle}><td style={tdLabelStyle}>Binance-Peg ZEC</td><td style={tdStyle}>BNB Chain</td><td style={tdStyle}>custodial 1:1 peg; current mint/redeem activity unclear</td></tr>
               <tr style={trStyle}><td style={tdLabelStyle}>WZEC (Tokensoft)</td><td style={tdStyle}>Ethereum</td><td style={tdStyle}>custodial; essentially dormant</td></tr>
-              <tr style={trStyle}><td style={tdLabelStyle}>THORChain native ZEC</td><td style={tdStyle}>cross-chain</td><td style={tdStyle}>newly live (~Apr 2026, phased)</td></tr>
-              <tr style={trStyle}><td style={tdLabelStyle}>Maya native ZEC</td><td style={tdStyle}>cross-chain</td><td style={tdStyle}>live since ~May 2025</td></tr>
-              <tr style={trStyle}><td style={tdLabelStyle}>NEAR Intents</td><td style={tdStyle}>30+ chains</td><td style={tdStyle}>live 2025 &mdash; native swaps, not a token</td></tr>
+              <tr style={trStyle}><td style={tdLabelStyle}>THORChain native ZEC</td><td style={tdStyle}>cross-chain</td><td style={tdStyle}>newly live, rolling out in phases</td></tr>
+              <tr style={trStyle}><td style={tdLabelStyle}>Maya native ZEC</td><td style={tdStyle}>cross-chain</td><td style={tdStyle}>live a while longer</td></tr>
+              <tr style={trStyle}><td style={tdLabelStyle}>NEAR Intents</td><td style={tdStyle}>many chains</td><td style={tdStyle}>native swaps, not a token</td></tr>
             </tbody>
           </table>
         </div>
@@ -194,15 +194,14 @@ export default function ZecArbitrageArticle() {
           collateral damage from the FTX/Alameda collapse (Alameda had acquired Ren and ran its custody
           infrastructure). The token contract still exists on-chain, but it&apos;s dead and illiquid.
           That wasn&apos;t a price depeg so much as a stranding: the same event flattened RenVM&apos;s
-          total value locked from over a billion dollars to a few tens of millions, and renZEC went with
-          it. The custodial pegs that remain &mdash; Binance-Peg ZEC on BNB Chain, the old Tokensoft WZEC
-          on Ethereum &mdash; technically exist but carry thin-to-nil liquidity and full counterparty
-          risk.
+          locked value from billions to almost nothing, and renZEC went with it. The custodial pegs that
+          remain &mdash; Binance-Peg ZEC on BNB Chain, the old Tokensoft WZEC on Ethereum &mdash;
+          technically exist but carry thin-to-nil liquidity and full counterparty risk.
         </p>
         <p style={bodyStyle}>
-          The model that actually works in 2026 is the opposite of wrapping: <strong style={strong}>native
-          cross-chain swaps</strong>, via THORChain (native ZEC went live around April 2026, in phases)
-          and its fork Maya (live since about May 2025). These don&apos;t mint a wrapped token at all.
+          The model that actually works now is the opposite of wrapping: <strong style={strong}>native
+          cross-chain swaps</strong>, via THORChain (native ZEC went live recently, in phases) and its
+          fork Maya (live a while longer). These don&apos;t mint a wrapped token at all.
           ZEC sits in a <strong style={strong}>continuous liquidity pool</strong> &mdash; a
           constant-product AMM paired against the network&apos;s own settlement asset (RUNE on THORChain,
           CACAO on Maya) &mdash; and you swap into and out of it with a slip-based fee that scales with
@@ -210,16 +209,16 @@ export default function ZecArbitrageArticle() {
           <strong style={strong}>arbitrage is the peg mechanism</strong>: when the pool&apos;s ZEC price
           drifts from the outside market, profit-seekers buy the cheap side and sell the rich one until
           it snaps back. NEAR Intents adds a third route, using a solver network to fill native
-          ETH/BTC/SOL &rarr; native ZEC swaps across 30-plus chains (the Zashi wallet wired it in around
-          October 2025).
+          ETH/BTC/SOL &rarr; native ZEC swaps across many chains (the Zashi wallet wired it in for
+          private swaps).
         </p>
         <p style={bodyStyle}>
           Which makes the mechanics of the cross-chain trade clear. The arbitrageur is the one keeping
           THORChain&apos;s ZEC pool honest, and the friction bounding how tightly they can hold the peg
           is <strong style={strong}>bridge latency.</strong> Settling a ZEC leg means waiting on Zcash
-          confirmations &mdash; several blocks at ~75 seconds each &mdash; plus the protocol&apos;s own
-          settlement, so the window where the price can move against you is measured in minutes, and your
-          capital is locked the whole time. There&apos;s a privacy cost layered on top: a Maya
+          confirmations &mdash; several blocks, each only landing about once a minute &mdash; plus the
+          protocol&apos;s own settlement, so the window where the price can move against you is measured
+          in minutes, and your capital is locked the whole time. There&apos;s a privacy cost layered on top: a Maya
           contributor has openly noted that cross-chain shielded ZEC swaps still leak metadata once value
           leaves the Zcash chain. So even the &quot;native&quot; route trades some of the privacy that
           was the whole point.
