@@ -470,23 +470,23 @@ for await (const update of stream) {
 
         <SectionLabel>Below the Block: Shreds, Turbine, and Pre-Block Reads</SectionLabel>
         <p style={bodyStyle}>
-          Section 11 covered what a block looks like to a consumer of consensus state. There is a layer below that, and most of the &quot;fastest&quot; stories in this article — Jito ShredStream, Triton co-location, the 50–100ms pump.fun cancel window — live there. A block is not transmitted as a single object. It is broken into <strong>shreds</strong> — ~1,228-byte fragments of the slot&apos;s data — and gossiped across the validator network the instant the leader can serialize them, before the block is even complete. Read the shreds and you read the network <em>in flight</em>.
+          Section 11 covered what a block looks like to a consumer of consensus state. There&apos;s a layer below that, and most of the &quot;fastest&quot; stories in this article — Jito ShredStream, Triton co-location, the 50–100ms pump.fun cancel window — live there. A block isn&apos;t sent as a single object. It&apos;s broken into <strong>shreds</strong> — ~1,228-byte fragments of the slot&apos;s data — and gossiped across the validator network the instant the leader can serialize them, before the block is even finished. Read the shreds and you read the network <em>in flight</em>.
         </p>
 
         <p style={bodyStyle}>
-          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>1. What a shred actually is.</strong> Two kinds. <strong>Data shreds</strong> carry serialized entries — the transactions themselves. <strong>Coding shreds</strong> are Reed-Solomon parity fragments that let downstream validators reconstruct missing data shreds without re-requesting. Together they form an <code style={codeStyle}>FEC</code> (forward error correction) set. A block of 1,000 transactions might serialize to ~150 data shreds plus ~50 coding shreds; lose any 50 of the 200 and the block is still reconstructable.
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>1. What a shred actually is.</strong> There are two kinds. <strong>Data shreds</strong> carry serialized entries — the transactions themselves. <strong>Coding shreds</strong> are Reed-Solomon parity fragments (redundant pieces) that let downstream validators rebuild missing data shreds without re-requesting them. Together they form an <code style={codeStyle}>FEC</code> (forward error correction) set. A block of 1,000 transactions might serialize to ~150 data shreds plus ~50 coding shreds; lose any 50 of the 200 and the block is still rebuildable.
         </p>
 
         <p style={bodyStyle}>
-          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>2. Turbine: the propagation tree.</strong> The leader does not broadcast shreds to every validator. It picks a fanout of K direct neighbors (currently around 200), each of whom forwards to the next layer. The result is a tree of depth O(log N) where every validator receives every shred in 2–3 hops. The validator&apos;s <em>position</em> in that tree determines how soon it sees a shred — neighbors at depth 1 see shreds milliseconds before validators at depth 3. This is the entire physics of the &quot;fast&quot; story. Co-located dedicated nodes (Triton Professional Trading Centers) are paying to sit near the top of the tree. ShredStream operators are paying to receive shreds at the same depth as a validator without being one.
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>2. Turbine: the propagation tree.</strong> The leader doesn&apos;t broadcast shreds to every validator. It picks a fanout of K direct neighbors (currently around 200), each of whom forwards to the next layer. The result is a tree of depth O(log N), where every validator gets every shred in 2–3 hops. A validator&apos;s <em>position</em> in that tree decides how soon it sees a shred — neighbors at depth 1 see shreds milliseconds before validators at depth 3. This is the whole physics of the &quot;fast&quot; story. Co-located dedicated nodes (Triton Professional Trading Centers) pay to sit near the top of the tree. ShredStream operators pay to receive shreds at the same depth as a validator without being one.
         </p>
 
         <p style={bodyStyle}>
-          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>3. The leader schedule.</strong> Leaders are deterministic and announced one full epoch (432,000 slots ≈ 2 days) in advance. Each leader gets a 4-slot window (1.6s of block production), then hands off to the next scheduled leader. You can query <code style={codeStyle}>getLeaderSchedule</code> and know exactly who will be leader at any future slot. Sniper bots and MEV searchers exploit this directly: they send their transactions to the next 4 leaders simultaneously through TPU forwards, bypassing the public mempool entirely.
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>3. The leader schedule.</strong> Leaders are deterministic and announced one full epoch (432,000 slots ≈ 2 days) ahead of time. Each leader gets a 4-slot window (1.6s of block production), then hands off to the next scheduled leader. You can query <code style={codeStyle}>getLeaderSchedule</code> and know exactly who&apos;ll be leader at any future slot. Sniper bots and MEV searchers exploit this directly: they fire their transactions at the next 4 leaders at once through TPU forwards (sending straight to the leader&apos;s transaction-intake port), skipping the public mempool entirely.
         </p>
 
         <p style={bodyStyle}>
-          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>4. The handoff just got faster (today).</strong> The agave validator client merged a &quot;send shred to next leader&quot; patch in May 2026, modifying <code style={codeStyle}>turbine/src/broadcast_stage.rs</code> so the validator scheduled to be the <em>next</em> leader is unconditionally included in the shred broadcast targets, regardless of turbine tree topology. The mechanical effect: the next leader receives the previous leader&apos;s last shreds at depth-1 instead of waiting for turbine to walk them down the tree, which trims the leader-to-leader handoff window — the gap where a slot is &quot;done&quot; but the next slot&apos;s block production hasn&apos;t started yet. The strategic implication: the floor on &quot;how soon you can act on incoming flow&quot; is itself moving. Every cancel-race analysis from 2025 needs to be re-benched against the post-patch mainnet.
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>4. The handoff just got faster (today).</strong> The agave validator client merged a &quot;send shred to next leader&quot; patch in May 2026, changing <code style={codeStyle}>turbine/src/broadcast_stage.rs</code> so the validator scheduled to be the <em>next</em> leader is always included in the shred broadcast targets, no matter the turbine tree topology. The mechanical effect: the next leader gets the previous leader&apos;s last shreds at depth-1 instead of waiting for turbine to walk them down the tree, which trims the leader-to-leader handoff window — the gap where one slot is &quot;done&quot; but the next slot&apos;s block production hasn&apos;t started yet. The strategic implication: the floor on &quot;how soon you can act on incoming flow&quot; is itself moving. Every cancel-race analysis from 2025 needs to be re-benched against the post-patch mainnet.
         </p>
 
         <p style={bodyStyle}>
@@ -495,26 +495,26 @@ for await (const update of stream) {
 
         <div style={{ margin: '32px 0', padding: '0 0 0 24px', borderLeft: '2px solid rgba(255,255,255,0.1)' }}>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Helius LaserStream / Triton Dragon&apos;s Mouth.</strong> Read the network <em>after</em> block construction. The streams surface account updates and transactions once the bank is built and replayed. Fast for block-level data, but they cannot see a transaction before the leader has packed it into a block. The race they win is &quot;know about a state change before the next slot&apos;s validators do.&quot;
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Helius LaserStream / Triton Dragon&apos;s Mouth.</strong> These read the network <em>after</em> the block is built. The streams surface account updates and transactions once the bank is built and replayed. Fast for block-level data, but they can&apos;t see a transaction before the leader has packed it into a block. The race they win is &quot;know about a state change before the next slot&apos;s validators do.&quot;
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Jito ShredStream.</strong> Reads the network <em>in flight</em>. Subscribes to the raw shred broadcast and reconstructs transactions before the block is complete. This is the 50–100ms window pump.fun snipers, Photon, and serious MEV searchers race for. You do not get execution metadata (no logs, no status, no compute units) — you get the raw transaction, ahead of consensus.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Jito ShredStream.</strong> Reads the network <em>in flight</em>. It subscribes to the raw shred broadcast and rebuilds transactions before the block is complete. This is the 50–100ms window that pump.fun snipers, Photon, and serious MEV searchers race for. You don&apos;t get execution metadata (no logs, no status, no compute units) — you get the raw transaction, ahead of consensus.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Triton Cascade (SWQoS).</strong> Does not read faster — it <em>writes</em> faster. Buys guaranteed shred-broadcast bandwidth from validators selling stake-weighted QoS, so your transaction reaches the next leader through a guaranteed channel instead of competing in the public mempool. The opposite end of the same propagation graph: read at the top of turbine (ShredStream), or write into validators with reserved bandwidth (Cascade).
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Triton Cascade (SWQoS).</strong> Doesn&apos;t read faster — it <em>writes</em> faster. It buys guaranteed shred-broadcast bandwidth from validators selling stake-weighted QoS, so your transaction reaches the next leader through a guaranteed channel instead of competing in the public mempool. It&apos;s the opposite end of the same propagation graph: read at the top of turbine (ShredStream), or write into validators with reserved bandwidth (Cascade).
           </p>
           <p style={{ ...bodyStyle, marginBottom: 0 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>FluxRPC + Lantern.</strong> Doesn&apos;t play this race at all. Their value proposition is on the read side after settlement — cheap, fresh, locally cached. A FluxRPC user who needs pre-block signal pairs Lantern with a ShredStream feed; the two are not substitutes.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>FluxRPC + Lantern.</strong> Doesn&apos;t play this race at all. Its value is on the read side, after settlement — cheap, fresh, locally cached. A FluxRPC user who needs pre-block signal pairs Lantern with a ShredStream feed; the two aren&apos;t substitutes.
           </p>
         </div>
 
         <p style={bodyStyle}>
-          The mental model that closes this section: <strong>block-level streams read settled state, shred-level streams read in-flight state, SWQoS writes into the propagation graph at the top.</strong> Different problems, different races, different products. The reason &quot;serious teams compose providers&quot; (from the roster section) isn&apos;t taste — it is that no single provider answers all three of those problems, and the answers live at architecturally different layers of the validator network.
+          The mental model that closes this section: <strong>block-level streams read settled state, shred-level streams read in-flight state, SWQoS writes into the propagation graph at the top.</strong> Different problems, different races, different products. The reason serious teams compose providers (from the roster section) isn&apos;t taste — it&apos;s that no single provider answers all three of those problems, and the answers live at architecturally different layers of the validator network.
         </p>
 
         <SectionLabel>Cross-Comparison Matrix</SectionLabel>
         <p style={bodyStyle}>
-          The three providers are not competing on a single axis. Helius sells developer time. Triton sells physical edge. FluxRPC sells a different architectural assumption. The matrix below makes the feature surface comparable.
+          The three providers aren&apos;t competing on a single axis. Helius sells developer time. Triton sells physical edge. FluxRPC sells a different architectural assumption. The matrix below lines up the features so you can compare them.
         </p>
 
         <div style={{ margin: '40px 0', overflowX: 'auto' }}>
@@ -624,7 +624,7 @@ for await (const update of stream) {
 
         <SectionLabel>Use Case Mapping</SectionLabel>
         <p style={bodyStyle}>
-          The matrix is dense. The decision tree underneath is short — pick the provider that aligns with what your binding constraint actually is.
+          The matrix is dense. The decision tree underneath is short — pick the provider that matches whatever your real bottleneck is.
         </p>
 
         <div style={{ margin: '32px 0', padding: '0 0 0 24px', borderLeft: '2px solid rgba(255,255,255,0.1)' }}>
@@ -635,34 +635,34 @@ for await (const update of stream) {
             <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Webhook-driven backend.</strong> Helius, uncontested. Discord bots, alert systems, accounting, anything event-shaped — webhooks with parsed payloads are their thing.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Devnet prototyping.</strong> Helius free tier. The alternatives are mainnet-shaped; devnet on Helius is full-feature at $0.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Devnet prototyping.</strong> Helius free tier. The alternatives are built for mainnet; devnet on Helius is full-feature at $0.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
             <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Custom indexer / Substreams-style pipeline.</strong> Triton if you want parsed streams (Vixen) and historical replay (Old Faithful); FluxRPC if you want bandwidth-priced bulk reads and don&apos;t mind decoding yourself.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>MEV / market making / liquidations.</strong> Triton. Dragon&apos;s Mouth + dedicated nodes + Cascade bandwidth is the institutional stack. The 400ms cancel-race edge is not marketing.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>MEV / market making / liquidations.</strong> Triton. Dragon&apos;s Mouth + dedicated nodes + Cascade bandwidth is the institutional stack. The 400ms cancel-race edge isn&apos;t marketing.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>High-volume read app.</strong> FluxRPC. Block explorers, analytics dashboards, leaderboards — bandwidth pricing punishes the Helius credit model and avoids Triton&apos;s dedicated-node floor.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>High-volume read app.</strong> FluxRPC. Block explorers, analytics dashboards, leaderboards — bandwidth pricing punishes the Helius credit model and skips Triton&apos;s dedicated-node floor.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Self-hosted trading bot.</strong> FluxRPC + Lantern inside your VPC for the read path, fall back to Triton Dragon&apos;s Mouth if the cancel-race edge matters.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Self-hosted trading bot.</strong> FluxRPC + Lantern inside your VPC for the read path; fall back to Triton Dragon&apos;s Mouth if the cancel-race edge matters.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>SVM L2 / Fogo / appchain work.</strong> FluxRPC is the only one advertising SVM-beyond-Solana support today. A hint at where they think the moat is.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>SVM L2 / Fogo / appchain work.</strong> FluxRPC is the only one advertising SVM-beyond-Solana support today — a hint at where they think the moat is.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Real-time order flow / execution monitoring.</strong> Helius LaserStream SDK — drop-in, 40× throughput over a raw JS Yellowstone consumer, slot replay for incident recovery. DFlow&apos;s stack is the case study; payment-for-order-flow and MEV-aware routing live or die on a stream that does not drop events under load.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Real-time order flow / execution monitoring.</strong> Helius LaserStream SDK — drop-in, 40× throughput over a raw JS Yellowstone consumer, slot replay for incident recovery. DFlow&apos;s stack is the case study; payment-for-order-flow and MEV-aware routing live or die on a stream that doesn&apos;t drop events under load.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Polyglot infrastructure team.</strong> Helius LaserStream SDKs — JavaScript, Rust, and Go all maintained against the same protocol, with the same replay and reconnect semantics. The frontend team consumes the JS SDK, the indexer team uses Rust, the analytics service runs Go, and a bug fix in one ships to all three.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Polyglot infrastructure team.</strong> Helius LaserStream SDKs — JavaScript, Rust, and Go all maintained against the same protocol, with the same replay and reconnect behavior. The frontend team uses the JS SDK, the indexer team uses Rust, the analytics service runs Go, and a bug fix in one ships to all three.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
             <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Live cluster / validator monitoring dashboards.</strong> Triton — Dragon&apos;s Mouth gRPC against the cluster gives you account, slot, and vote-account streams without paying the Helius streaming meter, and Old Faithful answers historical questions when the dashboard needs to show last week.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Compliance archiving for regulated entities.</strong> Triton Old Faithful — the only commercial path to query arbitrary historical Solana transactions without running your own archival validator. Custodians and exchanges that owe regulators a query interface buy this.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Compliance archiving for regulated entities.</strong> Triton Old Faithful — the only commercial way to query arbitrary historical Solana transactions without running your own archival validator. Custodians and exchanges that owe regulators a query interface buy this.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 0 }}>
             <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Wallet showing parsed transaction history.</strong> Helius Enhanced Transactions. Building a wallet UI that decodes Jupiter swaps, Tensor sales, Drift trades, and Kamino borrows from raw instructions is months of work per program; Helius ships them pre-parsed. Phantom, Backpack, and Solflare consume this so they don&apos;t have to maintain decoders.

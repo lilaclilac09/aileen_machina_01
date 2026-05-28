@@ -181,14 +181,14 @@ export default function DoubleZeroArticle() {
 
         <SectionLabel>Connecting a validator</SectionLabel>
         <p style={bodyStyle}>
-          The part people get wrong: the original DoubleZero pitch sounded like &quot;lease a wavelength,
-          rebuild your validator.&quot; The actual story is much smaller.
+          The part people get wrong: the original DoubleZero pitch sounded like &quot;lease a wavelength and
+          rebuild your validator.&quot; The actual story is much smaller than that.
         </p>
         <p style={bodyStyle}>
           The killer feature is <strong style={strong}>IBRL</strong> — a connection mode that lets
           validators and RPC nodes connect to DoubleZero <em>without restarting their blockchain clients</em>.
           You don&apos;t fork Agave or Firedancer. You don&apos;t take downtime. <code style={codeStyle}>doublezerod</code> brings
-          up a tunnel interface and a routing table, and the validator&apos;s existing sockets start
+          up a tunnel interface and a routing table, and the validator&apos;s existing sockets just start
           using the better path for any peer that&apos;s also on the mesh.
         </p>
         <p style={bodyStyle}>Prerequisites are unglamorous:</p>
@@ -214,64 +214,65 @@ doublezero status        # confirm connection`}
         </div>
 
         <p style={bodyStyle}>
-          <code style={codeStyle}>doublezero latency</code> is the one to run before signing anything.
-          It enumerates the DZDs you can reach and shows ping times — if your nearest POP is more than a
+          <code style={codeStyle}>doublezero latency</code> is the one to run before you sign anything.
+          It lists the DZDs you can reach and shows their ping times — if your nearest POP is more than a
           few ms away, the cross-connect topology isn&apos;t right yet.
         </p>
         <p style={bodyStyle}>
           Testnet and mainnet-beta are <em>physically distinct networks</em>, not the same fiber with
-          different routing. You pick one at install time via the repo URL.
+          different routing. You pick one at install time, via the repo URL.
         </p>
         <p style={bodyStyle}>
-          What the validator binary sees: nothing changed, except that traffic to peers also on the mesh
+          What does the validator binary see? Nothing changed — except that traffic to peers also on the mesh
           now exits <code style={codeStyle}>doublezero0</code> instead of the default route, with much
-          tighter jitter. Turbine and gossip pick paths from the OS routing table — they don&apos;t know
-          or care that the better path is on dedicated fiber.
+          tighter jitter. Turbine and gossip just pick paths from the OS routing table; they don&apos;t know
+          or care that the better path happens to run on dedicated fiber.
         </p>
 
         <SectionLabel>Connecting a searcher or extractor</SectionLabel>
         <p style={bodyStyle}>
-          The searcher geometry is different. You don&apos;t need to talk to every validator. You need to
-          talk to the current leader, and the next few leaders, with the lowest possible tail latency.
-          The leader schedule is public.
+          The geometry is different for a searcher — the MEV bot operator trying to get a transaction in front
+          of the right validator. You don&apos;t need to talk to every validator. You need to talk to the
+          current leader, and the next few leaders, with the lowest possible tail latency. The leader schedule
+          is public.
         </p>
         <p style={bodyStyle}>
-          Today&apos;s serious-MEV stack: co-locate near a major validator concentration (FRA, NYC, TYO),
-          stream tx submissions to multiple validator vote accounts, optionally route through Jito&apos;s
-          relayer for bundle semantics, and pray the path to this slot&apos;s leader isn&apos;t going through
-          Ashburn on a bad afternoon.
+          Today&apos;s serious-MEV stack looks like this: co-locate near a major validator concentration (FRA,
+          NYC, TYO), stream tx submissions to multiple validator vote accounts, optionally route through
+          Jito&apos;s relayer for bundle semantics, and pray the path to this slot&apos;s leader isn&apos;t
+          going through Ashburn on a bad afternoon.
         </p>
         <p style={bodyStyle}>
-          With a DoubleZero port your tx leaves your host, traverses one mesh hop to the leader&apos;s
-          POP, and lands in their ingress queue in deterministic time. The variance disappears.
+          With a DoubleZero port, your tx leaves your host, takes one mesh hop to the leader&apos;s POP, and
+          lands in their ingress queue in deterministic time. The variance just disappears.
         </p>
 
         <div style={calloutAccent}>
           <p style={calloutTitle}>THE NON-OBVIOUS CONSEQUENCE</p>
           <p style={{ ...bodyStyle, marginBottom: 0 }}>
-            <strong style={strong}>The Jito relayer hop becomes optional for latency reasons.</strong>{' '}
+            <strong style={strong}>The Jito relayer hop becomes optional, at least for latency reasons.</strong>{' '}
             You might still want it for bundle semantics, tip routing, or revert protection — but the
-            latency argument for funneling everything through one relayer collapses when the underlying
+            latency case for funneling everything through one relayer falls apart once the underlying
             network is already deterministic. Searcher economics shift accordingly.
           </p>
         </div>
 
         <p style={bodyStyle}>
-          Per-millisecond revenue for searchers is asymmetric — losing the race on a profitable
-          opportunity costs you the entire opportunity, not a fraction. The math for paying for a DZ
-          port works out at much smaller scales for searchers than it does for validators.
+          Per-millisecond revenue for searchers is asymmetric — lose the race on a profitable opportunity and
+          you lose the entire opportunity, not a fraction of it. So the math for paying for a DZ port works out
+          at much smaller scales for searchers than it does for validators.
         </p>
 
         <SectionLabel>Compared to renting your own fiber</SectionLabel>
         <p style={bodyStyle}>
-          HFT firms have been solving this problem since ~2010, and the comparison is worth making
-          explicit because it&apos;s exactly why DoubleZero is structured as a shared substrate.
+          HFT firms have been solving this problem since ~2010, and the comparison is worth spelling out,
+          because it&apos;s exactly why DoubleZero is structured as a shared substrate.
         </p>
         <p style={bodyStyle}>
-          <strong style={strong}>The HFT model.</strong> A trading firm signs a dark-fiber lease (or
-          microwave path, McKay/Anova-style) on a specific route — say NYC → Aurora for CME, or NYC →
-          London for LSE. They light their own wavelength, terminate at colocation cages on both ends,
-          own every meter exclusively.
+          <strong style={strong}>The HFT model.</strong> A trading firm signs a dark-fiber lease (or a
+          microwave path, McKay/Anova-style) on one specific route — say NYC → Aurora for CME, or NYC →
+          London for LSE. They light their own wavelength, terminate at colocation cages on both ends, and own
+          every meter exclusively.
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -309,17 +310,17 @@ doublezero status        # confirm connection`}
         </div>
 
         <p style={bodyStyle}>
-          You get the absolute best latency on earth for that route. You also pay for the entire pipe
-          regardless of how much you push through it. For a firm doing $100M/year of MEV that math
-          works. For a 50-validator cluster trying to recover skipped-slot APY, it doesn&apos;t.
+          You get the absolute best latency on earth for that route. You also pay for the entire pipe whether
+          or not you ever fill it. For a firm doing $100M/year of MEV, that math works. For a 50-validator
+          cluster trying to recover skipped-slot APY, it doesn&apos;t.
         </p>
         <p style={bodyStyle}>
           <strong style={strong}>The DoubleZero model.</strong> A bandwidth contributor dedicates a
           wavelength to the shared substrate, terminates it on a DZD pair (Arista 7280CR3A + AMD V80,
-          ~4U/4KW per side), and bridges to the rest of the network at the nearest DZX. Many validators
-          and searchers share ports into that substrate. Capacity is multiplexed, telemetry is published,
-          contributors get paid via the on-chain Shapley-value reward program proportional to their
-          measured contribution to network quality.
+          ~4U/4KW per side), and bridges to the rest of the network at the nearest DZX. Lots of validators
+          and searchers share ports into that substrate. Capacity is multiplexed, telemetry is published, and
+          contributors get paid via the on-chain Shapley-value reward program, in proportion to their measured
+          contribution to network quality.
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -368,45 +369,45 @@ doublezero status        # confirm connection`}
 
         <p style={bodyStyle}>
           The multicast row is the interesting one. Even if a validator could afford an exclusive
-          dark-fiber lease, they&apos;d still get only unicast out of it — multicast at scale needs a
+          dark-fiber lease, they&apos;d still only get unicast out of it — multicast at scale needs a
           coordinated mesh where every switch knows the group membership. That&apos;s something a shared
-          network can do and a per-firm lease structurally cannot.
+          network can do and a per-firm lease structurally can&apos;t.
         </p>
 
         <SectionLabel>Frankendancer and the integration surface</SectionLabel>
         <p style={bodyStyle}>
-          This is the part that gets undersold in the Malbec docs and is the most interesting for anyone
-          who actually writes validator code.
+          This is the part that gets undersold in the Malbec docs, and it&apos;s the most interesting bit for
+          anyone who actually writes validator code.
         </p>
         <p style={bodyStyle}>
           <strong style={strong}>Frankendancer is on mainnet, and the wins compound with DoubleZero.</strong>{' '}
           Frankendancer — the production hybrid where Firedancer&apos;s networking and block-packing
-          replace Agave&apos;s, then Agave&apos;s runtime executes — has been on mainnet since September
-          2024. It posts roughly <strong style={strong}>~22% faster shredding without Merkle trees and
-          almost 2× faster with Merkle trees</strong> vs Agave&apos;s path on the same hardware. That&apos;s
-          pure CPU-side improvement; the wire is still the same wire.
+          replace Agave&apos;s, then Agave&apos;s runtime does the actual execution — has been on mainnet since
+          September 2024. It posts roughly <strong style={strong}>~22% faster shredding without Merkle trees and
+          almost 2× faster with Merkle trees</strong> versus Agave&apos;s path on the same hardware. That&apos;s
+          a pure CPU-side win; the wire is still the same wire.
         </p>
         <p style={bodyStyle}>
           Drop Frankendancer on a DoubleZero port and the two improvements stack. Frankendancer takes
           less time to <em>produce</em> the shreds; DoubleZero takes less wall-clock and far less jitter
-          to <em>deliver</em> them. Inside a 400ms slot, the leader gets back time on both ends — more
+          to <em>deliver</em> them. Inside a 400ms slot, the leader claws back time on both ends — more
           time to keep the tx ingress open, less time spent waiting for the previous block&apos;s shreds
-          to fully arrive before building.
+          to fully arrive before it can start building.
         </p>
         <p style={bodyStyle}>
           <strong style={strong}>The integration shape is the <code style={codeStyle}>net_tile</code>.</strong>{' '}
           Firedancer&apos;s <code style={codeStyle}>net_tile</code> is the per-CPU thread that owns one NIC.
-          The natural integration point with DoubleZero is binding a specific{' '}
+          The natural place to wire in DoubleZero is to bind a specific{' '}
           <code style={codeStyle}>net_tile</code> to the <code style={codeStyle}>doublezero0</code> interface —
-          consensus traffic to peers also on the mesh routes through that tile; everything else routes
-          through a separate <code style={codeStyle}>net_tile</code> bound to the regular uplink. Tile-level
-          affinity means you can pin DoubleZero traffic to the cores closest to its NIC&apos;s PCIe slot,
-          with no contention from public-internet traffic on the same thread.
+          consensus traffic to peers also on the mesh goes through that tile, and everything else goes
+          through a separate <code style={codeStyle}>net_tile</code> bound to the regular uplink. Because
+          affinity is at the tile level, you can pin DoubleZero traffic to the cores closest to its NIC&apos;s
+          PCIe slot, with no contention from public-internet traffic on the same thread.
         </p>
         <p style={bodyStyle}>
           The upstream <code style={codeStyle}>net_tile</code> patch that ties Firedancer&apos;s userspace
           directly to <code style={codeStyle}>doublezero0</code> isn&apos;t public yet — but pieces of
-          the integration are already shipping. Three layers of the integration to watch:
+          the integration are already shipping. Three layers of it to watch:
         </p>
 
         <CardGrid cards={[

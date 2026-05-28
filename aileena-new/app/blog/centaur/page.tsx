@@ -235,42 +235,42 @@ Coding-only agent      Sweep, Tusk, GH Copilot         OpenDevin-style forks
 
         <SectionLabel>Where this leaves the market</SectionLabel>
         <p style={bodyStyle}>
-          The interesting position Centaur stakes out is the top-right quadrant of that grid:{' '}
+          The spot Centaur stakes out is the top-right quadrant of that grid:{' '}
           <strong style={strong}>open-source, self-hosted, full-stack team agent runtime</strong>.
-          Twelve months ago that quadrant didn&apos;t exist as a category. Today it has one
-          credible entrant, backed by a firm whose previous infrastructure bets (Foundry, Reth,
-          OpenClaw) became default tools for entire industries.
+          Twelve months ago that quadrant didn&apos;t exist as a category at all. Today it has one
+          credible entrant, backed by a firm whose earlier infrastructure bets (Foundry, Reth,
+          OpenClaw) turned into default tools for whole industries.
         </p>
 
         <p style={bodyStyle}>
-          Three predictions follow directly from the design choices above:
+          Three predictions fall straight out of the design choices above:
         </p>
 
         <ul style={listStyle}>
           <li>
             <strong style={strong}>The sandbox-API vendors will commoditize faster.</strong>{' '}
-            If the dominant deployment shape becomes &quot;an agent runtime on the customer&apos;s
-            K8s,&quot; the standalone-sandbox layer is a feature, not a product. E2B and Daytona
-            will either move up into orchestration or get squeezed.
+            If the standard way to deploy becomes &quot;an agent runtime on the customer&apos;s
+            own K8s,&quot; then the standalone-sandbox layer is a feature, not a product. E2B and
+            Daytona will either climb up into orchestration or get squeezed.
           </li>
           <li>
             <strong style={strong}>Devin gets a self-hosted SKU.</strong> The compliance gap is
-            wide enough that Cognition cannot ignore it forever, but moving from SaaS to
-            self-hosted is a structural lift, not a flag flip.
+            wide enough that Cognition can&apos;t ignore it forever &mdash; but moving from SaaS to
+            self-hosted is a structural lift, not a flag you flip.
           </li>
           <li>
-            <strong style={strong}>The next year of agent product PMs will spend most of their
-            time on workflows, not on models.</strong> Centaur is a bet that the unsolved
-            problem is durability, sharing, and credentials — not capability. That bet matches
-            what most users complain about once the novelty wears off.
+            <strong style={strong}>Over the next year, agent product PMs will spend most of their
+            time on workflows, not on models.</strong> Centaur is a bet that the unsolved problem
+            is durability, sharing, and credentials &mdash; not raw capability. And that bet lines
+            up with what most users gripe about once the novelty wears off.
           </li>
         </ul>
 
         <p style={bodyStyle}>
-          Centaur is not the only thing that will work. It&apos;s the first credible answer to
-          the question &quot;what does an agent look like when it has to be a teammate to fifty
-          people for a year?&quot; — and it ships with six months of receipts from the firm that
-          built it.
+          Centaur isn&apos;t the only thing that&apos;ll work. But it&apos;s the first credible
+          answer to the question &quot;what does an agent look like when it has to be a teammate to
+          fifty people for a year?&quot; &mdash; and it ships with six months of receipts from the
+          firm that built it.
         </p>
 
         <div style={{ marginTop: 56 }}>

@@ -169,39 +169,39 @@ off=676   u8   examples: [109, 109, 109, 109, 109, …]`}
         <SectionLabel>What this is good for</SectionLabel>
         <p style={bodyStyle}>
           Humidifi quoted <a href="https://www.helius.dev/blog/solanas-proprietary-amm-revolution" target="_blank" rel="noopener noreferrer" style={inlineLink}>$8.55B in a single week</a> in
-          late 2025 and was, briefly, Solana&apos;s top DEX by volume. The interesting thing about Part
-          I&apos;s finding — that mints aren&apos;t on chain and settlement happens elsewhere — is that
-          humidifi&apos;s entire competitive moat is the off-chain pricing engine. The on-chain account
-          is a public-facing snapshot, not a venue.
+          late 2025 and was, briefly, Solana&apos;s top DEX by volume. And here&apos;s why Part I&apos;s finding
+          matters &mdash; that the mints aren&apos;t on chain and settlement happens elsewhere: humidifi&apos;s
+          entire competitive moat is the off-chain pricing engine. The on-chain account is a public-facing
+          snapshot, not a venue.
         </p>
 
         <p style={bodyStyle}>
-          With the byte map from Part II, four things become buildable without any cooperation from
-          humidifi:
+          With the byte map from Part II, four things become buildable without any cooperation from humidifi
+          at all:
         </p>
 
         <ul style={listStyle}>
           <li><strong style={strong}>Account-change firehose.</strong> Subscribe to <code style={codeStyle}>accountSubscribe</code> on every
-            active humidifi pool. Every notification is a quote update. Even without decoding the
-            exact price field yet, the <em>timing</em> of updates is itself a leading indicator —
+            active humidifi pool. Every notification is a quote update. Even before you&apos;ve decoded the
+            exact price field, the <em>timing</em> of updates is itself a leading indicator &mdash;
             humidifi only pings when it wants to re-quote.</li>
           <li><strong style={strong}>Per-pool fingerprinting.</strong> Cluster pools by their constant-byte signature (93, 109, …)
-            and you can group accounts by instrument class without ever knowing the pair. Combined
-            with the active-pool sampling trick, you get a clean catalogue of what humidifi is
+            and you can group accounts by instrument class without ever knowing the pair. Pair that
+            with the active-pool sampling trick and you get a clean catalogue of what humidifi is
             actively making markets in right now.</li>
-          <li><strong style={strong}>Price-tick correlation.</strong> Re-run the recording with a much wider Pyth-equivalent
-            set — Switchboard, the actual Pyth pull oracle, Binance WebSocket — and the u16 ticks
+          <li><strong style={strong}>Price-tick correlation.</strong> Re-run the recording against a much wider Pyth-equivalent
+            set &mdash; Switchboard, the actual Pyth pull oracle, the Binance WebSocket &mdash; and the u16 ticks
             at offsets 616 and 675 will resolve to a real instrument.</li>
           <li><strong style={strong}>Quote-firehose product.</strong> Once the u16 ticks are pinned to instruments, a 200-line
             TypeScript service can subscribe to the active pool set and emit a real-time humidifi
-            quote feed to any consumer that wants one. Currently the only way to get a humidifi quote
+            quote feed to anyone who wants one. Right now the only way to get a humidifi quote
             is to ask humidifi.</li>
         </ul>
 
         <SectionLabel>Reproducing</SectionLabel>
         <p style={bodyStyle}>
-          Two reproduction scripts published alongside this work let anyone re-run the analysis on a
-          public RPC:
+          Two reproduction scripts ship alongside this work, so anyone can re-run the analysis on a
+          public RPC &mdash; the open node endpoints anyone can query:
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -221,8 +221,8 @@ python3 scripts/humidifi-decode.py --input trace.jsonl`}
         </div>
 
         <p style={bodyStyle}>
-          Total wall time: about three minutes. No API key. The only RPC call that needs care is
-          <code style={codeStyle}>getProgramAccounts</code> to enumerate humidifi pools; everything else is per-account.
+          Total wall time: about three minutes. No API key. The only RPC call that needs any care is
+          <code style={codeStyle}>getProgramAccounts</code>, which enumerates the humidifi pools; everything else is per-account.
         </p>
 
         <div style={{ marginTop: 56 }}>
