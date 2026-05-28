@@ -272,6 +272,12 @@ export const t = {
             title: 'What AI Hardware Is Running Out Of',
             body: 'Everyone watches the GPU, but the AI build-out is gated by the unglamorous materials feeding the racks — and almost none have spare capacity. A choke-point map by layer: optical (EML chips ~30% short with prices up 40–80%, CW lasers locked to 2028, pump lasers a >90% duopoly booked toward 2029); boards (Low-DK glass cloth sold out, HVLP4 copper foil 48%/43% short in 2026/2027, M8/M9 laminate); power (GaN/SiC, MLCC + IC substrates up ~40%); and the materials beneath the chips (indium-phosphide substrate, throttled by China\'s indium export curbs; WF6 gas, up six quarters straight). The pattern: in a supply-gated boom the edge is owning or locking the scarce input — which is why it rhymes with the Nokia/DCI thesis.',
           },
+          {
+            date: '2026.05.31',
+            href: '/blog/let-there-be-light',
+            title: 'Let There Be Light Modules',
+            body: 'If the GPU is the brain of an AI cluster, the optical module is the nerve that lets the brains talk — it turns electricity into light, runs it down a fiber, and turns it back. What an optical module actually is (EML → fiber → photodetector, a lighthouse blinking Morse at terabit speed), the routes racing to build it (EML, silicon photonics, LPO, CPO, Micro LED, plus Google\'s OCS switching in the light domain), where the value pools (optical chips booked to 2028, the optical engine, hand-built FAUs, Coherent\'s isolator monopoly), and where it goes to work (in-DC 800G→1.6T, long-haul DCI, in-rack CPO). Ends on a one-screen mind map — because without it, the strongest GPU is an island.',
+          },
         ],
       },
       womanInTech: {
@@ -609,6 +615,12 @@ export const t = {
             href: '/blog/ai-hardware-scarcity',
             title: 'Woran es der KI-Hardware mangelt',
             body: 'Alle starren auf die GPU, doch der KI-Ausbau wird von den unscheinbaren Materialien begrenzt, die die Racks speisen — und kaum eines hat freie Kapazität. Eine Engpass-Karte nach Schicht: Optik (EML-Chips ~30% knapp, Preise +40–80%; CW-Laser bis 2028 gebunden; Pump-Laser ein >90%-Duopol, ausgebucht Richtung 2029); Boards (Low-DK-Glasgewebe ausverkauft, HVLP4-Kupferfolie 2026/2027 um 48%/43% knapp, M8/M9-Laminat); Stromversorgung (GaN/SiC, MLCC + IC-Substrate ~40% teurer); und die Materialien unter den Chips (Indiumphosphid-Substrat, gedrosselt durch Chinas Indium-Exportbeschränkungen; WF6-Gas, sechs Quartale in Folge teurer). Das Muster: in einem angebotsbegrenzten Boom liegt der Vorteil darin, den knappen Input zu besitzen oder früh zu sichern — weshalb es sich mit der Nokia/DCI-These reimt.',
+          },
+          {
+            date: '2026.05.31',
+            href: '/blog/let-there-be-light',
+            title: 'Es werde Licht — das Lichtmodul',
+            body: 'Wenn die GPU das Gehirn eines KI-Clusters ist, ist das Lichtmodul der Nerv, der die Gehirne reden lässt — es wandelt Strom in Licht, schickt es durch eine Faser und wieder zurück. Was ein Lichtmodul wirklich ist (EML → Faser → Fotodetektor, ein Leuchtturm, der mit Terabit-Tempo Morse blinkt), die konkurrierenden Routen (EML, Silizium-Photonik, LPO, CPO, Micro-LED, plus Googles OCS, das im Licht-Bereich schaltet), wo der Wert sitzt (Lichtchips bis 2028 ausgebucht, die Optical Engine, handgefertigte FAUs, Coherents Isolator-Monopol) und wo es arbeitet (im RZ 800G→1.6T, Langstrecke DCI, im Rack CPO). Endet mit einer Mindmap auf einen Blick — denn ohne es ist die stärkste GPU eine Insel.',
           },
         ],
       },
