@@ -18,7 +18,7 @@ export default function DegenArticle() {
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '56px 32px 100px' }}>
 
         {/* Section 1 */}
-        <Section label="01" title="The Builder-Trader Overlap">
+        <Section title="The Builder-Trader Overlap">
           <P>
             There&apos;s a specific archetype in the SF crypto scene that doesn&apos;t exist anywhere else
             in the same density: the engineer who degens their own infrastructure. They run the protocol,
@@ -41,7 +41,7 @@ export default function DegenArticle() {
         <Divider />
 
         {/* Section 2 */}
-        <Section label="02" title="Wallet Tracking as a Research Method">
+        <Section title="Wallet Tracking as a Research Method">
           <P>
             The first primitive everyone learns is wallet tracking. Pick a protocol, find the top 20 wallets
             by realized P&L, and watch what they do for 30 days. The signal-to-noise ratio is terrible.
@@ -71,7 +71,7 @@ export default function DegenArticle() {
         <Divider />
 
         {/* Section 3 */}
-        <Section label="03" title="MEV Exposure Mapping">
+        <Section title="MEV Exposure Mapping">
           <P>
             Once you understand where wallets are making money, the next question is: how much of that
             is alpha, and how much is someone else&apos;s loss? This is the MEV question, and it&apos;s
@@ -99,7 +99,7 @@ export default function DegenArticle() {
         <Divider />
 
         {/* Section 4 */}
-        <Section label="04" title="Liquidity Skew and the PMM Edge">
+        <Section title="Liquidity Skew and the PMM Edge">
           <P>
             The most underexplored area for builder-traders is proactive market making. CLOBs on Solana
             are competitive — Phoenix, Openbook, the perp DEXes — and the off-chain market makers
@@ -140,7 +140,7 @@ export default function DegenArticle() {
         <Divider />
 
         {/* Section 5 */}
-        <Section label="05" title="The Field Manual">
+        <Section title="The Field Manual">
           <P>
             If you&apos;re building this stack from scratch, here&apos;s the order that makes sense:
           </P>
@@ -190,17 +190,19 @@ export default function DegenArticle() {
   );
 }
 
-function Section({ label, title, children }: { label: string; title: string; children: React.ReactNode }) {
+function Section({ title, children }: { label?: string; title: string; children: React.ReactNode }) {
   return (
     <section style={{ marginBottom: 56 }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, marginBottom: 24 }}>
-        <span style={{ fontFamily: mono, fontSize: '0.6rem', letterSpacing: '0.4em', color: 'rgba(0,255,234,0.5)', textTransform: 'uppercase' }}>
-          {label}
-        </span>
-        <h2 style={{ fontSize: 'clamp(1.4rem, 4vw, 2.2rem)', fontWeight: 700, letterSpacing: '0.05em', color: '#fff' }}>
-          {title}
-        </h2>
-      </div>
+      <h2 style={{
+        fontFamily: "'Nunito', system-ui, -apple-system, sans-serif",
+        fontSize: 'clamp(1.4rem, 4vw, 2.2rem)',
+        fontWeight: 600,
+        letterSpacing: '-0.005em',
+        color: '#fff',
+        marginBottom: 24,
+      }}>
+        {title}
+      </h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         {children}
       </div>
