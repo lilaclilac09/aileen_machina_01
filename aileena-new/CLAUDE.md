@@ -38,6 +38,16 @@ public/
 - **Translations**: `satisfies Record<Language, unknown>` pattern. Both EN and DE must have identical structure. Add `image`, `pdfHref` etc. to both languages when extending.
 - **Blog articles**: Standalone pages with inline styles (not Tailwind). Each uses `<ScrollUnlock />` to override snap scroll.
 
+## Writing Style — blog / dispatch articles
+
+When writing or editing the prose of blog articles, **do not lean on numbers.** Default to explaining the idea and the mechanism in plain language, not stacking statistics for density.
+
+- Don't pad prose with specific figures, dollar amounts, percentages, dates, or counts. They clutter the read and invite accuracy errors.
+- Include a number **only when it is genuinely load-bearing** — when the exact figure *is* the point. Otherwise describe magnitude in words ("a few minutes", "most of the supply", "several-fold", "thin", "cheap").
+- Never invent or guess a precise figure. If a real source isn't confident, don't state it as fact (and prefer to drop it rather than hedge with "~").
+- Voice: conversational, keep technical terms but gloss each in plain language on first use; shorter active sentences; second person where it helps.
+- Exception — **rewrites**: when asked to rewrite/restyle an *existing* article, preserve the numbers already in it byte-identical unless told otherwise. This rule governs *new* writing and what you choose to add.
+
 ## Dev Commands
 
 ```bash
