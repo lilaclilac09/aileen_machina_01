@@ -55,7 +55,7 @@ export default function CexDexArbArticle() {
             {
               tag: 'FUNDING RATE ARB',
               tagline: 'Perpetual funding rate differs between a CEX perp and a DEX perp. Long the cheaper funding, short the more expensive funding, collect the spread per hour.',
-              who: 'Carry trade, not directional. Capacity bounded by venue OI caps.',
+              who: 'Carry trade, not directional. Capacity bounded by venue OI (open interest — the total size of outstanding positions) caps.',
             },
           ].map((card, i) => (
             <div key={i} style={{
@@ -140,7 +140,7 @@ export default function CexDexArbArticle() {
               </tr>
               <tr style={trStyle}>
                 <td style={tdLabelStyle}>Average per trade</td>
-                <td style={tdStyle}>~$32</td>
+                <td style={tdStyle}>$32</td>
                 <td style={tdStyle}>Risk-bounded</td>
               </tr>
               <tr style={trStyle}>
@@ -228,14 +228,14 @@ export default function CexDexArbArticle() {
         <SectionLabel>Why Solana Changes the DEX Leg</SectionLabel>
         <p style={bodyStyle}>
           Almost all the public research on CEX-DEX arbitrage uses Ethereum data. There the DEX leg is Uniswap
-          V3 or Curve, and the on-chain economics are dominated by Ethereum&apos;s 12-second blocks and high gas
+          V3 or Curve (leading Ethereum DEXs), and the on-chain economics are dominated by Ethereum&apos;s 12-second blocks and high gas
           fees — gas being the per-transaction fee you pay to get your trade included. Solana flips both of
           those inputs.
         </p>
         <p style={bodyStyle}>
-          A Solana block lands every 400 milliseconds, not every 12 seconds. The base fee on a swap is $0.00025,
-          not $5. So a bot can attempt twenty times as many CEX-DEX trades per minute, at one-twenty-thousandth
-          the cost per attempt. That changes which opportunities are even worth chasing: spreads that would never
+          A Solana block lands every 400 milliseconds, not every 12 seconds. The base fee on a swap is
+          5,000 lamports per signature, not $5. So a bot can attempt twenty times as many CEX-DEX trades per
+          minute, at a tiny fraction of the cost per attempt. That changes which opportunities are even worth chasing: spreads that would never
           clear gas on Ethereum clear easily on Solana. It&apos;s part of why Solana&apos;s DEX prices have
           tracked CEX prices so tightly in 2025 despite a 90% drop in DEX volume since 2024 — the arbitrage
           pressure is doing more work per unit of liquidity.
@@ -254,16 +254,16 @@ export default function CexDexArbArticle() {
               <tr style={trStyle}>
                 <td style={tdLabelStyle}>Block time</td>
                 <td style={tdStyle}>12 s</td>
-                <td style={tdStyle}>~400 ms</td>
+                <td style={tdStyle}>400 ms</td>
               </tr>
               <tr style={trStyle}>
                 <td style={tdLabelStyle}>Min fee per swap</td>
                 <td style={tdStyle}>$1 – $10 typical</td>
-                <td style={tdStyle}>$0.00025 base</td>
+                <td style={tdStyle}>5,000 lamports / signature base</td>
               </tr>
               <tr style={trStyle}>
                 <td style={tdLabelStyle}>Atomicity model</td>
-                <td style={tdStyle}>Bundle via Flashbots / MEV-Boost</td>
+                <td style={tdStyle}>Bundle via Flashbots / MEV-Boost (transaction-ordering / bundle services)</td>
                 <td style={tdStyle}>Bundle via Jito / Samba; flash loans within one tx</td>
               </tr>
               <tr style={trStyle}>
@@ -273,8 +273,8 @@ export default function CexDexArbArticle() {
               </tr>
               <tr style={trStyle}>
                 <td style={tdLabelStyle}>Min profitable spread</td>
-                <td style={tdStyle}>~$30 to clear gas + bid</td>
-                <td style={tdStyle}>~$0.50 with priority fee</td>
+                <td style={tdStyle}>$30 to clear gas + bid</td>
+                <td style={tdStyle}>$0.50 with priority fee</td>
               </tr>
             </tbody>
           </table>

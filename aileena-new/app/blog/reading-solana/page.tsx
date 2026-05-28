@@ -94,7 +94,7 @@ export default function ReadingSolanaArticle() {
 
         <SectionLabel>The Block and Slot Layer</SectionLabel>
         <p style={bodyStyle}>
-          A slot is a ~400ms time bucket; a block is what fills one when the scheduled leader produces it. This layer is how you move between &quot;what time is it on the chain&quot; and &quot;what happened in that window.&quot;
+          A slot is a 400ms time bucket (the target); a block is what fills one when the scheduled leader produces it. This layer is how you move between &quot;what time is it on the chain&quot; and &quot;what happened in that window.&quot;
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -141,7 +141,7 @@ export default function ReadingSolanaArticle() {
         </div>
 
         <p style={bodyStyle}>
-          NFTs and compressed assets are the exception. A compressed NFT (a cNFT) doesn&apos;t get its own token account at all — it lives as a leaf in a Merkle tree to save rent — so the normal token calls can&apos;t see it. For those you need the <strong style={strong}>DAS</strong> API (Digital Asset Standard), a separate indexed layer built for exactly this.
+          NFTs and compressed assets are the exception. A compressed NFT (a cNFT) doesn&apos;t get its own token account at all — it lives as a leaf in a Merkle tree to save rent (the SOL deposit that keeps an account alive) — so the normal token calls can&apos;t see it. For those you need the <strong style={strong}>DAS</strong> API (Digital Asset Standard), a separate indexed layer built for exactly this.
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -180,7 +180,7 @@ export default function ReadingSolanaArticle() {
             <tbody>
               <tr style={trStyle}><td style={tdLabelStyle}>All validator vote accounts</td><td style={tdStyle}><code style={codeStyle}>getVoteAccounts</code></td><td style={tdStyle}>current (active) + delinquent (offline)</td></tr>
               <tr style={trStyle}><td style={tdLabelStyle}>Epoch info</td><td style={tdStyle}><code style={codeStyle}>getEpochInfo</code></td><td style={tdStyle}>epoch, slotIndex, slotsInEpoch, absoluteSlot</td></tr>
-              <tr style={trStyle}><td style={tdLabelStyle}>Epoch schedule</td><td style={tdStyle}><code style={codeStyle}>getEpochSchedule</code></td><td style={tdStyle}>slotsPerEpoch, warmup config</td></tr>
+              <tr style={trStyle}><td style={tdLabelStyle}>Epoch schedule</td><td style={tdStyle}><code style={codeStyle}>getEpochSchedule</code></td><td style={tdStyle}>slotsPerEpoch, warmup config (how fast newly activated stake ramps up)</td></tr>
               <tr style={trStyle}><td style={tdLabelStyle}>Stake account</td><td style={tdStyle}><code style={codeStyle}>getProgramAccounts</code> → Stake Program</td><td style={tdStyle}>delegation, activationEpoch</td></tr>
               <tr style={trStyle}><td style={tdLabelStyle}>Leader schedule</td><td style={tdStyle}><code style={codeStyle}>getLeaderSchedule</code></td><td style={tdStyle}>slot → validator mapping</td></tr>
               <tr style={trStyle}><td style={tdLabelStyle}>Block production stats</td><td style={tdStyle}><code style={codeStyle}>getBlockProduction</code></td><td style={tdStyle}>produced / skipped per validator</td></tr>

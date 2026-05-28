@@ -42,7 +42,7 @@ export default function ValidatorClientsArticle() {
                 <td style={tdLabelStyle}>Jito-Solana</td>
                 <td style={tdStyle}>Jito Labs</td>
                 <td style={tdStyle}>Rust (Agave fork)</td>
-                <td style={tdStyle}>~80% of validators run it</td>
+                <td style={tdStyle}>78% of validators run it</td>
                 <td style={tdStyle}>MEV: bundles, block-engine, ShredStream</td>
               </tr>
               <tr style={trStyle}>
@@ -71,7 +71,7 @@ export default function ValidatorClientsArticle() {
         </div>
 
         <p style={bodyStyle}>
-          The split that matters: <strong style={strong}>Agave and its fork Jito-Solana</strong> share one codebase and ~98% of mainnet stake. <strong style={strong}>Frankendancer</strong> is the Jump team&apos;s production stepping stone — their networking and block-production tiles bolted onto the Agave runtime. <strong style={strong}>Firedancer</strong> is the full Jump rewrite, still finishing its execution layer. And <strong style={strong}>Sig</strong> is the Syndica bet that the read-side (RPC, indexing) was always the misallocated half of the validator.
+          The split that matters: <strong style={strong}>Agave and its fork Jito-Solana</strong> share one codebase and 98% of mainnet stake. <strong style={strong}>Frankendancer</strong> is the Jump team&apos;s production stepping stone — their networking and block-production tiles bolted onto the Agave runtime. <strong style={strong}>Firedancer</strong> is the full Jump rewrite, still finishing its execution layer. And <strong style={strong}>Sig</strong> is the Syndica bet that the read-side (RPC, indexing) was always the misallocated half of the validator.
         </p>
 
         <SectionLabel>What a validator client actually is</SectionLabel>
@@ -90,7 +90,7 @@ export default function ValidatorClientsArticle() {
         </div>
 
         <p style={bodyStyle}>
-          Agave runs this pipeline as one process with threads. Firedancer runs each stage as a dedicated <em>tile</em> — a single-purpose process pinned to a single CPU core, talking to its neighbours only through shared-memory ring buffers, never blocking, never sleeping, busy-polling the input ring on every cycle. The tile model is what makes Firedancer fast. It&apos;s also what makes the FPGA question interesting.
+          Agave runs this pipeline as one process with threads. Firedancer runs each stage as a dedicated <em>tile</em> — a single-purpose process pinned to a single CPU core, talking to its neighbours only through shared-memory ring buffers, never blocking, never sleeping, busy-polling the input ring on every cycle. The tile model is what makes Firedancer fast. It&apos;s also what makes the FPGA (field-programmable gate array — reconfigurable hardware you can rewire after it&apos;s manufactured) question interesting.
         </p>
 
         <SectionLabel>Firedancer&apos;s tile architecture, in five rules</SectionLabel>
@@ -128,7 +128,7 @@ export default function ValidatorClientsArticle() {
         </p>
 
         <p style={bodyStyle}>
-          <strong style={strong}>SIMD-vectorised Ed25519.</strong> The <code style={codeStyle}>verify</code> tile runs signature verification in batches of eight using AVX-512 lanes. One AVX-512 instruction does the work of eight scalar instructions, so one verify tile does the work of eight scalar cores. Tile count is a runtime parameter — spin up four verify tiles and you get 32× scalar throughput on a single socket. That horizontal scaling is what keeps a pure-CPU verify path competitive with the FPGA path on the workloads the network actually sees.
+          <strong style={strong}>SIMD-vectorised Ed25519.</strong> SIMD (single instruction, multiple data — one instruction does the work of many) speeds up Ed25519, the signature scheme Solana uses. The <code style={codeStyle}>verify</code> tile runs signature verification in batches of eight using AVX-512 lanes. One AVX-512 instruction does the work of eight scalar instructions, so one verify tile does the work of eight scalar cores. Tile count is a runtime parameter — spin up four verify tiles and you get 32× scalar throughput on a single socket. That horizontal scaling is what keeps a pure-CPU verify path competitive with the FPGA path on the workloads the network actually sees.
         </p>
 
         <p style={bodyStyle}>
@@ -171,13 +171,13 @@ export default function ValidatorClientsArticle() {
             <strong style={strong}>pack.</strong> Scheduling. <em>This</em> is where Firedancer&apos;s actual edge lives — picking which transactions to include, in what order, given account-conflict constraints and fee-priority. It&apos;s irregular, state-dependent, branchy. FPGAs are bad at branchy code. CPUs with branch predictors are good at it.
           </li>
           <li>
-            <strong style={strong}>bank.</strong> Transaction execution. Loads accounts from RocksDB, runs SVM bytecode, writes accounts back. Every instruction can read or write arbitrary state. The compute is unpredictable, the data dependencies are unpredictable, the I/O is unpredictable. FPGAs need predictability. CPUs eat unpredictability for breakfast.
+            <strong style={strong}>bank.</strong> Transaction execution. Loads accounts from RocksDB, runs SVM (Solana Virtual Machine) bytecode, writes accounts back. Every instruction can read or write arbitrary state. The compute is unpredictable, the data dependencies are unpredictable, the I/O is unpredictable. FPGAs need predictability. CPUs eat unpredictability for breakfast.
           </li>
           <li>
             <strong style={strong}>poh.</strong> A tight SHA-256 chain. FPGA wins on raw hash rate by a large margin, but poh is already so fast on CPU that it isn&apos;t the bottleneck — adding FPGA here saves nothing in practice.
           </li>
           <li>
-            <strong style={strong}>shred.</strong> Reed-Solomon FEC encoding. Pure stream, no state, fixed math. <em>This</em> is the second FPGA-friendly tile after verify. SmartNICs increasingly include FEC offload in hardware.
+            <strong style={strong}>shred.</strong> Reed-Solomon FEC (forward error correction) encoding. Pure stream, no state, fixed math. <em>This</em> is the second FPGA-friendly tile after verify. SmartNICs increasingly include FEC offload in hardware.
           </li>
           <li>
             <strong style={strong}>store.</strong> RocksDB writes to NVMe. Storage hardware, not compute. FPGA isn&apos;t the question; the question is which storage engine to use.
@@ -195,7 +195,7 @@ export default function ValidatorClientsArticle() {
         <SectionLabel>Why the economics close against FPGA</SectionLabel>
 
         <p style={bodyStyle}>
-          Pretend the engineering closed. The economics still don&apos;t. A Xilinx Alveo U250 is a ~$15k card. A serious validator-grade server CPU (Epyc Genoa-X, 96 cores, AVX-512) lands around $8k, and that CPU does the entire pipeline, verify and shred included. The FPGA replaces one tile and still demands the same CPU sit next to it as host. So you&apos;re paying $23k for the FPGA build versus $8k for the pure-CPU build, to win on a tile that isn&apos;t currently the bottleneck on any production validator.
+          Pretend the engineering closed. The economics still don&apos;t. A Xilinx Alveo U250 is a $15k card. A serious validator-grade server CPU (Epyc Genoa-X, 96 cores, AVX-512) lands at $8k, and that CPU does the entire pipeline, verify and shred included. The FPGA replaces one tile and still demands the same CPU sit next to it as host. So you&apos;re paying $23k for the FPGA build versus $8k for the pure-CPU build, to win on a tile that isn&apos;t currently the bottleneck on any production validator.
         </p>
 
         <p style={bodyStyle}>
@@ -205,7 +205,7 @@ export default function ValidatorClientsArticle() {
         <SectionLabel>The hidden constraint: protocol velocity</SectionLabel>
 
         <p style={bodyStyle}>
-          Even if the cost penciled out, the timing wouldn&apos;t. Solana ships protocol-affecting changes roughly monthly: new SIMD-numbered proposals, new transaction formats, new system program features, new commitment levels, new gossip primitives. Agave and Firedancer absorb these in days — recompile, test, push. An FPGA bitstream takes <em>weeks</em> to lay out, synthesize, place-and-route, and verify against silicon. A protocol change that touches signature batching or shred layout invalidates the bitstream and resets the clock.
+          Even if the cost penciled out, the timing wouldn&apos;t. Solana ships protocol-affecting changes monthly: new SIMD-numbered proposals, new transaction formats, new system program features, new commitment levels, new gossip primitives. Agave and Firedancer absorb these in days — recompile, test, push. An FPGA bitstream takes <em>weeks</em> to lay out, synthesize, place-and-route, and verify against silicon. A protocol change that touches signature batching or shred layout invalidates the bitstream and resets the clock.
         </p>
 
         <p style={bodyStyle}>
@@ -238,13 +238,13 @@ export default function ValidatorClientsArticle() {
 
         <ul style={listStyle}>
           <li>
-            Gross stake-weighted reward rate (SRR) up <strong style={strong}>+18 basis points</strong> right after the switch, climbing to <strong style={strong}>+28 bps</strong> in some later epochs.
+            Gross stake-weighted reward rate (SRR) up <strong style={strong}>+18 basis points</strong> right after the switch, climbing to <strong style={strong}>+28 bps</strong> (basis points; 1 bps = 0.01%) in some later epochs.
           </li>
           <li>
-            Median block production time up <strong style={strong}>18%</strong> — from <strong style={strong}>355.7 ms</strong> to <strong style={strong}>398.4 ms</strong>. Counter-intuitively, that&apos;s the whole point. The pack tile&apos;s smarter scheduling lets each block soak up more high-priority transactions and more MEV before it has to close.
+            Median block production time up <strong style={strong}>12%</strong> — from <strong style={strong}>355.7 ms</strong> to <strong style={strong}>398.4 ms</strong>. Counter-intuitively, that&apos;s the whole point. The pack tile&apos;s smarter scheduling lets each block soak up more high-priority transactions and more MEV before it has to close.
           </li>
           <li>
-            Client diversity arrived as a side effect. Before Frankendancer, the Jito-Solana fork ran on <strong style={strong}>~78% of validators</strong>, where a single critical vulnerability could potentially expose <strong style={strong}>~88% of total stake</strong>. An independent codebase decorrelates that risk the way multiple aircraft-engine manufacturers do.
+            Client diversity arrived as a side effect. Before Frankendancer, the Jito-Solana fork ran on <strong style={strong}>78% of validators</strong>, where a single critical vulnerability could potentially expose <strong style={strong}>88% of total stake</strong>. An independent codebase decorrelates that risk the way multiple aircraft-engine manufacturers do.
           </li>
         </ul>
 

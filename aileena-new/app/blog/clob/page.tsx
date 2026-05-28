@@ -22,7 +22,7 @@ export default function ClobArticle() {
           At low volume, that&apos;s fine. At high volume, the order book account becomes a single-threaded resource — the same bottleneck a CEX has, except now the leader (the validator whose turn it is to build the block) has just 400ms to drain whatever writes are queued before the block closes. Market makers fire off hundreds of updates a second, and if they all hit the same account, the runtime has to chew through them in order. The matching engine can be flawless and still choke. Per-market throughput is capped by how many serialized writes fit in a single slot, and whatever doesn&apos;t fit slips to the next slot or gets dropped on retry.
         </p>
         <p style={bodyStyle}>
-          Ethereum&apos;s answer was to give up. Gas costs made frequent order updates a non-starter anyway. A single order placement on Uniswap runs $2-50 in gas depending on congestion, so a market maker who needs to refresh quotes every few hundred milliseconds would bleed out fast. The industry pivoted to AMMs (automated market makers) instead, where liquidity providers deposit once and a math formula handles price discovery. The catch: permanent impermanent loss, no limit orders, and MEV (maximal extractable value — the profit bots skim by reordering or front-running your trades) baked right into the design.
+          Ethereum&apos;s answer was to give up. Gas costs made frequent order updates a non-starter anyway. A single order placement on Uniswap runs $2-50 in gas depending on congestion, so a market maker who needs to refresh quotes every few hundred milliseconds would bleed out fast. The industry pivoted to AMMs (automated market makers) instead, where liquidity providers deposit once and a math formula handles price discovery. The catch: permanent impermanent loss (the loss a liquidity provider takes when the pool&apos;s price moves away from where they deposited, versus just holding the tokens), no limit orders, and MEV (maximal extractable value — the profit bots skim by reordering or front-running your trades) baked right into the design.
         </p>
         <p style={bodyStyle}>
           Solana flips the economics. A fresh block every 400ms. Fees in fractions of a cent. But none of that touches the write-lock constraint. The hard part here isn&apos;t cost. It&apos;s concurrency.
@@ -63,8 +63,8 @@ export default function ClobArticle() {
             <tbody>
               <tr style={trStyle}>
                 <td style={tdLabelStyle}>Market creation cost</td>
-                <td style={tdStyle}>~3 SOL (~$500)</td>
-                <td style={tdStyle}>&lt;0.01 SOL (~$1.50)</td>
+                <td style={tdStyle}>3 SOL ($500)</td>
+                <td style={tdStyle}>&lt;0.01 SOL ($1.50)</td>
               </tr>
               <tr style={trStyle}>
                 <td style={tdLabelStyle}>Trading fees</td>
@@ -173,10 +173,10 @@ export default function ClobArticle() {
           <p style={{ fontFamily: 'monospace', fontSize: '0.52rem', letterSpacing: '0.4em', color: 'rgba(0,255,234,0.6)', textTransform: 'uppercase', marginBottom: 16 }}>Cancel Latency in Practice</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 24 }}>
             {[
-              { stat: '~400ms', label: 'Solana slot time — baseline cancel window' },
+              { stat: '400ms', label: 'Solana slot time — baseline cancel window' },
               { stat: '50–200ms', label: 'Practical landing time with priority fee' },
               { stat: '&lt;1ms', label: 'CEX cancel acknowledgment (WebSocket)' },
-              { stat: '~80%', label: 'Solana validators running Jito software (2024)' },
+              { stat: '80%', label: 'Solana validators running Jito software (2024)' },
             ].map((d, i) => (
               <div key={i}>
                 <p style={{ fontFamily: 'monospace', fontSize: 'clamp(1.4rem, 3vw, 2rem)', fontWeight: 700, color: '#00ffea', margin: '0 0 6px', letterSpacing: '0.02em' }} dangerouslySetInnerHTML={{ __html: d.stat }} />
@@ -197,16 +197,16 @@ export default function ClobArticle() {
 
         <div style={{ margin: '32px 0', padding: '0 0 0 24px', borderLeft: '2px solid rgba(255,255,255,0.1)' }}>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Block Engine.</strong> Jito runs a block engine — a service that validators (running Jito-patched software) connect to. The block engine receives bundles and individual transactions, simulates them, and assembles the most profitable ordering for the validator. As of 2024, approximately 80% of Solana validators run Jito software, which means most blocks are built through the Jito block engine. A transaction sent only to standard RPC has no path into a Jito block unless it&apos;s also forwarded.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Block Engine.</strong> Jito runs a block engine — a service that validators (running Jito-patched software) connect to. The block engine receives bundles and individual transactions, simulates them, and assembles the most profitable ordering for the validator. As of 2024, 80% of Solana validators run Jito software, which means most blocks are built through the Jito block engine. A transaction sent only to standard RPC has no path into a Jito block unless it&apos;s also forwarded.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
             <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Bundles.</strong> A bundle is an ordered sequence of up to five transactions submitted atomically. All five execute in sequence, or none do. The classic market-maker use case: [cancel stale bid] → [cancel stale ask] → [place new bid] → [place new ask]. No bot can wedge a transaction between the cancel and the requote, because the whole sequence lands as one unit. Bundles can also include a fill — [fill incoming order] → [hedge on another venue] — so the hedge lands in the same slot as the fill.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Tips.</strong> Every bundle includes a tip — a direct SOL payment to the validator (via a Jito tip account), separate from the base transaction fee. The tip is the auction price for block ordering priority. During quiet markets, median tips are a fraction of a cent. During high-volatility events (token launches, major liquidations), they spike: competitive bundles have been observed paying 1–5 SOL (~$150–750 at $150/SOL) for a single bundle to lock in first-in-block execution. The tip market is a second-price auction dynamic — you need to outbid the next competitor, not maximize your payment.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Tips.</strong> Every bundle includes a tip — a direct SOL payment to the validator (via a Jito tip account), separate from the base transaction fee. The tip is the auction price for block ordering priority. During quiet markets, median tips are a fraction of a cent. During high-volatility events (token launches, major liquidations), they spike: competitive bundles have been observed paying 1–5 SOL ($150–750 at $150/SOL) for a single bundle to lock in first-in-block execution. The tip market is a second-price auction dynamic (the winner pays the second-highest bid) — you need to outbid the next competitor, not maximize your payment.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 0 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>ShredStream.</strong> Shreds are the raw data fragments Solana validators broadcast as they build blocks — before the block is complete or confirmed. Jito&apos;s ShredStream service lets subscribers receive shreds directly from validators in real time, giving them the earliest possible view of what&apos;s landing on-chain. For a market maker, this is the cancel signal: when ShredStream shows a large order approaching their resting quotes, they have ~50–100ms to fire off a cancel bundle before the order lands. Without ShredStream, you&apos;re reacting to confirmed state — already too late.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>ShredStream.</strong> Shreds are the raw data fragments Solana validators broadcast as they build blocks — before the block is complete or confirmed. Jito&apos;s ShredStream service lets subscribers receive shreds directly from validators in real time, giving them the earliest possible view of what&apos;s landing on-chain. For a market maker, this is the cancel signal: when ShredStream shows a large order approaching their resting quotes, they have 50–100ms to fire off a cancel bundle before the order lands. Without ShredStream, you&apos;re reacting to confirmed state — already too late.
           </p>
         </div>
 
@@ -252,7 +252,7 @@ export default function ClobArticle() {
               </tr>
               <tr style={trStyle}>
                 <td style={tdLabelStyle}>Typical cost</td>
-                <td style={tdStyle}>~0.000005 SOL base fee</td>
+                <td style={tdStyle}>0.000005 SOL base fee</td>
                 <td style={tdStyle}>0.0001–5 SOL tip (market-rate dependent)</td>
               </tr>
             </tbody>
@@ -260,7 +260,7 @@ export default function ClobArticle() {
         </div>
 
         <p style={bodyStyle}>
-          The spread you see on a Solana CLOB encodes all of this. It isn&apos;t the market maker&apos;s profit margin. It&apos;s the sum of four things: expected adverse selection from fills before cancels land, Jito tip cost amortized across expected fill volume, infrastructure costs (ShredStream, colocation, low-latency RPC), and the actual profit target — likely the smallest of the four during volatile periods. A 5 bps spread on a liquid pair on Phoenix might be 1 bps of actual profit and 4 bps of operational overhead that simply doesn&apos;t exist on a centralized exchange.
+          The spread you see on a Solana CLOB encodes all of this. It isn&apos;t the market maker&apos;s profit margin. It&apos;s the sum of four things: expected adverse selection from fills before cancels land, Jito tip cost amortized across expected fill volume, infrastructure costs (ShredStream, colocation, low-latency RPC), and the actual profit target — likely the smallest of the four during volatile periods. A 5 bps spread (bps = basis points; 1 bps = 0.01%) on a liquid pair on Phoenix might be 1 bps of actual profit and 4 bps of operational overhead that simply doesn&apos;t exist on a centralized exchange.
         </p>
 
         <SectionLabel>The Mechanism Landscape: AMM, RFQ, Intent, CLOB</SectionLabel>
@@ -333,7 +333,7 @@ export default function ClobArticle() {
             <strong style={{ color: 'rgba(255,255,255,0.85)' }}>dYdX v4 (Cosmos app-chain).</strong> Off-chain order book, on-chain settlement. Validators run the matching engine off-chain in their local state, and only the fills hit the Cosmos chain. The result is sub-second latency. The trade-off: you have to trust validators to match orders honestly, and censorship is possible at the validator level. dYdX chose performance over full on-chain transparency.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 0 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Hyperliquid.</strong> A purpose-built L1 (HyperBFT consensus, Tendermint-derived). The entire matching engine runs on-chain on their own chain, so there&apos;s no shared congestion with other applications, and order acknowledgment comes in under 1ms. The validator set is small (~20 initially), which is the central trust assumption. HIP-1 defines the native token standard for deploying assets directly on Hyperliquid&apos;s L1. HIP-2 handles automatic liquidity seeding for new HIP-1 spot markets — the protocol bootstraps initial order book depth at the auction clearing price, so a new market doesn&apos;t cold-start with an empty book. The HLP (Hyperliquidity Provider) vault acts as the native market maker, soaking up flow the external maker ecosystem doesn&apos;t cover.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Hyperliquid.</strong> A purpose-built L1 (HyperBFT consensus, Tendermint-derived — BFT means Byzantine Fault Tolerant: the network agrees even if some validators act maliciously). The entire matching engine runs on-chain on their own chain, so there&apos;s no shared congestion with other applications, and order acknowledgment comes in under 1ms. The validator set is small (20 initially), which is the central trust assumption. HIP-1 defines the native token standard for deploying assets directly on Hyperliquid&apos;s L1. HIP-2 handles automatic liquidity seeding for new HIP-1 spot markets — the protocol bootstraps initial order book depth at the auction clearing price, so a new market doesn&apos;t cold-start with an empty book. The HLP (Hyperliquidity Provider) vault acts as the native market maker, soaking up flow the external maker ecosystem doesn&apos;t cover.
           </p>
         </div>
 
@@ -369,15 +369,15 @@ export default function ClobArticle() {
               </tr>
               <tr style={trStyle}>
                 <td style={tdLabelStyle}>Latency</td>
-                <td style={tdStyle}>~400ms</td>
-                <td style={tdStyle}>&lt;1ms ack, ~2s finality</td>
-                <td style={tdStyle}>~500ms</td>
+                <td style={tdStyle}>400ms</td>
+                <td style={tdStyle}>&lt;1ms ack, 2s finality</td>
+                <td style={tdStyle}>500ms</td>
                 <td style={tdStyle}>Oracle refresh rate</td>
               </tr>
               <tr style={trStyle}>
                 <td style={tdLabelStyle}>Validator trust</td>
                 <td style={tdStyle}>1,800+ Solana validators</td>
-                <td style={tdStyle}>~20 (semi-centralised)</td>
+                <td style={tdStyle}>20 (semi-centralised)</td>
                 <td style={tdStyle}>dYdX validator set</td>
                 <td style={tdStyle}>Chainlink oracle network</td>
               </tr>
@@ -406,7 +406,7 @@ export default function ClobArticle() {
 
         <div style={{ margin: '32px 0', padding: '0 0 0 24px', borderLeft: '2px solid rgba(255,255,255,0.1)' }}>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>AMMs scale until MEV does.</strong> Each swap is O(1) — no book to traverse, no matching logic — so Solana AMMs handle millions of swaps. But as TVL grows, so does the size of sandwichable trades. MEV extraction scales with liquidity. Concentrated liquidity (Orca Whirlpools) improves capital efficiency but narrows the range that earns fees, which concentrates IL risk. The model doesn&apos;t break. It just becomes more extractive at scale.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>AMMs scale until MEV does.</strong> Each swap is O(1) — constant cost no matter how big the book is, since there&apos;s no book to traverse and no matching logic — so Solana AMMs handle millions of swaps. But as TVL grows, so does the size of sandwichable trades. MEV extraction scales with liquidity. Concentrated liquidity (Orca Whirlpools) improves capital efficiency but narrows the range that earns fees, which concentrates IL risk. The model doesn&apos;t break. It just becomes more extractive at scale.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
             <strong style={{ color: 'rgba(255,255,255,0.85)' }}>On-chain CLOBs (Solana) hit write-lock ceilings.</strong> Phoenix and Manifest are bottlenecked by Solana&apos;s account write-lock rule: only one writer can hold the lock on the order book account at a time. At low volume, fine. At high volume, the account becomes a serial resource — concurrent writers don&apos;t fail outright, they queue and execute one after another, and per-market throughput is capped by how many of those serialized writes fit in 400ms. The practical throughput for a single Phoenix market under contested conditions is far below Solana&apos;s theoretical 65,000 TPS. Compute limits per transaction add a second ceiling: deep order walks that touch many price levels hit the 1.4M CU cap.

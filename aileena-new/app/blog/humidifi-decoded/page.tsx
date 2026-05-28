@@ -9,7 +9,7 @@ export default function HumidifiDecodedArticle() {
       date="2026.05.24"
       tags="Solana · Prop AMM · Reverse Engineering"
       title="Humidifi, Decoded"
-      dek={<>Part II of <Link href="/blog/prop-amm-dict">The Pool That Wasn&apos;t a Pool</Link>. Part I established that humidifi&apos;s 1728-byte accounts don&apos;t store mints. Part II goes back in to map what <em>is</em> living in those bytes — six narrow ranges, ~57 bytes total, including a u16 that looks like a price tick.</>}
+      dek={<>Part II of <Link href="/blog/prop-amm-dict">The Pool That Wasn&apos;t a Pool</Link>. Part I established that humidifi&apos;s 1728-byte accounts don&apos;t store mints. Part II goes back in to map what <em>is</em> living in those bytes — six narrow ranges, 57 bytes total, including a u16 (a two-byte number) that looks like a price tick.</>}
     >
       {/* ── Body ── */}
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
@@ -17,7 +17,7 @@ export default function HumidifiDecodedArticle() {
         <SectionLabel>The dead-pool problem</SectionLabel>
         <p style={bodyStyle}>
           Part I picked one humidifi pool more or less at random &mdash; <code style={codeStyle}>41cK…duRN</code>
-          &mdash; and, off the 50-sigs-in-one-slot pattern, called humidifi a price-tick registry. That
+          &mdash; and, off the 50-sigs-in-one-slot pattern, called humidifi a price-tick registry &mdash; a table of price steps, not a pool of coins. That
           conclusion holds. But the sampling was wrong: the pool I picked stopped being touched 166 days ago.
         </p>
 
@@ -99,9 +99,9 @@ slot=385921704  age=166.2 days ago`}
         <SectionLabel>What the live bytes do</SectionLabel>
         <p style={bodyStyle}>
           For each hot range, try the four reasonable unsigned-integer encodings &mdash; u8, u16-LE, u32-LE,
-          u64-LE, the standard little-endian widths &mdash; at every offset inside it, then classify the
+          u64-LE, the standard little-endian (a byte-ordering convention) widths &mdash; at every offset inside it, then classify the
           resulting time series. A value that only ever climbs is probably a sequence or slot counter. A
-          value that wobbles by small amounts is probably a price tick or EMA. A value that&apos;s noisy and
+          value that wobbles by small amounts is probably a price tick or EMA (exponential moving average). A value that&apos;s noisy and
           all over the place is either a hash or a packed multi-field record read at the wrong width.
         </p>
 
@@ -136,7 +136,7 @@ bytes [624–660]   u32-LE @ off 657   monotonic ↑
         </p>
         <ul style={listStyle}>
           <li>Two scaled prices in different reference frames (one quote per side of the pool)</li>
-          <li>A spot tick and a TWAP tick for the same instrument</li>
+          <li>A spot tick and a TWAP (time-weighted average price) tick for the same instrument</li>
           <li>A price tick and a depth tick — one says &quot;where&quot;, the other &quot;how much&quot;</li>
         </ul>
         <p style={bodyStyle}>

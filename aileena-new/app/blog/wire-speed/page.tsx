@@ -149,7 +149,7 @@ export default function WireSpeedArticle() {
             ['1', 'QUIC ingest', 'The NIC tile receives your transaction as raw UDP packets over QUIC and extracts the transaction payload.'],
             ['2', 'Signature verify', 'The SigVerify tile checks the ed25519 signature against your public key. Invalid? Dropped silently.'],
             ['3', 'Dedup tag', 'A 64-bit fingerprint is computed. If this validator has already seen the same fingerprint recently, the transaction is dropped — it is a resend.'],
-            ['4', 'Block pack', 'Verified, unique transactions enter the Pack tile, which ranks them by priority fee and selects which ones go in the next block. There are ~2,400 slots per block.'],
+            ['4', 'Block pack', 'Verified, unique transactions enter the Pack tile, which ranks them by priority fee and selects which ones go in the next block. There are 2,400 slots per block.'],
             ['5', 'SVM execute', 'The Solana VM runs each selected transaction against the current accounts state. Compute units are metered. If you exceed your budget, the SVM halts and rolls back all account changes.'],
             ['6', 'Consensus commit', 'The block is signed, gossiped to other validators, voted on, and confirmed.'],
           ].map(([num, title, body]) => (
@@ -217,7 +217,7 @@ samba/src/discof/resolv/   ← Modified: resolv tile with MEV routing`}
           <p style={{ ...bodyStyle, marginBottom: 12 }}>
             Both deliver MEV bundles, but at different layers. <strong style={strong}>Jito</strong> patches the Agave validator
             and runs a centralized block engine that auctions bundle ordering off-chain, then forwards the winning
-            bundle to a Jito-patched validator. It&apos;s the dominant solution on mainnet today (~80% of stake runs Jito
+            bundle to a Jito-patched validator. It&apos;s the dominant solution on mainnet today (80% of stake runs Jito
             software).
           </p>
           <p style={{ ...bodyStyle, marginBottom: 0 }}>
@@ -303,7 +303,7 @@ samba/src/discof/resolv/   ← Modified: resolv tile with MEV routing`}
 
         <p style={bodyStyle}>
           Read it like a forensic kit. <code style={codeStyle}>slot</code> pins the moment in time;
-          <code style={codeStyle}> enabled_features</code> captures which of Solana&apos;s ~221 feature flags (on/off
+          <code style={codeStyle}> enabled_features</code> captures which of Solana&apos;s 221 feature flags (on/off
           switches that change network behavior) were active at the time — a single flip can change how a transaction
           executes; <code style={codeStyle}>pre_accounts</code> is every wallet and contract state before the
           transaction; <code style={codeStyle}>programs</code> is the bytecode of every smart contract involved <em>as it

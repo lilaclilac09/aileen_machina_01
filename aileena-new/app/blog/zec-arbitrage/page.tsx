@@ -235,7 +235,7 @@ export default function ZecArbitrageArticle() {
           </li>
           <li>
             <strong style={strong}>Cross-venue (Angle 2):</strong> a real trade, but a slow one &mdash;
-            gated by deshield-to-deposit, ~75-second finality, and thin books. Capital patience, not
+            gated by deshield-to-deposit, 75-second finality, and thin books. Capital patience, not
             speed.
           </li>
           <li>

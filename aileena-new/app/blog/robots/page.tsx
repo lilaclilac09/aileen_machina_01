@@ -44,8 +44,8 @@ export default function RobotsArticle() {
         <SectionLabel>{isDE ? 'Synthetische Daten in großem Maßstab' : 'Synthetic Data at Scale'}</SectionLabel>
         <p style={bodyStyle}>
           {isDE
-            ? 'Mit NVIDIA Omniverse und Cosmos kannst du riesige synthetische Datensätze erzeugen — fotorealistisch, physikalisch korrekt, beliebig variierbar. Was früher Jahre gedauert hat, dauert heute Stunden. Der Engpass ist nicht mehr, Daten zu sammeln. Der Engpass ist, die richtige Verteilung zu entwerfen.'
-            : 'With NVIDIA Omniverse and Cosmos, you can generate huge synthetic datasets — photorealistic, physically accurate, endlessly variable. What used to take years now takes hours. The bottleneck is no longer collecting the data. The bottleneck is designing the right distribution.'}
+            ? 'Mit NVIDIA Omniverse und Cosmos kannst du riesige synthetische Datensätze erzeugen — fotorealistisch, physikalisch korrekt, beliebig variierbar. Was früher Jahre gedauert hat, dauert heute Stunden. Der Engpass ist nicht mehr, Daten zu sammeln. Der Engpass ist, die richtige Verteilung — die passende Mischung an Trainingsszenarien — zu entwerfen.'
+            : 'With NVIDIA Omniverse and Cosmos, you can generate huge synthetic datasets — photorealistic, physically accurate, endlessly variable. What used to take years now takes hours. The bottleneck is no longer collecting the data. The bottleneck is designing the right distribution — the right mix of training scenarios.'}
         </p>
         <p style={bodyStyle}>
           {isDE

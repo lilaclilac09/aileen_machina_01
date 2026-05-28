@@ -124,7 +124,7 @@ gh pr list --json title,number | jq '.[] | select(.title | test("WIP"))' | head 
 
         <SectionLabel>Hermes: The Pull Oracle as a Curl Target</SectionLabel>
         <p style={bodyStyle}>
-          Hermes is the Pyth Network price service — the thing you ask for a current price. It speaks HTTP, SSE, and WebSocket. It serves two things: an off-chain JSON view of the latest aggregated price, and a binary VAA blob you can post on-chain to push that price into a Pyth oracle contract. Two interfaces, one service. For a CLI-first trader, the one that matters is the JSON.
+          Hermes is the Pyth Network price service — the thing you ask for a current price. It speaks HTTP, SSE, and WebSocket. It serves two things: an off-chain JSON view of the latest aggregated price, and a binary VAA (a signed price-update blob you can post on-chain) to push that price into a Pyth oracle contract. Two interfaces, one service. For a CLI-first trader, the one that matters is the JSON.
         </p>
 
         <div style={{ margin: '32px 0', padding: '24px 28px', background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)' }}>
@@ -371,7 +371,7 @@ curl -sN 'https://hermes.pyth.network/v2/updates/price/stream?ids%5B%5D=ef0d...5
         </p>
 
         <p style={bodyStyle}>
-          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Codegen skills — the Titan pattern.</strong> <code style={codeStyle}>@titanexchange/titan-api-skill</code> is a different shape entirely. It isn&apos;t a runtime. It&apos;s a Claude Code skill — a documented bundle that ships with the protocol&apos;s quirks already encoded, so an LLM can write <em>correct</em> integration code on the first try. The quirks are specific and ugly: WebSocket + MessagePack instead of JSON-REST, <code style={codeStyle}>BigInt</code> for amounts, <code style={codeStyle}>Uint8Array</code> for token mints via <code style={codeStyle}>bs58.decode()</code>, deeply nested parameter objects where <code style={codeStyle}>slippageBps</code> lives in <code style={codeStyle}>swap</code> and <code style={codeStyle}>intervalMs</code> lives in <code style={codeStyle}>update</code>. Skip a nesting level and the LLM writes plausible-looking code that fails at runtime.
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Codegen skills — the Titan pattern.</strong> <code style={codeStyle}>@titanexchange/titan-api-skill</code> is a different shape entirely. It isn&apos;t a runtime. It&apos;s a Claude Code skill — a documented bundle that ships with the protocol&apos;s quirks already encoded, so an LLM can write <em>correct</em> integration code on the first try. The quirks are specific and ugly: WebSocket + MessagePack (a compact binary alternative to JSON) instead of JSON-REST, <code style={codeStyle}>BigInt</code> for amounts, <code style={codeStyle}>Uint8Array</code> for token mints via <code style={codeStyle}>bs58.decode()</code>, deeply nested parameter objects where <code style={codeStyle}>slippageBps</code> lives in <code style={codeStyle}>swap</code> and <code style={codeStyle}>intervalMs</code> lives in <code style={codeStyle}>update</code>. Skip a nesting level and the LLM writes plausible-looking code that fails at runtime.
         </p>
 
         <div style={{ margin: '32px 0', padding: '24px 28px', background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)' }}>
@@ -452,8 +452,8 @@ client.newSwapQuoteStream({
               </tr>
               <tr style={trStyle}>
                 <td style={tdLabelStyle}>Latency floor</td>
-                <td style={tdStyle}>Network + subprocess (~10ms)</td>
-                <td style={tdStyle}>LLM call + permission (~1s+)</td>
+                <td style={tdStyle}>Network + subprocess (10ms)</td>
+                <td style={tdStyle}>LLM call + permission (1s+)</td>
                 <td style={tdStyle}>N/A — not in the hot path</td>
               </tr>
               <tr style={trStyle}>
@@ -534,7 +534,7 @@ client.newSwapQuoteStream({
 
         <SectionLabel>What This Doesn&apos;t Solve</SectionLabel>
         <p style={bodyStyle}>
-          The thin-CLI pattern isn&apos;t magic. It doesn&apos;t give you alpha. It doesn&apos;t give you a colocated server in NY4 or AWS Tokyo. It doesn&apos;t protect you from a flash crash, a custodial outage, or your own conviction. Three specific things it openly punts on:
+          The thin-CLI pattern isn&apos;t magic. It doesn&apos;t give you alpha. It doesn&apos;t give you a colocated server in NY4 (a major financial-colocation datacenter near New York) or AWS Tokyo. It doesn&apos;t protect you from a flash crash, a custodial outage, or your own conviction. Three specific things it openly punts on:
         </p>
 
         <div style={{ margin: '32px 0', padding: '0 0 0 24px', borderLeft: '2px solid rgba(255,255,255,0.1)' }}>

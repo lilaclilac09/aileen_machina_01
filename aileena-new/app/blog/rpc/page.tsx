@@ -27,7 +27,7 @@ export default function RpcArticle() {
           Helius is the closest thing Solana has to a default RPC provider. Under the hood, every Helius endpoint still sits on a validator running in RPC mode. But what you&apos;re actually paying for is the layer wrapped around it: webhooks (the server pings you when something happens, so you don&apos;t have to keep asking), DAS (the Digital Asset Standard, a single API for token / NFT / compressed-NFT queries), Enhanced Transactions that hand you parsed, human-readable history, <code style={codeStyle}>getTransactionsForAddress</code> (a paginated address-history endpoint that plain RPC just doesn&apos;t have), Sender for getting your transactions to land during congestion, and LaserStream — a drop-in Yellowstone gRPC (the binary streaming protocol Solana uses for live data) with multi-region failover, historical replay, and auto-reconnect.
         </p>
         <p style={bodyStyle}>
-          There are four pricing tiers: Free ($0), Developer ($49), Business ($499), Professional ($999). The April 2026 unlock pushed LaserStream gRPC down from Pro-only to Business (10 concurrent connections), and put Enhanced WebSockets with <code style={codeStyle}>transactionSubscribe</code> on Developer (up to 100 subscriptions per connection). Streaming traffic is metered at 20 credits per 1MB — about $100/TB after the 33% cut earlier in 2026.
+          There are four pricing tiers: Free ($0), Developer ($49), Business ($499), Professional ($999). The April 2026 unlock pushed LaserStream gRPC down from Pro-only to Business (10 concurrent connections), and put Enhanced WebSockets with <code style={codeStyle}>transactionSubscribe</code> on Developer (up to 100 subscriptions per connection). Streaming traffic is metered at 20 credits per 1MB — $100/TB after the 33% cut earlier in 2026.
         </p>
         <p style={bodyStyle}>
           What&apos;s genuinely unique to Helius — not just a nicer wrapper around plain RPC — is the DAS API (one query gives you ownership and metadata for SPL tokens, regular NFTs, and ZK-compressed NFTs in a single shape), the webhook system (it pushes events to you instead of making you poll, with the payloads already parsed), Enhanced Transactions, and the LaserStream stack covered in section 04. Everyone else either matches these by integrating Helius, builds them from scratch, or just skips them. Reach for Helius when the thing slowing your team down is engineering time, not microseconds.
@@ -122,7 +122,7 @@ export default function RpcArticle() {
           If LaserStream is Helius&apos;s answer to &quot;build me a reliable Yellowstone consumer,&quot; the LaserStream SDKs released in 2026 are the answer to &quot;do it in one line.&quot; Three ship today: JavaScript/TypeScript, Rust, and Go. All three expose an interface that&apos;s byte-compatible with Yellowstone gRPC, so you swap the endpoint and the auth token in an existing Yellowstone client and touch nothing else. Everything that&apos;s usually painful — connecting, retrying, slot tracking, decompression, regional failover — happens inside the library.
         </p>
         <p style={bodyStyle}>
-          The JavaScript SDK is the clever one. The streaming engine, gRPC connection management, protobuf serialization (the binary message format), and slot tracking are all written in Rust; only your application logic runs in JavaScript. NAPI bindings move data across the boundary without copying it. Published throughput is 1.3 GB/s sustained versus roughly 30 MB/s for a pure-JS Yellowstone client — about 40×. The reason is mechanical. The JavaScript event loop is no longer in the hot path, so the moment your consumer has to keep pace with mainnet block velocity, the SDK lets it do that without burning CPU on JSON parsing. For Go and Rust users the headline matters less — they were already fast — but the real win is that all three languages get the same features.
+          The JavaScript SDK is the clever one. The streaming engine, gRPC connection management, protobuf serialization (the binary message format), and slot tracking are all written in Rust; only your application logic runs in JavaScript. NAPI bindings (Node&apos;s native-addon interface) move data across the boundary without copying it. Published throughput is 1.3 GB/s sustained versus 30 MB/s for a pure-JS Yellowstone client — 40×. The reason is mechanical. The JavaScript event loop is no longer in the hot path, so the moment your consumer has to keep pace with mainnet block velocity, the SDK lets it do that without burning CPU on JSON parsing. For Go and Rust users the headline matters less — they were already fast — but the real win is that all three languages get the same features.
         </p>
         <p style={bodyStyle}>
           Slot-based replay is the standout reliability feature. The SDK remembers the last slot it acknowledged; if it disconnects, it asks the upstream to pick up from exactly that point. The advertised recovery window is up to 24 hours, which means a multi-hour incident no longer turns into a missed-events postmortem — the consumer just catches up and keeps going. Dedicated nodes that don&apos;t support replay simply opt out with <code style={codeStyle}>replay: false</code>. Auto-reconnect uses exponential backoff, and multi-region failover routes around regional outages. Zstd compression on the wire delivers a stated 70–80% bandwidth reduction — which matters because LaserStream traffic is metered at 20 credits per 1MB, so the compression is also a direct cut to your bill.
@@ -133,7 +133,7 @@ export default function RpcArticle() {
 
         <SectionLabel>Triton One: Validator-Adjacent Infrastructure</SectionLabel>
         <p style={bodyStyle}>
-          Triton One is the older operator, and the more technically uncompromising one. Triton wrote the open-source Yellowstone gRPC plugin that the rest of the ecosystem — including Helius&apos;s LaserStream — is either a drop-in for or a fork of. Their pricing tells you who they&apos;re for: pay-as-you-go on shared RPC, ~$2,900/month and up for dedicated nodes, no tier-gated throttling or overage premiums. The customer is a market maker, a validator operator, or a trading firm that already knows it needs co-location (servers physically near the validators) and gRPC.
+          Triton One is the older operator, and the more technically uncompromising one. Triton wrote the open-source Yellowstone gRPC plugin that the rest of the ecosystem — including Helius&apos;s LaserStream — is either a drop-in for or a fork of. Their pricing tells you who they&apos;re for: pay-as-you-go on shared RPC, $2,900/month and up for dedicated nodes, no tier-gated throttling or overage premiums. The customer is a market maker, a validator operator, or a trading firm that already knows it needs co-location (servers physically near the validators) and gRPC.
         </p>
 
         <SectionLabel>Project Yellowstone, Component by Component</SectionLabel>
@@ -193,7 +193,7 @@ export default function RpcArticle() {
         </div>
 
         <p style={bodyStyle}>
-          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>First, you pay for bandwidth, not requests.</strong> $0.06 per gigabyte, 10 GB free, top-up in crypto or fiat. A <code style={codeStyle}>getBalance</code> call moves about 0.5KB, so roughly 2 million calls cost $0.06. There are no per-second rate limits in the Helius sense and no tier-gating in the Triton sense — you pay for what comes down the wire. For bursty, read-heavy workloads (dashboards, indexers, leaderboards) that&apos;s genuinely cheaper than either competitor.
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>First, you pay for bandwidth, not requests.</strong> $0.06 per gigabyte, 10 GB free, top-up in crypto or fiat. A <code style={codeStyle}>getBalance</code> call moves 0.5KB, so 2 million calls cost $0.06. There are no per-second rate limits in the Helius sense and no tier-gating in the Triton sense — you pay for what comes down the wire. For bursty, read-heavy workloads (dashboards, indexers, leaderboards) that&apos;s genuinely cheaper than either competitor.
         </p>
         <p style={bodyStyle}>
           <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Second, the data is HEAD slot — the very latest confirmed state.</strong> FluxRPC returns that directly, rather than serving a snapshot that may lag the leader. Combined with their own ingestion pipeline, this kills the &quot;is my read fresh?&quot; question that creeps into deployments juggling several RPCs.
@@ -253,7 +253,7 @@ ws.onopen = () => ws.send(JSON.stringify({
 }));
 ws.onmessage = e => handle(JSON.parse(e.data));`}</code></pre>
         <p style={bodyStyle}>
-          Why this beats polling: zero per-update round trips, no rate-limit budget burned re-asking the same question, and latency drops to leader-to-you propagation (~400ms at <code style={codeStyle}>confirmed</code>) instead of leader-to-you plus however long your poll interval is. What&apos;s left to pay is a JSON parse per message plus WebSocket framing overhead — and that&apos;s exactly what gRPC removes.
+          Why this beats polling: zero per-update round trips, no rate-limit budget burned re-asking the same question, and latency drops to leader-to-you propagation (400ms at <code style={codeStyle}>confirmed</code>) instead of leader-to-you plus however long your poll interval is. What&apos;s left to pay is a JSON parse per message plus WebSocket framing overhead — and that&apos;s exactly what gRPC removes.
         </p>
 
         <p style={bodyStyle}>
@@ -269,7 +269,7 @@ const stream = client.subscribe({
 });
 for await (const update of stream) { handle(update); }`}</code></pre>
         <p style={bodyStyle}>
-          This is the fastest network call available, for three reasons. <strong>(a) Binary protobuf, not JSON.</strong> A <code style={codeStyle}>SubscribeUpdate</code> for a 165-byte token account is ~200 bytes on the wire; the same payload over JSON-RPC is ~600 bytes after base64-encoding <code style={codeStyle}>data</code> plus the envelope overhead. Zstd compression on LaserStream cuts another 70–80%. <strong>(b) HTTP/2 multiplexing.</strong> Many subscriptions share one TCP/TLS connection — WSS gets you this too, raw HTTP JSON-RPC does not. <strong>(c) No event-loop tax</strong> (the LaserStream JS SDK move): the Rust core decodes protobuf and tracks slots off the JS thread, then hands decoded objects in via zero-copy NAPI. Pure-JS Yellowstone clients top out at ~30 MB/s; the LaserStream JS SDK sustains ~1.3 GB/s.
+          This is the fastest network call available, for three reasons. <strong>(a) Binary protobuf, not JSON.</strong> A <code style={codeStyle}>SubscribeUpdate</code> for a 165-byte token account is 200 bytes on the wire; the same payload over JSON-RPC is 600 bytes after base64-encoding <code style={codeStyle}>data</code> plus the envelope overhead. Zstd compression on LaserStream cuts another 70–80%. <strong>(b) HTTP/2 multiplexing.</strong> Many subscriptions share one TCP/TLS connection — WSS gets you this too, raw HTTP JSON-RPC does not. <strong>(c) No event-loop tax</strong> (the LaserStream JS SDK move): the Rust core decodes protobuf and tracks slots off the JS thread, then hands decoded objects in via zero-copy NAPI. Pure-JS Yellowstone clients top out at 30 MB/s; the LaserStream JS SDK sustains 1.3 GB/s.
         </p>
 
         <p style={bodyStyle}>
@@ -331,7 +331,7 @@ const info = await conn.getAccountInfo(new PublicKey("..."));`}</code></pre>
                 <td style={tdLabelStyle}>accountSubscribe (notif)</td>
                 <td style={tdStyle}>Delta-style account update</td>
                 <td style={tdStyle}>0.2–2 KB</td>
-                <td style={tdStyle}>Leader prop (~400 ms confirmed)</td>
+                <td style={tdStyle}>Leader prop (400 ms confirmed)</td>
               </tr>
               <tr style={trStyle}>
                 <td style={tdLabelStyle}>Yellowstone account update</td>
@@ -365,7 +365,7 @@ const info = await conn.getAccountInfo(new PublicKey("..."));`}</code></pre>
         </p>
 
         <p style={bodyStyle}>
-          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>1. Slot, block, entry, transaction — the hierarchy.</strong> A <strong>slot</strong> is a 400ms time bucket. The leader (the validator whose turn it is to produce blocks) assigned to that slot tries to produce a <strong>block</strong>; if it succeeds, the slot has a block, and if it skips, the slot is empty. A block holds a sequence of <strong>entries</strong> — sub-block batches that exist mainly so validators can run non-conflicting transactions in parallel. Each entry holds a list of <strong>transactions</strong>, the atomic unit of state change. A transaction in turn holds one or more <strong>instructions</strong>, each aimed at a specific program. The thing most developers underestimate: roughly 85–90% of mainnet transactions are <em>vote transactions</em> — validators voting on consensus, not user activity. Filter them out (<code style={codeStyle}>vote: false</code>) or your stream is mostly noise.
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>1. Slot, block, entry, transaction — the hierarchy.</strong> A <strong>slot</strong> is a 400ms time bucket. The leader (the validator whose turn it is to produce blocks) assigned to that slot tries to produce a <strong>block</strong>; if it succeeds, the slot has a block, and if it skips, the slot is empty. A block holds a sequence of <strong>entries</strong> — sub-block batches that exist mainly so validators can run non-conflicting transactions in parallel. Each entry holds a list of <strong>transactions</strong>, the atomic unit of state change. A transaction in turn holds one or more <strong>instructions</strong>, each aimed at a specific program. The thing most developers underestimate: 85–90% of mainnet transactions are <em>vote transactions</em> — validators voting on consensus, not user activity. Filter them out (<code style={codeStyle}>vote: false</code>) or your stream is mostly noise.
         </p>
 
         <p style={bodyStyle}>
@@ -373,11 +373,11 @@ const info = await conn.getAccountInfo(new PublicKey("..."));`}</code></pre>
         </p>
 
         <p style={bodyStyle}>
-          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>3. The slot lifecycle (why fork-aware code matters).</strong> A slot doesn&apos;t show up in your stream as a single event. It moves through stages, and Dragon&apos;s Mouth surfaces each one as a <code style={codeStyle}>SlotUpdate</code>: <code style={codeStyle}>SLOT_FIRST_SHRED_RECEIVED</code> (the first piece of block data hit your validator), <code style={codeStyle}>SLOT_CREATED_BANK</code> (a fresh execution bank for the slot was spun up), <code style={codeStyle}>SLOT_COMPLETED</code> (all shreds in, bank fully populated), then eventually <code style={codeStyle}>SLOT_DEAD</code> (the fork containing this slot was abandoned) or finalized (32+ confirmation lockouts deep, never to be reverted). Why this matters: if you act on a transaction at <code style={codeStyle}>processed</code> commitment and the slot later goes <code style={codeStyle}>DEAD</code>, that transaction is gone — never happened, never charged, never landed. Fork-aware code waits for slot status before treating an account update as &quot;real.&quot;
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>3. The slot lifecycle (why fork-aware code matters).</strong> A slot doesn&apos;t show up in your stream as a single event. It moves through stages, and Dragon&apos;s Mouth surfaces each one as a <code style={codeStyle}>SlotUpdate</code>: <code style={codeStyle}>SLOT_FIRST_SHRED_RECEIVED</code> (the first piece of block data hit your validator), <code style={codeStyle}>SLOT_CREATED_BANK</code> (a fresh execution bank for the slot was spun up), <code style={codeStyle}>SLOT_COMPLETED</code> (all shreds in, bank fully populated), then eventually <code style={codeStyle}>SLOT_DEAD</code> (the fork containing this slot was abandoned) or finalized (32 slots (31 confirmations) deep, never to be reverted). Why this matters: if you act on a transaction at <code style={codeStyle}>processed</code> commitment and the slot later goes <code style={codeStyle}>DEAD</code>, that transaction is gone — never happened, never charged, never landed. Fork-aware code waits for slot status before treating an account update as &quot;real.&quot;
         </p>
 
         <p style={bodyStyle}>
-          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>4. Commitment: same slot, three timings.</strong> Every subscription takes a commitment level — how sure you want to be before you trust the data. <code style={codeStyle}>processed</code> is live and can still be reverted; <code style={codeStyle}>confirmed</code> means a supermajority of stake voted for it; <code style={codeStyle}>finalized</code> (~31 slot lockout) means it will never be reverted. The Yellowstone server buffers updates per slot at confirmed/finalized and releases them in slot order once the threshold is hit. The Triton-recommended trick: subscribe at <code style={codeStyle}>processed</code> and buffer on your side, then release on your own slot notifications. You get the lowest latency and you keep control of the fork-handling logic. Reading confirmed-only is what most teams ship first — and usually regret.
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>4. Commitment: same slot, three timings.</strong> Every subscription takes a commitment level — how sure you want to be before you trust the data. <code style={codeStyle}>processed</code> is live and can still be reverted; <code style={codeStyle}>confirmed</code> means a supermajority of stake voted for it; <code style={codeStyle}>finalized</code> (32 slots (31 confirmations)) means it will never be reverted. The Yellowstone server buffers updates per slot at confirmed/finalized and releases them in slot order once the threshold is hit. The Triton-recommended trick: subscribe at <code style={codeStyle}>processed</code> and buffer on your side, then release on your own slot notifications. You get the lowest latency and you keep control of the fork-handling logic. Reading confirmed-only is what most teams ship first — and usually regret.
         </p>
 
         <p style={bodyStyle}>
@@ -470,15 +470,15 @@ for await (const update of stream) {
 
         <SectionLabel>Below the Block: Shreds, Turbine, and Pre-Block Reads</SectionLabel>
         <p style={bodyStyle}>
-          Section 11 covered what a block looks like to a consumer of consensus state. There&apos;s a layer below that, and most of the &quot;fastest&quot; stories in this article — Jito ShredStream, Triton co-location, the 50–100ms pump.fun cancel window — live there. A block isn&apos;t sent as a single object. It&apos;s broken into <strong>shreds</strong> — ~1,228-byte fragments of the slot&apos;s data — and gossiped across the validator network the instant the leader can serialize them, before the block is even finished. Read the shreds and you read the network <em>in flight</em>.
+          Section 11 covered what a block looks like to a consumer of consensus state. There&apos;s a layer below that, and most of the &quot;fastest&quot; stories in this article — Jito ShredStream, Triton co-location, the 50–100ms pump.fun cancel window — live there. A block isn&apos;t sent as a single object. It&apos;s broken into <strong>shreds</strong> — 1,228-byte fragments of the slot&apos;s data — and gossiped across the validator network the instant the leader can serialize them, before the block is even finished. Read the shreds and you read the network <em>in flight</em>.
         </p>
 
         <p style={bodyStyle}>
-          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>1. What a shred actually is.</strong> There are two kinds. <strong>Data shreds</strong> carry serialized entries — the transactions themselves. <strong>Coding shreds</strong> are Reed-Solomon parity fragments (redundant pieces) that let downstream validators rebuild missing data shreds without re-requesting them. Together they form an <code style={codeStyle}>FEC</code> (forward error correction) set. A block of 1,000 transactions might serialize to ~150 data shreds plus ~50 coding shreds; lose any 50 of the 200 and the block is still rebuildable.
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>1. What a shred actually is.</strong> There are two kinds. <strong>Data shreds</strong> carry serialized entries — the transactions themselves. <strong>Coding shreds</strong> are Reed-Solomon parity fragments (redundant pieces) that let downstream validators rebuild missing data shreds without re-requesting them. Together they form an <code style={codeStyle}>FEC</code> (forward error correction) set. A block of 1,000 transactions might serialize to, for example, 150 data shreds plus 50 coding shreds; lose any 50 of the 200 and the block is still rebuildable.
         </p>
 
         <p style={bodyStyle}>
-          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>2. Turbine: the propagation tree.</strong> The leader doesn&apos;t broadcast shreds to every validator. It picks a fanout of K direct neighbors (currently around 200), each of whom forwards to the next layer. The result is a tree of depth O(log N), where every validator gets every shred in 2–3 hops. A validator&apos;s <em>position</em> in that tree decides how soon it sees a shred — neighbors at depth 1 see shreds milliseconds before validators at depth 3. This is the whole physics of the &quot;fast&quot; story. Co-located dedicated nodes (Triton Professional Trading Centers) pay to sit near the top of the tree. ShredStream operators pay to receive shreds at the same depth as a validator without being one.
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>2. Turbine: the propagation tree.</strong> The leader doesn&apos;t broadcast shreds to every validator. It picks a fanout of K direct neighbors (currently 200), each of whom forwards to the next layer. The result is a tree of depth O(log N), where every validator gets every shred in 2–3 hops. A validator&apos;s <em>position</em> in that tree decides how soon it sees a shred — neighbors at depth 1 see shreds milliseconds before validators at depth 3. This is the whole physics of the &quot;fast&quot; story. Co-located dedicated nodes (Triton Professional Trading Centers) pay to sit near the top of the tree. ShredStream operators pay to receive shreds at the same depth as a validator without being one.
         </p>
 
         <p style={bodyStyle}>
@@ -609,13 +609,13 @@ for await (const update of stream) {
               <tr style={trStyle}>
                 <td style={tdLabelStyle}>Mainnet entry price</td>
                 <td style={tdStyle}>$0 → $999</td>
-                <td style={tdStyle}>~$2,900 (dedicated)</td>
+                <td style={tdStyle}>$2,900 (dedicated)</td>
                 <td style={tdStyle}>$0 (10 GB free)</td>
               </tr>
               <tr style={trStyle}>
                 <td style={tdLabelStyle}>Stated latency floor</td>
                 <td style={tdStyle}>1.5–2× faster than std WS</td>
-                <td style={tdStyle}>~400ms edge for traders</td>
+                <td style={tdStyle}>400ms edge for traders</td>
                 <td style={tdStyle}>0.1–0.25ms (Lantern)</td>
               </tr>
             </tbody>
@@ -650,7 +650,7 @@ for await (const update of stream) {
             <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Self-hosted trading bot.</strong> FluxRPC + Lantern inside your VPC for the read path; fall back to Triton Dragon&apos;s Mouth if the cancel-race edge matters.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>SVM L2 / Fogo / appchain work.</strong> FluxRPC is the only one advertising SVM-beyond-Solana support today — a hint at where they think the moat is.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>SVM L2 / Fogo / appchain work.</strong> FluxRPC is the only one advertising SVM (Solana Virtual Machine) beyond-Solana support today — for L2s (layer-2 chains that settle down to another chain) — a hint at where they think the moat is.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
             <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Real-time order flow / execution monitoring.</strong> Helius LaserStream SDK — drop-in, 40× throughput over a raw JS Yellowstone consumer, slot replay for incident recovery. DFlow&apos;s stack is the case study; payment-for-order-flow and MEV-aware routing live or die on a stream that doesn&apos;t drop events under load.
@@ -700,7 +700,7 @@ for await (const update of stream) {
             <strong style={{ color: 'rgba(255,255,255,0.85)' }}>SVM L2 and appchain builders.</strong> <strong style={{ color: '#00ffea' }}>Fogo</strong> and the smaller SVM-compatible L2s being built in 2026 face a chicken-and-egg problem: no Helius DAS for their chain, no Triton Yellowstone plugin yet, no incumbent infrastructure. FluxRPC is the only one of the three meaningfully advertising SVM-beyond-Solana support today. The early-adopter list is small but strategic — the team that becomes the default RPC for SVM L2s now is positioned for whatever fraction of mainnet flow ends up rolled up.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 0 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Enterprise on-ramps, custodians, and TradFi.</strong> <strong style={{ color: '#00ffea' }}>Coinbase, Bitwise, Helium</strong> — and the long tail of compliance-driven entities that need Solana exposure with audit trails — sit on Helius enterprise plans. The reason isn&apos;t latency; it&apos;s SOC 2, support SLAs, predictable invoicing, and parsed transaction payloads that downstream compliance tooling can ingest without writing program-specific decoders. Triton&apos;s Old Faithful covers the archival side when the audit asks for a five-year transaction lookup. FluxRPC isn&apos;t positioned for this customer yet, because the relationship is bought, not metered.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Enterprise on-ramps, custodians, and TradFi.</strong> <strong style={{ color: '#00ffea' }}>Coinbase, Bitwise, Helium</strong> — and the long tail of compliance-driven entities that need Solana exposure with audit trails — sit on Helius enterprise plans. The reason isn&apos;t latency; it&apos;s SOC 2 (a security-compliance audit), support SLAs (service-level guarantees), predictable invoicing, and parsed transaction payloads that downstream compliance tooling can ingest without writing program-specific decoders. Triton&apos;s Old Faithful covers the archival side when the audit asks for a five-year transaction lookup. FluxRPC isn&apos;t positioned for this customer yet, because the relationship is bought, not metered.
           </p>
         </div>
 
