@@ -341,9 +341,11 @@ export const t = {
           heading: 'EXPLORE',
           links: [
             { label: 'Dispatch', href: '#dispatch' },
-            { label: 'Work', href: '/works' },
-            { label: 'Sound', href: '/sound' },
             { label: 'Woman in Tech', href: '#woman-in-tech' },
+            { label: 'Work', href: '/works' },
+            { label: 'Investing', href: '#investing' },
+            { label: 'Sound', href: '/sound' },
+            { label: 'Visual', href: '#visual' },
           ],
         },
         {
@@ -697,9 +699,11 @@ export const t = {
           heading: 'ERKUNDEN',
           links: [
             { label: 'Dispatch', href: '#dispatch' },
-            { label: 'Arbeit', href: '/works' },
-            { label: 'Sound', href: '/sound' },
             { label: 'Frau in Tech', href: '#woman-in-tech' },
+            { label: 'Arbeit', href: '/works' },
+            { label: 'Investing', href: '#investing' },
+            { label: 'Sound', href: '/sound' },
+            { label: 'Visual', href: '#visual' },
           ],
         },
         {
