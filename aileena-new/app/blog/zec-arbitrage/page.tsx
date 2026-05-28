@@ -50,10 +50,10 @@ export default function ZecArbitrageArticle() {
               </tr>
             </thead>
             <tbody>
-              <tr style={trStyle}><td style={tdLabelStyle}>Transparent</td><td style={tdStyle}>public (t-addr)</td><td style={tdStyle}>at launch</td><td style={tdStyle}>none</td></tr>
-              <tr style={trStyle}><td style={tdLabelStyle}>Sprout</td><td style={tdStyle}>shielded, 1st gen</td><td style={tdStyle}>at launch</td><td style={tdStyle}>BCTV14 (trusted setup)</td></tr>
-              <tr style={trStyle}><td style={tdLabelStyle}>Sapling</td><td style={tdStyle}>shielded</td><td style={tdStyle}>later upgrade</td><td style={tdStyle}>Groth16 (trusted setup)</td></tr>
-              <tr style={trStyle}><td style={tdLabelStyle}>Orchard</td><td style={tdStyle}>shielded</td><td style={tdStyle}>NU5 upgrade</td><td style={tdStyle}>Halo 2 (no trusted setup)</td></tr>
+              <tr style={trStyle}><td style={tdLabelStyle}>Transparent</td><td style={tdStyle}>public (t-addr)</td><td style={tdStyle}>2016 (launch)</td><td style={tdStyle}>none</td></tr>
+              <tr style={trStyle}><td style={tdLabelStyle}>Sprout</td><td style={tdStyle}>shielded, 1st gen</td><td style={tdStyle}>2016 (launch)</td><td style={tdStyle}>BCTV14 (trusted setup)</td></tr>
+              <tr style={trStyle}><td style={tdLabelStyle}>Sapling</td><td style={tdStyle}>shielded</td><td style={tdStyle}>Oct 2018</td><td style={tdStyle}>Groth16 (trusted setup)</td></tr>
+              <tr style={trStyle}><td style={tdLabelStyle}>Orchard</td><td style={tdStyle}>shielded</td><td style={tdStyle}>May 2022 (NU5)</td><td style={tdStyle}>Halo 2 (no trusted setup)</td></tr>
             </tbody>
           </table>
         </div>
@@ -89,10 +89,10 @@ export default function ZecArbitrageArticle() {
           are even possible. The thing people picture as a trade is really a privacy decision.
         </p>
         <p style={bodyStyle}>
-          The one genuinely observable dynamic is migration. A large and growing share of all ZEC now
-          sits shielded, and the bulk of it has drained into <strong style={strong}>Orchard</strong> as
-          the newest pool &mdash; Sapling holds a thin slice, and Sprout is all but empty. That shift is
-          real and trackable. It just isn&apos;t a trade.
+          The one genuinely observable dynamic is migration. By late 2025, about 29% of all ZEC sat
+          shielded (per Coin Metrics), and the bulk of it had drained into <strong style={strong}>Orchard</strong>{' '}
+          as the newest pool &mdash; Sapling holds a thin slice, and Sprout is all but empty. That shift
+          is real and trackable. It just isn&apos;t a trade.
         </p>
 
         <SectionLabel>Angle 2 — The real-but-thin trade: cross-venue (CEX/DEX)</SectionLabel>
@@ -112,11 +112,11 @@ export default function ZecArbitrageArticle() {
               </tr>
             </thead>
             <tbody>
-              <tr style={trStyle}><td style={tdLabelStyle}>Binance</td><td style={tdStyle}>listed + perps</td><td style={tdStyle}>survived a community delisting vote, then added perpetual futures</td></tr>
-              <tr style={trStyle}><td style={tdLabelStyle}>OKX</td><td style={tdStyle}>relisted</td><td style={tdStyle}>back on after an earlier delisting</td></tr>
+              <tr style={trStyle}><td style={tdLabelStyle}>Binance</td><td style={tdStyle}>listed + perps</td><td style={tdStyle}>survived an Apr 2025 delisting vote; later added a ZEC/USDC perpetual (up to 75&times;)</td></tr>
+              <tr style={trStyle}><td style={tdLabelStyle}>OKX</td><td style={tdStyle}>relisted</td><td style={tdStyle}>relisted Nov 2025, after delisting in Jan 2024</td></tr>
               <tr style={trStyle}><td style={tdLabelStyle}>Coinbase</td><td style={tdStyle}>listed</td><td style={tdStyle}>transparent-address deposits only</td></tr>
               <tr style={trStyle}><td style={tdLabelStyle}>Kraken / Gemini</td><td style={tdStyle}>listed</td><td style={tdStyle}>Gemini: first regulated venue with shielded ZEC withdrawals</td></tr>
-              <tr style={trStyle}><td style={tdLabelStyle}>Robinhood</td><td style={tdStyle}>listed</td><td style={tdStyle}>retail on-ramp</td></tr>
+              <tr style={trStyle}><td style={tdLabelStyle}>Robinhood</td><td style={tdStyle}>listed Apr 2026</td><td style={tdStyle}>retail on-ramp</td></tr>
               <tr style={trStyle}><td style={tdLabelStyle}>Uniswap / native DEX</td><td style={tdStyle}>none</td><td style={tdStyle}>ZEC is a non-EVM UTXO coin &mdash; no native AMM pool</td></tr>
               <tr style={trStyle}><td style={tdLabelStyle}>THORChain / Maya</td><td style={tdStyle}>native swaps</td><td style={tdStyle}>cross-chain pools, not a wrapped token</td></tr>
             </tbody>
@@ -139,10 +139,10 @@ export default function ZecArbitrageArticle() {
             before the funds are even movable.
           </li>
           <li>
-            <strong style={strong}>Finality is slow.</strong> A new Zcash block only lands about once a
-            minute, and exchanges want several of them to confirm before crediting a deposit. That
-            stretches the round-trip into many minutes &mdash; minutes during which the spread you
-            spotted can simply evaporate.
+            <strong style={strong}>Finality is slow.</strong> A new Zcash block lands every 75 seconds,
+            and exchanges want several of them to confirm before crediting a deposit. That stretches the
+            round-trip into many minutes &mdash; minutes during which the spread you spotted can simply
+            evaporate.
           </li>
           <li>
             <strong style={strong}>The books are thin.</strong> Privacy-coin order books are shallow
@@ -194,7 +194,7 @@ export default function ZecArbitrageArticle() {
           collateral damage from the FTX/Alameda collapse (Alameda had acquired Ren and ran its custody
           infrastructure). The token contract still exists on-chain, but it&apos;s dead and illiquid.
           That wasn&apos;t a price depeg so much as a stranding: the same event flattened RenVM&apos;s
-          locked value from billions to almost nothing, and renZEC went with it. The custodial pegs that
+          total value locked from over $1 billion to a few tens of millions, and renZEC went with it. The custodial pegs that
           remain &mdash; Binance-Peg ZEC on BNB Chain, the old Tokensoft WZEC on Ethereum &mdash;
           technically exist but carry thin-to-nil liquidity and full counterparty risk.
         </p>
@@ -216,9 +216,9 @@ export default function ZecArbitrageArticle() {
           Which makes the mechanics of the cross-chain trade clear. The arbitrageur is the one keeping
           THORChain&apos;s ZEC pool honest, and the friction bounding how tightly they can hold the peg
           is <strong style={strong}>bridge latency.</strong> Settling a ZEC leg means waiting on Zcash
-          confirmations &mdash; several blocks, each only landing about once a minute &mdash; plus the
-          protocol&apos;s own settlement, so the window where the price can move against you is measured
-          in minutes, and your capital is locked the whole time. There&apos;s a privacy cost layered on top: a Maya
+          confirmations &mdash; several blocks, each 75 seconds apart &mdash; plus the protocol&apos;s
+          own settlement, so the window where the price can move against you is measured in minutes, and
+          your capital is locked the whole time. There&apos;s a privacy cost layered on top: a Maya
           contributor has openly noted that cross-chain shielded ZEC swaps still leak metadata once value
           leaves the Zcash chain. So even the &quot;native&quot; route trades some of the privacy that
           was the whole point.
@@ -235,7 +235,7 @@ export default function ZecArbitrageArticle() {
           </li>
           <li>
             <strong style={strong}>Cross-venue (Angle 2):</strong> a real trade, but a slow one &mdash;
-            gated by deshield-to-deposit, ~75-second finality, and thin books. Capital patience, not
+            gated by deshield-to-deposit, 75-second finality, and thin books. Capital patience, not
             speed.
           </li>
           <li>

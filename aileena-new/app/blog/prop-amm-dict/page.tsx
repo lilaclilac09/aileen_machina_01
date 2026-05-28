@@ -87,10 +87,10 @@ humidifi   ???`}
         </p>
         <p style={bodyStyle}>
           Here&apos;s the trick. <strong style={strong}>Every SPL Mint on Solana is owned by the Token Program</strong> (or
-          Token-2022) &mdash; a mint being the account that defines a token, owned by the standard program
+          Token-2022 — a newer version of Solana&apos;s token standard) &mdash; a mint being the account that defines a token, owned by the standard program
           that manages all of them. That gives you a one-shot oracle. Take a pool account, scan every
           8-byte-aligned 32-byte window, base58-encode each one as a candidate pubkey, and batch-check them
-          via <code style={codeStyle}>getMultipleAccounts</code>. Anything owned by the Token Program with ≥ 82 bytes of data <em>is</em> a
+          via <code style={codeStyle}>getMultipleAccounts</code>. Anything owned by the Token Program with ≥ 82 bytes of data (82 bytes being the fixed size of a mint account) <em>is</em> a
           Mint. Repeat across three pools. The two offsets that turn up a Mint <em>every time</em> are mint1 and
           mint2.
         </p>
@@ -184,7 +184,7 @@ not enough candidate offsets`}
         <p style={bodyStyle}>
           Second &mdash; and this is the punchline &mdash; recent transactions touching one humidifi pool
           don&apos;t move any tokens. The last 50 signatures all sit in the same slot, each transaction
-          touching exactly three accounts (the pool, a signer, and <code style={codeStyle}>SysvarC1ock</code>), with zero <code style={codeStyle}>preTokenBalances</code> and
+          touching exactly three accounts (the pool, a signer, and <code style={codeStyle}>SysvarC1ock</code> — the on-chain clock account; the &apos;1&apos; is part of its address, not a typo), with zero <code style={codeStyle}>preTokenBalances</code> and
           zero <code style={codeStyle}>postTokenBalances</code>.
         </p>
 
@@ -220,7 +220,7 @@ not enough candidate offsets`}
         <SectionLabel>What This Unlocks</SectionLabel>
         <p style={bodyStyle}>
           With aquifier added, nine of ten prop AMMs are now enumerable end-to-end with public RPC &mdash;
-          the open node endpoints anyone can query &mdash; and roughly thirty lines of Python. The dictionary
+          the open node endpoints anyone can query &mdash; and a short Python script. The dictionary
           is complete enough to drive a live radar across the whole competitive set, with humidifi handled
           separately via its quote API. That last part is honestly <em>more</em> interesting, because it means
           humidifi&apos;s moat is the off-chain pricing, not the on-chain venue.

@@ -9,15 +9,15 @@ export default function ShredEconomyArticle() {
       date="2026.05.28"
       tags="Solana · DoubleZero · Validators · MEV"
       title="The Shred Economy has a revenue line now"
-      dek={<>DoubleZero Edge sells the right to read Solana shreds <em>first</em>, in USDC, priced by city. $8,890 this epoch, ~$133k monthly, ~$1.6M annualised. 400+ validators exposing shreds, ~50% of Solana stake. 10% burned, the rest split three ways: fibre ~50%, validators ~32.5%, client-software ~17.5%.</>}
+      dek={<>DoubleZero Edge sells the right to read Solana shreds <em>first</em>, in USDC, priced by city. $8,890 this epoch, $133k monthly, $1.6M annualised. 400+ validators exposing shreds, 50% of Solana stake. 10% burned, the rest split three ways: fibre 50%, validators 32.5%, client-software 17.5%.</>}
     >
       {/* ── Stats wall ── */}
       <StatsWall stats={[
         { value: '$8,890', label: 'this epoch', sub: 'edge revenue earned in the current epoch' },
-        { value: '~$133k', label: 'monthly run-rate', sub: 'extrapolated from current per-epoch pace' },
-        { value: '~$1.6M', label: 'annualised', sub: 'at the current pace, before growth' },
+        { value: '$133k', label: 'monthly run-rate', sub: 'extrapolated from current per-epoch pace' },
+        { value: '$1.6M', label: 'annualised', sub: 'at the current pace, before growth' },
         { value: '400+', label: 'validators', sub: 'currently exposing shreds via Edge' },
-        { value: '~50%', label: 'of solana stake', sub: 'covered by participating validators' },
+        { value: '50%', label: 'of solana stake', sub: 'covered by participating validators' },
         { value: '10%', label: 'burned', sub: 'removed from supply before the three-way split' },
       ]} />
 
@@ -49,14 +49,14 @@ export default function ShredEconomyArticle() {
         <p style={bodyStyle}>
           The buyers are the usual high-frequency crowd. Market makers quoting on-chain. Prop desks running
           CEX-DEX arb &mdash; buying on a centralised exchange and selling on a decentralised one, or the
-          other way around, to pocket the price gap. Statarb funds running cross-venue strategies. And the
+          other way around, to pocket the price gap. Statarb (statistical arbitrage) funds running cross-venue strategies. And the
           searcher desks running MEV bots &mdash; MEV being the profit you can extract by getting your
           transaction in front of someone else&apos;s. All of them need to react to a price move before the
           next slot lands.
         </p>
         <p style={bodyStyle}>
           You pay in <strong style={strong}>USDC, prepaid</strong>. You fund a balance, and the protocol
-          deducts from it every epoch &mdash; an epoch being Solana&apos;s ~2&nbsp;day accounting window
+          deducts from it every epoch &mdash; an epoch being about a two-day accounting window (432,000 slots)
           &mdash; for as long as your subscription is active. There&apos;s no per-shred billing, no
           packet-by-packet accounting. You&apos;re just buying access to a feed for a stretch of time. Billing
           per epoch matches how validators already think about reward cadence and how DoubleZero already
@@ -87,19 +87,19 @@ export default function ShredEconomyArticle() {
 
         <CardGrid columns={3} cards={[
           {
-            num: '~50%',
+            num: '50%',
             tag: 'Fibre',
             title: 'DZ network contributors',
             body: 'The operators who run DoubleZero Devices (DZDs), contribute fibre links, and operate the DoubleZero Exchanges (DZXs). Without them, no pipe. Largest lane by share — the capex and ongoing ops sit here.',
           },
           {
-            num: '~32.5%',
+            num: '32.5%',
             tag: 'Validators',
             title: 'Shred producers',
             body: 'The validators whose shreds populate the feed. Paid pro-rata to how many shreds each validator contributed during the epoch — not pro-rata to stake. A small validator producing data still earns; a large one staking but not relaying earns nothing here.',
           },
           {
-            num: '~17.5%',
+            num: '17.5%',
             tag: 'Clients',
             title: 'Validator client teams',
             body: 'The software making the data available — Agave, Firedancer, Frankendancer, Jito-Solana. The patch surface that exposes the Edge feed gets paid every epoch the patch is in use across the validator set.',
@@ -117,9 +117,9 @@ export default function ShredEconomyArticle() {
           fontFamily: 'monospace', fontSize: '0.85rem', lineHeight: 1.7,
           color: 'rgba(255,255,255,0.7)', letterSpacing: '0.02em',
         }}>
-          <li><span style={{ color: '#00ffea' }}>~$4,000</span> &nbsp;&rarr; fibre / network contributors</li>
-          <li><span style={{ color: '#00ffea' }}>~$2,600</span> &nbsp;&rarr; validators, split pro-rata by shred count</li>
-          <li><span style={{ color: '#00ffea' }}>~$1,400</span> &nbsp;&rarr; client teams (Jito, Agave, Firedancer)</li>
+          <li><span style={{ color: '#00ffea' }}>$4,000</span> &nbsp;&rarr; fibre / network contributors</li>
+          <li><span style={{ color: '#00ffea' }}>$2,600</span> &nbsp;&rarr; validators, split pro-rata by shred count</li>
+          <li><span style={{ color: '#00ffea' }}>$1,400</span> &nbsp;&rarr; client teams (Jito, Agave, Firedancer)</li>
         </ul>
 
         <p style={bodyStyle}>
@@ -163,7 +163,7 @@ export default function ShredEconomyArticle() {
 
         <SectionLabel>The numbers as they stand</SectionLabel>
         <p style={bodyStyle}>
-          $8,890 in a single epoch is small. ~$1.6M annualised is small. But both numbers are also{' '}
+          $8,890 in a single epoch is small. $1.6M annualised is small. But both numbers are also{' '}
           <em>day one</em>. Edge launched into a Solana validator set that runs into the high thousands;
           the slice running DoubleZero is still in the dozens. And the slice of HFT shops actually paying for
           a subscription is smaller still &mdash; for a lot of them the test budget hasn&apos;t even cleared

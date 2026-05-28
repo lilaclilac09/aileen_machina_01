@@ -16,7 +16,7 @@ export default function WireArticle() {
 
         <SectionLabel>The Useful Lie of getAccountInfo</SectionLabel>
         <p style={bodyStyle}>
-          You write <code style={codeStyle}>connection.getAccountInfo(pubkey)</code>. A promise resolves with the account state. The code reads like the connection is a database query and the network is invisible. It isn&apos;t. Between those two lines of code, your request leaves your process, crosses three or four networks, lands in a validator that&apos;s replaying the entire chain in lockstep with the leader, snapshots a 165-byte slice of memory, encodes it as base64, wraps it in a JSON envelope, and sends it back. The latency floor on that round trip — 50 to 200 milliseconds against a serious provider — is set by physics, by the JSON parser, and by how recently the validator finished applying the last slot.
+          You write <code style={codeStyle}>connection.getAccountInfo(pubkey)</code> — the call that asks a node for one account&apos;s current contents. A promise resolves with the account state. The code reads like the connection is a database query and the network is invisible. It isn&apos;t. Between those two lines of code, your request leaves your process, crosses three or four networks, lands in a validator that&apos;s replaying the entire chain in lockstep with the leader, snapshots a 165-byte slice of memory, encodes it as base64, wraps it in a JSON envelope, and sends it back. The latency floor on that round trip — 50 to 200 milliseconds against a serious provider — is set by physics, by the JSON parser, and by how recently the validator finished applying the last slot.
         </p>
         <p style={bodyStyle}>
           The documentation makes this look like a function call. It&apos;s really a network journey. The rest of this article walks that journey top to bottom: how a block is built, how it propagates as shreds through the turbine tree, how the RPC node serves it to you, how the three call styles (JSON-RPC, WebSocket, gRPC) compare, and what the commitment-level dial actually controls. The goal is the mental model you need to debug a stuck transaction, pick a provider, or read a Yellowstone stream without flinching.
@@ -24,15 +24,15 @@ export default function WireArticle() {
 
         <SectionLabel>Slots, Blocks, and the 400ms Heartbeat</SectionLabel>
         <p style={bodyStyle}>
-          Solana&apos;s clock is the <strong>slot</strong> — a 400-millisecond time bucket. The validator scheduled as leader for that slot tries to produce a <strong>block</strong>. If it succeeds, the slot has a block; if it fails or runs out of time, the slot is empty (&quot;skipped&quot;). That&apos;s why block height — the count of slots that actually produced blocks — advances more slowly than slot height. At today&apos;s network conditions the network averages around 380–420ms per slot and skips roughly 5–10% of them under congestion.
+          Solana&apos;s clock is the <strong>slot</strong> — a 400-millisecond time bucket. The validator scheduled as leader for that slot tries to produce a <strong>block</strong>. If it succeeds, the slot has a block; if it fails or runs out of time, the slot is empty (&quot;skipped&quot;). That&apos;s why block height — the count of slots that actually produced blocks — advances more slowly than slot height. At today&apos;s network conditions the network averages 380–420ms per slot and skips 5–10% of them under congestion.
         </p>
         <p style={bodyStyle}>
-          A block isn&apos;t a single object that gets shipped whole. It&apos;s a sequence of <strong>entries</strong> — micro-batches of transactions interleaved with proof-of-history hashes. Entries exist for two reasons: they let the leader hash-stamp the passage of time deterministically (the PoH chain), and they let downstream validators run non-conflicting transactions in parallel. Each entry holds a list of <strong>transactions</strong>, and each transaction holds one or more <strong>instructions</strong>, each one targeting a specific program. From the outside, the developer sees &quot;a block of transactions.&quot; From inside the validator, it&apos;s a stream of entries threading through a parallel execution engine.
+          A block isn&apos;t a single object that gets shipped whole. It&apos;s a sequence of <strong>entries</strong> — micro-batches of transactions interleaved with proof-of-history hashes — a cryptographic timestamp chain that proves time passed between events. Entries exist for two reasons: they let the leader hash-stamp the passage of time deterministically (the PoH chain), and they let downstream validators run non-conflicting transactions in parallel. Each entry holds a list of <strong>transactions</strong>, and each transaction holds one or more <strong>instructions</strong>, each one targeting a specific program. From the outside, the developer sees &quot;a block of transactions.&quot; From inside the validator, it&apos;s a stream of entries threading through a parallel execution engine.
         </p>
 
         <SectionLabel>The Shred: Solana&apos;s Sub-Block Unit</SectionLabel>
         <p style={bodyStyle}>
-          A block isn&apos;t transmitted as a single object either. The leader chops it into <strong>shreds</strong> — ~1,228-byte fragments — and broadcasts them the instant they&apos;re serialized, before the block is even complete. There are two kinds. <strong>Data shreds</strong> carry the actual entry bytes. <strong>Coding shreds</strong> are Reed-Solomon parity fragments that let downstream validators reconstruct missing data shreds without having to re-request them. Together they form an FEC (forward error correction) set. A block with 1,000 transactions might serialize to ~150 data shreds plus ~50 coding shreds; lose any 50 of the 200 and the block is still recoverable.
+          A block isn&apos;t transmitted as a single object either. The leader chops it into <strong>shreds</strong> — 1,228-byte fragments — and broadcasts them the instant they&apos;re serialized, before the block is even complete. There are two kinds. <strong>Data shreds</strong> carry the actual entry bytes. <strong>Coding shreds</strong> are Reed-Solomon parity fragments that let downstream validators reconstruct missing data shreds without having to re-request them. Together they form an FEC (forward error correction) set. A block with 1,000 transactions might serialize to, for example, 150 data shreds plus 50 coding shreds; lose any 50 of the 200 and the block is still recoverable.
         </p>
         <p style={bodyStyle}>
           The reason shreds exist as a primitive is propagation. If a block had to be sent atomically, the worst-case latency would be (block size / bandwidth) before a single downstream validator could even start processing. By streaming shreds as they&apos;re produced, propagation overlaps with construction. By the time the leader finishes the last shred of slot N, downstream validators have already received and partially executed the first 80% of it. That&apos;s the reason Solana can target 400ms slots at all.
@@ -40,16 +40,16 @@ export default function WireArticle() {
 
         <SectionLabel>Turbine: How Shreds Reach Every Validator</SectionLabel>
         <p style={bodyStyle}>
-          The leader doesn&apos;t broadcast every shred to every validator. That would scale O(N²) and saturate the leader&apos;s uplink. Instead, the leader picks a fanout of K direct neighbors (currently around 200), each of whom forwards to the next layer of K, and so on. The result is a tree of depth O(log N) — every validator in the cluster gets every shred in 2 or 3 network hops. This is <strong>Turbine</strong>.
+          The leader doesn&apos;t broadcast every shred to every validator. That would scale O(N²) — the leader&apos;s work balloons with every validator added — and saturate the leader&apos;s uplink. Instead, the leader picks a fanout of K direct neighbors (currently 200), each of whom forwards to the next layer of K, and so on. The result is a tree of depth O(log N) — every validator is reached in just a few hops no matter how many there are — every validator in the cluster gets every shred in 2 or 3 network hops. This is <strong>Turbine</strong>.
         </p>
 
         <pre style={codeBlockStyle}><code>{`               LEADER
                  |
        +---------+---------+
-       |         |         |     <- depth 1: ~200 neighbors
+       |         |         |     <- depth 1: 200 neighbors
       V1        V2  ...   V200
      /  \\      /  \\
-    V   V    V   V              <- depth 2: ~40,000 forwards
+    V   V    V   V              <- depth 2: 40,000 forwards
    ...     ...     ...           <- depth 3: every remaining validator
 `}</code></pre>
 
@@ -87,15 +87,15 @@ export default function WireArticle() {
             <strong style={{ color: 'rgba(255,255,255,0.85)' }}>4. Shred propagates.</strong> The entry holding your transaction gets packed into shreds and broadcast through turbine. Validators across the network receive, reconstruct, and replay it.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>5. Validators vote.</strong> Each validator votes on the block as part of its own block-production cycle (votes are themselves transactions, which is why ~85% of mainnet traffic is votes). Once stake exceeding two-thirds has voted on the block, the slot reaches <code style={codeStyle}>confirmed</code> commitment — typically 400ms to 1 second after submission.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>5. Validators vote.</strong> Each validator votes on the block as part of its own block-production cycle (votes are themselves transactions, which is why 85% of mainnet traffic is votes). Once stake exceeding two-thirds has voted on the block, the slot reaches <code style={codeStyle}>confirmed</code> commitment — typically 400ms to 1 second after submission.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 0 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>6. Finalization.</strong> 31+ slot lockouts after the vote, the slot reaches <code style={codeStyle}>finalized</code> commitment — about 12 to 15 seconds after submission. At this point the transaction is permanent; no fork can revert it.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>6. Finalization.</strong> 31+ slot lockouts — a lockout being a promise not to vote on a competing fork for that many slots — after the vote, the slot reaches <code style={codeStyle}>finalized</code> commitment — 32 slots, about 12.8 seconds after submission. At this point the transaction is permanent; no fork can revert it.
           </p>
         </div>
 
         <p style={bodyStyle}>
-          The numbers worth memorizing: ~400ms to confirmed, ~13s to finalized. Everything &quot;fast&quot; — Jito bundles, Helius Sender, Triton Cascade — is about cutting the variance at step 2, getting your transaction in front of the leader reliably. Nothing touches step 5 or step 6, because those are consensus, not networking.
+          The numbers worth memorizing: 400ms to confirmed, 32 slots (about 12.8 seconds) to finalized. Everything &quot;fast&quot; — Jito bundles, Helius Sender, Triton Cascade — is about cutting the variance at step 2, getting your transaction in front of the leader reliably. Nothing touches step 5 or step 6, because those are consensus, not networking.
         </p>
 
         <SectionLabel>The RPC Node: A Validator That Doesn&apos;t Vote</SectionLabel>
@@ -146,7 +146,7 @@ ws.onmessage = e => {
           Two response shapes come back. First, the subscription confirmation: <code style={codeStyle}>{`{"result": 12345, "id": 1}`}</code> — that integer is your subscription handle, which you pass to <code style={codeStyle}>accountUnsubscribe</code> when you&apos;re done. Then, every time the account changes, a push: <code style={codeStyle}>{`{"method": "accountNotification", "params": {"subscription": 12345, "result": {...account...}}}`}</code>.
         </p>
         <p style={bodyStyle}>
-          Why this beats polling is mechanical: zero per-update round trips, no rate-limit budget burned re-asking the same question, and latency drops to leader-to-you propagation time (~400ms at confirmed) instead of leader-to-you-plus-your-poll-interval. What it doesn&apos;t solve is the JSON parse cost — each notification still gets fully decoded — or the WebSocket framing overhead. That&apos;s what gRPC is for.
+          Why this beats polling is mechanical: zero per-update round trips, no rate-limit budget burned re-asking the same question, and latency drops to leader-to-you propagation time (400ms at confirmed) instead of leader-to-you-plus-your-poll-interval. What it doesn&apos;t solve is the JSON parse cost — each notification still gets fully decoded — or the WebSocket framing overhead. That&apos;s what gRPC is for.
         </p>
 
         <SectionLabel>gRPC / Yellowstone: The Binary Stream</SectionLabel>
@@ -171,7 +171,7 @@ for await (const update of stream) {
 }`}</code></pre>
 
         <p style={bodyStyle}>
-          Why is this the fastest network call available? Three reasons stack up. <strong>(a) Binary protobuf, not JSON.</strong> The same account update is roughly 200 bytes over Yellowstone versus 600 bytes over JSON-RPC, before any compression. <strong>(b) HTTP/2 multiplexing.</strong> Many subscriptions ride one TCP/TLS connection — WSS gives you that, raw HTTP JSON-RPC doesn&apos;t. <strong>(c) Off-thread decoding.</strong> The Helius LaserStream JS SDK is the canonical example: the streaming engine, protobuf serialization, and slot tracking are all written in Rust, and only the application logic runs in JavaScript. NAPI bindings move data zero-copy. Throughput is ~1.3 GB/s sustained versus ~30 MB/s for a pure-JS Yellowstone client — about 40 times faster, because the JS event loop is no longer in the hot path.
+          Why is this the fastest network call available? Three reasons stack up. <strong>(a) Binary protobuf, not JSON.</strong> The same account update is 200 bytes over Yellowstone versus 600 bytes over JSON-RPC, before any compression. <strong>(b) HTTP/2 multiplexing.</strong> Many subscriptions ride one TCP/TLS connection — WSS gives you that, raw HTTP JSON-RPC doesn&apos;t. <strong>(c) Off-thread decoding.</strong> The Helius LaserStream JS SDK is the canonical example: the streaming engine, protobuf serialization, and slot tracking are all written in Rust, and only the application logic runs in JavaScript. NAPI bindings move data zero-copy — the data is handed from Rust to JavaScript without being copied. Throughput is 1.3 GB/s sustained versus 30 MB/s for a pure-JS Yellowstone client — 40 times faster, because the JS event loop is no longer in the hot path.
         </p>
         <p style={bodyStyle}>
           The same stream interface is also where the reliability features live. LaserStream tracks the last slot it acknowledged and asks the server to resume from that point on reconnect, recovering up to 24 hours of missed data. Triton&apos;s Dragon&apos;s Mouth ships the same underlying protocol. Both compress on the wire with Zstd (70–80% bandwidth reduction), which directly cuts the streaming-traffic cost.
@@ -196,19 +196,19 @@ for await (const update of stream) {
               <tr style={trStyle}>
                 <td style={tdLabelStyle}>processed</td>
                 <td style={tdStyle}>Leader produced the block; not yet voted on</td>
-                <td style={tdStyle}>~100–200 ms</td>
+                <td style={tdStyle}>100–200 ms</td>
                 <td style={tdStyle}>Can be reverted if fork is abandoned</td>
               </tr>
               <tr style={trStyle}>
                 <td style={tdLabelStyle}>confirmed</td>
                 <td style={tdStyle}>Supermajority of stake voted for the block</td>
-                <td style={tdStyle}>~400 ms – 1 s</td>
-                <td style={tdStyle}>Effectively final, ~0 reversion in practice</td>
+                <td style={tdStyle}>400 ms – 1 s</td>
+                <td style={tdStyle}>Effectively final, near-zero reversion in practice</td>
               </tr>
               <tr style={trStyle}>
                 <td style={tdLabelStyle}>finalized</td>
                 <td style={tdStyle}>31+ lockout slots past the vote</td>
-                <td style={tdStyle}>~12–15 s</td>
+                <td style={tdStyle}>12–15 s</td>
                 <td style={tdStyle}>Mathematically irreversible</td>
               </tr>
             </tbody>
@@ -235,7 +235,7 @@ for await (const update of stream) {
           Everything above is about reading the network <em>after</em> a block is built. There&apos;s a deeper layer. A transaction sits in a shred for some number of milliseconds before that shred gets bundled into a complete block — so if you can read shreds as they propagate, you see the transaction before it&apos;s officially in a block. That&apos;s what <strong>Jito ShredStream</strong> does. It taps the turbine gossip layer, receives shreds the way a validator would, reconstructs transactions from the data + coding shreds, and exposes them as a stream to its subscribers.
         </p>
         <p style={bodyStyle}>
-          The window this opens is roughly 50 to 100 milliseconds — the time between a transaction being broadcast by the leader and the corresponding block being finalized at <code style={codeStyle}>confirmed</code>. The pump.fun cancel race lives right in this window: a sniper bot sees an incoming buy on ShredStream and races a cancel-or-flip transaction through Jito bundles to the next leader before the original transaction reaches <code style={codeStyle}>confirmed</code>. You don&apos;t get execution metadata from a shred-level read (no logs, no status, no compute units consumed) — you get the raw transaction, ahead of consensus.
+          The window this opens is 50 to 100 milliseconds — the time between a transaction being broadcast by the leader and the corresponding block being finalized at <code style={codeStyle}>confirmed</code>. The pump.fun cancel race lives right in this window: a sniper bot sees an incoming buy on ShredStream and races a cancel-or-flip transaction through Jito bundles to the next leader before the original transaction reaches <code style={codeStyle}>confirmed</code>. You don&apos;t get execution metadata from a shred-level read (no logs, no status, no compute units consumed) — you get the raw transaction, ahead of consensus.
         </p>
         <p style={bodyStyle}>
           The validator client itself is being optimized at this layer too. A recently-merged upstream
@@ -250,10 +250,10 @@ for await (const update of stream) {
           Reading is the easy half. Writing — getting a transaction to actually land in a block during congestion — is where most production Solana code earns its scar tissue. Vanilla <code style={codeStyle}>sendTransaction</code> goes through the RPC, which forwards it via UDP/QUIC to the TPU (Transaction Processing Unit, the QUIC endpoint a leader runs to receive transactions). Under congestion, the TPU&apos;s queue is bounded and the leader rejects whatever doesn&apos;t fit. The transaction silently drops.
         </p>
         <p style={bodyStyle}>
-          There are four production answers, in increasing order of sophistication and cost. <strong>Priority fees</strong> — add a <code style={codeStyle}>ComputeBudgetProgram.setComputeUnitPrice</code> instruction, pay extra micro-lamports per CU, and the leader bumps you up the inclusion queue. <strong>Jito bundles</strong> — submit your transaction as an atomic group through Jito&apos;s block engine, attach a tip to a validator, and the validator includes the bundle in exchange for the tip (this also gives you atomic multi-transaction execution, the foundation of MEV protection). <strong>Helius Sender</strong> — Helius&apos;s managed landing service: they multi-route through priority fees, Jito tip accounts, and their own staked validator paths, exposing one endpoint that &quot;just lands.&quot; <strong>Triton Cascade</strong> — a marketplace where validators sell stake-weighted QoS bandwidth (0.1 SOL per epoch per 100 PPS), so you buy guaranteed leader-side inclusion bandwidth instead of fighting the public mempool.
+          There are four production answers, in increasing order of sophistication and cost. <strong>Priority fees</strong> — add a <code style={codeStyle}>ComputeBudgetProgram.setComputeUnitPrice</code> instruction, pay extra micro-lamports per CU, and the leader bumps you up the inclusion queue. <strong>Jito bundles</strong> — submit your transaction as an atomic group through Jito&apos;s block engine, attach a tip to a validator, and the validator includes the bundle in exchange for the tip (this also gives you atomic multi-transaction execution, the foundation of MEV protection). <strong>Helius Sender</strong> — Helius&apos;s managed landing service: they multi-route through priority fees, Jito tip accounts, and their own staked validator paths, exposing one endpoint that &quot;just lands.&quot; <strong>Triton Cascade</strong> — a marketplace where validators sell stake-weighted QoS (Quality of Service) bandwidth (0.1 SOL per epoch per 100 PPS — packets per second), so you buy guaranteed leader-side inclusion bandwidth instead of fighting the public mempool.
         </p>
         <p style={bodyStyle}>
-          The reason any of this exists is SWQoS itself. Solana&apos;s leader hands out inclusion bandwidth in proportion to staked SOL — validators with more stake get priority forwarding of transactions, regardless of priority fee. If your transactions arrive via a high-stake validator&apos;s connection, they land. If they arrive via a low-stake or unstaked endpoint, they wait. Cascade monetizes this: validators sell access to their stake-weighted bandwidth, and applications buy a reliable inclusion path. It&apos;s the only one of the four answers that operates at the consensus-level QoS layer rather than the fee market.
+          The reason any of this exists is SWQoS (stake-weighted Quality of Service) itself. Solana&apos;s leader hands out inclusion bandwidth in proportion to staked SOL — validators with more stake get priority forwarding of transactions, regardless of priority fee. If your transactions arrive via a high-stake validator&apos;s connection, they land. If they arrive via a low-stake or unstaked endpoint, they wait. Cascade monetizes this: validators sell access to their stake-weighted bandwidth, and applications buy a reliable inclusion path. It&apos;s the only one of the four answers that operates at the consensus-level QoS layer rather than the fee market.
         </p>
 
         <SectionLabel>The Mental Model</SectionLabel>

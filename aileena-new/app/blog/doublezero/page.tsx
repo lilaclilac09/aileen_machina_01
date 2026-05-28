@@ -13,9 +13,9 @@ export default function DoubleZeroArticle() {
     >
       {/* ── Stats wall ── */}
       <StatsWall stats={[
-        { value: '~500 ms', label: 'worst-case tx land', sub: 'vs >1.5s on public internet' },
-        { value: '>16 ms', label: 'per-shred multicast gain', sub: 'Frankfurt subscribers, BP25' },
-        { value: '~40 %', label: 'Solana validators on DZ', sub: 'as of mainnet-beta' },
+        { value: '500 ms', label: 'worst-case tx land', sub: 'vs >1.5s on public internet' },
+        { value: '>16 ms', label: 'per-shred multicast gain', sub: 'Frankfurt subscribers, BP25 (Breakpoint 2025, Solana\'s conference)' },
+        { value: '40 %', label: 'Solana validators on DZ', sub: 'as of mainnet-beta' },
         { value: 'Oct 2025', label: 'mainnet-beta launch', sub: 'whitepaper Dec 2024' },
       ]} />
 
@@ -28,8 +28,8 @@ export default function DoubleZeroArticle() {
         </p>
         <p style={bodyStyle}>
           <strong style={strong}>Latency</strong> is the median time a packet takes to get from A to B.
-          NYC ↔ Frankfurt is ~76ms great-circle. Light in fiber travels at about 2/3 of c, so the physical
-          floor is around 38ms one-way. You don&apos;t beat that without a lower-latitude path.
+          NYC ↔ Frankfurt is 76ms great-circle. Light in fiber travels at about 2/3 of c, so the physical
+          floor is 38ms one-way. You don&apos;t beat that without a lower-latitude path.
         </p>
         <p style={bodyStyle}>
           <strong style={strong}>Jitter</strong> is the variance — how much that timing bounces around. P50
@@ -65,7 +65,7 @@ export default function DoubleZeroArticle() {
               </tr>
               <tr style={trStyle}>
                 <td style={tdLabelStyle}>DoubleZero</td>
-                <td style={tdStyle}>~500 ms</td>
+                <td style={tdStyle}>500 ms</td>
               </tr>
             </tbody>
           </table>
@@ -86,7 +86,7 @@ export default function DoubleZeroArticle() {
           in practice, wavelength services running on existing long-haul fiber. Three flavors: L1 wavelength on
           DWDM/CWDM, L2 packet-switched VLAN extension, or L3 dedicated third-party bandwidth. Each
           contributed link terminates at a <strong style={strong}>DZD</strong> (DoubleZero Device — a
-          physical switch, in practice a pair of Arista 7280CR3As plus AMD V80 NICs, sitting in a 4U/4KW rack at
+          physical switch, in practice a pair of Arista 7280CR3As plus AMD V80 NICs, sitting in a 4U/4KW rack (a fridge-sized rack drawing 4 kilowatts) at
           each end).
         </p>
         <p style={bodyStyle}>
@@ -97,14 +97,14 @@ export default function DoubleZeroArticle() {
         <p style={bodyStyle}><strong style={strong}>Software layer.</strong></p>
         <ul style={listStyle}>
           <li><strong style={strong}>Controller</strong> — derives device configuration from on-chain state.</li>
-          <li><strong style={strong}>Config Agent + Telemetry Agent</strong> — run on each DZD. Config Agent applies whatever the Controller says; Telemetry Agent measures latency, jitter, and packet loss via <strong style={strong}>TWAMP</strong> and publishes results.</li>
-          <li><code style={codeStyle}>doublezerod</code> — the daemon that runs on the validator or RPC host. Manages a <code style={codeStyle}>doublezero0</code> tunnel interface, the routing table, and the BGP session into the mesh.</li>
+          <li><strong style={strong}>Config Agent + Telemetry Agent</strong> — run on each DZD. Config Agent applies whatever the Controller says; Telemetry Agent measures latency, jitter, and packet loss via <strong style={strong}>TWAMP</strong> &mdash; a network round-trip latency measurement protocol &mdash; and publishes results.</li>
+          <li><code style={codeStyle}>doublezerod</code> — the daemon that runs on the validator or RPC host. Manages a <code style={codeStyle}>doublezero0</code> tunnel interface, the routing table, and the BGP (the internet&apos;s routing protocol) session into the mesh.</li>
           <li><strong style={strong}>On-chain ledger</strong> — serviceability state and telemetry get written to a Solana program. Network state is verifiable; routing isn&apos;t a black box.</li>
         </ul>
         <p style={bodyStyle}>
           What it isn&apos;t: it&apos;s not &quot;BGP-free.&quot; DoubleZero actually <em>uses</em> BGP — the
           internet&apos;s routing protocol — but inside its own permissioned mesh, on
-          <code style={codeStyle}> 169.254.0.0/16</code> link-local addresses over GRE (IP protocol 47), with
+          <code style={codeStyle}> 169.254.0.0/16</code> link-local addresses over GRE (Generic Routing Encapsulation, a packet-tunneling protocol; IP protocol 47), with
           every peer and policy known. The difference from the public internet isn&apos;t &quot;no BGP,&quot; it&apos;s
           &quot;BGP across a deterministic mesh of N participants&quot; versus &quot;BGP across tens of thousands of
           unknown ASes doing best-effort policy routing.&quot; Same protocol, completely different blast radius.
@@ -123,7 +123,7 @@ export default function DoubleZeroArticle() {
         <p style={bodyStyle}>
           Turbine sends shreds as unicast — one packet to one recipient at a time. The leader picks a root
           validator and sends one copy. The root forwards a copy to each of its children. Each child forwards
-          to its children. To deliver one block to 1500 validators, the network ends up carrying roughly 1500
+          to its children. To deliver one block to 1500 validators, the network ends up carrying 1500
           copies of every shred at the worst layer, and the depth of the tree piles on latency at every hop.
         </p>
         <p style={bodyStyle}>
@@ -185,7 +185,7 @@ export default function DoubleZeroArticle() {
           rebuild your validator.&quot; The actual story is much smaller than that.
         </p>
         <p style={bodyStyle}>
-          The killer feature is <strong style={strong}>IBRL</strong> — a connection mode that lets
+          The killer feature is <strong style={strong}>IBRL</strong> — Increased Bandwidth, Reduced Latency, a connection mode that lets
           validators and RPC nodes connect to DoubleZero <em>without restarting their blockchain clients</em>.
           You don&apos;t fork Agave or Firedancer. You don&apos;t take downtime. <code style={codeStyle}>doublezerod</code> brings
           up a tunnel interface and a routing table, and the validator&apos;s existing sockets just start
@@ -265,7 +265,7 @@ doublezero status        # confirm connection`}
 
         <SectionLabel>Compared to renting your own fiber</SectionLabel>
         <p style={bodyStyle}>
-          HFT firms have been solving this problem since ~2010, and the comparison is worth spelling out,
+          HFT firms have been solving this problem since 2010, and the comparison is worth spelling out,
           because it&apos;s exactly why DoubleZero is structured as a shared substrate.
         </p>
         <p style={bodyStyle}>
@@ -317,9 +317,9 @@ doublezero status        # confirm connection`}
         <p style={bodyStyle}>
           <strong style={strong}>The DoubleZero model.</strong> A bandwidth contributor dedicates a
           wavelength to the shared substrate, terminates it on a DZD pair (Arista 7280CR3A + AMD V80,
-          ~4U/4KW per side), and bridges to the rest of the network at the nearest DZX. Lots of validators
+          4U/4KW per side), and bridges to the rest of the network at the nearest DZX. Lots of validators
           and searchers share ports into that substrate. Capacity is multiplexed, telemetry is published, and
-          contributors get paid via the on-chain Shapley-value reward program, in proportion to their measured
+          contributors get paid via the on-chain Shapley-value reward program &mdash; Shapley value being a fair-split formula from game theory &mdash; in proportion to their measured
           contribution to network quality.
         </p>
 
@@ -383,7 +383,7 @@ doublezero status        # confirm connection`}
           <strong style={strong}>Frankendancer is on mainnet, and the wins compound with DoubleZero.</strong>{' '}
           Frankendancer — the production hybrid where Firedancer&apos;s networking and block-packing
           replace Agave&apos;s, then Agave&apos;s runtime does the actual execution — has been on mainnet since
-          September 2024. It posts roughly <strong style={strong}>~22% faster shredding without Merkle trees and
+          September 2024. It posts roughly <strong style={strong}>22% faster shredding without Merkle trees and
           almost 2× faster with Merkle trees</strong> versus Agave&apos;s path on the same hardware. That&apos;s
           a pure CPU-side win; the wire is still the same wire.
         </p>
@@ -396,7 +396,7 @@ doublezero status        # confirm connection`}
         </p>
         <p style={bodyStyle}>
           <strong style={strong}>The integration shape is the <code style={codeStyle}>net_tile</code>.</strong>{' '}
-          Firedancer&apos;s <code style={codeStyle}>net_tile</code> is the per-CPU thread that owns one NIC.
+          Firedancer&apos;s <code style={codeStyle}>net_tile</code> is the per-CPU thread that owns one NIC &mdash; a tile being a pipeline stage, one unit of the validator&apos;s work.
           The natural place to wire in DoubleZero is to bind a specific{' '}
           <code style={codeStyle}>net_tile</code> to the <code style={codeStyle}>doublezero0</code> interface —
           consensus traffic to peers also on the mesh goes through that tile, and everything else goes
@@ -516,14 +516,14 @@ doublezero status        # confirm connection`}
           Three things to measure, in order of how much they matter to participants:
         </p>
         <p style={bodyStyle}>
-          <strong style={strong}>Worst-case tx land time.</strong> Malbec&apos;s published figure: ~500ms
+          <strong style={strong}>Worst-case tx land time.</strong> Malbec&apos;s published figure: 500ms
           on DoubleZero vs &gt;1.5s on public internet at the tail. This is the headline number from the
           BP25 talk, and the one most likely to move both validator skip rate and searcher inclusion rate.
         </p>
         <p style={bodyStyle}>
           <strong style={strong}>Multicast vs unicast shred delivery.</strong> Frankfurt subscribers saw a
           &gt;16ms improvement per delivery in published testing. For a leader sitting on a 400ms slot,
-          that&apos;s ~4% of the entire window recovered — per shred, per hop. Compound that across Turbine
+          that&apos;s 4% of the entire window recovered — per shred, per hop. Compound that across Turbine
           depth and the slot window loosens meaningfully, which lets the leader keep tx ingress open longer
           without risking a skip.
         </p>
@@ -659,7 +659,7 @@ doublezero status        # confirm connection`}
         </p>
 
         <blockquote style={blockquoteStyle}>
-          ~40% of Solana validators have already joined a six-month-old network. That is the strongest
+          40% of Solana validators have already joined a six-month-old network. That is the strongest
           evidence the bet is paying.
         </blockquote>
 
