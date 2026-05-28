@@ -40,33 +40,33 @@ gh pr list --json title,number | jq '.[] | select(.title | test("WIP"))' | head 
 
         <SectionLabel>Trading-Case CLI: Why Traders Refuse to Leave the Terminal</SectionLabel>
         <p style={bodyStyle}>
-          Walk into any prop shop or any one-person Solana-bot operation and you will find a terminal multiplexer — tmux, zellij, kitty — with eight panes split across two monitors. One pane runs a price stream. One runs the strategy log. One has an open <code style={codeStyle}>shell</code> on the exchange&apos;s API, ready to flatten the book if something goes wrong. There is usually no chart. The chart is a downstream artifact. The CLI is the floor.
+          Walk into any prop shop, or any one-person Solana-bot operation, and you&apos;ll find a terminal multiplexer — tmux, zellij, kitty (tools that split one terminal into many panes) — with eight panes spread across two monitors. One pane runs a price stream. One runs the strategy log. One has an open <code style={codeStyle}>shell</code> on the exchange&apos;s API, ready to flatten the book if something goes wrong. Usually there&apos;s no chart at all. The chart is a downstream artifact. The CLI is the floor.
         </p>
         <p style={bodyStyle}>
-          The reason isn&apos;t romance. It&apos;s five concrete properties the terminal has and a GUI almost never matches.
+          The reason isn&apos;t romance. It&apos;s five concrete things the terminal gives you that a GUI almost never matches.
         </p>
 
         <div style={{ margin: '32px 0', padding: '0 0 0 24px', borderLeft: '2px solid rgba(255,255,255,0.1)' }}>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Latency.</strong> A GUI adds a render frame — 16ms at 60Hz, often 30–80ms in practice once event loops, state diffs, and animations are involved. A direct HTTP call from the shell is whatever the network costs you, no more. For a market-making cancel race, that difference is the spread.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Latency.</strong> A GUI adds a render frame — 16ms at 60Hz, often 30–80ms in practice once event loops, state diffs, and animations get involved. A direct HTTP call from the shell costs you whatever the network costs, and nothing more. In a market-making cancel race, that difference is the spread.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Composability.</strong> A trader doesn&apos;t want one app that does everything. They want a price feed (Pyth Hermes), a strategy script (anything from awk to a Rust binary), an exchange client (OKX, Drift, Hyperliquid), and a logger (stdout to a file). Pipes wire them together in one line.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Composability.</strong> A trader doesn&apos;t want one app that does everything. They want a price feed (Pyth Hermes), a strategy script (anything from awk to a Rust binary), an exchange client (OKX, Drift, Hyperliquid), and a logger (stdout to a file). Pipes wire them all together in one line.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Headlessness.</strong> The actual workload runs on a colocated VPS or a bare-metal box near the exchange. No display, no mouse, often no display server installed at all. A CLI is the only interface that survives the move from laptop to remote.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Headlessness.</strong> The real workload runs on a colocated VPS or a bare-metal box near the exchange. No display, no mouse, often no display server installed at all. A CLI is the only interface that survives the move from laptop to remote.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
             <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Audit.</strong> Every command leaves a line in shell history. Every script run leaves a log file. When the P&amp;L moves and you have to explain why, a CLI session is the cleanest forensic trace you can ask for. A GUI session is a memory.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 0 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Automation.</strong> The trader&apos;s actual edge — outside the few firms with genuine alpha — is automation. The strategy that wakes up at 03:14 and hedges a position the human shouldn&apos;t be awake to think about. Cron, systemd timers, agent runtimes. None of that lives in a GUI.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Automation.</strong> A trader&apos;s real edge — outside the handful of firms with genuine alpha — is automation: the strategy that wakes up at 03:14 and hedges a position no human should be awake to think about. Cron, systemd timers, agent runtimes. None of that lives in a GUI.
           </p>
         </div>
 
         <SectionLabel>The Trader&apos;s Toolbox in 2026</SectionLabel>
         <p style={bodyStyle}>
-          The set of CLIs a working crypto trader actually has installed has narrowed and deepened over the last two years. The category list reads short. The implementation list is long.
+          The set of CLIs a working crypto trader actually has installed has narrowed and deepened over the last two years. The list of categories is short. The list of implementations is long.
         </p>
 
         <div style={{ margin: '40px 0', overflowX: 'auto' }}>
@@ -119,12 +119,12 @@ gh pr list --json title,number | jq '.[] | select(.title | test("WIP"))' | head 
         </div>
 
         <p style={bodyStyle}>
-          Three of these — Pyth Hermes for the price feed, OpenClaw as the agent runtime, OKX for execution — are the substrate of a workable single-trader stack. Wired through a thin CLI, they go from a list of services into a single command line.
+          Three of these — Pyth Hermes for the price feed, OpenClaw as the agent runtime, OKX for execution — are the backbone of a workable single-trader stack. Wired through a thin CLI, they go from a list of services to a single command line.
         </p>
 
         <SectionLabel>Hermes: The Pull Oracle as a Curl Target</SectionLabel>
         <p style={bodyStyle}>
-          Hermes is the Pyth Network price service. It speaks HTTP, SSE, and WebSocket. It serves both an off-chain JSON view of the latest aggregated price and a binary VAA blob that can be posted on-chain to push the price into a Pyth oracle contract. Two interfaces, one binary. For a CLI-first trader, the relevant one is the JSON.
+          Hermes is the Pyth Network price service — the thing you ask for a current price. It speaks HTTP, SSE, and WebSocket. It serves two things: an off-chain JSON view of the latest aggregated price, and a binary VAA blob you can post on-chain to push that price into a Pyth oracle contract. Two interfaces, one service. For a CLI-first trader, the one that matters is the JSON.
         </p>
 
         <div style={{ margin: '32px 0', padding: '24px 28px', background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)' }}>
@@ -143,18 +143,18 @@ curl -sN 'https://hermes.pyth.network/v2/updates/price/stream?ids%5B%5D=ef0d8b6f
         </div>
 
         <p style={bodyStyle}>
-          The streaming endpoint is the one that changes how the strategy is shaped. Instead of polling every 100ms and burning RPS, the strategy script reads stdin one line at a time and reacts on each new tick. The price feed becomes a generator. The strategy becomes a transformer. The exchange call becomes a sink. Three Unix processes, one pipe.
+          The streaming endpoint is the one that changes the shape of the strategy. Instead of polling every 100ms and burning through your request budget, the strategy script reads stdin one line at a time and reacts to each new tick. The price feed becomes a generator. The strategy becomes a transformer. The exchange call becomes a sink. Three Unix processes, one pipe.
         </p>
         <p style={bodyStyle}>
-          The trade-off Hermes makes is honesty about freshness. Each price object carries a <code style={codeStyle}>publish_time</code> and a <code style={codeStyle}>conf</code> (confidence band). A strategy that ignores either is making an assumption the API explicitly refuses to make. For a market-making loop, the conf band is part of the decision: widen the quote when conf widens, pull the quote when <code style={codeStyle}>publish_time</code> drifts beyond a threshold.
+          What Hermes gives you in return is honesty about freshness. Each price object carries a <code style={codeStyle}>publish_time</code> and a <code style={codeStyle}>conf</code> (a confidence band — how sure Pyth is about the number). A strategy that ignores either is making an assumption the API flatly refuses to make. For a market-making loop, the conf band is part of the decision: widen your quote when conf widens, pull the quote when <code style={codeStyle}>publish_time</code> drifts past a threshold.
         </p>
 
         <SectionLabel>OpenClaw: An Agent Runtime That Lives in the Terminal</SectionLabel>
         <p style={bodyStyle}>
-          OpenClaw is an agent runtime that runs locally, holds long-lived workspaces and identities, schedules tasks on cron, and routes messages across channels (Telegram, web, shell). For trading, the relevant primitives are four: workspaces (a per-strategy directory with its own state), skills (small scripts the agent can invoke), cron (timed triggers), and subagents (parallel reasoning workers under a coordinator).
+          OpenClaw is an agent runtime (a host process that lets an LLM reason and call tools) that runs locally, holds long-lived workspaces and identities, schedules tasks on cron, and routes messages across channels (Telegram, web, shell). For trading, four primitives matter: workspaces (a per-strategy directory with its own state), skills (small scripts the agent can invoke), cron (timed triggers), and subagents (parallel reasoning workers under a coordinator).
         </p>
         <p style={bodyStyle}>
-          What makes it a fit for trading specifically is that the runtime is not a chat product first. It is a long-running process with a CLI entrypoint. You can <code style={codeStyle}>openclaw run</code> a skill, register a heartbeat, and walk away. The agent reasons about what to do; the skill it ends up calling is just a script. That separation — <em>reasoning over a fixed surface of tools</em> — is the actual agent pattern, and it maps to the trader&apos;s stack cleanly: the LLM picks the order shape, the skill executes the order through OKX or Solana.
+          What makes it a fit for trading specifically is that it isn&apos;t a chat product first. It&apos;s a long-running process with a CLI entrypoint. You can <code style={codeStyle}>openclaw run</code> a skill, register a heartbeat, and walk away. The agent reasons about what to do; the skill it ends up calling is just a script. That separation — <em>an LLM reasoning over a fixed set of tools</em> — is the actual agent pattern, and it maps onto the trader&apos;s stack cleanly: the LLM picks the order shape, the skill places the order through OKX or Solana.
         </p>
 
         <div style={{ margin: '32px 0', padding: '24px 28px', background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)' }}>
