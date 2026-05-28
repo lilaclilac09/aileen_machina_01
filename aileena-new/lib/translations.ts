@@ -36,6 +36,18 @@ export const t = {
       heading: 'Elsewhere',
       linkLabel: 'Visit',
     },
+    visual: {
+      tag: 'VISUAL',
+      heading: 'Visual',
+      body: 'Photos and little things from the years before everything became code — kept around just because they make me smile. Drawn, shot, and loved on. ♡',
+      note: 'made by hand, not by prompt  ૮ ˶ᵔ ᵕ ᵔ˶ ა',
+      items: [
+        { src: '/berlin.jpg', alt: 'Berlin', caption: 'berlin, late' },
+        { src: '/tobira.jpg', alt: 'Tobira', caption: 'a little door' },
+        { src: '/recall.jpg', alt: 'Recall', caption: 'soft static' },
+        { src: '/miniskirt.jpg', alt: 'Miniskirt', caption: 'a good day' },
+      ],
+    },
     openToWork: {
       tag: 'OPEN TO WORK',
       heading: 'Available',
@@ -379,6 +391,18 @@ export const t = {
       tag: 'LINKS',
       heading: 'Anderswo',
       linkLabel: 'Besuchen',
+    },
+    visual: {
+      tag: 'VISUAL',
+      heading: 'Visuell',
+      body: 'Fotos und kleine Dinge aus den Jahren, bevor alles zu Code wurde — aufgehoben, einfach weil sie mich zum Lächeln bringen. Gezeichnet, fotografiert, geliebt. ♡',
+      note: 'von Hand gemacht, nicht per Prompt  ૮ ˶ᵔ ᵕ ᵔ˶ ა',
+      items: [
+        { src: '/berlin.jpg', alt: 'Berlin', caption: 'berlin, spät' },
+        { src: '/tobira.jpg', alt: 'Tobira', caption: 'eine kleine Tür' },
+        { src: '/recall.jpg', alt: 'Recall', caption: 'sanftes Rauschen' },
+        { src: '/miniskirt.jpg', alt: 'Miniskirt', caption: 'ein guter Tag' },
+      ],
     },
     openToWork: {
       tag: 'OFFEN FÜR ANFRAGEN',

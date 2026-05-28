@@ -210,8 +210,49 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 07 FOOTER ── */}
-        <SnapSection className="order-7">
+        {/* ── 07 VISUAL — cute little gallery ── */}
+        <SnapSection id="visual" className="order-7">
+          <div className="h-full flex flex-col bg-[#070707] px-6 sm:px-10 lg:px-16">
+            <div className="mx-auto w-full max-w-[920px] flex h-full flex-col py-12 sm:py-16" style={{ fontFamily: nunito }}>
+              <p className="anim-up flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.32em] text-white/40 mb-4" style={{ fontWeight: 500 }}>
+                {tx.visual.tag} <Sparkle />
+              </p>
+              <h2 className="anim-up-2 flex items-center gap-3 mb-3 text-[clamp(1.6rem,4.2vw,2.6rem)] tracking-tight text-white/95" style={{ fontWeight: 500 }}>
+                {tx.visual.heading} <Heart />
+              </h2>
+              <p className="anim-up-3 mb-8 text-[1rem] leading-relaxed text-white/55 max-w-lg" style={{ fontWeight: 400 }}>
+                {tx.visual.body}
+              </p>
+
+              <div className="flex-1 overflow-y-auto pr-1">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                  {tx.visual.items.map((img) => (
+                    <figure key={img.src} className="anim-up group m-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={img.src}
+                        alt={img.alt}
+                        className="w-full aspect-[3/4] object-cover rounded-md opacity-85 group-hover:opacity-100 transition-opacity"
+                      />
+                      <figcaption className="mt-2 flex items-center gap-1.5 text-[0.72rem] tracking-wide text-white/40 group-hover:text-[#00ffea]/80 transition-colors">
+                        <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: '#00ffea', opacity: 0.6 }} />
+                        {img.caption}
+                      </figcaption>
+                    </figure>
+                  ))}
+                </div>
+
+                <div className="anim-up mt-9 flex items-center gap-3 text-white/30">
+                  <Sparkle /><Heart /><Star /><Flower />
+                  <span className="ml-1 text-[0.82rem] text-white/40" style={{ fontWeight: 400 }}>{tx.visual.note}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </SnapSection>
+
+        {/* ── 08 FOOTER ── */}
+        <SnapSection className="order-8">
           <div className="h-full flex flex-col justify-end bg-[#030303] px-6 sm:px-10 lg:px-16 py-14 sm:py-16" style={{ fontFamily: nunito }}>
             <div className="mx-auto w-full max-w-[920px]">
 
@@ -245,5 +286,36 @@ export default function Home() {
 
       </SnapContainer>
     </>
+  );
+}
+
+/* ── tiny hand-drawn doodles ── */
+function Sparkle() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#00ffea" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 2c.8 5.6 3.6 8.4 9 9-5.4.6-8.2 3.4-9 9-.8-5.6-3.6-8.4-9-9 5.4-.6 8.2-3.4 9-9z" />
+    </svg>
+  );
+}
+function Heart() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#ff9ecb" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 20S3.5 14.6 3.5 8.9A4.3 4.3 0 0 1 12 6.1a4.3 4.3 0 0 1 8.5 2.8C20.5 14.6 12 20 12 20z" />
+    </svg>
+  );
+}
+function Star() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ffe08a" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 3l2.6 5.6 6 .7-4.4 4.1 1.2 6L12 16.8 6.6 19.5l1.2-6L3.4 9.3l6-.7z" />
+    </svg>
+  );
+}
+function Flower() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9ee6ff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="2.3" />
+      <path d="M12 3.8a2.7 2.7 0 0 1 0 5.4M20.2 12a2.7 2.7 0 0 1-5.4 0M12 20.2a2.7 2.7 0 0 1 0-5.4M3.8 12a2.7 2.7 0 0 1 5.4 0" />
+    </svg>
   );
 }
