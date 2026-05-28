@@ -86,8 +86,8 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 03 INVESTING ── */}
-        <SnapSection id="investing" className="order-3">
+        {/* ── 04 INVESTING ── */}
+        <SnapSection id="investing" className="order-4">
           <div className="h-full flex flex-col bg-[#070707] px-6 sm:px-10 lg:px-16">
             <div className="mx-auto w-full max-w-[760px] flex h-full flex-col py-12 sm:py-16" style={{ fontFamily: nunito }}>
               <p className="anim-up text-[0.7rem] uppercase tracking-[0.32em] text-white/40 mb-4" style={{ fontWeight: 500 }}>
@@ -186,8 +186,8 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 06 WOMAN IN TECH ── */}
-        <SnapSection id="woman-in-tech" className="order-4">
+        {/* ── 03 WOMAN IN TECH ── */}
+        <SnapSection id="woman-in-tech" className="order-3">
           <div className="h-full flex flex-col bg-black px-6 sm:px-10 lg:px-16">
             <div className="mx-auto w-full max-w-[760px] flex h-full flex-col py-12 sm:py-16" style={{ fontFamily: nunito }}>
               <p className="anim-up text-[0.7rem] uppercase tracking-[0.32em] text-white/40 mb-4" style={{ fontWeight: 500 }}>
