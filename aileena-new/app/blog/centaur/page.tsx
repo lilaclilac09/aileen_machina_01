@@ -241,6 +241,54 @@ Devin          Cognition      no (SaaS)      cloud — can't drop in`}
           two-day job.
         </p>
 
+        <SectionLabel>Multiplayer &mdash; how a whole team shares one agent</SectionLabel>
+        <p style={bodyStyle}>
+          The other half of the pitch lives in that word &quot;multiplayer.&quot; What Centaur is
+          arguing against is a team each running their own agent on their own laptop &mdash; private
+          setups whose memory and tooling never meet. Centaur is one shared agent the whole team talks
+          to instead, and the <em>sharing</em> is what makes it more than a group chatbot.
+        </p>
+        <p style={bodyStyle}>
+          Mechanically, a conversation lives in a <strong style={strong}>Slack thread</strong>
+          &mdash; Centaur keys it to the channel and thread it&apos;s happening in
+          (<code style={codeStyle}>slack:&lt;channel&gt;:&lt;thread&gt;</code>). So collaboration is
+          the default: anyone in that channel can jump into the same thread, and the agent holds one
+          shared context for all of them instead of starting over per person. And it isn&apos;t
+          anonymous &mdash; every message carries the sender&apos;s identity into the agent, so in a
+          busy channel it can tell who asked for what and keep an attributable record of who did which.
+        </p>
+        <p style={bodyStyle}>
+          The part that actually compounds is what&apos;s shared deployment-wide. The{' '}
+          <strong style={strong}>tool registry</strong>, the workflows, and the personas and skills
+          mounted through the overlay are all org-level: someone adds a tool once, and from then on
+          every conversation &mdash; everyone&apos;s &mdash; can reach it. That&apos;s the whole
+          difference between capability that compounds and capability that stays trapped on one
+          person&apos;s machine. Worth being precise, though: the conversations themselves still run
+          in isolated sandboxes, and history is pulled back per thread. The durable record sits
+          centrally in Postgres, but there&apos;s no single omniscient &quot;search everything everyone
+          ever said&quot; memory &mdash; what&apos;s genuinely shared is the tooling and the workflows,
+          not one giant collective transcript.
+        </p>
+        <p style={bodyStyle}>
+          Which is the honest way to read &quot;it knows each person&apos;s context and
+          priorities.&quot; That isn&apos;t a dashboard or a dedicated feature &mdash; it&apos;s an
+          emergent property of giving one shared agent a seat in the team&apos;s Slack and a key to the
+          org&apos;s tools. The more of the team&apos;s real surfaces it can see &mdash; the channels
+          where work gets discussed, the tools where work actually lives &mdash; the more it behaves
+          like a coworker who already knows what everyone is working on. It picks up priorities the way
+          a new teammate does: by being in the room, not by querying a priorities table.
+        </p>
+        <p style={bodyStyle}>
+          One limit is worth naming, because it&apos;s the flip side of &quot;secure.&quot;
+          Centaur&apos;s boundaries are drawn around <em>secrets and sandboxes</em>, not around{' '}
+          <em>people</em>. The iron-proxy keeps raw credentials out of every sandbox, and each
+          conversation is walled off in its own pod &mdash; but there&apos;s no per-user access control
+          deciding that your request can&apos;t touch a teammate&apos;s data. For a tight, high-trust
+          team that&apos;s a deliberate simplification; for a bigger or less-trusted org, user-level
+          permissions are the thing you&apos;d have to build on top. &quot;Secure&quot; here means your
+          keys never leak into the agent &mdash; not that teammates are walled off from each other.
+        </p>
+
         <SectionLabel>How they&apos;re telling the story</SectionLabel>
         <p style={bodyStyle}>
           The launch messaging is every bit as deliberate as the architecture. Four things about it
