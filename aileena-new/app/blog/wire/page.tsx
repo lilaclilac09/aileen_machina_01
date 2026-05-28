@@ -16,31 +16,31 @@ export default function WireArticle() {
 
         <SectionLabel>The Useful Lie of getAccountInfo</SectionLabel>
         <p style={bodyStyle}>
-          You write <code style={codeStyle}>connection.getAccountInfo(pubkey)</code>. A promise resolves with the account state. The code reads like the connection is a database query and the network is invisible. It is not. Between those two lines of code, your request leaves your process, crosses three or four networks, enters a validator that is replaying the entire chain in lockstep with the leader, snapshots a 165-byte slice of memory, encodes it as base64, wraps it in a JSON envelope, and sends it back. The latency floor on that round trip — 50 to 200 milliseconds against a serious provider — is set by physics, by the JSON parser, and by how recently the validator finished applying the last slot.
+          You write <code style={codeStyle}>connection.getAccountInfo(pubkey)</code>. A promise resolves with the account state. The code reads like the connection is a database query and the network is invisible. It isn&apos;t. Between those two lines of code, your request leaves your process, crosses three or four networks, lands in a validator that&apos;s replaying the entire chain in lockstep with the leader, snapshots a 165-byte slice of memory, encodes it as base64, wraps it in a JSON envelope, and sends it back. The latency floor on that round trip — 50 to 200 milliseconds against a serious provider — is set by physics, by the JSON parser, and by how recently the validator finished applying the last slot.
         </p>
         <p style={bodyStyle}>
-          The documentation makes this look like a function call. It is a network journey. The rest of this article walks the journey, top to bottom: how a block is built, how it propagates as shreds through the turbine tree, how the RPC node serves it to you, how the three call styles (JSON-RPC, WebSocket, gRPC) compare, and what the commitment-level dial actually controls. The goal is the mental model you need to debug a stuck transaction, choose a provider, or read a Yellowstone stream without flinching.
+          The documentation makes this look like a function call. It&apos;s really a network journey. The rest of this article walks that journey top to bottom: how a block is built, how it propagates as shreds through the turbine tree, how the RPC node serves it to you, how the three call styles (JSON-RPC, WebSocket, gRPC) compare, and what the commitment-level dial actually controls. The goal is the mental model you need to debug a stuck transaction, pick a provider, or read a Yellowstone stream without flinching.
         </p>
 
         <SectionLabel>Slots, Blocks, and the 400ms Heartbeat</SectionLabel>
         <p style={bodyStyle}>
-          Solana&apos;s clock is the <strong>slot</strong>. A slot is a 400-millisecond time bucket. The validator scheduled as leader for that slot tries to produce a <strong>block</strong>; if it succeeds, the slot has a block, if it fails or runs out of time, the slot is empty (&quot;skipped&quot;). Block height — the count of slots that produced actual blocks — therefore advances more slowly than slot height. At today&apos;s network conditions the network averages around 380–420ms per slot and skips roughly 5–10% of them under congestion.
+          Solana&apos;s clock is the <strong>slot</strong> — a 400-millisecond time bucket. The validator scheduled as leader for that slot tries to produce a <strong>block</strong>. If it succeeds, the slot has a block; if it fails or runs out of time, the slot is empty (&quot;skipped&quot;). That&apos;s why block height — the count of slots that actually produced blocks — advances more slowly than slot height. At today&apos;s network conditions the network averages around 380–420ms per slot and skips roughly 5–10% of them under congestion.
         </p>
         <p style={bodyStyle}>
-          A block is not a single object that gets sent. It is a sequence of <strong>entries</strong> — micro-batches of transactions interleaved with proof-of-history hashes. Entries exist for two reasons: they let the leader hash-stamp the passage of time deterministically (the PoH chain), and they let downstream validators execute non-conflicting transactions in parallel. Each entry contains a list of <strong>transactions</strong>, and each transaction contains one or more <strong>instructions</strong>, each targeting a specific program. From outside, the developer sees &quot;a block of transactions.&quot; From inside the validator, it is a stream of entries threading through a parallel execution engine.
+          A block isn&apos;t a single object that gets shipped whole. It&apos;s a sequence of <strong>entries</strong> — micro-batches of transactions interleaved with proof-of-history hashes. Entries exist for two reasons: they let the leader hash-stamp the passage of time deterministically (the PoH chain), and they let downstream validators run non-conflicting transactions in parallel. Each entry holds a list of <strong>transactions</strong>, and each transaction holds one or more <strong>instructions</strong>, each one targeting a specific program. From the outside, the developer sees &quot;a block of transactions.&quot; From inside the validator, it&apos;s a stream of entries threading through a parallel execution engine.
         </p>
 
         <SectionLabel>The Shred: Solana&apos;s Sub-Block Unit</SectionLabel>
         <p style={bodyStyle}>
-          A block is not transmitted as a single object either. The leader breaks it into <strong>shreds</strong> — ~1,228-byte fragments — and broadcasts them the instant they are serialized, before the block is complete. There are two kinds. <strong>Data shreds</strong> carry the actual entry bytes. <strong>Coding shreds</strong> are Reed-Solomon parity fragments that let downstream validators reconstruct missing data shreds without re-requesting them. Together they form an FEC (forward error correction) set. A block with 1,000 transactions might serialize to ~150 data shreds plus ~50 coding shreds; lose any 50 of the 200 and the block is still recoverable.
+          A block isn&apos;t transmitted as a single object either. The leader chops it into <strong>shreds</strong> — ~1,228-byte fragments — and broadcasts them the instant they&apos;re serialized, before the block is even complete. There are two kinds. <strong>Data shreds</strong> carry the actual entry bytes. <strong>Coding shreds</strong> are Reed-Solomon parity fragments that let downstream validators reconstruct missing data shreds without having to re-request them. Together they form an FEC (forward error correction) set. A block with 1,000 transactions might serialize to ~150 data shreds plus ~50 coding shreds; lose any 50 of the 200 and the block is still recoverable.
         </p>
         <p style={bodyStyle}>
-          The reason shreds exist as a primitive is propagation. If a block had to be transmitted atomically, the worst-case latency would be (block size / bandwidth) before a single downstream validator could start processing. By streaming shreds as they are produced, propagation overlaps with construction. By the time the leader finishes the last shred of slot N, downstream validators have already received and partially executed the first 80% of it. This is the reason Solana can target 400ms slots at all.
+          The reason shreds exist as a primitive is propagation. If a block had to be sent atomically, the worst-case latency would be (block size / bandwidth) before a single downstream validator could even start processing. By streaming shreds as they&apos;re produced, propagation overlaps with construction. By the time the leader finishes the last shred of slot N, downstream validators have already received and partially executed the first 80% of it. That&apos;s the reason Solana can target 400ms slots at all.
         </p>
 
         <SectionLabel>Turbine: How Shreds Reach Every Validator</SectionLabel>
         <p style={bodyStyle}>
-          The leader does not broadcast every shred to every validator. That would scale O(N²) and saturate the leader&apos;s uplink. Instead, the leader picks a fanout of K direct neighbors (currently around 200), each of whom forwards to the next layer of K, and so on. The result is a tree of depth O(log N) — every validator in the cluster receives every shred in 2 or 3 network hops. This is <strong>Turbine</strong>.
+          The leader doesn&apos;t broadcast every shred to every validator. That would scale O(N²) and saturate the leader&apos;s uplink. Instead, the leader picks a fanout of K direct neighbors (currently around 200), each of whom forwards to the next layer of K, and so on. The result is a tree of depth O(log N) — every validator in the cluster gets every shred in 2 or 3 network hops. This is <strong>Turbine</strong>.
         </p>
 
         <pre style={codeBlockStyle}><code>{`               LEADER
@@ -54,23 +54,23 @@ export default function WireArticle() {
 `}</code></pre>
 
         <p style={bodyStyle}>
-          The validator&apos;s <em>position</em> in this tree determines how soon it sees a shred. A validator at depth 1 sees shreds milliseconds before a validator at depth 3. This is the entire physics of the &quot;low latency Solana node&quot; product category. Co-located dedicated nodes (Triton Professional Trading Centers) pay to sit near the top of the tree. ShredStream operators (Jito) pay to receive shreds at the same depth as a validator without being one. There is no software trick that beats this — only network position.
+          A validator&apos;s <em>position</em> in this tree decides how soon it sees a shred. A validator at depth 1 sees shreds milliseconds before a validator at depth 3. That gap is the entire physics behind the &quot;low latency Solana node&quot; product category. Co-located dedicated nodes (Triton Professional Trading Centers) pay to sit near the top of the tree. ShredStream operators (Jito) pay to receive shreds at the same depth as a validator without being one. No software trick beats this — only network position does.
         </p>
         <p style={bodyStyle}>
-          The Reed-Solomon coding shreds matter here too. Without them, a dropped data shred would require a re-request, doubling the worst-case latency. With them, the receiving validator reconstructs the missing piece locally from whatever subset of the FEC set it has. Propagation is robust to packet loss without round trips.
+          The Reed-Solomon coding shreds matter here too. Without them, a dropped data shred means a re-request, which doubles the worst-case latency. With them, the receiving validator just reconstructs the missing piece locally from whatever subset of the FEC set it has. Propagation stays robust to packet loss without any round trips.
         </p>
 
         <SectionLabel>The Leader Schedule</SectionLabel>
         <p style={bodyStyle}>
-          Who is leader at any given slot is not random. The leader schedule is deterministic and published one full epoch — 432,000 slots, about two days — in advance. Each leader is assigned a 4-slot consecutive window (1.6 seconds of block production), then hands off to the next leader in the schedule. You can query <code style={codeStyle}>getLeaderSchedule</code> from any RPC and know exactly who will be leader at every future slot in the current and next epoch.
+          Who&apos;s leader at any given slot isn&apos;t random. The leader schedule is deterministic and published one full epoch — 432,000 slots, about two days — in advance. Each leader gets a 4-slot consecutive window (1.6 seconds of block production), then hands off to the next leader in the schedule. You can query <code style={codeStyle}>getLeaderSchedule</code> from any RPC and know exactly who&apos;ll be leader at every future slot in the current and next epoch.
         </p>
         <p style={bodyStyle}>
-          This determinism is what MEV searchers exploit. They do not send their transactions to the public mempool. They send to the TPU (Transaction Processing Unit, the QUIC endpoint a leader runs to receive transactions) of the next four scheduled leaders simultaneously, so whichever one becomes the active leader can pick the transaction up immediately. This is also what enables &quot;cancel races&quot; — a market maker can pre-position cancel transactions at the next four leaders so they land in the same slot as a competitor&apos;s incoming order.
+          That determinism is exactly what MEV searchers exploit. They don&apos;t send their transactions to the public mempool. They send them to the TPU (Transaction Processing Unit, the QUIC endpoint a leader runs to receive transactions) of the next four scheduled leaders at once, so whichever one becomes the active leader can pick the transaction up immediately. It&apos;s also what makes &quot;cancel races&quot; possible — a market maker can pre-position cancel transactions at the next four leaders so they land in the same slot as a competitor&apos;s incoming order.
         </p>
 
         <SectionLabel>The Transaction&apos;s Journey</SectionLabel>
         <p style={bodyStyle}>
-          A transaction&apos;s lifecycle, end to end, has more steps than most documentation admits. The version below is the unabridged one.
+          A transaction&apos;s lifecycle, end to end, has more steps than most documentation admits. Here&apos;s the unabridged version.
         </p>
 
         <div style={{ margin: '32px 0', padding: '0 0 0 24px', borderLeft: '2px solid rgba(255,255,255,0.1)' }}>
@@ -78,16 +78,16 @@ export default function WireArticle() {
             <strong style={{ color: 'rgba(255,255,255,0.85)' }}>1. Client signs.</strong> Your wallet or program builds a transaction (one or more instructions, a recent blockhash, a fee payer), signs it with the relevant private keys, and serializes it to binary.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>2. Submit to RPC.</strong> The client calls <code style={codeStyle}>sendTransaction</code> on an RPC endpoint. The RPC forwards to the TPU of the current leader and the next few scheduled leaders. Under congestion this is where vanilla <code style={codeStyle}>sendTransaction</code> fails silently — drops, throttles, or never reaches a leader in time.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>2. Submit to RPC.</strong> The client calls <code style={codeStyle}>sendTransaction</code> on an RPC endpoint, and the RPC forwards it to the TPU of the current leader and the next few scheduled leaders. Under congestion, this is where vanilla <code style={codeStyle}>sendTransaction</code> fails silently — it drops, throttles, or never reaches a leader in time.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>3. Leader includes it.</strong> The current leader receives the transaction, runs it through its banking stage, and includes it in an entry if it passes (signature valid, fee paid, account locks compatible with other transactions in the entry). Higher priority-fee transactions get included ahead of lower ones.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>3. Leader includes it.</strong> The current leader receives the transaction, runs it through its banking stage, and includes it in an entry if it passes (signature valid, fee paid, account locks compatible with the other transactions in the entry). Higher priority-fee transactions get included ahead of lower ones.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>4. Shred propagates.</strong> The entry containing your transaction is packed into shreds and broadcast through turbine. Validators across the network receive, reconstruct, and replay.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>4. Shred propagates.</strong> The entry holding your transaction gets packed into shreds and broadcast through turbine. Validators across the network receive, reconstruct, and replay it.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>5. Validators vote.</strong> Each validator votes on the block as part of its own block-production cycle (votes are themselves transactions, which is why ~85% of mainnet traffic is votes). When stake exceeding two-thirds has voted on the block, the slot reaches <code style={codeStyle}>confirmed</code> commitment — typically 400ms to 1 second after submission.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>5. Validators vote.</strong> Each validator votes on the block as part of its own block-production cycle (votes are themselves transactions, which is why ~85% of mainnet traffic is votes). Once stake exceeding two-thirds has voted on the block, the slot reaches <code style={codeStyle}>confirmed</code> commitment — typically 400ms to 1 second after submission.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 0 }}>
             <strong style={{ color: 'rgba(255,255,255,0.85)' }}>6. Finalization.</strong> 31+ slot lockouts after the vote, the slot reaches <code style={codeStyle}>finalized</code> commitment — about 12 to 15 seconds after submission. At this point the transaction is permanent; no fork can revert it.
@@ -95,7 +95,7 @@ export default function WireArticle() {
         </div>
 
         <p style={bodyStyle}>
-          The numbers worth memorizing: ~400ms to confirmed, ~13s to finalized. Everything &quot;fast&quot; — Jito bundles, Helius Sender, Triton Cascade — is about reducing the variance at step 2 (getting your transaction in front of the leader reliably). Nothing reduces step 5 or step 6 — those are consensus, not networking.
+          The numbers worth memorizing: ~400ms to confirmed, ~13s to finalized. Everything &quot;fast&quot; — Jito bundles, Helius Sender, Triton Cascade — is about cutting the variance at step 2, getting your transaction in front of the leader reliably. Nothing touches step 5 or step 6, because those are consensus, not networking.
         </p>
 
         <SectionLabel>The RPC Node: A Validator That Doesn&apos;t Vote</SectionLabel>

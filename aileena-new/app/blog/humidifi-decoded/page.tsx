@@ -16,10 +16,9 @@ export default function HumidifiDecodedArticle() {
 
         <SectionLabel>The dead-pool problem</SectionLabel>
         <p style={bodyStyle}>
-          Part I picked one humidifi pool more or less at random — <code style={codeStyle}>41cK…duRN</code>
-          — and concluded humidifi was a price-tick registry based on the 50-sigs-in-one-slot pattern.
-          That conclusion holds, but the sampling was wrong. The pool I picked stopped being touched
-          166 days ago.
+          Part I picked one humidifi pool more or less at random &mdash; <code style={codeStyle}>41cK…duRN</code>
+          &mdash; and, off the 50-sigs-in-one-slot pattern, called humidifi a price-tick registry. That
+          conclusion holds. But the sampling was wrong: the pool I picked stopped being touched 166 days ago.
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -37,40 +36,41 @@ slot=385921704  age=166.2 days ago`}
         </div>
 
         <p style={bodyStyle}>
-          The humidifi program is, meanwhile, extremely alive — every recent slot fires a handful
-          of invocations against it. Pulling the latest 10 program-level signatures returns 10 events
-          all in the current slot, none in error. So the program is hot but only a handful of pools
-          are. The other 80-plus accounts allocated at 1728 bytes are residue from prior epochs of
-          activity. Sample at random and you get noise.
+          The humidifi program itself, meanwhile, is extremely alive &mdash; every recent slot fires a
+          handful of invocations against it. Pull the latest 10 program-level signatures and you get 10
+          events, all in the current slot, none in error. So the program is hot, but only a handful of pools
+          are. The other 80-plus accounts allocated at 1728 bytes are leftovers from earlier epochs of
+          activity. Sample at random and you just get noise.
         </p>
 
         <p style={bodyStyle}>
           The fix is to sample by traffic, not by index. Walk the last <code style={codeStyle}>N</code> program-level
-          signatures, take each tx&apos;s first humidifi instruction, count how many times each pool address
-          appears. The winners are the active accounts. Two of mine: <code style={codeStyle}>Fksff…qVuH</code>
+          signatures, take each transaction&apos;s first humidifi instruction, and count how many times each
+          pool address shows up. The winners are the active accounts. Two of mine: <code style={codeStyle}>Fksff…qVuH</code>
           and <code style={codeStyle}>DB3s…RoRwW</code>.
         </p>
 
         <SectionLabel>Polling the live bytes</SectionLabel>
         <p style={bodyStyle}>
-          The recording loop is dull. Every two seconds, batch-fetch the pool account and a handful
-          of Pyth price feeds (SOL, BTC, ETH, USDC, USDT, BONK) in one <code style={codeStyle}>getMultipleAccounts</code> call.
-          Persist each snapshot as a line in a JSONL file. Sixty ticks at two seconds each is two minutes
-          of wall time, 90 of pool data, and a clean dataset for byte-level diffing.
+          The recording loop is dull. Every two seconds, batch-fetch the pool account plus a handful of Pyth
+          price feeds (SOL, BTC, ETH, USDC, USDT, BONK) in one <code style={codeStyle}>getMultipleAccounts</code> call &mdash; Pyth being a
+          popular on-chain price oracle. Save each snapshot as a line in a JSONL file. Sixty ticks at two
+          seconds each gives you two minutes of wall time, 90 of pool data, and a clean dataset for byte-level
+          diffing.
         </p>
 
         <p style={bodyStyle}>
-          The Pyth feeds turned out to be inert during the window — all six were constant across all
-          sixty ticks. The legacy v2 push receivers on mainnet aren&apos;t being refreshed often any more;
-          Pyth&apos;s pull oracle has eaten that path. Useful negative result: humidifi doesn&apos;t source price
-          from on-chain Pyth, because if it did, its bytes would be locked to those constants. They&apos;re
-          not. Whatever humidifi is pricing against lives off chain.
+          The Pyth feeds turned out to be inert during the window &mdash; all six were constant across all
+          sixty ticks. The legacy v2 push receivers on mainnet don&apos;t get refreshed much any more; Pyth&apos;s
+          pull oracle has eaten that path. That&apos;s a useful negative result: humidifi doesn&apos;t source its
+          price from on-chain Pyth, because if it did, its bytes would be locked to those constants. They&apos;re
+          not. So whatever humidifi is pricing against lives off chain.
         </p>
 
         <SectionLabel>The byte map</SectionLabel>
         <p style={bodyStyle}>
-          Diffing every consecutive pair of snapshots and grouping the changed byte positions into
-          contiguous runs produces six ranges:
+          Diff every consecutive pair of snapshots, then group the changed byte positions into contiguous
+          runs, and six ranges fall out:
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -90,22 +90,23 @@ slot=385921704  age=166.2 days ago`}
         </div>
 
         <p style={bodyStyle}>
-          Three percent. The other 97% of the account is static configuration — a struct header, a
-          program-version field, padding, a discriminator, maybe a vault pubkey or two. Whatever the
-          live part is, it&apos;s 57 bytes wide and laid out in six neat clusters.
+          Three percent. The other 97% of the account is static configuration &mdash; a struct header, a
+          program-version field, padding, a discriminator (the leading bytes that tag an account&apos;s type),
+          maybe a vault pubkey or two. Whatever the live part is, it&apos;s 57 bytes wide and laid out in six
+          neat clusters.
         </p>
 
         <SectionLabel>What the live bytes do</SectionLabel>
         <p style={bodyStyle}>
-          For each hot range, try the four reasonable u-encodings — u8, u16-LE, u32-LE, u64-LE — at
-          every offset inside it, and classify the resulting time series. A monotonically increasing
-          value is probably a sequence or slot counter. A bounded small-delta value is probably a
-          price tick or EMA. A wide-spread noisy value is either a hash or a packed multi-field record
-          read at the wrong width.
+          For each hot range, try the four reasonable unsigned-integer encodings &mdash; u8, u16-LE, u32-LE,
+          u64-LE, the standard little-endian widths &mdash; at every offset inside it, then classify the
+          resulting time series. A value that only ever climbs is probably a sequence or slot counter. A
+          value that wobbles by small amounts is probably a price tick or EMA. A value that&apos;s noisy and
+          all over the place is either a hash or a packed multi-field record read at the wrong width.
         </p>
 
         <p style={bodyStyle}>
-          The two unambiguous wins:
+          Two of them are unambiguous wins:
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -129,9 +130,9 @@ bytes [624–660]   u32-LE @ off 657   monotonic ↑
         </div>
 
         <p style={bodyStyle}>
-          The two u16 ticks aren&apos;t bid and ask of the same pair. Their ranges are different orders
-          of magnitude (~26k and ~28k of whatever unit), which rules out the &quot;narrow spread&quot;
-          interpretation. They&apos;re much more likely to be:
+          The two u16 ticks &mdash; two-byte unsigned values &mdash; aren&apos;t the bid and ask of the same
+          pair. Their ranges are different orders of magnitude (~26k and ~28k of whatever the unit is), which
+          rules out the &quot;narrow spread&quot; reading. They&apos;re much more likely to be:
         </p>
         <ul style={listStyle}>
           <li>Two scaled prices in different reference frames (one quote per side of the pool)</li>
@@ -139,10 +140,10 @@ bytes [624–660]   u32-LE @ off 657   monotonic ↑
           <li>A price tick and a depth tick — one says &quot;where&quot;, the other &quot;how much&quot;</li>
         </ul>
         <p style={bodyStyle}>
-          Disambiguating between those three is the next step. The honest answer right now is &quot;we
-          have the field boundaries; we don&apos;t yet have the meaning.&quot; That&apos;s already enough to build
-          on, though, because the field <em>changes</em> are themselves the signal: whatever those
-          numbers mean, the moment they move is the moment humidifi&apos;s quote changed.
+          Telling those three apart is the next step. The honest answer right now is &quot;we have the field
+          boundaries; we don&apos;t yet have the meaning.&quot; But that&apos;s already enough to build on, because the
+          field <em>changes</em> are themselves the signal: whatever those numbers mean, the moment they move
+          is the moment humidifi&apos;s quote changed.
         </p>
 
         <SectionLabel>The constants tell you something too</SectionLabel>
@@ -158,10 +159,10 @@ off=676   u8   examples: [109, 109, 109, 109, 109, …]`}
         </div>
 
         <p style={bodyStyle}>
-          93 and 109 don&apos;t look like discriminators (those usually appear at the front of an account).
-          They&apos;re probably static flags — instrument type, fee tier, side — or sentinel bytes the
-          program checks before applying an update. Either way, they&apos;re a useful fingerprint: any
-          other humidifi pool that holds <code style={codeStyle}>93</code> at byte 660 and <code style={codeStyle}>109</code> at byte 676
+          93 and 109 don&apos;t look like discriminators &mdash; those usually sit at the front of an account.
+          They&apos;re probably static flags (instrument type, fee tier, side) or sentinel bytes the program
+          checks before applying an update. Either way, they&apos;re a handy fingerprint: any other humidifi
+          pool holding <code style={codeStyle}>93</code> at byte 660 and <code style={codeStyle}>109</code> at byte 676
           is almost certainly the same instrument class as <code style={codeStyle}>Fksff…qVuH</code>.
         </p>
 

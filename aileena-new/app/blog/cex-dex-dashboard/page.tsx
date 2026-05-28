@@ -16,22 +16,24 @@ export default function CexDexDashboardArticle() {
 
         <SectionLabel>Why Build Your Own</SectionLabel>
         <p style={bodyStyle}>
-          The public CEX-DEX dashboard on Dune is excellent. It gives you the headline numbers —
-          $233.8M extracted, 7.2M trades, the top-three oligopoly — for the full 19-month window the
-          paper studied. What it does not give you is the question
-          you actually want answered: was last week different? Which pool is bleeding into Binance the most right
-          now? Are the searchers I think I see on Solana the same names that show up on Ethereum?
+          The public CEX-DEX dashboard on Dune is excellent. (CEX is a centralized exchange like Binance; DEX
+          is an on-chain decentralized one — and arbitrage between the two is where a lot of the money lives.)
+          It gives you the headline numbers — $233.8M extracted, 7.2M trades, the top-three oligopoly — for the
+          full 19-month window the paper studied. What it doesn&apos;t give you is the question you actually
+          want answered: was last week different? Which pool is bleeding into Binance the most right now? Are
+          the searchers I think I see on Solana — searchers being the bot operators running these trades — the
+          same names that show up on Ethereum?
         </p>
         <p style={bodyStyle}>
           Forking the public queries and writing your own is the only way to ask those questions, and Dune
           published the entire methodology open-source for exactly this reason. The four queries below are the
-          minimum viable dashboard. Everything else — leaderboards, time-series, pool breakdowns — is a join
-          on top of these four.
+          minimum viable dashboard. Everything else — leaderboards, time-series, pool breakdowns — is just a
+          join on top of these four.
         </p>
 
         <SectionLabel>Query 1: The Atomic Block-Level Profit</SectionLabel>
         <p style={bodyStyle}>
-          This is the building block. For every block in a window, identify the DEX trades large enough to be a
+          This is the building block. For every block in a window, find the DEX trades large enough to be a
           plausible arbitrage leg, then estimate the spread they captured against the CEX reference price at the
           block&apos;s timestamp. Sum per block, group by searcher.
         </p>
@@ -107,19 +109,19 @@ ORDER BY block_number DESC;`}
         <p style={bodyStyle}>
           Two structural choices matter here. First, the <strong style={strong}>$50,000 minimum</strong> on
           <code style={codeStyle}>amount_usd</code> filters out retail noise — a real CEX-DEX arb leg is rarely
-          under five figures because the CEX-side hedge has a non-trivial minimum to be worth the operational
-          overhead. Second, joining <code style={codeStyle}>prices.usd</code> at
+          under five figures, because the CEX-side hedge has a non-trivial minimum before it&apos;s worth the
+          operational overhead. Second, joining <code style={codeStyle}>prices.usd</code> at
           <code style={codeStyle}>DATE_TRUNC(&apos;minute&apos;, block_time)</code> gives you a CEX-side reference
-          that updates roughly once per minute — coarser than Binance ticks but representative of where the
+          that updates roughly once a minute — coarser than Binance ticks, but a fair stand-in for where the
           searcher could have hedged in the same window.
         </p>
 
         <SectionLabel>Query 2: The Markout</SectionLabel>
         <p style={bodyStyle}>
-          The single biggest methodological wrinkle in the paper. The CEX leg is invisible, so you cannot ask
-          &quot;when exactly did the searcher hedge?&quot;. Instead you check the CEX price at the block time and at
-          several offsets afterward, and report the spread captured at each one. The reader gets to choose
-          which markout horizon they believe the searcher uses.
+          This is the single biggest methodological wrinkle in the paper. The CEX leg is invisible, so you
+          can&apos;t ask &quot;when exactly did the searcher hedge?&quot;. Instead you do a markout — you check the CEX
+          price at the block time and again at several offsets afterward, and report the spread captured at each
+          one. The reader gets to pick which markout horizon they think the searcher actually uses.
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -173,19 +175,20 @@ ORDER BY extracted_t30 DESC;`}
         </div>
 
         <p style={bodyStyle}>
-          What you do with this in the dashboard: render a 4-bar chart per searcher, one bar per horizon. A
-          consistent profit across <code style={codeStyle}>t0</code> through <code style={codeStyle}>t60</code> is
-          the signature of a real arbitrageur capturing a structural spread. A profit at <code style={codeStyle}>t0</code> that
-          decays to zero by <code style={codeStyle}>t30</code> is the signature of toxic flow being absorbed by
-          the market — money the searcher would have lost if they had hedged five seconds late.
+          Here&apos;s what you do with this in the dashboard: render a 4-bar chart per searcher, one bar per
+          horizon. A consistent profit across <code style={codeStyle}>t0</code> through <code style={codeStyle}>t60</code> is
+          the fingerprint of a real arbitrageur capturing a structural spread. A profit at <code style={codeStyle}>t0</code> that
+          decays to zero by <code style={codeStyle}>t30</code> is the fingerprint of toxic flow being absorbed by
+          the market — money the searcher would have lost if they&apos;d hedged five seconds late.
         </p>
 
         <SectionLabel>Query 3: Searcher Clustering</SectionLabel>
         <p style={bodyStyle}>
           The paper&apos;s headline result is that three searchers captured 75% of the extracted value. The only
           way to make that claim with public data is to cluster wallet addresses into searcher identities. The
-          heuristic is simple: a CEX-DEX searcher has a tight set of behaviours — large size, only a few specific
-          token pairs, repeated tx structure, identifiable contract counterparts. You group by those signatures.
+          heuristic is simple: a CEX-DEX searcher has a tight set of habits — large size, only a few specific
+          token pairs, repeated tx structure, identifiable contract counterparts. You group by those
+          signatures.
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -238,15 +241,15 @@ LIMIT 100;`}
         <p style={bodyStyle}>
           This is intentionally crude. The paper uses a much richer set of signals — contract bytecode similarity,
           consistent gas-price tipping behaviour, repeated builder relationships. The query above gets you to
-          maybe 80% of the population with one screenful of SQL, which is enough to fork from and refine.
+          maybe 80% of the population with one screenful of SQL, which is plenty to fork from and refine.
         </p>
 
         <div style={calloutAccent}>
           <p style={calloutTitle}>NAMING THE WALLET</p>
           <p style={{ ...bodyStyle, marginBottom: 0 }}>
             Dune ships a <code style={codeStyle}>labels.all</code> table that maps raw addresses to human-readable
-            names contributed by the community. Joining on it turns &quot;0x4838b1...&quot; into &quot;Wintermute&quot; or
-            &quot;SCP&quot;. The paper&apos;s leaderboard uses this directly; your fork should too, otherwise the
+            names the community has contributed. Join on it and &quot;0x4838b1...&quot; turns into &quot;Wintermute&quot; or
+            &quot;SCP&quot;. The paper&apos;s leaderboard uses this directly, and your fork should too — otherwise the
             output is wallets, not searchers.
           </p>
         </div>
@@ -254,9 +257,9 @@ LIMIT 100;`}
         <SectionLabel>Query 4: The Solana Variant</SectionLabel>
         <p style={bodyStyle}>
           The Ethereum version of this dashboard is the well-trodden path. The Solana version is harder, mostly
-          because the on-chain leg is more entangled with non-arbitrage activity in the same transaction. A
-          Jupiter swap looks like a stack of pool interactions; isolating the arbitrage component requires
-          tracing the program calls, not just reading the top-level trade.
+          because the on-chain leg is more tangled up with non-arbitrage activity in the same transaction. A
+          Jupiter swap looks like a stack of pool interactions, and isolating the arbitrage piece means tracing
+          the program calls, not just reading the top-level trade.
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -296,26 +299,26 @@ LIMIT 50;`}
         </div>
 
         <p style={bodyStyle}>
-          Two things change vs the Ethereum query. The size threshold drops from $50,000 to $10,000 because
+          Two things change versus the Ethereum query. The size threshold drops from $50,000 to $10,000 because
           Solana&apos;s fee floor is three orders of magnitude lower — a $5,000 arb that would lose to gas on
           Ethereum is comfortably profitable on Solana. And the markout window has to shrink: with 400ms slots,
-          a 30-second markout is 75 slots of decay, which is more than enough for any temporary spread to be
-          fully consumed by competing flow.
+          a 30-second markout is 75 slots of decay, more than enough for any temporary spread to be fully eaten
+          by competing flow.
         </p>
         <p style={bodyStyle}>
-          What this query cannot give you on Solana — and the Ethereum equivalents can — is the mempool view.
-          Solana has no public mempool. Searcher behaviour pre-block is hidden behind <strong style={strong}>ShredStream</strong> and the
-          <strong style={strong}> Jito relay</strong>, which are private feeds. A complete Solana CEX-DEX dashboard would
-          require integrating a third-party data source on top of Dune. See <Link href="/blog/wire" style={inlineLink}>The Wire</Link> for
+          What this query can&apos;t give you on Solana — and the Ethereum equivalents can — is the mempool view.
+          Solana has no public mempool. Searcher behaviour before a block lands is hidden behind <strong style={strong}>ShredStream</strong> and the
+          <strong style={strong}> Jito relay</strong>, both private feeds. A complete Solana CEX-DEX dashboard would
+          mean wiring in a third-party data source on top of Dune. See <Link href="/blog/wire" style={inlineLink}>The Wire</Link> for
           how those feeds work.
         </p>
 
         <SectionLabel>Funding-Rate Variant</SectionLabel>
         <p style={bodyStyle}>
           The price-arb queries above don&apos;t cover the second flavour of CEX-DEX arb: funding rate
-          arbitrage on perpetuals. That one needs different tables. The good news is Dune has them — Drift,
-          dYdX, Hyperliquid all publish funding rates and open interest to community queries. The shape of
-          the query is the same: pull DEX funding rate, pull CEX funding rate from a reference feed, take the
+          arbitrage on perpetuals. That one needs different tables. Good news — Dune has them. Drift, dYdX, and
+          Hyperliquid all publish funding rates and open interest to community queries. The shape of the query
+          is the same: pull the DEX funding rate, pull the CEX funding rate from a reference feed, take the
           spread, multiply by OI.
         </p>
 
@@ -348,8 +351,8 @@ LIMIT 200;`}
         </div>
 
         <p style={bodyStyle}>
-          The interesting reading of this query is the <em>distribution of the spread</em>. A small spread that
-          persists for hours is a stable carry; a large spread that closes within minutes is the signature of
+          The interesting thing to read here is the <em>distribution of the spread</em>. A small spread that
+          persists for hours is a stable carry; a large spread that closes within minutes is the fingerprint of
           someone aggressively arbitraging it away. The headline of the funding-arb world is that the easy
           spreads close fast, and the persistent ones are persistent for a reason — usually because one venue
           has a structural inventory imbalance no single trader can fully offset.
@@ -385,9 +388,9 @@ LIMIT 200;`}
         </ol>
 
         <p style={bodyStyle}>
-          The dashboard is opinionated by design. Panel 3 — the markout heatmap — is the panel that will
-          actually let you tell apart the searchers extracting structural alpha from the ones holding the bag
-          on toxic flow. Everything else is bookkeeping. Build that one first, even if you skip the rest.
+          The dashboard is opinionated by design. Panel 3 — the markout heatmap — is the one that actually lets
+          you tell the searchers extracting structural alpha from the ones holding the bag on toxic flow.
+          Everything else is bookkeeping. Build that one first, even if you skip the rest.
         </p>
 
         <SectionLabel>The Limit</SectionLabel>
@@ -397,17 +400,17 @@ LIMIT 200;`}
         </blockquote>
         <p style={bodyStyle}>
           The CEX leg lives inside a private matching engine that no public dataset will ever index. You can
-          improve the precision of the estimate — finer-grained reference prices, better searcher clustering,
-          more horizons in the markout — but the floor of the error bar is set by the fact that you are
-          inferring the hedge, not observing it. The paper&apos;s authors are explicit about this: their headline
-          $233.8M is their best estimate, not a measurement.
+          tighten the estimate — finer-grained reference prices, better searcher clustering, more horizons in
+          the markout — but the floor of the error bar is set by the fact that you&apos;re inferring the hedge,
+          not watching it. The paper&apos;s authors are upfront about this: their headline $233.8M is their best
+          estimate, not a measurement.
         </p>
         <p style={bodyStyle}>
-          That is also why the dashboard is useful to <em>build</em> rather than just to consume. The act of
-          writing the queries forces you to confront which assumptions you are making about how the searcher
-          hedges. The default markout (30 seconds, minute-truncated prices) implies one model of execution.
-          Tighter markouts imply colocated infrastructure; longer ones imply inventory carry. Each variant
-          you fork is a different hypothesis about what the trade actually looks like behind the scenes.
+          That&apos;s also why the dashboard is more useful to <em>build</em> than to just consume. Writing the
+          queries forces you to confront which assumptions you&apos;re making about how the searcher hedges. The
+          default markout (30 seconds, minute-truncated prices) implies one model of execution. Tighter markouts
+          imply colocated infrastructure; longer ones imply inventory carry. Each variant you fork is a
+          different bet on what the trade actually looks like behind the scenes.
         </p>
 
         <SectionLabel>References</SectionLabel>

@@ -27,24 +27,25 @@ export default function DoubleZeroArticle() {
           Two different things get called &quot;latency.&quot;
         </p>
         <p style={bodyStyle}>
-          <strong style={strong}>Latency</strong> is the median time a packet takes from A to B.
-          NYC ↔ Frankfurt is ~76ms great-circle. Light in fiber goes ~2/3 of c, so the physical
+          <strong style={strong}>Latency</strong> is the median time a packet takes to get from A to B.
+          NYC ↔ Frankfurt is ~76ms great-circle. Light in fiber travels at about 2/3 of c, so the physical
           floor is around 38ms one-way. You don&apos;t beat that without a lower-latitude path.
         </p>
         <p style={bodyStyle}>
-          <strong style={strong}>Jitter</strong> is the variance. P50 might be 80ms; P99 is 140ms;
-          P99.9 might be 400ms because some packet hit a congested peering point and got buffered for
-          300ms. That tail is the part that kills you.
+          <strong style={strong}>Jitter</strong> is the variance — how much that timing bounces around. P50
+          might be 80ms; P99 is 140ms; P99.9 might be 400ms because one packet hit a congested peering point
+          and got buffered for 300ms. That tail is the part that kills you.
         </p>
         <p style={bodyStyle}>
-          Solana shred propagation under Turbine is a unicast fan-out tree. The leader sends shreds
-          to a small root set; they forward to children; the tree fans down. A single late shred at
-          any layer delays everyone beneath it. The block isn&apos;t reconstructed until enough shreds
-          arrive, and the next leader can&apos;t safely build on top until that happens. P99 jitter at
-          any intermediate hop compounds into P99+ jitter at the root of the next block.
+          Solana propagates shreds — the little fragments a block gets chopped into for transmission — using
+          Turbine, which is a unicast fan-out tree. The leader sends shreds to a small root set, they forward to
+          their children, and the tree fans down from there. A single late shred at any layer delays everyone
+          beneath it. The block can&apos;t be reconstructed until enough shreds arrive, and the next leader
+          can&apos;t safely build on top until that happens. So P99 jitter at any intermediate hop compounds
+          into P99+ jitter at the root of the next block.
         </p>
         <p style={bodyStyle}>
-          The Malbec Labs team frames it directly in the Breakpoint 25 talk:{' '}
+          The Malbec Labs team puts it bluntly in the Breakpoint 25 talk:{' '}
           <em>&quot;latency without control, you get a lot of jitter and it makes predictions that much harder.&quot;</em>{' '}
           Their headline number is the worst-case time to land a transaction:
         </p>
@@ -71,74 +72,75 @@ export default function DoubleZeroArticle() {
         </div>
 
         <p style={bodyStyle}>
-          A 3× improvement at the tail. The median improvement is much smaller — DoubleZero
-          doesn&apos;t move the speed of light. What it does is collapse the tail.
+          That&apos;s a 3× improvement at the tail. The median improvement is much smaller — DoubleZero
+          can&apos;t move the speed of light. What it does is collapse the tail.
         </p>
 
         <SectionLabel>What DoubleZero actually is</SectionLabel>
         <p style={bodyStyle}>
-          Three layers stacked. Real terminology this time, not marketing.
+          Three layers, stacked. Real terminology this time, not marketing.
         </p>
         <p style={bodyStyle}>
           <strong style={strong}>Physical layer.</strong> Network Bandwidth Contributors provide
           dedicated bandwidth with IPv4 connectivity and an MTU of 2048 bytes between two data centers —
-          in practice, wavelength services on existing long-haul fiber. Three flavors: L1 wavelength on
+          in practice, wavelength services running on existing long-haul fiber. Three flavors: L1 wavelength on
           DWDM/CWDM, L2 packet-switched VLAN extension, or L3 dedicated third-party bandwidth. Each
           contributed link terminates at a <strong style={strong}>DZD</strong> (DoubleZero Device — a
-          physical switch, in practice a pair of Arista 7280CR3As plus AMD V80 NICs, in a 4U/4KW rack at
+          physical switch, in practice a pair of Arista 7280CR3As plus AMD V80 NICs, sitting in a 4U/4KW rack at
           each end).
         </p>
         <p style={bodyStyle}>
           <strong style={strong}>Exchange layer.</strong> Contributor links bridge to each other at{' '}
           <strong style={strong}>DZXs</strong> (DoubleZero Exchanges) — interconnect points in major
-          metros. This is what turns N point-to-point contributions into a real mesh.
+          metros. This is what turns N point-to-point contributions into an actual mesh.
         </p>
         <p style={bodyStyle}><strong style={strong}>Software layer.</strong></p>
         <ul style={listStyle}>
           <li><strong style={strong}>Controller</strong> — derives device configuration from on-chain state.</li>
           <li><strong style={strong}>Config Agent + Telemetry Agent</strong> — run on each DZD. Config Agent applies whatever the Controller says; Telemetry Agent measures latency, jitter, and packet loss via <strong style={strong}>TWAMP</strong> and publishes results.</li>
           <li><code style={codeStyle}>doublezerod</code> — the daemon that runs on the validator or RPC host. Manages a <code style={codeStyle}>doublezero0</code> tunnel interface, the routing table, and the BGP session into the mesh.</li>
-          <li><strong style={strong}>On-chain ledger</strong> — serviceability state and telemetry are written to a Solana program. Network state is verifiable; routing isn&apos;t a black box.</li>
+          <li><strong style={strong}>On-chain ledger</strong> — serviceability state and telemetry get written to a Solana program. Network state is verifiable; routing isn&apos;t a black box.</li>
         </ul>
         <p style={bodyStyle}>
-          What it isn&apos;t: it&apos;s not &quot;BGP-free.&quot; DoubleZero actually <em>uses</em> BGP — but
-          inside its own permissioned mesh, on <code style={codeStyle}>169.254.0.0/16</code> link-local
-          addresses over GRE (IP protocol 47), with all peers and policies known. The distinction from
-          the public internet isn&apos;t &quot;no BGP,&quot; it&apos;s &quot;BGP across a deterministic mesh of
-          N participants&quot; vs &quot;BGP across tens of thousands of unknown ASes doing best-effort policy
-          routing.&quot; Same protocol, completely different blast radius.
+          What it isn&apos;t: it&apos;s not &quot;BGP-free.&quot; DoubleZero actually <em>uses</em> BGP — the
+          internet&apos;s routing protocol — but inside its own permissioned mesh, on
+          <code style={codeStyle}> 169.254.0.0/16</code> link-local addresses over GRE (IP protocol 47), with
+          every peer and policy known. The difference from the public internet isn&apos;t &quot;no BGP,&quot; it&apos;s
+          &quot;BGP across a deterministic mesh of N participants&quot; versus &quot;BGP across tens of thousands of
+          unknown ASes doing best-effort policy routing.&quot; Same protocol, completely different blast radius.
         </p>
         <p style={bodyStyle}>
-          The live multicast group state, contributor list, and per-link telemetry are published on a
-          public telemetry dashboard, including a dedicated view for multicast topology specifically.
-          The transparency is part of the design: contributors get paid based on measured service quality,
-          so the measurements have to be public.
+          The live multicast group state, contributor list, and per-link telemetry are all published on a
+          public dashboard — including a dedicated view just for multicast topology. The transparency is by
+          design: contributors get paid based on measured service quality, so the measurements have to be
+          public.
         </p>
 
         <SectionLabel>The multicast trick</SectionLabel>
         <p style={bodyStyle}>
-          Here is what makes DoubleZero structurally different from &quot;we leased fiber.&quot;
+          Here is what makes DoubleZero structurally different from &quot;we leased some fiber.&quot;
         </p>
         <p style={bodyStyle}>
-          Solana&apos;s Turbine sends shreds as unicast. The leader picks a root validator and sends one
-          copy. The root forwards a copy to each of its children. Each child forwards to its children.
-          To deliver one block to 1500 validators, the network carries roughly 1500 copies of every
-          shred at the worst layer, and the depth of the tree adds latency at every hop.
+          Turbine sends shreds as unicast — one packet to one recipient at a time. The leader picks a root
+          validator and sends one copy. The root forwards a copy to each of its children. Each child forwards
+          to its children. To deliver one block to 1500 validators, the network ends up carrying roughly 1500
+          copies of every shred at the worst layer, and the depth of the tree piles on latency at every hop.
         </p>
         <p style={bodyStyle}>
-          The public internet has no choice but unicast at that scale. IP multicast exists in the spec
-          but is almost universally disabled across the open internet — no ISP wants to carry replicated
-          traffic for a third party. So Solana built a unicast tree on top of best-effort unicast delivery.
+          The public internet has no choice but unicast at that scale. IP multicast — one send that fans out to
+          many receivers — exists in the spec, but it&apos;s almost universally turned off across the open
+          internet, because no ISP wants to carry replicated traffic for a third party. So Solana built a
+          unicast tree on top of best-effort unicast delivery.
         </p>
         <p style={bodyStyle}>
           DoubleZero adds <strong style={strong}>native multicast</strong> as a connection mode. A
-          publisher sends one copy of a packet to a multicast group. The mesh replicates that packet at
-          the switch fabric — at each DZD, in hardware, fan-out happens once and the copies go to every
-          subscriber on the right egress links. From the publisher&apos;s perspective, one send. From each
-          subscriber&apos;s perspective, one receive at near-line-rate.
+          publisher sends one copy of a packet to a multicast group. The mesh then replicates that packet right
+          in the switch fabric — at each DZD, in hardware. The fan-out happens once and the copies go to every
+          subscriber on the right egress links. From the publisher&apos;s side, one send. From each
+          subscriber&apos;s side, one receive at near-line-rate.
         </p>
         <p style={bodyStyle}>
-          For shred propagation specifically, the talk numbers it: Frankfurt subscribers saw{' '}
+          For shred propagation specifically, the talk puts a number on it: Frankfurt subscribers saw{' '}
           <strong style={strong}>gains exceeding 16ms</strong> on shred delivery via multicast vs unicast.
           That&apos;s per hop, per shred. For a hot validator on the next leader&apos;s slot, 16ms is 4% of
           the entire slot window.
@@ -167,9 +169,9 @@ export default function DoubleZeroArticle() {
         </Diagram>
 
         <p style={bodyStyle}>
-          You can run Turbine over DoubleZero unicast and still win on jitter. You can run shred
-          distribution over DoubleZero multicast and additionally win 16+ms per hop. The multicast path
-          is the harder integration and the bigger payoff.
+          You can run Turbine over DoubleZero unicast and still win on jitter. Or you can run shred
+          distribution over DoubleZero multicast and win an extra 16+ms per hop on top. The multicast path
+          is the harder integration — and the bigger payoff.
         </p>
 
         <PullQuote>

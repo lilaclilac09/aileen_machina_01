@@ -26,59 +26,63 @@ export default function ShredEconomyArticle() {
 
         <SectionLabel>What Edge actually sells</SectionLabel>
         <p style={bodyStyle}>
-          The previous piece on DoubleZero was about the pipe &mdash; private fibre, native multicast,
-          16+&nbsp;ms saved per Turbine hop. This piece is about what flows through it that someone is
-          willing to pay for.
+          My last piece on DoubleZero was about the pipe &mdash; private fibre, native multicast, and
+          16+&nbsp;ms saved on every Turbine hop. (Turbine is how Solana fans a block out across the
+          network.) This one is about the thing flowing through that pipe that someone actually pays for.
         </p>
         <p style={bodyStyle}>
-          The product is delivery latency on data the network already produces. A leader validator builds a
-          block, slices it into shreds, and signs them. Those shreds reach the public mempool and the
-          Turbine fanout almost immediately. They also reach DoubleZero Edge subscribers <em>sooner</em>{' '}
-          &mdash; by a margin that&apos;s small in absolute terms (single-digit to low-double-digit
-          milliseconds) but enormous in trading terms. Market makers who beat a competing fill by 5&nbsp;ms
-          win the trade. That delta is the whole product.
+          What Edge sells is simple. It sells getting the data sooner. Here&apos;s how it works. A leader
+          validator &mdash; the node whose turn it is to produce the next block &mdash; builds a block, slices
+          it into shreds (the small signed packets a block gets broken into for broadcast), and signs them.
+          Those shreds hit the public mempool and the Turbine fanout almost instantly. But they reach
+          DoubleZero Edge subscribers <em>a little sooner</em>. In absolute terms the gap is tiny &mdash;
+          single-digit to low-double-digit milliseconds &mdash; but if you trade, it&apos;s huge. A market
+          maker who beats a competing fill by 5&nbsp;ms wins the trade. That head start is the whole product.
         </p>
         <p style={bodyStyle}>
-          Nothing about the underlying data is private. Nothing is gatekept by consensus. The validator
-          isn&apos;t doing extra work or revealing anything they didn&apos;t already commit to broadcasting.
-          They&apos;re selling the front of the queue.
+          None of the underlying data is private. Nothing here is gated by consensus. The validator
+          isn&apos;t doing any extra work, and it isn&apos;t revealing anything it wasn&apos;t already going to
+          broadcast. It&apos;s just selling you the front of the queue.
         </p>
 
         <SectionLabel>Who pays, and in what</SectionLabel>
         <p style={bodyStyle}>
-          The buyer side is the usual high-frequency cast: market makers running on-chain quoting, prop
-          trading desks running CEX-DEX arb, statarb funds running cross-venue strategies, and the searcher
-          desks running MEV bots that need to react to a price move before the next slot lands.
+          The buyers are the usual high-frequency crowd. Market makers quoting on-chain. Prop desks running
+          CEX-DEX arb &mdash; buying on a centralised exchange and selling on a decentralised one, or the
+          other way around, to pocket the price gap. Statarb funds running cross-venue strategies. And the
+          searcher desks running MEV bots &mdash; MEV being the profit you can extract by getting your
+          transaction in front of someone else&apos;s. All of them need to react to a price move before the
+          next slot lands.
         </p>
         <p style={bodyStyle}>
-          Payment is in <strong style={strong}>USDC, prepaid</strong>. Subscribers fund a balance and the
-          protocol deducts per epoch from active subscriptions. There&apos;s no per-shred billing, no
-          packet-by-packet accounting &mdash; you&apos;re buying access to a feed for a window of time. The
-          accounting unit is the epoch (~2&nbsp;days on Solana), which matches how validators already think
-          about reward cadence and how DoubleZero already thinks about network operation.
+          You pay in <strong style={strong}>USDC, prepaid</strong>. You fund a balance, and the protocol
+          deducts from it every epoch &mdash; an epoch being Solana&apos;s ~2&nbsp;day accounting window
+          &mdash; for as long as your subscription is active. There&apos;s no per-shred billing, no
+          packet-by-packet accounting. You&apos;re just buying access to a feed for a stretch of time. Billing
+          per epoch matches how validators already think about reward cadence and how DoubleZero already
+          thinks about running the network.
         </p>
         <p style={bodyStyle}>
-          USDC is the right choice here. The buyers are CeFi-shaped firms; their accounting and treasury are
-          USD-denominated. Paying in SOL would force them to hedge a token they don&apos;t want to hold.
-          Paying in a chain-native token would make the deal harder to model. USDC, prepaid in an
+          USDC is the right call. The buyers are CeFi-shaped firms, so their books and treasury are all in
+          dollars. Paying in SOL would force them to hedge a token they don&apos;t want to hold. Paying in
+          some chain-native token would just make the deal harder to model. USDC, prepaid into an
           escrow-style balance, makes the subscription look like any other low-latency data feed they
           already buy from CME, Pyth, or a Bloomberg port.
         </p>
         <p style={bodyStyle}>
-          Pricing is tiered by city. Tokyo and NYC are at the top &mdash; that&apos;s where the most
-          aggressive trading desks already colocate, and where the marginal millisecond is most valuable.
-          Smaller cities sit at lower price points. The structure mirrors how exchange colo charges work in
-          traditional venues: the pop closest to where the matching engine lives commands a premium because
-          everyone&apos;s willing to pay for it. DoubleZero is just running that playbook for the Solana
-          leader schedule.
+          Pricing is tiered by city. Tokyo and NYC sit at the top &mdash; that&apos;s where the most
+          aggressive trading desks already colocate, and where shaving off one more millisecond is worth the
+          most. Smaller cities cost less. It&apos;s the same logic as exchange colo fees in traditional
+          markets: the point of presence closest to the matching engine commands a premium because everyone
+          will pay for it. DoubleZero is just running that playbook against the Solana leader schedule.
         </p>
 
         <SectionLabel>The split</SectionLabel>
         <p style={bodyStyle}>
-          Edge revenue is burned and split in a deliberate sequence. Every epoch&apos;s subscription
-          receipts go into one pot. <strong style={strong}>Ten percent is burned</strong> &mdash;
-          permanently removed from supply before anyone gets paid. The remaining 90% is divided across
-          three lanes with fixed shares:
+          Edge revenue gets burned and split in a deliberate order. Every epoch, the subscription receipts
+          land in one pot. <strong style={strong}>Ten percent is burned</strong> &mdash; permanently removed
+          from supply before anyone gets paid. The remaining 90% is split across three lanes, each with a
+          fixed share:
         </p>
 
         <CardGrid columns={3} cards={[
@@ -103,8 +107,8 @@ export default function ShredEconomyArticle() {
         ]} />
 
         <p style={bodyStyle}>
-          Worked example, this epoch. $8,890 in. Burn 10% &rarr; $889 destroyed. Remaining pot:{' '}
-          $8,001. The split lands at roughly:
+          Walk through this epoch. $8,890 comes in. Burn 10% &rarr; $889 gone. That leaves a pot of{' '}
+          $8,001, and the split lands at roughly:
         </p>
 
         <ul style={{
@@ -119,27 +123,25 @@ export default function ShredEconomyArticle() {
         </ul>
 
         <p style={bodyStyle}>
-          The validator share is the structurally interesting line. <strong style={strong}>It&apos;s
-          weighted by shreds, not by stake.</strong> A 10k-SOL validator that&apos;s producing a full
-          schedule of blocks earns the same per-shred rate as a 5M-SOL validator. The only thing that
-          differentiates payout is participation in shred production during the epoch &mdash; which means
-          uptime, network reach, and whether the Edge integration is actually turned on. That&apos;s a
-          deliberate design choice: it favours operators who do the work, not the ones with the biggest
-          delegated balance sheet.
+          The validator line is the structurally interesting one. <strong style={strong}>It&apos;s weighted
+          by shreds, not by stake.</strong> A 10k-SOL validator producing a full schedule of blocks earns
+          the same per-shred rate as a 5M-SOL one. The only thing that moves your payout is how much you
+          took part in shred production during the epoch &mdash; which comes down to uptime, network reach,
+          and whether you actually turned the Edge integration on. That&apos;s deliberate. It rewards the
+          operators who do the work, not the ones sitting on the biggest delegated balance sheet.
         </p>
         <p style={bodyStyle}>
-          The third lane is the one most people miss. Edge isn&apos;t just paying the people who own the
-          hardware and the people who own the stake; it&apos;s paying the people who wrote the software
-          that exposes the data. That changes the incentive structure for validator-client development
-          overnight. Open-source consensus implementations have historically been funded by grants,
-          foundations, or token allocations. Edge gives them a per-epoch recurring revenue line tied to{' '}
-          <em>usage</em>, not roadmap milestones.
+          The third lane is the one most people miss. Edge doesn&apos;t just pay the people who own the
+          hardware and the people who own the stake &mdash; it pays the people who wrote the software that
+          exposes the data. That rewires the incentives for validator-client development overnight.
+          Open-source consensus implementations have always been funded by grants, foundations, or token
+          allocations. Edge hands them a recurring, per-epoch revenue line tied to <em>usage</em>, not to
+          roadmap milestones.
         </p>
 
         <SectionLabel>How a validator actually connects</SectionLabel>
         <p style={bodyStyle}>
-          Operationally, this is short. There are essentially four steps and none of them require
-          buying hardware:
+          The setup is short. Four steps, basically, and none of them mean buying hardware:
         </p>
         <ol style={{
           paddingLeft: 24, margin: '0 0 24px',
@@ -147,95 +149,95 @@ export default function ShredEconomyArticle() {
           fontSize: 'clamp(0.95rem, 2vw, 1.05rem)', lineHeight: 1.7,
           color: 'rgba(255,255,255,0.7)', letterSpacing: '0.02em',
         }}>
-          <li>Run a supported validator client &mdash; currently Agave, Jito-Solana, Firedancer, or Frankendancer.</li>
-          <li>Connect the node to a DoubleZero endpoint, using the published config and the DZD relay closest to your physical region. Tokyo and NYC endpoints sit at premium pricing tiers; lower-tier cities are cheaper to subscribe to and earn proportionally less per epoch.</li>
-          <li>Enable shred publishing &mdash; a config flag that lets the client emit shreds onto the Edge fibre in parallel with the public Turbine fanout.</li>
-          <li>Let the protocol meter your shred output across the epoch. At epoch close, the validator share is split pro-rata by shred count and USDC is paid directly to the validator&apos;s configured address.</li>
+          <li>Run a supported validator client &mdash; right now that&apos;s Agave, Jito-Solana, Firedancer, or Frankendancer.</li>
+          <li>Point your node at a DoubleZero endpoint, using the published config and the DZD relay closest to where you physically sit. Tokyo and NYC endpoints sit at premium pricing tiers; lower-tier cities are cheaper to subscribe to and earn proportionally less per epoch.</li>
+          <li>Turn on shred publishing &mdash; a config flag that tells the client to push shreds onto the Edge fibre alongside the public Turbine fanout.</li>
+          <li>Let the protocol meter your shred output over the epoch. When the epoch closes, the validator share gets split pro-rata by shred count, and USDC lands directly in your configured address.</li>
         </ol>
         <p style={bodyStyle}>
-          That&apos;s the whole onboarding. No new validator hardware. No staking change. No relationship
-          with a MEV operator. The participating set is already 400+ validators covering roughly half of
-          Solana&apos;s total stake, which is the largest single coordination of new revenue paths on Solana
+          That&apos;s the entire onboarding. No new validator hardware. No change to your staking. No deal
+          with a MEV operator. The set already taking part is 400+ validators covering roughly half of
+          Solana&apos;s total stake &mdash; the biggest single coordination of new revenue paths on Solana
           since Jito went live.
         </p>
 
         <SectionLabel>The numbers as they stand</SectionLabel>
         <p style={bodyStyle}>
-          $8,890 in a single epoch is small. ~$1.6M annualised is small. Both of these numbers are also{' '}
-          <em>day one</em>. Edge launched into a Solana validator set that&apos;s in the high thousands; the
-          fraction running DoubleZero is in the dozens. The fraction of HFT shops actually paying for the
-          subscription is a smaller fraction still, because for many of them the test budget hasn&apos;t
-          even cleared their compliance review yet.
+          $8,890 in a single epoch is small. ~$1.6M annualised is small. But both numbers are also{' '}
+          <em>day one</em>. Edge launched into a Solana validator set that runs into the high thousands;
+          the slice running DoubleZero is still in the dozens. And the slice of HFT shops actually paying for
+          a subscription is smaller still &mdash; for a lot of them the test budget hasn&apos;t even cleared
+          compliance yet.
         </p>
         <p style={bodyStyle}>
-          The relevant comparison isn&apos;t &ldquo;how much MEV does Jito clear per epoch&rdquo; (the answer
-          is millions). The relevant comparison is the early curve of any subscription product where the
-          buyer is the most procedurally cautious counterparty in finance. Edge is at the bottom of the
-          S-curve. If validator opt-in doubles and subscriber count doubles, the line moves four-fold on
-          the same per-subscription pricing. If subscription pricing then rises (it will, because the
-          margin the buyers extract is much larger than what they&apos;re paying today), it compounds again.
+          So don&apos;t ask &ldquo;how much MEV does Jito clear per epoch&rdquo; (the answer is millions).
+          Ask instead what the early curve looks like for any subscription product whose buyer is the most
+          procedurally cautious counterparty in finance. Edge is sitting at the bottom of the S-curve. Double
+          the validator opt-in and double the subscriber count, and the line moves four-fold on the same
+          per-subscription pricing. Then let pricing rise &mdash; and it will, because the margin the buyers
+          pull out is far bigger than what they pay today &mdash; and it compounds again.
         </p>
 
         <SectionLabel>Why this matters for validators</SectionLabel>
         <p style={bodyStyle}>
-          A Solana validator&apos;s income statement, historically, has three lines: inflation rewards
-          (decaying), transaction fees (chunky, lumpy), and Jito tips (real, growing). Operating costs are
-          significant: hardware, bandwidth, ops staff, slashing risk on misconfigured upgrades.
+          Until now, a Solana validator&apos;s income statement has had three lines: inflation rewards
+          (decaying), transaction fees (chunky and lumpy), and Jito tips (real and growing). And the costs of
+          running one aren&apos;t small &mdash; hardware, bandwidth, ops staff, and the slashing risk that
+          comes with a botched upgrade.
         </p>
         <p style={bodyStyle}>
-          Edge adds a fourth line. Crucially, it&apos;s the only line where the validator does no
-          incremental work. Inflation requires staking. Tx fees require participation in consensus. Jito
-          tips require running the Jito client and bundling. Edge requires{' '}
-          <em>allowing your shreds to be relayed onto a private network you&apos;re already connected to</em>{' '}
-          &mdash; a config flag in your validator client.
+          Edge adds a fourth line. And here&apos;s the key part: it&apos;s the only line where the validator
+          does no extra work. Inflation needs you to stake. Tx fees need you to take part in consensus. Jito
+          tips need you running the Jito client and bundling. Edge just needs you to{' '}
+          <em>allow your shreds to be relayed onto a private network you&apos;re already connected to</em>{' '}
+          &mdash; one config flag in your validator client.
         </p>
         <p style={bodyStyle}>
-          For mid-sized validators &mdash; the ones running 100k&ndash;500k SOL stake who don&apos;t have a
-          MEV team or a Jito relationship in-house &mdash; this is the most accessible piece of new revenue
-          on Solana. They opt in by flipping a flag. The protocol handles billing, accounting, and payout.
+          For mid-sized validators &mdash; the ones running 100k&ndash;500k SOL of stake without a MEV team
+          or a Jito relationship in-house &mdash; this is the easiest new revenue on Solana to reach. You opt
+          in by flipping a flag. The protocol handles billing, accounting, and payout.
         </p>
         <p style={bodyStyle}>
           And because the validator share is split by <em>shreds produced</em> rather than by stake, a
           well-run small validator can earn the same per-shred rate as a top-100 operator. Edge effectively
-          decouples this revenue line from the stake distribution &mdash; the only thing that matters is
-          how much data you&apos;re actually contributing. That&apos;s the first non-stake-weighted income
-          stream on Solana that&apos;s big enough to move a P&amp;L.
+          unhooks this revenue line from the stake distribution &mdash; the only thing that counts is how
+          much data you&apos;re actually contributing. That&apos;s the first income stream on Solana that
+          isn&apos;t stake-weighted and is still big enough to move a P&amp;L.
         </p>
 
         <SectionLabel>Why this matters for clients</SectionLabel>
         <p style={bodyStyle}>
-          The four major validator clients today — Agave, Firedancer, Frankendancer, Jito-Solana — are
-          each maintained by different organisations with different funding models, ranging from
-          token-funded to foundation-funded to for-profit infrastructure operators.
+          The four major validator clients today — Agave, Firedancer, Frankendancer, Jito-Solana — are each
+          maintained by a different organisation with a different funding model, from token-funded to
+          foundation-funded to for-profit infrastructure operators.
         </p>
         <p style={bodyStyle}>
-          Edge gives all of them the same new revenue surface: <strong style={strong}>per-epoch payout
+          Edge hands all of them the same new revenue surface: <strong style={strong}>a per-epoch payout
           proportional to how much of the validator set is running their client and exposing shreds via the
-          Edge integration</strong>. That&apos;s a structural shift. Open-source consensus software now has
-          a usage-based pricing model. Patches that improve the latency or completeness of the Edge feed
-          translate directly into recurring revenue for the team that shipped them.
+          Edge integration</strong>. That&apos;s a structural shift. Open-source consensus software now has a
+          usage-based pricing model. Ship a patch that makes the Edge feed faster or more complete, and it
+          turns straight into recurring revenue for the team that shipped it.
         </p>
         <p style={bodyStyle}>
-          The cynical reading is that this creates competing client teams who fork the data path for
-          revenue capture. The optimistic reading is that it&apos;s the first time client maintainers have
-          a market signal tied to throughput and latency rather than to grant cycles. Both readings are
-          probably correct.
+          Read it cynically and this breeds competing client teams who fork the data path to grab the
+          revenue. Read it optimistically and it&apos;s the first time client maintainers have a market signal
+          tied to throughput and latency instead of grant cycles. Both readings are probably right.
         </p>
 
         <SectionLabel>The Shred Economy as a framing</SectionLabel>
         <p style={bodyStyle}>
-          &ldquo;Shred Economy&rdquo; is the right label for this because it names where the value sits.
-          Shreds aren&apos;t a new artefact &mdash; they&apos;ve been a feature of Solana&apos;s data layer
-          since launch. What&apos;s new is treating them as a <em>commercial product</em>: a metered,
-          subscribable, paid-for data feed where the producer (validator) and the carrier (DoubleZero) and
-          the integrator (client team) all share in the receipts.
+          &ldquo;Shred Economy&rdquo; is the right label here because it names where the value sits. Shreds
+          aren&apos;t a new thing &mdash; they&apos;ve been part of Solana&apos;s data layer since launch.
+          What&apos;s new is treating them as a <em>commercial product</em>: a metered, subscribable,
+          paid-for data feed where the producer (validator), the carrier (DoubleZero), and the integrator
+          (client team) all share in the receipts.
         </p>
         <p style={bodyStyle}>
-          The model is straight out of the equity markets data business: exchanges sell market data,
-          carriers (e.g. Refinitiv, Bloomberg, financial-grade fibre operators) sell delivery, and the
-          customer pays for the bundle. Crypto has been re-implementing market microstructure for years
-          without re-implementing the data-fee infrastructure underneath it. Edge is the first version of
-          that infrastructure that&apos;s actually charging money.
+          The model is straight out of the equity markets data business. Exchanges sell market data, carriers
+          (Refinitiv, Bloomberg, financial-grade fibre operators) sell delivery, and the customer pays for
+          the bundle. Crypto has spent years re-implementing market microstructure without re-implementing
+          the data-fee infrastructure underneath it. Edge is the first version of that infrastructure
+          that&apos;s actually charging money.
         </p>
 
         <PullQuote attribution="AILEENA MACHINA / 2026">
@@ -248,26 +250,26 @@ export default function ShredEconomyArticle() {
         </p>
         <p style={bodyStyle}>
           <strong style={strong}>One: validator opt-in.</strong> The flywheel only spins if a meaningful
-          fraction of stake-weighted validators expose their shreds via Edge. Below some threshold the feed
-          isn&apos;t comprehensive enough to justify the subscription. The current count of DoubleZero
-          validators is in the dozens out of thousands. That number has to move up an order of magnitude
-          before Edge feels like a real product instead of a beta.
+          chunk of stake-weighted validators expose their shreds via Edge. Below some threshold the feed
+          isn&apos;t comprehensive enough to justify the subscription. Right now the DoubleZero validator
+          count is in the dozens, out of thousands. It has to climb an order of magnitude before Edge feels
+          like a real product instead of a beta.
         </p>
         <p style={bodyStyle}>
           <strong style={strong}>Two: subscriber stability.</strong> HFT subscriptions don&apos;t renew
-          automatically. The buyers run quarterly cost reviews. If the alpha they extract from earlier
-          shred access compresses (because everyone subscribes, the edge disappears), some will drop the
-          subscription and try to capture the data via other paths &mdash; including the kernel-side
-          XDP / GRE-decap workaround surfaced in the previous piece. Edge has to either price for that
-          compression or build features (more granular feeds, more validator coverage) faster than the
-          alpha decays.
+          themselves. The buyers run quarterly cost reviews. If the alpha they extract from earlier shred
+          access gets squeezed &mdash; because once everyone subscribes, the edge disappears &mdash; some
+          will drop the subscription and try to grab the data some other way, including the kernel-side
+          XDP / GRE-decap workaround I covered in the previous piece. So Edge has to either price for that
+          compression or ship features (more granular feeds, more validator coverage) faster than the alpha
+          decays.
         </p>
         <p style={bodyStyle}>
-          <strong style={strong}>Three: regulatory framing.</strong> A subscription product paid in USDC,
-          sold to financial firms, denominated as access to a metered data feed, looks a lot like a
-          regulated market data product. It is currently not regulated as one. Whether that lasts depends on
-          jurisdictional questions nobody has bothered with yet because the revenue numbers are too small to
-          care about. Once the numbers grow, those questions arrive.
+          <strong style={strong}>Three: regulatory framing.</strong> A subscription product, paid in USDC,
+          sold to financial firms, priced as access to a metered data feed &mdash; that looks a lot like a
+          regulated market data product. It isn&apos;t regulated as one today. Whether that lasts comes down
+          to jurisdictional questions nobody has bothered with yet, because the revenue numbers are too small
+          to care about. Once the numbers grow, those questions arrive.
         </p>
 
         <SectionLabel>The takeaway</SectionLabel>
@@ -279,10 +281,10 @@ export default function ShredEconomyArticle() {
           didn&apos;t exist a year ago.
         </p>
         <p style={bodyStyle}>
-          That&apos;s what changes about Solana. Not the headline TPS, not the consensus, not the
+          That&apos;s what actually changes about Solana. Not the headline TPS, not the consensus, not the
           cryptography &mdash; the basic financial geometry of who pays whom for what. The chain&apos;s
-          infrastructure providers were always cost centres before. With Edge, they&apos;re profit centres.
-          Every other chain&apos;s validators are reading these numbers.
+          infrastructure providers used to be cost centres. With Edge, they&apos;re profit centres. And every
+          other chain&apos;s validators are reading these numbers.
         </p>
 
         {/* ── References ── */}
