@@ -24,7 +24,7 @@ export default function ShredEconomyArticle() {
       {/* ── Body ── */}
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
 
-        <SectionLabel>01 &mdash; What Edge actually sells</SectionLabel>
+        <SectionLabel>What Edge actually sells</SectionLabel>
         <p style={bodyStyle}>
           The previous piece on DoubleZero was about the pipe &mdash; private fibre, native multicast,
           16+&nbsp;ms saved per Turbine hop. This piece is about what flows through it that someone is
@@ -44,7 +44,7 @@ export default function ShredEconomyArticle() {
           They&apos;re selling the front of the queue.
         </p>
 
-        <SectionLabel>02 &mdash; Who pays, and in what</SectionLabel>
+        <SectionLabel>Who pays, and in what</SectionLabel>
         <p style={bodyStyle}>
           The buyer side is the usual high-frequency cast: market makers running on-chain quoting, prop
           trading desks running CEX-DEX arb, statarb funds running cross-venue strategies, and the searcher
@@ -73,7 +73,7 @@ export default function ShredEconomyArticle() {
           leader schedule.
         </p>
 
-        <SectionLabel>03 &mdash; The split</SectionLabel>
+        <SectionLabel>The split</SectionLabel>
         <p style={bodyStyle}>
           Edge revenue is burned and split in a deliberate sequence. Every epoch&apos;s subscription
           receipts go into one pot. <strong style={strong}>Ten percent is burned</strong> &mdash;
@@ -136,7 +136,7 @@ export default function ShredEconomyArticle() {
           <em>usage</em>, not roadmap milestones.
         </p>
 
-        <SectionLabel>04 &mdash; How a validator actually connects</SectionLabel>
+        <SectionLabel>How a validator actually connects</SectionLabel>
         <p style={bodyStyle}>
           Operationally, this is short. There are essentially four steps and none of them require
           buying hardware:
@@ -159,7 +159,7 @@ export default function ShredEconomyArticle() {
           since Jito went live.
         </p>
 
-        <SectionLabel>05 &mdash; The numbers as they stand</SectionLabel>
+        <SectionLabel>The numbers as they stand</SectionLabel>
         <p style={bodyStyle}>
           $8,890 in a single epoch is small. ~$1.6M annualised is small. Both of these numbers are also{' '}
           <em>day one</em>. Edge launched into a Solana validator set that&apos;s in the high thousands; the
@@ -176,7 +176,7 @@ export default function ShredEconomyArticle() {
           margin the buyers extract is much larger than what they&apos;re paying today), it compounds again.
         </p>
 
-        <SectionLabel>06 &mdash; Why this matters for validators</SectionLabel>
+        <SectionLabel>Why this matters for validators</SectionLabel>
         <p style={bodyStyle}>
           A Solana validator&apos;s income statement, historically, has three lines: inflation rewards
           (decaying), transaction fees (chunky, lumpy), and Jito tips (real, growing). Operating costs are
@@ -202,7 +202,7 @@ export default function ShredEconomyArticle() {
           stream on Solana that&apos;s big enough to move a P&amp;L.
         </p>
 
-        <SectionLabel>07 &mdash; Why this matters for clients</SectionLabel>
+        <SectionLabel>Why this matters for clients</SectionLabel>
         <p style={bodyStyle}>
           The four major validator clients today — Agave, Firedancer, Frankendancer, Jito-Solana — are
           each maintained by different organisations with different funding models, ranging from
@@ -222,7 +222,7 @@ export default function ShredEconomyArticle() {
           probably correct.
         </p>
 
-        <SectionLabel>08 &mdash; The Shred Economy as a framing</SectionLabel>
+        <SectionLabel>The Shred Economy as a framing</SectionLabel>
         <p style={bodyStyle}>
           &ldquo;Shred Economy&rdquo; is the right label for this because it names where the value sits.
           Shreds aren&apos;t a new artefact &mdash; they&apos;ve been a feature of Solana&apos;s data layer
@@ -242,7 +242,7 @@ export default function ShredEconomyArticle() {
           The shreds were always free. The new thing is someone is finally getting paid to deliver them.
         </PullQuote>
 
-        <SectionLabel>09 &mdash; What still has to work</SectionLabel>
+        <SectionLabel>What still has to work</SectionLabel>
         <p style={bodyStyle}>
           Three things to watch over the next two quarters.
         </p>
@@ -270,7 +270,7 @@ export default function ShredEconomyArticle() {
           care about. Once the numbers grow, those questions arrive.
         </p>
 
-        <SectionLabel>10 &mdash; The takeaway</SectionLabel>
+        <SectionLabel>The takeaway</SectionLabel>
         <p style={bodyStyle}>
           DoubleZero spent its first eighteen months proving the pipe worked. Edge is the first time the
           pipe earned a dollar. The headline figure is small. The structural change is large:{' '}
@@ -383,12 +383,6 @@ function StatsWall({ stats }: { stats: { value: string; label: string; sub?: str
           display: 'flex', flexDirection: 'column', gap: 8,
           position: 'relative',
         }}>
-          <span style={{
-            fontFamily: 'monospace', fontSize: '0.5rem', letterSpacing: '0.4em',
-            color: 'rgba(0,255,234,0.55)', textTransform: 'uppercase',
-          }}>
-            {String(i + 1).padStart(2, '0')}
-          </span>
           <span style={{
             fontFamily: "'Barlow Condensed', system-ui, sans-serif",
             fontSize: 'clamp(1.8rem, 4vw, 2.6rem)',

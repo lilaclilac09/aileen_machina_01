@@ -409,19 +409,16 @@ doublezero status        # confirm connection`}
 
         <CardGrid cards={[
           {
-            num: '01',
             tag: 'Kernel',
             title: 'XDP / eBPF, GRE decap in kernel',
             body: <>An XDP/eBPF program for Solana traffic that does <strong style={strong}>GRE tunnel decapsulation</strong> — strip the protocol-47 outer header in kernel, hand the inner packet to the validator or an AF_XDP-backed Firedancer <code style={codeStyle}>net_tile</code>. This is the layer <em>below</em> <code style={codeStyle}>net_tile</code>, and it already ships in public form.</>,
           },
           {
-            num: '02',
             tag: 'Tile glue',
             title: 'Firedancer net_tile + Agave forks',
             body: <>Active workspaces landing upstream Firedancer PRs (recent: <em>resolv: use exact block height check</em>). The likely site for the userspace tile-side glue — subscription, group membership, reconciliation between unicast and multicast paths.</>,
           },
           {
-            num: '03',
             tag: 'MEV client',
             title: 'Jito-Solana fork with DZ wiring',
             body: <>The MEV-aware Agave fork with block-engine + bundle-relayer hooks — the client most MEV-active validators run today. It inherits Agave&apos;s network stack, so any DZ integration lands via the same kernel-side hooks as on stock Agave. A packaged MEV-shipped DZ variant is unannounced.</>,
@@ -465,31 +462,26 @@ doublezero status        # confirm connection`}
 
         <CardGrid cards={[
           {
-            num: '01',
             tag: 'RPC',
             title: 'Jitter-aware RPC router',
             body: <>Read live TWAMP telemetry, route reads/writes to the validator with the best path-quality for the requesting region. Useful for any RPC provider that wants to undercut Helius/Triton on tail latency without owning fiber.</>,
           },
           {
-            num: '02',
             tag: 'Feed',
             title: 'Multicast data feed',
             body: <>Publish a custom data stream (oracle prices, orderbook events) into a DZ multicast group. Subscribers receive at near-line-rate with sub-ms jitter. Pyth-style feeds are the obvious early case; private MM feeds are the spicier one.</>,
           },
           {
-            num: '03',
             tag: 'Alert',
             title: 'Skip-rate alerting',
             body: <>Validators on DZ should post measurably better skip rates than identical hardware off DZ. Build the diff, alert when the gap collapses — suggests DZ degradation or a routing misconfig.</>,
           },
           {
-            num: '04',
             tag: 'Relayer',
             title: 'Thin bundle relayer',
             body: <>Bundle semantics still need a coordinator; lowest-latency-to-leader does not, on DZ. A focused relayer that handles tip routing but assumes DZ for transport is a meaningfully smaller piece of software than Jito&apos;s full stack.</>,
           },
           {
-            num: '05',
             tag: 'Fork',
             title: 'Firedancer × DZ fork',
             body: <>The clean architectural fit described in §7 is open work — net_tile bound to <code style={codeStyle}>doublezero0</code>, shred tile subscribing to multicast groups. Someone will publish it.</>,
@@ -905,12 +897,6 @@ function StatsWall({ stats }: { stats: { value: string; label: string; sub?: str
           position: 'relative',
         }}>
           <span style={{
-            fontFamily: 'monospace', fontSize: '0.5rem', letterSpacing: '0.4em',
-            color: 'rgba(0,255,234,0.55)', textTransform: 'uppercase',
-          }}>
-            {String(i + 1).padStart(2, '0')}
-          </span>
-          <span style={{
             fontFamily: "'Barlow Condensed', system-ui, sans-serif",
             fontSize: 'clamp(1.8rem, 4vw, 2.6rem)',
             fontWeight: 700, letterSpacing: '0.02em',
@@ -941,7 +927,7 @@ function StatsWall({ stats }: { stats: { value: string; label: string; sub?: str
 
 /* ── Card grid for integration candidates / dev build ideas ── */
 function CardGrid({ cards, columns = 3 }: {
-  cards: { num: string; tag: string; title: string; href?: string; body: React.ReactNode }[];
+  cards: { num?: string; tag: string; title: string; href?: string; body: React.ReactNode }[];
   columns?: number;
 }) {
   return (
@@ -955,12 +941,14 @@ function CardGrid({ cards, columns = 3 }: {
         const inner = (
           <>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 14 }}>
-              <span style={{
-                fontFamily: 'monospace', fontSize: '0.62rem', letterSpacing: '0.3em',
-                color: 'rgba(0,255,234,0.55)',
-              }}>
-                {c.num}
-              </span>
+              {c.num ? (
+                <span style={{
+                  fontFamily: 'monospace', fontSize: '0.62rem', letterSpacing: '0.3em',
+                  color: 'rgba(0,255,234,0.55)',
+                }}>
+                  {c.num}
+                </span>
+              ) : null}
               <span style={{
                 fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.4em',
                 color: '#00ffea', textTransform: 'uppercase',
