@@ -16,16 +16,17 @@ export default function CentaurArticle() {
 
         <SectionLabel>What it actually is</SectionLabel>
         <p style={bodyStyle}>
-          Centaur is a self-hosted platform that gives a team <em>one</em> shared AI agent instead
-          of N one-off local setups. You talk to it from Slack or an API. Every conversation runs
-          in its own isolated Kubernetes sandbox with a real shell, a real workspace, git, Python,
-          Node, Bun and the usual dev tooling. Tools you add once are available to every agent
-          conversation. Workflows can pause, resume, wait for events, spawn child agents, and
-          survive service restarts. Credentials never enter the sandbox in raw form.
+          Centaur is a self-hosted platform that gives a whole team <em>one</em> shared AI agent
+          instead of N separate local setups. You talk to it from Slack or an API. Every
+          conversation runs in its own isolated Kubernetes sandbox &mdash; a locked-down container
+          K8s spins up just for that chat &mdash; with a real shell, a real workspace, git, Python,
+          Node, Bun and the usual dev tooling. Add a tool once and every agent conversation can use
+          it. Workflows can pause, resume, wait for events, spawn child agents, and survive a
+          service restart. And credentials never make it into the sandbox in raw form.
         </p>
 
         <p style={bodyStyle}>
-          The codebase is Apache 2.0 and built on five components:
+          The codebase is Apache 2.0 and built out of five components:
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -47,134 +48,137 @@ plugins / workflows   Python tools + checkpointable workflow steps`}
         <p style={bodyStyle}>
           The agent &quot;brain&quot; itself is{' '}
           <strong style={strong}>bring-your-own</strong>: Amp, Codex, Claude Code, pi-mono, or any
-          custom CLI harness drops into the sandbox. Centaur is the chassis, not the engine.
+          custom CLI harness drops straight into the sandbox. Centaur is the chassis, not the
+          engine.
         </p>
 
         <SectionLabel>Why Paradigm built it themselves</SectionLabel>
         <p style={bodyStyle}>
-          Paradigm is a venture firm of roughly fifty people running a multi-billion crypto book
+          Paradigm is a venture firm of roughly fifty people running a multi-billion crypto book,
           plus the Reth / Foundry stacks. They&apos;ve been using Centaur internally since January
-          2026. The motivation falls out of three constraints that didn&apos;t line up with anything
-          off the shelf:
+          2026. The reason they built it comes down to three constraints that nothing off the shelf
+          could satisfy:
         </p>
         <ul style={listStyle}>
           <li>
             <strong style={strong}>Compliance + data boundary.</strong> A VC handling LP positions,
-            portfolio diligence and unannounced deals cannot pipe its repos, Slack DMs and secrets
-            through a third-party SaaS cloud. Devin and the Cursor / Codex cloud agents are
-            non-starters by policy.
+            portfolio diligence and unannounced deals can&apos;t pipe its repos, Slack DMs and
+            secrets through someone else&apos;s SaaS cloud. By policy, Devin and the Cursor / Codex
+            cloud agents are off the table.
           </li>
           <li>
             <strong style={strong}>Long-running work.</strong> Diligence memos, recruiting funnels,
-            customer-support triage, CI investigations — none of these complete in a 30-minute
-            chat window. They need an agent that can sleep for hours, wake on an event, and not
-            lose its place because someone restarted a pod.
+            customer-support triage, CI investigations — none of these wrap up inside a 30-minute
+            chat window. You need an agent that can sleep for hours, wake up when something happens,
+            and not lose its place just because someone restarted a pod.
           </li>
           <li>
             <strong style={strong}>Shared institutional memory.</strong> Fifty people each running
-            a local Claude Code with their own tool wrappers is fifty disjoint knowledge bases.
-            One shared agent with a single tool registry compounds; fifty don&apos;t.
+            their own local Claude Code with their own tool wrappers is fifty disconnected knowledge
+            bases. One shared agent with a single tool registry compounds over time; fifty separate
+            ones never do.
           </li>
         </ul>
 
         <p style={bodyStyle}>
-          The strategic logic is the same logic that produced Reth and Foundry: build the
-          internal tool first, harden it on real workloads, then open-source it once it&apos;s a
-          competitive moat for the entire portfolio rather than for the firm alone. Centaur is
-          Paradigm&apos;s pitch that the next layer of infrastructure portfolio companies need is
-          not a model or a sandbox — it&apos;s the multi-tenant runtime that turns either into a
-          coworker.
+          The strategy here is the same one that produced Reth and Foundry: build the internal tool
+          first, harden it on real work, then open-source it once it&apos;s a competitive moat for
+          the entire portfolio and not just for the firm. Centaur is Paradigm&apos;s argument that
+          the next layer of infrastructure portfolio companies need isn&apos;t a model or a
+          sandbox &mdash; it&apos;s the multi-tenant runtime that turns either one into a coworker.
         </p>
 
         <SectionLabel>The PM bets, component by component</SectionLabel>
         <p style={bodyStyle}>
-          Each of the five components is a deliberate scope choice. Reading them as PM decisions
-          rather than as a list of services is the most informative way to look at the repo.
+          Each of the five components is a deliberate scope choice. The most useful way to read the
+          repo is as a set of product decisions, not just a list of services.
         </p>
 
         <p style={bodyStyle}>
           <strong style={strong}>Slack as the primary UI, not the IDE.</strong> Devin reaches for
-          Slack too, but Cursor / Codex / Claude Code reach for the editor. Picking Slack
-          declares that the target user is everyone in the company — analysts, recruiters,
-          ops — not just engineers. The blast radius of the product is much larger and the bar
-          on the UI is much lower.
+          Slack too, but Cursor / Codex / Claude Code all reach for the editor. Choosing Slack is a
+          statement that the target user is everyone in the company &mdash; analysts, recruiters,
+          ops &mdash; not just engineers. That makes the product&apos;s reach much wider, and the
+          bar on the UI much lower.
         </p>
 
         <p style={bodyStyle}>
           <strong style={strong}>Durable workflows over chat turns.</strong> A FastAPI service
-          backed by Postgres with checkpointable workflow steps says the unit of work is a{' '}
-          <em>job</em>, not a <em>turn</em>. Jobs can sleep, wait, retry, and resume across pod
-          restarts. This is what makes &quot;run this overnight&quot; or &quot;watch this PR
-          until CI is green&quot; tractable.
+          backed by Postgres, with checkpointable workflow steps, says the unit of work is a{' '}
+          <em>job</em>, not a <em>turn</em>. Jobs can sleep, wait, retry, and pick up again after a
+          pod restart. That&apos;s what makes &quot;run this overnight&quot; or &quot;watch this PR
+          until CI is green&quot; actually doable.
         </p>
 
         <p style={bodyStyle}>
           <strong style={strong}>K8s sandboxes over a managed sandbox API.</strong> They could
-          have leaned on E2B or Daytona. They didn&apos;t — because the same compliance constraint
-          that ruled out Devin rules out a third-party sandbox. Running on the customer&apos;s K8s
-          keeps the entire data path inside the customer&apos;s boundary, at the cost of asking
-          the customer to operate K8s.
+          have just leaned on E2B or Daytona. They didn&apos;t &mdash; because the same compliance
+          constraint that ruled out Devin rules out a third-party sandbox too. Running on the
+          customer&apos;s own K8s keeps the entire data path inside the customer&apos;s boundary;
+          the price is that the customer now has to operate K8s.
         </p>
 
         <p style={bodyStyle}>
-          <strong style={strong}>iron-proxy as the secrets boundary.</strong> The agent never
-          sees raw long-lived keys. mitmproxy sits between the sandbox and the public internet
-          and injects real credentials only at the moment of outbound request, swapping
-          placeholders for live keys. This is the single design choice that lets Paradigm hand
-          the agent Stripe, 1Password, Slack admin and GitHub at once without losing sleep.
+          <strong style={strong}>iron-proxy as the secrets boundary.</strong> The agent never sees
+          raw long-lived keys. mitmproxy &mdash; a proxy that can intercept and rewrite traffic on
+          the fly &mdash; sits between the sandbox and the public internet and slips the real
+          credentials in only at the last second, on the outbound request, swapping placeholders
+          for live keys. This is the one design choice that lets Paradigm hand the agent Stripe,
+          1Password, Slack admin and GitHub all at once and still sleep at night.
         </p>
 
         <p style={bodyStyle}>
           <strong style={strong}>Bring-your-own harness + overlay images.</strong> Two
-          extensibility primitives that look small but matter. The first decouples Centaur from
-          model and CLI choice — Claude Code today, something else next quarter, with no fork.
-          The second lets every adopter mount their own Docker image of tools, skills and
-          workflows on top of upstream Centaur without touching the core. Together they keep
-          Centaur from becoming &quot;Paradigm&apos;s agent product&quot; and let it grow into a
+          extensibility pieces that look small but matter a lot. The first unhooks Centaur from any
+          one model or CLI &mdash; Claude Code today, something else next quarter, no fork required.
+          The second lets every adopter mount their own Docker image of tools, skills and workflows
+          on top of upstream Centaur without ever touching the core. Together they keep Centaur from
+          collapsing into &quot;Paradigm&apos;s agent product&quot; and let it grow into a real
           platform.
         </p>
 
         <SectionLabel>How they&apos;re telling the story</SectionLabel>
         <p style={bodyStyle}>
-          The launch communication is as deliberate as the architecture. Four pieces of it are
-          worth noticing.
+          The launch messaging is every bit as deliberate as the architecture. Four things about it
+          are worth noticing.
         </p>
 
         <p style={bodyStyle}>
           <strong style={strong}>The word &quot;centaur.&quot;</strong> Not &quot;agent,&quot;
-          not &quot;copilot.&quot; The centaur frame — human-and-machine as one body — was Garry
-          Kasparov&apos;s phrase for advanced chess where humans and engines compose. Paradigm is
-          deliberately stepping away from the &quot;autonomous agent&quot; story (Devin) and the
-          &quot;assistant&quot; story (Copilot) and pitching a third one: a teammate. The naming
-          carries the positioning.
+          not &quot;copilot.&quot; The centaur image &mdash; human and machine as one body &mdash;
+          was Garry Kasparov&apos;s term for advanced chess, where a human and an engine play
+          together. Paradigm is deliberately walking away from the &quot;autonomous agent&quot;
+          story (Devin) and the &quot;assistant&quot; story (Copilot) and pitching a third one: a
+          teammate. The name carries the positioning.
         </p>
 
         <p style={bodyStyle}>
           <strong style={strong}>Co-released with Tempo.</strong> Paradigm is a VC; Tempo is a
-          portfolio company that has been running Centaur in production. Shipping the launch
-          jointly does two things — it removes the &quot;internal toy&quot; smell from the
-          release, and it signals to other portfolio companies that the operating system for
-          their AI work has already been chosen for them.
+          portfolio company that&apos;s been running Centaur in production. Shipping the launch
+          jointly does two things &mdash; it shakes off the &quot;internal toy&quot; smell, and it
+          quietly tells the other portfolio companies that the operating system for their AI work
+          has already been picked for them.
         </p>
 
         <p style={bodyStyle}>
           <strong style={strong}>Apache 2.0, not BSL.</strong> Foundry uses MIT/Apache; Reth uses
-          MIT/Apache. Paradigm is consistent. There is no &quot;managed Centaur cloud&quot;
-          coming — the license forecloses the obvious SaaS play. The bet is that Centaur&apos;s
-          value to Paradigm is portfolio leverage, not licensing revenue.
+          MIT/Apache. Paradigm is being consistent. There&apos;s no &quot;managed Centaur
+          cloud&quot; on the way &mdash; the license rules out the obvious SaaS play. The bet is
+          that Centaur is worth more to Paradigm as portfolio leverage than as licensing revenue.
         </p>
 
         <p style={bodyStyle}>
           <strong style={strong}>The use-case list is unusually wide.</strong> Investing,
           engineering, design, recruiting, events, customer support. That breadth is the marketing
-          asset: it&apos;s the part that&apos;s hard to fake. A six-month internal run across a
-          fifty-person firm produces a list of jobs-to-be-done that a vendor demo never can.
+          asset, because it&apos;s the part you can&apos;t fake. Six months of real internal use
+          across a fifty-person firm produces a list of jobs-to-be-done that no vendor demo ever
+          could.
         </p>
 
         <SectionLabel>The competitive grid</SectionLabel>
         <p style={bodyStyle}>
-          Centaur sits at the intersection of four adjacent markets. None of them contain a
-          direct equivalent yet, which is the most interesting thing about the launch.
+          Centaur sits right where four neighbouring markets overlap. None of them has a direct
+          equivalent yet &mdash; which is the most interesting thing about the launch.
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -198,74 +202,75 @@ Coding-only agent      Sweep, Tusk, GH Copilot         OpenDevin-style forks
         </div>
 
         <p style={bodyStyle}>
-          <strong style={strong}>vs. Devin.</strong> Closest functional analog. Devin is closed
+          <strong style={strong}>vs. Devin.</strong> The closest functional cousin. Devin is closed
           SaaS, per-seat pricing, fully autonomous, single brand. Centaur is open, self-hosted,
-          harness-agnostic, and is a runtime rather than a product. For any team that can&apos;t
-          ship code or secrets to a vendor cloud — finance, crypto, healthcare, anyone with a
-          serious compliance posture — Centaur is the only thing in the column.
+          harness-agnostic, and a runtime rather than a product. For any team that can&apos;t ship
+          its code or secrets off to a vendor cloud &mdash; finance, crypto, healthcare, anyone
+          with a serious compliance posture &mdash; Centaur is the only thing in the column.
         </p>
 
         <p style={bodyStyle}>
           <strong style={strong}>vs. E2B / Daytona / Modal / Blaxel.</strong> These sell sandbox
-          APIs. Centaur subsumes the sandbox layer (it runs its own on K8s) and adds the four
-          things sandbox vendors don&apos;t: Slack ingress, durable workflows, credential
-          gateway, audit trail. If you&apos;re an agent <em>builder</em> renting E2B by the hour
-          you keep doing that; if you&apos;re a <em>company</em> deploying an agent for fifty
-          coworkers you want Centaur.
+          APIs. Centaur swallows the sandbox layer whole (it runs its own on K8s) and adds the four
+          things the sandbox vendors don&apos;t: Slack ingress, durable workflows, a credential
+          gateway, an audit trail. If you&apos;re an agent <em>builder</em> renting E2B by the hour,
+          carry on; if you&apos;re a <em>company</em> deploying one agent for fifty coworkers, you
+          want Centaur.
         </p>
 
         <p style={bodyStyle}>
-          <strong style={strong}>vs. kagent / LangGraph Platform.</strong> Both are open-source
-          K8s-native control planes for agents. They&apos;re lower in the stack than Centaur —
-          orchestration primitives and observability for platform-engineering teams. Centaur is
-          a packaged product on top: Slack bot included, secrets gateway included, sandbox image
-          included. Time-to-first-working-agent is hours, not weeks.
+          <strong style={strong}>vs. kagent / LangGraph Platform.</strong> Both are open-source,
+          K8s-native control planes for agents. They sit lower in the stack than Centaur &mdash;
+          orchestration primitives and observability aimed at platform-engineering teams. Centaur
+          is a packaged product sitting on top: Slack bot included, secrets gateway included,
+          sandbox image included. Time to your first working agent is hours, not weeks.
         </p>
 
         <p style={bodyStyle}>
-          <strong style={strong}>vs. Sweep / Tusk / Copilot Workspaces.</strong> Different scope.
-          These are PR-shaped: read an issue, produce a PR. Centaur runs the whole company &mdash;
-          the PR-bot pattern is one of many workflows you could implement on top of it.
+          <strong style={strong}>vs. Sweep / Tusk / Copilot Workspaces.</strong> Different scope
+          entirely. These are PR-shaped: read an issue, hand back a PR. Centaur runs the whole
+          company &mdash; the PR-bot pattern is just one of many workflows you could build on top
+          of it.
         </p>
 
         <SectionLabel>Where this leaves the market</SectionLabel>
         <p style={bodyStyle}>
-          The interesting position Centaur stakes out is the top-right quadrant of that grid:{' '}
+          The spot Centaur stakes out is the top-right quadrant of that grid:{' '}
           <strong style={strong}>open-source, self-hosted, full-stack team agent runtime</strong>.
-          Twelve months ago that quadrant didn&apos;t exist as a category. Today it has one
-          credible entrant, backed by a firm whose previous infrastructure bets (Foundry, Reth,
-          OpenClaw) became default tools for entire industries.
+          Twelve months ago that quadrant didn&apos;t exist as a category at all. Today it has one
+          credible entrant, backed by a firm whose earlier infrastructure bets (Foundry, Reth,
+          OpenClaw) turned into default tools for whole industries.
         </p>
 
         <p style={bodyStyle}>
-          Three predictions follow directly from the design choices above:
+          Three predictions fall straight out of the design choices above:
         </p>
 
         <ul style={listStyle}>
           <li>
             <strong style={strong}>The sandbox-API vendors will commoditize faster.</strong>{' '}
-            If the dominant deployment shape becomes &quot;an agent runtime on the customer&apos;s
-            K8s,&quot; the standalone-sandbox layer is a feature, not a product. E2B and Daytona
-            will either move up into orchestration or get squeezed.
+            If the standard way to deploy becomes &quot;an agent runtime on the customer&apos;s
+            own K8s,&quot; then the standalone-sandbox layer is a feature, not a product. E2B and
+            Daytona will either climb up into orchestration or get squeezed.
           </li>
           <li>
             <strong style={strong}>Devin gets a self-hosted SKU.</strong> The compliance gap is
-            wide enough that Cognition cannot ignore it forever, but moving from SaaS to
-            self-hosted is a structural lift, not a flag flip.
+            wide enough that Cognition can&apos;t ignore it forever &mdash; but moving from SaaS to
+            self-hosted is a structural lift, not a flag you flip.
           </li>
           <li>
-            <strong style={strong}>The next year of agent product PMs will spend most of their
-            time on workflows, not on models.</strong> Centaur is a bet that the unsolved
-            problem is durability, sharing, and credentials — not capability. That bet matches
-            what most users complain about once the novelty wears off.
+            <strong style={strong}>Over the next year, agent product PMs will spend most of their
+            time on workflows, not on models.</strong> Centaur is a bet that the unsolved problem
+            is durability, sharing, and credentials &mdash; not raw capability. And that bet lines
+            up with what most users gripe about once the novelty wears off.
           </li>
         </ul>
 
         <p style={bodyStyle}>
-          Centaur is not the only thing that will work. It&apos;s the first credible answer to
-          the question &quot;what does an agent look like when it has to be a teammate to fifty
-          people for a year?&quot; — and it ships with six months of receipts from the firm that
-          built it.
+          Centaur isn&apos;t the only thing that&apos;ll work. But it&apos;s the first credible
+          answer to the question &quot;what does an agent look like when it has to be a teammate to
+          fifty people for a year?&quot; &mdash; and it ships with six months of receipts from the
+          firm that built it.
         </p>
 
         <div style={{ marginTop: 56 }}>

@@ -16,26 +16,31 @@ export default function PropAmmDictArticle() {
 
         <SectionLabel>The Question Behind The Question</SectionLabel>
         <p style={bodyStyle}>
-          Prop AMMs are where a lot of Solana&apos;s flow actually clears — quietly, off Jupiter&apos;s headline screen.
-          HumidiFi alone <a href="https://www.helius.dev/blog/solanas-proprietary-amm-revolution" target="_blank" rel="noopener noreferrer" style={inlineLink}>hit $8.55B weekly volume in late 2025</a>.
-          If you&apos;re running a market-making bot, building an aggregator, or doing competitor intel,
-          the first thing you want to know is the same: <em>which pairs are they trading right now?</em>
+          Prop AMMs &mdash; proprietary, closed-source automated market makers &mdash; are where a lot of
+          Solana&apos;s flow actually clears, quietly, off Jupiter&apos;s headline screen. HumidiFi alone{' '}
+          <a href="https://www.helius.dev/blog/solanas-proprietary-amm-revolution" target="_blank" rel="noopener noreferrer" style={inlineLink}>hit $8.55B weekly volume in late 2025</a>.
+          And whether you&apos;re running a market-making bot, building an aggregator, or doing competitor
+          intel, the first thing you want to know is the same: <em>which pairs are they trading right now?</em>
         </p>
         <p style={bodyStyle}>
-          That question reduces to three steps. List the program IDs. For each, call <code style={codeStyle}>getProgramAccounts</code> with
-          a <code style={codeStyle}>dataSize</code> filter to enumerate pool accounts. For each pool, decode the two mint pubkeys at known
-          byte offsets. Steps one and three are pure static knowledge — once published, anyone can reuse them.
+          That question comes down to three steps. List the program IDs. For each one, call <code style={codeStyle}>getProgramAccounts</code> with
+          a <code style={codeStyle}>dataSize</code> filter (a query that asks the RPC node for every account of a fixed size) to enumerate the
+          pool accounts. Then, for each pool, decode the two mint pubkeys &mdash; the on-chain IDs of the two
+          tokens &mdash; at known byte offsets, the fixed positions where those values live in the account
+          data. Steps one and three are pure static knowledge. Once someone publishes them, anyone can reuse
+          them.
         </p>
         <p style={bodyStyle}>
-          The heavy lifting was done last year by a separate reverser: ten program IDs, eight pairs of
-          offsets, one bash script, freely published. The two blank rows were aquifier and humidifi.
-          This post is what happened when I tried to fill them in.
+          The heavy lifting was done last year by another reverser: ten program IDs, eight pairs of offsets,
+          one bash script, all freely published. Two rows were left blank &mdash; aquifier and humidifi. This
+          post is what happened when I tried to fill them in.
         </p>
 
         <SectionLabel>The Ten Programs</SectionLabel>
         <p style={bodyStyle}>
-          All ten are owner-controlled, no public IDLs, no LP tokens, no external liquidity providers.
-          The <code style={codeStyle}>dataSize</code> column is the fixed account size used to enumerate pool accounts under each program.
+          All ten are owner-controlled: no public IDLs (the interface files that normally tell you how to
+          read a program&apos;s accounts), no LP tokens, no external liquidity providers. The <code style={codeStyle}>dataSize</code> column
+          is the fixed account size you use to enumerate the pool accounts under each program.
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -54,8 +59,9 @@ tessera    TessVdML9pBGgG9yGks7o4HewRaXVAMuoVj4x83GLQH      1264`}
         </div>
 
         <p style={bodyStyle}>
-          The published offsets — the ones I already had — look like this. They give you <code style={codeStyle}>mint1</code> and <code style={codeStyle}>mint2</code> as
-          byte positions into the raw account data. base58-encode the 32 bytes at each position and you have the pair.
+          The published offsets &mdash; the ones I already had &mdash; look like this. They give you <code style={codeStyle}>mint1</code> and <code style={codeStyle}>mint2</code> as
+          byte positions into the raw account data. base58-encode the 32 bytes sitting at each position and
+          you have the pair.
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -75,15 +81,18 @@ humidifi   ???`}
 
         <SectionLabel>Aquifier — 90 Seconds, No API Key</SectionLabel>
         <p style={bodyStyle}>
-          I didn&apos;t want to look up a known aquifier pool on Birdeye and feed it into a search. I wanted the whole
-          thing to be automatic — given a program ID and an account size, walk away with the offsets.
+          I didn&apos;t want to look up a known aquifier pool on Birdeye and feed it into a search. I wanted
+          the whole thing to be automatic: hand it a program ID and an account size, walk away with the
+          offsets.
         </p>
         <p style={bodyStyle}>
-          The trick: <strong style={strong}>every SPL Mint on Solana is owned by the Token Program</strong> (or Token-2022).
-          That gives you a one-shot oracle. Take a pool account, scan every 8-byte-aligned 32-byte window,
-          base58-encode each one as a candidate pubkey, batch-check them via <code style={codeStyle}>getMultipleAccounts</code> —
-          anything owned by the Token Program with ≥ 82 bytes of data <em>is</em> a Mint. Repeat across three pools.
-          The two offsets that show a Mint <em>every time</em> are mint1 and mint2.
+          Here&apos;s the trick. <strong style={strong}>Every SPL Mint on Solana is owned by the Token Program</strong> (or
+          Token-2022) &mdash; a mint being the account that defines a token, owned by the standard program
+          that manages all of them. That gives you a one-shot oracle. Take a pool account, scan every
+          8-byte-aligned 32-byte window, base58-encode each one as a candidate pubkey, and batch-check them
+          via <code style={codeStyle}>getMultipleAccounts</code>. Anything owned by the Token Program with ≥ 82 bytes of data <em>is</em> a
+          Mint. Repeat across three pools. The two offsets that turn up a Mint <em>every time</em> are mint1 and
+          mint2.
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -117,8 +126,9 @@ humidifi   ???`}
         </div>
 
         <p style={bodyStyle}>
-          Offsets <code style={codeStyle}>952</code> and <code style={codeStyle}>984</code> sit 32 bytes apart, both 8-byte aligned, at
-          the tail of a 1056-byte struct. Classic Anchor layout: the last two fields of the <code style={codeStyle}>Pool</code> struct
+          Offsets <code style={codeStyle}>952</code> and <code style={codeStyle}>984</code> sit 32 bytes apart, both 8-byte aligned, right at
+          the tail of a 1056-byte struct. That&apos;s a classic Anchor layout &mdash; Anchor being the
+          dominant Solana program framework &mdash; where the last two fields of the <code style={codeStyle}>Pool</code> struct
           are <code style={codeStyle}>(mint_a: Pubkey, mint_b: Pubkey)</code>. Aquifier solved. Nine of ten down.
         </p>
         <p style={bodyStyle}>
@@ -144,9 +154,9 @@ not enough candidate offsets`}
         </div>
 
         <p style={bodyStyle}>
-          Not a single 32-byte window in any humidifi pool resolves to a Token Program-owned account. Not a mint,
-          not a vault, nothing. The data is densely populated — 492 of 512 bytes nonzero in the first half — but
-          it isn&apos;t pubkeys. The first 256 bytes of one humidifi pool look like this:
+          Not a single 32-byte window in any humidifi pool resolves to a Token Program-owned account. Not a
+          mint, not a vault, nothing. The data is densely packed &mdash; 492 of 512 bytes nonzero in the first
+          half &mdash; but it isn&apos;t pubkeys. The first 256 bytes of one humidifi pool look like this:
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -160,21 +170,21 @@ not enough candidate offsets`}
         </div>
 
         <p style={bodyStyle}>
-          The repeating 8-byte motif <code style={codeStyle}>XX5a XX7c XX6f XX96</code> is a packed binary record —
+          That repeating 8-byte motif <code style={codeStyle}>XX5a XX7c XX6f XX96</code> is a packed binary record &mdash;
           almost certainly something like <code style={codeStyle}>(price_tick, size_tick, side, flags)</code> quadruples in
           a heap or order-book-shaped structure. Not pool reserves. Not anything that names a token.
         </p>
 
         <p style={bodyStyle}>
           Two more probes confirmed it. First, <code style={codeStyle}>getProgramAccounts</code> with no size filter
-          returns 89 accounts, <em>all</em> at 1728 bytes. No metadata class, no registry account, no pool config.
-          Just 89 of these tick records.
+          comes back with 89 accounts, <em>all</em> at 1728 bytes. No metadata class, no registry account, no
+          pool config. Just 89 of these tick records.
         </p>
 
         <p style={bodyStyle}>
-          Second — and this is the punchline — recent transactions touching one humidifi pool don&apos;t move tokens.
-          The last 50 signatures all sit in the same slot, each transaction touching exactly three accounts
-          (the pool, a signer, and <code style={codeStyle}>SysvarC1ock</code>), zero <code style={codeStyle}>preTokenBalances</code>,
+          Second &mdash; and this is the punchline &mdash; recent transactions touching one humidifi pool
+          don&apos;t move any tokens. The last 50 signatures all sit in the same slot, each transaction
+          touching exactly three accounts (the pool, a signer, and <code style={codeStyle}>SysvarC1ock</code>), with zero <code style={codeStyle}>preTokenBalances</code> and
           zero <code style={codeStyle}>postTokenBalances</code>.
         </p>
 
@@ -192,27 +202,28 @@ not enough candidate offsets`}
         <p style={bodyStyle}>
           50 transactions, one slot, no token movement. This isn&apos;t a swap. This is <strong style={strong}>the operator pinging
           every pool every slot to push a fresh price update</strong>. Humidifi&apos;s on-chain account is a price oracle
-          and a quote registry — token settlement happens through a separate path entirely, likely a Jupiter
-          integration that consults humidifi for a quote and then settles between the trader and humidifi&apos;s
-          vault wallets, never through the pool account.
+          and a quote registry. Token settlement happens through a completely separate path &mdash; likely a
+          Jupiter integration that asks humidifi for a quote and then settles between the trader and
+          humidifi&apos;s vault wallets, never through the pool account.
         </p>
 
         <div style={calloutAccent}>
           <p style={calloutTitle}>WHY THE GIST LEFT IT BLANK</p>
           <p style={{ ...bodyStyle, marginBottom: 0 }}>
-            The earlier gist didn&apos;t publish humidifi&apos;s offsets because they don&apos;t exist. There is no place
-            in the pool account where a mint pubkey lives. The mint pair for a given humidifi pool sits in
-            humidifi&apos;s own off-chain registry, not on chain. The blank row in the gist wasn&apos;t laziness — it was
-            the correct entry.
+            The earlier gist didn&apos;t publish humidifi&apos;s offsets because they don&apos;t exist. There&apos;s nowhere
+            in the pool account for a mint pubkey to live. The mint pair for a given humidifi pool sits in
+            humidifi&apos;s own off-chain registry, not on chain. So the blank row in the gist wasn&apos;t laziness
+            &mdash; it was the correct entry.
           </p>
         </div>
 
         <SectionLabel>What This Unlocks</SectionLabel>
         <p style={bodyStyle}>
-          With aquifier added, nine of ten prop AMMs are now enumerable end-to-end with public RPC and roughly
-          thirty lines of Python. The dictionary is complete enough to drive a live radar across the whole
-          competitive set, with humidifi handled separately via its quote API (which is honestly <em>more</em> interesting,
-          because it implies humidifi&apos;s moat is the off-chain pricing, not the on-chain venue).
+          With aquifier added, nine of ten prop AMMs are now enumerable end-to-end with public RPC &mdash;
+          the open node endpoints anyone can query &mdash; and roughly thirty lines of Python. The dictionary
+          is complete enough to drive a live radar across the whole competitive set, with humidifi handled
+          separately via its quote API. That last part is honestly <em>more</em> interesting, because it means
+          humidifi&apos;s moat is the off-chain pricing, not the on-chain venue.
         </p>
 
         <figure style={{ margin: '40px 0 12px' }}>
@@ -240,14 +251,15 @@ not enough candidate offsets`}
         </figure>
 
         <p style={bodyStyle}>
-          What you build on top of the dictionary, in roughly increasing order of how much it costs to ignore:
+          Here&apos;s what you can build on top of the dictionary, in roughly increasing order of how much it
+          costs to ignore:
         </p>
 
         <ul style={listStyle}>
-          <li><strong style={strong}>Competitive radar.</strong> Scan every 30 seconds, diff against yesterday — &quot;humidifi just added BONK/SOL&quot; — and you have an early-warning channel for shifts in who is willing to make markets in what.</li>
-          <li><strong style={strong}>Flow-aware fees.</strong> Count how many AMMs hold a pool on a pair. When five or more pile in, the pair is hot, the flow is concentrated, and you should be charging more for the privilege. Bake the signal into the dynamic-fee curve.</li>
-          <li><strong style={strong}>Quote benchmarking.</strong> For each pair you swap, pull every prop AMM&apos;s quote at the same instant. The tightest quote tells you who is currently the price-setter; the dispersion tells you how confident the market is.</li>
-          <li><strong style={strong}>TVL leaderboard.</strong> The same reversal trick applies to reserve fields — search for known u64 reserve amounts instead of pubkey bytes. Out of scope for this post, but trivially additive.</li>
+          <li><strong style={strong}>Competitive radar.</strong> Scan every 30 seconds, diff against yesterday &mdash; &quot;humidifi just added BONK/SOL&quot; &mdash; and you&apos;ve got an early-warning channel for shifts in who&apos;s willing to make markets in what.</li>
+          <li><strong style={strong}>Flow-aware fees.</strong> Count how many AMMs hold a pool on a given pair. When five or more pile in, the pair is hot, the flow is concentrated, and you should be charging more for the privilege. Bake that signal into the dynamic-fee curve.</li>
+          <li><strong style={strong}>Quote benchmarking.</strong> For each pair you swap, pull every prop AMM&apos;s quote at the same instant. The tightest quote tells you who&apos;s currently setting the price; how spread out the quotes are tells you how confident the market is.</li>
+          <li><strong style={strong}>TVL leaderboard.</strong> The same reversal trick works on reserve fields &mdash; just search for known u64 reserve amounts instead of pubkey bytes. Out of scope for this post, but trivially additive.</li>
           <li><strong style={strong}>Humidifi-specific.</strong> Subscribe to changes on the 1728-byte account class and decode the tick format above. The repeating <code style={codeStyle}>XX5a XX7c XX6f XX96</code> pattern is enough of a foothold to back out what each field encodes, slot by slot.</li>
         </ul>
 

@@ -16,30 +16,33 @@ export default function CexDexArbArticle() {
 
         <SectionLabel>The Two-Cent Spread</SectionLabel>
         <p style={bodyStyle}>
-          SOL is quoted at <strong style={strong}>$172.41</strong> on Binance. The same SOL is quoted at
-          <strong style={strong}> $172.46</strong> on a Solana DEX twenty milliseconds later. The two prices
-          have drifted apart because the two markets are not the same machine. Binance updates its order book
-          maybe a thousand times a second over a private matching engine. The DEX updates whenever someone
-          submits a transaction that lands in the next block, which on Solana means once every 400 milliseconds
-          and on Ethereum once every twelve seconds.
+          Picture this. SOL is quoted at <strong style={strong}>$172.41</strong> on Binance — a CEX, a
+          centralized exchange where one company runs the order book. Twenty milliseconds later, the same SOL
+          is quoted at <strong style={strong}> $172.46</strong> on a Solana DEX — a decentralized exchange
+          that lives entirely on-chain. Why have the two prices drifted apart? Because they aren&apos;t the
+          same machine. Binance updates its order book maybe a thousand times a second over a private matching
+          engine. The DEX only updates when someone submits a transaction that lands in the next block — and
+          that happens once every 400 milliseconds on Solana, once every twelve seconds on Ethereum.
         </p>
         <p style={bodyStyle}>
-          That five-cent gap is a free option. If you can buy on Binance and simultaneously sell on the DEX
-          before either price moves, you have made five cents on a position you did not have to hold. Do it
-          a thousand times in a single block and you have made fifty dollars on a single 400-millisecond slot.
-          Do it across a year and you have built a profit pool that the public chain data alone cannot
-          explain — because half of the trade never touched the chain at all.
+          That five-cent gap is basically a free option. Buy on Binance, sell on the DEX at the same instant,
+          and if you move before either price catches up you&apos;ve pocketed five cents on a position you
+          never had to hold. Do it a thousand times in one block and that&apos;s fifty dollars in a single
+          400-millisecond slot. Do it for a year and you&apos;ve built a profit pool the public chain data
+          can&apos;t explain on its own — because half of the trade never touched the chain at all.
         </p>
         <p style={bodyStyle}>
-          This is <strong style={strong}>CEX-DEX arbitrage</strong>, the largest extracted-value category
-          on Ethereum and the most under-measured form of MEV on Solana. Until 2025 nobody had a clean
-          public number for how big it was. That changed when a group of researchers — Sui414, William, soispoke,
-          and malleshpai — released a custom Dune dataset that finally let outsiders see it.
+          This is <strong style={strong}>CEX-DEX arbitrage</strong>. On Ethereum it&apos;s the single largest
+          category of extracted value. On Solana it&apos;s the most under-measured form of MEV — maximal
+          extractable value, which is just the profit you can squeeze out of ordering and inserting
+          transactions. Until 2025 nobody had a clean public number for how big it was. That changed when a
+          group of researchers — Sui414, William, soispoke, and malleshpai — released a custom Dune dataset
+          that finally let outsiders see it.
         </p>
 
         <SectionLabel>Two Flavors of the Trade</SectionLabel>
         <p style={bodyStyle}>
-          There are two distinct CEX-DEX strategies, and they live on different parts of the orderbook.
+          There are two distinct CEX-DEX strategies, and they live on different parts of the order book.
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16, margin: '32px 0 40px' }}>
@@ -69,43 +72,45 @@ export default function CexDexArbArticle() {
         </div>
 
         <p style={bodyStyle}>
-          Drift&apos;s educational write-up gives the canonical retail framing: SOL spot on Binance at $13.179
-          versus SOL spot on Orca at $13.21 is a price-arb opportunity worth $0.031 per unit; SOL-PERP funding
-          rate of <code style={codeStyle}>0.003%</code> hourly on Binance versus <code style={codeStyle}>-0.00511%</code> hourly
-          on Drift is a funding-arb opportunity worth the spread, every hour, for as long as it holds. The
-          mechanics differ but the engineering problem is the same: you must move capital between two venues
-          fast enough that the spread does not close while you are mid-trade.
+          Drift&apos;s educational write-up gives the textbook retail version. SOL spot at $13.179 on Binance
+          versus $13.21 on Orca is a price-arb opportunity worth $0.031 per unit. A SOL-PERP funding rate —
+          the periodic payment that keeps a perpetual future tethered to spot — of
+          <code style={codeStyle}>0.003%</code> hourly on Binance versus <code style={codeStyle}>-0.00511%</code> hourly
+          on Drift is a funding-arb opportunity worth that spread every hour, for as long as it holds. The
+          mechanics differ, but the engineering problem is the same: move capital between two venues fast
+          enough that the spread doesn&apos;t close while you&apos;re mid-trade.
         </p>
 
-        <SectionLabel>Why It Is Called &quot;Dark&quot;</SectionLabel>
+        <SectionLabel>Why They Call It &quot;Dark&quot;</SectionLabel>
         <p style={bodyStyle}>
-          Sandwich attacks, JIT liquidity, and on-chain DEX-to-DEX arbitrage all leave a complete fingerprint
-          on the blockchain. The bot&apos;s transaction is there. The pool it touched is there. The user it
-          extracted from is there. You can write a Dune query, count the swaps, sum the profit, and rank the
-          searchers — every step of the proof is on a public ledger.
+          Most MEV leaves a complete fingerprint on the blockchain. Sandwich attacks, JIT liquidity, on-chain
+          DEX-to-DEX arbitrage — it&apos;s all right there in the ledger. The bot&apos;s transaction is there.
+          The pool it touched is there. The user it extracted from is there. You can write a Dune query, count
+          the swaps, sum the profit, and rank the searchers — a searcher being the bot operator hunting for
+          these gaps. Every step of the proof sits on a public ledger.
         </p>
         <p style={bodyStyle}>
-          CEX-DEX arbitrage is different. <strong style={strong}>One leg of the trade is off-chain.</strong> You can
-          see a searcher swap a million USDC for SOL on Uniswap or Orca, but the hedging short on Binance that
-          locked in the profit is invisible — it lives inside a private matching engine you cannot subpoena.
-          The chain only shows you half the picture.
+          CEX-DEX arbitrage is different, because <strong style={strong}>one leg of the trade is off-chain.</strong> You can
+          watch a searcher swap a million USDC for SOL on Uniswap or Orca. But the hedging short on Binance
+          that actually locked in the profit? Invisible. It lives inside a private matching engine you
+          can&apos;t subpoena. The chain only ever shows you half the picture.
         </p>
         <p style={bodyStyle}>
           The 2025 paper by Sui414 et al., titled <em>Measuring CEX-DEX Extracted Value and Searcher Profitability:
-          The Darkest of the MEV Dark Forest</em>, is the first systematic attempt to reconstruct that hidden leg.
-          The method is indirect: identify the on-chain leg of the arbitrage by its structure (atomic, large,
-          followed by no offsetting transaction), then check the CEX price at the same block time to estimate the
-          spread the searcher captured. Aggregate that over millions of trades and you finally have a number for
-          the size of the market.
+          The Darkest of the MEV Dark Forest</em>, is the first serious attempt to reconstruct that hidden
+          leg. The trick is to work backwards. You spot the on-chain leg of the arbitrage by its shape — atomic
+          (the whole thing settles in one all-or-nothing transaction), large, and followed by no offsetting
+          trade — then check the CEX price at the same block time to estimate the spread the searcher captured.
+          Aggregate that over millions of trades and you finally have a number for the size of the market.
         </p>
 
         <SectionLabel>The Numbers</SectionLabel>
         <p style={bodyStyle}>
-          From <strong style={strong}>August 2023 to March 2025</strong> — 19 months — the researchers identified
-          7,203,560 CEX-DEX arbitrage trades and estimated $233.8 million in extracted value across them.
-          That is an average of about <strong style={strong}>$32 per trade</strong>, which sounds small until you
-          remember the trades are atomic and risk-free in the sense that arbitrage means: by the time the on-chain
-          leg confirms, the CEX leg is already done.
+          Over the <strong style={strong}>August 2023 to March 2025</strong> window — 19 months — the
+          researchers identified 7,203,560 CEX-DEX arbitrage trades and estimated $233.8 million in extracted
+          value across them. That works out to about <strong style={strong}>$32 per trade</strong>. Sounds
+          tiny, until you remember these trades are atomic and risk-free in the way arbitrage is supposed to
+          be: by the time the on-chain leg confirms, the CEX leg is already done.
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -151,18 +156,19 @@ export default function CexDexArbArticle() {
         </div>
 
         <p style={bodyStyle}>
-          The concentration result is the most interesting one. Three searchers controlled three quarters of the
-          extracted value over the entire study period. CEX-DEX is not a long-tail competitive market like
-          DEX-to-DEX arbitrage; it is an oligopoly. The barriers to entry are not technical (the code is
-          straightforward) but operational: you need real-time, low-latency feeds from multiple CEXes, inventory
-          on both sides, a settlement loop that nets out exposures continuously, and enough volume on each venue
-          to avoid signalling your own trades to the market. A solo searcher does not have any of those things.
+          The most interesting finding is how concentrated it all is. Three searchers controlled three quarters
+          of the extracted value over the entire study period. CEX-DEX isn&apos;t a long-tail competitive market
+          like DEX-to-DEX arbitrage — it&apos;s an oligopoly. And the barriers to entry aren&apos;t technical;
+          the code is straightforward. They&apos;re operational. You need real-time, low-latency feeds from
+          multiple CEXes, inventory parked on both sides, a settlement loop that nets out your exposures
+          continuously, and enough volume on each venue that your own trades don&apos;t tip off the market. A
+          solo searcher has none of that.
         </p>
 
         <SectionLabel>The Dashboard</SectionLabel>
         <p style={bodyStyle}>
-          The paper&apos;s authors open-sourced the Dune queries that drive the analysis. You can fork them and
-          watch the market live. Two are worth knowing by name.
+          The paper&apos;s authors open-sourced the Dune queries that drive the analysis, so you can fork them
+          and watch the market live. Two of them are worth knowing by name.
         </p>
 
         <div style={{ margin: '32px 0 40px' }}>
@@ -205,33 +211,34 @@ export default function CexDexArbArticle() {
         </div>
 
         <p style={bodyStyle}>
-          The interesting trick in the methodology is the <em>markout</em>. Because the CEX leg is invisible,
-          you can never know exactly when the searcher hedged. So the queries don&apos;t try. Instead they
-          check the CEX price <strong style={strong}>at the block time</strong>, and at several offsets after
-          (1 second, 5 seconds, 30 seconds), and assume the searcher captured something close to the average.
-          The estimate is necessarily noisy at the trade level but converges quickly when you aggregate
-          across millions of trades.
+          The clever trick in the methodology is the <em>markout</em> — checking the CEX price at a few moments
+          after a trade to see what the searcher could have captured. Because the CEX leg is invisible, you can
+          never know exactly when the searcher hedged. So the queries don&apos;t even try. They check the CEX
+          price <strong style={strong}> at the block time</strong>, then again at a few offsets after (1 second,
+          5 seconds, 30 seconds), and assume the searcher captured something close to the average. For any
+          single trade the estimate is noisy, but it converges fast once you aggregate across millions of them.
         </p>
 
         <p style={bodyStyle}>
-          A Python script for pulling the same dataset through the Dune API is published alongside the queries,
-          which means you don&apos;t need a Dune subscription to reproduce the headline numbers — you can pull
-          the raw CSV and run your own analysis offline.
+          There&apos;s also a Python script for pulling the same dataset through the Dune API, published right
+          alongside the queries. So you don&apos;t even need a Dune subscription to reproduce the headline
+          numbers — grab the raw CSV and run your own analysis offline.
         </p>
 
         <SectionLabel>Why Solana Changes the DEX Leg</SectionLabel>
         <p style={bodyStyle}>
-          Almost all of the public research on CEX-DEX arbitrage uses Ethereum data. The DEX leg in that data
-          is Uniswap V3 or Curve, and the on-chain economics are dominated by Ethereum&apos;s 12-second blocks
-          and high gas fees. Solana flips both inputs.
+          Almost all the public research on CEX-DEX arbitrage uses Ethereum data. There the DEX leg is Uniswap
+          V3 or Curve, and the on-chain economics are dominated by Ethereum&apos;s 12-second blocks and high gas
+          fees — gas being the per-transaction fee you pay to get your trade included. Solana flips both of
+          those inputs.
         </p>
         <p style={bodyStyle}>
-          A Solana block lands every 400 milliseconds, not every 12 seconds. The base fee on a swap is
-          $0.00025, not $5. A bot can attempt twenty times as many CEX-DEX trades per minute, at one-twenty-thousandth
-          the cost per attempt. That changes which arbitrage opportunities are profitable: spreads that would
-          never clear gas on Ethereum clear easily on Solana, which is part of why Solana&apos;s DEX prices have
-          converged so tightly with CEX prices in 2025 despite a 90% drop in DEX volume since 2024 — the
-          arbitrage pressure is doing more work per unit of liquidity.
+          A Solana block lands every 400 milliseconds, not every 12 seconds. The base fee on a swap is $0.00025,
+          not $5. So a bot can attempt twenty times as many CEX-DEX trades per minute, at one-twenty-thousandth
+          the cost per attempt. That changes which opportunities are even worth chasing: spreads that would never
+          clear gas on Ethereum clear easily on Solana. It&apos;s part of why Solana&apos;s DEX prices have
+          tracked CEX prices so tightly in 2025 despite a 90% drop in DEX volume since 2024 — the arbitrage
+          pressure is doing more work per unit of liquidity.
         </p>
 
         <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
@@ -277,23 +284,25 @@ export default function CexDexArbArticle() {
         </div>
 
         <p style={bodyStyle}>
-          The atomicity model is the one nuance that matters most. On Ethereum, the DEX leg of the trade can
-          be a multi-step transaction bundle. On Solana, the same effect can be achieved with a
-          <strong style={strong}> flash loan inside a single transaction</strong>: borrow a million USDC,
-          do the swap, hedge the CEX leg out of band, repay the loan — all within the 400ms slot. If the
-          spread closed mid-flight, the transaction reverts and the only cost is the priority fee. That
-          asymmetry is what makes Solana&apos;s DEX leg attractive for high-frequency CEX-DEX strategies even
-          when the spread is small.
+          The atomicity model is the part that matters most. On Ethereum, the DEX leg can be a multi-step
+          transaction bundle. On Solana, you get the same effect with a
+          <strong style={strong}> flash loan inside a single transaction</strong> — an uncollateralized loan
+          that has to be borrowed and repaid in the same transaction or the whole thing unwinds. Borrow a
+          million USDC, do the swap, hedge the CEX leg out of band, repay the loan, all inside the 400ms slot.
+          If the spread closes mid-flight, the transaction just reverts and the only thing you&apos;re out is
+          the priority fee. That asymmetry is what makes Solana&apos;s DEX leg attractive for high-frequency
+          CEX-DEX strategies even when the spread is small.
         </p>
 
         <div style={calloutAccent}>
           <p style={calloutTitle}>WHAT IS NOT IN PUBLIC DATA</p>
           <p style={{ ...bodyStyle, marginBottom: 0 }}>
-            The arxiv paper&apos;s 7.2M trades are dominated by Ethereum activity, because that is where the
-            DEX leg is most legible. The equivalent Solana number is much harder to estimate publicly: Solana
-            has no public mempool, the on-chain leg can be deeply composed with non-arbitrage activity in
-            the same transaction, and the relevant Dune tables are still maturing. Treat any public Solana
-            CEX-DEX size estimate with the same scepticism the paper applies to its Ethereum estimates.
+            The arxiv paper&apos;s 7.2M trades are mostly Ethereum activity, because that&apos;s where the DEX
+            leg is easiest to read. The equivalent Solana number is much harder to pin down publicly. Solana
+            has no public mempool — no shared waiting room of pending transactions to watch — the on-chain leg
+            can be deeply tangled up with non-arbitrage activity in the same transaction, and the relevant Dune
+            tables are still maturing. So treat any public Solana CEX-DEX size estimate with the same skepticism
+            the paper applies to its own Ethereum estimates.
           </p>
         </div>
 
@@ -334,29 +343,30 @@ export default function CexDexArbArticle() {
         </div>
 
         <p style={bodyStyle}>
-          Neither of these will make you competitive with the top three searchers in the paper. They are
-          starting points for understanding the engineering shape of the problem, not a production stack.
-          The real edge is in the things that cost money: colocated CEX connections, sub-millisecond market
-          data feeds, real-time inventory netting, and — increasingly on Solana — a relationship with a
-          stake-weighted relay so your DEX-leg transactions don&apos;t sit behind public traffic.
+          Neither of these will make you competitive with the top three searchers in the paper. They&apos;re
+          starting points for understanding the shape of the problem, not a production stack. The real edge
+          lives in the things that cost money: colocated CEX connections (your servers sitting physically next
+          to the exchange&apos;s), sub-millisecond market data feeds, real-time inventory netting, and —
+          increasingly on Solana — a relationship with a stake-weighted relay so your DEX-leg transactions
+          don&apos;t sit behind everyone else&apos;s public traffic.
         </p>
 
         <SectionLabel>Where to Read the Spread on Solana</SectionLabel>
         <p style={bodyStyle}>
-          If you want to watch the same kind of trade happen on Solana rather than Ethereum, the place to
-          start is the layer below the DEX swap — the mempool-equivalent. Solana doesn&apos;t have a public
-          mempool the way Ethereum does, but it does have <strong style={strong}>ShredStream</strong> and the
+          If you want to watch the same kind of trade happen on Solana rather than Ethereum, start at the layer
+          below the DEX swap — the mempool-equivalent. Solana doesn&apos;t have a public mempool the way
+          Ethereum does, but it does have <strong style={strong}>ShredStream</strong> and the
           <strong style={strong}> Jito relay</strong>, both of which expose in-flight transactions to subscribers
-          before block inclusion. A CEX-DEX searcher running on Solana is reading from one of these
-          (or both), comparing the implied DEX-leg price against a live CEX quote, and submitting the
-          arbitrage transaction with a priority fee tuned to land in the next slot.
+          before they land in a block. A CEX-DEX searcher on Solana is reading from one of these (or both),
+          comparing the implied DEX-leg price against a live CEX quote, and firing off the arbitrage
+          transaction with a priority fee tuned to land in the next slot.
         </p>
         <p style={bodyStyle}>
           The companion piece <Link href="/blog/wire" style={inlineLink}>The Wire — How Solana Actually Moves Bytes</Link>
           covers ShredStream, the leader schedule, and commitment levels in detail; the
           <Link href="/blog/wire-speed" style={inlineLink}> Wire Speed</Link> piece covers the validator
-          architecture that makes Solana&apos;s tight slot timing feasible in the first place. CEX-DEX arb
-          is the trade that pays for that infrastructure.
+          architecture that makes Solana&apos;s tight slot timing possible in the first place. CEX-DEX arb is
+          the trade that pays for that infrastructure.
         </p>
 
         <SectionLabel>The Mental Model</SectionLabel>
@@ -366,20 +376,19 @@ export default function CexDexArbArticle() {
           synchronised long enough to extract the gap, then unwind without leaving inventory on either side.
         </blockquote>
         <p style={bodyStyle}>
-          Every engineering choice in this game collapses to that one tension. Why is co-location worth
-          paying for? Because it shrinks the CEX clock toward zero. Why is Solana&apos;s 400ms slot
-          attractive? Because it shrinks the DEX clock toward the CEX clock. Why are flash loans useful?
-          Because they let the DEX-leg execution model behave atomically — collapse if either side fails —
-          which removes the asymmetric risk of being left holding the bag on a half-completed trade.
+          Every engineering choice in this game comes back to that one tension. Why pay for co-location?
+          Because it shrinks the CEX clock toward zero. Why is Solana&apos;s 400ms slot attractive? Because it
+          shrinks the DEX clock toward the CEX clock. Why are flash loans useful? Because they let the DEX leg
+          behave atomically — collapse if either side fails — which removes the asymmetric risk of being left
+          holding the bag on a half-completed trade.
         </p>
         <p style={bodyStyle}>
-          The reason CEX-DEX is &quot;the darkest of the dark forest&quot; is not that it is hidden by design. It is
-          hidden because half of the relevant data lives on a private matching engine that no one has access
-          to. The Dune queries above are not measuring the trade directly — they are measuring its on-chain
-          shadow. That shadow is enough to estimate $233.8M of extracted value over 19 months, identify the
-          oligopoly structure of the searcher market, and watch the spreads on a per-block basis as they
-          open and close. It is not enough to copy what the top three searchers are doing, because the
-          relevant code path is the one you cannot see.
+          CEX-DEX is &quot;the darkest of the dark forest&quot; not because it&apos;s hidden by design, but because half
+          of the relevant data lives on a private matching engine nobody can access. The Dune queries above
+          aren&apos;t measuring the trade directly — they&apos;re measuring its on-chain shadow. That shadow is
+          enough to estimate $233.8M of extracted value over 19 months, reveal the oligopoly structure of the
+          searcher market, and watch the spreads open and close block by block. It is not enough to copy what
+          the top three searchers are doing, because the code path that matters is the one you can&apos;t see.
         </p>
 
         <SectionLabel>References</SectionLabel>

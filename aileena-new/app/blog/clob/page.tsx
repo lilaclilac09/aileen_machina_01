@@ -16,32 +16,32 @@ export default function ClobArticle() {
 
         <SectionLabel>The Write Lock Problem</SectionLabel>
         <p style={bodyStyle}>
-          An order book is a sorted list. Every new order inserts into that list, every fill removes from it, every cancel modifies it. On a centralized exchange, this is a single-threaded data structure in memory. Fast. On a blockchain, this list is an on-chain account, and Solana&apos;s runtime enforces a rule: only one transaction can hold the write lock on an account at a time. Conflicting writes get serialized — they execute one after another, never in parallel.
+          Picture an order book as a sorted list. Every new order slots into it, every fill pulls something out, every cancel edits it. On a centralized exchange, that list is just a single-threaded data structure sitting in memory. Fast. On a blockchain, the same list lives in an on-chain account — and Solana&apos;s runtime has one rule that changes everything: only one transaction can hold the write lock on an account at a time. So conflicting writes get serialized. They run one after another, never side by side.
         </p>
         <p style={bodyStyle}>
-          At low volume, this is fine. At high volume, the order book account becomes a single-threaded resource — the same constraint a CEX has, except the leader has 400ms to drain whatever writers are queued before the block ends. Market makers submit hundreds of updates per second. If they all target the same account, the runtime processes them sequentially. The matching engine might be correct, but the per-market throughput is capped by how many serialized writes fit in a slot; anything that doesn&apos;t fit slips into the next one or drops on retry.
+          At low volume, that&apos;s fine. At high volume, the order book account becomes a single-threaded resource — the same bottleneck a CEX has, except now the leader (the validator whose turn it is to build the block) has just 400ms to drain whatever writes are queued before the block closes. Market makers fire off hundreds of updates a second, and if they all hit the same account, the runtime has to chew through them in order. The matching engine can be flawless and still choke. Per-market throughput is capped by how many serialized writes fit in a single slot, and whatever doesn&apos;t fit slips to the next slot or gets dropped on retry.
         </p>
         <p style={bodyStyle}>
-          Ethereum&apos;s approach was to give up. Gas costs made frequent order updates economically unviable anyway. A single order placement on Uniswap costs $2-50 in gas depending on congestion. Market makers who need to update quotes every few hundred milliseconds would go bankrupt. The industry pivoted to AMMs, which only require liquidity providers to deposit once and let a mathematical formula handle price discovery. The trade-off: permanent impermanent loss, no limit orders, and MEV extraction baked into the design.
+          Ethereum&apos;s answer was to give up. Gas costs made frequent order updates a non-starter anyway. A single order placement on Uniswap runs $2-50 in gas depending on congestion, so a market maker who needs to refresh quotes every few hundred milliseconds would bleed out fast. The industry pivoted to AMMs (automated market makers) instead, where liquidity providers deposit once and a math formula handles price discovery. The catch: permanent impermanent loss, no limit orders, and MEV (maximal extractable value — the profit bots skim by reordering or front-running your trades) baked right into the design.
         </p>
         <p style={bodyStyle}>
-          Solana changes the economics. A new block every 400ms. Transaction fees measured in fractions of a cent. But it doesn&apos;t change the write-lock constraint. The engineering challenge isn&apos;t cost. It&apos;s concurrency.
+          Solana flips the economics. A fresh block every 400ms. Fees in fractions of a cent. But none of that touches the write-lock constraint. The hard part here isn&apos;t cost. It&apos;s concurrency.
         </p>
 
         <SectionLabel>Phoenix: Inline Matching</SectionLabel>
         <p style={bodyStyle}>
-          Serum was Solana&apos;s first CLOB. Its architecture separated order submission from order matching. Orders entered a request queue (an on-chain account). A separate program called the &quot;crank&quot; periodically read the queue, matched orders against the book, and wrote the results back. The crank was an off-chain process that someone had to run and pay for. If the crank operator went down, the order book froze. Orders would sit in the queue, unmatched.
+          Serum was Solana&apos;s first CLOB (central limit order book — the classic exchange model where buyers and sellers post bids and asks that match by price). It kept order submission and order matching separate. Orders landed in a request queue (an on-chain account), and a separate program called the &quot;crank&quot; would read the queue every so often, match orders against the book, and write the results back. The problem was that the crank was an off-chain process — someone had to run it and pay for it. If the crank operator went down, the book froze, and orders just sat in the queue, unmatched.
         </p>
         <p style={bodyStyle}>
-          Phoenix moved matching inline: the order transaction itself checks the book, finds counterparties, executes fills, and updates balances atomically. The constraint that makes this hard: Solana caps compute per transaction at 1.4 million compute units (CU). The default allocation is 200K CU. A Phoenix market order that walks through multiple price levels, matching against several resting orders, executing partial fills, and updating maker/taker balances, has to fit inside this budget. The matching engine is written to minimize every unnecessary memory access and computation. Each order node in the book is a fixed-size struct laid out for sequential reads.
+          Phoenix pulled matching inline. The order transaction itself checks the book, finds counterparties, executes the fills, and updates balances all at once, atomically. What makes that hard is a hard ceiling: Solana caps compute per transaction at 1.4 million compute units (CU), and the default allocation is only 200K CU. So a Phoenix market order that walks through several price levels, matches against a handful of resting orders, executes partial fills, and updates maker and taker balances all has to fit in that budget. The matching engine is written to shave off every wasted memory access and computation. Each order node in the book is a fixed-size struct, laid out so it can be read sequentially.
         </p>
         <p style={bodyStyle}>
-          Phoenix uses a FIFO (First In, First Out) matching priority. At the same price level, the order that arrived first gets filled first. This is the same model as CME and most traditional exchanges. It rewards speed: if you can get your order on-chain first, you have priority. For market makers, this means the game becomes about transaction landing latency, not just pricing.
+          Phoenix matches FIFO (First In, First Out). At a given price level, whoever got there first gets filled first — the same model CME and most traditional exchanges use. It rewards speed: land your order on-chain first and you have priority. For a market maker, that turns the whole thing into a race about how fast your transaction lands, not just how you price it.
         </p>
 
         <SectionLabel>Manifest: Zero Fees, Permissionless Markets</SectionLabel>
         <p style={bodyStyle}>
-          Manifest takes a different position in the design space. Where Phoenix prioritizes execution quality and tight spreads for a curated set of markets, Manifest prioritizes accessibility.
+          Manifest stakes out a different corner of the design space. Phoenix is built for execution quality and tight spreads on a curated set of markets. Manifest is built for accessibility: anyone can spin up a market.
         </p>
 
         {/* Comparison table */}
@@ -87,20 +87,20 @@ export default function ClobArticle() {
         </div>
 
         <p style={bodyStyle}>
-          The fee structure matters. Zero fees means there&apos;s no protocol revenue, which means no protocol-level incentive to direct flow to specific markets. This is a deliberate design: the protocol is infrastructure, not a business. Market makers set their own spreads; the protocol takes nothing on top.
+          The fee structure matters more than it looks. Zero fees means no protocol revenue, and no protocol revenue means the protocol has no incentive to steer flow toward particular markets. That&apos;s on purpose: it&apos;s meant to be infrastructure, not a business. Market makers set their own spreads, and the protocol takes nothing on top.
         </p>
         <SectionLabel>Global Orders: Cross-Margin Without Leverage</SectionLabel>
         <p style={bodyStyle}>
-          This is Manifest&apos;s most consequential design decision and the part worth understanding in detail.
+          This is Manifest&apos;s biggest design call, and the part worth slowing down for.
         </p>
         <p style={bodyStyle}>
-          Standard CLOB capital flow: you deposit USDC into a specific market&apos;s vault account. Those funds are locked. You can place orders, cancel orders, but the capital stays in that market until you withdraw. If you market-make on five pairs, you need five separate deposits. Capital is fragmented.
+          Here&apos;s how capital normally flows on a CLOB. You deposit USDC into one specific market&apos;s vault account, and those funds are locked there. You can place and cancel orders, but the capital stays put until you withdraw. Market-make on five pairs and you need five separate deposits, so your capital ends up fragmented.
         </p>
         <p style={bodyStyle}>
-          Manifest changes that. With a Global Order, your USDC never leaves your account when you place the order. The order sits on the book as a promise to spend the money if someone fills it — the funds only move at the moment of the fill.
+          Manifest changes that. With a Global Order, your USDC never actually leaves your account when you place the order. The order sits on the book as a promise — a commitment to spend the money if someone fills it. The funds only move the instant the fill happens.
         </p>
         <p style={bodyStyle}>
-          One $100K balance can sit on ten different markets at once. Each market shows the full $100K of liquidity on your orders — same capital, 10x the on-book depth. The catch: if two markets try to fill against you in the same slot and the balance can&apos;t cover both, one of them fails.
+          So one $100K balance can sit on ten different markets at once. Each market shows the full $100K of liquidity behind your orders — same capital, 10x the on-book depth. The catch: if two markets try to fill against you in the same slot and your balance can&apos;t cover both, one of them just fails.
         </p>
 
         <blockquote style={{
@@ -114,7 +114,7 @@ export default function ClobArticle() {
           lineHeight: 1.5,
           color: 'rgba(255,255,255,0.9)',
         }}>
-          The order book itself isn&apos;t the hard part. The hard part is getting capital efficiency and settlement guarantees right at the same time.
+          The order book itself isn&apos;t the hard part. The hard part is nailing capital efficiency and settlement guarantees at the same time.
         </blockquote>
 
         {/* Risk box */}
@@ -133,39 +133,39 @@ export default function ClobArticle() {
             marginBottom: 16,
           }}>RISK: SIMULTANEOUS FILLS ACROSS MARKETS</p>
           <p style={{ ...bodyStyle, marginBottom: 12 }}>
-            You have $100K in your global account. You place $80K buy orders across eight markets. Under normal conditions, only one or two fill at any given time. The math works.
+            Say you have $100K in your global account. You post $80K buy orders across eight markets. On a normal day, only one or two fill at once, so the math holds.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 12 }}>
-            During a market-wide crash, multiple pairs dump simultaneously. Three markets try to fill your orders in the same slot. Manifest processes them first-come-first-served within the block: fill one, deduct $80K, balance is $20K. Fill two fails. Fill three fails. Your orders were on the book, but they were phantom liquidity at the exact moment the market needed them most.
+            Now a market-wide crash hits and multiple pairs dump at the same time. Three markets try to fill your orders in the same slot. Manifest handles them first-come-first-served within the block: fill one, deduct $80K, balance drops to $20K. Fill two fails. Fill three fails. Your orders were on the book, but they turned out to be phantom liquidity at the exact moment the market needed them most.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 0 }}>
-            This isn&apos;t a bug. It&apos;s the design trade-off. Capital efficiency and settlement guarantees are in tension. Market makers who use Global Orders need to model their worst-case simultaneous fill scenario and size accordingly. The naive approach of quoting full balance everywhere creates a false picture of depth.
+            This isn&apos;t a bug — it&apos;s the trade-off baked into the design. Capital efficiency and settlement guarantees pull against each other. If you use Global Orders, you have to model your worst-case simultaneous-fill scenario and size accordingly. Quoting your full balance everywhere, the naive way, just paints a false picture of depth.
           </p>
         </div>
 
         <SectionLabel>Aggregator Routing: Who Fills Your Orders</SectionLabel>
         <p style={bodyStyle}>
-          A CLOB can have perfect matching logic and still see zero volume if nobody sends orders to it. This is the aggregator problem: how does trade flow reach the book?
+          A CLOB can have flawless matching logic and still do zero volume if nobody routes orders to it. That&apos;s the aggregator problem: how does trade flow actually reach the book?
         </p>
         <p style={bodyStyle}>
-          Jupiter is Solana&apos;s dominant aggregator, routing through AMMs (Orca, Raydium) and CLOBs (Phoenix, Manifest) simultaneously. When a user swaps SOL for USDC on Jupiter, the router compares prices across all integrated venues, splits the order if needed, and executes against whichever combination gives the best output. The CLOB competes on price with every AMM pool.
+          Jupiter is Solana&apos;s dominant aggregator (the router that shops your trade across every venue for the best price). It routes through AMMs like Orca and Raydium and CLOBs like Phoenix and Manifest, all at once. When you swap SOL for USDC on Jupiter, the router compares prices across every integrated venue, splits the order if that helps, and executes against whatever combination gives the best output. Your CLOB is competing on price with every AMM pool out there.
         </p>
         <p style={bodyStyle}>
-          0x comes from Ethereum, where they built a Request-for-Quote (RFQ) system. Professional market makers respond to quote requests in real time, competing to fill each order. On Solana, 0x&apos;s Swap API aggregates across venues the same way Jupiter does. For market makers, being integrated into both aggregators means more flow. The question is what kind of flow.
+          0x came out of Ethereum, where they built a Request-for-Quote (RFQ) system: professional market makers respond to quote requests in real time, competing to fill each order. On Solana, 0x&apos;s Swap API aggregates across venues the same way Jupiter does. For a market maker, being wired into both aggregators means more flow. The real question is what kind of flow.
         </p>
         <p style={bodyStyle}>
-          Aggregator flow skews retail. A user swapping $500 of SOL on a frontend doesn&apos;t watch the order book or time their execution. They accept the best price the aggregator finds. This flow is less toxic than direct DEX trading, where sophisticated actors monitor the book and pick off stale quotes. For market makers, retail aggregator flow is the good flow. You quote a spread, the fill arrives, and the price hasn&apos;t moved against you by the time you hedge.
+          Aggregator flow skews retail. Someone swapping $500 of SOL on a frontend isn&apos;t watching the order book or timing their execution — they just take whatever best price the aggregator finds. That flow is less toxic than direct DEX trading, where sophisticated players watch the book and snipe stale quotes. For a market maker, retail aggregator flow is the good kind. You quote a spread, the fill comes in, and the price hasn&apos;t moved against you by the time you hedge.
         </p>
         <p style={bodyStyle}>
-          The downside: aggregator integration is binary. If your price is the best, you get the fill. If it&apos;s not, you get nothing. There&apos;s no loyalty, no relationship, no &quot;you filled me last time so I&apos;ll route to you again.&quot; Pure price competition, every single order.
+          The downside is that aggregator integration is all-or-nothing. Best price, you get the fill. Not the best price, you get nothing. No loyalty, no relationship, no &quot;you filled me last time so I&apos;ll route to you again.&quot; Just pure price competition, every single order.
         </p>
 
         <SectionLabel>Cancel Latency: The Market Maker&apos;s Real Problem</SectionLabel>
         <p style={bodyStyle}>
-          For a market maker on a centralized exchange, canceling an order is instantaneous — a message over a WebSocket, acknowledged in microseconds. No fee, no queue, no race. On a Solana CLOB, a cancel is a transaction. It must be submitted, propagated, included in a block, and confirmed. At Solana&apos;s baseline, that&apos;s 400ms per slot — an eternity when prices are moving.
+          On a centralized exchange, canceling an order is instant — a message over a WebSocket, acknowledged in microseconds. No fee, no queue, no race. On a Solana CLOB, a cancel is a full transaction. It has to be submitted, propagated, included in a block, and confirmed. At Solana&apos;s baseline that&apos;s 400ms per slot — an eternity when prices are moving.
         </p>
         <p style={bodyStyle}>
-          This asymmetry is the defining constraint of on-chain market making. Posting a quote is a commitment that can&apos;t be undone instantly. Every resting order is a liability: a promise to trade at a fixed price, regardless of what the market does before the cancel lands. When a large order hits the mempool and moves price, the window between &quot;price moved&quot; and &quot;cancel confirmed&quot; is where market makers bleed. Sophisticated actors — termed &quot;snipers&quot; — exist specifically to fill stale quotes in that window before the cancel arrives.
+          This asymmetry is the defining constraint of on-chain market making. Posting a quote is a commitment you can&apos;t instantly take back. Every resting order is a liability — a promise to trade at a fixed price no matter what the market does before your cancel lands. When a big order hits the mempool (the pool of pending transactions waiting to be included) and moves the price, the gap between &quot;price moved&quot; and &quot;cancel confirmed&quot; is exactly where market makers bleed. And there are sophisticated players — &quot;snipers&quot; — whose entire job is to fill stale quotes in that window, before the cancel arrives.
         </p>
 
         {/* Cancel latency data box */}
@@ -187,31 +187,31 @@ export default function ClobArticle() {
         </div>
 
         <p style={bodyStyle}>
-          The cancel problem cascades into quoting strategy. A market maker who quotes tight spreads on many price levels is most exposed: more resting orders means more potential fills at stale prices during a move. The rational response is to either quote wider (reducing sniper profitability but also reducing competitiveness) or to invest heavily in cancel infrastructure — colocation with validators, low-latency RPC nodes, priority fee tuning. This is why professional on-chain market making is expensive. The edge is not in the pricing model; it&apos;s in the infrastructure that gets cancels on-chain faster than competitors.
+          The cancel problem bleeds straight into quoting strategy. A market maker quoting tight spreads across many price levels is the most exposed — more resting orders means more chances to get filled at a stale price during a move. The rational response is one of two things. Quote wider (which makes snipers less profitable but also makes you less competitive), or pour money into cancel infrastructure — colocation with validators, low-latency RPC nodes, priority fee tuning. That&apos;s why professional on-chain market making is expensive. The edge isn&apos;t in the pricing model. It&apos;s in the infrastructure that lands your cancels on-chain faster than the competition.
         </p>
 
         <SectionLabel>Jito: Block Auctions, Bundles, and the Private Mempool</SectionLabel>
         <p style={bodyStyle}>
-          Jito is not a single tool — it is a layered MEV infrastructure that runs across most of Solana&apos;s validator set. Understanding it requires separating four distinct components.
+          Jito isn&apos;t one tool. It&apos;s a layered MEV infrastructure that runs across most of Solana&apos;s validator set. To make sense of it, you have to pull apart four distinct pieces.
         </p>
 
         <div style={{ margin: '32px 0', padding: '0 0 0 24px', borderLeft: '2px solid rgba(255,255,255,0.1)' }}>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Block Engine.</strong> Jito operates a block engine — a service that validators (running Jito-patched software) connect to. The block engine receives bundles and individual transactions, simulates them, and assembles the most profitable ordering for the validator. As of 2024, approximately 80% of Solana validators run Jito software, which means most blocks are built through the Jito block engine. A transaction sent only to standard RPC has no path into a Jito block unless it is also forwarded.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Block Engine.</strong> Jito runs a block engine — a service that validators (running Jito-patched software) connect to. The block engine receives bundles and individual transactions, simulates them, and assembles the most profitable ordering for the validator. As of 2024, approximately 80% of Solana validators run Jito software, which means most blocks are built through the Jito block engine. A transaction sent only to standard RPC has no path into a Jito block unless it&apos;s also forwarded.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Bundles.</strong> A bundle is an ordered sequence of up to five transactions submitted atomically. All five execute in sequence, or none do. The canonical MM use case: [cancel stale bid] → [cancel stale ask] → [place new bid] → [place new ask]. No bot can insert a transaction between the cancel and the requote because the entire sequence lands as one unit. Bundles can also include a fill: [fill incoming order] → [hedge on another venue], ensuring the hedge lands in the same slot as the fill.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Bundles.</strong> A bundle is an ordered sequence of up to five transactions submitted atomically. All five execute in sequence, or none do. The classic market-maker use case: [cancel stale bid] → [cancel stale ask] → [place new bid] → [place new ask]. No bot can wedge a transaction between the cancel and the requote, because the whole sequence lands as one unit. Bundles can also include a fill — [fill incoming order] → [hedge on another venue] — so the hedge lands in the same slot as the fill.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Tips.</strong> Every bundle includes a tip — a direct SOL payment to the validator (via a Jito tip account). This is separate from the base transaction fee. The tip is the auction price for block ordering priority. Median tips are a fraction of a cent during quiet markets. During high-volatility events (token launches, major liquidations), tips spike: competitive bundles have been observed paying 1–5 SOL (~$150–750 at $150/SOL) for a single bundle to ensure first-in-block execution. The tip market is a second-price auction dynamic — you need to outbid the next competitor, not maximize your payment.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Tips.</strong> Every bundle includes a tip — a direct SOL payment to the validator (via a Jito tip account), separate from the base transaction fee. The tip is the auction price for block ordering priority. During quiet markets, median tips are a fraction of a cent. During high-volatility events (token launches, major liquidations), they spike: competitive bundles have been observed paying 1–5 SOL (~$150–750 at $150/SOL) for a single bundle to lock in first-in-block execution. The tip market is a second-price auction dynamic — you need to outbid the next competitor, not maximize your payment.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 0 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>ShredStream.</strong> Shreds are the raw data fragments Solana validators broadcast as they build blocks — before the block is complete or confirmed. Jito&apos;s ShredStream service lets subscribers receive shreds directly from validators in real time, giving them the earliest possible view of what is landing on-chain. For market makers, this is the cancel signal: when ShredStream shows a large order approaching their resting quotes, they have ~50–100ms to submit a cancel bundle before the order lands. Without ShredStream, you are reacting to confirmed state — already too late.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>ShredStream.</strong> Shreds are the raw data fragments Solana validators broadcast as they build blocks — before the block is complete or confirmed. Jito&apos;s ShredStream service lets subscribers receive shreds directly from validators in real time, giving them the earliest possible view of what&apos;s landing on-chain. For a market maker, this is the cancel signal: when ShredStream shows a large order approaching their resting quotes, they have ~50–100ms to fire off a cancel bundle before the order lands. Without ShredStream, you&apos;re reacting to confirmed state — already too late.
           </p>
         </div>
 
         <p style={bodyStyle}>
-          The difference between regular trading and Jito-mediated trading is architectural. A standard transaction goes to a public RPC node, propagates through gossip, and competes for inclusion based on base fee alone. It is visible to anyone watching the mempool. A Jito bundle goes through a private channel directly to the block engine, is simulated off-chain, and is only revealed to the network when it lands in a confirmed block. No front-running window. No public visibility. The bundle either executes as written or is dropped silently.
+          The difference between regular trading and Jito-mediated trading is architectural. A standard transaction goes to a public RPC node, propagates through gossip, and competes for inclusion on base fee alone. It&apos;s visible to anyone watching the mempool. A Jito bundle goes through a private channel straight to the block engine, gets simulated off-chain, and is only revealed to the network when it lands in a confirmed block. No front-running window. No public visibility. The bundle either executes as written or gets dropped silently.
         </p>
 
         {/* Jito vs regular comparison table */}
@@ -260,7 +260,7 @@ export default function ClobArticle() {
         </div>
 
         <p style={bodyStyle}>
-          The spread you see on a Solana CLOB encodes all of this. It is not the market maker&apos;s profit margin. It is the sum of: expected adverse selection from fills before cancels land, Jito tip cost amortized across expected fill volume, infrastructure costs (ShredStream, colocation, low-latency RPC), and the actual profit target — likely the smallest component of the four during volatile periods. A 5 bps spread on a liquid pair on Phoenix may represent 1 bps of actual profit and 4 bps of operational overhead that does not exist on a centralized exchange.
+          The spread you see on a Solana CLOB encodes all of this. It isn&apos;t the market maker&apos;s profit margin. It&apos;s the sum of four things: expected adverse selection from fills before cancels land, Jito tip cost amortized across expected fill volume, infrastructure costs (ShredStream, colocation, low-latency RPC), and the actual profit target — likely the smallest of the four during volatile periods. A 5 bps spread on a liquid pair on Phoenix might be 1 bps of actual profit and 4 bps of operational overhead that simply doesn&apos;t exist on a centralized exchange.
         </p>
 
         <SectionLabel>The Mechanism Landscape: AMM, RFQ, Intent, CLOB</SectionLabel>
@@ -308,32 +308,32 @@ export default function ClobArticle() {
         </div>
 
         <p style={bodyStyle}>
-          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>AMMs</strong> trade execution simplicity for capital efficiency. Liquidity providers deposit once; the formula handles everything. But the formula is predictable — every large order is sandwichable, LPs absorb adverse selection by design, and there are no limit orders. AMMs work for passive liquidity. They fail for tight spreads.
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>AMMs</strong> trade execution simplicity for capital efficiency. Liquidity providers deposit once and the formula handles everything. But the formula is predictable, which means every large order is sandwichable, LPs absorb adverse selection by design, and there are no limit orders. AMMs work for passive liquidity. They fail for tight spreads.
         </p>
         <p style={bodyStyle}>
-          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>RFQ</strong> flips the model: no public book, no formula. A user requests a quote, market makers compete to respond, the best bid wins. Zero MEV exposure — the price is agreed before the tx broadcasts. But it requires market makers to be online, responsive, and willing to quote every token. Long-tail assets get no coverage.
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>RFQ</strong> flips the model: no public book, no formula. A user requests a quote, market makers compete to respond, the best bid wins. Zero MEV exposure, because the price is agreed before the tx broadcasts. But it needs market makers to be online, responsive, and willing to quote every token, so long-tail assets get no coverage.
         </p>
         <p style={bodyStyle}>
-          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Intent-based routing</strong> (UniswapX, CoW Protocol) abstracts the venue entirely. The user signs an intent: &quot;give me at least X for Y.&quot; Solvers — bots competing to fill — find the optimal path across AMMs, CLOBs, private inventory. The user gets best execution. The solver captures the surplus. MEV is redirected from extractors to solvers and partially returned to users. The risk: solver centralization. A handful of solvers handle the majority of flow.
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Intent-based routing</strong> (UniswapX, CoW Protocol) abstracts the venue entirely. The user signs an intent — &quot;give me at least X for Y&quot; — and solvers (bots competing to fill it) find the optimal path across AMMs, CLOBs, and private inventory. The user gets best execution, the solver captures the surplus, and MEV gets redirected from extractors to solvers and partially returned to users. The risk is solver centralization: a handful of solvers end up handling the majority of flow.
         </p>
         <p style={bodyStyle}>
-          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>On-chain CLOBs</strong> are the only model where price is transparent before the trade and limit orders are native. Every resting order is a public commitment. Market makers compete on spread. Takers see the full depth. The cost: write-lock contention, compute constraints, MEV exposure on every cancel-requote cycle.
+          <strong style={{ color: 'rgba(255,255,255,0.85)' }}>On-chain CLOBs</strong> are the only model where price is transparent before the trade and limit orders are native. Every resting order is a public commitment. Market makers compete on spread. Takers see the full depth. The cost: write-lock contention, compute constraints, and MEV exposure on every cancel-requote cycle.
         </p>
 
         <SectionLabel>Derivative Markets: Hyperliquid, dYdX, GMX</SectionLabel>
         <p style={bodyStyle}>
-          Spot CLOBs solve one problem: matching buyers and sellers of existing assets. Derivatives add a second layer — synthetic exposure, leverage, funding rates, liquidation engines, oracle pricing. Each solved it differently.
+          Spot CLOBs solve one problem: matching buyers and sellers of existing assets. Derivatives add a second layer — synthetic exposure, leverage, funding rates, liquidation engines, oracle pricing. Each one solved it differently.
         </p>
 
         <div style={{ margin: '32px 0', padding: '0 0 0 24px', borderLeft: '2px solid rgba(255,255,255,0.1)' }}>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>GMX / GLP model.</strong> No order book. Liquidity providers deposit a basket of assets into a pool (GLP). Traders open long or short positions against the pool as counterparty. Prices come from Chainlink oracles — no book depth, no spread. The pool earns fees when traders lose; it bleeds when traders win. Capital efficient for LPs when traders are net unprofitable. Structurally fragile when they are not.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>GMX / GLP model.</strong> No order book at all. Liquidity providers deposit a basket of assets into a pool (GLP), and traders open long or short positions against the pool as their counterparty. Prices come from Chainlink oracles — no book depth, no spread. The pool earns fees when traders lose and bleeds when traders win. That&apos;s capital efficient for LPs when traders are net unprofitable, and structurally fragile when they&apos;re not.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>dYdX v4 (Cosmos app-chain).</strong> Off-chain order book, on-chain settlement. Validators run the matching engine off-chain in their local state; only fills hit the Cosmos chain. Sub-second latency. The trade-off: validators must be trusted to match orders honestly. Censorship is possible at the validator level. dYdX chose performance over full on-chain transparency.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>dYdX v4 (Cosmos app-chain).</strong> Off-chain order book, on-chain settlement. Validators run the matching engine off-chain in their local state, and only the fills hit the Cosmos chain. The result is sub-second latency. The trade-off: you have to trust validators to match orders honestly, and censorship is possible at the validator level. dYdX chose performance over full on-chain transparency.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 0 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Hyperliquid.</strong> Purpose-built L1 (HyperBFT consensus, Tendermint-derived). The entire matching engine runs on-chain on their own chain — no shared congestion with other applications. Order acknowledgment under 1ms. The validator set is small (~20 initially), which is the central trust assumption. HIP-1 defines the native token standard for deploying assets directly on Hyperliquid&apos;s L1. HIP-2 provides automatic liquidity seeding for new HIP-1 spot markets — the protocol bootstraps initial order book depth at the auction clearing price, preventing empty-book cold-start failure. The HLP (Hyperliquidity Provider) vault acts as the native market maker, absorbing flow the external maker ecosystem doesn&apos;t cover.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Hyperliquid.</strong> A purpose-built L1 (HyperBFT consensus, Tendermint-derived). The entire matching engine runs on-chain on their own chain, so there&apos;s no shared congestion with other applications, and order acknowledgment comes in under 1ms. The validator set is small (~20 initially), which is the central trust assumption. HIP-1 defines the native token standard for deploying assets directly on Hyperliquid&apos;s L1. HIP-2 handles automatic liquidity seeding for new HIP-1 spot markets — the protocol bootstraps initial order book depth at the auction clearing price, so a new market doesn&apos;t cold-start with an empty book. The HLP (Hyperliquidity Provider) vault acts as the native market maker, soaking up flow the external maker ecosystem doesn&apos;t cover.
           </p>
         </div>
 
@@ -406,19 +406,19 @@ export default function ClobArticle() {
 
         <div style={{ margin: '32px 0', padding: '0 0 0 24px', borderLeft: '2px solid rgba(255,255,255,0.1)' }}>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>AMMs scale until MEV does.</strong> Each swap is O(1) — no book to traverse, no matching logic. Solana AMMs handle millions of swaps. But as TVL grows, so does the size of sandwichable trades. MEV extraction scales with liquidity. Concentrated liquidity (Orca Whirlpools) improves capital efficiency but narrows the range that earns fees, concentrating IL risk. The model doesn&apos;t break; it just becomes more extractive at scale.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>AMMs scale until MEV does.</strong> Each swap is O(1) — no book to traverse, no matching logic — so Solana AMMs handle millions of swaps. But as TVL grows, so does the size of sandwichable trades. MEV extraction scales with liquidity. Concentrated liquidity (Orca Whirlpools) improves capital efficiency but narrows the range that earns fees, which concentrates IL risk. The model doesn&apos;t break. It just becomes more extractive at scale.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>On-chain CLOBs (Solana) hit write-lock ceilings.</strong> Phoenix and Manifest are bottlenecked by Solana&apos;s account write-lock rule: only one writer can hold the lock on the order book account at a time. At low volume, fine. At high volume, the account becomes a serial resource — concurrent writers don&apos;t fail outright, they queue and execute one after another, and the per-market throughput is capped by how many of those serialized writes fit in 400ms. The practical throughput for a single Phoenix market under contested conditions is far below Solana&apos;s theoretical 65,000 TPS. Compute limits per transaction add a second ceiling: deep order walks that touch many price levels hit the 1.4M CU cap.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>On-chain CLOBs (Solana) hit write-lock ceilings.</strong> Phoenix and Manifest are bottlenecked by Solana&apos;s account write-lock rule: only one writer can hold the lock on the order book account at a time. At low volume, fine. At high volume, the account becomes a serial resource — concurrent writers don&apos;t fail outright, they queue and execute one after another, and per-market throughput is capped by how many of those serialized writes fit in 400ms. The practical throughput for a single Phoenix market under contested conditions is far below Solana&apos;s theoretical 65,000 TPS. Compute limits per transaction add a second ceiling: deep order walks that touch many price levels hit the 1.4M CU cap.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Own-chain CLOBs (Hyperliquid, dYdX) remove the shared congestion problem.</strong> No other applications compete for the same write locks. The matching engine has the full validator throughput. Hyperliquid processes 100,000+ orders per second in their own benchmarks. But the ceiling shifts: it&apos;s now the validator set size and the trust model. Fewer validators means faster BFT consensus but a smaller security set. A cartel of validators could front-run orders or censor cancels. This is a governance and decentralization problem, not an infrastructure one — and it gets harder to solve as the platform grows more valuable.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Own-chain CLOBs (Hyperliquid, dYdX) remove the shared congestion problem.</strong> No other applications compete for the same write locks, so the matching engine gets the full validator throughput. Hyperliquid processes 100,000+ orders per second in their own benchmarks. But the ceiling just moves: now it&apos;s the validator set size and the trust model. Fewer validators means faster BFT consensus but a smaller security set, and a cartel of validators could front-run orders or censor cancels. This is a governance and decentralization problem, not an infrastructure one — and it gets harder to solve as the platform grows more valuable.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 16 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>RFQ scales with market maker capital, not infrastructure.</strong> There&apos;s no order book to contend for, no write-lock bottleneck. Throughput is limited by how many quote requests market makers can respond to per second. For liquid pairs, this is effectively unlimited. For long-tail assets, market makers simply don&apos;t show up. The model scales horizontally — add more market makers — but fails vertically: there&apos;s no native price discovery, so takers depend entirely on the market maker being honest and competitive.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>RFQ scales with market maker capital, not infrastructure.</strong> There&apos;s no order book to contend for, no write-lock bottleneck. Throughput is limited by how many quote requests market makers can respond to per second. For liquid pairs, that&apos;s effectively unlimited. For long-tail assets, market makers simply don&apos;t show up. The model scales horizontally — add more market makers — but fails vertically: there&apos;s no native price discovery, so takers depend entirely on the market maker being honest and competitive.
           </p>
           <p style={{ ...bodyStyle, marginBottom: 0 }}>
-            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Intent-based routing scales with solver infrastructure.</strong> Solvers run off-chain, spin up as needed, and compete on every order independently. The on-chain footprint is a single settlement tx per fill. This is the most scalable model from a pure throughput perspective. The risk is solver centralization: if three solvers handle 90% of flow, the &quot;competitive solver auction&quot; becomes oligopolistic pricing in practice. The user sees best execution today; whether that holds as solver market structure consolidates is the open question.
+            <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Intent-based routing scales with solver infrastructure.</strong> Solvers run off-chain, spin up as needed, and compete on every order independently. The on-chain footprint is a single settlement tx per fill. From a pure throughput perspective, this is the most scalable model of the bunch. The risk is solver centralization: if three solvers handle 90% of flow, the &quot;competitive solver auction&quot; becomes oligopolistic pricing in practice. The user sees best execution today. Whether that holds as solver market structure consolidates is the open question.
           </p>
         </div>
 
@@ -428,13 +428,13 @@ export default function ClobArticle() {
 
         <SectionLabel>Where This Goes</SectionLabel>
         <p style={bodyStyle}>
-          The technical stack for on-chain CLOBs on Solana is production-ready. Phoenix and Manifest both work. Orders match, settlements clear, the matching engines survive real load. The solved problem is the matching engine.
+          The technical stack for on-chain CLOBs on Solana is production-ready. Phoenix and Manifest both work. Orders match, settlements clear, and the matching engines survive real load. The matching engine is the solved problem.
         </p>
         <p style={bodyStyle}>
           The unsolved problems are all economic. Capital efficiency vs. settlement guarantees (Global Orders). Spread compression vs. MEV exposure (Jito costs). Aggregator integration vs. adverse selection (flow quality). These are the same problems centralized exchanges have spent decades optimizing. The difference is that on-chain, every parameter is visible, every trade-off is measurable, and every design decision plays out in public.
         </p>
         <p style={bodyStyle}>
-          The interesting question isn&apos;t whether on-chain order books can work. They can. The interesting question is whether the economic equilibrium they converge to is better than AMMs for the median user — and whether own-chain CLOBs like Hyperliquid can maintain their speed advantage without sacrificing the decentralization that makes the whole model trustworthy. That answer depends on how many sophisticated market makers show up, how much capital they deploy, how much MEV they&apos;re willing to absorb, and whether the validator sets running these systems stay honest as the stakes grow. The matching engine was the prerequisite. Now the game is about who plays it, on which chain, under which rules.
+          The interesting question isn&apos;t whether on-chain order books can work. They can. The interesting question is whether the economic equilibrium they settle into beats AMMs for the median user — and whether own-chain CLOBs like Hyperliquid can keep their speed advantage without giving up the decentralization that makes the whole model trustworthy. That answer depends on how many sophisticated market makers show up, how much capital they deploy, how much MEV they&apos;re willing to absorb, and whether the validator sets running these systems stay honest as the stakes grow. The matching engine was the prerequisite. Now the game is about who plays it, on which chain, under which rules.
         </p>
 
         <div style={{

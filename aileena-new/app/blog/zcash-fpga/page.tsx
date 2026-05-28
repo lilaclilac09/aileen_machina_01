@@ -16,94 +16,110 @@ export default function ZcashFpgaArticle() {
 
         <SectionLabel>The artifact</SectionLabel>
         <p style={bodyStyle}>
-          A Zcash Foundation grant produced one repository. It contains three independently-buildable
-          hardware engines for FPGA targets: Equihash proof-of-work verification, secp256k1 ECDSA
-          signature verification, and a BLS12-381 zk-SNARK coprocessor. Each engine is gated behind a
-          build-time parameter so you can synthesise just the one you need. The whole thing is
-          SystemVerilog with self-checking testbenches per module.
+          The Zcash Foundation handed out a grant, and what came back was a single repository. Open it up and you
+          find three hardware engines, each of which you can build on its own for FPGA targets &mdash; an FPGA being
+          a chip you can rewire after it&apos;s manufactured, something halfway between software and a fixed circuit.
+          The three engines are: Equihash proof-of-work verification, secp256k1 ECDSA signature verification, and a
+          BLS12-381 zk-SNARK coprocessor. (BLS12-381 is just the name of a specific elliptic curve &mdash; the kind
+          of math object a lot of zero-knowledge cryptography is built on.) Each engine sits behind a build-time
+          switch, so you only synthesise the one you actually need. The whole thing is written in SystemVerilog &mdash;
+          a language for describing hardware &mdash; and every module comes with a testbench that checks itself.
         </p>
         <p style={bodyStyle}>
-          The Equihash engine and the secp256k1 engine are roughly what you&apos;d expect: fixed-function pipelines
-          that ingest a transaction or block header and emit a verification result. The BLS12-381 engine is the
-          unusual part. It is not a fixed pipeline. It is a small <strong style={strong}>microcoded processor</strong>
-          with a 2&nbsp;KB instruction memory, a 12&nbsp;KB URAM data slot sized to the native 381-bit width of the
-          curve, eight typed operand classes, and a sixteen-instruction opcode set that goes all the way up to{' '}
-          <code style={code}>ATE_PAIRING</code>. You write SNARK verifier code as assembly. It executes on silicon.
+          The Equihash and secp256k1 engines are about what you&apos;d expect. They&apos;re fixed-function pipelines
+          &mdash; circuits wired to do exactly one job &mdash; that take in a transaction or a block header and hand
+          back a yes-or-no verification result. The BLS12-381 engine is the odd one out. It isn&apos;t a fixed
+          pipeline at all. It&apos;s a tiny <strong style={strong}>microcoded processor</strong> &mdash; a little
+          computer that runs its own instructions &mdash; with a 2&nbsp;KB instruction memory, a 12&nbsp;KB URAM data
+          slot sized to the curve&apos;s native 381-bit width, eight typed operand classes, and a sixteen-instruction
+          opcode set (an opcode being one machine instruction) that climbs all the way up to{' '}
+          <code style={code}>ATE_PAIRING</code>. You write your SNARK verifier as assembly. And it runs on silicon.
         </p>
         <p style={bodyStyle}>
-          The right comparison isn&apos;t &ldquo;another EC accelerator&rdquo; &mdash; it&apos;s a domain-specific
-          ISA for a specific elliptic curve. The closest production analogue is the kind of GPU shader-style
-          instruction packing used in zero-knowledge prover farms today, except this lives in fabric, runs at
-          200&nbsp;MHz, and is freely licensed.
+          So the right way to think about it isn&apos;t &ldquo;yet another EC accelerator.&rdquo; It&apos;s a
+          purpose-built instruction set &mdash; an ISA, which is really just the contract between software and
+          hardware &mdash; for one specific elliptic curve. The nearest thing you&apos;ll see in production today is
+          the GPU shader-style instruction packing inside zero-knowledge prover farms. Except this one lives in the
+          chip&apos;s reconfigurable fabric, runs at 200&nbsp;MHz, and is free to use.
         </p>
 
         <SectionLabel>What zcash-fpga actually is</SectionLabel>
         <p style={bodyStyle}>
-          Top-level: a SystemVerilog source tree with three optional engines, a shared <code style={code}>ip_cores/</code>{' '}
-          library, and project files for two FPGA targets &mdash; AWS F1 (Xilinx VU9P + 64&nbsp;GB DDR4) and Bittware
-          XUPVVH (VU37P + 8&nbsp;GB HBM + 16&nbsp;GB DDR4). The host-side library is a single C++ header that maps
-          control over PCIe via an AXI4 / AXI4-Lite interface, with the BLS12-381 engine at offset{' '}
-          <code style={code}>0x1000</code>.
+          At the top level it&apos;s a SystemVerilog source tree: three optional engines, a shared{' '}
+          <code style={code}>ip_cores/</code> library, and project files for two FPGA targets &mdash; AWS F1 (Xilinx
+          VU9P + 64&nbsp;GB DDR4) and Bittware XUPVVH (VU37P + 8&nbsp;GB HBM + 16&nbsp;GB DDR4). On the host side
+          there&apos;s a single C++ header that talks to the card over PCIe through an AXI4 / AXI4-Lite interface
+          (AXI is the standard bus protocol chips use to talk to one another), with the BLS12-381 engine parked at
+          offset <code style={code}>0x1000</code>.
         </p>
         <p style={bodyStyle}>
-          Capability bits are exposed as a bitfield so the host can ask the FPGA which engines are compiled in:{' '}
+          The card tells you what it can do through a bitfield &mdash; basically a row of on/off flags &mdash; so the
+          host can ask which engines were actually compiled in:{' '}
           <code style={code}>ENB_BLS12_381</code>, <code style={code}>ENB_VERIFY_SECP256K1_SIG</code>,{' '}
           <code style={code}>ENB_VERIFY_EQUIHASH_144_5</code>, <code style={code}>ENB_VERIFY_EQUIHASH_200_9</code>.
-          You can ship a slimmer image for one chain and a fuller image for another by flipping these at synthesis
-          time. There is no runtime feature gate; FPGAs don&apos;t do that. The capability bitfield is the contract.
+          Flip these at synthesis time and you can ship a slim image for one chain and a fuller one for another. You
+          can&apos;t turn features on at runtime &mdash; that&apos;s just not how FPGAs work. The bitfield is the
+          contract.
         </p>
         <p style={bodyStyle}>
-          The <code style={code}>ip_cores/</code> tree is where most of the engineering value lives. It contains:
-          Blake2b (single-clock hash @ 200&nbsp;MHz after a 52-clock fill via fully unrolled pipeline), SHA256 + SHA256d,
-          parameterized Karatsuba multipliers, two flavours of Barret reduction (pipelined for speed, sequential for
-          area), a fully-parallel modular multiplier with carry-save-adder tree and BRAM-backed reduction (3&times;
-          throughput over Karatsuba+Barret), AXI4 and AXI4-Lite plumbing, FIFOs, a CRC-hashed hash map, and a complete
-          Weierstrass elliptic curve module with point math up to Fp<sup>12</sup> in both affine and Jacobian.
+          The <code style={code}>ip_cores/</code> tree is where most of the engineering value hides. You get:
+          Blake2b (a hash function that spits out one result per clock at 200&nbsp;MHz, once a 52-clock fill warms up
+          its fully-unrolled pipeline), SHA256 + SHA256d, parameterized Karatsuba multipliers (a clever shortcut for
+          multiplying big numbers fast), two flavours of Barret reduction &mdash; the trick for taking a result
+          modulo a large prime &mdash; one pipelined for speed and one sequential to save space, a fully-parallel
+          modular multiplier with a carry-save-adder tree and BRAM-backed reduction (3&times; the throughput of
+          Karatsuba+Barret), AXI4 and AXI4-Lite plumbing, FIFOs, a hash map keyed by CRC, and a full Weierstrass
+          elliptic-curve module that does point math all the way up to Fp<sup>12</sup>, in both affine and Jacobian
+          coordinates.
         </p>
         <p style={bodyStyle}>
-          That last sentence is doing a lot of work. Fp<sup>12</sup>-capable EC math, in hardware, with full towering
-          (Fp &rarr; Fp<sup>2</sup> &rarr; Fp<sup>6</sup> &rarr; Fp<sup>12</sup>), is the entire backbone of modern
-          pairing-based cryptography. Once you have it, BLS signature verification, KZG commitment opening, Groth16
-          and PLONK verifier circuits, and ate pairings for BLS12-381 / BN254 / BLS12-377 are all the same problem
-          with different constants.
+          That last item is pulling a lot of weight. Fp<sup>12</sup>-capable curve math in hardware, with the full
+          tower of fields stacked up one layer at a time (Fp &rarr; Fp<sup>2</sup> &rarr; Fp<sup>6</sup> &rarr;
+          Fp<sup>12</sup>), is the entire backbone of modern pairing-based cryptography &mdash; a pairing being the
+          special operation that fuses two curve points into a single field element, which is what makes
+          zero-knowledge proofs checkable in the first place. Once you have that, BLS signature verification, KZG
+          commitment opening, Groth16 and PLONK verifier circuits, and ate pairings for BLS12-381 / BN254 / BLS12-377
+          are all the same problem &mdash; just with different constants plugged in.
         </p>
 
         <SectionLabel>The Equihash engine, briefly</SectionLabel>
         <p style={bodyStyle}>
-          The Equihash 200,9 engine verifies a Zcash block header&apos;s proof-of-work solution and applies the
-          difficulty filter. It exists because Zcash uses Equihash, Equihash is memory-hard by design, and
-          memory-hard PoW chains were the original motivation for the entire FPGA-for-blockchain conversation.
-          Verifying is cheap relative to mining, but at high block rates or for SPV clients it adds up.
+          The Equihash 200,9 engine checks the proof-of-work solution in a Zcash block header and applies the
+          difficulty filter. It&apos;s here because Zcash uses Equihash, Equihash is deliberately memory-hard (it
+          leans on memory rather than raw compute), and memory-hard proof-of-work chains were what kicked off the
+          whole FPGA-for-blockchain conversation to begin with. Verifying is cheap compared to mining, but at high
+          block rates &mdash; or on lightweight SPV clients &mdash; the cost adds up.
         </p>
         <p style={bodyStyle}>
-          By 2026 this is more archaeological than load-bearing. Zcash&apos;s long-term roadmap (NU5 onward) reduces
-          Equihash&apos;s relevance as the chain transitions toward Halo 2 and validator-style consensus. The engine
-          works, it&apos;s correct, and nobody is racing to integrate it.
+          By 2026, though, this is more archaeology than anything you&apos;d lean on. Zcash&apos;s long-term roadmap
+          (NU5 onward) keeps shrinking Equihash&apos;s role as the chain drifts toward Halo 2 and validator-style
+          consensus. The engine works, it&apos;s correct, and nobody is in a hurry to wire it into anything.
         </p>
 
         <SectionLabel>The secp256k1 engine: the one that&apos;s actually useful</SectionLabel>
         <p style={bodyStyle}>
-          Zcash supports both shielded (zk-SNARK) and transparent (Bitcoin-style) addresses. Transparent transactions
-          use secp256k1 ECDSA, the same curve as Bitcoin and Ethereum. The FPGA engine verifies these signatures
-          using two techniques that show up in any serious EC accelerator: <strong style={strong}>endomorphism-based
-          scalar reduction</strong> (GLV decomposition splits a 256-bit scalar into two ~128-bit scalars that can be
-          multiplied in parallel) and a <strong style={strong}>shared fully-pipelined Karatsuba multiplier</strong>
-          {' '}backed by Barret reduction, so multiple point operations time-multiplex onto one big multiplier.
+          Zcash has two kinds of addresses: shielded (zk-SNARK) and transparent (Bitcoin-style). The transparent ones
+          use secp256k1 ECDSA &mdash; the same signature scheme and curve as Bitcoin and Ethereum. The FPGA engine
+          checks those signatures using two tricks you&apos;ll find in any serious EC accelerator. First,{' '}
+          <strong style={strong}>endomorphism-based scalar reduction</strong>: GLV decomposition splits one 256-bit
+          scalar into two roughly 128-bit ones, which you can then multiply side by side. Second, a{' '}
+          <strong style={strong}>shared fully-pipelined Karatsuba multiplier</strong> backed by Barret reduction, so
+          several point operations take turns on one big multiplier instead of each demanding its own.
         </p>
         <p style={bodyStyle}>
-          This is the engine you&apos;d actually deploy. ECDSA verification on secp256k1 is the single most-executed
-          cryptographic operation in the world &mdash; every Bitcoin block, every Ethereum block, every transparent
-          Zcash transaction. An FPGA that can do it at PCIe line rate is a real product, not a research toy. The
-          fact that this engine exists, is open-source, and works with the same AXI4-Lite plumbing the rest of the
-          repo uses, is the most underrated piece of the whole grant.
+          This is the engine you&apos;d genuinely want to deploy. ECDSA verification on secp256k1 is the single
+          most-executed cryptographic operation on Earth &mdash; every Bitcoin block, every Ethereum block, every
+          transparent Zcash transaction runs it. An FPGA that does it at PCIe line rate is a real product, not a
+          research toy. The fact that this engine exists, is open-source, and snaps into the same AXI4-Lite plumbing
+          as the rest of the repo makes it the most underrated piece of the whole grant.
         </p>
 
         <SectionLabel>The Pairing VM in detail</SectionLabel>
         <p style={bodyStyle}>
-          Now the interesting part. The BLS12-381 coprocessor is not built around &ldquo;one circuit per operation.&rdquo;
-          It is built around an instruction set. You load a program into the 2&nbsp;KB instruction memory, point the
-          host-side runtime at the entry address, and the engine executes. From <code style={code}>zcash_fpga.hpp</code>{' '}
-          you can read the full opcode list directly:
+          Now the fun part. The BLS12-381 coprocessor isn&apos;t built as &ldquo;one circuit per operation.&rdquo;
+          It&apos;s built around an instruction set. You load a program into the 2&nbsp;KB instruction memory, point
+          the host-side runtime at the entry address, and the engine just runs it. You can read the full opcode list
+          straight out of <code style={code}>zcash_fpga.hpp</code>:
         </p>
 
         <pre style={preStyle}>{`// Control flow
@@ -127,17 +143,17 @@ FINAL_EXP        0x22
 ATE_PAIRING      0x23`}</pre>
 
         <p style={bodyStyle}>
-          Sixteen opcodes total. Notice that <code style={code}>MILLER_LOOP</code> and{' '}
-          <code style={code}>FINAL_EXP</code> are exposed as separate instructions from{' '}
-          <code style={code}>ATE_PAIRING</code>. That isn&apos;t aesthetic &mdash; it&apos;s deliberate.
-          A single ate pairing is Miller loop followed by final exponentiation. But many real verifier circuits
-          do a <strong style={strong}>multi-pairing check</strong>: you compute several Miller loops, accumulate
-          their products in Fp<sup>12</sup>, and run final exponentiation only once at the end. By splitting the
-          two phases into separate opcodes, you can write that loop in the assembler and save an entire final
-          exponentiation per extra pairing. Groth16 and KZG verifiers both benefit immediately.
+          Sixteen opcodes in all. Notice that <code style={code}>MILLER_LOOP</code> and{' '}
+          <code style={code}>FINAL_EXP</code> get their own instructions, separate from{' '}
+          <code style={code}>ATE_PAIRING</code>. That&apos;s not just tidiness &mdash; it&apos;s deliberate. A single
+          ate pairing is really just a Miller loop followed by a final exponentiation. But plenty of real verifier
+          circuits do a <strong style={strong}>multi-pairing check</strong>: you run several Miller loops, multiply
+          their results together in Fp<sup>12</sup>, and do the final exponentiation only once, right at the end.
+          Because the two phases are separate opcodes, you can write that loop in the assembler and skip a whole final
+          exponentiation for every extra pairing. Groth16 and KZG verifiers both win from this immediately.
         </p>
         <p style={bodyStyle}>
-          Operand types are also typed. Each data slot is tagged with one of eight classes:
+          The operands are typed, too. Each data slot carries a tag &mdash; one of eight classes:
         </p>
 
         <pre style={preStyle}>{`SCALAR  // integer multiplier
@@ -150,143 +166,145 @@ FP2_AF  // G2 point, affine
 FP2_JB  // G2 point, Jacobian`}</pre>
 
         <p style={bodyStyle}>
-          So <code style={code}>MUL_ELEMENT</code> dispatched on two <code style={code}>FE12</code> operands invokes
-          the full Fp<sup>12</sup> multiplier circuit, while the same opcode on two <code style={code}>FE</code>{' '}
-          operands routes to the base-field multiplier. The ISA encodes the cryptographic algebra directly. You don&apos;t
-          marshal types &mdash; you declare them on the slot.
+          So run <code style={code}>MUL_ELEMENT</code> on two <code style={code}>FE12</code> operands and it fires up
+          the full Fp<sup>12</sup> multiplier circuit; run the very same opcode on two <code style={code}>FE</code>{' '}
+          operands and it quietly routes to the base-field multiplier instead. The ISA bakes the cryptographic algebra
+          right in. You never convert types by hand &mdash; you just declare them on the slot and let the hardware
+          sort it out.
         </p>
         <p style={bodyStyle}>
-          12&nbsp;KB of URAM, at 381 bits per slot, gives you ~256 native slots. A Groth16 verifier needs roughly
-          twelve G1 points, two G2 points, two pairings of constants, plus scratch &mdash; comfortably inside the
-          working set. PLONK and KZG verifiers fit too. You&apos;d only hit the data ceiling on recursive proof
-          systems with many auxiliary commitments, and even then you can stream from DDR4.
+          12&nbsp;KB of URAM at 381 bits per slot gives you about 256 native slots. A Groth16 verifier needs roughly
+          twelve G1 points, two G2 points, two constant pairings, plus a bit of scratch space &mdash; comfortably
+          inside that working set. PLONK and KZG verifiers fit too. The only time you&apos;d bump into the ceiling is
+          with recursive proof systems hauling around lots of auxiliary commitments, and even then you can stream the
+          overflow in from DDR4.
         </p>
 
         <SectionLabel>Why an instruction set instead of a pipeline</SectionLabel>
         <p style={bodyStyle}>
-          The default move for FPGA crypto accelerators is to bake one specific operation into one specific
-          pipeline. Twelve stages of multiplication and reduction, optimised for exactly one curve, exactly one
-          protocol, no branches. That&apos;s how you get raw throughput. The cost is that the resulting hardware
-          does <strong style={strong}>one thing</strong>. Want to add a second curve? Re-synthesise. Want to verify
-          a different SNARK? Re-synthesise. Want to batch differently? Re-synthesise.
+          The usual move for an FPGA crypto accelerator is to bake one operation into one pipeline. Twelve stages of
+          multiplication and reduction, tuned for exactly one curve and one protocol, no branches. That&apos;s how
+          you squeeze out raw throughput. The catch is that the hardware then does <strong style={strong}>one
+          thing</strong>. Want a second curve? Re-synthesise. A different SNARK? Re-synthesise. A different batching
+          strategy? Re-synthesise.
         </p>
         <p style={bodyStyle}>
-          A microcoded processor over the same base arithmetic loses some throughput per op but trades it for three
-          things the fixed pipeline can&apos;t give you. First: <strong style={strong}>protocol flexibility</strong>.
-          Groth16, PLONK, KZG, Marlin, IPA &mdash; same opcodes, different programs. Second:{' '}
-          <strong style={strong}>multi-pairing batching</strong>, as above. Third:{' '}
-          <strong style={strong}>operand reuse</strong>. The Karatsuba multiplier, the Barret reduction blocks, the
-          Fp<sup>2</sup> tower &mdash; one copy in fabric, shared across every instruction. A pipeline duplicates
-          those for each function unit.
+          A microcoded processor running on the same underlying arithmetic gives up a little throughput per
+          operation, but you get three things back that a fixed pipeline simply can&apos;t. First,{' '}
+          <strong style={strong}>protocol flexibility</strong>: Groth16, PLONK, KZG, Marlin, IPA &mdash; same opcodes,
+          just different programs. Second, <strong style={strong}>multi-pairing batching</strong>, like we just saw.
+          Third, <strong style={strong}>operand reuse</strong>: the Karatsuba multiplier, the Barret reduction
+          blocks, the Fp<sup>2</sup> tower &mdash; one copy each in the fabric, shared by every instruction. A
+          pipeline has to duplicate all of that for each function unit.
         </p>
         <p style={bodyStyle}>
-          The trade-off is sensible. For verifier workloads, you don&apos;t need 50&times; throughput on one operation.
-          You need 5&times; throughput on a portfolio of operations whose mix changes per deployment. The Zcash repo
-          chose the right point.
+          And the trade-off makes sense. For verifier work, you don&apos;t need 50&times; the speed on one operation.
+          What you need is 5&times; the speed across a whole portfolio of operations whose mix shifts from one
+          deployment to the next. The Zcash repo picked the right spot to stand.
         </p>
 
         <SectionLabel>The IP cores: quietly excellent engineering</SectionLabel>
         <p style={bodyStyle}>
-          Two design choices in <code style={code}>ip_cores/</code> are worth flagging.
+          Two design choices in <code style={code}>ip_cores/</code> are worth pausing on.
         </p>
         <p style={bodyStyle}>
           <strong style={strong}>Blake2b at single-clock hash @ 200&nbsp;MHz.</strong> The pipelined version unrolls
-          the full Blake2b round function into 52 pipeline stages. Once filled, you get one full 1024-bit-block hash
-          per cycle. That&apos;s the absolute limit of what Blake2b can do in dedicated silicon; the only way to go
-          faster is to widen the data path. The same module has a single-pipe variant for area-constrained builds.
-          You pick at synthesis time. Most teams ship one or the other and don&apos;t know the trade-off; this repo
-          gives you both with a parameter.
+          the full Blake2b round function into 52 pipeline stages. Once it&apos;s filled, you get one full
+          1024-bit-block hash per cycle. That&apos;s about the absolute limit of what Blake2b can do in dedicated
+          silicon &mdash; the only way to go faster is to widen the data path. The same module also has a single-pipe
+          variant for when you&apos;re tight on area. You pick at synthesis time. Most teams ship one or the other
+          and never learn the trade-off; this repo just hands you both behind a parameter.
         </p>
         <p style={bodyStyle}>
           <strong style={strong}>Two modular reduction strategies, both shipped.</strong> Barret reduction is the
-          textbook approach when your modulus doesn&apos;t admit fast reduction (e.g. BLS12-381&apos;s 381-bit
-          prime). It needs two multiplications per reduction, which is expensive but predictable. The repo ships a
+          textbook approach when your modulus doesn&apos;t allow fast reduction (like BLS12-381&apos;s 381-bit
+          prime). It costs two multiplications per reduction &mdash; expensive, but predictable. The repo ships a
           pipelined high-performance Barret and a slower minimal-area Barret. Then it ships a{' '}
           <strong style={strong}>third</strong> path: a fully-parallel multiplier with a carry-save-adder tree and
-          BRAM-backed reduction lookups, which gets ~3&times; the throughput of Karatsuba+Barret at the cost of more
-          LUTs and RAM. Most projects pick one of these and live with it. The repo lets the integrator decide.
+          BRAM-backed reduction lookups, which gets ~3&times; the throughput of Karatsuba+Barret in exchange for more
+          LUTs and RAM. Most projects pick one of these and live with it. This repo lets the integrator decide.
         </p>
         <p style={bodyStyle}>
-          The hash map deserves a one-line mention: parameterised bit widths, CRC as the hash function, hardware
-          implementation. That&apos;s a building block for nullifier sets, commitment trees, and any other
-          on-chain-style lookup you might want to accelerate. Most people don&apos;t think of hash maps as IP
-          cores. This one is.
+          The hash map earns a one-line shout-out: parameterised bit widths, CRC as the hash function, all in
+          hardware. That&apos;s a building block for nullifier sets, commitment trees, and any other
+          on-chain-style lookup you might want to speed up. Most people don&apos;t think of hash maps as IP cores.
+          This one is.
         </p>
 
         <SectionLabel>Why nobody inherited it</SectionLabel>
         <p style={bodyStyle}>
-          With the artifact described, the question is why it&apos;s not infrastructure today. Four reasons,
-          ordered roughly by how decisive each was.
+          So if the thing is this good, why isn&apos;t it infrastructure today? Four reasons, ordered roughly by how
+          decisive each one was.
         </p>
         <p style={bodyStyle}>
           <strong style={strong}>One: Zcash adoption stayed small.</strong> The grant produced a verifier
-          accelerator at a time when the network needed prover acceleration to grow. Sending a shielded transaction
-          is gated on the user&apos;s ability to generate a SNARK proof locally; that&apos;s the user-facing
-          bottleneck, not block validation. Halo 2 (deployed in NU5, 2022) attacked the prover side directly by
-          eliminating trusted setup and improving proving cost, which mattered far more for the chain than verifier
-          speed-ups.
+          accelerator at exactly the moment the network needed prover acceleration to grow. Sending a shielded
+          transaction hinges on the user being able to generate a SNARK proof locally &mdash; that&apos;s the
+          user-facing bottleneck, not block validation. Halo 2 (deployed in NU5, 2022) went straight at the prover
+          side, killing the trusted setup and bringing down proving cost, which mattered far more to the chain than
+          any verifier speed-up.
         </p>
         <p style={bodyStyle}>
-          <strong style={strong}>Two: FPGA tooling is friction-shaped.</strong> Vivado 2018.3 / 2019.1 was the test
-          matrix. AWS F1 deployment is non-trivial: you build an AGFI (Amazon FPGA Image), provision an{' '}
-          <code style={code}>f1.2xlarge</code> or larger, run AWS-specific shell drivers. Bittware VVH is hardware
-          you have to own. There is no &ldquo;<code style={code}>cargo run</code>&rdquo; for cryptographic
-          accelerators. The crossover audience &mdash; people who can write SystemVerilog{' '}
-          <em>and</em> care about BLS12-381 internals &mdash; is small.
+          <strong style={strong}>Two: FPGA tooling is all friction.</strong> Vivado 2018.3 / 2019.1 was the test
+          matrix. AWS F1 deployment is a slog: you build an AGFI (Amazon FPGA Image), spin up an{' '}
+          <code style={code}>f1.2xlarge</code> or bigger, and run AWS-specific shell drivers. Bittware VVH is
+          hardware you have to physically own. There&apos;s no &ldquo;<code style={code}>cargo run</code>&rdquo; for
+          cryptographic accelerators. And the crossover crowd &mdash; people who can write SystemVerilog{' '}
+          <em>and</em> care about BLS12-381 internals &mdash; is tiny.
         </p>
         <p style={bodyStyle}>
-          <strong style={strong}>Three: the cryptosystem moved.</strong> Halo 2 doesn&apos;t use pairings the way
-          Groth16 does. Zcash&apos;s own roadmap after NU5 trended away from BLS12-381 and toward Pasta curves
-          (Pallas / Vesta), which were not the curves this accelerator was built for. The IP cores generalise &mdash;
-          parameterise the curve and the reductions, you can retarget &mdash; but nobody did, because by then the
-          target audience was building Halo 2 provers, not BLS12-381 verifiers.
+          <strong style={strong}>Three: the cryptosystem moved on.</strong> Halo 2 doesn&apos;t use pairings the way
+          Groth16 does. Zcash&apos;s own roadmap after NU5 drifted away from BLS12-381 and toward the Pasta curves
+          (Pallas / Vesta) &mdash; not the curves this accelerator was built for. The IP cores do generalise &mdash;
+          parameterise the curve and the reductions and you can retarget &mdash; but nobody bothered, because by then
+          the target audience was busy building Halo 2 provers, not BLS12-381 verifiers.
         </p>
         <p style={bodyStyle}>
           <strong style={strong}>Four: GPU and ASIC ecosystems caught up.</strong> By 2023, prover-side acceleration
           on GPUs (Filecoin, Aleo, Ingonyama&apos;s ICICLE) and bespoke ASIC efforts (Cysic, Fabric Cryptography,
-          Ulvetanna) were absorbing most of the &ldquo;ZK hardware&rdquo; mindshare and capital. FPGAs sit awkwardly
-          in between: more flexible than ASIC, slower than ASIC, more annoying than GPU. The Zcash repo&apos;s
-          window closed quietly.
+          Ulvetanna) were soaking up most of the &ldquo;ZK hardware&rdquo; mindshare and money. FPGAs sit awkwardly
+          in the middle: more flexible than an ASIC, slower than an ASIC, more annoying to deal with than a GPU. The
+          Zcash repo&apos;s window closed quietly.
         </p>
 
         <SectionLabel>What you&apos;d build with it today</SectionLabel>
         <p style={bodyStyle}>
-          The repo is not dead, just dormant. If you wanted to lift pieces of it into 2026 infrastructure, three
-          targets are obvious:
+          The repo isn&apos;t dead, just dormant. If you wanted to drag pieces of it into 2026 infrastructure, three
+          targets jump out:
         </p>
         <p style={bodyStyle}>
           <strong style={strong}>Ethereum BLS aggregate signature verification.</strong> Ethereum&apos;s consensus
           (LMD-GHOST + Casper FFG) verifies BLS12-381 signatures every slot. A beacon node validating attestations
-          spends real CPU on this. The Pairing VM&apos;s multi-pairing batching is exactly the operation you&apos;d
-          want, and a separately-developed downstream FPGA SNARK prover project already reuses these IP cores
-          as a submodule for Eth 2.0 SNARK work.
+          burns real CPU on this. The Pairing VM&apos;s multi-pairing batching is exactly the operation you&apos;d
+          reach for &mdash; and in fact a separate downstream FPGA SNARK prover project already pulls these IP cores
+          in as a submodule for Eth 2.0 SNARK work.
         </p>
         <p style={bodyStyle}>
           <strong style={strong}>L2 rollup pairing verification at the bridge.</strong> Optimistic and zk-rollup
-          bridges that verify pairing-based proofs on-chain or in trusted off-chain prover services would benefit
-          from an FPGA-side verifier sitting in front of the Ethereum L1 contract, batching proofs before
-          settlement. The ISA-style design makes it natural to support multiple rollup proof systems from one
+          bridges that verify pairing-based proofs on-chain, or in trusted off-chain prover services, would benefit
+          from an FPGA-side verifier sitting in front of the Ethereum L1 contract and batching proofs before
+          settlement. The ISA-style design makes it easy to support several rollup proof systems from a single
           deployment.
         </p>
         <p style={bodyStyle}>
-          <strong style={strong}>Filecoin / Aleo / Mina verifier-side acceleration.</strong> All three have
+          <strong style={strong}>Filecoin / Aleo / Mina verifier-side acceleration.</strong> All three carry
           high-volume pairing-based verifier workloads (sealing proofs, transaction proofs, succinct-chain proofs).
-          The IP cores would need to be parameterised for their respective curves, but the entire upper layer of the
-          Pairing VM is curve-agnostic given the right base-field constants.
+          You&apos;d need to parameterise the IP cores for their respective curves, but the entire upper layer of the
+          Pairing VM is curve-agnostic once you feed it the right base-field constants.
         </p>
 
         <SectionLabel>The takeaway</SectionLabel>
         <p style={bodyStyle}>
-          The gap between published cryptography and deployed cryptography runs through a layer almost nobody
-          writes about: production hardware. The Zcash Foundation funded one of the cleanest open-source examples
-          of what that layer looks like &mdash; an actual ISA for an actual curve, with actual silicon validation
-          on AWS &mdash; and almost no one picked it up.
+          The gap between published cryptography and deployed cryptography runs straight through a layer almost
+          nobody writes about: production hardware. The Zcash Foundation funded one of the cleanest open-source
+          examples of what that layer actually looks like &mdash; a real ISA for a real curve, with real silicon
+          validation on AWS &mdash; and almost no one picked it up.
         </p>
         <p style={bodyStyle}>
-          That&apos;s not a verdict on the work. It&apos;s a verdict on the field: most teams building hardware
-          accelerators in 2026 are doing it because they want to own the stack, not because they need to. The
-          repo is still there, GPL-3.0, with self-checking testbenches and a 1.4.2 architecture doc. The next
-          team that needs pairing acceleration without buying an ASIC could read it in a weekend.
+          That&apos;s not a knock on the work. It&apos;s a comment on the field: most teams building hardware
+          accelerators in 2026 are doing it because they want to own the stack, not because they have to. The repo
+          is still sitting there &mdash; GPL-3.0, self-checking testbenches, a 1.4.2 architecture doc. The next team
+          that needs pairing acceleration without buying an ASIC could read the whole thing in a weekend.
         </p>
 
         {/* Pull quote */}

@@ -44,13 +44,13 @@ export default function RobotsArticle() {
         <SectionLabel>{isDE ? 'Synthetische Daten in großem Maßstab' : 'Synthetic Data at Scale'}</SectionLabel>
         <p style={bodyStyle}>
           {isDE
-            ? 'NVIDIA Omniverse und Cosmos ermöglichen die Generierung massiver synthetischer Datensätze — fotorealistisch, physikalisch korrekt, unendlich variierbar. Was früher Jahre dauerte, dauert heute Stunden. Der Engpass ist nicht mehr das Sammeln von Daten. Er ist das Entwerfen der richtigen Verteilung.'
-            : 'NVIDIA Omniverse and Cosmos enable the generation of massive synthetic datasets — photorealistic, physically accurate, infinitely variable. What used to take years now takes hours. The bottleneck is no longer data collection. It is designing the right distribution.'}
+            ? 'Mit NVIDIA Omniverse und Cosmos kannst du riesige synthetische Datensätze erzeugen — fotorealistisch, physikalisch korrekt, beliebig variierbar. Was früher Jahre gedauert hat, dauert heute Stunden. Der Engpass ist nicht mehr, Daten zu sammeln. Der Engpass ist, die richtige Verteilung zu entwerfen.'
+            : 'With NVIDIA Omniverse and Cosmos, you can generate huge synthetic datasets — photorealistic, physically accurate, endlessly variable. What used to take years now takes hours. The bottleneck is no longer collecting the data. The bottleneck is designing the right distribution.'}
         </p>
         <p style={bodyStyle}>
           {isDE
-            ? 'Simulation ist nicht mehr ein Kompromiss. Sie ist der primäre Trainingsvektor für verkörperte Intelligenz. Wenn du eine Million Stunden echter Robotererfahrung brauchst, baust du sie — du wartest nicht darauf.'
-            : 'Simulation is no longer a compromise. It is the primary training vector for embodied intelligence. If you need a million hours of real robot experience, you build it — you don\'t wait for it.'}
+            ? 'Simulation ist kein Kompromiss mehr. Sie ist der wichtigste Weg, verkörperte Intelligenz zu trainieren — also Intelligenz, die in einem physischen Körper steckt. Wenn du eine Million Stunden echter Robotererfahrung brauchst, baust du sie dir einfach — du wartest nicht darauf.'
+            : 'Simulation is no longer a compromise. It is the main way you train embodied intelligence — intelligence that lives in a physical body. If you need a million hours of real robot experience, you just build it — you don\'t sit around waiting for it.'}
         </p>
 
         <blockquote style={{
@@ -72,25 +72,25 @@ export default function RobotsArticle() {
         <SectionLabel>{isDE ? 'Der Trainingskreislauf' : 'The Training Loop'}</SectionLabel>
         <p style={bodyStyle}>
           {isDE
-            ? 'Simulation → Training → Test → realer Einsatz → Datenerfassung → Simulation. Der Kreislauf ist selbstverstärkend. Jeder reale Einsatz erzeugt Kantenfälle, die in die Simulation zurückfließen. Jede Verbesserung der Simulation beschleunigt das Training.'
-            : 'Simulation → training → testing → real-world deployment → data capture → simulation. The loop is self-reinforcing. Every real deployment generates edge cases that feed back into simulation. Every simulation improvement accelerates training.'}
+            ? 'Simulation → Training → Test → realer Einsatz → Datenerfassung → Simulation. Der Kreislauf verstärkt sich selbst. Jeder echte Einsatz wirft Kantenfälle auf — also die seltenen, kniffligen Situationen — und die fließen wieder in die Simulation zurück. Und jede bessere Simulation macht das Training schneller.'
+            : 'Simulation → training → testing → real-world deployment → data capture → simulation. The loop feeds itself. Every real deployment throws up edge cases — the rare, tricky situations — and those flow back into the simulation. And every improvement to the simulation makes the next round of training faster.'}
         </p>
         <p style={bodyStyle}>
           {isDE
-            ? 'Was sich verändert hat: Roboter-Policies werden nicht mehr für einzelne Aufgaben in einzelnen Umgebungen gebaut. Sie werden über Verkörperungsarchitekturen hinweg generalisiert — derselbe Kern-Policy-Stack, der in einem Lager, einer Küche, einem Krankenhaus läuft.'
-            : 'What has changed: robot policies are no longer built for single tasks in single environments. They are generalized across embodied intelligence architectures — the same core policy stack running in a warehouse, a kitchen, a hospital.'}
+            ? 'Was sich geändert hat: Roboter-Policies — also die Steuerungslogik, die einen Roboter handeln lässt — werden nicht mehr für eine einzelne Aufgabe in einer einzelnen Umgebung gebaut. Sie generalisieren über verschiedene Roboterkörper hinweg. Derselbe Kern-Policy-Stack läuft im Lager, in der Küche und im Krankenhaus.'
+            : 'Here is what has changed: robot policies — the control logic that decides how a robot acts — are no longer built for one task in one environment. They generalize across different robot bodies. The same core policy stack runs in a warehouse, a kitchen, and a hospital.'}
         </p>
 
         <SectionLabel>{isDE ? 'Was das bedeutet' : 'What This Means'}</SectionLabel>
         <p style={bodyStyle}>
           {isDE
-            ? 'Physische KI ist keine Nische mehr. Sie ist die nächste Schicht über dem Internet — eine Infrastruktur, die die physische Welt so verarbeitet wie das Netz die Informationswelt verarbeitet hat. Jedes Gerät, das sich bewegt, trägt bald einen Intelligenz-Stack.'
-            : 'Physical AI is no longer niche. It is the next layer above the internet — infrastructure that processes the physical world the way the web processed the information world. Every device that moves will soon carry an intelligence stack.'}
+            ? 'Physische KI ist keine Nische mehr. Sie ist die nächste Schicht über dem Internet — eine Infrastruktur, die die physische Welt genauso verarbeitet, wie das Netz die Welt der Informationen verarbeitet hat. Bald trägt jedes Gerät, das sich bewegt, seinen eigenen Intelligenz-Stack.'
+            : 'Physical AI is no longer a niche. It is the next layer sitting on top of the internet — infrastructure that handles the physical world the same way the web handled the world of information. Pretty soon, every device that moves will carry its own intelligence stack.'}
         </p>
         <p style={bodyStyle}>
           {isDE
-            ? 'Der Wettbewerb findet nicht auf der Ebene des einzelnen Roboters statt. Er findet auf der Ebene des Daten-Schwungrads, der Simulations-Qualität, der Policy-Generalisierung statt. Wer den besten Kreislauf baut, gewinnt.'
-            : 'The competition is not at the level of the individual robot. It is at the level of the data flywheel, the simulation quality, the policy generalization. Whoever builds the best loop wins.'}
+            ? 'Der Wettbewerb wird nicht am einzelnen Roboter entschieden. Er wird beim Daten-Schwungrad entschieden — dem sich selbst verstärkenden Kreislauf, in dem mehr Einsätze mehr Daten und damit bessere Roboter erzeugen — sowie bei der Qualität der Simulation und der Generalisierung der Policies. Wer den besten Kreislauf baut, gewinnt.'
+            : 'The competition is not decided at the level of the individual robot. It is decided by the data flywheel — the self-reinforcing loop where more deployments produce more data, which produces better robots — along with the quality of the simulation and how well the policies generalize. Whoever builds the best loop wins.'}
         </p>
 
         <div style={{
