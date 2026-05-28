@@ -573,15 +573,15 @@ svm.add_program_from_file(program_id, path_to_elf);`}
         <ul style={{ paddingLeft: 24, margin: '24px 0 32px', lineHeight: 1.9, color: 'rgba(255,255,255,0.65)' }}>
           <li style={{ marginBottom: 10 }}><strong style={strong}>Firedancer</strong> — what if validators were built like HFT systems?</li>
           <li style={{ marginBottom: 10 }}><strong style={strong}>Samba</strong> — what if MEV guarantees lived in the validator, not the application layer?</li>
-          <li style={{ marginBottom: 10 }}><strong style={strong}>Delorean</strong> — what if every historical transaction were replayable, perfectly, in under a second?</li>
-          <li style={{ marginBottom: 10 }}><strong style={strong}>pmm-sim</strong> — what if you could measure the exact pricing edge a private market maker is giving you, before sending the trade?</li>
+          <li style={{ marginBottom: 10 }}><strong style={strong}>Delorean</strong> — what if every historical transaction could be replayed, perfectly, in under a second?</li>
+          <li style={{ marginBottom: 10 }}><strong style={strong}>pmm-sim</strong> — what if you could measure the exact pricing edge a private market maker is giving you, before you send the trade?</li>
         </ul>
 
         <p style={bodyStyle}>
-          The interesting answer to all four questions is the same. <em>Yes — open source, today, on a laptop.</em> That
-          fact is the underlying claim Solana is making about what it can be: not just a chain that runs fast, but an
-          ecosystem where the inside of the machine is visible, modifiable, and reproducible by anyone who is willing
-          to read C and Rust. That is the part worth showing up for.
+          The interesting thing is that the answer to all four is the same. <em>Yes — open source, today, on a
+          laptop.</em> And that&apos;s the deeper claim Solana is making about what it can be: not just a chain that runs
+          fast, but an ecosystem where the inside of the machine is visible, modifiable, and reproducible by anyone
+          willing to read C and Rust. That&apos;s the part worth showing up for.
         </p>
 
         <blockquote style={blockquoteStyle}>
