@@ -253,11 +253,24 @@ export const t = {
             title: 'Three Ways to Arbitrage Zcash (One Isn\'t Real)',
             body: 'ZEC trades across a dozen venues, three internal shielded pools, and a handful of cross-chain bridges — and people call all three layers arbitrage. One is a myth: between Sprout/Sapling/Orchard there\'s no price spread, only the turnstile that makes pools auditable. Cross-venue (Binance perps, OKX relisted, Coinbase, Robinhood) is real but slow — gated by deshield-to-deposit, slow finality, and thin books. Cross-chain is the widest, where arbitrage literally is the peg for THORChain/Maya native-swap pools, bounded by bridge latency and a residual metadata leak. The thread running through all three: privacy is friction at every layer.',
           },
+        ],
+      },
+      investing: {
+        tag: 'INVESTING',
+        heading: 'Investing',
+        read: 'Read →',
+        posts: [
           {
             date: '2026.05.30',
             href: '/blog/nokia-dci',
             title: 'Why Bet on Nokia',
             body: 'The optical gear that links data centers together (DCI) is sold out: lead times have doubled to 2–2.5 years and the leader, Ciena (~$3.5B/yr of capacity), is booked through 2027. In a supply crunch, capacity is the moat — and after buying Infinera, Nokia is the one vendor sitting on idle North American lines (~$2.5B/yr, up to ~$4B with overtime), which is why Google handed it 50–60% of its tender. Add a supply chain it owns end-to-end (in-house 1.2T 5nm DSP, its own indium-phosphide fab), parity at 400G/800G, and a share map that just flipped — in Q4 2025 Nokia\'s ex-China optical-transport revenue passed Ciena for the first time. Edge by edge, the risks, and why Nokia is the boom\'s biggest structural beneficiary.',
+          },
+          {
+            date: '2026.05.30',
+            href: '/blog/ai-hardware-scarcity',
+            title: 'What AI Hardware Is Running Out Of',
+            body: 'Everyone watches the GPU, but the AI build-out is gated by the unglamorous materials feeding the racks — and almost none have spare capacity. A choke-point map by layer: optical (EML chips ~30% short with prices up 40–80%, CW lasers locked to 2028, pump lasers a >90% duopoly booked toward 2029); boards (Low-DK glass cloth sold out, HVLP4 copper foil 48%/43% short in 2026/2027, M8/M9 laminate); power (GaN/SiC, MLCC + IC substrates up ~40%); and the materials beneath the chips (indium-phosphide substrate, throttled by China\'s indium export curbs; WF6 gas, up six quarters straight). The pattern: in a supply-gated boom the edge is owning or locking the scarce input — which is why it rhymes with the Nokia/DCI thesis.',
           },
         ],
       },
@@ -578,11 +591,24 @@ export const t = {
             title: 'Drei Wege, Zcash zu arbitragieren (einer ist keiner)',
             body: 'ZEC handelt über ein Dutzend Venues, drei interne Shielded-Pools und einige Cross-Chain-Bridges — und alle drei Ebenen werden Arbitrage genannt. Eine ist ein Mythos: zwischen Sprout/Sapling/Orchard gibt es keinen Preis-Spread, nur das Turnstile, das die Pools prüfbar macht. Cross-Venue (Binance-Perps, OKX wieder gelistet, Coinbase, Robinhood) ist real, aber langsam — limitiert durch Deshield-zum-Einzahlen, langsame Finalität und dünne Orderbücher. Cross-Chain ist die breiteste Ebene, wo Arbitrage buchstäblich der Peg-Mechanismus der THORChain/Maya-Native-Swap-Pools ist, begrenzt durch Bridge-Latenz und ein verbleibendes Metadaten-Leck. Der rote Faden: Privatsphäre ist auf jeder Ebene Reibung.',
           },
+        ],
+      },
+      investing: {
+        tag: 'INVESTING',
+        heading: 'Investing',
+        read: 'Lesen →',
+        posts: [
           {
             date: '2026.05.30',
             href: '/blog/nokia-dci',
             title: 'Warum auf Nokia setzen',
             body: 'Die optische Technik, die Rechenzentren verbindet (DCI), ist ausverkauft: Lieferzeiten haben sich auf 2–2,5 Jahre verdoppelt, und Marktführer Ciena (~3,5 Mrd. $/Jahr Kapazität) ist bis 2027 ausgebucht. In einer Knappheit ist Kapazität der Burggraben — und nach der Übernahme von Infinera ist Nokia der einzige Anbieter mit freien nordamerikanischen Linien (~2,5 Mrd. $/Jahr, bis ~4 Mrd. $ mit Überstunden), weshalb Google ihm 50–60% seiner Ausschreibung gab. Dazu eine selbst kontrollierte Lieferkette (eigener 1,2T-5nm-DSP, eigene Indiumphosphid-Fab), Parität bei 400G/800G, und eine gekippte Marktverteilung — in Q4 2025 übertraf Nokias Umsatz im optischen Transport (außerhalb Chinas) erstmals Ciena. Vorteil für Vorteil, die Risiken, und warum Nokia der größte strukturelle Profiteur des Booms ist.',
+          },
+          {
+            date: '2026.05.30',
+            href: '/blog/ai-hardware-scarcity',
+            title: 'Woran es der KI-Hardware mangelt',
+            body: 'Alle starren auf die GPU, doch der KI-Ausbau wird von den unscheinbaren Materialien begrenzt, die die Racks speisen — und kaum eines hat freie Kapazität. Eine Engpass-Karte nach Schicht: Optik (EML-Chips ~30% knapp, Preise +40–80%; CW-Laser bis 2028 gebunden; Pump-Laser ein >90%-Duopol, ausgebucht Richtung 2029); Boards (Low-DK-Glasgewebe ausverkauft, HVLP4-Kupferfolie 2026/2027 um 48%/43% knapp, M8/M9-Laminat); Stromversorgung (GaN/SiC, MLCC + IC-Substrate ~40% teurer); und die Materialien unter den Chips (Indiumphosphid-Substrat, gedrosselt durch Chinas Indium-Exportbeschränkungen; WF6-Gas, sechs Quartale in Folge teurer). Das Muster: in einem angebotsbegrenzten Boom liegt der Vorteil darin, den knappen Input zu besitzen oder früh zu sichern — weshalb es sich mit der Nokia/DCI-These reimt.',
           },
         ],
       },
