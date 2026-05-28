@@ -86,8 +86,8 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 04 INVESTING ── */}
-        <SnapSection id="investing" className="order-4">
+        {/* ── 05 INVESTING — sits right above the DJ set ── */}
+        <SnapSection id="investing" className="order-5">
           <div className="h-full flex flex-col bg-[#070707] px-6 sm:px-10 lg:px-16">
             <div className="mx-auto w-full max-w-[760px] flex h-full flex-col py-12 sm:py-16" style={{ fontFamily: nunito }}>
               <p className="anim-up text-[0.7rem] uppercase tracking-[0.32em] text-white/40 mb-4" style={{ fontWeight: 500 }}>
@@ -113,7 +113,7 @@ export default function Home() {
         </SnapSection>
 
         {/* ── 04 SELECTED WORK (2) ── */}
-        <SnapSection id="work" className="order-5">
+        <SnapSection id="work" className="order-4">
           <div className="h-full flex flex-col bg-[#070707] px-6 sm:px-10 lg:px-16">
             <div className="mx-auto w-full max-w-[760px] flex h-full flex-col py-12 sm:py-16" style={{ fontFamily: nunito }}>
               <p className="anim-up text-[0.7rem] uppercase tracking-[0.32em] text-white/40 mb-4" style={{ fontWeight: 500 }}>
@@ -172,7 +172,7 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 05 SOUND — full DJ station ── */}
+        {/* ── 06 SOUND — full DJ station ── */}
         <SnapSection id="sound" className="order-6">
           <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-12 pt-6 pb-4 overflow-y-auto">
             <div className="mx-auto w-full max-w-[1400px]" style={{ fontFamily: nunito }}>
