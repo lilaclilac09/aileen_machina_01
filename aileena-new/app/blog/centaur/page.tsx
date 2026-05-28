@@ -137,6 +137,110 @@ plugins / workflows   Python tools + checkpointable workflow steps`}
           platform.
         </p>
 
+        <SectionLabel>Bring your own harness &mdash; what you can actually plug in</SectionLabel>
+        <p style={bodyStyle}>
+          This is the decision most people skim past, so it&apos;s worth slowing down on. A{' '}
+          <strong style={strong}>harness</strong> is the agent &quot;brain&quot; &mdash; the CLI
+          program that actually talks to a model, reads your task, edits files, and runs commands.
+          Centaur doesn&apos;t ship one. It ships the <em>socket</em> a harness plugs into and lets
+          you bring whichever you like. The repo already speaks to four &mdash; Amp, OpenAI&apos;s
+          Codex CLI, Claude Code, and pi-mono (Mario Zechner&apos;s open-source, model-agnostic
+          &quot;pi&quot; agent) &mdash; but the list isn&apos;t the point. The contract is.
+        </p>
+        <p style={bodyStyle}>
+          And the contract is refreshingly literal. Centaur&apos;s control plane speaks one wire
+          format &mdash; Anthropic&apos;s message format, streamed as NDJSON (newline-delimited
+          JSON, one object per line) over the harness&apos;s stdin and stdout. A small per-harness
+          adapter in <code style={codeStyle}>harness_session.py</code> then translates that one
+          standard format into whatever each CLI actually wants. Claude Code already speaks Anthropic
+          format, so it&apos;s passed straight through. Amp only takes text on stdin, so image and
+          document blocks get written to disk and swapped for <code style={codeStyle}>@/path</code>{' '}
+          mentions. Codex and pi-mono take the text and hand it over as a command-line argument.
+          Adding a fifth harness isn&apos;t a fork &mdash; it&apos;s one more translation entry in
+          that file.
+        </p>
+        <p style={bodyStyle}>
+          So &quot;what are my options&quot; really just means &quot;which CLIs can run headless
+          inside a box.&quot; Here&apos;s the field as it stands:
+        </p>
+
+        <div style={{ margin: '32px 0 40px', overflowX: 'auto' }}>
+          <pre style={preStyle}>
+{`HARNESS        MODEL          OPEN?          HEADLESS ENTRY
+──────────────────────────────────────────────────────────────────
+Claude Code    Claude only    source-avail   claude -p  /  stdin
+Codex CLI      OpenAI only    Apache-2.0     codex exec
+Gemini CLI     Gemini only    Apache-2.0     --non-interactive
+Amp            any (cloud)    contested      amp -x
+pi (pi-mono)   any, BYO-key   yes            scriptable CLI
+Aider          any            yes            --message  /  pipe
+Goose          any (MCP)      yes            headless run
+OpenHands      any            yes            --headless --json
+SWE-agent      any            yes            scriptable runner
+Cursor CLI     Cursor/any     proprietary    cursor-agent -p
+Devin          Cognition      no (SaaS)      cloud — can't drop in`}
+          </pre>
+        </div>
+
+        <p style={bodyStyle}>
+          Three things decide whether a given harness is a good fit for a chassis like this. First,{' '}
+          <strong style={strong}>model-locked or model-agnostic?</strong> Claude Code, Codex CLI and
+          Gemini CLI each ride a single vendor&apos;s model; pi, Aider, Goose, OpenHands and the
+          others are bring-your-own-key and will run on whatever you point them at. For something
+          whose entire pitch is &quot;swap the brain without a fork,&quot; that axis matters most.
+          Second, <strong style={strong}>can it run headless?</strong> &mdash; non-interactively,
+          driven by a pipe instead of a keyboard. A clean headless mode (the{' '}
+          <code style={codeStyle}>-p</code>, <code style={codeStyle}>exec</code>, and{' '}
+          <code style={codeStyle}>--headless</code> flags in that table) is the deciding feature,
+          because Centaur drives the thing over stdin/stdout, not a terminal. Third,{' '}
+          <strong style={strong}>open or closed?</strong> &mdash; which decides whether you can ship
+          it inside your own image at all.
+        </p>
+        <p style={bodyStyle}>
+          Which is exactly why <strong style={strong}>Devin doesn&apos;t belong on the list.</strong>{' '}
+          It&apos;s a hosted cloud service, not a CLI you can drop in a box &mdash; the inference
+          happens on Cognition&apos;s servers no matter what local bridge you wrap around it. That&apos;s
+          the whole tell: a bring-your-own-harness runtime can adopt anything that runs as a process
+          you control, and nothing that doesn&apos;t.
+        </p>
+
+        <SectionLabel>Memory: why it can babysit something for 48 hours</SectionLabel>
+        <p style={bodyStyle}>
+          Ask an ordinary chat agent to &quot;watch this PR and ping me when CI goes green&quot; and
+          it falls over within the hour. The reason is structural. A chat agent keeps everything it
+          knows in its <strong style={strong}>context window</strong> &mdash; the fixed-size
+          scratchpad of tokens the model can see at once. Leave a task running for two days and that
+          scratchpad fills with stale history, the bill climbs with every token re-read, and the
+          moment the process restarts the memory is gone. A context window is short-term memory. It
+          was never meant to hold 48 hours.
+        </p>
+        <p style={bodyStyle}>
+          Centaur moves the memory out of the model entirely. The durable state of a job lives in{' '}
+          <strong style={strong}>Postgres</strong>, as a sequence of checkpointed workflow steps
+          &mdash; the unit of work is a <em>job</em>, not a chat turn. A two-day monitor, then, is
+          mostly a job that sleeps. It wakes on an event &mdash; a webhook, a timer, a fresh CI
+          result &mdash; pulls just the slice of state it needs back out of Postgres, runs one short
+          bounded turn through the harness, writes a new checkpoint, and goes back to sleep. The
+          model&apos;s context window only ever holds that one short turn. It never carries the full
+          48 hours, so it never blows up.
+        </p>
+        <p style={bodyStyle}>
+          That same checkpoint is what lets the job survive a restart. Because the last good step
+          sits in Postgres rather than in a process&apos;s RAM, a sandbox that gets killed &mdash; a
+          pod reschedule, a deploy, a 3 a.m. crash &mdash; comes back and resumes from where it
+          stopped instead of starting over. &quot;Run this overnight&quot; only works if
+          &quot;overnight&quot; is allowed to include a pod restart.
+        </p>
+        <p style={bodyStyle}>
+          And because the state is a real database row instead of an opaque conversation, you get{' '}
+          <strong style={strong}>control</strong> over it: you can inspect a running job, pause and
+          resume it, branch it, kill it, let it spawn child agents, and read back an audit trail of
+          everything it did and which credentials it used. The length of an agent&apos;s memory stops
+          being capped by the model&apos;s token limit and starts being capped by your disk. That&apos;s
+          the whole difference between an assistant you chat with and a teammate you can hand a
+          two-day job.
+        </p>
+
         <SectionLabel>How they&apos;re telling the story</SectionLabel>
         <p style={bodyStyle}>
           The launch messaging is every bit as deliberate as the architecture. Four things about it
@@ -299,6 +403,11 @@ const bodyStyle: React.CSSProperties = {
   letterSpacing: '0.025em', marginBottom: 24,
 };
 const strong: React.CSSProperties = { color: 'rgba(255,255,255,0.95)', fontWeight: 600 };
+const codeStyle: React.CSSProperties = {
+  fontFamily: 'monospace', fontSize: '0.88em',
+  background: 'rgba(255,255,255,0.06)', padding: '1px 6px',
+  borderRadius: 3, color: '#fff',
+};
 const preStyle: React.CSSProperties = {
   fontFamily: 'monospace', fontSize: '0.78rem', lineHeight: 1.6,
   color: 'rgba(255,255,255,0.75)', background: 'rgba(0,255,234,0.025)',
