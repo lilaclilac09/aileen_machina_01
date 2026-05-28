@@ -258,6 +258,12 @@ export const t = {
             title: 'Reading Solana — From Data Structure to API Call',
             body: 'Everything on Solana is an account, and every RPC method is just a different lens for reading one. The whole map: six layers of on-chain data — account, transaction, block, token, validator, network — each paired with the exact call that pulls it back, plus where Helius\'s enhanced parsing and the DAS layer for NFTs bolt on off-chain. Closes with the six rules that explain why the API looks the way it does (and why "this was a swap" is never a raw on-chain field).',
           },
+          {
+            date: '2026.05.30',
+            href: '/blog/zec-arbitrage',
+            title: 'Three Ways to Arbitrage Zcash (One Isn\'t Real)',
+            body: 'ZEC trades across a dozen venues, three internal shielded pools, and a handful of cross-chain bridges — and people call all three layers arbitrage. One is a myth: between Sprout/Sapling/Orchard there\'s no price spread, only the turnstile that makes pools auditable. Cross-venue (Binance perps, OKX relisted, Coinbase, Robinhood) is real but slow — gated by deshield-to-deposit, ~75s finality, and thin books. Cross-chain is the widest, where arbitrage literally is the peg for THORChain/Maya native-swap pools, bounded by bridge latency and a residual metadata leak. The thread running through all three: privacy is friction at every layer.',
+          },
         ],
       },
       womanInTech: {
@@ -581,6 +587,12 @@ export const t = {
             href: '/blog/reading-solana',
             title: 'Solana lesen — von der Datenstruktur zum API-Call',
             body: 'Alles auf Solana ist ein Account, und jede RPC-Methode ist nur eine andere Linse, um einen zu lesen. Die ganze Karte: sechs Schichten On-Chain-Daten — Account, Transaktion, Block, Token, Validator, Netzwerk — jeweils mit dem exakten Call gepaart, der sie zurückholt, plus wo Helius\' Enhanced-Parsing und die DAS-Schicht für NFTs off-chain andocken. Zum Schluss die sechs Regeln, die erklären, warum die API so aussieht, wie sie aussieht.',
+          },
+          {
+            date: '2026.05.30',
+            href: '/blog/zec-arbitrage',
+            title: 'Drei Wege, Zcash zu arbitragieren (einer ist keiner)',
+            body: 'ZEC handelt über ein Dutzend Venues, drei interne Shielded-Pools und einige Cross-Chain-Bridges — und alle drei Ebenen werden Arbitrage genannt. Eine ist ein Mythos: zwischen Sprout/Sapling/Orchard gibt es keinen Preis-Spread, nur das Turnstile, das die Pools prüfbar macht. Cross-Venue (Binance-Perps, OKX wieder gelistet, Coinbase, Robinhood) ist real, aber langsam — limitiert durch Deshield-zum-Einzahlen, ~75s Finalität und dünne Orderbücher. Cross-Chain ist die breiteste Ebene, wo Arbitrage buchstäblich der Peg-Mechanismus der THORChain/Maya-Native-Swap-Pools ist, begrenzt durch Bridge-Latenz und ein verbleibendes Metadaten-Leck. Der rote Faden: Privatsphäre ist auf jeder Ebene Reibung.',
           },
         ],
       },
