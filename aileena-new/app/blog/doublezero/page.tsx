@@ -430,7 +430,7 @@ doublezero status        # confirm connection`}
 
         <p style={bodyStyle}>
           The kernel-side plumbing is already shipping. The tile-side glue and a packaged MEV-fork variant
-          are the two missing pieces — both are mechanically obvious, neither is published yet.
+          are the two missing pieces — both mechanically obvious, neither published yet.
         </p>
 
         <div style={calloutInfo}>
@@ -438,11 +438,11 @@ doublezero status        # confirm connection`}
           <p style={{ ...bodyStyle, marginBottom: 0 }}>
             DoubleZero&apos;s multicast pub/sub model maps onto Firedancer&apos;s tile model unusually well.
             A <code style={codeStyle}>shred</code> tile that subscribes to a DoubleZero multicast group —
-            instead of receiving unicast Turbine shreds and re-publishing — collapses one full hop of the
-            Turbine tree. For deep Turbine fanouts that&apos;s compound savings. The integration work is
-            heavier here (the shred tile has to understand DZ group semantics and reconciliation between
-            multicast and unicast paths) but this is where the 16+ms-per-shred Frankfurt number from §3
-            comes from, and it&apos;s where most of the latency upside lives.
+            instead of receiving unicast Turbine shreds and re-publishing them — collapses one full hop of the
+            Turbine tree. For deep Turbine fanouts, that&apos;s compound savings. The integration work is
+            heavier here (the shred tile has to understand DZ group semantics and reconcile the multicast and
+            unicast paths), but this is exactly where the 16+ms-per-shred Frankfurt number from §3 comes from,
+            and where most of the latency upside lives.
           </p>
         </div>
 
@@ -452,15 +452,15 @@ doublezero status        # confirm connection`}
         </p>
 
         <ul style={listStyle}>
-          <li><strong style={strong}><code style={codeStyle}>doublezero-solana</code> Rust crate</strong> (v0.3.0 as of late 2025) — primary client integration. If you&apos;re writing a Solana service that wants to be DZ-aware, this is what you depend on.</li>
-          <li><strong style={strong}><code style={codeStyle}>doublezero-edge-solana</code> shred receiver example</strong> — a minimal program that subscribes to shreds over DoubleZero and prints throughput. The shortest possible &quot;hello world&quot; for the multicast subscription API.</li>
+          <li><strong style={strong}><code style={codeStyle}>doublezero-solana</code> Rust crate</strong> (v0.3.0 as of late 2025) — the primary client integration. If you&apos;re writing a Solana service that wants to be DZ-aware, this is what you depend on.</li>
+          <li><strong style={strong}><code style={codeStyle}>doublezero-edge-solana</code> shred receiver example</strong> — a minimal program that subscribes to shreds over DoubleZero and prints throughput. About as close to a &quot;hello world&quot; for the multicast subscription API as you&apos;ll get.</li>
           <li><strong style={strong}>Package sidecar</strong> — polls a release feed for new <code style={codeStyle}>doublezero</code> versions and runs <code style={codeStyle}>apt-update</code>. Boring infra, but the kind of thing you want pinned and audited if you&apos;re running validators at scale.</li>
-          <li><strong style={strong}>On-chain DZ ledger program</strong> — telemetry and serviceability state are written to a Solana program. Anyone can build a third-party telemetry consumer without permission, just RPC access.</li>
-          <li><strong style={strong}>TWAMP telemetry feed</strong> — the same data that drives contributor payouts. Public, structured, queryable from the public telemetry dashboard.</li>
+          <li><strong style={strong}>On-chain DZ ledger program</strong> — telemetry and serviceability state get written to a Solana program. Anyone can build a third-party telemetry consumer without asking permission; you just need RPC access.</li>
+          <li><strong style={strong}>TWAMP telemetry feed</strong> — the same data that drives contributor payouts. Public, structured, and queryable from the public telemetry dashboard.</li>
         </ul>
 
         <p style={bodyStyle}>
-          Concretely, the things a competent dev can build this quarter without asking permission:
+          So, concretely, here&apos;s what a competent dev could build this quarter without asking anyone&apos;s permission:
         </p>
 
         <CardGrid cards={[

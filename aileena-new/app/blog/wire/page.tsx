@@ -232,14 +232,14 @@ for await (const update of stream) {
 
         <SectionLabel>Pre-Block Reads: ShredStream and the In-Flight Network</SectionLabel>
         <p style={bodyStyle}>
-          Everything above is about reading the network <em>after</em> a block is built. There is a deeper layer. A transaction sits in a shred for some number of milliseconds before that shred is bundled into a complete block; if you can read shreds as they propagate, you see the transaction before it is officially in a block. This is what <strong>Jito ShredStream</strong> does. It taps the turbine gossip layer, receives shreds as a validator would, reconstructs transactions from the data + coding shreds, and exposes them as a stream to its subscribers.
+          Everything above is about reading the network <em>after</em> a block is built. There&apos;s a deeper layer. A transaction sits in a shred for some number of milliseconds before that shred gets bundled into a complete block — so if you can read shreds as they propagate, you see the transaction before it&apos;s officially in a block. That&apos;s what <strong>Jito ShredStream</strong> does. It taps the turbine gossip layer, receives shreds the way a validator would, reconstructs transactions from the data + coding shreds, and exposes them as a stream to its subscribers.
         </p>
         <p style={bodyStyle}>
-          The window this opens is roughly 50 to 100 milliseconds — the time between a transaction being broadcast by the leader and the corresponding block being finalized at <code style={codeStyle}>confirmed</code>. The pump.fun cancel race lives in this window: a sniper bot sees an incoming buy on ShredStream, races a cancel-or-flip transaction through Jito bundles to the next leader before the original transaction reaches <code style={codeStyle}>confirmed</code>. You do not get execution metadata from a shred-level read (no logs, no status, no compute units consumed) — you get the raw transaction, ahead of consensus.
+          The window this opens is roughly 50 to 100 milliseconds — the time between a transaction being broadcast by the leader and the corresponding block being finalized at <code style={codeStyle}>confirmed</code>. The pump.fun cancel race lives right in this window: a sniper bot sees an incoming buy on ShredStream and races a cancel-or-flip transaction through Jito bundles to the next leader before the original transaction reaches <code style={codeStyle}>confirmed</code>. You don&apos;t get execution metadata from a shred-level read (no logs, no status, no compute units consumed) — you get the raw transaction, ahead of consensus.
         </p>
         <p style={bodyStyle}>
           The validator client itself is being optimized at this layer too. A recently-merged upstream
-          Agave patch (May 2026) modifies the broadcast stage so the next scheduled leader is
+          Agave patch (May 2026) tweaks the broadcast stage so the next scheduled leader is
           unconditionally included in shred broadcast targets — trimming the leader-to-leader handoff
           window. The implication: every cancel-race benchmark from 2025 was measured against a network
           with a slower handoff. Post-patch mainnet is incrementally faster at this layer.
