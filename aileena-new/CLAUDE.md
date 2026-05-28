@@ -58,6 +58,33 @@ Two non-negotiables for every article:
 
 Voice: conversational; keep technical terms but always gloss them.
 
+### Explaining clearly — the Helius standard
+
+The model for clear technical writing is Helius's Solana explainers. Concrete moves to copy:
+
+- **One narrative spine.** Pick a single lens and run the whole piece along it (e.g. follow one
+  transaction/object through the system) so sections build on each other instead of reading like
+  disconnected reference entries.
+- **Concrete hook, not a mission statement.** Open with a hard number or a vivid specific, not "X is
+  a system that…".
+- **One sticky analogy per hard concept.** Anchor each abstract mechanism to a vivid everyday image
+  (a VIP line, video frames, a phone tree) *before* the mechanics.
+- **Define on first use, inline.** Every term and acronym explained in parentheses where it first
+  appears — never a bare initialism.
+- **Progressive disclosure.** Give the one-sentence plain-English version first, then the deep
+  mechanics. The reader can stop at any depth.
+- **Explain by contrast.** Define the unfamiliar by how it differs from what the reader already knows.
+- **Every mechanism ends on "why it matters."** Close each mechanic with its consequence/stakes;
+  never leave a "so what?".
+- **Show the arithmetic.** For any quantitative claim, show the worked example the reader can
+  re-derive (fee = base + cu × price = …).
+- **Quantify the abstract.** Turn "voting is expensive" into the actual per-day / per-year figure.
+- **Structure flows as named, numbered stages or tables**, not walls of prose. Separate theory from
+  real-world practice and call out where they diverge.
+
+Failure mode to avoid: technically correct and comprehensive but un-memorable — because nothing was
+concretized, contrasted, or tied to stakes.
+
 Exception — rewrites: when restyling an existing article, preserve its numbers exactly unless told
 otherwise.
 
