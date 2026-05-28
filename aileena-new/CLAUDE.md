@@ -40,13 +40,26 @@ public/
 
 ## Writing Style — blog / dispatch articles
 
-When writing or editing the prose of blog articles, **do not lean on numbers.** Default to explaining the idea and the mechanism in plain language, not stacking statistics for density.
+Two non-negotiables for every article:
 
-- Don't pad prose with specific figures, dollar amounts, percentages, dates, or counts. They clutter the read and invite accuracy errors.
-- Include a number **only when it is genuinely load-bearing** — when the exact figure *is* the point. Otherwise describe magnitude in words ("a few minutes", "most of the supply", "several-fold", "thin", "cheap").
-- Never invent or guess a precise figure. If a real source isn't confident, don't state it as fact (and prefer to drop it rather than hedge with "~").
-- Voice: conversational, keep technical terms but gloss each in plain language on first use; shorter active sentences; second person where it helps.
-- Exception — **rewrites**: when asked to rewrite/restyle an *existing* article, preserve the numbers already in it byte-identical unless told otherwise. This rule governs *new* writing and what you choose to add.
+1. **It must be understandable to a non-expert.** Plain language first. Explain the idea and the
+   mechanism, not just the name. Gloss every piece of jargon in-line, in plain words, on first use.
+   Reach for an analogy when a concept is abstract. Short, active sentences; second person where it
+   helps. Keep code blocks and concrete examples — they aid understanding. A smart reader who is not
+   in this niche should be able to follow the whole thing top to bottom.
+
+2. **Every number must be precise and correct.** Don't bury the reader in walls of statistics — but
+   any number you DO use must be exact and verified. Never replace a known figure with vague words
+   ("about", "roughly", "a few", "once a minute") when the real value is knowable — give the real
+   value. Never hedge a real figure with "~". Never invent or guess one. If you are unsure of the
+   exact value, verify it (web search / primary source) or leave the claim out entirely — do not
+   approximate. A genuinely uncertain estimate may be stated only if dated and attributed to its
+   source.
+
+Voice: conversational; keep technical terms but always gloss them.
+
+Exception — rewrites: when restyling an existing article, preserve its numbers exactly unless told
+otherwise.
 
 ## Dev Commands
 

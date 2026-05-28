@@ -231,7 +231,7 @@ FP2_JB  // G2 point, Jacobian`}</pre>
         </p>
         <p style={bodyStyle}>
           <strong style={strong}>Ethereum signature checking.</strong> Ethereum&apos;s consensus verifies enormous
-          numbers of the same pairing-based signatures every few seconds, and it burns real CPU doing it. The
+          numbers of the same pairing-based signatures every twelve-second slot, and it burns real CPU doing it. The
           batching trick above is exactly what you&apos;d reach for &mdash; and in fact a separate downstream project
           already reuses these building blocks for that job.
         </p>
