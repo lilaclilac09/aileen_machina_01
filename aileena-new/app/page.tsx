@@ -159,37 +159,6 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 05 VISUAL — small image grid ── */}
-        <SnapSection id="visual" className="order-6">
-          <div className="h-full flex flex-col bg-[#070707] px-6 sm:px-10 lg:px-16">
-            <div className="mx-auto w-full max-w-[920px] flex h-full flex-col py-12 sm:py-16" style={{ fontFamily: nunito }}>
-              <p className="anim-up text-[0.7rem] uppercase tracking-[0.32em] text-white/40 mb-4" style={{ fontWeight: 500 }}>
-                {tx.visual.tag}
-              </p>
-              <h2 className="anim-up-2 mb-3 text-[clamp(1.6rem,4.2vw,2.6rem)] tracking-tight text-white/95" style={{ fontWeight: 500 }}>
-                {tx.visual.heading}
-              </h2>
-              <p className="anim-up-3 mb-10 text-[1rem] leading-relaxed text-white/55 max-w-lg" style={{ fontWeight: 400 }}>
-                {tx.visual.body}
-              </p>
-
-              <div className="flex-1 overflow-y-auto pr-1">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-                  {tx.visual.items.map((img) => (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      key={img.src}
-                      src={img.src}
-                      alt={img.alt}
-                      className="anim-up w-full aspect-[3/4] object-cover rounded-sm opacity-85 hover:opacity-100 transition-opacity"
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </SnapSection>
-
         {/* ── 06 WOMAN IN TECH ── */}
         <SnapSection id="woman-in-tech" className="order-3">
           <div className="h-full flex flex-col bg-black px-6 sm:px-10 lg:px-16">
