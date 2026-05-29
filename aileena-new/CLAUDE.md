@@ -98,7 +98,9 @@ npm run lint         # ESLint
 
 ## Slash Commands
 
-Custom commands live in `.claude/commands/`.
+Custom commands live in the **repo-root** `.claude/commands/` (this session's project root is
+the repository root, *not* `aileena-new/` — a command nested under `aileena-new/.claude/commands/`
+is invisible and shows up as "Unknown command: /…").
 
 - **`/addmusic <spotify-track-url> [| title | bpm | key | seconds]`** — add a Spotify track to
   the DJ-set carousel. Just drop a track link; it extracts the id, **searches for the real song +
