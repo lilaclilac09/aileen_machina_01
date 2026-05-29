@@ -25,7 +25,7 @@ export default function AiHardwareScarcityArticle() {
         <SectionLabel>Layer 1 — the parts that move the light</SectionLabel>
         <p style={bodyStyle}>
           Inside a data center, data between machines increasingly travels as light over fiber, through
-          optical modules. Three of the parts that make that light are badly supply-constrained.
+          optical modules. Four of the parts that make and protect that light are badly supply-constrained.
         </p>
         <ul style={listStyle}>
           <li>
@@ -37,7 +37,15 @@ export default function AiHardwareScarcityArticle() {
             <strong style={strong}>20 million chips</strong>, against demand that leaves roughly a{' '}
             <strong style={strong}>30% gap</strong>. Prices have moved accordingly &mdash;{' '}
             <strong style={strong}>40&ndash;50%</strong> on many parts, up to <strong style={strong}>80%</strong>{' '}
-            on some.
+            on some. The sharpest version is <strong style={strong}>200G EML</strong>, the grade 1.6T
+            modules are built from: each module needs at least <strong style={strong}>eight</strong> of
+            them, and 2026 supply of roughly <strong style={strong}>50 million</strong> 200G chips covers
+            only about <strong style={strong}>7 million</strong> 1.6T modules against demand north of{' '}
+            <strong style={strong}>25 million</strong> &mdash; so silicon photonics has to fill more than{' '}
+            <strong style={strong}>70%</strong> of the gap. China's Source Photonics is the only domestic
+            maker into a top North-American cloud supply chain, but still runs{' '}
+            <strong style={strong}>2-inch</strong> wafers while the leaders move to{' '}
+            <strong style={strong}>4/6-inch</strong>.
           </li>
           <li>
             <strong style={strong}>CW light sources.</strong> A CW (continuous-wave) laser &mdash; a
@@ -60,6 +68,21 @@ export default function AiHardwareScarcityArticle() {
             over <strong style={strong}>30%</strong>, and pump-laser volume has grown around{' '}
             <strong style={strong}>80%</strong>.
           </li>
+          <li>
+            <strong style={strong}>Faraday rotators.</strong> The magnetic crystal at the heart of an
+            optical isolator &mdash; the part that stops back-reflected light from destabilizing the
+            laser, so every module needs one. Supply is concentrated and, unusually, weaponized:
+            Coherent holds about <strong style={strong}>50%</strong> (~<strong style={strong}>50,000</strong>{' '}
+            pieces/month), a Japanese joint venture is next (~<strong style={strong}>30,000</strong>/month),
+            and Chinese makers are far smaller. Coherent treats the big module makers (Innolight,
+            Eoptolink) as direct rivals and sells rotators on a &ldquo;resource-swap&rdquo; basis &mdash;
+            mostly to firms that can trade something back, like EML chips. Price ran from about{' '}
+            <strong style={strong}>$120</strong> a piece in 2023 to <strong style={strong}>$175</strong>{' '}
+            in 2025 (<strong style={strong}>+40%</strong>) at a <strong style={strong}>70&ndash;80%</strong>{' '}
+            gross margin, and global capacity only climbs from ~<strong style={strong}>100,000</strong> to{' '}
+            <strong style={strong}>160&ndash;180,000</strong>/month in the second half of{' '}
+            <strong style={strong}>2026</strong> at the earliest.
+          </li>
         </ul>
 
         <SectionLabel>Layer 2 — the boards everything sits on</SectionLabel>
@@ -74,13 +97,24 @@ export default function AiHardwareScarcityArticle() {
             high frequency.) AI servers need it, so the big fiberglass makers shifted capacity to these
             high-end grades, squeezing everything else. The second-generation cloth (the kind that goes
             into M8-class material) has been tight since <strong style={strong}>January 2026</strong> and
-            stays tight all year.
+            stays tight all year. The real chokepoint is the top grade &mdash; &ldquo;Q-cloth&rdquo;
+            (third-generation quartz cloth) for M8/M9 laminate, where nearly{' '}
+            <strong style={strong}>100%</strong> of 2026 output is earmarked for Nvidia&rsquo;s Rubin
+            high-end and supply comes from a handful of makers (Feilihua, Sinoma / Taishan). Even the
+            second-generation cloth feeding Google and Meta servers runs short: ~<strong style={strong}>3
+            million</strong> meters/month of 2026 demand against roughly{' '}
+            <strong style={strong}>1.2&ndash;1.3 million</strong> meters/month of Chinese capacity.
           </li>
           <li>
             <strong style={strong}>HVLP4 copper foil.</strong> An ultra-low-profile copper foil &mdash;
             very smooth, so high-frequency signals lose less energy crossing it. It's hard to make, yields
             are unstable, and only AI-class boards need it. The projected supply gap is{' '}
-            <strong style={strong}>48% in 2026 and 43% in 2027</strong>.
+            <strong style={strong}>48% in 2026 and 43% in 2027</strong>. In raw tonnage: 2026 demand
+            tops <strong style={strong}>1,200 tons/month</strong> (driven by Nvidia Rubin and AWS
+            Trainium) against only ~<strong style={strong}>300&ndash;400 tons/month</strong> of
+            yield-adjusted capacity; lead supplier Mitsui (~<strong style={strong}>300 tons/month</strong>)
+            hit a quality stumble, and converting a line to HVLP4 cuts its output by at least{' '}
+            <strong style={strong}>30%</strong>.
           </li>
           <li>
             <strong style={strong}>M8 / M9 CCL.</strong> Copper-clad laminate is the base material of
@@ -112,6 +146,16 @@ export default function AiHardwareScarcityArticle() {
             substrates have already taken two rounds of price increases since the start of{' '}
             <strong style={strong}>2026</strong>, with some high-end carriers up a cumulative{' '}
             <strong style={strong}>40%</strong> and another round under discussion.
+          </li>
+          <li>
+            <strong style={strong}>Power-management ICs.</strong> The unglamorous converters and drivers
+            (Texas Instruments, Infineon, MPS) that regulate voltage across the server board. They
+            aren&rsquo;t AI parts at all &mdash; they&rsquo;re mature chips shared with cars and
+            industrial gear &mdash; which is exactly the problem: the AI surge is grabbing capacity off
+            an existing market, so lead times have stretched from a normal{' '}
+            <strong style={strong}>10&ndash;12 weeks</strong> to <strong style={strong}>30&ndash;40 weeks</strong>{' '}
+            (eight to nine months), with no mature domestic second source to fall back on. It&rsquo;s the
+            weakest-plank bottleneck: the board can&rsquo;t ship even when every exotic part has arrived.
           </li>
         </ul>
 
@@ -157,11 +201,13 @@ export default function AiHardwareScarcityArticle() {
               <tr style={trStyle}><td style={tdLabelStyle}>EML chip</td><td style={tdStyle}>high-speed optical modules</td><td style={tdStyle}>few suppliers, high tech barrier, demand boom (~30% gap)</td></tr>
               <tr style={trStyle}><td style={tdLabelStyle}>CW light source</td><td style={tdStyle}>silicon photonics, CPO</td><td style={tdStyle}>capacity locked to 2028; tight 3&ndash;5 years</td></tr>
               <tr style={trStyle}><td style={tdLabelStyle}>Pump laser</td><td style={tdStyle}>DCI links, optical amps</td><td style={tdStyle}>&gt;90% duopoly; booked toward 2029</td></tr>
+              <tr style={trStyle}><td style={tdLabelStyle}>Faraday rotator</td><td style={tdStyle}>optical isolators</td><td style={tdStyle}>~50% one supplier; a competitive weapon; 70&ndash;80% margin</td></tr>
               <tr style={trStyle}><td style={tdLabelStyle}>Low-DK glass cloth</td><td style={tdStyle}>high-end PCB laminate</td><td style={tdStyle}>capacity shifted to high grades; sold out</td></tr>
               <tr style={trStyle}><td style={tdLabelStyle}>HVLP4 copper foil</td><td style={tdStyle}>AI/switch PCB layers</td><td style={tdStyle}>unstable yield; 48% / 43% gap (2026 / 2027)</td></tr>
               <tr style={trStyle}><td style={tdLabelStyle}>M8 / M9 CCL</td><td style={tdStyle}>AI server motherboards</td><td style={tdStyle}>process barrier + its own inputs are short</td></tr>
               <tr style={trStyle}><td style={tdLabelStyle}>GaN / SiC devices</td><td style={tdStyle}>server power, VRM</td><td style={tdStyle}>substrate-limited; demand tracks chip power</td></tr>
               <tr style={trStyle}><td style={tdLabelStyle}>MLCC / IC substrate</td><td style={tdStyle}>board + power filtering, packaging</td><td style={tdStyle}>usage up sharply; slow to expand</td></tr>
+              <tr style={trStyle}><td style={tdLabelStyle}>Power-management IC</td><td style={tdStyle}>server boards (PCBA)</td><td style={tdStyle}>AI grabbing mature capacity; lead times 10&ndash;12 &rarr; 30&ndash;40 wks</td></tr>
               <tr style={trStyle}><td style={tdLabelStyle}>InP substrate</td><td style={tdStyle}>EML / CW laser chips</td><td style={tdStyle}>upstream indium restricted; high purity bar</td></tr>
               <tr style={trStyle}><td style={tdLabelStyle}>WF6 gas</td><td style={tdStyle}>HBM, advanced process</td><td style={tdStyle}>scales with HBM/NAND layers; concentrated supply</td></tr>
             </tbody>
