@@ -279,6 +279,12 @@ export const t = {
         read: 'Read →',
         posts: [
           {
+            date: '2026.05.29',
+            href: '/blog/dell-nvidia-flywheel',
+            title: 'Why Bet on Dell',
+            body: 'NVIDIA stopped being just a chipmaker — it now invests in its own demand, past $40B of equity bets this year ($30B into OpenAI, $5B→$25B+ on Intel, ~$2B each into CoreWeave and Nebius, $1.5B Lambda, plus xAI/Anthropic). That capital becomes GPU orders, and someone has to bolt 72 GPUs into a liquid-cooled rack and ship it. Dell is that pair of hands: first to ship the GB200 NVL72, then the first GB300 NVL72 to CoreWeave seven months later. The order book is real — $64.1B FY26 AI orders, $25.2B shipped (~150% YoY), a record $43B backlog, ~$50B FY27 guide. The honest catch: unlike Nokia\'s scarce-capacity moat, Dell\'s edge is execution at ~5–6% AI-server margins, leveraged to a flywheel NVIDIA itself is spinning. Edge by edge, the bets, and the risks.',
+          },
+          {
             date: '2026.05.30',
             href: '/blog/nokia-dci',
             title: 'Why Bet on Nokia',
@@ -642,6 +648,12 @@ export const t = {
         heading: 'Investing',
         read: 'Lesen →',
         posts: [
+          {
+            date: '2026.05.29',
+            href: '/blog/dell-nvidia-flywheel',
+            title: 'Warum auf Dell setzen',
+            body: 'NVIDIA ist nicht mehr nur ein Chiphersteller — es investiert in seine eigene Nachfrage: über 40 Mrd. $ an Beteiligungen allein dieses Jahr (30 Mrd. $ in OpenAI, 5 Mrd. $→25+ Mrd. $ bei Intel, je ~2 Mrd. $ in CoreWeave und Nebius, 1,5 Mrd. $ Lambda, dazu xAI/Anthropic). Dieses Kapital wird zu GPU-Bestellungen, und jemand muss 72 GPUs in ein flüssigkeitsgekühltes Rack schrauben und ausliefern. Dell ist diese Hand: zuerst beim GB200 NVL72, dann sieben Monate später beim ersten GB300 NVL72 an CoreWeave. Das Auftragsbuch ist real — 64,1 Mrd. $ KI-Aufträge im GJ26, 25,2 Mrd. $ ausgeliefert (~150% J/J), Rekord-Backlog von 43 Mrd. $, ~50 Mrd. $ Prognose fürs GJ27. Der ehrliche Haken: anders als Nokias knappe Kapazität ist Dells Vorteil reine Ausführung bei ~5–6% KI-Server-Marge — gehebelt auf ein Schwungrad, das NVIDIA selbst dreht. Vorteil für Vorteil, die Wetten und die Risiken.',
+          },
           {
             date: '2026.05.30',
             href: '/blog/nokia-dci',
