@@ -266,12 +266,6 @@ export const t = {
             body: 'ZEC trades across a dozen venues, three internal shielded pools, and a handful of cross-chain bridges — and people call all three layers arbitrage. One is a myth: between Sprout/Sapling/Orchard there\'s no price spread, only the turnstile that makes pools auditable. Cross-venue (Binance perps, OKX relisted, Coinbase, Robinhood) is real but slow — gated by deshield-to-deposit, slow finality, and thin books. Cross-chain is the widest, where arbitrage literally is the peg for THORChain/Maya native-swap pools, bounded by bridge latency and a residual metadata leak. The thread running through all three: privacy is friction at every layer.',
           },
           {
-            date: '2026.05.25',
-            href: '/blog/validator-anatomy',
-            title: 'Anatomy of a Solana Validator',
-            body: 'A validator looks like one process. It\'s really ten APIs in one binary, and they don\'t overlap — searchers talk to the TPU, indexers to Geyser, wallets to JSON-RPC, other validators to gossip, Turbine, repair, and vote. A trace from socket to bank: sigverify, banking stage, PoH, broadcast, replay — the 400ms loop. JSON-RPC is a separate program in all but Cargo.toml; the real-time money is Geyser. Plus where Firedancer\'s tiles redraw every boundary, and the exact source file behind each surface.',
-          },
-          {
             date: '2026.05.29',
             href: '/blog/instant-inference',
             title: 'Why AI Has to Be Instantaneous',
@@ -634,12 +628,6 @@ export const t = {
             href: '/blog/zec-arbitrage',
             title: 'Drei Wege, Zcash zu arbitragieren (einer ist keiner)',
             body: 'ZEC handelt über ein Dutzend Venues, drei interne Shielded-Pools und einige Cross-Chain-Bridges — und alle drei Ebenen werden Arbitrage genannt. Eine ist ein Mythos: zwischen Sprout/Sapling/Orchard gibt es keinen Preis-Spread, nur das Turnstile, das die Pools prüfbar macht. Cross-Venue (Binance-Perps, OKX wieder gelistet, Coinbase, Robinhood) ist real, aber langsam — limitiert durch Deshield-zum-Einzahlen, langsame Finalität und dünne Orderbücher. Cross-Chain ist die breiteste Ebene, wo Arbitrage buchstäblich der Peg-Mechanismus der THORChain/Maya-Native-Swap-Pools ist, begrenzt durch Bridge-Latenz und ein verbleibendes Metadaten-Leck. Der rote Faden: Privatsphäre ist auf jeder Ebene Reibung.',
-          },
-          {
-            date: '2026.05.25',
-            href: '/blog/validator-anatomy',
-            title: 'Anatomie eines Solana-Validators',
-            body: 'Ein Validator sieht aus wie ein Prozess. In Wahrheit sind es zehn APIs in einem Binary, und sie überschneiden sich nicht — Searcher sprechen mit der TPU, Indexer mit Geyser, Wallets mit JSON-RPC, andere Validatoren mit Gossip, Turbine, Repair und Vote. Eine Transaktion vom Socket bis zur Bank: sigverify, Banking-Stage, PoH, Broadcast, Replay — der 400-ms-Loop. JSON-RPC ist ein eigenes Programm in allem außer der Cargo.toml; das Echtzeit-Geld steckt in Geyser. Dazu, wo Firedancers Tiles jede Grenze neu ziehen, und die exakte Quelldatei hinter jeder Schnittstelle.',
           },
           {
             date: '2026.05.29',
