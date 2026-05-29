@@ -96,6 +96,24 @@ npm run build        # Production build
 npm run lint         # ESLint
 ```
 
+## Slash Commands
+
+Custom commands live in `.claude/commands/`.
+
+- **`/addmusic <spotify-track-url> [| title | bpm | key | seconds]`** — add a Spotify track to
+  the DJ-set carousel. Just drop a track link; it extracts the id, appends an entry to the
+  `TRACKS` array in `components/DJStation.tsx`, uses `PLACEHOLDER_THUMB` for the cover (the deck's
+  Spotify iframe renders the real art at play time), builds, and ships via PR. Optional `|`-separated
+  fields override the title / bpm / key / duration; everything unspecified defaults sensibly.
+
+### DJ track catalogue
+
+`components/DJStation.tsx` holds the `TRACKS` array — the single source for both the two-deck player
+and the carousel (`components/TrackLibraryBrowser.tsx`). Each entry is
+`{ id, title, bpm, key, dur, thumb }`. `thumb` may be a real cover URL or `PLACEHOLDER_THUMB`
+(exported from `TrackLibraryBrowser.tsx`); the carousel `<img>` falls back to the placeholder on any
+load error, so a missing/404 cover never shows a broken image.
+
 ## Git Workflow
 
 No direct push to main. All changes go through:
