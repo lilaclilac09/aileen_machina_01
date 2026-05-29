@@ -212,6 +212,18 @@ export const t = {
             title: 'DoubleZero, Multicast Fiber',
             body: 'Mainnet-beta since October 2025, ~40% of Solana validators already on it. The bet: stop sending consensus packets over best-effort BGP, put them on dedicated fiber. The twist the public internet structurally can\'t do: native multicast replicated at the switch fabric — Frankfurt shred delivery saw >16ms gains per hop. Frankendancer integration via the net_tile is the obvious next milestone, and the on-chain TWAMP telemetry feed is open for anyone to build against.',
           },
+          {
+            date: '2026.05.25',
+            href: '/blog/validator-anatomy',
+            title: 'Anatomy of a Solana Validator',
+            body: 'One binary, ten APIs — and they don\'t overlap. Searchers talk to the TPU, indexers to Geyser, wallets to JSON-RPC, validators to gossip and Turbine and vote. Tracing a transaction from socket to bank: sigverify, banking stage, PoH, broadcast, replay — the 400ms loop. JSON-RPC is a separate program in all but Cargo.toml; the real-time money is Geyser. Plus where Firedancer\'s tiles change the picture, and the exact source file behind every surface.',
+          },
+          {
+            date: '2026.05.29',
+            href: '/blog/instant-inference',
+            title: 'Why AI Has to Be Instantaneous',
+            body: 'Two things keep AI out of most products: it\'s too slow and too expensive. Taalas — founded by Tenstorrent founder Ljubisa Bajic — casts the model directly into silicon. Their first chip bakes in Llama 3.1 8B and runs 17,000 tokens/sec per user, ~10× the fastest GPUs, 20× cheaper to build, 10× less power. You can talk to it now at ChatJimmy. Why extreme speed isn\'t a feature but the thing that makes agents, voice, and cheap reasoning possible — the memory wall it kills, and the catch: one frozen, aggressively-quantized model per chip.',
+          },
         ],
       },
       womanInTech: {
@@ -510,6 +522,18 @@ export const t = {
             href: '/blog/doublezero',
             title: 'DoubleZero, Multicast-Glasfaser',
             body: 'Mainnet-Beta seit Oktober 2025, ~40 % der Solana-Validatoren sind bereits dabei. Die Wette: Konsens-Pakete nicht mehr über Best-Effort-BGP schicken, sondern über dediziertes Glasfaser. Der Twist, den das öffentliche Internet strukturell nicht kann: natives Multicast, in der Switch-Fabric repliziert — Frankfurter Shred-Zustellung gewann >16 ms pro Hop. Die Frankendancer-Integration über das net_tile ist der naheliegende nächste Meilenstein, und der On-Chain-TWAMP-Telemetrie-Feed steht jedem offen.',
+          },
+          {
+            date: '2026.05.25',
+            href: '/blog/validator-anatomy',
+            title: 'Anatomie eines Solana-Validators',
+            body: 'Ein Binary, zehn APIs — und sie überschneiden sich nicht. Searcher sprechen mit der TPU, Indexer mit Geyser, Wallets mit JSON-RPC, Validatoren mit Gossip, Turbine und Vote. Eine Transaktion vom Socket bis zur Bank verfolgt: sigverify, Banking-Stage, PoH, Broadcast, Replay — der 400-ms-Loop. JSON-RPC ist ein eigenes Programm in allem außer der Cargo.toml; das Echtzeit-Geld steckt in Geyser. Dazu, wo Firedancers Tiles das Bild verändern, und die exakte Quelldatei hinter jeder Schnittstelle.',
+          },
+          {
+            date: '2026.05.29',
+            href: '/blog/instant-inference',
+            title: 'Warum KI augenblicklich sein muss',
+            body: 'Zwei Dinge halten KI aus den meisten Produkten heraus: zu langsam und zu teuer. Taalas — gegründet vom Tenstorrent-Gründer Ljubisa Bajic — gießt das Modell direkt in Silizium. Ihr erster Chip verdrahtet Llama 3.1 8B fest und liefert 17.000 Tokens/Sek. pro Nutzer, ~10× schneller als die schnellsten GPUs, 20× günstiger zu bauen, 10× weniger Strom. Man kann jetzt schon bei ChatJimmy mit ihm reden. Warum extreme Geschwindigkeit kein Feature ist, sondern das, was Agenten, Sprache und billiges Reasoning erst möglich macht — die Memory-Wall, die dabei fällt, und der Haken: ein eingefrorenes, aggressiv quantisiertes Modell pro Chip.',
           },
         ],
       },
