@@ -1,6 +1,14 @@
 'use client';
 import { useState, useRef, useMemo } from 'react';
 
+/**
+ * Fallback cover used when a track has no thumb (or its thumb URL 404s).
+ * Self-contained SVG data-URI — concentric cyan rings + a note glyph on the
+ * deck-black background. Lets /addmusic add a track by ID alone, no art needed.
+ */
+export const PLACEHOLDER_THUMB =
+  "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='300'%20height='300'%3E%3Crect%20width='300'%20height='300'%20fill='%230b0d10'/%3E%3Ccircle%20cx='150'%20cy='150'%20r='118'%20fill='none'%20stroke='%2300ffea'%20stroke-opacity='0.22'/%3E%3Ccircle%20cx='150'%20cy='150'%20r='78'%20fill='none'%20stroke='%2300ffea'%20stroke-opacity='0.15'/%3E%3Ctext%20x='150'%20y='172'%20font-family='monospace'%20font-size='44'%20fill='%2300ffea'%20fill-opacity='0.4'%20text-anchor='middle'%3E%E2%99%AA%3C/text%3E%3C/svg%3E";
+
 type Track = {
   id: string;
   title: string;
@@ -562,7 +570,10 @@ function PlaylistCarousel({
                   transition: 'border-color 0.35s, box-shadow 0.35s',
                 }}>
                   <img
-                    src={track.thumb} alt={track.title}
+                    src={track.thumb || PLACEHOLDER_THUMB} alt={track.title}
+                    onError={(e) => {
+                      if (e.currentTarget.src !== PLACEHOLDER_THUMB) e.currentTarget.src = PLACEHOLDER_THUMB;
+                    }}
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                     draggable={false}
                   />

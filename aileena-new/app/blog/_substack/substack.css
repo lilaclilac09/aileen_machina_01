@@ -370,6 +370,42 @@
   margin: 3rem 0 1.5rem !important;
 }
 
+/* ─────────────────────────────────────────────────────────────
+   Mobile stability — fixed gutters, centered column, zero sideways
+   drift. Long tokens (hashes, addresses, URLs) and inline code wrap
+   instead of widening the column; media / pre / tables are capped to
+   the reading column so nothing pushes the page wider than the screen.
+   ──────────────────────────────────────────────────────────── */
+.substack-article .substack-title,
+.substack-article .substack-dek,
+.substack-article article p,
+.substack-article article li,
+.substack-article article blockquote,
+.substack-article article h1,
+.substack-article article h2,
+.substack-article article h3,
+.substack-article article code {
+  overflow-wrap: break-word !important;
+}
+.substack-article article img,
+.substack-article article svg,
+.substack-article article video,
+.substack-article article iframe,
+.substack-article article pre,
+.substack-article article table {
+  max-width: 100% !important;
+}
+
+/* Below the wide-table breakout width (880px), lock out horizontal
+   drift entirely. The article is its own scroll container (html/body
+   are overflow:hidden), so clipping its x-overflow keeps the margins
+   fixed and the column centered no matter what a body tries to do. */
+@media (max-width: 879px) {
+  .substack-article {
+    overflow-x: hidden;
+  }
+}
+
 /* ── Homepage Substack list (no borders, no cards) ───────── */
 .substack-list {
   display: flex;

@@ -1,6 +1,6 @@
 'use client';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import TrackLibraryBrowser from './TrackLibraryBrowser';
+import TrackLibraryBrowser, { PLACEHOLDER_THUMB } from './TrackLibraryBrowser';
 
 /* ─── Palette ────────────────────────────────────────────── */
 const C = {
@@ -49,6 +49,7 @@ const TRACKS = [
   { id: '69xZrRwScYMhlCMcxrF958', title: 'Luxurious',               bpm: 120, key: '4A', dur: 200, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e027c7136a182372ccdffb3d3c4' },
   { id: '1mBzeQjQPxdT693fIlmA4k', title: 'Small City',              bpm: 120, key: '4A', dur: 200, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02722d5a45a1f8246fd620cb22' },
   { id: '5RUJ1B8Yrh7w4PT0W8KVPk', title: 'Ba-Da-Ba',                bpm: 120, key: '4A', dur: 200, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e0252f54296b90eee374de846e3' },
+  { id: '3X9betUxSQLTAltImJZ3So', title: '痛',                       bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
 ];
 type Track = typeof TRACKS[0];
 
