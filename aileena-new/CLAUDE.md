@@ -101,10 +101,12 @@ npm run lint         # ESLint
 Custom commands live in `.claude/commands/`.
 
 - **`/addmusic <spotify-track-url> [| title | bpm | key | seconds]`** — add a Spotify track to
-  the DJ-set carousel. Just drop a track link; it extracts the id, appends an entry to the
-  `TRACKS` array in `components/DJStation.tsx`, uses `PLACEHOLDER_THUMB` for the cover (the deck's
-  Spotify iframe renders the real art at play time), builds, and ships via PR. Optional `|`-separated
-  fields override the title / bpm / key / duration; everything unspecified defaults sensibly.
+  the DJ-set carousel. Just drop a track link; it extracts the id, **searches for the real song +
+  cover art** (Odesli/song.link → Spotify oEmbed, via `curl` or `WebFetch`), appends an entry to
+  the `TRACKS` array in `components/DJStation.tsx`, builds, and ships via PR. Optional `|`-separated
+  fields override the title / bpm / key / duration. If the network allowlist blocks the lookup
+  (`open.spotify.com` / `api.song.link` → "Host not in allowlist"), it falls back to
+  `PLACEHOLDER_THUMB` (the deck's Spotify iframe still shows real art at play time).
 
 ### DJ track catalogue
 
