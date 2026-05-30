@@ -10,6 +10,9 @@
 !.yarn/releases
 !.yarn/versions
 
+# package manager — this project uses pnpm; reject stray npm lockfiles
+package-lock.json
+
 # testing
 /coverage
 /test-results/
@@ -36,6 +39,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.local.example
 
 # vercel
 .vercel
