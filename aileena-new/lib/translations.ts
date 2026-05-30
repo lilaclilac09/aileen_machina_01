@@ -43,10 +43,10 @@ export const t = {
       note: 'made by hand, not by prompt  ૮ ˶ᵔ ᵕ ᵔ˶ ა',
       readGlass: 'On the glass — how powder becomes density →',
       items: [
-        { src: '/berlin.jpg', alt: 'Berlin', caption: 'berlin, late' },
-        { src: '/tobira.jpg', alt: 'Tobira', caption: 'a little door' },
-        { src: '/recall.jpg', alt: 'Recall', caption: 'soft static' },
-        { src: '/miniskirt.jpg', alt: 'Miniskirt', caption: 'a good day' },
+        { src: '/pate-clay.jpg', alt: 'Rolling out the clay', caption: 'rolling the clay', href: '/blog/pate-de-verre' },
+        { src: '/pate-shapes.jpg', alt: 'Clay shapes drying on plaster bats', caption: 'cutting shapes', href: '/blog/pate-de-verre' },
+        { src: '/pate-mould.jpg', alt: 'Two-part plaster moulds drying on the bench', caption: 'the plaster mould', href: '/blog/pate-de-verre' },
+        { src: '/pate-glass.jpg', alt: 'Coloured glass frit packed into the moulds', caption: 'glass, by colour', href: '/blog/pate-de-verre' },
       ],
     },
     openToWork: {
@@ -420,10 +420,10 @@ export const t = {
       note: 'von Hand gemacht, nicht per Prompt  ૮ ˶ᵔ ᵕ ᵔ˶ ა',
       readGlass: 'Über das Glas — wie Pulver zu Dichte wird →',
       items: [
-        { src: '/berlin.jpg', alt: 'Berlin', caption: 'berlin, spät' },
-        { src: '/tobira.jpg', alt: 'Tobira', caption: 'eine kleine Tür' },
-        { src: '/recall.jpg', alt: 'Recall', caption: 'sanftes Rauschen' },
-        { src: '/miniskirt.jpg', alt: 'Miniskirt', caption: 'ein guter Tag' },
+        { src: '/pate-clay.jpg', alt: 'Ton ausrollen', caption: 'Ton ausrollen', href: '/blog/pate-de-verre' },
+        { src: '/pate-shapes.jpg', alt: 'Tonformen auf Gipsplatten', caption: 'Formen schneiden', href: '/blog/pate-de-verre' },
+        { src: '/pate-mould.jpg', alt: 'Zweiteilige Gipsformen auf der Werkbank', caption: 'die Gipsform', href: '/blog/pate-de-verre' },
+        { src: '/pate-glass.jpg', alt: 'Farbiges Glasgranulat in den Formen', caption: 'Glas, nach Farbe', href: '/blog/pate-de-verre' },
       ],
     },
     openToWork: {
