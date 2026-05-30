@@ -167,6 +167,9 @@ export async function POST(req: Request) {
     // personal demo, not a free public API.
     onError: (err) => {
       const msg = err instanceof Error ? err.message : String(err);
+      // Log the REAL provider error server-side (visible in Vercel logs) while
+      // still showing visitors a clean message.
+      console.error('[chat] provider=%s model-error: %s', process.env.AGENT_BASE_URL ? 'self-hosted' : 'anthropic', msg);
       if (/credit balance|too low|insufficient|quota|billing|purchase credits|payment/i.test(msg)) {
         return "This agent isn't free to run — public access is off for now. Reach out through the contact form instead.";
       }
