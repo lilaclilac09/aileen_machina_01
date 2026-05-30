@@ -340,7 +340,7 @@ export default function AgentChat() {
           <div className="border-t border-[#00ffea]/15 px-5 py-3 bg-[#00ffea]/[0.025]">
             <div className="flex items-center justify-between mb-2.5">
               <p className="font-mono text-[0.55rem] tracking-[0.35em] uppercase text-[#00ffea]/85">
-                ▸ leave an email · aileena will follow up
+                ▸ leave an email
               </p>
               <button
                 type="button"
