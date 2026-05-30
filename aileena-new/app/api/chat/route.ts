@@ -1,11 +1,34 @@
-import { streamText, convertToModelMessages, type UIMessage } from 'ai';
+import { streamText, convertToModelMessages, type UIMessage, type LanguageModel } from 'ai';
 import { anthropic } from '@ai-sdk/anthropic';
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { SYSTEM_PROMPT } from '../../../lib/agentContext';
 
 export const runtime = 'edge';
 export const maxDuration = 30;
 
-const MODEL = 'claude-sonnet-4-6';
+const ANTHROPIC_MODEL = 'claude-sonnet-4-6';
+
+/**
+ * Pick the model. If AGENT_BASE_URL is set we route to a self-hosted,
+ * OpenAI-compatible endpoint (Ollama / vLLM / LM Studio / llama.cpp all speak
+ * the same /v1/chat/completions shape). Otherwise fall back to Anthropic so
+ * the agent keeps working until the local model is wired up.
+ *
+ * NOTE: the endpoint must be reachable from Vercel — a PUBLIC url (a tunnel or
+ * a hosted box), not localhost.
+ */
+function selectModel(): { model: LanguageModel; isAnthropic: boolean } {
+  const baseURL = process.env.AGENT_BASE_URL;
+  if (baseURL) {
+    const local = createOpenAICompatible({
+      name: 'aileena-local',
+      baseURL,
+      apiKey: process.env.AGENT_API_KEY || 'local',
+    });
+    return { model: local.chatModel(process.env.AGENT_MODEL || 'local'), isAnthropic: false };
+  }
+  return { model: anthropic(ANTHROPIC_MODEL), isAnthropic: true };
+}
 const DAILY_LIMIT = 50;
 const QUOTA_COOKIE = '__aileena_quota';
 
@@ -92,9 +115,9 @@ function jsonError(message: string, status: number): Response {
 }
 
 export async function POST(req: Request) {
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!process.env.AGENT_BASE_URL && !process.env.ANTHROPIC_API_KEY) {
     return jsonError(
-      'Server is missing ANTHROPIC_API_KEY. Set it in Vercel project settings (Production environment) and redeploy.',
+      'No model configured. Set AGENT_BASE_URL (a public, self-hosted OpenAI-compatible endpoint) or ANTHROPIC_API_KEY in Vercel, then redeploy.',
       500,
     );
   }
@@ -123,18 +146,17 @@ export async function POST(req: Request) {
   const trimmed = messages.slice(-20);
   const modelMessages = await convertToModelMessages(trimmed);
 
+  const picked = selectModel();
   const result = streamText({
-    model: anthropic(MODEL),
+    model: picked.model,
     system: SYSTEM_PROMPT,
     messages: modelMessages,
     temperature: 0.4,
-    providerOptions: {
-      anthropic: {
-        // Prompt caching on the static system block — repeat visitors only
-        // pay for the new turn.
-        cacheControl: { type: 'ephemeral' as const },
-      },
-    },
+    // Prompt caching on the static system block is Anthropic-specific — only
+    // send it when we're actually on Anthropic.
+    ...(picked.isAnthropic
+      ? { providerOptions: { anthropic: { cacheControl: { type: 'ephemeral' as const } } } }
+      : {}),
   });
 
   const setCookie = await buildQuotaCookie({ date: quota.date, count: quota.count + 1 });
