@@ -19,7 +19,7 @@ export default function Home() {
 
   const dispatchTop3 = tx.blog.researchDispatch.posts.slice(-3).reverse();
   const investingPosts = [...tx.blog.investing.posts].reverse();
-  const womanInTechTop2 = tx.blog.womanInTech.posts.slice(0, 2);
+  const womanInTechPosts = tx.blog.womanInTech.posts;
 
   return (
     <>
@@ -198,7 +198,7 @@ export default function Home() {
               </h2>
 
               <div className="flex-1 overflow-y-auto pr-1 substack-list">
-                {womanInTechTop2.map((post) => (
+                {womanInTechPosts.map((post) => (
                   <Link key={post.title} href={post.href}>
                     <p className="sl-date">{post.date}</p>
                     <h3 className="sl-title">{post.title}</h3>

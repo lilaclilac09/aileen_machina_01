@@ -275,7 +275,7 @@ export const t = {
       },
       investing: {
         tag: 'INVESTING',
-        heading: 'Investing',
+        heading: 'A woman should have her own portfolio',
         read: 'Read →',
         posts: [
           {
@@ -651,7 +651,7 @@ export const t = {
       },
       investing: {
         tag: 'INVESTING',
-        heading: 'Investing',
+        heading: 'Eine Frau sollte ihr eigenes Portfolio haben',
         read: 'Lesen →',
         posts: [
           {
