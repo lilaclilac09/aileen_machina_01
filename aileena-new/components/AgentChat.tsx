@@ -12,6 +12,10 @@ const STARTER_PROMPTS = [
 
 const SESSION_LIMIT = 5;
 const SESSION_KEY = 'aileena_chat_count';
+
+// Shown instead of the provider's raw "credit balance is too low" billing error.
+// This agent is a personal demo, not a free public API.
+const NO_FREE_USE_MSG = "this agent isn't free to run — public access is off for now. reach out through the contact form instead.";
 const LEAD_THRESHOLD = 2; // start prompting for an email after the visitor has sent N messages
 const LEAD_DISMISS_KEY = 'aileena_lead_state'; // 'dismissed' | 'sent' | (unset)
 
@@ -183,17 +187,23 @@ export default function AgentChat() {
   const serverErrorText = (() => {
     const raw = error?.message?.trim();
     if (!raw) return '';
+    let text = raw;
     if (raw.startsWith('{') && raw.endsWith('}')) {
       try {
         const parsed = JSON.parse(raw) as { error?: unknown };
         if (typeof parsed.error === 'string' && parsed.error.length > 0) {
-          return parsed.error;
+          text = parsed.error;
         }
       } catch {
         /* fall through */
       }
     }
-    return raw;
+    // Never surface the provider's billing/credit internals to visitors —
+    // this agent isn't a free public service. Map any such error to our line.
+    if (/credit balance|too low|insufficient|quota|billing|purchase credits|payment/i.test(text)) {
+      return NO_FREE_USE_MSG;
+    }
+    return text;
   })();
 
   return (

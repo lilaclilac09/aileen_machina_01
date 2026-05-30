@@ -139,7 +139,18 @@ export async function POST(req: Request) {
 
   const setCookie = await buildQuotaCookie({ date: quota.date, count: quota.count + 1 });
 
-  const stream = result.toUIMessageStreamResponse();
+  const stream = result.toUIMessageStreamResponse({
+    // Map provider errors before they reach the browser. We never leak the raw
+    // "credit balance is too low / Plans & Billing" text — this agent is a
+    // personal demo, not a free public API.
+    onError: (err) => {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (/credit balance|too low|insufficient|quota|billing|purchase credits|payment/i.test(msg)) {
+        return "This agent isn't free to run — public access is off for now. Reach out through the contact form instead.";
+      }
+      return 'The agent hit a snag. Try again in a moment.';
+    },
+  });
   const headers = new Headers(stream.headers);
   headers.append('Set-Cookie', setCookie);
   // Surface the remaining-quota count to the client so the UI can hint at it
