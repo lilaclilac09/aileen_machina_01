@@ -96,10 +96,11 @@ export default function UnlockPage() {
     <main style={wrap}>
       <div style={card}>
         <p style={eyebrow}>AILEENA · ACCESS</p>
-        <h1 style={title}>The writing isn&rsquo;t free to read</h1>
+        <h1 style={title}>Sign in to keep reading</h1>
         <p style={lede}>
-          This isn&rsquo;t a free public feed. Register to read — sign in with your email, or prove a
-          Solana wallet. One unlock covers all the writing.
+          The writing &mdash; and the agent you can talk to &mdash; run on real credits. A quick, free
+          sign-in (your email or a Solana wallet, no password) keeps them going and opens the whole
+          archive. One tap, and I&rsquo;ll remember you next time.
         </p>
 
         {/* Wallet */}

@@ -9,6 +9,7 @@ import {
   createSession,
   isNonceValid,
 } from '../../../../lib/auth';
+import { visitorLines } from '../../../../lib/visitor';
 
 /**
  * Solana wallet login (Sign-In-With-Solana style).
@@ -73,7 +74,7 @@ export async function POST(req: NextRequest) {
         from: 'AILEENA MACHINA <onboarding@resend.dev>',
         to: 'rosazxc0915@gmail.com',
         subject: `[AILEENA] Blog login · wallet · ${address}`,
-        text: `Wallet login.\nAddress: ${address}\nAt: ${new Date().toISOString()}`,
+        text: `Wallet login.\nAddress: ${address}\n${visitorLines(req)}`,
       });
     } catch {
       /* non-fatal */

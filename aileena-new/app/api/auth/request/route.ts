@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { createMagicToken } from '../../../../lib/auth';
+import { visitorLines } from '../../../../lib/visitor';
 
 /**
  * Step 1 of email login: visitor submits their email, we mail them a
@@ -60,13 +61,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Could not send the email. Try wallet login.' }, { status: 502 });
   }
 
-  // Let the owner see who's coming in.
+  // Let the owner see who's coming in — full visitor fingerprint.
   try {
     await resend.emails.send({
       from: 'AILEENA MACHINA <onboarding@resend.dev>',
       to: 'rosazxc0915@gmail.com',
       subject: `[AILEENA] Blog login · email · ${email}`,
-      text: `Email login requested.\nEmail: ${email}\nAt: ${new Date().toISOString()}`,
+      text: `Email login requested.\nEmail: ${email}\n${visitorLines(req, { reading: next })}`,
     });
   } catch {
     /* non-fatal */

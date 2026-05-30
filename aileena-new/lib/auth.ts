@@ -85,17 +85,29 @@ async function readToken<T>(token: string | undefined | null): Promise<T | null>
 }
 
 /* ── Session ── */
-type Session = { t: 'sess'; sub: string; via: 'email' | 'wallet'; exp: number };
+type Via = 'email' | 'wallet' | 'owner';
+type Session = { t: 'sess'; sub: string; via: Via; exp: number };
+
+export const OWNER_MAX_AGE = 60 * 60 * 24 * 365; // 1 year — the owner shouldn't be re-gated by her own door
 
 export async function createSession(sub: string, via: 'email' | 'wallet'): Promise<string> {
   return signToken({ t: 'sess', sub, via, exp: Date.now() + SESSION_MAX_AGE * 1000 } satisfies Session);
 }
+/** Owner bypass: a long-lived session minted from the OWNER_KEY secret link. */
+export async function createOwnerSession(): Promise<string> {
+  return signToken({ t: 'sess', sub: 'owner', via: 'owner', exp: Date.now() + OWNER_MAX_AGE * 1000 } satisfies Session);
+}
 export async function readSession(
   token: string | undefined | null,
-): Promise<{ sub: string; via: 'email' | 'wallet' } | null> {
+): Promise<{ sub: string; via: Via } | null> {
   const s = await readToken<Session>(token);
   if (!s || s.t !== 'sess' || typeof s.exp !== 'number' || s.exp < Date.now()) return null;
   return { sub: s.sub, via: s.via };
+}
+
+/** Constant-time string compare for secrets (OWNER_KEY etc.). */
+export function safeEqual(a: string, b: string): boolean {
+  return timingSafeEqual(a, b);
 }
 
 /* ── Email magic-link token ── */
