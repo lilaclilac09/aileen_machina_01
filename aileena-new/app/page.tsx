@@ -226,20 +226,32 @@ export default function Home() {
 
               <div className="flex-1 overflow-y-auto pr-1">
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-                  {tx.visual.items.map((img) => (
-                    <figure key={img.src} className="anim-up group m-0">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={img.src}
-                        alt={img.alt}
-                        className="w-full aspect-[3/4] object-cover rounded-md opacity-85 group-hover:opacity-100 transition-opacity"
-                      />
-                      <figcaption className="mt-2 flex items-center gap-1.5 text-[0.72rem] tracking-wide text-white/40 group-hover:text-[#00ffea]/80 transition-colors">
-                        <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: '#00ffea', opacity: 0.6 }} />
-                        {img.caption}
-                      </figcaption>
-                    </figure>
-                  ))}
+                  {tx.visual.items.map((img: { src: string; alt: string; caption: string; href?: string }) => {
+                    const tile = (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={img.src}
+                          alt={img.alt}
+                          className="w-full aspect-square object-cover rounded-md opacity-85 group-hover:opacity-100 transition-opacity"
+                        />
+                        <figcaption className="mt-2 flex items-center gap-1.5 text-[0.72rem] tracking-wide text-white/40 group-hover:text-[#00ffea]/80 transition-colors">
+                          <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: '#00ffea', opacity: 0.6 }} />
+                          {img.caption}
+                          {img.href && <span className="ml-auto text-[#00ffea]/70">read →</span>}
+                        </figcaption>
+                      </>
+                    );
+                    return img.href ? (
+                      <Link key={img.src} href={img.href} className="anim-up group m-0 block cursor-pointer">
+                        {tile}
+                      </Link>
+                    ) : (
+                      <figure key={img.src} className="anim-up group m-0">
+                        {tile}
+                      </figure>
+                    );
+                  })}
                 </div>
 
                 <div className="anim-up mt-9 flex items-center gap-3 text-white/30">
