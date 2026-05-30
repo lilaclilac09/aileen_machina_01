@@ -9,23 +9,31 @@ export const maxDuration = 30;
 const ANTHROPIC_MODEL = 'claude-sonnet-4-6';
 
 /**
- * Pick the model. If AGENT_BASE_URL is set we route to a self-hosted,
- * OpenAI-compatible endpoint (Ollama / vLLM / LM Studio / llama.cpp all speak
- * the same /v1/chat/completions shape). Otherwise fall back to Anthropic so
- * the agent keeps working until the local model is wired up.
+ * Pick the model. Precedence:
+ *   1. AGENT_BASE_URL — any public, OpenAI-compatible endpoint
+ *      (Ollama / vLLM / LM Studio / llama.cpp / Fireworks / Together / DeepSeek …).
+ *      Optional: AGENT_API_KEY, AGENT_MODEL.
+ *   2. DEEPSEEK_API_KEY — convenience: drop the key in and we default
+ *      baseURL to https://api.deepseek.com and model to "deepseek-chat".
+ *      Override the model with AGENT_MODEL ("deepseek-reasoner" for R1, etc.).
+ *   3. ANTHROPIC_API_KEY — fall back to Anthropic so the agent keeps working
+ *      until one of the above is wired up.
  *
- * NOTE: the endpoint must be reachable from Vercel — a PUBLIC url (a tunnel or
- * a hosted box), not localhost.
+ * NOTE: AGENT_BASE_URL must be reachable from Vercel — a PUBLIC url, not localhost.
  */
 function selectModel(): { model: LanguageModel; isAnthropic: boolean } {
-  const baseURL = process.env.AGENT_BASE_URL;
+  const deepseekKey = process.env.DEEPSEEK_API_KEY;
+  const baseURL =
+    process.env.AGENT_BASE_URL || (deepseekKey ? 'https://api.deepseek.com' : undefined);
   if (baseURL) {
     const local = createOpenAICompatible({
       name: 'aileena-local',
       baseURL,
-      apiKey: process.env.AGENT_API_KEY || 'local',
+      apiKey: process.env.AGENT_API_KEY || deepseekKey || 'local',
     });
-    return { model: local.chatModel(process.env.AGENT_MODEL || 'local'), isAnthropic: false };
+    const modelId =
+      process.env.AGENT_MODEL || (deepseekKey ? 'deepseek-chat' : 'local');
+    return { model: local.chatModel(modelId), isAnthropic: false };
   }
   return { model: anthropic(ANTHROPIC_MODEL), isAnthropic: true };
 }
@@ -115,9 +123,9 @@ function jsonError(message: string, status: number): Response {
 }
 
 export async function POST(req: Request) {
-  if (!process.env.AGENT_BASE_URL && !process.env.ANTHROPIC_API_KEY) {
+  if (!process.env.AGENT_BASE_URL && !process.env.DEEPSEEK_API_KEY && !process.env.ANTHROPIC_API_KEY) {
     return jsonError(
-      'No model configured. Set AGENT_BASE_URL (a public, self-hosted OpenAI-compatible endpoint) or ANTHROPIC_API_KEY in Vercel, then redeploy.',
+      'No model configured. Set DEEPSEEK_API_KEY (easiest), AGENT_BASE_URL (any OpenAI-compatible endpoint), or ANTHROPIC_API_KEY in Vercel, then redeploy.',
       500,
     );
   }
