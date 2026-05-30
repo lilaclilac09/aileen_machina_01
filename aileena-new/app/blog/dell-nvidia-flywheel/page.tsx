@@ -112,29 +112,14 @@ export default function DellNvidiaFlywheelArticle() {
         </p>
 
         <SectionLabel>The bets NVIDIA is making (and Dell is building)</SectionLabel>
-        <div style={{ overflowX: 'auto', marginBottom: 28 }}>
-          <table style={tableStyle}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.22)' }}>
-                <th style={thStyle}>NVIDIA stake</th>
-                <th style={thStyle}>Size</th>
-                <th style={thStyle}>What it funds</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr style={trStyle}><td style={tdLabelStyle}>OpenAI</td><td style={tdStyle}>~$30B</td><td style={tdStyle}>the single biggest demand engine for compute</td></tr>
-              <tr style={trStyle}><td style={tdLabelStyle}>Intel</td><td style={tdStyle}>$5B → ~$25B+</td><td style={tdStyle}>foundry/x86 hedge; a historic paper return</td></tr>
-              <tr style={trStyle}><td style={tdLabelStyle}>CoreWeave</td><td style={tdStyle}>~$2B (24.2M sh)</td><td style={tdStyle}>top-3 holding; Dell&rsquo;s first GB300 customer</td></tr>
-              <tr style={trStyle}><td style={tdLabelStyle}>Nebius</td><td style={tdStyle}>~$2B</td><td style={tdStyle}>5GW of capacity by 2030</td></tr>
-              <tr style={trStyle}><td style={tdLabelStyle}>Lambda</td><td style={tdStyle}>~$1.5B</td><td style={tdStyle}>GPU cloud capacity</td></tr>
-              <tr style={trStyle}><td style={tdLabelStyle}>xAI / Anthropic</td><td style={tdStyle}>mega-rounds</td><td style={tdStyle}>frontier-lab compute demand</td></tr>
-            </tbody>
-          </table>
-        </div>
         <p style={bodyStyle}>
-          Read the table as a demand map. Almost every one of these dollars becomes GPU orders, and a
-          large share of those orders becomes rack-scale systems somebody has to integrate. Dell is one
-          of the very few who can integrate them first and at this scale.
+          The flywheel driving all of this &mdash; NVIDIA&rsquo;s ~$18B public equity book plus $100B+
+          of private commitments into OpenAI, CoreWeave, Nebius, Lambda and the frontier labs &mdash;
+          gets its own full treatment in the companion piece,{' '}
+          <Link href="/blog/nvidia-flywheel" style={linkStyle}>NVIDIA Is Buying Its Own Demand</Link>.
+          Read it as the demand map behind Dell&rsquo;s backlog: almost every one of those dollars
+          becomes a GPU order, and a large share of those orders becomes rack-scale systems somebody has
+          to integrate. Dell is one of the very few who can integrate them first and at this scale.
         </p>
 
         <SectionLabel>The risks — why this moat is thinner than Nokia&rsquo;s</SectionLabel>
@@ -217,6 +202,7 @@ const bodyStyle: React.CSSProperties = {
   marginBottom: 24,
 };
 const strong: React.CSSProperties = { color: 'rgba(255,255,255,0.95)', fontWeight: 600 };
+const linkStyle: React.CSSProperties = { color: '#00ffea', textDecoration: 'none', borderBottom: '1px solid rgba(0,255,234,0.3)' };
 const tableStyle: React.CSSProperties = {
   width: '100%',
   borderCollapse: 'collapse',

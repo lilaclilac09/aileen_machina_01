@@ -280,6 +280,12 @@ export const t = {
         posts: [
           {
             date: '2026.05.29',
+            href: '/blog/nvidia-flywheel',
+            title: 'NVIDIA Is Buying Its Own Demand',
+            body: 'NVIDIA has a second business almost nobody underwrites: it invests in the companies that buy its chips. Two books — a ~$18.4B public 13F that reads like a map of the AI stack (Intel ~51.6% / foundry, CoreWeave 2nd at ~$3.66B / compute, Synopsys ~10.4% / EDA, Coherent ~$1.86B / optics, Nokia ~7.3% / networking), and $100B+ of private commitments (OpenAI up to $100B and ~10GW, Nebius $2B warrants, CoreWeave $6.3B compute backstop, Lambda $1.5B, plus xAI/Anthropic). The flywheel: equity out → GPU orders back → stake appreciates → repeat. It\'s the most elegant value-capture machine in tech and the cleanest round-tripping critique you\'ll ever see — the same dollar circling NVIDIA→OpenAI→NVIDIA, a correlated bet with no real hedge, echoing Lucent/Nortel. Why it\'s rational, and where it breaks.',
+          },
+          {
+            date: '2026.05.29',
             href: '/blog/dell-nvidia-flywheel',
             title: 'Why Bet on Dell',
             body: 'NVIDIA stopped being just a chipmaker — it now invests in its own demand, past $40B of equity bets this year ($30B into OpenAI, $5B→$25B+ on Intel, ~$2B each into CoreWeave and Nebius, $1.5B Lambda, plus xAI/Anthropic). That capital becomes GPU orders, and someone has to bolt 72 GPUs into a liquid-cooled rack and ship it. Dell is that pair of hands: first to ship the GB200 NVL72, then the first GB300 NVL72 to CoreWeave seven months later. The order book is real — $64.1B FY26 AI orders, $25.2B shipped (~150% YoY), a record $43B backlog, ~$50B FY27 guide. The honest catch: unlike Nokia\'s scarce-capacity moat, Dell\'s edge is execution at ~5–6% AI-server margins, leveraged to a flywheel NVIDIA itself is spinning. Edge by edge, the bets, and the risks.',
@@ -648,6 +654,12 @@ export const t = {
         heading: 'Investing',
         read: 'Lesen →',
         posts: [
+          {
+            date: '2026.05.29',
+            href: '/blog/nvidia-flywheel',
+            title: 'NVIDIA kauft seine eigene Nachfrage',
+            body: 'NVIDIA hat ein zweites Geschäft, das kaum jemand bewertet: Es investiert in die Firmen, die seine Chips kaufen. Zwei Bücher — ein öffentliches 13F von ~18,4 Mrd. $, das wie eine Karte des KI-Stacks liest (Intel ~51,6% / Foundry, CoreWeave Platz 2 mit ~3,66 Mrd. $ / Compute, Synopsys ~10,4% / EDA, Coherent ~1,86 Mrd. $ / Optik, Nokia ~7,3% / Netzwerk), und über 100 Mrd. $ an privaten Zusagen (OpenAI bis zu 100 Mrd. $ und ~10GW, Nebius 2 Mrd. $ Warrants, CoreWeave 6,3 Mrd. $ Compute-Backstop, Lambda 1,5 Mrd. $, dazu xAI/Anthropic). Das Schwungrad: Eigenkapital raus → GPU-Bestellungen rein → Beteiligung steigt → wiederholen. Die eleganteste Wertschöpfungsmaschine der Tech-Welt — und zugleich die sauberste Round-Tripping-Kritik: derselbe Dollar im Kreis NVIDIA→OpenAI→NVIDIA, eine korrelierte Wette ohne echte Absicherung, ein Echo von Lucent/Nortel. Warum es rational ist und wo es bricht.',
+          },
           {
             date: '2026.05.29',
             href: '/blog/dell-nvidia-flywheel',
