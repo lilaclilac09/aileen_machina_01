@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Server is missing RESEND_API_KEY.' }, { status: 500 });
   }
 
-  let body: { email?: unknown; next?: unknown };
+  let body: { email?: unknown; next?: unknown; client?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
       from: 'AILEENA MACHINA <onboarding@resend.dev>',
       to: 'rosazxc0915@gmail.com',
       subject: `[AILEENA] Blog login · email · ${email}`,
-      text: `Email login requested.\nEmail: ${email}\n${visitorLines(req, { reading: next })}`,
+      text: `Email login requested.\nEmail: ${email}\n${visitorLines(req, { reading: next, client: body.client })}`,
     });
   } catch {
     /* non-fatal */

@@ -20,6 +20,34 @@ function toBase64(bytes: Uint8Array): string {
   return btoa(s);
 }
 
+/** Everything the browser will tell us about the visitor — for the owner's log. */
+function clientInfo(): Record<string, string | number> {
+  try {
+    const n = navigator as unknown as {
+      language?: string;
+      languages?: string[];
+      platform?: string;
+      hardwareConcurrency?: number;
+      deviceMemory?: number;
+      maxTouchPoints?: number;
+      userAgentData?: { platform?: string };
+    };
+    const info: Record<string, string | number> = {};
+    info.tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+    info.locale = n.language || '';
+    if (n.languages?.length) info.langs = n.languages.join(',');
+    info.screen = `${window.screen.width}x${window.screen.height}@${window.devicePixelRatio}x`;
+    info.viewport = `${window.innerWidth}x${window.innerHeight}`;
+    info.platform = n.userAgentData?.platform || n.platform || '';
+    if (n.hardwareConcurrency) info.cores = n.hardwareConcurrency;
+    if (n.deviceMemory) info.memGB = n.deviceMemory;
+    info.touch = n.maxTouchPoints ?? 0;
+    return info;
+  } catch {
+    return {};
+  }
+}
+
 export default function UnlockPage() {
   const [next, setNext] = useState('/blog/nokia-dci');
   const [email, setEmail] = useState('');
@@ -42,7 +70,7 @@ export default function UnlockPage() {
       const res = await fetch('/api/auth/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, next }),
+        body: JSON.stringify({ email, next, client: clientInfo() }),
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
@@ -77,7 +105,7 @@ export default function UnlockPage() {
       const res = await fetch('/api/auth/wallet', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address, signature: toBase64(signature), message }),
+        body: JSON.stringify({ address, signature: toBase64(signature), message, client: clientInfo() }),
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
@@ -98,9 +126,10 @@ export default function UnlockPage() {
         <p style={eyebrow}>AILEENA · ACCESS</p>
         <h1 style={title}>Sign in to keep reading</h1>
         <p style={lede}>
-          The writing &mdash; and the agent you can talk to &mdash; run on real credits. A quick, free
-          sign-in (your email or a Solana wallet, no password) keeps them going and opens the whole
-          archive. One tap, and I&rsquo;ll remember you next time.
+          Reading is free &mdash; just sign in with your email or a Solana wallet (no password), and
+          the whole archive opens up. The writing and the agent you can talk to run on real credits,
+          so if any of it is worth something to you, you&rsquo;re welcome to leave a donation. Entirely
+          up to you.
         </p>
 
         {/* Wallet */}

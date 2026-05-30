@@ -32,7 +32,7 @@ function verifyEd25519(message: string, signature: Buffer, publicKeyRaw: Uint8Ar
 }
 
 export async function POST(req: NextRequest) {
-  let body: { address?: unknown; signature?: unknown; message?: unknown };
+  let body: { address?: unknown; signature?: unknown; message?: unknown; client?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
         from: 'AILEENA MACHINA <onboarding@resend.dev>',
         to: 'rosazxc0915@gmail.com',
         subject: `[AILEENA] Blog login · wallet · ${address}`,
-        text: `Wallet login.\nAddress: ${address}\n${visitorLines(req)}`,
+        text: `Wallet login.\nAddress: ${address}\n${visitorLines(req, { client: body.client })}`,
       });
     } catch {
       /* non-fatal */
