@@ -1,5 +1,6 @@
 import { streamText, convertToModelMessages, type UIMessage, type LanguageModel } from 'ai';
 import { anthropic } from '@ai-sdk/anthropic';
+import { groq } from '@ai-sdk/groq';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { SYSTEM_PROMPT } from '../../../lib/agentContext';
 
@@ -7,17 +8,26 @@ export const runtime = 'edge';
 export const maxDuration = 30;
 
 const ANTHROPIC_MODEL = 'claude-sonnet-4-6';
+const GROQ_DEFAULT_MODEL = 'llama-3.3-70b-versatile';
 
 /**
- * Pick the model. If AGENT_BASE_URL is set we route to a self-hosted,
- * OpenAI-compatible endpoint (Ollama / vLLM / LM Studio / llama.cpp all speak
- * the same /v1/chat/completions shape). Otherwise fall back to Anthropic so
- * the agent keeps working until the local model is wired up.
- *
- * NOTE: the endpoint must be reachable from Vercel — a PUBLIC url (a tunnel or
- * a hosted box), not localhost.
+ * Pick the model. Priority:
+ *   1. Groq — set GROQ_API_KEY (and optionally GROQ_MODEL). The free tier
+ *      (14,400 req/day) is generous enough for a portfolio site and latency
+ *      is ~500 tok/s. Recommended default for keeping the agent close to $0.
+ *   2. Self-hosted OpenAI-compatible endpoint — set AGENT_BASE_URL
+ *      (Ollama / vLLM / llama.cpp / LM Studio behind a tunnel all speak the
+ *      same /v1/chat/completions shape). Must be a PUBLIC url reachable from
+ *      Vercel, not localhost.
+ *   3. Anthropic — fall back to Claude if neither of the above is configured.
  */
 function selectModel(): { model: LanguageModel; isAnthropic: boolean } {
+  if (process.env.GROQ_API_KEY) {
+    return {
+      model: groq(process.env.GROQ_MODEL || GROQ_DEFAULT_MODEL),
+      isAnthropic: false,
+    };
+  }
   const baseURL = process.env.AGENT_BASE_URL;
   if (baseURL) {
     const local = createOpenAICompatible({
@@ -29,6 +39,7 @@ function selectModel(): { model: LanguageModel; isAnthropic: boolean } {
   }
   return { model: anthropic(ANTHROPIC_MODEL), isAnthropic: true };
 }
+
 const DAILY_LIMIT = 50;
 const QUOTA_COOKIE = '__aileena_quota';
 
@@ -115,9 +126,13 @@ function jsonError(message: string, status: number): Response {
 }
 
 export async function POST(req: Request) {
-  if (!process.env.AGENT_BASE_URL && !process.env.ANTHROPIC_API_KEY) {
+  if (
+    !process.env.GROQ_API_KEY &&
+    !process.env.AGENT_BASE_URL &&
+    !process.env.ANTHROPIC_API_KEY
+  ) {
     return jsonError(
-      'No model configured. Set AGENT_BASE_URL (a public, self-hosted OpenAI-compatible endpoint) or ANTHROPIC_API_KEY in Vercel, then redeploy.',
+      'No model configured. Set GROQ_API_KEY (recommended — free tier), AGENT_BASE_URL (self-hosted OpenAI-compatible endpoint), or ANTHROPIC_API_KEY in Vercel, then redeploy.',
       500,
     );
   }
