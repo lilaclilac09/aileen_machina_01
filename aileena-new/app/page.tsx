@@ -246,6 +246,9 @@ export default function Home() {
                   <Sparkle /><Heart /><Star /><Flower />
                   <span className="ml-1 text-[0.82rem] text-white/40" style={{ fontWeight: 400 }}>{tx.visual.note}</span>
                 </div>
+                <Link href="/blog/pate-de-verre" className="anim-up mt-4 inline-block text-[0.82rem] text-[#00ffea]/70 hover:text-[#00ffea] transition-colors" style={{ fontWeight: 500 }}>
+                  {tx.visual.readGlass}
+                </Link>
               </div>
             </div>
           </div>
