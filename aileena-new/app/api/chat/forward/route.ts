@@ -15,9 +15,10 @@ import { NextRequest, NextResponse } from 'next/server';
  * so Gmail threads multiple snapshots for the same conversation into a single
  * thread. We don't store any server-side state.
  *
- * This is separate from /api/lead — that one is the explicit "leave an email
- * so I can follow up" opt-in. Auto-forward gives Aileen visibility into
- * conversations where the visitor never opted in.
+ * Distinct from /api/lead, which is the synchronous lead-form submission
+ * fired when the visitor hits the 2-message hard gate. Auto-forward fires
+ * for every session — including short ones that never reach the gate —
+ * so Aileen sees every conversation, gated or not.
  */
 
 function renderTranscript(transcript: unknown): string {

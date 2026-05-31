@@ -408,7 +408,7 @@ export default function AgentChat() {
           {sessionMaxed && (
             <p className="text-[0.7rem] leading-5 tracking-[0.05em] text-[#00ffea]/70 whitespace-pre-wrap">
               <span className="font-mono text-[0.55rem] tracking-[0.3em] uppercase mr-1.5">▸ limit</span>
-              Session limit reached ({SESSION_LIMIT} messages). Refresh the tab to start a new session, or leave an email below so Aileen can follow up.
+              Session limit reached ({SESSION_LIMIT} messages). Refresh the tab to start a new session.
             </p>
           )}
 
