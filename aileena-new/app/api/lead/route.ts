@@ -4,10 +4,11 @@ import { NextRequest, NextResponse } from 'next/server';
 /**
  * Lead capture endpoint for the agent console.
  *
- * Soft-gated: chat is free for the first two messages, then a panel inside
- * the console prompts the visitor for an email so Aileen can follow up.
- * Submissions land here and are forwarded as a single email to her inbox
- * via Resend (the same path the old contact form used). No database.
+ * Hard-gated: chat is free for the first 2 messages, then the lead panel
+ * appears and the chat input is locked until the visitor submits an email
+ * here. Submissions land in this route and are forwarded as a single email
+ * to Aileen's inbox via Resend (the same path the old contact form used).
+ * No database.
  */
 
 const COOKIE_NAME = '__aileena_lead';
