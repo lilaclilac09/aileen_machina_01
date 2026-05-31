@@ -210,8 +210,63 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 07 VISUAL — cute little gallery ── */}
-        <SnapSection id="visual" className="order-7">
+        {/* ── 07 TRENDY — fashion police + podcast, one tight card ── */}
+        <SnapSection id="trendy" className="order-7">
+          <div className="h-full flex items-center justify-center bg-[#050505] px-6 sm:px-10">
+            <div className="max-w-[480px] w-full text-center" style={{ fontFamily: nunito }}>
+              <p className="anim-up text-[0.6rem] uppercase tracking-[0.45em] text-[#00ffea]/70 mb-4" style={{ fontWeight: 500 }}>
+                {tx.trendy.tag}
+              </p>
+              <h2
+                className="anim-up-2 text-[clamp(1.3rem,3.2vw,1.9rem)] tracking-tight text-white/95 leading-snug mb-2"
+                style={{ fontWeight: 600 }}
+              >
+                {tx.trendy.heading}
+              </h2>
+              <p
+                className="anim-up-3 text-[0.92rem] text-white/55 mb-8"
+                style={{ fontWeight: 400 }}
+              >
+                {tx.trendy.body}
+              </p>
+
+              <div className="anim-up-3 pt-6 border-t border-white/10">
+                <p className="text-[0.58rem] uppercase tracking-[0.45em] text-white/35 mb-2" style={{ fontWeight: 500 }}>
+                  {tx.trendy.rotationTag}
+                </p>
+                <h3 className="text-[1rem] tracking-tight text-white/90 mb-2" style={{ fontWeight: 500 }}>
+                  {tx.trendy.podcast.title}
+                </h3>
+                <p className="text-[0.84rem] leading-relaxed text-white/55 mb-4" style={{ fontWeight: 400 }}>
+                  {tx.trendy.podcast.body}
+                </p>
+                <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5">
+                  <a
+                    href={tx.trendy.podcast.kateHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[0.76rem] text-[#00ffea]/75 hover:text-[#00ffea] transition-colors no-underline"
+                    style={{ fontWeight: 500 }}
+                  >
+                    {tx.trendy.podcast.kateLabel} →
+                  </a>
+                  <a
+                    href={tx.trendy.podcast.showHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[0.76rem] text-white/55 hover:text-white transition-colors no-underline"
+                    style={{ fontWeight: 500 }}
+                  >
+                    {tx.trendy.podcast.showLabel} →
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </SnapSection>
+
+        {/* ── 08 VISUAL — cute little gallery ── */}
+        <SnapSection id="visual" className="order-8">
           <div className="h-full flex flex-col bg-[#070707] px-6 sm:px-10 lg:px-16">
             <div className="mx-auto w-full max-w-[920px] flex h-full flex-col py-12 sm:py-16" style={{ fontFamily: nunito }}>
               <p className="anim-up flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.32em] text-white/40 mb-4" style={{ fontWeight: 500 }}>
@@ -266,8 +321,8 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 08 FOOTER ── */}
-        <SnapSection className="order-8">
+        {/* ── 09 FOOTER ── */}
+        <SnapSection className="order-9">
           <div className="h-full flex flex-col justify-end bg-[#030303] px-6 sm:px-10 lg:px-16 py-14 sm:py-16" style={{ fontFamily: nunito }}>
             <div className="mx-auto w-full max-w-[920px]">
 
