@@ -16,8 +16,8 @@ const SESSION_KEY = 'aileena_chat_count';
 // Shown instead of the provider's raw "credit balance is too low" billing error.
 // This agent is a personal demo, not a free public API.
 const NO_FREE_USE_MSG = "this agent isn't free to run — public access is off for now. reach out through the contact form instead.";
-const LEAD_THRESHOLD = 2; // start prompting for an email after the visitor has sent N messages
-const LEAD_DISMISS_KEY = 'aileena_lead_state'; // 'dismissed' | 'sent' | (unset)
+const LEAD_THRESHOLD = 2; // hard gate: chat is blocked until lead is submitted, after the visitor has sent N messages
+const LEAD_DISMISS_KEY = 'aileena_lead_state'; // 'sent' | (unset) — historical 'dismissed' values are tolerated but no longer set
 
 /**
  * Aileena · Console
@@ -40,7 +40,7 @@ const LEAD_DISMISS_KEY = 'aileena_lead_state'; // 'dismissed' | 'sent' | (unset)
  *   session limit is reached. Snapshots are best-effort via sendBeacon.
  *   Subject line carries a sessionId prefix so Gmail threads them.
  */
-type LeadState = 'idle' | 'submitting' | 'sent' | 'dismissed';
+type LeadState = 'idle' | 'submitting' | 'sent';
 
 export default function AgentChat() {
   const [open, setOpen] = useState(false);
@@ -59,6 +59,9 @@ export default function AgentChat() {
 
   const busy = status === 'submitted' || status === 'streaming';
   const sessionMaxed = sessionCount >= SESSION_LIMIT;
+  // Hard gate: once the visitor has sent LEAD_THRESHOLD messages, chat is
+  // blocked until they submit the lead form. Re-enables when leadState='sent'.
+  const mustProvideEmail = sessionCount >= LEAD_THRESHOLD && leadState !== 'sent';
 
   // Restore session counter + lead state from sessionStorage on first client render.
   useEffect(() => {
@@ -66,7 +69,7 @@ export default function AgentChat() {
       const stored = sessionStorage.getItem(SESSION_KEY);
       if (stored) setSessionCount(Math.min(Number(stored) || 0, 99));
       const lead = sessionStorage.getItem(LEAD_DISMISS_KEY);
-      if (lead === 'dismissed' || lead === 'sent') setLeadState(lead);
+      if (lead === 'sent') setLeadState('sent');
     } catch {
       /* sessionStorage unavailable — ignore */
     }
@@ -195,7 +198,7 @@ export default function AgentChat() {
 
   function ask(text: string) {
     const trimmed = text.trim();
-    if (!trimmed || busy || sessionMaxed) return;
+    if (!trimmed || busy || sessionMaxed || mustProvideEmail) return;
     setInput('');
     sendMessage({ text: trimmed });
 
@@ -210,26 +213,19 @@ export default function AgentChat() {
 
   const remaining = Math.max(0, SESSION_LIMIT - sessionCount);
 
-  // Lead-capture panel: show after LEAD_THRESHOLD messages, unless the visitor
-  // already dismissed or already submitted it (tracked in sessionStorage).
-  const showLeadPanel =
-    leadState !== 'sent' &&
-    leadState !== 'dismissed' &&
-    sessionCount >= LEAD_THRESHOLD;
+  // Panel renders exactly when the gate is active — same condition as the
+  // chat-input lock above, kept as a separate alias for readability in JSX.
+  const showLeadPanel = mustProvideEmail;
 
   function persistLeadState(next: LeadState) {
     setLeadState(next);
     try {
-      if (next === 'sent' || next === 'dismissed') {
+      if (next === 'sent') {
         sessionStorage.setItem(LEAD_DISMISS_KEY, next);
       }
     } catch {
       /* ignore */
     }
-  }
-
-  function dismissLead() {
-    persistLeadState('dismissed');
   }
 
   async function submitLead() {
@@ -427,18 +423,10 @@ export default function AgentChat() {
         {/* Lead capture panel — appears after LEAD_THRESHOLD user messages */}
         {showLeadPanel && (
           <div className="border-t border-[#00ffea]/15 px-5 py-3 bg-[#00ffea]/[0.025]">
-            <div className="flex items-center justify-between mb-2.5">
+            <div className="mb-2.5">
               <p className="font-mono text-[0.55rem] tracking-[0.35em] uppercase text-[#00ffea]/85">
-                ▸ leave an email · aileena will follow up
+                ▸ leave your email to keep chatting
               </p>
-              <button
-                type="button"
-                onClick={dismissLead}
-                aria-label="Dismiss lead capture"
-                className="font-mono text-[0.55rem] tracking-[0.25em] uppercase text-white/40 hover:text-white/80 px-1"
-              >
-                not now
-              </button>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <input
@@ -487,7 +475,7 @@ export default function AgentChat() {
         {/* Input row */}
         <div className="border-t border-[#00ffea]/15 px-5 py-3">
           <div className="flex items-center gap-2">
-            <span className={`text-sm ${sessionMaxed ? 'text-white/20' : 'text-[#00ffea]'}`}>&gt;</span>
+            <span className={`text-sm ${sessionMaxed || mustProvideEmail ? 'text-white/20' : 'text-[#00ffea]'}`}>&gt;</span>
             <textarea
               ref={inputRef}
               value={input}
@@ -498,8 +486,14 @@ export default function AgentChat() {
                   ask(input);
                 }
               }}
-              placeholder={sessionMaxed ? 'session limit reached' : ''}
-              disabled={sessionMaxed}
+              placeholder={
+                sessionMaxed
+                  ? 'session limit reached'
+                  : mustProvideEmail
+                  ? 'leave your email below to keep chatting'
+                  : ''
+              }
+              disabled={sessionMaxed || mustProvideEmail}
               rows={1}
               className="flex-1 resize-none bg-transparent text-sm leading-6 text-white/90 placeholder:text-white/25 outline-none max-h-32 caret-[#00ffea] disabled:cursor-not-allowed"
               spellCheck={false}
