@@ -36,6 +36,20 @@ export const t = {
       heading: 'Elsewhere',
       linkLabel: 'Visit',
     },
+    trendy: {
+      tag: 'FASHION POLICE',
+      heading: 'Trendy is obsolete.',
+      body: 'Fashion police here.',
+      rotationTag: 'ON ROTATION',
+      podcast: {
+        title: 'Fashion Neurosis with Bella Freud',
+        body: 'Designer Bella Freud — great-granddaughter of Sigmund Freud — puts her guests on a velvet couch and asks them what they’re afraid of. The Kate Moss episode is the one I keep replaying.',
+        kateLabel: 'Kate Moss · Spotify',
+        kateHref: 'https://open.spotify.com/episode/0ZxMxV8EiZ9DkAPJWU0If7',
+        showLabel: 'All episodes · YouTube',
+        showHref: 'https://www.youtube.com/@Fashion_Neurosis/videos',
+      },
+    },
     visual: {
       tag: 'VISUAL',
       heading: 'Visual',
@@ -412,6 +426,20 @@ export const t = {
       tag: 'LINKS',
       heading: 'Anderswo',
       linkLabel: 'Besuchen',
+    },
+    trendy: {
+      tag: 'MODEPOLIZEI',
+      heading: 'Trendy ist überholt.',
+      body: 'Modepolizei hier.',
+      rotationTag: 'IM DAUERLOOP',
+      podcast: {
+        title: 'Fashion Neurosis mit Bella Freud',
+        body: 'Designerin Bella Freud — Urenkelin von Sigmund Freud — legt ihre Gäste auf eine Samtcouch und fragt sie, wovor sie Angst haben. Die Folge mit Kate Moss höre ich immer wieder.',
+        kateLabel: 'Kate Moss · Spotify',
+        kateHref: 'https://open.spotify.com/episode/0ZxMxV8EiZ9DkAPJWU0If7',
+        showLabel: 'Alle Folgen · YouTube',
+        showHref: 'https://www.youtube.com/@Fashion_Neurosis/videos',
+      },
     },
     visual: {
       tag: 'VISUAL',
