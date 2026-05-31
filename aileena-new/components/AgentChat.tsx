@@ -2,7 +2,7 @@
 
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const STARTER_PROMPTS = [
   "what's her solana stack?",
@@ -29,9 +29,16 @@ const LEAD_DISMISS_KEY = 'aileena_lead_state'; // 'dismissed' | 'sent' | (unset)
  * Rate limiting:
  *   - Client/session: SESSION_LIMIT messages per browser session (sessionStorage,
  *     resets when the tab closes).
- *   - Server/daily: 50 messages per visitor per day, enforced by a signed
+ *   - Server/daily: 20 messages per visitor per day, enforced by a signed
  *     cookie in /api/chat. When the server returns 429 it shows up in the
  *     error display below.
+ *
+ * Auto-forward to Aileen's inbox:
+ *   Every chat session is forwarded to her email via /api/chat/forward,
+ *   triggered on three signals: 4 s debounce after an assistant response,
+ *   on `pagehide` (tab close / navigation), and immediately when the per-
+ *   session limit is reached. Snapshots are best-effort via sendBeacon.
+ *   Subject line carries a sessionId prefix so Gmail threads them.
  */
 type LeadState = 'idle' | 'submitting' | 'sent' | 'dismissed';
 
@@ -103,6 +110,88 @@ export default function AgentChat() {
       return () => clearTimeout(t);
     }
   }, [open]);
+
+  // ──────────────── Auto-forward transcript to Aileen ────────────────
+  // sessionId stays stable for the life of this AgentChat instance so Gmail
+  // threads multiple snapshots of the same conversation together.
+  const sessionIdRef = useRef<string>('');
+  if (!sessionIdRef.current) {
+    sessionIdRef.current =
+      typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : `s-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`;
+  }
+
+  // Hash-based dedup: if the transcript hasn't changed since the last forward
+  // (e.g. the unload handler fires after the debounced timer already sent),
+  // skip the duplicate send.
+  const lastForwardedHashRef = useRef<string>('');
+  const forwardTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const forwardTranscriptNow = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    if (messages.length === 0) return;
+    const transcript = messages.map((m) => ({
+      role: m.role === 'user' ? 'user' : 'assistant',
+      text: getMessageText(m),
+    }));
+    const hash = `${transcript.length}:${transcript.map((t) => t.text.length).join(',')}`;
+    if (hash === lastForwardedHashRef.current) return;
+    lastForwardedHashRef.current = hash;
+    const payload = JSON.stringify({ sessionId: sessionIdRef.current, transcript });
+    try {
+      if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+        navigator.sendBeacon(
+          '/api/chat/forward',
+          new Blob([payload], { type: 'application/json' }),
+        );
+      } else {
+        fetch('/api/chat/forward', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+          keepalive: true,
+        }).catch(() => {});
+      }
+    } catch {
+      /* best-effort */
+    }
+  }, [messages]);
+
+  const scheduleForward = useCallback(() => {
+    if (forwardTimerRef.current) clearTimeout(forwardTimerRef.current);
+    forwardTimerRef.current = setTimeout(() => {
+      forwardTranscriptNow();
+    }, 4000);
+  }, [forwardTranscriptNow]);
+
+  // After an assistant response settles (status drops out of streaming),
+  // schedule a debounced forward.
+  useEffect(() => {
+    if (messages.length === 0) return;
+    if (status === 'submitted' || status === 'streaming') return;
+    const last = messages[messages.length - 1];
+    if (last.role !== 'assistant') return;
+    scheduleForward();
+  }, [messages, status, scheduleForward]);
+
+  // Tab close / navigation away — flush immediately.
+  useEffect(() => {
+    const handler = () => {
+      if (forwardTimerRef.current) clearTimeout(forwardTimerRef.current);
+      forwardTranscriptNow();
+    };
+    window.addEventListener('pagehide', handler);
+    return () => window.removeEventListener('pagehide', handler);
+  }, [forwardTranscriptNow]);
+
+  // Per-session limit hit — force-flush the final state.
+  useEffect(() => {
+    if (sessionMaxed && messages.length > 0) {
+      if (forwardTimerRef.current) clearTimeout(forwardTimerRef.current);
+      forwardTranscriptNow();
+    }
+  }, [sessionMaxed, messages.length, forwardTranscriptNow]);
 
   function ask(text: string) {
     const trimmed = text.trim();

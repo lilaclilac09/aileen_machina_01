@@ -37,7 +37,7 @@ function selectModel(): { model: LanguageModel; isAnthropic: boolean } {
   }
   return { model: anthropic(ANTHROPIC_MODEL), isAnthropic: true };
 }
-const DAILY_LIMIT = 50;
+const DAILY_LIMIT = 20;
 const QUOTA_COOKIE = '__aileena_quota';
 
 /**
