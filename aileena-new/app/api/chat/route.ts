@@ -146,7 +146,7 @@ export async function POST(req: Request) {
   const quota = await readQuota(req);
   if (quota.count >= DAILY_LIMIT) {
     return jsonError(
-      `Daily limit reached (${DAILY_LIMIT} messages). Try again tomorrow or use the contact form on the site.`,
+      `Aileen stopped DJing for today — ${DAILY_LIMIT}-message daily limit. Back tomorrow.`,
       429,
     );
   }
