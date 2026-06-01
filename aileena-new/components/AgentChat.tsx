@@ -510,7 +510,7 @@ export default function AgentChat() {
             />
             {busy && (
               <span className="text-[0.55rem] tracking-[0.25em] text-[#00ffea]/60 uppercase animate-pulse">
-                streaming
+                scratching it
               </span>
             )}
           </div>
