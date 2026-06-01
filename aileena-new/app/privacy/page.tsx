@@ -41,7 +41,7 @@ export default function PrivacyPage() {
         <h1 className="substack-title">Privacy</h1>
         <p className="substack-dek">
           What this site collects, where it goes, and how to delete it. Plain
-          language — this is a personal portfolio, not a SaaS.
+          language — this is a personal website, not a SaaS.
         </p>
       </section>
 
@@ -49,45 +49,44 @@ export default function PrivacyPage() {
 
       <article>
         <p>
-          aileena.xyz is the personal site of Aileen Zhou. Below is exactly
-          what happens with anything you share with it. Nothing more, nothing
-          less.
+          aileena.xyz (the &ldquo;Site&rdquo;) is a personal website. Below is
+          exactly what happens with anything you share with it. Nothing more,
+          nothing less.
         </p>
 
-        <h2 style={h2}>What you send me</h2>
-        <p>The site only stores something when you actively send it:</p>
+        <h2 style={h2}>What you send</h2>
+        <p>The Site only stores something when you actively send it:</p>
         <ul>
           <li>
             <strong>Agent lead-capture.</strong> If you talk to the on-site
-            agent and then enter your email (with an optional name/note) to
-            keep chatting, I receive your email, the name/note, and the
-            transcript of that conversation so I can reply.
+            agent (the Aileena Console) and then enter your email (with an
+            optional name/note) to keep chatting, your email, the name/note,
+            and the conversation transcript are forwarded to the Site operator
+            so they can reply.
           </li>
           <li>
             <strong>Transcript forwarding.</strong> If you ask the agent to
-            email the transcript to me, same thing — your email and the
-            conversation are sent to my inbox.
+            send the transcript on, the same applies — your email and the
+            conversation are forwarded.
           </li>
           <li>
             <strong>Sign-in (for any gated page).</strong> If a page asks you
-            to sign in, I email a one-time link to the address you give and
-            use that address to recognise you on the next visit.
+            to sign in, the Site sends a one-time link to the address you
+            provide and uses that address to recognise you on the next visit.
           </li>
         </ul>
         <p>
-          That&rsquo;s it. There is no analytics tracker, no Google or Meta
-          pixel, no Hotjar / PostHog, no behavioural fingerprint, no
-          newsletter list.
+          That&rsquo;s it. No analytics tracker, no Google or Meta pixel, no
+          Hotjar / PostHog, no behavioural fingerprint, no newsletter list.
         </p>
 
         <h2 style={h2}>Where it goes</h2>
         <p>
-          Emails and messages are sent through <strong>Resend</strong>
-          {' '}(a transactional email provider that delivers the message and
-          does not keep a marketing copy) straight to my personal inbox at{' '}
-          <a href="mailto:rosazxc0915@gmail.com">rosazxc0915@gmail.com</a>.
-          That is the only destination. Nothing is sold, syndicated, or
-          shared with anyone else.
+          Emails and messages are sent through <strong>Resend</strong>{' '}
+          (a transactional email provider that delivers the message and does
+          not keep a marketing copy) to the Site operator. That is the only
+          destination. Nothing is sold, syndicated, or shared with anyone
+          else.
         </p>
 
         <h2 style={h2}>Cookies</h2>
@@ -100,7 +99,7 @@ export default function PrivacyPage() {
 
         <h2 style={h2}>Hosting</h2>
         <p>
-          The site runs on <strong>Vercel</strong>. Standard request logs
+          The Site runs on <strong>Vercel</strong>. Standard request logs
           (IP address, path, status code) live there briefly for operational
           and security reasons; they are not used for anything else and are
           not joined to your email or any other identifier.
@@ -109,27 +108,28 @@ export default function PrivacyPage() {
         <h2 style={h2}>Deleting your data</h2>
         <p>
           Want anything removed — your email, a transcript, a sign-in record?
-          Just email{' '}
-          <a href="mailto:rosazxc0915@gmail.com">rosazxc0915@gmail.com</a>{' '}
-          and ask. No form, no friction. If you&rsquo;re in the EU/EEA or UK,
-          this is also how you exercise your access / rectification /
-          erasure / objection rights under GDPR / UK-GDPR.
+          Reach out through the on-site <strong>Aileena Console</strong> (the
+          agent panel, available from anywhere on the Site), or reply to any
+          email this Site has previously sent you, and ask. No form, no
+          friction. If you&rsquo;re in the EU/EEA or UK, this is also how
+          you exercise your access / rectification / erasure / objection
+          rights under GDPR / UK-GDPR.
         </p>
 
         <h2 style={h2}>Children</h2>
         <p>
-          This site isn&rsquo;t directed at anyone under 16. Please
-          don&rsquo;t submit personal data if you are.
+          The Site isn&rsquo;t directed at anyone under 16. Please don&rsquo;t
+          submit personal data if you are.
         </p>
 
         <h2 style={h2}>Changes</h2>
         <p>
-          If anything material here changes, I&rsquo;ll update the date at
-          the top of this page.
+          If anything material here changes, the date at the top of this page
+          will be updated.
         </p>
 
         <p style={{ ...lead, marginTop: 48, fontSize: '0.9rem', color: 'rgba(255,255,255,0.5)' }}>
-          Questions? <a href="mailto:rosazxc0915@gmail.com">rosazxc0915@gmail.com</a>.
+          Questions? Reach out through the on-site Aileena Console.
         </p>
 
         <div style={{ marginTop: 56 }}>
