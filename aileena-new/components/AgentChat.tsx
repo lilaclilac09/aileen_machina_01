@@ -467,7 +467,7 @@ export default function AgentChat() {
               </p>
             )}
             <p className="mt-2 font-mono text-[0.5rem] tracking-[0.28em] uppercase text-white/30">
-              the chat transcript is included so she has context
+              the chat transcript is attached to your message
             </p>
           </div>
         )}
