@@ -1,11 +1,30 @@
 'use client';
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 
 /**
  * Fallback cover used when a track has no thumb (or its thumb URL 404s).
  * Self-contained SVG data-URI — concentric cyan rings + a note glyph on the
  * deck-black background. Lets /addmusic add a track by ID alone, no art needed.
  */
+/**
+ * Module-level cache for covers resolved client-side via Spotify oEmbed.
+ * Persists across component re-mounts so we never re-fetch the same cover
+ * within a single page session.
+ */
+const COVER_CACHE = new Map<string, string>();
+
+async function fetchSpotifyCover(trackId: string, signal: AbortSignal): Promise<string | null> {
+  // Spotify's public oEmbed endpoint supports CORS, so the visitor's browser
+  // can hit it directly even when our server-side network policy can't.
+  const u = `https://open.spotify.com/oembed?url=${encodeURIComponent(
+    `https://open.spotify.com/track/${trackId}`,
+  )}`;
+  const res = await fetch(u, { signal });
+  if (!res.ok) return null;
+  const data = (await res.json()) as { thumbnail_url?: string };
+  return data.thumbnail_url ?? null;
+}
+
 export const PLACEHOLDER_THUMB =
   "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='300'%20height='300'%3E%3Crect%20width='300'%20height='300'%20fill='%230b0d10'/%3E%3Ccircle%20cx='150'%20cy='150'%20r='118'%20fill='none'%20stroke='%2300ffea'%20stroke-opacity='0.22'/%3E%3Ccircle%20cx='150'%20cy='150'%20r='78'%20fill='none'%20stroke='%2300ffea'%20stroke-opacity='0.15'/%3E%3Ctext%20x='150'%20y='172'%20font-family='monospace'%20font-size='44'%20fill='%2300ffea'%20fill-opacity='0.4'%20text-anchor='middle'%3E%E2%99%AA%3C/text%3E%3C/svg%3E";
 
@@ -458,6 +477,31 @@ function PlaylistCarousel({
 }) {
   const [ptrStart, setPtrStart] = useState<number | null>(null);
   const [dragOffset, setDragOffset] = useState(0);
+
+  // Resolve missing/placeholder covers in the visitor's browser via Spotify
+  // oEmbed. The server side can't reach api.spotify.com from the sandbox, but
+  // the browser can — and oEmbed's CORS is open. Results are cached at the
+  // module level so re-mounting the carousel doesn't refire fetches.
+  const [resolvedCovers, setResolvedCovers] = useState<Record<string, string>>(
+    () => Object.fromEntries(COVER_CACHE),
+  );
+  useEffect(() => {
+    const controller = new AbortController();
+    const needed = tracks.filter(
+      (t) => (!t.thumb || t.thumb === PLACEHOLDER_THUMB) && !COVER_CACHE.has(t.id),
+    );
+    needed.forEach(async (t) => {
+      try {
+        const thumb = await fetchSpotifyCover(t.id, controller.signal);
+        if (!thumb) return;
+        COVER_CACHE.set(t.id, thumb);
+        setResolvedCovers((prev) => ({ ...prev, [t.id]: thumb }));
+      } catch {
+        // CORS / network / abort — silently fall back to placeholder
+      }
+    });
+    return () => controller.abort();
+  }, [tracks]);
   const isDragging = dragOffset !== 0 || ptrStart !== null;
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const active = tracks[activeIdx];
@@ -570,7 +614,7 @@ function PlaylistCarousel({
                   transition: 'border-color 0.35s, box-shadow 0.35s',
                 }}>
                   <img
-                    src={track.thumb || PLACEHOLDER_THUMB} alt={track.title}
+                    src={resolvedCovers[track.id] || track.thumb || PLACEHOLDER_THUMB} alt={track.title}
                     onError={(e) => {
                       if (e.currentTarget.src !== PLACEHOLDER_THUMB) e.currentTarget.src = PLACEHOLDER_THUMB;
                     }}
