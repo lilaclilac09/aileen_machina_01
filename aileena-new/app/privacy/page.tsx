@@ -82,11 +82,36 @@ export default function PrivacyPage() {
 
         <h2 style={h2}>Where it goes</h2>
         <p>
-          Emails and messages are sent through <strong>Resend</strong>{' '}
-          (a transactional email provider that delivers the message and does
-          not keep a marketing copy) to the Site operator. That is the only
+          Anything you send through the agent lead-capture flow — your
+          email, the optional name/note, the transcript you choose to
+          forward — is delivered through <strong>Resend</strong> (a
+          transactional email provider that does not keep a marketing
+          copy) to the Site operator. That&rsquo;s the only human
           destination. Nothing is sold, syndicated, or shared with anyone
           else.
+        </p>
+
+        <h2 style={h2}>The agent</h2>
+        <p>
+          The agent itself is a chat backed by a third-party large
+          language model. When you send a message, the message — plus
+          the last ~20 turns of the current conversation and a fixed
+          system prompt about this site — goes over HTTPS to the model
+          provider, which returns the response.
+        </p>
+        <p>
+          Current provider: <strong>Anthropic</strong> (Claude, US). If
+          the provider changes (for cost or latency reasons), the name
+          above will be updated and the date at the top of this page
+          will move with it. Under Anthropic&rsquo;s API policy, inputs
+          and outputs are deleted after 30 days and are not used for
+          model training.
+        </p>
+        <p>
+          The Site itself keeps no separate copy of the conversation
+          beyond what&rsquo;s described under &ldquo;What you
+          send&rdquo; — i.e. only when you actively opt into the
+          lead-capture flow.
         </p>
 
         <h2 style={h2}>Cookies</h2>
