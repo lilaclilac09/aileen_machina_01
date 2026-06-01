@@ -166,8 +166,9 @@ export async function POST(req: Request) {
     temperature: 0.4,
     // Cap response length — a portfolio agent doesn't need essays. Shorter
     // generations finish noticeably faster end-to-end on slower providers
-    // (DeepSeek in particular).
-    maxOutputTokens: 400,
+    // (DeepSeek in particular). 200 tokens ≈ 4–5 short sentences, which is
+    // already at the upper bound of what the system prompt asks for.
+    maxOutputTokens: 200,
     // Prompt caching on the static system block is Anthropic-specific — only
     // send it when we're actually on Anthropic.
     ...(picked.isAnthropic
