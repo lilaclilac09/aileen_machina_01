@@ -467,7 +467,15 @@ export default function AgentChat() {
               </p>
             )}
             <p className="mt-2 font-mono text-[0.5rem] tracking-[0.28em] uppercase text-white/30">
-              the chat transcript is attached to your message
+              the chat transcript is attached to your message ·{' '}
+              <a
+                href="/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline decoration-white/20 underline-offset-2 hover:text-white/60 hover:decoration-white/40"
+              >
+                privacy
+              </a>
             </p>
           </div>
         )}
