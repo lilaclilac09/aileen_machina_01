@@ -1,6 +1,6 @@
 # AILEENA MACHINA
 
-Personal portfolio + CV site for Aileen Zhou. Lives at [aileena.xyz](https://aileena.xyz).
+Personal portfolio + CV site for Aileen. Lives at [aileena.xyz](https://aileena.xyz).
 
 Includes a small AI agent (Vercel AI SDK + Claude) you can chat with on the site to ask about her work, writing, stack, and availability.
 
