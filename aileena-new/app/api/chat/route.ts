@@ -6,7 +6,11 @@ import { SYSTEM_PROMPT } from '../../../lib/agentContext';
 export const runtime = 'edge';
 export const maxDuration = 30;
 
-const ANTHROPIC_MODEL = 'claude-sonnet-4-6';
+// Haiku is materially faster (TTFT + tokens/sec) than Sonnet, and this is a
+// FAQ-style portfolio agent — depth of reasoning matters far less than how
+// quickly the first words show up on screen. Switch back to Sonnet if answer
+// quality regresses.
+const ANTHROPIC_MODEL = 'claude-haiku-4-5';
 
 /**
  * Pick the model. Precedence:
