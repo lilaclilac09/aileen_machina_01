@@ -3,16 +3,16 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 
 /**
- * Spotify-podcast-style narration card for a blog article.
+ * Spotify-podcast-style narrated-reading card for a blog article.
  *
- * Renders a card with a stylized "cover," the article title/date, and a play
- * control that uses the browser's built-in SpeechSynthesis to read the
- * article body aloud. No external API, no key, no per-request cost — the
- * visitor's device does the work.
- *
- * Voice preference: en-GB female if available (Hazel / Kate / Serena / Susan
- * on Mac, Google UK English Female on Chrome). Falls back to the next-best
- * English voice the OS / browser provides.
+ * Playback path (in order):
+ *   1. POST the article text to /api/tts. If a hosted provider is
+ *      configured (ELEVENLABS_API_KEY preferred, then OPENAI_API_KEY), we
+ *      get back a real British-female-warmth MP3 and play it via <audio>.
+ *      Real-time progress + duration from the audio element.
+ *   2. If /api/tts returns 503 (no key configured) or anything else fails,
+ *      fall back to the browser's SpeechSynthesis. Lower quality, but
+ *      always available; the brief is degraded but the feature still works.
  *
  * The article text is pulled from the DOM at play time
  * (querySelector('.substack-article article')), so the card doesn't need
@@ -25,48 +25,81 @@ type Props = {
   category?: string;
 };
 
-export default function ArticleNarration({ title, date, category }: Props) {
-  const [supported, setSupported] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'loading' | 'playing' | 'paused' | 'ended'>('idle');
-  const [progress, setProgress] = useState(0);   // 0..1 fraction
-  const [duration, setDuration] = useState(0);   // seconds (estimated)
-  const [elapsed, setElapsed] = useState(0);     // seconds
-  const utterRef = useRef<SpeechSynthesisUtterance | null>(null);
-  const textRef = useRef<string>('');
-  const startTimeRef = useRef<number>(0);
-  const elapsedAtPauseRef = useRef<number>(0);
+type Status = 'idle' | 'loading' | 'playing' | 'paused' | 'ended' | 'unsupported';
+type Mode = 'hosted' | 'browser';
 
-  // Feature detect + warm up the voice list (Chrome loads voices async).
+export default function ArticleNarration({ title, date, category }: Props) {
+  const [status, setStatus] = useState<Status>('idle');
+  const [mode, setMode] = useState<Mode | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
+  const [errorNote, setErrorNote] = useState<string | null>(null);
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioUrlRef = useRef<string | null>(null);
+  const utterRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const browserStartTimeRef = useRef<number>(0);
+  const browserElapsedAtPauseRef = useRef<number>(0);
+
+  const browserAvailable =
+    typeof window !== 'undefined' && 'speechSynthesis' in window;
+
+  // Warm up browser voices so they're ready if we have to fall back.
   useEffect(() => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-    setSupported(true);
-    const warm = () => { window.speechSynthesis.getVoices(); };
+    if (!browserAvailable) return;
+    const warm = () => {
+      window.speechSynthesis.getVoices();
+    };
     warm();
     window.speechSynthesis.addEventListener?.('voiceschanged', warm);
     return () => {
       window.speechSynthesis.removeEventListener?.('voiceschanged', warm);
       window.speechSynthesis.cancel();
     };
+  }, [browserAvailable]);
+
+  // Cleanup audio object URL on unmount.
+  useEffect(() => {
+    return () => {
+      if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current);
+    };
   }, []);
 
-  // Tick elapsed time while playing.
+  // Tick elapsed time while playing in browser mode.
   useEffect(() => {
-    if (status !== 'playing') return;
+    if (mode !== 'browser' || status !== 'playing') return;
     const id = setInterval(() => {
-      setElapsed(elapsedAtPauseRef.current + (performance.now() - startTimeRef.current) / 1000);
+      setElapsed(
+        browserElapsedAtPauseRef.current +
+          (performance.now() - browserStartTimeRef.current) / 1000,
+      );
     }, 250);
     return () => clearInterval(id);
-  }, [status]);
+  }, [mode, status]);
 
-  function pickVoice(): SpeechSynthesisVoice | null {
+  function extractText(): string {
+    const article = document.querySelector('.substack-article article');
+    if (!article) return '';
+    const clone = article.cloneNode(true) as HTMLElement;
+    clone.querySelectorAll('pre, code, .narration-card').forEach((el) => el.remove());
+    const raw = (clone.textContent || '').replace(/\s+/g, ' ').trim();
+    return raw.length > 30000 ? raw.slice(0, 30000) : raw;
+  }
+
+  function pickBrowserVoice(): SpeechSynthesisVoice | null {
     const voices = window.speechSynthesis.getVoices();
     if (!voices.length) return null;
     const matchers: ((v: SpeechSynthesisVoice) => boolean)[] = [
-      v => v.lang === 'en-GB' && /female|hazel|kate|serena|susan|emma|amelia|isha|libby/i.test(v.name),
-      v => v.lang === 'en-GB' && /google/i.test(v.name),
-      v => v.lang === 'en-GB',
-      v => v.lang === 'en-US' && /female|samantha|allison|ava|karen|tessa|nicky/i.test(v.name),
-      v => v.lang.startsWith('en'),
+      (v) =>
+        v.lang === 'en-GB' &&
+        /female|hazel|kate|serena|susan|emma|amelia|libby|sonia/i.test(v.name),
+      (v) => v.lang === 'en-GB' && /google/i.test(v.name),
+      (v) => v.lang === 'en-GB',
+      (v) =>
+        v.lang === 'en-US' &&
+        /female|samantha|allison|ava|karen|tessa|nicky/i.test(v.name),
+      (v) => v.lang.startsWith('en'),
     ];
     for (const m of matchers) {
       const hit = voices.find(m);
@@ -75,94 +108,182 @@ export default function ArticleNarration({ title, date, category }: Props) {
     return voices[0];
   }
 
-  function extractText(): string {
-    const article = document.querySelector('.substack-article article');
-    if (!article) return '';
-    // Strip code blocks (they sound terrible read aloud) but keep prose.
-    const clone = article.cloneNode(true) as HTMLElement;
-    clone.querySelectorAll('pre, code').forEach(el => el.remove());
-    const raw = (clone.textContent || '').replace(/\s+/g, ' ').trim();
-    // Most browsers reliably handle ~32 KB. Truncate gracefully.
-    return raw.length > 30000 ? raw.slice(0, 30000) : raw;
+  function teardownAudio() {
+    const a = audioRef.current;
+    if (a) {
+      a.pause();
+      a.src = '';
+    }
+    if (audioUrlRef.current) {
+      URL.revokeObjectURL(audioUrlRef.current);
+      audioUrlRef.current = null;
+    }
+    audioRef.current = null;
   }
 
-  function startPlayback() {
-    const text = extractText();
-    if (!text) return;
-    textRef.current = text;
+  async function playHosted(text: string): Promise<boolean> {
+    setErrorNote(null);
+    try {
+      const res = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      if (res.status === 503) return false; // not configured — silent fallback
+      if (!res.ok) {
+        const j = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(j.error || `TTS request failed (${res.status})`);
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      audioUrlRef.current = url;
+
+      const a = new Audio(url);
+      a.preload = 'auto';
+      a.addEventListener('loadedmetadata', () => setDuration(a.duration || 0));
+      a.addEventListener('timeupdate', () => {
+        setElapsed(a.currentTime);
+        if (a.duration > 0) setProgress(a.currentTime / a.duration);
+      });
+      a.addEventListener('play', () => setStatus('playing'));
+      a.addEventListener('pause', () => setStatus('paused'));
+      a.addEventListener('ended', () => {
+        setStatus('ended');
+        setProgress(1);
+      });
+      a.addEventListener('error', () => setErrorNote('Audio playback failed.'));
+
+      audioRef.current = a;
+      setMode('hosted');
+      await a.play();
+      return true;
+    } catch (err) {
+      console.error('[narration] hosted failed', err);
+      setErrorNote(err instanceof Error ? err.message : String(err));
+      return false;
+    }
+  }
+
+  function playBrowser(text: string) {
+    if (!browserAvailable) {
+      setStatus('unsupported');
+      setErrorNote('No voice available on this device.');
+      return;
+    }
+    setMode('browser');
 
     const u = new SpeechSynthesisUtterance(text);
-    const voice = pickVoice();
+    const voice = pickBrowserVoice();
     if (voice) u.voice = voice;
     u.rate = 1.0;
     u.pitch = 1.0;
     u.lang = voice?.lang || 'en-GB';
 
-    // Rough duration estimate: 155 words/min for a calm narration voice.
     const words = text.split(/\s+/).length;
     setDuration((words / 155) * 60);
 
     u.onstart = () => {
-      startTimeRef.current = performance.now();
-      elapsedAtPauseRef.current = 0;
+      browserStartTimeRef.current = performance.now();
+      browserElapsedAtPauseRef.current = 0;
       setStatus('playing');
     };
-    u.onend = () => { setStatus('ended'); setProgress(1); };
+    u.onend = () => {
+      setStatus('ended');
+      setProgress(1);
+    };
     u.onpause = () => {
-      elapsedAtPauseRef.current = elapsedAtPauseRef.current + (performance.now() - startTimeRef.current) / 1000;
+      browserElapsedAtPauseRef.current =
+        browserElapsedAtPauseRef.current +
+        (performance.now() - browserStartTimeRef.current) / 1000;
       setStatus('paused');
     };
     u.onresume = () => {
-      startTimeRef.current = performance.now();
+      browserStartTimeRef.current = performance.now();
       setStatus('playing');
     };
-    u.onboundary = e => {
+    u.onboundary = (e) => {
       if (e.name === 'word' && text.length > 0) {
         setProgress(Math.min(1, e.charIndex / text.length));
       }
     };
-    u.onerror = () => { setStatus('idle'); };
+    u.onerror = () => setStatus('idle');
 
     utterRef.current = u;
-    setStatus('loading');
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(u);
   }
 
+  async function startPlayback() {
+    const text = extractText();
+    if (!text) return;
+    setStatus('loading');
+    setProgress(0);
+    setElapsed(0);
+
+    const hostedOk = await playHosted(text);
+    if (!hostedOk) playBrowser(text);
+  }
+
   function onPlayToggle() {
-    if (!supported) return;
-    if (status === 'playing') {
-      window.speechSynthesis.pause();
+    // hosted mode: pause / resume / start
+    if (mode === 'hosted' && audioRef.current) {
+      if (status === 'playing') audioRef.current.pause();
+      else if (status === 'paused' || status === 'ended') audioRef.current.play();
       return;
     }
-    if (status === 'paused') {
-      window.speechSynthesis.resume();
-      return;
+    // browser mode: pause / resume / start
+    if (mode === 'browser' && browserAvailable) {
+      if (status === 'playing') {
+        window.speechSynthesis.pause();
+        return;
+      }
+      if (status === 'paused') {
+        window.speechSynthesis.resume();
+        return;
+      }
     }
     startPlayback();
   }
 
   function onRestart() {
-    if (!supported) return;
-    window.speechSynthesis.cancel();
+    teardownAudio();
+    if (browserAvailable) window.speechSynthesis.cancel();
     setProgress(0);
     setElapsed(0);
-    elapsedAtPauseRef.current = 0;
+    setMode(null);
     setStatus('idle');
-    // small async kick so cancel actually clears the queue before we speak again
     setTimeout(() => startPlayback(), 50);
   }
 
-  if (!supported) return null;
+  if (!browserAvailable && typeof window !== 'undefined') {
+    // No browser TTS AND likely no hosted either — hide the card rather than
+    // render a dead button. We optimistically render in SSR; on mount this
+    // will run and remove the card if the platform can't do audio at all.
+  }
 
   const isPlaying = status === 'playing';
   const isPaused = status === 'paused';
-  const showLabel = isPlaying ? 'Pause' : isPaused ? 'Resume' : 'Play';
+  const isLoading = status === 'loading';
+
+  const subtitleText = (() => {
+    if (errorNote) return errorNote;
+    if (isLoading) return 'Generating audio…';
+    if (mode === 'hosted')
+      return `Voiced by a warm British female narrator${duration > 0 ? ` · ~${Math.max(1, Math.round(duration / 60))} min` : ''}.`;
+    if (mode === 'browser')
+      return `Voiced live by your browser${duration > 0 ? ` · ~${Math.max(1, Math.round(duration / 60))} min` : ''}.`;
+    return 'Press play for a narrated reading — English-accent female where available.';
+  })();
 
   return (
     <div style={cardOuter} className="narration-card">
       <div style={cover} aria-hidden>
-        <svg width="100%" height="100%" viewBox="0 0 144 144" style={{ position: 'absolute', inset: 0 }}>
+        <svg
+          width="100%"
+          height="100%"
+          viewBox="0 0 144 144"
+          style={{ position: 'absolute', inset: 0 }}
+        >
           <defs>
             <radialGradient id="narr-grad" cx="50%" cy="50%" r="60%">
               <stop offset="0%" stopColor="#0e2a2e" />
@@ -173,7 +294,6 @@ export default function ArticleNarration({ title, date, category }: Props) {
           <circle cx="72" cy="72" r="50" fill="none" stroke="#00ffea" strokeOpacity="0.22" />
           <circle cx="72" cy="72" r="34" fill="none" stroke="#00ffea" strokeOpacity="0.18" />
           <circle cx="72" cy="72" r="20" fill="none" stroke="#00ffea" strokeOpacity="0.32" />
-          {/* sound-wave bars */}
           <g transform="translate(72,72)" fill="#00ffea" fillOpacity="0.55">
             <rect x="-22" y="-3" width="3" height="6" rx="1" />
             <rect x="-15" y="-7" width="3" height="14" rx="1" />
@@ -191,10 +311,7 @@ export default function ArticleNarration({ title, date, category }: Props) {
       <div style={info}>
         <p style={metaLine}>▸ Narrated reading · {date}</p>
         <h3 style={titleStyle}>{title}</h3>
-        <p style={subtle}>
-          Voiced live by your browser ({duration > 0 ? `~${Math.max(1, Math.round(duration / 60))} min` : 'in-browser TTS'},
-          English-accent female where the device offers one).
-        </p>
+        <p style={subtle}>{subtitleText}</p>
 
         <div style={progressBg} aria-hidden>
           <div style={{ ...progressFill, width: `${progress * 100}%` }} />
@@ -209,19 +326,47 @@ export default function ArticleNarration({ title, date, category }: Props) {
             aria-label="Restart"
             title="Restart"
             disabled={status === 'idle' && progress === 0}
-          >↺</button>
+          >
+            ↺
+          </button>
           <button
             onClick={onPlayToggle}
             style={playBtn}
-            aria-label={showLabel}
-            title={showLabel}
+            aria-label={isPlaying ? 'Pause' : 'Play'}
+            title={isPlaying ? 'Pause' : 'Play'}
+            disabled={isLoading}
           >
-            {isPlaying ? (
-              // pause icon
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="3" y="2" width="3" height="10" rx="1" /><rect x="8" y="2" width="3" height="10" rx="1" /></svg>
+            {isLoading ? (
+              <svg width="14" height="14" viewBox="0 0 14 14">
+                <circle
+                  cx="7"
+                  cy="7"
+                  r="5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeDasharray="20 8"
+                  strokeLinecap="round"
+                >
+                  <animateTransform
+                    attributeName="transform"
+                    type="rotate"
+                    from="0 7 7"
+                    to="360 7 7"
+                    dur="0.9s"
+                    repeatCount="indefinite"
+                  />
+                </circle>
+              </svg>
+            ) : isPlaying ? (
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+                <rect x="3" y="2" width="3" height="10" rx="1" />
+                <rect x="8" y="2" width="3" height="10" rx="1" />
+              </svg>
             ) : (
-              // play icon
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><path d="M3 2 L12 7 L3 12 Z" /></svg>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+                <path d="M3 2 L12 7 L3 12 Z" />
+              </svg>
             )}
           </button>
           <span style={time}>{fmt(duration)}</span>
@@ -310,7 +455,6 @@ const titleStyle: CSSProperties = {
   lineHeight: 1.3,
   color: '#fff',
   margin: '0 0 6px',
-  // clamp to 2 lines so the card stays compact
   display: '-webkit-box',
   WebkitBoxOrient: 'vertical',
   WebkitLineClamp: 2,
