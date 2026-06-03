@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import ScrollUnlock from '../ScrollUnlock';
+import ArticleNarration from '../../../components/ArticleNarration';
 import './substack.css';
 
 export interface SubstackShellProps {
@@ -46,6 +47,10 @@ export default function SubstackShell({
 
       <div className="substack-rule">
         <div />
+      </div>
+
+      <div style={{ padding: '0 24px' }}>
+        <ArticleNarration title={title} date={date} category={category} />
       </div>
 
       {children}
