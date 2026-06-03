@@ -335,6 +335,12 @@ export const t = {
             title: 'Where Marvell Sits in the AI Optical Stack',
             body: 'One specific tier of the AI optical supply chain that Marvell owns more or less alone: the TIA (the amplifier between the photon and the brain). ~80% of 800G single-mode TIA, and the only volume player on 1.6T TIA today — Macom and Semtech still in sampling, 1H 2027 at the earliest. Above it Marvell fights Broadcom for the DSP market (~90% non-Nvidia is Broadcom\'s) while both ration the same TSMC 3 nm capacity. White-box switch silicon for Google/Amazon/Microsoft is jointly defended. Where Marvell is absent: Google\'s 2.4T coherent (Google\'s own DSP, ex-Inphi team) and the Nvidia–TSMC 3.2T CPO main line. Verdict: technology lead in TIA, structural pressure in DSP, co-architect in NPO.',
           },
+          {
+            date: '2026.06.01',
+            href: '/blog/broadcom',
+            title: 'Where Broadcom Sits in the AI Stack',
+            body: 'The most-dominant non-Nvidia AI silicon vendor — Google\'s TPU partner across v7 and v8, the data-centre switch-chip king (Tomahawk 6 at 1.2T per port), one of two real EML suppliers (~half its capacity booked by Eoptolink alone), and ~90% of the high-speed pluggable-DSP market outside Nvidia. And the company facing the most credible disruption pressure in the sector: MediaTek peeling off Google\'s V8E inference TPU, Marvell winning AWS Trainium 2/3 and a Google FFN socket, OpenAI guiding 2026 ASIC volumes conservatively (~2,000 racks at ~$3M each = $6–8B, vs ~$30B/year of OpenAI–Nvidia spend), and a CPO transition that would cannibalize Broadcom\'s own EML + DSP empire. Four pillars and three pressures.',
+          },
         ],
       },
       womanInTech: {
@@ -737,6 +743,12 @@ export const t = {
             href: '/blog/marvell',
             title: 'Wo Marvell im KI-Optik-Stack sitzt',
             body: 'Eine konkrete Schicht im KI-Optik-Supply-Chain, die Marvell mehr oder weniger allein besitzt: der TIA (der Verstärker zwischen Photon und Datenpfad). ~80% Anteil am 800G-Single-Mode-TIA und heute der einzige Volumen-Hersteller bei 1,6T-TIA — Macom und Semtech bemustern noch, frühestens 1H 2027 in Serie. Eine Etage darüber kämpft Marvell gegen Broadcom um den DSP-Markt (~90% nicht-Nvidia gehört Broadcom), beide rationieren dieselbe TSMC-3-nm-Kapazität. Das White-Box-Switch-Silizium für Google/Amazon/Microsoft ist gemeinsam verteidigt. Wo Marvell fehlt: Googles 2,4T-Kohärent-Programm (eigenes DSP-Team, Inphi-Alumni) und die Hauptlinie Nvidia–TSMC 3,2T CPO. Fazit: Technologievorsprung bei TIA, struktureller Druck bei DSP, Mitarchitekt bei NPO.',
+          },
+          {
+            date: '2026.06.01',
+            href: '/blog/broadcom',
+            title: 'Wo Broadcom im KI-Stack sitzt',
+            body: 'Der dominanteste nicht-Nvidia-KI-Siliziumlieferant — Googles TPU-Partner über v7 und v8, der Switch-Chip-König im Rechenzentrum (Tomahawk 6 mit 1,2T pro Port), einer der zwei realen EML-Anbieter (rund die Hälfte der Kapazität allein durch Eoptolink gebucht) und ~90% des High-Speed-Pluggable-DSP-Markts außerhalb Nvidias. Und das Unternehmen mit dem glaubwürdigsten Verdrängungsdruck der Branche: MediaTek nimmt Googles V8E-Inferenz-TPU mit; Marvell holt sich AWS Trainium 2/3 und einen Google-FFN-Socket; OpenAI führt 2026 die ASIC-Stückzahlen konservativ (~2.000 Racks à ~3 Mio. $ = 6–8 Mrd. $, gegenüber ~30 Mrd. $/Jahr OpenAI-Nvidia-Ausgaben); und eine CPO-Transition, die Broadcoms eigenes EML- + DSP-Imperium kannibalisieren würde. Vier Säulen und drei Drücke.',
           },
         ],
       },
