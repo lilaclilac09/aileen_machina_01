@@ -323,6 +323,18 @@ export const t = {
             title: 'Let There Be Light Modules',
             body: 'If the GPU is the brain of an AI cluster, the optical module is the nerve that lets the brains talk — it turns electricity into light, runs it down a fiber, and turns it back. What an optical module actually is (EML → fiber → photodetector, a lighthouse blinking Morse at terabit speed), the routes racing to build it (EML, silicon photonics, LPO, CPO, Micro LED, plus Google\'s OCS switching in the light domain), where the value pools (optical chips booked to 2028, the optical engine, hand-built FAUs, Coherent\'s isolator monopoly), and where it goes to work (in-DC 800G→1.6T, long-haul DCI, in-rack CPO). Ends on a one-screen mind map — because without it, the strongest GPU is an island.',
           },
+          {
+            date: '2026.06.01',
+            href: '/blog/ai-cooling',
+            title: 'What\'s Cooling the AI Build-Out',
+            body: 'Optical modules hit a thermal cliff at 20 watts. Below it air cooling works but a 1.6T module runs at ~1.4T effective; above it only liquid cools — and Amphenol holds a near-monopoly on the patented cage assembly (TE projected to parity by 2027). Behind them, tier-2 contract manufacturers (Dintech, Sunway, Yidong) capture the actual upside as demand spikes. Unit economics: ~¥1,800 per 2×8 set. Two binary risks above the steady-state Pareto: CPO (2027–2028) zeroes the pluggable-cooling stack, while Coherent\'s diamond-particle SiC ceramic (2× copper conductivity at 60% the weight, −15 °C chip temp, 2H 2027 revenue) is the one non-displaceable wildcard.',
+          },
+          {
+            date: '2026.06.01',
+            href: '/blog/marvell',
+            title: 'Where Marvell Sits in the AI Optical Stack',
+            body: 'One specific tier of the AI optical supply chain that Marvell owns more or less alone: the TIA (the amplifier between the photon and the brain). ~80% of 800G single-mode TIA, and the only volume player on 1.6T TIA today — Macom and Semtech still in sampling, 1H 2027 at the earliest. Above it Marvell fights Broadcom for the DSP market (~90% non-Nvidia is Broadcom\'s) while both ration the same TSMC 3 nm capacity. White-box switch silicon for Google/Amazon/Microsoft is jointly defended. Where Marvell is absent: Google\'s 2.4T coherent (Google\'s own DSP, ex-Inphi team) and the Nvidia–TSMC 3.2T CPO main line. Verdict: technology lead in TIA, structural pressure in DSP, co-architect in NPO.',
+          },
         ],
       },
       womanInTech: {
@@ -713,6 +725,18 @@ export const t = {
             href: '/blog/let-there-be-light',
             title: 'Es werde Licht — das Lichtmodul',
             body: 'Wenn die GPU das Gehirn eines KI-Clusters ist, ist das Lichtmodul der Nerv, der die Gehirne reden lässt — es wandelt Strom in Licht, schickt es durch eine Faser und wieder zurück. Was ein Lichtmodul wirklich ist (EML → Faser → Fotodetektor, ein Leuchtturm, der mit Terabit-Tempo Morse blinkt), die konkurrierenden Routen (EML, Silizium-Photonik, LPO, CPO, Micro-LED, plus Googles OCS, das im Licht-Bereich schaltet), wo der Wert sitzt (Lichtchips bis 2028 ausgebucht, die Optical Engine, handgefertigte FAUs, Coherents Isolator-Monopol) und wo es arbeitet (im RZ 800G→1.6T, Langstrecke DCI, im Rack CPO). Endet mit einer Mindmap auf einen Blick — denn ohne es ist die stärkste GPU eine Insel.',
+          },
+          {
+            date: '2026.06.01',
+            href: '/blog/ai-cooling',
+            title: 'Was den KI-Ausbau kühlt',
+            body: 'Lichtmodule treffen bei 20 Watt auf eine thermische Klippe. Darunter funktioniert Luftkühlung, aber 1,6T läuft effektiv nur mit ~1,4T; darüber geht nur noch Flüssigkühlung — und Amphenol hält ein Quasi-Monopol auf das patentierte Cage-Modul (TE bis 2027 voraussichtlich gleichauf). Dahinter holen Tier-2-Auftragsfertiger (Dintech, Sunway, Yidong) die eigentlichen Margen ab, wenn die Nachfrage anzieht. Stückkosten: ~¥1.800 pro 2×8-Set. Zwei binäre Risiken über dem stationären Pareto: CPO (2027–2028) löscht den steckbaren Kühl-Stack, während Coherents Diamantpartikel-SiC-Keramik (2× Kupfer-Wärmeleitfähigkeit bei 60% des Gewichts, −15 °C Chiptemperatur, Umsatzbeitrag ab 2H 2027) der eine nicht verdrängbare Joker bleibt.',
+          },
+          {
+            date: '2026.06.01',
+            href: '/blog/marvell',
+            title: 'Wo Marvell im KI-Optik-Stack sitzt',
+            body: 'Eine konkrete Schicht im KI-Optik-Supply-Chain, die Marvell mehr oder weniger allein besitzt: der TIA (der Verstärker zwischen Photon und Datenpfad). ~80% Anteil am 800G-Single-Mode-TIA und heute der einzige Volumen-Hersteller bei 1,6T-TIA — Macom und Semtech bemustern noch, frühestens 1H 2027 in Serie. Eine Etage darüber kämpft Marvell gegen Broadcom um den DSP-Markt (~90% nicht-Nvidia gehört Broadcom), beide rationieren dieselbe TSMC-3-nm-Kapazität. Das White-Box-Switch-Silizium für Google/Amazon/Microsoft ist gemeinsam verteidigt. Wo Marvell fehlt: Googles 2,4T-Kohärent-Programm (eigenes DSP-Team, Inphi-Alumni) und die Hauptlinie Nvidia–TSMC 3,2T CPO. Fazit: Technologievorsprung bei TIA, struktureller Druck bei DSP, Mitarchitekt bei NPO.',
           },
         ],
       },
