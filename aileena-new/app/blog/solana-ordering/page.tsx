@@ -144,6 +144,66 @@ export default function SolanaOrderingArticle() {
           Eight cores don&rsquo;t help. Faster network doesn&rsquo;t help. The bottleneck is the
           lock on one account, and the order of arrivals at that lock is decided up in Stage 2.
         </p>
+
+        <p style={bodyStyle}>
+          AMM pools are just the loudest example. The same geometry shows up wherever a Solana
+          program collapses its state into one shared writable account:
+        </p>
+        <ul style={listStyle}>
+          <li>
+            <strong style={strong}>Lending reserves.</strong> Kamino, MarginFi, Solend, Save
+            &mdash; every deposit, borrow, repay, and liquidation writes the reserve&rsquo;s
+            aggregate state account (total borrows, total deposits, interest index). Liquidation
+            bots queue on this single lock; that&rsquo;s the entire shape of the liquidation race.
+          </li>
+          <li>
+            <strong style={strong}>Perp markets.</strong> Drift, Mango, Jupiter Perps &mdash; each
+            market has one market-state account holding the order book, funding rate, and open
+            interest. Every order, cancel, or close writes it. Liquidators and makers contend on
+            the same lock as Sealevel processes the slot.
+          </li>
+          <li>
+            <strong style={strong}>CLOB slabs.</strong> Phoenix, OpenBook &mdash; on-chain order
+            books are not AMMs, but they aren&rsquo;t safe from this either. Each market keeps
+            its bids and asks in slab accounts. Every place, cancel, and fill writes them. Same
+            serialization geometry, dressed up differently.
+          </li>
+          <li>
+            <strong style={strong}>Bonding-curve launchers.</strong> Pump.fun and copies give each
+            launched token one bonding-curve account holding its current price and reserves.
+            During the first minutes of a hot launch, that single account is the most contested
+            write target on the entire chain &mdash; hundreds of buyers per second, all
+            serialized through one lock.
+          </li>
+          <li>
+            <strong style={strong}>LST stake pools.</strong> JitoSOL, Marinade &mdash; every
+            deposit or withdraw writes the pool&rsquo;s aggregate state. Arb bots chasing the
+            LST&rsquo;s premium / discount queue on that account.
+          </li>
+          <li>
+            <strong style={strong}>NFT-mint candy machines.</strong> The candy machine / guard
+            state account is the bottleneck during a mint. &ldquo;Sniping a mint&rdquo; on Solana
+            isn&rsquo;t about gas price; it&rsquo;s about getting your buy in front of everyone
+            else&rsquo;s on that one writable account.
+          </li>
+        </ul>
+        <p style={bodyStyle}>
+          Generalize: <strong style={strong}>any program that collapses state into one aggregate
+          account, no matter how elegant, hits a hard serialization wall on that account.</strong>{' '}
+          Solana&rsquo;s parallelism doesn&rsquo;t rescue you from sharing.
+        </p>
+        <p style={bodyStyle}>
+          Which is why the teams that can write Solana programs at scale have stopped collapsing
+          state. <strong style={strong}>Phoenix</strong> splits its order book into per-tick slab
+          accounts, so trades at different price levels don&rsquo;t lock the same one.{' '}
+          <strong style={strong}>Raydium&rsquo;s CLMM</strong> puts liquidity into tick-range
+          accounts; swaps that cross different ranges execute in parallel.{' '}
+          <strong style={strong}>Drift v2</strong> pushes each user&rsquo;s position into its own
+          sub-account, with the central market state only touched at settlement. The shape of the
+          protocol <em>is</em> the way you avoid the lock &mdash; sharding is the architectural
+          reply to Sealevel.
+        </p>
+
         <p style={bodyStyle}>
           This is the geometry that makes MEV possible. If a sandwich&rsquo;s buy transaction and
           a victim&rsquo;s swap both write the same pool, and the sandwich is scheduled first,
