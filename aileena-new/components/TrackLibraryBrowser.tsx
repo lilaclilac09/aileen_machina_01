@@ -463,7 +463,7 @@ function ListTrackRow({ index, track, isPlayingLeft, isPlayingRight, pos, dur,
 
 /* ─── PLAYLIST CAROUSEL ───────────────────────────────────── */
 function PlaylistCarousel({
-  tracks,
+  tracks: incomingTracks,
   activeIdx,
   setActiveIdx,
   onLoadTrack,
@@ -477,6 +477,10 @@ function PlaylistCarousel({
 }) {
   const [ptrStart, setPtrStart] = useState<number | null>(null);
   const [dragOffset, setDragOffset] = useState(0);
+
+  // Carousel renders newest-first. Source order in TRACKS stays append-only
+  // (so /addmusic just pushes to the end), and we reverse for display here.
+  const tracks = useMemo(() => [...incomingTracks].slice().reverse(), [incomingTracks]);
 
   // Resolve missing/placeholder covers in the visitor's browser via Spotify
   // oEmbed. The server side can't reach api.spotify.com from the sandbox, but
