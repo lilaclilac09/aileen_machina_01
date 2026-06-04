@@ -108,6 +108,15 @@ export default function PrivacyPage() {
           model training.
         </p>
         <p>
+          You can also toggle the console to <strong>on-device mode</strong>{' '}
+          via the cloud / local switch at the top of the chat. In that mode,
+          your message and the reply stay entirely inside your browser — they
+          are processed by the browser&rsquo;s built-in language model
+          (currently Chrome 138+&rsquo;s Gemini Nano) and never reach this Site
+          or its provider. Quality is more limited; the toggle lets you pick
+          depth or privacy per question.
+        </p>
+        <p>
           The Site itself keeps no separate copy of the conversation
           beyond what&rsquo;s described under &ldquo;What you
           send&rdquo; — i.e. only when you actively opt into the
