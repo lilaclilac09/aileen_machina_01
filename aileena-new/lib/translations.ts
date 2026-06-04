@@ -341,6 +341,12 @@ export const t = {
             title: 'Where Broadcom Sits in the AI Stack',
             body: 'The most-dominant non-Nvidia AI silicon vendor — Google\'s TPU partner across v7 and v8, the data-centre switch-chip king (Tomahawk 6 at 1.2T per port), one of two real EML suppliers (~half its capacity booked by Eoptolink alone), and ~90% of the high-speed pluggable-DSP market outside Nvidia. And the company facing the most credible disruption pressure in the sector: MediaTek peeling off Google\'s V8E inference TPU, Marvell winning AWS Trainium 2/3 and a Google FFN socket, OpenAI guiding 2026 ASIC volumes conservatively (~2,000 racks at ~$3M each = $6–8B, vs ~$30B/year of OpenAI–Nvidia spend), and a CPO transition that would cannibalize Broadcom\'s own EML + DSP empire. Four pillars and three pressures.',
           },
+          {
+            date: '2026.06.02',
+            href: '/blog/cpo',
+            title: 'How CPO Actually Gets Built',
+            body: 'CPO is the technology that erases the pluggable optical-module empire — and the headline ship dates have slipped by a quarter every quarter. Walks what\'s actually inside the optical engine (PIC at 65 nm + EIC at 6 nm + 3-D FAU with sub-µm alignment + external ≥300 mW CW source), the six-step packaging flow, where the yield breaks (TSMC at ~75% vs 90–95% target — PIC/EIC hybrid bond loses ~10% alone; FAU active coupling needs engineers with 6-month training cycles), and why the ecosystem is structurally slow: Nvidia–TSMC own a closed main line, third parties are second-tier, CSPs hedge into NPO and keep pluggables. Real volume is 2027–2029; 2026 ships ~15,000 CPO switches off the back of a wafer test floor where one wafer takes 20+ hours to fully test. NVIDIA has prepaid via a $2B Coherent equity stake and a multi-B Lumentum commitment; Foxconn assembles exclusively (~25k unit 2027 target, ~10k+ likely actual); TFC delivered 7,200 FAU for demo only.',
+          },
         ],
       },
       womanInTech: {
@@ -749,6 +755,12 @@ export const t = {
             href: '/blog/broadcom',
             title: 'Wo Broadcom im KI-Stack sitzt',
             body: 'Der dominanteste nicht-Nvidia-KI-Siliziumlieferant — Googles TPU-Partner über v7 und v8, der Switch-Chip-König im Rechenzentrum (Tomahawk 6 mit 1,2T pro Port), einer der zwei realen EML-Anbieter (rund die Hälfte der Kapazität allein durch Eoptolink gebucht) und ~90% des High-Speed-Pluggable-DSP-Markts außerhalb Nvidias. Und das Unternehmen mit dem glaubwürdigsten Verdrängungsdruck der Branche: MediaTek nimmt Googles V8E-Inferenz-TPU mit; Marvell holt sich AWS Trainium 2/3 und einen Google-FFN-Socket; OpenAI führt 2026 die ASIC-Stückzahlen konservativ (~2.000 Racks à ~3 Mio. $ = 6–8 Mrd. $, gegenüber ~30 Mrd. $/Jahr OpenAI-Nvidia-Ausgaben); und eine CPO-Transition, die Broadcoms eigenes EML- + DSP-Imperium kannibalisieren würde. Vier Säulen und drei Drücke.',
+          },
+          {
+            date: '2026.06.02',
+            href: '/blog/cpo',
+            title: 'Wie CPO tatsächlich gebaut wird',
+            body: 'CPO ist die Technik, die das steckbare Lichtmodul-Imperium auslöschen würde — und die Liefertermine rutschen Quartal um Quartal. Der Artikel zerlegt, was in der Optical Engine wirklich steckt (PIC in 65 nm + EIC in 6 nm + 3-D-FAU mit Sub-µm-Alignment + externe ≥300 mW CW-Quelle), die sechs Verpackungsschritte, wo die Ausbeute zerbricht (TSMC bei ~75% gegen 90–95% Ziel — PIC/EIC-Hybridbonding allein verliert ~10%; FAU-Aktivkopplung braucht Ingenieure mit 6-monatigem Trainingszyklus), und warum das Ökosystem strukturell langsam ist: Nvidia und TSMC besitzen eine geschlossene Hauptlinie, Dritte sind zweite Reihe, CSPs hedgen in NPO und behalten Pluggables. Reales Volumen liegt 2027–2029; 2026 werden ~15.000 CPO-Switches geliefert, hinter einer Testfläche, auf der ein Wafer 20+ Stunden braucht. NVIDIA hat per 2 Mrd. $ Coherent-Beteiligung und mehrstelliger Lumentum-Zusage vorgekauft; Foxconn montiert exklusiv (~25k Ziel 2027, ~10k+ wahrscheinlich real); TFC lieferte 7.200 FAU nur als Demo.',
           },
         ],
       },
