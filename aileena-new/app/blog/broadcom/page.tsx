@@ -237,7 +237,7 @@ export default function BroadcomArticle() {
         </p>
         <ol style={listStyle}>
           <li>
-            <strong style={strong}>CPO execution.</strong> Any 2H 2026 milestone on the Mach&ndash;
+            <strong style={strong}>CPO execution.</strong> Any <strong style={strong}>2H 2026</strong> milestone on the Mach&ndash;
             Zehnder open-CPO route would change the catch-22 calculus &mdash; or, if missed,
             cement the &ldquo;follower&rdquo; reading.
           </li>
