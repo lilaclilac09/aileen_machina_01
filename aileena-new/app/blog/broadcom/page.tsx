@@ -214,6 +214,68 @@ export default function BroadcomArticle() {
           &ldquo;a slice, not the whole.&rdquo;
         </p>
 
+        <div style={{ margin: '40px 0 8px', overflowX: 'auto' }}>
+          <table style={tableStyle}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.22)' }}>
+                <th style={thStyle}>Pillar</th>
+                <th style={thStyle}>Strength figure</th>
+                <th style={thStyle}>Pressure vector</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Custom ASIC</td>
+                <td style={tdStyle}>
+                  Google TPU v7 + v8 design partner; OpenAI in-house training ASIC at{' '}
+                  <strong style={strong}>$6&ndash;8 B</strong>,{' '}
+                  <strong style={strong}>~2,000 racks</strong>, volume{' '}
+                  <strong style={strong}>2H 2026</strong>
+                </td>
+                <td style={tdStyle}>
+                  MediaTek on Google&rsquo;s <strong style={strong}>V8E</strong> inference;
+                  OpenAI conservative on 2026 volumes vs its{' '}
+                  <strong style={strong}>~$30 B/yr</strong> Nvidia spend
+                </td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Switch silicon</td>
+                <td style={tdStyle}>
+                  Tomahawk 6 at <strong style={strong}>1.2 T per port</strong>; inside almost
+                  every Cisco / Arista / Huawei / H3C box
+                </td>
+                <td style={tdStyle}>
+                  Marvell is the credible challenger; share intact on a{' '}
+                  <strong style={strong}>2&ndash;3 year</strong> horizon
+                </td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>Optical chips</td>
+                <td style={tdStyle}>
+                  ~<strong style={strong}>90%</strong> non-Nvidia DSP share; 1 of 2 real EML
+                  suppliers; Eoptolink alone has booked{' '}
+                  <strong style={strong}>&gt;50%</strong> of EML capacity
+                </td>
+                <td style={tdStyle}>
+                  200 G EML lead times stretch to a year; TSMC{' '}
+                  <strong style={strong}>3 nm</strong> capacity caps DSP shipments
+                </td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={tdLabelStyle}>CPO</td>
+                <td style={tdStyle}>
+                  Open Mach&ndash;Zehnder route; prototype / pilot scale today
+                </td>
+                <td style={tdStyle}>
+                  <strong style={strong}>2H 2027&ndash;28</strong> window &mdash;{' '}
+                  <strong style={strong}>6&ndash;12 mo</strong> behind Nvidia; every CPO win
+                  cannibalises Broadcom&rsquo;s own EML + DSP + pluggable-module book
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
         <SectionLabel>The shape</SectionLabel>
         <ul style={listStyle}>
           <li>
@@ -310,6 +372,35 @@ const listStyle: React.CSSProperties = {
   letterSpacing: '0.025em',
   marginBottom: 24,
   paddingLeft: 22,
+};
+const tableStyle: React.CSSProperties = {
+  width: '100%',
+  borderCollapse: 'collapse',
+  fontSize: '0.9rem',
+};
+const thStyle: React.CSSProperties = {
+  textAlign: 'left',
+  padding: '10px 16px 10px 0',
+  fontFamily: 'monospace',
+  fontSize: '0.65rem',
+  letterSpacing: '0.18em',
+  textTransform: 'uppercase',
+  color: 'rgba(255,255,255,0.55)',
+  fontWeight: 600,
+};
+const trStyle: React.CSSProperties = { borderBottom: '1px solid rgba(255,255,255,0.07)' };
+const tdLabelStyle: React.CSSProperties = {
+  padding: '14px 16px 14px 0',
+  color: 'rgba(255,255,255,0.85)',
+  fontWeight: 600,
+  verticalAlign: 'top',
+  whiteSpace: 'nowrap',
+};
+const tdStyle: React.CSSProperties = {
+  padding: '14px 16px 14px 0',
+  color: 'rgba(255,255,255,0.7)',
+  verticalAlign: 'top',
+  lineHeight: 1.55,
 };
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
