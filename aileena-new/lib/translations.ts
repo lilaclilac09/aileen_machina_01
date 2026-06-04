@@ -347,6 +347,12 @@ export const t = {
             title: 'How CPO Actually Gets Built',
             body: 'CPO is the technology that erases the pluggable optical-module empire — and the headline ship dates have slipped by a quarter every quarter. Walks what\'s actually inside the optical engine (PIC at 65 nm + EIC at 6 nm + 3-D FAU with sub-µm alignment + external ≥300 mW CW source), the six-step packaging flow, where the yield breaks (TSMC at ~75% vs 90–95% target — PIC/EIC hybrid bond loses ~10% alone; FAU active coupling needs engineers with 6-month training cycles), and why the ecosystem is structurally slow: Nvidia–TSMC own a closed main line, third parties are second-tier, CSPs hedge into NPO and keep pluggables. Real volume is 2027–2029; 2026 ships ~15,000 CPO switches off the back of a wafer test floor where one wafer takes 20+ hours to fully test. NVIDIA has prepaid via a $2B Coherent equity stake and a multi-B Lumentum commitment; Foxconn assembles exclusively (~25k unit 2027 target, ~10k+ likely actual); TFC delivered 7,200 FAU for demo only.',
           },
+          {
+            date: '2026.06.02',
+            href: '/blog/ai-pcb',
+            title: 'The PCB Stack Inside an AI Rack',
+            body: 'Five PCBs sit inside a current-generation AI rack — HDI compute, switch, mid plane, orthogonal backplane, and the substrate-like board that decides 2027. Taiwan held the high-layer-board market for two decades. Mainland China overtook them on fifth-order 22-layer HDI in 2025 (Victory Giant at ~90% yield, >70% of GB200 / GB300 share, against Unimicron at ~80% — the difference is factory age: 2024-greenfield vs 2001–2002 line). Why the mid plane exists (NVIDIA 576 rack replaces 5,000+ copper cables with a 44-layer orthogonal stack: M9 + Q-cloth + 4th-gen copper foil, 18 per cabinet). Three barriers reshuffling share: substrate-like PCB at 10 µm lines requires new clean-room plants, not retrofits (Avary has Apple SLP experience, Victory Giant is committing capex); M9 / Q-cloth retires mechanical drilling and opens Han\'s Laser to >60% domestic share; copper sintering for mid plane + backplane is industry-first and execution-speed-led. Plus the parallel Google TPU build (forecast revised 2.5–3M → 4M chips at ~$9k each; uses 22–24 layer multi-high-layer not HDI; ISU / Wus / ChaoYing incumbent; Victory Giant queuing for ~6 month certification).',
+          },
         ],
       },
       womanInTech: {
@@ -761,6 +767,12 @@ export const t = {
             href: '/blog/cpo',
             title: 'Wie CPO tatsächlich gebaut wird',
             body: 'CPO ist die Technik, die das steckbare Lichtmodul-Imperium auslöschen würde — und die Liefertermine rutschen Quartal um Quartal. Der Artikel zerlegt, was in der Optical Engine wirklich steckt (PIC in 65 nm + EIC in 6 nm + 3-D-FAU mit Sub-µm-Alignment + externe ≥300 mW CW-Quelle), die sechs Verpackungsschritte, wo die Ausbeute zerbricht (TSMC bei ~75% gegen 90–95% Ziel — PIC/EIC-Hybridbonding allein verliert ~10%; FAU-Aktivkopplung braucht Ingenieure mit 6-monatigem Trainingszyklus), und warum das Ökosystem strukturell langsam ist: Nvidia und TSMC besitzen eine geschlossene Hauptlinie, Dritte sind zweite Reihe, CSPs hedgen in NPO und behalten Pluggables. Reales Volumen liegt 2027–2029; 2026 werden ~15.000 CPO-Switches geliefert, hinter einer Testfläche, auf der ein Wafer 20+ Stunden braucht. NVIDIA hat per 2 Mrd. $ Coherent-Beteiligung und mehrstelliger Lumentum-Zusage vorgekauft; Foxconn montiert exklusiv (~25k Ziel 2027, ~10k+ wahrscheinlich real); TFC lieferte 7.200 FAU nur als Demo.',
+          },
+          {
+            date: '2026.06.02',
+            href: '/blog/ai-pcb',
+            title: 'Der PCB-Stapel im KI-Rack',
+            body: 'Fünf PCBs sitzen in einem aktuellen KI-Rack — HDI-Compute, Switch, Mid Plane, orthogonale Backplane und die SLP-Platine, die 2027 entscheidet. Taiwan hielt den High-Layer-Markt zwei Jahrzehnte. Festland-China hat es 2025 beim fünfter-Ordnung-22-Layer-HDI überholt (Victory Giant bei ~90% Yield und >70% Anteil an GB200 / GB300, gegen Unimicron bei ~80% — die Differenz ist Werksalter: 2024-Neubau vs. Linie von 2001–2002). Warum die Mid Plane existiert (NVIDIA 576 ersetzt 5.000+ Kupferkabel durch eine 44-Layer-Orthogonal-Struktur: M9 + Q-Glasgewebe + Kupferfolie der 4. Generation, 18 pro Rack). Drei Barrieren verschieben den Anteil: SLP bei 10 µm Linien braucht neue Reinraum-Werke, keine Retrofits (Avary hat Apple-SLP-Erfahrung, Victory Giant verpflichtet Capex); M9 / Q-Glasgewebe rentet mechanisches Bohren ab und öffnet Han\'s Laser >60% Inlandsanteil; Kupfer-Sintern für Mid Plane + Backplane ist Branchenerstmals und ausführungsgeschwindigkeits-bestimmt. Plus das parallele Google-TPU-Programm (Prognose von 2,5–3 Mio. → 4 Mio. Chips bei ~9.000 $ pro TPU; verwendet 22–24-Layer-Vielschicht statt HDI; ISU / Wus / ChaoYing etabliert; Victory Giant in der ~6-monatigen Zertifizierung).',
           },
         ],
       },
