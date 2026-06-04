@@ -76,8 +76,10 @@ export default function PrivacyPage() {
           </li>
         </ul>
         <p>
-          That&rsquo;s it. No analytics tracker, no Google or Meta pixel, no
-          Hotjar / PostHog, no behavioural fingerprint, no newsletter list.
+          That&rsquo;s it for content you actively send. No Google or Meta
+          pixel, no Hotjar / PostHog, no behavioural fingerprint, no
+          newsletter list. The Site does keep a lightweight page-view
+          counter &mdash; see &ldquo;Analytics&rdquo; below.
         </p>
 
         <h2 style={h2}>Where it goes</h2>
@@ -124,6 +126,17 @@ export default function PrivacyPage() {
           beyond what&rsquo;s described under &ldquo;What you
           send&rdquo; — i.e. only when you actively opt into the
           lead-capture flow.
+        </p>
+
+        <h2 style={h2}>Analytics</h2>
+        <p>
+          The Site uses <strong>Vercel Web Analytics</strong> to count page
+          views and unique visitors. It is <strong>cookieless</strong>, stores
+          no raw IP address, and de-duplicates visitors via a hashed daily
+          fingerprint that Vercel itself rotates and does not retain. No
+          event-level tracking, no behavioural profiling, no third-party
+          sharing. The dashboard shows totals (page views, unique visitors,
+          top pages, country, device class) and nothing else.
         </p>
 
         <h2 style={h2}>Cookies</h2>

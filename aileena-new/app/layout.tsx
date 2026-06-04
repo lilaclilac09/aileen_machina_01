@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { Analytics } from '@vercel/analytics/next';
 import { LanguageProvider } from '../components/LanguageProvider';
 import AgentChat from '../components/AgentChat';
 
@@ -18,6 +19,7 @@ export default function RootLayout({
       <body className="bg-black text-white" style={{ height: '100%', overflow: 'hidden' }}>
         <LanguageProvider>{children}</LanguageProvider>
         <AgentChat />
+        <Analytics />
       </body>
     </html>
   );
