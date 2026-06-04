@@ -100,12 +100,15 @@ export default function PrivacyPage() {
           provider, which returns the response.
         </p>
         <p>
-          Current provider: <strong>Anthropic</strong> (Claude, US). If
-          the provider changes (for cost or latency reasons), the name
-          above will be updated and the date at the top of this page
-          will move with it. Under Anthropic&rsquo;s API policy, inputs
-          and outputs are deleted after 30 days and are not used for
-          model training.
+          Current provider: <strong>Google</strong> (Gemini 2.5 Flash via the
+          Gemini API, US). If the provider changes (for cost or latency
+          reasons), the name above will be updated and the date at the top of
+          this page will move with it. On Google&rsquo;s free tier of the
+          Gemini API, where this site currently sits, Google&rsquo;s terms
+          permit messages and responses to be used to improve their services;
+          on the paid tier that does not apply. If traffic ever exceeds the
+          free quota and the Site moves to paid, this paragraph will be
+          updated.
         </p>
         <p>
           You can also toggle the console to <strong>on-device mode</strong>{' '}
