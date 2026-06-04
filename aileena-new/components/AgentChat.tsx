@@ -3,6 +3,13 @@
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { SYSTEM_PROMPT_LITE } from '../lib/agentContextLite';
+import {
+  getBrowserAgentAvailability,
+  createBrowserSession,
+  type Availability as BrowserAvailability,
+  type BrowserSession,
+} from '../lib/browserAgent';
 
 const STARTER_PROMPTS = [
   "what's her solana stack?",
@@ -12,6 +19,8 @@ const STARTER_PROMPTS = [
 
 const SESSION_LIMIT = 5;
 const SESSION_KEY = 'aileena_chat_count';
+const RUNTIME_KEY = 'aileena_runtime';
+type Runtime = 'cloud' | 'browser';
 
 // Shown instead of the provider's raw "credit balance is too low" billing error.
 // This agent is a personal demo, not a free public API.
@@ -53,11 +62,51 @@ export default function AgentChat() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  const { messages, sendMessage, status, error } = useChat({
+  const { messages, setMessages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({ api: '/api/chat' }),
   });
 
-  const busy = status === 'submitted' || status === 'streaming';
+  // ──────────────── On-device runtime (Chrome Prompt API) ────────────────
+  const [runtime, setRuntime] = useState<Runtime>('cloud');
+  const [browserAvail, setBrowserAvail] = useState<BrowserAvailability>('unsupported');
+  const [browserBusy, setBrowserBusy] = useState(false);
+  const browserSessionRef = useRef<BrowserSession | null>(null);
+  const browserAbortRef = useRef<AbortController | null>(null);
+
+  // Detect availability once at mount + restore preference.
+  useEffect(() => {
+    getBrowserAgentAvailability().then(setBrowserAvail);
+    try {
+      const saved = localStorage.getItem(RUNTIME_KEY);
+      if (saved === 'browser' || saved === 'cloud') setRuntime(saved);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  // Persist preference whenever it changes.
+  useEffect(() => {
+    try {
+      localStorage.setItem(RUNTIME_KEY, runtime);
+    } catch {
+      /* ignore */
+    }
+  }, [runtime]);
+
+  // Tear down session + any in-flight stream on unmount.
+  useEffect(() => {
+    return () => {
+      browserAbortRef.current?.abort();
+      browserSessionRef.current?.destroy();
+    };
+  }, []);
+
+  // The runtime that actually executes: browser only when the user picked it
+  // AND the on-device model is ready. Anything else falls through to cloud.
+  const browserReady = browserAvail === 'available';
+  const activeRuntime: Runtime = runtime === 'browser' && browserReady ? 'browser' : 'cloud';
+
+  const busy = status === 'submitted' || status === 'streaming' || browserBusy;
   const sessionMaxed = sessionCount >= SESSION_LIMIT;
   // Hard gate: once the visitor has sent LEAD_THRESHOLD messages, chat is
   // blocked until they submit the lead form. Re-enables when leadState='sent'.
@@ -196,11 +245,84 @@ export default function AgentChat() {
     }
   }, [sessionMaxed, messages.length, forwardTranscriptNow]);
 
+  async function ensureBrowserSession(): Promise<BrowserSession | null> {
+    if (browserSessionRef.current) return browserSessionRef.current;
+    const session = await createBrowserSession(SYSTEM_PROMPT_LITE);
+    browserSessionRef.current = session;
+    return session;
+  }
+
+  async function sendBrowser(text: string) {
+    setBrowserBusy(true);
+    browserAbortRef.current?.abort();
+    const ac = new AbortController();
+    browserAbortRef.current = ac;
+
+    const userId =
+      typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `u-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const assistantId =
+      typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `a-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+    // Push user + empty assistant placeholder atomically so the typing
+    // indicator anchors against the right id even before the first token
+    // streams back.
+    setMessages((prev) => [
+      ...prev,
+      { id: userId, role: 'user', parts: [{ type: 'text', text }] },
+      { id: assistantId, role: 'assistant', parts: [{ type: 'text', text: '' }] },
+    ]);
+
+    try {
+      const session = await ensureBrowserSession();
+      if (!session) throw new Error('On-device agent unavailable on this browser.');
+      const stream = session.promptStreaming(text, { signal: ac.signal });
+      let acc = '';
+      for await (const chunk of stream) {
+        acc += chunk;
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId
+              ? { ...m, parts: [{ type: 'text', text: acc }] }
+              : m,
+          ),
+        );
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Local agent error.';
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantId
+            ? {
+                ...m,
+                parts: [
+                  {
+                    type: 'text',
+                    text: `local agent failed (${msg}). switch to cloud at the top of the console to keep going.`,
+                  },
+                ],
+              }
+            : m,
+        ),
+      );
+    } finally {
+      setBrowserBusy(false);
+    }
+  }
+
   function ask(text: string) {
     const trimmed = text.trim();
     if (!trimmed || busy || sessionMaxed || mustProvideEmail) return;
     setInput('');
-    sendMessage({ text: trimmed });
+
+    if (activeRuntime === 'browser') {
+      sendBrowser(trimmed);
+    } else {
+      sendMessage({ text: trimmed });
+    }
 
     const next = sessionCount + 1;
     setSessionCount(next);
@@ -347,6 +469,43 @@ export default function AgentChat() {
             <span className="text-[0.6rem] tracking-[0.3em] text-[#00ffea]/80 uppercase truncate">aileena · console</span>
           </div>
           <div className="flex items-center gap-3">
+            {/* Runtime toggle — cloud (server) ↔ local (Chrome Prompt API).
+                Disabled when the browser doesn't expose window.LanguageModel. */}
+            {(() => {
+              const canToggle = browserAvail !== 'unsupported';
+              const showingLocal = activeRuntime === 'browser';
+              const title = !canToggle
+                ? 'On-device AI not supported in this browser. Cloud only.'
+                : browserAvail === 'downloadable'
+                  ? 'On-device model not yet downloaded — first message will trigger the download.'
+                  : browserAvail === 'downloading'
+                    ? 'On-device model is downloading…'
+                    : showingLocal
+                      ? 'On-device mode — message stays on your device. Click to switch to cloud.'
+                      : 'Cloud mode — full archive. Click to switch to on-device.';
+              return (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!canToggle) return;
+                    setRuntime(runtime === 'browser' ? 'cloud' : 'browser');
+                  }}
+                  disabled={!canToggle}
+                  title={title}
+                  aria-label={title}
+                  className="text-[0.55rem] tracking-[0.25em] uppercase px-1 transition-colors disabled:cursor-not-allowed"
+                  style={{
+                    color: !canToggle
+                      ? 'rgba(255,255,255,0.18)'
+                      : showingLocal
+                        ? '#00ffea'
+                        : 'rgba(255,255,255,0.45)',
+                  }}
+                >
+                  {showingLocal ? '◆ local' : '○ cloud'}
+                </button>
+              );
+            })()}
             <div className="flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-[#00ffea] shadow-[0_0_6px_rgba(0,255,234,0.9)] animate-pulse" />
               <span className="text-[0.55rem] tracking-[0.25em] text-[#00ffea]/60 uppercase">live</span>
