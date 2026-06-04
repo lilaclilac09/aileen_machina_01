@@ -13,33 +13,83 @@ export const maxDuration = 30;
 const ANTHROPIC_MODEL = 'claude-haiku-4-5';
 
 /**
- * Pick the model. Precedence:
- *   1. AGENT_BASE_URL — any public, OpenAI-compatible endpoint
- *      (Ollama / vLLM / LM Studio / llama.cpp / Fireworks / Together / DeepSeek …).
- *      Optional: AGENT_API_KEY, AGENT_MODEL.
- *   2. DEEPSEEK_API_KEY — convenience: drop the key in and we default
- *      baseURL to https://api.deepseek.com and model to "deepseek-chat".
- *      Override the model with AGENT_MODEL ("deepseek-reasoner" for R1, etc.).
- *   3. ANTHROPIC_API_KEY — fall back to Anthropic so the agent keeps working
- *      until one of the above is wired up.
+ * Pick the model. Tiered fallback:
+ *   Tier 1 (primary)   — AGENT_BASE_URL (any OpenAI-compatible endpoint,
+ *                        typically Gemini 2.5 Flash). Optional AGENT_API_KEY,
+ *                        AGENT_MODEL.
+ *   Tier 2 (fallback)  — DEEPSEEK_API_KEY — drops in DeepSeek-chat.
+ *   Tier 3 (last resort) — ANTHROPIC_API_KEY — Claude Haiku 4.5.
  *
- * NOTE: AGENT_BASE_URL must be reachable from Vercel — a PUBLIC url, not localhost.
+ * If the primary returns a rate-limit / quota / 5xx / timeout error, it gets
+ * marked unhealthy for PRIMARY_UNHEALTHY_MS, during which selectModel will
+ * skip Tier 1 and route directly to Tier 2. The next request after the
+ * window will probe Tier 1 again.
+ *
+ * NOTE: AGENT_BASE_URL must be reachable from Vercel — a PUBLIC url, not
+ * localhost.
  */
-function selectModel(): { model: LanguageModel; isAnthropic: boolean } {
-  const deepseekKey = process.env.DEEPSEEK_API_KEY;
-  const baseURL =
-    process.env.AGENT_BASE_URL || (deepseekKey ? 'https://api.deepseek.com' : undefined);
-  if (baseURL) {
+
+const PRIMARY_UNHEALTHY_MS = 60_000;
+let primaryUnhealthyUntil = 0;
+
+function markPrimaryUnhealthy() {
+  primaryUnhealthyUntil = Date.now() + PRIMARY_UNHEALTHY_MS;
+}
+function primaryIsHealthy() {
+  return Date.now() >= primaryUnhealthyUntil;
+}
+
+type Pick = {
+  model: LanguageModel;
+  isAnthropic: boolean;
+  tier: 'primary' | 'fallback' | 'last-resort';
+  provider: string;
+};
+
+function selectModel(): Pick | null {
+  // Tier 1 — primary OpenAI-compatible endpoint (Gemini Flash, etc.).
+  if (process.env.AGENT_BASE_URL && primaryIsHealthy()) {
     const local = createOpenAICompatible({
-      name: 'aileena-local',
-      baseURL,
-      apiKey: process.env.AGENT_API_KEY || deepseekKey || 'local',
+      name: 'aileena-primary',
+      baseURL: process.env.AGENT_BASE_URL,
+      apiKey: process.env.AGENT_API_KEY || 'local',
     });
-    const modelId =
-      process.env.AGENT_MODEL || (deepseekKey ? 'deepseek-chat' : 'local');
-    return { model: local.chatModel(modelId), isAnthropic: false };
+    const modelId = process.env.AGENT_MODEL || 'local';
+    return {
+      model: local.chatModel(modelId),
+      isAnthropic: false,
+      tier: 'primary',
+      provider: process.env.AGENT_BASE_URL,
+    };
   }
-  return { model: anthropic(ANTHROPIC_MODEL), isAnthropic: true };
+
+  // Tier 2 — DeepSeek fallback.
+  const deepseekKey = process.env.DEEPSEEK_API_KEY;
+  if (deepseekKey) {
+    const ds = createOpenAICompatible({
+      name: 'aileena-deepseek',
+      baseURL: 'https://api.deepseek.com',
+      apiKey: deepseekKey,
+    });
+    return {
+      model: ds.chatModel('deepseek-chat'),
+      isAnthropic: false,
+      tier: process.env.AGENT_BASE_URL ? 'fallback' : 'primary',
+      provider: 'deepseek',
+    };
+  }
+
+  // Tier 3 — Anthropic last resort.
+  if (process.env.ANTHROPIC_API_KEY) {
+    return {
+      model: anthropic(ANTHROPIC_MODEL),
+      isAnthropic: true,
+      tier: 'last-resort',
+      provider: 'anthropic',
+    };
+  }
+
+  return null;
 }
 const DAILY_LIMIT = 20;
 const QUOTA_COOKIE = '__aileena_quota';
@@ -159,6 +209,12 @@ export async function POST(req: Request) {
   const modelMessages = await convertToModelMessages(trimmed);
 
   const picked = selectModel();
+  if (!picked) {
+    return jsonError(
+      'No model configured. Set AGENT_BASE_URL (preferred), DEEPSEEK_API_KEY, or ANTHROPIC_API_KEY in Vercel, then redeploy.',
+      500,
+    );
+  }
   const result = streamText({
     model: picked.model,
     system: SYSTEM_PROMPT,
@@ -186,7 +242,14 @@ export async function POST(req: Request) {
       const msg = err instanceof Error ? err.message : String(err);
       // Log the REAL provider error server-side (visible in Vercel logs) while
       // still showing visitors a clean message.
-      console.error('[chat] provider=%s model-error: %s', process.env.AGENT_BASE_URL ? 'self-hosted' : 'anthropic', msg);
+      console.error('[chat] provider=%s tier=%s error: %s', picked.provider, picked.tier, msg);
+      // If the PRIMARY tier choked on rate-limit / quota / 5xx / timeout,
+      // mark it unhealthy so the next request automatically routes to the
+      // fallback tier (DeepSeek) without trying the primary again.
+      if (picked.tier === 'primary' && /429|rate.?limit|quota|insufficient|too many|503|502|504|timeout|gateway/i.test(msg)) {
+        markPrimaryUnhealthy();
+        console.warn('[chat] primary marked unhealthy for %ds', PRIMARY_UNHEALTHY_MS / 1000);
+      }
       if (/credit balance|too low|insufficient|quota|billing|purchase credits|payment/i.test(msg)) {
         return "This agent isn't free to run — public access is off for now. Reach out through the contact form instead.";
       }
