@@ -53,6 +53,7 @@ const TRACKS = [
   { id: '03Y3K0S8WLjyvV7Z2qSdlh', title: 'Surface',                bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
   { id: '5i18ZFR4g3xC4uHlNFHkGH', title: 'Ottagone 013',           bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
   { id: '3X9betUxSQLTAltImJZ3So', title: 'Double Scoop',           bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
+  { id: '4zDmVNxz1t4zwHqasJt8LT', title: 'Jazz Is the Teacher',    bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
 ];
 type Track = typeof TRACKS[0];
 
