@@ -9,7 +9,7 @@ export default function TechSalesArticle() {
       date="2026.06.02"
       tags="Sales · Career · Tech · Communication"
       title="People Love to Buy. They Don't Love to Be Sold."
-      dek="The best tech salespeople don't sell. They listen, they translate, they make the buyer feel right. You don't have to change your character to be one of them — you have to change your sales. Plus where 'thick skin' actually comes from and why most objections aren't objections."
+      dek="The best tech salespeople don't sell. They listen, they translate, they make the buyer feel right. You don't have to change your character to be one of them — you have to change your sales. Plus where 'thick skin' actually comes from, why most objections aren't objections, and what changes when the buyer is an AI agent."
     >
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
 
@@ -161,6 +161,26 @@ export default function TechSalesArticle() {
           minutes to feel it. Could be five, could be sixty. Then the timer rings and you go back
           to the next call. The feeling is allowed. The dwelling is not.
         </p>
+        <p style={bodyStyle}>
+          The deeper reason the no-clock matters is{' '}
+          <strong style={strong}>energy preservation</strong>. The call after a hard rejection is the
+          one that pays &mdash; if you walk into it carrying the last call&rsquo;s residue, you
+          pre-load the new buyer with the previous buyer&rsquo;s stink. Your voice drops a quarter
+          step. You over-explain. You hedge. You sound like someone who just got told no, because
+          you are. And the new buyer feels it inside thirty seconds, even on a video call, even on
+          email. They don&rsquo;t know what the off-note is. They just feel less safe buying from
+          you.
+        </p>
+        <p style={bodyStyle}>
+          So the real skill isn&rsquo;t absorbing rejection &mdash; it&rsquo;s discharging it before
+          the next call. Whatever moves your nervous system from {' '}
+          <em>charged</em> to <em>neutral</em> is the right move. A walk around the block. Two
+          minutes of nose breathing. A song you only play after a no. A snack. A friend you text the
+          line &ldquo;just got smoked, going again in five.&rdquo; The mechanism matters less than
+          the rule: <strong style={strong}>you do not take the last call into the next one</strong>.
+          That&rsquo;s the actual definition of thick skin in sales &mdash; not absence of feeling,
+          but discipline about where you put it.
+        </p>
 
         <SectionLabel>Objections are almost never objections</SectionLabel>
         <p style={bodyStyle}>
@@ -210,6 +230,75 @@ export default function TechSalesArticle() {
           You can only resolve concerns specifically if you understand the technology specifically.
           <strong style={strong}> There is no charisma substitute for actually knowing what
           you&rsquo;re selling.</strong>
+        </p>
+
+        <SectionLabel>Selling to AI agents — the pure logical buyer</SectionLabel>
+        <p style={bodyStyle}>
+          There is now a third buyer on the other side of the line, and it is changing tech sales
+          faster than any sales methodology can keep up. The buyer is not a person. It&rsquo;s an
+          AI agent &mdash; a procurement agent picking vendors, a coding agent picking APIs, a
+          research agent picking data sources, a finance agent picking infrastructure. In 2026 this
+          stopped being a thought experiment. Real budget is moving through agents now.
+        </p>
+        <p style={bodyStyle}>
+          The agent buyer is the 100/0 logical buyer the textbooks always implied but no human ever
+          actually was. <strong style={strong}>No identity. No FOMO. No &ldquo;the company that took
+          the leap.&rdquo; No board meeting to sound smart in.</strong> The agent compares a
+          shortlist of vendors against a structured criterion set, applies its weights, and picks. The
+          emotional cover that a human buyer needs &mdash; the story, the social proof, the
+          belonging &mdash; is invisible to it. If your pitch lives in the cover and not the
+          arithmetic, the agent will not see you at all.
+        </p>
+        <p style={bodyStyle}>
+          Three things change when the buyer is an agent:
+        </p>
+        <ul style={listStyle}>
+          <li>
+            <strong style={strong}>Your sales surface is your spec, not your homepage.</strong> The
+            agent does not read your marketing copy. It reads your OpenAPI document, your pricing
+            JSON, your MCP server description, your SLA page, your security disclosures. If these
+            are missing, badly formatted, or behind a &ldquo;contact sales&rdquo; gate, you don&rsquo;t
+            exist in the agent&rsquo;s shortlist. The first sales motion is making yourself
+            machine-discoverable.
+          </li>
+          <li>
+            <strong style={strong}>Your demo is an eval, not a Loom.</strong> The agent doesn&rsquo;t
+            watch your video. It runs a benchmark against your endpoint and compares your numbers
+            to three competitors&rsquo; numbers. The new equivalent of the deck is a public eval
+            harness with reproducible inputs, your scores, and the methodology written down. The
+            company that publishes the cleanest eval wins the agent. The one that hides behind
+            curated screenshots loses.
+          </li>
+          <li>
+            <strong style={strong}>Your objection-handling is your error codes.</strong> When an
+            agent hits a failure, it reads the error response as signal about you. A clean failure
+            mode &mdash; structured, well-typed, with a remediation hint &mdash; reads as competent.
+            A 500 with a stack trace reads as incompetent. The agent will never tell you this in a
+            meeting. It will just route around you on the next call.
+          </li>
+        </ul>
+        <p style={bodyStyle}>
+          The trap: most tech companies, watching this happen, conclude that sales is going away.
+          It isn&rsquo;t. <strong style={strong}>The agent is a buyer, not the buyer.</strong> Behind
+          the agent is a principal &mdash; a CTO, a head of procurement, a founder &mdash; who is
+          still very much a human, who still cares about vendor risk, reputational risk, insurance,
+          incident response, and what happens when something goes wrong at 3am. The agent picks the
+          shortlist. The principal makes the final call. And the principal is still 70/30 emotional
+          on the high-stakes decisions, because their job is on the line if the vendor fails.
+        </p>
+        <p style={bodyStyle}>
+          So the real shift is this: you now have to sell to two buyers in the same deal with
+          different artifacts.{' '}
+          <strong style={strong}>The agent gets the spec. The principal gets the story.</strong>{' '}
+          The agent reads your eval. The principal reads your incident post-mortem. The agent
+          checks your latency table. The principal checks who else is on this side of the trade. If
+          you only build for one of them, you lose the other. If you build for both, you compound on
+          a surface that didn&rsquo;t exist three years ago.
+        </p>
+        <p style={bodyStyle}>
+          The reps who will dominate the next decade of tech sales are the ones who understand that
+          the discovery call is half human and half machine &mdash; and who can fluently write
+          for both.
         </p>
 
         <SectionLabel>The shape</SectionLabel>
