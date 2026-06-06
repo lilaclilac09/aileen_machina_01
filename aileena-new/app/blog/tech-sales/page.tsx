@@ -9,7 +9,7 @@ export default function TechSalesArticle() {
       date="2026.06.02"
       tags="Sales · Career · Tech · Communication"
       title="People Love to Buy. They Don't Love to Be Sold."
-      dek="The best tech salespeople don't sell. They listen, they translate, they make the buyer feel right. You don't have to change your character to be one of them — you have to change your sales. Plus where 'thick skin' actually comes from, why most objections aren't objections, and what changes when the buyer is an AI agent."
+      dek="The best tech salespeople don't sell. They listen, they translate, they make the buyer feel right. You don't have to change your character to be one of them — you have to change your sales. Plus where 'thick skin' actually comes from, why most objections aren't objections, what changes when the buyer is an AI agent, the five-stage acceptance loop, why GEO is replacing SEO, and the seven contract surfaces an agent reads before the first call."
     >
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
 
@@ -301,6 +301,202 @@ export default function TechSalesArticle() {
           for both.
         </p>
 
+        <SectionLabel>The AI acceptance loop — five stages</SectionLabel>
+        <p style={bodyStyle}>
+          Zoom in on how an agent actually picks. It is not magic and it is not a black box. Every
+          agent procurement decision in 2026 walks through five stages, and you either show up at
+          each one or you don&rsquo;t.
+        </p>
+        <ul style={listStyle}>
+          <li>
+            <strong style={strong}>1. Recall.</strong> The agent assembles a candidate list. There
+            are four sources: (a) the model&rsquo;s training memory &mdash; whatever vendors it
+            already &ldquo;knows&rdquo; from pre-training, (b) registered agent-protocol directories
+            (MCP server registries, plugin manifests, the {''}<code style={code}>.well-known/ai-plugin.json</code>{' '}
+            of indexed sites), (c) a connected web search if the agent has browsing, (d) an explicit
+            allow-list the principal pre-loaded. If you&rsquo;re not in any of these four, you are
+            invisible.
+          </li>
+          <li>
+            <strong style={strong}>2. Eligibility filter.</strong> The agent drops candidates that
+            fail hard constraints. Machine-readable spec? Structured pricing? Required compliance
+            attestation (SOC 2, ISO 27001, HIPAA, GDPR data-residency)? Region? Token-per-second
+            floor? Latency ceiling? If your pricing is &ldquo;contact sales,&rdquo; you fail this
+            stage automatically &mdash; the agent has nothing to compare.
+          </li>
+          <li>
+            <strong style={strong}>3. Eval.</strong> The agent verifies your claims against its own
+            workload. Public benchmark hit-rates. A programmatic free-trial call. Side-by-side
+            head-to-heads at a fixed input. <em>The agent doesn&rsquo;t trust your number; it
+            re-derives it.</em> If you can&rsquo;t be benchmarked without a sales call, you lose to
+            the vendor who can.
+          </li>
+          <li>
+            <strong style={strong}>4. Score.</strong> The agent applies the principal&rsquo;s weights
+            &mdash; cost, latency, accuracy, reliability, security, lock-in &mdash; and ranks the
+            survivors. This is pure arithmetic. Whoever wins on the weighted score wins the
+            shortlist.
+          </li>
+          <li>
+            <strong style={strong}>5. Justify.</strong> Here is the move people miss. Even a 100/0
+            logical agent has to{' '}
+            <strong style={strong}>explain its pick to a human principal</strong>. That justification
+            is a paragraph of prose: &ldquo;I picked X because&hellip;&rdquo; And to write it, the
+            agent reaches for case studies, customer logos, third-party reviews, audit reports,
+            standards memberships, security disclosures &mdash; the artifacts that read as{' '}
+            <em>institutional credibility</em> to the human reading the agent&rsquo;s rationale. The
+            agent is logical. The agent&rsquo;s output has to land emotionally on the principal.
+          </li>
+        </ul>
+        <p style={bodyStyle}>
+          The implication is brutal and clean: you do not get to skip any stage. Win recall but flunk
+          eval &mdash; the agent drops you. Win eval but have no justification surface &mdash; the
+          agent ranks you first then the principal vetoes. Every stage is necessary. None is
+          sufficient.
+        </p>
+
+        <SectionLabel>GEO is replacing SEO — for the agent layer</SectionLabel>
+        <p style={bodyStyle}>
+          For twenty years, the discovery game was SEO &mdash; Search Engine Optimization, the craft
+          of ranking on Google&rsquo;s results page so a human would click your link. The whole
+          industry &mdash; backlinks, keyword density, structured data, page speed, click-through
+          rate &mdash; was built for one buyer: a person typing into a search box, scanning ten blue
+          links, and clicking.
+        </p>
+        <p style={bodyStyle}>
+          That buyer is being replaced, fast, by a different one: an LLM that has already read the
+          web during pre-training and is asked a question by an agent. The new discovery game has a
+          new name: <strong style={strong}>GEO &mdash; Generative Engine Optimization</strong>. The
+          surface isn&rsquo;t the SERP. The surface is the model&rsquo;s answer.
+        </p>
+        <p style={bodyStyle}>
+          The mechanics are different and they cut against most SEO instincts:
+        </p>
+        <ul style={listStyle}>
+          <li>
+            <strong style={strong}>Be cited, not ranked.</strong> SEO rewards being clicked. GEO
+            rewards being <em>quoted</em>. The model picks who it cites based on factual density,
+            named numbers, original primary-source claims, and clarity. Listicle-shaped, keyword-
+            stuffed pages get filtered out. Authoritative, narrow, concretely-quantified pages get
+            pulled into the answer.
+          </li>
+          <li>
+            <strong style={strong}>Publish an {''}<code style={code}>llms.txt</code>{' '}</strong>{' '}
+            at the root of your domain. It&rsquo;s the new {''}<code style={code}>robots.txt</code>:
+            a curated table-of-contents of the pages on your site you want LLMs to consume as the
+            canonical version of your story. The model reads it as a hint: &ldquo;here is the source
+            of truth, skip the marketing splash.&rdquo;
+          </li>
+          <li>
+            <strong style={strong}>Get into the citation graph LLMs actually trust.</strong>{' '}
+            Wikipedia, GitHub README of a popular repo, an academic paper&rsquo;s references, a
+            standards body&rsquo;s spec list. These show up in pre-training corpora with weight. A
+            single Wikipedia mention with a clean source citation outperforms a thousand thin
+            backlinks from content farms.
+          </li>
+          <li>
+            <strong style={strong}>Register an MCP server and a {''}<code style={code}>.well-known/ai-plugin.json</code>.</strong>{' '}
+            The first one makes you discoverable to agents in MCP-aware clients. The second is the
+            old ChatGPT-plugin spec that is now the de facto convention for agent-readable site
+            capabilities. Together they put you in the recall stage from above.
+          </li>
+          <li>
+            <strong style={strong}>Make your evaluation public.</strong> Publish your benchmark with
+            inputs, methodology, code to reproduce. The agent reads this as ground truth. The
+            principal reads this as honesty. The competitor who hides their numbers gets read as
+            either incompetent or evasive.
+          </li>
+        </ul>
+        <p style={bodyStyle}>
+          Is SEO dead? No &mdash; the human principal still Googles you, and Google itself is
+          increasingly served by its own LLM, so structured content still matters. <strong style={strong}>
+          Run both, but treat GEO as the leading edge and SEO as the trailing one.</strong> The
+          companies winning agent-procurement deals in 2026 are doing both, and the share of
+          discovery moving to the GEO side is one-way.
+        </p>
+        <p style={bodyStyle}>
+          One sharp line to remember: <strong style={strong}>SEO optimizes for being{' '}
+          <em>clicked</em>. GEO optimizes for being <em>quoted</em>.</strong> The behaviour that gets
+          you each is almost the opposite. Most companies that &ldquo;do SEO&rdquo; will lose GEO by
+          default unless they explicitly retool.
+        </p>
+
+        <SectionLabel>The contract surface is now seven contracts</SectionLabel>
+        <p style={bodyStyle}>
+          When a procurement agent &ldquo;reads your contract,&rdquo; it is not reading the legal PDF
+          a human would sign. It is reading{' '}
+          <strong style={strong}>seven parallel contract surfaces</strong>, each in its own
+          machine-readable format, each independently scored. You can win the legal contract and
+          still lose the deal because the API contract was sloppy. Every one matters.
+        </p>
+        <ul style={listStyle}>
+          <li>
+            <strong style={strong}>1. The API contract.</strong> Your OpenAPI document (REST), GraphQL
+            schema, or MCP manifest. The agent reads endpoints, request/response shapes, types, auth
+            method, rate limits, idempotency keys, pagination. If your schema is missing fields, if
+            response shapes are inconsistent across endpoints, if &ldquo;auth&rdquo; means
+            &ldquo;email us for an API key,&rdquo; you fail this contract.
+          </li>
+          <li>
+            <strong style={strong}>2. The pricing contract.</strong> A structured price list the
+            agent can parse: units (per token, per request, per minute, per GB), tiers, overage
+            behaviour, currency, billing period, taxes. {''}<code style={code}>pricing.json</code>{' '}
+            or an explicit pricing page with named amounts. &ldquo;Custom pricing &mdash; talk to us&rdquo;
+            is read as either &ldquo;we don&rsquo;t want this deal&rdquo; or &ldquo;we&rsquo;re
+            expensive in a way we don&rsquo;t want to disclose.&rdquo; Both are losing positions.
+          </li>
+          <li>
+            <strong style={strong}>3. The SLA contract.</strong> Uptime target (99.9? 99.99? 99.999?),
+            latency percentiles (p50, p95, p99), error budget, scheduled-maintenance window, the
+            credit you owe when you miss. The agent multiplies these against the principal&rsquo;s
+            risk tolerance. A clean SLA with realistic numbers reads as competent. A vague
+            &ldquo;best-effort&rdquo; promise reads as not-yet-ready.
+          </li>
+          <li>
+            <strong style={strong}>4. The data contract.</strong> Input schema, output schema, what
+            you keep, what you delete, retention window, residency (which region the data sits in),
+            who can access it on your side, what you do with it for training. Increasingly the agent
+            wants this as a machine-readable attestation, not a paragraph in a privacy policy.
+          </li>
+          <li>
+            <strong style={strong}>5. The compliance contract.</strong> SOC 2 Type II, ISO 27001,
+            HIPAA BAA availability, GDPR DPA, PCI scope, FedRAMP level. The agent checks these as
+            booleans first &mdash; do you have it or not &mdash; and then for currency (when was the
+            last audit, when does it expire). Compliance certs published as machine-readable claims
+            (e.g. on a {''}<code style={code}>/trust</code> page with structured metadata) are
+            increasingly the standard.
+          </li>
+          <li>
+            <strong style={strong}>6. The change contract.</strong> Your versioning policy, your
+            deprecation window, your breaking-change notification, your migration support. The agent
+            and the principal both ask the same question: &ldquo;If I integrate you, how often will
+            you force me to migrate, and how much warning will I get?&rdquo; A clear deprecation
+            policy with a long enough window is a quiet superpower &mdash; it converts integration
+            risk from indeterminate to bounded.
+          </li>
+          <li>
+            <strong style={strong}>7. The legal contract.</strong> The actual MSA / terms / DPA / SCC
+            the principal will sign. Liability cap, indemnity scope, IP ownership of inputs and
+            outputs, termination clause, governing law, audit rights. This is where the agent hands
+            off to the human in-house counsel &mdash; but the agent <em>still</em> reads the public
+            terms to flag obvious deal-breakers (unlimited liability, indemnity carve-outs that
+            shift risk to the buyer, training-on-customer-data clauses) before wasting the
+            principal&rsquo;s time.
+          </li>
+        </ul>
+        <p style={bodyStyle}>
+          The lesson: contracts are no longer one document. They&rsquo;re seven coordinated
+          surfaces, and every one of them is a sales artifact. A founder who treats the OpenAPI doc
+          as a developer-relations chore and the MSA as a legal chore misses that{' '}
+          <strong style={strong}>both are now read by the buyer before the first call</strong>.
+        </p>
+        <p style={bodyStyle}>
+          What this means for the rep: your job is no longer just the conversation. It&rsquo;s also
+          knowing which of the seven contracts your prospect&rsquo;s agent is going to read most
+          carefully &mdash; and going to engineering / finance / legal in advance to make sure the
+          surface that matters most is the cleanest one in the market.
+        </p>
+
         <SectionLabel>The shape</SectionLabel>
         <p style={bodyStyle}>
           Tech sales is one of the few jobs where being smart, curious, and honest is competitive
@@ -344,6 +540,14 @@ const bodyStyle: React.CSSProperties = {
   marginBottom: 24,
 };
 const strong: React.CSSProperties = { color: 'rgba(255,255,255,0.95)', fontWeight: 600 };
+const code: React.CSSProperties = {
+  fontFamily: 'monospace',
+  fontSize: '0.92em',
+  background: 'rgba(0,255,234,0.08)',
+  color: '#7af5e3',
+  padding: '0.05em 0.35em',
+  borderRadius: 3,
+};
 const listStyle: React.CSSProperties = {
   fontSize: 'clamp(0.95rem, 2vw, 1.1rem)',
   lineHeight: 1.9,
