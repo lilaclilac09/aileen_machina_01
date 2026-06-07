@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>m3 v2 · typography + agent (closed)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;700&family=JetBrains+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0a0a0c;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+  .page { max-width: 1240px; margin: 0 auto; padding: 56px 32px 120px; position: relative; }
+
+  /* ── AGENT LAUNCHER — top-left, m3-styled (replaces cyan terminal launcher) ── */
+  .launcher {
+    position: fixed;
+    top: 24px;
+    left: 32px;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .launcher .avatar {
+    position: relative;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: linear-gradient(135deg, #d4b89e, #8a6f5b);
+    box-shadow: 0 0 0 1px rgba(245,240,230,0.25), 0 0 18px rgba(245,240,230,0.06);
+  }
+  /* mock portrait — radial gradient stands in for the actual avatar image */
+  .launcher .avatar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 35% 30%, #f0d8c0 0%, #c89e7d 38%, #5a3f2e 75%, #2a1d15 100%);
+  }
+  .launcher .avatar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 65% 40%, transparent 30%, rgba(20,15,10,0.4) 70%);
+  }
+  .launcher .pulse {
+    position: absolute;
+    top: -2px; right: -2px;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #00ffea;
+    box-shadow: 0 0 8px #00ffea, 0 0 0 2px #0a0a0c;
+    animation: heartbeat 1.6s ease-in-out infinite;
+  }
+  @keyframes heartbeat {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%      { transform: scale(0.7); opacity: 0.5; }
+  }
+  .launcher .say {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    color: rgba(245,240,230,0.85);
+    line-height: 1;
+  }
+  .launcher .say .cursor {
+    display: inline-block;
+    width: 1px;
+    height: 1.1em;
+    background: rgba(245,240,230,0.9);
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    animation: blink 1.05s steps(2) infinite;
+  }
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+  .launcher .hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    color: rgba(245,240,230,0.35);
+    text-transform: uppercase;
+    margin-left: 6px;
+    padding-left: 14px;
+    border-left: 1px solid rgba(245,240,230,0.15);
+  }
+
+  /* ── HEADER nav (right) — pushed right to make room for launcher ── */
+  header {
+    display: flex; justify-content: flex-end; align-items: baseline;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  nav { display: flex; gap: 28px; font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; letter-spacing: 0.22em; color: rgba(255,255,255,0.5); text-transform: uppercase; }
+  nav a { color: inherit; text-decoration: none; }
+  nav a.active { color: #fff; border-bottom: 1px solid #fff; padding-bottom: 4px; }
+
+  /* ── HERO — kinetic type ── */
+  .hero {
+    padding: 100px 0 80px;
+    position: relative;
+  }
+  .hero .label {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+    letter-spacing: 0.5em; color: rgba(255,255,255,0.45); text-transform: uppercase;
+    margin-bottom: 36px;
+  }
+  .hero h1 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 200;
+    font-size: clamp(3rem, 9vw, 7rem);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    color: #fff;
+  }
+  .hero h1 .marquee {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-weight: 400;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(255,255,255,0.9);
+    animation: glow 2.4s ease-in-out infinite;
+  }
+  @keyframes glow {
+    0%, 100% { -webkit-text-stroke-color: rgba(255,255,255,0.4); }
+    50%      { -webkit-text-stroke-color: rgba(255,255,255,1); }
+  }
+  .hero .scroll-hint {
+    margin-top: 60px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.62rem;
+    letter-spacing: 0.4em; color: rgba(255,255,255,0.35); text-transform: uppercase;
+    display: inline-block;
+  }
+
+  /* ── TICKER ── */
+  .ticker {
+    position: relative;
+    margin: 64px 0;
+    overflow: hidden;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 28px 0;
+  }
+  .ticker-track {
+    display: inline-flex;
+    gap: 64px;
+    white-space: nowrap;
+    animation: marquee 38s linear infinite;
+    will-change: transform;
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: clamp(1.2rem, 2.6vw, 1.8rem);
+    font-weight: 400;
+    color: rgba(255,255,255,0.85);
+  }
+  .ticker-track .sep {
+    color: #ff5c8d;
+    font-style: normal;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7em;
+  }
+  @keyframes marquee {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* ── LIST ── */
+  .list { margin: 80px 0; }
+  .row {
+    display: grid;
+    grid-template-columns: 100px 1fr 100px;
+    gap: 18px;
+    padding: 22px 0;
+    align-items: baseline;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .row::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, rgba(255,255,255,0.03), transparent 60%);
+    transform: translateX(-100%);
+    transition: transform 0.55s cubic-bezier(.6,.05,.3,1);
+  }
+  .row:hover::before { transform: translateX(0); }
+  .row .date {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+    letter-spacing: 0.15em; color: rgba(255,255,255,0.45);
+    position: relative; z-index: 1;
+  }
+  .row h3 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    font-size: clamp(1.2rem, 2.6vw, 1.7rem);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: rgba(255,255,255,0.92);
+    position: relative; z-index: 1;
+    transition: transform 0.45s cubic-bezier(.4,.0,.2,1), color 0.2s;
+  }
+  .row:hover h3 { transform: translateX(8px); color: #fff; }
+  .row h3 em { font-style: italic; font-family: 'Instrument Serif', serif; font-weight: 400; }
+  .row .arr {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+    color: rgba(255,255,255,0.3); text-align: right;
+    transition: color 0.2s;
+    position: relative; z-index: 1;
+  }
+  .row:hover .arr { color: #ff5c8d; }
+
+  footer {
+    margin-top: 80px;
+    padding-top: 28px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex; justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.62rem;
+    letter-spacing: 0.3em; color: rgba(255,255,255,0.4); text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== AGENT LAUNCHER ===== -->
+<div class="launcher" title="press / to ask aileena anything">
+  <span class="avatar"><span class="pulse"></span></span>
+  <span class="say"><span id="say-text">ask me anything</span><span class="cursor"></span></span>
+  <span class="hint">/  open</span>
+</div>
+
+<div class="page">
+  <header>
+    <nav>
+      <a href="#">/work</a>
+      <a href="#" class="active">/dispatch</a>
+      <a href="#">/sound</a>
+      <a href="#">/archive</a>
+      <a href="#">de</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <p class="label">— this week i'm thinking about —</p>
+    <h1>The call after a hard no is the <span class="marquee">one that pays.</span></h1>
+    <span class="scroll-hint">scroll ↓</span>
+  </section>
+
+  <div class="ticker">
+    <div class="ticker-track">
+      <span>tech sales without pressure</span><span class="sep">·</span>
+      <span>AI agents as logical buyers</span><span class="sep">·</span>
+      <span>the seven contracts</span><span class="sep">·</span>
+      <span>GEO is replacing SEO</span><span class="sep">·</span>
+      <span>the PCB stack inside an AI rack</span><span class="sep">·</span>
+      <span>how CPO actually gets built</span><span class="sep">·</span>
+      <span>where Broadcom sits in the AI stack</span><span class="sep">·</span>
+      <span>let there be light modules</span><span class="sep">·</span>
+      <span>tech sales without pressure</span><span class="sep">·</span>
+      <span>AI agents as logical buyers</span><span class="sep">·</span>
+      <span>the seven contracts</span><span class="sep">·</span>
+      <span>GEO is replacing SEO</span><span class="sep">·</span>
+      <span>the PCB stack inside an AI rack</span><span class="sep">·</span>
+      <span>how CPO actually gets built</span><span class="sep">·</span>
+      <span>where Broadcom sits in the AI stack</span><span class="sep">·</span>
+      <span>let there be light modules</span><span class="sep">·</span>
+    </div>
+  </div>
+
+  <div class="list">
+    <a href="#" class="row">
+      <span class="date">2026.06.02</span>
+      <h3>People love to <em>buy.</em> They don't love to be sold.</h3>
+      <span class="arr">→ open</span>
+    </a>
+    <a href="#" class="row">
+      <span class="date">2026.06.02</span>
+      <h3>The PCB stack <em>inside</em> an AI rack.</h3>
+      <span class="arr">→ open</span>
+    </a>
+    <a href="#" class="row">
+      <span class="date">2026.06.02</span>
+      <h3>How CPO <em>actually</em> gets built.</h3>
+      <span class="arr">→ open</span>
+    </a>
+    <a href="#" class="row">
+      <span class="date">2026.06.01</span>
+      <h3>Where Broadcom sits in the <em>AI stack.</em></h3>
+      <span class="arr">→ open</span>
+    </a>
+  </div>
+
+  <footer>
+    <span>est 2025 · berlin</span>
+    <span>typography is the art · ask anything</span>
+  </footer>
+</div>
+
+<script>
+// Rotate the launcher's "what she's saying" line — feels alive
+const lines = [
+  'ask me anything',
+  'what would you build?',
+  "want to know what i'm reading?",
+  'have a hard question?',
+  "i'll tell you what i actually think",
+];
+let idx = 0;
+const el = document.getElementById('say-text');
+setInterval(() => {
+  idx = (idx + 1) % lines.length;
+  el.style.opacity = '0';
+  setTimeout(() => { el.textContent = lines[idx]; el.style.opacity = '1'; }, 220);
+}, 3600);
+el.style.transition = 'opacity 0.22s';
+</script>
+</body>
+</html>
