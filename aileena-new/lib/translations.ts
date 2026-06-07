@@ -353,6 +353,12 @@ export const t = {
             title: 'The PCB Stack Inside an AI Rack',
             body: 'Five PCBs sit inside a current-generation AI rack — HDI compute, switch, mid plane, orthogonal backplane, and the substrate-like board that decides 2027. Taiwan held the high-layer-board market for two decades. Mainland China overtook them on fifth-order 22-layer HDI in 2025 (Victory Giant at ~90% yield, >70% of GB200 / GB300 share, against Unimicron at ~80% — the difference is factory age: 2024-greenfield vs 2001–2002 line). Why the mid plane exists (NVIDIA 576 rack replaces 5,000+ copper cables with a 44-layer orthogonal stack: M9 + Q-cloth + 4th-gen copper foil, 18 per cabinet). Three barriers reshuffling share: substrate-like PCB at 10 µm lines requires new clean-room plants, not retrofits (Avary has Apple SLP experience, Victory Giant is committing capex); M9 / Q-cloth retires mechanical drilling and opens Han\'s Laser to >60% domestic share; copper sintering for mid plane + backplane is industry-first and execution-speed-led. Plus the parallel Google TPU build (forecast revised 2.5–3M → 4M chips at ~$9k each; uses 22–24 layer multi-high-layer not HDI; ISU / Wus / ChaoYing incumbent; Victory Giant queuing for ~6 month certification).',
           },
+          {
+            date: '2026.06.02',
+            href: '/blog/tech-sales',
+            title: 'People Love to Buy. They Don\'t Love to Be Sold.',
+            body: 'The best tech salespeople don\'t sell — they listen, translate, and make the buyer feel right. Pressure is what happens when one side is trying to compensate for an exchange the other side doesn\'t believe in. You don\'t have to change your character; you change your sales (it\'s a skill, not a personality). Read which buyer is across the line — logical vs emotional, most are 70/30 not 100/0. Thick skin means don\'t carry the last call\'s residue into the next one (the call after a hard no is the one that pays). Most "objections" are requests for information in a defensive frame. And now there\'s a third buyer on the line: AI agents — pure logical, where your spec is your homepage, your eval is your demo, your error codes are your objection-handling. The agent picks through a five-stage acceptance loop (recall → eligibility → eval → score → justify), GEO is replacing SEO (be quoted, not clicked), and the contract is now seven contracts (API, pricing, SLA, data, compliance, change, legal) — each independently scored before the first call.',
+          },
         ],
       },
       womanInTech: {
@@ -377,12 +383,6 @@ export const t = {
             href: '/blog/misread',
             title: 'Misread — But She Can Become Anyone',
             body: 'Feminism is not a battle cry, not a manifesto against any system, not persuasion, not violence, not conformity. It is expression. It is the quiet, relentless work of making women\'s abilities visible — and making sure that visibility translates into real economic value. She can be an engineer. She can be everything. The point was never the slogan.',
-          },
-          {
-            date: '2026.06.02',
-            href: '/blog/tech-sales',
-            title: 'People Love to Buy. They Don\'t Love to Be Sold.',
-            body: 'The best tech salespeople don\'t sell — they listen, translate, and make the buyer feel right. Pressure is what happens when one side is trying to compensate for an exchange the other side doesn\'t believe in. You don\'t have to change your character; you change your sales (it\'s a skill, not a personality). Read which buyer is across the line — logical vs emotional, most are 70/30 not 100/0. Thick skin means don\'t carry the last call\'s residue into the next one (the call after a hard no is the one that pays). Most "objections" are requests for information in a defensive frame. And now there\'s a third buyer on the line: AI agents — pure logical, where your spec is your homepage, your eval is your demo, your error codes are your objection-handling. The agent picks through a five-stage acceptance loop (recall → eligibility → eval → score → justify), GEO is replacing SEO (be quoted, not clicked), and the contract is now seven contracts (API, pricing, SLA, data, compliance, change, legal) — each independently scored before the first call.',
           },
         ],
       },
@@ -780,6 +780,12 @@ export const t = {
             title: 'Der PCB-Stapel im KI-Rack',
             body: 'Fünf PCBs sitzen in einem aktuellen KI-Rack — HDI-Compute, Switch, Mid Plane, orthogonale Backplane und die SLP-Platine, die 2027 entscheidet. Taiwan hielt den High-Layer-Markt zwei Jahrzehnte. Festland-China hat es 2025 beim fünfter-Ordnung-22-Layer-HDI überholt (Victory Giant bei ~90% Yield und >70% Anteil an GB200 / GB300, gegen Unimicron bei ~80% — die Differenz ist Werksalter: 2024-Neubau vs. Linie von 2001–2002). Warum die Mid Plane existiert (NVIDIA 576 ersetzt 5.000+ Kupferkabel durch eine 44-Layer-Orthogonal-Struktur: M9 + Q-Glasgewebe + Kupferfolie der 4. Generation, 18 pro Rack). Drei Barrieren verschieben den Anteil: SLP bei 10 µm Linien braucht neue Reinraum-Werke, keine Retrofits (Avary hat Apple-SLP-Erfahrung, Victory Giant verpflichtet Capex); M9 / Q-Glasgewebe rentet mechanisches Bohren ab und öffnet Han\'s Laser >60% Inlandsanteil; Kupfer-Sintern für Mid Plane + Backplane ist Branchenerstmals und ausführungsgeschwindigkeits-bestimmt. Plus das parallele Google-TPU-Programm (Prognose von 2,5–3 Mio. → 4 Mio. Chips bei ~9.000 $ pro TPU; verwendet 22–24-Layer-Vielschicht statt HDI; ISU / Wus / ChaoYing etabliert; Victory Giant in der ~6-monatigen Zertifizierung).',
           },
+          {
+            date: '2026.06.02',
+            href: '/blog/tech-sales',
+            title: 'Menschen lieben zu kaufen — nicht verkauft zu werden.',
+            body: 'Die besten Tech-Verkäufer verkaufen nicht — sie hören zu, übersetzen, sorgen dafür, dass sich der Käufer richtig fühlt. Druck entsteht, wenn eine Seite einen Tausch ausgleichen will, an den die andere nicht glaubt. Du änderst nicht deinen Charakter, sondern deinen Vertrieb. Lies, wer dir gegenübersitzt — logisch oder emotional; die meisten sind 70/30, nicht 100/0. Dickhäutig sein heißt, den Rückstand des letzten Anrufs nicht in den nächsten zu tragen (der Anruf nach einem harten Nein ist der, der bezahlt). Die meisten „Einwände" sind Informationsanfragen in einer Verteidigungshaltung. Und jetzt sitzt ein dritter Käufer am Tisch: KI-Agenten — der reine logische Käufer. Deine Spec ist deine Startseite, dein Eval ist dein Demo, deine Fehlercodes sind deine Einwandbehandlung. Der Agent wählt über eine fünfstufige Akzeptanz-Schleife (Recall → Eignung → Eval → Score → Begründung), GEO ersetzt SEO (zitiert werden, nicht geklickt), und der Vertrag ist jetzt sieben Verträge (API, Preis, SLA, Daten, Compliance, Änderung, Recht) — jeder unabhängig bewertet, bevor der erste Anruf stattfindet.',
+          },
         ],
       },
       womanInTech: {
@@ -804,12 +810,6 @@ export const t = {
             href: '/blog/misread',
             title: 'Missverstanden — Aber Sie Kann Alles Sein',
             body: 'Feminismus ist kein Kampfruf, kein Manifest gegen ein System, keine Überzeugungsarbeit, keine Gewalt, kein Konformismus. Er ist Ausdruck. Er ist die stille, unermüdliche Arbeit, die Fähigkeiten von Frauen sichtbar zu machen — und sicherzustellen, dass diese Sichtbarkeit in echten wirtschaftlichen Wert übersetzt wird. Sie kann Ingenieurin sein. Sie kann alles sein. Darum ging es nie bei Slogans.',
-          },
-          {
-            date: '2026.06.02',
-            href: '/blog/tech-sales',
-            title: 'Menschen lieben zu kaufen — nicht verkauft zu werden.',
-            body: 'Die besten Tech-Verkäufer verkaufen nicht — sie hören zu, übersetzen, sorgen dafür, dass sich der Käufer richtig fühlt. Druck entsteht, wenn eine Seite einen Tausch ausgleichen will, an den die andere nicht glaubt. Du änderst nicht deinen Charakter, sondern deinen Vertrieb. Lies, wer dir gegenübersitzt — logisch oder emotional; die meisten sind 70/30, nicht 100/0. Dickhäutig sein heißt, den Rückstand des letzten Anrufs nicht in den nächsten zu tragen (der Anruf nach einem harten Nein ist der, der bezahlt). Die meisten „Einwände" sind Informationsanfragen in einer Verteidigungshaltung. Und jetzt sitzt ein dritter Käufer am Tisch: KI-Agenten — der reine logische Käufer. Deine Spec ist deine Startseite, dein Eval ist dein Demo, deine Fehlercodes sind deine Einwandbehandlung. Der Agent wählt über eine fünfstufige Akzeptanz-Schleife (Recall → Eignung → Eval → Score → Begründung), GEO ersetzt SEO (zitiert werden, nicht geklickt), und der Vertrag ist jetzt sieben Verträge (API, Preis, SLA, Daten, Compliance, Änderung, Recht) — jeder unabhängig bewertet, bevor der erste Anruf stattfindet.',
           },
         ],
       },
