@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>m2 · particle field — articles as gravity wells</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; }
+  body {
+    background: #020207;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+  #bg {
+    position: fixed; inset: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+  }
+  .ui { position: relative; z-index: 2; width: 100%; height: 100vh; padding: 56px; display: flex; flex-direction: column; }
+  header {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-bottom: 24px;
+  }
+  .brand { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; letter-spacing: 0.3em; color: rgba(255,255,255,0.85); text-transform: uppercase; }
+  nav { display: flex; gap: 24px; font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; letter-spacing: 0.22em; color: rgba(255,255,255,0.5); text-transform: uppercase; }
+  nav a { color: inherit; text-decoration: none; }
+
+  .hero {
+    flex: 1;
+    display: flex; flex-direction: column; justify-content: center;
+    max-width: 720px;
+    margin-left: 4%;
+  }
+  .hero .pretitle {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+    letter-spacing: 0.4em; color: #00ffea; text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  .hero h1 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 200;
+    font-size: clamp(2.4rem, 6vw, 4.2rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+  .hero h1 em { font-style: italic; font-weight: 300; }
+  .hero .sub {
+    margin-top: 28px;
+    font-size: 0.92rem; line-height: 1.7;
+    color: rgba(255,255,255,0.55);
+    max-width: 500px;
+    font-weight: 300;
+  }
+
+  /* Floating room labels — these are the particle field anchors */
+  .anchor {
+    position: absolute;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.75);
+    cursor: pointer;
+    z-index: 3;
+    user-select: none;
+    transition: color 0.2s, transform 0.2s;
+  }
+  .anchor:hover { color: #00ffea; transform: scale(1.05); }
+  .anchor .num { color: rgba(255,255,255,0.4); margin-right: 8px; }
+  .anchor.a1 { top: 22%; right: 14%; }
+  .anchor.a2 { top: 38%; right: 7%; }
+  .anchor.a3 { top: 64%; right: 17%; }
+  .anchor.a4 { top: 78%; right: 9%; }
+  .anchor.a5 { top: 50%; right: 22%; }
+
+  footer {
+    display: flex; justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;
+    letter-spacing: 0.3em; color: rgba(255,255,255,0.4); text-transform: uppercase;
+  }
+  footer .live { color: #00ffea; }
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<div class="ui">
+  <header>
+    <div class="brand">aileena // machina</div>
+    <nav>
+      <a href="#">/work</a>
+      <a href="#">/dispatch</a>
+      <a href="#">/sound</a>
+      <a href="#">/archive</a>
+      <a href="#">de</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <div class="pretitle">— this week —</div>
+    <h1>The call after a hard no is the one that <em>pays.</em></h1>
+    <p class="sub">A field of work I'm trying to think clearly inside. Pick a node. The particles know what's near.</p>
+  </div>
+
+  <div class="anchor a1" data-anchor="0"><span class="num">01</span>dispatch</div>
+  <div class="anchor a2" data-anchor="1"><span class="num">02</span>perspective</div>
+  <div class="anchor a3" data-anchor="2"><span class="num">03</span>sound</div>
+  <div class="anchor a4" data-anchor="3"><span class="num">04</span>visual</div>
+  <div class="anchor a5" data-anchor="4"><span class="num">05</span>archive</div>
+
+  <footer>
+    <span><span class="live">●</span> field stable</span>
+    <span>est 2025 · berlin</span>
+  </footer>
+</div>
+
+<script>
+const canvas = document.getElementById('bg');
+const ctx = canvas.getContext('2d');
+let W = 0, H = 0, dpr = 1;
+const particles = [];
+const anchors = [];
+const mouse = { x: -9999, y: -9999, active: 0 };
+
+function resize() {
+  dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+  ctx.scale(dpr, dpr);
+
+  // recompute anchor positions from DOM
+  anchors.length = 0;
+  document.querySelectorAll('.anchor').forEach((el, i) => {
+    const r = el.getBoundingClientRect();
+    anchors.push({ x: r.left + r.width / 2, y: r.top + r.height / 2, hover: 0, target: 0, color: ['#00ffea','#ffb900','#ff5c8d','#a8ff00','#00ffea'][i] });
+    el.addEventListener('mouseenter', () => { anchors[i].target = 1; });
+    el.addEventListener('mouseleave', () => { anchors[i].target = 0; });
+  });
+}
+
+function makeParticles() {
+  particles.length = 0;
+  const count = Math.min(600, Math.floor((W * H) / 3200));
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.2,
+      vy: (Math.random() - 0.5) * 0.2,
+      r: Math.random() * 1.2 + 0.4,
+      baseAlpha: Math.random() * 0.5 + 0.15,
+    });
+  }
+}
+
+resize(); makeParticles();
+window.addEventListener('resize', () => { resize(); makeParticles(); });
+window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = 1; });
+window.addEventListener('mouseleave', () => { mouse.active = 0; });
+
+let t0 = performance.now();
+function frame(now) {
+  const dt = Math.min(50, now - t0); t0 = now;
+  ctx.fillStyle = 'rgba(2,2,7,0.18)';
+  ctx.fillRect(0, 0, W, H);
+
+  // update anchors
+  for (const a of anchors) a.hover += (a.target - a.hover) * 0.08;
+
+  // draw connecting lines between anchors when hovered
+  for (let i = 0; i < anchors.length; i++) {
+    if (anchors[i].hover < 0.05) continue;
+    for (let j = i + 1; j < anchors.length; j++) {
+      const dx = anchors[i].x - anchors[j].x, dy = anchors[i].y - anchors[j].y;
+      const d = Math.sqrt(dx*dx + dy*dy);
+      if (d > 400) continue;
+      ctx.strokeStyle = anchors[i].color;
+      ctx.globalAlpha = 0.15 * anchors[i].hover;
+      ctx.lineWidth = 0.6;
+      ctx.beginPath();
+      ctx.moveTo(anchors[i].x, anchors[i].y);
+      ctx.lineTo(anchors[j].x, anchors[j].y);
+      ctx.stroke();
+    }
+  }
+
+  // particles
+  for (const p of particles) {
+    p.vx *= 0.985; p.vy *= 0.985;
+    // mouse attraction
+    if (mouse.active) {
+      const dx = mouse.x - p.x, dy = mouse.y - p.y;
+      const d2 = dx*dx + dy*dy;
+      if (d2 < 180*180 && d2 > 4) {
+        const d = Math.sqrt(d2);
+        p.vx += (dx / d) * 0.12;
+        p.vy += (dy / d) * 0.12;
+      }
+    }
+    // anchor pulls (gravity wells)
+    for (const a of anchors) {
+      if (a.hover < 0.05) continue;
+      const dx = a.x - p.x, dy = a.y - p.y;
+      const d2 = dx*dx + dy*dy;
+      if (d2 < 300*300 && d2 > 4) {
+        const d = Math.sqrt(d2);
+        p.vx += (dx / d) * 0.5 * a.hover;
+        p.vy += (dy / d) * 0.5 * a.hover;
+      }
+    }
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = W; else if (p.x > W) p.x = 0;
+    if (p.y < 0) p.y = H; else if (p.y > H) p.y = 0;
+
+    // tint based on nearest active anchor
+    let tint = 'rgba(255,255,255,';
+    for (const a of anchors) {
+      if (a.hover < 0.05) continue;
+      const dx = a.x - p.x, dy = a.y - p.y;
+      const d = Math.sqrt(dx*dx + dy*dy);
+      if (d < 250) {
+        const k = (1 - d / 250) * a.hover;
+        tint = a.color + (k > 0.4 ? 'cc' : 'aa');
+        ctx.fillStyle = tint;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r + k * 1.2, 0, Math.PI*2);
+        ctx.fill();
+        continue;
+      }
+    }
+    ctx.fillStyle = `rgba(255,255,255,${p.baseAlpha})`;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
