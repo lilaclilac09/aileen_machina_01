@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>m1 · oscilloscope mesh — articles as waveforms</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #050505;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+  .page { max-width: 1240px; margin: 0 auto; padding: 56px 32px 120px; position: relative; }
+  header {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .brand { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; letter-spacing: 0.25em; color: #00ffea; text-transform: uppercase; }
+  nav { display: flex; gap: 28px; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; letter-spacing: 0.2em; color: rgba(255,255,255,0.5); text-transform: uppercase; }
+  nav a { color: inherit; text-decoration: none; }
+  nav a.active { color: #00ffea; }
+
+  .heading {
+    margin-top: 56px;
+    display: flex; align-items: flex-end; gap: 18px;
+  }
+  .heading .tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.62rem;
+    letter-spacing: 0.4em; color: rgba(255,255,255,0.4); text-transform: uppercase;
+  }
+  .heading h2 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    font-size: clamp(1.8rem, 4.2vw, 2.6rem);
+    letter-spacing: -0.01em;
+    margin-top: 8px;
+  }
+
+  /* Each article = a waveform tile */
+  .grid {
+    margin-top: 56px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1px;
+    background: rgba(0,255,234,0.1);
+    border: 1px solid rgba(0,255,234,0.15);
+  }
+  .tile {
+    position: relative;
+    background: #050505;
+    aspect-ratio: 16 / 11;
+    padding: 22px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: background 0.25s;
+  }
+  .tile:hover { background: #0a0a0a; }
+  .tile canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+  }
+  .tile .info {
+    position: relative;
+    z-index: 2;
+    display: flex; flex-direction: column;
+    height: 100%;
+    justify-content: space-between;
+  }
+  .tile .top {
+    display: flex; justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 0.25em; color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+  }
+  .tile .top .cat { color: #00ffea; }
+  .tile h3 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    font-size: 1.05rem;
+    line-height: 1.25;
+    max-width: 90%;
+    color: rgba(255,255,255,0.95);
+  }
+  .tile h3 .arr { color: #00ffea; font-family: 'JetBrains Mono', monospace; margin-left: 6px; opacity: 0; transition: opacity 0.2s; }
+  .tile:hover h3 .arr { opacity: 1; }
+
+  /* status row */
+  .status {
+    margin-top: 28px;
+    display: flex; gap: 18px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.62rem;
+    letter-spacing: 0.25em; color: rgba(255,255,255,0.35);
+    text-transform: uppercase;
+  }
+  .status .dot { width: 6px; height: 6px; background: #00ffea; border-radius: 50%; align-self: center; box-shadow: 0 0 8px #00ffea; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="brand">aileena // machina</div>
+    <nav>
+      <a href="#">/work</a>
+      <a href="#" class="active">/dispatch</a>
+      <a href="#">/sound</a>
+      <a href="#">/archive</a>
+      <a href="#">de</a>
+    </nav>
+  </header>
+
+  <div class="heading">
+    <div>
+      <p class="tag">research dispatch · 22 entries</p>
+      <h2>Each article is a signal.</h2>
+    </div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="status">
+    <span class="dot"></span>
+    <span>SIGNAL LIVE</span>
+    <span>· 22 ENTRIES</span>
+    <span>· LAST UPDATE 2026.06.02</span>
+  </div>
+</div>
+
+<script>
+const articles = [
+  { cat: 'DISPATCH', date: '2026.06.02', title: 'People Love to Buy. They Don\'t Love to Be Sold.', seed: 1, color: '#00ffea' },
+  { cat: 'DISPATCH', date: '2026.06.02', title: 'The PCB Stack Inside an AI Rack', seed: 2, color: '#ffb900' },
+  { cat: 'DISPATCH', date: '2026.06.02', title: 'How CPO Actually Gets Built', seed: 3, color: '#00ffea' },
+  { cat: 'DISPATCH', date: '2026.06.01', title: 'Where Broadcom Sits in the AI Stack', seed: 4, color: '#ff5c8d' },
+  { cat: 'DISPATCH', date: '2026.06.01', title: 'Where Marvell Sits in the AI Optical Stack', seed: 5, color: '#00ffea' },
+  { cat: 'DISPATCH', date: '2026.06.01', title: 'What\'s Cooling the AI Build-Out', seed: 6, color: '#a8ff00' },
+  { cat: 'DISPATCH', date: '2026.05.31', title: 'Let There Be Light Modules', seed: 7, color: '#00ffea' },
+  { cat: 'DISPATCH', date: '2026.05.30', title: 'What AI Hardware Is Running Out Of', seed: 8, color: '#ffb900' },
+];
+
+const grid = document.getElementById('grid');
+const tiles = [];
+
+articles.forEach((a, i) => {
+  const tile = document.createElement('div');
+  tile.className = 'tile';
+  tile.innerHTML = `
+    <canvas></canvas>
+    <div class="info">
+      <div class="top"><span class="cat">${a.cat}</span><span>${a.date}</span></div>
+      <h3>${a.title}<span class="arr">→</span></h3>
+    </div>
+  `;
+  grid.appendChild(tile);
+  const c = tile.querySelector('canvas');
+  tiles.push({ tile, canvas: c, ctx: c.getContext('2d'), ...a, hover: 0 });
+  tile.addEventListener('mouseenter', () => { tiles[i].hoverTarget = 1; });
+  tile.addEventListener('mouseleave', () => { tiles[i].hoverTarget = 0; });
+});
+
+function resize() {
+  tiles.forEach(t => {
+    const r = t.canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    t.canvas.width = r.width * dpr;
+    t.canvas.height = r.height * dpr;
+    t.ctx.scale(dpr, dpr);
+    t.w = r.width; t.h = r.height;
+  });
+}
+resize();
+window.addEventListener('resize', resize);
+
+let t0 = performance.now();
+function frame(now) {
+  const dt = (now - t0) / 1000;
+  tiles.forEach((tile, i) => {
+    tile.hover = tile.hover + ((tile.hoverTarget || 0) - tile.hover) * 0.08;
+    const ctx = tile.ctx;
+    const w = tile.w, h = tile.h;
+    ctx.clearRect(0, 0, w, h);
+    // grid background
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.lineWidth = 1;
+    const cols = 16, rows = 10;
+    for (let x = 0; x <= cols; x++) {
+      ctx.beginPath();
+      ctx.moveTo(x * w / cols, 0);
+      ctx.lineTo(x * w / cols, h);
+      ctx.stroke();
+    }
+    for (let y = 0; y <= rows; y++) {
+      ctx.beginPath();
+      ctx.moveTo(0, y * h / rows);
+      ctx.lineTo(w, y * h / rows);
+      ctx.stroke();
+    }
+    // waveform
+    const amp = h * (0.18 + tile.hover * 0.18);
+    const freq = 1.5 + tile.seed * 0.4;
+    const phase = dt * (0.8 + tile.seed * 0.2);
+    ctx.strokeStyle = tile.color;
+    ctx.lineWidth = 1.5 + tile.hover * 1.2;
+    ctx.globalAlpha = 0.7 + tile.hover * 0.3;
+    ctx.shadowColor = tile.color;
+    ctx.shadowBlur = 6 + tile.hover * 12;
+    ctx.beginPath();
+    for (let x = 0; x <= w; x += 2) {
+      const u = x / w;
+      const y = h * 0.5
+        + Math.sin(u * Math.PI * 2 * freq + phase) * amp * (1 - Math.abs(u - 0.5) * 1.6)
+        + Math.sin(u * Math.PI * 2 * (freq * 2.3) + phase * 1.7) * amp * 0.35;
+      if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+  });
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
