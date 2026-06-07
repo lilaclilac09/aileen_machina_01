@@ -3,33 +3,30 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>m6 v2 · archive — sticky-note wall</title>
+<title>m6 v3 · archive — weekly editorial</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=JetBrains+Mono:wght@300;400&family=Instrument+Serif:ital@0;1&family=Caveat:wght@400;500;600&family=Patrick+Hand&family=Kalam:wght@300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;700&family=JetBrains+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f4ede0;             /* warm paper */
+    --bg: #f4ede0;
     --ink: #1a1612;
     --mute: rgba(26,22,18,0.55);
     --mute2: rgba(26,22,18,0.32);
     --line: rgba(26,22,18,0.1);
-    --vessel: #7c5cc4;          /* ink lilac on paper */
+    --vessel: #7c5cc4;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    background:
-      radial-gradient(rgba(26,22,18,0.05) 1px, transparent 1px),
-      var(--bg);
-    background-size: 28px 28px, auto;
+    background: var(--bg);
     color: var(--ink);
     font-family: 'Inter', sans-serif;
-    min-height: 100vh;
     overflow-x: hidden;
+    min-height: 100vh;
   }
-  .page { max-width: 1280px; margin: 0 auto; padding: 56px 32px 40px; position: relative; }
+  .page { max-width: 1240px; margin: 0 auto; padding: 56px 32px 120px; position: relative; }
 
-  /* ─── same spine as m5 / m7 ─── */
+  /* ─── shared spine (same as m5/m7) ─── */
   .spine {
     display: flex; justify-content: space-between; align-items: baseline;
     padding-bottom: 22px;
@@ -41,7 +38,8 @@
   }
   .spine .mark .dot { display: inline-block; width: 4px; height: 4px; background: var(--vessel); border-radius: 50%; margin: 0 6px 3px; vertical-align: middle; }
   .spine nav { display: flex; gap: 26px; font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; letter-spacing: 0.22em; color: var(--mute); text-transform: uppercase; align-items: center; }
-  .spine nav a { color: inherit; text-decoration: none; }
+  .spine nav a { color: inherit; text-decoration: none; transition: color 0.15s; }
+  .spine nav a:hover { color: var(--ink); }
   .spine nav a.active { color: var(--ink); position: relative; }
   .spine nav a.active::before {
     content: '';
@@ -53,172 +51,180 @@
   }
   @keyframes heart { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(0.75); opacity: 0.55; } }
 
-  /* ─── HEAD: handwritten, not framed ─── */
-  .head {
-    padding: 64px 0 24px;
-    position: relative;
-  }
-  .head .scratchy {
+  /* ─── ISSUE BANNER ─── */
+  .issue {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 26px 0 18px;
+    border-bottom: 1px solid var(--line);
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.58rem; letter-spacing: 0.5em;
-    color: var(--mute);
-    text-transform: uppercase;
-    margin-bottom: 12px;
+    font-size: 0.6rem; letter-spacing: 0.4em;
+    color: var(--mute); text-transform: uppercase;
   }
-  .head h1 {
-    font-family: 'Instrument Serif', serif;
-    font-style: italic;
-    font-weight: 400;
-    font-size: clamp(2.4rem, 5.5vw, 3.6rem);
-    line-height: 1;
+  .issue .left { display: flex; gap: 26px; }
+  .issue .left .num { color: var(--vessel); font-size: 0.7rem; }
+  .issue .right { color: var(--mute); }
+
+  /* ─── FEATURE — current week's lead ─── */
+  .feature {
+    padding: 64px 0 56px;
+    border-bottom: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 48px;
+    align-items: start;
+  }
+  .feature .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 0.28em;
+    color: var(--mute); text-transform: uppercase;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .feature .meta .cat { color: var(--ink); }
+  .feature .meta .date { color: var(--vessel); }
+  .feature .body h1 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 200;
+    font-size: clamp(2.4rem, 5.5vw, 3.8rem);
+    line-height: 1.02;
+    letter-spacing: -0.028em;
     color: var(--ink);
     max-width: 22ch;
   }
-  .head h1 .u { position: relative; white-space: nowrap; display: inline-block; }
-  .head h1 .u svg { position: absolute; left: 0; right: 0; bottom: -8px; width: 100%; height: 14px; }
-  .head .agg {
-    position: absolute; top: 72px; right: 0;
-    font-family: 'Caveat', cursive; font-weight: 500;
-    color: var(--vessel);
-    font-size: 1.4rem;
-    transform: rotate(-3deg);
-    line-height: 1.2;
-    text-align: right;
-  }
-  .head .agg .count {
-    font-family: 'Inter', sans-serif; font-weight: 200;
-    font-size: 3.4rem; line-height: 1;
-    display: block;
+  .feature .body h1 .v {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-weight: 400;
     color: var(--ink);
-    margin-bottom: -4px;
-  }
-  .head .agg .small {
-    display: block;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.6rem; letter-spacing: 0.3em;
-    color: var(--mute);
-    text-transform: uppercase;
-    margin-top: 8px;
-    transform: rotate(3deg);
-  }
-
-  /* ─── THE WALL ─── */
-  .wall {
     position: relative;
-    margin-top: 56px;
-    min-height: 1480px;
-    /* faint cork-board texture lines */
-    background-image:
-      repeating-linear-gradient(45deg, transparent 0, transparent 80px, rgba(26,22,18,0.015) 80px, rgba(26,22,18,0.015) 81px);
+    white-space: nowrap;
   }
-  /* lilac connector lines drawn over the wall, behind notes */
-  .wall svg.threads {
-    position: absolute; inset: 0;
-    width: 100%; height: 100%;
+  .feature .body h1 .v svg.u {
+    position: absolute;
+    left: 0; right: 0; bottom: -8px;
+    width: 100%; height: 12px;
     pointer-events: none;
-    z-index: 1;
-    opacity: 0.55;
+  }
+  .feature .body .lede {
+    margin-top: 24px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: rgba(26,22,18,0.8);
+    max-width: 56ch;
+  }
+  .feature .body .lede em {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-weight: 400;
+  }
+  .feature .body .read {
+    margin-top: 28px;
+    display: inline-flex; align-items: center; gap: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.64rem; letter-spacing: 0.3em;
+    color: var(--vessel); text-transform: uppercase;
+    text-decoration: none;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--vessel);
   }
 
-  /* ─── sticky notes ─── */
-  .note {
-    position: absolute;
-    padding: 14px 16px 16px;
-    box-shadow: 0 6px 16px -4px rgba(26,22,18,0.18), 0 1px 2px rgba(26,22,18,0.1);
+  /* ─── SECTION HEAD ─── */
+  .section-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin: 64px 0 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 0.32em;
+    color: var(--mute); text-transform: uppercase;
+  }
+  .section-head .count { color: var(--vessel); }
+
+  /* ─── LIST ─── */
+  .list { display: flex; flex-direction: column; }
+  .row {
+    display: grid;
+    grid-template-columns: 120px 130px 1fr 90px;
+    gap: 22px;
+    padding: 22px 12px;
+    align-items: baseline;
+    border-bottom: 1px solid var(--line);
     text-decoration: none;
     color: inherit;
     cursor: pointer;
-    z-index: 2;
-    transition: transform 0.22s, box-shadow 0.22s;
+    position: relative;
+    transition: background 0.3s;
   }
-  .note:hover {
-    transform: translateY(-3px) scale(1.015) rotate(0deg) !important;
-    box-shadow: 0 14px 28px -8px rgba(26,22,18,0.28), 0 2px 4px rgba(26,22,18,0.12);
-    z-index: 10;
-  }
-  /* tape strip at top */
-  .note::before {
-    content: '';
-    position: absolute; top: -7px; left: 50%;
-    transform: translateX(-50%) rotate(-2deg);
-    width: 56px; height: 14px;
-    background: rgba(255,255,255,0.55);
-    border: 1px dashed rgba(26,22,18,0.18);
-    box-shadow: 0 1px 2px rgba(26,22,18,0.08);
-  }
-  .note.no-tape::before { display: none; }
-  .note.pin::before {
-    content: '';
-    width: 10px; height: 10px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, #c84a5f 0%, #862033 70%);
-    box-shadow: 0 1px 2px rgba(0,0,0,0.5), inset -1px -1px 1px rgba(0,0,0,0.4);
-    border: none;
-    top: 6px; left: 50%;
-    transform: translateX(-50%);
-  }
-  .note .date {
+  .row:hover { background: rgba(26,22,18,0.022); }
+  .row .date {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.55rem; letter-spacing: 0.18em;
-    color: rgba(26,22,18,0.55);
-    margin-bottom: 6px;
-    display: block;
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    color: rgba(26,22,18,0.7);
   }
-  .note .tag {
+  .row .cat {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.5rem; letter-spacing: 0.25em;
-    color: rgba(26,22,18,0.45);
+    font-size: 0.6rem;
+    letter-spacing: 0.28em;
+    color: var(--mute);
     text-transform: uppercase;
   }
-  .note h3 {
-    font-family: 'Caveat', cursive;
-    font-weight: 500;
-    font-size: 1.45rem;
-    line-height: 1.18;
+  .row h3 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    font-size: clamp(1.1rem, 2.2vw, 1.45rem);
+    line-height: 1.22;
+    letter-spacing: -0.012em;
     color: rgba(26,22,18,0.92);
+    transition: transform 0.4s cubic-bezier(.4,0,.2,1), color 0.2s;
   }
-  .note h3 .it {
+  .row:hover h3 { transform: translateX(6px); color: var(--ink); }
+  .row h3 em {
+    font-style: italic;
     font-family: 'Instrument Serif', serif;
-    font-style: italic; font-weight: 400;
-    color: var(--ink);
+    font-weight: 400;
   }
-  .note p {
-    font-family: 'Patrick Hand', cursive;
-    font-size: 0.92rem;
-    line-height: 1.32;
-    color: rgba(26,22,18,0.78);
-    margin-top: 6px;
+  .row:hover h3 em { color: var(--vessel); }
+  .row .arr {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.22em;
+    color: var(--mute2);
+    text-align: right;
+    transition: color 0.2s;
+  }
+  .row:hover .arr { color: var(--vessel); }
+
+  /* year divider — light editorial mark */
+  .year {
+    margin: 36px 0 16px;
+    padding-bottom: 8px;
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.3rem;
+    color: var(--mute);
+    border-bottom: 1px solid var(--line);
+  }
+  .year .small {
+    font-family: 'JetBrains Mono', monospace;
+    font-style: normal;
+    font-size: 0.55rem;
+    letter-spacing: 0.32em;
+    color: var(--mute2);
+    text-transform: uppercase;
+    margin-left: 12px;
   }
 
-  /* sticky colors */
-  .note.yellow { background: linear-gradient(180deg, #fff39e 0%, #ffe97a 100%); }
-  .note.pink   { background: linear-gradient(180deg, #ffd0db 0%, #ffb0c2 100%); }
-  .note.blue   { background: linear-gradient(180deg, #cfe6f8 0%, #a9d2ee 100%); }
-  .note.green  { background: linear-gradient(180deg, #d8f0c1 0%, #b4dd95 100%); }
-  .note.lilac  { background: linear-gradient(180deg, #e0d5ff 0%, #c4b0ee 100%); }
-  .note.cream  { background: linear-gradient(180deg, #fdf6e7 0%, #f0e4cb 100%); }
-
-  /* handwritten marginalia in lilac — the vessel showing up as ink */
-  .marg {
-    position: absolute;
-    font-family: 'Caveat', cursive; font-weight: 500;
-    color: var(--vessel);
-    font-size: 1.4rem;
-    z-index: 3;
-    line-height: 1.1;
-    pointer-events: none;
-  }
-  .marg.kalam { font-family: 'Kalam', cursive; font-weight: 400; }
-  .marg .arrow { display: inline-block; }
-
-  /* footer */
   footer {
-    margin-top: 64px;
-    padding-top: 24px;
+    margin-top: 80px;
+    padding-top: 26px;
     border-top: 1px solid var(--line);
     display: flex; justify-content: space-between;
-    font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;
-    letter-spacing: 0.3em; color: var(--mute); text-transform: uppercase;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.3em;
+    color: var(--mute);
+    text-transform: uppercase;
   }
   footer .sig { color: rgba(26,22,18,0.7); }
   footer .sig em { color: var(--vessel); font-style: normal; margin: 0 6px; }
@@ -231,7 +237,8 @@
   }
   .launcher .avatar {
     position: relative;
-    width: 34px; height: 34px; border-radius: 50%;
+    width: 34px; height: 34px;
+    border-radius: 50%;
     background-image: url('/bg_pic/03.jpeg');
     background-position: 18% 5%;
     background-size: 175%;
@@ -278,165 +285,98 @@
     </nav>
   </div>
 
-  <div class="head">
-    <p class="scratchy">archive · stuff i'm taking apart</p>
-    <h1>The desk. Where I keep <span class="u">everything I'm thinking about<svg viewBox="0 0 480 14" preserveAspectRatio="none"><path d="M2 8 Q 90 1 200 7 T 380 6 T 478 9" stroke="#7c5cc4" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg></span>.</h1>
-    <div class="agg">
-      <span class="count">23</span>
-      notes
-      <span class="small">essays · dispatch · personal</span>
+  <div class="issue">
+    <div class="left">
+      <span>archive · updated weekly</span>
+      <span>since 2025</span>
+    </div>
+    <div class="right">latest 2026.06.02 · berlin</div>
+  </div>
+
+  <!-- FEATURE — the week's lead -->
+  <div class="feature">
+    <div class="meta">
+      <span class="cat">★ this week</span>
+      <span class="date">2026.06.02</span>
+      <span>dispatch</span>
+      <span>14 min read</span>
+    </div>
+    <div class="body">
+      <h1>People love to <span class="v">buy.<svg class="u" viewBox="0 0 100 12" preserveAspectRatio="none"><path d="M2 7 Q 30 2 60 6 T 98 8" stroke="#7c5cc4" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg></span> They don't love to be sold.</h1>
+      <p class="lede">The best tech salespeople don't sell — they listen, translate, and make the buyer feel right. Pressure is what happens when one side is trying to compensate for an exchange the other side doesn't believe in. And now there's a third buyer on the line — <em>the AI agent.</em> Pure logical, picks through a five-stage acceptance loop, and GEO is replacing SEO before most of us noticed.</p>
+      <a href="#" class="read">read the issue →</a>
     </div>
   </div>
 
-  <!-- ════ THE WALL ════ -->
-  <div class="wall">
-
-    <!-- lilac threads drawn under the notes -->
-    <svg class="threads" viewBox="0 0 1216 1480" preserveAspectRatio="none">
-      <path d="M 280 230 Q 420 180 560 280" stroke="#7c5cc4" stroke-width="1.4" fill="none" stroke-dasharray="3 4" />
-      <path d="M 870 380 Q 980 470 1080 540" stroke="#7c5cc4" stroke-width="1.4" fill="none" stroke-dasharray="3 4" />
-      <path d="M 200 700 Q 320 830 460 920" stroke="#7c5cc4" stroke-width="1.4" fill="none" stroke-dasharray="3 4" />
-      <path d="M 720 1020 Q 820 1100 880 1180" stroke="#7c5cc4" stroke-width="1.4" fill="none" stroke-dasharray="3 4" />
-    </svg>
-
-    <!-- ROW 1 -->
-    <a href="#" class="note yellow" style="top: 30px; left: 40px; width: 230px; transform: rotate(-3deg);">
-      <span class="date">2026.06.02 · DISPATCH</span>
-      <h3>People love to <span class="it">buy.</span> They don't love to be sold.</h3>
-      <p>tech sales without pressure. AI agents are the third buyer now.</p>
+  <!-- ALSO THIS WEEK -->
+  <div class="section-head">
+    <span>also this week</span>
+    <span><span class="count">3</span> entries</span>
+  </div>
+  <div class="list">
+    <a href="#" class="row">
+      <span class="date">2026.06.02</span>
+      <span class="cat">investing</span>
+      <h3>The PCB stack <em>inside</em> an AI rack.</h3>
+      <span class="arr">→ open</span>
     </a>
-
-    <a href="#" class="note pink pin" style="top: 70px; left: 320px; width: 215px; transform: rotate(2.4deg);">
-      <span class="date">2026.06.02 · DISPATCH</span>
-      <h3>Five <span class="it">PCBs</span> inside an AI rack.</h3>
-      <p>HDI · switch · 44-layer mid plane · backplane · SLP. 2027 decider.</p>
+    <a href="#" class="row">
+      <span class="date">2026.06.02</span>
+      <span class="cat">investing</span>
+      <h3>How CPO <em>actually</em> gets built.</h3>
+      <span class="arr">→ open</span>
     </a>
-
-    <a href="#" class="note blue" style="top: 18px; left: 600px; width: 210px; transform: rotate(-1.6deg);">
-      <span class="date">2026.06.02 · DISPATCH</span>
-      <h3>How <span class="it">CPO</span> actually gets built.</h3>
+    <a href="#" class="row">
+      <span class="date">2026.06.01</span>
+      <span class="cat">investing</span>
+      <h3>Where Broadcom sits in the <em>AI stack.</em></h3>
+      <span class="arr">→ open</span>
     </a>
+  </div>
 
-    <a href="#" class="note lilac" style="top: 92px; left: 860px; width: 220px; transform: rotate(3deg);">
-      <span class="date">2026.06.01 · DISPATCH</span>
-      <h3>Where <span class="it">Broadcom</span> sits in the AI stack.</h3>
-      <p>switch · custom XPU · the optical bet</p>
-    </a>
+  <!-- ALL ENTRIES — real prod articles + real rail labels -->
+  <div class="section-head">
+    <span>archive · all entries</span>
+    <span><span class="count">30</span> total · 2025–26</span>
+  </div>
 
-    <!-- ROW 2 -->
-    <a href="#" class="note green" style="top: 280px; left: 90px; width: 200px; transform: rotate(2deg);">
-      <span class="date">2026.06.01 · DISPATCH</span>
-      <h3>What's <span class="it">cooling</span> the AI build-out.</h3>
-    </a>
+  <div class="year">2026 <span class="small">· 29 entries</span></div>
+  <div class="list">
+    <a href="#" class="row"><span class="date">2026.06.01</span><span class="cat">investing</span><h3>What's cooling the <em>AI build-out.</em></h3><span class="arr">→ open</span></a>
+    <a href="#" class="row"><span class="date">2026.06.01</span><span class="cat">investing</span><h3>Where Marvell sits in the <em>AI optical stack.</em></h3><span class="arr">→ open</span></a>
+    <a href="#" class="row"><span class="date">2026.05.31</span><span class="cat">investing</span><h3>Let there be <em>light modules.</em></h3><span class="arr">→ open</span></a>
+    <a href="#" class="row"><span class="date">2026.05.30</span><span class="cat">investing</span><h3>What AI hardware <em>is running out of.</em></h3><span class="arr">→ open</span></a>
+    <a href="#" class="row"><span class="date">2026.05.30</span><span class="cat">investing</span><h3>Why bet on <em>Nokia.</em></h3><span class="arr">→ open</span></a>
+    <a href="#" class="row"><span class="date">2026.05.30</span><span class="cat">dispatch</span><h3>Three ways to <em>arbitrage</em> Zcash (one isn't real).</h3><span class="arr">→ open</span></a>
+    <a href="#" class="row"><span class="date">2026.05.29</span><span class="cat">investing</span><h3>Why bet on <em>Dell.</em></h3><span class="arr">→ open</span></a>
+    <a href="#" class="row"><span class="date">2026.05.29</span><span class="cat">investing</span><h3>NVIDIA is buying its <em>own demand.</em></h3><span class="arr">→ open</span></a>
+    <a href="#" class="row"><span class="date">2026.05.29</span><span class="cat">dispatch</span><h3>Reading Solana — from data structure to <em>API call.</em></h3><span class="arr">→ open</span></a>
+    <a href="#" class="row"><span class="date">2026.05.29</span><span class="cat">dispatch</span><h3>Why AI has to be <em>instantaneous.</em></h3><span class="arr">→ open</span></a>
+    <a href="#" class="row"><span class="date">2026.05.28</span><span class="cat">dispatch</span><h3>The shred economy has a <em>revenue line</em> now.</h3><span class="arr">→ open</span></a>
+    <a href="#" class="row"><span class="date">2026.05.27</span><span class="cat">dispatch</span><h3>The pairing VM <em>nobody inherited.</em></h3><span class="arr">→ open</span></a>
+    <a href="#" class="row"><span class="date">2026.05.27</span><span class="cat">dispatch</span><h3>Five validator clients, one pipeline, <em>no full-FPGA.</em></h3><span class="arr">→ open</span></a>
+    <a href="#" class="row"><span class="date">2026.05.26</span><span class="cat">dispatch</span><h3>Centaur, and the <em>market it's landing in.</em></h3><span class="arr">→ open</span></a>
+    <a href="#" class="row"><span class="date">2026.05.24</span><span class="cat">dispatch</span><h3>Humidifi, <em>decoded.</em></h3><span class="arr">→ open</span></a>
+    <a href="#" class="row"><span class="date">2026.05.24</span><span class="cat">dispatch</span><h3>DoubleZero, <em>multicast fiber.</em></h3><span class="arr">→ open</span></a>
+    <a href="#" class="row"><span class="date">2026.05.23</span><span class="cat">dispatch</span><h3>The pool that <em>wasn't a pool.</em></h3><span class="arr">→ open</span></a>
+    <a href="#" class="row"><span class="date">2026.05.21</span><span class="cat">dispatch</span><h3>The darkest trade — how <em>CEX-DEX arbitrage</em> actually works.</h3><span class="arr">→ open</span></a>
+    <a href="#" class="row"><span class="date">2026.05.20</span><span class="cat">dispatch</span><h3>The wire — how Solana <em>actually moves bytes.</em></h3><span class="arr">→ open</span></a>
+    <a href="#" class="row"><span class="date">2026.05.20</span><span class="cat">dispatch</span><h3>The CLI was always the <em>trading floor.</em></h3><span class="arr">→ open</span></a>
+    <a href="#" class="row"><span class="date">2026.05.20</span><span class="cat">dispatch</span><h3>The RPC layer that <em>cut the cord.</em></h3><span class="arr">→ open</span></a>
+    <a href="#" class="row"><span class="date">2026.05.17</span><span class="cat">dispatch</span><h3>The order book <em>that doesn't break.</em></h3><span class="arr">→ open</span></a>
+    <a href="#" class="row"><span class="date">2026.04.23</span><span class="cat">perspective</span><h3>Every woman in tech has a <em>#MeToo</em> story.</h3><span class="arr">→ open</span></a>
+    <a href="#" class="row"><span class="date">2026.03.15</span><span class="cat">perspective</span><h3>Misread — but she can <em>become anyone.</em></h3><span class="arr">→ open</span></a>
+    <a href="#" class="row"><span class="date">2026.02.15</span><span class="cat">perspective</span><h3>Don't be a sheep — <em>be a lion.</em></h3><span class="arr">→ open</span></a>
+  </div>
 
-    <a href="#" class="note yellow" style="top: 320px; left: 330px; width: 215px; transform: rotate(-2.6deg);">
-      <span class="date">2026.05.31 · DISPATCH</span>
-      <h3>Let there be <span class="it">light modules.</span></h3>
-      <p>800G optics, who actually ships, why CPO matters</p>
-    </a>
-
-    <a href="#" class="note pink" style="top: 260px; left: 590px; width: 200px; transform: rotate(1.8deg);">
-      <span class="date">2026.05.30 · DISPATCH</span>
-      <h3>What AI hardware <span class="it">is running out of.</span></h3>
-    </a>
-
-    <a href="#" class="note cream pin" style="top: 340px; left: 830px; width: 240px; transform: rotate(-2.2deg);">
-      <span class="date">2026.05.28 · DISPATCH</span>
-      <h3>Where <span class="it">Marvell</span> sits in the AI optical stack.</h3>
-      <p>800G · 1.6T · ASIC. the second optical player nobody names.</p>
-    </a>
-
-    <!-- ROW 3 -->
-    <a href="#" class="note blue" style="top: 540px; left: 60px; width: 220px; transform: rotate(-1.8deg);">
-      <span class="date">2026.05.18 · ESSAY</span>
-      <h3>The little <span class="it">ring</span> that holds the whole machine together.</h3>
-      <p>two and a half years of CNC notes. one part holds the year.</p>
-    </a>
-
-    <a href="#" class="note yellow pin" style="top: 580px; left: 320px; width: 210px; transform: rotate(2.8deg);">
-      <span class="date">2026.04.22 · ESSAY</span>
-      <h3>Misread — but she can <span class="it">become anyone.</span></h3>
-    </a>
-
-    <a href="#" class="note green" style="top: 530px; left: 580px; width: 230px; transform: rotate(-2.4deg);">
-      <span class="date">2026.03.04 · ESSAY</span>
-      <h3>Every woman in tech has a <span class="it">#MeToo</span> story.</h3>
-      <p>monad foundation, singapore. the bystanders said nothing.</p>
-    </a>
-
-    <a href="#" class="note pink" style="top: 600px; left: 860px; width: 200px; transform: rotate(1.4deg);">
-      <span class="date">2026.02.15 · ESSAY</span>
-      <h3>Be no <span class="it">sheep.</span> Be a lion.</h3>
-    </a>
-
-    <!-- ROW 4 -->
-    <a href="#" class="note cream" style="top: 820px; left: 100px; width: 220px; transform: rotate(2.6deg);">
-      <span class="date">2026.01.20 · SOLANA</span>
-      <h3>The <span class="it">CLOB</span> that wasn't a CLOB.</h3>
-      <p>on-chain order books in 2025, and what they actually traded against.</p>
-    </a>
-
-    <a href="#" class="note lilac pin" style="top: 850px; left: 360px; width: 230px; transform: rotate(-2deg);">
-      <span class="date">2025.11.08 · ROBOTICS</span>
-      <h3>How robots <span class="it">learn to be robots.</span></h3>
-      <p>NVIDIA Omniverse · Cosmos · the loop of sim → policy → real.</p>
-    </a>
-
-    <a href="#" class="note yellow" style="top: 830px; left: 630px; width: 215px; transform: rotate(1.6deg);">
-      <span class="date">2025.09.14 · SOLANA</span>
-      <h3>Why I keep coming back to <span class="it">solana.</span></h3>
-    </a>
-
-    <a href="#" class="note blue" style="top: 880px; left: 890px; width: 200px; transform: rotate(-2.8deg);">
-      <span class="date">2025.07.30 · ESSAY</span>
-      <h3>The MEV <span class="it">dashboard</span> I keep open.</h3>
-    </a>
-
-    <!-- ROW 5 — short tail -->
-    <a href="#" class="note green pin" style="top: 1090px; left: 130px; width: 200px; transform: rotate(-2deg);">
-      <span class="date">2025.06.02 · ESSAY</span>
-      <h3>What I <span class="it">learned</span> in Berlin.</h3>
-    </a>
-
-    <a href="#" class="note pink" style="top: 1110px; left: 380px; width: 220px; transform: rotate(2.2deg);">
-      <span class="date">2025.04.18 · NOTE</span>
-      <h3>The first time I felt <span class="it">underestimated.</span></h3>
-    </a>
-
-    <a href="#" class="note cream" style="top: 1080px; left: 650px; width: 210px; transform: rotate(-1.8deg);">
-      <span class="date">2025.03.02 · NOTE</span>
-      <h3>On <span class="it">leaving</span> shanghai.</h3>
-    </a>
-
-    <a href="#" class="note lilac" style="top: 1140px; left: 900px; width: 200px; transform: rotate(2.6deg);">
-      <span class="date">2025.02.14 · NOTE</span>
-      <h3>The <span class="it">first</span> machina note.</h3>
-    </a>
-
-    <!-- ════ marginalia: lilac handwritten — the vessel as ink ════ -->
-    <div class="marg" style="top: 175px; left: 245px; transform: rotate(-8deg);">↘ this one</div>
-    <div class="marg kalam" style="top: 200px; left: 280px; transform: rotate(-2deg); font-size: 1.1rem;">the one that pays</div>
-
-    <div class="marg" style="top: 220px; left: 565px; transform: rotate(-12deg); font-size: 1.2rem;">↗</div>
-    <div class="marg kalam" style="top: 240px; left: 552px; transform: rotate(-6deg); font-size: 1rem;">2027 decider</div>
-
-    <div class="marg" style="top: 460px; left: 30px; transform: rotate(-4deg); font-size: 1.5rem;">— the optical bet</div>
-
-    <div class="marg kalam" style="top: 720px; left: 590px; transform: rotate(-3deg); font-size: 1.1rem;">↑ companion to broadcom</div>
-
-    <div class="marg" style="top: 770px; left: 290px; transform: rotate(-5deg); font-size: 1.4rem;">important.</div>
-
-    <div class="marg kalam" style="top: 1020px; left: 130px; transform: rotate(-3deg); font-size: 1rem;">↘ first machine</div>
-
-    <div class="marg" style="top: 1040px; left: 615px; transform: rotate(-7deg); font-size: 1.3rem;">~ memory</div>
-
-    <div class="marg kalam" style="top: 1290px; left: 460px; transform: rotate(-2deg); font-size: 1rem;">these were notes, not posts.</div>
-
+  <div class="year">2025 <span class="small">· 1 entry</span></div>
+  <div class="list">
+    <a href="#" class="row"><span class="date">2025.03.18</span><span class="cat">dispatch</span><h3>How robots <em>learn to be robots.</em></h3><span class="arr">→ open</span></a>
   </div>
 
   <footer>
-    <span>est 2025 · berlin</span>
-    <span class="sig">a wall of thinking <em>·</em> the archive of machina</span>
+    <span>est 2025 · berlin · updated weekly</span>
+    <span class="sig">archive of machina <em>·</em> dispatch / investing / perspective</span>
   </footer>
 </div>
 </body>
