@@ -103,7 +103,7 @@ export default function TechSalesArticle() {
           logical layer is the spec answer. The emotional layer is the story under the spec.
         </p>
 
-        <SectionLabel>Don't change your character. Change your sales.</SectionLabel>
+        <SectionLabel>Don&rsquo;t change your character. Change your sales.</SectionLabel>
         <p style={bodyStyle}>
           The worst advice in sales is &ldquo;be confident,&rdquo; &ldquo;be a closer,&rdquo;
           &ldquo;fake it till you make it,&rdquo; &ldquo;act like the person who already has the
