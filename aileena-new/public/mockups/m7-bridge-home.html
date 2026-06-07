@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>m7 · home — bridge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;700&family=JetBrains+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&family=Caveat:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-dark: #08080a;
+    --bg-paper: #f6f1e7;
+    --ink-light: #fafaf7;
+    --ink-dark: #1a1612;
+    --vessel-dark: #e63946;
+    --vessel-light: #c8102e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; overflow-x: hidden; }
+  body {
+    background: var(--bg-dark);
+    color: var(--ink-light);
+    font-family: 'Inter', sans-serif;
+  }
+  @keyframes heart { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(0.75); opacity: 0.55; } }
+
+  /* ─── DARK HEMISPHERE — dispatch / signal ─── */
+  .hemi-dark {
+    background: var(--bg-dark);
+    color: var(--ink-light);
+    padding: 56px 32px 80px;
+  }
+  .hemi-dark .container { max-width: 1240px; margin: 0 auto; }
+
+  .spine {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-bottom: 22px;
+    border-bottom: 1px solid rgba(250,250,247,0.08);
+  }
+  .spine .mark {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    letter-spacing: -0.01em;
+  }
+  .spine .mark .dot { display: inline-block; width: 4px; height: 4px; background: var(--vessel-dark); border-radius: 50%; margin: 0 6px 3px; vertical-align: middle; }
+  .spine nav {
+    display: flex; gap: 26px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.66rem;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    color: rgba(250,250,247,0.55);
+    align-items: center;
+  }
+  .spine nav a { color: inherit; text-decoration: none; }
+  .spine nav a.active { color: var(--ink-light); position: relative; }
+  .spine nav a.active::before {
+    content: '';
+    display: inline-block;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--vessel-dark);
+    margin-right: 7px;
+    vertical-align: middle;
+    box-shadow: 0 0 5px var(--vessel-dark);
+    animation: heart 1.5s ease-in-out infinite;
+  }
+
+  .hero {
+    padding: 80px 0 56px;
+  }
+  .hero .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem; letter-spacing: 0.5em;
+    color: rgba(250,250,247,0.42); text-transform: uppercase;
+    margin-bottom: 28px;
+  }
+  .hero h1 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 200;
+    font-size: clamp(3rem, 8.5vw, 6.4rem);
+    line-height: 0.92;
+    letter-spacing: -0.045em;
+    max-width: 16ch;
+  }
+  .hero h1 .vessel {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-weight: 400;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--vessel-dark);
+    text-shadow: 0 0 18px rgba(230,57,70,0.18);
+    animation: pulse 2.6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { -webkit-text-stroke-color: rgba(230,57,70,0.45); text-shadow: 0 0 12px rgba(230,57,70,0.1); }
+    50%      { -webkit-text-stroke-color: var(--vessel-dark); text-shadow: 0 0 24px rgba(230,57,70,0.32); }
+  }
+
+  /* ticker bleeding to edge of dark zone */
+  .ticker {
+    position: relative;
+    margin: 56px -32px 0;
+    overflow: hidden;
+    border-top: 1px solid rgba(250,250,247,0.06);
+    border-bottom: 1px solid rgba(250,250,247,0.06);
+    padding: 20px 0;
+  }
+  .ticker::before, .ticker::after {
+    content: '';
+    position: absolute; top: 0; bottom: 0;
+    width: 80px; z-index: 2; pointer-events: none;
+  }
+  .ticker::before { left: 0;  background: linear-gradient(90deg, var(--bg-dark), transparent); }
+  .ticker::after  { right: 0; background: linear-gradient(-90deg, var(--bg-dark), transparent); }
+  .ticker-track {
+    display: inline-flex; gap: 56px;
+    white-space: nowrap;
+    animation: marquee 42s linear infinite;
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: clamp(1.1rem, 2.2vw, 1.55rem);
+    color: rgba(250,250,247,0.78);
+    padding-left: 56px;
+  }
+  .ticker-track .sep {
+    color: var(--vessel-dark);
+    font-style: normal;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55em; align-self: center;
+  }
+  @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+  /* dispatch teaser — only top 3, with "→ dispatch" CTA */
+  .teaser {
+    margin-top: 56px;
+  }
+  .teaser-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 0.3em; text-transform: uppercase;
+    color: rgba(250,250,247,0.55);
+    margin-bottom: 18px;
+  }
+  .teaser-head a { color: rgba(250,250,247,0.85); text-decoration: none; }
+  .teaser-head a:hover { color: var(--vessel-dark); }
+  .teaser-row {
+    display: grid; grid-template-columns: 110px 1fr 100px; gap: 22px;
+    padding: 18px 14px;
+    border-bottom: 1px solid rgba(250,250,247,0.08);
+    text-decoration: none; color: inherit;
+  }
+  .teaser-row .date {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    color: rgba(250,250,247,0.65);
+  }
+  .teaser-row h3 {
+    font-family: 'Inter', sans-serif; font-weight: 300;
+    font-size: clamp(1.05rem, 2.2vw, 1.4rem);
+    letter-spacing: -0.012em;
+    line-height: 1.2;
+  }
+  .teaser-row h3 em { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; }
+  .teaser-row .arr {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+    letter-spacing: 0.2em; text-align: right;
+    color: rgba(250,250,247,0.32);
+  }
+
+  /* ─── BRIDGE — the seam ─── */
+  .seam {
+    height: 88px;
+    background: linear-gradient(180deg, var(--bg-dark) 0%, #1a1612 45%, var(--bg-paper) 100%);
+    position: relative;
+  }
+  .seam .scrim {
+    position: absolute; left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.55em;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase;
+    padding: 0 14px;
+    background: rgba(0,0,0,0.0);
+    white-space: nowrap;
+  }
+  .seam .scrim .v {
+    color: var(--vessel-dark);
+    font-style: italic;
+    font-family: 'Instrument Serif', serif;
+    text-transform: none;
+    letter-spacing: 0;
+    margin: 0 6px;
+  }
+
+  /* ─── PAPER HEMISPHERE — archive / essays ─── */
+  .hemi-paper {
+    background:
+      radial-gradient(rgba(26,22,18,0.06) 1px, transparent 1px),
+      var(--bg-paper);
+    background-size: 28px 28px, auto;
+    color: var(--ink-dark);
+    padding: 96px 32px 80px;
+  }
+  .hemi-paper .container { max-width: 1240px; margin: 0 auto; }
+  .paper-head {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(26,22,18,0.1);
+    margin-bottom: 56px;
+  }
+  .paper-head .left .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 0.45em;
+    color: rgba(26,22,18,0.55); text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .paper-head .left h2 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 200;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    line-height: 0.98;
+    letter-spacing: -0.025em;
+  }
+  .paper-head .left h2 em {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--ink-dark);
+    position: relative;
+  }
+  .paper-head .left h2 em svg.u {
+    position: absolute; left: 0; right: 0; bottom: -7px;
+    width: 100%; height: 12px;
+  }
+  .paper-head .right {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem; letter-spacing: 0.3em;
+    color: rgba(26,22,18,0.55); text-transform: uppercase;
+    text-align: right;
+  }
+  .paper-head .right a { color: var(--ink-dark); text-decoration: none; }
+  .paper-head .right a:hover { color: var(--vessel-light); }
+
+  .essays {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: rgba(26,22,18,0.1);
+    border: 1px solid rgba(26,22,18,0.1);
+  }
+  .essay {
+    background: var(--bg-paper);
+    padding: 30px 26px;
+    display: flex; flex-direction: column;
+    gap: 16px;
+    text-decoration: none; color: inherit;
+    transition: background 0.25s;
+  }
+  .essay:hover { background: #fdf8eb; }
+  .essay .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem; letter-spacing: 0.25em;
+    color: rgba(26,22,18,0.55); text-transform: uppercase;
+  }
+  .essay h3 {
+    font-family: 'Inter', sans-serif; font-weight: 300;
+    font-size: 1.2rem; line-height: 1.25;
+    letter-spacing: -0.012em;
+  }
+  .essay h3 em {
+    font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400;
+    background: linear-gradient(transparent 65%, rgba(200,16,46,0.18) 65%, rgba(200,16,46,0.18) 92%, transparent 92%);
+    padding: 0 3px;
+  }
+  .essay .marginalia {
+    font-family: 'Caveat', cursive;
+    font-weight: 500;
+    font-size: 1rem;
+    color: var(--vessel-light);
+    transform: rotate(-2deg);
+    align-self: flex-start;
+    opacity: 0.92;
+  }
+
+  /* footer paper */
+  footer {
+    margin-top: 96px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(26,22,18,0.1);
+    display: flex; justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;
+    letter-spacing: 0.3em; color: rgba(26,22,18,0.55); text-transform: uppercase;
+  }
+  footer em { color: var(--vessel-light); font-style: normal; margin: 0 6px; }
+
+  /* ─── LAUNCHER — adapts to current hemisphere ─── */
+  .launcher {
+    position: fixed; top: 22px; left: 32px; z-index: 60;
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer; user-select: none;
+    mix-blend-mode: difference;             /* auto-inverts over both hemispheres */
+  }
+  .launcher .avatar {
+    position: relative;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background-image: url('/bg_pic/03.jpeg');
+    background-position: 18% 5%;
+    background-size: 175%;
+    background-repeat: no-repeat;
+    box-shadow: 0 0 0 1px rgba(250,250,247,0.3);
+    mix-blend-mode: normal;
+  }
+  .launcher .avatar::after {
+    content: ''; position: absolute; top: -1px; right: -1px;
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--vessel-dark);
+    box-shadow: 0 0 6px var(--vessel-dark);
+    animation: heart 1.5s ease-in-out infinite;
+  }
+  .launcher .say {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 1.05rem;
+    color: rgba(250,250,247,0.92);
+  }
+  .launcher .hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.3em;
+    color: rgba(250,250,247,0.55);
+    text-transform: uppercase;
+    padding-left: 12px;
+    border-left: 1px solid rgba(250,250,247,0.25);
+  }
+</style>
+</head>
+<body>
+
+<div class="launcher">
+  <span class="avatar"></span>
+  <span class="say">she's around</span>
+  <span class="hint">/  open</span>
+</div>
+
+<!-- ═════════ DARK HEMISPHERE — the terminal ═════════ -->
+<section class="hemi-dark">
+  <div class="container">
+    <div class="spine">
+      <span style="opacity:0; pointer-events:none">spacer</span>
+      <span class="mark">aileena <span class="dot"></span> machina</span>
+      <nav>
+        <a href="#">/work</a>
+        <a href="#" class="active">/dispatch</a>
+        <a href="#">/archive</a>
+        <a href="#">/sound</a>
+        <a href="#">de</a>
+      </nav>
+    </div>
+
+    <section class="hero">
+      <p class="label">— signal · live —</p>
+      <h1>The call after a hard no is the <span class="vessel">one that pays.</span></h1>
+    </section>
+
+    <div class="ticker">
+      <div class="ticker-track">
+        <span>tech sales without pressure</span><span class="sep">●</span>
+        <span>AI agents as logical buyers</span><span class="sep">●</span>
+        <span>the seven contracts</span><span class="sep">●</span>
+        <span>GEO is replacing SEO</span><span class="sep">●</span>
+        <span>the PCB stack inside an AI rack</span><span class="sep">●</span>
+        <span>how CPO actually gets built</span><span class="sep">●</span>
+        <span>where Broadcom sits in the AI stack</span><span class="sep">●</span>
+        <span>let there be light modules</span><span class="sep">●</span>
+        <span>tech sales without pressure</span><span class="sep">●</span>
+        <span>AI agents as logical buyers</span><span class="sep">●</span>
+        <span>the seven contracts</span><span class="sep">●</span>
+        <span>GEO is replacing SEO</span><span class="sep">●</span>
+        <span>the PCB stack inside an AI rack</span><span class="sep">●</span>
+        <span>how CPO actually gets built</span><span class="sep">●</span>
+      </div>
+    </div>
+
+    <div class="teaser">
+      <div class="teaser-head">
+        <span>dispatch · top 3 this week</span>
+        <a href="#">all 22 →</a>
+      </div>
+      <a href="#" class="teaser-row">
+        <span class="date">2026.06.02</span>
+        <h3>People love to <em>buy.</em> They don't love to be sold.</h3>
+        <span class="arr">→ open</span>
+      </a>
+      <a href="#" class="teaser-row">
+        <span class="date">2026.06.02</span>
+        <h3>The PCB stack <em>inside</em> an AI rack.</h3>
+        <span class="arr">→ open</span>
+      </a>
+      <a href="#" class="teaser-row">
+        <span class="date">2026.06.02</span>
+        <h3>How CPO <em>actually</em> gets built.</h3>
+        <span class="arr">→ open</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════ THE BRIDGE — the seam between worlds ═════════ -->
+<div class="seam">
+  <span class="scrim">terminal <span class="v">·</span> desk</span>
+</div>
+
+<!-- ═════════ PAPER HEMISPHERE — the desk ═════════ -->
+<section class="hemi-paper">
+  <div class="container">
+    <div class="paper-head">
+      <div class="left">
+        <p class="label">archive · annotated objects + essays</p>
+        <h2>The desk. Where I take <em>things apart.<svg class="u" viewBox="0 0 320 12" preserveAspectRatio="none"><path d="M2 7 Q 60 2 130 6 T 260 5 T 318 8" stroke="#c8102e" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg></em></h2>
+      </div>
+      <div class="right">
+        <div>14 essays · all years</div>
+        <div style="margin-top:8px"><a href="#">→ archive</a></div>
+      </div>
+    </div>
+
+    <div class="essays">
+      <a href="#" class="essay">
+        <span class="meta">2026.05.18 · essay</span>
+        <h3>The little ring that <em>holds the whole machine together.</em></h3>
+        <span class="marginalia">~ first machine</span>
+      </a>
+      <a href="#" class="essay">
+        <span class="meta">2026.04.22 · essay</span>
+        <h3>Misread — but she can <em>become anyone.</em></h3>
+        <span class="marginalia">point ≠ the slogan</span>
+      </a>
+      <a href="#" class="essay">
+        <span class="meta">2026.02.15 · essay</span>
+        <h3>Be no <em>sheep.</em> Be a lion.</h3>
+        <span class="marginalia">lonely ≠ alone</span>
+      </a>
+    </div>
+
+    <footer>
+      <span>est 2025 · berlin</span>
+      <span>two interfaces <em>·</em> same brain</span>
+    </footer>
+  </div>
+</section>
+
+</body>
+</html>

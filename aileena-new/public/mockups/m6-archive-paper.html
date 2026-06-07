@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>m6 · archive — paper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;700&family=JetBrains+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&family=Caveat:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f1e7;             /* warm paper */
+    --ink: #1a1612;
+    --mute: rgba(26,22,18,0.55);
+    --mute2: rgba(26,22,18,0.32);
+    --line: rgba(26,22,18,0.1);
+    --vessel: #c8102e;          /* same blood vessel, calibrated for paper */
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background:
+      radial-gradient(rgba(26,22,18,0.06) 1px, transparent 1px),
+      var(--bg);
+    background-size: 28px 28px, auto;
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+  }
+  .page { max-width: 1240px; margin: 0 auto; padding: 56px 32px 120px; position: relative; }
+
+  /* ─── SAME spine as m5 (this is the point) ─── */
+  .spine {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--line);
+  }
+  .spine .mark {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .spine .mark .dot { display: inline-block; width: 4px; height: 4px; background: var(--vessel); border-radius: 50%; margin: 0 6px 3px; vertical-align: middle; }
+  .spine nav { display: flex; gap: 26px; font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; letter-spacing: 0.22em; color: var(--mute); text-transform: uppercase; align-items: center; }
+  .spine nav a { color: inherit; text-decoration: none; transition: color 0.15s; }
+  .spine nav a:hover { color: var(--ink); }
+  .spine nav a.active { color: var(--ink); position: relative; }
+  .spine nav a.active::before {
+    content: '';
+    display: inline-block;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--vessel);
+    margin-right: 7px;
+    vertical-align: middle;
+    box-shadow: 0 0 4px rgba(200,16,46,0.4);
+    animation: heart 1.5s ease-in-out infinite;
+  }
+  @keyframes heart { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(0.75); opacity: 0.55; } }
+
+  /* ─── ARCHIVE INDEX ─── */
+  .head-block {
+    padding: 80px 0 24px;
+    display: flex; justify-content: space-between; align-items: flex-end;
+    border-bottom: 1px solid var(--line);
+  }
+  .head-block .left .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 0.45em;
+    color: var(--mute); text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .head-block .left h1 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 200;
+    font-size: clamp(2.4rem, 6vw, 4.4rem);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+  }
+  .head-block .left h1 .vessel {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--ink);
+    position: relative;
+    white-space: nowrap;
+  }
+  /* Red hand-drawn underline = the white world's expression of the same vessel */
+  .head-block .left h1 .vessel svg.underline {
+    position: absolute;
+    left: 0; right: 0; bottom: -8px;
+    width: 100%; height: 14px;
+    pointer-events: none;
+  }
+  .head-block .right {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 0.3em;
+    color: var(--mute); text-transform: uppercase;
+    text-align: right;
+  }
+  .head-block .right .count { color: var(--vessel); font-size: 0.7rem; }
+
+  /* ─── ESSAY GRID ─── */
+  .essays {
+    margin-top: 56px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+  .essay {
+    background: var(--bg);
+    padding: 36px 32px 30px;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: flex; flex-direction: column;
+    gap: 18px;
+    position: relative;
+    transition: background 0.25s;
+  }
+  .essay:hover { background: #fdf8eb; }
+  .essay .meta {
+    display: flex; justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.25em;
+    color: var(--mute);
+    text-transform: uppercase;
+  }
+  .essay .meta .read { color: var(--vessel); opacity: 0; transition: opacity 0.2s; }
+  .essay:hover .meta .read { opacity: 1; }
+  .essay h2 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    font-size: 1.45rem;
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    max-width: 22ch;
+  }
+  .essay h2 em {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--ink);
+    background: linear-gradient(transparent 65%, rgba(200,16,46,0.18) 65%, rgba(200,16,46,0.18) 92%, transparent 92%);
+    padding: 0 3px;
+  }
+  .essay .body {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.93rem;
+    line-height: 1.6;
+    font-weight: 300;
+    color: rgba(26,22,18,0.7);
+    max-width: 40ch;
+  }
+  /* hand-written margin annotation on hover — the red ink */
+  .essay .marginalia {
+    font-family: 'Caveat', cursive;
+    font-weight: 500;
+    font-size: 1.05rem;
+    color: var(--vessel);
+    transform: rotate(-2.5deg);
+    align-self: flex-start;
+    opacity: 0; transform: rotate(-2.5deg) translateY(6px);
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  .essay:hover .marginalia { opacity: 0.92; transform: rotate(-2.5deg) translateY(0); }
+
+  /* tag chips */
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+  .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem; letter-spacing: 0.22em;
+    color: var(--mute);
+    text-transform: uppercase;
+    padding: 3px 7px;
+    border: 1px solid var(--line);
+  }
+
+  /* footer */
+  footer {
+    margin-top: 96px;
+    padding-top: 28px;
+    border-top: 1px solid var(--line);
+    display: flex; justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.3em;
+    color: var(--mute);
+    text-transform: uppercase;
+  }
+  footer .sig { color: rgba(26,22,18,0.65); }
+  footer .sig em { color: var(--vessel); font-style: normal; margin: 0 6px; }
+
+  /* ─── AGENT LAUNCHER (matches m5, just paper-toned) ─── */
+  .launcher {
+    position: fixed; top: 22px; left: 32px; z-index: 60;
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer; user-select: none;
+  }
+  .launcher .avatar {
+    position: relative;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background-image: url('/bg_pic/03.jpeg');
+    background-position: 18% 5%;
+    background-size: 175%;
+    background-repeat: no-repeat;
+    box-shadow: 0 0 0 1px rgba(26,22,18,0.2);
+  }
+  .launcher .avatar::after {
+    content: ''; position: absolute; top: -1px; right: -1px;
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--vessel);
+    box-shadow: 0 0 5px rgba(200,16,46,0.4), 0 0 0 2px var(--bg);
+    animation: heart 1.5s ease-in-out infinite;
+  }
+  .launcher .say {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 1.05rem;
+    color: rgba(26,22,18,0.82);
+  }
+  .launcher .hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.3em;
+    color: var(--mute2);
+    text-transform: uppercase;
+    padding-left: 12px;
+    border-left: 1px solid rgba(26,22,18,0.15);
+  }
+</style>
+</head>
+<body>
+
+<div class="launcher">
+  <span class="avatar"></span>
+  <span class="say">she's at the desk</span>
+  <span class="hint">/  open</span>
+</div>
+
+<div class="page">
+
+  <div class="spine">
+    <span style="opacity:0; pointer-events:none">spacer</span>
+    <span class="mark">aileena <span class="dot"></span> machina</span>
+    <nav>
+      <a href="#">/work</a>
+      <a href="#">/dispatch</a>
+      <a href="#" class="active">/archive</a>
+      <a href="#">/sound</a>
+      <a href="#">de</a>
+    </nav>
+  </div>
+
+  <div class="head-block">
+    <div class="left">
+      <p class="label">archive · essays + annotated objects</p>
+      <h1>The desk. Where I take <span class="vessel">things apart.<svg class="underline" viewBox="0 0 320 14" preserveAspectRatio="none"><path d="M2 8 Q 60 2 130 7 T 260 6 T 318 9" stroke="#c8102e" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg></span></h1>
+    </div>
+    <div class="right">
+      <div class="count">14</div>
+      <div>essays · annotated</div>
+      <div style="margin-top:8px">all years · all</div>
+    </div>
+  </div>
+
+  <div class="essays">
+
+    <a href="#" class="essay">
+      <div class="meta">
+        <span>2026.06.02 · annotated</span>
+        <span class="read">→ read</span>
+      </div>
+      <h2>Five PCBs sit inside an <em>AI rack.</em> Here's what each one decides.</h2>
+      <p class="body">HDI compute, switch, mid plane, orthogonal backplane, SLP. Why the boards Taiwan built for twenty years are being lost to mainland China — and which one will decide 2027.</p>
+      <div class="marginalia">↑ the 2027 one matters most</div>
+      <div class="tags">
+        <span class="tag">AI hardware</span>
+        <span class="tag">PCB</span>
+        <span class="tag">supply chain</span>
+      </div>
+    </a>
+
+    <a href="#" class="essay">
+      <div class="meta">
+        <span>2026.05.18 · essay</span>
+        <span class="read">→ read</span>
+      </div>
+      <h2>The little ring that <em>holds the whole machine together.</em></h2>
+      <p class="body">Two-and-a-half years on, I went back into my CNC notes. A small part holds more memory than I thought — and more of the year than I admit.</p>
+      <div class="marginalia">~ first machine</div>
+      <div class="tags">
+        <span class="tag">making</span>
+        <span class="tag">machine</span>
+        <span class="tag">memory</span>
+      </div>
+    </a>
+
+    <a href="#" class="essay">
+      <div class="meta">
+        <span>2026.04.22 · essay</span>
+        <span class="read">→ read</span>
+      </div>
+      <h2>Misread — but she can <em>become anyone.</em></h2>
+      <p class="body">Feminism isn't a slogan. It's the work of making women's abilities visible — and making sure that visibility translates into economic value. She can be an engineer. She can be everything.</p>
+      <div class="marginalia">the point was never the slogan</div>
+      <div class="tags">
+        <span class="tag">essay</span>
+        <span class="tag">work</span>
+      </div>
+    </a>
+
+    <a href="#" class="essay">
+      <div class="meta">
+        <span>2026.02.15 · essay</span>
+        <span class="read">→ read</span>
+      </div>
+      <h2>Be no <em>sheep.</em> Be a lion.</h2>
+      <p class="body">Resolve isn't cruelty — it's extreme self-discipline. Separate emotion from judgment at critical moments. Comfort is never neutral: it shrinks your tolerance.</p>
+      <div class="marginalia">lonely ≠ alone</div>
+      <div class="tags">
+        <span class="tag">discipline</span>
+        <span class="tag">essay</span>
+      </div>
+    </a>
+
+  </div>
+
+  <footer>
+    <span>est 2025 · berlin</span>
+    <span class="sig">a private research desk <em>·</em> the archive of machina</span>
+  </footer>
+</div>
+</body>
+</html>
