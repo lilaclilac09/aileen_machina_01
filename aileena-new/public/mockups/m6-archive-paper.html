@@ -14,7 +14,8 @@
     --mute: rgba(26,22,18,0.55);
     --mute2: rgba(26,22,18,0.32);
     --line: rgba(26,22,18,0.1);
-    --vessel: #c8102e;          /* same blood vessel, calibrated for paper */
+    --vessel: #7c5cc4;          /* same blood vessel, deeper (ink on paper) */
+    --vessel-rgb: 124, 92, 196;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -54,7 +55,7 @@
     background: var(--vessel);
     margin-right: 7px;
     vertical-align: middle;
-    box-shadow: 0 0 4px rgba(200,16,46,0.4);
+    box-shadow: 0 0 4px rgba(124,92,196,0.4);
     animation: heart 1.5s ease-in-out infinite;
   }
   @keyframes heart { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(0.75); opacity: 0.55; } }
@@ -147,7 +148,7 @@
     font-style: italic;
     font-weight: 400;
     color: var(--ink);
-    background: linear-gradient(transparent 65%, rgba(200,16,46,0.18) 65%, rgba(200,16,46,0.18) 92%, transparent 92%);
+    background: linear-gradient(transparent 65%, rgba(124,92,196,0.2) 65%, rgba(124,92,196,0.2) 92%, transparent 92%);
     padding: 0 3px;
   }
   .essay .body {
@@ -217,7 +218,7 @@
     content: ''; position: absolute; top: -1px; right: -1px;
     width: 7px; height: 7px; border-radius: 50%;
     background: var(--vessel);
-    box-shadow: 0 0 5px rgba(200,16,46,0.4), 0 0 0 2px var(--bg);
+    box-shadow: 0 0 5px rgba(124,92,196,0.45), 0 0 0 2px var(--bg);
     animation: heart 1.5s ease-in-out infinite;
   }
   .launcher .say {
@@ -241,7 +242,7 @@
 
 <div class="launcher">
   <span class="avatar"></span>
-  <span class="say">she's at the desk</span>
+  <span class="say">ask me anything</span>
   <span class="hint">/  open</span>
 </div>
 
@@ -262,7 +263,7 @@
   <div class="head-block">
     <div class="left">
       <p class="label">archive · essays + annotated objects</p>
-      <h1>The desk. Where I take <span class="vessel">things apart.<svg class="underline" viewBox="0 0 320 14" preserveAspectRatio="none"><path d="M2 8 Q 60 2 130 7 T 260 6 T 318 9" stroke="#c8102e" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg></span></h1>
+      <h1>The desk. Where I take <span class="vessel">things apart.<svg class="underline" viewBox="0 0 320 14" preserveAspectRatio="none"><path d="M2 8 Q 60 2 130 7 T 260 6 T 318 9" stroke="#7c5cc4" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg></span></h1>
     </div>
     <div class="right">
       <div class="count">14</div>

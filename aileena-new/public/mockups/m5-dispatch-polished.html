@@ -14,7 +14,8 @@
     --mute: rgba(250,250,247,0.55);
     --mute2: rgba(250,250,247,0.32);
     --line: rgba(250,250,247,0.08);
-    --vessel: #e63946;     /* machina's blood vessel */
+    --vessel: #c4a8ff;     /* machina's blood vessel — lilac (vapor on black) */
+    --vessel-rgb: 196, 168, 255;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -83,12 +84,12 @@
     font-weight: 400;
     color: transparent;
     -webkit-text-stroke: 1px var(--vessel);
-    text-shadow: 0 0 18px rgba(230,57,70,0.18);
+    text-shadow: 0 0 22px rgba(196,168,255,0.22);
     animation: pulse 2.6s ease-in-out infinite;
   }
   @keyframes pulse {
-    0%, 100% { -webkit-text-stroke-color: rgba(230,57,70,0.45); text-shadow: 0 0 12px rgba(230,57,70,0.1); }
-    50%      { -webkit-text-stroke-color: var(--vessel); text-shadow: 0 0 24px rgba(230,57,70,0.32); }
+    0%, 100% { -webkit-text-stroke-color: rgba(196,168,255,0.5); text-shadow: 0 0 14px rgba(196,168,255,0.12); }
+    50%      { -webkit-text-stroke-color: var(--vessel); text-shadow: 0 0 28px rgba(196,168,255,0.38); }
   }
   .hero .scroll-hint {
     margin-top: 56px;

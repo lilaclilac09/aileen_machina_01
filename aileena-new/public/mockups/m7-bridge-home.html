@@ -13,8 +13,8 @@
     --bg-paper: #f6f1e7;
     --ink-light: #fafaf7;
     --ink-dark: #1a1612;
-    --vessel-dark: #e63946;
-    --vessel-light: #c8102e;
+    --vessel-dark: #c4a8ff;     /* vapor lilac on black */
+    --vessel-light: #7c5cc4;    /* ink lilac on paper */
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { width: 100%; overflow-x: hidden; }
@@ -89,12 +89,12 @@
     font-weight: 400;
     color: transparent;
     -webkit-text-stroke: 1px var(--vessel-dark);
-    text-shadow: 0 0 18px rgba(230,57,70,0.18);
+    text-shadow: 0 0 22px rgba(196,168,255,0.22);
     animation: pulse 2.6s ease-in-out infinite;
   }
   @keyframes pulse {
-    0%, 100% { -webkit-text-stroke-color: rgba(230,57,70,0.45); text-shadow: 0 0 12px rgba(230,57,70,0.1); }
-    50%      { -webkit-text-stroke-color: var(--vessel-dark); text-shadow: 0 0 24px rgba(230,57,70,0.32); }
+    0%, 100% { -webkit-text-stroke-color: rgba(196,168,255,0.5); text-shadow: 0 0 14px rgba(196,168,255,0.12); }
+    50%      { -webkit-text-stroke-color: var(--vessel-dark); text-shadow: 0 0 28px rgba(196,168,255,0.38); }
   }
 
   /* ticker bleeding to edge of dark zone */
@@ -272,7 +272,7 @@
   }
   .essay h3 em {
     font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400;
-    background: linear-gradient(transparent 65%, rgba(200,16,46,0.18) 65%, rgba(200,16,46,0.18) 92%, transparent 92%);
+    background: linear-gradient(transparent 65%, rgba(124,92,196,0.2) 65%, rgba(124,92,196,0.2) 92%, transparent 92%);
     padding: 0 3px;
   }
   .essay .marginalia {
@@ -342,7 +342,7 @@
 
 <div class="launcher">
   <span class="avatar"></span>
-  <span class="say">she's around</span>
+  <span class="say">ask me anything</span>
   <span class="hint">/  open</span>
 </div>
 
@@ -420,7 +420,7 @@
     <div class="paper-head">
       <div class="left">
         <p class="label">archive · annotated objects + essays</p>
-        <h2>The desk. Where I take <em>things apart.<svg class="u" viewBox="0 0 320 12" preserveAspectRatio="none"><path d="M2 7 Q 60 2 130 6 T 260 5 T 318 8" stroke="#c8102e" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg></em></h2>
+        <h2>The desk. Where I take <em>things apart.<svg class="u" viewBox="0 0 320 12" preserveAspectRatio="none"><path d="M2 7 Q 60 2 130 6 T 260 5 T 318 8" stroke="#7c5cc4" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg></em></h2>
       </div>
       <div class="right">
         <div>14 essays · all years</div>
