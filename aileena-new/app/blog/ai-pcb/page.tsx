@@ -10,6 +10,7 @@ export default function AiPcbArticle() {
       tags="PCB · HDI · Substrate-like · NVIDIA · Google TPU · AI Hardware"
       title="The PCB Stack Inside an AI Rack"
       dek="An AI rack ships with five distinct PCBs stacked through it — HDI compute, switch, mid plane, orthogonal backplane, and the substrate-like board that decides 2027. Taiwan held the high-layer-board market for two decades. Mainland China overtook them on fifth-order 22-layer HDI in 2025 (Victory Giant ~90% yield against Unimicron's ~80%) and the next mark — substrate-like PCB at 10 µm line widths — decides who supplies NVIDIA Rubin and Google's TPU buildout."
+      explainerHref="/blog/ai-pcb/explainer"
     >
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
 

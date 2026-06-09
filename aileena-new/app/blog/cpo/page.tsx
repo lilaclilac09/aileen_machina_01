@@ -10,6 +10,7 @@ export default function CpoArticle() {
       tags="CPO · Nvidia · TSMC · Optical · Packaging · Yield · AI Hardware"
       title="How CPO Actually Gets Built"
       dek="CPO (co-packaged optics) is the technology that would erase the pluggable optical-module empire — the EMLs, the DSPs, the cages, all of it. NVIDIA Rubin Ultra needs it. TSMC is doing the bonding. The problem is the yield: 75% in May 2026, against a 90–95% break-even target. This piece walks what's actually being packaged, the six-step flow, where it's breaking, who's positioned in the supply chain after the dust settles."
+      explainerHref="/blog/cpo/explainer"
     >
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
 

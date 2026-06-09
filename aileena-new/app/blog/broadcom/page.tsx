@@ -10,6 +10,7 @@ export default function BroadcomArticle() {
       tags="Broadcom · Marvell · MediaTek · ASIC · TPU · CPO · OpenAI · AI Hardware"
       title="Where Broadcom Sits in the AI Stack"
       dek="Broadcom is the most dominant AI silicon vendor not named Nvidia — Google's TPU partner, the switch-chip king, half of the EML supply, ~90% of the non-Nvidia DSP market. It also has the most credible incumbent-disruption pressure in the sector: MediaTek peeling off Google's inference TPU, Marvell taking AWS Trainium and a Google FFN socket, and a CPO transition that would cannibalize Broadcom's own pluggable-module empire. Four pillars and three pressures."
+      explainerHref="/blog/broadcom/explainer"
     >
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
 

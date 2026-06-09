@@ -1,0 +1,479 @@
+/* ─────────────────────────────────────────────────────────────
+   Cream "explainer" view for research articles.
+   Mirrors SubstackShell structure (nav / hero / body / footer)
+   but renders the article notebook-style with sticky-note callouts
+   and handwritten section labels around a central diagram.
+   ──────────────────────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&family=Source+Serif+Pro:wght@300;400;600&family=Instrument+Serif:ital@0;1&family=Caveat:wght@400;500;600;700&family=Patrick+Hand&family=Indie+Flower&family=Kalam:wght@300;400;700&family=JetBrains+Mono:wght@300;400&display=swap');
+
+.explainer-article {
+  --ex-bg: #f4ede0;
+  --ex-paper: #fdf7e6;
+  --ex-ink: #1a1612;
+  --ex-mute: rgba(26, 22, 18, 0.55);
+  --ex-line: rgba(26, 22, 18, 0.1);
+  --ex-vessel: #7c5cc4;
+
+  min-height: 100vh;
+  background:
+    radial-gradient(rgba(124, 92, 196, 0.045) 1px, transparent 1px),
+    var(--ex-bg);
+  background-size: 28px 28px, auto;
+  color: rgba(26, 22, 18, 0.88);
+  font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-y: auto;
+}
+
+.explainer-article ::selection {
+  background: rgba(124, 92, 196, 0.22);
+}
+
+/* ── Nav (sticky, matches Substack shell positioning) ── */
+.explainer-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: 18px 24px;
+  background: rgba(244, 237, 224, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--ex-line);
+}
+.explainer-nav-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.explainer-back {
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 0.85rem;
+  color: rgba(26, 22, 18, 0.6);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.explainer-back:hover {
+  color: var(--ex-ink);
+}
+.explainer-mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ex-mute);
+}
+.explainer-mode-toggle a {
+  color: inherit;
+  text-decoration: none;
+  padding: 2px 0;
+  transition: color 0.2s;
+}
+.explainer-mode-toggle a:hover {
+  color: var(--ex-ink);
+}
+.explainer-mode-toggle .active {
+  color: var(--ex-vessel);
+  border-bottom: 1px solid var(--ex-vessel);
+  padding: 2px 0;
+}
+.explainer-mode-toggle .sep {
+  color: rgba(26, 22, 18, 0.25);
+}
+.explainer-brand {
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  color: rgba(26, 22, 18, 0.45);
+  text-transform: uppercase;
+}
+.explainer-brand .v {
+  color: var(--ex-vessel);
+  margin: 0 3px;
+}
+
+/* ── Hero ── */
+.explainer-hero {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 64px 24px 28px;
+  position: relative;
+}
+.explainer-meta {
+  font-family: 'Caveat', cursive;
+  font-weight: 500;
+  font-size: 1.2rem;
+  color: var(--ex-vessel);
+  transform: rotate(-1deg);
+  display: inline-block;
+  margin-bottom: 14px;
+}
+.explainer-title {
+  font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+  font-size: clamp(1.9rem, 4.6vw, 2.7rem);
+  font-weight: 600;
+  line-height: 1.18;
+  letter-spacing: -0.005em;
+  color: var(--ex-ink);
+  margin: 0 0 18px;
+  max-width: 22ch;
+}
+.explainer-title em {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-weight: 400;
+  position: relative;
+  white-space: nowrap;
+}
+.explainer-title em svg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -8px;
+  width: 100%;
+  height: 12px;
+}
+.explainer-dek {
+  font-family: 'Source Serif Pro', 'Charter', Georgia, serif;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: rgba(26, 22, 18, 0.75);
+  max-width: 56ch;
+  margin: 0;
+}
+
+/* ── TLDR sticky card ── */
+.explainer-tldr {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 24px;
+  position: relative;
+}
+.explainer-tldr-card {
+  background: #fff39e;
+  padding: 18px 22px 20px;
+  margin: 32px 0 8px;
+  box-shadow: 0 8px 22px -8px rgba(0, 0, 0, 0.18);
+  transform: rotate(-0.6deg);
+  max-width: 480px;
+  position: relative;
+}
+.explainer-tldr-card::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 16%;
+  transform: rotate(-3deg);
+  width: 86px;
+  height: 18px;
+  background: rgba(212, 188, 110, 0.32);
+  border: 1px dashed rgba(140, 100, 30, 0.4);
+}
+.explainer-tldr-h {
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+  color: var(--ex-vessel);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  display: block;
+}
+.explainer-tldr-card p {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 1.08rem;
+  line-height: 1.4;
+  color: rgba(26, 22, 18, 0.92);
+  margin: 0;
+}
+.explainer-tldr-card p b {
+  color: var(--ex-vessel);
+}
+
+/* ── Body ── */
+.explainer-body {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+.explainer-body p {
+  font-family: 'Source Serif Pro', 'Charter', Georgia, serif;
+  font-weight: 400;
+  font-size: 1.12rem;
+  line-height: 1.75;
+  color: rgba(26, 22, 18, 0.88);
+  margin: 0 0 24px;
+  max-width: 56ch;
+}
+.explainer-body p b {
+  color: var(--ex-ink);
+  font-weight: 600;
+}
+.explainer-body p .v {
+  color: var(--ex-vessel);
+}
+.explainer-body a {
+  color: var(--ex-vessel);
+  text-decoration: underline;
+  text-decoration-color: rgba(124, 92, 196, 0.4);
+  text-underline-offset: 3px;
+}
+.explainer-body a:hover {
+  text-decoration-color: var(--ex-vessel);
+}
+
+/* handwritten section label */
+.explainer-section-h {
+  font-family: 'Caveat', cursive;
+  font-weight: 600;
+  font-size: 1.7rem;
+  color: var(--ex-ink);
+  margin: 48px 0 18px;
+  transform: rotate(-0.5deg);
+  display: inline-block;
+  position: relative;
+}
+.explainer-section-h::after {
+  content: '';
+  position: absolute;
+  left: -4px;
+  right: -4px;
+  bottom: 0;
+  height: 6px;
+  background: rgba(124, 92, 196, 0.22);
+  z-index: -1;
+}
+.explainer-section-h .arr {
+  margin-right: 10px;
+  color: var(--ex-vessel);
+  font-family: 'Indie Flower', cursive;
+}
+
+/* row pairing body paragraph with a sticky note */
+.explainer-row {
+  display: flex;
+  gap: 22px;
+  margin: 8px 0 30px;
+  align-items: flex-start;
+}
+.explainer-row p {
+  margin: 0;
+  flex: 1;
+}
+.explainer-row .pin {
+  flex: 0 0 220px;
+  position: relative;
+}
+.explainer-row .pin .explainer-stk {
+  padding: 14px 16px;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 0.98rem;
+  line-height: 1.32;
+  color: rgba(26, 22, 18, 0.92);
+  box-shadow: 0 6px 16px -6px rgba(0, 0, 0, 0.18);
+}
+.explainer-row .pin .explainer-stk b {
+  color: var(--ex-vessel);
+  font-weight: 600;
+}
+.explainer-row .pin .explainer-stk .h {
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+  color: rgba(26, 22, 18, 0.55);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  display: block;
+}
+.explainer-row .pin .explainer-stk.yellow { background: #fff39e; transform: rotate(-2deg); }
+.explainer-row .pin .explainer-stk.pink   { background: #ffc6d8; transform: rotate(2.4deg); }
+.explainer-row .pin .explainer-stk.blue   { background: #c4ddf6; transform: rotate(-2.2deg); }
+.explainer-row .pin .explainer-stk.green  { background: #cdedb6; transform: rotate(2.6deg); }
+.explainer-row .pin .explainer-stk.lilac  { background: #e0d5ff; transform: rotate(-1.8deg); }
+
+/* ── Diagram block ── */
+.explainer-diagram {
+  position: relative;
+  margin: 40px -90px 56px;
+  padding: 56px 24px 80px;
+  background: var(--ex-paper);
+  box-shadow: 0 18px 36px -22px rgba(26, 22, 18, 0.18);
+  transform: rotate(-0.25deg);
+}
+.explainer-diagram::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 22%;
+  transform: rotate(-3deg);
+  width: 96px;
+  height: 22px;
+  background: rgba(212, 188, 110, 0.32);
+  border: 1px dashed rgba(140, 100, 30, 0.4);
+}
+.explainer-diagram::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  right: 22%;
+  transform: rotate(3deg);
+  width: 76px;
+  height: 22px;
+  background: rgba(212, 188, 110, 0.32);
+  border: 1px dashed rgba(140, 100, 30, 0.4);
+}
+.explainer-rack-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+}
+.explainer-rack-svg {
+  width: 100%;
+  display: block;
+}
+.explainer-cap {
+  text-align: center;
+  margin-top: 22px;
+  font-family: 'Caveat', cursive;
+  font-weight: 500;
+  font-size: 1.2rem;
+  color: rgba(26, 22, 18, 0.75);
+}
+.explainer-cap .v {
+  color: var(--ex-vessel);
+}
+
+/* free-floating sticky around diagram */
+.explainer-sticky {
+  position: absolute;
+  padding: 11px 13px;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 0.92rem;
+  line-height: 1.32;
+  color: rgba(26, 22, 18, 0.92);
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.16);
+  z-index: 3;
+}
+.explainer-sticky .h {
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 0.92rem;
+  letter-spacing: 0.06em;
+  color: rgba(26, 22, 18, 0.55);
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 2px;
+}
+.explainer-sticky b {
+  color: var(--ex-vessel);
+  font-weight: 600;
+}
+.explainer-sticky.yellow { background: #fff39e; }
+.explainer-sticky.pink   { background: #ffc6d8; }
+.explainer-sticky.blue   { background: #c4ddf6; }
+.explainer-sticky.green  { background: #cdedb6; }
+.explainer-sticky.lilac  { background: #e0d5ff; }
+
+.explainer-num {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--ex-vessel);
+  border-radius: 50%;
+  color: var(--ex-vessel);
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 4;
+  background: rgba(253, 247, 230, 0.88);
+  transform: rotate(-3deg);
+}
+
+.explainer-marg {
+  position: absolute;
+  font-family: 'Caveat', cursive;
+  font-weight: 500;
+  color: var(--ex-vessel);
+  z-index: 4;
+  line-height: 1.1;
+  pointer-events: none;
+}
+
+.explainer-flow-arrow {
+  text-align: center;
+  margin: 22px 0;
+  font-family: 'Indie Flower', cursive;
+  color: var(--ex-vessel);
+  font-size: 1.6rem;
+  transform: rotate(-1deg);
+}
+
+/* ── Footer ── */
+.explainer-footer {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 28px 24px 56px;
+  border-top: 1px solid var(--ex-line);
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.28em;
+  color: var(--ex-mute);
+  text-transform: uppercase;
+}
+.explainer-footer a {
+  color: var(--ex-ink);
+  text-decoration: none;
+}
+.explainer-footer a:hover {
+  color: var(--ex-vessel);
+}
+
+/* ── Mobile ── */
+@media (max-width: 900px) {
+  .explainer-diagram {
+    margin-left: -12px;
+    margin-right: -12px;
+    padding: 48px 16px 64px;
+  }
+}
+@media (max-width: 720px) {
+  .explainer-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .explainer-row .pin {
+    flex: 0 0 auto;
+    align-self: flex-start;
+    max-width: 260px;
+  }
+  .explainer-diagram {
+    margin-left: 0;
+    margin-right: 0;
+    padding: 40px 12px 56px;
+  }
+  .explainer-nav-inner {
+    gap: 10px;
+  }
+  .explainer-brand {
+    display: none;
+  }
+  .explainer-hero {
+    padding: 40px 20px 20px;
+  }
+  .explainer-title {
+    font-size: clamp(1.6rem, 7vw, 2.2rem);
+  }
+}

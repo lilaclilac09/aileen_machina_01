@@ -10,6 +10,7 @@ export default function MarvellArticle() {
       tags="Marvell · Optical · TIA · DSP · NPO · CPO · AI Hardware"
       title="Where Marvell Sits in the AI Optical Stack"
       dek="Marvell owns one chip in the AI optical supply chain — the TIA — and it nearly owns it alone. 80% of 800G single-mode, the only 1.6T volume player today. Above that it fights Broadcom for the DSP market and joins Amazon on NPO; below it, two of the highest-profile AI optical projects don't ship a Marvell chip at all."
+      explainerHref="/blog/marvell/explainer"
     >
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
 

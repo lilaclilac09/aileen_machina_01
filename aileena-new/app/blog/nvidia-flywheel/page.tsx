@@ -8,6 +8,7 @@ export default function NvidiaFlywheelArticle() {
       category="Analysis"
       date="2026.05.29"
       tags="NVIDIA · Portfolio · Vendor Financing · Flywheel"
+      explainerHref="/blog/nvidia-flywheel/explainer"
       title="NVIDIA Is Buying Its Own Demand"
       dek="NVIDIA has a second business almost nobody underwrites: it's an investor in the companies that buy its chips. An ~$18B public book that reads like a map of the AI supply chain, plus $100B+ of private commitments routed back into GPU orders. It's the most powerful flywheel in tech — and the cleanest round-tripping critique you'll ever see. Here's how it spins, why it's rational, and where it breaks."
     >
