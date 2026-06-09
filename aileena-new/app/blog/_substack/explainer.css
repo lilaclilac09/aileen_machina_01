@@ -462,7 +462,7 @@
   .explainer-diagram {
     margin-left: 0;
     margin-right: 0;
-    padding: 40px 12px 56px;
+    padding: 36px 14px 56px;
   }
   .explainer-nav-inner {
     gap: 10px;
@@ -475,5 +475,36 @@
   }
   .explainer-title {
     font-size: clamp(1.6rem, 7vw, 2.2rem);
+  }
+
+  /* Diagram-overlay stickers don't fit at phone widths — they end up
+     covering the rack, the DCI boxes, the data-center labels. Take them
+     out of absolute positioning and let them stack as block cards below
+     the diagram instead. Inline `style="transform: rotate(...)"` and
+     inline width need !important to win. */
+  .explainer-diagram .explainer-sticky {
+    position: static !important;
+    transform: rotate(0deg) !important;
+    width: auto !important;
+    max-width: 100%;
+    display: block;
+    margin: 10px 0 0;
+  }
+  .explainer-diagram .explainer-cap {
+    margin-bottom: 6px;
+  }
+
+  /* Marginalia (the floating Caveat side notes — "↘ GB200 row" etc.) are
+     pure flavour, not content. Hide on phones so the diagram isn't busy. */
+  .explainer-diagram .explainer-marg {
+    display: none;
+  }
+
+  /* Shrink the circled numbered callouts so they don't crowd the rack
+     at narrow widths. */
+  .explainer-diagram .explainer-num {
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 0.78rem !important;
   }
 }
