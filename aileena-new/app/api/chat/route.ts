@@ -261,6 +261,12 @@ export async function POST(req: Request) {
   // Surface the remaining-quota count to the client so the UI can hint at it
   // if it wants to. Not currently consumed but cheap to add.
   headers.set('X-Daily-Remaining', String(DAILY_LIMIT - (quota.count + 1)));
+  // Diagnostic headers — visible in DevTools Network so it's obvious which
+  // tier actually served the request and how big the system prompt was when
+  // chat feels slow. Sanitise the provider URL so we never leak an api key.
+  headers.set('X-Provider', picked.provider.replace(/^https?:\/\//, '').split(/[/?]/)[0]);
+  headers.set('X-Tier', picked.tier);
+  headers.set('X-System-Prompt-Chars', String(SYSTEM_PROMPT.length));
 
   return new Response(stream.body, { status: stream.status, headers });
 }
