@@ -71,6 +71,8 @@ export default function NvidiaFlywheelExplainer() {
         <span className="arr">↓</span>book 1 — the public 13F
       </h2>
 
+      <NvidiaFlywheelDiagram />
+
       <div className="explainer-row">
         <p>
           As of <b>March 31, 2026</b>, NVIDIA&rsquo;s disclosed equity book was worth about{' '}
@@ -265,5 +267,482 @@ export default function NvidiaFlywheelExplainer() {
         wearing the same coat. The only real question is how long the music plays.
       </p>
     </ExplainerShell>
+  );
+}
+
+function NvidiaFlywheelDiagram() {
+  return (
+    <div className="explainer-diagram">
+      <svg width="0" height="0" style={{ position: 'absolute' }}>
+        <defs>
+          <filter id="ex-wobble-nflywheel" x="-2%" y="-2%" width="104%" height="104%">
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.018"
+              numOctaves={2}
+              seed={7}
+            />
+            <feDisplacementMap in="SourceGraphic" scale={1.3} />
+          </filter>
+        </defs>
+      </svg>
+
+      <div className="explainer-rack-wrap" style={{ maxWidth: 400 }}>
+        <svg
+          className="explainer-rack-svg"
+          viewBox="0 0 400 480"
+          xmlns="http://www.w3.org/2000/svg"
+          filter="url(#ex-wobble-nflywheel)"
+        >
+          {/* TOP — NVIDIA */}
+          <g>
+            <rect
+              x={140}
+              y={30}
+              width={120}
+              height={62}
+              fill="#274c2e"
+              stroke="#7c5cc4"
+              strokeWidth={1.8}
+            />
+            <rect
+              x={140}
+              y={30}
+              width={120}
+              height={62}
+              fill="none"
+              stroke="rgba(124,92,196,0.35)"
+              strokeWidth={3}
+              transform="translate(2,2)"
+            />
+            <text
+              x={200}
+              y={56}
+              fontFamily="JetBrains Mono"
+              fontSize={11}
+              fill="#fff"
+              textAnchor="middle"
+              letterSpacing={2.5}
+              style={{ textTransform: 'uppercase' }}
+            >
+              NVIDIA
+            </text>
+            <text
+              x={200}
+              y={72}
+              fontFamily="JetBrains Mono"
+              fontSize={6.5}
+              fill="rgba(255,255,255,0.65)"
+              textAnchor="middle"
+              letterSpacing={1.2}
+              style={{ textTransform: 'uppercase' }}
+            >
+              the axle
+            </text>
+            <text
+              x={200}
+              y={84}
+              fontFamily="JetBrains Mono"
+              fontSize={6}
+              fill="#d9a449"
+              textAnchor="middle"
+              letterSpacing={1}
+            >
+              equity + chips
+            </text>
+          </g>
+
+          {/* RIGHT — HYPERSCALERS */}
+          <g>
+            <rect
+              x={258}
+              y={196}
+              width={130}
+              height={68}
+              fill="#1f3a2a"
+              stroke="#1a1612"
+              strokeWidth={1.4}
+            />
+            <text
+              x={323}
+              y={220}
+              fontFamily="JetBrains Mono"
+              fontSize={9}
+              fill="#fff"
+              textAnchor="middle"
+              letterSpacing={1.6}
+              style={{ textTransform: 'uppercase' }}
+            >
+              hyperscalers
+            </text>
+            <text
+              x={323}
+              y={234}
+              fontFamily="JetBrains Mono"
+              fontSize={6}
+              fill="rgba(255,255,255,0.65)"
+              textAnchor="middle"
+              letterSpacing={0.8}
+            >
+              OpenAI · MSFT
+            </text>
+            <text
+              x={323}
+              y={246}
+              fontFamily="JetBrains Mono"
+              fontSize={6}
+              fill="rgba(255,255,255,0.65)"
+              textAnchor="middle"
+              letterSpacing={0.8}
+            >
+              Anthropic · xAI
+            </text>
+            <text
+              x={323}
+              y={258}
+              fontFamily="JetBrains Mono"
+              fontSize={5.5}
+              fill="#d9a449"
+              textAnchor="middle"
+              letterSpacing={0.7}
+            >
+              neoclouds
+            </text>
+          </g>
+
+          {/* BOTTOM — CAPEX */}
+          <g>
+            <rect
+              x={140}
+              y={376}
+              width={120}
+              height={62}
+              fill="#0f2a1a"
+              stroke="#1a1612"
+              strokeWidth={1.4}
+            />
+            <text
+              x={200}
+              y={400}
+              fontFamily="JetBrains Mono"
+              fontSize={9.5}
+              fill="#fff"
+              textAnchor="middle"
+              letterSpacing={1.6}
+              style={{ textTransform: 'uppercase' }}
+            >
+              capex spend
+            </text>
+            <text
+              x={200}
+              y={415}
+              fontFamily="JetBrains Mono"
+              fontSize={6}
+              fill="rgba(255,255,255,0.65)"
+              textAnchor="middle"
+              letterSpacing={0.8}
+            >
+              datacenters · power
+            </text>
+            <text
+              x={200}
+              y={428}
+              fontFamily="JetBrains Mono"
+              fontSize={5.5}
+              fill="#d9a449"
+              textAnchor="middle"
+              letterSpacing={0.7}
+            >
+              7 month build
+            </text>
+          </g>
+
+          {/* LEFT — GPU ORDERS */}
+          <g>
+            <rect
+              x={12}
+              y={196}
+              width={130}
+              height={68}
+              fill="#1c3a26"
+              stroke="#1a1612"
+              strokeWidth={1.4}
+            />
+            <text
+              x={77}
+              y={220}
+              fontFamily="JetBrains Mono"
+              fontSize={9}
+              fill="#fff"
+              textAnchor="middle"
+              letterSpacing={1.6}
+              style={{ textTransform: 'uppercase' }}
+            >
+              GPU orders
+            </text>
+            <text
+              x={77}
+              y={236}
+              fontFamily="JetBrains Mono"
+              fontSize={7}
+              fill="#d9a449"
+              textAnchor="middle"
+              letterSpacing={1}
+            >
+              100k chips
+            </text>
+            <text
+              x={77}
+              y={250}
+              fontFamily="JetBrains Mono"
+              fontSize={5.5}
+              fill="rgba(255,255,255,0.65)"
+              textAnchor="middle"
+              letterSpacing={0.7}
+            >
+              back to Jensen
+            </text>
+          </g>
+
+          {/* gold curved arrows clockwise — NVIDIA → HYPERS → CAPEX → GPU → NVIDIA */}
+          <g
+            stroke="#d9a449"
+            strokeWidth={1.6}
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            {/* NVIDIA → HYPERSCALERS */}
+            <path d="M258 86 Q 310 130 318 192" />
+            <path d="M318 192 L 312 184 M318 192 L 324 184" />
+            {/* HYPERSCALERS → CAPEX */}
+            <path d="M320 266 Q 308 332 258 374" />
+            <path d="M258 374 L 268 372 M258 374 L 262 364" />
+            {/* CAPEX → GPU ORDERS */}
+            <path d="M142 392 Q 90 348 78 268" />
+            <path d="M78 268 L 84 276 M78 268 L 72 276" />
+            {/* GPU ORDERS → NVIDIA */}
+            <path d="M82 192 Q 96 130 140 86" />
+            <path d="M140 86 L 130 88 M140 86 L 136 96" />
+          </g>
+
+          {/* arrow labels */}
+          <text
+            x={306}
+            y={140}
+            fontFamily="JetBrains Mono"
+            fontSize={6.5}
+            fill="rgba(255,255,255,0.8)"
+            textAnchor="middle"
+            letterSpacing={0.6}
+          >
+            $30B OpenAI
+          </text>
+          <text
+            x={310}
+            y={150}
+            fontFamily="JetBrains Mono"
+            fontSize={6}
+            fill="rgba(255,255,255,0.6)"
+            textAnchor="middle"
+            letterSpacing={0.5}
+          >
+            $5B→$25B+ Intel
+          </text>
+          <text
+            x={310}
+            y={332}
+            fontFamily="JetBrains Mono"
+            fontSize={6.5}
+            fill="rgba(255,255,255,0.8)"
+            textAnchor="middle"
+            letterSpacing={0.6}
+          >
+            $19.4B Nebius
+          </text>
+          <text
+            x={90}
+            y={332}
+            fontFamily="JetBrains Mono"
+            fontSize={6.5}
+            fill="rgba(255,255,255,0.8)"
+            textAnchor="middle"
+            letterSpacing={0.6}
+          >
+            ~100k chips
+          </text>
+          <text
+            x={90}
+            y={140}
+            fontFamily="JetBrains Mono"
+            fontSize={6.5}
+            fill="rgba(255,255,255,0.8)"
+            textAnchor="middle"
+            letterSpacing={0.6}
+          >
+            revenue back
+          </text>
+
+          {/* CENTER — the loop */}
+          <g>
+            <circle
+              cx={200}
+              cy={230}
+              r={32}
+              fill="rgba(124,92,196,0.08)"
+              stroke="#7c5cc4"
+              strokeWidth={1.2}
+              strokeDasharray="3 3"
+            />
+            <text
+              x={200}
+              y={226}
+              fontFamily="JetBrains Mono"
+              fontSize={9}
+              fill="#7c5cc4"
+              textAnchor="middle"
+              letterSpacing={1.2}
+              style={{ textTransform: 'uppercase' }}
+            >
+              the loop
+            </text>
+            <text
+              x={200}
+              y={240}
+              fontFamily="JetBrains Mono"
+              fontSize={11}
+              fill="#7c5cc4"
+              textAnchor="middle"
+              letterSpacing={1.2}
+            >
+              $ $ $
+            </text>
+            <text
+              x={200}
+              y={252}
+              fontFamily="JetBrains Mono"
+              fontSize={6}
+              fill="rgba(124,92,196,0.7)"
+              textAnchor="middle"
+              letterSpacing={0.5}
+            >
+              equity → revenue
+            </text>
+          </g>
+        </svg>
+
+        {/* hand-drawn lilac arrows overlay — outer flywheel arc */}
+        <svg
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+          }}
+          viewBox="0 0 400 480"
+          preserveAspectRatio="none"
+        >
+          <g
+            stroke="#7c5cc4"
+            strokeWidth={1.6}
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            {/* outer clockwise arc top-right */}
+            <path d="M280 8 Q 360 30 384 110" />
+            <path d="M384 110 L 378 102 M384 110 L 388 100" />
+            {/* outer arc bottom-left to suggest rotation */}
+            <path d="M16 350 Q 30 420 120 462" />
+            <path d="M120 462 L 112 458 M120 462 L 114 454" />
+          </g>
+        </svg>
+
+        <div className="explainer-num" style={{ top: 30, left: 116 }}>
+          1
+        </div>
+        <div className="explainer-num" style={{ top: 200, right: 240 }}>
+          2
+        </div>
+        <div className="explainer-num" style={{ top: 200, left: 240 }}>
+          3
+        </div>
+        <div className="explainer-num" style={{ top: 376, left: 116 }}>
+          4
+        </div>
+        <div className="explainer-num" style={{ top: 220, left: 184 }}>
+          5
+        </div>
+      </div>
+
+      <p className="explainer-cap">
+        the loop that keeps spinning <span className="v">until it doesn&rsquo;t</span>
+      </p>
+
+      <div
+        className="explainer-sticky yellow"
+        style={{ top: 4, left: -10, width: 150, transform: 'rotate(-4deg)' }}
+      >
+        <span className="h">① NVIDIA</span>
+        public 13F · <b>$18.4B</b>
+        <br />Q1 2026 book
+      </div>
+      <div
+        className="explainer-sticky pink"
+        style={{ top: 196, right: -14, width: 144, transform: 'rotate(3deg)' }}
+      >
+        <span className="h">② hyperscalers</span>
+        OpenAI up to <b>$100B</b>
+        <br />~10 GW systems
+      </div>
+      <div
+        className="explainer-sticky blue"
+        style={{ top: 376, left: -8, width: 154, transform: 'rotate(-3deg)' }}
+      >
+        <span className="h">④ capex</span>
+        <b>$19.4B</b> Nebius pact
+        <br />~100k GB300 chips
+      </div>
+      <div
+        className="explainer-sticky green"
+        style={{ top: 196, left: -10, width: 138, transform: 'rotate(-2.4deg)' }}
+      >
+        <span className="h">③ gpu orders</span>
+        CoreWeave
+        <br />stake <b>+110%</b>
+      </div>
+      <div
+        className="explainer-sticky lilac"
+        style={{ top: 396, right: -10, width: 150, transform: 'rotate(2deg)' }}
+      >
+        <span className="h">⑤ private book</span>
+        <b>$40B+</b> committed
+        <br />in 2026 alone
+      </div>
+
+      <div
+        className="explainer-marg"
+        style={{
+          top: 12,
+          right: 30,
+          fontSize: '1.05rem',
+          transform: 'rotate(8deg)',
+        }}
+      >
+        ↻ spins faster
+      </div>
+      <div
+        className="explainer-marg"
+        style={{
+          top: 452,
+          left: 110,
+          fontSize: '0.95rem',
+          transform: 'rotate(-3deg)',
+        }}
+      >
+        where does the money REALLY come from?
+      </div>
+    </div>
   );
 }

@@ -51,6 +51,8 @@ export default function AiCoolingExplainer() {
         <span className="arr">↓</span>the cliff
       </h2>
 
+      <CoolingDiagram />
+
       <div className="explainer-row">
         <p>
           Air cooling works up to <b>16 W</b>. A copper heat sink, a small fan,
@@ -328,5 +330,273 @@ export default function AiCoolingExplainer() {
         <span className="v"> exists </span>in three years.
       </p>
     </ExplainerShell>
+  );
+}
+
+function CoolingDiagram() {
+  // four cooling generations, horizontal racks
+  const gens = [
+    { x: 30, fill: '#3a2a16', label: 'AIR', sub: 'GEN 1', heat: 'pre-AI' },
+    { x: 115, fill: '#1c3a26', label: 'COLD PLATE', sub: 'GEN 2', heat: '20 W' },
+    { x: 200, fill: '#0f2a1a', label: 'IMMERSION', sub: 'GEN 3', heat: '70 W+' },
+    { x: 285, fill: '#274c2e', label: 'CPO', sub: 'GEN 4', heat: '150 W+' },
+  ];
+
+  return (
+    <div className="explainer-diagram">
+      <svg width="0" height="0" style={{ position: 'absolute' }}>
+        <defs>
+          <filter
+            id="ex-wobble-cooling"
+            x="-2%"
+            y="-2%"
+            width="104%"
+            height="104%"
+          >
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.018"
+              numOctaves={2}
+              seed={7}
+            />
+            <feDisplacementMap in="SourceGraphic" scale={1.3} />
+          </filter>
+        </defs>
+      </svg>
+
+      <div className="explainer-rack-wrap">
+        <svg
+          className="explainer-rack-svg"
+          viewBox="0 0 380 360"
+          xmlns="http://www.w3.org/2000/svg"
+          filter="url(#ex-wobble-cooling)"
+        >
+          <rect
+            x={10}
+            y={20}
+            width={360}
+            height={310}
+            rx={4}
+            fill="none"
+            stroke="#1a1612"
+            strokeWidth={1.6}
+          />
+
+          {gens.map((g, i) => (
+            <g key={g.label}>
+              {/* rack cross-section, 70×170 */}
+              <rect
+                x={g.x}
+                y={50}
+                width={70}
+                height={170}
+                fill={g.fill}
+                stroke="#1a1612"
+                strokeWidth={1}
+              />
+              {/* chips inside */}
+              <g fill="#d9a449">
+                <rect x={g.x + 10} y={70} width={50} height={6} />
+                <rect x={g.x + 10} y={100} width={50} height={6} />
+                <rect x={g.x + 10} y={130} width={50} height={6} />
+                <rect x={g.x + 10} y={160} width={50} height={6} />
+                <rect x={g.x + 10} y={190} width={50} height={6} />
+              </g>
+
+              {/* per-gen overlay */}
+              {i === 0 && (
+                <g
+                  stroke="#d9a449"
+                  strokeWidth={0.7}
+                  fill="none"
+                  strokeDasharray="2 2"
+                >
+                  <path d={`M${g.x + 8} 86 L${g.x + 62} 86`} />
+                  <path d={`M${g.x + 8} 116 L${g.x + 62} 116`} />
+                  <path d={`M${g.x + 8} 146 L${g.x + 62} 146`} />
+                  <path d={`M${g.x + 8} 176 L${g.x + 62} 176`} />
+                </g>
+              )}
+              {i === 1 && (
+                <g stroke="#7aa6d8" strokeWidth={1.2} fill="none">
+                  <path d={`M${g.x + 6} 80 L${g.x + 64} 80`} />
+                  <path d={`M${g.x + 6} 110 L${g.x + 64} 110`} />
+                  <path d={`M${g.x + 6} 140 L${g.x + 64} 140`} />
+                  <path d={`M${g.x + 6} 170 L${g.x + 64} 170`} />
+                  <path d={`M${g.x + 6} 200 L${g.x + 64} 200`} />
+                </g>
+              )}
+              {i === 2 && (
+                <rect
+                  x={g.x + 4}
+                  y={56}
+                  width={62}
+                  height={158}
+                  fill="rgba(122,166,216,0.32)"
+                  stroke="#7aa6d8"
+                  strokeWidth={0.8}
+                />
+              )}
+              {i === 3 && (
+                <g stroke="#7c5cc4" strokeWidth={1.2} fill="none">
+                  <path d={`M${g.x + 6} 80 L${g.x + 64} 80`} />
+                  <path d={`M${g.x + 6} 110 L${g.x + 64} 110`} />
+                  <path d={`M${g.x + 6} 140 L${g.x + 64} 140`} />
+                  <path d={`M${g.x + 6} 170 L${g.x + 64} 170`} />
+                  <path d={`M${g.x + 6} 200 L${g.x + 64} 200`} />
+                </g>
+              )}
+
+              {/* gen label */}
+              <text
+                x={g.x + 35}
+                y={40}
+                fontFamily="JetBrains Mono"
+                fontSize={7}
+                fill="rgba(26,22,18,0.6)"
+                textAnchor="middle"
+                letterSpacing={1.2}
+              >
+                {g.sub}
+              </text>
+              <text
+                x={g.x + 35}
+                y={238}
+                fontFamily="JetBrains Mono"
+                fontSize={7.5}
+                fill="#1a1612"
+                textAnchor="middle"
+                letterSpacing={1.2}
+                style={{ textTransform: 'uppercase' }}
+              >
+                {g.label}
+              </text>
+              <text
+                x={g.x + 35}
+                y={258}
+                fontFamily="JetBrains Mono"
+                fontSize={8.5}
+                fill="#1a1612"
+                textAnchor="middle"
+                fontWeight="bold"
+                letterSpacing={1}
+              >
+                {g.heat}
+              </text>
+            </g>
+          ))}
+        </svg>
+
+        {/* lilac progression arrows */}
+        <svg
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+          }}
+          viewBox="0 0 380 360"
+          preserveAspectRatio="none"
+        >
+          <g
+            stroke="#7c5cc4"
+            strokeWidth={1.6}
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M102 135 Q 110 132 113 135" />
+            <path d="M113 135 L 108 131 M113 135 L 108 139" />
+            <path d="M187 135 Q 195 132 198 135" />
+            <path d="M198 135 L 193 131 M198 135 L 193 139" />
+            <path d="M272 135 Q 280 132 283 135" />
+            <path d="M283 135 L 278 131 M283 135 L 278 139" />
+          </g>
+        </svg>
+
+        <div className="explainer-num" style={{ top: 28, left: 50 }}>
+          1
+        </div>
+        <div className="explainer-num" style={{ top: 28, left: 135 }}>
+          2
+        </div>
+        <div className="explainer-num" style={{ top: 28, left: 220 }}>
+          3
+        </div>
+        <div className="explainer-num" style={{ top: 28, left: 305 }}>
+          4
+        </div>
+      </div>
+
+      <p className="explainer-cap">
+        cooling has had to evolve{' '}
+        <span className="v">three times</span> — the fourth is coming
+      </p>
+
+      <div
+        className="explainer-sticky yellow"
+        style={{ top: 290, left: -18, width: 148, transform: 'rotate(-3deg)' }}
+      >
+        <span className="h">gen 1 — air</span>
+        the old way,
+        <br /><b>can&rsquo;t keep up</b>
+      </div>
+      <div
+        className="explainer-sticky pink"
+        style={{ top: 300, left: 150, width: 156, transform: 'rotate(2deg)' }}
+      >
+        <span className="h">gen 2 — cold plate</span>
+        <b>72 GPUs/rack</b>,
+        <br /><b>$250</b> a cage
+      </div>
+      <div
+        className="explainer-sticky blue"
+        style={{ bottom: -10, right: 150, width: 144, transform: 'rotate(-2deg)' }}
+      >
+        <span className="h">gen 3 — immersion</span>
+        full fluid,
+        <br />no fans
+      </div>
+      <div
+        className="explainer-sticky green"
+        style={{ bottom: -10, right: -16, width: 138, transform: 'rotate(3deg)' }}
+      >
+        <span className="h">gen 4 — CPO</span>
+        photonics fused
+        <br />to the chip
+      </div>
+      <div
+        className="explainer-sticky lilac"
+        style={{ top: -8, right: 24, width: 180, transform: 'rotate(-2.4deg)' }}
+      >
+        <span className="h">the cliff</span>
+        air fails past <b>20 W</b> —
+        <br />each generation pulls more
+      </div>
+
+      <div
+        className="explainer-marg"
+        style={{
+          top: 70,
+          left: 12,
+          fontSize: '0.95rem',
+          transform: 'rotate(-8deg)',
+        }}
+      >
+        ← heat we can pull
+      </div>
+      <div
+        className="explainer-marg"
+        style={{
+          top: 220,
+          left: 145,
+          fontSize: '0.9rem',
+          transform: 'rotate(-3deg)',
+        }}
+      >
+        $250 / ¥1,800
+      </div>
+    </div>
   );
 }

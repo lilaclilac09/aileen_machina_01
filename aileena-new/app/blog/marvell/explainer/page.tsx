@@ -50,6 +50,8 @@ export default function MarvellExplainer() {
         <span className="arr">↓</span>what a TIA is
       </h2>
 
+      <MarvellDiagram />
+
       <div className="explainer-row">
         <p>
           The fiber drops light onto a <b>PD</b> (photodetector); the PD turns it into
@@ -260,5 +262,389 @@ export default function MarvellExplainer() {
         <b>SerDes-IP</b> socket replaces what the DSP socket used to be.
       </p>
     </ExplainerShell>
+  );
+}
+
+function MarvellDiagram() {
+  return (
+    <div className="explainer-diagram">
+      <svg width="0" height="0" style={{ position: 'absolute' }}>
+        <defs>
+          <filter id="ex-wobble-marvell" x="-2%" y="-2%" width="104%" height="104%">
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.018"
+              numOctaves={2}
+              seed={7}
+            />
+            <feDisplacementMap in="SourceGraphic" scale={1.3} />
+          </filter>
+        </defs>
+      </svg>
+
+      <div className="explainer-rack-wrap">
+        <svg
+          className="explainer-rack-svg"
+          viewBox="0 0 360 540"
+          xmlns="http://www.w3.org/2000/svg"
+          filter="url(#ex-wobble-marvell)"
+        >
+          {/* outer chain frame */}
+          <rect
+            x={60}
+            y={20}
+            width={240}
+            height={500}
+            rx={4}
+            fill="none"
+            stroke="#1a1612"
+            strokeWidth={1.6}
+          />
+          <rect
+            x={60}
+            y={20}
+            width={240}
+            height={500}
+            rx={4}
+            fill="none"
+            stroke="rgba(26,22,18,0.22)"
+            strokeWidth={3}
+            transform="translate(2,2)"
+          />
+
+          {/* FIBER — top band */}
+          <g>
+            <rect
+              x={80}
+              y={40}
+              width={200}
+              height={50}
+              fill="#1a1612"
+              stroke="#1a1612"
+              strokeWidth={1}
+            />
+            <g stroke="#d9a449" strokeWidth={0.6} fill="none">
+              <path d="M88 56 L272 56" />
+              <path d="M88 66 L272 66" />
+              <path d="M88 76 L272 76" />
+            </g>
+            <text
+              x={180}
+              y={70}
+              fontFamily="JetBrains Mono"
+              fontSize={9}
+              fill="#fff"
+              textAnchor="middle"
+              letterSpacing={3}
+              style={{ textTransform: 'uppercase' }}
+            >
+              fiber
+            </text>
+          </g>
+
+          {/* LASER · EML */}
+          <g>
+            <rect
+              x={80}
+              y={120}
+              width={200}
+              height={62}
+              fill="#274c2e"
+              stroke="#1a1612"
+              strokeWidth={1}
+            />
+            {/* laser bar icon */}
+            <g>
+              <rect x={108} y={140} width={28} height={10} fill="#3a2a16" stroke="#d9a449" strokeWidth={0.5} />
+              <rect x={136} y={143} width={36} height={4} fill="#d9a449" opacity={0.85} />
+              <circle cx={176} cy={145} r={3} fill="#ff8a4c" />
+            </g>
+            <text
+              x={180}
+              y={170}
+              fontFamily="JetBrains Mono"
+              fontSize={9}
+              fill="#fff"
+              textAnchor="middle"
+              letterSpacing={2.5}
+              style={{ textTransform: 'uppercase' }}
+            >
+              laser · EML
+            </text>
+          </g>
+
+          {/* TIA — Marvell (highlighted lilac) */}
+          <g>
+            <rect
+              x={70}
+              y={210}
+              width={220}
+              height={76}
+              fill="#1f3a2a"
+              stroke="#7c5cc4"
+              strokeWidth={3}
+            />
+            {/* PD → TIA → DSP mini icon */}
+            <g>
+              <circle cx={104} cy={236} r={6} fill="#d9a449" opacity={0.85} />
+              <text
+                x={104}
+                y={252}
+                fontFamily="JetBrains Mono"
+                fontSize={5.5}
+                fill="rgba(255,255,255,0.55)"
+                textAnchor="middle"
+              >
+                PD
+              </text>
+              <rect x={144} y={228} width={70} height={20} fill="#7c5cc4" opacity={0.85} stroke="#fff" strokeWidth={0.5} />
+              <text
+                x={179}
+                y={242}
+                fontFamily="JetBrains Mono"
+                fontSize={7}
+                fill="#1a1612"
+                textAnchor="middle"
+                letterSpacing={1}
+                style={{ textTransform: 'uppercase' }}
+              >
+                TIA
+              </text>
+              <path d="M110 236 L 144 236" stroke="#d9a449" strokeWidth={0.6} fill="none" />
+              <path d="M144 236 L 138 232 M144 236 L 138 240" stroke="#d9a449" strokeWidth={0.6} fill="none" />
+              <path d="M214 238 L 248 238" stroke="#d9a449" strokeWidth={0.6} fill="none" />
+              <path d="M248 238 L 242 234 M248 238 L 242 242" stroke="#d9a449" strokeWidth={0.6} fill="none" />
+              <text
+                x={252}
+                y={252}
+                fontFamily="JetBrains Mono"
+                fontSize={5.5}
+                fill="rgba(255,255,255,0.55)"
+                textAnchor="middle"
+              >
+                DSP→
+              </text>
+            </g>
+            <text
+              x={180}
+              y={274}
+              fontFamily="JetBrains Mono"
+              fontSize={9.5}
+              fill="#fff"
+              textAnchor="middle"
+              letterSpacing={2.5}
+              style={{ textTransform: 'uppercase' }}
+            >
+              TIA — Marvell
+            </text>
+          </g>
+
+          {/* DSP */}
+          <g>
+            <rect
+              x={80}
+              y={314}
+              width={200}
+              height={62}
+              fill="#0f2a1a"
+              stroke="#1a1612"
+              strokeWidth={1}
+            />
+            <g stroke="#d9a449" strokeWidth={0.4} fill="none" opacity={0.7}>
+              <path d="M96 332 L264 332" />
+              <path d="M96 340 L264 340" />
+              <path d="M96 348 L264 348" />
+              <path d="M120 320 L120 370" />
+              <path d="M180 320 L180 370" />
+              <path d="M240 320 L240 370" />
+            </g>
+            <text
+              x={180}
+              y={362}
+              fontFamily="JetBrains Mono"
+              fontSize={9}
+              fill="#fff"
+              textAnchor="middle"
+              letterSpacing={3}
+              style={{ textTransform: 'uppercase' }}
+            >
+              DSP
+            </text>
+          </g>
+
+          {/* SWITCH ASIC */}
+          <g>
+            <rect
+              x={80}
+              y={406}
+              width={200}
+              height={86}
+              fill="#1c3a26"
+              stroke="#1a1612"
+              strokeWidth={1}
+            />
+            <g stroke="#d9a449" strokeWidth={0.5} fill="none">
+              <rect x={120} y={420} width={120} height={36} fill="#0f2a1a" />
+              <path d="M108 432 L120 432" />
+              <path d="M108 438 L120 438" />
+              <path d="M108 444 L120 444" />
+              <path d="M240 432 L252 432" />
+              <path d="M240 438 L252 438" />
+              <path d="M240 444 L252 444" />
+            </g>
+            <text
+              x={180}
+              y={442}
+              fontFamily="JetBrains Mono"
+              fontSize={6}
+              fill="#d9a449"
+              textAnchor="middle"
+              letterSpacing={1}
+            >
+              ASIC
+            </text>
+            <text
+              x={180}
+              y={476}
+              fontFamily="JetBrains Mono"
+              fontSize={9}
+              fill="#fff"
+              textAnchor="middle"
+              letterSpacing={2.5}
+              style={{ textTransform: 'uppercase' }}
+            >
+              switch ASIC
+            </text>
+          </g>
+
+          {/* signal-direction arrows between layers */}
+          <g stroke="#d9a449" strokeWidth={0.7} fill="none" opacity={0.85}>
+            <path d="M180 92 L180 116" />
+            <path d="M180 116 L 175 110 M180 116 L 185 110" />
+            <path d="M180 184 L180 206" />
+            <path d="M180 206 L 175 200 M180 206 L 185 200" />
+            <path d="M180 288 L180 310" />
+            <path d="M180 310 L 175 304 M180 310 L 185 304" />
+            <path d="M180 378 L180 402" />
+            <path d="M180 402 L 175 396 M180 402 L 185 396" />
+          </g>
+        </svg>
+
+        {/* hand-drawn lilac arrows overlay */}
+        <svg
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+          }}
+          viewBox="0 0 360 540"
+          preserveAspectRatio="none"
+        >
+          <g
+            stroke="#7c5cc4"
+            strokeWidth={1.5}
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            {/* highlight TIA pillar — squiggle around it */}
+            <path d="M52 248 Q 48 270 56 290" />
+            <path d="M56 290 L 52 282 M56 290 L 60 284" />
+            {/* DSP fight arrow */}
+            <path d="M306 344 Q 326 344 344 340" />
+            <path d="M344 340 L 336 336 M344 340 L 336 344" />
+            {/* absences — two strikes on the bottom right */}
+            <path d="M50 408 Q 44 420 48 440" />
+            <path d="M48 440 L 44 432 M48 440 L 52 434" />
+          </g>
+        </svg>
+
+        <div className="explainer-num" style={{ top: 38, right: -26 }}>
+          1
+        </div>
+        <div className="explainer-num" style={{ top: 124, left: -26 }}>
+          2
+        </div>
+        <div className="explainer-num" style={{ top: 222, right: -26 }}>
+          3
+        </div>
+        <div className="explainer-num" style={{ top: 320, left: -26 }}>
+          4
+        </div>
+        <div className="explainer-num" style={{ top: 416, right: -26 }}>
+          5
+        </div>
+      </div>
+
+      <p className="explainer-cap">
+        the optical receive path <span className="v">·</span> top to bottom
+      </p>
+
+      <div
+        className="explainer-sticky pink"
+        style={{ top: 44, left: -26, width: 138, transform: 'rotate(-3deg)' }}
+      >
+        <span className="h">① fiber</span>
+        absent from <b>2.4T</b>
+        <br />Google coherent
+      </div>
+      <div
+        className="explainer-sticky yellow"
+        style={{ top: 132, right: -22, width: 144, transform: 'rotate(3deg)' }}
+      >
+        <span className="h">② laser · EML</span>
+        the upstream
+        <br />choke point
+      </div>
+      <div
+        className="explainer-sticky lilac"
+        style={{ top: 226, left: -28, width: 156, transform: 'rotate(-4deg)' }}
+      >
+        <span className="h">③ Marvell owns this</span>
+        <b>80%</b> 800G single-mode ·
+        only <b>1.6T</b> volume player
+      </div>
+      <div
+        className="explainer-sticky green"
+        style={{ top: 326, right: -22, width: 146, transform: 'rotate(2.6deg)' }}
+      >
+        <span className="h">④ DSP fight</span>
+        Broadcom holds
+        <br /><b>~90%</b> non-Nvidia
+      </div>
+      <div
+        className="explainer-sticky blue"
+        style={{ top: 428, left: -26, width: 148, transform: 'rotate(-3deg)' }}
+      >
+        <span className="h">⑤ switch ASIC</span>
+        absent from NVIDIA-TSMC
+        <br /><b>3.2T CPO</b>
+      </div>
+
+      <div
+        className="explainer-marg"
+        style={{
+          top: 240,
+          left: 16,
+          fontSize: '1rem',
+          transform: 'rotate(-90deg)',
+        }}
+      >
+        ↓ direction of light
+      </div>
+      <div
+        className="explainer-marg"
+        style={{
+          top: 510,
+          right: 30,
+          fontSize: '0.95rem',
+          transform: 'rotate(-3deg)',
+        }}
+      >
+        co-architects NPO w/ AWS ↗
+      </div>
+    </div>
   );
 }
