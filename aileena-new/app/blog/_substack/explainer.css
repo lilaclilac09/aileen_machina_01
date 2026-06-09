@@ -477,34 +477,35 @@
     font-size: clamp(1.6rem, 7vw, 2.2rem);
   }
 
-  /* Diagram-overlay stickers don't fit at phone widths — they end up
-     covering the rack, the DCI boxes, the data-center labels. Take them
-     out of absolute positioning and let them stack as block cards below
-     the diagram instead. Inline `style="transform: rotate(...)"` and
-     inline width need !important to win. */
-  .explainer-diagram .explainer-sticky {
-    position: static !important;
-    transform: rotate(0deg) !important;
-    width: auto !important;
-    max-width: 100%;
-    display: block;
-    margin: 10px 0 0;
-  }
-  .explainer-diagram .explainer-cap {
-    margin-bottom: 6px;
-  }
-
-  /* Marginalia (the floating Caveat side notes — "↘ GB200 row" etc.) are
-     pure flavour, not content. Hide on phones so the diagram isn't busy. */
+  /* On phones, the diagram's free-floating sticky notes overload the
+     reading surface — five rotated paper cards plus marginalia plus a
+     central rack diagram is too much density for ~360 px wide. The
+     diagram stickies are SUMMARIES of claims that are already made in
+     the body sections below (each body section has its own paired
+     sticky in .explainer-row). Hide the diagram-overlay decoration
+     entirely on phones so the rack + numbered callouts read clean,
+     then the body sections below carry the explainer load. */
+  .explainer-diagram .explainer-sticky,
   .explainer-diagram .explainer-marg {
-    display: none;
+    display: none !important;
   }
 
   /* Shrink the circled numbered callouts so they don't crowd the rack
-     at narrow widths. */
+     at narrow widths. Keep them visible — they're how the user matches
+     a body section ("① compute board…") to the diagram region. */
   .explainer-diagram .explainer-num {
     width: 20px !important;
     height: 20px !important;
     font-size: 0.78rem !important;
+  }
+
+  /* Give the rack itself a touch more vertical breathing room and a
+     tighter caption. */
+  .explainer-diagram {
+    padding: 32px 12px 40px;
+  }
+  .explainer-diagram .explainer-cap {
+    margin-top: 16px;
+    font-size: 1.05rem;
   }
 }
