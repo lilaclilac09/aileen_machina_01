@@ -6,71 +6,25 @@ export const runtime = 'edge';
 export const maxDuration = 30;
 
 /**
- * Pick the model. Two-tier fallback (no Anthropic key configured — that
- * branch was dropped; if you ever add ANTHROPIC_API_KEY back, re-introduce
- * it as Tier 3 with prompt caching):
- *   Tier 1 (primary)   — AGENT_BASE_URL (any OpenAI-compatible endpoint,
- *                        typically Gemini 2.5 Flash). Optional AGENT_API_KEY,
- *                        AGENT_MODEL.
- *   Tier 2 (fallback)  — DEEPSEEK_API_KEY — DeepSeek-chat.
- *
- * If the primary returns a rate-limit / quota / 5xx / timeout error, it gets
- * marked unhealthy for PRIMARY_UNHEALTHY_MS, during which selectModel will
- * skip Tier 1 and route directly to Tier 2. The next request after the
- * window will probe Tier 1 again.
- *
- * NOTE: AGENT_BASE_URL must be reachable from Vercel — a PUBLIC url, not
- * localhost.
+ * DeepSeek-only. Tier abstraction + AGENT_BASE_URL (Gemini Flash) primary
+ * branch were removed — Gemini Flash is set aside for now. To re-introduce
+ * a primary tier, see git history before this commit for the two-tier
+ * pattern with primary-unhealthy tracking.
  */
 
-const PRIMARY_UNHEALTHY_MS = 60_000;
-let primaryUnhealthyUntil = 0;
-
-function markPrimaryUnhealthy() {
-  primaryUnhealthyUntil = Date.now() + PRIMARY_UNHEALTHY_MS;
-}
-function primaryIsHealthy() {
-  return Date.now() >= primaryUnhealthyUntil;
-}
-
-type Pick = {
-  model: LanguageModel;
-  tier: 'primary' | 'fallback';
-  provider: string;
-};
-
-function selectModel(): Pick | null {
-  // Tier 1 — primary OpenAI-compatible endpoint (Gemini Flash, etc.).
-  if (process.env.AGENT_BASE_URL && primaryIsHealthy()) {
-    const local = createOpenAICompatible({
-      name: 'aileena-primary',
-      baseURL: process.env.AGENT_BASE_URL,
-      apiKey: process.env.AGENT_API_KEY || 'local',
-    });
-    const modelId = process.env.AGENT_MODEL || 'local';
-    return {
-      model: local.chatModel(modelId),
-      tier: 'primary',
-      provider: process.env.AGENT_BASE_URL,
-    };
-  }
-
-  // Tier 2 — DeepSeek fallback.
+function selectModel(): { model: LanguageModel; provider: string } | null {
   const deepseekKey = process.env.DEEPSEEK_API_KEY;
-  if (deepseekKey) {
-    const ds = createOpenAICompatible({
-      name: 'aileena-deepseek',
-      baseURL: 'https://api.deepseek.com',
-      apiKey: deepseekKey,
-    });
-    return {
-      model: ds.chatModel('deepseek-chat'),
-      tier: process.env.AGENT_BASE_URL ? 'fallback' : 'primary',
-      provider: 'deepseek',
-    };
-  }
+  if (!deepseekKey) return null;
 
-  return null;
+  const ds = createOpenAICompatible({
+    name: 'aileena-deepseek',
+    baseURL: 'https://api.deepseek.com',
+    apiKey: deepseekKey,
+  });
+  return {
+    model: ds.chatModel('deepseek-chat'),
+    provider: 'deepseek',
+  };
 }
 const DAILY_LIMIT = 20;
 const QUOTA_COOKIE = '__aileena_quota';
@@ -158,9 +112,9 @@ function jsonError(message: string, status: number): Response {
 }
 
 export async function POST(req: Request) {
-  if (!process.env.AGENT_BASE_URL && !process.env.DEEPSEEK_API_KEY) {
+  if (!process.env.DEEPSEEK_API_KEY) {
     return jsonError(
-      'No model configured. Set DEEPSEEK_API_KEY (easiest) or AGENT_BASE_URL (any OpenAI-compatible endpoint) in Vercel, then redeploy.',
+      'No model configured. Set DEEPSEEK_API_KEY in Vercel, then redeploy.',
       500,
     );
   }
@@ -192,7 +146,7 @@ export async function POST(req: Request) {
   const picked = selectModel();
   if (!picked) {
     return jsonError(
-      'No model configured. Set AGENT_BASE_URL (preferred) or DEEPSEEK_API_KEY in Vercel, then redeploy.',
+      'No model configured. Set DEEPSEEK_API_KEY in Vercel, then redeploy.',
       500,
     );
   }
@@ -218,14 +172,7 @@ export async function POST(req: Request) {
       const msg = err instanceof Error ? err.message : String(err);
       // Log the REAL provider error server-side (visible in Vercel logs) while
       // still showing visitors a clean message.
-      console.error('[chat] provider=%s tier=%s error: %s', picked.provider, picked.tier, msg);
-      // If the PRIMARY tier choked on rate-limit / quota / 5xx / timeout,
-      // mark it unhealthy so the next request automatically routes to the
-      // fallback tier (DeepSeek) without trying the primary again.
-      if (picked.tier === 'primary' && /429|rate.?limit|quota|insufficient|too many|503|502|504|timeout|gateway/i.test(msg)) {
-        markPrimaryUnhealthy();
-        console.warn('[chat] primary marked unhealthy for %ds', PRIMARY_UNHEALTHY_MS / 1000);
-      }
+      console.error('[chat] provider=%s error: %s', picked.provider, msg);
       if (/credit balance|too low|insufficient|quota|billing|purchase credits|payment/i.test(msg)) {
         return "This agent isn't free to run — public access is off for now. Reach out through the contact form instead.";
       }
@@ -238,10 +185,8 @@ export async function POST(req: Request) {
   // if it wants to. Not currently consumed but cheap to add.
   headers.set('X-Daily-Remaining', String(DAILY_LIMIT - (quota.count + 1)));
   // Diagnostic headers — visible in DevTools Network so it's obvious which
-  // tier actually served the request and how big the system prompt was when
-  // chat feels slow. Sanitise the provider URL so we never leak an api key.
-  headers.set('X-Provider', picked.provider.replace(/^https?:\/\//, '').split(/[/?]/)[0]);
-  headers.set('X-Tier', picked.tier);
+  // provider actually served the request and how big the system prompt was.
+  headers.set('X-Provider', picked.provider);
   headers.set('X-System-Prompt-Chars', String(SYSTEM_PROMPT.length));
 
   return new Response(stream.body, { status: stream.status, headers });
