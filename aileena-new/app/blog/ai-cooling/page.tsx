@@ -10,6 +10,7 @@ export default function AiCoolingArticle() {
       tags="AI Hardware · Cooling · Optical · Supply Chain · Semis"
       title="What's Cooling the AI Build-Out"
       dek="Optical modules hit a thermal cliff at 20 watts. Above it, only liquid cooling works — and one company has the patents. Here's the path of heat through a 1.6T module, the suppliers who profit at each layer, and the one ceramic that could rewrite the whole market."
+      explainerHref="/blog/ai-cooling/explainer"
     >
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
 

@@ -10,6 +10,7 @@ export default function LetThereBeLightArticle() {
       tags="Optical Modules · AI Infra · Photonics · CPO"
       title="Let There Be Light Modules"
       dek="If the GPU is the brain of an AI cluster, the optical module is the nerve that lets the brains talk. It turns electricity into light, sends it down a fiber, and turns it back — and the whole build-out is gated by who can make the light. Here's what an optical module actually is, the routes racing to build it, and where the value gets stuck."
+      explainerHref="/blog/let-there-be-light/explainer"
     >
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
 

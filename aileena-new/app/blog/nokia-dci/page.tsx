@@ -8,6 +8,7 @@ export default function NokiaDciArticle() {
       category="Analysis"
       date="2026.05.30"
       tags="Nokia · DCI · Optical · Infinera"
+      explainerHref="/blog/nokia-dci/explainer"
       title="Why Bet on Nokia"
       dek="The market for the optical gear that links data centers together is sold out. Delivery times have doubled, the incumbent's lines are booked through 2027, and the hyperscalers are tendering a year early. In a supply crunch, capacity is the moat — and after buying Infinera, Nokia is the one vendor sitting on idle lines it can sell tomorrow. Here's the case, edge by edge."
     >

@@ -8,6 +8,7 @@ export default function DellNvidiaFlywheelArticle() {
       category="Analysis"
       date="2026.05.29"
       tags="Dell · NVIDIA · AI Servers · Neoclouds"
+      explainerHref="/blog/dell-nvidia-flywheel/explainer"
       title="Why Bet on Dell"
       dek="NVIDIA stopped being just a chipmaker — it now invests in its own demand, over $40B committed this year into the clouds that buy its GPUs. But equity and silicon don't deploy themselves. Someone has to bolt 72 GPUs into a liquid-cooled rack and ship it first. That someone is Dell. Here's the case for the boom's busiest pair of hands, edge by edge — including why the moat is thinner than Nokia's."
     >

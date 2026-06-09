@@ -10,6 +10,7 @@ export default function AiHardwareScarcityArticle() {
       tags="AI Hardware · Supply Chain · Optical · Semis"
       title="What AI Hardware Is Running Out Of"
       dek="Everyone watches the GPU. But the AI build-out is gated by a dozen unglamorous materials — the laser chips, the glass cloth, the copper foil, the specialty gases feeding the racks — and almost none of them have spare capacity. Here's the map of the choke points, layer by layer, and why each one is stuck."
+      explainerHref="/blog/ai-hardware-scarcity/explainer"
     >
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
 
