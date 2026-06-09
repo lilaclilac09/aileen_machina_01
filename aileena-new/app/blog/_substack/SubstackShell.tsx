@@ -12,6 +12,7 @@ export interface SubstackShellProps {
   dek: React.ReactNode;
   children: React.ReactNode;
   isDE?: boolean;
+  explainerHref?: string;
 }
 
 export default function SubstackShell({
@@ -22,6 +23,7 @@ export default function SubstackShell({
   dek,
   children,
   isDE = false,
+  explainerHref,
 }: SubstackShellProps) {
   return (
     <div className="substack-article">
@@ -32,6 +34,13 @@ export default function SubstackShell({
           <Link href="/#blog" className="substack-back">
             ← {isDE ? 'Archiv' : 'Archive'}
           </Link>
+          {explainerHref ? (
+            <div className="substack-mode-toggle">
+              <span className="active">● dense</span>
+              <span className="sep">/</span>
+              <Link href={explainerHref}>○ explainer</Link>
+            </div>
+          ) : null}
           <span className="substack-brand">AILEENA MACHINA</span>
         </div>
       </header>
