@@ -106,6 +106,34 @@ export default function AgentChat() {
   const browserReady = browserAvail === 'available';
   const activeRuntime: Runtime = runtime === 'browser' && browserReady ? 'browser' : 'cloud';
 
+  // Pre-warm the on-device session as soon as the console opens (or as soon
+  // as browser mode becomes the active runtime). Chrome's LanguageModel.create
+  // takes 2–5 s the first time — doing it lazily inside sendBrowser pushes
+  // that latency onto the user's first keypress→answer. Doing it here hides
+  // it behind the "what do I want to ask" beat.
+  useEffect(() => {
+    if (!open) return;
+    if (activeRuntime !== 'browser') return;
+    if (browserSessionRef.current) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const s = await createBrowserSession(SYSTEM_PROMPT_LITE);
+        if (cancelled) {
+          s?.destroy();
+          return;
+        }
+        browserSessionRef.current = s;
+      } catch {
+        // creation failed — sendBrowser will surface a clean error on its
+        // own next attempt; we don't need to handle it here.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, activeRuntime]);
+
   const busy = status === 'submitted' || status === 'streaming' || browserBusy;
   const sessionMaxed = sessionCount >= SESSION_LIMIT;
   // Hard gate: once the visitor has sent LEAD_THRESHOLD messages, chat is
