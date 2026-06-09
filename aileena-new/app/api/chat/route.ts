@@ -1,24 +1,18 @@
 import { streamText, convertToModelMessages, type UIMessage, type LanguageModel } from 'ai';
-import { anthropic } from '@ai-sdk/anthropic';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { SYSTEM_PROMPT } from '../../../lib/agentContext';
 
 export const runtime = 'edge';
 export const maxDuration = 30;
 
-// Haiku is materially faster (TTFT + tokens/sec) than Sonnet, and this is a
-// FAQ-style portfolio agent — depth of reasoning matters far less than how
-// quickly the first words show up on screen. Switch back to Sonnet if answer
-// quality regresses.
-const ANTHROPIC_MODEL = 'claude-haiku-4-5';
-
 /**
- * Pick the model. Tiered fallback:
+ * Pick the model. Two-tier fallback (no Anthropic key configured — that
+ * branch was dropped; if you ever add ANTHROPIC_API_KEY back, re-introduce
+ * it as Tier 3 with prompt caching):
  *   Tier 1 (primary)   — AGENT_BASE_URL (any OpenAI-compatible endpoint,
  *                        typically Gemini 2.5 Flash). Optional AGENT_API_KEY,
  *                        AGENT_MODEL.
- *   Tier 2 (fallback)  — DEEPSEEK_API_KEY — drops in DeepSeek-chat.
- *   Tier 3 (last resort) — ANTHROPIC_API_KEY — Claude Haiku 4.5.
+ *   Tier 2 (fallback)  — DEEPSEEK_API_KEY — DeepSeek-chat.
  *
  * If the primary returns a rate-limit / quota / 5xx / timeout error, it gets
  * marked unhealthy for PRIMARY_UNHEALTHY_MS, during which selectModel will
@@ -41,8 +35,7 @@ function primaryIsHealthy() {
 
 type Pick = {
   model: LanguageModel;
-  isAnthropic: boolean;
-  tier: 'primary' | 'fallback' | 'last-resort';
+  tier: 'primary' | 'fallback';
   provider: string;
 };
 
@@ -57,7 +50,6 @@ function selectModel(): Pick | null {
     const modelId = process.env.AGENT_MODEL || 'local';
     return {
       model: local.chatModel(modelId),
-      isAnthropic: false,
       tier: 'primary',
       provider: process.env.AGENT_BASE_URL,
     };
@@ -73,19 +65,8 @@ function selectModel(): Pick | null {
     });
     return {
       model: ds.chatModel('deepseek-chat'),
-      isAnthropic: false,
       tier: process.env.AGENT_BASE_URL ? 'fallback' : 'primary',
       provider: 'deepseek',
-    };
-  }
-
-  // Tier 3 — Anthropic last resort.
-  if (process.env.ANTHROPIC_API_KEY) {
-    return {
-      model: anthropic(ANTHROPIC_MODEL),
-      isAnthropic: true,
-      tier: 'last-resort',
-      provider: 'anthropic',
     };
   }
 
@@ -177,9 +158,9 @@ function jsonError(message: string, status: number): Response {
 }
 
 export async function POST(req: Request) {
-  if (!process.env.AGENT_BASE_URL && !process.env.DEEPSEEK_API_KEY && !process.env.ANTHROPIC_API_KEY) {
+  if (!process.env.AGENT_BASE_URL && !process.env.DEEPSEEK_API_KEY) {
     return jsonError(
-      'No model configured. Set DEEPSEEK_API_KEY (easiest), AGENT_BASE_URL (any OpenAI-compatible endpoint), or ANTHROPIC_API_KEY in Vercel, then redeploy.',
+      'No model configured. Set DEEPSEEK_API_KEY (easiest) or AGENT_BASE_URL (any OpenAI-compatible endpoint) in Vercel, then redeploy.',
       500,
     );
   }
@@ -211,7 +192,7 @@ export async function POST(req: Request) {
   const picked = selectModel();
   if (!picked) {
     return jsonError(
-      'No model configured. Set AGENT_BASE_URL (preferred), DEEPSEEK_API_KEY, or ANTHROPIC_API_KEY in Vercel, then redeploy.',
+      'No model configured. Set AGENT_BASE_URL (preferred) or DEEPSEEK_API_KEY in Vercel, then redeploy.',
       500,
     );
   }
@@ -225,11 +206,6 @@ export async function POST(req: Request) {
     // (DeepSeek in particular). 200 tokens ≈ 4–5 short sentences, which is
     // already at the upper bound of what the system prompt asks for.
     maxOutputTokens: 200,
-    // Prompt caching on the static system block is Anthropic-specific — only
-    // send it when we're actually on Anthropic.
-    ...(picked.isAnthropic
-      ? { providerOptions: { anthropic: { cacheControl: { type: 'ephemeral' as const } } } }
-      : {}),
   });
 
   const setCookie = await buildQuotaCookie({ date: quota.date, count: quota.count + 1 });
