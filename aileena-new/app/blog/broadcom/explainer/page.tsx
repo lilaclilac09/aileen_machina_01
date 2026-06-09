@@ -50,6 +50,8 @@ export default function BroadcomExplainer() {
         <span className="arr">↓</span>pillar 1 — custom ASIC
       </h2>
 
+      <BroadcomDiagram />
+
       <div className="explainer-row">
         <p>
           <b>Google.</b> Broadcom is still the design partner on{' '}
@@ -255,5 +257,443 @@ export default function BroadcomExplainer() {
         <b>12–18 month</b> horizon. The empire is intact; the dent count is rising.
       </p>
     </ExplainerShell>
+  );
+}
+
+function BroadcomDiagram() {
+  return (
+    <div className="explainer-diagram">
+      <svg width="0" height="0" style={{ position: 'absolute' }}>
+        <defs>
+          <filter id="ex-wobble-broadcom" x="-2%" y="-2%" width="104%" height="104%">
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.018"
+              numOctaves={2}
+              seed={5}
+            />
+            <feDisplacementMap in="SourceGraphic" scale={1.3} />
+          </filter>
+        </defs>
+      </svg>
+
+      <div className="explainer-rack-wrap">
+        <svg
+          className="explainer-rack-svg"
+          viewBox="0 0 360 500"
+          xmlns="http://www.w3.org/2000/svg"
+          filter="url(#ex-wobble-broadcom)"
+        >
+          {/* outer empire frame */}
+          <rect
+            x={40}
+            y={30}
+            width={280}
+            height={420}
+            rx={4}
+            fill="none"
+            stroke="#1a1612"
+            strokeWidth={1.6}
+          />
+          <rect
+            x={40}
+            y={30}
+            width={280}
+            height={420}
+            rx={4}
+            fill="none"
+            stroke="rgba(26,22,18,0.22)"
+            strokeWidth={3}
+            transform="translate(2,2)"
+          />
+          <text
+            x={180}
+            y={22}
+            fontFamily="JetBrains Mono"
+            fontSize={8}
+            fill="#1a1612"
+            textAnchor="middle"
+            letterSpacing={3}
+            style={{ textTransform: 'uppercase' }}
+          >
+            broadcom · four pillars
+          </text>
+
+          {/* pillar 1 — TPU / Google (top-left) */}
+          <g>
+            <rect
+              x={60}
+              y={60}
+              width={120}
+              height={170}
+              fill="#1f3a2a"
+              stroke="#1a1612"
+              strokeWidth={1}
+            />
+            {/* mini icon — TPU dies */}
+            <g fill="#d9a449">
+              <rect x={80} y={90} width={28} height={18} />
+              <rect x={132} y={90} width={28} height={18} />
+              <rect x={80} y={120} width={28} height={18} />
+              <rect x={132} y={120} width={28} height={18} />
+            </g>
+            <g stroke="#d9a449" strokeWidth={0.4} fill="none" opacity={0.6}>
+              <path d="M108 99 L132 99" />
+              <path d="M108 129 L132 129" />
+              <path d="M94 108 L94 120" />
+              <path d="M146 108 L146 120" />
+            </g>
+            <text
+              x={120}
+              y={170}
+              fontFamily="JetBrains Mono"
+              fontSize={9}
+              fill="#fff"
+              textAnchor="middle"
+              letterSpacing={2}
+              style={{ textTransform: 'uppercase' }}
+            >
+              TPU · GOOGLE
+            </text>
+            <text
+              x={120}
+              y={186}
+              fontFamily="JetBrains Mono"
+              fontSize={6}
+              fill="rgba(255,255,255,0.6)"
+              textAnchor="middle"
+              letterSpacing={1}
+            >
+              v7 · v8 training
+            </text>
+            <text
+              x={120}
+              y={212}
+              fontFamily="JetBrains Mono"
+              fontSize={7}
+              fill="rgba(255,255,255,0.45)"
+              textAnchor="middle"
+              letterSpacing={1.5}
+              style={{ textTransform: 'uppercase' }}
+            >
+              pillar 1
+            </text>
+          </g>
+
+          {/* pillar 2 — Tomahawk 6 switch (top-right) */}
+          <g>
+            <rect
+              x={180}
+              y={60}
+              width={120}
+              height={170}
+              fill="#274c2e"
+              stroke="#1a1612"
+              strokeWidth={1}
+            />
+            {/* mini icon — switch ports radiating */}
+            <g stroke="#d9a449" strokeWidth={0.6} fill="none">
+              <rect x={216} y={92} width={48} height={28} fill="#0f2a1a" />
+              <path d="M210 106 L216 106" />
+              <path d="M210 100 L216 100" />
+              <path d="M210 112 L216 112" />
+              <path d="M264 106 L270 106" />
+              <path d="M264 100 L270 100" />
+              <path d="M264 112 L270 112" />
+              <path d="M240 92 L240 86" />
+              <path d="M232 92 L232 86" />
+              <path d="M248 92 L248 86" />
+              <path d="M240 120 L240 126" />
+              <path d="M232 120 L232 126" />
+              <path d="M248 120 L248 126" />
+            </g>
+            <text
+              x={240}
+              y={110}
+              fontFamily="JetBrains Mono"
+              fontSize={6}
+              fill="#d9a449"
+              textAnchor="middle"
+              letterSpacing={1}
+            >
+              TH6
+            </text>
+            <text
+              x={240}
+              y={170}
+              fontFamily="JetBrains Mono"
+              fontSize={9}
+              fill="#fff"
+              textAnchor="middle"
+              letterSpacing={2}
+              style={{ textTransform: 'uppercase' }}
+            >
+              TOMAHAWK 6
+            </text>
+            <text
+              x={240}
+              y={186}
+              fontFamily="JetBrains Mono"
+              fontSize={6}
+              fill="rgba(255,255,255,0.6)"
+              textAnchor="middle"
+              letterSpacing={1}
+            >
+              1.2 T / port
+            </text>
+            <text
+              x={240}
+              y={212}
+              fontFamily="JetBrains Mono"
+              fontSize={7}
+              fill="rgba(255,255,255,0.45)"
+              textAnchor="middle"
+              letterSpacing={1.5}
+              style={{ textTransform: 'uppercase' }}
+            >
+              pillar 2
+            </text>
+          </g>
+
+          {/* pillar 3 — EML laser (bottom-left) */}
+          <g>
+            <rect
+              x={60}
+              y={250}
+              width={120}
+              height={180}
+              fill="#0f2a1a"
+              stroke="#1a1612"
+              strokeWidth={1}
+            />
+            {/* mini icon — laser beam */}
+            <g>
+              <rect x={78} y={290} width={26} height={14} fill="#3a2a16" stroke="#d9a449" strokeWidth={0.6} />
+              <rect x={104} y={295} width={50} height={4} fill="#d9a449" opacity={0.85} />
+              <circle cx={158} cy={297} r={3} fill="#ff8a4c" opacity={0.85} />
+              <circle cx={158} cy={297} r={6} fill="none" stroke="#ff8a4c" strokeWidth={0.5} opacity={0.5} />
+            </g>
+            <text
+              x={120}
+              y={336}
+              fontFamily="JetBrains Mono"
+              fontSize={9}
+              fill="#fff"
+              textAnchor="middle"
+              letterSpacing={2}
+              style={{ textTransform: 'uppercase' }}
+            >
+              EML · ~50%
+            </text>
+            <text
+              x={120}
+              y={352}
+              fontFamily="JetBrains Mono"
+              fontSize={6}
+              fill="rgba(255,255,255,0.6)"
+              textAnchor="middle"
+              letterSpacing={1}
+            >
+              1 of 2 worldwide
+            </text>
+            <text
+              x={120}
+              y={412}
+              fontFamily="JetBrains Mono"
+              fontSize={7}
+              fill="rgba(255,255,255,0.45)"
+              textAnchor="middle"
+              letterSpacing={1.5}
+              style={{ textTransform: 'uppercase' }}
+            >
+              pillar 3
+            </text>
+          </g>
+
+          {/* pillar 4 — DSP (bottom-right) */}
+          <g>
+            <rect
+              x={180}
+              y={250}
+              width={120}
+              height={180}
+              fill="#1c3a26"
+              stroke="#1a1612"
+              strokeWidth={1}
+            />
+            {/* mini icon — DSP die with traces */}
+            <g>
+              <rect x={210} y={285} width={60} height={36} fill="#0f2a1a" stroke="#d9a449" strokeWidth={0.6} />
+              <g stroke="#d9a449" strokeWidth={0.4} fill="none" opacity={0.7}>
+                <path d="M218 293 L262 293" />
+                <path d="M218 299 L262 299" />
+                <path d="M218 305 L262 305" />
+                <path d="M218 311 L262 311" />
+                <path d="M226 285 L226 321" />
+                <path d="M240 285 L240 321" />
+                <path d="M254 285 L254 321" />
+              </g>
+            </g>
+            <text
+              x={240}
+              y={336}
+              fontFamily="JetBrains Mono"
+              fontSize={9}
+              fill="#fff"
+              textAnchor="middle"
+              letterSpacing={2}
+              style={{ textTransform: 'uppercase' }}
+            >
+              DSP · ~90%
+            </text>
+            <text
+              x={240}
+              y={352}
+              fontFamily="JetBrains Mono"
+              fontSize={6}
+              fill="rgba(255,255,255,0.6)"
+              textAnchor="middle"
+              letterSpacing={1}
+            >
+              non-Nvidia share
+            </text>
+            <text
+              x={240}
+              y={412}
+              fontFamily="JetBrains Mono"
+              fontSize={7}
+              fill="rgba(255,255,255,0.45)"
+              textAnchor="middle"
+              letterSpacing={1.5}
+              style={{ textTransform: 'uppercase' }}
+            >
+              pillar 4
+            </text>
+          </g>
+
+          {/* center cross gap */}
+          <line x1={180} y1={60} x2={180} y2={430} stroke="#1a1612" strokeWidth={1.6} />
+          <line x1={60} y1={240} x2={300} y2={240} stroke="#1a1612" strokeWidth={1.6} />
+        </svg>
+
+        {/* hand-drawn lilac arrows — pressure vectors */}
+        <svg
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+          }}
+          viewBox="0 0 360 500"
+          preserveAspectRatio="none"
+        >
+          <g
+            stroke="#7c5cc4"
+            strokeWidth={1.5}
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            {/* MediaTek peel — from left into TPU pillar */}
+            <path d="M8 130 Q 30 128 56 138" />
+            <path d="M56 138 L 48 134 M56 138 L 50 144" />
+            {/* Marvell — from right, split into TPU + DSP */}
+            <path d="M348 200 Q 326 200 304 168" />
+            <path d="M304 168 L 308 176 M304 168 L 312 170" />
+            <path d="M348 200 Q 330 220 304 332" />
+            <path d="M304 332 L 308 324 M304 332 L 314 332" />
+            {/* CPO transition — from bottom up through both bottom pillars */}
+            <path d="M120 472 Q 124 450 124 432" />
+            <path d="M124 432 L 118 440 M124 432 L 130 440" />
+            <path d="M240 472 Q 244 450 244 432" />
+            <path d="M244 432 L 238 440 M244 432 L 250 440" />
+          </g>
+        </svg>
+
+        <div className="explainer-num" style={{ top: 60, left: -26 }}>
+          1
+        </div>
+        <div className="explainer-num" style={{ top: 60, right: -26 }}>
+          2
+        </div>
+        <div className="explainer-num" style={{ top: 252, left: -26 }}>
+          3
+        </div>
+        <div className="explainer-num" style={{ top: 252, right: -26 }}>
+          4
+        </div>
+        <div className="explainer-num" style={{ top: 430, left: 168 }}>
+          5
+        </div>
+      </div>
+
+      <p className="explainer-cap">
+        four pillars <span className="v">·</span> three pressure vectors
+      </p>
+
+      <div
+        className="explainer-sticky yellow"
+        style={{ top: 64, left: -22, width: 142, transform: 'rotate(-4deg)' }}
+      >
+        <span className="h">① TPU</span>
+        Google&rsquo;s silicon
+        <br />partner · <b>v7 + v8</b>
+      </div>
+      <div
+        className="explainer-sticky pink"
+        style={{ top: 66, right: -22, width: 144, transform: 'rotate(3deg)' }}
+      >
+        <span className="h">② Tomahawk 6</span>
+        switch king at
+        <br /><b>1.2 T/port</b>
+      </div>
+      <div
+        className="explainer-sticky blue"
+        style={{ top: 258, left: -22, width: 138, transform: 'rotate(-3deg)' }}
+      >
+        <span className="h">③ EML</span>
+        one of <b>2</b>
+        <br />worldwide
+      </div>
+      <div
+        className="explainer-sticky green"
+        style={{ top: 258, right: -22, width: 144, transform: 'rotate(2.6deg)' }}
+      >
+        <span className="h">④ DSP</span>
+        ~<b>90%</b> of
+        <br />non-Nvidia
+      </div>
+      <div
+        className="explainer-sticky lilac"
+        style={{ top: 446, left: 84, width: 196, transform: 'rotate(-2deg)' }}
+      >
+        <span className="h">⑤ CPO catch-22</span>
+        would erase pillars <b>3 &amp; 4</b>
+      </div>
+
+      <div
+        className="explainer-marg"
+        style={{
+          top: -4,
+          right: 4,
+          fontSize: '1rem',
+          transform: 'rotate(-6deg)',
+        }}
+      >
+        the three pressures ↘
+      </div>
+      <div
+        className="explainer-marg"
+        style={{
+          top: 488,
+          right: 32,
+          fontSize: '0.95rem',
+          transform: 'rotate(-3deg)',
+        }}
+      >
+        vs. Nvidia, this is everything
+      </div>
+    </div>
   );
 }

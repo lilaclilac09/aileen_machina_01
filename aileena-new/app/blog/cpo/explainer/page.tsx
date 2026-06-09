@@ -51,6 +51,8 @@ export default function CpoExplainer() {
         <span className="arr">↓</span>what&rsquo;s in the package
       </h2>
 
+      <CpoDiagram />
+
       <div className="explainer-row">
         <p>
           The <b>optical engine</b> is a stack of three layers. The <b>PIC</b>{' '}
@@ -395,5 +397,229 @@ export default function CpoExplainer() {
         engineering spend lands.
       </p>
     </ExplainerShell>
+  );
+}
+
+function CpoDiagram() {
+  // six-step CPO assembly flow (vertical)
+  const steps = [
+    { label: 'SUBSTRATE PREP', fill: '#274c2e', y: 40 },
+    { label: 'PIC BOND · 65 nm', fill: '#1f3a2a', y: 110 },
+    { label: 'EIC BOND · 6 nm', fill: '#0f2a1a', y: 180 },
+    { label: 'FAU ATTACH', fill: '#1c3a26', y: 250 },
+    { label: 'HERMETIC SEAL', fill: '#3a2a16', y: 320 },
+    { label: 'TEST · BURN-IN', fill: '#1a1612', y: 390 },
+  ];
+
+  return (
+    <div className="explainer-diagram">
+      <svg width="0" height="0" style={{ position: 'absolute' }}>
+        <defs>
+          <filter
+            id="ex-wobble-cpo"
+            x="-2%"
+            y="-2%"
+            width="104%"
+            height="104%"
+          >
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.018"
+              numOctaves={2}
+              seed={5}
+            />
+            <feDisplacementMap in="SourceGraphic" scale={1.3} />
+          </filter>
+        </defs>
+      </svg>
+
+      <div className="explainer-rack-wrap">
+        <svg
+          className="explainer-rack-svg"
+          viewBox="0 0 360 480"
+          xmlns="http://www.w3.org/2000/svg"
+          filter="url(#ex-wobble-cpo)"
+        >
+          <rect
+            x={40}
+            y={20}
+            width={280}
+            height={440}
+            rx={4}
+            fill="none"
+            stroke="#1a1612"
+            strokeWidth={1.6}
+          />
+          <rect
+            x={40}
+            y={20}
+            width={280}
+            height={440}
+            rx={4}
+            fill="none"
+            stroke="rgba(26,22,18,0.22)"
+            strokeWidth={3}
+            transform="translate(2,2)"
+          />
+
+          {steps.map((s, i) => (
+            <g key={s.label}>
+              <rect
+                x={70}
+                y={s.y}
+                width={220}
+                height={48}
+                fill={s.fill}
+                stroke="#1a1612"
+                strokeWidth={1}
+              />
+              <text
+                x={180}
+                y={s.y + 22}
+                fontFamily="JetBrains Mono"
+                fontSize={9}
+                fill="#fff"
+                textAnchor="middle"
+                letterSpacing={2}
+                style={{ textTransform: 'uppercase' }}
+              >
+                {s.label}
+              </text>
+              <text
+                x={180}
+                y={s.y + 36}
+                fontFamily="JetBrains Mono"
+                fontSize={7}
+                fill={i === 5 ? '#d9a449' : 'rgba(255,255,255,0.55)'}
+                textAnchor="middle"
+                letterSpacing={1.5}
+              >
+                step {i + 1}
+              </text>
+              {i < steps.length - 1 && (
+                <g stroke="#d9a449" strokeWidth={1.4} fill="none">
+                  <path d={`M180 ${s.y + 48} L180 ${s.y + 62}`} />
+                  <path
+                    d={`M180 ${s.y + 62} L 176 ${s.y + 56} M180 ${s.y + 62} L 184 ${s.y + 56}`}
+                  />
+                </g>
+              )}
+            </g>
+          ))}
+        </svg>
+
+        {/* lilac overlay arrow at step 2 — "yield drops here" */}
+        <svg
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+          }}
+          viewBox="0 0 360 480"
+          preserveAspectRatio="none"
+        >
+          <g
+            stroke="#7c5cc4"
+            strokeWidth={1.5}
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M340 134 Q 360 130 376 122" />
+            <path d="M376 122 L 368 116 M376 122 L 370 130" />
+          </g>
+        </svg>
+
+        <div className="explainer-num" style={{ top: 40, left: -28 }}>
+          1
+        </div>
+        <div className="explainer-num" style={{ top: 110, left: -28 }}>
+          2
+        </div>
+        <div className="explainer-num" style={{ top: 178, left: -28 }}>
+          3
+        </div>
+        <div className="explainer-num" style={{ top: 246, left: -28 }}>
+          4
+        </div>
+        <div className="explainer-num" style={{ top: 316, left: -28 }}>
+          5
+        </div>
+        <div className="explainer-num" style={{ top: 384, left: -28 }}>
+          6
+        </div>
+      </div>
+
+      <p className="explainer-cap">
+        six steps · TSMC + NVIDIA · 2026 yield{' '}
+        <span className="v">~75%</span>
+      </p>
+
+      <div
+        className="explainer-sticky yellow"
+        style={{ top: 38, right: -10, width: 142, transform: 'rotate(-3deg)' }}
+      >
+        <span className="h">① substrate</span>
+        ABF carrier — Ajinomoto
+        <br />build-up film
+      </div>
+      <div
+        className="explainer-sticky pink"
+        style={{ top: 108, right: -22, width: 150, transform: 'rotate(2.6deg)' }}
+      >
+        <span className="h">② PIC · 65 nm</span>
+        silicon photonics —
+        <br /><b>~10%</b> die here
+      </div>
+      <div
+        className="explainer-sticky blue"
+        style={{ top: 188, right: -16, width: 144, transform: 'rotate(-2.4deg)' }}
+      >
+        <span className="h">③ EIC · 6 nm</span>
+        drives the laser,
+        <br />face-to-face bond
+      </div>
+      <div
+        className="explainer-sticky green"
+        style={{ top: 258, right: -20, width: 158, transform: 'rotate(2.2deg)' }}
+      >
+        <span className="h">④ FAU</span>
+        fibre alignment,
+        <br />tol <b>0.5–0.6 µm</b>
+      </div>
+      <div
+        className="explainer-sticky lilac"
+        style={{ top: 392, right: -12, width: 152, transform: 'rotate(-3deg)' }}
+      >
+        <span className="h">⑥ yield</span>
+        <b>~75%</b> vs target
+        <br /><b>90–95%</b>
+      </div>
+
+      <div
+        className="explainer-marg"
+        style={{
+          top: 10,
+          left: 20,
+          fontSize: '1.05rem',
+          transform: 'rotate(-7deg)',
+        }}
+      >
+        ↑ each step compounds
+      </div>
+      <div
+        className="explainer-marg"
+        style={{
+          top: 430,
+          left: 14,
+          fontSize: '1rem',
+          transform: 'rotate(-4deg)',
+        }}
+      >
+        the gap closes slowly
+      </div>
+    </div>
   );
 }

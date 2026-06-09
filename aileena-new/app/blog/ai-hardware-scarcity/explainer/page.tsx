@@ -51,6 +51,8 @@ export default function AiHardwareScarcityExplainer() {
         <span className="arr">↓</span>layer 1 — moving the light
       </h2>
 
+      <ScarcityDiagram />
+
       <div className="explainer-row">
         <p>
           <b>EML chips.</b> The core light-making chip in optical modules.
@@ -302,5 +304,406 @@ export default function AiHardwareScarcityExplainer() {
         scarce input or <span className="v">locked</span> it first.
       </p>
     </ExplainerShell>
+  );
+}
+
+function ScarcityDiagram() {
+  // upstream materials → bottleneck → product fan-out
+  return (
+    <div className="explainer-diagram">
+      <svg width="0" height="0" style={{ position: 'absolute' }}>
+        <defs>
+          <filter
+            id="ex-wobble-scarcity"
+            x="-2%"
+            y="-2%"
+            width="104%"
+            height="104%"
+          >
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.018"
+              numOctaves={2}
+              seed={9}
+            />
+            <feDisplacementMap in="SourceGraphic" scale={1.3} />
+          </filter>
+        </defs>
+      </svg>
+
+      <div className="explainer-rack-wrap">
+        <svg
+          className="explainer-rack-svg"
+          viewBox="0 0 380 360"
+          xmlns="http://www.w3.org/2000/svg"
+          filter="url(#ex-wobble-scarcity)"
+        >
+          <rect
+            x={10}
+            y={20}
+            width={360}
+            height={310}
+            rx={4}
+            fill="none"
+            stroke="#1a1612"
+            strokeWidth={1.6}
+          />
+
+          {/* upstream materials, left column */}
+          <g>
+            <rect
+              x={30}
+              y={70}
+              width={90}
+              height={62}
+              fill="#3a2a16"
+              stroke="#1a1612"
+              strokeWidth={1}
+            />
+            <g stroke="#d9a449" strokeWidth={0.5} fill="none">
+              <path d="M38 90 L112 90" />
+              <path d="M38 100 L112 100" />
+              <path d="M38 110 L112 110" />
+              <path d="M38 120 L112 120" />
+            </g>
+            <text
+              x={75}
+              y={94}
+              fontFamily="JetBrains Mono"
+              fontSize={8}
+              fill="#fff"
+              textAnchor="middle"
+              letterSpacing={1.5}
+              style={{ textTransform: 'uppercase' }}
+            >
+              HVLP4
+            </text>
+            <text
+              x={75}
+              y={108}
+              fontFamily="JetBrains Mono"
+              fontSize={7}
+              fill="rgba(255,255,255,0.7)"
+              textAnchor="middle"
+              letterSpacing={1}
+            >
+              copper foil
+            </text>
+            <text
+              x={75}
+              y={124}
+              fontFamily="JetBrains Mono"
+              fontSize={7}
+              fill="#d9a449"
+              textAnchor="middle"
+              letterSpacing={1}
+            >
+              -48% gap
+            </text>
+          </g>
+
+          <g>
+            <rect
+              x={30}
+              y={205}
+              width={90}
+              height={62}
+              fill="#1c3a26"
+              stroke="#1a1612"
+              strokeWidth={1}
+            />
+            <g stroke="#d9a449" strokeWidth={0.5} fill="none">
+              <path d="M38 220 L112 220" />
+              <path d="M38 232 L112 232" />
+              <path d="M38 244 L112 244" />
+              <path d="M38 256 L112 256" />
+              <path d="M50 213 L50 264" />
+              <path d="M75 213 L75 264" />
+              <path d="M100 213 L100 264" />
+            </g>
+            <text
+              x={75}
+              y={230}
+              fontFamily="JetBrains Mono"
+              fontSize={8}
+              fill="#fff"
+              textAnchor="middle"
+              letterSpacing={1.5}
+              style={{ textTransform: 'uppercase' }}
+            >
+              LOW-DK
+            </text>
+            <text
+              x={75}
+              y={243}
+              fontFamily="JetBrains Mono"
+              fontSize={7}
+              fill="rgba(255,255,255,0.7)"
+              textAnchor="middle"
+              letterSpacing={1}
+            >
+              glass cloth
+            </text>
+            <text
+              x={75}
+              y={259}
+              fontFamily="JetBrains Mono"
+              fontSize={7}
+              fill="#d9a449"
+              textAnchor="middle"
+              letterSpacing={1}
+            >
+              Q-cloth sold out
+            </text>
+          </g>
+
+          {/* bottleneck funnel (lilac outline) */}
+          <g>
+            <path
+              d="M155 90 L235 150 L235 210 L155 270 Z"
+              fill="rgba(124,92,196,0.08)"
+              stroke="#7c5cc4"
+              strokeWidth={1.6}
+              strokeLinejoin="round"
+            />
+            <text
+              x={195}
+              y={175}
+              fontFamily="JetBrains Mono"
+              fontSize={9}
+              fill="#1a1612"
+              textAnchor="middle"
+              letterSpacing={2}
+              style={{ textTransform: 'uppercase' }}
+            >
+              avail-
+            </text>
+            <text
+              x={195}
+              y={190}
+              fontFamily="JetBrains Mono"
+              fontSize={9}
+              fill="#1a1612"
+              textAnchor="middle"
+              letterSpacing={2}
+              style={{ textTransform: 'uppercase' }}
+            >
+              ability
+            </text>
+          </g>
+
+          {/* feed arrows: materials → bottleneck */}
+          <g stroke="#d9a449" strokeWidth={1.3} fill="none">
+            <path d="M120 100 L 152 120" />
+            <path d="M152 120 L 145 117 M152 120 L 149 113" />
+            <path d="M120 236 L 152 218" />
+            <path d="M152 218 L 145 217 M152 218 L 148 224" />
+          </g>
+
+          {/* three product outputs, right column */}
+          <g>
+            <rect
+              x={270}
+              y={50}
+              width={86}
+              height={56}
+              fill="#274c2e"
+              stroke="#1a1612"
+              strokeWidth={1}
+            />
+            <g stroke="#d9a449" strokeWidth={0.5} fill="none">
+              <path d="M278 68 L348 68" />
+              <path d="M278 78 L348 78" />
+              <path d="M278 88 L348 88" />
+            </g>
+            <text
+              x={313}
+              y={84}
+              fontFamily="JetBrains Mono"
+              fontSize={10}
+              fill="#fff"
+              textAnchor="middle"
+              letterSpacing={2}
+              style={{ textTransform: 'uppercase' }}
+            >
+              PCB
+            </text>
+          </g>
+
+          <g>
+            <rect
+              x={270}
+              y={142}
+              width={86}
+              height={56}
+              fill="#1f3a2a"
+              stroke="#1a1612"
+              strokeWidth={1}
+            />
+            <g stroke="#d9a449" strokeWidth={0.5} fill="none">
+              <path d="M278 160 L348 160" />
+              <path d="M278 170 L348 170" />
+              <path d="M278 180 L348 180" />
+            </g>
+            <text
+              x={313}
+              y={176}
+              fontFamily="JetBrains Mono"
+              fontSize={9}
+              fill="#fff"
+              textAnchor="middle"
+              letterSpacing={2}
+              style={{ textTransform: 'uppercase' }}
+            >
+              OPTICAL
+            </text>
+          </g>
+
+          <g>
+            <rect
+              x={270}
+              y={234}
+              width={86}
+              height={56}
+              fill="#0f2a1a"
+              stroke="#1a1612"
+              strokeWidth={1}
+            />
+            <g stroke="#d9a449" strokeWidth={0.5} fill="none">
+              <path d="M278 252 L348 252" />
+              <path d="M278 262 L348 262" />
+              <path d="M278 272 L348 272" />
+            </g>
+            <text
+              x={313}
+              y={268}
+              fontFamily="JetBrains Mono"
+              fontSize={9}
+              fill="#fff"
+              textAnchor="middle"
+              letterSpacing={2}
+              style={{ textTransform: 'uppercase' }}
+            >
+              COOLING
+            </text>
+          </g>
+
+          {/* fan-out arrows: bottleneck → products */}
+          <g stroke="#d9a449" strokeWidth={1.3} fill="none">
+            <path d="M236 150 Q 250 100 268 78" />
+            <path d="M268 78 L 264 84 M268 78 L 261 80" />
+            <path d="M236 180 L 268 170" />
+            <path d="M268 170 L 261 168 M268 170 L 263 174" />
+            <path d="M236 210 Q 250 240 268 260" />
+            <path d="M268 260 L 261 256 M268 260 L 264 252" />
+          </g>
+        </svg>
+
+        {/* lilac highlight overlay */}
+        <svg
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+          }}
+          viewBox="0 0 380 360"
+          preserveAspectRatio="none"
+        >
+          <g
+            stroke="#7c5cc4"
+            strokeWidth={1.4}
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M155 80 Q 195 55 235 80" />
+          </g>
+        </svg>
+
+        <div className="explainer-num" style={{ top: 70, left: -28 }}>
+          1
+        </div>
+        <div className="explainer-num" style={{ top: 205, left: -28 }}>
+          2
+        </div>
+        <div className="explainer-num" style={{ top: 152, left: 175 }}>
+          3
+        </div>
+        <div className="explainer-num" style={{ top: 142, right: -28 }}>
+          4
+        </div>
+      </div>
+
+      <p className="explainer-cap">
+        two materials hold up{' '}
+        <span className="v">the entire AI build</span>
+      </p>
+
+      <div
+        className="explainer-sticky yellow"
+        style={{ top: 56, left: -10, width: 138, transform: 'rotate(-3deg)' }}
+      >
+        <span className="h">HVLP4 foil</span>
+        Mitsui +
+        <br />the lead supplier
+      </div>
+      <div
+        className="explainer-sticky pink"
+        style={{ top: 252, left: -16, width: 144, transform: 'rotate(2.4deg)' }}
+      >
+        <span className="h">low-DK cloth</span>
+        Q-cloth nearly all
+        <br />locked to Rubin
+      </div>
+      <div
+        className="explainer-sticky blue"
+        style={{ top: 36, right: -18, width: 138, transform: 'rotate(2.4deg)' }}
+      >
+        <span className="h">PCB</span>
+        M9 + Q-cloth
+        <br />retires drilling
+      </div>
+      <div
+        className="explainer-sticky green"
+        style={{ bottom: 24, right: -22, width: 144, transform: 'rotate(-2.4deg)' }}
+      >
+        <span className="h">downstream</span>
+        every stack needs
+        <br />the <b>same</b> two
+      </div>
+      <div
+        className="explainer-sticky lilac"
+        style={{ top: 158, left: 130, width: 130, transform: 'rotate(-2deg)' }}
+      >
+        <span className="h">choke point</span>
+        <b>two materials</b>
+        <br />upstream of all
+      </div>
+
+      <div
+        className="explainer-marg"
+        style={{
+          top: 28,
+          left: 145,
+          fontSize: '1rem',
+          transform: 'rotate(-6deg)',
+        }}
+      >
+        ↓ the choke point
+      </div>
+      <div
+        className="explainer-marg"
+        style={{
+          bottom: 60,
+          left: 150,
+          fontSize: '0.95rem',
+          transform: 'rotate(-3deg)',
+        }}
+      >
+        everyone needs both
+      </div>
+    </div>
   );
 }
