@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import ScrollUnlock from '../ScrollUnlock';
+import ArticleModeMemory, { setArticleMode } from './ArticleModeMemory';
 import './explainer.css';
 
 export interface ExplainerShellProps {
@@ -35,6 +36,9 @@ export default function ExplainerShell({
   return (
     <div className="explainer-article">
       <ScrollUnlock />
+      {denseHref ? (
+        <ArticleModeMemory currentMode="explainer" altHref={denseHref} />
+      ) : null}
 
       <header className="explainer-nav">
         <div className="explainer-nav-inner">
@@ -43,7 +47,12 @@ export default function ExplainerShell({
           </Link>
           {denseHref ? (
             <div className="explainer-mode-toggle">
-              <Link href={denseHref}>● dense</Link>
+              <Link
+                href={denseHref}
+                onClick={() => setArticleMode('dense')}
+              >
+                ● dense
+              </Link>
               <span className="sep">/</span>
               <span className="active">○ explainer</span>
             </div>

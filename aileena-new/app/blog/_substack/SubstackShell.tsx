@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import ScrollUnlock from '../ScrollUnlock';
 import ArticleNarration from '../../../components/ArticleNarration';
+import ArticleModeMemory, { setArticleMode } from './ArticleModeMemory';
 import './substack.css';
 
 export interface SubstackShellProps {
@@ -28,6 +29,9 @@ export default function SubstackShell({
   return (
     <div className="substack-article">
       <ScrollUnlock />
+      {explainerHref ? (
+        <ArticleModeMemory currentMode="dense" altHref={explainerHref} />
+      ) : null}
 
       <header className="substack-nav">
         <div className="substack-nav-inner">
@@ -38,7 +42,12 @@ export default function SubstackShell({
             <div className="substack-mode-toggle">
               <span className="active">● dense</span>
               <span className="sep">/</span>
-              <Link href={explainerHref}>○ explainer</Link>
+              <Link
+                href={explainerHref}
+                onClick={() => setArticleMode('explainer')}
+              >
+                ○ explainer
+              </Link>
             </div>
           ) : null}
           <span className="substack-brand">AILEENA MACHINA</span>
