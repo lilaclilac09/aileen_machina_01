@@ -7,29 +7,45 @@
 @source "../app/**/*.tsx";
 
 :root {
-  --background: #FAF2EE;
-  --foreground: #2C221E;
-  --accent-emerald: #04977B;
-  --accent-coral: #E4202F;
-  --glass-bg: rgba(44, 34, 30, 0.05);
-  --glass-border: rgba(44, 34, 30, 0.1);
-  --scanline-color: rgba(4, 151, 123, 0.15);
-}
-
-.dark {
-  --background: #000000;
-  --foreground: #ffffff;
-  --accent-emerald: #04977B;
-  --accent-coral: #E4202F;
+  /* Theme 1: Original 'East Berlin/London' Dark Theme (Reverted) */
+  --bg-primary: #000;
+  --text-primary: #fff;
+  --accent-cyan: #00ffea;
+  --accent-cyan-rgb: 0, 255, 234;
+  --accent-cyan-dim: rgba(0, 255, 234, 0.35);
+  --accent-cyan-glow: rgba(0, 255, 234, 0.14);
   --glass-bg: rgba(255, 255, 255, 0.03);
   --glass-border: rgba(255, 255, 255, 0.08);
-  --scanline-color: rgba(4, 151, 123, 0.2);
+  --scrollbar-track: rgba(255, 255, 255, 0.04);
+  --loading-scan-mode: screen;
+  --pulse-color: rgba(60, 200, 235, 0.65);
+  --pulse-color-inner: rgba(80, 210, 240, 0.15);
+  --pulse-glow: rgba(60, 200, 235, 0.9);
+  --pulse-glow-inner: rgba(80, 210, 240, 0.25);
+}
+
+[data-theme="french-girl-light"] {
+  /* Theme 2: French Girl Light Theme */
+  --bg-primary: #FAF2EE;
+  --text-primary: #2C221E;
+  --accent-cyan: #04977B; /* Emerald Green */
+  --accent-cyan-rgb: 4, 151, 123;
+  --accent-cyan-dim: rgba(4, 151, 123, 0.35);
+  --accent-cyan-glow: rgba(4, 151, 123, 0.14);
+  --glass-bg: rgba(44, 34, 30, 0.03);
+  --glass-border: rgba(44, 34, 30, 0.08);
+  --scrollbar-track: rgba(44, 34, 30, 0.04);
+  --loading-scan-mode: multiply;
+  --pulse-color: rgba(228, 32, 47, 0.65); /* Coral Red */
+  --pulse-color-inner: rgba(228, 32, 47, 0.15);
+  --pulse-glow: rgba(228, 32, 47, 0.9);
+  --pulse-glow-inner: rgba(228, 32, 47, 0.25);
 }
 
 body {
   font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', 'Georgia', 'Times New Roman', serif;
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--bg-primary);
+  color: var(--text-primary);
   height: 100%;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
@@ -37,6 +53,7 @@ body {
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+  transition: background 0.5s ease, color 0.5s ease;
 }
 
 html {
@@ -68,7 +85,7 @@ html {
 /* Research Dispatch scroll area */
 .dispatch-scroll {
   scrollbar-width: thin;
-  scrollbar-color: var(--accent-emerald) rgba(0, 0, 0, 0.05);
+  scrollbar-color: var(--accent-cyan-dim) var(--scrollbar-track);
 }
 
 .dispatch-scroll::-webkit-scrollbar {
@@ -76,14 +93,18 @@ html {
 }
 
 .dispatch-scroll::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--scrollbar-track);
   border-radius: 999px;
 }
 
 .dispatch-scroll::-webkit-scrollbar-thumb {
-  background: var(--accent-emerald);
+  background: var(--accent-cyan-dim);
   border-radius: 999px;
-  border: 2px solid var(--background);
+  border: 2px solid var(--bg-primary);
+}
+
+.dispatch-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-cyan);
 }
 
 @media (max-width: 768px) {
@@ -132,6 +153,22 @@ html {
   animation: fadeIn 1s 0.1s ease both;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .snap-section.in-view .anim-up,
+  .snap-section.in-view .anim-up-2,
+  .snap-section.in-view .anim-up-3,
+  .snap-section.in-view .anim-left,
+  .snap-section.in-view .anim-fade {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .snap-container {
+    scroll-behavior: auto;
+  }
+}
+
 @keyframes pageFadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -158,8 +195,8 @@ html {
 }
 
 @keyframes acrylicPulse {
-  0%, 100% { opacity: 0.7; box-shadow: 0 0 22px var(--accent-coral), inset 0 0 12px var(--accent-coral); }
-  50%       { opacity: 1;   box-shadow: 0 0 36px var(--accent-coral), inset 0 0 20px var(--accent-coral); }
+  0%, 100% { opacity: 0.7; box-shadow: 0 0 22px var(--pulse-color), inset 0 0 12px var(--pulse-color-inner); }
+  50%       { opacity: 1;   box-shadow: 0 0 36px var(--pulse-glow),  inset 0 0 20px var(--pulse-glow-inner); }
 }
 
 /* ── Loading Screen — machina boot sequence ── */
@@ -170,24 +207,24 @@ html {
   background: linear-gradient(
     to bottom,
     transparent 0%,
-    var(--scanline-color) 47%,
-    var(--accent-emerald) 50%,
-    var(--scanline-color) 53%,
+    var(--accent-cyan-glow) 47%,
+    var(--accent-cyan-dim) 50%,
+    var(--accent-cyan-glow) 53%,
     transparent 100%
   );
   background-size: 100% 250%;
   background-position: 0 -100%;
   animation: loadingScan 2.4s linear infinite;
-  mix-blend-mode: multiply;
-}
-
-.dark .loading-scan {
-  mix-blend-mode: screen;
+  mix-blend-mode: var(--loading-scan-mode);
 }
 
 @keyframes loadingScan {
   0%   { background-position: 0% -120%; }
   100% { background-position: 0% 220%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-scan { animation: none; opacity: 0; }
 }
 
 main {
@@ -199,14 +236,17 @@ a, button {
 }
 
 .marquee {
-  background: var(--foreground);
-  color: var(--accent-emerald);
+  background: var(--bg-primary);
+  color: var(--accent-cyan);
+  filter: brightness(0.9);
   font-family: 'Orbitron', sans-serif;
   font-weight: 900;
   letter-spacing: 0.6em;
   text-transform: uppercase;
   overflow: hidden;
   white-space: nowrap;
+  border-top: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .marquee-inner {
@@ -220,23 +260,43 @@ a, button {
   100% { transform: translateX(-50%); }
 }
 
-/* 玻璃态样式 */
+.marquee:hover .marquee-inner { animation-play-state: paused; }
+
+/* 玻璃态样式（DJ模块用） */
  .glass {
   background: var(--glass-bg);
   backdrop-filter: blur(12px);
   border: 1px solid var(--glass-border);
 }
 
+/* 隐藏滚动条样式 */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
 /* waveform 样式 */
+.waveform {
+  width: 100%;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
 .waveform-bar {
   width: 2px;
   height: 40px;
   margin: 0 1px;
-  background: var(--accent-emerald);
+  background: var(--accent-cyan);
   border-radius: 2px;
   transition: height 0.2s;
 }
 
+/* 隐藏滚动条 */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* DJ list waveform playing animation */
 @keyframes waveformPlay {
   0%, 100% { transform: scaleY(1);   opacity: 1; }
   50%       { transform: scaleY(0.3); opacity: 0.7; }
@@ -250,23 +310,23 @@ a, button {
   background: linear-gradient(
     to bottom,
     transparent 0%,
-    var(--scanline-color) 48%,
-    var(--accent-emerald) 50%,
-    var(--scanline-color) 52%,
+    var(--accent-cyan-glow) 48%,
+    var(--accent-cyan-dim) 50%,
+    var(--accent-cyan-glow) 52%,
     transparent 100%
   );
   background-size: 100% 220%;
   background-position: 0 -100%;
   animation: agentScan 4.5s linear infinite;
-  mix-blend-mode: multiply;
+  mix-blend-mode: var(--loading-scan-mode);
   opacity: 0.7;
-}
-
-.dark .agent-scan::before {
-  mix-blend-mode: screen;
 }
 
 @keyframes agentScan {
   0%   { background-position: 0% -100%; }
   100% { background-position: 0% 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agent-scan::before { animation: none; opacity: 0; }
 }
