@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useLanguage } from '../../components/LanguageProvider';
+import { useTheme } from '../../components/ThemeProvider';
 import { t } from '../../lib/translations';
 import ScrollUnlock from '../blog/ScrollUnlock';
 import '../blog/_substack/substack.css';
@@ -10,6 +11,7 @@ const nunito = "'Nunito', system-ui, -apple-system, sans-serif";
 
 export default function DispatchArchive() {
   const { language } = useLanguage();
+  const { theme } = useTheme();
   const tx = t[language];
   const posts = [...tx.blog.researchDispatch.posts].reverse();
 
@@ -17,8 +19,8 @@ export default function DispatchArchive() {
     <div
       style={{
         minHeight: '100vh',
-        background: '#000',
-        color: 'rgba(255,255,255,0.86)',
+        background: 'var(--bg-primary)',
+        color: 'var(--text-primary)',
         fontFamily: nunito,
         overflowY: 'auto',
       }}
@@ -31,9 +33,10 @@ export default function DispatchArchive() {
           top: 0,
           zIndex: 50,
           padding: '18px 24px',
-          background: 'rgba(0,0,0,0.92)',
+          background: 'var(--bg-primary)',
           backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          borderBottom: '1px solid var(--glass-border)',
+          opacity: 0.92,
         }}
       >
         <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -43,7 +46,8 @@ export default function DispatchArchive() {
               fontFamily: nunito,
               fontSize: '0.85rem',
               fontWeight: 500,
-              color: 'rgba(255,255,255,0.6)',
+              color: 'var(--text-primary)',
+              opacity: 0.6,
               textDecoration: 'none',
             }}
           >
@@ -54,7 +58,8 @@ export default function DispatchArchive() {
               fontFamily: nunito,
               fontSize: '0.7rem',
               letterSpacing: '0.12em',
-              color: 'rgba(255,255,255,0.35)',
+              color: 'var(--text-primary)',
+              opacity: 0.35,
               textTransform: 'uppercase',
               fontWeight: 500,
             }}
@@ -70,7 +75,7 @@ export default function DispatchArchive() {
             fontSize: 'clamp(2rem, 5vw, 3rem)',
             fontWeight: 500,
             letterSpacing: '-0.005em',
-            color: '#fff',
+            color: 'var(--text-primary)',
             marginBottom: 40,
             lineHeight: 1.15,
           }}
