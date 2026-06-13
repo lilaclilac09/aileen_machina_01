@@ -13,9 +13,9 @@ export const maxDuration = 30;
  */
 
 function selectModel(): { model: LanguageModel; provider: string } | null {
-  const deepseekKey = process.env.DEEPSEEK_API_KEY;
-  if (!deepseekKey) {
-    console.error('[chat] selectModel: DEEPSEEK_API_KEY is missing in process.env');
+  const apiKey = process.env.DEEPSEEK_API_KEY || process.env.AGENT_API_KEY;
+  if (!apiKey) {
+    console.error('[chat] selectModel: DEEPSEEK_API_KEY or AGENT_API_KEY is missing in process.env');
     return null;
   }
 
@@ -23,7 +23,7 @@ function selectModel(): { model: LanguageModel; provider: string } | null {
     const ds = createOpenAICompatible({
       name: 'aileena-deepseek',
       baseURL: 'https://api.deepseek.com',
-      apiKey: deepseekKey,
+      apiKey: apiKey,
     });
     return {
       model: ds.chatModel('deepseek-chat'),
@@ -134,8 +134,8 @@ function jsonError(message: string, status: number): Response {
 export async function POST(req: Request) {
   console.log('[chat] POST request started');
   
-  if (!process.env.DEEPSEEK_API_KEY) {
-    console.error('[chat] POST: DEEPSEEK_API_KEY is not configured');
+  if (!process.env.DEEPSEEK_API_KEY && !process.env.AGENT_API_KEY) {
+    console.error('[chat] POST: DEEPSEEK_API_KEY or AGENT_API_KEY is not configured');
     return jsonError(
       'No model configured. Set DEEPSEEK_API_KEY in Vercel, then redeploy.',
       500,
