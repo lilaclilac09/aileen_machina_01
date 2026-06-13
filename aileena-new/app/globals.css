@@ -6,10 +6,16 @@
 @source "../components/**/*.tsx";
 @source "../app/**/*.tsx";
 
+:root {
+  --bg-parisian: #EAE2CF;
+  --ink-parisian: #114D43;
+  --accent-parisian: #FF5A36;
+}
+
 body {
   font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', 'Georgia', 'Times New Roman', serif;
-  background: #000;
-  color: #fff;
+  background: var(--bg-parisian);
+  color: var(--ink-parisian);
   height: 100%;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
@@ -48,7 +54,7 @@ html {
 /* Research Dispatch scroll area */
 .dispatch-scroll {
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 255, 234, 0.35) rgba(255, 255, 255, 0.05);
+  scrollbar-color: var(--accent-parisian) rgba(0, 0, 0, 0.05);
 }
 
 .dispatch-scroll::-webkit-scrollbar {
@@ -56,18 +62,18 @@ html {
 }
 
 .dispatch-scroll::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(0, 0, 0, 0.04);
   border-radius: 999px;
 }
 
 .dispatch-scroll::-webkit-scrollbar-thumb {
-  background: rgba(0, 255, 234, 0.35);
+  background: var(--accent-parisian);
   border-radius: 999px;
-  border: 2px solid rgba(0, 0, 0, 0.7);
+  border: 2px solid var(--bg-parisian);
 }
 
 .dispatch-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 255, 234, 0.55);
+  background: #FF7A5C;
 }
 
 @media (max-width: 768px) {
@@ -158,11 +164,11 @@ html {
 }
 
 @keyframes acrylicPulse {
-  0%, 100% { opacity: 0.7; box-shadow: 0 0 22px rgba(60,200,235,0.65), inset 0 0 12px rgba(80,210,240,0.15); }
-  50%       { opacity: 1;   box-shadow: 0 0 36px rgba(60,200,235,0.9),  inset 0 0 20px rgba(80,210,240,0.25); }
+  0%, 100% { opacity: 0.7; box-shadow: 0 0 22px rgba(255, 90, 54, 0.45), inset 0 0 12px rgba(255, 90, 54, 0.15); }
+  50%       { opacity: 1;   box-shadow: 0 0 36px rgba(255, 90, 54, 0.6),  inset 0 0 20px rgba(255, 90, 54, 0.25); }
 }
 
-/* ── Loading Screen — machina boot sequence ── */
+/* ── Loading Screen — Parisian palette adaptation ── */
 .loading-scan {
   position: fixed;
   inset: 0;
@@ -170,15 +176,15 @@ html {
   background: linear-gradient(
     to bottom,
     transparent 0%,
-    rgba(0, 255, 234, 0.05) 47%,
-    rgba(0, 255, 234, 0.14) 50%,
-    rgba(0, 255, 234, 0.05) 53%,
+    rgba(17, 77, 67, 0.05) 47%,
+    rgba(17, 77, 67, 0.14) 50%,
+    rgba(17, 77, 67, 0.05) 53%,
     transparent 100%
   );
   background-size: 100% 250%;
   background-position: 0 -100%;
   animation: loadingScan 2.4s linear infinite;
-  mix-blend-mode: screen;
+  mix-blend-mode: multiply;
 }
 
 @keyframes loadingScan {
@@ -199,8 +205,8 @@ a, button {
 }
 
 .marquee {
-  background: #0a0a0a;
-  color: #00ffea;
+  background: var(--ink-parisian);
+  color: var(--bg-parisian);
   font-family: 'Orbitron', sans-serif;
   font-weight: 900;
   letter-spacing: 0.6em;
@@ -222,11 +228,11 @@ a, button {
 
 .marquee:hover .marquee-inner { animation-play-state: paused; }
 
-/* 玻璃态样式（DJ模块用） */
+/* 玻璃态样式（Parisian Adaptation） */
  .glass {
-  background: rgba(255,255,255,0.03);
+  background: rgba(17, 77, 67, 0.03);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid rgba(17, 77, 67, 0.08);
 }
 
 /* 隐藏滚动条样式 */
@@ -246,7 +252,7 @@ a, button {
   width: 2px;
   height: 40px;
   margin: 0 1px;
-  background: #00ffea;
+  background: var(--accent-parisian);
   border-radius: 2px;
   transition: height 0.2s;
 }
@@ -262,7 +268,7 @@ a, button {
   50%       { transform: scaleY(0.3); opacity: 0.7; }
 }
 
-/* Agent launcher portrait — slow scan line for "live" feel */
+/* Agent launcher portrait — Parisian Emerald scan line */
 .agent-scan::before {
   content: '';
   position: absolute;
@@ -270,15 +276,15 @@ a, button {
   background: linear-gradient(
     to bottom,
     transparent 0%,
-    rgba(0, 255, 234, 0.18) 48%,
-    rgba(0, 255, 234, 0.32) 50%,
-    rgba(0, 255, 234, 0.18) 52%,
+    rgba(17, 77, 67, 0.18) 48%,
+    rgba(17, 77, 67, 0.32) 50%,
+    rgba(17, 77, 67, 0.18) 52%,
     transparent 100%
   );
   background-size: 100% 220%;
   background-position: 0 -100%;
   animation: agentScan 4.5s linear infinite;
-  mix-blend-mode: screen;
+  mix-blend-mode: multiply;
   opacity: 0.7;
 }
 
