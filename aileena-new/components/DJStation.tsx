@@ -29,6 +29,7 @@ const C = {
 
 /* ─── Track catalogue ────────────────────────────────────── */
 const TRACKS = [
+  { id: '189lkmwebOMpyLoyx1zkCS', title: 'Intro',           bpm: 112, key: '4A', dur: 102, thumb: '/intro-cover.png' },
   { id: '7Gi8h4mk92A5akMQBGnDXj', title: 'Berlin',         bpm: 125, key: '6A', dur: 200, thumb: '/berlin.jpg' },
   { id: '4DBeUcBD2zVZzhf2oX1PLc', title: "I Can't Quit",   bpm: 124, key: '2A', dur: 195, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e028508f29ab91bfcce74f86ef5' },
   { id: '56NkIxSZZiMpFP5ZNSxtnT', title: 'Someday',        bpm: 120, key: '4A', dur: 212, thumb: 'https://i.scdn.co/image/ab67616d00001e0213f2466b83507515291acce4' },
