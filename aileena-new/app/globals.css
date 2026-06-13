@@ -6,10 +6,46 @@
 @source "../components/**/*.tsx";
 @source "../app/**/*.tsx";
 
+:root {
+  /* Theme 1: Original 'East Berlin/London' Dark Theme (Reverted) */
+  --bg-primary: #000;
+  --text-primary: #fff;
+  --accent-cyan: #00ffea;
+  --accent-cyan-rgb: 0, 255, 234;
+  --accent-cyan-dim: rgba(0, 255, 234, 0.35);
+  --accent-cyan-glow: rgba(0, 255, 234, 0.14);
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --scrollbar-track: rgba(255, 255, 255, 0.04);
+  --loading-scan-mode: screen;
+  --pulse-color: rgba(60, 200, 235, 0.65);
+  --pulse-color-inner: rgba(80, 210, 240, 0.15);
+  --pulse-glow: rgba(60, 200, 235, 0.9);
+  --pulse-glow-inner: rgba(80, 210, 240, 0.25);
+}
+
+[data-theme="french-girl-light"] {
+  /* Theme 2: French Girl Light Theme */
+  --bg-primary: #FAF2EE;
+  --text-primary: #2C221E;
+  --accent-cyan: #04977B; /* Emerald Green */
+  --accent-cyan-rgb: 4, 151, 123;
+  --accent-cyan-dim: rgba(4, 151, 123, 0.35);
+  --accent-cyan-glow: rgba(4, 151, 123, 0.14);
+  --glass-bg: rgba(44, 34, 30, 0.03);
+  --glass-border: rgba(44, 34, 30, 0.08);
+  --scrollbar-track: rgba(44, 34, 30, 0.04);
+  --loading-scan-mode: multiply;
+  --pulse-color: rgba(228, 32, 47, 0.65); /* Coral Red */
+  --pulse-color-inner: rgba(228, 32, 47, 0.15);
+  --pulse-glow: rgba(228, 32, 47, 0.9);
+  --pulse-glow-inner: rgba(228, 32, 47, 0.25);
+}
+
 body {
   font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', 'Georgia', 'Times New Roman', serif;
-  background: #000;
-  color: #fff;
+  background: var(--bg-primary);
+  color: var(--text-primary);
   height: 100%;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
@@ -17,6 +53,7 @@ body {
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+  transition: background 0.5s ease, color 0.5s ease;
 }
 
 html {
@@ -48,7 +85,7 @@ html {
 /* Research Dispatch scroll area */
 .dispatch-scroll {
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 255, 234, 0.35) rgba(255, 255, 255, 0.05);
+  scrollbar-color: var(--accent-cyan-dim) var(--scrollbar-track);
 }
 
 .dispatch-scroll::-webkit-scrollbar {
@@ -56,18 +93,18 @@ html {
 }
 
 .dispatch-scroll::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--scrollbar-track);
   border-radius: 999px;
 }
 
 .dispatch-scroll::-webkit-scrollbar-thumb {
-  background: rgba(0, 255, 234, 0.35);
+  background: var(--accent-cyan-dim);
   border-radius: 999px;
-  border: 2px solid rgba(0, 0, 0, 0.7);
+  border: 2px solid var(--bg-primary);
 }
 
 .dispatch-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 255, 234, 0.55);
+  background: var(--accent-cyan);
 }
 
 @media (max-width: 768px) {
@@ -158,8 +195,8 @@ html {
 }
 
 @keyframes acrylicPulse {
-  0%, 100% { opacity: 0.7; box-shadow: 0 0 22px rgba(60,200,235,0.65), inset 0 0 12px rgba(80,210,240,0.15); }
-  50%       { opacity: 1;   box-shadow: 0 0 36px rgba(60,200,235,0.9),  inset 0 0 20px rgba(80,210,240,0.25); }
+  0%, 100% { opacity: 0.7; box-shadow: 0 0 22px var(--pulse-color), inset 0 0 12px var(--pulse-color-inner); }
+  50%       { opacity: 1;   box-shadow: 0 0 36px var(--pulse-glow),  inset 0 0 20px var(--pulse-glow-inner); }
 }
 
 /* ── Loading Screen — machina boot sequence ── */
@@ -170,15 +207,15 @@ html {
   background: linear-gradient(
     to bottom,
     transparent 0%,
-    rgba(0, 255, 234, 0.05) 47%,
-    rgba(0, 255, 234, 0.14) 50%,
-    rgba(0, 255, 234, 0.05) 53%,
+    var(--accent-cyan-glow) 47%,
+    var(--accent-cyan-dim) 50%,
+    var(--accent-cyan-glow) 53%,
     transparent 100%
   );
   background-size: 100% 250%;
   background-position: 0 -100%;
   animation: loadingScan 2.4s linear infinite;
-  mix-blend-mode: screen;
+  mix-blend-mode: var(--loading-scan-mode);
 }
 
 @keyframes loadingScan {
@@ -199,14 +236,17 @@ a, button {
 }
 
 .marquee {
-  background: #0a0a0a;
-  color: #00ffea;
+  background: var(--bg-primary);
+  color: var(--accent-cyan);
+  filter: brightness(0.9);
   font-family: 'Orbitron', sans-serif;
   font-weight: 900;
   letter-spacing: 0.6em;
   text-transform: uppercase;
   overflow: hidden;
   white-space: nowrap;
+  border-top: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .marquee-inner {
@@ -224,9 +264,9 @@ a, button {
 
 /* 玻璃态样式（DJ模块用） */
  .glass {
-  background: rgba(255,255,255,0.03);
+  background: var(--glass-bg);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--glass-border);
 }
 
 /* 隐藏滚动条样式 */
@@ -246,7 +286,7 @@ a, button {
   width: 2px;
   height: 40px;
   margin: 0 1px;
-  background: #00ffea;
+  background: var(--accent-cyan);
   border-radius: 2px;
   transition: height 0.2s;
 }
@@ -270,15 +310,15 @@ a, button {
   background: linear-gradient(
     to bottom,
     transparent 0%,
-    rgba(0, 255, 234, 0.18) 48%,
-    rgba(0, 255, 234, 0.32) 50%,
-    rgba(0, 255, 234, 0.18) 52%,
+    var(--accent-cyan-glow) 48%,
+    var(--accent-cyan-dim) 50%,
+    var(--accent-cyan-glow) 52%,
     transparent 100%
   );
   background-size: 100% 220%;
   background-position: 0 -100%;
   animation: agentScan 4.5s linear infinite;
-  mix-blend-mode: screen;
+  mix-blend-mode: var(--loading-scan-mode);
   opacity: 0.7;
 }
 
