@@ -14,17 +14,25 @@ export const maxDuration = 30;
 
 function selectModel(): { model: LanguageModel; provider: string } | null {
   const deepseekKey = process.env.DEEPSEEK_API_KEY;
-  if (!deepseekKey) return null;
+  if (!deepseekKey) {
+    console.error('[chat] selectModel: DEEPSEEK_API_KEY is missing in process.env');
+    return null;
+  }
 
-  const ds = createOpenAICompatible({
-    name: 'aileena-deepseek',
-    baseURL: 'https://api.deepseek.com',
-    apiKey: deepseekKey,
-  });
-  return {
-    model: ds.chatModel('deepseek-chat'),
-    provider: 'deepseek',
-  };
+  try {
+    const ds = createOpenAICompatible({
+      name: 'aileena-deepseek',
+      baseURL: 'https://api.deepseek.com',
+      apiKey: deepseekKey,
+    });
+    return {
+      model: ds.chatModel('deepseek-chat'),
+      provider: 'deepseek',
+    };
+  } catch (err) {
+    console.error('[chat] selectModel: failed to initialize DeepSeek client', err);
+    return null;
+  }
 }
 const DAILY_LIMIT = 20;
 const QUOTA_COOKIE = '__aileena_quota';
@@ -80,9 +88,15 @@ async function readQuota(req: Request): Promise<QuotaState> {
 
     const secret = process.env.CHAT_QUOTA_SECRET ?? '';
     if (secret) {
-      if (!sig) return { date: today, count: 0 };
+      if (!sig) {
+        console.warn('[chat] readQuota: cookie signature missing but CHAT_QUOTA_SECRET is set');
+        return { date: today, count: 0 };
+      }
       const expected = await hmac(encoded, secret);
-      if (expected !== sig) return { date: today, count: 0 };
+      if (expected !== sig) {
+        console.warn('[chat] readQuota: cookie signature mismatch');
+        return { date: today, count: 0 };
+      }
     }
 
     const decoded = JSON.parse(atob(encoded)) as Partial<QuotaState>;
@@ -90,18 +104,24 @@ async function readQuota(req: Request): Promise<QuotaState> {
       return { date: today, count: 0 };
     }
     return { date: decoded.date, count: decoded.count };
-  } catch {
+  } catch (err) {
+    console.error('[chat] readQuota: error parsing/verifying quota cookie', err);
     return { date: today, count: 0 };
   }
 }
 
 async function buildQuotaCookie(state: QuotaState): Promise<string> {
-  const encoded = btoa(JSON.stringify(state));
-  const secret = process.env.CHAT_QUOTA_SECRET ?? '';
-  const sig = secret ? await hmac(encoded, secret) : '';
-  const value = sig ? `${encoded}.${sig}` : encoded;
-  // 25 hours so the cookie naturally expires across the day boundary.
-  return `${QUOTA_COOKIE}=${encodeURIComponent(value)}; Path=/; Max-Age=90000; HttpOnly; Secure; SameSite=Strict`;
+  try {
+    const encoded = btoa(JSON.stringify(state));
+    const secret = process.env.CHAT_QUOTA_SECRET ?? '';
+    const sig = secret ? await hmac(encoded, secret) : '';
+    const value = sig ? `${encoded}.${sig}` : encoded;
+    // 25 hours so the cookie naturally expires across the day boundary.
+    return `${QUOTA_COOKIE}=${encodeURIComponent(value)}; Path=/; Max-Age=90000; HttpOnly; Secure; SameSite=Strict`;
+  } catch (err) {
+    console.error('[chat] buildQuotaCookie: error building cookie', err);
+    return '';
+  }
 }
 
 function jsonError(message: string, status: number): Response {
@@ -112,7 +132,10 @@ function jsonError(message: string, status: number): Response {
 }
 
 export async function POST(req: Request) {
+  console.log('[chat] POST request started');
+  
   if (!process.env.DEEPSEEK_API_KEY) {
+    console.error('[chat] POST: DEEPSEEK_API_KEY is not configured');
     return jsonError(
       'No model configured. Set DEEPSEEK_API_KEY in Vercel, then redeploy.',
       500,
@@ -122,18 +145,21 @@ export async function POST(req: Request) {
   let body: { messages?: UIMessage[] };
   try {
     body = await req.json();
-  } catch {
+  } catch (err) {
+    console.error('[chat] POST: failed to parse JSON body', err);
     return jsonError('Invalid JSON.', 400);
   }
 
   const messages = body.messages ?? [];
   if (!Array.isArray(messages) || messages.length === 0) {
+    console.error('[chat] POST: messages array is empty or missing');
     return jsonError('No messages provided.', 400);
   }
 
   // Daily quota
   const quota = await readQuota(req);
   if (quota.count >= DAILY_LIMIT) {
+    console.warn('[chat] POST: daily limit reached for user', { count: quota.count });
     return jsonError(
       `Aileen stopped DJing for today — ${DAILY_LIMIT}-message daily limit. Back tomorrow.`,
       429,
@@ -145,49 +171,50 @@ export async function POST(req: Request) {
 
   const picked = selectModel();
   if (!picked) {
+    console.error('[chat] POST: selectModel returned null');
     return jsonError(
       'No model configured. Set DEEPSEEK_API_KEY in Vercel, then redeploy.',
       500,
     );
   }
-  const result = streamText({
-    model: picked.model,
-    system: SYSTEM_PROMPT,
-    messages: modelMessages,
-    temperature: 0.4,
-    // Cap response length — a portfolio agent doesn't need essays. Shorter
-    // generations finish noticeably faster end-to-end on slower providers
-    // (DeepSeek in particular). 200 tokens ≈ 4–5 short sentences, which is
-    // already at the upper bound of what the system prompt asks for.
-    maxOutputTokens: 200,
-  });
 
-  const setCookie = await buildQuotaCookie({ date: quota.date, count: quota.count + 1 });
+  console.log('[chat] POST: starting streamText', { provider: picked.provider });
 
-  const stream = result.toUIMessageStreamResponse({
-    // Map provider errors before they reach the browser. We never leak the raw
-    // "credit balance is too low / Plans & Billing" text — this agent is a
-    // personal demo, not a free public API.
-    onError: (err) => {
-      const msg = err instanceof Error ? err.message : String(err);
-      // Log the REAL provider error server-side (visible in Vercel logs) while
-      // still showing visitors a clean message.
-      console.error('[chat] provider=%s error: %s', picked.provider, msg);
-      if (/credit balance|too low|insufficient|quota|billing|purchase credits|payment/i.test(msg)) {
-        return "This agent isn't free to run — public access is off for now. Reach out through the contact form instead.";
-      }
-      return 'The agent hit a snag. Try again in a moment.';
-    },
-  });
-  const headers = new Headers(stream.headers);
-  headers.append('Set-Cookie', setCookie);
-  // Surface the remaining-quota count to the client so the UI can hint at it
-  // if it wants to. Not currently consumed but cheap to add.
-  headers.set('X-Daily-Remaining', String(DAILY_LIMIT - (quota.count + 1)));
-  // Diagnostic headers — visible in DevTools Network so it's obvious which
-  // provider actually served the request and how big the system prompt was.
-  headers.set('X-Provider', picked.provider);
-  headers.set('X-System-Prompt-Chars', String(SYSTEM_PROMPT.length));
+  try {
+    const result = streamText({
+      model: picked.model,
+      system: SYSTEM_PROMPT,
+      messages: modelMessages,
+      temperature: 0.4,
+      maxOutputTokens: 200,
+    });
 
-  return new Response(stream.body, { status: stream.status, headers });
+    const setCookie = await buildQuotaCookie({ date: quota.date, count: quota.count + 1 });
+
+    const stream = result.toUIMessageStreamResponse({
+      onError: (err) => {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error('[chat] streamText: provider=%s error: %s', picked.provider, msg);
+        if (/credit balance|too low|insufficient|quota|billing|purchase credits|payment/i.test(msg)) {
+          return "This agent isn't free to run — public access is off for now. Reach out through the contact form instead.";
+        }
+        return 'The agent hit a snag. Try again in a moment.';
+      },
+    });
+
+    const headers = new Headers(stream.headers);
+    if (setCookie) {
+      headers.append('Set-Cookie', setCookie);
+    }
+    
+    headers.set('X-Daily-Remaining', String(DAILY_LIMIT - (quota.count + 1)));
+    headers.set('X-Provider', picked.provider);
+    headers.set('X-System-Prompt-Chars', String(SYSTEM_PROMPT.length));
+
+    console.log('[chat] POST: stream response initialized');
+    return new Response(stream.body, { status: stream.status, headers });
+  } catch (err) {
+    console.error('[chat] POST: unexpected error during stream setup', err);
+    return jsonError('The agent hit a snag. Try again in a moment.', 500);
+  }
 }
