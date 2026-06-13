@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Analytics } from '@vercel/analytics/next';
 import { LanguageProvider } from '../components/LanguageProvider';
+import { ThemeProvider } from '../components/ThemeProvider';
 import AgentChat from '../components/AgentChat';
 
 export const metadata: Metadata = {
@@ -16,9 +17,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="dark" style={{ height: '100%', overflow: 'hidden' }}>
-        <LanguageProvider>{children}</LanguageProvider>
-        <AgentChat />
+      <body style={{ height: '100%', overflow: 'hidden' }}>
+        <ThemeProvider>
+          <LanguageProvider>{children}</LanguageProvider>
+          <AgentChat />
+        </ThemeProvider>
         <Analytics />
       </body>
     </html>
