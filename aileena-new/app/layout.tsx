@@ -16,7 +16,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-black text-white" style={{ height: '100%', overflow: 'hidden' }}>
+      <body className="dark" style={{ height: '100%', overflow: 'hidden' }}>
         <LanguageProvider>{children}</LanguageProvider>
         <AgentChat />
         <Analytics />
