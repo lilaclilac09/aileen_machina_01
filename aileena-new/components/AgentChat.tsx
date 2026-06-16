@@ -143,7 +143,7 @@ export default function AgentChat() {
   }, [open, activeRuntime]);
 
   const busy = status === 'submitted' || status === 'streaming' || browserBusy;
-  const sessionMaxed = sessionCount >= SESSION_LIMIT;
+  const sessionMaxed = sessionCount >= SESSION_LIMIT && leadState !== 'sent';
   // Hard gate: once the visitor has sent LEAD_THRESHOLD messages, chat is
   // blocked until they submit the lead form. Re-enables when leadState='sent'.
   const mustProvideEmail = sessionCount >= LEAD_THRESHOLD && leadState !== 'sent';
@@ -155,6 +155,7 @@ export default function AgentChat() {
       if (stored) setSessionCount(Math.min(Number(stored) || 0, 99));
       const lead = sessionStorage.getItem(LEAD_DISMISS_KEY);
       if (lead === 'sent') setLeadState('sent');
+      else if (typeof document !== 'undefined' && document.cookie.includes('__aileena_lead')) setLeadState('sent');
     } catch {
       /* sessionStorage unavailable — ignore */
     }
