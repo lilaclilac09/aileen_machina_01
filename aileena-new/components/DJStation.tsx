@@ -1127,7 +1127,7 @@ function TrackRow({ index, track, isLeft, isRight, onDragStart, onDragEnd, onLoa
   onDragStart(): void; onDragEnd(): void;
   onLoadLeft(): void; onLoadRight(): void;
 }) {
-  const [hov = false, setHov] = useState(false);
+  const [hov = false, setHov] = useState<boolean>(false);
   const bars = useMemo(() => generateWaveform(track.id, BARS), [track.id]);
   const active = isLeft || isRight;
 

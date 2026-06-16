@@ -1,6 +1,8 @@
-import { streamText, convertToModelMessages, type UIMessage, type LanguageModel } from 'ai';
+import { streamText, convertToModelMessages, tool, stepCountIs, type UIMessage, type LanguageModel } from 'ai';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
+import { z } from 'zod';
 import { SYSTEM_PROMPT } from '../../../lib/agentContext';
+import { searchArticles } from '../../../lib/agentSearch';
 
 export const runtime = 'edge';
 export const maxDuration = 30;
@@ -142,7 +144,7 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: { messages?: UIMessage[] };
+  let body: { messages?: UIMessage[]; priorTopics?: string[] };
   try {
     body = await req.json();
   } catch (err) {
@@ -155,6 +157,15 @@ export async function POST(req: Request) {
     console.error('[chat] POST: messages array is empty or missing');
     return jsonError('No messages provided.', 400);
   }
+
+  // Cross-session topic memory — what this visitor cared about on previous
+  // visits, sent fresh from the client's localStorage. Soft signal only:
+  // the model is told to use it as background, not to repeat it back.
+  const priorTopics = Array.isArray(body.priorTopics)
+    ? body.priorTopics
+        .filter((t): t is string => typeof t === 'string' && t.trim().length > 0)
+        .slice(0, 5)
+    : [];
 
   // Daily quota
   const quota = await readQuota(req);
@@ -178,15 +189,75 @@ export async function POST(req: Request) {
     );
   }
 
-  console.log('[chat] POST: starting streamText', { provider: picked.provider });
+  console.log('[chat] POST: starting streamText', {
+    provider: picked.provider,
+    priorTopicsCount: priorTopics.length,
+  });
+
+  // Augment SYSTEM_PROMPT with the agentic-loop instructions + visitor
+  // memory. Kept here (not in agentContext.ts) so the static CV / hard
+  // rules stay one source of truth and the dynamic per-request blocks
+  // are visible right next to the streamText call.
+  const augmentedSystem =
+    SYSTEM_PROMPT +
+    `
+
+# Agent tools
+You have one tool: searchArticles(query). It runs a TF-IDF keyword search over the FULL TEXT of every dispatch + perspective article on this site (~800 indexed chunks). Use it WHENEVER the visitor asks about article content — what an article actually argues, a number it cites, a passage, a concept inside it — not just whether an article exists. Do not use it for top-level questions about Aileen's experience or contact (those are in your static context above). After a tool call you receive snippets back; quote or paraphrase them inline, then optionally point to the article URL. Multiple tool calls per turn are allowed; stop calling once you have enough to answer in 2-3 sentences.` +
+    (priorTopics.length > 0
+      ? `
+
+# Prior visits
+This visitor has previously asked about: ${priorTopics
+          .map((t) => `"${t.replace(/"/g, "'")}"`)
+          .join('; ')}. Treat this as soft background context — what they probably care about. Do not reference it directly unless they explicitly ask "what did I ask before?".`
+      : '');
 
   try {
     const result = streamText({
       model: picked.model,
-      system: SYSTEM_PROMPT,
+      system: augmentedSystem,
       messages: modelMessages,
       temperature: 0.4,
+      // Cap final ASSISTANT-text response at 200 tokens; tool calls
+      // themselves don't count against this. The Helius-style 2-3
+      // sentence answer is still the target.
       maxOutputTokens: 200,
+      // Multi-step agentic loop: model can call searchArticles → read
+      // results → call again → answer. Capped at 3 steps so a bad
+      // query doesn't burn quota looping forever.
+      stopWhen: stepCountIs(3),
+      tools: {
+        searchArticles: tool({
+          description:
+            'Keyword-search the full body text of every Research Dispatch and Woman-in-Tech article on aileena.xyz. Use when the visitor asks about article content — claims, numbers, specific passages, concepts inside an article. Returns up to k passages with their slug, section, snippet and a score. Do NOT call for greetings, contact info, or top-level CV questions.',
+          inputSchema: z.object({
+            query: z
+              .string()
+              .min(2)
+              .describe(
+                'Natural-language search query. Will be tokenised and scored against article chunks.',
+              ),
+            k: z
+              .number()
+              .int()
+              .min(1)
+              .max(5)
+              .optional()
+              .describe('Number of top passages to return. Defaults to 3.'),
+          }),
+          execute: async ({ query, k }) => {
+            const hits = searchArticles(query, k ?? 3);
+            return hits.map((h) => ({
+              slug: h.slug,
+              title: h.title,
+              section: h.section,
+              snippet: h.snippet,
+              url: `https://aileena.xyz/blog/${h.slug}`,
+            }));
+          },
+        }),
+      },
     });
 
     const setCookie = await buildQuotaCookie({ date: quota.date, count: quota.count + 1 });
