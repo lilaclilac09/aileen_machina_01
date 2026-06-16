@@ -18,8 +18,8 @@ const STARTER_PROMPTS = [
   'is she available for hire?',
 ];
 
-const SESSION_LIMIT = 5;
-const SESSION_KEY = 'aileena_chat_count';
+const DAILY_LIMIT = 20;
+const SESSION_KEY = 'aileena_chat_count_daily'; // New key for daily limit
 const RUNTIME_KEY = 'aileena_runtime';
 type Runtime = 'cloud' | 'browser';
 
@@ -37,8 +37,7 @@ const LEAD_DISMISS_KEY = 'aileena_lead_state'; // 'sent' | (unset) — historica
  * via the machina-portrait launcher at the bottom-left of the viewport.
  *
  * Rate limiting:
- *   - Client/session: SESSION_LIMIT messages per browser session (sessionStorage,
- *     resets when the tab closes).
+ *   - Client/session: DAILY_LIMIT messages per calendar day (localStorage with date check).
  *   - Server/daily: 20 messages per visitor per day, enforced by a signed
  *     cookie in /api/chat. When the server returns 429 it shows up in the
  *     error display below.
@@ -143,21 +142,33 @@ export default function AgentChat() {
   }, [open, activeRuntime]);
 
   const busy = status === 'submitted' || status === 'streaming' || browserBusy;
-  const sessionMaxed = sessionCount >= SESSION_LIMIT && leadState !== 'sent';
+  const sessionMaxed = sessionCount >= DAILY_LIMIT && leadState !== 'sent';
   // Hard gate: once the visitor has sent LEAD_THRESHOLD messages, chat is
   // blocked until they submit the lead form. Re-enables when leadState='sent'.
   const mustProvideEmail = sessionCount >= LEAD_THRESHOLD && leadState !== 'sent';
 
-  // Restore session counter + lead state from sessionStorage on first client render.
+  // Restore session counter (daily limit) + lead state from storage on first client render.
   useEffect(() => {
     try {
-      const stored = sessionStorage.getItem(SESSION_KEY);
-      if (stored) setSessionCount(Math.min(Number(stored) || 0, 99));
+      const today = new Date().toISOString().split('T')[0];
+      const stored = localStorage.getItem(SESSION_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.date === today) {
+          setSessionCount(Math.min(Number(parsed.count) || 0, 99));
+        } else {
+          setSessionCount(0);
+          localStorage.setItem(SESSION_KEY, JSON.stringify({ count: 0, date: today }));
+        }
+      } else {
+        localStorage.setItem(SESSION_KEY, JSON.stringify({ count: 0, date: today }));
+      }
+
       const lead = sessionStorage.getItem(LEAD_DISMISS_KEY);
       if (lead === 'sent') setLeadState('sent');
       else if (typeof document !== 'undefined' && document.cookie.includes('__aileena_lead')) setLeadState('sent');
     } catch {
-      /* sessionStorage unavailable — ignore */
+      /* storage unavailable — ignore */
     }
   }, []);
 
@@ -369,13 +380,14 @@ export default function AgentChat() {
     const next = sessionCount + 1;
     setSessionCount(next);
     try {
-      sessionStorage.setItem(SESSION_KEY, String(next));
+      const today = new Date().toISOString().split('T')[0];
+      localStorage.setItem(SESSION_KEY, JSON.stringify({ count: next, date: today }));
     } catch {
-      /* sessionStorage unavailable — counter still works in-memory for this tab */
+      /* storage unavailable — counter still works in-memory for this tab */
     }
   }
 
-  const remaining = Math.max(0, SESSION_LIMIT - sessionCount);
+  const remaining = Math.max(0, DAILY_LIMIT - sessionCount);
 
   // Panel renders exactly when the gate is active — same condition as the
   // chat-input lock above, kept as a separate alias for readability in JSX.
@@ -609,7 +621,7 @@ export default function AgentChat() {
           {sessionMaxed && (
             <p className="text-[0.7rem] leading-5 tracking-[0.05em] text-[#00ffea]/70 whitespace-pre-wrap">
               <span className="font-mono text-[0.55rem] tracking-[0.3em] uppercase mr-1.5">▸ limit</span>
-              Session limit reached ({SESSION_LIMIT} messages). Refresh the tab to start a new session.
+              Daily message limit reached ({DAILY_LIMIT} messages). Limit resets tomorrow.
             </p>
           )}
 
@@ -697,7 +709,7 @@ export default function AgentChat() {
               }}
               placeholder={
                 sessionMaxed
-                  ? 'session limit reached'
+                  ? 'daily limit reached'
                   : mustProvideEmail
                   ? 'leave your email below to keep chatting'
                   : ''
@@ -718,7 +730,7 @@ export default function AgentChat() {
           <p className="mt-2 flex items-center justify-between gap-3 text-[0.52rem] tracking-[0.3em] text-white/25 uppercase">
             <span>↵ send · esc close · / open from anywhere</span>
             <span className={remaining === 0 ? 'text-red-400/60' : remaining <= 2 ? 'text-[#00ffea]/50' : 'text-white/25'}>
-              {remaining}/{SESSION_LIMIT} left this session
+              {remaining}/{DAILY_LIMIT} left today
             </span>
           </p>
         </div>
