@@ -224,9 +224,10 @@ This visitor has previously asked about: ${priorTopics
       // sentence answer is still the target.
       maxOutputTokens: 200,
       // Multi-step agentic loop: model can call searchArticles → read
-      // results → call again → answer. Capped at 3 steps so a bad
-      // query doesn't burn quota looping forever.
-      stopWhen: stepCountIs(3),
+      // results → answer. Capped at 2 steps (one tool call max) — 99%
+      // of content questions resolve on the first hit, and the extra
+      // round-trips dominate perceived latency.
+      stopWhen: stepCountIs(2),
       tools: {
         searchArticles: tool({
           description:
