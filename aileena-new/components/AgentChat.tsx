@@ -11,6 +11,7 @@ import {
   type BrowserSession,
 } from '../lib/browserAgent';
 import { appendUserTopic, readTopicMemory } from '../lib/articleTopicMemory';
+import { matchCanned } from '../lib/agentCannedResponses';
 
 const STARTER_PROMPTS = [
   "what's her solana stack?",
@@ -370,6 +371,40 @@ export default function AgentChat() {
     // for both runtimes so a visitor's browser-mode questions also seed
     // their future cloud-mode visits and vice versa.
     appendUserTopic(trimmed);
+
+    // Fast path — canned-response short-circuit. Greetings, thanks, meta-
+    // questions about the agent itself, top-level CV one-liners. Returns
+    // ~10–30 ms (regex match + setState) instead of ~1.5–3 s LLM round-
+    // trip. Substantive questions fall through to the real model.
+    const canned = matchCanned(trimmed);
+    if (canned) {
+      const userId =
+        typeof crypto !== 'undefined' && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `u-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const assistantId =
+        typeof crypto !== 'undefined' && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `a-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      setMessages((prev) => [
+        ...prev,
+        { id: userId, role: 'user', parts: [{ type: 'text', text: trimmed }] },
+        {
+          id: assistantId,
+          role: 'assistant',
+          parts: [{ type: 'text', text: canned.reply }],
+        },
+      ]);
+      const next = sessionCount + 1;
+      setSessionCount(next);
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        localStorage.setItem(SESSION_KEY, JSON.stringify({ count: next, date: today }));
+      } catch {
+        /* storage unavailable — counter still works in-memory for this tab */
+      }
+      return;
+    }
 
     if (activeRuntime === 'browser') {
       sendBrowser(trimmed);
