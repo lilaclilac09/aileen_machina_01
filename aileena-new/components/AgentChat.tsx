@@ -10,6 +10,7 @@ import {
   type Availability as BrowserAvailability,
   type BrowserSession,
 } from '../lib/browserAgent';
+import { appendUserTopic, readTopicMemory } from '../lib/articleTopicMemory';
 
 const STARTER_PROMPTS = [
   "what's her solana stack?",
@@ -63,7 +64,14 @@ export default function AgentChat() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const { messages, setMessages, sendMessage, status, error } = useChat({
-    transport: new DefaultChatTransport({ api: '/api/chat' }),
+    transport: new DefaultChatTransport({
+      api: '/api/chat',
+      // Cross-session "topic memory" — what this visitor cared about on
+      // previous visits, read fresh from localStorage on every request so
+      // the server can soft-condition the system prompt on it. See
+      // lib/articleTopicMemory.ts.
+      body: () => ({ priorTopics: readTopicMemory().topics }),
+    }),
   });
 
   // ──────────────── On-device runtime (Chrome Prompt API) ────────────────
@@ -345,6 +353,11 @@ export default function AgentChat() {
     const trimmed = text.trim();
     if (!trimmed || busy || sessionMaxed || mustProvideEmail) return;
     setInput('');
+
+    // Record what the visitor asked about for cross-session memory. Done
+    // for both runtimes so a visitor's browser-mode questions also seed
+    // their future cloud-mode visits and vice versa.
+    appendUserTopic(trimmed);
 
     if (activeRuntime === 'browser') {
       sendBrowser(trimmed);
