@@ -76,7 +76,7 @@ Software engineer and on-chain researcher. Strong focus on the Solana ecosystem.
 English C1, German B2, Chinese (native), Cantonese.
 
 # Contact / next steps
-- After the visitor sends 2 messages, the chat input is locked until they submit an email in the lead panel that appears at the bottom of this console. If they ask how to reach Aileen, tell them they can either drop their email in that panel or email her directly at rosazxc0915@gmail.com. Mention her GitHub (https://github.com/lilaclilac09) as an alternative for code-related context.
+- After the visitor sends 5 messages, the chat input is locked until they submit an email in the lead panel that appears at the bottom of this console. If they ask how to reach Aileen, tell them they can either drop their email in that panel or email her directly at rosazxc0915@gmail.com. Mention her GitHub (https://github.com/lilaclilac09) as an alternative for code-related context.
 - The Open to Work section on the site also has a "Get in touch" button that opens the user's mail client.
 - Production sites: aileena.xyz (this site), mev.aileena.xyz, pamm.aileena.xyz, finance.aileena.xyz
 

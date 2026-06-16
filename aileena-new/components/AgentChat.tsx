@@ -25,7 +25,7 @@ type Runtime = 'cloud' | 'browser';
 // Shown instead of the provider's raw "credit balance is too low" billing error.
 // This agent is a personal demo, not a free public API.
 const NO_FREE_USE_MSG = "this agent isn't free to run — public access is off for now. reach out through the contact form instead.";
-const LEAD_THRESHOLD = 2; // hard gate: chat is blocked until lead is submitted, after the visitor has sent N messages
+const LEAD_THRESHOLD = 5; // hard gate: chat is blocked until lead is submitted, after the visitor has sent N messages
 const LEAD_DISMISS_KEY = 'aileena_lead_state'; // 'sent' | (unset) — historical 'dismissed' values are tolerated but no longer set
 
 /**
