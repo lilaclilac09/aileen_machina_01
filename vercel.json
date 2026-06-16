@@ -1,6 +1,4 @@
 {
-  "buildCommand": "cd aileena-new && npm install && npm run build",
-  "outputDirectory": "aileena-new/.next",
-  "installCommand": "cd aileena-new && npm install",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "rootDirectory": "aileena-new"
 }
