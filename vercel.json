@@ -1,3 +1,4 @@
 {
-  "framework": "nextjs"
+  "name": "aileen-machina-01",
+  "installCommand": "pnpm install --no-frozen-lockfile"
 }
