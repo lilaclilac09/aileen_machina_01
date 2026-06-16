@@ -633,13 +633,26 @@ export default function AgentChat() {
               </ul>
             </>
           ) : (
-            messages.map((m) => (
-              <Line
-                key={m.id}
-                role={m.role === 'user' ? 'user' : 'assistant'}
-                text={getMessageText(m)}
-              />
-            ))
+            messages.map((m) => {
+              const text = getMessageText(m);
+              // While the model is mid-tool-call (or about to start a step)
+              // with no text yet, render a muted activity hint instead of
+              // an empty bubble. As soon as the first answer token arrives,
+              // `text` becomes non-empty and the real reply takes over.
+              if (m.role === 'assistant' && !text.trim()) {
+                const activity = getMessageActivity(m);
+                if (activity) {
+                  return <Line key={m.id} role="assistant" text={activity} muted />;
+                }
+              }
+              return (
+                <Line
+                  key={m.id}
+                  role={m.role === 'user' ? 'user' : 'assistant'}
+                  text={text}
+                />
+              );
+            })
           )}
 
           {busy && messages[messages.length - 1]?.role !== 'assistant' && (
@@ -811,6 +824,27 @@ function getMessageText(m: { parts?: Array<{ type: string; text?: string }> }): 
     .filter((p) => p.type === 'text' && typeof p.text === 'string')
     .map((p) => p.text)
     .join('');
+}
+
+/**
+ * Returns a short activity label if the assistant message has an active
+ * tool call but no text response yet. AI SDK v6 surfaces typed-tool parts
+ * as `tool-{toolName}` (e.g. `tool-searchArticles`) or as the generic
+ * `tool-call` type; we treat any `tool-`-prefixed part as a sign that the
+ * model is mid-retrieval. Used to render "checking her articles…" instead
+ * of an empty bubble during the tool-use round trip.
+ */
+function getMessageActivity(m: { parts?: Array<{ type: string }> }): string | null {
+  if (!m.parts) return null;
+  for (const p of m.parts) {
+    if (p.type === 'tool-call' || p.type.startsWith('tool-')) {
+      return 'checking her articles…';
+    }
+    if (p.type === 'step-start' || p.type === 'reasoning') {
+      return 'thinking…';
+    }
+  }
+  return null;
 }
 
 function linkify(text: string) {
