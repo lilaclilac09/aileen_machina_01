@@ -548,6 +548,142 @@ Coding-only agent      Sweep, Tusk, GH Copilot         OpenDevin-style forks
           the most honest signal that this is an actively-owned product, not a press-release dump.
         </p>
 
+        <SectionLabel>RFC dive &mdash; the loop, the sandbox, the session</SectionLabel>
+        <p style={bodyStyle}>
+          A day later, pulling on the <code style={codeStyle}>services/api-rs/</code> directory
+          produces a much sharper picture of what&apos;s in the Rust quarter. It isn&apos;t one
+          file or one crate &mdash; it&apos;s <strong style={strong}>sixteen Rust crates</strong>{' '}
+          organised as a layered control plane. The list:
+        </p>
+
+        <div style={{ margin: '20px 0 36px', overflowX: 'auto' }}>
+          <pre style={preStyle}>
+{`services/api-rs/crates/
+├── absurd-sdk                  ?? — unexplained, likely a client SDK
+├── centaur-api-server          public HTTP router
+├── centaur-iron-control        control plane above iron-proxy
+├── centaur-iron-proxy          egress proxy (the credential gateway)
+├── centaur-perms               RBAC, Slack-thread-key → 1Password
+├── centaur-sandbox-core        SandboxBackend / SandboxSpec / SandboxIo traits
+├── centaur-sandbox-local       child-process backend (dev)
+├── centaur-sandbox-agent-k8s   Agent Sandbox CRD backend (prod)
+├── centaur-sandbox-manager     orchestration + reconciliation
+├── centaur-sandbox-e2e         end-to-end tests
+├── centaur-session-core        session model + state machine
+├── centaur-session-runtime     execution runtime above the manager
+├── centaur-session-sqlx        Postgres persistence
+├── centaur-session-cli         operator CLI
+├── centaur-telemetry           observability
+└── centaur-workflows           workflow engine (cron, composition)`}
+          </pre>
+        </div>
+
+        <p style={bodyStyle}>
+          The naming alone reads as a multi-year codebase: the sandbox concern split across five
+          crates, the session concern across four, a separate <code style={codeStyle}>iron-control</code>{' '}
+          higher-level orchestrator above <code style={codeStyle}>iron-proxy</code>, the obligatory
+          telemetry split. Two RFCs in <code style={codeStyle}>services/api-rs/rfcs/</code> are the
+          architectural doc.
+        </p>
+
+        <p style={bodyStyle}>
+          <strong style={strong}>RFC 0001 &mdash; the sandbox is an INTERNAL crate boundary.</strong>{' '}
+          From <code style={codeStyle}>0001-sandbox-abstraction.md</code> verbatim:{' '}
+          <em>&quot;The sandbox layer should be an internal crate boundary. Higher-level concepts
+          like thread keys, personas, harness choice, model selection, assignment generation, and
+          durable execution rows belong in a later data model.&quot;</em> The I/O contract is bytes
+          only: <em>&quot;The sandbox abstraction moves bytes. It does not know whether those bytes
+          are: NDJSON harness events, an interactive shell stream, a future binary protocol, or
+          framed messages produced by another layer.&quot;</em> The state machine is{' '}
+          <code style={codeStyle}>Created &rarr; Running &harr; Suspended &rarr; Stopped</code>{' '}
+          plus <code style={codeStyle}>Gone</code> for the K8s-evicted-the-pod case. Reconciliation
+          compares desired against observed and corrects. Treating in-memory state as authoritative
+          is explicitly forbidden.
+        </p>
+
+        <p style={bodyStyle}>
+          <strong style={strong}>RFC 0002 &mdash; the session is the durable thing; the sandbox is
+          replaceable.</strong> This is the actual &quot;loop.&quot; A session row carries{' '}
+          <code style={codeStyle}>thread_key</code> (public ID + DB primary key),{' '}
+          <code style={codeStyle}>sandbox_id</code> (mutable &mdash; if the pod dies, manager swaps
+          a new one in), <code style={codeStyle}>harness_type</code>,{' '}
+          <code style={codeStyle}>harness_thread_id</code>, and a{' '}
+          <code style={codeStyle}>status</code> &isin; &#123;active, executing, idle, failed,
+          archived&#125;. The INTERNAL session API is four endpoints &mdash; distinct from the
+          public spawn / message / execute trio Slack-facing code calls:
+        </p>
+
+        <ol style={listStyle}>
+          <li>
+            <code style={codeStyle}>POST /api/session/&#123;thread_key&#125;</code> &mdash;
+            idempotent create / get.
+          </li>
+          <li>
+            <code style={codeStyle}>POST /api/session/&#123;thread_key&#125;/messages</code> &mdash;
+            append durable input.
+          </li>
+          <li>
+            <code style={codeStyle}>POST /api/session/&#123;thread_key&#125;/execute</code> &mdash;
+            run, serialised per conversation.
+          </li>
+          <li>
+            <code style={codeStyle}>GET /api/session/&#123;thread_key&#125;/events</code> &mdash;
+            SSE stream, replay or live tail from a stored offset.
+          </li>
+        </ol>
+
+        <p style={bodyStyle}>
+          Four tables back the model &mdash; <code style={codeStyle}>sessions</code>,{' '}
+          <code style={codeStyle}>session_messages</code>,{' '}
+          <code style={codeStyle}>session_executions</code>,{' '}
+          <code style={codeStyle}>session_events</code> &mdash; all keyed by{' '}
+          <code style={codeStyle}>thread_key</code>. The rule the RFC keeps repeating is short:{' '}
+          <em>&quot;The session row is authoritative.&quot;</em> In-memory state and live
+          connections are caches. The implementation must recover from Postgres alone.
+        </p>
+
+        <p style={bodyStyle}>
+          The design pays four user-visible dividends the launch-day article didn&apos;t connect:
+        </p>
+        <ul style={listStyle}>
+          <li>
+            <strong style={strong}>The sandbox is interchangeable.</strong> Pod dies mid-conversation
+            &rarr; manager spawns a new one, updates{' '}
+            <code style={codeStyle}>session_row.sandbox_id</code>, harness picks up from the messages
+            table. The Slack thread doesn&apos;t notice.
+          </li>
+          <li>
+            <strong style={strong}>The control plane is restart-safe.</strong> The whole api-rs
+            service can be re-deployed mid-execution; recovery is one Postgres scan away.
+          </li>
+          <li>
+            <strong style={strong}>The SSE stream replays.</strong> Drop a connection, reconnect,
+            ask for events since offset N, stitch back what you missed. This is what makes Slack
+            threads survive bot restarts cleanly.
+          </li>
+          <li>
+            <strong style={strong}>The protocol is harness-agnostic at the storage layer.</strong>{' '}
+            Codex JSONL, Claude protocol, future formats &mdash; all opaque newline-delimited lines
+            in <code style={codeStyle}>session_messages</code>. Adding a new harness is one{' '}
+            <code style={codeStyle}>SandboxBackend</code> impl plus a parser for{' '}
+            <code style={codeStyle}>harness_thread_id</code> semantics. The session plane doesn&apos;t
+            change.
+          </li>
+        </ul>
+
+        <p style={bodyStyle}>
+          Three things I&apos;m still chasing: the warm-pool depth + replenishment policy (the
+          launch summary&apos;s <code style={codeStyle}>warm_pool.py</code> path doesn&apos;t exist
+          at that literal path on main &mdash; my guess is it moved into{' '}
+          <code style={codeStyle}>centaur-sandbox-manager</code> when the Rust port landed),
+          whatever <code style={codeStyle}>absurd-sdk</code> actually is (probably a client SDK
+          with attitude &mdash; the name suggests Paradigm fingerprints), and RFC 0003 (two files
+          collide on that number &mdash;{' '}
+          <code style={codeStyle}>0003-python-workflow-host.md</code> and{' '}
+          <code style={codeStyle}>0003-telemetry.md</code> &mdash; either a numbering accident or a
+          sign the two landed in parallel).
+        </p>
+
         <div style={{ marginTop: 56 }}>
           <Link href="/#blog" style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
