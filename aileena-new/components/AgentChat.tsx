@@ -197,9 +197,22 @@ export default function AgentChat() {
     return () => window.removeEventListener('keydown', onKey);
   }, [open]);
 
-  // Listen for external open events (e.g. AI Agents callout button).
+  // Listen for external open events (hero pill, prompt chips, AI Agents
+  // callout, etc.). CustomEvent.detail.prompt — if present — triggers an
+  // auto-send so a chip click feels like a direct conversation kickoff.
+  // ask is captured via a ref refreshed on every render so the listener
+  // doesn't re-attach (and so the ref always holds the latest closure).
+  const askRef = useRef<((text: string) => void) | null>(null);
   useEffect(() => {
-    const handler = () => setOpen(true);
+    const handler = (e: Event) => {
+      setOpen(true);
+      const ce = e as CustomEvent<{ prompt?: string }>;
+      const prompt = ce.detail?.prompt;
+      if (prompt && askRef.current) {
+        // Defer one tick so the console mounts before the message lands.
+        setTimeout(() => askRef.current?.(prompt), 80);
+      }
+    };
     window.addEventListener('open-agent-chat', handler);
     return () => window.removeEventListener('open-agent-chat', handler);
   }, []);
@@ -421,6 +434,11 @@ export default function AgentChat() {
       /* storage unavailable — counter still works in-memory for this tab */
     }
   }
+
+  // Keep the externally-callable ref pointed at the latest ask closure so
+  // CustomEvent prompt-detail dispatches always invoke the freshest version
+  // (with current sessionCount, busy state, lead gate, etc.).
+  askRef.current = ask;
 
   const remaining = Math.max(0, DAILY_LIMIT - sessionCount);
 
@@ -673,12 +691,6 @@ export default function AgentChat() {
             </p>
           )}
 
-          {leadState === 'sent' && (
-            <p className="text-[0.7rem] leading-5 tracking-[0.05em] text-[#00ffea]/85 whitespace-pre-wrap">
-              <span className="font-mono text-[0.55rem] tracking-[0.3em] uppercase mr-1.5">▸ sent</span>
-              She&apos;ll see your message and the transcript. Thanks.
-            </p>
-          )}
         </div>
 
         {/* Lead capture panel — appears after LEAD_THRESHOLD user messages */}
@@ -848,7 +860,11 @@ function getMessageActivity(m: { parts?: Array<{ type: string }> }): string | nu
 }
 
 function linkify(text: string) {
-  const re = /(https?:\/\/[^\s)]+)/g;
+  // Match either a full http(s) URL or a bare domain.tld/path that the LLM
+  // sometimes emits (e.g. "aileena.xyz/blog/centaur"). For the bare form we
+  // build the href by prepending https://, so even if the model forgets the
+  // protocol the user gets a clickable link instead of plain text.
+  const re = /(https?:\/\/[^\s)]+|(?:[a-z0-9-]+\.)+[a-z]{2,}\/[^\s)]+)/gi;
   const parts: Array<string | { url: string }> = [];
   let last = 0;
   let m: RegExpExecArray | null;
@@ -864,7 +880,7 @@ function linkify(text: string) {
     ) : (
       <a
         key={i}
-        href={p.url}
+        href={p.url.startsWith('http') ? p.url : `https://${p.url}`}
         target="_blank"
         rel="noopener noreferrer"
         className="text-[#00ffea]/90 underline decoration-[#00ffea]/40 underline-offset-2 hover:text-[#00ffea] hover:decoration-[#00ffea] break-all"

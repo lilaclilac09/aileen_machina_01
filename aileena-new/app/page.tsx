@@ -27,7 +27,7 @@ export default function Home() {
       <Header />
       <SnapContainer key={language}>
 
-        {/* ── 01 HERO — one human sentence ── */}
+        {/* ── 01 HERO — one human sentence + agent door ── */}
         <SnapSection id="hero" className="order-1">
           <div className="h-full flex items-center justify-center bg-[#070707] px-6 sm:px-10">
             <div className="max-w-[680px] w-full text-center" style={{ fontFamily: nunito }}>
@@ -37,14 +37,46 @@ export default function Home() {
               >
                 {tx.hero.line}
               </p>
+
+              {/* Pill CTA — "this is a door, there's something behind it" */}
               <button
                 type="button"
                 onClick={() => window.dispatchEvent(new Event('open-agent-chat'))}
-                className="anim-up-3 mt-10 inline-flex items-center gap-2 text-[0.82rem] text-white/55 hover:text-[#00ffea] transition-colors cursor-pointer"
+                className="anim-up-3 mt-10 inline-flex items-center gap-2.5 rounded-full border border-[#00ffea]/35 bg-[#00ffea]/[0.06] px-6 py-3 text-[0.95rem] text-white/90 hover:bg-[#00ffea]/[0.12] hover:border-[#00ffea]/60 hover:text-[#00ffea] transition-all cursor-pointer"
                 style={{ fontWeight: 500 }}
+                aria-label={tx.hero.talkAgent}
               >
-                {tx.hero.talkAgent}
+                <span>{tx.hero.talkAgent}</span>
+                <span aria-hidden>→</span>
               </button>
+
+              {/* Status cue — "agent online" + provenance */}
+              <div className="anim-up-3 mt-4 flex items-center justify-center gap-2 text-[0.7rem] text-white/40" style={{ fontFamily: nunito }}>
+                <span className="relative inline-flex">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#3df0a6]" />
+                  <span className="absolute inset-0 h-1.5 w-1.5 rounded-full bg-[#3df0a6] animate-ping opacity-60" />
+                </span>
+                <span>{tx.hero.agentStatus}</span>
+              </div>
+
+              {/* Prompt chips — examples make the agent feel callable, not abstract */}
+              <div className="anim-up-3 mt-7 flex flex-wrap justify-center gap-2">
+                {tx.hero.chips.map((chip) => (
+                  <button
+                    key={chip}
+                    type="button"
+                    onClick={() => {
+                      window.dispatchEvent(
+                        new CustomEvent('open-agent-chat', { detail: { prompt: chip } }),
+                      );
+                    }}
+                    className="rounded-full border border-white/10 bg-white/[0.025] px-3.5 py-1.5 text-[0.78rem] text-white/55 hover:border-white/25 hover:bg-white/[0.05] hover:text-white/90 transition-all cursor-pointer"
+                    style={{ fontWeight: 500 }}
+                  >
+                    {chip}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 anim-fade">

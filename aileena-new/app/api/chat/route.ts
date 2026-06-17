@@ -234,7 +234,15 @@ You have several tools. Choose the narrowest one for the question. Each turn you
 - For article content, use searchArticles.
 - For chip specs / prices / news / earnings / research, use the matching tool above.
 - If a tool returns no hits, say so plainly and offer the closest alternative — do not invent data.
-- Quote retrieved snippets concisely. Always include the relevant url or date if returned.` +
+- Quote retrieved snippets concisely. Always include the relevant url or date if returned.
+
+# MANDATORY before answering about a named subject
+If the visitor names a specific article, project, product, person, company, technology, framework, or proper noun that is NOT defined verbatim in your static context above, you MUST call searchArticles (and/or searchResearch / searchEarnings / queryChip / etc.) FIRST. Do not infer the subject from your training. Specifically:
+  - "Centaur" → call searchResearch("Centaur") AND searchArticles("Centaur"). It is the Paradigm + Tempo agent runtime — not a Solana validator and not anything else. Confirm with retrieval before describing it.
+  - Any other proper noun the visitor uses, default to: search first, answer second. If retrieval returns nothing, say "I don't have her take on that" — never substitute training data.
+
+# Link formatting
+- ALWAYS write links as full URLs starting with "https://" — e.g. https://aileena.xyz/blog/centaur, not aileena.xyz/blog/centaur. The UI auto-linkifies https:// URLs cleanly; bare domains render as plain text and frustrate the reader.` +
     (priorTopics.length > 0
       ? `
 
