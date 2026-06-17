@@ -3,6 +3,7 @@ import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { z } from 'zod';
 import { SYSTEM_PROMPT } from '../../../lib/agentContext';
 import { searchArticles } from '../../../lib/agentSearch';
+import { agentDataTools, datasetSummary } from '../../../lib/data/tools';
 
 export const runtime = 'edge';
 export const maxDuration = 30;
@@ -198,12 +199,42 @@ export async function POST(req: Request) {
   // memory. Kept here (not in agentContext.ts) so the static CV / hard
   // rules stay one source of truth and the dynamic per-request blocks
   // are visible right next to the streamText call.
+  const ds = datasetSummary();
   const augmentedSystem =
     SYSTEM_PROMPT +
     `
 
 # Agent tools
-You have one tool: searchArticles(query). It runs a TF-IDF keyword search over the FULL TEXT of every dispatch + perspective article on this site (~800 indexed chunks). Use it WHENEVER the visitor asks about article content — what an article actually argues, a number it cites, a passage, a concept inside it — not just whether an article exists. Do not use it for top-level questions about Aileen's experience or contact (those are in your static context above). After a tool call you receive snippets back; quote or paraphrase them inline, then optionally point to the article URL. Multiple tool calls per turn are allowed; stop calling once you have enough to answer in 2-3 sentences.` +
+
+You have several tools. Choose the narrowest one for the question. Each turn you can call multiple tools (up to 4 steps total), then answer in 2-3 sentences. NEVER state a number you didn't see in a tool result or in the static prompt above.
+
+## Articles (Aileen's own writing — ~800 chunks)
+- searchArticles(query, k): TF-IDF over /blog/** full text. Use for "what does her PCB article say?", "her take on Solana validator clients", anything she has explicitly written about.
+
+## Chip / accelerator / memory specs (${ds.skus.count} SKUs)
+- queryChip(name): single SKU best-match (H100, MI300X, GB200, Rubin, etc.)
+- listChips({ vendor?, category?, family?, limit? }): filter the catalogue
+- compareChips(skuA, skuB): side-by-side
+
+## Pricing time series (${ds.pricing.count} observations)
+- latestPrice(sku, unit?): most recent observation. Unit ∈ per_chip|per_card|per_server|per_hour_cloud|per_month_cloud
+- priceHistory(sku, from?, to?, unit?): chronological history
+
+## News / tracking (${ds.news.count} items)
+- latestNews({ vendor?, sinceDate?, limit? }): recent dated tracker entries
+- searchNews(query, k): TF-IDF free-text search
+
+## Documents (${ds.docs.totalChunks} chunks across ${ds.docs.earningsChunks} earnings + ${ds.docs.researchChunks} research)
+- searchEarnings(query, k): keyword search over earnings-call transcripts Aileen tracks
+- searchResearch(query, k): keyword search over broker / analyst notes
+- searchDocs(query, k): both corpora together
+
+# Tool-use rules
+- For top-level CV / contact / availability questions, no tool — answer from the static prompt.
+- For article content, use searchArticles.
+- For chip specs / prices / news / earnings / research, use the matching tool above.
+- If a tool returns no hits, say so plainly and offer the closest alternative — do not invent data.
+- Quote retrieved snippets concisely. Always include the relevant url or date if returned.` +
     (priorTopics.length > 0
       ? `
 
@@ -223,11 +254,10 @@ This visitor has previously asked about: ${priorTopics
       // themselves don't count against this. The Helius-style 2-3
       // sentence answer is still the target.
       maxOutputTokens: 200,
-      // Multi-step agentic loop: model can call searchArticles → read
-      // results → answer. Capped at 2 steps (one tool call max) — 99%
-      // of content questions resolve on the first hit, and the extra
-      // round-trips dominate perceived latency.
-      stopWhen: stepCountIs(2),
+      // Multi-step agentic loop: model can chain a couple of tool calls
+      // (e.g. queryChip("H100") → priceHistory("H100")) before answering.
+      // Cap at 4 so a confused model can't burn quota looping forever.
+      stopWhen: stepCountIs(4),
       tools: {
         searchArticles: tool({
           description:
@@ -258,6 +288,10 @@ This visitor has previously asked about: ${priorTopics
             }));
           },
         }),
+        // Aileen's tracked-data tools: chip specs, pricing, news, earnings,
+        // research notes. See lib/data/*.ts and the augmented system prompt
+        // above for what each one does and when to use it.
+        ...agentDataTools,
       },
     });
 

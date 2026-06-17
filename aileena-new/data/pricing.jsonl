@@ -1,0 +1,9 @@
+// One JSON object per line — append-only price observations.
+// Fields: sku, date (YYYY-MM-DD), priceUSD, unit?, region?, source?, notes?
+// `unit` defaults to "per_chip" when omitted.
+{"sku":"NVIDIA H100 SXM5 80GB","date":"2024-01-15","priceUSD":40000,"unit":"per_chip","region":"US","source":"market average","notes":"Sample entry — replace with real tracking."}
+{"sku":"NVIDIA H100 SXM5 80GB","date":"2024-06-01","priceUSD":32000,"unit":"per_chip","region":"US","source":"market average"}
+{"sku":"NVIDIA H100 SXM5 80GB","date":"2025-01-01","priceUSD":27000,"unit":"per_chip","region":"US","source":"market average"}
+{"sku":"NVIDIA H100 SXM5 80GB","date":"2024-06-01","priceUSD":3.5,"unit":"per_hour_cloud","region":"US","source":"AWS p5.48xlarge / 8"}
+{"sku":"AMD MI300X","date":"2024-06-01","priceUSD":17500,"unit":"per_chip","region":"US","source":"MSRP"}
+{"sku":"AMD MI300X","date":"2025-01-01","priceUSD":15500,"unit":"per_chip","region":"US","source":"market average"}
