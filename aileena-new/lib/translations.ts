@@ -9,7 +9,13 @@ export const t = {
       footer: 'SINCE 2025 / AILEENA / MACHINA',
       scroll: 'scroll',
       line: 'I build things in code, write about why they break, and DJ while they keep running.',
-      talkAgent: 'Talk to the agent →',
+      talkAgent: 'Ask the agent anything',
+      agentStatus: 'agent online · trained on her work, writing, and sound',
+      chips: [
+        'what are you actually building?',
+        'explain your latest dispatch',
+        'can we work together?',
+      ],
     },
     sound: {
       tag: 'SOUND',
@@ -436,7 +442,13 @@ export const t = {
       footer: 'SEIT 2025 / AILEENA / MACHINA',
       scroll: 'scrollen',
       line: 'Ich baue Dinge in Code, schreibe darüber, warum sie kaputtgehen, und lege auf, während sie laufen.',
-      talkAgent: 'Mit dem Agent sprechen →',
+      talkAgent: 'Frag den Agent',
+      agentStatus: 'Agent online · trainiert auf ihre Arbeit, Texte und Musik',
+      chips: [
+        'woran arbeitest du gerade?',
+        'erkläre deinen neuesten Beitrag',
+        'können wir zusammenarbeiten?',
+      ],
     },
     sound: {
       tag: 'SOUND',
