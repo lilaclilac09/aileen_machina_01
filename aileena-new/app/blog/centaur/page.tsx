@@ -425,6 +425,129 @@ Coding-only agent      Sweep, Tusk, GH Copilot         OpenDevin-style forks
           firm that built it.
         </p>
 
+        <SectionLabel>Update &mdash; June 2026, twenty-five days in</SectionLabel>
+        <p style={bodyStyle}>
+          Some things only became visible after the repo was actually open and people started
+          poking at it. Five updates to what I wrote on launch day.
+        </p>
+
+        <p style={bodyStyle}>
+          <strong style={strong}>It&apos;s not pure FastAPI &mdash; there&apos;s a Rust control
+          plane too.</strong> The repo language breakdown sits at{' '}
+          <strong style={strong}>43.6%</strong> Python, <strong style={strong}>26.7%</strong>{' '}
+          Rust, <strong style={strong}>11.9%</strong> TypeScript,{' '}
+          <strong style={strong}>11.5%</strong> Ruby. The Rust quarter is{' '}
+          <code style={codeStyle}>services/api-rs/</code> &mdash; a second control plane covering
+          agents, tools, workflows, auth, and durable state, sitting alongside the Python one. The
+          split looks like: <em>Rust where the hot path matters</em> (the spawn protocol, permission
+          checks, the iron-proxy bridge), <em>Python where the plugin ecosystem lives</em> (tools,
+          workflows, harness adapters). The Ruby chunk is the Slack bot; Slack&apos;s Ruby SDK is
+          the most mature, and they took the obvious shortcut. The PL/pgSQL slice is Postgres
+          stored procedures, which means Postgres isn&apos;t just the state store &mdash; it&apos;s
+          a participant in the workflow checkpoint logic.
+        </p>
+
+        <p style={bodyStyle}>
+          The Rust is also the Paradigm tell. Reth (Ethereum execution client), Foundry (Solidity
+          toolchain), now <code style={codeStyle}>api-rs</code> in Centaur. Three for three on
+          &quot;the control plane is in Rust.&quot;
+        </p>
+
+        <p style={bodyStyle}>
+          <strong style={strong}>REST, not MCP &mdash; the unfashionable choice.</strong> In the
+          second half of 2025 most agent frameworks defaulted to{' '}
+          <strong style={strong}>MCP</strong> (Model Context Protocol &mdash; Anthropic&apos;s
+          tool-calling spec) as the universal tool interface. Centaur did not. From{' '}
+          <code style={codeStyle}>AGENTS.md</code> in the repo: agents call tools via{' '}
+          <code style={codeStyle}>curl $CENTAUR_API_URL/tools/&lt;tool&gt;/&lt;method&gt;</code>{' '}
+          over the in-cluster Kubernetes service network. No stdio handshake, no protocol
+          negotiation, no SDK pinning. Just curl.
+        </p>
+
+        <p style={bodyStyle}>
+          MCP carries a coordination cost &mdash; every tool needs an MCP server implementation,
+          every harness needs an MCP client, protocol upgrades ripple through both. REST means a
+          new tool is one Python file in <code style={codeStyle}>tools/</code> and the API picks it
+          up and exposes a REST endpoint automatically via hot reload. The trade is portability
+          (Centaur tools aren&apos;t drop-in MCP servers for other runtimes) for ergonomics inside
+          the runtime. It&apos;s a deliberate counter-bet against the &quot;MCP everywhere&quot;
+          narrative: the runtime should own the tool interface, not borrow a vendor protocol.
+        </p>
+
+        <p style={bodyStyle}>
+          <strong style={strong}>Warm pool &mdash; how the latency disappears in Slack.</strong>{' '}
+          The piece my launch-day read missed entirely.{' '}
+          <code style={codeStyle}>services/sandbox/warm_pool.py</code> maintains a pool of
+          pre-spawned sandbox pods, and the three-step protocol is{' '}
+          <code style={codeStyle}>/agent/spawn</code> &rarr;{' '}
+          <code style={codeStyle}>/agent/message</code> &rarr;{' '}
+          <code style={codeStyle}>/agent/execute</code>. Spawn pins one warm runtime to the Slack
+          thread and returns a <code style={codeStyle}>runtime_id</code> plus an{' '}
+          <code style={codeStyle}>assignment_generation</code> counter &mdash; the counter is what
+          prevents a stale runtime from servicing a reconnected thread. Cold-start hits K8s pod
+          creation latency (multi-second); warm-start hits effectively nothing. This is why
+          mentioning the bot in Slack feels instant when it shouldn&apos;t be.
+        </p>
+
+        <p style={bodyStyle}>
+          <strong style={strong}>The security model is five layers, not one.</strong> I framed
+          iron-proxy as &quot;the credential boundary,&quot; which sells short what&apos;s actually
+          there. The full stack a jailbroken harness has to break through:
+        </p>
+
+        <ol style={listStyle}>
+          <li>The harness&apos;s own guardrails.</li>
+          <li>
+            A <strong style={strong}>default-deny Kubernetes NetworkPolicy</strong> on every
+            sandbox pod &mdash; zero outbound traffic allowed unless the destination is
+            iron-proxy.
+          </li>
+          <li>
+            <strong style={strong}>iron-proxy&apos;s host / path allowlist.</strong>
+          </li>
+          <li>
+            <strong style={strong}>
+              <code style={codeStyle}>centaur-perms</code>
+            </strong>{' '}
+            &mdash; the Rust RBAC layer that maps Slack thread keys (canonical principal IDs) to
+            role-based secret grants. Tool permissions are declared in{' '}
+            <code style={codeStyle}>pyproject.toml</code>, the same file the tool&apos;s Python
+            dependencies live in.
+          </li>
+          <li>
+            <strong style={strong}>1Password.</strong> iron-proxy doesn&apos;t hold credentials
+            &mdash; it fetches them from 1Password at request time. The credential vault is
+            external.
+          </li>
+        </ol>
+
+        <p style={bodyStyle}>
+          That changes the threat model substantially. The agent isn&apos;t one mistake away from
+          leaking keys; it&apos;s five mistakes away.
+        </p>
+
+        <p style={bodyStyle}>
+          <strong style={strong}>AGENTS.md is the handoff point.</strong>{' '}
+          <code style={codeStyle}>services/sandbox/SYSTEM_PROMPT.md</code> gets baked into the
+          sandbox image at <code style={codeStyle}>~/AGENTS.md</code> at build time; on container
+          start the entrypoint copies it into <code style={codeStyle}>workspace/AGENTS.md</code>,
+          which becomes the system prompt every harness reads. The{' '}
+          <code style={codeStyle}>AGENTS.md</code> filename is a quietly converged 2025-2026
+          convention &mdash; Claude Code, Codex CLI, Amp and Cursor all default to reading it from
+          the working directory. Centaur weaponises the convention: the chassis controls the
+          brain&apos;s identity by controlling the file the brain reads at boot.
+        </p>
+
+        <p style={bodyStyle}>
+          <strong style={strong}>Twenty-five days in:{' '}
+          <code style={codeStyle}>767&nbsp;stars</code> /{' '}
+          <code style={codeStyle}>135&nbsp;forks</code> /{' '}
+          <code style={codeStyle}>centaur-0.1.61</code>.</strong> Sixty-one patch releases in
+          twenty-five days is roughly <strong style={strong}>2.4 ships per day</strong>. Most
+          VC-released OSS projects ship four or five patches in their first month. The cadence is
+          the most honest signal that this is an actively-owned product, not a press-release dump.
+        </p>
+
         <div style={{ marginTop: 56 }}>
           <Link href="/#blog" style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
