@@ -95,3 +95,88 @@ Aileen's article was published the week of the release. With twenty-five more da
 3. The "tools are Python" framing should add: tools are REST, not MCP — and that's a deliberate bet.
 4. The warm-pool plumbing is a meaningful piece of the user-perceived latency story that the original article doesn't mention.
 5. The adoption numbers (767★ in 25 days, 61 patch releases) confirm the original article's call that this is a real product, not a press-release release.
+
+# RFC dive — the loop, the sandbox, the session (June 17)
+
+A day of digging into `services/api-rs/` produced a much sharper picture of what's actually in the Rust quarter of the codebase. It's not one file or one crate — it's **sixteen Rust crates** organised as a layered control plane.
+
+## The crate inventory
+
+```
+services/api-rs/crates/
+├── absurd-sdk
+├── centaur-api-server
+├── centaur-iron-control
+├── centaur-iron-proxy
+├── centaur-perms
+├── centaur-sandbox-agent-k8s
+├── centaur-sandbox-core
+├── centaur-sandbox-e2e
+├── centaur-sandbox-local
+├── centaur-sandbox-manager
+├── centaur-session-cli
+├── centaur-session-core
+├── centaur-session-runtime
+├── centaur-session-sqlx
+├── centaur-telemetry
+└── centaur-workflows
+```
+
+Reading the names this is a multi-year codebase. The sandbox concern is split across 5 crates (core / local / agent-k8s / manager / e2e), the session concern across 4 (core / runtime / sqlx / cli), there's a separate `iron-control` higher-level orchestrator above `iron-proxy`, and a mysterious `absurd-sdk` whose purpose isn't documented in the repo's top-level docs.
+
+## RFC 0001 — sandbox abstraction (the contract)
+
+`services/api-rs/rfcs/0001-sandbox-abstraction.md` is explicit that the sandbox is an INTERNAL crate boundary, never exposed through public HTTP:
+
+> "The sandbox layer should be an internal crate boundary. Higher-level concepts like thread keys, personas, harness choice, model selection, assignment generation, and durable execution rows belong in a later data model."
+
+The traits live in `centaur-sandbox-core`: `SandboxBackend`, `SandboxSpec`, `SandboxStatus`, `SandboxIo`. Two backends implement them — `centaur-sandbox-local` (child processes for dev) and `centaur-sandbox-agent-k8s` (the Agent Sandbox CRD for prod).
+
+The I/O contract is bytes-only:
+
+> "The sandbox abstraction moves bytes. It does not know whether those bytes are: NDJSON harness events, an interactive shell stream, a future binary protocol, or framed messages produced by another layer."
+
+State machine: `Created → Running ⇄ Suspended → Stopped`, plus a `Gone` state for the case where K8s evicts a pod and the manager finds out by polling.
+
+Reconciliation: `centaur-sandbox-manager` compares desired state against the backend's observed state and issues corrective ops. Treating in-memory state as authoritative is explicitly forbidden — there's a load-bearing rule against caching what Postgres already knows.
+
+## RFC 0002 — session control plane (the loop)
+
+`0002-session-control-plane.md` is where the "agent loop" actually lives. The session is the durable thing; the sandbox is a replaceable execution attachment.
+
+Session row fields:
+- `thread_key` — public unique ID, also the DB primary key
+- `sandbox_id` — current runtime assignment, replaceable if it dies
+- `harness_type` and `harness_thread_id` — harness-specific persistence
+- `status` ∈ {active, executing, idle, failed, archived}
+
+Internal API (different from the public spawn/message/execute trio exposed to Slack):
+
+1. `POST /api/session/{thread_key}` — idempotent create / get
+2. `POST /api/session/{thread_key}/messages` — append durable input
+3. `POST /api/session/{thread_key}/execute` — execution serialised per conversation
+4. `GET /api/session/{thread_key}/events` — Server-Sent Events stream, supports replay or live tail from a stored offset
+
+Storage model: four tables — `sessions`, `session_messages`, `session_executions`, `session_events`, all keyed by `thread_key`.
+
+The architectural rule, verbatim:
+
+> "The session row is authoritative."
+
+In-memory state and live connections are caches. The implementation must recover from database state alone.
+
+## Implications
+
+What this design buys you that the launch-day article didn't fully surface:
+
+- **The sandbox is interchangeable.** If a pod dies mid-conversation, the manager spawns a new one, updates `session_row.sandbox_id`, and the harness side picks up from the messages table. The conversation doesn't notice.
+- **The control plane is restart-safe.** The entire api-rs service can be re-deployed mid-execution; recovery is one Postgres scan away.
+- **The SSE stream replays.** A client that drops connection can reconnect, ask for events since offset N, and stitch back together what it missed. That's what makes Slack threads survive bot restarts cleanly.
+- **The protocol is harness-agnostic at the storage layer.** Codex JSONL, Claude protocol, future formats — they're all opaque newline-delimited lines in `session_messages` and `session_events`. Adding a new harness is a centaur-sandbox-core SandboxBackend impl plus a parser for `harness_thread_id` semantics. The session control plane doesn't change.
+
+## Open questions
+
+- `absurd-sdk` — name implies a client SDK with attitude. Could be the public Python SDK that wraps the four session endpoints. Unverified.
+- `centaur-iron-control` vs `centaur-iron-proxy` — implies a control / data plane split for the credential layer. Worth a second pass once their READMEs are written.
+- Warm pool depth / replenishment policy still not in the public RFCs. The `warm_pool.py` and `harness_session.py` paths the launch summary mentions don't seem to exist at those literal paths in the current main branch — likely renamed or moved into the Rust layer (`centaur-sandbox-manager` is the natural home).
+- RFC 0003 numbering collides — there's both `0003-python-workflow-host.md` and `0003-telemetry.md`. Either a numbering accident or a sign that workflow-host and telemetry shipped in parallel without coordinating RFC numbers. Either way, worth reading.
