@@ -24,24 +24,6 @@
   --pulse-glow-inner: rgba(80, 210, 240, 0.25);
 }
 
-[data-theme="french-girl-light"] {
-  /* Theme 2: French Girl Light Theme */
-  --bg-primary: #FAF2EE;
-  --text-primary: #2C221E;
-  --accent-cyan: #04977B; /* Emerald Green */
-  --accent-cyan-rgb: 4, 151, 123;
-  --accent-cyan-dim: rgba(4, 151, 123, 0.35);
-  --accent-cyan-glow: rgba(4, 151, 123, 0.14);
-  --glass-bg: rgba(44, 34, 30, 0.03);
-  --glass-border: rgba(44, 34, 30, 0.08);
-  --scrollbar-track: rgba(44, 34, 30, 0.04);
-  --loading-scan-mode: multiply;
-  --pulse-color: rgba(228, 32, 47, 0.65); /* Coral Red */
-  --pulse-color-inner: rgba(228, 32, 47, 0.15);
-  --pulse-glow: rgba(228, 32, 47, 0.9);
-  --pulse-glow-inner: rgba(228, 32, 47, 0.25);
-}
-
 body {
   font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', 'Georgia', 'Times New Roman', serif;
   background: var(--bg-primary);

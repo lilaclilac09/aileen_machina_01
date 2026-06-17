@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useLanguage } from '../../components/LanguageProvider';
-import { useTheme } from '../../components/ThemeProvider';
 import { t } from '../../lib/translations';
 import ScrollUnlock from '../blog/ScrollUnlock';
 import '../blog/_substack/substack.css';
@@ -11,7 +10,6 @@ const nunito = "'Nunito', system-ui, -apple-system, sans-serif";
 
 export default function DispatchArchive() {
   const { language } = useLanguage();
-  const { theme } = useTheme();
   const tx = t[language];
   const posts = [...tx.blog.researchDispatch.posts].reverse();
 
