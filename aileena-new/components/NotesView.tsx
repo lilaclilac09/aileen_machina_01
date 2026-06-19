@@ -30,6 +30,23 @@ function writeChecked(map: CheckedMap) {
 }
 
 /**
+ * Group items by their optional `theme` field, preserving the order the
+ * caller already established (items.ts pre-sorts by theme priority, so a
+ * stable Map iteration is enough). Items without a theme collapse into a
+ * single un-headed group at whatever insertion order they appear.
+ */
+function renderGrouped(items: NoteItem[]): { theme: string | null; items: NoteItem[] }[] {
+  const out = new Map<string | null, NoteItem[]>();
+  for (const item of items) {
+    const k = item.theme ?? null;
+    const bucket = out.get(k);
+    if (bucket) bucket.push(item);
+    else out.set(k, [item]);
+  }
+  return Array.from(out.entries()).map(([theme, group]) => ({ theme, items: group }));
+}
+
+/**
  * iPhone Notes–style category list on the site's dark theme.
  *
  *   left:   sidebar of categories (sticky desktop, segmented strip on mobile)
@@ -163,75 +180,83 @@ export default function NotesView({ categories }: { categories: NotesCategory[] 
                 <code className="font-mono text-sm text-white/55">data/notes/{active.slug}.json</code>.
               </p>
             ) : (
-              <ul className="divide-y divide-white/[0.05]">
-                {active.items.map((item) => {
-                  const k = `${active.slug}:${item.id}`;
-                  const isChecked = mounted && Boolean(checked[k]);
-                  const hasUrl = Boolean(item.url);
-                  return (
-                    <li
-                      key={item.id}
-                      className={
-                        'flex items-start gap-3 py-2.5 px-1 rounded transition-colors ' +
-                        (hasUrl ? 'cursor-pointer hover:bg-white/[0.04]' : '')
-                      }
-                      onClick={() => hasUrl && openAndMark(active.slug, item)}
-                    >
-                      {/* Circle — pure toggle, doesn't navigate. */}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggle(active.slug, item.id);
-                        }}
-                        aria-pressed={isChecked}
-                        aria-label={isChecked ? 'Unmark as read' : 'Mark as read'}
-                        className={
-                          'mt-1 w-[18px] h-[18px] shrink-0 rounded-full border transition-colors flex items-center justify-center ' +
-                          (isChecked
-                            ? 'bg-[#00ffea] border-[#00ffea]'
-                            : 'border-white/30 hover:border-[#00ffea]')
-                        }
-                      >
-                        {isChecked && (
-                          <svg
-                            viewBox="0 0 12 12"
-                            className="w-[10px] h-[10px] text-black"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            aria-hidden
+              renderGrouped(active.items).map((group, gi) => (
+                <section key={group.theme ?? `g-${gi}`} className={gi > 0 ? 'mt-8' : undefined}>
+                  {group.theme && (
+                    <h2 className="text-[11px] uppercase tracking-[0.22em] text-white/35 mb-2 pl-1">
+                      {group.theme}
+                    </h2>
+                  )}
+                  <ul className="divide-y divide-white/[0.05]">
+                    {group.items.map((item) => {
+                      const k = `${active.slug}:${item.id}`;
+                      const isChecked = mounted && Boolean(checked[k]);
+                      const hasUrl = Boolean(item.url);
+                      return (
+                        <li
+                          key={item.id}
+                          className={
+                            'flex items-start gap-3 py-2.5 px-1 rounded transition-colors ' +
+                            (hasUrl ? 'cursor-pointer hover:bg-white/[0.04]' : '')
+                          }
+                          onClick={() => hasUrl && openAndMark(active.slug, item)}
+                        >
+                          {/* Circle — pure toggle, doesn't navigate. */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggle(active.slug, item.id);
+                            }}
+                            aria-pressed={isChecked}
+                            aria-label={isChecked ? 'Unmark as read' : 'Mark as read'}
+                            className={
+                              'mt-1 w-[18px] h-[18px] shrink-0 rounded-full border transition-colors flex items-center justify-center ' +
+                              (isChecked
+                                ? 'bg-[#00ffea] border-[#00ffea]'
+                                : 'border-white/30 hover:border-[#00ffea]')
+                            }
                           >
-                            <path d="M2.5 6.5l2.5 2.5 4.5-5" />
-                          </svg>
-                        )}
-                      </button>
+                            {isChecked && (
+                              <svg
+                                viewBox="0 0 12 12"
+                                className="w-[10px] h-[10px] text-black"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth={2}
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                aria-hidden
+                              >
+                                <path d="M2.5 6.5l2.5 2.5 4.5-5" />
+                              </svg>
+                            )}
+                          </button>
 
-                      {/* Title row — visually a link when there's a url. Click is
-                          handled by the parent <li>, so this stays a span. */}
-                      <span
-                        className={
-                          'flex-1 text-[15px] leading-6 transition-colors ' +
-                          (isChecked
-                            ? 'text-white/40 line-through'
-                            : hasUrl
-                              ? 'text-white/90 hover:text-[#00ffea]'
-                              : 'text-white/90')
-                        }
-                      >
-                        {item.title}
-                        {item.author && (
-                          <span className={isChecked ? 'text-white/35' : 'text-white/45'}>
-                            {' '}| {item.author}
+                          {/* Title row — visually a link when there's a url. */}
+                          <span
+                            className={
+                              'flex-1 text-[15px] leading-6 transition-colors ' +
+                              (isChecked
+                                ? 'text-white/40 line-through'
+                                : hasUrl
+                                  ? 'text-white/90 hover:text-[#00ffea]'
+                                  : 'text-white/90')
+                            }
+                          >
+                            {item.title}
+                            {item.author && (
+                              <span className={isChecked ? 'text-white/35' : 'text-white/45'}>
+                                {' '}| {item.author}
+                              </span>
+                            )}
                           </span>
-                        )}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </section>
+              ))
             )}
           </div>
         </main>
