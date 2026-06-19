@@ -11,10 +11,11 @@
  */
 
 export type NoteItem = {
-  id: string;          // stable, e.g. "helius-docs" — used as the localStorage key
+  id: string;          // stable, e.g. "ai-pcb" — used as the localStorage key
   title: string;
-  author?: string;     // rendered after the " | " separator (author / source / date)
+  author?: string;     // rendered after the " | " separator (kept for non-article notes; dispatch items omit it)
   url?: string;        // optional clickable link
+  theme?: string;      // optional sub-heading the renderer groups by (e.g. "AI hardware")
 };
 
 export type NotesCategory = {
