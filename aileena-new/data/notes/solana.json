@@ -1,7 +1,0 @@
-[
-  { "id": "helius-blog", "title": "Helius Blog", "author": "Mert Mumtaz et al.", "url": "https://helius.dev/blog" },
-  { "id": "anchor-book", "title": "The Anchor Book", "author": "Coral", "url": "https://book.anchor-lang.com/" },
-  { "id": "solana-cookbook", "title": "Solana Cookbook", "author": "Solana Foundation", "url": "https://solanacookbook.com/" },
-  { "id": "jito-mev-report", "title": "Jito MEV Report 2024", "author": "Jito Foundation", "url": "https://www.jito.network/blog/" },
-  { "id": "shredstream-paper", "title": "ShredStream — How It Works", "author": "Jito Labs", "url": "https://www.jito.network/blog/shredstream-public/" }
-]
