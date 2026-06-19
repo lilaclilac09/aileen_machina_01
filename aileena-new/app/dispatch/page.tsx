@@ -1,30 +1,168 @@
 'use client';
 
+import Link from 'next/link';
 import { useLanguage } from '../../components/LanguageProvider';
-import { getCategories } from '../../lib/notes/items';
-import NotesView from '../../components/NotesView';
+import { t } from '../../lib/translations';
 import ScrollUnlock from '../blog/ScrollUnlock';
+import '../blog/_substack/substack.css';
+
+const nunito = "'Nunito', system-ui, -apple-system, sans-serif";
+
+type Post = { date: string; href: string; title: string; body: string };
 
 /**
- * /dispatch — Apple Notes–style category list.
+ * /dispatch — three sequential rails on one scrollable page.
  *
- *   left:  sidebar of categories (Dispatch | Solana | Berlin | Playlists)
- *   right: items in the active category, each with a checkbox to save it
+ *   1. Research Dispatch  (technical / on-chain)
+ *   2. Investing          (market thesis)
+ *   3. Perspective        (Woman-in-Tech essays)
  *
- * Dispatch is auto-populated from translations.ts research-dispatch posts.
- * Everything else is hand-authored under /aileena-new/data/notes/{slug}.json.
- * To add a category: drop a JSON file + one import in lib/notes/items.ts.
- *
- * Save state (per visitor) lives in localStorage under aileena-notes-checked.
+ * No tabs, no save state, no checkboxes — just three substack-style
+ * lists stacked vertically, the way the homepage rails render but
+ * full-archive instead of top-3. Page scrolls naturally; each section
+ * is a clear block the visitor scrolls through.
  */
-export default function DispatchNotes() {
+export default function DispatchArchive() {
   const { language } = useLanguage();
-  const categories = getCategories(language);
+  const tx = t[language];
+
+  const dispatch = [...tx.blog.researchDispatch.posts].reverse();
+  const investing = [...tx.blog.investing.posts].reverse();
+  const perspective = [...tx.blog.womanInTech.posts].reverse();
 
   return (
-    <>
+    <div
+      style={{
+        minHeight: '100vh',
+        background: 'var(--bg-primary)',
+        color: 'var(--text-primary)',
+        fontFamily: nunito,
+        overflowY: 'auto',
+      }}
+    >
       <ScrollUnlock />
-      <NotesView categories={categories} />
-    </>
+
+      <header
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 50,
+          padding: '18px 24px',
+          background: 'var(--bg-primary)',
+          backdropFilter: 'blur(12px)',
+          borderBottom: '1px solid var(--glass-border)',
+          opacity: 0.96,
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 760,
+            margin: '0 auto',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <Link
+            href="/"
+            style={{
+              fontFamily: nunito,
+              fontSize: '0.85rem',
+              fontWeight: 500,
+              color: 'var(--text-primary)',
+              opacity: 0.6,
+              textDecoration: 'none',
+            }}
+          >
+            ← Home
+          </Link>
+          <span
+            style={{
+              fontFamily: nunito,
+              fontSize: '0.7rem',
+              letterSpacing: '0.18em',
+              color: 'var(--text-primary)',
+              opacity: 0.35,
+              textTransform: 'uppercase',
+              fontWeight: 500,
+            }}
+          >
+            Archive
+          </span>
+        </div>
+      </header>
+
+      <main style={{ maxWidth: 760, margin: '0 auto', padding: '56px 24px 120px' }}>
+        <RailSection
+          tag={tx.blog.researchDispatch.tag}
+          heading={tx.blog.researchDispatch.heading}
+          posts={dispatch}
+        />
+        <RailSection
+          tag={tx.blog.investing.tag}
+          heading={tx.blog.investing.heading}
+          posts={investing}
+          firstSection={false}
+        />
+        <RailSection
+          tag={tx.blog.womanInTech.tag}
+          heading={tx.blog.womanInTech.heading}
+          posts={perspective}
+          firstSection={false}
+        />
+      </main>
+    </div>
+  );
+}
+
+function RailSection({
+  tag,
+  heading,
+  posts,
+  firstSection = true,
+}: {
+  tag: string;
+  heading: string;
+  posts: readonly Post[];
+  firstSection?: boolean;
+}) {
+  return (
+    <section style={{ marginTop: firstSection ? 0 : 88 }}>
+      <p
+        style={{
+          fontFamily: nunito,
+          fontSize: '0.7rem',
+          letterSpacing: '0.18em',
+          color: 'var(--text-primary)',
+          opacity: 0.4,
+          textTransform: 'uppercase',
+          fontWeight: 500,
+          marginBottom: 14,
+        }}
+      >
+        {tag}
+      </p>
+      <h2
+        style={{
+          fontSize: 'clamp(1.7rem, 4.4vw, 2.6rem)',
+          fontWeight: 500,
+          letterSpacing: '-0.005em',
+          color: 'var(--text-primary)',
+          marginBottom: 36,
+          lineHeight: 1.15,
+        }}
+      >
+        {heading}
+      </h2>
+      <div className="substack-list">
+        {posts.map((post) => (
+          <Link key={post.href} href={post.href}>
+            <p className="sl-date">{post.date}</p>
+            <h3 className="sl-title">{post.title}</h3>
+            <p className="sl-body">{post.body}</p>
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }
