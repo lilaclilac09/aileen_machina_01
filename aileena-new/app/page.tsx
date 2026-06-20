@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Header from '../components/Header';
 import DJStation from '../components/DJStation';
@@ -12,10 +12,30 @@ import './blog/_substack/substack.css';
 
 const nunito = "'Nunito', system-ui, -apple-system, sans-serif";
 
+const SESSION_LOADED_KEY = 'aileena_loaded_once';
+
 export default function Home() {
   const { language } = useLanguage();
   const tx = t[language];
-  const [loaded, setLoaded] = useState(false);
+  // Default to "already loaded" on every render after the first visit
+  // within a tab/session, so navigating back from an article does NOT
+  // re-play the loading-screen buffer. First-visit flow stays intact —
+  // the useEffect below detects the flag is missing and only THEN keeps
+  // the LoadingScreen mounted until its onDone fires.
+  const [loaded, setLoaded] = useState(true);
+  const [showLoadingScreen, setShowLoadingScreen] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem(SESSION_LOADED_KEY) !== '1') {
+        setShowLoadingScreen(true);
+        setLoaded(false);
+      }
+    } catch {
+      // sessionStorage unavailable (private mode) — fall through to "no
+      // loading screen" rather than risk the buffer playing on every nav.
+    }
+  }, []);
 
   const dispatchTop3 = tx.blog.researchDispatch.posts.slice(-3).reverse();
   const investingPosts = [...tx.blog.investing.posts].reverse();
@@ -23,13 +43,55 @@ export default function Home() {
 
   return (
     <>
-      {!loaded && <LoadingScreen onDone={() => setLoaded(true)} />}
+      {showLoadingScreen && !loaded && (
+        <LoadingScreen
+          onDone={() => {
+            setLoaded(true);
+            try {
+              sessionStorage.setItem(SESSION_LOADED_KEY, '1');
+            } catch {
+              /* ignore */
+            }
+          }}
+        />
+      )}
       <Header />
       <SnapContainer key={language}>
 
         {/* ── 01 HERO — one human sentence + agent door ── */}
         <SnapSection id="hero" className="order-1">
-          <div className="h-full flex items-center justify-center bg-[#070707] px-6 sm:px-10">
+          <div className="h-full flex items-center justify-center bg-[#070707] px-6 sm:px-10 relative">
+            {/* Floating agent figure — zoomed Natalia-with-antennae portrait
+                anchored off the hero column. Decorative + clickable; opens
+                the same console as the pill CTA. Hidden on small phones so
+                the hero copy stays centered. */}
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new Event('open-agent-chat'))}
+              aria-label={tx.hero.talkAgent}
+              className="hidden md:flex absolute top-1/2 right-[5%] lg:right-[8%] xl:right-[12%] -translate-y-1/2 flex-col items-center gap-2 cursor-pointer group z-10"
+            >
+              <span className="relative inline-block agent-float">
+                <span
+                  aria-hidden
+                  className="block h-[220px] w-[180px] lg:h-[260px] lg:w-[212px] rounded-[18px] bg-no-repeat ring-1 ring-[#00ffea]/35 shadow-[0_30px_70px_-18px_rgba(0,255,234,0.22)] transition-all duration-300 group-hover:ring-[#00ffea]/80 group-hover:scale-[1.02] group-hover:shadow-[0_36px_80px_-18px_rgba(0,255,234,0.38)]"
+                  style={{
+                    backgroundImage: "url('/agent-portrait.jpeg')",
+                    backgroundPosition: '50% 28%',
+                    backgroundSize: 'cover',
+                  }}
+                />
+                <span aria-hidden className="agent-scan pointer-events-none absolute inset-0 rounded-[18px] overflow-hidden" />
+                <span
+                  aria-hidden
+                  className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-[#00ffea] shadow-[0_0_10px_rgba(0,255,234,0.95)] animate-pulse ring-2 ring-[#070707]"
+                />
+              </span>
+              <span className="font-mono text-[0.55rem] tracking-[0.35em] uppercase text-[#00ffea]/55 group-hover:text-[#00ffea] transition-colors select-none">
+                machina
+              </span>
+            </button>
+
             <div className="max-w-[680px] w-full text-center" style={{ fontFamily: nunito }}>
               <p
                 className="anim-up-2 text-[clamp(1.4rem,3.6vw,2.2rem)] leading-snug text-white/85"
