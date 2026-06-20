@@ -55,9 +55,36 @@ const SLUG_TOPIC: Record<string, string> = {
 const TOPIC_ORDER: Record<string, string[]> = {
   dispatch: ['On-chain infrastructure', 'MEV & markets', 'Agents & robotics', 'Privacy'],
   investing: ['AI hardware', 'Capital flywheels', 'Sales & channels'],
-  perspective: [],   // 3 essays — themes would be theatre
-  marsAndMoon: [],   // free-form personal entries
+  perspective: [],
+  marsAndMoon: [],
 };
+
+// Placeholder cover images per Research Dispatch article. Aileen will
+// swap each URL out for her own uploaded image later — slug → URL is
+// the contract. Falls back to a dark cyan gradient if an URL 404s.
+//
+// Unsplash open-license, theme: space / GPU / datacenter / server rack /
+// circuit board / network — picked to match the "AI infrastructure +
+// on-chain compute" voice of the rail.
+const FALLBACK_COVERS = [
+  'https://images.unsplash.com/photo-1518770660439-4636190af475?w=900&q=80',
+  'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=900&q=80',
+  'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=900&q=80',
+  'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=900&q=80',
+  'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=900&q=80',
+  'https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=900&q=80',
+];
+const COVER_BY_SLUG: Record<string, string> = {
+  // empty for now — Aileen will fill in. Until a slug has an explicit
+  // mapping, getCover() rotates through FALLBACK_COVERS by slug hash.
+};
+
+function getCover(slug: string): string {
+  if (COVER_BY_SLUG[slug]) return COVER_BY_SLUG[slug];
+  let h = 0;
+  for (let i = 0; i < slug.length; i++) h = (h * 31 + slug.charCodeAt(i)) & 0xffffffff;
+  return FALLBACK_COVERS[Math.abs(h) % FALLBACK_COVERS.length];
+}
 
 function slugOf(post: Post): string {
   return post.href.replace(/^\/blog\//, '');
@@ -82,23 +109,15 @@ function groupByTopic(
     const items = byTopic.get(t);
     if (items && items.length > 0) out.push({ topic: t, posts: items });
   }
-  // "Other" — articles not yet mapped to a topic. Always at the end.
   const otherItems = byTopic.get('Other');
   if (otherItems && otherItems.length > 0) out.push({ topic: 'Other', posts: otherItems });
   return out;
 }
 
 /**
- * /dispatch — four sequential rails on one scrollable page.
- *
- *   1. Research Dispatch  (subdivided by topic)
- *   2. Investing          (subdivided by topic)
- *   3. Perspective        (flat — three essays)
- *   4. Mars and Moon Magic (flat — placeholder, edit translations.ts)
- *
- * No tabs, no save state, no checkboxes — just lists stacked vertically.
- * Topic subheaders are small uppercase tracked labels separating groups,
- * same typography as the rail tag.
+ * /dispatch — four rails. Research Dispatch renders as horizontal
+ * swipeable cover-card rows (per topic). The other three rails keep
+ * the existing substack-list rendering.
  */
 export default function DispatchArchive() {
   const { language } = useLanguage();
@@ -130,7 +149,7 @@ export default function DispatchArchive() {
       >
         <div
           style={{
-            maxWidth: 760,
+            maxWidth: 960,
             margin: '0 auto',
             display: 'flex',
             justifyContent: 'space-between',
@@ -166,23 +185,30 @@ export default function DispatchArchive() {
         </div>
       </header>
 
-      <main style={{ maxWidth: 760, margin: '0 auto', padding: '56px 24px 120px' }}>
-        <RailSection
+      <main style={{ maxWidth: 960, margin: '0 auto', padding: '56px 24px 120px' }}>
+        {/* Research Dispatch — swipe rows */}
+        <SwipeRail
           tag={tx.blog.researchDispatch.tag}
           heading={tx.blog.researchDispatch.heading}
           groups={groupByTopic([...tx.blog.researchDispatch.posts].reverse(), 'dispatch')}
           firstSection
         />
+
+        {/* Investing — substack list (unchanged) */}
         <RailSection
           tag={tx.blog.investing.tag}
           heading={tx.blog.investing.heading}
           groups={groupByTopic([...tx.blog.investing.posts].reverse(), 'investing')}
         />
+
+        {/* Perspective — flat substack list (unchanged) */}
         <RailSection
           tag={tx.blog.womanInTech.tag}
           heading={tx.blog.womanInTech.heading}
           groups={groupByTopic([...tx.blog.womanInTech.posts].reverse(), 'perspective')}
         />
+
+        {/* Mars and Moon Magic — flat substack list (unchanged) */}
         <RailSection
           tag={tx.blog.marsAndMoon.tag}
           heading={tx.blog.marsAndMoon.heading}
@@ -193,19 +219,11 @@ export default function DispatchArchive() {
   );
 }
 
-function RailSection({
-  tag,
-  heading,
-  groups,
-  firstSection = false,
-}: {
-  tag: string;
-  heading: string;
-  groups: { topic: string | null; posts: Post[] }[];
-  firstSection?: boolean;
-}) {
+/* ─── Rail headings (shared by both renderers) ──────────────── */
+
+function RailHeader({ tag, heading }: { tag: string; heading: string }) {
   return (
-    <section style={{ marginTop: firstSection ? 0 : 88 }}>
+    <>
       <p
         style={{
           fontFamily: nunito,
@@ -232,24 +250,167 @@ function RailSection({
       >
         {heading}
       </h2>
+    </>
+  );
+}
+
+function TopicHeader({ topic }: { topic: string }) {
+  return (
+    <p
+      style={{
+        fontFamily: nunito,
+        fontSize: '0.68rem',
+        letterSpacing: '0.22em',
+        color: 'var(--text-primary)',
+        opacity: 0.55,
+        textTransform: 'uppercase',
+        fontWeight: 600,
+        marginBottom: 16,
+      }}
+    >
+      {topic}
+    </p>
+  );
+}
+
+/* ─── Swipeable cover-card rail (Research Dispatch) ─────────── */
+
+function SwipeRail({
+  tag,
+  heading,
+  groups,
+  firstSection = false,
+}: {
+  tag: string;
+  heading: string;
+  groups: { topic: string | null; posts: Post[] }[];
+  firstSection?: boolean;
+}) {
+  return (
+    <section style={{ marginTop: firstSection ? 0 : 88 }}>
+      <RailHeader tag={tag} heading={heading} />
       {groups.map((g, i) => (
         <div key={g.topic ?? `g-${i}`} style={{ marginTop: i > 0 ? 44 : 0 }}>
-          {g.topic && (
-            <p
+          {g.topic && <TopicHeader topic={g.topic} />}
+          <SwipeRow posts={g.posts} />
+        </div>
+      ))}
+    </section>
+  );
+}
+
+function SwipeRow({ posts }: { posts: Post[] }) {
+  return (
+    <div
+      className="dispatch-swipe-row"
+      style={{
+        display: 'flex',
+        gap: 16,
+        overflowX: 'auto',
+        scrollSnapType: 'x mandatory',
+        WebkitOverflowScrolling: 'touch',
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
+        // Negative margin + matching padding so cards bleed to the viewport
+        // edge but the first/last card still snap-centers cleanly.
+        margin: '0 -24px',
+        padding: '4px 24px 24px 24px',
+      }}
+    >
+      {posts.map((post) => {
+        const slug = post.href.replace(/^\/blog\//, '');
+        const cover = getCover(slug);
+        return (
+          <Link
+            key={post.href}
+            href={post.href}
+            style={{
+              flex: '0 0 auto',
+              width: 'min(78vw, 360px)',
+              aspectRatio: '4 / 5',
+              scrollSnapAlign: 'center',
+              borderRadius: 18,
+              overflow: 'hidden',
+              position: 'relative',
+              background: `linear-gradient(135deg, rgba(0,255,234,0.18) 0%, rgba(0,0,0,0.85) 70%), url('${cover}') center/cover no-repeat`,
+              boxShadow: '0 28px 60px -22px rgba(0,255,234,0.16)',
+              textDecoration: 'none',
+              transition: 'transform 0.35s, box-shadow 0.35s',
+            }}
+            className="dispatch-swipe-card"
+          >
+            {/* Darkening scrim so the title stays legible regardless of
+                cover brightness */}
+            <span
+              aria-hidden
               style={{
+                position: 'absolute',
+                inset: 0,
+                background:
+                  'radial-gradient(ellipse at center, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.55) 100%)',
+              }}
+            />
+            {/* Centered title on top of the cover */}
+            <span
+              style={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '32px 28px',
+                textAlign: 'center',
                 fontFamily: nunito,
-                fontSize: '0.68rem',
-                letterSpacing: '0.22em',
-                color: 'var(--text-primary)',
-                opacity: 0.55,
-                textTransform: 'uppercase',
+                fontSize: 'clamp(1.05rem, 2.4vw, 1.4rem)',
                 fontWeight: 600,
-                marginBottom: 16,
+                lineHeight: 1.25,
+                color: '#fff',
+                textShadow: '0 2px 18px rgba(0,0,0,0.85)',
               }}
             >
-              {g.topic}
-            </p>
-          )}
+              {post.title}
+            </span>
+            <span
+              style={{
+                position: 'absolute',
+                bottom: 14,
+                left: 16,
+                fontFamily: nunito,
+                fontSize: '0.62rem',
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                color: 'rgba(255,255,255,0.65)',
+                fontWeight: 500,
+              }}
+            >
+              {post.date}
+            </span>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ─── Substack-list rail (Investing / Perspective / Mars and Moon) ── */
+
+function RailSection({
+  tag,
+  heading,
+  groups,
+  firstSection = false,
+}: {
+  tag: string;
+  heading: string;
+  groups: { topic: string | null; posts: Post[] }[];
+  firstSection?: boolean;
+}) {
+  return (
+    <section style={{ marginTop: firstSection ? 0 : 88 }}>
+      <RailHeader tag={tag} heading={heading} />
+      {groups.map((g, i) => (
+        <div key={g.topic ?? `g-${i}`} style={{ marginTop: i > 0 ? 44 : 0 }}>
+          {g.topic && <TopicHeader topic={g.topic} />}
           <div className="substack-list">
             {g.posts.map((post) => (
               <Link key={`${post.href}-${post.date}`} href={post.href}>

@@ -76,9 +76,9 @@ export default function Home() {
                   aria-hidden
                   className="block h-[220px] w-[180px] lg:h-[260px] lg:w-[212px] rounded-[18px] bg-no-repeat ring-1 ring-[#00ffea]/35 shadow-[0_30px_70px_-18px_rgba(0,255,234,0.22)] transition-all duration-300 group-hover:ring-[#00ffea]/80 group-hover:scale-[1.02] group-hover:shadow-[0_36px_80px_-18px_rgba(0,255,234,0.38)]"
                   style={{
-                    backgroundImage: "url('/agent-portrait.jpeg')",
-                    backgroundPosition: '50% 28%',
-                    backgroundSize: 'cover',
+                    backgroundImage: "url('/bg_pic/03.jpeg')",
+                    backgroundPosition: '18% 5%',
+                    backgroundSize: '175%',
                   }}
                 />
                 <span aria-hidden className="agent-scan pointer-events-none absolute inset-0 rounded-[18px] overflow-hidden" />
