@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '../../components/LanguageProvider';
 import { t } from '../../lib/translations';
@@ -299,48 +300,152 @@ function SwipeRail({
   );
 }
 
+/**
+ * SwipeRow — 3D deck carousel. One card sits dead-centre; its
+ * neighbours are scaled down and offset on each side. Drag in either
+ * direction (any axis dominant on X) advances or retreats the deck.
+ * Click the centre card → navigate to that article. Click a side card
+ * → it slides to centre, no navigation yet.
+ *
+ * Implementation notes:
+ *  - Each card is absolutely positioned at centre via translate(-50%, -50%).
+ *  - Per-card transform is derived from offset = i - current. Side
+ *    cards translate ±55 % of their own width and scale to 0.72.
+ *  - Pointer events on the stage capture the drag. Delta < threshold →
+ *    no change. Delta > threshold → advance by one (clamped).
+ *  - Visual drag preview: the entire deck's offset shifts proportionally
+ *    to the active drag, so it feels like fingers are pulling it.
+ */
 function SwipeRow({ posts }: { posts: Post[] }) {
+  const [current, setCurrent] = useState(0);
+  const [stageWidth, setStageWidth] = useState(0);
+  const stageRef = useRef<HTMLDivElement>(null);
+
+  // Drag state — tracked outside React to avoid 60-fps re-renders during
+  // pointer move; we apply transforms imperatively while the user drags.
+  const dragRef = useRef<{ active: boolean; startX: number; lastDelta: number }>({
+    active: false,
+    startX: 0,
+    lastDelta: 0,
+  });
+  const [, forceRender] = useState(0);
+
+  useLayoutEffect(() => {
+    if (!stageRef.current) return;
+    const ro = new ResizeObserver(() => {
+      if (stageRef.current) setStageWidth(stageRef.current.clientWidth);
+    });
+    ro.observe(stageRef.current);
+    setStageWidth(stageRef.current.clientWidth);
+    return () => ro.disconnect();
+  }, []);
+
+  const goTo = useCallback(
+    (next: number) => {
+      const clamped = Math.max(0, Math.min(posts.length - 1, next));
+      setCurrent(clamped);
+    },
+    [posts.length],
+  );
+
+  const advance = useCallback(
+    (direction: 1 | -1) => goTo(current + direction),
+    [current, goTo],
+  );
+
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (posts.length <= 1) return;
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+    dragRef.current = { active: true, startX: e.clientX, lastDelta: 0 };
+    forceRender((v) => v + 1);
+  };
+
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragRef.current.active) return;
+    dragRef.current.lastDelta = e.clientX - dragRef.current.startX;
+    forceRender((v) => v + 1);
+  };
+
+  const onPointerUp = () => {
+    const { active, lastDelta } = dragRef.current;
+    if (!active) return;
+    dragRef.current = { active: false, startX: 0, lastDelta: 0 };
+    const threshold = Math.max(50, stageWidth * 0.12);
+    if (Math.abs(lastDelta) > threshold) {
+      advance(lastDelta > 0 ? -1 : 1);
+    } else {
+      forceRender((v) => v + 1); // snap back via re-render
+    }
+  };
+
+  // Drag preview offset (px). Convert to a fractional shift so the
+  // entire deck moves with the finger before snapping.
+  const dragOffsetPx = dragRef.current.active ? dragRef.current.lastDelta : 0;
+
   return (
     <div
-      className="dispatch-swipe-row"
+      ref={stageRef}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      onPointerLeave={onPointerUp}
+      className="dispatch-swipe-stage"
       style={{
-        display: 'flex',
-        gap: 16,
-        overflowX: 'auto',
-        scrollSnapType: 'x mandatory',
-        WebkitOverflowScrolling: 'touch',
-        scrollbarWidth: 'none',
-        msOverflowStyle: 'none',
-        // Negative margin + matching padding so cards bleed to the viewport
-        // edge but the first/last card still snap-centers cleanly.
-        margin: '0 -24px',
-        padding: '4px 24px 24px 24px',
+        position: 'relative',
+        width: '100%',
+        height: 'min(78vw, 380px)',
+        margin: '8px 0 36px',
+        cursor: dragRef.current.active ? 'grabbing' : 'grab',
+        touchAction: 'pan-y',
+        userSelect: 'none',
       }}
     >
-      {posts.map((post) => {
+      {posts.map((post, i) => {
+        const offset = i - current;
+        const absOffset = Math.abs(offset);
+        // Cards beyond the immediate neighbours are hidden — keeps the
+        // stage clean and avoids stacking-context paint cost.
+        if (absOffset > 2) return null;
+
         const slug = post.href.replace(/^\/blog\//, '');
         const cover = getCover(slug);
-        return (
-          <Link
-            key={post.href}
-            href={post.href}
-            style={{
-              flex: '0 0 auto',
-              width: 'min(78vw, 360px)',
-              aspectRatio: '4 / 5',
-              scrollSnapAlign: 'center',
-              borderRadius: 18,
-              overflow: 'hidden',
-              position: 'relative',
-              background: `linear-gradient(135deg, rgba(0,255,234,0.18) 0%, rgba(0,0,0,0.85) 70%), url('${cover}') center/cover no-repeat`,
-              boxShadow: '0 28px 60px -22px rgba(0,255,234,0.16)',
-              textDecoration: 'none',
-              transition: 'transform 0.35s, box-shadow 0.35s',
-            }}
-            className="dispatch-swipe-card"
-          >
-            {/* Darkening scrim so the title stays legible regardless of
-                cover brightness */}
+
+        // Position relative to the centre, plus the drag preview.
+        // 55% per neighbour position; drag adds a fractional shift.
+        const dragShift = stageWidth > 0 ? (dragOffsetPx / stageWidth) * 55 : 0;
+        const translateXPct = offset * 55 - dragShift;
+        const scale = absOffset === 0 ? 1 : absOffset === 1 ? 0.72 : 0.5;
+        const opacity = absOffset === 0 ? 1 : absOffset === 1 ? 0.78 : 0.32;
+        const zIndex = 10 - absOffset;
+        const transition = dragRef.current.active
+          ? 'none'
+          : 'transform 0.4s cubic-bezier(0.22, 0.9, 0.32, 1), opacity 0.4s, box-shadow 0.4s';
+
+        const isCentre = offset === 0;
+        const cardStyle: React.CSSProperties = {
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: `translate(-50%, -50%) translateX(${translateXPct}%) scale(${scale})`,
+          opacity,
+          zIndex,
+          transition,
+          width: 'min(64vw, 280px)',
+          height: 'min(74vw, 360px)',
+          borderRadius: 18,
+          overflow: 'hidden',
+          background: `linear-gradient(135deg, rgba(0,255,234,0.18) 0%, rgba(0,0,0,0.85) 70%), url('${cover}') center/cover no-repeat`,
+          boxShadow: isCentre
+            ? '0 36px 80px -20px rgba(0,255,234,0.32)'
+            : '0 18px 40px -16px rgba(0,0,0,0.6)',
+          textDecoration: 'none',
+          color: '#fff',
+          cursor: isCentre ? 'pointer' : 'pointer',
+        };
+
+        const inner = (
+          <>
             <span
               aria-hidden
               style={{
@@ -350,7 +455,6 @@ function SwipeRow({ posts }: { posts: Post[] }) {
                   'radial-gradient(ellipse at center, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.55) 100%)',
               }}
             />
-            {/* Centered title on top of the cover */}
             <span
               style={{
                 position: 'absolute',
@@ -358,7 +462,7 @@ function SwipeRow({ posts }: { posts: Post[] }) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '32px 28px',
+                padding: '32px 24px',
                 textAlign: 'center',
                 fontFamily: nunito,
                 fontSize: 'clamp(1.05rem, 2.4vw, 1.4rem)',
@@ -366,6 +470,7 @@ function SwipeRow({ posts }: { posts: Post[] }) {
                 lineHeight: 1.25,
                 color: '#fff',
                 textShadow: '0 2px 18px rgba(0,0,0,0.85)',
+                pointerEvents: 'none',
               }}
             >
               {post.title}
@@ -379,15 +484,82 @@ function SwipeRow({ posts }: { posts: Post[] }) {
                 fontSize: '0.62rem',
                 letterSpacing: '0.22em',
                 textTransform: 'uppercase',
-                color: 'rgba(255,255,255,0.65)',
+                color: 'rgba(255,255,255,0.7)',
                 fontWeight: 500,
+                pointerEvents: 'none',
               }}
             >
               {post.date}
             </span>
-          </Link>
+          </>
+        );
+
+        // Centre card → real Link (navigates on click)
+        // Side card → button (slides to centre on click, no nav)
+        if (isCentre) {
+          return (
+            <Link
+              key={post.href}
+              href={post.href}
+              style={cardStyle}
+              onClick={(e) => {
+                // Suppress click that arrives at the end of a drag — pointer
+                // events fire onClick even after pointerup of a drag, which
+                // would unintentionally navigate when the user just swiped.
+                if (Math.abs(dragRef.current.lastDelta) > 12) e.preventDefault();
+              }}
+            >
+              {inner}
+            </Link>
+          );
+        }
+        return (
+          <button
+            type="button"
+            key={post.href}
+            style={cardStyle}
+            onClick={(e) => {
+              e.preventDefault();
+              if (Math.abs(dragRef.current.lastDelta) > 12) return;
+              goTo(i);
+            }}
+            aria-label={`Go to ${post.title}`}
+          >
+            {inner}
+          </button>
         );
       })}
+
+      {/* Position dots — small index in the bottom centre */}
+      {posts.length > 1 && (
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            bottom: -22,
+            left: 0,
+            right: 0,
+            display: 'flex',
+            justifyContent: 'center',
+            gap: 6,
+            pointerEvents: 'none',
+          }}
+        >
+          {posts.map((_, i) => (
+            <span
+              key={i}
+              style={{
+                display: 'inline-block',
+                width: 5,
+                height: 5,
+                borderRadius: 999,
+                background: i === current ? '#00ffea' : 'rgba(255,255,255,0.18)',
+                transition: 'background 0.3s',
+              }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
