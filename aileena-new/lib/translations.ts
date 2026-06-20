@@ -392,6 +392,23 @@ export const t = {
           },
         ],
       },
+      marsAndMoon: {
+        tag: 'COSMOS',
+        heading: 'Mars and Moon Magic',
+        read: 'Read →',
+        // Edit these to populate the Mars and Moon Magic section. Same
+        // shape as the other rails — date / href / title / body. Use a
+        // '#' href for items that aren't articles (the row still renders
+        // and stays on the page when clicked).
+        posts: [
+          {
+            date: '2026.06.21',
+            href: '#mars-moon',
+            title: 'placeholder — add your first entry',
+            body: 'Edit lib/translations.ts → marsAndMoon.posts to fill in. Same shape as the other rails. Use href: \'#\' for non-article entries.',
+          },
+        ],
+      },
     },
     research: {
       tag: 'RESEARCH ARCHIVE',
@@ -822,6 +839,19 @@ export const t = {
             href: '/blog/misread',
             title: 'Missverstanden — Aber Sie Kann Alles Sein',
             body: 'Feminismus ist kein Kampfruf, kein Manifest gegen ein System, keine Überzeugungsarbeit, keine Gewalt, kein Konformismus. Er ist Ausdruck. Er ist die stille, unermüdliche Arbeit, die Fähigkeiten von Frauen sichtbar zu machen — und sicherzustellen, dass diese Sichtbarkeit in echten wirtschaftlichen Wert übersetzt wird. Sie kann Ingenieurin sein. Sie kann alles sein. Darum ging es nie bei Slogans.',
+          },
+        ],
+      },
+      marsAndMoon: {
+        tag: 'KOSMOS',
+        heading: 'Mars und Mond Magie',
+        read: 'Lesen →',
+        posts: [
+          {
+            date: '2026.06.21',
+            href: '#mars-moon',
+            title: 'Platzhalter — füge deinen ersten Eintrag hinzu',
+            body: 'Bearbeite lib/translations.ts → marsAndMoon.posts. Gleiche Struktur wie die anderen Rails. Verwende href: \'#\' für Nicht-Artikel-Einträge.',
           },
         ],
       },
