@@ -312,3 +312,16 @@ a, button {
 @media (prefers-reduced-motion: reduce) {
   .agent-scan::before { animation: none; opacity: 0; }
 }
+
+/* Agent launcher portrait — slow vertical drift so the figure feels
+   detached from the page grid (Natalia-with-antennae reference). */
+.agent-float {
+  animation: agentFloat 5.5s ease-in-out infinite;
+}
+@keyframes agentFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-5px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .agent-float { animation: none; }
+}

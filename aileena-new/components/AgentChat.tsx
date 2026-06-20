@@ -522,35 +522,37 @@ export default function AgentChat() {
 
   return (
     <>
-      {/* Launcher — system-level indicator in the top-left, present on
-          every page. Reads as part of the page chrome (like the EN/DE
-          toggle on the right), not a chatbot widget. */}
+      {/* Launcher — floating portrait at top-left. Reads as a magazine-
+          style hero crop (Natalia-with-antennae reference), not a
+          chatbot widget. Animated drift sells "alive" without going
+          gimmicky. */}
       <button
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open Aileena console"
-        className={`group fixed top-3 left-3 sm:top-4 sm:left-5 lg:left-6 z-[60] flex items-center gap-2 sm:gap-2.5 transition-opacity duration-200 ${open ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+        className={`group fixed top-5 left-5 sm:top-6 sm:left-7 lg:left-8 z-[60] flex flex-col items-center gap-1.5 transition-opacity duration-200 ${open ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
       >
-        {/* Portrait — compact, sits like an avatar in a system header */}
-        <span className="relative inline-block">
+        {/* Portrait — tight zoomed crop, portrait orientation, with a
+            slow vertical drift so it feels detached from the page grid. */}
+        <span className="relative inline-block agent-float">
           <span
             aria-hidden
-            className="block h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-no-repeat ring-1 ring-[#00ffea]/30 transition-all duration-200 group-hover:ring-[#00ffea]/70 group-hover:scale-[1.05]"
+            className="block h-[88px] w-[72px] sm:h-[112px] sm:w-[92px] rounded-[14px] bg-no-repeat ring-1 ring-[#00ffea]/35 shadow-[0_18px_40px_-12px_rgba(0,255,234,0.18)] transition-all duration-300 group-hover:ring-[#00ffea]/80 group-hover:scale-[1.03] group-hover:shadow-[0_22px_44px_-12px_rgba(0,255,234,0.32)]"
             style={{
-              backgroundImage: "url('/bg_pic/03.jpeg')",
-              backgroundPosition: '18% 5%',
-              backgroundSize: '175%',
+              backgroundImage: "url('/agent-portrait.jpeg')",
+              backgroundPosition: '50% 30%',
+              backgroundSize: 'cover',
             }}
           />
-          <span aria-hidden className="agent-scan pointer-events-none absolute inset-0 rounded-full overflow-hidden" />
+          <span aria-hidden className="agent-scan pointer-events-none absolute inset-0 rounded-[14px] overflow-hidden" />
           <span
             aria-hidden
-            className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-[#00ffea] shadow-[0_0_6px_rgba(0,255,234,0.9)] animate-pulse ring-2 ring-black"
+            className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-[#00ffea] shadow-[0_0_8px_rgba(0,255,234,0.95)] animate-pulse ring-2 ring-black"
           />
         </span>
 
-        {/* Label — same typographic weight as EN/DE/menu on the right */}
-        <span className="font-mono text-[0.6rem] sm:text-[0.62rem] tracking-[0.3em] uppercase text-[#00ffea]/70 group-hover:text-[#00ffea] transition-colors select-none">
+        {/* Label — small caption under the portrait, polaroid style */}
+        <span className="font-mono text-[0.55rem] sm:text-[0.58rem] tracking-[0.32em] uppercase text-[#00ffea]/65 group-hover:text-[#00ffea] transition-colors select-none">
           machina
         </span>
       </button>
