@@ -215,14 +215,38 @@ function groupByTopic(
   return out;
 }
 
+type DispatchView = 'image' | 'text';
+const VIEW_STORAGE_KEY = 'aileena-dispatch-view';
+
 /**
- * /dispatch — four rails. Research Dispatch renders as horizontal
- * swipeable cover-card rows (per topic). The other three rails keep
- * the existing substack-list rendering.
+ * /dispatch — four rails. Default renders as horizontal swipeable
+ * cover-card carousels (image view); a sticky-header toggle flips
+ * every rail back to the substack-list (text view). Choice persists
+ * in localStorage.
  */
 export default function DispatchArchive() {
   const { language } = useLanguage();
   const tx = t[language];
+
+  const [view, setView] = useState<DispatchView>('image');
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(VIEW_STORAGE_KEY);
+      if (saved === 'image' || saved === 'text') setView(saved);
+    } catch {
+      /* localStorage blocked — keep default */
+    }
+  }, []);
+  const updateView = useCallback((next: DispatchView) => {
+    setView(next);
+    try {
+      window.localStorage.setItem(VIEW_STORAGE_KEY, next);
+    } catch {
+      /* localStorage blocked — choice stays in-memory only */
+    }
+  }, []);
+
+  const isImage = view === 'image';
 
   return (
     <div
@@ -255,6 +279,7 @@ export default function DispatchArchive() {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
+            gap: 16,
           }}
         >
           <Link
@@ -270,53 +295,147 @@ export default function DispatchArchive() {
           >
             ← Home
           </Link>
-          <span
+          <div
             style={{
-              fontFamily: nunito,
-              fontSize: '0.7rem',
-              letterSpacing: '0.18em',
-              color: 'var(--text-primary)',
-              opacity: 0.35,
-              textTransform: 'uppercase',
-              fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
             }}
           >
-            Archive
-          </span>
+            <ViewToggle view={view} setView={updateView} />
+            <span
+              style={{
+                fontFamily: nunito,
+                fontSize: '0.7rem',
+                letterSpacing: '0.18em',
+                color: 'var(--text-primary)',
+                opacity: 0.35,
+                textTransform: 'uppercase',
+                fontWeight: 500,
+              }}
+            >
+              Archive
+            </span>
+          </div>
         </div>
       </header>
 
       <main style={{ maxWidth: 960, margin: '0 auto', padding: '56px 24px 120px' }}>
-        {/* All four rails render as the same diagonal-fade carousel —
-            topic-grouped for Dispatch + Investing, flat for Perspective
-            + Mars and Moon. RailSection (substack list) kept in the
-            file but no longer used; reachable for a quick revert. */}
-        <SwipeRail
-          tag={tx.blog.researchDispatch.tag}
-          heading={tx.blog.researchDispatch.heading}
-          groups={groupByTopic([...tx.blog.researchDispatch.posts].reverse(), 'dispatch')}
-          firstSection
-        />
-        <SwipeRail
-          tag={tx.blog.investing.tag}
-          heading={tx.blog.investing.heading}
-          groups={groupByTopic([...tx.blog.investing.posts].reverse(), 'investing')}
-          heroImage="/dispatch-covers/investing-hero.jpg"
-        />
-        <SwipeRail
-          tag={tx.blog.womanInTech.tag}
-          heading={tx.blog.womanInTech.heading}
-          // Authored order, NOT reverse-chrono — Aileen wants the #MeToo
-          // piece first, regardless of date. translations.ts already
-          // lists the essays in the intended display order.
-          groups={groupByTopic([...tx.blog.womanInTech.posts], 'perspective')}
-        />
-        <SwipeRail
-          tag={tx.blog.marsAndMoon.tag}
-          heading={tx.blog.marsAndMoon.heading}
-          groups={groupByTopic([...tx.blog.marsAndMoon.posts].reverse(), 'marsAndMoon')}
-        />
+        {/* Two rendering modes per rail: SwipeRail (cover-card carousel,
+            default) and RailSection (substack list). The toggle in the
+            sticky header switches all four rails at once. */}
+        {isImage ? (
+          <>
+            <SwipeRail
+              tag={tx.blog.researchDispatch.tag}
+              heading={tx.blog.researchDispatch.heading}
+              groups={groupByTopic([...tx.blog.researchDispatch.posts].reverse(), 'dispatch')}
+              firstSection
+            />
+            <SwipeRail
+              tag={tx.blog.investing.tag}
+              heading={tx.blog.investing.heading}
+              groups={groupByTopic([...tx.blog.investing.posts].reverse(), 'investing')}
+              heroImage="/dispatch-covers/investing-hero.jpg"
+            />
+            <SwipeRail
+              tag={tx.blog.womanInTech.tag}
+              heading={tx.blog.womanInTech.heading}
+              // Authored order, NOT reverse-chrono — Aileen wants the #MeToo
+              // piece first, regardless of date. translations.ts already
+              // lists the essays in the intended display order.
+              groups={groupByTopic([...tx.blog.womanInTech.posts], 'perspective')}
+            />
+            <SwipeRail
+              tag={tx.blog.marsAndMoon.tag}
+              heading={tx.blog.marsAndMoon.heading}
+              groups={groupByTopic([...tx.blog.marsAndMoon.posts].reverse(), 'marsAndMoon')}
+            />
+          </>
+        ) : (
+          <>
+            <RailSection
+              tag={tx.blog.researchDispatch.tag}
+              heading={tx.blog.researchDispatch.heading}
+              groups={groupByTopic([...tx.blog.researchDispatch.posts].reverse(), 'dispatch')}
+              firstSection
+            />
+            <RailSection
+              tag={tx.blog.investing.tag}
+              heading={tx.blog.investing.heading}
+              groups={groupByTopic([...tx.blog.investing.posts].reverse(), 'investing')}
+            />
+            <RailSection
+              tag={tx.blog.womanInTech.tag}
+              heading={tx.blog.womanInTech.heading}
+              groups={groupByTopic([...tx.blog.womanInTech.posts], 'perspective')}
+            />
+            <RailSection
+              tag={tx.blog.marsAndMoon.tag}
+              heading={tx.blog.marsAndMoon.heading}
+              groups={groupByTopic([...tx.blog.marsAndMoon.posts].reverse(), 'marsAndMoon')}
+            />
+          </>
+        )}
       </main>
+    </div>
+  );
+}
+
+function ViewToggle({
+  view,
+  setView,
+}: {
+  view: DispatchView;
+  setView: (next: DispatchView) => void;
+}) {
+  const options: { id: DispatchView; label: string }[] = [
+    { id: 'image', label: 'Image' },
+    { id: 'text', label: 'Text' },
+  ];
+  return (
+    <div
+      role="tablist"
+      aria-label="Dispatch view"
+      style={{
+        display: 'inline-flex',
+        gap: 2,
+        padding: 2,
+        borderRadius: 999,
+        border: '1px solid var(--glass-border)',
+        background: 'rgba(255,255,255,0.04)',
+      }}
+    >
+      {options.map((opt) => {
+        const active = view === opt.id;
+        return (
+          <button
+            key={opt.id}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => setView(opt.id)}
+            style={{
+              appearance: 'none',
+              border: 0,
+              padding: '5px 12px',
+              borderRadius: 999,
+              fontFamily:
+                "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+              fontSize: '0.62rem',
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              fontWeight: 500,
+              cursor: 'pointer',
+              color: active ? '#0a0a0a' : 'rgba(255,255,255,0.55)',
+              background: active ? '#7df9ff' : 'transparent',
+              transition: 'background 0.18s ease, color 0.18s ease',
+            }}
+          >
+            {opt.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
