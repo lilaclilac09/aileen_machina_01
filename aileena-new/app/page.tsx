@@ -398,19 +398,49 @@ export default function Home() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                   {tx.visual.items.map((img: { src: string; alt: string; caption: string; href?: string }) => {
                     const tile = (
-                      <>
+                      <div className="relative w-full aspect-square overflow-hidden rounded-md">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={img.src}
                           alt={img.alt}
-                          className="w-full aspect-square object-cover rounded-md opacity-85 group-hover:opacity-100 transition-opacity"
+                          className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
                         />
-                        <figcaption className="mt-2 flex items-center gap-1.5 text-[0.72rem] tracking-wide text-white/40 group-hover:text-[#00ffea]/80 transition-colors">
-                          <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: '#00ffea', opacity: 0.6 }} />
+                        {/* Bottom soft gradient so the script reads on any photo */}
+                        <span
+                          aria-hidden
+                          className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5"
+                          style={{
+                            background:
+                              'linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.18) 55%, transparent 100%)',
+                          }}
+                        />
+                        {/* Film-credit overlay — flowing coral cursive */}
+                        <figcaption
+                          className="absolute left-[7%] right-[7%] bottom-[6%]"
+                          style={{
+                            fontFamily: "'Allura', cursive",
+                            color: '#ffa590',
+                            fontSize: 'clamp(1.3rem, 3.4vw, 2.2rem)',
+                            lineHeight: 1.0,
+                            letterSpacing: '0.01em',
+                            textShadow: '0 1px 14px rgba(0,0,0,0.55), 0 1px 2px rgba(0,0,0,0.6)',
+                          }}
+                        >
                           {img.caption}
-                          {img.href && <span className="ml-auto text-[#00ffea]/70">read →</span>}
+                          {img.href && (
+                            <span
+                              className="ml-3 opacity-0 group-hover:opacity-100 transition-opacity"
+                              style={{
+                                fontFamily: "'Allura', cursive",
+                                fontSize: '0.55em',
+                                color: '#ffd2bf',
+                              }}
+                            >
+                              read →
+                            </span>
+                          )}
                         </figcaption>
-                      </>
+                      </div>
                     );
                     return img.href ? (
                       <Link key={img.src} href={img.href} className="anim-up group m-0 block cursor-pointer">
@@ -426,7 +456,17 @@ export default function Home() {
 
                 <div className="anim-up mt-9 flex items-center gap-3 text-white/30">
                   <Sparkle /><Heart /><Star /><Flower />
-                  <span className="ml-1 text-[0.82rem] text-white/40" style={{ fontWeight: 400 }}>{tx.visual.note}</span>
+                  <span
+                    className="ml-1 text-white/55"
+                    style={{
+                      fontFamily: "'Allura', cursive",
+                      fontSize: '1.35rem',
+                      color: '#ffa590',
+                      lineHeight: 1,
+                    }}
+                  >
+                    {tx.visual.note}
+                  </span>
                 </div>
                 <Link href="/blog/pate-de-verre" className="anim-up mt-4 inline-block text-[0.82rem] text-[#00ffea]/70 hover:text-[#00ffea] transition-colors" style={{ fontWeight: 500 }}>
                   {tx.visual.readGlass}
