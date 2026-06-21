@@ -305,7 +305,10 @@ export default function DispatchArchive() {
         <SwipeRail
           tag={tx.blog.womanInTech.tag}
           heading={tx.blog.womanInTech.heading}
-          groups={groupByTopic([...tx.blog.womanInTech.posts].reverse(), 'perspective')}
+          // Authored order, NOT reverse-chrono — Aileen wants the #MeToo
+          // piece first, regardless of date. translations.ts already
+          // lists the essays in the intended display order.
+          groups={groupByTopic([...tx.blog.womanInTech.posts], 'perspective')}
         />
         <SwipeRail
           tag={tx.blog.marsAndMoon.tag}
