@@ -62,22 +62,78 @@ const TOPIC_ORDER: Record<string, string[]> = {
 
 // Placeholder cover images per Research Dispatch article. Aileen will
 // swap each URL out for her own uploaded image later — slug → URL is
-// the contract. Falls back to a dark cyan gradient if an URL 404s.
+// the contract.
 //
-// Unsplash open-license, theme: space / GPU / datacenter / server rack /
-// circuit board / network — picked to match the "AI infrastructure +
-// on-chain compute" voice of the rail.
+// Curated Unsplash IDs grouped by article subject so each slug picks a
+// vaguely-on-theme placeholder. If a URL ever 404s the dark background
+// + centred title still reads — no broken-image icon.
+const COVER_SILICON =
+  'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&q=80';
+const COVER_SERVERS =
+  'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&q=80';
+const COVER_DATACENTER =
+  'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=1200&q=80';
+const COVER_NEBULA =
+  'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=1200&q=80';
+const COVER_GALAXY =
+  'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=1200&q=80';
+const COVER_RACK =
+  'https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=1200&q=80';
+const COVER_CODE =
+  'https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=1200&q=80';
+
 const FALLBACK_COVERS = [
-  'https://images.unsplash.com/photo-1518770660439-4636190af475?w=900&q=80',
-  'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=900&q=80',
-  'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=900&q=80',
-  'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=900&q=80',
-  'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=900&q=80',
-  'https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=900&q=80',
+  COVER_SILICON,
+  COVER_SERVERS,
+  COVER_DATACENTER,
+  COVER_NEBULA,
+  COVER_GALAXY,
+  COVER_RACK,
+  COVER_CODE,
 ];
+
 const COVER_BY_SLUG: Record<string, string> = {
-  // empty for now — Aileen will fill in. Until a slug has an explicit
-  // mapping, getCover() rotates through FALLBACK_COVERS by slug hash.
+  // AI hardware / silicon
+  'ai-pcb': COVER_SILICON,
+  'ai-hardware-scarcity': COVER_SILICON,
+  broadcom: COVER_SILICON,
+  marvell: COVER_SILICON,
+
+  // Optical / fiber
+  cpo: COVER_DATACENTER,
+  'let-there-be-light': COVER_DATACENTER,
+  'nokia-dci': COVER_DATACENTER,
+
+  // Data centre
+  'ai-cooling': COVER_SERVERS,
+  'nvidia-flywheel': COVER_RACK,
+  'dell-nvidia-flywheel': COVER_RACK,
+
+  // On-chain infrastructure / network
+  wire: COVER_RACK,
+  rpc: COVER_SERVERS,
+  'shred-economy': COVER_RACK,
+  'validator-clients': COVER_SERVERS,
+  doublezero: COVER_DATACENTER,
+  'instant-inference': COVER_SILICON,
+
+  // Code / terminal
+  cli: COVER_CODE,
+  'reading-solana': COVER_CODE,
+
+  // Agents / robotics
+  robots: COVER_RACK,
+  centaur: COVER_CODE,
+
+  // Privacy / Zcash
+  'zcash-fpga': COVER_SILICON,
+  'zec-arbitrage': COVER_GALAXY,
+
+  // MEV / markets (no on-the-nose photo, lean abstract)
+  clob: COVER_CODE,
+  'cex-dex-arb': COVER_CODE,
+  'prop-amm-dict': COVER_CODE,
+  'humidifi-decoded': COVER_CODE,
 };
 
 function getCover(slug: string): string {
@@ -394,8 +450,8 @@ function SwipeRow({ posts }: { posts: Post[] }) {
       style={{
         position: 'relative',
         width: '100%',
-        height: 'min(78vw, 380px)',
-        margin: '8px 0 36px',
+        height: 'min(64vw, 460px)',
+        margin: '8px 0 28px',
         cursor: dragRef.current.active ? 'grabbing' : 'grab',
         touchAction: 'pan-y',
         userSelect: 'none',
@@ -404,55 +460,63 @@ function SwipeRow({ posts }: { posts: Post[] }) {
       {posts.map((post, i) => {
         const offset = i - current;
         const absOffset = Math.abs(offset);
-        // Cards beyond the immediate neighbours are hidden — keeps the
-        // stage clean and avoids stacking-context paint cost.
-        if (absOffset > 2) return null;
+        // Only the centre + immediate neighbours render — diagonal layout
+        // needs the breathing room, more than that gets messy on a 4:5 card.
+        if (absOffset > 1) return null;
 
         const slug = post.href.replace(/^\/blog\//, '');
         const cover = getCover(slug);
 
         // Position relative to the centre, plus the drag preview.
-        // 55% per neighbour position; drag adds a fractional shift.
-        const dragShift = stageWidth > 0 ? (dragOffsetPx / stageWidth) * 55 : 0;
-        const translateXPct = offset * 55 - dragShift;
-        const scale = absOffset === 0 ? 1 : absOffset === 1 ? 0.72 : 0.5;
-        const opacity = absOffset === 0 ? 1 : absOffset === 1 ? 0.78 : 0.32;
+        // Diagonal layout: side cards shift toward upper-left (prev) and
+        // lower-right (next), with a slight tilt toward the centre — gives
+        // the tobi_ol "stacked deck on a diagonal" feel.
+        const dragShift = stageWidth > 0 ? (dragOffsetPx / stageWidth) * 50 : 0;
+        const translateXPct = offset * 50 - dragShift;
+        const translateYPct = offset * 22; // diagonal Y component
+        const rotateDeg = offset * -7;     // tilt toward centre
+        const scale = absOffset === 0 ? 1 : 0.7;
+        const opacity = absOffset === 0 ? 1 : 0.7;
         const zIndex = 10 - absOffset;
         const transition = dragRef.current.active
           ? 'none'
-          : 'transform 0.4s cubic-bezier(0.22, 0.9, 0.32, 1), opacity 0.4s, box-shadow 0.4s';
+          : 'transform 0.45s cubic-bezier(0.22, 0.9, 0.32, 1), opacity 0.45s, box-shadow 0.45s';
 
         const isCentre = offset === 0;
         const cardStyle: React.CSSProperties = {
           position: 'absolute',
           top: '50%',
           left: '50%',
-          transform: `translate(-50%, -50%) translateX(${translateXPct}%) scale(${scale})`,
+          transform: `translate(-50%, -50%) translateX(${translateXPct}%) translateY(${translateYPct}%) rotate(${rotateDeg}deg) scale(${scale})`,
           opacity,
           zIndex,
           transition,
-          width: 'min(64vw, 280px)',
-          height: 'min(74vw, 360px)',
-          borderRadius: 18,
+          // 3:2 landscape, like a movie still — no card chrome.
+          width: 'min(70vw, 420px)',
+          aspectRatio: '3 / 2',
+          borderRadius: 2,
           overflow: 'hidden',
-          background: `linear-gradient(135deg, rgba(0,255,234,0.18) 0%, rgba(0,0,0,0.85) 70%), url('${cover}') center/cover no-repeat`,
+          background: `url('${cover}') center/cover no-repeat #0a0a0a`,
           boxShadow: isCentre
-            ? '0 36px 80px -20px rgba(0,255,234,0.32)'
-            : '0 18px 40px -16px rgba(0,0,0,0.6)',
+            ? '0 22px 50px -22px rgba(0,0,0,0.55)'
+            : 'none',
           textDecoration: 'none',
           color: '#fff',
-          cursor: isCentre ? 'pointer' : 'pointer',
+          cursor: 'pointer',
         };
 
         const inner = (
           <>
+            {/* Subtle darkening under the title so it stays legible on
+                any cover image. No coloured gradient — the user asked
+                for a clean background. */}
             <span
               aria-hidden
               style={{
                 position: 'absolute',
                 inset: 0,
                 background:
-                  'radial-gradient(ellipse at center, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.55) 100%)',
+                  'linear-gradient(to bottom, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.42) 70%, rgba(0,0,0,0.6) 100%)',
               }}
             />
             <span
@@ -462,34 +526,19 @@ function SwipeRow({ posts }: { posts: Post[] }) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '32px 24px',
+                padding: '24px 32px',
                 textAlign: 'center',
                 fontFamily: nunito,
-                fontSize: 'clamp(1.05rem, 2.4vw, 1.4rem)',
+                fontSize: 'clamp(1.15rem, 2.6vw, 1.6rem)',
                 fontWeight: 600,
-                lineHeight: 1.25,
+                lineHeight: 1.2,
+                letterSpacing: '-0.005em',
                 color: '#fff',
-                textShadow: '0 2px 18px rgba(0,0,0,0.85)',
+                textShadow: '0 2px 22px rgba(0,0,0,0.9)',
                 pointerEvents: 'none',
               }}
             >
               {post.title}
-            </span>
-            <span
-              style={{
-                position: 'absolute',
-                bottom: 14,
-                left: 16,
-                fontFamily: nunito,
-                fontSize: '0.62rem',
-                letterSpacing: '0.22em',
-                textTransform: 'uppercase',
-                color: 'rgba(255,255,255,0.7)',
-                fontWeight: 500,
-                pointerEvents: 'none',
-              }}
-            >
-              {post.date}
             </span>
           </>
         );
@@ -529,37 +578,6 @@ function SwipeRow({ posts }: { posts: Post[] }) {
           </button>
         );
       })}
-
-      {/* Position dots — small index in the bottom centre */}
-      {posts.length > 1 && (
-        <div
-          aria-hidden
-          style={{
-            position: 'absolute',
-            bottom: -22,
-            left: 0,
-            right: 0,
-            display: 'flex',
-            justifyContent: 'center',
-            gap: 6,
-            pointerEvents: 'none',
-          }}
-        >
-          {posts.map((_, i) => (
-            <span
-              key={i}
-              style={{
-                display: 'inline-block',
-                width: 5,
-                height: 5,
-                borderRadius: 999,
-                background: i === current ? '#00ffea' : 'rgba(255,255,255,0.18)',
-                transition: 'background 0.3s',
-              }}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 }
