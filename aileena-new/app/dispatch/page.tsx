@@ -97,6 +97,13 @@ const COVER_NEBULA =
   'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=1200&q=80'; // nebula
 const COVER_GALAXY =
   'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=1200&q=80'; // galaxy
+// Woman-in-Tech essays — human / poetic imagery, not tech stock.
+const COVER_LION =
+  'https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=1200&q=80'; // lion close-up
+const COVER_PORTRAIT =
+  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=1200&q=80'; // portrait
+const COVER_SHADOW =
+  'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=1200&q=80'; // silhouette / quiet portrait
 
 const FALLBACK_COVERS = [
   COVER_SILICON,
@@ -157,6 +164,20 @@ const COVER_BY_SLUG: Record<string, string> = {
 
   // Sales / channels
   'tech-sales': COVER_NEBULA,         // abstract — no on-the-nose photo
+
+  // ── Perspective (Woman in Tech) ─────────────────────────────
+  // Human / poetic imagery. Lion is literal because the title invites it;
+  // the others use a still portrait + a quiet silhouette so the rail
+  // reads as essays, not stock-photo themed.
+  lion: COVER_LION,
+  misread: COVER_PORTRAIT,
+  harassment: COVER_SHADOW,
+
+  // ── Mars and Moon Magic ─────────────────────────────────────
+  // Placeholder rail; href is '#mars-moon' which lands as the lookup
+  // key after the /blog/ strip. Map to galaxy so the cosmic theme
+  // doesn't fall back into a server-rack rotation.
+  '#mars-moon': COVER_GALAXY,
 };
 
 function getCover(slug: string): string {
@@ -266,30 +287,27 @@ export default function DispatchArchive() {
       </header>
 
       <main style={{ maxWidth: 960, margin: '0 auto', padding: '56px 24px 120px' }}>
-        {/* Research Dispatch — swipe rows */}
+        {/* All four rails render as the same diagonal-fade carousel —
+            topic-grouped for Dispatch + Investing, flat for Perspective
+            + Mars and Moon. RailSection (substack list) kept in the
+            file but no longer used; reachable for a quick revert. */}
         <SwipeRail
           tag={tx.blog.researchDispatch.tag}
           heading={tx.blog.researchDispatch.heading}
           groups={groupByTopic([...tx.blog.researchDispatch.posts].reverse(), 'dispatch')}
           firstSection
         />
-
-        {/* Investing — substack list (unchanged) */}
-        <RailSection
+        <SwipeRail
           tag={tx.blog.investing.tag}
           heading={tx.blog.investing.heading}
           groups={groupByTopic([...tx.blog.investing.posts].reverse(), 'investing')}
         />
-
-        {/* Perspective — flat substack list (unchanged) */}
-        <RailSection
+        <SwipeRail
           tag={tx.blog.womanInTech.tag}
           heading={tx.blog.womanInTech.heading}
           groups={groupByTopic([...tx.blog.womanInTech.posts].reverse(), 'perspective')}
         />
-
-        {/* Mars and Moon Magic — flat substack list (unchanged) */}
-        <RailSection
+        <SwipeRail
           tag={tx.blog.marsAndMoon.tag}
           heading={tx.blog.marsAndMoon.heading}
           groups={groupByTopic([...tx.blog.marsAndMoon.posts].reverse(), 'marsAndMoon')}
