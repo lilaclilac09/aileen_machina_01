@@ -398,7 +398,7 @@ export default function Home() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                   {tx.visual.items.map((img: { src: string; alt: string; caption: string; href?: string }) => {
                     const tile = (
-                      <div className="relative w-full aspect-square overflow-hidden rounded-md">
+                      <figure className="relative w-full aspect-square overflow-hidden rounded-md m-0">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={img.src}
@@ -440,16 +440,16 @@ export default function Home() {
                             </span>
                           )}
                         </figcaption>
-                      </div>
+                      </figure>
                     );
                     return img.href ? (
-                      <Link key={img.src} href={img.href} className="anim-up group m-0 block cursor-pointer">
+                      <Link key={img.src} href={img.href} className="anim-up group block cursor-pointer">
                         {tile}
                       </Link>
                     ) : (
-                      <figure key={img.src} className="anim-up group m-0">
+                      <div key={img.src} className="anim-up group">
                         {tile}
-                      </figure>
+                      </div>
                     );
                   })}
                 </div>

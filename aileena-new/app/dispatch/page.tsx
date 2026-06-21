@@ -395,7 +395,7 @@ function ViewToggle({
   ];
   return (
     <div
-      role="tablist"
+      role="group"
       aria-label="Dispatch view"
       style={{
         display: 'inline-flex',
@@ -412,8 +412,7 @@ function ViewToggle({
           <button
             key={opt.id}
             type="button"
-            role="tab"
-            aria-selected={active}
+            aria-pressed={active}
             onClick={() => setView(opt.id)}
             style={{
               appearance: 'none',
