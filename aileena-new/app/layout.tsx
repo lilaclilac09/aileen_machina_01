@@ -17,6 +17,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        {/* Allura — flowing coral cursive used in the Visual film-credit
+            overlay. Loaded via runtime <link> rather than next/font/google
+            so it works on networks where the build can't reach Google. */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Allura&display=swap"
+        />
+      </head>
       <body style={{ height: '100%', overflow: 'hidden' }}>
         <ThemeProvider>
           <LanguageProvider>{children}</LanguageProvider>

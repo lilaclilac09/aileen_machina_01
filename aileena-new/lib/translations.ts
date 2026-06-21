@@ -55,6 +55,13 @@ export const t = {
         showLabel: 'All episodes · YouTube',
         showHref: 'https://www.youtube.com/@Fashion_Neurosis/videos',
       },
+      doYouReadHer: {
+        sectionLabel: 'DO YOU READ HER',
+        title: 'Do You Read Her',
+        body: 'A podcast about how we read the women we love and the women we don’t — placeholder copy, swap in your own line.',
+        episodeLabel: 'Listen · Spotify',
+        episodeHref: 'https://open.spotify.com/episode/0cx1oBoJEwfaKGVbITcD5K',
+      },
     },
     visual: {
       tag: 'VISUAL',
@@ -504,6 +511,13 @@ export const t = {
         kateHref: 'https://open.spotify.com/episode/0ZxMxV8EiZ9DkAPJWU0If7',
         showLabel: 'Alle Folgen · YouTube',
         showHref: 'https://www.youtube.com/@Fashion_Neurosis/videos',
+      },
+      doYouReadHer: {
+        sectionLabel: 'DO YOU READ HER',
+        title: 'Do You Read Her',
+        body: 'Ein Podcast darüber, wie wir die Frauen lesen, die wir lieben — und die, die wir nicht lieben. Platzhaltertext, schreib hier deine eigene Zeile.',
+        episodeLabel: 'Hören · Spotify',
+        episodeHref: 'https://open.spotify.com/episode/0cx1oBoJEwfaKGVbITcD5K',
       },
     },
     visual: {
