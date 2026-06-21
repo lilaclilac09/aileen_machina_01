@@ -355,6 +355,27 @@ export default function Home() {
                   </a>
                 </div>
               </div>
+
+              <div className="anim-up-3 pt-6 mt-6 border-t border-white/10">
+                <p className="text-[0.58rem] uppercase tracking-[0.45em] text-white/35 mb-2" style={{ fontWeight: 500 }}>
+                  {tx.trendy.doYouReadHer.sectionLabel}
+                </p>
+                <h3 className="text-[1rem] tracking-tight text-white/90 mb-2" style={{ fontWeight: 500 }}>
+                  {tx.trendy.doYouReadHer.title}
+                </h3>
+                <p className="text-[0.84rem] leading-relaxed text-white/55 mb-4" style={{ fontWeight: 400 }}>
+                  {tx.trendy.doYouReadHer.body}
+                </p>
+                <a
+                  href={tx.trendy.doYouReadHer.episodeHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[0.76rem] text-[#00ffea]/75 hover:text-[#00ffea] transition-colors no-underline"
+                  style={{ fontWeight: 500 }}
+                >
+                  {tx.trendy.doYouReadHer.episodeLabel} →
+                </a>
+              </div>
             </div>
           </div>
         </SnapSection>
