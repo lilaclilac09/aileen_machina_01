@@ -60,80 +60,103 @@ const TOPIC_ORDER: Record<string, string[]> = {
   marsAndMoon: [],
 };
 
-// Placeholder cover images per Research Dispatch article. Aileen will
-// swap each URL out for her own uploaded image later — slug → URL is
-// the contract.
+// Placeholder cover images per Research Dispatch / Investing article.
+// Aileen will swap each URL for her own uploaded image later — slug →
+// URL is the contract.
 //
-// Curated Unsplash IDs grouped by article subject so each slug picks a
-// vaguely-on-theme placeholder. If a URL ever 404s the dark background
-// + centred title still reads — no broken-image icon.
+// Curated Unsplash IDs grouped by article subject. If a URL ever 404s,
+// the dark background + centred title still reads — no broken-image
+// icon.
 const COVER_SILICON =
-  'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&q=80';
+  'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&q=80'; // circuit-board macro
+const COVER_CIRCUIT_CLOSEUP =
+  'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=1200&q=80'; // circuit board closeup, blue
 const COVER_SERVERS =
-  'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&q=80';
+  'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&q=80'; // server room
 const COVER_DATACENTER =
-  'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=1200&q=80';
-const COVER_NEBULA =
-  'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=1200&q=80';
-const COVER_GALAXY =
-  'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=1200&q=80';
+  'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=1200&q=80'; // datacenter cables
 const COVER_RACK =
-  'https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=1200&q=80';
+  'https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=1200&q=80'; // server rack
+const COVER_SERVER_CABLES =
+  'https://images.unsplash.com/photo-1607799279861-4dd421887fb3?w=1200&q=80'; // server cabling, cyan
+const COVER_GPU =
+  'https://images.unsplash.com/photo-1591789881337-bdc4fa6f3a45?w=1200&q=80'; // graphics card
+const COVER_FIBER =
+  'https://images.unsplash.com/photo-1633265486064-086b219458ec?w=1200&q=80'; // fiber optic
+const COVER_LIGHT =
+  'https://images.unsplash.com/photo-1496359311989-d9f2b3f0acd9?w=1200&q=80'; // abstract light / waves
 const COVER_CODE =
-  'https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=1200&q=80';
+  'https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=1200&q=80'; // code on screen
+const COVER_TERMINAL =
+  'https://images.unsplash.com/photo-1577563908411-5077b6dc7624?w=1200&q=80'; // terminal/dark screen
+const COVER_AI_ABSTRACT =
+  'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=1200&q=80'; // abstract AI / robot
+const COVER_FINANCE =
+  'https://images.unsplash.com/photo-1605792657660-596af9009e82?w=1200&q=80'; // finance / abstract numbers
+const COVER_NEBULA =
+  'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=1200&q=80'; // nebula
+const COVER_GALAXY =
+  'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=1200&q=80'; // galaxy
 
 const FALLBACK_COVERS = [
   COVER_SILICON,
   COVER_SERVERS,
   COVER_DATACENTER,
-  COVER_NEBULA,
-  COVER_GALAXY,
   COVER_RACK,
+  COVER_CIRCUIT_CLOSEUP,
+  COVER_FIBER,
   COVER_CODE,
+  COVER_GPU,
 ];
 
 const COVER_BY_SLUG: Record<string, string> = {
-  // AI hardware / silicon
-  'ai-pcb': COVER_SILICON,
-  'ai-hardware-scarcity': COVER_SILICON,
-  broadcom: COVER_SILICON,
-  marvell: COVER_SILICON,
+  // ── Research Dispatch ───────────────────────────────────────
+  // On-chain infrastructure
+  wire: COVER_FIBER,                  // Solana shreds + Turbine, network
+  rpc: COVER_RACK,                    // RPC infra
+  'shred-economy': COVER_RACK,        // shred routing
+  'validator-clients': COVER_SERVERS, // validator cluster
+  doublezero: COVER_FIBER,            // backbone fibre
+  'reading-solana': COVER_CODE,       // reading research
+  'instant-inference': COVER_GPU,     // inference compute
 
-  // Optical / fiber
-  cpo: COVER_DATACENTER,
-  'let-there-be-light': COVER_DATACENTER,
-  'nokia-dci': COVER_DATACENTER,
-
-  // Data centre
-  'ai-cooling': COVER_SERVERS,
-  'nvidia-flywheel': COVER_RACK,
-  'dell-nvidia-flywheel': COVER_RACK,
-
-  // On-chain infrastructure / network
-  wire: COVER_RACK,
-  rpc: COVER_SERVERS,
-  'shred-economy': COVER_RACK,
-  'validator-clients': COVER_SERVERS,
-  doublezero: COVER_DATACENTER,
-  'instant-inference': COVER_SILICON,
-
-  // Code / terminal
-  cli: COVER_CODE,
-  'reading-solana': COVER_CODE,
+  // MEV / markets
+  clob: COVER_FINANCE,                // order book
+  'cex-dex-arb': COVER_FINANCE,       // arbitrage charts
+  'cex-dex-dashboard': COVER_FINANCE,
+  'prop-amm-dict': COVER_CODE,        // reverse engineering
+  'humidifi-decoded': COVER_CODE,     // decoded bytes
 
   // Agents / robotics
-  robots: COVER_RACK,
-  centaur: COVER_CODE,
+  robots: COVER_AI_ABSTRACT,          // NVIDIA Omniverse, robotics
+  centaur: COVER_AI_ABSTRACT,         // Paradigm agent runtime
+  cli: COVER_TERMINAL,                // CLI tools
 
   // Privacy / Zcash
-  'zcash-fpga': COVER_SILICON,
-  'zec-arbitrage': COVER_GALAXY,
+  'zcash-fpga': COVER_CIRCUIT_CLOSEUP, // FPGA chip
+  'zec-arbitrage': COVER_GALAXY,       // abstract privacy
 
-  // MEV / markets (no on-the-nose photo, lean abstract)
-  clob: COVER_CODE,
-  'cex-dex-arb': COVER_CODE,
-  'prop-amm-dict': COVER_CODE,
-  'humidifi-decoded': COVER_CODE,
+  // ── Investing ───────────────────────────────────────────────
+  // AI hardware silicon
+  'ai-pcb': COVER_SILICON,            // PCB circuit
+  broadcom: COVER_SILICON,            // silicon
+  marvell: COVER_CIRCUIT_CLOSEUP,     // silicon, different angle
+  'ai-hardware-scarcity': COVER_SILICON,
+
+  // Optical / fibre
+  cpo: COVER_FIBER,                   // co-packaged optics
+  'let-there-be-light': COVER_LIGHT,  // laser / optical
+  'nokia-dci': COVER_FIBER,           // DCI backbone
+
+  // Data centre / cooling
+  'ai-cooling': COVER_DATACENTER,     // datacenter cooling
+
+  // Capital / flywheels
+  'nvidia-flywheel': COVER_GPU,       // NVIDIA GPU
+  'dell-nvidia-flywheel': COVER_SERVER_CABLES, // Dell server iron
+
+  // Sales / channels
+  'tech-sales': COVER_NEBULA,         // abstract — no on-the-nose photo
 };
 
 function getCover(slug: string): string {
