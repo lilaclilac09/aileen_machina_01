@@ -625,12 +625,34 @@ function PlaylistCarousel({
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                     draggable={false}
                   />
-                  {/* Caption overlay — layer 1 typography on active card */}
+                  {/* Permanent bottom title strip — every card shows
+                      its track name, not just the centred one. */}
+                  <div style={{
+                    position: 'absolute', bottom: 0, left: 0, right: 0,
+                    padding: '5px 7px',
+                    background: rel === 0 ? 'rgba(0,0,0,0.78)' : 'rgba(0,0,0,0.55)',
+                    transition: 'background 0.25s ease',
+                  }}>
+                    <p style={{
+                      fontFamily: 'monospace',
+                      fontSize: '0.28rem',
+                      fontWeight: 500,
+                      letterSpacing: '0.06em',
+                      color: '#ffffff',
+                      textTransform: 'uppercase',
+                      textAlign: 'center',
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      margin: 0,
+                    }}>{track.title}</p>
+                  </div>
+                  {/* Active-card caption overlay — bigger gradient
+                      treatment sits above the permanent strip. */}
                   {rel === 0 && (
                     <div style={{
                       position: 'absolute', bottom: 0, left: 0, right: 0,
                       padding: '22px 10px 8px',
                       background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%)',
+                      pointerEvents: 'none',
                     }}>
                       <p style={{
                         fontFamily: 'monospace',
