@@ -167,11 +167,11 @@ const COVER_BY_SLUG: Record<string, string> = {
 
   // ── Perspective (Woman in Tech) ─────────────────────────────
   // Human / poetic imagery. Lion is literal because the title invites it;
-  // the others use a still portrait + a quiet silhouette so the rail
-  // reads as essays, not stock-photo themed.
+  // misread leans portrait; harassment uses Aileen's own film-still
+  // crop (the "WAR" tank-top frame, subject pinned at the left third).
   lion: COVER_LION,
   misread: COVER_PORTRAIT,
-  harassment: COVER_SHADOW,
+  harassment: '/dispatch-covers/harassment.jpg',
 
   // ── Mars and Moon Magic ─────────────────────────────────────
   // Placeholder rail; href is '#mars-moon' which lands as the lookup
@@ -301,6 +301,7 @@ export default function DispatchArchive() {
           tag={tx.blog.investing.tag}
           heading={tx.blog.investing.heading}
           groups={groupByTopic([...tx.blog.investing.posts].reverse(), 'investing')}
+          heroImage="/dispatch-covers/investing-hero.jpg"
         />
         <SwipeRail
           tag={tx.blog.womanInTech.tag}
@@ -374,6 +375,74 @@ function TopicHeader({ topic }: { topic: string }) {
   );
 }
 
+/* Magazine-style banner that replaces the plain RailHeader when a rail
+   has its own cover. Used on Investing — Aileen's "Heavens, a diamond!"
+   film still. Image fills a 3:2 frame, tag + heading lie over a soft
+   bottom gradient so they stay legible regardless of cover contrast. */
+function RailHero({ tag, heading, src }: { tag: string; heading: string; src: string }) {
+  return (
+    <div
+      style={{
+        position: 'relative',
+        width: '100%',
+        aspectRatio: '3 / 2',
+        maxHeight: 'min(64vw, 460px)',
+        borderRadius: 2,
+        overflow: 'hidden',
+        background: `url('${src}') center/cover no-repeat #0a0a0a`,
+        marginBottom: 36,
+      }}
+    >
+      <span
+        aria-hidden
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background:
+            'linear-gradient(to bottom, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.18) 50%, rgba(0,0,0,0.72) 100%)',
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 'clamp(20px, 4vw, 36px)',
+          left: 'clamp(18px, 3.5vw, 32px)',
+          right: 'clamp(18px, 3.5vw, 32px)',
+          color: '#fff',
+        }}
+      >
+        <p
+          style={{
+            fontFamily: nunito,
+            fontSize: '0.7rem',
+            letterSpacing: '0.22em',
+            opacity: 0.78,
+            textTransform: 'uppercase',
+            fontWeight: 500,
+            marginBottom: 10,
+            textShadow: '0 1px 12px rgba(0,0,0,0.7)',
+          }}
+        >
+          {tag}
+        </p>
+        <h2
+          style={{
+            fontSize: 'clamp(1.5rem, 4vw, 2.4rem)',
+            fontWeight: 500,
+            letterSpacing: '-0.005em',
+            lineHeight: 1.15,
+            margin: 0,
+            color: '#fff',
+            textShadow: '0 2px 22px rgba(0,0,0,0.85)',
+          }}
+        >
+          {heading}
+        </h2>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Swipeable cover-card rail (Research Dispatch) ─────────── */
 
 function SwipeRail({
@@ -381,15 +450,21 @@ function SwipeRail({
   heading,
   groups,
   firstSection = false,
+  heroImage,
 }: {
   tag: string;
   heading: string;
   groups: { topic: string | null; posts: Post[] }[];
   firstSection?: boolean;
+  heroImage?: string;
 }) {
   return (
     <section style={{ marginTop: firstSection ? 0 : 88 }}>
-      <RailHeader tag={tag} heading={heading} />
+      {heroImage ? (
+        <RailHero tag={tag} heading={heading} src={heroImage} />
+      ) : (
+        <RailHeader tag={tag} heading={heading} />
+      )}
       {groups.map((g, i) => (
         <div key={g.topic ?? `g-${i}`} style={{ marginTop: i > 0 ? 44 : 0 }}>
           {g.topic && <TopicHeader topic={g.topic} />}
