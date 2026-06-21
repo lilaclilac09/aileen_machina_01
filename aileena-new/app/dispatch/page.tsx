@@ -469,18 +469,20 @@ function SwipeRow({ posts }: { posts: Post[] }) {
 
         // Position relative to the centre, plus the drag preview.
         // Diagonal layout: side cards shift toward upper-left (prev) and
-        // lower-right (next), with a slight tilt toward the centre — gives
-        // the tobi_ol "stacked deck on a diagonal" feel.
-        const dragShift = stageWidth > 0 ? (dragOffsetPx / stageWidth) * 50 : 0;
-        const translateXPct = offset * 50 - dragShift;
-        const translateYPct = offset * 22; // diagonal Y component
-        const rotateDeg = offset * -7;     // tilt toward centre
-        const scale = absOffset === 0 ? 1 : 0.7;
-        const opacity = absOffset === 0 ? 1 : 0.7;
+        // lower-right (next), tilt toward the centre, AND fade + blur
+        // out so the transition between centred cards reads as a true
+        // diagonal dissolve, not a slide.
+        const dragShift = stageWidth > 0 ? (dragOffsetPx / stageWidth) * 55 : 0;
+        const translateXPct = offset * 55 - dragShift;
+        const translateYPct = offset * 30; // diagonal Y component (stronger)
+        const rotateDeg = offset * -10;    // tilt toward centre (stronger)
+        const scale = absOffset === 0 ? 1 : 0.66;
+        const opacity = absOffset === 0 ? 1 : 0.32;
+        const blurPx = absOffset === 0 ? 0 : 3.5;
         const zIndex = 10 - absOffset;
         const transition = dragRef.current.active
           ? 'none'
-          : 'transform 0.45s cubic-bezier(0.22, 0.9, 0.32, 1), opacity 0.45s, box-shadow 0.45s';
+          : 'transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1), opacity 0.6s cubic-bezier(0.4, 0.0, 0.2, 1), filter 0.6s, box-shadow 0.6s';
 
         const isCentre = offset === 0;
         const cardStyle: React.CSSProperties = {
@@ -489,6 +491,7 @@ function SwipeRow({ posts }: { posts: Post[] }) {
           left: '50%',
           transform: `translate(-50%, -50%) translateX(${translateXPct}%) translateY(${translateYPct}%) rotate(${rotateDeg}deg) scale(${scale})`,
           opacity,
+          filter: blurPx > 0 ? `blur(${blurPx}px)` : undefined,
           zIndex,
           transition,
           // 3:2 landscape, like a movie still — no card chrome.
