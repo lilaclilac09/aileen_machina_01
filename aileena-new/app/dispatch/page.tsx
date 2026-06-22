@@ -7,6 +7,11 @@ import { t } from '../../lib/translations';
 import ScrollUnlock from '../blog/ScrollUnlock';
 import '../blog/_substack/substack.css';
 import SwipeRow, { type Post, getCover } from '../../components/SwipeRow';
+import CoverflowPanel from '../../components/CoverflowPanel';
+import {
+  useCoverflowSettings,
+  type CoverflowSettings,
+} from '../../lib/useCoverflowSettings';
 
 const nunito = "'Nunito', system-ui, -apple-system, sans-serif";
 
@@ -122,6 +127,7 @@ export default function DispatchArchive() {
   }, []);
 
   const isImage = view === 'image';
+  const coverflow = useCoverflowSettings();
 
   return (
     <div
@@ -206,12 +212,14 @@ export default function DispatchArchive() {
               heading={tx.blog.researchDispatch.heading}
               groups={groupByTopic([...tx.blog.researchDispatch.posts].reverse(), 'dispatch')}
               firstSection
+              settings={coverflow.settings}
             />
             <SwipeRail
               tag={tx.blog.investing.tag}
               heading={tx.blog.investing.heading}
               groups={groupByTopic([...tx.blog.investing.posts].reverse(), 'investing')}
               heroImage="/dispatch-covers/investing-hero.jpg"
+              settings={coverflow.settings}
             />
             <SwipeRail
               tag={tx.blog.womanInTech.tag}
@@ -220,11 +228,13 @@ export default function DispatchArchive() {
               // piece first, regardless of date. translations.ts already
               // lists the essays in the intended display order.
               groups={groupByTopic([...tx.blog.womanInTech.posts], 'perspective')}
+              settings={coverflow.settings}
             />
             <SwipeRail
               tag={tx.blog.marsAndMoon.tag}
               heading={tx.blog.marsAndMoon.heading}
               groups={groupByTopic([...tx.blog.marsAndMoon.posts].reverse(), 'marsAndMoon')}
+              settings={coverflow.settings}
             />
           </>
         ) : (
@@ -253,6 +263,13 @@ export default function DispatchArchive() {
           </>
         )}
       </main>
+      <CoverflowPanel
+        settings={coverflow.settings}
+        update={coverflow.update}
+        reset={coverflow.reset}
+        open={coverflow.panelOpen}
+        onToggle={coverflow.togglePanel}
+      />
     </div>
   );
 }
@@ -444,12 +461,14 @@ function SwipeRail({
   groups,
   firstSection = false,
   heroImage,
+  settings,
 }: {
   tag: string;
   heading: string;
   groups: { topic: string | null; posts: Post[] }[];
   firstSection?: boolean;
   heroImage?: string;
+  settings: CoverflowSettings;
 }) {
   return (
     <section style={{ marginTop: firstSection ? 0 : 88 }}>
@@ -461,7 +480,7 @@ function SwipeRail({
       {groups.map((g, i) => (
         <div key={g.topic ?? `g-${i}`} style={{ marginTop: i > 0 ? 44 : 0 }}>
           {g.topic && <TopicHeader topic={g.topic} />}
-          <SwipeRow posts={g.posts} />
+          <SwipeRow posts={g.posts} settings={settings} />
         </div>
       ))}
     </section>

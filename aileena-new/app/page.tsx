@@ -9,6 +9,8 @@ import { SnapContainer, SnapSection } from '../components/SnapScroll';
 import { useLanguage } from '../components/LanguageProvider';
 import { t } from '../lib/translations';
 import SwipeRow from '../components/SwipeRow';
+import CoverflowPanel from '../components/CoverflowPanel';
+import { useCoverflowSettings } from '../lib/useCoverflowSettings';
 import './blog/_substack/substack.css';
 
 const nunito = "'Nunito', system-ui, -apple-system, sans-serif";
@@ -39,8 +41,14 @@ export default function Home() {
   }, []);
 
   const dispatchTop3 = tx.blog.researchDispatch.posts.slice(-3).reverse();
-  const investingPosts = [...tx.blog.investing.posts].reverse();
-  const womanInTechPosts = tx.blog.womanInTech.posts;
+  // Mirror dispatch's pattern: top-3 newest for the homepage showcase;
+  // full archives live on /dispatch.
+  const investingTop3 = [...tx.blog.investing.posts].reverse().slice(0, 3);
+  // Authored order (NOT reverse-chrono) so the #MeToo essay stays first.
+  // Matches /dispatch/page.tsx:219 — Aileen's display preference.
+  const womanInTechTop3 = tx.blog.womanInTech.posts.slice(0, 3);
+
+  const coverflow = useCoverflowSettings();
 
   return (
     <>
@@ -162,7 +170,7 @@ export default function Home() {
                 {tx.blog.researchDispatch.heading}
               </h2>
               <div className="anim-up flex-1 flex items-center">
-                <SwipeRow posts={dispatchTop3} hijackScroll />
+                <SwipeRow posts={dispatchTop3} hijackScroll settings={coverflow.settings} />
               </div>
               <Link
                 href="/dispatch"
@@ -188,15 +196,16 @@ export default function Home() {
               >
                 {tx.blog.investing.heading}
               </h2>
-              <div className="flex-1 overflow-y-auto pr-1 substack-list">
-                {investingPosts.map((post) => (
-                  <Link key={post.title} href={post.href}>
-                    <p className="sl-date">{post.date}</p>
-                    <h3 className="sl-title">{post.title}</h3>
-                    <p className="sl-body">{post.body}</p>
-                  </Link>
-                ))}
+              <div className="anim-up flex-1 flex items-center">
+                <SwipeRow posts={investingTop3} hijackScroll settings={coverflow.settings} />
               </div>
+              <Link
+                href="/dispatch#investing"
+                className="anim-up-3 mt-8 inline-block text-[0.8rem] text-white/55 hover:text-white transition-colors no-underline border-b border-white/15 hover:border-white pb-0.5 self-start"
+                style={{ fontWeight: 500 }}
+              >
+                See the whole archive →
+              </Link>
             </div>
           </div>
         </SnapSection>
@@ -286,15 +295,16 @@ export default function Home() {
                 {tx.blog.womanInTech.heading}
               </h2>
 
-              <div className="flex-1 overflow-y-auto pr-1 substack-list">
-                {womanInTechPosts.map((post) => (
-                  <Link key={post.title} href={post.href}>
-                    <p className="sl-date">{post.date}</p>
-                    <h3 className="sl-title">{post.title}</h3>
-                    <p className="sl-body">{post.body}</p>
-                  </Link>
-                ))}
+              <div className="anim-up flex-1 flex items-center">
+                <SwipeRow posts={womanInTechTop3} hijackScroll settings={coverflow.settings} />
               </div>
+              <Link
+                href="/dispatch#woman-in-tech"
+                className="anim-up-3 mt-8 inline-block text-[0.8rem] text-white/55 hover:text-white transition-colors no-underline border-b border-white/15 hover:border-white pb-0.5 self-start"
+                style={{ fontWeight: 500 }}
+              >
+                See the whole archive →
+              </Link>
             </div>
           </div>
         </SnapSection>
@@ -505,6 +515,13 @@ export default function Home() {
         </SnapSection>
 
       </SnapContainer>
+      <CoverflowPanel
+        settings={coverflow.settings}
+        update={coverflow.update}
+        reset={coverflow.reset}
+        open={coverflow.panelOpen}
+        onToggle={coverflow.togglePanel}
+      />
     </>
   );
 }
