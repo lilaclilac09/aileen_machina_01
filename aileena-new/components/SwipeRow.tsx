@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 
 const nunito = "'Nunito', system-ui, -apple-system, sans-serif";
@@ -138,7 +138,20 @@ export function getCover(slug: string): string {
 const COVER_FLOW_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)';
 const SIDE_ROTATE_DEG = 65;
 
-export default function SwipeRow({ posts }: { posts: Post[] }) {
+export default function SwipeRow({
+  posts,
+  hijackScroll = false,
+}: {
+  posts: Post[];
+  /**
+   * When the stage is the in-view snap section, convert vertical wheel
+   * and touch-swipe gestures into one-card advances with the same
+   * cooldown feel as the page's section snap. Only the last card
+   * releases the scroll back to the snap container so the visitor can
+   * leave the section. Off by default — opt in on the homepage.
+   */
+  hijackScroll?: boolean;
+}) {
   const [current, setCurrent] = useState(0);
   const [stageWidth, setStageWidth] = useState(0);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -149,6 +162,11 @@ export default function SwipeRow({ posts }: { posts: Post[] }) {
     lastDelta: 0,
   });
   const [, forceRender] = useState(0);
+  const currentRef = useRef(current);
+  currentRef.current = current;
+  const postsLenRef = useRef(posts.length);
+  postsLenRef.current = posts.length;
+  const cooldownRef = useRef(0);
 
   useLayoutEffect(() => {
     if (!stageRef.current) return;
@@ -207,6 +225,77 @@ export default function SwipeRow({ posts }: { posts: Post[] }) {
       advance(1);
     }
   };
+
+  // Scroll hijack — when the stage is the active snap section, convert
+  // vertical wheel ticks and touch swipes into one-card advances. Only
+  // the last/first card in the relevant direction releases the scroll
+  // back to the snap container so the visitor can leave the section.
+  useEffect(() => {
+    if (!hijackScroll) return;
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    const COOLDOWN_MS = 650;
+    const TOUCH_THRESHOLD_PX = 40;
+
+    // Find the parent snap-section so we can ask "is this the one in view".
+    let snapSection: HTMLElement | null = stage.closest('.snap-section');
+
+    const isInView = () => {
+      if (!snapSection) return false;
+      return snapSection.classList.contains('in-view');
+    };
+
+    const canAdvance = (direction: 1 | -1) => {
+      const c = currentRef.current;
+      if (direction === 1) return c < postsLenRef.current - 1;
+      return c > 0;
+    };
+
+    const tryAdvance = (direction: 1 | -1, e: Event) => {
+      if (!isInView()) return false;
+      const now = performance.now();
+      if (now < cooldownRef.current) {
+        // Still in cooldown — eat the event so the snap container doesn't
+        // bypass us either.
+        if (canAdvance(direction)) e.preventDefault();
+        return false;
+      }
+      if (!canAdvance(direction)) return false;
+      e.preventDefault();
+      cooldownRef.current = now + COOLDOWN_MS;
+      setCurrent((c) => Math.max(0, Math.min(postsLenRef.current - 1, c + direction)));
+      return true;
+    };
+
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) < 5) return;
+      tryAdvance(e.deltaY > 0 ? 1 : -1, e);
+    };
+
+    let touchStartY = 0;
+    let touchHandled = false;
+    const onTouchStart = (e: TouchEvent) => {
+      touchStartY = e.touches[0]?.clientY ?? 0;
+      touchHandled = false;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (touchHandled) return;
+      const y = e.touches[0]?.clientY ?? 0;
+      const delta = touchStartY - y;
+      if (Math.abs(delta) < TOUCH_THRESHOLD_PX) return;
+      touchHandled = tryAdvance(delta > 0 ? 1 : -1, e);
+    };
+
+    window.addEventListener('wheel', onWheel, { passive: false });
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    return () => {
+      window.removeEventListener('wheel', onWheel);
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
+    };
+  }, [hijackScroll]);
 
   // Convert the drag (px) into a fractional offset shift so the deck
   // moves with the finger before snapping. One full stage width ≈ 2

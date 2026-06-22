@@ -162,7 +162,7 @@ export default function Home() {
                 {tx.blog.researchDispatch.heading}
               </h2>
               <div className="anim-up flex-1 flex items-center">
-                <SwipeRow posts={dispatchTop3} />
+                <SwipeRow posts={dispatchTop3} hijackScroll />
               </div>
               <Link
                 href="/dispatch"
