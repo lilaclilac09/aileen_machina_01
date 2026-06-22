@@ -8,6 +8,7 @@ import LoadingScreen from '../components/LoadingScreen';
 import { SnapContainer, SnapSection } from '../components/SnapScroll';
 import { useLanguage } from '../components/LanguageProvider';
 import { t } from '../lib/translations';
+import SwipeRow from '../components/SwipeRow';
 import './blog/_substack/substack.css';
 
 const nunito = "'Nunito', system-ui, -apple-system, sans-serif";
@@ -160,14 +161,8 @@ export default function Home() {
               >
                 {tx.blog.researchDispatch.heading}
               </h2>
-              <div className="flex-1 overflow-y-auto pr-1 substack-list">
-                {dispatchTop3.map((post) => (
-                  <Link key={post.title} href={post.href}>
-                    <p className="sl-date">{post.date}</p>
-                    <h3 className="sl-title">{post.title}</h3>
-                    <p className="sl-body">{post.body}</p>
-                  </Link>
-                ))}
+              <div className="anim-up flex-1 flex items-center">
+                <SwipeRow posts={dispatchTop3} hijackScroll />
               </div>
               <Link
                 href="/dispatch"
