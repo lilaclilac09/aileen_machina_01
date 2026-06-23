@@ -61,7 +61,7 @@ const SLUG_TOPIC: Record<string, string> = {
 };
 
 const TOPIC_ORDER: Record<string, string[]> = {
-  dispatch: ['On-chain infrastructure', 'MEV & markets', 'Agents & robotics', 'Privacy', 'AI infrastructure'],
+  dispatch: ['AI infrastructure', 'On-chain infrastructure', 'MEV & markets', 'Agents & robotics', 'Privacy'],
   investing: ['AI hardware', 'Capital flywheels', 'Sales & channels'],
   perspective: [],
   marsAndMoon: [],
