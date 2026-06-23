@@ -393,7 +393,7 @@ export default function SwipeRow({
         style={{
           position: 'relative',
           width: '100%',
-          height: 'min(64vw, 440px)',
+          height: 'min(48vw, 360px)',
           margin: '8px 0 28px',
           cursor: isDragging ? 'grabbing' : 'grab',
           touchAction: 'pan-y',
@@ -455,8 +455,8 @@ export default function SwipeRow({
             position: 'absolute',
             top: '50%',
             left: '50%',
-            width: 'min(60vw, 380px)',
-            aspectRatio: '3 / 2',
+            width: 'clamp(300px, 86vw, 720px)',
+            aspectRatio: '2.35 / 1',
             transformStyle: 'preserve-3d',
             zIndex,
             pointerEvents: opacity > 0.1 ? 'auto' : 'none',
@@ -594,7 +594,7 @@ function FlowButton({
       aria-label={direction === 'prev' ? 'Previous' : 'Next'}
       style={{
         position: 'absolute',
-        top: 'calc(min(64vw, 440px) / 2 + 4px)',
+        top: 'calc(min(48vw, 360px) / 2 + 4px)',
         transform: 'translateY(-50%)',
         [direction === 'prev' ? 'left' : 'right']: 4,
         width: 44,

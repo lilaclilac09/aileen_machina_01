@@ -456,7 +456,6 @@ export const t = {
             { label: 'Work', href: '/works' },
             { label: 'Investing', href: '#investing' },
             { label: 'Sound', href: '/sound' },
-            { label: 'Visual', href: '#visual' },
           ],
         },
         {
@@ -934,7 +933,6 @@ export const t = {
             { label: 'Arbeit', href: '/works' },
             { label: 'Investing', href: '#investing' },
             { label: 'Sound', href: '/sound' },
-            { label: 'Visual', href: '#visual' },
           ],
         },
         {

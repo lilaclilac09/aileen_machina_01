@@ -183,8 +183,8 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 05 INVESTING — sits right above the DJ set ── */}
-        <SnapSection id="investing" className="order-5">
+        {/* ── 04 INVESTING ── */}
+        <SnapSection id="investing" className="order-4">
           <div className="h-full flex flex-col bg-[#070707] px-6 sm:px-10 lg:px-16">
             <div className="mx-auto w-full max-w-[760px] flex h-full flex-col py-12 sm:py-16" style={{ fontFamily: nunito }}>
               <p className="anim-up text-[0.7rem] uppercase tracking-[0.32em] text-white/40 mb-4" style={{ fontWeight: 500 }}>
@@ -210,68 +210,8 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 04 SELECTED WORK (2) ── */}
-        <SnapSection id="work" className="order-4">
-          <div className="h-full flex flex-col bg-[#070707] px-6 sm:px-10 lg:px-16">
-            <div className="mx-auto w-full max-w-[760px] flex h-full flex-col py-12 sm:py-16" style={{ fontFamily: nunito }}>
-              <p className="anim-up text-[0.7rem] uppercase tracking-[0.32em] text-white/40 mb-4" style={{ fontWeight: 500 }}>
-                {tx.pow.tag}
-              </p>
-              <h2
-                className="anim-up-2 mb-10 text-[clamp(1.6rem,4.2vw,2.6rem)] tracking-tight text-white/95"
-                style={{ fontWeight: 500 }}
-              >
-                {tx.pow.heading}
-              </h2>
-
-              <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-8">
-                {tx.pow.featured.map((item) => (
-                  <div key={item.name} className="anim-up-2 py-2">
-                    <h3 className="text-[clamp(1.2rem,2.6vw,1.75rem)] text-white mb-2.5" style={{ fontWeight: 600 }}>
-                      {item.name}
-                    </h3>
-                    <p className="text-[0.98rem] leading-relaxed text-white/65 mb-4 max-w-xl" style={{ fontWeight: 400 }}>
-                      {item.why}
-                    </p>
-                    <div className="flex items-center gap-5">
-                      <a
-                        href={item.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[0.78rem] text-white/55 hover:text-white transition-colors no-underline"
-                        style={{ fontWeight: 500 }}
-                      >
-                        Source
-                      </a>
-                      {'liveHref' in item && item.liveHref ? (
-                        <a
-                          href={item.liveHref}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[0.78rem] text-[#00ffea]/70 hover:text-[#00ffea] transition-colors no-underline"
-                          style={{ fontWeight: 500 }}
-                        >
-                          Live
-                        </a>
-                      ) : null}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <Link
-                href="/works"
-                className="anim-up-3 mt-10 inline-block text-[0.8rem] text-white/55 hover:text-white transition-colors no-underline border-b border-white/15 hover:border-white pb-0.5 self-start"
-                style={{ fontWeight: 500 }}
-              >
-                {tx.pow.viewAll}
-              </Link>
-            </div>
-          </div>
-        </SnapSection>
-
-        {/* ── 06 SOUND — full DJ station ── */}
-        <SnapSection id="sound" className="order-6">
+        {/* ── 05 SOUND — full DJ station ── */}
+        <SnapSection id="sound" className="order-5">
           <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-12 pt-6 pb-4 overflow-y-auto">
             <div className="mx-auto w-full max-w-[1400px]" style={{ fontFamily: nunito }}>
               <div className="flex items-end border-b border-white/8 pb-3 mb-6">
@@ -309,180 +249,8 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 07 TRENDY — fashion police + podcast, one tight card ── */}
-        <SnapSection id="trendy" className="order-7">
-          <div className="h-full flex items-center justify-center bg-[#050505] px-6 sm:px-10">
-            <div className="max-w-[480px] w-full text-center" style={{ fontFamily: nunito }}>
-              <p className="anim-up text-[0.6rem] uppercase tracking-[0.45em] text-[#00ffea]/70 mb-4" style={{ fontWeight: 500 }}>
-                {tx.trendy.tag}
-              </p>
-              <h2
-                className="anim-up-2 text-[clamp(1.3rem,3.2vw,1.9rem)] tracking-tight text-white/95 leading-snug mb-2"
-                style={{ fontWeight: 600 }}
-              >
-                {tx.trendy.heading}
-              </h2>
-              <p
-                className="anim-up-3 text-[0.92rem] text-white/55 mb-8"
-                style={{ fontWeight: 400 }}
-              >
-                {tx.trendy.body}
-              </p>
-
-              <div className="anim-up-3 pt-6 border-t border-white/10">
-                <p className="text-[0.58rem] uppercase tracking-[0.45em] text-white/35 mb-2" style={{ fontWeight: 500 }}>
-                  {tx.trendy.rotationTag}
-                </p>
-                <h3 className="text-[1rem] tracking-tight text-white/90 mb-2" style={{ fontWeight: 500 }}>
-                  {tx.trendy.podcast.title}
-                </h3>
-                <p className="text-[0.84rem] leading-relaxed text-white/55 mb-4" style={{ fontWeight: 400 }}>
-                  {tx.trendy.podcast.body}
-                </p>
-                <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5">
-                  <a
-                    href={tx.trendy.podcast.kateHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[0.76rem] text-[#00ffea]/75 hover:text-[#00ffea] transition-colors no-underline"
-                    style={{ fontWeight: 500 }}
-                  >
-                    {tx.trendy.podcast.kateLabel} →
-                  </a>
-                  <a
-                    href={tx.trendy.podcast.showHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[0.76rem] text-white/55 hover:text-white transition-colors no-underline"
-                    style={{ fontWeight: 500 }}
-                  >
-                    {tx.trendy.podcast.showLabel} →
-                  </a>
-                </div>
-              </div>
-
-              <div className="anim-up-3 pt-6 mt-6 border-t border-white/10">
-                <p className="text-[0.58rem] uppercase tracking-[0.45em] text-white/35 mb-2" style={{ fontWeight: 500 }}>
-                  {tx.trendy.doYouReadHer.sectionLabel}
-                </p>
-                <h3 className="text-[1rem] tracking-tight text-white/90 mb-2" style={{ fontWeight: 500 }}>
-                  {tx.trendy.doYouReadHer.title}
-                </h3>
-                <p className="text-[0.84rem] leading-relaxed text-white/55 mb-4" style={{ fontWeight: 400 }}>
-                  {tx.trendy.doYouReadHer.body}
-                </p>
-                <a
-                  href={tx.trendy.doYouReadHer.episodeHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[0.76rem] text-[#00ffea]/75 hover:text-[#00ffea] transition-colors no-underline"
-                  style={{ fontWeight: 500 }}
-                >
-                  {tx.trendy.doYouReadHer.episodeLabel} →
-                </a>
-              </div>
-            </div>
-          </div>
-        </SnapSection>
-
-        {/* ── 08 VISUAL — cute little gallery ── */}
-        <SnapSection id="visual" className="order-8">
-          <div className="h-full flex flex-col bg-[#070707] px-6 sm:px-10 lg:px-16">
-            <div className="mx-auto w-full max-w-[920px] flex h-full flex-col py-12 sm:py-16" style={{ fontFamily: nunito }}>
-              <p className="anim-up flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.32em] text-white/40 mb-4" style={{ fontWeight: 500 }}>
-                {tx.visual.tag} <Sparkle />
-              </p>
-              <h2 className="anim-up-2 flex items-center gap-3 mb-3 text-[clamp(1.6rem,4.2vw,2.6rem)] tracking-tight text-white/95" style={{ fontWeight: 500 }}>
-                {tx.visual.heading} <Heart />
-              </h2>
-              <p className="anim-up-3 mb-8 text-[1rem] leading-relaxed text-white/55 max-w-lg" style={{ fontWeight: 400 }}>
-                {tx.visual.body}
-              </p>
-
-              <div className="flex-1 overflow-y-auto pr-1">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-                  {tx.visual.items.map((img: { src: string; alt: string; caption: string; href?: string }) => {
-                    const tile = (
-                      <figure className="relative w-full aspect-square overflow-hidden rounded-md m-0">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={img.src}
-                          alt={img.alt}
-                          className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
-                        />
-                        {/* Bottom soft gradient so the script reads on any photo */}
-                        <span
-                          aria-hidden
-                          className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5"
-                          style={{
-                            background:
-                              'linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.18) 55%, transparent 100%)',
-                          }}
-                        />
-                        {/* Film-credit overlay — flowing coral cursive */}
-                        <figcaption
-                          className="absolute left-[7%] right-[7%] bottom-[6%]"
-                          style={{
-                            fontFamily: "'Allura', cursive",
-                            color: '#ffa590',
-                            fontSize: 'clamp(1.3rem, 3.4vw, 2.2rem)',
-                            lineHeight: 1.0,
-                            letterSpacing: '0.01em',
-                            textShadow: '0 1px 14px rgba(0,0,0,0.55), 0 1px 2px rgba(0,0,0,0.6)',
-                          }}
-                        >
-                          {img.caption}
-                          {img.href && (
-                            <span
-                              className="ml-3 opacity-0 group-hover:opacity-100 transition-opacity"
-                              style={{
-                                fontFamily: "'Allura', cursive",
-                                fontSize: '0.55em',
-                                color: '#ffd2bf',
-                              }}
-                            >
-                              read →
-                            </span>
-                          )}
-                        </figcaption>
-                      </figure>
-                    );
-                    return img.href ? (
-                      <Link key={img.src} href={img.href} className="anim-up group block cursor-pointer">
-                        {tile}
-                      </Link>
-                    ) : (
-                      <div key={img.src} className="anim-up group">
-                        {tile}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div className="anim-up mt-9 flex items-center gap-3 text-white/30">
-                  <Sparkle /><Heart /><Star /><Flower />
-                  <span
-                    className="ml-1 text-white/55"
-                    style={{
-                      fontFamily: "'Allura', cursive",
-                      fontSize: '1.35rem',
-                      color: '#ffa590',
-                      lineHeight: 1,
-                    }}
-                  >
-                    {tx.visual.note}
-                  </span>
-                </div>
-                <Link href="/blog/pate-de-verre" className="anim-up mt-4 inline-block text-[0.82rem] text-[#00ffea]/70 hover:text-[#00ffea] transition-colors" style={{ fontWeight: 500 }}>
-                  {tx.visual.readGlass}
-                </Link>
-              </div>
-            </div>
-          </div>
-        </SnapSection>
-
-        {/* ── 09 FOOTER ── */}
-        <SnapSection className="order-9">
+        {/* ── 06 FOOTER ── */}
+        <SnapSection className="order-6">
           <div className="h-full flex flex-col justify-end bg-[#030303] px-6 sm:px-10 lg:px-16 py-14 sm:py-16" style={{ fontFamily: nunito }}>
             <div className="mx-auto w-full max-w-[920px]">
 
@@ -529,33 +297,3 @@ export default function Home() {
   );
 }
 
-/* ── tiny hand-drawn doodles ── */
-function Sparkle() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#00ffea" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M12 2c.8 5.6 3.6 8.4 9 9-5.4.6-8.2 3.4-9 9-.8-5.6-3.6-8.4-9-9 5.4-.6 8.2-3.4 9-9z" />
-    </svg>
-  );
-}
-function Heart() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#ff9ecb" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M12 20S3.5 14.6 3.5 8.9A4.3 4.3 0 0 1 12 6.1a4.3 4.3 0 0 1 8.5 2.8C20.5 14.6 12 20 12 20z" />
-    </svg>
-  );
-}
-function Star() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ffe08a" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M12 3l2.6 5.6 6 .7-4.4 4.1 1.2 6L12 16.8 6.6 19.5l1.2-6L3.4 9.3l6-.7z" />
-    </svg>
-  );
-}
-function Flower() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9ee6ff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="12" cy="12" r="2.3" />
-      <path d="M12 3.8a2.7 2.7 0 0 1 0 5.4M20.2 12a2.7 2.7 0 0 1-5.4 0M12 20.2a2.7 2.7 0 0 1 0-5.4M3.8 12a2.7 2.7 0 0 1 5.4 0" />
-    </svg>
-  );
-}
