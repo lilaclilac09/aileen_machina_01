@@ -56,9 +56,12 @@ export const COVERFLOW_RANGES: Record<keyof CoverflowSettings, { min: number; ma
 const STORAGE_KEY = 'aileena-coverflow-settings-v1';
 const PANEL_OPEN_KEY = 'aileena-coverflow-panel-open-v1';
 
+const MOBILE_MAX_PX = 767;
+
 export function useCoverflowSettings() {
   const [settings, setSettings] = useState<CoverflowSettings>(COVERFLOW_DEFAULTS);
   const [panelOpen, setPanelOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
   /* eslint-disable react-hooks/set-state-in-effect --
@@ -68,18 +71,32 @@ export function useCoverflowSettings() {
      server renders with defaults, client upgrades to stored values
      post-mount. */
   useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${MOBILE_MAX_PX}px)`);
+    const mobile = mq.matches;
+    setIsMobile(mobile);
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as Partial<CoverflowSettings>;
         setSettings({ ...COVERFLOW_DEFAULTS, ...parsed });
       }
+      // Explicit user preference wins; otherwise default closed on
+      // mobile (the panel covers most of a 375px screen and competes
+      // with the carousel for attention) and open on desktop.
       const open = window.localStorage.getItem(PANEL_OPEN_KEY);
       if (open === '0') setPanelOpen(false);
+      else if (open === '1') setPanelOpen(true);
+      else if (mobile) setPanelOpen(false);
     } catch {
       /* localStorage unavailable — keep defaults */
     }
     setHydrated(true);
+
+    // Keep isMobile reactive to rotation / resize so the panel can
+    // switch between right-sidebar and bottom-drawer layouts live.
+    const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
   }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
 
@@ -116,5 +133,5 @@ export function useCoverflowSettings() {
     });
   }, []);
 
-  return { settings, update, reset, panelOpen, togglePanel, hydrated };
+  return { settings, update, reset, panelOpen, togglePanel, hydrated, isMobile };
 }

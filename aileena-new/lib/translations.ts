@@ -469,6 +469,19 @@ export const t = {
         },
       ],
     },
+    coverflow: {
+      title: 'Coverflow',
+      reset: 'Reset',
+      show: 'Show Coverflow panel',
+      hide: 'Hide Coverflow panel',
+      panelAriaLabel: 'Coverflow tuner',
+      groups: {
+        layout: 'Layout',
+        rotation: 'Rotation',
+        visual: 'Visual',
+        physics: 'Physics',
+      },
+    },
   },
   DE: {
     hero: {
@@ -933,6 +946,19 @@ export const t = {
           ],
         },
       ],
+    },
+    coverflow: {
+      title: 'Coverflow',
+      reset: 'Zurücksetzen',
+      show: 'Coverflow-Panel öffnen',
+      hide: 'Coverflow-Panel schließen',
+      panelAriaLabel: 'Coverflow-Steuerung',
+      groups: {
+        layout: 'Layout',
+        rotation: 'Rotation',
+        visual: 'Visuell',
+        physics: 'Physik',
+      },
     },
   },
 } satisfies Record<Language, unknown>;

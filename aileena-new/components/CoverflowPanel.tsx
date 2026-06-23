@@ -9,13 +9,28 @@ import {
 const nunito = "'Nunito', system-ui, -apple-system, sans-serif";
 const mono = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
 
-type Group = { label: string; keys: (keyof CoverflowSettings)[] };
+export type CoverflowPanelStrings = {
+  title: string;
+  reset: string;
+  show: string;
+  hide: string;
+  panelAriaLabel: string;
+  groups: {
+    layout: string;
+    rotation: string;
+    visual: string;
+    physics: string;
+  };
+};
+
+type GroupKey = keyof CoverflowPanelStrings['groups'];
+type Group = { key: GroupKey; keys: (keyof CoverflowSettings)[] };
 
 const GROUPS: Group[] = [
-  { label: 'Layout', keys: ['gap', 'translateX', 'translateY', 'depth', 'perspective'] },
-  { label: 'Rotation', keys: ['rotateX', 'rotateY', 'rotateZ'] },
-  { label: 'Visual', keys: ['scaleMin', 'opacityMin'] },
-  { label: 'Physics', keys: ['stiffness', 'damping', 'mass', 'velocityE'] },
+  { key: 'layout', keys: ['gap', 'translateX', 'translateY', 'depth', 'perspective'] },
+  { key: 'rotation', keys: ['rotateX', 'rotateY', 'rotateZ'] },
+  { key: 'visual', keys: ['scaleMin', 'opacityMin'] },
+  { key: 'physics', keys: ['stiffness', 'damping', 'mass', 'velocityE'] },
 ];
 
 export default function CoverflowPanel({
@@ -24,40 +39,80 @@ export default function CoverflowPanel({
   reset,
   open,
   onToggle,
+  hydrated,
+  isMobile,
+  t,
 }: {
   settings: CoverflowSettings;
   update: <K extends keyof CoverflowSettings>(key: K, value: CoverflowSettings[K]) => void;
   reset: () => void;
   open: boolean;
   onToggle: () => void;
+  hydrated: boolean;
+  isMobile: boolean;
+  t: CoverflowPanelStrings;
 }) {
+  // Hold all chrome until the hook has read localStorage. On mobile
+  // first-visit the saved-open default flips from `true` (SSR) to
+  // `false` (client mount) — gating render here avoids a one-frame
+  // pop-then-collapse.
+  if (!hydrated) return null;
+
   return (
     <>
-      <ToggleButton open={open} onToggle={onToggle} />
+      <ToggleButton open={open} onToggle={onToggle} t={t} />
       <aside
-        aria-label="Coverflow tuner"
-        style={{
-          position: 'fixed',
-          top: 'clamp(70px, 12vh, 110px)',
-          right: open ? 14 : -360,
-          bottom: 14,
-          width: 320,
-          maxWidth: 'calc(100vw - 28px)',
-          background: 'rgba(10, 10, 10, 0.78)',
-          backdropFilter: 'blur(14px)',
-          WebkitBackdropFilter: 'blur(14px)',
-          border: '1px solid rgba(255, 167, 38, 0.22)',
-          borderRadius: 4,
-          boxShadow:
-            '0 30px 60px -20px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 167, 38, 0.08)',
-          color: '#fff',
-          fontFamily: nunito,
-          zIndex: 60,
-          transition: 'right 0.32s cubic-bezier(0.22, 1, 0.36, 1)',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-        }}
+        aria-label={t.panelAriaLabel}
+        style={
+          isMobile
+            ? {
+                position: 'fixed',
+                left: 8,
+                right: 8,
+                bottom: 8,
+                maxHeight: 'min(64vh, 520px)',
+                background: 'rgba(10, 10, 10, 0.88)',
+                backdropFilter: 'blur(14px)',
+                WebkitBackdropFilter: 'blur(14px)',
+                border: '1px solid rgba(255, 167, 38, 0.22)',
+                borderRadius: 8,
+                boxShadow:
+                  '0 30px 60px -20px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 167, 38, 0.08)',
+                color: '#fff',
+                fontFamily: nunito,
+                zIndex: 60,
+                // Slide off-screen below when closed; toggle button
+                // (anchored bottom-left) stays visible to reopen.
+                transform: open ? 'translateY(0)' : 'translateY(110%)',
+                transition: 'transform 0.32s cubic-bezier(0.22, 1, 0.36, 1)',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+              }
+            : {
+                position: 'fixed',
+                top: 'clamp(70px, 12vh, 110px)',
+                right: open ? 14 : -360,
+                bottom: 14,
+                width: 320,
+                maxWidth: 'calc(100vw - 28px)',
+                background: 'rgba(10, 10, 10, 0.78)',
+                backdropFilter: 'blur(14px)',
+                WebkitBackdropFilter: 'blur(14px)',
+                border: '1px solid rgba(255, 167, 38, 0.22)',
+                borderRadius: 4,
+                boxShadow:
+                  '0 30px 60px -20px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 167, 38, 0.08)',
+                color: '#fff',
+                fontFamily: nunito,
+                zIndex: 60,
+                transition: 'right 0.32s cubic-bezier(0.22, 1, 0.36, 1)',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+              }
+        }
+        aria-hidden={!open}
       >
         <header
           style={{
@@ -79,7 +134,7 @@ export default function CoverflowPanel({
               fontWeight: 600,
             }}
           >
-            Coverflow
+            {t.title}
           </span>
           <button
             type="button"
@@ -97,9 +152,9 @@ export default function CoverflowPanel({
               textTransform: 'uppercase',
               cursor: 'pointer',
             }}
-            aria-label="Reset to defaults"
+            aria-label={t.reset}
           >
-            Reset
+            {t.reset}
           </button>
         </header>
 
@@ -111,7 +166,7 @@ export default function CoverflowPanel({
           }}
         >
           {GROUPS.map((g) => (
-            <section key={g.label} style={{ marginTop: 16 }}>
+            <section key={g.key} style={{ marginTop: 16 }}>
               <p
                 style={{
                   fontFamily: mono,
@@ -123,7 +178,7 @@ export default function CoverflowPanel({
                   fontWeight: 600,
                 }}
               >
-                {g.label}
+                {t.groups[g.key]}
               </p>
               {g.keys.map((k) => (
                 <Slider
@@ -141,7 +196,15 @@ export default function CoverflowPanel({
   );
 }
 
-function ToggleButton({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+function ToggleButton({
+  open,
+  onToggle,
+  t,
+}: {
+  open: boolean;
+  onToggle: () => void;
+  t: CoverflowPanelStrings;
+}) {
   const [hover, setHover] = useState(false);
   return (
     <button
@@ -150,12 +213,12 @@ function ToggleButton({ open, onToggle }: { open: boolean; onToggle: () => void 
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       aria-pressed={open}
-      aria-label={open ? 'Hide Coverflow panel' : 'Show Coverflow panel'}
+      aria-label={open ? t.hide : t.show}
       style={{
         position: 'fixed',
         left: 14,
         bottom: 14,
-        zIndex: 60,
+        zIndex: 61,
         appearance: 'none',
         border: '1px solid rgba(255, 167, 38, 0.35)',
         background: hover ? 'rgba(255, 167, 38, 0.12)' : 'rgba(10, 10, 10, 0.75)',
@@ -188,7 +251,7 @@ function ToggleButton({ open, onToggle }: { open: boolean; onToggle: () => void 
           boxShadow: open ? '0 0 8px rgba(255,167,38,0.85)' : 'none',
         }}
       />
-      Coverflow {open ? '⌄' : '⌃'}
+      {t.title} {open ? '⌄' : '⌃'}
     </button>
   );
 }

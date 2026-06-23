@@ -521,6 +521,9 @@ export default function Home() {
         reset={coverflow.reset}
         open={coverflow.panelOpen}
         onToggle={coverflow.togglePanel}
+        hydrated={coverflow.hydrated}
+        isMobile={coverflow.isMobile}
+        t={tx.coverflow}
       />
     </>
   );
