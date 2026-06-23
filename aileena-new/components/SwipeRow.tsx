@@ -89,6 +89,7 @@ const COVER_BY_SLUG: Record<string, string> = {
   marvell: COVER_CIRCUIT_CLOSEUP,
   'ai-hardware-scarcity': COVER_SILICON,
   'huawei-hbm': COVER_CIRCUIT_CLOSEUP,
+  'huawei-supply': COVER_SILICON,
 
   // Optical / fibre
   cpo: COVER_FIBER,
