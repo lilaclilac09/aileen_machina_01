@@ -36,6 +36,9 @@ const SLUG_TOPIC: Record<string, string> = {
   'zcash-fpga': 'Privacy',
   'zec-arbitrage': 'Privacy',
 
+  'huawei-hbm': 'AI infrastructure',
+  'huawei-supply': 'AI infrastructure',
+
   // ── Investing ─────────────────────────────────────────────
   'ai-pcb': 'AI hardware',
   broadcom: 'AI hardware',
@@ -53,7 +56,7 @@ const SLUG_TOPIC: Record<string, string> = {
 };
 
 const TOPIC_ORDER: Record<string, string[]> = {
-  dispatch: ['On-chain infrastructure', 'MEV & markets', 'Agents & robotics', 'Privacy'],
+  dispatch: ['On-chain infrastructure', 'MEV & markets', 'Agents & robotics', 'Privacy', 'AI infrastructure'],
   investing: ['AI hardware', 'Capital flywheels', 'Sales & channels'],
   perspective: [],
   marsAndMoon: [],
