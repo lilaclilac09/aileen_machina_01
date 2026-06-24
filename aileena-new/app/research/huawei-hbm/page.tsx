@@ -1,57 +1,87 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
+import { AnimatePresence, motion } from 'framer-motion';
 import ScrollUnlock from '../../blog/ScrollUnlock';
 import {
   HUAWEI_HBM,
   type ImpactDirection,
   type MagazineCard,
   type MagazineColumn,
+  type Verdict,
 } from '../../../lib/research/huawei-hbm';
 
 const nunito = "'Nunito', system-ui, -apple-system, sans-serif";
 const mono = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
 
-/* ── Magazine rack — interactive investment-research pilot ────────────
+/* ── Book-style chapter reader ───────────────────────────────────────
  *
- * Three racks per Aileen's spec:
- *   1. Display rack (cover) — scene + question
- *   2. Category rack (left-nav columns + center cards)
- *   3. Judgment rack (verdict column at the end)
+ * Aileen's clarification (the latest one): "一张书一个故事，慢慢打开
+ * 其他的章节" — not a magazine rack with all columns visible at once;
+ * a book where chapters open one at a time.
  *
- * Each card carries an "impact on the verdict" tag (reinforces / weakens
- * / uncertain) — cards aren't isolated, they vote toward the editor's
- * stance.
+ * Layout: every chapter takes the full viewport. A page-turn animation
+ * carries you between chapters. The progress bar at the bottom lets
+ * you jump back if you've already opened a chapter, but the default
+ * gesture is forward — open the next.
  *
- * Layout:
- *   Top:    cover scene + core question (full-bleed)
- *   Left:   column navigation (sticky)
- *   Center: cards for the active column
- *   Right:  evidence drawer (per-card sources / quotes / math)
- *   Bottom: judgment progress strip
+ * Chapter sequence:
+ *   0  Cover           (scene + title + core question + editorial line)
+ *   1  Cover Story     (the thesis)
+ *   2  Data            (the receipts)
+ *   3  On the Ground   (concrete situations)
+ *   4  People          (voices)
+ *   5  Counter         (the bear case)
+ *   6  Archive         (sources)
+ *   7  Editor's Verdict (the closing card)
  */
-export default function HuaweiHbmMagazinePilot() {
+
+type Chapter =
+  | { kind: 'cover' }
+  | { kind: 'column'; column: MagazineColumn }
+  | { kind: 'verdict' };
+
+export default function HuaweiHbmBook() {
   const issue = HUAWEI_HBM;
-  const allColumns: (MagazineColumn | { id: 'verdict'; label: string; tagline: string; cards: [] })[] =
-    [...issue.columns, { id: 'verdict', label: "Editor's Verdict", tagline: 'This issue, in one card', cards: [] }];
+  const chapters: Chapter[] = [
+    { kind: 'cover' },
+    ...issue.columns.map((c) => ({ kind: 'column' as const, column: c })),
+    { kind: 'verdict' },
+  ];
 
-  const [activeColumnId, setActiveColumnId] = useState<string>(issue.columns[0]!.id);
+  const [chapterIndex, setChapterIndex] = useState(0);
   const [openCardId, setOpenCardId] = useState<string | null>(null);
+  const [direction, setDirection] = useState<1 | -1>(1);
 
-  const activeColumn = useMemo(
-    () => allColumns.find((c) => c.id === activeColumnId),
-    [activeColumnId, allColumns],
-  );
+  const goTo = (i: number) => {
+    if (i === chapterIndex) return;
+    setDirection(i > chapterIndex ? 1 : -1);
+    setChapterIndex(Math.max(0, Math.min(chapters.length - 1, i)));
+    setOpenCardId(null);
+  };
 
-  const openCard: MagazineCard | undefined = useMemo(() => {
+  const next = () => goTo(chapterIndex + 1);
+  const prev = () => goTo(chapterIndex - 1);
+
+  const current = chapters[chapterIndex]!;
+  const openCard: MagazineCard | undefined = (() => {
     if (!openCardId) return undefined;
     for (const c of issue.columns) {
-      const found = c.cards.find((card) => card.id === openCardId);
+      const found = c.cards.find((x) => x.id === openCardId);
       if (found) return found;
     }
     return undefined;
-  }, [openCardId, issue]);
+  })();
+
+  // chapter labels for the progress strip / next-chapter teaser
+  const chapterLabel = (i: number): string => {
+    const c = chapters[i];
+    if (!c) return '';
+    if (c.kind === 'cover') return 'Cover';
+    if (c.kind === 'verdict') return "Editor's Verdict";
+    return c.column.label;
+  };
 
   return (
     <div
@@ -60,26 +90,29 @@ export default function HuaweiHbmMagazinePilot() {
         background: '#070707',
         color: '#fff',
         fontFamily: nunito,
-        overflowY: 'auto',
+        overflow: 'hidden',
+        position: 'relative',
       }}
     >
       <ScrollUnlock />
 
-      {/* ── Sticky top bar ── */}
+      {/* Sticky top bar */}
       <header
         style={{
-          position: 'sticky',
+          position: 'fixed',
           top: 0,
+          left: 0,
+          right: 0,
           zIndex: 50,
           padding: '14px 24px',
-          background: 'rgba(7,7,7,0.92)',
-          backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(255,255,255,0.08)',
+          background: 'rgba(7,7,7,0.78)',
+          backdropFilter: 'blur(14px)',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
         }}
       >
         <div
           style={{
-            maxWidth: 1280,
+            maxWidth: 1180,
             margin: '0 auto',
             display: 'flex',
             justifyContent: 'space-between',
@@ -88,7 +121,7 @@ export default function HuaweiHbmMagazinePilot() {
           }}
         >
           <Link
-            href="/"
+            href="/research"
             style={{
               fontFamily: nunito,
               fontSize: '0.85rem',
@@ -97,25 +130,25 @@ export default function HuaweiHbmMagazinePilot() {
               textDecoration: 'none',
             }}
           >
-            ← Home
+            ← Bookshelf
           </Link>
           <span
             style={{
               fontFamily: mono,
-              fontSize: '0.62rem',
+              fontSize: '0.6rem',
               letterSpacing: '0.28em',
               color: '#ffa726',
               textTransform: 'uppercase',
               fontWeight: 600,
             }}
           >
-            Aileena Research · {issue.issueNumber}
+            {issue.issueNumber} · {chapterLabel(chapterIndex)}
           </span>
           <Link
             href="/blog/huawei-hbm"
             style={{
               fontFamily: mono,
-              fontSize: '0.6rem',
+              fontSize: '0.58rem',
               letterSpacing: '0.18em',
               color: 'rgba(255,255,255,0.45)',
               textDecoration: 'none',
@@ -127,513 +160,514 @@ export default function HuaweiHbmMagazinePilot() {
         </div>
       </header>
 
-      {/* ── 1. COVER — scene + title + core question ── */}
-      <section
+      {/* Chapter slot — one chapter at a time, animated */}
+      <div
         style={{
+          minHeight: '100vh',
+          paddingTop: 60,
+          paddingBottom: 100,
           position: 'relative',
-          minHeight: '78vh',
-          padding: '88px 24px 64px',
-          display: 'flex',
-          alignItems: 'center',
-          background:
-            "linear-gradient(180deg, rgba(7,7,7,0.6) 0%, rgba(7,7,7,0.85) 60%, #070707 100%), url('https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=1800&q=80') center/cover no-repeat",
         }}
       >
-        <div style={{ maxWidth: 920, margin: '0 auto' }}>
-          <p
-            style={{
-              fontFamily: mono,
-              fontSize: '0.66rem',
-              letterSpacing: '0.4em',
-              color: '#ffa726',
-              textTransform: 'uppercase',
-              marginBottom: 20,
-              fontWeight: 600,
-            }}
+        <AnimatePresence mode="wait" custom={direction}>
+          <motion.div
+            key={chapterIndex}
+            custom={direction}
+            initial={{ opacity: 0, x: direction === 1 ? 80 : -80, filter: 'blur(8px)' }}
+            animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, x: direction === 1 ? -80 : 80, filter: 'blur(8px)' }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            style={{ width: '100%' }}
           >
-            Cover · The scene
-          </p>
-          <p
+            {current.kind === 'cover' && (
+              <CoverPage
+                issue={issue}
+                onOpen={() => goTo(1)}
+              />
+            )}
+            {current.kind === 'column' && (
+              <ColumnPage
+                column={current.column}
+                index={chapterIndex}
+                total={chapters.length}
+                openCardId={openCardId}
+                onOpenCard={(id) => setOpenCardId(id)}
+              />
+            )}
+            {current.kind === 'verdict' && (
+              <VerdictPage verdict={issue.verdict} nextIssueTracks={issue.nextIssueTracks} />
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* Evidence drawer */}
+      <AnimatePresence>
+        {openCard && (
+          <motion.aside
+            key="drawer"
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+            aria-label={`Evidence for ${openCard.title}`}
             style={{
-              fontSize: 'clamp(1.05rem, 2.4vw, 1.4rem)',
-              lineHeight: 1.55,
-              color: 'rgba(255,255,255,0.78)',
-              marginBottom: 40,
-              maxWidth: 760,
-              letterSpacing: '0.012em',
-              fontWeight: 400,
-            }}
-          >
-            {issue.coverScene}
-          </p>
-          <h1
-            style={{
-              fontSize: 'clamp(2.4rem, 6vw, 4.4rem)',
-              fontWeight: 600,
-              letterSpacing: '-0.02em',
-              lineHeight: 1.02,
-              marginBottom: 32,
+              position: 'fixed',
+              top: 0,
+              right: 0,
+              bottom: 0,
+              width: 'min(420px, 100vw)',
+              background: 'rgba(10,10,10,0.97)',
+              borderLeft: '1px solid rgba(255,167,38,0.22)',
+              backdropFilter: 'blur(14px)',
+              boxShadow: '-20px 0 60px -20px rgba(0,0,0,0.7)',
+              zIndex: 70,
+              padding: '24px 28px',
+              overflowY: 'auto',
               color: '#fff',
             }}
           >
-            {issue.coverTitle}
-          </h1>
-          <div
-            style={{
-              borderLeft: '3px solid #ffa726',
-              paddingLeft: 24,
-              maxWidth: 720,
-            }}
-          >
-            <p
-              style={{
-                fontFamily: mono,
-                fontSize: '0.6rem',
-                letterSpacing: '0.32em',
-                color: 'rgba(255,255,255,0.45)',
-                textTransform: 'uppercase',
-                marginBottom: 12,
-                fontWeight: 600,
-              }}
-            >
-              The core question
-            </p>
-            <p
-              style={{
-                fontSize: 'clamp(1.2rem, 2.8vw, 1.7rem)',
-                lineHeight: 1.4,
-                color: '#fff',
-                fontWeight: 500,
-                letterSpacing: '-0.005em',
-              }}
-            >
-              {issue.coverQuestion}
-            </p>
-          </div>
-          <p
-            style={{
-              marginTop: 56,
-              fontFamily: mono,
-              fontSize: '0.6rem',
-              letterSpacing: '0.32em',
-              color: 'rgba(255,255,255,0.4)',
-              textTransform: 'uppercase',
-              fontWeight: 500,
-            }}
-          >
-            ↓ Flip through the magazine
-          </p>
-        </div>
-      </section>
+            <EvidenceDrawerContent card={openCard} onClose={() => setOpenCardId(null)} />
+          </motion.aside>
+        )}
+      </AnimatePresence>
 
-      {/* ── 1b. EDITORIAL LINE — why this issue ── */}
-      <section
-        style={{
-          maxWidth: 920,
-          margin: '0 auto',
-          padding: '56px 24px 0',
-        }}
-      >
-        <div
+      {/* Bottom — page-turn bar */}
+      <PageTurnBar
+        chapterIndex={chapterIndex}
+        total={chapters.length}
+        chapterLabel={chapterLabel}
+        onPrev={prev}
+        onNext={next}
+        onJump={goTo}
+      />
+    </div>
+  );
+}
+
+/* ── Chapter 0 — the cover ────────────────────────────────────────── */
+function CoverPage({ issue, onOpen }: { issue: typeof HUAWEI_HBM; onOpen: () => void }) {
+  return (
+    <section
+      style={{
+        minHeight: 'calc(100vh - 60px)',
+        padding: '64px 24px 24px',
+        display: 'flex',
+        alignItems: 'center',
+        background:
+          "linear-gradient(180deg, rgba(7,7,7,0.6) 0%, rgba(7,7,7,0.88) 60%, #070707 100%), url('https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=1800&q=80') center/cover no-repeat",
+      }}
+    >
+      <div style={{ maxWidth: 920, margin: '0 auto' }}>
+        <p
           style={{
-            background: 'rgba(255,167,38,0.04)',
-            border: '1px solid rgba(255,167,38,0.18)',
-            borderRadius: 6,
-            padding: '24px 28px',
+            fontFamily: mono,
+            fontSize: '0.66rem',
+            letterSpacing: '0.4em',
+            color: '#ffa726',
+            textTransform: 'uppercase',
+            marginBottom: 20,
+            fontWeight: 600,
           }}
         >
+          Cover · The scene
+        </p>
+        <p
+          style={{
+            fontSize: 'clamp(1.05rem, 2.4vw, 1.4rem)',
+            lineHeight: 1.55,
+            color: 'rgba(255,255,255,0.78)',
+            marginBottom: 40,
+            maxWidth: 760,
+            letterSpacing: '0.012em',
+          }}
+        >
+          {issue.coverScene}
+        </p>
+        <h1
+          style={{
+            fontSize: 'clamp(2.4rem, 6vw, 4.4rem)',
+            fontWeight: 600,
+            letterSpacing: '-0.02em',
+            lineHeight: 1.02,
+            marginBottom: 32,
+            color: '#fff',
+          }}
+        >
+          {issue.coverTitle}
+        </h1>
+        <div style={{ borderLeft: '3px solid #ffa726', paddingLeft: 24, maxWidth: 720, marginBottom: 44 }}>
           <p
             style={{
               fontFamily: mono,
               fontSize: '0.6rem',
               letterSpacing: '0.32em',
-              color: '#ffa726',
+              color: 'rgba(255,255,255,0.45)',
               textTransform: 'uppercase',
               marginBottom: 12,
               fontWeight: 600,
             }}
           >
-            Editorial line · Why this issue
+            The core question
           </p>
           <p
             style={{
-              fontSize: '1rem',
-              lineHeight: 1.65,
-              color: 'rgba(255,255,255,0.78)',
-              fontWeight: 400,
+              fontSize: 'clamp(1.2rem, 2.8vw, 1.7rem)',
+              lineHeight: 1.4,
+              color: '#fff',
+              fontWeight: 500,
+              letterSpacing: '-0.005em',
             }}
           >
-            {issue.whyThisIssue}
+            {issue.coverQuestion}
           </p>
         </div>
-      </section>
 
-      {/* ── 2. RACK — left column nav + center cards + right drawer ── */}
-      <section
-        style={{
-          maxWidth: 1280,
-          margin: '0 auto',
-          padding: '64px 24px 32px',
-          display: 'grid',
-          gridTemplateColumns: 'minmax(180px, 220px) 1fr',
-          gap: 40,
-          alignItems: 'flex-start',
-        }}
-      >
-        {/* Left — column nav */}
-        <nav
+        <div
           style={{
-            position: 'sticky',
-            top: 80,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 4,
+            background: 'rgba(255,167,38,0.05)',
+            border: '1px solid rgba(255,167,38,0.18)',
+            borderRadius: 6,
+            padding: '20px 24px',
+            marginBottom: 40,
+            maxWidth: 720,
           }}
-          aria-label="Magazine columns"
         >
           <p
             style={{
               fontFamily: mono,
               fontSize: '0.55rem',
               letterSpacing: '0.32em',
-              color: 'rgba(255,255,255,0.4)',
+              color: '#ffa726',
               textTransform: 'uppercase',
-              marginBottom: 14,
+              marginBottom: 10,
               fontWeight: 600,
             }}
           >
-            Columns
+            Editorial line · Why this issue
           </p>
-          {allColumns.map((c, idx) => {
-            const isActive = c.id === activeColumnId;
-            return (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => {
-                  setActiveColumnId(c.id);
-                  setOpenCardId(null);
-                }}
-                style={{
-                  appearance: 'none',
-                  background: 'transparent',
-                  border: 'none',
-                  textAlign: 'left',
-                  padding: '10px 0 10px 14px',
-                  borderLeft: isActive ? '2px solid #ffa726' : '2px solid rgba(255,255,255,0.08)',
-                  color: isActive ? '#fff' : 'rgba(255,255,255,0.55)',
-                  cursor: 'pointer',
-                  transition: 'color 0.18s ease, border-color 0.18s ease',
-                  fontFamily: nunito,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 3,
-                }}
-                aria-current={isActive ? 'true' : undefined}
-              >
-                <span
-                  style={{
-                    fontFamily: mono,
-                    fontSize: '0.55rem',
-                    letterSpacing: '0.2em',
-                    color: isActive ? '#ffa726' : 'rgba(255,255,255,0.32)',
-                    fontWeight: 600,
-                  }}
-                >
-                  {String(idx + 1).padStart(2, '0')}
-                </span>
-                <span style={{ fontSize: '0.95rem', fontWeight: 500, lineHeight: 1.25 }}>{c.label}</span>
-                <span
-                  style={{
-                    fontSize: '0.72rem',
-                    color: isActive ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.32)',
-                    lineHeight: 1.4,
-                  }}
-                >
-                  {c.tagline}
-                </span>
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Center — active column content */}
-        <div style={{ minWidth: 0 }}>
-          {activeColumn && activeColumn.id !== 'verdict' && (
-            <ColumnView
-              column={activeColumn as MagazineColumn}
-              openCardId={openCardId}
-              onOpenCard={setOpenCardId}
-            />
-          )}
-          {activeColumn?.id === 'verdict' && (
-            <VerdictView verdict={issue.verdict} nextIssueTracks={issue.nextIssueTracks} />
-          )}
+          <p style={{ fontSize: '0.92rem', lineHeight: 1.65, color: 'rgba(255,255,255,0.78)' }}>
+            {issue.whyThisIssue}
+          </p>
         </div>
-      </section>
 
-      {/* ── 3. Evidence drawer (overlay-ish, when a card is open) ── */}
-      {openCard && (
-        <aside
-          aria-label={`Evidence for ${openCard.title}`}
+        <button
+          type="button"
+          onClick={onOpen}
           style={{
-            position: 'fixed',
-            top: 0,
-            right: 0,
-            bottom: 0,
-            width: 'min(420px, 100vw)',
-            background: 'rgba(10,10,10,0.97)',
-            borderLeft: '1px solid rgba(255,167,38,0.22)',
-            backdropFilter: 'blur(14px)',
-            boxShadow: '-20px 0 60px -20px rgba(0,0,0,0.7)',
-            zIndex: 70,
-            padding: '24px 28px',
-            overflowY: 'auto',
-            color: '#fff',
+            appearance: 'none',
+            background: '#ffa726',
+            color: '#070707',
+            border: 'none',
+            borderRadius: 999,
+            padding: '14px 28px',
+            fontFamily: mono,
+            fontSize: '0.7rem',
+            letterSpacing: '0.28em',
+            textTransform: 'uppercase',
+            fontWeight: 700,
+            cursor: 'pointer',
+            boxShadow: '0 12px 36px -10px rgba(255,167,38,0.55)',
+            transition: 'transform 0.18s ease, box-shadow 0.18s ease',
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-            <span
-              style={{
-                fontFamily: mono,
-                fontSize: '0.55rem',
-                letterSpacing: '0.32em',
-                color: '#ffa726',
-                textTransform: 'uppercase',
-                fontWeight: 600,
-              }}
-            >
-              Evidence drawer
-            </span>
-            <button
-              type="button"
-              onClick={() => setOpenCardId(null)}
-              style={{
-                appearance: 'none',
-                border: '1px solid rgba(255,255,255,0.18)',
-                background: 'transparent',
-                color: 'rgba(255,255,255,0.7)',
-                fontFamily: mono,
-                fontSize: '0.55rem',
-                letterSpacing: '0.2em',
-                textTransform: 'uppercase',
-                padding: '4px 10px',
-                borderRadius: 999,
-                cursor: 'pointer',
-              }}
-              aria-label="Close evidence drawer"
-            >
-              Close
-            </button>
-          </div>
-
-          <h2
-            style={{
-              fontSize: '1.1rem',
-              fontWeight: 600,
-              lineHeight: 1.3,
-              marginBottom: 12,
-              color: '#fff',
-            }}
-          >
-            {openCard.title}
-          </h2>
-          <p
-            style={{
-              fontSize: '0.85rem',
-              lineHeight: 1.6,
-              color: 'rgba(255,255,255,0.7)',
-              marginBottom: 22,
-            }}
-          >
-            {openCard.judgment}
-          </p>
-
-          {openCard.drawer?.math && (
-            <div style={{ marginBottom: 22 }}>
-              <p
-                style={{
-                  fontFamily: mono,
-                  fontSize: '0.55rem',
-                  letterSpacing: '0.3em',
-                  color: 'rgba(255,255,255,0.5)',
-                  textTransform: 'uppercase',
-                  marginBottom: 8,
-                  fontWeight: 600,
-                }}
-              >
-                The arithmetic
-              </p>
-              <p
-                style={{
-                  fontFamily: mono,
-                  fontSize: '0.82rem',
-                  lineHeight: 1.55,
-                  color: 'rgba(255,255,255,0.85)',
-                  background: 'rgba(255,167,38,0.06)',
-                  border: '1px solid rgba(255,167,38,0.15)',
-                  padding: '12px 14px',
-                  borderRadius: 4,
-                }}
-              >
-                {openCard.drawer.math}
-              </p>
-            </div>
-          )}
-
-          {openCard.drawer?.quotes && openCard.drawer.quotes.length > 0 && (
-            <div style={{ marginBottom: 22 }}>
-              <p
-                style={{
-                  fontFamily: mono,
-                  fontSize: '0.55rem',
-                  letterSpacing: '0.3em',
-                  color: 'rgba(255,255,255,0.5)',
-                  textTransform: 'uppercase',
-                  marginBottom: 10,
-                  fontWeight: 600,
-                }}
-              >
-                Quotes
-              </p>
-              {openCard.drawer.quotes.map((q, i) => (
-                <div
-                  key={i}
-                  style={{
-                    borderLeft: '2px solid rgba(255,167,38,0.4)',
-                    paddingLeft: 12,
-                    marginBottom: 12,
-                  }}
-                >
-                  <p style={{ fontSize: '0.85rem', lineHeight: 1.55, color: 'rgba(255,255,255,0.85)' }}>
-                    “{q.text}”
-                  </p>
-                  <p
-                    style={{
-                      fontFamily: mono,
-                      fontSize: '0.6rem',
-                      color: 'rgba(255,255,255,0.45)',
-                      marginTop: 4,
-                      letterSpacing: '0.05em',
-                    }}
-                  >
-                    — {q.who}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {openCard.drawer?.sources && openCard.drawer.sources.length > 0 && (
-            <div>
-              <p
-                style={{
-                  fontFamily: mono,
-                  fontSize: '0.55rem',
-                  letterSpacing: '0.3em',
-                  color: 'rgba(255,255,255,0.5)',
-                  textTransform: 'uppercase',
-                  marginBottom: 10,
-                  fontWeight: 600,
-                }}
-              >
-                Sources
-              </p>
-              <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-                {openCard.drawer.sources.map((s, i) => (
-                  <li
-                    key={i}
-                    style={{
-                      fontSize: '0.82rem',
-                      color: 'rgba(255,255,255,0.7)',
-                      lineHeight: 1.55,
-                      padding: '6px 0',
-                      borderBottom: '1px solid rgba(255,255,255,0.06)',
-                    }}
-                  >
-                    {s}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {!openCard.drawer && (
-            <p
-              style={{
-                fontSize: '0.8rem',
-                color: 'rgba(255,255,255,0.45)',
-                fontStyle: 'italic',
-              }}
-            >
-              No additional drawer material on this card — the judgment + three points stand on their own.
-            </p>
-          )}
-        </aside>
-      )}
-
-      {/* ── 4. Bottom progress / verdict strip ── */}
-      <ProgressStrip
-        columns={allColumns.map((c) => ({ id: c.id, label: c.label }))}
-        activeId={activeColumnId}
-        onJump={(id) => {
-          setActiveColumnId(id);
-          setOpenCardId(null);
-        }}
-      />
-    </div>
+          Open the book →
+        </button>
+      </div>
+    </section>
   );
 }
 
-/* ── Column view — shelf of cards ─────────────────────────────────── */
-function ColumnView({
+/* ── Chapters 1..N — one column at a time ─────────────────────────── */
+function ColumnPage({
   column,
+  index,
+  total,
   openCardId,
   onOpenCard,
 }: {
   column: MagazineColumn;
+  index: number;
+  total: number;
   openCardId: string | null;
-  onOpenCard: (id: string | null) => void;
+  onOpenCard: (id: string) => void;
 }) {
   return (
-    <div>
-      <header style={{ marginBottom: 32 }}>
-        <p
-          style={{
-            fontFamily: mono,
-            fontSize: '0.62rem',
-            letterSpacing: '0.32em',
-            color: '#ffa726',
-            textTransform: 'uppercase',
-            marginBottom: 8,
-            fontWeight: 600,
-          }}
-        >
-          {column.label}
-        </p>
-        <h2
-          style={{
-            fontSize: 'clamp(1.6rem, 3.6vw, 2.4rem)',
-            fontWeight: 600,
-            color: '#fff',
-            letterSpacing: '-0.015em',
-            lineHeight: 1.15,
-          }}
-        >
-          {column.tagline}
-        </h2>
-      </header>
+    <section
+      style={{
+        minHeight: 'calc(100vh - 60px)',
+        padding: '64px 24px 64px',
+      }}
+    >
+      <div style={{ maxWidth: 820, margin: '0 auto' }}>
+        <header style={{ marginBottom: 40 }}>
+          <p
+            style={{
+              fontFamily: mono,
+              fontSize: '0.6rem',
+              letterSpacing: '0.32em',
+              color: '#ffa726',
+              textTransform: 'uppercase',
+              marginBottom: 8,
+              fontWeight: 600,
+            }}
+          >
+            Chapter {String(index).padStart(2, '0')} of {String(total - 1).padStart(2, '0')} · {column.label}
+          </p>
+          <h2
+            style={{
+              fontSize: 'clamp(1.8rem, 4vw, 2.6rem)',
+              fontWeight: 600,
+              color: '#fff',
+              letterSpacing: '-0.015em',
+              lineHeight: 1.12,
+            }}
+          >
+            {column.tagline}
+          </h2>
+        </header>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
-        {column.cards.map((card) => (
-          <CardItem
-            key={card.id}
-            card={card}
-            isOpen={card.id === openCardId}
-            onToggle={() => onOpenCard(card.id === openCardId ? null : card.id)}
-          />
-        ))}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+          {column.cards.map((card) => (
+            <CardItem
+              key={card.id}
+              card={card}
+              isOpen={card.id === openCardId}
+              onOpen={() => onOpenCard(card.id === openCardId ? '' : card.id)}
+            />
+          ))}
+        </div>
       </div>
+    </section>
+  );
+}
+
+/* ── Final chapter — the verdict ──────────────────────────────────── */
+function VerdictPage({ verdict, nextIssueTracks }: { verdict: Verdict; nextIssueTracks: string }) {
+  const stancePalette: Record<Verdict['stance'], { bg: string; border: string; fg: string; label: string }> = {
+    bullish: { bg: 'rgba(61,240,166,0.10)', border: 'rgba(61,240,166,0.4)', fg: '#3df0a6', label: 'Bullish' },
+    bearish: { bg: 'rgba(255,108,108,0.10)', border: 'rgba(255,108,108,0.4)', fg: '#ff6c6c', label: 'Bearish' },
+    wait: { bg: 'rgba(255,167,38,0.10)', border: 'rgba(255,167,38,0.4)', fg: '#ffa726', label: 'Wait & watch' },
+  };
+  const sp = stancePalette[verdict.stance];
+
+  return (
+    <section style={{ minHeight: 'calc(100vh - 60px)', padding: '64px 24px 64px' }}>
+      <div style={{ maxWidth: 820, margin: '0 auto' }}>
+        <header style={{ marginBottom: 32 }}>
+          <p
+            style={{
+              fontFamily: mono,
+              fontSize: '0.6rem',
+              letterSpacing: '0.32em',
+              color: '#ffa726',
+              textTransform: 'uppercase',
+              marginBottom: 8,
+              fontWeight: 600,
+            }}
+          >
+            Final chapter · Editor&rsquo;s Verdict
+          </p>
+          <h2
+            style={{
+              fontSize: 'clamp(1.8rem, 4vw, 2.6rem)',
+              fontWeight: 600,
+              color: '#fff',
+              letterSpacing: '-0.015em',
+              lineHeight: 1.12,
+            }}
+          >
+            This issue, in one card
+          </h2>
+        </header>
+
+        <article
+          style={{
+            background: 'rgba(255,255,255,0.025)',
+            border: '1px solid rgba(255,167,38,0.3)',
+            borderRadius: 6,
+            padding: '28px 30px',
+          }}
+        >
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 22 }}>
+            <span
+              style={{
+                background: sp.bg,
+                border: `1px solid ${sp.border}`,
+                color: sp.fg,
+                fontFamily: mono,
+                fontSize: '0.62rem',
+                letterSpacing: '0.28em',
+                padding: '6px 14px',
+                borderRadius: 999,
+                textTransform: 'uppercase',
+                fontWeight: 700,
+              }}
+            >
+              Stance · {sp.label}
+            </span>
+            <span
+              style={{
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                color: 'rgba(255,255,255,0.85)',
+                fontFamily: mono,
+                fontSize: '0.62rem',
+                letterSpacing: '0.28em',
+                padding: '6px 14px',
+                borderRadius: 999,
+                textTransform: 'uppercase',
+                fontWeight: 600,
+              }}
+            >
+              Confidence · {verdict.confidence}
+            </span>
+          </div>
+
+          <p
+            style={{
+              fontSize: 'clamp(1.05rem, 2.2vw, 1.25rem)',
+              lineHeight: 1.6,
+              color: '#fff',
+              marginBottom: 14,
+              paddingLeft: 16,
+              borderLeft: '3px solid #ffa726',
+              fontWeight: 500,
+            }}
+          >
+            {verdict.stanceText}
+          </p>
+          <p
+            style={{
+              fontSize: '0.85rem',
+              color: 'rgba(255,255,255,0.55)',
+              marginBottom: 30,
+              fontStyle: 'italic',
+              paddingLeft: 16,
+            }}
+          >
+            {verdict.confidenceNote}
+          </p>
+
+          <VerdictBlock label="Core reasons" items={verdict.reasons} accent="#3df0a6" />
+          <VerdictBlock label="Biggest counter" items={[verdict.biggestCounter]} accent="#ff6c6c" />
+          <VerdictBlock label="What to watch" items={verdict.indicators} accent="#ffa726" />
+
+          <div style={{ marginTop: 24, paddingTop: 22, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+            <p
+              style={{
+                fontFamily: mono,
+                fontSize: '0.55rem',
+                letterSpacing: '0.3em',
+                color: 'rgba(255,255,255,0.5)',
+                textTransform: 'uppercase',
+                marginBottom: 6,
+                fontWeight: 600,
+              }}
+            >
+              Time window
+            </p>
+            <p style={{ fontSize: '0.95rem', color: '#fff', fontWeight: 500 }}>{verdict.timeWindow}</p>
+          </div>
+        </article>
+
+        <div
+          style={{
+            marginTop: 28,
+            background: 'rgba(255,167,38,0.04)',
+            border: '1px dashed rgba(255,167,38,0.25)',
+            borderRadius: 6,
+            padding: '20px 24px',
+          }}
+        >
+          <p
+            style={{
+              fontFamily: mono,
+              fontSize: '0.55rem',
+              letterSpacing: '0.32em',
+              color: '#ffa726',
+              textTransform: 'uppercase',
+              marginBottom: 10,
+              fontWeight: 600,
+            }}
+          >
+            Editorial line · The next issue tracks
+          </p>
+          <p style={{ fontSize: '0.92rem', lineHeight: 1.6, color: 'rgba(255,255,255,0.78)' }}>
+            {nextIssueTracks}
+          </p>
+        </div>
+
+        <div style={{ marginTop: 36, textAlign: 'center' }}>
+          <Link
+            href="/research"
+            style={{
+              display: 'inline-block',
+              fontFamily: mono,
+              fontSize: '0.62rem',
+              letterSpacing: '0.28em',
+              color: 'rgba(255,255,255,0.5)',
+              textDecoration: 'none',
+              textTransform: 'uppercase',
+              padding: '10px 20px',
+              border: '1px solid rgba(255,255,255,0.15)',
+              borderRadius: 999,
+            }}
+          >
+            ← Close the book
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function VerdictBlock({ label, items, accent }: { label: string; items: string[]; accent: string }) {
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <p
+        style={{
+          fontFamily: mono,
+          fontSize: '0.55rem',
+          letterSpacing: '0.3em',
+          color: accent,
+          textTransform: 'uppercase',
+          marginBottom: 10,
+          fontWeight: 600,
+        }}
+      >
+        {label}
+      </p>
+      <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {items.map((it, i) => (
+          <li
+            key={i}
+            style={{
+              fontSize: '0.95rem',
+              lineHeight: 1.55,
+              color: 'rgba(255,255,255,0.85)',
+              paddingLeft: 24,
+              position: 'relative',
+            }}
+          >
+            <span
+              aria-hidden
+              style={{
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                fontFamily: mono,
+                fontSize: '0.62rem',
+                color: accent,
+                fontWeight: 700,
+              }}
+            >
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            {it}
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }
@@ -642,11 +676,11 @@ function ColumnView({
 function CardItem({
   card,
   isOpen,
-  onToggle,
+  onOpen,
 }: {
   card: MagazineCard;
   isOpen: boolean;
-  onToggle: () => void;
+  onOpen: () => void;
 }) {
   return (
     <article
@@ -760,7 +794,7 @@ function CardItem({
 
       <button
         type="button"
-        onClick={onToggle}
+        onClick={onOpen}
         style={{
           appearance: 'none',
           background: 'transparent',
@@ -809,15 +843,7 @@ function ImpactBadge({ direction, note }: { direction: ImpactDirection; note: st
   };
   const p = palette[direction];
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-end',
-        gap: 4,
-        flexShrink: 0,
-      }}
-    >
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
       <span
         style={{
           background: p.bg,
@@ -851,334 +877,295 @@ function ImpactBadge({ direction, note }: { direction: ImpactDirection; note: st
   );
 }
 
-/* ── Verdict view — the editor's take ─────────────────────────────── */
-function VerdictView({
-  verdict,
-  nextIssueTracks,
-}: {
-  verdict: typeof HUAWEI_HBM.verdict;
-  nextIssueTracks: string;
-}) {
-  const stancePalette: Record<typeof verdict.stance, { bg: string; border: string; fg: string; label: string }> = {
-    bullish: { bg: 'rgba(61,240,166,0.10)', border: 'rgba(61,240,166,0.4)', fg: '#3df0a6', label: 'Bullish' },
-    bearish: { bg: 'rgba(255,108,108,0.10)', border: 'rgba(255,108,108,0.4)', fg: '#ff6c6c', label: 'Bearish' },
-    wait: { bg: 'rgba(255,167,38,0.10)', border: 'rgba(255,167,38,0.4)', fg: '#ffa726', label: 'Wait & watch' },
-  };
-  const sp = stancePalette[verdict.stance];
-
+/* ── Evidence drawer content ──────────────────────────────────────── */
+function EvidenceDrawerContent({ card, onClose }: { card: MagazineCard; onClose: () => void }) {
   return (
-    <div>
-      <header style={{ marginBottom: 24 }}>
-        <p
-          style={{
-            fontFamily: mono,
-            fontSize: '0.62rem',
-            letterSpacing: '0.32em',
-            color: '#ffa726',
-            textTransform: 'uppercase',
-            marginBottom: 8,
-            fontWeight: 600,
-          }}
-        >
-          Editor's Verdict
-        </p>
-        <h2
-          style={{
-            fontSize: 'clamp(1.6rem, 3.6vw, 2.4rem)',
-            fontWeight: 600,
-            color: '#fff',
-            letterSpacing: '-0.015em',
-            lineHeight: 1.15,
-          }}
-        >
-          This issue, in one card
-        </h2>
-      </header>
-
-      <article
-        style={{
-          background: 'rgba(255,255,255,0.025)',
-          border: '1px solid rgba(255,167,38,0.3)',
-          borderRadius: 6,
-          padding: '28px 30px',
-        }}
-      >
-        {/* Stance + confidence */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 22 }}>
-          <span
-            style={{
-              background: sp.bg,
-              border: `1px solid ${sp.border}`,
-              color: sp.fg,
-              fontFamily: mono,
-              fontSize: '0.62rem',
-              letterSpacing: '0.28em',
-              padding: '6px 14px',
-              borderRadius: 999,
-              textTransform: 'uppercase',
-              fontWeight: 700,
-            }}
-          >
-            Stance · {sp.label}
-          </span>
-          <span
-            style={{
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.15)',
-              color: 'rgba(255,255,255,0.85)',
-              fontFamily: mono,
-              fontSize: '0.62rem',
-              letterSpacing: '0.28em',
-              padding: '6px 14px',
-              borderRadius: 999,
-              textTransform: 'uppercase',
-              fontWeight: 600,
-            }}
-          >
-            Confidence · {verdict.confidence}
-          </span>
-        </div>
-
-        <p
-          style={{
-            fontSize: 'clamp(1.05rem, 2.2vw, 1.25rem)',
-            lineHeight: 1.6,
-            color: '#fff',
-            marginBottom: 14,
-            paddingLeft: 16,
-            borderLeft: '3px solid #ffa726',
-            fontWeight: 500,
-          }}
-        >
-          {verdict.stanceText}
-        </p>
-        <p
-          style={{
-            fontSize: '0.85rem',
-            color: 'rgba(255,255,255,0.55)',
-            marginBottom: 30,
-            fontStyle: 'italic',
-            paddingLeft: 16,
-          }}
-        >
-          {verdict.confidenceNote}
-        </p>
-
-        <VerdictBlock label="Core reasons" items={verdict.reasons} accent="#3df0a6" />
-        <VerdictBlock label="Biggest counter" items={[verdict.biggestCounter]} accent="#ff6c6c" />
-        <VerdictBlock label="What to watch" items={verdict.indicators} accent="#ffa726" />
-
-        <div style={{ marginTop: 24, paddingTop: 22, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-          <p
-            style={{
-              fontFamily: mono,
-              fontSize: '0.55rem',
-              letterSpacing: '0.3em',
-              color: 'rgba(255,255,255,0.5)',
-              textTransform: 'uppercase',
-              marginBottom: 6,
-              fontWeight: 600,
-            }}
-          >
-            Time window
-          </p>
-          <p style={{ fontSize: '0.95rem', color: '#fff', fontWeight: 500 }}>{verdict.timeWindow}</p>
-        </div>
-      </article>
-
-      {/* Editorial line · next issue */}
-      <div
-        style={{
-          marginTop: 28,
-          background: 'rgba(255,167,38,0.04)',
-          border: '1px dashed rgba(255,167,38,0.25)',
-          borderRadius: 6,
-          padding: '20px 24px',
-        }}
-      >
-        <p
+    <>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+        <span
           style={{
             fontFamily: mono,
             fontSize: '0.55rem',
             letterSpacing: '0.32em',
             color: '#ffa726',
             textTransform: 'uppercase',
-            marginBottom: 10,
             fontWeight: 600,
           }}
         >
-          Editorial line · The next issue tracks
-        </p>
-        <p
+          Evidence drawer
+        </span>
+        <button
+          type="button"
+          onClick={onClose}
           style={{
-            fontSize: '0.92rem',
-            lineHeight: 1.6,
-            color: 'rgba(255,255,255,0.78)',
-            fontWeight: 400,
+            appearance: 'none',
+            border: '1px solid rgba(255,255,255,0.18)',
+            background: 'transparent',
+            color: 'rgba(255,255,255,0.7)',
+            fontFamily: mono,
+            fontSize: '0.55rem',
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            padding: '4px 10px',
+            borderRadius: 999,
+            cursor: 'pointer',
           }}
+          aria-label="Close evidence drawer"
         >
-          {nextIssueTracks}
-        </p>
+          Close
+        </button>
       </div>
-    </div>
-  );
-}
 
-function VerdictBlock({ label, items, accent }: { label: string; items: string[]; accent: string }) {
-  return (
-    <div style={{ marginBottom: 20 }}>
-      <p
-        style={{
-          fontFamily: mono,
-          fontSize: '0.55rem',
-          letterSpacing: '0.3em',
-          color: accent,
-          textTransform: 'uppercase',
-          marginBottom: 10,
-          fontWeight: 600,
-        }}
-      >
-        {label}
+      <h2 style={{ fontSize: '1.1rem', fontWeight: 600, lineHeight: 1.3, marginBottom: 12, color: '#fff' }}>
+        {card.title}
+      </h2>
+      <p style={{ fontSize: '0.85rem', lineHeight: 1.6, color: 'rgba(255,255,255,0.7)', marginBottom: 22 }}>
+        {card.judgment}
       </p>
-      <ol
-        style={{
-          listStyle: 'none',
-          margin: 0,
-          padding: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 8,
-        }}
-      >
-        {items.map((it, i) => (
-          <li
-            key={i}
+
+      {card.drawer?.math && (
+        <div style={{ marginBottom: 22 }}>
+          <DrawerLabel>The arithmetic</DrawerLabel>
+          <p
             style={{
-              fontSize: '0.95rem',
+              fontFamily: mono,
+              fontSize: '0.82rem',
               lineHeight: 1.55,
               color: 'rgba(255,255,255,0.85)',
-              paddingLeft: 24,
-              position: 'relative',
+              background: 'rgba(255,167,38,0.06)',
+              border: '1px solid rgba(255,167,38,0.15)',
+              padding: '12px 14px',
+              borderRadius: 4,
             }}
           >
-            <span
-              aria-hidden
-              style={{
-                position: 'absolute',
-                left: 0,
-                top: 0,
-                fontFamily: mono,
-                fontSize: '0.62rem',
-                color: accent,
-                fontWeight: 700,
-              }}
-            >
-              {String(i + 1).padStart(2, '0')}
-            </span>
-            {it}
-          </li>
-        ))}
-      </ol>
-    </div>
+            {card.drawer.math}
+          </p>
+        </div>
+      )}
+
+      {card.drawer?.quotes && card.drawer.quotes.length > 0 && (
+        <div style={{ marginBottom: 22 }}>
+          <DrawerLabel>Quotes</DrawerLabel>
+          {card.drawer.quotes.map((q, i) => (
+            <div key={i} style={{ borderLeft: '2px solid rgba(255,167,38,0.4)', paddingLeft: 12, marginBottom: 12 }}>
+              <p style={{ fontSize: '0.85rem', lineHeight: 1.55, color: 'rgba(255,255,255,0.85)' }}>“{q.text}”</p>
+              <p
+                style={{
+                  fontFamily: mono,
+                  fontSize: '0.6rem',
+                  color: 'rgba(255,255,255,0.45)',
+                  marginTop: 4,
+                  letterSpacing: '0.05em',
+                }}
+              >
+                — {q.who}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {card.drawer?.sources && card.drawer.sources.length > 0 && (
+        <div>
+          <DrawerLabel>Sources</DrawerLabel>
+          <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+            {card.drawer.sources.map((s, i) => (
+              <li
+                key={i}
+                style={{
+                  fontSize: '0.82rem',
+                  color: 'rgba(255,255,255,0.7)',
+                  lineHeight: 1.55,
+                  padding: '6px 0',
+                  borderBottom: '1px solid rgba(255,255,255,0.06)',
+                }}
+              >
+                {s}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {!card.drawer && (
+        <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.45)', fontStyle: 'italic' }}>
+          No additional drawer material on this card — the judgment + three points stand on their own.
+        </p>
+      )}
+    </>
   );
 }
 
-/* ── Progress strip — bottom dock showing path through the magazine ──── */
-function ProgressStrip({
-  columns,
-  activeId,
+function DrawerLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p
+      style={{
+        fontFamily: mono,
+        fontSize: '0.55rem',
+        letterSpacing: '0.3em',
+        color: 'rgba(255,255,255,0.5)',
+        textTransform: 'uppercase',
+        marginBottom: 10,
+        fontWeight: 600,
+      }}
+    >
+      {children}
+    </p>
+  );
+}
+
+/* ── Bottom page-turn bar ─────────────────────────────────────────── */
+function PageTurnBar({
+  chapterIndex,
+  total,
+  chapterLabel,
+  onPrev,
+  onNext,
   onJump,
 }: {
-  columns: { id: string; label: string }[];
-  activeId: string;
-  onJump: (id: string) => void;
+  chapterIndex: number;
+  total: number;
+  chapterLabel: (i: number) => string;
+  onPrev: () => void;
+  onNext: () => void;
+  onJump: (i: number) => void;
 }) {
-  const activeIndex = columns.findIndex((c) => c.id === activeId);
-  const pct = ((activeIndex + 1) / columns.length) * 100;
+  const isFirst = chapterIndex === 0;
+  const isLast = chapterIndex === total - 1;
+  const nextLabel = isLast ? '—' : chapterLabel(chapterIndex + 1);
+
   return (
     <div
       style={{
-        position: 'sticky',
+        position: 'fixed',
         bottom: 0,
+        left: 0,
+        right: 0,
         zIndex: 40,
         background: 'rgba(7,7,7,0.95)',
         borderTop: '1px solid rgba(255,255,255,0.08)',
-        padding: '12px 24px',
-        backdropFilter: 'blur(12px)',
+        backdropFilter: 'blur(14px)',
+        padding: '12px 20px env(safe-area-inset-bottom, 12px)',
       }}
     >
       <div
         style={{
-          maxWidth: 1280,
+          maxWidth: 1180,
           margin: '0 auto',
           display: 'flex',
           flexDirection: 'column',
           gap: 8,
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-          <span
-            style={{
-              fontFamily: mono,
-              fontSize: '0.55rem',
-              letterSpacing: '0.28em',
-              color: 'rgba(255,255,255,0.5)',
-              textTransform: 'uppercase',
-              fontWeight: 600,
-            }}
-          >
-            From question → verdict
-          </span>
-          <span
-            style={{
-              fontFamily: mono,
-              fontSize: '0.55rem',
-              letterSpacing: '0.2em',
-              color: '#ffa726',
-              fontWeight: 600,
-            }}
-          >
-            {activeIndex + 1} / {columns.length}
-          </span>
-        </div>
+        {/* dot row — clickable chapter index */}
         <div
           style={{
             display: 'flex',
-            gap: 4,
-            height: 4,
-            borderRadius: 2,
-            overflow: 'hidden',
-            background: 'rgba(255,255,255,0.06)',
+            justifyContent: 'center',
+            gap: 6,
+            paddingBottom: 4,
           }}
+          aria-label="Chapter navigation"
         >
-          {columns.map((c, i) => (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() => onJump(c.id)}
-              aria-label={`Jump to ${c.label}`}
-              style={{
-                flex: 1,
-                background: i <= activeIndex ? '#ffa726' : 'rgba(255,255,255,0.10)',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'background 0.18s ease',
-              }}
-            />
-          ))}
+          {Array.from({ length: total }).map((_, i) => {
+            const isCurrent = i === chapterIndex;
+            const isPast = i < chapterIndex;
+            return (
+              <button
+                key={i}
+                type="button"
+                onClick={() => onJump(i)}
+                aria-label={`Jump to chapter ${i}`}
+                aria-current={isCurrent ? 'true' : undefined}
+                style={{
+                  appearance: 'none',
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  padding: 4,
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                <span
+                  style={{
+                    display: 'block',
+                    width: isCurrent ? 26 : 7,
+                    height: 7,
+                    borderRadius: 999,
+                    background: isCurrent || isPast ? '#ffa726' : 'rgba(255,255,255,0.18)',
+                    transition: 'width 0.22s ease, background 0.22s ease',
+                  }}
+                />
+              </button>
+            );
+          })}
         </div>
-        <p
-          style={{
-            fontFamily: mono,
-            fontSize: '0.62rem',
-            color: 'rgba(255,255,255,0.65)',
-            textAlign: 'center',
-            marginTop: 2,
-          }}
-          aria-hidden
-        >
-          {pct.toFixed(0)}% of the path
-        </p>
+
+        {/* prev / next */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
+          <button
+            type="button"
+            onClick={onPrev}
+            disabled={isFirst}
+            style={{
+              appearance: 'none',
+              border: '1px solid rgba(255,255,255,0.18)',
+              background: 'transparent',
+              color: isFirst ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.75)',
+              fontFamily: mono,
+              fontSize: '0.58rem',
+              letterSpacing: '0.22em',
+              padding: '8px 14px',
+              borderRadius: 999,
+              textTransform: 'uppercase',
+              cursor: isFirst ? 'default' : 'pointer',
+              opacity: isFirst ? 0.4 : 1,
+            }}
+          >
+            ← Previous
+          </button>
+
+          <span
+            style={{
+              fontFamily: mono,
+              fontSize: '0.55rem',
+              letterSpacing: '0.22em',
+              color: 'rgba(255,255,255,0.55)',
+              textTransform: 'uppercase',
+              textAlign: 'center',
+            }}
+          >
+            {chapterIndex + 1} of {total}
+          </span>
+
+          <button
+            type="button"
+            onClick={onNext}
+            disabled={isLast}
+            style={{
+              appearance: 'none',
+              border: '1px solid rgba(255,167,38,0.5)',
+              background: isLast ? 'transparent' : 'rgba(255,167,38,0.12)',
+              color: isLast ? 'rgba(255,167,38,0.4)' : '#ffa726',
+              fontFamily: mono,
+              fontSize: '0.58rem',
+              letterSpacing: '0.22em',
+              padding: '8px 14px',
+              borderRadius: 999,
+              textTransform: 'uppercase',
+              cursor: isLast ? 'default' : 'pointer',
+              fontWeight: 700,
+              opacity: isLast ? 0.4 : 1,
+              maxWidth: 'min(220px, 50vw)',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {isLast ? 'End of book' : `Next · ${nextLabel} →`}
+          </button>
+        </div>
       </div>
     </div>
   );
