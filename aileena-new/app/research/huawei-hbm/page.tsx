@@ -226,6 +226,48 @@ export default function HuaweiHbmMagazinePilot() {
         </div>
       </section>
 
+      {/* ── 1b. EDITORIAL LINE — why this issue ── */}
+      <section
+        style={{
+          maxWidth: 920,
+          margin: '0 auto',
+          padding: '56px 24px 0',
+        }}
+      >
+        <div
+          style={{
+            background: 'rgba(255,167,38,0.04)',
+            border: '1px solid rgba(255,167,38,0.18)',
+            borderRadius: 6,
+            padding: '24px 28px',
+          }}
+        >
+          <p
+            style={{
+              fontFamily: mono,
+              fontSize: '0.6rem',
+              letterSpacing: '0.32em',
+              color: '#ffa726',
+              textTransform: 'uppercase',
+              marginBottom: 12,
+              fontWeight: 600,
+            }}
+          >
+            Editorial line · Why this issue
+          </p>
+          <p
+            style={{
+              fontSize: '1rem',
+              lineHeight: 1.65,
+              color: 'rgba(255,255,255,0.78)',
+              fontWeight: 400,
+            }}
+          >
+            {issue.whyThisIssue}
+          </p>
+        </div>
+      </section>
+
       {/* ── 2. RACK — left column nav + center cards + right drawer ── */}
       <section
         style={{
@@ -324,7 +366,9 @@ export default function HuaweiHbmMagazinePilot() {
               onOpenCard={setOpenCardId}
             />
           )}
-          {activeColumn?.id === 'verdict' && <VerdictView verdict={issue.verdict} />}
+          {activeColumn?.id === 'verdict' && (
+            <VerdictView verdict={issue.verdict} nextIssueTracks={issue.nextIssueTracks} />
+          )}
         </div>
       </section>
 
@@ -808,7 +852,13 @@ function ImpactBadge({ direction, note }: { direction: ImpactDirection; note: st
 }
 
 /* ── Verdict view — the editor's take ─────────────────────────────── */
-function VerdictView({ verdict }: { verdict: typeof HUAWEI_HBM.verdict }) {
+function VerdictView({
+  verdict,
+  nextIssueTracks,
+}: {
+  verdict: typeof HUAWEI_HBM.verdict;
+  nextIssueTracks: string;
+}) {
   const stancePalette: Record<typeof verdict.stance, { bg: string; border: string; fg: string; label: string }> = {
     bullish: { bg: 'rgba(61,240,166,0.10)', border: 'rgba(61,240,166,0.4)', fg: '#3df0a6', label: 'Bullish' },
     bearish: { bg: 'rgba(255,108,108,0.10)', border: 'rgba(255,108,108,0.4)', fg: '#ff6c6c', label: 'Bearish' },
@@ -935,6 +985,41 @@ function VerdictView({ verdict }: { verdict: typeof HUAWEI_HBM.verdict }) {
           <p style={{ fontSize: '0.95rem', color: '#fff', fontWeight: 500 }}>{verdict.timeWindow}</p>
         </div>
       </article>
+
+      {/* Editorial line · next issue */}
+      <div
+        style={{
+          marginTop: 28,
+          background: 'rgba(255,167,38,0.04)',
+          border: '1px dashed rgba(255,167,38,0.25)',
+          borderRadius: 6,
+          padding: '20px 24px',
+        }}
+      >
+        <p
+          style={{
+            fontFamily: mono,
+            fontSize: '0.55rem',
+            letterSpacing: '0.32em',
+            color: '#ffa726',
+            textTransform: 'uppercase',
+            marginBottom: 10,
+            fontWeight: 600,
+          }}
+        >
+          Editorial line · The next issue tracks
+        </p>
+        <p
+          style={{
+            fontSize: '0.92rem',
+            lineHeight: 1.6,
+            color: 'rgba(255,255,255,0.78)',
+            fontWeight: 400,
+          }}
+        >
+          {nextIssueTracks}
+        </p>
+      </div>
     </div>
   );
 }

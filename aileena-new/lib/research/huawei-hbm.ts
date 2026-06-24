@@ -56,8 +56,20 @@ export type MagazineIssue = {
   coverScene: string;
   coverTitle: string;
   coverQuestion: string;
+  /**
+   * The editorial line — why we made this issue. Renders right after
+   * the cover, before the columns. Aileen's #1 principle: a magazine
+   * has editorial intent, not just stacked content.
+   */
+  whyThisIssue: string;
   columns: MagazineColumn[];
   verdict: Verdict;
+  /**
+   * What the next issue will track. Renders inside the closing
+   * verdict, framing this issue as one tick on a running thread
+   * rather than a standalone post.
+   */
+  nextIssueTracks: string;
 };
 
 export const HUAWEI_HBM: MagazineIssue = {
@@ -68,6 +80,9 @@ export const HUAWEI_HBM: MagazineIssue = {
   coverTitle: "David's Stockpile",
   coverQuestion:
     'Is Huawei betting on system architecture, or on a stockpile holding until CXMT ramps?',
+
+  whyThisIssue:
+    "Because every Huawei-vs-NVIDIA conversation collapses onto the chip — process node, per-card throughput, CUDA's moat — and misses where the money is actually locked. We made this issue to surface the right bottleneck: not the silicon, the memory. If the next 18 months of Ascend production volume is set by an input Huawei doesn't control, that's the real story, not the system-architecture wins.",
 
   columns: [
     /* ── 1. COVER STORY — the editorial thesis ────────────────────────── */
@@ -429,4 +444,7 @@ export const HUAWEI_HBM: MagazineIssue = {
     ],
     timeWindow: '12–18 months — the window where both curves resolve',
   },
+
+  nextIssueTracks:
+    "Three things into the next issue: CXMT's HBM yield month-by-month (the single most-leveraged variable), the next frontier-model Day-0 launch on CANN (proof that the DeepSeek V4 result was structural, not a one-off favor), and whether any new HBM smuggling channel emerges to replace the publicly-shuttered CoAsia / Faraday route.",
 };
