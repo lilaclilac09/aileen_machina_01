@@ -51,6 +51,77 @@ Every step matters. Skipping one means the article ships partially: shows up on 
 6. **Verify on preview** — push to a branch, open PR, wait for Vercel preview Ready, ask the agent "what did she write about <new topic>?". If the agent answers correctly, it'll answer correctly on production after merge.
 7. **Production agent is only updated on `main`** — preview builds have the new index; production (aileena.xyz) only sees the new article after PR merge. If she asks the agent about a new piece and gets "I don't know" on production, the fix is merging the PR, not re-indexing.
 
+## Two content forms — `/blog` (long-form) and `/research` (magazine rack)
+
+Aileen ships in two parallel formats. They co-exist; the same piece can live in both. Don't conflate them.
+
+- **`/blog/<slug>`** — long-form essay. A reader reads top-to-bottom. The Substack-style article you reach from the homepage Cover Flow. Optional `/blog/<slug>/explainer` companion. Indexed by the agent (`lib/agentArticleIndex.json`). The "checklist for adding a new blog article" above applies.
+- **`/research/<slug>`** — **interactive magazine rack**. A reader flips columns and opens evidence drawers. Same numbers as the long-form, restructured into editorial-magazine form: cover scene + question, seven columns, cards that vote toward a final verdict. **Not** scanned by the article indexer — the agent does not retrieve research-magazine cards (yet). Each issue is a single page + a typed data file.
+
+The magazine rack is the format Aileen designed to make her judgments retrievable: every card carries an **impact tag** (reinforces / weakens / uncertain), and the closing column is the editor's verdict (stance + confidence + reasons + biggest counter + indicators + time window). The thesis is that a magazine has editorial intent — content isn't just stacked, it's organized around one core question and resolved at the end.
+
+### Design principles (do NOT compromise on these)
+
+These are the rules that came out of Aileen's two design memos. They apply to every magazine issue.
+
+**1. The cover is a scene, not a mission statement.** Open on a vivid, concrete moment — not on "X is a system that…". The five archetypes Aileen named:
+
+- An empty storefront (consumer / retail)
+- A factory still lit at midnight (industrial / capacity)
+- A founder pausing three seconds in a keynote (company / leadership)
+- A policy drops and the stock doesn't move (markets / framing)
+- A user complaining about a product on Xiaohongshu (demand / sentiment)
+
+Pick one. Render it in one short paragraph. The cover does three things only: grab attention, create the problem, plant the core conflict. Don't explain too much.
+
+**2. There is exactly one core question per issue.** The whole rack is its scaffolding. Every card has to be derivable as a partial answer to it. If a card doesn't push toward the answer, it doesn't belong in the issue — move it to a follow-up or kill it. The question is the editorial anchor, written into `coverQuestion`. Examples Aileen named:
+
+- "Is this company growing, or borrowing growth?"
+- "Is this sector a cyclical bounce, or a structural change?"
+- "Is this product a new need, or an old need in new packaging?"
+- "Is this policy bullish, or a profit redistribution?"
+
+**3. Multiple reader paths into the same answer.** Aileen names five reader intents, each a legitimate entry into the rack:
+
+- "I just want the conclusion" → Editor's Verdict column first
+- "I want the story" → Cover Story → On the Ground → People
+- "I want the data" → Data column, drawer-deep
+- "I want the risks" → Counter-Argument column
+- "I want the other side" → Counter-Argument + the Biggest Counter field on the verdict
+
+A reader is free to choose the path. The path is the navigation pattern. The destination is the same one core question, the same one verdict. **Freedom with rails.** Don't let the reader wander; don't railroad them either.
+
+**4. Layered information density (the camera-lens frame).** The columns correspond to camera shots; honour the hierarchy when writing cards inside each column:
+
+- *Wide shot* — macro / industry. Cover Story column carries this.
+- *Medium shot* — company / business model. Data + People columns.
+- *Close-up* — user / product / scene. On the Ground column.
+- *Extreme close-up* — single metrics. Cards in the Data column with arithmetic in the drawer.
+- *Montage* — timeline / sequencing of events. Archive column.
+- *Voiceover* — editorial judgment. Every card's `judgment` field and the closing verdict.
+
+Skipping a level reads as either too abstract (only wide + voiceover) or too granular (only close-ups, no thesis). Every issue should touch most of these.
+
+**5. Every card votes; impact tags are not decorative.** A card without an `impact` tag is unfinished. Use `'reinforces'` when the card pushes the verdict's stance further in its current direction; `'weakens'` when it pushes against it; `'uncertain'` only when the card frames a genuinely open question (not when you're avoiding a call). Reviewers should be able to read the spread of impact tags across an issue and predict the verdict — if they can't, the cards are mis-tagged.
+
+### Adding a new magazine issue — checklist
+
+1. **Data file** — create `lib/research/<slug>.ts` exporting a `MagazineIssue`. Import the shared types from any existing issue file. Required fields:
+   - `coverScene` (the scene paragraph), `coverTitle` (punchy), `coverQuestion` (the one core question the whole issue answers)
+   - `columns` — at minimum the seven standard columns: `cover-story`, `data`, `ground`, `people`, `counter`, `archive`. (The verdict column is added implicitly by the page; don't include it in this array.)
+   - For every card: `scene`, `judgment` (one sentence), `points` (three), `impact` (`'reinforces' | 'weakens' | 'uncertain'`), `impactNote` (one short line of editorial reasoning). Optional `drawer` with `sources` / `quotes` / `math`.
+   - `verdict` — `stance` (`'bullish' | 'bearish' | 'wait'`), `confidence` (`'high' | 'medium' | 'low'`), `reasons` (3), `biggestCounter` (1), `indicators` (3), `timeWindow`.
+2. **Page** — create `app/research/<slug>/page.tsx` mirroring `app/research/huawei-hbm/page.tsx`. The current pattern is a single client component that imports the data and renders the rack — no per-issue UI work, just swap the data import. (When a second issue is added, this is the moment to extract the rack into a shared component.)
+3. **Long-form sibling, optional** — if a `/blog/<slug>` long-form already exists, the magazine header should link back to it as "Long-form ↗". Update the `<Link href="/blog/<slug>">` in the page accordingly. This is the canonical pattern for the same piece existing in both forms.
+4. **Numbers stay exact** — the magazine is *not* a rewrite. Every number Aileen used in the long-form must appear unchanged in the data file. The point of the magazine form is structure, not re-research.
+5. **Editorial impact tags are the point** — every card must declare its `impact` honestly. A card that doesn't move the verdict probably shouldn't be a card. Use `'uncertain'` when a card frames an open question; don't use it as a default to avoid choosing.
+
+### What the magazine is *not*
+
+- Not a redesign of `/blog/*`. Long-form articles stay as they are.
+- Not a content-management system. New issues are added by writing a `.ts` data file, not through an editor UI.
+- Not auto-translated. EN / DE handling for the magazine isn't wired yet — the pilot is English-only. Add translations the same way `lib/translations.ts` handles them when a second language matters.
+
 ## Writing Style — blog / dispatch articles
 
 Two non-negotiables for every article:
