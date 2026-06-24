@@ -8,23 +8,38 @@ import LoadingScreen from '../components/LoadingScreen';
 import { SnapContainer, SnapSection } from '../components/SnapScroll';
 import { useLanguage } from '../components/LanguageProvider';
 import { t } from '../lib/translations';
-import SwipeRow from '../components/SwipeRow';
-import CoverflowPanel from '../components/CoverflowPanel';
-import { useCoverflowSettings } from '../lib/useCoverflowSettings';
+import { ALL_ISSUES } from '../lib/research/issues';
 import './blog/_substack/substack.css';
 
 const nunito = "'Nunito', system-ui, -apple-system, sans-serif";
+const mono = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
 
 const SESSION_LOADED_KEY = 'aileena_loaded_once';
 
+/* ── Atrium homepage ──────────────────────────────────────────────────
+ *
+ * The system frame Aileen settled on: Aileena Machina is an editorial
+ * house with four departments and one concierge. The homepage is the
+ * atrium — a cinematic opening, then a quiet dock of four doors, then
+ * the DJ station, then footer. Information is intentionally minimal:
+ * the homepage's job is to *send* you somewhere, not to *contain* the
+ * content.
+ *
+ *   Section 01  Cinematic opening   — scene + one line + one CTA
+ *   Section 02  The atrium          — four department doors
+ *   Section 03  Sound               — DJ station (unchanged)
+ *   Section 04  Footer
+ *
+ * Cover-agent (Natalia portrait + Ask the agent) is preserved on the
+ * cinematic opening; it doubles as the door to the agent department.
+ *
+ * Visual language: dark base (#070707), amber primary (#ffa726, the
+ * editorial / Magazine signal), cyan accent (#00ffea, the agent /
+ * machina signal). No third accent.
+ */
 export default function Home() {
   const { language } = useLanguage();
   const tx = t[language];
-  // Default to "already loaded" on every render after the first visit
-  // within a tab/session, so navigating back from an article does NOT
-  // re-play the loading-screen buffer. First-visit flow stays intact —
-  // the useEffect below detects the flag is missing and only THEN keeps
-  // the LoadingScreen mounted until its onDone fires.
   const [loaded, setLoaded] = useState(true);
   const [showLoadingScreen, setShowLoadingScreen] = useState(false);
 
@@ -35,20 +50,14 @@ export default function Home() {
         setLoaded(false);
       }
     } catch {
-      // sessionStorage unavailable (private mode) — fall through to "no
-      // loading screen" rather than risk the buffer playing on every nav.
+      /* sessionStorage unavailable — fall through */
     }
   }, []);
 
-  const dispatchTop3 = tx.blog.researchDispatch.posts.slice(-3).reverse();
-  // Mirror dispatch's pattern: top-3 newest for the homepage showcase;
-  // full archives live on /dispatch.
-  const investingTop3 = [...tx.blog.investing.posts].reverse().slice(0, 3);
-  // Authored order (NOT reverse-chrono) so the #MeToo essay stays first.
-  // Matches /dispatch/page.tsx:219 — Aileen's display preference.
-  const womanInTechTop3 = tx.blog.womanInTech.posts.slice(0, 3);
-
-  const coverflow = useCoverflowSettings();
+  // Latest items from each department for the atrium dock
+  const latestIssue = ALL_ISSUES[0];
+  const latestDispatch = tx.blog.researchDispatch.posts.slice(-1)[0];
+  const latestWomanInTech = tx.blog.womanInTech.posts[0];
 
   return (
     <>
@@ -67,151 +76,245 @@ export default function Home() {
       <Header />
       <SnapContainer key={language}>
 
-        {/* ── 01 HERO — one human sentence + agent door ── */}
-        <SnapSection id="hero" className="order-1">
-          <div className="h-full flex items-center justify-center bg-[#070707] px-6 sm:px-10 relative">
-            {/* Floating agent figure — zoomed Natalia-with-antennae portrait
-                anchored off the hero column. Decorative + clickable; opens
-                the same console as the pill CTA. Hidden on small phones so
-                the hero copy stays centered. */}
-            <button
-              type="button"
-              onClick={() => window.dispatchEvent(new Event('open-agent-chat'))}
-              aria-label={tx.hero.talkAgent}
-              className="hidden md:flex absolute top-1/2 right-[5%] lg:right-[8%] xl:right-[12%] -translate-y-1/2 flex-col items-center gap-2 cursor-pointer group z-10"
-            >
-              <span className="relative inline-block agent-float">
-                <span
-                  aria-hidden
-                  className="block h-[220px] w-[180px] lg:h-[260px] lg:w-[212px] rounded-[18px] bg-no-repeat ring-1 ring-[#00ffea]/35 shadow-[0_30px_70px_-18px_rgba(0,255,234,0.22)] transition-all duration-300 group-hover:ring-[#00ffea]/80 group-hover:scale-[1.02] group-hover:shadow-[0_36px_80px_-18px_rgba(0,255,234,0.38)]"
+        {/* ── 01 CINEMATIC OPENING ──────────────────────────────── */}
+        <SnapSection id="opening" className="order-1">
+          <div
+            className="h-full flex flex-col bg-[#070707] relative overflow-hidden"
+            style={{ fontFamily: nunito }}
+          >
+            {/* Background portrait — large, partially out of frame on the right */}
+            <div
+              aria-hidden
+              className="hidden md:block absolute top-1/2 right-[-4%] lg:right-[-2%] -translate-y-1/2 z-0"
+              style={{
+                width: 'clamp(380px, 42vw, 620px)',
+                height: 'clamp(540px, 60vw, 880px)',
+                backgroundImage: "url('/bg_pic/03.jpeg')",
+                backgroundPosition: '22% 8%',
+                backgroundSize: '180%',
+                backgroundRepeat: 'no-repeat',
+                borderRadius: '24px',
+                boxShadow: '0 60px 140px -40px rgba(0,255,234,0.18), 0 0 0 1px rgba(0,255,234,0.18)',
+                maskImage: 'linear-gradient(270deg, #000 60%, transparent 100%)',
+                WebkitMaskImage: 'linear-gradient(270deg, #000 60%, transparent 100%)',
+              }}
+            />
+
+            {/* Mobile-only portrait — smaller, top */}
+            <div
+              aria-hidden
+              className="md:hidden self-center mt-12"
+              style={{
+                width: 140,
+                height: 180,
+                backgroundImage: "url('/bg_pic/03.jpeg')",
+                backgroundPosition: '22% 8%',
+                backgroundSize: '180%',
+                borderRadius: 14,
+                boxShadow: '0 30px 60px -20px rgba(0,255,234,0.25)',
+              }}
+            />
+
+            {/* Foreground content */}
+            <div className="relative z-10 flex-1 flex items-center px-6 sm:px-12 lg:px-20">
+              <div className="max-w-[640px] w-full">
+                <p
+                  className="anim-up"
                   style={{
-                    backgroundImage: "url('/bg_pic/03.jpeg')",
-                    backgroundPosition: '18% 5%',
-                    backgroundSize: '175%',
+                    fontFamily: mono,
+                    fontSize: '0.62rem',
+                    letterSpacing: '0.4em',
+                    color: '#ffa726',
+                    textTransform: 'uppercase',
+                    marginBottom: 28,
+                    fontWeight: 600,
                   }}
-                />
-                <span aria-hidden className="agent-scan pointer-events-none absolute inset-0 rounded-[18px] overflow-hidden" />
-                <span
-                  aria-hidden
-                  className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-[#00ffea] shadow-[0_0_10px_rgba(0,255,234,0.95)] animate-pulse ring-2 ring-[#070707]"
-                />
-              </span>
-              <span className="font-mono text-[0.55rem] tracking-[0.35em] uppercase text-[#00ffea]/55 group-hover:text-[#00ffea] transition-colors select-none">
-                machina
-              </span>
-            </button>
-
-            <div className="max-w-[680px] w-full text-center" style={{ fontFamily: nunito }}>
-              <p
-                className="anim-up-2 text-[clamp(1.4rem,3.6vw,2.2rem)] leading-snug text-white/85"
-                style={{ fontWeight: 500 }}
-              >
-                {tx.hero.line}
-              </p>
-
-              {/* Pill CTA — "this is a door, there's something behind it" */}
-              <button
-                type="button"
-                onClick={() => window.dispatchEvent(new Event('open-agent-chat'))}
-                className="anim-up-3 mt-10 inline-flex items-center gap-2.5 rounded-full border border-[#00ffea]/35 bg-[#00ffea]/[0.06] px-6 py-3 text-[0.95rem] text-white/90 hover:bg-[#00ffea]/[0.12] hover:border-[#00ffea]/60 hover:text-[#00ffea] transition-all cursor-pointer"
-                style={{ fontWeight: 500 }}
-                aria-label={tx.hero.talkAgent}
-              >
-                <span>{tx.hero.talkAgent}</span>
-                <span aria-hidden>→</span>
-              </button>
-
-              {/* Status cue — "agent online" + provenance */}
-              <div className="anim-up-3 mt-4 flex items-center justify-center gap-2 text-[0.7rem] text-white/40" style={{ fontFamily: nunito }}>
-                <span className="relative inline-flex">
-                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#3df0a6]" />
-                  <span className="absolute inset-0 h-1.5 w-1.5 rounded-full bg-[#3df0a6] animate-ping opacity-60" />
-                </span>
-                <span>{tx.hero.agentStatus}</span>
-              </div>
-
-              {/* Prompt chips — examples make the agent feel callable, not abstract */}
-              <div className="anim-up-3 mt-7 flex flex-wrap justify-center gap-2">
-                {tx.hero.chips.map((chip) => (
-                  <button
-                    key={chip}
-                    type="button"
-                    onClick={() => {
-                      window.dispatchEvent(
-                        new CustomEvent('open-agent-chat', { detail: { prompt: chip } }),
-                      );
+                >
+                  Aileena Machina · Berlin
+                </p>
+                <h1
+                  className="anim-up-2"
+                  style={{
+                    fontSize: 'clamp(2.2rem, 5.6vw, 4.2rem)',
+                    fontWeight: 600,
+                    letterSpacing: '-0.022em',
+                    lineHeight: 1.04,
+                    color: '#fff',
+                    marginBottom: 40,
+                    textShadow: '0 4px 30px rgba(0,0,0,0.6)',
+                  }}
+                >
+                  {tx.hero.line}
+                </h1>
+                <div
+                  className="anim-up-3"
+                  style={{ display: 'flex', flexWrap: 'wrap', gap: 14, alignItems: 'center' }}
+                >
+                  <Link
+                    href={`/research/${latestIssue!.slug}`}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      background: '#ffa726',
+                      color: '#070707',
+                      padding: '14px 26px',
+                      borderRadius: 999,
+                      fontFamily: mono,
+                      fontSize: '0.68rem',
+                      letterSpacing: '0.28em',
+                      textTransform: 'uppercase',
+                      fontWeight: 700,
+                      textDecoration: 'none',
+                      boxShadow: '0 14px 40px -10px rgba(255,167,38,0.55)',
                     }}
-                    className="rounded-full border border-white/10 bg-white/[0.025] px-3.5 py-1.5 text-[0.78rem] text-white/55 hover:border-white/25 hover:bg-white/[0.05] hover:text-white/90 transition-all cursor-pointer"
-                    style={{ fontWeight: 500 }}
                   >
-                    {chip}
+                    Open the latest issue →
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => window.dispatchEvent(new Event('open-agent-chat'))}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      background: 'transparent',
+                      color: '#00ffea',
+                      padding: '13px 22px',
+                      borderRadius: 999,
+                      border: '1px solid rgba(0,255,234,0.45)',
+                      fontFamily: mono,
+                      fontSize: '0.64rem',
+                      letterSpacing: '0.22em',
+                      textTransform: 'uppercase',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                    aria-label={tx.hero.talkAgent}
+                  >
+                    <span
+                      aria-hidden
+                      style={{
+                        display: 'inline-block',
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        background: '#00ffea',
+                        boxShadow: '0 0 8px rgba(0,255,234,0.9)',
+                      }}
+                    />
+                    Ask the agent
                   </button>
-                ))}
+                </div>
               </div>
             </div>
-          </div>
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 anim-fade">
-            <div className="w-px h-10 bg-gradient-to-b from-transparent to-white/25" />
-            <span className="text-[0.55rem] uppercase tracking-[0.5em] text-white/30" style={{ fontFamily: nunito }}>{tx.hero.scroll}</span>
+
+            {/* Scroll cue */}
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 anim-fade z-10">
+              <div className="w-px h-10 bg-gradient-to-b from-transparent to-white/25" />
+              <span
+                className="text-white/30"
+                style={{
+                  fontFamily: mono,
+                  fontSize: '0.55rem',
+                  letterSpacing: '0.5em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                {tx.hero.scroll}
+              </span>
+            </div>
           </div>
         </SnapSection>
 
-        {/* ── 02 LATEST DISPATCH (3) ── */}
-        <SnapSection id="dispatch" className="order-2">
-          <div className="h-full flex flex-col bg-black px-6 sm:px-10 lg:px-16">
-            <div className="mx-auto w-full max-w-[760px] flex h-full flex-col py-12 sm:py-16" style={{ fontFamily: nunito }}>
-              <p className="anim-up text-[0.7rem] uppercase tracking-[0.32em] text-white/40 mb-4" style={{ fontWeight: 500 }}>
-                {tx.blog.researchDispatch.tag}
+        {/* ── 02 THE ATRIUM — four doors ────────────────────────── */}
+        <SnapSection id="atrium" className="order-2">
+          <div className="h-full flex flex-col bg-black px-6 sm:px-10 lg:px-16" style={{ fontFamily: nunito }}>
+            <div className="mx-auto w-full max-w-[1180px] flex h-full flex-col py-12 sm:py-16">
+              <header className="mb-10">
+                <p
+                  className="anim-up"
+                  style={{
+                    fontFamily: mono,
+                    fontSize: '0.6rem',
+                    letterSpacing: '0.4em',
+                    color: '#ffa726',
+                    textTransform: 'uppercase',
+                    marginBottom: 14,
+                    fontWeight: 600,
+                  }}
+                >
+                  The atrium
+                </p>
+                <h2
+                  className="anim-up-2"
+                  style={{
+                    fontSize: 'clamp(1.6rem, 3.6vw, 2.4rem)',
+                    fontWeight: 500,
+                    color: 'rgba(255,255,255,0.9)',
+                    letterSpacing: '-0.012em',
+                    lineHeight: 1.15,
+                    maxWidth: 600,
+                  }}
+                >
+                  Four rooms. Pick one.
+                </h2>
+              </header>
+
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+                <Door
+                  label="Magazine"
+                  description="Interactive judgments, one book per issue."
+                  latest={`${latestIssue!.issueNumber} · ${latestIssue!.coverTitle}`}
+                  href={`/research/${latestIssue!.slug}`}
+                  accent="#ffa726"
+                  index="01"
+                />
+                <Door
+                  label="News Desk"
+                  description="Latest dispatches and analysis."
+                  latest={latestDispatch ? latestDispatch.title : 'Open the archive'}
+                  href="/dispatch"
+                  accent="#ffa726"
+                  index="02"
+                />
+                <Door
+                  label="Library"
+                  description="Long-form essays and the back catalogue."
+                  latest={latestWomanInTech ? latestWomanInTech.title : 'Open the catalogue'}
+                  href={latestWomanInTech ? latestWomanInTech.href : '/dispatch'}
+                  accent="#ffa726"
+                  index="03"
+                />
+                <Door
+                  label="Sound"
+                  description="DJ sets and the music she ships."
+                  latest="Mix 02 · Berlin"
+                  href="/sound"
+                  accent="#ffa726"
+                  index="04"
+                />
+              </div>
+
+              <p
+                className="anim-up-3 mt-8 self-center"
+                style={{
+                  fontFamily: mono,
+                  fontSize: '0.55rem',
+                  letterSpacing: '0.32em',
+                  color: 'rgba(255,255,255,0.35)',
+                  textTransform: 'uppercase',
+                  fontWeight: 500,
+                }}
+              >
+                ↓ Or stay for the music
               </p>
-              <h2
-                className="anim-up-2 mb-10 text-[clamp(1.6rem,4.2vw,2.6rem)] tracking-tight text-white/95"
-                style={{ fontWeight: 500 }}
-              >
-                {tx.blog.researchDispatch.heading}
-              </h2>
-              <div className="anim-up flex-1 flex items-center">
-                <SwipeRow posts={dispatchTop3} hijackScroll settings={coverflow.settings} />
-              </div>
-              <Link
-                href="/dispatch"
-                className="anim-up-3 mt-8 inline-block text-[0.8rem] text-white/55 hover:text-white transition-colors no-underline border-b border-white/15 hover:border-white pb-0.5 self-start"
-                style={{ fontWeight: 500 }}
-              >
-                See the whole archive →
-              </Link>
             </div>
           </div>
         </SnapSection>
 
-        {/* ── 04 INVESTING ── */}
-        <SnapSection id="investing" className="order-4">
-          <div className="h-full flex flex-col bg-[#070707] px-6 sm:px-10 lg:px-16">
-            <div className="mx-auto w-full max-w-[760px] flex h-full flex-col py-12 sm:py-16" style={{ fontFamily: nunito }}>
-              <p className="anim-up text-[0.7rem] uppercase tracking-[0.32em] text-white/40 mb-4" style={{ fontWeight: 500 }}>
-                {tx.blog.investing.tag}
-              </p>
-              <h2
-                className="anim-up-2 mb-10 text-[clamp(1.6rem,4.2vw,2.6rem)] tracking-tight text-white/95"
-                style={{ fontWeight: 500 }}
-              >
-                {tx.blog.investing.heading}
-              </h2>
-              <div className="anim-up flex-1 flex items-center">
-                <SwipeRow posts={investingTop3} hijackScroll settings={coverflow.settings} />
-              </div>
-              <Link
-                href="/dispatch#investing"
-                className="anim-up-3 mt-8 inline-block text-[0.8rem] text-white/55 hover:text-white transition-colors no-underline border-b border-white/15 hover:border-white pb-0.5 self-start"
-                style={{ fontWeight: 500 }}
-              >
-                See the whole archive →
-              </Link>
-            </div>
-          </div>
-        </SnapSection>
-
-        {/* ── 05 SOUND — full DJ station ── */}
-        <SnapSection id="sound" className="order-5">
+        {/* ── 03 SOUND — DJ station (preserved) ─────────────────── */}
+        <SnapSection id="sound" className="order-3">
           <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-12 pt-6 pb-4 overflow-y-auto">
             <div className="mx-auto w-full max-w-[1400px]" style={{ fontFamily: nunito }}>
               <div className="flex items-end border-b border-white/8 pb-3 mb-6">
@@ -224,36 +327,13 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 03 WOMAN IN TECH ── */}
-        <SnapSection id="woman-in-tech" className="order-3">
-          <div className="h-full flex flex-col bg-black px-6 sm:px-10 lg:px-16">
-            <div className="mx-auto w-full max-w-[760px] flex h-full flex-col py-12 sm:py-16" style={{ fontFamily: nunito }}>
-              <p className="anim-up text-[0.7rem] uppercase tracking-[0.32em] text-white/40 mb-4" style={{ fontWeight: 500 }}>
-                {tx.blog.womanInTech.tag}
-              </p>
-              <h2 className="anim-up-2 mb-10 text-[clamp(1.6rem,4.2vw,2.6rem)] tracking-tight text-white/95" style={{ fontWeight: 500 }}>
-                {tx.blog.womanInTech.heading}
-              </h2>
-
-              <div className="anim-up flex-1 flex items-center">
-                <SwipeRow posts={womanInTechTop3} hijackScroll settings={coverflow.settings} />
-              </div>
-              <Link
-                href="/dispatch#woman-in-tech"
-                className="anim-up-3 mt-8 inline-block text-[0.8rem] text-white/55 hover:text-white transition-colors no-underline border-b border-white/15 hover:border-white pb-0.5 self-start"
-                style={{ fontWeight: 500 }}
-              >
-                See the whole archive →
-              </Link>
-            </div>
-          </div>
-        </SnapSection>
-
-        {/* ── 06 FOOTER ── */}
-        <SnapSection className="order-6">
-          <div className="h-full flex flex-col justify-end bg-[#030303] px-6 sm:px-10 lg:px-16 py-14 sm:py-16" style={{ fontFamily: nunito }}>
+        {/* ── 04 FOOTER ─────────────────────────────────────────── */}
+        <SnapSection className="order-4">
+          <div
+            className="h-full flex flex-col justify-end bg-[#030303] px-6 sm:px-10 lg:px-16 py-14 sm:py-16"
+            style={{ fontFamily: nunito }}
+          >
             <div className="mx-auto w-full max-w-[920px]">
-
               <p className="anim-up text-sm leading-7 text-white/45 mb-10 max-w-md" style={{ fontWeight: 400 }}>
                 {tx.footer.body}
               </p>
@@ -283,17 +363,121 @@ export default function Home() {
         </SnapSection>
 
       </SnapContainer>
-      <CoverflowPanel
-        settings={coverflow.settings}
-        update={coverflow.update}
-        reset={coverflow.reset}
-        open={coverflow.panelOpen}
-        onToggle={coverflow.togglePanel}
-        hydrated={coverflow.hydrated}
-        isMobile={coverflow.isMobile}
-        t={tx.coverflow}
-      />
     </>
   );
 }
 
+/* ── Door — one department tile in the atrium ─────────────────────── */
+function Door({
+  label,
+  description,
+  latest,
+  href,
+  accent,
+  index,
+}: {
+  label: string;
+  description: string;
+  latest: string;
+  href: string;
+  accent: string;
+  index: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="anim-up-2 group"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        gap: 24,
+        padding: '24px 22px',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: 6,
+        background: 'rgba(255,255,255,0.02)',
+        textDecoration: 'none',
+        color: '#fff',
+        transition: 'border-color 0.18s ease, background 0.18s ease, transform 0.18s ease',
+        minHeight: 240,
+      }}
+    >
+      <div>
+        <p
+          style={{
+            fontFamily: mono,
+            fontSize: '0.55rem',
+            letterSpacing: '0.32em',
+            color: accent,
+            textTransform: 'uppercase',
+            marginBottom: 10,
+            fontWeight: 600,
+          }}
+        >
+          {index}
+        </p>
+        <h3
+          style={{
+            fontSize: '1.55rem',
+            fontWeight: 600,
+            letterSpacing: '-0.012em',
+            marginBottom: 8,
+            lineHeight: 1.15,
+          }}
+        >
+          {label}
+        </h3>
+        <p
+          style={{
+            fontSize: '0.85rem',
+            color: 'rgba(255,255,255,0.55)',
+            lineHeight: 1.55,
+          }}
+        >
+          {description}
+        </p>
+      </div>
+      <div>
+        <p
+          style={{
+            fontFamily: mono,
+            fontSize: '0.55rem',
+            letterSpacing: '0.28em',
+            color: 'rgba(255,255,255,0.4)',
+            textTransform: 'uppercase',
+            marginBottom: 6,
+            fontWeight: 600,
+          }}
+        >
+          Latest
+        </p>
+        <p
+          style={{
+            fontSize: '0.88rem',
+            color: 'rgba(255,255,255,0.78)',
+            lineHeight: 1.45,
+            marginBottom: 14,
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}
+        >
+          {latest}
+        </p>
+        <span
+          style={{
+            fontFamily: mono,
+            fontSize: '0.6rem',
+            letterSpacing: '0.22em',
+            color: accent,
+            textTransform: 'uppercase',
+            fontWeight: 700,
+          }}
+        >
+          Enter →
+        </span>
+      </div>
+    </Link>
+  );
+}

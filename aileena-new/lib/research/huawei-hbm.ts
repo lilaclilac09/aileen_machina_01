@@ -13,64 +13,18 @@
  * Numbers preserved exactly from /blog/huawei-hbm + /blog/huawei-supply.
  */
 
-export type ImpactDirection = 'reinforces' | 'weakens' | 'uncertain';
-export type Stance = 'bullish' | 'bearish' | 'wait';
-export type Confidence = 'high' | 'medium' | 'low';
+import type { MagazineIssue } from './types';
 
-export type MagazineCard = {
-  id: string;
-  title: string;
-  scene: string;
-  judgment: string;
-  points: string[];
-  impact: ImpactDirection;
-  impactNote: string;
-  drawer?: {
-    sources?: string[];
-    quotes?: { who: string; text: string }[];
-    math?: string;
-  };
-};
-
-export type MagazineColumn = {
-  id: string;
-  label: string;
-  tagline: string;
-  cards: MagazineCard[];
-};
-
-export type Verdict = {
-  stance: Stance;
-  stanceText: string;
-  confidence: Confidence;
-  confidenceNote: string;
-  reasons: string[];
-  biggestCounter: string;
-  indicators: string[];
-  timeWindow: string;
-};
-
-export type MagazineIssue = {
-  slug: string;
-  issueNumber: string;
-  coverScene: string;
-  coverTitle: string;
-  coverQuestion: string;
-  /**
-   * The editorial line — why we made this issue. Renders right after
-   * the cover, before the columns. Aileen's #1 principle: a magazine
-   * has editorial intent, not just stacked content.
-   */
-  whyThisIssue: string;
-  columns: MagazineColumn[];
-  verdict: Verdict;
-  /**
-   * What the next issue will track. Renders inside the closing
-   * verdict, framing this issue as one tick on a running thread
-   * rather than a standalone post.
-   */
-  nextIssueTracks: string;
-};
+// Re-export so existing import sites keep working unchanged.
+export type {
+  ImpactDirection,
+  Stance,
+  Confidence,
+  MagazineCard,
+  MagazineColumn,
+  Verdict,
+  MagazineIssue,
+} from './types';
 
 export const HUAWEI_HBM: MagazineIssue = {
   slug: 'huawei-hbm',
