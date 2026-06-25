@@ -106,13 +106,23 @@ Skipping a level reads as either too abstract (only wide + voiceover) or too gra
 
 ### Adding a new magazine issue — checklist
 
-1. **Data file** — create `lib/research/<slug>.ts` exporting a `MagazineIssue`. Import the shared types from any existing issue file. Required fields:
+1. **Data file** — create `lib/research/<slug>.ts` exporting a `MagazineIssue`. Import the shared types from `lib/research/types.ts`. Required fields:
    - `coverScene` (the scene paragraph), `coverTitle` (punchy), `coverQuestion` (the one core question the whole issue answers)
-   - `columns` — at minimum the seven standard columns: `cover-story`, `data`, `ground`, `people`, `counter`, `archive`. (The verdict column is added implicitly by the page; don't include it in this array.)
+   - `whyThisIssue` (editorial line, renders right after the cover)
+   - `columns` — at minimum the six standard columns: `cover-story`, `data`, `ground`, `people`, `counter`, `archive`. (The verdict chapter is added implicitly by ResearchBook; don't include it in this array.)
    - For every card: `scene`, `judgment` (one sentence), `points` (three), `impact` (`'reinforces' | 'weakens' | 'uncertain'`), `impactNote` (one short line of editorial reasoning). Optional `drawer` with `sources` / `quotes` / `math`.
    - `verdict` — `stance` (`'bullish' | 'bearish' | 'wait'`), `confidence` (`'high' | 'medium' | 'low'`), `reasons` (3), `biggestCounter` (1), `indicators` (3), `timeWindow`.
-2. **Page** — create `app/research/<slug>/page.tsx` mirroring `app/research/huawei-hbm/page.tsx`. The current pattern is a single client component that imports the data and renders the rack — no per-issue UI work, just swap the data import. (When a second issue is added, this is the moment to extract the rack into a shared component.)
-3. **Long-form sibling, optional** — if a `/blog/<slug>` long-form already exists, the magazine header should link back to it as "Long-form ↗". Update the `<Link href="/blog/<slug>">` in the page accordingly. This is the canonical pattern for the same piece existing in both forms.
+   - `nextIssueTracks` (editorial line, renders in the closing verdict)
+2. **Page wrapper** — create `app/research/<slug>/page.tsx` as a 5-line wrapper that imports the data and renders `<ResearchBook issue={DATA} />`. No per-issue UI work. Pattern, verbatim:
+   ```ts
+   import ResearchBook from '../../../components/research/ResearchBook';
+   import { MY_ISSUE } from '../../../lib/research/<slug>';
+   export default function MyIssuePage() {
+     return <ResearchBook issue={MY_ISSUE} />;
+   }
+   ```
+3. **Registry** — add the new issue to `ALL_ISSUES` in `lib/research/issues.ts`. Order is editorial — newest first. The cover wall at `/research` reads this array.
+4. **Long-form sibling, optional** — if there's a companion `/blog/<slug>` long-form, set `longFormHref: '/blog/<slug>'` on the `MagazineIssue`. ResearchBook renders the "Long-form ↗" link in the top bar when this field is set; omits the link when undefined. Slugs don't have to match across the two forms.
 4. **Numbers stay exact** — the magazine is *not* a rewrite. Every number Aileen used in the long-form must appear unchanged in the data file. The point of the magazine form is structure, not re-research.
 5. **Editorial impact tags are the point** — every card must declare its `impact` honestly. A card that doesn't move the verdict probably shouldn't be a card. Use `'uncertain'` when a card frames an open question; don't use it as a default to avoid choosing.
 

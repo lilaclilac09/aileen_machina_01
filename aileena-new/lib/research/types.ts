@@ -52,4 +52,8 @@ export type MagazineIssue = {
   verdict: Verdict;
   /** Editorial line — what the next issue tracks. Renders in the verdict. */
   nextIssueTracks: string;
+  /** Optional long-form sibling at /blog/<slug>. When set, ResearchBook
+   *  shows a "Long-form ↗" link in the top bar. Leave undefined if there
+   *  is no companion blog article. */
+  longFormHref?: string;
 };

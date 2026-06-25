@@ -143,19 +143,23 @@ export default function ResearchBook({ issue }: { issue: MagazineIssue }) {
           >
             {issue.issueNumber} · {chapterLabel(chapterIndex)}
           </span>
-          <Link
-            href="/blog/huawei-hbm"
-            style={{
-              fontFamily: mono,
-              fontSize: '0.58rem',
-              letterSpacing: '0.18em',
-              color: 'rgba(255,255,255,0.45)',
-              textDecoration: 'none',
-              textTransform: 'uppercase',
-            }}
-          >
-            Long-form ↗
-          </Link>
+          {issue.longFormHref ? (
+            <Link
+              href={issue.longFormHref}
+              style={{
+                fontFamily: mono,
+                fontSize: '0.58rem',
+                letterSpacing: '0.18em',
+                color: 'rgba(255,255,255,0.45)',
+                textDecoration: 'none',
+                textTransform: 'uppercase',
+              }}
+            >
+              Long-form ↗
+            </Link>
+          ) : (
+            <span style={{ width: 80 }} aria-hidden />
+          )}
         </div>
       </header>
 
