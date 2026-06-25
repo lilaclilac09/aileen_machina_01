@@ -29,6 +29,7 @@ export type {
 export const HUAWEI_HBM: MagazineIssue = {
   slug: 'huawei-hbm',
   issueNumber: 'Issue 01',
+  longFormHref: '/blog/huawei-hbm',
   coverScene:
     'December 2024. In the one-month window between when the export restriction is announced and when it takes effect, 7 million HBM stacks land in China. Inside Huawei, the next chip already has a codename: David. Goliath is across the table — and not standing still.',
   coverTitle: "David's Stockpile",
