@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AILEENA — Expanded Machina</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: #00ffff;
+      font-family: 'Helvetica Neue', Arial Black, sans-serif;
+      line-height: 1.4;
+      overflow-x: hidden;
+    }
+    section {
+      min-height: 100vh;
+      padding: 10vh 5vw;
+      position: relative;
+    }
+    h1, h2 {
+      font-size: clamp(4rem, 15vw, 18rem);
+      text-transform: uppercase;
+      letter-spacing: -0.03em;
+      text-shadow: 0 0 30px #00ffff, 0 0 60px #ff4500;
+      margin-bottom: 4vh;
+    }
+    .ticker {
+      font-size: 2rem;
+      white-space: nowrap;
+      overflow: hidden;
+      margin: 4vh 0;
+    }
+    .ticker span {
+      display: inline-block;
+      animation: ticker 60s linear infinite;
+    }
+    @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 4vh;
+    }
+    .card {
+      background: rgba(0, 255, 255, 0.05);
+      padding: 3vh;
+      border: 1px solid #00ffff33;
+      position: relative;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: -2rem;
+      width: 1.5rem; height: 1.5rem;
+      background: #ff450022;
+      border-radius: 50%;
+      box-shadow: 0 0 20px #ff4500;
+      transform: translateY(-50%);
+    }
+    .glow-dot {
+      width: 1.2rem; height: 1.2rem;
+      background: #ff4500;
+      border-radius: 50%;
+      box-shadow: 0 0 25px #ff4500;
+      margin: 2vh auto;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. Hero / NEXT -->
+  <section style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
+    <h1>NEXT</h1>
+    <div class="ticker">
+      <span>+++ MECHANICAL AESTHETICS +++ TECHNICAL EXPLORATIONS +++ BRUTAL LIGHT SERIES +++ NEW VINYL DROP MARCH 2026 +++ </span>
+      <span>+++ MECHANICAL AESTHETICS +++ TECHNICAL EXPLORATIONS +++ BRUTAL LIGHT SERIES +++ NEW VINYL DROP MARCH 2026 +++ </span>
+    </div>
+    <p style="font-size:1.8rem; opacity:0.8;">Scroll down for more mechanical aesthetics, technical explorations, and brutal light series.</p>
+    <div class="glow-dot"></div>
+  </section>
+
+  <!-- 2. DJ Set – 扩张版（加更多轨道） -->
+  <section id="sound">
+    <h2>DJ SET — DOUBLE DECK</h2>
+    <div style="display:flex; justify-content:center; gap:10vw; flex-wrap:wrap;">
+      <!-- Left Deck -->
+      <div style="text-align:center;">
+        <div style="width:300px; height:300px; border-radius:50%; background:#111; margin:0 auto 2vh; box-shadow:0 0 40px #00ffff33;">
+          <div style="width:100%; height:100%; border-radius:50%; background:radial-gradient(circle, #00ffff22, transparent);"></div>
+        </div>
+        <p>33 RPM | 45 RPM</p>
+        <p>SOUNDCLOUD TRACKS</p>
+        <ul style="list-style:none; padding:0;">
+          <li>Rostom - Carne <a href="#">PLAY LEFT DECK</a></li>
+          <li>Second Woman - Second Woman <a href="#">PLAY LEFT DECK</a></li>
+          <li>Arca - Reverie <a href="#">PLAY LEFT DECK</a></li>
+          <li>DJ Set Placeholder <a href="#">PLAY LEFT DECK</a></li>
+          <li>DJ Set Placeholder <a href="#">PLAY LEFT DECK</a></li>
+        </ul>
+      </div>
+      <!-- Right Deck -->
+      <div style="text-align:center;">
+        <div style="width:300px; height:300px; border-radius:50%; background:#111; margin:0 auto 2vh; box-shadow:0 0 40px #00ffff33;">
+          <div style="width:100%; height:100%; border-radius:50%; background:radial-gradient(circle, #00ffff22, transparent);"></div>
+        </div>
+        <p>33 RPM | 45 RPM</p>
+        <p>SOUNDCLOUD TRACKS</p>
+        <ul style="list-style:none; padding:0;">
+          <li>DJ Set Placeholder <a href="#">PLAY RIGHT DECK</a></li>
+          <li>DJ Set Placeholder <a href="#">PLAY RIGHT DECK</a></li>
+          <li>DJ Set Placeholder <a href="#">PLAY RIGHT DECK</a></li>
+          <li>DJ Set Placeholder <a href="#">PLAY RIGHT DECK</a></li>
+          <li>DJ Set Placeholder <a href="#">PLAY RIGHT DECK</a></li>
+        </ul>
+      </div>
+    </div>
+    <div style="text-align:center; margin:6vh 0;">
+      <button style="background:#ff4500; color:#000; padding:1.5rem 3rem; border:none; font-size:1.5rem; cursor:pointer;">
+        + ADD YOUR SOUNDCLOUD TRACK
+      </button>
+    </div>
+  </section>
+
+  <!-- 3. Soundcloud 播放器列表 – 扩张到多条 -->
+  <section>
+    <h2>SOUND</h2>
+    <div class="card-grid">
+      <div class="card">
+        <h3>Forss – Flickerwood</h3>
+        <div style="height:100px; background:#222; margin:2vh 0;">[Waveform Placeholder]</div>
+        <p>3:33 • 962K</p>
+        <button>PLAY</button> <button>SHARE</button>
+      </div>
+      <div class="card">
+        <h3>DJ Set Placeholder</h3>
+        <div style="height:100px; background:#222; margin:2vh 0;">[Waveform Placeholder]</div>
+        <p>4:12 • 1.2M</p>
+        <button>PLAY</button> <button>SHARE</button>
+      </div>
+      <div class="card">
+        <h3>DJ Set Placeholder</h3>
+        <div style="height:100px; background:#222; margin:2vh 0;">[Waveform Placeholder]</div>
+        <p>5:01 • 800K</p>
+        <button>PLAY</button> <button>SHARE</button>
+      </div>
+      <div class="card">
+        <h3>DJ Set Placeholder</h3>
+        <div style="height:100px; background:#222; margin:2vh 0;">[Waveform Placeholder]</div>
+        <p>2:45 • 500K</p>
+        <button>PLAY</button> <button>SHARE</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Blog – 加更多文章卡片 -->
+  <section id="blog">
+    <h2>BLOG</h2>
+    <div class="card-grid">
+      <div class="card">
+        <small>2024.12.15</small>
+        <h3>THE ART OF MECHANICAL AESTHETICS</h3>
+        <p>Exploring the intersection of machinery and artistic expression...</p>
+        <a href="#">READ MORE →</a>
+      </div>
+      <div class="card">
+        <small>2025.02.10</small>
+        <h3>NEW SERIES: NEON SHADOWS</h3>
+        <p>Light refraction in brutal environments...</p>
+        <a href="#">READ MORE →</a>
+      </div>
+      <div class="card">
+        <small>2025.03.22</small>
+        <h3>DJ SETS: THE FUTURE</h3>
+        <p>How DJ culture is evolving in the age of machines...</p>
+        <a href="#">READ MORE →</a>
+      </div>
+      <div class="card">
+        <small>2025.04.01</small>
+        <h3>EXHIBITIONS: BRUTAL LIGHT</h3>
+        <p>Highlights from the latest gallery show...</p>
+        <a href="#">READ MORE →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Works / Gallery – 扩展系列 -->
+  <section id="works">
+    <h2>WORKS</h2>
+    <div class="card-grid">
+      <div class="card">
+        <h3>01 MECHANICALA PHOTOGRAPHY SERIES</h3>
+        <p>Industrial forms captured in raw light.</p>
+        <a href="#">VIEW FULL SERIES ↗</a>
+      </div>
+      <div class="card">
+        <h3>02 BRUTAL LIGHT STUDIES</h3>
+        <p>Exploring light in brutalist spaces.</p>
+        <a href="#">VIEW FULL SERIES ↗</a>
+      </div>
+      <div class="card">
+        <h3>03 METAL STUDIES</h3>
+        <p>Metal textures and reflections.</p>
+        <a href="#">VIEW FULL SERIES ↗</a>
+      </div>
+      <div class="card">
+        <h3>04 EXHIBITION PHOTOS</h3>
+        <p>Selected works from recent exhibitions.</p>
+        <a href="#">VIEW FULL SERIES ↗</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. About – 扩展文字 + 统计 -->
+  <section id="about">
+    <h2>ABOUT</h2>
+    <p style="max-width:800px; margin:0 auto 6vh; font-size:1.4rem;">
+      AILEENA is a multidisciplinary creative studio specializing in mechanical aesthetics, brutalist photography, and visual storytelling.<br><br>
+      Founded on the belief that machinery possesses an inherent poetry... [扩展更多段落：历史、理念、团队、未来计划等]
+    </p>
+    <div style="display:flex; justify-content:center; gap:10vw; flex-wrap:wrap;">
+      <div style="text-align:center;">
+        <h3>25+</h3><p>PROJECTS</p>
+      </div>
+      <div style="text-align:center;">
+        <h3>12</h3><p>AWARDS</p>
+      </div>
+      <div style="text-align:center;">
+        <h3>5</h3><p>YEARS</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. Contact – 表单 + 链接 -->
+  <section id="contact">
+    <h2>TRANSMIT MESSAGE</h2>
+    <form style="max-width:600px; margin:0 auto;">
+      <input placeholder="NAME" style="width:100%; padding:1rem; margin:1vh 0; background:#111; border:1px solid #00ffff33; color:#fff;"/>
+      <input placeholder="EMAIL" type="email" style="width:100%; padding:1rem; margin:1vh 0; background:#111; border:1px solid #00ffff33; color:#fff;"/>
+      <textarea placeholder="MESSAGE" rows="6" style="width:100%; padding:1rem; margin:1vh 0; background:#111; border:1px solid #00ffff33; color:#fff;"></textarea>
+      <button style="background:#ff4500; color:#000; padding:1.5rem; width:100%; font-size:1.5rem; border:none;">
+        TRANSMIT MESSAGE
+      </button>
+    </form>
+    <div style="text-align:center; margin:6vh 0;">
+      <p>Follow: @AILEENA on SoundCloud • Instagram • X</p>
+      <p>Stockists: Hard Wax • OYE • HHV • Rush Hour • ...</p>
+    </div>
+  </section>
+
+</body>
+</html>

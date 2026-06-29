@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+:root {
+  --neon-cyan: #00ffff;
+  --neon-red: #ff0040;
+  --metal-dark: #1a1a1a;
+  --metal-light: #2a2a2a;
+  --metal-accent: #3a3a3a;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  color: #e0e0e0;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+/* Reuse mechanical styles from main site */
+.mech-panel {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  box-shadow: 
+    0 4px 6px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  padding: 1.5rem;
+}
+
+.metal-button {
+  background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+  border: 1px solid rgba(255, 0, 64, 0.3);
+  border-radius: 4px;
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  color: #e0e0e0;
+  cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 0.75rem 1.5rem;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+}
+
+.metal-button:hover {
+  border-color: var(--neon-red);
+  box-shadow: 
+    0 4px 8px rgba(255, 0, 64, 0.3),
+    0 0 20px rgba(255, 0, 64, 0.2);
+  transform: translateY(-1px);
+}
+
+.metal-button:active {
+  transform: translateY(0);
+  box-shadow: 
+    0 1px 2px rgba(0, 0, 0, 0.4),
+    inset 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.neon-text {
+  color: var(--neon-cyan);
+  text-shadow: 
+    0 0 5px var(--neon-cyan),
+    0 0 10px var(--neon-cyan),
+    0 0 20px rgba(0, 255, 255, 0.5);
+}
+
+.neon-pulse {
+  animation: neonPulse 2s ease-in-out infinite;
+}
+
+@keyframes neonPulse {
+  0%, 100% {
+    text-shadow: 
+      0 0 5px var(--neon-cyan),
+      0 0 10px var(--neon-cyan);
+  }
+  50% {
+    text-shadow: 
+      0 0 10px var(--neon-cyan),
+      0 0 20px var(--neon-cyan),
+      0 0 30px rgba(0, 255, 255, 0.7);
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--metal-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--metal-accent);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--neon-cyan);
+  box-shadow: 0 0 10px var(--neon-cyan);
+}

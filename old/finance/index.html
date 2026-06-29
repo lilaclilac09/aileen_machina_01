@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>股票首页 - finance.aileena.xyz</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/chat/app/globals.css">
+  <style>
+    body { font-family: system-ui, sans-serif; background: #f8faff; margin: 0; }
+    .dashboard-header { display: flex; align-items: center; justify-content: space-between; padding: 1.5rem 1rem 0.5rem; }
+    #stock-search { padding: 0.5rem 1rem; border-radius: 6px; border: 1px solid #ddd; font-size: 1rem; width: 220px; }
+    #stock-dashboard { display: flex; flex-wrap: wrap; gap: 1.5rem; padding: 1rem; }
+    .stock-card { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px #0001; padding: 1rem; width: 200px; min-height: 140px; display: flex; flex-direction: column; align-items: flex-start; transition: box-shadow .2s; }
+    .stock-card:hover { box-shadow: 0 4px 16px #0002; }
+    .stock-header { display: flex; justify-content: space-between; width: 100%; font-weight: bold; font-size: 1.1rem; margin-bottom: 0.5rem; }
+    .stock-symbol { color: #2e7dff; }
+    .stock-price { color: #222; }
+    .stock-name { color: #888; font-size: 0.95rem; margin-top: 0.5rem; }
+    #watchlist-box { margin: 1rem; padding: 0.5rem; background: #f0f4ff; border-radius: 8px; min-height: 32px; }
+    #watchlist-box span { display: inline-block; background: #2e7dff; color: #fff; border-radius: 6px; padding: 0.2rem 0.7rem; margin: 0 0.3rem 0.3rem 0; font-size: 0.95rem; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="dashboard-header">
+    <h1>股票卡片墙</h1>
+    <input id="stock-search" oninput="filterStocks()" placeholder="搜索股票代码/名称">
+  </div>
+  <div id="stock-dashboard"></div>
+  <h2 style="margin-left:1rem;">自选列表</h2>
+  <div id="watchlist-box"></div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="js/stock-dashboard.js"></script>
+  <script>
+    loadStockDashboard();
+    renderWatchlist();
+  </script>
+</body>
+</html>
