@@ -107,7 +107,7 @@ export default function Home() {
       blurb: metooArticle ? metooArticle.body : 'Long-form essays and the back catalogue.',
       signal: metooArticle ? metooArticle.title : 'Every Woman in Tech Has a #MeToo Story',
       motif: 'article',
-      placement: { top: '18%', left: '1%', transform: 'rotate(-1deg)', zIndex: 9 },
+      placement: { top: '12%', left: '1%', transform: 'rotate(-1deg)', zIndex: 9 },
     },
     {
       id: 'trendy',
@@ -120,7 +120,7 @@ export default function Home() {
       motif: 'trendy',
       note: tx.visual.note,
       glassItems: tx.visual.items,
-      placement: { top: '31%', left: '39%', transform: 'rotate(1.5deg)', zIndex: 8 },
+      placement: { top: '24%', left: '39%', transform: 'rotate(1.5deg)', zIndex: 8 },
     },
   ];
 
@@ -376,7 +376,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
       }}
     >
       <div
-        className="relative mx-auto flex h-full w-full max-w-[1400px] flex-col overflow-hidden pb-8 pt-[92px] sm:pb-10"
+        className="relative mx-auto flex h-full w-full max-w-[1400px] flex-col overflow-visible pb-5 pt-[78px] sm:pb-6 sm:pt-[82px] lg:pt-[88px]"
       >
         <header className="relative z-20 flex items-start justify-between gap-6">
           <a
@@ -409,7 +409,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
         </header>
 
         <div
-          className="relative z-10 min-h-0 flex-1 sm:min-h-[610px]"
+          className="relative z-10 min-h-0 flex-1 sm:min-h-0"
         >
           <div className="h-full overflow-y-auto pb-8 pt-4 sm:hidden">
             <div className="grid gap-4">
@@ -421,8 +421,8 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 const mobileRoomStyle: CSSProperties = {
                   display: 'block',
                   width: '100%',
-                  minHeight: isArticle ? 520 : isTrendy ? 440 : isRecord ? 280 : 238,
-                  height: isTrendy ? 440 : undefined,
+                  minHeight: isArticle ? 500 : isTrendy ? 410 : isRecord ? 280 : 238,
+                  height: isTrendy ? 410 : undefined,
                   padding: 0,
                   border: isPaper ? '1px solid rgba(20,17,12,0.16)' : 'none',
                   background: isPaper ? palette.paper : 'transparent',
@@ -502,8 +502,8 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               ...room.placement,
               position: 'absolute',
               width: isArticle ? 'min(86vw, 610px)' : isTrendy ? 'min(76vw, 470px)' : isRecord ? 'min(56vw, 290px)' : 'min(60vw, 330px)',
-              minHeight: isArticle ? 520 : isTrendy ? 440 : isRecord ? 300 : 250,
-              height: isTrendy ? 440 : undefined,
+              minHeight: isArticle ? 'clamp(455px, 58dvh, 520px)' : isTrendy ? 'clamp(360px, 46dvh, 410px)' : isRecord ? 300 : 250,
+              height: isTrendy ? 'clamp(360px, 46dvh, 410px)' : undefined,
               padding: 0,
               border: isPaper ? '1px solid rgba(20,17,12,0.16)' : 'none',
               background: isPaper ? palette.paper : 'transparent',
@@ -541,7 +541,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
           })}
 
           {glassItems.length > 0 && (
-            <div className="absolute bottom-[7%] left-[46%] z-[11] hidden -translate-x-1/2 items-end gap-3 sm:flex">
+            <div className="absolute bottom-[13%] left-[47%] z-[11] hidden -translate-x-1/2 items-end gap-3 sm:flex">
               {glassItems.map((img, idx) => (
                 <Link
                   key={img.src}
@@ -815,8 +815,8 @@ function ObjectFace({ room }: { room: RoomDoor }) {
         style={{
           position: 'relative',
           display: 'block',
-          minHeight: 520,
-          padding: '18px 0 44px',
+          minHeight: 'clamp(455px, 58dvh, 520px)',
+          padding: '14px 0 36px',
         }}
       >
         <span
@@ -827,7 +827,7 @@ function ObjectFace({ room }: { room: RoomDoor }) {
             top: 4,
             zIndex: 0,
             width: 'min(42vw, 245px)',
-            height: 440,
+            height: 'clamp(330px, 47dvh, 420px)',
             backgroundImage: "url('/dispatch-covers/harassment.jpg')",
             backgroundPosition: '48% 50%',
             backgroundSize: 'cover',
@@ -840,10 +840,10 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           style={{
             position: 'absolute',
             right: 76,
-            bottom: 0,
+            bottom: 12,
             zIndex: 2,
-            width: 150,
-            height: 178,
+            width: 'clamp(118px, 11vw, 150px)',
+            height: 'clamp(140px, 13vw, 178px)',
             background: palette.cream,
             boxShadow: '0 18px 46px -30px rgba(20,17,12,0.55)',
             padding: 8,
@@ -868,9 +868,9 @@ function ObjectFace({ room }: { room: RoomDoor }) {
             zIndex: 1,
             display: 'block',
             width: 'min(88vw, 475px)',
-            minHeight: 500,
+            minHeight: 'clamp(430px, 55dvh, 500px)',
             marginLeft: 0,
-            padding: '58px clamp(24px, 7vw, 46px) 42px',
+            padding: 'clamp(42px, 6dvh, 58px) clamp(24px, 7vw, 46px) clamp(30px, 5dvh, 42px)',
             background: '#fff',
             boxShadow: '0 22px 70px -42px rgba(20,17,12,0.5)',
           }}
@@ -883,7 +883,7 @@ function ObjectFace({ room }: { room: RoomDoor }) {
               fontSize: '0.68rem',
               fontWeight: 800,
               letterSpacing: '0.22em',
-              marginBottom: 28,
+              marginBottom: 'clamp(18px, 3.4dvh, 28px)',
               textAlign: 'center',
               textTransform: 'uppercase',
             }}
@@ -895,11 +895,11 @@ function ObjectFace({ room }: { room: RoomDoor }) {
               display: 'block',
               color: palette.ink,
               fontFamily: nunito,
-              fontSize: 'clamp(2.05rem, 4.7vw, 4.05rem)',
+              fontSize: 'clamp(1.9rem, 4.35vw, 3.75rem)',
               fontWeight: 850,
               letterSpacing: '-0.055em',
               lineHeight: 1.02,
-              margin: '0 auto 32px',
+              margin: '0 auto clamp(20px, 3.8dvh, 32px)',
               maxWidth: 398,
               textAlign: 'center',
             }}
@@ -944,7 +944,7 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           style={{
             position: 'absolute',
             left: 18,
-            bottom: 18,
+            bottom: 20,
             zIndex: 2,
             color: palette.softPink,
             fontFamily: "'Allura', cursive",
@@ -965,9 +965,9 @@ function ObjectFace({ room }: { room: RoomDoor }) {
         style={{
           position: 'relative',
           display: 'block',
-          height: 440,
+          height: 'clamp(360px, 46dvh, 410px)',
           overflow: 'hidden',
-          padding: '42px 32px 24px',
+          padding: 'clamp(34px, 5dvh, 42px) 32px 22px',
           background:
             `repeating-linear-gradient(180deg, transparent 0 33px, rgba(20,17,12,0.052) 34px 35px), linear-gradient(90deg, transparent 0 58px, ${palette.cyanSoft} 59px 60px, transparent 61px)`,
         }}
@@ -1003,17 +1003,16 @@ function ObjectFace({ room }: { room: RoomDoor }) {
             display: 'block',
             color: palette.ink,
             fontFamily: "'Bradley Hand', 'Comic Sans MS', 'Marker Felt', cursive",
-            fontSize: 'clamp(2.45rem, 4.8vw, 4.25rem)',
+            fontSize: 'clamp(2.1rem, 4.2vw, 3.75rem)',
             letterSpacing: '-0.055em',
             lineHeight: 0.86,
-            marginBottom: 22,
+            marginBottom: 'clamp(14px, 2.4dvh, 22px)',
           }}
         >
           {room.signal}
         </span>
         <span
           style={{
-            display: 'block',
             color: 'rgba(20,17,12,0.68)',
             fontFamily: 'Georgia, serif',
             fontSize: '1.02rem',

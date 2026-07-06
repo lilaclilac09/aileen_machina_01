@@ -152,6 +152,159 @@
   background: rgba(255, 255, 255, 0.08);
 }
 
+/* ── Documentary shelf ───────────────────────────────────── */
+.substack-watch-shelf {
+  max-width: 680px;
+  margin: 24px auto 0;
+  padding: 0 24px 8px;
+}
+.watch-shelf-kicker {
+  font-family: 'JetBrains Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(0, 255, 234, 0.65);
+  margin: 0 0 7px;
+}
+.watch-shelf-title {
+  font-family: 'Iowan Old Style', 'Charter', 'Georgia', serif;
+  font-size: 1.02rem;
+  font-style: italic;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.68);
+  margin: 0 0 16px;
+}
+.watch-shelf-stack {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(150px, 1fr));
+  gap: 12px;
+}
+.watch-card {
+  position: relative;
+  display: block;
+  min-width: 0;
+  padding: 7px 7px 12px;
+  background: #f8f5ee;
+  color: #14110c;
+  text-decoration: none;
+  box-shadow: 0 20px 54px -34px rgba(0, 0, 0, 0.78);
+  transform: rotate(var(--tilt, 0deg));
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.watch-card::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -10px;
+  width: 58px;
+  height: 18px;
+  background: rgba(201, 135, 47, 0.32);
+  transform: translateX(-50%) rotate(-2deg);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+}
+.watch-card:nth-child(2)::before {
+  background: rgba(0, 169, 159, 0.2);
+  transform: translateX(-50%) rotate(4deg);
+}
+.watch-card:hover {
+  transform: rotate(var(--tilt, 0deg)) translateY(-3px);
+  box-shadow: 0 28px 70px -34px rgba(0, 0, 0, 0.9);
+}
+.watch-card-image {
+  display: block;
+  aspect-ratio: 0.82;
+  width: 100%;
+  background-color: #111;
+  background-position: center;
+  background-size: cover;
+  filter: saturate(0.92) contrast(1.03);
+}
+.watch-card-meta {
+  display: block;
+  margin: 10px 2px 5px;
+  font-family: 'JetBrains Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-size: 0.52rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  line-height: 1.25;
+  text-transform: uppercase;
+  color: rgba(20, 17, 12, 0.52);
+}
+.watch-card-title {
+  display: block;
+  margin: 0 2px;
+  font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 760;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  color: #14110c;
+}
+
+@media (min-width: 1180px) {
+  .substack-watch-shelf {
+    position: fixed;
+    top: 112px;
+    right: max(24px, calc((100vw - 680px) / 2 - 270px));
+    z-index: 30;
+    width: 220px;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+  .watch-shelf-title {
+    max-width: 180px;
+    margin-bottom: 18px;
+  }
+  .watch-shelf-stack {
+    display: block;
+    height: 430px;
+    position: relative;
+  }
+  .watch-card {
+    position: absolute;
+    width: 148px;
+  }
+  .watch-card:nth-child(1) {
+    left: 4px;
+    top: 0;
+    z-index: 3;
+  }
+  .watch-card:nth-child(2) {
+    right: 0;
+    top: 112px;
+    z-index: 2;
+  }
+  .watch-card:nth-child(3) {
+    left: 22px;
+    top: 254px;
+    z-index: 1;
+  }
+}
+
+@media (max-width: 720px) {
+  .substack-watch-shelf {
+    padding-right: 0;
+  }
+  .watch-shelf-title {
+    padding-right: 24px;
+  }
+  .watch-shelf-stack {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 10px 24px 18px 0;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+  .watch-card {
+    flex: 0 0 152px;
+    scroll-snap-align: start;
+  }
+}
+
 /* ── Article container ───────────────────────────────────── */
 .substack-article article {
   max-width: 680px !important;
