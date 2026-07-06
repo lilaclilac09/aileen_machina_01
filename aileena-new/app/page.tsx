@@ -28,16 +28,26 @@ type RoomDoor = {
   placement: CSSProperties;
 };
 
+type VisualItem = {
+  src: string;
+  alt: string;
+  caption: string;
+  href?: string;
+};
+
 /* ── Homepage ─────────────────────────────────────────────────────────
  *
- * A cinematic opening, then a draggable clipping desk, then the DJ station,
- * then footer. Information is intentionally minimal: the homepage's job is
- * to set the mood, not to contain the content.
+ * A cinematic opening, then a draggable clipping desk, then restored
+ * personal rooms for podcast and handmade work, then the DJ station and
+ * footer. Information is intentionally minimal: the homepage's job is to
+ * set the mood, not to contain the content.
  *
  *   Section 01  Cinematic opening   — scene + one line + one CTA
  *   Section 02  Clipping desk       — article scraps + social rail
- *   Section 03  Sound               — DJ station
- *   Section 04  Footer
+ *   Section 03  Trendy              — podcast / fashion police notes
+ *   Section 04  Visual              — handmade glass / handwritten scraps
+ *   Section 05  Sound               — DJ station
+ *   Section 06  Footer
  *
  * Cover-agent (Natalia portrait + Ask the agent) is preserved on the
  * cinematic opening; it doubles as the door to the agent department.
@@ -274,8 +284,192 @@ export default function Home() {
           <AtriumDragDock rooms={rooms} />
         </SnapSection>
 
-        {/* ── 03 SOUND — DJ station ─────────────────────────────── */}
-        <SnapSection id="sound" className="order-3">
+        {/* ── 03 TRENDY — fashion police + podcast ─────────────── */}
+        <SnapSection id="trendy" className="order-3">
+          <div className="h-full flex items-center justify-center bg-[#050505] px-6 sm:px-10">
+            <div className="w-full max-w-[500px] text-center" style={{ fontFamily: nunito }}>
+              <p
+                className="anim-up mb-4 text-[0.6rem] uppercase tracking-[0.45em] text-[#00ffea]/70"
+                style={{ fontWeight: 500 }}
+              >
+                {tx.trendy.tag}
+              </p>
+              <h2
+                className="anim-up-2 mb-2 text-[clamp(1.3rem,3.2vw,1.9rem)] tracking-tight text-white/95 leading-snug"
+                style={{ fontWeight: 600 }}
+              >
+                {tx.trendy.heading}
+              </h2>
+              <p className="anim-up-3 mb-8 text-[0.92rem] text-white/55" style={{ fontWeight: 400 }}>
+                {tx.trendy.body}
+              </p>
+
+              <div className="anim-up-3 border-t border-white/10 pt-6">
+                <p className="mb-2 text-[0.58rem] uppercase tracking-[0.45em] text-white/35" style={{ fontWeight: 500 }}>
+                  {tx.trendy.rotationTag}
+                </p>
+                <h3 className="mb-2 text-[1rem] tracking-tight text-white/90" style={{ fontWeight: 500 }}>
+                  {tx.trendy.podcast.title}
+                </h3>
+                <p className="mb-4 text-[0.84rem] leading-relaxed text-white/55" style={{ fontWeight: 400 }}>
+                  {tx.trendy.podcast.body}
+                </p>
+                <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5">
+                  <a
+                    href={tx.trendy.podcast.kateHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[0.76rem] text-[#00ffea]/75 no-underline transition-colors hover:text-[#00ffea]"
+                    style={{ fontWeight: 500 }}
+                  >
+                    {tx.trendy.podcast.kateLabel} →
+                  </a>
+                  <a
+                    href={tx.trendy.podcast.showHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[0.76rem] text-white/55 no-underline transition-colors hover:text-white"
+                    style={{ fontWeight: 500 }}
+                  >
+                    {tx.trendy.podcast.showLabel} →
+                  </a>
+                </div>
+              </div>
+
+              <div className="anim-up-3 mt-6 border-t border-white/10 pt-6">
+                <p className="mb-2 text-[0.58rem] uppercase tracking-[0.45em] text-white/35" style={{ fontWeight: 500 }}>
+                  {tx.trendy.doYouReadHer.sectionLabel}
+                </p>
+                <h3 className="mb-2 text-[1rem] tracking-tight text-white/90" style={{ fontWeight: 500 }}>
+                  {tx.trendy.doYouReadHer.title}
+                </h3>
+                <p className="mb-4 text-[0.84rem] leading-relaxed text-white/55" style={{ fontWeight: 400 }}>
+                  {tx.trendy.doYouReadHer.body}
+                </p>
+                <a
+                  href={tx.trendy.doYouReadHer.episodeHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[0.76rem] text-[#00ffea]/75 no-underline transition-colors hover:text-[#00ffea]"
+                  style={{ fontWeight: 500 }}
+                >
+                  {tx.trendy.doYouReadHer.episodeLabel} →
+                </a>
+              </div>
+            </div>
+          </div>
+        </SnapSection>
+
+        {/* ── 04 VISUAL — handmade glass + handwritten note ─────── */}
+        <SnapSection id="visual" className="order-4">
+          <div className="h-full flex flex-col bg-[#070707] px-6 sm:px-10 lg:px-16">
+            <div className="mx-auto flex h-full w-full max-w-[920px] flex-col py-12 sm:py-16" style={{ fontFamily: nunito }}>
+              <p
+                className="anim-up mb-4 flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.32em] text-white/40"
+                style={{ fontWeight: 500 }}
+              >
+                {tx.visual.tag} <Sparkle />
+              </p>
+              <h2
+                className="anim-up-2 mb-3 flex items-center gap-3 text-[clamp(1.6rem,4.2vw,2.6rem)] tracking-tight text-white/95"
+                style={{ fontWeight: 500 }}
+              >
+                {tx.visual.heading} <Heart />
+              </h2>
+              <p className="anim-up-3 mb-8 max-w-lg text-[1rem] leading-relaxed text-white/55" style={{ fontWeight: 400 }}>
+                {tx.visual.body}
+              </p>
+
+              <div className="flex-1 overflow-y-auto pr-1">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+                  {tx.visual.items.map((img: VisualItem) => {
+                    const tile = (
+                      <figure className="relative m-0 aspect-square w-full overflow-hidden rounded-md">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={img.src}
+                          alt={img.alt}
+                          className="h-full w-full object-cover opacity-90 transition-opacity group-hover:opacity-100"
+                        />
+                        <span
+                          aria-hidden
+                          className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5"
+                          style={{
+                            background:
+                              'linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.18) 55%, transparent 100%)',
+                          }}
+                        />
+                        <figcaption
+                          className="absolute bottom-[6%] left-[7%] right-[7%]"
+                          style={{
+                            fontFamily: "'Allura', cursive",
+                            color: '#ffa590',
+                            fontSize: 'clamp(1.3rem, 3.4vw, 2.2rem)',
+                            letterSpacing: '0.01em',
+                            lineHeight: 1,
+                            textShadow: '0 1px 14px rgba(0,0,0,0.55), 0 1px 2px rgba(0,0,0,0.6)',
+                          }}
+                        >
+                          {img.caption}
+                          {img.href && (
+                            <span
+                              className="ml-3 opacity-0 transition-opacity group-hover:opacity-100"
+                              style={{
+                                color: '#ffd2bf',
+                                fontFamily: "'Allura', cursive",
+                                fontSize: '0.55em',
+                              }}
+                            >
+                              read →
+                            </span>
+                          )}
+                        </figcaption>
+                      </figure>
+                    );
+
+                    return img.href ? (
+                      <Link key={img.src} href={img.href} className="anim-up group block cursor-pointer">
+                        {tile}
+                      </Link>
+                    ) : (
+                      <div key={img.src} className="anim-up group">
+                        {tile}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="anim-up mt-9 flex items-center gap-3 text-white/30">
+                  <Sparkle />
+                  <Heart />
+                  <Star />
+                  <Flower />
+                  <span
+                    className="ml-1 text-white/55"
+                    style={{
+                      color: '#ffa590',
+                      fontFamily: "'Allura', cursive",
+                      fontSize: '1.35rem',
+                      lineHeight: 1,
+                    }}
+                  >
+                    {tx.visual.note}
+                  </span>
+                </div>
+                <Link
+                  href="/blog/pate-de-verre"
+                  className="anim-up mt-4 inline-block text-[0.82rem] text-[#00ffea]/70 transition-colors hover:text-[#00ffea]"
+                  style={{ fontWeight: 500 }}
+                >
+                  {tx.visual.readGlass}
+                </Link>
+              </div>
+            </div>
+          </div>
+        </SnapSection>
+
+        {/* ── 05 SOUND — DJ station ─────────────────────────────── */}
+        <SnapSection id="sound" className="order-5">
           <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-12 pt-6 pb-4 overflow-y-auto">
             <div className="mx-auto w-full max-w-[1400px]" style={{ fontFamily: nunito }}>
               <div className="flex items-end border-b border-white/8 pb-3 mb-6">
@@ -288,8 +482,8 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 04 FOOTER ─────────────────────────────────────────── */}
-        <SnapSection className="order-4">
+        {/* ── 06 FOOTER ─────────────────────────────────────────── */}
+        <SnapSection className="order-6">
           <div
             className="h-full flex flex-col justify-end bg-[#030303] px-6 sm:px-10 lg:px-16 py-14 sm:py-16"
             style={{ fontFamily: nunito }}
@@ -992,3 +1186,36 @@ const objectTextStyle: CSSProperties = {
   fontSize: '0.93rem',
   lineHeight: 1.35,
 };
+
+function Sparkle() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#00ffea" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 2c.8 5.6 3.6 8.4 9 9-5.4.6-8.2 3.4-9 9-.8-5.6-3.6-8.4-9-9 5.4-.6 8.2-3.4 9-9z" />
+    </svg>
+  );
+}
+
+function Heart() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#ff9ecb" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 20S3.5 14.6 3.5 8.9A4.3 4.3 0 0 1 12 6.1a4.3 4.3 0 0 1 8.5 2.8C20.5 14.6 12 20 12 20z" />
+    </svg>
+  );
+}
+
+function Star() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ffe08a" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 3l2.6 5.6 6 .7-4.4 4.1 1.2 6L12 16.8 6.6 19.5l1.2-6L3.4 9.3l6-.7z" />
+    </svg>
+  );
+}
+
+function Flower() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9ee6ff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="2.3" />
+      <path d="M12 3.8a2.7 2.7 0 0 1 0 5.4M20.2 12a2.7 2.7 0 0 1-5.4 0M12 20.2a2.7 2.7 0 0 1 0-5.4M3.8 12a2.7 2.7 0 0 1 5.4 0" />
+    </svg>
+  );
+}
