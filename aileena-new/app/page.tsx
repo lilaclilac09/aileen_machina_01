@@ -832,7 +832,7 @@ function ObjectFace({ room }: { room: RoomDoor }) {
             fontStyle: 'italic',
           }}
         >
-          read me
+          drag me
         </span>
         <span
           aria-hidden
