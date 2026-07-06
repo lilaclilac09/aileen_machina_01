@@ -12,6 +12,21 @@ import './blog/_substack/substack.css';
 
 const nunito = "'Nunito', system-ui, -apple-system, sans-serif";
 const mono = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
+const palette = {
+  ink: '#14110c',
+  page: '#fbfaf6',
+  paper: '#fffdf7',
+  cream: '#f8f5ee',
+  graphite: '#171513',
+  soot: '#0d1110',
+  cyan: '#00a99f',
+  cyanSoft: 'rgba(0,169,159,0.18)',
+  amber: '#c9872f',
+  amberSoft: 'rgba(201,135,47,0.28)',
+  softPink: '#e9829d',
+  oxblood: '#4c1512',
+  chipGreen: '#abc967',
+};
 
 const SESSION_LOADED_KEY = 'aileena_loaded_once';
 
@@ -192,7 +207,7 @@ export default function Home() {
                     fontFamily: mono,
                     fontSize: '0.62rem',
                     letterSpacing: '0.4em',
-                    color: '#ffa726',
+                    color: palette.amber,
                     textTransform: 'uppercase',
                     marginBottom: 28,
                     fontWeight: 600,
@@ -207,7 +222,7 @@ export default function Home() {
                     fontWeight: 600,
                     letterSpacing: '-0.022em',
                     lineHeight: 1.04,
-                    color: '#14110c',
+                    color: palette.ink,
                     marginBottom: 40,
                   }}
                 >
@@ -224,11 +239,11 @@ export default function Home() {
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: 8,
-                      background: '#fff',
-                      color: '#00a99f',
+                      background: palette.page,
+                      color: palette.cyan,
                       padding: '13px 22px',
                       borderRadius: 999,
-                      border: '1px solid rgba(0,169,159,0.38)',
+                      border: `1px solid ${palette.cyanSoft}`,
                       fontFamily: mono,
                       fontSize: '0.64rem',
                       letterSpacing: '0.22em',
@@ -245,8 +260,8 @@ export default function Home() {
                         width: 6,
                         height: 6,
                         borderRadius: '50%',
-                        background: '#00a99f',
-                        boxShadow: '0 0 8px rgba(0,169,159,0.55)',
+                        background: palette.cyan,
+                        boxShadow: '0 0 8px rgba(0,169,159,0.45)',
                       }}
                     />
                     Ask the agent
@@ -298,7 +313,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
       className="h-full px-5 sm:px-9 lg:px-14"
       style={{
         fontFamily: nunito,
-        background: '#fff',
+        background: palette.page,
       }}
     >
       <div
@@ -309,7 +324,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             href="mailto:rosazxc0915@gmail.com"
             className="hidden sm:inline-block"
             style={{
-              color: '#17130d',
+              color: palette.graphite,
               fontFamily: 'Georgia, serif',
               fontSize: '1.02rem',
               fontStyle: 'italic',
@@ -350,9 +365,9 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                   minHeight: isArticle ? 360 : isTrendy ? 440 : isRecord ? 280 : 238,
                   height: isTrendy ? 440 : undefined,
                   padding: 0,
-                  border: isPaper ? '1px solid rgba(20,17,12,0.2)' : 'none',
-                  background: isPaper ? '#fffdf7' : 'transparent',
-                  color: '#14110c',
+                  border: isPaper ? '1px solid rgba(20,17,12,0.16)' : 'none',
+                  background: isPaper ? palette.paper : 'transparent',
+                  color: palette.ink,
                   cursor: 'pointer',
                   textDecoration: 'none',
                   boxShadow: isPaper ? '0 24px 70px -48px rgba(20,17,12,0.5)' : 'none',
@@ -403,7 +418,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                       <span
                         className="mt-2 block text-center"
                         style={{
-                          color: '#ff6f91',
+                          color: palette.softPink,
                           fontFamily: "'Allura', cursive",
                           fontSize: '1.1rem',
                           lineHeight: 0.92,
@@ -431,9 +446,9 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               minHeight: isArticle ? 420 : isTrendy ? 440 : isRecord ? 300 : 250,
               height: isTrendy ? 440 : undefined,
               padding: 0,
-              border: isPaper ? '1px solid rgba(20,17,12,0.2)' : 'none',
-              background: isPaper ? '#fffdf7' : 'transparent',
-              color: '#14110c',
+              border: isPaper ? '1px solid rgba(20,17,12,0.16)' : 'none',
+              background: isPaper ? palette.paper : 'transparent',
+              color: palette.ink,
               cursor: 'pointer',
               textDecoration: 'none',
               boxShadow: isPaper ? '0 24px 70px -42px rgba(20,17,12,0.5)' : 'none',
@@ -497,7 +512,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                     <figcaption
                       className="mt-2 text-center"
                       style={{
-                        color: '#ff6f91',
+                        color: palette.softPink,
                         fontFamily: "'Allura', cursive",
                         fontSize: '1.04rem',
                         lineHeight: 0.92,
@@ -518,11 +533,11 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             style={{
               padding: 0,
               background:
-                'radial-gradient(circle at 78% 24%, rgba(255,255,255,0.92) 0 40px, transparent 41px), linear-gradient(135deg, #ff2f2f 0%, #14110c 48%, #09d66f 100%)',
-              border: '6px solid #f8f5ee',
+                `radial-gradient(circle at 78% 24%, rgba(255,255,255,0.9) 0 40px, transparent 41px), linear-gradient(135deg, ${palette.oxblood} 0%, ${palette.soot} 46%, #12352f 100%)`,
+              border: `6px solid ${palette.cream}`,
               borderRadius: 22,
               cursor: 'pointer',
-              boxShadow: '0 0 0 7px #ff1f9a, 0 14px 0 rgba(20,17,12,0.92), 0 28px 60px -28px rgba(20,17,12,0.75)',
+              boxShadow: `0 0 0 5px ${palette.cyanSoft}, 0 14px 0 rgba(20,17,12,0.88), 0 28px 60px -28px rgba(20,17,12,0.72)`,
               transform: 'rotate(2deg)',
               transition: 'transform 0.18s ease',
             }}
@@ -542,10 +557,10 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                   style={{
                     display: 'inline-block',
                     padding: '3px 8px 2px',
-                    background: '#f8f5ee',
-                    border: '2px solid #14110c',
+                    background: palette.cream,
+                    border: `2px solid ${palette.ink}`,
                     borderRadius: 8,
-                    color: '#14110c',
+                    color: palette.ink,
                     fontFamily: mono,
                     fontSize: '0.72rem',
                     fontWeight: 900,
@@ -562,13 +577,13 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 position: 'absolute',
                 left: 22,
                 bottom: 16,
-                color: '#f8f5ee',
+                color: palette.cream,
                 fontSize: '2.65rem',
                 fontWeight: 950,
                 letterSpacing: '-0.08em',
                 lineHeight: 0.84,
-                textShadow: '4px 4px 0 #14110c',
-                WebkitTextStroke: '1px #14110c',
+                textShadow: `4px 4px 0 ${palette.ink}`,
+                WebkitTextStroke: `1px ${palette.ink}`,
               }}
             >
               JENSEN
@@ -583,16 +598,16 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 width: 92,
                 height: 112,
                 borderRadius: '46% 46% 40% 40%',
-                background: '#f3c49a',
-                border: '4px solid #14110c',
+                background: '#e7b88f',
+                border: `4px solid ${palette.ink}`,
                 boxShadow: 'inset 0 -14px 0 rgba(20,17,12,0.16)',
               }}
             >
-              <span style={{ position: 'absolute', left: 18, top: 36, width: 56, height: 14, border: '3px solid #14110c', borderRadius: 999, background: 'rgba(248,245,238,0.88)' }} />
-              <span style={{ position: 'absolute', left: 21, top: 39, width: 14, height: 8, borderRadius: '50%', background: '#14110c' }} />
-              <span style={{ position: 'absolute', right: 21, top: 39, width: 14, height: 8, borderRadius: '50%', background: '#14110c' }} />
-              <span style={{ position: 'absolute', left: 28, top: 67, width: 36, height: 16, borderBottom: '4px solid #14110c', borderRadius: '0 0 999px 999px' }} />
-              <span style={{ position: 'absolute', left: -7, bottom: -20, width: 106, height: 38, borderRadius: '18px 18px 0 0', background: '#14110c' }} />
+              <span style={{ position: 'absolute', left: 18, top: 36, width: 56, height: 14, border: `3px solid ${palette.ink}`, borderRadius: 999, background: 'rgba(248,245,238,0.88)' }} />
+              <span style={{ position: 'absolute', left: 21, top: 39, width: 14, height: 8, borderRadius: '50%', background: palette.ink }} />
+              <span style={{ position: 'absolute', right: 21, top: 39, width: 14, height: 8, borderRadius: '50%', background: palette.ink }} />
+              <span style={{ position: 'absolute', left: 28, top: 67, width: 36, height: 16, borderBottom: `4px solid ${palette.ink}`, borderRadius: '0 0 999px 999px' }} />
+              <span style={{ position: 'absolute', left: -7, bottom: -20, width: 106, height: 38, borderRadius: '18px 18px 0 0', background: palette.ink }} />
             </span>
             <span
               style={{
@@ -601,8 +616,8 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 top: 16,
                 padding: '4px 8px',
                 borderRadius: 8,
-                background: '#76ff03',
-                color: '#14110c',
+                background: palette.chipGreen,
+                color: palette.ink,
                 fontFamily: mono,
                 fontSize: '0.72rem',
                 fontWeight: 900,
@@ -626,7 +641,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             }}
           >
             For collaboration, notes, and strange little dispatches, write to{' '}
-            <a href="mailto:rosazxc0915@gmail.com" style={{ color: '#14110c', textDecoration: 'underline' }}>
+            <a href="mailto:rosazxc0915@gmail.com" style={{ color: palette.ink, textDecoration: 'underline' }}>
               rosazxc0915@gmail.com
             </a>
           </p>
@@ -651,7 +666,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
 }
 
 const socialLinkStyle: CSSProperties = {
-  color: '#14110c',
+  color: palette.ink,
   fontFamily: 'Georgia, serif',
   fontSize: '1.08rem',
   fontStyle: 'italic',
@@ -660,7 +675,7 @@ const socialLinkStyle: CSSProperties = {
 };
 
 const topLinkStyle: CSSProperties = {
-  color: '#14110c',
+  color: palette.ink,
   fontFamily: 'Georgia, serif',
   fontSize: '1rem',
   fontStyle: 'italic',
@@ -676,7 +691,7 @@ const thumbnailShellStyle: CSSProperties = {
 
 const thumbnailTitleStyle: CSSProperties = {
   display: 'block',
-  color: '#14110c',
+  color: palette.ink,
   fontSize: '1.45rem',
   fontWeight: 850,
   letterSpacing: '-0.055em',
@@ -704,7 +719,7 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           minHeight: 420,
           padding: '42px 34px 32px',
           background:
-            'repeating-linear-gradient(180deg, transparent 0 33px, rgba(20,17,12,0.055) 34px 35px), linear-gradient(90deg, transparent 0 56px, rgba(255,94,166,0.12) 57px 58px, transparent 59px)',
+            `repeating-linear-gradient(180deg, transparent 0 33px, rgba(20,17,12,0.052) 34px 35px), linear-gradient(90deg, transparent 0 56px, ${palette.cyanSoft} 57px 58px, transparent 59px)`,
         }}
       >
         <span
@@ -782,7 +797,7 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           overflow: 'hidden',
           padding: '42px 32px 24px',
           background:
-            'repeating-linear-gradient(180deg, transparent 0 33px, rgba(20,17,12,0.052) 34px 35px), linear-gradient(90deg, transparent 0 58px, rgba(255,94,166,0.12) 59px 60px, transparent 61px)',
+            `repeating-linear-gradient(180deg, transparent 0 33px, rgba(20,17,12,0.052) 34px 35px), linear-gradient(90deg, transparent 0 58px, ${palette.cyanSoft} 59px 60px, transparent 61px)`,
         }}
       >
         <span
@@ -793,7 +808,7 @@ function ObjectFace({ room }: { room: RoomDoor }) {
             top: 12,
             width: 116,
             height: 30,
-            background: 'rgba(255,189,95,0.42)',
+            background: palette.amberSoft,
             transform: 'translateX(-50%) rotate(-1deg)',
           }}
         />
@@ -814,7 +829,7 @@ function ObjectFace({ room }: { room: RoomDoor }) {
         <span
           style={{
             display: 'block',
-            color: '#14110c',
+            color: palette.ink,
             fontFamily: "'Bradley Hand', 'Comic Sans MS', 'Marker Felt', cursive",
             fontSize: 'clamp(2.45rem, 4.8vw, 4.25rem)',
             letterSpacing: '-0.055em',
@@ -858,7 +873,7 @@ function ObjectFace({ room }: { room: RoomDoor }) {
                 width: 5,
                 height,
                 borderRadius: 999,
-                background: idx % 3 === 0 ? '#00a99f' : 'rgba(20,17,12,0.18)',
+                background: idx % 3 === 0 ? palette.cyan : 'rgba(20,17,12,0.18)',
               }}
             />
           ))}
@@ -895,7 +910,7 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           <span
             style={{
               display: 'block',
-              color: '#ff6f91',
+              color: palette.softPink,
               fontFamily: "'Allura', cursive",
               fontSize: '1.34rem',
               lineHeight: 1,
@@ -921,8 +936,8 @@ function ObjectFace({ room }: { room: RoomDoor }) {
             overflow: 'hidden',
             borderRadius: 14,
             background:
-              'radial-gradient(circle at 24% 34%, #f2c09a 0 30px, transparent 31px), radial-gradient(circle at 50% 34%, #f2c09a 0 34px, transparent 35px), radial-gradient(circle at 78% 34%, #f2c09a 0 30px, transparent 31px), linear-gradient(135deg, #b80000 0%, #240000 48%, #070707 100%)',
-            boxShadow: 'inset 0 0 0 3px #14110c',
+              `radial-gradient(circle at 24% 34%, #ddb08a 0 30px, transparent 31px), radial-gradient(circle at 50% 34%, #ddb08a 0 34px, transparent 35px), radial-gradient(circle at 78% 34%, #ddb08a 0 30px, transparent 31px), linear-gradient(135deg, ${palette.oxblood} 0%, #211513 46%, ${palette.soot} 100%)`,
+            boxShadow: `inset 0 0 0 3px ${palette.ink}`,
           }}
         >
           {['11.3x', '19.4x', '12.4x'].map((tag, idx) => (
@@ -934,9 +949,9 @@ function ObjectFace({ room }: { room: RoomDoor }) {
                 top: 10,
                 padding: '3px 8px 2px',
                 borderRadius: 8,
-                border: '2px solid #14110c',
-                background: '#f8f5ee',
-                color: '#14110c',
+                border: `2px solid ${palette.ink}`,
+                background: palette.cream,
+                color: palette.ink,
                 fontFamily: mono,
                 fontSize: '1.02rem',
                 fontWeight: 950,
@@ -957,14 +972,14 @@ function ObjectFace({ room }: { room: RoomDoor }) {
                 width: 58,
                 height: 76,
                 borderRadius: '44% 44% 38% 38%',
-                background: '#f2c09a',
-                border: '3px solid #14110c',
-                boxShadow: '0 20px 0 #14110c',
+                background: '#ddb08a',
+                border: `3px solid ${palette.ink}`,
+                boxShadow: `0 20px 0 ${palette.ink}`,
                 transform: `rotate(${idx === 1 ? 0 : idx === 0 ? -4 : 4}deg)`,
               }}
             >
-              <span style={{ position: 'absolute', left: 11, top: 26, width: 36, height: 10, border: '2px solid #14110c', borderRadius: 999, background: '#f8f5ee' }} />
-              <span style={{ position: 'absolute', left: 21, top: 47, width: 18, height: 9, borderBottom: '3px solid #14110c', borderRadius: '0 0 999px 999px' }} />
+              <span style={{ position: 'absolute', left: 11, top: 26, width: 36, height: 10, border: `2px solid ${palette.ink}`, borderRadius: 999, background: palette.cream }} />
+              <span style={{ position: 'absolute', left: 21, top: 47, width: 18, height: 9, borderBottom: `3px solid ${palette.ink}`, borderRadius: '0 0 999px 999px' }} />
             </span>
           ))}
           <span
@@ -982,9 +997,9 @@ function ObjectFace({ room }: { room: RoomDoor }) {
                 style={{
                   padding: '3px 8px',
                   borderRadius: 5,
-                  background: logo === 'NVIDIA' ? '#76ff03' : '#f8f5ee',
-                  border: '2px solid #14110c',
-                  color: '#14110c',
+                  background: logo === 'NVIDIA' ? palette.chipGreen : palette.cream,
+                  border: `2px solid ${palette.ink}`,
+                  color: palette.ink,
                   fontFamily: mono,
                   fontSize: '0.72rem',
                   fontWeight: 900,
@@ -1013,8 +1028,8 @@ function ObjectFace({ room }: { room: RoomDoor }) {
             overflow: 'hidden',
             borderRadius: 14,
             background:
-              'linear-gradient(90deg, rgba(8,16,18,0.92), rgba(8,16,18,0.1)), repeating-linear-gradient(90deg, #161616 0 18px, #252525 19px 24px), #0a0a0a',
-            boxShadow: 'inset 0 0 0 3px #14110c',
+              `linear-gradient(90deg, rgba(8,16,18,0.94), rgba(8,16,18,0.18)), repeating-linear-gradient(90deg, ${palette.soot} 0 18px, #1d2421 19px 24px), #0a0d0c`,
+            boxShadow: `inset 0 0 0 3px ${palette.ink}`,
           }}
         >
           <span
@@ -1022,12 +1037,12 @@ function ObjectFace({ room }: { room: RoomDoor }) {
               position: 'absolute',
               left: 12,
               top: 12,
-              color: '#f8f5ee',
+              color: palette.cream,
               fontSize: '2.35rem',
               fontWeight: 950,
               letterSpacing: '-0.08em',
               lineHeight: 0.9,
-              textShadow: '3px 3px 0 #14110c',
+              textShadow: `3px 3px 0 ${palette.ink}`,
             }}
           >
             800V
@@ -1044,7 +1059,7 @@ function ObjectFace({ room }: { room: RoomDoor }) {
                 width: 14,
                 height: 98 + idx * 8,
                 borderRadius: 5,
-                background: idx % 2 === 0 ? '#1f1f1f' : '#333',
+                background: idx % 2 === 0 ? '#161b19' : '#2a302d',
                 border: '2px solid rgba(248,245,238,0.65)',
               }}
             />
@@ -1056,8 +1071,8 @@ function ObjectFace({ room }: { room: RoomDoor }) {
               top: 28,
               width: 78,
               height: 78,
-              borderRight: '5px solid #76ff03',
-              borderBottom: '5px solid #76ff03',
+              borderRight: `5px solid ${palette.cyan}`,
+              borderBottom: `5px solid ${palette.cyan}`,
               borderRadius: '0 0 50% 0',
               transform: 'rotate(8deg)',
             }}
@@ -1070,8 +1085,8 @@ function ObjectFace({ room }: { room: RoomDoor }) {
               width: 15,
               height: 15,
               borderRadius: '50%',
-              background: '#f8f5ee',
-              boxShadow: '0 0 0 4px #76ff03',
+              background: palette.cream,
+              boxShadow: `0 0 0 4px ${palette.cyan}`,
             }}
           />
           <span
@@ -1081,8 +1096,8 @@ function ObjectFace({ room }: { room: RoomDoor }) {
               bottom: 15,
               padding: '4px 9px',
               borderRadius: 8,
-              background: '#f8f5ee',
-              color: '#14110c',
+              background: palette.cream,
+              color: palette.ink,
               fontFamily: mono,
               fontSize: '0.72rem',
               fontWeight: 900,
@@ -1096,7 +1111,7 @@ function ObjectFace({ room }: { room: RoomDoor }) {
   }
 
   return (
-    <span style={{ ...objectShellStyle, background: '#101010', color: '#f5f1e8' }}>
+    <span style={{ ...objectShellStyle, background: palette.soot, color: '#f5f1e8' }}>
       <span style={{ ...objectKickerStyle, color: 'rgba(245,241,232,0.55)' }}>{room.category}</span>
       <span
         aria-hidden
@@ -1107,11 +1122,11 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           height: 168,
           margin: '16px auto',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, #f5f1e8 0 8%, #101010 9% 28%, #f5f1e8 29% 30%, #101010 31% 100%)',
+          background: `radial-gradient(circle, #f5f1e8 0 8%, ${palette.soot} 9% 28%, #f5f1e8 29% 30%, ${palette.soot} 31% 100%)`,
           boxShadow: '0 0 0 12px rgba(245,241,232,0.08)',
         }}
       >
-        <span style={{ width: 18, height: 18, borderRadius: '50%', background: '#ffa726' }} />
+        <span style={{ width: 18, height: 18, borderRadius: '50%', background: palette.amber }} />
       </span>
       <span style={{ ...objectTitleStyle, color: '#f5f1e8' }}>{room.label}</span>
       <span style={{ ...objectTextStyle, color: 'rgba(245,241,232,0.72)' }}>{room.signal}</span>
@@ -1123,7 +1138,7 @@ const objectShellStyle: CSSProperties = {
   display: 'block',
   minHeight: 250,
   padding: '22px 22px 24px',
-  background: '#fffdf7',
+  background: palette.paper,
   border: '1px solid rgba(20,17,12,0.16)',
   boxShadow: '0 22px 55px -40px rgba(20,17,12,0.5)',
 };
