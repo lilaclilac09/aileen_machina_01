@@ -68,27 +68,8 @@ type RoomDoor = {
   note?: string;
 };
 
-const HOME_DOCUMENTARIES = [
-  {
-    title: 'Joan Didion: The Center Will Not Hold',
-    meta: '2018 · writer / witness',
-    image:
-      'https://resizing.flixster.com/onSFETOELTXATdk56VRhXRScAvA=/206x305/v2/https://resizing.flixster.com/JbJYntMfetJO6X_4lj7ZrJdwmn4=/ems.cHJkLWVtcy1hc3NldHMvbW92aWVzL2U5ZTQ5ODMzLWFiNGUtNGM1Ny1iNjk3LTkyNzI0YmFiZDEwMy53ZWJw',
-  },
-  {
-    title: 'David Hockney RA',
-    meta: '2017 · exhibition film',
-    image:
-      'https://d7hftxdivxxvm.cloudfront.net/?height=800&quality=80&resize_to=fit&src=https%3A%2F%2Fd32dm0rphc51dk.cloudfront.net%2FxVvYx_HSwpadXmaJ91XLWQ%2Fmain.jpg&width=535',
-  },
-  {
-    title: 'A Bigger Splash',
-    meta: '1973 · Hockney / pool',
-    image: 'https://www.ecartelera.com/carteles/10100/10114/004.jpg',
-  },
-];
-
 const HOME_PODCASTS = [
+  { title: 'DJ sets', meta: 'two decks / sound room', href: '/sound' },
   { title: 'Fashion Neurosis', meta: 'Bella Freud · Kate Moss' },
   { title: 'Do You Read Her', meta: 'women / reading / voice' },
 ];
@@ -96,6 +77,12 @@ const HOME_PODCASTS = [
 const HOME_CHANNELS = [
   { title: 'Asymmetrical Bets', meta: 'markets / narratives' },
   { title: 'SemiAnalysis', meta: 'semis / AI infrastructure' },
+];
+
+const HOME_WATCH_ITEMS = [
+  { title: 'Joan Didion: The Center Will Not Hold', meta: '2018 · writer / witness' },
+  { title: 'David Hockney RA', meta: '2017 · exhibition film' },
+  { title: 'A Bigger Splash', meta: '1973 · Hockney / pool' },
 ];
 
 /* ── Homepage ─────────────────────────────────────────────────────────
@@ -106,7 +93,7 @@ const HOME_CHANNELS = [
  *
  *   Section 01  Cinematic opening   — scene + one line + one CTA
  *   Section 02  Clipping desk       — article scraps + direct doors
- *   Section 03  Watch hub           — podcasts, documentaries, channels
+ *   Section 03  Watch hub           — DJ sets, podcasts, documentaries, channels
  *
  * The Machina mark on the cinematic opening doubles as the door to the
  * agent department.
@@ -120,7 +107,7 @@ export default function Home() {
   const [loaded, setLoaded] = useState(true);
   const [showLoadingScreen, setShowLoadingScreen] = useState(false);
   const latestIssue = ALL_ISSUES[0];
-  const latestIssueHref = latestIssue ? `/research/${latestIssue.slug}` : '/research';
+  const latestIssueHref = latestIssue?.longFormHref ?? (latestIssue ? `/blog/${latestIssue.slug}` : '/dispatch');
   const latestDispatch = tx.blog.researchDispatch.posts.slice(-1)[0];
   const metooArticle = tx.blog.womanInTech.posts.find((post) => post.href === '/blog/harassment') ?? tx.blog.womanInTech.posts[0];
   const rooms: RoomDoor[] = [
@@ -413,7 +400,7 @@ export default function Home() {
 function HomeWatchHub() {
   return (
     <section
-      className="h-full overflow-hidden px-5 sm:px-9 lg:px-14"
+      className="h-full overflow-y-auto px-5 sm:px-9 lg:px-14"
       style={{
         background: '#fff',
         color: palette.ink,
@@ -422,7 +409,7 @@ function HomeWatchHub() {
       aria-label="Watch and listen hub"
     >
       <div
-        className="mx-auto grid h-full max-w-[1320px] gap-8 overflow-y-auto pb-10 pt-[82px] lg:grid-cols-[0.86fr_1.14fr] lg:items-center lg:gap-14 lg:overflow-visible lg:pb-8 lg:pt-[88px]"
+        className="mx-auto grid min-h-full max-w-[1320px] gap-8 pb-12 pt-[82px] lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-14 lg:pb-10 lg:pt-[88px]"
       >
         <div style={{ maxWidth: 510 }}>
           <p
@@ -459,11 +446,11 @@ function HomeWatchHub() {
               marginBottom: 28,
             }}
           >
-            Podcasts, documentaries, and research channels now live here as a
-            homepage hub. The essays stay clean; the shelf has its own room.
+            DJ sets, podcasts, documentaries, and research channels live here
+            as a homepage hub. Essays stay clean; the shelf has its own room.
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 30 }}>
-            {['podcasts', 'documentaries', 'substacks'].map((tag) => (
+            {['DJ sets', 'podcasts', 'documentaries', 'substacks'].map((tag) => (
               <span
                 key={tag}
                 style={{
@@ -501,110 +488,60 @@ function HomeWatchHub() {
               textTransform: 'uppercase',
             }}
           >
-            Open the issue <span aria-hidden>→</span>
+            Open the article <span aria-hidden>→</span>
           </Link>
         </div>
 
         <div
-          className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr] lg:items-end"
+          className="grid gap-5 lg:grid-cols-2"
           style={{ minWidth: 0 }}
         >
-          <div
-            style={{
-              position: 'relative',
-              minHeight: 'clamp(420px, 58dvh, 620px)',
-            }}
-          >
-            <p
+          <div className="grid gap-4">
+            <HubShelf title="Watch shelf" items={HOME_WATCH_ITEMS} />
+            <HubShelf title="Listen shelf" items={HOME_PODCASTS} />
+          </div>
+          <div className="grid content-start gap-4">
+            <HubShelf title="Read shelf" items={HOME_CHANNELS} />
+            <Link
+              href="/sound"
               style={{
-                color: palette.cyan,
-                fontFamily: mono,
-                fontSize: '0.62rem',
-                fontWeight: 850,
-                letterSpacing: '0.3em',
-                margin: '0 0 16px 12px',
-                textTransform: 'uppercase',
+                display: 'block',
+                border: '1px solid rgba(20,17,12,0.12)',
+                borderRadius: 4,
+                background: '#fff',
+                color: palette.ink,
+                padding: '18px 20px',
+                textDecoration: 'none',
+                boxShadow: '0 20px 42px -38px rgba(20,17,12,0.42)',
               }}
             >
-              Watch shelf
-            </p>
-            {HOME_DOCUMENTARIES.map((item, index) => (
-              <Link
-                key={item.title}
-                href="/blog/watch-listening-shelf"
-                className="absolute block"
+              <span
                 style={{
-                  left: ['5%', '28%', '14%'][index],
-                  top: ['8%', '29%', '50%'][index],
-                  width: ['min(58vw, 250px)', 'min(50vw, 220px)', 'min(52vw, 235px)'][index],
-                  zIndex: [3, 2, 1][index],
-                  padding: 9,
-                  background: palette.cream,
-                  color: palette.ink,
-                  textDecoration: 'none',
-                  transform: `rotate(${[-3.5, 4, -1.5][index]}deg)`,
-                  boxShadow: '0 28px 62px -44px rgba(20,17,12,0.58)',
+                  color: palette.cyan,
+                  display: 'block',
+                  fontFamily: mono,
+                  fontSize: '0.58rem',
+                  fontWeight: 850,
+                  letterSpacing: '0.22em',
+                  marginBottom: 10,
+                  textTransform: 'uppercase',
                 }}
               >
-                <span
-                  aria-hidden
-                  style={{
-                    position: 'absolute',
-                    left: '50%',
-                    top: -12,
-                    width: 74,
-                    height: 22,
-                    background: index === 1 ? 'rgba(0,169,159,0.18)' : palette.amberSoft,
-                    transform: 'translateX(-50%) rotate(2deg)',
-                  }}
-                />
-                <span
-                  aria-hidden
-                  style={{
-                    display: 'block',
-                    aspectRatio: '0.76',
-                    backgroundColor: '#111',
-                    backgroundImage: `url("${item.image}")`,
-                    backgroundPosition: 'center',
-                    backgroundSize: 'cover',
-                    filter: 'saturate(0.92) contrast(1.03)',
-                    marginBottom: 11,
-                  }}
-                />
-                <span
-                  style={{
-                    display: 'block',
-                    color: 'rgba(20,17,12,0.48)',
-                    fontFamily: mono,
-                    fontSize: '0.54rem',
-                    fontWeight: 850,
-                    letterSpacing: '0.16em',
-                    lineHeight: 1.3,
-                    marginBottom: 7,
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  {item.meta}
-                </span>
-                <span
-                  style={{
-                    display: 'block',
-                    color: palette.ink,
-                    fontSize: '1rem',
-                    fontWeight: 800,
-                    letterSpacing: '-0.035em',
-                    lineHeight: 1.06,
-                  }}
-                >
-                  {item.title}
-                </span>
-              </Link>
-            ))}
-          </div>
-
-          <div className="grid gap-4 pb-3">
-            <HubShelf title="Listen shelf" items={HOME_PODCASTS} />
-            <HubShelf title="Read shelf" items={HOME_CHANNELS} />
+                DJ station
+              </span>
+              <span
+                style={{
+                  display: 'block',
+                  color: palette.ink,
+                  fontSize: '1.18rem',
+                  fontWeight: 820,
+                  letterSpacing: '-0.03em',
+                  lineHeight: 1.08,
+                }}
+              >
+                The deck stays black. This is just the door.
+              </span>
+            </Link>
           </div>
         </div>
       </div>
@@ -612,7 +549,7 @@ function HomeWatchHub() {
   );
 }
 
-function HubShelf({ title, items }: { title: string; items: { title: string; meta: string }[] }) {
+function HubShelf({ title, items }: { title: string; items: { title: string; meta: string; href?: string }[] }) {
   return (
     <div>
       <p
@@ -632,7 +569,7 @@ function HubShelf({ title, items }: { title: string; items: { title: string; met
         {items.map((item) => (
           <Link
             key={item.title}
-            href="/blog/watch-listening-shelf"
+            href={item.href ?? '/blog/watch-listening-shelf'}
             style={{
               display: 'block',
               border: '1px solid rgba(20,17,12,0.12)',
