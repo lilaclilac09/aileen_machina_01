@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type DragEvent } from 'react';
+import { useEffect, useState, type CSSProperties, type DragEvent } from 'react';
 import Link from 'next/link';
 import Header from '../components/Header';
 import DJStation from '../components/DJStation';
@@ -21,19 +21,23 @@ type RoomDoor = {
   index: string;
   label: string;
   href: string;
+  category: string;
   blurb: string;
   signal: string;
+  image: string;
+  placement: CSSProperties;
 };
 
 /* ── Homepage ─────────────────────────────────────────────────────────
  *
- * A cinematic opening, then the DJ station, then footer. Information is
- * intentionally minimal: the homepage's job is to set the mood, not to
- * contain the content.
+ * A cinematic opening, then a draggable clipping desk, then the DJ station,
+ * then footer. Information is intentionally minimal: the homepage's job is
+ * to set the mood, not to contain the content.
  *
  *   Section 01  Cinematic opening   — scene + one line + one CTA
- *   Section 02  Sound               — DJ station
- *   Section 03  Footer
+ *   Section 02  Clipping desk       — article scraps + social rail
+ *   Section 03  Sound               — DJ station
+ *   Section 04  Footer
  *
  * Cover-agent (Natalia portrait + Ask the agent) is preserved on the
  * cinematic opening; it doubles as the door to the agent department.
@@ -57,32 +61,44 @@ export default function Home() {
       index: '01',
       label: 'Magazine',
       href: latestIssueHref,
+      category: 'Issue',
       blurb: 'Interactive judgments, one issue at a time.',
       signal: latestIssue ? `${latestIssue.issueNumber} · ${latestIssue.coverTitle}` : 'Open the magazine rack',
+      image: '/research/prop-amm-radar.png',
+      placement: { top: '9%', left: '28%', transform: 'rotate(-5deg)', zIndex: 2 },
     },
     {
       id: 'dispatch',
       index: '02',
       label: 'News Desk',
       href: '/dispatch',
+      category: 'Dispatch',
       blurb: 'Fresh dispatches and analysis.',
       signal: latestDispatch ? latestDispatch.title : 'Open the archive',
+      image: '/dispatch-covers/investing-hero.jpg',
+      placement: { top: '2%', right: '12%', transform: 'rotate(4deg)', zIndex: 1 },
     },
     {
       id: 'library',
       index: '03',
       label: 'Library',
       href: latestWomanInTech ? latestWomanInTech.href : '/dispatch',
+      category: 'Long-form',
       blurb: 'Long-form essays and the back catalogue.',
       signal: latestWomanInTech ? latestWomanInTech.title : 'Open the catalogue',
+      image: '/dispatch-covers/harassment.jpg',
+      placement: { top: '39%', left: '13%', transform: 'rotate(3deg)', zIndex: 4 },
     },
     {
       id: 'sound',
       index: '04',
       label: 'Sound',
       href: '/sound',
+      category: 'Set',
       blurb: 'DJ sets and the music she ships.',
       signal: 'Mix 02 · Berlin',
+      image: '/berlin.jpg',
+      placement: { top: '42%', right: '7%', transform: 'rotate(-2deg)', zIndex: 3 },
     },
   ];
 
@@ -337,7 +353,12 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dropActive, setDropActive] = useState(false);
   const [enteringId, setEnteringId] = useState<string | null>(null);
-  const activeRoom = rooms.find((room) => room.id === (draggingId || enteringId));
+  const socialLinks = [
+    { label: 'github', href: 'https://github.com/lilaclilac09' },
+    { label: 'substack', href: '/dispatch' },
+    { label: 'airmail', href: 'mailto:rosazxc0915@gmail.com' },
+    { label: 'sound', href: '/sound' },
+  ];
 
   function enterRoom(room: RoomDoor) {
     setEnteringId(room.id);
@@ -364,212 +385,245 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
   }
 
   return (
-    <div className="h-full flex flex-col bg-black px-6 sm:px-10 lg:px-16" style={{ fontFamily: nunito }}>
-      <div className="mx-auto grid h-full w-full max-w-[1180px] grid-rows-[auto_1fr] gap-8 py-12 sm:py-16 lg:gap-10">
-        <header className="max-w-[760px]">
-          <p
-            className="anim-up"
-            style={{
-              fontFamily: mono,
-              fontSize: '0.6rem',
-              letterSpacing: '0.4em',
-              color: '#ffa726',
-              textTransform: 'uppercase',
-              marginBottom: 14,
-              fontWeight: 600,
-            }}
-          >
-            The dock
-          </p>
-          <h2
-            className="anim-up-2"
-            style={{
-              fontSize: 'clamp(1.7rem, 3.4vw, 2.65rem)',
-              fontWeight: 500,
-              color: 'rgba(255,255,255,0.92)',
-              letterSpacing: '-0.012em',
-              lineHeight: 1.12,
-            }}
-          >
-            Pull a room into signal.
-          </h2>
+    <div
+      className="h-full px-5 sm:px-9 lg:px-14"
+      style={{
+        fontFamily: nunito,
+        background: 'linear-gradient(#050505 0 76px, #f5f1e8 76px)',
+      }}
+    >
+      <div
+        className="relative mx-auto flex h-full w-full max-w-[1280px] flex-col overflow-hidden pb-10 pt-24 sm:pb-12 sm:pt-24"
+        onDragEnter={(event) => {
+          event.preventDefault();
+          setDropActive(true);
+        }}
+        onDragOver={(event) => {
+          event.preventDefault();
+          event.dataTransfer.dropEffect = 'move';
+          setDropActive(true);
+        }}
+        onDragLeave={(event) => {
+          const nextTarget = event.relatedTarget as Node | null;
+          if (!nextTarget || !event.currentTarget.contains(nextTarget)) {
+            setDropActive(false);
+          }
+        }}
+        onDrop={handleDrop}
+      >
+        <header className="relative z-20 flex items-start justify-between gap-6">
+          <div>
+            <p
+              className="anim-up"
+              style={{
+                color: '#17130d',
+                fontFamily: 'Georgia, serif',
+                fontSize: '1rem',
+                fontStyle: 'italic',
+                marginBottom: 10,
+              }}
+            >
+              drag me
+            </p>
+            <h2
+              className="anim-up-2"
+              style={{
+                color: '#14110c',
+                fontSize: 'clamp(2.1rem, 5vw, 4.6rem)',
+                fontWeight: 500,
+                letterSpacing: '-0.035em',
+                lineHeight: 0.95,
+                maxWidth: 560,
+              }}
+            >
+              Clip an article. Drop into the room.
+            </h2>
+          </div>
         </header>
 
-        <div className="grid min-h-0 grid-cols-1 gap-6 lg:grid-cols-[0.82fr_1.18fr] lg:items-center">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-            {rooms.map((room) => {
-              const isActive = draggingId === room.id || enteringId === room.id;
-
-              return (
-                <button
-                  key={room.id}
-                  type="button"
-                  draggable
-                  onClick={() => enterRoom(room)}
-                  onDragStart={(event) => handleDragStart(event, room)}
-                  onDragEnd={() => {
-                    setDraggingId(null);
-                    setDropActive(false);
-                  }}
-                  className="anim-up-2 text-left"
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '42px 1fr',
-                    gap: 16,
-                    alignItems: 'center',
-                    width: '100%',
-                    minHeight: 84,
-                    padding: '14px 16px',
-                    border: `1px solid ${isActive ? 'rgba(255,167,38,0.58)' : 'rgba(255,255,255,0.1)'}`,
-                    background: isActive ? 'rgba(255,167,38,0.08)' : 'rgba(255,255,255,0.025)',
-                    color: '#fff',
-                    cursor: isActive ? 'grabbing' : 'grab',
-                    transition: 'border-color 0.18s ease, background 0.18s ease, transform 0.18s ease',
-                  }}
-                  aria-label={`Open ${room.label}`}
-                >
-                  <span
-                    aria-hidden
-                    style={{
-                      display: 'grid',
-                      placeItems: 'center',
-                      width: 42,
-                      height: 42,
-                      border: '1px solid rgba(255,167,38,0.36)',
-                      color: '#ffa726',
-                      fontFamily: mono,
-                      fontSize: '0.58rem',
-                      letterSpacing: '0.18em',
-                    }}
-                  >
-                    {room.index}
-                  </span>
-                  <span style={{ minWidth: 0 }}>
-                    <span
-                      style={{
-                        display: 'block',
-                        color: 'rgba(255,255,255,0.94)',
-                        fontSize: '1.05rem',
-                        fontWeight: 600,
-                        lineHeight: 1.2,
-                      }}
-                    >
-                      {room.label}
-                    </span>
-                    <span
-                      style={{
-                        display: 'block',
-                        marginTop: 5,
-                        color: 'rgba(255,255,255,0.5)',
-                        fontSize: '0.82rem',
-                        lineHeight: 1.35,
-                      }}
-                    >
-                      {room.blurb}
-                    </span>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          <div
-            onDragEnter={(event) => {
-              event.preventDefault();
-              setDropActive(true);
-            }}
-            onDragOver={(event) => {
-              event.preventDefault();
-              event.dataTransfer.dropEffect = 'move';
-              setDropActive(true);
-            }}
-            onDragLeave={(event) => {
-              const nextTarget = event.relatedTarget as Node | null;
-              if (!nextTarget || !event.currentTarget.contains(nextTarget)) {
-                setDropActive(false);
-              }
-            }}
-            onDrop={handleDrop}
-            className="anim-up-3 relative grid min-h-[340px] place-items-center overflow-hidden border border-white/10 bg-white/[0.02] p-8 sm:min-h-[420px]"
+        <div
+          className="relative z-10 mt-5 min-h-[520px] flex-1 sm:mt-2"
+          style={{
+            outline: dropActive ? '1px dashed rgba(20,17,12,0.32)' : '1px dashed transparent',
+            outlineOffset: -18,
+            transition: 'outline-color 0.18s ease',
+          }}
+        >
+          <p
+            className="absolute left-[8%] top-[39%] z-30 hidden sm:block"
             style={{
-              boxShadow: dropActive
-                ? '0 0 90px -35px rgba(0,255,234,0.7), inset 0 0 80px -55px rgba(0,255,234,0.72)'
-                : 'inset 0 0 80px -70px rgba(255,255,255,0.5)',
-              transition: 'box-shadow 0.18s ease, border-color 0.18s ease',
-              borderColor: dropActive ? 'rgba(0,255,234,0.42)' : 'rgba(255,255,255,0.1)',
+              color: 'rgba(20,17,12,0.62)',
+              fontFamily: 'Georgia, serif',
+              fontSize: '1rem',
+              fontStyle: 'italic',
+              transform: 'rotate(-8deg)',
             }}
           >
-            <div
-              aria-hidden
-              className="absolute inset-0 opacity-50"
-              style={{
-                background:
-                  'radial-gradient(circle at 50% 50%, rgba(0,255,234,0.16), transparent 30%), linear-gradient(90deg, transparent 49.8%, rgba(255,255,255,0.08) 50%, transparent 50.2%), linear-gradient(0deg, transparent 49.8%, rgba(255,255,255,0.08) 50%, transparent 50.2%)',
-              }}
-            />
-            <div
-              aria-hidden
-              className="absolute h-[min(55vw,420px)] w-[min(55vw,420px)] rounded-full"
-              style={{
-                border: `1px solid ${dropActive ? 'rgba(0,255,234,0.5)' : 'rgba(255,255,255,0.13)'}`,
-                boxShadow: dropActive
-                  ? '0 0 50px -18px rgba(0,255,234,0.85), inset 0 0 50px -30px rgba(0,255,234,0.85)'
-                  : '0 0 40px -30px rgba(255,255,255,0.5)',
-                transition: 'border-color 0.18s ease, box-shadow 0.18s ease',
-              }}
-            />
-            <div className="relative z-10 max-w-[420px] text-center">
-              <p
-                style={{
-                  fontFamily: mono,
-                  fontSize: '0.58rem',
-                  letterSpacing: '0.38em',
-                  color: dropActive ? '#00ffea' : 'rgba(0,255,234,0.7)',
-                  textTransform: 'uppercase',
-                  marginBottom: 18,
-                  fontWeight: 700,
+            drag me
+          </p>
+
+          {rooms.map((room) => {
+            const isActive = draggingId === room.id || enteringId === room.id;
+            const baseTransform = String(room.placement.transform ?? '');
+
+            return (
+              <button
+                key={room.id}
+                type="button"
+                draggable
+                onClick={() => enterRoom(room)}
+                onDragStart={(event) => handleDragStart(event, room)}
+                onDragEnd={() => {
+                  setDraggingId(null);
+                  setDropActive(false);
                 }}
-              >
-                {dropActive ? 'Signal open' : 'Drop zone'}
-              </p>
-              <h3
+                className="anim-up-2 text-left"
                 style={{
-                  color: '#fff',
-                  fontSize: 'clamp(1.6rem, 3vw, 2.35rem)',
-                  fontWeight: 500,
-                  lineHeight: 1.12,
-                  letterSpacing: '-0.016em',
-                  marginBottom: 16,
+                  ...room.placement,
+                  position: 'absolute',
+                  width: 'min(70vw, 360px)',
+                  minHeight: 286,
+                  padding: 0,
+                  border: '1px solid rgba(20,17,12,0.14)',
+                  background: '#fffdf7',
+                  color: '#14110c',
+                  cursor: isActive ? 'grabbing' : 'grab',
+                  boxShadow: isActive
+                    ? '0 34px 90px -34px rgba(20,17,12,0.55)'
+                    : '0 24px 70px -42px rgba(20,17,12,0.5)',
+                  transform: `${baseTransform} ${isActive ? 'scale(1.035)' : ''}`,
+                  transition: 'box-shadow 0.18s ease, transform 0.18s ease',
                 }}
+                aria-label={`Open ${room.label}`}
               >
-                {activeRoom ? activeRoom.label : 'Choose the room'}
-              </h3>
-              <p
-                style={{
-                  color: 'rgba(255,255,255,0.58)',
-                  fontSize: '0.95rem',
-                  lineHeight: 1.7,
-                  minHeight: 54,
-                }}
-              >
-                {activeRoom ? activeRoom.signal : 'Magazine · News Desk · Library · Sound'}
-              </p>
-              <p
-                style={{
-                  marginTop: 26,
-                  fontFamily: mono,
-                  fontSize: '0.58rem',
-                  letterSpacing: '0.28em',
-                  color: 'rgba(255,167,38,0.76)',
-                  textTransform: 'uppercase',
-                }}
-              >
-                Drag here · tap also works
-              </p>
-            </div>
+                <span
+                  aria-hidden
+                  style={{
+                    display: 'block',
+                    height: 128,
+                    backgroundImage: `url('${room.image}')`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    filter: 'saturate(0.86) contrast(1.02)',
+                  }}
+                />
+                <span style={{ display: 'block', padding: '18px 20px 20px' }}>
+                  <span
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      gap: 12,
+                      marginBottom: 12,
+                      color: 'rgba(20,17,12,0.58)',
+                      fontFamily: mono,
+                      fontSize: '0.58rem',
+                      letterSpacing: '0.2em',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    <span>{room.category}</span>
+                    <span>{room.index}</span>
+                  </span>
+                  <span
+                    style={{
+                      display: 'block',
+                      fontSize: 'clamp(1.5rem, 2.7vw, 2.15rem)',
+                      fontWeight: 600,
+                      letterSpacing: '-0.035em',
+                      lineHeight: 0.98,
+                      marginBottom: 14,
+                    }}
+                  >
+                    {room.label}
+                  </span>
+                  <span
+                    style={{
+                      display: 'block',
+                      color: 'rgba(20,17,12,0.72)',
+                      fontFamily: 'Georgia, serif',
+                      fontSize: '1rem',
+                      lineHeight: 1.38,
+                    }}
+                  >
+                    {room.signal}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+
+          <div
+            aria-hidden
+            className="absolute right-[12%] top-[48%] z-[5] hidden h-[98px] w-[310px] items-center justify-center sm:flex"
+            style={{
+              background: '#ff1f9a',
+              color: '#14110c',
+              border: '4px solid #ff1f9a',
+              boxShadow: '0 12px 0 rgba(20,17,12,0.88)',
+              transform: 'rotate(2deg)',
+              fontSize: 'clamp(2.8rem, 6vw, 4.6rem)',
+              fontWeight: 900,
+              letterSpacing: '-0.08em',
+              WebkitTextStroke: '1px #f5f1e8',
+            }}
+          >
+            words
           </div>
+
+          <p
+            className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2"
+            style={{
+              color: 'rgba(20,17,12,0.8)',
+              fontFamily: 'Georgia, serif',
+              fontSize: '1.05rem',
+              fontStyle: 'italic',
+            }}
+          >
+            {dropActive ? 'release to open' : 'refresh'}
+          </p>
+        </div>
+
+        <div className="relative z-20 mb-1 flex items-end justify-between gap-6">
+          <p
+            className="hidden max-w-[520px] text-[0.9rem] sm:block"
+            style={{
+              color: 'rgba(20,17,12,0.82)',
+              fontFamily: 'Georgia, serif',
+              fontSize: '1.02rem',
+              fontStyle: 'italic',
+              lineHeight: 1.45,
+            }}
+          >
+            For collaboration, notes, and strange little dispatches, write to{' '}
+            <a href="mailto:rosazxc0915@gmail.com" style={{ color: '#14110c', textDecoration: 'underline' }}>
+              rosazxc0915@gmail.com
+            </a>
+          </p>
+
+          <nav className="ml-auto flex flex-col items-end gap-2" aria-label="Social links">
+            {socialLinks.map((link) => (
+              link.href.startsWith('/') ? (
+                <Link key={link.label} href={link.href} style={socialLinkStyle}>
+                  {link.label}
+                </Link>
+              ) : (
+                <a key={link.label} href={link.href} style={socialLinkStyle}>
+                  {link.label}
+                </a>
+              )
+            ))}
+          </nav>
         </div>
       </div>
     </div>
   );
 }
+
+const socialLinkStyle: CSSProperties = {
+  color: '#14110c',
+  fontFamily: 'Georgia, serif',
+  fontSize: '1.08rem',
+  fontStyle: 'italic',
+  textDecoration: 'none',
+  whiteSpace: 'nowrap',
+};
