@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import Header from '../components/Header';
 import LoadingScreen from '../components/LoadingScreen';
@@ -36,20 +36,9 @@ type VisualItem = {
   href?: string;
 };
 
-type DragOffset = { x: number; y: number };
-
-type ActiveDrag = {
-  id: string;
-  moved: boolean;
-  onTap?: () => void;
-  origin: DragOffset;
-  startX: number;
-  startY: number;
-};
-
 /* ── Homepage ─────────────────────────────────────────────────────────
  *
- * A cinematic opening, then one draggable clipping desk. Information is
+ * A cinematic opening, then one clickable clipping desk. Information is
  * intentionally minimal: the homepage's job is to set the mood, not to
  * contain the content.
  *
@@ -87,7 +76,7 @@ export default function Home() {
       id: 'dispatch',
       index: '02',
       label: 'News Desk',
-      href: '/dispatch',
+      href: latestDispatch ? latestDispatch.href : '/dispatch',
       category: 'PCB stack',
       blurb: 'GB200 boards, CCL, M8/M9, and who gets to choose the board.',
       signal: latestDispatch ? latestDispatch.title : 'Open the archive',
@@ -284,9 +273,9 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 02 DRAG DOCK — rooms as movable signals ───────────── */}
+        {/* ── 02 LINK DOCK — article objects as direct doors ────── */}
         <SnapSection id="dock" className="order-2">
-          <AtriumDragDock rooms={rooms} />
+          <AtriumLinkDock rooms={rooms} />
         </SnapSection>
 
       </SnapContainer>
@@ -294,109 +283,15 @@ export default function Home() {
   );
 }
 
-function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
-  const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [dropActive, setDropActive] = useState(false);
-  const [enteringId, setEnteringId] = useState<string | null>(null);
-  const [dragOffsets, setDragOffsets] = useState<Record<string, DragOffset>>({});
-  const activeDragRef = useRef<ActiveDrag | null>(null);
+function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
   const glassItems = rooms.find((room) => room.id === 'trendy')?.glassItems ?? [];
+  const jensenHref = rooms.find((room) => room.id === 'magazine')?.href ?? '/research';
   const socialLinks = [
     { label: 'github', href: 'https://github.com/lilaclilac09' },
     { label: 'substack', href: '/dispatch' },
     { label: 'airmail', href: 'mailto:rosazxc0915@gmail.com' },
     { label: 'sound', href: '/sound' },
   ];
-
-  useEffect(() => {
-    function handleWindowPointerMove(event: globalThis.PointerEvent) {
-      const active = activeDragRef.current;
-      if (!active) return;
-
-      const dx = event.clientX - active.startX;
-      const dy = event.clientY - active.startY;
-
-      if (!active.moved && Math.hypot(dx, dy) > 4) {
-        active.moved = true;
-      }
-
-      setDragOffsets((prev) => ({
-        ...prev,
-        [active.id]: {
-          x: active.origin.x + dx,
-          y: active.origin.y + dy,
-        },
-      }));
-    }
-
-    function handleWindowPointerUp() {
-      const active = activeDragRef.current;
-      if (!active) return;
-
-      const shouldOpen = !active.moved;
-      const onTap = active.onTap;
-      activeDragRef.current = null;
-      setDraggingId(null);
-      setDropActive(false);
-
-      if (shouldOpen) onTap?.();
-    }
-
-    function handleWindowPointerCancel() {
-      activeDragRef.current = null;
-      setDraggingId(null);
-      setDropActive(false);
-    }
-
-    window.addEventListener('pointermove', handleWindowPointerMove);
-    window.addEventListener('pointerup', handleWindowPointerUp);
-    window.addEventListener('pointercancel', handleWindowPointerCancel);
-
-    return () => {
-      window.removeEventListener('pointermove', handleWindowPointerMove);
-      window.removeEventListener('pointerup', handleWindowPointerUp);
-      window.removeEventListener('pointercancel', handleWindowPointerCancel);
-    };
-  }, []);
-
-  function enterRoom(room: RoomDoor) {
-    setEnteringId(room.id);
-    window.setTimeout(() => {
-      window.location.assign(room.href);
-    }, 180);
-  }
-
-  function navigateTo(href: string) {
-    window.location.assign(href);
-  }
-
-  function getOffset(id: string): DragOffset {
-    return dragOffsets[id] ?? { x: 0, y: 0 };
-  }
-
-  function startObjectDrag(event: ReactPointerEvent<HTMLElement>, id: string, onTap?: () => void) {
-    if (event.button !== 0) return;
-
-    event.preventDefault();
-    const origin = getOffset(id);
-    activeDragRef.current = {
-      id,
-      moved: false,
-      onTap,
-      origin,
-      startX: event.clientX,
-      startY: event.clientY,
-    };
-
-    setDraggingId(id);
-    setDropActive(true);
-
-    try {
-      event.currentTarget.setPointerCapture(event.pointerId);
-    } catch {
-      /* pointer capture can fail in older browser modes */
-    }
-  }
 
   return (
     <div
@@ -441,11 +336,6 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
 
         <div
           className="relative z-10 min-h-0 flex-1 sm:min-h-[610px]"
-          style={{
-            outline: dropActive ? '1px dashed rgba(20,17,12,0.32)' : '1px dashed transparent',
-            outlineOffset: -18,
-            transition: 'outline-color 0.18s ease',
-          }}
         >
           <div className="h-full overflow-y-auto pb-8 pt-4 sm:hidden">
             <div className="grid gap-4">
@@ -454,28 +344,42 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
                 const isTrendy = room.motif === 'trendy';
                 const isRecord = room.motif === 'record';
                 const isPaper = isArticle || isTrendy;
+                const mobileRoomStyle: CSSProperties = {
+                  display: 'block',
+                  width: '100%',
+                  minHeight: isArticle ? 360 : isTrendy ? 440 : isRecord ? 280 : 238,
+                  height: isTrendy ? 440 : undefined,
+                  padding: 0,
+                  border: isPaper ? '1px solid rgba(20,17,12,0.2)' : 'none',
+                  background: isPaper ? '#fffdf7' : 'transparent',
+                  color: '#14110c',
+                  cursor: 'pointer',
+                  textDecoration: 'none',
+                  boxShadow: isPaper ? '0 24px 70px -48px rgba(20,17,12,0.5)' : 'none',
+                };
 
-                return (
-                  <button
+                return room.href.startsWith('http') ? (
+                  <a
                     key={room.id}
-                    type="button"
-                    onClick={() => enterRoom(room)}
+                    href={room.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-left"
-                    style={{
-                      width: '100%',
-                      minHeight: isArticle ? 360 : isTrendy ? 440 : isRecord ? 280 : 238,
-                      height: isTrendy ? 440 : undefined,
-                      padding: 0,
-                      border: isPaper ? '1px solid rgba(20,17,12,0.2)' : 'none',
-                      background: isPaper ? '#fffdf7' : 'transparent',
-                      color: '#14110c',
-                      cursor: 'pointer',
-                      boxShadow: isPaper ? '0 24px 70px -48px rgba(20,17,12,0.5)' : 'none',
-                    }}
+                    style={mobileRoomStyle}
                     aria-label={`Open ${room.label}`}
                   >
                     <ObjectFace room={room} />
-                  </button>
+                  </a>
+                ) : (
+                  <Link
+                    key={room.id}
+                    href={room.href}
+                    className="text-left"
+                    style={mobileRoomStyle}
+                    aria-label={`Open ${room.label}`}
+                  >
+                    <ObjectFace room={room} />
+                  </Link>
                 );
               })}
 
@@ -514,89 +418,66 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
             </div>
           </div>
 
-          <p
-            className="absolute left-[8%] top-[31%] z-30 hidden sm:block"
-            style={{
-              color: 'rgba(20,17,12,0.62)',
-              fontFamily: 'Georgia, serif',
-              fontSize: '1rem',
-              fontStyle: 'italic',
-              transform: 'rotate(-8deg)',
-            }}
-          >
-            drag me
-          </p>
-
           {rooms.map((room) => {
-            const isActive = draggingId === room.id || enteringId === room.id;
             const baseTransform = String(room.placement.transform ?? '');
-            const offset = getOffset(room.id);
             const isArticle = room.motif === 'article';
             const isTrendy = room.motif === 'trendy';
             const isRecord = room.motif === 'record';
             const isPaper = isArticle || isTrendy;
+            const desktopRoomStyle: CSSProperties = {
+              ...room.placement,
+              position: 'absolute',
+              width: isArticle ? 'min(78vw, 430px)' : isTrendy ? 'min(76vw, 470px)' : isRecord ? 'min(56vw, 290px)' : 'min(60vw, 330px)',
+              minHeight: isArticle ? 420 : isTrendy ? 440 : isRecord ? 300 : 250,
+              height: isTrendy ? 440 : undefined,
+              padding: 0,
+              border: isPaper ? '1px solid rgba(20,17,12,0.2)' : 'none',
+              background: isPaper ? '#fffdf7' : 'transparent',
+              color: '#14110c',
+              cursor: 'pointer',
+              textDecoration: 'none',
+              boxShadow: isPaper ? '0 24px 70px -42px rgba(20,17,12,0.5)' : 'none',
+              transform: baseTransform,
+              transition: 'box-shadow 0.18s ease, transform 0.18s ease',
+            };
 
-            return (
-              <button
+            return room.href.startsWith('http') ? (
+              <a
                 key={room.id}
-                type="button"
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    enterRoom(room);
-                  }
-                }}
-                onPointerDown={(event) => startObjectDrag(event, room.id, () => enterRoom(room))}
+                href={room.href}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="hidden text-left sm:block"
-                style={{
-                  ...room.placement,
-                  position: 'absolute',
-                  width: isArticle ? 'min(78vw, 430px)' : isTrendy ? 'min(76vw, 470px)' : isRecord ? 'min(56vw, 290px)' : 'min(60vw, 330px)',
-                  minHeight: isArticle ? 420 : isTrendy ? 440 : isRecord ? 300 : 250,
-                  height: isTrendy ? 440 : undefined,
-                  padding: 0,
-                  border: isPaper ? '1px solid rgba(20,17,12,0.2)' : 'none',
-                  background: isPaper ? '#fffdf7' : 'transparent',
-                  color: '#14110c',
-                  cursor: isActive ? 'grabbing' : 'grab',
-                  touchAction: 'none',
-                  boxShadow: isActive
-                    ? '0 34px 90px -34px rgba(20,17,12,0.55)'
-                    : isPaper
-                      ? '0 24px 70px -42px rgba(20,17,12,0.5)'
-                      : 'none',
-                  transform: `translate(${offset.x}px, ${offset.y}px) ${baseTransform} ${isActive ? 'scale(1.035)' : ''}`,
-                  zIndex: isActive ? 40 : room.placement.zIndex,
-                  transition: isActive ? 'box-shadow 0.18s ease' : 'box-shadow 0.18s ease, transform 0.18s ease',
-                }}
+                style={desktopRoomStyle}
                 aria-label={`Open ${room.label}`}
               >
                 <ObjectFace room={room} />
-              </button>
+              </a>
+            ) : (
+              <Link
+                key={room.id}
+                href={room.href}
+                className="hidden text-left sm:block"
+                style={desktopRoomStyle}
+                aria-label={`Open ${room.label}`}
+              >
+                <ObjectFace room={room} />
+              </Link>
             );
           })}
 
           {glassItems.length > 0 && (
             <div className="absolute bottom-[7%] left-[46%] z-[11] hidden -translate-x-1/2 items-end gap-3 sm:flex">
               {glassItems.map((img, idx) => (
-                <button
+                <Link
                   key={img.src}
-                  type="button"
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                      event.preventDefault();
-                      navigateTo(img.href ?? '/blog/pate-de-verre');
-                    }
-                  }}
-                  onPointerDown={(event) => startObjectDrag(event, `glass-${idx}`, () => navigateTo(img.href ?? '/blog/pate-de-verre'))}
-                  className="block border-0 bg-transparent p-0 text-left"
+                  href={img.href ?? '/blog/pate-de-verre'}
+                  className="block text-left no-underline"
                   aria-label={img.caption}
                   style={{
-                    cursor: draggingId === `glass-${idx}` ? 'grabbing' : 'grab',
-                    touchAction: 'none',
-                    transform: `translate(${getOffset(`glass-${idx}`).x}px, ${getOffset(`glass-${idx}`).y}px) rotate(${[-6, 2, -2, 5][idx % 4]}deg) ${draggingId === `glass-${idx}` ? 'scale(1.04)' : ''}`,
-                    transition: draggingId === `glass-${idx}` ? 'none' : 'transform 0.18s ease',
-                    zIndex: draggingId === `glass-${idx}` ? 44 : undefined,
+                    cursor: 'pointer',
+                    transform: `rotate(${[-6, 2, -2, 5][idx % 4]}deg)`,
+                    transition: 'transform 0.18s ease',
                   }}
                 >
                   <figure
@@ -611,7 +492,6 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
                       src={img.src}
                       alt={img.alt}
                       className="aspect-square w-full object-cover"
-                      draggable={false}
                       style={{ display: 'block' }}
                     />
                     <figcaption
@@ -626,15 +506,14 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
                       {img.caption}
                     </figcaption>
                   </figure>
-                </button>
+                </Link>
               ))}
             </div>
           )}
 
-          <button
-            type="button"
-            onPointerDown={(event) => startObjectDrag(event, 'jensen-sticker')}
-            aria-label="Drag Jensen sticker"
+          <Link
+            href={jensenHref}
+            aria-label="Open Jensen AI stock article"
             className="absolute right-[11%] top-[38%] z-[7] hidden h-[168px] w-[360px] overflow-hidden sm:block"
             style={{
               padding: 0,
@@ -642,12 +521,10 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
                 'radial-gradient(circle at 78% 24%, rgba(255,255,255,0.92) 0 40px, transparent 41px), linear-gradient(135deg, #ff2f2f 0%, #14110c 48%, #09d66f 100%)',
               border: '6px solid #f8f5ee',
               borderRadius: 22,
-              cursor: draggingId === 'jensen-sticker' ? 'grabbing' : 'grab',
+              cursor: 'pointer',
               boxShadow: '0 0 0 7px #ff1f9a, 0 14px 0 rgba(20,17,12,0.92), 0 28px 60px -28px rgba(20,17,12,0.75)',
-              touchAction: 'none',
-              transform: `translate(${getOffset('jensen-sticker').x}px, ${getOffset('jensen-sticker').y}px) rotate(2deg) ${draggingId === 'jensen-sticker' ? 'scale(1.04)' : ''}`,
-              transition: draggingId === 'jensen-sticker' ? 'none' : 'transform 0.18s ease',
-              zIndex: draggingId === 'jensen-sticker' ? 45 : 7,
+              transform: 'rotate(2deg)',
+              transition: 'transform 0.18s ease',
             }}
           >
             <span
@@ -734,19 +611,7 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
             >
               NVIDIA
             </span>
-          </button>
-
-          <p
-            className="absolute bottom-4 left-1/2 z-[1] hidden -translate-x-1/2 sm:block"
-            style={{
-              color: 'rgba(20,17,12,0.8)',
-              fontFamily: 'Georgia, serif',
-              fontSize: '1.05rem',
-              fontStyle: 'italic',
-            }}
-          >
-            {dropActive ? 'release to open' : 'refresh'}
-          </p>
+          </Link>
         </div>
 
         <div className="relative z-20 mb-1 flex items-end justify-between gap-6">
