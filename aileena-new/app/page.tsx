@@ -3,7 +3,6 @@
 import { useEffect, useState, type CSSProperties, type DragEvent } from 'react';
 import Link from 'next/link';
 import Header from '../components/Header';
-import DJStation from '../components/DJStation';
 import LoadingScreen from '../components/LoadingScreen';
 import { SnapContainer, SnapSection } from '../components/SnapScroll';
 import { useLanguage } from '../components/LanguageProvider';
@@ -24,8 +23,10 @@ type RoomDoor = {
   category: string;
   blurb: string;
   signal: string;
-  motif: 'article' | 'hbm' | 'pcb' | 'record';
+  motif: 'article' | 'hbm' | 'pcb' | 'trendy' | 'record';
   placement: CSSProperties;
+  note?: string;
+  glassItems?: VisualItem[];
 };
 
 type VisualItem = {
@@ -37,23 +38,18 @@ type VisualItem = {
 
 /* ── Homepage ─────────────────────────────────────────────────────────
  *
- * A cinematic opening, then a draggable clipping desk, then restored
- * personal rooms for podcast and handmade work, then the DJ station and
- * footer. Information is intentionally minimal: the homepage's job is to
- * set the mood, not to contain the content.
+ * A cinematic opening, then one draggable clipping desk. Information is
+ * intentionally minimal: the homepage's job is to set the mood, not to
+ * contain the content.
  *
  *   Section 01  Cinematic opening   — scene + one line + one CTA
- *   Section 02  Clipping desk       — article scraps + social rail
- *   Section 03  Trendy              — podcast / fashion police notes
- *   Section 04  Visual              — handmade glass / handwritten scraps
- *   Section 05  Sound               — DJ station
- *   Section 06  Footer
+ *   Section 02  Clipping desk       — article scraps + handmade/podcast signals
  *
  * Cover-agent (Natalia portrait + Ask the agent) is preserved on the
  * cinematic opening; it doubles as the door to the agent department.
  *
  * Visual language: white editorial base, amber for Magazine, cyan/teal for
- * machina links. The DJ station stays black.
+ * machina links. The standalone DJ station stays black on /sound.
  */
 export default function Home() {
   const { language } = useLanguage();
@@ -64,12 +60,6 @@ export default function Home() {
   const latestIssueHref = latestIssue ? `/research/${latestIssue.slug}` : '/research';
   const latestDispatch = tx.blog.researchDispatch.posts.slice(-1)[0];
   const metooArticle = tx.blog.womanInTech.posts.find((post) => post.href === '/blog/harassment') ?? tx.blog.womanInTech.posts[0];
-  const glassHref = tx.visual.items.find((item) => item.href)?.href ?? '/blog/pate-de-verre';
-  const trendLinks = [
-    { label: 'handmade', href: glassHref },
-    { label: 'handwritten', href: '#visual' },
-    { label: 'podcast', href: tx.trendy.podcast.kateHref, external: true },
-  ];
   const rooms: RoomDoor[] = [
     {
       id: 'magazine',
@@ -105,15 +95,17 @@ export default function Home() {
       placement: { top: '19%', left: '4%', transform: 'rotate(-1.5deg)', zIndex: 6 },
     },
     {
-      id: 'sound',
+      id: 'trendy',
       index: '04',
-      label: 'Sound',
-      href: '/sound',
-      category: 'Set',
-      blurb: 'DJ sets and the music she ships.',
-      signal: 'Mix 02 · Berlin',
-      motif: 'record',
-      placement: { top: '43%', right: '17%', transform: 'rotate(-2deg)', zIndex: 5 },
+      label: 'Trendy',
+      href: tx.trendy.podcast.kateHref,
+      category: tx.trendy.tag,
+      blurb: `${tx.trendy.body} The listening shelf sits next to the glass bench: handmade, handwritten, replayed until it turns into taste.`,
+      signal: tx.trendy.heading,
+      motif: 'trendy',
+      note: tx.visual.note,
+      glassItems: tx.visual.items,
+      placement: { top: '31%', left: '34%', transform: 'rotate(1.5deg)', zIndex: 8 },
     },
   ];
 
@@ -286,318 +278,6 @@ export default function Home() {
           <AtriumDragDock rooms={rooms} />
         </SnapSection>
 
-        {/* ── 03 TRENDY — fashion police + podcast ─────────────── */}
-        <SnapSection id="trendy" className="order-3">
-          <div
-            className="h-full bg-white px-5 sm:px-9 lg:px-14"
-            style={{
-              fontFamily: nunito,
-            }}
-          >
-            <div className="mx-auto flex h-full w-full max-w-[1180px] flex-col overflow-hidden pb-7 pt-[84px] sm:pb-8 sm:pt-[90px]">
-              <div className="flex-1 overflow-y-auto pr-1">
-                <div className="anim-up mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-[#14110c]/10 pb-4">
-                  <div>
-                    <p className="mb-3 text-[0.58rem] uppercase tracking-[0.3em] text-[#14110c]/45" style={{ fontFamily: mono, fontWeight: 700 }}>
-                      {tx.trendy.tag}
-                    </p>
-                    <h2 className="text-[clamp(2rem,4.6vw,4.05rem)] leading-none text-[#14110c]" style={{ fontWeight: 650 }}>
-                      {tx.trendy.heading}
-                    </h2>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {trendLinks.map((item) => (
-                      item.external ? (
-                        <a
-                          key={item.label}
-                          href={item.href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="rounded-full border border-[#14110c]/14 px-3 py-1.5 text-[0.58rem] uppercase tracking-[0.16em] text-[#14110c]/54 no-underline transition-colors hover:border-[#00a99f]/45 hover:text-[#00a99f]"
-                          style={{ fontFamily: mono, fontWeight: 700 }}
-                        >
-                          {item.label}
-                        </a>
-                      ) : (
-                        <Link
-                          key={item.label}
-                          href={item.href}
-                          className="rounded-full border border-[#14110c]/14 px-3 py-1.5 text-[0.58rem] uppercase tracking-[0.16em] text-[#14110c]/54 no-underline transition-colors hover:border-[#00a99f]/45 hover:text-[#00a99f]"
-                          style={{ fontFamily: mono, fontWeight: 700 }}
-                        >
-                          {item.label}
-                        </Link>
-                      )
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid items-start gap-5 lg:grid-cols-[0.82fr_1.18fr] lg:gap-7">
-                  <section
-                    className="anim-up-2 rounded-md border border-[#14110c]/10 bg-[#fbfaf7] p-5 sm:p-7"
-                    style={{ boxShadow: '0 22px 70px -58px rgba(20,17,12,0.38)' }}
-                  >
-                    <p className="mb-5 max-w-[420px] text-[1.02rem] leading-relaxed text-[#14110c]/68" style={{ fontFamily: 'Georgia, serif' }}>
-                      {tx.trendy.body} The listening shelf sits next to the glass bench: handmade, handwritten, and replayed until it turns into taste.
-                    </p>
-                    <Link
-                      href="#visual"
-                      className="mb-4 block rounded-md border border-[#14110c]/10 bg-white p-5 text-[#14110c] no-underline transition-colors hover:border-[#00a99f]/45"
-                      style={{
-                        background:
-                          'repeating-linear-gradient(180deg, #fff 0 31px, rgba(20,17,12,0.06) 32px 33px)',
-                      }}
-                    >
-                      <p className="mb-4 text-[0.58rem] uppercase tracking-[0.24em] text-[#14110c]/40" style={{ fontFamily: mono, fontWeight: 700 }}>
-                        handwriting
-                      </p>
-                      <p className="text-[1.55rem] leading-none text-[#ff6f91]" style={{ fontFamily: "'Allura', cursive" }}>
-                        {tx.visual.note}
-                      </p>
-                    </Link>
-                    <div className="rounded-md border border-[#14110c]/10 bg-white p-3">
-                      <div className="mb-3 flex items-center justify-between gap-3">
-                        <p className="text-[0.56rem] uppercase tracking-[0.22em] text-[#14110c]/42" style={{ fontFamily: mono, fontWeight: 800 }}>
-                          {tx.visual.kilnTag}
-                        </p>
-                        <Link
-                          href={glassHref}
-                          className="text-[0.58rem] uppercase tracking-[0.14em] text-[#00a99f] no-underline"
-                          style={{ fontFamily: mono, fontWeight: 800 }}
-                        >
-                          {tx.visual.readGlass}
-                        </Link>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        {tx.visual.items.map((img: VisualItem) => (
-                          <Link
-                            key={img.src}
-                            href={img.href ?? glassHref}
-                            className="group block no-underline"
-                            aria-label={img.caption}
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={img.src}
-                              alt={img.alt}
-                              className="aspect-[4/3] w-full rounded-[4px] object-cover opacity-90 transition-opacity group-hover:opacity-100"
-                            />
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  </section>
-
-                  <section className="anim-up-3 grid gap-4 sm:grid-cols-2">
-                    <a
-                      href={tx.trendy.podcast.kateHref}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block rounded-md border border-[#14110c]/10 bg-white p-5 text-[#14110c] no-underline transition-colors hover:border-[#00a99f]/45 sm:p-6"
-                    >
-                      <span className="mb-4 block text-[0.58rem] uppercase tracking-[0.24em] text-[#14110c]/42" style={{ fontFamily: mono, fontWeight: 800 }}>
-                        {tx.trendy.rotationTag}
-                      </span>
-                      <span className="mb-3 block text-[1.38rem] leading-tight" style={{ fontWeight: 700 }}>
-                        {tx.trendy.podcast.title}
-                      </span>
-                      <span className="mb-5 block text-[0.92rem] leading-relaxed text-[#14110c]/64" style={{ fontFamily: 'Georgia, serif' }}>
-                        {tx.trendy.podcast.body}
-                      </span>
-                      <span aria-hidden className="mb-5 flex h-9 items-end gap-1">
-                        {[18, 28, 14, 34, 24, 30, 16, 26, 20, 32].map((height, idx) => (
-                          <span
-                            key={`${height}-${idx}`}
-                            style={{
-                              display: 'block',
-                              width: 5,
-                              height,
-                              borderRadius: 999,
-                              background: idx % 3 === 0 ? '#00a99f' : 'rgba(20,17,12,0.22)',
-                            }}
-                          />
-                        ))}
-                      </span>
-                      <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#00a99f]" style={{ fontFamily: mono, fontWeight: 800 }}>
-                        {tx.trendy.podcast.kateLabel} →
-                      </span>
-                    </a>
-
-                    <a
-                      href={tx.trendy.doYouReadHer.episodeHref}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block rounded-md border border-[#14110c]/10 bg-white p-5 text-[#14110c] no-underline transition-colors hover:border-[#00a99f]/45 sm:p-6"
-                    >
-                      <span className="mb-4 block text-[0.58rem] uppercase tracking-[0.24em] text-[#14110c]/42" style={{ fontFamily: mono, fontWeight: 800 }}>
-                        {tx.trendy.doYouReadHer.sectionLabel}
-                      </span>
-                      <span className="mb-3 block text-[1.38rem] leading-tight" style={{ fontWeight: 700 }}>
-                        {tx.trendy.doYouReadHer.title}
-                      </span>
-                      <span className="mb-5 block text-[0.92rem] leading-relaxed text-[#14110c]/64" style={{ fontFamily: 'Georgia, serif' }}>
-                        {tx.trendy.doYouReadHer.body}
-                      </span>
-                      <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#00a99f]" style={{ fontFamily: mono, fontWeight: 800 }}>
-                        {tx.trendy.doYouReadHer.episodeLabel} →
-                      </span>
-                    </a>
-                  </section>
-                </div>
-
-              </div>
-            </div>
-          </div>
-        </SnapSection>
-
-        {/* ── 04 VISUAL — handmade glass + handwritten note ─────── */}
-        <SnapSection id="visual" className="order-4">
-          <div className="h-full flex flex-col bg-white px-6 sm:px-10 lg:px-16">
-            <div className="mx-auto flex h-full w-full max-w-[920px] flex-col py-12 sm:py-16" style={{ fontFamily: nunito }}>
-              <p
-                className="anim-up mb-4 flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.32em] text-[#14110c]/40"
-                style={{ fontWeight: 500 }}
-              >
-                {tx.visual.tag} <Sparkle />
-              </p>
-              <h2
-                className="anim-up-2 mb-3 flex items-center gap-3 text-[clamp(1.6rem,4.2vw,2.6rem)] tracking-tight text-[#14110c]"
-                style={{ fontWeight: 500 }}
-              >
-                {tx.visual.heading} <Heart />
-              </h2>
-              <p className="anim-up-3 mb-8 max-w-lg text-[1rem] leading-relaxed text-[#14110c]/62" style={{ fontWeight: 400 }}>
-                {tx.visual.body}
-              </p>
-
-              <div className="flex-1 overflow-y-auto pr-1">
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-                  {tx.visual.items.map((img: VisualItem) => {
-                    const tile = (
-                      <figure className="m-0 rounded-md border border-[#14110c]/10 bg-white p-2 transition-colors group-hover:border-[#00a99f]/45">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={img.src}
-                          alt={img.alt}
-                          className="aspect-square w-full rounded-[4px] object-cover opacity-90 transition-opacity group-hover:opacity-100"
-                        />
-                        <figcaption
-                          className="mt-2 min-h-[2rem] text-center"
-                          style={{
-                            fontFamily: "'Allura', cursive",
-                            color: '#ff6f91',
-                            fontSize: 'clamp(1.1rem, 2.4vw, 1.45rem)',
-                            letterSpacing: '0.01em',
-                            lineHeight: 1,
-                          }}
-                        >
-                          {img.caption}
-                          {img.href && (
-                            <span
-                              className="ml-3 opacity-0 transition-opacity group-hover:opacity-100"
-                              style={{
-                                color: '#00a99f',
-                                fontFamily: "'Allura', cursive",
-                                fontSize: '0.55em',
-                              }}
-                            >
-                              read →
-                            </span>
-                          )}
-                        </figcaption>
-                      </figure>
-                    );
-
-                    return img.href ? (
-                      <Link key={img.src} href={img.href} className="anim-up group block cursor-pointer">
-                        {tile}
-                      </Link>
-                    ) : (
-                      <div key={img.src} className="anim-up group">
-                        {tile}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div className="anim-up mt-9 flex items-center gap-3 text-[#14110c]/30">
-                  <Sparkle />
-                  <Heart />
-                  <Star />
-                  <Flower />
-                  <span
-                    className="ml-1 text-[#14110c]/55"
-                    style={{
-                      color: '#ff6f91',
-                      fontFamily: "'Allura', cursive",
-                      fontSize: '1.35rem',
-                      lineHeight: 1,
-                    }}
-                  >
-                    {tx.visual.note}
-                  </span>
-                </div>
-                <Link
-                  href="/blog/pate-de-verre"
-                  className="anim-up mt-4 inline-block text-[0.82rem] text-[#00a99f] transition-colors hover:text-[#008f86]"
-                  style={{ fontWeight: 500 }}
-                >
-                  {tx.visual.readGlass}
-                </Link>
-              </div>
-            </div>
-          </div>
-        </SnapSection>
-
-        {/* ── 05 SOUND — DJ station ─────────────────────────────── */}
-        <SnapSection id="sound" className="order-5">
-          <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-12 pt-6 pb-4 overflow-y-auto">
-            <div className="mx-auto w-full max-w-[1400px]" style={{ fontFamily: nunito }}>
-              <div className="flex items-end border-b border-white/8 pb-3 mb-6">
-                <p className="text-[0.58rem] uppercase tracking-[0.55em] text-white/25" style={{ fontWeight: 500 }}>
-                  {tx.sound.tag}
-                </p>
-              </div>
-              <DJStation />
-            </div>
-          </div>
-        </SnapSection>
-
-        {/* ── 06 FOOTER ─────────────────────────────────────────── */}
-        <SnapSection className="order-6">
-          <div
-            className="h-full flex flex-col justify-end bg-white px-6 sm:px-10 lg:px-16 py-14 sm:py-16"
-            style={{ fontFamily: nunito }}
-          >
-            <div className="mx-auto w-full max-w-[920px]">
-              <p className="anim-up text-sm leading-7 text-[#14110c]/58 mb-10 max-w-md" style={{ fontWeight: 400 }}>
-                {tx.footer.body}
-              </p>
-              <div className="grid grid-cols-2 gap-10 sm:gap-14 mb-10">
-                {tx.footer.columns.map((col) => (
-                  <div key={col.heading} className="anim-left">
-                    <h3 className="text-[0.66rem] uppercase tracking-[0.28em] text-[#14110c]/38 mb-4" style={{ fontWeight: 500 }}>
-                      {col.heading}
-                    </h3>
-                    <ul className="space-y-2.5 text-[0.92rem] text-[#14110c]/62" style={{ fontWeight: 400 }}>
-                      {col.links.map((link) => (
-                        <li key={link.label}>
-                          {link.href.startsWith('http')
-                            ? <a href={link.href} className="hover:text-[#00a99f] transition-colors">{link.label}</a>
-                            : <Link href={link.href} className="hover:text-[#00a99f] transition-colors">{link.label}</Link>}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-              <p className="anim-fade text-[0.6rem] tracking-[0.3em] text-[#14110c]/30" style={{ fontWeight: 500 }}>
-                EST 2025 · AILEENA · MACHINA
-              </p>
-            </div>
-          </div>
-        </SnapSection>
-
       </SnapContainer>
     </>
   );
@@ -607,6 +287,7 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dropActive, setDropActive] = useState(false);
   const [enteringId, setEnteringId] = useState<string | null>(null);
+  const glassItems = rooms.find((room) => room.id === 'trendy')?.glassItems ?? [];
   const socialLinks = [
     { label: 'github', href: 'https://github.com/lilaclilac09' },
     { label: 'substack', href: '/dispatch' },
@@ -682,21 +363,94 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
           </a>
           <nav className="ml-auto hidden items-center gap-5 lg:flex" aria-label="Article rooms">
             {rooms.map((room) => (
-              <Link key={room.id} href={room.href} style={topLinkStyle}>
-                {room.label.toLowerCase()}.
-              </Link>
+              room.href.startsWith('http') ? (
+                <a key={room.id} href={room.href} target="_blank" rel="noopener noreferrer" style={topLinkStyle}>
+                  {room.label.toLowerCase()}.
+                </a>
+              ) : (
+                <Link key={room.id} href={room.href} style={topLinkStyle}>
+                  {room.label.toLowerCase()}.
+                </Link>
+              )
             ))}
           </nav>
         </header>
 
         <div
-          className="relative z-10 min-h-[610px] flex-1"
+          className="relative z-10 min-h-0 flex-1 sm:min-h-[610px]"
           style={{
             outline: dropActive ? '1px dashed rgba(20,17,12,0.32)' : '1px dashed transparent',
             outlineOffset: -18,
             transition: 'outline-color 0.18s ease',
           }}
         >
+          <div className="h-full overflow-y-auto pb-8 pt-4 sm:hidden">
+            <div className="grid gap-4">
+              {rooms.map((room) => {
+                const isArticle = room.motif === 'article';
+                const isTrendy = room.motif === 'trendy';
+                const isRecord = room.motif === 'record';
+                const isPaper = isArticle || isTrendy;
+
+                return (
+                  <button
+                    key={room.id}
+                    type="button"
+                    onClick={() => enterRoom(room)}
+                    className="text-left"
+                    style={{
+                      width: '100%',
+                      minHeight: isArticle ? 360 : isTrendy ? 390 : isRecord ? 280 : 238,
+                      height: isTrendy ? 390 : undefined,
+                      padding: 0,
+                      border: isPaper ? '1px solid rgba(20,17,12,0.2)' : 'none',
+                      background: isPaper ? '#fffdf7' : 'transparent',
+                      color: '#14110c',
+                      cursor: 'pointer',
+                      boxShadow: isPaper ? '0 24px 70px -48px rgba(20,17,12,0.5)' : 'none',
+                    }}
+                    aria-label={`Open ${room.label}`}
+                  >
+                    <ObjectFace room={room} />
+                  </button>
+                );
+              })}
+
+              {glassItems.length > 0 && (
+                <div className="grid grid-cols-2 gap-3 pb-4">
+                  {glassItems.map((img) => (
+                    <Link
+                      key={img.src}
+                      href={img.href ?? '/blog/pate-de-verre'}
+                      className="block bg-white p-2 pb-4 no-underline"
+                      aria-label={img.caption}
+                      style={{ boxShadow: '0 18px 42px -32px rgba(20,17,12,0.55)' }}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={img.src}
+                        alt={img.alt}
+                        className="aspect-square w-full object-cover"
+                        style={{ display: 'block' }}
+                      />
+                      <span
+                        className="mt-2 block text-center"
+                        style={{
+                          color: '#ff6f91',
+                          fontFamily: "'Allura', cursive",
+                          fontSize: '1.1rem',
+                          lineHeight: 0.92,
+                        }}
+                      >
+                        {img.caption}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
           <p
             className="absolute left-[8%] top-[31%] z-30 hidden sm:block"
             style={{
@@ -714,7 +468,9 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
             const isActive = draggingId === room.id || enteringId === room.id;
             const baseTransform = String(room.placement.transform ?? '');
             const isArticle = room.motif === 'article';
+            const isTrendy = room.motif === 'trendy';
             const isRecord = room.motif === 'record';
+            const isPaper = isArticle || isTrendy;
 
             return (
               <button
@@ -727,20 +483,21 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
                   setDraggingId(null);
                   setDropActive(false);
                 }}
-                className="anim-up-2 text-left"
+                className="hidden text-left sm:block"
                 style={{
                   ...room.placement,
                   position: 'absolute',
-                  width: isArticle ? 'min(78vw, 430px)' : isRecord ? 'min(56vw, 290px)' : 'min(60vw, 330px)',
-                  minHeight: isArticle ? 420 : isRecord ? 300 : 250,
+                  width: isArticle ? 'min(78vw, 430px)' : isTrendy ? 'min(76vw, 470px)' : isRecord ? 'min(56vw, 290px)' : 'min(60vw, 330px)',
+                  minHeight: isArticle ? 420 : isTrendy ? 390 : isRecord ? 300 : 250,
+                  height: isTrendy ? 390 : undefined,
                   padding: 0,
-                  border: isArticle ? '1px solid rgba(20,17,12,0.2)' : 'none',
-                  background: isArticle ? '#fffdf7' : 'transparent',
+                  border: isPaper ? '1px solid rgba(20,17,12,0.2)' : 'none',
+                  background: isPaper ? '#fffdf7' : 'transparent',
                   color: '#14110c',
                   cursor: isActive ? 'grabbing' : 'grab',
                   boxShadow: isActive
                     ? '0 34px 90px -34px rgba(20,17,12,0.55)'
-                    : isArticle
+                    : isPaper
                       ? '0 24px 70px -42px rgba(20,17,12,0.5)'
                       : 'none',
                   transform: `${baseTransform} ${isActive ? 'scale(1.035)' : ''}`,
@@ -752,6 +509,50 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
               </button>
             );
           })}
+
+          {glassItems.length > 0 && (
+            <div className="absolute bottom-[7%] left-[46%] z-[11] hidden -translate-x-1/2 items-end gap-3 sm:flex">
+              {glassItems.map((img, idx) => (
+                <Link
+                  key={img.src}
+                  href={img.href ?? '/blog/pate-de-verre'}
+                  className="block no-underline"
+                  aria-label={img.caption}
+                  style={{
+                    transform: `rotate(${[-6, 2, -2, 5][idx % 4]}deg)`,
+                    transition: 'transform 0.18s ease',
+                  }}
+                >
+                  <figure
+                    className="m-0 bg-white p-2 pb-4"
+                    style={{
+                      width: 98,
+                      boxShadow: '0 18px 42px -30px rgba(20,17,12,0.65)',
+                    }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={img.src}
+                      alt={img.alt}
+                      className="aspect-square w-full object-cover"
+                      style={{ display: 'block' }}
+                    />
+                    <figcaption
+                      className="mt-2 text-center"
+                      style={{
+                        color: '#ff6f91',
+                        fontFamily: "'Allura', cursive",
+                        fontSize: '1.04rem',
+                        lineHeight: 0.92,
+                      }}
+                    >
+                      {img.caption}
+                    </figcaption>
+                  </figure>
+                </Link>
+              ))}
+            </div>
+          )}
 
           <div
             aria-hidden
@@ -852,7 +653,7 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
           </div>
 
           <p
-            className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2"
+            className="absolute bottom-4 left-1/2 z-[1] hidden -translate-x-1/2 sm:block"
             style={{
               color: 'rgba(20,17,12,0.8)',
               fontFamily: 'Georgia, serif',
@@ -881,7 +682,7 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
             </a>
           </p>
 
-          <nav className="ml-auto flex flex-col items-end gap-2" aria-label="Social links">
+          <nav className="ml-auto hidden flex-col items-end gap-2 sm:flex" aria-label="Social links">
             {socialLinks.map((link) => (
               link.href.startsWith('/') ? (
                 <Link key={link.label} href={link.href} style={socialLinkStyle}>
@@ -1003,7 +804,6 @@ function ObjectFace({ room }: { room: RoomDoor }) {
         </span>
         <span
           style={{
-            display: 'block',
             color: 'rgba(20,17,12,0.72)',
             fontFamily: 'Georgia, serif',
             fontSize: '0.98rem',
@@ -1019,6 +819,143 @@ function ObjectFace({ room }: { room: RoomDoor }) {
         >
           {room.blurb}
         </span>
+      </span>
+    );
+  }
+
+  if (room.motif === 'trendy') {
+    return (
+      <span
+        style={{
+          position: 'relative',
+          display: 'block',
+          height: 390,
+          overflow: 'hidden',
+          padding: '42px 32px 24px',
+          background:
+            'repeating-linear-gradient(180deg, transparent 0 33px, rgba(20,17,12,0.052) 34px 35px), linear-gradient(90deg, transparent 0 58px, rgba(255,94,166,0.12) 59px 60px, transparent 61px)',
+        }}
+      >
+        <span
+          aria-hidden
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: 12,
+            width: 116,
+            height: 30,
+            background: 'rgba(255,189,95,0.42)',
+            transform: 'translateX(-50%) rotate(-1deg)',
+          }}
+        />
+        <span
+          style={{
+            display: 'block',
+            color: 'rgba(20,17,12,0.46)',
+            fontFamily: mono,
+            fontSize: '0.58rem',
+            fontWeight: 800,
+            letterSpacing: '0.34em',
+            marginBottom: 18,
+            textTransform: 'uppercase',
+          }}
+        >
+          {room.category}
+        </span>
+        <span
+          style={{
+            display: 'block',
+            color: '#14110c',
+            fontFamily: "'Bradley Hand', 'Comic Sans MS', 'Marker Felt', cursive",
+            fontSize: 'clamp(2.45rem, 4.8vw, 4.25rem)',
+            letterSpacing: '-0.055em',
+            lineHeight: 0.86,
+            marginBottom: 22,
+          }}
+        >
+          {room.signal}
+        </span>
+        <span
+          style={{
+            display: 'block',
+            color: 'rgba(20,17,12,0.68)',
+            fontFamily: 'Georgia, serif',
+            fontSize: '1.02rem',
+            lineHeight: 1.5,
+            maxWidth: 368,
+            overflow: 'hidden',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+          }}
+        >
+          {room.blurb}
+        </span>
+        <span
+          aria-hidden
+          style={{
+            display: 'flex',
+            height: 38,
+            alignItems: 'end',
+            gap: 6,
+            marginTop: 14,
+          }}
+        >
+          {[18, 30, 14, 36, 22, 34, 16, 28, 20].map((height, idx) => (
+            <span
+              key={`${height}-${idx}`}
+              style={{
+                display: 'block',
+                width: 5,
+                height,
+                borderRadius: 999,
+                background: idx % 3 === 0 ? '#00a99f' : 'rgba(20,17,12,0.18)',
+              }}
+            />
+          ))}
+        </span>
+        <span
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 8,
+            marginTop: 12,
+          }}
+        >
+          {['handmade', 'handwritten', 'podcast', 'visual'].map((tag) => (
+            <span
+              key={tag}
+              style={{
+                display: 'inline-block',
+                border: '1px solid rgba(20,17,12,0.12)',
+                borderRadius: 999,
+                color: 'rgba(20,17,12,0.56)',
+                fontFamily: mono,
+                fontSize: '0.54rem',
+                fontWeight: 800,
+                letterSpacing: '0.18em',
+                padding: '5px 10px',
+                textTransform: 'uppercase',
+              }}
+            >
+              {tag}
+            </span>
+          ))}
+        </span>
+        {room.note && (
+          <span
+            style={{
+              display: 'block',
+              color: '#ff6f91',
+              fontFamily: "'Allura', cursive",
+              fontSize: '1.34rem',
+              lineHeight: 1,
+              marginTop: 14,
+            }}
+          >
+            {room.note}
+          </span>
+        )}
       </span>
     );
   }
@@ -1267,36 +1204,3 @@ const objectTextStyle: CSSProperties = {
   fontSize: '0.93rem',
   lineHeight: 1.35,
 };
-
-function Sparkle() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#00ffea" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M12 2c.8 5.6 3.6 8.4 9 9-5.4.6-8.2 3.4-9 9-.8-5.6-3.6-8.4-9-9 5.4-.6 8.2-3.4 9-9z" />
-    </svg>
-  );
-}
-
-function Heart() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#ff9ecb" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M12 20S3.5 14.6 3.5 8.9A4.3 4.3 0 0 1 12 6.1a4.3 4.3 0 0 1 8.5 2.8C20.5 14.6 12 20 12 20z" />
-    </svg>
-  );
-}
-
-function Star() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ffe08a" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M12 3l2.6 5.6 6 .7-4.4 4.1 1.2 6L12 16.8 6.6 19.5l1.2-6L3.4 9.3l6-.7z" />
-    </svg>
-  );
-}
-
-function Flower() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9ee6ff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="12" cy="12" r="2.3" />
-      <path d="M12 3.8a2.7 2.7 0 0 1 0 5.4M20.2 12a2.7 2.7 0 0 1-5.4 0M12 20.2a2.7 2.7 0 0 1 0-5.4M3.8 12a2.7 2.7 0 0 1 5.4 0" />
-    </svg>
-  );
-}
