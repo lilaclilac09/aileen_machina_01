@@ -286,75 +286,167 @@ export default function Home() {
 
         {/* ── 03 TRENDY — fashion police + podcast ─────────────── */}
         <SnapSection id="trendy" className="order-3">
-          <div className="h-full flex items-center justify-center bg-[#050505] px-6 sm:px-10">
-            <div className="w-full max-w-[500px] text-center" style={{ fontFamily: nunito }}>
-              <p
-                className="anim-up mb-4 text-[0.6rem] uppercase tracking-[0.45em] text-[#00ffea]/70"
-                style={{ fontWeight: 500 }}
-              >
-                {tx.trendy.tag}
-              </p>
-              <h2
-                className="anim-up-2 mb-2 text-[clamp(1.3rem,3.2vw,1.9rem)] tracking-tight text-white/95 leading-snug"
-                style={{ fontWeight: 600 }}
-              >
-                {tx.trendy.heading}
-              </h2>
-              <p className="anim-up-3 mb-8 text-[0.92rem] text-white/55" style={{ fontWeight: 400 }}>
-                {tx.trendy.body}
-              </p>
+          <div
+            className="h-full px-5 sm:px-9 lg:px-14"
+            style={{
+              fontFamily: nunito,
+              background: 'linear-gradient(#050505 0 76px, #f8f5ee 76px)',
+            }}
+          >
+            <div className="mx-auto flex h-full w-full max-w-[1320px] flex-col overflow-hidden pb-8 pt-[94px] sm:pb-10">
+              <div className="flex-1 overflow-y-auto pr-1">
+                <div className="grid min-h-[660px] gap-8 lg:grid-cols-[0.88fr_1.12fr] lg:gap-10">
+                  <section
+                    className="anim-up relative min-h-[520px] self-center px-7 py-8 sm:px-9 sm:py-10"
+                    style={{
+                      background:
+                        'repeating-linear-gradient(180deg, transparent 0 33px, rgba(20,17,12,0.07) 34px 35px), linear-gradient(90deg, transparent 0 58px, rgba(255,94,166,0.15) 59px 60px, transparent 61px), #fffdf7',
+                      border: '1px solid rgba(20,17,12,0.18)',
+                      boxShadow: '0 30px 80px -48px rgba(20,17,12,0.55)',
+                      transform: 'rotate(-1.5deg)',
+                    }}
+                  >
+                    <span
+                      aria-hidden
+                      className="absolute -top-4 left-[18%] h-8 w-28"
+                      style={{
+                        background: 'rgba(255,167,38,0.34)',
+                        boxShadow: '0 2px 10px rgba(20,17,12,0.12)',
+                        transform: 'rotate(3deg)',
+                      }}
+                    />
+                    <p className="mb-6 text-[0.58rem] uppercase tracking-[0.42em] text-[#14110c]/55" style={{ fontFamily: mono, fontWeight: 700 }}>
+                      {tx.trendy.tag}
+                    </p>
+                    <h2
+                      className="mb-5 max-w-[430px] text-[clamp(2.3rem,5.2vw,4.7rem)] leading-[0.92] text-[#14110c]"
+                      style={{
+                        fontFamily: "'Bradley Hand', 'Comic Sans MS', 'Marker Felt', cursive",
+                        fontWeight: 500,
+                        letterSpacing: '-0.055em',
+                      }}
+                    >
+                      {tx.trendy.heading}
+                    </h2>
+                    <p className="mb-10 max-w-[360px] text-[1rem] leading-relaxed text-[#14110c]/68" style={{ fontFamily: 'Georgia, serif' }}>
+                      {tx.trendy.body} The listening shelf sits next to the glass bench: handmade, handwritten, replayed until it turns into taste.
+                    </p>
+                    <div className="absolute bottom-8 left-7 right-7 sm:left-9 sm:right-9">
+                      <p
+                        className="mb-4 text-[1.65rem] leading-none text-[#ff6f91]"
+                        style={{ fontFamily: "'Allura', cursive" }}
+                      >
+                        {tx.visual.note}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {['handmade', 'handwritten', 'podcast', 'visual'].map((label) => (
+                          <span
+                            key={label}
+                            className="rounded-full border border-[#14110c]/18 px-3 py-1 text-[0.56rem] uppercase tracking-[0.2em] text-[#14110c]/58"
+                            style={{ fontFamily: mono, fontWeight: 700 }}
+                          >
+                            {label}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </section>
 
-              <div className="anim-up-3 border-t border-white/10 pt-6">
-                <p className="mb-2 text-[0.58rem] uppercase tracking-[0.45em] text-white/35" style={{ fontWeight: 500 }}>
-                  {tx.trendy.rotationTag}
-                </p>
-                <h3 className="mb-2 text-[1rem] tracking-tight text-white/90" style={{ fontWeight: 500 }}>
-                  {tx.trendy.podcast.title}
-                </h3>
-                <p className="mb-4 text-[0.84rem] leading-relaxed text-white/55" style={{ fontWeight: 400 }}>
-                  {tx.trendy.podcast.body}
-                </p>
-                <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5">
-                  <a
-                    href={tx.trendy.podcast.kateHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[0.76rem] text-[#00ffea]/75 no-underline transition-colors hover:text-[#00ffea]"
-                    style={{ fontWeight: 500 }}
-                  >
-                    {tx.trendy.podcast.kateLabel} →
-                  </a>
-                  <a
-                    href={tx.trendy.podcast.showHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[0.76rem] text-white/55 no-underline transition-colors hover:text-white"
-                    style={{ fontWeight: 500 }}
-                  >
-                    {tx.trendy.podcast.showLabel} →
-                  </a>
+                  <section className="anim-up-2 relative min-h-[620px]">
+                    <a
+                      href={tx.trendy.podcast.kateHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="absolute left-0 top-3 block w-[min(92vw,520px)] p-6 text-[#14110c] no-underline sm:p-7"
+                      style={{
+                        background: '#fffdf7',
+                        border: '1px solid rgba(20,17,12,0.16)',
+                        boxShadow: '0 28px 70px -42px rgba(20,17,12,0.45)',
+                        transform: 'rotate(2deg)',
+                      }}
+                    >
+                      <span className="mb-4 block text-[0.56rem] uppercase tracking-[0.42em] text-[#14110c]/45" style={{ fontFamily: mono, fontWeight: 800 }}>
+                        {tx.trendy.rotationTag}
+                      </span>
+                      <span className="mb-3 block text-[1.58rem] leading-[0.95] tracking-[-0.045em]" style={{ fontWeight: 750 }}>
+                        {tx.trendy.podcast.title}
+                      </span>
+                      <span className="mb-5 block max-w-[440px] text-[0.92rem] leading-relaxed text-[#14110c]/64" style={{ fontFamily: 'Georgia, serif' }}>
+                        {tx.trendy.podcast.body}
+                      </span>
+                      <span aria-hidden className="mb-5 flex h-10 items-end gap-1">
+                        {[18, 28, 14, 34, 24, 38, 16, 30, 20, 36, 22, 27].map((height, idx) => (
+                          <span
+                            key={`${height}-${idx}`}
+                            style={{
+                              display: 'block',
+                              width: 6,
+                              height,
+                              borderRadius: 999,
+                              background: idx % 3 === 0 ? '#00b8ad' : 'rgba(20,17,12,0.26)',
+                            }}
+                          />
+                        ))}
+                      </span>
+                      <span className="inline-flex items-center text-[0.72rem] uppercase tracking-[0.18em] text-[#00a99f]" style={{ fontFamily: mono, fontWeight: 800 }}>
+                        {tx.trendy.podcast.kateLabel} →
+                      </span>
+                    </a>
+
+                    <a
+                      href={tx.trendy.doYouReadHer.episodeHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="absolute right-0 top-[230px] z-10 block w-[min(86vw,420px)] p-6 text-[#14110c] no-underline sm:p-7"
+                      style={{
+                        background:
+                          'linear-gradient(90deg, transparent 0 42px, rgba(255,94,166,0.12) 43px 44px, transparent 45px), repeating-linear-gradient(180deg, transparent 0 29px, rgba(20,17,12,0.07) 30px 31px), #fffaf1',
+                        border: '1px solid rgba(20,17,12,0.18)',
+                        boxShadow: '0 28px 70px -42px rgba(20,17,12,0.45)',
+                        transform: 'rotate(-3deg)',
+                      }}
+                    >
+                      <span className="mb-4 block text-[0.56rem] uppercase tracking-[0.42em] text-[#14110c]/45" style={{ fontFamily: mono, fontWeight: 800 }}>
+                        {tx.trendy.doYouReadHer.sectionLabel}
+                      </span>
+                      <span
+                        className="mb-3 block text-[2.1rem] leading-none text-[#14110c]"
+                        style={{ fontFamily: "'Bradley Hand', 'Comic Sans MS', 'Marker Felt', cursive", letterSpacing: '-0.04em' }}
+                      >
+                        {tx.trendy.doYouReadHer.title}
+                      </span>
+                      <span className="mb-5 block text-[0.92rem] leading-relaxed text-[#14110c]/64" style={{ fontFamily: 'Georgia, serif' }}>
+                        {tx.trendy.doYouReadHer.body}
+                      </span>
+                      <span className="inline-flex items-center text-[0.72rem] uppercase tracking-[0.18em] text-[#00a99f]" style={{ fontFamily: mono, fontWeight: 800 }}>
+                        {tx.trendy.doYouReadHer.episodeLabel} →
+                      </span>
+                    </a>
+
+                    <div className="absolute bottom-0 left-[5%] flex items-end gap-3">
+                      {tx.visual.items.slice(0, 3).map((img: VisualItem, idx: number) => (
+                        <Link
+                          key={img.src}
+                          href={img.href ?? '/blog/pate-de-verre'}
+                          className="block bg-[#fffdf7] p-2 no-underline"
+                          style={{
+                            boxShadow: '0 20px 44px -28px rgba(20,17,12,0.55)',
+                            transform: `rotate(${idx === 0 ? -7 : idx === 1 ? 3 : -2}deg)`,
+                          }}
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={img.src} alt={img.alt} className="h-[112px] w-[112px] object-cover sm:h-[132px] sm:w-[132px]" />
+                          <span
+                            className="mt-2 block text-center text-[1.1rem] leading-none text-[#ff6f91]"
+                            style={{ fontFamily: "'Allura', cursive" }}
+                          >
+                            {img.caption}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  </section>
                 </div>
-              </div>
-
-              <div className="anim-up-3 mt-6 border-t border-white/10 pt-6">
-                <p className="mb-2 text-[0.58rem] uppercase tracking-[0.45em] text-white/35" style={{ fontWeight: 500 }}>
-                  {tx.trendy.doYouReadHer.sectionLabel}
-                </p>
-                <h3 className="mb-2 text-[1rem] tracking-tight text-white/90" style={{ fontWeight: 500 }}>
-                  {tx.trendy.doYouReadHer.title}
-                </h3>
-                <p className="mb-4 text-[0.84rem] leading-relaxed text-white/55" style={{ fontWeight: 400 }}>
-                  {tx.trendy.doYouReadHer.body}
-                </p>
-                <a
-                  href={tx.trendy.doYouReadHer.episodeHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[0.76rem] text-[#00ffea]/75 no-underline transition-colors hover:text-[#00ffea]"
-                  style={{ fontWeight: 500 }}
-                >
-                  {tx.trendy.doYouReadHer.episodeLabel} →
-                </a>
               </div>
             </div>
           </div>
