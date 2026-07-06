@@ -83,8 +83,8 @@ const HOME_CHANNELS = [
  *   Section 02  Clipping desk       — article scraps + direct doors
  *   Section 03  Watch hub           — podcasts, documentaries, channels
  *
- * Cover-agent (Natalia portrait + Ask the agent) is preserved on the
- * cinematic opening; it doubles as the door to the agent department.
+ * The Machina mark on the cinematic opening doubles as the door to the
+ * agent department.
  *
  * Visual language: white editorial base, amber for Magazine, cyan/teal for
  * machina links. The standalone DJ station stays black on /sound.
@@ -260,17 +260,18 @@ export default function Home() {
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: 13,
-                      minHeight: 66,
-                      background: `linear-gradient(135deg, ${palette.soot} 0%, #121a18 62%, #18221f 100%)`,
-                      color: palette.cream,
-                      padding: '10px 12px 10px 10px',
+                      gap: 16,
+                      minHeight: 76,
+                      background: 'rgba(255,253,247,0.82)',
+                      color: palette.ink,
+                      padding: '11px 16px 11px 12px',
                       borderRadius: 999,
-                      border: '1px solid rgba(0,169,159,0.46)',
+                      border: '1px solid rgba(0,169,159,0.26)',
                       boxShadow:
-                        '0 24px 70px -38px rgba(0,169,159,0.9), 0 12px 30px -26px rgba(20,17,12,0.8), inset 0 1px 0 rgba(255,255,255,0.16)',
+                        '0 20px 48px -34px rgba(20,17,12,0.52), 0 0 0 1px rgba(255,255,255,0.74) inset',
                       cursor: 'pointer',
                       textAlign: 'left',
+                      backdropFilter: 'blur(10px)',
                     }}
                     aria-label={tx.hero.talkAgent}
                   >
@@ -279,54 +280,54 @@ export default function Home() {
                       style={{
                         position: 'relative',
                         display: 'inline-flex',
-                        width: 48,
-                        height: 48,
+                        width: 56,
+                        height: 56,
                         flex: '0 0 auto',
                         borderRadius: '50%',
-                        backgroundImage: "url('/agent-portrait.jpeg')",
-                        backgroundPosition: 'center',
-                        backgroundSize: 'cover',
-                        boxShadow: `0 0 0 1px ${palette.cyanSoft}, 0 0 20px rgba(0,169,159,0.22)`,
+                        backgroundImage: "url('/bg_pic/03.jpeg')",
+                        backgroundPosition: '22% 8%',
+                        backgroundSize: '180%',
+                        boxShadow: `0 0 0 1px ${palette.cyan}, 0 10px 24px -18px rgba(20,17,12,0.9)`,
                       }}
                     >
                       <span
                         style={{
                           position: 'absolute',
-                          right: -1,
-                          top: 3,
-                          width: 11,
-                          height: 11,
+                          right: -3,
+                          top: 1,
+                          width: 15,
+                          height: 15,
                           borderRadius: '50%',
                           background: palette.cyan,
-                          boxShadow: '0 0 12px rgba(0,169,159,0.7)',
+                          boxShadow: '0 0 0 4px rgba(255,253,247,0.96), 0 0 14px rgba(0,169,159,0.62)',
                         }}
                       />
                     </span>
-                    <span style={{ display: 'grid', gap: 3, minWidth: 0 }}>
+                    <span style={{ display: 'grid', gap: 5, minWidth: 0, paddingRight: 6 }}>
                       <span
                         style={{
                           color: palette.cyan,
                           fontFamily: mono,
-                          fontSize: '0.68rem',
+                          fontSize: '0.86rem',
                           fontWeight: 800,
-                          letterSpacing: '0.24em',
+                          letterSpacing: '0.44em',
                           lineHeight: 1,
                           textTransform: 'uppercase',
                         }}
                       >
-                        Ask the agent
+                        Machina
                       </span>
                       <span
                         style={{
-                          color: 'rgba(248,245,238,0.74)',
+                          color: 'rgba(20,17,12,0.56)',
                           fontFamily: 'Georgia, serif',
-                          fontSize: '0.88rem',
+                          fontSize: '0.82rem',
                           fontStyle: 'italic',
                           lineHeight: 1.15,
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        open the machine room
+                        ask the agent
                       </span>
                     </span>
                     <span
@@ -334,14 +335,14 @@ export default function Home() {
                       style={{
                         display: 'grid',
                         placeItems: 'center',
-                        width: 32,
-                        height: 32,
+                        width: 38,
+                        height: 38,
                         flex: '0 0 auto',
                         borderRadius: '50%',
-                        background: 'rgba(248,245,238,0.1)',
-                        color: palette.cream,
+                        background: 'rgba(20,17,12,0.08)',
+                        color: palette.ink,
                         fontFamily: mono,
-                        fontSize: '1rem',
+                        fontSize: '1.05rem',
                       }}
                     >
                       →
