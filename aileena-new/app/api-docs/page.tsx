@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unescaped-entities */
 import Link from 'next/link';
 
 export const metadata = {
@@ -304,7 +303,7 @@ export default function ApiDocsPage() {
         </section>
 
         <footer className="border-t border-white/10 pt-6 text-white/45 text-sm font-mono tracking-[0.06em]">
-          aileena · machina · v1 · public read-only · open auth tbd · contact rosazxc0915@gmail.com
+          aileena · machina · v1 · public read-only · open auth tbd · contact through the agent panel
         </footer>
       </div>
     </main>
