@@ -188,7 +188,7 @@ export default function BroadcomArticle() {
           on the inference flank.&rdquo;
         </p>
 
-        <SectionLabel>Pressure 3 — OpenAI's conservative 2026 guidance</SectionLabel>
+        <SectionLabel>Pressure 3 — OpenAI&rsquo;s conservative 2026 guidance</SectionLabel>
         <p style={bodyStyle}>
           The most immediate financial pressure is OpenAI itself. Broadcom flagged OpenAI as a
           top-five customer; the market priced in a steep ramp on the back of the in-house ASIC
@@ -215,67 +215,7 @@ export default function BroadcomArticle() {
           &ldquo;a slice, not the whole.&rdquo;
         </p>
 
-        <div style={{ margin: '40px 0 8px', overflowX: 'auto' }}>
-          <table style={tableStyle}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.22)' }}>
-                <th style={thStyle}>Pillar</th>
-                <th style={thStyle}>Strength figure</th>
-                <th style={thStyle}>Pressure vector</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr style={trStyle}>
-                <td style={tdLabelStyle}>Custom ASIC</td>
-                <td style={tdStyle}>
-                  Google TPU v7 + v8 design partner; OpenAI in-house training ASIC at{' '}
-                  <strong style={strong}>$6&ndash;8 B</strong>,{' '}
-                  <strong style={strong}>~2,000 racks</strong>, volume{' '}
-                  <strong style={strong}>2H 2026</strong>
-                </td>
-                <td style={tdStyle}>
-                  MediaTek on Google&rsquo;s <strong style={strong}>V8E</strong> inference;
-                  OpenAI conservative on 2026 volumes vs its{' '}
-                  <strong style={strong}>~$30 B/yr</strong> Nvidia spend
-                </td>
-              </tr>
-              <tr style={trStyle}>
-                <td style={tdLabelStyle}>Switch silicon</td>
-                <td style={tdStyle}>
-                  Tomahawk 6 at <strong style={strong}>1.2 T per port</strong>; inside almost
-                  every Cisco / Arista / Huawei / H3C box
-                </td>
-                <td style={tdStyle}>
-                  Marvell is the credible challenger; share intact on a{' '}
-                  <strong style={strong}>2&ndash;3 year</strong> horizon
-                </td>
-              </tr>
-              <tr style={trStyle}>
-                <td style={tdLabelStyle}>Optical chips</td>
-                <td style={tdStyle}>
-                  ~<strong style={strong}>90%</strong> non-Nvidia DSP share; 1 of 2 real EML
-                  suppliers; Eoptolink alone has booked{' '}
-                  <strong style={strong}>&gt;50%</strong> of EML capacity
-                </td>
-                <td style={tdStyle}>
-                  200 G EML lead times stretch to a year; TSMC{' '}
-                  <strong style={strong}>3 nm</strong> capacity caps DSP shipments
-                </td>
-              </tr>
-              <tr style={trStyle}>
-                <td style={tdLabelStyle}>CPO</td>
-                <td style={tdStyle}>
-                  Open Mach&ndash;Zehnder route; prototype / pilot scale today
-                </td>
-                <td style={tdStyle}>
-                  <strong style={strong}>2H 2027&ndash;28</strong> window &mdash;{' '}
-                  <strong style={strong}>6&ndash;12 mo</strong> behind Nvidia; every CPO win
-                  cannibalises Broadcom&rsquo;s own EML + DSP + pluggable-module book
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <BroadcomStackFigure />
 
         <SectionLabel>The shape</SectionLabel>
         <ul style={listStyle}>
@@ -374,34 +314,193 @@ const listStyle: React.CSSProperties = {
   marginBottom: 24,
   paddingLeft: 22,
 };
-const tableStyle: React.CSSProperties = {
-  width: '100%',
-  borderCollapse: 'collapse',
-  fontSize: '0.9rem',
+
+const stackRows = [
+  {
+    pillar: 'Custom ASIC',
+    strength: 'Google TPU base',
+    strengthFigure: '$6-8 B / 2H 2026',
+    pressure: 'MediaTek V8E + OpenAI sizing',
+    pressureFigure: '~$30 B/yr Nvidia anchor',
+    strengthWidth: 76,
+    pressureWidth: 58,
+  },
+  {
+    pillar: 'Switch silicon',
+    strength: 'Tomahawk 6',
+    strengthFigure: '1.2 T per port',
+    pressure: 'Marvell challenge',
+    pressureFigure: '2-3 year horizon',
+    strengthWidth: 92,
+    pressureWidth: 34,
+  },
+  {
+    pillar: 'Optical chips',
+    strength: 'DSP + EML bottleneck',
+    strengthFigure: '~90% non-Nvidia DSP',
+    pressure: 'EML / 3 nm supply caps',
+    pressureFigure: '>50% EML capacity booked',
+    strengthWidth: 88,
+    pressureWidth: 50,
+  },
+  {
+    pillar: 'CPO',
+    strength: 'Mach-Zehnder route',
+    strengthFigure: 'pilot scale today',
+    pressure: 'Nvidia timing lead',
+    pressureFigure: '2H 2027-28 / 6-12 mo behind',
+    strengthWidth: 38,
+    pressureWidth: 78,
+  },
+];
+
+function BroadcomStackFigure() {
+  return (
+    <figure style={figureStyle} aria-label="Broadcom AI stack strengths and pressure vectors">
+      <figcaption style={figureCaptionStyle}>
+        <span style={figureCaptionKickerStyle}>Figure</span>
+        Broadcom&rsquo;s AI stack: where the moat is thickest, and where it is being pressed.
+      </figcaption>
+
+      <div style={figureLegendStyle}>
+        <span><span style={{ ...legendDotStyle, background: '#00ffea' }} /> incumbent strength</span>
+        <span><span style={{ ...legendDotStyle, background: '#ffb86b' }} /> disruption pressure</span>
+      </div>
+
+      <div style={{ overflowX: 'auto', paddingBottom: 2 }}>
+        <div style={{ display: 'grid', gap: 18 }}>
+          {stackRows.map((row) => (
+            <div key={row.pillar} style={stackRowStyle}>
+              <div style={stackPillarStyle}>{row.pillar}</div>
+
+              <div style={stackRailGroupStyle}>
+                <div style={stackCopyLineStyle}>
+                  <span style={stackStrengthLabelStyle}>{row.strength}</span>
+                  <span style={stackFigureStyle}>{row.strengthFigure}</span>
+                </div>
+                <div style={railTrackStyle}>
+                  <span
+                    style={{
+                      ...railFillStyle,
+                      width: `${row.strengthWidth}%`,
+                      background: 'linear-gradient(90deg, rgba(0,255,234,0.9), rgba(0,255,234,0.24))',
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div style={stackRailGroupStyle}>
+                <div style={stackCopyLineStyle}>
+                  <span style={stackPressureLabelStyle}>{row.pressure}</span>
+                  <span style={stackFigureStyle}>{row.pressureFigure}</span>
+                </div>
+                <div style={railTrackStyle}>
+                  <span
+                    style={{
+                      ...railFillStyle,
+                      width: `${row.pressureWidth}%`,
+                      background: 'linear-gradient(90deg, rgba(255,184,107,0.9), rgba(255,184,107,0.22))',
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </figure>
+  );
+}
+
+const figureStyle: React.CSSProperties = {
+  margin: '44px 0 16px',
+  padding: '26px 0 24px',
+  borderTop: '1px solid rgba(255,255,255,0.14)',
+  borderBottom: '1px solid rgba(255,255,255,0.1)',
 };
-const thStyle: React.CSSProperties = {
-  textAlign: 'left',
-  padding: '10px 16px 10px 0',
+const figureCaptionStyle: React.CSSProperties = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '10px 14px',
+  alignItems: 'baseline',
+  marginBottom: 16,
+  color: 'rgba(255,255,255,0.78)',
+  fontSize: '0.95rem',
+  lineHeight: 1.6,
+};
+const figureCaptionKickerStyle: React.CSSProperties = {
+  fontFamily: 'monospace',
+  fontSize: '0.6rem',
+  letterSpacing: '0.35em',
+  textTransform: 'uppercase',
+  color: '#00ffea',
+};
+const figureLegendStyle: React.CSSProperties = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '10px 22px',
+  marginBottom: 24,
+  color: 'rgba(255,255,255,0.42)',
   fontFamily: 'monospace',
   fontSize: '0.65rem',
-  letterSpacing: '0.18em',
+  letterSpacing: '0.16em',
   textTransform: 'uppercase',
-  color: 'rgba(255,255,255,0.55)',
+};
+const legendDotStyle: React.CSSProperties = {
+  display: 'inline-block',
+  width: 7,
+  height: 7,
+  borderRadius: 999,
+  marginRight: 8,
+  boxShadow: '0 0 16px currentColor',
+};
+const stackRowStyle: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'minmax(112px, 0.58fr) minmax(220px, 1fr) minmax(220px, 1fr)',
+  gap: 18,
+  alignItems: 'center',
+  minWidth: 720,
+};
+const stackPillarStyle: React.CSSProperties = {
+  color: 'rgba(255,255,255,0.92)',
+  fontWeight: 600,
+  fontSize: '0.92rem',
+};
+const stackRailGroupStyle: React.CSSProperties = {
+  minWidth: 0,
+};
+const stackCopyLineStyle: React.CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  gap: 12,
+  alignItems: 'baseline',
+  marginBottom: 7,
+};
+const stackStrengthLabelStyle: React.CSSProperties = {
+  color: 'rgba(0,255,234,0.8)',
+  fontSize: '0.76rem',
   fontWeight: 600,
 };
-const trStyle: React.CSSProperties = { borderBottom: '1px solid rgba(255,255,255,0.07)' };
-const tdLabelStyle: React.CSSProperties = {
-  padding: '14px 16px 14px 0',
-  color: 'rgba(255,255,255,0.85)',
+const stackPressureLabelStyle: React.CSSProperties = {
+  color: 'rgba(255,184,107,0.82)',
+  fontSize: '0.76rem',
   fontWeight: 600,
-  verticalAlign: 'top',
+};
+const stackFigureStyle: React.CSSProperties = {
+  color: 'rgba(255,255,255,0.8)',
+  fontFamily: 'monospace',
+  fontSize: '0.68rem',
   whiteSpace: 'nowrap',
 };
-const tdStyle: React.CSSProperties = {
-  padding: '14px 16px 14px 0',
-  color: 'rgba(255,255,255,0.7)',
-  verticalAlign: 'top',
-  lineHeight: 1.55,
+const railTrackStyle: React.CSSProperties = {
+  position: 'relative',
+  height: 6,
+  overflow: 'hidden',
+  background: 'rgba(255,255,255,0.08)',
+};
+const railFillStyle: React.CSSProperties = {
+  display: 'block',
+  height: '100%',
 };
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
