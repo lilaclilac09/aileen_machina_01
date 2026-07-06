@@ -60,7 +60,7 @@ const MOBILE_MAX_PX = 767;
 
 export function useCoverflowSettings() {
   const [settings, setSettings] = useState<CoverflowSettings>(COVERFLOW_DEFAULTS);
-  const [panelOpen, setPanelOpen] = useState(true);
+  const [panelOpen, setPanelOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
@@ -80,13 +80,12 @@ export function useCoverflowSettings() {
         const parsed = JSON.parse(raw) as Partial<CoverflowSettings>;
         setSettings({ ...COVERFLOW_DEFAULTS, ...parsed });
       }
-      // Explicit user preference wins; otherwise default closed on
-      // mobile (the panel covers most of a 375px screen and competes
-      // with the carousel for attention) and open on desktop.
+      // Explicit user preference wins; otherwise keep the tuner closed.
+      // The public archive should show the cards first; the panel is an
+      // optional control, not the main composition.
       const open = window.localStorage.getItem(PANEL_OPEN_KEY);
       if (open === '0') setPanelOpen(false);
       else if (open === '1') setPanelOpen(true);
-      else if (mobile) setPanelOpen(false);
     } catch {
       /* localStorage unavailable — keep defaults */
     }

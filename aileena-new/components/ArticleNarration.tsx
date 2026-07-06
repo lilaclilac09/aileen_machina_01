@@ -262,7 +262,6 @@ export default function ArticleNarration({ title, date, category }: Props) {
   }
 
   const isPlaying = status === 'playing';
-  const isPaused = status === 'paused';
   const isLoading = status === 'loading';
 
   const subtitleText = (() => {
@@ -286,15 +285,15 @@ export default function ArticleNarration({ title, date, category }: Props) {
         >
           <defs>
             <radialGradient id="narr-grad" cx="50%" cy="50%" r="60%">
-              <stop offset="0%" stopColor="#0e2a2e" />
-              <stop offset="100%" stopColor="#070b0d" />
+              <stop offset="0%" stopColor="#f7fffe" />
+              <stop offset="100%" stopColor="#ffffff" />
             </radialGradient>
           </defs>
           <rect width="144" height="144" fill="url(#narr-grad)" />
-          <circle cx="72" cy="72" r="50" fill="none" stroke="#00ffea" strokeOpacity="0.22" />
-          <circle cx="72" cy="72" r="34" fill="none" stroke="#00ffea" strokeOpacity="0.18" />
-          <circle cx="72" cy="72" r="20" fill="none" stroke="#00ffea" strokeOpacity="0.32" />
-          <g transform="translate(72,72)" fill="#00ffea" fillOpacity="0.55">
+          <circle cx="72" cy="72" r="50" fill="none" stroke="#008f84" strokeOpacity="0.22" />
+          <circle cx="72" cy="72" r="34" fill="none" stroke="#008f84" strokeOpacity="0.18" />
+          <circle cx="72" cy="72" r="20" fill="none" stroke="#008f84" strokeOpacity="0.32" />
+          <g transform="translate(72,72)" fill="#008f84" fillOpacity="0.62">
             <rect x="-22" y="-3" width="3" height="6" rx="1" />
             <rect x="-15" y="-7" width="3" height="14" rx="1" />
             <rect x="-8" y="-11" width="3" height="22" rx="1" />
@@ -391,12 +390,10 @@ const cardOuter: CSSProperties = {
   maxWidth: 680,
   margin: '24px auto 8px',
   padding: 16,
-  background: 'rgba(18, 20, 22, 0.85)',
-  backdropFilter: 'blur(12px)',
-  WebkitBackdropFilter: 'blur(12px)',
-  border: '1px solid rgba(0, 255, 234, 0.18)',
+  background: '#fff',
+  border: '1px solid rgba(17, 17, 17, 0.1)',
   borderRadius: 14,
-  boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
+  boxShadow: '0 16px 36px rgba(17,17,17,0.06)',
   alignItems: 'stretch',
 };
 
@@ -407,7 +404,7 @@ const cover: CSSProperties = {
   position: 'relative',
   borderRadius: 10,
   overflow: 'hidden',
-  border: '1px solid rgba(0,255,234,0.14)',
+  border: '1px solid rgba(0,143,132,0.18)',
 };
 
 const coverTopBadge: CSSProperties = {
@@ -417,7 +414,7 @@ const coverTopBadge: CSSProperties = {
   fontFamily: 'monospace',
   fontSize: '0.5rem',
   letterSpacing: '0.28em',
-  color: 'rgba(0, 255, 234, 0.72)',
+  color: 'rgba(0, 143, 132, 0.76)',
 };
 
 const coverBottomBadge: CSSProperties = {
@@ -428,7 +425,7 @@ const coverBottomBadge: CSSProperties = {
   fontFamily: 'monospace',
   fontSize: '0.46rem',
   letterSpacing: '0.32em',
-  color: 'rgba(255,255,255,0.42)',
+  color: 'rgba(17,17,17,0.42)',
 };
 
 const info: CSSProperties = {
@@ -443,8 +440,8 @@ const metaLine: CSSProperties = {
   fontSize: '0.52rem',
   letterSpacing: '0.32em',
   textTransform: 'uppercase',
-  color: '#00ffea',
-  opacity: 0.7,
+  color: '#008f84',
+  opacity: 0.82,
   margin: '0 0 8px',
 };
 
@@ -453,7 +450,7 @@ const titleStyle: CSSProperties = {
   fontSize: '1.05rem',
   fontWeight: 600,
   lineHeight: 1.3,
-  color: '#fff',
+  color: '#111',
   margin: '0 0 6px',
   display: '-webkit-box',
   WebkitBoxOrient: 'vertical',
@@ -465,13 +462,13 @@ const subtle: CSSProperties = {
   fontFamily: "'Iowan Old Style', 'Charter', 'Source Serif Pro', serif",
   fontSize: '0.8rem',
   lineHeight: 1.4,
-  color: 'rgba(255,255,255,0.45)',
+  color: 'rgba(17,17,17,0.52)',
   margin: '0 0 14px',
 };
 
 const progressBg: CSSProperties = {
   height: 3,
-  background: 'rgba(255,255,255,0.08)',
+  background: 'rgba(17,17,17,0.08)',
   borderRadius: 2,
   overflow: 'hidden',
   marginTop: 'auto',
@@ -479,7 +476,7 @@ const progressBg: CSSProperties = {
 
 const progressFill: CSSProperties = {
   height: '100%',
-  background: '#00ffea',
+  background: '#008f84',
   transition: 'width 0.2s linear',
 };
 
@@ -490,7 +487,7 @@ const controls: CSSProperties = {
   marginTop: 10,
   fontFamily: 'monospace',
   fontSize: '0.65rem',
-  color: 'rgba(255,255,255,0.5)',
+  color: 'rgba(17,17,17,0.52)',
 };
 
 const time: CSSProperties = {
@@ -502,9 +499,9 @@ const playBtn: CSSProperties = {
   width: 36,
   height: 36,
   borderRadius: '50%',
-  border: '1px solid rgba(0,255,234,0.55)',
-  background: 'rgba(0,255,234,0.14)',
-  color: '#00ffea',
+  border: '1px solid rgba(0,143,132,0.42)',
+  background: '#fff',
+  color: '#008f84',
   cursor: 'pointer',
   display: 'flex',
   alignItems: 'center',
@@ -517,9 +514,9 @@ const ghostBtn: CSSProperties = {
   width: 28,
   height: 28,
   borderRadius: '50%',
-  border: '1px solid rgba(255,255,255,0.18)',
+  border: '1px solid rgba(17,17,17,0.16)',
   background: 'transparent',
-  color: 'rgba(255,255,255,0.55)',
+  color: 'rgba(17,17,17,0.54)',
   cursor: 'pointer',
   fontFamily: 'monospace',
   fontSize: '0.85rem',

@@ -85,13 +85,13 @@ const RULES: Rule[] = [
     name: 'availability',
     test: /\b(available|hire|hiring|open\s*to\s*work|job|role|position|looking\s*for\s*work)\b/i,
     reply:
-      "Yes — open to engineering, research, and product-minded technical roles. Drop your email in the lead panel below this console, or reach her directly at rosazxc0915@gmail.com.",
+      "Yes — open to engineering, research, and product-minded technical roles. Drop your email in the lead panel below this console, or use GitHub for code context.",
   },
   {
     name: 'contact',
     test: /\b(contact|reach|email|get\s*in\s*touch|how\s*do\s*i\s*find|how\s*to\s*reach)\b.{0,30}(her|aileen|you)?$/i,
     reply:
-      'Email rosazxc0915@gmail.com directly, or drop your email in the panel below this console (it goes to her inbox). GitHub: github.com/lilaclilac09.',
+      'Drop your email in the panel below this console; it goes to her inbox. GitHub: github.com/lilaclilac09.',
   },
 
   // ── Stack one-liner ────────────────────────────────────────────────────

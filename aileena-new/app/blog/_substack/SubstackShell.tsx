@@ -14,6 +14,7 @@ export interface SubstackShellProps {
   children: React.ReactNode;
   isDE?: boolean;
   explainerHref?: string;
+  showNarration?: boolean;
 }
 
 export default function SubstackShell({
@@ -25,6 +26,7 @@ export default function SubstackShell({
   children,
   isDE = false,
   explainerHref,
+  showNarration = true,
 }: SubstackShellProps) {
   return (
     <div className="substack-article">
@@ -67,9 +69,11 @@ export default function SubstackShell({
         <div />
       </div>
 
-      <div style={{ padding: '0 24px' }}>
-        <ArticleNarration title={title} date={date} category={category} />
-      </div>
+      {showNarration ? (
+        <div style={{ padding: '0 24px' }}>
+          <ArticleNarration title={title} date={date} category={category} />
+        </div>
+      ) : null}
 
       {children}
     </div>

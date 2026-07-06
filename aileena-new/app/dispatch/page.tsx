@@ -1,12 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '../../components/LanguageProvider';
 import { t } from '../../lib/translations';
 import ScrollUnlock from '../blog/ScrollUnlock';
 import '../blog/_substack/substack.css';
-import SwipeRow, { type Post, getCover } from '../../components/SwipeRow';
+import SwipeRow, { type Post } from '../../components/SwipeRow';
 import CoverflowPanel from '../../components/CoverflowPanel';
 import {
   useCoverflowSettings,
@@ -96,7 +96,23 @@ function groupByTopic(
 }
 
 type DispatchView = 'image' | 'text';
+type DispatchTab = 'dispatch' | 'investing' | 'perspective' | 'watch';
 const VIEW_STORAGE_KEY = 'aileena-dispatch-view';
+const TAB_STORAGE_KEY = 'aileena-dispatch-tab';
+
+const TAB_HASH: Record<DispatchTab, string> = {
+  dispatch: 'dispatch',
+  investing: 'investing',
+  perspective: 'woman-in-tech',
+  watch: 'watch-listen',
+};
+
+function tabFromHash(hash: string): DispatchTab | null {
+  const clean = hash.replace(/^#/, '');
+  const found = (Object.entries(TAB_HASH) as [DispatchTab, string][])
+    .find(([, value]) => value === clean);
+  return found?.[0] ?? null;
+}
 
 /**
  * /dispatch — four rails. Default renders as horizontal swipeable
@@ -109,13 +125,31 @@ export default function DispatchArchive() {
   const tx = t[language];
 
   const [view, setView] = useState<DispatchView>('image');
+  const [activeTab, setActiveTab] = useState<DispatchTab>('dispatch');
   useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(VIEW_STORAGE_KEY);
-      if (saved === 'image' || saved === 'text') setView(saved);
-    } catch {
-      /* localStorage blocked — keep default */
-    }
+    const id = window.setTimeout(() => {
+      try {
+        const saved = window.localStorage.getItem(VIEW_STORAGE_KEY);
+        if (saved === 'image' || saved === 'text') setView(saved);
+        const tab = tabFromHash(window.location.hash);
+        if (tab) {
+          setActiveTab(tab);
+          return;
+        }
+        const savedTab = window.localStorage.getItem(TAB_STORAGE_KEY);
+        if (
+          savedTab === 'dispatch' ||
+          savedTab === 'investing' ||
+          savedTab === 'perspective' ||
+          savedTab === 'watch'
+        ) {
+          setActiveTab(savedTab);
+        }
+      } catch {
+        /* localStorage blocked — keep default */
+      }
+    }, 0);
+    return () => window.clearTimeout(id);
   }, []);
   const updateView = useCallback((next: DispatchView) => {
     setView(next);
@@ -125,16 +159,26 @@ export default function DispatchArchive() {
       /* localStorage blocked — choice stays in-memory only */
     }
   }, []);
+  const updateTab = useCallback((next: DispatchTab) => {
+    setActiveTab(next);
+    try {
+      window.localStorage.setItem(TAB_STORAGE_KEY, next);
+      window.history.replaceState(null, '', `#${TAB_HASH[next]}`);
+    } catch {
+      /* hash/localStorage unavailable — tab stays in-memory only */
+    }
+  }, []);
 
   const isImage = view === 'image';
   const coverflow = useCoverflowSettings();
+  const watchIssue = tx.blog.marsAndMoon.posts[0];
 
   return (
     <div
       style={{
         minHeight: '100vh',
-        background: 'var(--bg-primary)',
-        color: 'var(--text-primary)',
+        background: '#fff',
+        color: '#111',
         fontFamily: nunito,
         overflowY: 'auto',
       }}
@@ -142,54 +186,63 @@ export default function DispatchArchive() {
       <ScrollUnlock />
 
       <header
+        className="dispatch-archive-header"
         style={{
           position: 'sticky',
           top: 0,
           zIndex: 50,
           padding: '18px 24px',
-          background: 'var(--bg-primary)',
+          background: 'rgba(255,255,255,0.92)',
           backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid var(--glass-border)',
+          borderBottom: '1px solid rgba(17,17,17,0.08)',
           opacity: 0.96,
         }}
       >
         <div
           style={{
-            maxWidth: 960,
+            maxWidth: 1040,
             margin: '0 auto',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             gap: 16,
+            flexWrap: 'wrap',
           }}
         >
           <Link
             href="/"
+            className="dispatch-home-link"
             style={{
               fontFamily: nunito,
               fontSize: '0.85rem',
               fontWeight: 500,
-              color: 'var(--text-primary)',
+              color: '#111',
               opacity: 0.6,
               textDecoration: 'none',
+              flex: '0 0 auto',
             }}
           >
             ← Home
           </Link>
+          <SectionTabs active={activeTab} setActive={updateTab} />
           <div
+            className="dispatch-header-actions"
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: 12,
+              marginLeft: 'auto',
             }}
           >
-            <ViewToggle view={view} setView={updateView} />
+            {activeTab !== 'watch' ? (
+              <ViewToggle view={view} setView={updateView} />
+            ) : null}
             <span
               style={{
                 fontFamily: nunito,
                 fontSize: '0.7rem',
                 letterSpacing: '0.18em',
-                color: 'var(--text-primary)',
+                color: '#111',
                 opacity: 0.35,
                 textTransform: 'uppercase',
                 fontWeight: 500,
@@ -202,11 +255,12 @@ export default function DispatchArchive() {
       </header>
 
       <main style={{ maxWidth: 960, margin: '0 auto', padding: '56px 24px 120px' }}>
-        {/* Two rendering modes per rail: SwipeRail (cover-card carousel,
-            default) and RailSection (substack list). The toggle in the
-            sticky header switches all four rails at once. */}
-        {isImage ? (
-          <>
+        {/* The category tabs keep recommendation shelves from becoming
+            another buried rail. Image/Text still controls article rails. */}
+        {activeTab === 'watch' ? (
+          <WatchListenTab post={watchIssue} />
+        ) : isImage ? (
+          activeTab === 'dispatch' ? (
             <SwipeRail
               tag={tx.blog.researchDispatch.tag}
               heading={tx.blog.researchDispatch.heading}
@@ -214,13 +268,16 @@ export default function DispatchArchive() {
               firstSection
               settings={coverflow.settings}
             />
+          ) : activeTab === 'investing' ? (
             <SwipeRail
               tag={tx.blog.investing.tag}
               heading={tx.blog.investing.heading}
               groups={groupByTopic([...tx.blog.investing.posts].reverse(), 'investing')}
               heroImage="/dispatch-covers/investing-hero.jpg"
+              firstSection
               settings={coverflow.settings}
             />
+          ) : (
             <SwipeRail
               tag={tx.blog.womanInTech.tag}
               heading={tx.blog.womanInTech.heading}
@@ -228,52 +285,283 @@ export default function DispatchArchive() {
               // piece first, regardless of date. translations.ts already
               // lists the essays in the intended display order.
               groups={groupByTopic([...tx.blog.womanInTech.posts], 'perspective')}
-              settings={coverflow.settings}
-            />
-            <SwipeRail
-              tag={tx.blog.marsAndMoon.tag}
-              heading={tx.blog.marsAndMoon.heading}
-              groups={groupByTopic([...tx.blog.marsAndMoon.posts].reverse(), 'marsAndMoon')}
-              settings={coverflow.settings}
-            />
-          </>
-        ) : (
-          <>
-            <RailSection
-              tag={tx.blog.researchDispatch.tag}
-              heading={tx.blog.researchDispatch.heading}
-              groups={groupByTopic([...tx.blog.researchDispatch.posts].reverse(), 'dispatch')}
               firstSection
+              settings={coverflow.settings}
             />
-            <RailSection
-              tag={tx.blog.investing.tag}
-              heading={tx.blog.investing.heading}
-              groups={groupByTopic([...tx.blog.investing.posts].reverse(), 'investing')}
-            />
-            <RailSection
-              tag={tx.blog.womanInTech.tag}
-              heading={tx.blog.womanInTech.heading}
-              groups={groupByTopic([...tx.blog.womanInTech.posts], 'perspective')}
-            />
-            <RailSection
-              tag={tx.blog.marsAndMoon.tag}
-              heading={tx.blog.marsAndMoon.heading}
-              groups={groupByTopic([...tx.blog.marsAndMoon.posts].reverse(), 'marsAndMoon')}
-            />
-          </>
+          )
+        ) : activeTab === 'dispatch' ? (
+          <RailSection
+            tag={tx.blog.researchDispatch.tag}
+            heading={tx.blog.researchDispatch.heading}
+            groups={groupByTopic([...tx.blog.researchDispatch.posts].reverse(), 'dispatch')}
+            firstSection
+          />
+        ) : activeTab === 'investing' ? (
+          <RailSection
+            tag={tx.blog.investing.tag}
+            heading={tx.blog.investing.heading}
+            groups={groupByTopic([...tx.blog.investing.posts].reverse(), 'investing')}
+            firstSection
+          />
+        ) : (
+          <RailSection
+            tag={tx.blog.womanInTech.tag}
+            heading={tx.blog.womanInTech.heading}
+            groups={groupByTopic([...tx.blog.womanInTech.posts], 'perspective')}
+            firstSection
+          />
         )}
       </main>
-      <CoverflowPanel
-        settings={coverflow.settings}
-        update={coverflow.update}
-        reset={coverflow.reset}
-        open={coverflow.panelOpen}
-        onToggle={coverflow.togglePanel}
-        hydrated={coverflow.hydrated}
-        isMobile={coverflow.isMobile}
-        t={tx.coverflow}
-      />
+      {activeTab !== 'watch' ? (
+        <CoverflowPanel
+          settings={coverflow.settings}
+          update={coverflow.update}
+          reset={coverflow.reset}
+          open={coverflow.panelOpen}
+          onToggle={coverflow.togglePanel}
+          hydrated={coverflow.hydrated}
+          isMobile={coverflow.isMobile}
+          t={tx.coverflow}
+        />
+      ) : null}
     </div>
+  );
+}
+
+function SectionTabs({
+  active,
+  setActive,
+}: {
+  active: DispatchTab;
+  setActive: (next: DispatchTab) => void;
+}) {
+  const listRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const activeButton = listRef.current?.querySelector('[aria-selected="true"]');
+    activeButton?.scrollIntoView({ block: 'nearest', inline: 'center' });
+  }, [active]);
+
+  const tabs: { id: DispatchTab; label: string }[] = [
+    { id: 'dispatch', label: 'Dispatch' },
+    { id: 'investing', label: 'Investing' },
+    { id: 'perspective', label: 'Woman in Tech' },
+    { id: 'watch', label: 'Watch' },
+  ];
+
+  return (
+    <nav
+      className="dispatch-section-tabs"
+      aria-label="Archive tabs"
+      style={{
+        display: 'inline-flex',
+        flex: '1 1 460px',
+        justifyContent: 'center',
+        gap: 4,
+        minWidth: 0,
+      }}
+    >
+      <div
+        ref={listRef}
+        role="tablist"
+        style={{
+          display: 'inline-flex',
+          maxWidth: '100%',
+          gap: 2,
+          padding: 3,
+          borderRadius: 999,
+          border: '1px solid rgba(17,17,17,0.12)',
+          background: '#fff',
+          overflowX: 'auto',
+        }}
+      >
+        {tabs.map((tab) => {
+          const selected = active === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              onClick={() => setActive(tab.id)}
+              style={{
+                appearance: 'none',
+                border: 0,
+                borderRadius: 999,
+                background: selected ? '#111' : 'transparent',
+                color: selected ? '#fff' : 'rgba(17,17,17,0.58)',
+                cursor: 'pointer',
+                flex: '0 0 auto',
+                fontFamily:
+                  "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+                fontSize: '0.58rem',
+                fontWeight: 700,
+                letterSpacing: '0.13em',
+                lineHeight: 1,
+                padding: '8px 12px',
+                textTransform: 'uppercase',
+                transition: 'background 0.18s ease, color 0.18s ease',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
+function WatchListenTab({ post }: { post?: Post }) {
+  const href = post?.href ?? '/blog/watch-listening-shelf';
+  const title = post?.title ?? 'The Listening and Watching Shelf';
+  const body = post?.body ??
+    'Podcast episodes, documentaries, and research channels that sit beside the essays.';
+
+  return (
+    <section>
+      <p
+        style={{
+          fontFamily:
+            "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+          fontSize: '0.68rem',
+          fontWeight: 700,
+          letterSpacing: '0.22em',
+          color: '#008f84',
+          margin: '0 0 14px',
+          textTransform: 'uppercase',
+        }}
+      >
+        Watch / Listen
+      </p>
+      <h1
+        style={{
+          color: '#111',
+          fontSize: 'clamp(2rem, 5vw, 3.2rem)',
+          fontWeight: 560,
+          letterSpacing: '-0.02em',
+          lineHeight: 1.08,
+          margin: '0 0 34px',
+        }}
+      >
+        One shelf for podcasts and documentaries.
+      </h1>
+
+      <Link
+        href={href}
+        style={{
+          position: 'relative',
+          display: 'grid',
+          gap: 22,
+          minHeight: 430,
+          padding: 'clamp(28px, 5vw, 48px)',
+          border: '1px solid rgba(17,17,17,0.1)',
+          borderRadius: 8,
+          background:
+            'linear-gradient(90deg, transparent 0 58px, rgba(0,143,132,0.12) 59px 60px, transparent 61px), repeating-linear-gradient(180deg, #fffdf8 0 33px, #f3f0ea 34px 35px)',
+          color: '#111',
+          textDecoration: 'none',
+          boxShadow: '0 30px 86px -62px rgba(17,17,17,0.52)',
+          overflow: 'hidden',
+        }}
+      >
+        <span
+          aria-hidden
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: 18,
+            width: 126,
+            height: 28,
+            background: 'rgba(201,135,47,0.26)',
+            transform: 'translateX(-50%) rotate(1.5deg)',
+          }}
+        />
+        <span
+          style={{
+            alignSelf: 'end',
+            display: 'grid',
+            gap: 18,
+            maxWidth: 680,
+            position: 'relative',
+            zIndex: 1,
+          }}
+        >
+          <span
+            style={{
+              color: 'rgba(17,17,17,0.46)',
+              fontFamily:
+                "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+              fontSize: '0.62rem',
+              fontWeight: 800,
+              letterSpacing: '0.28em',
+              textTransform: 'uppercase',
+            }}
+          >
+            standalone issue
+          </span>
+          <span
+            style={{
+              display: 'block',
+              color: '#111',
+              fontSize: 'clamp(2.4rem, 8vw, 5.4rem)',
+              fontWeight: 520,
+              letterSpacing: '0',
+              lineHeight: 0.88,
+              fontFamily: "'Bradley Hand', 'Comic Sans MS', 'Marker Felt', cursive",
+            }}
+          >
+            Trendy is obsolete.
+          </span>
+          <span
+            style={{
+              display: 'block',
+              color: 'rgba(17,17,17,0.68)',
+              fontFamily: "'Iowan Old Style', 'Charter', 'Georgia', serif",
+              fontSize: '1.12rem',
+              lineHeight: 1.58,
+              maxWidth: 620,
+            }}
+          >
+            {body}
+          </span>
+          <span style={{ display: 'flex', flexWrap: 'wrap', gap: 9 }}>
+            {['podcasts', 'documentaries', 'substacks'].map((tag) => (
+              <span
+                key={tag}
+                style={{
+                  border: '1px solid rgba(17,17,17,0.14)',
+                  borderRadius: 999,
+                  color: 'rgba(17,17,17,0.56)',
+                  fontFamily:
+                    "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+                  fontSize: '0.58rem',
+                  fontWeight: 800,
+                  letterSpacing: '0.16em',
+                  padding: '7px 11px',
+                  textTransform: 'uppercase',
+                }}
+              >
+                {tag}
+              </span>
+            ))}
+          </span>
+          <span
+            style={{
+              color: '#008f84',
+              fontFamily:
+                "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+              fontSize: '0.68rem',
+              fontWeight: 850,
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+            }}
+          >
+            Open {title} →
+          </span>
+        </span>
+      </Link>
+    </section>
   );
 }
 
@@ -297,8 +585,8 @@ function ViewToggle({
         gap: 2,
         padding: 2,
         borderRadius: 999,
-        border: '1px solid var(--glass-border)',
-        background: 'rgba(255,255,255,0.04)',
+        border: '1px solid rgba(17,17,17,0.12)',
+        background: '#fff',
       }}
     >
       {options.map((opt) => {
@@ -321,8 +609,8 @@ function ViewToggle({
               textTransform: 'uppercase',
               fontWeight: 500,
               cursor: 'pointer',
-              color: active ? '#0a0a0a' : 'rgba(255,255,255,0.55)',
-              background: active ? '#7df9ff' : 'transparent',
+              color: active ? '#fff' : 'rgba(17,17,17,0.58)',
+              background: active ? '#008f84' : 'transparent',
               transition: 'background 0.18s ease, color 0.18s ease',
             }}
           >
@@ -344,7 +632,7 @@ function RailHeader({ tag, heading }: { tag: string; heading: string }) {
           fontFamily: nunito,
           fontSize: '0.7rem',
           letterSpacing: '0.18em',
-          color: 'var(--text-primary)',
+          color: '#111',
           opacity: 0.4,
           textTransform: 'uppercase',
           fontWeight: 500,
@@ -358,7 +646,7 @@ function RailHeader({ tag, heading }: { tag: string; heading: string }) {
           fontSize: 'clamp(1.7rem, 4.4vw, 2.6rem)',
           fontWeight: 500,
           letterSpacing: '-0.005em',
-          color: 'var(--text-primary)',
+          color: '#111',
           marginBottom: 36,
           lineHeight: 1.15,
         }}
@@ -376,7 +664,7 @@ function TopicHeader({ topic }: { topic: string }) {
         fontFamily: nunito,
         fontSize: '0.68rem',
         letterSpacing: '0.22em',
-        color: 'var(--text-primary)',
+        color: '#111',
         opacity: 0.55,
         textTransform: 'uppercase',
         fontWeight: 600,
