@@ -65,9 +65,9 @@ export default function Home() {
   const latestIssueHref = latestIssue ? `/research/${latestIssue.slug}` : '/research';
   const latestDispatch = tx.blog.researchDispatch.posts.slice(-1)[0];
   const metooArticle = tx.blog.womanInTech.posts.find((post) => post.href === '/blog/harassment') ?? tx.blog.womanInTech.posts[0];
-  const firedGlass = tx.visual.items.find((item) => item.src === '/pate-glass.jpg') ?? tx.visual.items[tx.visual.items.length - 1];
+  const glassHref = tx.visual.items.find((item) => item.href)?.href ?? '/blog/pate-de-verre';
   const trendLinks = [
-    { label: 'handmade', href: firedGlass.href ?? '/blog/pate-de-verre' },
+    { label: 'handmade', href: glassHref },
     { label: 'handwritten', href: '#visual' },
     { label: 'podcast', href: tx.trendy.podcast.kateHref, external: true },
   ];
@@ -359,25 +359,37 @@ export default function Home() {
                         {tx.visual.note}
                       </p>
                     </Link>
-                    <Link
-                      href={firedGlass.href ?? '/blog/pate-de-verre'}
-                      className="group grid gap-4 rounded-md border border-[#14110c]/10 bg-white p-3 text-[#14110c] no-underline transition-colors hover:border-[#00a99f]/45 sm:grid-cols-[118px_1fr]"
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={firedGlass.src}
-                        alt={firedGlass.alt}
-                        className="aspect-[4/3] w-full rounded-[4px] object-cover opacity-90 transition-opacity group-hover:opacity-100 sm:h-[88px]"
-                      />
-                      <span className="block self-center">
-                        <span className="mb-2 block text-[0.56rem] uppercase tracking-[0.22em] text-[#14110c]/42" style={{ fontFamily: mono, fontWeight: 800 }}>
+                    <div className="rounded-md border border-[#14110c]/10 bg-white p-3">
+                      <div className="mb-3 flex items-center justify-between gap-3">
+                        <p className="text-[0.56rem] uppercase tracking-[0.22em] text-[#14110c]/42" style={{ fontFamily: mono, fontWeight: 800 }}>
                           {tx.visual.kilnTag}
-                        </span>
-                        <span className="block text-[0.92rem] leading-snug text-[#14110c]/66" style={{ fontFamily: 'Georgia, serif' }}>
-                          {tx.visual.kilnNote}
-                        </span>
-                      </span>
-                    </Link>
+                        </p>
+                        <Link
+                          href={glassHref}
+                          className="text-[0.58rem] uppercase tracking-[0.14em] text-[#00a99f] no-underline"
+                          style={{ fontFamily: mono, fontWeight: 800 }}
+                        >
+                          {tx.visual.readGlass}
+                        </Link>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {tx.visual.items.map((img: VisualItem) => (
+                          <Link
+                            key={img.src}
+                            href={img.href ?? glassHref}
+                            className="group block no-underline"
+                            aria-label={img.caption}
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={img.src}
+                              alt={img.alt}
+                              className="aspect-[4/3] w-full rounded-[4px] object-cover opacity-90 transition-opacity group-hover:opacity-100"
+                            />
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
                   </section>
 
                   <section className="anim-up-3 grid gap-4 sm:grid-cols-2">
@@ -437,26 +449,6 @@ export default function Home() {
                   </section>
                 </div>
 
-                <div className="anim-up mt-5 grid gap-3 sm:grid-cols-4">
-                  {tx.visual.items.map((img: VisualItem) => (
-                    <Link
-                      key={img.src}
-                      href={img.href ?? '/blog/pate-de-verre'}
-                      className="group block rounded-md border border-[#14110c]/10 bg-white p-2 no-underline transition-colors hover:border-[#00a99f]/45"
-                    >
-                      <figure className="m-0">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={img.src} alt={img.alt} className="aspect-[16/9] w-full rounded-[4px] object-cover opacity-90 transition-opacity group-hover:opacity-100" />
-                        <figcaption
-                          className="mt-2 text-center text-[1rem] leading-none text-[#ff6f91]"
-                          style={{ fontFamily: "'Allura', cursive" }}
-                        >
-                          {img.caption}
-                        </figcaption>
-                      </figure>
-                    </Link>
-                  ))}
-                </div>
               </div>
             </div>
           </div>
