@@ -107,7 +107,7 @@ export default function Home() {
       blurb: metooArticle ? metooArticle.body : 'Long-form essays and the back catalogue.',
       signal: metooArticle ? metooArticle.title : 'Every Woman in Tech Has a #MeToo Story',
       motif: 'article',
-      placement: { top: '19%', left: '4%', transform: 'rotate(-1.5deg)', zIndex: 6 },
+      placement: { top: '18%', left: '1%', transform: 'rotate(-1deg)', zIndex: 9 },
     },
     {
       id: 'trendy',
@@ -120,7 +120,7 @@ export default function Home() {
       motif: 'trendy',
       note: tx.visual.note,
       glassItems: tx.visual.items,
-      placement: { top: '31%', left: '34%', transform: 'rotate(1.5deg)', zIndex: 8 },
+      placement: { top: '31%', left: '39%', transform: 'rotate(1.5deg)', zIndex: 8 },
     },
   ];
 
@@ -358,11 +358,11 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 const isArticle = room.motif === 'article';
                 const isTrendy = room.motif === 'trendy';
                 const isRecord = room.motif === 'record';
-                const isPaper = isArticle || isTrendy;
+                const isPaper = isTrendy;
                 const mobileRoomStyle: CSSProperties = {
                   display: 'block',
                   width: '100%',
-                  minHeight: isArticle ? 360 : isTrendy ? 440 : isRecord ? 280 : 238,
+                  minHeight: isArticle ? 520 : isTrendy ? 440 : isRecord ? 280 : 238,
                   height: isTrendy ? 440 : undefined,
                   padding: 0,
                   border: isPaper ? '1px solid rgba(20,17,12,0.16)' : 'none',
@@ -438,12 +438,12 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             const isArticle = room.motif === 'article';
             const isTrendy = room.motif === 'trendy';
             const isRecord = room.motif === 'record';
-            const isPaper = isArticle || isTrendy;
+            const isPaper = isTrendy;
             const desktopRoomStyle: CSSProperties = {
               ...room.placement,
               position: 'absolute',
-              width: isArticle ? 'min(78vw, 430px)' : isTrendy ? 'min(76vw, 470px)' : isRecord ? 'min(56vw, 290px)' : 'min(60vw, 330px)',
-              minHeight: isArticle ? 420 : isTrendy ? 440 : isRecord ? 300 : 250,
+              width: isArticle ? 'min(86vw, 610px)' : isTrendy ? 'min(76vw, 470px)' : isRecord ? 'min(56vw, 290px)' : 'min(60vw, 330px)',
+              minHeight: isArticle ? 520 : isTrendy ? 440 : isRecord ? 300 : 250,
               height: isTrendy ? 440 : undefined,
               padding: 0,
               border: isPaper ? '1px solid rgba(20,17,12,0.16)' : 'none',
@@ -715,73 +715,147 @@ function ObjectFace({ room }: { room: RoomDoor }) {
     return (
       <span
         style={{
+          position: 'relative',
           display: 'block',
-          minHeight: 420,
-          padding: '42px 34px 32px',
-          background:
-            `repeating-linear-gradient(180deg, transparent 0 33px, rgba(20,17,12,0.052) 34px 35px), linear-gradient(90deg, transparent 0 56px, ${palette.cyanSoft} 57px 58px, transparent 59px)`,
+          minHeight: 520,
+          padding: '18px 0 44px',
         }}
       >
         <span
+          aria-hidden
           style={{
-            display: 'block',
-            color: 'rgba(20,17,12,0.62)',
-            fontFamily: mono,
-            fontSize: '0.56rem',
-            fontWeight: 700,
-            letterSpacing: '0.16em',
-            marginBottom: 6,
-            textAlign: 'center',
-            textTransform: 'uppercase',
+            position: 'absolute',
+            right: 0,
+            top: 4,
+            zIndex: 0,
+            width: 'min(42vw, 245px)',
+            height: 440,
+            backgroundImage: "url('/dispatch-covers/harassment.jpg')",
+            backgroundPosition: '48% 50%',
+            backgroundSize: 'cover',
+            boxShadow: '0 24px 70px -36px rgba(20,17,12,0.48)',
+            filter: 'contrast(1.03) grayscale(0.08)',
+          }}
+        />
+        <span
+          aria-hidden
+          style={{
+            position: 'absolute',
+            right: 76,
+            bottom: 0,
+            zIndex: 2,
+            width: 150,
+            height: 178,
+            background: palette.cream,
+            boxShadow: '0 18px 46px -30px rgba(20,17,12,0.55)',
+            padding: 8,
+            transform: 'rotate(4deg)',
           }}
         >
-          Viewpoint
+          <span
+            style={{
+              display: 'block',
+              width: '100%',
+              height: '100%',
+              backgroundImage: "url('/bg_pic/03.jpeg')",
+              backgroundPosition: '36% 18%',
+              backgroundSize: '190%',
+              filter: 'saturate(0.84) contrast(0.98)',
+            }}
+          />
         </span>
         <span
           style={{
+            position: 'relative',
+            zIndex: 1,
             display: 'block',
-            color: 'rgba(20,17,12,0.64)',
-            fontFamily: mono,
-            fontSize: '0.54rem',
-            letterSpacing: '0.22em',
-            marginBottom: 18,
-            textAlign: 'center',
-            textTransform: 'uppercase',
+            width: 'min(88vw, 475px)',
+            minHeight: 500,
+            marginLeft: 0,
+            padding: '58px clamp(24px, 7vw, 46px) 42px',
+            background: '#fff',
+            boxShadow: '0 22px 70px -42px rgba(20,17,12,0.5)',
           }}
         >
-          Woman in Tech
+          <span
+            style={{
+              display: 'block',
+              color: 'rgba(20,17,12,0.74)',
+              fontFamily: mono,
+              fontSize: '0.68rem',
+              fontWeight: 800,
+              letterSpacing: '0.22em',
+              marginBottom: 28,
+              textAlign: 'center',
+              textTransform: 'uppercase',
+            }}
+          >
+            Viewpoint
+          </span>
+          <span
+            style={{
+              display: 'block',
+              color: palette.ink,
+              fontFamily: nunito,
+              fontSize: 'clamp(2.05rem, 4.7vw, 4.05rem)',
+              fontWeight: 850,
+              letterSpacing: '-0.055em',
+              lineHeight: 1.02,
+              margin: '0 auto 32px',
+              maxWidth: 398,
+              textAlign: 'center',
+            }}
+          >
+            {room.signal}
+          </span>
+          <span
+            style={{
+              color: 'rgba(20,17,12,0.78)',
+              fontFamily: 'Georgia, serif',
+              fontSize: '1.02rem',
+              lineHeight: 1.44,
+              margin: '0 auto',
+              maxWidth: 355,
+              overflow: 'hidden',
+              textAlign: 'center',
+              display: '-webkit-box',
+              WebkitLineClamp: 4,
+              WebkitBoxOrient: 'vertical',
+            }}
+          >
+            {room.blurb}
+          </span>
         </span>
         <span
+          aria-hidden
           style={{
-            display: 'block',
-            fontSize: 'clamp(2.05rem, 4.2vw, 3.8rem)',
-            fontWeight: 500,
-            letterSpacing: '-0.055em',
-            lineHeight: 0.94,
-            margin: '0 auto 24px',
-            maxWidth: 350,
-            textAlign: 'center',
-            fontFamily: "'Bradley Hand', 'Comic Sans MS', 'Marker Felt', cursive",
-          }}
-        >
-          {room.signal}
-        </span>
-        <span
-          style={{
+            position: 'absolute',
+            left: 14,
+            top: -6,
+            zIndex: 3,
             color: 'rgba(20,17,12,0.72)',
             fontFamily: 'Georgia, serif',
-            fontSize: '0.98rem',
-            lineHeight: 1.52,
-            margin: '0 auto',
-            maxWidth: 320,
-            overflow: 'hidden',
-            textAlign: 'center',
-            display: '-webkit-box',
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: 'vertical',
+            fontSize: '1.02rem',
+            fontStyle: 'italic',
           }}
         >
-          {room.blurb}
+          read me
+        </span>
+        <span
+          aria-hidden
+          style={{
+            position: 'absolute',
+            left: 18,
+            bottom: 18,
+            zIndex: 2,
+            color: palette.softPink,
+            fontFamily: "'Allura', cursive",
+            fontSize: '1.22rem',
+            lineHeight: 1,
+            transform: 'rotate(-2deg)',
+          }}
+        >
+          no more whisper network
         </span>
       </span>
     );
