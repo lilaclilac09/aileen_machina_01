@@ -24,7 +24,7 @@ type RoomDoor = {
   category: string;
   blurb: string;
   signal: string;
-  motif: 'article' | 'radar' | 'ticker' | 'record';
+  motif: 'article' | 'hbm' | 'pcb' | 'record';
   placement: CSSProperties;
 };
 
@@ -54,7 +54,7 @@ export default function Home() {
   const latestIssue = ALL_ISSUES[0];
   const latestIssueHref = latestIssue ? `/research/${latestIssue.slug}` : '/research';
   const latestDispatch = tx.blog.researchDispatch.posts.slice(-1)[0];
-  const latestWomanInTech = tx.blog.womanInTech.posts[0];
+  const metooArticle = tx.blog.womanInTech.posts.find((post) => post.href === '/blog/harassment') ?? tx.blog.womanInTech.posts[0];
   const rooms: RoomDoor[] = [
     {
       id: 'magazine',
@@ -62,30 +62,30 @@ export default function Home() {
       label: 'Magazine',
       href: latestIssueHref,
       category: 'Issue',
-      blurb: 'Interactive judgments, one issue at a time.',
+      blurb: 'HBM stacks, David, and the day the stockpile hits zero.',
       signal: latestIssue ? `${latestIssue.issueNumber} · ${latestIssue.coverTitle}` : 'Open the magazine rack',
-      motif: 'radar',
-      placement: { top: '4%', left: '39%', transform: 'rotate(-4deg)', zIndex: 4 },
+      motif: 'hbm',
+      placement: { top: '5%', left: '40%', transform: 'rotate(-4deg)', zIndex: 4 },
     },
     {
       id: 'dispatch',
       index: '02',
       label: 'News Desk',
       href: '/dispatch',
-      category: 'Dispatch',
-      blurb: 'Fresh dispatches and analysis.',
+      category: 'PCB stack',
+      blurb: 'GB200 boards, CCL, M8/M9, and who gets to choose the board.',
       signal: latestDispatch ? latestDispatch.title : 'Open the archive',
-      motif: 'ticker',
-      placement: { top: '9%', right: '7%', transform: 'rotate(3deg)', zIndex: 2 },
+      motif: 'pcb',
+      placement: { top: '8%', right: '7%', transform: 'rotate(3deg)', zIndex: 2 },
     },
     {
       id: 'library',
       index: '03',
       label: 'Library',
-      href: latestWomanInTech ? latestWomanInTech.href : '/dispatch',
-      category: 'Long-form',
-      blurb: latestWomanInTech ? latestWomanInTech.body : 'Long-form essays and the back catalogue.',
-      signal: latestWomanInTech ? latestWomanInTech.title : 'Open the catalogue',
+      href: metooArticle ? metooArticle.href : '/dispatch',
+      category: 'Woman in Tech',
+      blurb: metooArticle ? metooArticle.body : 'Long-form essays and the back catalogue.',
+      signal: metooArticle ? metooArticle.title : 'Every Woman in Tech Has a #MeToo Story',
       motif: 'article',
       placement: { top: '19%', left: '4%', transform: 'rotate(-1.5deg)', zIndex: 6 },
     },
@@ -480,23 +480,23 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
 
           <div
             aria-hidden
-            className="absolute right-[14%] top-[39%] z-[7] hidden h-[92px] w-[300px] items-center justify-center sm:flex"
+            className="absolute right-[14%] top-[39%] z-[7] hidden h-[104px] w-[318px] items-center justify-center sm:flex"
             style={{
               background:
-                'radial-gradient(circle at 18% 34%, #14110c 0 7px, transparent 8px), radial-gradient(circle at 42% 68%, #14110c 0 6px, transparent 7px), radial-gradient(circle at 72% 38%, #14110c 0 8px, transparent 9px), #f2d6ab',
+                'radial-gradient(circle at 12% 30%, #14110c 0 6px, #f8f5ee 7px 10px, transparent 11px), radial-gradient(circle at 82% 72%, #14110c 0 5px, #f8f5ee 6px 9px, transparent 10px), linear-gradient(90deg, transparent 0 22%, #14110c 23% 24%, transparent 25% 50%, #14110c 51% 52%, transparent 53%), linear-gradient(0deg, transparent 0 42%, #14110c 43% 44%, transparent 45% 72%, #14110c 73% 74%, transparent 75%), #99f6c8',
               color: '#14110c',
               border: '7px solid #ff1f9a',
               borderRadius: 18,
               boxShadow: '0 6px 0 #ff1f9a, 0 16px 0 rgba(20,17,12,0.9)',
               transform: 'rotate(2deg)',
-              fontSize: 'clamp(2.4rem, 5vw, 4rem)',
+              fontSize: 'clamp(1.95rem, 4vw, 3.25rem)',
               fontWeight: 900,
-              letterSpacing: '-0.07em',
+              letterSpacing: '-0.06em',
               textShadow: '3px 3px 0 #f8f5ee, -2px -2px 0 #f8f5ee',
               WebkitTextStroke: '1px #14110c',
             }}
           >
-            words
+            PCB stack
           </div>
 
           <p
@@ -569,7 +569,15 @@ const topLinkStyle: CSSProperties = {
 function ObjectFace({ room }: { room: RoomDoor }) {
   if (room.motif === 'article') {
     return (
-      <span style={{ display: 'block', padding: '42px 34px 32px' }}>
+      <span
+        style={{
+          display: 'block',
+          minHeight: 420,
+          padding: '42px 34px 32px',
+          background:
+            'repeating-linear-gradient(180deg, transparent 0 33px, rgba(20,17,12,0.055) 34px 35px), linear-gradient(90deg, transparent 0 56px, rgba(255,94,166,0.12) 57px 58px, transparent 59px)',
+        }}
+      >
         <span
           style={{
             display: 'block',
@@ -604,11 +612,12 @@ function ObjectFace({ room }: { room: RoomDoor }) {
             display: 'block',
             fontSize: 'clamp(2.05rem, 4.2vw, 3.8rem)',
             fontWeight: 500,
-            letterSpacing: '-0.06em',
-            lineHeight: 0.96,
+            letterSpacing: '-0.055em',
+            lineHeight: 0.94,
             margin: '0 auto 24px',
             maxWidth: 350,
             textAlign: 'center',
+            fontFamily: "'Bradley Hand', 'Comic Sans MS', 'Marker Felt', cursive",
           }}
         >
           {room.signal}
@@ -635,26 +644,53 @@ function ObjectFace({ room }: { room: RoomDoor }) {
     );
   }
 
-  if (room.motif === 'radar') {
+  if (room.motif === 'hbm') {
     return (
-      <span style={objectShellStyle}>
+      <span style={{ ...objectShellStyle, background: '#fffaf0' }}>
         <span style={objectKickerStyle}>{room.category}</span>
         <span
           aria-hidden
           style={{
             position: 'relative',
-            display: 'block',
-            width: 170,
-            height: 170,
-            margin: '16px auto',
-            borderRadius: '50%',
-            border: '1px solid rgba(20,17,12,0.22)',
-            background:
-              'radial-gradient(circle, transparent 0 22%, rgba(20,17,12,0.09) 23% 24%, transparent 25% 47%, rgba(20,17,12,0.09) 48% 49%, transparent 50%), conic-gradient(from 20deg, rgba(255,167,38,0.65), rgba(0,255,234,0.35), rgba(20,17,12,0.08), rgba(255,167,38,0.65))',
+            display: 'grid',
+            gap: 7,
+            width: 178,
+            margin: '18px auto 20px',
+            padding: '16px 18px',
+            borderRadius: 28,
+            border: '3px solid #14110c',
+            background: '#ffa726',
+            boxShadow: '7px 7px 0 #00ffea',
           }}
         >
-          <span style={{ position: 'absolute', left: '50%', top: 14, width: 1, height: 142, background: 'rgba(20,17,12,0.18)' }} />
-          <span style={{ position: 'absolute', left: 14, top: '50%', width: 142, height: 1, background: 'rgba(20,17,12,0.18)' }} />
+          {[0, 1, 2, 3].map((idx) => (
+            <span
+              key={idx}
+              style={{
+                display: 'block',
+                height: 28,
+                borderRadius: 10,
+                border: '2px solid #14110c',
+                background: idx % 2 === 0 ? '#fff8d8' : '#f8f5ee',
+                transform: `translateX(${idx % 2 === 0 ? -5 : 5}px)`,
+                boxShadow: 'inset 0 -5px 0 rgba(20,17,12,0.1)',
+              }}
+            />
+          ))}
+          <span
+            style={{
+              position: 'absolute',
+              right: 13,
+              top: 12,
+              color: '#14110c',
+              fontFamily: mono,
+              fontSize: '0.58rem',
+              fontWeight: 800,
+              letterSpacing: '0.08em',
+            }}
+          >
+            HBM
+          </span>
         </span>
         <span style={objectTitleStyle}>{room.label}</span>
         <span style={objectTextStyle}>{room.signal}</span>
@@ -662,29 +698,42 @@ function ObjectFace({ room }: { room: RoomDoor }) {
     );
   }
 
-  if (room.motif === 'ticker') {
+  if (room.motif === 'pcb') {
     return (
-      <span style={{ ...objectShellStyle, background: '#fff8d8' }}>
+      <span style={{ ...objectShellStyle, background: '#f5ffe8' }}>
         <span style={objectKickerStyle}>{room.category}</span>
         <span
           aria-hidden
           style={{
-            display: 'grid',
-            gap: 8,
-            margin: '20px 0 18px',
+            position: 'relative',
+            display: 'block',
+            height: 132,
+            margin: '18px 0 20px',
+            borderRadius: 18,
+            border: '3px solid #14110c',
+            background:
+              'radial-gradient(circle at 18% 24%, #f8f5ee 0 6px, #14110c 7px 9px, transparent 10px), radial-gradient(circle at 78% 30%, #f8f5ee 0 5px, #14110c 6px 8px, transparent 9px), radial-gradient(circle at 34% 74%, #f8f5ee 0 5px, #14110c 6px 8px, transparent 9px), linear-gradient(90deg, transparent 0 34%, rgba(20,17,12,0.95) 35% 37%, transparent 38%), linear-gradient(0deg, transparent 0 48%, rgba(20,17,12,0.95) 49% 52%, transparent 53%), #99f6c8',
+            boxShadow: '7px 7px 0 #ffb7dc',
           }}
         >
-          {[0.9, 0.68, 0.82, 0.5].map((width, idx) => (
+          {[18, 46, 72, 104].map((left, idx) => (
             <span
               key={idx}
               style={{
-                display: 'block',
-                width: `${width * 100}%`,
-                height: idx === 0 ? 12 : 8,
-                background: idx === 0 ? '#14110c' : 'rgba(20,17,12,0.28)',
+                position: 'absolute',
+                left,
+                top: idx % 2 === 0 ? 28 : 78,
+                width: 34,
+                height: 22,
+                borderRadius: 7,
+                border: '2px solid #14110c',
+                background: idx % 2 === 0 ? '#fff8d8' : '#00ffea',
               }}
             />
           ))}
+          <span style={{ position: 'absolute', right: 15, bottom: 12, fontFamily: mono, fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.08em' }}>
+            18 LAYERS
+          </span>
         </span>
         <span style={objectTitleStyle}>{room.label}</span>
         <span style={objectTextStyle}>{room.signal}</span>
