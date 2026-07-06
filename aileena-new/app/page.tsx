@@ -43,6 +43,36 @@ type RoomDoor = {
   note?: string;
 };
 
+const HOME_DOCUMENTARIES = [
+  {
+    title: 'Joan Didion: The Center Will Not Hold',
+    meta: '2018 · writer / witness',
+    image:
+      'https://resizing.flixster.com/onSFETOELTXATdk56VRhXRScAvA=/206x305/v2/https://resizing.flixster.com/JbJYntMfetJO6X_4lj7ZrJdwmn4=/ems.cHJkLWVtcy1hc3NldHMvbW92aWVzL2U5ZTQ5ODMzLWFiNGUtNGM1Ny1iNjk3LTkyNzI0YmFiZDEwMy53ZWJw',
+  },
+  {
+    title: 'David Hockney RA',
+    meta: '2017 · exhibition film',
+    image:
+      'https://d7hftxdivxxvm.cloudfront.net/?height=800&quality=80&resize_to=fit&src=https%3A%2F%2Fd32dm0rphc51dk.cloudfront.net%2FxVvYx_HSwpadXmaJ91XLWQ%2Fmain.jpg&width=535',
+  },
+  {
+    title: 'A Bigger Splash',
+    meta: '1973 · Hockney / pool',
+    image: 'https://www.ecartelera.com/carteles/10100/10114/004.jpg',
+  },
+];
+
+const HOME_PODCASTS = [
+  { title: 'Fashion Neurosis', meta: 'Bella Freud · Kate Moss' },
+  { title: 'Do You Read Her', meta: 'women / reading / voice' },
+];
+
+const HOME_CHANNELS = [
+  { title: 'Asymmetrical Bets', meta: 'markets / narratives' },
+  { title: 'SemiAnalysis', meta: 'semis / AI infrastructure' },
+];
+
 /* ── Homepage ─────────────────────────────────────────────────────────
  *
  * A cinematic opening, then one clickable clipping desk. Information is
@@ -50,7 +80,8 @@ type RoomDoor = {
  * contain the content.
  *
  *   Section 01  Cinematic opening   — scene + one line + one CTA
- *   Section 02  Clipping desk       — article scraps + handmade/podcast signals
+ *   Section 02  Clipping desk       — article scraps + direct doors
+ *   Section 03  Watch hub           — podcasts, documentaries, channels
  *
  * Cover-agent (Natalia portrait + Ask the agent) is preserved on the
  * cinematic opening; it doubles as the door to the agent department.
@@ -105,9 +136,9 @@ export default function Home() {
       id: 'trendy',
       index: '04',
       label: 'Trendy',
-      href: '/blog/watch-listening-shelf',
+      href: '#watch-hub',
       category: tx.trendy.tag,
-      blurb: `${tx.trendy.body} Podcasts, documentaries, and reading channels — one shelf, not mixed into the glass work.`,
+      blurb: `${tx.trendy.body} Podcasts, documentaries, and reading channels — one homepage hub.`,
       signal: tx.trendy.heading,
       motif: 'trendy',
       note: tx.visual.note,
@@ -343,8 +374,280 @@ export default function Home() {
           <AtriumLinkDock rooms={rooms} />
         </SnapSection>
 
+        {/* ── 03 WATCH / LISTEN HUB ─────────────────────────────── */}
+        <SnapSection id="watch-hub" className="order-3">
+          <HomeWatchHub />
+        </SnapSection>
+
       </SnapContainer>
     </>
+  );
+}
+
+function HomeWatchHub() {
+  return (
+    <section
+      className="h-full overflow-hidden px-5 sm:px-9 lg:px-14"
+      style={{
+        background: '#fff',
+        color: palette.ink,
+        fontFamily: nunito,
+      }}
+      aria-label="Watch and listen hub"
+    >
+      <div
+        className="mx-auto grid h-full max-w-[1320px] gap-8 overflow-y-auto pb-10 pt-[82px] lg:grid-cols-[0.86fr_1.14fr] lg:items-center lg:gap-14 lg:overflow-visible lg:pb-8 lg:pt-[88px]"
+      >
+        <div style={{ maxWidth: 510 }}>
+          <p
+            style={{
+              color: palette.cyan,
+              fontFamily: mono,
+              fontSize: '0.64rem',
+              fontWeight: 850,
+              letterSpacing: '0.34em',
+              marginBottom: 24,
+              textTransform: 'uppercase',
+            }}
+          >
+            Watch / Listen Hub
+          </p>
+          <h2
+            style={{
+              color: palette.ink,
+              fontSize: 'clamp(2.4rem, 6vw, 5.2rem)',
+              fontWeight: 590,
+              letterSpacing: '-0.03em',
+              lineHeight: 0.98,
+              marginBottom: 28,
+            }}
+          >
+            One shelf. Not glued onto every essay.
+          </h2>
+          <p
+            style={{
+              color: 'rgba(20,17,12,0.66)',
+              fontFamily: 'Georgia, serif',
+              fontSize: '1.08rem',
+              lineHeight: 1.64,
+              marginBottom: 28,
+            }}
+          >
+            Podcasts, documentaries, and research channels now live here as a
+            homepage hub. The essays stay clean; the shelf has its own room.
+          </p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 30 }}>
+            {['podcasts', 'documentaries', 'substacks'].map((tag) => (
+              <span
+                key={tag}
+                style={{
+                  border: '1px solid rgba(20,17,12,0.14)',
+                  borderRadius: 999,
+                  color: 'rgba(20,17,12,0.56)',
+                  fontFamily: mono,
+                  fontSize: '0.58rem',
+                  fontWeight: 850,
+                  letterSpacing: '0.16em',
+                  padding: '7px 12px',
+                  textTransform: 'uppercase',
+                }}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+          <Link
+            href="/blog/watch-listening-shelf"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 11,
+              minHeight: 46,
+              border: '1px solid rgba(0,169,159,0.42)',
+              borderRadius: 999,
+              color: '#007f76',
+              fontFamily: mono,
+              fontSize: '0.66rem',
+              fontWeight: 900,
+              letterSpacing: '0.18em',
+              padding: '0 18px',
+              textDecoration: 'none',
+              textTransform: 'uppercase',
+            }}
+          >
+            Open the issue <span aria-hidden>→</span>
+          </Link>
+        </div>
+
+        <div
+          className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr] lg:items-end"
+          style={{ minWidth: 0 }}
+        >
+          <div
+            style={{
+              position: 'relative',
+              minHeight: 'clamp(420px, 58dvh, 620px)',
+            }}
+          >
+            <p
+              style={{
+                color: palette.cyan,
+                fontFamily: mono,
+                fontSize: '0.62rem',
+                fontWeight: 850,
+                letterSpacing: '0.3em',
+                margin: '0 0 16px 12px',
+                textTransform: 'uppercase',
+              }}
+            >
+              Watch shelf
+            </p>
+            {HOME_DOCUMENTARIES.map((item, index) => (
+              <Link
+                key={item.title}
+                href="/blog/watch-listening-shelf"
+                className="absolute block"
+                style={{
+                  left: ['5%', '28%', '14%'][index],
+                  top: ['8%', '29%', '50%'][index],
+                  width: ['min(58vw, 250px)', 'min(50vw, 220px)', 'min(52vw, 235px)'][index],
+                  zIndex: [3, 2, 1][index],
+                  padding: 9,
+                  background: palette.cream,
+                  color: palette.ink,
+                  textDecoration: 'none',
+                  transform: `rotate(${[-3.5, 4, -1.5][index]}deg)`,
+                  boxShadow: '0 28px 62px -44px rgba(20,17,12,0.58)',
+                }}
+              >
+                <span
+                  aria-hidden
+                  style={{
+                    position: 'absolute',
+                    left: '50%',
+                    top: -12,
+                    width: 74,
+                    height: 22,
+                    background: index === 1 ? 'rgba(0,169,159,0.18)' : palette.amberSoft,
+                    transform: 'translateX(-50%) rotate(2deg)',
+                  }}
+                />
+                <span
+                  aria-hidden
+                  style={{
+                    display: 'block',
+                    aspectRatio: '0.76',
+                    backgroundColor: '#111',
+                    backgroundImage: `url("${item.image}")`,
+                    backgroundPosition: 'center',
+                    backgroundSize: 'cover',
+                    filter: 'saturate(0.92) contrast(1.03)',
+                    marginBottom: 11,
+                  }}
+                />
+                <span
+                  style={{
+                    display: 'block',
+                    color: 'rgba(20,17,12,0.48)',
+                    fontFamily: mono,
+                    fontSize: '0.54rem',
+                    fontWeight: 850,
+                    letterSpacing: '0.16em',
+                    lineHeight: 1.3,
+                    marginBottom: 7,
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {item.meta}
+                </span>
+                <span
+                  style={{
+                    display: 'block',
+                    color: palette.ink,
+                    fontSize: '1rem',
+                    fontWeight: 800,
+                    letterSpacing: '-0.035em',
+                    lineHeight: 1.06,
+                  }}
+                >
+                  {item.title}
+                </span>
+              </Link>
+            ))}
+          </div>
+
+          <div className="grid gap-4 pb-3">
+            <HubShelf title="Listen shelf" items={HOME_PODCASTS} />
+            <HubShelf title="Read shelf" items={HOME_CHANNELS} />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function HubShelf({ title, items }: { title: string; items: { title: string; meta: string }[] }) {
+  return (
+    <div>
+      <p
+        style={{
+          color: palette.cyan,
+          fontFamily: mono,
+          fontSize: '0.58rem',
+          fontWeight: 850,
+          letterSpacing: '0.28em',
+          margin: '0 0 10px',
+          textTransform: 'uppercase',
+        }}
+      >
+        {title}
+      </p>
+      <div style={{ display: 'grid', gap: 10 }}>
+        {items.map((item) => (
+          <Link
+            key={item.title}
+            href="/blog/watch-listening-shelf"
+            style={{
+              display: 'block',
+              border: '1px solid rgba(20,17,12,0.12)',
+              borderRadius: 4,
+              background: '#fff',
+              color: palette.ink,
+              padding: '14px 16px',
+              textDecoration: 'none',
+              boxShadow: '0 20px 42px -38px rgba(20,17,12,0.42)',
+            }}
+          >
+            <span
+              style={{
+                display: 'block',
+                color: palette.ink,
+                fontSize: '1.02rem',
+                fontWeight: 780,
+                letterSpacing: '-0.025em',
+                lineHeight: 1.08,
+              }}
+            >
+              {item.title}
+            </span>
+            <span
+              style={{
+                display: 'block',
+                color: 'rgba(20,17,12,0.46)',
+                fontFamily: mono,
+                fontSize: '0.54rem',
+                fontWeight: 850,
+                letterSpacing: '0.16em',
+                marginTop: 7,
+                textTransform: 'uppercase',
+              }}
+            >
+              {item.meta}
+            </span>
+          </Link>
+        ))}
+      </div>
+    </div>
   );
 }
 
