@@ -52,9 +52,8 @@ type VisualItem = {
  * Cover-agent (Natalia portrait + Ask the agent) is preserved on the
  * cinematic opening; it doubles as the door to the agent department.
  *
- * Visual language: dark base (#070707), amber primary (#ffa726, the
- * editorial / Magazine signal), cyan accent (#00ffea, the agent /
- * machina signal). No third accent.
+ * Visual language: white editorial base, amber for Magazine, cyan/teal for
+ * machina links. The DJ station stays black.
  */
 export default function Home() {
   const { language } = useLanguage();
@@ -158,7 +157,7 @@ export default function Home() {
         {/* ── 01 CINEMATIC OPENING ──────────────────────────────── */}
         <SnapSection id="opening" className="order-1">
           <div
-            className="h-full flex flex-col bg-[#070707] relative overflow-hidden"
+            className="h-full flex flex-col bg-white relative overflow-hidden"
             style={{ fontFamily: nunito }}
           >
             {/* Background portrait — large, partially out of frame on the right */}
@@ -173,9 +172,7 @@ export default function Home() {
                 backgroundSize: '180%',
                 backgroundRepeat: 'no-repeat',
                 borderRadius: '24px',
-                boxShadow: '0 60px 140px -40px rgba(0,255,234,0.18), 0 0 0 1px rgba(0,255,234,0.18)',
-                maskImage: 'linear-gradient(270deg, #000 60%, transparent 100%)',
-                WebkitMaskImage: 'linear-gradient(270deg, #000 60%, transparent 100%)',
+                boxShadow: '0 34px 110px -64px rgba(20,17,12,0.45), 0 0 0 1px rgba(20,17,12,0.08)',
               }}
             />
 
@@ -190,7 +187,7 @@ export default function Home() {
                 backgroundPosition: '22% 8%',
                 backgroundSize: '180%',
                 borderRadius: 14,
-                boxShadow: '0 30px 60px -20px rgba(0,255,234,0.25)',
+                boxShadow: '0 24px 60px -34px rgba(20,17,12,0.45)',
               }}
             />
 
@@ -218,9 +215,8 @@ export default function Home() {
                     fontWeight: 600,
                     letterSpacing: '-0.022em',
                     lineHeight: 1.04,
-                    color: '#fff',
+                    color: '#14110c',
                     marginBottom: 40,
-                    textShadow: '0 4px 30px rgba(0,0,0,0.6)',
                   }}
                 >
                   {tx.hero.line}
@@ -236,11 +232,11 @@ export default function Home() {
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: 8,
-                      background: 'transparent',
-                      color: '#00ffea',
+                      background: '#fff',
+                      color: '#00a99f',
                       padding: '13px 22px',
                       borderRadius: 999,
-                      border: '1px solid rgba(0,255,234,0.45)',
+                      border: '1px solid rgba(0,169,159,0.38)',
                       fontFamily: mono,
                       fontSize: '0.64rem',
                       letterSpacing: '0.22em',
@@ -257,8 +253,8 @@ export default function Home() {
                         width: 6,
                         height: 6,
                         borderRadius: '50%',
-                        background: '#00ffea',
-                        boxShadow: '0 0 8px rgba(0,255,234,0.9)',
+                        background: '#00a99f',
+                        boxShadow: '0 0 8px rgba(0,169,159,0.55)',
                       }}
                     />
                     Ask the agent
@@ -269,9 +265,9 @@ export default function Home() {
 
             {/* Scroll cue */}
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 anim-fade z-10">
-              <div className="w-px h-10 bg-gradient-to-b from-transparent to-white/25" />
+              <div className="w-px h-10 bg-gradient-to-b from-transparent to-[#14110c]/20" />
               <span
-                className="text-white/30"
+                className="text-[#14110c]/32"
                 style={{
                   fontFamily: mono,
                   fontSize: '0.55rem',
@@ -456,21 +452,21 @@ export default function Home() {
 
         {/* ── 04 VISUAL — handmade glass + handwritten note ─────── */}
         <SnapSection id="visual" className="order-4">
-          <div className="h-full flex flex-col bg-[#070707] px-6 sm:px-10 lg:px-16">
+          <div className="h-full flex flex-col bg-white px-6 sm:px-10 lg:px-16">
             <div className="mx-auto flex h-full w-full max-w-[920px] flex-col py-12 sm:py-16" style={{ fontFamily: nunito }}>
               <p
-                className="anim-up mb-4 flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.32em] text-white/40"
+                className="anim-up mb-4 flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.32em] text-[#14110c]/40"
                 style={{ fontWeight: 500 }}
               >
                 {tx.visual.tag} <Sparkle />
               </p>
               <h2
-                className="anim-up-2 mb-3 flex items-center gap-3 text-[clamp(1.6rem,4.2vw,2.6rem)] tracking-tight text-white/95"
+                className="anim-up-2 mb-3 flex items-center gap-3 text-[clamp(1.6rem,4.2vw,2.6rem)] tracking-tight text-[#14110c]"
                 style={{ fontWeight: 500 }}
               >
                 {tx.visual.heading} <Heart />
               </h2>
-              <p className="anim-up-3 mb-8 max-w-lg text-[1rem] leading-relaxed text-white/55" style={{ fontWeight: 400 }}>
+              <p className="anim-up-3 mb-8 max-w-lg text-[1rem] leading-relaxed text-[#14110c]/62" style={{ fontWeight: 400 }}>
                 {tx.visual.body}
               </p>
 
@@ -478,30 +474,21 @@ export default function Home() {
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
                   {tx.visual.items.map((img: VisualItem) => {
                     const tile = (
-                      <figure className="relative m-0 aspect-square w-full overflow-hidden rounded-md">
+                      <figure className="m-0 rounded-md border border-[#14110c]/10 bg-white p-2 transition-colors group-hover:border-[#00a99f]/45">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={img.src}
                           alt={img.alt}
-                          className="h-full w-full object-cover opacity-90 transition-opacity group-hover:opacity-100"
-                        />
-                        <span
-                          aria-hidden
-                          className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5"
-                          style={{
-                            background:
-                              'linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.18) 55%, transparent 100%)',
-                          }}
+                          className="aspect-square w-full rounded-[4px] object-cover opacity-90 transition-opacity group-hover:opacity-100"
                         />
                         <figcaption
-                          className="absolute bottom-[6%] left-[7%] right-[7%]"
+                          className="mt-2 min-h-[2rem] text-center"
                           style={{
                             fontFamily: "'Allura', cursive",
-                            color: '#ffa590',
-                            fontSize: 'clamp(1.3rem, 3.4vw, 2.2rem)',
+                            color: '#ff6f91',
+                            fontSize: 'clamp(1.1rem, 2.4vw, 1.45rem)',
                             letterSpacing: '0.01em',
                             lineHeight: 1,
-                            textShadow: '0 1px 14px rgba(0,0,0,0.55), 0 1px 2px rgba(0,0,0,0.6)',
                           }}
                         >
                           {img.caption}
@@ -509,7 +496,7 @@ export default function Home() {
                             <span
                               className="ml-3 opacity-0 transition-opacity group-hover:opacity-100"
                               style={{
-                                color: '#ffd2bf',
+                                color: '#00a99f',
                                 fontFamily: "'Allura', cursive",
                                 fontSize: '0.55em',
                               }}
@@ -533,15 +520,15 @@ export default function Home() {
                   })}
                 </div>
 
-                <div className="anim-up mt-9 flex items-center gap-3 text-white/30">
+                <div className="anim-up mt-9 flex items-center gap-3 text-[#14110c]/30">
                   <Sparkle />
                   <Heart />
                   <Star />
                   <Flower />
                   <span
-                    className="ml-1 text-white/55"
+                    className="ml-1 text-[#14110c]/55"
                     style={{
-                      color: '#ffa590',
+                      color: '#ff6f91',
                       fontFamily: "'Allura', cursive",
                       fontSize: '1.35rem',
                       lineHeight: 1,
@@ -552,7 +539,7 @@ export default function Home() {
                 </div>
                 <Link
                   href="/blog/pate-de-verre"
-                  className="anim-up mt-4 inline-block text-[0.82rem] text-[#00ffea]/70 transition-colors hover:text-[#00ffea]"
+                  className="anim-up mt-4 inline-block text-[0.82rem] text-[#00a99f] transition-colors hover:text-[#008f86]"
                   style={{ fontWeight: 500 }}
                 >
                   {tx.visual.readGlass}
@@ -579,32 +566,32 @@ export default function Home() {
         {/* ── 06 FOOTER ─────────────────────────────────────────── */}
         <SnapSection className="order-6">
           <div
-            className="h-full flex flex-col justify-end bg-[#030303] px-6 sm:px-10 lg:px-16 py-14 sm:py-16"
+            className="h-full flex flex-col justify-end bg-white px-6 sm:px-10 lg:px-16 py-14 sm:py-16"
             style={{ fontFamily: nunito }}
           >
             <div className="mx-auto w-full max-w-[920px]">
-              <p className="anim-up text-sm leading-7 text-white/45 mb-10 max-w-md" style={{ fontWeight: 400 }}>
+              <p className="anim-up text-sm leading-7 text-[#14110c]/58 mb-10 max-w-md" style={{ fontWeight: 400 }}>
                 {tx.footer.body}
               </p>
               <div className="grid grid-cols-2 gap-10 sm:gap-14 mb-10">
                 {tx.footer.columns.map((col) => (
                   <div key={col.heading} className="anim-left">
-                    <h3 className="text-[0.66rem] uppercase tracking-[0.28em] text-white/35 mb-4" style={{ fontWeight: 500 }}>
+                    <h3 className="text-[0.66rem] uppercase tracking-[0.28em] text-[#14110c]/38 mb-4" style={{ fontWeight: 500 }}>
                       {col.heading}
                     </h3>
-                    <ul className="space-y-2.5 text-[0.92rem] text-white/55" style={{ fontWeight: 400 }}>
+                    <ul className="space-y-2.5 text-[0.92rem] text-[#14110c]/62" style={{ fontWeight: 400 }}>
                       {col.links.map((link) => (
                         <li key={link.label}>
                           {link.href.startsWith('http')
-                            ? <a href={link.href} className="hover:text-white transition-colors">{link.label}</a>
-                            : <Link href={link.href} className="hover:text-white transition-colors">{link.label}</Link>}
+                            ? <a href={link.href} className="hover:text-[#00a99f] transition-colors">{link.label}</a>
+                            : <Link href={link.href} className="hover:text-[#00a99f] transition-colors">{link.label}</Link>}
                         </li>
                       ))}
                     </ul>
                   </div>
                 ))}
               </div>
-              <p className="anim-fade text-[0.6rem] tracking-[0.3em] text-white/25" style={{ fontWeight: 500 }}>
+              <p className="anim-fade text-[0.6rem] tracking-[0.3em] text-[#14110c]/30" style={{ fontWeight: 500 }}>
                 EST 2025 · AILEENA · MACHINA
               </p>
             </div>
@@ -656,7 +643,7 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
       className="h-full px-5 sm:px-9 lg:px-14"
       style={{
         fontFamily: nunito,
-        background: 'linear-gradient(#050505 0 76px, #f8f5ee 76px)',
+        background: '#fff',
       }}
     >
       <div
