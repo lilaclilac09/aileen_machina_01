@@ -1,6 +1,13 @@
 'use client';
 
-import { useEffect, useState, type CSSProperties } from 'react';
+import {
+  useEffect,
+  useState,
+  type CSSProperties,
+  type DragEvent as ReactDragEvent,
+  type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
+} from 'react';
 import Link from 'next/link';
 import Header from '../components/Header';
 import LoadingScreen from '../components/LoadingScreen';
@@ -29,6 +36,24 @@ const palette = {
 };
 
 const SESSION_LOADED_KEY = 'aileena_loaded_once';
+const dragMeCursor =
+  'url("data:image/svg+xml,%3Csvg%20xmlns=\'http://www.w3.org/2000/svg\'%20width=\'104\'%20height=\'34\'%20viewBox=\'0%200%20104%2034\'%3E%3Ctext%20x=\'4\'%20y=\'23\'%20font-family=\'Georgia%2Cserif\'%20font-size=\'20\'%20font-style=\'italic\'%20fill=\'%2314110c\'%3Edrag%20me%3C/text%3E%3C/svg%3E") 8 18, grab';
+const dragThreshold = 4;
+
+type DragOffset = {
+  x: number;
+  y: number;
+};
+
+type DragState = {
+  id: string;
+  pointerId: number;
+  startX: number;
+  startY: number;
+  originX: number;
+  originY: number;
+  moved: boolean;
+};
 
 type RoomDoor = {
   id: string;
@@ -108,7 +133,7 @@ export default function Home() {
       blurb: 'HBM stacks, David, and the day the stockpile hits zero.',
       signal: latestIssue ? `${latestIssue.issueNumber} · ${latestIssue.coverTitle}` : 'Open the magazine rack',
       motif: 'hbm',
-      placement: { top: '4%', left: '39%', transform: 'rotate(-4deg)', zIndex: 4 },
+      placement: { top: '6%', left: '55%', transform: 'rotate(-4deg)', zIndex: 5 },
     },
     {
       id: 'dispatch',
@@ -119,7 +144,7 @@ export default function Home() {
       blurb: 'GB200 boards, CCL, M8/M9, and who gets to choose the board.',
       signal: latestDispatch ? latestDispatch.title : 'Open the archive',
       motif: 'pcb',
-      placement: { top: '7%', right: '4%', transform: 'rotate(3deg)', zIndex: 2 },
+      placement: { top: '9%', right: '4%', transform: 'rotate(3deg)', zIndex: 4 },
     },
     {
       id: 'library',
@@ -130,7 +155,7 @@ export default function Home() {
       blurb: metooArticle ? metooArticle.body : 'Long-form essays and the back catalogue.',
       signal: metooArticle ? metooArticle.title : 'Every Woman in Tech Has a #MeToo Story',
       motif: 'article',
-      placement: { top: '12%', left: '1%', transform: 'rotate(-1deg)', zIndex: 9 },
+      placement: { top: '9%', left: '2%', transform: 'rotate(-1deg)', zIndex: 14 },
     },
     {
       id: 'trendy',
@@ -142,7 +167,7 @@ export default function Home() {
       signal: tx.trendy.heading,
       motif: 'trendy',
       note: tx.visual.note,
-      placement: { top: '26%', left: '42%', transform: 'rotate(1.5deg)', zIndex: 12 },
+      placement: { top: '28%', left: '50%', transform: 'rotate(1.5deg)', zIndex: 12 },
     },
   ];
 
@@ -654,11 +679,92 @@ function HubShelf({ title, items }: { title: string; items: { title: string; met
 
 function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
   const jensenHref = rooms.find((room) => room.id === 'magazine')?.href ?? '/research';
+  const [dragOffsets, setDragOffsets] = useState<Record<string, DragOffset>>({});
+  const [activeDragId, setActiveDragId] = useState<string | null>(null);
+  const [raisedId, setRaisedId] = useState<string | null>(null);
+  const [dragState, setDragState] = useState<DragState | null>(null);
   const socialLinks = [
     { label: 'github', href: 'https://github.com/lilaclilac09' },
     { label: 'substack', href: '/dispatch' },
     { label: 'sound', href: '/sound' },
   ];
+  const getDragOffset = (id: string) => dragOffsets[id] ?? { x: 0, y: 0 };
+  const dragTransform = (id: string, baseTransform: string) => {
+    const offset = getDragOffset(id);
+    const translate = `translate3d(${offset.x}px, ${offset.y}px, 0)`;
+    return baseTransform ? `${translate} ${baseTransform}` : translate;
+  };
+  const beginDrag = (id: string, event: ReactPointerEvent<HTMLElement>) => {
+    if (event.button !== 0) return;
+    const offset = getDragOffset(id);
+    setDragState({
+      id,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      originX: offset.x,
+      originY: offset.y,
+      moved: false,
+    });
+    setActiveDragId(id);
+    setRaisedId(id);
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+  const updateDrag = (event: ReactPointerEvent<HTMLElement>) => {
+    const drag = dragState;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const dx = event.clientX - drag.startX;
+    const dy = event.clientY - drag.startY;
+    const moved = drag.moved || Math.hypot(dx, dy) > dragThreshold;
+    if (!moved) return;
+    event.preventDefault();
+    if (!drag.moved) setDragState({ ...drag, moved: true });
+    setDragOffsets((current) => ({
+      ...current,
+      [drag.id]: {
+        x: drag.originX + dx,
+        y: drag.originY + dy,
+      },
+    }));
+  };
+  const endDrag = (event: ReactPointerEvent<HTMLElement>) => {
+    const drag = dragState;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const moved = drag.moved || Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY) > dragThreshold;
+    const target = event.currentTarget;
+    if (moved) target.dataset.dragged = 'true';
+    setDragState(null);
+    setActiveDragId(null);
+    if (target.hasPointerCapture(event.pointerId)) {
+      target.releasePointerCapture(event.pointerId);
+    }
+    window.setTimeout(() => {
+      delete target.dataset.dragged;
+    }, 0);
+  };
+  const cancelDrag = (event: ReactPointerEvent<HTMLElement>) => {
+    const drag = dragState;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    setDragState(null);
+    setActiveDragId(null);
+  };
+  const blockNativeDrag = (event: ReactDragEvent<HTMLElement>) => {
+    event.preventDefault();
+  };
+  const suppressDragClick = (event: ReactMouseEvent<HTMLElement>) => {
+    if (event.currentTarget.dataset.dragged !== 'true') return;
+    event.preventDefault();
+    event.stopPropagation();
+  };
+  const dragHandlers = (id: string) => ({
+    draggable: false,
+    onClickCapture: suppressDragClick,
+    onDragStart: blockNativeDrag,
+    onPointerCancel: cancelDrag,
+    onPointerDown: (event: ReactPointerEvent<HTMLElement>) => beginDrag(id, event),
+    onPointerMove: updateDrag,
+    onPointerUp: endDrag,
+  });
 
   return (
     <div
@@ -754,6 +860,8 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
 
           {rooms.map((room) => {
             const baseTransform = String(room.placement.transform ?? '');
+            const isActiveDrag = activeDragId === room.id;
+            const isRaised = isActiveDrag || raisedId === room.id;
             const isArticle = room.motif === 'article';
             const isTrendy = room.motif === 'trendy';
             const isRecord = room.motif === 'record';
@@ -761,18 +869,22 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             const desktopRoomStyle: CSSProperties = {
               ...room.placement,
               position: 'absolute',
-              width: isArticle ? 'min(86vw, 610px)' : isTrendy ? 'min(76vw, 470px)' : isRecord ? 'min(56vw, 290px)' : 'min(60vw, 330px)',
-              minHeight: isArticle ? 'clamp(455px, 58dvh, 520px)' : isTrendy ? 'clamp(360px, 46dvh, 410px)' : isRecord ? 300 : 250,
-              height: isTrendy ? 'clamp(360px, 46dvh, 410px)' : undefined,
+              width: isArticle ? 'min(86vw, 610px)' : isTrendy ? 'min(70vw, 430px)' : isRecord ? 'min(56vw, 290px)' : 'min(60vw, 330px)',
+              minHeight: isArticle ? 'clamp(455px, 58dvh, 520px)' : isTrendy ? 'clamp(340px, 44dvh, 390px)' : isRecord ? 300 : 250,
+              height: isTrendy ? 'clamp(340px, 44dvh, 390px)' : undefined,
               padding: 0,
               border: isPaper ? '1px solid rgba(20,17,12,0.16)' : 'none',
               background: isPaper ? palette.paper : 'transparent',
               color: palette.ink,
-              cursor: 'pointer',
+              cursor: isActiveDrag ? 'grabbing' : dragMeCursor,
               textDecoration: 'none',
               boxShadow: isPaper ? '0 24px 70px -42px rgba(20,17,12,0.5)' : 'none',
-              transform: baseTransform,
+              transform: dragTransform(room.id, baseTransform),
               transition: 'box-shadow 0.18s ease, transform 0.18s ease',
+              touchAction: 'none',
+              userSelect: 'none',
+              willChange: 'transform',
+              zIndex: isRaised ? 40 : room.placement.zIndex,
             };
 
             return room.href.startsWith('http') ? (
@@ -784,6 +896,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 className="hidden text-left sm:block"
                 style={desktopRoomStyle}
                 aria-label={`Open ${room.label}`}
+                {...dragHandlers(room.id)}
               >
                 <ObjectFace room={room} />
               </a>
@@ -794,6 +907,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 className="hidden text-left sm:block"
                 style={desktopRoomStyle}
                 aria-label={`Open ${room.label}`}
+                {...dragHandlers(room.id)}
               >
                 <ObjectFace room={room} />
               </Link>
@@ -805,15 +919,22 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             aria-label="Open Jensen AI stock article"
             className="absolute right-[11%] top-[38%] z-[7] hidden h-[190px] w-[365px] overflow-visible sm:block"
             style={{
+              right: '7%',
+              top: '45%',
               padding: 8,
               background: palette.cream,
               border: '1px solid rgba(20,17,12,0.13)',
               borderRadius: 18,
-              cursor: 'pointer',
+              cursor: activeDragId === 'jensen-stock-print' ? 'grabbing' : dragMeCursor,
               boxShadow: '0 18px 0 rgba(20,17,12,0.86), 0 28px 66px -30px rgba(20,17,12,0.72)',
-              transform: 'rotate(2deg)',
+              transform: dragTransform('jensen-stock-print', 'rotate(2deg)'),
               transition: 'transform 0.18s ease',
+              touchAction: 'none',
+              userSelect: 'none',
+              willChange: 'transform',
+              zIndex: activeDragId === 'jensen-stock-print' || raisedId === 'jensen-stock-print' ? 41 : 7,
             }}
+            {...dragHandlers('jensen-stock-print')}
           >
             <span
               aria-hidden
@@ -1015,18 +1136,18 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           position: 'relative',
           display: 'block',
           minHeight: 'clamp(455px, 58dvh, 520px)',
-          padding: '14px 0 36px',
+          padding: '20px 0 36px',
         }}
       >
         <span
           aria-hidden
           style={{
             position: 'absolute',
-            right: 0,
-            top: 4,
+            right: 26,
+            top: 18,
             zIndex: 0,
-            width: 'min(42vw, 245px)',
-            height: 'clamp(330px, 47dvh, 420px)',
+            width: 'min(38vw, 220px)',
+            height: 'clamp(300px, 43dvh, 382px)',
             backgroundImage: "url('/dispatch-covers/harassment.jpg')",
             backgroundPosition: '48% 50%',
             backgroundSize: 'cover',
@@ -1038,8 +1159,8 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           aria-hidden
           style={{
             position: 'absolute',
-            right: 76,
-            bottom: 12,
+            right: 112,
+            bottom: 14,
             zIndex: 2,
             width: 'clamp(118px, 11vw, 150px)',
             height: 'clamp(140px, 13vw, 178px)',
@@ -1066,10 +1187,10 @@ function ObjectFace({ room }: { room: RoomDoor }) {
             position: 'relative',
             zIndex: 1,
             display: 'block',
-            width: 'min(88vw, 475px)',
-            minHeight: 'clamp(430px, 55dvh, 500px)',
-            marginLeft: 0,
-            padding: 'clamp(42px, 6dvh, 58px) clamp(24px, 7vw, 46px) clamp(30px, 5dvh, 42px)',
+            width: 'min(72vw, 440px)',
+            minHeight: 'clamp(410px, 53dvh, 482px)',
+            marginLeft: 18,
+            padding: 'clamp(38px, 5.6dvh, 52px) clamp(24px, 6vw, 42px) clamp(28px, 4.8dvh, 40px)',
             background: '#fff',
             boxShadow: '0 22px 70px -42px rgba(20,17,12,0.5)',
           }}
@@ -1094,12 +1215,12 @@ function ObjectFace({ room }: { room: RoomDoor }) {
               display: 'block',
               color: palette.ink,
               fontFamily: nunito,
-              fontSize: 'clamp(1.9rem, 4.35vw, 3.75rem)',
+              fontSize: 'clamp(1.75rem, 3.35vw, 3.05rem)',
               fontWeight: 850,
-              letterSpacing: '-0.055em',
-              lineHeight: 1.02,
+              letterSpacing: '-0.045em',
+              lineHeight: 1.04,
               margin: '0 auto clamp(20px, 3.8dvh, 32px)',
-              maxWidth: 398,
+              maxWidth: 372,
               textAlign: 'center',
             }}
           >
@@ -1127,8 +1248,8 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           aria-hidden
           style={{
             position: 'absolute',
-            left: 14,
-            top: -6,
+            left: 34,
+            top: -8,
             zIndex: 3,
             color: 'rgba(20,17,12,0.72)',
             fontFamily: 'Georgia, serif',
@@ -1164,7 +1285,7 @@ function ObjectFace({ room }: { room: RoomDoor }) {
         style={{
           position: 'relative',
           display: 'block',
-          height: 'clamp(360px, 46dvh, 410px)',
+          height: 'clamp(340px, 44dvh, 390px)',
           overflow: 'hidden',
           padding: 'clamp(34px, 5dvh, 42px) 32px 22px',
           background:
