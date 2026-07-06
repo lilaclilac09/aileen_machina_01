@@ -68,6 +68,8 @@ export const t = {
       heading: 'Visual',
       body: 'Photos and little things from the years before everything became code — kept around just because they make me smile. Drawn, shot, and loved on. ♡',
       note: 'made by hand, not by prompt  ૮ ˶ᵔ ᵕ ᵔ˶ ა',
+      kilnTag: 'FROM THE KILN',
+      kilnNote: 'The glass I fired belongs here too — colour, powder, heat, patience.',
       readGlass: 'On the glass — how powder becomes density →',
       items: [
         { src: '/pate-clay.jpg', alt: 'Rolling out the clay', caption: 'rolling the clay', href: '/blog/pate-de-verre' },
@@ -549,6 +551,8 @@ export const t = {
       heading: 'Visuell',
       body: 'Fotos und kleine Dinge aus den Jahren, bevor alles zu Code wurde — aufgehoben, einfach weil sie mich zum Lächeln bringen. Gezeichnet, fotografiert, geliebt. ♡',
       note: 'von Hand gemacht, nicht per Prompt  ૮ ˶ᵔ ᵕ ᵔ˶ ა',
+      kilnTag: 'AUS DEM OFEN',
+      kilnNote: 'Das Glas, das ich gebrannt habe, gehört hier auch hin — Farbe, Pulver, Hitze, Geduld.',
       readGlass: 'Über das Glas — wie Pulver zu Dichte wird →',
       items: [
         { src: '/pate-clay.jpg', alt: 'Ton ausrollen', caption: 'Ton ausrollen', href: '/blog/pate-de-verre' },
