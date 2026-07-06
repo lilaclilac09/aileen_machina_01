@@ -56,10 +56,13 @@ export default function UnlockPage() {
   const [msg, setMsg] = useState('');
 
   useEffect(() => {
-    const p = new URLSearchParams(window.location.search);
-    const n = p.get('next');
-    if (n && n.startsWith('/') && !n.startsWith('//')) setNext(n);
-    if (p.get('error') === 'expired') setMsg('that link expired — request a new one.');
+    const id = window.setTimeout(() => {
+      const p = new URLSearchParams(window.location.search);
+      const n = p.get('next');
+      if (n && n.startsWith('/') && !n.startsWith('//')) setNext(n);
+      if (p.get('error') === 'expired') setMsg('that link expired — request a new one.');
+    }, 0);
+    return () => window.clearTimeout(id);
   }, []);
 
   async function sendEmail(e: React.FormEvent) {
@@ -146,7 +149,7 @@ export default function UnlockPage() {
         {/* Email */}
         {emailState === 'sent' ? (
           <p style={sentBox}>
-            ✓ check your inbox — we sent a one-time link to <strong style={{ color: '#fff' }}>{email}</strong>.
+            ✓ check your inbox — we sent a one-time link to <strong style={{ color: '#111' }}>{email}</strong>.
             it expires in 30 minutes.
           </p>
         ) : (
@@ -179,50 +182,55 @@ const wrap: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  background: '#070707',
+  background: '#fff',
   padding: 24,
   fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+  color: '#111',
+  animation: 'none',
+  opacity: 1,
+  transform: 'none',
 };
 const card: React.CSSProperties = {
   width: '100%',
   maxWidth: 440,
-  border: '1px solid rgba(255,255,255,0.1)',
+  border: '1px solid rgba(17,17,17,0.1)',
   borderRadius: 14,
   padding: '40px 32px',
-  background: 'rgba(255,255,255,0.02)',
+  background: '#fff',
+  boxShadow: '0 16px 36px rgba(17,17,17,0.06)',
 };
 const eyebrow: React.CSSProperties = {
   fontFamily: 'monospace',
   fontSize: '0.6rem',
   letterSpacing: '0.4em',
-  color: '#00ffea',
+  color: '#008f84',
   textTransform: 'uppercase',
   marginBottom: 18,
-  opacity: 0.85,
+  opacity: 0.9,
 };
-const title: React.CSSProperties = { fontSize: '1.6rem', color: 'rgba(255,255,255,0.95)', fontWeight: 600, marginBottom: 12, lineHeight: 1.2 };
-const lede: React.CSSProperties = { fontSize: '0.95rem', lineHeight: 1.7, color: 'rgba(255,255,255,0.6)', marginBottom: 28 };
+const title: React.CSSProperties = { fontSize: '1.6rem', color: '#111', fontWeight: 650, marginBottom: 12, lineHeight: 1.2 };
+const lede: React.CSSProperties = { fontSize: '0.95rem', lineHeight: 1.7, color: 'rgba(17,17,17,0.62)', marginBottom: 28 };
 const walletBtn: React.CSSProperties = {
   width: '100%',
   padding: '13px 16px',
   borderRadius: 10,
-  border: '1px solid rgba(0,255,234,0.5)',
-  background: 'rgba(0,255,234,0.08)',
-  color: '#00ffea',
+  border: '1px solid rgba(0,143,132,0.42)',
+  background: '#fff',
+  color: '#00786f',
   fontWeight: 600,
   fontSize: '0.95rem',
   cursor: 'pointer',
 };
 const divider: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 12, margin: '22px 0' };
-const dividerLine: React.CSSProperties = { flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' };
-const dividerText: React.CSSProperties = { fontFamily: 'monospace', fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)' };
+const dividerLine: React.CSSProperties = { flex: 1, height: 1, background: 'rgba(17,17,17,0.1)' };
+const dividerText: React.CSSProperties = { fontFamily: 'monospace', fontSize: '0.7rem', color: 'rgba(17,17,17,0.38)' };
 const input: React.CSSProperties = {
   width: '100%',
   padding: '12px 14px',
   borderRadius: 10,
-  border: '1px solid rgba(255,255,255,0.14)',
-  background: 'rgba(255,255,255,0.03)',
-  color: '#fff',
+  border: '1px solid rgba(17,17,17,0.14)',
+  background: '#fff',
+  color: '#111',
   fontSize: '0.95rem',
   outline: 'none',
 };
@@ -230,9 +238,9 @@ const emailBtn: React.CSSProperties = {
   width: '100%',
   padding: '12px 16px',
   borderRadius: 10,
-  border: '1px solid rgba(255,255,255,0.18)',
-  background: 'rgba(255,255,255,0.04)',
-  color: 'rgba(255,255,255,0.9)',
+  border: '1px solid rgba(17,17,17,0.18)',
+  background: '#fff',
+  color: 'rgba(17,17,17,0.86)',
   fontWeight: 600,
   fontSize: '0.95rem',
   cursor: 'pointer',
@@ -240,10 +248,11 @@ const emailBtn: React.CSSProperties = {
 const sentBox: React.CSSProperties = {
   fontSize: '0.9rem',
   lineHeight: 1.6,
-  color: 'rgba(0,255,234,0.85)',
-  border: '1px solid rgba(0,255,234,0.25)',
+  color: '#00786f',
+  border: '1px solid rgba(0,143,132,0.22)',
   borderRadius: 10,
   padding: '14px 16px',
+  background: '#fff',
 };
-const errorText: React.CSSProperties = { marginTop: 16, fontFamily: 'monospace', fontSize: '0.8rem', color: '#ff6b6b' };
-const footnote: React.CSSProperties = { marginTop: 28, fontSize: '0.78rem', color: 'rgba(255,255,255,0.3)' };
+const errorText: React.CSSProperties = { marginTop: 16, fontFamily: 'monospace', fontSize: '0.8rem', color: '#b42318' };
+const footnote: React.CSSProperties = { marginTop: 28, fontSize: '0.78rem', color: 'rgba(17,17,17,0.38)' };
