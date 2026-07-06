@@ -6,7 +6,7 @@ import { useLanguage } from '../../components/LanguageProvider';
 import { t } from '../../lib/translations';
 import ScrollUnlock from '../blog/ScrollUnlock';
 import '../blog/_substack/substack.css';
-import SwipeRow, { type Post, getCover } from '../../components/SwipeRow';
+import SwipeRow, { type Post } from '../../components/SwipeRow';
 import CoverflowPanel from '../../components/CoverflowPanel';
 import {
   useCoverflowSettings,
@@ -110,12 +110,15 @@ export default function DispatchArchive() {
 
   const [view, setView] = useState<DispatchView>('image');
   useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(VIEW_STORAGE_KEY);
-      if (saved === 'image' || saved === 'text') setView(saved);
-    } catch {
-      /* localStorage blocked — keep default */
-    }
+    const id = window.setTimeout(() => {
+      try {
+        const saved = window.localStorage.getItem(VIEW_STORAGE_KEY);
+        if (saved === 'image' || saved === 'text') setView(saved);
+      } catch {
+        /* localStorage blocked — keep default */
+      }
+    }, 0);
+    return () => window.clearTimeout(id);
   }, []);
   const updateView = useCallback((next: DispatchView) => {
     setView(next);
@@ -133,8 +136,8 @@ export default function DispatchArchive() {
     <div
       style={{
         minHeight: '100vh',
-        background: 'var(--bg-primary)',
-        color: 'var(--text-primary)',
+        background: '#fff',
+        color: '#111',
         fontFamily: nunito,
         overflowY: 'auto',
       }}
@@ -147,9 +150,9 @@ export default function DispatchArchive() {
           top: 0,
           zIndex: 50,
           padding: '18px 24px',
-          background: 'var(--bg-primary)',
+          background: 'rgba(255,255,255,0.92)',
           backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid var(--glass-border)',
+          borderBottom: '1px solid rgba(17,17,17,0.08)',
           opacity: 0.96,
         }}
       >
@@ -169,7 +172,7 @@ export default function DispatchArchive() {
               fontFamily: nunito,
               fontSize: '0.85rem',
               fontWeight: 500,
-              color: 'var(--text-primary)',
+              color: '#111',
               opacity: 0.6,
               textDecoration: 'none',
             }}
@@ -189,7 +192,7 @@ export default function DispatchArchive() {
                 fontFamily: nunito,
                 fontSize: '0.7rem',
                 letterSpacing: '0.18em',
-                color: 'var(--text-primary)',
+                color: '#111',
                 opacity: 0.35,
                 textTransform: 'uppercase',
                 fontWeight: 500,
@@ -297,8 +300,8 @@ function ViewToggle({
         gap: 2,
         padding: 2,
         borderRadius: 999,
-        border: '1px solid var(--glass-border)',
-        background: 'rgba(255,255,255,0.04)',
+        border: '1px solid rgba(17,17,17,0.12)',
+        background: '#fff',
       }}
     >
       {options.map((opt) => {
@@ -321,8 +324,8 @@ function ViewToggle({
               textTransform: 'uppercase',
               fontWeight: 500,
               cursor: 'pointer',
-              color: active ? '#0a0a0a' : 'rgba(255,255,255,0.55)',
-              background: active ? '#7df9ff' : 'transparent',
+              color: active ? '#fff' : 'rgba(17,17,17,0.58)',
+              background: active ? '#008f84' : 'transparent',
               transition: 'background 0.18s ease, color 0.18s ease',
             }}
           >
@@ -344,7 +347,7 @@ function RailHeader({ tag, heading }: { tag: string; heading: string }) {
           fontFamily: nunito,
           fontSize: '0.7rem',
           letterSpacing: '0.18em',
-          color: 'var(--text-primary)',
+          color: '#111',
           opacity: 0.4,
           textTransform: 'uppercase',
           fontWeight: 500,
@@ -358,7 +361,7 @@ function RailHeader({ tag, heading }: { tag: string; heading: string }) {
           fontSize: 'clamp(1.7rem, 4.4vw, 2.6rem)',
           fontWeight: 500,
           letterSpacing: '-0.005em',
-          color: 'var(--text-primary)',
+          color: '#111',
           marginBottom: 36,
           lineHeight: 1.15,
         }}
@@ -376,7 +379,7 @@ function TopicHeader({ topic }: { topic: string }) {
         fontFamily: nunito,
         fontSize: '0.68rem',
         letterSpacing: '0.22em',
-        color: 'var(--text-primary)',
+        color: '#111',
         opacity: 0.55,
         textTransform: 'uppercase',
         fontWeight: 600,

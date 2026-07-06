@@ -71,14 +71,14 @@ export default function CoverflowPanel({
                 right: 8,
                 bottom: 8,
                 maxHeight: 'min(64vh, 520px)',
-                background: 'rgba(10, 10, 10, 0.88)',
+                background: 'rgba(255, 255, 255, 0.94)',
                 backdropFilter: 'blur(14px)',
                 WebkitBackdropFilter: 'blur(14px)',
-                border: '1px solid rgba(255, 167, 38, 0.22)',
+                border: '1px solid rgba(17, 17, 17, 0.12)',
                 borderRadius: 8,
                 boxShadow:
-                  '0 30px 60px -20px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 167, 38, 0.08)',
-                color: '#fff',
+                  '0 24px 56px -28px rgba(17, 17, 17, 0.28), 0 0 0 1px rgba(17, 17, 17, 0.04)',
+                color: '#111',
                 fontFamily: nunito,
                 zIndex: 60,
                 // Slide off-screen below when closed; toggle button
@@ -96,14 +96,14 @@ export default function CoverflowPanel({
                 bottom: 14,
                 width: 320,
                 maxWidth: 'calc(100vw - 28px)',
-                background: 'rgba(10, 10, 10, 0.78)',
+                background: 'rgba(255, 255, 255, 0.94)',
                 backdropFilter: 'blur(14px)',
                 WebkitBackdropFilter: 'blur(14px)',
-                border: '1px solid rgba(255, 167, 38, 0.22)',
+                border: '1px solid rgba(17, 17, 17, 0.12)',
                 borderRadius: 4,
                 boxShadow:
-                  '0 30px 60px -20px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 167, 38, 0.08)',
-                color: '#fff',
+                  '0 24px 56px -28px rgba(17, 17, 17, 0.28), 0 0 0 1px rgba(17, 17, 17, 0.04)',
+                color: '#111',
                 fontFamily: nunito,
                 zIndex: 60,
                 transition: 'right 0.32s cubic-bezier(0.22, 1, 0.36, 1)',
@@ -117,7 +117,7 @@ export default function CoverflowPanel({
         <header
           style={{
             padding: '14px 18px 12px',
-            borderBottom: '1px solid rgba(255, 167, 38, 0.18)',
+            borderBottom: '1px solid rgba(17, 17, 17, 0.09)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -130,7 +130,7 @@ export default function CoverflowPanel({
               fontSize: '0.62rem',
               letterSpacing: '0.28em',
               textTransform: 'uppercase',
-              color: '#ffa726',
+              color: '#008f84',
               fontWeight: 600,
             }}
           >
@@ -141,9 +141,9 @@ export default function CoverflowPanel({
             onClick={reset}
             style={{
               appearance: 'none',
-              border: '1px solid rgba(255,255,255,0.15)',
+              border: '1px solid rgba(17,17,17,0.14)',
               background: 'transparent',
-              color: 'rgba(255,255,255,0.55)',
+              color: 'rgba(17,17,17,0.55)',
               padding: '3px 9px',
               borderRadius: 999,
               fontFamily: mono,
@@ -173,7 +173,7 @@ export default function CoverflowPanel({
                   fontSize: '0.52rem',
                   letterSpacing: '0.32em',
                   textTransform: 'uppercase',
-                  color: 'rgba(255,255,255,0.4)',
+                  color: 'rgba(17,17,17,0.42)',
                   margin: '0 0 10px',
                   fontWeight: 600,
                 }}
@@ -220,11 +220,11 @@ function ToggleButton({
         bottom: 14,
         zIndex: 61,
         appearance: 'none',
-        border: '1px solid rgba(255, 167, 38, 0.35)',
-        background: hover ? 'rgba(255, 167, 38, 0.12)' : 'rgba(10, 10, 10, 0.75)',
+        border: '1px solid rgba(0, 143, 132, 0.34)',
+        background: hover ? 'rgba(0, 143, 132, 0.08)' : '#fff',
         backdropFilter: 'blur(10px)',
         WebkitBackdropFilter: 'blur(10px)',
-        color: '#ffa726',
+        color: '#008f84',
         padding: '8px 14px',
         borderRadius: 999,
         fontFamily: mono,
@@ -236,7 +236,7 @@ function ToggleButton({
         display: 'inline-flex',
         alignItems: 'center',
         gap: 8,
-        boxShadow: '0 6px 18px -8px rgba(0,0,0,0.6)',
+        boxShadow: '0 6px 18px -10px rgba(17,17,17,0.32)',
         transition: 'background 0.18s ease, border-color 0.18s ease',
       }}
     >
@@ -247,8 +247,8 @@ function ToggleButton({
           width: 7,
           height: 7,
           borderRadius: '50%',
-          background: open ? '#ffa726' : 'rgba(255,167,38,0.4)',
-          boxShadow: open ? '0 0 8px rgba(255,167,38,0.85)' : 'none',
+          background: open ? '#008f84' : 'rgba(0,143,132,0.38)',
+          boxShadow: open ? '0 0 8px rgba(0,143,132,0.55)' : 'none',
         }}
       />
       {t.title} {open ? '⌄' : '⌃'}
@@ -288,7 +288,7 @@ function Slider({
             fontSize: '0.6rem',
             letterSpacing: '0.12em',
             textTransform: 'uppercase',
-            color: 'rgba(255,255,255,0.7)',
+            color: 'rgba(17,17,17,0.68)',
           }}
         >
           {name}
@@ -297,7 +297,7 @@ function Slider({
           style={{
             fontFamily: mono,
             fontSize: '0.62rem',
-            color: '#ffa726',
+            color: '#008f84',
             fontVariantNumeric: 'tabular-nums',
           }}
         >
@@ -313,7 +313,7 @@ function Slider({
         onChange={(e) => onChange(Number(e.target.value))}
         style={{
           width: '100%',
-          accentColor: '#ffa726',
+          accentColor: '#008f84',
           cursor: 'pointer',
         }}
       />
