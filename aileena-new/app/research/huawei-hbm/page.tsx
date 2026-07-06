@@ -1,6 +1,5 @@
-import ResearchBook from '../../../components/research/ResearchBook';
-import { HUAWEI_HBM } from '../../../lib/research/huawei-hbm';
+import { redirect } from 'next/navigation';
 
-export default function HuaweiHbmPage() {
-  return <ResearchBook issue={HUAWEI_HBM} />;
+export default function HuaweiHbmResearchPage() {
+  redirect('/blog/huawei-hbm');
 }

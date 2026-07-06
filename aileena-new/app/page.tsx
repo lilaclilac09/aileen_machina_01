@@ -1,6 +1,13 @@
 'use client';
 
-import { useEffect, useState, type CSSProperties } from 'react';
+import {
+  useEffect,
+  useState,
+  type CSSProperties,
+  type DragEvent as ReactDragEvent,
+  type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
+} from 'react';
 import Link from 'next/link';
 import Header from '../components/Header';
 import LoadingScreen from '../components/LoadingScreen';
@@ -29,6 +36,24 @@ const palette = {
 };
 
 const SESSION_LOADED_KEY = 'aileena_loaded_once';
+const dragMeCursor =
+  'url("data:image/svg+xml,%3Csvg%20xmlns=\'http://www.w3.org/2000/svg\'%20width=\'104\'%20height=\'34\'%20viewBox=\'0%200%20104%2034\'%3E%3Ctext%20x=\'4\'%20y=\'23\'%20font-family=\'Georgia%2Cserif\'%20font-size=\'20\'%20font-style=\'italic\'%20fill=\'%2314110c\'%3Edrag%20me%3C/text%3E%3C/svg%3E") 8 18, grab';
+const dragThreshold = 4;
+
+type DragOffset = {
+  x: number;
+  y: number;
+};
+
+type DragState = {
+  id: string;
+  pointerId: number;
+  startX: number;
+  startY: number;
+  originX: number;
+  originY: number;
+  moved: boolean;
+};
 
 type RoomDoor = {
   id: string;
@@ -43,27 +68,8 @@ type RoomDoor = {
   note?: string;
 };
 
-const HOME_DOCUMENTARIES = [
-  {
-    title: 'Joan Didion: The Center Will Not Hold',
-    meta: '2018 · writer / witness',
-    image:
-      'https://resizing.flixster.com/onSFETOELTXATdk56VRhXRScAvA=/206x305/v2/https://resizing.flixster.com/JbJYntMfetJO6X_4lj7ZrJdwmn4=/ems.cHJkLWVtcy1hc3NldHMvbW92aWVzL2U5ZTQ5ODMzLWFiNGUtNGM1Ny1iNjk3LTkyNzI0YmFiZDEwMy53ZWJw',
-  },
-  {
-    title: 'David Hockney RA',
-    meta: '2017 · exhibition film',
-    image:
-      'https://d7hftxdivxxvm.cloudfront.net/?height=800&quality=80&resize_to=fit&src=https%3A%2F%2Fd32dm0rphc51dk.cloudfront.net%2FxVvYx_HSwpadXmaJ91XLWQ%2Fmain.jpg&width=535',
-  },
-  {
-    title: 'A Bigger Splash',
-    meta: '1973 · Hockney / pool',
-    image: 'https://www.ecartelera.com/carteles/10100/10114/004.jpg',
-  },
-];
-
 const HOME_PODCASTS = [
+  { title: 'DJ sets', meta: 'two decks / sound room', href: '/sound' },
   { title: 'Fashion Neurosis', meta: 'Bella Freud · Kate Moss' },
   { title: 'Do You Read Her', meta: 'women / reading / voice' },
 ];
@@ -71,6 +77,12 @@ const HOME_PODCASTS = [
 const HOME_CHANNELS = [
   { title: 'Asymmetrical Bets', meta: 'markets / narratives' },
   { title: 'SemiAnalysis', meta: 'semis / AI infrastructure' },
+];
+
+const HOME_WATCH_ITEMS = [
+  { title: 'Joan Didion: The Center Will Not Hold', meta: '2018 · writer / witness' },
+  { title: 'David Hockney RA', meta: '2017 · exhibition film' },
+  { title: 'A Bigger Splash', meta: '1973 · Hockney / pool' },
 ];
 
 /* ── Homepage ─────────────────────────────────────────────────────────
@@ -81,10 +93,10 @@ const HOME_CHANNELS = [
  *
  *   Section 01  Cinematic opening   — scene + one line + one CTA
  *   Section 02  Clipping desk       — article scraps + direct doors
- *   Section 03  Watch hub           — podcasts, documentaries, channels
+ *   Section 03  Watch hub           — DJ sets, podcasts, documentaries, channels
  *
- * Cover-agent (Natalia portrait + Ask the agent) is preserved on the
- * cinematic opening; it doubles as the door to the agent department.
+ * The Machina mark on the cinematic opening doubles as the door to the
+ * agent department.
  *
  * Visual language: white editorial base, amber for Magazine, cyan/teal for
  * machina links. The standalone DJ station stays black on /sound.
@@ -95,7 +107,7 @@ export default function Home() {
   const [loaded, setLoaded] = useState(true);
   const [showLoadingScreen, setShowLoadingScreen] = useState(false);
   const latestIssue = ALL_ISSUES[0];
-  const latestIssueHref = latestIssue ? `/research/${latestIssue.slug}` : '/research';
+  const latestIssueHref = latestIssue?.longFormHref ?? (latestIssue ? `/blog/${latestIssue.slug}` : '/dispatch');
   const latestDispatch = tx.blog.researchDispatch.posts.slice(-1)[0];
   const metooArticle = tx.blog.womanInTech.posts.find((post) => post.href === '/blog/harassment') ?? tx.blog.womanInTech.posts[0];
   const rooms: RoomDoor[] = [
@@ -108,7 +120,7 @@ export default function Home() {
       blurb: 'HBM stacks, David, and the day the stockpile hits zero.',
       signal: latestIssue ? `${latestIssue.issueNumber} · ${latestIssue.coverTitle}` : 'Open the magazine rack',
       motif: 'hbm',
-      placement: { top: '4%', left: '39%', transform: 'rotate(-4deg)', zIndex: 4 },
+      placement: { top: '6%', left: '55%', transform: 'rotate(-4deg)', zIndex: 5 },
     },
     {
       id: 'dispatch',
@@ -119,7 +131,7 @@ export default function Home() {
       blurb: 'GB200 boards, CCL, M8/M9, and who gets to choose the board.',
       signal: latestDispatch ? latestDispatch.title : 'Open the archive',
       motif: 'pcb',
-      placement: { top: '7%', right: '4%', transform: 'rotate(3deg)', zIndex: 2 },
+      placement: { top: '9%', right: '4%', transform: 'rotate(3deg)', zIndex: 4 },
     },
     {
       id: 'library',
@@ -130,7 +142,7 @@ export default function Home() {
       blurb: metooArticle ? metooArticle.body : 'Long-form essays and the back catalogue.',
       signal: metooArticle ? metooArticle.title : 'Every Woman in Tech Has a #MeToo Story',
       motif: 'article',
-      placement: { top: '12%', left: '1%', transform: 'rotate(-1deg)', zIndex: 9 },
+      placement: { top: '9%', left: '2%', transform: 'rotate(-1deg)', zIndex: 14 },
     },
     {
       id: 'trendy',
@@ -142,7 +154,7 @@ export default function Home() {
       signal: tx.trendy.heading,
       motif: 'trendy',
       note: tx.visual.note,
-      placement: { top: '26%', left: '42%', transform: 'rotate(1.5deg)', zIndex: 12 },
+      placement: { top: '28%', left: '50%', transform: 'rotate(1.5deg)', zIndex: 12 },
     },
   ];
 
@@ -260,17 +272,18 @@ export default function Home() {
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: 13,
-                      minHeight: 66,
-                      background: `linear-gradient(135deg, ${palette.soot} 0%, #121a18 62%, #18221f 100%)`,
-                      color: palette.cream,
-                      padding: '10px 12px 10px 10px',
+                      gap: 16,
+                      minHeight: 76,
+                      background: 'rgba(255,253,247,0.82)',
+                      color: palette.ink,
+                      padding: '11px 16px 11px 12px',
                       borderRadius: 999,
-                      border: '1px solid rgba(0,169,159,0.46)',
+                      border: '1px solid rgba(0,169,159,0.26)',
                       boxShadow:
-                        '0 24px 70px -38px rgba(0,169,159,0.9), 0 12px 30px -26px rgba(20,17,12,0.8), inset 0 1px 0 rgba(255,255,255,0.16)',
+                        '0 20px 48px -34px rgba(20,17,12,0.52), 0 0 0 1px rgba(255,255,255,0.74) inset',
                       cursor: 'pointer',
                       textAlign: 'left',
+                      backdropFilter: 'blur(10px)',
                     }}
                     aria-label={tx.hero.talkAgent}
                   >
@@ -279,54 +292,54 @@ export default function Home() {
                       style={{
                         position: 'relative',
                         display: 'inline-flex',
-                        width: 48,
-                        height: 48,
+                        width: 56,
+                        height: 56,
                         flex: '0 0 auto',
                         borderRadius: '50%',
-                        backgroundImage: "url('/agent-portrait.jpeg')",
-                        backgroundPosition: 'center',
-                        backgroundSize: 'cover',
-                        boxShadow: `0 0 0 1px ${palette.cyanSoft}, 0 0 20px rgba(0,169,159,0.22)`,
+                        backgroundImage: "url('/bg_pic/03.jpeg')",
+                        backgroundPosition: '22% 8%',
+                        backgroundSize: '180%',
+                        boxShadow: `0 0 0 1px ${palette.cyan}, 0 10px 24px -18px rgba(20,17,12,0.9)`,
                       }}
                     >
                       <span
                         style={{
                           position: 'absolute',
-                          right: -1,
-                          top: 3,
-                          width: 11,
-                          height: 11,
+                          right: -3,
+                          top: 1,
+                          width: 15,
+                          height: 15,
                           borderRadius: '50%',
                           background: palette.cyan,
-                          boxShadow: '0 0 12px rgba(0,169,159,0.7)',
+                          boxShadow: '0 0 0 4px rgba(255,253,247,0.96), 0 0 14px rgba(0,169,159,0.62)',
                         }}
                       />
                     </span>
-                    <span style={{ display: 'grid', gap: 3, minWidth: 0 }}>
+                    <span style={{ display: 'grid', gap: 5, minWidth: 0, paddingRight: 6 }}>
                       <span
                         style={{
                           color: palette.cyan,
                           fontFamily: mono,
-                          fontSize: '0.68rem',
+                          fontSize: '0.86rem',
                           fontWeight: 800,
-                          letterSpacing: '0.24em',
+                          letterSpacing: '0.44em',
                           lineHeight: 1,
                           textTransform: 'uppercase',
                         }}
                       >
-                        Ask the agent
+                        Machina
                       </span>
                       <span
                         style={{
-                          color: 'rgba(248,245,238,0.74)',
+                          color: 'rgba(20,17,12,0.56)',
                           fontFamily: 'Georgia, serif',
-                          fontSize: '0.88rem',
+                          fontSize: '0.82rem',
                           fontStyle: 'italic',
                           lineHeight: 1.15,
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        open the machine room
+                        ask the agent
                       </span>
                     </span>
                     <span
@@ -334,14 +347,14 @@ export default function Home() {
                       style={{
                         display: 'grid',
                         placeItems: 'center',
-                        width: 32,
-                        height: 32,
+                        width: 38,
+                        height: 38,
                         flex: '0 0 auto',
                         borderRadius: '50%',
-                        background: 'rgba(248,245,238,0.1)',
-                        color: palette.cream,
+                        background: 'rgba(20,17,12,0.08)',
+                        color: palette.ink,
                         fontFamily: mono,
-                        fontSize: '1rem',
+                        fontSize: '1.05rem',
                       }}
                     >
                       →
@@ -387,7 +400,7 @@ export default function Home() {
 function HomeWatchHub() {
   return (
     <section
-      className="h-full overflow-hidden px-5 sm:px-9 lg:px-14"
+      className="h-full overflow-y-auto px-5 sm:px-9 lg:px-14"
       style={{
         background: '#fff',
         color: palette.ink,
@@ -396,7 +409,7 @@ function HomeWatchHub() {
       aria-label="Watch and listen hub"
     >
       <div
-        className="mx-auto grid h-full max-w-[1320px] gap-8 overflow-y-auto pb-10 pt-[82px] lg:grid-cols-[0.86fr_1.14fr] lg:items-center lg:gap-14 lg:overflow-visible lg:pb-8 lg:pt-[88px]"
+        className="mx-auto grid min-h-full max-w-[1320px] gap-8 pb-12 pt-[82px] lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-14 lg:pb-10 lg:pt-[88px]"
       >
         <div style={{ maxWidth: 510 }}>
           <p
@@ -433,11 +446,11 @@ function HomeWatchHub() {
               marginBottom: 28,
             }}
           >
-            Podcasts, documentaries, and research channels now live here as a
-            homepage hub. The essays stay clean; the shelf has its own room.
+            DJ sets, podcasts, documentaries, and research channels live here
+            as a homepage hub. Essays stay clean; the shelf has its own room.
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 30 }}>
-            {['podcasts', 'documentaries', 'substacks'].map((tag) => (
+            {['DJ sets', 'podcasts', 'documentaries', 'substacks'].map((tag) => (
               <span
                 key={tag}
                 style={{
@@ -475,110 +488,60 @@ function HomeWatchHub() {
               textTransform: 'uppercase',
             }}
           >
-            Open the issue <span aria-hidden>→</span>
+            Open the article <span aria-hidden>→</span>
           </Link>
         </div>
 
         <div
-          className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr] lg:items-end"
+          className="grid gap-5 lg:grid-cols-2"
           style={{ minWidth: 0 }}
         >
-          <div
-            style={{
-              position: 'relative',
-              minHeight: 'clamp(420px, 58dvh, 620px)',
-            }}
-          >
-            <p
+          <div className="grid gap-4">
+            <HubShelf title="Watch shelf" items={HOME_WATCH_ITEMS} />
+            <HubShelf title="Listen shelf" items={HOME_PODCASTS} />
+          </div>
+          <div className="grid content-start gap-4">
+            <HubShelf title="Read shelf" items={HOME_CHANNELS} />
+            <Link
+              href="/sound"
               style={{
-                color: palette.cyan,
-                fontFamily: mono,
-                fontSize: '0.62rem',
-                fontWeight: 850,
-                letterSpacing: '0.3em',
-                margin: '0 0 16px 12px',
-                textTransform: 'uppercase',
+                display: 'block',
+                border: '1px solid rgba(20,17,12,0.12)',
+                borderRadius: 4,
+                background: '#fff',
+                color: palette.ink,
+                padding: '18px 20px',
+                textDecoration: 'none',
+                boxShadow: '0 20px 42px -38px rgba(20,17,12,0.42)',
               }}
             >
-              Watch shelf
-            </p>
-            {HOME_DOCUMENTARIES.map((item, index) => (
-              <Link
-                key={item.title}
-                href="/blog/watch-listening-shelf"
-                className="absolute block"
+              <span
                 style={{
-                  left: ['5%', '28%', '14%'][index],
-                  top: ['8%', '29%', '50%'][index],
-                  width: ['min(58vw, 250px)', 'min(50vw, 220px)', 'min(52vw, 235px)'][index],
-                  zIndex: [3, 2, 1][index],
-                  padding: 9,
-                  background: palette.cream,
-                  color: palette.ink,
-                  textDecoration: 'none',
-                  transform: `rotate(${[-3.5, 4, -1.5][index]}deg)`,
-                  boxShadow: '0 28px 62px -44px rgba(20,17,12,0.58)',
+                  color: palette.cyan,
+                  display: 'block',
+                  fontFamily: mono,
+                  fontSize: '0.58rem',
+                  fontWeight: 850,
+                  letterSpacing: '0.22em',
+                  marginBottom: 10,
+                  textTransform: 'uppercase',
                 }}
               >
-                <span
-                  aria-hidden
-                  style={{
-                    position: 'absolute',
-                    left: '50%',
-                    top: -12,
-                    width: 74,
-                    height: 22,
-                    background: index === 1 ? 'rgba(0,169,159,0.18)' : palette.amberSoft,
-                    transform: 'translateX(-50%) rotate(2deg)',
-                  }}
-                />
-                <span
-                  aria-hidden
-                  style={{
-                    display: 'block',
-                    aspectRatio: '0.76',
-                    backgroundColor: '#111',
-                    backgroundImage: `url("${item.image}")`,
-                    backgroundPosition: 'center',
-                    backgroundSize: 'cover',
-                    filter: 'saturate(0.92) contrast(1.03)',
-                    marginBottom: 11,
-                  }}
-                />
-                <span
-                  style={{
-                    display: 'block',
-                    color: 'rgba(20,17,12,0.48)',
-                    fontFamily: mono,
-                    fontSize: '0.54rem',
-                    fontWeight: 850,
-                    letterSpacing: '0.16em',
-                    lineHeight: 1.3,
-                    marginBottom: 7,
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  {item.meta}
-                </span>
-                <span
-                  style={{
-                    display: 'block',
-                    color: palette.ink,
-                    fontSize: '1rem',
-                    fontWeight: 800,
-                    letterSpacing: '-0.035em',
-                    lineHeight: 1.06,
-                  }}
-                >
-                  {item.title}
-                </span>
-              </Link>
-            ))}
-          </div>
-
-          <div className="grid gap-4 pb-3">
-            <HubShelf title="Listen shelf" items={HOME_PODCASTS} />
-            <HubShelf title="Read shelf" items={HOME_CHANNELS} />
+                DJ station
+              </span>
+              <span
+                style={{
+                  display: 'block',
+                  color: palette.ink,
+                  fontSize: '1.18rem',
+                  fontWeight: 820,
+                  letterSpacing: '-0.03em',
+                  lineHeight: 1.08,
+                }}
+              >
+                The deck stays black. This is just the door.
+              </span>
+            </Link>
           </div>
         </div>
       </div>
@@ -586,7 +549,7 @@ function HomeWatchHub() {
   );
 }
 
-function HubShelf({ title, items }: { title: string; items: { title: string; meta: string }[] }) {
+function HubShelf({ title, items }: { title: string; items: { title: string; meta: string; href?: string }[] }) {
   return (
     <div>
       <p
@@ -606,7 +569,7 @@ function HubShelf({ title, items }: { title: string; items: { title: string; met
         {items.map((item) => (
           <Link
             key={item.title}
-            href="/blog/watch-listening-shelf"
+            href={item.href ?? '/blog/watch-listening-shelf'}
             style={{
               display: 'block',
               border: '1px solid rgba(20,17,12,0.12)',
@@ -653,11 +616,92 @@ function HubShelf({ title, items }: { title: string; items: { title: string; met
 
 function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
   const jensenHref = rooms.find((room) => room.id === 'magazine')?.href ?? '/research';
+  const [dragOffsets, setDragOffsets] = useState<Record<string, DragOffset>>({});
+  const [activeDragId, setActiveDragId] = useState<string | null>(null);
+  const [raisedId, setRaisedId] = useState<string | null>(null);
+  const [dragState, setDragState] = useState<DragState | null>(null);
   const socialLinks = [
     { label: 'github', href: 'https://github.com/lilaclilac09' },
     { label: 'substack', href: '/dispatch' },
     { label: 'sound', href: '/sound' },
   ];
+  const getDragOffset = (id: string) => dragOffsets[id] ?? { x: 0, y: 0 };
+  const dragTransform = (id: string, baseTransform: string) => {
+    const offset = getDragOffset(id);
+    const translate = `translate3d(${offset.x}px, ${offset.y}px, 0)`;
+    return baseTransform ? `${translate} ${baseTransform}` : translate;
+  };
+  const beginDrag = (id: string, event: ReactPointerEvent<HTMLElement>) => {
+    if (event.button !== 0) return;
+    const offset = getDragOffset(id);
+    setDragState({
+      id,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      originX: offset.x,
+      originY: offset.y,
+      moved: false,
+    });
+    setActiveDragId(id);
+    setRaisedId(id);
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+  const updateDrag = (event: ReactPointerEvent<HTMLElement>) => {
+    const drag = dragState;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const dx = event.clientX - drag.startX;
+    const dy = event.clientY - drag.startY;
+    const moved = drag.moved || Math.hypot(dx, dy) > dragThreshold;
+    if (!moved) return;
+    event.preventDefault();
+    if (!drag.moved) setDragState({ ...drag, moved: true });
+    setDragOffsets((current) => ({
+      ...current,
+      [drag.id]: {
+        x: drag.originX + dx,
+        y: drag.originY + dy,
+      },
+    }));
+  };
+  const endDrag = (event: ReactPointerEvent<HTMLElement>) => {
+    const drag = dragState;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const moved = drag.moved || Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY) > dragThreshold;
+    const target = event.currentTarget;
+    if (moved) target.dataset.dragged = 'true';
+    setDragState(null);
+    setActiveDragId(null);
+    if (target.hasPointerCapture(event.pointerId)) {
+      target.releasePointerCapture(event.pointerId);
+    }
+    window.setTimeout(() => {
+      delete target.dataset.dragged;
+    }, 0);
+  };
+  const cancelDrag = (event: ReactPointerEvent<HTMLElement>) => {
+    const drag = dragState;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    setDragState(null);
+    setActiveDragId(null);
+  };
+  const blockNativeDrag = (event: ReactDragEvent<HTMLElement>) => {
+    event.preventDefault();
+  };
+  const suppressDragClick = (event: ReactMouseEvent<HTMLElement>) => {
+    if (event.currentTarget.dataset.dragged !== 'true') return;
+    event.preventDefault();
+    event.stopPropagation();
+  };
+  const dragHandlers = (id: string) => ({
+    draggable: false,
+    onClickCapture: suppressDragClick,
+    onDragStart: blockNativeDrag,
+    onPointerCancel: cancelDrag,
+    onPointerDown: (event: ReactPointerEvent<HTMLElement>) => beginDrag(id, event),
+    onPointerMove: updateDrag,
+    onPointerUp: endDrag,
+  });
 
   return (
     <div
@@ -753,6 +797,8 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
 
           {rooms.map((room) => {
             const baseTransform = String(room.placement.transform ?? '');
+            const isActiveDrag = activeDragId === room.id;
+            const isRaised = isActiveDrag || raisedId === room.id;
             const isArticle = room.motif === 'article';
             const isTrendy = room.motif === 'trendy';
             const isRecord = room.motif === 'record';
@@ -760,18 +806,22 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             const desktopRoomStyle: CSSProperties = {
               ...room.placement,
               position: 'absolute',
-              width: isArticle ? 'min(86vw, 610px)' : isTrendy ? 'min(76vw, 470px)' : isRecord ? 'min(56vw, 290px)' : 'min(60vw, 330px)',
-              minHeight: isArticle ? 'clamp(455px, 58dvh, 520px)' : isTrendy ? 'clamp(360px, 46dvh, 410px)' : isRecord ? 300 : 250,
-              height: isTrendy ? 'clamp(360px, 46dvh, 410px)' : undefined,
+              width: isArticle ? 'min(86vw, 610px)' : isTrendy ? 'min(70vw, 430px)' : isRecord ? 'min(56vw, 290px)' : 'min(60vw, 330px)',
+              minHeight: isArticle ? 'clamp(455px, 58dvh, 520px)' : isTrendy ? 'clamp(340px, 44dvh, 390px)' : isRecord ? 300 : 250,
+              height: isTrendy ? 'clamp(340px, 44dvh, 390px)' : undefined,
               padding: 0,
               border: isPaper ? '1px solid rgba(20,17,12,0.16)' : 'none',
               background: isPaper ? palette.paper : 'transparent',
               color: palette.ink,
-              cursor: 'pointer',
+              cursor: isActiveDrag ? 'grabbing' : dragMeCursor,
               textDecoration: 'none',
               boxShadow: isPaper ? '0 24px 70px -42px rgba(20,17,12,0.5)' : 'none',
-              transform: baseTransform,
+              transform: dragTransform(room.id, baseTransform),
               transition: 'box-shadow 0.18s ease, transform 0.18s ease',
+              touchAction: 'none',
+              userSelect: 'none',
+              willChange: 'transform',
+              zIndex: isRaised ? 40 : room.placement.zIndex,
             };
 
             return room.href.startsWith('http') ? (
@@ -783,6 +833,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 className="hidden text-left sm:block"
                 style={desktopRoomStyle}
                 aria-label={`Open ${room.label}`}
+                {...dragHandlers(room.id)}
               >
                 <ObjectFace room={room} />
               </a>
@@ -793,6 +844,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 className="hidden text-left sm:block"
                 style={desktopRoomStyle}
                 aria-label={`Open ${room.label}`}
+                {...dragHandlers(room.id)}
               >
                 <ObjectFace room={room} />
               </Link>
@@ -804,15 +856,22 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             aria-label="Open Jensen AI stock article"
             className="absolute right-[11%] top-[38%] z-[7] hidden h-[190px] w-[365px] overflow-visible sm:block"
             style={{
+              right: '7%',
+              top: '45%',
               padding: 8,
               background: palette.cream,
               border: '1px solid rgba(20,17,12,0.13)',
               borderRadius: 18,
-              cursor: 'pointer',
+              cursor: activeDragId === 'jensen-stock-print' ? 'grabbing' : dragMeCursor,
               boxShadow: '0 18px 0 rgba(20,17,12,0.86), 0 28px 66px -30px rgba(20,17,12,0.72)',
-              transform: 'rotate(2deg)',
+              transform: dragTransform('jensen-stock-print', 'rotate(2deg)'),
               transition: 'transform 0.18s ease',
+              touchAction: 'none',
+              userSelect: 'none',
+              willChange: 'transform',
+              zIndex: activeDragId === 'jensen-stock-print' || raisedId === 'jensen-stock-print' ? 41 : 7,
             }}
+            {...dragHandlers('jensen-stock-print')}
           >
             <span
               aria-hidden
@@ -1014,18 +1073,18 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           position: 'relative',
           display: 'block',
           minHeight: 'clamp(455px, 58dvh, 520px)',
-          padding: '14px 0 36px',
+          padding: '20px 0 36px',
         }}
       >
         <span
           aria-hidden
           style={{
             position: 'absolute',
-            right: 0,
-            top: 4,
+            right: 26,
+            top: 18,
             zIndex: 0,
-            width: 'min(42vw, 245px)',
-            height: 'clamp(330px, 47dvh, 420px)',
+            width: 'min(38vw, 220px)',
+            height: 'clamp(300px, 43dvh, 382px)',
             backgroundImage: "url('/dispatch-covers/harassment.jpg')",
             backgroundPosition: '48% 50%',
             backgroundSize: 'cover',
@@ -1037,8 +1096,8 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           aria-hidden
           style={{
             position: 'absolute',
-            right: 76,
-            bottom: 12,
+            right: 112,
+            bottom: 14,
             zIndex: 2,
             width: 'clamp(118px, 11vw, 150px)',
             height: 'clamp(140px, 13vw, 178px)',
@@ -1065,10 +1124,10 @@ function ObjectFace({ room }: { room: RoomDoor }) {
             position: 'relative',
             zIndex: 1,
             display: 'block',
-            width: 'min(88vw, 475px)',
-            minHeight: 'clamp(430px, 55dvh, 500px)',
-            marginLeft: 0,
-            padding: 'clamp(42px, 6dvh, 58px) clamp(24px, 7vw, 46px) clamp(30px, 5dvh, 42px)',
+            width: 'min(72vw, 440px)',
+            minHeight: 'clamp(410px, 53dvh, 482px)',
+            marginLeft: 18,
+            padding: 'clamp(38px, 5.6dvh, 52px) clamp(24px, 6vw, 42px) clamp(28px, 4.8dvh, 40px)',
             background: '#fff',
             boxShadow: '0 22px 70px -42px rgba(20,17,12,0.5)',
           }}
@@ -1093,12 +1152,12 @@ function ObjectFace({ room }: { room: RoomDoor }) {
               display: 'block',
               color: palette.ink,
               fontFamily: nunito,
-              fontSize: 'clamp(1.9rem, 4.35vw, 3.75rem)',
+              fontSize: 'clamp(1.75rem, 3.35vw, 3.05rem)',
               fontWeight: 850,
-              letterSpacing: '-0.055em',
-              lineHeight: 1.02,
+              letterSpacing: '-0.045em',
+              lineHeight: 1.04,
               margin: '0 auto clamp(20px, 3.8dvh, 32px)',
-              maxWidth: 398,
+              maxWidth: 372,
               textAlign: 'center',
             }}
           >
@@ -1126,8 +1185,8 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           aria-hidden
           style={{
             position: 'absolute',
-            left: 14,
-            top: -6,
+            left: 34,
+            top: -8,
             zIndex: 3,
             color: 'rgba(20,17,12,0.72)',
             fontFamily: 'Georgia, serif',
@@ -1163,7 +1222,7 @@ function ObjectFace({ room }: { room: RoomDoor }) {
         style={{
           position: 'relative',
           display: 'block',
-          height: 'clamp(360px, 46dvh, 410px)',
+          height: 'clamp(340px, 44dvh, 390px)',
           overflow: 'hidden',
           padding: 'clamp(34px, 5dvh, 42px) 32px 22px',
           background:
