@@ -673,6 +673,27 @@
   }
 }
 
+@media (max-width: 540px) {
+  .dispatch-archive-header {
+    padding-left: 96px !important;
+    padding-right: 14px !important;
+  }
+  .dispatch-home-link {
+    display: none !important;
+  }
+  .dispatch-section-tabs {
+    flex-basis: 100% !important;
+    justify-content: flex-start !important;
+    order: 2;
+  }
+  .dispatch-section-tabs [role='tablist'] {
+    width: 100%;
+  }
+  .dispatch-header-actions {
+    order: 1;
+  }
+}
+
 /* ── Article container ───────────────────────────────────── */
 .substack-article article {
   max-width: 680px !important;
