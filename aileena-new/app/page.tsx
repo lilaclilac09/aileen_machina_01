@@ -238,33 +238,92 @@ export default function Home() {
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: 8,
-                      background: palette.page,
-                      color: palette.cyan,
-                      padding: '13px 22px',
+                      gap: 13,
+                      minHeight: 66,
+                      background: `linear-gradient(135deg, ${palette.soot} 0%, #121a18 62%, #18221f 100%)`,
+                      color: palette.cream,
+                      padding: '10px 12px 10px 10px',
                       borderRadius: 999,
-                      border: `1px solid ${palette.cyanSoft}`,
-                      fontFamily: mono,
-                      fontSize: '0.64rem',
-                      letterSpacing: '0.22em',
-                      textTransform: 'uppercase',
-                      fontWeight: 600,
+                      border: '1px solid rgba(0,169,159,0.46)',
+                      boxShadow:
+                        '0 24px 70px -38px rgba(0,169,159,0.9), 0 12px 30px -26px rgba(20,17,12,0.8), inset 0 1px 0 rgba(255,255,255,0.16)',
                       cursor: 'pointer',
+                      textAlign: 'left',
                     }}
                     aria-label={tx.hero.talkAgent}
                   >
                     <span
                       aria-hidden
                       style={{
-                        display: 'inline-block',
-                        width: 6,
-                        height: 6,
+                        position: 'relative',
+                        display: 'inline-flex',
+                        width: 48,
+                        height: 48,
+                        flex: '0 0 auto',
                         borderRadius: '50%',
-                        background: palette.cyan,
-                        boxShadow: '0 0 8px rgba(0,169,159,0.45)',
+                        backgroundImage: "url('/agent-portrait.jpeg')",
+                        backgroundPosition: 'center',
+                        backgroundSize: 'cover',
+                        boxShadow: `0 0 0 1px ${palette.cyanSoft}, 0 0 20px rgba(0,169,159,0.22)`,
                       }}
-                    />
-                    Ask the agent
+                    >
+                      <span
+                        style={{
+                          position: 'absolute',
+                          right: -1,
+                          top: 3,
+                          width: 11,
+                          height: 11,
+                          borderRadius: '50%',
+                          background: palette.cyan,
+                          boxShadow: '0 0 12px rgba(0,169,159,0.7)',
+                        }}
+                      />
+                    </span>
+                    <span style={{ display: 'grid', gap: 3, minWidth: 0 }}>
+                      <span
+                        style={{
+                          color: palette.cyan,
+                          fontFamily: mono,
+                          fontSize: '0.68rem',
+                          fontWeight: 800,
+                          letterSpacing: '0.24em',
+                          lineHeight: 1,
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        Ask the agent
+                      </span>
+                      <span
+                        style={{
+                          color: 'rgba(248,245,238,0.74)',
+                          fontFamily: 'Georgia, serif',
+                          fontSize: '0.88rem',
+                          fontStyle: 'italic',
+                          lineHeight: 1.15,
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        open the machine room
+                      </span>
+                    </span>
+                    <span
+                      aria-hidden
+                      style={{
+                        display: 'grid',
+                        placeItems: 'center',
+                        width: 32,
+                        height: 32,
+                        flex: '0 0 auto',
+                        borderRadius: '50%',
+                        background: 'rgba(248,245,238,0.1)',
+                        color: palette.cream,
+                        fontFamily: mono,
+                        fontSize: '1rem',
+                      }}
+                    >
+                      →
+                    </span>
                   </button>
                 </div>
               </div>
