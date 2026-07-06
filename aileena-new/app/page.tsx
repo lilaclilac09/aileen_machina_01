@@ -16,19 +16,15 @@ const mono = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
 
 const SESSION_LOADED_KEY = 'aileena_loaded_once';
 
-/* ── Atrium homepage ──────────────────────────────────────────────────
+/* ── Homepage ─────────────────────────────────────────────────────────
  *
- * The system frame Aileen settled on: Aileena Machina is an editorial
- * house with four departments and one concierge. The homepage is the
- * atrium — a cinematic opening, then a quiet dock of four doors, then
- * the DJ station, then footer. Information is intentionally minimal:
- * the homepage's job is to *send* you somewhere, not to *contain* the
- * content.
+ * A cinematic opening, then the DJ station, then footer. Information is
+ * intentionally minimal: the homepage's job is to set the mood, not to
+ * contain the content.
  *
  *   Section 01  Cinematic opening   — scene + one line + one CTA
- *   Section 02  The atrium          — four department doors
- *   Section 03  Sound               — DJ station (unchanged)
- *   Section 04  Footer
+ *   Section 02  Sound               — DJ station
+ *   Section 03  Footer
  *
  * Cover-agent (Natalia portrait + Ask the agent) is preserved on the
  * cinematic opening; it doubles as the door to the agent department.
@@ -42,22 +38,27 @@ export default function Home() {
   const tx = t[language];
   const [loaded, setLoaded] = useState(true);
   const [showLoadingScreen, setShowLoadingScreen] = useState(false);
+  const latestIssue = ALL_ISSUES[0];
+  const latestIssueHref = latestIssue ? `/research/${latestIssue.slug}` : '/research';
 
   useEffect(() => {
-    try {
-      if (sessionStorage.getItem(SESSION_LOADED_KEY) !== '1') {
-        setShowLoadingScreen(true);
-        setLoaded(false);
-      }
-    } catch {
-      /* sessionStorage unavailable — fall through */
-    }
-  }, []);
+    let shouldShow = false;
 
-  // Latest items from each department for the atrium dock
-  const latestIssue = ALL_ISSUES[0];
-  const latestDispatch = tx.blog.researchDispatch.posts.slice(-1)[0];
-  const latestWomanInTech = tx.blog.womanInTech.posts[0];
+    try {
+      shouldShow = window.sessionStorage.getItem(SESSION_LOADED_KEY) !== '1';
+    } catch {
+      return;
+    }
+
+    if (!shouldShow) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      setShowLoadingScreen(true);
+      setLoaded(false);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   return (
     <>
@@ -65,6 +66,7 @@ export default function Home() {
         <LoadingScreen
           onDone={() => {
             setLoaded(true);
+            setShowLoadingScreen(false);
             try {
               sessionStorage.setItem(SESSION_LOADED_KEY, '1');
             } catch {
@@ -151,7 +153,7 @@ export default function Home() {
                   style={{ display: 'flex', flexWrap: 'wrap', gap: 14, alignItems: 'center' }}
                 >
                   <Link
-                    href={`/research/${latestIssue!.slug}`}
+                    href={latestIssueHref}
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
@@ -227,94 +229,8 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 02 THE ATRIUM — four doors ────────────────────────── */}
-        <SnapSection id="atrium" className="order-2">
-          <div className="h-full flex flex-col bg-black px-6 sm:px-10 lg:px-16" style={{ fontFamily: nunito }}>
-            <div className="mx-auto w-full max-w-[1180px] flex h-full flex-col py-12 sm:py-16">
-              <header className="mb-10">
-                <p
-                  className="anim-up"
-                  style={{
-                    fontFamily: mono,
-                    fontSize: '0.6rem',
-                    letterSpacing: '0.4em',
-                    color: '#ffa726',
-                    textTransform: 'uppercase',
-                    marginBottom: 14,
-                    fontWeight: 600,
-                  }}
-                >
-                  The atrium
-                </p>
-                <h2
-                  className="anim-up-2"
-                  style={{
-                    fontSize: 'clamp(1.6rem, 3.6vw, 2.4rem)',
-                    fontWeight: 500,
-                    color: 'rgba(255,255,255,0.9)',
-                    letterSpacing: '-0.012em',
-                    lineHeight: 1.15,
-                    maxWidth: 600,
-                  }}
-                >
-                  Four rooms. Pick one.
-                </h2>
-              </header>
-
-              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
-                <Door
-                  label="Magazine"
-                  description="Interactive judgments, one book per issue."
-                  latest={`${latestIssue!.issueNumber} · ${latestIssue!.coverTitle}`}
-                  href={`/research/${latestIssue!.slug}`}
-                  accent="#ffa726"
-                  index="01"
-                />
-                <Door
-                  label="News Desk"
-                  description="Latest dispatches and analysis."
-                  latest={latestDispatch ? latestDispatch.title : 'Open the archive'}
-                  href="/dispatch"
-                  accent="#ffa726"
-                  index="02"
-                />
-                <Door
-                  label="Library"
-                  description="Long-form essays and the back catalogue."
-                  latest={latestWomanInTech ? latestWomanInTech.title : 'Open the catalogue'}
-                  href={latestWomanInTech ? latestWomanInTech.href : '/dispatch'}
-                  accent="#ffa726"
-                  index="03"
-                />
-                <Door
-                  label="Sound"
-                  description="DJ sets and the music she ships."
-                  latest="Mix 02 · Berlin"
-                  href="/sound"
-                  accent="#ffa726"
-                  index="04"
-                />
-              </div>
-
-              <p
-                className="anim-up-3 mt-8 self-center"
-                style={{
-                  fontFamily: mono,
-                  fontSize: '0.55rem',
-                  letterSpacing: '0.32em',
-                  color: 'rgba(255,255,255,0.35)',
-                  textTransform: 'uppercase',
-                  fontWeight: 500,
-                }}
-              >
-                ↓ Or stay for the music
-              </p>
-            </div>
-          </div>
-        </SnapSection>
-
-        {/* ── 03 SOUND — DJ station (preserved) ─────────────────── */}
-        <SnapSection id="sound" className="order-3">
+        {/* ── 02 SOUND — DJ station ─────────────────────────────── */}
+        <SnapSection id="sound" className="order-2">
           <div className="h-full flex flex-col bg-black px-5 sm:px-10 lg:px-12 pt-6 pb-4 overflow-y-auto">
             <div className="mx-auto w-full max-w-[1400px]" style={{ fontFamily: nunito }}>
               <div className="flex items-end border-b border-white/8 pb-3 mb-6">
@@ -327,8 +243,8 @@ export default function Home() {
           </div>
         </SnapSection>
 
-        {/* ── 04 FOOTER ─────────────────────────────────────────── */}
-        <SnapSection className="order-4">
+        {/* ── 03 FOOTER ─────────────────────────────────────────── */}
+        <SnapSection className="order-3">
           <div
             className="h-full flex flex-col justify-end bg-[#030303] px-6 sm:px-10 lg:px-16 py-14 sm:py-16"
             style={{ fontFamily: nunito }}
@@ -364,120 +280,5 @@ export default function Home() {
 
       </SnapContainer>
     </>
-  );
-}
-
-/* ── Door — one department tile in the atrium ─────────────────────── */
-function Door({
-  label,
-  description,
-  latest,
-  href,
-  accent,
-  index,
-}: {
-  label: string;
-  description: string;
-  latest: string;
-  href: string;
-  accent: string;
-  index: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="anim-up-2 group"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        gap: 24,
-        padding: '24px 22px',
-        border: '1px solid rgba(255,255,255,0.08)',
-        borderRadius: 6,
-        background: 'rgba(255,255,255,0.02)',
-        textDecoration: 'none',
-        color: '#fff',
-        transition: 'border-color 0.18s ease, background 0.18s ease, transform 0.18s ease',
-        minHeight: 240,
-      }}
-    >
-      <div>
-        <p
-          style={{
-            fontFamily: mono,
-            fontSize: '0.55rem',
-            letterSpacing: '0.32em',
-            color: accent,
-            textTransform: 'uppercase',
-            marginBottom: 10,
-            fontWeight: 600,
-          }}
-        >
-          {index}
-        </p>
-        <h3
-          style={{
-            fontSize: '1.55rem',
-            fontWeight: 600,
-            letterSpacing: '-0.012em',
-            marginBottom: 8,
-            lineHeight: 1.15,
-          }}
-        >
-          {label}
-        </h3>
-        <p
-          style={{
-            fontSize: '0.85rem',
-            color: 'rgba(255,255,255,0.55)',
-            lineHeight: 1.55,
-          }}
-        >
-          {description}
-        </p>
-      </div>
-      <div>
-        <p
-          style={{
-            fontFamily: mono,
-            fontSize: '0.55rem',
-            letterSpacing: '0.28em',
-            color: 'rgba(255,255,255,0.4)',
-            textTransform: 'uppercase',
-            marginBottom: 6,
-            fontWeight: 600,
-          }}
-        >
-          Latest
-        </p>
-        <p
-          style={{
-            fontSize: '0.88rem',
-            color: 'rgba(255,255,255,0.78)',
-            lineHeight: 1.45,
-            marginBottom: 14,
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-          }}
-        >
-          {latest}
-        </p>
-        <span
-          style={{
-            fontFamily: mono,
-            fontSize: '0.6rem',
-            letterSpacing: '0.22em',
-            color: accent,
-            textTransform: 'uppercase',
-            fontWeight: 700,
-          }}
-        >
-          Enter →
-        </span>
-      </div>
-    </Link>
   );
 }
