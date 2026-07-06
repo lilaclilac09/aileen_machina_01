@@ -31,6 +31,19 @@ const DOCUMENTARY_RECS = [
   },
 ];
 
+const CHANNEL_RECS = [
+  {
+    title: 'Asymmetrical Bets',
+    label: 'markets / narratives',
+    href: 'https://asymmetricalbets.substack.com',
+  },
+  {
+    title: 'SemiAnalysis',
+    label: 'semis / AI infrastructure',
+    href: 'https://www.semianalysis.com',
+  },
+];
+
 export interface SubstackShellProps {
   date: string;
   category?: string;
@@ -128,6 +141,21 @@ function DocumentaryShelf() {
               {item.year} · {item.label}
             </span>
             <span className="watch-card-title">{item.title}</span>
+          </a>
+        ))}
+      </div>
+      <div className="channel-shelf" aria-label="Substack channel recommendations">
+        <p className="channel-shelf-kicker">read shelf</p>
+        {CHANNEL_RECS.map((item) => (
+          <a
+            key={item.title}
+            className="channel-card"
+            href={item.href}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span className="channel-card-title">{item.title}</span>
+            <span className="channel-card-label">{item.label}</span>
           </a>
         ))}
       </div>
