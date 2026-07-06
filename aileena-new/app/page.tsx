@@ -66,6 +66,11 @@ export default function Home() {
   const latestDispatch = tx.blog.researchDispatch.posts.slice(-1)[0];
   const metooArticle = tx.blog.womanInTech.posts.find((post) => post.href === '/blog/harassment') ?? tx.blog.womanInTech.posts[0];
   const firedGlass = tx.visual.items.find((item) => item.src === '/pate-glass.jpg') ?? tx.visual.items[tx.visual.items.length - 1];
+  const trendLinks = [
+    { label: 'handmade', href: firedGlass.href ?? '/blog/pate-de-verre' },
+    { label: 'handwritten', href: '#visual' },
+    { label: 'podcast', href: tx.trendy.podcast.kateHref, external: true },
+  ];
   const rooms: RoomDoor[] = [
     {
       id: 'magazine',
@@ -305,14 +310,28 @@ export default function Home() {
                     </h2>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {['handmade', 'handwritten', 'podcast'].map((label) => (
-                      <span
-                        key={label}
-                        className="rounded-full border border-[#14110c]/14 px-3 py-1.5 text-[0.58rem] uppercase tracking-[0.16em] text-[#14110c]/54"
-                        style={{ fontFamily: mono, fontWeight: 700 }}
-                      >
-                        {label}
-                      </span>
+                    {trendLinks.map((item) => (
+                      item.external ? (
+                        <a
+                          key={item.label}
+                          href={item.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-full border border-[#14110c]/14 px-3 py-1.5 text-[0.58rem] uppercase tracking-[0.16em] text-[#14110c]/54 no-underline transition-colors hover:border-[#00a99f]/45 hover:text-[#00a99f]"
+                          style={{ fontFamily: mono, fontWeight: 700 }}
+                        >
+                          {item.label}
+                        </a>
+                      ) : (
+                        <Link
+                          key={item.label}
+                          href={item.href}
+                          className="rounded-full border border-[#14110c]/14 px-3 py-1.5 text-[0.58rem] uppercase tracking-[0.16em] text-[#14110c]/54 no-underline transition-colors hover:border-[#00a99f]/45 hover:text-[#00a99f]"
+                          style={{ fontFamily: mono, fontWeight: 700 }}
+                        >
+                          {item.label}
+                        </Link>
+                      )
                     ))}
                   </div>
                 </div>
@@ -325,8 +344,9 @@ export default function Home() {
                     <p className="mb-5 max-w-[420px] text-[1.02rem] leading-relaxed text-[#14110c]/68" style={{ fontFamily: 'Georgia, serif' }}>
                       {tx.trendy.body} The listening shelf sits next to the glass bench: handmade, handwritten, and replayed until it turns into taste.
                     </p>
-                    <div
-                      className="mb-4 rounded-md border border-[#14110c]/10 bg-white p-5"
+                    <Link
+                      href="#visual"
+                      className="mb-4 block rounded-md border border-[#14110c]/10 bg-white p-5 text-[#14110c] no-underline transition-colors hover:border-[#00a99f]/45"
                       style={{
                         background:
                           'repeating-linear-gradient(180deg, #fff 0 31px, rgba(20,17,12,0.06) 32px 33px)',
@@ -338,7 +358,7 @@ export default function Home() {
                       <p className="text-[1.55rem] leading-none text-[#ff6f91]" style={{ fontFamily: "'Allura', cursive" }}>
                         {tx.visual.note}
                       </p>
-                    </div>
+                    </Link>
                     <Link
                       href={firedGlass.href ?? '/blog/pate-de-verre'}
                       className="group grid gap-4 rounded-md border border-[#14110c]/10 bg-white p-3 text-[#14110c] no-underline transition-colors hover:border-[#00a99f]/45 sm:grid-cols-[118px_1fr]"
