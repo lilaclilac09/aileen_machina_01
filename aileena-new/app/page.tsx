@@ -65,7 +65,7 @@ export default function Home() {
       blurb: 'Interactive judgments, one issue at a time.',
       signal: latestIssue ? `${latestIssue.issueNumber} · ${latestIssue.coverTitle}` : 'Open the magazine rack',
       motif: 'radar',
-      placement: { top: '6%', left: '49%', transform: 'rotate(-5deg)', zIndex: 3 },
+      placement: { top: '4%', left: '39%', transform: 'rotate(-4deg)', zIndex: 4 },
     },
     {
       id: 'dispatch',
@@ -76,7 +76,7 @@ export default function Home() {
       blurb: 'Fresh dispatches and analysis.',
       signal: latestDispatch ? latestDispatch.title : 'Open the archive',
       motif: 'ticker',
-      placement: { top: '4%', right: '8%', transform: 'rotate(4deg)', zIndex: 2 },
+      placement: { top: '9%', right: '7%', transform: 'rotate(3deg)', zIndex: 2 },
     },
     {
       id: 'library',
@@ -84,10 +84,10 @@ export default function Home() {
       label: 'Library',
       href: latestWomanInTech ? latestWomanInTech.href : '/dispatch',
       category: 'Long-form',
-      blurb: 'Long-form essays and the back catalogue.',
+      blurb: latestWomanInTech ? latestWomanInTech.body : 'Long-form essays and the back catalogue.',
       signal: latestWomanInTech ? latestWomanInTech.title : 'Open the catalogue',
       motif: 'article',
-      placement: { top: '15%', left: '4%', transform: 'rotate(-1.5deg)', zIndex: 5 },
+      placement: { top: '19%', left: '4%', transform: 'rotate(-1.5deg)', zIndex: 6 },
     },
     {
       id: 'sound',
@@ -98,7 +98,7 @@ export default function Home() {
       blurb: 'DJ sets and the music she ships.',
       signal: 'Mix 02 · Berlin',
       motif: 'record',
-      placement: { top: '45%', right: '12%', transform: 'rotate(-2deg)', zIndex: 4 },
+      placement: { top: '42%', right: '19%', transform: 'rotate(-2deg)', zIndex: 5 },
     },
   ];
 
@@ -368,11 +368,11 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
       className="h-full px-5 sm:px-9 lg:px-14"
       style={{
         fontFamily: nunito,
-        background: 'linear-gradient(#050505 0 76px, #f5f1e8 76px)',
+        background: 'linear-gradient(#050505 0 76px, #f8f5ee 76px)',
       }}
     >
       <div
-        className="relative mx-auto flex h-full w-full max-w-[1280px] flex-col overflow-hidden pb-10 pt-24 sm:pb-12 sm:pt-24"
+        className="relative mx-auto flex h-full w-full max-w-[1400px] flex-col overflow-hidden pb-8 pt-[92px] sm:pb-10"
         onDragEnter={(event) => {
           event.preventDefault();
           setDropActive(true);
@@ -391,37 +391,31 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
         onDrop={handleDrop}
       >
         <header className="relative z-20 flex items-start justify-between gap-6">
-          <div>
-            <p
-              className="anim-up"
-              style={{
-                color: '#17130d',
-                fontFamily: 'Georgia, serif',
-                fontSize: '1rem',
-                fontStyle: 'italic',
-                marginBottom: 10,
-              }}
-            >
-              drag me
-            </p>
-            <h2
-              className="anim-up-2"
-              style={{
-                color: '#14110c',
-                fontSize: 'clamp(2.1rem, 5vw, 4.6rem)',
-                fontWeight: 500,
-                letterSpacing: '-0.035em',
-                lineHeight: 0.95,
-                maxWidth: 560,
-              }}
-            >
-              Drag the pieces into the room.
-            </h2>
-          </div>
+          <a
+            href="mailto:rosazxc0915@gmail.com"
+            className="hidden sm:inline-block"
+            style={{
+              color: '#17130d',
+              fontFamily: 'Georgia, serif',
+              fontSize: '1.02rem',
+              fontStyle: 'italic',
+              lineHeight: 1.3,
+              textDecoration: 'none',
+            }}
+          >
+            Aileena Machina
+          </a>
+          <nav className="ml-auto hidden items-center gap-5 lg:flex" aria-label="Article rooms">
+            {rooms.map((room) => (
+              <Link key={room.id} href={room.href} style={topLinkStyle}>
+                {room.label.toLowerCase()}.
+              </Link>
+            ))}
+          </nav>
         </header>
 
         <div
-          className="relative z-10 mt-5 min-h-[520px] flex-1 sm:mt-2"
+          className="relative z-10 min-h-[610px] flex-1"
           style={{
             outline: dropActive ? '1px dashed rgba(20,17,12,0.32)' : '1px dashed transparent',
             outlineOffset: -18,
@@ -429,7 +423,7 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
           }}
         >
           <p
-            className="absolute left-[8%] top-[39%] z-30 hidden sm:block"
+            className="absolute left-[8%] top-[31%] z-30 hidden sm:block"
             style={{
               color: 'rgba(20,17,12,0.62)',
               fontFamily: 'Georgia, serif',
@@ -445,6 +439,7 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
             const isActive = draggingId === room.id || enteringId === room.id;
             const baseTransform = String(room.placement.transform ?? '');
             const isArticle = room.motif === 'article';
+            const isRecord = room.motif === 'record';
 
             return (
               <button
@@ -461,8 +456,8 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
                 style={{
                   ...room.placement,
                   position: 'absolute',
-                  width: isArticle ? 'min(78vw, 420px)' : 'min(60vw, 310px)',
-                  minHeight: isArticle ? 400 : 250,
+                  width: isArticle ? 'min(78vw, 430px)' : isRecord ? 'min(56vw, 290px)' : 'min(60vw, 330px)',
+                  minHeight: isArticle ? 420 : isRecord ? 300 : 250,
                   padding: 0,
                   border: isArticle ? '1px solid rgba(20,17,12,0.2)' : 'none',
                   background: isArticle ? '#fffdf7' : 'transparent',
@@ -485,17 +480,20 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
 
           <div
             aria-hidden
-            className="absolute right-[12%] top-[48%] z-[5] hidden h-[98px] w-[310px] items-center justify-center sm:flex"
+            className="absolute right-[14%] top-[39%] z-[7] hidden h-[92px] w-[300px] items-center justify-center sm:flex"
             style={{
-              background: '#ff1f9a',
+              background:
+                'radial-gradient(circle at 18% 34%, #14110c 0 7px, transparent 8px), radial-gradient(circle at 42% 68%, #14110c 0 6px, transparent 7px), radial-gradient(circle at 72% 38%, #14110c 0 8px, transparent 9px), #f2d6ab',
               color: '#14110c',
-              border: '4px solid #ff1f9a',
-              boxShadow: '0 12px 0 rgba(20,17,12,0.88)',
+              border: '7px solid #ff1f9a',
+              borderRadius: 18,
+              boxShadow: '0 6px 0 #ff1f9a, 0 16px 0 rgba(20,17,12,0.9)',
               transform: 'rotate(2deg)',
-              fontSize: 'clamp(2.8rem, 6vw, 4.6rem)',
+              fontSize: 'clamp(2.4rem, 5vw, 4rem)',
               fontWeight: 900,
-              letterSpacing: '-0.08em',
-              WebkitTextStroke: '1px #f5f1e8',
+              letterSpacing: '-0.07em',
+              textShadow: '3px 3px 0 #f8f5ee, -2px -2px 0 #f8f5ee',
+              WebkitTextStroke: '1px #14110c',
             }}
           >
             words
@@ -559,18 +557,42 @@ const socialLinkStyle: CSSProperties = {
   whiteSpace: 'nowrap',
 };
 
+const topLinkStyle: CSSProperties = {
+  color: '#14110c',
+  fontFamily: 'Georgia, serif',
+  fontSize: '1rem',
+  fontStyle: 'italic',
+  textDecoration: 'none',
+  whiteSpace: 'nowrap',
+};
+
 function ObjectFace({ room }: { room: RoomDoor }) {
   if (room.motif === 'article') {
     return (
-      <span style={{ display: 'block', padding: '38px 34px 34px' }}>
+      <span style={{ display: 'block', padding: '42px 34px 32px' }}>
+        <span
+          style={{
+            display: 'block',
+            color: 'rgba(20,17,12,0.62)',
+            fontFamily: mono,
+            fontSize: '0.56rem',
+            fontWeight: 700,
+            letterSpacing: '0.16em',
+            marginBottom: 6,
+            textAlign: 'center',
+            textTransform: 'uppercase',
+          }}
+        >
+          Viewpoint
+        </span>
         <span
           style={{
             display: 'block',
             color: 'rgba(20,17,12,0.64)',
             fontFamily: mono,
-            fontSize: '0.62rem',
+            fontSize: '0.54rem',
             letterSpacing: '0.22em',
-            marginBottom: 22,
+            marginBottom: 18,
             textAlign: 'center',
             textTransform: 'uppercase',
           }}
@@ -580,12 +602,12 @@ function ObjectFace({ room }: { room: RoomDoor }) {
         <span
           style={{
             display: 'block',
-            fontSize: 'clamp(2.05rem, 4.1vw, 3.65rem)',
+            fontSize: 'clamp(2.05rem, 4.2vw, 3.8rem)',
             fontWeight: 500,
-            letterSpacing: '-0.055em',
+            letterSpacing: '-0.06em',
             lineHeight: 0.96,
-            margin: '0 auto 26px',
-            maxWidth: 330,
+            margin: '0 auto 24px',
+            maxWidth: 350,
             textAlign: 'center',
           }}
         >
@@ -596,14 +618,18 @@ function ObjectFace({ room }: { room: RoomDoor }) {
             display: 'block',
             color: 'rgba(20,17,12,0.72)',
             fontFamily: 'Georgia, serif',
-            fontSize: '1.02rem',
+            fontSize: '0.98rem',
             lineHeight: 1.52,
             margin: '0 auto',
-            maxWidth: 310,
+            maxWidth: 320,
+            overflow: 'hidden',
             textAlign: 'center',
+            display: '-webkit-box',
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: 'vertical',
           }}
         >
-          A real article sheet, placed on the left. Drag it, or tap it, to read.
+          {room.blurb}
         </span>
       </span>
     );
