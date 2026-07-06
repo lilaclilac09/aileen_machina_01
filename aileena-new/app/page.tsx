@@ -61,11 +61,11 @@ export default function Home() {
       index: '01',
       label: 'Magazine',
       href: latestIssueHref,
-      category: 'Issue',
+      category: 'AI stock',
       blurb: 'HBM stacks, David, and the day the stockpile hits zero.',
       signal: latestIssue ? `${latestIssue.issueNumber} · ${latestIssue.coverTitle}` : 'Open the magazine rack',
       motif: 'hbm',
-      placement: { top: '5%', left: '40%', transform: 'rotate(-4deg)', zIndex: 4 },
+      placement: { top: '4%', left: '39%', transform: 'rotate(-4deg)', zIndex: 4 },
     },
     {
       id: 'dispatch',
@@ -76,7 +76,7 @@ export default function Home() {
       blurb: 'GB200 boards, CCL, M8/M9, and who gets to choose the board.',
       signal: latestDispatch ? latestDispatch.title : 'Open the archive',
       motif: 'pcb',
-      placement: { top: '8%', right: '7%', transform: 'rotate(3deg)', zIndex: 2 },
+      placement: { top: '7%', right: '4%', transform: 'rotate(3deg)', zIndex: 2 },
     },
     {
       id: 'library',
@@ -98,7 +98,7 @@ export default function Home() {
       blurb: 'DJ sets and the music she ships.',
       signal: 'Mix 02 · Berlin',
       motif: 'record',
-      placement: { top: '42%', right: '19%', transform: 'rotate(-2deg)', zIndex: 5 },
+      placement: { top: '43%', right: '17%', transform: 'rotate(-2deg)', zIndex: 5 },
     },
   ];
 
@@ -480,23 +480,100 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
 
           <div
             aria-hidden
-            className="absolute right-[14%] top-[39%] z-[7] hidden h-[104px] w-[318px] items-center justify-center sm:flex"
+            className="absolute right-[11%] top-[38%] z-[7] hidden h-[168px] w-[360px] overflow-hidden sm:block"
             style={{
               background:
-                'radial-gradient(circle at 12% 30%, #14110c 0 6px, #f8f5ee 7px 10px, transparent 11px), radial-gradient(circle at 82% 72%, #14110c 0 5px, #f8f5ee 6px 9px, transparent 10px), linear-gradient(90deg, transparent 0 22%, #14110c 23% 24%, transparent 25% 50%, #14110c 51% 52%, transparent 53%), linear-gradient(0deg, transparent 0 42%, #14110c 43% 44%, transparent 45% 72%, #14110c 73% 74%, transparent 75%), #99f6c8',
-              color: '#14110c',
-              border: '7px solid #ff1f9a',
-              borderRadius: 18,
-              boxShadow: '0 6px 0 #ff1f9a, 0 16px 0 rgba(20,17,12,0.9)',
+                'radial-gradient(circle at 78% 24%, rgba(255,255,255,0.92) 0 40px, transparent 41px), linear-gradient(135deg, #ff2f2f 0%, #14110c 48%, #09d66f 100%)',
+              border: '6px solid #f8f5ee',
+              borderRadius: 22,
+              boxShadow: '0 0 0 7px #ff1f9a, 0 14px 0 rgba(20,17,12,0.92), 0 28px 60px -28px rgba(20,17,12,0.75)',
               transform: 'rotate(2deg)',
-              fontSize: 'clamp(1.95rem, 4vw, 3.25rem)',
-              fontWeight: 900,
-              letterSpacing: '-0.06em',
-              textShadow: '3px 3px 0 #f8f5ee, -2px -2px 0 #f8f5ee',
-              WebkitTextStroke: '1px #14110c',
             }}
           >
-            PCB stack
+            <span
+              style={{
+                position: 'absolute',
+                left: 16,
+                top: 13,
+                display: 'flex',
+                gap: 8,
+              }}
+            >
+              {['11.3x', '19.4x', '12.4x'].map((tag) => (
+                <span
+                  key={tag}
+                  style={{
+                    display: 'inline-block',
+                    padding: '3px 8px 2px',
+                    background: '#f8f5ee',
+                    border: '2px solid #14110c',
+                    borderRadius: 8,
+                    color: '#14110c',
+                    fontFamily: mono,
+                    fontSize: '0.72rem',
+                    fontWeight: 900,
+                    letterSpacing: '-0.04em',
+                    transform: 'rotate(-3deg)',
+                  }}
+                >
+                  {tag}
+                </span>
+              ))}
+            </span>
+            <span
+              style={{
+                position: 'absolute',
+                left: 22,
+                bottom: 16,
+                color: '#f8f5ee',
+                fontSize: '2.65rem',
+                fontWeight: 950,
+                letterSpacing: '-0.08em',
+                lineHeight: 0.84,
+                textShadow: '4px 4px 0 #14110c',
+                WebkitTextStroke: '1px #14110c',
+              }}
+            >
+              JENSEN
+              <br />
+              STICKER
+            </span>
+            <span
+              style={{
+                position: 'absolute',
+                right: 28,
+                bottom: 22,
+                width: 92,
+                height: 112,
+                borderRadius: '46% 46% 40% 40%',
+                background: '#f3c49a',
+                border: '4px solid #14110c',
+                boxShadow: 'inset 0 -14px 0 rgba(20,17,12,0.16)',
+              }}
+            >
+              <span style={{ position: 'absolute', left: 18, top: 36, width: 56, height: 14, border: '3px solid #14110c', borderRadius: 999, background: 'rgba(248,245,238,0.88)' }} />
+              <span style={{ position: 'absolute', left: 21, top: 39, width: 14, height: 8, borderRadius: '50%', background: '#14110c' }} />
+              <span style={{ position: 'absolute', right: 21, top: 39, width: 14, height: 8, borderRadius: '50%', background: '#14110c' }} />
+              <span style={{ position: 'absolute', left: 28, top: 67, width: 36, height: 16, borderBottom: '4px solid #14110c', borderRadius: '0 0 999px 999px' }} />
+              <span style={{ position: 'absolute', left: -7, bottom: -20, width: 106, height: 38, borderRadius: '18px 18px 0 0', background: '#14110c' }} />
+            </span>
+            <span
+              style={{
+                position: 'absolute',
+                right: 18,
+                top: 16,
+                padding: '4px 8px',
+                borderRadius: 8,
+                background: '#76ff03',
+                color: '#14110c',
+                fontFamily: mono,
+                fontSize: '0.72rem',
+                fontWeight: 900,
+                letterSpacing: '0.02em',
+              }}
+            >
+              NVIDIA
+            </span>
           </div>
 
           <p
@@ -564,6 +641,33 @@ const topLinkStyle: CSSProperties = {
   fontStyle: 'italic',
   textDecoration: 'none',
   whiteSpace: 'nowrap',
+};
+
+const thumbnailShellStyle: CSSProperties = {
+  display: 'block',
+  padding: 0,
+  background: 'transparent',
+};
+
+const thumbnailTitleStyle: CSSProperties = {
+  display: 'block',
+  color: '#14110c',
+  fontSize: '1.45rem',
+  fontWeight: 850,
+  letterSpacing: '-0.055em',
+  lineHeight: 0.98,
+  marginTop: 14,
+  maxWidth: 292,
+};
+
+const thumbnailDekStyle: CSSProperties = {
+  display: 'block',
+  color: 'rgba(20,17,12,0.68)',
+  fontFamily: 'Georgia, serif',
+  fontSize: '0.92rem',
+  lineHeight: 1.24,
+  marginTop: 8,
+  maxWidth: 292,
 };
 
 function ObjectFace({ room }: { room: RoomDoor }) {
@@ -646,97 +750,186 @@ function ObjectFace({ room }: { room: RoomDoor }) {
 
   if (room.motif === 'hbm') {
     return (
-      <span style={{ ...objectShellStyle, background: '#fffaf0' }}>
-        <span style={objectKickerStyle}>{room.category}</span>
+      <span style={thumbnailShellStyle}>
         <span
           aria-hidden
           style={{
             position: 'relative',
-            display: 'grid',
-            gap: 7,
-            width: 178,
-            margin: '18px auto 20px',
-            padding: '16px 18px',
-            borderRadius: 28,
-            border: '3px solid #14110c',
-            background: '#ffa726',
-            boxShadow: '7px 7px 0 #00ffea',
+            display: 'block',
+            height: 178,
+            overflow: 'hidden',
+            borderRadius: 14,
+            background:
+              'radial-gradient(circle at 24% 34%, #f2c09a 0 30px, transparent 31px), radial-gradient(circle at 50% 34%, #f2c09a 0 34px, transparent 35px), radial-gradient(circle at 78% 34%, #f2c09a 0 30px, transparent 31px), linear-gradient(135deg, #b80000 0%, #240000 48%, #070707 100%)',
+            boxShadow: 'inset 0 0 0 3px #14110c',
           }}
         >
-          {[0, 1, 2, 3].map((idx) => (
+          {['11.3x', '19.4x', '12.4x'].map((tag, idx) => (
             <span
-              key={idx}
+              key={tag}
               style={{
-                display: 'block',
-                height: 28,
-                borderRadius: 10,
+                position: 'absolute',
+                left: 10 + idx * 86,
+                top: 10,
+                padding: '3px 8px 2px',
+                borderRadius: 8,
                 border: '2px solid #14110c',
-                background: idx % 2 === 0 ? '#fff8d8' : '#f8f5ee',
-                transform: `translateX(${idx % 2 === 0 ? -5 : 5}px)`,
-                boxShadow: 'inset 0 -5px 0 rgba(20,17,12,0.1)',
+                background: '#f8f5ee',
+                color: '#14110c',
+                fontFamily: mono,
+                fontSize: '1.02rem',
+                fontWeight: 950,
+                letterSpacing: '-0.06em',
+                transform: `rotate(${idx === 1 ? -2 : 2}deg)`,
               }}
-            />
+            >
+              {tag}
+            </span>
+          ))}
+          {[24, 111, 202].map((left, idx) => (
+            <span
+              key={left}
+              style={{
+                position: 'absolute',
+                left,
+                bottom: 34,
+                width: 58,
+                height: 76,
+                borderRadius: '44% 44% 38% 38%',
+                background: '#f2c09a',
+                border: '3px solid #14110c',
+                boxShadow: '0 20px 0 #14110c',
+                transform: `rotate(${idx === 1 ? 0 : idx === 0 ? -4 : 4}deg)`,
+              }}
+            >
+              <span style={{ position: 'absolute', left: 11, top: 26, width: 36, height: 10, border: '2px solid #14110c', borderRadius: 999, background: '#f8f5ee' }} />
+              <span style={{ position: 'absolute', left: 21, top: 47, width: 18, height: 9, borderBottom: '3px solid #14110c', borderRadius: '0 0 999px 999px' }} />
+            </span>
           ))}
           <span
             style={{
               position: 'absolute',
-              right: 13,
-              top: 12,
-              color: '#14110c',
-              fontFamily: mono,
-              fontSize: '0.58rem',
-              fontWeight: 800,
-              letterSpacing: '0.08em',
+              left: 12,
+              bottom: 8,
+              display: 'flex',
+              gap: 8,
             }}
           >
-            HBM
+            {['HPE', 'NVIDIA', 'ASIC'].map((logo) => (
+              <span
+                key={logo}
+                style={{
+                  padding: '3px 8px',
+                  borderRadius: 5,
+                  background: logo === 'NVIDIA' ? '#76ff03' : '#f8f5ee',
+                  border: '2px solid #14110c',
+                  color: '#14110c',
+                  fontFamily: mono,
+                  fontSize: '0.72rem',
+                  fontWeight: 900,
+                }}
+              >
+                {logo}
+              </span>
+            ))}
           </span>
         </span>
-        <span style={objectTitleStyle}>{room.label}</span>
-        <span style={objectTextStyle}>{room.signal}</span>
+        <span style={thumbnailTitleStyle}>5 AI Supply Bets</span>
+        <span style={thumbnailDekStyle}>{room.signal}</span>
       </span>
     );
   }
 
   if (room.motif === 'pcb') {
     return (
-      <span style={{ ...objectShellStyle, background: '#f5ffe8' }}>
-        <span style={objectKickerStyle}>{room.category}</span>
+      <span style={thumbnailShellStyle}>
         <span
           aria-hidden
           style={{
             position: 'relative',
             display: 'block',
-            height: 132,
-            margin: '18px 0 20px',
-            borderRadius: 18,
-            border: '3px solid #14110c',
+            height: 178,
+            overflow: 'hidden',
+            borderRadius: 14,
             background:
-              'radial-gradient(circle at 18% 24%, #f8f5ee 0 6px, #14110c 7px 9px, transparent 10px), radial-gradient(circle at 78% 30%, #f8f5ee 0 5px, #14110c 6px 8px, transparent 9px), radial-gradient(circle at 34% 74%, #f8f5ee 0 5px, #14110c 6px 8px, transparent 9px), linear-gradient(90deg, transparent 0 34%, rgba(20,17,12,0.95) 35% 37%, transparent 38%), linear-gradient(0deg, transparent 0 48%, rgba(20,17,12,0.95) 49% 52%, transparent 53%), #99f6c8',
-            boxShadow: '7px 7px 0 #ffb7dc',
+              'linear-gradient(90deg, rgba(8,16,18,0.92), rgba(8,16,18,0.1)), repeating-linear-gradient(90deg, #161616 0 18px, #252525 19px 24px), #0a0a0a',
+            boxShadow: 'inset 0 0 0 3px #14110c',
           }}
         >
-          {[18, 46, 72, 104].map((left, idx) => (
+          <span
+            style={{
+              position: 'absolute',
+              left: 12,
+              top: 12,
+              color: '#f8f5ee',
+              fontSize: '2.35rem',
+              fontWeight: 950,
+              letterSpacing: '-0.08em',
+              lineHeight: 0.9,
+              textShadow: '3px 3px 0 #14110c',
+            }}
+          >
+            800V
+            <br />
+            IS HERE
+          </span>
+          {[0, 1, 2, 3, 4].map((idx) => (
             <span
               key={idx}
               style={{
                 position: 'absolute',
-                left,
-                top: idx % 2 === 0 ? 28 : 78,
-                width: 34,
-                height: 22,
-                borderRadius: 7,
-                border: '2px solid #14110c',
-                background: idx % 2 === 0 ? '#fff8d8' : '#00ffea',
+                right: 22 + idx * 24,
+                bottom: 22,
+                width: 14,
+                height: 98 + idx * 8,
+                borderRadius: 5,
+                background: idx % 2 === 0 ? '#1f1f1f' : '#333',
+                border: '2px solid rgba(248,245,238,0.65)',
               }}
             />
           ))}
-          <span style={{ position: 'absolute', right: 15, bottom: 12, fontFamily: mono, fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.08em' }}>
-            18 LAYERS
+          <span
+            style={{
+              position: 'absolute',
+              right: 28,
+              top: 28,
+              width: 78,
+              height: 78,
+              borderRight: '5px solid #76ff03',
+              borderBottom: '5px solid #76ff03',
+              borderRadius: '0 0 50% 0',
+              transform: 'rotate(8deg)',
+            }}
+          />
+          <span
+            style={{
+              position: 'absolute',
+              right: 28,
+              bottom: 28,
+              width: 15,
+              height: 15,
+              borderRadius: '50%',
+              background: '#f8f5ee',
+              boxShadow: '0 0 0 4px #76ff03',
+            }}
+          />
+          <span
+            style={{
+              position: 'absolute',
+              left: 16,
+              bottom: 15,
+              padding: '4px 9px',
+              borderRadius: 8,
+              background: '#f8f5ee',
+              color: '#14110c',
+              fontFamily: mono,
+              fontSize: '0.72rem',
+              fontWeight: 900,
+            }}
+          >
+            PCB / CCL / M9
           </span>
         </span>
-        <span style={objectTitleStyle}>{room.label}</span>
-        <span style={objectTextStyle}>{room.signal}</span>
       </span>
     );
   }
