@@ -588,26 +588,63 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
           <Link
             href={jensenHref}
             aria-label="Open Jensen AI stock article"
-            className="absolute right-[11%] top-[38%] z-[7] hidden h-[168px] w-[360px] overflow-hidden sm:block"
+            className="absolute right-[11%] top-[38%] z-[7] hidden h-[190px] w-[365px] overflow-visible sm:block"
             style={{
-              padding: 0,
-              background:
-                `radial-gradient(circle at 78% 24%, rgba(255,255,255,0.9) 0 40px, transparent 41px), linear-gradient(135deg, ${palette.oxblood} 0%, ${palette.soot} 46%, #12352f 100%)`,
-              border: `6px solid ${palette.cream}`,
-              borderRadius: 22,
+              padding: 8,
+              background: palette.cream,
+              border: '1px solid rgba(20,17,12,0.13)',
+              borderRadius: 18,
               cursor: 'pointer',
-              boxShadow: `0 0 0 5px ${palette.cyanSoft}, 0 14px 0 rgba(20,17,12,0.88), 0 28px 60px -28px rgba(20,17,12,0.72)`,
+              boxShadow: '0 18px 0 rgba(20,17,12,0.86), 0 28px 66px -30px rgba(20,17,12,0.72)',
               transform: 'rotate(2deg)',
               transition: 'transform 0.18s ease',
             }}
           >
             <span
+              aria-hidden
               style={{
                 position: 'absolute',
-                left: 16,
-                top: 13,
+                left: '50%',
+                top: -18,
+                width: 96,
+                height: 28,
+                background: palette.amberSoft,
+                boxShadow: '0 1px 0 rgba(255,255,255,0.45) inset',
+                transform: 'translateX(-50%) rotate(-2deg)',
+                zIndex: 5,
+              }}
+            />
+            <span
+              aria-hidden
+              style={{
+                position: 'absolute',
+                inset: 8,
+                overflow: 'hidden',
+                borderRadius: 12,
+                backgroundImage:
+                  "linear-gradient(90deg, rgba(10,13,12,0.78), rgba(10,13,12,0.12)), url('/projects/us-stocks.png')",
+                backgroundPosition: 'center top',
+                backgroundSize: 'cover',
+                filter: 'saturate(0.92) contrast(1.03)',
+              }}
+            />
+            <span
+              aria-hidden
+              style={{
+                position: 'absolute',
+                inset: 8,
+                borderRadius: 12,
+                boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.2), inset 0 -70px 80px -55px rgba(0,0,0,0.9)',
+              }}
+            />
+            <span
+              style={{
+                position: 'absolute',
+                left: 20,
+                top: 20,
                 display: 'flex',
-                gap: 8,
+                gap: 7,
+                zIndex: 2,
               }}
             >
               {['11.3x', '19.4x', '12.4x'].map((tag) => (
@@ -635,44 +672,27 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               style={{
                 position: 'absolute',
                 left: 22,
-                bottom: 16,
-                color: palette.cream,
-                fontSize: '2.65rem',
-                fontWeight: 950,
-                letterSpacing: '-0.08em',
-                lineHeight: 0.84,
-                textShadow: `4px 4px 0 ${palette.ink}`,
-                WebkitTextStroke: `1px ${palette.ink}`,
-              }}
-            >
-              JENSEN
-              <br />
-              STICKER
-            </span>
-            <span
-              style={{
-                position: 'absolute',
-                right: 28,
                 bottom: 22,
-                width: 92,
-                height: 112,
-                borderRadius: '46% 46% 40% 40%',
-                background: '#e7b88f',
-                border: `4px solid ${palette.ink}`,
-                boxShadow: 'inset 0 -14px 0 rgba(20,17,12,0.16)',
+                zIndex: 2,
+                padding: '5px 9px',
+                borderRadius: 999,
+                background: palette.cream,
+                color: palette.ink,
+                fontFamily: mono,
+                fontSize: '0.58rem',
+                fontWeight: 900,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
               }}
             >
-              <span style={{ position: 'absolute', left: 18, top: 36, width: 56, height: 14, border: `3px solid ${palette.ink}`, borderRadius: 999, background: 'rgba(248,245,238,0.88)' }} />
-              <span style={{ position: 'absolute', left: 21, top: 39, width: 14, height: 8, borderRadius: '50%', background: palette.ink }} />
-              <span style={{ position: 'absolute', right: 21, top: 39, width: 14, height: 8, borderRadius: '50%', background: palette.ink }} />
-              <span style={{ position: 'absolute', left: 28, top: 67, width: 36, height: 16, borderBottom: `4px solid ${palette.ink}`, borderRadius: '0 0 999px 999px' }} />
-              <span style={{ position: 'absolute', left: -7, bottom: -20, width: 106, height: 38, borderRadius: '18px 18px 0 0', background: palette.ink }} />
+              AI stock print
             </span>
             <span
               style={{
                 position: 'absolute',
-                right: 18,
-                top: 16,
+                right: 19,
+                top: 20,
+                zIndex: 2,
                 padding: '4px 8px',
                 borderRadius: 8,
                 background: palette.chipGreen,
@@ -684,6 +704,25 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               }}
             >
               NVIDIA
+            </span>
+            <span
+              style={{
+                position: 'absolute',
+                right: 18,
+                bottom: 21,
+                zIndex: 2,
+                padding: '5px 9px',
+                borderRadius: 999,
+                background: palette.cream,
+                color: palette.ink,
+                fontFamily: mono,
+                fontSize: '0.58rem',
+                fontWeight: 900,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+              }}
+            >
+              Jensen / HBM
             </span>
           </Link>
         </div>
@@ -1065,21 +1104,46 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           style={{
             position: 'relative',
             display: 'block',
-            height: 178,
-            overflow: 'hidden',
-            borderRadius: 14,
-            background:
-              `radial-gradient(circle at 24% 34%, #ddb08a 0 30px, transparent 31px), radial-gradient(circle at 50% 34%, #ddb08a 0 34px, transparent 35px), radial-gradient(circle at 78% 34%, #ddb08a 0 30px, transparent 31px), linear-gradient(135deg, ${palette.oxblood} 0%, #211513 46%, ${palette.soot} 100%)`,
-            boxShadow: `inset 0 0 0 3px ${palette.ink}`,
+            height: 190,
+            overflow: 'visible',
+            borderRadius: 18,
+            background: palette.cream,
+            padding: 8,
+            boxShadow: '0 18px 46px -30px rgba(20,17,12,0.66)',
           }}
         >
+          <span
+            style={{
+              position: 'absolute',
+              left: 26,
+              top: -12,
+              width: 86,
+              height: 24,
+              background: palette.amberSoft,
+              transform: 'rotate(-3deg)',
+              zIndex: 4,
+            }}
+          />
+          <span
+            style={{
+              position: 'absolute',
+              inset: 8,
+              overflow: 'hidden',
+              borderRadius: 12,
+              backgroundImage:
+                "linear-gradient(180deg, rgba(10,13,12,0.1), rgba(10,13,12,0.72)), url('/dispatch-covers/investing-hero.jpg')",
+              backgroundPosition: 'center',
+              backgroundSize: 'cover',
+              filter: 'saturate(0.88) contrast(1.04)',
+            }}
+          />
           {['11.3x', '19.4x', '12.4x'].map((tag, idx) => (
             <span
               key={tag}
               style={{
                 position: 'absolute',
-                left: 10 + idx * 86,
-                top: 10,
+                left: 18 + idx * 86,
+                top: 18,
                 padding: '3px 8px 2px',
                 borderRadius: 8,
                 border: `2px solid ${palette.ink}`,
@@ -1095,31 +1159,11 @@ function ObjectFace({ room }: { room: RoomDoor }) {
               {tag}
             </span>
           ))}
-          {[24, 111, 202].map((left, idx) => (
-            <span
-              key={left}
-              style={{
-                position: 'absolute',
-                left,
-                bottom: 34,
-                width: 58,
-                height: 76,
-                borderRadius: '44% 44% 38% 38%',
-                background: '#ddb08a',
-                border: `3px solid ${palette.ink}`,
-                boxShadow: `0 20px 0 ${palette.ink}`,
-                transform: `rotate(${idx === 1 ? 0 : idx === 0 ? -4 : 4}deg)`,
-              }}
-            >
-              <span style={{ position: 'absolute', left: 11, top: 26, width: 36, height: 10, border: `2px solid ${palette.ink}`, borderRadius: 999, background: palette.cream }} />
-              <span style={{ position: 'absolute', left: 21, top: 47, width: 18, height: 9, borderBottom: `3px solid ${palette.ink}`, borderRadius: '0 0 999px 999px' }} />
-            </span>
-          ))}
           <span
             style={{
               position: 'absolute',
-              left: 12,
-              bottom: 8,
+              left: 18,
+              bottom: 16,
               display: 'flex',
               gap: 8,
             }}
@@ -1135,12 +1179,28 @@ function ObjectFace({ room }: { room: RoomDoor }) {
                   color: palette.ink,
                   fontFamily: mono,
                   fontSize: '0.72rem',
-                  fontWeight: 900,
-                }}
-              >
-                {logo}
-              </span>
-            ))}
+                fontWeight: 900,
+              }}
+            >
+              {logo}
+            </span>
+          ))}
+          </span>
+          <span
+            style={{
+              position: 'absolute',
+              right: 17,
+              bottom: 16,
+              color: palette.cream,
+              fontFamily: mono,
+              fontSize: '0.58rem',
+              fontWeight: 900,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              textShadow: '0 1px 8px rgba(0,0,0,0.75)',
+            }}
+          >
+            evidence print
           </span>
         </span>
         <span style={thumbnailTitleStyle}>5 AI Supply Bets</span>
@@ -1157,19 +1217,44 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           style={{
             position: 'relative',
             display: 'block',
-            height: 178,
-            overflow: 'hidden',
-            borderRadius: 14,
-            background:
-              `linear-gradient(90deg, rgba(8,16,18,0.94), rgba(8,16,18,0.18)), repeating-linear-gradient(90deg, ${palette.soot} 0 18px, #1d2421 19px 24px), #0a0d0c`,
-            boxShadow: `inset 0 0 0 3px ${palette.ink}`,
+            height: 190,
+            overflow: 'visible',
+            borderRadius: 18,
+            background: palette.cream,
+            padding: 8,
+            boxShadow: '0 18px 46px -30px rgba(20,17,12,0.66)',
           }}
         >
           <span
             style={{
               position: 'absolute',
-              left: 12,
-              top: 12,
+              right: 24,
+              top: -12,
+              width: 78,
+              height: 24,
+              background: palette.cyanSoft,
+              transform: 'rotate(4deg)',
+              zIndex: 4,
+            }}
+          />
+          <span
+            style={{
+              position: 'absolute',
+              inset: 8,
+              overflow: 'hidden',
+              borderRadius: 12,
+              backgroundImage:
+                "linear-gradient(90deg, rgba(8,16,18,0.9), rgba(8,16,18,0.18)), url('/projects/keyshield.png')",
+              backgroundPosition: 'center',
+              backgroundSize: 'cover',
+              filter: 'saturate(0.86) contrast(1.08)',
+            }}
+          />
+          <span
+            style={{
+              position: 'absolute',
+              left: 20,
+              top: 18,
               color: palette.cream,
               fontSize: '2.35rem',
               fontWeight: 950,
@@ -1182,28 +1267,13 @@ function ObjectFace({ room }: { room: RoomDoor }) {
             <br />
             IS HERE
           </span>
-          {[0, 1, 2, 3, 4].map((idx) => (
-            <span
-              key={idx}
-              style={{
-                position: 'absolute',
-                right: 22 + idx * 24,
-                bottom: 22,
-                width: 14,
-                height: 98 + idx * 8,
-                borderRadius: 5,
-                background: idx % 2 === 0 ? '#161b19' : '#2a302d',
-                border: '2px solid rgba(248,245,238,0.65)',
-              }}
-            />
-          ))}
           <span
             style={{
               position: 'absolute',
-              right: 28,
-              top: 28,
-              width: 78,
-              height: 78,
+              right: 32,
+              top: 36,
+              width: 94,
+              height: 72,
               borderRight: `5px solid ${palette.cyan}`,
               borderBottom: `5px solid ${palette.cyan}`,
               borderRadius: '0 0 50% 0',
@@ -1213,8 +1283,8 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           <span
             style={{
               position: 'absolute',
-              right: 28,
-              bottom: 28,
+              right: 32,
+              bottom: 32,
               width: 15,
               height: 15,
               borderRadius: '50%',
@@ -1225,8 +1295,8 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           <span
             style={{
               position: 'absolute',
-              left: 16,
-              bottom: 15,
+              left: 20,
+              bottom: 18,
               padding: '4px 9px',
               borderRadius: 8,
               background: palette.cream,
