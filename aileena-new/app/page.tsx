@@ -105,13 +105,13 @@ export default function Home() {
       id: 'trendy',
       index: '04',
       label: 'Trendy',
-      href: tx.trendy.podcast.kateHref,
+      href: '/blog/watch-listening-shelf',
       category: tx.trendy.tag,
-      blurb: `${tx.trendy.body} The listening shelf stays with the sound notes: handmade, handwritten, replayed until it turns into taste.`,
+      blurb: `${tx.trendy.body} Podcasts, documentaries, and reading channels — one shelf, not mixed into the glass work.`,
       signal: tx.trendy.heading,
       motif: 'trendy',
       note: tx.visual.note,
-      placement: { top: '24%', left: '39%', transform: 'rotate(1.5deg)', zIndex: 8 },
+      placement: { top: '26%', left: '42%', transform: 'rotate(1.5deg)', zIndex: 12 },
     },
   ];
 

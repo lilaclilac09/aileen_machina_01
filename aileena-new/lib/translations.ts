@@ -414,19 +414,15 @@ export const t = {
         ],
       },
       marsAndMoon: {
-        tag: 'COSMOS',
-        heading: 'Mars and Moon Magic',
+        tag: 'WATCH / LISTEN',
+        heading: 'The Listening and Watching Shelf',
         read: 'Read →',
-        // Edit these to populate the Mars and Moon Magic section. Same
-        // shape as the other rails — date / href / title / body. Use a
-        // '#' href for items that aren't articles (the row still renders
-        // and stays on the page when clicked).
         posts: [
           {
-            date: '2026.06.21',
-            href: '#mars-moon',
-            title: 'placeholder — add your first entry',
-            body: 'Edit lib/translations.ts → marsAndMoon.posts to fill in. Same shape as the other rails. Use href: \'#\' for non-article entries.',
+            date: '2026.07.06',
+            href: '/blog/watch-listening-shelf',
+            title: 'The Listening and Watching Shelf',
+            body: 'Podcast episodes, documentaries, and research channels that sit beside the essays without getting mixed into the glass bench. Fashion Neurosis, Do You Read Her, Joan Didion, David Hockney, A Bigger Splash, Asymmetrical Bets, and SemiAnalysis — a small rotation for listening, watching, and reading next.',
           },
         ],
       },
@@ -897,15 +893,15 @@ export const t = {
         ],
       },
       marsAndMoon: {
-        tag: 'KOSMOS',
-        heading: 'Mars und Mond Magie',
+        tag: 'WATCH / LISTEN',
+        heading: 'The Listening and Watching Shelf',
         read: 'Lesen →',
         posts: [
           {
-            date: '2026.06.21',
-            href: '#mars-moon',
-            title: 'Platzhalter — füge deinen ersten Eintrag hinzu',
-            body: 'Bearbeite lib/translations.ts → marsAndMoon.posts. Gleiche Struktur wie die anderen Rails. Verwende href: \'#\' für Nicht-Artikel-Einträge.',
+            date: '2026.07.06',
+            href: '/blog/watch-listening-shelf',
+            title: 'The Listening and Watching Shelf',
+            body: 'Podcast-Folgen, Dokumentarfilme und Research-Kanäle, die neben den Essays liegen, ohne mit der Glasbank vermischt zu werden. Fashion Neurosis, Do You Read Her, Joan Didion, David Hockney, A Bigger Splash, Asymmetrical Bets und SemiAnalysis — eine kleine Rotation zum Hören, Schauen und Weiterlesen.',
           },
         ],
       },

@@ -47,6 +47,8 @@ const COVER_LION =
   'https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=1200&q=80';
 const COVER_PORTRAIT =
   'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=1200&q=80';
+const COVER_WATCH_SHELF =
+  'https://resizing.flixster.com/onSFETOELTXATdk56VRhXRScAvA=/206x305/v2/https://resizing.flixster.com/JbJYntMfetJO6X_4lj7ZrJdwmn4=/ems.cHJkLWVtcy1hc3NldHMvbW92aWVzL2U5ZTQ5ODMzLWFiNGUtNGM1Ny1iNjk3LTkyNzI0YmFiZDEwMy53ZWJw';
 
 const FALLBACK_COVERS = [
   COVER_SILICON,
@@ -113,8 +115,8 @@ const COVER_BY_SLUG: Record<string, string> = {
   misread: COVER_PORTRAIT,
   harassment: '/dispatch-covers/harassment.jpg',
 
-  // Mars and Moon
-  '#mars-moon': COVER_GALAXY,
+  // Recommendations
+  'watch-listening-shelf': COVER_WATCH_SHELF,
 };
 
 export function getCover(slug: string): string {
@@ -184,12 +186,19 @@ export default function SwipeRow({
     lastTime: 0,
     lastVelocity: 0,
   });
-  const [, forceRender] = useState(0);
+  const [dragPreview, setDragPreview] = useState({ active: false, lastDelta: 0 });
   const currentRef = useRef(current);
-  currentRef.current = current;
   const postsLenRef = useRef(posts.length);
-  postsLenRef.current = posts.length;
+  const clickDeltaRef = useRef(0);
   const cooldownRef = useRef(0);
+
+  useEffect(() => {
+    currentRef.current = current;
+  }, [current]);
+
+  useEffect(() => {
+    postsLenRef.current = posts.length;
+  }, [posts.length]);
 
   useLayoutEffect(() => {
     if (!stageRef.current) return;
@@ -218,6 +227,7 @@ export default function SwipeRow({
     if (posts.length <= 1) return;
     (e.target as Element).setPointerCapture?.(e.pointerId);
     const now = performance.now();
+    clickDeltaRef.current = 0;
     dragRef.current = {
       active: true,
       startX: e.clientX,
@@ -226,7 +236,7 @@ export default function SwipeRow({
       lastTime: now,
       lastVelocity: 0,
     };
-    forceRender((v) => v + 1);
+    setDragPreview({ active: true, lastDelta: 0 });
   };
 
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -240,12 +250,13 @@ export default function SwipeRow({
     dragRef.current.lastVelocity = dragRef.current.lastVelocity * 0.7 + instant * 0.3;
     dragRef.current.lastDelta = newDelta;
     dragRef.current.lastTime = now;
-    forceRender((v) => v + 1);
+    setDragPreview({ active: true, lastDelta: newDelta });
   };
 
   const onPointerUp = () => {
     const { active, lastDelta, lastVelocity } = dragRef.current;
     if (!active) return;
+    clickDeltaRef.current = lastDelta;
     dragRef.current = {
       active: false,
       startX: 0,
@@ -254,6 +265,7 @@ export default function SwipeRow({
       lastTime: 0,
       lastVelocity: 0,
     };
+    setDragPreview({ active: false, lastDelta: 0 });
     const threshold = Math.max(50, stageWidth * 0.12);
     const dragDirection = lastDelta > 0 ? -1 : 1; // pull-right reveals previous card
     if (Math.abs(lastDelta) > threshold) {
@@ -265,8 +277,6 @@ export default function SwipeRow({
       const extra = Math.floor(velAbs * settings.velocityE * 1.7);
       const steps = Math.min(Math.max(1, 1 + extra), 5);
       goTo(currentRef.current + dragDirection * steps);
-    } else {
-      forceRender((v) => v + 1);
     }
   };
 
@@ -293,7 +303,7 @@ export default function SwipeRow({
     const TOUCH_THRESHOLD_PX = 40;
 
     // Find the parent snap-section so we can ask "is this the one in view".
-    let snapSection: HTMLElement | null = stage.closest('.snap-section');
+    const snapSection: HTMLElement | null = stage.closest('.snap-section');
 
     const isInView = () => {
       if (!snapSection) return false;
@@ -355,14 +365,14 @@ export default function SwipeRow({
   // moves with the finger before snapping. One full stage width ≈ 2
   // card advances; one card ≈ 50 % of the stage.
   const dragOffsetUnits =
-    dragRef.current.active && stageWidth > 0
-      ? -(dragRef.current.lastDelta / stageWidth) * 2
+    dragPreview.active && stageWidth > 0
+      ? -(dragPreview.lastDelta / stageWidth) * 2
       : 0;
 
   const canPrev = current > 0;
   const canNext = current < posts.length - 1;
 
-  const isDragging = dragRef.current.active;
+  const isDragging = dragPreview.active;
   const springTransition = {
     type: 'spring' as const,
     stiffness: settings.stiffness,
@@ -540,7 +550,7 @@ export default function SwipeRow({
                   href={post.href}
                   style={cardInnerStyle}
                   onClick={(e) => {
-                    if (Math.abs(dragRef.current.lastDelta) > 12) e.preventDefault();
+                    if (Math.abs(clickDeltaRef.current) > 12) e.preventDefault();
                   }}
                 >
                   {inner}
@@ -551,7 +561,7 @@ export default function SwipeRow({
                   style={cardInnerStyle}
                   onClick={(e) => {
                     e.preventDefault();
-                    if (Math.abs(dragRef.current.lastDelta) > 12) return;
+                    if (Math.abs(clickDeltaRef.current) > 12) return;
                     goTo(i);
                   }}
                   aria-label={`Go to ${post.title}`}

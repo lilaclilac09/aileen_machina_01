@@ -371,6 +371,308 @@
   }
 }
 
+/* ── Standalone recommendations issue ───────────────────── */
+.recommendation-issue {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 44px 24px 128px;
+}
+.rec-issue-note {
+  position: relative;
+  max-width: 720px;
+  min-height: 340px;
+  margin: 0 auto 84px;
+  padding: 58px 56px 46px;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 33px, rgba(17, 17, 17, 0.052) 34px 35px),
+    linear-gradient(90deg, transparent 0 58px, rgba(0, 143, 132, 0.16) 59px 60px, transparent 61px),
+    #fffdf8;
+  border: 1px solid rgba(17, 17, 17, 0.1);
+  box-shadow: 0 30px 80px -58px rgba(17, 17, 17, 0.45);
+  transform: rotate(-1deg);
+}
+.rec-issue-note::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -14px;
+  width: 126px;
+  height: 30px;
+  background: rgba(201, 135, 47, 0.26);
+  transform: translateX(-50%) rotate(2deg);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.rec-issue-kicker,
+.rec-section-label {
+  font-family: 'JetBrains Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-size: 0.62rem;
+  font-weight: 820;
+  letter-spacing: 0.28em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+.rec-issue-kicker {
+  color: rgba(17, 17, 17, 0.46);
+  margin: 0 0 22px;
+}
+.rec-issue-note h2 {
+  max-width: 520px;
+  margin: 0 0 28px;
+  color: #111;
+  font-family: 'Bradley Hand', 'Comic Sans MS', 'Marker Felt', cursive;
+  font-size: 4.6rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 0.88;
+}
+.rec-issue-note p:last-child {
+  max-width: 560px;
+  margin: 0;
+  color: rgba(17, 17, 17, 0.66);
+  font-family: 'Iowan Old Style', 'Charter', 'Georgia', serif;
+  font-size: 1.12rem;
+  line-height: 1.68;
+}
+.rec-section {
+  margin-top: 88px;
+}
+.rec-section:first-of-type {
+  margin-top: 0;
+}
+.rec-section-label {
+  color: rgba(0, 143, 132, 0.76);
+  margin: 0 0 10px;
+}
+.rec-section h2 {
+  margin: 0 0 26px;
+  color: #111;
+  font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 2rem;
+  font-weight: 640;
+  letter-spacing: 0;
+  line-height: 1.15;
+}
+.podcast-rec-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.podcast-rec-card {
+  display: grid;
+  min-height: 300px;
+  align-content: start;
+  gap: 12px;
+  padding: 24px;
+  border: 1px solid rgba(17, 17, 17, 0.1);
+  border-radius: 6px;
+  background: #fff;
+  color: #111;
+  text-decoration: none;
+  box-shadow: 0 22px 56px -44px rgba(17, 17, 17, 0.42);
+  transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+.podcast-rec-card:hover {
+  border-color: rgba(0, 143, 132, 0.34);
+  transform: translateY(-3px);
+  box-shadow: 0 30px 64px -42px rgba(17, 17, 17, 0.45);
+}
+.podcast-card-label,
+.podcast-card-meta {
+  font-family: 'JetBrains Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-size: 0.58rem;
+  font-weight: 820;
+  letter-spacing: 0.2em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+.podcast-card-label {
+  color: rgba(0, 143, 132, 0.78);
+}
+.podcast-card-title {
+  color: #111;
+  font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 720;
+  letter-spacing: 0;
+  line-height: 1.08;
+}
+.podcast-card-meta {
+  color: rgba(17, 17, 17, 0.42);
+}
+.podcast-wave {
+  display: flex;
+  height: 50px;
+  align-items: end;
+  gap: 7px;
+  padding-top: 4px;
+}
+.podcast-wave span {
+  display: block;
+  width: 6px;
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.16);
+}
+.podcast-wave span:nth-child(3n + 1) {
+  background: #008f84;
+}
+.podcast-wave span:nth-child(4n) {
+  background: #e9829d;
+}
+.podcast-card-body,
+.documentary-rec-body,
+.channel-rec-body {
+  color: rgba(17, 17, 17, 0.62);
+  font-family: 'Iowan Old Style', 'Charter', 'Georgia', serif;
+  font-size: 1rem;
+  line-height: 1.52;
+}
+.documentary-rec-wall {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  align-items: start;
+  padding-top: 14px;
+}
+.documentary-rec-card {
+  position: relative;
+  display: block;
+  min-width: 0;
+  padding: 9px 9px 18px;
+  background: #f8f5ee;
+  color: #111;
+  text-decoration: none;
+  box-shadow: 0 30px 70px -48px rgba(17, 17, 17, 0.55);
+  transform: rotate(var(--tilt, 0deg));
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.documentary-rec-card::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -12px;
+  width: 70px;
+  height: 22px;
+  background: rgba(201, 135, 47, 0.28);
+  transform: translateX(-50%) rotate(-2deg);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+.documentary-rec-card:nth-child(2)::before {
+  background: rgba(0, 143, 132, 0.18);
+  transform: translateX(-50%) rotate(3deg);
+}
+.documentary-rec-card:hover {
+  transform: rotate(var(--tilt, 0deg)) translateY(-4px);
+  box-shadow: 0 36px 78px -46px rgba(17, 17, 17, 0.6);
+}
+.documentary-rec-image {
+  display: block;
+  aspect-ratio: 0.74;
+  width: 100%;
+  background-color: #111;
+  background-position: center;
+  background-size: cover;
+  filter: saturate(0.92) contrast(1.03);
+}
+.documentary-rec-meta {
+  display: block;
+  margin: 13px 4px 7px;
+  color: rgba(17, 17, 17, 0.48);
+  font-family: 'JetBrains Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-size: 0.56rem;
+  font-weight: 820;
+  letter-spacing: 0.16em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+.documentary-rec-title {
+  display: block;
+  margin: 0 4px 9px;
+  color: #111;
+  font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 1.02rem;
+  font-weight: 760;
+  letter-spacing: 0;
+  line-height: 1.1;
+}
+.documentary-rec-body {
+  display: block;
+  margin: 0 4px;
+  font-size: 0.94rem;
+}
+.channel-rec-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.channel-rec-card {
+  display: block;
+  min-height: 178px;
+  padding: 22px 24px;
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  border-radius: 6px;
+  background: #fff;
+  color: #111;
+  text-decoration: none;
+  transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+}
+.channel-rec-card:hover {
+  border-color: rgba(0, 143, 132, 0.34);
+  background: rgba(0, 143, 132, 0.035);
+  transform: translateY(-2px);
+}
+.channel-rec-title {
+  display: block;
+  color: #111;
+  font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 1.34rem;
+  font-weight: 760;
+  letter-spacing: 0;
+  line-height: 1.08;
+}
+.channel-rec-label {
+  display: block;
+  margin: 9px 0 16px;
+  color: rgba(0, 143, 132, 0.72);
+  font-family: 'JetBrains Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-size: 0.56rem;
+  font-weight: 820;
+  letter-spacing: 0.16em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+.channel-rec-body {
+  display: block;
+}
+
+@media (max-width: 780px) {
+  .recommendation-issue {
+    padding: 32px 18px 96px;
+  }
+  .rec-issue-note {
+    min-height: 0;
+    margin-bottom: 64px;
+    padding: 46px 28px 38px;
+    transform: none;
+  }
+  .rec-issue-note h2 {
+    font-size: 3.1rem;
+  }
+  .podcast-rec-grid,
+  .documentary-rec-wall,
+  .channel-rec-grid {
+    grid-template-columns: 1fr;
+  }
+  .documentary-rec-wall {
+    gap: 28px;
+  }
+  .documentary-rec-card {
+    transform: none;
+  }
+  .documentary-rec-card:hover {
+    transform: translateY(-3px);
+  }
+}
+
 /* ── Article container ───────────────────────────────────── */
 .substack-article article {
   max-width: 680px !important;
