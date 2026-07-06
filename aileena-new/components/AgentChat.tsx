@@ -545,7 +545,7 @@ export default function AgentChat() {
           <span aria-hidden className="agent-scan pointer-events-none absolute inset-0 rounded-full overflow-hidden" />
           <span
             aria-hidden
-            className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-[#00ffea] shadow-[0_0_6px_rgba(0,255,234,0.9)] animate-pulse ring-2 ring-black"
+            className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-[#00ffea] shadow-[0_0_6px_rgba(0,255,234,0.9)] animate-pulse ring-2 ring-white"
           />
         </span>
 
@@ -559,7 +559,7 @@ export default function AgentChat() {
       <div
         onClick={() => setOpen(false)}
         aria-hidden
-        className={`fixed inset-0 z-[70] bg-black/70 backdrop-blur-md transition-opacity duration-200 ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        className={`fixed inset-0 z-[70] bg-[#fbfaf7]/80 backdrop-blur-sm transition-opacity duration-200 ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       />
 
       {/* Console card */}
@@ -567,11 +567,11 @@ export default function AgentChat() {
         role="dialog"
         aria-modal="true"
         aria-label="Aileena Console"
-        className={`fixed z-[80] inset-x-3 top-1/2 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 -translate-y-1/2 sm:w-[640px] sm:max-w-[calc(100vw-3rem)] max-h-[80vh] flex flex-col bg-[#08080a]/95 border border-[#00ffea]/30 shadow-[0_0_60px_-15px_rgba(0,255,234,0.45)] backdrop-blur-md transition-all duration-200 ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-[0.96] pointer-events-none'} font-mono`}
+        className={`fixed z-[80] inset-x-3 top-1/2 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 -translate-y-1/2 sm:w-[640px] sm:max-w-[calc(100vw-3rem)] max-h-[80vh] flex flex-col bg-[#fffdf8]/95 border border-[#ded8ce] shadow-[0_24px_80px_-34px_rgba(31,26,20,0.42)] backdrop-blur-md transition-all duration-200 ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-[0.96] pointer-events-none'} font-mono`}
         style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace' }}
       >
         {/* Header bar */}
-        <div className="flex items-center justify-between border-b border-[#00ffea]/15 px-4 py-2.5">
+        <div className="flex items-center justify-between border-b border-[#e7e0d6] px-4 py-2.5">
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-[0.6rem] tracking-[0.3em] text-[#00ffea]/80 uppercase truncate">aileena · console</span>
           </div>
@@ -603,10 +603,10 @@ export default function AgentChat() {
                   className="text-[0.55rem] tracking-[0.25em] uppercase px-1 transition-colors disabled:cursor-not-allowed"
                   style={{
                     color: !canToggle
-                      ? 'rgba(255,255,255,0.18)'
+                      ? 'rgba(27,23,19,0.22)'
                       : showingLocal
-                        ? '#00ffea'
-                        : 'rgba(255,255,255,0.45)',
+                        ? '#00a89d'
+                        : 'rgba(27,23,19,0.48)',
                   }}
                 >
                   {showingLocal ? '◆ local' : '○ cloud'}
@@ -621,7 +621,7 @@ export default function AgentChat() {
               type="button"
               onClick={() => setOpen(false)}
               aria-label="Close console"
-              className="text-[0.65rem] tracking-[0.2em] text-white/40 hover:text-white/90 uppercase px-1"
+              className="text-[0.65rem] tracking-[0.2em] text-[#1b1713]/35 hover:text-[#1b1713]/85 uppercase px-1"
             >
               esc
             </button>
@@ -632,8 +632,8 @@ export default function AgentChat() {
         <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-5 space-y-3 min-h-[180px]">
           {messages.length === 0 ? (
             <>
-              <p className="text-[0.62rem] tracking-[0.25em] text-white/35 uppercase mb-2">
-                ▸ ready · ask anything about aileen's work
+              <p className="text-[0.62rem] tracking-[0.25em] text-[#1b1713]/50 uppercase mb-2">
+                ▸ ready · ask anything about aileen&apos;s work
               </p>
               <ul className="space-y-1.5">
                 {STARTER_PROMPTS.map((p) => (
@@ -641,9 +641,9 @@ export default function AgentChat() {
                     <button
                       type="button"
                       onClick={() => ask(p)}
-                      className="text-left text-[0.82rem] sm:text-sm leading-6 text-white/50 hover:text-[#00ffea] transition-colors w-full"
+                      className="text-left text-[0.82rem] sm:text-sm leading-6 text-[#1b1713]/70 hover:text-[#008f86] transition-colors w-full"
                     >
-                      <span className="text-[#00ffea]/40 mr-2">&gt;</span>
+                      <span className="text-[#00a89d]/45 mr-2">&gt;</span>
                       {p}
                     </button>
                   </li>
@@ -685,7 +685,7 @@ export default function AgentChat() {
           )}
 
           {sessionMaxed && (
-            <p className="text-[0.7rem] leading-5 tracking-[0.05em] text-[#00ffea]/70 whitespace-pre-wrap">
+            <p className="text-[0.7rem] leading-5 tracking-[0.05em] text-[#007d75]/75 whitespace-pre-wrap">
               <span className="font-mono text-[0.55rem] tracking-[0.3em] uppercase mr-1.5">▸ limit</span>
               Daily message limit reached ({DAILY_LIMIT} messages). Limit resets tomorrow.
             </p>
@@ -695,9 +695,9 @@ export default function AgentChat() {
 
         {/* Lead capture panel — appears after LEAD_THRESHOLD user messages */}
         {showLeadPanel && (
-          <div className="border-t border-[#00ffea]/15 px-5 py-3 bg-[#00ffea]/[0.025]">
+          <div className="border-t border-[#e7e0d6] px-5 py-3 bg-[#faf7f0]">
             <div className="mb-2.5">
-              <p className="font-mono text-[0.55rem] tracking-[0.35em] uppercase text-[#00ffea]/85">
+              <p className="font-mono text-[0.55rem] tracking-[0.35em] uppercase text-[#008f86]/85">
                 ▸ leave your email to keep chatting
               </p>
             </div>
@@ -710,7 +710,7 @@ export default function AgentChat() {
                 onChange={(e) => setLeadEmail(e.target.value)}
                 placeholder="email"
                 disabled={leadState === 'submitting'}
-                className="flex-1 min-w-0 bg-transparent border border-[#00ffea]/25 px-3 py-2 text-sm text-white/90 placeholder:text-white/30 outline-none focus:border-[#00ffea]/60 caret-[#00ffea] disabled:opacity-50"
+                className="flex-1 min-w-0 bg-white border border-[#ded8ce] px-3 py-2 text-sm text-[#1b1713]/90 placeholder:text-[#1b1713]/35 outline-none focus:border-[#00a89d]/70 caret-[#00a89d] disabled:opacity-50"
                 spellCheck={false}
                 autoCorrect="off"
                 autoCapitalize="off"
@@ -721,7 +721,7 @@ export default function AgentChat() {
                 onChange={(e) => setLeadName(e.target.value)}
                 placeholder="name / context (optional)"
                 disabled={leadState === 'submitting'}
-                className="flex-1 min-w-0 bg-transparent border border-[#00ffea]/25 px-3 py-2 text-sm text-white/90 placeholder:text-white/30 outline-none focus:border-[#00ffea]/60 caret-[#00ffea] disabled:opacity-50"
+                className="flex-1 min-w-0 bg-white border border-[#ded8ce] px-3 py-2 text-sm text-[#1b1713]/90 placeholder:text-[#1b1713]/35 outline-none focus:border-[#00a89d]/70 caret-[#00a89d] disabled:opacity-50"
                 spellCheck={false}
                 autoCorrect="off"
               />
@@ -729,7 +729,7 @@ export default function AgentChat() {
                 type="button"
                 onClick={submitLead}
                 disabled={leadState === 'submitting' || !leadEmail.trim()}
-                className="font-mono text-[0.62rem] tracking-[0.3em] uppercase text-[#00ffea] border border-[#00ffea]/45 px-3 py-2 hover:bg-[#00ffea]/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+                className="font-mono text-[0.62rem] tracking-[0.3em] uppercase text-[#007d75] border border-[#00a89d]/45 bg-white px-3 py-2 hover:bg-[#e9fffc] transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
               >
                 {leadState === 'submitting' ? 'sending…' : 'send ↗'}
               </button>
@@ -739,13 +739,13 @@ export default function AgentChat() {
                 ▸ {leadError}
               </p>
             )}
-            <p className="mt-2 font-mono text-[0.5rem] tracking-[0.28em] uppercase text-white/30">
+            <p className="mt-2 font-mono text-[0.5rem] tracking-[0.28em] uppercase text-[#1b1713]/35">
               the chat transcript is attached to your message ·{' '}
               <a
                 href="/privacy"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline decoration-white/20 underline-offset-2 hover:text-white/60 hover:decoration-white/40"
+                className="underline decoration-[#1b1713]/20 underline-offset-2 hover:text-[#1b1713]/70 hover:decoration-[#1b1713]/40"
               >
                 privacy
               </a>
@@ -754,9 +754,9 @@ export default function AgentChat() {
         )}
 
         {/* Input row */}
-        <div className="border-t border-[#00ffea]/15 px-5 py-3">
+        <div className="border-t border-[#e7e0d6] px-5 py-3">
           <div className="flex items-center gap-2">
-            <span className={`text-sm ${sessionMaxed || mustProvideEmail ? 'text-white/20' : 'text-[#00ffea]'}`}>&gt;</span>
+            <span className={`text-sm ${sessionMaxed || mustProvideEmail ? 'text-[#1b1713]/20' : 'text-[#00a89d]'}`}>&gt;</span>
             <textarea
               ref={inputRef}
               value={input}
@@ -776,7 +776,7 @@ export default function AgentChat() {
               }
               disabled={sessionMaxed || mustProvideEmail}
               rows={1}
-              className="flex-1 resize-none bg-transparent text-sm leading-6 text-white/90 placeholder:text-white/25 outline-none max-h-32 caret-[#00ffea] disabled:cursor-not-allowed"
+              className="flex-1 resize-none bg-transparent text-sm leading-6 text-[#1b1713]/90 placeholder:text-[#1b1713]/30 outline-none max-h-32 caret-[#00a89d] disabled:cursor-not-allowed"
               spellCheck={false}
               autoCorrect="off"
               autoCapitalize="off"
@@ -787,9 +787,9 @@ export default function AgentChat() {
               </span>
             )}
           </div>
-          <p className="mt-2 flex items-center justify-between gap-3 text-[0.52rem] tracking-[0.3em] text-white/25 uppercase">
+          <p className="mt-2 flex items-center justify-between gap-3 text-[0.52rem] tracking-[0.3em] text-[#1b1713]/40 uppercase">
             <span>↵ send · esc close · / open from anywhere</span>
-            <span className={remaining === 0 ? 'text-red-400/60' : remaining <= 2 ? 'text-[#00ffea]/50' : 'text-white/25'}>
+            <span className={remaining === 0 ? 'text-red-400/70' : remaining <= 2 ? 'text-[#007d75]/55' : 'text-[#1b1713]/40'}>
               {remaining}/{DAILY_LIMIT} left today
             </span>
           </p>
@@ -810,18 +810,18 @@ function Line({
 }) {
   if (role === 'user') {
     return (
-      <p className="text-[0.82rem] sm:text-sm leading-6 text-[#00ffea]/85 whitespace-pre-wrap break-words">
-        <span className="text-[#00ffea]/55 mr-2">&gt;</span>
+      <p className="text-[0.82rem] sm:text-sm leading-6 text-[#007d75]/95 whitespace-pre-wrap break-words">
+        <span className="text-[#00a89d]/55 mr-2">&gt;</span>
         {text}
       </p>
     );
   }
   return (
     <div className="flex gap-3">
-      <span className="text-[#00ffea]/30 select-none leading-6">│</span>
+      <span className="text-[#00a89d]/35 select-none leading-6">│</span>
       <p
         className={`flex-1 text-[0.82rem] sm:text-sm leading-6 whitespace-pre-wrap break-words ${
-          muted ? 'text-white/35' : 'text-white/85'
+          muted ? 'text-[#1b1713]/40' : 'text-[#1b1713]/88'
         }`}
       >
         {linkify(text)}
@@ -883,7 +883,7 @@ function linkify(text: string) {
         href={p.url.startsWith('http') ? p.url : `https://${p.url}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-[#00ffea]/90 underline decoration-[#00ffea]/40 underline-offset-2 hover:text-[#00ffea] hover:decoration-[#00ffea] break-all"
+        className="text-[#007d75]/90 underline decoration-[#00a89d]/40 underline-offset-2 hover:text-[#006c65] hover:decoration-[#00a89d] break-all"
       >
         {p.url}
       </a>
