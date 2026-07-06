@@ -41,14 +41,6 @@ type RoomDoor = {
   motif: 'article' | 'hbm' | 'pcb' | 'trendy' | 'record';
   placement: CSSProperties;
   note?: string;
-  glassItems?: VisualItem[];
-};
-
-type VisualItem = {
-  src: string;
-  alt: string;
-  caption: string;
-  href?: string;
 };
 
 /* ── Homepage ─────────────────────────────────────────────────────────
@@ -115,11 +107,10 @@ export default function Home() {
       label: 'Trendy',
       href: tx.trendy.podcast.kateHref,
       category: tx.trendy.tag,
-      blurb: `${tx.trendy.body} The listening shelf sits next to the glass bench: handmade, handwritten, replayed until it turns into taste.`,
+      blurb: `${tx.trendy.body} The listening shelf stays with the sound notes: handmade, handwritten, replayed until it turns into taste.`,
       signal: tx.trendy.heading,
       motif: 'trendy',
       note: tx.visual.note,
-      glassItems: tx.visual.items,
       placement: { top: '24%', left: '39%', transform: 'rotate(1.5deg)', zIndex: 8 },
     },
   ];
@@ -358,12 +349,10 @@ export default function Home() {
 }
 
 function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
-  const glassItems = rooms.find((room) => room.id === 'trendy')?.glassItems ?? [];
   const jensenHref = rooms.find((room) => room.id === 'magazine')?.href ?? '/research';
   const socialLinks = [
     { label: 'github', href: 'https://github.com/lilaclilac09' },
     { label: 'substack', href: '/dispatch' },
-    { label: 'airmail', href: 'mailto:rosazxc0915@gmail.com' },
     { label: 'sound', href: '/sound' },
   ];
 
@@ -379,8 +368,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
         className="relative mx-auto flex h-full w-full max-w-[1400px] flex-col overflow-visible pb-5 pt-[78px] sm:pb-6 sm:pt-[82px] lg:pt-[88px]"
       >
         <header className="relative z-20 flex items-start justify-between gap-6">
-          <a
-            href="mailto:rosazxc0915@gmail.com"
+          <span
             className="hidden sm:inline-block"
             style={{
               color: palette.graphite,
@@ -392,7 +380,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             }}
           >
             Aileena Machina
-          </a>
+          </span>
           <nav className="ml-auto hidden items-center gap-5 lg:flex" aria-label="Article rooms">
             {rooms.map((room) => (
               room.href.startsWith('http') ? (
@@ -457,38 +445,6 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 );
               })}
 
-              {glassItems.length > 0 && (
-                <div className="grid grid-cols-2 gap-3 pb-4">
-                  {glassItems.map((img) => (
-                    <Link
-                      key={img.src}
-                      href={img.href ?? '/blog/pate-de-verre'}
-                      className="block bg-white p-2 pb-4 no-underline"
-                      aria-label={img.caption}
-                      style={{ boxShadow: '0 18px 42px -32px rgba(20,17,12,0.55)' }}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={img.src}
-                        alt={img.alt}
-                        className="aspect-square w-full object-cover"
-                        style={{ display: 'block' }}
-                      />
-                      <span
-                        className="mt-2 block text-center"
-                        style={{
-                          color: palette.softPink,
-                          fontFamily: "'Allura', cursive",
-                          fontSize: '1.1rem',
-                          lineHeight: 0.92,
-                        }}
-                      >
-                        {img.caption}
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
 
@@ -539,51 +495,6 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               </Link>
             );
           })}
-
-          {glassItems.length > 0 && (
-            <div className="absolute bottom-[13%] left-[47%] z-[11] hidden -translate-x-1/2 items-end gap-3 sm:flex">
-              {glassItems.map((img, idx) => (
-                <Link
-                  key={img.src}
-                  href={img.href ?? '/blog/pate-de-verre'}
-                  className="block text-left no-underline"
-                  aria-label={img.caption}
-                  style={{
-                    cursor: 'pointer',
-                    transform: `rotate(${[-6, 2, -2, 5][idx % 4]}deg)`,
-                    transition: 'transform 0.18s ease',
-                  }}
-                >
-                  <figure
-                    className="m-0 bg-white p-2 pb-4"
-                    style={{
-                      width: 98,
-                      boxShadow: '0 18px 42px -30px rgba(20,17,12,0.65)',
-                    }}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={img.src}
-                      alt={img.alt}
-                      className="aspect-square w-full object-cover"
-                      style={{ display: 'block' }}
-                    />
-                    <figcaption
-                      className="mt-2 text-center"
-                      style={{
-                        color: palette.softPink,
-                        fontFamily: "'Allura', cursive",
-                        fontSize: '1.04rem',
-                        lineHeight: 0.92,
-                      }}
-                    >
-                      {img.caption}
-                    </figcaption>
-                  </figure>
-                </Link>
-              ))}
-            </div>
-          )}
 
           <Link
             href={jensenHref}
@@ -727,23 +638,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
           </Link>
         </div>
 
-        <div className="relative z-20 mb-1 flex items-end justify-between gap-6">
-          <p
-            className="hidden max-w-[520px] text-[0.9rem] sm:block"
-            style={{
-              color: 'rgba(20,17,12,0.82)',
-              fontFamily: 'Georgia, serif',
-              fontSize: '1.02rem',
-              fontStyle: 'italic',
-              lineHeight: 1.45,
-            }}
-          >
-            For collaboration, notes, and strange little dispatches, write to{' '}
-            <a href="mailto:rosazxc0915@gmail.com" style={{ color: palette.ink, textDecoration: 'underline' }}>
-              rosazxc0915@gmail.com
-            </a>
-          </p>
-
+        <div className="relative z-20 mb-1 flex items-end justify-end gap-6">
           <nav className="ml-auto hidden flex-col items-end gap-2 sm:flex" aria-label="Social links">
             {socialLinks.map((link) => (
               link.href.startsWith('/') ? (
@@ -1057,7 +952,7 @@ function ObjectFace({ room }: { room: RoomDoor }) {
             marginTop: 12,
           }}
         >
-          {['handmade', 'handwritten', 'podcast', 'visual'].map((tag) => (
+          {['handmade', 'handwritten', 'podcast'].map((tag) => (
             <span
               key={tag}
               style={{

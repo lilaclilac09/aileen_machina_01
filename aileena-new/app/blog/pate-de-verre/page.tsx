@@ -78,7 +78,7 @@ export default function PateDeVerreArticle() {
         </p>
 
         <div style={{ marginTop: 56 }}>
-          <Link href="/#visual" style={{
+          <Link href="/sound#glass-bench" style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
             fontFamily: 'monospace', fontSize: '0.6rem', letterSpacing: '0.35em',
             color: 'rgba(255,255,255,0.35)', textDecoration: 'none', textTransform: 'uppercase',
