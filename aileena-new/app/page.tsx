@@ -24,7 +24,7 @@ type RoomDoor = {
   category: string;
   blurb: string;
   signal: string;
-  image: string;
+  motif: 'article' | 'radar' | 'ticker' | 'record';
   placement: CSSProperties;
 };
 
@@ -64,8 +64,8 @@ export default function Home() {
       category: 'Issue',
       blurb: 'Interactive judgments, one issue at a time.',
       signal: latestIssue ? `${latestIssue.issueNumber} · ${latestIssue.coverTitle}` : 'Open the magazine rack',
-      image: '/research/prop-amm-radar.png',
-      placement: { top: '9%', left: '28%', transform: 'rotate(-5deg)', zIndex: 2 },
+      motif: 'radar',
+      placement: { top: '6%', left: '49%', transform: 'rotate(-5deg)', zIndex: 3 },
     },
     {
       id: 'dispatch',
@@ -75,8 +75,8 @@ export default function Home() {
       category: 'Dispatch',
       blurb: 'Fresh dispatches and analysis.',
       signal: latestDispatch ? latestDispatch.title : 'Open the archive',
-      image: '/dispatch-covers/investing-hero.jpg',
-      placement: { top: '2%', right: '12%', transform: 'rotate(4deg)', zIndex: 1 },
+      motif: 'ticker',
+      placement: { top: '4%', right: '8%', transform: 'rotate(4deg)', zIndex: 2 },
     },
     {
       id: 'library',
@@ -86,8 +86,8 @@ export default function Home() {
       category: 'Long-form',
       blurb: 'Long-form essays and the back catalogue.',
       signal: latestWomanInTech ? latestWomanInTech.title : 'Open the catalogue',
-      image: '/dispatch-covers/harassment.jpg',
-      placement: { top: '39%', left: '13%', transform: 'rotate(3deg)', zIndex: 4 },
+      motif: 'article',
+      placement: { top: '15%', left: '4%', transform: 'rotate(-1.5deg)', zIndex: 5 },
     },
     {
       id: 'sound',
@@ -97,8 +97,8 @@ export default function Home() {
       category: 'Set',
       blurb: 'DJ sets and the music she ships.',
       signal: 'Mix 02 · Berlin',
-      image: '/berlin.jpg',
-      placement: { top: '42%', right: '7%', transform: 'rotate(-2deg)', zIndex: 3 },
+      motif: 'record',
+      placement: { top: '45%', right: '12%', transform: 'rotate(-2deg)', zIndex: 4 },
     },
   ];
 
@@ -213,27 +213,6 @@ export default function Home() {
                   className="anim-up-3"
                   style={{ display: 'flex', flexWrap: 'wrap', gap: 14, alignItems: 'center' }}
                 >
-                  <Link
-                    href={latestIssueHref}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 10,
-                      background: '#ffa726',
-                      color: '#070707',
-                      padding: '14px 26px',
-                      borderRadius: 999,
-                      fontFamily: mono,
-                      fontSize: '0.68rem',
-                      letterSpacing: '0.28em',
-                      textTransform: 'uppercase',
-                      fontWeight: 700,
-                      textDecoration: 'none',
-                      boxShadow: '0 14px 40px -10px rgba(255,167,38,0.55)',
-                    }}
-                  >
-                    Open the latest issue →
-                  </Link>
                   <button
                     type="button"
                     onClick={() => window.dispatchEvent(new Event('open-agent-chat'))}
@@ -436,7 +415,7 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
                 maxWidth: 560,
               }}
             >
-              Clip an article. Drop into the room.
+              Drag the pieces into the room.
             </h2>
           </div>
         </header>
@@ -465,6 +444,7 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
           {rooms.map((room) => {
             const isActive = draggingId === room.id || enteringId === room.id;
             const baseTransform = String(room.placement.transform ?? '');
+            const isArticle = room.motif === 'article';
 
             return (
               <button
@@ -481,73 +461,24 @@ function AtriumDragDock({ rooms }: { rooms: RoomDoor[] }) {
                 style={{
                   ...room.placement,
                   position: 'absolute',
-                  width: 'min(70vw, 360px)',
-                  minHeight: 286,
+                  width: isArticle ? 'min(78vw, 420px)' : 'min(60vw, 310px)',
+                  minHeight: isArticle ? 400 : 250,
                   padding: 0,
-                  border: '1px solid rgba(20,17,12,0.14)',
-                  background: '#fffdf7',
+                  border: isArticle ? '1px solid rgba(20,17,12,0.2)' : 'none',
+                  background: isArticle ? '#fffdf7' : 'transparent',
                   color: '#14110c',
                   cursor: isActive ? 'grabbing' : 'grab',
                   boxShadow: isActive
                     ? '0 34px 90px -34px rgba(20,17,12,0.55)'
-                    : '0 24px 70px -42px rgba(20,17,12,0.5)',
+                    : isArticle
+                      ? '0 24px 70px -42px rgba(20,17,12,0.5)'
+                      : 'none',
                   transform: `${baseTransform} ${isActive ? 'scale(1.035)' : ''}`,
                   transition: 'box-shadow 0.18s ease, transform 0.18s ease',
                 }}
                 aria-label={`Open ${room.label}`}
               >
-                <span
-                  aria-hidden
-                  style={{
-                    display: 'block',
-                    height: 128,
-                    backgroundImage: `url('${room.image}')`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    filter: 'saturate(0.86) contrast(1.02)',
-                  }}
-                />
-                <span style={{ display: 'block', padding: '18px 20px 20px' }}>
-                  <span
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      gap: 12,
-                      marginBottom: 12,
-                      color: 'rgba(20,17,12,0.58)',
-                      fontFamily: mono,
-                      fontSize: '0.58rem',
-                      letterSpacing: '0.2em',
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    <span>{room.category}</span>
-                    <span>{room.index}</span>
-                  </span>
-                  <span
-                    style={{
-                      display: 'block',
-                      fontSize: 'clamp(1.5rem, 2.7vw, 2.15rem)',
-                      fontWeight: 600,
-                      letterSpacing: '-0.035em',
-                      lineHeight: 0.98,
-                      marginBottom: 14,
-                    }}
-                  >
-                    {room.label}
-                  </span>
-                  <span
-                    style={{
-                      display: 'block',
-                      color: 'rgba(20,17,12,0.72)',
-                      fontFamily: 'Georgia, serif',
-                      fontSize: '1rem',
-                      lineHeight: 1.38,
-                    }}
-                  >
-                    {room.signal}
-                  </span>
-                </span>
+                <ObjectFace room={room} />
               </button>
             );
           })}
@@ -626,4 +557,170 @@ const socialLinkStyle: CSSProperties = {
   fontStyle: 'italic',
   textDecoration: 'none',
   whiteSpace: 'nowrap',
+};
+
+function ObjectFace({ room }: { room: RoomDoor }) {
+  if (room.motif === 'article') {
+    return (
+      <span style={{ display: 'block', padding: '38px 34px 34px' }}>
+        <span
+          style={{
+            display: 'block',
+            color: 'rgba(20,17,12,0.64)',
+            fontFamily: mono,
+            fontSize: '0.62rem',
+            letterSpacing: '0.22em',
+            marginBottom: 22,
+            textAlign: 'center',
+            textTransform: 'uppercase',
+          }}
+        >
+          Woman in Tech
+        </span>
+        <span
+          style={{
+            display: 'block',
+            fontSize: 'clamp(2.05rem, 4.1vw, 3.65rem)',
+            fontWeight: 500,
+            letterSpacing: '-0.055em',
+            lineHeight: 0.96,
+            margin: '0 auto 26px',
+            maxWidth: 330,
+            textAlign: 'center',
+          }}
+        >
+          {room.signal}
+        </span>
+        <span
+          style={{
+            display: 'block',
+            color: 'rgba(20,17,12,0.72)',
+            fontFamily: 'Georgia, serif',
+            fontSize: '1.02rem',
+            lineHeight: 1.52,
+            margin: '0 auto',
+            maxWidth: 310,
+            textAlign: 'center',
+          }}
+        >
+          A real article sheet, placed on the left. Drag it, or tap it, to read.
+        </span>
+      </span>
+    );
+  }
+
+  if (room.motif === 'radar') {
+    return (
+      <span style={objectShellStyle}>
+        <span style={objectKickerStyle}>{room.category}</span>
+        <span
+          aria-hidden
+          style={{
+            position: 'relative',
+            display: 'block',
+            width: 170,
+            height: 170,
+            margin: '16px auto',
+            borderRadius: '50%',
+            border: '1px solid rgba(20,17,12,0.22)',
+            background:
+              'radial-gradient(circle, transparent 0 22%, rgba(20,17,12,0.09) 23% 24%, transparent 25% 47%, rgba(20,17,12,0.09) 48% 49%, transparent 50%), conic-gradient(from 20deg, rgba(255,167,38,0.65), rgba(0,255,234,0.35), rgba(20,17,12,0.08), rgba(255,167,38,0.65))',
+          }}
+        >
+          <span style={{ position: 'absolute', left: '50%', top: 14, width: 1, height: 142, background: 'rgba(20,17,12,0.18)' }} />
+          <span style={{ position: 'absolute', left: 14, top: '50%', width: 142, height: 1, background: 'rgba(20,17,12,0.18)' }} />
+        </span>
+        <span style={objectTitleStyle}>{room.label}</span>
+        <span style={objectTextStyle}>{room.signal}</span>
+      </span>
+    );
+  }
+
+  if (room.motif === 'ticker') {
+    return (
+      <span style={{ ...objectShellStyle, background: '#fff8d8' }}>
+        <span style={objectKickerStyle}>{room.category}</span>
+        <span
+          aria-hidden
+          style={{
+            display: 'grid',
+            gap: 8,
+            margin: '20px 0 18px',
+          }}
+        >
+          {[0.9, 0.68, 0.82, 0.5].map((width, idx) => (
+            <span
+              key={idx}
+              style={{
+                display: 'block',
+                width: `${width * 100}%`,
+                height: idx === 0 ? 12 : 8,
+                background: idx === 0 ? '#14110c' : 'rgba(20,17,12,0.28)',
+              }}
+            />
+          ))}
+        </span>
+        <span style={objectTitleStyle}>{room.label}</span>
+        <span style={objectTextStyle}>{room.signal}</span>
+      </span>
+    );
+  }
+
+  return (
+    <span style={{ ...objectShellStyle, background: '#101010', color: '#f5f1e8' }}>
+      <span style={{ ...objectKickerStyle, color: 'rgba(245,241,232,0.55)' }}>{room.category}</span>
+      <span
+        aria-hidden
+        style={{
+          display: 'grid',
+          placeItems: 'center',
+          width: 168,
+          height: 168,
+          margin: '16px auto',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, #f5f1e8 0 8%, #101010 9% 28%, #f5f1e8 29% 30%, #101010 31% 100%)',
+          boxShadow: '0 0 0 12px rgba(245,241,232,0.08)',
+        }}
+      >
+        <span style={{ width: 18, height: 18, borderRadius: '50%', background: '#ffa726' }} />
+      </span>
+      <span style={{ ...objectTitleStyle, color: '#f5f1e8' }}>{room.label}</span>
+      <span style={{ ...objectTextStyle, color: 'rgba(245,241,232,0.72)' }}>{room.signal}</span>
+    </span>
+  );
+}
+
+const objectShellStyle: CSSProperties = {
+  display: 'block',
+  minHeight: 250,
+  padding: '22px 22px 24px',
+  background: '#fffdf7',
+  border: '1px solid rgba(20,17,12,0.16)',
+  boxShadow: '0 22px 55px -40px rgba(20,17,12,0.5)',
+};
+
+const objectKickerStyle: CSSProperties = {
+  display: 'block',
+  color: 'rgba(20,17,12,0.52)',
+  fontFamily: mono,
+  fontSize: '0.56rem',
+  letterSpacing: '0.2em',
+  textTransform: 'uppercase',
+};
+
+const objectTitleStyle: CSSProperties = {
+  display: 'block',
+  fontSize: '1.42rem',
+  fontWeight: 650,
+  letterSpacing: '-0.04em',
+  lineHeight: 1,
+  marginBottom: 10,
+};
+
+const objectTextStyle: CSSProperties = {
+  display: 'block',
+  color: 'rgba(20,17,12,0.68)',
+  fontFamily: 'Georgia, serif',
+  fontSize: '0.93rem',
+  lineHeight: 1.35,
 };
