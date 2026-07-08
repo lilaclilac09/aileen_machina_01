@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import type { CSSProperties } from 'react';
 import DJStation from '../../components/DJStation';
+import DJSetCarousel from '../../components/DJSetCarousel';
 import { useLanguage } from '../../components/LanguageProvider';
 import { t } from '../../lib/translations';
 import ScrollUnlock from '../blog/ScrollUnlock';
@@ -89,26 +90,13 @@ export default function SoundPage() {
           >
             {tx.sound.body}
           </p>
-          <Link
-            href="/dj-set/"
-            style={{
-              display: 'inline-block',
-              marginTop: 18,
-              fontFamily: mono,
-              fontSize: '0.68rem',
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              color: 'rgba(99,243,216,0.75)',
-              textDecoration: 'none',
-              borderBottom: '1px solid rgba(99,243,216,0.35)',
-              paddingBottom: 2,
-            }}
-          >
-            Curated set carousel →
-          </Link>
         </div>
 
         <DJStation />
+
+        <div id="dj-set">
+          <DJSetCarousel />
+        </div>
 
         <GlassBench
           tag={tx.visual.kilnTag}

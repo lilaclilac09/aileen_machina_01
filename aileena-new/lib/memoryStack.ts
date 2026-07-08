@@ -16,7 +16,7 @@ Aileen's Machina memory lives in Markdown (L3 cold). At build time we index it; 
 
 ## When to call searchMemories
 - Music, DJ set, techno taste, artists, platforms (Bleep, Hard Wax, SoundCloud)
-- **Latest songs / carousel** — self-evolved from DJStation → `setlist.md`, `latest-content.md`, `music-taste.md`
+- **Latest songs** — curated set on /sound#dj-set; player deck on /sound (latest-content.md)
 - **Latest additions**: new songs, podcasts, documentaries, articles — query "latest content"
 - Culture gifts (Didion, Hockney, podcasts, books)
 - Memory frameworks (ReMe, O-Mem, Mem0, Cognee, Dreaming, LoRA)

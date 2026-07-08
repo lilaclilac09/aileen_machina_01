@@ -1,0 +1,226 @@
+.root {
+  position: relative;
+  margin-top: 3rem;
+  padding: 1.75rem clamp(1rem, 3vw, 1.5rem) 2rem;
+  background: #050608;
+  border: 1px solid rgba(99, 243, 216, 0.12);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.wash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 80% 50% at 50% 20%, rgba(99, 243, 216, 0.08), transparent 55%);
+}
+
+.header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.kicker {
+  margin: 0;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #63f3d8;
+}
+
+.genre {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  color: #7f90a1;
+  max-width: 28rem;
+  line-height: 1.5;
+}
+
+.toolbar {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.toolbar button {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid rgba(99, 243, 216, 0.25);
+  background: transparent;
+  color: #7f90a1;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.toolbar button.active {
+  color: #63f3d8;
+  border-color: rgba(99, 243, 216, 0.35);
+  box-shadow: 0 0 20px rgba(99, 243, 216, 0.12);
+}
+
+.carousel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 1.25rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 1rem 0 1.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 243, 216, 0.35) transparent;
+}
+
+.carousel::-webkit-scrollbar {
+  height: 6px;
+}
+
+.carousel::-webkit-scrollbar-thumb {
+  background: rgba(99, 243, 216, 0.35);
+  border-radius: 3px;
+}
+
+.card {
+  flex: 0 0 min(78vw, 300px);
+  scroll-snap-align: center;
+  background: #11161c;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+}
+
+.card:hover,
+.card.focused {
+  transform: translateY(-4px);
+  border-color: rgba(99, 243, 216, 0.35);
+  box-shadow: 0 0 40px rgba(99, 243, 216, 0.15), inset 0 0 60px rgba(99, 243, 216, 0.03);
+}
+
+.trackId {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  color: #63f3d8;
+  margin-bottom: 0.75rem;
+}
+
+.cover {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 2px;
+  object-fit: cover;
+  margin-bottom: 1rem;
+  box-shadow: 0 0 24px rgba(99, 243, 216, 0.1);
+}
+
+.title {
+  margin: 0 0 0.25rem;
+  font-weight: 400;
+  font-size: 1.35rem;
+  letter-spacing: 0.04em;
+  color: #edf2f7;
+}
+
+.artist {
+  margin: 0 0 0.75rem;
+  color: #7f90a1;
+  font-size: 0.95rem;
+}
+
+.artistInline {
+  color: #7f90a1;
+  font-size: 0.9rem;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  color: #7f90a1;
+  text-transform: uppercase;
+}
+
+.meta b {
+  color: #edf2f7;
+  font-weight: 500;
+}
+
+.list {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.listRow {
+  display: grid;
+  grid-template-columns: 72px 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: #11161c;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.listRow:hover,
+.listRow.focused {
+  border-color: rgba(99, 243, 216, 0.35);
+}
+
+.listRow img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+}
+
+.lid {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.6rem;
+  color: #63f3d8;
+  letter-spacing: 0.15em;
+  margin-bottom: 0.35rem;
+}
+
+.detail {
+  position: relative;
+  z-index: 1;
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  border: 1px solid rgba(99, 243, 216, 0.2);
+  background: rgba(17, 22, 28, 0.9);
+}
+
+.detailTitle {
+  margin: 0;
+  font-weight: 300;
+  font-size: 1.75rem;
+  letter-spacing: 0.08em;
+  color: #edf2f7;
+}
+
+.sub {
+  color: #7f90a1;
+  margin: 0.35rem 0 1rem;
+}
+
+.note {
+  color: #7f90a1;
+  margin: 1rem 0 0;
+}

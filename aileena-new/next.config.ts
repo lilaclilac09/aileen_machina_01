@@ -7,11 +7,10 @@ const nextConfig: NextConfig = {
   devIndicators: {
     position: 'bottom-right',
   },
-  // Next App Router does not serve public/*/index.html at the directory URL.
-  async rewrites() {
+  async redirects() {
     return [
-      { source: '/dj-set', destination: '/dj-set/index.html' },
-      { source: '/dj-set/', destination: '/dj-set/index.html' },
+      { source: '/dj-set', destination: '/sound#dj-set', permanent: true },
+      { source: '/dj-set/', destination: '/sound#dj-set', permanent: true },
     ];
   },
 };

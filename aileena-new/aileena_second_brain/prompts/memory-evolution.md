@@ -3,12 +3,10 @@
 
 ## 自进化（已接线）
 
-`pnpm sync:carousel-evolve`（build / memory:workflow 自动跑）：
+Carousel 在 **/sound#dj-set**（`lib/djSetlist.ts` 五首 handoff 曲目），不单独开页。
 
-1. 扫描 `DJStation.tsx` 尾部新增 Spotify 曲目
-2. 写入 `public/dj-set/setlist.json` + 封面 SVG → **carousel 可见**
-3. 更新 L3：`setlist.md`、`prompts/music-taste.md`、`self-evolution-log.md`
-4. 新曲目 → `memories/episodic/evolve-carousel-*.md`
+`pnpm sync:content-memory` / `pnpm build` 会扫描歌曲、podcast、纪录片、文章写入 `latest-content.md`。
+`pnpm sync:carousel-evolve` 仅把 curated set 同步进 `setlist.md` / `music-taste.md`。
 
 O-Mem L4（第二推荐，可选）：
 - 轻量：LLM 从对话抽 persona → 写 persona-auto.md
