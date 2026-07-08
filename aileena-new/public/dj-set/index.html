@@ -307,7 +307,7 @@
       list.classList.add('active');
     });
 
-    fetch('setlist.json')
+    fetch('/dj-set/setlist.json')
       .then((r) => r.json())
       .then((data) => {
         document.getElementById('genre').textContent = data.genre || '';
