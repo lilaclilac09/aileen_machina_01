@@ -54,13 +54,18 @@ The argument is a Spotify track URL, optionally followed by extra fields separat
      already present but you now have a real cover, **update that entry's `thumb` in place**
      instead of appending a duplicate.
 
-4. **Build to verify:** `cd aileena-new && npm run build` (expect it to pass).
+4. **Self-evolve carousel + memory:** `cd aileena-new && pnpm sync:carousel-evolve`
+   - Appends the new track to `public/dj-set/setlist.json` (visible at `/dj-set/`)
+   - Updates `aileena_second_brain/memories/semantic/setlist.md` and `prompts/music-taste.md`
 
-5. **Ship it** on a feature branch, per the repo's git workflow:
+5. **Build to verify:** `cd aileena-new && npm run build` (expect it to pass).
+
+6. **Ship it** on a feature branch, per the repo's git workflow:
    ```bash
    git checkout -b chore/dj-add-<short-title-slug>
-   git add aileena-new/components/DJStation.tsx
-   git commit -m "chore(dj): add <title> to the carousel"
+   git add aileena-new/components/DJStation.tsx aileena-new/public/dj-set/
+   git add aileena-new/aileena_second_brain/memories/ aileena-new/aileena_second_brain/prompts/music-taste.md
+   git commit -m "chore(dj): add <title> to deck + carousel memory"
    git push -u origin chore/dj-add-<short-title-slug>
    ```
    Then open a PR to `main` and squash-merge it via the GitHub MCP tools (this is a web session;
@@ -68,7 +73,6 @@ The argument is a Spotify track URL, optionally followed by extra fields separat
 
 ## Notes
 
-- The carousel and the two-deck player both read from the same `TRACKS` array — adding one entry
-  surfaces it everywhere.
+- **Player** reads `DJStation.tsx` `TRACKS`; **carousel** (`/dj-set/`) reads `setlist.json` — kept in sync by `pnpm sync:carousel-evolve` (also runs on `pnpm build`).
 - If the user pastes several links at once, add them all in one commit.
 - Keep the array visually aligned the way it already is; it's hand-formatted.
