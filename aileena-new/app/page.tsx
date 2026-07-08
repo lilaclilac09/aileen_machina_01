@@ -110,6 +110,7 @@ export default function Home() {
   const latestIssueHref = latestIssue?.longFormHref ?? (latestIssue ? `/blog/${latestIssue.slug}` : '/dispatch');
   const latestDispatch = tx.blog.researchDispatch.posts.slice(-1)[0];
   const metooArticle = tx.blog.womanInTech.posts.find((post) => post.href === '/blog/harassment') ?? tx.blog.womanInTech.posts[0];
+  const featuredInvesting = tx.blog.investing.posts.find((post) => post.href === '/blog/nvidia-flywheel') ?? tx.blog.investing.posts[0];
   const rooms: RoomDoor[] = [
     {
       id: 'magazine',
@@ -134,10 +135,10 @@ export default function Home() {
       placement: { top: '9%', right: '4%', transform: 'rotate(3deg)', zIndex: 4 },
     },
     {
-      id: 'library',
+      id: 'woman-tech',
       index: '03',
-      label: 'Library',
-      href: metooArticle ? metooArticle.href : '/dispatch',
+      label: 'Woman in Tech',
+      href: '/dispatch#woman-in-tech',
       category: 'Woman in Tech',
       blurb: metooArticle ? metooArticle.body : 'Long-form essays and the back catalogue.',
       signal: metooArticle ? metooArticle.title : 'Every Woman in Tech Has a #MeToo Story',
@@ -145,8 +146,19 @@ export default function Home() {
       placement: { top: '9%', left: '2%', transform: 'rotate(-1deg)', zIndex: 14 },
     },
     {
-      id: 'trendy',
+      id: 'woman-investing',
       index: '04',
+      label: 'Woman Investing',
+      href: '/dispatch#investing',
+      category: tx.blog.investing.tag,
+      blurb: featuredInvesting ? featuredInvesting.body : 'A woman should have her own portfolio.',
+      signal: tx.blog.investing.heading,
+      motif: 'hbm',
+      placement: { top: '56%', left: '7%', transform: 'rotate(2.5deg)', zIndex: 11 },
+    },
+    {
+      id: 'trendy',
+      index: '05',
       label: 'Trendy',
       href: '#watch-hub',
       category: tx.trendy.tag,

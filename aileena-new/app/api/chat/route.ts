@@ -2,7 +2,10 @@ import { streamText, convertToModelMessages, tool, stepCountIs, type UIMessage, 
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { z } from 'zod';
 import { SYSTEM_PROMPT } from '../../../lib/agentContext';
+import { buildMachinaSystemPrompt } from '../../../lib/aileenaSecondBrain';
 import { searchArticles } from '../../../lib/agentSearch';
+import { searchMemories, memoryIndexMeta } from '../../../lib/memorySearch';
+import { MEMORY_STACK_PROMPT } from '../../../lib/memoryStack';
 import { agentDataTools, datasetSummary } from '../../../lib/data/tools';
 
 export const runtime = 'edge';
@@ -134,6 +137,24 @@ function jsonError(message: string, status: number): Response {
   });
 }
 
+function extractTextFromMessage(m: UIMessage): string {
+  if (!m.parts?.length) return '';
+  return m.parts
+    .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
+    .map((p) => p.text)
+    .join(' ')
+    .trim();
+}
+
+function lastUserQuery(messages: UIMessage[]): string {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i].role !== 'user') continue;
+    const t = extractTextFromMessage(messages[i]);
+    if (t) return t;
+  }
+  return '';
+}
+
 export async function POST(req: Request) {
   console.log('[chat] POST request started');
   
@@ -145,7 +166,7 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: { messages?: UIMessage[]; priorTopics?: string[] };
+  let body: { messages?: UIMessage[]; priorTopics?: string[]; agentMode?: 'site' | 'machina' };
   try {
     body = await req.json();
   } catch (err) {
@@ -180,6 +201,12 @@ export async function POST(req: Request) {
 
   const trimmed = messages.slice(-20);
   const modelMessages = await convertToModelMessages(trimmed);
+  const agentMode = body.agentMode === 'machina' ? 'machina' : 'site';
+  const baseSystem = agentMode === 'machina' ? buildMachinaSystemPrompt() : SYSTEM_PROMPT;
+
+  const lastQ = lastUserQuery(trimmed);
+  const memoryPrefetch = lastQ ? searchMemories(lastQ, 2) : [];
+  const memMeta = memoryIndexMeta();
 
   const picked = selectModel();
   if (!picked) {
@@ -201,8 +228,25 @@ export async function POST(req: Request) {
   // are visible right next to the streamText call.
   const ds = datasetSummary();
   const augmentedSystem =
-    SYSTEM_PROMPT +
+    baseSystem +
+    MEMORY_STACK_PROMPT +
     `
+
+# Memory index (L2)
+${memMeta.chunkCount} chunks indexed at ${memMeta.generatedAt || 'build time'}. Tool: searchMemories.` +
+    (memoryPrefetch.length > 0
+      ? `
+
+# Memory prefetch (top hits for this turn — verify with searchMemories if unsure)
+${memoryPrefetch
+  .map(
+    (h) =>
+      `- [${h.tier}] ${h.path} § ${h.section}: ${h.snippet.replace(/\n/g, ' ')}`,
+  )
+  .join('\n')}`
+      : '') +
+    (agentMode === 'site'
+      ? `
 
 # Agent tools
 
@@ -229,9 +273,13 @@ You have several tools. Choose the narrowest one for the question. Each turn you
 - searchResearch(query, k): keyword search over broker / analyst notes
 - searchDocs(query, k): both corpora together
 
+## Machina second-brain (${memMeta.chunkCount} memory chunks)
+- searchMemories(query, k): TF-IDF over aileena_second_brain Markdown — taste, music, culture, memory frameworks, Dreaming, hardware Memory Wall. Use before stating preferences or private curation rules.
+
 # Tool-use rules
 - For top-level CV / contact / availability questions, no tool — answer from the static prompt.
 - For article content, use searchArticles.
+- For taste / music / culture / memory stack, use searchMemories.
 - For chip specs / prices / news / earnings / research, use the matching tool above.
 - If a tool returns no hits, say so plainly and offer the closest alternative — do not invent data.
 - Quote retrieved snippets concisely. Always include the relevant url or date if returned.
@@ -242,14 +290,24 @@ If the visitor names a specific article, project, product, person, company, tech
   - Any other proper noun the visitor uses, default to: search first, answer second. If retrieval returns nothing, say "I don't have her take on that" — never substitute training data.
 
 # Link formatting
-- ALWAYS write links as full URLs starting with "https://" — e.g. https://aileena.xyz/blog/centaur, not aileena.xyz/blog/centaur. The UI auto-linkifies https:// URLs cleanly; bare domains render as plain text and frustrate the reader.` +
-    (priorTopics.length > 0
-      ? `
+- ALWAYS write links as full URLs starting with "https://" — e.g. https://aileena.xyz/blog/centaur, not aileena.xyz/blog/centaur. The UI auto-linkifies https:// URLs cleanly; bare domains render as plain text and frustrate the reader.`
+      : '') +
+    (agentMode === 'site'
+      ? priorTopics.length > 0
+        ? `
 
 # Prior visits
 This visitor has previously asked about: ${priorTopics
-          .map((t) => `"${t.replace(/"/g, "'")}"`)
-          .join('; ')}. Treat this as soft background context — what they probably care about. Do not reference it directly unless they explicitly ask "what did I ask before?".`
+            .map((t) => `"${t.replace(/"/g, "'")}"`)
+            .join('; ')}. Treat this as soft background context — what they probably care about. Do not reference it directly unless they explicitly ask "what did I ask before?".`
+        : ''
+      : '') +
+    (agentMode === 'machina'
+      ? `
+
+# Machina mode tools
+- searchMemories(query, k): required for taste, setlist, culture, frameworks, Dreaming, hardware notes.
+- searchArticles(query, k): optional when visitor asks about her published writing.`
       : '');
 
   try {
@@ -267,6 +325,24 @@ This visitor has previously asked about: ${priorTopics
       // Cap at 4 so a confused model can't burn quota looping forever.
       stopWhen: stepCountIs(4),
       tools: {
+        searchMemories: tool({
+          description:
+            'Search Aileen Machina second-brain Markdown memories (music taste, culture, memory frameworks, Dreaming, hardware Memory Wall, DJ set curation). Use for preferences and private curation — not for CV or blog articles.',
+          inputSchema: z.object({
+            query: z.string().min(2).describe('Natural-language query over memory files.'),
+            k: z.number().int().min(1).max(5).optional().describe('Top passages. Default 3.'),
+          }),
+          execute: async ({ query, k }) => {
+            return searchMemories(query, k ?? 3).map((h) => ({
+              path: h.path,
+              tier: h.tier,
+              title: h.title,
+              section: h.section,
+              snippet: h.snippet,
+              score: h.score,
+            }));
+          },
+        }),
         searchArticles: tool({
           description:
             'Keyword-search the full body text of every Research Dispatch and Woman-in-Tech article on aileena.xyz. Use when the visitor asks about article content — claims, numbers, specific passages, concepts inside an article. Returns up to k passages with their slug, section, snippet and a score. Do NOT call for greetings, contact info, or top-level CV questions.',

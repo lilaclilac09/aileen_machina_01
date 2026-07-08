@@ -1,0 +1,56 @@
+{
+  "title": "Aileena Machina — current set",
+  "genre": "Techno (personal): harder driving techno — DVS1, Blawan, Rødhåd",
+  "curation": "User links as-is; search Bleep/Beatport/Bandcamp; cover must match release.",
+  "tracks": [
+    {
+      "id": "DAYDRM",
+      "title": "Daydreaming",
+      "artist": "Harry Styles",
+      "bpm": 120,
+      "key": "7B",
+      "durationSec": null,
+      "cover": "assets/covers/daydrm.svg",
+      "note": "Atmosphere entry"
+    },
+    {
+      "id": "RAINFR",
+      "title": "Rainforest",
+      "artist": "John Beltran · Open House",
+      "album": "Now & Then",
+      "bpm": null,
+      "key": null,
+      "durationSec": null,
+      "cover": "assets/covers/rainfr.svg"
+    },
+    {
+      "id": "HIGHTD",
+      "title": "High Tide",
+      "artist": "John Beltran · Open House",
+      "album": "Now & Then",
+      "bpm": null,
+      "key": null,
+      "durationSec": null,
+      "cover": "assets/covers/hightd.svg"
+    },
+    {
+      "id": "INTOUCH",
+      "title": "In Touch",
+      "artist": "Beatrice M.",
+      "album": "Sinking Plate 3",
+      "bpm": 140,
+      "key": "9A",
+      "durationSec": null,
+      "cover": "assets/covers/intouch.svg"
+    },
+    {
+      "id": "RNDVZ",
+      "title": "Rendezvous",
+      "artist": "lovegold",
+      "bpm": null,
+      "key": null,
+      "durationSec": null,
+      "cover": "assets/covers/rndvz.svg"
+    }
+  ]
+}

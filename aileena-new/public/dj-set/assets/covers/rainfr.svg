@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+  <rect width="400" height="400" fill="#0a1218"/>
+  <circle cx="200" cy="200" r="150" fill="none" stroke="#58b9df" stroke-opacity="0.4" stroke-width="2"/>
+  <text x="200" y="188" fill="#79d8ff" font-family="monospace" font-size="22" text-anchor="middle">RAINFR</text>
+  <text x="200" y="220" fill="#7f90a1" font-family="sans-serif" font-size="14" text-anchor="middle">Rainforest</text>
+</svg>

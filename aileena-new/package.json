@@ -5,9 +5,11 @@
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "dev": "NEXT_TURBOPACK=0 next dev",
-    "build": "tsx scripts/build-article-index.ts && tsx scripts/build-data-index.ts && next build",
+    "build": "tsx scripts/build-article-index.ts && tsx scripts/build-data-index.ts && tsx scripts/build-memory-index.ts && next build",
     "build:index": "tsx scripts/build-article-index.ts",
     "build:data-index": "tsx scripts/build-data-index.ts",
+    "build:memory-index": "tsx scripts/build-memory-index.ts",
+    "dreaming": "tsx scripts/dreaming-consolidate.ts",
     "start": "next start",
     "lint": "eslint"
   },
