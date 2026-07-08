@@ -10,7 +10,7 @@
       "bpm": 120,
       "key": "7B",
       "durationSec": null,
-      "cover": "assets/covers/daydrm.svg",
+      "cover": "/dj-set/assets/covers/daydrm.jpg",
       "note": "Atmosphere entry"
     },
     {
@@ -21,7 +21,7 @@
       "bpm": null,
       "key": null,
       "durationSec": null,
-      "cover": "assets/covers/rainfr.svg"
+      "cover": "/dj-set/assets/covers/rainfr.jpg"
     },
     {
       "id": "HIGHTD",
@@ -31,7 +31,7 @@
       "bpm": null,
       "key": null,
       "durationSec": null,
-      "cover": "assets/covers/hightd.svg"
+      "cover": "/dj-set/assets/covers/hightd.jpg"
     },
     {
       "id": "INTOUCH",
@@ -41,7 +41,7 @@
       "bpm": 140,
       "key": "9A",
       "durationSec": null,
-      "cover": "assets/covers/intouch.svg"
+      "cover": "/dj-set/assets/covers/intouch.jpg"
     },
     {
       "id": "RNDVZ",
@@ -50,7 +50,7 @@
       "bpm": null,
       "key": null,
       "durationSec": null,
-      "cover": "assets/covers/rndvz.svg"
+      "cover": "/dj-set/assets/covers/rndvz.jpg"
     }
   ]
 }

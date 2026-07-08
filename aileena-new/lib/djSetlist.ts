@@ -22,7 +22,7 @@ export const DJ_SET_TRACKS: DjSetTrack[] = [
     artist: 'Harry Styles',
     bpm: 120,
     key: '7B',
-    cover: '/dj-set/assets/covers/daydrm.svg',
+    cover: '/dj-set/assets/covers/daydrm.jpg',
     note: 'Atmosphere entry',
   },
   {
@@ -30,14 +30,14 @@ export const DJ_SET_TRACKS: DjSetTrack[] = [
     title: 'Rainforest',
     artist: 'John Beltran · Open House',
     album: 'Now & Then',
-    cover: '/dj-set/assets/covers/rainfr.svg',
+    cover: '/dj-set/assets/covers/rainfr.jpg',
   },
   {
     id: 'HIGHTD',
     title: 'High Tide',
     artist: 'John Beltran · Open House',
     album: 'Now & Then',
-    cover: '/dj-set/assets/covers/hightd.svg',
+    cover: '/dj-set/assets/covers/hightd.jpg',
   },
   {
     id: 'INTOUCH',
@@ -46,12 +46,12 @@ export const DJ_SET_TRACKS: DjSetTrack[] = [
     album: 'Sinking Plate 3',
     bpm: 140,
     key: '9A',
-    cover: '/dj-set/assets/covers/intouch.svg',
+    cover: '/dj-set/assets/covers/intouch.jpg',
   },
   {
     id: 'RNDVZ',
     title: 'Rendezvous',
     artist: 'lovegold',
-    cover: '/dj-set/assets/covers/rndvz.svg',
+    cover: '/dj-set/assets/covers/rndvz.jpg',
   },
 ];
