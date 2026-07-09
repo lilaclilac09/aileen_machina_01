@@ -473,8 +473,8 @@ function PlaylistCarousel({
   onLoadTrack?: (side: 'left' | 'right', track: Track) => void;
   onSetDragTrack?: (track: Track) => void;
 }) {
-  const [ptrStart, setPtrStart] = useState<number | null>(null);
   const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Carousel renders newest-first. Source order in TRACKS stays append-only
   // (so /addmusic just pushes to the end), and we reverse for display here.
@@ -509,8 +509,15 @@ function PlaylistCarousel({
     });
     return () => controller.abort();
   }, [tracks]);
-  const isDragging = dragOffset !== 0 || ptrStart !== null;
+
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const ptrStartX = useRef<number | null>(null);
+  const dragX = useRef(0);
+  const lastMoveT = useRef(0);
+  const velocityX = useRef(0);
+  const movedEnough = useRef(false);
+  const activeIdxRef = useRef(activeIdx);
+  activeIdxRef.current = activeIdx;
   const active = tracks[activeIdx];
 
   function onCardHover(i: number, rel: number) {
@@ -523,29 +530,50 @@ function PlaylistCarousel({
   }
 
   function onPtrDown(e: React.PointerEvent<HTMLDivElement>) {
+    // Ignore secondary buttons; keep HTML5 deck-drop separate from swipe.
+    if (e.button !== 0) return;
     e.currentTarget.setPointerCapture(e.pointerId);
-    setPtrStart(e.clientX);
+    ptrStartX.current = e.clientX;
+    dragX.current = 0;
+    velocityX.current = 0;
+    lastMoveT.current = performance.now();
+    movedEnough.current = false;
+    setIsDragging(true);
     setDragOffset(0);
   }
   function onPtrMove(e: React.PointerEvent<HTMLDivElement>) {
-    if (ptrStart === null) return;
-    setDragOffset(e.clientX - ptrStart);
+    if (ptrStartX.current === null) return;
+    const now = performance.now();
+    const dx = e.clientX - ptrStartX.current;
+    const dt = Math.max(1, now - lastMoveT.current);
+    velocityX.current = (dx - dragX.current) / dt;
+    dragX.current = dx;
+    lastMoveT.current = now;
+    if (Math.abs(dx) > 6) movedEnough.current = true;
+    setDragOffset(dx);
   }
-  function onPtrUp() {
-    if (ptrStart === null) return;
-    if (dragOffset < -55 && activeIdx < tracks.length - 1) setActiveIdx(activeIdx + 1);
-    else if (dragOffset > 55 && activeIdx > 0) setActiveIdx(activeIdx - 1);
-    setPtrStart(null);
+  function finishDrag() {
+    if (ptrStartX.current === null) return;
+    const dx = dragX.current;
+    const flick = velocityX.current * 180; // px-ish impulse
+    const travel = dx + flick;
+    const idx = activeIdxRef.current;
+    if (travel < -48 && idx < tracks.length - 1) setActiveIdx(idx + 1);
+    else if (travel > 48 && idx > 0) setActiveIdx(idx - 1);
+    ptrStartX.current = null;
+    dragX.current = 0;
+    velocityX.current = 0;
+    setIsDragging(false);
     setDragOffset(0);
   }
 
   const CARD = 154;
-  const SPACING = 128;
+  const SPACING = 118;
 
   return (
     <div style={{ padding: '16px 0 8px' }}>
       {/* ── Coverflow stage ── */}
-      <div style={{ position: 'relative', height: CARD + 24 }}>
+      <div style={{ position: 'relative', height: CARD + 16, touchAction: 'pan-y' }}>
         {/* Prev arrow */}
         <button
           onClick={() => activeIdx > 0 && setActiveIdx(activeIdx - 1)}
@@ -569,100 +597,91 @@ function PlaylistCarousel({
           }}
         >›</button>
 
-        {/* Cards */}
+        {/* Cards — pointer swipe only (no HTML5 draggable on cards; that fought swipe) */}
         <div
           onPointerDown={onPtrDown}
           onPointerMove={onPtrMove}
-          onPointerUp={onPtrUp}
-          onPointerCancel={onPtrUp}
-          style={{ position: 'absolute', inset: 0, cursor: isDragging ? 'grabbing' : 'grab' }}
+          onPointerUp={finishDrag}
+          onPointerCancel={finishDrag}
+          style={{
+            position: 'absolute', inset: 0,
+            cursor: isDragging ? 'grabbing' : 'grab',
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+            touchAction: 'pan-y',
+          }}
         >
           {tracks.map((track, i) => {
             const rel = i - activeIdx;
             const abs = Math.abs(rel);
             if (abs > 3) return null;
 
-            const scale   = 1 - abs * 0.18;
-            const opacity = 1 - abs * 0.3;
-            const tx      = rel * SPACING + dragOffset * 0.55;
+            const scale   = 1 - abs * 0.14;
+            const opacity = 1 - abs * 0.22;
+            // 1:1 finger follow while dragging — no 0.55 dampening lag
+            const tx      = rel * SPACING + dragOffset;
             const zIndex  = 20 - abs;
 
             return (
               <div
                 key={track.id}
                 data-dj-set-card
-                draggable
-                onDragStart={e => { e.stopPropagation(); onSetDragTrack?.(track); }}
                 onMouseEnter={() => onCardHover(i, rel)}
                 onMouseLeave={onCardLeave}
-                onClick={() => rel !== 0 && setActiveIdx(i)}
+                onClick={() => {
+                  if (movedEnough.current) return;
+                  if (rel !== 0) setActiveIdx(i);
+                  else onSetDragTrack?.(track);
+                }}
+                onDoubleClick={() => onLoadTrack?.('left', track)}
                 style={{
                   position: 'absolute',
                   width: CARD, height: CARD,
                   top: '50%', left: '50%',
                   transform: `translateX(calc(-50% + ${tx}px)) translateY(-50%) scale(${scale})`,
-                  transition: isDragging ? 'opacity 0.15s, box-shadow 0.3s' : 'all 0.42s cubic-bezier(0.4,0,0.2,1)',
+                  transition: isDragging
+                    ? 'none'
+                    : 'transform 0.34s cubic-bezier(0.22,1,0.36,1), opacity 0.28s ease',
                   zIndex, opacity,
                   cursor: rel === 0 ? (isDragging ? 'grabbing' : 'grab') : 'pointer',
+                  willChange: isDragging ? 'transform' : undefined,
                 }}
               >
-                {/* Card face */}
+                {/* Simple cover — no double title strip / heavy frame */}
                 <div style={{
                   width: '100%', height: '100%',
-                  borderRadius: 4,
+                  borderRadius: 2,
                   overflow: 'hidden',
-                  // Thin edge only — no heavy frame around cover art
-                  border: rel === 0
-                    ? `1px solid ${T.cyanSoft}`
-                    : `1px solid ${T.border}`,
+                  border: rel === 0 ? `1px solid ${T.cyanSoft}` : '1px solid transparent',
                   boxShadow: rel === 0
-                    ? `0 0 10px ${T.cyanGlow}, 0 6px 20px rgba(0,0,0,0.55)`
-                    : '0 3px 12px rgba(0,0,0,0.45)',
+                    ? `0 0 0 1px ${T.cyanGlow}, 0 8px 22px rgba(0,0,0,0.5)`
+                    : '0 4px 14px rgba(0,0,0,0.4)',
                   position: 'relative',
-                  transition: 'border-color 0.35s, box-shadow 0.35s',
+                  background: '#0b0d10',
                 }}>
                   <img
                     src={resolvedCovers[track.id] || track.thumb || PLACEHOLDER_THUMB} alt={track.title}
                     onError={(e) => {
                       if (e.currentTarget.src !== PLACEHOLDER_THUMB) e.currentTarget.src = PLACEHOLDER_THUMB;
                     }}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    style={{
+                      width: '100%', height: '100%', objectFit: 'cover', display: 'block',
+                      pointerEvents: 'none',
+                    }}
                     draggable={false}
                   />
-                  {/* Permanent bottom title strip — every card shows
-                      its track name, not just the centred one. */}
-                  <div style={{
-                    position: 'absolute', bottom: 0, left: 0, right: 0,
-                    padding: '3px 5px',
-                    background: rel === 0 ? 'rgba(0,0,0,0.72)' : 'rgba(0,0,0,0.5)',
-                    transition: 'background 0.25s ease',
-                  }}>
-                    <p style={{
-                      fontFamily: 'monospace',
-                      fontSize: '0.28rem',
-                      fontWeight: 500,
-                      letterSpacing: '0.06em',
-                      color: T.l1,
-                      textTransform: 'uppercase',
-                      textAlign: 'center',
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                      margin: 0,
-                    }}>{track.title}</p>
-                  </div>
-                  {/* Active-card caption overlay — bigger gradient
-                      treatment sits above the permanent strip. */}
                   {rel === 0 && (
                     <div style={{
                       position: 'absolute', bottom: 0, left: 0, right: 0,
-                      padding: '14px 8px 6px',
-                      background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%)',
+                      padding: '10px 8px 6px',
+                      background: 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%)',
                       pointerEvents: 'none',
                     }}>
                       <p style={{
                         fontFamily: 'monospace',
-                        fontSize: '0.32rem',
+                        fontSize: '0.3rem',
                         fontWeight: 600,
-                        letterSpacing: '0.10em',
+                        letterSpacing: '0.08em',
                         color: T.l1,
                         textTransform: 'uppercase',
                         textAlign: 'center',

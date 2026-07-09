@@ -522,20 +522,20 @@ export default function AgentChat() {
 
   return (
     <>
-      {/* Launcher — system-level indicator in the top-left, present on
-          every page. Reads as part of the page chrome (like the EN/DE
-          toggle on the right), not a chatbot widget. */}
+      {/* Launcher — avatar only in the top-left. No "machina" text beside
+          it: that label used to collide with every page's ← Home / Archive.
+          Title lives inside the console header instead. */}
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Open Aileena console"
-        className={`group fixed top-3 left-3 sm:top-4 sm:left-5 lg:left-6 z-[60] flex items-center gap-2 sm:gap-2.5 transition-opacity duration-200 ${open ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+        aria-label="Open Aileena console · machina"
+        title="machina"
+        className={`group site-machina-launcher fixed top-3 left-3 sm:top-4 sm:left-4 z-[60] transition-opacity duration-200 ${open ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
       >
-        {/* Portrait — compact, sits like an avatar in a system header */}
         <span className="relative inline-block">
           <span
             aria-hidden
-            className="block h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-no-repeat ring-1 ring-[#00ffea]/30 transition-all duration-200 group-hover:ring-[#00ffea]/70 group-hover:scale-[1.05]"
+            className="block h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-no-repeat ring-1 ring-[#00a89d]/40 transition-all duration-200 group-hover:ring-[#00a89d]/80 group-hover:scale-[1.05]"
             style={{
               backgroundImage: "url('/bg_pic/03.jpeg')",
               backgroundPosition: '18% 5%',
@@ -545,13 +545,8 @@ export default function AgentChat() {
           <span aria-hidden className="agent-scan pointer-events-none absolute inset-0 rounded-full overflow-hidden" />
           <span
             aria-hidden
-            className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-[#00ffea] shadow-[0_0_6px_rgba(0,255,234,0.9)] animate-pulse ring-2 ring-white"
+            className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-[#00a89d] shadow-[0_0_6px_rgba(0,168,157,0.85)] animate-pulse ring-2 ring-[#fffdf8]"
           />
-        </span>
-
-        {/* Label — same typographic weight as EN/DE/menu on the right */}
-        <span className="font-mono text-[0.6rem] sm:text-[0.62rem] tracking-[0.3em] uppercase text-[#00ffea]/70 group-hover:text-[#00ffea] transition-colors select-none">
-          machina
         </span>
       </button>
 

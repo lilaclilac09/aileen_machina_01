@@ -22,6 +22,22 @@
   --pulse-color-inner: rgba(80, 210, 240, 0.15);
   --pulse-glow: rgba(60, 200, 235, 0.9);
   --pulse-glow-inner: rgba(80, 210, 240, 0.25);
+  /* Fixed machina avatar (left-3/4 + 32/36px) — page nav starts after this */
+  --site-left-chrome: 64px;
+}
+
+/* Sticky/fixed page headers that carry ← Home / Archive must clear the
+   fixed AgentChat avatar so labels never overlap. */
+.site-top-nav,
+.substack-nav,
+.dispatch-archive-header {
+  padding-left: max(24px, var(--site-left-chrome)) !important;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --site-left-chrome: 72px;
+  }
 }
 
 body {

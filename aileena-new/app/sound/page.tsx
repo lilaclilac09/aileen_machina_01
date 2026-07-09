@@ -25,6 +25,7 @@ export default function SoundPage() {
       <ScrollUnlock />
 
       <header
+        className="site-top-nav"
         style={{
           position: 'sticky',
           top: 0,

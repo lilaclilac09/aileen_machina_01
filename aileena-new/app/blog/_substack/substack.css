@@ -673,21 +673,16 @@
   }
 }
 
-/* Clear the fixed AgentChat launcher (avatar + "machina", z-60) so ← Home
-   stays readable/clickable. Keep Home visible on small screens — hiding it
-   left only the agent mark, which felt like a broken back control. */
-.dispatch-archive-header {
-  padding-left: 168px !important;
-}
-.dispatch-home-link {
+/* ← Home sits after the fixed avatar (see --site-left-chrome in globals.css).
+   Keep Home above the launcher hit-target when they share the top row. */
+.dispatch-home-link,
+.substack-back {
   position: relative;
   z-index: 61;
 }
 
 @media (max-width: 540px) {
   .dispatch-archive-header {
-    /* avatar (~36) + "machina" label (~100) + gap — keep ← Home clear */
-    padding-left: 168px !important;
     padding-right: 14px !important;
   }
   .dispatch-section-tabs {

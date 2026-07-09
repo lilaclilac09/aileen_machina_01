@@ -24,6 +24,7 @@ export default function WorksPage() {
       <ScrollUnlock />
 
       <header
+        className="site-top-nav"
         style={{
           position: 'sticky',
           top: 0,
