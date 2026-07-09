@@ -60,41 +60,33 @@ function generateWaveform(seed: string): number[] {
   return out;
 }
 
-/* ─── Design tokens — 2-material system ─────────────────── */
+/* ─── Design tokens — agent cream + deep green ───────────── */
 const T = {
   // Material A: dark matte chassis
   chassis:  '#11161c',
   chassisHi:'#171c22',
-  edge:     'rgba(255,255,255,0.03)',   // top surface catch-light
-  border:   'rgba(255,255,255,0.05)',
-  rowTop:   'rgba(255,255,255,0.03)',   // slot divider top
-  rowBot:   'rgba(0,0,0,0.28)',         // slot divider bottom
+  edge:     'rgba(255,253,248,0.04)',
+  border:   'rgba(255,253,248,0.08)',
+  rowTop:   'rgba(255,253,248,0.04)',
+  rowBot:   'rgba(0,0,0,0.28)',
 
-  // Material B: cyan illuminated control
-  cyanCore: '#79d8ff',
-  cyanSoft: '#58b9df',
-  cyanGlow: 'rgba(92,210,255,0.18)',
-  cyanDim:  'rgba(92,210,255,0.07)',
+  // Material B: agent deep teal (not fluorescent cyan)
+  cyanCore: '#00a89d',
+  cyanSoft: '#008f86',
+  cyanGlow: 'rgba(0,168,157,0.22)',
+  cyanDim:  'rgba(0,168,157,0.10)',
 
-  // Typography Layer 1 — instrument / status
-  // Deck labels, mode names, key readouts, current view
-  // weight 600, tracking 0.10em, cold white — "panel silkscreen"
-  l1: '#e8f3ff',
-
-  // Typography Layer 2 — structure / group labels
-  // Column headers, browser tabs, section names
-  // weight 500, tracking 0.10em, 25% weaker — "structural annotation"
-  l2: '#93a4b5',
-
-  // Typography Layer 3 — content readout
-  l3t: '#dbe7f3',   // track title: weight 500, tracking 0.01em
-  l3m: '#7f90a1',   // meta / time: weight 400, tracking 0.03em
+  // Typography — agent console cream
+  l1: '#fffdf8',
+  l2: 'rgba(255,253,248,0.55)',
+  l3t: '#fffdf8',
+  l3m: 'rgba(255,253,248,0.42)',
 
   // Functional state colors
-  green:  '#22c55e',
+  green:  '#007d75',
   orange: '#f97316',
-  deckA:  '#79d8ff',   // cyan
-  deckB:  '#89a8e0',   // cold blue-violet
+  deckA:  '#00a89d',
+  deckB:  '#89a8e0',
 };
 
 export default function TrackLibraryBrowser({ tracks, reverseCarousel = true, onLoadTrack, onSetDragTrack,
@@ -617,15 +609,15 @@ function PlaylistCarousel({
                 {/* Card face */}
                 <div style={{
                   width: '100%', height: '100%',
-                  borderRadius: 7,
+                  borderRadius: 4,
                   overflow: 'hidden',
-                  // Active: cyan illuminated control material — contained glow, not bloom
+                  // Thin edge only — no heavy frame around cover art
                   border: rel === 0
-                    ? `1.5px solid ${T.cyanSoft}`
+                    ? `1px solid ${T.cyanSoft}`
                     : `1px solid ${T.border}`,
                   boxShadow: rel === 0
-                    ? `0 0 16px ${T.cyanGlow}, 0 10px 32px rgba(0,0,0,0.7)`
-                    : '0 4px 18px rgba(0,0,0,0.5)',
+                    ? `0 0 10px ${T.cyanGlow}, 0 6px 20px rgba(0,0,0,0.55)`
+                    : '0 3px 12px rgba(0,0,0,0.45)',
                   position: 'relative',
                   transition: 'border-color 0.35s, box-shadow 0.35s',
                 }}>
@@ -641,8 +633,8 @@ function PlaylistCarousel({
                       its track name, not just the centred one. */}
                   <div style={{
                     position: 'absolute', bottom: 0, left: 0, right: 0,
-                    padding: '5px 7px',
-                    background: rel === 0 ? 'rgba(0,0,0,0.78)' : 'rgba(0,0,0,0.55)',
+                    padding: '3px 5px',
+                    background: rel === 0 ? 'rgba(0,0,0,0.72)' : 'rgba(0,0,0,0.5)',
                     transition: 'background 0.25s ease',
                   }}>
                     <p style={{
@@ -650,7 +642,7 @@ function PlaylistCarousel({
                       fontSize: '0.28rem',
                       fontWeight: 500,
                       letterSpacing: '0.06em',
-                      color: '#ffffff',
+                      color: T.l1,
                       textTransform: 'uppercase',
                       textAlign: 'center',
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -662,8 +654,8 @@ function PlaylistCarousel({
                   {rel === 0 && (
                     <div style={{
                       position: 'absolute', bottom: 0, left: 0, right: 0,
-                      padding: '22px 10px 8px',
-                      background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%)',
+                      padding: '14px 8px 6px',
+                      background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%)',
                       pointerEvents: 'none',
                     }}>
                       <p style={{

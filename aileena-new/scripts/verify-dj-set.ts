@@ -11,7 +11,7 @@
 import { chromium } from 'playwright';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { DJ_SET_TRACKS } from '../lib/djSetlist';
+import { DJ_SET_TRACKS, allDeckTracks } from '../lib/djSetlist';
 
 const BASE_URL = (process.env.VERIFY_BASE_URL ?? 'https://www.aileena.xyz').replace(/\/$/, '');
 const OUT_DIR = process.env.VERIFY_OUT_DIR ?? join(process.cwd(), '.verify-screenshots');
@@ -97,7 +97,8 @@ async function runBrowser(checks: Check[]): Promise<void> {
     await page.screenshot({ path: join(OUT_DIR, '02-sound-full-page.png'), fullPage: true });
     await carousel.screenshot({ path: join(OUT_DIR, '03-deck-carousel-closeup.png') });
 
-    const expected = DJ_SET_TRACKS.length;
+    const expectedTracks = allDeckTracks();
+    const expected = expectedTracks.length;
     const titles: string[] = [];
 
     for (let i = 0; i < expected; i++) {
@@ -108,7 +109,7 @@ async function runBrowser(checks: Check[]): Promise<void> {
         .locator('[data-dj-set-card] img')
         .first()
         .evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0);
-      const id = DJ_SET_TRACKS[i]?.id ?? `idx-${i}`;
+      const id = expectedTracks[i]?.id ?? `idx-${i}`;
       checks.push({
         name: `img loaded ${id}`,
         ok: loaded,
@@ -127,7 +128,7 @@ async function runBrowser(checks: Check[]): Promise<void> {
       detail: `${titles.length} (expected ${expected})`,
     });
 
-    const expectedTitles = DJ_SET_TRACKS.map((t) => t.title);
+    const expectedTitles = expectedTracks.map((t) => t.title);
     checks.push({
       name: 'track titles order',
       ok: JSON.stringify(titles) === JSON.stringify(expectedTitles),

@@ -1,25 +1,25 @@
 'use client';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import TrackLibraryBrowser from './TrackLibraryBrowser';
-import { djSetToDeckTracks, type DeckTrack } from '../lib/djSetlist';
+import { allDeckTracks, type DeckTrack } from '../lib/djSetlist';
 
-/* ─── Palette ────────────────────────────────────────────── */
+/* ─── Palette — aligned to AgentChat cream + deep green ─── */
 const C = {
   // backgrounds
   bg:          '#0b0d10',
   deck:        '#12161b',
   panel:       '#12161b',
-  // text
-  text:        '#edf2f7',
-  sub:         '#94a0ad',
-  dim:         '#94a0ad',
-  muted:       'rgba(237,242,247,0.22)',
-  // functional
-  green:       '#22c55e',
-  orange:      '#ff9b5e',   // desaturated — small accents only
-  blue:        '#7db7ff',   // ice blue
-  cyan:        '#63f3d8',   // cooler cyan-green
-  cyanGlow:    'rgba(99,243,216,0.28)',
+  // text — agent console cream (not cold white)
+  text:        '#fffdf8',
+  sub:         'rgba(255,253,248,0.62)',
+  dim:         'rgba(255,253,248,0.42)',
+  muted:       'rgba(255,253,248,0.22)',
+  // functional — agent deep teal-green (not fluorescent cyan)
+  green:       '#007d75',
+  orange:      '#ff9b5e',
+  blue:        '#7db7ff',
+  cyan:        '#00a89d',
+  cyanGlow:    'rgba(0,168,157,0.28)',
   // silver/brushed metal
   silver:      '#b9c0c7',
   silverDark:  '#8e979f',
@@ -28,8 +28,8 @@ const C = {
   border:      'rgba(170,179,187,0.18)',
 };
 
-/* ─── Handoff DJ set (carousel + deck source) ─────────────── */
-const DJ_SET = djSetToDeckTracks();
+/* ─── Full deck library: handoff five + previous tracks ───── */
+const DJ_SET = allDeckTracks();
 type Track = DeckTrack;
 
 function spotifyTrackId(track: Track): string | null {
@@ -426,8 +426,8 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
         position: 'relative', height: D + 16, borderRadius: 10,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         background: C.bg,
-        border: dropActive ? `1px solid rgba(99,243,216,0.5)` : `1px solid rgba(170,179,187,0.12)`,
-        boxShadow: dropActive ? `inset 0 0 30px rgba(99,243,216,0.08)` : 'none',
+        border: dropActive ? `1px solid rgba(0,168,157,0.5)` : `1px solid rgba(170,179,187,0.12)`,
+        boxShadow: dropActive ? `inset 0 0 30px rgba(0,168,157,0.08)` : 'none',
         transition: 'border 0.15s, box-shadow 0.15s',
       }}>
         {!track ? (
@@ -465,8 +465,8 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
                 #52c4b6 100%
               )`,
               boxShadow: playing
-                ? '0 0 55px rgba(99,243,216,0.45), 0 0 110px rgba(99,243,216,0.18), inset 0 0 35px rgba(0,0,0,0.45)'
-                : '0 0 22px rgba(99,243,216,0.18), 0 0 50px rgba(99,243,216,0.06), inset 0 0 20px rgba(0,0,0,0.35)',
+                ? '0 0 55px rgba(0,168,157,0.45), 0 0 110px rgba(0,168,157,0.18), inset 0 0 35px rgba(0,0,0,0.45)'
+                : '0 0 22px rgba(0,168,157,0.18), 0 0 50px rgba(0,168,157,0.06), inset 0 0 20px rgba(0,0,0,0.35)',
               animation: isScratching ? 'none' : (playing ? 'turntableSpin 2.4s linear infinite' : 'none'),
               transform: isScratching ? `rotate(${scratchAngle}deg)` : undefined,
               transition: 'box-shadow 1.8s ease',
@@ -549,8 +549,8 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
               <circle cx={pivotX} cy={pivotY} r={8}
                 fill="#222830" stroke="rgba(185,192,199,0.18)" strokeWidth="1"/>
               <circle cx={pivotX} cy={pivotY} r={3.5}
-                fill={playing ? '#63f3d8' : '#394048'}
-                style={{ filter: playing ? 'drop-shadow(0 0 4px rgba(99,243,216,0.9))' : 'none', transition: 'all 0.6s ease' }}/>
+                fill={playing ? C.cyan : '#394048'}
+                style={{ filter: playing ? 'drop-shadow(0 0 4px rgba(0,168,157,0.9))' : 'none', transition: 'all 0.6s ease' }}/>
 
               {/* Headshell body — silver aluminum */}
               <rect
@@ -576,8 +576,8 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
               {/* Stylus tip */}
               <circle
                 cx={tipX - 2} cy={tipY + 21} r="1.2"
-                fill={playing ? '#63f3d8' : 'rgba(170,179,187,0.5)'}
-                style={{ filter: playing ? 'drop-shadow(0 0 2px rgba(99,243,216,0.8))' : 'none', transition: 'all 0.6s' }}
+                fill={playing ? C.cyan : 'rgba(170,179,187,0.5)'}
+                style={{ filter: playing ? 'drop-shadow(0 0 2px rgba(0,168,157,0.8))' : 'none', transition: 'all 0.6s' }}
               />
             </svg>
           </div>
@@ -621,9 +621,9 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
           {/* Play/Pause */}
           <button onClick={onToggle} style={{
             width: 38, height: 38, borderRadius: '50%', cursor: 'pointer',
-            background: playing ? `rgba(99,243,216,0.1)` : '#14181e',
-            border: `1px solid ${playing ? 'rgba(99,243,216,0.6)' : 'rgba(170,179,187,0.22)'}`,
-            boxShadow: playing ? `0 0 10px rgba(99,243,216,0.28)` : 'inset 0 2px 5px rgba(0,0,0,0.4)',
+            background: playing ? `rgba(0,168,157,0.1)` : '#14181e',
+            border: `1px solid ${playing ? 'rgba(0,168,157,0.55)' : 'rgba(170,179,187,0.22)'}`,
+            boxShadow: playing ? `0 0 10px rgba(0,168,157,0.28)` : 'inset 0 2px 5px rgba(0,0,0,0.4)',
             color: playing ? C.cyan : C.silver,
             fontSize: '0.8rem',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -705,9 +705,9 @@ function PioneerControls({ side, playing, synced, pos, onSync }: {
         {/* SYNC */}
         <button onClick={onSync} style={{
           padding: '4px 10px', borderRadius: 4, cursor: 'pointer',
-          background: synced ? 'rgba(99,243,216,0.1)' : '#14181e',
-          border: `1px solid ${synced ? 'rgba(99,243,216,0.5)' : 'rgba(170,179,187,0.22)'}`,
-          boxShadow: synced ? '0 0 8px rgba(99,243,216,0.25)' : 'inset 0 2px 4px rgba(0,0,0,0.5)',
+          background: synced ? 'rgba(0,168,157,0.1)' : '#14181e',
+          border: `1px solid ${synced ? 'rgba(0,168,157,0.5)' : 'rgba(170,179,187,0.22)'}`,
+          boxShadow: synced ? '0 0 8px rgba(0,168,157,0.25)' : 'inset 0 2px 4px rgba(0,0,0,0.5)',
           fontFamily: 'monospace', fontSize: '0.52rem', fontWeight: 700, letterSpacing: '0.12em',
           color: synced ? C.cyan : C.silverDark,
           transition: 'all 0.2s', minWidth: 52,
@@ -928,7 +928,7 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
           textAlign: 'center', marginBottom: 4 }}>CROSSFADER</p>
         <div style={{
           position: 'relative', height: 18, borderRadius: 3,
-          background: `linear-gradient(to right, rgba(99,243,216,0.18), rgba(18,22,27,0.9) 50%, rgba(255,155,94,0.15))`,
+          background: `linear-gradient(to right, rgba(0,168,157,0.18), rgba(18,22,27,0.9) 50%, rgba(255,155,94,0.15))`,
           border: '1px solid rgba(170,179,187,0.15)',
           boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.7)',
         }}>
@@ -947,7 +947,7 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
           </div>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
-          <span style={{ fontFamily: 'monospace', fontSize: '0.32rem', fontWeight: 700, color: C.cyan, letterSpacing: '0.1em', textShadow: '0 0 6px rgba(99,243,216,0.5)' }}>A</span>
+          <span style={{ fontFamily: 'monospace', fontSize: '0.32rem', fontWeight: 700, color: C.cyan, letterSpacing: '0.1em', textShadow: '0 0 6px rgba(0,168,157,0.45)' }}>A</span>
           <span style={{ fontFamily: 'monospace', fontSize: '0.32rem', fontWeight: 700, color: C.orange, letterSpacing: '0.1em' }}>B</span>
         </div>
       </div>

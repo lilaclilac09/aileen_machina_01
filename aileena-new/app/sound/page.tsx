@@ -17,7 +17,7 @@ export default function SoundPage() {
       style={{
         minHeight: '100vh',
         background: '#000',
-        color: 'rgba(255,255,255,0.86)',
+        color: 'rgba(255,253,248,0.86)',
         fontFamily: nunito,
         overflowY: 'auto',
       }}
@@ -32,7 +32,7 @@ export default function SoundPage() {
           padding: '18px 24px',
           background: 'rgba(0,0,0,0.92)',
           backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          borderBottom: '1px solid rgba(255,253,248,0.08)',
         }}
       >
         <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -42,7 +42,7 @@ export default function SoundPage() {
               fontFamily: nunito,
               fontSize: '0.85rem',
               fontWeight: 500,
-              color: 'rgba(255,255,255,0.6)',
+              color: 'rgba(255,253,248,0.62)',
               textDecoration: 'none',
             }}
           >
@@ -53,7 +53,7 @@ export default function SoundPage() {
               fontFamily: nunito,
               fontSize: '0.7rem',
               letterSpacing: '0.12em',
-              color: 'rgba(255,255,255,0.35)',
+              color: 'rgba(255,253,248,0.38)',
               textTransform: 'uppercase',
               fontWeight: 500,
             }}
@@ -70,7 +70,7 @@ export default function SoundPage() {
               fontSize: 'clamp(1.8rem, 4.5vw, 2.8rem)',
               fontWeight: 500,
               letterSpacing: '-0.005em',
-              color: '#fff',
+              color: '#fffdf8',
               marginBottom: 14,
               lineHeight: 1.15,
             }}
@@ -81,7 +81,7 @@ export default function SoundPage() {
             style={{
               fontSize: '1.02rem',
               lineHeight: 1.65,
-              color: 'rgba(255,255,255,0.6)',
+              color: 'rgba(255,253,248,0.62)',
               fontWeight: 400,
             }}
           >
