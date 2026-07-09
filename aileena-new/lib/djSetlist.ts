@@ -106,8 +106,8 @@ export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
   { id: '5i18ZFR4g3xC4uHlNFHkGH', title: 'Ottagone 013', bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
   { id: '3X9betUxSQLTAltImJZ3So', title: 'Double Scoop', bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
   { id: '4zDmVNxz1t4zwHqasJt8LT', title: 'Jazz Is the Teacher', bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
-  { id: '1qEmFfgcLObUfQm0j1W2CK', title: 'Track 1qEmFf', bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
-  { id: '2IOFZdYYkFxEHVz1w34PoL', title: 'Track 2IOFZd', bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
+  { id: '1qEmFfgcLObUfQm0j1W2CK', title: 'Late Night Talking', bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
+  { id: '2IOFZdYYkFxEHVz1w34PoL', title: 'Cherry', bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
 ];
 
 export function djSetToDeckTracks(): DeckTrack[] {
