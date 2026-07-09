@@ -396,8 +396,8 @@ export const t = {
           {
             date: '2026.07.09',
             href: '/blog/third-culture-power',
-            title: 'No Manual for This — Grasping Power Again',
-            body: 'Third-culture kid, European in sensibility, feminist in practice — surviving rooms built for men without becoming one. Patriarchy measures you as incomplete when you are not the same volume, the same certainty, the same risk profile. Power returns as infrastructure: names on commits, contracts, text that stays, doors left open for the next woman.',
+            title: 'Third Culture Kid Without Consciousness',
+            body: 'No manual. No built-in home. In rooms built for men, you are not read as different — you are read as incomplete. Singapore crypto side-event: answer with numbers, watch a senior restate it as his own, get told to smile more. Surviving is not becoming louder. Power returns as infrastructure — until the room is forced to read you as complete.',
           },
           {
             date: '2026.04.23',
@@ -881,8 +881,8 @@ export const t = {
           {
             date: '2026.07.09',
             href: '/blog/third-culture-power',
-            title: 'Ohne Handbuch — Macht wieder ergreifen',
-            body: 'Third-Culture-Kid, europäisch geprägt, feministisch — überleben in Räumen, die für Männer gebaut sind, ohne eine zu werden. Patriarchat liest dich als unvollständig, wenn du nicht dieselbe Lautstärke, dasselbe Risiko, dieselbe Selbstsicherheit trägst. Macht zurückholen heißt Infrastruktur: Namen auf Commits, Verträge, Texte die bleiben, Türen für die nächste Frau.',
+            title: 'Third-Culture-Kid ohne Bewusstsein',
+            body: 'Kein Handbuch. Kein eingebautes Zuhause. In Räumen, die für Männer gebaut sind, wirst du nicht als anders gelesen — du wirst als unvollständig gelesen. Crypto-Side-Event in Singapur: mit Zahlen antworten, einen Senior denselben Punkt als seinen wiederholen hören, „mehr lächeln“ gesagt bekommen. Überleben heißt nicht lauter werden. Macht zurückholen heißt Infrastruktur — bis der Raum gezwungen ist, dich als vollständig zu lesen.',
           },
           {
             date: '2026.04.23',

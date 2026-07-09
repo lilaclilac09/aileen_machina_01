@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import BackHomeLink from '../../components/BackHomeLink';
 import { useLanguage } from '../../components/LanguageProvider';
 import { t } from '../../lib/translations';
 import ScrollUnlock from '../blog/ScrollUnlock';
@@ -209,8 +210,7 @@ export default function DispatchArchive() {
             flexWrap: 'wrap',
           }}
         >
-          <Link
-            href="/"
+          <BackHomeLink
             className="dispatch-home-link"
             style={{
               fontFamily: nunito,
@@ -221,9 +221,7 @@ export default function DispatchArchive() {
               textDecoration: 'none',
               flex: '0 0 auto',
             }}
-          >
-            ← Home
-          </Link>
+          />
           <SectionTabs active={activeTab} setActive={updateTab} />
           <div
             className="dispatch-header-actions"
@@ -258,7 +256,19 @@ export default function DispatchArchive() {
         {/* The category tabs keep recommendation shelves from becoming
             another buried rail. Image/Text still controls article rails. */}
         {activeTab === 'watch' ? (
-          <WatchListenTab post={watchIssue} />
+          watchIssue ? (
+            <SwipeRail
+              tag={tx.blog.marsAndMoon.tag}
+              heading={tx.blog.marsAndMoon.heading}
+              groups={[{ topic: null, posts: [watchIssue] }]}
+              // Fashion section cover (no dedicated fashion slug yet).
+              heroImage="/dispatch-covers/fashion-simon-encouragement.jpg"
+              firstSection
+              settings={coverflow.settings}
+            />
+          ) : (
+            <WatchListenTab post={watchIssue} />
+          )
         ) : isImage ? (
           activeTab === 'dispatch' ? (
             <SwipeRail
@@ -458,25 +468,13 @@ function WatchListenTab({ post }: { post?: Post }) {
           border: '1px solid rgba(17,17,17,0.1)',
           borderRadius: 8,
           background:
-            'linear-gradient(90deg, transparent 0 58px, rgba(0,143,132,0.12) 59px 60px, transparent 61px), repeating-linear-gradient(180deg, #fffdf8 0 33px, #f3f0ea 34px 35px)',
-          color: '#111',
+            "linear-gradient(180deg, rgba(8,8,8,0.18) 0%, rgba(8,8,8,0.72) 100%), url('/dispatch-covers/fashion-simon-encouragement.jpg') center/cover no-repeat #0a0a0a",
+          color: '#fff',
           textDecoration: 'none',
           boxShadow: '0 30px 86px -62px rgba(17,17,17,0.52)',
           overflow: 'hidden',
         }}
       >
-        <span
-          aria-hidden
-          style={{
-            position: 'absolute',
-            left: '50%',
-            top: 18,
-            width: 126,
-            height: 28,
-            background: 'rgba(201,135,47,0.26)',
-            transform: 'translateX(-50%) rotate(1.5deg)',
-          }}
-        />
         <span
           style={{
             alignSelf: 'end',
@@ -489,7 +487,7 @@ function WatchListenTab({ post }: { post?: Post }) {
         >
           <span
             style={{
-              color: 'rgba(17,17,17,0.46)',
+              color: 'rgba(255,255,255,0.62)',
               fontFamily:
                 "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
               fontSize: '0.62rem',
@@ -498,17 +496,18 @@ function WatchListenTab({ post }: { post?: Post }) {
               textTransform: 'uppercase',
             }}
           >
-            standalone issue
+            fashion · standalone issue
           </span>
           <span
             style={{
               display: 'block',
-              color: '#111',
+              color: '#fff',
               fontSize: 'clamp(2.4rem, 8vw, 5.4rem)',
               fontWeight: 520,
               letterSpacing: '0',
               lineHeight: 0.88,
               fontFamily: "'Bradley Hand', 'Comic Sans MS', 'Marker Felt', cursive",
+              textShadow: '0 2px 24px rgba(0,0,0,0.45)',
             }}
           >
             Trendy is obsolete.
@@ -516,7 +515,7 @@ function WatchListenTab({ post }: { post?: Post }) {
           <span
             style={{
               display: 'block',
-              color: 'rgba(17,17,17,0.68)',
+              color: 'rgba(255,255,255,0.78)',
               fontFamily: "'Iowan Old Style', 'Charter', 'Georgia', serif",
               fontSize: '1.12rem',
               lineHeight: 1.58,
@@ -530,9 +529,9 @@ function WatchListenTab({ post }: { post?: Post }) {
               <span
                 key={tag}
                 style={{
-                  border: '1px solid rgba(17,17,17,0.14)',
+                  border: '1px solid rgba(255,255,255,0.28)',
                   borderRadius: 999,
-                  color: 'rgba(17,17,17,0.56)',
+                  color: 'rgba(255,255,255,0.72)',
                   fontFamily:
                     "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
                   fontSize: '0.58rem',
@@ -548,7 +547,7 @@ function WatchListenTab({ post }: { post?: Post }) {
           </span>
           <span
             style={{
-              color: '#008f84',
+              color: '#63f3d8',
               fontFamily:
                 "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
               fontSize: '0.68rem',

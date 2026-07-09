@@ -673,13 +673,22 @@
   }
 }
 
+/* Clear the fixed AgentChat launcher (avatar + "machina", z-60) so ← Home
+   stays readable/clickable. Keep Home visible on small screens — hiding it
+   left only the agent mark, which felt like a broken back control. */
+.dispatch-archive-header {
+  padding-left: 168px !important;
+}
+.dispatch-home-link {
+  position: relative;
+  z-index: 61;
+}
+
 @media (max-width: 540px) {
   .dispatch-archive-header {
-    padding-left: 96px !important;
+    /* avatar (~36) + "machina" label (~100) + gap — keep ← Home clear */
+    padding-left: 168px !important;
     padding-right: 14px !important;
-  }
-  .dispatch-home-link {
-    display: none !important;
   }
   .dispatch-section-tabs {
     flex-basis: 100% !important;

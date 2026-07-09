@@ -112,12 +112,12 @@ const COVER_BY_SLUG: Record<string, string> = {
 
   // Woman in Tech
   lion: COVER_LION,
-  misread: COVER_PORTRAIT,
+  misread: '/dispatch-covers/misread-boy-girl.jpg',
   'third-culture-power': COVER_PORTRAIT,
   harassment: '/dispatch-covers/harassment.jpg',
 
   // Recommendations
-  'watch-listening-shelf': COVER_WATCH_SHELF,
+  'watch-listening-shelf': '/dispatch-covers/books-joan-didion-readings.jpg',
 };
 
 export function getCover(slug: string): string {
@@ -462,21 +462,29 @@ export default function SwipeRow({
             ? dragOffsetUnits * settings.rotateZ * 0.4
             : 0;
 
-          const cardOuterStyle: React.CSSProperties = {
+          // Outer shell: CSS-only centre on the stage. Framer-motion owns
+          // `transform` on the motion node and would overwrite a CSS
+          // translate(-50%, -50%) there — that left cards flush-right
+          // (left edge at stage centre). Keep centering off the motion node.
+          const cardShellStyle: React.CSSProperties = {
             position: 'absolute',
             top: '50%',
             left: '50%',
+            transform: 'translate(-50%, -50%)',
             width: 'clamp(300px, 86vw, 720px)',
             aspectRatio: '2.35 / 1',
-            transformStyle: 'preserve-3d',
             zIndex,
             pointerEvents: opacity > 0.1 ? 'auto' : 'none',
-            // translate to centre — framer-motion controls the rest
-            transform: 'translate(-50%, -50%)',
+          };
+
+          const cardMotionStyle: React.CSSProperties = {
+            position: 'absolute',
+            inset: 0,
+            transformStyle: 'preserve-3d',
             transformOrigin: '50% 50%',
           };
 
-          const cardInnerStyle: React.CSSProperties = {
+          const cardFaceStyle: React.CSSProperties = {
             position: 'absolute',
             inset: 0,
             borderRadius: 4,
@@ -538,39 +546,40 @@ export default function SwipeRow({
           };
 
           return (
-            <motion.div
-              key={post.href}
-              style={cardOuterStyle}
-              animate={motionAnimate}
-              transition={isDragging
-                ? { type: 'tween', duration: 0, ease: 'linear' }
-                : springTransition}
-            >
-              {isCentre ? (
-                <Link
-                  href={post.href}
-                  style={cardInnerStyle}
-                  onClick={(e) => {
-                    if (Math.abs(clickDeltaRef.current) > 12) e.preventDefault();
-                  }}
-                >
-                  {inner}
-                </Link>
-              ) : (
-                <button
-                  type="button"
-                  style={cardInnerStyle}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (Math.abs(clickDeltaRef.current) > 12) return;
-                    goTo(i);
-                  }}
-                  aria-label={`Go to ${post.title}`}
-                >
-                  {inner}
-                </button>
-              )}
-            </motion.div>
+            <div key={post.href} style={cardShellStyle}>
+              <motion.div
+                style={cardMotionStyle}
+                animate={motionAnimate}
+                transition={isDragging
+                  ? { type: 'tween', duration: 0, ease: 'linear' }
+                  : springTransition}
+              >
+                {isCentre ? (
+                  <Link
+                    href={post.href}
+                    style={cardFaceStyle}
+                    onClick={(e) => {
+                      if (Math.abs(clickDeltaRef.current) > 12) e.preventDefault();
+                    }}
+                  >
+                    {inner}
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    style={cardFaceStyle}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (Math.abs(clickDeltaRef.current) > 12) return;
+                      goTo(i);
+                    }}
+                    aria-label={`Go to ${post.title}`}
+                  >
+                    {inner}
+                  </button>
+                )}
+              </motion.div>
+            </div>
           );
         })}
       </div>
