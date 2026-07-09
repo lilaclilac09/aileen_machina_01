@@ -408,16 +408,14 @@ export default function Home() {
 
         {/* ── 04 VISUAL — kiln / glass (homepage only, not /sound) ─ */}
         <SnapSection id="visual" className="order-4">
-          <div className="h-full overflow-y-auto" style={{ background: palette.page, fontFamily: nunito }}>
-            <div style={{ maxWidth: 1400, margin: '0 auto', padding: 'clamp(48px, 8vh, 88px) clamp(18px, 4vw, 44px)' }}>
-              <GlassBench
-                tag={tx.visual.kilnTag}
-                title={tx.visual.heading}
-                body={tx.visual.kilnNote}
-                linkLabel={tx.visual.readGlass}
-                items={tx.visual.items}
-              />
-            </div>
+          <div className="h-full overflow-hidden" style={{ fontFamily: nunito }}>
+            <GlassBench
+              tag={tx.visual.kilnTag}
+              title={tx.visual.heading}
+              body={tx.visual.kilnNote}
+              linkLabel={tx.visual.readGlass}
+              items={tx.visual.items}
+            />
           </div>
         </SnapSection>
 
