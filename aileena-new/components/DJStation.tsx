@@ -1,6 +1,7 @@
 'use client';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import TrackLibraryBrowser, { PLACEHOLDER_THUMB } from './TrackLibraryBrowser';
+import TrackLibraryBrowser from './TrackLibraryBrowser';
+import { djSetToDeckTracks, type DeckTrack } from '../lib/djSetlist';
 
 /* ─── Palette ────────────────────────────────────────────── */
 const C = {
@@ -27,38 +28,15 @@ const C = {
   border:      'rgba(170,179,187,0.18)',
 };
 
-/* ─── Track catalogue ────────────────────────────────────── */
-const TRACKS = [
-  { id: '189lkmwebOMpyLoyx1zkCS', title: 'Intro',           bpm: 112, key: '4A', dur: 102, thumb: 'https://i.scdn.co/image/ab67616d0000b273fca7f5aebfb6010c6da60e00' },
-  { id: '7Gi8h4mk92A5akMQBGnDXj', title: 'Berlin',         bpm: 125, key: '6A', dur: 200, thumb: '/berlin.jpg' },
-  { id: '4DBeUcBD2zVZzhf2oX1PLc', title: "I Can't Quit",   bpm: 124, key: '2A', dur: 195, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e028508f29ab91bfcce74f86ef5' },
-  { id: '56NkIxSZZiMpFP5ZNSxtnT', title: 'Someday',        bpm: 120, key: '4A', dur: 212, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0213f2466b83507515291acce4' },
-  { id: '3CYFxT3dBwOd9Ap0zKXHk7', title: 'GALA',           bpm: 128, key: '6B', dur: 178, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02c1456e351abb6d5b1a8ffbef' },
-  { id: '2pIUpMhHL6L9Z5lnKxJJr9', title: 'Attention',      bpm: 122, key: '8A', dur: 200, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e029d28fd01859073a3ae6ea209' },
-  { id: '1qbEfJ6F5Ryn1RYfJheZem', title: 'Late Night Job', bpm: 118, key: '3A', dur: 225, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e023108f7d165756b51d81ea3ba' },
-  { id: '7b1uaIR2va05jHG5fnVbMu', title: 'Lab Rat 3',      bpm: 130, key: '5B', dur: 185, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02fad7ae8dfc681c2f9f8333ef' },
-  { id: '2lFp0xJL7yGD7CtiQPqpwb', title: '700358bc5',      bpm: 126, key: '7A', dur: 210, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e0214e8b7396634f604692c67ff' },
-  { id: '3rw4HfYW3XJMSm11Z5Qn4c', title: 'Roses + Thorns', bpm: 116, key: '9B', dur: 198, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0225de4144381ec14d111c5380' },
-  { id: '7i1qsbXNf6C8Zdo3COMzJY', title: 'WISE',           bpm: 129, key: '5A', dur: 204, thumb: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/b3/73/e9/b373e9b8-9ead-e9a7-0825-f8d8a30dabd6/3617221727448_cover.png/600x600bb.jpg' },
-  { id: '62PSNt68BxMaxl9U50PIdW', title: 'Crush On You',   bpm: 120, key: '4B', dur: 180, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02f3d67ea5769af25963f86120' },
-  { id: '3WwFjc24162Ab0WEN57y8t', title: 'Recall',         bpm: 122, key: '6A', dur: 195, thumb: '/recall.jpg' },
-  { id: '0DO0NtFn6hB4Brt44Z8Tkz', title: '扉をあけて',     bpm: 118, key: '3B', dur: 240, thumb: '/tobira.jpg' },
-  { id: '6Yj8kVuVR3UPxx9r5eFEoV', title: 'Miniskirt',      bpm: 128, key: '7B', dur: 210, thumb: '/miniskirt.jpg' },
-  { id: '4UBt00S6TNsKwgfxMcfNal', title: 'Let Me Be With You',     bpm: 120, key: '4A', dur: 200, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e026ccb362e8e30b8a214b65be7' },
-  { id: '4XRaGryj589Fee9HqIDwup', title: 'Count What You Have Now', bpm: 120, key: '4A', dur: 200, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0259075304010757bf60fb7f61' },
-  { id: '4rrlf0gsr4dFJe6534PhZG', title: 'Mujin no Shima',           bpm: 120, key: '4A', dur: 200, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e0225177555cad370de26a2e96b' },
-  { id: '69xZrRwScYMhlCMcxrF958', title: 'Luxurious',               bpm: 120, key: '4A', dur: 200, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e027c7136a182372ccdffb3d3c4' },
-  { id: '1mBzeQjQPxdT693fIlmA4k', title: 'Small City',              bpm: 120, key: '4A', dur: 200, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02722d5a45a1f8246fd620cb22' },
-  { id: '5RUJ1B8Yrh7w4PT0W8KVPk', title: 'Ba-Da-Ba',                bpm: 120, key: '4A', dur: 200, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e0252f54296b90eee374de846e3' },
-  { id: '5ANaCqoIl0gQyphoYTaQAj', title: 'Ha Jam',                 bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
-  { id: '03Y3K0S8WLjyvV7Z2qSdlh', title: 'Surface',                bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
-  { id: '5i18ZFR4g3xC4uHlNFHkGH', title: 'Ottagone 013',           bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
-  { id: '3X9betUxSQLTAltImJZ3So', title: 'Double Scoop',           bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
-  { id: '4zDmVNxz1t4zwHqasJt8LT', title: 'Jazz Is the Teacher',    bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
-  { id: '1qEmFfgcLObUfQm0j1W2CK', title: 'Track 1qEmFf',           bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
-  { id: '2IOFZdYYkFxEHVz1w34PoL', title: 'Track 2IOFZd',           bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
-];
-type Track = typeof TRACKS[0];
+/* ─── Handoff DJ set (carousel + deck source) ─────────────── */
+const DJ_SET = djSetToDeckTracks();
+type Track = DeckTrack;
+
+function spotifyTrackId(track: Track): string | null {
+  if (track.spotifyId) return track.spotifyId;
+  if (/^[a-zA-Z0-9]{22}$/.test(track.id)) return track.id;
+  return null;
+}
 
 /* ─── Waveform helper ────────────────────────────────────── */
 function generateWaveform(seed: string, bars: number): number[] {
@@ -105,8 +83,8 @@ function useIsMobile() {
 /* ─── Main ───────────────────────────────────────────────── */
 export default function DJStation() {
   const isMobile = useIsMobile();
-  const [leftTrack,    setLeftTrack]    = useState<Track | null>(TRACKS[0]);
-  const [rightTrack,   setRightTrack]   = useState<Track | null>(TRACKS[3]);
+  const [leftTrack,    setLeftTrack]    = useState<Track | null>(DJ_SET[0] ?? null);
+  const [rightTrack,   setRightTrack]   = useState<Track | null>(DJ_SET[Math.min(3, DJ_SET.length - 1)] ?? null);
   const [leftPlaying,  setLeftPlaying]  = useState(false);
   const [rightPlaying, setRightPlaying] = useState(false);
   const [leftPos,      setLeftPos]      = useState(0);
@@ -132,8 +110,10 @@ export default function DJStation() {
     const win = window as any;
     const initControllers = (api: IFrameAPI) => {
       if (leftContainerRef.current && !leftCtrl.current) {
+        const leftUri = spotifyTrackId(DJ_SET[0]);
+        if (!leftUri) return;
         api.createController(leftContainerRef.current,
-          { uri: `spotify:track:${TRACKS[0].id}`, width: '100%', height: '80' },
+          { uri: `spotify:track:${leftUri}`, width: '100%', height: '80' },
           ctrl => {
             leftCtrl.current = ctrl;
             ctrl.addListener('playback_update', e => {
@@ -146,8 +126,10 @@ export default function DJStation() {
           });
       }
       if (rightContainerRef.current && !rightCtrl.current) {
+        const rightUri = spotifyTrackId(DJ_SET[Math.min(3, DJ_SET.length - 1)]) ?? spotifyTrackId(DJ_SET[0]);
+        if (!rightUri) return;
         api.createController(rightContainerRef.current,
-          { uri: `spotify:track:${TRACKS[3].id}`, width: '100%', height: '80' },
+          { uri: `spotify:track:${rightUri}`, width: '100%', height: '80' },
           ctrl => {
             rightCtrl.current = ctrl;
             ctrl.addListener('playback_update', e => {
@@ -177,8 +159,18 @@ export default function DJStation() {
   }, []);
 
   const loadTrack = useCallback((side: 'left'|'right', track: Track) => {
-    if (side === 'left') { setLeftTrack(track); setLeftPos(0); setLeftDur(0); leftCtrl.current?.loadUri(`spotify:track:${track.id}`); }
-    else                 { setRightTrack(track); setRightPos(0); setRightDur(0); rightCtrl.current?.loadUri(`spotify:track:${track.id}`); }
+    const sid = spotifyTrackId(track);
+    if (side === 'left') {
+      setLeftTrack(track);
+      setLeftPos(0);
+      setLeftDur(0);
+      if (sid) leftCtrl.current?.loadUri(`spotify:track:${sid}`);
+    } else {
+      setRightTrack(track);
+      setRightPos(0);
+      setRightDur(0);
+      if (sid) rightCtrl.current?.loadUri(`spotify:track:${sid}`);
+    }
   }, []);
 
   const handleXfade = useCallback((v: number) => {
@@ -338,12 +330,11 @@ export default function DJStation() {
         )}
       </div>
 
-      {/* ── Track Library Browser (Film Strip Carousel) ── */}
-      <div style={{
-        marginTop: 10,
-      }}>
+      {/* ── Handoff set carousel (film strip) ── */}
+      <div id="dj-set" style={{ marginTop: 10 }}>
         <TrackLibraryBrowser
-          tracks={TRACKS}
+          tracks={DJ_SET}
+          reverseCarousel={false}
           onLoadTrack={loadTrack}
           onSetDragTrack={(t) => { dragTrack.current = t; }}
           playingLeft={leftPlaying ? (leftTrack?.id ?? null) : null}

@@ -11,6 +11,7 @@ import {
 import Link from 'next/link';
 import Header from '../components/Header';
 import LoadingScreen from '../components/LoadingScreen';
+import GlassBench from '../components/GlassBench';
 import { SnapContainer, SnapSection } from '../components/SnapScroll';
 import { useLanguage } from '../components/LanguageProvider';
 import { t } from '../lib/translations';
@@ -94,6 +95,7 @@ const HOME_WATCH_ITEMS = [
  *   Section 01  Cinematic opening   — scene + one line + one CTA
  *   Section 02  Clipping desk       — article scraps + direct doors
  *   Section 03  Watch hub           — DJ sets, podcasts, documentaries, channels
+ *   Section 04  Visual              — kiln / glass bench (handmade work)
  *
  * The Machina mark on the cinematic opening doubles as the door to the
  * agent department.
@@ -402,6 +404,21 @@ export default function Home() {
         {/* ── 03 WATCH / LISTEN HUB ─────────────────────────────── */}
         <SnapSection id="watch-hub" className="order-3">
           <HomeWatchHub />
+        </SnapSection>
+
+        {/* ── 04 VISUAL — kiln / glass (homepage only, not /sound) ─ */}
+        <SnapSection id="visual" className="order-4">
+          <div className="h-full overflow-y-auto" style={{ background: palette.page, fontFamily: nunito }}>
+            <div style={{ maxWidth: 1400, margin: '0 auto', padding: 'clamp(48px, 8vh, 88px) clamp(18px, 4vw, 44px)' }}>
+              <GlassBench
+                tag={tx.visual.kilnTag}
+                title={tx.visual.heading}
+                body={tx.visual.kilnNote}
+                linkLabel={tx.visual.readGlass}
+                items={tx.visual.items}
+              />
+            </div>
+          </div>
         </SnapSection>
 
       </SnapContainer>

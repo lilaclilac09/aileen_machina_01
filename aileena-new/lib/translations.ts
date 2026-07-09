@@ -394,6 +394,12 @@ export const t = {
         read: 'Read',
         posts: [
           {
+            date: '2026.07.09',
+            href: '/blog/third-culture-power',
+            title: 'No Manual for This — Grasping Power Again',
+            body: 'Third-culture kid, European in sensibility, feminist in practice — surviving rooms built for men without becoming one. Patriarchy measures you as incomplete when you are not the same volume, the same certainty, the same risk profile. Power returns as infrastructure: names on commits, contracts, text that stays, doors left open for the next woman.',
+          },
+          {
             date: '2026.04.23',
             href: '/blog/harassment',
             title: 'Every Woman in Tech Has a #MeToo Story',
@@ -872,6 +878,12 @@ export const t = {
         heading: 'Frau in Tech',
         read: 'Lesen',
         posts: [
+          {
+            date: '2026.07.09',
+            href: '/blog/third-culture-power',
+            title: 'Ohne Handbuch — Macht wieder ergreifen',
+            body: 'Third-Culture-Kid, europäisch geprägt, feministisch — überleben in Räumen, die für Männer gebaut sind, ohne eine zu werden. Patriarchat liest dich als unvollständig, wenn du nicht dieselbe Lautstärke, dasselbe Risiko, dieselbe Selbstsicherheit trägst. Macht zurückholen heißt Infrastruktur: Namen auf Commits, Verträge, Texte die bleiben, Türen für die nächste Frau.',
+          },
           {
             date: '2026.04.23',
             href: '/blog/harassment',

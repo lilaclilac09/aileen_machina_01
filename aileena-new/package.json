@@ -13,6 +13,10 @@
     "sync:carousel-evolve": "tsx scripts/sync-carousel-evolve.ts",
     "sync:content-memory": "tsx scripts/sync-carousel-evolve.ts && tsx scripts/sync-content-memory.ts",
     "memory:workflow": "tsx scripts/sync-carousel-evolve.ts && tsx scripts/sync-content-memory.ts && tsx scripts/dreaming-consolidate.ts && tsx scripts/build-memory-index.ts",
+    "verify:dj-set": "tsx scripts/verify-dj-set.ts",
+    "verify:sound": "tsx scripts/verify-dj-set.ts",
+    "verify:dj-set:local": "VERIFY_BASE_URL=http://localhost:3011 tsx scripts/verify-dj-set.ts",
+    "verify:sound:local": "VERIFY_BASE_URL=http://localhost:3011 tsx scripts/verify-dj-set.ts",
     "start": "next start",
     "lint": "eslint"
   },
@@ -40,6 +44,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.7",
+    "playwright": "^1.61.1",
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
     "typescript": "^5"

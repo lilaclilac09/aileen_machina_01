@@ -188,7 +188,10 @@ otherwise.
 npm run dev          # Start dev server (port 3000, use NEXT_TURBOPACK=0 if issues)
 npm run build        # Production build
 npm run lint         # ESLint
+pnpm verify:dj-set   # DJ set carousel — screenshots + video + verify-report.json
 ```
+
+**Engineering handbook（工作准册）**: `docs/工作准册.md` — read → plan → small diff → verify → evidence for every change.
 
 ## Slash Commands
 

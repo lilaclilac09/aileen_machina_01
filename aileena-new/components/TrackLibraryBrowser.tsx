@@ -30,7 +30,9 @@ export const PLACEHOLDER_THUMB =
 
 type Track = {
   id: string;
+  spotifyId?: string;
   title: string;
+  artist?: string;
   bpm: number;
   key: string;
   dur: number;
@@ -95,9 +97,10 @@ const T = {
   deckB:  '#89a8e0',   // cold blue-violet
 };
 
-export default function TrackLibraryBrowser({ tracks, onLoadTrack, onSetDragTrack,
+export default function TrackLibraryBrowser({ tracks, reverseCarousel = true, onLoadTrack, onSetDragTrack,
   playingLeft, playingRight, leftPos, leftDur, rightPos, rightDur }: {
   tracks: Track[];
+  reverseCarousel?: boolean;
   onLoadTrack?: (side: 'left' | 'right', track: Track) => void;
   onSetDragTrack?: (track: Track) => void;
   playingLeft?: string | null;
@@ -119,7 +122,7 @@ export default function TrackLibraryBrowser({ tracks, onLoadTrack, onSetDragTrac
     : tracks;
 
   return (
-    <div style={{ marginTop: 20 }}>
+    <div style={{ marginTop: 20 }} aria-label="DJ set carousel">
       {/* ── Content ── */}
       {mode === 'list' ? (
         <ListView
@@ -132,6 +135,7 @@ export default function TrackLibraryBrowser({ tracks, onLoadTrack, onSetDragTrac
       ) : (
         <PlaylistCarousel
           tracks={tracks}
+          reverseCarousel={reverseCarousel}
           activeIdx={playlistIdx}
           setActiveIdx={setPlaylistIdx}
           onLoadTrack={onLoadTrack}
@@ -464,12 +468,14 @@ function ListTrackRow({ index, track, isPlayingLeft, isPlayingRight, pos, dur,
 /* ─── PLAYLIST CAROUSEL ───────────────────────────────────── */
 function PlaylistCarousel({
   tracks: incomingTracks,
+  reverseCarousel = true,
   activeIdx,
   setActiveIdx,
   onLoadTrack,
   onSetDragTrack,
 }: {
   tracks: Track[];
+  reverseCarousel?: boolean;
   activeIdx: number;
   setActiveIdx: (i: number) => void;
   onLoadTrack?: (side: 'left' | 'right', track: Track) => void;
@@ -480,7 +486,10 @@ function PlaylistCarousel({
 
   // Carousel renders newest-first. Source order in TRACKS stays append-only
   // (so /addmusic just pushes to the end), and we reverse for display here.
-  const tracks = useMemo(() => [...incomingTracks].slice().reverse(), [incomingTracks]);
+  const tracks = useMemo(
+    () => (reverseCarousel ? [...incomingTracks].slice().reverse() : incomingTracks),
+    [incomingTracks, reverseCarousel],
+  );
 
   // Resolve missing/placeholder covers in the visitor's browser via Spotify
   // oEmbed. The server side can't reach api.spotify.com from the sandbox, but
@@ -491,14 +500,16 @@ function PlaylistCarousel({
   );
   useEffect(() => {
     const controller = new AbortController();
-    const needed = tracks.filter(
-      (t) => (!t.thumb || t.thumb === PLACEHOLDER_THUMB) && !COVER_CACHE.has(t.id),
-    );
+    const needed = tracks.filter((t) => {
+      const spotifyKey = t.spotifyId ?? (/^[a-zA-Z0-9]{22}$/.test(t.id) ? t.id : null);
+      return spotifyKey && (!t.thumb || t.thumb === PLACEHOLDER_THUMB) && !COVER_CACHE.has(spotifyKey);
+    });
     needed.forEach(async (t) => {
+      const spotifyKey = t.spotifyId ?? t.id;
       try {
-        const thumb = await fetchSpotifyCover(t.id, controller.signal);
+        const thumb = await fetchSpotifyCover(spotifyKey, controller.signal);
         if (!thumb) return;
-        COVER_CACHE.set(t.id, thumb);
+        COVER_CACHE.set(spotifyKey, thumb);
         setResolvedCovers((prev) => ({ ...prev, [t.id]: thumb }));
       } catch {
         // CORS / network / abort — silently fall back to placeholder
@@ -587,6 +598,7 @@ function PlaylistCarousel({
             return (
               <div
                 key={track.id}
+                data-dj-set-card
                 draggable
                 onDragStart={e => { e.stopPropagation(); onSetDragTrack?.(track); }}
                 onMouseEnter={() => onCardHover(i, rel)}
@@ -708,7 +720,7 @@ function PlaylistCarousel({
             color: T.l1,
             textTransform: 'uppercase',
           }}>
-            {active.title}
+            TRACK {active.id}
           </span>
           <span style={{
             fontFamily: 'monospace',
@@ -717,7 +729,7 @@ function PlaylistCarousel({
             letterSpacing: '0.08em',
             color: T.l3m,
           }}>
-            {active.bpm} BPM · {active.key} · {fmtDur(active.dur)}
+            {active.title} · {active.bpm} BPM · {active.key} · {fmtDur(active.dur)}
           </span>
         </div>
       )}

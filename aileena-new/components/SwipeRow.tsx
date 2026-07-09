@@ -113,6 +113,7 @@ const COVER_BY_SLUG: Record<string, string> = {
   // Woman in Tech
   lion: COVER_LION,
   misread: COVER_PORTRAIT,
+  'third-culture-power': COVER_PORTRAIT,
   harassment: '/dispatch-covers/harassment.jpg',
 
   // Recommendations

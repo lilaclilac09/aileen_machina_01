@@ -63,7 +63,9 @@ Auto-deploys to Vercel on push to `main`. Set the env vars above in the Vercel p
 
 ## Contributing
 
-PRs welcome. Workflow:
+PRs welcome. **Engineering standards**: [`docs/工作准册.md`](docs/工作准册.md) — every change ends with verify + evidence.
+
+Workflow:
 
 ```bash
 git checkout -b feat/whatever
