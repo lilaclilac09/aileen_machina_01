@@ -449,7 +449,7 @@
 }
 @media (max-width: 720px) {
   .explainer-nav {
-    padding-left: 118px;
+    /* left padding comes from --site-left-chrome in globals.css */
     padding-right: 16px;
   }
   .explainer-row {

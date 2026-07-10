@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import BackHomeLink from '../../components/BackHomeLink';
 import { useLanguage } from '../../components/LanguageProvider';
 import { t } from '../../lib/translations';
 import ScrollUnlock from '../blog/ScrollUnlock';
@@ -210,18 +209,6 @@ export default function DispatchArchive() {
             flexWrap: 'wrap',
           }}
         >
-          <BackHomeLink
-            className="dispatch-home-link"
-            style={{
-              fontFamily: nunito,
-              fontSize: '0.85rem',
-              fontWeight: 500,
-              color: '#111',
-              opacity: 0.6,
-              textDecoration: 'none',
-              flex: '0 0 auto',
-            }}
-          />
           <SectionTabs active={activeTab} setActive={updateTab} />
           <div
             className="dispatch-header-actions"

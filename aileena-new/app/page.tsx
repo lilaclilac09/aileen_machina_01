@@ -641,7 +641,16 @@ function HomeWatchHub() {
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
           <HubShelf id="hub-film" title="Watch shelf" items={HOME_WATCH_ITEMS} />
           <HubShelf id="hub-podcast" title="Listen shelf" items={HOME_PODCASTS} />
-          <HubShelf id="hub-books" title="Read shelf" items={HOME_BOOKS} />
+          <HubShelf
+            id="hub-books"
+            title="Read shelf"
+            items={HOME_BOOKS}
+            clipping={{
+              src: '/dispatch-covers/books-joan-didion-readings.jpg',
+              alt: 'Readings from the work of Joan Didion — marked list clipping',
+              href: '/blog/watch-listening-shelf',
+            }}
+          />
           <HubShelf title="Channels" items={HOME_CHANNELS} />
         </div>
 
@@ -670,10 +679,12 @@ function HubShelf({
   title,
   items,
   id,
+  clipping,
 }: {
   title: string;
   items: { title: string; meta: string; href?: string }[];
   id?: string;
+  clipping?: { src: string; alt: string; href: string };
 }) {
   return (
     <div id={id}>
@@ -691,6 +702,37 @@ function HubShelf({
         {title}
       </p>
       <div style={{ display: 'grid', gap: 8 }}>
+        {clipping ? (
+          <Link
+            href={clipping.href}
+            aria-label={clipping.alt}
+            style={{
+              display: 'block',
+              border: '1px solid rgba(20,17,12,0.12)',
+              borderRadius: 2,
+              background: '#fffdf8',
+              overflow: 'hidden',
+              lineHeight: 0,
+              textDecoration: 'none',
+              boxShadow: '0 10px 28px -22px rgba(20,17,12,0.35)',
+              transform: 'rotate(-0.6deg)',
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={clipping.src}
+              alt={clipping.alt}
+              style={{
+                display: 'block',
+                width: '100%',
+                height: 'auto',
+                maxHeight: 168,
+                objectFit: 'cover',
+                objectPosition: 'top center',
+              }}
+            />
+          </Link>
+        ) : null}
         {items.map((item) => (
           <Link
             key={item.title}

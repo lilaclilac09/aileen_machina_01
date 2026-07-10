@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useLanguage } from '../../components/LanguageProvider';
 import { t } from '../../lib/translations';
 import ScrollUnlock from '../blog/ScrollUnlock';
@@ -35,19 +34,7 @@ export default function WorksPage() {
           borderBottom: '1px solid rgba(255,255,255,0.06)',
         }}
       >
-        <div style={{ maxWidth: 920, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Link
-            href="/"
-            style={{
-              fontFamily: nunito,
-              fontSize: '0.85rem',
-              fontWeight: 500,
-              color: 'rgba(255,255,255,0.6)',
-              textDecoration: 'none',
-            }}
-          >
-            ← Home
-          </Link>
+        <div style={{ maxWidth: 920, margin: '0 auto', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
           <span
             style={{
               fontFamily: nunito,

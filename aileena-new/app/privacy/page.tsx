@@ -31,7 +31,8 @@ export default function PrivacyPage() {
       <ScrollUnlock />
       <header className="substack-nav">
         <div className="substack-nav-inner">
-          <Link href="/" className="substack-back">← Home</Link>
+          {/* ← Home lives in SiteLeftChrome */}
+          <span aria-hidden />
           <span className="substack-brand">AILEENA MACHINA</span>
         </div>
       </header>
@@ -122,10 +123,20 @@ export default function PrivacyPage() {
           depth or privacy per question.
         </p>
         <p>
-          The Site itself keeps no separate copy of the conversation
+          The Site itself keeps no separate copy of the full conversation
           beyond what&rsquo;s described under &ldquo;What you
           send&rdquo; — i.e. only when you actively opt into the
           lead-capture flow.
+        </p>
+        <p>
+          Optionally, when Redis soft-memory is enabled on the server, the
+          agent stores an <strong>anonymous</strong> list of recent questions
+          and short topic tags keyed by a signed cookie (
+          <code>__aileena_vid</code>). No name, email, or login. Entries
+          expire after <strong>90 days</strong> without a new message
+          (sliding TTL). This lets the agent remember what you asked across
+          visits on the same browser. Clear site cookies to drop the id;
+          ask via the console if you want server-side erasure confirmed.
         </p>
 
         <h2 style={h2}>Analytics</h2>
@@ -141,10 +152,12 @@ export default function PrivacyPage() {
 
         <h2 style={h2}>Cookies</h2>
         <p>
-          One. The agent uses a signed cookie to count how many messages
-          you&rsquo;ve sent in a day so the per-visitor rate limit works.
-          It contains a date and a counter, nothing else — no user id, no
-          tracking. It expires after 25 hours.
+          Two for the agent. (1) A signed cookie counts how many messages
+          you&rsquo;ve sent in a day so the per-visitor rate limit works —
+          date + counter, expires after ~25 hours. (2) An anonymous visitor
+          id (<code>__aileena_vid</code>) keys optional soft memory of recent
+          questions; it lasts up to 90 days of inactivity and contains no
+          personal profile fields.
         </p>
 
         <h2 style={h2}>Hosting</h2>

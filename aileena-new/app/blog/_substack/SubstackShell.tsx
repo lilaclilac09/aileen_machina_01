@@ -37,9 +37,7 @@ export default function SubstackShell({
 
       <header className="substack-nav">
         <div className="substack-nav-inner">
-          <Link href="/#blog" className="substack-back">
-            ← {isDE ? 'Archiv' : 'Archive'}
-          </Link>
+          {/* ← Home lives in SiteLeftChrome (fixed left). Keep brand / mode right. */}
           {explainerHref ? (
             <div className="substack-mode-toggle">
               <span className="active">● dense</span>
@@ -51,7 +49,9 @@ export default function SubstackShell({
                 ○ explainer
               </Link>
             </div>
-          ) : null}
+          ) : (
+            <span aria-hidden />
+          )}
           <span className="substack-brand">AILEENA MACHINA</span>
         </div>
       </header>

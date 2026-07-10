@@ -12,6 +12,7 @@ import {
 } from '../lib/browserAgent';
 import { appendUserTopic, readTopicMemory } from '../lib/articleTopicMemory';
 import { matchCanned } from '../lib/agentCannedResponses';
+import SiteLeftChrome from './SiteLeftChrome';
 
 const STARTER_PROMPTS = [
   "what's her solana stack?",
@@ -522,33 +523,9 @@ export default function AgentChat() {
 
   return (
     <>
-      {/* Launcher — avatar only in the top-left. No "machina" text beside
-          it: that label used to collide with every page's ← Home / Archive.
-          Title lives inside the console header instead. */}
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label="Open Aileena console · machina"
-        title="machina"
-        className={`group site-machina-launcher fixed top-3 left-3 sm:top-4 sm:left-4 z-[60] transition-opacity duration-200 ${open ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
-      >
-        <span className="relative inline-block">
-          <span
-            aria-hidden
-            className="block h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-no-repeat ring-1 ring-[#00a89d]/40 transition-all duration-200 group-hover:ring-[#00a89d]/80 group-hover:scale-[1.05]"
-            style={{
-              backgroundImage: "url('/bg_pic/03.jpeg')",
-              backgroundPosition: '18% 5%',
-              backgroundSize: '175%',
-            }}
-          />
-          <span aria-hidden className="agent-scan pointer-events-none absolute inset-0 rounded-full overflow-hidden" />
-          <span
-            aria-hidden
-            className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-[#00a89d] shadow-[0_0_6px_rgba(0,168,157,0.85)] animate-pulse ring-2 ring-[#fffdf8]"
-          />
-        </span>
-      </button>
+      {/* Unified top-left chrome: avatar + ← Home (when not on /).
+          Pages must not render a second Home in this corner. */}
+      <SiteLeftChrome onOpenConsole={() => setOpen(true)} consoleOpen={open} />
 
       {/* Backdrop */}
       <div

@@ -22,23 +22,38 @@
   --pulse-color-inner: rgba(80, 210, 240, 0.15);
   --pulse-glow: rgba(60, 200, 235, 0.9);
   --pulse-glow-inner: rgba(80, 210, 240, 0.25);
-  /* Fixed machina avatar (left-3/4 + 32/36px) — page nav starts after this */
-  --site-left-chrome: 64px;
+  /* Fixed left chrome: avatar + Home cluster. Must clear sticky headers. */
+  --site-left-chrome: 156px;
 }
 
-/* Sticky/fixed page headers that carry ← Home / Archive must clear the
-   fixed AgentChat avatar so labels never overlap. */
+/* Sticky page headers clear the fixed left chrome. Do NOT put ← Home inside
+   these headers anymore — Home lives in SiteLeftChrome next to the avatar. */
 .site-top-nav,
 .substack-nav,
-.dispatch-archive-header {
+.dispatch-archive-header,
+.explainer-nav {
   padding-left: max(24px, var(--site-left-chrome)) !important;
 }
 
 @media (min-width: 640px) {
   :root {
-    --site-left-chrome: 72px;
+    --site-left-chrome: 176px;
   }
 }
+
+/* Light pages: Home label reads as ink next to the avatar */
+html:has(.substack-article) .site-chrome-home,
+html:has(.dispatch-archive-header) .site-chrome-home,
+html:has(.explainer-article) .site-chrome-home {
+  color: rgba(27, 23, 19, 0.58) !important;
+}
+html:has(.substack-article) .site-chrome-home:hover,
+html:has(.dispatch-archive-header) .site-chrome-home:hover,
+html:has(.explainer-article) .site-chrome-home:hover {
+  color: rgba(27, 23, 19, 0.95) !important;
+}
+
+/* Dark pages keep cream Home (component default) */
 
 body {
   font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', 'Georgia', 'Times New Roman', serif;

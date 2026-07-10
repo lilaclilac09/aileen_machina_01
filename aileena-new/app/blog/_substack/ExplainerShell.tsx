@@ -42,9 +42,7 @@ export default function ExplainerShell({
 
       <header className="explainer-nav">
         <div className="explainer-nav-inner">
-          <Link href="/#blog" className="explainer-back">
-            ← {isDE ? 'archiv' : 'archive'}
-          </Link>
+          {/* ← Home lives in SiteLeftChrome — no duplicate back link here. */}
           {denseHref ? (
             <div className="explainer-mode-toggle">
               <Link
@@ -56,7 +54,9 @@ export default function ExplainerShell({
               <span className="sep">/</span>
               <span className="active">○ explainer</span>
             </div>
-          ) : null}
+          ) : (
+            <span aria-hidden />
+          )}
           <span className="explainer-brand">
             aileena<span className="v">·</span>machina
           </span>

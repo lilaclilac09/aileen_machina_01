@@ -1,10 +1,9 @@
 'use client';
 
-import Link from 'next/link';
 import DJStation from '../../components/DJStation';
+import ScrollUnlock from '../blog/ScrollUnlock';
 import { useLanguage } from '../../components/LanguageProvider';
 import { t } from '../../lib/translations';
-import ScrollUnlock from '../blog/ScrollUnlock';
 
 const nunito = "'Nunito', system-ui, -apple-system, sans-serif";
 
@@ -36,19 +35,7 @@ export default function SoundPage() {
           borderBottom: '1px solid rgba(255,253,248,0.08)',
         }}
       >
-        <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Link
-            href="/"
-            style={{
-              fontFamily: nunito,
-              fontSize: '0.85rem',
-              fontWeight: 500,
-              color: 'rgba(255,253,248,0.62)',
-              textDecoration: 'none',
-            }}
-          >
-            ← Home
-          </Link>
+        <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
           <span
             style={{
               fontFamily: nunito,
