@@ -70,20 +70,36 @@ type RoomDoor = {
 };
 
 const HOME_PODCASTS = [
-  { title: 'DJ sets', meta: 'two decks / sound room', href: '/sound' },
-  { title: 'Fashion Neurosis', meta: 'Bella Freud · Kate Moss' },
-  { title: 'Do You Read Her', meta: 'women / reading / voice' },
+  { title: 'Fashion Neurosis', meta: 'Bella Freud · Kate Moss', href: 'https://open.spotify.com/episode/0ZxMxV8EiZ9DkAPJWU0If7' },
+  { title: 'Do You Read Her', meta: 'women / reading / voice', href: 'https://open.spotify.com/episode/0cx1oBoJEwfaKGVbITcD5K' },
 ];
 
 const HOME_CHANNELS = [
-  { title: 'Asymmetrical Bets', meta: 'markets / narratives' },
-  { title: 'SemiAnalysis', meta: 'semis / AI infrastructure' },
+  { title: 'Asymmetrical Bets', meta: 'markets / narratives', href: 'https://asymmetricalbets.substack.com' },
+  { title: 'SemiAnalysis', meta: 'semis / AI infrastructure', href: 'https://www.semianalysis.com' },
 ];
 
 const HOME_WATCH_ITEMS = [
-  { title: 'Joan Didion: The Center Will Not Hold', meta: '2018 · writer / witness' },
-  { title: 'David Hockney RA', meta: '2017 · exhibition film' },
-  { title: 'A Bigger Splash', meta: '1973 · Hockney / pool' },
+  {
+    title: 'Joan Didion: The Center Will Not Hold',
+    meta: '2018 · writer / witness',
+    href: 'https://www.rottentomatoes.com/m/joan_didion_the_center_will_not_hold',
+  },
+  {
+    title: 'David Hockney RA',
+    meta: '2017 · exhibition film',
+    href: 'https://en.wikipedia.org/wiki/Exhibition_on_Screen',
+  },
+  {
+    title: 'A Bigger Splash',
+    meta: '1973 · Hockney / pool',
+    href: 'https://en.wikipedia.org/wiki/A_Bigger_Splash_(1973_film)',
+  },
+];
+
+const HOME_BOOKS = [
+  { title: 'Readings from Joan Didion', meta: 'notebook / marked list', href: '/blog/watch-listening-shelf' },
+  { title: 'The Listening and Watching Shelf', meta: 'full issue · essay', href: '/blog/watch-listening-shelf' },
 ];
 
 /* ── Homepage ─────────────────────────────────────────────────────────
@@ -429,156 +445,238 @@ function HomeWatchHub() {
     <section
       className="h-full overflow-y-auto px-5 sm:px-9 lg:px-14"
       style={{
-        background: '#fff',
+        background: 'linear-gradient(180deg, #fffdf8 0%, #f7f3ea 100%)',
         color: palette.ink,
         fontFamily: nunito,
       }}
       aria-label="Watch and listen hub"
     >
-      <div
-        className="mx-auto grid min-h-full max-w-[1320px] gap-8 pb-12 pt-[82px] lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-14 lg:pb-10 lg:pt-[88px]"
-      >
-        <div style={{ maxWidth: 510 }}>
-          <p
-            style={{
-              color: palette.cyan,
-              fontFamily: mono,
-              fontSize: '0.64rem',
-              fontWeight: 850,
-              letterSpacing: '0.34em',
-              marginBottom: 24,
-              textTransform: 'uppercase',
-            }}
-          >
-            Watch / Listen Hub
-          </p>
-          <h2
-            style={{
-              color: palette.ink,
-              fontSize: 'clamp(2.4rem, 6vw, 5.2rem)',
-              fontWeight: 590,
-              letterSpacing: '-0.03em',
-              lineHeight: 0.98,
-              marginBottom: 28,
-            }}
-          >
-            One shelf. Not glued onto every essay.
-          </h2>
-          <p
-            style={{
-              color: 'rgba(20,17,12,0.66)',
-              fontFamily: 'Georgia, serif',
-              fontSize: '1.08rem',
-              lineHeight: 1.64,
-              marginBottom: 28,
-            }}
-          >
-            DJ sets, podcasts, documentaries, and research channels live here
-            as a homepage hub. Essays stay clean; the shelf has its own room.
-          </p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 30 }}>
-            {['DJ sets', 'podcasts', 'documentaries', 'substacks'].map((tag) => (
-              <span
-                key={tag}
+      <div className="mx-auto flex min-h-full max-w-[1320px] flex-col gap-7 pb-12 pt-[82px] lg:gap-9 lg:pb-10 lg:pt-[88px]">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_auto] lg:items-end">
+          <div style={{ maxWidth: 640 }}>
+            <p
+              style={{
+                color: palette.cyan,
+                fontFamily: mono,
+                fontSize: '0.64rem',
+                fontWeight: 850,
+                letterSpacing: '0.34em',
+                marginBottom: 16,
+                textTransform: 'uppercase',
+              }}
+            >
+              Watch / Listen Hub
+            </p>
+            <h2
+              style={{
+                color: palette.ink,
+                fontSize: 'clamp(2.1rem, 4.8vw, 3.8rem)',
+                fontWeight: 590,
+                letterSpacing: '-0.03em',
+                lineHeight: 0.98,
+                marginBottom: 14,
+              }}
+            >
+              One shelf. DJ first.
+            </h2>
+            <p
+              style={{
+                color: 'rgba(20,17,12,0.62)',
+                fontFamily: 'Georgia, serif',
+                fontSize: '1.02rem',
+                lineHeight: 1.6,
+                maxWidth: 520,
+              }}
+            >
+              Documentaries, podcasts, and books stay on the cream shelves.
+              The DJ set gets the black door — not another card in the list.
+            </p>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-end' }}>
+            {[
+              { label: 'DJ set', href: '/sound', featured: true },
+              { label: 'Film', href: '#hub-film' },
+              { label: 'Podcast', href: '#hub-podcast' },
+              { label: 'Books', href: '#hub-books' },
+            ].map((tag) => (
+              <a
+                key={tag.label}
+                href={tag.href}
                 style={{
-                  border: '1px solid rgba(20,17,12,0.14)',
+                  border: tag.featured ? `1px solid ${palette.cyan}` : '1px solid rgba(20,17,12,0.14)',
+                  background: tag.featured ? 'rgba(0,169,159,0.1)' : 'transparent',
                   borderRadius: 999,
-                  color: 'rgba(20,17,12,0.56)',
+                  color: tag.featured ? '#007f76' : 'rgba(20,17,12,0.55)',
                   fontFamily: mono,
                   fontSize: '0.58rem',
                   fontWeight: 850,
                   letterSpacing: '0.16em',
-                  padding: '7px 12px',
+                  padding: '8px 14px',
+                  textDecoration: 'none',
                   textTransform: 'uppercase',
                 }}
               >
-                {tag}
-              </span>
+                {tag.label}
+              </a>
             ))}
           </div>
+        </div>
+
+        {/* DJ SET — dominant black door */}
+        <Link
+          href="/sound"
+          id="hub-dj"
+          style={{
+            display: 'block',
+            borderRadius: 4,
+            overflow: 'hidden',
+            textDecoration: 'none',
+            background: '#0b0d10',
+            color: '#fffdf8',
+            boxShadow: '0 28px 60px -40px rgba(20,17,12,0.55)',
+            border: '1px solid rgba(255,253,248,0.08)',
+          }}
+        >
+          <div
+            className="grid gap-0 md:grid-cols-[1.2fr_0.8fr]"
+            style={{ minHeight: 'clamp(200px, 28vh, 280px)' }}
+          >
+            <div
+              style={{
+                padding: 'clamp(26px, 3.6vw, 40px)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                gap: 24,
+              }}
+            >
+              <div>
+                <p
+                  style={{
+                    color: '#00a89d',
+                    fontFamily: mono,
+                    fontSize: '0.62rem',
+                    fontWeight: 850,
+                    letterSpacing: '0.28em',
+                    marginBottom: 12,
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Featured · DJ set
+                </p>
+                <h3
+                  style={{
+                    fontSize: 'clamp(1.7rem, 3.4vw, 2.7rem)',
+                    fontWeight: 620,
+                    letterSpacing: '-0.03em',
+                    lineHeight: 1.02,
+                    marginBottom: 12,
+                    color: '#fffdf8',
+                  }}
+                >
+                  Two decks. Full library. Black room.
+                </h3>
+                <p
+                  style={{
+                    color: 'rgba(255,253,248,0.55)',
+                    fontFamily: 'Georgia, serif',
+                    fontSize: '0.98rem',
+                    lineHeight: 1.55,
+                    maxWidth: 420,
+                  }}
+                >
+                  Handoff tracks plus the rest of the set — open the station, not a playlist card.
+                </p>
+              </div>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  color: '#00a89d',
+                  fontFamily: mono,
+                  fontSize: '0.68rem',
+                  fontWeight: 900,
+                  letterSpacing: '0.2em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Enter /sound <span aria-hidden>→</span>
+              </span>
+            </div>
+            <div
+              aria-hidden
+              style={{
+                position: 'relative',
+                minHeight: 160,
+                background:
+                  'radial-gradient(ellipse at 70% 40%, rgba(0,168,157,0.22) 0%, transparent 55%), linear-gradient(145deg, #12161b 0%, #0b0d10 60%)',
+                borderLeft: '1px solid rgba(255,253,248,0.06)',
+                display: 'grid',
+                placeItems: 'center',
+                padding: 28,
+              }}
+            >
+              <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                {[0, 1].map((i) => (
+                  <div
+                    key={i}
+                    style={{
+                      width: 84,
+                      height: 84,
+                      borderRadius: '50%',
+                      border: '1px solid rgba(0,168,157,0.45)',
+                      background:
+                        'repeating-radial-gradient(circle at center, transparent 0 7px, rgba(255,253,248,0.06) 7px 8px)',
+                      boxShadow: i === 0 ? '0 0 24px rgba(0,168,157,0.25)' : 'none',
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </Link>
+
+        {/* Cream shelves — film / podcast / books / channels */}
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+          <HubShelf id="hub-film" title="Watch shelf" items={HOME_WATCH_ITEMS} />
+          <HubShelf id="hub-podcast" title="Listen shelf" items={HOME_PODCASTS} />
+          <HubShelf id="hub-books" title="Read shelf" items={HOME_BOOKS} />
+          <HubShelf title="Channels" items={HOME_CHANNELS} />
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <Link
             href="/blog/watch-listening-shelf"
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 11,
-              minHeight: 46,
-              border: '1px solid rgba(0,169,159,0.42)',
-              borderRadius: 999,
-              color: '#007f76',
+              color: 'rgba(20,17,12,0.45)',
               fontFamily: mono,
-              fontSize: '0.66rem',
-              fontWeight: 900,
+              fontSize: '0.58rem',
+              fontWeight: 850,
               letterSpacing: '0.18em',
-              padding: '0 18px',
               textDecoration: 'none',
               textTransform: 'uppercase',
             }}
           >
-            Open the article <span aria-hidden>→</span>
+            Full shelf article →
           </Link>
-        </div>
-
-        <div
-          className="grid gap-5 lg:grid-cols-2"
-          style={{ minWidth: 0 }}
-        >
-          <div className="grid gap-4">
-            <HubShelf title="Watch shelf" items={HOME_WATCH_ITEMS} />
-            <HubShelf title="Listen shelf" items={HOME_PODCASTS} />
-          </div>
-          <div className="grid content-start gap-4">
-            <HubShelf title="Read shelf" items={HOME_CHANNELS} />
-            <Link
-              href="/sound"
-              style={{
-                display: 'block',
-                border: '1px solid rgba(20,17,12,0.12)',
-                borderRadius: 4,
-                background: '#fff',
-                color: palette.ink,
-                padding: '18px 20px',
-                textDecoration: 'none',
-                boxShadow: '0 20px 42px -38px rgba(20,17,12,0.42)',
-              }}
-            >
-              <span
-                style={{
-                  color: palette.cyan,
-                  display: 'block',
-                  fontFamily: mono,
-                  fontSize: '0.58rem',
-                  fontWeight: 850,
-                  letterSpacing: '0.22em',
-                  marginBottom: 10,
-                  textTransform: 'uppercase',
-                }}
-              >
-                DJ station
-              </span>
-              <span
-                style={{
-                  display: 'block',
-                  color: palette.ink,
-                  fontSize: '1.18rem',
-                  fontWeight: 820,
-                  letterSpacing: '-0.03em',
-                  lineHeight: 1.08,
-                }}
-              >
-                The deck stays black. This is just the door.
-              </span>
-            </Link>
-          </div>
         </div>
       </div>
     </section>
   );
 }
 
-function HubShelf({ title, items }: { title: string; items: { title: string; meta: string; href?: string }[] }) {
+function HubShelf({
+  title,
+  items,
+  id,
+}: {
+  title: string;
+  items: { title: string; meta: string; href?: string }[];
+  id?: string;
+}) {
   return (
-    <div>
+    <div id={id}>
       <p
         style={{
           color: palette.cyan,
@@ -592,30 +690,29 @@ function HubShelf({ title, items }: { title: string; items: { title: string; met
       >
         {title}
       </p>
-      <div style={{ display: 'grid', gap: 10 }}>
+      <div style={{ display: 'grid', gap: 8 }}>
         {items.map((item) => (
           <Link
             key={item.title}
             href={item.href ?? '/blog/watch-listening-shelf'}
             style={{
               display: 'block',
-              border: '1px solid rgba(20,17,12,0.12)',
+              border: '1px solid rgba(20,17,12,0.1)',
               borderRadius: 4,
-              background: '#fff',
+              background: 'rgba(255,253,248,0.85)',
               color: palette.ink,
-              padding: '14px 16px',
+              padding: '12px 14px',
               textDecoration: 'none',
-              boxShadow: '0 20px 42px -38px rgba(20,17,12,0.42)',
             }}
           >
             <span
               style={{
                 display: 'block',
                 color: palette.ink,
-                fontSize: '1.02rem',
-                fontWeight: 780,
-                letterSpacing: '-0.025em',
-                lineHeight: 1.08,
+                fontSize: '0.95rem',
+                fontWeight: 720,
+                letterSpacing: '-0.02em',
+                lineHeight: 1.15,
               }}
             >
               {item.title}
@@ -623,12 +720,12 @@ function HubShelf({ title, items }: { title: string; items: { title: string; met
             <span
               style={{
                 display: 'block',
-                color: 'rgba(20,17,12,0.46)',
+                color: 'rgba(20,17,12,0.42)',
                 fontFamily: mono,
-                fontSize: '0.54rem',
+                fontSize: '0.52rem',
                 fontWeight: 850,
-                letterSpacing: '0.16em',
-                marginTop: 7,
+                letterSpacing: '0.14em',
+                marginTop: 6,
                 textTransform: 'uppercase',
               }}
             >
