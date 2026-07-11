@@ -708,13 +708,13 @@ function HubShelf({
             aria-label={clipping.alt}
             style={{
               display: 'block',
-              border: '1px solid rgba(20,17,12,0.12)',
-              borderRadius: 2,
-              background: '#fffdf8',
+              border: 'none',
+              borderRadius: 0,
+              background: 'transparent',
               overflow: 'hidden',
               lineHeight: 0,
               textDecoration: 'none',
-              boxShadow: '0 10px 28px -22px rgba(20,17,12,0.35)',
+              boxShadow: '0 12px 28px -20px rgba(20,17,12,0.4)',
               transform: 'rotate(-0.6deg)',
             }}
           >
