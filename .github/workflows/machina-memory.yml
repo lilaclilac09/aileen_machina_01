@@ -1,0 +1,87 @@
+# Aileena Machina — fixed memory workflow (ReMeLight pattern)
+# L3 Markdown → Dreaming report → L2 index rebuild → commit
+
+name: Machina Memory (Dreaming)
+
+on:
+  schedule:
+    # Mondays 06:00 UTC — offline compression, no GPU
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      skip_commit:
+        description: 'Run dreaming + index only (no git push)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+permissions:
+  contents: write
+
+jobs:
+  dreaming:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: aileena-new
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: aileena-new/pnpm-lock.yaml
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Sync carousel + latest content → L3 memory
+        run: pnpm sync:content-memory
+
+      - name: Dreaming (offline consolidate)
+        run: pnpm dreaming
+
+      - name: Rebuild memory index (L2)
+        run: pnpm build:memory-index
+
+      - name: Configure Git
+        if: github.event.inputs.skip_commit != 'true'
+        run: |
+          git config user.name "Machina Memory Bot"
+          git config user.email "bot@aileena.xyz"
+
+      - name: Commit Dreaming report + content memory
+        if: github.event.inputs.skip_commit != 'true'
+        working-directory: .
+        run: |
+          git add \
+            aileena-new/public/dj-set/setlist.json \
+            aileena-new/public/dj-set/assets/covers/*.svg \
+            aileena-new/aileena_second_brain/memories/semantic/latest-content.md \
+            aileena-new/aileena_second_brain/memories/semantic/setlist.md \
+            aileena-new/aileena_second_brain/memories/semantic/self-evolution-log.md \
+            aileena-new/aileena_second_brain/memories/semantic/carousel-sync-state.json \
+            aileena-new/aileena_second_brain/prompts/music-taste.md \
+            aileena-new/aileena_second_brain/memories/episodic/content-changelog-*.md \
+            aileena-new/aileena_second_brain/memories/episodic/content-baseline-*.md \
+            aileena-new/aileena_second_brain/memories/episodic/evolve-carousel-*.md \
+            aileena-new/aileena_second_brain/memories/archived/consolidate-report-*.md || true
+          if git diff --cached --quiet; then
+            echo "No new dreaming report to commit"
+          else
+            git commit -m "chore(memory): sync latest content + Dreaming report [$(date -u +%Y-%m-%d)]"
+            git push origin main
+            echo "Dreaming report pushed"
+          fi
