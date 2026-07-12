@@ -72,3 +72,31 @@ export function clearTopicMemory(): void {
     /* ignore */
   }
 }
+
+/** Short label for catch-up (trim ellipsis / filler). */
+function tidyTopic(topic: string): string {
+  return topic.replace(/…$/u, '').trim();
+}
+
+/**
+ * Warm hello + optional catch-up from prior topics.
+ * Used on console open and for canned greetings — accommodate-first.
+ */
+export function buildCatchUpGreeting(topics: string[] = []): string {
+  const top = topics.map(tidyTopic).filter(Boolean).slice(0, 2);
+  if (top.length === 0) {
+    return "Hey — good to see you. Ask about Aileen's work, writing, music shelf, or whether she's free to hire.";
+  }
+  if (top.length === 1) {
+    return `Hey — welcome back. Last time you were into “${top[0]}”. Want to pick that up, or something new?`;
+  }
+  return `Hey — welcome back. You were looking at “${top[0]}” and “${top[1]}”. Catch up on those, or ask something new?`;
+}
+
+/** One-line catch-up hint for empty-state UI (no full greeting). */
+export function buildCatchUpHint(topics: string[] = []): string | null {
+  const top = topics.map(tidyTopic).filter(Boolean).slice(0, 2);
+  if (top.length === 0) return null;
+  if (top.length === 1) return `catch-up · last time: ${top[0]}`;
+  return `catch-up · ${top[0]} · ${top[1]}`;
+}

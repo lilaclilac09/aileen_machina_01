@@ -105,10 +105,9 @@ const RULES: Rule[] = [
 
 /**
  * Return a canned response for the input text if any rule matches, else null.
- * Caller renders the reply as if it streamed back — typically by appending
- * a synthetic assistant message to the conversation.
+ * Pass priorTopics so greetings can catch up without an LLM round-trip.
  */
-export function matchCanned(text: string): CannedHit | null {
+export function matchCanned(text: string, priorTopics: string[] = []): CannedHit | null {
   const stripped = text.trim();
   if (!stripped) return null;
   // Only short queries are candidates for canned replies. Long inputs
@@ -116,9 +115,36 @@ export function matchCanned(text: string): CannedHit | null {
   if (stripped.length > 80) return null;
 
   for (const rule of RULES) {
-    if (rule.test.test(stripped)) {
-      return { reply: rule.reply, pattern: rule.name };
+    if (!rule.test.test(stripped)) continue;
+
+    // Personalize greetings with catch-up when we know prior topics.
+    if (rule.name.startsWith('greeting-') && priorTopics.length > 0) {
+      const top = priorTopics
+        .map((t) => t.replace(/…$/u, '').trim())
+        .filter(Boolean)
+        .slice(0, 2);
+      if (rule.name === 'greeting-zh' && top.length > 0) {
+        const tip =
+          top.length === 1
+            ? `上次你在看「${top[0]}」。要接着聊，还是换个话题？`
+            : `上次你在看「${top[0]}」和「${top[1]}」。接着聊还是换新的？`;
+        return { reply: `你好 — 欢迎回来。${tip}`, pattern: `${rule.name}+catchup` };
+      }
+      if (rule.name === 'greeting-de' && top.length > 0) {
+        const tip =
+          top.length === 1
+            ? `Letztes Mal ging's um „${top[0]}“. Weitermachen oder was Neues?`
+            : `Letztes Mal: „${top[0]}“ und „${top[1]}“. Weitermachen oder neu fragen?`;
+        return { reply: `Hallo — willkommen zurück. ${tip}`, pattern: `${rule.name}+catchup` };
+      }
+      const tip =
+        top.length === 1
+          ? `Last time you were into “${top[0]}”. Pick that up, or something new?`
+          : `You were looking at “${top[0]}” and “${top[1]}”. Catch up, or ask something new?`;
+      return { reply: `Hey — welcome back. ${tip}`, pattern: `${rule.name}+catchup` };
     }
+
+    return { reply: rule.reply, pattern: rule.name };
   }
   return null;
 }

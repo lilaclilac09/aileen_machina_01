@@ -49,5 +49,6 @@ lib/dataDocIndex.json
 
 # verify-dj-set workflow output
 .verify-screenshots/
+.verify-memory/
 data/pricing.json
 data/news.json

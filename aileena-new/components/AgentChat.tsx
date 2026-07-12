@@ -10,7 +10,7 @@ import {
   type Availability as BrowserAvailability,
   type BrowserSession,
 } from '../lib/browserAgent';
-import { appendUserTopic, readTopicMemory } from '../lib/articleTopicMemory';
+import { appendUserTopic, readTopicMemory, buildCatchUpGreeting, buildCatchUpHint } from '../lib/articleTopicMemory';
 import { matchCanned } from '../lib/agentCannedResponses';
 import SiteLeftChrome from './SiteLeftChrome';
 
@@ -63,6 +63,7 @@ export default function AgentChat() {
   const [leadError, setLeadError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const welcomedRef = useRef(false);
 
   const { messages, setMessages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({
@@ -74,6 +75,29 @@ export default function AgentChat() {
       body: () => ({ priorTopics: readTopicMemory().topics }),
     }),
   });
+
+  // Open console → greet first (catch-up if we remember prior topics).
+  useEffect(() => {
+    if (!open) {
+      welcomedRef.current = false;
+      return;
+    }
+    if (welcomedRef.current || messages.length > 0) return;
+    welcomedRef.current = true;
+    const topics = readTopicMemory().topics;
+    const text = buildCatchUpGreeting(topics);
+    const id =
+      typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `welcome-${Date.now()}`;
+    setMessages([
+      {
+        id,
+        role: 'assistant',
+        parts: [{ type: 'text', text }],
+      },
+    ]);
+  }, [open, messages.length, setMessages]);
 
   // ──────────────── On-device runtime (Chrome Prompt API) ────────────────
   const [runtime, setRuntime] = useState<Runtime>('cloud');
@@ -390,7 +414,7 @@ export default function AgentChat() {
     // questions about the agent itself, top-level CV one-liners. Returns
     // ~10–30 ms (regex match + setState) instead of ~1.5–3 s LLM round-
     // trip. Substantive questions fall through to the real model.
-    const canned = matchCanned(trimmed);
+    const canned = matchCanned(trimmed, readTopicMemory().topics);
     if (canned) {
       const userId =
         typeof crypto !== 'undefined' && crypto.randomUUID
@@ -605,8 +629,13 @@ export default function AgentChat() {
           {messages.length === 0 ? (
             <>
               <p className="text-[0.62rem] tracking-[0.25em] text-[#1b1713]/50 uppercase mb-2">
-                ▸ ready · ask anything about aileen&apos;s work
+                ▸ ready · say hi or ask anything
               </p>
+              {buildCatchUpHint(readTopicMemory().topics) && (
+                <p className="text-[0.75rem] leading-5 text-[#008f86]/85 mb-2">
+                  {buildCatchUpHint(readTopicMemory().topics)}
+                </p>
+              )}
               <ul className="space-y-1.5">
                 {STARTER_PROMPTS.map((p) => (
                   <li key={p}>

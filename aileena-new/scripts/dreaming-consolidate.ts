@@ -97,6 +97,12 @@ ${topTerms.join('\n')}
 ## Hardware note
 
 Dreaming runs offline — no GPU KV cache. Smaller indexed corpus = cheaper retrieval prefills at runtime.
+
+## Visitor soft memory (Redis)
+
+Per-visitor questions live in Upstash Redis with a **90-day sliding TTL**.
+Dreaming does **not** SCAN Redis in v0.5 — expiry is the GC. Hard Markdown
+memories above are never deleted by Redis TTL.
 `;
 
   writeFileSync(outPath, report);

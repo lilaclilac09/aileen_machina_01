@@ -1,5 +1,4 @@
-import { streamText, convertToModelMessages, tool, stepCountIs, type UIMessage, type LanguageModel } from 'ai';
-import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
+import { streamText, convertToModelMessages, tool, stepCountIs, type UIMessage } from 'ai';
 import { z } from 'zod';
 import { SYSTEM_PROMPT } from '../../../lib/agentContext';
 import { buildMachinaSystemPrompt } from '../../../lib/aileenaSecondBrain';
@@ -7,39 +6,38 @@ import { searchArticles } from '../../../lib/agentSearch';
 import { searchMemories, memoryIndexMeta } from '../../../lib/memorySearch';
 import { MEMORY_STACK_PROMPT } from '../../../lib/memoryStack';
 import { agentDataTools, datasetSummary } from '../../../lib/data/tools';
+import {
+  createReactGuardSession,
+  wrapToolsWithReactGuard,
+  REACT_MAX_STEPS,
+} from '../../../lib/reactGuard';
+import {
+  routeToolsForQuestion,
+  applyToolRoute,
+  formatToolRouteForPrompt,
+} from '../../../lib/toolRouter';
+import {
+  routeModel,
+  recordModelSuccess,
+  recordModelFailure,
+  createModelAbortSignal,
+  classifyModelError,
+  degradeMessage,
+  MODEL_TOTAL_BUDGET_MS,
+} from '../../../lib/modelRouter';
+import { createRequestTrace } from '../../../lib/requestTrace';
+import {
+  ensureVisitorId,
+  buildVisitorCookie,
+  loadVisitorSoftMemory,
+  mergeVisitorQuestion,
+  recordVisitorQuestion,
+  formatVisitorSoftMemoryForPrompt,
+  visitorSoftMemoryEnabled,
+} from '../../../lib/visitorMemory';
 
 export const runtime = 'edge';
 export const maxDuration = 30;
-
-/**
- * DeepSeek-only. Tier abstraction + AGENT_BASE_URL (Gemini Flash) primary
- * branch were removed — Gemini Flash is set aside for now. To re-introduce
- * a primary tier, see git history before this commit for the two-tier
- * pattern with primary-unhealthy tracking.
- */
-
-function selectModel(): { model: LanguageModel; provider: string } | null {
-  const apiKey = process.env.DEEPSEEK_API_KEY || process.env.AGENT_API_KEY;
-  if (!apiKey) {
-    console.error('[chat] selectModel: DEEPSEEK_API_KEY or AGENT_API_KEY is missing in process.env');
-    return null;
-  }
-
-  try {
-    const ds = createOpenAICompatible({
-      name: 'aileena-deepseek',
-      baseURL: 'https://api.deepseek.com',
-      apiKey: apiKey,
-    });
-    return {
-      model: ds.chatModel('deepseek-chat'),
-      provider: 'deepseek',
-    };
-  } catch (err) {
-    console.error('[chat] selectModel: failed to initialize DeepSeek client', err);
-    return null;
-  }
-}
 const DAILY_LIMIT = 20;
 const QUOTA_COOKIE = '__aileena_quota';
 
@@ -130,10 +128,20 @@ async function buildQuotaCookie(state: QuotaState): Promise<string> {
   }
 }
 
-function jsonError(message: string, status: number): Response {
-  return new Response(JSON.stringify({ error: message }), {
+function jsonError(
+  message: string,
+  status: number,
+  traceId?: string,
+  extraHeaders?: Record<string, string>,
+): Response {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(traceId ? { 'X-Trace-Id': traceId } : {}),
+    ...extraHeaders,
+  };
+  return new Response(JSON.stringify({ error: message, traceId: traceId ?? null }), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers,
   });
 }
 
@@ -156,33 +164,24 @@ function lastUserQuery(messages: UIMessage[]): string {
 }
 
 export async function POST(req: Request) {
-  console.log('[chat] POST request started');
-  
-  if (!process.env.DEEPSEEK_API_KEY && !process.env.AGENT_API_KEY) {
-    console.error('[chat] POST: DEEPSEEK_API_KEY or AGENT_API_KEY is not configured');
-    return jsonError(
-      'No model configured. Set DEEPSEEK_API_KEY in Vercel, then redeploy.',
-      500,
-    );
-  }
+  const trace = createRequestTrace(req.headers.get('x-trace-id'));
+  trace.log('request_start');
 
   let body: { messages?: UIMessage[]; priorTopics?: string[]; agentMode?: 'site' | 'machina' };
   try {
     body = await req.json();
   } catch (err) {
     console.error('[chat] POST: failed to parse JSON body', err);
-    return jsonError('Invalid JSON.', 400);
+    return jsonError('Invalid JSON.', 400, trace.traceId);
   }
 
   const messages = body.messages ?? [];
   if (!Array.isArray(messages) || messages.length === 0) {
     console.error('[chat] POST: messages array is empty or missing');
-    return jsonError('No messages provided.', 400);
+    return jsonError('No messages provided.', 400, trace.traceId);
   }
 
-  // Cross-session topic memory — what this visitor cared about on previous
-  // visits, sent fresh from the client's localStorage. Soft signal only:
-  // the model is told to use it as background, not to repeat it back.
+  // Client localStorage topics (fallback / supplement when Redis is off).
   const priorTopics = Array.isArray(body.priorTopics)
     ? body.priorTopics
         .filter((t): t is string => typeof t === 'string' && t.trim().length > 0)
@@ -190,15 +189,19 @@ export async function POST(req: Request) {
     : [];
 
   // Daily quota
+  const quotaSpan = trace.startSpan('quota');
   const quota = await readQuota(req);
+  trace.endSpan(quotaSpan, true, { count: quota.count });
   if (quota.count >= DAILY_LIMIT) {
-    console.warn('[chat] POST: daily limit reached for user', { count: quota.count });
+    console.warn('[chat] POST: daily limit reached for user', { count: quota.count, traceId: trace.traceId });
     return jsonError(
       `Aileen stopped DJing for today — ${DAILY_LIMIT}-message daily limit. Back tomorrow.`,
       429,
+      trace.traceId,
     );
   }
 
+  const prepSpan = trace.startSpan('prepare');
   const trimmed = messages.slice(-20);
   const modelMessages = await convertToModelMessages(trimmed);
   const agentMode = body.agentMode === 'machina' ? 'machina' : 'site';
@@ -208,18 +211,46 @@ export async function POST(req: Request) {
   const memoryPrefetch = lastQ ? searchMemories(lastQ, 2) : [];
   const memMeta = memoryIndexMeta();
 
-  const picked = selectModel();
-  if (!picked) {
-    console.error('[chat] POST: selectModel returned null');
-    return jsonError(
-      'No model configured. Set DEEPSEEK_API_KEY in Vercel, then redeploy.',
-      500,
-    );
+  // Per-visitor soft memory: one Redis GET on the hot path; merge locally for
+  // this turn's prompt; SET is fire-and-forget so TTFT isn't blocked by write RTT.
+  const { id: visitorId, isNew: newVisitorCookie } = await ensureVisitorId(req);
+  const visitorSoftLoaded = await loadVisitorSoftMemory(visitorId);
+  let visitorSoft = visitorSoftLoaded;
+  if (lastQ && visitorSoftMemoryEnabled()) {
+    const merged = mergeVisitorQuestion(visitorSoftLoaded, lastQ);
+    if (merged) {
+      visitorSoft = merged;
+      void recordVisitorQuestion(visitorId, lastQ, visitorSoftLoaded);
+    }
   }
 
+  const toolRoute = routeToolsForQuestion(lastQ, visitorSoft, priorTopics);
+  const modelDecision = routeModel({ toolRoute: toolRoute.route, lastQuestion: lastQ });
+  trace.endSpan(prepSpan, true, {
+    toolRoute: toolRoute.route,
+    modelMode: modelDecision.mode,
+  });
+
+  if (modelDecision.mode === 'degrade') {
+    trace.log('degrade', { reason: modelDecision.reason });
+    return jsonError(modelDecision.message, modelDecision.status, trace.traceId, {
+      'X-Degrade-Reason': modelDecision.reason,
+      'X-Tool-Route': toolRoute.route,
+    });
+  }
+
+  const picked = modelDecision.pick;
+
   console.log('[chat] POST: starting streamText', {
+    traceId: trace.traceId,
     provider: picked.provider,
+    tier: picked.tier,
+    modelReason: modelDecision.reason,
     priorTopicsCount: priorTopics.length,
+    visitorSoftEnabled: visitorSoftMemoryEnabled(),
+    visitorQuestions: visitorSoft.questions.length,
+    newVisitor: newVisitorCookie,
+    toolRoute: toolRoute.route,
   });
 
   // Augment SYSTEM_PROMPT with the agentic-loop instructions + visitor
@@ -245,6 +276,7 @@ ${memoryPrefetch
   )
   .join('\n')}`
       : '') +
+    formatToolRouteForPrompt(toolRoute) +
     (agentMode === 'site'
       ? `
 
@@ -283,6 +315,7 @@ You have several tools. Choose the narrowest one for the question. Each turn you
 - For chip specs / prices / news / earnings / research, use the matching tool above.
 - If a tool returns no hits, say so plainly and offer the closest alternative — do not invent data.
 - Quote retrieved snippets concisely. Always include the relevant url or date if returned.
+- If a tool observation has blocked:true / reason:duplicate_tool — do not retry the same call; answer from prior observations or change query/tool.
 
 # MANDATORY before answering about a named subject
 If the visitor names a specific article, project, product, person, company, technology, framework, or proper noun that is NOT defined verbatim in your static context above, you MUST call searchArticles (and/or searchResearch / searchEarnings / queryChip / etc.) FIRST. Do not infer the subject from your training. Specifically:
@@ -292,16 +325,8 @@ If the visitor names a specific article, project, product, person, company, tech
 # Link formatting
 - ALWAYS write links as full URLs starting with "https://" — e.g. https://aileena.xyz/blog/centaur, not aileena.xyz/blog/centaur. The UI auto-linkifies https:// URLs cleanly; bare domains render as plain text and frustrate the reader.`
       : '') +
-    (agentMode === 'site'
-      ? priorTopics.length > 0
-        ? `
-
-# Prior visits
-This visitor has previously asked about: ${priorTopics
-            .map((t) => `"${t.replace(/"/g, "'")}"`)
-            .join('; ')}. Treat this as soft background context — what they probably care about. Do not reference it directly unless they explicitly ask "what did I ask before?".`
-        : ''
-      : '') +
+    // Soft memory + auto stance: same rules for site and machina.
+    formatVisitorSoftMemoryForPrompt(visitorSoft, priorTopics, lastQ) +
     (agentMode === 'machina'
       ? `
 
@@ -311,20 +336,8 @@ This visitor has previously asked about: ${priorTopics
       : '');
 
   try {
-    const result = streamText({
-      model: picked.model,
-      system: augmentedSystem,
-      messages: modelMessages,
-      temperature: 0.4,
-      // Cap final ASSISTANT-text response at 200 tokens; tool calls
-      // themselves don't count against this. The Helius-style 2-3
-      // sentence answer is still the target.
-      maxOutputTokens: 200,
-      // Multi-step agentic loop: model can chain a couple of tool calls
-      // (e.g. queryChip("H100") → priceHistory("H100")) before answering.
-      // Cap at 4 so a confused model can't burn quota looping forever.
-      stopWhen: stepCountIs(4),
-      tools: {
+    const reactGuard = createReactGuardSession();
+    const allTools = {
         searchMemories: tool({
           description:
             'Search Aileen Machina second-brain Markdown memories (music taste, culture, memory frameworks, Dreaming, hardware Memory Wall, DJ set curation). Use for preferences and private curation — not for CV or blog articles.',
@@ -376,19 +389,88 @@ This visitor has previously asked about: ${priorTopics
         // research notes. See lib/data/*.ts and the augmented system prompt
         // above for what each one does and when to use it.
         ...agentDataTools,
+    };
+
+    // R2: only expose tools allowed for this question type (hire → none, taste → memories…).
+    const routedTools = applyToolRoute(allTools, toolRoute);
+    const guardedTools = wrapToolsWithReactGuard(routedTools, reactGuard);
+
+    console.log('[chat] tool-route', {
+      route: toolRoute.route,
+      allowed: toolRoute.allowed,
+      preferred: toolRoute.preferred,
+      exposed: Object.keys(routedTools),
+    });
+
+    const modelSpan = trace.startSpan('model_stream', {
+      provider: picked.provider,
+      budgetMs: MODEL_TOTAL_BUDGET_MS,
+    });
+    const abortSignal = createModelAbortSignal(MODEL_TOTAL_BUDGET_MS);
+
+    const result = streamText({
+      model: picked.model,
+      system: augmentedSystem,
+      messages: modelMessages,
+      temperature: 0.4,
+      // Cap final ASSISTANT-text response at 200 tokens; tool calls
+      // themselves don't count against this. The Helius-style 2-3
+      // sentence answer is still the target.
+      maxOutputTokens: 200,
+      // ReAct short loop: think → tool → observe → … then answer.
+      // Cap so a confused model can't burn quota looping forever.
+      stopWhen: stepCountIs(REACT_MAX_STEPS),
+      tools: Object.keys(guardedTools).length > 0 ? guardedTools : undefined,
+      abortSignal,
+      onFinish: ({ finishReason, steps }) => {
+        trace.endSpan(modelSpan, true, {
+          finishReason,
+          steps: steps?.length ?? 0,
+        });
+        recordModelSuccess();
+        if (finishReason === 'stop' || finishReason === 'length') {
+          reactGuard.noteStop('model_finish');
+        }
+        if ((steps?.length ?? 0) >= REACT_MAX_STEPS) {
+          reactGuard.noteStop('max_steps');
+        }
+        const audit = reactGuard.summary();
+        console.log('[chat] react-audit', {
+          traceId: trace.traceId,
+          finishReason,
+          steps: steps?.length ?? 0,
+          route: toolRoute.route,
+          stopReason: audit.stopReasonPrimary,
+          toolCalls: audit.calls.length,
+          duplicateBlocks: audit.duplicateBlocks,
+          emptyRecalls: audit.emptyRecalls,
+          toolErrors: audit.toolErrors,
+          tools: audit.calls.map((c) => ({
+            step: c.step,
+            tool: c.tool,
+            blocked: c.blocked,
+            empty: c.empty,
+            obsChars: c.obsChars,
+          })),
+          traceSummary: trace.summary(),
+        });
       },
     });
 
     const setCookie = await buildQuotaCookie({ date: quota.date, count: quota.count + 1 });
+    // Always refresh visitor cookie Max-Age so browser id tracks the 90d Redis TTL.
+    const visitorCookie = await buildVisitorCookie(visitorId);
 
     const stream = result.toUIMessageStreamResponse({
       onError: (err) => {
         const msg = err instanceof Error ? err.message : String(err);
-        console.error('[chat] streamText: provider=%s error: %s', picked.provider, msg);
-        if (/credit balance|too low|insufficient|quota|billing|purchase credits|payment/i.test(msg)) {
-          return "This agent isn't free to run — public access is off for now. Reach out through the contact form instead.";
-        }
-        return 'The agent hit a snag. Try again in a moment.';
+        const classified = classifyModelError(err);
+        recordModelFailure(err);
+        trace.endSpan(modelSpan, false, { error: msg.slice(0, 160), reason: classified.reason });
+        console.error('[chat] streamText: provider=%s error: %s', picked.provider, msg, {
+          traceId: trace.traceId,
+        });
+        return degradeMessage(classified.reason, lastQ);
       },
     });
 
@@ -396,15 +478,31 @@ This visitor has previously asked about: ${priorTopics
     if (setCookie) {
       headers.append('Set-Cookie', setCookie);
     }
-    
+    if (visitorCookie) {
+      headers.append('Set-Cookie', visitorCookie);
+    }
+
     headers.set('X-Daily-Remaining', String(DAILY_LIMIT - (quota.count + 1)));
     headers.set('X-Provider', picked.provider);
+    headers.set('X-Model-Tier', picked.tier);
     headers.set('X-System-Prompt-Chars', String(SYSTEM_PROMPT.length));
+    headers.set('X-Visitor-Soft-Memory', visitorSoftMemoryEnabled() ? 'redis' : 'off');
+    headers.set('X-React-Max-Steps', String(REACT_MAX_STEPS));
+    headers.set('X-Tool-Route', toolRoute.route);
+    headers.set('X-Trace-Id', trace.traceId);
+    headers.set('X-Model-Budget-Ms', String(MODEL_TOTAL_BUDGET_MS));
 
-    console.log('[chat] POST: stream response initialized');
+    console.log('[chat] POST: stream response initialized', { traceId: trace.traceId });
     return new Response(stream.body, { status: stream.status, headers });
   } catch (err) {
-    console.error('[chat] POST: unexpected error during stream setup', err);
-    return jsonError('The agent hit a snag. Try again in a moment.', 500);
+    recordModelFailure(err);
+    const classified = classifyModelError(err);
+    console.error('[chat] POST: unexpected error during stream setup', err, {
+      traceId: trace.traceId,
+    });
+    return jsonError(degradeMessage(classified.reason, lastQ), classified.reason === 'billing' ? 402 : 500, trace.traceId, {
+      'X-Degrade-Reason': classified.reason,
+      'X-Tool-Route': toolRoute.route,
+    });
   }
 }
