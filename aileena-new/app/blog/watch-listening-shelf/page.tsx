@@ -80,10 +80,11 @@ const FILM_RECS = [
   {
     title: 'The Crown',
     year: 'series',
-    label: 'old order',
+    label: 'British public life',
     href: 'https://en.wikipedia.org/wiki/The_Crown_(TV_series)',
     image: '/shelf/the-crown.jpg',
-    body: 'Power worn on a body. Public image vs private collapse. Cold British elegance across decades.',
+    body:
+      'British public life: crown, cabinet, marriage, press. Power worn on a body — cold elegance.',
   },
   {
     title: 'The Capture',
@@ -91,7 +92,17 @@ const FILM_RECS = [
     label: 'new untrust',
     href: 'https://en.wikipedia.org/wiki/The_Capture_(TV_series)',
     image: '/shelf/the-capture.jpg',
-    body: 'Surveillance, deepfakes, fake evidence. Opposite of The Crown: old-order dignity vs a world you cannot trust.',
+    body:
+      'Surveillance, deepfakes, fake evidence. Opposite of The Crown: old-order dignity vs a world you cannot trust.',
+  },
+  {
+    title: 'Bodyguard',
+    year: '2018',
+    label: 'BBC thriller',
+    href: 'https://en.wikipedia.org/wiki/Bodyguard_(British_TV_series)',
+    image: '/shelf/bodyguard.jpg',
+    body:
+      'Protection detail, Westminster, paranoia paced like a thriller — same British-public-life room as The Crown, hotter pulse.',
   },
 ];
 
@@ -157,7 +168,7 @@ const LIFESTYLE_RECS = [
   {
     title: 'Watch in pairs, not piles',
     label: 'rhythm',
-    body: 'One Léa / Bond title + one Crown or Capture night. Texture over completionism.',
+    body: 'The Crown for British public life, then The Capture or Bodyguard — texture over completionism.',
   },
 ];
 
@@ -230,8 +241,8 @@ export default function WatchListeningShelfArticle() {
           <p className="rec-section-label">watch · listening shelf</p>
           <h2 id="watch-recs">Watch — documentaries & films</h2>
           <p className="rec-section-dek">
-            Didion / Hockney for calibration; Léa · Bond · Crown · Capture for life-texture —
-            pacing and temperature, not a checklist.
+            Didion / Hockney for calibration; Léa · Bond · The Crown · The Capture · Bodyguard
+            for life-texture — pacing and temperature, not a checklist.
           </p>
           <div className="documentary-rec-wall">
             {WATCH_ITEMS.map((item) => (
