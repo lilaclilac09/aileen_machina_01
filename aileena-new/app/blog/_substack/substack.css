@@ -452,6 +452,25 @@
   letter-spacing: 0;
   line-height: 1.15;
 }
+.rec-section-dek {
+  max-width: 640px;
+  margin: -12px 0 26px;
+  color: rgba(17, 17, 17, 0.58);
+  font-family: 'Iowan Old Style', 'Charter', 'Georgia', serif;
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+.film-rec-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.life-note-card {
+  cursor: default;
+}
+.life-note-card:hover {
+  border-color: rgba(17, 17, 17, 0.16);
+  background: #fff;
+  transform: none;
+}
 .podcast-rec-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -529,53 +548,52 @@
 .documentary-rec-wall {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
+  gap: 28px 22px;
   align-items: start;
-  padding-top: 14px;
+  padding-top: 8px;
 }
 .documentary-rec-card {
   position: relative;
-  display: block;
+  display: grid;
+  gap: 12px;
   min-width: 0;
-  padding: 9px 9px 18px;
-  background: #f8f5ee;
+  padding: 0;
+  background: transparent;
   color: #111;
   text-decoration: none;
-  box-shadow: 0 30px 70px -48px rgba(17, 17, 17, 0.55);
-  transform: rotate(var(--tilt, 0deg));
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  box-shadow: none;
+  transform: none;
+  transition: opacity 0.18s ease;
 }
 .documentary-rec-card::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: -12px;
-  width: 70px;
-  height: 22px;
-  background: rgba(201, 135, 47, 0.28);
-  transform: translateX(-50%) rotate(-2deg);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
-}
-.documentary-rec-card:nth-child(2)::before {
-  background: rgba(0, 143, 132, 0.18);
-  transform: translateX(-50%) rotate(3deg);
+  content: none;
 }
 .documentary-rec-card:hover {
-  transform: rotate(var(--tilt, 0deg)) translateY(-4px);
-  box-shadow: 0 36px 78px -46px rgba(17, 17, 17, 0.6);
+  opacity: 0.88;
+  transform: none;
+  box-shadow: none;
 }
 .documentary-rec-image {
   display: block;
   aspect-ratio: 0.74;
   width: 100%;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
   background-color: #111;
   background-position: center;
   background-size: cover;
-  filter: saturate(0.92) contrast(1.03);
+  filter: none;
+}
+.documentary-rec-image.film-still {
+  position: relative;
+}
+.documentary-rec-image.film-still::after {
+  content: none;
 }
 .documentary-rec-meta {
   display: block;
-  margin: 13px 4px 7px;
+  margin: 0;
   color: rgba(17, 17, 17, 0.48);
   font-family: 'JetBrains Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
   font-size: 0.56rem;
@@ -586,7 +604,7 @@
 }
 .documentary-rec-title {
   display: block;
-  margin: 0 4px 9px;
+  margin: 0;
   color: #111;
   font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
   font-size: 1.02rem;
@@ -596,7 +614,7 @@
 }
 .documentary-rec-body {
   display: block;
-  margin: 0 4px;
+  margin: 0;
   font-size: 0.94rem;
 }
 .channel-rec-grid {
@@ -659,7 +677,8 @@
   }
   .podcast-rec-grid,
   .documentary-rec-wall,
-  .channel-rec-grid {
+  .channel-rec-grid,
+  .film-rec-grid {
     grid-template-columns: 1fr;
   }
   .documentary-rec-wall {
@@ -669,7 +688,8 @@
     transform: none;
   }
   .documentary-rec-card:hover {
-    transform: translateY(-3px);
+    transform: none;
+    opacity: 0.88;
   }
 }
 

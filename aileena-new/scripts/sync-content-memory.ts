@@ -32,6 +32,9 @@ type ContentSnapshot = {
   playerTracks: TrackRow[];
   podcasts: MediaRow[];
   documentaries: MediaRow[];
+  films: MediaRow[];
+  euroGuides: MediaRow[];
+  lifestyle: MediaRow[];
   channels: MediaRow[];
   articles: ArticleRow[];
 };
@@ -110,11 +113,21 @@ function parseMediaObjects(block: string): MediaRow[] {
   return out;
 }
 
-function parseWatchShelf(): { podcasts: MediaRow[]; documentaries: MediaRow[]; channels: MediaRow[] } {
+function parseWatchShelf(): {
+  podcasts: MediaRow[];
+  documentaries: MediaRow[];
+  films: MediaRow[];
+  euroGuides: MediaRow[];
+  lifestyle: MediaRow[];
+  channels: MediaRow[];
+} {
   const src = readText(join(ROOT, 'app', 'blog', 'watch-listening-shelf', 'page.tsx'));
   return {
     podcasts: parseMediaObjects(extractConstBlock(src, 'PODCAST_RECS')),
     documentaries: parseMediaObjects(extractConstBlock(src, 'DOCUMENTARY_RECS')),
+    films: parseMediaObjects(extractConstBlock(src, 'FILM_RECS')),
+    euroGuides: parseMediaObjects(extractConstBlock(src, 'EURO_LIFE_GUIDE')),
+    lifestyle: parseMediaObjects(extractConstBlock(src, 'LIFESTYLE_RECS')),
     channels: parseMediaObjects(extractConstBlock(src, 'CHANNEL_RECS')),
   };
 }
@@ -240,6 +253,18 @@ ${snapshot.podcasts.map(formatMediaLine).join('\n')}
 
 ${snapshot.documentaries.map(formatMediaLine).join('\n')}
 
+## Narrative films (\`#films\`)
+
+${snapshot.films.map(formatMediaLine).join('\n') || '_none_'}
+
+## European living guide (\`#euro-life\`)
+
+${snapshot.euroGuides.map(formatMediaLine).join('\n') || '_none_'}
+
+## Lifestyle (\`#lifestyle\`)
+
+${snapshot.lifestyle.map(formatMediaLine).join('\n') || '_none_'}
+
 ## Channels (listening shelf)
 
 ${snapshot.channels.map(formatMediaLine).join('\n')}
@@ -265,6 +290,9 @@ function buildChangelog(
   const newPlayer = diffLists(prev.playerTracks, next.playerTracks, (t) => t.id);
   const newPodcasts = diffLists(prev.podcasts, next.podcasts, (t) => t.title);
   const newDocs = diffLists(prev.documentaries, next.documentaries, (t) => t.title);
+  const newFilms = diffLists(prev.films ?? [], next.films, (t) => t.title);
+  const newEuro = diffLists(prev.euroGuides ?? [], next.euroGuides, (t) => t.title);
+  const newLife = diffLists(prev.lifestyle ?? [], next.lifestyle, (t) => t.title);
   const newChannels = diffLists(prev.channels, next.channels, (t) => t.title);
   const newArticles = diffLists(prev.articles, next.articles, (t) => t.slug);
 
@@ -280,6 +308,15 @@ function buildChangelog(
   }
   if (newDocs.length) {
     sections.push(`## New documentaries\n\n${newDocs.map(formatMediaLine).join('\n')}`);
+  }
+  if (newFilms.length) {
+    sections.push(`## New narrative films\n\n${newFilms.map(formatMediaLine).join('\n')}`);
+  }
+  if (newEuro.length) {
+    sections.push(`## New European living notes\n\n${newEuro.map(formatMediaLine).join('\n')}`);
+  }
+  if (newLife.length) {
+    sections.push(`## New lifestyle practices\n\n${newLife.map(formatMediaLine).join('\n')}`);
   }
   if (newChannels.length) {
     sections.push(`## New channels\n\n${newChannels.map(formatMediaLine).join('\n')}`);
@@ -316,6 +353,9 @@ function main() {
     playerTracks,
     podcasts: shelf.podcasts,
     documentaries: shelf.documentaries,
+    films: shelf.films,
+    euroGuides: shelf.euroGuides,
+    lifestyle: shelf.lifestyle,
     channels: shelf.channels,
     articles,
   };
@@ -359,7 +399,7 @@ function main() {
     `[sync-content-memory] newest player track: ${newestPlayer?.title ?? '—'} (${newestPlayer?.id ?? '—'})`,
   );
   console.log(
-    `[sync-content-memory] podcasts: ${snapshot.podcasts.length}, documentaries: ${snapshot.documentaries.length}`,
+    `[sync-content-memory] podcasts: ${snapshot.podcasts.length}, documentaries: ${snapshot.documentaries.length}, films: ${snapshot.films.length}, euro: ${snapshot.euroGuides.length}, lifestyle: ${snapshot.lifestyle.length}`,
   );
 }
 
