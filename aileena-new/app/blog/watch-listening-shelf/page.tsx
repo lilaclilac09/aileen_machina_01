@@ -211,7 +211,7 @@ export default function WatchListeningShelfArticle() {
           </p>
         </section>
 
-        <section className="rec-section" aria-labelledby="podcast-recs">
+        <section className="rec-section" id="podcasts" aria-labelledby="podcast-recs">
           <p className="rec-section-label">listen</p>
           <h2 id="podcast-recs">Podcasts</h2>
           <div className="podcast-rec-grid">
@@ -303,7 +303,7 @@ export default function WatchListeningShelfArticle() {
           </div>
         </section>
 
-        <section className="rec-section" aria-labelledby="channel-recs">
+        <section className="rec-section" id="channels" aria-labelledby="channel-recs">
           <p className="rec-section-label">read next</p>
           <h2 id="channel-recs">Substack Channels</h2>
           <div className="channel-rec-grid">
