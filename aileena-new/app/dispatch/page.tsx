@@ -403,6 +403,14 @@ function WatchListenTab({ post }: { post?: Post }) {
   const body = post?.body ??
     'Podcast episodes, films, documentaries, and research channels that sit beside the essays.';
 
+  const shelfDoors = [
+    { tag: 'podcasts', href: '/blog/watch-listening-shelf#podcasts' },
+    { tag: 'films', href: '/blog/watch-listening-shelf#films' },
+    { tag: 'documentaries', href: '/blog/watch-listening-shelf#films' },
+    { tag: 'living', href: '/blog/watch-listening-shelf#euro-life' },
+    { tag: 'substacks', href: '/blog/watch-listening-shelf#channels' },
+  ] as const;
+
   const filmLine = [
     { title: 'Blue Is the Warmest Color', image: '/shelf/blue-is-the-warmest-color.jpg' },
     { title: 'The French Dispatch', image: '/shelf/french-dispatch.jpg' },
@@ -441,8 +449,7 @@ function WatchListenTab({ post }: { post?: Post }) {
         One shelf for podcasts, films, and documentaries.
       </h1>
 
-      <Link
-        href={href}
+      <div
         style={{
           position: 'relative',
           display: 'grid',
@@ -454,11 +461,19 @@ function WatchListenTab({ post }: { post?: Post }) {
           background:
             "linear-gradient(180deg, rgba(8,8,8,0.18) 0%, rgba(8,8,8,0.72) 100%), url('/dispatch-covers/fashion-simon-encouragement.jpg') center/cover no-repeat #0a0a0a",
           color: '#fff',
-          textDecoration: 'none',
           boxShadow: 'none',
           overflow: 'hidden',
         }}
       >
+        <Link
+          href={href}
+          aria-label={`Open ${title}`}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 0,
+          }}
+        />
         <span
           style={{
             alignSelf: 'end',
@@ -467,6 +482,7 @@ function WatchListenTab({ post }: { post?: Post }) {
             maxWidth: 680,
             position: 'relative',
             zIndex: 1,
+            pointerEvents: 'none',
           }}
         >
           <span
@@ -508,10 +524,18 @@ function WatchListenTab({ post }: { post?: Post }) {
           >
             {body}
           </span>
-          <span style={{ display: 'flex', flexWrap: 'wrap', gap: 9 }}>
-            {['podcasts', 'films', 'documentaries', 'living', 'substacks'].map((tag) => (
-              <span
+          <span
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 9,
+              pointerEvents: 'auto',
+            }}
+          >
+            {shelfDoors.map(({ tag, href: doorHref }) => (
+              <Link
                 key={tag}
+                href={doorHref}
                 style={{
                   border: '1px solid rgba(255,255,255,0.28)',
                   borderRadius: 999,
@@ -523,13 +547,16 @@ function WatchListenTab({ post }: { post?: Post }) {
                   letterSpacing: '0.16em',
                   padding: '7px 11px',
                   textTransform: 'uppercase',
+                  textDecoration: 'none',
+                  background: 'rgba(0,0,0,0.18)',
                 }}
               >
                 {tag}
-              </span>
+              </Link>
             ))}
           </span>
-          <span
+          <Link
+            href={href}
             style={{
               color: '#63f3d8',
               fontFamily:
@@ -538,12 +565,15 @@ function WatchListenTab({ post }: { post?: Post }) {
               fontWeight: 850,
               letterSpacing: '0.2em',
               textTransform: 'uppercase',
+              textDecoration: 'none',
+              pointerEvents: 'auto',
+              width: 'fit-content',
             }}
           >
             Open {title} →
-          </span>
+          </Link>
         </span>
-      </Link>
+      </div>
 
       <div
         style={{
