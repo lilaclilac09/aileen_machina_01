@@ -60,7 +60,7 @@ export const AGENT_MANUAL_PROMPTS = [
   {
     id: 'A2',
     ask: 'what documentaries or films does she recommend?',
-    expect: 'Didion / Hockney shelf docs and/or film-taste circle (Léa Seydoux, Spectre/No Time to Die, The Crown, The Capture) — life-texture, not a random Letterboxd dump.',
+    expect: 'Didion / Hockney shelf docs and/or film-taste circle (Léa Seydoux, Spectre/No Time to Die, The Crown, The Capture, Bodyguard) — life-texture, not a random Letterboxd dump.',
   },
   {
     id: 'A2b',
@@ -160,15 +160,15 @@ async function runUnitChecks() {
     hitBlob(faith).slice(0, 140),
   );
 
-  const film = searchMemories('Léa Seydoux Bond girl Spectre The Crown The Capture', 5);
+  const film = searchMemories('Léa Seydoux Bond girl Spectre The Crown Bodyguard The Capture', 5);
   assert(
     'searchMemories(film) hits film-taste',
     film.some((h) => h.path.includes('film-taste')),
     film.map((h) => h.path).join(', ') || 'none',
   );
   assert(
-    'film hits mention Seydoux / Spectre / Crown / Capture',
-    /seydoux|spectre|crown|capture|bond|french dispatch/.test(hitBlob(film)),
+    'film hits mention Seydoux / Spectre / Crown / Capture / Bodyguard',
+    /seydoux|spectre|crown|capture|bond|french dispatch|bodyguard/.test(hitBlob(film)),
     hitBlob(film).slice(0, 140),
   );
 

@@ -20,7 +20,7 @@ Agent rule: these are **practices and notes**, not a shopping list of magazines.
 1. **Urban drift diary** — walk; note light, doorways, overheard lines.
 2. **One letter or collage page** — physical 拼凑生活感; scraps, tickets, a sentence that held.
 3. **Soundtrack as room** — jazz, chanson, film scores over algorithmic pop.
-4. **Watch in pairs, not piles** — one Léa/Bond title + one Crown or Capture night; texture over completionism.
+4. **Watch in pairs, not piles** — The Crown, then The Capture or Bodyguard; texture over completionism.
 
 ## How to recommend
 

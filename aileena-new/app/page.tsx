@@ -111,8 +111,18 @@ const HOME_WATCH_ITEMS = [
     href: '/blog/watch-listening-shelf#films',
   },
   {
-    title: 'The Crown · The Capture',
-    meta: 'old order / new untrust',
+    title: 'The Crown',
+    meta: 'British public life',
+    href: '/blog/watch-listening-shelf#films',
+  },
+  {
+    title: 'The Capture',
+    meta: 'new untrust',
+    href: '/blog/watch-listening-shelf#films',
+  },
+  {
+    title: 'Bodyguard',
+    meta: 'BBC thriller',
     href: '/blog/watch-listening-shelf#films',
   },
 ];

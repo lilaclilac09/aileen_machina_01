@@ -409,6 +409,7 @@ function WatchListenTab({ post }: { post?: Post }) {
     { title: 'Spectre / No Time to Die', image: '/shelf/no-time-to-die.jpg' },
     { title: 'The Crown', image: '/shelf/the-crown.jpg' },
     { title: 'The Capture', image: '/shelf/the-capture.jpg' },
+    { title: 'Bodyguard', image: '/shelf/bodyguard.jpg' },
   ];
 
   return (
@@ -568,7 +569,7 @@ function WatchListenTab({ post }: { post?: Post }) {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))',
             gap: 14,
           }}
         >
