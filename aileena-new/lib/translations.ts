@@ -425,10 +425,10 @@ export const t = {
         read: 'Read →',
         posts: [
           {
-            date: '2026.07.06',
+            date: '2026.07.12',
             href: '/blog/watch-listening-shelf',
             title: 'The Listening and Watching Shelf',
-            body: 'Podcast episodes, documentaries, and research channels that sit beside the essays without getting mixed into the glass bench. Fashion Neurosis, Do You Read Her, Joan Didion, David Hockney, A Bigger Splash, Asymmetrical Bets, and SemiAnalysis — a small rotation for listening, watching, and reading next.',
+            body: 'Podcasts, documentaries, and narrative films on one shelf — Fashion Neurosis, Didion, Hockney, Blue Is the Warmest Color, The French Dispatch, Spectre / No Time to Die, The Crown, The Capture — plus European living notes and weekly practices. Life-texture, not a moodboard dump.',
           },
         ],
       },
@@ -910,10 +910,10 @@ export const t = {
         read: 'Lesen →',
         posts: [
           {
-            date: '2026.07.06',
+            date: '2026.07.12',
             href: '/blog/watch-listening-shelf',
             title: 'The Listening and Watching Shelf',
-            body: 'Podcast-Folgen, Dokumentarfilme und Research-Kanäle, die neben den Essays liegen, ohne mit der Glasbank vermischt zu werden. Fashion Neurosis, Do You Read Her, Joan Didion, David Hockney, A Bigger Splash, Asymmetrical Bets und SemiAnalysis — eine kleine Rotation zum Hören, Schauen und Weiterlesen.',
+            body: 'Podcasts, Dokumentarfilme und Narrative auf einem Regal — Fashion Neurosis, Didion, Hockney, Blue Is the Warmest Color, The French Dispatch, Spectre / No Time to Die, The Crown, The Capture — plus europäische Lebensnotizen und wöchentliche Praktiken. Lebens-Textur, kein Moodboard-Dump.',
           },
         ],
       },

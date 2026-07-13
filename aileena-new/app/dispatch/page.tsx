@@ -243,19 +243,7 @@ export default function DispatchArchive() {
         {/* The category tabs keep recommendation shelves from becoming
             another buried rail. Image/Text still controls article rails. */}
         {activeTab === 'watch' ? (
-          watchIssue ? (
-            <SwipeRail
-              tag={tx.blog.marsAndMoon.tag}
-              heading={tx.blog.marsAndMoon.heading}
-              groups={[{ topic: null, posts: [watchIssue] }]}
-              // Fashion section cover (no dedicated fashion slug yet).
-              heroImage="/dispatch-covers/fashion-simon-encouragement.jpg"
-              firstSection
-              settings={coverflow.settings}
-            />
-          ) : (
-            <WatchListenTab post={watchIssue} />
-          )
+          <WatchListenTab post={watchIssue} />
         ) : isImage ? (
           activeTab === 'dispatch' ? (
             <SwipeRail
@@ -413,7 +401,15 @@ function WatchListenTab({ post }: { post?: Post }) {
   const href = post?.href ?? '/blog/watch-listening-shelf';
   const title = post?.title ?? 'The Listening and Watching Shelf';
   const body = post?.body ??
-    'Podcast episodes, documentaries, and research channels that sit beside the essays.';
+    'Podcast episodes, films, documentaries, and research channels that sit beside the essays.';
+
+  const filmLine = [
+    { title: 'Blue Is the Warmest Color', image: '/shelf/blue-is-the-warmest-color.jpg' },
+    { title: 'The French Dispatch', image: '/shelf/french-dispatch.jpg' },
+    { title: 'Spectre / No Time to Die', image: '/shelf/no-time-to-die.jpg' },
+    { title: 'The Crown', image: '/shelf/the-crown.jpg' },
+    { title: 'The Capture', image: '/shelf/the-capture.jpg' },
+  ];
 
   return (
     <section>
@@ -441,7 +437,7 @@ function WatchListenTab({ post }: { post?: Post }) {
           margin: '0 0 34px',
         }}
       >
-        One shelf for podcasts and documentaries.
+        One shelf for podcasts, films, and documentaries.
       </h1>
 
       <Link
@@ -452,13 +448,13 @@ function WatchListenTab({ post }: { post?: Post }) {
           gap: 22,
           minHeight: 430,
           padding: 'clamp(28px, 5vw, 48px)',
-          border: '1px solid rgba(17,17,17,0.1)',
-          borderRadius: 8,
+          border: 0,
+          borderRadius: 0,
           background:
             "linear-gradient(180deg, rgba(8,8,8,0.18) 0%, rgba(8,8,8,0.72) 100%), url('/dispatch-covers/fashion-simon-encouragement.jpg') center/cover no-repeat #0a0a0a",
           color: '#fff',
           textDecoration: 'none',
-          boxShadow: '0 30px 86px -62px rgba(17,17,17,0.52)',
+          boxShadow: 'none',
           overflow: 'hidden',
         }}
       >
@@ -512,7 +508,7 @@ function WatchListenTab({ post }: { post?: Post }) {
             {body}
           </span>
           <span style={{ display: 'flex', flexWrap: 'wrap', gap: 9 }}>
-            {['podcasts', 'documentaries', 'substacks'].map((tag) => (
+            {['podcasts', 'films', 'documentaries', 'living', 'substacks'].map((tag) => (
               <span
                 key={tag}
                 style={{
@@ -547,6 +543,69 @@ function WatchListenTab({ post }: { post?: Post }) {
           </span>
         </span>
       </Link>
+
+      <div
+        style={{
+          marginTop: 28,
+          display: 'grid',
+          gap: 14,
+        }}
+      >
+        <p
+          style={{
+            margin: 0,
+            color: '#008f84',
+            fontFamily:
+              "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+            fontSize: '0.58rem',
+            fontWeight: 800,
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+          }}
+        >
+          On this shelf · films
+        </p>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+            gap: 14,
+          }}
+        >
+          {filmLine.map((film) => (
+            <Link
+              key={film.title}
+              href="/blog/watch-listening-shelf#films"
+              aria-label={film.title}
+              style={{
+                display: 'block',
+                border: 0,
+                borderRadius: 0,
+                padding: 0,
+                background: 'transparent',
+                textDecoration: 'none',
+                lineHeight: 0,
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={film.image}
+                alt={film.title}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  height: 'auto',
+                  aspectRatio: '0.74',
+                  objectFit: 'cover',
+                  border: 0,
+                  borderRadius: 0,
+                  boxShadow: 'none',
+                }}
+              />
+            </Link>
+          ))}
+        </div>
+      </div>
     </section>
   );
 }

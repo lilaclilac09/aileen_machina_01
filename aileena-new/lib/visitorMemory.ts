@@ -265,7 +265,7 @@ const INTENT_PATTERNS: Array<{ intent: VisitorIntent; re: RegExp }> = [
   },
   {
     intent: 'taste',
-    re: /\b(music|dj|set|techno|podcast|documentary|hockney|didion|shelf|listening|film|painter|taste)\b|音乐|品味|纪录片|画家/,
+    re: /\b(music|dj|set|techno|podcast|documentary|hockney|didion|shelf|listening|film|painter|taste|lifestyle|european living|seydoux|bond)\b|音乐|品味|纪录片|画家|电影|欧洲生活|生活方式/,
   },
   {
     intent: 'tech',

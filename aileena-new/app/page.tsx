@@ -95,10 +95,32 @@ const HOME_WATCH_ITEMS = [
     meta: '1973 · Hockney / pool',
     href: 'https://en.wikipedia.org/wiki/A_Bigger_Splash_(1973_film)',
   },
+  {
+    title: 'Blue Is the Warmest Color',
+    meta: 'Léa · intimacy',
+    href: '/blog/watch-listening-shelf#films',
+  },
+  {
+    title: 'The French Dispatch',
+    meta: 'magazine life · Léa',
+    href: '/blog/watch-listening-shelf#films',
+  },
+  {
+    title: 'Spectre / No Time to Die',
+    meta: 'Bond girl arc',
+    href: '/blog/watch-listening-shelf#films',
+  },
+  {
+    title: 'The Crown · The Capture',
+    meta: 'old order / new untrust',
+    href: '/blog/watch-listening-shelf#films',
+  },
 ];
 
 const HOME_BOOKS = [
   { title: 'Readings from Joan Didion', meta: 'notebook / marked list', href: '/blog/watch-listening-shelf' },
+  { title: 'European living guide', meta: '欧洲生活指南', href: '/blog/watch-listening-shelf#euro-life' },
+  { title: 'Lifestyle — weekly practices', meta: '生活方式', href: '/blog/watch-listening-shelf#lifestyle' },
   { title: 'The Listening and Watching Shelf', meta: 'full issue · essay', href: '/blog/watch-listening-shelf' },
 ];
 

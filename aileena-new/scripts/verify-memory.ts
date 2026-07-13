@@ -60,7 +60,12 @@ export const AGENT_MANUAL_PROMPTS = [
   {
     id: 'A2',
     ask: 'what documentaries or films does she recommend?',
-    expect: 'Didion Center Will Not Hold and/or Hockney (Exhibition on Screen / A Bigger Splash).',
+    expect: 'Didion / Hockney shelf docs and/or film-taste circle (Léa Seydoux, Spectre/No Time to Die, The Crown, The Capture) — life-texture, not a random Letterboxd dump.',
+  },
+  {
+    id: 'A2b',
+    ask: 'how does she assemble a European lifestyle / 欧洲生活指南?',
+    expect: 'European living notes (wander, B&W looking, FR/IT, Bond wardrobe, slow museum, table ritual) and/or weekly lifestyle practices — points to watch-listening-shelf anchors.',
   },
   {
     id: 'A3',
@@ -153,6 +158,30 @@ async function runUnitChecks() {
     'faith hits mention evidence / kiln / commits / not religion',
     /evidence|kiln|commit|seniority|religion|belief/.test(hitBlob(faith)),
     hitBlob(faith).slice(0, 140),
+  );
+
+  const film = searchMemories('Léa Seydoux Bond girl Spectre The Crown The Capture', 5);
+  assert(
+    'searchMemories(film) hits film-taste',
+    film.some((h) => h.path.includes('film-taste')),
+    film.map((h) => h.path).join(', ') || 'none',
+  );
+  assert(
+    'film hits mention Seydoux / Spectre / Crown / Capture',
+    /seydoux|spectre|crown|capture|bond|french dispatch/.test(hitBlob(film)),
+    hitBlob(film).slice(0, 140),
+  );
+
+  const euro = searchMemories('欧洲生活指南 European living lifestyle Bond wardrobe museum', 5);
+  assert(
+    'searchMemories(euro lifestyle) hits lifestyle-europe',
+    euro.some((h) => h.path.includes('lifestyle-europe')),
+    euro.map((h) => h.path).join(', ') || 'none',
+  );
+  assert(
+    'euro hits mention wandering / wardrobe / museum / collage',
+    /wander|wardrobe|museum|collage|lifestyle|欧洲/.test(hitBlob(euro)),
+    hitBlob(euro).slice(0, 140),
   );
 
   const nonsense = searchMemories('zzzzqxv9notatopic', 3);
