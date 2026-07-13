@@ -74,7 +74,7 @@ const FILM_RECS = [
     year: '2015–21',
     label: 'Bond girl arc',
     href: 'https://en.wikipedia.org/wiki/No_Time_to_Die',
-    image: '/shelf/no-time-to-die.jpg',
+    image: '/shelf/spectre.jpg',
     body: 'The Bond-girl line she already likes — restraint, distance, black-and-white emotion. Finish the arc.',
   },
   {

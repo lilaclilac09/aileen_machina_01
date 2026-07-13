@@ -414,7 +414,7 @@ function WatchListenTab({ post }: { post?: Post }) {
   const filmLine = [
     { title: 'Blue Is the Warmest Color', image: '/shelf/blue-is-the-warmest-color.jpg' },
     { title: 'The French Dispatch', image: '/shelf/french-dispatch.jpg' },
-    { title: 'Spectre / No Time to Die', image: '/shelf/no-time-to-die.jpg' },
+    { title: 'Spectre / No Time to Die', image: '/shelf/spectre.jpg' },
     { title: 'The Crown', image: '/shelf/the-crown.jpg' },
     { title: 'The Capture', image: '/shelf/the-capture.jpg' },
     { title: 'Bodyguard', image: '/shelf/bodyguard.jpg' },
