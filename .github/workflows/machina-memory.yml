@@ -5,8 +5,8 @@ name: Machina Memory (Dreaming)
 
 on:
   schedule:
-    # Mondays 06:00 UTC — offline compression, no GPU
-    - cron: '0 6 * * 1'
+    # Daily 06:00 UTC — keep L3 content memory within ~1 day
+    - cron: '0 6 * * *'
   workflow_dispatch:
     inputs:
       skip_commit:

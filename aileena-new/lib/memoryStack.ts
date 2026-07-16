@@ -23,6 +23,7 @@ Aileen's Machina memory lives in Markdown (L3 cold). At build time we index it; 
 - **Faith / beliefs / what she trusts** — query "faith" or "belief"; pinned in faith-from-essays.md (from her essays — not a declared religion)
 - Memory frameworks (ReMe, O-Mem, Mem0, Cognee, Dreaming, LoRA)
 - Hardware / Memory Wall / KV cache / HBM — only what is in retrieved snippets
+- **DeepSeek training cost / $6M myth / SemiAnalysis TCO / CapEx / 50k Hopper** — query "DeepSeek cost" or "SemiAnalysis"; start at semianalysis-memory-network.md then numbers + method
 - "What does she like", "remember", "her taste", "Machina", "second brain"
 
 ## When NOT to use searchMemories

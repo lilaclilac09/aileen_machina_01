@@ -21,3 +21,7 @@ HBM bandwidth is the binding constraint on modern AI accelerators. GPUs often st
 4. **L4 persona** — optional O-Mem → `persona-auto.md`
 
 Long context models help L1 but do not replace L3 — they increase KV cost if you dump everything into the window.
+
+## Related — training-cost accounting
+
+Paper “final-run GPU hours” ≠ lab TCO. SemiAnalysis DeepSeek cost framework (paper ~$6M vs CapEx/OpEx/R&D): see `semianalysis-deepseek-cost.md`.

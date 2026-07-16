@@ -68,6 +68,11 @@ export const AGENT_MANUAL_PROMPTS = [
     expect: 'European living notes (wander, B&W looking, FR/IT, Bond wardrobe, slow museum, table ritual) and/or weekly lifestyle practices — points to watch-listening-shelf anchors.',
   },
   {
+    id: 'A2c',
+    ask: 'Did DeepSeek really only cost $6M to train? What does SemiAnalysis say?',
+    expect: 'Paper $5.576M (=2.788M H800-hr × $2) is final-run only; Semi TCO: CapEx ~$1.6B, OpEx ~$944M, GPU >$500M, ~50k Hopper mix shared with High-Flyer — cite memory network, do not invent numbers.',
+  },
+  {
     id: 'A3',
     ask: 'David Hockney — what does she watch or care about?',
     expect: 'Hockney-related shelf items; no fake biography dump from training only.',
@@ -182,6 +187,36 @@ async function runUnitChecks() {
     'euro hits mention wandering / wardrobe / museum / collage',
     /wander|wardrobe|museum|collage|lifestyle|欧洲/.test(hitBlob(euro)),
     hitBlob(euro).slice(0, 140),
+  );
+
+  const deepseekCost = searchMemories('DeepSeek $6M training cost SemiAnalysis TCO CapEx', 5);
+  assert(
+    'searchMemories(DeepSeek cost) hits semianalysis network',
+    deepseekCost.some((h) =>
+      /semianalysis-deepseek-cost|semianalysis-deepseek-numbers|semianalysis-memory-network|semianalysis-method/.test(
+        h.path,
+      ),
+    ),
+    deepseekCost.map((h) => h.path).join(', ') || 'none',
+  );
+  assert(
+    'DeepSeek cost hits mention $5.576M or CapEx / TCO / Hopper',
+    /5\.576|\$6m|capex|tco|hopper|high-flyer|2\.788/.test(hitBlob(deepseekCost)),
+    hitBlob(deepseekCost).slice(0, 160),
+  );
+
+  const deepseekMethod = searchMemories('SemiAnalysis four step Accelerator Industry Model paper dissection', 5);
+  assert(
+    'searchMemories(Semi method) hits method-4step',
+    deepseekMethod.some((h) => h.path.includes('semianalysis-method-4step')),
+    deepseekMethod.map((h) => h.path).join(', ') || 'none',
+  );
+
+  const deepseekNums = searchMemories('2.788M H800 GPU hours 2664K $5.576M DeepSeek V3 table', 5);
+  assert(
+    'searchMemories(GPU hours) hits numbers ledger',
+    deepseekNums.some((h) => h.path.includes('semianalysis-deepseek-numbers')),
+    deepseekNums.map((h) => h.path).join(', ') || 'none',
   );
 
   const nonsense = searchMemories('zzzzqxv9notatopic', 3);

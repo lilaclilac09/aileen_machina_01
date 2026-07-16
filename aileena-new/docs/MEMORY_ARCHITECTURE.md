@@ -12,7 +12,7 @@ ReMeLight-style: **Markdown in git = hard / cold truth**. Build index = fast ret
 | Working | Last 20 turns + optional client `priorTopics` | Per request |
 | Soft (per visitor) | Upstash Redis `visitor:soft:{id}` | Anonymous cookie `__aileena_vid`; **90-day sliding TTL** |
 | Retrieval | `searchMemories` TF-IDF (`lib/memorySearch.ts`) | Hard corpus only |
-| Dreaming | `pnpm dreaming` weekly | Markdown report; Redis GC = TTL expiry (no full scan) |
+| Dreaming | `pnpm dreaming` daily | Markdown report; Redis GC = TTL expiry (no full scan) |
 | Persona L4 | `persona-auto.md` (optional) | O-Mem later |
 | Tracked data | `data/` SKUs / pricing / news / docs | Separate read-only tools — not Dreaming |
 
@@ -115,7 +115,7 @@ Printed by `pnpm verify:memory` and stored in the report under `agentManualPromp
 
 | Trigger | When |
 |---------|------|
-| `schedule` | Mondays 06:00 UTC |
+| `schedule` | Daily 06:00 UTC |
 | `workflow_dispatch` | Manual — optional `skip_commit: true` to dry-run |
 
 Steps: **`sync:content-memory`** → `pnpm dreaming` → `pnpm build:memory-index` → commit `latest-content.md`, `content-changelog-*.md`, and Dreaming reports to `main`.
@@ -125,7 +125,7 @@ Steps: **`sync:content-memory`** → `pnpm dreaming` → `pnpm build:memory-inde
 | Source | Detects |
 |--------|---------|
 | `public/dj-set/setlist.json` | Curated DJ set tracks |
-| `components/DJStation.tsx` | Newest player deck additions |
+| `lib/djSetlist.ts` (`DECK_LIBRARY_TRACKS`) | Newest player deck additions |
 | `app/blog/watch-listening-shelf/page.tsx` | Podcasts, documentaries, channels |
 | `app/blog/*/page.tsx` | Latest articles (by `date` prop) |
 
@@ -135,10 +135,9 @@ On change → writes `memories/episodic/content-changelog-YYYY-MM-DD.md` for Dre
 
 `pnpm sync:carousel-evolve` (first step of `sync:content-memory`):
 
-1. Scans **tail of `DJStation.tsx`** for tracks not yet in `setlist.json`
-2. Appends to `/dj-set/` carousel + generates cover SVGs
-3. Updates `setlist.md`, `prompts/music-taste.md`, `self-evolution-log.md`
-4. Writes `memories/episodic/evolve-carousel-*.md`
+1. Reads curated handoff tracks from `public/dj-set/setlist.json`
+2. Updates `setlist.md`, `prompts/music-taste.md`
+3. Full deck library for agent truth lives in `lib/djSetlist.ts` (`DECK_LIBRARY_TRACKS`) — picked up by content sync
 
 `lib/memoryIndex.json` stays gitignored; Vercel rebuilds hard-memory index on every deploy via `pnpm build`.
 

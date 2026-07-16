@@ -1,6 +1,6 @@
 # Aileena Second Brain
 
-Markdown is the source of truth. Agent prompts live in `prompts/`; durable memory in `memories/`.
+Markdown is the source of truth. Agent prompts live in `prompts/`; durable memory in `memories/`; unpublished article drafts in `drafts/` (not indexed into agent retrieval until promoted).
 
 ## Tiers
 

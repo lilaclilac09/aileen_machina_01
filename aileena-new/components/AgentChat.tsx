@@ -865,13 +865,17 @@ function linkify(text: string) {
   // sometimes emits (e.g. "aileena.xyz/blog/centaur"). For the bare form we
   // build the href by prepending https://, so even if the model forgets the
   // protocol the user gets a clickable link instead of plain text.
+  //
+  // Trailing sentence punctuation (.,;:!?) is peeled off so
+  // "https://aileena.xyz/sound." does not become href ".../sound."
   const re = /(https?:\/\/[^\s)]+|(?:[a-z0-9-]+\.)+[a-z]{2,}\/[^\s)]+)/gi;
-  const parts: Array<string | { url: string }> = [];
+  const parts: Array<string | { url: string; trail: string }> = [];
   let last = 0;
   let m: RegExpExecArray | null;
   while ((m = re.exec(text)) !== null) {
     if (m.index > last) parts.push(text.slice(last, m.index));
-    parts.push({ url: m[0] });
+    const { url, trail } = peelTrailingPunct(m[0]);
+    parts.push({ url, trail });
     last = re.lastIndex;
   }
   if (last < text.length) parts.push(text.slice(last));
@@ -879,15 +883,28 @@ function linkify(text: string) {
     typeof p === 'string' ? (
       <span key={i}>{p}</span>
     ) : (
-      <a
-        key={i}
-        href={p.url.startsWith('http') ? p.url : `https://${p.url}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-[#007d75]/90 underline decoration-[#00a89d]/40 underline-offset-2 hover:text-[#006c65] hover:decoration-[#00a89d] break-all"
-      >
-        {p.url}
-      </a>
+      <span key={i}>
+        <a
+          href={p.url.startsWith('http') ? p.url : `https://${p.url}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[#007d75]/90 underline decoration-[#00a89d]/40 underline-offset-2 hover:text-[#006c65] hover:decoration-[#00a89d] break-all"
+        >
+          {p.url}
+        </a>
+        {p.trail}
+      </span>
     ),
   );
+}
+
+/** Strip sentence punctuation glued to the end of an auto-detected URL. */
+function peelTrailingPunct(raw: string): { url: string; trail: string } {
+  let url = raw;
+  let trail = '';
+  while (url.length > 0 && '.,;:!?'.includes(url[url.length - 1]!)) {
+    trail = url[url.length - 1]! + trail;
+    url = url.slice(0, -1);
+  }
+  return { url, trail };
 }

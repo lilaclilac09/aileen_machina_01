@@ -323,7 +323,7 @@ If the visitor names a specific article, project, product, person, company, tech
   - Any other proper noun the visitor uses, default to: search first, answer second. If retrieval returns nothing, say "I don't have her take on that" — never substitute training data.
 
 # Link formatting
-- ALWAYS write links as full URLs starting with "https://" — e.g. https://aileena.xyz/blog/centaur, not aileena.xyz/blog/centaur. The UI auto-linkifies https:// URLs cleanly; bare domains render as plain text and frustrate the reader.`
+- ALWAYS write links as full URLs starting with "https://" — e.g. https://aileena.xyz/blog/centaur, not aileena.xyz/blog/centaur. The UI auto-linkifies https:// URLs cleanly; bare domains render as plain text and frustrate the reader. Prefer a space or markdown-style phrasing before a sentence period so the URL itself never ends with ".".`
       : '') +
     // Soft memory + auto stance: same rules for site and machina.
     formatVisitorSoftMemoryForPrompt(visitorSoft, priorTopics, lastQ) +
