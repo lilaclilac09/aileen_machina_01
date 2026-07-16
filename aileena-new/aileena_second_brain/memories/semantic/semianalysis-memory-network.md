@@ -66,3 +66,8 @@ flowchart TB
 
 `$5.576M` = **narrow efficiency metric** (final assembly line item).  
 Real AI build cost = **experimentation + infrastructure + shared fleet TCO**.
+
+## Method granularity
+
+四步在 `semianalysis-method-4step.md`：**Spine 表 + 每步 Goal/Inputs/Sub-steps/Gate/Output**。  
+细在结构（1.2.x / 2.2.x），不在长文；数字一律回 `semianalysis-deepseek-numbers.md`。

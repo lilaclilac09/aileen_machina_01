@@ -28,29 +28,23 @@
 
 ---
 
-## 1. 四步分析法（正文可直接用）
+## 1. 四步分析法（正文脊骨）
 
-### Step 1 — Paper dissection
-- 读 V3 报告 → 抽出 **2.788M** H800 GPU hours  
-- × **`$2`/hr** → **`$5.576M`**  
-- 阶段表：`$5.328M` + `$0.238M` + `$0.01M`  
-- 论文自己写明：**不含** prior research / ablations  
+> 细版 checklist（1.2 / 2.2 / gates）见 `semianalysis-method-4step.md`。此处只留可上正文的短骨。
 
-### Step 2 — Accelerator Industry Model
-- 从「租用发票」换成「可及集群」  
-- 交叉：出货、出口管制、High-Flyer、**2021 年 10,000 A100**  
-- 结论：**`~50,000` Hopper 混合卡**，用途含交易/推理/训练/研究  
-- 禁止写成「5 万张 H100」  
+### Step 1 — Paper
+窄指标：**`$5.576M`** = **`2.788M`** hr × **`$2`** · 拆 `2664K/119K/5K` · 论文自排除 prior R&D  
 
-### Step 3 — Full TCO
-- CapEx **`~$1.6B`** · OpEx **`~$944M`** · GPU **`>$500M`**  
-- 加上 MLA 等实验、数据、高薪、共享负载  
+### Step 2 — Fleet  
+问题换成可及卡：**`~50k` Hopper mix** · High-Flyer 共享 · `2,048` = run ≠ fleet · 禁写「50k H100」  
 
-### Step 4 — Cross-verify
-- 供应链 · 招聘文案 · 同行融资现实 · benchmark 时间戳  
-- 延伸：*DeepSeek Debrief* 的 tokenomics（便宜 API ≠ 便宜 CapEx）  
+### Step 3 — TCO  
+硬：`~$1.6B` CapEx · `~$944M` OpEx · `>$500M` GPU · 软：MLA/data/talent/shared · BOM 类比  
 
-**核心洞见：** `$5.576M` 是 **narrow efficiency metric**（总装线某一行），不是全经济图景。
+### Step 4 — X-check  
+供应链 · 招聘 · 同行融资 · bench 时间戳 · tokenomics（便宜 API ≠ 便宜 CapEx）  
+
+**洞见：** `$5.576M` = narrow efficiency metric，不是全经济图景。
 
 ---
 
