@@ -37,6 +37,46 @@ export const t = {
       body: 'Photography, objects, visual experiments. Things I made with my hands before I made them with code.',
       items: ['GLASS SERIES', 'LIGHT STUDY', 'METAL OBJECTS'],
     },
+    tools: {
+      tag: 'TOOLS',
+      heading: 'Small tools',
+      body: 'Public utilities built on the same stack as the site — open to everyone, rate-limited so they stay free to run.',
+      openTool: 'Open tool',
+      items: {
+        'inkling-clips': {
+          tag: 'AUDIO · AI',
+          title: 'Inkling Clip Finder',
+          body:
+            'Paste a YouTube URL. Inkling listens to the full episode, picks the best moments (or searches a topic), refines cut points, and returns shareable clips.',
+        },
+      },
+      inklingClips: {
+        tag: 'INKLING CLIPS',
+        heading: 'Inkling Clip Finder',
+        body:
+          'Thinking Machines Inkling listens to long-form audio and tells ffmpeg where to cut. Best moments or topic search — full episode, no manual scrubbing.',
+        backToTools: '← All tools',
+        youtubeLabel: 'YouTube URL',
+        modeBest: 'Best moments',
+        modeQuery: 'Search topic',
+        queryLabel: 'Topic or quote',
+        queryPlaceholder: 'e.g. mixture of experts, pricing strategy…',
+        countLabel: 'Number of clips (max 8)',
+        submit: 'Find clips',
+        running: 'Working…',
+        disclaimer:
+          'Public demo — 8 jobs per IP per day. Long episodes can take several minutes. Clips expire after 24h.',
+        resultsHint: 'Jump to the moment on YouTube or download the rendered clip.',
+        openYoutube: 'Open on YouTube',
+        downloadClip: 'Download clip',
+        errors: {
+          startFailed: 'Could not start job. Check the URL and try again.',
+          pollFailed: 'Lost connection to job status.',
+          jobFailed: 'Job failed.',
+          network: 'Network error. Try again.',
+        },
+      },
+    },
     elsewhere: {
       tag: 'LINKS',
       heading: 'Elsewhere',
@@ -458,6 +498,7 @@ export const t = {
             { label: 'Dispatch', href: '#dispatch' },
             { label: 'Woman in Tech', href: '#woman-in-tech' },
             { label: 'Work', href: '/works' },
+            { label: 'Tools', href: '/tools' },
             { label: 'Investing', href: '#investing' },
             { label: 'Sound', href: '/sound' },
           ],
@@ -521,6 +562,46 @@ export const t = {
       heading: 'Ausgewählte Arbeiten',
       body: 'Fotografie, Objekte, visuelle Experimente. Dinge, die ich mit den Händen gemacht habe, bevor ich sie mit Code gemacht habe.',
       items: ['GLASSERIE', 'LICHTSTUDIE', 'METALLOBJEKTE'],
+    },
+    tools: {
+      tag: 'TOOLS',
+      heading: 'Kleine Werkzeuge',
+      body: 'Öffentliche Utilities auf dem gleichen Stack wie die Site — für alle, mit Rate-Limits damit sie kostenlos bleiben.',
+      openTool: 'Tool öffnen',
+      items: {
+        'inkling-clips': {
+          tag: 'AUDIO · KI',
+          title: 'Inkling Clip Finder',
+          body:
+            'YouTube-URL einfügen. Inkling hört die ganze Episode, findet die besten Momente (oder sucht ein Thema), verfeinert Schnittpunkte und liefert teilbare Clips.',
+        },
+      },
+      inklingClips: {
+        tag: 'INKLING CLIPS',
+        heading: 'Inkling Clip Finder',
+        body:
+          'Thinking Machines Inkling hört Long-Form-Audio und sagt ffmpeg, wo geschnitten wird. Beste Momente oder Themensuche — volle Episode, kein manuelles Scrubben.',
+        backToTools: '← Alle Tools',
+        youtubeLabel: 'YouTube-URL',
+        modeBest: 'Beste Momente',
+        modeQuery: 'Thema suchen',
+        queryLabel: 'Thema oder Zitat',
+        queryPlaceholder: 'z.B. mixture of experts, Preisstrategie…',
+        countLabel: 'Anzahl Clips (max. 8)',
+        submit: 'Clips finden',
+        running: 'Läuft…',
+        disclaimer:
+          'Öffentliche Demo — 8 Jobs pro IP und Tag. Lange Episoden können mehrere Minuten dauern. Clips verfallen nach 24h.',
+        resultsHint: 'Springe zum Moment auf YouTube oder lade den gerenderten Clip herunter.',
+        openYoutube: 'Auf YouTube öffnen',
+        downloadClip: 'Clip herunterladen',
+        errors: {
+          startFailed: 'Job konnte nicht gestartet werden. URL prüfen und erneut versuchen.',
+          pollFailed: 'Verbindung zum Job-Status verloren.',
+          jobFailed: 'Job fehlgeschlagen.',
+          network: 'Netzwerkfehler. Erneut versuchen.',
+        },
+      },
     },
     elsewhere: {
       tag: 'LINKS',
@@ -943,6 +1024,7 @@ export const t = {
             { label: 'Dispatch', href: '#dispatch' },
             { label: 'Frau in Tech', href: '#woman-in-tech' },
             { label: 'Arbeit', href: '/works' },
+            { label: 'Tools', href: '/tools' },
             { label: 'Investing', href: '#investing' },
             { label: 'Sound', href: '/sound' },
           ],

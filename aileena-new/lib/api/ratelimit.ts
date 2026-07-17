@@ -142,3 +142,11 @@ export const LLM_RATE: RateLimitConfig = {
   dailyMax: 30,
   dailyWindowMs: 86_400_000,
 };
+
+// Inkling clip tool — expensive multimodal API + ffmpeg/yt-dlp on server.
+export const TOOLS_INKLING_RATE: RateLimitConfig = {
+  shortMax: 1,
+  shortWindowMs: 120_000,
+  dailyMax: 8,
+  dailyWindowMs: 86_400_000,
+};

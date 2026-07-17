@@ -37,7 +37,22 @@ export INKLING_REASONING_EFFORT="high"   # if your provider supports it
 
 Other OpenAI-compatible providers (Baseten, custom) work via `INKLING_BASE_URL` + `INKLING_API_KEY`.
 
-## Commands
+## Web UI (public)
+
+Anyone can use the tool at **[aileena.xyz/tools](https://aileena.xyz/tools)** (after deploy):
+
+| URL | Purpose |
+|-----|---------|
+| `/tools` | Tool catalogue |
+| `/tools/inkling-clips` | Inkling clip finder UI |
+
+The browser calls `POST /api/tools/inkling-clips` (starts a background job) and polls `GET /api/tools/inkling-clips?jobId=…`. Clips download via `/api/tools/inkling-clips/clip?jobId=…&index=0`.
+
+**Server requirements on Vercel/host:** `yt-dlp`, `ffmpeg`, `ffprobe` on PATH, plus `TOGETHER_API_KEY` (or `INKLING_API_KEY`) in env. Optional: `UPSTASH_REDIS_*` so job status survives cold starts.
+
+**Rate limits:** 8 jobs / IP / day, 1 job / 2 min burst (see `TOOLS_INKLING_RATE` in `lib/api/ratelimit.ts`).
+
+## CLI (local / self-hosted)
 
 From `aileena-new/`:
 
