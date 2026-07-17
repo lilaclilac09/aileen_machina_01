@@ -21,6 +21,7 @@
     "verify:memory:live": "tsx scripts/build-memory-index.ts && VERIFY_BASE_URL=http://localhost:3000 tsx scripts/verify-memory.ts",
     "verify:react": "tsx scripts/verify-react.ts",
     "verify:ops": "tsx scripts/verify-ops.ts",
+    "inkling:clips": "tsx scripts/inkling-clips.ts",
     "start": "next start",
     "lint": "eslint"
   },
