@@ -24,7 +24,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     arcade: {
       glyph: '▶',
       players: '1P',
-      screenGradient: 'linear-gradient(180deg, #12352f 0%, #071816 55%, #020807 100%)',
+      screenGradient: 'linear-gradient(160deg, #e7f7f5 0%, #d4efeb 45%, #f4f1ea 100%)',
     },
   },
   {
@@ -38,7 +38,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     arcade: {
       glyph: '◈',
       players: '1P',
-      screenGradient: 'linear-gradient(180deg, #1a2035 0%, #10141f 50%, #0a0c14 100%)',
+      screenGradient: 'linear-gradient(160deg, #eef1f8 0%, #dde4f2 45%, #f4f1ea 100%)',
     },
   },
 ];

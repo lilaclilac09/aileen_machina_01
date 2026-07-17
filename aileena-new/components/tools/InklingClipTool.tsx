@@ -38,10 +38,10 @@ type JobView = {
 const slotStyle: CSSProperties = {
   width: '100%',
   padding: '13px 14px',
-  borderRadius: 8,
-  border: '2px inset rgba(0,0,0,0.35)',
-  background: 'rgba(0,0,0,0.35)',
-  color: '#d8fff9',
+  borderRadius: 10,
+  border: '1px solid rgba(20,17,12,0.12)',
+  background: '#fffdf7',
+  color: '#14110c',
   fontFamily: mono,
   fontSize: '0.82rem',
   outline: 'none',
@@ -49,10 +49,10 @@ const slotStyle: CSSProperties = {
 
 const modeBtn = (active: boolean, disabled: boolean): CSSProperties => ({
   padding: '9px 14px',
-  borderRadius: 8,
-  border: active ? '2px solid rgba(0,169,159,0.8)' : '2px solid rgba(255,253,248,0.12)',
-  background: active ? 'rgba(0,169,159,0.18)' : 'rgba(0,0,0,0.25)',
-  color: active ? '#b8fff8' : 'rgba(255,253,248,0.72)',
+  borderRadius: 999,
+  border: active ? '1px solid rgba(0,169,159,0.55)' : '1px solid rgba(20,17,12,0.12)',
+  background: active ? 'rgba(0,169,159,0.12)' : '#fffdf7',
+  color: active ? '#008f86' : 'rgba(20,17,12,0.72)',
   cursor: disabled ? 'not-allowed' : 'pointer',
   fontFamily: mono,
   fontSize: '0.72rem',
@@ -170,7 +170,7 @@ export default function InklingClipTool() {
       >
         <form onSubmit={onSubmit} style={{ display: 'grid', gap: 16 }}>
           <div>
-            <label htmlFor="yt-url" style={{ display: 'block', fontFamily: mono, fontSize: '0.68rem', letterSpacing: '0.1em', color: 'rgba(255,253,248,0.45)', marginBottom: 8 }}>
+            <label htmlFor="yt-url" style={{ display: 'block', fontFamily: mono, fontSize: '0.68rem', letterSpacing: '0.1em', color: 'rgba(20,17,12,0.45)', marginBottom: 8 }}>
               {tx.youtubeLabel}
             </label>
             <input
@@ -196,7 +196,7 @@ export default function InklingClipTool() {
 
           {mode === 'query' ? (
             <div>
-              <label htmlFor="topic" style={{ display: 'block', fontFamily: mono, fontSize: '0.68rem', letterSpacing: '0.1em', color: 'rgba(255,253,248,0.45)', marginBottom: 8 }}>
+              <label htmlFor="topic" style={{ display: 'block', fontFamily: mono, fontSize: '0.68rem', letterSpacing: '0.1em', color: 'rgba(20,17,12,0.45)', marginBottom: 8 }}>
                 {tx.queryLabel}
               </label>
               <input
@@ -212,7 +212,7 @@ export default function InklingClipTool() {
             </div>
           ) : (
             <div>
-              <label htmlFor="count" style={{ display: 'block', fontFamily: mono, fontSize: '0.68rem', letterSpacing: '0.1em', color: 'rgba(255,253,248,0.45)', marginBottom: 8 }}>
+              <label htmlFor="count" style={{ display: 'block', fontFamily: mono, fontSize: '0.68rem', letterSpacing: '0.1em', color: 'rgba(20,17,12,0.45)', marginBottom: 8 }}>
                 {tx.countLabel}
               </label>
               <input
@@ -233,7 +233,7 @@ export default function InklingClipTool() {
           </button>
         </form>
 
-        <p style={{ margin: '14px 0 0', fontFamily: mono, fontSize: '0.68rem', color: 'rgba(255,253,248,0.38)', lineHeight: 1.5 }}>
+        <p style={{ margin: '14px 0 0', fontFamily: mono, fontSize: '0.68rem', color: 'rgba(20,17,12,0.4)', lineHeight: 1.5 }}>
           {tx.disclaimer}
         </p>
       </ArcadeCabinetFrame>
@@ -245,9 +245,9 @@ export default function InklingClipTool() {
             marginTop: 24,
             padding: '12px 14px',
             borderRadius: 10,
-            background: 'rgba(120,20,20,0.35)',
-            border: '2px solid rgba(255,80,80,0.35)',
-            color: '#ffc9c9',
+            background: 'rgba(180,40,40,0.08)',
+            border: '1px solid rgba(180,40,40,0.25)',
+            color: '#8a2a2a',
             fontFamily: mono,
             fontSize: '0.82rem',
           }}
@@ -272,8 +272,8 @@ export default function InklingClipTool() {
             style={{
               height: 14,
               borderRadius: 4,
-              background: 'rgba(0,0,0,0.45)',
-              border: '2px inset rgba(255,253,248,0.08)',
+              background: 'rgba(20,17,12,0.06)',
+              border: '1px solid rgba(20,17,12,0.1)',
               overflow: 'hidden',
             }}
           >
@@ -283,11 +283,10 @@ export default function InklingClipTool() {
                 width: `${Math.max(6, progress)}%`,
                 background: 'linear-gradient(90deg, #008f86, #35d4c8, #00a99f)',
                 transition: 'width 0.45s ease',
-                boxShadow: '0 0 12px rgba(0,169,159,0.45)',
               }}
             />
           </div>
-          <p style={{ marginTop: 10, fontFamily: mono, fontSize: '0.78rem', color: 'rgba(255,253,248,0.5)' }}>
+          <p style={{ marginTop: 10, fontFamily: mono, fontSize: '0.78rem', color: 'rgba(20,17,12,0.5)' }}>
             {tx.listening} · {job.progress.message}
           </p>
         </div>
@@ -296,14 +295,14 @@ export default function InklingClipTool() {
       {job?.status === 'done' && job.result ? (
         <section style={{ marginTop: 40, maxWidth: 720 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0, color: '#fffdf8' }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0, color: '#14110c' }}>
               {tx.highScore}
             </h2>
-            <span style={{ fontFamily: mono, fontSize: '0.72rem', color: 'rgba(255,253,248,0.4)' }}>
+            <span style={{ fontFamily: mono, fontSize: '0.72rem', color: 'rgba(20,17,12,0.4)' }}>
               {job.result.title}
             </span>
           </div>
-          <p style={{ fontFamily: mono, fontSize: '0.72rem', color: 'rgba(255,253,248,0.42)', marginBottom: 20 }}>
+          <p style={{ fontFamily: mono, fontSize: '0.72rem', color: 'rgba(20,17,12,0.42)', marginBottom: 20 }}>
             {tx.resultsHint}
           </p>
           <div style={{ display: 'grid', gap: 14 }}>
@@ -314,13 +313,13 @@ export default function InklingClipTool() {
                 style={{
                   padding: '16px 18px',
                   borderRadius: 12,
-                  border: '2px solid rgba(255,253,248,0.1)',
-                  background: 'linear-gradient(180deg, rgba(255,253,248,0.05), rgba(255,253,248,0.02))',
+                  border: '1px solid rgba(20,17,12,0.1)',
+                  background: '#fffdf7',
                   animationDelay: `${i * 0.08}s`,
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
-                  <h3 style={{ margin: 0, fontSize: '0.98rem', color: '#fffdf8' }}>{c.title}</h3>
+                  <h3 style={{ margin: 0, fontSize: '0.98rem', color: '#14110c' }}>{c.title}</h3>
                   <span
                     style={{
                       fontFamily: mono,
@@ -332,10 +331,10 @@ export default function InklingClipTool() {
                     {tx.scoreLabel} {(c.score * 100).toFixed(0)}
                   </span>
                 </div>
-                <p style={{ margin: '0 0 6px', fontFamily: mono, fontSize: '0.72rem', color: 'rgba(255,253,248,0.42)' }}>
+                <p style={{ margin: '0 0 6px', fontFamily: mono, fontSize: '0.72rem', color: 'rgba(20,17,12,0.42)' }}>
                   {c.startLabel} → {c.endLabel} · {c.durationLabel}
                 </p>
-                <p style={{ margin: '0 0 14px', fontSize: '0.88rem', lineHeight: 1.55, color: 'rgba(255,253,248,0.62)' }}>
+                <p style={{ margin: '0 0 14px', fontSize: '0.88rem', lineHeight: 1.55, color: 'rgba(20,17,12,0.62)' }}>
                   {c.reason}
                 </p>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -350,8 +349,8 @@ export default function InklingClipTool() {
                       textTransform: 'uppercase',
                       padding: '8px 12px',
                       borderRadius: 8,
-                      border: '1px solid rgba(255,253,248,0.16)',
-                      color: '#fffdf8',
+                      border: '1px solid rgba(20,17,12,0.14)',
+                      color: '#14110c',
                       textDecoration: 'none',
                     }}
                   >
@@ -366,9 +365,9 @@ export default function InklingClipTool() {
                       textTransform: 'uppercase',
                       padding: '8px 12px',
                       borderRadius: 8,
-                      background: 'rgba(0,169,159,0.2)',
-                      border: '1px solid rgba(0,169,159,0.4)',
-                      color: '#b8fff8',
+                      background: 'rgba(0,169,159,0.12)',
+                      border: '1px solid rgba(0,169,159,0.35)',
+                      color: '#008f86',
                       textDecoration: 'none',
                     }}
                   >

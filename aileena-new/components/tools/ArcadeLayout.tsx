@@ -42,9 +42,9 @@ export default function ArcadeLayout({
             top: 0,
             zIndex: 50,
             padding: '16px 24px',
-            background: 'rgba(5,5,8,0.88)',
+            background: 'rgba(251,250,246,0.9)',
             backdropFilter: 'blur(12px)',
-            borderBottom: '1px solid rgba(255,253,248,0.08)',
+            borderBottom: '1px solid rgba(20,17,12,0.08)',
           }}
         >
           <div
@@ -65,7 +65,7 @@ export default function ArcadeLayout({
                   fontSize: '0.72rem',
                   letterSpacing: '0.12em',
                   textTransform: 'uppercase',
-                  color: 'rgba(255,253,248,0.55)',
+                  color: 'rgba(20,17,12,0.48)',
                   textDecoration: 'none',
                 }}
               >
@@ -79,7 +79,7 @@ export default function ArcadeLayout({
                 fontFamily: mono,
                 fontSize: '0.68rem',
                 letterSpacing: '0.16em',
-                color: 'rgba(255,253,248,0.38)',
+                color: 'rgba(20,17,12,0.36)',
                 textTransform: 'uppercase',
               }}
             >
@@ -114,7 +114,7 @@ export default function ArcadeLayout({
                 fontSize: 'clamp(1.8rem, 4.5vw, 2.8rem)',
                 fontWeight: 600,
                 letterSpacing: '-0.02em',
-                color: '#fffdf8',
+                color: '#14110c',
                 marginBottom: 10,
                 lineHeight: 1.08,
               }}
@@ -126,7 +126,7 @@ export default function ArcadeLayout({
                 style={{
                   fontSize: '1rem',
                   lineHeight: 1.65,
-                  color: 'rgba(255,253,248,0.62)',
+                  color: 'rgba(20,17,12,0.58)',
                   margin: 0,
                 }}
               >
@@ -155,7 +155,7 @@ export function ArcadeCabinetFrame({
       className="arcade-cabinet"
       style={{
         maxWidth: 720,
-        boxShadow: '0 24px 60px rgba(0,0,0,0.45)',
+        boxShadow: '0 18px 40px rgba(20,17,12,0.07)',
       }}
     >
       <div className="arcade-screen" style={{ background: screenGradient }}>

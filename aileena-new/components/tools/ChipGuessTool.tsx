@@ -142,7 +142,7 @@ export default function ChipGuessTool() {
           flexWrap: 'wrap',
           fontFamily: mono,
           fontSize: '0.72rem',
-          color: 'rgba(255,253,248,0.45)',
+          color: 'rgba(20,17,12,0.45)',
         }}
       >
         <span>
@@ -152,18 +152,18 @@ export default function ChipGuessTool() {
           {tx.best}: <span style={{ color: '#00a99f' }}>{bestStreak}</span>
         </span>
         <span>
-          {tx.scoreLabel}: <span style={{ color: '#fffdf8' }}>{totalScore}</span>
+          {tx.scoreLabel}: <span style={{ color: '#14110c' }}>{totalScore}</span>
         </span>
       </div>
 
       <ArcadeCabinetFrame
         glyph={tool?.arcade.glyph ?? '◈'}
         screenGradient={
-          tool?.arcade.screenGradient ?? 'linear-gradient(180deg,#1a2035,#0a0c14)'
+          tool?.arcade.screenGradient ?? 'linear-gradient(160deg,#eef1f8,#f4f1ea)'
         }
       >
         {loading ? (
-          <p style={{ fontFamily: mono, fontSize: '0.8rem', color: 'rgba(255,253,248,0.5)' }}>
+          <p style={{ fontFamily: mono, fontSize: '0.8rem', color: 'rgba(20,17,12,0.5)' }}>
             {tx.loading}
           </p>
         ) : null}
@@ -174,7 +174,7 @@ export default function ChipGuessTool() {
             style={{
               fontFamily: mono,
               fontSize: '0.82rem',
-              color: '#ffc9c9',
+              color: '#8a2a2a',
               margin: 0,
             }}
           >
@@ -184,7 +184,7 @@ export default function ChipGuessTool() {
 
         {!loading && phase === 'idle' ? (
           <div style={{ display: 'grid', gap: 14 }}>
-            <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: 1.55, color: 'rgba(255,253,248,0.62)' }}>
+            <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: 1.55, color: 'rgba(20,17,12,0.62)' }}>
               {tx.howto}
             </p>
             <button type="button" className="arcade-start-btn" onClick={onPressStart}>
@@ -203,7 +203,7 @@ export default function ChipGuessTool() {
                 fontFamily: mono,
                 fontSize: '0.68rem',
                 letterSpacing: '0.1em',
-                color: 'rgba(255,253,248,0.45)',
+                color: 'rgba(20,17,12,0.45)',
               }}
             >
               <span>{tx.cluesTitle}</span>
@@ -226,8 +226,8 @@ export default function ChipGuessTool() {
                   style={{
                     padding: '10px 12px',
                     borderRadius: 8,
-                    border: '1px solid rgba(255,253,248,0.1)',
-                    background: 'rgba(0,0,0,0.28)',
+                    border: '1px solid rgba(20,17,12,0.1)',
+                    background: '#fffdf7',
                   }}
                 >
                   <div
@@ -235,13 +235,13 @@ export default function ChipGuessTool() {
                       fontFamily: mono,
                       fontSize: '0.58rem',
                       letterSpacing: '0.12em',
-                      color: 'rgba(255,253,248,0.38)',
+                      color: 'rgba(20,17,12,0.38)',
                       marginBottom: 4,
                     }}
                   >
                     {c.label}
                   </div>
-                  <div style={{ fontSize: '0.86rem', color: '#d8fff9' }}>{c.value}</div>
+                  <div style={{ fontSize: '0.86rem', color: '#14110c' }}>{c.value}</div>
                 </div>
               ))}
             </div>
@@ -250,22 +250,22 @@ export default function ChipGuessTool() {
               {round.choices.map((choice) => {
                 const isCorrect = choice === round.correct.sku;
                 const isPick = selected === choice;
-                let border = '2px solid rgba(255,253,248,0.12)';
-                let bg = 'rgba(0,0,0,0.28)';
-                let color = '#fffdf8';
+                let border = '1px solid rgba(20,17,12,0.12)';
+                let bg = '#fffdf7';
+                let color = '#14110c';
                 if (phase === 'won' || phase === 'lost') {
                   if (isCorrect) {
-                    border = '2px solid rgba(0,169,159,0.7)';
-                    bg = 'rgba(0,169,159,0.2)';
-                    color = '#b8fff8';
+                    border = '2px solid rgba(0,169,159,0.55)';
+                    bg = 'rgba(0,169,159,0.14)';
+                    color = '#008f86';
                   } else if (isPick) {
-                    border = '2px solid rgba(200,60,60,0.6)';
-                    bg = 'rgba(120,20,20,0.35)';
-                    color = '#ffc9c9';
+                    border = '2px solid rgba(180,40,40,0.45)';
+                    bg = 'rgba(180,40,40,0.1)';
+                    color = '#8a2a2a';
                   }
                 } else if (isPick) {
-                  border = '2px solid rgba(0,169,159,0.5)';
-                  bg = 'rgba(0,169,159,0.12)';
+                  border = '2px solid rgba(0,169,159,0.4)';
+                  bg = 'rgba(0,169,159,0.1)';
                 }
                 return (
                   <button
@@ -304,7 +304,7 @@ export default function ChipGuessTool() {
 
             {phase === 'lost' ? (
               <div className="arcade-score-card" style={{ display: 'grid', gap: 10 }}>
-                <p style={{ margin: 0, fontFamily: mono, fontSize: '0.78rem', color: '#ffc9c9' }}>
+                <p style={{ margin: 0, fontFamily: mono, fontSize: '0.78rem', color: '#8a2a2a' }}>
                   {tx.lose} — {round.correct.sku}
                 </p>
                 <button type="button" className="arcade-start-btn" onClick={onNext}>
@@ -322,7 +322,7 @@ export default function ChipGuessTool() {
           maxWidth: 720,
           fontFamily: mono,
           fontSize: '0.68rem',
-          color: 'rgba(255,253,248,0.35)',
+          color: 'rgba(20,17,12,0.38)',
           lineHeight: 1.5,
         }}
       >
