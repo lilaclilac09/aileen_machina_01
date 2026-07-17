@@ -16,29 +16,22 @@ export default function ToolsArcadePage() {
         style={{
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'center',
+          alignItems: 'baseline',
           gap: 12,
-          marginBottom: 22,
+          marginBottom: 28,
           flexWrap: 'wrap',
         }}
       >
         <p style={{ margin: 0, fontFamily: mono, fontSize: '0.72rem', color: 'rgba(20,17,12,0.45)' }}>
-          {tx.creditsLabel}{' '}
-          <span className="arcade-coin" style={{ color: '#c9872f' }}>
-            ●●●
-          </span>{' '}
-          {tx.creditsHint}
+          {TOOL_DEFINITIONS.length} {tx.toolCount}
         </p>
-        <span style={{ fontFamily: mono, fontSize: '0.68rem', color: 'rgba(20,17,12,0.35)' }}>
-          {TOOL_DEFINITIONS.length} {tx.gameCount}
-        </span>
       </div>
 
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-          gap: 20,
+          gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+          gap: 28,
         }}
       >
         {TOOL_DEFINITIONS.map((tool) => {
@@ -48,36 +41,32 @@ export default function ToolsArcadePage() {
               <article className="arcade-cabinet">
                 <div
                   className="arcade-screen"
-                  style={{ background: tool.arcade.screenGradient, minHeight: 148 }}
+                  style={{ background: tool.arcade.screenGradient, minHeight: 132 }}
                 >
                   <span className="arcade-screen-glyph" aria-hidden>
                     {tool.arcade.glyph}
                   </span>
                 </div>
                 <div className="arcade-panel">
-                  <div
+                  <p
                     style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      gap: 8,
-                      marginBottom: 10,
+                      margin: '0 0 8px',
                       fontFamily: mono,
                       fontSize: '0.62rem',
-                      letterSpacing: '0.12em',
+                      letterSpacing: '0.14em',
                       textTransform: 'uppercase',
                       color: 'rgba(20,17,12,0.42)',
                     }}
                   >
-                    <span>{copy?.tag ?? tool.tag}</span>
-                    <span style={{ color: '#00a99f' }}>{tool.arcade.players}</span>
-                  </div>
-                  <h2 style={{ margin: '0 0 8px', fontSize: '1.12rem', color: '#14110c' }}>
+                    {copy?.tag ?? tool.tag}
+                  </p>
+                  <h2 style={{ margin: '0 0 8px', fontSize: '1.15rem', fontWeight: 600, color: '#14110c' }}>
                     {copy?.title ?? tool.title}
                   </h2>
                   <p
                     style={{
-                      margin: '0 0 14px',
-                      fontSize: '0.86rem',
+                      margin: '0 0 16px',
+                      fontSize: '0.88rem',
                       lineHeight: 1.55,
                       color: 'rgba(20,17,12,0.58)',
                       minHeight: 66,
@@ -90,51 +79,18 @@ export default function ToolsArcadePage() {
                       display: 'inline-block',
                       fontFamily: mono,
                       fontSize: '0.72rem',
-                      letterSpacing: '0.1em',
+                      letterSpacing: '0.08em',
                       textTransform: 'uppercase',
                       color: '#008f86',
-                      padding: '8px 12px',
-                      borderRadius: 999,
-                      border: '1px solid rgba(0,169,159,0.35)',
-                      background: 'rgba(0,169,159,0.08)',
                     }}
                   >
-                    {tx.pressStart} →
+                    {tx.openTool} →
                   </span>
                 </div>
               </article>
             </Link>
           );
         })}
-
-        <article
-          className="arcade-cabinet"
-          style={{
-            opacity: 0.7,
-            borderStyle: 'dashed',
-          }}
-          aria-hidden
-        >
-          <div
-            className="arcade-screen"
-            style={{
-              background: 'linear-gradient(160deg, #f0eee8, #e8e4db)',
-              minHeight: 148,
-            }}
-          >
-            <span className="arcade-screen-glyph" style={{ opacity: 0.35 }}>
-              ?
-            </span>
-          </div>
-          <div className="arcade-panel">
-            <h2 style={{ margin: '0 0 8px', fontSize: '1.05rem', color: 'rgba(20,17,12,0.45)' }}>
-              {tx.comingSoonTitle}
-            </h2>
-            <p style={{ margin: 0, fontSize: '0.86rem', color: 'rgba(20,17,12,0.38)' }}>
-              {tx.comingSoonBody}
-            </p>
-          </div>
-        </article>
       </div>
     </ArcadeLayout>
   );

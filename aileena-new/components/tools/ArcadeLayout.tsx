@@ -28,8 +28,7 @@ export default function ArcadeLayout({
   children,
 }: ArcadeLayoutProps) {
   const marqueeText =
-    marquee ??
-    'INSERT LINK · PRESS START · INKLING LISTENS · FFMPEG CUTS · FREE TO PLAY · RATE LIMITED';
+    marquee ?? 'TOOLS · AUDIO CLIPPING · RSS · CHIPS · PRICING · SAME STACK AS THE SITE';
 
   return (
     <div className="arcade-root" style={{ fontFamily: nunito }}>
@@ -44,7 +43,6 @@ export default function ArcadeLayout({
             padding: '16px 24px',
             background: 'rgba(251,250,246,0.9)',
             backdropFilter: 'blur(12px)',
-            borderBottom: '1px solid rgba(20,17,12,0.08)',
           }}
         >
           <div
@@ -107,7 +105,7 @@ export default function ArcadeLayout({
                 marginBottom: 10,
               }}
             >
-              1 CREDIT · PUBLIC DEMO
+              {tag}
             </p>
             <h1
               style={{
@@ -141,6 +139,7 @@ export default function ArcadeLayout({
   );
 }
 
+/** Flat geometric frame around a tool surface (no border chrome). */
 export function ArcadeCabinetFrame({
   glyph,
   screenGradient,
@@ -151,14 +150,8 @@ export function ArcadeCabinetFrame({
   children: ReactNode;
 }) {
   return (
-    <div
-      className="arcade-cabinet"
-      style={{
-        maxWidth: 720,
-        boxShadow: '0 18px 40px rgba(20,17,12,0.07)',
-      }}
-    >
-      <div className="arcade-screen" style={{ background: screenGradient }}>
+    <div className="arcade-cabinet" style={{ maxWidth: 720 }}>
+      <div className="arcade-screen" style={{ background: screenGradient, minHeight: 96 }}>
         <span className="arcade-screen-glyph" aria-hidden>
           {glyph}
         </span>

@@ -225,9 +225,9 @@ export default function ChipGuessTool() {
                   key={c.label}
                   style={{
                     padding: '10px 12px',
-                    borderRadius: 8,
-                    border: '1px solid rgba(20,17,12,0.1)',
-                    background: '#fffdf7',
+                    borderRadius: 0,
+                    border: 'none',
+                    background: '#f3f0e8',
                   }}
                 >
                   <div
@@ -250,22 +250,18 @@ export default function ChipGuessTool() {
               {round.choices.map((choice) => {
                 const isCorrect = choice === round.correct.sku;
                 const isPick = selected === choice;
-                let border = '1px solid rgba(20,17,12,0.12)';
-                let bg = '#fffdf7';
+                let bg = '#f3f0e8';
                 let color = '#14110c';
                 if (phase === 'won' || phase === 'lost') {
                   if (isCorrect) {
-                    border = '2px solid rgba(0,169,159,0.55)';
-                    bg = 'rgba(0,169,159,0.14)';
+                    bg = '#d8eeeb';
                     color = '#008f86';
                   } else if (isPick) {
-                    border = '2px solid rgba(180,40,40,0.45)';
-                    bg = 'rgba(180,40,40,0.1)';
+                    bg = '#f3e0e0';
                     color = '#8a2a2a';
                   }
                 } else if (isPick) {
-                  border = '2px solid rgba(0,169,159,0.4)';
-                  bg = 'rgba(0,169,159,0.1)';
+                  bg = '#d8eeeb';
                 }
                 return (
                   <button
@@ -276,8 +272,8 @@ export default function ChipGuessTool() {
                     style={{
                       textAlign: 'left',
                       padding: '12px 14px',
-                      borderRadius: 8,
-                      border,
+                      borderRadius: 0,
+                      border: 'none',
                       background: bg,
                       color,
                       cursor: phase === 'playing' ? 'pointer' : 'default',

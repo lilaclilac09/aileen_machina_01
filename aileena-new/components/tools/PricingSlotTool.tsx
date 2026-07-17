@@ -184,9 +184,9 @@ export default function PricingSlotTool() {
                     justifyContent: 'center',
                     textAlign: 'center',
                     padding: 10,
-                    borderRadius: 10,
-                    border: '1px solid rgba(20,17,12,0.12)',
-                    background: '#f8f5ee',
+                    borderRadius: 0,
+                    border: 'none',
+                    background: '#efe6d6',
                     fontFamily: mono,
                     fontSize: '0.78rem',
                     color: '#14110c',
@@ -211,9 +211,9 @@ export default function PricingSlotTool() {
                 className="arcade-score-card"
                 style={{
                   padding: 14,
-                  borderRadius: 12,
-                  border: '1px solid rgba(20,17,12,0.1)',
-                  background: '#fffdf7',
+                  borderRadius: 0,
+                  border: 'none',
+                  background: '#f3f0e8',
                   display: 'grid',
                   gap: 8,
                 }}

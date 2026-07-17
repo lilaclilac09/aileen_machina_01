@@ -39,14 +39,14 @@ Other OpenAI-compatible providers (Baseten, custom) work via `INKLING_BASE_URL` 
 
 ## Web UI (public)
 
-Anyone can use the tool at **`/tools/inkling-clips`** inside the [Tools Arcade](./TOOLS_ARCADE.md) (hub: `/tools`).
+Anyone can use the tool at **`/tools/inkling-clips`** inside the [Tools hub](./TOOLS_ARCADE.md) (`/tools`).
 
 | URL | Purpose |
 |-----|---------|
-| `/tools` | Arcade lobby — all cabinets |
-| `/tools/inkling-clips` | Clip Quest UI |
+| `/tools` | Tools hub |
+| `/tools/inkling-clips` | Audio Clipping UI |
 
-Adding another mini-game: see **[TOOLS_ARCADE.md](./TOOLS_ARCADE.md)** (registry + page + i18n checklist).
+Adding another tool: see **[TOOLS_ARCADE.md](./TOOLS_ARCADE.md)**.
 
 The browser calls `POST /api/tools/inkling-clips` (starts a background job) and polls `GET /api/tools/inkling-clips?jobId=…`. Clips download via `/api/tools/inkling-clips/clip?jobId=…&index=0`.
 

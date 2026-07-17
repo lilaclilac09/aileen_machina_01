@@ -38,9 +38,9 @@ type JobView = {
 const slotStyle: CSSProperties = {
   width: '100%',
   padding: '13px 14px',
-  borderRadius: 10,
-  border: '1px solid rgba(20,17,12,0.12)',
-  background: '#fffdf7',
+  borderRadius: 0,
+  border: 'none',
+  background: '#f3f0e8',
   color: '#14110c',
   fontFamily: mono,
   fontSize: '0.82rem',
@@ -49,10 +49,10 @@ const slotStyle: CSSProperties = {
 
 const modeBtn = (active: boolean, disabled: boolean): CSSProperties => ({
   padding: '9px 14px',
-  borderRadius: 999,
-  border: active ? '1px solid rgba(0,169,159,0.55)' : '1px solid rgba(20,17,12,0.12)',
-  background: active ? 'rgba(0,169,159,0.12)' : '#fffdf7',
-  color: active ? '#008f86' : 'rgba(20,17,12,0.72)',
+  borderRadius: 0,
+  border: 'none',
+  background: active ? '#00a99f' : '#f3f0e8',
+  color: active ? '#fffdf8' : 'rgba(20,17,12,0.72)',
   cursor: disabled ? 'not-allowed' : 'pointer',
   fontFamily: mono,
   fontSize: '0.72rem',
@@ -162,11 +162,11 @@ export default function InklingClipTool() {
       subtitle={tx.body}
       backLabel={tx.backToTools}
       backHref="/tools"
-      marquee={`CLIP QUEST · ${tx.modeBest.toUpperCase()} · ${tx.modeQuery.toUpperCase()} · INKLING · FFMPEG`}
+      marquee={`AUDIO CLIPPING · ${tx.modeBest.toUpperCase()} · ${tx.modeQuery.toUpperCase()} · INKLING · FFMPEG`}
     >
       <ArcadeCabinetFrame
         glyph={tool?.arcade.glyph ?? '▶'}
-        screenGradient={tool?.arcade.screenGradient ?? 'linear-gradient(180deg,#12352f,#020807)'}
+        screenGradient={tool?.arcade.screenGradient ?? '#d8eeeb'}
       >
         <form onSubmit={onSubmit} style={{ display: 'grid', gap: 16 }}>
           <div>
@@ -244,9 +244,9 @@ export default function InklingClipTool() {
           style={{
             marginTop: 24,
             padding: '12px 14px',
-            borderRadius: 10,
-            background: 'rgba(180,40,40,0.08)',
-            border: '1px solid rgba(180,40,40,0.25)',
+            borderRadius: 0,
+            background: '#f3e0e0',
+            border: 'none',
             color: '#8a2a2a',
             fontFamily: mono,
             fontSize: '0.82rem',
@@ -270,10 +270,10 @@ export default function InklingClipTool() {
           </div>
           <div
             style={{
-              height: 14,
-              borderRadius: 4,
+              height: 10,
+              borderRadius: 0,
               background: 'rgba(20,17,12,0.06)',
-              border: '1px solid rgba(20,17,12,0.1)',
+              border: 'none',
               overflow: 'hidden',
             }}
           >
@@ -281,7 +281,7 @@ export default function InklingClipTool() {
               style={{
                 height: '100%',
                 width: `${Math.max(6, progress)}%`,
-                background: 'linear-gradient(90deg, #008f86, #35d4c8, #00a99f)',
+                background: '#00a99f',
                 transition: 'width 0.45s ease',
               }}
             />
@@ -311,10 +311,10 @@ export default function InklingClipTool() {
                 key={c.index}
                 className="arcade-score-card"
                 style={{
-                  padding: '16px 18px',
-                  borderRadius: 12,
-                  border: '1px solid rgba(20,17,12,0.1)',
-                  background: '#fffdf7',
+                  padding: '16px 0',
+                  borderRadius: 0,
+                  border: 'none',
+                  background: 'transparent',
                   animationDelay: `${i * 0.08}s`,
                 }}
               >
@@ -348,8 +348,9 @@ export default function InklingClipTool() {
                       letterSpacing: '0.06em',
                       textTransform: 'uppercase',
                       padding: '8px 12px',
-                      borderRadius: 8,
-                      border: '1px solid rgba(20,17,12,0.14)',
+                      borderRadius: 0,
+                      border: 'none',
+                      background: '#f3f0e8',
                       color: '#14110c',
                       textDecoration: 'none',
                     }}
@@ -364,10 +365,10 @@ export default function InklingClipTool() {
                       letterSpacing: '0.06em',
                       textTransform: 'uppercase',
                       padding: '8px 12px',
-                      borderRadius: 8,
-                      background: 'rgba(0,169,159,0.12)',
-                      border: '1px solid rgba(0,169,159,0.35)',
-                      color: '#008f86',
+                      borderRadius: 0,
+                      background: '#00a99f',
+                      border: 'none',
+                      color: '#fffdf8',
                       textDecoration: 'none',
                     }}
                   >

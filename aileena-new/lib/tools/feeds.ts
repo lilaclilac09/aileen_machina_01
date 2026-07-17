@@ -1,6 +1,6 @@
 /**
  * Listening-shelf RSS feeds — same sources as homepage / watch-listening-shelf.
- * Arcade mini-games pull headlines from here; do not invent a parallel catalogue.
+ * Tools pull headlines from here; do not invent a parallel catalogue.
  */
 
 export type FeedSource = {

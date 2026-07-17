@@ -10,9 +10,9 @@
 6. **Skills** — this directory (`procedural/skills/`)
 7. **Weights** — LoRA on Qwen2.5-14B when `training_data/` is large enough
 
-## Tools Arcade mini-games
+## Tools hub
 
-Public cabinets at `/tools`. To add one: skill **`procedural/skills/tools-arcade-mini-game.md`** + doc **`aileena-new/docs/TOOLS_ARCADE.md`**. Registry: `lib/tools/registry.ts`.
+Public tools at `/tools`. To add one: skill **`procedural/skills/tools-arcade-mini-game.md`** + doc **`aileena-new/docs/TOOLS_ARCADE.md`**. Registry: `lib/tools/registry.ts`.
 
 ## Boot order
 

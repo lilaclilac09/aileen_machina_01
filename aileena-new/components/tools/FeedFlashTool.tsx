@@ -201,17 +201,14 @@ export default function FeedFlashTool() {
               {sources.map((s) => {
                 const isCorrect = s.id === current.sourceId;
                 const isPick = pick === s.id;
-                let border = '1px solid rgba(20,17,12,0.12)';
-                let bg = '#fffdf7';
+                let bg = '#f3f0e8';
                 let color = '#14110c';
                 if (phase !== 'playing') {
                   if (isCorrect) {
-                    border = '1px solid rgba(0,169,159,0.55)';
-                    bg = 'rgba(0,169,159,0.12)';
+                    bg = '#d8eeeb';
                     color = '#008f86';
                   } else if (isPick) {
-                    border = '1px solid rgba(180,40,40,0.4)';
-                    bg = 'rgba(180,40,40,0.08)';
+                    bg = '#f3e0e0';
                     color = '#8a2a2a';
                   }
                 }
@@ -224,8 +221,8 @@ export default function FeedFlashTool() {
                     style={{
                       textAlign: 'left',
                       padding: '12px 14px',
-                      borderRadius: 10,
-                      border,
+                      borderRadius: 0,
+                      border: 'none',
                       background: bg,
                       color,
                       cursor: phase === 'playing' ? 'pointer' : 'default',
