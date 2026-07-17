@@ -5,17 +5,27 @@ export type ToolDefinition = {
   body: string;
   href: string;
   status: 'live' | 'beta';
+  arcade: {
+    glyph: string;
+    players: string;
+    screenGradient: string;
+  };
 };
 
 export const TOOL_DEFINITIONS: ToolDefinition[] = [
   {
     slug: 'inkling-clips',
     tag: 'AUDIO · AI',
-    title: 'Inkling Clip Finder',
+    title: 'Clip Quest',
     body:
-      'Paste a YouTube URL. Inkling listens to the full episode, picks the best moments (or searches a topic), refines cut points, and returns shareable clips.',
+      'Feed a YouTube episode into the machine. Inkling listens, picks highlights, ffmpeg cuts the tape.',
     href: '/tools/inkling-clips',
     status: 'live',
+    arcade: {
+      glyph: '▶',
+      players: '1P',
+      screenGradient: 'linear-gradient(180deg, #12352f 0%, #071816 55%, #020807 100%)',
+    },
   },
 ];
 

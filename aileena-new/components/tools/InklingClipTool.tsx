@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react';
 import { useLanguage } from '../LanguageProvider';
 import { t } from '../../lib/translations';
-import ToolShell from './ToolShell';
+import { getToolBySlug } from '../../lib/tools/registry';
+import ArcadeLayout, { ArcadeCabinetFrame, mono } from './ArcadeLayout';
 
 type JobProgress = {
   phase: string;
@@ -34,29 +35,42 @@ type JobView = {
   } | null;
 };
 
-const inputStyle: CSSProperties = {
+const slotStyle: CSSProperties = {
   width: '100%',
-  padding: '14px 16px',
-  borderRadius: 10,
-  border: '1px solid rgba(255,253,248,0.14)',
-  background: 'rgba(255,253,248,0.04)',
-  color: '#fffdf8',
-  fontSize: '0.98rem',
+  padding: '13px 14px',
+  borderRadius: 8,
+  border: '2px inset rgba(0,0,0,0.35)',
+  background: 'rgba(0,0,0,0.35)',
+  color: '#d8fff9',
+  fontFamily: mono,
+  fontSize: '0.82rem',
   outline: 'none',
 };
 
-const labelStyle: CSSProperties = {
-  display: 'block',
+const modeBtn = (active: boolean, disabled: boolean): CSSProperties => ({
+  padding: '9px 14px',
+  borderRadius: 8,
+  border: active ? '2px solid rgba(0,169,159,0.8)' : '2px solid rgba(255,253,248,0.12)',
+  background: active ? 'rgba(0,169,159,0.18)' : 'rgba(0,0,0,0.25)',
+  color: active ? '#b8fff8' : 'rgba(255,253,248,0.72)',
+  cursor: disabled ? 'not-allowed' : 'pointer',
+  fontFamily: mono,
   fontSize: '0.72rem',
-  letterSpacing: '0.1em',
+  letterSpacing: '0.06em',
   textTransform: 'uppercase',
-  color: 'rgba(255,253,248,0.45)',
-  marginBottom: 8,
-};
+});
+
+function phaseLabel(
+  phase: string,
+  labels: Record<string, string>,
+): string {
+  return labels[phase] ?? phase.toUpperCase();
+}
 
 export default function InklingClipTool() {
   const { language } = useLanguage();
   const tx = t[language].tools.inklingClips;
+  const tool = getToolBySlug('inkling-clips');
 
   const [url, setUrl] = useState('');
   const [mode, setMode] = useState<'best' | 'query'>('best');
@@ -139,125 +153,90 @@ export default function InklingClipTool() {
 
   const progress = job?.progress?.progress ?? 0;
   const running = submitting || job?.status === 'queued' || job?.status === 'running';
+  const phase = job?.progress?.phase ?? 'download';
 
   return (
-    <ToolShell
+    <ArcadeLayout
       tag={tx.tag}
       title={tx.heading}
       subtitle={tx.body}
       backLabel={tx.backToTools}
       backHref="/tools"
+      marquee={`CLIP QUEST · ${tx.modeBest.toUpperCase()} · ${tx.modeQuery.toUpperCase()} · INKLING · FFMPEG`}
     >
-      <form onSubmit={onSubmit} style={{ display: 'grid', gap: 20, maxWidth: 640 }}>
-        <div>
-          <label htmlFor="yt-url" style={labelStyle}>
-            {tx.youtubeLabel}
-          </label>
-          <input
-            id="yt-url"
-            type="url"
-            required
-            placeholder="https://www.youtube.com/watch?v=..."
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            style={inputStyle}
-            disabled={running}
-          />
-        </div>
-
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <button
-            type="button"
-            onClick={() => setMode('best')}
-            disabled={running}
-            style={{
-              padding: '10px 16px',
-              borderRadius: 999,
-              border: '1px solid',
-              borderColor: mode === 'best' ? 'rgba(0,169,159,0.7)' : 'rgba(255,253,248,0.14)',
-              background: mode === 'best' ? 'rgba(0,169,159,0.14)' : 'transparent',
-              color: '#fffdf8',
-              cursor: running ? 'not-allowed' : 'pointer',
-              fontSize: '0.82rem',
-            }}
-          >
-            {tx.modeBest}
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode('query')}
-            disabled={running}
-            style={{
-              padding: '10px 16px',
-              borderRadius: 999,
-              border: '1px solid',
-              borderColor: mode === 'query' ? 'rgba(0,169,159,0.7)' : 'rgba(255,253,248,0.14)',
-              background: mode === 'query' ? 'rgba(0,169,159,0.14)' : 'transparent',
-              color: '#fffdf8',
-              cursor: running ? 'not-allowed' : 'pointer',
-              fontSize: '0.82rem',
-            }}
-          >
-            {tx.modeQuery}
-          </button>
-        </div>
-
-        {mode === 'query' ? (
+      <ArcadeCabinetFrame
+        glyph={tool?.arcade.glyph ?? '▶'}
+        screenGradient={tool?.arcade.screenGradient ?? 'linear-gradient(180deg,#12352f,#020807)'}
+      >
+        <form onSubmit={onSubmit} style={{ display: 'grid', gap: 16 }}>
           <div>
-            <label htmlFor="topic" style={labelStyle}>
-              {tx.queryLabel}
+            <label htmlFor="yt-url" style={{ display: 'block', fontFamily: mono, fontSize: '0.68rem', letterSpacing: '0.1em', color: 'rgba(255,253,248,0.45)', marginBottom: 8 }}>
+              {tx.youtubeLabel}
             </label>
             <input
-              id="topic"
-              type="text"
+              id="yt-url"
+              type="url"
               required
-              placeholder={tx.queryPlaceholder}
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              style={inputStyle}
+              placeholder="https://www.youtube.com/watch?v=..."
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              style={slotStyle}
               disabled={running}
             />
           </div>
-        ) : (
-          <div>
-            <label htmlFor="count" style={labelStyle}>
-              {tx.countLabel}
-            </label>
-            <input
-              id="count"
-              type="number"
-              min={1}
-              max={8}
-              value={bestCount}
-              onChange={(e) => setBestCount(Number(e.target.value))}
-              style={{ ...inputStyle, maxWidth: 120 }}
-              disabled={running}
-            />
+
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button type="button" onClick={() => setMode('best')} disabled={running} style={modeBtn(mode === 'best', running)}>
+              {tx.modeBest}
+            </button>
+            <button type="button" onClick={() => setMode('query')} disabled={running} style={modeBtn(mode === 'query', running)}>
+              {tx.modeQuery}
+            </button>
           </div>
-        )}
 
-        <button
-          type="submit"
-          disabled={running || !url.trim()}
-          style={{
-            justifySelf: 'start',
-            padding: '12px 22px',
-            borderRadius: 10,
-            border: 'none',
-            background: running ? 'rgba(255,253,248,0.18)' : '#00a99f',
-            color: running ? 'rgba(255,253,248,0.6)' : '#041010',
-            fontWeight: 600,
-            fontSize: '0.92rem',
-            cursor: running ? 'wait' : 'pointer',
-          }}
-        >
-          {running ? tx.running : tx.submit}
-        </button>
-      </form>
+          {mode === 'query' ? (
+            <div>
+              <label htmlFor="topic" style={{ display: 'block', fontFamily: mono, fontSize: '0.68rem', letterSpacing: '0.1em', color: 'rgba(255,253,248,0.45)', marginBottom: 8 }}>
+                {tx.queryLabel}
+              </label>
+              <input
+                id="topic"
+                type="text"
+                required
+                placeholder={tx.queryPlaceholder}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                style={slotStyle}
+                disabled={running}
+              />
+            </div>
+          ) : (
+            <div>
+              <label htmlFor="count" style={{ display: 'block', fontFamily: mono, fontSize: '0.68rem', letterSpacing: '0.1em', color: 'rgba(255,253,248,0.45)', marginBottom: 8 }}>
+                {tx.countLabel}
+              </label>
+              <input
+                id="count"
+                type="number"
+                min={1}
+                max={8}
+                value={bestCount}
+                onChange={(e) => setBestCount(Number(e.target.value))}
+                style={{ ...slotStyle, maxWidth: 96 }}
+                disabled={running}
+              />
+            </div>
+          )}
 
-      <p style={{ marginTop: 20, fontSize: '0.82rem', color: 'rgba(255,253,248,0.42)', maxWidth: 640 }}>
-        {tx.disclaimer}
-      </p>
+          <button type="submit" className="arcade-start-btn" disabled={running || !url.trim()}>
+            {running ? tx.running : tx.submit}
+          </button>
+        </form>
+
+        <p style={{ margin: '14px 0 0', fontFamily: mono, fontSize: '0.68rem', color: 'rgba(255,253,248,0.38)', lineHeight: 1.5 }}>
+          {tx.disclaimer}
+        </p>
+      </ArcadeCabinetFrame>
 
       {error ? (
         <p
@@ -266,84 +245,109 @@ export default function InklingClipTool() {
             marginTop: 24,
             padding: '12px 14px',
             borderRadius: 10,
-            background: 'rgba(180,40,40,0.18)',
-            border: '1px solid rgba(255,120,120,0.25)',
+            background: 'rgba(120,20,20,0.35)',
+            border: '2px solid rgba(255,80,80,0.35)',
             color: '#ffc9c9',
-            fontSize: '0.9rem',
+            fontFamily: mono,
+            fontSize: '0.82rem',
           }}
         >
-          {error}
+          {phaseLabel('error', tx.levelLabels)} — {error}
         </p>
       ) : null}
 
       {running && job ? (
-        <div style={{ marginTop: 32, maxWidth: 640 }}>
+        <div style={{ marginTop: 28, maxWidth: 720 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+            <span style={{ fontFamily: mono, fontSize: '0.72rem', color: '#00a99f', letterSpacing: '0.08em' }}>
+              {phaseLabel(phase, tx.levelLabels)}
+            </span>
+            <div className="arcade-wave" aria-hidden>
+              {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+                <span key={n} style={{ height: 8 + (n % 4) * 6 }} />
+              ))}
+            </div>
+          </div>
           <div
             style={{
-              height: 6,
-              borderRadius: 999,
-              background: 'rgba(255,253,248,0.08)',
+              height: 14,
+              borderRadius: 4,
+              background: 'rgba(0,0,0,0.45)',
+              border: '2px inset rgba(255,253,248,0.08)',
               overflow: 'hidden',
             }}
           >
             <div
               style={{
                 height: '100%',
-                width: `${Math.max(4, progress)}%`,
-                background: 'linear-gradient(90deg, #00a99f, #7fd4cc)',
-                transition: 'width 0.4s ease',
+                width: `${Math.max(6, progress)}%`,
+                background: 'linear-gradient(90deg, #008f86, #35d4c8, #00a99f)',
+                transition: 'width 0.45s ease',
+                boxShadow: '0 0 12px rgba(0,169,159,0.45)',
               }}
             />
           </div>
-          <p style={{ marginTop: 10, fontSize: '0.88rem', color: 'rgba(255,253,248,0.55)' }}>
-            {job.progress.message}
+          <p style={{ marginTop: 10, fontFamily: mono, fontSize: '0.78rem', color: 'rgba(255,253,248,0.5)' }}>
+            {tx.listening} · {job.progress.message}
           </p>
         </div>
       ) : null}
 
       {job?.status === 'done' && job.result ? (
-        <section style={{ marginTop: 40 }}>
-          <h2 style={{ fontSize: '1.15rem', fontWeight: 500, marginBottom: 8, color: '#fffdf8' }}>
-            {job.result.title}
-          </h2>
-          <p style={{ fontSize: '0.85rem', color: 'rgba(255,253,248,0.45)', marginBottom: 24 }}>
+        <section style={{ marginTop: 40, maxWidth: 720 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0, color: '#fffdf8' }}>
+              {tx.highScore}
+            </h2>
+            <span style={{ fontFamily: mono, fontSize: '0.72rem', color: 'rgba(255,253,248,0.4)' }}>
+              {job.result.title}
+            </span>
+          </div>
+          <p style={{ fontFamily: mono, fontSize: '0.72rem', color: 'rgba(255,253,248,0.42)', marginBottom: 20 }}>
             {tx.resultsHint}
           </p>
-          <div style={{ display: 'grid', gap: 16 }}>
-            {job.result.candidates.map((c) => (
+          <div style={{ display: 'grid', gap: 14 }}>
+            {job.result.candidates.map((c, i) => (
               <article
                 key={c.index}
+                className="arcade-score-card"
                 style={{
-                  padding: '18px 20px',
+                  padding: '16px 18px',
                   borderRadius: 12,
-                  border: '1px solid rgba(255,253,248,0.1)',
-                  background: 'rgba(255,253,248,0.03)',
+                  border: '2px solid rgba(255,253,248,0.1)',
+                  background: 'linear-gradient(180deg, rgba(255,253,248,0.05), rgba(255,253,248,0.02))',
+                  animationDelay: `${i * 0.08}s`,
                 }}
               >
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    gap: 12,
-                    flexWrap: 'wrap',
-                    marginBottom: 8,
-                  }}
-                >
-                  <h3 style={{ margin: 0, fontSize: '1rem', color: '#fffdf8' }}>{c.title}</h3>
-                  <span style={{ fontSize: '0.78rem', color: 'rgba(255,253,248,0.45)' }}>
-                    {c.startLabel} → {c.endLabel} ({c.durationLabel})
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
+                  <h3 style={{ margin: 0, fontSize: '0.98rem', color: '#fffdf8' }}>{c.title}</h3>
+                  <span
+                    style={{
+                      fontFamily: mono,
+                      fontSize: '0.72rem',
+                      color: '#c9872f',
+                      letterSpacing: '0.06em',
+                    }}
+                  >
+                    {tx.scoreLabel} {(c.score * 100).toFixed(0)}
                   </span>
                 </div>
-                <p style={{ margin: '0 0 14px', fontSize: '0.9rem', lineHeight: 1.55, color: 'rgba(255,253,248,0.62)' }}>
+                <p style={{ margin: '0 0 6px', fontFamily: mono, fontSize: '0.72rem', color: 'rgba(255,253,248,0.42)' }}>
+                  {c.startLabel} → {c.endLabel} · {c.durationLabel}
+                </p>
+                <p style={{ margin: '0 0 14px', fontSize: '0.88rem', lineHeight: 1.55, color: 'rgba(255,253,248,0.62)' }}>
                   {c.reason}
                 </p>
-                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <a
                     href={c.youtubeAt}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{
-                      fontSize: '0.8rem',
+                      fontFamily: mono,
+                      fontSize: '0.68rem',
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
                       padding: '8px 12px',
                       borderRadius: 8,
                       border: '1px solid rgba(255,253,248,0.16)',
@@ -356,11 +360,14 @@ export default function InklingClipTool() {
                   <a
                     href={c.downloadUrl}
                     style={{
-                      fontSize: '0.8rem',
+                      fontFamily: mono,
+                      fontSize: '0.68rem',
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
                       padding: '8px 12px',
                       borderRadius: 8,
-                      background: 'rgba(0,169,159,0.18)',
-                      border: '1px solid rgba(0,169,159,0.35)',
+                      background: 'rgba(0,169,159,0.2)',
+                      border: '1px solid rgba(0,169,159,0.4)',
                       color: '#b8fff8',
                       textDecoration: 'none',
                     }}
@@ -373,6 +380,6 @@ export default function InklingClipTool() {
           </div>
         </section>
       ) : null}
-    </ToolShell>
+    </ArcadeLayout>
   );
 }
