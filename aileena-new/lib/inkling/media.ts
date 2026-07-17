@@ -47,9 +47,11 @@ export function findSourceMedia(workDir: string): string {
 export function downloadYoutube(url: string, workDir: string): { title: string; sourcePath: string } {
   mkdirSync(workDir, { recursive: true });
   const template = join(workDir, 'source.%(ext)s');
-  const title = shellRun(`yt-dlp --print title --skip-download "${url}"`);
+  // Prefer Node as the EJS runtime when Deno is not installed (yt-dlp ≥ 2025).
+  const ytdlp = 'yt-dlp --js-runtimes node';
+  const title = shellRun(`${ytdlp} --print title --skip-download "${url}"`);
   shellRunInherit(
-    `yt-dlp -f "bv*+ba/b" --merge-output-format mp4 -o "${template}" "${url}"`,
+    `${ytdlp} -f "bv*+ba/b" --merge-output-format mp4 -o "${template}" "${url}"`,
   );
   const sourcePath = findSourceMedia(workDir);
   writeFileSync(

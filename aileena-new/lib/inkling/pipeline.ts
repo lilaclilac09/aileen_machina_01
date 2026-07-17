@@ -104,7 +104,8 @@ async function proposeForBatch(
   try {
     return parseCandidatesResponse(text);
   } catch (firstErr) {
-    const retryPrompt = `${text}\n\nYour previous reply was not valid JSON. Reply with ONLY the corrected JSON object, no prose.`;
+    const retryPrompt =
+      'Fix JSON only. Reply with a single JSON object of the form {"candidates":[{"title":"...","start_s":0,"end_s":1,"reason":"...","score":0.5}]} — no prose, no markdown.';
     text = await chatWithAudio(cfg, retryPrompt, batch.wavPath);
     try {
       return parseCandidatesResponse(text);
@@ -148,7 +149,8 @@ async function correctCandidate(
   try {
     parsed = parseCandidatesResponse(text);
   } catch (firstErr) {
-    const retryPrompt = `${text}\n\nYour previous reply was not valid JSON. Reply with ONLY the corrected JSON object, no prose.`;
+    const retryPrompt =
+      'Fix JSON only. Reply with a single JSON object of the form {"candidates":[{"title":"...","start_s":0,"end_s":1,"reason":"...","score":0.5}]} — no prose, no markdown.';
     text = await chatWithAudio(cfg, retryPrompt, windowPath);
     try {
       parsed = parseCandidatesResponse(text);

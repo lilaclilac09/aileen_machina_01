@@ -115,6 +115,12 @@ pnpm inkling:clips -- 'https://www.youtube.com/watch?v=jNQXAC9IVRw' --best 2 --d
 
 Inspect `data/inkling-clips/jNQXAC9IVRw/candidates.json`, then drop `--dry-run` to render clips.
 
+Without an API key the CLI exits immediately after checking `yt-dlp`/`ffmpeg` (no download). Helper smoke (batch math + JSON parse, no network):
+
+```bash
+pnpm exec tsx scripts/smoke-inkling-helpers.ts
+```
+
 ## Notes
 
 - Inkling audio input: WAV 16 kHz; keep batches under ~20 minutes for best results.

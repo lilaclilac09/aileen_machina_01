@@ -8,6 +8,7 @@
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { USAGE } from '../lib/inkling/clips';
+import { getInklingConfig } from '../lib/inkling/client';
 import { checkMediaDeps } from '../lib/inkling/media';
 import { defaultWorkDir, runInklingClipPipeline } from '../lib/inkling/pipeline';
 
@@ -115,6 +116,8 @@ async function main(): Promise<void> {
   }
 
   checkMediaDeps();
+  // Fail loud on missing key before any expensive download/split work.
+  getInklingConfig();
 
   const workDir = opts.workDir ?? defaultWorkDir(ROOT, opts.url);
   const result = await runInklingClipPipeline({
