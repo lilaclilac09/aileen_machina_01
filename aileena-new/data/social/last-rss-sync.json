@@ -1,0 +1,16 @@
+{
+  "ranAt": "2026-07-17T09:11:14.990Z",
+  "nitterBases": [
+    "https://nitter.net"
+  ],
+  "dry": true,
+  "accounts": [
+    {
+      "screenName": "aaronburnett",
+      "rssCount": 18,
+      "missing": [],
+      "ingested": [],
+      "failed": []
+    }
+  ]
+}
