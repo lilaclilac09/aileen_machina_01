@@ -41,7 +41,7 @@ Reference implementation: **Clip Quest** (`inkling-clips`) — `components/tools
 
 | slug | title | idea |
 |------|-------|------|
-| `chip-guess` | Chip Guess | Guess SKU from partial specs; data: `data/skus.json` or `/api/v1/chips` |
+| ~~`chip-guess`~~ | Chip Guess | ✅ shipped — `/tools/chip-guess` |
 | `pricing-slot` | Pricing Slot | Slot-machine UI → show latest price for random SKU |
 | `dispatch-dash` | Dispatch Dash | Timed headline → article slug match |
 | `memory-match` | Memory Match | Flip cards: projects vs one-line descriptions |

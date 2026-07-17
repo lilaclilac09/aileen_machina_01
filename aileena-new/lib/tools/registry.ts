@@ -27,6 +27,20 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
       screenGradient: 'linear-gradient(180deg, #12352f 0%, #071816 55%, #020807 100%)',
     },
   },
+  {
+    slug: 'chip-guess',
+    tag: 'SEMIS · QUIZ',
+    title: 'Chip Guess',
+    body:
+      'Read the specs on the cabinet screen. Three lives. Name the SKU before the tape runs out.',
+    href: '/tools/chip-guess',
+    status: 'live',
+    arcade: {
+      glyph: '◈',
+      players: '1P',
+      screenGradient: 'linear-gradient(180deg, #1a2035 0%, #10141f 50%, #0a0c14 100%)',
+    },
+  },
 ];
 
 export function getToolBySlug(slug: string): ToolDefinition | undefined {

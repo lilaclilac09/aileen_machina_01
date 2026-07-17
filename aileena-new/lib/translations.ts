@@ -57,6 +57,12 @@ export const t = {
           body:
             'Drop a YouTube link. Inkling listens to the whole episode, picks highlights, ffmpeg cuts the tape.',
         },
+        'chip-guess': {
+          tag: 'SEMIS · QUIZ',
+          title: 'Chip Guess',
+          body:
+            'Read the specs on the cabinet screen. Three lives. Name the SKU before the tape runs out.',
+        },
       },
       inklingClips: {
         tag: 'CLIP QUEST',
@@ -94,6 +100,33 @@ export const t = {
           startFailed: 'Could not start — check the URL.',
           pollFailed: 'Lost signal.',
           jobFailed: 'Run failed.',
+          network: 'Network glitch. Try again.',
+        },
+      },
+      chipGuess: {
+        tag: 'CHIP GUESS',
+        heading: 'Chip Guess',
+        body:
+          'A semis quiz cabinet. Specs flash on the CRT — pick the SKU in three tries. Streaks pay out.',
+        backToTools: '← Arcade',
+        marquee: 'CHIP GUESS · SPECS IN · SKU OUT · THREE LIVES · STREAK BONUS · FREE PLAY',
+        howto:
+          'You get five clues (process, memory, TDP…). Four choices. Wrong pick burns a life. First try = 100 pts.',
+        submit: 'Press start',
+        loading: 'Loading chip catalogue…',
+        cluesTitle: 'CLUES',
+        lives: 'LIVES',
+        streak: 'STREAK',
+        best: 'BEST',
+        scoreLabel: 'SCORE',
+        win: 'CORRECT',
+        lose: 'GAME OVER',
+        nextRound: 'Next round',
+        tryAgain: 'Continue',
+        disclaimer: 'Uses the public chip catalogue on this site. Sample SKUs until the real list lands.',
+        errors: {
+          load: 'Could not load chips.',
+          empty: 'No chips in catalogue.',
           network: 'Network glitch. Try again.',
         },
       },
@@ -604,6 +637,12 @@ export const t = {
           body:
             'YouTube-Link rein. Inkling hört die ganze Episode, findet Highlights, ffmpeg schneidet das Tape.',
         },
+        'chip-guess': {
+          tag: 'SEMIS · QUIZ',
+          title: 'Chip Guess',
+          body:
+            'Lies die Specs auf dem Schirm. Drei Leben. Nenne die SKU, bevor das Tape endet.',
+        },
       },
       inklingClips: {
         tag: 'CLIP QUEST',
@@ -641,6 +680,33 @@ export const t = {
           startFailed: 'Start fehlgeschlagen — URL prüfen.',
           pollFailed: 'Signal verloren.',
           jobFailed: 'Run fehlgeschlagen.',
+          network: 'Netzwerkfehler. Erneut versuchen.',
+        },
+      },
+      chipGuess: {
+        tag: 'CHIP GUESS',
+        heading: 'Chip Guess',
+        body:
+          'Ein Semis-Quiz-Automat. Specs auf dem CRT — SKU in drei Versuchen. Streaks zählen.',
+        backToTools: '← Arcade',
+        marquee: 'CHIP GUESS · SPECS REIN · SKU RAUS · DREI LEBEN · STREAK · GRATIS',
+        howto:
+          'Fünf Hinweise (Prozess, Speicher, TDP…). Vier Optionen. Falsch kostet ein Leben. Erster Treffer = 100 Pkt.',
+        submit: 'Start drücken',
+        loading: 'Chip-Katalog lädt…',
+        cluesTitle: 'HINWEISE',
+        lives: 'LEBEN',
+        streak: 'STREAK',
+        best: 'BEST',
+        scoreLabel: 'SCORE',
+        win: 'RICHTIG',
+        lose: 'GAME OVER',
+        nextRound: 'Nächste Runde',
+        tryAgain: 'Weiter',
+        disclaimer: 'Nutzt den öffentlichen Chip-Katalog dieser Site. Sample-SKUs, bis die echte Liste kommt.',
+        errors: {
+          load: 'Chips konnten nicht geladen werden.',
+          empty: 'Kein Chip im Katalog.',
           network: 'Netzwerkfehler. Erneut versuchen.',
         },
       },

@@ -175,6 +175,7 @@ When shipping a game, add a one-line entry under **Shipped cabinets** below and 
 | Slug | Route | Doc |
 |------|-------|-----|
 | `inkling-clips` | `/tools/inkling-clips` | [INKLING_CLIPS.md](./INKLING_CLIPS.md) |
+| `chip-guess` | `/tools/chip-guess` | Client quiz over `/api/v1/chips` |
 
 ---
 
@@ -184,14 +185,10 @@ Ideas that fit the site data + arcade vibe. Pick one, run the checklist above.
 
 | Slug (proposed) | Working title | Hook | Data / API |
 |-----------------|---------------|------|------------|
-| `chip-guess` | **Chip Guess** | Blurred specs → pick the SKU in 3 tries | `data/skus.json` + `/api/v1/chips` — client-only possible |
+| ~~`chip-guess`~~ | **Chip Guess** | ✅ Shipped — blurred specs → pick the SKU in 3 tries | `data/skus.json` + `/api/v1/chips` |
 | `pricing-slot` | **Pricing Slot** | Spin three reels → random SKU + date → show latest price | `lib/data/pricing.ts` or `/api/v1/pricing/[sku]/latest` |
 | `dispatch-dash` | **Dispatch Dash** | 60s: match headline to correct blog slug | `lib/agentArticleIndex.json` at build time |
 | `memory-match` | **Memory Match** | Flip cards — Aileen projects vs descriptions | Static from `lib/translations.ts` / `pow` items |
-
-**Chip Guess** — lowest lift: read SKUs client-side or fetch `/api/v1/chips`, show 4 multiple-choice answers, arcade score for streak.
-
-**Pricing Slot** — strong visual: three `JetBrains Mono` reels, `arcade-reveal` on stop, uses existing public pricing API.
 
 ---
 
