@@ -57,11 +57,23 @@ export const t = {
           body:
             'Drop a YouTube link. Inkling listens to the whole episode, picks highlights, ffmpeg cuts the tape.',
         },
+        'feed-flash': {
+          tag: 'RSS · QUIZ',
+          title: 'Feed Flash',
+          body:
+            'Live headlines from the listening shelf — SemiAnalysis vs Asymmetrical Bets. Guess the source.',
+        },
         'chip-guess': {
           tag: 'SEMIS · QUIZ',
           title: 'Chip Guess',
           body:
             'Read the specs on the cabinet screen. Three lives. Name the SKU before the tape runs out.',
+        },
+        'pricing-slot': {
+          tag: 'DATA · SLOT',
+          title: 'Pricing Slot',
+          body:
+            'Spin the reels on the tracked SKU catalogue. Latest per-chip price from data/pricing.jsonl.',
         },
       },
       inklingClips: {
@@ -123,10 +135,59 @@ export const t = {
         lose: 'GAME OVER',
         nextRound: 'Next round',
         tryAgain: 'Continue',
-        disclaimer: 'Uses the public chip catalogue on this site. Sample SKUs until the real list lands.',
+        disclaimer: 'Uses the public chip catalogue on this site (data/skus.json via /api/v1/chips). Sample SKUs until the real list lands — expand data/, do not invent a parallel quiz bank.',
         errors: {
           load: 'Could not load chips.',
           empty: 'No chips in catalogue.',
+          network: 'Network glitch. Try again.',
+        },
+      },
+      feedFlash: {
+        tag: 'FEED FLASH',
+        heading: 'Feed Flash',
+        body:
+          'Headlines from the listening shelf RSS — SemiAnalysis and Asymmetrical Bets. Guess which desk wrote it.',
+        backToTools: '← Arcade',
+        marquee: 'FEED FLASH · LIVE RSS · SEMIANALYSIS · ASYMMETRICAL BETS · STREAK · FREE PLAY',
+        howto:
+          'A title (+ teaser) lands from a real feed. Pick the source. Right answer = +100. Wrong answer resets the streak.',
+        submit: 'Press start',
+        loading: 'Pulling listening-shelf feeds…',
+        headlineLabel: 'HEADLINE',
+        streak: 'STREAK',
+        best: 'BEST',
+        scoreLabel: 'SCORE',
+        win: 'CORRECT',
+        lose: 'WRONG DESK',
+        nextRound: 'Next headline',
+        readSource: 'Open article',
+        disclaimer:
+          'Sources: semianalysis.com/feed + asymmetricalbets.substack.com/feed — same shelf as the homepage.',
+        errors: {
+          load: 'Could not load RSS feeds.',
+          empty: 'No headlines in cache.',
+          network: 'Network glitch. Try again.',
+        },
+      },
+      pricingSlot: {
+        tag: 'PRICING SLOT',
+        heading: 'Pricing Slot',
+        body:
+          'Three reels, one SKU from data/skus.json, latest per-chip print from data/pricing.jsonl via /api/v1/pricing.',
+        backToTools: '← Arcade',
+        marquee: 'PRICING SLOT · DATA/SKUS · DATA/PRICING · SPIN · FREE PLAY',
+        howto: 'Press start to spin. Reels settle on a tracked SKU, then we pull the latest observed price.',
+        submit: 'Spin',
+        spinning: 'Spinning…',
+        loading: 'Loading chip catalogue…',
+        spins: 'SPINS',
+        jackpot: 'LATEST PRINT',
+        asOf: 'as of',
+        disclaimer:
+          'Prices are whatever is in data/pricing.jsonl (sample rows until Aileen replaces them). No live broker feed.',
+        errors: {
+          load: 'Could not load chips.',
+          noPrice: 'No per-chip price for this SKU yet.',
           network: 'Network glitch. Try again.',
         },
       },
@@ -637,11 +698,23 @@ export const t = {
           body:
             'YouTube-Link rein. Inkling hört die ganze Episode, findet Highlights, ffmpeg schneidet das Tape.',
         },
+        'feed-flash': {
+          tag: 'RSS · QUIZ',
+          title: 'Feed Flash',
+          body:
+            'Live-Headlines vom Listening Shelf — SemiAnalysis vs Asymmetrical Bets. Quelle erraten.',
+        },
         'chip-guess': {
           tag: 'SEMIS · QUIZ',
           title: 'Chip Guess',
           body:
             'Lies die Specs auf dem Schirm. Drei Leben. Nenne die SKU, bevor das Tape endet.',
+        },
+        'pricing-slot': {
+          tag: 'DATA · SLOT',
+          title: 'Pricing Slot',
+          body:
+            'Drehe die Walzen am SKU-Katalog. Neuester per-chip Preis aus data/pricing.jsonl.',
         },
       },
       inklingClips: {
@@ -703,10 +776,59 @@ export const t = {
         lose: 'GAME OVER',
         nextRound: 'Nächste Runde',
         tryAgain: 'Weiter',
-        disclaimer: 'Nutzt den öffentlichen Chip-Katalog dieser Site. Sample-SKUs, bis die echte Liste kommt.',
+        disclaimer: 'Nutzt den öffentlichen Chip-Katalog dieser Site (data/skus.json via /api/v1/chips). Sample-SKUs, bis die echte Liste kommt — data/ erweitern, kein paralleles Quiz inventieren.',
         errors: {
           load: 'Chips konnten nicht geladen werden.',
           empty: 'Kein Chip im Katalog.',
+          network: 'Netzwerkfehler. Erneut versuchen.',
+        },
+      },
+      feedFlash: {
+        tag: 'FEED FLASH',
+        heading: 'Feed Flash',
+        body:
+          'Headlines vom Listening-Shelf-RSS — SemiAnalysis und Asymmetrical Bets. Rate, welche Desk geschrieben hat.',
+        backToTools: '← Arcade',
+        marquee: 'FEED FLASH · LIVE RSS · SEMIANALYSIS · ASYMMETRICAL BETS · STREAK · GRATIS',
+        howto:
+          'Ein Titel (+ Teaser) kommt aus einem echten Feed. Quelle wählen. Richtig = +100. Falsch setzt den Streak zurück.',
+        submit: 'Start drücken',
+        loading: 'Listening-Shelf-Feeds laden…',
+        headlineLabel: 'HEADLINE',
+        streak: 'STREAK',
+        best: 'BEST',
+        scoreLabel: 'SCORE',
+        win: 'RICHTIG',
+        lose: 'FALSCHE DESK',
+        nextRound: 'Nächste Headline',
+        readSource: 'Artikel öffnen',
+        disclaimer:
+          'Quellen: semianalysis.com/feed + asymmetricalbets.substack.com/feed — dasselbe Shelf wie die Homepage.',
+        errors: {
+          load: 'RSS-Feeds konnten nicht geladen werden.',
+          empty: 'Keine Headlines im Cache.',
+          network: 'Netzwerkfehler. Erneut versuchen.',
+        },
+      },
+      pricingSlot: {
+        tag: 'PRICING SLOT',
+        heading: 'Pricing Slot',
+        body:
+          'Drei Walzen, eine SKU aus data/skus.json, neuester per-chip Preis aus data/pricing.jsonl via /api/v1/pricing.',
+        backToTools: '← Arcade',
+        marquee: 'PRICING SLOT · DATA/SKUS · DATA/PRICING · DREHEN · GRATIS',
+        howto: 'Start drücken. Walzen landen auf einer getrackten SKU, dann holen wir den letzten Preis.',
+        submit: 'Drehen',
+        spinning: 'Dreht…',
+        loading: 'Chip-Katalog lädt…',
+        spins: 'DREHUNGEN',
+        jackpot: 'LETZTER PRINT',
+        asOf: 'Stand',
+        disclaimer:
+          'Preise kommen aus data/pricing.jsonl (Sample-Zeilen, bis Aileen sie ersetzt). Kein Live-Broker-Feed.',
+        errors: {
+          load: 'Chips konnten nicht geladen werden.',
+          noPrice: 'Noch kein per-chip Preis für diese SKU.',
           network: 'Netzwerkfehler. Erneut versuchen.',
         },
       },

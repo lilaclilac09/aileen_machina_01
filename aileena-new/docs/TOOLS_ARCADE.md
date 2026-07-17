@@ -170,25 +170,43 @@ When shipping a game, add a one-line entry under **Shipped cabinets** below and 
 
 ---
 
+## Data & RSS rule (non-negotiable)
+
+Arcade games must consume **existing site corpora**, not invented catalogues:
+
+| Source | Path / URL | Used by |
+|--------|------------|---------|
+| Chip specs | `data/skus.json` → `/api/v1/chips` | Chip Guess, Pricing Slot |
+| Prices | `data/pricing.jsonl` → `/api/v1/pricing/{sku}/latest` | Pricing Slot |
+| News trackers | `data/news.jsonl` → `/api/v1/news` | (backlog) |
+| Listening shelf RSS | SemiAnalysis + Asymmetrical Bets | Feed Flash via `/api/tools/feeds` |
+
+Feed URLs (same as homepage / watch-listening-shelf):
+
+- `https://www.semianalysis.com/feed/`
+- `https://asymmetricalbets.substack.com/feed`
+
 ## Shipped cabinets
 
-| Slug | Route | Doc |
-|------|-------|-----|
-| `inkling-clips` | `/tools/inkling-clips` | [INKLING_CLIPS.md](./INKLING_CLIPS.md) |
-| `chip-guess` | `/tools/chip-guess` | Client quiz over `/api/v1/chips` |
+| Slug | Route | Data |
+|------|-------|------|
+| `inkling-clips` | `/tools/inkling-clips` | YouTube + Inkling API ([INKLING_CLIPS.md](./INKLING_CLIPS.md)) |
+| `feed-flash` | `/tools/feed-flash` | Live RSS via `/api/tools/feeds` |
+| `chip-guess` | `/tools/chip-guess` | `/api/v1/chips` (`data/skus.json` — still sample-thin) |
+| `pricing-slot` | `/tools/pricing-slot` | `/api/v1/chips` + `/api/v1/pricing/.../latest` |
 
 ---
 
 ## Backlog — candidate mini-games
 
-Ideas that fit the site data + arcade vibe. Pick one, run the checklist above.
-
 | Slug (proposed) | Working title | Hook | Data / API |
 |-----------------|---------------|------|------------|
-| ~~`chip-guess`~~ | **Chip Guess** | ✅ Shipped — blurred specs → pick the SKU in 3 tries | `data/skus.json` + `/api/v1/chips` |
-| `pricing-slot` | **Pricing Slot** | Spin three reels → random SKU + date → show latest price | `lib/data/pricing.ts` or `/api/v1/pricing/[sku]/latest` |
-| `dispatch-dash` | **Dispatch Dash** | 60s: match headline to correct blog slug | `lib/agentArticleIndex.json` at build time |
-| `memory-match` | **Memory Match** | Flip cards — Aileen projects vs descriptions | Static from `lib/translations.ts` / `pow` items |
+| ~~`feed-flash`~~ | **Feed Flash** | ✅ Shipped | `/api/tools/feeds` |
+| ~~`chip-guess`~~ | **Chip Guess** | ✅ Shipped — expand `data/skus.json` | `/api/v1/chips` |
+| ~~`pricing-slot`~~ | **Pricing Slot** | ✅ Shipped | `/api/v1/pricing` |
+| `news-ticker` | **News Ticker** | Match tracker → vendor | `/api/v1/news` |
+| `dispatch-dash` | **Dispatch Dash** | Headline → blog slug | `lib/agentArticleIndex.json` |
+| `memory-match` | **Memory Match** | Project ↔ description | `lib/translations.ts` / `pow` |
 
 ---
 

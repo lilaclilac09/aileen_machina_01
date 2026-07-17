@@ -37,12 +37,23 @@ Reference implementation: **Clip Quest** (`inkling-clips`) — `components/tools
 }
 ```
 
+## Data & RSS rule
+
+Mini-games **must** use site corpora:
+
+- `data/skus.json`, `data/pricing.jsonl`, `data/news.jsonl` via `/api/v1/*`
+- Listening-shelf RSS: SemiAnalysis + Asymmetrical Bets via `/api/tools/feeds` (`lib/tools/feeds.ts`)
+
+Do not invent parallel datasets. If the catalogue is sample-thin, say so in the disclaimer and expand `data/` instead.
+
 ## Backlog (Aileen / agent — pick when asked)
 
 | slug | title | idea |
 |------|-------|------|
+| ~~`feed-flash`~~ | Feed Flash | ✅ shipped — `/tools/feed-flash` |
 | ~~`chip-guess`~~ | Chip Guess | ✅ shipped — `/tools/chip-guess` |
-| `pricing-slot` | Pricing Slot | Slot-machine UI → show latest price for random SKU |
+| ~~`pricing-slot`~~ | Pricing Slot | ✅ shipped — `/tools/pricing-slot` |
+| `news-ticker` | News Ticker | Match `data/news.jsonl` title → vendor |
 | `dispatch-dash` | Dispatch Dash | Timed headline → article slug match |
 | `memory-match` | Memory Match | Flip cards: projects vs one-line descriptions |
 

@@ -28,6 +28,20 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     },
   },
   {
+    slug: 'feed-flash',
+    tag: 'RSS · QUIZ',
+    title: 'Feed Flash',
+    body:
+      'Live headlines from the listening shelf — SemiAnalysis vs Asymmetrical Bets. Guess the source.',
+    href: '/tools/feed-flash',
+    status: 'live',
+    arcade: {
+      glyph: '☰',
+      players: '1P',
+      screenGradient: 'linear-gradient(160deg, #f3efe6 0%, #ebe4d6 45%, #fffdf7 100%)',
+    },
+  },
+  {
     slug: 'chip-guess',
     tag: 'SEMIS · QUIZ',
     title: 'Chip Guess',
@@ -39,6 +53,20 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
       glyph: '◈',
       players: '1P',
       screenGradient: 'linear-gradient(160deg, #eef1f8 0%, #dde4f2 45%, #f4f1ea 100%)',
+    },
+  },
+  {
+    slug: 'pricing-slot',
+    tag: 'DATA · SLOT',
+    title: 'Pricing Slot',
+    body:
+      'Spin the reels on the tracked SKU catalogue. Latest per-chip price from data/pricing.jsonl.',
+    href: '/tools/pricing-slot',
+    status: 'live',
+    arcade: {
+      glyph: '$',
+      players: '1P',
+      screenGradient: 'linear-gradient(160deg, #f7f0e4 0%, #efe4d0 45%, #fffdf7 100%)',
     },
   },
 ];
