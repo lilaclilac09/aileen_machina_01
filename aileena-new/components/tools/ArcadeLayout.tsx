@@ -28,7 +28,7 @@ export default function ArcadeLayout({
   children,
 }: ArcadeLayoutProps) {
   const marqueeText =
-    marquee ?? 'TOOLS · AUDIO CLIPPING · RSS · CHIPS · PRICING · SAME STACK AS THE SITE';
+    marquee ?? 'TOOLS · AUDIO CLIPPING · MORE TBC';
 
   return (
     <div className="arcade-root" style={{ fontFamily: nunito }}>

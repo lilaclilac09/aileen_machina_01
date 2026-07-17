@@ -4,7 +4,7 @@ export type ToolDefinition = {
   title: string;
   body: string;
   href: string;
-  status: 'live' | 'beta';
+  status: 'live' | 'beta' | 'tbc';
   arcade: {
     glyph: string;
     /** Flat fill for the geometric block (no border chrome). */
@@ -30,10 +30,9 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     slug: 'feed-flash',
     tag: 'RSS',
     title: 'Feed Flash',
-    body:
-      'Live headlines from the listening shelf — SemiAnalysis vs Asymmetrical Bets. Guess the desk.',
+    body: 'TBC',
     href: '/tools/feed-flash',
-    status: 'live',
+    status: 'tbc',
     arcade: {
       glyph: '☰',
       screenGradient: '#ebe6db',
@@ -43,9 +42,9 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     slug: 'chip-guess',
     tag: 'SEMIS',
     title: 'Chip Guess',
-    body: 'Specs from the chip catalogue. Three tries to name the SKU.',
+    body: 'TBC',
     href: '/tools/chip-guess',
-    status: 'live',
+    status: 'tbc',
     arcade: {
       glyph: '◇',
       screenGradient: '#e4e8f0',
@@ -55,9 +54,9 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     slug: 'pricing-slot',
     tag: 'DATA',
     title: 'Pricing Lookup',
-    body: 'Pick a tracked SKU and read the latest per-chip price from data/pricing.jsonl.',
+    body: 'TBC',
     href: '/tools/pricing-slot',
-    status: 'live',
+    status: 'tbc',
     arcade: {
       glyph: '▢',
       screenGradient: '#efe6d6',

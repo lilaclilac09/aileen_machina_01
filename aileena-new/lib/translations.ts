@@ -40,16 +40,17 @@ export const t = {
     tools: {
       tag: 'TOOLS',
       heading: 'Tools',
-      body: 'Small utilities on the same stack — audio clipping, RSS, chips, pricing. Rate-limited where needed.',
-      marquee: 'TOOLS · AUDIO CLIPPING · RSS · CHIPS · PRICING · SAME STACK AS THE SITE',
+      body: 'Small utilities on the same stack. Audio clipping is live; the rest are TBC.',
+      marquee: 'TOOLS · AUDIO CLIPPING · MORE TBC',
       pressStart: 'Start',
       creditsLabel: 'TOOLS',
       creditsHint: '',
       gameCount: 'tools',
-      toolCount: 'tools',
-      comingSoonTitle: 'More soon',
+      toolCount: 'live',
+      comingSoonTitle: 'TBC',
       comingSoonBody: '',
       openTool: 'Open',
+      tbc: 'TBC',
       items: {
         'inkling-clips': {
           tag: 'AUDIO',
@@ -60,18 +61,17 @@ export const t = {
         'feed-flash': {
           tag: 'RSS',
           title: 'Feed Flash',
-          body:
-            'Live headlines from the listening shelf — SemiAnalysis vs Asymmetrical Bets. Guess the desk.',
+          body: 'TBC',
         },
         'chip-guess': {
           tag: 'SEMIS',
           title: 'Chip Guess',
-          body: 'Specs from the chip catalogue. Three tries to name the SKU.',
+          body: 'TBC',
         },
         'pricing-slot': {
           tag: 'DATA',
           title: 'Pricing Lookup',
-          body: 'Tracked SKUs and latest per-chip price from data/pricing.jsonl.',
+          body: 'TBC',
         },
       },
       inklingClips: {
@@ -677,16 +677,17 @@ export const t = {
     tools: {
       tag: 'TOOLS',
       heading: 'Tools',
-      body: 'Kleine Utilities auf demselben Stack — Audio Clipping, RSS, Chips, Pricing. Rate-limited wo nötig.',
-      marquee: 'TOOLS · AUDIO CLIPPING · RSS · CHIPS · PRICING · GLEICHER STACK',
+      body: 'Kleine Utilities auf demselben Stack. Audio Clipping ist live; der Rest ist TBC.',
+      marquee: 'TOOLS · AUDIO CLIPPING · MEHR TBC',
       pressStart: 'Start',
       creditsLabel: 'TOOLS',
       creditsHint: '',
       gameCount: 'Tools',
-      toolCount: 'Tools',
-      comingSoonTitle: 'Mehr folgt',
+      toolCount: 'live',
+      comingSoonTitle: 'TBC',
       comingSoonBody: '',
       openTool: 'Öffnen',
+      tbc: 'TBC',
       items: {
         'inkling-clips': {
           tag: 'AUDIO',
@@ -697,18 +698,17 @@ export const t = {
         'feed-flash': {
           tag: 'RSS',
           title: 'Feed Flash',
-          body:
-            'Live-Headlines vom Listening Shelf — SemiAnalysis vs Asymmetrical Bets. Desk erraten.',
+          body: 'TBC',
         },
         'chip-guess': {
           tag: 'SEMIS',
           title: 'Chip Guess',
-          body: 'Specs aus dem Chip-Katalog. Drei Versuche, die SKU zu nennen.',
+          body: 'TBC',
         },
         'pricing-slot': {
           tag: 'DATA',
           title: 'Pricing Lookup',
-          body: 'Getrackte SKUs und neuester per-chip Preis aus data/pricing.jsonl.',
+          body: 'TBC',
         },
       },
       inklingClips: {
