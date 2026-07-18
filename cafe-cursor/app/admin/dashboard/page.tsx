@@ -240,6 +240,17 @@ export default function AdminDashboard() {
       </header>
 
       <div className="relative mx-auto max-w-7xl px-4 py-6">
+        {(data?.stats.totalEligible ?? 0) < 50 && (
+          <div className="mb-6 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+            <p className="font-medium">还没有导入 Luma 参加者名单</p>
+            <p className="mt-1 text-amber-200/90">
+              请点右侧「导入 Luma CSV」，上传 Luma 导出的嘉宾表；弹窗选「取消」= 导入全部已批准报名（约 500+ 人）。
+              同时在 Vercel 把 <code className="text-amber-50">REDEEM_MODE</code> 设为{" "}
+              <code className="text-amber-50">allowlist</code>（不要用 open），否则任何人输签到码都能领。
+            </p>
+          </div>
+        )}
+
         <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
           <StatCard
             label="学分总数"
