@@ -2,9 +2,12 @@
  * Event runtime config for IRL Cafe Cursor redeem.
  *
  * REDEEM_MODE:
- * - open: any unique email can claim once after EVENT_CHECKIN_CODE (if set)
- * - allowlist: only EligibleUser emails (import Luma guest CSV — no Luma Plus)
- * - luma: Luma API checked-in only (needs Luma Plus + LUMA_API_KEY)
+ * - allowlist (default): only EligibleUser emails from Luma guest CSV
+ * - open_walkup: any email + EVENT_CHECKIN_CODE (legacy door-code mode)
+ * - luma: Luma API checked-in only (needs Luma Plus)
+ *
+ * Note: plain "open" is treated as allowlist for Cafe Cursor Shanghai so
+ * Vercel env left on open still enforces the guest list after CSV sync.
  */
 
 import { isLumaConfigured } from "@/lib/luma";
@@ -12,9 +15,13 @@ import { isLumaConfigured } from "@/lib/luma";
 export type RedeemMode = "allowlist" | "open" | "luma";
 
 export function getRedeemMode(): RedeemMode {
-  const mode = (process.env.REDEEM_MODE || "allowlist").toLowerCase();
-  if (mode === "open") return "open";
+  const mode = (process.env.REDEEM_MODE || "allowlist").toLowerCase().trim();
   if (mode === "luma") return "luma";
+  // Explicit walk-up / door-code mode
+  if (mode === "open_walkup" || mode === "walkup") return "open";
+  // "open" historically meant door-code walk-up; for this event we enforce allowlist
+  // unless OPEN_WALKUP=1 is set.
+  if (mode === "open" && process.env.OPEN_WALKUP === "1") return "open";
   return "allowlist";
 }
 
@@ -24,7 +31,6 @@ export function isLumaRedeemMode(): boolean {
 }
 
 export function getEventCheckinCode(): string | null {
-  // allowlist / luma: email gate only — no shared door code
   const mode = getRedeemMode();
   if (mode === "allowlist" || isLumaRedeemMode()) return null;
 

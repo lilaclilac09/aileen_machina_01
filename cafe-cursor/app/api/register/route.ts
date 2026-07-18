@@ -12,6 +12,7 @@ import {
 } from "@/lib/event-config";
 import { ensureCreditsSynced } from "@/lib/google-sheets";
 import { ensureLumaCheckedInUser, isLumaConfigured } from "@/lib/luma";
+import { ensureBundledLumaGuestsImported } from "@/lib/luma-csv";
 
 /**
  * POST /api/register
@@ -63,6 +64,8 @@ export async function POST(request: NextRequest) {
 
     // Pull credits from Google Sheet if the pool is empty
     await ensureCreditsSynced();
+    // Auto-import bundled Luma guest CSV (534 approved) if not yet loaded
+    await ensureBundledLumaGuestsImported();
 
     // Luma mode: sync checked-in guests, then require email on that list
     if (lumaMode) {
@@ -263,6 +266,8 @@ export async function GET() {
   try {
     // Auto-import from Google Sheet when pool is empty
     await ensureCreditsSynced();
+    // Auto-import bundled Luma guest CSV if allowlist is empty
+    await ensureBundledLumaGuestsImported();
 
     const [availableReal, totalEligible, claimed] = await Promise.all([
       prisma.credit.count({ where: { isUsed: false, isTest: false } }),

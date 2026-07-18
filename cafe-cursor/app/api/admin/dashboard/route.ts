@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isAuthenticated } from "@/lib/auth";
+import { ensureBundledLumaGuestsImported } from "@/lib/luma-csv";
 
 /**
- * GET /api/admin/dashboard - Obtener datos del dashboard
+ * GET /api/admin/dashboard — admin stats + lists
  */
 export async function GET(request: NextRequest) {
   try {
-    // Verificar autenticación
     const authenticated = await isAuthenticated();
     if (!authenticated) {
       return NextResponse.json(
@@ -16,7 +16,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Obtener estadísticas
+    // Ensure Luma guest CSV is loaded into EligibleUser
+    await ensureBundledLumaGuestsImported();
+
     const [
       totalCredits,
       usedCredits,
@@ -33,7 +35,6 @@ export async function GET(request: NextRequest) {
       prisma.eligibleUser.count({ where: { approvalStatus: "approved" } }),
     ]);
 
-    // All credits (sheet has ~150; do not hard-cap the admin list)
     const credits = await prisma.credit.findMany({
       orderBy: [
         { isUsed: "desc" },
@@ -42,7 +43,6 @@ export async function GET(request: NextRequest) {
       ],
     });
 
-    // Eligible / walk-up users with assigned credits
     const eligibleUsers = await prisma.eligibleUser.findMany({
       orderBy: [
         { hasClaimed: "desc" },
