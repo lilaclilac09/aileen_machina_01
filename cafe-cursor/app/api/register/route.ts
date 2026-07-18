@@ -155,7 +155,8 @@ export async function POST(request: NextRequest) {
       `✅ [REGISTER] Assigned: ${normalizedEmail} -> ${availableCredit.code}`
     );
 
-    sendCreditEmail({
+    // Auto-email the credit link right after IRL redeem / check-in claim
+    const emailResult = await sendCreditEmail({
       to: normalizedEmail,
       name: result.name,
       creditLink: availableCredit.link,
@@ -163,9 +164,14 @@ export async function POST(request: NextRequest) {
       company: result.company || undefined,
       isTest: isTestUser,
       locale,
-    }).catch((err) => {
-      console.error(`⚠️ [REGISTER] Email error (non-blocking):`, err);
     });
+
+    if (!emailResult.success) {
+      console.error(
+        `⚠️ [REGISTER] Email failed for ${normalizedEmail}:`,
+        emailResult.error
+      );
+    }
 
     return NextResponse.json(
       {
@@ -178,7 +184,8 @@ export async function POST(request: NextRequest) {
           email: result.email,
           company: result.company,
         },
-        emailSent: true,
+        emailSent: emailResult.success,
+        emailError: emailResult.success ? undefined : emailResult.error,
       },
       { status: 201 }
     );

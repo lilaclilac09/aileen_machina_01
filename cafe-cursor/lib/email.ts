@@ -2,11 +2,18 @@ import { Resend } from "resend";
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 
+function looksLikeRealResendKey(key: string): boolean {
+  const value = key.trim().replace(/^["']|["']$/g, "");
+  if (!value.startsWith("re_")) return false;
+  if (/placeholder|your_api|xxx|changeme/i.test(value)) return false;
+  return value.length >= 20;
+}
+
 // Load API key from environment or .env file
 function getResendApiKey(): string | null {
   // First try from process.env (works in production)
-  if (process.env.RESEND_API_KEY) {
-    return process.env.RESEND_API_KEY;
+  if (process.env.RESEND_API_KEY && looksLikeRealResendKey(process.env.RESEND_API_KEY)) {
+    return process.env.RESEND_API_KEY.trim();
   }
   
   // Fallback: read directly from .env file (development)
@@ -14,8 +21,8 @@ function getResendApiKey(): string | null {
   if (existsSync(envPath)) {
     const envContent = readFileSync(envPath, "utf-8");
     const match = envContent.match(/RESEND_API_KEY=(.+)/);
-    if (match && match[1]) {
-      return match[1].trim();
+    if (match && match[1] && looksLikeRealResendKey(match[1])) {
+      return match[1].trim().replace(/^["']|["']$/g, "");
     }
   }
   
@@ -76,8 +83,8 @@ export async function sendCreditEmail({
 
   try {
     const subject = locale === "pt-BR" 
-      ? "🎉 Seu crédito Cursor está aqui! - Cafe Cursor Floripa"
-      : "🎉 Your Cursor credit is here! - Cafe Cursor Floripa";
+      ? "🎉 Seu crédito Cursor está aqui! - Cafe Cursor"
+      : "🎉 Your Cursor credit is here! - Cafe Cursor Shanghai";
 
     const html = generateEmailHTML({
       name,
@@ -126,11 +133,11 @@ function generateEmailHTML({
   const texts = {
     greeting: isPtBR ? `Olá, ${name}!` : `Hello, ${name}!`,
     thanks: isPtBR 
-      ? "Obrigado por participar do Cafe Cursor Floripa!" 
-      : "Thank you for joining Cafe Cursor Floripa!",
+      ? "Obrigado por participar do Cafe Cursor!" 
+      : "Thank you for checking in at Cafe Cursor Shanghai!",
     intro: isPtBR
       ? "Estamos muito felizes em ter você na nossa comunidade. Aqui está seu crédito exclusivo do Cursor IDE:"
-      : "We're thrilled to have you in our community. Here's your exclusive Cursor IDE credit:",
+      : "Thanks for coming IRL. Here's your exclusive Cursor IDE credit:",
     yourCredit: isPtBR ? "Seu Crédito Cursor" : "Your Cursor Credit",
     code: isPtBR ? "Código" : "Code",
     useCredit: isPtBR ? "Usar Meu Crédito" : "Use My Credit",
@@ -151,8 +158,8 @@ function generateEmailHTML({
       ? "Dúvidas? Entre em contato com os organizadores do evento."
       : "Questions? Contact the event organizers.",
     footer: isPtBR
-      ? "Feito com ☕ por Chris & Alex - Cursor Ambassador Brasil"
-      : "Made with ☕ by Chris & Alex - Cursor Ambassador Brasil",
+      ? "Feito com ☕ por Aileen - Cafe Cursor Shanghai"
+      : "Made with ☕ by Aileen - Cafe Cursor Shanghai",
     companyLabel: isPtBR ? "Empresa" : "Company",
   };
 
@@ -192,7 +199,7 @@ function generateEmailHTML({
           <tr>
             <td align="center" style="padding-bottom: 32px;">
               <p style="margin: 0; font-size: 14px; color: #a3a3a3;">
-                Florianópolis, Brasil
+                Shanghai
               </p>
             </td>
           </tr>

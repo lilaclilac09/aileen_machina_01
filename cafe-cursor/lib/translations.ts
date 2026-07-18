@@ -126,6 +126,7 @@ export const translations = {
     
     // Email
     emailSent: "📧 We sent the credit to your email!",
+    emailNotSent: "📧 Email could not be sent right now — please save the link above.",
   },
 } as const;
 

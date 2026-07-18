@@ -13,6 +13,8 @@ interface RegisterResult {
   credit?: string;
   isExisting?: boolean;
   isTest?: boolean;
+  emailSent?: boolean;
+  emailError?: string;
   user?: {
     name: string;
     email: string;
