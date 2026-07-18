@@ -33,17 +33,16 @@ export async function GET(request: NextRequest) {
       prisma.eligibleUser.count({ where: { approvalStatus: "approved" } }),
     ]);
 
-    // Obtener créditos con usuarios asignados
+    // All credits (sheet has ~150; do not hard-cap the admin list)
     const credits = await prisma.credit.findMany({
       orderBy: [
         { isUsed: "desc" },
         { assignedAt: "desc" },
         { createdAt: "desc" },
       ],
-      take: 100,
     });
 
-    // Obtener usuarios elegibles con sus créditos
+    // Eligible / walk-up users with assigned credits
     const eligibleUsers = await prisma.eligibleUser.findMany({
       orderBy: [
         { hasClaimed: "desc" },
@@ -53,7 +52,6 @@ export async function GET(request: NextRequest) {
       include: {
         credit: true,
       },
-      take: 200,
     });
 
     return NextResponse.json({

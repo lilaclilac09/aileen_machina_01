@@ -247,7 +247,7 @@ export default function AdminDashboard() {
                   : "border border-gray-700 hover:bg-gray-800"
               }`}
             >
-              Users ({data?.eligibleUsers.length})
+              Users ({data?.stats.totalEligible ?? data?.eligibleUsers.length ?? 0})
             </button>
             <button
               onClick={() => setActiveTab("credits")}
@@ -257,7 +257,7 @@ export default function AdminDashboard() {
                   : "border border-gray-700 hover:bg-gray-800"
               }`}
             >
-              Credits ({data?.credits.length})
+              Credits ({data?.stats.totalCredits ?? data?.credits.length ?? 0})
             </button>
           </div>
 
