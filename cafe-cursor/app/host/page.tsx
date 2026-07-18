@@ -75,6 +75,9 @@ export default function HostPage() {
         <h1 className="mb-1 text-center text-3xl font-bold tracking-tight">
           Cafe Cursor Shanghai
         </h1>
+        <p className="mb-1 text-center text-xs text-gray-500">
+          cursor-cafe.aileena.xyz
+        </p>
         <p className="mb-8 text-center text-sm text-gray-600">
           Scan after check-in · code fills automatically
         </p>

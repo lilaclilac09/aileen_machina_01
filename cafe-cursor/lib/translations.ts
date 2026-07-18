@@ -63,6 +63,7 @@ export const translations = {
     
     // Email
     emailSent: "📧 Enviamos o crédito para seu email!",
+    emailNotSent: "📧 Não foi possível enviar o email agora — salve o link acima.",
   },
   "en": {
     // Header

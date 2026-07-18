@@ -223,10 +223,19 @@ export function RegisterForm() {
           {t("saveLink")}
         </p>
 
-        {/* Notificación de email */}
-        <div className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-[var(--success)]/20 bg-[var(--success)]/5 px-4 py-3">
-          <span className="text-sm text-[var(--success)]">{t("emailSent")}</span>
-        </div>
+        {/* Email delivery status (auto-sent after check-in redeem) */}
+        {result.emailSent ? (
+          <div className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-[var(--success)]/20 bg-[var(--success)]/5 px-4 py-3">
+            <span className="text-sm text-[var(--success)]">{t("emailSent")}</span>
+          </div>
+        ) : (
+          <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-center">
+            <p className="text-sm text-amber-700 dark:text-amber-300">
+              {t("emailNotSent")}
+            </p>
+            <p className="mt-1 text-xs text-muted">{t("saveLink")}</p>
+          </div>
+        )}
       </div>
     );
   }
