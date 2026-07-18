@@ -8,6 +8,7 @@ import {
   getEventCheckinCode,
   isCheckinCodeValid,
 } from "@/lib/event-config";
+import { ensureCreditsSynced } from "@/lib/google-sheets";
 
 /**
  * POST /api/register
@@ -40,6 +41,9 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       );
     }
+
+    // Pull credits from Google Sheet if the pool is empty
+    await ensureCreditsSynced();
 
     let eligibleUser = await prisma.eligibleUser.findUnique({
       where: { email: normalizedEmail },
@@ -220,6 +224,9 @@ export async function POST(request: NextRequest) {
  */
 export async function GET() {
   try {
+    // Auto-import from Google Sheet when pool is empty
+    await ensureCreditsSynced();
+
     const [availableReal, totalEligible, claimed] = await Promise.all([
       prisma.credit.count({ where: { isUsed: false, isTest: false } }),
       prisma.eligibleUser.count({ where: { approvalStatus: "approved" } }),
