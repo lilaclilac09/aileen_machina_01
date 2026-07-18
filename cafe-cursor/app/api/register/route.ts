@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
 
     // Pull credits from Google Sheet if the pool is empty
     await ensureCreditsSynced();
-    // Auto-import bundled Luma guest CSV (534 approved) if not yet loaded
+    // Auto-import bundled Luma guest CSV (~537 approved) if not yet loaded
     await ensureBundledLumaGuestsImported();
 
     // Luma mode: sync checked-in guests, then require email on that list

@@ -230,8 +230,8 @@ function findBundledLumaCsv(): string | null {
 }
 
 /**
- * Auto-import bundled Luma guest CSV once when DB allowlist is still tiny.
- * Used so production picks up the uploaded guest list without a manual Admin click.
+ * Auto-import bundled Luma guest CSV when allowlist is behind the file.
+ * Re-runs if the CSV grows (e.g. 534 → 537) so new approved emails are upserted.
  */
 export async function ensureBundledLumaGuestsImported(): Promise<{
   created: number;
@@ -241,16 +241,6 @@ export async function ensureBundledLumaGuestsImported(): Promise<{
 } | null> {
   if (!bundledImportPromise) {
     bundledImportPromise = (async () => {
-      const tagged = await prisma.eligibleUser.count({
-        where: { company: LUMA_CSV_COMPANY_TAG },
-      });
-      // Already imported a full-ish list
-      if (tagged >= 100) return null;
-
-      const total = await prisma.eligibleUser.count();
-      // If somehow already large without tag, skip
-      if (total >= 400) return null;
-
       const csvPath = findBundledLumaCsv();
       if (!csvPath) {
         console.warn("[LUMA-CSV] Bundled luma-guests.csv not found");
@@ -258,7 +248,22 @@ export async function ensureBundledLumaGuestsImported(): Promise<{
       }
 
       const csvText = readFileSync(csvPath, "utf-8");
-      console.log(`[LUMA-CSV] Auto-importing bundled guests from ${csvPath}`);
+      const approvedInFile = parseLumaGuestsCsv(csvText).filter(
+        (g) => g.approvalStatus === "approved"
+      ).length;
+
+      const tagged = await prisma.eligibleUser.count({
+        where: { company: LUMA_CSV_COMPANY_TAG },
+      });
+      // Already caught up with this CSV (or a same-sized prior export)
+      if (tagged >= approvedInFile && tagged >= 100) return null;
+
+      const total = await prisma.eligibleUser.count();
+      if (total >= approvedInFile && tagged === 0 && total >= 400) return null;
+
+      console.log(
+        `[LUMA-CSV] Auto-importing bundled guests from ${csvPath} (dbTagged=${tagged} fileApproved=${approvedInFile})`
+      );
       const result = await importLumaGuestsFromCsv(csvText, {
         onlyApproved: true,
         onlyCheckedIn: false,
