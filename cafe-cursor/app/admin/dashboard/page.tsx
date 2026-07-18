@@ -187,12 +187,20 @@ export default function AdminDashboard() {
               <p className="text-xs text-gray-400">Panel de Administración</p>
             </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="rounded-lg border border-gray-700 px-4 py-2 text-sm hover:bg-gray-800"
-          >
-            Cerrar Sesión
-          </button>
+          <div className="flex items-center gap-2">
+            <a
+              href="/host"
+              className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:opacity-90"
+            >
+              📱 QR Host Kit
+            </a>
+            <button
+              onClick={handleLogout}
+              className="rounded-lg border border-gray-700 px-4 py-2 text-sm hover:bg-gray-800"
+            >
+              Cerrar Sesión
+            </button>
+          </div>
         </div>
       </header>
 

@@ -16,6 +16,8 @@ export const translations = {
     checkinLabel: "Código de check-in",
     checkinPlaceholder: "Código do evento",
     checkinHint: "Peça o código na entrada após o check-in",
+    checkinFromQr: "Check-in via QR confirmado",
+    checkinFromQrHint: "Código preenchido automaticamente. Só falta nome e email.",
     submitButton: "Obter meu crédito",
     submitting: "Verificando...",
     
@@ -77,6 +79,8 @@ export const translations = {
     checkinLabel: "Check-in code",
     checkinPlaceholder: "Event code",
     checkinHint: "Get this code at the door after check-in",
+    checkinFromQr: "Checked in via QR",
+    checkinFromQrHint: "Code filled automatically. Just enter name and email.",
     submitButton: "Get my credit",
     submitting: "Verifying...",
     

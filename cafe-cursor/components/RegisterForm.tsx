@@ -28,11 +28,20 @@ export function RegisterForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [checkinCode, setCheckinCode] = useState("");
+  const [codeFromQr, setCodeFromQr] = useState(false);
   const [requiresCheckinCode, setRequiresCheckinCode] = useState(false);
   const [status, setStatus] = useState<FormStatus>("idle");
   const [result, setResult] = useState<RegisterResult | null>(null);
 
   useEffect(() => {
+    // Protocol: /?code=DOOR_CODE  (from printed QR) auto-inserts venue password
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl = (params.get("code") || params.get("c") || "").trim();
+    if (fromUrl) {
+      setCheckinCode(fromUrl);
+      setCodeFromQr(true);
+    }
+
     fetch("/api/register", { method: "GET" })
       .then((r) => r.json())
       .then((json) => {
@@ -94,7 +103,8 @@ export function RegisterForm() {
     setResult(null);
     setName("");
     setEmail("");
-    setCheckinCode("");
+    // Keep QR-embedded door code so attendees can try another email
+    if (!codeFromQr) setCheckinCode("");
   };
 
   // Mapear códigos de erro para traduções
@@ -268,8 +278,18 @@ export function RegisterForm() {
           </p>
         </div>
 
-        {/* Venue check-in code (IRL) */}
-        {requiresCheckinCode && (
+        {/* Venue check-in code — hidden when QR already embedded it */}
+        {requiresCheckinCode && codeFromQr && (
+          <div className="mb-6 rounded-xl border border-[var(--success)]/25 bg-[var(--success)]/5 px-4 py-3">
+            <p className="text-sm font-medium text-[var(--success)]">
+              ✓ {t("checkinFromQr")}
+            </p>
+            <p className="mt-1 text-xs text-muted">{t("checkinFromQrHint")}</p>
+            <input type="hidden" name="checkinCode" value={checkinCode} />
+          </div>
+        )}
+
+        {requiresCheckinCode && !codeFromQr && (
           <div className="mb-6">
             <label
               htmlFor="checkinCode"
