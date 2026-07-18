@@ -3,9 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { isAuthenticated } from "@/lib/auth";
 import { sendCreditEmail } from "@/lib/email";
 import {
-  extractReferralCode,
-  fetchCreditLinksFromSheet,
   getCreditsSheetCsvUrl,
+  syncCreditsFromSheet,
 } from "@/lib/google-sheets";
 
 /**
@@ -266,48 +265,16 @@ export async function POST(request: NextRequest) {
           (typeof data?.csvUrl === "string" && data.csvUrl.trim()) ||
           getCreditsSheetCsvUrl();
 
-        const { links, source } = await fetchCreditLinksFromSheet(csvUrl);
-        let created = 0;
-        let skipped = 0;
-
-        for (const link of links) {
-          const code = extractReferralCode(link);
-          const existing = await prisma.credit.findFirst({
-            where: { OR: [{ code }, { link }] },
-          });
-
-          if (existing) {
-            skipped++;
-            continue;
-          }
-
-          await prisma.credit.create({
-            data: {
-              code,
-              link,
-              isUsed: false,
-              isTest: false,
-            },
-          });
-          created++;
-        }
-
-        const available = await prisma.credit.count({
-          where: { isUsed: false, isTest: false },
-        });
+        const result = await syncCreditsFromSheet(csvUrl);
 
         console.log(
-          `📥 [ADMIN] Sheet sync: created=${created} skipped=${skipped} from ${source}`
+          `📥 [ADMIN] Sheet sync: created=${result.created} skipped=${result.skipped} from ${result.source}`
         );
 
         return NextResponse.json({
           success: true,
-          message: `Synced from Google Sheet: ${created} new, ${skipped} already present. ${available} real credits available.`,
-          created,
-          skipped,
-          totalInSheet: links.length,
-          available,
-          source,
+          message: `Synced from Google Sheet: ${result.created} new, ${result.skipped} already present. ${result.available} real credits available.`,
+          ...result,
         });
       }
 
