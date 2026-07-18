@@ -11,7 +11,11 @@ export const registerSchema = z.object({
     .min(1, "Name is required")
     .max(100, "Name is too long")
     .trim()
-    .regex(/^[\p{L}\p{M}\s.'·\-]+$/u, "Name can only contain letters"),
+    // Letters (incl. CJK), spaces, and common name punctuation — no unicode flag needed for TS target
+    .refine(
+      (value) => !/[0-9<>{}[\]\\\/@#$%^*=_|~`]/.test(value),
+      "Name can only contain letters"
+    ),
   email: z
     .string()
     .email("Please enter a valid email")
