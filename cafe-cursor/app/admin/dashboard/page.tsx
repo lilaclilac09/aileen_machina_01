@@ -302,8 +302,10 @@ export default function AdminDashboard() {
                   ? "bg-white text-black"
                   : "border border-gray-700 hover:bg-gray-800"
               }`}
+              aria-label="Credits"
+              title="Credits"
             >
-              Credits ({data?.stats.totalCredits ?? data?.credits.length ?? 0})
+              🎫
             </button>
           </div>
 
