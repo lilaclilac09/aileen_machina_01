@@ -24,10 +24,10 @@ interface RegisterResult {
 
 /**
  * IRL redeem form — after door check-in, attendee claims one Cursor credit.
+ * Only email (+ check-in code) is collected; name is not audited.
  */
 export function RegisterForm() {
   const { t, locale } = useLanguage();
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [checkinCode, setCheckinCode] = useState("");
   const [codeFromQr, setCodeFromQr] = useState(false);
@@ -57,14 +57,11 @@ export function RegisterForm() {
     setStatus("loading");
     setResult(null);
 
-    console.log(`📤 [FORM] Enviando cadastro: ${email}`);
-
     try {
       const response = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          name: name.trim(), 
+        body: JSON.stringify({
           email: email.trim(),
           checkinCode: checkinCode.trim(),
           locale: locale,
@@ -74,16 +71,14 @@ export function RegisterForm() {
       const data: RegisterResult = await response.json();
 
       if (data.success) {
-        console.log(`✅ [FORM] Cadastro bem-sucedido`);
         setStatus("success");
         setResult(data);
       } else {
-        console.log(`⚠️ [FORM] Erro: ${data.error} (code: ${data.code})`);
         setStatus("error");
         setResult(data);
       }
     } catch (error) {
-      console.error(`❌ [FORM] Erro de rede:`, error);
+      console.error(`[FORM] Network error:`, error);
       setStatus("error");
       setResult({
         success: false,
@@ -96,20 +91,17 @@ export function RegisterForm() {
   const handleCopyLink = async () => {
     if (result?.credit) {
       await navigator.clipboard.writeText(result.credit);
-      console.log(`📋 [FORM] Link copiado para área de transferência`);
     }
   };
 
   const handleReset = () => {
     setStatus("idle");
     setResult(null);
-    setName("");
     setEmail("");
     // Keep QR-embedded door code so attendees can try another email
     if (!codeFromQr) setCheckinCode("");
   };
 
-  // Mapear códigos de erro para traduções
   const getErrorMessage = (code?: string, originalError?: string): string => {
     switch (code) {
       case "NOT_ELIGIBLE":
@@ -127,12 +119,10 @@ export function RegisterForm() {
     }
   };
 
-  // Vista de sucesso
   if (status === "success" && result?.credit) {
     return (
       <div className="w-full max-w-md animate-fade-in">
         <div className="rounded-2xl border border-border bg-background p-8">
-          {/* Ícone de sucesso */}
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--success)]/10">
             <svg
               className="h-8 w-8 text-[var(--success)]"
@@ -157,12 +147,11 @@ export function RegisterForm() {
             {t("congratsMessage")}
           </p>
 
-          {/* Info do usuário */}
           {result.user && (
             <div className="mb-4 rounded-xl border border-border bg-foreground/5 p-3">
               <p className="text-sm">
                 <span className="text-muted">{t("registeredAs")} </span>
-                <span className="font-medium">{result.user.name}</span>
+                <span className="font-medium">{result.user.email}</span>
               </p>
               {result.user.company && (
                 <p className="text-xs text-muted mt-1">{result.user.company}</p>
@@ -170,7 +159,6 @@ export function RegisterForm() {
             </div>
           )}
 
-          {/* Badge de teste */}
           {result.isTest && (
             <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
               <p className="text-xs text-amber-600 dark:text-amber-400 text-center">
@@ -179,7 +167,6 @@ export function RegisterForm() {
             </div>
           )}
 
-          {/* Link do crédito */}
           <div className="mb-4 rounded-xl border border-border bg-background p-4">
             <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted">
               {t("yourCredit")}
@@ -187,7 +174,6 @@ export function RegisterForm() {
             <p className="break-all font-mono text-sm">{result.credit}</p>
           </div>
 
-          {/* Botões de ação */}
           <div className="flex gap-3">
             <button
               onClick={handleCopyLink}
@@ -205,7 +191,6 @@ export function RegisterForm() {
             </a>
           </div>
 
-          {/* Botón compartir en X */}
           <a
             href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(t("shareMessage"))}`}
             target="_blank"
@@ -223,7 +208,6 @@ export function RegisterForm() {
           {t("saveLink")}
         </p>
 
-        {/* Email delivery status (auto-sent after check-in redeem) */}
         {result.emailSent ? (
           <div className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-[var(--success)]/20 bg-[var(--success)]/5 px-4 py-3">
             <span className="text-sm text-[var(--success)]">{t("emailSent")}</span>
@@ -240,32 +224,9 @@ export function RegisterForm() {
     );
   }
 
-  // Formulário de cadastro
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-md animate-fade-in">
       <div className="rounded-2xl border border-border bg-background p-8">
-        {/* Campo Nome */}
-        <div className="mb-4">
-          <label
-            htmlFor="name"
-            className="mb-2 block text-sm font-medium"
-          >
-            {t("nameLabel")}
-          </label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder={t("namePlaceholder")}
-            required
-            disabled={status === "loading"}
-            className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground placeholder:text-muted focus:border-foreground focus:outline-none disabled:opacity-50"
-          />
-        </div>
-
-        {/* Campo Email */}
         <div className="mb-4">
           <label
             htmlFor="email"
@@ -289,7 +250,6 @@ export function RegisterForm() {
           </p>
         </div>
 
-        {/* Venue check-in code — hidden when QR already embedded it */}
         {requiresCheckinCode && codeFromQr && (
           <div className="mb-6 rounded-xl border border-[var(--success)]/25 bg-[var(--success)]/5 px-4 py-3">
             <p className="text-sm font-medium text-[var(--success)]">
@@ -328,7 +288,6 @@ export function RegisterForm() {
 
         {!requiresCheckinCode && <div className="mb-2" />}
 
-        {/* Mensagem de erro */}
         {status === "error" && result && (
           <div className="mb-4 rounded-xl border border-[var(--error)]/20 bg-[var(--error)]/5 p-4">
             <p className="text-sm text-[var(--error)]">
@@ -354,12 +313,10 @@ export function RegisterForm() {
           </div>
         )}
 
-        {/* Botão de cadastro */}
         <button
           type="submit"
           disabled={
             status === "loading" ||
-            !name.trim() ||
             !email.trim() ||
             (requiresCheckinCode && !checkinCode.trim())
           }

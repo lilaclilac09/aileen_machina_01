@@ -8,51 +8,50 @@ import {
 } from "@/lib/auth";
 
 /**
- * POST /api/admin/auth - Login
+ * POST /api/admin/auth — Login
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { username, password } = body;
 
-    console.log(`🔐 [ADMIN] Intento de login: ${username}`);
+    console.log(`[ADMIN] Login attempt: ${username}`);
 
     if (!username || !password) {
       return NextResponse.json(
-        { success: false, error: "Usuario y contraseña requeridos" },
+        { success: false, error: "Username and password are required" },
         { status: 400 }
       );
     }
 
     if (!verifyCredentials(username, password)) {
-      console.log(`❌ [ADMIN] Login fallido: ${username}`);
+      console.log(`[ADMIN] Login failed: ${username}`);
       return NextResponse.json(
-        { success: false, error: "Credenciales inválidas" },
+        { success: false, error: "Invalid credentials" },
         { status: 401 }
       );
     }
 
-    // Crear token y establecer cookie
     const token = createSessionToken();
     await setSessionCookie(token);
 
-    console.log(`✅ [ADMIN] Login exitoso: ${username}`);
+    console.log(`[ADMIN] Login success: ${username}`);
 
     return NextResponse.json({
       success: true,
-      message: "Login exitoso",
+      message: "Logged in",
     });
   } catch (error) {
-    console.error("❌ [ADMIN] Error en login:", error);
+    console.error("[ADMIN] Login error:", error);
     return NextResponse.json(
-      { success: false, error: "Error interno del servidor" },
+      { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }
 }
 
 /**
- * GET /api/admin/auth - Verificar sesión
+ * GET /api/admin/auth — Check session
  */
 export async function GET() {
   try {
@@ -62,7 +61,7 @@ export async function GET() {
       authenticated,
     });
   } catch (error) {
-    console.error("❌ [ADMIN] Error verificando sesión:", error);
+    console.error("[ADMIN] Session check error:", error);
     return NextResponse.json(
       { authenticated: false },
       { status: 500 }
@@ -71,21 +70,21 @@ export async function GET() {
 }
 
 /**
- * DELETE /api/admin/auth - Logout
+ * DELETE /api/admin/auth — Logout
  */
 export async function DELETE() {
   try {
     await clearSessionCookie();
-    console.log(`🚪 [ADMIN] Logout`);
+    console.log(`[ADMIN] Logout`);
 
     return NextResponse.json({
       success: true,
-      message: "Logout exitoso",
+      message: "Logged out",
     });
   } catch (error) {
-    console.error("❌ [ADMIN] Error en logout:", error);
+    console.error("[ADMIN] Logout error:", error);
     return NextResponse.json(
-      { success: false, error: "Error interno del servidor" },
+      { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }

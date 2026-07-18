@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const authenticated = await isAuthenticated();
     if (!authenticated) {
       return NextResponse.json(
-        { error: "No autorizado" },
+        { error: "Unauthorized" },
         { status: 401 }
       );
     }
@@ -33,17 +33,16 @@ export async function GET(request: NextRequest) {
       prisma.eligibleUser.count({ where: { approvalStatus: "approved" } }),
     ]);
 
-    // Obtener créditos con usuarios asignados
+    // All credits (sheet has ~150; do not hard-cap the admin list)
     const credits = await prisma.credit.findMany({
       orderBy: [
         { isUsed: "desc" },
         { assignedAt: "desc" },
         { createdAt: "desc" },
       ],
-      take: 100,
     });
 
-    // Obtener usuarios elegibles con sus créditos
+    // Eligible / walk-up users with assigned credits
     const eligibleUsers = await prisma.eligibleUser.findMany({
       orderBy: [
         { hasClaimed: "desc" },
@@ -53,7 +52,6 @@ export async function GET(request: NextRequest) {
       include: {
         credit: true,
       },
-      take: 200,
     });
 
     return NextResponse.json({
@@ -72,9 +70,9 @@ export async function GET(request: NextRequest) {
       eligibleUsers,
     });
   } catch (error) {
-    console.error("❌ [ADMIN] Error obteniendo dashboard:", error);
+    console.error("[ADMIN] Dashboard error:", error);
     return NextResponse.json(
-      { error: "Error interno del servidor" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

@@ -49,7 +49,7 @@ export async function GET(request: Request) {
     tips: [
       "Print this QR or show it on a tablet at the door after check-in.",
       "Scanning opens the redeem page with the door code already filled.",
-      "Attendees only need to enter name + email.",
+      "Attendees only need to enter their email.",
     ],
   });
 }
