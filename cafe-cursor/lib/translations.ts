@@ -1,76 +1,77 @@
-export type Locale = "pt-BR" | "en";
+export type Locale = "zh" | "en";
 
 export const translations = {
-  "pt-BR": {
+  zh: {
     // Header
     title: "Cafe Cursor",
-    subtitle: "Obtenha seu crédito gratuito do Cursor IDE.",
-    cta: "Cadastre-se em segundos.",
-    
+    subtitle: "领取你的免费 Cursor IDE 学分。",
+    cta: "签到后几秒即可兑换。",
+
     // Form
-    nameLabel: "Nome",
-    namePlaceholder: "Seu nome completo",
-    emailLabel: "Email",
-    emailPlaceholder: "Seu email",
-    emailHint: "Use o email do check-in no evento",
-    checkinLabel: "Código de check-in",
-    checkinPlaceholder: "Código do evento",
-    checkinHint: "Peça o código na entrada após o check-in",
-    checkinFromQr: "Check-in via QR confirmado",
-    checkinFromQrHint: "Código preenchido automaticamente. Só falta nome e email.",
-    submitButton: "Obter meu crédito",
-    submitting: "Verificando...",
-    
+    nameLabel: "姓名",
+    namePlaceholder: "你的姓名",
+    emailLabel: "邮箱",
+    emailPlaceholder: "你的邮箱",
+    emailHint: "请使用现场签到时填写的邮箱",
+    checkinLabel: "签到码",
+    checkinPlaceholder: "活动签到码",
+    checkinHint: "签到后在入口领取签到码",
+    checkinFromQr: "已通过二维码签到",
+    checkinFromQrHint: "签到码已自动填入，只需填写姓名和邮箱。",
+    submitButton: "领取我的学分",
+    submitting: "验证中...",
+
     // Footer
-    footerNote: "Apenas participantes com check-in no evento podem obter créditos.",
-    onePerPerson: "Um crédito por pessoa.",
-    madeBy: "Feito por",
-    ambassadors: "Chris & Alex",
-    ambassadorTitle: "Cursor Ambassador Brasil",
+    footerNote: "仅限现场签到的参与者领取学分。",
+    onePerPerson: "每人限领一份。",
+    madeBy: "主办",
+    ambassadors: "Aileen",
+    ambassadorTitle: "Cafe Cursor Shanghai",
     poweredBy: "Powered by",
-    
+
     // Badge
-    creditsAvailable: "créditos disponíveis",
-    noCredits: "Sem créditos disponíveis",
-    loading: "Carregando...",
-    alreadyClaimed: "participantes já resgataram",
-    of: "de",
-    
+    creditsAvailable: "个学分可用",
+    noCredits: "暂无可用学分",
+    loading: "加载中...",
+    alreadyClaimed: "位参与者已领取",
+    of: "/",
+
     // Success
-    successTitle: "Crédito atribuído!",
-    alreadyHaveCredit: "Você já tem seu crédito!",
-    congratsMessage: "Parabéns! Aqui está seu crédito do Cursor:",
-    registeredAs: "Cadastrado como:",
-    testWarning: "⚠️ Este é um crédito de TESTE (não válido para uso real)",
-    yourCredit: "Seu crédito do Cursor",
-    copyLink: "Copiar link",
-    useCredit: "Usar crédito →",
-    saveLink: "Guarde este link, é único e pessoal.",
-    
+    successTitle: "学分已发放！",
+    alreadyHaveCredit: "你已经领取过学分！",
+    congratsMessage: "恭喜！这是你的 Cursor 学分：",
+    registeredAs: "登记为：",
+    testWarning: "⚠️ 这是测试学分（不可用于正式使用）",
+    yourCredit: "你的 Cursor 学分",
+    copyLink: "复制链接",
+    useCredit: "使用学分 →",
+    saveLink: "请保存此链接，每人唯一。",
+
     // Errors
-    notEligible: "Este email não está cadastrado no evento Cafe Cursor. Apenas participantes aprovados podem obter créditos.",
-    notApproved: "Seu cadastro no evento ainda não foi aprovado. Por favor, entre em contato com o organizador.",
-    badCheckinCode: "Código de check-in inválido. Faça o check-in na entrada primeiro.",
-    noCreditsAvailable: "Desculpe, não há créditos disponíveis no momento. Por favor, entre em contato com o organizador.",
-    networkError: "Erro de conexão. Por favor, tente novamente.",
-    thinkError: "Acha que é um erro? Entre em contato com o organizador do evento.",
-    pendingApproval: "Sua solicitação está pendente de aprovação.",
-    tryAnotherEmail: "Tentar com outro email",
-    
+    notEligible: "该邮箱未登记参加 Cafe Cursor。仅限已签到参与者领取。",
+    notApproved: "你的报名尚未通过审核，请联系主办方。",
+    badCheckinCode: "签到码无效。请先在入口完成签到。",
+    noCreditsAvailable: "抱歉，当前没有可用学分，请联系主办方。",
+    networkError: "网络错误，请重试。",
+    thinkError: "若认为是错误，请联系活动主办方。",
+    pendingApproval: "你的申请正在审核中。",
+    tryAnotherEmail: "换一个邮箱试试",
+
     // Share
-    shareOnX: "Compartilhar no X",
-    shareMessage: "🚀 Acabei de ganhar um crédito do @cursor_ai no Cafe Cursor! Muito obrigado à comunidade por essa oportunidade incrível de experimentar o melhor editor de código com IA. #CafeCursor #CursorAI #DevCommunity",
-    
+    shareOnX: "分享到 X",
+    shareMessage:
+      "🚀 刚在 Cafe Cursor Shanghai 领到 @cursor_ai 学分！感谢社区。#CafeCursorShanghai #CursorAI",
+
     // Email
-    emailSent: "📧 Enviamos o crédito para seu email!",
-    emailNotSent: "📧 Não foi possível enviar o email agora — salve o link acima.",
+    emailSent: "📧 学分已发送到你的邮箱！",
+    emailNotSent: "📧 邮件暂时无法发送 — 请先保存上方链接。",
   },
-  "en": {
+  en: {
     // Header
     title: "Cafe Cursor",
     subtitle: "Get your free Cursor IDE credit.",
     cta: "Redeem in seconds after check-in.",
-    
+
     // Form
     nameLabel: "Name",
     namePlaceholder: "Your full name",
@@ -84,7 +85,7 @@ export const translations = {
     checkinFromQrHint: "Code filled automatically. Just enter name and email.",
     submitButton: "Get my credit",
     submitting: "Verifying...",
-    
+
     // Footer
     footerNote: "Only checked-in attendees can redeem credits.",
     onePerPerson: "One credit per person.",
@@ -92,14 +93,14 @@ export const translations = {
     ambassadors: "Aileen",
     ambassadorTitle: "Cafe Cursor Shanghai",
     poweredBy: "Powered by",
-    
+
     // Badge
     creditsAvailable: "credits available",
     noCredits: "No credits available",
     loading: "Loading...",
     alreadyClaimed: "attendees already claimed",
     of: "of",
-    
+
     // Success
     successTitle: "Credit assigned!",
     alreadyHaveCredit: "You already have your credit!",
@@ -110,28 +111,33 @@ export const translations = {
     copyLink: "Copy link",
     useCredit: "Use credit →",
     saveLink: "Save this link, it's unique and personal.",
-    
+
     // Errors
-    notEligible: "This email is not registered for Cafe Cursor. Only checked-in attendees can get credits.",
-    notApproved: "Your event registration hasn't been approved yet. Please contact the organizer.",
+    notEligible:
+      "This email is not registered for Cafe Cursor. Only checked-in attendees can get credits.",
+    notApproved:
+      "Your event registration hasn't been approved yet. Please contact the organizer.",
     badCheckinCode: "Invalid check-in code. Please check in at the door first.",
-    noCreditsAvailable: "Sorry, no credits are available at the moment. Please contact the organizer.",
+    noCreditsAvailable:
+      "Sorry, no credits are available at the moment. Please contact the organizer.",
     networkError: "Connection error. Please try again.",
     thinkError: "Think this is an error? Contact the event organizer.",
     pendingApproval: "Your request is pending approval.",
     tryAnotherEmail: "Try with another email",
-    
+
     // Share
     shareOnX: "Share on X",
-    shareMessage: "🚀 Just got a @cursor_ai credit at Cafe Cursor Shanghai! Huge thanks to the community. #CafeCursorShanghai #CursorAI #DevCommunity",
-    
+    shareMessage:
+      "🚀 Just got a @cursor_ai credit at Cafe Cursor Shanghai! Huge thanks to the community. #CafeCursorShanghai #CursorAI #DevCommunity",
+
     // Email
     emailSent: "📧 We sent the credit to your email!",
-    emailNotSent: "📧 Email could not be sent right now — please save the link above.",
+    emailNotSent:
+      "📧 Email could not be sent right now — please save the link above.",
   },
 } as const;
 
-export type TranslationKey = keyof typeof translations["pt-BR"];
+export type TranslationKey = keyof typeof translations.zh;
 
 export function getTranslation(locale: Locale, key: TranslationKey): string {
   return translations[locale][key];

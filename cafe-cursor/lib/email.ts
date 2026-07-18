@@ -49,7 +49,7 @@ interface SendCreditEmailParams {
   creditCode: string;
   company?: string;
   isTest?: boolean;
-  locale?: "pt-BR" | "en";
+  locale?: "zh" | "en";
 }
 
 /**
@@ -62,7 +62,7 @@ export async function sendCreditEmail({
   creditCode,
   company,
   isTest = false,
-  locale = "pt-BR",
+  locale = "zh",
 }: SendCreditEmailParams): Promise<{ success: boolean; error?: string }> {
   // Obtener cliente Resend (lazy)
   const resendClient = getResendClient();
@@ -82,9 +82,10 @@ export async function sendCreditEmail({
   }
 
   try {
-    const subject = locale === "pt-BR" 
-      ? "🎉 Seu crédito Cursor está aqui! - Cafe Cursor"
-      : "🎉 Your Cursor credit is here! - Cafe Cursor Shanghai";
+    const subject =
+      locale === "zh"
+        ? "🎉 你的 Cursor 学分已到 — Cafe Cursor Shanghai"
+        : "🎉 Your Cursor credit is here! - Cafe Cursor Shanghai";
 
     const html = generateEmailHTML({
       name,
@@ -128,39 +129,39 @@ function generateEmailHTML({
   isTest,
   locale,
 }: Omit<SendCreditEmailParams, "to">): string {
-  const isPtBR = locale === "pt-BR";
+  const isZh = locale === "zh";
 
   const texts = {
-    greeting: isPtBR ? `Olá, ${name}!` : `Hello, ${name}!`,
-    thanks: isPtBR 
-      ? "Obrigado por participar do Cafe Cursor!" 
+    greeting: isZh ? `你好，${name}！` : `Hello, ${name}!`,
+    thanks: isZh
+      ? "感谢参加 Cafe Cursor Shanghai！"
       : "Thank you for checking in at Cafe Cursor Shanghai!",
-    intro: isPtBR
-      ? "Estamos muito felizes em ter você na nossa comunidade. Aqui está seu crédito exclusivo do Cursor IDE:"
+    intro: isZh
+      ? "这是你的专属 Cursor IDE 学分链接："
       : "Thanks for coming IRL. Here's your exclusive Cursor IDE credit:",
-    yourCredit: isPtBR ? "Seu Crédito Cursor" : "Your Cursor Credit",
-    code: isPtBR ? "Código" : "Code",
-    useCredit: isPtBR ? "Usar Meu Crédito" : "Use My Credit",
-    testWarning: isPtBR 
-      ? "⚠️ Este é um crédito de TESTE (não válido para uso real)"
+    yourCredit: isZh ? "你的 Cursor 学分" : "Your Cursor Credit",
+    code: isZh ? "代码" : "Code",
+    useCredit: isZh ? "使用我的学分" : "Use My Credit",
+    testWarning: isZh
+      ? "⚠️ 这是测试学分（不可用于正式使用）"
       : "⚠️ This is a TEST credit (not valid for real use)",
-    howToUse: isPtBR ? "Como usar:" : "How to use:",
-    step1: isPtBR 
-      ? "Clique no botão acima ou copie o link"
+    howToUse: isZh ? "使用方法：" : "How to use:",
+    step1: isZh
+      ? "点击上方按钮或复制链接"
       : "Click the button above or copy the link",
-    step2: isPtBR 
-      ? "Faça login ou crie sua conta no Cursor"
+    step2: isZh
+      ? "登录或创建你的 Cursor 账号"
       : "Sign in or create your Cursor account",
-    step3: isPtBR 
-      ? "O crédito será aplicado automaticamente!"
+    step3: isZh
+      ? "学分将自动到账！"
       : "The credit will be applied automatically!",
-    questions: isPtBR
-      ? "Dúvidas? Entre em contato com os organizadores do evento."
+    questions: isZh
+      ? "有问题？请联系活动主办方。"
       : "Questions? Contact the event organizers.",
-    footer: isPtBR
-      ? "Feito com ☕ por Aileen - Cafe Cursor Shanghai"
+    footer: isZh
+      ? "☕ Cafe Cursor Shanghai · Aileen"
       : "Made with ☕ by Aileen - Cafe Cursor Shanghai",
-    companyLabel: isPtBR ? "Empresa" : "Company",
+    companyLabel: isZh ? "公司" : "Company",
   };
 
   return `

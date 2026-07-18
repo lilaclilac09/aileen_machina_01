@@ -38,7 +38,7 @@ export async function GET(request: Request) {
     );
   }
 
-  const redeemUrl = `${origin}/?code=${encodeURIComponent(checkinCode)}&lang=en`;
+  const redeemUrl = `${origin}/?code=${encodeURIComponent(checkinCode)}&lang=zh`;
   const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=360x360&margin=12&data=${encodeURIComponent(redeemUrl)}`;
 
   return NextResponse.json({

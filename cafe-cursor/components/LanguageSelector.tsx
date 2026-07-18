@@ -4,14 +4,13 @@ import { useLanguage } from "./LanguageContext";
 import { Locale } from "@/lib/translations";
 
 /**
- * Selector de idioma con banderas
- * Brasil 🇧🇷 | USA/UK 🇺🇸
+ * Language switcher: 中文 | English
  */
 export function LanguageSelector() {
   const { locale, setLocale } = useLanguage();
 
   const languages: { code: Locale; flag: string; label: string }[] = [
-    { code: "pt-BR", flag: "🇧🇷", label: "PT" },
+    { code: "zh", flag: "🇨🇳", label: "中文" },
     { code: "en", flag: "🇺🇸", label: "EN" },
   ];
 
@@ -26,7 +25,7 @@ export function LanguageSelector() {
               ? "bg-foreground text-background"
               : "text-muted hover:text-foreground"
           }`}
-          aria-label={`Mudar para ${lang.label}`}
+          aria-label={`Switch to ${lang.label}`}
         >
           <span className="text-base">{lang.flag}</span>
           <span className="hidden sm:inline">{lang.label}</span>
