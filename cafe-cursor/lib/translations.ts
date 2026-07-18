@@ -4,7 +4,7 @@ export const translations = {
   zh: {
     // Header
     title: "Cafe Cursor",
-    subtitle: "领取你的免费 Cursor 学分。",
+    subtitle: "领取你的 Cursor 学分。",
     cta: "用 Luma 报名邮箱几秒即可兑换。",
 
     // Form
