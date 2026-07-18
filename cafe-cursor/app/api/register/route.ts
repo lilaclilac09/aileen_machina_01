@@ -7,8 +7,11 @@ import {
   getRedeemMode,
   getEventCheckinCode,
   isCheckinCodeValid,
+  requiresCheckinCode,
+  isLumaRedeemMode,
 } from "@/lib/event-config";
 import { ensureCreditsSynced } from "@/lib/google-sheets";
+import { ensureLumaCheckedInUser, isLumaConfigured } from "@/lib/luma";
 
 /**
  * POST /api/register
@@ -17,6 +20,7 @@ import { ensureCreditsSynced } from "@/lib/google-sheets";
  * Modes (REDEEM_MODE):
  * - open: any unique email can claim once (requires EVENT_CHECKIN_CODE if set)
  * - allowlist: only pre-approved EligibleUser emails
+ * - luma: only Luma checked-in emails (LUMA_API_KEY + LUMA_EVENT_ID); no event code
  */
 export async function POST(request: NextRequest) {
   try {
@@ -28,10 +32,23 @@ export async function POST(request: NextRequest) {
       validatedData.name?.trim() || displayNameFromEmail(normalizedEmail);
     const locale = (body.locale === "en" ? "en" : "zh") as "zh" | "en";
     const redeemMode = getRedeemMode();
+    const lumaMode = isLumaRedeemMode();
 
     console.log(`📝 [REGISTER] Attempt: ${normalizedEmail} mode=${redeemMode}`);
 
-    // Venue check-in gate (shown IRL after door check-in)
+    if (redeemMode === "luma" && !isLumaConfigured()) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Luma redeem is enabled but LUMA_API_KEY / LUMA_EVENT_ID are missing.",
+          code: "LUMA_NOT_CONFIGURED",
+        },
+        { status: 503 }
+      );
+    }
+
+    // Venue check-in gate (skipped in Luma mode)
     if (getEventCheckinCode() && !isCheckinCodeValid(checkinCode)) {
       console.log(`❌ [REGISTER] Bad check-in code: ${normalizedEmail}`);
       return NextResponse.json(
@@ -46,6 +63,23 @@ export async function POST(request: NextRequest) {
 
     // Pull credits from Google Sheet if the pool is empty
     await ensureCreditsSynced();
+
+    // Luma mode: sync checked-in guests, then require email on that list
+    if (lumaMode) {
+      const luma = await ensureLumaCheckedInUser(normalizedEmail);
+      if (!luma.ok) {
+        console.log(`❌ [REGISTER] Not checked in on Luma: ${normalizedEmail}`);
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              "This email is not checked in on Luma. Please check in at the door first, then try again.",
+            code: "NOT_ELIGIBLE",
+          },
+          { status: 403 }
+        );
+      }
+    }
 
     let eligibleUser = await prisma.eligibleUser.findUnique({
       where: { email: normalizedEmail },
@@ -72,8 +106,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error:
-            "This email is not registered for Cafe Cursor. Only checked-in attendees can get credits.",
+          error: lumaMode
+            ? "This email is not checked in on Luma. Please check in at the door first, then try again."
+            : "This email is not registered for Cafe Cursor. Only checked-in attendees can get credits.",
           code: "NOT_ELIGIBLE",
         },
         { status: 403 }
@@ -239,7 +274,8 @@ export async function GET() {
       available: availableReal > 0,
       remaining: availableReal,
       redeemMode: getRedeemMode(),
-      requiresCheckinCode: Boolean(getEventCheckinCode()),
+      requiresCheckinCode: requiresCheckinCode(),
+      lumaConfigured: isLumaConfigured(),
       stats: {
         totalEligible,
         claimed,

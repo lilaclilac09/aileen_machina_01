@@ -224,19 +224,23 @@ Cursor Ambassadors Brazil
 
 Production URL: **https://cursor-cafe.aileena.xyz**
 
-This fork is set up for **in-person check-in → redeem**:
+This fork is set up for **Luma check-in → redeem** (no shared event code):
 
 1. Credits come from the Google Sheet ([Cafe Cursor Shanghai - Aileen](https://docs.google.com/spreadsheets/d/1STC2voXO53oWsfMqH3mdQMdf6xeTDw7gEQA0DGRZOik/htmlview)).
 2. In Admin → **Sync Sheet** to import / refresh referral links.
-3. Set `EVENT_CHECKIN_CODE` (shown at the door after check-in).
-4. Set `REDEEM_MODE=open` so any unique email can claim once after entering the code (or via QR).
+3. Set `REDEEM_MODE=luma` + `LUMA_API_KEY` + `LUMA_EVENT_ID` (Luma Plus calendar API key).
+4. Attendees check in on Luma at the door, then redeem with **email only**.
+5. Admin → **Sync Luma** (optional; redeem also refreshes from Luma when an email is missing).
 
 ```env
-REDEEM_MODE=open
-EVENT_CHECKIN_CODE=shanghai2026
+REDEEM_MODE=luma
+LUMA_API_KEY=luma_xxxxxxxx
+LUMA_EVENT_ID=evt-xxxxxxxx
 GOOGLE_SHEET_CREDITS_ID=1STC2voXO53oWsfMqH3mdQMdf6xeTDw7gEQA0DGRZOik
 NEXT_PUBLIC_SITE_URL=https://cursor-cafe.aileena.xyz
 ```
+
+Fallback without Luma API: `REDEEM_MODE=open` + `EVENT_CHECKIN_CODE=...` (door code / QR).
 
 ### Deploy (Vercel + 腾讯云 DNS + Resend)
 

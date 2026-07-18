@@ -139,6 +139,17 @@ export default function AdminDashboard() {
     await executeAction("SYNC_CREDITS_FROM_SHEET", {});
   };
 
+  const handleSyncLuma = async () => {
+    if (
+      !confirm(
+        "Sync checked-in guests from Luma?\n\nOnly guests with Luma check-in will be able to redeem (REDEEM_MODE=luma)."
+      )
+    ) {
+      return;
+    }
+    await executeAction("SYNC_LUMA_CHECKED_IN", {});
+  };
+
   const filteredUsers = data?.eligibleUsers.filter(
     (u) =>
       u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -287,6 +298,13 @@ export default function AdminDashboard() {
               className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium hover:bg-amber-700 disabled:opacity-50"
             >
               Sync Sheet
+            </button>
+            <button
+              onClick={handleSyncLuma}
+              disabled={actionLoading}
+              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
+            >
+              Sync Luma
             </button>
             <button
               onClick={fetchDashboard}

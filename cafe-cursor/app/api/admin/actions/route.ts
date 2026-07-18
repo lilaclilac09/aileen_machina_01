@@ -7,6 +7,7 @@ import {
   syncCreditsFromSheet,
 } from "@/lib/google-sheets";
 import { displayNameFromEmail } from "@/lib/validations";
+import { syncCheckedInFromLuma, isLumaConfigured } from "@/lib/luma";
 
 /**
  * POST /api/admin/actions — run admin actions
@@ -280,6 +281,26 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           message: `Synced from Google Sheet: ${result.created} new, ${result.skipped} already present. ${result.available} real credits available.`,
+          ...result,
+        });
+      }
+
+      case "SYNC_LUMA_CHECKED_IN": {
+        if (!isLumaConfigured()) {
+          return NextResponse.json(
+            {
+              error:
+                "Luma is not configured. Set LUMA_API_KEY and LUMA_EVENT_ID in Vercel env (requires Luma Plus).",
+            },
+            { status: 400 }
+          );
+        }
+
+        const result = await syncCheckedInFromLuma();
+
+        return NextResponse.json({
+          success: true,
+          message: `Synced Luma checked-in: ${result.checkedIn} guests, ${result.created} new, ${result.updated} updated.`,
           ...result,
         });
       }
