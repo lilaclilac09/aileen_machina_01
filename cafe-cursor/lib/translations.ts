@@ -5,14 +5,14 @@ export const translations = {
     // Header
     title: "Cafe Cursor",
     subtitle: "领取你的免费 Cursor 学分。",
-    cta: "Luma 签到后几秒即可兑换。",
+    cta: "用 Luma 报名邮箱几秒即可兑换。",
 
     // Form
     nameLabel: "姓名",
     namePlaceholder: "你的姓名",
     emailLabel: "邮箱",
     emailPlaceholder: "你的邮箱",
-    emailHint: "请使用 Luma 签到时的同一邮箱",
+    emailHint: "请使用 Luma 报名时的同一邮箱",
     checkinLabel: "签到码",
     checkinPlaceholder: "活动签到码",
     checkinHint: "签到后在入口领取签到码",
@@ -22,7 +22,7 @@ export const translations = {
     submitting: "验证中...",
 
     // Footer
-    footerNote: "仅限 Luma 现场签到的参与者领取学分。",
+    footerNote: "仅限 Luma 报名名单中的邮箱领取学分。",
     onePerPerson: "每人限领一份。",
     madeBy: "主办",
     ambassadors: "Aileen",
@@ -48,7 +48,7 @@ export const translations = {
     saveLink: "请保存此链接，每人唯一。",
 
     // Errors
-    notEligible: "该邮箱尚未在 Luma 签到。请先在入口完成签到后再试。",
+    notEligible: "该邮箱不在参加者名单中。请使用 Luma 报名时的同一邮箱。",
     notApproved: "你的报名尚未通过审核，请联系主办方。",
     badCheckinCode: "签到码无效。请先在入口完成签到。",
     noCreditsAvailable: "抱歉，当前没有可用学分，请联系主办方。",
@@ -70,14 +70,14 @@ export const translations = {
     // Header
     title: "Cafe Cursor",
     subtitle: "Get your Cursor credits.",
-    cta: "Redeem in seconds after Luma check-in.",
+    cta: "Redeem in seconds with your Luma email.",
 
     // Form
     nameLabel: "Name",
     namePlaceholder: "Your full name",
     emailLabel: "Email",
     emailPlaceholder: "Your email",
-    emailHint: "Use the same email you checked in with on Luma",
+    emailHint: "Use the same email you registered with on Luma",
     checkinLabel: "Check-in code",
     checkinPlaceholder: "Event code",
     checkinHint: "Get this code at the door after check-in",
@@ -87,7 +87,7 @@ export const translations = {
     submitting: "Verifying...",
 
     // Footer
-    footerNote: "Only Luma checked-in attendees can redeem credits.",
+    footerNote: "Only emails on the Luma guest list can redeem credits.",
     onePerPerson: "One credit per person.",
     madeBy: "Made by",
     ambassadors: "Aileen",
@@ -114,7 +114,7 @@ export const translations = {
 
     // Errors
     notEligible:
-      "This email is not checked in on Luma. Please check in at the door first, then try again.",
+      "This email is not on the guest list. Use the same email you registered with on Luma.",
     notApproved:
       "Your event registration hasn't been approved yet. Please contact the organizer.",
     badCheckinCode: "Invalid check-in code. Please check in at the door first.",

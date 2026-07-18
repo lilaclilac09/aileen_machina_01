@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 
 interface Credit {
@@ -55,6 +55,7 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [showAddCreditModal, setShowAddCreditModal] = useState(false);
+  const lumaCsvInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchDashboard();
@@ -139,10 +140,33 @@ export default function AdminDashboard() {
     await executeAction("SYNC_CREDITS_FROM_SHEET", {});
   };
 
-  const handleSyncLuma = async () => {
+  const handleImportLumaCsvClick = () => {
+    lumaCsvInputRef.current?.click();
+  };
+
+  const handleImportLumaCsvFile = async (
+    e: ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    const csvText = await file.text();
+    const onlyCheckedIn = confirm(
+      "Import filter:\n\nOK = only Checked-in guests\nCancel = all Approved guests (recommended if you don't have Luma Plus)"
+    );
+
+    await executeAction("IMPORT_LUMA_CSV", {
+      csvText,
+      onlyApproved: true,
+      onlyCheckedIn,
+    });
+  };
+
+  const handleSyncLumaApi = async () => {
     if (
       !confirm(
-        "Sync checked-in guests from Luma?\n\nOnly guests with Luma check-in will be able to redeem (REDEEM_MODE=luma)."
+        "Sync via Luma API? (requires Luma Plus)\n\nWithout Plus, use Import Luma CSV instead."
       )
     ) {
       return;
@@ -299,12 +323,27 @@ export default function AdminDashboard() {
             >
               Sync Sheet
             </button>
+            <input
+              ref={lumaCsvInputRef}
+              type="file"
+              accept=".csv,text/csv"
+              className="hidden"
+              onChange={handleImportLumaCsvFile}
+            />
             <button
-              onClick={handleSyncLuma}
+              onClick={handleImportLumaCsvClick}
               disabled={actionLoading}
               className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
             >
-              Sync Luma
+              Import Luma CSV
+            </button>
+            <button
+              onClick={handleSyncLumaApi}
+              disabled={actionLoading}
+              className="rounded-lg border border-gray-700 px-4 py-2 text-sm hover:bg-gray-800 disabled:opacity-50"
+              title="Requires Luma Plus API key"
+            >
+              Sync Luma API
             </button>
             <button
               onClick={fetchDashboard}

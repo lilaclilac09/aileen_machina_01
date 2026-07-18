@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: lumaMode
             ? "This email is not checked in on Luma. Please check in at the door first, then try again."
-            : "This email is not registered for Cafe Cursor. Only checked-in attendees can get credits.",
+            : "This email is not on the guest list. Use the same email you registered with on Luma.",
           code: "NOT_ELIGIBLE",
         },
         { status: 403 }
