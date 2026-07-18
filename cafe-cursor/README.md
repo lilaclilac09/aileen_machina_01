@@ -238,12 +238,27 @@ GOOGLE_SHEET_CREDITS_ID=1STC2voXO53oWsfMqH3mdQMdf6xeTDw7gEQA0DGRZOik
 NEXT_PUBLIC_SITE_URL=https://cursor-cafe.aileena.xyz
 ```
 
-### Deploy (Vercel + DNS)
+### Deploy (Vercel + 腾讯云 DNS + Resend)
 
-1. Import the `cafe-cursor/` app (or this repo’s `cafe-cursor` root) as a Vercel project.
-2. Root Directory: `cafe-cursor`
-3. Env vars: copy from `.env.example` (use Postgres in production, not SQLite).
-4. Domains → Add `cursor-cafe.aileena.xyz`
-5. DNS (Cloudflare / registrar): CNAME `cursor-cafe` → `cname.vercel-dns.com`
-6. After live: Admin → **QR Host Kit** → print QR  
-   Scan opens: `https://cursor-cafe.aileena.xyz/?code=shanghai2026&lang=en`
+**Order (do in this order):**
+
+1. **Vercel project** (do this first — Resend can wait)
+   - New Project → repo `aileen_machina_01` → Root Directory = `cafe-cursor`
+   - Storage → create **Postgres** → link to project
+   - Env: copy from `.env.example`  
+     Map Vercel’s `POSTGRES_PRISMA_URL` → `DATABASE_URL`,  
+     `POSTGRES_URL_NON_POOLING` → `DIRECT_URL`
+   - Deploy → get `*.vercel.app`
+   - Domains → add `cursor-cafe.aileena.xyz`
+
+2. **腾讯云 DNSPod** (not COS bucket)
+   - https://console.cloud.tencent.com/cns → `aileena.xyz` → 添加记录
+   - 主机记录 `cursor-cafe` · 类型 `CNAME` · 值 `cname.vercel-dns.com`
+
+3. **Resend** (after site opens — optional for day-of if you only show link on screen)
+   - resend.com → API Key → set `RESEND_API_KEY`
+   - Domains → add `aileena.xyz` → put TXT/DKIM into 腾讯 DNSPod
+   - Then `FROM_EMAIL=Cafe Cursor Shanghai <cafe@aileena.xyz>`
+
+4. Open https://cursor-cafe.aileena.xyz/admin → **Sync Sheet** → **QR Host Kit**  
+   QR: `https://cursor-cafe.aileena.xyz/?code=shanghai2026&lang=en`

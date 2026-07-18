@@ -1,47 +1,45 @@
 // Prisma Schema for Cafe Cursor Credit Distribution
-// Database: SQLite (development) / PostgreSQL (production)
+// Production: PostgreSQL (Vercel Postgres / Neon / Supabase)
+// Local: also use a Postgres URL (Neon free is fine), or temporarily
+//        point DATABASE_URL/DIRECT_URL at the same remote DB.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  // Local default: SQLite. For production Postgres, switch provider to
-  // "postgresql" and use POSTGRES_PRISMA_URL / POSTGRES_URL_NON_POOLING.
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
-// Tabla de usuarios elegibles (pre-aprobados del evento)
+// Eligible attendees / walk-up redeemers
 model EligibleUser {
-  id             String   @id @default(cuid())
-  email          String   @unique
+  id             String    @id @default(cuid())
+  email          String    @unique
   name           String
   company        String?
   role           String?
-  approvalStatus String   @default("approved")
-  createdAt      DateTime @default(now())
-  
-  // Si ya reclamó su crédito
-  hasClaimed     Boolean  @default(false)
-  claimedAt      DateTime?
-  
-  // Relación con el crédito asignado
-  credit         Credit?  @relation(fields: [creditId], references: [id])
-  creditId       String?  @unique
+  approvalStatus String    @default("approved")
+  createdAt      DateTime  @default(now())
+
+  hasClaimed Boolean   @default(false)
+  claimedAt  DateTime?
+
+  credit   Credit? @relation(fields: [creditId], references: [id])
+  creditId String? @unique
 }
 
-// Tabla de créditos de Cursor disponibles
+// Cursor referral credits
 model Credit {
-  id          String       @id @default(cuid())
-  code        String       @unique  // Código del referral
-  link        String       @unique  // Link completo
-  isUsed      Boolean      @default(false)
-  isTest      Boolean      @default(false)  // Para distinguir créditos de test
-  assignedAt  DateTime?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id         String    @id @default(cuid())
+  code       String    @unique
+  link       String    @unique
+  isUsed     Boolean   @default(false)
+  isTest     Boolean   @default(false)
+  assignedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
-  // Relación con el usuario asignado
-  assignedTo  EligibleUser?
+  assignedTo EligibleUser?
 }
