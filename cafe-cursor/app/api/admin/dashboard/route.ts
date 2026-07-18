@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const authenticated = await isAuthenticated();
     if (!authenticated) {
       return NextResponse.json(
-        { error: "未登录" },
+        { error: "Unauthorized" },
         { status: 401 }
       );
     }
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("[ADMIN] Dashboard error:", error);
     return NextResponse.json(
-      { error: "服务器错误" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

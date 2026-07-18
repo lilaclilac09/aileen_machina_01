@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
     if (!username || !password) {
       return NextResponse.json(
-        { success: false, error: "请输入用户名和密码" },
+        { success: false, error: "Username and password are required" },
         { status: 400 }
       );
     }
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     if (!verifyCredentials(username, password)) {
       console.log(`[ADMIN] Login failed: ${username}`);
       return NextResponse.json(
-        { success: false, error: "用户名或密码错误" },
+        { success: false, error: "Invalid credentials" },
         { status: 401 }
       );
     }
@@ -39,12 +39,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "登录成功",
+      message: "Logged in",
     });
   } catch (error) {
     console.error("[ADMIN] Login error:", error);
     return NextResponse.json(
-      { success: false, error: "服务器错误" },
+      { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }
@@ -79,12 +79,12 @@ export async function DELETE() {
 
     return NextResponse.json({
       success: true,
-      message: "已退出",
+      message: "Logged out",
     });
   } catch (error) {
     console.error("[ADMIN] Logout error:", error);
     return NextResponse.json(
-      { success: false, error: "服务器错误" },
+      { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }
