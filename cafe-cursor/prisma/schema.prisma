@@ -1,0 +1,47 @@
+// Prisma Schema for Cafe Cursor Credit Distribution
+// Database: SQLite (development) / PostgreSQL (production)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  // Local default: SQLite. For production Postgres, switch provider to
+  // "postgresql" and use POSTGRES_PRISMA_URL / POSTGRES_URL_NON_POOLING.
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Tabla de usuarios elegibles (pre-aprobados del evento)
+model EligibleUser {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  name           String
+  company        String?
+  role           String?
+  approvalStatus String   @default("approved")
+  createdAt      DateTime @default(now())
+  
+  // Si ya reclamó su crédito
+  hasClaimed     Boolean  @default(false)
+  claimedAt      DateTime?
+  
+  // Relación con el crédito asignado
+  credit         Credit?  @relation(fields: [creditId], references: [id])
+  creditId       String?  @unique
+}
+
+// Tabla de créditos de Cursor disponibles
+model Credit {
+  id          String       @id @default(cuid())
+  code        String       @unique  // Código del referral
+  link        String       @unique  // Link completo
+  isUsed      Boolean      @default(false)
+  isTest      Boolean      @default(false)  // Para distinguir créditos de test
+  assignedAt  DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Relación con el usuario asignado
+  assignedTo  EligibleUser?
+}

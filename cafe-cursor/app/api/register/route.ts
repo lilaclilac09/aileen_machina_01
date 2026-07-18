@@ -1,0 +1,240 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { registerSchema } from "@/lib/validations";
+import { ZodError } from "zod";
+import { sendCreditEmail } from "@/lib/email";
+import {
+  getRedeemMode,
+  getEventCheckinCode,
+  isCheckinCodeValid,
+} from "@/lib/event-config";
+
+/**
+ * POST /api/register
+ * IRL redeem: after check-in, attendee claims one Cursor credit.
+ *
+ * Modes (REDEEM_MODE):
+ * - open: any unique email can claim once (requires EVENT_CHECKIN_CODE if set)
+ * - allowlist: only pre-approved EligibleUser emails
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const validatedData = registerSchema.parse(body);
+    const { name, email, checkinCode } = validatedData;
+    const normalizedEmail = email.toLowerCase().trim();
+    const locale = (body.locale === "en" ? "en" : "pt-BR") as "pt-BR" | "en";
+    const redeemMode = getRedeemMode();
+
+    console.log(`📝 [REGISTER] Attempt: ${normalizedEmail} mode=${redeemMode}`);
+
+    // Venue check-in gate (shown IRL after door check-in)
+    if (getEventCheckinCode() && !isCheckinCodeValid(checkinCode)) {
+      console.log(`❌ [REGISTER] Bad check-in code: ${normalizedEmail}`);
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid check-in code. Please check in at the door first.",
+          code: "BAD_CHECKIN_CODE",
+        },
+        { status: 403 }
+      );
+    }
+
+    let eligibleUser = await prisma.eligibleUser.findUnique({
+      where: { email: normalizedEmail },
+      include: { credit: true },
+    });
+
+    if (!eligibleUser && redeemMode === "open") {
+      eligibleUser = await prisma.eligibleUser.create({
+        data: {
+          email: normalizedEmail,
+          name,
+          company: "IRL Check-in",
+          role: "Attendee",
+          approvalStatus: "approved",
+          hasClaimed: false,
+        },
+        include: { credit: true },
+      });
+      console.log(`➕ [REGISTER] Walk-up user created: ${normalizedEmail}`);
+    }
+
+    if (!eligibleUser) {
+      console.log(`❌ [REGISTER] Not eligible: ${normalizedEmail}`);
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "This email is not registered for Cafe Cursor. Only checked-in attendees can get credits.",
+          code: "NOT_ELIGIBLE",
+        },
+        { status: 403 }
+      );
+    }
+
+    if (eligibleUser.approvalStatus !== "approved") {
+      console.log(
+        `⚠️ [REGISTER] Not approved: ${normalizedEmail} (${eligibleUser.approvalStatus})`
+      );
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Your registration is not approved yet. Please contact the organizer.",
+          code: "NOT_APPROVED",
+        },
+        { status: 403 }
+      );
+    }
+
+    if (eligibleUser.hasClaimed && eligibleUser.credit) {
+      console.log(`⚠️ [REGISTER] Already claimed: ${normalizedEmail}`);
+      return NextResponse.json(
+        {
+          success: true,
+          message: "You already claimed your credit. Here it is again:",
+          credit: eligibleUser.credit.link,
+          isExisting: true,
+          user: {
+            name: eligibleUser.name,
+            email: eligibleUser.email,
+          },
+        },
+        { status: 200 }
+      );
+    }
+
+    const isTestUser = eligibleUser.company === "Test Company";
+
+    const availableCredit = await prisma.credit.findFirst({
+      where: {
+        isUsed: false,
+        isTest: isTestUser,
+      },
+      orderBy: { createdAt: "asc" },
+    });
+
+    if (!availableCredit) {
+      console.log(`❌ [REGISTER] No credits (isTest: ${isTestUser})`);
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Sorry, no credits are available right now. Please contact the organizer.",
+          code: "NO_CREDITS",
+        },
+        { status: 503 }
+      );
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      const updatedUser = await tx.eligibleUser.update({
+        where: { id: eligibleUser!.id },
+        data: {
+          name: name || eligibleUser!.name,
+          hasClaimed: true,
+          claimedAt: new Date(),
+          creditId: availableCredit.id,
+        },
+      });
+
+      await tx.credit.update({
+        where: { id: availableCredit.id },
+        data: {
+          isUsed: true,
+          assignedAt: new Date(),
+        },
+      });
+
+      return updatedUser;
+    });
+
+    console.log(
+      `✅ [REGISTER] Assigned: ${normalizedEmail} -> ${availableCredit.code}`
+    );
+
+    sendCreditEmail({
+      to: normalizedEmail,
+      name: result.name,
+      creditLink: availableCredit.link,
+      creditCode: availableCredit.code,
+      company: result.company || undefined,
+      isTest: isTestUser,
+      locale,
+    }).catch((err) => {
+      console.error(`⚠️ [REGISTER] Email error (non-blocking):`, err);
+    });
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Congratulations! Here is your Cursor credit:",
+        credit: availableCredit.link,
+        isTest: isTestUser,
+        user: {
+          name: result.name,
+          email: result.email,
+          company: result.company,
+        },
+        emailSent: true,
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    if (error instanceof ZodError) {
+      console.log(`⚠️ [REGISTER] Validation:`, error.errors);
+      return NextResponse.json(
+        {
+          success: false,
+          error: error.errors[0]?.message || "Invalid data",
+          code: "VALIDATION_ERROR",
+        },
+        { status: 400 }
+      );
+    }
+
+    console.error(`❌ [REGISTER] Internal error:`, error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Internal server error. Please try again.",
+        code: "SERVER_ERROR",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * GET /api/register
+ * Public stats (no sensitive data)
+ */
+export async function GET() {
+  try {
+    const [availableReal, totalEligible, claimed] = await Promise.all([
+      prisma.credit.count({ where: { isUsed: false, isTest: false } }),
+      prisma.eligibleUser.count({ where: { approvalStatus: "approved" } }),
+      prisma.eligibleUser.count({ where: { hasClaimed: true } }),
+    ]);
+
+    return NextResponse.json({
+      available: availableReal > 0,
+      remaining: availableReal,
+      redeemMode: getRedeemMode(),
+      requiresCheckinCode: Boolean(getEventCheckinCode()),
+      stats: {
+        totalEligible,
+        claimed,
+        pending: Math.max(totalEligible - claimed, 0),
+      },
+    });
+  } catch (error) {
+    console.error(`❌ [STATS] Error:`, error);
+    return NextResponse.json(
+      { available: false, remaining: 0 },
+      { status: 500 }
+    );
+  }
+}
