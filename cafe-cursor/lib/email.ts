@@ -137,11 +137,11 @@ function generateEmailHTML({
       ? "感谢参加 Cafe Cursor Shanghai！"
       : "Thank you for checking in at Cafe Cursor Shanghai!",
     intro: isZh
-      ? "这是你的专属 Cursor IDE 学分链接："
-      : "Thanks for coming IRL. Here's your exclusive Cursor IDE credit:",
-    yourCredit: isZh ? "你的 Cursor 学分" : "Your Cursor Credit",
+      ? "这是你的专属 Cursor 学分链接："
+      : "Here's your exclusive Cursor credit:",
+    yourCredit: isZh ? "你的 Cursor 学分" : "Your Cursor credits",
     code: isZh ? "代码" : "Code",
-    useCredit: isZh ? "使用我的学分" : "Use My Credit",
+    useCredit: isZh ? "使用我的学分" : "Use my Cursor credits",
     testWarning: isZh
       ? "⚠️ 这是测试学分（不可用于正式使用）"
       : "⚠️ This is a TEST credit (not valid for real use)",
