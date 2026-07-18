@@ -6,17 +6,17 @@ import {
   getCreditsSheetCsvUrl,
   syncCreditsFromSheet,
 } from "@/lib/google-sheets";
+import { displayNameFromEmail } from "@/lib/validations";
 
 /**
- * POST /api/admin/actions - Ejecutar acciones administrativas
+ * POST /api/admin/actions — run admin actions
  */
 export async function POST(request: NextRequest) {
   try {
-    // Verificar autenticación
     const authenticated = await isAuthenticated();
     if (!authenticated) {
       return NextResponse.json(
-        { error: "No autorizado" },
+        { error: "Unauthorized" },
         { status: 401 }
       );
     }
@@ -24,32 +24,30 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { action, data } = body;
 
-    console.log(`⚡ [ADMIN] Acción: ${action}`);
+    console.log(`[ADMIN] Action: ${action}`);
 
     switch (action) {
       case "ASSIGN_CREDIT": {
-        // Asignar crédito manualmente a un usuario
         const { email, useTestCredit } = data;
-        
+
         const eligibleUser = await prisma.eligibleUser.findUnique({
           where: { email },
         });
 
         if (!eligibleUser) {
           return NextResponse.json(
-            { error: "Usuario no encontrado" },
+            { error: "User not found" },
             { status: 404 }
           );
         }
 
         if (eligibleUser.hasClaimed) {
           return NextResponse.json(
-            { error: "El usuario ya tiene un crédito asignado" },
+            { error: "User already has a credit assigned" },
             { status: 400 }
           );
         }
 
-        // Buscar crédito disponible
         const credit = await prisma.credit.findFirst({
           where: {
             isUsed: false,
@@ -60,12 +58,11 @@ export async function POST(request: NextRequest) {
 
         if (!credit) {
           return NextResponse.json(
-            { error: "No hay créditos disponibles" },
+            { error: "No credits available" },
             { status: 400 }
           );
         }
 
-        // Asignar crédito
         await prisma.$transaction([
           prisma.eligibleUser.update({
             where: { id: eligibleUser.id },
@@ -84,17 +81,16 @@ export async function POST(request: NextRequest) {
           }),
         ]);
 
-        console.log(`✅ [ADMIN] Crédito asignado manualmente: ${email} -> ${credit.code}`);
+        console.log(`[ADMIN] Credit assigned: ${email} -> ${credit.code}`);
 
         return NextResponse.json({
           success: true,
-          message: `Crédito ${credit.code} asignado a ${email}`,
+          message: `Credit ${credit.code} assigned to ${email}`,
           credit: credit.link,
         });
       }
 
       case "REVOKE_CREDIT": {
-        // Revocar crédito de un usuario
         const { userId } = data;
 
         const user = await prisma.eligibleUser.findUnique({
@@ -104,19 +100,18 @@ export async function POST(request: NextRequest) {
 
         if (!user) {
           return NextResponse.json(
-            { error: "Usuario no encontrado" },
+            { error: "User not found" },
             { status: 404 }
           );
         }
 
         if (!user.hasClaimed || !user.creditId) {
           return NextResponse.json(
-            { error: "El usuario no tiene crédito asignado" },
+            { error: "User has no credit assigned" },
             { status: 400 }
           );
         }
 
-        // Revocar crédito
         await prisma.$transaction([
           prisma.eligibleUser.update({
             where: { id: userId },
@@ -135,49 +130,61 @@ export async function POST(request: NextRequest) {
           }),
         ]);
 
-        console.log(`🔄 [ADMIN] Crédito revocado: ${user.email}`);
+        console.log(`[ADMIN] Credit revoked: ${user.email}`);
 
         return NextResponse.json({
           success: true,
-          message: `Crédito revocado de ${user.email}`,
+          message: `Credit revoked from ${user.email}`,
         });
       }
 
       case "ADD_ELIGIBLE_USER": {
-        // Agregar usuario elegible manualmente
         const { email, name, company, approvalStatus } = data;
+        const normalizedEmail = String(email || "")
+          .toLowerCase()
+          .trim();
 
-        const existing = await prisma.eligibleUser.findUnique({
-          where: { email },
-        });
-
-        if (existing) {
+        if (!normalizedEmail) {
           return NextResponse.json(
-            { error: "El usuario ya existe" },
+            { error: "Email is required" },
             { status: 400 }
           );
         }
 
+        const existing = await prisma.eligibleUser.findUnique({
+          where: { email: normalizedEmail },
+        });
+
+        if (existing) {
+          return NextResponse.json(
+            { error: "User already exists" },
+            { status: 400 }
+          );
+        }
+
+        const displayName =
+          (typeof name === "string" && name.trim()) ||
+          displayNameFromEmail(normalizedEmail);
+
         const newUser = await prisma.eligibleUser.create({
           data: {
-            email,
-            name,
+            email: normalizedEmail,
+            name: displayName,
             company: company || null,
             approvalStatus: approvalStatus || "approved",
           },
         });
 
-        console.log(`➕ [ADMIN] Usuario elegible agregado: ${email}`);
+        console.log(`[ADMIN] Eligible user added: ${normalizedEmail}`);
 
         return NextResponse.json({
           success: true,
-          message: `Usuario ${email} agregado`,
+          message: `User ${normalizedEmail} added`,
           user: newUser,
         });
       }
 
       case "UPDATE_USER_STATUS": {
-        // Actualizar estado de aprobación de usuario
         const { userId, approvalStatus } = data;
 
         await prisma.eligibleUser.update({
@@ -185,16 +192,17 @@ export async function POST(request: NextRequest) {
           data: { approvalStatus },
         });
 
-        console.log(`📝 [ADMIN] Estado de usuario actualizado: ${userId} -> ${approvalStatus}`);
+        console.log(
+          `[ADMIN] User status updated: ${userId} -> ${approvalStatus}`
+        );
 
         return NextResponse.json({
           success: true,
-          message: `Estado actualizado a ${approvalStatus}`,
+          message: `Status updated to ${approvalStatus}`,
         });
       }
 
       case "ADD_CREDIT": {
-        // Agregar crédito manualmente
         const { code, link, isTest } = data;
 
         const existing = await prisma.credit.findFirst({
@@ -203,7 +211,7 @@ export async function POST(request: NextRequest) {
 
         if (existing) {
           return NextResponse.json(
-            { error: "El código de crédito ya existe" },
+            { error: "Credit code already exists" },
             { status: 400 }
           );
         }
@@ -216,17 +224,16 @@ export async function POST(request: NextRequest) {
           },
         });
 
-        console.log(`➕ [ADMIN] Crédito agregado: ${code}`);
+        console.log(`[ADMIN] Credit added: ${code}`);
 
         return NextResponse.json({
           success: true,
-          message: `Crédito ${code} agregado`,
+          message: `Credit ${code} added`,
           credit: newCredit,
         });
       }
 
       case "DELETE_CREDIT": {
-        // Eliminar crédito (solo si no está asignado)
         const { creditId } = data;
 
         const credit = await prisma.credit.findUnique({
@@ -235,14 +242,14 @@ export async function POST(request: NextRequest) {
 
         if (!credit) {
           return NextResponse.json(
-            { error: "Crédito no encontrado" },
+            { error: "Credit not found" },
             { status: 404 }
           );
         }
 
         if (credit.isUsed) {
           return NextResponse.json(
-            { error: "No se puede eliminar un crédito asignado" },
+            { error: "Cannot delete an assigned credit" },
             { status: 400 }
           );
         }
@@ -251,16 +258,15 @@ export async function POST(request: NextRequest) {
           where: { id: creditId },
         });
 
-        console.log(`🗑️ [ADMIN] Crédito eliminado: ${credit.code}`);
+        console.log(`[ADMIN] Credit deleted: ${credit.code}`);
 
         return NextResponse.json({
           success: true,
-          message: `Crédito ${credit.code} eliminado`,
+          message: `Credit ${credit.code} deleted`,
         });
       }
 
       case "SYNC_CREDITS_FROM_SHEET": {
-        // Pull Cursor referral links from the Google Sheet and upsert unused credits
         const csvUrl =
           (typeof data?.csvUrl === "string" && data.csvUrl.trim()) ||
           getCreditsSheetCsvUrl();
@@ -268,7 +274,7 @@ export async function POST(request: NextRequest) {
         const result = await syncCreditsFromSheet(csvUrl);
 
         console.log(
-          `📥 [ADMIN] Sheet sync: created=${result.created} skipped=${result.skipped} from ${result.source}`
+          `[ADMIN] Sheet sync: created=${result.created} skipped=${result.skipped} from ${result.source}`
         );
 
         return NextResponse.json({
@@ -279,7 +285,6 @@ export async function POST(request: NextRequest) {
       }
 
       case "SEND_CREDIT_EMAIL": {
-        // Enviar/reenviar email con el link del crédito
         const { userId, locale } = data;
 
         const user = await prisma.eligibleUser.findUnique({
@@ -289,19 +294,18 @@ export async function POST(request: NextRequest) {
 
         if (!user) {
           return NextResponse.json(
-            { error: "Usuario no encontrado" },
+            { error: "User not found" },
             { status: 404 }
           );
         }
 
         if (!user.hasClaimed || !user.credit) {
           return NextResponse.json(
-            { error: "El usuario no tiene crédito asignado" },
+            { error: "User has no credit assigned" },
             { status: 400 }
           );
         }
 
-        // Enviar email
         const emailResult = await sendCreditEmail({
           to: user.email,
           name: user.name,
@@ -313,31 +317,34 @@ export async function POST(request: NextRequest) {
         });
 
         if (!emailResult.success) {
-          console.error(`❌ [ADMIN] Error enviando email a ${user.email}:`, emailResult.error);
+          console.error(
+            `[ADMIN] Email failed for ${user.email}:`,
+            emailResult.error
+          );
           return NextResponse.json(
-            { error: `Error enviando email: ${emailResult.error}` },
+            { error: `Failed to send email: ${emailResult.error}` },
             { status: 500 }
           );
         }
 
-        console.log(`📧 [ADMIN] Email enviado manualmente a: ${user.email}`);
+        console.log(`[ADMIN] Email sent to: ${user.email}`);
 
         return NextResponse.json({
           success: true,
-          message: `Email enviado a ${user.email}`,
+          message: `Email sent to ${user.email}`,
         });
       }
 
       default:
         return NextResponse.json(
-          { error: "Acción no válida" },
+          { error: "Invalid action" },
           { status: 400 }
         );
     }
   } catch (error) {
-    console.error("❌ [ADMIN] Error ejecutando acción:", error);
+    console.error("[ADMIN] Action error:", error);
     return NextResponse.json(
-      { error: "Error interno del servidor" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

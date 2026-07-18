@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const authenticated = await isAuthenticated();
     if (!authenticated) {
       return NextResponse.json(
-        { error: "No autorizado" },
+        { error: "Unauthorized" },
         { status: 401 }
       );
     }
@@ -72,9 +72,9 @@ export async function GET(request: NextRequest) {
       eligibleUsers,
     });
   } catch (error) {
-    console.error("❌ [ADMIN] Error obteniendo dashboard:", error);
+    console.error("[ADMIN] Dashboard error:", error);
     return NextResponse.json(
-      { error: "Error interno del servidor" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

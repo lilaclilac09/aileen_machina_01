@@ -114,7 +114,7 @@ export async function sendCreditEmail({
     return { success: true };
   } catch (error) {
     console.error(`❌ [EMAIL] Error inesperado:`, error);
-    return { success: false, error: "Error al enviar el correo" };
+    return { success: false, error: "Failed to send email" };
   }
 }
 

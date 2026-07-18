@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { registerSchema } from "@/lib/validations";
+import { registerSchema, displayNameFromEmail } from "@/lib/validations";
 import { ZodError } from "zod";
 import { sendCreditEmail } from "@/lib/email";
 import {
@@ -22,8 +22,10 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const validatedData = registerSchema.parse(body);
-    const { name, email, checkinCode } = validatedData;
+    const { email, checkinCode } = validatedData;
     const normalizedEmail = email.toLowerCase().trim();
+    const name =
+      validatedData.name?.trim() || displayNameFromEmail(normalizedEmail);
     const locale = (body.locale === "en" ? "en" : "zh") as "zh" | "en";
     const redeemMode = getRedeemMode();
 
