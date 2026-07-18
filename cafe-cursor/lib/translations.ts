@@ -4,7 +4,7 @@ export const translations = {
   zh: {
     // Header
     title: "Cafe Cursor",
-    subtitle: "领取你的免费 Cursor IDE 学分。",
+    subtitle: "领取你的免费 Cursor 学分。",
     cta: "签到后几秒即可兑换。",
 
     // Form
@@ -18,7 +18,7 @@ export const translations = {
     checkinHint: "签到后在入口领取签到码",
     checkinFromQr: "已通过二维码签到",
     checkinFromQrHint: "签到码已自动填入，只需填写邮箱。",
-    submitButton: "领取我的学分",
+    submitButton: "领取 Cursor 学分",
     submitting: "验证中...",
 
     // Footer
@@ -69,7 +69,7 @@ export const translations = {
   en: {
     // Header
     title: "Cafe Cursor",
-    subtitle: "Get your free Cursor IDE credit.",
+    subtitle: "Get your Cursor credits.",
     cta: "Redeem in seconds after check-in.",
 
     // Form
@@ -83,7 +83,7 @@ export const translations = {
     checkinHint: "Get this code at the door after check-in",
     checkinFromQr: "Checked in via QR",
     checkinFromQrHint: "Code filled automatically. Just enter your email.",
-    submitButton: "Get my credit",
+    submitButton: "Get your Cursor credits",
     submitting: "Verifying...",
 
     // Footer
