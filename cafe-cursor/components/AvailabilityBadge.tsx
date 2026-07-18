@@ -87,7 +87,9 @@ export function AvailabilityBadge() {
       {/* Contador de participantes */}
       {data.totalEligible > 0 && (
         <p className="text-xs text-muted">
-          {data.totalClaimed} {t("of")} {data.totalEligible} {t("alreadyClaimed")}
+          {t("of") === "/"
+            ? `${data.totalClaimed} / ${data.totalEligible} ${t("alreadyClaimed")}`
+            : `${data.totalClaimed} ${t("of")} ${data.totalEligible} ${t("alreadyClaimed")}`}
         </p>
       )}
     </div>

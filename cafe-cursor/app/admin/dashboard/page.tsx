@@ -121,7 +121,11 @@ export default function AdminDashboard() {
   };
 
   const handleSendEmail = async (userId: string, email: string) => {
-    const locale = confirm(`¿Enviar email en portugués?\n\nOK = Português (pt-BR)\nCancelar = English (en)`) ? "pt-BR" : "en";
+    const locale = confirm(
+      `发送邮件语言？\n\nOK = 中文\nCancel = English`
+    )
+      ? "zh"
+      : "en";
     await executeAction("SEND_CREDIT_EMAIL", { userId, locale });
   };
 

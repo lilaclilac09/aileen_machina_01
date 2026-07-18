@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     const validatedData = registerSchema.parse(body);
     const { name, email, checkinCode } = validatedData;
     const normalizedEmail = email.toLowerCase().trim();
-    const locale = (body.locale === "en" ? "en" : "pt-BR") as "pt-BR" | "en";
+    const locale = (body.locale === "en" ? "en" : "zh") as "zh" | "en";
     const redeemMode = getRedeemMode();
 
     console.log(`📝 [REGISTER] Attempt: ${normalizedEmail} mode=${redeemMode}`);
