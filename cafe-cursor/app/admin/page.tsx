@@ -4,7 +4,7 @@ import { useState, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 /**
- * Admin login — Chinese UI
+ * Admin login page
  */
 export default function AdminLogin() {
   const router = useRouter();
@@ -48,10 +48,10 @@ export default function AdminLogin() {
       if (data.success) {
         router.push("/admin/dashboard");
       } else {
-        setError(data.error || "登录失败");
+        setError(data.error || "Login failed");
       }
     } catch (err) {
-      setError("连接失败，请重试");
+      setError("Connection error");
     } finally {
       setLoading(false);
     }
@@ -60,7 +60,7 @@ export default function AdminLogin() {
   if (checkingAuth) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a]">
-        <div className="text-white">正在验证登录状态…</div>
+        <div className="text-white">Checking session...</div>
       </div>
     );
   }
@@ -85,16 +85,16 @@ export default function AdminLogin() {
         </div>
 
         <h1 className="mb-2 text-center text-2xl font-bold text-white">
-          管理后台
+          Admin Panel
         </h1>
         <p className="mb-8 text-center text-sm text-gray-400">
-          Cafe Cursor Shanghai
+          Cafe Cursor — Administration
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="username" className="mb-2 block text-sm font-medium text-gray-300">
-              用户名
+              Username
             </label>
             <input
               type="text"
@@ -110,7 +110,7 @@ export default function AdminLogin() {
 
           <div>
             <label htmlFor="password" className="mb-2 block text-sm font-medium text-gray-300">
-              密码
+              Password
             </label>
             <input
               type="password"
@@ -135,13 +135,13 @@ export default function AdminLogin() {
             disabled={loading}
             className="w-full rounded-lg bg-white px-4 py-3 font-medium text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? "登录中…" : "登录"}
+            {loading ? "Signing in..." : "Log in"}
           </button>
         </form>
 
         <p className="mt-8 text-center text-xs text-gray-500">
           <a href="/" className="hover:text-white">
-            ← 返回首页
+            ← Back to home
           </a>
         </p>
       </div>
