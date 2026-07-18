@@ -8,6 +8,7 @@ import {
 } from "@/lib/google-sheets";
 import { displayNameFromEmail } from "@/lib/validations";
 import { syncCheckedInFromLuma, isLumaConfigured } from "@/lib/luma";
+import { importLumaGuestsFromCsv } from "@/lib/luma-csv";
 
 /**
  * POST /api/admin/actions — run admin actions
@@ -290,7 +291,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json(
             {
               error:
-                "Luma is not configured. Set LUMA_API_KEY and LUMA_EVENT_ID in Vercel env (requires Luma Plus).",
+                "Luma API needs Luma Plus. Without Plus, use Import Luma CSV instead (Event → Guests → Download CSV).",
             },
             { status: 400 }
           );
@@ -301,6 +302,31 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           message: `Synced Luma checked-in: ${result.checkedIn} guests, ${result.created} new, ${result.updated} updated.`,
+          ...result,
+        });
+      }
+
+      case "IMPORT_LUMA_CSV": {
+        const csvText =
+          typeof data?.csvText === "string" ? data.csvText : "";
+        if (!csvText.trim()) {
+          return NextResponse.json(
+            { error: "csvText is required (paste or upload Luma guest CSV)." },
+            { status: 400 }
+          );
+        }
+
+        const onlyApproved = data?.onlyApproved !== false;
+        const onlyCheckedIn = data?.onlyCheckedIn === true;
+
+        const result = await importLumaGuestsFromCsv(csvText, {
+          onlyApproved,
+          onlyCheckedIn,
+        });
+
+        return NextResponse.json({
+          success: true,
+          message: `Imported Luma CSV: ${result.created} new, ${result.updated} updated, ${result.skipped} already claimed (${result.imported} of ${result.parsed} rows). Checked-in in file: ${result.checkedInInFile}.`,
           ...result,
         });
       }

@@ -224,23 +224,22 @@ Cursor Ambassadors Brazil
 
 Production URL: **https://cursor-cafe.aileena.xyz**
 
-This fork is set up for **Luma check-in → redeem** (no shared event code):
+This fork is set up for **Luma guest list → redeem** (no shared event code, **no Luma Plus**):
 
 1. Credits come from the Google Sheet ([Cafe Cursor Shanghai - Aileen](https://docs.google.com/spreadsheets/d/1STC2voXO53oWsfMqH3mdQMdf6xeTDw7gEQA0DGRZOik/htmlview)).
 2. In Admin → **Sync Sheet** to import / refresh referral links.
-3. Set `REDEEM_MODE=luma` + `LUMA_API_KEY` + `LUMA_EVENT_ID` (Luma Plus calendar API key).
-4. Attendees check in on Luma at the door, then redeem with **email only**.
-5. Admin → **Sync Luma** (optional; redeem also refreshes from Luma when an email is missing).
+3. Set `REDEEM_MODE=allowlist`.
+4. Luma → Guests → **Download CSV** → Admin → **Import Luma CSV** (approved emails; or checked-in only on door day).
+5. Attendees redeem with **email only** (same email as Luma registration).
 
 ```env
-REDEEM_MODE=luma
-LUMA_API_KEY=luma_xxxxxxxx
-LUMA_EVENT_ID=evt-xxxxxxxx
+REDEEM_MODE=allowlist
 GOOGLE_SHEET_CREDITS_ID=1STC2voXO53oWsfMqH3mdQMdf6xeTDw7gEQA0DGRZOik
 NEXT_PUBLIC_SITE_URL=https://cursor-cafe.aileena.xyz
 ```
 
-Fallback without Luma API: `REDEEM_MODE=open` + `EVENT_CHECKIN_CODE=...` (door code / QR).
+Optional with Luma Plus: `REDEEM_MODE=luma` + `LUMA_API_KEY` + `LUMA_EVENT_ID`.  
+Fallback door code: `REDEEM_MODE=open` + `EVENT_CHECKIN_CODE=...`.
 
 ### Deploy (Vercel + 腾讯云 DNS + Resend)
 
