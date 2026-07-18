@@ -5,6 +5,8 @@
  * Expected columns include: email, name, approval_status, checked_in_at, company survey fields
  */
 
+import { readFileSync, existsSync } from "fs";
+import { join } from "path";
 import { prisma } from "@/lib/prisma";
 import { displayNameFromEmail } from "@/lib/validations";
 
@@ -152,40 +154,42 @@ export async function importLumaGuestsFromCsv(
   const filtered = filterLumaCsvGuests(all, options);
   const checkedInInFile = all.filter((g) => g.checkedIn).length;
 
+  const existing = await prisma.eligibleUser.findMany({
+    select: { email: true, id: true, hasClaimed: true, name: true, company: true },
+  });
+  const byEmail = new Map(existing.map((u) => [u.email, u]));
+
+  const toCreate = filtered.filter((g) => !byEmail.has(g.email));
+  const toUpdate = filtered.filter((g) => {
+    const ex = byEmail.get(g.email);
+    return ex && !ex.hasClaimed;
+  });
+  const skipped = filtered.filter((g) => byEmail.get(g.email)?.hasClaimed).length;
+
   let created = 0;
-  let updated = 0;
-  let skipped = 0;
-
-  for (const guest of filtered) {
-    const existing = await prisma.eligibleUser.findUnique({
-      where: { email: guest.email },
+  const BATCH = 50;
+  for (let i = 0; i < toCreate.length; i += BATCH) {
+    const chunk = toCreate.slice(i, i + BATCH);
+    const result = await prisma.eligibleUser.createMany({
+      data: chunk.map((guest) => ({
+        email: guest.email,
+        name: guest.name,
+        company: guest.company || LUMA_CSV_COMPANY_TAG,
+        role: "Attendee",
+        approvalStatus: "approved",
+        hasClaimed: false,
+      })),
     });
+    created += result.count;
+  }
 
-    if (!existing) {
-      await prisma.eligibleUser.create({
-        data: {
-          email: guest.email,
-          name: guest.name,
-          company: guest.company || LUMA_CSV_COMPANY_TAG,
-          role: "Attendee",
-          approvalStatus: "approved",
-          hasClaimed: false,
-        },
-      });
-      created += 1;
-      continue;
-    }
-
-    if (existing.hasClaimed) {
-      skipped += 1;
-      continue;
-    }
-
+  let updated = 0;
+  for (const guest of toUpdate) {
     await prisma.eligibleUser.update({
-      where: { id: existing.id },
+      where: { email: guest.email },
       data: {
-        name: guest.name || existing.name,
-        company: guest.company || existing.company || LUMA_CSV_COMPANY_TAG,
+        name: guest.name,
+        company: guest.company || LUMA_CSV_COMPANY_TAG,
         approvalStatus: "approved",
       },
     });
@@ -204,4 +208,75 @@ export async function importLumaGuestsFromCsv(
     skipped,
     checkedInInFile,
   };
+}
+
+const BUNDLED_CSV_CANDIDATES = [
+  join(process.cwd(), "data", "luma-guests.csv"),
+  join(process.cwd(), "cafe-cursor", "data", "luma-guests.csv"),
+];
+
+let bundledImportPromise: Promise<{
+  created: number;
+  updated: number;
+  imported: number;
+  skipped: number;
+} | null> | null = null;
+
+function findBundledLumaCsv(): string | null {
+  for (const p of BUNDLED_CSV_CANDIDATES) {
+    if (existsSync(p)) return p;
+  }
+  return null;
+}
+
+/**
+ * Auto-import bundled Luma guest CSV once when DB allowlist is still tiny.
+ * Used so production picks up the uploaded guest list without a manual Admin click.
+ */
+export async function ensureBundledLumaGuestsImported(): Promise<{
+  created: number;
+  updated: number;
+  imported: number;
+  skipped: number;
+} | null> {
+  if (!bundledImportPromise) {
+    bundledImportPromise = (async () => {
+      const tagged = await prisma.eligibleUser.count({
+        where: { company: LUMA_CSV_COMPANY_TAG },
+      });
+      // Already imported a full-ish list
+      if (tagged >= 100) return null;
+
+      const total = await prisma.eligibleUser.count();
+      // If somehow already large without tag, skip
+      if (total >= 400) return null;
+
+      const csvPath = findBundledLumaCsv();
+      if (!csvPath) {
+        console.warn("[LUMA-CSV] Bundled luma-guests.csv not found");
+        return null;
+      }
+
+      const csvText = readFileSync(csvPath, "utf-8");
+      console.log(`[LUMA-CSV] Auto-importing bundled guests from ${csvPath}`);
+      const result = await importLumaGuestsFromCsv(csvText, {
+        onlyApproved: true,
+        onlyCheckedIn: false,
+      });
+      console.log(
+        `[LUMA-CSV] Auto-import done created=${result.created} updated=${result.updated} imported=${result.imported}`
+      );
+      return {
+        created: result.created,
+        updated: result.updated,
+        imported: result.imported,
+        skipped: result.skipped,
+      };
+    })().catch((err) => {
+      console.error("[LUMA-CSV] Auto-import failed:", err);
+      bundledImportPromise = null;
+      return null;
+    });
+  }
+  return bundledImportPromise;
 }
