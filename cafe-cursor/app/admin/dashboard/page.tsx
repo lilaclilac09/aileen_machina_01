@@ -43,7 +43,7 @@ interface DashboardData {
 }
 
 /**
- * Admin dashboard — English UI. Name is not shown (not audited).
+ * Admin dashboard — Chinese UI (no name column)
  */
 export default function AdminDashboard() {
   const router = useRouter();
@@ -75,7 +75,7 @@ export default function AdminDashboard() {
         setData(json);
       }
     } catch (err) {
-      setError("Failed to load data");
+      setError("加载失败，请刷新重试");
     } finally {
       setLoading(false);
     }
@@ -96,33 +96,33 @@ export default function AdminDashboard() {
       });
       const json = await res.json();
       if (json.error) {
-        alert(`Error: ${json.error}`);
+        alert(`出错：${json.error}`);
       } else {
-        alert(json.message || "Action completed");
+        alert(json.message || "操作完成");
         fetchDashboard();
       }
     } catch (err) {
-      alert("Failed to run action");
+      alert("操作失败，请重试");
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleAssignCredit = async (email: string, useTest: boolean = false) => {
-    if (confirm(`Assign ${useTest ? "TEST" : "real"} credit to ${email}?`)) {
+    if (confirm(`确认给 ${email} 分配${useTest ? "测试" : "正式"}学分？`)) {
       await executeAction("ASSIGN_CREDIT", { email, useTestCredit: useTest });
     }
   };
 
   const handleRevokeCredit = async (userId: string, email: string) => {
-    if (confirm(`Revoke credit from ${email}? The credit will become available again.`)) {
+    if (confirm(`确认撤销 ${email} 的学分？学分会重新变为可用。`)) {
       await executeAction("REVOKE_CREDIT", { userId });
     }
   };
 
   const handleSendEmail = async (userId: string, email: string) => {
     const locale = confirm(
-      `Email language?\n\nOK = Chinese\nCancel = English`
+      `邮件语言？\n\n确定 = 中文\n取消 = English`
     )
       ? "zh"
       : "en";
@@ -132,7 +132,7 @@ export default function AdminDashboard() {
   const handleSyncSheet = async () => {
     if (
       !confirm(
-        "Sync credits from Google Sheet?\n\nNew referral links will be imported. Existing codes are skipped."
+        "从 Google Sheet 同步学分链接？\n\n只会导入新链接，已有的会跳过。"
       )
     ) {
       return;
@@ -152,8 +152,9 @@ export default function AdminDashboard() {
     if (!file) return;
 
     const csvText = await file.text();
+    // Cancel = all approved (what we want); OK = checked-in only
     const onlyCheckedIn = confirm(
-      "Import filter:\n\nOK = only Checked-in guests\nCancel = all Approved guests (recommended if you don't have Luma Plus)"
+      "导入范围：\n\n确定 = 只导入「已签到」\n取消 = 导入全部「已批准报名」（推荐）"
     );
 
     await executeAction("IMPORT_LUMA_CSV", {
@@ -166,7 +167,7 @@ export default function AdminDashboard() {
   const handleSyncLumaApi = async () => {
     if (
       !confirm(
-        "Sync via Luma API? (requires Luma Plus)\n\nWithout Plus, use Import Luma CSV instead."
+        "通过 Luma API 同步？需要 Luma Plus。\n\n没有 Plus 请用「导入 Luma CSV」。"
       )
     ) {
       return;
@@ -189,7 +190,7 @@ export default function AdminDashboard() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a]">
-        <div className="text-white">Loading dashboard...</div>
+        <div className="text-white">加载中…</div>
       </div>
     );
   }
@@ -217,8 +218,8 @@ export default function AdminDashboard() {
               <path d="M457.43,125.94L244.42,2.96c-6.84-3.95-15.28-3.95-22.12,0L9.3,125.94c-5.75,3.32-9.3,9.46-9.3,16.11v247.99c0,6.65,3.55,12.79,9.3,16.11l213.01,122.98c6.84,3.95,15.28,3.95,22.12,0l213.01-122.98c5.75-3.32,9.3-9.46,9.3-16.11v-247.99c0-6.65-3.55-12.79-9.3-16.11ZM444.05,151.99l-205.63,356.16c-1.39,2.4-5.06,1.42-5.06-1.36v-233.21c0-4.66-2.49-8.97-6.53-11.31L24.87,145.67c-2.4-1.39-1.42-5.06,1.36-5.06h411.26c5.84,0,9.49,6.33,6.57,11.39Z" />
             </svg>
             <div>
-              <h1 className="text-lg font-bold">Cafe Cursor Admin</h1>
-              <p className="text-xs text-gray-400">Administration Panel</p>
+              <h1 className="text-lg font-bold">Cafe Cursor 管理后台</h1>
+              <p className="text-xs text-gray-400">上海活动学分发放</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -226,13 +227,13 @@ export default function AdminDashboard() {
               href="/host"
               className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:opacity-90"
             >
-              QR Host Kit
+              二维码物料
             </a>
             <button
               onClick={handleLogout}
               className="rounded-lg border border-gray-700 px-4 py-2 text-sm hover:bg-gray-800"
             >
-              Log out
+              退出登录
             </button>
           </div>
         </div>
@@ -241,32 +242,32 @@ export default function AdminDashboard() {
       <div className="relative mx-auto max-w-7xl px-4 py-6">
         <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
           <StatCard
-            label="Total Credits"
+            label="学分总数"
             value={data?.stats.totalCredits || 0}
             color="blue"
           />
           <StatCard
-            label="Available"
+            label="可用"
             value={data?.stats.availableCredits || 0}
             color="green"
           />
           <StatCard
-            label="Used"
+            label="已用"
             value={data?.stats.usedCredits || 0}
             color="orange"
           />
           <StatCard
-            label="Test"
+            label="测试"
             value={data?.stats.testCredits || 0}
             color="purple"
           />
           <StatCard
-            label="Eligible Users"
+            label="已登记用户"
             value={data?.stats.totalEligible || 0}
             color="cyan"
           />
           <StatCard
-            label="Claimed"
+            label="已领取"
             value={data?.stats.claimedUsers || 0}
             color="pink"
           />
@@ -282,7 +283,7 @@ export default function AdminDashboard() {
                   : "border border-gray-700 hover:bg-gray-800"
               }`}
             >
-              Users ({data?.stats.totalEligible ?? data?.eligibleUsers.length ?? 0})
+              用户 ({data?.stats.totalEligible ?? data?.eligibleUsers.length ?? 0})
             </button>
             <button
               onClick={() => setActiveTab("credits")}
@@ -292,14 +293,14 @@ export default function AdminDashboard() {
                   : "border border-gray-700 hover:bg-gray-800"
               }`}
             >
-              Credits ({data?.stats.totalCredits ?? data?.credits.length ?? 0})
+              学分 ({data?.stats.totalCredits ?? data?.credits.length ?? 0})
             </button>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <input
               type="text"
-              placeholder="Search..."
+              placeholder="搜索…"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="rounded-lg border border-gray-700 bg-gray-900 px-4 py-2 text-sm placeholder:text-gray-500 focus:border-white focus:outline-none"
@@ -308,20 +309,20 @@ export default function AdminDashboard() {
               onClick={() => setShowAddUserModal(true)}
               className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium hover:bg-green-700"
             >
-              + User
+              + 用户
             </button>
             <button
               onClick={() => setShowAddCreditModal(true)}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-700"
             >
-              + Credit
+              + 学分
             </button>
             <button
               onClick={handleSyncSheet}
               disabled={actionLoading}
               className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium hover:bg-amber-700 disabled:opacity-50"
             >
-              Sync Sheet
+              同步 Sheet
             </button>
             <input
               ref={lumaCsvInputRef}
@@ -335,22 +336,22 @@ export default function AdminDashboard() {
               disabled={actionLoading}
               className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
             >
-              Import Luma CSV
+              导入 Luma CSV
             </button>
             <button
               onClick={handleSyncLumaApi}
               disabled={actionLoading}
               className="rounded-lg border border-gray-700 px-4 py-2 text-sm hover:bg-gray-800 disabled:opacity-50"
-              title="Requires Luma Plus API key"
+              title="需要 Luma Plus"
             >
-              Sync Luma API
+              Luma API
             </button>
             <button
               onClick={fetchDashboard}
               disabled={actionLoading}
               className="rounded-lg border border-gray-700 px-4 py-2 text-sm hover:bg-gray-800 disabled:opacity-50"
             >
-              Refresh
+              刷新
             </button>
           </div>
         </div>
@@ -360,11 +361,11 @@ export default function AdminDashboard() {
             <table className="w-full text-left text-sm">
               <thead className="border-b border-gray-800 bg-gray-900/50">
                 <tr>
-                  <th className="px-4 py-3 font-medium">Email</th>
-                  <th className="px-4 py-3 font-medium">Company</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Credit</th>
-                  <th className="px-4 py-3 font-medium">Actions</th>
+                  <th className="px-4 py-3 font-medium">邮箱</th>
+                  <th className="px-4 py-3 font-medium">公司</th>
+                  <th className="px-4 py-3 font-medium">状态</th>
+                  <th className="px-4 py-3 font-medium">学分</th>
+                  <th className="px-4 py-3 font-medium">操作</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-800">
@@ -379,10 +380,10 @@ export default function AdminDashboard() {
                       {user.hasClaimed ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-green-500/20 px-2 py-1 text-xs text-green-400">
                           ✓ {user.credit?.code}
-                          {user.credit?.isTest && " (TEST)"}
+                          {user.credit?.isTest && " (测试)"}
                         </span>
                       ) : (
-                        <span className="text-gray-500">Unassigned</span>
+                        <span className="text-gray-500">未分配</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
@@ -394,14 +395,14 @@ export default function AdminDashboard() {
                               disabled={actionLoading}
                               className="rounded bg-blue-600 px-2 py-1 text-xs hover:bg-blue-700 disabled:opacity-50"
                             >
-                              Assign
+                              分配
                             </button>
                             <button
                               onClick={() => handleAssignCredit(user.email, true)}
                               disabled={actionLoading}
                               className="rounded bg-purple-600 px-2 py-1 text-xs hover:bg-purple-700 disabled:opacity-50"
                             >
-                              Test
+                              测试
                             </button>
                           </>
                         )}
@@ -411,16 +412,16 @@ export default function AdminDashboard() {
                               onClick={() => handleSendEmail(user.id, user.email)}
                               disabled={actionLoading}
                               className="rounded bg-cyan-600 px-2 py-1 text-xs hover:bg-cyan-700 disabled:opacity-50"
-                              title="Send email with credit link"
+                              title="发送学分邮件"
                             >
-                              Email
+                              发邮件
                             </button>
                             <button
                               onClick={() => handleRevokeCredit(user.id, user.email)}
                               disabled={actionLoading}
                               className="rounded bg-red-600 px-2 py-1 text-xs hover:bg-red-700 disabled:opacity-50"
                             >
-                              Revoke
+                              撤销
                             </button>
                           </>
                         )}
@@ -438,11 +439,11 @@ export default function AdminDashboard() {
             <table className="w-full text-left text-sm">
               <thead className="border-b border-gray-800 bg-gray-900/50">
                 <tr>
-                  <th className="px-4 py-3 font-medium">Code</th>
-                  <th className="px-4 py-3 font-medium">Link</th>
-                  <th className="px-4 py-3 font-medium">Type</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Assigned</th>
+                  <th className="px-4 py-3 font-medium">代码</th>
+                  <th className="px-4 py-3 font-medium">链接</th>
+                  <th className="px-4 py-3 font-medium">类型</th>
+                  <th className="px-4 py-3 font-medium">状态</th>
+                  <th className="px-4 py-3 font-medium">分配时间</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-800">
@@ -455,28 +456,28 @@ export default function AdminDashboard() {
                     <td className="px-4 py-3">
                       {credit.isTest ? (
                         <span className="rounded-full bg-purple-500/20 px-2 py-1 text-xs text-purple-400">
-                          TEST
+                          测试
                         </span>
                       ) : (
                         <span className="rounded-full bg-blue-500/20 px-2 py-1 text-xs text-blue-400">
-                          Real
+                          正式
                         </span>
                       )}
                     </td>
                     <td className="px-4 py-3">
                       {credit.isUsed ? (
                         <span className="rounded-full bg-orange-500/20 px-2 py-1 text-xs text-orange-400">
-                          Used
+                          已用
                         </span>
                       ) : (
                         <span className="rounded-full bg-green-500/20 px-2 py-1 text-xs text-green-400">
-                          Available
+                          可用
                         </span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-xs text-gray-400">
                       {credit.assignedAt
-                        ? new Date(credit.assignedAt).toLocaleDateString("en-US")
+                        ? new Date(credit.assignedAt).toLocaleDateString("zh-CN")
                         : "-"}
                     </td>
                   </tr>
@@ -536,10 +537,17 @@ function StatusBadge({ status }: { status: string }) {
     waitlist: "bg-gray-500/20 text-gray-400",
     invited: "bg-blue-500/20 text-blue-400",
   };
+  const labels: Record<string, string> = {
+    approved: "已批准",
+    pending_approval: "待审核",
+    declined: "已拒绝",
+    waitlist: "候补",
+    invited: "已邀请",
+  };
 
   return (
     <span className={`rounded-full px-2 py-1 text-xs ${styles[status] || "bg-gray-500/20 text-gray-400"}`}>
-      {status}
+      {labels[status] || status}
     </span>
   );
 }
@@ -557,18 +565,18 @@ function AddUserModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="w-full max-w-md rounded-xl border border-gray-800 bg-[#0a0a0a] p-6">
-        <h2 className="mb-4 text-lg font-bold">Add Eligible User</h2>
+        <h2 className="mb-4 text-lg font-bold">添加用户</h2>
         <div className="space-y-4">
           <input
             type="email"
-            placeholder="Email"
+            placeholder="邮箱"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-3 text-white placeholder:text-gray-500 focus:border-white focus:outline-none"
           />
           <input
             type="text"
-            placeholder="Company (optional)"
+            placeholder="公司（可选）"
             value={company}
             onChange={(e) => setCompany(e.target.value)}
             className="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-3 text-white placeholder:text-gray-500 focus:border-white focus:outline-none"
@@ -579,13 +587,13 @@ function AddUserModal({
             onClick={onClose}
             className="flex-1 rounded-lg border border-gray-700 py-3 hover:bg-gray-800"
           >
-            Cancel
+            取消
           </button>
           <button
             onClick={() => onSubmit({ email, company, approvalStatus: "approved" })}
             className="flex-1 rounded-lg bg-white py-3 font-medium text-black hover:opacity-90"
           >
-            Add
+            添加
           </button>
         </div>
       </div>
@@ -607,18 +615,18 @@ function AddCreditModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="w-full max-w-md rounded-xl border border-gray-800 bg-[#0a0a0a] p-6">
-        <h2 className="mb-4 text-lg font-bold">Add Credit</h2>
+        <h2 className="mb-4 text-lg font-bold">添加学分</h2>
         <div className="space-y-4">
           <input
             type="text"
-            placeholder="Code (e.g. ABC123XYZ)"
+            placeholder="代码（如 ABC123XYZ）"
             value={code}
             onChange={(e) => setCode(e.target.value)}
             className="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-3 text-white placeholder:text-gray-500 focus:border-white focus:outline-none"
           />
           <input
             type="url"
-            placeholder="Full link (https://cursor.com/...)"
+            placeholder="完整链接（https://cursor.com/...）"
             value={link}
             onChange={(e) => setLink(e.target.value)}
             className="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-3 text-white placeholder:text-gray-500 focus:border-white focus:outline-none"
@@ -630,7 +638,7 @@ function AddCreditModal({
               onChange={(e) => setIsTest(e.target.checked)}
               className="h-4 w-4 rounded border-gray-700 bg-gray-900"
             />
-            <span className="text-sm text-gray-300">Test credit (TEST)</span>
+            <span className="text-sm text-gray-300">测试学分</span>
           </label>
         </div>
         <div className="mt-6 flex gap-3">
@@ -638,13 +646,13 @@ function AddCreditModal({
             onClick={onClose}
             className="flex-1 rounded-lg border border-gray-700 py-3 hover:bg-gray-800"
           >
-            Cancel
+            取消
           </button>
           <button
             onClick={() => onSubmit({ code, link, isTest })}
             className="flex-1 rounded-lg bg-white py-3 font-medium text-black hover:opacity-90"
           >
-            Add
+            添加
           </button>
         </div>
       </div>

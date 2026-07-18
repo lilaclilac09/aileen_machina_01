@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const authenticated = await isAuthenticated();
     if (!authenticated) {
       return NextResponse.json(
-        { error: "Unauthorized" },
+        { error: "未登录" },
         { status: 401 }
       );
     }
@@ -38,14 +38,14 @@ export async function POST(request: NextRequest) {
 
         if (!eligibleUser) {
           return NextResponse.json(
-            { error: "User not found" },
+            { error: "用户不存在" },
             { status: 404 }
           );
         }
 
         if (eligibleUser.hasClaimed) {
           return NextResponse.json(
-            { error: "User already has a credit assigned" },
+            { error: "该用户已分配学分" },
             { status: 400 }
           );
         }
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
 
         if (!credit) {
           return NextResponse.json(
-            { error: "No credits available" },
+            { error: "没有可用学分" },
             { status: 400 }
           );
         }
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
           success: true,
-          message: `Credit ${credit.code} assigned to ${email}`,
+          message: `已将学分 ${credit.code} 分配给 ${email}`,
           credit: credit.link,
         });
       }
@@ -102,14 +102,14 @@ export async function POST(request: NextRequest) {
 
         if (!user) {
           return NextResponse.json(
-            { error: "User not found" },
+            { error: "用户不存在" },
             { status: 404 }
           );
         }
 
         if (!user.hasClaimed || !user.creditId) {
           return NextResponse.json(
-            { error: "User has no credit assigned" },
+            { error: "该用户尚未分配学分" },
             { status: 400 }
           );
         }
@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
           success: true,
-          message: `Credit revoked from ${user.email}`,
+          message: `已撤销 ${user.email} 的学分`,
         });
       }
 
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
 
         if (!normalizedEmail) {
           return NextResponse.json(
-            { error: "Email is required" },
+            { error: "请填写邮箱" },
             { status: 400 }
           );
         }
@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
 
         if (existing) {
           return NextResponse.json(
-            { error: "User already exists" },
+            { error: "用户已存在" },
             { status: 400 }
           );
         }
@@ -181,7 +181,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
           success: true,
-          message: `User ${normalizedEmail} added`,
+          message: `已添加用户 ${normalizedEmail}`,
           user: newUser,
         });
       }
@@ -200,7 +200,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
           success: true,
-          message: `Status updated to ${approvalStatus}`,
+          message: `状态已更新为 ${approvalStatus}`,
         });
       }
 
@@ -213,7 +213,7 @@ export async function POST(request: NextRequest) {
 
         if (existing) {
           return NextResponse.json(
-            { error: "Credit code already exists" },
+            { error: "学分代码已存在" },
             { status: 400 }
           );
         }
@@ -230,7 +230,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
           success: true,
-          message: `Credit ${code} added`,
+          message: `已添加学分 ${code}`,
           credit: newCredit,
         });
       }
@@ -244,14 +244,14 @@ export async function POST(request: NextRequest) {
 
         if (!credit) {
           return NextResponse.json(
-            { error: "Credit not found" },
+            { error: "学分不存在" },
             { status: 404 }
           );
         }
 
         if (credit.isUsed) {
           return NextResponse.json(
-            { error: "Cannot delete an assigned credit" },
+            { error: "已分配的学分不能删除" },
             { status: 400 }
           );
         }
@@ -264,7 +264,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
           success: true,
-          message: `Credit ${credit.code} deleted`,
+          message: `已删除学分 ${credit.code}`,
         });
       }
 
@@ -281,7 +281,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
           success: true,
-          message: `Synced from Google Sheet: ${result.created} new, ${result.skipped} already present. ${result.available} real credits available.`,
+          message: `Sheet 同步完成：新增 ${result.created}，已存在跳过 ${result.skipped}，可用正式学分 ${result.available}`,
           ...result,
         });
       }
@@ -291,7 +291,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json(
             {
               error:
-                "Luma API needs Luma Plus. Without Plus, use Import Luma CSV instead (Event → Guests → Download CSV).",
+                "Luma API 需要 Luma Plus。没有 Plus 请用「导入 Luma CSV」（活动 → 嘉宾 → 下载 CSV）。",
             },
             { status: 400 }
           );
@@ -301,7 +301,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
           success: true,
-          message: `Synced Luma checked-in: ${result.checkedIn} guests, ${result.created} new, ${result.updated} updated.`,
+          message: `Luma 签到同步：${result.checkedIn} 人，新增 ${result.created}，更新 ${result.updated}`,
           ...result,
         });
       }
@@ -311,7 +311,7 @@ export async function POST(request: NextRequest) {
           typeof data?.csvText === "string" ? data.csvText : "";
         if (!csvText.trim()) {
           return NextResponse.json(
-            { error: "csvText is required (paste or upload Luma guest CSV)." },
+            { error: "请上传 Luma 嘉宾 CSV 文件" },
             { status: 400 }
           );
         }
@@ -326,7 +326,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
           success: true,
-          message: `Imported Luma CSV: ${result.created} new, ${result.updated} updated, ${result.skipped} already claimed (${result.imported} of ${result.parsed} rows). Checked-in in file: ${result.checkedInInFile}.`,
+          message: `Luma CSV 导入完成：新增 ${result.created}，更新 ${result.updated}，已领取跳过 ${result.skipped}（导入 ${result.imported}/${result.parsed}）。文件中已签到：${result.checkedInInFile}`,
           ...result,
         });
       }
@@ -341,14 +341,14 @@ export async function POST(request: NextRequest) {
 
         if (!user) {
           return NextResponse.json(
-            { error: "User not found" },
+            { error: "用户不存在" },
             { status: 404 }
           );
         }
 
         if (!user.hasClaimed || !user.credit) {
           return NextResponse.json(
-            { error: "User has no credit assigned" },
+            { error: "该用户尚未分配学分" },
             { status: 400 }
           );
         }
@@ -369,7 +369,7 @@ export async function POST(request: NextRequest) {
             emailResult.error
           );
           return NextResponse.json(
-            { error: `Failed to send email: ${emailResult.error}` },
+            { error: `邮件发送失败：${emailResult.error}` },
             { status: 500 }
           );
         }
@@ -378,20 +378,20 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
           success: true,
-          message: `Email sent to ${user.email}`,
+          message: `邮件已发送至 ${user.email}`,
         });
       }
 
       default:
         return NextResponse.json(
-          { error: "Invalid action" },
+          { error: "无效操作" },
           { status: 400 }
         );
     }
   } catch (error) {
     console.error("[ADMIN] Action error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "服务器错误" },
       { status: 500 }
     );
   }
