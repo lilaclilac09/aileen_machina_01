@@ -243,10 +243,9 @@ export default function AdminDashboard() {
           <div className="mb-6 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
             <p className="font-medium">Luma guest list not imported yet</p>
             <p className="mt-1 text-amber-200/90">
-              Click <strong>Import Luma CSV</strong> and upload the Luma guests export.
-              Choose <strong>Cancel</strong> on the dialog = import all Approved guests (~500+).
-              Also set Vercel <code className="text-amber-50">REDEEM_MODE=allowlist</code> (not open),
-              otherwise anyone with the door code can redeem.
+              Opening this page auto-imports the bundled Luma CSV (~534 approved emails).
+              Refresh if Eligible Users is still low. Redeem requires an email on that list
+              (REDEEM_MODE=allowlist). Or click <strong>Import Luma CSV</strong> to re-upload.
             </p>
           </div>
         )}

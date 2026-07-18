@@ -41,6 +41,7 @@ prisma/dev.db-journal
 # CSV data files (contain sensitive event data)
 *.csv
 !prisma/*-example.csv
+!data/luma-guests.csv
 
 # IDE
 .idea
