@@ -1,0 +1,4 @@
+﻿email,name,company,role,approval_status
+john@example.com,John Doe,Acme Inc,Developer,approved
+jane@example.com,Jane Smith,Tech Corp,Designer,approved
+bob@example.com,Bob Wilson,StartupXYZ,Founder,approved

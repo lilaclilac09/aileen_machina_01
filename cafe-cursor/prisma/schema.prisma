@@ -1,0 +1,45 @@
+// Prisma Schema for Cafe Cursor Credit Distribution
+// Production: PostgreSQL (Vercel Postgres / Neon / Supabase)
+// Local: also use a Postgres URL (Neon free is fine), or temporarily
+//        point DATABASE_URL/DIRECT_URL at the same remote DB.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Eligible attendees / walk-up redeemers
+model EligibleUser {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  name           String
+  company        String?
+  role           String?
+  approvalStatus String    @default("approved")
+  createdAt      DateTime  @default(now())
+
+  hasClaimed Boolean   @default(false)
+  claimedAt  DateTime?
+
+  credit   Credit? @relation(fields: [creditId], references: [id])
+  creditId String? @unique
+}
+
+// Cursor referral credits
+model Credit {
+  id         String    @id @default(cuid())
+  code       String    @unique
+  link       String    @unique
+  isUsed     Boolean   @default(false)
+  isTest     Boolean   @default(false)
+  assignedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  assignedTo EligibleUser?
+}
