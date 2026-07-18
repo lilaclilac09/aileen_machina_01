@@ -222,15 +222,28 @@ Cursor Ambassadors Brazil
 
 ## Cafe Cursor Shanghai (IRL)
 
+Production URL: **https://cursor-cafe.aileena.xyz**
+
 This fork is set up for **in-person check-in → redeem**:
 
 1. Credits come from the Google Sheet ([Cafe Cursor Shanghai - Aileen](https://docs.google.com/spreadsheets/d/1STC2voXO53oWsfMqH3mdQMdf6xeTDw7gEQA0DGRZOik/htmlview)).
 2. In Admin → **Sync Sheet** to import / refresh referral links.
 3. Set `EVENT_CHECKIN_CODE` (shown at the door after check-in).
-4. Set `REDEEM_MODE=open` so any unique email can claim once after entering the code.
+4. Set `REDEEM_MODE=open` so any unique email can claim once after entering the code (or via QR).
 
 ```env
 REDEEM_MODE=open
 EVENT_CHECKIN_CODE=shanghai2026
 GOOGLE_SHEET_CREDITS_ID=1STC2voXO53oWsfMqH3mdQMdf6xeTDw7gEQA0DGRZOik
+NEXT_PUBLIC_SITE_URL=https://cursor-cafe.aileena.xyz
 ```
+
+### Deploy (Vercel + DNS)
+
+1. Import the `cafe-cursor/` app (or this repo’s `cafe-cursor` root) as a Vercel project.
+2. Root Directory: `cafe-cursor`
+3. Env vars: copy from `.env.example` (use Postgres in production, not SQLite).
+4. Domains → Add `cursor-cafe.aileena.xyz`
+5. DNS (Cloudflare / registrar): CNAME `cursor-cafe` → `cname.vercel-dns.com`
+6. After live: Admin → **QR Host Kit** → print QR  
+   Scan opens: `https://cursor-cafe.aileena.xyz/?code=shanghai2026&lang=en`
