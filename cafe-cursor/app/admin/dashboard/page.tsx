@@ -243,7 +243,7 @@ export default function AdminDashboard() {
           <div className="mb-6 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
             <p className="font-medium">Luma guest list not imported yet</p>
             <p className="mt-1 text-amber-200/90">
-              Opening this page auto-imports the bundled Luma CSV (~534 approved emails).
+              Opening this page auto-imports the bundled Luma CSV (~537 approved emails).
               Refresh if Eligible Users is still low. Redeem requires an email on that list
               (REDEEM_MODE=allowlist). Or click <strong>Import Luma CSV</strong> to re-upload.
             </p>
