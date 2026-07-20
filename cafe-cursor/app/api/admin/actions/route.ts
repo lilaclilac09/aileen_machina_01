@@ -318,16 +318,58 @@ export async function POST(request: NextRequest) {
 
         const onlyApproved = data?.onlyApproved !== false;
         const onlyCheckedIn = data?.onlyCheckedIn === true;
+        const revokeOthers = data?.revokeOthers === true;
 
-        const result = await importLumaGuestsFromCsv(csvText, {
-          onlyApproved,
-          onlyCheckedIn,
+        try {
+          const result = await importLumaGuestsFromCsv(csvText, {
+            onlyApproved,
+            onlyCheckedIn,
+            revokeOthers,
+          });
+
+          return NextResponse.json({
+            success: true,
+            message: `Imported Luma CSV: ${result.created} new, ${result.updated} updated, ${result.skipped} already claimed, ${result.declined} declined (not in filter). Matched ${result.imported} of ${result.parsed} rows. Checked-in in file: ${result.checkedInInFile}.`,
+            ...result,
+          });
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : "Import failed";
+          return NextResponse.json({ error: msg }, { status: 400 });
+        }
+      }
+
+      case "CLEAR_GUEST_LIST": {
+        // Remove allowlist rows that have not claimed. Claimed users (and their
+        // credit links) are kept for audit / re-show.
+        const keepClaimed = data?.keepClaimed !== false;
+
+        if (!keepClaimed) {
+          return NextResponse.json(
+            {
+              error:
+                "Refusing to delete claimed users. Clear unclaimed only (keepClaimed=true).",
+            },
+            { status: 400 }
+          );
+        }
+
+        const before = await prisma.eligibleUser.count();
+        const claimed = await prisma.eligibleUser.count({
+          where: { hasClaimed: true },
         });
+        const result = await prisma.eligibleUser.deleteMany({
+          where: { hasClaimed: false },
+        });
+
+        console.log(
+          `[ADMIN] Guest list cleared: deleted=${result.count} keptClaimed=${claimed} before=${before}`
+        );
 
         return NextResponse.json({
           success: true,
-          message: `Imported Luma CSV: ${result.created} new, ${result.updated} updated, ${result.skipped} already claimed (${result.imported} of ${result.parsed} rows). Checked-in in file: ${result.checkedInInFile}.`,
-          ...result,
+          message: `Guest list cleared: deleted ${result.count} unclaimed users. Kept ${claimed} who already claimed.`,
+          deleted: result.count,
+          keptClaimed: claimed,
         });
       }
 

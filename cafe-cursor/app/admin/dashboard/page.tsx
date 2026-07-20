@@ -56,6 +56,7 @@ export default function AdminDashboard() {
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [showAddCreditModal, setShowAddCreditModal] = useState(false);
   const lumaCsvInputRef = useRef<HTMLInputElement>(null);
+  const lumaImportModeRef = useRef<"all-approved" | "checked-in">("all-approved");
 
   useEffect(() => {
     fetchDashboard();
@@ -152,21 +153,65 @@ export default function AdminDashboard() {
     if (!file) return;
 
     const csvText = await file.text();
+    const mode = lumaImportModeRef.current;
+    lumaImportModeRef.current = "all-approved";
+
+    if (mode === "checked-in") {
+      if (
+        !confirm(
+          "Sync CHECKED-IN allowlist?\n\n• Only guests with checked_in_at in this CSV stay approved\n• Everyone else (not yet claimed) will be declined and cannot redeem\n• Already-claimed users are kept\n\nOK to continue."
+        )
+      ) {
+        return;
+      }
+      await executeAction("IMPORT_LUMA_CSV", {
+        csvText,
+        onlyApproved: true,
+        onlyCheckedIn: true,
+        revokeOthers: true,
+      });
+      return;
+    }
+
     const onlyCheckedIn = confirm(
-      "Import filter:\n\nOK = only Checked-in guests\nCancel = all Approved guests (recommended if you don't have Luma Plus)"
+      "Import filter:\n\nOK = only Checked-in guests (does NOT remove others)\nCancel = all Approved guests"
     );
 
     await executeAction("IMPORT_LUMA_CSV", {
       csvText,
       onlyApproved: true,
       onlyCheckedIn,
+      revokeOthers: false,
     });
+  };
+
+  const handleSyncCheckedInClick = () => {
+    lumaImportModeRef.current = "checked-in";
+    lumaCsvInputRef.current?.click();
+  };
+
+  const handleClearGuestList = async () => {
+    if (
+      !confirm(
+        "Delete guest list?\n\n• Deletes all users who have NOT claimed yet\n• Keeps users who already claimed (and their credit links)\n\nYou can re-import with Sync Checked-in afterwards.\n\nOK to delete."
+      )
+    ) {
+      return;
+    }
+    if (
+      !confirm(
+        "Final confirm: permanently delete unclaimed eligible users from the database?"
+      )
+    ) {
+      return;
+    }
+    await executeAction("CLEAR_GUEST_LIST", { keepClaimed: true });
   };
 
   const handleSyncLumaApi = async () => {
     if (
       !confirm(
-        "Sync via Luma API? (requires Luma Plus)\n\nWithout Plus, use Import Luma CSV instead."
+        "Sync via Luma API? (requires Luma Plus)\n\nWithout Plus, use Sync Checked-in + upload CSV instead."
       )
     ) {
       return;
@@ -243,9 +288,10 @@ export default function AdminDashboard() {
           <div className="mb-6 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
             <p className="font-medium">Luma guest list not imported yet</p>
             <p className="mt-1 text-amber-200/90">
-              Opening this page auto-imports the bundled Luma CSV (~534 approved emails).
-              Refresh if Eligible Users is still low. Redeem requires an email on that list
-              (REDEEM_MODE=allowlist). Or click <strong>Import Luma CSV</strong> to re-upload.
+              Opening this page auto-imports the bundled Luma CSV if the list is still small.
+              On door day: export a fresh Luma Guests CSV, then click{" "}
+              <strong>Sync Checked-in</strong> — only checked-in emails stay approved;
+              others are declined. Or use <strong>Import Luma CSV</strong> without revoking.
             </p>
           </div>
         )}
@@ -273,7 +319,7 @@ export default function AdminDashboard() {
           />
           <StatCard
             label="Eligible Users"
-            value={data?.stats.totalEligible || 0}
+            value={data?.stats.approvedUsers || 0}
             color="cyan"
           />
           <StatCard
@@ -343,6 +389,22 @@ export default function AdminDashboard() {
               className="hidden"
               onChange={handleImportLumaCsvFile}
             />
+            <button
+              onClick={handleSyncCheckedInClick}
+              disabled={actionLoading}
+              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
+              title="Upload Luma CSV → keep only checked-in as approved"
+            >
+              Sync Checked-in
+            </button>
+            <button
+              onClick={handleClearGuestList}
+              disabled={actionLoading}
+              className="rounded-lg bg-red-700 px-4 py-2 text-sm font-medium hover:bg-red-800 disabled:opacity-50"
+              title="Delete unclaimed guests from the allowlist"
+            >
+              Clear list
+            </button>
             <button
               onClick={handleImportLumaCsvClick}
               disabled={actionLoading}

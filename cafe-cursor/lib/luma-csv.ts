@@ -17,6 +17,11 @@ export type LumaCsvImportOptions = {
   onlyApproved?: boolean;
   /** Only rows with checked_in_at set (default false — use true on door day) */
   onlyCheckedIn?: boolean;
+  /**
+   * After import, set approvalStatus=declined for users NOT in the filtered set
+   * (skips already-claimed). Use with onlyCheckedIn so redeem is door-checked-in only.
+   */
+  revokeOthers?: boolean;
 };
 
 export type LumaCsvGuest = {
@@ -138,6 +143,7 @@ export function filterLumaCsvGuests(
 
 /**
  * Upsert filtered Luma CSV guests into EligibleUser.
+ * Optional revokeOthers: decline anyone not in the filtered allowlist (except claimed).
  */
 export async function importLumaGuestsFromCsv(
   csvText: string,
@@ -148,14 +154,31 @@ export async function importLumaGuestsFromCsv(
   created: number;
   updated: number;
   skipped: number;
+  declined: number;
   checkedInInFile: number;
 }> {
   const all = parseLumaGuestsCsv(csvText);
   const filtered = filterLumaCsvGuests(all, options);
   const checkedInInFile = all.filter((g) => g.checkedIn).length;
+  const revokeOthers = options.revokeOthers === true;
+
+  // Never wipe the allowlist if the filter matched nobody (e.g. CSV has 0 check-ins)
+  if (revokeOthers && filtered.length === 0) {
+    throw new Error(
+      `No guests matched the import filter (checked-in in file: ${checkedInInFile}). ` +
+        "Refusing to decline others — export a fresh Luma CSV after door check-in."
+    );
+  }
 
   const existing = await prisma.eligibleUser.findMany({
-    select: { email: true, id: true, hasClaimed: true, name: true, company: true },
+    select: {
+      email: true,
+      id: true,
+      hasClaimed: true,
+      name: true,
+      company: true,
+      approvalStatus: true,
+    },
   });
   const byEmail = new Map(existing.map((u) => [u.email, u]));
 
@@ -196,8 +219,27 @@ export async function importLumaGuestsFromCsv(
     updated += 1;
   }
 
+  let declined = 0;
+  if (revokeOthers) {
+    const keep = new Set(filtered.map((g) => g.email));
+    const toDecline = existing.filter(
+      (u) =>
+        !u.hasClaimed &&
+        u.approvalStatus === "approved" &&
+        !keep.has(u.email)
+    );
+    for (let i = 0; i < toDecline.length; i += BATCH) {
+      const chunk = toDecline.slice(i, i + BATCH);
+      const result = await prisma.eligibleUser.updateMany({
+        where: { id: { in: chunk.map((u) => u.id) } },
+        data: { approvalStatus: "declined" },
+      });
+      declined += result.count;
+    }
+  }
+
   console.log(
-    `[LUMA-CSV] import parsed=${all.length} filtered=${filtered.length} created=${created} updated=${updated} skipped=${skipped}`
+    `[LUMA-CSV] import parsed=${all.length} filtered=${filtered.length} created=${created} updated=${updated} skipped=${skipped} declined=${declined}`
   );
 
   return {
@@ -206,6 +248,7 @@ export async function importLumaGuestsFromCsv(
     created,
     updated,
     skipped,
+    declined,
     checkedInInFile,
   };
 }
@@ -230,8 +273,8 @@ function findBundledLumaCsv(): string | null {
 }
 
 /**
- * Auto-import bundled Luma guest CSV once when DB allowlist is still tiny.
- * Used so production picks up the uploaded guest list without a manual Admin click.
+ * Auto-import bundled Luma guest CSV only when the allowlist is completely empty.
+ * Does not refill after admin Clear list (claimed rows remain) or a partial sync.
  */
 export async function ensureBundledLumaGuestsImported(): Promise<{
   created: number;
@@ -241,15 +284,9 @@ export async function ensureBundledLumaGuestsImported(): Promise<{
 } | null> {
   if (!bundledImportPromise) {
     bundledImportPromise = (async () => {
-      const tagged = await prisma.eligibleUser.count({
-        where: { company: LUMA_CSV_COMPANY_TAG },
-      });
-      // Already imported a full-ish list
-      if (tagged >= 100) return null;
-
       const total = await prisma.eligibleUser.count();
-      // If somehow already large without tag, skip
-      if (total >= 400) return null;
+      // Any existing rows (including claimed-only after Clear list) → do not auto-refill
+      if (total > 0) return null;
 
       const csvPath = findBundledLumaCsv();
       if (!csvPath) {
