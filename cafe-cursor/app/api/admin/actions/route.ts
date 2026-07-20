@@ -269,19 +269,25 @@ export async function POST(request: NextRequest) {
       }
 
       case "SYNC_CREDITS_FROM_SHEET": {
+        /**
+         * Credit sync (required order):
+         * 1) Clear unused credit pool cache
+         * 2) Import links from Google Sheet
+         * Used credits are never deleted.
+         */
         const csvUrl =
           (typeof data?.csvUrl === "string" && data.csvUrl.trim()) ||
           getCreditsSheetCsvUrl();
 
-        const result = await syncCreditsFromSheet(csvUrl);
+        const result = await syncCreditsFromSheet(csvUrl, { clearFirst: true });
 
         console.log(
-          `[ADMIN] Sheet sync: created=${result.created} skipped=${result.skipped} from ${result.source}`
+          `[ADMIN] Sheet sync: cleared=${result.cleared} created=${result.created} skipped=${result.skipped} from ${result.source}`
         );
 
         return NextResponse.json({
           success: true,
-          message: `Synced from Google Sheet: ${result.created} new, ${result.skipped} already present. ${result.available} real credits available.`,
+          message: `Step1 clear: removed ${result.cleared} unused credits. Step2 sync: ${result.created} new from sheet (${result.skipped} already present / used). ${result.available} available. Kept ${result.keptUsed} used.`,
           ...result,
         });
       }

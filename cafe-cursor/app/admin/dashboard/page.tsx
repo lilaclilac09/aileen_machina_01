@@ -133,7 +133,7 @@ export default function AdminDashboard() {
   const handleSyncSheet = async () => {
     if (
       !confirm(
-        "Sync credits from Google Sheet?\n\nNew referral links will be imported. Existing codes are skipped."
+        "Clear + Sync Sheet (credits)\n\nMUST run in this order every time:\n\n1) CLEAR cache — delete ALL unused credits\n2) SYNC — import referral links from Google Sheet\n\nAlready-used credits are kept.\n\nOK to Clear then Sync."
       )
     ) {
       return;
@@ -280,12 +280,13 @@ export default function AdminDashboard() {
 
       <div className="relative mx-auto max-w-7xl px-4 py-6">
         <div className="mb-6 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-          <p className="font-medium">Guest sync rule（每次 Sync 必须先清）</p>
+          <p className="font-medium">Sync rule（名单 & 学分：每次必须先清）</p>
           <p className="mt-1 text-amber-200/90">
-            Every sync <strong>must clear the unclaimed list first</strong>, then
-            import. Use <strong>Clear + Sync Checked-in</strong> with a fresh Luma
-            CSV (checked_in_at). Manual <strong>Clear list</strong> only clears;
-            <strong> Import Luma CSV</strong> alone does not clear (additive).
+            Every sync <strong>must clear unused/unclaimed cache first</strong>, then
+            import.{" "}
+            <strong>Clear + Sync Sheet</strong> = credits；
+            <strong> Clear + Sync Checked-in</strong> = guest list. Used / claimed rows
+            are kept. <strong>Import Luma CSV</strong> alone does not clear (additive).
           </p>
         </div>
 
@@ -372,8 +373,9 @@ export default function AdminDashboard() {
               onClick={handleSyncSheet}
               disabled={actionLoading}
               className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium hover:bg-amber-700 disabled:opacity-50"
+              title="Step1 clear unused credits → Step2 import from Google Sheet"
             >
-              Sync Sheet
+              Clear + Sync Sheet
             </button>
             <input
               ref={lumaCsvInputRef}
