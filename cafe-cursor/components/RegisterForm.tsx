@@ -191,9 +191,8 @@ export function RegisterForm() {
             </a>
           </div>
 
-          <div className="mt-4 space-y-2 rounded-xl border border-border bg-foreground/5 p-4 text-center text-xs text-muted">
-            <p>{t("successBalanceHint")}</p>
-            <p>{t("successDeductHint")}</p>
+          <div className="mt-4 rounded-xl border border-border bg-foreground/5 p-4 text-center text-xs text-muted">
+            <p>{t("successHint")}</p>
           </div>
 
           <a

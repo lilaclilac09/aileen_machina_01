@@ -46,9 +46,8 @@ export const translations = {
     copyLink: "复制链接",
     useCredit: "使用 credits →",
     saveLink: "请保存此链接，每人唯一。",
-    successBalanceHint: "打开链接后，可在 Cursor 账户的 Balance 里查看 credits。",
-    successDeductHint:
-      "之后充值与使用 credits 时都可抵扣。",
+    successHint:
+      "打开链接后请在 Cursor Balance 查看 credits，之后充值与使用时都可抵扣。",
     havingTrouble: "遇到问题？请找现场工作人员帮忙。",
 
     // Errors
@@ -116,10 +115,8 @@ export const translations = {
     copyLink: "Copy link",
     useCredit: "Use credits →",
     saveLink: "Save this link — it's unique to you.",
-    successBalanceHint:
-      "After opening the link, check your credits in Cursor account Balance.",
-    successDeductHint:
-      "They can be applied toward future top-ups and credit usage.",
+    successHint:
+      "After opening the link, check credits in Cursor Balance — they apply to future top-ups and usage.",
     havingTrouble: "Having trouble? Please ask the staff for help.",
 
     // Errors
