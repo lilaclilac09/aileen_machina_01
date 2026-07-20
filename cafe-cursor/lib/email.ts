@@ -153,8 +153,8 @@ function generateEmailHTML({
       ? "打开链接后请在 Cursor Balance 查看 credits，之后充值与使用时都可抵扣"
       : "After opening the link, check credits in Cursor Balance — they apply to future top-ups and usage",
     step3: isZh
-      ? "遇到问题？请找现场工作人员帮忙。"
-      : "Having trouble? Please ask the staff for help.",
+      ? "请保存此链接，每人唯一"
+      : "Save this link — it's unique to you",
     questions: isZh
       ? "遇到问题？请找现场工作人员帮忙。"
       : "Having trouble? Please ask the staff for help.",
