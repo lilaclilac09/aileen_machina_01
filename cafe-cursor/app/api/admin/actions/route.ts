@@ -373,6 +373,54 @@ export async function POST(request: NextRequest) {
         });
       }
 
+      case "SYNC_CHECKED_IN_ALLOWLIST": {
+        // Always clear unclaimed guests first, then import only checked-in rows.
+        const csvText =
+          typeof data?.csvText === "string" ? data.csvText : "";
+        if (!csvText.trim()) {
+          return NextResponse.json(
+            { error: "csvText is required (upload a fresh Luma guest CSV)." },
+            { status: 400 }
+          );
+        }
+
+        const claimedBefore = await prisma.eligibleUser.count({
+          where: { hasClaimed: true },
+        });
+        const cleared = await prisma.eligibleUser.deleteMany({
+          where: { hasClaimed: false },
+        });
+
+        console.log(
+          `[ADMIN] Sync checked-in: cleared unclaimed=${cleared.count} keptClaimed=${claimedBefore}`
+        );
+
+        try {
+          const result = await importLumaGuestsFromCsv(csvText, {
+            onlyApproved: true,
+            onlyCheckedIn: true,
+            revokeOthers: true,
+          });
+
+          return NextResponse.json({
+            success: true,
+            message: `Synced checked-in: cleared ${cleared.count} old unclaimed, then imported ${result.created} new / ${result.updated} updated (matched ${result.imported}, checked-in in file ${result.checkedInInFile}). Kept ${claimedBefore} already claimed. Declined leftovers: ${result.declined}.`,
+            cleared: cleared.count,
+            keptClaimed: claimedBefore,
+            ...result,
+          });
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : "Sync failed";
+          return NextResponse.json(
+            {
+              error: `Cleared ${cleared.count} unclaimed users, but import failed: ${msg}`,
+              cleared: cleared.count,
+            },
+            { status: 400 }
+          );
+        }
+      }
+
       case "SEND_CREDIT_EMAIL": {
         const { userId, locale } = data;
 
