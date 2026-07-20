@@ -338,6 +338,41 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      case "CLEAR_GUEST_LIST": {
+        // Remove allowlist rows that have not claimed. Claimed users (and their
+        // credit links) are kept for audit / re-show.
+        const keepClaimed = data?.keepClaimed !== false;
+
+        if (!keepClaimed) {
+          return NextResponse.json(
+            {
+              error:
+                "Refusing to delete claimed users. Clear unclaimed only (keepClaimed=true).",
+            },
+            { status: 400 }
+          );
+        }
+
+        const before = await prisma.eligibleUser.count();
+        const claimed = await prisma.eligibleUser.count({
+          where: { hasClaimed: true },
+        });
+        const result = await prisma.eligibleUser.deleteMany({
+          where: { hasClaimed: false },
+        });
+
+        console.log(
+          `[ADMIN] Guest list cleared: deleted=${result.count} keptClaimed=${claimed} before=${before}`
+        );
+
+        return NextResponse.json({
+          success: true,
+          message: `Guest list cleared: deleted ${result.count} unclaimed users. Kept ${claimed} who already claimed.`,
+          deleted: result.count,
+          keptClaimed: claimed,
+        });
+      }
+
       case "SEND_CREDIT_EMAIL": {
         const { userId, locale } = data;
 

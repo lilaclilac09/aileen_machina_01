@@ -273,8 +273,8 @@ function findBundledLumaCsv(): string | null {
 }
 
 /**
- * Auto-import bundled Luma guest CSV once when DB allowlist is still tiny.
- * Used so production picks up the uploaded guest list without a manual Admin click.
+ * Auto-import bundled Luma guest CSV only when the allowlist is completely empty.
+ * Does not refill after admin Clear list (claimed rows remain) or a partial sync.
  */
 export async function ensureBundledLumaGuestsImported(): Promise<{
   created: number;
@@ -284,15 +284,9 @@ export async function ensureBundledLumaGuestsImported(): Promise<{
 } | null> {
   if (!bundledImportPromise) {
     bundledImportPromise = (async () => {
-      const tagged = await prisma.eligibleUser.count({
-        where: { company: LUMA_CSV_COMPANY_TAG },
-      });
-      // Already imported a full-ish list
-      if (tagged >= 100) return null;
-
       const total = await prisma.eligibleUser.count();
-      // If somehow already large without tag, skip
-      if (total >= 400) return null;
+      // Any existing rows (including claimed-only after Clear list) → do not auto-refill
+      if (total > 0) return null;
 
       const csvPath = findBundledLumaCsv();
       if (!csvPath) {

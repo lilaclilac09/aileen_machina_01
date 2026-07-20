@@ -190,6 +190,24 @@ export default function AdminDashboard() {
     lumaCsvInputRef.current?.click();
   };
 
+  const handleClearGuestList = async () => {
+    if (
+      !confirm(
+        "Delete guest list?\n\n• Deletes all users who have NOT claimed yet\n• Keeps users who already claimed (and their credit links)\n\nYou can re-import with Sync Checked-in afterwards.\n\nOK to delete."
+      )
+    ) {
+      return;
+    }
+    if (
+      !confirm(
+        "Final confirm: permanently delete unclaimed eligible users from the database?"
+      )
+    ) {
+      return;
+    }
+    await executeAction("CLEAR_GUEST_LIST", { keepClaimed: true });
+  };
+
   const handleSyncLumaApi = async () => {
     if (
       !confirm(
@@ -378,6 +396,14 @@ export default function AdminDashboard() {
               title="Upload Luma CSV → keep only checked-in as approved"
             >
               Sync Checked-in
+            </button>
+            <button
+              onClick={handleClearGuestList}
+              disabled={actionLoading}
+              className="rounded-lg bg-red-700 px-4 py-2 text-sm font-medium hover:bg-red-800 disabled:opacity-50"
+              title="Delete unclaimed guests from the allowlist"
+            >
+              Clear list
             </button>
             <button
               onClick={handleImportLumaCsvClick}
