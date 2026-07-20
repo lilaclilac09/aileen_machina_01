@@ -348,8 +348,6 @@ export function RegisterForm() {
 
       <p className="mt-6 text-center text-xs text-muted">
         {t("footerNote")}
-        <br />
-        {t("onePerPerson")}
       </p>
     </form>
   );
