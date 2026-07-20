@@ -191,6 +191,11 @@ export function RegisterForm() {
             </a>
           </div>
 
+          <div className="mt-4 space-y-2 rounded-xl border border-border bg-foreground/5 p-4 text-center text-xs text-muted">
+            <p>{t("successBalanceHint")}</p>
+            <p>{t("successDeductHint")}</p>
+          </div>
+
           <a
             href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(t("shareMessage"))}`}
             target="_blank"
@@ -206,6 +211,10 @@ export function RegisterForm() {
 
         <p className="mt-6 text-center text-xs text-muted">
           {t("saveLink")}
+        </p>
+
+        <p className="mt-3 text-center text-xs text-muted">
+          {t("havingTrouble")}
         </p>
 
         {result.emailSent ? (
@@ -348,6 +357,9 @@ export function RegisterForm() {
 
       <p className="mt-6 text-center text-xs text-muted">
         {t("footerNote")}
+      </p>
+      <p className="mt-2 text-center text-xs text-muted">
+        {t("havingTrouble")}
       </p>
     </form>
   );

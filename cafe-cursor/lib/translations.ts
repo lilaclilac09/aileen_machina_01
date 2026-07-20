@@ -46,6 +46,10 @@ export const translations = {
     copyLink: "复制链接",
     useCredit: "使用 credits →",
     saveLink: "请保存此链接，每人唯一。",
+    successBalanceHint: "打开链接后，可在 Cursor 账户的 Balance 里查看 credits。",
+    successDeductHint:
+      "之后充值与使用 credits 时都可抵扣。",
+    havingTrouble: "遇到问题？请找现场工作人员帮忙。",
 
     // Errors
     notEligible: "请先找工作人员完成现场 Luma checked in，再来领取。",
@@ -112,6 +116,11 @@ export const translations = {
     copyLink: "Copy link",
     useCredit: "Use credits →",
     saveLink: "Save this link — it's unique to you.",
+    successBalanceHint:
+      "After opening the link, check your credits in Cursor account Balance.",
+    successDeductHint:
+      "They can be applied toward future top-ups and credit usage.",
+    havingTrouble: "Having trouble? Please ask the staff for help.",
 
     // Errors
     notEligible:
