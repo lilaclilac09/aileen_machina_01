@@ -150,11 +150,11 @@ function generateEmailHTML({
       ? "点击上方按钮或复制链接"
       : "Click the button above or copy the link",
     step2: isZh
-      ? "登录 Cursor 后，在 Balance 里查看 credits"
-      : "Sign in to Cursor and check credits in Balance",
+      ? "打开链接后请在 Cursor Balance 查看 credits，之后充值与使用时都可抵扣"
+      : "After opening the link, check credits in Cursor Balance — they apply to future top-ups and usage",
     step3: isZh
-      ? "之后充值与使用 credits 时都可抵扣"
-      : "They apply toward future top-ups and credit usage",
+      ? "遇到问题？请找现场工作人员帮忙。"
+      : "Having trouble? Please ask the staff for help.",
     questions: isZh
       ? "遇到问题？请找现场工作人员帮忙。"
       : "Having trouble? Please ask the staff for help.",
