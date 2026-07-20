@@ -1,7 +1,6 @@
 "use client";
 
 import { RegisterForm } from "@/components/RegisterForm";
-import { AvailabilityBadge } from "@/components/AvailabilityBadge";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useLanguage } from "@/components/LanguageContext";
 
@@ -38,11 +37,6 @@ export default function Home() {
               className="text-foreground"
             />
           </svg>
-        </div>
-
-        {/* Badge de disponibilidade */}
-        <div className="mb-6">
-          <AvailabilityBadge />
         </div>
 
         {/* Título */}
