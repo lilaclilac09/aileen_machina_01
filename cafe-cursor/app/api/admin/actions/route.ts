@@ -318,17 +318,24 @@ export async function POST(request: NextRequest) {
 
         const onlyApproved = data?.onlyApproved !== false;
         const onlyCheckedIn = data?.onlyCheckedIn === true;
+        const revokeOthers = data?.revokeOthers === true;
 
-        const result = await importLumaGuestsFromCsv(csvText, {
-          onlyApproved,
-          onlyCheckedIn,
-        });
+        try {
+          const result = await importLumaGuestsFromCsv(csvText, {
+            onlyApproved,
+            onlyCheckedIn,
+            revokeOthers,
+          });
 
-        return NextResponse.json({
-          success: true,
-          message: `Imported Luma CSV: ${result.created} new, ${result.updated} updated, ${result.skipped} already claimed (${result.imported} of ${result.parsed} rows). Checked-in in file: ${result.checkedInInFile}.`,
-          ...result,
-        });
+          return NextResponse.json({
+            success: true,
+            message: `Imported Luma CSV: ${result.created} new, ${result.updated} updated, ${result.skipped} already claimed, ${result.declined} declined (not in filter). Matched ${result.imported} of ${result.parsed} rows. Checked-in in file: ${result.checkedInInFile}.`,
+            ...result,
+          });
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : "Import failed";
+          return NextResponse.json({ error: msg }, { status: 400 });
+        }
       }
 
       case "SEND_CREDIT_EMAIL": {
