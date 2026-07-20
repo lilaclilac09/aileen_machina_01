@@ -159,17 +159,12 @@ export default function AdminDashboard() {
     if (mode === "checked-in") {
       if (
         !confirm(
-          "Sync CHECKED-IN allowlist?\n\n• Only guests with checked_in_at in this CSV stay approved\n• Everyone else (not yet claimed) will be declined and cannot redeem\n• Already-claimed users are kept\n\nOK to continue."
+          "Sync CHECKED-IN allowlist?\n\n1) CLEAR all unclaimed guests first\n2) Import ONLY rows with checked_in_at\n\nAlready-claimed users are kept.\n\nOK to continue."
         )
       ) {
         return;
       }
-      await executeAction("IMPORT_LUMA_CSV", {
-        csvText,
-        onlyApproved: true,
-        onlyCheckedIn: true,
-        revokeOthers: true,
-      });
+      await executeAction("SYNC_CHECKED_IN_ALLOWLIST", { csvText });
       return;
     }
 
@@ -288,10 +283,10 @@ export default function AdminDashboard() {
           <div className="mb-6 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
             <p className="font-medium">Luma guest list not imported yet</p>
             <p className="mt-1 text-amber-200/90">
-              Opening this page auto-imports the bundled Luma CSV if the list is still small.
               On door day: export a fresh Luma Guests CSV, then click{" "}
-              <strong>Sync Checked-in</strong> — only checked-in emails stay approved;
-              others are declined. Or use <strong>Import Luma CSV</strong> without revoking.
+              <strong>Sync Checked-in</strong> — it clears the old unclaimed list
+              first, then keeps only checked-in emails. Or use{" "}
+              <strong>Import Luma CSV</strong> / <strong>Clear list</strong> separately.
             </p>
           </div>
         )}
@@ -393,7 +388,7 @@ export default function AdminDashboard() {
               onClick={handleSyncCheckedInClick}
               disabled={actionLoading}
               className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
-              title="Upload Luma CSV → keep only checked-in as approved"
+              title="Clear unclaimed list, then import only checked-in from CSV"
             >
               Sync Checked-in
             </button>
