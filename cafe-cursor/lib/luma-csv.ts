@@ -258,6 +258,28 @@ const BUNDLED_CSV_CANDIDATES = [
   join(process.cwd(), "cafe-cursor", "data", "luma-guests.csv"),
 ];
 
+/**
+ * Guest-list sync rule (door day):
+ * 1) MUST clear unclaimed allowlist rows first (the "cache")
+ * 2) THEN import / sync the new checked-in set
+ * Claimed users are never deleted.
+ */
+export async function clearUnclaimedGuestList(): Promise<{
+  deleted: number;
+  keptClaimed: number;
+}> {
+  const keptClaimed = await prisma.eligibleUser.count({
+    where: { hasClaimed: true },
+  });
+  const result = await prisma.eligibleUser.deleteMany({
+    where: { hasClaimed: false },
+  });
+  console.log(
+    `[LUMA-CSV] Cleared unclaimed guest cache: deleted=${result.count} keptClaimed=${keptClaimed}`
+  );
+  return { deleted: result.count, keptClaimed };
+}
+
 let bundledImportPromise: Promise<{
   created: number;
   updated: number;

@@ -159,7 +159,7 @@ export default function AdminDashboard() {
     if (mode === "checked-in") {
       if (
         !confirm(
-          "Sync CHECKED-IN allowlist?\n\n1) CLEAR all unclaimed guests first\n2) Import ONLY rows with checked_in_at\n\nAlready-claimed users are kept.\n\nOK to continue."
+          "Clear + Sync Checked-in\n\nMUST run in this order every time:\n\n1) CLEAR cache — delete ALL unclaimed guests\n2) SYNC — import ONLY checked_in_at rows from this CSV\n\nAlready-claimed users are kept.\n\nOK to Clear then Sync."
         )
       ) {
         return;
@@ -169,7 +169,7 @@ export default function AdminDashboard() {
     }
 
     const onlyCheckedIn = confirm(
-      "Import filter:\n\nOK = only Checked-in guests (does NOT remove others)\nCancel = all Approved guests"
+      "Import only (NO clear)?\n\nThis does NOT clear the old list.\nFor door day use Clear + Sync Checked-in instead.\n\nOK = import checked-in only (additive)\nCancel = import all approved (additive)"
     );
 
     await executeAction("IMPORT_LUMA_CSV", {
@@ -206,7 +206,7 @@ export default function AdminDashboard() {
   const handleSyncLumaApi = async () => {
     if (
       !confirm(
-        "Sync via Luma API? (requires Luma Plus)\n\nWithout Plus, use Sync Checked-in + upload CSV instead."
+        "Sync via Luma API?\n\nAlso clears unclaimed guest cache first, then syncs checked-in.\nRequires Luma Plus.\n\nWithout Plus, use Clear + Sync Checked-in (CSV)."
       )
     ) {
       return;
@@ -279,17 +279,15 @@ export default function AdminDashboard() {
       </header>
 
       <div className="relative mx-auto max-w-7xl px-4 py-6">
-        {(data?.stats.totalEligible ?? 0) < 50 && (
-          <div className="mb-6 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-            <p className="font-medium">Luma guest list not imported yet</p>
-            <p className="mt-1 text-amber-200/90">
-              On door day: export a fresh Luma Guests CSV, then click{" "}
-              <strong>Sync Checked-in</strong> — it clears the old unclaimed list
-              first, then keeps only checked-in emails. Or use{" "}
-              <strong>Import Luma CSV</strong> / <strong>Clear list</strong> separately.
-            </p>
-          </div>
-        )}
+        <div className="mb-6 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+          <p className="font-medium">Guest sync rule（每次 Sync 必须先清）</p>
+          <p className="mt-1 text-amber-200/90">
+            Every sync <strong>must clear the unclaimed list first</strong>, then
+            import. Use <strong>Clear + Sync Checked-in</strong> with a fresh Luma
+            CSV (checked_in_at). Manual <strong>Clear list</strong> only clears;
+            <strong> Import Luma CSV</strong> alone does not clear (additive).
+          </p>
+        </div>
 
         <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
           <StatCard
@@ -388,9 +386,9 @@ export default function AdminDashboard() {
               onClick={handleSyncCheckedInClick}
               disabled={actionLoading}
               className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
-              title="Clear unclaimed list, then import only checked-in from CSV"
+              title="Step1 clear unclaimed cache → Step2 import checked-in CSV"
             >
-              Sync Checked-in
+              Clear + Sync Checked-in
             </button>
             <button
               onClick={handleClearGuestList}
