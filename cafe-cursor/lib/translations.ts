@@ -48,7 +48,7 @@ export const translations = {
     saveLink: "请保存此链接，每人唯一。",
 
     // Errors
-    notEligible: "请先完成 Luma checked in，再来领取。",
+    notEligible: "请先找工作人员完成现场 Luma checked in，再来领取。",
     notApproved: "你的报名尚未通过审核，请联系主办方。",
     badCheckinCode: "签到码无效。请先在入口完成签到。",
     noCreditsAvailable: "抱歉，当前没有可用学分，请联系主办方。",
@@ -114,7 +114,8 @@ export const translations = {
     saveLink: "Save this link, it's unique and personal.",
 
     // Errors
-    notEligible: "Please check in on Luma first, then redeem.",
+    notEligible:
+      "Please ask the staff to check you in on Luma first, then redeem.",
     notApproved:
       "Your event registration hasn't been approved yet. Please contact the organizer.",
     badCheckinCode: "Invalid check-in code. Please check in at the door first.",

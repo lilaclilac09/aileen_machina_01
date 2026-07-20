@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: lumaMode
             ? "This email is not checked in on Luma. Please check in at the door first, then try again."
-            : "Please check in on Luma first, then redeem.",
+            : "Please ask the staff to check you in on Luma first, then redeem.",
           code: "NOT_ELIGIBLE",
         },
         { status: 403 }
