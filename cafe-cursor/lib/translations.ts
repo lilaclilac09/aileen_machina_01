@@ -18,7 +18,7 @@ export const translations = {
     checkinHint: "签到后在入口领取签到码",
     checkinFromQr: "已通过二维码签到",
     checkinFromQrHint: "签到码已自动填入，只需填写邮箱。",
-    submitButton: "领取 Cursor 学分",
+    submitButton: "领取 Cursor credits",
     submitting: "验证中...",
 
     // Footer
