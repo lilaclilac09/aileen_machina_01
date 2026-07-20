@@ -22,7 +22,7 @@ export const translations = {
     submitting: "验证中...",
 
     // Footer
-    footerNote: "仅限 Luma 报名名单中的邮箱领取学分。",
+    footerNote: "仅限 Luma 报名名单中签到 / checked in 的邮箱领取 credits。",
     onePerPerson: "每人限领一份。",
     madeBy: "主办",
     ambassadors: "Aileen",
@@ -87,7 +87,8 @@ export const translations = {
     submitting: "Verifying...",
 
     // Footer
-    footerNote: "Only emails on the Luma guest list can redeem credits.",
+    footerNote:
+      "Only checked-in emails on the Luma guest list can redeem credits.",
     onePerPerson: "One credit per person.",
     madeBy: "Made by",
     ambassadors: "Aileen",
