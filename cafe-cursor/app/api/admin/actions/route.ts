@@ -8,7 +8,7 @@ import {
 } from "@/lib/google-sheets";
 import { displayNameFromEmail } from "@/lib/validations";
 import { syncCheckedInFromLuma, isLumaConfigured } from "@/lib/luma";
-import { importLumaGuestsFromCsv } from "@/lib/luma-csv";
+import { importLumaGuestsFromCsv, clearUnclaimedGuestList } from "@/lib/luma-csv";
 
 /**
  * POST /api/admin/actions — run admin actions
@@ -291,17 +291,21 @@ export async function POST(request: NextRequest) {
           return NextResponse.json(
             {
               error:
-                "Luma API needs Luma Plus. Without Plus, use Import Luma CSV instead (Event → Guests → Download CSV).",
+                "Luma API needs Luma Plus. Without Plus, use Clear + Sync Checked-in (CSV) instead.",
             },
             { status: 400 }
           );
         }
 
+        // Same rule as CSV sync: clear unclaimed cache, then sync.
+        const cleared = await clearUnclaimedGuestList();
         const result = await syncCheckedInFromLuma();
 
         return NextResponse.json({
           success: true,
-          message: `Synced Luma checked-in: ${result.checkedIn} guests, ${result.created} new, ${result.updated} updated.`,
+          message: `Cleared ${cleared.deleted} unclaimed, then synced Luma API checked-in: ${result.checkedIn} guests, ${result.created} new, ${result.updated} updated. Kept ${cleared.keptClaimed} claimed.`,
+          cleared: cleared.deleted,
+          keptClaimed: cleared.keptClaimed,
           ...result,
         });
       }
@@ -353,28 +357,23 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        const before = await prisma.eligibleUser.count();
-        const claimed = await prisma.eligibleUser.count({
-          where: { hasClaimed: true },
-        });
-        const result = await prisma.eligibleUser.deleteMany({
-          where: { hasClaimed: false },
-        });
-
-        console.log(
-          `[ADMIN] Guest list cleared: deleted=${result.count} keptClaimed=${claimed} before=${before}`
-        );
+        const cleared = await clearUnclaimedGuestList();
 
         return NextResponse.json({
           success: true,
-          message: `Guest list cleared: deleted ${result.count} unclaimed users. Kept ${claimed} who already claimed.`,
-          deleted: result.count,
-          keptClaimed: claimed,
+          message: `Guest list cleared: deleted ${cleared.deleted} unclaimed users. Kept ${cleared.keptClaimed} who already claimed.`,
+          deleted: cleared.deleted,
+          keptClaimed: cleared.keptClaimed,
         });
       }
 
       case "SYNC_CHECKED_IN_ALLOWLIST": {
-        // Always clear unclaimed guests first, then import only checked-in rows.
+        /**
+         * Door-day guest sync (required order):
+         * 1) Clear unclaimed allowlist cache
+         * 2) Import only checked_in_at rows from the uploaded CSV
+         * Never skip step 1 — old guests must not linger.
+         */
         const csvText =
           typeof data?.csvText === "string" ? data.csvText : "";
         if (!csvText.trim()) {
@@ -384,16 +383,7 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        const claimedBefore = await prisma.eligibleUser.count({
-          where: { hasClaimed: true },
-        });
-        const cleared = await prisma.eligibleUser.deleteMany({
-          where: { hasClaimed: false },
-        });
-
-        console.log(
-          `[ADMIN] Sync checked-in: cleared unclaimed=${cleared.count} keptClaimed=${claimedBefore}`
-        );
+        const cleared = await clearUnclaimedGuestList();
 
         try {
           const result = await importLumaGuestsFromCsv(csvText, {
@@ -404,17 +394,17 @@ export async function POST(request: NextRequest) {
 
           return NextResponse.json({
             success: true,
-            message: `Synced checked-in: cleared ${cleared.count} old unclaimed, then imported ${result.created} new / ${result.updated} updated (matched ${result.imported}, checked-in in file ${result.checkedInInFile}). Kept ${claimedBefore} already claimed. Declined leftovers: ${result.declined}.`,
-            cleared: cleared.count,
-            keptClaimed: claimedBefore,
+            message: `Step1 clear: removed ${cleared.deleted} unclaimed. Step2 sync: ${result.created} new / ${result.updated} updated (matched ${result.imported}, checked-in in file ${result.checkedInInFile}). Kept ${cleared.keptClaimed} claimed. Declined leftovers: ${result.declined}.`,
+            cleared: cleared.deleted,
+            keptClaimed: cleared.keptClaimed,
             ...result,
           });
         } catch (err) {
           const msg = err instanceof Error ? err.message : "Sync failed";
           return NextResponse.json(
             {
-              error: `Cleared ${cleared.count} unclaimed users, but import failed: ${msg}`,
-              cleared: cleared.count,
+              error: `Step1 clear done (${cleared.deleted} removed), but Step2 sync failed: ${msg}`,
+              cleared: cleared.deleted,
             },
             { status: 400 }
           );
