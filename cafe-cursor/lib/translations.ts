@@ -48,14 +48,14 @@ export const translations = {
     saveLink: "请保存此链接，每人唯一。",
 
     // Errors
-    notEligible: "该邮箱不在参加者名单中。请使用 Luma 报名时的同一邮箱。",
+    notEligible: "该邮箱未 checked in，无法领取。",
     notApproved: "你的报名尚未通过审核，请联系主办方。",
     badCheckinCode: "签到码无效。请先在入口完成签到。",
     noCreditsAvailable: "抱歉，当前没有可用学分，请联系主办方。",
     networkError: "网络错误，请重试。",
     thinkError: "若认为是错误，请联系活动主办方。",
     pendingApproval: "你的申请正在审核中。",
-    tryAnotherEmail: "换一个邮箱试试",
+    tryAnotherEmail: "换邮箱",
 
     // Share
     shareOnX: "分享到 X",
@@ -114,8 +114,7 @@ export const translations = {
     saveLink: "Save this link, it's unique and personal.",
 
     // Errors
-    notEligible:
-      "This email is not on the guest list. Use the same email you registered with on Luma.",
+    notEligible: "Not checked in — can't redeem.",
     notApproved:
       "Your event registration hasn't been approved yet. Please contact the organizer.",
     badCheckinCode: "Invalid check-in code. Please check in at the door first.",
@@ -124,7 +123,7 @@ export const translations = {
     networkError: "Connection error. Please try again.",
     thinkError: "Think this is an error? Contact the event organizer.",
     pendingApproval: "Your request is pending approval.",
-    tryAnotherEmail: "Try with another email",
+    tryAnotherEmail: "Try another email",
 
     // Share
     shareOnX: "Share on X",
