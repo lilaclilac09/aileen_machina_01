@@ -137,27 +137,27 @@ function generateEmailHTML({
       ? "感谢参加 Cafe Cursor Shanghai！"
       : "Thank you for checking in at Cafe Cursor Shanghai!",
     intro: isZh
-      ? "这是你的专属 Cursor 学分链接："
-      : "Here's your exclusive Cursor credit:",
-    yourCredit: isZh ? "你的 Cursor 学分" : "Your Cursor credits",
+      ? "这是你的专属 Cursor credits 链接："
+      : "Here's your exclusive Cursor credits link:",
+    yourCredit: isZh ? "你的 Cursor credits" : "Your Cursor credits",
     code: isZh ? "代码" : "Code",
-    useCredit: isZh ? "使用我的学分" : "Use my Cursor credits",
+    useCredit: isZh ? "使用我的 credits" : "Use my Cursor credits",
     testWarning: isZh
-      ? "⚠️ 这是测试学分（不可用于正式使用）"
+      ? "⚠️ 这是测试 credits（不可用于正式使用）"
       : "⚠️ This is a TEST credit (not valid for real use)",
     howToUse: isZh ? "使用方法：" : "How to use:",
     step1: isZh
       ? "点击上方按钮或复制链接"
       : "Click the button above or copy the link",
     step2: isZh
-      ? "登录或创建你的 Cursor 账号"
-      : "Sign in or create your Cursor account",
+      ? "登录 Cursor 后，在 Balance 里查看 credits"
+      : "Sign in to Cursor and check credits in Balance",
     step3: isZh
-      ? "学分将自动到账！"
-      : "The credit will be applied automatically!",
+      ? "之后充值与使用 credits 时都可抵扣"
+      : "They apply toward future top-ups and credit usage",
     questions: isZh
-      ? "有问题？请联系活动主办方。"
-      : "Questions? Contact the event organizers.",
+      ? "遇到问题？请找现场工作人员帮忙。"
+      : "Having trouble? Please ask the staff for help.",
     footer: isZh
       ? "☕ Cafe Cursor Shanghai · Aileen"
       : "Made with ☕ by Aileen - Cafe Cursor Shanghai",
