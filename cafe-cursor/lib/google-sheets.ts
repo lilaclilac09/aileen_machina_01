@@ -87,15 +87,54 @@ export async function fetchCreditLinksFromSheet(
 }
 
 /**
- * Upsert unused credits from the Google Sheet into the database.
+ * Credit sync rule (same as guest list):
+ * 1) MUST clear unused credits first (the pool cache)
+ * 2) THEN import links from the Google Sheet
+ * Used / assigned credits are never deleted.
  */
-export async function syncCreditsFromSheet(csvUrl?: string): Promise<{
+export async function clearUnusedCredits(): Promise<{
+  deleted: number;
+  keptUsed: number;
+}> {
+  const keptUsed = await prisma.credit.count({ where: { isUsed: true } });
+  // Only delete unused credits that are not linked to a user
+  const result = await prisma.credit.deleteMany({
+    where: {
+      isUsed: false,
+      assignedTo: { is: null },
+    },
+  });
+  console.log(
+    `[SHEET] Cleared unused credit cache: deleted=${result.count} keptUsed=${keptUsed}`
+  );
+  return { deleted: result.count, keptUsed };
+}
+
+/**
+ * Upsert unused credits from the Google Sheet into the database.
+ * Pass clearFirst=true (admin Sync) to wipe unused pool before import.
+ */
+export async function syncCreditsFromSheet(
+  csvUrl?: string,
+  options: { clearFirst?: boolean } = {}
+): Promise<{
   created: number;
   skipped: number;
+  cleared: number;
   totalInSheet: number;
   available: number;
   source: string;
+  keptUsed: number;
 }> {
+  let cleared = 0;
+  let keptUsed = await prisma.credit.count({ where: { isUsed: true } });
+
+  if (options.clearFirst) {
+    const wipe = await clearUnusedCredits();
+    cleared = wipe.deleted;
+    keptUsed = wipe.keptUsed;
+  }
+
   const { links, source } = await fetchCreditLinksFromSheet(
     csvUrl || getCreditsSheetCsvUrl()
   );
@@ -129,7 +168,15 @@ export async function syncCreditsFromSheet(csvUrl?: string): Promise<{
     where: { isUsed: false, isTest: false },
   });
 
-  return { created, skipped, totalInSheet: links.length, available, source };
+  return {
+    created,
+    skipped,
+    cleared,
+    totalInSheet: links.length,
+    available,
+    source,
+    keptUsed,
+  };
 }
 
 /**
