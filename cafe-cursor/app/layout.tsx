@@ -6,12 +6,13 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Cafe Cursor | Get your Cursor credits",
-  description: "Cafe Cursor Shanghai — Get your Cursor credits after check-in.",
-  keywords: ["cursor", "credits", "Shanghai", "Cafe Cursor"],
+  description:
+    "Cafe Cursor Shanghai — Get your Cursor credits after Luma check-in.",
+  keywords: ["cursor", "credits", "Shanghai", "Cafe Cursor", "checked in"],
   authors: [{ name: "Cafe Cursor Shanghai" }],
   openGraph: {
     title: "Cafe Cursor Shanghai",
-    description: "Get your Cursor credits after check-in",
+    description: "Get your Cursor credits after Luma check-in",
     type: "website",
   },
 };
