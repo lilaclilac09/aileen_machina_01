@@ -293,11 +293,6 @@ export function RegisterForm() {
             <p className="text-sm text-[var(--error)]">
               {getErrorMessage(result.code, result.error)}
             </p>
-            {result.code === "NOT_ELIGIBLE" && (
-              <p className="mt-2 text-xs text-muted">
-                {t("thinkError")}
-              </p>
-            )}
             {result.code === "NOT_APPROVED" && (
               <p className="mt-2 text-xs text-muted">
                 {t("pendingApproval")}
