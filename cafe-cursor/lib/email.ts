@@ -39,8 +39,54 @@ function getResendClient(): Resend | null {
   return new Resend(apiKey);
 }
 
-// Email del remitente (debe ser verificado en Resend)
-const FROM_EMAIL = process.env.FROM_EMAIL || "Cafe Cursor <onboarding@resend.dev>";
+function stripEnvQuotes(value: string): string {
+  return value.trim().replace(/^["']|["']$/g, "").trim();
+}
+
+/**
+ * Sender must be on a Resend-verified domain (e.g. cafe@aileena.xyz).
+ * onboarding@resend.dev can ONLY email the Resend account owner.
+ */
+export function getFromEmail(): string {
+  const raw = process.env.FROM_EMAIL;
+  if (raw && raw.trim()) {
+    return stripEnvQuotes(raw);
+  }
+  return "Cafe Cursor Shanghai <cafe@aileena.xyz>";
+}
+
+export function isTestingOnlyFromAddress(from = getFromEmail()): boolean {
+  return /@resend\.dev\b/i.test(from);
+}
+
+export function getEmailSendConfig(): {
+  from: string;
+  replyTo: string;
+  organizer: string;
+  testingOnlyFrom: boolean;
+  hasResendKey: boolean;
+} {
+  const from = getFromEmail();
+  return {
+    from,
+    replyTo: NOTIFY_REPLY_TO,
+    organizer: NOTIFY_CC_EMAIL,
+    testingOnlyFrom: isTestingOnlyFromAddress(from),
+    hasResendKey: Boolean(getResendApiKey()),
+  };
+}
+
+function assertCanBulkSend(): string | null {
+  const from = getFromEmail();
+  if (isTestingOnlyFromAddress(from)) {
+    return (
+      `FROM_EMAIL is still a Resend test address (${from}). ` +
+      `Set Vercel o6o4 env FROM_EMAIL=Cafe Cursor Shanghai <cafe@aileena.xyz>, ` +
+      `then Redeploy. Domain must be Verified in Resend.`
+    );
+  }
+  return null;
+}
 
 /** Where replies go — organizer Gmail (Resend cannot send FROM @gmail.com). */
 export const NOTIFY_REPLY_TO = (
@@ -50,6 +96,17 @@ export const NOTIFY_REPLY_TO = (
 )
   .trim()
   .toLowerCase();
+
+export const NOTIFY_CC_EMAIL = (
+  process.env.NOTIFY_CC_EMAIL || "rosazxc0915@gmail.com"
+)
+  .trim()
+  .toLowerCase();
+
+/** Resolve From at send-time (so Vercel env changes apply after redeploy). */
+function fromAddress(): string {
+  return getFromEmail();
+}
 
 interface SendCreditEmailParams {
   to: string;
@@ -108,7 +165,7 @@ export async function sendCreditEmail({
     console.log(`📧 [EMAIL] Enviando email real a: ${to}`);
     
     const { error } = await resendClient.emails.send({
-      from: FROM_EMAIL,
+      from: fromAddress(),
       to: [to],
       subject,
       html,
@@ -156,7 +213,7 @@ export async function sendUnclaimedReminderEmail({
   try {
     console.log(`📧 [EMAIL] Sending unclaimed reminder to: ${to}`);
     const { error } = await resendClient.emails.send({
-      from: FROM_EMAIL,
+      from: fromAddress(),
       to: [to],
       replyTo: NOTIFY_REPLY_TO,
       subject,
@@ -262,16 +319,6 @@ function generateUnclaimedReminderHTML({
 `;
 }
 
-/**
- * Organizer copy for unclaimed BCC blasts.
- * Guests go in BCC so they cannot see each other.
- */
-export const NOTIFY_CC_EMAIL = (
-  process.env.NOTIFY_CC_EMAIL || "rosazxc0915@gmail.com"
-)
-  .trim()
-  .toLowerCase();
-
 function getReminderSubject(): string {
   return "Cafe Cursor Shanghai 20260719";
 }
@@ -307,7 +354,7 @@ export async function sendUnclaimedReminderTestToOrganizer(): Promise<{
   try {
     console.log(`📧 [EMAIL] Sending TEST reminder to organizer only: ${to}`);
     const { error } = await resendClient.emails.send({
-      from: FROM_EMAIL,
+      from: fromAddress(),
       to: [to],
       replyTo: NOTIFY_REPLY_TO,
       subject: `[TEST] ${subject}`,
@@ -345,6 +392,18 @@ export async function sendUnclaimedReminderBccBlast(
   const html = generateUnclaimedReminderHTML({ claimUrl });
   const cc = NOTIFY_CC_EMAIL;
 
+  const blocked = assertCanBulkSend();
+  if (blocked) {
+    return {
+      sent: 0,
+      failed: recipientEmails.length,
+      batches: 0,
+      failures: [{ email: "(config)", error: blocked }],
+      simulated: false,
+      cc,
+    };
+  }
+
   const seen = new Set<string>();
   const guests: string[] = [];
   for (const raw of recipientEmails) {
@@ -381,7 +440,7 @@ export async function sendUnclaimedReminderBccBlast(
     // Organizer gets a visible copy (To). Guests only in BCC — hidden from each other.
     // Reply-To is organizer Gmail (Resend cannot send FROM @gmail.com).
     return resendClient.emails.send({
-      from: FROM_EMAIL,
+      from: fromAddress(),
       to: [cc],
       replyTo: NOTIFY_REPLY_TO,
       bcc: bcc && bcc.length > 0 ? bcc : undefined,
