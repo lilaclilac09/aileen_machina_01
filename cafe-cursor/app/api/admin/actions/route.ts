@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isAuthenticated } from "@/lib/auth";
-import { sendCreditEmail, sendUnclaimedReminderBccBlast, sendUnclaimedReminderTestToOrganizer } from "@/lib/email";
+import { sendCreditEmail, sendUnclaimedReminderBccBlast, sendUnclaimedReminderTestToOrganizer, getEmailSendConfig } from "@/lib/email";
 import {
   getCreditsSheetCsvUrl,
   syncCreditsFromSheet,
@@ -581,30 +581,50 @@ export async function POST(request: NextRequest) {
       }
 
       case "NOTIFY_UNCLAIMED_TEST": {
+        const config = getEmailSendConfig();
         const result = await sendUnclaimedReminderTestToOrganizer();
         console.log(
-          `[ADMIN] NOTIFY_UNCLAIMED_TEST: to=${result.to} success=${result.success} simulated=${result.simulated}`
+          `[ADMIN] NOTIFY_UNCLAIMED_TEST: to=${result.to} success=${result.success} simulated=${result.simulated} from=${config.from}`
         );
         if (!result.success) {
           return NextResponse.json(
             {
-              error: `Test email failed: ${result.error || "unknown"}`,
+              error: `Test email failed: ${result.error || "unknown"}\nFrom: ${config.from}`,
               to: result.to,
+              from: config.from,
             },
             { status: 500 }
           );
         }
+        const fromHint = config.testingOnlyFrom
+          ? `\n\nWARNING: From is still ${config.from} — bulk send to guests will fail. Set FROM_EMAIL=Cafe Cursor Shanghai <cafe@aileena.xyz> on o6o4 and Redeploy.`
+          : `\nFrom: ${config.from}`;
         return NextResponse.json({
           success: true,
           message: result.simulated
             ? `Test simulated to ${result.to} (RESEND_API_KEY not set).`
-            : `Test email sent to ${result.to} only. Subject starts with [TEST]. Check inbox/spam, then Notify unclaimed if OK.`,
+            : `Test email sent to ${result.to} only. Subject starts with [TEST]. Check inbox/spam, then Notify unclaimed if OK.${fromHint}`,
           to: result.to,
+          from: config.from,
+          testingOnlyFrom: config.testingOnlyFrom,
           simulated: result.simulated,
         });
       }
 
       case "NOTIFY_UNCLAIMED": {
+        const config = getEmailSendConfig();
+        if (config.testingOnlyFrom) {
+          return NextResponse.json(
+            {
+              error:
+                `Cannot BCC guests while From is ${config.from}. ` +
+                `In Vercel o6o4 set FROM_EMAIL=Cafe Cursor Shanghai <cafe@aileena.xyz> (Resend domain Verified), then Redeploy.`,
+              from: config.from,
+            },
+            { status: 400 }
+          );
+        }
+
         const users = await prisma.eligibleUser.findMany({
           where: {
             approvalStatus: "approved",
@@ -630,6 +650,7 @@ export async function POST(request: NextRequest) {
             sent: 0,
             failed: 0,
             total: 0,
+            from: config.from,
           });
         }
 
@@ -638,7 +659,7 @@ export async function POST(request: NextRequest) {
         );
 
         console.log(
-          `[ADMIN] NOTIFY_UNCLAIMED: total=${unique.length} sent=${result.sent} failed=${result.failed} batches=${result.batches} cc=${result.cc} simulated=${result.simulated}`
+          `[ADMIN] NOTIFY_UNCLAIMED: total=${unique.length} sent=${result.sent} failed=${result.failed} batches=${result.batches} cc=${result.cc} from=${config.from} simulated=${result.simulated}`
         );
 
         const simNote = result.simulated
@@ -647,7 +668,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
           success: result.failed === 0,
-          message: `BCC-notified ${result.sent}/${unique.length} unclaimed users in ${result.batches} batch(es); CC ${result.cc}${
+          message: `BCC-notified ${result.sent}/${unique.length} unclaimed users in ${result.batches} batch(es); organizer ${result.cc}; From ${config.from}${
             result.failed ? ` (${result.failed} failed)` : ""
           }.${simNote}`,
           sent: result.sent,
@@ -655,6 +676,7 @@ export async function POST(request: NextRequest) {
           total: unique.length,
           batches: result.batches,
           cc: result.cc,
+          from: config.from,
           failures: result.failures.slice(0, 20),
         });
       }
