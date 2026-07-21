@@ -186,8 +186,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           message: next
-            ? `${updated.email} marked as 特殊用户 (can claim up to ${getVolunteerMaxClaims()} credits).`
-            : `${updated.email} unmarked as 特殊用户 (1 credit only).`,
+            ? `${updated.email} marked as special user (can claim up to ${getVolunteerMaxClaims()} credits).`
+            : `${updated.email} unmarked as special user (1 credit only).`,
           isVolunteer: next,
           maxClaims: next ? getVolunteerMaxClaims() : 1,
         });
