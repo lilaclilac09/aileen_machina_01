@@ -11,12 +11,14 @@ import { skuTools, skuDatasetInfo } from './sku';
 import { pricingTools, pricingDatasetInfo } from './pricing';
 import { newsTools, newsDatasetInfo } from './news';
 import { docTools, docDatasetInfo } from './docs';
+import { socialTools, socialDatasetInfo } from './social';
 
 export const agentDataTools = {
   ...skuTools,
   ...pricingTools,
   ...newsTools,
   ...docTools,
+  ...socialTools,
 };
 
 export function datasetSummary() {
@@ -25,5 +27,6 @@ export function datasetSummary() {
     pricing: pricingDatasetInfo(),
     news: newsDatasetInfo(),
     docs: docDatasetInfo(),
+    social: socialDatasetInfo(),
   };
 }
