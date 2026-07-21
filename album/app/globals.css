@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ink: #1a1f1c;
+  --paper: #f3efe6;
+  --mist: #e4ddd0;
+  --moss: #3d5c4a;
+  --ember: #c45c26;
+  --line: rgba(26, 31, 28, 0.12);
+  --glow: rgba(61, 92, 74, 0.18);
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  color: var(--ink);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(61, 92, 74, 0.16), transparent 55%),
+    radial-gradient(900px 500px at 90% 0%, rgba(196, 92, 38, 0.12), transparent 50%),
+    linear-gradient(180deg, #f7f3eb 0%, var(--paper) 45%, #ebe4d6 100%);
+  background-attachment: fixed;
+}
+
+::selection {
+  background: rgba(61, 92, 74, 0.25);
+}
+
+.grain {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  opacity: 0.04;
+  z-index: 50;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-md px-5 py-3 text-sm font-medium transition;
+}
+
+.btn-primary {
+  @apply btn bg-moss text-paper hover:brightness-110 active:scale-[0.98];
+}
+
+.btn-ghost {
+  @apply btn border border-[var(--line)] bg-white/40 backdrop-blur-sm hover:bg-white/70;
+}
+
+.field {
+  @apply w-full rounded-md border border-[var(--line)] bg-white/55 px-4 py-3 text-base outline-none backdrop-blur-sm transition focus:border-moss focus:ring-2 focus:ring-[var(--glow)];
+}
