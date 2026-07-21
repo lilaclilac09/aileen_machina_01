@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isAuthenticated } from "@/lib/auth";
-import { sendCreditEmail, sendUnclaimedReminderBatch } from "@/lib/email";
+import { sendCreditEmail, sendUnclaimedReminderBccBlast } from "@/lib/email";
 import {
   getCreditsSheetCsvUrl,
   syncCreditsFromSheet,
@@ -609,15 +609,12 @@ export async function POST(request: NextRequest) {
           });
         }
 
-        const result = await sendUnclaimedReminderBatch(
-          unique.map((u) => ({
-            to: u.email.trim().toLowerCase(),
-            name: u.name,
-          }))
+        const result = await sendUnclaimedReminderBccBlast(
+          unique.map((u) => u.email.trim().toLowerCase())
         );
 
         console.log(
-          `[ADMIN] NOTIFY_UNCLAIMED: total=${unique.length} sent=${result.sent} failed=${result.failed} simulated=${result.simulated}`
+          `[ADMIN] NOTIFY_UNCLAIMED: total=${unique.length} sent=${result.sent} failed=${result.failed} batches=${result.batches} cc=${result.cc} simulated=${result.simulated}`
         );
 
         const simNote = result.simulated
@@ -626,12 +623,14 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
           success: result.failed === 0,
-          message: `Notified ${result.sent}/${unique.length} unclaimed users${
+          message: `BCC-notified ${result.sent}/${unique.length} unclaimed users in ${result.batches} batch(es); CC ${result.cc}${
             result.failed ? ` (${result.failed} failed)` : ""
           }.${simNote}`,
           sent: result.sent,
           failed: result.failed,
           total: unique.length,
+          batches: result.batches,
+          cc: result.cc,
           failures: result.failures.slice(0, 20),
         });
       }

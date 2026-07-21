@@ -233,9 +233,10 @@ export default function AdminDashboard() {
     const n = data?.stats.pendingUsers ?? 0;
     if (
       !confirm(
-        `Notify all unclaimed?\n\n` +
-          `Will email ~${n} approved guests who have not claimed yet.\n` +
-          `Template: Cafe Cursor Shanghai 20260719\n` +
+        `Notify all unclaimed via BCC?\n\n` +
+          `Will BCC ~${n} guests (they cannot see each other).\n` +
+          `CC: rosazxc0915@gmail.com\n` +
+          `Subject: Cafe Cursor Shanghai 20260719\n\n` +
           `Requires RESEND_API_KEY on Vercel.\n\n` +
           `OK to send now?`
       )
