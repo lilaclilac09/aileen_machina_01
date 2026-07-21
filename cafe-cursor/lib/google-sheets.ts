@@ -101,7 +101,7 @@ export async function clearUnusedCredits(): Promise<{
   const result = await prisma.credit.deleteMany({
     where: {
       isUsed: false,
-      assignedTo: { is: null },
+      ownerId: null,
     },
   });
   console.log(
