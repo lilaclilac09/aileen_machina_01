@@ -18,7 +18,7 @@ import { getVolunteerMaxClaims } from "@/lib/claims";
 /**
  * POST /api/register
  * IRL redeem: after check-in, attendee claims Cursor credit(s).
- * Normal guests: 1 per email. Special users (isVolunteer / 特殊用户): up to VOLUNTEER_MAX_CLAIMS.
+ * Normal guests: 1 per email. Special users (isVolunteer / special user): up to VOLUNTEER_MAX_CLAIMS.
  */
 export async function POST(request: NextRequest) {
   try {

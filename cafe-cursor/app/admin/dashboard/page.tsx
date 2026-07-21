@@ -153,8 +153,8 @@ export default function AdminDashboard() {
     if (
       !confirm(
         next
-          ? `将 ${email} 标记为特殊用户？\n\n特殊用户同一邮箱最多可领 6 份 credits（VOLUNTEER_MAX_CLAIMS）。\n\nMark as special user? Up to 6 credits per email.`
-          : `取消 ${email} 的特殊用户标记？\n\n之后同一邮箱只能领 1 份。\n\nUnmark special user? Limit returns to 1 credit.`
+          ? `Mark ${email} as special user?\n\nSpecial users can claim up to 6 credits on the same email (VOLUNTEER_MAX_CLAIMS).`
+          : `Unmark ${email} as special user?\n\nLimit returns to 1 credit per email.`
       )
     ) {
       return;
@@ -233,7 +233,7 @@ export default function AdminDashboard() {
     const n = data?.stats.pendingUsers ?? 0;
     if (
       !confirm(
-        `一键通知未领取 / Notify all unclaimed?\n\n` +
+        `Notify all unclaimed?\n\n` +
           `Will email ~${n} approved guests who have not claimed yet.\n` +
           `Bilingual zh+en · claim link: cursor-cafe.aileena.xyz\n\n` +
           `Requires RESEND_API_KEY on Vercel.\n\n` +
@@ -411,12 +411,12 @@ export default function AdminDashboard() {
 
       <div className="relative mx-auto max-w-7xl px-4 py-6">
         <div className="mb-6 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-          <p className="font-medium">Sync rule（名单 & 学分：每次必须先清）</p>
+          <p className="font-medium">Sync rule (always clear first)</p>
           <p className="mt-1 text-amber-200/90">
             Every sync <strong>must clear unused/unclaimed cache first</strong>, then
             import.{" "}
-            <strong>Clear + Sync Sheet</strong> = credits；
-            <strong> Clear + Sync Checked-in</strong> = guest list. Used / claimed rows
+            <strong>Clear + Sync Sheet</strong> = credits;{" "}
+            <strong>Clear + Sync Checked-in</strong> = guest list. Used / claimed rows
             are kept. <strong>Import Luma CSV</strong> alone does not clear (additive).
           </p>
         </div>
@@ -570,7 +570,7 @@ export default function AdminDashboard() {
                   <th className="px-4 py-3 font-medium">Company</th>
                   <th className="px-4 py-3 font-medium">Status</th>
                   <th className="px-4 py-3 font-medium">Credit</th>
-                  <th className="px-4 py-3 font-medium">操作</th>
+                  <th className="px-4 py-3 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-800">
@@ -581,7 +581,7 @@ export default function AdminDashboard() {
                         <span>{user.email}</span>
                         {user.isVolunteer && (
                           <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium tracking-wide text-emerald-300">
-                            特殊用户
+                            Special user
                           </span>
                         )}
                       </div>
@@ -625,7 +625,7 @@ export default function AdminDashboard() {
                         className="max-w-[10rem] rounded border border-gray-700 bg-gray-900 px-2 py-1.5 text-xs focus:border-white focus:outline-none disabled:opacity-50"
                       >
                         <option value="" disabled>
-                          操作…
+                          Actions…
                         </option>
                         {(!user.hasClaimed || user.isVolunteer) &&
                           user.approvalStatus === "approved" && (
@@ -642,7 +642,7 @@ export default function AdminDashboard() {
                         )}
                         <optgroup label="Manage">
                           <option value="special">
-                            {user.isVolunteer ? "取消特殊用户" : "标记特殊用户"}
+                            {user.isVolunteer ? "Unmark special user" : "Mark special user"}
                           </option>
                           <option value="delete">Delete user</option>
                         </optgroup>

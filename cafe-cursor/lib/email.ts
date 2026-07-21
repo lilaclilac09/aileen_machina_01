@@ -288,7 +288,7 @@ export async function sendUnclaimedReminderBatch(
       ""
     ) + "/";
   const subject =
-    "Cafe Cursor — 别忘了领取你的 Cursor credits / Don't forget to claim";
+    "Cafe Cursor Shanghai — 领取你的 $50 Cursor credits / Redeem your $50 credits";
 
   const resendClient = getResendClient();
   if (!resendClient) {
