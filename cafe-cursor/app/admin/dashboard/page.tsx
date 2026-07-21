@@ -386,7 +386,7 @@ export default function AdminDashboard() {
           </p>
         </div>
 
-        <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
+        <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-7">
           <StatCard
             label="Total Credits"
             value={data?.stats.totalCredits || 0}
@@ -417,6 +417,11 @@ export default function AdminDashboard() {
             value={data?.stats.claimedUsers || 0}
             color="pink"
           />
+          <StatCard
+            label="Unclaimed"
+            value={data?.stats.pendingUsers || 0}
+            color="yellow"
+          />
         </div>
 
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
@@ -438,10 +443,8 @@ export default function AdminDashboard() {
                   ? "bg-white text-black"
                   : "border border-gray-700 hover:bg-gray-800"
               }`}
-              aria-label="Credits"
-              title="Credits"
             >
-              🎫
+              Credits ({data?.stats.totalCredits ?? 0})
             </button>
           </div>
 
@@ -460,6 +463,17 @@ export default function AdminDashboard() {
               className="hidden"
               onChange={handleImportLumaCsvFile}
             />
+            <button
+              onClick={handleDownloadUnclaimedEmails}
+              disabled={actionLoading || !data}
+              className="rounded-lg border border-gray-700 px-3 py-2 text-sm hover:bg-gray-800 disabled:opacity-50"
+              title="Download approved but unclaimed emails (CSV + BCC)"
+            >
+              Unclaimed
+              {data?.stats.pendingUsers != null
+                ? ` (${data.stats.pendingUsers})`
+                : ""}
+            </button>
             <select
               disabled={actionLoading}
               defaultValue=""
@@ -474,27 +488,25 @@ export default function AdminDashboard() {
                 else if (v === "clear-list") handleClearGuestList();
                 else if (v === "import-luma") handleImportLumaCsvClick();
                 else if (v === "sync-luma-api") handleSyncLumaApi();
-                else if (v === "download-unclaimed")
-                  handleDownloadUnclaimedEmails();
               }}
               className="rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-sm focus:border-white focus:outline-none disabled:opacity-50"
             >
               <option value="" disabled>
                 Tools…
               </option>
-              <option value="add-user">+ User</option>
-              <option value="add-credit">+ Credit</option>
-              <option value="download-unclaimed">
-                Download unclaimed emails
-                {data?.stats.pendingUsers != null
-                  ? ` (${data.stats.pendingUsers})`
-                  : ""}
-              </option>
-              <option value="sync-sheet">Clear + Sync Sheet</option>
-              <option value="sync-checked-in">Clear + Sync Checked-in</option>
-              <option value="clear-list">Clear list</option>
-              <option value="import-luma">Import Luma CSV</option>
-              <option value="sync-luma-api">Sync Luma API</option>
+              <optgroup label="Add">
+                <option value="add-user">+ User</option>
+                <option value="add-credit">+ Credit</option>
+              </optgroup>
+              <optgroup label="Sync">
+                <option value="sync-sheet">Clear + Sync Sheet</option>
+                <option value="sync-checked-in">Clear + Sync Checked-in</option>
+                <option value="import-luma">Import Luma CSV</option>
+                <option value="sync-luma-api">Sync Luma API</option>
+              </optgroup>
+              <optgroup label="Danger">
+                <option value="clear-list">Clear list</option>
+              </optgroup>
             </select>
             <button
               onClick={fetchDashboard}
@@ -567,28 +579,30 @@ export default function AdminDashboard() {
                           else if (v === "delete")
                             handleDeleteUser(user.id, user.email, user.hasClaimed);
                         }}
-                        className="max-w-[9rem] rounded border border-gray-700 bg-gray-900 px-2 py-1.5 text-xs focus:border-white focus:outline-none disabled:opacity-50"
+                        className="max-w-[10rem] rounded border border-gray-700 bg-gray-900 px-2 py-1.5 text-xs focus:border-white focus:outline-none disabled:opacity-50"
                       >
                         <option value="" disabled>
                           操作…
                         </option>
                         {(!user.hasClaimed || user.isVolunteer) &&
                           user.approvalStatus === "approved" && (
-                            <>
+                            <optgroup label="Assign">
                               <option value="assign">Assign credit</option>
                               <option value="test">Assign test</option>
-                            </>
+                            </optgroup>
                           )}
                         {user.hasClaimed && (
-                          <>
+                          <optgroup label="Claimed">
                             <option value="email">Email link</option>
                             <option value="revoke">Revoke latest</option>
-                          </>
+                          </optgroup>
                         )}
-                        <option value="special">
-                          {user.isVolunteer ? "取消特殊用户" : "标记特殊用户"}
-                        </option>
-                        <option value="delete">Delete user</option>
+                        <optgroup label="Manage">
+                          <option value="special">
+                            {user.isVolunteer ? "取消特殊用户" : "标记特殊用户"}
+                          </option>
+                          <option value="delete">Delete user</option>
+                        </optgroup>
                       </select>
                     </td>
                   </tr>
@@ -683,6 +697,7 @@ function StatCard({ label, value, color }: { label: string; value: number; color
     purple: "border-purple-500/30 bg-purple-500/10",
     cyan: "border-cyan-500/30 bg-cyan-500/10",
     pink: "border-pink-500/30 bg-pink-500/10",
+    yellow: "border-yellow-500/30 bg-yellow-500/10",
   };
 
   return (
