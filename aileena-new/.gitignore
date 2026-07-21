@@ -52,3 +52,4 @@ lib/dataDocIndex.json
 .verify-memory/
 data/pricing.json
 data/news.json
+data/inkling-clips/
