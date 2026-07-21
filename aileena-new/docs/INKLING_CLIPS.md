@@ -39,20 +39,13 @@ Other OpenAI-compatible providers (Baseten, custom) work via `INKLING_BASE_URL` 
 
 ## Web UI (public)
 
-Anyone can use the tool at **`/tools/inkling-clips`** inside the [Tools hub](./TOOLS_ARCADE.md) (`/tools`).
+Hub: **`/tools`** · page: **`/tools/inkling-clips`**.
 
-| URL | Purpose |
-|-----|---------|
-| `/tools` | Tools hub |
-| `/tools/inkling-clips` | Audio Clipping UI |
+**Launch mode (A + B3):** the public page is a **CLI command builder**. Browser Run is not enabled on Vercel (no `yt-dlp` / `ffmpeg` on serverless). Visitors copy a local command and run it on their machine.
+
+API routes under `/api/tools/inkling-clips` remain in the repo for a future worker host; they are not the public path today.
 
 Adding another tool: see **[TOOLS_ARCADE.md](./TOOLS_ARCADE.md)**.
-
-The browser calls `POST /api/tools/inkling-clips` (starts a background job) and polls `GET /api/tools/inkling-clips?jobId=…`. Clips download via `/api/tools/inkling-clips/clip?jobId=…&index=0`.
-
-**Server requirements on Vercel/host:** `yt-dlp`, `ffmpeg`, `ffprobe` on PATH, plus `TOGETHER_API_KEY` (or `INKLING_API_KEY`) in env. Optional: `UPSTASH_REDIS_*` so job status survives cold starts.
-
-**Rate limits:** 8 jobs / IP / day, 1 job / 2 min burst (see `TOOLS_INKLING_RATE` in `lib/api/ratelimit.ts`).
 
 ## CLI (local / self-hosted)
 

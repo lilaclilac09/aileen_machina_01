@@ -73,12 +73,12 @@ Open `/tools` → new tile visible → open tool once end-to-end.
 
 ## Shipped tools
 
-| Slug | Route | Data |
-|------|-------|------|
-| `inkling-clips` | `/tools/inkling-clips` | YouTube + Inkling API |
-| `feed-flash` | `/tools/feed-flash` | Live RSS |
-| `chip-guess` | `/tools/chip-guess` | `/api/v1/chips` |
-| `pricing-slot` | `/tools/pricing-slot` | `/api/v1/pricing` |
+| Slug | Route | Status |
+|------|-------|--------|
+| `inkling-clips` | `/tools/inkling-clips` | **Live** — CLI command builder (local run) |
+| `feed-flash` | `/tools/feed-flash` | TBC on hub |
+| `chip-guess` | `/tools/chip-guess` | TBC on hub |
+| `pricing-slot` | `/tools/pricing-slot` | TBC on hub |
 
 Nav: homepage dock `{ label: 'tools', href: '/tools' }`.
 
