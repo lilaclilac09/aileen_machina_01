@@ -374,8 +374,8 @@ export async function sendUnclaimedReminderTestToOrganizer(): Promise<{
 }
 
 /**
- * Send one reminder email with guests in BCC (hidden from each other)
- * and organizer on To. Batches BCC lists to stay within provider limits.
+ * Notify all unclaimed guests with one private email each (not BCC).
+ * Recipients cannot see each other. Organizer also gets one copy.
  */
 export async function sendUnclaimedReminderBccBlast(
   recipientEmails: string[]
@@ -386,11 +386,13 @@ export async function sendUnclaimedReminderBccBlast(
   failures: { email: string; error: string }[];
   simulated: boolean;
   cc: string;
+  from: string;
 }> {
   const claimUrl = getClaimUrl();
   const subject = getReminderSubject();
   const html = generateUnclaimedReminderHTML({ claimUrl });
   const cc = NOTIFY_CC_EMAIL;
+  const from = fromAddress();
 
   const blocked = assertCanBulkSend();
   if (blocked) {
@@ -401,6 +403,7 @@ export async function sendUnclaimedReminderBccBlast(
       failures: [{ email: "(config)", error: blocked }],
       simulated: false,
       cc,
+      from,
     };
   }
 
@@ -409,7 +412,7 @@ export async function sendUnclaimedReminderBccBlast(
   for (const raw of recipientEmails) {
     const email = raw.trim().toLowerCase();
     if (!email.includes("@") || seen.has(email)) continue;
-    if (email === cc) continue; // organizer already receives a visible copy
+    if (email === cc) continue;
     seen.add(email);
     guests.push(email);
   }
@@ -417,7 +420,7 @@ export async function sendUnclaimedReminderBccBlast(
   const resendClient = getResendClient();
   if (!resendClient) {
     console.log(
-      `📧 [EMAIL] Dev mode — simulating BCC blast to ${guests.length} (+ organizer ${cc})`
+      `📧 [EMAIL] Dev mode — simulating individual notify to ${guests.length} (+ organizer ${cc}) from=${from}`
     );
     return {
       sent: guests.length,
@@ -426,97 +429,120 @@ export async function sendUnclaimedReminderBccBlast(
       failures: [],
       simulated: true,
       cc,
+      from,
     };
   }
 
-  // Keep BCC batches modest for deliverability / provider limits
-  const BCC_CHUNK = 40;
+  console.log(`📧 [EMAIL] Bulk notify from=${from} guests=${guests.length}`);
+
   let sent = 0;
   let failed = 0;
   let batches = 0;
   const failures: { email: string; error: string }[] = [];
 
-  const sendOne = async (bcc: string[] | undefined) => {
-    // Organizer gets a visible copy (To). Guests only in BCC — hidden from each other.
-    // Reply-To is organizer Gmail (Resend cannot send FROM @gmail.com).
-    return resendClient.emails.send({
-      from: fromAddress(),
+  // Organizer copy first
+  try {
+    batches += 1;
+    const { error } = await resendClient.emails.send({
+      from,
       to: [cc],
       replyTo: NOTIFY_REPLY_TO,
-      bcc: bcc && bcc.length > 0 ? bcc : undefined,
-      subject,
+      subject: `[COPY] ${subject}`,
       html,
     });
-  };
-
-  if (guests.length === 0) {
-    try {
-      const { error } = await sendOne(undefined);
-      if (error) {
-        return {
-          sent: 0,
-          failed: 1,
-          batches: 0,
-          failures: [{ email: cc, error: error.message }],
-          simulated: false,
-          cc,
-        };
-      }
-      return {
-        sent: 0,
-        failed: 0,
-        batches: 1,
-        failures: [],
-        simulated: false,
-        cc,
-      };
-    } catch (err) {
-      return {
-        sent: 0,
-        failed: 1,
-        batches: 0,
-        failures: [
-          {
-            email: cc,
-            error: err instanceof Error ? err.message : "unknown",
-          },
-        ],
-        simulated: false,
-        cc,
-      };
+    if (error) {
+      failures.push({ email: cc, error: `${error.message} (From: ${from})` });
     }
+  } catch (err) {
+    failures.push({
+      email: cc,
+      error: `${err instanceof Error ? err.message : "unknown"} (From: ${from})`,
+    });
   }
 
-  for (let i = 0; i < guests.length; i += BCC_CHUNK) {
-    const bcc = guests.slice(i, i + BCC_CHUNK);
+  const CHUNK = 40;
+  for (let i = 0; i < guests.length; i += CHUNK) {
+    const chunk = guests.slice(i, i + CHUNK);
     batches += 1;
+    const payloads = chunk.map((email) => ({
+      from,
+      to: [email],
+      replyTo: NOTIFY_REPLY_TO,
+      subject,
+      html,
+    }));
+
     try {
       console.log(
-        `📧 [EMAIL] BCC blast ${i + 1}-${i + bcc.length}/${guests.length} cc=${cc}`
+        `📧 [EMAIL] Individual batch ${i + 1}-${i + chunk.length}/${guests.length} from=${from}`
       );
-      const { error } = await sendOne(bcc);
+      const { error } = await resendClient.batch.send(payloads);
       if (error) {
-        console.error(`❌ [EMAIL] BCC batch failed:`, error);
-        failed += bcc.length;
-        for (const email of bcc) {
-          failures.push({ email, error: error.message });
+        console.error(`❌ [EMAIL] Batch failed, falling back one-by-one:`, error);
+        // Fall back one-by-one so we can report which From Resend sees
+        for (const email of chunk) {
+          try {
+            const one = await resendClient.emails.send({
+              from,
+              to: [email],
+              replyTo: NOTIFY_REPLY_TO,
+              subject,
+              html,
+            });
+            if (one.error) {
+              failed += 1;
+              failures.push({
+                email,
+                error: `${one.error.message} (From: ${from})`,
+              });
+              // Same config error for all — stop early
+              if (/only send testing emails/i.test(one.error.message)) {
+                for (const rest of chunk.slice(chunk.indexOf(email) + 1)) {
+                  failed += 1;
+                  failures.push({
+                    email: rest,
+                    error: `${one.error.message} (From: ${from})`,
+                  });
+                }
+                // Mark remaining guests as failed without sending
+                const restAll = guests.slice(i + chunk.indexOf(email) + 1);
+                // already handled rest of chunk; skip remaining chunks
+                for (const rest of guests.slice(i + CHUNK)) {
+                  failed += 1;
+                  failures.push({
+                    email: rest,
+                    error: `Aborted — From is still testing-only (${from}). Set FROM_EMAIL=Cafe Cursor Shanghai <cafe@aileena.xyz> on Vercel o6o4 and Redeploy.`,
+                  });
+                }
+                return { sent, failed, batches, failures, simulated: false, cc, from };
+              }
+            } else {
+              sent += 1;
+            }
+          } catch (err) {
+            failed += 1;
+            failures.push({
+              email,
+              error: `${err instanceof Error ? err.message : "unknown"} (From: ${from})`,
+            });
+          }
         }
       } else {
-        sent += bcc.length;
+        sent += chunk.length;
       }
     } catch (err) {
-      console.error(`❌ [EMAIL] BCC batch exception:`, err);
-      failed += bcc.length;
-      for (const email of bcc) {
+      console.error(`❌ [EMAIL] Batch exception:`, err);
+      for (const email of chunk) {
+        failed += 1;
         failures.push({
           email,
-          error: err instanceof Error ? err.message : "unknown",
+          error: `${err instanceof Error ? err.message : "unknown"} (From: ${from})`,
         });
       }
     }
   }
 
-  return { sent, failed, batches, failures, simulated: false, cc };
+  return { sent, failed, batches, failures, simulated: false, cc, from };
 }
 
 /** @deprecated Prefer sendUnclaimedReminderBccBlast for privacy (BCC). */
