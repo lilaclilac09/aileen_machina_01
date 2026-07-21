@@ -378,7 +378,7 @@ export default function AdminDashboard() {
             </button>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <input
               type="text"
               placeholder="Search..."
@@ -386,26 +386,6 @@ export default function AdminDashboard() {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="rounded-lg border border-gray-700 bg-gray-900 px-4 py-2 text-sm placeholder:text-gray-500 focus:border-white focus:outline-none"
             />
-            <button
-              onClick={() => setShowAddUserModal(true)}
-              className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium hover:bg-green-700"
-            >
-              + User
-            </button>
-            <button
-              onClick={() => setShowAddCreditModal(true)}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-700"
-            >
-              + Credit
-            </button>
-            <button
-              onClick={handleSyncSheet}
-              disabled={actionLoading}
-              className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium hover:bg-amber-700 disabled:opacity-50"
-              title="Step1 clear unused credits → Step2 import from Google Sheet"
-            >
-              Clear + Sync Sheet
-            </button>
             <input
               ref={lumaCsvInputRef}
               type="file"
@@ -413,37 +393,34 @@ export default function AdminDashboard() {
               className="hidden"
               onChange={handleImportLumaCsvFile}
             />
-            <button
-              onClick={handleSyncCheckedInClick}
+            <select
               disabled={actionLoading}
-              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
-              title="Step1 clear unclaimed cache → Step2 import checked-in CSV"
+              defaultValue=""
+              onChange={(e) => {
+                const v = e.target.value;
+                e.target.value = "";
+                if (!v) return;
+                if (v === "add-user") setShowAddUserModal(true);
+                else if (v === "add-credit") setShowAddCreditModal(true);
+                else if (v === "sync-sheet") handleSyncSheet();
+                else if (v === "sync-checked-in") handleSyncCheckedInClick();
+                else if (v === "clear-list") handleClearGuestList();
+                else if (v === "import-luma") handleImportLumaCsvClick();
+                else if (v === "sync-luma-api") handleSyncLumaApi();
+              }}
+              className="rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-sm focus:border-white focus:outline-none disabled:opacity-50"
             >
-              Clear + Sync Checked-in
-            </button>
-            <button
-              onClick={handleClearGuestList}
-              disabled={actionLoading}
-              className="rounded-lg bg-red-700 px-4 py-2 text-sm font-medium hover:bg-red-800 disabled:opacity-50"
-              title="Delete unclaimed guests from the allowlist"
-            >
-              Clear list
-            </button>
-            <button
-              onClick={handleImportLumaCsvClick}
-              disabled={actionLoading}
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
-            >
-              Import Luma CSV
-            </button>
-            <button
-              onClick={handleSyncLumaApi}
-              disabled={actionLoading}
-              className="rounded-lg border border-gray-700 px-4 py-2 text-sm hover:bg-gray-800 disabled:opacity-50"
-              title="Requires Luma Plus API key"
-            >
-              Sync Luma API
-            </button>
+              <option value="" disabled>
+                Tools…
+              </option>
+              <option value="add-user">+ User</option>
+              <option value="add-credit">+ Credit</option>
+              <option value="sync-sheet">Clear + Sync Sheet</option>
+              <option value="sync-checked-in">Clear + Sync Checked-in</option>
+              <option value="clear-list">Clear list</option>
+              <option value="import-luma">Import Luma CSV</option>
+              <option value="sync-luma-api">Sync Luma API</option>
+            </select>
             <button
               onClick={fetchDashboard}
               disabled={actionLoading}
@@ -463,7 +440,7 @@ export default function AdminDashboard() {
                   <th className="px-4 py-3 font-medium">Company</th>
                   <th className="px-4 py-3 font-medium">Status</th>
                   <th className="px-4 py-3 font-medium">Credit</th>
-                  <th className="px-4 py-3 font-medium">Actions</th>
+                  <th className="px-4 py-3 font-medium">操作</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-800">
@@ -495,74 +472,49 @@ export default function AdminDashboard() {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-2">
-                        {(!user.hasClaimed || user.isVolunteer) &&
-                          user.approvalStatus === "approved" && (
-                          <>
-                            <button
-                              onClick={() => handleAssignCredit(user.email, false)}
-                              disabled={actionLoading}
-                              className="rounded bg-blue-600 px-2 py-1 text-xs hover:bg-blue-700 disabled:opacity-50"
-                            >
-                              Assign
-                            </button>
-                            <button
-                              onClick={() => handleAssignCredit(user.email, true)}
-                              disabled={actionLoading}
-                              className="rounded bg-purple-600 px-2 py-1 text-xs hover:bg-purple-700 disabled:opacity-50"
-                            >
-                              Test
-                            </button>
-                          </>
-                        )}
-                        {user.hasClaimed && (
-                          <>
-                            <button
-                              onClick={() => handleSendEmail(user.id, user.email)}
-                              disabled={actionLoading}
-                              className="rounded bg-cyan-600 px-2 py-1 text-xs hover:bg-cyan-700 disabled:opacity-50"
-                              title="Send email with credit link"
-                            >
-                              Email
-                            </button>
-                            <button
-                              onClick={() => handleRevokeCredit(user.id, user.email)}
-                              disabled={actionLoading}
-                              className="rounded bg-red-600 px-2 py-1 text-xs hover:bg-red-700 disabled:opacity-50"
-                            >
-                              Revoke
-                            </button>
-                          </>
-                        )}
-                        <button
-                          onClick={() =>
+                      <select
+                        disabled={actionLoading}
+                        defaultValue=""
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          e.target.value = "";
+                          if (!v) return;
+                          if (v === "assign") handleAssignCredit(user.email, false);
+                          else if (v === "test") handleAssignCredit(user.email, true);
+                          else if (v === "email") handleSendEmail(user.id, user.email);
+                          else if (v === "revoke") handleRevokeCredit(user.id, user.email);
+                          else if (v === "special")
                             handleToggleVolunteer(
                               user.id,
                               user.email,
                               user.isVolunteer
-                            )
-                          }
-                          disabled={actionLoading}
-                          className={`rounded px-2 py-1 text-xs disabled:opacity-50 ${
-                            user.isVolunteer
-                              ? "bg-emerald-800 text-emerald-100 hover:bg-emerald-700"
-                              : "bg-emerald-600 hover:bg-emerald-700"
-                          }`}
-                          title="特殊用户同一邮箱最多可领 6 份 credits"
-                        >
-                          {user.isVolunteer ? "取消特殊" : "特殊用户"}
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleDeleteUser(user.id, user.email, user.hasClaimed)
-                          }
-                          disabled={actionLoading}
-                          className="rounded border border-red-700/60 bg-transparent px-2 py-1 text-xs text-red-400 hover:bg-red-900/40 disabled:opacity-50"
-                          title="Remove this user from the allowlist"
-                        >
-                          Delete
-                        </button>
-                      </div>
+                            );
+                          else if (v === "delete")
+                            handleDeleteUser(user.id, user.email, user.hasClaimed);
+                        }}
+                        className="max-w-[9rem] rounded border border-gray-700 bg-gray-900 px-2 py-1.5 text-xs focus:border-white focus:outline-none disabled:opacity-50"
+                      >
+                        <option value="" disabled>
+                          操作…
+                        </option>
+                        {(!user.hasClaimed || user.isVolunteer) &&
+                          user.approvalStatus === "approved" && (
+                            <>
+                              <option value="assign">Assign credit</option>
+                              <option value="test">Assign test</option>
+                            </>
+                          )}
+                        {user.hasClaimed && (
+                          <>
+                            <option value="email">Email link</option>
+                            <option value="revoke">Revoke latest</option>
+                          </>
+                        )}
+                        <option value="special">
+                          {user.isVolunteer ? "取消特殊用户" : "标记特殊用户"}
+                        </option>
+                        <option value="delete">Delete user</option>
+                      </select>
                     </td>
                   </tr>
                 ))}
