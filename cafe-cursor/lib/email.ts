@@ -118,6 +118,234 @@ export async function sendCreditEmail({
   }
 }
 
+interface SendUnclaimedReminderParams {
+  to: string;
+  name?: string;
+}
+
+/**
+ * Reminder for checked-in guests who have not claimed yet.
+ * Bilingual (zh+en) so one blast works for everyone.
+ */
+export async function sendUnclaimedReminderEmail({
+  to,
+  name,
+}: SendUnclaimedReminderParams): Promise<{ success: boolean; error?: string }> {
+  const resendClient = getResendClient();
+  const claimUrl =
+    (process.env.NEXT_PUBLIC_SITE_URL || "https://cursor-cafe.aileena.xyz").replace(
+      /\/$/,
+      ""
+    ) + "/";
+  const displayName = (name || "").trim() || to.split("@")[0] || "friend";
+
+  if (!resendClient) {
+    console.log(`📧 [EMAIL] Dev mode — unclaimed reminder simulated for ${to}`);
+    return { success: true };
+  }
+
+  const subject =
+    "Cafe Cursor — 别忘了领取你的 Cursor credits / Don't forget to claim";
+
+  const html = generateUnclaimedReminderHTML({
+    name: displayName,
+    claimUrl,
+  });
+
+  try {
+    console.log(`📧 [EMAIL] Sending unclaimed reminder to: ${to}`);
+    const { error } = await resendClient.emails.send({
+      from: FROM_EMAIL,
+      to: [to],
+      subject,
+      html,
+    });
+
+    if (error) {
+      console.error(`❌ [EMAIL] Reminder failed for ${to}:`, error);
+      return { success: false, error: error.message };
+    }
+
+    console.log(`✅ [EMAIL] Reminder sent to: ${to}`);
+    return { success: true };
+  } catch (error) {
+    console.error(`❌ [EMAIL] Reminder unexpected error for ${to}:`, error);
+    return { success: false, error: "Failed to send reminder email" };
+  }
+}
+
+function generateUnclaimedReminderHTML({
+  name,
+  claimUrl,
+}: {
+  name: string;
+  claimUrl: string;
+}): string {
+  return `
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cafe Cursor — Claim reminder</title>
+</head>
+<body style="margin:0;padding:0;background-color:#0a0a0a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#0a0a0a;">
+    <tr>
+      <td align="center" style="padding:40px 20px;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:500px;">
+          <tr>
+            <td align="center" style="padding-bottom:24px;">
+              <h1 style="margin:0;font-size:28px;font-weight:700;color:#ffffff;">Cafe Cursor</h1>
+              <p style="margin:8px 0 0;font-size:14px;color:#a3a3a3;">Shanghai</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#171717;border:1px solid #262626;border-radius:16px;">
+                <tr>
+                  <td style="padding:32px;">
+                    <h2 style="margin:0 0 16px;font-size:18px;font-weight:600;color:#ffffff;">你好，${escapeHtml(name)}！</h2>
+                    <p style="margin:0 0 12px;font-size:14px;line-height:1.6;color:#a3a3a3;">
+                      你已在 Cafe Cursor Shanghai 的 checked-in 名单里，但还没有领取 Cursor credits。
+                    </p>
+                    <p style="margin:0 0 24px;font-size:14px;line-height:1.6;color:#a3a3a3;">
+                      You're on the checked-in list, but you haven't claimed your Cursor credits yet.
+                    </p>
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td align="center" style="padding-bottom:24px;">
+                          <a href="${claimUrl}" target="_blank" style="display:inline-block;background-color:#ffffff;color:#0a0a0a;font-size:14px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:12px;">
+                            Claim / 领取 →
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                    <p style="margin:0 0 8px;font-size:13px;line-height:1.6;color:#737373;">
+                      请用已 checked-in 的 Luma 报名邮箱提交。<br/>
+                      Use the same checked-in Luma email on the page.
+                    </p>
+                    <p style="margin:0;font-size:12px;color:#525252;word-break:break-all;">
+                      ${claimUrl}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding-top:24px;">
+              <p style="margin:0;font-size:12px;color:#737373;">
+                如果已经领取过，可以忽略这封邮件。 / If you already claimed, ignore this note.
+              </p>
+              <p style="margin:8px 0 0;font-size:11px;color:#525252;">☕ Cafe Cursor Shanghai</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`;
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/**
+ * Bulk unclaimed reminders via Resend batch API (up to 100/request).
+ */
+export async function sendUnclaimedReminderBatch(
+  recipients: { to: string; name?: string }[]
+): Promise<{
+  sent: number;
+  failed: number;
+  failures: { email: string; error: string }[];
+  simulated: boolean;
+}> {
+  const claimUrl =
+    (process.env.NEXT_PUBLIC_SITE_URL || "https://cursor-cafe.aileena.xyz").replace(
+      /\/$/,
+      ""
+    ) + "/";
+  const subject =
+    "Cafe Cursor — 别忘了领取你的 Cursor credits / Don't forget to claim";
+
+  const resendClient = getResendClient();
+  if (!resendClient) {
+    console.log(
+      `📧 [EMAIL] Dev mode — simulating ${recipients.length} unclaimed reminders`
+    );
+    return {
+      sent: recipients.length,
+      failed: 0,
+      failures: [],
+      simulated: true,
+    };
+  }
+
+  let sent = 0;
+  let failed = 0;
+  const failures: { email: string; error: string }[] = [];
+  const CHUNK = 50;
+
+  for (let i = 0; i < recipients.length; i += CHUNK) {
+    const chunk = recipients.slice(i, i + CHUNK);
+    const payloads = chunk.map((r) => {
+      const displayName =
+        (r.name || "").trim() || r.to.split("@")[0] || "friend";
+      return {
+        from: FROM_EMAIL,
+        to: [r.to],
+        subject,
+        html: generateUnclaimedReminderHTML({
+          name: displayName,
+          claimUrl,
+        }),
+      };
+    });
+
+    try {
+      console.log(
+        `📧 [EMAIL] Batch reminder ${i + 1}-${i + chunk.length} / ${recipients.length}`
+      );
+      const { error } = await resendClient.batch.send(payloads);
+      if (error) {
+        // Fall back to one-by-one for this chunk
+        console.error(`❌ [EMAIL] Batch failed, falling back:`, error);
+        for (const r of chunk) {
+          const one = await sendUnclaimedReminderEmail(r);
+          if (one.success) sent += 1;
+          else {
+            failed += 1;
+            failures.push({ email: r.to, error: one.error || "unknown" });
+          }
+        }
+      } else {
+        sent += chunk.length;
+      }
+    } catch (err) {
+      console.error(`❌ [EMAIL] Batch exception, falling back:`, err);
+      for (const r of chunk) {
+        const one = await sendUnclaimedReminderEmail(r);
+        if (one.success) sent += 1;
+        else {
+          failed += 1;
+          failures.push({ email: r.to, error: one.error || "unknown" });
+        }
+      }
+    }
+  }
+
+  return { sent, failed, failures, simulated: false };
+}
+
 /**
  * Genera el HTML del correo manteniendo la estética de la landing
  */
