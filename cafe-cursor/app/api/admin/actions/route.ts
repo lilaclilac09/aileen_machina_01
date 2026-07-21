@@ -668,7 +668,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
           success: result.failed === 0,
-          message: `BCC-notified ${result.sent}/${unique.length} unclaimed users in ${result.batches} batch(es); organizer ${result.cc}; From ${config.from}${
+          message: `Notified ${result.sent}/${unique.length} unclaimed users (private 1:1); organizer copy ${result.cc}; From ${result.from}${
             result.failed ? ` (${result.failed} failed)` : ""
           }.${simNote}`,
           sent: result.sent,
@@ -676,7 +676,7 @@ export async function POST(request: NextRequest) {
           total: unique.length,
           batches: result.batches,
           cc: result.cc,
-          from: config.from,
+          from: result.from,
           failures: result.failures.slice(0, 20),
         });
       }
