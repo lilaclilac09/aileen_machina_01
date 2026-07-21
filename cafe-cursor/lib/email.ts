@@ -253,8 +253,158 @@ function generateUnclaimedReminderHTML({
 }
 
 /**
- * Bulk unclaimed reminders via Resend batch API (up to 100/request).
+ * Organizer copy for unclaimed BCC blasts.
+ * Guests go in BCC so they cannot see each other.
  */
+export const NOTIFY_CC_EMAIL = (
+  process.env.NOTIFY_CC_EMAIL || "rosazxc0915@gmail.com"
+)
+  .trim()
+  .toLowerCase();
+
+function extractAddress(fromHeader: string): string {
+  const match = fromHeader.match(/<([^>]+)>/);
+  if (match?.[1]) return match[1].trim().toLowerCase();
+  return fromHeader.trim().toLowerCase();
+}
+
+/**
+ * Send one reminder email with guests in BCC (hidden from each other)
+ * and organizer on CC. Batches BCC lists to stay within provider limits.
+ */
+export async function sendUnclaimedReminderBccBlast(
+  recipientEmails: string[]
+): Promise<{
+  sent: number;
+  failed: number;
+  batches: number;
+  failures: { email: string; error: string }[];
+  simulated: boolean;
+  cc: string;
+}> {
+  const claimUrl =
+    (process.env.NEXT_PUBLIC_SITE_URL || "https://cursor-cafe.aileena.xyz").replace(
+      /\/$/,
+      ""
+    ) + "/";
+  const subject = "Cafe Cursor Shanghai 20260719";
+  const html = generateUnclaimedReminderHTML({ claimUrl });
+  const cc = NOTIFY_CC_EMAIL;
+
+  const seen = new Set<string>();
+  const guests: string[] = [];
+  for (const raw of recipientEmails) {
+    const email = raw.trim().toLowerCase();
+    if (!email.includes("@") || seen.has(email)) continue;
+    if (email === cc) continue; // organizer already receives a visible copy
+    seen.add(email);
+    guests.push(email);
+  }
+
+  const resendClient = getResendClient();
+  if (!resendClient) {
+    console.log(
+      `📧 [EMAIL] Dev mode — simulating BCC blast to ${guests.length} (+ organizer ${cc})`
+    );
+    return {
+      sent: guests.length,
+      failed: 0,
+      batches: 0,
+      failures: [],
+      simulated: true,
+      cc,
+    };
+  }
+
+  // Keep BCC batches modest for deliverability / provider limits
+  const BCC_CHUNK = 40;
+  let sent = 0;
+  let failed = 0;
+  let batches = 0;
+  const failures: { email: string; error: string }[] = [];
+
+  const sendOne = async (bcc: string[] | undefined) => {
+    // Organizer gets a visible copy (To). Guests only in BCC — hidden from each other.
+    return resendClient.emails.send({
+      from: FROM_EMAIL,
+      to: [cc],
+      bcc: bcc && bcc.length > 0 ? bcc : undefined,
+      subject,
+      html,
+    });
+  };
+
+  if (guests.length === 0) {
+    try {
+      const { error } = await sendOne(undefined);
+      if (error) {
+        return {
+          sent: 0,
+          failed: 1,
+          batches: 0,
+          failures: [{ email: cc, error: error.message }],
+          simulated: false,
+          cc,
+        };
+      }
+      return {
+        sent: 0,
+        failed: 0,
+        batches: 1,
+        failures: [],
+        simulated: false,
+        cc,
+      };
+    } catch (err) {
+      return {
+        sent: 0,
+        failed: 1,
+        batches: 0,
+        failures: [
+          {
+            email: cc,
+            error: err instanceof Error ? err.message : "unknown",
+          },
+        ],
+        simulated: false,
+        cc,
+      };
+    }
+  }
+
+  for (let i = 0; i < guests.length; i += BCC_CHUNK) {
+    const bcc = guests.slice(i, i + BCC_CHUNK);
+    batches += 1;
+    try {
+      console.log(
+        `📧 [EMAIL] BCC blast ${i + 1}-${i + bcc.length}/${guests.length} cc=${cc}`
+      );
+      const { error } = await sendOne(bcc);
+      if (error) {
+        console.error(`❌ [EMAIL] BCC batch failed:`, error);
+        failed += bcc.length;
+        for (const email of bcc) {
+          failures.push({ email, error: error.message });
+        }
+      } else {
+        sent += bcc.length;
+      }
+    } catch (err) {
+      console.error(`❌ [EMAIL] BCC batch exception:`, err);
+      failed += bcc.length;
+      for (const email of bcc) {
+        failures.push({
+          email,
+          error: err instanceof Error ? err.message : "unknown",
+        });
+      }
+    }
+  }
+
+  return { sent, failed, batches, failures, simulated: false, cc };
+}
+
+/** @deprecated Prefer sendUnclaimedReminderBccBlast for privacy (BCC). */
 export async function sendUnclaimedReminderBatch(
   recipients: { to: string; name?: string }[]
 ): Promise<{
@@ -263,77 +413,15 @@ export async function sendUnclaimedReminderBatch(
   failures: { email: string; error: string }[];
   simulated: boolean;
 }> {
-  const claimUrl =
-    (process.env.NEXT_PUBLIC_SITE_URL || "https://cursor-cafe.aileena.xyz").replace(
-      /\/$/,
-      ""
-    ) + "/";
-  const subject = "Cafe Cursor Shanghai 20260719";
-
-  const resendClient = getResendClient();
-  if (!resendClient) {
-    console.log(
-      `📧 [EMAIL] Dev mode — simulating ${recipients.length} unclaimed reminders`
-    );
-    return {
-      sent: recipients.length,
-      failed: 0,
-      failures: [],
-      simulated: true,
-    };
-  }
-
-  let sent = 0;
-  let failed = 0;
-  const failures: { email: string; error: string }[] = [];
-  const CHUNK = 50;
-
-  for (let i = 0; i < recipients.length; i += CHUNK) {
-    const chunk = recipients.slice(i, i + CHUNK);
-    const payloads = chunk.map((r) => {
-      return {
-        from: FROM_EMAIL,
-        to: [r.to],
-        subject,
-        html: generateUnclaimedReminderHTML({
-          claimUrl,
-        }),
-      };
-    });
-
-    try {
-      console.log(
-        `📧 [EMAIL] Batch reminder ${i + 1}-${i + chunk.length} / ${recipients.length}`
-      );
-      const { error } = await resendClient.batch.send(payloads);
-      if (error) {
-        // Fall back to one-by-one for this chunk
-        console.error(`❌ [EMAIL] Batch failed, falling back:`, error);
-        for (const r of chunk) {
-          const one = await sendUnclaimedReminderEmail(r);
-          if (one.success) sent += 1;
-          else {
-            failed += 1;
-            failures.push({ email: r.to, error: one.error || "unknown" });
-          }
-        }
-      } else {
-        sent += chunk.length;
-      }
-    } catch (err) {
-      console.error(`❌ [EMAIL] Batch exception, falling back:`, err);
-      for (const r of chunk) {
-        const one = await sendUnclaimedReminderEmail(r);
-        if (one.success) sent += 1;
-        else {
-          failed += 1;
-          failures.push({ email: r.to, error: one.error || "unknown" });
-        }
-      }
-    }
-  }
-
-  return { sent, failed, failures, simulated: false };
+  const result = await sendUnclaimedReminderBccBlast(
+    recipients.map((r) => r.to)
+  );
+  return {
+    sent: result.sent,
+    failed: result.failed,
+    failures: result.failures,
+    simulated: result.simulated,
+  };
 }
 
 /**
