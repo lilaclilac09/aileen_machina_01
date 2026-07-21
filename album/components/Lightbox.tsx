@@ -143,7 +143,11 @@ export function Lightbox({
                 className="rounded bg-white/10 px-3 py-2 text-sm"
                 onClick={() => onPin(photo.id)}
               >
-                {photo.pinned ? "取消置顶" : "置顶到开头"}
+                {photo.pinMode === "none"
+                  ? "置顶开头"
+                  : photo.pinMode === "front"
+                    ? "置顶中心"
+                    : "取消置顶"}
               </button>
             )}
           </div>

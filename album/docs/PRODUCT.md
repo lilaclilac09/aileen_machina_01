@@ -52,29 +52,28 @@ flowchart LR
 
 | Feature | Spec |
 |---------|------|
-| Create album | Title + optional cover mood; no signup |
+| Create album | Title; no signup |
 | Capacity | **500 photos / album** |
 | TTL | **30 days** from `createdAt` |
 | Share | Short URL `/a/[slug]` + QR |
-| Upload | Multi-file, phone camera + gallery; HEIC→JPEG best-effort |
-| Gallery | Responsive grid; pinned first |
-| Lightbox | Swipe / keyboard; like + comment thread |
-| Like | Per-device fingerprint cookie (no account) |
-| Comment | Nickname + text (max 280) |
-| Pin | Admin toggles; pinned sort to start |
-| Multi-delete | Admin select mode → delete |
-| Admin | Cookie after entering secret on create or `/admin` unlock |
-| Expire | API rejects uploads after TTL; cron/docs for purge |
+| Upload | Multi-file; HEIC→JPEG best-effort |
+| Gallery | Masonry + **center pin hero** + front pins |
+| Lightbox | Swipe / keyboard; like + comment |
+| Like / Comment | visitor cookie + nickname |
+| Pin | Cycle none → front → center |
+| Multi-delete | Admin select mode |
+| Dual CDN | `STORAGE_DRIVER=dual` → R2 + 阿里云 OSS |
+| Expire | Uploads rejected after TTL |
 
-### Phase 2 (explicitly out of MVP)
+### Phase 2 (still out)
 
-- Paid extend (photos / days) like PicTomo tiers  
-- ZIP bulk download / print sheet  
-- Album password (view-only guests)  
-- Dual-CDN China origin (阿里云 OSS + 海外 R2) + geo DNS  
-- Real-time websocket refresh  
-- Share-reward capacity boost  
-- Host dashboard across many albums  
+- Paid extend (photos / days)
+- ZIP bulk download / print sheet
+- Album password
+- Real-time websocket refresh
+- Share-reward capacity boost
+- Host multi-album dashboard
+- China ICP / dedicated CN edge for HTML (optional)  
 
 ---
 
@@ -93,41 +92,49 @@ No global accounts in MVP. Admin secret is **not** recoverable if lost (shown on
 
 ```mermaid
 flowchart TB
-  subgraph edge [Edge]
+  subgraph clients [Clients]
     userCN[User_CN]
     userINTL[User_INTL]
   end
   subgraph app [Vercel_album_aileena_xyz]
     next[Nextjs_AppRouter]
     api[API_Routes]
+    geo[GeoCDN_Picker]
   end
   subgraph data [Data]
-    db[(Postgres_or_SQLite_dev)]
-    blob[ObjectStorage]
+    db[(Postgres_or_SQLite)]
+    r2[Cloudflare_R2_intl]
+    oss[Aliyun_OSS_CN]
   end
   userCN --> next
   userINTL --> next
   next --> api
   api --> db
-  api --> blob
-  blob -->|CDN_URLs| userCN
-  blob -->|CDN_URLs| userINTL
+  api -->|"STORAGE_DRIVER=dual"| r2
+  api -->|"STORAGE_DRIVER=dual"| oss
+  api --> geo
+  geo -->|"CN edge URLs"| userCN
+  geo -->|"intl edge URLs"| userINTL
 ```
 
-| Layer | MVP choice | Why |
-|-------|------------|-----|
-| App | Next.js 14 App Router (sibling to `cafe-cursor`) | Matches monorepo deploy |
-| Host | Vercel project root = `album/` → `album.aileena.xyz` | Same DNS pattern as cafe |
-| DB | Prisma; **SQLite local**, **Postgres prod** | Cafe-cursor pattern; zero-friction verify |
-| Files | Storage adapter: `local` \| `vercel-blob` \| `r2` | Swap without rewriting UI |
-| CDN | Blob/R2 public URLs (+ later dual OSS) | Fast intl now; CN Phase 2 |
-| Auth | HMAC-ish admin cookie per album | No account system |
+| Layer | Choice | Notes |
+|-------|--------|-------|
+| App | Next.js 14 App Router in `album/` | Sibling to cafe-cursor |
+| Host | Vercel → `album.aileena.xyz` | DNSPod CNAME |
+| DB | Prisma SQLite local / Postgres prod | |
+| Files | `local` \| `blob` \| `r2` \| **`dual`** | dual = R2 + 阿里云 OSS |
+| CDN pick | `x-vercel-ip-country` / `cf-ipcountry` / `Accept-Language` / `x-gather-region` | CN → OSS URLs, else R2 |
 
-### CN + intl speed strategy
+### CN + intl speed (implemented)
 
-1. **MVP:** serve UI from Vercel; images from Blob/R2 with long-cache + WebP/JPEG thumbs (≤1600px long edge).  
-2. **Phase 2:** write originals to **R2 (intl) + 阿里云 OSS (CN)**; Cloudflare / DNSPod geo or path-based image host selection; optional China ICP if required for marketing domain.  
-3. Always serve **thumbnails first**; originals on lightbox demand.
+1. Upload with `STORAGE_DRIVER=dual` writes **full + thumb** to R2 and OSS in parallel.
+2. Album GET rewrites `url` / `thumbUrl` to the nearer edge.
+3. Override for debug: header `x-gather-region: cn|intl`.
+
+### Pin modes (implemented)
+
+Cycle: **none → front（开头）→ center（中心大图）→ none**.
+Center pins render in a featured hero band above the masonry grid.
 
 ---
 

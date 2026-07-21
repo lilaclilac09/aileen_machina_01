@@ -58,6 +58,8 @@ export async function POST(req: Request, { params }: Ctx) {
         thumbKey: stored.thumbKey,
         url: stored.url,
         thumbUrl: stored.thumbUrl,
+        urlCn: stored.urlCn,
+        thumbUrlCn: stored.thumbUrlCn,
         width: stored.width,
         height: stored.height,
         uploaderName: nickname,

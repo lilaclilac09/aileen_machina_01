@@ -21,6 +21,7 @@ export type AlbumMeta = {
   maxPhotos: number;
   url: string;
   isAdmin: boolean;
+  cdn?: "cn" | "intl";
 };
 
 export type PhotoItem = {
@@ -32,9 +33,11 @@ export type PhotoItem = {
   uploaderName: string;
   caption?: string;
   pinned: boolean;
+  pinMode: "none" | "front" | "center";
   likeCount: number;
   commentCount: number;
   createdAt: string;
+  cdn?: "cn" | "intl";
 };
 
 export function AlbumClient({ slug }: { slug: string }) {
@@ -64,7 +67,12 @@ export function AlbumClient({ slug }: { slug: string }) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Load failed");
     setAlbum(data.album);
-    setPhotos(data.photos);
+    setPhotos(
+      (data.photos as PhotoItem[]).map((p) => ({
+        ...p,
+        pinMode: p.pinMode || (p.pinned ? "front" : "none"),
+      }))
+    );
   }, [slug]);
 
   useEffect(() => {
@@ -180,6 +188,7 @@ export function AlbumClient({ slug }: { slug: string }) {
               {album.photoCount}/{album.maxPhotos} 张 · 剩余 {album.daysLeft} 天
               {album.expired ? " · 已过期" : ""}
               {album.isAdmin ? " · 管理员" : ""}
+              {album.cdn ? ` · CDN ${album.cdn}` : ""}
             </p>
           </div>
           <AlbumToolbar

@@ -42,14 +42,16 @@ export async function POST(req: Request, { params }: Ctx) {
     data: { deletedAt: now },
   });
 
+  const nextCount = Math.max(0, album.photoCount - photos.length);
   await prisma.album.update({
     where: { id: album.id },
-    data: { photoCount: { decrement: photos.length } },
+    data: { photoCount: nextCount },
   });
 
-  // Prefer blob URLs when deleting from Vercel Blob
-  const refs = photos.flatMap((p) => [p.url, p.thumbUrl, p.storageKey, p.thumbKey]);
-  await deleteStoredObjects(refs);
+  await deleteStoredObjects({
+    keys: photos.flatMap((p) => [p.storageKey, p.thumbKey]),
+    urls: photos.flatMap((p) => [p.url, p.thumbUrl, p.urlCn, p.thumbUrlCn].filter(Boolean)),
+  });
 
   return jsonOk({ deleted: photos.length });
 }

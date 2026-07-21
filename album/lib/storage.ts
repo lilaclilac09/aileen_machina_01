@@ -1,6 +1,8 @@
 import { mkdir, writeFile, unlink } from "fs/promises";
 import path from "path";
 import { put, del } from "@vercel/blob";
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import OSS from "ali-oss";
 import { FULL_MAX_EDGE, THUMB_MAX_EDGE } from "./constants";
 
 export type StoredObject = {
@@ -8,9 +10,22 @@ export type StoredObject = {
   url: string;
 };
 
-function driver(): "local" | "blob" | "r2" {
+export type DualStored = {
+  storageKey: string;
+  thumbKey: string;
+  url: string;
+  thumbUrl: string;
+  urlCn: string;
+  thumbUrlCn: string;
+  width: number;
+  height: number;
+};
+
+export type StorageDriver = "local" | "blob" | "r2" | "dual";
+
+export function storageDriver(): StorageDriver {
   const d = (process.env.STORAGE_DRIVER || "local").toLowerCase();
-  if (d === "blob" || d === "r2") return d;
+  if (d === "blob" || d === "r2" || d === "dual") return d;
   return "local";
 }
 
@@ -68,72 +83,191 @@ async function putBlob(key: string, data: Buffer, contentType: string): Promise<
   return { key, url: result.url };
 }
 
-/** Phase 2: wire @aws-sdk/client-s3 + dual-write 阿里云 OSS for CN edge. */
-async function putR2(_key: string, _data: Buffer, _contentType: string): Promise<StoredObject> {
-  throw new Error(
-    "STORAGE_DRIVER=r2 is Phase 2. Use local (dev) or blob (Vercel) for MVP."
-  );
+function r2Client(): S3Client {
+  const accountId = process.env.R2_ACCOUNT_ID;
+  const accessKeyId = process.env.R2_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
+  if (!accountId || !accessKeyId || !secretAccessKey) {
+    throw new Error("R2 credentials missing (R2_ACCOUNT_ID / ACCESS_KEY / SECRET)");
+  }
+  return new S3Client({
+    region: "auto",
+    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+    credentials: { accessKeyId, secretAccessKey },
+  });
 }
 
-export async function storePhoto(
-  albumId: string,
-  fileId: string,
-  buffer: Buffer
-): Promise<{
-  storageKey: string;
-  thumbKey: string;
-  url: string;
-  thumbUrl: string;
-  width: number;
-  height: number;
-}> {
+async function putR2(key: string, data: Buffer, contentType: string): Promise<StoredObject> {
+  const bucket = process.env.R2_BUCKET;
+  const publicBase = process.env.R2_PUBLIC_BASE_URL;
+  if (!bucket || !publicBase) throw new Error("R2_BUCKET / R2_PUBLIC_BASE_URL missing");
+
+  await r2Client().send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: data,
+      ContentType: contentType,
+      CacheControl: "public, max-age=31536000, immutable",
+    })
+  );
+
+  return { key, url: `${publicBase.replace(/\/$/, "")}/${key}` };
+}
+
+function ossClient(): OSS {
+  const region = process.env.OSS_REGION;
+  const accessKeyId = process.env.OSS_ACCESS_KEY_ID;
+  const accessKeySecret = process.env.OSS_ACCESS_KEY_SECRET;
+  const bucket = process.env.OSS_BUCKET;
+  if (!region || !accessKeyId || !accessKeySecret || !bucket) {
+    throw new Error("OSS credentials missing (OSS_REGION / KEY / SECRET / BUCKET)");
+  }
+  return new OSS({
+    region,
+    accessKeyId,
+    accessKeySecret,
+    bucket,
+    secure: true,
+    timeout: 60_000,
+  });
+}
+
+async function putOss(key: string, data: Buffer, contentType: string): Promise<StoredObject> {
+  const publicBase = process.env.OSS_PUBLIC_BASE_URL;
+  if (!publicBase) throw new Error("OSS_PUBLIC_BASE_URL missing");
+
+  await ossClient().put(key, data, {
+    headers: {
+      "Content-Type": contentType,
+      "Cache-Control": "public, max-age=31536000, immutable",
+    },
+  });
+
+  return { key, url: `${publicBase.replace(/\/$/, "")}/${key}` };
+}
+
+async function deleteR2(key: string): Promise<void> {
+  const bucket = process.env.R2_BUCKET;
+  if (!bucket) return;
+  await r2Client()
+    .send(new DeleteObjectCommand({ Bucket: bucket, Key: key }))
+    .catch(() => undefined);
+}
+
+async function deleteOss(key: string): Promise<void> {
+  await ossClient()
+    .delete(key)
+    .catch(() => undefined);
+}
+
+export async function storePhoto(albumId: string, fileId: string, buffer: Buffer): Promise<DualStored> {
   const processed = await processImage(buffer);
   const storageKey = `${albumId}/${fileId}.jpg`;
   const thumbKey = `${albumId}/${fileId}_t.jpg`;
-  const d = driver();
+  const d = storageDriver();
 
-  let fullObj: StoredObject;
-  let thumbObj: StoredObject;
-
-  if (d === "blob") {
-    fullObj = await putBlob(storageKey, processed.full, processed.contentType);
-    thumbObj = await putBlob(thumbKey, processed.thumb, processed.contentType);
-  } else if (d === "r2") {
-    fullObj = await putR2(storageKey, processed.full, processed.contentType);
-    thumbObj = await putR2(thumbKey, processed.thumb, processed.contentType);
-  } else {
-    fullObj = await putLocal(storageKey, processed.full);
-    thumbObj = await putLocal(thumbKey, processed.thumb);
+  if (d === "dual") {
+    // Write intl (R2) + CN (OSS) in parallel for both full + thumb
+    const [fullIntl, thumbIntl, fullCn, thumbCn] = await Promise.all([
+      putR2(storageKey, processed.full, processed.contentType),
+      putR2(thumbKey, processed.thumb, processed.contentType),
+      putOss(storageKey, processed.full, processed.contentType),
+      putOss(thumbKey, processed.thumb, processed.contentType),
+    ]);
+    return {
+      storageKey,
+      thumbKey,
+      url: fullIntl.url,
+      thumbUrl: thumbIntl.url,
+      urlCn: fullCn.url,
+      thumbUrlCn: thumbCn.url,
+      width: processed.width,
+      height: processed.height,
+    };
   }
 
+  if (d === "r2") {
+    const [fullObj, thumbObj] = await Promise.all([
+      putR2(storageKey, processed.full, processed.contentType),
+      putR2(thumbKey, processed.thumb, processed.contentType),
+    ]);
+    return {
+      storageKey,
+      thumbKey,
+      url: fullObj.url,
+      thumbUrl: thumbObj.url,
+      urlCn: "",
+      thumbUrlCn: "",
+      width: processed.width,
+      height: processed.height,
+    };
+  }
+
+  if (d === "blob") {
+    const [fullObj, thumbObj] = await Promise.all([
+      putBlob(storageKey, processed.full, processed.contentType),
+      putBlob(thumbKey, processed.thumb, processed.contentType),
+    ]);
+    return {
+      storageKey,
+      thumbKey,
+      url: fullObj.url,
+      thumbUrl: thumbObj.url,
+      urlCn: "",
+      thumbUrlCn: "",
+      width: processed.width,
+      height: processed.height,
+    };
+  }
+
+  const [fullObj, thumbObj] = await Promise.all([
+    putLocal(storageKey, processed.full),
+    putLocal(thumbKey, processed.thumb),
+  ]);
   return {
     storageKey,
     thumbKey,
     url: fullObj.url,
     thumbUrl: thumbObj.url,
+    urlCn: "",
+    thumbUrlCn: "",
     width: processed.width,
     height: processed.height,
   };
 }
 
-export async function deleteStoredObjects(urlsOrKeys: string[]): Promise<void> {
-  const d = driver();
-  await Promise.all(
-    urlsOrKeys.map(async (ref) => {
-      try {
-        if (d === "local") {
-          const key = ref.includes("/api/files/")
-            ? ref.split("/api/files/")[1]
-            : ref;
-          const abs = path.join(process.cwd(), "data", "uploads", key);
-          await unlink(abs).catch(() => undefined);
-        } else if (d === "blob") {
-          await del(ref).catch(() => undefined);
-        }
-        // R2 hard-delete: Phase 2
-      } catch {
-        /* ignore */
-      }
-    })
-  );
+export async function deleteStoredObjects(refs: {
+  keys: string[];
+  urls: string[];
+}): Promise<void> {
+  const d = storageDriver();
+  const { keys, urls } = refs;
+
+  if (d === "local") {
+    await Promise.all(
+      keys.map(async (key) => {
+        const abs = path.join(process.cwd(), "data", "uploads", key);
+        await unlink(abs).catch(() => undefined);
+      })
+    );
+    return;
+  }
+
+  if (d === "blob") {
+    await Promise.all(urls.map((u) => del(u).catch(() => undefined)));
+    return;
+  }
+
+  if (d === "r2") {
+    await Promise.all(keys.map((k) => deleteR2(k)));
+    return;
+  }
+
+  if (d === "dual") {
+    await Promise.all([
+      ...keys.map((k) => deleteR2(k)),
+      ...keys.map((k) => deleteOss(k)),
+    ]);
+  }
 }
