@@ -22,11 +22,17 @@ model EligibleUser {
   approvalStatus String    @default("approved")
   createdAt      DateTime  @default(now())
 
+  /// Door volunteers may claim more than one credit
+  isVolunteer Boolean @default(false)
+
   hasClaimed Boolean   @default(false)
   claimedAt  DateTime?
 
-  credit   Credit? @relation(fields: [creditId], references: [id])
+  /// Latest assigned credit (convenience for UI / re-show)
+  credit   Credit? @relation("LatestCredit", fields: [creditId], references: [id])
   creditId String? @unique
+
+  ownedCredits Credit[] @relation("OwnedCredits")
 }
 
 // Cursor referral credits
@@ -40,5 +46,9 @@ model Credit {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
-  assignedTo EligibleUser?
+  latestFor EligibleUser? @relation("LatestCredit")
+
+  /// All credits this user has ever been assigned (supports volunteer multi-claim)
+  ownerId String?
+  owner   EligibleUser? @relation("OwnedCredits", fields: [ownerId], references: [id])
 }

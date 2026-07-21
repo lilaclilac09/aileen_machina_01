@@ -19,8 +19,10 @@ interface EligibleUser {
   name: string;
   company: string | null;
   approvalStatus: string;
+  isVolunteer: boolean;
   hasClaimed: boolean;
   claimedAt: string | null;
+  claimCount: number;
   credit: Credit | null;
 }
 
@@ -128,6 +130,24 @@ export default function AdminDashboard() {
     if (!confirm(msg)) return;
     if (!confirm(`Final confirm: permanently delete ${email}?`)) return;
     await executeAction("DELETE_ELIGIBLE_USER", { userId });
+  };
+
+  const handleToggleVolunteer = async (
+    userId: string,
+    email: string,
+    isVolunteer: boolean
+  ) => {
+    const next = !isVolunteer;
+    if (
+      !confirm(
+        next
+          ? `Mark ${email} as volunteer?\n\nVolunteers can claim multiple credits (up to VOLUNTEER_MAX_CLAIMS, default 10).`
+          : `Unmark ${email} as volunteer?\n\nThey will be limited to 1 credit.`
+      )
+    ) {
+      return;
+    }
+    await executeAction("TOGGLE_VOLUNTEER", { userId, isVolunteer: next });
   };
 
   const handleSendEmail = async (userId: string, email: string) => {
@@ -449,7 +469,16 @@ export default function AdminDashboard() {
               <tbody className="divide-y divide-gray-800">
                 {filteredUsers?.map((user) => (
                   <tr key={user.id} className="hover:bg-gray-900/50">
-                    <td className="px-4 py-3 font-mono text-xs">{user.email}</td>
+                    <td className="px-4 py-3 font-mono text-xs">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span>{user.email}</span>
+                        {user.isVolunteer && (
+                          <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-emerald-300">
+                            Volunteer
+                          </span>
+                        )}
+                      </div>
+                    </td>
                     <td className="px-4 py-3 text-gray-400">{user.company || "-"}</td>
                     <td className="px-4 py-3">
                       <StatusBadge status={user.approvalStatus} />
@@ -458,6 +487,7 @@ export default function AdminDashboard() {
                       {user.hasClaimed ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-green-500/20 px-2 py-1 text-xs text-green-400">
                           ✓ {user.credit?.code}
+                          {user.claimCount > 1 ? ` ×${user.claimCount}` : ""}
                           {user.credit?.isTest && " (TEST)"}
                         </span>
                       ) : (
@@ -465,8 +495,9 @@ export default function AdminDashboard() {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex gap-2">
-                        {!user.hasClaimed && user.approvalStatus === "approved" && (
+                      <div className="flex flex-wrap gap-2">
+                        {(!user.hasClaimed || user.isVolunteer) &&
+                          user.approvalStatus === "approved" && (
                           <>
                             <button
                               onClick={() => handleAssignCredit(user.email, false)}
@@ -503,6 +534,24 @@ export default function AdminDashboard() {
                             </button>
                           </>
                         )}
+                        <button
+                          onClick={() =>
+                            handleToggleVolunteer(
+                              user.id,
+                              user.email,
+                              user.isVolunteer
+                            )
+                          }
+                          disabled={actionLoading}
+                          className={`rounded px-2 py-1 text-xs disabled:opacity-50 ${
+                            user.isVolunteer
+                              ? "bg-emerald-800 text-emerald-100 hover:bg-emerald-700"
+                              : "bg-emerald-600 hover:bg-emerald-700"
+                          }`}
+                          title="Volunteers can claim multiple credits"
+                        >
+                          {user.isVolunteer ? "Unmark volunteer" : "Volunteer"}
+                        </button>
                         <button
                           onClick={() =>
                             handleDeleteUser(user.id, user.email, user.hasClaimed)

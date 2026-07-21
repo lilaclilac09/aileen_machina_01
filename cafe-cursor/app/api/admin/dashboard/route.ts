@@ -45,14 +45,23 @@ export async function GET(request: NextRequest) {
 
     const eligibleUsers = await prisma.eligibleUser.findMany({
       orderBy: [
+        { isVolunteer: "desc" },
         { hasClaimed: "desc" },
         { claimedAt: "desc" },
         { createdAt: "desc" },
       ],
       include: {
         credit: true,
+        ownedCredits: {
+          select: { id: true, code: true, isUsed: true },
+        },
       },
     });
+
+    const usersWithClaims = eligibleUsers.map((u) => ({
+      ...u,
+      claimCount: u.ownedCredits.length || (u.hasClaimed ? 1 : 0),
+    }));
 
     return NextResponse.json({
       stats: {
@@ -67,7 +76,7 @@ export async function GET(request: NextRequest) {
         pendingUsers: approvedUsers - claimedUsers,
       },
       credits,
-      eligibleUsers,
+      eligibleUsers: usersWithClaims,
     });
   } catch (error) {
     console.error("[ADMIN] Dashboard error:", error);
