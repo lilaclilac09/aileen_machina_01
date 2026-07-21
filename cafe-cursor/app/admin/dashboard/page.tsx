@@ -229,14 +229,30 @@ export default function AdminDashboard() {
     );
   };
 
+  const handleNotifyUnclaimedTest = async () => {
+    if (
+      !confirm(
+        `Send TEST email only to you?\n\n` +
+          `To: rosazxc0915@gmail.com\n` +
+          `Subject: [TEST] Cafe Cursor Shanghai 20260719\n` +
+          `No guests will be emailed.\n\n` +
+          `OK to send test?`
+      )
+    ) {
+      return;
+    }
+    await executeAction("NOTIFY_UNCLAIMED_TEST", {});
+  };
+
   const handleNotifyUnclaimed = async () => {
     const n = data?.stats.pendingUsers ?? 0;
     if (
       !confirm(
         `Notify all unclaimed via BCC?\n\n` +
           `Will BCC ~${n} guests (they cannot see each other).\n` +
-          `CC: rosazxc0915@gmail.com\n` +
+          `Your copy (To): rosazxc0915@gmail.com\n` +
           `Subject: Cafe Cursor Shanghai 20260719\n\n` +
+          `Send the TEST to yourself first if you have not.\n\n` +
           `Requires RESEND_API_KEY on Vercel.\n\n` +
           `OK to send now?`
       )
@@ -245,7 +261,7 @@ export default function AdminDashboard() {
     }
     if (
       !confirm(
-        `Final confirm: send reminder to ~${n} people now?\n\nThis cannot be undone.`
+        `Final confirm: BCC reminder to ~${n} people now?\n\nThis cannot be undone.`
       )
     ) {
       return;
@@ -511,10 +527,18 @@ export default function AdminDashboard() {
                 : ""}
             </button>
             <button
+              onClick={handleNotifyUnclaimedTest}
+              disabled={actionLoading || !data}
+              className="rounded-lg border border-sky-600/50 bg-sky-500/10 px-3 py-2 text-sm text-sky-100 hover:bg-sky-500/20 disabled:opacity-50"
+              title="Send one test email only to rosazxc0915@gmail.com"
+            >
+              Send test to me
+            </button>
+            <button
               onClick={handleNotifyUnclaimed}
               disabled={actionLoading || !data || !data.stats.pendingUsers}
               className="rounded-lg border border-amber-600/50 bg-amber-500/10 px-3 py-2 text-sm text-amber-100 hover:bg-amber-500/20 disabled:opacity-50"
-              title="One-click email reminder to all unclaimed guests (Resend)"
+              title="BCC all unclaimed guests; organizer copy to rosazxc0915@gmail.com"
             >
               Notify unclaimed
             </button>
