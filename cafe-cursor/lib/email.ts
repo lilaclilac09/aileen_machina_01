@@ -461,84 +461,56 @@ export async function sendUnclaimedReminderBccBlast(
   }
 
   const CHUNK = 40;
+  let abortRemaining: string | null = null;
+
   for (let i = 0; i < guests.length; i += CHUNK) {
+    if (abortRemaining) break;
     const chunk = guests.slice(i, i + CHUNK);
     batches += 1;
-    const payloads = chunk.map((email) => ({
-      from,
-      to: [email],
-      replyTo: NOTIFY_REPLY_TO,
-      subject,
-      html,
-    }));
 
-    try {
-      console.log(
-        `📧 [EMAIL] Individual batch ${i + 1}-${i + chunk.length}/${guests.length} from=${from}`
-      );
-      const { error } = await resendClient.batch.send(payloads);
-      if (error) {
-        console.error(`❌ [EMAIL] Batch failed, falling back one-by-one:`, error);
-        // Fall back one-by-one so we can report which From Resend sees
-        for (const email of chunk) {
-          try {
-            const one = await resendClient.emails.send({
-              from,
-              to: [email],
-              replyTo: NOTIFY_REPLY_TO,
-              subject,
-              html,
-            });
-            if (one.error) {
-              failed += 1;
-              failures.push({
-                email,
-                error: `${one.error.message} (From: ${from})`,
-              });
-              // Same config error for all — stop early
-              if (/only send testing emails/i.test(one.error.message)) {
-                for (const rest of chunk.slice(chunk.indexOf(email) + 1)) {
-                  failed += 1;
-                  failures.push({
-                    email: rest,
-                    error: `${one.error.message} (From: ${from})`,
-                  });
-                }
-                // Mark remaining guests as failed without sending
-                const restAll = guests.slice(i + chunk.indexOf(email) + 1);
-                // already handled rest of chunk; skip remaining chunks
-                for (const rest of guests.slice(i + CHUNK)) {
-                  failed += 1;
-                  failures.push({
-                    email: rest,
-                    error: `Aborted — From is still testing-only (${from}). Set FROM_EMAIL=Cafe Cursor Shanghai <cafe@aileena.xyz> on Vercel o6o4 and Redeploy.`,
-                  });
-                }
-                return { sent, failed, batches, failures, simulated: false, cc, from };
-              }
-            } else {
-              sent += 1;
-            }
-          } catch (err) {
-            failed += 1;
-            failures.push({
-              email,
-              error: `${err instanceof Error ? err.message : "unknown"} (From: ${from})`,
-            });
+    // Prefer one-by-one so From misconfig surfaces on the first guest
+    for (const email of chunk) {
+      try {
+        const one = await resendClient.emails.send({
+          from,
+          to: [email],
+          replyTo: NOTIFY_REPLY_TO,
+          subject,
+          html,
+        });
+        if (one.error) {
+          failed += 1;
+          const msg = `${one.error.message} (From: ${from})`;
+          failures.push({ email, error: msg });
+          if (/only send testing emails|verify a domain/i.test(one.error.message)) {
+            abortRemaining =
+              `From is still testing-only (${from}). ` +
+              `On Vercel o6o4 set FROM_EMAIL=Cafe Cursor Shanghai <cafe@aileena.xyz> ` +
+              `(must match Resend verified domain), Redeploy, then retry. ` +
+              `Test-to-yourself can succeed even when guest send is blocked.`;
+            break;
           }
+        } else {
+          sent += 1;
         }
-      } else {
-        sent += chunk.length;
-      }
-    } catch (err) {
-      console.error(`❌ [EMAIL] Batch exception:`, err);
-      for (const email of chunk) {
+      } catch (err) {
         failed += 1;
         failures.push({
           email,
           error: `${err instanceof Error ? err.message : "unknown"} (From: ${from})`,
         });
       }
+      // light pacing
+      await new Promise((r) => setTimeout(r, 50));
+    }
+  }
+
+  if (abortRemaining) {
+    const already = new Set(failures.map((f) => f.email));
+    for (const email of guests) {
+      if (already.has(email)) continue;
+      failed += 1;
+      failures.push({ email, error: abortRemaining });
     }
   }
 

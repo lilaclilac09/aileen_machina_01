@@ -248,12 +248,12 @@ export default function AdminDashboard() {
     const n = data?.stats.pendingUsers ?? 0;
     if (
       !confirm(
-        `Notify all unclaimed via BCC?\n\n` +
-          `Will BCC ~${n} guests (they cannot see each other).\n` +
-          `Your copy (To): rosazxc0915@gmail.com\n` +
+        `Notify all unclaimed?\n\n` +
+          `Will email ~${n} guests privately (1 email each — they cannot see each other).\n` +
+          `Your copy: rosazxc0915@gmail.com\n` +
           `Subject: Cafe Cursor Shanghai 20260719\n\n` +
-          `Send the TEST to yourself first if you have not.\n\n` +
-          `Requires RESEND_API_KEY on Vercel.\n\n` +
+          `NOTE: Test-to-yourself can work even when guest send is blocked.\n` +
+          `From must be cafe@aileena.xyz (not @resend.dev).\n\n` +
           `OK to send now?`
       )
     ) {
