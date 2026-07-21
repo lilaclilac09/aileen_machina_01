@@ -150,6 +150,73 @@ export default function AdminDashboard() {
     await executeAction("TOGGLE_VOLUNTEER", { userId, isVolunteer: next });
   };
 
+  const handleDownloadUnclaimedEmails = () => {
+    const rows = (data?.eligibleUsers || [])
+      .filter(
+        (u) =>
+          !u.hasClaimed &&
+          u.approvalStatus === "approved" &&
+          u.email.includes("@")
+      )
+      .slice()
+      .sort((a, b) => a.email.localeCompare(b.email));
+
+    if (rows.length === 0) {
+      alert("No unclaimed approved emails to download.");
+      return;
+    }
+
+    // Deduplicate by email (keep first)
+    const seen = new Set<string>();
+    const unique = rows.filter((u) => {
+      const key = u.email.trim().toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    const emails = unique.map((u) => u.email.trim().toLowerCase());
+    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+
+    const csv =
+      "email,name,company,status\n" +
+      unique
+        .map((u) => {
+          const email = u.email.trim().toLowerCase();
+          const name = JSON.stringify(u.name || "");
+          const company = JSON.stringify(u.company || "");
+          return `${email},${name},${company},unclaimed`;
+        })
+        .join("\n") +
+      "\n";
+
+    const download = (filename: string, content: string, type: string) => {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    download(
+      `unclaimed-emails-${stamp}.csv`,
+      csv,
+      "text/csv;charset=utf-8"
+    );
+    download(
+      `unclaimed-emails-bcc-${stamp}.txt`,
+      emails.join(", ") + "\n",
+      "text/plain;charset=utf-8"
+    );
+    alert(
+      `Downloaded ${emails.length} unclaimed emails (CSV + BCC list).\n\n` +
+        `Stats: pending≈${data?.stats.pendingUsers ?? "?"}, claimed=${data?.stats.claimedUsers ?? "?"}.\n\n` +
+        `Paste BCC list into Apple Mail / Gmail in batches of ~30–40.`
+    );
+  };
+
   const handleSendEmail = async (userId: string, email: string) => {
     const locale = confirm(
       `Email language?\n\nOK = Chinese\nCancel = English`
@@ -407,6 +474,8 @@ export default function AdminDashboard() {
                 else if (v === "clear-list") handleClearGuestList();
                 else if (v === "import-luma") handleImportLumaCsvClick();
                 else if (v === "sync-luma-api") handleSyncLumaApi();
+                else if (v === "download-unclaimed")
+                  handleDownloadUnclaimedEmails();
               }}
               className="rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-sm focus:border-white focus:outline-none disabled:opacity-50"
             >
@@ -415,6 +484,12 @@ export default function AdminDashboard() {
               </option>
               <option value="add-user">+ User</option>
               <option value="add-credit">+ Credit</option>
+              <option value="download-unclaimed">
+                Download unclaimed emails
+                {data?.stats.pendingUsers != null
+                  ? ` (${data.stats.pendingUsers})`
+                  : ""}
+              </option>
               <option value="sync-sheet">Clear + Sync Sheet</option>
               <option value="sync-checked-in">Clear + Sync Checked-in</option>
               <option value="clear-list">Clear list</option>
