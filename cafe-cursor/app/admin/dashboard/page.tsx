@@ -141,7 +141,7 @@ export default function AdminDashboard() {
     if (
       !confirm(
         next
-          ? `Mark ${email} as volunteer?\n\nVolunteers can claim multiple credits (up to VOLUNTEER_MAX_CLAIMS, default 10).`
+          ? `Mark ${email} as volunteer?\n\nVolunteers can claim multiple credits (up to VOLUNTEER_MAX_CLAIMS, default 6).`
           : `Unmark ${email} as volunteer?\n\nThey will be limited to 1 credit.`
       )
     ) {
