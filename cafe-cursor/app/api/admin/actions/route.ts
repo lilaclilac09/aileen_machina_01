@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isAuthenticated } from "@/lib/auth";
-import { sendCreditEmail } from "@/lib/email";
+import { sendCreditEmail, sendUnclaimedReminderBatch } from "@/lib/email";
 import {
   getCreditsSheetCsvUrl,
   syncCreditsFromSheet,
@@ -10,6 +10,9 @@ import { displayNameFromEmail } from "@/lib/validations";
 import { syncCheckedInFromLuma, isLumaConfigured } from "@/lib/luma";
 import { importLumaGuestsFromCsv, clearUnclaimedGuestList } from "@/lib/luma-csv";
 import { getVolunteerMaxClaims } from "@/lib/claims";
+
+/** Allow bulk notify on Vercel (Resend batch). */
+export const maxDuration = 60;
 
 /**
  * POST /api/admin/actions — run admin actions
@@ -574,6 +577,62 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           message: `Email sent to ${user.email}`,
+        });
+      }
+
+      case "NOTIFY_UNCLAIMED": {
+        const users = await prisma.eligibleUser.findMany({
+          where: {
+            approvalStatus: "approved",
+            hasClaimed: false,
+          },
+          orderBy: { email: "asc" },
+          select: { id: true, email: true, name: true },
+        });
+
+        // Deduplicate by email
+        const seen = new Set<string>();
+        const unique = users.filter((u) => {
+          const key = u.email.trim().toLowerCase();
+          if (!key.includes("@") || seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+
+        if (unique.length === 0) {
+          return NextResponse.json({
+            success: true,
+            message: "No unclaimed approved users to notify.",
+            sent: 0,
+            failed: 0,
+            total: 0,
+          });
+        }
+
+        const result = await sendUnclaimedReminderBatch(
+          unique.map((u) => ({
+            to: u.email.trim().toLowerCase(),
+            name: u.name,
+          }))
+        );
+
+        console.log(
+          `[ADMIN] NOTIFY_UNCLAIMED: total=${unique.length} sent=${result.sent} failed=${result.failed} simulated=${result.simulated}`
+        );
+
+        const simNote = result.simulated
+          ? " (dev mode — RESEND_API_KEY not set, emails simulated)"
+          : "";
+
+        return NextResponse.json({
+          success: result.failed === 0,
+          message: `Notified ${result.sent}/${unique.length} unclaimed users${
+            result.failed ? ` (${result.failed} failed)` : ""
+          }.${simNote}`,
+          sent: result.sent,
+          failed: result.failed,
+          total: unique.length,
+          failures: result.failures.slice(0, 20),
         });
       }
 

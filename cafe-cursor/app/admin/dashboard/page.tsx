@@ -101,7 +101,19 @@ export default function AdminDashboard() {
       if (json.error) {
         alert(`Error: ${json.error}`);
       } else {
-        alert(json.message || "Action completed");
+        let msg = json.message || "Action completed";
+        if (Array.isArray(json.failures) && json.failures.length > 0) {
+          msg +=
+            "\n\nFailures:\n" +
+            json.failures
+              .slice(0, 10)
+              .map(
+                (f: { email: string; error: string }) =>
+                  `- ${f.email}: ${f.error}`
+              )
+              .join("\n");
+        }
+        alert(msg);
         fetchDashboard();
       }
     } catch (err) {
@@ -215,6 +227,29 @@ export default function AdminDashboard() {
         `Stats: pending≈${data?.stats.pendingUsers ?? "?"}, claimed=${data?.stats.claimedUsers ?? "?"}.\n\n` +
         `Paste BCC list into Apple Mail / Gmail in batches of ~30–40.`
     );
+  };
+
+  const handleNotifyUnclaimed = async () => {
+    const n = data?.stats.pendingUsers ?? 0;
+    if (
+      !confirm(
+        `一键通知未领取 / Notify all unclaimed?\n\n` +
+          `Will email ~${n} approved guests who have not claimed yet.\n` +
+          `Bilingual zh+en · claim link: cursor-cafe.aileena.xyz\n\n` +
+          `Requires RESEND_API_KEY on Vercel.\n\n` +
+          `OK to send now?`
+      )
+    ) {
+      return;
+    }
+    if (
+      !confirm(
+        `Final confirm: send reminder to ~${n} people now?\n\nThis cannot be undone.`
+      )
+    ) {
+      return;
+    }
+    await executeAction("NOTIFY_UNCLAIMED", {});
   };
 
   const handleSendEmail = async (userId: string, email: string) => {
@@ -473,6 +508,14 @@ export default function AdminDashboard() {
               {data?.stats.pendingUsers != null
                 ? ` (${data.stats.pendingUsers})`
                 : ""}
+            </button>
+            <button
+              onClick={handleNotifyUnclaimed}
+              disabled={actionLoading || !data || !data.stats.pendingUsers}
+              className="rounded-lg border border-amber-600/50 bg-amber-500/10 px-3 py-2 text-sm text-amber-100 hover:bg-amber-500/20 disabled:opacity-50"
+              title="One-click email reminder to all unclaimed guests (Resend)"
+            >
+              Notify unclaimed
             </button>
             <select
               disabled={actionLoading}
