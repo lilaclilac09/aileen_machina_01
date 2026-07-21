@@ -140,6 +140,58 @@ export async function POST(request: NextRequest) {
         });
       }
 
+      case "DELETE_ELIGIBLE_USER": {
+        const { userId } = data;
+
+        const user = await prisma.eligibleUser.findUnique({
+          where: { id: userId },
+        });
+
+        if (!user) {
+          return NextResponse.json(
+            { error: "User not found" },
+            { status: 404 }
+          );
+        }
+
+        const creditId = user.creditId;
+
+        await prisma.$transaction(async (tx) => {
+          // Detach + free credit if assigned, then delete user
+          if (creditId) {
+            await tx.eligibleUser.update({
+              where: { id: userId },
+              data: {
+                hasClaimed: false,
+                claimedAt: null,
+                creditId: null,
+              },
+            });
+            await tx.credit.update({
+              where: { id: creditId },
+              data: {
+                isUsed: false,
+                assignedAt: null,
+              },
+            });
+          }
+
+          await tx.eligibleUser.delete({ where: { id: userId } });
+        });
+
+        console.log(
+          `[ADMIN] User deleted: ${user.email} (releasedCredit=${Boolean(creditId)})`
+        );
+
+        return NextResponse.json({
+          success: true,
+          message: creditId
+            ? `Deleted ${user.email} and returned their credit to the pool.`
+            : `Deleted ${user.email}.`,
+          releasedCredit: Boolean(creditId),
+        });
+      }
+
       case "ADD_ELIGIBLE_USER": {
         const { email, name, company, approvalStatus } = data;
         const normalizedEmail = String(email || "")
