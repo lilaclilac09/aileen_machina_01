@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json(
             {
               error: eligibleUser.isVolunteer
-                ? `Volunteer already has ${ownedCount}/${maxClaims} credits`
+                ? `Special user already has ${ownedCount}/${maxClaims} credits`
                 : "User already has a credit assigned",
             },
             { status: 400 }
@@ -169,22 +169,22 @@ export async function POST(request: NextRequest) {
           data: {
             isVolunteer: next,
             role: next
-              ? "Volunteer"
-              : user.role === "Volunteer"
+              ? "Special"
+              : user.role === "Special" || user.role === "Volunteer"
                 ? "Attendee"
                 : user.role,
           },
         });
 
         console.log(
-          `[ADMIN] Volunteer ${next ? "ON" : "OFF"}: ${updated.email}`
+          `[ADMIN] Special user ${next ? "ON" : "OFF"}: ${updated.email}`
         );
 
         return NextResponse.json({
           success: true,
           message: next
-            ? `${updated.email} marked as volunteer (can claim up to ${getVolunteerMaxClaims()} credits).`
-            : `${updated.email} unmarked as volunteer (1 credit only).`,
+            ? `${updated.email} marked as 特殊用户 (can claim up to ${getVolunteerMaxClaims()} credits).`
+            : `${updated.email} unmarked as 特殊用户 (1 credit only).`,
           isVolunteer: next,
           maxClaims: next ? getVolunteerMaxClaims() : 1,
         });

@@ -1,5 +1,6 @@
 /**
- * Volunteer / claim-limit helpers for Cafe Cursor redeem.
+ * Special-user / claim-limit helpers for Cafe Cursor redeem.
+ * (DB field remains isVolunteer; UI label is 特殊用户.)
  */
 
 export function getVolunteerMaxClaims(): number {

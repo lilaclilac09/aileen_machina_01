@@ -141,8 +141,8 @@ export default function AdminDashboard() {
     if (
       !confirm(
         next
-          ? `Mark ${email} as volunteer?\n\nVolunteers can claim multiple credits (up to VOLUNTEER_MAX_CLAIMS, default 6).`
-          : `Unmark ${email} as volunteer?\n\nThey will be limited to 1 credit.`
+          ? `将 ${email} 标记为特殊用户？\n\n特殊用户同一邮箱最多可领 6 份 credits（VOLUNTEER_MAX_CLAIMS）。\n\nMark as special user? Up to 6 credits per email.`
+          : `取消 ${email} 的特殊用户标记？\n\n之后同一邮箱只能领 1 份。\n\nUnmark special user? Limit returns to 1 credit.`
       )
     ) {
       return;
@@ -473,8 +473,8 @@ export default function AdminDashboard() {
                       <div className="flex flex-wrap items-center gap-2">
                         <span>{user.email}</span>
                         {user.isVolunteer && (
-                          <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-emerald-300">
-                            Volunteer
+                          <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium tracking-wide text-emerald-300">
+                            特殊用户
                           </span>
                         )}
                       </div>
@@ -548,9 +548,9 @@ export default function AdminDashboard() {
                               ? "bg-emerald-800 text-emerald-100 hover:bg-emerald-700"
                               : "bg-emerald-600 hover:bg-emerald-700"
                           }`}
-                          title="Volunteers can claim multiple credits"
+                          title="特殊用户同一邮箱最多可领 6 份 credits"
                         >
-                          {user.isVolunteer ? "Unmark volunteer" : "Volunteer"}
+                          {user.isVolunteer ? "取消特殊" : "特殊用户"}
                         </button>
                         <button
                           onClick={() =>
