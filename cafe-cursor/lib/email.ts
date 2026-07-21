@@ -42,6 +42,15 @@ function getResendClient(): Resend | null {
 // Email del remitente (debe ser verificado en Resend)
 const FROM_EMAIL = process.env.FROM_EMAIL || "Cafe Cursor <onboarding@resend.dev>";
 
+/** Where replies go — organizer Gmail (Resend cannot send FROM @gmail.com). */
+export const NOTIFY_REPLY_TO = (
+  process.env.NOTIFY_REPLY_TO ||
+  process.env.NOTIFY_CC_EMAIL ||
+  "rosazxc0915@gmail.com"
+)
+  .trim()
+  .toLowerCase();
+
 interface SendCreditEmailParams {
   to: string;
   name: string;
@@ -149,6 +158,7 @@ export async function sendUnclaimedReminderEmail({
     const { error } = await resendClient.emails.send({
       from: FROM_EMAIL,
       to: [to],
+      replyTo: NOTIFY_REPLY_TO,
       subject,
       html,
     });
@@ -299,6 +309,7 @@ export async function sendUnclaimedReminderTestToOrganizer(): Promise<{
     const { error } = await resendClient.emails.send({
       from: FROM_EMAIL,
       to: [to],
+      replyTo: NOTIFY_REPLY_TO,
       subject: `[TEST] ${subject}`,
       html,
     });
@@ -368,9 +379,11 @@ export async function sendUnclaimedReminderBccBlast(
 
   const sendOne = async (bcc: string[] | undefined) => {
     // Organizer gets a visible copy (To). Guests only in BCC — hidden from each other.
+    // Reply-To is organizer Gmail (Resend cannot send FROM @gmail.com).
     return resendClient.emails.send({
       from: FROM_EMAIL,
       to: [cc],
+      replyTo: NOTIFY_REPLY_TO,
       bcc: bcc && bcc.length > 0 ? bcc : undefined,
       subject,
       html,
