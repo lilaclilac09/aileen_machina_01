@@ -145,7 +145,7 @@ export async function sendUnclaimedReminderEmail({
   }
 
   const subject =
-    "Cafe Cursor — 别忘了领取你的 Cursor credits / Don't forget to claim";
+    "Cafe Cursor Shanghai — 领取你的 $50 Cursor credits / Redeem your $50 credits";
 
   const html = generateUnclaimedReminderHTML({
     name: displayName,
@@ -181,6 +181,9 @@ function generateUnclaimedReminderHTML({
   name: string;
   claimUrl: string;
 }): string {
+  const siteOrigin = claimUrl.replace(/\/$/, "");
+  const qrImageUrl = `${siteOrigin}/redeem-qr.png`;
+
   return `
 <!DOCTYPE html>
 <html lang="zh">
@@ -206,15 +209,25 @@ function generateUnclaimedReminderHTML({
                 <tr>
                   <td style="padding:32px;">
                     <h2 style="margin:0 0 16px;font-size:18px;font-weight:600;color:#ffffff;">你好，${escapeHtml(name)}！</h2>
-                    <p style="margin:0 0 12px;font-size:14px;line-height:1.6;color:#a3a3a3;">
-                      你已在 Cafe Cursor Shanghai 的 checked-in 名单里，但还没有领取 Cursor credits。
+                    <p style="margin:0 0 16px;font-size:14px;line-height:1.7;color:#a3a3a3;">
+                      请成功参加线下活动的用户，扫描二维码或者点击链接获取价值 $50 的 credits，成功打开链接后请在 Cursor Balance 查看 credits，之后充值与使用时都可抵扣。
                     </p>
-                    <p style="margin:0 0 24px;font-size:14px;line-height:1.6;color:#a3a3a3;">
-                      You're on the checked-in list, but you haven't claimed your Cursor credits yet.
+                    <p style="margin:0 0 24px;font-size:14px;line-height:1.7;color:#a3a3a3;">
+                      Please scan the QR-code or click through the link to redeem your $50 credits. After opening the link, check credits in Cursor Balance — they apply to future top-ups and usage.
                     </p>
+
+                    <!-- QR code -->
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:24px;">
+                      <tr>
+                        <td align="center">
+                          <img src="${qrImageUrl}" width="220" height="220" alt="Cafe Cursor redeem QR" style="display:block;width:220px;height:220px;border:0;border-radius:12px;background:#ffffff;" />
+                        </td>
+                      </tr>
+                    </table>
+
                     <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                       <tr>
-                        <td align="center" style="padding-bottom:24px;">
+                        <td align="center" style="padding-bottom:16px;">
                           <a href="${claimUrl}" target="_blank" style="display:inline-block;background-color:#ffffff;color:#0a0a0a;font-size:14px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:12px;">
                             Claim / 领取 →
                           </a>
