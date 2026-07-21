@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isAuthenticated } from "@/lib/auth";
-import { sendCreditEmail, sendUnclaimedReminderBccBlast } from "@/lib/email";
+import { sendCreditEmail, sendUnclaimedReminderBccBlast, sendUnclaimedReminderTestToOrganizer } from "@/lib/email";
 import {
   getCreditsSheetCsvUrl,
   syncCreditsFromSheet,
@@ -577,6 +577,30 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           message: `Email sent to ${user.email}`,
+        });
+      }
+
+      case "NOTIFY_UNCLAIMED_TEST": {
+        const result = await sendUnclaimedReminderTestToOrganizer();
+        console.log(
+          `[ADMIN] NOTIFY_UNCLAIMED_TEST: to=${result.to} success=${result.success} simulated=${result.simulated}`
+        );
+        if (!result.success) {
+          return NextResponse.json(
+            {
+              error: `Test email failed: ${result.error || "unknown"}`,
+              to: result.to,
+            },
+            { status: 500 }
+          );
+        }
+        return NextResponse.json({
+          success: true,
+          message: result.simulated
+            ? `Test simulated to ${result.to} (RESEND_API_KEY not set).`
+            : `Test email sent to ${result.to} only. Subject starts with [TEST]. Check inbox/spam, then Notify unclaimed if OK.`,
+          to: result.to,
+          simulated: result.simulated,
         });
       }
 

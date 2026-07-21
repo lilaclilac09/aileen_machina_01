@@ -262,15 +262,62 @@ export const NOTIFY_CC_EMAIL = (
   .trim()
   .toLowerCase();
 
-function extractAddress(fromHeader: string): string {
-  const match = fromHeader.match(/<([^>]+)>/);
-  if (match?.[1]) return match[1].trim().toLowerCase();
-  return fromHeader.trim().toLowerCase();
+function getReminderSubject(): string {
+  return "Cafe Cursor Shanghai 20260719";
+}
+
+function getClaimUrl(): string {
+  return (
+    (process.env.NEXT_PUBLIC_SITE_URL || "https://cursor-cafe.aileena.xyz").replace(
+      /\/$/,
+      ""
+    ) + "/"
+  );
+}
+
+/**
+ * Send ONE test reminder only to the organizer (no guest BCC).
+ */
+export async function sendUnclaimedReminderTestToOrganizer(): Promise<{
+  success: boolean;
+  to: string;
+  simulated: boolean;
+  error?: string;
+}> {
+  const to = NOTIFY_CC_EMAIL;
+  const subject = getReminderSubject();
+  const html = generateUnclaimedReminderHTML({ claimUrl: getClaimUrl() });
+  const resendClient = getResendClient();
+
+  if (!resendClient) {
+    console.log(`📧 [EMAIL] Dev mode — test reminder simulated to ${to}`);
+    return { success: true, to, simulated: true };
+  }
+
+  try {
+    console.log(`📧 [EMAIL] Sending TEST reminder to organizer only: ${to}`);
+    const { error } = await resendClient.emails.send({
+      from: FROM_EMAIL,
+      to: [to],
+      subject: `[TEST] ${subject}`,
+      html,
+    });
+    if (error) {
+      console.error(`❌ [EMAIL] Test reminder failed:`, error);
+      return { success: false, to, simulated: false, error: error.message };
+    }
+    console.log(`✅ [EMAIL] Test reminder sent to: ${to}`);
+    return { success: true, to, simulated: false };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "unknown";
+    console.error(`❌ [EMAIL] Test reminder exception:`, err);
+    return { success: false, to, simulated: false, error: message };
+  }
 }
 
 /**
  * Send one reminder email with guests in BCC (hidden from each other)
- * and organizer on CC. Batches BCC lists to stay within provider limits.
+ * and organizer on To. Batches BCC lists to stay within provider limits.
  */
 export async function sendUnclaimedReminderBccBlast(
   recipientEmails: string[]
@@ -282,12 +329,8 @@ export async function sendUnclaimedReminderBccBlast(
   simulated: boolean;
   cc: string;
 }> {
-  const claimUrl =
-    (process.env.NEXT_PUBLIC_SITE_URL || "https://cursor-cafe.aileena.xyz").replace(
-      /\/$/,
-      ""
-    ) + "/";
-  const subject = "Cafe Cursor Shanghai 20260719";
+  const claimUrl = getClaimUrl();
+  const subject = getReminderSubject();
   const html = generateUnclaimedReminderHTML({ claimUrl });
   const cc = NOTIFY_CC_EMAIL;
 
