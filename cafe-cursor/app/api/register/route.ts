@@ -13,15 +13,12 @@ import {
 import { ensureCreditsSynced } from "@/lib/google-sheets";
 import { ensureLumaCheckedInUser, isLumaConfigured } from "@/lib/luma";
 import { ensureBundledLumaGuestsImported } from "@/lib/luma-csv";
+import { getVolunteerMaxClaims } from "@/lib/claims";
 
 /**
  * POST /api/register
- * IRL redeem: after check-in, attendee claims one Cursor credit.
- *
- * Modes (REDEEM_MODE):
- * - open: any unique email can claim once (requires EVENT_CHECKIN_CODE if set)
- * - allowlist: only pre-approved EligibleUser emails
- * - luma: only Luma checked-in emails (LUMA_API_KEY + LUMA_EVENT_ID); no event code
+ * IRL redeem: after check-in, attendee claims Cursor credit(s).
+ * Normal guests: 1 per email. Volunteers (isVolunteer): up to VOLUNTEER_MAX_CLAIMS.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -86,7 +83,7 @@ export async function POST(request: NextRequest) {
 
     let eligibleUser = await prisma.eligibleUser.findUnique({
       where: { email: normalizedEmail },
-      include: { credit: true },
+      include: { credit: true, ownedCredits: true },
     });
 
     if (!eligibleUser && redeemMode === "open") {
@@ -99,7 +96,7 @@ export async function POST(request: NextRequest) {
           approvalStatus: "approved",
           hasClaimed: false,
         },
-        include: { credit: true },
+        include: { credit: true, ownedCredits: true },
       });
       console.log(`➕ [REGISTER] Walk-up user created: ${normalizedEmail}`);
     }
@@ -133,14 +130,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (eligibleUser.hasClaimed && eligibleUser.credit) {
-      console.log(`⚠️ [REGISTER] Already claimed: ${normalizedEmail}`);
+    const ownedCount = eligibleUser.ownedCredits?.length
+      ? eligibleUser.ownedCredits.length
+      : eligibleUser.hasClaimed && eligibleUser.creditId
+        ? 1
+        : 0;
+    const maxClaims = eligibleUser.isVolunteer ? getVolunteerMaxClaims() : 1;
+    const canClaimMore = ownedCount < maxClaims;
+
+    // Non-volunteer (or volunteer at cap): re-show latest credit
+    if (eligibleUser.hasClaimed && eligibleUser.credit && !canClaimMore) {
+      console.log(
+        `⚠️ [REGISTER] Already at claim cap (${ownedCount}/${maxClaims}): ${normalizedEmail}`
+      );
       return NextResponse.json(
         {
           success: true,
-          message: "You already claimed your credit. Here it is again:",
+          message: eligibleUser.isVolunteer
+            ? "Volunteer claim limit reached. Here is your latest credit:"
+            : "You already claimed your credit. Here it is again:",
           credit: eligibleUser.credit.link,
           isExisting: true,
+          claimCount: ownedCount,
+          maxClaims,
           user: {
             name: eligibleUser.name,
             email: eligibleUser.email,
@@ -189,14 +201,16 @@ export async function POST(request: NextRequest) {
         data: {
           isUsed: true,
           assignedAt: new Date(),
+          ownerId: eligibleUser!.id,
         },
       });
 
       return updatedUser;
     });
 
+    const newClaimCount = ownedCount + 1;
     console.log(
-      `✅ [REGISTER] Assigned: ${normalizedEmail} -> ${availableCredit.code}`
+      `✅ [REGISTER] Assigned: ${normalizedEmail} -> ${availableCredit.code} (${newClaimCount}/${maxClaims}${eligibleUser.isVolunteer ? " volunteer" : ""})`
     );
 
     // Auto-email the credit link right after IRL redeem / check-in claim
@@ -220,9 +234,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        message: "Congratulations! Here is your Cursor credit:",
+        message: eligibleUser.isVolunteer
+          ? `Volunteer credit #${newClaimCount} assigned:`
+          : "Congratulations! Here is your Cursor credit:",
         credit: availableCredit.link,
         isTest: isTestUser,
+        claimCount: newClaimCount,
+        maxClaims,
+        isVolunteer: eligibleUser.isVolunteer,
         user: {
           name: result.name,
           email: result.email,

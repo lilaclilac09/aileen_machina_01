@@ -9,6 +9,7 @@ import {
 import { displayNameFromEmail } from "@/lib/validations";
 import { syncCheckedInFromLuma, isLumaConfigured } from "@/lib/luma";
 import { importLumaGuestsFromCsv, clearUnclaimedGuestList } from "@/lib/luma-csv";
+import { getVolunteerMaxClaims } from "@/lib/claims";
 
 /**
  * POST /api/admin/actions — run admin actions
@@ -34,6 +35,7 @@ export async function POST(request: NextRequest) {
 
         const eligibleUser = await prisma.eligibleUser.findUnique({
           where: { email },
+          include: { ownedCredits: true },
         });
 
         if (!eligibleUser) {
@@ -43,9 +45,15 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        if (eligibleUser.hasClaimed) {
+        const ownedCount = eligibleUser.ownedCredits.length;
+        const maxClaims = eligibleUser.isVolunteer ? getVolunteerMaxClaims() : 1;
+        if (ownedCount >= maxClaims) {
           return NextResponse.json(
-            { error: "User already has a credit assigned" },
+            {
+              error: eligibleUser.isVolunteer
+                ? `Volunteer already has ${ownedCount}/${maxClaims} credits`
+                : "User already has a credit assigned",
+            },
             { status: 400 }
           );
         }
@@ -79,6 +87,7 @@ export async function POST(request: NextRequest) {
             data: {
               isUsed: true,
               assignedAt: new Date(),
+              ownerId: eligibleUser.id,
             },
           }),
         ]);
@@ -87,7 +96,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
           success: true,
-          message: `Credit ${credit.code} assigned to ${email}`,
+          message: `Credit ${credit.code} assigned to ${email} (${ownedCount + 1}/${maxClaims})`,
           credit: credit.link,
         });
       }
@@ -128,6 +137,7 @@ export async function POST(request: NextRequest) {
             data: {
               isUsed: false,
               assignedAt: null,
+              ownerId: null,
             },
           }),
         ]);
@@ -140,11 +150,52 @@ export async function POST(request: NextRequest) {
         });
       }
 
+      case "TOGGLE_VOLUNTEER": {
+        const { userId, isVolunteer } = data;
+        const user = await prisma.eligibleUser.findUnique({
+          where: { id: userId },
+        });
+        if (!user) {
+          return NextResponse.json(
+            { error: "User not found" },
+            { status: 404 }
+          );
+        }
+
+        const next =
+          typeof isVolunteer === "boolean" ? isVolunteer : !user.isVolunteer;
+        const updated = await prisma.eligibleUser.update({
+          where: { id: userId },
+          data: {
+            isVolunteer: next,
+            role: next
+              ? "Volunteer"
+              : user.role === "Volunteer"
+                ? "Attendee"
+                : user.role,
+          },
+        });
+
+        console.log(
+          `[ADMIN] Volunteer ${next ? "ON" : "OFF"}: ${updated.email}`
+        );
+
+        return NextResponse.json({
+          success: true,
+          message: next
+            ? `${updated.email} marked as volunteer (can claim up to ${getVolunteerMaxClaims()} credits).`
+            : `${updated.email} unmarked as volunteer (1 credit only).`,
+          isVolunteer: next,
+          maxClaims: next ? getVolunteerMaxClaims() : 1,
+        });
+      }
+
       case "DELETE_ELIGIBLE_USER": {
         const { userId } = data;
 
         const user = await prisma.eligibleUser.findUnique({
           where: { id: userId },
+          include: { ownedCredits: true },
         });
 
         if (!user) {
@@ -154,24 +205,29 @@ export async function POST(request: NextRequest) {
           );
         }
 
+        const ownedIds = user.ownedCredits.map((c) => c.id);
         const creditId = user.creditId;
+        const releaseIds = Array.from(
+          new Set([...ownedIds, ...(creditId ? [creditId] : [])])
+        );
 
         await prisma.$transaction(async (tx) => {
-          // Detach + free credit if assigned, then delete user
-          if (creditId) {
-            await tx.eligibleUser.update({
-              where: { id: userId },
-              data: {
-                hasClaimed: false,
-                claimedAt: null,
-                creditId: null,
-              },
-            });
-            await tx.credit.update({
-              where: { id: creditId },
+          await tx.eligibleUser.update({
+            where: { id: userId },
+            data: {
+              hasClaimed: false,
+              claimedAt: null,
+              creditId: null,
+            },
+          });
+
+          if (releaseIds.length > 0) {
+            await tx.credit.updateMany({
+              where: { id: { in: releaseIds } },
               data: {
                 isUsed: false,
                 assignedAt: null,
+                ownerId: null,
               },
             });
           }
@@ -180,15 +236,16 @@ export async function POST(request: NextRequest) {
         });
 
         console.log(
-          `[ADMIN] User deleted: ${user.email} (releasedCredit=${Boolean(creditId)})`
+          `[ADMIN] User deleted: ${user.email} (releasedCredits=${releaseIds.length})`
         );
 
         return NextResponse.json({
           success: true,
-          message: creditId
-            ? `Deleted ${user.email} and returned their credit to the pool.`
-            : `Deleted ${user.email}.`,
-          releasedCredit: Boolean(creditId),
+          message:
+            releaseIds.length > 0
+              ? `Deleted ${user.email} and returned ${releaseIds.length} credit(s) to the pool.`
+              : `Deleted ${user.email}.`,
+          releasedCredits: releaseIds.length,
         });
       }
 
