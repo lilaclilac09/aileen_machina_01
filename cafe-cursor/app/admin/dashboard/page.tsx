@@ -235,7 +235,7 @@ export default function AdminDashboard() {
       !confirm(
         `Notify all unclaimed?\n\n` +
           `Will email ~${n} approved guests who have not claimed yet.\n` +
-          `Bilingual zh+en · claim link: cursor-cafe.aileena.xyz\n\n` +
+          `Template: Cafe Cursor Shanghai 20260719\n` +
           `Requires RESEND_API_KEY on Vercel.\n\n` +
           `OK to send now?`
       )

@@ -144,8 +144,7 @@ export async function sendUnclaimedReminderEmail({
     return { success: true };
   }
 
-  const subject =
-    "Cafe Cursor Shanghai — 领取你的 $50 Cursor credits / Redeem your $50 credits";
+  const subject = "Cafe Cursor Shanghai 20260719";
 
   const html = generateUnclaimedReminderHTML({
     name: displayName,
@@ -210,10 +209,10 @@ function generateUnclaimedReminderHTML({
                   <td style="padding:32px;">
                     <h2 style="margin:0 0 16px;font-size:18px;font-weight:600;color:#ffffff;">你好，${escapeHtml(name)}！</h2>
                     <p style="margin:0 0 16px;font-size:14px;line-height:1.7;color:#a3a3a3;">
-                      请成功参加线下活动的用户，扫描二维码或者点击链接获取价值 $50 的 credits，成功打开链接后请在 Cursor Balance 查看 credits，之后充值与使用时都可抵扣。
+                      请成功参加线下活动的用户，扫描二维码或者点击链接获取价值 $50 的 credits，成功打开链接后请在 Cursor Balance 查看 credits，之后充值与使用时都可抵扣。欢迎下次再来参与。
                     </p>
                     <p style="margin:0 0 24px;font-size:14px;line-height:1.7;color:#a3a3a3;">
-                      Please scan the QR-code or click through the link to redeem your $50 credits. After opening the link, check credits in Cursor Balance — they apply to future top-ups and usage.
+                      Please scan the QR-code or click through the link to redeem your $50 credits. After opening the link, check credits in Cursor Balance — they apply to future top-ups and usage. Looking forward to seeing you next time.
                     </p>
 
                     <!-- QR code -->
@@ -229,7 +228,7 @@ function generateUnclaimedReminderHTML({
                       <tr>
                         <td align="center" style="padding-bottom:16px;">
                           <a href="${claimUrl}" target="_blank" style="display:inline-block;background-color:#ffffff;color:#0a0a0a;font-size:14px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:12px;">
-                            Claim / 领取 →
+                            Get your $50 credits →
                           </a>
                         </td>
                       </tr>
@@ -249,9 +248,9 @@ function generateUnclaimedReminderHTML({
           <tr>
             <td align="center" style="padding-top:24px;">
               <p style="margin:0;font-size:12px;color:#737373;">
-                如果已经领取过，可以忽略这封邮件。 / If you already claimed, ignore this note.
+                如果已经领取过，可以忽略这封邮件。 If you already claimed, ignore this note.
               </p>
-              <p style="margin:8px 0 0;font-size:11px;color:#525252;">☕ Cafe Cursor Shanghai</p>
+              <p style="margin:8px 0 0;font-size:11px;color:#525252;">Cafe Cursor Shanghai 20260719</p>
             </td>
           </tr>
         </table>
@@ -287,8 +286,7 @@ export async function sendUnclaimedReminderBatch(
       /\/$/,
       ""
     ) + "/";
-  const subject =
-    "Cafe Cursor Shanghai — 领取你的 $50 Cursor credits / Redeem your $50 credits";
+  const subject = "Cafe Cursor Shanghai 20260719";
 
   const resendClient = getResendClient();
   if (!resendClient) {
