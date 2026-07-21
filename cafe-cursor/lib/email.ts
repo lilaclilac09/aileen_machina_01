@@ -125,11 +125,10 @@ interface SendUnclaimedReminderParams {
 
 /**
  * Reminder for checked-in guests who have not claimed yet.
- * Bilingual (zh+en) so one blast works for everyone.
+ * Bilingual (zh+en) so one blast works for everyone. No personal name.
  */
 export async function sendUnclaimedReminderEmail({
   to,
-  name,
 }: SendUnclaimedReminderParams): Promise<{ success: boolean; error?: string }> {
   const resendClient = getResendClient();
   const claimUrl =
@@ -137,19 +136,13 @@ export async function sendUnclaimedReminderEmail({
       /\/$/,
       ""
     ) + "/";
-  const displayName = (name || "").trim() || to.split("@")[0] || "friend";
+  const subject = "Cafe Cursor Shanghai 20260719";
+  const html = generateUnclaimedReminderHTML({ claimUrl });
 
   if (!resendClient) {
     console.log(`📧 [EMAIL] Dev mode — unclaimed reminder simulated for ${to}`);
     return { success: true };
   }
-
-  const subject = "Cafe Cursor Shanghai 20260719";
-
-  const html = generateUnclaimedReminderHTML({
-    name: displayName,
-    claimUrl,
-  });
 
   try {
     console.log(`📧 [EMAIL] Sending unclaimed reminder to: ${to}`);
@@ -174,10 +167,8 @@ export async function sendUnclaimedReminderEmail({
 }
 
 function generateUnclaimedReminderHTML({
-  name,
   claimUrl,
 }: {
-  name: string;
   claimUrl: string;
 }): string {
   const siteOrigin = claimUrl.replace(/\/$/, "");
@@ -207,7 +198,6 @@ function generateUnclaimedReminderHTML({
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#171717;border:1px solid #262626;border-radius:16px;">
                 <tr>
                   <td style="padding:32px;">
-                    <h2 style="margin:0 0 16px;font-size:18px;font-weight:600;color:#ffffff;">你好，${escapeHtml(name)}！</h2>
                     <p style="margin:0 0 16px;font-size:14px;line-height:1.7;color:#a3a3a3;">
                       请成功参加线下活动的用户，扫描二维码或者点击链接获取价值 $50 的 credits，成功打开链接后请在 Cursor Balance 查看 credits，之后充值与使用时都可抵扣。欢迎下次再来参与。
                     </p>
@@ -262,14 +252,6 @@ function generateUnclaimedReminderHTML({
 `;
 }
 
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
 /**
  * Bulk unclaimed reminders via Resend batch API (up to 100/request).
  */
@@ -309,14 +291,11 @@ export async function sendUnclaimedReminderBatch(
   for (let i = 0; i < recipients.length; i += CHUNK) {
     const chunk = recipients.slice(i, i + CHUNK);
     const payloads = chunk.map((r) => {
-      const displayName =
-        (r.name || "").trim() || r.to.split("@")[0] || "friend";
       return {
         from: FROM_EMAIL,
         to: [r.to],
         subject,
         html: generateUnclaimedReminderHTML({
-          name: displayName,
           claimUrl,
         }),
       };
