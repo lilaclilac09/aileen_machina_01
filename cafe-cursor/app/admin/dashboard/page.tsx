@@ -121,6 +121,15 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleDeleteUser = async (userId: string, email: string, hasClaimed: boolean) => {
+    const msg = hasClaimed
+      ? `Delete ${email}?\n\nThey already claimed a credit — it will be returned to the pool, then the user row is removed.`
+      : `Delete ${email} from the guest list?`;
+    if (!confirm(msg)) return;
+    if (!confirm(`Final confirm: permanently delete ${email}?`)) return;
+    await executeAction("DELETE_ELIGIBLE_USER", { userId });
+  };
+
   const handleSendEmail = async (userId: string, email: string) => {
     const locale = confirm(
       `Email language?\n\nOK = Chinese\nCancel = English`
@@ -494,6 +503,16 @@ export default function AdminDashboard() {
                             </button>
                           </>
                         )}
+                        <button
+                          onClick={() =>
+                            handleDeleteUser(user.id, user.email, user.hasClaimed)
+                          }
+                          disabled={actionLoading}
+                          className="rounded border border-red-700/60 bg-transparent px-2 py-1 text-xs text-red-400 hover:bg-red-900/40 disabled:opacity-50"
+                          title="Remove this user from the allowlist"
+                        >
+                          Delete
+                        </button>
                       </div>
                     </td>
                   </tr>
