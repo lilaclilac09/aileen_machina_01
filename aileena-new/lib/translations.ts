@@ -467,6 +467,7 @@ export const t = {
           links: [
             { label: 'MEV Dashboard', href: 'https://mev.aileena.xyz' },
             { label: 'Finance', href: 'https://finance.aileena.xyz' },
+            { label: 'Gather · 共影', href: 'https://album.aileena.xyz' },
             { label: 'GitHub', href: 'https://github.com/lilaclilac09' },
           ],
         },
@@ -952,6 +953,7 @@ export const t = {
           links: [
             { label: 'MEV Dashboard', href: 'https://mev.aileena.xyz' },
             { label: 'Finance', href: 'https://finance.aileena.xyz' },
+            { label: 'Gather · 共影', href: 'https://album.aileena.xyz' },
             { label: 'GitHub', href: 'https://github.com/lilaclilac09' },
           ],
         },

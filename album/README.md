@@ -37,8 +37,11 @@ Uploads write to both buckets. `GET /api/albums/:slug` picks OSS URLs when
 
 ## Production (Vercel)
 
+完整点击步骤见 **[DEPLOY.md](DEPLOY.md)**（Neon + Vercel Blob + DNSPod CNAME）。
+
+简版：
+
 1. New project, **Root Directory** = `album`
-2. Env: `DATABASE_URL` (Postgres — change Prisma `provider` to `postgresql`),
-   `ADMIN_COOKIE_SECRET`, `STORAGE_DRIVER=dual` (+ R2/OSS) or `blob`,
-   `NEXT_PUBLIC_APP_URL=https://album.aileena.xyz`
+2. Env: `DATABASE_URL` (Postgres), `ADMIN_COOKIE_SECRET`, `STORAGE_DRIVER=blob`, `BLOB_READ_WRITE_TOKEN`, `NEXT_PUBLIC_APP_URL=https://album.aileena.xyz`
 3. DNSPod: `album` CNAME → `cname.vercel-dns.com`
+4. Build auto-switches Prisma to postgresql when `DATABASE_URL` is postgres

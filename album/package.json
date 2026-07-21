@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3010",
-    "build": "prisma generate && next build",
+    "build": "node scripts/ensure-prisma-provider.mjs && prisma generate && next build",
+    "build:vercel": "node scripts/ensure-prisma-provider.mjs && prisma generate && prisma db push && next build",
     "start": "next start -p 3010",
     "lint": "next lint",
     "db:push": "prisma db push",
