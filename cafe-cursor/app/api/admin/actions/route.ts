@@ -11,8 +11,8 @@ import { syncCheckedInFromLuma, isLumaConfigured } from "@/lib/luma";
 import { importLumaGuestsFromCsv, clearUnclaimedGuestList } from "@/lib/luma-csv";
 import { getVolunteerMaxClaims } from "@/lib/claims";
 
-/** Allow bulk notify on Vercel (Resend batch). */
-export const maxDuration = 60;
+/** Allow bulk notify on Vercel (Resend one-by-one + quota pauses). */
+export const maxDuration = 120;
 
 /**
  * POST /api/admin/actions — run admin actions
