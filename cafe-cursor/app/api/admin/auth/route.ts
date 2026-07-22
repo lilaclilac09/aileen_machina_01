@@ -75,12 +75,8 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("[ADMIN] Login error:", error);
-    const message =
-      error instanceof Error && /SESSION_SECRET/i.test(error.message)
-        ? error.message
-        : "Internal server error";
     return NextResponse.json(
-      { success: false, error: message },
+      { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }
