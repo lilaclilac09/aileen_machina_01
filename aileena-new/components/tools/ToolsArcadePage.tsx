@@ -86,6 +86,21 @@ function ToolTile({
     );
   }
 
+  const external = /^https?:\/\//i.test(tool.href);
+  if (external) {
+    return (
+      <a
+        key={tool.slug}
+        href={tool.href}
+        className="arcade-cabinet-link"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {inner}
+      </a>
+    );
+  }
+
   return (
     <Link key={tool.slug} href={tool.href} className="arcade-cabinet-link">
       {inner}

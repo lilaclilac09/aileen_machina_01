@@ -27,6 +27,18 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     },
   },
   {
+    slug: 'cafe-cursor',
+    tag: 'EVENT',
+    title: 'Cafe Cursor',
+    body: 'Claim Cursor credits for Cafe Cursor Shanghai — checked-in guests only.',
+    href: 'https://cursor-cafe.aileena.xyz/',
+    status: 'live',
+    arcade: {
+      glyph: '◎',
+      screenGradient: '#dde8e4',
+    },
+  },
+  {
     slug: 'feed-flash',
     tag: 'RSS',
     title: 'Feed Flash',

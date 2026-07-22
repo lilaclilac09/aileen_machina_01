@@ -76,6 +76,7 @@ Open `/tools` → new tile visible → open tool once end-to-end.
 | Slug | Route | Status |
 |------|-------|--------|
 | `inkling-clips` | `/tools/inkling-clips` | **Live** — CLI command builder (local run) |
+| `cafe-cursor` | `https://cursor-cafe.aileena.xyz/` | **Live** — external Cafe Cursor credits redeem |
 | `feed-flash` | `/tools/feed-flash` | TBC on hub |
 | `chip-guess` | `/tools/chip-guess` | TBC on hub |
 | `pricing-slot` | `/tools/pricing-slot` | TBC on hub |
