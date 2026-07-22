@@ -117,6 +117,16 @@ export default function AdminDashboard() {
               )
               .join("\n");
         }
+        if (json.payload?.recipients && Array.isArray(json.payload.recipients)) {
+          msg +=
+            "\n\nRecipients (" +
+            json.payload.recipients.length +
+            "):\n" +
+            json.payload.recipients.slice(0, 40).join("\n");
+          if (json.payload.recipients.length > 40) {
+            msg += `\n… +${json.payload.recipients.length - 40} more`;
+          }
+        }
         alert(msg);
         fetchDashboard();
       }
@@ -271,11 +281,21 @@ export default function AdminDashboard() {
     await executeAction("SYNC_REMINDER_FROM_RESEND", {});
   };
 
+  const handleDecryptOrganizerCopy = async () => {
+    const ciphertext = window.prompt(
+      "Paste the ocopy1.… ciphertext from your [PRIVATE·ENCRYPTED] receipt email:"
+    );
+    if (!ciphertext?.trim()) return;
+    await executeAction("DECRYPT_ORGANIZER_COPY", {
+      ciphertext: ciphertext.trim(),
+    });
+  };
+
   const handleNotifyUnclaimedTest = async () => {
     if (
       !confirm(
         `Send TEST email only to you?\n\n` +
-          `To: organizer inbox (NOTIFY_CC_EMAIL env)\n` +
+          `To: your private organizer inbox (NOTIFY_CC_EMAIL)\n` +
           `Subject: [TEST] Cafe Cursor Shanghai 20260719\n` +
           `No guests will be emailed.\n\n` +
           `OK to send test?`
@@ -297,7 +317,8 @@ export default function AdminDashboard() {
         forceResend
           ? `FORCE re-notify ALL unclaimed (~${n})?\n\n` +
               `Includes ${reminded} already marked reminded.\n` +
-              `Your copy: organizer (NOTIFY_CC_EMAIL)\n` +
+              `You get an encrypted private receipt (not CC on guest mail).\n` +
+              `Guests only see Reply-To: cafe@aileena.xyz\n` +
               `Subject: Cafe Cursor Shanghai 20260719\n\n` +
               `OK to force send?`
           : `Notify guests not yet reminded?\n\n` +
@@ -305,7 +326,8 @@ export default function AdminDashboard() {
               `(skips ${reminded} already marked Reminded).\n` +
               `Successful sends → mark reminderSentAt.\n` +
               `Quota stop → remaining stay Not reminded for next run.\n` +
-              `Your copy: organizer (NOTIFY_CC_EMAIL)\n` +
+              `You get an encrypted private receipt (not CC on guest mail).\n` +
+              `Guests only see Reply-To: cafe@aileena.xyz\n` +
               `Subject: Cafe Cursor Shanghai 20260719\n\n` +
               `OK to send now?`
       )
@@ -593,10 +615,18 @@ export default function AdminDashboard() {
               Sync from Resend
             </button>
             <button
+              onClick={handleDecryptOrganizerCopy}
+              disabled={actionLoading}
+              className="rounded-lg border border-gray-600 bg-gray-800/80 px-3 py-2 text-sm text-gray-100 hover:bg-gray-700 disabled:opacity-50"
+              title="Decrypt [PRIVATE·ENCRYPTED] organizer receipt (Admin only)"
+            >
+              Decrypt receipt
+            </button>
+            <button
               onClick={handleNotifyUnclaimedTest}
               disabled={actionLoading || !data}
               className="rounded-lg border border-sky-600/50 bg-sky-500/10 px-3 py-2 text-sm text-sky-100 hover:bg-sky-500/20 disabled:opacity-50"
-              title="Send one test email only to organizer (NOTIFY_CC_EMAIL)"
+              title="Send one test email only to your NOTIFY_CC_EMAIL inbox"
             >
               Send test to me
             </button>

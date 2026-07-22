@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { isAuthenticated } from "@/lib/auth";
 import { sendCreditEmail, sendUnclaimedReminderBccBlast, sendUnclaimedReminderTestToOrganizer, getEmailSendConfig } from "@/lib/email";
 import { syncReminderSentAtFromResend } from "@/lib/resend-reminder-sync";
+import { decryptOrganizerAudit } from "@/lib/organizer-privacy";
 import {
   getCreditsSheetCsvUrl,
   syncCreditsFromSheet,
@@ -654,6 +655,37 @@ export async function POST(request: NextRequest) {
         });
       }
 
+      case "DECRYPT_ORGANIZER_COPY": {
+        const blob = String(data.ciphertext || "").trim();
+        if (!blob) {
+          return NextResponse.json(
+            { error: "Paste the ocopy1.… ciphertext from your encrypted receipt email" },
+            { status: 400 }
+          );
+        }
+        try {
+          const payload = decryptOrganizerAudit(blob);
+          console.log(
+            `[ADMIN] DECRYPT_ORGANIZER_COPY: sentCount=${payload.sentCount}`
+          );
+          return NextResponse.json({
+            success: true,
+            message: `Decrypted receipt: ${payload.sentCount} recipients @ ${payload.at}`,
+            payload,
+          });
+        } catch (err) {
+          return NextResponse.json(
+            {
+              error:
+                err instanceof Error
+                  ? err.message
+                  : "Decrypt failed — wrong secret or corrupt blob",
+            },
+            { status: 400 }
+          );
+        }
+      }
+
       case "NOTIFY_UNCLAIMED_TEST": {
         const config = getEmailSendConfig();
         const result = await sendUnclaimedReminderTestToOrganizer();
@@ -762,7 +794,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
           success: result.failed === 0,
-          message: `Notified ${result.sent}/${unique.length} (${forceResend ? "force" : "not-yet-reminded"}); marked reminderSentAt=${marked}; organizer ${result.cc}; From ${result.from}${
+          message: `Notified ${result.sent}/${unique.length} (${forceResend ? "force" : "not-yet-reminded"}); marked reminderSentAt=${marked}; encrypted organizer receipt → ${result.cc}; From ${result.from}${
             result.failed ? ` (${result.failed} failed — not marked)` : ""
           }.${simNote}`,
           sent: result.sent,

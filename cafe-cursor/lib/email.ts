@@ -2,6 +2,13 @@ import { Resend } from "resend";
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 
+import {
+  encryptOrganizerAudit,
+  getOrganizerInbox,
+  getPublicReplyToAddress,
+  maskContact,
+} from "@/lib/organizer-privacy";
+
 function looksLikeRealResendKey(key: string): boolean {
   const value = key.trim().replace(/^["']|["']$/g, "");
   if (!value.startsWith("re_")) return false;
@@ -65,14 +72,17 @@ export function getEmailSendConfig(): {
   from: string;
   replyTo: string;
   organizer: string;
+  organizerMasked: string;
   testingOnlyFrom: boolean;
   hasResendKey: boolean;
 } {
   const from = getFromEmail();
+  const organizer = getOrganizerInbox();
   return {
     from,
-    replyTo: getNotifyReplyTo(),
-    organizer: getNotifyCcEmail(),
+    replyTo: getPublicReplyToAddress(),
+    organizer,
+    organizerMasked: maskContact(organizer),
     testingOnlyFrom: isTestingOnlyFromAddress(from),
     hasResendKey: Boolean(getResendApiKey()),
   };
@@ -91,26 +101,30 @@ function assertCanBulkSend(): string | null {
 }
 
 /**
- * Organizer inbox for copies / Reply-To.
- * Prefers NOTIFY_CC_EMAIL env; falls back so Notify keeps working
- * when the env var was never set on the deployment.
+ * Organizer inbox (private copies) + public Reply-To for guests.
+ * Personal addresses live only in Vercel NOTIFY_CC_EMAIL — never in source.
  */
-function envEmail(name: string): string {
-  return (process.env[name] || "")
-    .trim()
-    .replace(/^["']|["']$/g, "")
-    .trim()
-    .toLowerCase();
-}
-
-const ORGANIZER_FALLBACK = "rosazxc0915@gmail.com";
-
 export function getNotifyCcEmail(): string {
-  return envEmail("NOTIFY_CC_EMAIL") || ORGANIZER_FALLBACK;
+  return getOrganizerInbox();
 }
 
 export function getNotifyReplyTo(): string {
-  return envEmail("NOTIFY_REPLY_TO") || getNotifyCcEmail();
+  return getPublicReplyToAddress();
+}
+
+function generateEncryptedOrganizerCopyHTML(opts: {
+  subject: string;
+  sentCount: number;
+  ciphertext: string;
+}): string {
+  return `<!DOCTYPE html><html><body style="font-family:system-ui,sans-serif;line-height:1.5;color:#111">
+<p><strong>Cafe Cursor — private organizer receipt (encrypted)</strong></p>
+<p>Subject: ${opts.subject}<br/>
+Guests notified (count only): <strong>${opts.sentCount}</strong></p>
+<p>Recipient list is AES-256-GCM encrypted. Decrypt only in Admin → Decrypt organizer receipt.</p>
+<pre style="white-space:pre-wrap;word-break:break-all;background:#f4f4f5;padding:12px;border-radius:8px;font-size:11px">${opts.ciphertext}</pre>
+<p style="font-size:12px;color:#666">Your personal inbox is not shared with guests. Guest emails use Reply-To: cafe@aileena.xyz.</p>
+</body></html>`;
 }
 
 /** Resolve From at send-time (so Vercel env changes apply after redeploy). */
@@ -216,16 +230,16 @@ export async function sendUnclaimedReminderEmail({
   const html = generateUnclaimedReminderHTML({ claimUrl });
 
   if (!resendClient) {
-    console.log(`📧 [EMAIL] Dev mode — unclaimed reminder simulated for ${to}`);
+    console.log(`📧 [EMAIL] Dev mode — unclaimed reminder simulated`);
     return { success: true };
   }
 
   try {
-    console.log(`📧 [EMAIL] Sending unclaimed reminder to: ${to}`);
+    console.log(`📧 [EMAIL] Sending unclaimed reminder to: ${maskContact(to)}`);
     const { error } = await resendClient.emails.send({
       from: fromAddress(),
       to: [to],
-      replyTo: getNotifyReplyTo(),
+      replyTo: getPublicReplyToAddress(),
       subject,
       html,
     });
@@ -352,42 +366,34 @@ export async function sendUnclaimedReminderTestToOrganizer(): Promise<{
   error?: string;
 }> {
   const to = getNotifyCcEmail();
-  if (!to) {
-    return {
-      success: false,
-      to: "",
-      simulated: false,
-      error: "NOTIFY_CC_EMAIL is not set on this deployment",
-    };
-  }
   const subject = getReminderSubject();
   const html = generateUnclaimedReminderHTML({ claimUrl: getClaimUrl() });
   const resendClient = getResendClient();
 
   if (!resendClient) {
-    console.log(`📧 [EMAIL] Dev mode — test reminder simulated to ${to}`);
-    return { success: true, to, simulated: true };
+    console.log(`📧 [EMAIL] Dev mode — test reminder simulated to organizer`);
+    return { success: true, to: maskContact(to), simulated: true };
   }
 
   try {
-    console.log(`📧 [EMAIL] Sending TEST reminder to organizer only: ${to}`);
+    console.log(`📧 [EMAIL] Sending TEST reminder to organizer only: ${maskContact(to)}`);
     const { error } = await resendClient.emails.send({
       from: fromAddress(),
       to: [to],
-      replyTo: getNotifyReplyTo(),
+      // Private test — no public Reply-To leak needed
       subject: `[TEST] ${subject}`,
       html,
     });
     if (error) {
       console.error(`❌ [EMAIL] Test reminder failed:`, error);
-      return { success: false, to, simulated: false, error: error.message };
+      return { success: false, to: maskContact(to), simulated: false, error: error.message };
     }
-    console.log(`✅ [EMAIL] Test reminder sent to: ${to}`);
-    return { success: true, to, simulated: false };
+    console.log(`✅ [EMAIL] Test reminder sent to organizer`);
+    return { success: true, to: maskContact(to), simulated: false };
   } catch (err) {
     const message = err instanceof Error ? err.message : "unknown";
     console.error(`❌ [EMAIL] Test reminder exception:`, err);
-    return { success: false, to, simulated: false, error: message };
+    return { success: false, to: maskContact(to), simulated: false, error: message };
   }
 }
 
@@ -413,24 +419,6 @@ export async function sendUnclaimedReminderBccBlast(
   const cc = getNotifyCcEmail();
   const from = fromAddress();
 
-  if (!cc) {
-    return {
-      sent: 0,
-      failed: recipientEmails.length,
-      batches: 0,
-      failures: [
-        {
-          email: "(config)",
-          error: "NOTIFY_CC_EMAIL is not set on this deployment",
-        },
-      ],
-      sentEmails: [],
-      simulated: false,
-      cc: "",
-      from,
-    };
-  }
-
   const blocked = assertCanBulkSend();
   if (blocked) {
     return {
@@ -440,7 +428,7 @@ export async function sendUnclaimedReminderBccBlast(
       failures: [{ email: "(config)", error: blocked }],
       sentEmails: [],
       simulated: false,
-      cc,
+      cc: maskContact(cc),
       from,
     };
   }
@@ -458,7 +446,7 @@ export async function sendUnclaimedReminderBccBlast(
   const resendClient = getResendClient();
   if (!resendClient) {
     console.log(
-      `📧 [EMAIL] Dev mode — simulating individual notify to ${guests.length} (+ organizer ${cc}) from=${from}`
+      `📧 [EMAIL] Dev mode — simulating individual notify to ${guests.length} (+ encrypted organizer receipt) from=${from}`
     );
     return {
       sent: guests.length,
@@ -467,7 +455,7 @@ export async function sendUnclaimedReminderBccBlast(
       failures: [],
       sentEmails: guests,
       simulated: true,
-      cc,
+      cc: maskContact(cc),
       from,
     };
   }
@@ -480,26 +468,7 @@ export async function sendUnclaimedReminderBccBlast(
   const failures: { email: string; error: string }[] = [];
   const sentEmails: string[] = [];
 
-  // Organizer copy first
-  try {
-    batches += 1;
-    const { error } = await resendClient.emails.send({
-      from,
-      to: [cc],
-      replyTo: getNotifyReplyTo(),
-      subject: `[COPY] ${subject}`,
-      html,
-    });
-    if (error) {
-      failures.push({ email: cc, error: `${error.message} (From: ${from})` });
-    }
-  } catch (err) {
-    failures.push({
-      email: cc,
-      error: `${err instanceof Error ? err.message : "unknown"} (From: ${from})`,
-    });
-  }
-
+  const publicReplyTo = getPublicReplyToAddress();
   const CHUNK = 40;
   let abortRemaining: string | null = null;
 
@@ -513,7 +482,8 @@ export async function sendUnclaimedReminderBccBlast(
         const one = await resendClient.emails.send({
           from,
           to: [email],
-          replyTo: getNotifyReplyTo(),
+          // Guests only see brand Reply-To — never personal Gmail
+          replyTo: publicReplyTo,
           subject,
           html,
         });
@@ -551,6 +521,40 @@ export async function sendUnclaimedReminderBccBlast(
     }
   }
 
+  // Private encrypted receipt to organizer only (not CC on guest messages)
+  try {
+    batches += 1;
+    const ciphertext = encryptOrganizerAudit({
+      v: 1,
+      at: new Date().toISOString(),
+      subject,
+      from,
+      sentCount: sentEmails.length,
+      recipients: sentEmails,
+    });
+    const { error } = await resendClient.emails.send({
+      from,
+      to: [cc],
+      subject: `[PRIVATE·ENCRYPTED] ${subject}`,
+      html: generateEncryptedOrganizerCopyHTML({
+        subject,
+        sentCount: sentEmails.length,
+        ciphertext,
+      }),
+    });
+    if (error) {
+      failures.push({
+        email: "(organizer-copy)",
+        error: `${error.message} (encrypted receipt)`,
+      });
+    }
+  } catch (err) {
+    failures.push({
+      email: "(organizer-copy)",
+      error: `${err instanceof Error ? err.message : "unknown"} (encrypted receipt)`,
+    });
+  }
+
   if (abortRemaining) {
     const already = new Set([
       ...failures.map((f) => f.email),
@@ -563,7 +567,16 @@ export async function sendUnclaimedReminderBccBlast(
     }
   }
 
-  return { sent, failed, batches, failures, sentEmails, simulated: false, cc, from };
+  return {
+    sent,
+    failed,
+    batches,
+    failures,
+    sentEmails,
+    simulated: false,
+    cc: maskContact(cc),
+    from,
+  };
 }
 
 /** @deprecated Prefer sendUnclaimedReminderBccBlast for privacy (BCC). */
