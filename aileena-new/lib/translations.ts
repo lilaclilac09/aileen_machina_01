@@ -40,8 +40,8 @@ export const t = {
     tools: {
       tag: 'TOOLS',
       heading: 'Tools',
-      body: 'Small utilities on the same stack. Audio clipping runs locally via CLI; the rest are TBC.',
-      marquee: 'TOOLS · AUDIO CLIPPING · CLI · MORE TBC',
+      body: 'Small utilities on the same stack. Cafe Cursor credits + local audio clipping; more TBC.',
+      marquee: 'TOOLS · CAFE CURSOR · AUDIO CLIPPING · MORE TBC',
       pressStart: 'Start',
       creditsLabel: 'TOOLS',
       creditsHint: '',
@@ -57,6 +57,12 @@ export const t = {
           title: 'Audio Clipping',
           body:
             'YouTube → Inkling → ffmpeg. Run locally with the CLI — browser Run is not on Vercel yet.',
+        },
+        'cafe-cursor': {
+          tag: 'EVENT',
+          title: 'Cafe Cursor',
+          body:
+            'Claim Cursor credits for Cafe Cursor Shanghai — checked-in guests only.',
         },
         'feed-flash': {
           tag: 'RSS',
@@ -686,8 +692,8 @@ export const t = {
     tools: {
       tag: 'TOOLS',
       heading: 'Tools',
-      body: 'Kleine Utilities auf demselben Stack. Audio Clipping läuft lokal per CLI; der Rest ist TBC.',
-      marquee: 'TOOLS · AUDIO CLIPPING · CLI · MEHR TBC',
+      body: 'Kleine Utilities auf demselben Stack. Cafe Cursor Credits + lokales Audio Clipping; mehr TBC.',
+      marquee: 'TOOLS · CAFE CURSOR · AUDIO CLIPPING · MEHR TBC',
       pressStart: 'Start',
       creditsLabel: 'TOOLS',
       creditsHint: '',
@@ -703,6 +709,12 @@ export const t = {
           title: 'Audio Clipping',
           body:
             'YouTube → Inkling → ffmpeg. Lokal per CLI — Browser-Run noch nicht auf Vercel.',
+        },
+        'cafe-cursor': {
+          tag: 'EVENT',
+          title: 'Cafe Cursor',
+          body:
+            'Cursor Credits für Cafe Cursor Shanghai einlösen — nur checked-in Gäste.',
         },
         'feed-flash': {
           tag: 'RSS',
