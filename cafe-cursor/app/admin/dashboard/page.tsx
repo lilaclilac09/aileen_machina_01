@@ -255,6 +255,22 @@ export default function AdminDashboard() {
     );
   };
 
+  const handleSyncReminderFromResend = async () => {
+    if (
+      !confirm(
+        `Sync reminder marks from Resend?\n\n` +
+          `Pulls sent emails with subject:\n` +
+          `Cafe Cursor Shanghai 20260719\n\n` +
+          `Marks delivered/opened/clicked recipients as Reminded in DB.\n` +
+          `Does not send any new email.\n\n` +
+          `OK to sync?`
+      )
+    ) {
+      return;
+    }
+    await executeAction("SYNC_REMINDER_FROM_RESEND", {});
+  };
+
   const handleNotifyUnclaimedTest = async () => {
     if (
       !confirm(
@@ -567,6 +583,14 @@ export default function AdminDashboard() {
               {data?.stats.pendingUsers != null
                 ? ` (${data.stats.pendingUsers})`
                 : ""}
+            </button>
+            <button
+              onClick={handleSyncReminderFromResend}
+              disabled={actionLoading || !data}
+              className="rounded-lg border border-emerald-600/50 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-100 hover:bg-emerald-500/20 disabled:opacity-50"
+              title="Pull Resend delivered list for Cafe Cursor Shanghai 20260719 and mark reminderSentAt"
+            >
+              Sync from Resend
             </button>
             <button
               onClick={handleNotifyUnclaimedTest}
