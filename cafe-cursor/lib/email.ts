@@ -69,8 +69,8 @@ export function getEmailSendConfig(): {
   const from = getFromEmail();
   return {
     from,
-    replyTo: NOTIFY_REPLY_TO,
-    organizer: NOTIFY_CC_EMAIL,
+    replyTo: getNotifyReplyTo(),
+    organizer: getNotifyCcEmail(),
     testingOnlyFrom: isTestingOnlyFromAddress(from),
     hasResendKey: Boolean(getResendApiKey()),
   };
@@ -88,20 +88,25 @@ function assertCanBulkSend(): string | null {
   return null;
 }
 
-/** Where replies go — organizer Gmail (Resend cannot send FROM @gmail.com). */
-export const NOTIFY_REPLY_TO = (
-  process.env.NOTIFY_REPLY_TO ||
-  process.env.NOTIFY_CC_EMAIL ||
-  "rosazxc0915@gmail.com"
-)
-  .trim()
-  .toLowerCase();
+/**
+ * Organizer inbox for copies / Reply-To — set NOTIFY_CC_EMAIL on Vercel.
+ * No personal address hardcoded in source (PII / account safety).
+ */
+function envEmail(name: string): string {
+  return (process.env[name] || "")
+    .trim()
+    .replace(/^["']|["']$/g, "")
+    .trim()
+    .toLowerCase();
+}
 
-export const NOTIFY_CC_EMAIL = (
-  process.env.NOTIFY_CC_EMAIL || "rosazxc0915@gmail.com"
-)
-  .trim()
-  .toLowerCase();
+export function getNotifyCcEmail(): string {
+  return envEmail("NOTIFY_CC_EMAIL");
+}
+
+export function getNotifyReplyTo(): string {
+  return envEmail("NOTIFY_REPLY_TO") || getNotifyCcEmail();
+}
 
 /** Resolve From at send-time (so Vercel env changes apply after redeploy). */
 function fromAddress(): string {
@@ -215,7 +220,7 @@ export async function sendUnclaimedReminderEmail({
     const { error } = await resendClient.emails.send({
       from: fromAddress(),
       to: [to],
-      replyTo: NOTIFY_REPLY_TO,
+      replyTo: getNotifyReplyTo(),
       subject,
       html,
     });
@@ -341,7 +346,15 @@ export async function sendUnclaimedReminderTestToOrganizer(): Promise<{
   simulated: boolean;
   error?: string;
 }> {
-  const to = NOTIFY_CC_EMAIL;
+  const to = getNotifyCcEmail();
+  if (!to) {
+    return {
+      success: false,
+      to: "",
+      simulated: false,
+      error: "NOTIFY_CC_EMAIL is not set on this deployment",
+    };
+  }
   const subject = getReminderSubject();
   const html = generateUnclaimedReminderHTML({ claimUrl: getClaimUrl() });
   const resendClient = getResendClient();
@@ -356,7 +369,7 @@ export async function sendUnclaimedReminderTestToOrganizer(): Promise<{
     const { error } = await resendClient.emails.send({
       from: fromAddress(),
       to: [to],
-      replyTo: NOTIFY_REPLY_TO,
+      replyTo: getNotifyReplyTo(),
       subject: `[TEST] ${subject}`,
       html,
     });
@@ -392,8 +405,26 @@ export async function sendUnclaimedReminderBccBlast(
   const claimUrl = getClaimUrl();
   const subject = getReminderSubject();
   const html = generateUnclaimedReminderHTML({ claimUrl });
-  const cc = NOTIFY_CC_EMAIL;
+  const cc = getNotifyCcEmail();
   const from = fromAddress();
+
+  if (!cc) {
+    return {
+      sent: 0,
+      failed: recipientEmails.length,
+      batches: 0,
+      failures: [
+        {
+          email: "(config)",
+          error: "NOTIFY_CC_EMAIL is not set on this deployment",
+        },
+      ],
+      sentEmails: [],
+      simulated: false,
+      cc: "",
+      from,
+    };
+  }
 
   const blocked = assertCanBulkSend();
   if (blocked) {
@@ -450,7 +481,7 @@ export async function sendUnclaimedReminderBccBlast(
     const { error } = await resendClient.emails.send({
       from,
       to: [cc],
-      replyTo: NOTIFY_REPLY_TO,
+      replyTo: getNotifyReplyTo(),
       subject: `[COPY] ${subject}`,
       html,
     });
@@ -477,7 +508,7 @@ export async function sendUnclaimedReminderBccBlast(
         const one = await resendClient.emails.send({
           from,
           to: [email],
-          replyTo: NOTIFY_REPLY_TO,
+          replyTo: getNotifyReplyTo(),
           subject,
           html,
         });
