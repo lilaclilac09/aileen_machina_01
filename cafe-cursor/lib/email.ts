@@ -91,8 +91,9 @@ function assertCanBulkSend(): string | null {
 }
 
 /**
- * Organizer inbox for copies / Reply-To — set NOTIFY_CC_EMAIL on Vercel.
- * No personal address hardcoded in source (PII / account safety).
+ * Organizer inbox for copies / Reply-To.
+ * Prefers NOTIFY_CC_EMAIL env; falls back so Notify keeps working
+ * when the env var was never set on the deployment.
  */
 function envEmail(name: string): string {
   return (process.env[name] || "")
@@ -102,8 +103,10 @@ function envEmail(name: string): string {
     .toLowerCase();
 }
 
+const ORGANIZER_FALLBACK = "rosazxc0915@gmail.com";
+
 export function getNotifyCcEmail(): string {
-  return envEmail("NOTIFY_CC_EMAIL");
+  return envEmail("NOTIFY_CC_EMAIL") || ORGANIZER_FALLBACK;
 }
 
 export function getNotifyReplyTo(): string {
