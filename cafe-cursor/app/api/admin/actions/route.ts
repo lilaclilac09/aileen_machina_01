@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isAuthenticated } from "@/lib/auth";
 import { sendCreditEmail, sendUnclaimedReminderBccBlast, sendUnclaimedReminderTestToOrganizer, getEmailSendConfig } from "@/lib/email";
+import { syncReminderSentAtFromResend } from "@/lib/resend-reminder-sync";
 import {
   getCreditsSheetCsvUrl,
   syncCreditsFromSheet,
@@ -624,6 +625,32 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           message: `Email sent to ${user.email}`,
+        });
+      }
+
+      case "SYNC_REMINDER_FROM_RESEND": {
+        const result = await syncReminderSentAtFromResend({ maxPages: 40 });
+        console.log(
+          `[ADMIN] SYNC_REMINDER_FROM_RESEND: success=${result.success} marked=${result.marked} delivered=${result.deliveredRecipients}`
+        );
+        if (!result.success) {
+          return NextResponse.json(
+            {
+              error: result.error || "Resend sync failed",
+              ...result,
+            },
+            { status: 500 }
+          );
+        }
+        return NextResponse.json({
+          ...result,
+          success: true,
+          message:
+            `Synced Resend subject "${result.subject}": ` +
+            `scanned ${result.scanned}, matched ${result.matchedSubject}, ` +
+            `delivered recipients ${result.deliveredRecipients}, ` +
+            `newly marked ${result.marked}, already marked ${result.alreadyMarked}, ` +
+            `not in guest list ${result.notInList}.`,
         });
       }
 

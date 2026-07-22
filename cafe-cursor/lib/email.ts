@@ -319,7 +319,7 @@ function generateUnclaimedReminderHTML({
 `;
 }
 
-function getReminderSubject(): string {
+export function getReminderSubject(): string {
   return "Cafe Cursor Shanghai 20260719";
 }
 
