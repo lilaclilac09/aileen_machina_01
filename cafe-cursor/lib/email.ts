@@ -32,7 +32,9 @@ function getResendApiKey(): string | null {
 // Función para obtener cliente Resend (lazy initialization)
 function getResendClient(): Resend | null {
   const apiKey = getResendApiKey();
-  console.log(`📧 [EMAIL] Verificando API key: ${apiKey ? "✅ Configurada (" + apiKey.substring(0, 10) + "...)" : "❌ No encontrada"}`);
+  console.log(
+    `📧 [EMAIL] Verificando API key: ${apiKey ? "✅ Configurada" : "❌ No encontrada"}`
+  );
   if (!apiKey) {
     return null;
   }
