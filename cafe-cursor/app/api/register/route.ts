@@ -213,23 +213,8 @@ export async function POST(request: NextRequest) {
       `✅ [REGISTER] Assigned: ${normalizedEmail} -> ${availableCredit.code} (${newClaimCount}/${maxClaims}${eligibleUser.isVolunteer ? " volunteer" : ""})`
     );
 
-    // Auto-email the credit link right after IRL redeem / check-in claim
-    const emailResult = await sendCreditEmail({
-      to: normalizedEmail,
-      name: result.name,
-      creditLink: availableCredit.link,
-      creditCode: availableCredit.code,
-      company: result.company || undefined,
-      isTest: isTestUser,
-      locale,
-    });
-
-    if (!emailResult.success) {
-      console.error(
-        `⚠️ [REGISTER] Email failed for ${normalizedEmail}:`,
-        emailResult.error
-      );
-    }
+    // No auto-email on claim — guests already get the link on-screen.
+    // Reminder outreach uses Notify unclaimed (Cafe Cursor Shanghai 20260719).
 
     return NextResponse.json(
       {
@@ -247,8 +232,7 @@ export async function POST(request: NextRequest) {
           email: result.email,
           company: result.company,
         },
-        emailSent: emailResult.success,
-        emailError: emailResult.success ? undefined : emailResult.error,
+        emailSent: false,
       },
       { status: 201 }
     );
