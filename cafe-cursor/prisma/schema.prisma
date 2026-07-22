@@ -28,6 +28,9 @@ model EligibleUser {
   hasClaimed Boolean   @default(false)
   claimedAt  DateTime?
 
+  /// When Admin last successfully sent the unclaimed reminder email
+  reminderSentAt DateTime?
+
   /// Latest assigned credit (convenience for UI / re-show)
   credit   Credit? @relation("LatestCredit", fields: [creditId], references: [id])
   creditId String? @unique

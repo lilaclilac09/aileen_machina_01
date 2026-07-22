@@ -22,6 +22,7 @@ interface EligibleUser {
   isVolunteer: boolean;
   hasClaimed: boolean;
   claimedAt: string | null;
+  reminderSentAt: string | null;
   claimCount: number;
   credit: Credit | null;
 }
@@ -36,6 +37,8 @@ interface Stats {
   claimedUsers: number;
   approvedUsers: number;
   pendingUsers: number;
+  remindedUnclaimed: number;
+  awaitingReminder: number;
 }
 
 interface DashboardData {
@@ -191,13 +194,14 @@ export default function AdminDashboard() {
     const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
 
     const csv =
-      "email,name,company,status\n" +
+      "email,name,company,status,reminderSentAt\n" +
       unique
         .map((u) => {
           const email = u.email.trim().toLowerCase();
           const name = JSON.stringify(u.name || "");
           const company = JSON.stringify(u.company || "");
-          return `${email},${name},${company},unclaimed`;
+          const reminded = u.reminderSentAt || "";
+          return `${email},${name},${company},unclaimed,${reminded}`;
         })
         .join("\n") +
       "\n";
@@ -244,29 +248,38 @@ export default function AdminDashboard() {
     await executeAction("NOTIFY_UNCLAIMED_TEST", {});
   };
 
-  const handleNotifyUnclaimed = async () => {
-    const n = data?.stats.pendingUsers ?? 0;
+  const handleNotifyUnclaimed = async (forceResend = false) => {
+    const awaiting = data?.stats.awaitingReminder ?? 0;
+    const reminded = data?.stats.remindedUnclaimed ?? 0;
+    const n = forceResend
+      ? data?.stats.pendingUsers ?? 0
+      : awaiting;
     if (
       !confirm(
-        `Notify all unclaimed?\n\n` +
-          `Will email ~${n} guests privately (1 email each — they cannot see each other).\n` +
-          `Your copy: rosazxc0915@gmail.com\n` +
-          `Subject: Cafe Cursor Shanghai 20260719\n\n` +
-          `NOTE: Test-to-yourself can work even when guest send is blocked.\n` +
-          `From must be cafe@aileena.xyz (not @resend.dev).\n\n` +
-          `OK to send now?`
+        forceResend
+          ? `FORCE re-notify ALL unclaimed (~${n})?\n\n` +
+              `Includes ${reminded} already marked reminded.\n` +
+              `Your copy: rosazxc0915@gmail.com\n` +
+              `Subject: Cafe Cursor Shanghai 20260719\n\n` +
+              `OK to force send?`
+          : `Notify guests not yet reminded?\n\n` +
+              `Will email ~${n} not-yet-reminded (skip ${reminded} already marked).\n` +
+              `Successful sends will be marked reminderSentAt in DB.\n` +
+              `Your copy: rosazxc0915@gmail.com\n` +
+              `Subject: Cafe Cursor Shanghai 20260719\n\n` +
+              `OK to send now?`
       )
     ) {
       return;
     }
     if (
       !confirm(
-        `Final confirm: BCC reminder to ~${n} people now?\n\nThis cannot be undone.`
+        `Final confirm: email ~${n} people now?\n\nThis cannot be undone.`
       )
     ) {
       return;
     }
-    await executeAction("NOTIFY_UNCLAIMED", {});
+    await executeAction("NOTIFY_UNCLAIMED", { forceResend });
   };
 
   const handleSendEmail = async (userId: string, email: string) => {
@@ -438,7 +451,7 @@ export default function AdminDashboard() {
           </p>
         </div>
 
-        <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-7">
+        <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-8">
           <StatCard
             label="Total Credits"
             value={data?.stats.totalCredits || 0}
@@ -473,6 +486,11 @@ export default function AdminDashboard() {
             label="Unclaimed"
             value={data?.stats.pendingUsers || 0}
             color="yellow"
+          />
+          <StatCard
+            label="Awaiting reminder"
+            value={data?.stats.awaitingReminder || 0}
+            color="orange"
           />
         </div>
 
@@ -535,12 +553,27 @@ export default function AdminDashboard() {
               Send test to me
             </button>
             <button
-              onClick={handleNotifyUnclaimed}
-              disabled={actionLoading || !data || !data.stats.pendingUsers}
+              onClick={() => handleNotifyUnclaimed(false)}
+              disabled={
+                actionLoading || !data || !(data.stats.awaitingReminder > 0)
+              }
               className="rounded-lg border border-amber-600/50 bg-amber-500/10 px-3 py-2 text-sm text-amber-100 hover:bg-amber-500/20 disabled:opacity-50"
-              title="BCC all unclaimed guests; organizer copy to rosazxc0915@gmail.com"
+              title="Email only guests not yet marked reminded"
             >
               Notify unclaimed
+              {data?.stats.awaitingReminder != null
+                ? ` (${data.stats.awaitingReminder})`
+                : ""}
+            </button>
+            <button
+              onClick={() => handleNotifyUnclaimed(true)}
+              disabled={
+                actionLoading || !data || !(data.stats.pendingUsers > 0)
+              }
+              className="rounded-lg border border-gray-600 px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 disabled:opacity-50"
+              title="Force re-email all unclaimed (including already reminded)"
+            >
+              Force re-notify
             </button>
             <select
               disabled={actionLoading}
@@ -594,6 +627,7 @@ export default function AdminDashboard() {
                   <th className="px-4 py-3 font-medium">Email</th>
                   <th className="px-4 py-3 font-medium">Company</th>
                   <th className="px-4 py-3 font-medium">Status</th>
+                  <th className="px-4 py-3 font-medium">Reminder</th>
                   <th className="px-4 py-3 font-medium">Credit</th>
                   <th className="px-4 py-3 font-medium">Actions</th>
                 </tr>
@@ -614,6 +648,22 @@ export default function AdminDashboard() {
                     <td className="px-4 py-3 text-gray-400">{user.company || "-"}</td>
                     <td className="px-4 py-3">
                       <StatusBadge status={user.approvalStatus} />
+                    </td>
+                    <td className="px-4 py-3">
+                      {user.hasClaimed ? (
+                        <span className="text-xs text-gray-500">—</span>
+                      ) : user.reminderSentAt ? (
+                        <span
+                          className="inline-flex items-center rounded-full bg-sky-500/20 px-2 py-1 text-xs text-sky-300"
+                          title={new Date(user.reminderSentAt).toLocaleString()}
+                        >
+                          Reminded
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full bg-amber-500/20 px-2 py-1 text-xs text-amber-200">
+                          Not reminded
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       {user.hasClaimed ? (

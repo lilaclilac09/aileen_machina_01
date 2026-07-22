@@ -617,7 +617,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json(
             {
               error:
-                `Cannot BCC guests while From is ${config.from}. ` +
+                `Cannot notify guests while From is ${config.from}. ` +
                 `In Vercel o6o4 set FROM_EMAIL=Cafe Cursor Shanghai <cafe@aileena.xyz> (Resend domain Verified), then Redeploy.`,
               from: config.from,
             },
@@ -625,13 +625,16 @@ export async function POST(request: NextRequest) {
           );
         }
 
+        const forceResend = Boolean(data?.forceResend);
+
         const users = await prisma.eligibleUser.findMany({
           where: {
             approvalStatus: "approved",
             hasClaimed: false,
+            ...(forceResend ? {} : { reminderSentAt: null }),
           },
           orderBy: { email: "asc" },
-          select: { id: true, email: true, name: true },
+          select: { id: true, email: true, name: true, reminderSentAt: true },
         });
 
         // Deduplicate by email
@@ -646,11 +649,14 @@ export async function POST(request: NextRequest) {
         if (unique.length === 0) {
           return NextResponse.json({
             success: true,
-            message: "No unclaimed approved users to notify.",
+            message: forceResend
+              ? "No unclaimed approved users to notify."
+              : "No unclaimed users left who still need a reminder (all already marked reminded, or none pending). Use force resend to email again.",
             sent: 0,
             failed: 0,
             total: 0,
             from: config.from,
+            forceResend,
           });
         }
 
@@ -658,25 +664,41 @@ export async function POST(request: NextRequest) {
           unique.map((u) => u.email.trim().toLowerCase())
         );
 
+        // Persist reminder markers only for real successful guest sends
+        let marked = 0;
+        if (!result.simulated && result.sentEmails.length > 0) {
+          const now = new Date();
+          const updated = await prisma.eligibleUser.updateMany({
+            where: {
+              email: { in: result.sentEmails },
+              hasClaimed: false,
+            },
+            data: { reminderSentAt: now },
+          });
+          marked = updated.count;
+        }
+
         console.log(
-          `[ADMIN] NOTIFY_UNCLAIMED: total=${unique.length} sent=${result.sent} failed=${result.failed} batches=${result.batches} cc=${result.cc} from=${config.from} simulated=${result.simulated}`
+          `[ADMIN] NOTIFY_UNCLAIMED: total=${unique.length} sent=${result.sent} failed=${result.failed} marked=${marked} force=${forceResend} from=${result.from} simulated=${result.simulated}`
         );
 
         const simNote = result.simulated
-          ? " (dev mode — RESEND_API_KEY not set, emails simulated)"
+          ? " (dev mode — RESEND_API_KEY not set, emails simulated; DB not marked)"
           : "";
 
         return NextResponse.json({
           success: result.failed === 0,
-          message: `Notified ${result.sent}/${unique.length} unclaimed users (private 1:1); organizer copy ${result.cc}; From ${result.from}${
-            result.failed ? ` (${result.failed} failed)` : ""
+          message: `Notified ${result.sent}/${unique.length} (${forceResend ? "force" : "not-yet-reminded"}); marked reminderSentAt=${marked}; organizer ${result.cc}; From ${result.from}${
+            result.failed ? ` (${result.failed} failed — not marked)` : ""
           }.${simNote}`,
           sent: result.sent,
           failed: result.failed,
+          marked,
           total: unique.length,
           batches: result.batches,
           cc: result.cc,
           from: result.from,
+          forceResend,
           failures: result.failures.slice(0, 20),
         });
       }
