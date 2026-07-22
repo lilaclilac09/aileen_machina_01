@@ -7,15 +7,47 @@ import {
   isAuthenticated,
 } from "@/lib/auth";
 
+/** Soft in-memory rate limit (best-effort on serverless). */
+const loginAttempts = new Map<string, { count: number; resetAt: number }>();
+const MAX_ATTEMPTS = 8;
+const WINDOW_MS = 15 * 60 * 1000;
+
+function clientKey(request: NextRequest): string {
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown"
+  );
+}
+
+function isRateLimited(key: string): boolean {
+  const now = Date.now();
+  const row = loginAttempts.get(key);
+  if (!row || now > row.resetAt) {
+    loginAttempts.set(key, { count: 1, resetAt: now + WINDOW_MS });
+    return false;
+  }
+  row.count += 1;
+  return row.count > MAX_ATTEMPTS;
+}
+
 /**
  * POST /api/admin/auth — Login
  */
 export async function POST(request: NextRequest) {
   try {
+    const key = clientKey(request);
+    if (isRateLimited(key)) {
+      return NextResponse.json(
+        { success: false, error: "Too many login attempts. Try again later." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const { username, password } = body;
 
-    console.log(`[ADMIN] Login attempt: ${username}`);
+    console.log(`[ADMIN] Login attempt from ${key}`);
 
     if (!username || !password) {
       return NextResponse.json(
@@ -25,7 +57,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!verifyCredentials(username, password)) {
-      console.log(`[ADMIN] Login failed: ${username}`);
+      console.log(`[ADMIN] Login failed from ${key}`);
       return NextResponse.json(
         { success: false, error: "Invalid credentials" },
         { status: 401 }
@@ -35,7 +67,7 @@ export async function POST(request: NextRequest) {
     const token = createSessionToken();
     await setSessionCookie(token);
 
-    console.log(`[ADMIN] Login success: ${username}`);
+    console.log(`[ADMIN] Login success from ${key}`);
 
     return NextResponse.json({
       success: true,
@@ -43,8 +75,12 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("[ADMIN] Login error:", error);
+    const message =
+      error instanceof Error && /SESSION_SECRET/i.test(error.message)
+        ? error.message
+        : "Internal server error";
     return NextResponse.json(
-      { success: false, error: "Internal server error" },
+      { success: false, error: message },
       { status: 500 }
     );
   }

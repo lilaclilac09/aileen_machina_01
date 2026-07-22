@@ -275,7 +275,7 @@ export default function AdminDashboard() {
     if (
       !confirm(
         `Send TEST email only to you?\n\n` +
-          `To: rosazxc0915@gmail.com\n` +
+          `To: organizer inbox (NOTIFY_CC_EMAIL env)\n` +
           `Subject: [TEST] Cafe Cursor Shanghai 20260719\n` +
           `No guests will be emailed.\n\n` +
           `OK to send test?`
@@ -297,7 +297,7 @@ export default function AdminDashboard() {
         forceResend
           ? `FORCE re-notify ALL unclaimed (~${n})?\n\n` +
               `Includes ${reminded} already marked reminded.\n` +
-              `Your copy: rosazxc0915@gmail.com\n` +
+              `Your copy: organizer (NOTIFY_CC_EMAIL)\n` +
               `Subject: Cafe Cursor Shanghai 20260719\n\n` +
               `OK to force send?`
           : `Notify guests not yet reminded?\n\n` +
@@ -305,7 +305,7 @@ export default function AdminDashboard() {
               `(skips ${reminded} already marked Reminded).\n` +
               `Successful sends → mark reminderSentAt.\n` +
               `Quota stop → remaining stay Not reminded for next run.\n` +
-              `Your copy: rosazxc0915@gmail.com\n` +
+              `Your copy: organizer (NOTIFY_CC_EMAIL)\n` +
               `Subject: Cafe Cursor Shanghai 20260719\n\n` +
               `OK to send now?`
       )
@@ -596,7 +596,7 @@ export default function AdminDashboard() {
               onClick={handleNotifyUnclaimedTest}
               disabled={actionLoading || !data}
               className="rounded-lg border border-sky-600/50 bg-sky-500/10 px-3 py-2 text-sm text-sky-100 hover:bg-sky-500/20 disabled:opacity-50"
-              title="Send one test email only to rosazxc0915@gmail.com"
+              title="Send one test email only to organizer (NOTIFY_CC_EMAIL)"
             >
               Send test to me
             </button>

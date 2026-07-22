@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
-import { getReminderSubject, NOTIFY_CC_EMAIL } from "@/lib/email";
+import { getReminderSubject, getNotifyCcEmail } from "@/lib/email";
 
 function looksLikeRealResendKey(key: string): boolean {
   const value = key.trim().replace(/^["']|["']$/g, "");
@@ -28,7 +28,7 @@ function collectRecipients(item: {
   cc?: string[] | null;
 }): string[] {
   const out: string[] = [];
-  const organizer = NOTIFY_CC_EMAIL.trim().toLowerCase();
+  const organizer = getNotifyCcEmail();
   for (const list of [item.to, item.bcc, item.cc]) {
     for (const raw of list || []) {
       const email = String(raw).trim().toLowerCase();

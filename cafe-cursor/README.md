@@ -82,7 +82,7 @@ Access the admin panel at `/admin`:
 - **User Management** - See who claimed credits
 - **Credit Management** - Track available and used credits
 
-Default credentials: `admin` / `cafecursor2024`
+Default credentials: set `ADMIN_USERNAME` + `ADMIN_PASSWORD_HASH` (or `ADMIN_PASSWORD`) and `SESSION_SECRET` in env — there are **no** hardcoded defaults. After any suspected breach, rotate password + `SESSION_SECRET` and redeploy.
 
 ## 📦 Data Import
 
@@ -129,7 +129,9 @@ git push -u origin main
    - `RESEND_API_KEY` - Your Resend API key
    - `FROM_EMAIL` - Sender email address
    - `ADMIN_USERNAME` - Admin username
-   - `ADMIN_PASSWORD` - Admin password
+   - `ADMIN_PASSWORD_HASH` - Preferred (run `npx tsx scripts/hash-admin-password.ts`)
+   - `ADMIN_PASSWORD` - Temporary plaintext only; remove after hash works
+   - `SESSION_SECRET` - Long random secret (HMAC sessions; rotate to kick all sessions)
 
 3. Deploy! 🚀
 
