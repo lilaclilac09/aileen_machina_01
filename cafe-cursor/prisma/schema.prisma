@@ -22,7 +22,10 @@ model EligibleUser {
   approvalStatus String    @default("approved")
   createdAt      DateTime  @default(now())
 
-  /// Door volunteers may claim more than one credit
+  /// Event door volunteer (badge only; not the multi-claim flag)
+  isDoorVolunteer Boolean @default(false)
+
+  /// Special user — may claim more than one credit (VOLUNTEER_MAX_CLAIMS)
   isVolunteer Boolean @default(false)
 
   hasClaimed Boolean   @default(false)

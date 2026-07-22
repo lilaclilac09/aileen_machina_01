@@ -20,6 +20,7 @@ interface EligibleUser {
   company: string | null;
   approvalStatus: string;
   isVolunteer: boolean;
+  isDoorVolunteer: boolean;
   hasClaimed: boolean;
   claimedAt: string | null;
   reminderSentAt: string | null;
@@ -165,6 +166,27 @@ export default function AdminDashboard() {
     await executeAction("TOGGLE_VOLUNTEER", { userId, isVolunteer: next });
   };
 
+  const handleToggleDoorVolunteer = async (
+    userId: string,
+    email: string,
+    isDoorVolunteer: boolean
+  ) => {
+    const next = !isDoorVolunteer;
+    if (
+      !confirm(
+        next
+          ? `Mark ${email} as volunteer?\n\nVolunteer is a badge for event staff (does not change claim limit by itself).`
+          : `Unmark ${email} as volunteer?`
+      )
+    ) {
+      return;
+    }
+    await executeAction("TOGGLE_DOOR_VOLUNTEER", {
+      userId,
+      isDoorVolunteer: next,
+    });
+  };
+
   const handleDownloadUnclaimedEmails = () => {
     const rows = (data?.eligibleUsers || [])
       .filter(
@@ -263,8 +285,10 @@ export default function AdminDashboard() {
               `Subject: Cafe Cursor Shanghai 20260719\n\n` +
               `OK to force send?`
           : `Notify guests not yet reminded?\n\n` +
-              `Will email ~${n} not-yet-reminded (skip ${reminded} already marked).\n` +
-              `Successful sends will be marked reminderSentAt in DB.\n` +
+              `Will email ~${n} not-yet-reminded unclaimed guests\n` +
+              `(skips ${reminded} already marked Reminded).\n` +
+              `Successful sends → mark reminderSentAt.\n` +
+              `Quota stop → remaining stay Not reminded for next run.\n` +
               `Your copy: rosazxc0915@gmail.com\n` +
               `Subject: Cafe Cursor Shanghai 20260719\n\n` +
               `OK to send now?`
@@ -638,6 +662,11 @@ export default function AdminDashboard() {
                     <td className="px-4 py-3 font-mono text-xs">
                       <div className="flex flex-wrap items-center gap-2">
                         <span>{user.email}</span>
+                        {user.isDoorVolunteer && (
+                          <span className="rounded-full bg-violet-500/20 px-2 py-0.5 text-[10px] font-medium tracking-wide text-violet-300">
+                            Volunteer
+                          </span>
+                        )}
                         {user.isVolunteer && (
                           <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium tracking-wide text-emerald-300">
                             Special user
@@ -694,6 +723,12 @@ export default function AdminDashboard() {
                               user.email,
                               user.isVolunteer
                             );
+                          else if (v === "volunteer")
+                            handleToggleDoorVolunteer(
+                              user.id,
+                              user.email,
+                              user.isDoorVolunteer
+                            );
                           else if (v === "delete")
                             handleDeleteUser(user.id, user.email, user.hasClaimed);
                         }}
@@ -716,8 +751,15 @@ export default function AdminDashboard() {
                           </optgroup>
                         )}
                         <optgroup label="Manage">
+                          <option value="volunteer">
+                            {user.isDoorVolunteer
+                              ? "Unmark volunteer"
+                              : "Mark volunteer"}
+                          </option>
                           <option value="special">
-                            {user.isVolunteer ? "Unmark special user" : "Mark special user"}
+                            {user.isVolunteer
+                              ? "Unmark special user"
+                              : "Mark special user"}
                           </option>
                           <option value="delete">Delete user</option>
                         </optgroup>

@@ -173,8 +173,10 @@ export async function POST(request: NextRequest) {
             isVolunteer: next,
             role: next
               ? "Special"
-              : user.role === "Special" || user.role === "Volunteer"
-                ? "Attendee"
+              : user.role === "Special"
+                ? user.isDoorVolunteer
+                  ? "Volunteer"
+                  : "Attendee"
                 : user.role,
           },
         });
@@ -190,6 +192,51 @@ export async function POST(request: NextRequest) {
             : `${updated.email} unmarked as special user (1 credit only).`,
           isVolunteer: next,
           maxClaims: next ? getVolunteerMaxClaims() : 1,
+        });
+      }
+
+      case "TOGGLE_DOOR_VOLUNTEER": {
+        const { userId, isDoorVolunteer } = data;
+        const user = await prisma.eligibleUser.findUnique({
+          where: { id: userId },
+        });
+        if (!user) {
+          return NextResponse.json(
+            { error: "User not found" },
+            { status: 404 }
+          );
+        }
+
+        const next =
+          typeof isDoorVolunteer === "boolean"
+            ? isDoorVolunteer
+            : !user.isDoorVolunteer;
+        const updated = await prisma.eligibleUser.update({
+          where: { id: userId },
+          data: {
+            isDoorVolunteer: next,
+            role: next
+              ? user.isVolunteer
+                ? "Special"
+                : "Volunteer"
+              : user.isVolunteer
+                ? "Special"
+                : user.role === "Volunteer"
+                  ? "Attendee"
+                  : user.role,
+          },
+        });
+
+        console.log(
+          `[ADMIN] Door volunteer ${next ? "ON" : "OFF"}: ${updated.email}`
+        );
+
+        return NextResponse.json({
+          success: true,
+          message: next
+            ? `${updated.email} marked as volunteer.`
+            : `${updated.email} unmarked as volunteer.`,
+          isDoorVolunteer: next,
         });
       }
 
