@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { registerSchema, displayNameFromEmail } from "@/lib/validations";
 import { ZodError } from "zod";
-import { sendCreditEmail } from "@/lib/email";
 import {
   getRedeemMode,
   getEventCheckinCode,
@@ -12,13 +11,40 @@ import {
 } from "@/lib/event-config";
 import { ensureCreditsSynced } from "@/lib/google-sheets";
 import { ensureLumaCheckedInUser, isLumaConfigured } from "@/lib/luma";
-import { ensureBundledLumaGuestsImported } from "@/lib/luma-csv";
 import { getVolunteerMaxClaims } from "@/lib/claims";
+
+/** Mask email in logs — never print full addresses to shared log sinks. */
+function maskEmail(email: string): string {
+  const [user, domain] = email.split("@");
+  if (!domain) return "***";
+  const head = user.slice(0, 1) || "*";
+  return `${head}***@${domain}`;
+}
+
+/** Generic denial — do not reveal allowlist / approval / claim status. */
+function denyClaim(message?: string) {
+  return NextResponse.json(
+    {
+      success: false,
+      error:
+        message ||
+        "Unable to redeem with this email. Please ask staff for help.",
+      code: "CLAIM_DENIED",
+    },
+    { status: 403 }
+  );
+}
 
 /**
  * POST /api/register
- * IRL redeem: after check-in, attendee claims Cursor credit(s).
- * Normal guests: 1 per email. Special users (isVolunteer / special user): up to VOLUNTEER_MAX_CLAIMS.
+ * IRL redeem after check-in.
+ *
+ * Privacy rules (non-admin):
+ * - First successful claim for this request may return THAT credit link only.
+ * - Already-claimed emails never re-expose the credit link (ask staff / admin).
+ * - Errors do not reveal allowlist membership, approval, or inventory size.
+ * - Guest CSV / sheet sync side-effects are not triggered here for allowlist
+ *   (admin imports only). Credits pool may still refill server-side if empty.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -28,27 +54,18 @@ export async function POST(request: NextRequest) {
     const normalizedEmail = email.toLowerCase().trim();
     const name =
       validatedData.name?.trim() || displayNameFromEmail(normalizedEmail);
-    const locale = (body.locale === "en" ? "en" : "zh") as "zh" | "en";
     const redeemMode = getRedeemMode();
     const lumaMode = isLumaRedeemMode();
 
-    console.log(`📝 [REGISTER] Attempt: ${normalizedEmail} mode=${redeemMode}`);
+    console.log(`📝 [REGISTER] Attempt: ${maskEmail(normalizedEmail)} mode=${redeemMode}`);
 
     if (redeemMode === "luma" && !isLumaConfigured()) {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Luma redeem is enabled but LUMA_API_KEY / LUMA_EVENT_ID are missing.",
-          code: "LUMA_NOT_CONFIGURED",
-        },
-        { status: 503 }
-      );
+      // Opaque — do not name missing env vars publicly
+      return denyClaim();
     }
 
-    // Venue check-in gate (skipped in Luma mode)
     if (getEventCheckinCode() && !isCheckinCodeValid(checkinCode)) {
-      console.log(`❌ [REGISTER] Bad check-in code: ${normalizedEmail}`);
+      console.log(`❌ [REGISTER] Bad check-in code: ${maskEmail(normalizedEmail)}`);
       return NextResponse.json(
         {
           success: false,
@@ -59,25 +76,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Pull credits from Google Sheet if the pool is empty
+    // Refill credit pool if empty (server-side only; links never listed publicly)
     await ensureCreditsSynced();
-    // Auto-import bundled Luma guest CSV (534 approved) if not yet loaded
-    await ensureBundledLumaGuestsImported();
 
-    // Luma mode: sync checked-in guests, then require email on that list
     if (lumaMode) {
       const luma = await ensureLumaCheckedInUser(normalizedEmail);
       if (!luma.ok) {
-        console.log(`❌ [REGISTER] Not checked in on Luma: ${normalizedEmail}`);
-        return NextResponse.json(
-          {
-            success: false,
-            error:
-              "This email is not checked in on Luma. Please check in at the door first, then try again.",
-            code: "NOT_ELIGIBLE",
-          },
-          { status: 403 }
-        );
+        console.log(`❌ [REGISTER] Not on Luma list: ${maskEmail(normalizedEmail)}`);
+        return denyClaim();
       }
     }
 
@@ -98,36 +104,12 @@ export async function POST(request: NextRequest) {
         },
         include: { credit: true, ownedCredits: true },
       });
-      console.log(`➕ [REGISTER] Walk-up user created: ${normalizedEmail}`);
+      console.log(`➕ [REGISTER] Walk-up: ${maskEmail(normalizedEmail)}`);
     }
 
-    if (!eligibleUser) {
-      console.log(`❌ [REGISTER] Not eligible: ${normalizedEmail}`);
-      return NextResponse.json(
-        {
-          success: false,
-          error: lumaMode
-            ? "This email is not checked in on Luma. Please check in at the door first, then try again."
-            : "Please ask the staff to check you in on Luma first, then redeem.",
-          code: "NOT_ELIGIBLE",
-        },
-        { status: 403 }
-      );
-    }
-
-    if (eligibleUser.approvalStatus !== "approved") {
-      console.log(
-        `⚠️ [REGISTER] Not approved: ${normalizedEmail} (${eligibleUser.approvalStatus})`
-      );
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Your registration is not approved yet. Please contact the organizer.",
-          code: "NOT_APPROVED",
-        },
-        { status: 403 }
-      );
+    if (!eligibleUser || eligibleUser.approvalStatus !== "approved") {
+      console.log(`❌ [REGISTER] Denied: ${maskEmail(normalizedEmail)}`);
+      return denyClaim();
     }
 
     const ownedCount = eligibleUser.ownedCredits?.length
@@ -138,25 +120,18 @@ export async function POST(request: NextRequest) {
     const maxClaims = eligibleUser.isVolunteer ? getVolunteerMaxClaims() : 1;
     const canClaimMore = ownedCount < maxClaims;
 
-    // Non-volunteer (or volunteer at cap): re-show latest credit
+    // Already claimed — NEVER re-expose credit link to anonymous clients
     if (eligibleUser.hasClaimed && eligibleUser.credit && !canClaimMore) {
       console.log(
-        `⚠️ [REGISTER] Already at claim cap (${ownedCount}/${maxClaims}): ${normalizedEmail}`
+        `⚠️ [REGISTER] Already claimed (no re-show): ${maskEmail(normalizedEmail)}`
       );
       return NextResponse.json(
         {
           success: true,
-          message: eligibleUser.isVolunteer
-            ? "Volunteer claim limit reached. Here is your latest credit:"
-            : "You already claimed your credit. Here it is again:",
-          credit: eligibleUser.credit.link,
-          isExisting: true,
-          claimCount: ownedCount,
-          maxClaims,
-          user: {
-            name: eligibleUser.name,
-            email: eligibleUser.email,
-          },
+          alreadyClaimed: true,
+          message:
+            "This email already claimed a credit. Ask staff if you need the link again.",
+          // Intentionally omit: credit, user PII beyond confirmation, caps
         },
         { status: 200 }
       );
@@ -210,27 +185,18 @@ export async function POST(request: NextRequest) {
 
     const newClaimCount = ownedCount + 1;
     console.log(
-      `✅ [REGISTER] Assigned: ${normalizedEmail} -> ${availableCredit.code} (${newClaimCount}/${maxClaims}${eligibleUser.isVolunteer ? " volunteer" : ""})`
+      `✅ [REGISTER] Assigned: ${maskEmail(normalizedEmail)} (#${newClaimCount})`
     );
 
-    // No auto-email on claim — guests already get the link on-screen.
-    // Reminder outreach uses Notify unclaimed (Cafe Cursor Shanghai 20260719).
-
+    // First-time claim for this request: show ONLY this guest's new link.
+    // Do not expose volunteer flags, caps, company, or other guests.
     return NextResponse.json(
       {
         success: true,
-        message: eligibleUser.isVolunteer
-          ? `Volunteer credit #${newClaimCount} assigned:`
-          : "Congratulations! Here is your Cursor credit:",
+        message: "Congratulations! Here is your Cursor credit:",
         credit: availableCredit.link,
-        isTest: isTestUser,
-        claimCount: newClaimCount,
-        maxClaims,
-        isVolunteer: eligibleUser.isVolunteer,
         user: {
-          name: result.name,
           email: result.email,
-          company: result.company,
         },
         emailSent: false,
       },
@@ -263,37 +229,17 @@ export async function POST(request: NextRequest) {
 
 /**
  * GET /api/register
- * Public stats (no sensitive data)
+ * Minimal public config only — no counts, emails, inventory, or mode internals.
  */
 export async function GET() {
   try {
-    // Auto-import from Google Sheet when pool is empty
-    await ensureCreditsSynced();
-    // Auto-import bundled Luma guest CSV if allowlist is empty
-    await ensureBundledLumaGuestsImported();
-
-    const [availableReal, totalEligible, claimed] = await Promise.all([
-      prisma.credit.count({ where: { isUsed: false, isTest: false } }),
-      prisma.eligibleUser.count({ where: { approvalStatus: "approved" } }),
-      prisma.eligibleUser.count({ where: { hasClaimed: true } }),
-    ]);
-
     return NextResponse.json({
-      available: availableReal > 0,
-      remaining: availableReal,
-      redeemMode: getRedeemMode(),
       requiresCheckinCode: requiresCheckinCode(),
-      lumaConfigured: isLumaConfigured(),
-      stats: {
-        totalEligible,
-        claimed,
-        pending: Math.max(totalEligible - claimed, 0),
-      },
     });
   } catch (error) {
     console.error(`❌ [STATS] Error:`, error);
     return NextResponse.json(
-      { available: false, remaining: 0 },
+      { requiresCheckinCode: false },
       { status: 500 }
     );
   }
