@@ -11,12 +11,13 @@ interface RegisterResult {
   error?: string;
   code?: string;
   credit?: string;
+  alreadyClaimed?: boolean;
   isExisting?: boolean;
   isTest?: boolean;
   emailSent?: boolean;
   emailError?: string;
   user?: {
-    name: string;
+    name?: string;
     email: string;
     company?: string;
   };
@@ -104,10 +105,10 @@ export function RegisterForm() {
 
   const getErrorMessage = (code?: string, originalError?: string): string => {
     switch (code) {
+      case "CLAIM_DENIED":
       case "NOT_ELIGIBLE":
-        return t("notEligible");
       case "NOT_APPROVED":
-        return t("notApproved");
+        return t("notEligible");
       case "BAD_CHECKIN_CODE":
         return t("badCheckinCode");
       case "NO_CREDITS":
@@ -118,6 +119,29 @@ export function RegisterForm() {
         return originalError || t("networkError");
     }
   };
+
+  // Already claimed — link is not re-shown publicly (staff / admin only)
+  if (status === "success" && result?.alreadyClaimed && !result.credit) {
+    return (
+      <div className="w-full max-w-md animate-fade-in">
+        <div className="rounded-2xl border border-border bg-background p-8">
+          <h2 className="mb-2 text-center text-xl font-semibold">
+            {t("alreadyHaveCredit")}
+          </h2>
+          <p className="mb-6 text-center text-sm text-muted">
+            {t("alreadyClaimedAskStaff")}
+          </p>
+          <button
+            type="button"
+            onClick={handleReset}
+            className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm font-medium transition-colors hover:bg-foreground/5"
+          >
+            {t("tryAnotherEmail")}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (status === "success" && result?.credit) {
     return (
@@ -140,22 +164,19 @@ export function RegisterForm() {
           </div>
 
           <h2 className="mb-2 text-center text-xl font-semibold">
-            {result.isExisting ? t("alreadyHaveCredit") : t("successTitle")}
+            {t("successTitle")}
           </h2>
 
           <p className="mb-6 text-center text-sm text-muted">
             {t("congratsMessage")}
           </p>
 
-          {result.user && (
+          {result.user?.email && (
             <div className="mb-4 rounded-xl border border-border bg-foreground/5 p-3">
               <p className="text-sm">
                 <span className="text-muted">{t("registeredAs")} </span>
                 <span className="font-medium">{result.user.email}</span>
               </p>
-              {result.user.company && (
-                <p className="text-xs text-muted mt-1">{result.user.company}</p>
-              )}
             </div>
           )}
 
@@ -301,11 +322,11 @@ export function RegisterForm() {
             <p className="text-sm text-[var(--error)]">
               {getErrorMessage(result.code, result.error)}
             </p>
-            {result.code === "NOT_APPROVED" && (
+            {result.code === "CLAIM_DENIED" || result.code === "NOT_APPROVED" ? (
               <p className="mt-2 text-xs text-muted">
                 {t("pendingApproval")}
               </p>
-            )}
+            ) : null}
             <button
               type="button"
               onClick={handleReset}

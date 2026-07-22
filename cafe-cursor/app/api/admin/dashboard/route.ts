@@ -57,6 +57,17 @@ export async function GET(request: NextRequest) {
         { assignedAt: "desc" },
         { createdAt: "desc" },
       ],
+      select: {
+        id: true,
+        code: true,
+        // Unused pool links stay admin-only in DB; still needed for Copy in UI
+        link: true,
+        isUsed: true,
+        isTest: true,
+        assignedAt: true,
+        createdAt: true,
+        ownerId: true,
+      },
     });
 
     const eligibleUsers = await prisma.eligibleUser.findMany({
@@ -66,8 +77,29 @@ export async function GET(request: NextRequest) {
         { claimedAt: "desc" },
         { createdAt: "desc" },
       ],
-      include: {
-        credit: true,
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        company: true,
+        role: true,
+        approvalStatus: true,
+        hasClaimed: true,
+        claimedAt: true,
+        reminderSentAt: true,
+        isVolunteer: true,
+        isDoorVolunteer: true,
+        createdAt: true,
+        creditId: true,
+        credit: {
+          select: {
+            id: true,
+            code: true,
+            link: true,
+            isUsed: true,
+            isTest: true,
+          },
+        },
         ownedCredits: {
           select: { id: true, code: true, isUsed: true },
         },

@@ -38,10 +38,10 @@ next-env.d.ts
 prisma/dev.db
 prisma/dev.db-journal
 
-# CSV data files (contain sensitive event data)
+# CSV data files (contain sensitive event data) — admin upload only, never commit
 *.csv
 !prisma/*-example.csv
-!data/luma-guests.csv
+# data/luma-guests.csv intentionally NOT allowlisted
 
 # IDE
 .idea

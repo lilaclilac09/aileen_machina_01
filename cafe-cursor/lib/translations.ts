@@ -39,6 +39,7 @@ export const translations = {
     // Success
     successTitle: "Credits 已发放！",
     alreadyHaveCredit: "你已经领取过 credits！",
+    alreadyClaimedAskStaff: "链接不会再次显示。如需找回，请找现场工作人员或 Admin。",
     congratsMessage: "恭喜！这是你的 Cursor credits：",
     registeredAs: "邮箱：",
     testWarning: "⚠️ 这是测试 credits（不可用于正式使用）",
@@ -108,6 +109,8 @@ export const translations = {
     // Success
     successTitle: "Credits assigned!",
     alreadyHaveCredit: "You already claimed your credits!",
+    alreadyClaimedAskStaff:
+      "Your link is not shown again here. Ask staff or Admin if you need it.",
     congratsMessage: "Congratulations! Here are your Cursor credits:",
     registeredAs: "Email:",
     testWarning: "⚠️ This is a TEST credit (not valid for real use)",

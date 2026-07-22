@@ -8,13 +8,16 @@
 
 import { prisma } from "@/lib/prisma";
 
-const DEFAULT_SHEET_ID = "1STC2voXO53oWsfMqH3mdQMdf6xeTDw7gEQA0DGRZOik";
-
 export function getCreditsSheetCsvUrl(): string {
   if (process.env.GOOGLE_SHEET_CREDITS_CSV_URL) {
     return process.env.GOOGLE_SHEET_CREDITS_CSV_URL;
   }
-  const sheetId = process.env.GOOGLE_SHEET_CREDITS_ID || DEFAULT_SHEET_ID;
+  const sheetId = process.env.GOOGLE_SHEET_CREDITS_ID;
+  if (!sheetId) {
+    throw new Error(
+      "GOOGLE_SHEET_CREDITS_ID (or GOOGLE_SHEET_CREDITS_CSV_URL) is not set"
+    );
+  }
   return `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
 }
 
@@ -181,6 +184,7 @@ export async function syncCreditsFromSheet(
 
 /**
  * If the real credit pool is empty, pull once from the Google Sheet.
+ * Failures are logged; callers should treat empty pool as NO_CREDITS.
  */
 export async function ensureCreditsSynced(): Promise<number> {
   const available = await prisma.credit.count({
@@ -188,10 +192,15 @@ export async function ensureCreditsSynced(): Promise<number> {
   });
   if (available > 0) return available;
 
-  console.log("📥 [SHEET] No credits in DB — auto-syncing from Google Sheet...");
-  const result = await syncCreditsFromSheet();
-  console.log(
-    `📥 [SHEET] Auto-sync done: created=${result.created} available=${result.available}`
-  );
-  return result.available;
+  try {
+    console.log("📥 [SHEET] No credits in DB — auto-syncing from Google Sheet...");
+    const result = await syncCreditsFromSheet();
+    console.log(
+      `📥 [SHEET] Auto-sync done: created=${result.created} available=${result.available}`
+    );
+    return result.available;
+  } catch (err) {
+    console.error("📥 [SHEET] Auto-sync skipped/failed:", err);
+    return 0;
+  }
 }
