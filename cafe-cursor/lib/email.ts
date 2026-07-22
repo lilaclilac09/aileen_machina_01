@@ -93,7 +93,7 @@ function assertCanBulkSend(): string | null {
   if (isTestingOnlyFromAddress(from)) {
     return (
       `FROM_EMAIL is still a Resend test address (${from}). ` +
-      `Set Vercel o6o4 env FROM_EMAIL=Cafe Cursor Shanghai <cafe@aileena.xyz>, ` +
+      `Set Vercel env FROM_EMAIL=Cafe Cursor Shanghai <cafe@aileena.xyz>, ` +
       `then Redeploy. Domain must be Verified in Resend.`
     );
   }
@@ -494,7 +494,7 @@ export async function sendUnclaimedReminderBccBlast(
           if (/only send testing emails|verify a domain/i.test(one.error.message)) {
             abortRemaining =
               `From is still testing-only (${from}). ` +
-              `On Vercel o6o4 set FROM_EMAIL=Cafe Cursor Shanghai <cafe@aileena.xyz> ` +
+              `On Vercel set FROM_EMAIL=Cafe Cursor Shanghai <cafe@aileena.xyz> ` +
               `(must match Resend verified domain), Redeploy, then retry. ` +
               `Test-to-yourself can succeed even when guest send is blocked.`;
             break;

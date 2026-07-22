@@ -82,7 +82,7 @@ Access the admin panel at `/admin`:
 - **User Management** - See who claimed credits
 - **Credit Management** - Track available and used credits
 
-Default credentials: set `ADMIN_USERNAME` + `ADMIN_PASSWORD_HASH` (or `ADMIN_PASSWORD`) and `SESSION_SECRET` in env — there are **no** hardcoded defaults. After any suspected breach, rotate password + `SESSION_SECRET` and redeploy.
+Admin login: set `ADMIN_USERNAME`, `ADMIN_PASSWORD` (or `ADMIN_PASSWORD_HASH`), and `SESSION_SECRET` in Vercel env only — never commit real values.
 
 ## 📦 Data Import
 
@@ -228,7 +228,7 @@ Production URL: **https://cursor-cafe.aileena.xyz**
 
 This fork is set up for **Luma guest list → redeem** (no shared event code, **no Luma Plus**):
 
-1. Credits come from the Google Sheet ([Cafe Cursor Shanghai - Aileen](https://docs.google.com/spreadsheets/d/1STC2voXO53oWsfMqH3mdQMdf6xeTDw7gEQA0DGRZOik/htmlview)).
+1. Credits come from the Google Sheet ([Cafe Cursor Shanghai - Aileen](YOUR_PRIVATE_GOOGLE_SHEET)).
 2. In Admin → **Sync Sheet** to import / refresh referral links.
 3. Set `REDEEM_MODE=allowlist`.
 4. Luma → Guests → **Download CSV** → Admin → **Import Luma CSV** (approved emails; or checked-in only on door day).
@@ -236,7 +236,7 @@ This fork is set up for **Luma guest list → redeem** (no shared event code, **
 
 ```env
 REDEEM_MODE=allowlist
-GOOGLE_SHEET_CREDITS_ID=1STC2voXO53oWsfMqH3mdQMdf6xeTDw7gEQA0DGRZOik
+GOOGLE_SHEET_CREDITS_ID=YOUR_GOOGLE_SHEET_ID
 NEXT_PUBLIC_SITE_URL=https://cursor-cafe.aileena.xyz
 ```
 
@@ -266,4 +266,4 @@ Fallback door code: `REDEEM_MODE=open` + `EVENT_CHECKIN_CODE=...`.
    - Then `FROM_EMAIL=Cafe Cursor Shanghai <cafe@aileena.xyz>`
 
 4. Open https://cursor-cafe.aileena.xyz/admin → **Sync Sheet** → **QR Host Kit**  
-   QR: `https://cursor-cafe.aileena.xyz/?code=shanghai2026&lang=en`
+   QR: `https://cursor-cafe.aileena.xyz/?code=YOUR_EVENT_CODE&lang=en`

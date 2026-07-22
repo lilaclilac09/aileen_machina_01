@@ -1,3 +1,4 @@
+import { getContactInbox } from '@/lib/contact-inbox';
 import { Resend } from 'resend';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -95,10 +96,14 @@ export async function POST(req: NextRequest) {
     '────────── /Transcript ─────────',
   ].join('\n');
 
+  const inbox = getContactInbox();
+  if (!inbox) {
+    return NextResponse.json({ error: 'Contact inbox not configured.' }, { status: 503 });
+  }
   const resend = new Resend(process.env.RESEND_API_KEY);
   const { error } = await resend.emails.send({
     from: 'AILEENA MACHINA <onboarding@resend.dev>',
-    to: 'rosazxc0915@gmail.com',
+    to: inbox,
     subject,
     text,
   });

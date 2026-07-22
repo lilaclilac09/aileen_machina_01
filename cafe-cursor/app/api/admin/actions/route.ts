@@ -703,7 +703,7 @@ export async function POST(request: NextRequest) {
           );
         }
         const fromHint = config.testingOnlyFrom
-          ? `\n\nWARNING: From is still ${config.from} — bulk send to guests will fail. Set FROM_EMAIL=Cafe Cursor Shanghai <cafe@aileena.xyz> on o6o4 and Redeploy.`
+          ? `\n\nWARNING: From is still ${config.from} — bulk send to guests will fail. Set FROM_EMAIL=Cafe Cursor Shanghai <cafe@aileena.xyz> on Vercel and Redeploy.`
           : `\nFrom: ${config.from}`;
         return NextResponse.json({
           success: true,
@@ -724,7 +724,7 @@ export async function POST(request: NextRequest) {
             {
               error:
                 `Cannot notify guests while From is ${config.from}. ` +
-                `In Vercel o6o4 set FROM_EMAIL=Cafe Cursor Shanghai <cafe@aileena.xyz> (Resend domain Verified), then Redeploy.`,
+                `In Vercel set FROM_EMAIL=Cafe Cursor Shanghai <cafe@aileena.xyz> (Resend domain Verified), then Redeploy.`,
               from: config.from,
             },
             { status: 400 }
