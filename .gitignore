@@ -9,3 +9,8 @@ node_modules
 .env
 .env.*
 !.env.example
+
+# Never commit env files (including nested / historical paths)
+**/.env
+**/.env.*
+!**/.env.example
