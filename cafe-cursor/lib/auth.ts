@@ -21,9 +21,17 @@ function getAdminUsername(): string {
  */
 function getSessionSecret(): string {
   const secret = trimEnv(process.env.SESSION_SECRET);
-  if (secret.length >= 8) return secret;
-  // Fallback for deploys that never set SESSION_SECRET — do not block login
-  return "cafe-cursor-secret-key-2024";
+  if (secret.length >= 16) return secret;
+  // No published fallback in source. Missing secret → sessions cannot verify.
+  return "";
+}
+
+function requireSessionSecret(): string {
+  const secret = getSessionSecret();
+  if (!secret) {
+    throw new Error("SESSION_SECRET is not configured");
+  }
+  return secret;
 }
 
 function safeEqualString(a: string, b: string): boolean {
@@ -77,7 +85,11 @@ export function verifyCredentials(username: string, password: string): boolean {
     return verifyPasswordHash(password, hash);
   }
 
-  const plaintext = trimEnv(process.env.ADMIN_PASSWORD) || "cafecursor2024";
+  const plaintext = trimEnv(process.env.ADMIN_PASSWORD);
+  if (!plaintext) {
+    console.error("[AUTH] ADMIN_PASSWORD / ADMIN_PASSWORD_HASH not set");
+    return false;
+  }
   return safeEqualString(password, plaintext);
 }
 
@@ -100,7 +112,7 @@ function fromB64url(s: string): Buffer {
  * payload = username:expMs — secret never leaves the server.
  */
 export function createSessionToken(): string {
-  const secret = getSessionSecret();
+  const secret = requireSessionSecret();
   const username = getAdminUsername();
   const exp = Date.now() + SESSION_MAX_AGE_MS;
   const payload = `${username}:${exp}`;
@@ -112,6 +124,7 @@ export function createSessionToken(): string {
 export function verifySessionToken(token: string): boolean {
   try {
     const secret = getSessionSecret();
+    if (!secret) return false;
 
     const parts = token.split(".");
     if (parts.length !== 3 || parts[0] !== "v1") return false;

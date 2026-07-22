@@ -4,7 +4,7 @@
  * Usage:
  *   npx tsx scripts/hash-admin-password.ts 'your-new-strong-password'
  *
- * Then set on Vercel o6o4:
+ * Then set on Vercel:
  *   ADMIN_PASSWORD_HASH=<printed value>
  *   SESSION_SECRET=<long random string>
  * Remove or leave blank ADMIN_PASSWORD after hash works.
@@ -22,7 +22,7 @@ if (!password || password.length < 10) {
 const hash = hashAdminPassword(password);
 const sessionSecret = randomBytes(32).toString("base64url");
 
-console.log("\nPaste these into Vercel → aileen-machina-01-o6o4 → Environment Variables:\n");
+console.log("\nPaste these into Vercel → your Vercel project → Environment Variables:\n");
 console.log(`ADMIN_PASSWORD_HASH=${hash}`);
 console.log(`SESSION_SECRET=${sessionSecret}`);
 console.log("\nThen: remove ADMIN_PASSWORD (or leave empty), Redeploy.");

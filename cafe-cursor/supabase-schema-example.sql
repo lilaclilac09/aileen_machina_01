@@ -1,0 +1,11 @@
+-- Schema-only example for Cafe Cursor (NO real guest emails / referral codes).
+-- Prefer: prisma db push + Admin Clear+Sync for production data.
+--
+-- This file intentionally contains only placeholders.
+
+-- Example (DO NOT use in production):
+-- INSERT INTO "EligibleUser" (id, email, name, "approvalStatus", "hasClaimed", "createdAt")
+-- VALUES ('example1', 'guest@example.com', 'Example Guest', 'approved', false, NOW());
+--
+-- INSERT INTO "Credit" (id, code, link, "isUsed", "isTest", "createdAt", "updatedAt")
+-- VALUES ('c1', 'TEST-CREDIT-001', 'https://cursor.com/referral?code=TESTCREDIT001', false, true, NOW(), NOW());

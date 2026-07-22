@@ -1,3 +1,4 @@
+import { getContactInbox } from '@/lib/contact-inbox';
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { Resend } from 'resend';
@@ -69,13 +70,16 @@ export async function POST(req: NextRequest) {
   // Capture: tell the owner who just unlocked the writing.
   if (process.env.RESEND_API_KEY) {
     try {
-      const resend = new Resend(process.env.RESEND_API_KEY);
-      await resend.emails.send({
-        from: 'AILEENA MACHINA <onboarding@resend.dev>',
-        to: 'rosazxc0915@gmail.com',
-        subject: `[AILEENA] Blog login · wallet · ${address}`,
-        text: `Wallet login.\nAddress: ${address}\n${visitorLines(req, { client: body.client })}`,
-      });
+      const inbox = getContactInbox();
+      if (inbox) {
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        await resend.emails.send({
+          from: 'AILEENA MACHINA <onboarding@resend.dev>',
+          to: inbox,
+          subject: `[AILEENA] Blog login · wallet · ${address}`,
+          text: `Wallet login.\nAddress: ${address}\n${visitorLines(req, { client: body.client })}`,
+        });
+      }
     } catch {
       /* non-fatal */
     }

@@ -22,7 +22,17 @@ export const WALLET_LOGIN_PREFIX =
   'Sign in to aileena.xyz — this proves you own this wallet. No transaction, no fees.\n\nchallenge: ';
 
 function secret(): string {
-  return process.env.AUTH_SECRET || process.env.CHAT_QUOTA_SECRET || 'aileena-dev-secret';
+  const s = process.env.AUTH_SECRET || process.env.CHAT_QUOTA_SECRET || '';
+  if (s) return s;
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('AUTH_SECRET is not configured');
+  }
+  return createHashPlaceholder();
+}
+
+function createHashPlaceholder(): string {
+  // Dev-only — not a published production secret string
+  return `dev-only-${process.env.USER || 'local'}`;
 }
 
 /* ── base64url <-> bytes / json ── */

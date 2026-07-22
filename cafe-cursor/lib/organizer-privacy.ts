@@ -5,10 +5,16 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from "crypt
  * Key: ORGANIZER_COPY_SECRET or SESSION_SECRET (server env only — never shipped to clients).
  */
 function getCopyKey(): Buffer {
-  const raw =
-    (process.env.ORGANIZER_COPY_SECRET || process.env.SESSION_SECRET || "")
-      .trim()
-      .replace(/^["']|["']$/g, "") || "cafe-cursor-organizer-copy-fallback";
+  const raw = (
+    process.env.ORGANIZER_COPY_SECRET ||
+    process.env.SESSION_SECRET ||
+    ""
+  )
+    .trim()
+    .replace(/^["']|["']$/g, "");
+  if (raw.length < 8) {
+    throw new Error("ORGANIZER_COPY_SECRET or SESSION_SECRET required for encrypt");
+  }
   return createHash("sha256").update(raw).digest();
 }
 
