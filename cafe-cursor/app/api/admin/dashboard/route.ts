@@ -26,6 +26,8 @@ export async function GET(request: NextRequest) {
       totalEligible,
       claimedUsers,
       approvedUsers,
+      remindedUnclaimed,
+      awaitingReminder,
     ] = await Promise.all([
       prisma.credit.count(),
       prisma.credit.count({ where: { isUsed: true } }),
@@ -33,6 +35,20 @@ export async function GET(request: NextRequest) {
       prisma.eligibleUser.count(),
       prisma.eligibleUser.count({ where: { hasClaimed: true } }),
       prisma.eligibleUser.count({ where: { approvalStatus: "approved" } }),
+      prisma.eligibleUser.count({
+        where: {
+          approvalStatus: "approved",
+          hasClaimed: false,
+          reminderSentAt: { not: null },
+        },
+      }),
+      prisma.eligibleUser.count({
+        where: {
+          approvalStatus: "approved",
+          hasClaimed: false,
+          reminderSentAt: null,
+        },
+      }),
     ]);
 
     const credits = await prisma.credit.findMany({
@@ -74,6 +90,8 @@ export async function GET(request: NextRequest) {
         claimedUsers,
         approvedUsers,
         pendingUsers: approvedUsers - claimedUsers,
+        remindedUnclaimed,
+        awaitingReminder,
       },
       credits,
       eligibleUsers: usersWithClaims,

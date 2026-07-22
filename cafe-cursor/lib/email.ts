@@ -384,6 +384,7 @@ export async function sendUnclaimedReminderBccBlast(
   failed: number;
   batches: number;
   failures: { email: string; error: string }[];
+  sentEmails: string[];
   simulated: boolean;
   cc: string;
   from: string;
@@ -401,6 +402,7 @@ export async function sendUnclaimedReminderBccBlast(
       failed: recipientEmails.length,
       batches: 0,
       failures: [{ email: "(config)", error: blocked }],
+      sentEmails: [],
       simulated: false,
       cc,
       from,
@@ -427,6 +429,7 @@ export async function sendUnclaimedReminderBccBlast(
       failed: 0,
       batches: 0,
       failures: [],
+      sentEmails: guests,
       simulated: true,
       cc,
       from,
@@ -439,6 +442,7 @@ export async function sendUnclaimedReminderBccBlast(
   let failed = 0;
   let batches = 0;
   const failures: { email: string; error: string }[] = [];
+  const sentEmails: string[] = [];
 
   // Organizer copy first
   try {
@@ -468,7 +472,6 @@ export async function sendUnclaimedReminderBccBlast(
     const chunk = guests.slice(i, i + CHUNK);
     batches += 1;
 
-    // Prefer one-by-one so From misconfig surfaces on the first guest
     for (const email of chunk) {
       try {
         const one = await resendClient.emails.send({
@@ -490,8 +493,16 @@ export async function sendUnclaimedReminderBccBlast(
               `Test-to-yourself can succeed even when guest send is blocked.`;
             break;
           }
+          if (/daily_quota_exceeded|monthly_quota_exceeded|quota/i.test(one.error.message)) {
+            abortRemaining =
+              `Resend quota exceeded (${one.error.message}). ` +
+              `Successfully marked ${sent} sends; remaining guests were not emailed. ` +
+              `Retry tomorrow or upgrade Resend plan.`;
+            break;
+          }
         } else {
           sent += 1;
+          sentEmails.push(email);
         }
       } catch (err) {
         failed += 1;
@@ -500,13 +511,15 @@ export async function sendUnclaimedReminderBccBlast(
           error: `${err instanceof Error ? err.message : "unknown"} (From: ${from})`,
         });
       }
-      // light pacing
       await new Promise((r) => setTimeout(r, 50));
     }
   }
 
   if (abortRemaining) {
-    const already = new Set(failures.map((f) => f.email));
+    const already = new Set([
+      ...failures.map((f) => f.email),
+      ...sentEmails,
+    ]);
     for (const email of guests) {
       if (already.has(email)) continue;
       failed += 1;
@@ -514,7 +527,7 @@ export async function sendUnclaimedReminderBccBlast(
     }
   }
 
-  return { sent, failed, batches, failures, simulated: false, cc, from };
+  return { sent, failed, batches, failures, sentEmails, simulated: false, cc, from };
 }
 
 /** @deprecated Prefer sendUnclaimedReminderBccBlast for privacy (BCC). */
