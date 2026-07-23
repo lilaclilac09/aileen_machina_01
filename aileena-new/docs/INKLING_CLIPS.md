@@ -17,7 +17,7 @@ Use [Thinking Machines Inkling](https://thinkingmachines.ai/news/introducing-ink
 |------------|---------|
 | [yt-dlp](https://github.com/yt-dlp/yt-dlp) | YouTube download |
 | [ffmpeg](https://ffmpeg.org/) + ffprobe | Convert, split, render |
-| `INKLING_API_KEY` or `TOGETHER_API_KEY` | Inkling inference (default: Together AI) |
+| `INKLING_API_KEY` or `TOGETHER_API_KEY` | Optional — without it, free local silence mode is used |
 
 Install on macOS (Homebrew):
 
@@ -25,9 +25,18 @@ Install on macOS (Homebrew):
 brew install yt-dlp ffmpeg
 ```
 
+## Free local mode (no credits)
+
+Without an API key (or with `--local`), the tool skips Inkling and uses ffmpeg `silencedetect` → speech islands → top N clips. Coarser than Inkling; still needs yt-dlp + ffmpeg.
+
+```bash
+pnpm inkling:clips -- 'https://www.youtube.com/watch?v=VIDEO_ID' --local --best 3 --dry-run
+```
+
 ## Environment
 
 ```bash
+# optional — omit for free local mode
 export TOGETHER_API_KEY="..."          # or INKLING_API_KEY
 # optional overrides:
 export INKLING_BASE_URL="https://api.together.xyz/v1"
@@ -41,21 +50,24 @@ Other OpenAI-compatible providers (Baseten, custom) work via `INKLING_BASE_URL` 
 
 Hub: **`/tools`** · page: **`/tools/inkling-clips`**.
 
-**Launch mode (A + B3):** the public page is a **CLI command builder**. Browser Run is not enabled on Vercel (no `yt-dlp` / `ffmpeg` on serverless). Visitors copy a local command and run it on their machine.
+- **Browser Run** when `GET /api/tools/inkling-clips/status` reports `ready` (`media.ok` — yt-dlp + ffmpeg). Uses free local if no key; Inkling when keyed.
+- **CLI fallback** always shown (copy command).
+- Default Vercel deploy will show “not ready” until you run Docker / a VPS — see **[INKLING_LAUNCH.md](./INKLING_LAUNCH.md)**.
 
-API routes under `/api/tools/inkling-clips` remain in the repo for a future worker host; they are not the public path today.
-
-Adding another tool: see **[TOOLS_ARCADE.md](./TOOLS_ARCADE.md)**.
+API: `POST /api/tools/inkling-clips` · poll `GET ?jobId=` · clips `/api/tools/inkling-clips/clip`.
 
 ## CLI (local / self-hosted)
 
 From `aileena-new/`:
 
 ```bash
-# Best 5 shareable moments (default)
+# Free local (no API key)
+pnpm inkling:clips -- 'https://www.youtube.com/watch?v=VIDEO_ID' --local --best 5
+
+# Best 5 shareable moments (Inkling when key set; else auto-local)
 pnpm inkling:clips -- 'https://www.youtube.com/watch?v=VIDEO_ID' --best 5
 
-# Search for a topic / quote
+# Search for a topic / quote (Inkling)
 pnpm inkling:clips -- 'https://youtu.be/VIDEO_ID' --query "mixture of experts"
 
 # Preview candidates only (no render)
@@ -87,7 +99,9 @@ data/inkling-clips/<video-id>/
 | Flag | Default | Description |
 |------|---------|-------------|
 | `--best [N]` | 5 | Pick top N moments |
-| `--query "..."` | — | Topic / theme search mode |
+| `--query "..."` | — | Topic / theme search mode (Inkling) |
+| `--local` | off | Free silence-gap mode (no API key) |
+| `--inkling` | off | Force Inkling (requires API key) |
 | `--batch-seconds` | 900 | Batch length (≤ ~20 min recommended for Inkling) |
 | `--overlap-seconds` | 30 | Overlap so boundary clips aren't lost |
 | `--pad-seconds` | 20 | Padding around candidate for correction pass |
@@ -102,13 +116,17 @@ Short public video (~3 min) for a cheap smoke test:
 
 ```bash
 cd aileena-new
+# free local (no key)
+pnpm inkling:clips -- 'https://www.youtube.com/watch?v=jNQXAC9IVRw' --local --best 2 --dry-run
+
+# or Inkling (paid)
 export TOGETHER_API_KEY="your-key"
 pnpm inkling:clips -- 'https://www.youtube.com/watch?v=jNQXAC9IVRw' --best 2 --dry-run
 ```
 
 Inspect `data/inkling-clips/jNQXAC9IVRw/candidates.json`, then drop `--dry-run` to render clips.
 
-Without an API key the CLI exits immediately after checking `yt-dlp`/`ffmpeg` (no download). Helper smoke (batch math + JSON parse, no network):
+Helper smoke (batch math + JSON parse + local silence heuristic, no network / no key):
 
 ```bash
 pnpm exec tsx scripts/smoke-inkling-helpers.ts

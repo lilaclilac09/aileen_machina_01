@@ -18,7 +18,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     tag: 'AUDIO',
     title: 'Audio Clipping',
     body:
-      'YouTube → Inkling → ffmpeg. Run locally via CLI — browser Run not on Vercel yet.',
+      'YouTube → clips (free local silence gaps or Inkling). Browser Run when host has yt-dlp/ffmpeg; CLI always.',
     href: '/tools/inkling-clips',
     status: 'live',
     arcade: {

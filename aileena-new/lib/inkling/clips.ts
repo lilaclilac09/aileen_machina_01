@@ -193,6 +193,8 @@ Usage:
 Options:
   --best [N]              Pick best N moments (default 5)
   --query "..."           Search for a topic / quote / theme
+  --local                 Free mode: ffmpeg silence gaps (no API key)
+  --inkling               Force Inkling (requires API key)
   --batch-seconds N       Batch size in seconds (default 900)
   --overlap-seconds N     Overlap between batches (default 30)
   --pad-seconds N         Padding around candidate for correction (default 20)
@@ -203,7 +205,7 @@ Options:
   --help                  Show this help
 
 Environment:
-  INKLING_API_KEY or TOGETHER_API_KEY   Required for propose/correct passes
+  INKLING_API_KEY or TOGETHER_API_KEY   Optional — without it, auto uses --local
   INKLING_BASE_URL                      Default https://api.together.xyz/v1
   INKLING_MODEL                         Default thinkingmachines/inkling
   INKLING_REASONING_EFFORT              Optional (provider-specific)

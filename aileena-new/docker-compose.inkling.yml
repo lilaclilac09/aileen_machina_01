@@ -1,0 +1,27 @@
+# Local / VPS Audio Clipping host (Browser Run enabled)
+#
+#   cd aileena-new
+#   export TOGETHER_API_KEY=...
+#   docker compose -f docker-compose.inkling.yml up --build
+#
+# Then open http://localhost:3000/tools/inkling-clips
+
+services:
+  inkling-clips:
+    build:
+      context: .
+      dockerfile: Dockerfile.inkling
+    ports:
+      - '3000:3000'
+    environment:
+      TOGETHER_API_KEY: ${TOGETHER_API_KEY:-}
+      INKLING_API_KEY: ${INKLING_API_KEY:-}
+      INKLING_BASE_URL: ${INKLING_BASE_URL:-https://api.together.xyz/v1}
+      INKLING_MODEL: ${INKLING_MODEL:-thinkingmachines/inkling}
+      UPSTASH_REDIS_REST_URL: ${UPSTASH_REDIS_REST_URL:-}
+      UPSTASH_REDIS_REST_TOKEN: ${UPSTASH_REDIS_REST_TOKEN:-}
+    volumes:
+      - inkling-tmp:/tmp/inkling-clips
+
+volumes:
+  inkling-tmp:

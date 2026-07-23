@@ -14,6 +14,7 @@ import {
   type ClipCandidate,
   type ClipMode,
 } from './clips';
+import { hasInklingApiKey, proposeLocalCandidates } from './localClips';
 import {
   convertToWav,
   downloadYoutube,
@@ -56,6 +57,8 @@ export type PipelineOptions = {
   audioOnly: boolean;
   workDir: string;
   skipDownload?: boolean;
+  /** auto = Inkling if key present, else free local heuristic */
+  engine?: 'auto' | 'local' | 'inkling';
   onProgress?: (progress: PipelineProgress) => void | Promise<void>;
 };
 
@@ -75,6 +78,7 @@ export type PipelineResult = {
   candidates: ClipCandidate[];
   clips: RenderedClip[];
   generatedAt: string;
+  engine: 'local' | 'inkling';
 };
 
 function emit(
@@ -207,59 +211,82 @@ export async function runInklingClipPipeline(opts: PipelineOptions): Promise<Pip
   }
 
   const totalDuration_s = ffprobeDuration_s(fullWav);
-  const batchDefs = computeBatches(totalDuration_s, opts.batchSeconds, opts.overlapSeconds);
-  const batches: AudioBatch[] = batchDefs.map((b) => ({
-    ...b,
-    wavPath: join(batchesDir, `batch-${String(b.index).padStart(3, '0')}.wav`),
-  }));
 
-  emit(opts.onProgress, {
-    phase: 'batch',
-    message: `Splitting into ${batches.length} batch(es)`,
-    progress: 18,
-    batchTotal: batches.length,
-  });
-
-  for (const batch of batches) {
-    if (!existsSync(batch.wavPath)) {
-      extractBatchWav(fullWav, batch.start_s, batch.duration_s, batch.wavPath);
-    }
+  const wanted = opts.engine ?? 'auto';
+  const useInkling =
+    wanted === 'inkling' || (wanted === 'auto' && hasInklingApiKey());
+  if (wanted === 'inkling' && !hasInklingApiKey()) {
+    throw new Error('engine=inkling requires INKLING_API_KEY or TOGETHER_API_KEY');
   }
 
-  const cfg = getInklingConfig();
-  const maxPerBatch = Math.max(2, Math.ceil(opts.bestCount / Math.max(1, batches.length)) + 1);
-  const rawCandidates: ClipCandidate[] = [];
+  let corrected: ClipCandidate[] = [];
 
-  for (let i = 0; i < batches.length; i += 1) {
-    const batch = batches[i];
+  if (!useInkling) {
     emit(opts.onProgress, {
       phase: 'propose',
-      message: `Inkling listening — batch ${i + 1}/${batches.length}`,
-      progress: 20 + Math.round((i / batches.length) * 40),
-      batchIndex: i,
-      batchTotal: batches.length,
+      message: 'Free local mode — finding speech gaps (no Inkling)',
+      progress: 35,
     });
-    const found = await proposeForBatch(cfg, batch, opts.mode, opts.query, maxPerBatch);
-    for (const c of found) {
-      rawCandidates.push(toAbsoluteCandidate(c, batch.start_s, batch.index));
-    }
-  }
-
-  const deduped = dedupeCandidates(rawCandidates).slice(0, opts.bestCount);
-  const corrected: ClipCandidate[] = [];
-
-  for (let i = 0; i < deduped.length; i += 1) {
-    const c = deduped[i];
+    corrected = proposeLocalCandidates(fullWav, totalDuration_s, opts.bestCount);
     emit(opts.onProgress, {
       phase: 'correct',
-      message: `Refining boundaries — clip ${i + 1}/${deduped.length}`,
-      progress: 60 + Math.round((i / Math.max(1, deduped.length)) * 25),
-      candidateIndex: i,
-      candidateTotal: deduped.length,
+      message: 'Local mode skips Inkling boundary correction',
+      progress: 70,
     });
-    corrected.push(
-      await correctCandidate(cfg, fullWav, c, opts.padSeconds, totalDuration_s, batchesDir),
-    );
+  } else {
+    const batchDefs = computeBatches(totalDuration_s, opts.batchSeconds, opts.overlapSeconds);
+    const batches: AudioBatch[] = batchDefs.map((b) => ({
+      ...b,
+      wavPath: join(batchesDir, `batch-${String(b.index).padStart(3, '0')}.wav`),
+    }));
+
+    emit(opts.onProgress, {
+      phase: 'batch',
+      message: `Splitting into ${batches.length} batch(es)`,
+      progress: 18,
+      batchTotal: batches.length,
+    });
+
+    for (const batch of batches) {
+      if (!existsSync(batch.wavPath)) {
+        extractBatchWav(fullWav, batch.start_s, batch.duration_s, batch.wavPath);
+      }
+    }
+
+    const cfg = getInklingConfig();
+    const maxPerBatch = Math.max(2, Math.ceil(opts.bestCount / Math.max(1, batches.length)) + 1);
+    const rawCandidates: ClipCandidate[] = [];
+
+    for (let i = 0; i < batches.length; i += 1) {
+      const batch = batches[i];
+      emit(opts.onProgress, {
+        phase: 'propose',
+        message: `Inkling listening — batch ${i + 1}/${batches.length}`,
+        progress: 20 + Math.round((i / batches.length) * 40),
+        batchIndex: i,
+        batchTotal: batches.length,
+      });
+      const found = await proposeForBatch(cfg, batch, opts.mode, opts.query, maxPerBatch);
+      for (const c of found) {
+        rawCandidates.push(toAbsoluteCandidate(c, batch.start_s, batch.index));
+      }
+    }
+
+    const deduped = dedupeCandidates(rawCandidates).slice(0, opts.bestCount);
+
+    for (let i = 0; i < deduped.length; i += 1) {
+      const c = deduped[i];
+      emit(opts.onProgress, {
+        phase: 'correct',
+        message: `Refining boundaries — clip ${i + 1}/${deduped.length}`,
+        progress: 60 + Math.round((i / Math.max(1, deduped.length)) * 25),
+        candidateIndex: i,
+        candidateTotal: deduped.length,
+      });
+      corrected.push(
+        await correctCandidate(cfg, fullWav, c, opts.padSeconds, totalDuration_s, batchesDir),
+      );
+    }
   }
 
   const manifest: PipelineResult = {
@@ -272,6 +299,7 @@ export async function runInklingClipPipeline(opts: PipelineOptions): Promise<Pip
     candidates: corrected,
     clips: [],
     generatedAt: new Date().toISOString(),
+    engine: useInkling ? 'inkling' : 'local',
   };
 
   writeFileSync(candidatesPath, JSON.stringify(manifest, null, 2));
