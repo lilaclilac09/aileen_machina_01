@@ -56,7 +56,7 @@ export const t = {
           tag: 'AUDIO',
           title: 'Audio Clipping',
           body:
-            'YouTube → Inkling → ffmpeg. Browser Run when the host has yt-dlp/ffmpeg + Together key; CLI always available.',
+            'YouTube → clips via ffmpeg. Free local silence gaps, or Inkling when a Together key is set. Needs yt-dlp/ffmpeg on the host.',
         },
         'cafe-cursor': {
           tag: 'EVENT',
@@ -84,12 +84,14 @@ export const t = {
         tag: 'AUDIO',
         heading: 'Audio Clipping',
         body:
-          'Long-form YouTube → Inkling picks moments → ffmpeg cuts clips. Run in-browser when the server is ready, or copy the CLI command.',
+          'Long-form YouTube → free local silence gaps (or Inkling if keyed) → ffmpeg cuts clips. Run when the host has yt-dlp/ffmpeg, or copy the CLI.',
         backToTools: '← Tools',
         hostChecking: 'Checking whether this host can run clips…',
-        hostReady: 'This host is ready — paste a URL and press Run.',
+        hostReady: 'This host is ready (Inkling) — paste a URL and press Run.',
+        hostReadyLocal:
+          'Free local mode — no Together credits. Clips from ffmpeg silence gaps (boundaries may be rough).',
         hostNotReady:
-          'Browser Run is not ready on this host yet (needs yt-dlp, ffmpeg, and TOGETHER_API_KEY). You can still copy a local CLI command below.',
+          'Browser Run is not ready on this host yet (needs yt-dlp + ffmpeg). You can still copy a local CLI command below.',
         youtubeLabel: 'YouTube URL',
         modeBest: 'Highlights',
         modeQuery: 'Topic search',
@@ -101,11 +103,14 @@ export const t = {
         copied: 'Copied',
         prereqTitle: 'Setup',
         prereqBrew: 'Install: brew install yt-dlp ffmpeg',
-        prereqKey: 'export TOGETHER_API_KEY="…" (from together.ai)',
+        prereqKey: 'Optional: export TOGETHER_API_KEY="…" for Inkling (paid)',
         prereqCd: 'From the aileena-new/ repo folder, paste the command',
         submit: 'Run',
         running: 'Running…',
         listening: 'Inkling is listening',
+        listeningLocal: 'Local silence detect',
+        engineLocal: 'local',
+        engineInkling: 'inkling',
         levelLabels: {
           download: '1 · Download',
           convert: '2 · WAV',
@@ -120,6 +125,8 @@ export const t = {
         scoreLabel: 'score',
         disclaimer:
           '8 runs / visitor / day. Inkling on Together is paid (~$1 / $4.05 per 1M in/out). Start with a short video.',
+        disclaimerLocal:
+          '8 runs / visitor / day. Free local mode — no API credits. Still needs yt-dlp + ffmpeg on the host (not bare Vercel).',
         resultsHint: 'Jump to the moment or download the cut.',
         openYoutube: 'Open',
         downloadClip: 'Download',
@@ -710,7 +717,7 @@ export const t = {
           tag: 'AUDIO',
           title: 'Audio Clipping',
           body:
-            'YouTube → Inkling → ffmpeg. Browser-Run wenn Host yt-dlp/ffmpeg + Together-Key hat; CLI immer verfügbar.',
+            'YouTube → Clips via ffmpeg. Kostenlos lokal (Stille) oder Inkling mit Together-Key. Braucht yt-dlp/ffmpeg auf dem Host.',
         },
         'cafe-cursor': {
           tag: 'EVENT',
@@ -738,12 +745,14 @@ export const t = {
         tag: 'AUDIO',
         heading: 'Audio Clipping',
         body:
-          'Long-form YouTube → Inkling findet Momente → ffmpeg schneidet. Im Browser wenn der Server bereit ist, sonst CLI kopieren.',
+          'Long-form YouTube → kostenlose lokale Stille-Erkennung (oder Inkling mit Key) → ffmpeg schneidet. Braucht yt-dlp/ffmpeg, sonst CLI.',
         backToTools: '← Tools',
         hostChecking: 'Prüfe, ob dieser Host Clips ausführen kann…',
-        hostReady: 'Dieser Host ist bereit — URL einfügen und Run drücken.',
+        hostReady: 'Dieser Host ist bereit (Inkling) — URL einfügen und Run drücken.',
+        hostReadyLocal:
+          'Kostenloser Lokalmodus — keine Together-Credits. Clips aus ffmpeg-Stille (Schnitte können grob sein).',
         hostNotReady:
-          'Browser-Run ist auf diesem Host noch nicht bereit (braucht yt-dlp, ffmpeg und TOGETHER_API_KEY). Unten kannst du weiter den lokalen CLI-Befehl kopieren.',
+          'Browser-Run ist auf diesem Host noch nicht bereit (braucht yt-dlp + ffmpeg). Unten kannst du weiter den lokalen CLI-Befehl kopieren.',
         youtubeLabel: 'YouTube-URL',
         modeBest: 'Highlights',
         modeQuery: 'Themensuche',
@@ -755,11 +764,14 @@ export const t = {
         copied: 'Kopiert',
         prereqTitle: 'Setup',
         prereqBrew: 'Installieren: brew install yt-dlp ffmpeg',
-        prereqKey: 'export TOGETHER_API_KEY="…" (von together.ai)',
+        prereqKey: 'Optional: export TOGETHER_API_KEY="…" für Inkling (kostenpflichtig)',
         prereqCd: 'Im Ordner aileena-new/ den Befehl einfügen',
         submit: 'Run',
         running: 'Läuft…',
         listening: 'Inkling hört zu',
+        listeningLocal: 'Lokale Stille-Erkennung',
+        engineLocal: 'lokal',
+        engineInkling: 'inkling',
         levelLabels: {
           download: '1 · Download',
           convert: '2 · WAV',
@@ -774,6 +786,8 @@ export const t = {
         scoreLabel: 'score',
         disclaimer:
           '8 Runs / Besucher / Tag. Inkling auf Together ist kostenpflichtig (~$1 / $4.05 pro 1M in/out). Kurzvideo zuerst.',
+        disclaimerLocal:
+          '8 Runs / Besucher / Tag. Kostenloser Lokalmodus — keine API-Credits. Braucht weiter yt-dlp + ffmpeg auf dem Host (nicht bare Vercel).',
         resultsHint: 'Zum Moment springen oder Cut herunterladen.',
         openYoutube: 'Öffnen',
         downloadClip: 'Download',

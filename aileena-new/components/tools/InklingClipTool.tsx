@@ -31,6 +31,7 @@ type JobView = {
   error: string | null;
   result: {
     title: string;
+    engine?: 'local' | 'inkling';
     candidates: PublicCandidate[];
   } | null;
 };
@@ -38,6 +39,7 @@ type JobView = {
 type HostStatus = {
   ready: boolean;
   hint: string;
+  engine?: 'local' | 'inkling';
   media: { ok: boolean; error: string | null };
   api: { ok: boolean; error: string | null };
 };
@@ -111,6 +113,7 @@ export default function InklingClipTool() {
           setHost({
             ready: false,
             hint: 'Could not reach status endpoint.',
+            engine: 'local',
             media: { ok: false, error: 'unknown' },
             api: { ok: false, error: 'unknown' },
           });
@@ -201,12 +204,13 @@ export default function InklingClipTool() {
 
   const cliCommand = useMemo(() => {
     const u = url.trim() || 'https://www.youtube.com/watch?v=VIDEO_ID';
-    const base = `pnpm inkling:clips -- ${shellQuote(u)}`;
+    const localFlag = host?.engine === 'local' || host?.api?.ok === false ? ' --local' : '';
+    const base = `pnpm inkling:clips -- ${shellQuote(u)}${localFlag}`;
     if (mode === 'query') {
       return `${base} --query ${shellQuote(query.trim() || 'your topic')}`;
     }
     return `${base} --best ${Math.min(8, Math.max(1, bestCount || 3))}`;
-  }, [url, mode, query, bestCount]);
+  }, [url, mode, query, bestCount, host?.engine, host?.api?.ok]);
 
   async function copyCommand() {
     try {
@@ -225,7 +229,7 @@ export default function InklingClipTool() {
       subtitle={tx.body}
       backLabel={tx.backToTools}
       backHref="/tools"
-      marquee={`AUDIO CLIPPING · RUN · CLI · INKLING · FFMPEG`}
+      marquee={`AUDIO CLIPPING · RUN · LOCAL · CLI · FFMPEG`}
     >
       <ArcadeCabinetFrame
         glyph={tool?.arcade.glyph ?? '▶'}
@@ -244,7 +248,9 @@ export default function InklingClipTool() {
         >
           {host
             ? canRun
-              ? tx.hostReady
+              ? host.engine === 'local'
+                ? tx.hostReadyLocal
+                : tx.hostReady
               : `${tx.hostNotReady} ${host.hint}`
             : tx.hostChecking}
         </p>
@@ -359,8 +365,8 @@ export default function InklingClipTool() {
           </button>
         </form>
 
-        <p style={{ margin: '14px 0 0', fontFamily: mono, fontSize: '0.68rem', color: 'rgba(20,17,12,0.4)', lineHeight: 1.5 }}>
-          {tx.disclaimer}
+          <p style={{ margin: '14px 0 0', fontFamily: mono, fontSize: '0.68rem', color: 'rgba(20,17,12,0.4)', lineHeight: 1.5 }}>
+          {host?.engine === 'local' ? tx.disclaimerLocal : tx.disclaimer}
         </p>
 
         <div style={{ marginTop: 22, display: 'grid', gap: 10 }}>
@@ -428,7 +434,7 @@ export default function InklingClipTool() {
             />
           </div>
           <p style={{ marginTop: 10, fontFamily: mono, fontSize: '0.78rem', color: 'rgba(20,17,12,0.5)' }}>
-            {tx.listening} · {job.progress.message}
+            {(host?.engine === 'local' ? tx.listeningLocal : tx.listening)} · {job.progress.message}
           </p>
         </div>
       ) : null}
@@ -438,6 +444,11 @@ export default function InklingClipTool() {
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}>
             <h2 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0, color: '#14110c' }}>{tx.highScore}</h2>
             <span style={{ fontFamily: mono, fontSize: '0.72rem', color: 'rgba(20,17,12,0.4)' }}>{job.result.title}</span>
+            {job.result.engine ? (
+              <span style={{ fontFamily: mono, fontSize: '0.68rem', color: 'rgba(20,17,12,0.35)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                {job.result.engine === 'local' ? tx.engineLocal : tx.engineInkling}
+              </span>
+            ) : null}
           </div>
           <p style={{ fontFamily: mono, fontSize: '0.72rem', color: 'rgba(20,17,12,0.42)', marginBottom: 20 }}>
             {tx.resultsHint}
