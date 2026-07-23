@@ -3,17 +3,24 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { APP_NAME, APP_NAME_ZH, ALBUM_TTL_DAYS, MAX_PHOTOS_PER_ALBUM } from "@/lib/constants";
+import { copyText } from "@/lib/clipboard";
 
 export default function HomePage() {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [copyHint, setCopyHint] = useState("");
   const [created, setCreated] = useState<{
     url: string;
     adminSecret: string;
     slug: string;
   } | null>(null);
+
+  async function copy(label: string, value: string) {
+    const ok = await copyText(value);
+    setCopyHint(ok ? `已复制${label}` : "复制失败，请长按手动选择");
+  }
 
   async function onCreate(e: FormEvent) {
     e.preventDefault();
@@ -103,21 +110,33 @@ export default function HomePage() {
               把链接或二维码发给大家。管理员密钥只显示一次，请立刻保存。
             </p>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-              <code className="field break-all text-sm">{created.url}</code>
+              <code className="field break-all text-sm select-all">{created.url}</code>
               <button
                 type="button"
                 className="btn-ghost"
-                onClick={() => navigator.clipboard.writeText(created.url)}
+                onClick={() => copy("链接", created.url)}
               >
                 复制链接
               </button>
             </div>
             <div>
               <p className="mb-1 text-xs uppercase tracking-wide text-ink/50">
-                Admin secret
+                Admin secret（只显示一次）
               </p>
-              <code className="field block font-mono text-base">{created.adminSecret}</code>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <code className="field block flex-1 select-all font-mono text-base">
+                  {created.adminSecret}
+                </code>
+                <button
+                  type="button"
+                  className="btn-ghost"
+                  onClick={() => copy("密钥", created.adminSecret)}
+                >
+                  复制密钥
+                </button>
+              </div>
             </div>
+            {copyHint && <p className="text-sm text-moss">{copyHint}</p>}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={`/api/qr?url=${encodeURIComponent(created.url)}`}

@@ -29,6 +29,7 @@ Vercel 构建时会跑 `scripts/ensure-prisma-provider.mjs`：检测到 postgres
 | `ADMIN_COOKIE_SECRET` | 长随机串，例如 `openssl rand -hex 32` |
 | `NEXT_PUBLIC_APP_URL` | `https://album.aileena.xyz` |
 | `STORAGE_DRIVER` | 先用 `blob`（最快上线）；有双 CDN 再改 `dual` |
+| `CRON_SECRET` | `openssl rand -hex 16` — 过期相册每日清理用 |
 
 ### 存储方案 A — 最快上线（推荐先做）
 

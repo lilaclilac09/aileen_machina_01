@@ -13,6 +13,8 @@ import { storePhoto } from "@/lib/storage";
 
 type Ctx = { params: { slug: string } };
 
+type Skip = { name: string; reason: string };
+
 export async function POST(req: Request, { params }: Ctx) {
   const album = await prisma.album.findUnique({ where: { slug: params.slug } });
   if (!album) return jsonError("Album not found", 404);
@@ -33,13 +35,24 @@ export async function POST(req: Request, { params }: Ctx) {
   const remaining = MAX_PHOTOS_PER_ALBUM - album.photoCount;
   if (remaining <= 0) return jsonError("Album is full (500 photos)", 403);
   const accepted = files.slice(0, remaining);
+  const skippedOverflow = files.slice(remaining).map((f) => ({
+    name: f.name,
+    reason: "相册已满 / album full",
+  }));
 
   const created = [];
+  const skipped: Skip[] = [...skippedOverflow];
+
   for (const file of accepted) {
+    const isHeic = /\.(heic|heif)$/i.test(file.name) || /heic|heif/i.test(file.type);
     if (!ALLOWED_MIME.has(file.type) && !file.name.match(/\.(jpe?g|png|webp|gif|heic|heif)$/i)) {
+      skipped.push({ name: file.name, reason: "不支持的格式 / unsupported type" });
       continue;
     }
-    if (file.size > MAX_FILE_BYTES) continue;
+    if (file.size > MAX_FILE_BYTES) {
+      skipped.push({ name: file.name, reason: "超过 15MB / too large" });
+      continue;
+    }
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const fileId = randomBytes(8).toString("hex");
@@ -48,6 +61,12 @@ export async function POST(req: Request, { params }: Ctx) {
       stored = await storePhoto(album.id, fileId, buffer);
     } catch (err) {
       console.error("storePhoto failed", err);
+      skipped.push({
+        name: file.name,
+        reason: isHeic
+          ? "HEIC 转换失败，请用系统「照片」导出 JPEG 再传"
+          : "处理失败 / process failed",
+      });
       continue;
     }
 
@@ -69,7 +88,10 @@ export async function POST(req: Request, { params }: Ctx) {
   }
 
   if (created.length === 0) {
-    return jsonError("No valid images uploaded (check type/size)");
+    return jsonError(
+      skipped[0]?.reason || "No valid images uploaded (check type/size)",
+      400
+    );
   }
 
   await prisma.album.update({
@@ -79,6 +101,7 @@ export async function POST(req: Request, { params }: Ctx) {
 
   return jsonOk({
     uploaded: created.length,
+    skipped,
     photos: created.map((p) => ({
       id: p.id,
       url: p.url,
@@ -87,6 +110,7 @@ export async function POST(req: Request, { params }: Ctx) {
       height: p.height,
       uploaderName: p.uploaderName,
       pinned: p.pinned,
+      pinMode: p.pinMode,
       likeCount: 0,
       commentCount: 0,
       createdAt: p.createdAt.toISOString(),

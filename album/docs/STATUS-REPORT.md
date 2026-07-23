@@ -4,7 +4,7 @@
 **PR:** https://github.com/lilaclilac09/aileen_machina_01/pull/261  
 **分支 Branch:** `cursor/gather-album-app-813a`  
 **目标域名 Target:** `https://album.aileena.xyz`  
-**状态 Status:** 代码完成并已验证；**生产部署待你下次配置凭证后执行**（Neon / Vercel / DNSPod）
+**状态 Status:** 代码完成并已验证（含主站入口、过期清理 cron、移动端/HEIC 打磨）；**生产部署仍待你配置凭证**（Neon / Vercel / DNSPod）
 
 ---
 
@@ -59,7 +59,11 @@
 | Vercel Blob | Done | `STORAGE_DRIVER=blob` |
 | Cloudflare R2 | Done | `STORAGE_DRIVER=r2` |
 | 双写 R2 + 阿里云 OSS | Done | `STORAGE_DRIVER=dual` + 按地区选 URL |
-| 生产部署上线 | **Pending** | 见第 6 节 |
+| 过期清理 cron | Done | `/api/cron/purge` + vercel.json，需 `CRON_SECRET` |
+| 主站入口 gather | Done | aileena.xyz dock 社交链 + footer |
+| HEIC / 上传跳过原因 | Done | API `skipped[]` + UploadPanel |
+| 移动端滑动 / 触控置顶 | Done | Lightbox swipe + pin 常显 |
+| 生产部署上线 | **Pending** | 见第 6 节 — **只剩你账号操作** |
 
 **明确不做（Phase 2）：** 付费延期、ZIP 打包下载、相册密码、WebSocket 实时刷新、ICP 备案专用国内整站边缘。
 

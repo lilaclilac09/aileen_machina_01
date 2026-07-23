@@ -176,9 +176,9 @@ export function AlbumClient({ slug }: { slug: string }) {
   }
 
   return (
-    <div className="min-h-screen pb-28">
-      <header className="sticky top-0 z-30 border-b border-[var(--line)] bg-[color:var(--paper)]/85 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-start justify-between gap-4 px-4 py-4 sm:px-6">
+    <div className="min-h-screen pb-[max(7rem,env(safe-area-inset-bottom))]">
+      <header className="sticky top-0 z-30 border-b border-[var(--line)] bg-[color:var(--paper)]/85 pt-[env(safe-area-inset-top)] backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-6">
           <div>
             <Link href="/" className="text-xs uppercase tracking-[0.2em] text-moss">
               Gather · 共影
@@ -226,11 +226,34 @@ export function AlbumClient({ slug }: { slug: string }) {
         onPin={togglePin}
       />
 
+      {album.expired && (
+        <div className="mx-auto mt-4 max-w-6xl px-4 sm:px-6">
+          <p className="rounded-md border border-ember/30 bg-ember/10 px-4 py-3 text-sm text-ink/80">
+            相册已过期（只读）。过期 7 天后会自动清理；需要更久请另建新相册。
+          </p>
+        </div>
+      )}
+      {!album.expired && album.uploadLocked && (
+        <div className="mx-auto mt-4 max-w-6xl px-4 sm:px-6">
+          <p className="rounded-md border border-[var(--line)] bg-white/40 px-4 py-3 text-sm text-ink/70">
+            管理员已锁定上传，仍可浏览、点赞和评论。
+          </p>
+        </div>
+      )}
+
       {photos.length === 0 && (
         <div className="mx-auto mt-24 max-w-md px-6 text-center">
-          <p className="font-display text-3xl">还没有照片</p>
-          <p className="mt-2 text-ink/60">扫码或点上传，把手机里的瞬间放进来。</p>
-          {!album.uploadLocked && (
+          <p className="font-display text-3xl">
+            {album.expired ? "相册已过期且为空" : "还没有照片"}
+          </p>
+          <p className="mt-2 text-ink/60">
+            {album.expired
+              ? "这个相册不能再上传了。"
+              : album.uploadLocked
+                ? "上传已锁定。请分享二维码给管理员解锁后再传。"
+                : "扫码或点上传，把手机里的瞬间放进来。"}
+          </p>
+          {!album.uploadLocked && !album.expired && (
             <button className="btn-primary mt-6" onClick={() => setShowUpload(true)}>
               上传第一批
             </button>

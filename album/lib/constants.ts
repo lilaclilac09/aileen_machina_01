@@ -10,6 +10,9 @@ export const MAX_FILES_PER_UPLOAD = 20;
 export const MAX_COMMENT_LENGTH = 280;
 export const MAX_TITLE_LENGTH = 80;
 export const MAX_NICKNAME_LENGTH = 32;
+/** Soft rate limit: max comments per visitor per photo per window */
+export const COMMENT_RATE_LIMIT = 8;
+export const COMMENT_RATE_WINDOW_MS = 10 * 60 * 1000;
 
 export const THUMB_MAX_EDGE = 1200;
 export const FULL_MAX_EDGE = 2400;

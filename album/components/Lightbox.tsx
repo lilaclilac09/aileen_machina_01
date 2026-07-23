@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, TouchEvent, useEffect, useRef, useState } from "react";
 import type { PhotoItem } from "./AlbumClient";
 
 type Comment = {
@@ -41,6 +41,7 @@ export function Lightbox({
   const [comments, setComments] = useState<Comment[]>([]);
   const [body, setBody] = useState("");
   const [name, setName] = useState(nickname);
+  const touchX = useRef<number | null>(null);
 
   useEffect(() => {
     setName(nickname);
@@ -70,6 +71,18 @@ export function Lightbox({
   }, [index, onClose, onIndex, photos.length]);
 
   if (!photo) return null;
+
+  function onTouchStart(e: TouchEvent) {
+    touchX.current = e.changedTouches[0]?.clientX ?? null;
+  }
+  function onTouchEnd(e: TouchEvent) {
+    if (touchX.current == null) return;
+    const dx = (e.changedTouches[0]?.clientX ?? touchX.current) - touchX.current;
+    touchX.current = null;
+    if (Math.abs(dx) < 48) return;
+    if (dx < 0) onIndex(Math.min(photos.length - 1, index + 1));
+    else onIndex(Math.max(0, index - 1));
+  }
 
   async function submitComment(e: FormEvent) {
     e.preventDefault();
@@ -101,11 +114,15 @@ export function Lightbox({
       </button>
 
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        <div className="relative flex min-h-[45vh] flex-1 items-center justify-center p-4 lg:min-h-0">
+        <div
+          className="relative flex min-h-[45vh] flex-1 items-center justify-center p-4 lg:min-h-0"
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+        >
           {index > 0 && (
             <button
               type="button"
-              className="absolute left-2 top-1/2 -translate-y-1/2 rounded bg-white/10 px-3 py-2"
+              className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded bg-white/10 px-3 py-2"
               onClick={() => onIndex(index - 1)}
             >
               ‹
@@ -116,11 +133,12 @@ export function Lightbox({
             src={photo.url}
             alt=""
             className="max-h-[80vh] max-w-full object-contain"
+            draggable={false}
           />
           {index < photos.length - 1 && (
             <button
               type="button"
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded bg-white/10 px-3 py-2"
+              className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded bg-white/10 px-3 py-2"
               onClick={() => onIndex(index + 1)}
             >
               ›

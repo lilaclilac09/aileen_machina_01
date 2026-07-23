@@ -156,7 +156,7 @@ export function PhotoGrid({
                 </span>
               )}
 
-              <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-gradient-to-t from-black/55 to-transparent p-2 text-xs text-white opacity-0 transition group-hover:opacity-100">
+              <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-gradient-to-t from-black/55 to-transparent p-2 text-xs text-white opacity-100 sm:opacity-0 sm:transition sm:group-hover:opacity-100">
                 <span className="truncate">{photo.uploaderName || "匿名"}</span>
                 <span>♥ {photo.likeCount}</span>
               </figcaption>
@@ -164,7 +164,7 @@ export function PhotoGrid({
               {isAdmin && !selectMode && (
                 <button
                   type="button"
-                  className="absolute bottom-2 right-2 rounded bg-black/55 px-2 py-1 text-[10px] text-white opacity-0 transition group-hover:opacity-100"
+                  className="absolute bottom-2 right-2 rounded bg-black/55 px-2 py-1 text-[10px] text-white opacity-100 sm:opacity-0 sm:transition sm:group-hover:opacity-100"
                   onClick={(e) => {
                     e.stopPropagation();
                     onPin(photo.id);

@@ -3,7 +3,12 @@ import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
 import { jsonError, jsonOk } from "@/lib/http";
 import { getOrCreateVisitorKey, visitorCookieOptions } from "@/lib/auth";
-import { MAX_COMMENT_LENGTH, MAX_NICKNAME_LENGTH } from "@/lib/constants";
+import {
+  COMMENT_RATE_LIMIT,
+  COMMENT_RATE_WINDOW_MS,
+  MAX_COMMENT_LENGTH,
+  MAX_NICKNAME_LENGTH,
+} from "@/lib/constants";
 
 type Ctx = { params: { slug: string; id: string } };
 
@@ -57,6 +62,20 @@ export async function POST(req: Request, { params }: Ctx) {
 
   const visitorKey = getOrCreateVisitorKey();
   cookies().set(visitorCookieOptions(visitorKey));
+  void visitorKey;
+
+  // Soft limit: same nickname on same photo within window (no schema change).
+  const since = new Date(Date.now() - COMMENT_RATE_WINDOW_MS);
+  const recent = await prisma.comment.count({
+    where: {
+      photoId: photo.id,
+      authorName: parsed.data.authorName,
+      createdAt: { gte: since },
+    },
+  });
+  if (recent >= COMMENT_RATE_LIMIT) {
+    return jsonError("评论太快了，稍后再试 / slow down", 429);
+  }
 
   const comment = await prisma.comment.create({
     data: {
