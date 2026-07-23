@@ -41,11 +41,11 @@ Other OpenAI-compatible providers (Baseten, custom) work via `INKLING_BASE_URL` 
 
 Hub: **`/tools`** · page: **`/tools/inkling-clips`**.
 
-**Launch mode (A + B3):** the public page is a **CLI command builder**. Browser Run is not enabled on Vercel (no `yt-dlp` / `ffmpeg` on serverless). Visitors copy a local command and run it on their machine.
+- **Browser Run** when `GET /api/tools/inkling-clips/status` reports `ready` (yt-dlp + ffmpeg + Together key on the host).
+- **CLI fallback** always shown (copy command).
+- Default Vercel deploy will show “not ready” until you run Docker / a VPS — see **[INKLING_LAUNCH.md](./INKLING_LAUNCH.md)**.
 
-API routes under `/api/tools/inkling-clips` remain in the repo for a future worker host; they are not the public path today.
-
-Adding another tool: see **[TOOLS_ARCADE.md](./TOOLS_ARCADE.md)**.
+API: `POST /api/tools/inkling-clips` · poll `GET ?jobId=` · clips `/api/tools/inkling-clips/clip`.
 
 ## CLI (local / self-hosted)
 
