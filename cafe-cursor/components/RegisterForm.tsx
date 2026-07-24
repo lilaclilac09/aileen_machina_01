@@ -277,6 +277,9 @@ export function RegisterForm() {
           <p className="mt-2 text-xs text-muted">
             {t("emailHint")}
           </p>
+          <p className="mt-2 rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs text-amber-800 dark:text-amber-200">
+            {t("emailMismatchHint")}
+          </p>
         </div>
 
         {requiresCheckinCode && codeFromQr && (
@@ -322,11 +325,13 @@ export function RegisterForm() {
             <p className="text-sm text-[var(--error)]">
               {getErrorMessage(result.code, result.error)}
             </p>
-            {result.code === "CLAIM_DENIED" || result.code === "NOT_APPROVED" ? (
+            {(result.code === "CLAIM_DENIED" ||
+              result.code === "NOT_ELIGIBLE" ||
+              result.code === "NOT_APPROVED") && (
               <p className="mt-2 text-xs text-muted">
-                {t("pendingApproval")}
+                {t("claimDeniedHint")}
               </p>
-            ) : null}
+            )}
             <button
               type="button"
               onClick={handleReset}

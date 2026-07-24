@@ -28,7 +28,7 @@ function denyClaim(message?: string) {
       success: false,
       error:
         message ||
-        "Unable to redeem with this email. Please ask staff for help.",
+        "Unable to redeem with this email. If your check-in email differs from this one, please contact a volunteer.",
       code: "CLAIM_DENIED",
     },
     { status: 403 }
