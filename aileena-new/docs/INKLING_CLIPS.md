@@ -48,11 +48,11 @@ Other OpenAI-compatible providers (Baseten, custom) work via `INKLING_BASE_URL` 
 
 ## Web UI (public)
 
-Hub: **`/tools`** · page: **`/tools/inkling-clips`**.
+Hub: **`/tools`** · product: **`/audio-clipping`** · runner: **`/tools/inkling-clips`**.
 
-- **Browser Run** when `GET /api/tools/inkling-clips/status` reports `ready` (`media.ok` — yt-dlp + ffmpeg). Uses free local if no key; Inkling when keyed.
-- **CLI fallback** always shown (copy command).
-- Default Vercel deploy will show “not ready” until you run Docker / a VPS — see **[INKLING_LAUNCH.md](./INKLING_LAUNCH.md)**.
+- **Browser Run** when status reports `ready` (`media.ok`). Free local without key; Inkling when keyed.
+- Prefer **Docker / Fly** when Mac disk is full — see **[INKLING_LAUNCH.md](./INKLING_LAUNCH.md)**.
+- Vercel alone shows product + CLI copy; Run needs a container host.
 
 API: `POST /api/tools/inkling-clips` · poll `GET ?jobId=` · clips `/api/tools/inkling-clips/clip`.
 

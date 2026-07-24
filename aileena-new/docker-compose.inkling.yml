@@ -1,10 +1,12 @@
-# Local / VPS Audio Clipping host (Browser Run enabled)
+# Audio Clipping host (Browser Run). No brew on your Mac.
 #
+# Free local (no Together key):
 #   cd aileena-new
-#   export TOGETHER_API_KEY=...
 #   docker compose -f docker-compose.inkling.yml up --build
+#   open http://localhost:3000/audio-clipping
 #
-# Then open http://localhost:3000/tools/inkling-clips
+# If Mac disk is full: do NOT build here — deploy the same Dockerfile to Fly/Railway
+# (see docs/INKLING_LAUNCH.md). Build happens in the cloud.
 
 services:
   inkling-clips:
@@ -14,6 +16,7 @@ services:
     ports:
       - '3000:3000'
     environment:
+      # Leave empty → free local silence mode (not Inkling)
       TOGETHER_API_KEY: ${TOGETHER_API_KEY:-}
       INKLING_API_KEY: ${INKLING_API_KEY:-}
       INKLING_BASE_URL: ${INKLING_BASE_URL:-https://api.together.xyz/v1}

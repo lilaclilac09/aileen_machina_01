@@ -158,9 +158,9 @@ export const t = {
         optionalBody:
           'If you later set a Together API key, the same tool can switch to the Inkling audio model for smarter boundaries. You said no credits — so the product ships free-first.',
         runEyebrow: 'Run',
-        runTitle: 'Laptop CLI or Docker host',
+        runTitle: 'Container — not bare Vercel, not a full Mac disk',
         runBody:
-          'Bare Vercel has no yt-dlp/ffmpeg. Use the free CLI on your Mac, or Docker on a VPS. Then open the runner.',
+          'Needs yt-dlp + ffmpeg inside Docker. If your Mac disk is full, deploy Dockerfile.inkling to Fly/Railway (build in the cloud). No API key → free local mode.',
         backToTools: '← Tools',
       },
       chipGuess: {
@@ -845,9 +845,9 @@ export const t = {
         optionalBody:
           'Mit Together-API-Key kann dasselbe Tool auf das Inkling-Audiomodell umschalten. Du wolltest keine Credits — deshalb free-first.',
         runEyebrow: 'Ausführen',
-        runTitle: 'Laptop-CLI oder Docker-Host',
+        runTitle: 'Container — nicht bare Vercel, nicht volle Mac-Festplatte',
         runBody:
-          'Bare Vercel hat kein yt-dlp/ffmpeg. Nutze die Free-CLI auf dem Mac oder Docker auf einem VPS. Dann den Runner öffnen.',
+          'Braucht yt-dlp + ffmpeg im Docker. Mac-Platte voll? Dockerfile.inkling auf Fly/Railway deployen (Build in der Cloud). Kein API-Key → kostenlos lokal.',
         backToTools: '← Tools',
       },
       chipGuess: {

@@ -1,77 +1,78 @@
-# Audio Clipping — launch checklist (what you still do)
+# Audio Clipping — launch checklist
 
-**Product page:** `/audio-clipping` · **Runner:** `/tools/inkling-clips`
+**Product:** `/audio-clipping` · **Runner:** `/tools/inkling-clips`
 
-Code for the pipeline + web Run UI is in the repo. **Vercel alone cannot execute clips** (no `yt-dlp` / `ffmpeg`). Pick one path below.
+Vercel marketing site **cannot** run clips (no `yt-dlp` / `ffmpeg`). You need a **container** (or a laptop with those binaries).
 
-## Free path (no Together credits)
+## If Mac disk is full (recommended)
 
-Without `TOGETHER_API_KEY` / `INKLING_API_KEY`, the tool uses **free local mode**: ffmpeg `silencedetect` → speech islands → top N clips. Quality is coarser than Inkling (may cut mid-sentence). Still needs **yt-dlp + ffmpeg** on the machine.
+Do **not** `brew install` and do **not** `docker build` on the Mac (images are large). Deploy the existing Dockerfile to the cloud — build runs there.
 
-```bash
-# no API key needed
-pnpm inkling:clips -- 'https://www.youtube.com/watch?v=SHORT_ID' --local --best 2 --dry-run
-```
-
-Auto mode does the same when no key is set (`--local` is optional).
-
-## Path A — CLI on your laptop (fastest smoke)
-
-1. Install: `brew install yt-dlp ffmpeg`  
-2. From `aileena-new/`:
-
-```bash
-# free local
-pnpm inkling:clips -- 'https://www.youtube.com/watch?v=SHORT_ID' --local --best 2 --dry-run
-
-# optional Inkling (paid)
-export TOGETHER_API_KEY="…"
-pnpm inkling:clips -- 'https://www.youtube.com/watch?v=SHORT_ID' --best 2 --dry-run
-```
-
-3. Inspect `data/inkling-clips/<id>/candidates.json`
-
-## Path B — Browser Run on a real host (Docker)
-
-1. On a machine with Docker (API key optional — without it, Run uses free local):
+### Fly.io
 
 ```bash
 cd aileena-new
-# optional for Inkling:
-# export TOGETHER_API_KEY="…"
-# optional but recommended if you already use Upstash:
-# export UPSTASH_REDIS_REST_URL=…
-# export UPSTASH_REDIS_REST_TOKEN=…
-docker compose -f docker-compose.inkling.yml up --build
+# install flyctl once from https://fly.io/docs/hands-on/install-flyctl/
+fly launch --config fly.inkling.toml --no-deploy
+fly deploy --config fly.inkling.toml
 ```
 
-2. Open `http://localhost:3000/tools/inkling-clips`  
-3. Status banner: **host is ready** (local or Inkling) → paste URL → **Run**
+Open `https://<app>.fly.dev/audio-clipping` → **Open runner**.  
+No API key → free local mode. Optional later: `fly secrets set TOGETHER_API_KEY=…`
 
-Deploy the same image to Railway / Fly / any VPS, then point a subdomain (e.g. `clips.aileena.xyz`) at it — or run the whole site from that host instead of Vercel for Tools.
+### Railway / any Docker host
 
-## Path C — Keep Vercel for the marketing site only
+Point the service at `Dockerfile.inkling` in `aileena-new/`. Same story: free without key.
 
-- `aileena.xyz` stays on Vercel (hub + CLI copy still useful)  
-- Clipping Run lives on the Docker host from Path B  
+## Path A — laptop CLI (needs free disk + brew)
+
+Only if you have space:
+
+```bash
+brew install yt-dlp ffmpeg
+cd aileena-new
+pnpm inkling:clips -- 'https://www.youtube.com/watch?v=jNQXAC9IVRw' --local --best 2 --dry-run
+```
+
+## Path B — Docker on a machine that has disk
+
+```bash
+cd aileena-new
+docker compose -f docker-compose.inkling.yml up --build
+# http://localhost:3000/audio-clipping
+```
+
+No `TOGETHER_API_KEY` needed for free local.
+
+### Slim CLI-only image (no Next build)
+
+```bash
+docker build -f Dockerfile.inkling.cli -t aileena-clips-cli .
+docker run --rm -v "$PWD/out:/out" aileena-clips-cli \
+  -- 'https://www.youtube.com/watch?v=jNQXAC9IVRw' --local --best 2 --dry-run --work-dir /out/job1
+```
+
+## Path C — Vercel stays marketing-only
+
+- `aileena.xyz` on Vercel (product page + CLI copy)
+- Clipping Run on Fly/Railway container
 
 ## Status API
 
-`GET /api/tools/inkling-clips/status` reports:
+`GET /api/tools/inkling-clips/status`:
 
-- `media.ok` — yt-dlp + ffmpeg + ffprobe on PATH  
-- `api.ok` — `TOGETHER_API_KEY` or `INKLING_API_KEY` set  
-- `engine` — `inkling` if keyed, else `local`  
-- `ready` — `media.ok` → Browser Run enabled (local or Inkling)
+| Field | Meaning |
+|-------|---------|
+| `media.ok` | yt-dlp + ffmpeg + ffprobe |
+| `api.ok` | Together/Inkling key present |
+| `engine` | `local` or `inkling` |
+| `ready` | `media.ok` → Browser Run on |
 
-## What you still need to do (minimum)
+## Checklist
 
 | # | You | Notes |
 |---|-----|--------|
-| 1 | Install **yt-dlp + ffmpeg** (or Docker) | Required for any Run |
-| 2 | Choose **Path A or B** | A = laptop CLI; B = Docker Browser Run |
-| 3 | (optional) Together API key | Only for Inkling quality |
-| 4 | (B only) Deploy Docker somewhere | Not Vercel serverless |
-| 5 | (optional) Upstash Redis | Survives restarts / multi-instance |
-
-You do **not** need a separate `INKLING_API_KEY` if you already set `TOGETHER_API_KEY`.
+| 1 | Deploy **Dockerfile.inkling** to Fly/Railway | Best when Mac disk is full |
+| 2 | Or Docker compose on a VPS / free-disk laptop | Same image |
+| 3 | Skip Together key for free local | Inkling optional later |
+| 4 | Optional Upstash Redis | Multi-instance / restarts |
