@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isAuthenticated } from "@/lib/auth";
 import { ensureBundledLumaGuestsImported } from "@/lib/luma-csv";
+import { computeHaveNeed } from "@/lib/credit-ledger";
 
 /**
  * GET /api/admin/dashboard — admin stats + lists
@@ -23,15 +24,20 @@ export async function GET(request: NextRequest) {
       totalCredits,
       usedCredits,
       testCredits,
+      availableRealCredits,
       totalEligible,
       claimedUsers,
       approvedUsers,
       remindedUnclaimed,
       awaitingReminder,
+      unclaimedApproved,
     ] = await Promise.all([
       prisma.credit.count(),
       prisma.credit.count({ where: { isUsed: true } }),
       prisma.credit.count({ where: { isTest: true } }),
+      prisma.credit.count({
+        where: { isUsed: false, isTest: false, ownerId: null },
+      }),
       prisma.eligibleUser.count(),
       prisma.eligibleUser.count({ where: { hasClaimed: true } }),
       prisma.eligibleUser.count({ where: { approvalStatus: "approved" } }),
@@ -49,7 +55,18 @@ export async function GET(request: NextRequest) {
           reminderSentAt: null,
         },
       }),
+      prisma.eligibleUser.count({
+        where: {
+          approvalStatus: "approved",
+          hasClaimed: false,
+        },
+      }),
     ]);
+
+    const haveNeed = computeHaveNeed({
+      availableCount: availableRealCredits,
+      unclaimedApprovedCount: unclaimedApproved,
+    });
 
     const credits = await prisma.credit.findMany({
       orderBy: [
@@ -115,16 +132,17 @@ export async function GET(request: NextRequest) {
       stats: {
         totalCredits,
         usedCredits,
-        availableCredits: totalCredits - usedCredits,
+        availableCredits: availableRealCredits,
         testCredits,
         realCredits: totalCredits - testCredits,
         totalEligible,
         claimedUsers,
         approvedUsers,
-        pendingUsers: approvedUsers - claimedUsers,
+        pendingUsers: unclaimedApproved,
         remindedUnclaimed,
         awaitingReminder,
       },
+      haveNeed,
       credits,
       eligibleUsers: usersWithClaims,
     });
