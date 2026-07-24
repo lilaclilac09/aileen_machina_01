@@ -12,8 +12,8 @@ export function createMockProvider(): Provider {
       const lastUser = [...req.messages].reverse().find((m) => m.role === 'user');
       const raw = lastUser && lastUser.role === 'user' ? lastUser.content : '';
       const text = raw.toLowerCase();
+      const toolNames = new Set(req.tools.map((t) => t.name));
 
-      // If we already have tool results pending a final answer, summarize.
       const last = req.messages[req.messages.length - 1];
       if (last?.role === 'tool') {
         const toolOutputs = collectRecentToolOutputs(req.messages);
@@ -21,6 +21,35 @@ export function createMockProvider(): Provider {
           type: 'message',
           content: formatToolSummary(toolOutputs),
         };
+      }
+
+      // review preset: read key docs then summarize
+      if (text.includes('review') || req.system.includes('hx review')) {
+        const calls: { name: string; arguments: Record<string, unknown> }[] = [];
+        if (toolNames.has('list_dir')) calls.push({ name: 'list_dir', arguments: { path: '.' } });
+        if (toolNames.has('read_file')) {
+          calls.push({ name: 'read_file', arguments: { path: 'DESIGN.md' } });
+        }
+        if (calls.length) return toolCalls(calls);
+      }
+
+      if (text.includes('apply_patch') || text.includes('apply patch') || text.includes('create file via patch')) {
+        if (!toolNames.has('apply_patch')) {
+          return { type: 'message', content: 'apply_patch disabled — pass --write' };
+        }
+        return toolCalls([
+          {
+            name: 'apply_patch',
+            arguments: {
+              patch: `--- /dev/null
++++ b/.hx-demo.txt
+@@ -0,0 +1,2 @@
++hello from apply_patch
++token: HX-PATCH-OK
+`,
+            },
+          },
+        ]);
       }
 
       if (text.includes('code mode') || text.includes('code_mode') || text.includes('compose')) {
@@ -62,7 +91,8 @@ return { total: lines.length, md: md.length, sample: md.slice(0, 8) };
         type: 'message',
         content: [
           'hx mock provider — no network.',
-          'Try: "list files", "read DESIGN.md", "grep harness", "use code mode to count md files".',
+          'Try: "list files", "read DESIGN.md", "grep harness", "use code mode to count md files",',
+          '"create file via patch" (with --write), or `hx review`.',
           'Or: hx run "..." --provider openai',
         ].join('\n'),
       };

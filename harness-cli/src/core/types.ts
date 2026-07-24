@@ -63,3 +63,13 @@ export type Checkpoint = {
   messages: Message[];
   snapshot: () => Snapshot;
 };
+
+/** Side-channel events for JSONL / IDE adapters (never mutate history). */
+export type HarnessEvent =
+  | { type: 'turn.start'; turnId: string; prompt: string }
+  | { type: 'tool.start'; turnId: string; call: ToolCall }
+  | { type: 'tool.end'; turnId: string; result: ToolResult }
+  | { type: 'turn.end'; turnId: string; text: string; checkpointId: string }
+  | { type: 'turn.error'; turnId: string; error: string };
+
+export type EventSink = (event: HarnessEvent) => void;

@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import type {
   Checkpoint,
+  EventSink,
+  HarnessEvent,
   Message,
   Provider,
   Snapshot,
@@ -30,6 +32,7 @@ type DriverState = {
   provider: Provider;
   tools: Map<string, ToolDefinition>;
   cwd: string;
+  onEvent: EventSink;
 };
 
 export type HarnessOptions = {
@@ -37,7 +40,10 @@ export type HarnessOptions = {
   tools: ToolDefinition[];
   cwd: string;
   system: string;
+  onEvent?: EventSink;
 };
+
+function noop(): void {}
 
 export class Harness {
   readonly sessionId: string;
@@ -50,6 +56,7 @@ export class Harness {
   }
 
   static builder(opts: HarnessOptions) {
+    const onEvent = opts.onEvent ?? noop;
     return {
       build(): Harness {
         return new Harness({
@@ -59,6 +66,7 @@ export class Harness {
           provider: opts.provider,
           tools: new Map(opts.tools.map((t) => [t.name, t])),
           cwd: opts.cwd,
+          onEvent,
         });
       },
       resume(snapshot: Snapshot): Harness {
@@ -69,9 +77,14 @@ export class Harness {
           provider: opts.provider,
           tools: new Map(opts.tools.map((t) => [t.name, t])),
           cwd: opts.cwd,
+          onEvent,
         });
       },
     };
+  }
+
+  listTools(): ToolDefinition[] {
+    return [...this.#state.tools.values()];
   }
 
   async prompt(text: string): Promise<Turn> {
@@ -85,10 +98,19 @@ export class Harness {
       this.#queue = this.#queue.then(async () => {
         try {
           const userText = steered ? `${text}\n\n[steer] ${steered}` : text;
+          this.#emit({ type: 'turn.start', turnId, prompt: userText });
           this.#state.messages.push({ role: 'user', content: userText });
-          const out = await this.#runTurn(ac.signal);
+          const out = await this.#runTurn(turnId, ac.signal);
+          this.#emit({
+            type: 'turn.end',
+            turnId,
+            text: out.text,
+            checkpointId: out.checkpoint.id,
+          });
           resolve(out);
         } catch (err) {
+          const error = err instanceof Error ? err.message : String(err);
+          this.#emit({ type: 'turn.error', turnId, error });
           reject(err instanceof Error ? err : new Error(String(err)));
         }
       });
@@ -114,6 +136,7 @@ export class Harness {
       tools: [...this.#state.tools.values()],
       cwd: this.#state.cwd,
       system: this.#state.system,
+      onEvent: this.#state.onEvent,
     }).resume({ ...snap, sessionId: randomUUID() });
   }
 
@@ -121,12 +144,19 @@ export class Harness {
     return this.#checkpoint().snapshot();
   }
 
-  async #runTurn(signal: AbortSignal): Promise<TurnResult> {
+  #emit(event: HarnessEvent): void {
+    try {
+      this.#state.onEvent(event);
+    } catch {
+      // adapters must not break the driver
+    }
+  }
+
+  async #runTurn(turnId: string, signal: AbortSignal): Promise<TurnResult> {
     const collectedCalls: ToolCall[] = [];
     const collectedResults: ToolResult[] = [];
     let finalText = '';
 
-    // Bound tool loops so mock / flaky models cannot spin forever.
     for (let step = 0; step < 8; step++) {
       if (signal.aborted) throw new Error('TurnCancelled');
 
@@ -152,6 +182,7 @@ export class Harness {
 
       for (const call of response.toolCalls) {
         if (signal.aborted) throw new Error('TurnCancelled');
+        this.#emit({ type: 'tool.start', turnId, call });
         const tool = this.#state.tools.get(call.name);
         let output: string;
         let ok = true;
@@ -170,12 +201,14 @@ export class Harness {
             output = err instanceof Error ? err.message : String(err);
           }
         }
-        collectedResults.push({
+        const result: ToolResult = {
           toolCallId: call.id,
           name: call.name,
           ok,
           output,
-        });
+        };
+        collectedResults.push(result);
+        this.#emit({ type: 'tool.end', turnId, result });
         this.#state.messages.push({
           role: 'tool',
           toolCallId: call.id,

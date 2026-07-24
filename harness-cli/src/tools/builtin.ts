@@ -3,6 +3,7 @@ import { join, resolve, relative, isAbsolute } from 'node:path';
 import { spawn } from 'node:child_process';
 import type { ToolDefinition } from '../core/types.ts';
 import { runCodeMode } from './codeMode.ts';
+import { applyPatchTool } from './applyPatch.ts';
 
 const MAX_READ = 80_000;
 const MAX_GREP_HITS = 40;
@@ -134,6 +135,7 @@ export const BUILTIN_TOOLS: ToolDefinition[] = [
       return `wrote ${relative(ctx.cwd, file)}`;
     },
   },
+  applyPatchTool,
   {
     name: 'shell',
     description: 'Run a bounded shell command in cwd (requires --shell).',
