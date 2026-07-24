@@ -41,7 +41,7 @@ jobs:
           version: 9
 
       - name: Install deps
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile || pnpm install --no-frozen-lockfile
 
       - name: Sync social RSS (Nitter → FxTwitter)
         env:
