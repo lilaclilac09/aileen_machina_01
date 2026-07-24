@@ -111,14 +111,16 @@ Printed by `pnpm verify:memory` and stored in the report under `agentManualPromp
 
 ## Fixed workflow (GitHub Actions)
 
-`.github/workflows/machina-memory.yml` runs the same pipeline on a schedule:
+`.github/workflows/machina-memory.yml` runs the same pipeline on a schedule (**auto is on** — workflow state `active`, cron Mondays):
 
 | Trigger | When |
 |---------|------|
-| `schedule` | Mondays 06:00 UTC |
-| `workflow_dispatch` | Manual — optional `skip_commit: true` to dry-run |
+| `schedule` | Mondays 06:00 UTC (auto) |
+| `workflow_dispatch` | Manual — optional `skip_commit: true` to dry-run (skips commit) |
 
 Steps: **`sync:content-memory`** → `pnpm dreaming` → `pnpm build:memory-index` → commit `latest-content.md`, `content-changelog-*.md`, and Dreaming reports to `main`.
+
+Push resilience: job uses `fetch-depth: 0`, a concurrency group, and **rebase + retry** if `main` moved mid-run (this is what broke the 2026-07-20 scheduled auto push).
 
 ### What content sync detects
 
