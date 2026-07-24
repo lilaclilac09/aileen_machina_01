@@ -1,0 +1,18 @@
+{
+  "name": "harness-cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Library-first Cursor-like agent harness CLI (prototype)",
+  "bin": {
+    "hx": "./bin/hx.ts"
+  },
+  "scripts": {
+    "hx": "node --experimental-strip-types bin/hx.ts",
+    "test": "node --experimental-strip-types test/smoke.ts"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "MIT"
+}
