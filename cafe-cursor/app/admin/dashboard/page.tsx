@@ -513,6 +513,67 @@ export default function AdminDashboard() {
           </p>
         </div>
 
+        <details className="mb-6 rounded-xl border border-sky-500/40 bg-sky-500/10 px-4 py-3 text-sm text-sky-50 open:pb-4">
+          <summary className="cursor-pointer list-none font-medium text-sky-100 [&::-webkit-details-marker]:hidden">
+            Volunteer SOP (Protocol A) — private · do not post publicly
+            <span className="ml-2 text-xs font-normal text-sky-200/80">
+              (tap to expand)
+            </span>
+          </summary>
+          <div className="mt-3 space-y-2 text-sky-100/90">
+            <p>
+              Public site only says <strong>contact a volunteer</strong>. Never tell
+              guests we can “swap / 换 credits / re-issue”.
+            </p>
+            <ol className="list-decimal space-y-1.5 pl-5">
+              <li>Confirm Luma check-in (guest phone or Luma list).</li>
+              <li>
+                Admin → search the <strong>check-in email</strong> → confirm not
+                claimed yet.
+              </li>
+              <li>
+                <strong>Prefer:</strong> guest redeems again with the check-in
+                email (no Admin assign).
+              </li>
+              <li>
+                If they still cannot use that email for the link: Users →{" "}
+                <strong>Assign</strong> credit to the <strong>check-in email</strong>{" "}
+                → open / copy link in Admin → hand to guest{" "}
+                <strong>in person</strong> (oral / scan). Do not announce a swap
+                policy.
+              </li>
+              <li>
+                Already claimed → public page never re-shows the link. Use Admin
+                only (Email link / Assign tooling).
+              </li>
+            </ol>
+            <p className="text-xs text-sky-200/80">
+              Guest script: “Please contact a volunteer.” Stop there.
+            </p>
+            <button
+              type="button"
+              className="mt-1 rounded-lg border border-sky-400/40 bg-sky-500/20 px-3 py-1.5 text-xs text-sky-50 hover:bg-sky-500/30"
+              onClick={() => {
+                const text = [
+                  "Volunteer SOP (Protocol A) — PRIVATE",
+                  "Public: only say contact a volunteer. Never advertise swap/换 credits.",
+                  "1) Confirm Luma check-in",
+                  "2) Admin search check-in email — not claimed yet?",
+                  "3) Prefer: guest redeems with check-in email",
+                  "4) Else: Admin Assign to check-in email → hand link in person",
+                  "5) Already claimed → Admin only; never re-show on public page",
+                ].join("\n");
+                void navigator.clipboard.writeText(text).then(
+                  () => alert("SOP copied — paste into volunteer WeChat only."),
+                  () => alert(text)
+                );
+              }}
+            >
+              Copy SOP for volunteer chat
+            </button>
+          </div>
+        </details>
+
         <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-8">
           <StatCard
             label="Total Credits"

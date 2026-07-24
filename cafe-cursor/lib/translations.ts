@@ -13,6 +13,8 @@ export const translations = {
     emailLabel: "邮箱",
     emailPlaceholder: "你的邮箱",
     emailHint: "请使用已 checked in 的 Luma 报名邮箱",
+    emailMismatchHint:
+      "如果签到的邮箱和实际领取的邮箱不同，请联系志愿者。",
     checkinLabel: "签到码",
     checkinPlaceholder: "活动签到码",
     checkinHint: "签到后在入口领取签到码",
@@ -39,7 +41,7 @@ export const translations = {
     // Success
     successTitle: "Credits 已发放！",
     alreadyHaveCredit: "你已经领取过 credits！",
-    alreadyClaimedAskStaff: "链接不会再次显示。如需找回，请找现场工作人员或 Admin。",
+    alreadyClaimedAskStaff: "链接不会再次显示。如需找回，请联系志愿者或 Admin。",
     congratsMessage: "恭喜！这是你的 Cursor credits：",
     registeredAs: "邮箱：",
     testWarning: "⚠️ 这是测试 credits（不可用于正式使用）",
@@ -49,16 +51,19 @@ export const translations = {
     saveLink: "请保存此链接，每人唯一。",
     successHint:
       "打开链接后请在 Cursor Balance 查看 credits，之后充值与使用时都可抵扣。",
-    havingTrouble: "遇到问题？请找现场工作人员帮忙。",
+    havingTrouble: "遇到问题？请联系现场志愿者。",
 
     // Errors
-    notEligible: "请先找工作人员完成现场 Luma checked in，再来领取。",
-    notApproved: "你的报名尚未通过审核，请联系主办方。",
+    notEligible:
+      "请先用 Luma 签到邮箱领取。如果签到邮箱和领取邮箱不同，请联系志愿者。",
+    notApproved: "你的报名尚未通过审核，请联系志愿者。",
     badCheckinCode: "签到码无效。请先在入口完成签到。",
-    noCreditsAvailable: "抱歉，当前没有可用 credits，请联系主办方。",
+    noCreditsAvailable: "抱歉，当前没有可用 credits，请联系志愿者。",
     networkError: "网络错误，请重试。",
-    thinkError: "若认为是错误，请联系活动主办方。",
+    thinkError: "若认为是错误，请联系现场志愿者。",
     pendingApproval: "你的申请正在审核中。",
+    claimDeniedHint:
+      "请使用 Luma 签到邮箱再试；仍不行请联系志愿者。",
     tryAnotherEmail: "换邮箱",
 
     // Share
@@ -82,6 +87,8 @@ export const translations = {
     emailLabel: "Email",
     emailPlaceholder: "Your email",
     emailHint: "Use your checked-in Luma registration email",
+    emailMismatchHint:
+      "If your check-in email is different from the email you’re redeeming with, please contact a volunteer.",
     checkinLabel: "Check-in code",
     checkinPlaceholder: "Event code",
     checkinHint: "Get this code at the door after check-in",
@@ -110,7 +117,7 @@ export const translations = {
     successTitle: "Credits assigned!",
     alreadyHaveCredit: "You already claimed your credits!",
     alreadyClaimedAskStaff:
-      "Your link is not shown again here. Ask staff or Admin if you need it.",
+      "Your link is not shown again here. Ask a volunteer or Admin if you need it.",
     congratsMessage: "Congratulations! Here are your Cursor credits:",
     registeredAs: "Email:",
     testWarning: "⚠️ This is a TEST credit (not valid for real use)",
@@ -120,19 +127,21 @@ export const translations = {
     saveLink: "Save this link — it's unique to you.",
     successHint:
       "After opening the link, check credits in Cursor Balance — they apply to future top-ups and usage.",
-    havingTrouble: "Having trouble? Please ask the staff for help.",
+    havingTrouble: "Having trouble? Please contact a volunteer on site.",
 
     // Errors
     notEligible:
-      "Please ask the staff to check you in on Luma first, then redeem.",
+      "Please redeem with your Luma check-in email. If that email differs from the one you’re using now, please contact a volunteer.",
     notApproved:
-      "Your event registration hasn't been approved yet. Please contact the organizer.",
+      "Your event registration hasn't been approved yet. Please contact a volunteer.",
     badCheckinCode: "Invalid check-in code. Please check in at the door first.",
     noCreditsAvailable:
-      "Sorry, no credits are available right now. Please contact the organizer.",
+      "Sorry, no credits are available right now. Please contact a volunteer.",
     networkError: "Connection error. Please try again.",
-    thinkError: "Think this is an error? Contact the event organizer.",
+    thinkError: "Think this is an error? Please contact a volunteer on site.",
     pendingApproval: "Your request is pending approval.",
+    claimDeniedHint:
+      "Try your Luma check-in email again. If it still fails, please contact a volunteer.",
     tryAnotherEmail: "Try another email",
 
     // Share
