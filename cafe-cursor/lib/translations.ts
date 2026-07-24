@@ -63,7 +63,7 @@ export const translations = {
     thinkError: "若认为是错误，请联系现场志愿者。",
     pendingApproval: "你的申请正在审核中。",
     claimDeniedHint:
-      "常见原因：领取邮箱 ≠ Luma 签到邮箱。请换回签到邮箱，或联系志愿者协助。",
+      "请使用 Luma 签到邮箱再试；仍不行请联系志愿者。",
     tryAnotherEmail: "换邮箱",
 
     // Share
@@ -141,7 +141,7 @@ export const translations = {
     thinkError: "Think this is an error? Please contact a volunteer on site.",
     pendingApproval: "Your request is pending approval.",
     claimDeniedHint:
-      "Common fix: redeem email ≠ Luma check-in email. Try your check-in email, or ask a volunteer for help.",
+      "Try your Luma check-in email again. If it still fails, please contact a volunteer.",
     tryAnotherEmail: "Try another email",
 
     // Share
