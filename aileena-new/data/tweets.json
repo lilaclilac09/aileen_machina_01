@@ -4109,5 +4109,303 @@
     "tags": [],
     "source": "fxtwitter",
     "ingestedAt": "2026-07-24T14:46:43.050Z"
+  },
+  {
+    "id": "2080703926782021665",
+    "url": "https://x.com/dylan522p/status/2080703926782021665",
+    "screenName": "dylan522p",
+    "authorId": "985281530070265862",
+    "authorName": "Dylan Patel",
+    "text": "Impressive that Huawei shipped this first after Nvidia / Groq and AMD / Cerebras announcements.",
+    "createdAt": "Fri Jul 24 17:17:28 +0000 2026",
+    "createdTimestamp": 1784913448,
+    "likes": 90,
+    "retweets": 1,
+    "replies": 8,
+    "bookmarks": 27,
+    "views": 22311,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "semianalysis"
+    ],
+    "tags": [
+      "semianalysis"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-24T19:46:21.116Z"
+  },
+  {
+    "id": "2080726524290867617",
+    "url": "https://x.com/SemiAnalysis_/status/2080726524290867617",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Was widespread Tokenmaxxing ever really here?\n\nMeta burned 60T+ tokens in 30 days; one employee used ~280B. Uber burned its annual Claude Code + Codex budget in four months.\n\nWe spoke with 50+ enterprises. The real story was not a budget wall, but allocation.👇️ (1/6)🧵",
+    "createdAt": "Fri Jul 24 18:47:16 +0000 2026",
+    "createdTimestamp": 1784918836,
+    "likes": 45,
+    "retweets": 6,
+    "replies": 4,
+    "bookmarks": 56,
+    "views": 12682,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HOA5v1sXQAAAOT7.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-24T19:46:23.210Z"
+  },
+  {
+    "id": "2080726529655308410",
+    "url": "https://x.com/SemiAnalysis_/status/2080726529655308410",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Our model: coding drives >70% of OpenAI + Anthropic ARR today; Anthropic is 90%+ B2B vs OpenAI ~60%.\n\nNext: cyber (Mythos re-release dependent), then white-collar.\nTaaS providers exceed $4B ARR; our Bedrock estimate puts total AWS growth above street this quarter. (5/6)",
+    "createdAt": "Fri Jul 24 18:47:17 +0000 2026",
+    "createdTimestamp": 1784918837,
+    "likes": 7,
+    "retweets": 3,
+    "replies": 1,
+    "bookmarks": 2,
+    "views": 4082,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "optical"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-24T19:46:24.628Z"
+  },
+  {
+    "id": "2080726530708091382",
+    "url": "https://x.com/SemiAnalysis_/status/2080726530708091382",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Budgeting is real. A demand cliff is not.\nWe estimate 90th+ percentile customers drive most revenue.\nNo material 2H26 AI-budget risk. We expect Anthropic/OpenAI API businesses to maintain current net-new m/m growth rates. (6/6) \nhttps://newsletter.semianalysis.com/p/tokenbudgeting-our-conversations",
+    "createdAt": "Fri Jul 24 18:47:17 +0000 2026",
+    "createdTimestamp": 1784918837,
+    "likes": 9,
+    "retweets": 4,
+    "replies": 0,
+    "bookmarks": 5,
+    "views": 3906,
+    "isNoteTweet": false,
+    "linkedUrls": [
+      "https://newsletter.semianalysis.com/p/tokenbudgeting-our-conversations"
+    ],
+    "topics": [
+      "optical"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-24T19:46:26.016Z"
+  },
+  {
+    "id": "2080738841359482960",
+    "url": "https://x.com/aaronburnett/status/2080738841359482960",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Investor *taps watch* where’s my world’s most powerful rocket, 100,000 Tbps of internet, 100GWs of AI Compute, and 1M person Martian Colony? It’s been 6 weeks.",
+    "createdAt": "Fri Jul 24 19:36:12 +0000 2026",
+    "createdTimestamp": 1784921772,
+    "likes": 4,
+    "retweets": 0,
+    "replies": 0,
+    "bookmarks": 0,
+    "views": 370,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-24T19:46:29.937Z"
+  },
+  {
+    "id": "2080730002463584644",
+    "url": "https://x.com/aaronburnett/status/2080730002463584644",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "A significant component of speeding up model release can to traced back to engineering decisions. Our model on training cadence (released ~ 3 weeks ago) suggested SpaceXAI would hit a 3.5 week model release cadence. At the time a bold prediction.\n\nThis analysis is helpful walkthrough on how models are trained and what portions can be sped up the most. \nhttps://research.33fg.com/analysis/what-spacexai-s-c-rewrite-gamble-buys\n\nIf the model holds, advantages from these engineering choices should add significantly more time savings relative to overall training time expected from here to 20T parameter models.",
+    "createdAt": "Fri Jul 24 19:01:05 +0000 2026",
+    "createdTimestamp": 1784919665,
+    "likes": 15,
+    "retweets": 1,
+    "replies": 1,
+    "bookmarks": 2,
+    "views": 1117,
+    "isNoteTweet": true,
+    "linkedUrls": [
+      "https://research.33fg.com/analysis/what-spacexai-s-c-rewrite-gamble-buys"
+    ],
+    "topics": [
+      "mach33",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-24T19:46:31.344Z"
+  },
+  {
+    "id": "2080719083360641473",
+    "url": "https://x.com/aaronburnett/status/2080719083360641473",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "We should start a gofundme honestly",
+    "createdAt": "Fri Jul 24 18:17:42 +0000 2026",
+    "createdTimestamp": 1784917062,
+    "likes": 26,
+    "retweets": 3,
+    "replies": 2,
+    "bookmarks": 0,
+    "views": 1242,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-24T19:46:32.740Z"
+  },
+  {
+    "id": "2080715612599247347",
+    "url": "https://x.com/aaronburnett/status/2080715612599247347",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Falcon9 wind down is indicative of confidence in Starship. If you’re a $spcx bear you view that as misplaced confidence, if you’re a bull you see it as affirmation of the starship dependent timelines Starlink V3 2026/2027 ramp, StarMind 2028/2029 ramp.",
+    "createdAt": "Fri Jul 24 18:03:54 +0000 2026",
+    "createdTimestamp": 1784916234,
+    "likes": 19,
+    "retweets": 3,
+    "replies": 2,
+    "bookmarks": 2,
+    "views": 1840,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-24T19:46:34.163Z"
+  },
+  {
+    "id": "2080714101550960733",
+    "url": "https://x.com/aaronburnett/status/2080714101550960733",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Gavin has been pretty consistently ahead on this. We’re seeing more and more architectural and infrastructural decisions aimed at token cost and efficiency directly related to intelligence per $.\n\nIntelligence is behaving more like a commodity/utility every day",
+    "createdAt": "Fri Jul 24 17:57:54 +0000 2026",
+    "createdTimestamp": 1784915874,
+    "likes": 11,
+    "retweets": 1,
+    "replies": 2,
+    "bookmarks": 0,
+    "views": 1759,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-24T19:46:35.565Z"
+  },
+  {
+    "id": "2080710810293178429",
+    "url": "https://x.com/aaronburnett/status/2080710810293178429",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Rumor is that he did this to join the orbital data center debate for the good guys.",
+    "createdAt": "Fri Jul 24 17:44:49 +0000 2026",
+    "createdTimestamp": 1784915089,
+    "likes": 28,
+    "retweets": 1,
+    "replies": 2,
+    "bookmarks": 3,
+    "views": 2037,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "orbital-compute"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-24T19:46:36.969Z"
+  },
+  {
+    "id": "2080709140435886543",
+    "url": "https://x.com/aaronburnett/status/2080709140435886543",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "I suggest getting used to seeing this on more buildings.",
+    "createdAt": "Fri Jul 24 17:38:11 +0000 2026",
+    "createdTimestamp": 1784914691,
+    "likes": 7,
+    "retweets": 2,
+    "replies": 0,
+    "bookmarks": 0,
+    "views": 1521,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-24T19:46:38.392Z"
+  },
+  {
+    "id": "2080739050495856934",
+    "url": "https://x.com/VladSaigau/status/2080739050495856934",
+    "screenName": "VladSaigau",
+    "authorId": "1496125256624484362",
+    "authorName": "Vlad Saigau",
+    "text": "Thank God It’s Starship-day",
+    "createdAt": "Fri Jul 24 19:37:02 +0000 2026",
+    "createdTimestamp": 1784921822,
+    "likes": 2,
+    "retweets": 0,
+    "replies": 0,
+    "bookmarks": 0,
+    "views": 103,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-24T19:46:45.298Z"
   }
 ]
