@@ -22,6 +22,7 @@ function usage(): never {
 Usage:
   hx tools
   hx run "<prompt>" [--provider mock|openai] [--cwd <path>] [--write] [--shell] [--json]
+  hx exec -x "<prompt>"   # Amp-style oneshot alias of run
   hx repl [--provider mock|openai] [--cwd <path>] [--write] [--shell]
   hx session show|clear
 
@@ -30,7 +31,7 @@ Env:
   OPENAI_BASE_URL    optional (default https://api.openai.com/v1)
   OPENAI_MODEL       optional (default gpt-4o-mini)
 
-Design: harness-cli/DESIGN.md
+Design: harness-cli/DESIGN.md · Amp pattern: harness-cli/AMP_STYLE.md
 `);
   process.exit(0);
 }
@@ -169,14 +170,15 @@ async function main() {
       write: { type: 'boolean', default: false },
       shell: { type: 'boolean', default: false },
       json: { type: 'boolean', default: false },
+      execute: { type: 'string', short: 'x' },
       help: { type: 'boolean', short: 'h', default: false },
     },
     allowPositionals: true,
   });
 
-  if (values.help || positionals.length === 0) usage();
+  if (values.help || (positionals.length === 0 && !values.execute)) usage();
 
-  const [cmd, ...rest] = positionals;
+  const [cmd, ...rest] = positionals.length ? positionals : ['run'];
   const flags = {
     provider: String(values.provider),
     cwd: String(values.cwd),
@@ -189,8 +191,10 @@ async function main() {
     case 'tools':
       await cmdTools();
       break;
+    case 'exec':
     case 'run': {
-      const prompt = rest.join(' ').trim();
+      // Amp-style: `hx exec -x "..."` or `hx -x "..."` (cmd defaults to run)
+      const prompt = (values.execute ? String(values.execute) : rest.join(' ')).trim();
       if (!prompt) usage();
       await cmdRun(prompt, flags);
       break;

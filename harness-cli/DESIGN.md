@@ -135,11 +135,7 @@ You rewrite the **loop**, not the IDE.
 4. Rust core (Nanocodex-style) with this CLI as a consumer  
 5. Harbor / eval harness for regression
 
-## Verification
+## Amp-style growth
 
-```sh
-cd harness-cli
-node --experimental-strip-types bin/hx.ts tools
-node --experimental-strip-types bin/hx.ts run "list files in ."
-node --experimental-strip-types bin/hx.ts run "use code mode to count md files"
-```
+See [AMP_STYLE.md](./AMP_STYLE.md): every future command (`mcp`, `review`, IDE bridge, runner, SDK)
+is an **adapter** over this same `Harness` driver — same pattern as Amp’s `amp` / `amp -x` / IDE / SDK sharing one agent runtime.

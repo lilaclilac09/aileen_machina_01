@@ -29,4 +29,5 @@ Or: `pnpm hx -- tools` / `npm run hx -- run "list files"`.
 
 A tiny owned agent loop (`prompt → turn → tools/code_mode → checkpoint`) plus a thin CLI — the part of a Cursor-style harness that *can* be rewritten. Not a Cursor port.
 
-**Full product rewrite map (L1–L5):** [CURSOR_REWRITE.md](./CURSOR_REWRITE.md)
+**Full product rewrite map (L1–L5):** [CURSOR_REWRITE.md](./CURSOR_REWRITE.md)  
+**Amp pattern (one harness → many CLIs):** [AMP_STYLE.md](./AMP_STYLE.md)
