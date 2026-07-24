@@ -90,6 +90,7 @@ export const t = {
         hostReady: 'Inkling key found — Run will use the Inkling model.',
         hostReadyLocal:
           'No Inkling API key — free local mode (silence gaps). Not using the Inkling model.',
+        hostRemote: 'Worker: remote container (Fly).',
         hostNotReady:
           'Browser Run needs yt-dlp + ffmpeg on this host. Copy the CLI below (works on your laptop with --local).',
         youtubeLabel: 'YouTube URL',
@@ -777,6 +778,7 @@ export const t = {
         hostReady: 'Inkling-Key gefunden — Run nutzt das Inkling-Modell.',
         hostReadyLocal:
           'Kein Inkling-API-Key — kostenloser Lokalmodus (Stille). Nicht das Inkling-Modell.',
+        hostRemote: 'Worker: Remote-Container (Fly).',
         hostNotReady:
           'Browser-Run braucht yt-dlp + ffmpeg auf diesem Host. CLI unten kopieren (Laptop mit --local).',
         youtubeLabel: 'YouTube-URL',

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, 
 import { useLanguage } from '../LanguageProvider';
 import { t } from '../../lib/translations';
 import { getToolBySlug } from '../../lib/tools/registry';
+import { clipsApiUrl, clipsAssetUrl, clipsApiBase } from '../../lib/tools/clipsApi';
 import ArcadeLayout, { ArcadeCabinetFrame, mono } from './ArcadeLayout';
 
 type JobProgress = {
@@ -105,7 +106,7 @@ export default function InklingClipTool() {
     let cancelled = false;
     void (async () => {
       try {
-        const res = await fetch('/api/tools/inkling-clips/status');
+        const res = await fetch(clipsApiUrl('/api/tools/inkling-clips/status'));
         const json = (await res.json()) as { ok: boolean; data?: HostStatus };
         if (!cancelled && json.ok && json.data) setHost(json.data);
       } catch {
@@ -129,7 +130,7 @@ export default function InklingClipTool() {
 
   const pollJob = useCallback(
     async (jobId: string) => {
-      const res = await fetch(`/api/tools/inkling-clips?jobId=${encodeURIComponent(jobId)}`);
+      const res = await fetch(clipsApiUrl(`/api/tools/inkling-clips?jobId=${encodeURIComponent(jobId)}`));
       const json = (await res.json()) as { ok: boolean; data?: JobView; error?: { message: string } };
       if (!json.ok || !json.data) {
         setError(json.error?.message ?? tx.errors.pollFailed);
@@ -137,7 +138,17 @@ export default function InklingClipTool() {
         setSubmitting(false);
         return;
       }
-      setJob(json.data);
+      const data = json.data;
+      if (data.result?.candidates) {
+        data.result = {
+          ...data.result,
+          candidates: data.result.candidates.map((c) => ({
+            ...c,
+            downloadUrl: clipsAssetUrl(c.downloadUrl),
+          })),
+        };
+      }
+      setJob(data);
       if (json.data.status === 'done' || json.data.status === 'error') {
         stopPolling();
         setSubmitting(false);
@@ -157,7 +168,7 @@ export default function InklingClipTool() {
     stopPolling();
 
     try {
-      const res = await fetch('/api/tools/inkling-clips', {
+      const res = await fetch(clipsApiUrl('/api/tools/inkling-clips'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -201,6 +212,7 @@ export default function InklingClipTool() {
   const progress = job?.progress?.progress ?? 0;
   const phase = job?.progress?.phase ?? 'download';
   const canRun = host?.ready === true;
+  const remoteApi = Boolean(clipsApiBase());
 
   const cliCommand = useMemo(() => {
     const u = url.trim() || 'https://www.youtube.com/watch?v=VIDEO_ID';
@@ -249,8 +261,8 @@ export default function InklingClipTool() {
           {host
             ? canRun
               ? host.engine === 'local'
-                ? tx.hostReadyLocal
-                : tx.hostReady
+                ? `${tx.hostReadyLocal}${remoteApi ? ` ${tx.hostRemote}` : ''}`
+                : `${tx.hostReady}${remoteApi ? ` ${tx.hostRemote}` : ''}`
               : `${tx.hostNotReady} ${host.hint}`
             : tx.hostChecking}
         </p>
