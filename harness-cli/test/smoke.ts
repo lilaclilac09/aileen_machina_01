@@ -12,6 +12,7 @@ import { applyUnifiedDiff } from '../src/tools/applyPatch.ts';
 import { loadRules } from '../src/core/rules.ts';
 import { addMcpServer, mcpToolsFromConfig, removeMcpServer } from '../src/mcp/config.ts';
 import { buildHarness, selectTools } from '../src/adapters/factory.ts';
+import { runCursorCli } from '../src/adapters/cursorCli.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, '..');
@@ -83,6 +84,9 @@ async function main() {
   });
   const reviewed = await (await review.prompt('review')).result();
   assert(reviewed.toolCalls.length >= 1, 'review should use tools');
+
+  // Cursor ask adapter (oneshot)
+  await runCursorCli(['-p', 'ask about harness layout', '--mode', 'ask', '--cwd', root, '--output-format', 'json']);
 
   console.log('smoke ok');
 }

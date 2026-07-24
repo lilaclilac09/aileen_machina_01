@@ -46,16 +46,9 @@ hx core (library)
        │
   ┌────┴──────────────────────────────────────────┐
   │ adapters (all “CLIs”)                         │
-  ├─ hx run / hx repl          # already           │
-  ├─ hx tools / hx session     # already           │
-  ├─ hx exec -x                # Amp -x alias      │
-  ├─ hx mcp …                  # manage MCP → registry
-  ├─ hx review                 # fixed prompt + tools
-  ├─ hx --vscode / lsp bridge  # editor adapter    │
-  ├─ hx --no-tui runner        # cloud/headless    │
-  └─ @hx/sdk (TS) / hx crate   # same driver       │
-  └───────────────────────────────────────────────┘
-```
+  ├─ hx run / hx repl / hx review / hx mcp
+  ├─ agent / cursor-agent / hx cursor   # Cursor-shaped UX
+  └─ @hx/sdk (later)
 
 **Rule:** adapters never own conversation state. They only:
 

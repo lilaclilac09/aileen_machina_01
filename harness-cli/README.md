@@ -37,4 +37,12 @@ bin/hx.ts        thin dispatcher
 
 ## CLIs → same Harness
 
-`run` / `-x` / `repl` / `review` / `tools` / `mcp` / `session` — all adapters.
+`run` / `-x` / `repl` / `review` / `tools` / `mcp` / `session` / **`cursor` (`agent`)** — all adapters.
+
+Cursor-shaped surface: [CURSOR_CLI.md](./CURSOR_CLI.md)
+
+```sh
+node --experimental-strip-types bin/agent.ts -p "list files" --mode ask --cwd .
+node --experimental-strip-types bin/hx.ts cursor -p "plan next steps" --plan --cwd .
+```
+

@@ -23,12 +23,17 @@ export function createMockProvider(): Provider {
         };
       }
 
-      // review preset: read key docs then summarize
-      if (text.includes('review') || req.system.includes('hx review')) {
+      // review / ask / plan presets: read key docs then summarize
+      if (
+        text.includes('review') ||
+        req.system.includes('hx review') ||
+        req.system.includes('Cursor Ask mode') ||
+        req.system.includes('Cursor Plan mode')
+      ) {
         const calls: { name: string; arguments: Record<string, unknown> }[] = [];
         if (toolNames.has('list_dir')) calls.push({ name: 'list_dir', arguments: { path: '.' } });
         if (toolNames.has('read_file')) {
-          calls.push({ name: 'read_file', arguments: { path: 'DESIGN.md' } });
+          calls.push({ name: 'read_file', arguments: { path: 'HANDWRITTEN_HARNESS.md' } });
         }
         if (calls.length) return toolCalls(calls);
       }

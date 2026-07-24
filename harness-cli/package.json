@@ -1,14 +1,17 @@
 {
   "name": "harness-cli",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
-  "description": "Handwritten Amp-style agent harness — one core, many CLIs",
+  "description": "Handwritten Amp-style agent harness — hx + Cursor-shaped agent CLI",
   "bin": {
-    "hx": "./bin/hx.ts"
+    "hx": "./bin/hx.ts",
+    "agent": "./bin/agent.ts",
+    "cursor-agent": "./bin/agent.ts"
   },
   "scripts": {
     "hx": "node --experimental-strip-types bin/hx.ts",
+    "agent": "node --experimental-strip-types bin/agent.ts",
     "test": "node --experimental-strip-types test/smoke.ts"
   },
   "engines": {

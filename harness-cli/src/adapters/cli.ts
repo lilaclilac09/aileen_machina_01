@@ -33,8 +33,10 @@ Usage:
   hx repl                  # interactive, resumes ~/.hx/session.json
   hx session show|clear
   hx mcp list|add|remove   # register MCP stubs into the same tool registry
+  hx cursor …              # Cursor-shaped agent CLI (also: bin/agent.ts)
 
 Amp pattern / steps: AMP_STYLE.md · HANDWRITTEN_HARNESS.md
+Cursor adapter:      CURSOR_CLI.md
 `);
   process.exit(0);
 }

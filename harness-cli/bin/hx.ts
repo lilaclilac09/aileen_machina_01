@@ -12,6 +12,7 @@ import {
   cmdTools,
   printUsage,
 } from '../src/adapters/cli.ts';
+import { runCursorCli } from '../src/adapters/cursorCli.ts';
 
 async function main() {
   const { values, positionals } = parseArgs({
@@ -27,7 +28,16 @@ async function main() {
       help: { type: 'boolean', short: 'h', default: false },
     },
     allowPositionals: true,
+    strict: false,
   });
+
+  // `hx cursor …` → Cursor-shaped adapter (rest of argv after "cursor")
+  if (positionals[0] === 'cursor') {
+    const raw = process.argv.slice(2);
+    const idx = raw.findIndex((a) => a === 'cursor');
+    await runCursorCli(raw.slice(idx + 1));
+    return;
+  }
 
   if (values.help || (positionals.length === 0 && !values.execute)) printUsage();
 
