@@ -229,7 +229,7 @@ export default function InklingClipTool() {
       subtitle={tx.body}
       backLabel={tx.backToTools}
       backHref="/tools"
-      marquee={`AUDIO CLIPPING · RUN · LOCAL · CLI · FFMPEG`}
+      marquee={`AUDIO CLIPPING · FREE LOCAL · NOT INKLING · CLI`}
     >
       <ArcadeCabinetFrame
         glyph={tool?.arcade.glyph ?? '▶'}
@@ -365,8 +365,11 @@ export default function InklingClipTool() {
           </button>
         </form>
 
-          <p style={{ margin: '14px 0 0', fontFamily: mono, fontSize: '0.68rem', color: 'rgba(20,17,12,0.4)', lineHeight: 1.5 }}>
-          {host?.engine === 'local' ? tx.disclaimerLocal : tx.disclaimer}
+        <p style={{ margin: '14px 0 0', fontFamily: mono, fontSize: '0.68rem', color: 'rgba(20,17,12,0.4)', lineHeight: 1.5 }}>
+          {host?.engine === 'local' ? tx.disclaimerLocal : tx.disclaimer}{' '}
+          <a href="/audio-clipping" style={{ color: '#008f86' }}>
+            Product →
+          </a>
         </p>
 
         <div style={{ marginTop: 22, display: 'grid', gap: 10 }}>

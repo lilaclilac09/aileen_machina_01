@@ -822,6 +822,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
     { label: 'github', href: 'https://github.com/lilaclilac09' },
     { label: 'substack', href: '/dispatch' },
     { label: 'tools', href: '/tools' },
+    { label: 'clips', href: '/audio-clipping' },
     { label: 'sound', href: '/sound' },
   ];
   const getDragOffset = (id: string) => dragOffsets[id] ?? { x: 0, y: 0 };

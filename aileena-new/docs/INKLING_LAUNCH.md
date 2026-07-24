@@ -1,5 +1,7 @@
 # Audio Clipping — launch checklist (what you still do)
 
+**Product page:** `/audio-clipping` · **Runner:** `/tools/inkling-clips`
+
 Code for the pipeline + web Run UI is in the repo. **Vercel alone cannot execute clips** (no `yt-dlp` / `ffmpeg`). Pick one path below.
 
 ## Free path (no Together credits)

@@ -193,3 +193,225 @@
 .arcade-score-card {
   animation: arcade-reveal 0.4s ease both;
 }
+
+/* —— Audio Clipping product page —— */
+.ac-product .ac-hero {
+  position: relative;
+  min-height: min(92vh, 760px);
+  display: grid;
+  align-items: end;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 55% at 70% 20%, rgba(0, 169, 159, 0.14), transparent 55%),
+    linear-gradient(165deg, #0f1c1b 0%, #16302e 42%, #1a3d3a 100%);
+  color: #fffdf8;
+}
+
+.ac-hero-wave {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.ac-hero-svg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 55%;
+  opacity: 0.35;
+}
+
+.ac-wave-a {
+  fill: rgba(0, 169, 159, 0.45);
+  animation: ac-drift 14s ease-in-out infinite alternate;
+}
+
+.ac-wave-b {
+  fill: rgba(255, 253, 248, 0.12);
+  animation: ac-drift 18s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes ac-drift {
+  from {
+    transform: translateX(-2%);
+  }
+  to {
+    transform: translateX(2%);
+  }
+}
+
+.ac-hero-bars {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 18%;
+  height: 38%;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  opacity: 0.55;
+}
+
+.ac-hero-bars span {
+  flex: 1;
+  min-width: 3px;
+  background: linear-gradient(180deg, #5ee0d6 0%, rgba(0, 169, 159, 0.25) 100%);
+  transform-origin: bottom;
+  animation: ac-bar 1.4s ease-in-out infinite;
+}
+
+@keyframes ac-bar {
+  0%,
+  100% {
+    transform: scaleY(0.45);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.ac-hero-copy {
+  position: relative;
+  z-index: 2;
+  max-width: 720px;
+  padding: 64px 24px 56px;
+  margin: 0 auto;
+  width: 100%;
+  animation: arcade-reveal 0.7s ease both;
+}
+
+.ac-brand {
+  margin: 0 0 14px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: clamp(1.35rem, 3.5vw, 2rem);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #5ee0d6;
+}
+
+.ac-headline {
+  margin: 0 0 16px;
+  font-size: clamp(1.55rem, 4.2vw, 2.45rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.12;
+  color: #fffdf8;
+  max-width: 16ch;
+}
+
+.ac-dek {
+  margin: 0 0 28px;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: rgba(255, 253, 248, 0.72);
+  max-width: 36ch;
+}
+
+.ac-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ac-section {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 72px 24px 24px;
+}
+
+.ac-section-muted {
+  max-width: none;
+  padding: 56px 24px;
+  background: rgba(248, 245, 238, 0.7);
+}
+
+.ac-section-muted > * {
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.ac-eyebrow {
+  margin: 0 0 10px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #00a99f;
+}
+
+.ac-section-title {
+  margin: 0 0 12px;
+  font-size: clamp(1.35rem, 3vw, 1.85rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #14110c;
+  line-height: 1.15;
+}
+
+.ac-section-body {
+  margin: 0;
+  font-size: 1.02rem;
+  line-height: 1.65;
+  color: rgba(20, 17, 12, 0.62);
+}
+
+.ac-steps {
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 14px;
+  counter-reset: ac-step;
+}
+
+.ac-steps li {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: rgba(20, 17, 12, 0.7);
+  padding-left: 2.2em;
+  position: relative;
+}
+
+.ac-steps li::before {
+  counter-increment: ac-step;
+  content: counter(ac-step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #00a99f;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+}
+
+.ac-cli {
+  margin: 22px 0 0;
+  padding: 16px 18px;
+  background: #14110c;
+  color: #f4f1ea;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+@media (max-width: 640px) {
+  .ac-product .ac-hero {
+    min-height: min(88vh, 680px);
+  }
+  .ac-hero-bars {
+    bottom: 22%;
+    height: 28%;
+    gap: 4px;
+  }
+  .ac-headline {
+    max-width: none;
+  }
+}
+

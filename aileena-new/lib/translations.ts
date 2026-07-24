@@ -56,7 +56,7 @@ export const t = {
           tag: 'AUDIO',
           title: 'Audio Clipping',
           body:
-            'YouTube → clips via ffmpeg. Free local silence gaps, or Inkling when a Together key is set. Needs yt-dlp/ffmpeg on the host.',
+            'YouTube → short clips. Free local mode (no API). Open the product page or the runner.',
         },
         'cafe-cursor': {
           tag: 'EVENT',
@@ -84,14 +84,14 @@ export const t = {
         tag: 'AUDIO',
         heading: 'Audio Clipping',
         body:
-          'Long-form YouTube → free local silence gaps (or Inkling if keyed) → ffmpeg cuts clips. Run when the host has yt-dlp/ffmpeg, or copy the CLI.',
+          'Paste a YouTube URL. Default is free local cutting (ffmpeg silence gaps) — no Inkling API. Optional Inkling only if a Together key is on the host.',
         backToTools: '← Tools',
         hostChecking: 'Checking whether this host can run clips…',
-        hostReady: 'This host is ready (Inkling) — paste a URL and press Run.',
+        hostReady: 'Inkling key found — Run will use the Inkling model.',
         hostReadyLocal:
-          'Free local mode — no Together credits. Clips from ffmpeg silence gaps (boundaries may be rough).',
+          'No Inkling API key — free local mode (silence gaps). Not using the Inkling model.',
         hostNotReady:
-          'Browser Run is not ready on this host yet (needs yt-dlp + ffmpeg). You can still copy a local CLI command below.',
+          'Browser Run needs yt-dlp + ffmpeg on this host. Copy the CLI below (works on your laptop with --local).',
         youtubeLabel: 'YouTube URL',
         modeBest: 'Highlights',
         modeQuery: 'Topic search',
@@ -103,13 +103,13 @@ export const t = {
         copied: 'Copied',
         prereqTitle: 'Setup',
         prereqBrew: 'Install: brew install yt-dlp ffmpeg',
-        prereqKey: 'Optional: export TOGETHER_API_KEY="…" for Inkling (paid)',
+        prereqKey: 'Optional later: TOGETHER_API_KEY for Inkling (paid)',
         prereqCd: 'From the aileena-new/ repo folder, paste the command',
         submit: 'Run',
         running: 'Running…',
         listening: 'Inkling is listening',
-        listeningLocal: 'Local silence detect',
-        engineLocal: 'local',
+        listeningLocal: 'Local silence detect (not Inkling)',
+        engineLocal: 'local · free',
         engineInkling: 'inkling',
         levelLabels: {
           download: '1 · Download',
@@ -124,9 +124,9 @@ export const t = {
         highScore: 'Clips ready',
         scoreLabel: 'score',
         disclaimer:
-          '8 runs / visitor / day. Inkling on Together is paid (~$1 / $4.05 per 1M in/out). Start with a short video.',
+          '8 runs / visitor / day. This host has an Inkling key — Together usage is paid.',
         disclaimerLocal:
-          '8 runs / visitor / day. Free local mode — no API credits. Still needs yt-dlp + ffmpeg on the host (not bare Vercel).',
+          '8 runs / visitor / day. Free local — no Inkling model, no API credits. Needs yt-dlp + ffmpeg (CLI or Docker; not bare Vercel).',
         resultsHint: 'Jump to the moment or download the cut.',
         openYoutube: 'Open',
         downloadClip: 'Download',
@@ -136,6 +136,32 @@ export const t = {
           jobFailed: 'Run failed.',
           network: 'Network error. Try again.',
         },
+      },
+      audioClippingProduct: {
+        navTag: 'Product',
+        brand: 'Audio Clipping',
+        headline: 'Long YouTube → short clips. No API key.',
+        dek: 'Free local mode cuts on silence gaps with ffmpeg. The Inkling model is optional — only if you add a Together key later.',
+        ctaOpen: 'Open runner',
+        ctaCopy: 'Copy free CLI',
+        copied: 'Copied',
+        marquee: 'AUDIO CLIPPING · FREE LOCAL · NO INKLING KEY · YT-DLP · FFMPEG · OPTIONAL INKLING',
+        howEyebrow: 'Default',
+        howTitle: 'Free local — not the Inkling model',
+        howBody:
+          'Without TOGETHER_API_KEY / INKLING_API_KEY, nothing calls Thinking Machines Inkling. Clips come from ffmpeg silence detection on your machine.',
+        step1: 'Download audio with yt-dlp',
+        step2: 'Find speech islands via silencedetect',
+        step3: 'Cut the top N windows with ffmpeg',
+        optionalEyebrow: 'Optional',
+        optionalTitle: 'Inkling when you have a key',
+        optionalBody:
+          'If you later set a Together API key, the same tool can switch to the Inkling audio model for smarter boundaries. You said no credits — so the product ships free-first.',
+        runEyebrow: 'Run',
+        runTitle: 'Laptop CLI or Docker host',
+        runBody:
+          'Bare Vercel has no yt-dlp/ffmpeg. Use the free CLI on your Mac, or Docker on a VPS. Then open the runner.',
+        backToTools: '← Tools',
       },
       chipGuess: {
         tag: 'SEMIS',
@@ -717,7 +743,7 @@ export const t = {
           tag: 'AUDIO',
           title: 'Audio Clipping',
           body:
-            'YouTube → Clips via ffmpeg. Kostenlos lokal (Stille) oder Inkling mit Together-Key. Braucht yt-dlp/ffmpeg auf dem Host.',
+            'YouTube → kurze Clips. Kostenlos lokal (kein API). Produktseite oder Runner öffnen.',
         },
         'cafe-cursor': {
           tag: 'EVENT',
@@ -745,14 +771,14 @@ export const t = {
         tag: 'AUDIO',
         heading: 'Audio Clipping',
         body:
-          'Long-form YouTube → kostenlose lokale Stille-Erkennung (oder Inkling mit Key) → ffmpeg schneidet. Braucht yt-dlp/ffmpeg, sonst CLI.',
+          'YouTube-URL einfügen. Standard ist kostenlos lokal (ffmpeg-Stille) — kein Inkling-API. Inkling nur optional, wenn ein Together-Key auf dem Host liegt.',
         backToTools: '← Tools',
         hostChecking: 'Prüfe, ob dieser Host Clips ausführen kann…',
-        hostReady: 'Dieser Host ist bereit (Inkling) — URL einfügen und Run drücken.',
+        hostReady: 'Inkling-Key gefunden — Run nutzt das Inkling-Modell.',
         hostReadyLocal:
-          'Kostenloser Lokalmodus — keine Together-Credits. Clips aus ffmpeg-Stille (Schnitte können grob sein).',
+          'Kein Inkling-API-Key — kostenloser Lokalmodus (Stille). Nicht das Inkling-Modell.',
         hostNotReady:
-          'Browser-Run ist auf diesem Host noch nicht bereit (braucht yt-dlp + ffmpeg). Unten kannst du weiter den lokalen CLI-Befehl kopieren.',
+          'Browser-Run braucht yt-dlp + ffmpeg auf diesem Host. CLI unten kopieren (Laptop mit --local).',
         youtubeLabel: 'YouTube-URL',
         modeBest: 'Highlights',
         modeQuery: 'Themensuche',
@@ -764,13 +790,13 @@ export const t = {
         copied: 'Kopiert',
         prereqTitle: 'Setup',
         prereqBrew: 'Installieren: brew install yt-dlp ffmpeg',
-        prereqKey: 'Optional: export TOGETHER_API_KEY="…" für Inkling (kostenpflichtig)',
+        prereqKey: 'Später optional: TOGETHER_API_KEY für Inkling (kostenpflichtig)',
         prereqCd: 'Im Ordner aileena-new/ den Befehl einfügen',
         submit: 'Run',
         running: 'Läuft…',
         listening: 'Inkling hört zu',
-        listeningLocal: 'Lokale Stille-Erkennung',
-        engineLocal: 'lokal',
+        listeningLocal: 'Lokale Stille-Erkennung (nicht Inkling)',
+        engineLocal: 'lokal · gratis',
         engineInkling: 'inkling',
         levelLabels: {
           download: '1 · Download',
@@ -785,9 +811,9 @@ export const t = {
         highScore: 'Clips bereit',
         scoreLabel: 'score',
         disclaimer:
-          '8 Runs / Besucher / Tag. Inkling auf Together ist kostenpflichtig (~$1 / $4.05 pro 1M in/out). Kurzvideo zuerst.',
+          '8 Runs / Besucher / Tag. Dieser Host hat einen Inkling-Key — Together ist kostenpflichtig.',
         disclaimerLocal:
-          '8 Runs / Besucher / Tag. Kostenloser Lokalmodus — keine API-Credits. Braucht weiter yt-dlp + ffmpeg auf dem Host (nicht bare Vercel).',
+          '8 Runs / Besucher / Tag. Kostenlos lokal — kein Inkling-Modell, keine API-Credits. Braucht yt-dlp + ffmpeg (CLI oder Docker; nicht bare Vercel).',
         resultsHint: 'Zum Moment springen oder Cut herunterladen.',
         openYoutube: 'Öffnen',
         downloadClip: 'Download',
@@ -797,6 +823,32 @@ export const t = {
           jobFailed: 'Run fehlgeschlagen.',
           network: 'Netzwerkfehler. Erneut versuchen.',
         },
+      },
+      audioClippingProduct: {
+        navTag: 'Produkt',
+        brand: 'Audio Clipping',
+        headline: 'Langes YouTube → kurze Clips. Kein API-Key.',
+        dek: 'Kostenloser Lokalmodus schneidet an Stille mit ffmpeg. Das Inkling-Modell ist optional — nur wenn du später einen Together-Key setzt.',
+        ctaOpen: 'Runner öffnen',
+        ctaCopy: 'Free-CLI kopieren',
+        copied: 'Kopiert',
+        marquee: 'AUDIO CLIPPING · KOSTENLOS LOKAL · KEIN INKLING-KEY · YT-DLP · FFMPEG · OPTIONAL INKLING',
+        howEyebrow: 'Standard',
+        howTitle: 'Kostenlos lokal — nicht das Inkling-Modell',
+        howBody:
+          'Ohne TOGETHER_API_KEY / INKLING_API_KEY ruft nichts Thinking Machines Inkling auf. Clips kommen aus ffmpeg-Stille-Erkennung auf deiner Maschine.',
+        step1: 'Audio mit yt-dlp laden',
+        step2: 'Sprachinseln per silencedetect finden',
+        step3: 'Top-N-Fenster mit ffmpeg schneiden',
+        optionalEyebrow: 'Optional',
+        optionalTitle: 'Inkling, wenn du einen Key hast',
+        optionalBody:
+          'Mit Together-API-Key kann dasselbe Tool auf das Inkling-Audiomodell umschalten. Du wolltest keine Credits — deshalb free-first.',
+        runEyebrow: 'Ausführen',
+        runTitle: 'Laptop-CLI oder Docker-Host',
+        runBody:
+          'Bare Vercel hat kein yt-dlp/ffmpeg. Nutze die Free-CLI auf dem Mac oder Docker auf einem VPS. Dann den Runner öffnen.',
+        backToTools: '← Tools',
       },
       chipGuess: {
         tag: 'SEMIS',

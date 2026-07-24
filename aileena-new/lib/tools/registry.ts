@@ -18,8 +18,8 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     tag: 'AUDIO',
     title: 'Audio Clipping',
     body:
-      'YouTube → clips (free local silence gaps or Inkling). Browser Run when host has yt-dlp/ffmpeg; CLI always.',
-    href: '/tools/inkling-clips',
+      'YouTube → short clips. Free local (no API). Product page + runner.',
+    href: '/audio-clipping',
     status: 'live',
     arcade: {
       glyph: '▶',
