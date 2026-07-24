@@ -1,0 +1,47 @@
+{
+  "description": "Accounts to track. Auto shallow sync: pnpm sync:social-rss (Nitter). Deep: pnpm social:grok-prompt → paste Grok → pnpm ingest:grok.",
+  "accounts": [
+    {
+      "screenName": "dylan522p",
+      "name": "Dylan Patel",
+      "org": "SemiAnalysis",
+      "tags": ["semianalysis", "ai-infra"],
+      "priority": 1
+    },
+    {
+      "screenName": "SemiAnalysis_",
+      "name": "SemiAnalysis",
+      "org": "SemiAnalysis",
+      "tags": ["semianalysis"],
+      "priority": 1
+    },
+    {
+      "screenName": "aaronburnett",
+      "name": "Aaron Burnett",
+      "org": "mach33 / 33fg",
+      "tags": ["mach33", "orbital-compute"],
+      "priority": 1
+    },
+    {
+      "screenName": "mach33",
+      "name": "Mach33 Financial Group",
+      "org": "mach33 / 33fg",
+      "tags": ["mach33"],
+      "priority": 2
+    },
+    {
+      "screenName": "VladSaigau",
+      "name": "Vlad Saigau",
+      "org": "mach33 / 33fg",
+      "tags": ["mach33", "space"],
+      "priority": 2
+    }
+  ],
+  "transport": {
+    "default": "fxtwitter",
+    "grokExport": "pnpm social:grok-prompt → paste JSON → pnpm ingest:grok",
+    "nitterRss": "pnpm sync:social-rss (curl→nitter; Node fetch returns empty)",
+    "fxtwitterBase": "https://api.fxtwitter.com",
+    "optionalPaid": "AgentCash x402 timeline (needs USDC balance)"
+  }
+}

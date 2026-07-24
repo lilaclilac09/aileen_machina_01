@@ -1,0 +1,71 @@
+name: Social RSS Sync (free)
+
+# Free shallow backfill: Nitter RSS → FxTwitter → commit JSONL.
+# Deep history still needs Grok paste (pnpm social:grok-prompt).
+
+on:
+  schedule:
+    # Every 6 hours UTC (≈ 02/08/14/20 CST)
+    - cron: '15 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: social-rss-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: aileena-new
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install deps
+        run: pnpm install --frozen-lockfile
+
+      - name: Sync social RSS (Nitter → FxTwitter)
+        env:
+          NITTER_BASES: https://nitter.net
+        run: pnpm sync:social-rss
+
+      - name: Commit if changed
+        working-directory: .
+        run: |
+          git config user.name "aileena-social-bot"
+          git config user.email "bot@aileena.xyz"
+          git add \
+            aileena-new/data/tweets.jsonl \
+            aileena-new/data/tweets.json \
+            aileena-new/data/profiles.jsonl \
+            aileena-new/data/profiles.json \
+            aileena-new/data/social/numbers.jsonl \
+            aileena-new/data/social/last-rss-sync.json \
+            aileena-new/lib/dataDocIndex.json \
+            || true
+          if git diff --cached --quiet; then
+            echo "No social data changes"
+          else
+            git commit -m "chore(social): free Nitter RSS sync [$(date -u +%Y-%m-%dT%H:%MZ)]"
+            git push
+            echo "Pushed social RSS updates"
+          fi
