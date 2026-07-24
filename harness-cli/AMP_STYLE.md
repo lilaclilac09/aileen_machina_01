@@ -49,6 +49,8 @@ hx core (library)
   ├─ hx run / hx repl / hx review / hx mcp
   ├─ agent / cursor-agent / hx cursor   # Cursor-shaped UX
   └─ @hx/sdk (later)
+  └───────────────────────────────────────────────┘
+```
 
 **Rule:** adapters never own conversation state. They only:
 
