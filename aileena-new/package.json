@@ -22,14 +22,11 @@
     "verify:sound": "tsx scripts/verify-dj-set.ts",
     "verify:dj-set:local": "VERIFY_BASE_URL=http://localhost:3011 tsx scripts/verify-dj-set.ts",
     "verify:sound:local": "VERIFY_BASE_URL=http://localhost:3011 tsx scripts/verify-dj-set.ts",
-<<<<<<< HEAD
-=======
     "verify:memory": "tsx scripts/build-memory-index.ts && tsx scripts/verify-memory.ts",
     "verify:memory:live": "tsx scripts/build-memory-index.ts && VERIFY_BASE_URL=http://localhost:3000 tsx scripts/verify-memory.ts",
     "verify:react": "tsx scripts/verify-react.ts",
     "verify:ops": "tsx scripts/verify-ops.ts",
     "inkling:clips": "tsx scripts/inkling-clips.ts",
->>>>>>> origin/main
     "start": "next start",
     "lint": "eslint"
   },
