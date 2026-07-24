@@ -197,6 +197,78 @@ export default function AdminDashboard() {
     });
   };
 
+  const handleExportAvailableCredits = async () => {
+    const available =
+      data?.credits.filter((c) => !c.isUsed && !c.isTest).length ?? 0;
+    const unclaimed = data?.stats.pendingUsers ?? 0;
+
+    if (
+      !confirm(
+        `Export Available / unclaimed credits to CSV?\n\n` +
+          `• Credits in export: ~${available} (isUsed=false, real only)\n` +
+          `• Unclaimed approved guests who can still redeem: ${unclaimed}\n\n` +
+          `This is EXPORT ONLY — credits stay Available in the system.\n` +
+          `They are NOT marked redeemed / used.\n\n` +
+          `Next: Google Sheets → File → Import → Upload the CSV\n` +
+          `(creates a new sheet). Do NOT Clear+Sync from this export sheet\n` +
+          `unless you intentionally want to replace the live pool.\n\n` +
+          `OK to download?`
+      )
+    ) {
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      const res = await fetch("/api/admin/export-available-credits");
+      if (res.status === 401) {
+        router.push("/admin");
+        return;
+      }
+      if (res.status === 404) {
+        const json = await res.json().catch(() => ({}));
+        alert(json.error || "No available-unclaimed credits to export.");
+        return;
+      }
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        alert(json.error || "Export failed.");
+        return;
+      }
+
+      const blob = await res.blob();
+      const disposition = res.headers.get("Content-Disposition") || "";
+      const match = disposition.match(/filename="([^"]+)"/);
+      const filename =
+        match?.[1] ||
+        `available-unclaimed-credits-${new Date()
+          .toISOString()
+          .slice(0, 19)
+          .replace(/[:T]/g, "-")}.csv`;
+      const count = res.headers.get("X-Export-Count") || "?";
+      const guests = res.headers.get("X-Unclaimed-Guests") || "?";
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      alert(
+        `Downloaded ${count} available-unclaimed credits.\n\n` +
+          `Unclaimed guests who can still redeem from the site: ${guests}\n\n` +
+          `Import into a NEW Google Sheet:\n` +
+          `Sheets → File → Import → Upload → Insert new sheet / Create new spreadsheet.\n\n` +
+          `Credits remain usable in cafe-cursor (not redeemed).`
+      );
+    } catch {
+      alert("Export failed.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleDownloadUnclaimedEmails = () => {
     const rows = (data?.eligibleUsers || [])
       .filter(
@@ -509,7 +581,10 @@ export default function AdminDashboard() {
             import.{" "}
             <strong>Clear + Sync Sheet</strong> = credits;{" "}
             <strong>Clear + Sync Checked-in</strong> = guest list. Used / claimed rows
-            are kept. <strong>Import Luma CSV</strong> alone does not clear (additive).
+            are kept. <strong>Import Luma CSV</strong> alone does not clear (additive).{" "}
+            <strong>Export available</strong> downloads unused credits for a new Google
+            Sheet only — does not mark redeemed; unclaimed guests can still claim on site.
+            Do not Clear+Sync from that export sheet unless you mean to replace the pool.
           </p>
         </div>
 
@@ -604,6 +679,17 @@ export default function AdminDashboard() {
               Unclaimed
               {data?.stats.pendingUsers != null
                 ? ` (${data.stats.pendingUsers})`
+                : ""}
+            </button>
+            <button
+              onClick={handleExportAvailableCredits}
+              disabled={actionLoading || !data}
+              className="rounded-lg border border-green-600/50 bg-green-500/10 px-3 py-2 text-sm text-green-100 hover:bg-green-500/20 disabled:opacity-50"
+              title="Export unused available-unclaimed credits CSV → import into a NEW Google Sheet. Does not mark used; redeem still works."
+            >
+              Export available
+              {data?.stats.availableCredits != null
+                ? ` (${data.stats.availableCredits})`
                 : ""}
             </button>
             <button
