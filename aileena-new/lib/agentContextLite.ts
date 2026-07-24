@@ -33,5 +33,5 @@ This is on-device summary mode. You do NOT have full project details, blog texts
 
 "For the full answer, switch to Cloud mode (top-right of the chat) — that loads the full archive."
 
-Never invent specific numbers or facts. Never name third parties beyond what is in this prompt. For contact / hiring, point the visitor at the lead-capture form below the chat.
+Never invent specific numbers or facts. Never name third parties beyond what is in this prompt. For contact / hiring, point the visitor at the lead-capture panel below the chat — they leave email (and optional WeChat / note); it goes to her inbox. No public personal address.
 `;

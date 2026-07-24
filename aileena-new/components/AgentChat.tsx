@@ -27,7 +27,8 @@ type Runtime = 'cloud' | 'browser';
 
 // Shown instead of the provider's raw "credit balance is too low" billing error.
 // This agent is a personal demo, not a free public API.
-const NO_FREE_USE_MSG = "this agent isn't free to run — public access is off for now. reach out through the contact form instead.";
+const NO_FREE_USE_MSG =
+  "this agent isn't free to run — public access is off for now. leave your email in the contact panel below and she'll see it.";
 const LEAD_THRESHOLD = 5; // hard gate: chat is blocked until lead is submitted, after the visitor has sent N messages
 const LEAD_DISMISS_KEY = 'aileena_lead_state'; // 'sent' | (unset) — historical 'dismissed' values are tolerated but no longer set
 
@@ -469,7 +470,8 @@ export default function AgentChat() {
 
   // Panel renders exactly when the gate is active — same condition as the
   // chat-input lock above, kept as a separate alias for readability in JSX.
-  const showLeadPanel = mustProvideEmail;
+  const showLeadPanel = open && leadState !== 'sent';
+  const leadPanelRequired = mustProvideEmail;
 
   function persistLeadState(next: LeadState) {
     setLeadState(next);
@@ -694,13 +696,21 @@ export default function AgentChat() {
 
         </div>
 
-        {/* Lead capture panel — appears after LEAD_THRESHOLD user messages */}
+        {/* Contact panel — always available so visitors can leave contact for Aileen.
+            After LEAD_THRESHOLD messages it becomes required to keep chatting. */}
         {showLeadPanel && (
           <div className="border-t border-[#e7e0d6] px-5 py-3 bg-[#faf7f0]">
             <div className="mb-2.5">
               <p className="font-mono text-[0.55rem] tracking-[0.35em] uppercase text-[#008f86]/85">
-                ▸ leave your email to keep chatting
+                {leadPanelRequired
+                  ? '▸ leave your email to keep chatting'
+                  : '▸ leave contact for Aileen (email goes to her inbox)'}
               </p>
+              {!leadPanelRequired && (
+                <p className="mt-1 text-[0.7rem] text-[#1b1713]/45">
+                  Want to reach her? Drop email + a short note — the agent forwards it. No public personal address.
+                </p>
+              )}
             </div>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <input
@@ -709,7 +719,7 @@ export default function AgentChat() {
                 autoComplete="email"
                 value={leadEmail}
                 onChange={(e) => setLeadEmail(e.target.value)}
-                placeholder="email"
+                placeholder="your email"
                 disabled={leadState === 'submitting'}
                 className="flex-1 min-w-0 bg-white border border-[#ded8ce] px-3 py-2 text-sm text-[#1b1713]/90 placeholder:text-[#1b1713]/35 outline-none focus:border-[#00a89d]/70 caret-[#00a89d] disabled:opacity-50"
                 spellCheck={false}
@@ -720,7 +730,7 @@ export default function AgentChat() {
                 type="text"
                 value={leadName}
                 onChange={(e) => setLeadName(e.target.value)}
-                placeholder="name / context (optional)"
+                placeholder="name / WeChat / note (optional)"
                 disabled={leadState === 'submitting'}
                 className="flex-1 min-w-0 bg-white border border-[#ded8ce] px-3 py-2 text-sm text-[#1b1713]/90 placeholder:text-[#1b1713]/35 outline-none focus:border-[#00a89d]/70 caret-[#00a89d] disabled:opacity-50"
                 spellCheck={false}
@@ -741,7 +751,7 @@ export default function AgentChat() {
               </p>
             )}
             <p className="mt-2 font-mono text-[0.5rem] tracking-[0.28em] uppercase text-[#1b1713]/35">
-              the chat transcript is attached to your message ·{' '}
+              transcript attached · not shared publicly ·{' '}
               <a
                 href="/privacy"
                 target="_blank"
@@ -750,6 +760,14 @@ export default function AgentChat() {
               >
                 privacy
               </a>
+            </p>
+          </div>
+        )}
+
+        {leadState === 'sent' && (
+          <div className="border-t border-[#e7e0d6] px-5 py-2 bg-[#f3fbf9]">
+            <p className="font-mono text-[0.55rem] tracking-[0.3em] uppercase text-[#008f86]/90">
+              ▸ contact sent — she&apos;ll see it in her inbox
             </p>
           </div>
         )}

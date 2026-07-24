@@ -2,7 +2,7 @@
 // 支持首页卡片墙、搜索、当天价格走势（迷你K线/折线图）
 // 依赖: Chart.js（或可选更轻量库）
 
-const API_BASE = 'https://aileen-machina-01-ahoum08p8-rosazxc0915-8217s-projects.vercel.app';
+const API_BASE = 'https://finance.aileena.xyz';
 
 // 股票列表（可扩展）
 const STOCK_LIST = [

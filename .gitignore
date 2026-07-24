@@ -1,3 +1,16 @@
 node_modules
 .vercel
 .gstack/
+
+.projects/cache
+.projects/vault
+.projects/state.test.json
+.projects/state.local.test.json
+.env
+.env.*
+!.env.example
+
+# Never commit env files (including nested / historical paths)
+**/.env
+**/.env.*
+!**/.env.example

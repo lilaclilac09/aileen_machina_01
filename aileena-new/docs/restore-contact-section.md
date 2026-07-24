@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
 
   const { error } = await resend.emails.send({
     from: 'AILEENA MACHINA <onboarding@resend.dev>',
-    to: 'rosazxc0915@gmail.com',
+    to: process.env.CONTACT_TO,
     subject: `[AILEENA] Signal from ${name}`,
     text: `From: ${name}\nEmail: ${email}\n\n${message}`,
   });
@@ -202,7 +202,7 @@ The route reads `RESEND_API_KEY` from `process.env`. Vercel → Project → Sett
 
 Resend's email "from" address is currently `AILEENA MACHINA <onboarding@resend.dev>` — Resend's default test sender. Swap it for a verified domain sender (e.g. `agent@aileena.xyz`) when you set up DNS for Resend.
 
-The destination email is hard-coded in the route: `rosazxc0915@gmail.com`.
+The destination email is hard-coded in the route: `CONTACT_TO (env)`.
 
 ---
 
@@ -225,4 +225,4 @@ The secondary "Ask the agent" button can stay or go.
 
 ## 7. Optional: update the agent system prompt
 
-When the form is back, the agent should know about it. In `lib/agentContext.ts`, replace the "email rosazxc0915@gmail.com directly" lines with something like *"point the user to the SAT-LINK · NODE-7 / Send a message section near the bottom of this page; submitting it emails her directly"*.
+When the form is back, the agent should know about it. In `lib/agentContext.ts`, replace the "use the on-page contact form" lines with something like *"point the user to the SAT-LINK · NODE-7 / Send a message section near the bottom of this page; submitting it emails her directly"*.

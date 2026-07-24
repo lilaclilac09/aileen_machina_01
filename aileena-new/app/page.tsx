@@ -821,7 +821,9 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
   const socialLinks = [
     { label: 'github', href: 'https://github.com/lilaclilac09' },
     { label: 'substack', href: '/dispatch' },
+    { label: 'tools', href: '/tools' },
     { label: 'sound', href: '/sound' },
+    { label: 'gather', href: 'https://album.aileena.xyz' },
   ];
   const getDragOffset = (id: string) => dragOffsets[id] ?? { x: 0, y: 0 };
   const dragTransform = (id: string, baseTransform: string) => {

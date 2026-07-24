@@ -1,0 +1,60 @@
+// Prisma Schema for Cafe Cursor Credit Distribution
+// Production: PostgreSQL (Vercel Postgres / Neon / Supabase)
+// Local: also use a Postgres URL (Neon free is fine), or temporarily
+//        point DATABASE_URL/DIRECT_URL at the same remote DB.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Eligible attendees / walk-up redeemers
+model EligibleUser {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  name           String
+  company        String?
+  role           String?
+  approvalStatus String    @default("approved")
+  createdAt      DateTime  @default(now())
+
+  /// Event door volunteer (badge only; not the multi-claim flag)
+  isDoorVolunteer Boolean @default(false)
+
+  /// Special user — may claim more than one credit (VOLUNTEER_MAX_CLAIMS)
+  isVolunteer Boolean @default(false)
+
+  hasClaimed Boolean   @default(false)
+  claimedAt  DateTime?
+
+  /// When Admin last successfully sent the unclaimed reminder email
+  reminderSentAt DateTime?
+
+  /// Latest assigned credit (convenience for UI / re-show)
+  credit   Credit? @relation("LatestCredit", fields: [creditId], references: [id])
+  creditId String? @unique
+
+  ownedCredits Credit[] @relation("OwnedCredits")
+}
+
+// Cursor referral credits
+model Credit {
+  id         String    @id @default(cuid())
+  code       String    @unique
+  link       String    @unique
+  isUsed     Boolean   @default(false)
+  isTest     Boolean   @default(false)
+  assignedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  latestFor EligibleUser? @relation("LatestCredit")
+
+  /// All credits this user has ever been assigned (supports volunteer multi-claim)
+  ownerId String?
+  owner   EligibleUser? @relation("OwnedCredits", fields: [ownerId], references: [id])
+}

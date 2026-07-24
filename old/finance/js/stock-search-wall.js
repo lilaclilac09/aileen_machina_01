@@ -4,7 +4,7 @@ const STOCK_LIST = [
   'LMT', 'RTX', 'BWXT', 'RKLB'    // 太空股
 ];
 
-const API_BASE = 'https://aileen-machina-01-ahoum08p8-rosazxc0915-8217s-projects.vercel.app';
+const API_BASE = 'https://finance.aileena.xyz';
 
 async function fetchStockData(symbol) {
   try {

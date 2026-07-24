@@ -1,3 +1,4 @@
+import { getContactInbox } from '@/lib/contact-inbox';
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { createMagicToken } from '../../../../lib/auth';
@@ -42,6 +43,7 @@ export async function POST(req: NextRequest) {
   const origin = req.nextUrl.origin;
   const link = `${origin}/api/auth/verify?token=${encodeURIComponent(token)}&next=${encodeURIComponent(next)}`;
 
+  const inbox = getContactInbox();
   const resend = new Resend(process.env.RESEND_API_KEY);
   const { error } = await resend.emails.send({
     from: 'AILEENA MACHINA <onboarding@resend.dev>',
@@ -63,12 +65,14 @@ export async function POST(req: NextRequest) {
 
   // Let the owner see who's coming in — full visitor fingerprint.
   try {
-    await resend.emails.send({
-      from: 'AILEENA MACHINA <onboarding@resend.dev>',
-      to: 'rosazxc0915@gmail.com',
-      subject: `[AILEENA] Blog login · email · ${email}`,
-      text: `Email login requested.\nEmail: ${email}\n${visitorLines(req, { reading: next, client: body.client })}`,
-    });
+    if (inbox) {
+      await resend.emails.send({
+        from: 'AILEENA MACHINA <onboarding@resend.dev>',
+        to: inbox,
+        subject: `[AILEENA] Blog login · email · ${email}`,
+        text: `Email login requested.\nEmail: ${email}\n${visitorLines(req, { reading: next, client: body.client })}`,
+      });
+    }
   } catch {
     /* non-fatal */
   }

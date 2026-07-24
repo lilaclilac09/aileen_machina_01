@@ -85,13 +85,19 @@ const RULES: Rule[] = [
     name: 'availability',
     test: /\b(available|hire|hiring|open\s*to\s*work|job|role|position|looking\s*for\s*work)\b/i,
     reply:
-      "Yes — open to engineering, research, and product-minded technical roles. Drop your email in the lead panel below this console, or use GitHub for code context.",
+      "Yes — open to engineering, research, and product-minded technical roles. Leave your email (and optional WeChat / note) in the contact panel below this console — it goes to her inbox. No public personal address on the site.",
   },
   {
     name: 'contact',
-    test: /\b(contact|reach|email|get\s*in\s*touch|how\s*do\s*i\s*find|how\s*to\s*reach)\b.{0,30}(her|aileen|you)?$/i,
+    test: /\b(contact|reach|email|wechat|微信|联系|get\s*in\s*touch|how\s*do\s*i\s*find|how\s*to\s*reach)\b/i,
     reply:
-      'Drop your email in the panel below this console; it goes to her inbox. GitHub: github.com/lilaclilac09.',
+      'Leave your contact in the panel below this agent (email + optional name / WeChat / note). It forwards to her inbox with the chat transcript. GitHub for code: github.com/lilaclilac09.',
+  },
+  {
+    name: 'contact-zh',
+    test: /(怎么联系|联系方式|留个联系|加微信|如何联系)/,
+    reply:
+      '在这个 agent 下方的联系面板留下邮箱（可附微信/备注），会转发到她的收件箱，不会在网站公开私人联系方式。代码相关可看 GitHub: github.com/lilaclilac09。',
   },
 
   // ── Stack one-liner ────────────────────────────────────────────────────

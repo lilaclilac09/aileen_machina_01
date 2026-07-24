@@ -1,0 +1,195 @@
+@keyframes arcade-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes arcade-wave {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+    opacity: 0.45;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@keyframes arcade-reveal {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.arcade-root {
+  --arcade-ink: #14110c;
+  --arcade-muted: rgba(20, 17, 12, 0.58);
+  --arcade-faint: rgba(20, 17, 12, 0.38);
+  --arcade-page: #fbfaf6;
+  --arcade-paper: #fffdf7;
+  --arcade-cream: #f8f5ee;
+  --arcade-cyan: #00a99f;
+  --arcade-amber: #c9872f;
+  --arcade-line: rgba(20, 17, 12, 0.08);
+
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(0, 169, 159, 0.06), transparent 42%),
+    linear-gradient(180deg, #fffdf7 0%, #fbfaf6 52%, #f8f5ee 100%);
+  color: var(--arcade-ink);
+  overflow-y: auto;
+  position: relative;
+}
+
+.arcade-content {
+  position: relative;
+  z-index: 3;
+}
+
+.arcade-marquee-wrap {
+  overflow: hidden;
+  background: rgba(248, 245, 238, 0.85);
+}
+
+.arcade-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: arcade-marquee 32s linear infinite;
+  white-space: nowrap;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--arcade-faint);
+  padding: 10px 0;
+}
+
+.arcade-marquee-track span {
+  padding: 0 28px;
+}
+
+.arcade-cabinet-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+/* Flat geometric tiles — no borders, no card chrome */
+.arcade-cabinet {
+  border-radius: 0;
+  border: none;
+  background: transparent;
+  overflow: hidden;
+  box-shadow: none;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.arcade-cabinet-link:hover .arcade-cabinet,
+.arcade-cabinet-link:focus-visible .arcade-cabinet {
+  transform: translateY(-3px);
+}
+
+.arcade-cabinet-link:focus-visible {
+  outline: 2px solid var(--arcade-cyan);
+  outline-offset: 4px;
+}
+
+.arcade-screen {
+  margin: 0;
+  border-radius: 0;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  border: none;
+}
+
+.arcade-screen-glyph {
+  font-size: clamp(2rem, 5vw, 2.8rem);
+  line-height: 1;
+  color: var(--arcade-ink);
+  opacity: 0.78;
+  font-weight: 300;
+}
+
+.arcade-panel {
+  padding: 18px 0 8px;
+}
+
+.arcade-start-btn {
+  border: none;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 0.82rem;
+  padding: 14px 20px;
+  border-radius: 0;
+  color: #fffdf8;
+  background: #00a99f;
+  box-shadow: none;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.arcade-start-btn:hover:not(:disabled) {
+  background: #008f86;
+  transform: translateY(-1px);
+}
+
+.arcade-start-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.arcade-start-btn:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.arcade-wave {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 36px;
+}
+
+.arcade-wave span {
+  width: 4px;
+  border-radius: 0;
+  background: #00a99f;
+  animation: arcade-wave 0.9s ease-in-out infinite;
+}
+
+.arcade-wave span:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.arcade-wave span:nth-child(3) {
+  animation-delay: 0.2s;
+}
+.arcade-wave span:nth-child(4) {
+  animation-delay: 0.3s;
+}
+.arcade-wave span:nth-child(5) {
+  animation-delay: 0.15s;
+}
+.arcade-wave span:nth-child(6) {
+  animation-delay: 0.25s;
+}
+.arcade-wave span:nth-child(7) {
+  animation-delay: 0.05s;
+}
+
+.arcade-score-card {
+  animation: arcade-reveal 0.4s ease both;
+}
