@@ -245,7 +245,9 @@ export default function DispatchArchive() {
         {activeTab === 'watch' ? (
           <WatchListenTab post={watchIssue} />
         ) : isImage ? (
-          activeTab === 'dispatch' ? (
+          !coverflow.hydrated ? (
+            <div style={{ minHeight: '40vh' }} aria-hidden />
+          ) : activeTab === 'dispatch' ? (
             <SwipeRail
               tag={tx.blog.researchDispatch.tag}
               heading={tx.blog.researchDispatch.heading}
