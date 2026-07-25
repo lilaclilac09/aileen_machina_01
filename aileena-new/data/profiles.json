@@ -6,9 +6,9 @@
     "description": "Founder, CEO @mach33 | Research and Investment in Expansion Technologies",
     "location": "Merrit Island, FL",
     "website": "https://www.33fg.com/",
-    "followers": 25803,
-    "following": 620,
-    "tweets": 8706,
+    "followers": 25907,
+    "following": 622,
+    "tweets": 8743,
     "verified": true,
     "avatarUrl": "https://pbs.twimg.com/profile_images/2049987217477513216/GJx9_LdR_normal.jpg",
     "tags": [
@@ -16,7 +16,7 @@
     ],
     "org": "mach33 / 33fg",
     "source": "fxtwitter",
-    "updatedAt": "2026-07-24T19:46:38.498Z"
+    "updatedAt": "2026-07-25T03:36:45.350Z"
   },
   {
     "id": "985281530070265862",
@@ -24,9 +24,9 @@
     "name": "Dylan Patel",
     "description": "SemiAnalysis\nBoutique AI Infrastructure Research and Consulting\nDMs are open for consulting, quotes, or to talk shop,\nOpinions my own",
     "website": "http://www.semianalysis.com/",
-    "followers": 152865,
+    "followers": 152879,
     "following": 1022,
-    "tweets": 13890,
+    "tweets": 13891,
     "verified": true,
     "avatarUrl": "https://pbs.twimg.com/profile_images/1903585505046093824/PTqeS09L_normal.jpg",
     "tags": [
@@ -34,7 +34,7 @@
     ],
     "org": "SemiAnalysis",
     "source": "fxtwitter",
-    "updatedAt": "2026-07-24T19:46:21.216Z"
+    "updatedAt": "2026-07-25T03:36:21.492Z"
   },
   {
     "id": "handle:SemiAnalysis_",
@@ -128,14 +128,14 @@
     "screenName": "SemiAnalysis_",
     "name": "SemiAnalysis",
     "website": "https://www.semianalysis.com",
-    "followers": 144310,
+    "followers": 144346,
     "following": 29,
-    "tweets": 2864,
+    "tweets": 2868,
     "verified": true,
     "avatarUrl": "https://pbs.twimg.com/profile_images/2062973370157694976/CdplNoi1_normal.jpg",
     "tags": [],
     "source": "fxtwitter",
-    "updatedAt": "2026-07-24T19:46:26.129Z"
+    "updatedAt": "2026-07-25T03:36:26.414Z"
   },
   {
     "id": "2039137985179127808",
@@ -208,16 +208,14 @@
     "id": "44196397",
     "screenName": "elonmusk",
     "name": "Elon Musk",
-    "description": "Starmind",
-    "website": "https://www.spacex.com/spacexai/starmind#power-generation",
-    "followers": 240917203,
-    "following": 1370,
-    "tweets": 105664,
+    "followers": 241018562,
+    "following": 1375,
+    "tweets": 106081,
     "verified": true,
     "avatarUrl": "https://pbs.twimg.com/profile_images/2053244804520427520/m8mdWZCG_normal.jpg",
     "tags": [],
     "source": "fxtwitter",
-    "updatedAt": "2026-07-17T09:09:27.557Z"
+    "updatedAt": "2026-07-25T03:36:29.457Z"
   },
   {
     "id": "778922476570943489",
@@ -257,14 +255,14 @@
     "description": "SpaceX designs, manufactures and launches the world’s most advanced rockets and spacecraft",
     "location": "Earth",
     "website": "http://spacex.com",
-    "followers": 41884572,
+    "followers": 41892366,
     "following": 123,
-    "tweets": 11563,
+    "tweets": 11582,
     "verified": true,
     "avatarUrl": "https://pbs.twimg.com/profile_images/1697749409851985920/HbrI04tM_normal.jpg",
     "tags": [],
     "source": "fxtwitter",
-    "updatedAt": "2026-07-24T14:46:35.775Z"
+    "updatedAt": "2026-07-25T03:36:46.795Z"
   },
   {
     "id": "1508426880860704771",
@@ -281,5 +279,20 @@
     "tags": [],
     "source": "fxtwitter",
     "updatedAt": "2026-07-24T14:46:38.801Z"
+  },
+  {
+    "id": "243013409",
+    "screenName": "SawyerMerritt",
+    "name": "Sawyer Merritt",
+    "description": "EVs/space/tech. Bringing you the latest news in a single, easy-to-read feed. $TSLA & $SPCX investor, Model Y owner.",
+    "website": "https://linktr.ee/merrittsawyer",
+    "followers": 1106987,
+    "following": 473,
+    "tweets": 108928,
+    "verified": true,
+    "avatarUrl": "https://pbs.twimg.com/profile_images/1837744842715082752/xH9vYixL_normal.jpg",
+    "tags": [],
+    "source": "fxtwitter",
+    "updatedAt": "2026-07-25T03:36:43.915Z"
   }
 ]

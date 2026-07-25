@@ -4407,5 +4407,430 @@
     "tags": [],
     "source": "fxtwitter",
     "ingestedAt": "2026-07-24T19:46:45.298Z"
+  },
+  {
+    "id": "2080797997546590564",
+    "url": "https://x.com/dylan522p/status/2080797997546590564",
+    "screenName": "dylan522p",
+    "authorId": "985281530070265862",
+    "authorName": "Dylan Patel",
+    "text": "Many don't know this but the collapse of the Bronze Age is what led humans to developing test-time compute, also known as an internal monologue.\nWhen civilization collapsed, writing systems disappeared across much of the eastern Mediterranean. Trade networks broke. Specialized bureaucracies vanished. Knowledge could no longer be offloaded to institutions.\nHumans increasingly had to simulate, plan, and reason locally rather than rely on civilization as external memory. We replaced external embeddings with internal compute.\nThe next transition may be the reverse: civilization increasingly becomes our external reasoning engine, while humans specialize in asking better questions.",
+    "createdAt": "Fri Jul 24 23:31:16 +0000 2026",
+    "createdTimestamp": 1784935876,
+    "likes": 168,
+    "retweets": 12,
+    "replies": 27,
+    "bookmarks": 59,
+    "views": 26902,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [
+      "semianalysis"
+    ],
+    "tags": [
+      "semianalysis"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-25T03:36:21.369Z"
+  },
+  {
+    "id": "2080827941907316770",
+    "url": "https://x.com/SemiAnalysis_/status/2080827941907316770",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Storage just stole the show.\n\nBetween KV cache offload and SSD prices going vertical, storage went from afterthought to headliner. Vik Malyala walks through @Supermicro's storage stack.\n\n\"Storage, whether it be for KV cache offload or just the incredible rise in cost of SSDs, is the primary thing to focus on for a lot of users.\"\n\n\"Initially it started with the form factors. You have U.2s that were popular, or still are popular for that matter. Then you have E1.S and E3.S drives, mainly because of the density that we can bring in a 1U or 2U form factor. And we have come up with so-called Petascale solutions, which you can get a very good balance between the amount of storage, the storage bandwidth as IO bandwidth.\"\n\n\"Hardware is only one part of it, but what we are doing is working with the likes of VAST, WEKA, DDN, Qumulo, OSNEXUS and every one of these software vendors. We are able to bring different types of software defined storage into customer environments so that you don't necessarily get stuck with traditional storage. So super exciting times for that.\"",
+    "createdAt": "Sat Jul 25 01:30:15 +0000 2026",
+    "createdTimestamp": 1784943015,
+    "likes": 87,
+    "retweets": 5,
+    "replies": 6,
+    "bookmarks": 51,
+    "views": 15344,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://video.twimg.com/ext_tw_video/2080827898601021442/pu/vid/avc1/1280x720/N3Ph2Mp6FpcJbo3m.mp4?tag=12"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-25T03:36:23.494Z"
+  },
+  {
+    "id": "2080827943295582264",
+    "url": "https://x.com/SemiAnalysis_/status/2080827943295582264",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "@Supermicro Watch more: https://x.com/SemiAnalysis_/status/2079355677995123057?s=20",
+    "createdAt": "Sat Jul 25 01:30:16 +0000 2026",
+    "createdTimestamp": 1784943016,
+    "likes": 3,
+    "retweets": 0,
+    "replies": 0,
+    "bookmarks": 0,
+    "views": 6427,
+    "isNoteTweet": false,
+    "linkedUrls": [
+      "https://x.com/SemiAnalysis_/status/2079355677995123057?s=20"
+    ],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-25T03:36:24.894Z"
+  },
+  {
+    "id": "2080814338642694484",
+    "url": "https://x.com/SemiAnalysis_/status/2080814338642694484",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Can AMD break the CUDA Moat?\nAMD Advancing AI 2026,\nUp to 105% Equity Rebate Discounts for OpenAI,\nAgentic Kernel Generation, Improvement in Software Quality,\nUnstable Internal Development Clusters,\nHelios MI455X Production Ramp Hell\n\nhttps://newsletter.semianalysis.com/p/can-amd-break-the-cuda-moat-amd-advancing",
+    "createdAt": "Sat Jul 25 00:36:12 +0000 2026",
+    "createdTimestamp": 1784939772,
+    "likes": 93,
+    "retweets": 11,
+    "replies": 1,
+    "bookmarks": 45,
+    "views": 15218,
+    "isNoteTweet": false,
+    "linkedUrls": [
+      "https://newsletter.semianalysis.com/p/can-amd-break-the-cuda-moat-amd-advancing"
+    ],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-25T03:36:26.287Z"
+  },
+  {
+    "id": "2080831467559530867",
+    "url": "https://x.com/elonmusk/status/2080831467559530867",
+    "screenName": "elonmusk",
+    "authorId": "44196397",
+    "authorName": "Elon Musk",
+    "text": "Episodes of the Starship documentary are posted to http://SpaceX.com for those who’d like to understand more about how it all works",
+    "createdAt": "Sat Jul 25 01:44:16 +0000 2026",
+    "createdTimestamp": 1784943856,
+    "likes": 3707,
+    "retweets": 483,
+    "replies": 343,
+    "bookmarks": 293,
+    "views": 785526,
+    "isNoteTweet": false,
+    "linkedUrls": [
+      "http://SpaceX.com"
+    ],
+    "topics": [
+      "spacex"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-25T03:36:29.322Z"
+  },
+  {
+    "id": "2080832567045927098",
+    "url": "https://x.com/aaronburnett/status/2080832567045927098",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Starlink V3s all successfully connected. Presumes successful deployment of critical deployables. One step closer to commercial V3 Starlink’s in orbit. Great work team!",
+    "createdAt": "Sat Jul 25 01:48:38 +0000 2026",
+    "createdTimestamp": 1784944118,
+    "likes": 199,
+    "retweets": 11,
+    "replies": 7,
+    "bookmarks": 5,
+    "views": 8960,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-25T03:36:30.770Z"
+  },
+  {
+    "id": "2080829801682669704",
+    "url": "https://x.com/aaronburnett/status/2080829801682669704",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Moat so big you’d need a starship to cross it…",
+    "createdAt": "Sat Jul 25 01:37:39 +0000 2026",
+    "createdTimestamp": 1784943459,
+    "likes": 23,
+    "retweets": 2,
+    "replies": 2,
+    "bookmarks": 1,
+    "views": 2035,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-25T03:36:32.206Z"
+  },
+  {
+    "id": "2080828871545421891",
+    "url": "https://x.com/SawyerMerritt/status/2080828871545421891",
+    "screenName": "SawyerMerritt",
+    "authorId": "243013409",
+    "authorName": "Sawyer Merritt",
+    "text": "SpaceX has released a new video showing the Super Heavy booster flying away from Starship.\n\nThis is the first time we've ever gotten this camera view.",
+    "createdAt": "Sat Jul 25 01:33:57 +0000 2026",
+    "createdTimestamp": 1784943237,
+    "likes": 2061,
+    "retweets": 187,
+    "replies": 47,
+    "bookmarks": 127,
+    "views": 52981,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://video.twimg.com/amplify_video/2080826748401246209/vid/avc1/1920x1080/nj-qxVN7SQBIA_BB.mp4?tag=29"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "spacex"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-25T03:36:33.639Z"
+  },
+  {
+    "id": "2080814509917192389",
+    "url": "https://x.com/aaronburnett/status/2080814509917192389",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "if we're being honest starship is just a whale with comically small fins.",
+    "createdAt": "Sat Jul 25 00:36:53 +0000 2026",
+    "createdTimestamp": 1784939813,
+    "likes": 72,
+    "retweets": 6,
+    "replies": 6,
+    "bookmarks": 4,
+    "views": 4148,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-25T03:36:35.046Z"
+  },
+  {
+    "id": "2080811758965440519",
+    "url": "https://x.com/aaronburnett/status/2080811758965440519",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "absolute treasure trove of heat shield data just in these images.",
+    "createdAt": "Sat Jul 25 00:25:57 +0000 2026",
+    "createdTimestamp": 1784939157,
+    "likes": 329,
+    "retweets": 17,
+    "replies": 7,
+    "bookmarks": 11,
+    "views": 10996,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-25T03:36:36.510Z"
+  },
+  {
+    "id": "2080805725303968027",
+    "url": "https://x.com/aaronburnett/status/2080805725303968027",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Not going to get more heat shield data than this. Big win",
+    "createdAt": "Sat Jul 25 00:01:59 +0000 2026",
+    "createdTimestamp": 1784937719,
+    "likes": 2424,
+    "retweets": 76,
+    "replies": 30,
+    "bookmarks": 46,
+    "views": 117530,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-25T03:36:37.926Z"
+  },
+  {
+    "id": "2080801966796509319",
+    "url": "https://x.com/aaronburnett/status/2080801966796509319",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "And you wonder why SpaceX has captured the imagination of millions. ",
+    "createdAt": "Fri Jul 24 23:47:02 +0000 2026",
+    "createdTimestamp": 1784936822,
+    "likes": 54,
+    "retweets": 2,
+    "replies": 2,
+    "bookmarks": 3,
+    "views": 1765,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://video.twimg.com/amplify_video/2080798256695545856/vid/avc1/1280x720/JWnbZR_-4cVLGu89.mp4?tag=29"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-25T03:36:39.352Z"
+  },
+  {
+    "id": "2080797975257686064",
+    "url": "https://x.com/SawyerMerritt/status/2080797975257686064",
+    "screenName": "SawyerMerritt",
+    "authorId": "243013409",
+    "authorName": "Sawyer Merritt",
+    "text": "Wow, that Starship engine relight was beautiful.",
+    "createdAt": "Fri Jul 24 23:31:11 +0000 2026",
+    "createdTimestamp": 1784935871,
+    "likes": 1501,
+    "retweets": 97,
+    "replies": 31,
+    "bookmarks": 55,
+    "views": 43748,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://video.twimg.com/amplify_video/2080797912783568896/vid/avc1/1894x1060/iKibvoV2x8Hjfdjb.mp4?tag=29"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-25T03:36:40.911Z"
+  },
+  {
+    "id": "2080797067824525566",
+    "url": "https://x.com/aaronburnett/status/2080797067824525566",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "interesting capability, dispense starlink, spin starship and video all the heat shield tiles. that light is a V3 shining floodlights on ship. \n\nin theory this is part of many or all orbital flights in the future to make sure all tiles are in good shape for re-entry before taking the risk of coming back to tower.",
+    "createdAt": "Fri Jul 24 23:27:34 +0000 2026",
+    "createdTimestamp": 1784935654,
+    "likes": 43,
+    "retweets": 2,
+    "replies": 2,
+    "bookmarks": 0,
+    "views": 2543,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HOB5VyOWsAAuBOb.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "orbital-compute",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-25T03:36:42.306Z"
+  },
+  {
+    "id": "2080788107784245722",
+    "url": "https://x.com/SawyerMerritt/status/2080788107784245722",
+    "screenName": "SawyerMerritt",
+    "authorId": "243013409",
+    "authorName": "Sawyer Merritt",
+    "text": "Successful liftoff of Starship test flight 13!",
+    "createdAt": "Fri Jul 24 22:51:58 +0000 2026",
+    "createdTimestamp": 1784933518,
+    "likes": 1786,
+    "retweets": 160,
+    "replies": 23,
+    "bookmarks": 48,
+    "views": 61891,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://video.twimg.com/amplify_video/2080788041707237376/vid/avc1/1894x1060/YhNR8EwrEeDDUTh7.mp4?tag=29"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-25T03:36:43.805Z"
+  },
+  {
+    "id": "2080781925107548437",
+    "url": "https://x.com/aaronburnett/status/2080781925107548437",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "“Legally allowed to launch starship into lightning”",
+    "createdAt": "Fri Jul 24 22:27:24 +0000 2026",
+    "createdTimestamp": 1784932044,
+    "likes": 102,
+    "retweets": 4,
+    "replies": 7,
+    "bookmarks": 2,
+    "views": 4255,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-25T03:36:45.224Z"
+  },
+  {
+    "id": "2080740277782749472",
+    "url": "https://x.com/SpaceX/status/2080740277782749472",
+    "screenName": "SpaceX",
+    "authorId": "34743251",
+    "authorName": "SpaceX",
+    "text": "On track for Starship’s 13th flight test later today – the 90-minute launch window opens at 5:45 p.m. CT. Live coverage starts ~30 minutes before launch",
+    "createdAt": "Fri Jul 24 19:41:55 +0000 2026",
+    "createdTimestamp": 1784922115,
+    "likes": 7065,
+    "retweets": 996,
+    "replies": 285,
+    "bookmarks": 252,
+    "views": 913036,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-25T03:36:46.680Z"
   }
 ]
