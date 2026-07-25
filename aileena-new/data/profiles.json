@@ -176,9 +176,9 @@
     "description": "Space Investor @Mach33 | 🇬🇧🇷🇴",
     "location": "London, England",
     "website": "https://research.33fg.com/",
-    "followers": 3693,
+    "followers": 3690,
     "following": 468,
-    "tweets": 1824,
+    "tweets": 1834,
     "verified": true,
     "avatarUrl": "https://pbs.twimg.com/profile_images/2048709268069916672/Nz_BJSKj_normal.jpg",
     "tags": [
@@ -186,7 +186,7 @@
     ],
     "org": "mach33 / 33fg",
     "source": "fxtwitter",
-    "updatedAt": "2026-07-24T19:46:45.411Z"
+    "updatedAt": "2026-07-25T05:53:33.433Z"
   },
   {
     "id": "2051360039869276160",
@@ -208,14 +208,14 @@
     "id": "44196397",
     "screenName": "elonmusk",
     "name": "Elon Musk",
-    "followers": 241018562,
+    "followers": 241017828,
     "following": 1375,
-    "tweets": 106081,
+    "tweets": 106101,
     "verified": true,
     "avatarUrl": "https://pbs.twimg.com/profile_images/2053244804520427520/m8mdWZCG_normal.jpg",
     "tags": [],
     "source": "fxtwitter",
-    "updatedAt": "2026-07-25T03:36:29.457Z"
+    "updatedAt": "2026-07-25T05:53:28.877Z"
   },
   {
     "id": "778922476570943489",
@@ -294,5 +294,21 @@
     "tags": [],
     "source": "fxtwitter",
     "updatedAt": "2026-07-25T03:36:43.915Z"
+  },
+  {
+    "id": "108167190",
+    "screenName": "CSI_Starbase",
+    "name": "Zack Golden",
+    "description": "♦ Alias: #StageZeroZack ♦ Lead Investigator of #Starship Development ♦ Starbase Weekly Host w/ @RGVAerialPhotos ♦ Support us at http://patreon.com/CSI_Starbase",
+    "location": "Denver, CO",
+    "website": "http://youtube.com/CSIStarbase",
+    "followers": 68391,
+    "following": 789,
+    "tweets": 14798,
+    "verified": true,
+    "avatarUrl": "https://pbs.twimg.com/profile_images/1597348837588353031/2JTg9lFE_normal.jpg",
+    "tags": [],
+    "source": "fxtwitter",
+    "updatedAt": "2026-07-25T05:53:30.487Z"
   }
 ]
