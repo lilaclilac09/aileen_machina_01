@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useRef,
   useState,
   type CSSProperties,
   type DragEvent as ReactDragEvent,
@@ -39,7 +40,7 @@ const palette = {
 const SESSION_LOADED_KEY = 'aileena_loaded_once';
 const dragMeCursor =
   'url("data:image/svg+xml,%3Csvg%20xmlns=\'http://www.w3.org/2000/svg\'%20width=\'104\'%20height=\'34\'%20viewBox=\'0%200%20104%2034\'%3E%3Ctext%20x=\'4\'%20y=\'23\'%20font-family=\'Georgia%2Cserif\'%20font-size=\'20\'%20font-style=\'italic\'%20fill=\'%2314110c\'%3Edrag%20me%3C/text%3E%3C/svg%3E") 8 18, grab';
-const dragThreshold = 4;
+const dragThreshold = 3;
 
 type DragOffset = {
   x: number;
@@ -64,75 +65,94 @@ type RoomDoor = {
   category: string;
   blurb: string;
   signal: string;
-  motif: 'article' | 'hbm' | 'pcb' | 'trendy' | 'record';
+  motif: 'article' | 'hbm' | 'pcb' | 'trendy' | 'record' | 'investing';
   placement: CSSProperties;
   note?: string;
 };
 
-const HOME_PODCASTS = [
-  { title: 'Fashion Neurosis', meta: 'Bella Freud · Kate Moss', href: 'https://open.spotify.com/episode/0ZxMxV8EiZ9DkAPJWU0If7' },
-  { title: 'Do You Read Her', meta: 'women / reading / voice', href: 'https://open.spotify.com/episode/0cx1oBoJEwfaKGVbITcD5K' },
-];
+type HubItem = { title: string; meta: string; href?: string };
 
-const HOME_CHANNELS = [
-  { title: 'Asymmetrical Bets', meta: 'markets / narratives', href: 'https://asymmetricalbets.substack.com' },
-  { title: 'SemiAnalysis', meta: 'semis / AI infrastructure', href: 'https://www.semianalysis.com' },
-];
+type HubShelfData = {
+  id: string;
+  title: string;
+  lead?: string;
+  featured: HubItem;
+  items: HubItem[];
+  clipping?: { src: string; alt: string; href: string; caption?: string };
+};
 
-const HOME_WATCH_ITEMS = [
-  {
-    title: 'Joan Didion: The Center Will Not Hold',
-    meta: '2018 · writer / witness',
-    href: 'https://www.rottentomatoes.com/m/joan_didion_the_center_will_not_hold',
+const HOME_PODCASTS: HubShelfData = {
+  id: 'hub-podcast',
+  title: 'Listen',
+  lead: 'Voice in the room',
+  featured: {
+    title: 'Fashion Neurosis',
+    meta: 'Bella Freud · Kate Moss',
+    href: 'https://open.spotify.com/episode/0ZxMxV8EiZ9DkAPJWU0If7',
   },
-  {
-    title: 'David Hockney RA',
-    meta: '2017 · exhibition film',
-    href: 'https://en.wikipedia.org/wiki/Exhibition_on_Screen',
+  items: [
+    { title: 'Do You Read Her', meta: 'women / reading / voice', href: 'https://open.spotify.com/episode/0cx1oBoJEwfaKGVbITcD5K' },
+  ],
+};
+
+const HOME_CHANNELS: HubShelfData = {
+  id: 'hub-channels',
+  title: 'Channels',
+  lead: 'Ongoing reads',
+  featured: {
+    title: 'SemiAnalysis',
+    meta: 'semis / AI infrastructure',
+    href: 'https://www.semianalysis.com',
   },
-  {
-    title: 'A Bigger Splash',
-    meta: '1973 · Hockney / pool',
-    href: 'https://en.wikipedia.org/wiki/A_Bigger_Splash_(1973_film)',
-  },
-  {
+  items: [
+    { title: 'Asymmetrical Bets', meta: 'markets / narratives', href: 'https://asymmetricalbets.substack.com' },
+    { title: 'Tools', meta: 'small utilities · quiet door', href: '/tools' },
+  ],
+};
+
+/** Watch: films only — Didion lives on Read (one home for her). */
+const HOME_WATCH: HubShelfData = {
+  id: 'hub-film',
+  title: 'Watch',
+  lead: 'Screen queue',
+  featured: {
     title: 'Blue Is the Warmest Color',
     meta: 'Léa · intimacy',
     href: '/blog/watch-listening-shelf#films',
   },
-  {
-    title: 'The French Dispatch',
-    meta: 'magazine life · Léa',
-    href: '/blog/watch-listening-shelf#films',
-  },
-  {
-    title: 'Spectre / No Time to Die',
-    meta: 'Bond girl arc',
-    href: '/blog/watch-listening-shelf#films',
-  },
-  {
-    title: 'The Crown',
-    meta: 'British public life',
-    href: '/blog/watch-listening-shelf#films',
-  },
-  {
-    title: 'The Capture',
-    meta: 'new untrust',
-    href: '/blog/watch-listening-shelf#films',
-  },
-  {
-    title: 'Bodyguard',
-    meta: 'BBC thriller',
-    href: '/blog/watch-listening-shelf#films',
-  },
-];
+  items: [
+    { title: 'The French Dispatch', meta: 'magazine life · Léa', href: '/blog/watch-listening-shelf#films' },
+    { title: 'The Crown / Bodyguard', meta: 'British public life', href: '/blog/watch-listening-shelf#films' },
+    { title: 'David Hockney RA', meta: '2017 · exhibition film', href: 'https://en.wikipedia.org/wiki/Exhibition_on_Screen' },
+  ],
+};
 
-const HOME_BOOKS = [
-  { title: 'Readings from Joan Didion', meta: 'notebook / marked list', href: '/blog/watch-listening-shelf' },
-  { title: 'European living guide', meta: '欧洲生活指南', href: '/blog/watch-listening-shelf#euro-life' },
-  { title: 'Lifestyle — weekly practices', meta: '生活方式', href: '/blog/watch-listening-shelf#lifestyle' },
-  { title: 'The Listening and Watching Shelf', meta: 'full issue · essay', href: '/blog/watch-listening-shelf' },
-];
+/** Read: Didion clipping is the visual lead; Metal & Pages is #01. */
+const HOME_BOOKS: HubShelfData = {
+  id: 'hub-books',
+  title: 'Read',
+  lead: 'Pages in rotation',
+  featured: {
+    title: 'Metal & Pages',
+    meta: 'biweekly bookclub',
+    href: '/updates',
+  },
+  items: [
+    {
+      title: 'Living notes',
+      meta: '欧洲生活 · 生活方式',
+      href: '/blog/watch-listening-shelf#euro-life',
+    },
+  ],
+  clipping: {
+    src: '/dispatch-covers/books-joan-didion-readings.jpg',
+    alt: 'Readings from Joan Didion — notebook',
+    href: '/updates',
+    caption: 'Didion notebook → Metal & Pages',
+  },
+};
+
+const HOME_SHELVES: HubShelfData[] = [HOME_WATCH, HOME_PODCASTS, HOME_BOOKS, HOME_CHANNELS];
 
 /* ── Homepage ─────────────────────────────────────────────────────────
  *
@@ -171,7 +191,7 @@ export default function Home() {
       blurb: 'HBM stacks, David, and the day the stockpile hits zero.',
       signal: latestIssue ? `${latestIssue.issueNumber} · ${latestIssue.coverTitle}` : 'Open the magazine rack',
       motif: 'hbm',
-      placement: { top: '6%', left: '55%', transform: 'rotate(-4deg)', zIndex: 5 },
+      placement: { top: '6%', right: '4%', transform: 'rotate(-2.8deg)', zIndex: 6 },
     },
     {
       id: 'dispatch',
@@ -182,18 +202,18 @@ export default function Home() {
       blurb: 'GB200 boards, CCL, M8/M9, and who gets to choose the board.',
       signal: latestDispatch ? latestDispatch.title : 'Open the archive',
       motif: 'pcb',
-      placement: { top: '9%', right: '4%', transform: 'rotate(3deg)', zIndex: 4 },
+      placement: { top: '44%', right: '5%', transform: 'rotate(2.2deg)', zIndex: 5 },
     },
     {
       id: 'woman-tech',
       index: '03',
       label: 'Woman in Tech',
-      href: '/dispatch#woman-in-tech',
+      href: '/blog/harassment',
       category: 'Woman in Tech',
       blurb: metooArticle ? metooArticle.body : 'Long-form essays and the back catalogue.',
       signal: metooArticle ? metooArticle.title : 'Every Woman in Tech Has a #MeToo Story',
       motif: 'article',
-      placement: { top: '9%', left: '2%', transform: 'rotate(-1deg)', zIndex: 14 },
+      placement: { top: '5%', left: '3%', transform: 'rotate(-1.2deg)', zIndex: 14 },
     },
     {
       id: 'woman-investing',
@@ -202,21 +222,9 @@ export default function Home() {
       href: '/dispatch#investing',
       category: tx.blog.investing.tag,
       blurb: featuredInvesting ? featuredInvesting.body : 'A woman should have her own portfolio.',
-      signal: tx.blog.investing.heading,
-      motif: 'hbm',
-      placement: { top: '56%', left: '7%', transform: 'rotate(2.5deg)', zIndex: 11 },
-    },
-    {
-      id: 'trendy',
-      index: '05',
-      label: 'Trendy',
-      href: '#watch-hub',
-      category: tx.trendy.tag,
-      blurb: `${tx.trendy.body} Podcasts, documentaries, and reading channels — one homepage hub.`,
-      signal: tx.trendy.heading,
-      motif: 'trendy',
-      note: tx.visual.note,
-      placement: { top: '28%', left: '50%', transform: 'rotate(1.5deg)', zIndex: 12 },
+      signal: featuredInvesting ? featuredInvesting.title : tx.blog.investing.heading,
+      motif: 'investing',
+      placement: { top: '58%', left: '4%', transform: 'rotate(1.6deg)', zIndex: 12 },
     },
   ];
 
@@ -258,7 +266,7 @@ export default function Home() {
       <SnapContainer key={language}>
 
         {/* ── 01 CINEMATIC OPENING ──────────────────────────────── */}
-        <SnapSection id="opening" className="order-1">
+        <SnapSection id="opening" className="order-1" variant="stage">
           <div
             className="h-full flex flex-col bg-white relative overflow-hidden"
             style={{ fontFamily: nunito }}
@@ -445,18 +453,18 @@ export default function Home() {
         </SnapSection>
 
         {/* ── 02 LINK DOCK — article objects as direct doors ────── */}
-        <SnapSection id="dock" className="order-2">
+        <SnapSection id="dock" className="order-2" variant="stage">
           <AtriumLinkDock rooms={rooms} />
         </SnapSection>
 
         {/* ── 03 WATCH / LISTEN HUB ─────────────────────────────── */}
-        <SnapSection id="watch-hub" className="order-3">
+        <SnapSection id="watch-hub" className="order-3" variant="flow">
           <HomeWatchHub />
         </SnapSection>
 
         {/* ── 04 VISUAL — kiln / glass (homepage only, not /sound) ─ */}
-        <SnapSection id="visual" className="order-4">
-          <div className="h-full overflow-hidden" style={{ fontFamily: nunito }}>
+        <SnapSection id="visual" className="order-4" variant="flow">
+          <div style={{ fontFamily: nunito }}>
             <GlassBench
               tag={tx.visual.kilnTag}
               title={tx.visual.heading}
@@ -475,56 +483,68 @@ export default function Home() {
 function HomeWatchHub() {
   return (
     <section
-      className="h-full overflow-y-auto px-5 sm:px-9 lg:px-14"
+      className="min-h-full px-5 sm:px-9 lg:px-14"
       style={{
-        background: 'linear-gradient(180deg, #fffdf8 0%, #f7f3ea 100%)',
+        background: '#ffffff',
         color: palette.ink,
         fontFamily: nunito,
       }}
       aria-label="Watch and listen hub"
     >
-      <div className="mx-auto flex min-h-full max-w-[1320px] flex-col gap-7 pb-12 pt-[82px] lg:gap-9 lg:pb-10 lg:pt-[88px]">
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_auto] lg:items-end">
+      <div className="mx-auto flex max-w-[1080px] flex-col gap-14 pb-28 pt-[96px] sm:gap-12 sm:pb-24 lg:gap-16 lg:pb-32 lg:pt-[104px]">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1.15fr)_auto] lg:items-end">
           <div style={{ maxWidth: 640 }}>
             <p
               style={{
                 color: palette.cyan,
-                fontFamily: mono,
-                fontSize: '0.64rem',
+                fontFamily: nunito,
+                fontSize: '0.62rem',
                 fontWeight: 850,
-                letterSpacing: '0.34em',
-                marginBottom: 16,
+                letterSpacing: '0.28em',
+                marginBottom: 20,
                 textTransform: 'uppercase',
               }}
             >
-              Watch / Listen Hub
+              Watch / Listen
             </p>
             <h2
               style={{
                 color: palette.ink,
-                fontSize: 'clamp(2.1rem, 4.8vw, 3.8rem)',
-                fontWeight: 590,
+                fontFamily: 'Georgia, Times New Roman, serif',
+                fontSize: 'clamp(2.35rem, 5.2vw, 3.9rem)',
+                fontWeight: 500,
+                fontStyle: 'italic',
                 letterSpacing: '-0.03em',
                 lineHeight: 0.98,
-                marginBottom: 14,
+                marginBottom: 18,
               }}
             >
               One shelf. DJ first.
             </h2>
             <p
               style={{
-                color: 'rgba(20,17,12,0.62)',
-                fontFamily: 'Georgia, serif',
+                color: 'rgba(10,10,10,0.58)',
+                fontFamily: nunito,
                 fontSize: '1.02rem',
-                lineHeight: 1.6,
-                maxWidth: 520,
+                fontWeight: 500,
+                lineHeight: 1.65,
+                maxWidth: 480,
               }}
             >
-              Documentaries, podcasts, and books stay on the cream shelves.
+              Documentaries, podcasts, and books stay on the index.
               The DJ set gets the black door — not another card in the list.
             </p>
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-end' }}>
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 18,
+              alignContent: 'flex-end',
+              paddingBottom: 6,
+              borderBottom: '1px dashed rgba(10,10,10,0.16)',
+            }}
+          >
             {[
               { label: 'DJ set', href: '/sound', featured: true },
               { label: 'Film', href: '#hub-film' },
@@ -535,15 +555,15 @@ function HomeWatchHub() {
                 key={tag.label}
                 href={tag.href}
                 style={{
-                  border: tag.featured ? `1px solid ${palette.cyan}` : '1px solid rgba(20,17,12,0.14)',
-                  background: tag.featured ? 'rgba(0,169,159,0.1)' : 'transparent',
-                  borderRadius: 999,
-                  color: tag.featured ? '#007f76' : 'rgba(20,17,12,0.55)',
-                  fontFamily: mono,
+                  border: 0,
+                  background: 'transparent',
+                  borderRadius: 0,
+                  color: tag.featured ? palette.cyan : 'rgba(10,10,10,0.45)',
+                  fontFamily: nunito,
                   fontSize: '0.58rem',
                   fontWeight: 850,
                   letterSpacing: '0.16em',
-                  padding: '8px 14px',
+                  padding: '4px 0',
                   textDecoration: 'none',
                   textTransform: 'uppercase',
                 }}
@@ -554,19 +574,21 @@ function HomeWatchHub() {
           </div>
         </div>
 
-        {/* DJ SET — dominant black door */}
+        {/* DJ SET — Cereal: object on paper, more blank around */}
         <Link
           href="/sound"
           id="hub-dj"
           style={{
             display: 'block',
-            borderRadius: 4,
+            marginTop: 12,
+            marginBottom: 8,
+            borderRadius: 2,
             overflow: 'hidden',
             textDecoration: 'none',
             background: '#0b0d10',
             color: '#fffdf8',
-            boxShadow: '0 28px 60px -40px rgba(20,17,12,0.55)',
-            border: '1px solid rgba(255,253,248,0.08)',
+            boxShadow: 'none',
+            border: '1px solid rgba(26,24,20,0.08)',
           }}
         >
           <div
@@ -669,24 +691,25 @@ function HomeWatchHub() {
           </div>
         </Link>
 
-        {/* Cream shelves — film / podcast / books / channels */}
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-          <HubShelf id="hub-film" title="Watch shelf" items={HOME_WATCH_ITEMS} />
-          <HubShelf id="hub-podcast" title="Listen shelf" items={HOME_PODCASTS} />
-          <HubShelf
-            id="hub-books"
-            title="Read shelf"
-            items={HOME_BOOKS}
-            clipping={{
-              src: '/dispatch-covers/books-joan-didion-readings.jpg',
-              alt: 'Readings from the work of Joan Didion — marked list clipping',
-              href: '/blog/watch-listening-shelf',
-            }}
-          />
-          <HubShelf title="Channels" items={HOME_CHANNELS} />
+        {/* Index listing — numbered rows, not equal cards */}
+        <div className="grid gap-16 lg:grid-cols-2 lg:gap-x-16 lg:gap-y-20">
+          {HOME_SHELVES.map((shelf) => (
+            <HubIndex key={shelf.id} shelf={shelf} />
+          ))}
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            gap: 12,
+            paddingTop: 28,
+            marginTop: 8,
+            borderTop: '1px dashed rgba(20,17,12,0.12)',
+          }}
+        >
           <Link
             href="/blog/watch-listening-shelf"
             style={{
@@ -707,125 +730,208 @@ function HomeWatchHub() {
   );
 }
 
-function HubShelf({
-  title,
-  items,
-  id,
-  clipping,
-}: {
-  title: string;
-  items: { title: string; meta: string; href?: string }[];
-  id?: string;
-  clipping?: { src: string; alt: string; href: string };
-}) {
+function HubIndex({ shelf }: { shelf: HubShelfData }) {
+  const rows: HubItem[] = [shelf.featured, ...shelf.items];
+
   return (
-    <div id={id}>
-      <p
+    <section id={shelf.id} aria-labelledby={`${shelf.id}-title`}>
+      <header
         style={{
-          color: palette.cyan,
-          fontFamily: mono,
-          fontSize: '0.58rem',
-          fontWeight: 850,
-          letterSpacing: '0.28em',
-          margin: '0 0 10px',
-          textTransform: 'uppercase',
+          display: 'flex',
+          alignItems: 'baseline',
+          justifyContent: 'space-between',
+          gap: 12,
+          marginBottom: 22,
+          paddingBottom: 14,
+          borderBottom: '1px solid rgba(20,17,12,0.12)',
         }}
       >
-        {title}
-      </p>
-      <div style={{ display: 'grid', gap: 8 }}>
-        {clipping ? (
-          <Link
-            href={clipping.href}
-            aria-label={clipping.alt}
+        <div>
+          <h3
+            id={`${shelf.id}-title`}
             style={{
-              display: 'block',
-              border: 'none',
-              borderRadius: 0,
-              background: 'transparent',
-              overflow: 'hidden',
-              lineHeight: 0,
-              textDecoration: 'none',
-              boxShadow: '0 12px 28px -20px rgba(20,17,12,0.4)',
-              transform: 'rotate(-0.6deg)',
-            }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={clipping.src}
-              alt={clipping.alt}
-              style={{
-                display: 'block',
-                width: '100%',
-                height: 'auto',
-                maxHeight: 168,
-                objectFit: 'cover',
-                objectPosition: 'top center',
-              }}
-            />
-          </Link>
-        ) : null}
-        {items.map((item) => (
-          <Link
-            key={item.title}
-            href={item.href ?? '/blog/watch-listening-shelf'}
-            style={{
-              display: 'block',
-              border: '1px solid rgba(20,17,12,0.1)',
-              borderRadius: 4,
-              background: 'rgba(255,253,248,0.85)',
+              margin: 0,
               color: palette.ink,
-              padding: '12px 14px',
-              textDecoration: 'none',
+              fontFamily: 'Georgia, Times New Roman, serif',
+              fontSize: '1.35rem',
+              fontWeight: 500,
+              fontStyle: 'italic',
+              letterSpacing: '-0.02em',
             }}
           >
-            <span
+            {shelf.title}
+          </h3>
+          {shelf.lead ? (
+            <p
               style={{
-                display: 'block',
-                color: palette.ink,
-                fontSize: '0.95rem',
-                fontWeight: 720,
-                letterSpacing: '-0.02em',
-                lineHeight: 1.15,
+                margin: '6px 0 0',
+                color: 'rgba(10,10,10,0.42)',
+                fontFamily: nunito,
+                fontSize: '0.82rem',
+                fontWeight: 500,
+                fontStyle: 'normal',
               }}
             >
-              {item.title}
-            </span>
+              {shelf.lead}
+            </p>
+          ) : null}
+        </div>
+        <span
+          style={{
+            color: palette.cyan,
+            fontFamily: mono,
+            fontSize: '0.52rem',
+            fontWeight: 850,
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {String(rows.length).padStart(2, '0')} entries
+        </span>
+      </header>
+
+      {shelf.clipping ? (
+        <Link
+          href={shelf.clipping.href}
+          aria-label={shelf.clipping.alt}
+          style={{
+            display: 'block',
+            marginBottom: 28,
+            textDecoration: 'none',
+            lineHeight: 0,
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={shelf.clipping.src}
+            alt={shelf.clipping.alt}
+            style={{
+              display: 'block',
+              width: '100%',
+              maxHeight: 148,
+              objectFit: 'cover',
+              objectPosition: 'top center',
+            }}
+          />
+          {shelf.clipping.caption ? (
             <span
               style={{
                 display: 'block',
-                color: 'rgba(20,17,12,0.42)',
+                paddingTop: 8,
+                color: 'rgba(20,17,12,0.4)',
                 fontFamily: mono,
-                fontSize: '0.52rem',
-                fontWeight: 850,
-                letterSpacing: '0.14em',
-                marginTop: 6,
+                fontSize: '0.5rem',
+                fontWeight: 800,
+                letterSpacing: '0.16em',
                 textTransform: 'uppercase',
               }}
             >
-              {item.meta}
+              {shelf.clipping.caption}
             </span>
-          </Link>
-        ))}
-      </div>
-    </div>
+          ) : null}
+        </Link>
+      ) : null}
+
+      <ol style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+        {rows.map((item, index) => {
+          const isLead = index === 0;
+          const n = String(index + 1).padStart(2, '0');
+          return (
+            <li key={`${shelf.id}-${item.title}`}>
+              <Link
+                href={item.href ?? '/blog/watch-listening-shelf'}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '2.4rem minmax(0, 1fr) auto',
+                  gap: 12,
+                  alignItems: 'baseline',
+                  padding: isLead ? '18px 0 20px' : '16px 0',
+                  borderBottom: '1px dashed rgba(20,17,12,0.12)',
+                  textDecoration: 'none',
+                  color: palette.ink,
+                }}
+              >
+                <span
+                  style={{
+                    color: isLead ? palette.cyan : 'rgba(20,17,12,0.32)',
+                    fontFamily: mono,
+                    fontSize: '0.62rem',
+                    fontWeight: 850,
+                    letterSpacing: '0.08em',
+                  }}
+                >
+                  {n}
+                </span>
+                <span
+                  style={{
+                    minWidth: 0,
+                    fontSize: isLead ? '1.12rem' : '0.95rem',
+                    fontWeight: isLead ? 740 : 580,
+                    letterSpacing: isLead ? '-0.025em' : '-0.01em',
+                    lineHeight: 1.25,
+                  }}
+                >
+                  {item.title}
+                </span>
+                <span
+                  style={{
+                    color: 'rgba(20,17,12,0.4)',
+                    fontFamily: mono,
+                    fontSize: '0.5rem',
+                    fontWeight: 800,
+                    letterSpacing: '0.12em',
+                    textAlign: 'right',
+                    textTransform: 'uppercase',
+                    maxWidth: '12rem',
+                    lineHeight: 1.35,
+                  }}
+                >
+                  {item.meta}
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
   );
 }
 
 function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
-  const jensenHref = rooms.find((room) => room.id === 'magazine')?.href ?? '/research';
   const [dragOffsets, setDragOffsets] = useState<Record<string, DragOffset>>({});
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [raisedId, setRaisedId] = useState<string | null>(null);
-  const [dragState, setDragState] = useState<DragState | null>(null);
+  const dragStateRef = useRef<DragState | null>(null);
+  const dragOffsetsRef = useRef<Record<string, DragOffset>>({});
+  const nodeRefs = useRef<Record<string, HTMLElement | null>>({});
+  const baseTransformRef = useRef<Record<string, string>>({});
+  const rafRef = useRef<number | null>(null);
+  const velocityRef = useRef({ x: 0, y: 0, t: 0 });
+  // Quiet footer only — tools/sound have dedicated doors elsewhere.
   const socialLinks = [
     { label: 'github', href: 'https://github.com/lilaclilac09' },
     { label: 'substack', href: '/dispatch' },
-    { label: 'tools', href: '/tools' },
-    { label: 'sound', href: '/sound' },
     { label: 'gather', href: 'https://album.aileena.xyz' },
   ];
   const getDragOffset = (id: string) => dragOffsets[id] ?? { x: 0, y: 0 };
+  const baseFor = (id: string) => {
+    if (id === 'woman-cover-print') return 'rotate(2.8deg)';
+    if (id === 'machina-polaroid') return 'rotate(3.6deg)';
+    if (id === 'didion-scrap') return 'rotate(-3.4deg)';
+    return String(rooms.find((room) => room.id === id)?.placement.transform ?? '');
+  };
+  const applyNodeTransform = (id: string, baseTransform: string, scale = 1) => {
+    const node = nodeRefs.current[id];
+    if (!node) return;
+    const offset = dragOffsetsRef.current[id] ?? { x: 0, y: 0 };
+    const translate = `translate3d(${offset.x}px, ${offset.y}px, 0)`;
+    const scaled = scale === 1 ? '' : ` scale(${scale})`;
+    node.style.transform = baseTransform
+      ? `${translate} ${baseTransform}${scaled}`
+      : `${translate}${scaled}`;
+    node.style.transition = 'none';
+  };
   const dragTransform = (id: string, baseTransform: string) => {
     const offset = getDragOffset(id);
     const translate = `translate3d(${offset.x}px, ${offset.y}px, 0)`;
@@ -833,8 +939,10 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
   };
   const beginDrag = (id: string, event: ReactPointerEvent<HTMLElement>) => {
     if (event.button !== 0) return;
-    const offset = getDragOffset(id);
-    setDragState({
+    const offset = dragOffsetsRef.current[id] ?? dragOffsets[id] ?? { x: 0, y: 0 };
+    const base = baseFor(id);
+    baseTransformRef.current[id] = base;
+    const next: DragState = {
       id,
       pointerId: event.pointerId,
       startX: event.clientX,
@@ -842,48 +950,96 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
       originX: offset.x,
       originY: offset.y,
       moved: false,
-    });
+    };
+    dragStateRef.current = next;
+    velocityRef.current = { x: 0, y: 0, t: event.timeStamp };
     setActiveDragId(id);
     setRaisedId(id);
+    nodeRefs.current[id] = event.currentTarget;
+    event.currentTarget.style.transition = 'none';
+    event.currentTarget.style.willChange = 'transform';
     event.currentTarget.setPointerCapture(event.pointerId);
   };
   const updateDrag = (event: ReactPointerEvent<HTMLElement>) => {
-    const drag = dragState;
+    const drag = dragStateRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
     const dx = event.clientX - drag.startX;
     const dy = event.clientY - drag.startY;
     const moved = drag.moved || Math.hypot(dx, dy) > dragThreshold;
     if (!moved) return;
     event.preventDefault();
-    if (!drag.moved) setDragState({ ...drag, moved: true });
-    setDragOffsets((current) => ({
-      ...current,
-      [drag.id]: {
-        x: drag.originX + dx,
-        y: drag.originY + dy,
-      },
-    }));
+    if (!drag.moved) dragStateRef.current = { ...drag, moved: true };
+
+    const now = event.timeStamp;
+    const dt = Math.max(8, now - (velocityRef.current.t || now));
+    const nextOffset = {
+      x: drag.originX + dx,
+      y: drag.originY + dy,
+    };
+    const prev = dragOffsetsRef.current[drag.id] ?? nextOffset;
+    velocityRef.current = {
+      x: ((nextOffset.x - prev.x) / dt) * 16,
+      y: ((nextOffset.y - prev.y) / dt) * 16,
+      t: now,
+    };
+    dragOffsetsRef.current = {
+      ...dragOffsetsRef.current,
+      [drag.id]: nextOffset,
+    };
+    if (rafRef.current != null) return;
+    rafRef.current = window.requestAnimationFrame(() => {
+      rafRef.current = null;
+      const live = dragStateRef.current;
+      if (!live) return;
+      applyNodeTransform(live.id, baseTransformRef.current[live.id] ?? baseFor(live.id), 1.035);
+    });
   };
   const endDrag = (event: ReactPointerEvent<HTMLElement>) => {
-    const drag = dragState;
+    const drag = dragStateRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
     const moved = drag.moved || Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY) > dragThreshold;
     const target = event.currentTarget;
     if (moved) target.dataset.dragged = 'true';
-    setDragState(null);
+    if (rafRef.current != null) {
+      window.cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+
+    // Soft coast — tiny inertia so release feels silkier than a hard stop.
+    const coast = dragOffsetsRef.current[drag.id] ?? { x: 0, y: 0 };
+    const vx = Math.max(-18, Math.min(18, velocityRef.current.x));
+    const vy = Math.max(-18, Math.min(18, velocityRef.current.y));
+    const settled = {
+      x: coast.x + vx * 4,
+      y: coast.y + vy * 4,
+    };
+    dragOffsetsRef.current = { ...dragOffsetsRef.current, [drag.id]: settled };
+    const base = baseTransformRef.current[drag.id] ?? baseFor(drag.id);
+    target.style.transition = 'transform 0.42s cubic-bezier(0.16, 1, 0.3, 1)';
+    target.style.transform = `translate3d(${settled.x}px, ${settled.y}px, 0) ${base}`;
+
+    setDragOffsets({ ...dragOffsetsRef.current });
+    dragStateRef.current = null;
     setActiveDragId(null);
     if (target.hasPointerCapture(event.pointerId)) {
       target.releasePointerCapture(event.pointerId);
     }
     window.setTimeout(() => {
       delete target.dataset.dragged;
+      target.style.willChange = 'auto';
     }, 0);
   };
   const cancelDrag = (event: ReactPointerEvent<HTMLElement>) => {
-    const drag = dragState;
+    const drag = dragStateRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
-    setDragState(null);
+    if (rafRef.current != null) {
+      window.cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    dragStateRef.current = null;
     setActiveDragId(null);
+    event.currentTarget.style.transition = 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)';
+    event.currentTarget.style.willChange = 'auto';
   };
   const blockNativeDrag = (event: ReactDragEvent<HTMLElement>) => {
     event.preventDefault();
@@ -945,26 +1101,27 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
 
         <div
           className="relative z-10 min-h-0 flex-1 sm:min-h-0"
+          style={{
+            background:
+              'radial-gradient(ellipse 70% 55% at 72% 18%, rgba(232,180,184,0.10), transparent 58%), radial-gradient(ellipse 55% 45% at 12% 78%, rgba(0,169,159,0.06), transparent 55%)',
+          }}
         >
-          <div className="h-full overflow-y-auto pb-8 pt-4 sm:hidden">
-            <div className="grid gap-4">
+          <div className="h-full overflow-y-auto px-3 pb-24 pt-8 sm:hidden">
+            <div className="grid gap-14">
               {rooms.map((room) => {
                 const isArticle = room.motif === 'article';
-                const isTrendy = room.motif === 'trendy';
                 const isRecord = room.motif === 'record';
-                const isPaper = isTrendy;
                 const mobileRoomStyle: CSSProperties = {
                   display: 'block',
                   width: '100%',
-                  minHeight: isArticle ? 500 : isTrendy ? 410 : isRecord ? 280 : 238,
-                  height: isTrendy ? 410 : undefined,
+                  minHeight: isArticle ? 380 : isRecord ? 240 : 200,
                   padding: 0,
-                  border: isPaper ? '1px solid rgba(20,17,12,0.16)' : 'none',
-                  background: isPaper ? palette.paper : 'transparent',
+                  border: 'none',
+                  background: 'transparent',
                   color: palette.ink,
                   cursor: 'pointer',
                   textDecoration: 'none',
-                  boxShadow: isPaper ? '0 24px 70px -48px rgba(20,17,12,0.5)' : 'none',
+                  boxShadow: 'none',
                 };
 
                 return room.href.startsWith('http') ? (
@@ -992,6 +1149,98 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 );
               })}
 
+              <Link
+                href="/dispatch#woman-in-tech"
+                aria-label="Open Woman in Tech archive — cover print"
+                className="text-left"
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  minHeight: 220,
+                  marginTop: 8,
+                  padding: 0,
+                  border: 'none',
+                  outline: 'none',
+                  backgroundImage: "url('/dispatch-covers/harassment.jpg')",
+                  backgroundPosition: '48% 42%',
+                  backgroundSize: 'cover',
+                  backgroundRepeat: 'no-repeat',
+                  boxShadow: 'none',
+                  textDecoration: 'none',
+                  position: 'relative',
+                  overflow: 'hidden',
+                }}
+              >
+                <span
+                  style={{
+                    position: 'absolute',
+                    left: 12,
+                    bottom: 12,
+                    padding: '4px 8px',
+                    background: 'rgba(20,17,12,0.72)',
+                    color: '#fffdf8',
+                    fontFamily: mono,
+                    fontSize: '0.52rem',
+                    fontWeight: 850,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  woman in tech archive →
+                </span>
+              </Link>
+
+              <button
+                type="button"
+                aria-label="Open Aileena console — machina polaroid"
+                className="text-left"
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  width: 'min(52%, 168px)',
+                  margin: '28px auto 24px',
+                  padding: 0,
+                  border: 0,
+                  outline: 'none',
+                  background: 'transparent',
+                  boxShadow: 'none',
+                  cursor: 'pointer',
+                  transform: 'rotate(3deg)',
+                }}
+                onClick={() => window.dispatchEvent(new CustomEvent('open-agent-chat'))}
+              >
+                <span
+                  aria-hidden
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    aspectRatio: '3 / 4',
+                    margin: 0,
+                    padding: 0,
+                    border: 'none',
+                    backgroundImage: "url('/bg_pic/03.jpeg')",
+                    backgroundPosition: '36% 14%',
+                    backgroundSize: 'cover',
+                    backgroundRepeat: 'no-repeat',
+                    boxShadow: 'none',
+                  }}
+                />
+                <span
+                  style={{
+                    marginTop: 8,
+                    color: 'rgba(20,17,12,0.55)',
+                    fontFamily: mono,
+                    fontSize: '0.5rem',
+                    fontWeight: 800,
+                    letterSpacing: '0.16em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  ask · machina
+                </span>
+              </button>
+
             </div>
           </div>
 
@@ -1001,13 +1250,30 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             const isRaised = isActiveDrag || raisedId === room.id;
             const isArticle = room.motif === 'article';
             const isTrendy = room.motif === 'trendy';
+            const isInvesting = room.motif === 'investing';
             const isRecord = room.motif === 'record';
             const isPaper = isTrendy;
             const desktopRoomStyle: CSSProperties = {
               ...room.placement,
               position: 'absolute',
-              width: isArticle ? 'min(86vw, 610px)' : isTrendy ? 'min(70vw, 430px)' : isRecord ? 'min(56vw, 290px)' : 'min(60vw, 330px)',
-              minHeight: isArticle ? 'clamp(455px, 58dvh, 520px)' : isTrendy ? 'clamp(340px, 44dvh, 390px)' : isRecord ? 300 : 250,
+              width: isArticle
+                ? 'min(70vw, 400px)'
+                : isInvesting
+                  ? 'min(58vw, 300px)'
+                  : isTrendy
+                    ? 'min(70vw, 430px)'
+                    : isRecord
+                      ? 'min(56vw, 290px)'
+                      : 'min(52vw, 300px)',
+              minHeight: isArticle
+                ? 'clamp(400px, 52dvh, 480px)'
+                : isInvesting
+                  ? 280
+                  : isTrendy
+                    ? 'clamp(340px, 44dvh, 390px)'
+                    : isRecord
+                      ? 300
+                      : 280,
               height: isTrendy ? 'clamp(340px, 44dvh, 390px)' : undefined,
               padding: 0,
               border: isPaper ? '1px solid rgba(20,17,12,0.16)' : 'none',
@@ -1017,11 +1283,11 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               textDecoration: 'none',
               boxShadow: isPaper ? '0 24px 70px -42px rgba(20,17,12,0.5)' : 'none',
               transform: dragTransform(room.id, baseTransform),
-              transition: 'box-shadow 0.18s ease, transform 0.18s ease',
+              transition: isActiveDrag ? 'none' : 'transform 0.42s cubic-bezier(0.16, 1, 0.3, 1)',
               touchAction: 'none',
               userSelect: 'none',
-              willChange: 'transform',
-              zIndex: isRaised ? 40 : room.placement.zIndex,
+              willChange: isActiveDrag ? 'transform' : 'auto',
+              zIndex: isRaised ? 40 : Number(room.placement.zIndex ?? 1),
             };
 
             return room.href.startsWith('http') ? (
@@ -1051,153 +1317,243 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             );
           })}
 
+          {/* Photo scraps — separate lanes, fuller crops, no white frames. */}
           <Link
-            href={jensenHref}
-            aria-label="Open Jensen AI stock article"
-            className="absolute right-[11%] top-[38%] z-[7] hidden h-[190px] w-[365px] overflow-visible sm:block"
+            href="/dispatch#woman-in-tech"
+            aria-label="Open Woman in Tech archive — cover print"
+            className="absolute z-[8] hidden sm:block"
             style={{
-              right: '7%',
-              top: '45%',
-              padding: 8,
-              background: palette.cream,
-              border: '1px solid rgba(20,17,12,0.13)',
-              borderRadius: 18,
-              cursor: activeDragId === 'jensen-stock-print' ? 'grabbing' : dragMeCursor,
-              boxShadow: '0 18px 0 rgba(20,17,12,0.86), 0 28px 66px -30px rgba(20,17,12,0.72)',
-              transform: dragTransform('jensen-stock-print', 'rotate(2deg)'),
-              transition: 'transform 0.18s ease',
+              top: '8%',
+              left: 'clamp(430px, 42vw, 520px)',
+              width: 'min(24vw, 210px)',
+              height: 'clamp(280px, 38dvh, 340px)',
+              padding: 0,
+              margin: 0,
+              border: 'none',
+              outline: 'none',
+              backgroundImage: "url('/dispatch-covers/harassment.jpg')",
+              backgroundPosition: '48% 38%',
+              backgroundSize: 'cover',
+              backgroundRepeat: 'no-repeat',
+              backgroundColor: 'transparent',
+              boxShadow: '0 28px 60px -48px rgba(20,17,12,0.55)',
+              filter: 'contrast(1.06) saturate(0.92)',
+              cursor: activeDragId === 'woman-cover-print' ? 'grabbing' : dragMeCursor,
+              transform: dragTransform('woman-cover-print', 'rotate(2.8deg)'),
+              transition:
+                activeDragId === 'woman-cover-print'
+                  ? 'none'
+                  : 'transform 0.42s cubic-bezier(0.16, 1, 0.3, 1)',
               touchAction: 'none',
               userSelect: 'none',
-              willChange: 'transform',
-              zIndex: activeDragId === 'jensen-stock-print' || raisedId === 'jensen-stock-print' ? 41 : 7,
+              willChange: activeDragId === 'woman-cover-print' ? 'transform' : 'auto',
+              zIndex: activeDragId === 'woman-cover-print' || raisedId === 'woman-cover-print' ? 41 : 8,
+              textDecoration: 'none',
+              overflow: 'hidden',
             }}
-            {...dragHandlers('jensen-stock-print')}
+            {...dragHandlers('woman-cover-print')}
           >
             <span
               aria-hidden
               style={{
                 position: 'absolute',
-                left: '50%',
-                top: -18,
-                width: 96,
-                height: 28,
-                background: palette.amberSoft,
-                boxShadow: '0 1px 0 rgba(255,255,255,0.45) inset',
-                transform: 'translateX(-50%) rotate(-2deg)',
-                zIndex: 5,
+                inset: 0,
+                background:
+                  'linear-gradient(180deg, rgba(20,17,12,0.08) 0%, transparent 28%, transparent 62%, rgba(20,17,12,0.55) 100%)',
+                pointerEvents: 'none',
               }}
             />
             <span
               aria-hidden
               style={{
                 position: 'absolute',
-                inset: 8,
-                overflow: 'hidden',
-                borderRadius: 12,
-                backgroundImage:
-                  "linear-gradient(90deg, rgba(10,13,12,0.78), rgba(10,13,12,0.12)), url('/projects/us-stocks.png')",
-                backgroundPosition: 'center top',
-                backgroundSize: 'cover',
-                filter: 'saturate(0.92) contrast(1.03)',
-              }}
-            />
-            <span
-              aria-hidden
-              style={{
-                position: 'absolute',
-                inset: 8,
-                borderRadius: 12,
-                boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.2), inset 0 -70px 80px -55px rgba(0,0,0,0.9)',
-              }}
-            />
-            <span
-              style={{
-                position: 'absolute',
-                left: 20,
-                top: 20,
-                display: 'flex',
-                gap: 7,
-                zIndex: 2,
+                left: 10,
+                top: 10,
+                color: 'rgba(255,253,248,0.88)',
+                fontFamily: 'Georgia, serif',
+                fontSize: '0.95rem',
+                fontStyle: 'italic',
+                textShadow: '0 1px 10px rgba(0,0,0,0.55)',
+                pointerEvents: 'none',
               }}
             >
-              {['11.3x', '19.4x', '12.4x'].map((tag) => (
-                <span
-                  key={tag}
-                  style={{
-                    display: 'inline-block',
-                    padding: '3px 8px 2px',
-                    background: palette.cream,
-                    border: `2px solid ${palette.ink}`,
-                    borderRadius: 8,
-                    color: palette.ink,
-                    fontFamily: mono,
-                    fontSize: '0.72rem',
-                    fontWeight: 900,
-                    letterSpacing: '-0.04em',
-                    transform: 'rotate(-3deg)',
-                  }}
-                >
-                  {tag}
-                </span>
-              ))}
+              drag me
             </span>
             <span
               style={{
                 position: 'absolute',
-                left: 22,
-                bottom: 22,
-                zIndex: 2,
-                padding: '5px 9px',
-                borderRadius: 999,
-                background: palette.cream,
-                color: palette.ink,
-                fontFamily: mono,
-                fontSize: '0.58rem',
-                fontWeight: 900,
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
+                left: 12,
+                right: 12,
+                bottom: 14,
+                color: '#fffdf8',
+                fontFamily: nunito,
+                fontSize: '0.92rem',
+                fontWeight: 750,
+                letterSpacing: '-0.02em',
+                lineHeight: 1.2,
+                textShadow: '0 2px 14px rgba(0,0,0,0.55)',
               }}
             >
-              AI stock print
-            </span>
-            <span
-              style={{
-                position: 'absolute',
-                right: 19,
-                top: 20,
-                zIndex: 2,
-                padding: '4px 8px',
-                borderRadius: 8,
-                background: palette.chipGreen,
-                color: palette.ink,
-                fontFamily: mono,
-                fontSize: '0.72rem',
-                fontWeight: 900,
-                letterSpacing: '0.02em',
-              }}
-            >
-              NVIDIA
-            </span>
-            <span
-              style={{
-                position: 'absolute',
-                right: 18,
-                bottom: 21,
-                zIndex: 2,
-                padding: '5px 9px',
-                borderRadius: 999,
-                background: palette.cream,
-                color: palette.ink,
-                fontFamily: mono,
-                fontSize: '0.58rem',
-                fontWeight: 900,
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-              }}
-            >
-              Jensen / HBM
+              Woman in Tech
+              <span
+                style={{
+                  display: 'block',
+                  marginTop: 4,
+                  fontFamily: mono,
+                  fontSize: '0.5rem',
+                  fontWeight: 800,
+                  letterSpacing: '0.16em',
+                  textTransform: 'uppercase',
+                  opacity: 0.82,
+                }}
+              >
+                archive →
+              </span>
             </span>
           </Link>
+
+          <Link
+            href="/updates"
+            aria-label="Open Metal & Pages — Didion readings"
+            className="absolute z-[9] hidden lg:block"
+            style={{
+              top: '42%',
+              left: 'clamp(420px, 40vw, 500px)',
+              width: 'min(20vw, 168px)',
+              height: 'clamp(200px, 26dvh, 236px)',
+              padding: 0,
+              margin: 0,
+              border: 'none',
+              outline: 'none',
+              backgroundImage: "url('/dispatch-covers/books-joan-didion-readings.jpg')",
+              backgroundPosition: '50% 18%',
+              backgroundSize: 'cover',
+              backgroundRepeat: 'no-repeat',
+              boxShadow: '0 24px 50px -44px rgba(20,17,12,0.5)',
+              filter: 'saturate(0.88) contrast(1.05)',
+              cursor: activeDragId === 'didion-scrap' ? 'grabbing' : dragMeCursor,
+              transform: dragTransform('didion-scrap', 'rotate(-3.4deg)'),
+              transition:
+                activeDragId === 'didion-scrap'
+                  ? 'none'
+                  : 'transform 0.42s cubic-bezier(0.16, 1, 0.3, 1)',
+              touchAction: 'none',
+              userSelect: 'none',
+              willChange: activeDragId === 'didion-scrap' ? 'transform' : 'auto',
+              zIndex: activeDragId === 'didion-scrap' || raisedId === 'didion-scrap' ? 41 : 9,
+              textDecoration: 'none',
+              overflow: 'hidden',
+            }}
+            {...dragHandlers('didion-scrap')}
+          >
+            <span
+              aria-hidden
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'linear-gradient(180deg, transparent 45%, rgba(20,17,12,0.62) 100%)',
+                pointerEvents: 'none',
+              }}
+            />
+            <span
+              style={{
+                position: 'absolute',
+                left: 10,
+                right: 10,
+                bottom: 12,
+                color: '#fffdf8',
+                fontFamily: "'Allura', cursive",
+                fontSize: '1.35rem',
+                lineHeight: 1,
+                textShadow: '0 2px 12px rgba(0,0,0,0.45)',
+              }}
+            >
+              Metal & Pages
+            </span>
+          </Link>
+
+          <button
+            type="button"
+            aria-label="Open Aileena console — machina portrait"
+            className="absolute z-[16] hidden sm:block"
+            style={{
+              top: '58%',
+              left: 'clamp(560px, 56vw, 680px)',
+              width: 'clamp(148px, 14.5vw, 186px)',
+              padding: 0,
+              margin: 0,
+              border: 0,
+              outline: 'none',
+              background: 'transparent',
+              boxShadow: 'none',
+              cursor: activeDragId === 'machina-polaroid' ? 'grabbing' : dragMeCursor,
+              transform: dragTransform('machina-polaroid', 'rotate(3.6deg)'),
+              transition:
+                activeDragId === 'machina-polaroid'
+                  ? 'none'
+                  : 'transform 0.42s cubic-bezier(0.16, 1, 0.3, 1)',
+              touchAction: 'none',
+              userSelect: 'none',
+              willChange: activeDragId === 'machina-polaroid' ? 'transform' : 'auto',
+              zIndex: activeDragId === 'machina-polaroid' || raisedId === 'machina-polaroid' ? 41 : 16,
+            }}
+            {...dragHandlers('machina-polaroid')}
+            onClick={(event) => {
+              if (event.currentTarget.dataset.dragged === 'true') return;
+              window.dispatchEvent(new CustomEvent('open-agent-chat'));
+            }}
+          >
+            <span
+              aria-hidden
+              style={{
+                display: 'block',
+                width: '100%',
+                aspectRatio: '3 / 4',
+                margin: 0,
+                padding: 0,
+                border: 'none',
+                outline: 'none',
+                backgroundImage: "url('/bg_pic/03.jpeg')",
+                backgroundPosition: '34% 10%',
+                backgroundSize: 'cover',
+                backgroundRepeat: 'no-repeat',
+                backgroundColor: 'transparent',
+                boxShadow: '0 26px 54px -42px rgba(20,17,12,0.55)',
+                filter: 'saturate(0.94) contrast(1.04)',
+                overflow: 'hidden',
+              }}
+            />
+            <span
+              aria-hidden
+              style={{
+                display: 'block',
+                marginTop: 8,
+                color: 'rgba(20,17,12,0.58)',
+                fontFamily: 'Georgia, serif',
+                fontSize: '0.92rem',
+                fontStyle: 'italic',
+                textAlign: 'center',
+                pointerEvents: 'none',
+              }}
+            >
+              drag me
+            </span>
+            <span
+              style={{
+                display: 'block',
+                marginTop: 2,
+                color: palette.cyan,
+                fontFamily: mono,
+                fontSize: '0.5rem',
+                fontWeight: 850,
+                letterSpacing: '0.18em',
+                textAlign: 'center',
+                textTransform: 'uppercase',
+              }}
+            >
+              ask · machina
+            </span>
+          </button>
         </div>
 
         <div className="relative z-20 mb-1 flex items-end justify-end gap-6">
@@ -1242,6 +1598,7 @@ const thumbnailShellStyle: CSSProperties = {
   display: 'block',
   padding: 0,
   background: 'transparent',
+  boxShadow: 'none',
 };
 
 const thumbnailTitleStyle: CSSProperties = {
@@ -1272,109 +1629,104 @@ function ObjectFace({ room }: { room: RoomDoor }) {
         style={{
           position: 'relative',
           display: 'block',
-          minHeight: 'clamp(455px, 58dvh, 520px)',
-          padding: '20px 0 36px',
+          minHeight: 'clamp(400px, 52dvh, 480px)',
+          padding: '18px 0 34px',
         }}
       >
-        <span
-          aria-hidden
-          style={{
-            position: 'absolute',
-            right: 26,
-            top: 18,
-            zIndex: 0,
-            width: 'min(38vw, 220px)',
-            height: 'clamp(300px, 43dvh, 382px)',
-            backgroundImage: "url('/dispatch-covers/harassment.jpg')",
-            backgroundPosition: '48% 50%',
-            backgroundSize: 'cover',
-            boxShadow: '0 24px 70px -36px rgba(20,17,12,0.48)',
-            filter: 'contrast(1.03) grayscale(0.08)',
-          }}
-        />
-        <span
-          aria-hidden
-          style={{
-            position: 'absolute',
-            right: 112,
-            bottom: 14,
-            zIndex: 2,
-            width: 'clamp(118px, 11vw, 150px)',
-            height: 'clamp(140px, 13vw, 178px)',
-            background: palette.cream,
-            boxShadow: '0 18px 46px -30px rgba(20,17,12,0.55)',
-            padding: 8,
-            transform: 'rotate(4deg)',
-          }}
-        >
-          <span
-            style={{
-              display: 'block',
-              width: '100%',
-              height: '100%',
-              backgroundImage: "url('/bg_pic/03.jpeg')",
-              backgroundPosition: '36% 18%',
-              backgroundSize: '190%',
-              filter: 'saturate(0.84) contrast(0.98)',
-            }}
-          />
-        </span>
         <span
           style={{
             position: 'relative',
             zIndex: 1,
             display: 'block',
-            width: 'min(72vw, 440px)',
-            minHeight: 'clamp(410px, 53dvh, 482px)',
-            marginLeft: 18,
-            padding: 'clamp(38px, 5.6dvh, 52px) clamp(24px, 6vw, 42px) clamp(28px, 4.8dvh, 40px)',
-            background: '#fff',
-            boxShadow: '0 22px 70px -42px rgba(20,17,12,0.5)',
+            width: 'min(70vw, 380px)',
+            minHeight: 'clamp(380px, 50dvh, 450px)',
+            padding: 'clamp(34px, 5dvh, 46px) clamp(24px, 4.8vw, 40px) clamp(28px, 4.2dvh, 38px)',
+            background:
+              'linear-gradient(165deg, #ffffff 0%, #fffdf8 55%, #f7f1e8 100%)',
+            boxShadow: '0 28px 70px -46px rgba(20,17,12,0.48)',
           }}
         >
           <span
             style={{
-              display: 'block',
-              color: 'rgba(20,17,12,0.74)',
-              fontFamily: mono,
-              fontSize: '0.68rem',
-              fontWeight: 800,
-              letterSpacing: '0.22em',
-              marginBottom: 'clamp(18px, 3.4dvh, 28px)',
-              textAlign: 'center',
-              textTransform: 'uppercase',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 10,
+              marginBottom: 'clamp(18px, 3.2dvh, 26px)',
             }}
           >
-            Viewpoint
+            <span
+              aria-hidden
+              style={{
+                display: 'block',
+                width: 28,
+                height: 1,
+                background: palette.oxblood,
+                opacity: 0.55,
+              }}
+            />
+            <span
+              style={{
+                color: palette.oxblood,
+                fontFamily: mono,
+                fontSize: '0.62rem',
+                fontWeight: 800,
+                letterSpacing: '0.28em',
+                textTransform: 'uppercase',
+              }}
+            >
+              Viewpoint
+            </span>
+            <span
+              aria-hidden
+              style={{
+                display: 'block',
+                width: 28,
+                height: 1,
+                background: palette.oxblood,
+                opacity: 0.55,
+              }}
+            />
           </span>
           <span
             style={{
               display: 'block',
               color: palette.ink,
               fontFamily: nunito,
-              fontSize: 'clamp(1.75rem, 3.35vw, 3.05rem)',
+              fontSize: 'clamp(1.85rem, 3.4vw, 2.95rem)',
               fontWeight: 850,
-              letterSpacing: '-0.045em',
-              lineHeight: 1.04,
-              margin: '0 auto clamp(20px, 3.8dvh, 32px)',
-              maxWidth: 372,
+              letterSpacing: '-0.048em',
+              lineHeight: 1.02,
+              margin: '0 auto clamp(20px, 3.6dvh, 28px)',
+              maxWidth: 340,
               textAlign: 'center',
             }}
           >
             {room.signal}
           </span>
           <span
+            aria-hidden
             style={{
-              color: 'rgba(20,17,12,0.78)',
+              display: 'block',
+              width: 42,
+              height: 2,
+              margin: '0 auto 18px',
+              background: palette.softPink,
+              opacity: 0.7,
+            }}
+          />
+          <span
+            style={{
+              color: 'rgba(20,17,12,0.72)',
               fontFamily: 'Georgia, serif',
-              fontSize: '1.02rem',
-              lineHeight: 1.44,
+              fontSize: '1.05rem',
+              lineHeight: 1.5,
               margin: '0 auto',
-              maxWidth: 355,
+              maxWidth: 320,
               overflow: 'hidden',
               textAlign: 'center',
               display: '-webkit-box',
-              WebkitLineClamp: 4,
+              WebkitLineClamp: 5,
               WebkitBoxOrient: 'vertical',
             }}
           >
@@ -1385,12 +1737,12 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           aria-hidden
           style={{
             position: 'absolute',
-            left: 34,
-            top: -8,
+            left: 16,
+            top: 2,
             zIndex: 3,
-            color: 'rgba(20,17,12,0.72)',
+            color: 'rgba(20,17,12,0.62)',
             fontFamily: 'Georgia, serif',
-            fontSize: '1.02rem',
+            fontSize: '1.05rem',
             fontStyle: 'italic',
           }}
         >
@@ -1400,17 +1752,105 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           aria-hidden
           style={{
             position: 'absolute',
-            left: 18,
-            bottom: 20,
+            left: 14,
+            bottom: 6,
             zIndex: 2,
             color: palette.softPink,
             fontFamily: "'Allura', cursive",
-            fontSize: '1.22rem',
+            fontSize: '1.28rem',
             lineHeight: 1,
             transform: 'rotate(-2deg)',
           }}
         >
           no more whisper network
+        </span>
+      </span>
+    );
+  }
+
+  if (room.motif === 'investing') {
+    return (
+      <span
+        style={{
+          position: 'relative',
+          display: 'block',
+          width: 'min(58vw, 300px)',
+          minHeight: 280,
+          overflow: 'hidden',
+          backgroundImage:
+            "linear-gradient(180deg, rgba(13,17,16,0.18) 0%, rgba(13,17,16,0.2) 35%, rgba(13,17,16,0.82) 100%), url('/dispatch-covers/investing-hero.jpg')",
+          backgroundPosition: 'center 30%',
+          backgroundSize: 'cover',
+          backgroundRepeat: 'no-repeat',
+          boxShadow: '0 26px 58px -44px rgba(20,17,12,0.55)',
+        }}
+      >
+        <span
+          style={{
+            display: 'block',
+            padding: '22px 20px 24px',
+            minHeight: 280,
+          }}
+        >
+          <span
+            style={{
+              display: 'inline-block',
+              padding: '4px 8px',
+              background: palette.chipGreen,
+              color: palette.ink,
+              fontFamily: mono,
+              fontSize: '0.52rem',
+              fontWeight: 900,
+              letterSpacing: '0.16em',
+              textTransform: 'uppercase',
+            }}
+          >
+            {room.category}
+          </span>
+          <span
+            style={{
+              display: 'block',
+              marginTop: 88,
+              color: '#fffdf8',
+              fontFamily: nunito,
+              fontSize: 'clamp(1.35rem, 2.4vw, 1.7rem)',
+              fontWeight: 800,
+              letterSpacing: '-0.03em',
+              lineHeight: 1.12,
+              textShadow: '0 2px 16px rgba(0,0,0,0.45)',
+            }}
+          >
+            {room.signal}
+          </span>
+          <span
+            style={{
+              marginTop: 10,
+              color: 'rgba(255,253,248,0.78)',
+              fontFamily: 'Georgia, serif',
+              fontSize: '0.92rem',
+              lineHeight: 1.4,
+              overflow: 'hidden',
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+            }}
+          >
+            {room.blurb}
+          </span>
+          <span
+            style={{
+              display: 'block',
+              marginTop: 16,
+              color: 'rgba(255,253,248,0.55)',
+              fontFamily: mono,
+              fontSize: '0.5rem',
+              fontWeight: 800,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+            }}
+          >
+            investing archive →
+          </span>
         </span>
       </span>
     );
@@ -1560,48 +2000,26 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           style={{
             position: 'relative',
             display: 'block',
-            height: 190,
-            overflow: 'visible',
-            borderRadius: 18,
-            background: palette.cream,
-            padding: 8,
-            boxShadow: '0 18px 46px -30px rgba(20,17,12,0.66)',
+            height: 220,
+            overflow: 'hidden',
+            borderRadius: 0,
+            backgroundImage:
+              "linear-gradient(180deg, rgba(10,13,12,0.08), rgba(10,13,12,0.7)), url('/dispatch-covers/investing-hero.jpg')",
+            backgroundPosition: 'center',
+            backgroundSize: 'cover',
+            filter: 'saturate(0.9) contrast(1.05)',
+            boxShadow: '0 22px 48px -40px rgba(20,17,12,0.5)',
           }}
         >
-          <span
-            style={{
-              position: 'absolute',
-              left: 26,
-              top: -12,
-              width: 86,
-              height: 24,
-              background: palette.amberSoft,
-              transform: 'rotate(-3deg)',
-              zIndex: 4,
-            }}
-          />
-          <span
-            style={{
-              position: 'absolute',
-              inset: 8,
-              overflow: 'hidden',
-              borderRadius: 12,
-              backgroundImage:
-                "linear-gradient(180deg, rgba(10,13,12,0.1), rgba(10,13,12,0.72)), url('/dispatch-covers/investing-hero.jpg')",
-              backgroundPosition: 'center',
-              backgroundSize: 'cover',
-              filter: 'saturate(0.88) contrast(1.04)',
-            }}
-          />
           {['11.3x', '19.4x', '12.4x'].map((tag, idx) => (
             <span
               key={tag}
               style={{
                 position: 'absolute',
-                left: 18 + idx * 86,
-                top: 18,
+                left: 14 + idx * 86,
+                top: 14,
                 padding: '3px 8px 2px',
-                borderRadius: 8,
+                borderRadius: 0,
                 border: `2px solid ${palette.ink}`,
                 background: palette.cream,
                 color: palette.ink,
@@ -1609,7 +2027,6 @@ function ObjectFace({ room }: { room: RoomDoor }) {
                 fontSize: '1.02rem',
                 fontWeight: 950,
                 letterSpacing: '-0.06em',
-                transform: `rotate(${idx === 1 ? -2 : 2}deg)`,
               }}
             >
               {tag}
@@ -1618,8 +2035,8 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           <span
             style={{
               position: 'absolute',
-              left: 18,
-              bottom: 16,
+              left: 14,
+              bottom: 14,
               display: 'flex',
               gap: 8,
             }}
@@ -1629,24 +2046,24 @@ function ObjectFace({ room }: { room: RoomDoor }) {
                 key={logo}
                 style={{
                   padding: '3px 8px',
-                  borderRadius: 5,
+                  borderRadius: 0,
                   background: logo === 'NVIDIA' ? palette.chipGreen : palette.cream,
                   border: `2px solid ${palette.ink}`,
                   color: palette.ink,
                   fontFamily: mono,
                   fontSize: '0.72rem',
-                fontWeight: 900,
-              }}
-            >
-              {logo}
-            </span>
-          ))}
+                  fontWeight: 900,
+                }}
+              >
+                {logo}
+              </span>
+            ))}
           </span>
           <span
             style={{
               position: 'absolute',
-              right: 17,
-              bottom: 16,
+              right: 14,
+              bottom: 14,
               color: palette.cream,
               fontFamily: mono,
               fontSize: '0.58rem',
@@ -1673,44 +2090,22 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           style={{
             position: 'relative',
             display: 'block',
-            height: 190,
-            overflow: 'visible',
-            borderRadius: 18,
-            background: palette.cream,
-            padding: 8,
-            boxShadow: '0 18px 46px -30px rgba(20,17,12,0.66)',
+            height: 220,
+            overflow: 'hidden',
+            borderRadius: 0,
+            backgroundImage:
+              "linear-gradient(90deg, rgba(8,16,18,0.88), rgba(8,16,18,0.2)), url('/projects/keyshield.png')",
+            backgroundPosition: 'center',
+            backgroundSize: 'cover',
+            filter: 'saturate(0.9) contrast(1.08)',
+            boxShadow: '0 22px 48px -40px rgba(20,17,12,0.5)',
           }}
         >
           <span
             style={{
               position: 'absolute',
-              right: 24,
-              top: -12,
-              width: 78,
-              height: 24,
-              background: palette.cyanSoft,
-              transform: 'rotate(4deg)',
-              zIndex: 4,
-            }}
-          />
-          <span
-            style={{
-              position: 'absolute',
-              inset: 8,
-              overflow: 'hidden',
-              borderRadius: 12,
-              backgroundImage:
-                "linear-gradient(90deg, rgba(8,16,18,0.9), rgba(8,16,18,0.18)), url('/projects/keyshield.png')",
-              backgroundPosition: 'center',
-              backgroundSize: 'cover',
-              filter: 'saturate(0.86) contrast(1.08)',
-            }}
-          />
-          <span
-            style={{
-              position: 'absolute',
-              left: 20,
-              top: 18,
+              left: 16,
+              top: 16,
               color: palette.cream,
               fontSize: '2.35rem',
               fontWeight: 950,
@@ -1726,8 +2121,8 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           <span
             style={{
               position: 'absolute',
-              right: 32,
-              top: 36,
+              right: 28,
+              top: 32,
               width: 94,
               height: 72,
               borderRight: `5px solid ${palette.cyan}`,
@@ -1739,8 +2134,8 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           <span
             style={{
               position: 'absolute',
-              right: 32,
-              bottom: 32,
+              right: 28,
+              bottom: 28,
               width: 15,
               height: 15,
               borderRadius: '50%',
@@ -1751,10 +2146,10 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           <span
             style={{
               position: 'absolute',
-              left: 20,
-              bottom: 18,
+              left: 16,
+              bottom: 16,
               padding: '4px 9px',
-              borderRadius: 8,
+              borderRadius: 0,
               background: palette.cream,
               color: palette.ink,
               fontFamily: mono,

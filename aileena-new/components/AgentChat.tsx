@@ -10,7 +10,7 @@ import {
   type Availability as BrowserAvailability,
   type BrowserSession,
 } from '../lib/browserAgent';
-import { appendUserTopic, readTopicMemory, buildCatchUpGreeting, buildCatchUpHint } from '../lib/articleTopicMemory';
+import { appendUserTopic, readTopicMemory, buildCatchUpGreeting, buildCatchUpHint, clearTopicMemory } from '../lib/articleTopicMemory';
 import { matchCanned } from '../lib/agentCannedResponses';
 import SiteLeftChrome from './SiteLeftChrome';
 
@@ -21,14 +21,53 @@ const STARTER_PROMPTS = [
 ];
 
 const DAILY_LIMIT = 20;
-const SESSION_KEY = 'aileena_chat_count_daily'; // New key for daily limit
+const SESSION_KEY = 'aileena_chat_count_daily_v2'; // { date: 'YYYY-MM-DD' UTC, count: number }
 const RUNTIME_KEY = 'aileena_runtime';
 type Runtime = 'cloud' | 'browser';
+
+/** Local calendar day — matches how people think “每天 20 条”, not UTC jargon. */
+function quotaDayKey(d = new Date()): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function readStoredDailyCount(): number {
+  try {
+    const today = quotaDayKey();
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) {
+      localStorage.setItem(SESSION_KEY, JSON.stringify({ count: 0, date: today }));
+      return 0;
+    }
+    const parsed = JSON.parse(raw) as { date?: unknown; count?: unknown };
+    if (parsed.date !== today) {
+      localStorage.setItem(SESSION_KEY, JSON.stringify({ count: 0, date: today }));
+      return 0;
+    }
+    const n = Number(parsed.count);
+    return Number.isFinite(n) ? Math.max(0, Math.min(n, 99)) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function writeStoredDailyCount(count: number): void {
+  try {
+    localStorage.setItem(
+      SESSION_KEY,
+      JSON.stringify({ count: Math.max(0, Math.min(count, 99)), date: quotaDayKey() }),
+    );
+  } catch {
+    /* private mode — in-memory only */
+  }
+}
 
 // Shown instead of the provider's raw "credit balance is too low" billing error.
 // This agent is a personal demo, not a free public API.
 const NO_FREE_USE_MSG =
-  "this agent isn't free to run — public access is off for now. leave your email in the contact panel below and she'll see it.";
+  "the agent is resting for a bit — leave your email in the contact panel below and she'll see it.";
 const LEAD_THRESHOLD = 5; // hard gate: chat is blocked until lead is submitted, after the visitor has sent N messages
 const LEAD_DISMISS_KEY = 'aileena_lead_state'; // 'sent' | (unset) — historical 'dismissed' values are tolerated but no longer set
 
@@ -76,13 +115,18 @@ export default function AgentChat() {
       body: () => ({ priorTopics: readTopicMemory().topics }),
     }),
   });
+  // useChat keeps `error` until the next successful turn. Mute it on reset
+  // so a snag doesn't stick across a fresh thread.
+  const [errorMuted, setErrorMuted] = useState(false);
+  useEffect(() => {
+    if (error) setErrorMuted(false);
+  }, [error]);
+  const showError = Boolean(error) && !errorMuted;
 
   // Open console → greet first (catch-up if we remember prior topics).
+  // Closing clears the transcript (see closeConsole) so this runs fresh each open.
   useEffect(() => {
-    if (!open) {
-      welcomedRef.current = false;
-      return;
-    }
+    if (!open) return;
     if (welcomedRef.current || messages.length > 0) return;
     welcomedRef.current = true;
     const topics = readTopicMemory().topics;
@@ -174,54 +218,75 @@ export default function AgentChat() {
   // blocked until they submit the lead form. Re-enables when leadState='sent'.
   const mustProvideEmail = sessionCount >= LEAD_THRESHOLD && leadState !== 'sent';
 
-  // Restore session counter (daily limit) + lead state from storage on first client render.
-  useEffect(() => {
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      const stored = localStorage.getItem(SESSION_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed.date === today) {
-          setSessionCount(Math.min(Number(parsed.count) || 0, 99));
-        } else {
-          setSessionCount(0);
-          localStorage.setItem(SESSION_KEY, JSON.stringify({ count: 0, date: today }));
-        }
-      } else {
-        localStorage.setItem(SESSION_KEY, JSON.stringify({ count: 0, date: today }));
-      }
+  // Restore + re-check daily quota. Must run on open / tab focus — otherwise a
+  // phone Safari tab left open overnight keeps yesterday's count forever.
+  const reconcileDailyQuota = useCallback(() => {
+    const next = readStoredDailyCount();
+    setSessionCount((prev) => (prev === next ? prev : next));
+  }, []);
 
+  useEffect(() => {
+    reconcileDailyQuota();
+    try {
+      // Drop the pre-fix key so stuck multi-day counts can't linger.
+      localStorage.removeItem('aileena_chat_count_daily');
       const lead = sessionStorage.getItem(LEAD_DISMISS_KEY);
       if (lead === 'sent') setLeadState('sent');
       else if (typeof document !== 'undefined' && document.cookie.includes('__aileena_lead')) setLeadState('sent');
     } catch {
       /* storage unavailable — ignore */
     }
-  }, []);
+  }, [reconcileDailyQuota]);
+
+  useEffect(() => {
+    if (open) reconcileDailyQuota();
+  }, [open, reconcileDailyQuota]);
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') reconcileDailyQuota();
+    };
+    window.addEventListener('focus', reconcileDailyQuota);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.removeEventListener('focus', reconcileDailyQuota);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [reconcileDailyQuota]);
+
+  // Only bump the daily counter after a successful cloud turn (not on 429 / errors).
+  const pendingDailyBumpRef = useRef(false);
+  const prevStatusRef = useRef(status);
+  useEffect(() => {
+    const prev = prevStatusRef.current;
+    prevStatusRef.current = status;
+    if (!pendingDailyBumpRef.current) return;
+
+    if (status === 'ready' && (prev === 'submitted' || prev === 'streaming')) {
+      pendingDailyBumpRef.current = false;
+      setSessionCount((prevCount) => {
+        const base = readStoredDailyCount();
+        const next = Math.max(prevCount, base) + 1;
+        writeStoredDailyCount(next);
+        return next;
+      });
+      return;
+    }
+
+    if (status === 'error') {
+      pendingDailyBumpRef.current = false;
+      const raw = error?.message ?? '';
+      if (/daily limit|stopped DJing|Fresh set tomorrow|used today's/i.test(raw)) {
+        writeStoredDailyCount(DAILY_LIMIT);
+        setSessionCount(DAILY_LIMIT);
+      }
+    }
+  }, [status, error]);
 
   useEffect(() => {
     if (!scrollRef.current) return;
     scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages, status]);
-
-  // `/` opens, Esc closes, ignore when user is typing in a form field.
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        setOpen(false);
-        return;
-      }
-      if (e.key === '/' && !open) {
-        const t = e.target as HTMLElement | null;
-        const tag = t?.tagName;
-        if (tag === 'INPUT' || tag === 'TEXTAREA' || t?.isContentEditable) return;
-        e.preventDefault();
-        setOpen(true);
-      }
-    }
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open]);
 
   // Listen for external open events (hero pill, prompt chips, AI Agents
   // callout, etc.). CustomEvent.detail.prompt — if present — triggers an
@@ -305,6 +370,80 @@ export default function AgentChat() {
     }, 4000);
   }, [forwardTranscriptNow]);
 
+  const closeConsole = useCallback(() => {
+    // Flush any pending transcript to inbox before wiping the thread.
+    if (forwardTimerRef.current) {
+      clearTimeout(forwardTimerRef.current);
+      forwardTimerRef.current = null;
+    }
+    forwardTranscriptNow();
+
+    browserAbortRef.current?.abort();
+    browserAbortRef.current = null;
+    browserSessionRef.current?.destroy();
+    browserSessionRef.current = null;
+    setBrowserBusy(false);
+
+    setMessages([]);
+    setInput('');
+    setErrorMuted(true);
+    clearTopicMemory();
+    welcomedRef.current = false;
+    lastForwardedHashRef.current = '';
+    // New Gmail thread for the next conversation.
+    sessionIdRef.current =
+      typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : `s-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`;
+
+    setOpen(false);
+  }, [forwardTranscriptNow, setMessages]);
+
+  /** Keep console open, wipe thread + topic memory, fresh welcome. */
+  const resetChat = useCallback(() => {
+    if (forwardTimerRef.current) {
+      clearTimeout(forwardTimerRef.current);
+      forwardTimerRef.current = null;
+    }
+    forwardTranscriptNow();
+
+    browserAbortRef.current?.abort();
+    browserAbortRef.current = null;
+    browserSessionRef.current?.destroy();
+    browserSessionRef.current = null;
+    setBrowserBusy(false);
+
+    setMessages([]);
+    setInput('');
+    setErrorMuted(true);
+    clearTopicMemory();
+    welcomedRef.current = false;
+    lastForwardedHashRef.current = '';
+    sessionIdRef.current =
+      typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : `s-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`;
+  }, [forwardTranscriptNow, setMessages]);
+
+  // `/` opens, Esc closes (+ resets transcript), ignore when typing in a field.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        closeConsole();
+        return;
+      }
+      if (e.key === '/' && !open) {
+        const t = e.target as HTMLElement | null;
+        const tag = t?.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || t?.isContentEditable) return;
+        e.preventDefault();
+        setOpen(true);
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, closeConsole]);
+
   // After an assistant response settles (status drops out of streaming),
   // schedule a debounced forward.
   useEffect(() => {
@@ -379,6 +518,9 @@ export default function AgentChat() {
           ),
         );
       }
+      const next = readStoredDailyCount() + 1;
+      writeStoredDailyCount(next);
+      setSessionCount(next);
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Local agent error.';
       setMessages((prev) =>
@@ -434,30 +576,17 @@ export default function AgentChat() {
           parts: [{ type: 'text', text: canned.reply }],
         },
       ]);
-      const next = sessionCount + 1;
+      const next = readStoredDailyCount() + 1;
+      writeStoredDailyCount(next);
       setSessionCount(next);
-      try {
-        const today = new Date().toISOString().split('T')[0];
-        localStorage.setItem(SESSION_KEY, JSON.stringify({ count: next, date: today }));
-      } catch {
-        /* storage unavailable — counter still works in-memory for this tab */
-      }
       return;
     }
 
     if (activeRuntime === 'browser') {
-      sendBrowser(trimmed);
+      void sendBrowser(trimmed);
     } else {
+      pendingDailyBumpRef.current = true;
       sendMessage({ text: trimmed });
-    }
-
-    const next = sessionCount + 1;
-    setSessionCount(next);
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      localStorage.setItem(SESSION_KEY, JSON.stringify({ count: next, date: today }));
-    } catch {
-      /* storage unavailable — counter still works in-memory for this tab */
     }
   }
 
@@ -555,7 +684,7 @@ export default function AgentChat() {
 
       {/* Backdrop */}
       <div
-        onClick={() => setOpen(false)}
+        onClick={closeConsole}
         aria-hidden
         className={`fixed inset-0 z-[70] bg-[#fbfaf7]/80 backdrop-blur-sm transition-opacity duration-200 ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       />
@@ -617,7 +746,16 @@ export default function AgentChat() {
             </div>
             <button
               type="button"
-              onClick={() => setOpen(false)}
+              onClick={resetChat}
+              aria-label="Reset conversation"
+              title="Clear chat and start over"
+              className="text-[0.65rem] tracking-[0.2em] text-[#1b1713]/35 hover:text-[#008f86] uppercase px-1"
+            >
+              reset
+            </button>
+            <button
+              type="button"
+              onClick={closeConsole}
               aria-label="Close console"
               className="text-[0.65rem] tracking-[0.2em] text-[#1b1713]/35 hover:text-[#1b1713]/85 uppercase px-1"
             >
@@ -680,7 +818,7 @@ export default function AgentChat() {
             <Line role="assistant" text="…" muted />
           )}
 
-          {error && (
+          {showError && (
             <p className="text-[0.7rem] leading-5 tracking-[0.05em] text-red-400/85 whitespace-pre-wrap">
               <span className="font-mono text-[0.55rem] tracking-[0.3em] uppercase mr-1.5">▸ error</span>
               {serverErrorText || 'connection failed · try again'}
@@ -690,7 +828,7 @@ export default function AgentChat() {
           {sessionMaxed && (
             <p className="text-[0.7rem] leading-5 tracking-[0.05em] text-[#007d75]/75 whitespace-pre-wrap">
               <span className="font-mono text-[0.55rem] tracking-[0.3em] uppercase mr-1.5">▸ limit</span>
-              Daily message limit reached ({DAILY_LIMIT} messages). Limit resets tomorrow.
+              You've used today's {DAILY_LIMIT} messages. Fresh set tomorrow — see you then.
             </p>
           )}
 
@@ -708,7 +846,7 @@ export default function AgentChat() {
               </p>
               {!leadPanelRequired && (
                 <p className="mt-1 text-[0.7rem] text-[#1b1713]/45">
-                  Want to reach her? Drop email + a short note — the agent forwards it. No public personal address.
+                  Want to reach her? Drop email + a short note — it goes straight to her inbox.
                 </p>
               )}
             </div>
@@ -751,7 +889,7 @@ export default function AgentChat() {
               </p>
             )}
             <p className="mt-2 font-mono text-[0.5rem] tracking-[0.28em] uppercase text-[#1b1713]/35">
-              transcript attached · not shared publicly ·{' '}
+              transcript goes to her inbox ·{' '}
               <a
                 href="/privacy"
                 target="_blank"
@@ -788,7 +926,7 @@ export default function AgentChat() {
               }}
               placeholder={
                 sessionMaxed
-                  ? 'daily limit reached'
+                  ? 'come back tomorrow ♡'
                   : mustProvideEmail
                   ? 'leave your email below to keep chatting'
                   : ''
@@ -807,9 +945,13 @@ export default function AgentChat() {
             )}
           </div>
           <p className="mt-2 flex items-center justify-between gap-3 text-[0.52rem] tracking-[0.3em] text-[#1b1713]/40 uppercase">
-            <span>↵ send · esc close · / open from anywhere</span>
+            <span>↵ send · reset · esc close · / open</span>
             <span className={remaining === 0 ? 'text-red-400/70' : remaining <= 2 ? 'text-[#007d75]/55' : 'text-[#1b1713]/40'}>
-              {remaining}/{DAILY_LIMIT} left today
+              {remaining === 0
+                ? "tomorrow's batch is waiting"
+                : remaining === 1
+                ? '1 message left today'
+                : `${remaining} of ${DAILY_LIMIT} left today`}
             </span>
           </p>
         </div>

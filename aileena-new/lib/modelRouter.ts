@@ -124,7 +124,7 @@ export function degradeMessage(reason: string, lastQuestion?: string): string {
     return 'No model configured. Set DEEPSEEK_API_KEY in Vercel, then redeploy.';
   }
   if (reason === 'billing') {
-    return "This agent isn't free to run — public access is off for now. Reach out through the contact form instead.";
+    return "The agent is resting for a bit — leave a note in the contact panel and she'll see it.";
   }
   return 'The agent hit a snag. Try again in a moment.';
 }

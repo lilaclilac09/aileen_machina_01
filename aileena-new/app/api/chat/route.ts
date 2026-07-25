@@ -191,13 +191,21 @@ export async function POST(req: Request) {
   // Daily quota
   const quotaSpan = trace.startSpan('quota');
   const quota = await readQuota(req);
-  trace.endSpan(quotaSpan, true, { count: quota.count });
+  trace.endSpan(quotaSpan, true, { count: quota.count, date: quota.date });
   if (quota.count >= DAILY_LIMIT) {
-    console.warn('[chat] POST: daily limit reached for user', { count: quota.count, traceId: trace.traceId });
+    console.warn('[chat] POST: daily limit reached for user', { count: quota.count, date: quota.date, traceId: trace.traceId });
+    // Refresh cookie so Max-Age / date stay aligned with "today" — avoids stale
+    // multi-day cookies that look like the counter never reset.
+    const exhaustedCookie = await buildQuotaCookie({ date: quota.date, count: quota.count });
     return jsonError(
-      `Aileen stopped DJing for today — ${DAILY_LIMIT}-message daily limit. Back tomorrow.`,
+      `You've used today's ${DAILY_LIMIT} messages. A fresh set lands tomorrow — see you then.`,
       429,
       trace.traceId,
+      {
+        ...(exhaustedCookie ? { 'Set-Cookie': exhaustedCookie } : {}),
+        'X-Daily-Remaining': '0',
+        'X-Quota-Day': quota.date,
+      },
     );
   }
 
@@ -483,6 +491,7 @@ If the visitor names a specific article, project, product, person, company, tech
     }
 
     headers.set('X-Daily-Remaining', String(DAILY_LIMIT - (quota.count + 1)));
+    headers.set('X-Quota-Day', quota.date);
     headers.set('X-Provider', picked.provider);
     headers.set('X-Model-Tier', picked.tier);
     headers.set('X-System-Prompt-Chars', String(SYSTEM_PROMPT.length));
