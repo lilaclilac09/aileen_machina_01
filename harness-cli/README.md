@@ -41,7 +41,15 @@ src/adapters/    CLI only (no history ownership)
 bin/hx.ts        thin dispatcher
 ```
 
-## CLIs → same Harness
+## See the resolved harness
+
+```sh
+node --experimental-strip-types bin/hx.ts footer-demo --harness Nanocodex --cwd .
+node --experimental-strip-types bin/hx.ts -x "list files" --cwd . --ab --harness Nanocodex
+```
+
+Footer shows **resolved** `Nanocodex`/`Codex` (not A/B `Codex*` lumping). A/B provenance stays in structured `hx.execution` JSON + `assignment` metadata.
+
 
 `run` / `-x` / `repl` / `review` / `tools` / `mcp` / `session` / **`cursor` (`agent`)** — all adapters.
 

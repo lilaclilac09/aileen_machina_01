@@ -8,6 +8,13 @@ import type { EventSink, Snapshot, ToolDefinition } from '../core/types.ts';
 import { BUILTIN_TOOLS } from '../tools/builtin.ts';
 import { createProvider } from '../providers/index.ts';
 import { mcpToolsFromConfig } from '../mcp/config.ts';
+import { assignAbCohort, resolveHarnessName } from '../core/abAssign.ts';
+import type {
+  AbAssignment,
+  ExecutionMetadata,
+  HarnessName,
+  ResolvedHarness,
+} from '../core/resolvedHarness.ts';
 
 export const SESSION_DIR = join(homedir(), '.hx');
 export const SESSION_PATH = join(SESSION_DIR, 'session.json');
@@ -18,11 +25,21 @@ export type BuildFlags = {
   write: boolean;
   shell: boolean;
   resume?: boolean;
-  /** Extra system prefix (e.g. review preset) */
   systemExtra?: string;
-  /** Restrict to read-only tools */
   readOnly?: boolean;
   onEvent?: EventSink;
+  profile?: ResolvedHarness['profile'];
+  /** Sticky Codex/Nanocodex A/B */
+  ab?: boolean;
+  /** Explicit resolved harness (wins over A/B map) */
+  harness?: HarnessName;
+  sessionKey?: string;
+};
+
+export type BuiltHarness = {
+  harness: Harness;
+  resolved: ResolvedHarness;
+  assignment: AbAssignment | null;
 };
 
 export function selectTools(flags: {
@@ -44,9 +61,26 @@ export function selectTools(flags: {
   });
 }
 
-export function buildSystem(cwd: string, flags: BuildFlags): string {
+function harnessSystemBlurb(name: HarnessName): string {
+  if (name === 'Nanocodex') {
+    return [
+      'Resolved harness: Nanocodex (library-first / Code Mode–leaning).',
+      'Prefer code_mode composition; keep tool surface small.',
+    ].join('\n');
+  }
+  if (name === 'Codex') {
+    return [
+      'Resolved harness: Codex (product-harness reference behavior).',
+      'Use standard tool turns; favor clear stepwise tool use.',
+    ].join('\n');
+  }
+  return 'Resolved harness: hx.';
+}
+
+export function buildSystem(cwd: string, flags: BuildFlags, resolvedName: HarnessName): string {
   const base = [
     'You are hx, a coding-agent harness.',
+    harnessSystemBlurb(resolvedName),
     'Prefer tools over guessing. Use code_mode to compose multiple local tools in one cell.',
     `Workspace cwd: ${cwd}`,
     flags.write ? 'write_file and apply_patch are enabled.' : 'write_file and apply_patch are disabled.',
@@ -58,10 +92,30 @@ export function buildSystem(cwd: string, flags: BuildFlags): string {
   return loadRules(cwd, base);
 }
 
-export function buildHarness(flags: BuildFlags): Harness {
+export function buildHarness(flags: BuildFlags): BuiltHarness {
+  const sessionKey = flags.sessionKey ?? `cwd:${flags.cwd}`;
+
+  let assignment: AbAssignment | null = null;
+  if (flags.ab) {
+    assignment = assignAbCohort(sessionKey, {
+      forceHarness: flags.harness,
+      forceCohort: undefined,
+    });
+  } else if (flags.harness) {
+    // Explicit harness without A/B still records provenance as explicit-flag assignment.
+    assignment = assignAbCohort(sessionKey, { forceHarness: flags.harness });
+  }
+
+  // api-rs analogue: persisted/explicit resolve wins. Never "is A/B ⇒ Codex*".
+  const resolvedName = resolveHarnessName({
+    explicit: flags.harness,
+    assignment: flags.ab ? assignment : null,
+    fallback: flags.harness ?? 'hx',
+  });
+
   const provider = createProvider(flags.provider);
   const tools = selectTools(flags);
-  const system = buildSystem(flags.cwd, flags);
+  const system = buildSystem(flags.cwd, flags, resolvedName);
   const builder = Harness.builder({
     provider,
     tools,
@@ -69,11 +123,35 @@ export function buildHarness(flags: BuildFlags): Harness {
     system,
     onEvent: flags.onEvent,
   });
-  if (flags.resume) {
-    const snap = loadSnapshot();
-    if (snap) return builder.resume(snap);
-  }
-  return builder.build();
+
+  const snap = flags.resume ? loadSnapshot() : null;
+  const harness = snap ? builder.resume(snap) : builder.build();
+
+  const resolved: ResolvedHarness = {
+    name: resolvedName,
+    profile: flags.profile ?? (flags.readOnly ? 'ask' : 'run'),
+    provider: flags.provider,
+    write: Boolean(flags.write),
+    shell: Boolean(flags.shell),
+    readOnly: Boolean(flags.readOnly),
+    sessionId: harness.sessionId,
+  };
+
+  return { harness, resolved, assignment: flags.ab || flags.harness ? assignment : null };
+}
+
+export function toExecutionMetadata(
+  built: BuiltHarness,
+  extra?: { checkpointId?: string; toolNames?: string[] },
+): ExecutionMetadata {
+  return {
+    resolved: {
+      ...built.resolved,
+    },
+    assignment: built.assignment,
+    checkpointId: extra?.checkpointId,
+    toolNames: extra?.toolNames,
+  };
 }
 
 export function loadSnapshot(): Snapshot | null {

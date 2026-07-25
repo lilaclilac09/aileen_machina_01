@@ -82,8 +82,9 @@ async function main() {
     readOnly: true,
     systemExtra: 'hx review mode',
   });
-  const reviewed = await (await review.prompt('review')).result();
+  const reviewed = await (await review.harness.prompt('review')).result();
   assert(reviewed.toolCalls.length >= 1, 'review should use tools');
+  assert(review.resolved.profile === 'ask' || review.resolved.readOnly, 'review read-only resolved');
 
   // Cursor ask adapter (oneshot)
   await runCursorCli(['-p', 'ask about harness layout', '--mode', 'ask', '--cwd', root, '--output-format', 'json']);

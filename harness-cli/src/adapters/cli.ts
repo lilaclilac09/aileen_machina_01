@@ -7,9 +7,15 @@ import {
   loadSnapshot,
   saveSnapshot,
   selectTools,
+  toExecutionMetadata,
   SESSION_PATH,
   type BuildFlags,
 } from './factory.ts';
+import {
+  formatCliHarnessFooter,
+  formatSlackConsoleFooter,
+} from '../core/resolvedHarness.ts';
+import type { HarnessName } from '../core/resolvedHarness.ts';
 import {
   addMcpServer,
   loadMcpConfig,
@@ -29,14 +35,15 @@ Usage:
   hx tools
   hx run|exec "<prompt>" | hx -x "<prompt>"
       [--provider mock|openai] [--cwd <path>] [--write] [--shell] [--json] [--jsonl]
-  hx review [focus...]     # read-only preset, same Harness
-  hx repl                  # interactive, resumes ~/.hx/session.json
+      [--ab] [--harness Codex|Nanocodex|hx]
+  hx review [focus...]
+  hx repl
   hx session show|clear
-  hx mcp list|add|remove   # register MCP stubs into the same tool registry
-  hx cursor …              # Cursor-shaped agent CLI (also: bin/agent.ts)
+  hx mcp list|add|remove
+  hx cursor …
+  hx footer-demo --harness Nanocodex   # show Slack-style resolved footer
 
-Amp pattern / steps: AMP_STYLE.md · HANDWRITTEN_HARNESS.md
-Cursor adapter:      CURSOR_CLI.md
+Footer always shows the *resolved* harness (not A/B Codex* lumping).
 `);
   process.exit(0);
 }
@@ -48,29 +55,60 @@ export async function cmdTools(flags: { write: boolean; shell: boolean; readOnly
 }
 
 export async function cmdRun(prompt: string, flags: CliFlags) {
-  const harness = buildHarness({
+  const built = buildHarness({
     ...flags,
     resume: false,
+    profile: flags.profile ?? (flags.readOnly ? 'review' : 'run'),
     onEvent: flags.jsonl ? jsonlSink() : flags.onEvent,
   });
-  const turn = await harness.prompt(prompt);
+  const turn = await built.harness.prompt(prompt);
   const result = await turn.result();
   saveSnapshot(result.checkpoint.snapshot());
 
+  const meta = toExecutionMetadata(built, {
+    checkpointId: result.checkpoint.id,
+    toolNames: result.toolCalls.map((c) => c.name),
+  });
+  const structuredLog = {
+    type: 'hx.execution',
+    ...meta,
+    textChars: result.text.length,
+  };
+
   if (flags.jsonl) {
-    // events already printed; still emit a final result line for consumers
-    console.log(JSON.stringify({ type: 'result', text: result.text, checkpointId: result.checkpoint.id }));
+    console.log(JSON.stringify({ type: 'result', text: result.text, checkpointId: result.checkpoint.id, ...meta }));
+    console.log(JSON.stringify(structuredLog));
     return;
   }
   if (flags.json) {
-    console.log(JSON.stringify(result, null, 2));
+    console.log(JSON.stringify({ ...result, metadata: meta }, null, 2));
     return;
   }
   console.log(result.text);
   if (result.toolCalls.length) {
     console.error(`\n[hx] tools: ${result.toolCalls.map((c) => c.name).join(', ')}`);
   }
+  console.error(formatCliHarnessFooter(meta));
+  console.error(formatSlackConsoleFooter(meta));
   console.error(`[hx] checkpoint ${result.checkpoint.id} → ${SESSION_PATH}`);
+  // Structured provenance on stderr as JSON line for log drains
+  console.error(JSON.stringify(structuredLog));
+}
+
+export async function cmdFooterDemo(flags: CliFlags) {
+  const built = buildHarness({
+    ...flags,
+    ab: flags.ab ?? true,
+    profile: flags.profile ?? 'run',
+    resume: false,
+  });
+  const meta = toExecutionMetadata(built, { toolNames: [] });
+  console.log('Slack Console footer (resolved harness):');
+  console.log(formatSlackConsoleFooter(meta));
+  console.log('\nCLI footer:');
+  console.log(formatCliHarnessFooter(meta));
+  console.log('\nStructured metadata:');
+  console.log(JSON.stringify(meta, null, 2));
 }
 
 export async function cmdReview(focus: string, flags: CliFlags) {
@@ -89,9 +127,11 @@ export async function cmdReview(focus: string, flags: CliFlags) {
 }
 
 export async function cmdRepl(flags: CliFlags) {
-  const harness = buildHarness({ ...flags, resume: true });
+  const built = buildHarness({ ...flags, resume: true, profile: flags.profile ?? 'run' });
+  let harness = built.harness;
   const rl = createInterface({ input, output });
   console.log(`hx repl  (provider=${flags.provider}, cwd=${flags.cwd})`);
+  console.log(formatCliHarnessFooter(toExecutionMetadata(built)));
   console.log('commands: /tools  /fork  /quit');
   try {
     while (true) {
@@ -104,6 +144,7 @@ export async function cmdRepl(flags: CliFlags) {
       }
       if (line === '/fork') {
         const forked = await harness.fork();
+        harness = forked;
         console.log(`[hx] forked session ${forked.sessionId}`);
         continue;
       }
@@ -111,7 +152,12 @@ export async function cmdRepl(flags: CliFlags) {
       const result = await turn.result();
       saveSnapshot(result.checkpoint.snapshot());
       console.log(result.text);
-      console.error(`[hx] checkpoint ${result.checkpoint.id}`);
+      const meta = toExecutionMetadata(
+        { ...built, harness },
+        { checkpointId: result.checkpoint.id, toolNames: result.toolCalls.map((c) => c.name) },
+      );
+      console.error(formatCliHarnessFooter(meta));
+      console.error(formatSlackConsoleFooter(meta));
     }
   } finally {
     rl.close();
