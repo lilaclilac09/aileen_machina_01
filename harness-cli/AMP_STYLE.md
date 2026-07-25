@@ -1,6 +1,7 @@
 # Amp-style: one harness, many CLIs
 
-> How Amp ships agent UX — and how `hx` should grow the same way.
+> How Amp ships agent UX — and how `hx` should grow the same way.  
+> **Reading modes (why / scenarios / different):** [READ_ME_MODES.md](./READ_ME_MODES.md)
 
 ## What Amp actually does
 
