@@ -216,6 +216,29 @@ async function main() {
   const totalIn = report.accounts.reduce((n, a) => n + a.ingested.length, 0);
   const totalMiss = report.accounts.reduce((n, a) => n + a.missing.length, 0);
   console.log(`[rss] done missing=${totalMiss} ingested=${totalIn} → ${REPORT}`);
+
+  const ingestedIds = report.accounts.flatMap((a) => a.ingested);
+  if (!dry && ingestedIds.length > 0) {
+    const n = spawnSync(
+      'pnpm',
+      ['exec', 'tsx', 'scripts/extract-tweet-numbers.ts', '--', '--since-ids', ingestedIds.join(',')],
+      { cwd: ROOT, encoding: 'utf8', stdio: 'inherit' },
+    );
+    if (n.status !== 0) console.warn('[rss] number extract failed (non-fatal)');
+  }
+
+  // Keep Grok deep-backfill prompts fresh for optional manual paste
+  if (!dry) {
+    for (const org of ['mach33', 'semianalysis'] as const) {
+      spawnSync('pnpm', ['exec', 'tsx', 'scripts/social-grok-prompt.ts', '--', '--org', org], {
+        cwd: ROOT,
+        encoding: 'utf8',
+        stdio: 'ignore',
+      });
+    }
+    console.log('[rss] refreshed data/social/prompts/grok-*.txt');
+  }
+
   if (!dry && totalIn > 0) {
     const b = spawnSync('pnpm', ['build:data-index'], {
       cwd: ROOT,
