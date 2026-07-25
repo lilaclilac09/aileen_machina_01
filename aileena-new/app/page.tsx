@@ -213,7 +213,7 @@ export default function Home() {
       blurb: metooArticle ? metooArticle.body : 'Long-form essays and the back catalogue.',
       signal: metooArticle ? metooArticle.title : 'Every Woman in Tech Has a #MeToo Story',
       motif: 'article',
-      placement: { top: '5%', left: '3%', transform: 'rotate(-1.2deg)', zIndex: 14 },
+      placement: { top: '6%', left: '2%', transform: 'rotate(-1.2deg)', zIndex: 14 },
     },
     {
       id: 'woman-investing',
@@ -224,7 +224,7 @@ export default function Home() {
       blurb: featuredInvesting ? featuredInvesting.body : 'A woman should have her own portfolio.',
       signal: featuredInvesting ? featuredInvesting.title : tx.blog.investing.heading,
       motif: 'investing',
-      placement: { top: '58%', left: '4%', transform: 'rotate(1.6deg)', zIndex: 12 },
+      placement: { top: '58%', left: '2%', transform: 'rotate(1.6deg)', zIndex: 12 },
     },
   ];
 
@@ -1257,23 +1257,23 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               ...room.placement,
               position: 'absolute',
               width: isArticle
-                ? 'min(70vw, 400px)'
+                ? 'min(32vw, 320px)'
                 : isInvesting
-                  ? 'min(58vw, 300px)'
+                  ? 'min(48vw, 280px)'
                   : isTrendy
                     ? 'min(70vw, 430px)'
                     : isRecord
                       ? 'min(56vw, 290px)'
-                      : 'min(52vw, 300px)',
+                      : 'min(48vw, 280px)',
               minHeight: isArticle
-                ? 'clamp(400px, 52dvh, 480px)'
+                ? 'clamp(360px, 48dvh, 440px)'
                 : isInvesting
-                  ? 280
+                  ? 260
                   : isTrendy
                     ? 'clamp(340px, 44dvh, 390px)'
                     : isRecord
                       ? 300
-                      : 280,
+                      : 260,
               height: isTrendy ? 'clamp(340px, 44dvh, 390px)' : undefined,
               padding: 0,
               border: isPaper ? '1px solid rgba(20,17,12,0.16)' : 'none',
@@ -1317,16 +1317,16 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             );
           })}
 
-          {/* Photo scraps — separate lanes, fuller crops, no white frames. */}
+          {/* Three lanes — Viewpoint | cover | machina. Gap via calc so they never glue. */}
           <Link
             href="/dispatch#woman-in-tech"
             aria-label="Open Woman in Tech archive — cover print"
             className="absolute z-[8] hidden sm:block"
             style={{
-              top: '8%',
-              left: 'clamp(430px, 42vw, 520px)',
-              width: 'min(24vw, 210px)',
-              height: 'clamp(280px, 38dvh, 340px)',
+              top: '7%',
+              left: 'calc(2% + min(32vw, 320px) + 64px)',
+              width: 'min(17vw, 168px)',
+              height: 'clamp(236px, 30dvh, 286px)',
               padding: 0,
               margin: 0,
               border: 'none',
@@ -1417,10 +1417,10 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             aria-label="Open Metal & Pages — Didion readings"
             className="absolute z-[9] hidden lg:block"
             style={{
-              top: '42%',
-              left: 'clamp(420px, 40vw, 500px)',
-              width: 'min(20vw, 168px)',
-              height: 'clamp(200px, 26dvh, 236px)',
+              top: '48%',
+              left: 'calc(2% + min(32vw, 320px) + 64px)',
+              width: 'min(15vw, 148px)',
+              height: 'clamp(176px, 22dvh, 200px)',
               padding: 0,
               margin: 0,
               border: 'none',
@@ -1477,9 +1477,10 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             aria-label="Open Aileena console — machina portrait"
             className="absolute z-[16] hidden sm:block"
             style={{
-              top: '58%',
-              left: 'clamp(560px, 56vw, 680px)',
-              width: 'clamp(148px, 14.5vw, 186px)',
+              // Third lane: right of cover, clear of Viewpoint.
+              top: '10%',
+              left: 'calc(2% + min(32vw, 320px) + 64px + min(17vw, 168px) + 48px)',
+              width: 'clamp(120px, 12vw, 152px)',
               padding: 0,
               margin: 0,
               border: 0,
@@ -1514,7 +1515,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 border: 'none',
                 outline: 'none',
                 backgroundImage: "url('/bg_pic/03.jpeg')",
-                backgroundPosition: '34% 10%',
+                backgroundPosition: '36% 8%',
                 backgroundSize: 'cover',
                 backgroundRepeat: 'no-repeat',
                 backgroundColor: 'transparent',
@@ -1629,8 +1630,8 @@ function ObjectFace({ room }: { room: RoomDoor }) {
         style={{
           position: 'relative',
           display: 'block',
-          minHeight: 'clamp(400px, 52dvh, 480px)',
-          padding: '18px 0 34px',
+          minHeight: 'clamp(360px, 48dvh, 440px)',
+          padding: '16px 0 30px',
         }}
       >
         <span
@@ -1638,9 +1639,9 @@ function ObjectFace({ room }: { room: RoomDoor }) {
             position: 'relative',
             zIndex: 1,
             display: 'block',
-            width: 'min(70vw, 380px)',
-            minHeight: 'clamp(380px, 50dvh, 450px)',
-            padding: 'clamp(34px, 5dvh, 46px) clamp(24px, 4.8vw, 40px) clamp(28px, 4.2dvh, 38px)',
+            width: 'min(32vw, 300px)',
+            minHeight: 'clamp(340px, 46dvh, 420px)',
+            padding: 'clamp(30px, 4.4dvh, 40px) clamp(20px, 3.6vw, 32px) clamp(24px, 3.6dvh, 32px)',
             background:
               'linear-gradient(165deg, #ffffff 0%, #fffdf8 55%, #f7f1e8 100%)',
             boxShadow: '0 28px 70px -46px rgba(20,17,12,0.48)',
