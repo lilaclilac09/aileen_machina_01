@@ -17,7 +17,8 @@ GitHub Actions: `.github/workflows/social-rss-sync.yml`
 
 - Cron: `15 */6 * * *` UTC (+ `workflow_dispatch`)
 - Runs `pnpm sync:social-rss` in `aileena-new/`
-- Commits `tweets` / `profiles` / `last-rss-sync.json` / data index when changed
+- Also auto: **regex number extract** → `numbers.jsonl` + refresh `prompts/grok-*.txt`
+- Commits tweets / profiles / numbers / prompts / last-rss-sync / data index when changed
 
 Coverage: ~**20 newest** posts per watchlist account (Nitter RSS). Not full history.
 

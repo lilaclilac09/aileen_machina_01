@@ -26,6 +26,8 @@ watchlist.json
   → curl Nitter RSS (https://nitter.net/{user}/rss)
   → missing status ids
   → FxTwitter enrich (pnpm ingest:tweet)
+  → regex number extract → numbers.jsonl   (auto; confidence=regex-auto)
+  → refresh data/social/prompts/grok-*.txt (skip-ids for optional deep Grok paste)
   → tweets.jsonl / profiles.jsonl
   → pnpm build:data-index
   → git commit + push (if changed)
@@ -50,14 +52,17 @@ Edit: `aileena-new/data/social/watchlist.json`
 ```bash
 cd aileena-new
 
-# Same job as CI
+# Same job as CI (tweets + numbers + grok prompts)
 pnpm sync:social-rss
 pnpm sync:social-rss -- --dry-run
 pnpm sync:social-rss -- --only aaronburnett,SemiAnalysis_
 
-# Deep backfill (manual Grok — not in cron)
+# Numbers only (from tweets already in DB)
+pnpm extract:tweet-numbers
+pnpm extract:tweet-numbers -- --all
+
+# Optional deep backfill (manual Grok — prompts auto-refreshed by cron)
 pnpm social:grok-prompt -- --org mach33
-pnpm social:grok-prompt -- --org semianalysis
 # paste prompt → Grok → save JSON →
 pnpm ingest:grok -- data/social/inbox/<batch>.json
 ```
