@@ -2,12 +2,18 @@
 
 Handwritten **Amp-style** agent harness: **one core, many CLIs**.
 
+## Start reading here
+
+**[READ_ME_MODES.md](./READ_ME_MODES.md)** — why, scenarios, different profiles — with **separate reading modes** (elevator → map → scenarios → deep → checklist).
+
 | Doc | What |
 |-----|------|
-| [HANDWRITTEN_HARNESS.md](./HANDWRITTEN_HARNESS.md) | **跟做拆解 S0–S8** |
-| [AMP_STYLE.md](./AMP_STYLE.md) | 为什么所有 CLI 共用一个 harness |
-| [CURSOR_REWRITE.md](./CURSOR_REWRITE.md) | 重写 Cursor-class 产品的分层 |
-| [DESIGN.md](./DESIGN.md) | 原设计笔记 |
+| [READ_ME_MODES.md](./READ_ME_MODES.md) | **Why + scenarios + different** (pick a reading mode) |
+| [HANDWRITTEN_HARNESS.md](./HANDWRITTEN_HARNESS.md) | Follow-along build steps S0–S8 |
+| [AMP_STYLE.md](./AMP_STYLE.md) | One harness → many CLIs |
+| [CURSOR_CLI.md](./CURSOR_CLI.md) | Cursor-shaped `agent` adapter |
+| [CURSOR_REWRITE.md](./CURSOR_REWRITE.md) | Cursor-class product layers |
+| [DESIGN.md](./DESIGN.md) | Original design notes |
 
 ## Quick start
 
