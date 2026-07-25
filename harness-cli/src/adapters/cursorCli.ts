@@ -77,8 +77,9 @@ function makeHarness(flags: CursorFlags, mode: CursorMode, resume: boolean): Har
     readOnly: preset.readOnly || !agentPower,
     systemExtra: preset.systemExtra,
     resume,
+    profile: mode,
     onEvent: flags.outputFormat === 'jsonl' ? jsonlSink() : undefined,
-  });
+  }).harness;
 }
 
 export function printCursorUsage(): never {
