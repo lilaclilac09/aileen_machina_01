@@ -115,18 +115,18 @@ export function degradeMessage(reason: string, lastQuestion?: string): string {
   if (canned) return canned.reply;
 
   if (reason === 'circuit_open') {
-    return "Aileen's agent is taking a short break (provider unstable). Try again in a minute — or use the contact form if it's urgent.";
+    return "I'm taking a short pause while things settle. Try again in a minute — or leave a note below if it's urgent.";
   }
   if (reason === 'timeout') {
-    return "That took too long on the model side. Try a shorter question, or ask again in a moment.";
+    return 'That took longer than it should have. Try a shorter question, or ask again in a moment.';
   }
   if (reason === 'no_model') {
     return 'No model configured. Set DEEPSEEK_API_KEY in Vercel, then redeploy.';
   }
   if (reason === 'billing') {
-    return "The agent is resting for a bit — leave a note in the contact panel and she'll see it.";
+    return "I'm pausing for a moment on the model side. Leave a note below if you'd like Aileen to see it, or try again shortly.";
   }
-  return 'The agent hit a snag. Try again in a moment.';
+  return 'Something went quiet on my side — mind trying that again?';
 }
 
 /**

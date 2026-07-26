@@ -50,7 +50,7 @@ function main() {
   const degraded = routeModel({ toolRoute: 'taste', lastQuestion: 'hello' });
   assert('open circuit → degrade', degraded.mode === 'degrade', degraded.mode);
   if (degraded.mode === 'degrade') {
-    assert('degrade prefers canned greeting when possible', /hey|你好|break|snag|contact/i.test(degraded.message), degraded.message.slice(0, 80));
+    assert('degrade prefers canned greeting when possible', /hey|你好|pause|quiet|again|contact/i.test(degraded.message), degraded.message.slice(0, 80));
   }
 
   // Force half-open by clearing openUntil via success path after cooldown simulation:
