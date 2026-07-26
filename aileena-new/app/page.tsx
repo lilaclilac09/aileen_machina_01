@@ -13,6 +13,7 @@ import Link from 'next/link';
 import Header from '../components/Header';
 import LoadingScreen from '../components/LoadingScreen';
 import GlassBench from '../components/GlassBench';
+import WritingWall, { type WallPost } from '../components/WritingWall';
 import { SnapContainer, SnapSection } from '../components/SnapScroll';
 import { useLanguage } from '../components/LanguageProvider';
 import { t } from '../lib/translations';
@@ -102,6 +103,14 @@ export default function Home() {
   const latestDispatch = tx.blog.researchDispatch.posts.slice(-1)[0];
   const metooArticle = tx.blog.womanInTech.posts.find((post) => post.href === '/blog/harassment') ?? tx.blog.womanInTech.posts[0];
   const featuredInvesting = tx.blog.investing.posts.find((post) => post.href === '/blog/nvidia-flywheel') ?? tx.blog.investing.posts[0];
+  // Every rail in one list — the writing wall shows the whole archive as
+  // covers, and each rail carries its own colour onto the typeset ones.
+  const allPosts: WallPost[] = [
+    ...tx.blog.researchDispatch.posts.map((post) => ({ ...post, rail: 'dispatch' as const })),
+    ...tx.blog.investing.posts.map((post) => ({ ...post, rail: 'investing' as const })),
+    ...tx.blog.womanInTech.posts.map((post) => ({ ...post, rail: 'woman' as const })),
+    ...tx.blog.marsAndMoon.posts.map((post) => ({ ...post, rail: 'mars' as const })),
+  ];
   const rooms: RoomDoor[] = [
     {
       id: 'magazine',
@@ -378,13 +387,18 @@ export default function Home() {
           <AtriumLinkDock rooms={rooms} />
         </SnapSection>
 
-        {/* ── 03 WATCH / LISTEN HUB ─────────────────────────────── */}
-        <SnapSection id="watch-hub" className="order-3" variant="flow">
+        {/* ── 03 WRITING WALL — rack to browse, wall to scan ────── */}
+        <SnapSection id="writing-wall" className="order-3" variant="flow">
+          <WritingWall posts={allPosts} />
+        </SnapSection>
+
+        {/* ── 04 WATCH / LISTEN HUB ─────────────────────────────── */}
+        <SnapSection id="watch-hub" className="order-4" variant="flow">
           <HomeWatchHub />
         </SnapSection>
 
-        {/* ── 04 VISUAL — kiln / glass (homepage only, not /sound) ─ */}
-        <SnapSection id="visual" className="order-4" variant="flow">
+        {/* ── 05 VISUAL — kiln / glass (homepage only, not /sound) ─ */}
+        <SnapSection id="visual" className="order-5" variant="flow">
           <div style={{ fontFamily: nunito }}>
             <GlassBench
               tag={tx.visual.kilnTag}

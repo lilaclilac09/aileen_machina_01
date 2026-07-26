@@ -1,0 +1,119 @@
+/* Writing wall — picture-first archive: a scrollable rack over a contact sheet. */
+
+.wall-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed rgba(20, 17, 12, 0.14);
+}
+
+.wall-head__label {
+  color: rgba(20, 17, 12, 0.42);
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.wall-head__hint {
+  flex: 0 0 auto;
+  color: rgba(20, 17, 12, 0.32);
+  font-family: Georgia, serif;
+  font-size: 0.9rem;
+  font-style: italic;
+  white-space: nowrap;
+}
+
+.wall-head__label {
+  white-space: nowrap;
+}
+
+/* ── Rack ─────────────────────────────────────────────────────────────
+   Native horizontal scroll-snap so touch keeps its own momentum and
+   rubber-band; JS only paints depth on top of the scroll position. */
+
+.wall-rack {
+  --wall-card: clamp(146px, 34vw, 208px);
+
+  display: flex;
+  gap: 18px;
+  margin-top: 18px;
+  /* Left-aligned shelf: no dead gutter before the newest cover. */
+  padding: 10px 24px 24px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  cursor: grab;
+}
+
+.wall-rack::-webkit-scrollbar {
+  display: none;
+}
+
+.wall-rack__item {
+  flex: 0 0 auto;
+  width: var(--wall-card);
+  scroll-snap-align: start;
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+}
+
+/* ── Cover tile ───────────────────────────────────────────────────── */
+
+.wall-cover {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: #0b0b0b;
+  text-decoration: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.wall-cover--rack {
+  aspect-ratio: 3 / 4;
+  box-shadow: 0 26px 50px -34px rgba(20, 17, 12, 0.6);
+}
+
+.wall-cover__sheen {
+  transition: opacity 0.24s ease;
+}
+
+.wall-cover__img {
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Titles are always legible — hover only lifts the cover you are aiming at. */
+@media (hover: hover) {
+  .wall-cover:hover .wall-cover__sheen,
+  .wall-cover:focus-visible .wall-cover__sheen {
+    opacity: 1;
+  }
+
+  .wall-cover:hover .wall-cover__img {
+    transform: scale(1.05);
+  }
+}
+
+.wall-cover:focus-visible {
+  outline: 2px solid #00a99f;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wall-cover__img,
+  .wall-cover__sheen {
+    transition: none;
+  }
+
+  .wall-cover:hover .wall-cover__img {
+    transform: none;
+  }
+}

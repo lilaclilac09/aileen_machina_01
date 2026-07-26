@@ -21,7 +21,7 @@ Aileen's Machina memory lives in Markdown (L3 cold). At build time we index it; 
 - Culture gifts (Didion, Hockney, podcasts, books)
 - Memory frameworks (ReMe, O-Mem, Mem0, Cognee, Dreaming, LoRA)
 - Hardware / Memory Wall / KV cache / HBM — only what is in retrieved snippets
-- **Dylan Patel / SemiAnalysis / STEEL / Aaron Burnett / mach33 / orbital containment tax** — query those names; dossier `analysts-dylan-aaron.md`; also agent tools searchTweets / lookupSocialProfile
+- **Dylan Patel / SemiAnalysis / STEEL / Aaron Burnett / mach33 / orbital containment tax** — query those names; dossier \`analysts-dylan-aaron.md\`; also agent tools searchTweets / lookupSocialProfile
 - "What does she like", "remember", "her taste", "Machina", "second brain"
 
 ## When NOT to use searchMemories
