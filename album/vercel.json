@@ -1,5 +1,5 @@
 {
-  "buildCommand": "node scripts/ensure-prisma-provider.mjs && prisma generate && prisma db push && next build",
+  "buildCommand": "node scripts/build.mjs",
   "installCommand": "npm install",
   "framework": "nextjs",
   "regions": ["iad1", "hnd1"],
