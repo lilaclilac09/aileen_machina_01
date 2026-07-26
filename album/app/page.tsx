@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { APP_NAME, APP_NAME_ZH, ALBUM_TTL_DAYS, MAX_PHOTOS_PER_ALBUM } from "@/lib/constants";
 import { copyText } from "@/lib/clipboard";
+import { SetupNotice } from "@/components/SetupNotice";
 
 export default function HomePage() {
   const router = useRouter();
@@ -81,6 +82,10 @@ export default function HomePage() {
           免注册共享相册 · 人人可传 · {MAX_PHOTOS_PER_ALBUM} 张 · {ALBUM_TTL_DAYS}{" "}
           天 · 点赞评论置顶
         </p>
+
+        <div className="mt-8 max-w-xl">
+          <SetupNotice />
+        </div>
 
         {!created ? (
           <form
