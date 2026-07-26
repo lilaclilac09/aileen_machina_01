@@ -160,15 +160,42 @@ Soft-delete photos; hard-delete storage on purge.
 
 ---
 
-## 9. Limits & abuse / 限额
+## 9. Upload pipeline / 上传链路
 
-- Max **20 files / request**, **15 MB / file**, **500 / album**  
-- Comment rate: soft limit per visitorKey  
-- Expired albums: uploads 410; view until purge window (7 days) optional  
+Vercel Functions reject request bodies over **4.5 MB**, so raw phone photos
+(3–8 MB each, several at a time) cannot be posted to the server directly.
+
+```mermaid
+flowchart LR
+  pick[PickPhotos] --> decode[BrowserDecode]
+  decode --> scale[CanvasDownscale]
+  scale --> pair[FullPlusThumbJPEG]
+  pair --> one[OneRequestPerPhoto]
+  one --> store[StorageDriver]
+  store --> db[(PhotoRow)]
+```
+
+1. The browser decodes each file — this also converts iPhone **HEIC**, which
+   server-side sharp cannot read without libheif.
+2. Canvas downscales to a **2400px** full and **1200px** thumb, re-encoding at
+   lower quality until each fits the **3 MB** budget.
+3. Each photo uploads in **its own request**, so every body stays well under
+   the 4.5 MB limit regardless of how many photos were selected.
+4. The server stores the prepared pair as-is; no re-encode, minimal function CPU.
+
+If the browser cannot decode a file, the server falls back to sharp, but only
+for originals small enough to fit one request.
+
+## 10. Limits & abuse / 限额
+
+- **20 files / batch** (uploaded one per request), **500 / album**
+- Originals up to 40 MB are accepted because the browser downscales first
+- Comment rate: soft limit per nickname per photo
+- Expired albums: uploads 410; purge 7 days after expiry
 
 ---
 
-## 10. Brand / UI notes
+## 11. Brand / UI notes
 
 - Product name **Gather** with Chinese **共影** as secondary mark  
 - First viewport: brand + one line + one CTA (create) — not a dashboard  
@@ -178,7 +205,7 @@ Soft-delete photos; hard-delete storage on purge.
 
 ---
 
-## 11. Deploy checklist
+## 12. Deploy checklist
 
 1. New Vercel project, Root Directory = `album`  
 2. Env: `DATABASE_URL`, `ADMIN_COOKIE_SECRET`, optional `BLOB_READ_WRITE_TOKEN` / R2 keys  
@@ -187,7 +214,7 @@ Soft-delete photos; hard-delete storage on purge.
 
 ---
 
-## 12. Success metrics (soft)
+## 13. Success metrics (soft)
 
 - Time-to-first-upload &lt; 60s after create  
 - Guest upload success rate on mobile Safari / WeChat in-app browser  
