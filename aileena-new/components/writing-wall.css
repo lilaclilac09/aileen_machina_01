@@ -64,22 +64,64 @@
   will-change: transform, opacity;
 }
 
-/* ── Cover tile ───────────────────────────────────────────────────── */
+/* ── The work + its tombstone label ───────────────────────────────
+   Nothing but the work sits on the plate; the label identifies it from
+   underneath, the same way the glass bench captions its shots. */
 
-.wall-cover {
-  position: relative;
+.wall-work {
   display: block;
-  aspect-ratio: 4 / 5;
-  overflow: hidden;
-  background: #0b0b0b;
+  color: inherit;
   text-decoration: none;
   -webkit-user-select: none;
   user-select: none;
 }
 
+.wall-cover {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: #0b0b0b;
+}
+
+.wall-cover--plate {
+  aspect-ratio: 1 / 1;
+}
+
 .wall-cover--rack {
   aspect-ratio: 3 / 4;
   box-shadow: 0 26px 50px -34px rgba(20, 17, 12, 0.6);
+}
+
+.wall-label {
+  display: block;
+  margin-top: 12px;
+  color: rgba(26, 24, 20, 0.62);
+  font-family: 'Nunito', system-ui, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.38;
+}
+
+.wall-label--compact {
+  margin-top: 9px;
+  font-size: 0.66rem;
+  line-height: 1.32;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.wall-label__id {
+  color: rgba(26, 24, 20, 0.36);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.wall-work:hover .wall-label,
+.wall-work:focus-visible .wall-label {
+  color: rgba(26, 24, 20, 0.9);
 }
 
 .wall-cover__sheen {
@@ -90,21 +132,21 @@
   transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Titles are always legible — hover only lifts the cover you are aiming at. */
+/* Hover lifts only the work you are aiming at. */
 @media (hover: hover) {
-  .wall-cover:hover .wall-cover__sheen,
-  .wall-cover:focus-visible .wall-cover__sheen {
+  .wall-work:hover .wall-cover__sheen,
+  .wall-work:focus-visible .wall-cover__sheen {
     opacity: 1;
   }
 
-  .wall-cover:hover .wall-cover__img {
+  .wall-work:hover .wall-cover__img {
     transform: scale(1.05);
   }
 }
 
-.wall-cover:focus-visible {
+.wall-work:focus-visible {
   outline: 2px solid #00a99f;
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,8 +1,18 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import PillToggle from './PillToggle';
 import './writing-wall.css';
+
+type WallView = 'rack' | 'wall';
+const VIEW_KEY = 'writing-wall-view';
 
 const mono = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
 const serif = 'Georgia, Times New Roman, serif';
@@ -17,7 +27,28 @@ export type WallPost = {
   title: string;
   body: string;
   rail: Rail;
+  /** The rail's own tag, already translated — printed on the plate. */
+  railLabel: string;
 };
+
+export type WallCopy = {
+  kicker: string;
+  heading: string;
+  body: string;
+  cta: string;
+  modeRack: string;
+  modeWall: string;
+  modeLabel: string;
+  rack: string;
+  rackHint: string;
+  wall: string;
+  wallHint: string;
+};
+
+/** Copy carries counts as {n} so EN and DE can put the number where it belongs. */
+function withCount(template: string, n: number): string {
+  return template.replace('{n}', String(n));
+}
 
 /**
  * Writing wall — the picture entrance to everything she has written.
@@ -30,11 +61,11 @@ export type WallPost = {
  * instead of the same four stock photos repeating fourteen times.
  */
 
-const RAIL_FACE: Record<Rail, { ground: string; glow: string; label: string }> = {
-  dispatch: { ground: '#0d1110', glow: 'rgba(0,169,159,0.42)', label: 'dispatch' },
-  investing: { ground: '#171208', glow: 'rgba(201,135,47,0.40)', label: 'investing' },
-  woman: { ground: '#33100f', glow: 'rgba(233,130,157,0.36)', label: 'woman in tech' },
-  mars: { ground: '#0f1626', glow: 'rgba(120,164,255,0.34)', label: 'mars & moon' },
+const RAIL_FACE: Record<Rail, { ground: string; glow: string }> = {
+  dispatch: { ground: '#0d1110', glow: 'rgba(0,169,159,0.42)' },
+  investing: { ground: '#171208', glow: 'rgba(201,135,47,0.40)' },
+  woman: { ground: '#33100f', glow: 'rgba(233,130,157,0.36)' },
+  mars: { ground: '#0f1626', glow: 'rgba(120,164,255,0.34)' },
 };
 
 /** Only pieces with a photograph that actually means something. */
@@ -57,19 +88,20 @@ function hashOf(value: string): number {
 }
 
 /**
- * A cover is either a photograph she owns, or a typeset one where the
- * title itself is the picture. Titles stay visible on both: a wall of
- * identical dark rectangles tells you nothing about 34 different pieces.
+ * The plate — the work itself, and nothing else on it. Five pieces own a
+ * photograph; the rest get a colour plate carrying only its rail, the way
+ * a catalogue prints a tinted plate when there is no reproduction.
+ * Identification happens on the label underneath, never over the work.
  */
-function ArticleCover({ post, compact }: { post: WallPost; compact?: boolean }) {
+function CoverPlate({ post, compact }: { post: WallPost; compact?: boolean }) {
   const slug = slugOf(post.href);
   const photo = PHOTO_BY_SLUG[slug];
   const face = RAIL_FACE[post.rail];
-  const pad = compact ? 9 : 15;
+  const pad = compact ? 9 : 14;
 
   const h = hashOf(slug);
-  // Spin the light and nudge the ground per piece so a screen of typeset
-  // covers reads as a set, not as one swatch repeated.
+  // Spin the light per piece so a screen of colour plates reads as a set
+  // rather than one swatch repeated.
   const angle = 118 + (h % 5) * 31;
   const originX = 16 + (h % 4) * 24;
   const lift = (h % 3) * 0.06;
@@ -91,7 +123,7 @@ function ArticleCover({ post, compact }: { post: WallPost; compact?: boolean }) 
               width: '100%',
               height: '100%',
               objectFit: 'cover',
-              filter: 'saturate(0.9) contrast(1.05)',
+              filter: 'saturate(0.92) contrast(1.04)',
             }}
           />
           <span
@@ -100,7 +132,7 @@ function ArticleCover({ post, compact }: { post: WallPost; compact?: boolean }) 
               position: 'absolute',
               inset: 0,
               background:
-                'linear-gradient(180deg, rgba(9,10,11,0.1) 0%, rgba(9,10,11,0.34) 46%, rgba(9,10,11,0.88) 100%)',
+                'linear-gradient(180deg, rgba(9,10,11,0.14) 0%, transparent 42%, rgba(9,10,11,0.3) 100%)',
             }}
           />
         </>
@@ -121,38 +153,16 @@ function ArticleCover({ post, compact }: { post: WallPost; compact?: boolean }) 
           position: 'absolute',
           left: pad,
           top: pad,
-          color: 'rgba(255,253,248,0.6)',
+          color: 'rgba(255,253,248,0.58)',
           fontFamily: mono,
-          fontSize: compact ? '0.4rem' : '0.48rem',
+          fontSize: compact ? '0.4rem' : '0.46rem',
           fontWeight: 800,
           letterSpacing: '0.2em',
           textTransform: 'uppercase',
           textShadow: photo ? '0 1px 8px rgba(0,0,0,0.7)' : 'none',
         }}
       >
-        {face.label}
-      </span>
-
-      <span
-        style={{
-          position: 'absolute',
-          left: pad,
-          right: pad,
-          bottom: pad,
-          display: '-webkit-box',
-          WebkitLineClamp: compact ? 4 : 4,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden',
-          color: '#fffdf8',
-          fontFamily: serif,
-          fontSize: compact ? '0.78rem' : 'clamp(0.86rem, 2.6vw, 1.06rem)',
-          fontWeight: 500,
-          letterSpacing: '-0.015em',
-          lineHeight: 1.2,
-          textShadow: photo ? '0 1px 12px rgba(0,0,0,0.8)' : 'none',
-        }}
-      >
-        {post.title}
+        {post.railLabel}
       </span>
 
       <span
@@ -161,7 +171,7 @@ function ArticleCover({ post, compact }: { post: WallPost; compact?: boolean }) 
         style={{
           position: 'absolute',
           inset: 0,
-          background: 'linear-gradient(180deg, rgba(255,253,248,0.1) 0%, transparent 40%)',
+          background: 'linear-gradient(180deg, rgba(255,253,248,0.12) 0%, transparent 45%)',
           opacity: 0,
         }}
       />
@@ -169,9 +179,41 @@ function ArticleCover({ post, compact }: { post: WallPost; compact?: boolean }) 
   );
 }
 
-export default function WritingWall({ posts }: { posts: WallPost[] }) {
+/** Tombstone label — same voice as the glass bench: (01) then the title. */
+function CoverLabel({ index, post, compact }: { index: number; post: WallPost; compact?: boolean }) {
+  const n = String(index + 1).padStart(2, '0');
+  return (
+    <span className={compact ? 'wall-label wall-label--compact' : 'wall-label'}>
+      <span className="wall-label__id">({n})</span> {post.title}
+    </span>
+  );
+}
+
+export default function WritingWall({ posts, copy }: { posts: WallPost[]; copy: WallCopy }) {
   const rackRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<number | null>(null);
+  const [view, setView] = useState<WallView>('rack');
+
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      try {
+        const saved = window.localStorage.getItem(VIEW_KEY);
+        if (saved === 'rack' || saved === 'wall') setView(saved);
+      } catch {
+        /* private mode */
+      }
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, []);
+
+  const setViewPersist = useCallback((next: WallView) => {
+    setView(next);
+    try {
+      window.localStorage.setItem(VIEW_KEY, next);
+    } catch {
+      /* private mode */
+    }
+  }, []);
 
   const ordered = useMemo(() => {
     const seen = new Set<string>();
@@ -213,13 +255,14 @@ export default function WritingWall({ posts }: { posts: WallPost[] }) {
   }, [paintRack]);
 
   useEffect(() => {
+    if (view !== 'rack') return;
     paintRack();
     window.addEventListener('resize', paintRack);
     return () => {
       window.removeEventListener('resize', paintRack);
       if (frameRef.current != null) window.cancelAnimationFrame(frameRef.current);
     };
-  }, [paintRack]);
+  }, [paintRack, view]);
 
   // Mouse users have no horizontal gesture — let them drag the rack.
   const dragRef = useRef<{ id: number; startX: number; startLeft: number; moved: boolean } | null>(null);
@@ -279,7 +322,7 @@ export default function WritingWall({ posts }: { posts: WallPost[] }) {
               textTransform: 'uppercase',
             }}
           >
-            Writing · {ordered.length} pieces
+            {withCount(copy.kicker, ordered.length)}
           </p>
           <h2
             style={{
@@ -293,7 +336,7 @@ export default function WritingWall({ posts }: { posts: WallPost[] }) {
               marginBottom: 16,
             }}
           >
-            Every piece, as a cover.
+            {copy.heading}
           </h2>
           <p
             style={{
@@ -304,84 +347,107 @@ export default function WritingWall({ posts }: { posts: WallPost[] }) {
               maxWidth: 480,
             }}
           >
-            Push the rack to browse by feel. The wall underneath holds the whole
-            archive at once — one cover per piece, nothing hidden in a menu.
+            {copy.body}
           </p>
-          <Link
-            href="/dispatch"
+          <div
             style={{
-              display: 'inline-flex',
-              alignItems: 'baseline',
-              gap: 10,
-              color: ink,
-              fontFamily: serif,
-              fontSize: 'clamp(1.3rem, 2.4vw, 1.6rem)',
-              fontStyle: 'italic',
-              fontWeight: 500,
-              letterSpacing: '-0.02em',
-              textDecoration: 'none',
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              gap: '14px 20px',
             }}
           >
-            Open the archive
-            <span style={{ color: teal, fontStyle: 'normal' }} aria-hidden>
-              →
-            </span>
-          </Link>
-        </div>
-
-        {/* Rack — native scroll-snap cover flow */}
-        <div className="mt-9 sm:mt-11">
-          <div className="wall-head">
-            <span className="wall-head__label">The rack · latest {rack.length}</span>
-            <span className="wall-head__hint">push me</span>
-          </div>
-          <div
-            ref={rackRef}
-            className="wall-rack"
-            onScroll={onScroll}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={endDrag}
-            onPointerCancel={endDrag}
-            onPointerLeave={endDrag}
-            role="region"
-            aria-label="Latest writing, cover flow"
-          >
-            {rack.map((post) => (
-              <div className="wall-rack__item" key={post.href}>
-                <Link
-                  href={post.href}
-                  className="wall-cover wall-cover--rack"
-                  aria-label={post.title}
-                  onClickCapture={suppressDragClick}
-                  draggable={false}
-                >
-                  <ArticleCover post={post} />
-                </Link>
-              </div>
-            ))}
+            <Link
+              href="/dispatch"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'baseline',
+                gap: 10,
+                color: ink,
+                fontFamily: serif,
+                fontSize: 'clamp(1.3rem, 2.4vw, 1.6rem)',
+                fontStyle: 'italic',
+                fontWeight: 500,
+                letterSpacing: '-0.02em',
+                textDecoration: 'none',
+              }}
+            >
+              {copy.cta}
+              <span style={{ color: teal, fontStyle: 'normal' }} aria-hidden>
+                →
+              </span>
+            </Link>
+            <PillToggle
+              value={view}
+              onChange={setViewPersist}
+              ariaLabel={copy.modeLabel}
+              options={[
+                { id: 'rack', label: copy.modeRack },
+                { id: 'wall', label: copy.modeWall },
+              ]}
+            />
           </div>
         </div>
 
-        {/* Wall — every cover in one screen */}
-        <div className="mt-7">
-          <div className="wall-head">
-            <span className="wall-head__label">The wall · all {ordered.length}</span>
-            <span className="wall-head__hint">every piece</span>
+        {view === 'rack' ? (
+          <div className="mt-9 sm:mt-11">
+            <div className="wall-head">
+              <span className="wall-head__label">{withCount(copy.rack, rack.length)}</span>
+              <span className="wall-head__hint">{copy.rackHint}</span>
+            </div>
+            <div
+              ref={rackRef}
+              className="wall-rack"
+              onScroll={onScroll}
+              onPointerDown={onPointerDown}
+              onPointerMove={onPointerMove}
+              onPointerUp={endDrag}
+              onPointerCancel={endDrag}
+              onPointerLeave={endDrag}
+              role="region"
+              aria-label="Latest writing, cover flow"
+            >
+              {rack.map((post, i) => (
+                <div className="wall-rack__item" key={post.href}>
+                  <Link
+                    href={post.href}
+                    className="wall-work"
+                    aria-label={post.title}
+                    onClickCapture={suppressDragClick}
+                    draggable={false}
+                  >
+                    <span className="wall-cover wall-cover--rack">
+                      <CoverPlate post={post} />
+                    </span>
+                    <CoverLabel index={i} post={post} />
+                  </Link>
+                </div>
+              ))}
+            </div>
           </div>
-          <ul
-            className="grid grid-cols-3 gap-1.5 sm:grid-cols-5 sm:gap-2 lg:grid-cols-8"
-            style={{ listStyle: 'none', margin: '16px 0 0', padding: 0 }}
-          >
-            {ordered.map((post) => (
-              <li key={post.href}>
-                <Link href={post.href} className="wall-cover" aria-label={post.title}>
-                  <ArticleCover post={post} compact />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
+        ) : (
+          <div className="mt-9 sm:mt-11">
+            <div className="wall-head">
+              <span className="wall-head__label">{withCount(copy.wall, ordered.length)}</span>
+              <span className="wall-head__hint">{copy.wallHint}</span>
+            </div>
+            <ul
+              className="grid grid-cols-3 gap-x-2 gap-y-4 sm:grid-cols-5 sm:gap-x-3 lg:grid-cols-8 lg:gap-x-2 lg:gap-y-3"
+              style={{ listStyle: 'none', margin: '16px 0 0', padding: 0 }}
+            >
+              {ordered.map((post, i) => (
+                <li key={post.href}>
+                  <Link href={post.href} className="wall-work" aria-label={post.title}>
+                    <span className="wall-cover wall-cover--plate">
+                      <CoverPlate post={post} compact />
+                    </span>
+                    <CoverLabel index={i} post={post} compact />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </section>
   );

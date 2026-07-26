@@ -78,20 +78,17 @@ type RoomDoor = {
 
 /* ── Homepage ─────────────────────────────────────────────────────────
  *
- * A cinematic opening, then one clickable clipping desk. Information is
- * intentionally minimal: the homepage's job is to set the mood, not to
- * contain the content.
+ * The homepage IS the collage desk. Mood first, findability through labeled
+ * scraps on that desk — not through a second catalog page that replaces it.
  *
- *   Section 01  Cinematic opening   — scene + one line + one CTA
- *   Section 02  Clipping desk       — article scraps + direct doors
- *   Section 03  Watch / Listen      — DJ door + one shelf door
- *   Section 04  Visual              — kiln / glass bench (handmade work)
+ *   Section 01  Cinematic opening
+ *   Section 02  Clipping desk       — scraps = her things (click to enter)
+ *   Section 03  Watch / Listen      — DJ black door (also on the desk)
+ *   Section 04  Visual              — kiln / glass
+ *   Section 05  Writing wall        — full cover archive (secondary, after desk)
  *
- * The Machina mark on the cinematic opening doubles as the door to the
- * agent department.
- *
- * Visual language: white editorial base, amber for Magazine, cyan/teal for
- * machina links. The standalone DJ station stays black on /sound.
+ * Rooms (Dispatch, books, films, tools) keep the deep archive. The desk
+ * only has to answer: where is mine?
  */
 export default function Home() {
   const { language } = useLanguage();
@@ -104,12 +101,29 @@ export default function Home() {
   const metooArticle = tx.blog.womanInTech.posts.find((post) => post.href === '/blog/harassment') ?? tx.blog.womanInTech.posts[0];
   const featuredInvesting = tx.blog.investing.posts.find((post) => post.href === '/blog/nvidia-flywheel') ?? tx.blog.investing.posts[0];
   // Every rail in one list — the writing wall shows the whole archive as
-  // covers, and each rail carries its own colour onto the typeset ones.
+  // covers. Each rail carries its own colour and its own translated tag,
+  // so the plates read DATA ARCHIVE / DATENARCHIV with the language switch.
   const allPosts: WallPost[] = [
-    ...tx.blog.researchDispatch.posts.map((post) => ({ ...post, rail: 'dispatch' as const })),
-    ...tx.blog.investing.posts.map((post) => ({ ...post, rail: 'investing' as const })),
-    ...tx.blog.womanInTech.posts.map((post) => ({ ...post, rail: 'woman' as const })),
-    ...tx.blog.marsAndMoon.posts.map((post) => ({ ...post, rail: 'mars' as const })),
+    ...tx.blog.researchDispatch.posts.map((post) => ({
+      ...post,
+      rail: 'dispatch' as const,
+      railLabel: tx.blog.researchDispatch.tag,
+    })),
+    ...tx.blog.investing.posts.map((post) => ({
+      ...post,
+      rail: 'investing' as const,
+      railLabel: tx.blog.investing.tag,
+    })),
+    ...tx.blog.womanInTech.posts.map((post) => ({
+      ...post,
+      rail: 'woman' as const,
+      railLabel: tx.blog.womanInTech.tag,
+    })),
+    ...tx.blog.marsAndMoon.posts.map((post) => ({
+      ...post,
+      rail: 'mars' as const,
+      railLabel: tx.blog.marsAndMoon.tag,
+    })),
   ];
   const rooms: RoomDoor[] = [
     {
@@ -387,18 +401,16 @@ export default function Home() {
           <AtriumLinkDock rooms={rooms} />
         </SnapSection>
 
-        {/* ── 03 WRITING WALL — rack to browse, wall to scan ────── */}
-        <SnapSection id="writing-wall" className="order-3" variant="flow">
-          <WritingWall posts={allPosts} />
+        {/* ── 03 WATCH / LISTEN — after the desk, not instead of it ─ */}
+        <SnapSection id="watch-hub" className="order-3" variant="flow">
+          <HomeWatchHub
+            copy={tx.watchHub}
+            rooms={tx.rooms.filter((room) => room.href !== '/' && room.href !== '/sound')}
+          />
         </SnapSection>
 
-        {/* ── 04 WATCH / LISTEN HUB ─────────────────────────────── */}
-        <SnapSection id="watch-hub" className="order-4" variant="flow">
-          <HomeWatchHub />
-        </SnapSection>
-
-        {/* ── 05 VISUAL — kiln / glass (homepage only, not /sound) ─ */}
-        <SnapSection id="visual" className="order-5" variant="flow">
+        {/* ── 04 VISUAL — kiln / glass (homepage only, not /sound) ─ */}
+        <SnapSection id="visual" className="order-4" variant="flow">
           <div style={{ fontFamily: nunito }}>
             <GlassBench
               tag={tx.visual.kilnTag}
@@ -410,12 +422,24 @@ export default function Home() {
           </div>
         </SnapSection>
 
+        {/* ── 05 WRITING WALL — full archive; desk stays the entrance ─ */}
+        <SnapSection id="writing-wall" className="order-5" variant="flow">
+          <WritingWall posts={allPosts} copy={tx.writingWall} />
+        </SnapSection>
+
       </SnapContainer>
     </>
   );
 }
 
-function HomeWatchHub() {
+function HomeWatchHub({
+  copy,
+  rooms,
+}: {
+  copy: (typeof t)['EN']['watchHub'];
+  // Home and DJ are omitted: you are on Home, and DJ owns the black door above.
+  rooms: (typeof t)['EN']['rooms'];
+}) {
   return (
     <section
       className="min-h-full px-5 sm:px-9 lg:px-14"
@@ -439,7 +463,7 @@ function HomeWatchHub() {
               textTransform: 'uppercase',
             }}
           >
-            Watch / Listen
+            {copy.kicker}
           </p>
           <h2
             style={{
@@ -453,7 +477,7 @@ function HomeWatchHub() {
               marginBottom: 18,
             }}
           >
-            One door. DJ first.
+            {copy.heading}
           </h2>
           <p
             style={{
@@ -465,8 +489,7 @@ function HomeWatchHub() {
               maxWidth: 440,
             }}
           >
-            DJ is the black room. Everything else is a labeled door below —
-            shelf, book club, writing, tools.
+            {copy.body}
           </p>
         </div>
 
@@ -508,7 +531,7 @@ function HomeWatchHub() {
                     textTransform: 'uppercase',
                   }}
                 >
-                  DJ set
+                  {copy.djTag}
                 </p>
                 <h3
                   style={{
@@ -520,7 +543,7 @@ function HomeWatchHub() {
                     color: '#fffdf8',
                   }}
                 >
-                  Two decks. Full library. Black room.
+                  {copy.djHeading}
                 </h3>
                 <p
                   style={{
@@ -531,7 +554,7 @@ function HomeWatchHub() {
                     maxWidth: 420,
                   }}
                 >
-                  Open the station — not a playlist card.
+                  {copy.djBody}
                 </p>
               </div>
               <span
@@ -547,7 +570,7 @@ function HomeWatchHub() {
                   textTransform: 'uppercase',
                 }}
               >
-                Enter /sound <span aria-hidden>→</span>
+                {copy.djCta} <span aria-hidden>→</span>
               </span>
             </div>
             <div
@@ -592,28 +615,7 @@ function HomeWatchHub() {
             borderTop: '1px solid rgba(20,17,12,0.12)',
           }}
         >
-          {[
-            {
-              label: 'Shelf',
-              hint: 'films · podcasts · living',
-              href: '/blog/watch-listening-shelf',
-            },
-            {
-              label: 'Metal & Pages',
-              hint: 'book club',
-              href: '/updates',
-            },
-            {
-              label: 'Dispatch',
-              hint: 'essays · news',
-              href: '/dispatch',
-            },
-            {
-              label: 'Tools',
-              hint: 'small utilities',
-              href: '/tools',
-            },
-          ].map((door) => (
+          {rooms.map((door) => (
             <Link
               key={door.href}
               href={door.href}
@@ -679,6 +681,8 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
     if (id === 'woman-cover-print') return 'rotate(2.4deg)';
     if (id === 'machina-polaroid') return 'rotate(3.2deg)';
     if (id === 'didion-scrap') return 'rotate(-2.8deg)';
+    if (id === 'films-scrap') return 'rotate(-1.6deg)';
+    if (id === 'dj-scrap') return 'rotate(2.1deg)';
     return String(rooms.find((room) => room.id === id)?.placement.transform ?? '');
   };
   const paint = (node: HTMLElement, id: string, x: number, y: number) => {
@@ -695,11 +699,15 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
     String(
       id === 'machina-polaroid'
         ? 16
-        : id === 'woman-cover-print'
-          ? 8
-          : id === 'didion-scrap'
-            ? 9
-            : rooms.find((r) => r.id === id)?.placement.zIndex ?? 1,
+        : id === 'dj-scrap'
+          ? 11
+          : id === 'films-scrap'
+            ? 10
+            : id === 'didion-scrap'
+              ? 9
+              : id === 'woman-cover-print'
+                ? 8
+                : rooms.find((r) => r.id === id)?.placement.zIndex ?? 1,
     );
   const finishDrag = (pointerId: number, moved: boolean) => {
     const drag = dragStateRef.current;
@@ -922,9 +930,39 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                     textTransform: 'uppercase',
                   }}
                 >
-                  woman in tech archive →
+                  Woman in Tech →
                 </span>
               </Link>
+
+              {(
+                [
+                  { href: '/updates', label: 'Books · Metal & Pages' },
+                  { href: '/blog/watch-listening-shelf', label: 'Films · listen' },
+                  { href: '/sound', label: 'DJ · /sound' },
+                  { href: '/#writing-wall', label: 'All covers · archive wall' },
+                ] as { href: string; label: string }[]
+              ).map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="text-left"
+                  style={{
+                    display: 'block',
+                    padding: '14px 0',
+                    borderBottom: '1px dashed rgba(20,17,12,0.16)',
+                    color: palette.ink,
+                    fontFamily: 'Georgia, serif',
+                    fontSize: '1.15rem',
+                    fontStyle: 'italic',
+                    textDecoration: 'none',
+                  }}
+                >
+                  {item.label}
+                  <span style={{ color: palette.cyan, marginLeft: 8, fontStyle: 'normal' }} aria-hidden>
+                    →
+                  </span>
+                </Link>
+              ))}
 
               <button
                 type="button"
@@ -1097,7 +1135,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 pointerEvents: 'none',
               }}
             >
-              essay
+              Woman in Tech
             </span>
           </Link>
 
@@ -1147,7 +1185,114 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 pointerEvents: 'none',
               }}
             >
-              reading
+              Books
+            </span>
+          </Link>
+
+          <Link
+            href="/blog/watch-listening-shelf"
+            aria-label="Open films and podcasts shelf"
+            className="absolute z-[10] hidden md:block"
+            style={{
+              top: '72%',
+              left: `calc(${atriumPolaroidLeft} + 8px)`,
+              width: 'min(12vw, 118px)',
+              height: 'clamp(120px, 15dvh, 148px)',
+              padding: 0,
+              margin: 0,
+              border: 'none',
+              outline: 'none',
+              background: '#12161b',
+              boxShadow: 'none',
+              cursor: dragMeCursor,
+              transform: dragTransform('films-scrap', 'rotate(-1.6deg)'),
+              transition: 'transform 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+              touchAction: 'none',
+              userSelect: 'none',
+              zIndex: 10,
+              textDecoration: 'none',
+              overflow: 'hidden',
+            }}
+            {...dragHandlers('films-scrap')}
+          >
+            <span
+              aria-hidden
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background:
+                  'radial-gradient(ellipse at 70% 30%, rgba(0,168,157,0.28) 0%, transparent 55%), linear-gradient(160deg, #1a2028 0%, #0b0d10 70%)',
+              }}
+            />
+            <span
+              style={{
+                position: 'absolute',
+                left: 10,
+                bottom: 10,
+                zIndex: 1,
+                color: '#fffdf8',
+                fontFamily: 'Georgia, serif',
+                fontSize: '0.9rem',
+                fontStyle: 'italic',
+                textShadow: '0 1px 10px rgba(0,0,0,0.45)',
+                pointerEvents: 'none',
+              }}
+            >
+              Films
+            </span>
+          </Link>
+
+          <Link
+            href="/sound"
+            aria-label="Enter DJ room"
+            className="absolute z-[11] hidden lg:block"
+            style={{
+              top: '38%',
+              right: '4%',
+              width: 'min(11vw, 112px)',
+              height: 'clamp(112px, 14dvh, 136px)',
+              padding: 0,
+              margin: 0,
+              border: 'none',
+              outline: 'none',
+              background: '#0b0d10',
+              boxShadow: 'none',
+              cursor: dragMeCursor,
+              transform: dragTransform('dj-scrap', 'rotate(2.1deg)'),
+              transition: 'transform 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+              touchAction: 'none',
+              userSelect: 'none',
+              zIndex: 11,
+              textDecoration: 'none',
+              overflow: 'hidden',
+            }}
+            {...dragHandlers('dj-scrap')}
+          >
+            <span
+              aria-hidden
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background:
+                  'radial-gradient(circle at 40% 40%, rgba(0,168,157,0.35) 0%, transparent 50%), #0b0d10',
+              }}
+            />
+            <span
+              style={{
+                position: 'absolute',
+                left: 10,
+                bottom: 10,
+                zIndex: 1,
+                color: '#00a89d',
+                fontFamily: mono,
+                fontSize: '0.58rem',
+                fontWeight: 850,
+                letterSpacing: '0.16em',
+                textTransform: 'uppercase',
+                pointerEvents: 'none',
+              }}
+            >
+              DJ
             </span>
           </Link>
 
@@ -1212,26 +1357,72 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 pointerEvents: 'none',
               }}
             >
-              ask
+              Ask
             </span>
           </button>
         </div>
 
-        <div className="relative z-20 mb-1 flex items-end justify-end gap-6">
-          <nav className="ml-auto hidden flex-col items-end gap-2 sm:flex" aria-label="Social links">
-            {socialLinks.map((link) => (
-              link.href.startsWith('/') ? (
-                <Link key={link.label} href={link.href} style={socialLinkStyle}>
-                  {link.label}
-                </Link>
-              ) : (
-                <a key={link.label} href={link.href} style={socialLinkStyle}>
-                  {link.label}
-                </a>
-              )
-            ))}
-          </nav>
-        </div>
+        {/* Desk legend — find her things without turning the desk into a menu. */}
+        <nav
+          className="relative z-20 mt-auto hidden flex-wrap items-baseline gap-x-4 gap-y-2 pb-2 pt-3 sm:flex"
+          aria-label="On this desk"
+          style={{
+            borderTop: '1px dashed rgba(20,17,12,0.14)',
+          }}
+        >
+          <span
+            style={{
+              color: palette.cyan,
+              fontFamily: mono,
+              fontSize: '0.5rem',
+              fontWeight: 850,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              marginRight: 4,
+            }}
+          >
+            On this desk
+          </span>
+          {(
+            [
+              { label: 'Magazine', href: rooms.find((r) => r.id === 'magazine')?.href ?? '/dispatch' },
+              { label: 'News', href: '/dispatch' },
+              { label: 'Woman in Tech', href: '/dispatch#woman-in-tech' },
+              { label: 'Investing', href: '/dispatch#investing' },
+              { label: 'Books', href: '/updates' },
+              { label: 'Films', href: '/blog/watch-listening-shelf' },
+              { label: 'DJ', href: '/sound' },
+              { label: 'All covers', href: '/#writing-wall' },
+            ] as { label: string; href: string }[]
+          ).map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              style={{
+                color: 'rgba(20,17,12,0.62)',
+                fontFamily: 'Georgia, serif',
+                fontSize: '0.92rem',
+                fontStyle: 'italic',
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {item.label}
+            </Link>
+          ))}
+          <span style={{ flex: 1 }} />
+          {socialLinks.map((link) =>
+            link.href.startsWith('/') ? (
+              <Link key={link.label} href={link.href} style={socialLinkStyle}>
+                {link.label}
+              </Link>
+            ) : (
+              <a key={link.label} href={link.href} style={socialLinkStyle}>
+                {link.label}
+              </a>
+            ),
+          )}
+        </nav>
       </div>
     </div>
   );
