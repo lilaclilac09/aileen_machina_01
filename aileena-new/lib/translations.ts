@@ -51,12 +51,13 @@ export const t = {
       comingSoonBody: '',
       openTool: 'Open',
       tbc: 'TBC',
+      liveBadge: 'Live',
       items: {
         'inkling-clips': {
           tag: 'AUDIO',
           title: 'Audio Clipping',
           body:
-            'YouTube → short clips. Free local mode (no API). Open the product page or the runner.',
+            'YouTube → short clips. Free local mode — open the tool here.',
         },
         'cafe-cursor': {
           tag: 'EVENT',
@@ -739,12 +740,13 @@ export const t = {
       comingSoonBody: '',
       openTool: 'Öffnen',
       tbc: 'TBC',
+      liveBadge: 'Live',
       items: {
         'inkling-clips': {
           tag: 'AUDIO',
           title: 'Audio Clipping',
           body:
-            'YouTube → kurze Clips. Kostenlos lokal (kein API). Produktseite oder Runner öffnen.',
+            'YouTube → kurze Clips. Kostenlos lokal — Tool hier öffnen.',
         },
         'cafe-cursor': {
           tag: 'EVENT',
