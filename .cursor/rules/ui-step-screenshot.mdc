@@ -1,0 +1,38 @@
+---
+description: UI merge 验收 — 截图 + 交互演示都要给看
+alwaysApply: true
+---
+
+# UI Merge Acceptance
+
+Merge / 收尾验收时，**截图和交互都要给用户看**。口头 “done” 不算。
+
+## Required deliverables (merge / task complete)
+
+1. **Screenshot** — key surfaces at 390×844 (usually 1–3 stills, not every micro-edit)
+2. **Interaction** — show the motion/feel: scroll, snap, click-through, hover, open console, enter `/sound`, etc. as relevant
+
+## Interaction how
+
+Prefer one of:
+- Short browser walkthrough with snapshots at interaction points (scroll → snap → click → land)
+- 录屏 path if available; otherwise sequential screenshots of the interaction states
+- Name the clicks/scrolls explicitly: e.g. “scroll past dock → hub → Metal & Pages click → `/updates`”
+
+## Still vs interaction cadence
+
+| Moment | What to show |
+|--------|----------------|
+| Mid-work tweaks | Optional; skip noise |
+| One visual intent done | 1 still of that surface |
+| **Merge / “好了吗” / 验收** | Stills **+** interaction proof |
+
+## Capture basics
+
+- `http://localhost:3000/` · viewport **390×844** · Esc close overlays
+- Navigate → wait → capture (no race)
+- `Read` images into chat
+
+## Fail condition
+
+UI merge/验收 reply with only text, or only stills and no interaction proof = incomplete.

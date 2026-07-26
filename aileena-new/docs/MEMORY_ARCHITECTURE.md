@@ -111,23 +111,32 @@ Printed by `pnpm verify:memory` and stored in the report under `agentManualPromp
 
 ## Fixed workflow (GitHub Actions)
 
-`.github/workflows/machina-memory.yml` runs the same pipeline on a schedule:
+`.github/workflows/machina-memory.yml` runs the same pipeline on a schedule (**auto is on** — cron Mondays):
 
 | Trigger | When |
 |---------|------|
-| `schedule` | Mondays 06:00 UTC |
-| `workflow_dispatch` | Manual — optional `skip_commit: true` to dry-run |
+| `schedule` | Mondays 06:00 UTC (auto) |
+| `workflow_dispatch` | Manual — optional `skip_commit: true` to dry-run (skips commit) |
 
-Steps: **`sync:content-memory`** → `pnpm dreaming` → `pnpm build:memory-index` → commit `latest-content.md`, `content-changelog-*.md`, and Dreaming reports to `main`.
+Steps: **`sync:content-memory`** → `pnpm dreaming` → `pnpm build:memory-index` → commit `latest-content.md`, `content-changelog-*.md`, `social-changelog-*.md`, and Dreaming reports to `main`.
+
+Push resilience: job uses `fetch-depth: 0`, a concurrency group, and **rebase + retry** if `main` moved mid-run (this is what broke the 2026-07-20 scheduled auto push).
+
+Dreaming also snapshots **social teachers** (SemiAnalysis / mach33) from `data/tweets.jsonl` + `data/social/*` (kept fresh by `.github/workflows/social-rss-sync.yml` every 6h) into:
+
+- `memories/archived/consolidate-report-*.md` → section **Social teachers**
+- `memories/episodic/social-changelog-YYYY-MM-DD.md` → promote durable facts into `analysts-dylan-aaron.md` / research ledgers
 
 ### What content sync detects
 
 | Source | Detects |
 |--------|---------|
 | `public/dj-set/setlist.json` | Curated DJ set tracks |
-| `components/DJStation.tsx` | Newest player deck additions |
+| `lib/djSetlist.ts` (`DECK_LIBRARY_TRACKS`) | Newest player deck additions |
 | `app/blog/watch-listening-shelf/page.tsx` | Podcasts, documentaries, channels |
-| `app/blog/*/page.tsx` | Latest articles (by `date` prop) |
+| `app/blog/*/page.tsx` | Latest articles (by `date` prop; supports `title={isDE ? … : …}`) |
+| `app/updates/page.tsx` | Metal & Pages shelf + update notes |
+| `lib/research/*.ts` | Research magazine issues |
 
 On change → writes `memories/episodic/content-changelog-YYYY-MM-DD.md` for Dreaming review.
 

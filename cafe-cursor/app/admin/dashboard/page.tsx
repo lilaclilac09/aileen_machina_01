@@ -42,8 +42,22 @@ interface Stats {
   awaitingReminder: number;
 }
 
+interface HaveNeed {
+  denominationUsd: number;
+  denominationSource: "env" | "default";
+  canAutoDetectFaceValue: false;
+  availableCount: number;
+  unclaimedApprovedCount: number;
+  haveUsd: number;
+  needUsd: number;
+  shortUsd: number;
+  label: string;
+  note: string;
+}
+
 interface DashboardData {
   stats: Stats;
+  haveNeed?: HaveNeed;
   credits: Credit[];
   eligibleUsers: EligibleUser[];
 }
@@ -512,6 +526,42 @@ export default function AdminDashboard() {
             are kept. <strong>Import Luma CSV</strong> alone does not clear (additive).
           </p>
         </div>
+
+        {data?.haveNeed && (
+          <div
+            className={`mb-6 rounded-xl border px-4 py-3 text-sm ${
+              data.haveNeed.shortUsd > 0
+                ? "border-rose-500/40 bg-rose-500/10 text-rose-50"
+                : "border-emerald-500/40 bg-emerald-500/10 text-emerald-50"
+            }`}
+          >
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <p className="font-medium">
+                Have / Need · ${data.haveNeed.denominationUsd} each (configured)
+              </p>
+              <p className="font-mono text-xs opacity-90">
+                {data.haveNeed.label}
+                {data.haveNeed.shortUsd > 0
+                  ? ` · short $${data.haveNeed.shortUsd}`
+                  : " · covered"}
+              </p>
+            </div>
+            <p className="mt-2 text-xs opacity-90">
+              Have: {data.haveNeed.availableCount} available × $
+              {data.haveNeed.denominationUsd} = ${data.haveNeed.haveUsd}
+              {" · "}
+              Need: {data.haveNeed.unclaimedApprovedCount} unclaimed × $
+              {data.haveNeed.denominationUsd} = ${data.haveNeed.needUsd}
+            </p>
+            <p className="mt-2 text-xs opacity-75">
+              Cannot auto-detect $30 vs $50 from unreemed referral links — set{" "}
+              <code className="rounded bg-black/30 px-1">CREDIT_DENOMINATION_USD</code>{" "}
+              (now {data.haveNeed.denominationSource}=
+              {data.haveNeed.denominationUsd}). No redeem required for this
+              inventory math.
+            </p>
+          </div>
+        )}
 
         <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-8">
           <StatCard

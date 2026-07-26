@@ -248,7 +248,12 @@ async function buildDocIndex(): Promise<void> {
 // ─── Run ───────────────────────────────────────────────────────────────
 
 async function main() {
-  await Promise.all([bundleJsonl('pricing'), bundleJsonl('news')]);
+  await Promise.all([
+    bundleJsonl('pricing'),
+    bundleJsonl('news'),
+    bundleJsonl('tweets'),
+    bundleJsonl('profiles'),
+  ]);
   await buildDocIndex();
 }
 

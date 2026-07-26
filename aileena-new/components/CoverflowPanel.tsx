@@ -52,42 +52,41 @@ export default function CoverflowPanel({
   isMobile: boolean;
   t: CoverflowPanelStrings;
 }) {
-  // Hold all chrome until the hook has read localStorage. On mobile
-  // first-visit the saved-open default flips from `true` (SSR) to
-  // `false` (client mount) — gating render here avoids a one-frame
-  // pop-then-collapse.
+  // Hold chrome until localStorage is read — avoids iOS flash of defaults
+  // then snap to saved values (felt like a "reset").
   if (!hydrated) return null;
 
   return (
     <>
-      <ToggleButton open={open} onToggle={onToggle} t={t} />
+      <ToggleButton open={open} onToggle={onToggle} isMobile={isMobile} t={t} />
       <aside
         aria-label={t.panelAriaLabel}
         style={
           isMobile
             ? {
                 position: 'fixed',
-                left: 8,
-                right: 8,
-                bottom: 8,
-                maxHeight: 'min(64vh, 520px)',
-                background: 'rgba(255, 255, 255, 0.94)',
+                left: 10,
+                right: 10,
+                bottom: 'max(10px, env(safe-area-inset-bottom, 10px))',
+                maxHeight: 'min(52vh, 420px)',
+                background: 'rgba(255, 255, 255, 0.96)',
                 backdropFilter: 'blur(14px)',
                 WebkitBackdropFilter: 'blur(14px)',
                 border: '1px solid rgba(17, 17, 17, 0.12)',
-                borderRadius: 8,
+                borderRadius: 12,
                 boxShadow:
                   '0 24px 56px -28px rgba(17, 17, 17, 0.28), 0 0 0 1px rgba(17, 17, 17, 0.04)',
                 color: '#111',
                 fontFamily: nunito,
                 zIndex: 60,
-                // Slide off-screen below when closed; toggle button
-                // (anchored bottom-left) stays visible to reopen.
-                transform: open ? 'translateY(0)' : 'translateY(110%)',
+                transform: open ? 'translateY(0)' : 'translateY(120%)',
                 transition: 'transform 0.32s cubic-bezier(0.22, 1, 0.36, 1)',
                 display: 'flex',
                 flexDirection: 'column',
                 overflow: 'hidden',
+                // Keep the drawer out of Safari's rubber-band / home-indicator fight.
+                touchAction: 'pan-y',
+                paddingBottom: 'env(safe-area-inset-bottom, 0px)',
               }
             : {
                 position: 'fixed',
@@ -116,12 +115,13 @@ export default function CoverflowPanel({
       >
         <header
           style={{
-            padding: '14px 18px 12px',
+            padding: isMobile ? '12px 14px 10px' : '14px 18px 12px',
             borderBottom: '1px solid rgba(17, 17, 17, 0.09)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: 8,
+            flexShrink: 0,
           }}
         >
           <span
@@ -136,59 +136,28 @@ export default function CoverflowPanel({
           >
             {t.title}
           </span>
-          <button
-            type="button"
-            onClick={reset}
-            style={{
-              appearance: 'none',
-              border: '1px solid rgba(17,17,17,0.14)',
-              background: 'transparent',
-              color: 'rgba(17,17,17,0.55)',
-              padding: '3px 9px',
-              borderRadius: 999,
-              fontFamily: mono,
-              fontSize: '0.55rem',
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              cursor: 'pointer',
-            }}
-            aria-label={t.reset}
-          >
-            {t.reset}
-          </button>
+          <ResetButton reset={reset} label={t.reset} confirm={isMobile} />
         </header>
 
         <div
           style={{
             flex: 1,
             overflowY: 'auto',
-            padding: '4px 18px 18px',
+            WebkitOverflowScrolling: 'touch',
+            padding: isMobile ? '2px 14px 16px' : '4px 18px 18px',
+            overscrollBehavior: 'contain',
           }}
         >
-          {GROUPS.map((g) => (
-            <section key={g.key} style={{ marginTop: 16 }}>
-              <p
-                style={{
-                  fontFamily: mono,
-                  fontSize: '0.52rem',
-                  letterSpacing: '0.32em',
-                  textTransform: 'uppercase',
-                  color: 'rgba(17,17,17,0.42)',
-                  margin: '0 0 10px',
-                  fontWeight: 600,
-                }}
-              >
-                {t.groups[g.key]}
-              </p>
-              {g.keys.map((k) => (
-                <Slider
-                  key={k}
-                  name={k}
-                  value={settings[k]}
-                  onChange={(v) => update(k, v)}
-                />
-              ))}
-            </section>
+          {GROUPS.map((g, index) => (
+            <GroupSection
+              key={g.key}
+              group={g}
+              label={t.groups[g.key]}
+              settings={settings}
+              update={update}
+              defaultOpen={!isMobile || index === 0}
+              compact={isMobile}
+            />
           ))}
         </div>
       </aside>
@@ -196,13 +165,127 @@ export default function CoverflowPanel({
   );
 }
 
+function ResetButton({
+  reset,
+  label,
+  confirm,
+}: {
+  reset: () => void;
+  label: string;
+  confirm: boolean;
+}) {
+  const onClick = () => {
+    if (confirm && typeof window !== 'undefined') {
+      const ok = window.confirm('Reset coverflow settings to defaults? Your saved tweaks will be cleared.');
+      if (!ok) return;
+    }
+    reset();
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        appearance: 'none',
+        border: '1px solid rgba(17,17,17,0.14)',
+        background: 'transparent',
+        color: 'rgba(17,17,17,0.55)',
+        padding: '3px 9px',
+        borderRadius: 999,
+        fontFamily: mono,
+        fontSize: '0.55rem',
+        letterSpacing: '0.18em',
+        textTransform: 'uppercase',
+        cursor: 'pointer',
+        // Avoid fat-finger reset while scrubbing nearby sliders on iOS.
+        minHeight: 28,
+        minWidth: 52,
+      }}
+      aria-label={label}
+    >
+      {label}
+    </button>
+  );
+}
+
+function GroupSection({
+  group,
+  label,
+  settings,
+  update,
+  defaultOpen,
+  compact,
+}: {
+  group: Group;
+  label: string;
+  settings: CoverflowSettings;
+  update: <K extends keyof CoverflowSettings>(key: K, value: CoverflowSettings[K]) => void;
+  defaultOpen: boolean;
+  compact: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <section style={{ marginTop: compact ? 10 : 16 }}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        style={{
+          appearance: 'none',
+          border: 0,
+          background: 'transparent',
+          padding: 0,
+          margin: '0 0 8px',
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          cursor: 'pointer',
+        }}
+      >
+        <span
+          style={{
+            fontFamily: mono,
+            fontSize: '0.52rem',
+            letterSpacing: '0.32em',
+            textTransform: 'uppercase',
+            color: 'rgba(17,17,17,0.42)',
+            fontWeight: 600,
+          }}
+        >
+          {label}
+        </span>
+        <span
+          style={{
+            fontFamily: mono,
+            fontSize: '0.55rem',
+            color: 'rgba(17,17,17,0.35)',
+            letterSpacing: '0.12em',
+          }}
+        >
+          {open ? '−' : '+'}
+        </span>
+      </button>
+      {open
+        ? group.keys.map((k) => (
+            <Slider key={k} name={k} value={settings[k]} onChange={(v) => update(k, v)} />
+          ))
+        : null}
+    </section>
+  );
+}
+
 function ToggleButton({
   open,
   onToggle,
+  isMobile,
   t,
 }: {
   open: boolean;
   onToggle: () => void;
+  isMobile: boolean;
   t: CoverflowPanelStrings;
 }) {
   const [hover, setHover] = useState(false);
@@ -216,8 +299,10 @@ function ToggleButton({
       aria-label={open ? t.hide : t.show}
       style={{
         position: 'fixed',
-        left: 14,
-        bottom: 14,
+        // Bottom-right on mobile so it doesn't fight home indicator + left chrome.
+        right: isMobile ? 14 : undefined,
+        left: isMobile ? undefined : 14,
+        bottom: isMobile ? 'max(14px, env(safe-area-inset-bottom, 14px))' : 14,
         zIndex: 61,
         appearance: 'none',
         border: '1px solid rgba(0, 143, 132, 0.34)',
@@ -225,7 +310,7 @@ function ToggleButton({
         backdropFilter: 'blur(10px)',
         WebkitBackdropFilter: 'blur(10px)',
         color: '#008f84',
-        padding: '8px 14px',
+        padding: isMobile ? '10px 14px' : '8px 14px',
         borderRadius: 999,
         fontFamily: mono,
         fontSize: '0.58rem',
@@ -311,10 +396,13 @@ function Slider({
         step={range.step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
+        onInput={(e) => onChange(Number((e.target as HTMLInputElement).value))}
         style={{
           width: '100%',
           accentColor: '#008f84',
           cursor: 'pointer',
+          // iOS: keep horizontal scrub from scrolling the page / closing drawer.
+          touchAction: 'none',
         }}
       />
     </label>

@@ -1,11 +1,10 @@
 import Link from 'next/link';
 import type { CSSProperties } from 'react';
 
-const mono = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
-
 /**
- * Option A — centered full-bleed kiln wall.
- * 1–2 large edge-to-edge images, Allura pink captions overlaid, no Polaroid mats.
+ * Visual / photo wall — Cereal archive theory:
+ * soft paper field, left-aligned narrow column, one image per beat,
+ * large vertical blank, caption below (not overlay), no mats / dual fill.
  */
 export default function GlassBench({
   tag,
@@ -20,179 +19,153 @@ export default function GlassBench({
   linkLabel: string;
   items: Array<{ src: string; alt: string; caption: string; href?: string }>;
 }) {
-  // Prefer the two strongest process shots: clay + packed glass.
-  const preferred = items.filter((item) =>
-    /pate-clay|pate-glass/.test(item.src),
-  );
-  const featured = (preferred.length >= 2 ? preferred : items).slice(0, 2);
-  const dual = featured.length > 1;
-
   return (
-    <section id="glass-bench" className="glass-bench" style={glassSectionStyle} aria-label="Glass work">
+    <section
+      id="glass-bench"
+      className="glass-bench"
+      style={sectionStyle}
+      aria-label="Glass work"
+    >
       <style>{`
-        .glass-bench {
-          height: 100%;
-          min-height: 100%;
-        }
-        .glass-bench-stage {
-          grid-template-columns: 1fr;
-          flex: 1 1 auto;
-          min-height: 0;
+        .glass-bench-col {
+          width: min(100%, 420px);
         }
         .glass-bench-shot {
-          position: relative;
           display: block;
-          overflow: hidden;
-          min-height: 0;
-          height: 100%;
           color: inherit;
           text-decoration: none;
-          background: #1a1610;
         }
         .glass-bench-shot img {
           display: block;
           width: 100%;
-          height: 100%;
+          height: auto;
+          aspect-ratio: 1 / 1;
           object-fit: cover;
           object-position: center;
+          background: #e8e2d8;
         }
-        @media (min-width: 860px) {
-          .glass-bench-stage {
-            grid-template-columns: ${dual ? '1.08fr 0.92fr' : '1fr'};
-            height: min(58dvh, calc(100% - 210px));
-          }
-          .glass-bench-shot--b { align-self: stretch; }
-        }
-        @media (max-width: 859px) {
-          .glass-bench-stage {
-            height: auto;
-            max-height: none;
-          }
-          .glass-bench-shot {
-            height: clamp(28dvh, 32dvh, 280px);
+        @media (min-width: 900px) {
+          .glass-bench-col {
+            width: min(38vw, 460px);
           }
         }
       `}</style>
-      <header style={glassHeaderStyle}>
-        <p style={glassKickerStyle}>{tag}</p>
-        <h2 style={glassTitleStyle}>{title}</h2>
-        <p style={glassBodyStyle}>{body}</p>
-        <Link href="/blog/pate-de-verre" style={glassLinkStyle}>
-          {linkLabel}
-        </Link>
-      </header>
 
-      <div className="glass-bench-stage" style={glassStageStyle}>
-        {featured.map((item, index) => (
-          <Link
-            key={item.src}
-            href={item.href ?? '/blog/pate-de-verre'}
-            className={`glass-bench-shot ${index === 0 ? 'glass-bench-shot--a' : 'glass-bench-shot--b'}`}
-            aria-label={item.caption}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={item.src} alt={item.alt} />
-            <span
-              style={{
-                ...glassCaptionStyle,
-                ...(index === 1 ? glassCaptionAltStyle : null),
-              }}
-            >
-              {item.caption}
-            </span>
+      <div className="glass-bench-col" style={colStyle}>
+        <header style={headerStyle}>
+          <p style={kickerStyle}>{tag}</p>
+          <h2 style={titleStyle}>{title}</h2>
+          <p style={bodyStyle}>{body}</p>
+          <Link href="/blog/pate-de-verre" style={linkStyle}>
+            {linkLabel}
           </Link>
-        ))}
+        </header>
+
+        <div style={wallStyle}>
+          {items.map((item, index) => {
+            const n = String(index + 1).padStart(2, '0');
+            return (
+              <Link
+                key={item.src}
+                href={item.href ?? '/blog/pate-de-verre'}
+                className="glass-bench-shot"
+                aria-label={item.caption}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={item.src} alt={item.alt} />
+                <span style={captionStyle}>
+                  <span style={idStyle}>({n})</span> {item.caption}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
 }
 
-const glassSectionStyle: CSSProperties = {
+const sectionStyle: CSSProperties = {
   boxSizing: 'border-box',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  gap: 'clamp(12px, 2.2vh, 22px)',
   width: '100%',
   padding:
-    'clamp(64px, 9vh, 84px) clamp(0px, 1.2vw, 12px) clamp(18px, 3vh, 28px)',
-  background:
-    'radial-gradient(120% 80% at 50% 18%, #fffdf8 0%, #f7f1e6 48%, #efe6d6 100%)',
-  color: '#14110c',
+    'clamp(88px, 12vh, 120px) clamp(20px, 4vw, 48px) clamp(72px, 10vh, 120px)',
+  background: '#faf7f2',
+  color: '#1a1814',
 };
 
-const glassHeaderStyle: CSSProperties = {
-  margin: '0 auto',
-  maxWidth: 760,
-  padding: '0 clamp(16px, 3vw, 28px)',
-  textAlign: 'center',
-  flex: '0 0 auto',
+const colStyle: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 0,
 };
 
-const glassKickerStyle: CSSProperties = {
-  margin: '0 0 8px',
-  color: '#00a99f',
-  fontFamily: mono,
-  fontSize: '0.62rem',
-  fontWeight: 850,
-  letterSpacing: '0.3em',
+const headerStyle: CSSProperties = {
+  margin: '0 0 72px',
+  textAlign: 'left',
+  maxWidth: '28rem',
+};
+
+const kickerStyle: CSSProperties = {
+  margin: '0 0 18px',
+  color: 'rgba(26,24,20,0.42)',
+  fontFamily: "'Nunito', system-ui, sans-serif",
+  fontSize: '0.58rem',
+  fontWeight: 700,
+  letterSpacing: '0.28em',
   textTransform: 'uppercase',
 };
 
-const glassTitleStyle: CSSProperties = {
-  margin: '0 0 10px',
-  color: '#14110c',
-  fontSize: 'clamp(3.2rem, 8.5vw, 6.8rem)',
-  fontWeight: 650,
-  letterSpacing: '-0.045em',
-  lineHeight: 0.88,
+const titleStyle: CSSProperties = {
+  margin: '0 0 18px',
+  color: '#1a1814',
+  fontFamily: 'Georgia, Times New Roman, serif',
+  fontSize: 'clamp(2rem, 5vw, 3.2rem)',
+  fontWeight: 500,
+  fontStyle: 'italic',
+  letterSpacing: '-0.02em',
+  lineHeight: 1.05,
 };
 
-const glassBodyStyle: CSSProperties = {
-  margin: '0 auto 12px',
-  maxWidth: 460,
-  color: 'rgba(20,17,12,0.68)',
-  fontFamily: 'Georgia, serif',
-  fontSize: 'clamp(1.02rem, 1.5vw, 1.18rem)',
-  lineHeight: 1.45,
+const bodyStyle: CSSProperties = {
+  margin: '0 0 22px',
+  color: 'rgba(26,24,20,0.58)',
+  fontFamily: "'Nunito', system-ui, sans-serif",
+  fontSize: '0.98rem',
+  fontWeight: 500,
+  lineHeight: 1.65,
 };
 
-const glassLinkStyle: CSSProperties = {
-  color: '#14110c',
-  fontFamily: mono,
-  fontSize: '0.64rem',
-  fontWeight: 850,
-  letterSpacing: '0.18em',
-  textDecoration: 'none',
+const linkStyle: CSSProperties = {
+  color: '#1a1814',
+  fontFamily: "'Nunito', system-ui, sans-serif",
+  fontSize: '0.58rem',
+  fontWeight: 800,
+  letterSpacing: '0.16em',
+  textDecoration: 'underline',
+  textUnderlineOffset: '0.28em',
   textTransform: 'uppercase',
 };
 
-const glassStageStyle: CSSProperties = {
-  display: 'grid',
-  gap: 'clamp(8px, 1.2vw, 14px)',
-  width: '100%',
-  margin: '0 auto',
-  alignItems: 'stretch',
+const wallStyle: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 'clamp(64px, 10vh, 104px)',
 };
 
-const glassCaptionStyle: CSSProperties = {
-  position: 'absolute',
-  left: 'clamp(14px, 2vw, 26px)',
-  bottom: 'clamp(12px, 2vh, 22px)',
-  zIndex: 2,
-  color: '#e9829d',
-  fontFamily: "'Allura', cursive",
-  fontSize: 'clamp(1.85rem, 3.6vw, 3rem)',
-  lineHeight: 0.92,
-  textShadow:
-    '0 1px 0 rgba(255,255,255,0.55), 0 0 18px rgba(255,253,248,0.55), 0 10px 28px rgba(20,17,12,0.4)',
-  transform: 'rotate(-2deg)',
-  pointerEvents: 'none',
+const captionStyle: CSSProperties = {
+  display: 'block',
+  marginTop: 14,
+  color: 'rgba(26,24,20,0.55)',
+  fontFamily: "'Nunito', system-ui, sans-serif",
+  fontSize: '0.72rem',
+  fontWeight: 500,
+  letterSpacing: '0.02em',
+  lineHeight: 1.4,
 };
 
-const glassCaptionAltStyle: CSSProperties = {
-  left: 'auto',
-  right: 'clamp(14px, 2vw, 26px)',
-  transform: 'rotate(1.5deg)',
-  textAlign: 'right',
+const idStyle: CSSProperties = {
+  color: 'rgba(26,24,20,0.38)',
+  fontWeight: 600,
+  letterSpacing: '0.04em',
 };

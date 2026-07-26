@@ -1,5 +1,6 @@
 'use client';
 
+import RoomsFooter from '../RoomsFooter';
 import Link from 'next/link';
 import { useLanguage } from '../LanguageProvider';
 import { t } from '../../lib/translations';
@@ -192,6 +193,7 @@ export default function ToolsArcadePage() {
           );
         })}
       </div>
+      <RoomsFooter />
     </ArcadeLayout>
   );
 }

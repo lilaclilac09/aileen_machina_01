@@ -58,6 +58,25 @@ const PANEL_OPEN_KEY = 'aileena-coverflow-panel-open-v1';
 
 const MOBILE_MAX_PX = 767;
 
+function readStoredSettings(): CoverflowSettings | null {
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<CoverflowSettings>;
+    return { ...COVERFLOW_DEFAULTS, ...parsed };
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredSettings(next: CoverflowSettings) {
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  } catch {
+    /* private mode / quota — keep in-memory only */
+  }
+}
+
 export function useCoverflowSettings() {
   const [settings, setSettings] = useState<CoverflowSettings>(COVERFLOW_DEFAULTS);
   const [panelOpen, setPanelOpen] = useState(false);
@@ -65,48 +84,45 @@ export function useCoverflowSettings() {
   const [hydrated, setHydrated] = useState(false);
 
   /* eslint-disable react-hooks/set-state-in-effect --
-     First-render hydration from localStorage. The setState calls here
-     are intentional and the standard React pattern for client-only
-     state that must not differ from the server-rendered snapshot —
-     server renders with defaults, client upgrades to stored values
-     post-mount. */
+     First-render hydration from localStorage. Server renders defaults;
+     client upgrades to stored values post-mount so SSR markup matches. */
   useEffect(() => {
     const mq = window.matchMedia(`(max-width: ${MOBILE_MAX_PX}px)`);
-    const mobile = mq.matches;
-    setIsMobile(mobile);
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as Partial<CoverflowSettings>;
-        setSettings({ ...COVERFLOW_DEFAULTS, ...parsed });
-      }
-      // Explicit user preference wins; otherwise keep the tuner closed.
-      // The public archive should show the cards first; the panel is an
-      // optional control, not the main composition.
-      const open = window.localStorage.getItem(PANEL_OPEN_KEY);
-      if (open === '0') setPanelOpen(false);
-      else if (open === '1') setPanelOpen(true);
-    } catch {
-      /* localStorage unavailable — keep defaults */
-    }
+    setIsMobile(mq.matches);
+
+    const stored = readStoredSettings();
+    if (stored) setSettings(stored);
+
+    // Explicit user preference wins; otherwise keep the tuner closed.
+    const open = window.localStorage.getItem(PANEL_OPEN_KEY);
+    if (open === '0') setPanelOpen(false);
+    else if (open === '1') setPanelOpen(true);
+
     setHydrated(true);
 
-    // Keep isMobile reactive to rotation / resize so the panel can
-    // switch between right-sidebar and bottom-drawer layouts live.
     const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
     mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
+
+    // Re-apply if another tab writes settings (same-origin).
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== STORAGE_KEY) return;
+      const again = readStoredSettings();
+      if (again) setSettings(again);
+      else setSettings(COVERFLOW_DEFAULTS);
+    };
+    window.addEventListener('storage', onStorage);
+
+    return () => {
+      mq.removeEventListener('change', onChange);
+      window.removeEventListener('storage', onStorage);
+    };
   }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const update = useCallback(<K extends keyof CoverflowSettings>(key: K, value: CoverflowSettings[K]) => {
     setSettings((prev) => {
       const next = { ...prev, [key]: value };
-      try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      } catch {
-        /* ignore */
-      }
+      writeStoredSettings(next);
       return next;
     });
   }, []);

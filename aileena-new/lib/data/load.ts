@@ -17,7 +17,9 @@ import type { LoadedDataset } from './types';
 
 export function loadArray<T>(
   raw: unknown,
-  schema: z.ZodType<T>,
+  // Input is `unknown`, not `T`: schemas that use .default() parse a wider
+  // shape than they produce, and the rows arriving here are untrusted JSON.
+  schema: z.ZodType<T, z.ZodTypeDef, unknown>,
   source: string,
 ): LoadedDataset<T> {
   if (!Array.isArray(raw)) {
