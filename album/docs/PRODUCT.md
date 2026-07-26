@@ -54,7 +54,7 @@ flowchart LR
 |---------|------|
 | Create album | Title; no signup |
 | Capacity | **500 photos / album** |
-| TTL | **30 days** from `createdAt` |
+| TTL | **30 days from the last upload**, then auto-delete |
 | Share | Short URL `/a/[slug]` + QR |
 | Upload | Multi-file; HEIC→JPEG best-effort |
 | Gallery | Masonry + **center pin hero** + front pins |
@@ -192,6 +192,26 @@ for originals small enough to fit one request.
 - Originals up to 40 MB are accepted because the browser downscales first
 - Comment rate: soft limit per nickname per photo
 - Expired albums: uploads 410; purge 7 days after expiry
+
+### Lifetime / 生命周期
+
+Every upload rolls `expiresAt` forward to 30 days out, so an event people are
+still adding to never dies mid-use. An album only expires once nobody has
+uploaded for a full 30 days; 7 days later the daily cron deletes its photos
+from storage and drops the row.
+
+```mermaid
+flowchart LR
+  upload[NewUpload] --> renew["expiresAt = now + 30d"]
+  renew --> quiet[NoUploads30d]
+  quiet --> expired[ReadOnly]
+  expired --> grace[Plus7Days]
+  grace --> purge[PhotosDeleted]
+```
+
+`/api/cron/purge` runs daily at 04:00 UTC. It accepts the Vercel scheduler
+directly, so auto-deletion works even before `CRON_SECRET` is configured;
+anonymous public calls are still rejected.
 
 ---
 
