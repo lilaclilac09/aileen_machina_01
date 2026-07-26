@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { jsonOk } from "@/lib/http";
 import { storageDriver } from "@/lib/storage";
+import dbSync from "@/lib/db-sync-status.json";
 
 export const dynamic = "force-dynamic";
 
@@ -60,18 +61,31 @@ export async function GET() {
     const count = await prisma.album.count();
     database = { ok: true, detail: `reachable, ${count} albums` };
   } catch (err) {
+    const code =
+      typeof err === "object" && err && "code" in err
+        ? String((err as { code: unknown }).code)
+        : "";
     const raw = err instanceof Error ? err.message : String(err);
-    const first = raw.split("\n").find((line) => line.trim()) || "unreachable";
+    const lines = raw
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+    const hint =
+      code === "P2021" || /does not exist/i.test(raw)
+        ? 'tables missing — redeploy so the build runs "prisma db push", or run it locally against DATABASE_URL'
+        : code === "P1001"
+          ? "cannot reach the database — check the Neon branch is active and the URL is correct"
+          : 'run "prisma db push" against DATABASE_URL';
     database = {
       ok: false,
-      detail: `${first.trim()} — run "prisma db push" against DATABASE_URL`,
+      detail: `${code ? `${code}: ` : ""}${lines.slice(0, 3).join(" ")} — ${hint}`,
     };
   }
 
   const ready = database.ok && Object.values(env).every((c) => c.ok);
 
   return jsonOk(
-    { ready, database, env },
+    { ready, database, buildSchemaSync: dbSync, env },
     { status: ready ? 200 : 503 }
   );
 }
