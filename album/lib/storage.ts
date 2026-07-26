@@ -161,19 +161,24 @@ async function deleteOss(key: string): Promise<void> {
     .catch(() => undefined);
 }
 
-export async function storePhoto(albumId: string, fileId: string, buffer: Buffer): Promise<DualStored> {
-  const processed = await processImage(buffer);
+type Pair = { full: Buffer; thumb: Buffer; width: number; height: number };
+
+async function storePair(
+  albumId: string,
+  fileId: string,
+  { full, thumb, width, height }: Pair
+): Promise<DualStored> {
   const storageKey = `${albumId}/${fileId}.jpg`;
   const thumbKey = `${albumId}/${fileId}_t.jpg`;
+  const contentType = "image/jpeg";
   const d = storageDriver();
 
   if (d === "dual") {
-    // Write intl (R2) + CN (OSS) in parallel for both full + thumb
     const [fullIntl, thumbIntl, fullCn, thumbCn] = await Promise.all([
-      putR2(storageKey, processed.full, processed.contentType),
-      putR2(thumbKey, processed.thumb, processed.contentType),
-      putOss(storageKey, processed.full, processed.contentType),
-      putOss(thumbKey, processed.thumb, processed.contentType),
+      putR2(storageKey, full, contentType),
+      putR2(thumbKey, thumb, contentType),
+      putOss(storageKey, full, contentType),
+      putOss(thumbKey, thumb, contentType),
     ]);
     return {
       storageKey,
@@ -182,49 +187,23 @@ export async function storePhoto(albumId: string, fileId: string, buffer: Buffer
       thumbUrl: thumbIntl.url,
       urlCn: fullCn.url,
       thumbUrlCn: thumbCn.url,
-      width: processed.width,
-      height: processed.height,
+      width,
+      height,
     };
   }
 
-  if (d === "r2") {
-    const [fullObj, thumbObj] = await Promise.all([
-      putR2(storageKey, processed.full, processed.contentType),
-      putR2(thumbKey, processed.thumb, processed.contentType),
-    ]);
-    return {
-      storageKey,
-      thumbKey,
-      url: fullObj.url,
-      thumbUrl: thumbObj.url,
-      urlCn: "",
-      thumbUrlCn: "",
-      width: processed.width,
-      height: processed.height,
-    };
-  }
-
-  if (d === "blob") {
-    const [fullObj, thumbObj] = await Promise.all([
-      putBlob(storageKey, processed.full, processed.contentType),
-      putBlob(thumbKey, processed.thumb, processed.contentType),
-    ]);
-    return {
-      storageKey,
-      thumbKey,
-      url: fullObj.url,
-      thumbUrl: thumbObj.url,
-      urlCn: "",
-      thumbUrlCn: "",
-      width: processed.width,
-      height: processed.height,
-    };
-  }
+  const put =
+    d === "r2"
+      ? (key: string, data: Buffer) => putR2(key, data, contentType)
+      : d === "blob"
+        ? (key: string, data: Buffer) => putBlob(key, data, contentType)
+        : (key: string, data: Buffer) => putLocal(key, data);
 
   const [fullObj, thumbObj] = await Promise.all([
-    putLocal(storageKey, processed.full),
-    putLocal(thumbKey, processed.thumb),
+    put(storageKey, full),
+    put(thumbKey, thumb),
   ]);
+
   return {
     storageKey,
     thumbKey,
@@ -232,9 +211,33 @@ export async function storePhoto(albumId: string, fileId: string, buffer: Buffer
     thumbUrl: thumbObj.url,
     urlCn: "",
     thumbUrlCn: "",
+    width,
+    height,
+  };
+}
+
+/** Server-side resize path, used when the browser could not prepare the image. */
+export async function storePhoto(
+  albumId: string,
+  fileId: string,
+  buffer: Buffer
+): Promise<DualStored> {
+  const processed = await processImage(buffer);
+  return storePair(albumId, fileId, {
+    full: processed.full,
+    thumb: processed.thumb,
     width: processed.width,
     height: processed.height,
-  };
+  });
+}
+
+/** Browser already downscaled and encoded both sizes; just persist them. */
+export async function storePreparedPhoto(
+  albumId: string,
+  fileId: string,
+  prepared: Pair
+): Promise<DualStored> {
+  return storePair(albumId, fileId, prepared);
 }
 
 export async function deleteStoredObjects(refs: {

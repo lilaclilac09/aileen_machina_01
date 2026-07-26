@@ -8,6 +8,7 @@ import { Lightbox } from "@/components/Lightbox";
 import { UploadPanel } from "@/components/UploadPanel";
 import { SharePanel } from "@/components/SharePanel";
 import { AdminUnlock } from "@/components/AdminUnlock";
+import { ALBUM_TTL_DAYS } from "@/lib/constants";
 
 export type AlbumMeta = {
   id: string;
@@ -185,11 +186,16 @@ export function AlbumClient({ slug }: { slug: string }) {
             </Link>
             <h1 className="font-display text-2xl sm:text-3xl">{album.title}</h1>
             <p className="mt-1 text-sm text-ink/55">
-              {album.photoCount}/{album.maxPhotos} 张 · 剩余 {album.daysLeft} 天
-              {album.expired ? " · 已过期" : ""}
+              {album.photoCount}/{album.maxPhotos} 张 ·{" "}
+              {album.expired ? "已过期" : `剩余 ${album.daysLeft} 天`}
               {album.isAdmin ? " · 管理员" : ""}
               {album.cdn ? ` · CDN ${album.cdn}` : ""}
             </p>
+            {!album.expired && (
+              <p className="mt-0.5 text-xs text-ink/40">
+                每次有人上传，有效期自动延长回 {ALBUM_TTL_DAYS} 天
+              </p>
+            )}
           </div>
           <AlbumToolbar
             isAdmin={album.isAdmin}
@@ -229,7 +235,8 @@ export function AlbumClient({ slug }: { slug: string }) {
       {album.expired && (
         <div className="mx-auto mt-4 max-w-6xl px-4 sm:px-6">
           <p className="rounded-md border border-ember/30 bg-ember/10 px-4 py-3 text-sm text-ink/80">
-            相册已过期（只读）。过期 7 天后会自动清理；需要更久请另建新相册。
+            相册已过期（只读）：{ALBUM_TTL_DAYS} 天内没有新上传。再过 7 天会自动删除照片，
+            需要继续用请另建新相册。
           </p>
         </div>
       )}

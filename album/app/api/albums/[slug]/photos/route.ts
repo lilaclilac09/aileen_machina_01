@@ -1,7 +1,7 @@
 import { randomBytes } from "crypto";
 import { prisma } from "@/lib/db";
 import { jsonError, jsonOk } from "@/lib/http";
-import { isExpired } from "@/lib/album";
+import { daysLeft, isExpired, renewedExpiry } from "@/lib/album";
 import {
   ALLOWED_MIME,
   MAX_FILE_BYTES,
@@ -9,11 +9,18 @@ import {
   MAX_NICKNAME_LENGTH,
   MAX_PHOTOS_PER_ALBUM,
 } from "@/lib/constants";
-import { storePhoto } from "@/lib/storage";
+import { storePhoto, storePreparedPhoto } from "@/lib/storage";
 
 type Ctx = { params: { slug: string } };
 
 type Skip = { name: string; reason: string };
+
+function acceptable(file: File): boolean {
+  return (
+    ALLOWED_MIME.has(file.type) ||
+    /\.(jpe?g|png|webp|gif|heic|heif)$/i.test(file.name)
+  );
+}
 
 export async function POST(req: Request, { params }: Ctx) {
   const album = await prisma.album.findUnique({ where: { slug: params.slug } });
@@ -26,6 +33,11 @@ export async function POST(req: Request, { params }: Ctx) {
     .trim()
     .slice(0, MAX_NICKNAME_LENGTH);
   const files = form.getAll("files").filter((f): f is File => f instanceof File);
+  const thumbs = form.getAll("thumbs").filter((f): f is File => f instanceof File);
+  /** Present only when the browser prepared the pair. */
+  const prepared = thumbs.length === files.length && files.length > 0;
+  const declaredWidth = Number(form.get("width") || 0);
+  const declaredHeight = Number(form.get("height") || 0);
 
   if (files.length === 0) return jsonError("No files");
   if (files.length > MAX_FILES_PER_UPLOAD) {
@@ -35,32 +47,41 @@ export async function POST(req: Request, { params }: Ctx) {
   const remaining = MAX_PHOTOS_PER_ALBUM - album.photoCount;
   if (remaining <= 0) return jsonError("Album is full (500 photos)", 403);
   const accepted = files.slice(0, remaining);
-  const skippedOverflow = files.slice(remaining).map((f) => ({
+  const skipped: Skip[] = files.slice(remaining).map((f) => ({
     name: f.name,
     reason: "相册已满 / album full",
   }));
 
   const created = [];
-  const skipped: Skip[] = [...skippedOverflow];
 
-  for (const file of accepted) {
+  for (const [index, file] of accepted.entries()) {
     const isHeic = /\.(heic|heif)$/i.test(file.name) || /heic|heif/i.test(file.type);
-    if (!ALLOWED_MIME.has(file.type) && !file.name.match(/\.(jpe?g|png|webp|gif|heic|heif)$/i)) {
+    if (!acceptable(file)) {
       skipped.push({ name: file.name, reason: "不支持的格式 / unsupported type" });
       continue;
     }
     if (file.size > MAX_FILE_BYTES) {
-      skipped.push({ name: file.name, reason: "超过 15MB / too large" });
+      skipped.push({ name: file.name, reason: "文件过大 / too large" });
       continue;
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
     const fileId = randomBytes(8).toString("hex");
     let stored;
     try {
-      stored = await storePhoto(album.id, fileId, buffer);
+      const buffer = Buffer.from(await file.arrayBuffer());
+      if (prepared) {
+        const thumb = Buffer.from(await thumbs[index].arrayBuffer());
+        stored = await storePreparedPhoto(album.id, fileId, {
+          full: buffer,
+          thumb,
+          width: declaredWidth,
+          height: declaredHeight,
+        });
+      } else {
+        stored = await storePhoto(album.id, fileId, buffer);
+      }
     } catch (err) {
-      console.error("storePhoto failed", err);
+      console.error("store photo failed", err);
       skipped.push({
         name: file.name,
         reason: isHeic
@@ -94,14 +115,19 @@ export async function POST(req: Request, { params }: Ctx) {
     );
   }
 
-  await prisma.album.update({
+  const renewed = await prisma.album.update({
     where: { id: album.id },
-    data: { photoCount: { increment: created.length } },
+    data: {
+      photoCount: { increment: created.length },
+      expiresAt: renewedExpiry(album.expiresAt),
+    },
   });
 
   return jsonOk({
     uploaded: created.length,
     skipped,
+    expiresAt: renewed.expiresAt.toISOString(),
+    daysLeft: daysLeft(renewed.expiresAt),
     photos: created.map((p) => ({
       id: p.id,
       url: p.url,

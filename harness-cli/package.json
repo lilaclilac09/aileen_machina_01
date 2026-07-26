@@ -12,7 +12,7 @@
   "scripts": {
     "hx": "node --experimental-strip-types bin/hx.ts",
     "agent": "node --experimental-strip-types bin/agent.ts",
-    "test": "node --experimental-strip-types test/smoke.ts"
+    "test": "node --experimental-strip-types test/smoke.ts && node --experimental-strip-types test/resolved-footer.ts"
   },
   "engines": {
     "node": ">=22"

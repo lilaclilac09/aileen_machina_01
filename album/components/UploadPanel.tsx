@@ -1,6 +1,8 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { prepareImage } from "@/lib/clientImage";
+import { MAX_FILES_PER_UPLOAD, MAX_REQUEST_BYTES } from "@/lib/constants";
 
 type Props = {
   slug: string;
@@ -10,12 +12,44 @@ type Props = {
   onDone: () => void;
 };
 
+type Skip = { name: string; reason: string };
+
 export function UploadPanel({ slug, nickname, onNickname, onClose, onDone }: Props) {
   const [name, setName] = useState(nickname);
   const [files, setFiles] = useState<FileList | null>(null);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState("");
-  const [skipped, setSkipped] = useState<{ name: string; reason: string }[]>([]);
+  const [skipped, setSkipped] = useState<Skip[]>([]);
+
+  async function uploadOne(file: File, nick: string): Promise<Skip | null> {
+    const form = new FormData();
+    form.set("nickname", nick);
+
+    try {
+      const prepared = await prepareImage(file);
+      form.append("files", prepared.full, `${file.name.replace(/\.\w+$/, "")}.jpg`);
+      form.append("thumbs", prepared.thumb, "thumb.jpg");
+      form.set("width", String(prepared.width));
+      form.set("height", String(prepared.height));
+    } catch {
+      // Browser could not decode it; let the server try, if it fits a request.
+      if (file.size > MAX_REQUEST_BYTES) {
+        return { name: file.name, reason: "无法在浏览器处理且文件过大 / cannot process" };
+      }
+      form.append("files", file);
+    }
+
+    const res = await fetch(`/api/albums/${slug}/photos`, {
+      method: "POST",
+      body: form,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      return { name: file.name, reason: data.error || `上传失败 (${res.status})` };
+    }
+    const serverSkip = (data.skipped as Skip[])?.[0];
+    return serverSkip ?? null;
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -24,34 +58,35 @@ export function UploadPanel({ slug, nickname, onNickname, onClose, onDone }: Pro
     onNickname(nick);
     setBusy(true);
     setSkipped([]);
-    setProgress("上传中…");
-    try {
-      const form = new FormData();
-      form.set("nickname", nick);
-      Array.from(files)
-        .slice(0, 20)
-        .forEach((f) => form.append("files", f));
-      const res = await fetch(`/api/albums/${slug}/photos`, {
-        method: "POST",
-        body: form,
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Upload failed");
-      const skipList = (data.skipped as { name: string; reason: string }[]) || [];
-      setSkipped(skipList);
-      setProgress(
-        skipList.length
-          ? `已上传 ${data.uploaded} 张，${skipList.length} 张跳过`
-          : `已上传 ${data.uploaded} 张`
-      );
-      if (data.uploaded > 0) {
-        // brief pause so user can read skip reasons
-        setTimeout(() => onDone(), skipList.length ? 1200 : 0);
-      } else {
-        setBusy(false);
+
+    const queue = Array.from(files).slice(0, MAX_FILES_PER_UPLOAD);
+    const failures: Skip[] = [];
+    let uploaded = 0;
+
+    for (const [index, file] of queue.entries()) {
+      setProgress(`处理并上传 ${index + 1}/${queue.length}…`);
+      try {
+        const skip = await uploadOne(file, nick);
+        if (skip) failures.push(skip);
+        else uploaded += 1;
+      } catch (err) {
+        failures.push({
+          name: file.name,
+          reason: err instanceof Error ? err.message : "上传失败",
+        });
       }
-    } catch (err) {
-      setProgress(err instanceof Error ? err.message : "失败");
+    }
+
+    setSkipped(failures);
+    setProgress(
+      failures.length
+        ? `已上传 ${uploaded} 张，${failures.length} 张失败`
+        : `已上传 ${uploaded} 张`
+    );
+
+    if (uploaded > 0) {
+      setTimeout(() => onDone(), failures.length ? 1500 : 0);
+    } else {
       setBusy(false);
     }
   }
@@ -68,9 +103,8 @@ export function UploadPanel({ slug, nickname, onNickname, onClose, onDone }: Pro
             关闭
           </button>
         </div>
-        <p className="mt-1 text-sm text-ink/55">一次最多 20 张，单张 ≤ 15MB</p>
-        <p className="mt-1 text-xs text-ink/45">
-          iPhone HEIC 若失败：用「照片」分享 → 存储为 JPEG 再传。
+        <p className="mt-1 text-sm text-ink/55">
+          一次最多 {MAX_FILES_PER_UPLOAD} 张，会在手机上先压缩再逐张上传
         </p>
         <input
           className="field mt-4"
@@ -84,7 +118,6 @@ export function UploadPanel({ slug, nickname, onNickname, onClose, onDone }: Pro
           type="file"
           accept="image/*,.heic,.heif"
           multiple
-          capture="environment"
           onChange={(e) => setFiles(e.target.files)}
           required
         />

@@ -77,10 +77,23 @@ Project → Settings → Domains → Add `album.aileena.xyz`
 
 ## 4. 验收
 
+先看健康检查（会逐项列出缺什么）：
+
+```text
+https://<你的项目>.vercel.app/api/health
+```
+
+`ready: true` 表示数据库和环境变量都就绪。若某项 `ok: false`，按 `detail` 补齐后 Redeploy。
+
+然后走一遍主流程：
+
 ```text
 https://album.aileena.xyz/
 → 创建相册 → 复制链接 → 手机上传 → 点赞评论 → 管理密钥置顶/多选删除
 ```
+
+**构建不会因为数据库问题整体失败**：缺少或连不上 `DATABASE_URL` 时仍会部署成功，
+由 `/api/health` 报告原因，创建相册接口返回 503 并提示查看它。
 
 主站 footer PROJECTS 已加 **Gather · 共影** → `https://album.aileena.xyz`（随 PR 进 main 后生效）。
 

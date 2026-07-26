@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-07-25T05:53:22.841Z",
+  "ranAt": "2026-07-26T13:55:53.612Z",
   "nitterBases": [
     "https://nitter.net"
   ],
@@ -14,7 +14,7 @@
     },
     {
       "screenName": "SemiAnalysis_",
-      "rssCount": 18,
+      "rssCount": 19,
       "missing": [],
       "ingested": [],
       "failed": []
@@ -22,8 +22,12 @@
     {
       "screenName": "aaronburnett",
       "rssCount": 20,
-      "missing": [],
-      "ingested": [],
+      "missing": [
+        "2081373476024140107"
+      ],
+      "ingested": [
+        "2081373476024140107"
+      ],
       "failed": []
     },
     {
@@ -36,18 +40,8 @@
     {
       "screenName": "VladSaigau",
       "rssCount": 19,
-      "missing": [
-        "2080812297694409014",
-        "2080798034540310799",
-        "2080806180813689288",
-        "2080804839236186535"
-      ],
-      "ingested": [
-        "2080812297694409014",
-        "2080798034540310799",
-        "2080806180813689288",
-        "2080804839236186535"
-      ],
+      "missing": [],
+      "ingested": [],
       "failed": []
     }
   ]

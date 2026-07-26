@@ -7,7 +7,7 @@ Product design: [`docs/PRODUCT.md`](docs/PRODUCT.md)
 ## Features
 
 - Create album (no signup) → URL + QR + admin secret
-- Anyone uploads (≤500 photos / 30 days)
+- Anyone uploads (≤500 photos); 30-day window renews on every upload, then auto-deletes
 - Like, comment, pin cycle: **开头 → 中心 → 取消**
 - Multi-select delete (admin)
 - Storage: `local` | `blob` | `r2` | **`dual`** (R2 intl + 阿里云 OSS CN)

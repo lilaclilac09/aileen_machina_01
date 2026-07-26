@@ -154,7 +154,8 @@ API smoke：
 |------|------|
 | 国内访问 HTML | 页面仍走 Vercel；图片可用 dual OSS 加速，整站国内极速需后续边缘/备案 |
 | Admin secret 丢失 | MVP 不可找回，创建时必须保存 |
-| HEIC | sharp 尽力转 JPEG，部分机型可能失败 |
+| HEIC | 浏览器解码后转 JPEG；极老设备解码失败会跳过并提示导出 JPEG |
+| 单次请求 4.5MB | 已解决：浏览器先压缩、逐张上传，每个请求约 1MB |
 | 费用 | Blob/Neon 免费档够小活动；大量原图需盯用量 |
 | PR 未合 main | footer 链接合入后才在 aileena.xyz 生产可见 |
 

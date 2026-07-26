@@ -4,6 +4,7 @@
  */
 import { parseArgs } from 'node:util';
 import {
+  cmdFooterDemo,
   cmdMcp,
   cmdRepl,
   cmdReview,
@@ -13,6 +14,7 @@ import {
   printUsage,
 } from '../src/adapters/cli.ts';
 import { runCursorCli } from '../src/adapters/cursorCli.ts';
+import type { HarnessName } from '../src/core/resolvedHarness.ts';
 
 async function main() {
   const { values, positionals } = parseArgs({
@@ -24,6 +26,8 @@ async function main() {
       shell: { type: 'boolean', default: false },
       json: { type: 'boolean', default: false },
       jsonl: { type: 'boolean', default: false },
+      ab: { type: 'boolean', default: false },
+      harness: { type: 'string' },
       execute: { type: 'string', short: 'x' },
       help: { type: 'boolean', short: 'h', default: false },
     },
@@ -31,7 +35,6 @@ async function main() {
     strict: false,
   });
 
-  // `hx cursor …` → Cursor-shaped adapter (rest of argv after "cursor")
   if (positionals[0] === 'cursor') {
     const raw = process.argv.slice(2);
     const idx = raw.findIndex((a) => a === 'cursor');
@@ -42,6 +45,12 @@ async function main() {
   if (values.help || (positionals.length === 0 && !values.execute)) printUsage();
 
   const [cmd, ...rest] = positionals.length ? positionals : ['run'];
+  const harnessRaw = values.harness ? String(values.harness) : undefined;
+  const harness = harnessRaw as HarnessName | undefined;
+  if (harness && !['Codex', 'Nanocodex', 'hx'].includes(harness)) {
+    throw new Error(`--harness must be Codex|Nanocodex|hx (got ${harnessRaw})`);
+  }
+
   const flags = {
     provider: String(values.provider),
     cwd: String(values.cwd),
@@ -49,11 +58,16 @@ async function main() {
     shell: Boolean(values.shell),
     json: Boolean(values.json),
     jsonl: Boolean(values.jsonl),
+    ab: Boolean(values.ab),
+    harness,
   };
 
   switch (cmd) {
     case 'tools':
       await cmdTools(flags);
+      break;
+    case 'footer-demo':
+      await cmdFooterDemo(flags);
       break;
     case 'exec':
     case 'run': {
@@ -63,7 +77,7 @@ async function main() {
       break;
     }
     case 'review':
-      await cmdReview(rest.join(' ').trim(), flags);
+      await cmdReview(rest.join(' ').trim(), { ...flags, profile: 'review' });
       break;
     case 'repl':
       await cmdRepl(flags);

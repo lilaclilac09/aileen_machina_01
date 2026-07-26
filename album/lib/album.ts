@@ -9,6 +9,17 @@ export function albumExpiresAt(from = new Date()): Date {
   return d;
 }
 
+/**
+ * A new upload keeps the album alive for another full window, so an event
+ * that people are still adding to never expires mid-use. Never shortens an
+ * existing deadline.
+ */
+export function renewedExpiry(current: Date | string): Date {
+  const rolled = albumExpiresAt();
+  const existing = new Date(current);
+  return rolled > existing ? rolled : existing;
+}
+
 export function isExpired(expiresAt: Date | string): boolean {
   return new Date(expiresAt).getTime() <= Date.now();
 }
