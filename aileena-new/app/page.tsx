@@ -41,11 +41,11 @@ const SESSION_LOADED_KEY = 'aileena_loaded_once';
 const dragMeCursor =
   'url("data:image/svg+xml,%3Csvg%20xmlns=\'http://www.w3.org/2000/svg\'%20width=\'104\'%20height=\'34\'%20viewBox=\'0%200%20104%2034\'%3E%3Ctext%20x=\'4\'%20y=\'23\'%20font-family=\'Georgia%2Cserif\'%20font-size=\'20\'%20font-style=\'italic\'%20fill=\'%2314110c\'%3Edrag%20me%3C/text%3E%3C/svg%3E") 8 18, grab';
 const dragThreshold = 3;
-const atriumArticleWidth = 'min(30vw, 300px)';
-const atriumCoverWidth = 'min(16vw, 160px)';
-const atriumLaneGap = '88px';
+const atriumArticleWidth = 'min(28vw, 280px)';
+const atriumCoverWidth = 'min(15vw, 148px)';
+const atriumLaneGap = '110px';
 const atriumCoverLeft = `calc(2% + ${atriumArticleWidth} + ${atriumLaneGap})`;
-const atriumPolaroidLeft = `calc(2% + ${atriumArticleWidth} + ${atriumLaneGap} + ${atriumCoverWidth} + 72px)`;
+const atriumPolaroidLeft = `calc(2% + ${atriumArticleWidth} + ${atriumLaneGap} + ${atriumCoverWidth} + 96px)`;
 
 type DragOffset = {
   x: number;
@@ -112,7 +112,7 @@ export default function Home() {
       blurb: 'HBM stacks, David, and the day the stockpile hits zero.',
       signal: latestIssue ? `${latestIssue.issueNumber} · ${latestIssue.coverTitle}` : 'Open the magazine rack',
       motif: 'hbm',
-      placement: { top: '6%', right: '4%', transform: 'rotate(-2.8deg)', zIndex: 6 },
+      placement: { top: '4%', right: '2%', transform: 'rotate(-2.4deg)', zIndex: 6 },
     },
     {
       id: 'dispatch',
@@ -123,7 +123,7 @@ export default function Home() {
       blurb: 'GB200 boards, CCL, M8/M9, and who gets to choose the board.',
       signal: latestDispatch ? latestDispatch.title : 'Open the archive',
       motif: 'pcb',
-      placement: { top: '44%', right: '5%', transform: 'rotate(2.2deg)', zIndex: 5 },
+      placement: { top: '48%', right: '3%', transform: 'rotate(2deg)', zIndex: 5 },
     },
     {
       id: 'woman-tech',
@@ -134,7 +134,7 @@ export default function Home() {
       blurb: metooArticle ? metooArticle.body : 'Long-form essays and the back catalogue.',
       signal: metooArticle ? metooArticle.title : 'Every Woman in Tech Has a #MeToo Story',
       motif: 'article',
-      placement: { top: '6%', left: '2%', transform: 'rotate(-1.2deg)', zIndex: 14 },
+      placement: { top: '5%', left: '2%', transform: 'rotate(-1deg)', zIndex: 14 },
     },
     {
       id: 'woman-investing',
@@ -145,7 +145,7 @@ export default function Home() {
       blurb: featuredInvesting ? featuredInvesting.body : 'A woman should have her own portfolio.',
       signal: featuredInvesting ? featuredInvesting.title : tx.blog.investing.heading,
       motif: 'investing',
-      placement: { top: '58%', left: '2%', transform: 'rotate(1.6deg)', zIndex: 12 },
+      placement: { top: '78%', left: '2%', transform: 'rotate(1.2deg)', zIndex: 12 },
     },
   ];
 
@@ -979,21 +979,21 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               width: isArticle
                 ? atriumArticleWidth
                 : isInvesting
-                  ? 'min(42vw, 260px)'
+                  ? 'min(28vw, 200px)'
                   : isTrendy
                     ? 'min(70vw, 430px)'
                     : isRecord
                       ? 'min(56vw, 290px)'
-                      : 'min(40vw, 260px)',
+                      : 'min(22vw, 200px)',
               minHeight: isArticle
-                ? 'clamp(340px, 46dvh, 420px)'
+                ? 'clamp(250px, 34dvh, 310px)'
                 : isInvesting
-                  ? 240
+                  ? 180
                   : isTrendy
                     ? 'clamp(340px, 44dvh, 390px)'
                     : isRecord
                       ? 300
-                      : 240,
+                      : 220,
               height: isTrendy ? 'clamp(340px, 44dvh, 390px)' : undefined,
               padding: 0,
               border: isPaper ? '1px solid rgba(20,17,12,0.16)' : 'none',
@@ -1036,7 +1036,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             );
           })}
 
-          {/* Three lanes — Viewpoint | cover | machina. calc() gaps so they never glue. */}
+          {/* Three lanes — Viewpoint | cover | machina. Big calc() gaps; photos have no white frame. */}
           <Link
             href="/dispatch#woman-in-tech"
             aria-label="Open Woman in Tech archive — cover print"
@@ -1045,18 +1045,13 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               top: '8%',
               left: atriumCoverLeft,
               width: atriumCoverWidth,
-              height: 'clamp(220px, 30dvh, 268px)',
+              height: 'clamp(210px, 28dvh, 250px)',
               padding: 0,
               margin: 0,
               border: 'none',
               outline: 'none',
-              backgroundImage: "url('/dispatch-covers/harassment.jpg')",
-              backgroundPosition: '48% 38%',
-              backgroundSize: 'cover',
-              backgroundRepeat: 'no-repeat',
-              backgroundColor: 'transparent',
-              boxShadow: '0 22px 48px -40px rgba(20,17,12,0.5)',
-              filter: 'contrast(1.05) saturate(0.92)',
+              background: '#0b0b0b',
+              boxShadow: 'none',
               cursor: dragMeCursor,
               transform: dragTransform('woman-cover-print', 'rotate(2.4deg)'),
               transition: 'transform 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
@@ -1068,21 +1063,18 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             }}
             {...dragHandlers('woman-cover-print')}
           >
-            <span
-              aria-hidden
-              style={{
-                position: 'absolute',
-                inset: 0,
-                background:
-                  'linear-gradient(180deg, transparent 55%, rgba(20,17,12,0.58) 100%)',
-                pointerEvents: 'none',
-              }}
+            <BleedPhoto
+              src="/dispatch-covers/harassment.jpg"
+              position="48% 38%"
+              filter="contrast(1.05) saturate(0.92)"
+              overlay="linear-gradient(180deg, transparent 55%, rgba(20,17,12,0.58) 100%)"
             />
             <span
               style={{
                 position: 'absolute',
                 left: 10,
                 bottom: 12,
+                zIndex: 1,
                 color: '#fffdf8',
                 fontFamily: 'Georgia, serif',
                 fontSize: '0.95rem',
@@ -1100,20 +1092,16 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             aria-label="Open Metal & Pages — Didion readings"
             className="absolute z-[9] hidden lg:block"
             style={{
-              top: '56%',
+              top: '58%',
               left: atriumCoverLeft,
-              width: 'min(14vw, 136px)',
-              height: 'clamp(150px, 19dvh, 178px)',
+              width: 'min(13vw, 128px)',
+              height: 'clamp(140px, 18dvh, 168px)',
               padding: 0,
               margin: 0,
               border: 'none',
               outline: 'none',
-              backgroundImage: "url('/dispatch-covers/books-joan-didion-readings.jpg')",
-              backgroundPosition: '50% 18%',
-              backgroundSize: 'cover',
-              backgroundRepeat: 'no-repeat',
-              boxShadow: '0 20px 44px -38px rgba(20,17,12,0.48)',
-              filter: 'saturate(0.88) contrast(1.04)',
+              background: '#0b0b0b',
+              boxShadow: 'none',
               cursor: dragMeCursor,
               transform: dragTransform('didion-scrap', 'rotate(-2.8deg)'),
               transition: 'transform 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
@@ -1125,20 +1113,18 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             }}
             {...dragHandlers('didion-scrap')}
           >
-            <span
-              aria-hidden
-              style={{
-                position: 'absolute',
-                inset: 0,
-                background: 'linear-gradient(180deg, transparent 50%, rgba(20,17,12,0.6) 100%)',
-                pointerEvents: 'none',
-              }}
+            <BleedPhoto
+              src="/dispatch-covers/books-joan-didion-readings.jpg"
+              position="50% 18%"
+              filter="saturate(0.88) contrast(1.04)"
+              overlay="linear-gradient(180deg, transparent 50%, rgba(20,17,12,0.6) 100%)"
             />
             <span
               style={{
                 position: 'absolute',
                 left: 10,
                 bottom: 10,
+                zIndex: 1,
                 color: '#fffdf8',
                 fontFamily: 'Georgia, serif',
                 fontSize: '0.9rem',
@@ -1156,9 +1142,9 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             aria-label="Open Aileena console — machina portrait"
             className="absolute z-[16] hidden sm:block"
             style={{
-              top: '12%',
+              top: '10%',
               left: atriumPolaroidLeft,
-              width: 'clamp(112px, 11vw, 140px)',
+              width: 'clamp(108px, 10.5vw, 132px)',
               padding: 0,
               margin: 0,
               border: 0,
@@ -1181,6 +1167,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             <span
               aria-hidden
               style={{
+                position: 'relative',
                 display: 'block',
                 width: '100%',
                 aspectRatio: '3 / 4',
@@ -1188,16 +1175,17 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 padding: 0,
                 border: 'none',
                 outline: 'none',
-                backgroundImage: "url('/bg_pic/03.jpeg')",
-                backgroundPosition: '34% 8%',
-                backgroundSize: 'cover',
-                backgroundRepeat: 'no-repeat',
-                backgroundColor: 'transparent',
-                boxShadow: '0 22px 48px -38px rgba(20,17,12,0.5)',
-                filter: 'saturate(0.94) contrast(1.04)',
+                background: '#0b0b0b',
+                boxShadow: 'none',
                 overflow: 'hidden',
               }}
-            />
+            >
+              <BleedPhoto
+                src="/bg_pic/03.jpeg"
+                position="34% 8%"
+                filter="saturate(0.94) contrast(1.04)"
+              />
+            </span>
             <span
               style={{
                 display: 'block',
@@ -1312,27 +1300,6 @@ function BleedPhoto({
   );
 }
 
-const thumbnailTitleStyle: CSSProperties = {
-  display: 'block',
-  color: palette.ink,
-  fontSize: '1.45rem',
-  fontWeight: 850,
-  letterSpacing: '-0.055em',
-  lineHeight: 0.98,
-  marginTop: 14,
-  maxWidth: 292,
-};
-
-const thumbnailDekStyle: CSSProperties = {
-  display: 'block',
-  color: 'rgba(20,17,12,0.68)',
-  fontFamily: 'Georgia, serif',
-  fontSize: '0.92rem',
-  lineHeight: 1.24,
-  marginTop: 8,
-  maxWidth: 292,
-};
-
 function ObjectFace({ room }: { room: RoomDoor }) {
   if (room.motif === 'article') {
     return (
@@ -1340,8 +1307,8 @@ function ObjectFace({ room }: { room: RoomDoor }) {
         style={{
           position: 'relative',
           display: 'block',
-          minHeight: 'clamp(360px, 48dvh, 440px)',
-          padding: '16px 0 30px',
+          minHeight: 'clamp(250px, 34dvh, 310px)',
+          padding: '4px 0 12px',
         }}
       >
         <span
@@ -1350,11 +1317,12 @@ function ObjectFace({ room }: { room: RoomDoor }) {
             zIndex: 1,
             display: 'block',
             width: atriumArticleWidth,
-            minHeight: 'clamp(340px, 46dvh, 420px)',
-            padding: 'clamp(30px, 4.4dvh, 40px) clamp(20px, 3.6vw, 32px) clamp(24px, 3.6dvh, 32px)',
+            minHeight: 'clamp(240px, 32dvh, 300px)',
+            padding: 'clamp(20px, 2.8dvh, 28px) clamp(16px, 2.6vw, 24px) clamp(16px, 2.4dvh, 22px)',
             background:
               'linear-gradient(165deg, #ffffff 0%, #fffdf8 55%, #f7f1e8 100%)',
-            boxShadow: '0 28px 70px -46px rgba(20,17,12,0.48)',
+            boxShadow: 'none',
+            border: 'none',
           }}
         >
           <span
@@ -1404,12 +1372,12 @@ function ObjectFace({ room }: { room: RoomDoor }) {
               display: 'block',
               color: palette.ink,
               fontFamily: nunito,
-              fontSize: 'clamp(1.85rem, 3.4vw, 2.95rem)',
+              fontSize: 'clamp(1.45rem, 2.6vw, 2.1rem)',
               fontWeight: 850,
-              letterSpacing: '-0.048em',
-              lineHeight: 1.02,
-              margin: '0 auto clamp(20px, 3.6dvh, 28px)',
-              maxWidth: 340,
+              letterSpacing: '-0.04em',
+              lineHeight: 1.05,
+              margin: '0 auto clamp(12px, 2dvh, 18px)',
+              maxWidth: 280,
               textAlign: 'center',
             }}
           >
@@ -1419,9 +1387,9 @@ function ObjectFace({ room }: { room: RoomDoor }) {
             aria-hidden
             style={{
               display: 'block',
-              width: 42,
+              width: 36,
               height: 2,
-              margin: '0 auto 18px',
+              margin: '0 auto 12px',
               background: palette.softPink,
               opacity: 0.7,
             }}
@@ -1430,14 +1398,14 @@ function ObjectFace({ room }: { room: RoomDoor }) {
             style={{
               color: 'rgba(20,17,12,0.72)',
               fontFamily: 'Georgia, serif',
-              fontSize: '1.05rem',
-              lineHeight: 1.5,
+              fontSize: '0.92rem',
+              lineHeight: 1.4,
               margin: '0 auto',
-              maxWidth: 320,
+              maxWidth: 280,
               overflow: 'hidden',
               textAlign: 'center',
               display: '-webkit-box',
-              WebkitLineClamp: 5,
+              WebkitLineClamp: 3,
               WebkitBoxOrient: 'vertical',
             }}
           >
@@ -1485,82 +1453,41 @@ function ObjectFace({ room }: { room: RoomDoor }) {
         style={{
           position: 'relative',
           display: 'block',
-          width: 'min(58vw, 300px)',
-          minHeight: 280,
+          width: 'min(34vw, 220px)',
+          minHeight: 200,
           overflow: 'hidden',
-          backgroundImage:
-            "linear-gradient(180deg, rgba(13,17,16,0.18) 0%, rgba(13,17,16,0.2) 35%, rgba(13,17,16,0.82) 100%), url('/dispatch-covers/investing-hero.jpg')",
-          backgroundPosition: 'center 30%',
-          backgroundSize: 'cover',
-          backgroundRepeat: 'no-repeat',
-          boxShadow: '0 26px 58px -44px rgba(20,17,12,0.55)',
+          border: 'none',
+          outline: 'none',
+          background: '#0b0b0b',
+          boxShadow: 'none',
         }}
       >
+        <BleedPhoto
+          src="/dispatch-covers/investing-hero.jpg"
+          position="center 30%"
+          overlay="linear-gradient(180deg, rgba(13,17,16,0.18) 0%, rgba(13,17,16,0.2) 35%, rgba(13,17,16,0.82) 100%)"
+        />
         <span
           style={{
+            position: 'relative',
+            zIndex: 1,
             display: 'block',
-            padding: '22px 20px 24px',
-            minHeight: 280,
+            padding: '18px 16px 20px',
+            minHeight: 200,
           }}
         >
           <span
             style={{
-              display: 'inline-block',
-              padding: '4px 8px',
-              background: palette.chipGreen,
-              color: palette.ink,
-              fontFamily: mono,
-              fontSize: '0.52rem',
-              fontWeight: 900,
-              letterSpacing: '0.16em',
-              textTransform: 'uppercase',
-            }}
-          >
-            {room.category}
-          </span>
-          <span
-            style={{
               display: 'block',
-              marginTop: 88,
+              marginTop: 72,
               color: '#fffdf8',
-              fontFamily: nunito,
-              fontSize: 'clamp(1.35rem, 2.4vw, 1.7rem)',
-              fontWeight: 800,
-              letterSpacing: '-0.03em',
-              lineHeight: 1.12,
-              textShadow: '0 2px 16px rgba(0,0,0,0.45)',
-            }}
-          >
-            {room.signal}
-          </span>
-          <span
-            style={{
-              marginTop: 10,
-              color: 'rgba(255,253,248,0.78)',
               fontFamily: 'Georgia, serif',
-              fontSize: '0.92rem',
-              lineHeight: 1.4,
-              overflow: 'hidden',
-              display: '-webkit-box',
-              WebkitLineClamp: 3,
-              WebkitBoxOrient: 'vertical',
+              fontSize: '1.05rem',
+              fontStyle: 'italic',
+              textShadow: '0 1px 10px rgba(0,0,0,0.45)',
             }}
           >
-            {room.blurb}
-          </span>
-          <span
-            style={{
-              display: 'block',
-              marginTop: 16,
-              color: 'rgba(255,253,248,0.55)',
-              fontFamily: mono,
-              fontSize: '0.5rem',
-              fontWeight: 800,
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-            }}
-          >
-            investing archive →
+            investing
           </span>
         </span>
       </span>
@@ -1714,19 +1641,23 @@ function ObjectFace({ room }: { room: RoomDoor }) {
             height: 220,
             overflow: 'hidden',
             borderRadius: 0,
-            backgroundImage:
-              "linear-gradient(180deg, rgba(10,13,12,0.08), rgba(10,13,12,0.7)), url('/dispatch-covers/investing-hero.jpg')",
-            backgroundPosition: 'center',
-            backgroundSize: 'cover',
-            filter: 'saturate(0.9) contrast(1.05)',
-            boxShadow: '0 22px 48px -40px rgba(20,17,12,0.5)',
+            background: '#0b0b0b',
+            border: 'none',
+            boxShadow: 'none',
           }}
         >
+          <BleedPhoto
+            src="/dispatch-covers/investing-hero.jpg"
+            position="center"
+            filter="saturate(0.9) contrast(1.05)"
+            overlay="linear-gradient(180deg, rgba(10,13,12,0.08), rgba(10,13,12,0.7))"
+          />
           <span
             style={{
               position: 'absolute',
               left: 14,
               bottom: 14,
+              zIndex: 1,
               color: '#fffdf8',
               fontFamily: 'Georgia, serif',
               fontSize: '1.05rem',
@@ -1737,8 +1668,6 @@ function ObjectFace({ room }: { room: RoomDoor }) {
             magazine
           </span>
         </span>
-        <span style={thumbnailTitleStyle}>5 AI Supply Bets</span>
-        <span style={thumbnailDekStyle}>{room.signal}</span>
       </span>
     );
   }
@@ -1754,19 +1683,23 @@ function ObjectFace({ room }: { room: RoomDoor }) {
             height: 220,
             overflow: 'hidden',
             borderRadius: 0,
-            backgroundImage:
-              "linear-gradient(90deg, rgba(8,16,18,0.72), rgba(8,16,18,0.18)), url('/projects/keyshield.png')",
-            backgroundPosition: 'center',
-            backgroundSize: 'cover',
-            filter: 'saturate(0.9) contrast(1.08)',
-            boxShadow: '0 22px 48px -40px rgba(20,17,12,0.5)',
+            background: '#0b0b0b',
+            border: 'none',
+            boxShadow: 'none',
           }}
         >
+          <BleedPhoto
+            src="/projects/keyshield.png"
+            position="center"
+            filter="saturate(0.9) contrast(1.08)"
+            overlay="linear-gradient(90deg, rgba(8,16,18,0.72), rgba(8,16,18,0.18))"
+          />
           <span
             style={{
               position: 'absolute',
               left: 16,
               bottom: 16,
+              zIndex: 1,
               color: '#fffdf8',
               fontFamily: 'Georgia, serif',
               fontSize: '1.05rem',

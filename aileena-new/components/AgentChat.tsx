@@ -21,11 +21,11 @@ const STARTER_PROMPTS = [
 ];
 
 const DAILY_LIMIT = 20;
-const SESSION_KEY = 'aileena_chat_count_daily_v2'; // { date: 'YYYY-MM-DD' UTC, count: number }
+const SESSION_KEY = 'aileena_chat_count_daily_v3'; // { date: 'YYYY-MM-DD' local, count: number }
 const RUNTIME_KEY = 'aileena_runtime';
 type Runtime = 'cloud' | 'browser';
 
-/** Local calendar day — matches how people think “每天 20 条”, not UTC jargon. */
+/** Local calendar day — matches how people think “每人每天 20 条”, not UTC jargon. */
 function quotaDayKey(d = new Date()): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -64,11 +64,10 @@ function writeStoredDailyCount(count: number): void {
   }
 }
 
-// Shown instead of the provider's raw "credit balance is too low" billing error.
-// This agent is a personal demo, not a free public API.
-const NO_FREE_USE_MSG =
-  "the agent is resting for a bit — leave your email in the contact panel below and she'll see it.";
-const LEAD_THRESHOLD = 5; // hard gate: chat is blocked until lead is submitted, after the visitor has sent N messages
+// Shown instead of the provider's raw billing / credit errors.
+const MODEL_PAUSE_MSG =
+  "I'm pausing for a moment on the model side. Leave a note below if you'd like Aileen to see it, or try again shortly.";
+const LEAD_SOFT_AFTER = 5; // soft nudge only — never blocks the daily 20
 const LEAD_DISMISS_KEY = 'aileena_lead_state'; // 'sent' | (unset) — historical 'dismissed' values are tolerated but no longer set
 
 /**
@@ -78,11 +77,10 @@ const LEAD_DISMISS_KEY = 'aileena_lead_state'; // 'sent' | (unset) — historica
  * SAT-LINK / terminal language. Invoked via `/` from anywhere on the site or
  * via the machina-portrait launcher at the bottom-left of the viewport.
  *
- * Rate limiting:
- *   - Client/session: DAILY_LIMIT messages per calendar day (localStorage with date check).
- *   - Server/daily: 20 messages per visitor per day, enforced by a signed
- *     cookie in /api/chat. When the server returns 429 it shows up in the
- *     error display below.
+ * Rate limiting — product promise:
+ *   - 20 questions per visitor per local calendar day (not UTC).
+ *   - Client: localStorage day key. Server: signed cookie keyed by X-Quota-Day.
+ *   - Contact / email is optional outreach — it must never cut the daily 20 short.
  *
  * Auto-forward to Aileen's inbox:
  *   Every chat session is forwarded to her email via /api/chat/forward,
@@ -108,6 +106,10 @@ export default function AgentChat() {
   const { messages, setMessages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({
       api: '/api/chat',
+      // Keep server cookie day keyed to the visitor's local calendar day
+      // (same as localStorage). UTC-only keys made the counter look stuck
+      // between local midnight and UTC midnight.
+      headers: () => ({ 'X-Quota-Day': quotaDayKey() }),
       // Cross-session "topic memory" — what this visitor cared about on
       // previous visits, read fresh from localStorage on every request so
       // the server can soft-condition the system prompt on it. See
@@ -213,10 +215,10 @@ export default function AgentChat() {
   }, [open, activeRuntime]);
 
   const busy = status === 'submitted' || status === 'streaming' || browserBusy;
-  const sessionMaxed = sessionCount >= DAILY_LIMIT && leadState !== 'sent';
-  // Hard gate: once the visitor has sent LEAD_THRESHOLD messages, chat is
-  // blocked until they submit the lead form. Re-enables when leadState='sent'.
-  const mustProvideEmail = sessionCount >= LEAD_THRESHOLD && leadState !== 'sent';
+  // Hard stop only when today's 20 are gone — email must never unlock extra quota.
+  const sessionMaxed = sessionCount >= DAILY_LIMIT;
+  // Soft nudge after a few turns; contact stays optional for the full daily 20.
+  const leadSoftNudge = sessionCount >= LEAD_SOFT_AFTER && leadState !== 'sent';
 
   // Restore + re-check daily quota. Must run on open / tab focus — otherwise a
   // phone Safari tab left open overnight keeps yesterday's count forever.
@@ -228,8 +230,9 @@ export default function AgentChat() {
   useEffect(() => {
     reconcileDailyQuota();
     try {
-      // Drop the pre-fix key so stuck multi-day counts can't linger.
+      // Drop pre-fix keys so UTC-stuck / hard-gate counts can't linger.
       localStorage.removeItem('aileena_chat_count_daily');
+      localStorage.removeItem('aileena_chat_count_daily_v2');
       const lead = sessionStorage.getItem(LEAD_DISMISS_KEY);
       if (lead === 'sent') setLeadState('sent');
       else if (typeof document !== 'undefined' && document.cookie.includes('__aileena_lead')) setLeadState('sent');
@@ -276,7 +279,7 @@ export default function AgentChat() {
     if (status === 'error') {
       pendingDailyBumpRef.current = false;
       const raw = error?.message ?? '';
-      if (/daily limit|stopped DJing|Fresh set tomorrow|used today's/i.test(raw)) {
+      if (/daily limit|stopped DJing|Fresh set tomorrow|used today's|fresh set lands tomorrow/i.test(raw)) {
         writeStoredDailyCount(DAILY_LIMIT);
         setSessionCount(DAILY_LIMIT);
       }
@@ -545,7 +548,7 @@ export default function AgentChat() {
 
   function ask(text: string) {
     const trimmed = text.trim();
-    if (!trimmed || busy || sessionMaxed || mustProvideEmail) return;
+    if (!trimmed || busy || sessionMaxed) return;
     setInput('');
 
     // Record what the visitor asked about for cross-session memory. Done
@@ -597,10 +600,8 @@ export default function AgentChat() {
 
   const remaining = Math.max(0, DAILY_LIMIT - sessionCount);
 
-  // Panel renders exactly when the gate is active — same condition as the
-  // chat-input lock above, kept as a separate alias for readability in JSX.
-  const showLeadPanel = open && leadState !== 'sent';
-  const leadPanelRequired = mustProvideEmail;
+  // Contact panel: optional soft invite after a few turns — never a hard gate.
+  const showLeadPanel = open && leadState !== 'sent' && leadSoftNudge;
 
   function persistLeadState(next: LeadState) {
     setLeadState(next);
@@ -671,7 +672,10 @@ export default function AgentChat() {
     // Never surface the provider's billing/credit internals to visitors —
     // this agent isn't a free public service. Map any such error to our line.
     if (/credit balance|too low|insufficient|quota|billing|purchase credits|payment/i.test(text)) {
-      return NO_FREE_USE_MSG;
+      return MODEL_PAUSE_MSG;
+    }
+    if (/hit a snag|snag/i.test(text)) {
+      return 'Something went quiet on my side — mind trying that again?';
     }
     return text;
   })();
@@ -828,27 +832,23 @@ export default function AgentChat() {
           {sessionMaxed && (
             <p className="text-[0.7rem] leading-5 tracking-[0.05em] text-[#007d75]/75 whitespace-pre-wrap">
               <span className="font-mono text-[0.55rem] tracking-[0.3em] uppercase mr-1.5">▸ limit</span>
-              You've used today's {DAILY_LIMIT} messages. Fresh set tomorrow — see you then.
+              You&apos;ve used today&apos;s {DAILY_LIMIT} messages. Fresh set tomorrow — see you then.
             </p>
           )}
 
         </div>
 
-        {/* Contact panel — always available so visitors can leave contact for Aileen.
-            After LEAD_THRESHOLD messages it becomes required to keep chatting. */}
+        {/* Contact panel — optional soft invite after a few turns.
+            Never disables chat before the promised 20 / day. */}
         {showLeadPanel && (
           <div className="border-t border-[#e7e0d6] px-5 py-3 bg-[#faf7f0]">
             <div className="mb-2.5">
               <p className="font-mono text-[0.55rem] tracking-[0.35em] uppercase text-[#008f86]/85">
-                {leadPanelRequired
-                  ? '▸ leave your email to keep chatting'
-                  : '▸ leave contact for Aileen (email goes to her inbox)'}
+                ▸ leave a note for Aileen
               </p>
-              {!leadPanelRequired && (
-                <p className="mt-1 text-[0.7rem] text-[#1b1713]/45">
-                  Want to reach her? Drop email + a short note — it goes straight to her inbox.
-                </p>
-              )}
+              <p className="mt-1 text-[0.7rem] text-[#1b1713]/55">
+                Happy to keep talking here. If you&apos;d like her to write back, leave your email and a short note — it goes straight to her. Optional either way.
+              </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <input
@@ -889,7 +889,7 @@ export default function AgentChat() {
               </p>
             )}
             <p className="mt-2 font-mono text-[0.5rem] tracking-[0.28em] uppercase text-[#1b1713]/35">
-              transcript goes to her inbox ·{' '}
+              only reaches her inbox ·{' '}
               <a
                 href="/privacy"
                 target="_blank"
@@ -905,7 +905,7 @@ export default function AgentChat() {
         {leadState === 'sent' && (
           <div className="border-t border-[#e7e0d6] px-5 py-2 bg-[#f3fbf9]">
             <p className="font-mono text-[0.55rem] tracking-[0.3em] uppercase text-[#008f86]/90">
-              ▸ contact sent — she&apos;ll see it in her inbox
+              ▸ note sent — she&apos;ll see it
             </p>
           </div>
         )}
@@ -913,7 +913,7 @@ export default function AgentChat() {
         {/* Input row */}
         <div className="border-t border-[#e7e0d6] px-5 py-3">
           <div className="flex items-center gap-2">
-            <span className={`text-sm ${sessionMaxed || mustProvideEmail ? 'text-[#1b1713]/20' : 'text-[#00a89d]'}`}>&gt;</span>
+            <span className={`text-sm ${sessionMaxed ? 'text-[#1b1713]/20' : 'text-[#00a89d]'}`}>&gt;</span>
             <textarea
               ref={inputRef}
               value={input}
@@ -927,11 +927,9 @@ export default function AgentChat() {
               placeholder={
                 sessionMaxed
                   ? 'come back tomorrow ♡'
-                  : mustProvideEmail
-                  ? 'leave your email below to keep chatting'
                   : ''
               }
-              disabled={sessionMaxed || mustProvideEmail}
+              disabled={sessionMaxed}
               rows={1}
               className="flex-1 resize-none bg-transparent text-sm leading-6 text-[#1b1713]/90 placeholder:text-[#1b1713]/30 outline-none max-h-32 caret-[#00a89d] disabled:cursor-not-allowed"
               spellCheck={false}
@@ -948,10 +946,10 @@ export default function AgentChat() {
             <span>↵ send · reset · esc close · / open</span>
             <span className={remaining === 0 ? 'text-red-400/70' : remaining <= 2 ? 'text-[#007d75]/55' : 'text-[#1b1713]/40'}>
               {remaining === 0
-                ? "tomorrow's batch is waiting"
-                : remaining === 1
-                ? '1 message left today'
-                : `${remaining} of ${DAILY_LIMIT} left today`}
+                ? '0 left · resets at local midnight'
+                : remaining === DAILY_LIMIT
+                ? `${DAILY_LIMIT} / ${DAILY_LIMIT} questions left today`
+                : `${remaining} / ${DAILY_LIMIT} questions left today`}
             </span>
           </p>
         </div>

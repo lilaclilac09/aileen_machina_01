@@ -49,12 +49,29 @@ const QUOTA_COOKIE = '__aileena_quota';
  * cookies / using incognito, but that's a known and accepted trade-off for
  * a portfolio site — the alternative was provisioning a Vercel KV store.
  *
+ * Day key must match the visitor's local calendar day (client sends
+ * `X-Quota-Day: YYYY-MM-DD`). UTC-only keys made Asia/Europe visitors look
+ * like the counter never reset between local midnight and UTC midnight.
+ *
  * If CHAT_QUOTA_SECRET is unset we skip signature verification but still
  * use the counter (so the limit works, just isn't tamper-proof).
  */
 
-function todayUTC(): string {
+function utcDay(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+/** Prefer visitor-local day from header; fall back to UTC; reject absurd skew. */
+function resolveQuotaDay(req: Request): string {
+  const header = (req.headers.get('x-quota-day') ?? '').trim();
+  const utc = utcDay();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(header)) return utc;
+  const clientNoon = Date.parse(`${header}T12:00:00.000Z`);
+  const utcNoon = Date.parse(`${utc}T12:00:00.000Z`);
+  if (!Number.isFinite(clientNoon) || !Number.isFinite(utcNoon)) return utc;
+  // All civil timezones sit within ±14h of UTC; allow ~36h slack for clock skew.
+  if (Math.abs(clientNoon - utcNoon) > 36 * 60 * 60 * 1000) return utc;
+  return header;
 }
 
 function b64urlEncode(bytes: Uint8Array): string {
@@ -79,7 +96,7 @@ async function hmac(value: string, secret: string): Promise<string> {
 type QuotaState = { date: string; count: number };
 
 async function readQuota(req: Request): Promise<QuotaState> {
-  const today = todayUTC();
+  const today = resolveQuotaDay(req);
   const cookieHeader = req.headers.get('cookie') ?? '';
   const match = cookieHeader.match(new RegExp(`${QUOTA_COOKIE}=([^;]+)`));
   if (!match) return { date: today, count: 0 };
@@ -105,9 +122,10 @@ async function readQuota(req: Request): Promise<QuotaState> {
 
     const decoded = JSON.parse(atob(encoded)) as Partial<QuotaState>;
     if (decoded.date !== today || typeof decoded.count !== 'number') {
+      // New local day (or UTC roll) → fresh counter.
       return { date: today, count: 0 };
     }
-    return { date: decoded.date, count: decoded.count };
+    return { date: decoded.date, count: Math.max(0, Math.min(decoded.count, 99)) };
   } catch (err) {
     console.error('[chat] readQuota: error parsing/verifying quota cookie', err);
     return { date: today, count: 0 };
