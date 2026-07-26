@@ -160,6 +160,14 @@ export default function InklingClipTool() {
     [stopPolling, tx.errors.jobFailed, tx.errors.pollFailed],
   );
 
+  const canRun = host?.ready === true;
+  const remoteApi = Boolean(clipsApiBase());
+  const freeOnly = host?.api?.ok !== true;
+
+  useEffect(() => {
+    if (freeOnly && mode === 'query') setMode('best');
+  }, [freeOnly, mode]);
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
@@ -212,13 +220,6 @@ export default function InklingClipTool() {
   const running = submitting || job?.status === 'queued' || job?.status === 'running';
   const progress = job?.progress?.progress ?? 0;
   const phase = job?.progress?.phase ?? 'download';
-  const canRun = host?.ready === true;
-  const remoteApi = Boolean(clipsApiBase());
-  const freeOnly = host?.api?.ok !== true;
-
-  useEffect(() => {
-    if (freeOnly && mode === 'query') setMode('best');
-  }, [freeOnly, mode]);
 
   const cliCommand = useMemo(() => {
     const u = url.trim() || 'https://www.youtube.com/watch?v=VIDEO_ID';

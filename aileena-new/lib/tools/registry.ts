@@ -18,7 +18,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     tag: 'AUDIO',
     title: 'Audio Clipping',
     body:
-      'YouTube → short clips. Free local mode (no API key). Open the tool from here.',
+      'YouTube → short clips. No Inkling API needed — free silence cuts.',
     href: '/tools/inkling-clips',
     status: 'live',
     arcade: {

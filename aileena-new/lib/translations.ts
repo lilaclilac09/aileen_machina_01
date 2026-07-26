@@ -57,7 +57,7 @@ export const t = {
           tag: 'AUDIO',
           title: 'Audio Clipping',
           body:
-            'YouTube → short clips. Free local mode — open the tool here.',
+            'YouTube → short clips. No Inkling API — free mode. Open here.',
         },
         'cafe-cursor': {
           tag: 'EVENT',
