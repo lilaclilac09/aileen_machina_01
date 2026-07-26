@@ -5128,5 +5128,151 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-07-25T19:34:39.004Z"
+  },
+  {
+    "id": "2081122561560064455",
+    "url": "https://x.com/SemiAnalysis_/status/2081122561560064455",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "",
+    "createdAt": "Sat Jul 25 21:00:58 +0000 2026",
+    "createdTimestamp": 1785013258,
+    "likes": 199,
+    "retweets": 1,
+    "replies": 4,
+    "bookmarks": 25,
+    "views": 29655,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HOGh8InW4AA4Fgl.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-26T03:54:49.273Z"
+  },
+  {
+    "id": "2081165312905359785",
+    "url": "https://x.com/SpaceX/status/2081165312905359785",
+    "screenName": "SpaceX",
+    "authorId": "34743251",
+    "authorName": "SpaceX",
+    "text": "High-speed video of 33 Raptor engines powering the Super Heavy booster on Flight 13",
+    "createdAt": "Sat Jul 25 23:50:51 +0000 2026",
+    "createdTimestamp": 1785023451,
+    "likes": 9565,
+    "retweets": 1156,
+    "replies": 301,
+    "bookmarks": 979,
+    "views": 789513,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://video.twimg.com/amplify_video/2081164698666340352/vid/avc1/3840x2160/mY-dTMYryU44YLX-.mp4?tag=29"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-26T03:54:51.939Z"
+  },
+  {
+    "id": "2081149322448589043",
+    "url": "https://x.com/elonmusk/status/2081149322448589043",
+    "screenName": "elonmusk",
+    "authorId": "44196397",
+    "authorName": "Elon Musk",
+    "text": "@AdrianDittmann This flight intentionally had much higher acceleration to test how well the heat shield tiles would remain attached at high dynamic pressure. \n\nTest was successful.",
+    "createdAt": "Sat Jul 25 22:47:19 +0000 2026",
+    "createdTimestamp": 1785019639,
+    "likes": 11220,
+    "retweets": 545,
+    "replies": 271,
+    "bookmarks": 172,
+    "views": 206376,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-26T03:54:53.516Z"
+  },
+  {
+    "id": "2081141965651898709",
+    "url": "https://x.com/elonmusk/status/2081141965651898709",
+    "screenName": "elonmusk",
+    "authorId": "44196397",
+    "authorName": "Elon Musk",
+    "text": "Peter is not correct about me in this case.\n\nI have always known that dangers from Earth will also pose dangers to Mars. Obviously so. However, the immense difficulty of traveling to Mars means that there is a much higher likelihood of mitigating risks originating from Earth. \n\nA clear example of major risk reduction would be a deadly pandemic. Since it takes 6 months to reach Mars, there is an automatic 6 month quarantine!\n\nEven traveling at the speed of light, a deadly computer virus or AI attack can potentially be stopped due to Mars being ~4 to ~20 light-minutes from Earth. \n\nThis doesn’t mean that a Mars civilization eliminates all risk, but it absolutely greatly reduces the risk of consciousness being extinguished. \n\nMoreover, Mars is a stepping stone to extending consciousness broadly within our solar system and ultimately to millions of stars within our galaxy, which would extend the probable lifespan of consciousness as we know it by many orders of magnitude. \n\nThat said, what I personally find most motivating is not the risk reduction aspect of extending life beyond Earth, but rather the inspiring nature of exploration and being out there among the stars!\n\nPerhaps we will meet aliens or find the remains of long-dead civilizations that lasted millions of years …",
+    "createdAt": "Sat Jul 25 22:18:05 +0000 2026",
+    "createdTimestamp": 1785017885,
+    "likes": 14138,
+    "retweets": 1418,
+    "replies": 1361,
+    "bookmarks": 1543,
+    "views": 1201717,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-26T03:54:54.953Z"
+  },
+  {
+    "id": "2081105075770892766",
+    "url": "https://x.com/aaronburnett/status/2081105075770892766",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "This video is slowed down but if you were that very first flight test the take off actually felt that slow 😅",
+    "createdAt": "Sat Jul 25 19:51:29 +0000 2026",
+    "createdTimestamp": 1785009089,
+    "likes": 31,
+    "retweets": 3,
+    "replies": 0,
+    "bookmarks": 2,
+    "views": 1888,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://video.twimg.com/amplify_video/2081102071114149888/vid/avc1/3840x2160/hXuSSvkrDmSCDMPf.mp4?tag=29"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-26T03:54:56.399Z"
+  },
+  {
+    "id": "2081101597845627095",
+    "url": "https://x.com/aaronburnett/status/2081101597845627095",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "msm “quoting” a “primary source”",
+    "createdAt": "Sat Jul 25 19:37:40 +0000 2026",
+    "createdTimestamp": 1785008260,
+    "likes": 7,
+    "retweets": 1,
+    "replies": 1,
+    "bookmarks": 1,
+    "views": 1145,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://video.twimg.com/amplify_video/2081025267917582336/vid/avc1/716x1274/UB3tCmKBLz199HmF.mp4?tag=29"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-26T03:54:57.822Z"
   }
 ]
