@@ -215,36 +215,47 @@ export default function Home() {
             className="h-full flex flex-col bg-white relative overflow-hidden"
             style={{ fontFamily: nunito }}
           >
-            {/* Machina — the agent character. Content covers stay object plates. */}
+            {/* Machina — full plate, natural aspect (no crop). */}
             <div
               aria-hidden
-              className="hidden md:block absolute top-1/2 right-[-4%] lg:right-[-2%] -translate-y-1/2 z-0"
+              className="hidden md:block absolute top-1/2 right-[-2%] lg:right-[1%] -translate-y-1/2 z-0 pointer-events-none"
               style={{
-                width: 'clamp(380px, 42vw, 620px)',
-                height: 'clamp(540px, 60vw, 880px)',
-                backgroundImage: "url('/bg_pic/03.jpeg')",
-                backgroundPosition: '22% 8%',
-                backgroundSize: 'cover',
-                backgroundRepeat: 'no-repeat',
-                borderRadius: '2px',
-                boxShadow: '0 34px 110px -64px rgba(20,17,12,0.45), 0 0 0 1px rgba(20,17,12,0.08)',
+                width: 'clamp(280px, 34vw, 480px)',
               }}
-            />
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/bg_pic/03.jpeg"
+                alt=""
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  height: 'auto',
+                  maxHeight: 'min(88dvh, 860px)',
+                  objectFit: 'contain',
+                  borderRadius: 2,
+                  boxShadow:
+                    '0 34px 110px -64px rgba(20,17,12,0.45), 0 0 0 1px rgba(20,17,12,0.08)',
+                }}
+              />
+            </div>
 
-            {/* Mobile-only machina plate */}
-            <div
-              aria-hidden
-              className="md:hidden self-center mt-12"
-              style={{
-                width: 140,
-                height: 180,
-                backgroundImage: "url('/bg_pic/03.jpeg')",
-                backgroundPosition: '22% 8%',
-                backgroundSize: 'cover',
-                borderRadius: 2,
-                boxShadow: '0 24px 60px -34px rgba(20,17,12,0.45)',
-              }}
-            />
+            {/* Mobile-only machina plate — natural aspect */}
+            <div aria-hidden className="md:hidden self-center mt-10" style={{ width: 152 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/bg_pic/03.jpeg"
+                alt=""
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  height: 'auto',
+                  objectFit: 'contain',
+                  borderRadius: 2,
+                  boxShadow: '0 24px 60px -34px rgba(20,17,12,0.45)',
+                }}
+              />
+            </div>
 
             {/* Foreground content */}
             <div className="relative z-10 flex-1 flex items-center px-6 sm:px-12 lg:px-20">
@@ -286,18 +297,17 @@ export default function Home() {
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: 16,
-                      minHeight: 76,
-                      background: 'rgba(255,253,247,0.82)',
+                      gap: 14,
+                      minHeight: 72,
+                      background: '#fffdf8',
                       color: palette.ink,
-                      padding: '11px 16px 11px 12px',
+                      padding: '12px 14px 12px 12px',
                       borderRadius: 999,
-                      border: '1px solid rgba(0,169,159,0.26)',
+                      border: `2px solid ${palette.cyan}`,
                       boxShadow:
-                        '0 20px 48px -34px rgba(20,17,12,0.52), 0 0 0 1px rgba(255,255,255,0.74) inset',
+                        '0 16px 40px -28px rgba(20,17,12,0.55), 0 0 0 4px rgba(0,169,159,0.10)',
                       cursor: 'pointer',
                       textAlign: 'left',
-                      backdropFilter: 'blur(10px)',
                     }}
                     aria-label={tx.hero.talkAgent}
                   >
@@ -306,38 +316,50 @@ export default function Home() {
                       style={{
                         position: 'relative',
                         display: 'inline-flex',
-                        width: 56,
-                        height: 56,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 52,
+                        height: 52,
                         flex: '0 0 auto',
                         borderRadius: '50%',
-                        backgroundImage: "url('/bg_pic/03.jpeg')",
-                        backgroundPosition: '18% 5%',
-                        backgroundSize: '175%',
-                        boxShadow: `0 0 0 1px ${palette.cyan}, 0 10px 24px -18px rgba(20,17,12,0.9)`,
+                        overflow: 'hidden',
+                        background: '#efe8dc',
+                        boxShadow: `inset 0 0 0 1px rgba(20,17,12,0.08)`,
                       }}
                     >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src="/bg_pic/03.jpeg"
+                        alt=""
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'contain',
+                          objectPosition: 'center top',
+                        }}
+                      />
                       <span
                         style={{
                           position: 'absolute',
-                          right: -3,
+                          right: 1,
                           top: 1,
-                          width: 15,
-                          height: 15,
+                          width: 12,
+                          height: 12,
                           borderRadius: '50%',
                           background: palette.cyan,
-                          boxShadow: '0 0 0 4px rgba(255,253,247,0.96), 0 0 14px rgba(0,169,159,0.62)',
+                          boxShadow: '0 0 0 3px #fffdf8',
                         }}
                       />
                     </span>
-                    <span style={{ display: 'grid', gap: 5, minWidth: 0, paddingRight: 6 }}>
+                    <span style={{ display: 'grid', gap: 3, minWidth: 0, paddingRight: 4 }}>
                       <span
                         style={{
                           color: palette.cyan,
                           fontFamily: mono,
-                          fontSize: '0.86rem',
-                          fontWeight: 800,
-                          letterSpacing: '0.44em',
-                          lineHeight: 1,
+                          fontSize: '0.72rem',
+                          fontWeight: 850,
+                          letterSpacing: '0.2em',
+                          lineHeight: 1.1,
                           textTransform: 'uppercase',
                         }}
                       >
@@ -345,15 +367,16 @@ export default function Home() {
                       </span>
                       <span
                         style={{
-                          color: 'rgba(20,17,12,0.56)',
+                          color: palette.ink,
                           fontFamily: 'Georgia, serif',
-                          fontSize: '0.82rem',
+                          fontSize: '1.05rem',
+                          fontWeight: 600,
                           fontStyle: 'italic',
                           lineHeight: 1.15,
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        ask the agent
+                        {tx.hero.talkAgent}
                       </span>
                     </span>
                     <span
@@ -361,14 +384,15 @@ export default function Home() {
                       style={{
                         display: 'grid',
                         placeItems: 'center',
-                        width: 38,
-                        height: 38,
+                        width: 40,
+                        height: 40,
                         flex: '0 0 auto',
                         borderRadius: '50%',
-                        background: 'rgba(20,17,12,0.08)',
-                        color: palette.ink,
+                        background: palette.cyan,
+                        color: '#fffdf8',
                         fontFamily: mono,
-                        fontSize: '1.05rem',
+                        fontSize: '1.1rem',
+                        fontWeight: 700,
                       }}
                     >
                       →
@@ -970,7 +994,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  width: 'min(52%, 168px)',
+                  width: 'min(56%, 176px)',
                   margin: '28px auto 24px',
                   padding: 0,
                   border: 0,
@@ -982,20 +1006,17 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 }}
                 onClick={() => window.dispatchEvent(new CustomEvent('open-agent-chat'))}
               >
-                <span
-                  aria-hidden
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/bg_pic/03.jpeg"
+                  alt=""
+                  draggable={false}
                   style={{
                     display: 'block',
                     width: '100%',
-                    aspectRatio: '3 / 4',
-                    margin: 0,
-                    padding: 0,
-                    border: 'none',
-                    backgroundImage: "url('/bg_pic/03.jpeg')",
-                    backgroundPosition: '18% 5%',
-                    backgroundSize: '175%',
-                    backgroundRepeat: 'no-repeat',
-                    boxShadow: 'none',
+                    height: 'auto',
+                    objectFit: 'contain',
+                    background: '#efe8dc',
                   }}
                 />
                 <span
@@ -1020,6 +1041,8 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             const isTrendy = room.motif === 'trendy';
             const isInvesting = room.motif === 'investing';
             const isRecord = room.motif === 'record';
+            const isNaturalPhoto =
+              isInvesting || room.motif === 'hbm' || room.motif === 'pcb';
             const isPaper = isTrendy;
             const desktopRoomStyle: CSSProperties = {
               ...room.placement,
@@ -1033,15 +1056,16 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                     : isRecord
                       ? 'min(56vw, 290px)'
                       : 'min(22vw, 200px)',
-              minHeight: isArticle
-                ? 'clamp(250px, 34dvh, 310px)'
-                : isInvesting
-                  ? 180
+              // Photo scraps hug the image — no fixed frame that crops.
+              minHeight: isNaturalPhoto
+                ? undefined
+                : isArticle
+                  ? 'clamp(250px, 34dvh, 310px)'
                   : isTrendy
                     ? 'clamp(340px, 44dvh, 390px)'
                     : isRecord
                       ? 300
-                      : 220,
+                      : undefined,
               height: isTrendy ? 'clamp(340px, 44dvh, 390px)' : undefined,
               padding: 0,
               border: isPaper ? '1px solid rgba(20,17,12,0.16)' : 'none',
@@ -1147,12 +1171,11 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               top: '58%',
               left: atriumCoverLeft,
               width: 'min(13vw, 128px)',
-              height: 'clamp(140px, 18dvh, 168px)',
               padding: 0,
               margin: 0,
               border: 'none',
               outline: 'none',
-              background: '#0b0b0b',
+              background: 'transparent',
               boxShadow: 'none',
               cursor: dragMeCursor,
               transform: dragTransform('didion-scrap', 'rotate(-2.8deg)'),
@@ -1161,27 +1184,21 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               userSelect: 'none',
               zIndex: 9,
               textDecoration: 'none',
-              overflow: 'hidden',
             }}
             {...dragHandlers('didion-scrap')}
           >
-            <BleedPhoto
+            <NaturalPhoto
               src="/dispatch-covers/books-joan-didion-readings.jpg"
-              position="50% 18%"
               filter="saturate(0.88) contrast(1.04)"
-              overlay="linear-gradient(180deg, transparent 50%, rgba(20,17,12,0.6) 100%)"
             />
             <span
               style={{
-                position: 'absolute',
-                left: 10,
-                bottom: 10,
-                zIndex: 1,
-                color: '#fffdf8',
+                display: 'block',
+                marginTop: 8,
+                color: 'rgba(20,17,12,0.55)',
                 fontFamily: 'Georgia, serif',
                 fontSize: '0.9rem',
                 fontStyle: 'italic',
-                textShadow: '0 1px 10px rgba(0,0,0,0.45)',
                 pointerEvents: 'none',
               }}
             >
@@ -1301,9 +1318,9 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             aria-label="Open Aileena console · machina"
             className="absolute z-[16] hidden sm:block"
             style={{
-              top: '10%',
+              top: '6%',
               left: atriumPolaroidLeft,
-              width: 'clamp(108px, 10.5vw, 132px)',
+              width: 'clamp(128px, 13vw, 168px)',
               padding: 0,
               margin: 0,
               border: 0,
@@ -1323,29 +1340,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               window.dispatchEvent(new CustomEvent('open-agent-chat'));
             }}
           >
-            <span
-              aria-hidden
-              style={{
-                position: 'relative',
-                display: 'block',
-                width: '100%',
-                aspectRatio: '3 / 4',
-                margin: 0,
-                padding: 0,
-                border: 'none',
-                outline: 'none',
-                background: '#0b0b0b',
-                boxShadow: 'none',
-                overflow: 'hidden',
-              }}
-            >
-              <BleedPhoto
-                src="/bg_pic/03.jpeg"
-                position="18% 5%"
-                size="175%"
-                filter="saturate(0.95) contrast(1.04)"
-              />
-            </span>
+            <NaturalPhoto src="/bg_pic/03.jpeg" filter="saturate(0.95) contrast(1.04)" />
             <span
               style={{
                 display: 'block',
@@ -1454,7 +1449,35 @@ const thumbnailShellStyle: CSSProperties = {
   boxShadow: 'none',
 };
 
-/** Full-bleed photo face: dark underlay + overscan crop kills rotate white fringe. */
+/** Full plate at natural aspect — width-driven, never cropped. */
+function NaturalPhoto({
+  src,
+  filter,
+}: {
+  src: string;
+  filter?: string;
+}) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt=""
+      draggable={false}
+      style={{
+        display: 'block',
+        width: '100%',
+        height: 'auto',
+        objectFit: 'contain',
+        background: '#efe8dc',
+        filter,
+        pointerEvents: 'none',
+        userSelect: 'none',
+      }}
+    />
+  );
+}
+
+/** Full-bleed photo face for fixed frames that still need fill (rare). */
 function BleedPhoto({
   src,
   position = 'center',
@@ -1659,44 +1682,26 @@ function ObjectFace({ room }: { room: RoomDoor }) {
     return (
       <span
         style={{
-          position: 'relative',
           display: 'block',
           width: 'min(34vw, 220px)',
-          minHeight: 200,
-          overflow: 'hidden',
           border: 'none',
           outline: 'none',
-          background: '#0b0b0b',
+          background: 'transparent',
           boxShadow: 'none',
         }}
       >
-        <BleedPhoto
-          src="/dispatch-covers/investing-hero.jpg"
-          position="center 30%"
-          overlay="linear-gradient(180deg, rgba(13,17,16,0.18) 0%, rgba(13,17,16,0.2) 35%, rgba(13,17,16,0.82) 100%)"
-        />
+        <NaturalPhoto src="/dispatch-covers/investing-hero.jpg" />
         <span
           style={{
-            position: 'relative',
-            zIndex: 1,
             display: 'block',
-            padding: '18px 16px 20px',
-            minHeight: 200,
+            marginTop: 8,
+            color: 'rgba(20,17,12,0.55)',
+            fontFamily: 'Georgia, serif',
+            fontSize: '1.05rem',
+            fontStyle: 'italic',
           }}
         >
-          <span
-            style={{
-              display: 'block',
-              marginTop: 72,
-              color: '#fffdf8',
-              fontFamily: 'Georgia, serif',
-              fontSize: '1.05rem',
-              fontStyle: 'italic',
-              textShadow: '0 1px 10px rgba(0,0,0,0.45)',
-            }}
-          >
-            investing
-          </span>
+          investing
         </span>
       </span>
     );
@@ -1840,41 +1845,22 @@ function ObjectFace({ room }: { room: RoomDoor }) {
 
   if (room.motif === 'hbm') {
     return (
-      <span style={thumbnailShellStyle}>
+      <span style={{ ...thumbnailShellStyle, display: 'block', width: 'min(28vw, 200px)' }}>
+        <NaturalPhoto
+          src="/dispatch-covers/investing-hero.jpg"
+          filter="saturate(0.9) contrast(1.05)"
+        />
         <span
-          aria-hidden
           style={{
-            position: 'relative',
             display: 'block',
-            height: 220,
-            overflow: 'hidden',
-            borderRadius: 0,
-            background: '#0b0b0b',
-            border: 'none',
-            boxShadow: 'none',
+            marginTop: 8,
+            color: 'rgba(20,17,12,0.55)',
+            fontFamily: 'Georgia, serif',
+            fontSize: '1.05rem',
+            fontStyle: 'italic',
           }}
         >
-          <BleedPhoto
-            src="/dispatch-covers/investing-hero.jpg"
-            position="center"
-            filter="saturate(0.9) contrast(1.05)"
-            overlay="linear-gradient(180deg, rgba(10,13,12,0.08), rgba(10,13,12,0.7))"
-          />
-          <span
-            style={{
-              position: 'absolute',
-              left: 14,
-              bottom: 14,
-              zIndex: 1,
-              color: '#fffdf8',
-              fontFamily: 'Georgia, serif',
-              fontSize: '1.05rem',
-              fontStyle: 'italic',
-              textShadow: '0 1px 10px rgba(0,0,0,0.55)',
-            }}
-          >
-            magazine
-          </span>
+          magazine
         </span>
       </span>
     );
@@ -1882,41 +1868,22 @@ function ObjectFace({ room }: { room: RoomDoor }) {
 
   if (room.motif === 'pcb') {
     return (
-      <span style={thumbnailShellStyle}>
+      <span style={{ ...thumbnailShellStyle, display: 'block', width: 'min(30vw, 220px)' }}>
+        <NaturalPhoto
+          src="/projects/keyshield.png"
+          filter="saturate(0.9) contrast(1.08)"
+        />
         <span
-          aria-hidden
           style={{
-            position: 'relative',
             display: 'block',
-            height: 220,
-            overflow: 'hidden',
-            borderRadius: 0,
-            background: '#0b0b0b',
-            border: 'none',
-            boxShadow: 'none',
+            marginTop: 8,
+            color: 'rgba(20,17,12,0.55)',
+            fontFamily: 'Georgia, serif',
+            fontSize: '1.05rem',
+            fontStyle: 'italic',
           }}
         >
-          <BleedPhoto
-            src="/projects/keyshield.png"
-            position="center"
-            filter="saturate(0.9) contrast(1.08)"
-            overlay="linear-gradient(90deg, rgba(8,16,18,0.72), rgba(8,16,18,0.18))"
-          />
-          <span
-            style={{
-              position: 'absolute',
-              left: 16,
-              bottom: 16,
-              zIndex: 1,
-              color: '#fffdf8',
-              fontFamily: 'Georgia, serif',
-              fontSize: '1.05rem',
-              fontStyle: 'italic',
-              textShadow: '0 1px 10px rgba(0,0,0,0.55)',
-            }}
-          >
-            news
-          </span>
+          news
         </span>
       </span>
     );
