@@ -30,20 +30,29 @@ export async function POST(req: Request) {
 
   const adminSecret = generateAdminSecret();
   let slug = generateSlug();
-  for (let i = 0; i < 5; i++) {
-    const exists = await prisma.album.findUnique({ where: { slug } });
-    if (!exists) break;
-    slug = generateSlug();
-  }
+  let album;
+  try {
+    for (let i = 0; i < 5; i++) {
+      const exists = await prisma.album.findUnique({ where: { slug } });
+      if (!exists) break;
+      slug = generateSlug();
+    }
 
-  const album = await prisma.album.create({
-    data: {
-      slug,
-      title: parsed.data.title,
-      adminSecretHash: hashSecret(adminSecret),
-      expiresAt: albumExpiresAt(),
-    },
-  });
+    album = await prisma.album.create({
+      data: {
+        slug,
+        title: parsed.data.title,
+        adminSecretHash: hashSecret(adminSecret),
+        expiresAt: albumExpiresAt(),
+      },
+    });
+  } catch (err) {
+    console.error("create album failed", err);
+    return jsonError(
+      "数据库不可用，请检查 DATABASE_URL 与 /api/health / database unavailable, see /api/health",
+      503
+    );
+  }
 
   cookies().set(adminCookieOptions(album.id, adminSecret));
 
