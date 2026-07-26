@@ -19,7 +19,14 @@ function envCheck(): Record<string, Check> {
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL
       ? { ok: true, detail: process.env.NEXT_PUBLIC_APP_URL }
       : { ok: false, detail: "missing — share links fall back to localhost" },
-    STORAGE_DRIVER: { ok: true, detail: driver },
+    STORAGE_DRIVER:
+      driver === "local" && process.env.VERCEL
+        ? {
+            ok: false,
+            detail:
+              "local writes to an ephemeral read-only filesystem on Vercel — set blob, r2, or dual",
+          }
+        : { ok: true, detail: driver },
   };
 
   if (driver === "blob") {
