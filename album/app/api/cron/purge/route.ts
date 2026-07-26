@@ -6,17 +6,30 @@ import { deleteStoredObjects } from "@/lib/storage";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
+/** Vercel Cron identifies itself this way when no CRON_SECRET is configured. */
+function fromVercelCron(req: Request): boolean {
+  return (
+    req.headers.get("x-vercel-cron") !== null ||
+    /vercel-cron/i.test(req.headers.get("user-agent") || "")
+  );
+}
+
 function authorized(req: Request): boolean {
   const secret = process.env.CRON_SECRET;
-  if (!secret) return process.env.NODE_ENV !== "production";
+  if (!secret) {
+    // Without a secret, only accept the platform scheduler (or local dev).
+    return fromVercelCron(req) || process.env.NODE_ENV !== "production";
+  }
   const header = req.headers.get("authorization") || "";
   const bearer = header.startsWith("Bearer ") ? header.slice(7) : "";
   const query = new URL(req.url).searchParams.get("secret") || "";
-  return bearer === secret || query === secret;
+  return bearer === secret || query === secret || fromVercelCron(req);
 }
 
 /**
- * Purge albums whose expiresAt + 7d grace has passed.
+ * Purge albums whose expiresAt + 7d grace has passed. Uploads roll expiresAt
+ * forward, so this only removes albums nobody has added to in a full window.
+ *
  * Vercel Cron: GET /api/cron/purge  Authorization: Bearer $CRON_SECRET
  */
 export async function GET(req: Request) {

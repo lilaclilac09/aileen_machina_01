@@ -1,7 +1,7 @@
 import { randomBytes } from "crypto";
 import { prisma } from "@/lib/db";
 import { jsonError, jsonOk } from "@/lib/http";
-import { isExpired } from "@/lib/album";
+import { daysLeft, isExpired, renewedExpiry } from "@/lib/album";
 import {
   ALLOWED_MIME,
   MAX_FILE_BYTES,
@@ -115,14 +115,19 @@ export async function POST(req: Request, { params }: Ctx) {
     );
   }
 
-  await prisma.album.update({
+  const renewed = await prisma.album.update({
     where: { id: album.id },
-    data: { photoCount: { increment: created.length } },
+    data: {
+      photoCount: { increment: created.length },
+      expiresAt: renewedExpiry(album.expiresAt),
+    },
   });
 
   return jsonOk({
     uploaded: created.length,
     skipped,
+    expiresAt: renewed.expiresAt.toISOString(),
+    daysLeft: daysLeft(renewed.expiresAt),
     photos: created.map((p) => ({
       id: p.id,
       url: p.url,
