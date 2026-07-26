@@ -2,21 +2,17 @@ import { prisma } from "@/lib/db";
 import { jsonOk } from "@/lib/http";
 import { storageDriver } from "@/lib/storage";
 import dbSync from "@/lib/db-sync-status.json";
+import { databaseUrlCheck } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
 type Check = { ok: boolean; detail: string };
 
 function envCheck(): Record<string, Check> {
-  const url = (process.env.DATABASE_URL || "").trim();
   const driver = storageDriver();
 
   const checks: Record<string, Check> = {
-    DATABASE_URL: /^postgres(ql)?:\/\//i.test(url)
-      ? { ok: true, detail: "postgres" }
-      : /^file:/i.test(url)
-        ? { ok: true, detail: "sqlite (local only)" }
-        : { ok: false, detail: "missing or not a postgres URI" },
+    DATABASE_URL: databaseUrlCheck(process.env.DATABASE_URL),
     ADMIN_COOKIE_SECRET: process.env.ADMIN_COOKIE_SECRET
       ? { ok: true, detail: "set" }
       : { ok: false, detail: "missing — admin cookies are insecure" },

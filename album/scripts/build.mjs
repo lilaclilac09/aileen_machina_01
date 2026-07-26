@@ -33,8 +33,20 @@ function loadDotEnv() {
 
 loadDotEnv();
 const rawUrl = (process.env.DATABASE_URL || "").trim();
-const isPostgres = /^postgres(ql)?:\/\//i.test(rawUrl);
-const isSqlite = /^file:/i.test(rawUrl);
+/** Example strings pasted verbatim would otherwise fail deep inside Prisma. */
+const isExample = /…|\.\.\.|user:pass|ep-xxxx|<[^>]+>|YOUR_/i.test(rawUrl);
+const isPostgres = !isExample && /^postgres(ql)?:\/\//i.test(rawUrl);
+const isSqlite = !isExample && /^file:/i.test(rawUrl);
+
+if (isExample) {
+  console.warn(`
+[build] DATABASE_URL looks like the example string, not a real URI:
+  ${rawUrl}
+
+Copy the connection string from the Neon dashboard (Connection string → URI)
+and paste it whole into Vercel → Settings → Environment Variables.
+`);
+}
 
 function setProvider(provider) {
   const schema = readFileSync(schemaPath, "utf8");
