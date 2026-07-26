@@ -18,8 +18,8 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     tag: 'AUDIO',
     title: 'Audio Clipping',
     body:
-      'YouTube → short clips. Free local (no API). Product page + runner.',
-    href: '/audio-clipping',
+      'YouTube → short clips. Free local mode (no API key). Open the tool from here.',
+    href: '/tools/inkling-clips',
     status: 'live',
     arcade: {
       glyph: '▶',

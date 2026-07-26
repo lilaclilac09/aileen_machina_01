@@ -11,26 +11,60 @@ function ToolTile({
   copy,
   openLabel,
   tbcLabel,
+  liveLabel,
 }: {
   tool: ToolDefinition;
   copy?: { tag: string; title: string; body: string };
   openLabel: string;
   tbcLabel: string;
+  liveLabel: string;
 }) {
   const isTbc = tool.status === 'tbc';
+  const isFeatured = tool.slug === 'inkling-clips';
   const title = copy?.title ?? tool.title;
   const tag = copy?.tag ?? tool.tag;
   const body = isTbc ? tbcLabel : (copy?.body ?? tool.body);
 
   const inner = (
-    <article className="arcade-cabinet" style={isTbc ? { opacity: 0.55 } : undefined}>
+    <article
+      className="arcade-cabinet"
+      style={
+        isTbc
+          ? { opacity: 0.55 }
+          : isFeatured
+            ? { outline: '2px solid #00a99f', outlineOffset: 0 }
+            : undefined
+      }
+    >
       <div
         className="arcade-screen"
-        style={{ background: tool.arcade.screenGradient, minHeight: 132 }}
+        style={{
+          background: tool.arcade.screenGradient,
+          minHeight: isFeatured ? 160 : 132,
+          position: 'relative',
+        }}
       >
         <span className="arcade-screen-glyph" aria-hidden>
           {tool.arcade.glyph}
         </span>
+        {!isTbc ? (
+          <span
+            style={{
+              position: 'absolute',
+              top: 12,
+              left: 12,
+              fontFamily: mono,
+              fontSize: '0.62rem',
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              background: isFeatured ? '#00a99f' : '#14110c',
+              color: '#fffdf8',
+              padding: '5px 8px',
+            }}
+          >
+            {liveLabel}
+          </span>
+        ) : null}
       </div>
       <div className="arcade-panel">
         <p
@@ -45,7 +79,14 @@ function ToolTile({
         >
           {tag}
         </p>
-        <h2 style={{ margin: '0 0 8px', fontSize: '1.15rem', fontWeight: 600, color: '#14110c' }}>
+        <h2
+          style={{
+            margin: '0 0 8px',
+            fontSize: isFeatured ? '1.28rem' : '1.15rem',
+            fontWeight: 600,
+            color: '#14110c',
+          }}
+        >
           {title}
         </h2>
         <p
@@ -111,7 +152,7 @@ function ToolTile({
 export default function ToolsArcadePage() {
   const { language } = useLanguage();
   const tx = t[language].tools;
-  const liveCount = TOOL_DEFINITIONS.filter((t) => t.status === 'live').length;
+  const liveCount = TOOL_DEFINITIONS.filter((tool) => tool.status === 'live').length;
 
   return (
     <ArcadeLayout tag={tx.tag} title={tx.heading} subtitle={tx.body} marquee={tx.marquee}>
@@ -146,6 +187,7 @@ export default function ToolsArcadePage() {
               copy={copy}
               openLabel={tx.openTool}
               tbcLabel={tx.tbc}
+              liveLabel={tx.liveBadge}
             />
           );
         })}
