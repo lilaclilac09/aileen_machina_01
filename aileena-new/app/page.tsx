@@ -215,7 +215,7 @@ export default function Home() {
             className="h-full flex flex-col bg-white relative overflow-hidden"
             style={{ fontFamily: nunito }}
           >
-            {/* Background portrait — large, partially out of frame on the right */}
+            {/* Machina — the agent character. Content covers stay object plates. */}
             <div
               aria-hidden
               className="hidden md:block absolute top-1/2 right-[-4%] lg:right-[-2%] -translate-y-1/2 z-0"
@@ -224,14 +224,14 @@ export default function Home() {
                 height: 'clamp(540px, 60vw, 880px)',
                 backgroundImage: "url('/bg_pic/03.jpeg')",
                 backgroundPosition: '22% 8%',
-                backgroundSize: '180%',
+                backgroundSize: 'cover',
                 backgroundRepeat: 'no-repeat',
-                borderRadius: '24px',
+                borderRadius: '2px',
                 boxShadow: '0 34px 110px -64px rgba(20,17,12,0.45), 0 0 0 1px rgba(20,17,12,0.08)',
               }}
             />
 
-            {/* Mobile-only portrait — smaller, top */}
+            {/* Mobile-only machina plate */}
             <div
               aria-hidden
               className="md:hidden self-center mt-12"
@@ -240,8 +240,8 @@ export default function Home() {
                 height: 180,
                 backgroundImage: "url('/bg_pic/03.jpeg')",
                 backgroundPosition: '22% 8%',
-                backgroundSize: '180%',
-                borderRadius: 14,
+                backgroundSize: 'cover',
+                borderRadius: 2,
                 boxShadow: '0 24px 60px -34px rgba(20,17,12,0.45)',
               }}
             />
@@ -311,8 +311,8 @@ export default function Home() {
                         flex: '0 0 auto',
                         borderRadius: '50%',
                         backgroundImage: "url('/bg_pic/03.jpeg')",
-                        backgroundPosition: '22% 8%',
-                        backgroundSize: '180%',
+                        backgroundPosition: '18% 5%',
+                        backgroundSize: '175%',
                         boxShadow: `0 0 0 1px ${palette.cyan}, 0 10px 24px -18px rgba(20,17,12,0.9)`,
                       }}
                     >
@@ -905,10 +905,8 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                   padding: 0,
                   border: 'none',
                   outline: 'none',
-                  backgroundImage: "url('/dispatch-covers/harassment.jpg')",
-                  backgroundPosition: '48% 42%',
-                  backgroundSize: 'cover',
-                  backgroundRepeat: 'no-repeat',
+                  background:
+                    'radial-gradient(ellipse at 28% 22%, rgba(233,130,157,0.42) 0%, transparent 55%), linear-gradient(165deg, #33100f 0%, #140807 72%)',
                   boxShadow: 'none',
                   textDecoration: 'none',
                   position: 'relative',
@@ -966,7 +964,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
 
               <button
                 type="button"
-                aria-label="Open Aileena console — machina polaroid"
+                aria-label="Open Aileena console · machina"
                 className="text-left"
                 style={{
                   display: 'flex',
@@ -994,8 +992,8 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                     padding: 0,
                     border: 'none',
                     backgroundImage: "url('/bg_pic/03.jpeg')",
-                    backgroundPosition: '36% 14%',
-                    backgroundSize: 'cover',
+                    backgroundPosition: '18% 5%',
+                    backgroundSize: '175%',
                     backgroundRepeat: 'no-repeat',
                     boxShadow: 'none',
                   }}
@@ -1004,14 +1002,12 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                   style={{
                     marginTop: 8,
                     color: 'rgba(20,17,12,0.55)',
-                    fontFamily: mono,
-                    fontSize: '0.5rem',
-                    fontWeight: 800,
-                    letterSpacing: '0.16em',
-                    textTransform: 'uppercase',
+                    fontFamily: 'Georgia, serif',
+                    fontSize: '0.95rem',
+                    fontStyle: 'italic',
                   }}
                 >
-                  ask · machina
+                  Machina
                 </span>
               </button>
 
@@ -1115,11 +1111,15 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             }}
             {...dragHandlers('woman-cover-print')}
           >
-            <BleedPhoto
-              src="/dispatch-covers/harassment.jpg"
-              position="48% 38%"
-              filter="contrast(1.05) saturate(0.92)"
-              overlay="linear-gradient(180deg, transparent 55%, rgba(20,17,12,0.58) 100%)"
+            {/* Colour plate — no figure cover; label carries the door. */}
+            <span
+              aria-hidden
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background:
+                  'radial-gradient(ellipse at 28% 22%, rgba(233,130,157,0.42) 0%, transparent 55%), linear-gradient(165deg, #33100f 0%, #140807 72%)',
+              }}
             />
             <span
               style={{
@@ -1298,7 +1298,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
 
           <button
             type="button"
-            aria-label="Open Aileena console — machina portrait"
+            aria-label="Open Aileena console · machina"
             className="absolute z-[16] hidden sm:block"
             style={{
               top: '10%',
@@ -1341,8 +1341,9 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             >
               <BleedPhoto
                 src="/bg_pic/03.jpeg"
-                position="34% 8%"
-                filter="saturate(0.94) contrast(1.04)"
+                position="18% 5%"
+                size="175%"
+                filter="saturate(0.95) contrast(1.04)"
               />
             </span>
             <span
@@ -1357,7 +1358,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 pointerEvents: 'none',
               }}
             >
-              Ask
+              Machina
             </span>
           </button>
         </div>
@@ -1457,11 +1458,13 @@ const thumbnailShellStyle: CSSProperties = {
 function BleedPhoto({
   src,
   position = 'center',
+  size = 'cover',
   filter,
   overlay,
 }: {
   src: string;
   position?: string;
+  size?: string;
   filter?: string;
   overlay?: CSSProperties['background'];
 }) {
@@ -1482,10 +1485,10 @@ function BleedPhoto({
       <span
         style={{
           position: 'absolute',
-          inset: '-8%',
+          inset: size === 'cover' ? '-8%' : 0,
           backgroundImage: `url('${src}')`,
           backgroundPosition: position,
-          backgroundSize: 'cover',
+          backgroundSize: size,
           backgroundRepeat: 'no-repeat',
           filter,
           transform: 'translateZ(0)',

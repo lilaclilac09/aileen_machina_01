@@ -68,12 +68,13 @@ const RAIL_FACE: Record<Rail, { ground: string; glow: string }> = {
   mars: { ground: '#0f1626', glow: 'rgba(120,164,255,0.34)' },
 };
 
-/** Only pieces with a photograph that actually means something. */
+/**
+ * Gallery plates only — objects / material / documents. No figure covers
+ * (portraits, people-with-signs); those pieces get a colour plate so the
+ * wall stays exhibition of works, not faces.
+ */
 const PHOTO_BY_SLUG: Record<string, string> = {
-  harassment: '/dispatch-covers/harassment.jpg',
-  misread: '/dispatch-covers/misread-boy-girl.jpg',
   'watch-listening-shelf': '/dispatch-covers/books-joan-didion-readings.jpg',
-  'third-culture-power': '/dispatch-covers/fashion-simon-encouragement.jpg',
   'nvidia-flywheel': '/dispatch-covers/investing-hero.jpg',
 };
 
