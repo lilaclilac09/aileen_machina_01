@@ -13,6 +13,7 @@ import Link from 'next/link';
 import Header from '../components/Header';
 import LoadingScreen from '../components/LoadingScreen';
 import GlassBench from '../components/GlassBench';
+import WritingWall, { type WallPost } from '../components/WritingWall';
 import { SnapContainer, SnapSection } from '../components/SnapScroll';
 import { useLanguage } from '../components/LanguageProvider';
 import { t } from '../lib/translations';
@@ -77,20 +78,17 @@ type RoomDoor = {
 
 /* ── Homepage ─────────────────────────────────────────────────────────
  *
- * A cinematic opening, then one clickable clipping desk. Information is
- * intentionally minimal: the homepage's job is to set the mood, not to
- * contain the content.
+ * The homepage IS the collage desk. Mood first, findability through labeled
+ * scraps on that desk — not through a second catalog page that replaces it.
  *
- *   Section 01  Cinematic opening   — scene + one line + one CTA
- *   Section 02  Clipping desk       — article scraps + direct doors
- *   Section 03  Watch / Listen      — DJ door + one shelf door
- *   Section 04  Visual              — kiln / glass bench (handmade work)
+ *   Section 01  Cinematic opening
+ *   Section 02  Clipping desk       — scraps = her things (click to enter)
+ *   Section 03  Watch / Listen      — DJ black door (also on the desk)
+ *   Section 04  Visual              — kiln / glass
+ *   Section 05  Writing wall        — full cover archive (secondary, after desk)
  *
- * The Machina mark on the cinematic opening doubles as the door to the
- * agent department.
- *
- * Visual language: white editorial base, amber for Magazine, cyan/teal for
- * machina links. The standalone DJ station stays black on /sound.
+ * Rooms (Dispatch, books, films, tools) keep the deep archive. The desk
+ * only has to answer: where is mine?
  */
 export default function Home() {
   const { language } = useLanguage();
@@ -102,6 +100,31 @@ export default function Home() {
   const latestDispatch = tx.blog.researchDispatch.posts.slice(-1)[0];
   const metooArticle = tx.blog.womanInTech.posts.find((post) => post.href === '/blog/harassment') ?? tx.blog.womanInTech.posts[0];
   const featuredInvesting = tx.blog.investing.posts.find((post) => post.href === '/blog/nvidia-flywheel') ?? tx.blog.investing.posts[0];
+  // Every rail in one list — the writing wall shows the whole archive as
+  // covers. Each rail carries its own colour and its own translated tag,
+  // so the plates read DATA ARCHIVE / DATENARCHIV with the language switch.
+  const allPosts: WallPost[] = [
+    ...tx.blog.researchDispatch.posts.map((post) => ({
+      ...post,
+      rail: 'dispatch' as const,
+      railLabel: tx.blog.researchDispatch.tag,
+    })),
+    ...tx.blog.investing.posts.map((post) => ({
+      ...post,
+      rail: 'investing' as const,
+      railLabel: tx.blog.investing.tag,
+    })),
+    ...tx.blog.womanInTech.posts.map((post) => ({
+      ...post,
+      rail: 'woman' as const,
+      railLabel: tx.blog.womanInTech.tag,
+    })),
+    ...tx.blog.marsAndMoon.posts.map((post) => ({
+      ...post,
+      rail: 'mars' as const,
+      railLabel: tx.blog.marsAndMoon.tag,
+    })),
+  ];
   const rooms: RoomDoor[] = [
     {
       id: 'magazine',
@@ -192,36 +215,47 @@ export default function Home() {
             className="h-full flex flex-col bg-white relative overflow-hidden"
             style={{ fontFamily: nunito }}
           >
-            {/* Background portrait — large, partially out of frame on the right */}
+            {/* Machina — full plate, natural aspect (no crop). */}
             <div
               aria-hidden
-              className="hidden md:block absolute top-1/2 right-[-4%] lg:right-[-2%] -translate-y-1/2 z-0"
+              className="hidden md:block absolute top-1/2 right-[-2%] lg:right-[1%] -translate-y-1/2 z-0 pointer-events-none"
               style={{
-                width: 'clamp(380px, 42vw, 620px)',
-                height: 'clamp(540px, 60vw, 880px)',
-                backgroundImage: "url('/bg_pic/03.jpeg')",
-                backgroundPosition: '22% 8%',
-                backgroundSize: '180%',
-                backgroundRepeat: 'no-repeat',
-                borderRadius: '24px',
-                boxShadow: '0 34px 110px -64px rgba(20,17,12,0.45), 0 0 0 1px rgba(20,17,12,0.08)',
+                width: 'clamp(280px, 34vw, 480px)',
               }}
-            />
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/bg_pic/03.jpeg"
+                alt=""
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  height: 'auto',
+                  maxHeight: 'min(88dvh, 860px)',
+                  objectFit: 'contain',
+                  borderRadius: 2,
+                  boxShadow:
+                    '0 34px 110px -64px rgba(20,17,12,0.45), 0 0 0 1px rgba(20,17,12,0.08)',
+                }}
+              />
+            </div>
 
-            {/* Mobile-only portrait — smaller, top */}
-            <div
-              aria-hidden
-              className="md:hidden self-center mt-12"
-              style={{
-                width: 140,
-                height: 180,
-                backgroundImage: "url('/bg_pic/03.jpeg')",
-                backgroundPosition: '22% 8%',
-                backgroundSize: '180%',
-                borderRadius: 14,
-                boxShadow: '0 24px 60px -34px rgba(20,17,12,0.45)',
-              }}
-            />
+            {/* Mobile-only machina plate — natural aspect */}
+            <div aria-hidden className="md:hidden self-center mt-10" style={{ width: 152 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/bg_pic/03.jpeg"
+                alt=""
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  height: 'auto',
+                  objectFit: 'contain',
+                  borderRadius: 2,
+                  boxShadow: '0 24px 60px -34px rgba(20,17,12,0.45)',
+                }}
+              />
+            </div>
 
             {/* Foreground content */}
             <div className="relative z-10 flex-1 flex items-center px-6 sm:px-12 lg:px-20">
@@ -263,18 +297,17 @@ export default function Home() {
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: 16,
-                      minHeight: 76,
-                      background: 'rgba(255,253,247,0.82)',
+                      gap: 14,
+                      minHeight: 72,
+                      background: '#fffdf8',
                       color: palette.ink,
-                      padding: '11px 16px 11px 12px',
+                      padding: '12px 14px 12px 12px',
                       borderRadius: 999,
-                      border: '1px solid rgba(0,169,159,0.26)',
+                      border: `2px solid ${palette.cyan}`,
                       boxShadow:
-                        '0 20px 48px -34px rgba(20,17,12,0.52), 0 0 0 1px rgba(255,255,255,0.74) inset',
+                        '0 16px 40px -28px rgba(20,17,12,0.55), 0 0 0 4px rgba(0,169,159,0.10)',
                       cursor: 'pointer',
                       textAlign: 'left',
-                      backdropFilter: 'blur(10px)',
                     }}
                     aria-label={tx.hero.talkAgent}
                   >
@@ -283,38 +316,50 @@ export default function Home() {
                       style={{
                         position: 'relative',
                         display: 'inline-flex',
-                        width: 56,
-                        height: 56,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 52,
+                        height: 52,
                         flex: '0 0 auto',
                         borderRadius: '50%',
-                        backgroundImage: "url('/bg_pic/03.jpeg')",
-                        backgroundPosition: '22% 8%',
-                        backgroundSize: '180%',
-                        boxShadow: `0 0 0 1px ${palette.cyan}, 0 10px 24px -18px rgba(20,17,12,0.9)`,
+                        overflow: 'hidden',
+                        background: '#efe8dc',
+                        boxShadow: `inset 0 0 0 1px rgba(20,17,12,0.08)`,
                       }}
                     >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src="/bg_pic/03.jpeg"
+                        alt=""
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'contain',
+                          objectPosition: 'center top',
+                        }}
+                      />
                       <span
                         style={{
                           position: 'absolute',
-                          right: -3,
+                          right: 1,
                           top: 1,
-                          width: 15,
-                          height: 15,
+                          width: 12,
+                          height: 12,
                           borderRadius: '50%',
                           background: palette.cyan,
-                          boxShadow: '0 0 0 4px rgba(255,253,247,0.96), 0 0 14px rgba(0,169,159,0.62)',
+                          boxShadow: '0 0 0 3px #fffdf8',
                         }}
                       />
                     </span>
-                    <span style={{ display: 'grid', gap: 5, minWidth: 0, paddingRight: 6 }}>
+                    <span style={{ display: 'grid', gap: 3, minWidth: 0, paddingRight: 4 }}>
                       <span
                         style={{
                           color: palette.cyan,
                           fontFamily: mono,
-                          fontSize: '0.86rem',
-                          fontWeight: 800,
-                          letterSpacing: '0.44em',
-                          lineHeight: 1,
+                          fontSize: '0.72rem',
+                          fontWeight: 850,
+                          letterSpacing: '0.2em',
+                          lineHeight: 1.1,
                           textTransform: 'uppercase',
                         }}
                       >
@@ -322,15 +367,16 @@ export default function Home() {
                       </span>
                       <span
                         style={{
-                          color: 'rgba(20,17,12,0.56)',
+                          color: palette.ink,
                           fontFamily: 'Georgia, serif',
-                          fontSize: '0.82rem',
+                          fontSize: '1.05rem',
+                          fontWeight: 600,
                           fontStyle: 'italic',
                           lineHeight: 1.15,
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        ask the agent
+                        {tx.hero.talkAgent}
                       </span>
                     </span>
                     <span
@@ -338,14 +384,15 @@ export default function Home() {
                       style={{
                         display: 'grid',
                         placeItems: 'center',
-                        width: 38,
-                        height: 38,
+                        width: 40,
+                        height: 40,
                         flex: '0 0 auto',
                         borderRadius: '50%',
-                        background: 'rgba(20,17,12,0.08)',
-                        color: palette.ink,
+                        background: palette.cyan,
+                        color: '#fffdf8',
                         fontFamily: mono,
-                        fontSize: '1.05rem',
+                        fontSize: '1.1rem',
+                        fontWeight: 700,
                       }}
                     >
                       →
@@ -378,9 +425,12 @@ export default function Home() {
           <AtriumLinkDock rooms={rooms} />
         </SnapSection>
 
-        {/* ── 03 WATCH / LISTEN HUB ─────────────────────────────── */}
+        {/* ── 03 WATCH / LISTEN — after the desk, not instead of it ─ */}
         <SnapSection id="watch-hub" className="order-3" variant="flow">
-          <HomeWatchHub />
+          <HomeWatchHub
+            copy={tx.watchHub}
+            rooms={tx.rooms.filter((room) => room.href !== '/' && room.href !== '/sound')}
+          />
         </SnapSection>
 
         {/* ── 04 VISUAL — kiln / glass (homepage only, not /sound) ─ */}
@@ -396,12 +446,24 @@ export default function Home() {
           </div>
         </SnapSection>
 
+        {/* ── 05 WRITING WALL — full archive; desk stays the entrance ─ */}
+        <SnapSection id="writing-wall" className="order-5" variant="flow">
+          <WritingWall posts={allPosts} copy={tx.writingWall} />
+        </SnapSection>
+
       </SnapContainer>
     </>
   );
 }
 
-function HomeWatchHub() {
+function HomeWatchHub({
+  copy,
+  rooms,
+}: {
+  copy: (typeof t)['EN']['watchHub'];
+  // Home and DJ are omitted: you are on Home, and DJ owns the black door above.
+  rooms: (typeof t)['EN']['rooms'];
+}) {
   return (
     <section
       className="min-h-full px-5 sm:px-9 lg:px-14"
@@ -425,7 +487,7 @@ function HomeWatchHub() {
               textTransform: 'uppercase',
             }}
           >
-            Watch / Listen
+            {copy.kicker}
           </p>
           <h2
             style={{
@@ -439,7 +501,7 @@ function HomeWatchHub() {
               marginBottom: 18,
             }}
           >
-            One door. DJ first.
+            {copy.heading}
           </h2>
           <p
             style={{
@@ -451,8 +513,7 @@ function HomeWatchHub() {
               maxWidth: 440,
             }}
           >
-            DJ is the black room. Everything else is a labeled door below —
-            shelf, book club, writing, tools.
+            {copy.body}
           </p>
         </div>
 
@@ -494,7 +555,7 @@ function HomeWatchHub() {
                     textTransform: 'uppercase',
                   }}
                 >
-                  DJ set
+                  {copy.djTag}
                 </p>
                 <h3
                   style={{
@@ -506,7 +567,7 @@ function HomeWatchHub() {
                     color: '#fffdf8',
                   }}
                 >
-                  Two decks. Full library. Black room.
+                  {copy.djHeading}
                 </h3>
                 <p
                   style={{
@@ -517,7 +578,7 @@ function HomeWatchHub() {
                     maxWidth: 420,
                   }}
                 >
-                  Open the station — not a playlist card.
+                  {copy.djBody}
                 </p>
               </div>
               <span
@@ -533,7 +594,7 @@ function HomeWatchHub() {
                   textTransform: 'uppercase',
                 }}
               >
-                Enter /sound <span aria-hidden>→</span>
+                {copy.djCta} <span aria-hidden>→</span>
               </span>
             </div>
             <div
@@ -578,28 +639,7 @@ function HomeWatchHub() {
             borderTop: '1px solid rgba(20,17,12,0.12)',
           }}
         >
-          {[
-            {
-              label: 'Shelf',
-              hint: 'films · podcasts · living',
-              href: '/blog/watch-listening-shelf',
-            },
-            {
-              label: 'Metal & Pages',
-              hint: 'book club',
-              href: '/updates',
-            },
-            {
-              label: 'Dispatch',
-              hint: 'essays · news',
-              href: '/dispatch',
-            },
-            {
-              label: 'Tools',
-              hint: 'small utilities',
-              href: '/tools',
-            },
-          ].map((door) => (
+          {rooms.map((door) => (
             <Link
               key={door.href}
               href={door.href}
@@ -665,6 +705,8 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
     if (id === 'woman-cover-print') return 'rotate(2.4deg)';
     if (id === 'machina-polaroid') return 'rotate(3.2deg)';
     if (id === 'didion-scrap') return 'rotate(-2.8deg)';
+    if (id === 'films-scrap') return 'rotate(-1.6deg)';
+    if (id === 'dj-scrap') return 'rotate(2.1deg)';
     return String(rooms.find((room) => room.id === id)?.placement.transform ?? '');
   };
   const paint = (node: HTMLElement, id: string, x: number, y: number) => {
@@ -681,11 +723,15 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
     String(
       id === 'machina-polaroid'
         ? 16
-        : id === 'woman-cover-print'
-          ? 8
-          : id === 'didion-scrap'
-            ? 9
-            : rooms.find((r) => r.id === id)?.placement.zIndex ?? 1,
+        : id === 'dj-scrap'
+          ? 11
+          : id === 'films-scrap'
+            ? 10
+            : id === 'didion-scrap'
+              ? 9
+              : id === 'woman-cover-print'
+                ? 8
+                : rooms.find((r) => r.id === id)?.placement.zIndex ?? 1,
     );
   const finishDrag = (pointerId: number, moved: boolean) => {
     const drag = dragStateRef.current;
@@ -883,10 +929,8 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                   padding: 0,
                   border: 'none',
                   outline: 'none',
-                  backgroundImage: "url('/dispatch-covers/harassment.jpg')",
-                  backgroundPosition: '48% 42%',
-                  backgroundSize: 'cover',
-                  backgroundRepeat: 'no-repeat',
+                  background:
+                    'radial-gradient(ellipse at 28% 22%, rgba(233,130,157,0.42) 0%, transparent 55%), linear-gradient(165deg, #33100f 0%, #140807 72%)',
                   boxShadow: 'none',
                   textDecoration: 'none',
                   position: 'relative',
@@ -908,19 +952,49 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                     textTransform: 'uppercase',
                   }}
                 >
-                  woman in tech archive →
+                  Woman in Tech →
                 </span>
               </Link>
 
+              {(
+                [
+                  { href: '/updates', label: 'Books · Metal & Pages' },
+                  { href: '/blog/watch-listening-shelf', label: 'Films · listen' },
+                  { href: '/sound', label: 'DJ · /sound' },
+                  { href: '/#writing-wall', label: 'All covers · archive wall' },
+                ] as { href: string; label: string }[]
+              ).map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="text-left"
+                  style={{
+                    display: 'block',
+                    padding: '14px 0',
+                    borderBottom: '1px dashed rgba(20,17,12,0.16)',
+                    color: palette.ink,
+                    fontFamily: 'Georgia, serif',
+                    fontSize: '1.15rem',
+                    fontStyle: 'italic',
+                    textDecoration: 'none',
+                  }}
+                >
+                  {item.label}
+                  <span style={{ color: palette.cyan, marginLeft: 8, fontStyle: 'normal' }} aria-hidden>
+                    →
+                  </span>
+                </Link>
+              ))}
+
               <button
                 type="button"
-                aria-label="Open Aileena console — machina polaroid"
+                aria-label="Open Aileena console · machina"
                 className="text-left"
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  width: 'min(52%, 168px)',
+                  width: 'min(56%, 176px)',
                   margin: '28px auto 24px',
                   padding: 0,
                   border: 0,
@@ -932,34 +1006,29 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 }}
                 onClick={() => window.dispatchEvent(new CustomEvent('open-agent-chat'))}
               >
-                <span
-                  aria-hidden
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/bg_pic/03.jpeg"
+                  alt=""
+                  draggable={false}
                   style={{
                     display: 'block',
                     width: '100%',
-                    aspectRatio: '3 / 4',
-                    margin: 0,
-                    padding: 0,
-                    border: 'none',
-                    backgroundImage: "url('/bg_pic/03.jpeg')",
-                    backgroundPosition: '36% 14%',
-                    backgroundSize: 'cover',
-                    backgroundRepeat: 'no-repeat',
-                    boxShadow: 'none',
+                    height: 'auto',
+                    objectFit: 'contain',
+                    background: '#efe8dc',
                   }}
                 />
                 <span
                   style={{
                     marginTop: 8,
                     color: 'rgba(20,17,12,0.55)',
-                    fontFamily: mono,
-                    fontSize: '0.5rem',
-                    fontWeight: 800,
-                    letterSpacing: '0.16em',
-                    textTransform: 'uppercase',
+                    fontFamily: 'Georgia, serif',
+                    fontSize: '0.95rem',
+                    fontStyle: 'italic',
                   }}
                 >
-                  ask · machina
+                  Machina
                 </span>
               </button>
 
@@ -972,6 +1041,8 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             const isTrendy = room.motif === 'trendy';
             const isInvesting = room.motif === 'investing';
             const isRecord = room.motif === 'record';
+            const isNaturalPhoto =
+              isInvesting || room.motif === 'hbm' || room.motif === 'pcb';
             const isPaper = isTrendy;
             const desktopRoomStyle: CSSProperties = {
               ...room.placement,
@@ -985,15 +1056,16 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                     : isRecord
                       ? 'min(56vw, 290px)'
                       : 'min(22vw, 200px)',
-              minHeight: isArticle
-                ? 'clamp(250px, 34dvh, 310px)'
-                : isInvesting
-                  ? 180
+              // Photo scraps hug the image — no fixed frame that crops.
+              minHeight: isNaturalPhoto
+                ? undefined
+                : isArticle
+                  ? 'clamp(250px, 34dvh, 310px)'
                   : isTrendy
                     ? 'clamp(340px, 44dvh, 390px)'
                     : isRecord
                       ? 300
-                      : 220,
+                      : undefined,
               height: isTrendy ? 'clamp(340px, 44dvh, 390px)' : undefined,
               padding: 0,
               border: isPaper ? '1px solid rgba(20,17,12,0.16)' : 'none',
@@ -1063,11 +1135,15 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             }}
             {...dragHandlers('woman-cover-print')}
           >
-            <BleedPhoto
-              src="/dispatch-covers/harassment.jpg"
-              position="48% 38%"
-              filter="contrast(1.05) saturate(0.92)"
-              overlay="linear-gradient(180deg, transparent 55%, rgba(20,17,12,0.58) 100%)"
+            {/* Colour plate — no figure cover; label carries the door. */}
+            <span
+              aria-hidden
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background:
+                  'radial-gradient(ellipse at 28% 22%, rgba(233,130,157,0.42) 0%, transparent 55%), linear-gradient(165deg, #33100f 0%, #140807 72%)',
+              }}
             />
             <span
               style={{
@@ -1083,7 +1159,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 pointerEvents: 'none',
               }}
             >
-              essay
+              Woman in Tech
             </span>
           </Link>
 
@@ -1095,12 +1171,11 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               top: '58%',
               left: atriumCoverLeft,
               width: 'min(13vw, 128px)',
-              height: 'clamp(140px, 18dvh, 168px)',
               padding: 0,
               margin: 0,
               border: 'none',
               outline: 'none',
-              background: '#0b0b0b',
+              background: 'transparent',
               boxShadow: 'none',
               cursor: dragMeCursor,
               transform: dragTransform('didion-scrap', 'rotate(-2.8deg)'),
@@ -1109,15 +1184,62 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               userSelect: 'none',
               zIndex: 9,
               textDecoration: 'none',
-              overflow: 'hidden',
             }}
             {...dragHandlers('didion-scrap')}
           >
-            <BleedPhoto
+            <NaturalPhoto
               src="/dispatch-covers/books-joan-didion-readings.jpg"
-              position="50% 18%"
               filter="saturate(0.88) contrast(1.04)"
-              overlay="linear-gradient(180deg, transparent 50%, rgba(20,17,12,0.6) 100%)"
+            />
+            <span
+              style={{
+                display: 'block',
+                marginTop: 8,
+                color: 'rgba(20,17,12,0.55)',
+                fontFamily: 'Georgia, serif',
+                fontSize: '0.9rem',
+                fontStyle: 'italic',
+                pointerEvents: 'none',
+              }}
+            >
+              Books
+            </span>
+          </Link>
+
+          <Link
+            href="/blog/watch-listening-shelf"
+            aria-label="Open films and podcasts shelf"
+            className="absolute z-[10] hidden md:block"
+            style={{
+              top: '72%',
+              left: `calc(${atriumPolaroidLeft} + 8px)`,
+              width: 'min(12vw, 118px)',
+              height: 'clamp(120px, 15dvh, 148px)',
+              padding: 0,
+              margin: 0,
+              border: 'none',
+              outline: 'none',
+              background: '#12161b',
+              boxShadow: 'none',
+              cursor: dragMeCursor,
+              transform: dragTransform('films-scrap', 'rotate(-1.6deg)'),
+              transition: 'transform 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+              touchAction: 'none',
+              userSelect: 'none',
+              zIndex: 10,
+              textDecoration: 'none',
+              overflow: 'hidden',
+            }}
+            {...dragHandlers('films-scrap')}
+          >
+            <span
+              aria-hidden
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background:
+                  'radial-gradient(ellipse at 70% 30%, rgba(0,168,157,0.28) 0%, transparent 55%), linear-gradient(160deg, #1a2028 0%, #0b0d10 70%)',
+              }}
             />
             <span
               style={{
@@ -1133,18 +1255,72 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 pointerEvents: 'none',
               }}
             >
-              reading
+              Films
+            </span>
+          </Link>
+
+          <Link
+            href="/sound"
+            aria-label="Enter DJ room"
+            className="absolute z-[11] hidden lg:block"
+            style={{
+              top: '38%',
+              right: '4%',
+              width: 'min(11vw, 112px)',
+              height: 'clamp(112px, 14dvh, 136px)',
+              padding: 0,
+              margin: 0,
+              border: 'none',
+              outline: 'none',
+              background: '#0b0d10',
+              boxShadow: 'none',
+              cursor: dragMeCursor,
+              transform: dragTransform('dj-scrap', 'rotate(2.1deg)'),
+              transition: 'transform 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+              touchAction: 'none',
+              userSelect: 'none',
+              zIndex: 11,
+              textDecoration: 'none',
+              overflow: 'hidden',
+            }}
+            {...dragHandlers('dj-scrap')}
+          >
+            <span
+              aria-hidden
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background:
+                  'radial-gradient(circle at 40% 40%, rgba(0,168,157,0.35) 0%, transparent 50%), #0b0d10',
+              }}
+            />
+            <span
+              style={{
+                position: 'absolute',
+                left: 10,
+                bottom: 10,
+                zIndex: 1,
+                color: '#00a89d',
+                fontFamily: mono,
+                fontSize: '0.58rem',
+                fontWeight: 850,
+                letterSpacing: '0.16em',
+                textTransform: 'uppercase',
+                pointerEvents: 'none',
+              }}
+            >
+              DJ
             </span>
           </Link>
 
           <button
             type="button"
-            aria-label="Open Aileena console — machina portrait"
+            aria-label="Open Aileena console · machina"
             className="absolute z-[16] hidden sm:block"
             style={{
-              top: '10%',
+              top: '6%',
               left: atriumPolaroidLeft,
-              width: 'clamp(108px, 10.5vw, 132px)',
+              width: 'clamp(128px, 13vw, 168px)',
               padding: 0,
               margin: 0,
               border: 0,
@@ -1164,28 +1340,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               window.dispatchEvent(new CustomEvent('open-agent-chat'));
             }}
           >
-            <span
-              aria-hidden
-              style={{
-                position: 'relative',
-                display: 'block',
-                width: '100%',
-                aspectRatio: '3 / 4',
-                margin: 0,
-                padding: 0,
-                border: 'none',
-                outline: 'none',
-                background: '#0b0b0b',
-                boxShadow: 'none',
-                overflow: 'hidden',
-              }}
-            >
-              <BleedPhoto
-                src="/bg_pic/03.jpeg"
-                position="34% 8%"
-                filter="saturate(0.94) contrast(1.04)"
-              />
-            </span>
+            <NaturalPhoto src="/bg_pic/03.jpeg" filter="saturate(0.95) contrast(1.04)" />
             <span
               style={{
                 display: 'block',
@@ -1198,26 +1353,72 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 pointerEvents: 'none',
               }}
             >
-              ask
+              Machina
             </span>
           </button>
         </div>
 
-        <div className="relative z-20 mb-1 flex items-end justify-end gap-6">
-          <nav className="ml-auto hidden flex-col items-end gap-2 sm:flex" aria-label="Social links">
-            {socialLinks.map((link) => (
-              link.href.startsWith('/') ? (
-                <Link key={link.label} href={link.href} style={socialLinkStyle}>
-                  {link.label}
-                </Link>
-              ) : (
-                <a key={link.label} href={link.href} style={socialLinkStyle}>
-                  {link.label}
-                </a>
-              )
-            ))}
-          </nav>
-        </div>
+        {/* Desk legend — find her things without turning the desk into a menu. */}
+        <nav
+          className="relative z-20 mt-auto hidden flex-wrap items-baseline gap-x-4 gap-y-2 pb-2 pt-3 sm:flex"
+          aria-label="On this desk"
+          style={{
+            borderTop: '1px dashed rgba(20,17,12,0.14)',
+          }}
+        >
+          <span
+            style={{
+              color: palette.cyan,
+              fontFamily: mono,
+              fontSize: '0.5rem',
+              fontWeight: 850,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              marginRight: 4,
+            }}
+          >
+            On this desk
+          </span>
+          {(
+            [
+              { label: 'Magazine', href: rooms.find((r) => r.id === 'magazine')?.href ?? '/dispatch' },
+              { label: 'News', href: '/dispatch' },
+              { label: 'Woman in Tech', href: '/dispatch#woman-in-tech' },
+              { label: 'Investing', href: '/dispatch#investing' },
+              { label: 'Books', href: '/updates' },
+              { label: 'Films', href: '/blog/watch-listening-shelf' },
+              { label: 'DJ', href: '/sound' },
+              { label: 'All covers', href: '/#writing-wall' },
+            ] as { label: string; href: string }[]
+          ).map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              style={{
+                color: 'rgba(20,17,12,0.62)',
+                fontFamily: 'Georgia, serif',
+                fontSize: '0.92rem',
+                fontStyle: 'italic',
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {item.label}
+            </Link>
+          ))}
+          <span style={{ flex: 1 }} />
+          {socialLinks.map((link) =>
+            link.href.startsWith('/') ? (
+              <Link key={link.label} href={link.href} style={socialLinkStyle}>
+                {link.label}
+              </Link>
+            ) : (
+              <a key={link.label} href={link.href} style={socialLinkStyle}>
+                {link.label}
+              </a>
+            ),
+          )}
+        </nav>
       </div>
     </div>
   );
@@ -1248,15 +1449,45 @@ const thumbnailShellStyle: CSSProperties = {
   boxShadow: 'none',
 };
 
-/** Full-bleed photo face: dark underlay + overscan crop kills rotate white fringe. */
+/** Full plate at natural aspect — width-driven, never cropped. */
+function NaturalPhoto({
+  src,
+  filter,
+}: {
+  src: string;
+  filter?: string;
+}) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt=""
+      draggable={false}
+      style={{
+        display: 'block',
+        width: '100%',
+        height: 'auto',
+        objectFit: 'contain',
+        background: '#efe8dc',
+        filter,
+        pointerEvents: 'none',
+        userSelect: 'none',
+      }}
+    />
+  );
+}
+
+/** Full-bleed photo face for fixed frames that still need fill (rare). */
 function BleedPhoto({
   src,
   position = 'center',
+  size = 'cover',
   filter,
   overlay,
 }: {
   src: string;
   position?: string;
+  size?: string;
   filter?: string;
   overlay?: CSSProperties['background'];
 }) {
@@ -1277,10 +1508,10 @@ function BleedPhoto({
       <span
         style={{
           position: 'absolute',
-          inset: '-8%',
+          inset: size === 'cover' ? '-8%' : 0,
           backgroundImage: `url('${src}')`,
           backgroundPosition: position,
-          backgroundSize: 'cover',
+          backgroundSize: size,
           backgroundRepeat: 'no-repeat',
           filter,
           transform: 'translateZ(0)',
@@ -1451,44 +1682,26 @@ function ObjectFace({ room }: { room: RoomDoor }) {
     return (
       <span
         style={{
-          position: 'relative',
           display: 'block',
           width: 'min(34vw, 220px)',
-          minHeight: 200,
-          overflow: 'hidden',
           border: 'none',
           outline: 'none',
-          background: '#0b0b0b',
+          background: 'transparent',
           boxShadow: 'none',
         }}
       >
-        <BleedPhoto
-          src="/dispatch-covers/investing-hero.jpg"
-          position="center 30%"
-          overlay="linear-gradient(180deg, rgba(13,17,16,0.18) 0%, rgba(13,17,16,0.2) 35%, rgba(13,17,16,0.82) 100%)"
-        />
+        <NaturalPhoto src="/dispatch-covers/investing-hero.jpg" />
         <span
           style={{
-            position: 'relative',
-            zIndex: 1,
             display: 'block',
-            padding: '18px 16px 20px',
-            minHeight: 200,
+            marginTop: 8,
+            color: 'rgba(20,17,12,0.55)',
+            fontFamily: 'Georgia, serif',
+            fontSize: '1.05rem',
+            fontStyle: 'italic',
           }}
         >
-          <span
-            style={{
-              display: 'block',
-              marginTop: 72,
-              color: '#fffdf8',
-              fontFamily: 'Georgia, serif',
-              fontSize: '1.05rem',
-              fontStyle: 'italic',
-              textShadow: '0 1px 10px rgba(0,0,0,0.45)',
-            }}
-          >
-            investing
-          </span>
+          investing
         </span>
       </span>
     );
@@ -1632,41 +1845,22 @@ function ObjectFace({ room }: { room: RoomDoor }) {
 
   if (room.motif === 'hbm') {
     return (
-      <span style={thumbnailShellStyle}>
+      <span style={{ ...thumbnailShellStyle, display: 'block', width: 'min(28vw, 200px)' }}>
+        <NaturalPhoto
+          src="/dispatch-covers/investing-hero.jpg"
+          filter="saturate(0.9) contrast(1.05)"
+        />
         <span
-          aria-hidden
           style={{
-            position: 'relative',
             display: 'block',
-            height: 220,
-            overflow: 'hidden',
-            borderRadius: 0,
-            background: '#0b0b0b',
-            border: 'none',
-            boxShadow: 'none',
+            marginTop: 8,
+            color: 'rgba(20,17,12,0.55)',
+            fontFamily: 'Georgia, serif',
+            fontSize: '1.05rem',
+            fontStyle: 'italic',
           }}
         >
-          <BleedPhoto
-            src="/dispatch-covers/investing-hero.jpg"
-            position="center"
-            filter="saturate(0.9) contrast(1.05)"
-            overlay="linear-gradient(180deg, rgba(10,13,12,0.08), rgba(10,13,12,0.7))"
-          />
-          <span
-            style={{
-              position: 'absolute',
-              left: 14,
-              bottom: 14,
-              zIndex: 1,
-              color: '#fffdf8',
-              fontFamily: 'Georgia, serif',
-              fontSize: '1.05rem',
-              fontStyle: 'italic',
-              textShadow: '0 1px 10px rgba(0,0,0,0.55)',
-            }}
-          >
-            magazine
-          </span>
+          magazine
         </span>
       </span>
     );
@@ -1674,41 +1868,22 @@ function ObjectFace({ room }: { room: RoomDoor }) {
 
   if (room.motif === 'pcb') {
     return (
-      <span style={thumbnailShellStyle}>
+      <span style={{ ...thumbnailShellStyle, display: 'block', width: 'min(30vw, 220px)' }}>
+        <NaturalPhoto
+          src="/projects/keyshield.png"
+          filter="saturate(0.9) contrast(1.08)"
+        />
         <span
-          aria-hidden
           style={{
-            position: 'relative',
             display: 'block',
-            height: 220,
-            overflow: 'hidden',
-            borderRadius: 0,
-            background: '#0b0b0b',
-            border: 'none',
-            boxShadow: 'none',
+            marginTop: 8,
+            color: 'rgba(20,17,12,0.55)',
+            fontFamily: 'Georgia, serif',
+            fontSize: '1.05rem',
+            fontStyle: 'italic',
           }}
         >
-          <BleedPhoto
-            src="/projects/keyshield.png"
-            position="center"
-            filter="saturate(0.9) contrast(1.08)"
-            overlay="linear-gradient(90deg, rgba(8,16,18,0.72), rgba(8,16,18,0.18))"
-          />
-          <span
-            style={{
-              position: 'absolute',
-              left: 16,
-              bottom: 16,
-              zIndex: 1,
-              color: '#fffdf8',
-              fontFamily: 'Georgia, serif',
-              fontSize: '1.05rem',
-              fontStyle: 'italic',
-              textShadow: '0 1px 10px rgba(0,0,0,0.55)',
-            }}
-          >
-            news
-          </span>
+          news
         </span>
       </span>
     );

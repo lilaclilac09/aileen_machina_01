@@ -1,7 +1,10 @@
 'use client';
 
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import ScrollUnlock from '../blog/ScrollUnlock';
+import PillToggle from '../../components/PillToggle';
+import RoomsFooter from '../../components/RoomsFooter';
 import './updates.css';
 
 type Book = {
@@ -11,6 +14,9 @@ type Book = {
   body: string;
   status?: string;
 };
+
+type BookView = 'shelf' | 'list';
+const BOOK_VIEW_KEY = 'metal-pages-book-view';
 
 const FEATURED: Book = {
   title: 'The Year of Magical Thinking',
@@ -119,15 +125,6 @@ const UPDATES = [
   },
 ];
 
-const ROOMS: { label: string; hint: string; href: string; here?: boolean }[] = [
-  { label: 'Home', hint: 'desk', href: '/' },
-  { label: 'DJ', hint: 'sound', href: '/sound' },
-  { label: 'Shelf', hint: 'films · podcasts', href: '/blog/watch-listening-shelf' },
-  { label: 'Metal & Pages', hint: 'book club', href: '/updates', here: true },
-  { label: 'Dispatch', hint: 'essays · news', href: '/dispatch' },
-  { label: 'Tools', hint: 'utilities', href: '/tools' },
-];
-
 const ON_PAGE = [
   { label: 'This issue', href: '#this-issue' },
   { label: 'Didion shelf', href: '#didion-shelf' },
@@ -135,7 +132,77 @@ const ON_PAGE = [
   { label: 'Notes', href: '#updates-log' },
 ];
 
+function BookCard({
+  book,
+  index,
+  view,
+  indexLabel,
+}: {
+  book: Book;
+  index: number;
+  view: BookView;
+  indexLabel?: string;
+}) {
+  const label = indexLabel ?? book.status ?? String(index + 1).padStart(2, '0');
+  if (view === 'list') {
+    return (
+      <article className="mp-book mp-book--list">
+        <span className="mp-book-index">{label}</span>
+        <div className="mp-book-list-main">
+          <h3 className="mp-book-title">{book.title}</h3>
+          <p className="mp-book-author">{book.author}</p>
+        </div>
+        <div className="mp-book-tags">
+          {book.tags.map((tag) => (
+            <span key={tag} className="mp-tag">
+              {tag}
+            </span>
+          ))}
+        </div>
+      </article>
+    );
+  }
+  return (
+    <article className="mp-book">
+      <span className="mp-book-index">{label}</span>
+      <h3 className="mp-book-title">{book.title}</h3>
+      <p className="mp-book-author">{book.author}</p>
+      <div className="mp-book-tags">
+        {book.tags.map((tag) => (
+          <span key={tag} className="mp-tag">
+            {tag}
+          </span>
+        ))}
+      </div>
+      <p className="mp-book-body">{book.body}</p>
+    </article>
+  );
+}
+
 export default function UpdatesPage() {
+  const [view, setView] = useState<BookView>('shelf');
+
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      try {
+        const saved = window.localStorage.getItem(BOOK_VIEW_KEY);
+        if (saved === 'shelf' || saved === 'list') setView(saved);
+      } catch {
+        /* private mode */
+      }
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, []);
+
+  const setViewPersist = useCallback((next: BookView) => {
+    setView(next);
+    try {
+      window.localStorage.setItem(BOOK_VIEW_KEY, next);
+    } catch {
+      /* private mode */
+    }
+  }, []);
+
   return (
     <div className="mp-page">
       <ScrollUnlock />
@@ -150,27 +217,6 @@ export default function UpdatesPage() {
       </header>
 
       <main className="mp-wrap">
-        <section className="mp-map" aria-label="Where things live">
-          <p className="mp-map-kicker">Site map</p>
-          <ul className="mp-map-list">
-            {ROOMS.map((room) => (
-              <li key={room.href}>
-                {room.here ? (
-                  <span className="mp-map-link is-here">
-                    <span className="mp-map-label">{room.label}</span>
-                    <span className="mp-map-hint">{room.hint} · here</span>
-                  </span>
-                ) : (
-                  <Link href={room.href} className="mp-map-link">
-                    <span className="mp-map-label">{room.label}</span>
-                    <span className="mp-map-hint">{room.hint}</span>
-                  </Link>
-                )}
-              </li>
-            ))}
-          </ul>
-        </section>
-
         <hr className="mp-rule" />
 
         <section className="mp-hero" aria-labelledby="mp-hero-title">
@@ -185,13 +231,24 @@ export default function UpdatesPage() {
               This room is only the book club — biweekly picks with Didion voltage.
               Films and podcasts are on the Shelf. Essays and news are on Dispatch.
             </p>
-            <nav className="mp-meta-row mp-toc" aria-label="On this page">
-              {ON_PAGE.map((item) => (
-                <a key={item.href} href={item.href} className="mp-meta mp-toc-link">
-                  {item.label}
-                </a>
-              ))}
-            </nav>
+            <div className="mp-hero-tools">
+              <PillToggle
+                value={view}
+                onChange={setViewPersist}
+                ariaLabel="Book club view"
+                options={[
+                  { id: 'shelf', label: 'Shelf' },
+                  { id: 'list', label: 'List' },
+                ]}
+              />
+              <nav className="mp-meta-row mp-toc" aria-label="On this page">
+                {ON_PAGE.map((item) => (
+                  <a key={item.href} href={item.href} className="mp-meta mp-toc-link">
+                    {item.label}
+                  </a>
+                ))}
+              </nav>
+            </div>
           </div>
         </section>
 
@@ -219,23 +276,9 @@ export default function UpdatesPage() {
             <h2 id="didion-shelf">Didion shelf</h2>
             <p className="mp-section-note">Core · from the library</p>
           </div>
-          <div className="mp-book-grid">
+          <div className={view === 'list' ? 'mp-book-list' : 'mp-book-grid'}>
             {DIDION_SHELF.map((book, index) => (
-              <article key={book.title} className="mp-book">
-                <span className="mp-book-index">
-                  {book.status ?? `0${index + 1}`}
-                </span>
-                <h3 className="mp-book-title">{book.title}</h3>
-                <p className="mp-book-author">{book.author}</p>
-                <div className="mp-book-tags">
-                  {book.tags.map((tag) => (
-                    <span key={tag} className="mp-tag">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                <p className="mp-book-body">{book.body}</p>
-              </article>
+              <BookCard key={book.title} book={book} index={index} view={view} />
             ))}
           </div>
         </section>
@@ -245,21 +288,15 @@ export default function UpdatesPage() {
             <h2 id="adjacent-shelf">Reading now</h2>
             <p className="mp-section-note">Same frequency · other rooms</p>
           </div>
-          <div className="mp-book-grid">
+          <div className={view === 'list' ? 'mp-book-list' : 'mp-book-grid'}>
             {ADJACENT.map((book, index) => (
-              <article key={book.title} className="mp-book">
-                <span className="mp-book-index">A{index + 1}</span>
-                <h3 className="mp-book-title">{book.title}</h3>
-                <p className="mp-book-author">{book.author}</p>
-                <div className="mp-book-tags">
-                  {book.tags.map((tag) => (
-                    <span key={tag} className="mp-tag">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                <p className="mp-book-body">{book.body}</p>
-              </article>
+              <BookCard
+                key={book.title}
+                book={book}
+                index={index}
+                view={view}
+                indexLabel={`A${index + 1}`}
+              />
             ))}
           </div>
         </section>
@@ -283,16 +320,9 @@ export default function UpdatesPage() {
           </div>
         </section>
 
-        <footer className="mp-footer">
-          <div className="mp-footer-doors">
-            {ROOMS.filter((room) => !room.here).map((room) => (
-              <Link key={room.href} href={room.href}>
-                {room.label}
-              </Link>
-            ))}
-          </div>
-        </footer>
       </main>
+
+      <RoomsFooter />
     </div>
   );
 }
