@@ -119,6 +119,22 @@ const UPDATES = [
   },
 ];
 
+const ROOMS: { label: string; hint: string; href: string; here?: boolean }[] = [
+  { label: 'Home', hint: 'desk', href: '/' },
+  { label: 'DJ', hint: 'sound', href: '/sound' },
+  { label: 'Shelf', hint: 'films · podcasts', href: '/blog/watch-listening-shelf' },
+  { label: 'Metal & Pages', hint: 'book club', href: '/updates', here: true },
+  { label: 'Dispatch', hint: 'essays · news', href: '/dispatch' },
+  { label: 'Tools', hint: 'utilities', href: '/tools' },
+];
+
+const ON_PAGE = [
+  { label: 'This issue', href: '#this-issue' },
+  { label: 'Didion shelf', href: '#didion-shelf' },
+  { label: 'Reading now', href: '#adjacent-shelf' },
+  { label: 'Notes', href: '#updates-log' },
+];
+
 export default function UpdatesPage() {
   return (
     <div className="mp-page">
@@ -128,36 +144,60 @@ export default function UpdatesPage() {
         <Link href="/" className="mp-nav-brand">
           Aileena
         </Link>
-        <Link href="/#watch-hub" className="mp-nav-link">
-          Watch / Listen →
-        </Link>
+        <p className="mp-nav-here">
+          You are here · <strong>Book club</strong>
+        </p>
       </header>
 
       <main className="mp-wrap">
+        <section className="mp-map" aria-label="Where things live">
+          <p className="mp-map-kicker">Site map</p>
+          <ul className="mp-map-list">
+            {ROOMS.map((room) => (
+              <li key={room.href}>
+                {room.here ? (
+                  <span className="mp-map-link is-here">
+                    <span className="mp-map-label">{room.label}</span>
+                    <span className="mp-map-hint">{room.hint} · here</span>
+                  </span>
+                ) : (
+                  <Link href={room.href} className="mp-map-link">
+                    <span className="mp-map-label">{room.label}</span>
+                    <span className="mp-map-hint">{room.hint}</span>
+                  </Link>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <hr className="mp-rule" />
+
         <section className="mp-hero" aria-labelledby="mp-hero-title">
           <div>
-            <p className="mp-kicker">Book Club</p>
+            <p className="mp-kicker">Book Club · /updates</p>
             <h1 id="mp-hero-title" className="mp-hero-title">
               Metal & Pages
             </h1>
           </div>
           <div>
             <p className="mp-hero-dek">
-              A space for the pages that rearrange the room — personal selections with
-              that sharp, introspective Joan Didion energy. Identity, grief, feminism,
-              social observation. Biweekly, not everything.
+              This room is only the book club — biweekly picks with Didion voltage.
+              Films and podcasts are on the Shelf. Essays and news are on Dispatch.
             </p>
-            <div className="mp-meta-row">
-              <span className="mp-meta">Issue 01</span>
-              <span className="mp-meta">Biweekly</span>
-              <span className="mp-meta">Didion spine</span>
-            </div>
+            <nav className="mp-meta-row mp-toc" aria-label="On this page">
+              {ON_PAGE.map((item) => (
+                <a key={item.href} href={item.href} className="mp-meta mp-toc-link">
+                  {item.label}
+                </a>
+              ))}
+            </nav>
           </div>
         </section>
 
         <hr className="mp-rule" />
 
-        <article className="mp-featured" aria-labelledby="featured-title">
+        <article className="mp-featured" id="this-issue" aria-labelledby="featured-title">
           <div>
             <p className="mp-featured-label">{FEATURED.status}</p>
             <h2 id="featured-title">{FEATURED.title}</h2>
@@ -176,8 +216,8 @@ export default function UpdatesPage() {
 
         <section className="mp-section" aria-labelledby="didion-shelf">
           <div className="mp-section-head">
-            <h2 id="didion-shelf">Previous reads</h2>
-            <p className="mp-section-note">Didion core · from the library</p>
+            <h2 id="didion-shelf">Didion shelf</h2>
+            <p className="mp-section-note">Core · from the library</p>
           </div>
           <div className="mp-book-grid">
             {DIDION_SHELF.map((book, index) => (
@@ -202,7 +242,7 @@ export default function UpdatesPage() {
 
         <section className="mp-section" aria-labelledby="adjacent-shelf">
           <div className="mp-section-head">
-            <h2 id="adjacent-shelf">What we’re reading now</h2>
+            <h2 id="adjacent-shelf">Reading now</h2>
             <p className="mp-section-note">Same frequency · other rooms</p>
           </div>
           <div className="mp-book-grid">
@@ -226,8 +266,8 @@ export default function UpdatesPage() {
 
         <section className="mp-section" aria-labelledby="updates-log">
           <div className="mp-section-head">
-            <h2 id="updates-log">Latest notes</h2>
-            <p className="mp-section-note">Site updates</p>
+            <h2 id="updates-log">Notes</h2>
+            <p className="mp-section-note">About this club</p>
           </div>
           <div className="mp-updates">
             {UPDATES.map((item) => (
@@ -244,8 +284,13 @@ export default function UpdatesPage() {
         </section>
 
         <footer className="mp-footer">
-          <Link href="/">← Home</Link>
-          <Link href="/blog/watch-listening-shelf">Full listening shelf</Link>
+          <div className="mp-footer-doors">
+            {ROOMS.filter((room) => !room.here).map((room) => (
+              <Link key={room.href} href={room.href}>
+                {room.label}
+              </Link>
+            ))}
+          </div>
         </footer>
       </main>
     </div>
