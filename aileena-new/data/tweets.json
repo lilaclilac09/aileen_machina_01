@@ -5274,5 +5274,30 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-07-26T03:54:57.822Z"
+  },
+  {
+    "id": "2081373476024140107",
+    "url": "https://x.com/aaronburnett/status/2081373476024140107",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "In addition to limited time/attention there is a lot of ego induced blind spots built up in knowledge work. It will be eye opening just how wrong we’ve been over the years as AI proliferates (even in its current form) to the next 10% of the global population.",
+    "createdAt": "Sun Jul 26 13:38:01 +0000 2026",
+    "createdTimestamp": 1785073081,
+    "likes": 1,
+    "retweets": 0,
+    "replies": 0,
+    "bookmarks": 0,
+    "views": 426,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-26T13:55:58.456Z"
   }
 ]
