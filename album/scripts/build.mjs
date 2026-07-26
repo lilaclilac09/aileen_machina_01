@@ -83,21 +83,41 @@ if (generated !== 0) {
   process.exit(generated);
 }
 
-if (usableUrl !== PLACEHOLDER_URL) {
+/** Recorded into the bundle so /api/health can explain a broken database. */
+function recordSync(status) {
+  writeFileSync(
+    resolve(process.cwd(), "lib/db-sync-status.json"),
+    `${JSON.stringify({ ...status, at: new Date().toISOString() }, null, 2)}\n`
+  );
+}
+
+if (usableUrl === PLACEHOLDER_URL) {
+  console.warn("[build] skipping schema sync (placeholder database URL)");
+  recordSync({
+    attempted: false,
+    ok: false,
+    message: "DATABASE_URL missing at build time",
+  });
+} else {
   const pushed = run(
     "npx",
     ["prisma", "db", "push", "--skip-generate", "--accept-data-loss"],
     buildEnv
   );
-  if (pushed !== 0) {
+  if (pushed === 0) {
+    recordSync({ attempted: true, ok: true, message: "schema in sync" });
+  } else {
     console.warn(`
-[build] schema sync failed — deploy continues.
-Run "npx prisma db push" against DATABASE_URL, or check the Neon branch is
-active. /api/health reports live database status.
+[build] schema sync failed (exit ${pushed}) — deploy continues.
+Tables may be missing. Check that the Neon branch is active and that
+DATABASE_URL is the direct (non-pooled) connection string, then redeploy.
 `);
+    recordSync({
+      attempted: true,
+      ok: false,
+      message: `prisma db push exited ${pushed} — tables may be missing`,
+    });
   }
-} else {
-  console.warn("[build] skipping schema sync (placeholder database URL)");
 }
 
 process.exit(run("npx", ["next", "build"], buildEnv));
