@@ -824,3 +824,66 @@ function generateEmailHTML({
 </html>
 `;
 }
+
+/**
+ * Private alert to organizer inbox (NOTIFY_CC_EMAIL).
+ * Guests never email cafe@ — that address is send-only (Resend From/Reply-To).
+ */
+export async function sendSupportTicketAlert(opts: {
+  ticketId: string;
+  email: string;
+  lumaEmail: string | null;
+  category: string;
+  message: string;
+  createdAt: string;
+}): Promise<{ sent: boolean; error?: string }> {
+  const resendClient = getResendClient();
+  const to = getOrganizerInbox();
+  if (!resendClient) {
+    console.warn("[TICKET] No Resend key — ticket saved in DB only");
+    return { sent: false, error: "Resend not configured" };
+  }
+  if (!to || !to.includes("@")) {
+    return { sent: false, error: "NOTIFY_CC_EMAIL not set" };
+  }
+
+  const site = (
+    process.env.NEXT_PUBLIC_SITE_URL || "https://cursor-cafe.aileena.xyz"
+  ).replace(/\/$/, "");
+  const from = getFromEmail();
+  const html = `<!DOCTYPE html><html><body style="font-family:system-ui,sans-serif;line-height:1.5;color:#111">
+<p><strong>Cafe Cursor — new support ticket</strong></p>
+<p>ID: <code>${opts.ticketId}</code><br/>
+Created: ${opts.createdAt}<br/>
+Category: <strong>${opts.category}</strong></p>
+<p>Contact email: <strong>${opts.email}</strong><br/>
+Luma / check-in email: ${opts.lumaEmail || "—"}</p>
+<pre style="white-space:pre-wrap;background:#f4f4f5;padding:12px;border-radius:8px">${opts.message
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")}</pre>
+<p style="font-size:12px;color:#666">Open Admin → Tickets: ${site}/admin/dashboard<br/>
+Guests submit via ${site}/help — do not rely on inbound mail to cafe@aileena.xyz (send-only).</p>
+</body></html>`;
+
+  try {
+    const { error } = await resendClient.emails.send({
+      from,
+      to: [to],
+      replyTo: opts.email,
+      subject: `[Ticket] ${opts.category} · ${opts.email}`,
+      html,
+    });
+    if (error) {
+      console.error("[TICKET] Notify error:", error.message);
+      return { sent: false, error: error.message };
+    }
+    console.log(
+      `[TICKET] Notified organizer ${maskContact(to)} id=${opts.ticketId}`
+    );
+    return { sent: true };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "unknown";
+    console.error("[TICKET] Notify exception:", msg);
+    return { sent: false, error: msg };
+  }
+}

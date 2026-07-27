@@ -47,9 +47,51 @@ export const translations = {
     copyLink: "复制链接",
     useCredit: "使用 credits →",
     saveLink: "请保存此链接，每人唯一。",
+    mustClickUseButton:
+      "重要：一定要点击白色「使用 credits →」按键打开链接，否则 credits 不会充进你的 Cursor 账户。仅复制链接不够。",
     successHint:
-      "打开链接后请在 Cursor Balance 查看 credits，之后充值与使用时都可抵扣。",
-    havingTrouble: "遇到问题？请找现场工作人员帮忙。",
+      "点击白色按键打开链接后，请在 Cursor Balance 确认 credits 已到账；之后充值与使用时都可抵扣。",
+    havingTrouble: "遇到问题？",
+    troubleTitle: "先自查（页面提示，不会自动发送）",
+    troubleReasons:
+      "常见原因：① 没点白色「使用 credits →」；② Cursor 登录邮箱 ≠ Luma 报名/签到邮箱；③ 打开链接但没完成登录/确认。",
+    troubleCheckUsage:
+      "一般到这里看有没有到账：",
+    troubleUsageUrl: "https://cursor.com/dashboard/usage",
+    troubleVerifyAccount:
+      "核对：Cursor 当前登录邮箱必须 = Luma 当时注册/签到的邮箱。",
+    troubleUnifiedSolve:
+      "自查仍不行 → 统一找现场志愿者处理（不要自己反复换邮箱乱试）。志愿者会按签到邮箱帮你核对 / 必要时后台协助。",
+    troubleAskStaff:
+      "活动后请提交工单（写入后台；cafe@ 只发信不收信，不要发邮件到 cafe@）：",
+    troubleTicketCta: "提交工单 →",
+
+    // Support ticket (/help)
+    ticketPageTitle: "工单帮助",
+    ticketPageSubtitle:
+      "说明问题后提交。主办在 Admin 处理；不会发到 cafe@aileena.xyz 收件箱。",
+    ticketTitle: "提交工单",
+    ticketIntro: "请尽量填写 Luma 签到邮箱，方便核对。",
+    ticketEmailLabel: "联系邮箱",
+    ticketLumaLabel: "Luma 签到邮箱（可选）",
+    ticketLumaPlaceholder: "若与联系邮箱不同请填写",
+    ticketCategoryLabel: "问题类型",
+    ticketCatNotLanded: "Credits 没到账",
+    ticketCatMismatch: "签到邮箱 ≠ 领取/登录邮箱",
+    ticketCatClaimed: "已领取但找不到链接",
+    ticketCatOther: "其他",
+    ticketMessageLabel: "问题描述",
+    ticketMessagePlaceholder:
+      "例如：已点白色按键，Cursor 登录邮箱是 xxx，Balance 仍为 0…",
+    ticketSubmit: "提交工单",
+    ticketSubmitting: "提交中…",
+    ticketSuccessTitle: "工单已收到",
+    ticketSuccessBody: "主办会按签到邮箱核对。请保留工单编号。",
+    ticketIdLabel: "工单编号",
+    ticketBackHome: "返回领取页",
+    ticketError: "提交失败，请稍后重试。",
+    ticketPrivacyNote:
+      "你的联系方式仅用于处理本工单；不会公开。",
 
     // Errors
     notEligible: "请先找工作人员完成现场 Luma checked in，再来领取。",
@@ -118,9 +160,51 @@ export const translations = {
     copyLink: "Copy link",
     useCredit: "Use credits →",
     saveLink: "Save this link — it's unique to you.",
+    mustClickUseButton:
+      "Important: you must tap the white “Use credits →” button to open the link, or credits will not be added to your Cursor account. Copying alone is not enough.",
     successHint:
-      "After opening the link, check credits in Cursor Balance — they apply to future top-ups and usage.",
-    havingTrouble: "Having trouble? Please ask the staff for help.",
+      "After tapping the white button and opening the link, check Cursor Balance to confirm credits arrived — they apply to future top-ups and usage.",
+    havingTrouble: "Having trouble?",
+    troubleTitle: "Self-check first (on-page help — nothing is auto-sent)",
+    troubleReasons:
+      "Common causes: (1) didn’t tap white “Use credits →”; (2) Cursor login email ≠ Luma register/check-in email; (3) opened the link but didn’t finish login/confirm.",
+    troubleCheckUsage: "Usually check whether it landed here:",
+    troubleUsageUrl: "https://cursor.com/dashboard/usage",
+    troubleVerifyAccount:
+      "Verify: your current Cursor login email must equal the Luma register/check-in email.",
+    troubleUnifiedSolve:
+      "Still stuck → ask an on-site volunteer (one unified path — don’t keep trying random emails). Volunteers verify against the check-in email / assist via Admin if needed.",
+    troubleAskStaff:
+      "After the event, submit a ticket (stored in Admin — do not email cafe@; that address is send-only):",
+    troubleTicketCta: "Submit a ticket →",
+
+    // Support ticket (/help)
+    ticketPageTitle: "Support ticket",
+    ticketPageSubtitle:
+      "Describe the issue and submit. Organizers handle it in Admin — cafe@aileena.xyz is not an inbox.",
+    ticketTitle: "Submit a ticket",
+    ticketIntro: "Include your Luma check-in email when possible.",
+    ticketEmailLabel: "Contact email",
+    ticketLumaLabel: "Luma check-in email (optional)",
+    ticketLumaPlaceholder: "If different from contact email",
+    ticketCategoryLabel: "Issue type",
+    ticketCatNotLanded: "Credits did not land",
+    ticketCatMismatch: "Check-in email ≠ redeem / Cursor login",
+    ticketCatClaimed: "Already claimed but lost the link",
+    ticketCatOther: "Other",
+    ticketMessageLabel: "Description",
+    ticketMessagePlaceholder:
+      "e.g. Tapped Use credits, Cursor login is xxx, Balance still 0…",
+    ticketSubmit: "Submit ticket",
+    ticketSubmitting: "Submitting…",
+    ticketSuccessTitle: "Ticket received",
+    ticketSuccessBody:
+      "We’ll verify against the check-in email. Keep your ticket ID.",
+    ticketIdLabel: "Ticket ID",
+    ticketBackHome: "Back to redeem",
+    ticketError: "Could not submit. Please try again.",
+    ticketPrivacyNote:
+      "Your contact details are only used to resolve this ticket.",
 
     // Errors
     notEligible:

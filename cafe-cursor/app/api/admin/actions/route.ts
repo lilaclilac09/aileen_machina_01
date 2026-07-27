@@ -874,6 +874,66 @@ export async function POST(request: NextRequest) {
         });
       }
 
+      case "RESOLVE_TICKET": {
+        const ticketId = String(data?.ticketId || "").trim();
+        if (!ticketId) {
+          return NextResponse.json(
+            { error: "ticketId required" },
+            { status: 400 }
+          );
+        }
+        const adminNote =
+          typeof data?.adminNote === "string"
+            ? data.adminNote.trim().slice(0, 1000)
+            : "";
+        const ticket = await prisma.supportTicket.findUnique({
+          where: { id: ticketId },
+        });
+        if (!ticket) {
+          return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
+        }
+        const updated = await prisma.supportTicket.update({
+          where: { id: ticketId },
+          data: {
+            status: "done",
+            resolvedAt: new Date(),
+            ...(adminNote ? { adminNote } : {}),
+          },
+        });
+        console.log(`[ADMIN] RESOLVE_TICKET: ${ticketId} (${ticket.email})`);
+        return NextResponse.json({
+          success: true,
+          message: `Ticket ${ticketId} marked done.`,
+          ticket: updated,
+        });
+      }
+
+      case "REOPEN_TICKET": {
+        const ticketId = String(data?.ticketId || "").trim();
+        if (!ticketId) {
+          return NextResponse.json(
+            { error: "ticketId required" },
+            { status: 400 }
+          );
+        }
+        const ticket = await prisma.supportTicket.findUnique({
+          where: { id: ticketId },
+        });
+        if (!ticket) {
+          return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
+        }
+        const updated = await prisma.supportTicket.update({
+          where: { id: ticketId },
+          data: { status: "open", resolvedAt: null },
+        });
+        console.log(`[ADMIN] REOPEN_TICKET: ${ticketId}`);
+        return NextResponse.json({
+          success: true,
+          message: `Ticket ${ticketId} reopened.`,
+          ticket: updated,
+        });
+      }
+
       default:
         return NextResponse.json(
           { error: "Invalid action" },
