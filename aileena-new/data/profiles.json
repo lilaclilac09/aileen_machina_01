@@ -6,9 +6,9 @@
     "description": "Founder, CEO @mach33 | Research and Investment in Expansion Technologies",
     "location": "Merrit Island, FL",
     "website": "https://www.33fg.com/",
-    "followers": 26014,
+    "followers": 26018,
     "following": 624,
-    "tweets": 8790,
+    "tweets": 8796,
     "verified": true,
     "avatarUrl": "https://pbs.twimg.com/profile_images/2049987217477513216/GJx9_LdR_normal.jpg",
     "tags": [
@@ -16,7 +16,7 @@
     ],
     "org": "mach33 / 33fg",
     "source": "fxtwitter",
-    "updatedAt": "2026-07-27T04:01:48.836Z"
+    "updatedAt": "2026-07-27T19:54:13.709Z"
   },
   {
     "id": "985281530070265862",
@@ -128,14 +128,14 @@
     "screenName": "SemiAnalysis_",
     "name": "SemiAnalysis",
     "website": "https://www.semianalysis.com",
-    "followers": 144697,
+    "followers": 144777,
     "following": 29,
-    "tweets": 2872,
+    "tweets": 2873,
     "verified": true,
     "avatarUrl": "https://pbs.twimg.com/profile_images/2062973370157694976/CdplNoi1_normal.jpg",
     "tags": [],
     "source": "fxtwitter",
-    "updatedAt": "2026-07-27T15:13:07.152Z"
+    "updatedAt": "2026-07-27T19:54:07.476Z"
   },
   {
     "id": "2039137985179127808",
@@ -310,5 +310,20 @@
     "tags": [],
     "source": "fxtwitter",
     "updatedAt": "2026-07-25T05:53:30.487Z"
+  },
+  {
+    "id": "143134601",
+    "screenName": "shaunmmaguire",
+    "name": "Shaun Maguire",
+    "description": "Partner @sequoia // @caltech physics PhD // Views are my own",
+    "website": "https://www.sequoiacap.com/people/shaun-maguire/",
+    "followers": 359671,
+    "following": 1680,
+    "tweets": 22397,
+    "verified": true,
+    "avatarUrl": "https://pbs.twimg.com/profile_images/1942940317784719360/47aIqszK_normal.jpg",
+    "tags": [],
+    "source": "fxtwitter",
+    "updatedAt": "2026-07-27T19:54:10.723Z"
   }
 ]
