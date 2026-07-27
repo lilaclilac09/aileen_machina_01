@@ -1,0 +1,11 @@
+# Keep image builds smaller (important when Mac disk is tight / CI quotas)
+.gitignore
+.next
+node_modules
+data
+coverage
+*.md
+!docs/INKLING_LAUNCH.md
+public/mockups
+.env*
+.git

@@ -167,6 +167,7 @@ export function publicJobView(job: InklingJob) {
       ? {
           title: job.result.title,
           slug: job.result.slug,
+          engine: job.result.engine,
           totalDuration_s: job.result.totalDuration_s,
           generatedAt: job.result.generatedAt,
           candidates: toPublicCandidates(job.id, job.result),

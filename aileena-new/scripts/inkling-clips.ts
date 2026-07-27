@@ -3,12 +3,13 @@
  * Inkling long-form audio clip tool (CLI).
  *
  *   pnpm inkling:clips -- 'https://www.youtube.com/watch?v=...' --best 5
+ *   pnpm inkling:clips -- 'https://www.youtube.com/watch?v=...' --local --best 3
  */
 
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { USAGE } from '../lib/inkling/clips';
-import { getInklingConfig } from '../lib/inkling/client';
+import { hasInklingApiKey } from '../lib/inkling/localClips';
 import { checkMediaDeps } from '../lib/inkling/media';
 import { defaultWorkDir, runInklingClipPipeline } from '../lib/inkling/pipeline';
 
@@ -26,6 +27,7 @@ type CliOptions = {
   skipDownload: boolean;
   audioOnly: boolean;
   workDir?: string;
+  engine: 'auto' | 'local' | 'inkling';
   help: boolean;
 };
 
@@ -39,6 +41,7 @@ function parseArgs(argv: string[]): CliOptions {
     dryRun: false,
     skipDownload: false,
     audioOnly: false,
+    engine: 'auto',
     help: false,
   };
 
@@ -59,6 +62,14 @@ function parseArgs(argv: string[]): CliOptions {
     }
     if (arg === '--audio-only') {
       opts.audioOnly = true;
+      continue;
+    }
+    if (arg === '--local') {
+      opts.engine = 'local';
+      continue;
+    }
+    if (arg === '--inkling') {
+      opts.engine = 'inkling';
       continue;
     }
     if (arg === '--best') {
@@ -116,8 +127,15 @@ async function main(): Promise<void> {
   }
 
   checkMediaDeps();
-  // Fail loud on missing key before any expensive download/split work.
-  getInklingConfig();
+
+  if (opts.engine === 'inkling' && !hasInklingApiKey()) {
+    throw new Error(
+      'Missing API key. Set TOGETHER_API_KEY or INKLING_API_KEY, or use --local for free mode.',
+    );
+  }
+  if (opts.engine === 'auto' && !hasInklingApiKey()) {
+    console.log('No Together/Inkling key — using free local heuristic (ffmpeg silence gaps).');
+  }
 
   const workDir = opts.workDir ?? defaultWorkDir(ROOT, opts.url);
   const result = await runInklingClipPipeline({
@@ -132,12 +150,14 @@ async function main(): Promise<void> {
     audioOnly: opts.audioOnly,
     workDir,
     skipDownload: opts.skipDownload,
+    engine: opts.engine,
     onProgress: (p) => console.log(`[${p.progress}%] ${p.message}`),
   });
 
   writeFileSync(join(workDir, 'candidates.json'), JSON.stringify(result, null, 2));
   console.log(`Work dir: ${workDir}`);
   console.log(`Title: ${result.title}`);
+  console.log(`Engine: ${result.engine}`);
   console.log(`Candidates: ${result.candidates.length}`);
   if (!opts.dryRun) {
     console.log(`Clips: ${result.clips.length}`);

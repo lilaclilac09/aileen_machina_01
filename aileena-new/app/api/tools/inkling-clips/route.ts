@@ -13,7 +13,6 @@ import {
 } from '../../../../lib/inkling/jobs';
 import { checkMediaDeps } from '../../../../lib/inkling/media';
 import { runInklingClipPipeline } from '../../../../lib/inkling/pipeline';
-import { getInklingConfig } from '../../../../lib/inkling/client';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -25,6 +24,8 @@ const BodySchema = z.object({
   bestCount: z.number().int().min(1).max(8).default(3),
   dryRun: z.boolean().default(false),
   audioOnly: z.boolean().default(false),
+  /** auto = Inkling if key present, else free local */
+  engine: z.enum(['auto', 'local', 'inkling']).default('auto'),
 });
 
 function rateLimitOrError(req: Request, scope: string) {
@@ -62,6 +63,7 @@ async function runJob(jobId: string, input: z.infer<typeof BodySchema>) {
       dryRun: input.dryRun,
       audioOnly: input.audioOnly,
       workDir,
+      engine: input.engine,
       onProgress: async (progress) => {
         await updateInklingJob(jobId, { status: 'running', progress });
       },
@@ -108,13 +110,6 @@ export async function POST(req: Request) {
     checkMediaDeps();
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'Media tools unavailable';
-    return err('service_unavailable', msg, 503);
-  }
-
-  try {
-    getInklingConfig();
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : 'Inkling API not configured';
     return err('service_unavailable', msg, 503);
   }
 
