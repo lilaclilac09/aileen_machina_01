@@ -120,6 +120,25 @@ export function RegisterForm() {
     }
   };
 
+  const troubleHelp = (
+    <div className="mt-4 rounded-xl border border-border bg-foreground/[0.03] p-4 text-left text-xs text-muted">
+      <p className="mb-2 font-medium text-foreground">{t("havingTrouble")}</p>
+      <p className="mb-1 font-medium text-foreground/80">{t("troubleTitle")}</p>
+      <p className="mb-3 leading-relaxed">{t("troubleReasons")}</p>
+      <p className="mb-1">{t("troubleCheckUsage")}</p>
+      <a
+        href={t("troubleUsageUrl")}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mb-3 inline-block break-all font-medium text-foreground underline underline-offset-2 hover:no-underline"
+      >
+        {t("troubleUsageUrl")}
+      </a>
+      <p className="mb-2 leading-relaxed">{t("troubleVerifyAccount")}</p>
+      <p>{t("troubleAskStaff")}</p>
+    </div>
+  );
+
   // Already claimed — link is not re-shown publicly (staff / admin only)
   if (status === "success" && result?.alreadyClaimed && !result.credit) {
     return (
@@ -131,10 +150,11 @@ export function RegisterForm() {
           <p className="mb-6 text-center text-sm text-muted">
             {t("alreadyClaimedAskStaff")}
           </p>
+          {troubleHelp}
           <button
             type="button"
             onClick={handleReset}
-            className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm font-medium transition-colors hover:bg-foreground/5"
+            className="mt-4 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm font-medium transition-colors hover:bg-foreground/5"
           >
             {t("tryAnotherEmail")}
           </button>
@@ -239,9 +259,7 @@ export function RegisterForm() {
           {t("saveLink")}
         </p>
 
-        <p className="mt-3 text-center text-xs text-muted">
-          {t("havingTrouble")}
-        </p>
+        {troubleHelp}
 
         {result.emailSent ? (
           <div className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-[var(--success)]/20 bg-[var(--success)]/5 px-4 py-3">
@@ -384,9 +402,7 @@ export function RegisterForm() {
       <p className="mt-6 text-center text-xs text-muted">
         {t("footerNote")}
       </p>
-      <p className="mt-2 text-center text-xs text-muted">
-        {t("havingTrouble")}
-      </p>
+      {troubleHelp}
     </form>
   );
 }

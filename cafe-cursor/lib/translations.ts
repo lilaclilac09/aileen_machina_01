@@ -51,7 +51,16 @@ export const translations = {
       "重要：一定要点击白色「使用 credits →」按键打开链接，否则 credits 不会充进你的 Cursor 账户。仅复制链接不够。",
     successHint:
       "点击白色按键打开链接后，请在 Cursor Balance 确认 credits 已到账；之后充值与使用时都可抵扣。",
-    havingTrouble: "遇到问题？请找现场工作人员帮忙。",
+    havingTrouble: "遇到问题？",
+    troubleTitle: "常见原因与自查",
+    troubleReasons:
+      "一般是：① 没点白色「使用 credits →」；② 登录的 Cursor 账号不是 Luma 报名邮箱；③ 链接打开了但没完成登录/确认。",
+    troubleCheckUsage:
+      "打开 Cursor Usage / Balance 查看是否到账：",
+    troubleUsageUrl: "https://cursor.com/dashboard/usage",
+    troubleVerifyAccount:
+      "请确认当前 Cursor 登录邮箱 = Luma 当时注册/签到的邮箱。不是同一个账号，credits 不会进你现在看到的 Balance。",
+    troubleAskStaff: "仍不行请联系现场志愿者。",
 
     // Errors
     notEligible: "请先找工作人员完成现场 Luma checked in，再来领取。",
@@ -124,7 +133,15 @@ export const translations = {
       "Important: you must tap the white “Use credits →” button to open the link, or credits will not be added to your Cursor account. Copying alone is not enough.",
     successHint:
       "After tapping the white button and opening the link, check Cursor Balance to confirm credits arrived — they apply to future top-ups and usage.",
-    havingTrouble: "Having trouble? Please ask the staff for help.",
+    havingTrouble: "Having trouble?",
+    troubleTitle: "Common causes & how to check",
+    troubleReasons:
+      "Usually: (1) didn’t tap white “Use credits →”; (2) Cursor is logged into a different email than Luma; (3) opened the link but didn’t finish login/confirm.",
+    troubleCheckUsage: "Check Cursor Usage / Balance to see if it landed:",
+    troubleUsageUrl: "https://cursor.com/dashboard/usage",
+    troubleVerifyAccount:
+      "Verify the Cursor account email is the same one you used to register / check in on Luma. Different account = credits won’t show in the Balance you’re looking at.",
+    troubleAskStaff: "Still stuck? Ask a volunteer on site.",
 
     // Errors
     notEligible:
