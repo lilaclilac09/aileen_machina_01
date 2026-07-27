@@ -1,9 +1,13 @@
 /**
- * Credit ops audit — ADD / ASSIGN / REVOKE counts + revoked-but-available flags.
+ * Credit ops audit — ADD / ASSIGN / REVOKE counts + quarantined (revoked) flags.
  */
 
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import {
+  assignableRealPoolWhere,
+  quarantinedCreditWhere,
+} from "@/lib/credit-pool";
 
 export type CreditOpsType = "ADD" | "ASSIGN" | "REVOKE";
 
@@ -11,8 +15,10 @@ export type CreditOpsStats = {
   addedToSystem: number;
   assignEvents: number;
   revokeEvents: number;
+  /** Was assigned then revoked — quarantined, not reissued */
   revokedAvailableCount: number;
   usedCount: number;
+  /** Fresh pool only (never assigned) */
   availableCount: number;
 };
 
@@ -51,13 +57,9 @@ export async function getCreditOpsStats(): Promise<CreditOpsStats> {
     prisma.creditOpsEvent.count({ where: { type: "ADD" } }),
     prisma.creditOpsEvent.count({ where: { type: "ASSIGN" } }),
     prisma.creditOpsEvent.count({ where: { type: "REVOKE" } }),
-    prisma.credit.count({
-      where: { timesRevoked: { gt: 0 }, isUsed: false, isTest: false },
-    }),
+    prisma.credit.count({ where: quarantinedCreditWhere() }),
     prisma.credit.count({ where: { isUsed: true, isTest: false } }),
-    prisma.credit.count({
-      where: { isUsed: false, isTest: false, ownerId: null },
-    }),
+    prisma.credit.count({ where: assignableRealPoolWhere() }),
   ]);
 
   return {
@@ -75,7 +77,7 @@ export function formatOpsStatsMessage(stats: CreditOpsStats): string {
     `Added to system (ADD events): ${stats.addedToSystem}`,
     `Assign events: ${stats.assignEvents}`,
     `Revoke events: ${stats.revokeEvents}`,
-    `Revoked & available (not kept): ${stats.revokedAvailableCount}`,
-    `Pool now — available: ${stats.availableCount}, used: ${stats.usedCount}`,
+    `Quarantined (revoked, not reissued): ${stats.revokedAvailableCount}`,
+    `Pool now — fresh available: ${stats.availableCount}, used: ${stats.usedCount}`,
   ].join("\n");
 }

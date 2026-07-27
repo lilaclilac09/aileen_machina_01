@@ -175,7 +175,12 @@ export async function syncCreditsFromSheet(
   }
 
   const available = await prisma.credit.count({
-    where: { isUsed: false, isTest: false },
+    where: {
+      isUsed: false,
+      isTest: false,
+      ownerId: null,
+      timesAssigned: 0,
+    },
   });
 
   return {
@@ -195,7 +200,12 @@ export async function syncCreditsFromSheet(
  */
 export async function ensureCreditsSynced(): Promise<number> {
   const available = await prisma.credit.count({
-    where: { isUsed: false, isTest: false },
+    where: {
+      isUsed: false,
+      isTest: false,
+      ownerId: null,
+      timesAssigned: 0,
+    },
   });
   if (available > 0) return available;
 

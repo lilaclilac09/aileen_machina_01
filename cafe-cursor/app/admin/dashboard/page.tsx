@@ -196,7 +196,7 @@ export default function AdminDashboard() {
             `Added to system: ${json.opsStats.addedToSystem}\n` +
             `Assign events: ${json.opsStats.assignEvents}\n` +
             `Revoke events: ${json.opsStats.revokeEvents}\n` +
-            `Revoked & available: ${json.opsStats.revokedAvailableCount}`;
+            `Quarantined (not reissued): ${json.opsStats.revokedAvailableCount}`;
         }
         alert(msg);
         fetchDashboard();
@@ -215,7 +215,14 @@ export default function AdminDashboard() {
   };
 
   const handleRevokeCredit = async (userId: string, email: string) => {
-    if (confirm(`Revoke credit from ${email}? The credit will become available again.`)) {
+    if (
+      confirm(
+        `Revoke credit from ${email}?\n\n` +
+          `The link will be QUARANTINED (not put back in the pool).\n` +
+          `Cursor.com may already have consumed it — we never reissue that link.\n` +
+          `Guest can redeem again to get a fresh unused credit.`
+      )
+    ) {
       await executeAction("REVOKE_CREDIT", { userId });
     }
   };
@@ -515,11 +522,18 @@ export default function AdminDashboard() {
   );
 
   const filteredCredits = data?.credits.filter((c) => {
-    if (creditStatusFilter === "available" && c.isUsed) return false;
+    if (
+      creditStatusFilter === "available" &&
+      (c.isUsed || (c.timesAssigned || 0) > 0)
+    )
+      return false;
     if (creditStatusFilter === "used" && !c.isUsed) return false;
     if (
       creditStatusFilter === "revoked" &&
-      !((c.timesRevoked || 0) > 0 && !c.isUsed)
+      !(
+        !c.isUsed &&
+        ((c.timesRevoked || 0) > 0 || (c.timesAssigned || 0) > 0)
+      )
     ) {
       return false;
     }
@@ -677,13 +691,14 @@ export default function AdminDashboard() {
               {" · "}
               Revoke: {data.opsStats.revokeEvents}
               {" · "}
-              Revoked &amp; available (not kept):{" "}
+              Quarantined (not reissued):{" "}
               {data.opsStats.revokedAvailableCount}
             </p>
             <p className="mt-2 text-xs opacity-75">
               After each Add / Assign / Revoke, the alert also shows these updated
-              counts. &quot;Revoked &amp; available&quot; = was revoked, currently
-              free in the pool (guest did not keep it).
+              counts. &quot;Quarantined&quot; = was handed out then revoked —
+              never reissued (Cursor link may already be consumed). Fresh pool =
+              timesAssigned 0 only.
             </p>
           </div>
         )}
@@ -1025,7 +1040,7 @@ export default function AdminDashboard() {
                     ["all", "All"],
                     ["available", "Available"],
                     ["used", "Used / flagged"],
-                    ["revoked", "Revoked (not kept)"],
+                    ["revoked", "Quarantined"],
                   ] as const
                 ).map(([key, label]) => (
                   <button
@@ -1067,9 +1082,10 @@ export default function AdminDashboard() {
             </div>
             <p className="text-xs text-gray-500">
               <span className="text-orange-300">Used</span> = assigned now.{" "}
-              <span className="text-violet-300">Revoked (not kept)</span> = was
-              revoked and is free again (timesRevoked &gt; 0). Revoke returns it to
-              Available. Does not prove Cursor.com redemption.
+              <span className="text-violet-300">Quarantined</span> = was handed
+              out then revoked — <strong>not reissued</strong> (Cursor may have
+              consumed the link). Fresh Available = never assigned
+              (timesAssigned 0).
             </p>
             <div className="overflow-x-auto rounded-xl border border-gray-800">
             <table className="w-full text-left text-sm">
@@ -1118,9 +1134,10 @@ export default function AdminDashboard() {
                         <span className="rounded-full bg-orange-500/20 px-2 py-1 text-xs text-orange-400">
                           Used
                         </span>
-                      ) : (credit.timesRevoked || 0) > 0 ? (
+                      ) : (credit.timesAssigned || 0) > 0 ||
+                        (credit.timesRevoked || 0) > 0 ? (
                         <span className="rounded-full bg-violet-500/20 px-2 py-1 text-xs text-violet-300">
-                          Revoked→Available
+                          Quarantined
                         </span>
                       ) : (
                         <span className="rounded-full bg-green-500/20 px-2 py-1 text-xs text-green-400">
