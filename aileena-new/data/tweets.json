@@ -5533,5 +5533,51 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-07-26T19:35:18.669Z"
+  },
+  {
+    "id": "2081527812800893425",
+    "url": "https://x.com/SemiAnalysis_/status/2081527812800893425",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "BREAKING FROM ICM 2026: Three of four 2026 Fields Medalists have announced that they will NOT be pivoting to AI research, even though their jobs will soon be AUTOMATED BY AGI.\n\nAs Dijkstra said, \"Programming is one of the most difficult branches of applied mathematics; the poorer mathematicians had better remain pure mathematicians.\"",
+    "createdAt": "Sun Jul 26 23:51:18 +0000 2026",
+    "createdTimestamp": 1785109878,
+    "likes": 123,
+    "retweets": 6,
+    "replies": 13,
+    "bookmarks": 27,
+    "views": 46802,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-27T04:01:46.073Z"
+  },
+  {
+    "id": "2081503024694903288",
+    "url": "https://x.com/aaronburnett/status/2081503024694903288",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Comparing net worth with income is misleading and doesn’t really help the national conversation",
+    "createdAt": "Sun Jul 26 22:12:48 +0000 2026",
+    "createdTimestamp": 1785103968,
+    "likes": 21,
+    "retweets": 0,
+    "replies": 2,
+    "bookmarks": 0,
+    "views": 2291,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-27T04:01:48.703Z"
   }
 ]
