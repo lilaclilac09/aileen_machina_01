@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { isAuthenticated } from "@/lib/auth";
 import { ensureBundledLumaGuestsImported } from "@/lib/luma-csv";
 import { computeHaveNeed } from "@/lib/credit-ledger";
+import { getCreditOpsStats } from "@/lib/credit-ops";
 
 /**
  * GET /api/admin/dashboard — admin stats + lists
@@ -67,6 +68,7 @@ export async function GET(request: NextRequest) {
       availableCount: availableRealCredits,
       unclaimedApprovedCount: unclaimedApproved,
     });
+    const opsStats = await getCreditOpsStats();
 
     const credits = await prisma.credit.findMany({
       orderBy: [
@@ -84,6 +86,10 @@ export async function GET(request: NextRequest) {
         assignedAt: true,
         createdAt: true,
         ownerId: true,
+        timesAssigned: true,
+        timesRevoked: true,
+        lastRevokedAt: true,
+        lastRevokedFromEmail: true,
         owner: {
           select: {
             id: true,
@@ -150,6 +156,7 @@ export async function GET(request: NextRequest) {
         awaitingReminder,
       },
       haveNeed,
+      opsStats,
       credits,
       eligibleUsers: usersWithClaims,
     });

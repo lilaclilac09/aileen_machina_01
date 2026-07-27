@@ -52,9 +52,30 @@ model Credit {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
+  /// How many times this credit was assigned (guest redeem or Admin Assign)
+  timesAssigned Int @default(0)
+  /// How many times this credit was revoked back to the pool
+  timesRevoked  Int @default(0)
+  lastRevokedAt DateTime?
+  /// Email of the user it was revoked from (last time)
+  lastRevokedFromEmail String?
+
   latestFor EligibleUser? @relation("LatestCredit")
 
   /// All credits this user has ever been assigned (supports volunteer multi-claim)
   ownerId String?
   owner   EligibleUser? @relation("OwnedCredits", fields: [ownerId], references: [id])
+}
+
+/// Append-only ops log so Admin can see ADD / REVOKE / ASSIGN counts over time
+model CreditOpsEvent {
+  id         String   @id @default(cuid())
+  type       String // ADD | ASSIGN | REVOKE
+  creditId   String?
+  creditCode String?
+  userEmail  String?
+  note       String?
+  createdAt  DateTime @default(now())
+
+  @@index([type, createdAt])
 }
