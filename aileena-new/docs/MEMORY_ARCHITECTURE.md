@@ -118,7 +118,12 @@ Printed by `pnpm verify:memory` and stored in the report under `agentManualPromp
 | `schedule` | Mondays 06:00 UTC |
 | `workflow_dispatch` | Manual — optional `skip_commit: true` to dry-run |
 
-Steps: **`sync:content-memory`** → `pnpm dreaming` → `pnpm build:memory-index` → commit `latest-content.md`, `content-changelog-*.md`, and Dreaming reports to `main`.
+Steps: **`sync:content-memory`** → `pnpm dreaming` → `pnpm build:memory-index` → commit `latest-content.md`, `content-changelog-*.md`, `social-changelog-*.md`, and Dreaming reports to `main`.
+
+Dreaming also snapshots **social teachers** (SemiAnalysis / mach33) from `data/tweets.jsonl` + `data/social/*` (kept fresh by `.github/workflows/social-rss-sync.yml` every 6h) into:
+
+- `memories/archived/consolidate-report-*.md` → section **Social teachers**
+- `memories/episodic/social-changelog-YYYY-MM-DD.md` → promote durable facts into `analysts-dylan-aaron.md` / research ledgers
 
 ### What content sync detects
 
