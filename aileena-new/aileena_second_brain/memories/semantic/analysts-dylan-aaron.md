@@ -79,3 +79,4 @@ FxTwitter = per-status; Nitter RSS ≈ 20 newest / account. AgentCash timeline n
 | Ops MD | `data/social/README.md` |
 | Ledgers | `data/research/2026-07-grok-semi-twitter-numbers.md`, `2026-07-grok-mach33-twitter-numbers.md` |
 | Command | `pnpm ingest:grok` · `pnpm sync:social-rss` · `pnpm social:grok-prompt` |
+| Dreaming | `pnpm dreaming` → `episodic/social-changelog-*.md` + Social section in consolidate report (Monday CI) |

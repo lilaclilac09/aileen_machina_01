@@ -50,7 +50,10 @@ jobs:
       - name: Sync carousel + latest content → L3 memory
         run: pnpm sync:content-memory
 
-      - name: Dreaming (offline consolidate)
+      # Social teachers DB refreshed by social-rss-sync.yml (6h).
+      # Dreaming snapshots tweets/numbers → consolidate report + social-changelog.
+
+      - name: Dreaming (offline consolidate + social digest)
         run: pnpm dreaming
 
       - name: Rebuild memory index (L2)
@@ -77,11 +80,12 @@ jobs:
             aileena-new/aileena_second_brain/memories/episodic/content-changelog-*.md \
             aileena-new/aileena_second_brain/memories/episodic/content-baseline-*.md \
             aileena-new/aileena_second_brain/memories/episodic/evolve-carousel-*.md \
+            aileena-new/aileena_second_brain/memories/episodic/social-changelog-*.md \
             aileena-new/aileena_second_brain/memories/archived/consolidate-report-*.md || true
           if git diff --cached --quiet; then
             echo "No new dreaming report to commit"
           else
             git commit -m "chore(memory): sync latest content + Dreaming report [$(date -u +%Y-%m-%d)]"
-            git push origin main
+            git push origin HEAD
             echo "Dreaming report pushed"
           fi
