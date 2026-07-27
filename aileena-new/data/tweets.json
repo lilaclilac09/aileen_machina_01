@@ -5579,5 +5579,52 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-07-27T04:01:48.703Z"
+  },
+  {
+    "id": "2081749011745137090",
+    "url": "https://x.com/SemiAnalysis_/status/2081749011745137090",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "CXMT just had the most absurd debut in semiconductor history. Priced at ¥8.66, opened at ¥49.50, closed +466% at ¥49. Market cap: ~$488B — bigger than Intel. A DRAM maker that didn't exist ten years ago. (1/2)🧵",
+    "createdAt": "Mon Jul 27 14:30:16 +0000 2026",
+    "createdTimestamp": 1785162616,
+    "likes": 91,
+    "retweets": 4,
+    "replies": 8,
+    "bookmarks": 15,
+    "views": 15242,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HOPbsZQXwAAF_fH.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-27T15:13:05.591Z"
+  },
+  {
+    "id": "2081749013339017391",
+    "url": "https://x.com/SemiAnalysis_/status/2081749013339017391",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "We saw this coming. Our deep dive last month broke down CXMT's rise from Qimonda's ashes to the world's #4 DRAM maker — the tech transfer, the Hefei patient capital, and the IPO math. (2/2)  \nhttps://newsletter.semianalysis.com/p/chinas-cxmt-is-set-to-challenge-dram",
+    "createdAt": "Mon Jul 27 14:30:16 +0000 2026",
+    "createdTimestamp": 1785162616,
+    "likes": 9,
+    "retweets": 0,
+    "replies": 1,
+    "bookmarks": 4,
+    "views": 6426,
+    "isNoteTweet": false,
+    "linkedUrls": [
+      "https://newsletter.semianalysis.com/p/chinas-cxmt-is-set-to-challenge-dram"
+    ],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-27T15:13:07.002Z"
   }
 ]
