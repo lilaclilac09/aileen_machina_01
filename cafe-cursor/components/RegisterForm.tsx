@@ -195,6 +195,12 @@ export function RegisterForm() {
             <p className="break-all font-mono text-sm">{result.credit}</p>
           </div>
 
+          <div className="mb-3 rounded-xl border border-amber-500/40 bg-amber-500/15 p-4 text-center">
+            <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">
+              {t("mustClickUseButton")}
+            </p>
+          </div>
+
           <div className="flex gap-3">
             <button
               onClick={handleCopyLink}
@@ -206,7 +212,7 @@ export function RegisterForm() {
               href={result.credit}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 rounded-xl bg-foreground px-4 py-3 text-center text-sm font-medium text-background transition-opacity hover:opacity-90"
+              className="flex-1 rounded-xl bg-foreground px-4 py-3 text-center text-sm font-medium text-background transition-opacity hover:opacity-90 ring-2 ring-amber-400/60 ring-offset-2 ring-offset-background"
             >
               {t("useCredit")}
             </a>

@@ -47,8 +47,10 @@ export const translations = {
     copyLink: "复制链接",
     useCredit: "使用 credits →",
     saveLink: "请保存此链接，每人唯一。",
+    mustClickUseButton:
+      "重要：一定要点击白色「使用 credits →」按键打开链接，否则 credits 不会充进你的 Cursor 账户。仅复制链接不够。",
     successHint:
-      "打开链接后请在 Cursor Balance 查看 credits，之后充值与使用时都可抵扣。",
+      "点击白色按键打开链接后，请在 Cursor Balance 确认 credits 已到账；之后充值与使用时都可抵扣。",
     havingTrouble: "遇到问题？请找现场工作人员帮忙。",
 
     // Errors
@@ -118,8 +120,10 @@ export const translations = {
     copyLink: "Copy link",
     useCredit: "Use credits →",
     saveLink: "Save this link — it's unique to you.",
+    mustClickUseButton:
+      "Important: you must tap the white “Use credits →” button to open the link, or credits will not be added to your Cursor account. Copying alone is not enough.",
     successHint:
-      "After opening the link, check credits in Cursor Balance — they apply to future top-ups and usage.",
+      "After tapping the white button and opening the link, check Cursor Balance to confirm credits arrived — they apply to future top-ups and usage.",
     havingTrouble: "Having trouble? Please ask the staff for help.",
 
     // Errors
