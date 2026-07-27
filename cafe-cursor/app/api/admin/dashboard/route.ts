@@ -4,6 +4,7 @@ import { isAuthenticated } from "@/lib/auth";
 import { ensureBundledLumaGuestsImported } from "@/lib/luma-csv";
 import { computeHaveNeed } from "@/lib/credit-ledger";
 import { getCreditOpsStats } from "@/lib/credit-ops";
+import { assignableRealPoolWhere } from "@/lib/credit-pool";
 
 /**
  * GET /api/admin/dashboard — admin stats + lists
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest) {
       prisma.credit.count({ where: { isUsed: true } }),
       prisma.credit.count({ where: { isTest: true } }),
       prisma.credit.count({
-        where: { isUsed: false, isTest: false, ownerId: null },
+        where: assignableRealPoolWhere(),
       }),
       prisma.eligibleUser.count(),
       prisma.eligibleUser.count({ where: { hasClaimed: true } }),

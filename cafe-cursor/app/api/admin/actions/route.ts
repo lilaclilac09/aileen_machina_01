@@ -12,6 +12,7 @@ import { displayNameFromEmail } from "@/lib/validations";
 import { syncCheckedInFromLuma, isLumaConfigured } from "@/lib/luma";
 import { importLumaGuestsFromCsv, clearUnclaimedGuestList } from "@/lib/luma-csv";
 import { getVolunteerMaxClaims } from "@/lib/claims";
+import { assignableCreditWhere, assignableRealPoolWhere } from "@/lib/credit-pool";
 import {
   formatOpsStatsMessage,
   getCreditOpsStats,
@@ -69,16 +70,16 @@ export async function POST(request: NextRequest) {
         }
 
         const credit = await prisma.credit.findFirst({
-          where: {
-            isUsed: false,
-            isTest: useTestCredit || false,
-          },
+          where: assignableCreditWhere(Boolean(useTestCredit)),
           orderBy: { createdAt: "asc" },
         });
 
         if (!credit) {
           return NextResponse.json(
-            { error: "No credits available" },
+            {
+              error:
+                "No fresh credits available (quarantined/revoked links are not reissued — sync new ones from the sheet).",
+            },
             { status: 400 }
           );
         }
@@ -183,7 +184,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           message:
-            `Credit revoked from ${user.email} (code ${revokedCode}) — back to Available.\n\n` +
+            `Credit revoked from ${user.email} (code ${revokedCode}).\n` +
+            `Link is QUARANTINED (not returned to pool) — Cursor.com may already have consumed it.\n` +
+            `Guest can redeem again to get a fresh unused link.\n\n` +
             formatOpsStatsMessage(opsStats),
           opsStats,
         });
@@ -344,7 +347,7 @@ export async function POST(request: NextRequest) {
           success: true,
           message:
             (releaseIds.length > 0
-              ? `Deleted ${user.email} and returned ${releaseIds.length} credit(s) to the pool.`
+              ? `Deleted ${user.email}; ${releaseIds.length} credit(s) QUARANTINED (not reissued — may be consumed on Cursor.com).`
               : `Deleted ${user.email}.`) +
             "\n\n" +
             formatOpsStatsMessage(opsStats),
