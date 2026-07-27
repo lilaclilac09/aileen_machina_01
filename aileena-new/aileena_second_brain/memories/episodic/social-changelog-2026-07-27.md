@@ -13,16 +13,16 @@ Review → promote durable facts into `memories/semantic/analysts-dylan-aaron.md
 
 ## Snapshot
 
-- Tweets: **217**
+- Tweets: **219**
 - Numbers: **77**
-- Last RSS: `2026-07-26T19:35:04.433Z`
+- Last RSS: `2026-07-27T04:01:43.981Z`
 
 ## By account
 
 | Account | Count |
 |---------|-------|
-| @aaronburnett | 89 |
-| @semianalysis_ | 50 |
+| @aaronburnett | 90 |
+| @semianalysis_ | 51 |
 | @dylan522p | 28 |
 | @vladsaigau | 18 |
 | @mach33 | 11 |
