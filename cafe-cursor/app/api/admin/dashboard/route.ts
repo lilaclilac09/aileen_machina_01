@@ -84,6 +84,13 @@ export async function GET(request: NextRequest) {
         assignedAt: true,
         createdAt: true,
         ownerId: true,
+        owner: {
+          select: {
+            id: true,
+            email: true,
+            hasClaimed: true,
+          },
+        },
       },
     });
 
