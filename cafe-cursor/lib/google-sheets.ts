@@ -7,6 +7,7 @@
  */
 
 import { prisma } from "@/lib/prisma";
+import { logCreditOpsEvent } from "@/lib/credit-ops";
 
 export function getCreditsSheetCsvUrl(): string {
   if (process.env.GOOGLE_SHEET_CREDITS_CSV_URL) {
@@ -156,13 +157,19 @@ export async function syncCreditsFromSheet(
       continue;
     }
 
-    await prisma.credit.create({
+    const row = await prisma.credit.create({
       data: {
         code,
         link,
         isUsed: false,
         isTest: false,
       },
+    });
+    await logCreditOpsEvent(prisma, {
+      type: "ADD",
+      creditId: row.id,
+      creditCode: row.code,
+      note: "sheet_sync",
     });
     created++;
   }

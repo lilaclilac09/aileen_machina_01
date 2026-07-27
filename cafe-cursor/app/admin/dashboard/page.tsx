@@ -11,6 +11,12 @@ interface Credit {
   isTest: boolean;
   assignedAt: string | null;
   createdAt: string;
+  ownerId?: string | null;
+  timesAssigned?: number;
+  timesRevoked?: number;
+  lastRevokedAt?: string | null;
+  lastRevokedFromEmail?: string | null;
+  owner?: { id: string; email: string; hasClaimed: boolean } | null;
 }
 
 interface EligibleUser {
@@ -55,9 +61,19 @@ interface HaveNeed {
   note: string;
 }
 
+interface OpsStats {
+  addedToSystem: number;
+  assignEvents: number;
+  revokeEvents: number;
+  revokedAvailableCount: number;
+  usedCount: number;
+  availableCount: number;
+}
+
 interface DashboardData {
   stats: Stats;
   haveNeed?: HaveNeed;
+  opsStats?: OpsStats;
   credits: Credit[];
   eligibleUsers: EligibleUser[];
 }
@@ -71,6 +87,9 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<"users" | "credits">("users");
+  const [creditStatusFilter, setCreditStatusFilter] = useState<
+    "all" | "available" | "used" | "revoked"
+  >("all");
   const [actionLoading, setActionLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddUserModal, setShowAddUserModal] = useState(false);
@@ -140,6 +159,14 @@ export default function AdminDashboard() {
           if (json.payload.recipients.length > 40) {
             msg += `\n… +${json.payload.recipients.length - 40} more`;
           }
+        }
+        if (json.opsStats) {
+          msg +=
+            "\n\n--- Ops counts ---\n" +
+            `Added to system: ${json.opsStats.addedToSystem}\n` +
+            `Assign events: ${json.opsStats.assignEvents}\n` +
+            `Revoke events: ${json.opsStats.revokeEvents}\n` +
+            `Revoked & available: ${json.opsStats.revokedAvailableCount}`;
         }
         alert(msg);
         fetchDashboard();
@@ -457,11 +484,58 @@ export default function AdminDashboard() {
       (u.company && u.company.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const filteredCredits = data?.credits.filter(
-    (c) =>
-      c.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.link.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCredits = data?.credits.filter((c) => {
+    if (creditStatusFilter === "available" && c.isUsed) return false;
+    if (creditStatusFilter === "used" && !c.isUsed) return false;
+    if (
+      creditStatusFilter === "revoked" &&
+      !((c.timesRevoked || 0) > 0 && !c.isUsed)
+    ) {
+      return false;
+    }
+    if (!searchTerm.trim()) return true;
+    const q = searchTerm.toLowerCase();
+    return (
+      c.code.toLowerCase().includes(q) ||
+      c.link.toLowerCase().includes(q) ||
+      (c.owner?.email || "").toLowerCase().includes(q) ||
+      (c.lastRevokedFromEmail || "").toLowerCase().includes(q)
+    );
+  });
+
+  const handleDownloadUsedCredits = () => {
+    const rows = (data?.credits || []).filter((c) => c.isUsed && !c.isTest);
+    if (rows.length === 0) {
+      alert("No used (assigned) real credits to download.");
+      return;
+    }
+    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+    const csv =
+      "code,link,status,ownerEmail,assignedAt,note\n" +
+      rows
+        .map((c) => {
+          const owner = JSON.stringify(c.owner?.email || "");
+          const assigned = c.assignedAt || "";
+          const note = JSON.stringify(
+            "Used = assigned in cafe-cursor; not proof Cursor.com redeemed the link"
+          );
+          return `${c.code},${c.link},used,${owner},${assigned},${note}`;
+        })
+        .join("\n") +
+      "\n";
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `used-credits-${stamp}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    alert(
+      `Downloaded ${rows.length} used credits.\n\n` +
+        `Flag meaning: assigned in this system (isUsed=true).\n` +
+        `Does not prove the guest opened the Cursor referral link.`
+    );
+  };
 
   if (loading) {
     return (
@@ -559,6 +633,27 @@ export default function AdminDashboard() {
               (now {data.haveNeed.denominationSource}=
               {data.haveNeed.denominationUsd}). No redeem required for this
               inventory math.
+            </p>
+          </div>
+        )}
+
+        {data?.opsStats && (
+          <div className="mb-6 rounded-xl border border-violet-500/40 bg-violet-500/10 px-4 py-3 text-sm text-violet-50">
+            <p className="font-medium">Credit ops counts</p>
+            <p className="mt-2 font-mono text-xs opacity-95">
+              Added to system: {data.opsStats.addedToSystem}
+              {" · "}
+              Assign: {data.opsStats.assignEvents}
+              {" · "}
+              Revoke: {data.opsStats.revokeEvents}
+              {" · "}
+              Revoked &amp; available (not kept):{" "}
+              {data.opsStats.revokedAvailableCount}
+            </p>
+            <p className="mt-2 text-xs opacity-75">
+              After each Add / Assign / Revoke, the alert also shows these updated
+              counts. &quot;Revoked &amp; available&quot; = was revoked, currently
+              free in the pool (guest did not keep it).
             </p>
           </div>
         )}
@@ -877,7 +972,61 @@ export default function AdminDashboard() {
         )}
 
         {activeTab === "credits" && (
-          <div className="overflow-x-auto rounded-xl border border-gray-800">
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap gap-2">
+                {(
+                  [
+                    ["all", "All"],
+                    ["available", "Available"],
+                    ["used", "Used / flagged"],
+                    ["revoked", "Revoked (not kept)"],
+                  ] as const
+                ).map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setCreditStatusFilter(key)}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                      creditStatusFilter === key
+                        ? key === "used"
+                          ? "bg-orange-500 text-black"
+                          : key === "revoked"
+                            ? "bg-violet-400 text-black"
+                            : "bg-white text-black"
+                        : "border border-gray-700 text-gray-300 hover:bg-gray-800"
+                    }`}
+                  >
+                    {label}
+                    {key === "all" && data
+                      ? ` (${data.stats.totalCredits})`
+                      : key === "available" && data
+                        ? ` (${data.stats.availableCredits})`
+                        : key === "used" && data
+                          ? ` (${data.stats.usedCredits})`
+                          : key === "revoked" && data?.opsStats
+                            ? ` (${data.opsStats.revokedAvailableCount})`
+                            : ""}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={handleDownloadUsedCredits}
+                disabled={actionLoading || !data || !(data.stats.usedCredits > 0)}
+                className="rounded-lg border border-orange-600/50 bg-orange-500/10 px-3 py-1.5 text-xs text-orange-100 hover:bg-orange-500/20 disabled:opacity-50"
+                title="Download assigned/used credits CSV (flagged in this system)"
+              >
+                Download used CSV
+              </button>
+            </div>
+            <p className="text-xs text-gray-500">
+              <span className="text-orange-300">Used</span> = assigned now.{" "}
+              <span className="text-violet-300">Revoked (not kept)</span> = was
+              revoked and is free again (timesRevoked &gt; 0). Revoke returns it to
+              Available. Does not prove Cursor.com redemption.
+            </p>
+            <div className="overflow-x-auto rounded-xl border border-gray-800">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-gray-800 bg-gray-900/50">
                 <tr>
@@ -885,12 +1034,25 @@ export default function AdminDashboard() {
                   <th className="px-4 py-3 font-medium">Link</th>
                   <th className="px-4 py-3 font-medium">Type</th>
                   <th className="px-4 py-3 font-medium">Status</th>
+                  <th className="px-4 py-3 font-medium">Owner</th>
+                  <th className="px-4 py-3 font-medium">Assign×</th>
+                  <th className="px-4 py-3 font-medium">Revoke×</th>
+                  <th className="px-4 py-3 font-medium">Last revoked from</th>
                   <th className="px-4 py-3 font-medium">Assigned</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-800">
                 {filteredCredits?.map((credit) => (
-                  <tr key={credit.id} className="hover:bg-gray-900/50">
+                  <tr
+                    key={credit.id}
+                    className={`hover:bg-gray-900/50 ${
+                      credit.isUsed
+                        ? "bg-orange-500/5"
+                        : (credit.timesRevoked || 0) > 0
+                          ? "bg-violet-500/5"
+                          : ""
+                    }`}
+                  >
                     <td className="px-4 py-3 font-mono text-xs">{credit.code}</td>
                     <td className="max-w-xs truncate px-4 py-3 font-mono text-xs text-gray-400">
                       {credit.link}
@@ -911,11 +1073,30 @@ export default function AdminDashboard() {
                         <span className="rounded-full bg-orange-500/20 px-2 py-1 text-xs text-orange-400">
                           Used
                         </span>
+                      ) : (credit.timesRevoked || 0) > 0 ? (
+                        <span className="rounded-full bg-violet-500/20 px-2 py-1 text-xs text-violet-300">
+                          Revoked→Available
+                        </span>
                       ) : (
                         <span className="rounded-full bg-green-500/20 px-2 py-1 text-xs text-green-400">
                           Available
                         </span>
                       )}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-gray-300">
+                      {credit.owner?.email || (credit.isUsed ? "—" : "")}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-gray-300">
+                      {credit.timesAssigned ?? 0}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-gray-300">
+                      {credit.timesRevoked ?? 0}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-gray-400">
+                      {credit.lastRevokedFromEmail || "—"}
+                      {credit.lastRevokedAt
+                        ? ` · ${new Date(credit.lastRevokedAt).toLocaleDateString("en-US")}`
+                        : ""}
                     </td>
                     <td className="px-4 py-3 text-xs text-gray-400">
                       {credit.assignedAt
@@ -926,6 +1107,7 @@ export default function AdminDashboard() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
       </div>

@@ -12,6 +12,7 @@ import {
 import { ensureCreditsSynced } from "@/lib/google-sheets";
 import { ensureLumaCheckedInUser, isLumaConfigured } from "@/lib/luma";
 import { getVolunteerMaxClaims } from "@/lib/claims";
+import { logCreditOpsEvent } from "@/lib/credit-ops";
 
 /** Mask email in logs — never print full addresses to shared log sinks. */
 function maskEmail(email: string): string {
@@ -177,7 +178,16 @@ export async function POST(request: NextRequest) {
           isUsed: true,
           assignedAt: new Date(),
           ownerId: eligibleUser!.id,
+          timesAssigned: { increment: 1 },
         },
+      });
+
+      await logCreditOpsEvent(tx, {
+        type: "ASSIGN",
+        creditId: availableCredit.id,
+        creditCode: availableCredit.code,
+        userEmail: normalizedEmail,
+        note: "guest_redeem",
       });
 
       return updatedUser;
