@@ -140,12 +140,10 @@ export function RegisterForm() {
       </p>
       <p className="mb-1">{t("troubleAskStaff")}</p>
       <a
-        href={`mailto:${t("troubleSupportEmail")}?subject=${encodeURIComponent(
-          "Cafe Cursor credit issue"
-        )}`}
+        href={`/help${email.trim() ? `?email=${encodeURIComponent(email.trim())}` : ""}`}
         className="font-medium text-foreground underline underline-offset-2 hover:no-underline"
       >
-        {t("troubleSupportEmail")}
+        {t("troubleTicketCta")}
       </a>
     </div>
   );

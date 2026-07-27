@@ -46,6 +46,7 @@ interface Stats {
   pendingUsers: number;
   remindedUnclaimed: number;
   awaitingReminder: number;
+  openTickets?: number;
 }
 
 interface HaveNeed {
@@ -70,12 +71,26 @@ interface OpsStats {
   availableCount: number;
 }
 
+interface SupportTicketRow {
+  id: string;
+  email: string;
+  lumaEmail: string | null;
+  category: string;
+  message: string;
+  status: string;
+  locale: string | null;
+  adminNote: string | null;
+  createdAt: string;
+  resolvedAt: string | null;
+}
+
 interface DashboardData {
   stats: Stats;
   haveNeed?: HaveNeed;
   opsStats?: OpsStats;
   credits: Credit[];
   eligibleUsers: EligibleUser[];
+  tickets?: SupportTicketRow[];
 }
 
 /**
@@ -86,7 +101,9 @@ export default function AdminDashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [activeTab, setActiveTab] = useState<"users" | "credits">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "credits" | "tickets">(
+    "users"
+  );
   const [creditStatusFilter, setCreditStatusFilter] = useState<
     "all" | "available" | "used" | "revoked"
   >("all");
@@ -124,6 +141,19 @@ export default function AdminDashboard() {
   const handleLogout = async () => {
     await fetch("/api/admin/auth", { method: "DELETE" });
     router.push("/admin");
+  };
+
+  const handleResolveTicket = async (ticketId: string) => {
+    const note = window.prompt("Optional admin note (visible only in Admin):") || "";
+    await executeAction("RESOLVE_TICKET", {
+      ticketId,
+      adminNote: note.trim() || undefined,
+    });
+  };
+
+  const handleReopenTicket = async (ticketId: string) => {
+    if (!window.confirm(`Reopen ticket ${ticketId}?`)) return;
+    await executeAction("REOPEN_TICKET", { ticketId });
   };
 
   const executeAction = async (action: string, actionData: Record<string, unknown>) => {
@@ -699,6 +729,11 @@ export default function AdminDashboard() {
             value={data?.stats.awaitingReminder || 0}
             color="orange"
           />
+          <StatCard
+            label="Open tickets"
+            value={data?.stats.openTickets || 0}
+            color="pink"
+          />
         </div>
 
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
@@ -722,6 +757,16 @@ export default function AdminDashboard() {
               }`}
             >
               Credits ({data?.stats.totalCredits ?? 0})
+            </button>
+            <button
+              onClick={() => setActiveTab("tickets")}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                activeTab === "tickets"
+                  ? "bg-white text-black"
+                  : "border border-gray-700 hover:bg-gray-800"
+              }`}
+            >
+              Tickets ({data?.stats.openTickets ?? 0} open)
             </button>
           </div>
 
@@ -1107,6 +1152,119 @@ export default function AdminDashboard() {
                 ))}
               </tbody>
             </table>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "tickets" && (
+          <div className="overflow-hidden rounded-xl border border-gray-800">
+            <div className="border-b border-gray-800 bg-gray-900/80 px-4 py-3 text-xs text-gray-400">
+              Guests submit at <code className="text-gray-200">/help</code>.{" "}
+              <strong className="text-amber-200">cafe@aileena.xyz is send-only</strong>{" "}
+              (Resend From/Reply-To) — inbound mail is not received. New tickets also
+              notify <code className="text-gray-200">NOTIFY_CC_EMAIL</code> when Resend
+              is configured.
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="border-b border-gray-800 bg-gray-900 text-xs uppercase text-gray-400">
+                  <tr>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Category</th>
+                    <th className="px-4 py-3">Contact</th>
+                    <th className="px-4 py-3">Luma</th>
+                    <th className="px-4 py-3">Message</th>
+                    <th className="px-4 py-3">Created</th>
+                    <th className="px-4 py-3">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(data?.tickets || []).length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={7}
+                        className="px-4 py-8 text-center text-gray-500"
+                      >
+                        No tickets yet.
+                      </td>
+                    </tr>
+                  ) : (
+                    (data?.tickets || [])
+                      .filter((t) => {
+                        if (!searchTerm.trim()) return true;
+                        const q = searchTerm.toLowerCase();
+                        return (
+                          t.email.includes(q) ||
+                          (t.lumaEmail || "").includes(q) ||
+                          t.message.toLowerCase().includes(q) ||
+                          t.category.includes(q) ||
+                          t.id.includes(q)
+                        );
+                      })
+                      .map((ticket) => (
+                        <tr
+                          key={ticket.id}
+                          className="border-b border-gray-800/80 hover:bg-gray-900/40"
+                        >
+                          <td className="px-4 py-3">
+                            <span
+                              className={`rounded px-2 py-0.5 text-xs ${
+                                ticket.status === "open"
+                                  ? "bg-amber-500/20 text-amber-100"
+                                  : "bg-emerald-500/20 text-emerald-100"
+                              }`}
+                            >
+                              {ticket.status}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-xs text-gray-300">
+                            {ticket.category}
+                          </td>
+                          <td className="px-4 py-3 text-xs text-gray-200">
+                            {ticket.email}
+                          </td>
+                          <td className="px-4 py-3 text-xs text-gray-400">
+                            {ticket.lumaEmail || "—"}
+                          </td>
+                          <td className="max-w-xs px-4 py-3 text-xs text-gray-300">
+                            <div className="line-clamp-3 whitespace-pre-wrap">
+                              {ticket.message}
+                            </div>
+                            {ticket.adminNote ? (
+                              <p className="mt-1 text-[10px] text-gray-500">
+                                Note: {ticket.adminNote}
+                              </p>
+                            ) : null}
+                          </td>
+                          <td className="px-4 py-3 text-xs text-gray-400">
+                            {new Date(ticket.createdAt).toLocaleString("en-US")}
+                          </td>
+                          <td className="px-4 py-3 text-xs">
+                            {ticket.status === "open" ? (
+                              <button
+                                type="button"
+                                disabled={actionLoading}
+                                onClick={() => handleResolveTicket(ticket.id)}
+                                className="rounded border border-emerald-600/50 px-2 py-1 text-emerald-100 hover:bg-emerald-500/20 disabled:opacity-50"
+                              >
+                                Mark done
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                disabled={actionLoading}
+                                onClick={() => handleReopenTicket(ticket.id)}
+                                className="rounded border border-gray-600 px-2 py-1 text-gray-200 hover:bg-gray-800 disabled:opacity-50"
+                              >
+                                Reopen
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         )}

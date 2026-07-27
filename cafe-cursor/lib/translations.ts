@@ -62,8 +62,36 @@ export const translations = {
       "核对：Cursor 当前登录邮箱必须 = Luma 当时注册/签到的邮箱。",
     troubleUnifiedSolve:
       "自查仍不行 → 统一找现场志愿者处理（不要自己反复换邮箱乱试）。志愿者会按签到邮箱帮你核对 / 必要时后台协助。",
-    troubleAskStaff: "活动后可发邮件统一处理：",
-    troubleSupportEmail: "cafe@aileena.xyz",
+    troubleAskStaff:
+      "活动后请提交工单（写入后台；cafe@ 只发信不收信，不要发邮件到 cafe@）：",
+    troubleTicketCta: "提交工单 →",
+
+    // Support ticket (/help)
+    ticketPageTitle: "工单帮助",
+    ticketPageSubtitle:
+      "说明问题后提交。主办在 Admin 处理；不会发到 cafe@aileena.xyz 收件箱。",
+    ticketTitle: "提交工单",
+    ticketIntro: "请尽量填写 Luma 签到邮箱，方便核对。",
+    ticketEmailLabel: "联系邮箱",
+    ticketLumaLabel: "Luma 签到邮箱（可选）",
+    ticketLumaPlaceholder: "若与联系邮箱不同请填写",
+    ticketCategoryLabel: "问题类型",
+    ticketCatNotLanded: "Credits 没到账",
+    ticketCatMismatch: "签到邮箱 ≠ 领取/登录邮箱",
+    ticketCatClaimed: "已领取但找不到链接",
+    ticketCatOther: "其他",
+    ticketMessageLabel: "问题描述",
+    ticketMessagePlaceholder:
+      "例如：已点白色按键，Cursor 登录邮箱是 xxx，Balance 仍为 0…",
+    ticketSubmit: "提交工单",
+    ticketSubmitting: "提交中…",
+    ticketSuccessTitle: "工单已收到",
+    ticketSuccessBody: "主办会按签到邮箱核对。请保留工单编号。",
+    ticketIdLabel: "工单编号",
+    ticketBackHome: "返回领取页",
+    ticketError: "提交失败，请稍后重试。",
+    ticketPrivacyNote:
+      "你的联系方式仅用于处理本工单；不会公开。",
 
     // Errors
     notEligible: "请先找工作人员完成现场 Luma checked in，再来领取。",
@@ -146,8 +174,37 @@ export const translations = {
       "Verify: your current Cursor login email must equal the Luma register/check-in email.",
     troubleUnifiedSolve:
       "Still stuck → ask an on-site volunteer (one unified path — don’t keep trying random emails). Volunteers verify against the check-in email / assist via Admin if needed.",
-    troubleAskStaff: "After the event, email for unified follow-up:",
-    troubleSupportEmail: "cafe@aileena.xyz",
+    troubleAskStaff:
+      "After the event, submit a ticket (stored in Admin — do not email cafe@; that address is send-only):",
+    troubleTicketCta: "Submit a ticket →",
+
+    // Support ticket (/help)
+    ticketPageTitle: "Support ticket",
+    ticketPageSubtitle:
+      "Describe the issue and submit. Organizers handle it in Admin — cafe@aileena.xyz is not an inbox.",
+    ticketTitle: "Submit a ticket",
+    ticketIntro: "Include your Luma check-in email when possible.",
+    ticketEmailLabel: "Contact email",
+    ticketLumaLabel: "Luma check-in email (optional)",
+    ticketLumaPlaceholder: "If different from contact email",
+    ticketCategoryLabel: "Issue type",
+    ticketCatNotLanded: "Credits did not land",
+    ticketCatMismatch: "Check-in email ≠ redeem / Cursor login",
+    ticketCatClaimed: "Already claimed but lost the link",
+    ticketCatOther: "Other",
+    ticketMessageLabel: "Description",
+    ticketMessagePlaceholder:
+      "e.g. Tapped Use credits, Cursor login is xxx, Balance still 0…",
+    ticketSubmit: "Submit ticket",
+    ticketSubmitting: "Submitting…",
+    ticketSuccessTitle: "Ticket received",
+    ticketSuccessBody:
+      "We’ll verify against the check-in email. Keep your ticket ID.",
+    ticketIdLabel: "Ticket ID",
+    ticketBackHome: "Back to redeem",
+    ticketError: "Could not submit. Please try again.",
+    ticketPrivacyNote:
+      "Your contact details are only used to resolve this ticket.",
 
     // Errors
     notEligible:

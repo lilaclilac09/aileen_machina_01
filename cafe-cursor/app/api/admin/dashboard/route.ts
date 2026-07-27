@@ -64,6 +64,14 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
+    const [openTickets, tickets] = await Promise.all([
+      prisma.supportTicket.count({ where: { status: "open" } }),
+      prisma.supportTicket.findMany({
+        orderBy: [{ status: "asc" }, { createdAt: "desc" }],
+        take: 100,
+      }),
+    ]);
+
     const haveNeed = computeHaveNeed({
       availableCount: availableRealCredits,
       unclaimedApprovedCount: unclaimedApproved,
@@ -154,11 +162,13 @@ export async function GET(request: NextRequest) {
         pendingUsers: unclaimedApproved,
         remindedUnclaimed,
         awaitingReminder,
+        openTickets,
       },
       haveNeed,
       opsStats,
       credits,
       eligibleUsers: usersWithClaims,
+      tickets,
     });
   } catch (error) {
     console.error("[ADMIN] Dashboard error:", error);

@@ -79,3 +79,23 @@ model CreditOpsEvent {
 
   @@index([type, createdAt])
 }
+
+/// Guest support tickets (/help). cafe@aileena.xyz is send-only (Resend From/Reply-To);
+/// inbound mail is not a mailbox — tickets land here + optional notify to NOTIFY_CC_EMAIL.
+model SupportTicket {
+  id           String    @id @default(cuid())
+  email        String
+  /// Optional: Luma check-in email when it differs from Cursor login / contact email
+  lumaEmail    String?
+  category     String // credits_not_landed | email_mismatch | already_claimed | other
+  message      String
+  status       String    @default("open") // open | done
+  locale       String?
+  userAgent    String?
+  adminNote    String?
+  createdAt    DateTime  @default(now())
+  resolvedAt   DateTime?
+
+  @@index([status, createdAt])
+  @@index([email])
+}
