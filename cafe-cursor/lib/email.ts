@@ -7,6 +7,7 @@ import {
   getOrganizerInbox,
   getPublicReplyToAddress,
   maskContact,
+  assertGuestFacingAddresses,
 } from "@/lib/organizer-privacy";
 
 function looksLikeRealResendKey(key: string): boolean {
@@ -71,18 +72,16 @@ export function isTestingOnlyFromAddress(from = getFromEmail()): boolean {
 export function getEmailSendConfig(): {
   from: string;
   replyTo: string;
-  organizer: string;
+  /** Masked only — never expose full NOTIFY_CC_EMAIL to API/UI */
   organizerMasked: string;
   testingOnlyFrom: boolean;
   hasResendKey: boolean;
 } {
   const from = getFromEmail();
-  const organizer = getOrganizerInbox();
   return {
     from,
     replyTo: getPublicReplyToAddress(),
-    organizer,
-    organizerMasked: maskContact(organizer),
+    organizerMasked: maskContact(getOrganizerInbox()),
     testingOnlyFrom: isTestingOnlyFromAddress(from),
     hasResendKey: Boolean(getResendApiKey()),
   };
@@ -186,21 +185,30 @@ export async function sendCreditEmail({
       locale,
     });
 
-    console.log(`📧 [EMAIL] Enviando email real a: ${to}`);
-    
+    console.log(`📧 [EMAIL] Enviando email real a: ${maskContact(to)}`);
+
+    const from = fromAddress();
+    const replyTo = getPublicReplyToAddress();
+    const leak = assertGuestFacingAddresses({ from, replyTo });
+    if (leak) {
+      console.error(`❌ [EMAIL] Refusing guest send: ${leak}`);
+      return { success: false, error: leak };
+    }
+
     const { error } = await resendClient.emails.send({
-      from: fromAddress(),
+      from,
       to: [to],
+      replyTo,
       subject,
       html,
     });
 
     if (error) {
-      console.error(`❌ [EMAIL] Error enviando a ${to}:`, error);
+      console.error(`❌ [EMAIL] Error enviando a ${maskContact(to)}:`, error);
       return { success: false, error: error.message };
     }
 
-    console.log(`✅ [EMAIL] Enviado exitosamente a: ${to}`);
+    console.log(`✅ [EMAIL] Enviado exitosamente a: ${maskContact(to)}`);
     return { success: true };
   } catch (error) {
     console.error(`❌ [EMAIL] Error inesperado:`, error);
@@ -236,10 +244,16 @@ export async function sendUnclaimedReminderEmail({
 
   try {
     console.log(`📧 [EMAIL] Sending unclaimed reminder to: ${maskContact(to)}`);
+    const from = fromAddress();
+    const replyTo = getPublicReplyToAddress();
+    const leak = assertGuestFacingAddresses({ from, replyTo });
+    if (leak) {
+      return { success: false, error: leak };
+    }
     const { error } = await resendClient.emails.send({
-      from: fromAddress(),
+      from,
       to: [to],
-      replyTo: getPublicReplyToAddress(),
+      replyTo,
       subject,
       html,
     });
@@ -469,6 +483,19 @@ export async function sendUnclaimedReminderBccBlast(
   const sentEmails: string[] = [];
 
   const publicReplyTo = getPublicReplyToAddress();
+  const leak = assertGuestFacingAddresses({ from, replyTo: publicReplyTo });
+  if (leak) {
+    return {
+      sent: 0,
+      failed: guests.length,
+      batches: 0,
+      failures: guests.map((email) => ({ email, error: leak })),
+      sentEmails: [],
+      simulated: false,
+      cc: maskContact(cc),
+      from,
+    };
+  }
   const CHUNK = 40;
   let abortRemaining: string | null = null;
 
