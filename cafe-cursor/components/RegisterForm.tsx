@@ -134,8 +134,19 @@ export function RegisterForm() {
       >
         {t("troubleUsageUrl")}
       </a>
-      <p className="mb-2 leading-relaxed">{t("troubleVerifyAccount")}</p>
-      <p>{t("troubleAskStaff")}</p>
+      <p className="mb-3 leading-relaxed">{t("troubleVerifyAccount")}</p>
+      <p className="mb-3 rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2 leading-relaxed text-amber-900 dark:text-amber-100">
+        {t("troubleUnifiedSolve")}
+      </p>
+      <p className="mb-1">{t("troubleAskStaff")}</p>
+      <a
+        href={`mailto:${t("troubleSupportEmail")}?subject=${encodeURIComponent(
+          "Cafe Cursor credit issue"
+        )}`}
+        className="font-medium text-foreground underline underline-offset-2 hover:no-underline"
+      >
+        {t("troubleSupportEmail")}
+      </a>
     </div>
   );
 
