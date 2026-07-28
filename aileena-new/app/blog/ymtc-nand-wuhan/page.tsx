@@ -16,8 +16,20 @@ const references = [
     href: 'https://newsletter.semianalysis.com/p/china-and-usa-are-officially-at-economic',
   },
   {
+    label: 'SemiAnalysis — China’s CXMT Is Set to Challenge DRAM Incumbents (Jun 2026; YMTC aside)',
+    href: 'https://newsletter.semianalysis.com/p/chinas-cxmt-is-set-to-challenge-dram',
+  },
+  {
     label: 'AP — CXMT Shanghai IPO debut (Jul 2026)',
     href: 'https://apnews.com/article/cxmt-china-memory-chips-debut-shares-9cd8b79866cf4bd5ef7c1cb81215e796',
+  },
+  {
+    label: 'Caproasia — YMTC STAR IPO plans / Unigroup + Big Fund founding frame (May 2026)',
+    href: 'https://www.caproasia.com/2026/05/27/china-state-backed-semiconductor-company-yangtze-memory-technologies-co-ymtc-plans-shanghai-star-market-ipo-at-44-billion-valuation-founded-in-2016-by-china-state-backed-tsinghua-unigroup-nation/',
+  },
+  {
+    label: 'Digitimes — YMTC funding / post-Unigroup holding structure (Apr 2025)',
+    href: 'https://www.digitimes.com/news/a20250429VL210/yangtze-memory-ymtc-funding-xmc.html',
   },
   {
     label: 'Companion — Why Huawei\'s Bet Isn\'t on the Chip (CXMT as HBM variable)',
@@ -34,13 +46,13 @@ export default function YmtcNandWuhanArticle() {
     <SubstackShell
       category="Analysis"
       date="2026.07.28"
-      tags="CXMT · YMTC · NAND · Wuhan · SemiAnalysis · IPO"
+      tags="CXMT · YMTC · NAND · Wuhan · 国资 · SemiAnalysis · IPO"
       title="After CXMT's IPO — Look at Wuhan"
       dek={
         <>
-          Hefei just priced China&apos;s DRAM champion into the public market. The other memory city —
-          Wuhan — already had a NAND story SemiAnalysis was modeling years before the Entity List.
-          YMTC, Xtacking, 128L → densest 1Tb TLC, fab scale, and what sanctions changed.
+          Hefei priced China&apos;s DRAM champion. Wuhan is the NAND city: YMTC&apos;s Optics Valley
+          base, state-capital stack, wafer-start capacity, and the SemiAnalysis trail from 2021 density
+          lead to 2026 ChipBook trackers — while deep coverage shifted toward CXMT.
         </>
       }
     >
@@ -82,9 +94,11 @@ export default function YmtcNandWuhanArticle() {
         <Table
           headers={['', 'CXMT', 'YMTC']}
           rows={[
-            ['City', 'Hefei (Anhui)', 'Wuhan (Hubei)'],
+            ['City', 'Hefei (Anhui)', 'Wuhan Optics Valley (Hubei)'],
             ['Product', 'DRAM (DDR / LPDDR path; HBM as the open question)', '3D NAND (Xtacking)'],
-            ['2026 headline', 'STAR Market IPO — public capital', 'Entity-listed since Dec 2022 — tool access'],
+            ['State capital', 'Provincial + national IC capital (Hefei DRAM champion)', 'Yes — Big Fund + Hubei/Wuhan 国资; no single controller'],
+            ['2026 capital event', 'STAR Market IPO — public price discovery', 'STAR tutoring / IPO prep reported; still Entity-listed'],
+            ['Production unit', 'DRAM wafer starts (Hefei)', '~2 Wuhan fabs · ~200k WPM reported; phase-3+ roadmap'],
             ['Prior deep read here', 'Huawei HBM bottleneck variable', 'This essay + SemiAnalysis trail'],
           ]}
         />
@@ -96,6 +110,133 @@ export default function YmtcNandWuhanArticle() {
           ; domestic HBM from CXMT is the curve that decides whether the SuperPod story stays
           solvent. The IPO does not finish that curve — it finances and prices it. Wuhan is the
           parallel question for <em>bits that persist</em>.
+        </p>
+
+        <SectionLabel>Wuhan background — Optics Valley, not a blank map</SectionLabel>
+        <p style={bodyStyle}>
+          <strong style={strong}>Yangtze Memory Technologies Co. (长江存储)</strong> was formally
+          established in <strong style={strong}>July 2016</strong> in{' '}
+          <strong style={strong}>Wuhan</strong>, Hubei — specifically the East Lake High-tech /
+          Optics Valley complex that already hosted a 12-inch lineage under{' '}
+          <strong style={strong}>Wuhan Xinxin / XMC</strong>. The founding pitch was not “start NAND
+          from a greenfield PowerPoint.” It was: take an existing Wuhan wafer base, pour national +
+          provincial capital into a dedicated 3D NAND IDM, and chase layer count + density until
+          China had a storage product that was not just subsidized — but measurable against Samsung /
+          SK Hynix / Micron / Kioxia in tear-downs.
+        </p>
+        <p style={bodyStyle}>
+          Early corporate history is inseparable from <strong style={strong}>Tsinghua Unigroup
+          (紫光)</strong>: Unigroup was the industrial vehicle that put YMTC on the map, then
+          entered bankruptcy restructuring (from 2021). The post-Unigroup chapter matters for
+          ownership (below): YMTC was carved out so the NAND program would survive the parent’s
+          balance-sheet failure. Headquarters, fabs, and the public “Wuhan memory” brand stayed in
+          Optics Valley; the holding stack was rewritten around Hubei / Wuhan state capital plus the
+          national IC funds.
+        </p>
+        <p style={bodyStyle}>
+          Product surface today: 3D NAND wafers/die, embedded flash, client and enterprise SSD
+          paths, consumer brand <strong style={strong}>Zhitai (致钛)</strong>, and the architecture
+          trademark SemiAnalysis kept returning to — <strong style={strong}>Xtacking</strong>. R&amp;D
+          nodes are reported beyond Wuhan (Shanghai / Beijing and others); the manufacturing gravity
+          remains Wuhan.
+        </p>
+
+        <SectionLabel>国资 — yes. How much, and who?</SectionLabel>
+        <p style={bodyStyle}>
+          Short answer: <strong style={strong}>yes — YMTC is a state-capital story</strong>. Not a
+          single SASAC “central SOE” in the classic one-parent sense, but a stack where national IC
+          funds and Hubei / Wuhan local state investors dominate. Wikipedia and trade press label it
+          partially state-owned; Chinese IPO-tutoring coverage in 2026 goes further and treats the
+          register as <em>国资引领、无单一控股股东</em> — state-led, no single controlling
+          shareholder.
+        </p>
+        <p style={bodyStyle}>
+          <strong style={strong}>Founding capital (2016).</strong> Public establishment notices and
+          later filings describe phase-one money from the{' '}
+          <strong style={strong}>National Integrated Circuit Industry Investment Fund (大基金 /
+          Big Fund)</strong>, Hubei provincial industrial funds, and Hubei Science &amp; Technology
+          Investment Group — built on Wuhan Xinxin — with Tsinghua Unigroup and Big Fund again in
+          the second phase. Caproasia’s 2026 IPO write-up still frames the origin as Unigroup + Big
+          Fund + government investment on the order of a multi-ten-billion-dollar national memory
+          bet.
+        </p>
+        <p style={bodyStyle}>
+          <strong style={strong}>After Unigroup’s collapse.</strong> Digitimes (Apr 2025) and Chinese
+          restructuring coverage describe YMTC separated into a holding structure led by{' '}
+          <strong style={strong}>Hubei Science and Technology Investment</strong> / related Wuhan
+          vehicles — so the NAND assets would not be trapped inside Unigroup’s bankruptcy estate.
+          Big Fund Phase II and local Hubei vehicles reappeared in later capital increases (reported
+          registered capital jumping into the ~RMB 100B+ class in 2023).
+        </p>
+        <p style={bodyStyle}>
+          <strong style={strong}>2026 IPO-tutoring register (reported).</strong> Mainland coverage of
+          the May 2026 STAR tutoring / 辅导备案 file is consistent on the shape, even when exact
+          percentages move between stories:
+        </p>
+        <ul style={listStyle}>
+          <li>
+            <strong style={strong}>No controlling shareholder</strong> on the disclosed register —
+            deliberately plural state capital, not one listed parent.
+          </li>
+          <li>
+            Largest named block often cited:{' '}
+            <strong style={strong}>Hubei Changsheng Development (湖北长晟发展)</strong> at roughly{' '}
+            <strong style={strong}>~26.5%</strong>, itself a Hubei IC fund + Wuhan Optics Valley
+            Financial Holdings + Yangtze River Industrial Investment vehicle — province / city /
+            Optics Valley capital braided together.
+          </li>
+          <li>
+            <strong style={strong}>Big Fund I + II</strong> still large (on the order of ~20%+
+            combined in several write-ups); other Wuhan Optics Valley industrial investment arms and
+            bank AIC / industry funds as minorities.
+          </li>
+          <li>
+            Some Chinese summaries put <strong style={strong}>state-linked holders above ~90%</strong>{' '}
+            of the equity — treat the exact decimal as tutoring-file dependent; treat the direction
+            as settled: this is not a founder-VC NAND startup that happens to sit in Wuhan.
+          </li>
+        </ul>
+        <p style={bodyStyle}>
+          So when SemiAnalysis modeled YMTC as a structural NAND variable, the invisible half of the
+          model was always <strong style={strong}>patient state balance sheets</strong> willing to
+          fund 100k-WPM-class fabs through yield winters — until tool bans changed which half of the
+          recipe money can still buy.
+        </p>
+
+        <SectionLabel>生产端口 — fabs, wafers/month, expansion</SectionLabel>
+        <p style={bodyStyle}>
+          SemiAnalysis’s 2021–2022 unit of account was roughly{' '}
+          <strong style={strong}>~100k wafers per month (WPM) per fab</strong>: ~80–100k of
+          competitive NAND by early 2022 in the “apocalypse” framing; second fab tooling up; third
+          under construction; funding talk for a fourth. That was the pre-Entity-List expansion
+          grammar.
+        </p>
+        <p style={bodyStyle}>
+          Mainland 2026 IPO-tutoring / industry coverage updates the <em>reported</em> Wuhan
+          production map (numbers move; cite as media summaries of company filings, not audited
+          SemiAnalysis ChipBook cells):
+        </p>
+        <Table
+          headers={['Layer', 'Reported state (2026 tutoring coverage)']}
+          rows={[
+            ['Installed Wuhan fabs', 'Two operating wafer fabs in Wuhan'],
+            ['Combined wafer starts', '~200k WPM total across the two fabs'],
+            ['Phase 3', 'Equipment install underway; target end-2026 production; ~50k WPM stage cited for 2027 in some reports'],
+            ['Longer roadmap', 'Two more fabs after phase 3; ~500k WPM all-in aspiration if tools + yield cooperate'],
+            ['Geography', 'Wuhan Optics Valley — manufacturing gravity stays in Hubei'],
+          ]}
+        />
+        <p style={bodyStyle}>
+          Read those expansion lines the way SemiAnalysis taught: capacity is not a press-release
+          destination — it is conditional on etch/dep tools, domestic substitution under the Entity
+          List, and ASP/mix. A 500k WPM slide without Lam-class upgrades is a different object from
+          the 2022 density-lead story.
+        </p>
+        <p style={bodyStyle}>
+          Brand / product ports matter commercially even when the process lead is constrained: YMTC
+          ships into domestic phone/SSD channels and the Zhitai retail path; export share still
+          shows up in customs-based trackers (see ChipBook below). Production port = Wuhan wafers;
+          revenue port = whoever can still buy the bits.
         </p>
 
         <SectionLabel>What SemiAnalysis actually said about YMTC</SectionLabel>
@@ -210,15 +351,49 @@ export default function YmtcNandWuhanArticle() {
           pre-ban process lead survives without Lam-class upgrades.
         </p>
 
-        <SectionLabel>ChipBook and the tracker habit</SectionLabel>
+        <SectionLabel>ChipBook, trackers, and the attention shift</SectionLabel>
         <p style={bodyStyle}>
-          SemiAnalysis&apos;s later data products (ChipBook and related trackers) kept a{' '}
-          <strong style={strong}>YMTC Global Market Share Tracker</strong> in the product surface —
-          export volumes and share as a living series, not a one-off apocalypse essay. That matters
-          for how you read Wuhan after Hefei&apos;s IPO: CXMT is now a public equity with daily
-          price discovery; YMTC remains a private / sanctioned industrial object you mostly see
-          through teardown, customs, and third-party share trackers. Same memory complex. Different
-          observability.
+          SemiAnalysis still keeps YMTC inside the Memory Model / ChipBook surface — notably a{' '}
+          <strong style={strong}>YMTC Global Market Share Tracker</strong> built off Chinese export
+          data (value and volume), not a one-off 2021 apocalypse essay. That is the living series for
+          Wuhan after Hefei’s IPO: CXMT now has a public tape; YMTC is still mostly observed through
+          tear-downs, customs, and third-party share trackers.
+        </p>
+        <p style={bodyStyle}>
+          <strong style={strong}>May 2026 ChipBook.</strong> The tracker update that circulated from
+          the May ’26 edition is an ASP story disguised as an export story: YMTC manufacturing-base
+          April export <em>value</em> up on the order of{' '}
+          <strong style={strong}>+651% YoY</strong>, while export <em>volume</em> was only up about{' '}
+          <strong style={strong}>~10%</strong>. SemiAnalysis’s implication is straightforward —
+          revenue is being pushed by higher selling prices in a memory supercycle, not by a matching
+          explosion in bits shipped. Read Wuhan through that lens: capacity headlines and ASP
+          headlines can diverge hard.
+        </p>
+        <p style={bodyStyle}>
+          <strong style={strong}>June 2026 — CXMT takes the long form.</strong>{' '}
+          <em>China’s CXMT Is Set to Challenge DRAM Incumbents</em> (23 Jun 2026) is the reminder that
+          Dylan Patel’s shop now spends its deep pages on Hefei DRAM / HBM ambition. YMTC appears as
+          a side comparison: private / hard-to-observe China memory peers (CXMT pre-IPO and YMTC)
+          were always difficult to model from the outside — then CXMT listed, and the observability
+          gap widened further in CXMT’s favor.
+        </p>
+        <p style={bodyStyle}>
+          <strong style={strong}>Honest conclusion on coverage.</strong> SemiAnalysis has not
+          abandoned YMTC — the ChipBook tracker and sanction asides (including external quotes from
+          analysts like Ray Wang on China memory tool limits) still exist. But the{' '}
+          <em>dedicated process/capacity long reads</em> of 2021–2022 have not been repeated at that
+          intensity. Attention rotated to <strong style={strong}>CXMT + the memory supercycle</strong>.
+          Wuhan remains a modeled variable; Hefei became the prose subject.
+        </p>
+        <p style={bodyStyle}>
+          <a
+            href="https://newsletter.semianalysis.com/p/chinas-cxmt-is-set-to-challenge-dram"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={inlineLink}
+          >
+            Read: China’s CXMT Is Set to Challenge DRAM Incumbents (SemiAnalysis)
+          </a>
         </p>
 
         <SectionLabel>How to read CXMT IPO week without collapsing the map</SectionLabel>
@@ -226,7 +401,19 @@ export default function YmtcNandWuhanArticle() {
           <li>
             <strong style={strong}>Do not say &ldquo;China memory&rdquo; as one bet.</strong> Hefei
             DRAM ≠ Wuhan NAND. Different process, different tools, different sanction status, different
-            customer stacks.
+            customer stacks — and different observability after CXMT’s listing.
+          </li>
+          <li>
+            <strong style={strong}>国资 is not optional color.</strong> YMTC’s recipe was always
+            national IC fund + Hubei/Wuhan state capital + (historically) Unigroup industrial
+            sponsorship. Post-restructuring, the register is still state-led even without one
+            controller.
+          </li>
+          <li>
+            <strong style={strong}>Production ports are Wuhan wafer starts.</strong> Treat ~200k WPM
+            / phase-3 / 500k aspiration as tutoring-era reported capacity, then stress-test against
+            Entity List tool reality — the same way SemiAnalysis conditioned 100k-WPM fabs on tool
+            flow in 2022.
           </li>
           <li>
             <strong style={strong}>CXMT IPO prices the DRAM / HBM ambition.</strong> It does not
@@ -254,11 +441,14 @@ export default function YmtcNandWuhanArticle() {
         <p style={bodyStyle}>
           CXMT&apos;s listing week will dominate Chinese financial media because public markets love
           a first-day print. The analytical habit SemiAnalysis already trained for Wuhan is the one
-          worth keeping: <strong style={strong}>name the process</strong>,{' '}
-          <strong style={strong}>name the density</strong>, <strong style={strong}>name the WPM</strong>,{' '}
+          worth keeping: <strong style={strong}>name the city</strong>,{' '}
+          <strong style={strong}>name the 国资 stack</strong>,{' '}
+          <strong style={strong}>name the WPM</strong>,{' '}
+          <strong style={strong}>name the density</strong>,{' '}
           <strong style={strong}>name the tool exposure</strong>, then update the sanctions
-          boundary. Hefei went public. Wuhan still has to answer whether Xtacking-class NAND can keep
-          scaling when the Lam-shaped part of the recipe is on the Entity List.
+          boundary — and notice when the long-form attention moved to Hefei while Wuhan stayed in
+          the tracker. Hefei went public. Wuhan still has to answer whether Xtacking-class NAND can
+          keep scaling when the Lam-shaped part of the recipe is on the Entity List.
         </p>
         <p style={bodyStyle}>
           That is the map after the IPO — not a second ticker, a second city.

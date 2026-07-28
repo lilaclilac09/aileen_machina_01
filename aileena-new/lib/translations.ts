@@ -626,7 +626,7 @@ export const t = {
             date: '2026.07.28',
             href: '/blog/ymtc-nand-wuhan',
             title: 'After CXMT\'s IPO — Look at Wuhan',
-            body: 'Hefei listed China\'s DRAM champion. Wuhan already had the NAND story SemiAnalysis modeled from 2021: YMTC 128L as the first technologically competitive Chinese semiconductor product; 2022 Xtacking 3.0 as densest shipping 1Tb TLC (~15.2 Gbit/mm², ~232L); ~100k WPM fab units; then Entity List and Lam Research ~7% revenue exposure. Two cities, two memory products — don\'t collapse them into one ticker.',
+            body: 'Hefei listed China\'s DRAM champion. Wuhan is the NAND city: Optics Valley base on Wuhan Xinxin, 国资 stack (Big Fund + Hubei Changsheng / Optics Valley capital, no single controller), ~2 fabs / ~200k WPM reported with phase-3+ roadmap, and SemiAnalysis from 2021 density lead through 2026 ChipBook ASP trackers — while long-form attention shifted to CXMT.',
           },
 
         ],
@@ -1355,7 +1355,7 @@ export const t = {
             date: '2026.07.28',
             href: '/blog/ymtc-nand-wuhan',
             title: 'Nach CXMTs IPO — schau nach Wuhan',
-            body: 'Hefei brachte Chinas DRAM-Champion an die Börse. Wuhan hatte die NAND-Story, die SemiAnalysis seit 2021 modelliert: YMTC 128L als erstes technologisch konkurrenzfähiges chinesisches Halbleiterprodukt; 2022 Xtacking 3.0 als dichtestes shipping 1Tb TLC (~15.2 Gbit/mm², ~232L); ~100k WPM pro Fab; dann Entity List und Lam Research ~7 % Umsatz. Zwei Städte, zwei Memory-Produkte — nicht zu einem Ticker zusammenziehen.',
+            body: 'Hefei brachte Chinas DRAM-Champion an die Börse. Wuhan ist die NAND-Stadt: Optics Valley auf Wuhan-Xinxin-Basis, Staats kapital (Big Fund + Hubei Changsheng / Optics-Valley-Kapital, kein einzelner Controller), ~2 Fabs / ~200k WPM berichtet plus Phase-3-Roadmap, und SemiAnalysis von der 2021-Dichteführung bis zu den ChipBook-ASP-Trackern 2026 — während die Long-Form-Aufmerksamkeit zu CXMT wanderte.',
           },
 
         ],
