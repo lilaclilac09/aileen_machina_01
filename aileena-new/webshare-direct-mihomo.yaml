@@ -1,0 +1,102 @@
+mixed-port: 7890
+allow-lan: false
+mode: rule
+log-level: info
+ipv6: false
+
+proxies:
+  - name: UK-London-31.59.20.176
+    type: http
+    server: 31.59.20.176
+    port: 6754
+    username: htlhgwgr
+    password: 2s24h4i2ucjz
+  - name: US-Seattle-31.56.127.193
+    type: http
+    server: 31.56.127.193
+    port: 7684
+    username: htlhgwgr
+    password: 2s24h4i2ucjz
+  - name: UK-London-45.38.107.97
+    type: http
+    server: 45.38.107.97
+    port: 6014
+    username: htlhgwgr
+    password: 2s24h4i2ucjz
+  - name: US-Piscataway-38.154.203.95
+    type: http
+    server: 38.154.203.95
+    port: 5863
+    username: htlhgwgr
+    password: 2s24h4i2ucjz
+  - name: UK-London-198.105.121.200
+    type: http
+    server: 198.105.121.200
+    port: 6462
+    username: htlhgwgr
+    password: 2s24h4i2ucjz
+  - name: ES-Madrid-64.137.96.74
+    type: http
+    server: 64.137.96.74
+    port: 6641
+    username: htlhgwgr
+    password: 2s24h4i2ucjz
+  - name: US-LA-198.23.243.226
+    type: http
+    server: 198.23.243.226
+    port: 6361
+    username: htlhgwgr
+    password: 2s24h4i2ucjz
+  - name: US-Piscataway-38.154.185.97
+    type: http
+    server: 38.154.185.97
+    port: 6370
+    username: htlhgwgr
+    password: 2s24h4i2ucjz
+  - name: JP-Tokyo-142.111.67.146
+    type: http
+    server: 142.111.67.146
+    port: 5611
+    username: htlhgwgr
+    password: 2s24h4i2ucjz
+  - name: US-LA-191.96.254.138
+    type: http
+    server: 191.96.254.138
+    port: 6185
+    username: htlhgwgr
+    password: 2s24h4i2ucjz
+
+proxy-groups:
+  - name: PROXY
+    type: select
+    proxies:
+      - AUTO
+      - UK-London-31.59.20.176
+      - US-Seattle-31.56.127.193
+      - UK-London-45.38.107.97
+      - US-Piscataway-38.154.203.95
+      - UK-London-198.105.121.200
+      - ES-Madrid-64.137.96.74
+      - US-LA-198.23.243.226
+      - US-Piscataway-38.154.185.97
+      - JP-Tokyo-142.111.67.146
+      - US-LA-191.96.254.138
+      - DIRECT
+  - name: AUTO
+    type: url-test
+    proxies:
+      - UK-London-31.59.20.176
+      - US-Seattle-31.56.127.193
+      - UK-London-45.38.107.97
+      - US-Piscataway-38.154.203.95
+      - UK-London-198.105.121.200
+      - ES-Madrid-64.137.96.74
+      - US-LA-198.23.243.226
+      - US-Piscataway-38.154.185.97
+      - JP-Tokyo-142.111.67.146
+      - US-LA-191.96.254.138
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+
+rules:
+  - MATCH,PROXY
