@@ -99,6 +99,7 @@ const COVER_BY_SLUG: Record<string, string> = {
   cpo: COVER_FIBER,
   'let-there-be-light': COVER_LIGHT,
   'nokia-dci': COVER_FIBER,
+  'ymtc-nand-wuhan': COVER_SILICON,
 
   // Data centre / cooling
   'ai-cooling': COVER_DATACENTER,
