@@ -13,7 +13,6 @@ import Link from 'next/link';
 import Header from '../components/Header';
 import LoadingScreen from '../components/LoadingScreen';
 import GlassBench from '../components/GlassBench';
-import WritingWall, { type WallPost } from '../components/WritingWall';
 import { SnapContainer, SnapSection } from '../components/SnapScroll';
 import { useLanguage } from '../components/LanguageProvider';
 import { t } from '../lib/translations';
@@ -78,17 +77,17 @@ type RoomDoor = {
 
 /* ── Homepage ─────────────────────────────────────────────────────────
  *
- * The homepage IS the collage desk. Mood first, findability through labeled
- * scraps on that desk — not through a second catalog page that replaces it.
+ * A cinematic opening, then one clickable clipping desk. Information is
+ * intentionally minimal: the homepage's job is to set the mood, not to
+ * contain the content.
  *
- *   Section 01  Cinematic opening
- *   Section 02  Clipping desk       — scraps = her things (click to enter)
- *   Section 03  Watch / Listen      — DJ black door (also on the desk)
- *   Section 04  Visual              — kiln / glass
- *   Section 05  Writing wall        — full cover archive (secondary, after desk)
+ *   Section 01  Cinematic opening   — scene + one line + one CTA
+ *   Section 02  Clipping desk       — article scraps + direct doors
+ *   Section 03  Watch / Listen      — DJ door + one shelf door
+ *   Section 04  Visual              — kiln / glass bench (handmade work)
  *
- * Rooms (Dispatch, books, films, tools) keep the deep archive. The desk
- * only has to answer: where is mine?
+ * The Machina mark on the cinematic opening doubles as the door to the
+ * agent department.
  */
 export default function Home() {
   const { language } = useLanguage();
@@ -100,31 +99,6 @@ export default function Home() {
   const latestDispatch = tx.blog.researchDispatch.posts.slice(-1)[0];
   const metooArticle = tx.blog.womanInTech.posts.find((post) => post.href === '/blog/harassment') ?? tx.blog.womanInTech.posts[0];
   const featuredInvesting = tx.blog.investing.posts.find((post) => post.href === '/blog/nvidia-flywheel') ?? tx.blog.investing.posts[0];
-  // Every rail in one list — the writing wall shows the whole archive as
-  // covers. Each rail carries its own colour and its own translated tag,
-  // so the plates read DATA ARCHIVE / DATENARCHIV with the language switch.
-  const allPosts: WallPost[] = [
-    ...tx.blog.researchDispatch.posts.map((post) => ({
-      ...post,
-      rail: 'dispatch' as const,
-      railLabel: tx.blog.researchDispatch.tag,
-    })),
-    ...tx.blog.investing.posts.map((post) => ({
-      ...post,
-      rail: 'investing' as const,
-      railLabel: tx.blog.investing.tag,
-    })),
-    ...tx.blog.womanInTech.posts.map((post) => ({
-      ...post,
-      rail: 'woman' as const,
-      railLabel: tx.blog.womanInTech.tag,
-    })),
-    ...tx.blog.marsAndMoon.posts.map((post) => ({
-      ...post,
-      rail: 'mars' as const,
-      railLabel: tx.blog.marsAndMoon.tag,
-    })),
-  ];
   const rooms: RoomDoor[] = [
     {
       id: 'magazine',
@@ -210,7 +184,7 @@ export default function Home() {
       <SnapContainer key={language}>
 
         {/* ── 01 CINEMATIC OPENING ──────────────────────────────── */}
-        <SnapSection id="opening" className="order-1" variant="stage">
+        <SnapSection id="opening" className="order-1">
           <div
             className="h-full flex flex-col bg-white relative overflow-hidden"
             style={{ fontFamily: nunito }}
@@ -421,12 +395,12 @@ export default function Home() {
         </SnapSection>
 
         {/* ── 02 LINK DOCK — article objects as direct doors ────── */}
-        <SnapSection id="dock" className="order-2" variant="stage">
+        <SnapSection id="dock" className="order-2">
           <AtriumLinkDock rooms={rooms} />
         </SnapSection>
 
         {/* ── 03 WATCH / LISTEN — after the desk, not instead of it ─ */}
-        <SnapSection id="watch-hub" className="order-3" variant="flow">
+        <SnapSection id="watch-hub" className="order-3">
           <HomeWatchHub
             copy={tx.watchHub}
             rooms={tx.rooms.filter((room) => room.href !== '/' && room.href !== '/sound')}
@@ -434,7 +408,7 @@ export default function Home() {
         </SnapSection>
 
         {/* ── 04 VISUAL — kiln / glass (homepage only, not /sound) ─ */}
-        <SnapSection id="visual" className="order-4" variant="flow">
+        <SnapSection id="visual" className="order-4">
           <div style={{ fontFamily: nunito }}>
             <GlassBench
               tag={tx.visual.kilnTag}
@@ -444,11 +418,6 @@ export default function Home() {
               items={tx.visual.items}
             />
           </div>
-        </SnapSection>
-
-        {/* ── 05 WRITING WALL — full archive; desk stays the entrance ─ */}
-        <SnapSection id="writing-wall" className="order-5" variant="flow">
-          <WritingWall posts={allPosts} copy={tx.writingWall} />
         </SnapSection>
 
       </SnapContainer>
@@ -964,7 +933,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                   { href: '/updates', label: 'Books · Metal & Pages' },
                   { href: '/blog/watch-listening-shelf', label: 'Films · listen' },
                   { href: '/sound', label: 'DJ · /sound' },
-                  { href: '/#writing-wall', label: 'All covers · archive wall' },
+                  { href: '/dispatch', label: 'Archive · dispatch' },
                 ] as { href: string; label: string }[]
               ).map((item) => (
                 <Link
@@ -1391,7 +1360,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               { label: 'Books', href: '/updates' },
               { label: 'Films', href: '/blog/watch-listening-shelf' },
               { label: 'DJ', href: '/sound' },
-              { label: 'All covers', href: '/#writing-wall' },
+              { label: 'Archive', href: '/dispatch' },
             ] as { label: string; href: string }[]
           ).map((item) => (
             <Link
