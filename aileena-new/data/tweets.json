@@ -5922,5 +5922,103 @@
     "tags": [],
     "source": "fxtwitter",
     "ingestedAt": "2026-07-28T08:51:24.011Z"
+  },
+  {
+    "id": "2082189094025937047",
+    "url": "https://x.com/SemiAnalysis_/status/2082189094025937047",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Btw, we do have the answers, sales@semianalysis.com",
+    "createdAt": "Tue Jul 28 19:38:59 +0000 2026",
+    "createdTimestamp": 1785267539,
+    "likes": 7,
+    "retweets": 0,
+    "replies": 0,
+    "bookmarks": 0,
+    "views": 2136,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-28T19:52:52.704Z"
+  },
+  {
+    "id": "2082167095379276167",
+    "url": "https://x.com/SemiAnalysis_/status/2082167095379276167",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "",
+    "createdAt": "Tue Jul 28 18:11:34 +0000 2026",
+    "createdTimestamp": 1785262294,
+    "likes": 188,
+    "retweets": 13,
+    "replies": 17,
+    "bookmarks": 36,
+    "views": 25451,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://video.twimg.com/ext_tw_video/2082167069483667456/pu/vid/avc1/720x720/8GUGZYt6xSLZ_MaV.mp4?tag=12"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-28T19:52:54.105Z"
+  },
+  {
+    "id": "2082188940874834430",
+    "url": "https://x.com/aaronburnett/status/2082188940874834430",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Staring down the barrel",
+    "createdAt": "Tue Jul 28 19:38:23 +0000 2026",
+    "createdTimestamp": 1785267503,
+    "likes": 8,
+    "retweets": 0,
+    "replies": 0,
+    "bookmarks": 0,
+    "views": 405,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HOVrzqaXQAEOFHH.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-28T19:52:57.217Z"
+  },
+  {
+    "id": "2082125446624301488",
+    "url": "https://x.com/aaronburnett/status/2082125446624301488",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Assuming the timelines are hit and meaningful quality benchmarks are hit a Model factory churning out token efficient models every month must do something set expectations within the industry and the market.",
+    "createdAt": "Tue Jul 28 15:26:05 +0000 2026",
+    "createdTimestamp": 1785252365,
+    "likes": 37,
+    "retweets": 2,
+    "replies": 0,
+    "bookmarks": 0,
+    "views": 3024,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-28T19:52:58.651Z"
   }
 ]
