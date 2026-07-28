@@ -189,47 +189,36 @@ export default function Home() {
             className="h-full flex flex-col bg-white relative overflow-hidden"
             style={{ fontFamily: nunito }}
           >
-            {/* Machina — full plate, natural aspect (no crop). */}
+            {/* Background portrait — large, partially out of frame on the right */}
             <div
               aria-hidden
-              className="hidden md:block absolute top-1/2 right-[-2%] lg:right-[1%] -translate-y-1/2 z-0 pointer-events-none"
+              className="hidden md:block absolute top-1/2 right-[-4%] lg:right-[-2%] -translate-y-1/2 z-0"
               style={{
-                width: 'clamp(280px, 34vw, 480px)',
+                width: 'clamp(380px, 42vw, 620px)',
+                height: 'clamp(540px, 60vw, 880px)',
+                backgroundImage: "url('/bg_pic/03.jpeg')",
+                backgroundPosition: '22% 8%',
+                backgroundSize: '180%',
+                backgroundRepeat: 'no-repeat',
+                borderRadius: '24px',
+                boxShadow: '0 34px 110px -64px rgba(20,17,12,0.45), 0 0 0 1px rgba(20,17,12,0.08)',
               }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/bg_pic/03.jpeg"
-                alt=""
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  height: 'auto',
-                  maxHeight: 'min(88dvh, 860px)',
-                  objectFit: 'contain',
-                  borderRadius: 2,
-                  boxShadow:
-                    '0 34px 110px -64px rgba(20,17,12,0.45), 0 0 0 1px rgba(20,17,12,0.08)',
-                }}
-              />
-            </div>
+            />
 
-            {/* Mobile-only machina plate — natural aspect */}
-            <div aria-hidden className="md:hidden self-center mt-10" style={{ width: 152 }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/bg_pic/03.jpeg"
-                alt=""
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  height: 'auto',
-                  objectFit: 'contain',
-                  borderRadius: 2,
-                  boxShadow: '0 24px 60px -34px rgba(20,17,12,0.45)',
-                }}
-              />
-            </div>
+            {/* Mobile-only portrait — smaller, top */}
+            <div
+              aria-hidden
+              className="md:hidden self-center mt-12"
+              style={{
+                width: 140,
+                height: 180,
+                backgroundImage: "url('/bg_pic/03.jpeg')",
+                backgroundPosition: '22% 8%',
+                backgroundSize: '180%',
+                borderRadius: 14,
+                boxShadow: '0 24px 60px -34px rgba(20,17,12,0.45)',
+              }}
+            />
 
             {/* Foreground content */}
             <div className="relative z-10 flex-1 flex items-center px-6 sm:px-12 lg:px-20">
@@ -271,17 +260,18 @@ export default function Home() {
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: 14,
-                      minHeight: 72,
-                      background: '#fffdf8',
+                      gap: 16,
+                      minHeight: 76,
+                      background: 'rgba(255,253,247,0.82)',
                       color: palette.ink,
-                      padding: '12px 14px 12px 12px',
+                      padding: '11px 16px 11px 12px',
                       borderRadius: 999,
-                      border: `2px solid ${palette.cyan}`,
+                      border: '1px solid rgba(0,169,159,0.26)',
                       boxShadow:
-                        '0 16px 40px -28px rgba(20,17,12,0.55), 0 0 0 4px rgba(0,169,159,0.10)',
+                        '0 20px 48px -34px rgba(20,17,12,0.52), 0 0 0 1px rgba(255,255,255,0.74) inset',
                       cursor: 'pointer',
                       textAlign: 'left',
+                      backdropFilter: 'blur(10px)',
                     }}
                     aria-label={tx.hero.talkAgent}
                   >
@@ -290,50 +280,38 @@ export default function Home() {
                       style={{
                         position: 'relative',
                         display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: 52,
-                        height: 52,
+                        width: 56,
+                        height: 56,
                         flex: '0 0 auto',
                         borderRadius: '50%',
-                        overflow: 'hidden',
-                        background: '#efe8dc',
-                        boxShadow: `inset 0 0 0 1px rgba(20,17,12,0.08)`,
+                        backgroundImage: "url('/bg_pic/03.jpeg')",
+                        backgroundPosition: '22% 8%',
+                        backgroundSize: '180%',
+                        boxShadow: `0 0 0 1px ${palette.cyan}, 0 10px 24px -18px rgba(20,17,12,0.9)`,
                       }}
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src="/bg_pic/03.jpeg"
-                        alt=""
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'contain',
-                          objectPosition: 'center top',
-                        }}
-                      />
                       <span
                         style={{
                           position: 'absolute',
-                          right: 1,
+                          right: -3,
                           top: 1,
-                          width: 12,
-                          height: 12,
+                          width: 15,
+                          height: 15,
                           borderRadius: '50%',
                           background: palette.cyan,
-                          boxShadow: '0 0 0 3px #fffdf8',
+                          boxShadow: '0 0 0 4px rgba(255,253,247,0.96), 0 0 14px rgba(0,169,159,0.62)',
                         }}
                       />
                     </span>
-                    <span style={{ display: 'grid', gap: 3, minWidth: 0, paddingRight: 4 }}>
+                    <span style={{ display: 'grid', gap: 5, minWidth: 0, paddingRight: 6 }}>
                       <span
                         style={{
                           color: palette.cyan,
                           fontFamily: mono,
-                          fontSize: '0.72rem',
-                          fontWeight: 850,
-                          letterSpacing: '0.2em',
-                          lineHeight: 1.1,
+                          fontSize: '0.86rem',
+                          fontWeight: 800,
+                          letterSpacing: '0.44em',
+                          lineHeight: 1,
                           textTransform: 'uppercase',
                         }}
                       >
@@ -341,16 +319,15 @@ export default function Home() {
                       </span>
                       <span
                         style={{
-                          color: palette.ink,
+                          color: 'rgba(20,17,12,0.56)',
                           fontFamily: 'Georgia, serif',
-                          fontSize: '1.05rem',
-                          fontWeight: 600,
+                          fontSize: '0.82rem',
                           fontStyle: 'italic',
                           lineHeight: 1.15,
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        {tx.hero.talkAgent}
+                        ask the agent
                       </span>
                     </span>
                     <span
@@ -358,15 +335,14 @@ export default function Home() {
                       style={{
                         display: 'grid',
                         placeItems: 'center',
-                        width: 40,
-                        height: 40,
+                        width: 38,
+                        height: 38,
                         flex: '0 0 auto',
                         borderRadius: '50%',
-                        background: palette.cyan,
-                        color: '#fffdf8',
+                        background: 'rgba(20,17,12,0.08)',
+                        color: palette.ink,
                         fontFamily: mono,
-                        fontSize: '1.1rem',
-                        fontWeight: 700,
+                        fontSize: '1.05rem',
                       }}
                     >
                       →
@@ -399,12 +375,9 @@ export default function Home() {
           <AtriumLinkDock rooms={rooms} />
         </SnapSection>
 
-        {/* ── 03 WATCH / LISTEN — after the desk, not instead of it ─ */}
+        {/* ── 03 WATCH / LISTEN HUB ─────────────────────────────── */}
         <SnapSection id="watch-hub" className="order-3">
-          <HomeWatchHub
-            copy={tx.watchHub}
-            rooms={tx.rooms.filter((room) => room.href !== '/' && room.href !== '/sound')}
-          />
+          <HomeWatchHub />
         </SnapSection>
 
         {/* ── 04 VISUAL — kiln / glass (homepage only, not /sound) ─ */}
@@ -425,14 +398,7 @@ export default function Home() {
   );
 }
 
-function HomeWatchHub({
-  copy,
-  rooms,
-}: {
-  copy: (typeof t)['EN']['watchHub'];
-  // Home and DJ are omitted: you are on Home, and DJ owns the black door above.
-  rooms: (typeof t)['EN']['rooms'];
-}) {
+function HomeWatchHub() {
   return (
     <section
       className="min-h-full px-5 sm:px-9 lg:px-14"
@@ -456,7 +422,7 @@ function HomeWatchHub({
               textTransform: 'uppercase',
             }}
           >
-            {copy.kicker}
+            Watch / Listen
           </p>
           <h2
             style={{
@@ -470,7 +436,7 @@ function HomeWatchHub({
               marginBottom: 18,
             }}
           >
-            {copy.heading}
+            One door. DJ first.
           </h2>
           <p
             style={{
@@ -482,7 +448,8 @@ function HomeWatchHub({
               maxWidth: 440,
             }}
           >
-            {copy.body}
+            DJ is the black room. Everything else is a labeled door below —
+            shelf, book club, writing, tools.
           </p>
         </div>
 
@@ -524,7 +491,7 @@ function HomeWatchHub({
                     textTransform: 'uppercase',
                   }}
                 >
-                  {copy.djTag}
+                  DJ set
                 </p>
                 <h3
                   style={{
@@ -536,7 +503,7 @@ function HomeWatchHub({
                     color: '#fffdf8',
                   }}
                 >
-                  {copy.djHeading}
+                  Two decks. Full library. Black room.
                 </h3>
                 <p
                   style={{
@@ -547,7 +514,7 @@ function HomeWatchHub({
                     maxWidth: 420,
                   }}
                 >
-                  {copy.djBody}
+                  Open the station — not a playlist card.
                 </p>
               </div>
               <span
@@ -563,7 +530,7 @@ function HomeWatchHub({
                   textTransform: 'uppercase',
                 }}
               >
-                {copy.djCta} <span aria-hidden>→</span>
+                Enter /sound <span aria-hidden>→</span>
               </span>
             </div>
             <div
@@ -608,7 +575,28 @@ function HomeWatchHub({
             borderTop: '1px solid rgba(20,17,12,0.12)',
           }}
         >
-          {rooms.map((door) => (
+          {[
+            {
+              label: 'Shelf',
+              hint: 'films · podcasts · living',
+              href: '/blog/watch-listening-shelf',
+            },
+            {
+              label: 'Metal & Pages',
+              hint: 'book club',
+              href: '/updates',
+            },
+            {
+              label: 'Dispatch',
+              hint: 'essays · news',
+              href: '/dispatch',
+            },
+            {
+              label: 'Tools',
+              hint: 'small utilities',
+              href: '/tools',
+            },
+          ].map((door) => (
             <Link
               key={door.href}
               href={door.href}
