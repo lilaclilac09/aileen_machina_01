@@ -39,6 +39,7 @@ const SLUG_TOPIC: Record<string, string> = {
   robots: 'Agents & robotics',
   centaur: 'Agents & robotics',
   cli: 'Agents & robotics',
+  'local-models': 'Agents & robotics',
 
   'zcash-fpga': 'Privacy',
   'zec-arbitrage': 'Privacy',

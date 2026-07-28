@@ -549,6 +549,13 @@ export const t = {
             title: 'Two Supply Chains, One Bottleneck',
             body: 'Companion to David\'s stone. Put the chip down and look at the board: a single GB200 cabinet\'s PCB stack is worth ~$170K. The real supply-chain divergence between Huawei and NVIDIA lives there — and on the copper-clad laminate (CCL), and on who decides whose board. NVIDIA: open + tightly controlled — Victory Giant (>30% global AI-server PCB share) on GB200, WUS + TTM on GB300 UBB ($750–800 ASP, 18 layers, 14 M8 + 4 M4), Taiwan Union Tech sole-sourcing Switch Tray CCL at $4K+ M8U (up from $2K+ M7), buy-and-consign on high-value parts, TSMC lock through CoWoS and CPO. Huawei: closed + self-reliant — Shennan Circuits (>30% Ascend PCB share), the only mainland firm doing 14-layer FC-BGA with ABF substrate; Huafeng connectors, Xinsen ABF, Shenling liquid cooling (~70% share). Ascend domesticization >82%; 910C per-card PCB value above H100\'s ~$407. Layer by layer Huawei finds a domestic answer at almost every cell — protocol (UnifiedBus, full-stack), board (Shennan), CCL (Shengyi at 27% global share, sells to both chains), logic (SMIC) — until the last cell: HBM. CXMT next year ~2M stacks = 250–300K Ascend; ~13M stacks smuggled = 1.6M 910Cs, burning down by year-end; without foreign HBM, <1M Ascend next year. Huawei wins every layer it can build itself. What pins it is the one layer it can\'t build, can\'t buy, and can\'t substitute.',
           },
+          {
+            date: '2026.07.28',
+            href: '/blog/local-models',
+            title: 'How I Fell for Local Models',
+            body: 'Polar Lab: prove owned data → owned weights → holdout score on Qwen2.5-0.5B + LoRA. Not a Centaur/Claude replacement — a side lab for measurement. Machina and space packs moved from flat 0.200 / mid scores to LoRA 1.000 vs base after short identical golds, miss-boost, and full-attn (q/k/v/o) LoRA. Exact-match eval, disjoint holdout, useful (≥0.60) and clear-win (≥ base+0.20) gates both pass. Harness ships answers; registry holds live truth; Polar proves the weight change; cloud records the loop on video.',
+          },
+
         ],
       },
       investing: {
@@ -1271,6 +1278,13 @@ export const t = {
             title: 'Zwei Lieferketten, ein Engpass',
             body: 'Begleittext zu Davids Stein. Lass den Chip beiseite und schau auf die Platine: Der PCB-Stack in einem einzigen GB200-Schrank ist rund 170.000 $ wert. Die echte Lieferketten-Trennung zwischen Huawei und NVIDIA liegt genau dort — auf der Platine, auf dem Kupfer-beschichteten Laminat (CCL), und an der Frage, wer entscheidet, wessen Platine verwendet wird. NVIDIA: offen + streng kontrolliert. Victory Giant (>30 % globaler Anteil am AI-Server-PCB) auf GB200; WUS + TTM auf GB300 UBB (750–800 $ ASP, 18 Lagen, 14 M8 + 4 M4); Taiwan Union Tech als alleiniger Lieferant für Switch-Tray-CCL bei 4.000+ $ M8U (von 2.000+ $ M7); Buy-and-Consign für hochwertige Komponenten; TSMC-Bindung über CoWoS bis CPO. Huawei: geschlossen + selbstversorgt. Shennan Circuits (>30 % Ascend-PCB-Anteil), als einer der wenigen Festland-Hersteller mit 14-Lagen-FC-BGA-Fähigkeit und ABF-Substrat; Huafeng (Hochgeschwindigkeits-Stecker); Xinsen (ABF); Shenling (Flüssigkeitskühlung, ~70 % Anteil). Ascend-Inländerquote über 82 %; Pro-Karten-PCB-Wert des 910C liegt über den ~407 $ der H100. Schicht für Schicht findet Huawei eine inländische Antwort — Protokoll (UnifiedBus), Platine (Shennan), CCL (Shengyi mit 27 % globalem Anteil, liefert an beide Ketten), Logik (SMIC) — bis zur letzten Zelle: HBM. CXMT nächstes Jahr ~2 Mio. Stacks = 250–300 K Ascend; ~13 Mio. geschmuggelte Stacks = 1,6 Mio. 910Cs, brennen bis Jahresende ab; ohne ausländisches HBM weniger als 1 Mio. Ascend nächstes Jahr. Huawei gewinnt jede Schicht, die es selbst bauen kann. Was es festsetzt, ist die eine Schicht, die es nicht bauen, nicht kaufen und nicht ersetzen kann.',
           },
+          {
+            date: '2026.07.28',
+            href: '/blog/local-models',
+            title: 'Wie ich lokale Modelle lieben lernte',
+            body: 'Polar Lab: beweisen owned data → owned weights → Holdout-Score auf Qwen2.5-0.5B + LoRA. Kein Centaur/Claude-Ersatz — ein Nebenlabor für Messung. Machina- und Space-Packs von flachem 0.200 / Mittelwerten auf LoRA 1.000 vs Base, nach kurzen identischen Golds, Miss-Boost und Full-Attn (q/k/v/o) LoRA. Exact-Match-Eval, disjunkter Holdout; Useful (≥0.60) und Clear-Win (≥ Base+0.20) bestanden. Harness liefert Antworten; Registry hält Live-Wahrheit; Polar beweist die Gewichtsänderung; Cloud zeichnet den Loop als Video auf.',
+          },
+
         ],
       },
       investing: {
