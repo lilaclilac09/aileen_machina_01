@@ -1575,82 +1575,6 @@
     "ingestedAt": "2026-07-17T09:07:10.872Z"
   },
   {
-    "id": "2075592577135329655",
-    "url": "https://x.com/AndrewGSugrue/status/2075592577135329655",
-    "screenName": "AndrewGSugrue",
-    "authorId": "1820488892967174144",
-    "authorName": "Andrew Sugrue",
-    "text": "Talk about talent density! Last night, Avenir hosted an AI dinner in Paris with some of our favorite founders and friends @ScottWu46 (Cognition), @andrewdfeldman (Cerebras) @oliveur (Datadog), Chris Clark (OpenRouter), @paraga (Parallel), @nikhilbenesch (TurboPuffer), @dylan522p (the self described shit poster and SemiAnalysis legend), @robertwachen (Etched), @goodwin_ml (Fractile), @annadgoldie  (Ricursive), @agermanidis (Runway), @PhilipJohnston (Starcloud), @dan_lahav (Irregular), @G_Princen \n (Anthropic), @JacobWallenberg (Ramp) and Rohit Iragavarapu @graceisford , \n@DelahayeHenri @DavidPrilutsky. Great discussion on open vs closed source models, intelligence saturation, the inference explosion, the geopolitics of AI and the future of work",
-    "createdAt": "Fri Jul 10 14:46:47 +0000 2026",
-    "createdTimestamp": 1783694807,
-    "likes": 274,
-    "retweets": 7,
-    "replies": 17,
-    "bookmarks": 135,
-    "views": 62180,
-    "isNoteTweet": true,
-    "mediaUrls": [
-      "https://pbs.twimg.com/media/HM38cemX0AA7V-G.jpg?name=orig",
-      "https://pbs.twimg.com/media/HM38cehWwAAy8f-.jpg?name=orig"
-    ],
-    "linkedUrls": [],
-    "topics": [
-      "inference",
-      "optical"
-    ],
-    "tags": [],
-    "source": "fxtwitter",
-    "ingestedAt": "2026-07-17T09:07:13.706Z"
-  },
-  {
-    "id": "2075364232623956227",
-    "url": "https://x.com/alexandr_wang/status/2075364232623956227",
-    "screenName": "alexandr_wang",
-    "authorId": "615818451",
-    "authorName": "Alexandr Wang",
-    "text": "compute daddy @dylan522p has spoken",
-    "createdAt": "Thu Jul 09 23:39:26 +0000 2026",
-    "createdTimestamp": 1783640366,
-    "likes": 3711,
-    "retweets": 184,
-    "replies": 151,
-    "bookmarks": 1138,
-    "views": 1626216,
-    "isNoteTweet": false,
-    "mediaUrls": [
-      "https://pbs.twimg.com/media/HM0sxLaaQAAtW1q.jpg?name=orig"
-    ],
-    "linkedUrls": [],
-    "topics": [],
-    "tags": [],
-    "source": "fxtwitter",
-    "ingestedAt": "2026-07-17T09:07:16.992Z"
-  },
-  {
-    "id": "2075290667031404588",
-    "url": "https://x.com/MollySOShea/status/2075290667031404588",
-    "screenName": "MollySOShea",
-    "authorId": "954060455831580672",
-    "authorName": "Molly O’Shea",
-    "text": "BREAKING: Dylan Patel (@dylan522p) of @SemiAnalysis_ says \"chips in Europe have less seasoning than chips in America & Mexico.\"\n\nPlus:\n› Data centers & France’s nuclear power\n› AI infrastructure over-optimization\n› Flexibility vs. specialized infrastructure\n› Software-hardware co-design\n› Open vs. closed models\n› Memory costs & token pricing\n› Tokenmaxxing vs. token budgeting\n› Haiku scandal\n› Favorite chip: 👀\n\n“I think most people don't know what they're doing. They're just buying NVIDIA stuff.”\n\n“It feels like a lot of people are trying to optimize on the current rather than think about where the workload is heading... and that's gonna lead to a lot of wasted infra spend.”\n\n“I think anyone who doesn't token max is gonna get left behind. I think all this token budgeting stuff is loser mentality.”\n\n“Open is dying quickly, unfortunately.”",
-    "createdAt": "Thu Jul 09 18:47:06 +0000 2026",
-    "createdTimestamp": 1783622826,
-    "likes": 582,
-    "retweets": 26,
-    "replies": 26,
-    "bookmarks": 369,
-    "views": 248928,
-    "isNoteTweet": true,
-    "mediaUrls": [
-      "https://video.twimg.com/amplify_video/2075288892324843520/vid/avc1/3840x2160/WF6t5EjLu4LcHgth.mp4?tag=28"
-    ],
-    "linkedUrls": [],
-    "topics": [],
-    "tags": [],
-    "source": "fxtwitter",
-    "ingestedAt": "2026-07-17T09:07:19.901Z"
-  },
-  {
     "id": "2074237222853984478",
     "url": "https://x.com/SemiAnalysis_/status/2074237222853984478",
     "screenName": "SemiAnalysis_",
@@ -1788,30 +1712,6 @@
     "ingestedAt": "2026-07-17T09:07:34.847Z"
   },
   {
-    "id": "2072135153779143115",
-    "url": "https://x.com/SassineGhazi/status/2072135153779143115",
-    "screenName": "SassineGhazi",
-    "authorId": "2039137985179127808",
-    "authorName": "Sassine Ghazi",
-    "text": "Look who stopped by today! Great time chatting with @dylan522p.",
-    "createdAt": "Wed Jul 01 01:48:13 +0000 2026",
-    "createdTimestamp": 1782870493,
-    "likes": 64,
-    "retweets": 5,
-    "replies": 2,
-    "bookmarks": 7,
-    "views": 34610,
-    "isNoteTweet": false,
-    "mediaUrls": [
-      "https://pbs.twimg.com/media/HMGz6fUbYAAf-oo.jpg?name=orig"
-    ],
-    "linkedUrls": [],
-    "topics": [],
-    "tags": [],
-    "source": "fxtwitter",
-    "ingestedAt": "2026-07-17T09:07:37.603Z"
-  },
-  {
     "id": "2071660573067284802",
     "url": "https://x.com/dylan522p/status/2071660573067284802",
     "screenName": "dylan522p",
@@ -1935,27 +1835,6 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-07-17T09:07:52.827Z"
-  },
-  {
-    "id": "2070170742671737330",
-    "url": "https://x.com/gianlucabencomo/status/2070170742671737330",
-    "screenName": "gianlucabencomo",
-    "authorId": "1406609399192297475",
-    "authorName": "Gianluca",
-    "text": "Without a doubt:\n\nA world running foundation models on a billion robots won't be doing it locally.\n\nNone of the embedded compute will look like it does today.\n\nAll of the embedded compute will be wireless-optimized.\n\nHere are the reasons why:\n\n(1/5)",
-    "createdAt": "Thu Jun 25 15:42:21 +0000 2026",
-    "createdTimestamp": 1782402141,
-    "likes": 167,
-    "retweets": 15,
-    "replies": 22,
-    "bookmarks": 115,
-    "views": 48341,
-    "isNoteTweet": false,
-    "linkedUrls": [],
-    "topics": [],
-    "tags": [],
-    "source": "fxtwitter",
-    "ingestedAt": "2026-07-17T09:07:56.710Z"
   },
   {
     "id": "2046687942391877852",
@@ -2617,31 +2496,6 @@
     "ingestedAt": "2026-07-17T09:09:22.155Z"
   },
   {
-    "id": "2077626509615829213",
-    "url": "https://x.com/elonmusk/status/2077626509615829213",
-    "screenName": "elonmusk",
-    "authorId": "44196397",
-    "authorName": "Elon Musk",
-    "text": "GPU average power consumption if it’s doing inference over the course of 24 hours is ~2/3 of its peak power, even if you’re super efficient.\n\nSpaceX AI Sat V1 peak power spec has been raised to ~250kW (battery-assisted), with average power of ~160kW. Will be able to handle an NVL72 Ruben rack.\n\nThis is just version 1.",
-    "createdAt": "Thu Jul 16 05:28:54 +0000 2026",
-    "createdTimestamp": 1784179734,
-    "likes": 4792,
-    "retweets": 354,
-    "replies": 198,
-    "bookmarks": 431,
-    "views": 569926,
-    "isNoteTweet": true,
-    "linkedUrls": [],
-    "topics": [
-      "inference",
-      "gpu",
-      "spacex"
-    ],
-    "tags": [],
-    "source": "fxtwitter",
-    "ingestedAt": "2026-07-17T09:09:26.882Z"
-  },
-  {
     "id": "2077138569051676966",
     "url": "https://x.com/VladSaigau/status/2077138569051676966",
     "screenName": "VladSaigau",
@@ -2955,30 +2809,6 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-07-24T14:45:24.820Z"
-  },
-  {
-    "id": "2078694522373157347",
-    "url": "https://x.com/Reshusaur/status/2078694522373157347",
-    "screenName": "Reshusaur",
-    "authorId": "778922476570943489",
-    "authorName": "resham",
-    "text": "The answer is lamb (you can see @dylan522p live tweeting)",
-    "createdAt": "Sun Jul 19 04:12:49 +0000 2026",
-    "createdTimestamp": 1784434369,
-    "likes": 81,
-    "retweets": 3,
-    "replies": 3,
-    "bookmarks": 14,
-    "views": 47340,
-    "isNoteTweet": false,
-    "mediaUrls": [
-      "https://pbs.twimg.com/media/HNkBpCjboAANmCk.jpg?name=orig"
-    ],
-    "linkedUrls": [],
-    "topics": [],
-    "tags": [],
-    "source": "fxtwitter",
-    "ingestedAt": "2026-07-24T14:45:26.304Z"
   },
   {
     "id": "2080480615091073365",
@@ -3945,57 +3775,6 @@
     "ingestedAt": "2026-07-24T14:46:30.780Z"
   },
   {
-    "id": "2080377221030555963",
-    "url": "https://x.com/RupertLowe10/status/2080377221030555963",
-    "screenName": "RupertLowe10",
-    "authorId": "1121375429884039175",
-    "authorName": "Rupert Lowe MP",
-    "text": "This 'journalist' tries to paint me as 'far-right' and racist.\n\nElon shuts her, and the entire mainstream media, down in the most glorious way.",
-    "createdAt": "Thu Jul 23 19:39:15 +0000 2026",
-    "createdTimestamp": 1784835555,
-    "likes": 63857,
-    "retweets": 9690,
-    "replies": 1391,
-    "bookmarks": 5688,
-    "views": 4253817,
-    "isNoteTweet": false,
-    "mediaUrls": [
-      "https://video.twimg.com/amplify_video/2080376559991504897/vid/avc1/1920x1080/06m0HRE-yXY0md7Z.mp4?tag=29"
-    ],
-    "linkedUrls": [],
-    "topics": [],
-    "tags": [],
-    "source": "fxtwitter",
-    "ingestedAt": "2026-07-24T14:46:34.169Z"
-  },
-  {
-    "id": "2080302195677728803",
-    "url": "https://x.com/SpaceX/status/2080302195677728803",
-    "screenName": "SpaceX",
-    "authorId": "34743251",
-    "authorName": "SpaceX",
-    "text": "Sunset at Starbase with a fully stacked Starship",
-    "createdAt": "Thu Jul 23 14:41:08 +0000 2026",
-    "createdTimestamp": 1784817668,
-    "likes": 20416,
-    "retweets": 2617,
-    "replies": 678,
-    "bookmarks": 1056,
-    "views": 1295921,
-    "isNoteTweet": false,
-    "mediaUrls": [
-      "https://video.twimg.com/amplify_video/2080301927305256960/vid/avc1/3840x2160/e6O2XfvSc9RkpB7w.mp4?tag=29",
-      "https://pbs.twimg.com/media/HN63sZMXYAAKuWo.jpg?name=orig",
-      "https://pbs.twimg.com/media/HN63sZPWgAACXWW.jpg?name=orig",
-      "https://pbs.twimg.com/media/HN63sZOWAAEBdqT.jpg?name=orig"
-    ],
-    "linkedUrls": [],
-    "topics": [],
-    "tags": [],
-    "source": "fxtwitter",
-    "ingestedAt": "2026-07-24T14:46:35.629Z"
-  },
-  {
     "id": "2078322190206796134",
     "url": "https://x.com/VladSaigau/status/2078322190206796134",
     "screenName": "VladSaigau",
@@ -4017,29 +3796,6 @@
     "tags": [],
     "source": "fxtwitter",
     "ingestedAt": "2026-07-24T14:46:37.103Z"
-  },
-  {
-    "id": "2078227655695183878",
-    "url": "https://x.com/wallstengine/status/2078227655695183878",
-    "screenName": "wallstengine",
-    "authorId": "1508426880860704771",
-    "authorName": "Wall St Engine",
-    "text": "U.S. AIR FORCE MORE THAN TRIPLES LAUNCH CONTRACT CEILING\n\nThe Air Force is raising the ceiling for National Security Space Launch Phase 3 Lane 1 contracts to $17B from $5.6B, an $11.4B increase.\n\nEligible providers include $RKLB, SpaceX, Blue Origin, ULA, Stoke Space, Impulse Space and Relativity.\n\nNo funds are being obligated yet. Awards will be issued at the task-order level.",
-    "createdAt": "Fri Jul 17 21:17:39 +0000 2026",
-    "createdTimestamp": 1784323059,
-    "likes": 541,
-    "retweets": 58,
-    "replies": 18,
-    "bookmarks": 74,
-    "views": 177692,
-    "isNoteTweet": true,
-    "linkedUrls": [],
-    "topics": [
-      "spacex"
-    ],
-    "tags": [],
-    "source": "fxtwitter",
-    "ingestedAt": "2026-07-24T14:46:38.593Z"
   },
   {
     "id": "2078207953765863691",
@@ -4504,31 +4260,6 @@
     "ingestedAt": "2026-07-25T03:36:26.287Z"
   },
   {
-    "id": "2080831467559530867",
-    "url": "https://x.com/elonmusk/status/2080831467559530867",
-    "screenName": "elonmusk",
-    "authorId": "44196397",
-    "authorName": "Elon Musk",
-    "text": "Episodes of the Starship documentary are posted to http://SpaceX.com for those who’d like to understand more about how it all works",
-    "createdAt": "Sat Jul 25 01:44:16 +0000 2026",
-    "createdTimestamp": 1784943856,
-    "likes": 3707,
-    "retweets": 483,
-    "replies": 343,
-    "bookmarks": 293,
-    "views": 785526,
-    "isNoteTweet": false,
-    "linkedUrls": [
-      "http://SpaceX.com"
-    ],
-    "topics": [
-      "spacex"
-    ],
-    "tags": [],
-    "source": "fxtwitter",
-    "ingestedAt": "2026-07-25T03:36:29.322Z"
-  },
-  {
     "id": "2080832567045927098",
     "url": "https://x.com/aaronburnett/status/2080832567045927098",
     "screenName": "aaronburnett",
@@ -4578,32 +4309,6 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-07-25T03:36:32.206Z"
-  },
-  {
-    "id": "2080828871545421891",
-    "url": "https://x.com/SawyerMerritt/status/2080828871545421891",
-    "screenName": "SawyerMerritt",
-    "authorId": "243013409",
-    "authorName": "Sawyer Merritt",
-    "text": "SpaceX has released a new video showing the Super Heavy booster flying away from Starship.\n\nThis is the first time we've ever gotten this camera view.",
-    "createdAt": "Sat Jul 25 01:33:57 +0000 2026",
-    "createdTimestamp": 1784943237,
-    "likes": 2061,
-    "retweets": 187,
-    "replies": 47,
-    "bookmarks": 127,
-    "views": 52981,
-    "isNoteTweet": false,
-    "mediaUrls": [
-      "https://video.twimg.com/amplify_video/2080826748401246209/vid/avc1/1920x1080/nj-qxVN7SQBIA_BB.mp4?tag=29"
-    ],
-    "linkedUrls": [],
-    "topics": [
-      "spacex"
-    ],
-    "tags": [],
-    "source": "fxtwitter",
-    "ingestedAt": "2026-07-25T03:36:33.639Z"
   },
   {
     "id": "2080814509917192389",
@@ -4710,30 +4415,6 @@
     "ingestedAt": "2026-07-25T03:36:39.352Z"
   },
   {
-    "id": "2080797975257686064",
-    "url": "https://x.com/SawyerMerritt/status/2080797975257686064",
-    "screenName": "SawyerMerritt",
-    "authorId": "243013409",
-    "authorName": "Sawyer Merritt",
-    "text": "Wow, that Starship engine relight was beautiful.",
-    "createdAt": "Fri Jul 24 23:31:11 +0000 2026",
-    "createdTimestamp": 1784935871,
-    "likes": 1501,
-    "retweets": 97,
-    "replies": 31,
-    "bookmarks": 55,
-    "views": 43748,
-    "isNoteTweet": false,
-    "mediaUrls": [
-      "https://video.twimg.com/amplify_video/2080797912783568896/vid/avc1/1894x1060/iKibvoV2x8Hjfdjb.mp4?tag=29"
-    ],
-    "linkedUrls": [],
-    "topics": [],
-    "tags": [],
-    "source": "fxtwitter",
-    "ingestedAt": "2026-07-25T03:36:40.911Z"
-  },
-  {
     "id": "2080797067824525566",
     "url": "https://x.com/aaronburnett/status/2080797067824525566",
     "screenName": "aaronburnett",
@@ -4764,30 +4445,6 @@
     "ingestedAt": "2026-07-25T03:36:42.306Z"
   },
   {
-    "id": "2080788107784245722",
-    "url": "https://x.com/SawyerMerritt/status/2080788107784245722",
-    "screenName": "SawyerMerritt",
-    "authorId": "243013409",
-    "authorName": "Sawyer Merritt",
-    "text": "Successful liftoff of Starship test flight 13!",
-    "createdAt": "Fri Jul 24 22:51:58 +0000 2026",
-    "createdTimestamp": 1784933518,
-    "likes": 1786,
-    "retweets": 160,
-    "replies": 23,
-    "bookmarks": 48,
-    "views": 61891,
-    "isNoteTweet": false,
-    "mediaUrls": [
-      "https://video.twimg.com/amplify_video/2080788041707237376/vid/avc1/1894x1060/YhNR8EwrEeDDUTh7.mp4?tag=29"
-    ],
-    "linkedUrls": [],
-    "topics": [],
-    "tags": [],
-    "source": "fxtwitter",
-    "ingestedAt": "2026-07-25T03:36:43.805Z"
-  },
-  {
     "id": "2080781925107548437",
     "url": "https://x.com/aaronburnett/status/2080781925107548437",
     "screenName": "aaronburnett",
@@ -4811,72 +4468,6 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-07-25T03:36:45.224Z"
-  },
-  {
-    "id": "2080740277782749472",
-    "url": "https://x.com/SpaceX/status/2080740277782749472",
-    "screenName": "SpaceX",
-    "authorId": "34743251",
-    "authorName": "SpaceX",
-    "text": "On track for Starship’s 13th flight test later today – the 90-minute launch window opens at 5:45 p.m. CT. Live coverage starts ~30 minutes before launch",
-    "createdAt": "Fri Jul 24 19:41:55 +0000 2026",
-    "createdTimestamp": 1784922115,
-    "likes": 7065,
-    "retweets": 996,
-    "replies": 285,
-    "bookmarks": 252,
-    "views": 913036,
-    "isNoteTweet": false,
-    "linkedUrls": [],
-    "topics": [],
-    "tags": [],
-    "source": "fxtwitter",
-    "ingestedAt": "2026-07-25T03:36:46.680Z"
-  },
-  {
-    "id": "2080812297694409014",
-    "url": "https://x.com/elonmusk/status/2080812297694409014",
-    "screenName": "elonmusk",
-    "authorId": "44196397",
-    "authorName": "Elon Musk",
-    "text": "@aaronburnett We got all the heat shield data we needed and then some! 😀",
-    "createdAt": "Sat Jul 25 00:28:06 +0000 2026",
-    "createdTimestamp": 1784939286,
-    "likes": 11605,
-    "retweets": 547,
-    "replies": 404,
-    "bookmarks": 208,
-    "views": 200385,
-    "isNoteTweet": false,
-    "linkedUrls": [],
-    "topics": [],
-    "tags": [],
-    "source": "fxtwitter",
-    "ingestedAt": "2026-07-25T05:53:28.689Z"
-  },
-  {
-    "id": "2080798034540310799",
-    "url": "https://x.com/CSI_Starbase/status/2080798034540310799",
-    "screenName": "CSI_Starbase",
-    "authorId": "108167190",
-    "authorName": "Zack Golden",
-    "text": "WHAT??????  \n\nRaptor relight looks crazy AF!!!!!",
-    "createdAt": "Fri Jul 24 23:31:25 +0000 2026",
-    "createdTimestamp": 1784935885,
-    "likes": 2878,
-    "retweets": 172,
-    "replies": 45,
-    "bookmarks": 215,
-    "views": 62542,
-    "isNoteTweet": false,
-    "mediaUrls": [
-      "https://video.twimg.com/amplify_video/2080797921570955264/vid/avc1/1920x1080/3LIFU30Mi2kImWJ7.mp4?tag=29"
-    ],
-    "linkedUrls": [],
-    "topics": [],
-    "tags": [],
-    "source": "fxtwitter",
-    "ingestedAt": "2026-07-25T05:53:30.192Z"
   },
   {
     "id": "2080806180813689288",
@@ -4922,31 +4513,6 @@
     "tags": [],
     "source": "fxtwitter",
     "ingestedAt": "2026-07-25T05:53:33.296Z"
-  },
-  {
-    "id": "2081098739104571671",
-    "url": "https://x.com/elonmusk/status/2081098739104571671",
-    "screenName": "elonmusk",
-    "authorId": "44196397",
-    "authorName": "Elon Musk",
-    "text": "beautiful engineering",
-    "createdAt": "Sat Jul 25 19:26:19 +0000 2026",
-    "createdTimestamp": 1785007579,
-    "likes": 2330,
-    "retweets": 296,
-    "replies": 565,
-    "bookmarks": 74,
-    "views": 407011,
-    "isNoteTweet": false,
-    "mediaUrls": [
-      "https://pbs.twimg.com/media/HOGMRf9WsAAmFr8.jpg?name=orig",
-      "https://pbs.twimg.com/media/HOGMRf6WsAAKdsh.jpg?name=orig"
-    ],
-    "linkedUrls": [],
-    "topics": [],
-    "tags": [],
-    "source": "fxtwitter",
-    "ingestedAt": "2026-07-25T19:34:28.712Z"
   },
   {
     "id": "2081089275601277193",
@@ -5152,72 +4718,6 @@
     "tags": [],
     "source": "fxtwitter",
     "ingestedAt": "2026-07-26T03:54:49.273Z"
-  },
-  {
-    "id": "2081165312905359785",
-    "url": "https://x.com/SpaceX/status/2081165312905359785",
-    "screenName": "SpaceX",
-    "authorId": "34743251",
-    "authorName": "SpaceX",
-    "text": "High-speed video of 33 Raptor engines powering the Super Heavy booster on Flight 13",
-    "createdAt": "Sat Jul 25 23:50:51 +0000 2026",
-    "createdTimestamp": 1785023451,
-    "likes": 9565,
-    "retweets": 1156,
-    "replies": 301,
-    "bookmarks": 979,
-    "views": 789513,
-    "isNoteTweet": false,
-    "mediaUrls": [
-      "https://video.twimg.com/amplify_video/2081164698666340352/vid/avc1/3840x2160/mY-dTMYryU44YLX-.mp4?tag=29"
-    ],
-    "linkedUrls": [],
-    "topics": [],
-    "tags": [],
-    "source": "fxtwitter",
-    "ingestedAt": "2026-07-26T03:54:51.939Z"
-  },
-  {
-    "id": "2081149322448589043",
-    "url": "https://x.com/elonmusk/status/2081149322448589043",
-    "screenName": "elonmusk",
-    "authorId": "44196397",
-    "authorName": "Elon Musk",
-    "text": "@AdrianDittmann This flight intentionally had much higher acceleration to test how well the heat shield tiles would remain attached at high dynamic pressure. \n\nTest was successful.",
-    "createdAt": "Sat Jul 25 22:47:19 +0000 2026",
-    "createdTimestamp": 1785019639,
-    "likes": 11220,
-    "retweets": 545,
-    "replies": 271,
-    "bookmarks": 172,
-    "views": 206376,
-    "isNoteTweet": false,
-    "linkedUrls": [],
-    "topics": [],
-    "tags": [],
-    "source": "fxtwitter",
-    "ingestedAt": "2026-07-26T03:54:53.516Z"
-  },
-  {
-    "id": "2081141965651898709",
-    "url": "https://x.com/elonmusk/status/2081141965651898709",
-    "screenName": "elonmusk",
-    "authorId": "44196397",
-    "authorName": "Elon Musk",
-    "text": "Peter is not correct about me in this case.\n\nI have always known that dangers from Earth will also pose dangers to Mars. Obviously so. However, the immense difficulty of traveling to Mars means that there is a much higher likelihood of mitigating risks originating from Earth. \n\nA clear example of major risk reduction would be a deadly pandemic. Since it takes 6 months to reach Mars, there is an automatic 6 month quarantine!\n\nEven traveling at the speed of light, a deadly computer virus or AI attack can potentially be stopped due to Mars being ~4 to ~20 light-minutes from Earth. \n\nThis doesn’t mean that a Mars civilization eliminates all risk, but it absolutely greatly reduces the risk of consciousness being extinguished. \n\nMoreover, Mars is a stepping stone to extending consciousness broadly within our solar system and ultimately to millions of stars within our galaxy, which would extend the probable lifespan of consciousness as we know it by many orders of magnitude. \n\nThat said, what I personally find most motivating is not the risk reduction aspect of extending life beyond Earth, but rather the inspiring nature of exploration and being out there among the stars!\n\nPerhaps we will meet aliens or find the remains of long-dead civilizations that lasted millions of years …",
-    "createdAt": "Sat Jul 25 22:18:05 +0000 2026",
-    "createdTimestamp": 1785017885,
-    "likes": 14138,
-    "retweets": 1418,
-    "replies": 1361,
-    "bookmarks": 1543,
-    "views": 1201717,
-    "isNoteTweet": true,
-    "linkedUrls": [],
-    "topics": [],
-    "tags": [],
-    "source": "fxtwitter",
-    "ingestedAt": "2026-07-26T03:54:54.953Z"
   },
   {
     "id": "2081105075770892766",
@@ -5654,27 +5154,6 @@
     "ingestedAt": "2026-07-27T19:54:07.330Z"
   },
   {
-    "id": "2081818264791904523",
-    "url": "https://x.com/shaunmmaguire/status/2081818264791904523",
-    "screenName": "shaunmmaguire",
-    "authorId": "143134601",
-    "authorName": "Shaun Maguire",
-    "text": "I love the retro look here\n\nIntel going back to the future as it actually innovates where it matters\n\nAs a kid I built PCs with Intel processors\n\nIt was the company I admired the most\n\nIt’s amazing to see green shoots beyond their legacy products",
-    "createdAt": "Mon Jul 27 19:05:27 +0000 2026",
-    "createdTimestamp": 1785179127,
-    "likes": 26,
-    "retweets": 2,
-    "replies": 2,
-    "bookmarks": 2,
-    "views": 8306,
-    "isNoteTweet": false,
-    "linkedUrls": [],
-    "topics": [],
-    "tags": [],
-    "source": "fxtwitter",
-    "ingestedAt": "2026-07-27T19:54:10.568Z"
-  },
-  {
     "id": "2081813870339850258",
     "url": "https://x.com/aaronburnett/status/2081813870339850258",
     "screenName": "aaronburnett",
@@ -5895,32 +5374,5 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-07-28T08:51:22.593Z"
-  },
-  {
-    "id": "2081894924291654060",
-    "url": "https://x.com/SpaceX/status/2081894924291654060",
-    "screenName": "SpaceX",
-    "authorId": "34743251",
-    "authorName": "SpaceX",
-    "text": "Starship in space on Flight 13",
-    "createdAt": "Tue Jul 28 00:10:04 +0000 2026",
-    "createdTimestamp": 1785197404,
-    "likes": 16681,
-    "retweets": 2085,
-    "replies": 569,
-    "bookmarks": 1285,
-    "views": 2733185,
-    "isNoteTweet": false,
-    "mediaUrls": [
-      "https://pbs.twimg.com/media/HORgFJZXIAAg48O.jpg?name=orig",
-      "https://pbs.twimg.com/media/HORgGTxWAAEBoSV.jpg?name=orig",
-      "https://pbs.twimg.com/media/HORgHixXYAAa19F.jpg?name=orig",
-      "https://pbs.twimg.com/media/HORgIh-XoAA5zZZ.jpg?name=orig"
-    ],
-    "linkedUrls": [],
-    "topics": [],
-    "tags": [],
-    "source": "fxtwitter",
-    "ingestedAt": "2026-07-28T08:51:24.011Z"
   }
 ]

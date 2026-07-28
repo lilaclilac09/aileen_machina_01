@@ -10,6 +10,11 @@
 
 import { readdirSync, readFileSync, statSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
+import {
+  isSubstanceTweet,
+  isWatchlistScreen,
+  loadWatchlistScreenNames,
+} from '../lib/data/socialWatchlist';
 
 const ROOT = process.cwd();
 const BRAIN = join(ROOT, 'aileena_second_brain');
@@ -70,7 +75,7 @@ function buildSocialSnapshot(date: string): { reportSection: string; episodicPat
     };
   }
 
-  const tweets = loadJsonl<TweetRow>(tweetsPath);
+  const tweetsAll = loadJsonl<TweetRow>(tweetsPath);
   const numbers = loadJsonl<NumberRow>(numbersPath);
   const rss: RssReport = existsSync(rssPath)
     ? (JSON.parse(readFileSync(rssPath, 'utf8')) as RssReport)
@@ -78,6 +83,11 @@ function buildSocialSnapshot(date: string): { reportSection: string; episodicPat
   const watch = existsSync(watchPath)
     ? (JSON.parse(readFileSync(watchPath, 'utf8')) as { accounts?: Array<{ screenName: string; org?: string }> })
     : { accounts: [] };
+
+  const allowed = loadWatchlistScreenNames(ROOT);
+  // Teachers only — drop Elon/SpaceX/RT meme authors still sitting in older JSONL.
+  const tweets = tweetsAll.filter((t) => isWatchlistScreen(t.screenName, allowed));
+  const dropped = tweetsAll.length - tweets.length;
 
   const byScreen = new Map<string, number>();
   for (const t of tweets) {
@@ -89,7 +99,9 @@ function buildSocialSnapshot(date: string): { reportSection: string; episodicPat
   const recent = tweets
     .filter((t) => {
       const ts = t.createdAt ? Date.parse(t.createdAt) : NaN;
-      return Number.isFinite(ts) && ts >= weekAgo;
+      if (!(Number.isFinite(ts) && ts >= weekAgo)) return false;
+      // Soft drop short banter / emoji memes from teachers' timelines
+      return isSubstanceTweet(t.text);
     })
     .sort((a, b) => String(b.createdAt ?? '').localeCompare(String(a.createdAt ?? '')));
 
@@ -124,13 +136,13 @@ function buildSocialSnapshot(date: string): { reportSection: string; episodicPat
     .map(([sn, n]) => `| @${sn} | ${n} |`)
     .join('\n');
 
-  const reportSection = `Last RSS sync: \`${rss.ranAt ?? 'n/a'}\` · tweets in DB: **${tweets.length}** · numbers: **${numbers.length}**
+  const reportSection = `Last RSS sync: \`${rss.ranAt ?? 'n/a'}\` · watchlist tweets: **${tweets.length}**${dropped ? ` · pruned off-watchlist from digest: **${dropped}**` : ''} · numbers: **${numbers.length}**
 
 ### Watchlist
 
 ${watchLines || '_empty_'}
 
-### Tweets by account
+### Tweets by account (watchlist only)
 
 | Account | Count |
 |---------|-------|
@@ -140,7 +152,7 @@ ${screenTable || '| — | 0 |'}
 
 ${rssLines.length ? rssLines.join('\n') : '_No last-rss-sync.json_'}
 
-### Recent tweets (7d sample)
+### Recent teacher tweets (7d · substance filter)
 
 ${recentLines.length ? recentLines.join('\n') : '_None with createdAt in last 7d_'}
 
@@ -164,12 +176,12 @@ topics: [semianalysis, mach33, social-rss, dylan-patel, aaron-burnett]
 
 # Social digest — ${date}
 
-Auto-written by \`pnpm dreaming\` from \`data/tweets.jsonl\` + \`data/social/*\`.
+Auto-written by \`pnpm dreaming\` from \`data/tweets.jsonl\` + \`data/social/*\` (**watchlist + substance only** — no RT meme authors).
 Review → promote durable facts into \`memories/semantic/analysts-dylan-aaron.md\` or research ledgers.
 
 ## Snapshot
 
-- Tweets: **${tweets.length}**
+- Watchlist tweets: **${tweets.length}**${dropped ? ` (digest dropped ${dropped} off-watchlist)` : ''}
 - Numbers: **${numbers.length}**
 - Last RSS: \`${rss.ranAt ?? 'n/a'}\`
 
@@ -179,7 +191,7 @@ Review → promote durable facts into \`memories/semantic/analysts-dylan-aaron.m
 |---------|-------|
 ${screenTable || '| — | 0 |'}
 
-## Recent (7d)
+## Recent (7d · substance)
 
 ${recentLines.length ? recentLines.join('\n') : '_none_'}
 
