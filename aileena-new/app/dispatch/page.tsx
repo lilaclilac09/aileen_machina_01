@@ -55,6 +55,7 @@ const SLUG_TOPIC: Record<string, string> = {
   'ai-hardware-scarcity': 'AI hardware',
   'let-there-be-light': 'AI hardware',
   'nokia-dci': 'AI hardware',
+  'ymtc-nand-wuhan': 'AI hardware',
 
   'nvidia-flywheel': 'Capital flywheels',
   'dell-nvidia-flywheel': 'Capital flywheels',

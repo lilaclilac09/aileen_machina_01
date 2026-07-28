@@ -622,6 +622,13 @@ export const t = {
             title: 'People Love to Buy. They Don\'t Love to Be Sold.',
             body: 'The best tech salespeople don\'t sell — they listen, translate, and make the buyer feel right. Pressure is what happens when one side is trying to compensate for an exchange the other side doesn\'t believe in. You don\'t have to change your character; you change your sales (it\'s a skill, not a personality). Read which buyer is across the line — logical vs emotional, most are 70/30 not 100/0. Thick skin means don\'t carry the last call\'s residue into the next one (the call after a hard no is the one that pays). Most "objections" are requests for information in a defensive frame. And now there\'s a third buyer on the line: AI agents — pure logical, where your spec is your homepage, your eval is your demo, your error codes are your objection-handling. The agent picks through a five-stage acceptance loop (recall → eligibility → eval → score → justify), GEO is replacing SEO (be quoted, not clicked), and the contract is now seven contracts (API, pricing, SLA, data, compliance, change, legal) — each independently scored before the first call.',
           },
+          {
+            date: '2026.07.28',
+            href: '/blog/ymtc-nand-wuhan',
+            title: 'After CXMT\'s IPO — Look at Wuhan',
+            body: 'Hefei listed China\'s DRAM champion. Wuhan already had the NAND story SemiAnalysis modeled from 2021: YMTC 128L as the first technologically competitive Chinese semiconductor product; 2022 Xtacking 3.0 as densest shipping 1Tb TLC (~15.2 Gbit/mm², ~232L); ~100k WPM fab units; then Entity List and Lam Research ~7% revenue exposure. Two cities, two memory products — don\'t collapse them into one ticker.',
+          },
+
         ],
       },
       womanInTech: {
@@ -1344,6 +1351,13 @@ export const t = {
             title: 'Menschen lieben zu kaufen — nicht verkauft zu werden.',
             body: 'Die besten Tech-Verkäufer verkaufen nicht — sie hören zu, übersetzen, sorgen dafür, dass sich der Käufer richtig fühlt. Druck entsteht, wenn eine Seite einen Tausch ausgleichen will, an den die andere nicht glaubt. Du änderst nicht deinen Charakter, sondern deinen Vertrieb. Lies, wer dir gegenübersitzt — logisch oder emotional; die meisten sind 70/30, nicht 100/0. Dickhäutig sein heißt, den Rückstand des letzten Anrufs nicht in den nächsten zu tragen (der Anruf nach einem harten Nein ist der, der bezahlt). Die meisten „Einwände" sind Informationsanfragen in einer Verteidigungshaltung. Und jetzt sitzt ein dritter Käufer am Tisch: KI-Agenten — der reine logische Käufer. Deine Spec ist deine Startseite, dein Eval ist dein Demo, deine Fehlercodes sind deine Einwandbehandlung. Der Agent wählt über eine fünfstufige Akzeptanz-Schleife (Recall → Eignung → Eval → Score → Begründung), GEO ersetzt SEO (zitiert werden, nicht geklickt), und der Vertrag ist jetzt sieben Verträge (API, Preis, SLA, Daten, Compliance, Änderung, Recht) — jeder unabhängig bewertet, bevor der erste Anruf stattfindet.',
           },
+          {
+            date: '2026.07.28',
+            href: '/blog/ymtc-nand-wuhan',
+            title: 'Nach CXMTs IPO — schau nach Wuhan',
+            body: 'Hefei brachte Chinas DRAM-Champion an die Börse. Wuhan hatte die NAND-Story, die SemiAnalysis seit 2021 modelliert: YMTC 128L als erstes technologisch konkurrenzfähiges chinesisches Halbleiterprodukt; 2022 Xtacking 3.0 als dichtestes shipping 1Tb TLC (~15.2 Gbit/mm², ~232L); ~100k WPM pro Fab; dann Entity List und Lam Research ~7 % Umsatz. Zwei Städte, zwei Memory-Produkte — nicht zu einem Ticker zusammenziehen.',
+          },
+
         ],
       },
       womanInTech: {
