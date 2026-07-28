@@ -5845,5 +5845,82 @@
     "tags": [],
     "source": "fxtwitter",
     "ingestedAt": "2026-07-28T03:34:40.175Z"
+  },
+  {
+    "id": "2081952370615812250",
+    "url": "https://x.com/dylan522p/status/2081952370615812250",
+    "screenName": "dylan522p",
+    "authorId": "985281530070265862",
+    "authorName": "Dylan Patel",
+    "text": "I would wait in line for 8 hours to watch Shrek 2 in 70mm IMAX",
+    "createdAt": "Tue Jul 28 03:58:20 +0000 2026",
+    "createdTimestamp": 1785211100,
+    "likes": 88,
+    "retweets": 1,
+    "replies": 17,
+    "bookmarks": 4,
+    "views": 15687,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "semianalysis"
+    ],
+    "tags": [
+      "semianalysis"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-28T08:51:19.269Z"
+  },
+  {
+    "id": "2081901883430518943",
+    "url": "https://x.com/aaronburnett/status/2081901883430518943",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Good catch",
+    "createdAt": "Tue Jul 28 00:37:43 +0000 2026",
+    "createdTimestamp": 1785199063,
+    "likes": 69,
+    "retweets": 3,
+    "replies": 2,
+    "bookmarks": 1,
+    "views": 3692,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-28T08:51:22.593Z"
+  },
+  {
+    "id": "2081894924291654060",
+    "url": "https://x.com/SpaceX/status/2081894924291654060",
+    "screenName": "SpaceX",
+    "authorId": "34743251",
+    "authorName": "SpaceX",
+    "text": "Starship in space on Flight 13",
+    "createdAt": "Tue Jul 28 00:10:04 +0000 2026",
+    "createdTimestamp": 1785197404,
+    "likes": 16681,
+    "retweets": 2085,
+    "replies": 569,
+    "bookmarks": 1285,
+    "views": 2733185,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HORgFJZXIAAg48O.jpg?name=orig",
+      "https://pbs.twimg.com/media/HORgGTxWAAEBoSV.jpg?name=orig",
+      "https://pbs.twimg.com/media/HORgHixXYAAa19F.jpg?name=orig",
+      "https://pbs.twimg.com/media/HORgIh-XoAA5zZZ.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-28T08:51:24.011Z"
   }
 ]
