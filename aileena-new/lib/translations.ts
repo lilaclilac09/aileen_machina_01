@@ -633,7 +633,7 @@ export const t = {
             date: '2026.07.28',
             href: '/blog/ymtc-nand-wuhan',
             title: '下一个 IPO 在武汉 — 长江存储 YMTC',
-            body: 'Hefei listed CXMT. Next memory IPO story: Wuhan — the Wuhan you know — 长江存储. Optics Valley, 国资, ~2 fabs / ~200k WPM, SemiAnalysis 2021–2026.',
+            body: 'Hefei listed CXMT. Next memory IPO story: Wuhan Optics Valley — 长江存储 NAND, 国资, ~2 fabs / ~200k WPM, SemiAnalysis 2021–2026. Fab city, not the virus headline.',
           },
 
         ],
@@ -1369,7 +1369,7 @@ export const t = {
             date: '2026.07.28',
             href: '/blog/ymtc-nand-wuhan',
             title: 'Nächstes IPO in Wuhan — 长江存储 YMTC',
-            body: 'Hefei listete CXMT. Nächste Memory-IPO-Story: Wuhan — das Wuhan, das ihr kennt — 长江存储. Optics Valley, Staatskapital, ~2 Fabs / ~200k WPM, SemiAnalysis 2021–2026.',
+            body: 'Hefei listete CXMT. Nächste Memory-IPO-Story: Wuhan Optics Valley — 长江存储 NAND, Staatskapital, ~2 Fabs / ~200k WPM, SemiAnalysis 2021–2026. Fab-Stadt, keine Virus-Schlagzeile.',
           },
 
         ],
