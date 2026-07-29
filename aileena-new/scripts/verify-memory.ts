@@ -147,6 +147,16 @@ async function runUnitChecks() {
     latest.length > 0,
     latest.map((h) => h.path).join(', ') || 'none',
   );
+  assert(
+    'latest content hits latest-content.md',
+    latest.some((h) => h.path.includes('latest-content')),
+    latest.map((h) => h.path).join(', ') || 'none',
+  );
+  assert(
+    'latest content mentions Local Models or YMTC / Wuhan',
+    /local models|ymtc|wuhan|长江/i.test(hitBlob(latest)),
+    hitBlob(latest).slice(0, 160),
+  );
 
   const faith = searchMemories('faith belief trust kiln evidence seniority', 5);
   assert(

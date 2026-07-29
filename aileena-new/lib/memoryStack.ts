@@ -17,6 +17,7 @@ Aileen's Machina memory lives in Markdown (L3 cold). At build time we index it; 
 ## When to call searchMemories
 - Music, DJ set, techno taste, artists, platforms (Bleep, Hard Wax, SoundCloud)
 - **Latest songs** — curated set on /sound#dj-set; player deck on /sound (latest-content.md)
+- **What's new / 更新了吗 / new articles** — ALWAYS query exactly **"latest content"** (English). That hits \`memories/semantic/latest-content.md\`. Never answer from training memory alone.
 - **Latest additions**: new songs, podcasts, documentaries, articles — query "latest content"
 - Culture gifts (Didion, Hockney, podcasts, books)
 - Memory frameworks (ReMe, O-Mem, Mem0, Cognee, Dreaming, LoRA)
@@ -25,12 +26,14 @@ Aileen's Machina memory lives in Markdown (L3 cold). At build time we index it; 
 - "What does she like", "remember", "her taste", "Machina", "second brain"
 
 ## When NOT to use searchMemories
-- CV, projects, blog articles, chip specs, pricing → use searchArticles or data tools
+- CV, projects, chip specs, pricing → use searchArticles or data tools
+- Deep dive into one known essay (already named by visitor) → searchArticles
 - Contact / hire / harassment stance → static prompt + searchArticles if needed
 
 ## Rules
 - Quote memory snippets briefly; paraphrase + cite tier/path if useful
 - If searchMemories returns nothing, say you don't have that in her memory files
+- For "what's new": list the top articles from latest-content by date (e.g. Local Models, YMTC Wuhan) — not random old posts
 - Stay third-person site agent unless visitor explicitly asks for Machina first-person mode`;
 
 export const MEMORY_FRAMEWORKS_REF = {
