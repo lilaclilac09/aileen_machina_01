@@ -111,16 +111,21 @@ Printed by `pnpm verify:memory` and stored in the report under `agentManualPromp
 
 ## Fixed workflow (GitHub Actions)
 
-`.github/workflows/machina-memory.yml` runs the same pipeline on a schedule (**auto is on** — cron Mondays):
+`.github/workflows/machina-memory.yml` runs the same pipeline automatically:
 
 | Trigger | When |
 |---------|------|
-| `schedule` | Mondays 06:00 UTC (auto) |
+| **`push` to `main`** (path filter) | New/edited `app/blog/**`, `app/updates/**`, `lib/research/**`, DJ setlist — **article → memory without asking** |
+| `schedule` | Mondays 06:00 UTC (weekly Dreaming) |
 | `workflow_dispatch` | Manual — optional `skip_commit: true` to dry-run (skips commit) |
+
+Local one-shot (same pipeline): `pnpm memory:on-article` (= `pnpm memory:workflow`).
 
 Steps: **`sync:content-memory`** → `pnpm dreaming` → `pnpm build:memory-index` → commit `latest-content.md`, `content-changelog-*.md`, `social-changelog-*.md`, and Dreaming reports to `main`.
 
 Push resilience: job uses `fetch-depth: 0`, a concurrency group, and **rebase + retry** if `main` moved mid-run (this is what broke the 2026-07-20 scheduled auto push).
+
+Bot commits only touch `aileena_second_brain/**` (+ setlist assets) — **not** under the path filter — so the Action does not loop.
 
 Dreaming also snapshots **social teachers** (SemiAnalysis / mach33) from `data/tweets.jsonl` + `data/social/*` (kept fresh by `.github/workflows/social-rss-sync.yml` every 6h) into:
 
