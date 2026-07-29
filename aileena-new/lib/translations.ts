@@ -633,7 +633,7 @@ export const t = {
             date: '2026.07.28',
             href: '/blog/ymtc-nand-wuhan',
             title: 'Next IPO Is Wuhan — YMTC (Yangtze Memory)',
-            body: 'Hefei listed CXMT. Next: Wuhan — for English-language readers the city name is still sticky with coronavirus stigma; the essay explains why that stigma held (media pins, scapegoating, geopolitics, racialization, asymmetric news). Under it: Optics Valley chip campus and government-backed Yangtze Memory (YMTC).',
+            body: 'Hefei listed CXMT. Next: Wuhan — for English-language readers the city name is still sticky with coronavirus stigma; the essay explains why that stigma held (media pins, scapegoating, geopolitics, racialization, asymmetric news). Under it: Optics Valley chip campus and Yangtze Memory (YMTC) — government capital and government-backed.',
           },
 
         ],
@@ -1369,7 +1369,7 @@ export const t = {
             date: '2026.07.28',
             href: '/blog/ymtc-nand-wuhan',
             title: 'Next IPO Is Wuhan — YMTC (Yangtze Memory)',
-            body: 'Hefei listete CXMT. Als Nächstes: Wuhan — für englischsprachige Leser klebt am Stadtnamen noch das Coronavirus-Stigma; der Text erklärt, warum es hielt (Medien-Pins, Sündenbock, Geopolitik, Rassifizierung, asymmetrische News). Darunter: Optics-Valley-Chipcampus und staatlich gestütztes Yangtze Memory (YMTC).',
+            body: 'Hefei listete CXMT. Als Nächstes: Wuhan — für englischsprachige Leser klebt am Stadtnamen noch das Coronavirus-Stigma; der Text erklärt, warum es hielt (Medien-Pins, Sündenbock, Geopolitik, Rassifizierung, asymmetrische News). Darunter: Optics-Valley-Chipcampus und Yangtze Memory (YMTC) — government capital and government-backed.',
           },
 
         ],

@@ -52,7 +52,7 @@ export default function YmtcNandWuhanArticle() {
         <>
           Hefei listed CXMT. Next: Wuhan — a city name still sticky with coronavirus stigma for
           many English-language readers. That stigma is worth discussing; so is why it stuck. Under
-          it: Optics Valley, government-backed chip capital, and{' '}
+          it: Optics Valley, <strong>government capital</strong> (government-backed), and{' '}
           <strong>Yangtze Memory (YMTC)</strong>.
         </>
       }
@@ -174,7 +174,7 @@ export default function YmtcNandWuhanArticle() {
           rows={[
             ['City', 'Hefei (Anhui)', 'Wuhan — Optics Valley tech park (Hubei)'],
             ['Product', 'DRAM (DDR / LPDDR path; HBM as the open question)', '3D NAND (Xtacking)'],
-            ['Ownership', 'Provincial + national chip-fund capital', 'Government-backed: national Big Fund + Hubei/Wuhan vehicles; no single controller'],
+            ['Ownership', 'Provincial + national chip-fund capital', 'Government capital / government-backed: Big Fund + Hubei/Wuhan vehicles; no single controller'],
             ['2026 capital event', 'Shanghai STAR Market IPO — public price discovery', 'Pre-IPO listing prep reported; still on the US Entity List'],
             ['Production unit', 'DRAM wafer starts (Hefei)', '~2 Wuhan fabs · ~200k WPM reported; phase-3+ roadmap'],
             ['Prior deep read here', 'Huawei HBM bottleneck variable', 'This essay + SemiAnalysis trail'],
@@ -210,7 +210,7 @@ export default function YmtcNandWuhanArticle() {
           matters for ownership (below): YMTC was carved out so the NAND program would survive the
           parent’s balance-sheet failure. Headquarters, fabs, and the public “Wuhan memory” brand
           stayed in Optics Valley; the holding stack was rewritten around Hubei / Wuhan government
-          investment vehicles plus the national chip funds.
+          capital plus the national chip funds.
         </p>
         <p style={bodyStyle}>
           Product surface today: 3D NAND wafers/die, embedded flash, client and enterprise SSD
@@ -220,14 +220,14 @@ export default function YmtcNandWuhanArticle() {
           remains Wuhan.
         </p>
 
-        <SectionLabel>Who owns YMTC — government money, not founder VC</SectionLabel>
+        <SectionLabel>Who owns YMTC — government capital, not founder VC</SectionLabel>
         <p style={bodyStyle}>
           Short answer for an English capital-markets reader:{' '}
-          <strong style={strong}>YMTC is a government-backed industrial champion</strong>, closer to
+          <strong style={strong}>YMTC is government capital and government-backed</strong> — closer to
           a national-champion build than to a Silicon Valley fab startup. It is not usually a single
           Beijing ministry “central SOE” with one parent on the org chart. Instead, national chip
-          funds and Hubei / Wuhan local government investors dominate the register — plural official
-          capital, patient enough to fund fabs through yield winters.
+          funds and Hubei / Wuhan local government investors dominate the register — plural
+          government capital, patient enough to fund fabs through yield winters.
         </p>
         <p style={bodyStyle}>
           <strong style={strong}>Founding capital (2016).</strong> Public establishment notices and
@@ -237,7 +237,7 @@ export default function YmtcNandWuhanArticle() {
           semiconductor financing vehicle), Hubei provincial industrial funds, and Hubei Science
           &amp; Technology Investment Group — built on Wuhan Xinxin — with Tsinghua Unigroup and the
           Big Fund again in the second phase. Caproasia’s 2026 IPO write-up still frames the origin
-          as Unigroup + Big Fund + government investment on the order of a
+          as Unigroup + Big Fund + government capital on the order of a
           multi-ten-billion-dollar national memory bet.
         </p>
         <p style={bodyStyle}>
@@ -271,16 +271,16 @@ export default function YmtcNandWuhanArticle() {
             bank-affiliated industry funds as minorities.
           </li>
           <li>
-            Some summaries put <strong style={strong}>government-linked holders above ~90%</strong>{' '}
+            Some summaries put <strong style={strong}>government-backed holders above ~90%</strong>{' '}
             of the equity — treat the exact decimal as filing-dependent; treat the direction as
             settled: this is not a founder-VC NAND startup that happens to sit in Wuhan.
           </li>
         </ul>
         <p style={bodyStyle}>
           So when SemiAnalysis modeled YMTC as a structural NAND variable, the invisible half of the
-          model was always <strong style={strong}>patient official balance sheets</strong> willing to
-          fund 100k-WPM-class fabs through yield winters — until tool bans changed which half of the
-          recipe money can still buy.
+          model was always <strong style={strong}>patient government capital</strong> — balance sheets
+          willing to fund 100k-WPM-class fabs through yield winters — until tool bans changed which
+          half of the recipe money can still buy.
         </p>
 
         <SectionLabel>Production — fabs, wafers/month, expansion</SectionLabel>
@@ -398,7 +398,7 @@ export default function YmtcNandWuhanArticle() {
           SemiAnalysis also named the tool and IP dependencies honestly: heavy use of{' '}
           <strong style={strong}>Lam Research</strong>-class etch/deposition productivity, and
           licensed hybrid-bonding IP in the Adeia / Xperi lineage. Homegrown architecture + imported
-          tool chain + state capital is the Wuhan recipe — until the import half breaks.
+          tool chain + government capital is the Wuhan recipe — until the import half breaks.
         </p>
 
         <SectionLabel>Sanctions — the other half of the model</SectionLabel>
@@ -485,13 +485,13 @@ export default function YmtcNandWuhanArticle() {
           </li>
           <li>
             <strong style={strong}>Government capital is not optional color.</strong> YMTC’s recipe was always
-            national chip fund + Hubei/Wuhan government vehicles + (historically) Unigroup industrial
-            sponsorship. Post-restructuring, the register is still official-capital-led even without one
+            national chip fund + Hubei/Wuhan government capital + (historically) Unigroup industrial
+            sponsorship. Post-restructuring, the register is still government-backed even without one
             controller.
           </li>
           <li>
             <strong style={strong}>Production ports are Wuhan wafer starts.</strong> Treat ~200k WPM
-            / phase-3 / 500k aspiration as tutoring-era reported capacity, then stress-test against
+            / phase-3 / 500k aspiration as pre-IPO reported capacity, then stress-test against
             Entity List tool reality — the same way SemiAnalysis conditioned 100k-WPM fabs on tool
             flow in 2022.
           </li>
