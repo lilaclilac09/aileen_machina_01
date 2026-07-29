@@ -157,6 +157,19 @@ export default function AdminDashboard() {
     await executeAction("REOPEN_TICKET", { ticketId });
   };
 
+  const handleReplyTicket = async (ticketId: string, guestEmail: string) => {
+    const message = window.prompt(
+      `Reply to ${guestEmail} via cafe@aileena.xyz ONLY.\n` +
+        `Do NOT reply from your personal Gmail/QQ — that leaks your real address.\n\n` +
+        `Message:`
+    );
+    if (!message || !message.trim()) return;
+    await executeAction("REPLY_TICKET", {
+      ticketId,
+      message: message.trim(),
+    });
+  };
+
   const handleViewTicketScreenshot = async (ticketId: string) => {
     setActionLoading(true);
     try {
@@ -1216,10 +1229,12 @@ export default function AdminDashboard() {
               Guests submit at <code className="text-gray-200">/help</code> with a
               required screenshot of{" "}
               <code className="text-gray-200">cursor.com/dashboard/spending</code>.{" "}
-              <strong className="text-amber-200">cafe@aileena.xyz is send-only</strong>{" "}
-              (Resend From/Reply-To). New tickets notify{" "}
-              <code className="text-gray-200">NOTIFY_CC_EMAIL</code> when Resend is
-              configured.
+              <strong className="text-amber-200">
+                Never Reply from personal Gmail
+              </strong>{" "}
+              — use <strong>Reply (brand)</strong> so From/Reply-To stay{" "}
+              <code className="text-gray-200">cafe@aileena.xyz</code>. Ticket alerts
+              go to <code className="text-gray-200">NOTIFY_CC_EMAIL</code> privately.
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
@@ -1313,25 +1328,38 @@ export default function AdminDashboard() {
                             {new Date(ticket.createdAt).toLocaleString("en-US")}
                           </td>
                           <td className="px-4 py-3 text-xs">
-                            {ticket.status === "open" ? (
+                            <div className="flex flex-col gap-1">
                               <button
                                 type="button"
                                 disabled={actionLoading}
-                                onClick={() => handleResolveTicket(ticket.id)}
-                                className="rounded border border-emerald-600/50 px-2 py-1 text-emerald-100 hover:bg-emerald-500/20 disabled:opacity-50"
+                                onClick={() =>
+                                  handleReplyTicket(ticket.id, ticket.email)
+                                }
+                                className="rounded border border-amber-600/50 px-2 py-1 text-amber-100 hover:bg-amber-500/20 disabled:opacity-50"
+                                title="Send via cafe@aileena.xyz — never from personal Gmail"
                               >
-                                Mark done
+                                Reply (brand)
                               </button>
-                            ) : (
-                              <button
-                                type="button"
-                                disabled={actionLoading}
-                                onClick={() => handleReopenTicket(ticket.id)}
-                                className="rounded border border-gray-600 px-2 py-1 text-gray-200 hover:bg-gray-800 disabled:opacity-50"
-                              >
-                                Reopen
-                              </button>
-                            )}
+                              {ticket.status === "open" ? (
+                                <button
+                                  type="button"
+                                  disabled={actionLoading}
+                                  onClick={() => handleResolveTicket(ticket.id)}
+                                  className="rounded border border-emerald-600/50 px-2 py-1 text-emerald-100 hover:bg-emerald-500/20 disabled:opacity-50"
+                                >
+                                  Mark done
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  disabled={actionLoading}
+                                  onClick={() => handleReopenTicket(ticket.id)}
+                                  className="rounded border border-gray-600 px-2 py-1 text-gray-200 hover:bg-gray-800 disabled:opacity-50"
+                                >
+                                  Reopen
+                                </button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))

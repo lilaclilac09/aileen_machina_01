@@ -8,6 +8,9 @@ import {
   getPublicReplyToAddress,
   maskContact,
   assertGuestFacingAddresses,
+  isPersonalInbox,
+  extractEmailAddress,
+  BRAND_FROM_DISPLAY,
 } from "@/lib/organizer-privacy";
 
 function looksLikeRealResendKey(key: string): boolean {
@@ -54,15 +57,24 @@ function stripEnvQuotes(value: string): string {
 }
 
 /**
- * Sender must be on a Resend-verified domain (e.g. cafe@aileena.xyz).
+ * Sender must be on a Resend-verified brand domain (e.g. cafe@aileena.xyz).
+ * Personal inboxes in FROM_EMAIL are rejected and replaced with brand.
  * onboarding@resend.dev can ONLY email the Resend account owner.
  */
 export function getFromEmail(): string {
   const raw = process.env.FROM_EMAIL;
   if (raw && raw.trim()) {
-    return stripEnvQuotes(raw);
+    const stripped = stripEnvQuotes(raw);
+    const addr = extractEmailAddress(stripped);
+    if (isPersonalInbox(addr)) {
+      console.warn(
+        `[EMAIL] FROM_EMAIL is personal (${maskContact(addr)}) — forcing brand From`
+      );
+      return BRAND_FROM_DISPLAY;
+    }
+    return stripped;
   }
-  return "Cafe Cursor Shanghai <cafe@aileena.xyz>";
+  return BRAND_FROM_DISPLAY;
 }
 
 export function isTestingOnlyFromAddress(from = getFromEmail()): boolean {
@@ -394,7 +406,8 @@ export async function sendUnclaimedReminderTestToOrganizer(): Promise<{
     const { error } = await resendClient.emails.send({
       from: fromAddress(),
       to: [to],
-      // Private test — no public Reply-To leak needed
+      // Keep Reply-To on brand even for private organizer tests
+      replyTo: getPublicReplyToAddress(),
       subject: `[TEST] ${subject}`,
       html,
     });
@@ -562,6 +575,7 @@ export async function sendUnclaimedReminderBccBlast(
     const { error } = await resendClient.emails.send({
       from,
       to: [cc],
+      replyTo: getPublicReplyToAddress(),
       subject: `[PRIVATE·ENCRYPTED] ${subject}`,
       html: generateEncryptedOrganizerCopyHTML({
         subject,
@@ -854,7 +868,9 @@ function generateEmailHTML({
 
 /**
  * Private alert to organizer inbox (NOTIFY_CC_EMAIL).
- * Guests never email cafe@ — that address is send-only (Resend From/Reply-To).
+ * Reply-To stays on brand — never set Reply-To to the guest, or clicking
+ * Reply in Gmail would send From your personal inbox and leak it to the guest.
+ * Use Admin → Reply (brand) to answer guests via Resend.
  */
 export async function sendSupportTicketAlert(opts: {
   ticketId: string;
@@ -879,29 +895,38 @@ export async function sendSupportTicketAlert(opts: {
     process.env.NEXT_PUBLIC_SITE_URL || "https://cursor-cafe.aileena.xyz"
   ).replace(/\/$/, "");
   const from = getFromEmail();
+  const replyTo = getPublicReplyToAddress();
+  const leak = assertGuestFacingAddresses({ from, replyTo });
+  if (leak) {
+    return { sent: false, error: leak };
+  }
   const shotNote = opts.hasScreenshot
     ? "Spending-page screenshot attached — open Admin → Tickets → View screenshot."
     : "No screenshot (legacy ticket).";
   const html = `<!DOCTYPE html><html><body style="font-family:system-ui,sans-serif;line-height:1.5;color:#111">
 <p><strong>Cafe Cursor — new support ticket</strong></p>
+<p style="padding:10px;background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;color:#92400e">
+<strong>Do NOT hit Reply in Gmail/QQ.</strong> That would send From your personal inbox and expose it to the guest.<br/>
+Answer only via <strong>Admin → Tickets → Reply (brand)</strong> (From/Reply-To: ${replyTo}).
+</p>
 <p>ID: <code>${opts.ticketId}</code><br/>
 Created: ${opts.createdAt}<br/>
 Category: <strong>${opts.category}</strong><br/>
 ${shotNote}</p>
-<p>Contact email: <strong>${opts.email}</strong><br/>
+<p>Guest contact (reply via Admin only): <strong>${opts.email}</strong><br/>
 Luma / check-in email: ${opts.lumaEmail || "—"}</p>
 <pre style="white-space:pre-wrap;background:#f4f4f5;padding:12px;border-radius:8px">${opts.message
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")}</pre>
 <p style="font-size:12px;color:#666">Open Admin → Tickets: ${site}/admin/dashboard<br/>
-Guests check landing at https://cursor.com/dashboard/spending and submit via ${site}/help.</p>
+Guests check https://cursor.com/dashboard/spending and submit via ${site}/help.</p>
 </body></html>`;
 
   try {
     const { error } = await resendClient.emails.send({
       from,
       to: [to],
-      replyTo: opts.email,
+      replyTo,
       subject: `[Ticket] ${opts.category} · ${opts.email}`,
       html,
     });
@@ -917,5 +942,77 @@ Guests check landing at https://cursor.com/dashboard/spending and submit via ${s
     const msg = err instanceof Error ? err.message : "unknown";
     console.error("[TICKET] Notify exception:", msg);
     return { sent: false, error: msg };
+  }
+}
+
+/**
+ * Guest-facing reply via brand From + Reply-To only (never personal inbox).
+ */
+export async function sendBrandGuestReply(opts: {
+  to: string;
+  subject: string;
+  bodyText: string;
+  ticketId?: string;
+}): Promise<{ success: boolean; error?: string; from?: string; replyTo?: string }> {
+  const resendClient = getResendClient();
+  const from = getFromEmail();
+  const replyTo = getPublicReplyToAddress();
+  const leak = assertGuestFacingAddresses({ from, replyTo });
+  if (leak) {
+    return { success: false, error: leak };
+  }
+  if (!resendClient) {
+    return { success: false, error: "Resend not configured" };
+  }
+
+  const to = opts.to.trim().toLowerCase();
+  if (!to.includes("@")) {
+    return { success: false, error: "Invalid guest address" };
+  }
+  if (
+    isPersonalInbox(extractEmailAddress(from)) ||
+    isPersonalInbox(replyTo)
+  ) {
+    return { success: false, error: "Brand From/Reply-To required" };
+  }
+
+  const safeBody = opts.bodyText
+    .trim()
+    .slice(0, 4000)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  const ticketLine = opts.ticketId
+    ? `<p style="font-size:12px;color:#666">Ticket: <code>${opts.ticketId}</code></p>`
+    : "";
+  const html = `<!DOCTYPE html><html><body style="font-family:system-ui,sans-serif;line-height:1.5;color:#111">
+<p>Cafe Cursor Shanghai</p>
+<pre style="white-space:pre-wrap;font-family:system-ui,sans-serif">${safeBody}</pre>
+${ticketLine}
+<p style="font-size:12px;color:#666">Reply to this email goes to ${replyTo} (brand). For credit issues, also use the event help form if needed.</p>
+</body></html>`;
+
+  try {
+    const { error } = await resendClient.emails.send({
+      from,
+      to: [to],
+      replyTo,
+      subject: opts.subject.slice(0, 200),
+      html,
+    });
+    if (error) {
+      return { success: false, error: error.message, from, replyTo };
+    }
+    console.log(
+      `[EMAIL] Brand reply to ${maskContact(to)} from brand replyTo=${replyTo}`
+    );
+    return { success: true, from, replyTo };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "unknown",
+      from,
+      replyTo,
+    };
   }
 }
