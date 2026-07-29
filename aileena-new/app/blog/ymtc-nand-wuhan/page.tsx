@@ -192,7 +192,7 @@ export default function YmtcNandWuhanArticle() {
 
         <SectionLabel>Wuhan background — a chip campus, not a blank map</SectionLabel>
         <p style={bodyStyle}>
-          <strong style={strong}>Yangtze Memory Technologies Co. (YMTC)</strong> was formally
+          <strong style={strong}>Yangtze Memory Technologies Co. (YMTC / 长江存储)</strong> was formally
           established in <strong style={strong}>July 2016</strong> in{' '}
           <strong style={strong}>Wuhan</strong>, Hubei — inside the East Lake High-tech /
           <strong style={strong}>Optics Valley</strong> campus (think a regional semiconductor +
@@ -204,7 +204,8 @@ export default function YmtcNandWuhanArticle() {
           SK Hynix / Micron / Kioxia in tear-downs.
         </p>
         <p style={bodyStyle}>
-          Early corporate history is inseparable from <strong style={strong}>Tsinghua Unigroup</strong>{' '}
+          Early corporate history is inseparable from <strong style={strong}>Tsinghua Unigroup
+          (紫光)</strong>{' '}
           — a sprawling Chinese tech conglomerate that acted as the industrial sponsor putting YMTC
           on the map, then entered bankruptcy restructuring (from 2021). The post-Unigroup chapter
           matters for ownership (below): YMTC was carved out so the NAND program would survive the
@@ -214,7 +215,7 @@ export default function YmtcNandWuhanArticle() {
         </p>
         <p style={bodyStyle}>
           Product surface today: 3D NAND wafers/die, embedded flash, client and enterprise SSD
-          paths, consumer brand <strong style={strong}>Zhitai</strong>, and the architecture
+          paths, consumer brand <strong style={strong}>Zhitai (致钛)</strong>, and the architecture
           trademark SemiAnalysis kept returning to — <strong style={strong}>Xtacking</strong>. R&amp;D
           nodes are reported beyond Wuhan (Shanghai / Beijing and others); the manufacturing gravity
           remains Wuhan.
