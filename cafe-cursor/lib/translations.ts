@@ -51,10 +51,12 @@ export const translations = {
       "重要：一定要点击白色「使用 credits →」按键打开链接，否则 credits 不会充进你的 Cursor 账户。仅复制链接不够。",
     successHint:
       "点击白色按键打开链接后，请在 Cursor Balance 确认 credits 已到账；之后充值与使用时都可抵扣。",
+    mobileRedeemHint:
+      "提醒：若未下载 Cursor iOS 手机版，在手机上打开领取/充值链接可能失败。建议用电脑打开链接完成领取。",
     havingTrouble: "遇到问题？",
     troubleTitle: "先自查（页面提示，不会自动发送）",
     troubleReasons:
-      "常见原因：① 没点白色「使用 credits →」；② Cursor 登录邮箱 ≠ Luma 报名/签到邮箱；③ 打开链接但没完成登录/确认。",
+      "常见原因：① 没点白色「使用 credits →」；② Cursor 登录邮箱 ≠ Luma 报名/签到邮箱；③ 打开链接但没完成登录/确认；④ 仅用手机打开且未装 Cursor iOS 版（建议改用电脑打开链接）。",
     troubleCheckUsage:
       "一般到这里看有没有到账：",
     troubleUsageUrl: "https://cursor.com/dashboard/spending",
@@ -175,10 +177,12 @@ export const translations = {
       "Important: you must tap the white “Use credits →” button to open the link, or credits will not be added to your Cursor account. Copying alone is not enough.",
     successHint:
       "After tapping the white button and opening the link, check Cursor Balance to confirm credits arrived — they apply to future top-ups and usage.",
+    mobileRedeemHint:
+      "Note: if you haven’t installed the Cursor iOS app, redeeming / topping up on mobile may fail. Prefer opening the link on a computer.",
     havingTrouble: "Having trouble?",
     troubleTitle: "Self-check first (on-page help — nothing is auto-sent)",
     troubleReasons:
-      "Common causes: (1) didn’t tap white “Use credits →”; (2) Cursor login email ≠ Luma register/check-in email; (3) opened the link but didn’t finish login/confirm.",
+      "Common causes: (1) didn’t tap white “Use credits →”; (2) Cursor login email ≠ Luma register/check-in email; (3) opened the link but didn’t finish login/confirm; (4) mobile-only without Cursor iOS app (prefer a computer).",
     troubleCheckUsage: "Usually check whether it landed here:",
     troubleUsageUrl: "https://cursor.com/dashboard/spending",
     troubleVerifyAccount:

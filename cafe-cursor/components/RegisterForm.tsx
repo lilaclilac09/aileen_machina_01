@@ -249,6 +249,9 @@ export function RegisterForm() {
 
           <div className="mt-4 rounded-xl border border-border bg-foreground/5 p-4 text-center text-xs text-muted">
             <p>{t("successHint")}</p>
+            <p className="mt-2 text-amber-800/90 dark:text-amber-200/90">
+              {t("mobileRedeemHint")}
+            </p>
           </div>
 
           <a
