@@ -111,64 +111,64 @@ const WATCH_ITEMS = [...DOCUMENTARY_RECS, ...FILM_RECS];
 /** 欧洲生活指南 — how to assemble a European life-texture off-screen. */
 const EURO_LIFE_GUIDE = [
   {
-    title: 'City wandering, not sightseeing',
-    label: 'walk / café',
+    title: '城市漫游，不是观光',
+    label: '走 / 咖啡馆',
     body:
-      'Train stations, café tables, shop signs, light on stone. One neighbourhood at a time. The Before Sunrise rule: conversation over landmarks.',
+      '火车站、咖啡桌、招牌、石头上的光。一次一个街区。Before Sunrise 法则：对话大于地标。',
   },
   {
-    title: 'Black-and-white looking',
-    label: 'eye / frame',
+    title: '黑白地看',
+    label: '眼 / 构图',
     body:
-      'Phone is enough. Practise composition and contrast. Same attention as B&W cinema — fewer colours, more decision.',
+      '手机就够。练构图与反差。同黑白电影——少颜色，多决定。',
   },
   {
-    title: 'Language fragments',
-    label: 'FR / IT',
+    title: '语言碎片',
+    label: '法 / 意',
     body:
-      'Enough French or Italian to catch 20% of dialogue. The films open; the cities open.',
+      '法语或意大利语听懂大约 20% 对白就够。电影打开，城市也打开。',
   },
   {
-    title: 'Wardrobe as Bond cool',
-    label: 'cut / repeat',
+    title: '衣橱做成 Bond 冷感',
+    label: '剪裁 / 重复',
     body:
-      'Léa / Bond-girl line: fewer colours, better cut, repeat pieces. Moodboard over trend chase.',
+      'Léa / 邦女郎线：少颜色、更好剪裁、重复穿着。情绪板大于追趋势。',
   },
   {
-    title: 'Slow museum',
-    label: 'one room',
+    title: '慢博物馆',
+    label: '一个展厅',
     body:
-      'One gallery, not the whole building. Train the same patience as a long European take.',
+      '一个展厅，不是整栋楼。练同欧洲长镜头一样的耐心。',
   },
   {
-    title: 'Table as ritual',
-    label: 'IT / FR kitchen',
+    title: '餐桌当仪式',
+    label: '意 / 法厨房',
     body:
-      'Olive oil, tomato, bread, one good knife. Make an ordinary meal feel staged — without performing for anyone.',
+      '橄榄油、番茄、面包、一把好刀。让一顿普通的饭有舞台感——但不表演给任何人看。',
   },
 ];
 
 /** 生活方式 — practices that turn taste into a week. */
 const LIFESTYLE_RECS = [
   {
-    title: 'Urban drift diary',
-    label: 'weekly',
-    body: 'Walk. Note light, doorways, overheard lines. No need for a “trip”.',
+    title: '城市漂移日记',
+    label: '每周',
+    body: '走路。记下光、门口、偷听到的句子。不必是「旅行」。',
   },
   {
-    title: 'One letter or collage page',
-    label: 'paper',
-    body: 'Physical “拼凑生活感” — one page a week. Scraps, tickets, a sentence that held.',
+    title: '一封信或一页拼贴',
+    label: '纸',
+    body: '实体「拼凑生活感」——每周一页。碎纸、票根、一句留下来的话。',
   },
   {
-    title: 'Soundtrack as room',
-    label: 'listen',
-    body: 'Jazz, chanson, film scores as background — closer to European cinema than algorithmic pop.',
+    title: '原声当房间',
+    label: '听',
+    body: '爵士、香颂、电影配乐当背景——比算法流行更接近欧洲电影。',
   },
   {
-    title: 'Watch in pairs, not piles',
-    label: 'rhythm',
-    body: 'The Crown for British public life, then The Capture or Bodyguard — texture over completionism.',
+    title: '成对看，不成堆',
+    label: '节奏',
+    body: '《王冠》看英国公共生活，再看《真相捕捉》或《保镖》——质感大于刷完。',
   },
 ];
 
@@ -196,7 +196,7 @@ export default function WatchListeningShelfArticle() {
       date="2026.07.12"
       tags="Podcast · Film · European living · Lifestyle"
       title="The Listening and Watching Shelf"
-      dek="A small rotation of podcasts, films, European living notes, and weekly practices beside the essays — life-texture, not a moodboard dump."
+      dek="A small rotation of podcasts, films, 欧洲生活指南, and 生活方式 weekly practices beside the essays — life-texture, not a moodboard dump."
       showNarration={false}
     >
       <main className="recommendation-issue" aria-label="Listening, watching, and living recommendations">
@@ -270,10 +270,10 @@ export default function WatchListeningShelfArticle() {
 
         <section className="rec-section" id="euro-life" aria-labelledby="euro-life-recs">
           <p className="rec-section-label">欧洲生活指南</p>
-          <h2 id="euro-life-recs">European living guide</h2>
+          <h2 id="euro-life-recs">欧洲生活指南 — European living</h2>
           <p className="rec-section-dek">
-            Off-screen notes for a European life-texture — walk, frame, language, cut,
-            museum pace, table ritual. Steal from the films; do not cosplay them.
+            银幕外的欧洲生活质感笔记——走、看、语言、剪裁、博物馆节奏、餐桌仪式。
+            从电影里偷方法，不要 cosplay。
           </p>
           <div className="channel-rec-grid">
             {EURO_LIFE_GUIDE.map((item) => (
@@ -288,9 +288,9 @@ export default function WatchListeningShelfArticle() {
 
         <section className="rec-section" id="lifestyle" aria-labelledby="lifestyle-recs">
           <p className="rec-section-label">生活方式</p>
-          <h2 id="lifestyle-recs">Lifestyle — weekly practices</h2>
+          <h2 id="lifestyle-recs">生活方式 — weekly practices</h2>
           <p className="rec-section-dek">
-            Turn the shelf into a week. Small repeats beat a longer list.
+            把架子变成一周。小重复，胜过长清单。
           </p>
           <div className="channel-rec-grid">
             {LIFESTYLE_RECS.map((item) => (
