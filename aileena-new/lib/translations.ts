@@ -633,7 +633,7 @@ export const t = {
             date: '2026.07.28',
             href: '/blog/ymtc-nand-wuhan',
             title: '下一个 IPO 在武汉 — 长江存储 YMTC',
-            body: 'Hefei listed CXMT. Next: Wuhan — and the sticky coronavirus stigma on that name is worth discussing, because under it sits Optics Valley and 长江存储. 国资, ~2 fabs / ~200k WPM, SemiAnalysis 2021–2026.',
+            body: 'Hefei listed CXMT. Next: Wuhan — coronavirus stigma on the name is worth discussing, and so are the social causes that made it sticky (media pins, scapegoating, geopolitics, racialization, asymmetric news). Under it: Optics Valley / 长江存储.',
           },
 
         ],
@@ -1369,7 +1369,7 @@ export const t = {
             date: '2026.07.28',
             href: '/blog/ymtc-nand-wuhan',
             title: 'Nächstes IPO in Wuhan — 长江存储 YMTC',
-            body: 'Hefei listete CXMT. Als Nächstes: Wuhan — und das klebrige Coronavirus-Stigma an diesem Namen lohnt die Diskussion, denn darunter liegen Optics Valley und 长江存储. Staatskapital, ~2 Fabs / ~200k WPM, SemiAnalysis 2021–2026.',
+            body: 'Hefei listete CXMT. Als Nächstes: Wuhan — das Coronavirus-Stigma am Namen lohnt die Diskussion, und auch die sozialen Ursachen, die es klebrig machten (Medien-Pins, Sündenbock, Geopolitik, Rassifizierung, asymmetrische News). Darunter: Optics Valley / 长江存储.',
           },
 
         ],
