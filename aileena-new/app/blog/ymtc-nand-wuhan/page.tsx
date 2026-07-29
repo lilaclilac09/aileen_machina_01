@@ -51,8 +51,7 @@ export default function YmtcNandWuhanArticle() {
       dek={
         <>
           Hefei just listed CXMT. The next memory IPO story is Wuhan Optics Valley —
-          NAND fabs, 国资, <strong>长江存储</strong>. Not a virus headline. The other half of
-          China memory.
+          NAND fabs, 国资, <strong>长江存储</strong>. The other half of China memory.
         </>
       }
     >
@@ -69,10 +68,10 @@ export default function YmtcNandWuhanArticle() {
         </p>
         <p style={bodyStyle}>
           The next IPO line people are already drawing points at{' '}
-          <strong style={strong}>Wuhan Optics Valley</strong> — fab city, not the virus
-          headline — and at <strong style={strong}>长江存储 / YMTC</strong>. If Hefei is where
-          China lists <em>DRAM</em>, Wuhan is where China built the other half of the memory
-          stack: <strong style={strong}>NAND flash</strong>. The IPO headlines will keep saying
+          <strong style={strong}>Wuhan Optics Valley</strong> — and at{' '}
+          <strong style={strong}>长江存储 / YMTC</strong>. If Hefei is where China lists{' '}
+          <em>DRAM</em>, Wuhan is where China built the other half of the memory stack:{' '}
+          <strong style={strong}>NAND flash</strong>. The IPO headlines will keep saying
           &ldquo;memory.&rdquo; The useful follow-up is: which memory, which city, and which
           analyst already treated that city as a structural variable — not a footnote.
         </p>
