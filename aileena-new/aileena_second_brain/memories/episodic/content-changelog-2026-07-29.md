@@ -4,7 +4,7 @@ Auto-detected updates from site sources (`sync-content-memory`).
 
 ## New articles
 
-- **How I Fell for Local Models** (2026.07.28) — https://aileena.xyz/blog/local-models
+- **How the Site Remembers** (2026.07.29) — https://aileena.xyz/blog/machina-memory
 
 ## Next step
 
