@@ -101,7 +101,8 @@ export default function Home() {
   const latestIssueHref = latestIssue?.longFormHref ?? (latestIssue ? `/blog/${latestIssue.slug}` : '/dispatch');
   const latestDispatch = tx.blog.researchDispatch.posts.slice(-1)[0];
   const metooArticle = tx.blog.womanInTech.posts.find((post) => post.href === '/blog/harassment') ?? tx.blog.womanInTech.posts[0];
-  const featuredInvesting = tx.blog.investing.posts.find((post) => post.href === '/blog/nvidia-flywheel') ?? tx.blog.investing.posts[0];
+  // Newest investing essay on the desk (posts are chronological; last = latest).
+  const featuredInvesting = tx.blog.investing.posts.slice(-1)[0] ?? tx.blog.investing.posts[0];
   const rooms: RoomDoor[] = [
     {
       id: 'magazine',
@@ -140,7 +141,7 @@ export default function Home() {
       id: 'woman-investing',
       index: '04',
       label: 'Woman Investing',
-      href: '/dispatch#investing',
+      href: featuredInvesting ? featuredInvesting.href : '/dispatch#investing',
       category: tx.blog.investing.tag,
       blurb: featuredInvesting ? featuredInvesting.body : 'A woman should have her own portfolio.',
       signal: featuredInvesting ? featuredInvesting.title : tx.blog.investing.heading,
