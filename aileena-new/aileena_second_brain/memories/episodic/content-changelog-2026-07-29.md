@@ -4,19 +4,19 @@ Auto-detected updates from site sources (`sync-content-memory`).
 
 ## New European living notes
 
-- **城市漫游，不是观光** (走 / 咖啡馆)
-- **黑白地看** (眼 / 构图)
-- **语言碎片** (法 / 意)
-- **衣橱做成 Bond 冷感** (剪裁 / 重复)
-- **慢博物馆** (一个展厅)
-- **餐桌当仪式** (意 / 法厨房)
+- **Urban roam, not tourism** (walk / cafés)
+- **See in black and white** (eye / frame)
+- **Language scraps** (FR / IT)
+- **Wardrobe as Bond cool** (cut / repeat)
+- **Slow museum** (one room)
+- **Table as ritual** (IT / FR kitchen)
 
 ## New lifestyle practices
 
-- **城市漂移日记** (每周)
-- **一封信或一页拼贴** (纸)
-- **原声当房间** (听)
-- **成对看，不成堆** (节奏)
+- **Urban drift diary** (weekly)
+- **One letter or collage page** (paper)
+- **Soundtrack as room** (listen)
+- **Watch in pairs, not piles** (pace)
 
 ## Next step
 

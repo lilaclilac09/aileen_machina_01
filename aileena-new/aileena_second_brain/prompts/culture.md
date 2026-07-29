@@ -9,8 +9,8 @@ Film（拼凑生活感，非清单）：Léa Seydoux 气质 · 邦女郎冷感 �
        The Crown · The Capture · Bodyguard
        详情：memories/semantic/film-taste.md · 公开展示：/blog/watch-listening-shelf#films
 
-欧洲生活指南 + 生活方式：漫游、黑白看、FR/IT 碎片、Bond 剪裁、慢博物馆、餐桌仪式
-       周实践：漂移日记、一页拼贴、电影原声当房间、成对观影
+Euro life guide + Lifestyle：urban roam, B&W looking, FR/IT scraps, Bond cut, slow museum, table ritual
+       weekly：drift diary, one collage page, soundtrack as room, watch in pairs
        详情：memories/semantic/lifestyle-europe.md
        展示：/blog/watch-listening-shelf#euro-life · #lifestyle
 

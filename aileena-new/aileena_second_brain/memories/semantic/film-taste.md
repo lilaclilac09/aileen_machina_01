@@ -37,4 +37,4 @@ BBC 惊悚。贴身保护、Westminster、政治与 paranoia。和《王冠》�
 2. For British public life: The Crown → The Capture or Bodyguard.
 3. Offer 1–2 titles with the why — not a pile.
 4. Keep Didion / Hockney shelf docs as separate calibration (witness / looking); this file is narrative cinema / series.
-5. For living it off-screen → `lifestyle-europe.md` (欧洲生活指南 + 生活方式).
+5. For living it off-screen → `lifestyle-europe.md` (Euro life guide + Lifestyle).
