@@ -6087,5 +6087,177 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-07-29T09:08:01.082Z"
+  },
+  {
+    "id": "2082526248287523199",
+    "url": "https://x.com/jaiyagill/status/2082526248287523199",
+    "screenName": "jaiyagill",
+    "authorId": "768077874",
+    "authorName": "jaiya",
+    "text": "on a mission to find the coolest people, companies & ideas in tech, money & culture...\n\nso naturally i had to see why @dylan522p, founder of @SemiAnalysis_, is so optimistic about AI\n\nturns out the future has more jobs and less \"permanent underclass\" than doomers think",
+    "createdAt": "Wed Jul 29 17:58:43 +0000 2026",
+    "createdTimestamp": 1785347923,
+    "likes": 55,
+    "retweets": 3,
+    "replies": 7,
+    "bookmarks": 24,
+    "views": 5755,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://video.twimg.com/amplify_video/2082313343373815808/vid/avc1/1080x1920/ychnrojBAJ67NZ8e.mp4?tag=29"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-29T19:42:18.256Z"
+  },
+  {
+    "id": "2082519754426757434",
+    "url": "https://x.com/SemiAnalysis_/status/2082519754426757434",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "The Street models 2028 WFE around $190–200B. If the Top-5 equipment makers simply sell out planned capacity at today's prices, we think WFE lands above $230B. (1/4)🧵",
+    "createdAt": "Wed Jul 29 17:32:55 +0000 2026",
+    "createdTimestamp": 1785346375,
+    "likes": 124,
+    "retweets": 18,
+    "replies": 2,
+    "bookmarks": 93,
+    "views": 37552,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HOaYrgZXUAAvdbS.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-29T19:42:20.400Z"
+  },
+  {
+    "id": "2082519757211766968",
+    "url": "https://x.com/SemiAnalysis_/status/2082519757211766968",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Prices won't stay at today's levels. Like-for-like increases are already on the table. ASML flagged them at 2Q26 earnings, TSMC cited tool price inflation as a major driver of its +15% capex guide, Chinese customers are reportedly agreeing to +10% on DUV, and channel checks suggest TEL is discussing ~30% increases. The reason they can: Top-5 SemiCap revenue is at a cyclicals-lows of big-4 chipmaker revenue (TSMC, Samsung DS, SK Hynix, Micron). Chipmakers' profit pool has never been this deep relative to what the tools cost them. (3/4)",
+    "createdAt": "Wed Jul 29 17:32:56 +0000 2026",
+    "createdTimestamp": 1785346376,
+    "likes": 23,
+    "retweets": 1,
+    "replies": 1,
+    "bookmarks": 10,
+    "views": 7932,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [
+      "ai-cost"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-29T19:42:21.801Z"
+  },
+  {
+    "id": "2082519758545564044",
+    "url": "https://x.com/SemiAnalysis_/status/2082519758545564044",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Price hikes flow ~100% to toolmaker gross profit. Their suppliers have no pricing power. A decade of data shows Ichor's gross margin banded at 8–17% and Ultra Clean's at 11–21%, with no breakout even in the tight 2017 and 2021–22 markets. Toolmakers reprice customers annually while their own input costs stay flat. A 10% like-for-like increase would put SemiCap gross margins 1–5pts above historical peaks. Volume up, price up, margins to new highs. (4/4)",
+    "createdAt": "Wed Jul 29 17:32:56 +0000 2026",
+    "createdTimestamp": 1785346376,
+    "likes": 23,
+    "retweets": 2,
+    "replies": 2,
+    "bookmarks": 7,
+    "views": 6489,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HOaYrkDWMAECRgX.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-29T19:42:23.219Z"
+  },
+  {
+    "id": "2082544902970196064",
+    "url": "https://x.com/aaronburnett/status/2082544902970196064",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "I’m surprised by how few understand the architectural choices at all layers of the stack that are being leveraged to improve efficiency. I’m also surprised how some who appreciate the efficiency levers seem to suggest it magically cures the compute crunch. \n\nAnswer probably is something that balances these",
+    "createdAt": "Wed Jul 29 19:12:51 +0000 2026",
+    "createdTimestamp": 1785352371,
+    "likes": 4,
+    "retweets": 0,
+    "replies": 0,
+    "bookmarks": 0,
+    "views": 642,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-29T19:42:26.579Z"
+  },
+  {
+    "id": "2082505768939512001",
+    "url": "https://x.com/aaronburnett/status/2082505768939512001",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Brett’s chart explains this in more detail. But it’s also really quite simple. \n\nSpaceX can already place all tiles on a new ship in less than one month (based on their revealed build rate of ship). \n\nComparing to Shuttle is laughable. they won’t play around with testing each tile, they will scrape off old ones and place new one as needed (they can even do literally all of them). It won’t take more than a month probably a couple weeks at first. The only thing they need to worry about complete burn through effecting the steel l below. We’ve see that’s not happening based on flight 13.\n\nThis can all happen inside megabay with 2-3 starships in rotation. And the bakery just needs to pump out new tiles. \n\nThanks to last test it became clear this will happen much faster than even we expected.",
+    "createdAt": "Wed Jul 29 16:37:21 +0000 2026",
+    "createdTimestamp": 1785343041,
+    "likes": 68,
+    "retweets": 2,
+    "replies": 5,
+    "bookmarks": 14,
+    "views": 4314,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-29T19:42:28.020Z"
+  },
+  {
+    "id": "2082486031169818966",
+    "url": "https://x.com/mach33/status/2082486031169818966",
+    "screenName": "mach33",
+    "authorId": "2051360039869276160",
+    "authorName": "Mach33 Financial Group",
+    "text": "$81,000 per satellite per year to launch the shielding mass, at $1,500/kg. That is 99% of the total cost of shielding. The shield is cheap, the ride up is not.",
+    "createdAt": "Wed Jul 29 15:18:55 +0000 2026",
+    "createdTimestamp": 1785338335,
+    "likes": 8,
+    "retweets": 1,
+    "replies": 0,
+    "bookmarks": 2,
+    "views": 515,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://video.twimg.com/amplify_video/2082485919831969792/vid/avc1/1920x1080/n_Msfm_Lli4lphn8.mp4?tag=29"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "orbital-compute"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-29T19:42:31.502Z"
   }
 ]
