@@ -50,9 +50,9 @@ export default function YmtcNandWuhanArticle() {
       title="下一个 IPO 在武汉 — 长江存储 YMTC"
       dek={
         <>
-          Hefei listed CXMT. Next: Wuhan — and the Wuhan you think you know is still sticky with
-          coronavirus stigma. That pollution of the name is worth discussing, because under it sits
-          Optics Valley, 国资, and <strong>长江存储</strong>.
+          Hefei listed CXMT. Next: Wuhan — sticky with coronavirus stigma. The stigma is worth
+          discussing; so are the social causes that made it stick. Under the pollution:{' '}
+          Optics Valley, 国资, <strong>长江存储</strong>.
         </>
       }
     >
@@ -94,20 +94,67 @@ export default function YmtcNandWuhanArticle() {
           crisis.
         </p>
         <p style={bodyStyle}>
-          That stigma is worth discussing on its own — not as a PR scrub, and not as denial that
-          tragedy happened. Worth discussing because stigma <em>selects what counts as knowledge</em>.
-          If Wuhan only means outbreak, then Optics Valley, national IC funds, and a NAND champion
-          with competitive density become invisible by default. Capital markets and policy debates
-          then inherit a distorted map: Hefei gets a ticker narrative; Wuhan stays a virus
-          association until someone forces the industrial noun back into the sentence —{' '}
+          The controversy is not only &ldquo;was the naming fair.&rdquo; The more useful question is{' '}
+          <strong style={strong}>what social machinery made the stigma stick</strong> — why a
+          multi-million industrial city could be overwritten by one medical event in the public
+          imagination.
+        </p>
+
+        <SectionLabel>社会背后的原因 — why the stigma held</SectionLabel>
+        <p style={bodyStyle}>
+          <strong style={strong}>1 · First-contact media ecology.</strong> For much of the world,
+          Wuhan entered the timeline as a breaking-news noun, not as a place with history. Platform
+          news rewards a single origin pin: one city, one wet-market/lab meme, one face for
+          fear. Complexity (global travel, asymptomatic spread, parallel outbreaks) loses to a
+          place-name that can trend. Once the pin is set, later corrections rarely displace it.
+          That is how semantic pollution works — the first frame occupies the slot.
+        </p>
+        <p style={bodyStyle}>
+          <strong style={strong}>2 · Scapegoating under uncertainty.</strong> Pandemics produce
+          rage and helplessness. Societies often convert that into a{' '}
+          <em>locatable blame object</em> — a city, a foodway, a foreigner — because blame feels
+          like control. Wuhan became that object for audiences who needed somewhere to point.
+          Tragedy happened; scapegoating is the social surplus layered on top. Stigma is the
+          surplus that outlives the acute death counts.
+        </p>
+        <p style={bodyStyle}>
+          <strong style={strong}>3 · Geopolitics mapped onto disease.</strong> The early 2020s were
+          already a US–China confrontation decade: tariffs, Entity Lists, chip bans, narrative war.
+          A pathogen that could be narrated as &ldquo;from China / from Wuhan&rdquo; slotted neatly
+          into an existing enemy grammar. Public health vocabulary and great-power vocabulary
+          fused. When that fusion holds, a city name stops being geography and becomes a proxy in
+          the rivalry — useful for politicians, toxic for anyone who actually lives or builds
+          there.
+        </p>
+        <p style={bodyStyle}>
+          <strong style={strong}>4 · Racialization and civilizational othering.</strong> Disease
+          stigma rarely stays on a map pin. It slides onto bodies, restaurants, students, accents —
+          the old pattern of pathologizing East Asia as dirty, opaque, or dangerous. &ldquo;Wuhan
+          virus&rdquo; talk and anti-Asian violence were not separate stories; they were the same
+          social current. A city stigma that racializes is sticky because it attaches to identity,
+          not only to epidemiology.
+        </p>
+        <p style={bodyStyle}>
+          <strong style={strong}>5 · Asymmetric update speed.</strong> Outbreak headlines are cheap
+          and viral. Fab density tables, Big Fund ownership charts, and SemiAnalysis NAND tear-downs
+          are expensive and niche. The information market therefore keeps refreshing the stigma and
+          under-refreshes Optics Valley. Capital and policy then inherit a{' '}
+          <em>distorted map</em>: Hefei gets a ticker narrative; Wuhan stays a virus association
+          until someone forces the industrial noun back into the sentence —{' '}
           <strong style={strong}>长江存储</strong>.
         </p>
         <p style={bodyStyle}>
-          So when this essay says the next IPO story is in Wuhan, it is doing two jobs at once.
-          One is memory hardware: YMTC, Xtacking, wafer starts, Entity List, ChipBook. The other is
-          naming: refusing to let coronavirus be the only public meaning of a city that also runs
-          one of China&apos;s hardest semiconductor bets. The stigma is part of the story because it
-          explains why so many readers still need the reminder.
+          So the stigma is worth discussing on its own — not as a PR scrub, and not as denial that
+          tragedy happened. Worth discussing because stigma <em>selects what counts as knowledge</em>.
+          The social causes above are why that selection bias did not fade when the acute crisis
+          did.
+        </p>
+        <p style={bodyStyle}>
+          When this essay says the next IPO story is in Wuhan, it is doing two jobs at once. One is
+          memory hardware: YMTC, Xtacking, wafer starts, Entity List, ChipBook. The other is naming:
+          refusing to let coronavirus be the only public meaning of a city that also runs one of
+          China&apos;s hardest semiconductor bets. The stigma is part of the story because the
+          social machinery that produced it is still running.
         </p>
 
         <SectionLabel>Two cities, two memory products</SectionLabel>
