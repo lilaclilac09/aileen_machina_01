@@ -200,9 +200,16 @@ contact: {
 
 The route reads `RESEND_API_KEY` from `process.env`. Vercel → Project → Settings → Environment Variables. If it's already there from before, just redeploy so the new function picks it up. Otherwise add it under both Production and Preview.
 
-Resend's email "from" address is currently `AILEENA MACHINA <onboarding@resend.dev>` — Resend's default test sender. Swap it for a verified domain sender (e.g. `agent@aileena.xyz`) when you set up DNS for Resend.
+Resend's email "from" address defaults to `AILEENA MACHINA <agent@aileena.xyz>`
+(see `lib/resend-from.ts`). Override with Vercel env `RESEND_FROM` /
+`FROM_EMAIL` / `CONTACT_FROM`. Do **not** use `onboarding@resend.dev` in
+production — that sandbox sender can only deliver to the Resend account
+owner, which is why agent "leave a note" showed FAILED TO SEND when
+forwarding to `cafe@aileena.xyz`. Domain `aileena.xyz` must be Verified in
+Resend (same setup cafe-cursor already uses for `cafe@aileena.xyz`).
 
-The destination email is hard-coded in the route: `CONTACT_TO (env)`.
+The destination inbox is `CONTACT_TO` / `LEAD_INBOX` / fallback `cafe@aileena.xyz`
+(`lib/contact-inbox.ts`).
 
 ---
 
