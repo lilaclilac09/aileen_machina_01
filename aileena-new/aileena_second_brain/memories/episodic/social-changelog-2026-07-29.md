@@ -13,9 +13,9 @@ Review → promote durable facts into `memories/semantic/analysts-dylan-aaron.md
 
 ## Snapshot
 
-- Tweets: **239**
+- Tweets: **240**
 - Numbers: **86**
-- Last RSS: `2026-07-29T03:38:14.156Z`
+- Last RSS: `2026-07-29T09:07:59.268Z`
 
 ## By account
 
@@ -23,7 +23,7 @@ Review → promote durable facts into `memories/semantic/analysts-dylan-aaron.md
 |---------|-------|
 | @aaronburnett | 95 |
 | @semianalysis_ | 61 |
-| @dylan522p | 29 |
+| @dylan522p | 30 |
 | @vladsaigau | 20 |
 | @mach33 | 11 |
 | @elonmusk | 6 |
@@ -42,6 +42,7 @@ Review → promote durable facts into `memories/semantic/analysts-dylan-aaron.md
 
 ## Recent (7d)
 
+- @dylan522p `2082321388736581641` — Slowing down AI is a ultimately wishful thinking The genie is out of the bottle The most importan co…
 - @SemiAnalysis_ `2080033016768774202` — BREAKING: WE KNOW PRODUCTS IS A PART OF GOOGLE CLOUD AND NOT THE MAJORITY OF REVENUE TPUs got sold i…
 - @dylan522p `2080026098096853215` — Coincidentally AMD has a product named Verano. Competing with Nvidia's Vera CPU. The pun, Vera No wr…
 - @SemiAnalysis_ `2080023924465684904` — BREAKING: GOOGLE CLOUD GENERATES REVENUE PRIMARILY FROM THE SALE OF TPU SYSTEMS! $GOOG Google Cloud …
@@ -53,7 +54,6 @@ Review → promote durable facts into `memories/semantic/analysts-dylan-aaron.md
 - @SemiAnalysis_ `2082189094025937047` — Btw, we do have the answers, sales@semianalysis.com
 - @aaronburnett `2082188940874834430` — Staring down the barrel
 - @SemiAnalysis_ `2082167095379276167` — 
-- @aaronburnett `2082125446624301488` — Assuming the timelines are hit and meaningful quality benchmarks are hit a Model factory churning ou…
 
 ## Numbers (newest)
 
