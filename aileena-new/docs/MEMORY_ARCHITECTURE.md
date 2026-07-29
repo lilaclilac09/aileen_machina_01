@@ -111,21 +111,30 @@ Printed by `pnpm verify:memory` and stored in the report under `agentManualPromp
 
 ## Fixed workflow (GitHub Actions)
 
-`.github/workflows/machina-memory.yml` runs the same pipeline automatically:
+| Workflow | Trigger | Role |
+|----------|---------|------|
+| **`.github/workflows/memory-on-article.yml`** | **`push` to `main` on fixed paths** | New article / updates / research / setlist → memory |
+| `.github/workflows/machina-memory.yml` | Mondays 06:00 UTC + `workflow_dispatch` | Weekly / manual Dreaming |
+| `.github/workflows/machina-memory-job.yml` | `workflow_call` only | Shared job body |
 
-| Trigger | When |
-|---------|------|
-| **`push` to `main`** (path filter) | New/edited `app/blog/**`, `app/updates/**`, `lib/research/**`, DJ setlist — **article → memory without asking** |
-| `schedule` | Mondays 06:00 UTC (weekly Dreaming) |
-| `workflow_dispatch` | Manual — optional `skip_commit: true` to dry-run (skips commit) |
+**Fixed paths (canonical):** `aileena-new/docs/MEMORY_WATCH_PATHS.md`
 
-Local one-shot (same pipeline): `pnpm memory:on-article` (= `pnpm memory:workflow`).
+```
+aileena-new/app/blog/**
+aileena-new/app/updates/**
+aileena-new/lib/research/**
+aileena-new/lib/djSetlist.ts
+aileena-new/public/dj-set/setlist.json
+aileena-new/components/DJStation.tsx
+```
 
-Steps: **`sync:content-memory`** → `pnpm dreaming` → `pnpm build:memory-index` → commit `latest-content.md`, `content-changelog-*.md`, `social-changelog-*.md`, and Dreaming reports to `main`.
+Local one-shot: `pnpm memory:on-article` (= `pnpm memory:workflow`).
 
-Push resilience: job uses `fetch-depth: 0`, a concurrency group, and **rebase + retry** if `main` moved mid-run (this is what broke the 2026-07-20 scheduled auto push).
+Steps: **`sync:content-memory`** → `pnpm dreaming` → `pnpm build:memory-index` → commit `latest-content.md`, changelogs, Dreaming reports to `main`.
 
-Bot commits only touch `aileena_second_brain/**` (+ setlist assets) — **not** under the path filter — so the Action does not loop.
+Push resilience: `fetch-depth: 0`, concurrency group `machina-memory-dreaming`, rebase + retry.
+
+Bot commits only touch `aileena_second_brain/**` (+ setlist assets) — **outside** the fixed path filter — so the Action does not loop.
 
 Dreaming also snapshots **social teachers** (SemiAnalysis / mach33) from `data/tweets.jsonl` + `data/social/*` (kept fresh by `.github/workflows/social-rss-sync.yml` every 6h) into:
 

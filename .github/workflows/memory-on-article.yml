@@ -1,0 +1,50 @@
+# Fixed-path memory trigger — new article / shelf / research / setlist → Dreaming
+#
+# Canonical watch paths (keep in sync with aileena-new/docs/MEMORY_WATCH_PATHS.md):
+#   aileena-new/app/blog/**
+#   aileena-new/app/updates/**
+#   aileena-new/lib/research/**
+#   aileena-new/lib/djSetlist.ts
+#   aileena-new/public/dj-set/setlist.json
+#   aileena-new/components/DJStation.tsx
+#
+# Bot commits only write aileena_second_brain/** (+ setlist assets) — outside this
+# path filter — so this workflow does not re-trigger itself.
+
+name: Memory on Article (fixed paths)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'aileena-new/app/blog/**'
+      - 'aileena-new/app/updates/**'
+      - 'aileena-new/lib/research/**'
+      - 'aileena-new/lib/djSetlist.ts'
+      - 'aileena-new/public/dj-set/setlist.json'
+      - 'aileena-new/components/DJStation.tsx'
+  workflow_dispatch:
+    inputs:
+      skip_commit:
+        description: 'Run sync+dreaming only (no git push)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+concurrency:
+  group: machina-memory-dreaming
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  memory:
+    uses: ./.github/workflows/machina-memory-job.yml
+    with:
+      reason: ${{ github.event_name == 'push' && 'article-path' || 'workflow_dispatch' }}
+      skip_commit: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.skip_commit == 'true' }}
+    secrets: inherit
