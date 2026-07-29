@@ -889,7 +889,7 @@ export default function AgentChat() {
               </p>
             )}
             <p className="mt-2 font-mono text-[0.5rem] tracking-[0.28em] uppercase text-[#1b1713]/35">
-              only reaches her inbox ·{' '}
+              delivered privately ·{' '}
               <a
                 href="/privacy"
                 target="_blank"
@@ -905,7 +905,7 @@ export default function AgentChat() {
         {leadState === 'sent' && (
           <div className="border-t border-[#e7e0d6] px-5 py-2 bg-[#f3fbf9]">
             <p className="font-mono text-[0.55rem] tracking-[0.3em] uppercase text-[#008f86]/90">
-              ▸ note sent — she&apos;ll see it
+              ▸ note sent — thanks
             </p>
           </div>
         )}
