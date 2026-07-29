@@ -375,8 +375,6 @@ function SectionTabs({
           borderRadius: 999,
           border: '1.5px solid rgba(17,17,17,0.16)',
           background: 'rgba(17,17,17,0.03)',
-          overflowX: 'auto',
-          WebkitOverflowScrolling: 'touch',
         }}
       >
         {tabs.map((tab, index) => {
@@ -410,6 +408,7 @@ function SectionTabs({
                 role="tab"
                 aria-selected={selected}
                 onClick={() => setActive(tab.id)}
+                className="dispatch-section-tab"
                 style={{
                   appearance: 'none',
                   border: 0,
@@ -423,6 +422,7 @@ function SectionTabs({
                   justifyContent: 'center',
                   gap: 3,
                   minWidth: 108,
+                  minHeight: 44,
                   padding: '9px 16px',
                   textAlign: 'left',
                   transition:
@@ -433,13 +433,14 @@ function SectionTabs({
                 }}
               >
                 <span
+                  className="dispatch-section-tab-label"
                   style={{
                     fontFamily:
                       "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
                     fontSize: '0.62rem',
                     fontWeight: 800,
                     letterSpacing: '0.14em',
-                    lineHeight: 1,
+                    lineHeight: 1.15,
                     textTransform: 'uppercase',
                     whiteSpace: 'nowrap',
                   }}
@@ -447,12 +448,13 @@ function SectionTabs({
                   {tab.label}
                 </span>
                 <span
+                  className="dispatch-section-tab-hint"
                   style={{
                     fontFamily: nunito,
                     fontSize: '0.58rem',
                     fontWeight: 650,
                     letterSpacing: '0.04em',
-                    lineHeight: 1.1,
+                    lineHeight: 1.2,
                     opacity: selected ? 0.86 : 0.48,
                     whiteSpace: 'nowrap',
                   }}
