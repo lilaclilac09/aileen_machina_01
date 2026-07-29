@@ -1,0 +1,39 @@
+---
+description: After new blog/updates/research content — memory auto-syncs on main; local alias memory:on-article
+globs:
+  - aileena-new/app/blog/**/*
+  - aileena-new/app/updates/**/*
+  - aileena-new/lib/research/**/*
+alwaysApply: false
+---
+
+# Memory update on new articles
+
+When you **add or edit** site content under:
+
+- `aileena-new/app/blog/**` (articles)
+- `aileena-new/app/updates/**`
+- `aileena-new/lib/research/**`
+
+## Auto (preferred)
+
+Merging to **`main`** triggers GitHub Action **Machina Memory (Dreaming)**
+(`.github/workflows/machina-memory.yml` path filter). It runs:
+
+`pnpm sync:content-memory` → `pnpm dreaming` → `pnpm build:memory-index` → commits L3 memory.
+
+You do **not** need to ask the user to “start dreaming” after a normal article merge.
+
+## Local / before merge (optional)
+
+```bash
+cd aileena-new && pnpm memory:on-article
+# alias of memory:workflow
+```
+
+Commit the resulting `aileena_second_brain/memories/**` changes in the same PR if you want memory live before CI, or leave it to the post-merge Action.
+
+## Do not
+
+- Manually edit `latest-content.md` by hand — regenerate via sync.
+- Expect chat to know a brand-new article until sync/Dreaming has run (or Vercel rebuilds with the committed memory files).

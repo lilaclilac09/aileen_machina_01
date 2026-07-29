@@ -1,9 +1,24 @@
 # Aileena Machina — fixed memory workflow (ReMeLight pattern)
 # L3 Markdown → Dreaming report → L2 index rebuild → commit
+#
+# Auto triggers:
+#   - Mondays (weekly Dreaming)
+#   - push to main when site content changes (new article / updates / research / setlist)
+#   - workflow_dispatch (manual)
 
 name: Machina Memory (Dreaming)
 
 on:
+  push:
+    branches: [main]
+    paths:
+      # New / edited articles → refresh latest-content + Dreaming
+      - 'aileena-new/app/blog/**'
+      - 'aileena-new/app/updates/**'
+      - 'aileena-new/lib/research/**'
+      - 'aileena-new/lib/djSetlist.ts'
+      - 'aileena-new/public/dj-set/setlist.json'
+      - 'aileena-new/components/DJStation.tsx'
   schedule:
     # Mondays 06:00 UTC — offline compression, no GPU
     - cron: '0 6 * * 1'
@@ -68,13 +83,19 @@ jobs:
         run: pnpm build:memory-index
 
       - name: Configure Git
-        if: github.event_name == 'schedule' || github.event.inputs.skip_commit != 'true'
+        if: >-
+          github.event_name == 'push' ||
+          github.event_name == 'schedule' ||
+          (github.event_name == 'workflow_dispatch' && github.event.inputs.skip_commit != 'true')
         run: |
           git config user.name "Machina Memory Bot"
           git config user.email "bot@aileena.xyz"
 
       - name: Commit Dreaming report + content memory
-        if: github.event_name == 'schedule' || github.event.inputs.skip_commit != 'true'
+        if: >-
+          github.event_name == 'push' ||
+          github.event_name == 'schedule' ||
+          (github.event_name == 'workflow_dispatch' && github.event.inputs.skip_commit != 'true')
         working-directory: .
         run: |
           set -euo pipefail
@@ -95,9 +116,10 @@ jobs:
             echo "No new dreaming report to commit"
             exit 0
           fi
-          git commit -m "chore(memory): sync latest content + Dreaming report [$(date -u +%Y-%m-%d)]"
+          REASON="${{ github.event_name }}"
+          git commit -m "chore(memory): sync latest content + Dreaming report [$(date -u +%Y-%m-%d)] (${REASON})"
 
-          # Main often moves during the job; rebase + retry so scheduled auto stays green
+          # Main often moves during the job; rebase + retry so auto commits stay green
           for attempt in 1 2 3 4; do
             if git push origin HEAD:main; then
               echo "Dreaming report pushed (attempt ${attempt})"
