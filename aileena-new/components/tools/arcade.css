@@ -194,6 +194,199 @@
   animation: arcade-reveal 0.4s ease both;
 }
 
+/* —— Tools hub layout —— */
+.tools-hub {
+  display: grid;
+  gap: 40px;
+}
+
+.tools-hub-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: -8px;
+}
+
+.tools-hub-count {
+  margin: 0;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: rgba(20, 17, 12, 0.45);
+}
+
+.tools-hub-cafe-hint {
+  margin: 0;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: rgba(20, 17, 12, 0.42);
+}
+
+.tools-hub-cafe-hint a {
+  color: #008f86;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(0, 143, 134, 0.35);
+}
+
+.tools-hub-cafe-hint a:hover {
+  color: #00756e;
+}
+
+.tools-hub-section-title {
+  margin: 0 0 16px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(20, 17, 12, 0.4);
+}
+
+.tools-hub-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.tools-hub-grid--live {
+  grid-template-columns: 1fr;
+}
+
+.tools-hub-grid--soon {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 720px) {
+  .tools-hub-grid--live {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .tools-hub-grid--soon {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+}
+
+.tools-tile-wrap {
+  min-width: 0;
+}
+
+.tools-tile {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #fffdf8;
+  padding: 0;
+}
+
+.tools-tile--featured .tools-tile-screen {
+  min-height: 148px;
+}
+
+.tools-tile--tbc {
+  opacity: 0.55;
+}
+
+.tools-tile-screen {
+  min-height: 112px;
+  position: relative;
+}
+
+.tools-live-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: #14110c;
+  color: #fffdf8;
+  padding: 5px 8px;
+}
+
+.tools-live-badge--hot {
+  background: #00a99f;
+}
+
+.tools-tile-panel {
+  padding: 18px 4px 4px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.tools-tile-tag {
+  margin: 0 0 8px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(20, 17, 12, 0.42);
+}
+
+.tools-tile-title {
+  margin: 0 0 8px;
+  font-size: 1.22rem;
+  font-weight: 600;
+  color: #14110c;
+  line-height: 1.2;
+}
+
+.tools-tile-body {
+  margin: 0 0 14px;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: rgba(20, 17, 12, 0.58);
+  flex: 1;
+}
+
+.tools-tile--tbc .tools-tile-body {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+}
+
+.tools-tile-host {
+  margin: 0 0 10px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: rgba(20, 17, 12, 0.45);
+}
+
+.tools-tile-cta {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #008f86;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.tools-tile-cta--muted {
+  color: rgba(20, 17, 12, 0.35);
+}
+
+@media (max-width: 719px) {
+  .tools-tile-screen {
+    min-height: 128px;
+  }
+  .tools-tile--featured .tools-tile-screen {
+    min-height: 148px;
+  }
+  .tools-tile-title {
+    font-size: 1.28rem;
+  }
+  .tools-tile-cta {
+    font-size: 0.82rem;
+  }
+}
+
 /* —— Audio Clipping product page —— */
 .ac-product .ac-hero {
   position: relative;
