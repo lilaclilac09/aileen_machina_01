@@ -46,13 +46,13 @@ export default function YmtcNandWuhanArticle() {
     <SubstackShell
       category="Analysis"
       date="2026.07.28"
-      tags="CXMT · YMTC · NAND · Wuhan · 污名 · 国资 · SemiAnalysis · IPO"
-      title="下一个 IPO 在武汉 — 长江存储 YMTC"
+      tags="CXMT · YMTC · NAND · Wuhan · stigma · state capital · SemiAnalysis · IPO"
+      title="Next IPO Is Wuhan — YMTC (Yangtze Memory)"
       dek={
         <>
           Hefei listed CXMT. Next: Wuhan — sticky with coronavirus stigma. The stigma is worth
           discussing; so are the social causes that made it stick. Under the pollution:{' '}
-          Optics Valley, 国资, <strong>长江存储</strong>.
+          Optics Valley, state capital, <strong>Yangtze Memory (YMTC)</strong>.
         </>
       }
     >
@@ -70,7 +70,7 @@ export default function YmtcNandWuhanArticle() {
         <p style={bodyStyle}>
           The next IPO line people are already drawing points at{' '}
           <strong style={strong}>Wuhan</strong> — and at{' '}
-          <strong style={strong}>长江存储 / YMTC</strong>. If Hefei is where China lists{' '}
+          <strong style={strong}>YMTC / Yangtze Memory</strong>. If Hefei is where China lists{' '}
           <em>DRAM</em>, Wuhan is where China built the other half of the memory stack:{' '}
           <strong style={strong}>NAND flash</strong>. The IPO headlines will keep saying
           &ldquo;memory.&rdquo; The useful follow-up is: which memory, which city, and which
@@ -89,7 +89,7 @@ export default function YmtcNandWuhanArticle() {
           still do not hear fabs. They hear <strong style={strong}>coronavirus</strong>. The city
           name got sticky with a pandemic origin story — shorthand, moral weather, a place that
           arrived in foreign feeds as contagion before it arrived as industry. That is{' '}
-          <strong style={strong}>污名化</strong>: not only fear of a virus, but a city reduced to a
+          <strong style={strong}>stigmatization</strong>: not only fear of a virus, but a city reduced to a
           contaminated sign. The pollution is semantic. It keeps working years after the acute
           crisis.
         </p>
@@ -100,7 +100,7 @@ export default function YmtcNandWuhanArticle() {
           imagination.
         </p>
 
-        <SectionLabel>社会背后的原因 — why the stigma held</SectionLabel>
+        <SectionLabel>Social reasons the stigma held</SectionLabel>
         <p style={bodyStyle}>
           <strong style={strong}>1 · First-contact media ecology.</strong> For much of the world,
           Wuhan entered the timeline as a breaking-news noun, not as a place with history. Platform
@@ -141,7 +141,7 @@ export default function YmtcNandWuhanArticle() {
           under-refreshes Optics Valley. Capital and policy then inherit a{' '}
           <em>distorted map</em>: Hefei gets a ticker narrative; Wuhan stays a virus association
           until someone forces the industrial noun back into the sentence —{' '}
-          <strong style={strong}>长江存储</strong>.
+          <strong style={strong}>YMTC / Yangtze Memory</strong>.
         </p>
         <p style={bodyStyle}>
           So the stigma is worth discussing on its own — not as a PR scrub, and not as denial that
@@ -172,7 +172,7 @@ export default function YmtcNandWuhanArticle() {
           rows={[
             ['City', 'Hefei (Anhui)', 'Wuhan Optics Valley (Hubei)'],
             ['Product', 'DRAM (DDR / LPDDR path; HBM as the open question)', '3D NAND (Xtacking)'],
-            ['State capital', 'Provincial + national IC capital (Hefei DRAM champion)', 'Yes — Big Fund + Hubei/Wuhan 国资; no single controller'],
+            ['State capital', 'Provincial + national IC capital (Hefei DRAM champion)', 'Yes — Big Fund + Hubei/Wuhan state capital; no single controller'],
             ['2026 capital event', 'STAR Market IPO — public price discovery', 'STAR tutoring / IPO prep reported; still Entity-listed'],
             ['Production unit', 'DRAM wafer starts (Hefei)', '~2 Wuhan fabs · ~200k WPM reported; phase-3+ roadmap'],
             ['Prior deep read here', 'Huawei HBM bottleneck variable', 'This essay + SemiAnalysis trail'],
@@ -217,20 +217,18 @@ export default function YmtcNandWuhanArticle() {
           remains Wuhan.
         </p>
 
-        <SectionLabel>国资 — yes. How much, and who?</SectionLabel>
+        <SectionLabel>State capital — yes. How much, and who?</SectionLabel>
         <p style={bodyStyle}>
           Short answer: <strong style={strong}>yes — YMTC is a state-capital story</strong>. Not a
           single SASAC “central SOE” in the classic one-parent sense, but a stack where national IC
           funds and Hubei / Wuhan local state investors dominate. Wikipedia and trade press label it
           partially state-owned; Chinese IPO-tutoring coverage in 2026 goes further and treats the
-          register as <em>国资引领、无单一控股股东</em> — state-led, no single controlling
-          shareholder.
+          register as <em>state-led, no single controlling shareholder</em>.
         </p>
         <p style={bodyStyle}>
           <strong style={strong}>Founding capital (2016).</strong> Public establishment notices and
           later filings describe phase-one money from the{' '}
-          <strong style={strong}>National Integrated Circuit Industry Investment Fund (大基金 /
-          Big Fund)</strong>, Hubei provincial industrial funds, and Hubei Science &amp; Technology
+          <strong style={strong}>National Integrated Circuit Industry Investment Fund (Big Fund)</strong>, Hubei provincial industrial funds, and Hubei Science &amp; Technology
           Investment Group — built on Wuhan Xinxin — with Tsinghua Unigroup and Big Fund again in
           the second phase. Caproasia’s 2026 IPO write-up still frames the origin as Unigroup + Big
           Fund + government investment on the order of a multi-ten-billion-dollar national memory
@@ -246,7 +244,7 @@ export default function YmtcNandWuhanArticle() {
         </p>
         <p style={bodyStyle}>
           <strong style={strong}>2026 IPO-tutoring register (reported).</strong> Mainland coverage of
-          the May 2026 STAR tutoring / 辅导备案 file is consistent on the shape, even when exact
+          the May 2026 STAR tutoring filing is consistent on the shape, even when exact
           percentages move between stories:
         </p>
         <ul style={listStyle}>
@@ -256,7 +254,7 @@ export default function YmtcNandWuhanArticle() {
           </li>
           <li>
             Largest named block often cited:{' '}
-            <strong style={strong}>Hubei Changsheng Development (湖北长晟发展)</strong> at roughly{' '}
+            <strong style={strong}>Hubei Changsheng Development</strong> at roughly{' '}
             <strong style={strong}>~26.5%</strong>, itself a Hubei IC fund + Wuhan Optics Valley
             Financial Holdings + Yangtze River Industrial Investment vehicle — province / city /
             Optics Valley capital braided together.
@@ -279,7 +277,7 @@ export default function YmtcNandWuhanArticle() {
           recipe money can still buy.
         </p>
 
-        <SectionLabel>生产端口 — fabs, wafers/month, expansion</SectionLabel>
+        <SectionLabel>Production — fabs, wafers/month, expansion</SectionLabel>
         <p style={bodyStyle}>
           SemiAnalysis’s 2021–2022 unit of account was roughly{' '}
           <strong style={strong}>~100k wafers per month (WPM) per fab</strong>: ~80–100k of
@@ -480,7 +478,7 @@ export default function YmtcNandWuhanArticle() {
             customer stacks — and different observability after CXMT’s listing.
           </li>
           <li>
-            <strong style={strong}>国资 is not optional color.</strong> YMTC’s recipe was always
+            <strong style={strong}>State capital is not optional color.</strong> YMTC’s recipe was always
             national IC fund + Hubei/Wuhan state capital + (historically) Unigroup industrial
             sponsorship. Post-restructuring, the register is still state-led even without one
             controller.
@@ -518,7 +516,7 @@ export default function YmtcNandWuhanArticle() {
           CXMT&apos;s listing week will dominate Chinese financial media because public markets love
           a first-day print. The analytical habit SemiAnalysis already trained for Wuhan is the one
           worth keeping: <strong style={strong}>name the city</strong>,{' '}
-          <strong style={strong}>name the 国资 stack</strong>,{' '}
+          <strong style={strong}>name the state-capital stack</strong>,{' '}
           <strong style={strong}>name the WPM</strong>,{' '}
           <strong style={strong}>name the density</strong>,{' '}
           <strong style={strong}>name the tool exposure</strong>, then update the sanctions
@@ -529,7 +527,7 @@ export default function YmtcNandWuhanArticle() {
         <p style={bodyStyle}>
           And name the stigma when it is doing work: coronavirus still pollutes what &ldquo;Wuhan&rdquo;
           means for too many readers. That is not a side note — it is why{' '}
-          <strong style={strong}>长江存储</strong> has to be said out loud. The next IPO line is not
+          <strong style={strong}>YMTC / Yangtze Memory</strong> has to be said out loud. The next IPO line is not
           only a ticker path. It is a fight over which Wuhan gets to be public knowledge.
         </p>
         <p style={bodyStyle}>

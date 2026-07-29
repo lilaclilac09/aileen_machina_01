@@ -632,8 +632,8 @@ export const t = {
           {
             date: '2026.07.28',
             href: '/blog/ymtc-nand-wuhan',
-            title: '下一个 IPO 在武汉 — 长江存储 YMTC',
-            body: 'Hefei listed CXMT. Next: Wuhan — coronavirus stigma on the name is worth discussing, and so are the social causes that made it sticky (media pins, scapegoating, geopolitics, racialization, asymmetric news). Under it: Optics Valley / 长江存储.',
+            title: 'Next IPO Is Wuhan — YMTC (Yangtze Memory)',
+            body: 'Hefei listed CXMT. Next: Wuhan — coronavirus stigma on the name is worth discussing, and so are the social causes that made it sticky (media pins, scapegoating, geopolitics, racialization, asymmetric news). Under it: Optics Valley / Yangtze Memory (YMTC).',
           },
 
         ],
@@ -1368,8 +1368,8 @@ export const t = {
           {
             date: '2026.07.28',
             href: '/blog/ymtc-nand-wuhan',
-            title: 'Nächstes IPO in Wuhan — 长江存储 YMTC',
-            body: 'Hefei listete CXMT. Als Nächstes: Wuhan — das Coronavirus-Stigma am Namen lohnt die Diskussion, und auch die sozialen Ursachen, die es klebrig machten (Medien-Pins, Sündenbock, Geopolitik, Rassifizierung, asymmetrische News). Darunter: Optics Valley / 长江存储.',
+            title: 'Next IPO Is Wuhan — YMTC (Yangtze Memory)',
+            body: 'Hefei listete CXMT. Als Nächstes: Wuhan — das Coronavirus-Stigma am Namen lohnt die Diskussion, und auch die sozialen Ursachen, die es klebrig machten (Medien-Pins, Sündenbock, Geopolitik, Rassifizierung, asymmetrische News). Darunter: Optics Valley / Yangtze Memory (YMTC).',
           },
 
         ],
