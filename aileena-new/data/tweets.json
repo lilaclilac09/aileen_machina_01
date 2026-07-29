@@ -6062,5 +6062,30 @@
     "tags": [],
     "source": "fxtwitter",
     "ingestedAt": "2026-07-29T03:38:24.101Z"
+  },
+  {
+    "id": "2082321388736581641",
+    "url": "https://x.com/dylan522p/status/2082321388736581641",
+    "screenName": "dylan522p",
+    "authorId": "985281530070265862",
+    "authorName": "Dylan Patel",
+    "text": "Slowing down AI is a ultimately wishful thinking\nThe genie is out of the bottle\nThe most importan competition ever with potentially immeasurable benefits to the winner will not suddenly have people stop and sing kumbaya\nWhile many lab employees have signed, many more havent.\nPractically none at some labs less than 6 months behind have.",
+    "createdAt": "Wed Jul 29 04:24:41 +0000 2026",
+    "createdTimestamp": 1785299081,
+    "likes": 546,
+    "retweets": 35,
+    "replies": 46,
+    "bookmarks": 75,
+    "views": 70052,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [
+      "semianalysis"
+    ],
+    "tags": [
+      "semianalysis"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-29T09:08:01.082Z"
   }
 ]
