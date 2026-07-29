@@ -47,7 +47,7 @@ export default function YmtcNandWuhanArticle() {
       category="Analysis"
       date="2026.07.28"
       tags="CXMT · YMTC · NAND · Wuhan · 国资 · SemiAnalysis · IPO"
-      title="After CXMT's IPO — Look at Wuhan"
+      title="长江存储 YMTC — Wuhan NAND After CXMT's IPO"
       dek={
         <>
           Hefei priced China&apos;s DRAM champion. Wuhan is the NAND city: YMTC&apos;s Optics Valley

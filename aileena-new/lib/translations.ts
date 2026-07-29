@@ -632,8 +632,8 @@ export const t = {
           {
             date: '2026.07.28',
             href: '/blog/ymtc-nand-wuhan',
-            title: 'After CXMT\'s IPO — Look at Wuhan',
-            body: 'Hefei listed China\'s DRAM champion. Wuhan is the NAND city: Optics Valley base on Wuhan Xinxin, 国资 stack (Big Fund + Hubei Changsheng / Optics Valley capital, no single controller), ~2 fabs / ~200k WPM reported with phase-3+ roadmap, and SemiAnalysis from 2021 density lead through 2026 ChipBook ASP trackers — while long-form attention shifted to CXMT.',
+            title: '长江存储 YMTC — Wuhan NAND After CXMT\'s IPO',
+            body: '长江存储 (YMTC): Wuhan Optics Valley NAND after Hefei listed CXMT. 国资 stack (Big Fund + Hubei Changsheng), ~2 fabs / ~200k WPM, SemiAnalysis 2021–2026 trail — density lead, Entity List, ChipBook ASP trackers.',
           },
 
         ],
@@ -1368,8 +1368,8 @@ export const t = {
           {
             date: '2026.07.28',
             href: '/blog/ymtc-nand-wuhan',
-            title: 'Nach CXMTs IPO — schau nach Wuhan',
-            body: 'Hefei brachte Chinas DRAM-Champion an die Börse. Wuhan ist die NAND-Stadt: Optics Valley auf Wuhan-Xinxin-Basis, Staats kapital (Big Fund + Hubei Changsheng / Optics-Valley-Kapital, kein einzelner Controller), ~2 Fabs / ~200k WPM berichtet plus Phase-3-Roadmap, und SemiAnalysis von der 2021-Dichteführung bis zu den ChipBook-ASP-Trackern 2026 — während die Long-Form-Aufmerksamkeit zu CXMT wanderte.',
+            title: '长江存储 YMTC — Wuhan-NAND nach CXMTs IPO',
+            body: '长江存储 (YMTC): Wuhan Optics Valley NAND, nachdem Hefei CXMT listete. Staatskapital (Big Fund + Hubei Changsheng), ~2 Fabs / ~200k WPM, SemiAnalysis 2021–2026 — Dichteführung, Entity List, ChipBook-ASP-Tracker.',
           },
 
         ],
