@@ -1,24 +1,9 @@
-# Aileena Machina — fixed memory workflow (ReMeLight pattern)
-# L3 Markdown → Dreaming report → L2 index rebuild → commit
-#
-# Auto triggers:
-#   - Mondays (weekly Dreaming)
-#   - push to main when site content changes (new article / updates / research / setlist)
-#   - workflow_dispatch (manual)
+# Aileena Machina — weekly / manual Dreaming (ReMeLight)
+# Article path trigger lives in memory-on-article.yml (fixed paths).
 
 name: Machina Memory (Dreaming)
 
 on:
-  push:
-    branches: [main]
-    paths:
-      # New / edited articles → refresh latest-content + Dreaming
-      - 'aileena-new/app/blog/**'
-      - 'aileena-new/app/updates/**'
-      - 'aileena-new/lib/research/**'
-      - 'aileena-new/lib/djSetlist.ts'
-      - 'aileena-new/public/dj-set/setlist.json'
-      - 'aileena-new/components/DJStation.tsx'
   schedule:
     # Mondays 06:00 UTC — offline compression, no GPU
     - cron: '0 6 * * 1'
@@ -33,7 +18,6 @@ on:
           - 'false'
           - 'true'
 
-# One Dreaming run at a time — avoid racing pushes to main
 concurrency:
   group: machina-memory-dreaming
   cancel-in-progress: false
@@ -43,92 +27,8 @@ permissions:
 
 jobs:
   dreaming:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: aileena-new
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          # Need full history so rebase/push can recover when main moved
-          fetch-depth: 0
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'pnpm'
-          cache-dependency-path: aileena-new/pnpm-lock.yaml
-
-      - name: Install
-        run: pnpm install --frozen-lockfile
-
-      - name: Sync carousel + latest content → L3 memory
-        run: pnpm sync:content-memory
-
-      # Social teachers DB refreshed by social-rss-sync.yml (6h).
-      # Dreaming snapshots tweets/numbers → consolidate report + social-changelog.
-
-      - name: Dreaming (offline consolidate + social digest)
-        run: pnpm dreaming
-
-      - name: Rebuild memory index (L2)
-        run: pnpm build:memory-index
-
-      - name: Configure Git
-        if: >-
-          github.event_name == 'push' ||
-          github.event_name == 'schedule' ||
-          (github.event_name == 'workflow_dispatch' && github.event.inputs.skip_commit != 'true')
-        run: |
-          git config user.name "Machina Memory Bot"
-          git config user.email "bot@aileena.xyz"
-
-      - name: Commit Dreaming report + content memory
-        if: >-
-          github.event_name == 'push' ||
-          github.event_name == 'schedule' ||
-          (github.event_name == 'workflow_dispatch' && github.event.inputs.skip_commit != 'true')
-        working-directory: .
-        run: |
-          set -euo pipefail
-          git add \
-            aileena-new/public/dj-set/setlist.json \
-            aileena-new/public/dj-set/assets/covers/*.svg \
-            aileena-new/aileena_second_brain/memories/semantic/latest-content.md \
-            aileena-new/aileena_second_brain/memories/semantic/setlist.md \
-            aileena-new/aileena_second_brain/memories/semantic/self-evolution-log.md \
-            aileena-new/aileena_second_brain/memories/semantic/carousel-sync-state.json \
-            aileena-new/aileena_second_brain/prompts/music-taste.md \
-            aileena-new/aileena_second_brain/memories/episodic/content-changelog-*.md \
-            aileena-new/aileena_second_brain/memories/episodic/content-baseline-*.md \
-            aileena-new/aileena_second_brain/memories/episodic/evolve-carousel-*.md \
-            aileena-new/aileena_second_brain/memories/episodic/social-changelog-*.md \
-            aileena-new/aileena_second_brain/memories/archived/consolidate-report-*.md || true
-          if git diff --cached --quiet; then
-            echo "No new dreaming report to commit"
-            exit 0
-          fi
-          REASON="${{ github.event_name }}"
-          git commit -m "chore(memory): sync latest content + Dreaming report [$(date -u +%Y-%m-%d)] (${REASON})"
-
-          # Main often moves during the job; rebase + retry so auto commits stay green
-          for attempt in 1 2 3 4; do
-            if git push origin HEAD:main; then
-              echo "Dreaming report pushed (attempt ${attempt})"
-              exit 0
-            fi
-            echo "Push rejected (attempt ${attempt}) — rebasing onto origin/main"
-            git fetch origin main
-            git rebase origin/main
-            sleep $((attempt * 2))
-          done
-          echo "::error::Failed to push Dreaming report after retries"
-          exit 1
+    uses: ./.github/workflows/machina-memory-job.yml
+    with:
+      reason: ${{ github.event_name }}
+      skip_commit: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.skip_commit == 'true' }}
+    secrets: inherit
