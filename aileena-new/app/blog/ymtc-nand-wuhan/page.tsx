@@ -46,12 +46,13 @@ export default function YmtcNandWuhanArticle() {
     <SubstackShell
       category="Analysis"
       date="2026.07.28"
-      tags="CXMT · YMTC · NAND · Wuhan · 国资 · SemiAnalysis · IPO"
+      tags="CXMT · YMTC · NAND · Wuhan · 污名 · 国资 · SemiAnalysis · IPO"
       title="下一个 IPO 在武汉 — 长江存储 YMTC"
       dek={
         <>
-          Hefei just listed CXMT. The next memory IPO story is Wuhan Optics Valley —
-          NAND fabs, 国资, <strong>长江存储</strong>. The other half of China memory.
+          Hefei listed CXMT. Next: Wuhan — and the Wuhan you think you know is still sticky with
+          coronavirus stigma. That pollution of the name is worth discussing, because under it sits
+          Optics Valley, 国资, and <strong>长江存储</strong>.
         </>
       }
     >
@@ -68,7 +69,7 @@ export default function YmtcNandWuhanArticle() {
         </p>
         <p style={bodyStyle}>
           The next IPO line people are already drawing points at{' '}
-          <strong style={strong}>Wuhan Optics Valley</strong> — and at{' '}
+          <strong style={strong}>Wuhan</strong> — and at{' '}
           <strong style={strong}>长江存储 / YMTC</strong>. If Hefei is where China lists{' '}
           <em>DRAM</em>, Wuhan is where China built the other half of the memory stack:{' '}
           <strong style={strong}>NAND flash</strong>. The IPO headlines will keep saying
@@ -78,7 +79,35 @@ export default function YmtcNandWuhanArticle() {
         <p style={bodyStyle}>
           Short answer: <strong style={strong}>SemiAnalysis did</strong> — repeatedly, and in depth —
           from 2021 onward. This piece is the Wuhan / YMTC companion to the CXMT listing week, with
-          the SemiAnalysis trail named so you can go read the primary notes.
+          the SemiAnalysis trail named so you can go read the primary notes. But first: the name
+          itself.
+        </p>
+
+        <SectionLabel>The Wuhan you know — and the stigma that stuck</SectionLabel>
+        <p style={bodyStyle}>
+          Say <strong style={strong}>Wuhan</strong> to a global audience in 2026 and a lot of people
+          still do not hear fabs. They hear <strong style={strong}>coronavirus</strong>. The city
+          name got sticky with a pandemic origin story — shorthand, moral weather, a place that
+          arrived in foreign feeds as contagion before it arrived as industry. That is{' '}
+          <strong style={strong}>污名化</strong>: not only fear of a virus, but a city reduced to a
+          contaminated sign. The pollution is semantic. It keeps working years after the acute
+          crisis.
+        </p>
+        <p style={bodyStyle}>
+          That stigma is worth discussing on its own — not as a PR scrub, and not as denial that
+          tragedy happened. Worth discussing because stigma <em>selects what counts as knowledge</em>.
+          If Wuhan only means outbreak, then Optics Valley, national IC funds, and a NAND champion
+          with competitive density become invisible by default. Capital markets and policy debates
+          then inherit a distorted map: Hefei gets a ticker narrative; Wuhan stays a virus
+          association until someone forces the industrial noun back into the sentence —{' '}
+          <strong style={strong}>长江存储</strong>.
+        </p>
+        <p style={bodyStyle}>
+          So when this essay says the next IPO story is in Wuhan, it is doing two jobs at once.
+          One is memory hardware: YMTC, Xtacking, wafer starts, Entity List, ChipBook. The other is
+          naming: refusing to let coronavirus be the only public meaning of a city that also runs
+          one of China&apos;s hardest semiconductor bets. The stigma is part of the story because it
+          explains why so many readers still need the reminder.
         </p>
 
         <SectionLabel>Two cities, two memory products</SectionLabel>
@@ -449,6 +478,12 @@ export default function YmtcNandWuhanArticle() {
           boundary — and notice when the long-form attention moved to Hefei while Wuhan stayed in
           the tracker. Hefei went public. Wuhan still has to answer whether Xtacking-class NAND can
           keep scaling when the Lam-shaped part of the recipe is on the Entity List.
+        </p>
+        <p style={bodyStyle}>
+          And name the stigma when it is doing work: coronavirus still pollutes what &ldquo;Wuhan&rdquo;
+          means for too many readers. That is not a side note — it is why{' '}
+          <strong style={strong}>长江存储</strong> has to be said out loud. The next IPO line is not
+          only a ticker path. It is a fight over which Wuhan gets to be public knowledge.
         </p>
         <p style={bodyStyle}>
           That is the map after the IPO — not a second ticker, a second city.
