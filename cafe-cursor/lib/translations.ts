@@ -69,31 +69,35 @@ export const translations = {
     // Support ticket (/help)
     ticketPageTitle: "工单帮助",
     ticketPageSubtitle:
-      "必须上传 https://cursor.com/dashboard/spending 截图后再提交。主办在 Admin 处理。",
+      "上传 Spending 截图（须能看清账号邮箱）。换账号领取须两张。主办在 Admin 处理。",
     ticketTitle: "提交工单",
     ticketIntro:
-      "请先打开 Spending 页截图整页（含余额/credits），再填写并上传。",
-    ticketEmailLabel: "联系邮箱",
-    ticketLumaLabel: "Luma 签到邮箱（可选）",
-    ticketLumaPlaceholder: "若与联系邮箱不同请填写",
+      "Spending 截图须能看清账号邮箱。若换账号领取，两个账号各截一张。",
+    ticketEmailLabel: "联系 / Cursor 登录邮箱",
+    ticketLumaLabel: "Luma 签到邮箱（换账号时必填）",
+    ticketLumaPlaceholder: "与联系邮箱不同时填写另一账号",
     ticketCategoryLabel: "问题类型",
     ticketCatNotLanded: "Credits 没到账",
-    ticketCatMismatch: "签到邮箱 ≠ 领取/登录邮箱",
+    ticketCatMismatch: "换账号领取（签到邮箱 ≠ 领取/登录邮箱）",
     ticketCatClaimed: "已领取但找不到链接",
     ticketCatOther: "其他",
     ticketMessageLabel: "问题描述",
     ticketMessagePlaceholder:
-      "例如：已点白色按键，Cursor 登录邮箱是 xxx，Spending 页仍看不到 credits…",
-    ticketScreenshotLabel: "Spending 页截图（必填）",
+      "例如：要用 B 邮箱领取，A 是签到邮箱；已附两张 Spending 截图…",
+    ticketScreenshotLabel: "截图① Cursor / 联系邮箱 Spending（必填）",
     ticketScreenshotHint:
-      "打开 https://cursor.com/dashboard/spending 后截图上传（PNG/JPEG）。无截图无法提交。",
+      "登录该账号打开 https://cursor.com/dashboard/spending，截图须能看清页面上的账号邮箱。",
+    ticketScreenshot2Label: "截图② 另一账号 Spending（换账号必填）",
+    ticketScreenshot2Hint:
+      "登录另一账号（通常是 Luma 签到邮箱）再截 Spending；同样须能看清账号邮箱。非换账号可留空。",
     ticketScreenshotOpen: "打开 Spending 页",
-    ticketScreenshotMissing: "请先上传 Spending 页截图",
+    ticketScreenshotMissing: "请先上传截图①（须显示账号邮箱）",
+    ticketScreenshot2Missing: "换账号领取须同时上传截图②（另一账号，须显示邮箱）",
     ticketScreenshotBad: "图片处理失败，请换一张更小的截图",
     ticketSubmit: "提交工单",
     ticketSubmitting: "提交中…",
     ticketSuccessTitle: "工单已收到",
-    ticketSuccessBody: "主办会按签到邮箱 + Spending 截图核对。请保留工单编号。",
+    ticketSuccessBody: "主办会按两账号截图 + 签到邮箱核对。请保留工单编号。",
     ticketIdLabel: "工单编号",
     ticketBackHome: "返回领取页",
     ticketError: "提交失败，请稍后重试。",
@@ -188,37 +192,42 @@ export const translations = {
     // Support ticket (/help)
     ticketPageTitle: "Support ticket",
     ticketPageSubtitle:
-      "A screenshot of https://cursor.com/dashboard/spending is required before submit.",
+      "Upload Spending screenshot(s) with the account email visible. Account swap needs both.",
     ticketTitle: "Submit a ticket",
     ticketIntro:
-      "Open the Spending page, capture the full view (credits/balance), then upload it.",
-    ticketEmailLabel: "Contact email",
-    ticketLumaLabel: "Luma check-in email (optional)",
-    ticketLumaPlaceholder: "If different from contact email",
+      "Screenshots must show the account email. For account swap, upload one Spending shot per account.",
+    ticketEmailLabel: "Contact / Cursor login email",
+    ticketLumaLabel: "Luma check-in email (required when swapping)",
+    ticketLumaPlaceholder: "The other account if different from contact",
     ticketCategoryLabel: "Issue type",
     ticketCatNotLanded: "Credits did not land",
-    ticketCatMismatch: "Check-in email ≠ redeem / Cursor login",
+    ticketCatMismatch: "Account swap (check-in email ≠ redeem / login)",
     ticketCatClaimed: "Already claimed but lost the link",
     ticketCatOther: "Other",
     ticketMessageLabel: "Description",
     ticketMessagePlaceholder:
-      "e.g. Tapped Use credits, Cursor login is xxx, Spending page still shows no credits…",
-    ticketScreenshotLabel: "Spending page screenshot (required)",
+      "e.g. Want to redeem on account B; A is check-in; both Spending shots attached…",
+    ticketScreenshotLabel: "Shot ① Cursor / contact Spending (required)",
     ticketScreenshotHint:
-      "Open https://cursor.com/dashboard/spending, then upload a PNG/JPEG. No screenshot = cannot submit.",
+      "Log into that account, open https://cursor.com/dashboard/spending — email must be visible in the shot.",
+    ticketScreenshot2Label: "Shot ② other account Spending (required for swap)",
+    ticketScreenshot2Hint:
+      "Log into the other account (usually Luma check-in), screenshot Spending with email visible. Optional if not swapping.",
     ticketScreenshotOpen: "Open Spending page",
-    ticketScreenshotMissing: "Please upload a Spending page screenshot first",
+    ticketScreenshotMissing: "Please upload shot ① (email must be visible)",
+    ticketScreenshot2Missing:
+      "Account swap requires shot ② (other account, email visible)",
     ticketScreenshotBad: "Could not process image — try a smaller crop",
     ticketSubmit: "Submit ticket",
     ticketSubmitting: "Submitting…",
     ticketSuccessTitle: "Ticket received",
     ticketSuccessBody:
-      "We’ll verify against the check-in email + your Spending screenshot. Keep your ticket ID.",
+      "We’ll verify both account screenshots + check-in email. Keep your ticket ID.",
     ticketIdLabel: "Ticket ID",
     ticketBackHome: "Back to redeem",
     ticketError: "Could not submit. Please try again.",
     ticketPrivacyNote:
-      "Your contact details and screenshot are only used to resolve this ticket.",
+      "Your contact details and screenshots are only used to resolve this ticket.",
 
     // Errors
     notEligible:

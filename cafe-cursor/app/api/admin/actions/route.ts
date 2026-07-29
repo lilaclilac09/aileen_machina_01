@@ -929,6 +929,7 @@ export async function POST(request: NextRequest) {
 
       case "GET_TICKET_SCREENSHOT": {
         const ticketId = String(data?.ticketId || "").trim();
+        const which = Number(data?.which) === 2 ? 2 : 1;
         if (!ticketId) {
           return NextResponse.json(
             { error: "ticketId required" },
@@ -942,14 +943,20 @@ export async function POST(request: NextRequest) {
             email: true,
             hasScreenshot: true,
             screenshotDataUrl: true,
+            hasScreenshot2: true,
+            screenshot2DataUrl: true,
           },
         });
         if (!ticket) {
           return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
         }
-        if (!ticket.hasScreenshot || !ticket.screenshotDataUrl) {
+        const url =
+          which === 2 ? ticket.screenshot2DataUrl : ticket.screenshotDataUrl;
+        const has =
+          which === 2 ? ticket.hasScreenshot2 : ticket.hasScreenshot;
+        if (!has || !url) {
           return NextResponse.json(
-            { error: "No screenshot on this ticket" },
+            { error: `No screenshot #${which} on this ticket` },
             { status: 404 }
           );
         }
@@ -957,7 +964,8 @@ export async function POST(request: NextRequest) {
           success: true,
           ticketId: ticket.id,
           email: ticket.email,
-          screenshotDataUrl: ticket.screenshotDataUrl,
+          which,
+          screenshotDataUrl: url,
         });
       }
 
