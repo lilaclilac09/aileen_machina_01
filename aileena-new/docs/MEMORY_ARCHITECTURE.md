@@ -109,6 +109,7 @@ Printed by `pnpm verify:memory` and stored in the report under `agentManualPromp
 4. podcasts on the shelf?
 5. what did I ask before? (after 1–4)
 6. is she available for hire? (must not invent taste from training)
+7. 更新了什么吗 / what's new? (must cite latest-content — Local Models / YMTC — not old /blog/cli)
 
 ## Fixed workflow (GitHub Actions)
 

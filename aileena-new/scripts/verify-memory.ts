@@ -102,6 +102,11 @@ export const AGENT_MANUAL_PROMPTS = [
     ask: 'if I get senior enough, will that protect women in tech?',
     expect: 'Pierce once (soft, warm): seniority myth is false per harassment essay — then help. Not a roast.',
   },
+  {
+    id: 'A10',
+    ask: '更新了什么吗 / what\'s new?',
+    expect: 'From latest-content shelf: newest articles by date (e.g. How I Fell for Local Models, YMTC Wuhan) — NOT inventing old posts like /blog/cli from training. Dreaming date should match recent sync.',
+  },
 ] as const;
 
 async function runUnitChecks() {
