@@ -8,7 +8,7 @@ export async function compressScreenshotToDataUrl(
 ): Promise<string> {
   const maxWidth = opts?.maxWidth ?? 1280;
   const quality = opts?.quality ?? 0.72;
-  const maxChars = opts?.maxChars ?? 750_000;
+  const maxChars = opts?.maxChars ?? 600_000;
 
   if (!file.type.startsWith("image/")) {
     throw new Error("Please upload an image (PNG/JPEG/WebP)");

@@ -33,5 +33,10 @@ Confirm Vercel has `NOTIFY_CC_EMAIL` set to an inbox you actually read (never pu
 
 ## Spending screenshot (required)
 
-Guests must check **https://cursor.com/dashboard/spending** and upload a screenshot
-with every `/help` ticket. Admin → Tickets → **View** opens the image.
+Guests must check **https://cursor.com/dashboard/spending** and upload screenshot(s)
+with the **account email visible** on the page.
+
+- **Shot ①** — Cursor / contact account (always required)
+- **Shot ②** — other account (required for **account swap** / email mismatch, or when Luma email ≠ contact)
+
+Admin → Tickets → **View ①** / **View ②**.

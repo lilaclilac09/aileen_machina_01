@@ -81,6 +81,7 @@ interface SupportTicketRow {
   locale: string | null;
   adminNote: string | null;
   hasScreenshot?: boolean;
+  hasScreenshot2?: boolean;
   createdAt: string;
   resolvedAt: string | null;
 }
@@ -170,7 +171,10 @@ export default function AdminDashboard() {
     });
   };
 
-  const handleViewTicketScreenshot = async (ticketId: string) => {
+  const handleViewTicketScreenshot = async (
+    ticketId: string,
+    which: 1 | 2 = 1
+  ) => {
     setActionLoading(true);
     try {
       const res = await fetch("/api/admin/actions", {
@@ -178,7 +182,7 @@ export default function AdminDashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "GET_TICKET_SCREENSHOT",
-          data: { ticketId },
+          data: { ticketId, which },
         }),
       });
       const json = await res.json();
@@ -190,9 +194,9 @@ export default function AdminDashboard() {
       const w = window.open("", "_blank");
       if (w) {
         w.document.write(
-          `<!DOCTYPE html><title>Ticket ${ticketId}</title>` +
+          `<!DOCTYPE html><title>Ticket ${ticketId} shot ${which}</title>` +
             `<body style="margin:0;background:#111;display:flex;justify-content:center;align-items:flex-start;padding:16px">` +
-            `<img src="${url}" alt="Spending screenshot" style="max-width:100%;height:auto"/>` +
+            `<img src="${url}" alt="Spending screenshot ${which}" style="max-width:100%;height:auto"/>` +
             `</body>`
         );
         w.document.close();
@@ -1309,20 +1313,36 @@ export default function AdminDashboard() {
                             ) : null}
                           </td>
                           <td className="px-4 py-3 text-xs">
-                            {ticket.hasScreenshot ? (
-                              <button
-                                type="button"
-                                disabled={actionLoading}
-                                onClick={() =>
-                                  handleViewTicketScreenshot(ticket.id)
-                                }
-                                className="rounded border border-sky-600/50 px-2 py-1 text-sky-100 hover:bg-sky-500/20 disabled:opacity-50"
-                              >
-                                View
-                              </button>
-                            ) : (
-                              <span className="text-gray-500">—</span>
-                            )}
+                            <div className="flex flex-col gap-1">
+                              {ticket.hasScreenshot ? (
+                                <button
+                                  type="button"
+                                  disabled={actionLoading}
+                                  onClick={() =>
+                                    handleViewTicketScreenshot(ticket.id, 1)
+                                  }
+                                  className="rounded border border-sky-600/50 px-2 py-1 text-sky-100 hover:bg-sky-500/20 disabled:opacity-50"
+                                >
+                                  View ①
+                                </button>
+                              ) : (
+                                <span className="text-gray-500">① —</span>
+                              )}
+                              {ticket.hasScreenshot2 ? (
+                                <button
+                                  type="button"
+                                  disabled={actionLoading}
+                                  onClick={() =>
+                                    handleViewTicketScreenshot(ticket.id, 2)
+                                  }
+                                  className="rounded border border-sky-600/50 px-2 py-1 text-sky-100 hover:bg-sky-500/20 disabled:opacity-50"
+                                >
+                                  View ②
+                                </button>
+                              ) : (
+                                <span className="text-gray-500">② —</span>
+                              )}
+                            </div>
                           </td>
                           <td className="px-4 py-3 text-xs text-gray-400">
                             {new Date(ticket.createdAt).toLocaleString("en-US")}

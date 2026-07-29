@@ -80,6 +80,7 @@ export async function GET(request: NextRequest) {
           locale: true,
           adminNote: true,
           hasScreenshot: true,
+          hasScreenshot2: true,
           createdAt: true,
           resolvedAt: true,
         },

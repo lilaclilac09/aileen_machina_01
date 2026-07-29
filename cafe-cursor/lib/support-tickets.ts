@@ -6,6 +6,7 @@ export {
   SUPPORT_CATEGORIES,
   createTicketSchema,
   CURSOR_SPENDING_URL,
+  requiresDualScreenshots,
   type SupportCategory,
   type CreateTicketInput,
 } from "@/lib/support-ticket-types";
@@ -20,6 +21,7 @@ export async function createSupportTicket(input: {
   locale?: string | null;
   userAgent?: string | null;
   screenshotDataUrl: string;
+  screenshot2DataUrl?: string | null;
 }): Promise<
   | { ok: true; id: string; notified: boolean }
   | { ok: false; error: string; status: number }
@@ -42,6 +44,9 @@ export async function createSupportTicket(input: {
       ? input.lumaEmail.toLowerCase().trim()
       : null;
 
+  const shot2 = (input.screenshot2DataUrl || "").trim();
+  const has2 = shot2.length > 80;
+
   const ticket = await prisma.supportTicket.create({
     data: {
       email,
@@ -52,6 +57,8 @@ export async function createSupportTicket(input: {
       userAgent: input.userAgent?.slice(0, 400) || null,
       hasScreenshot: true,
       screenshotDataUrl: input.screenshotDataUrl,
+      hasScreenshot2: has2,
+      screenshot2DataUrl: has2 ? shot2 : null,
       status: "open",
     },
   });
@@ -66,6 +73,7 @@ export async function createSupportTicket(input: {
       message: ticket.message,
       createdAt: ticket.createdAt.toISOString(),
       hasScreenshot: true,
+      hasScreenshot2: has2,
     });
     notified = result.sent;
   } catch (err) {

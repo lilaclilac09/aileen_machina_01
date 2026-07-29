@@ -880,6 +880,7 @@ export async function sendSupportTicketAlert(opts: {
   message: string;
   createdAt: string;
   hasScreenshot?: boolean;
+  hasScreenshot2?: boolean;
 }): Promise<{ sent: boolean; error?: string }> {
   const resendClient = getResendClient();
   const to = getOrganizerInbox();
@@ -900,8 +901,14 @@ export async function sendSupportTicketAlert(opts: {
   if (leak) {
     return { sent: false, error: leak };
   }
-  const shotNote = opts.hasScreenshot
-    ? "Spending-page screenshot attached — open Admin → Tickets → View screenshot."
+  const shots = [
+    opts.hasScreenshot ? "① Cursor/contact" : null,
+    opts.hasScreenshot2 ? "② other account" : null,
+  ]
+    .filter(Boolean)
+    .join(" + ");
+  const shotNote = shots
+    ? `Spending screenshots: ${shots} — Admin → Tickets → View / View 2.`
     : "No screenshot (legacy ticket).";
   const html = `<!DOCTYPE html><html><body style="font-family:system-ui,sans-serif;line-height:1.5;color:#111">
 <p><strong>Cafe Cursor — new support ticket</strong></p>
