@@ -706,29 +706,69 @@
   color: rgba(17, 17, 17, 0.88);
 }
 
-@media (max-width: 540px) {
+@media (max-width: 640px) {
   .dispatch-archive-header {
-    padding-right: 14px !important;
+    padding-top: 12px !important;
+    padding-right: 12px !important;
+    padding-bottom: 12px !important;
+  }
+  .dispatch-archive-header > div {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
   }
   .dispatch-section-tabs {
     flex-basis: 100% !important;
-    justify-content: flex-start !important;
+    width: 100% !important;
+    justify-content: stretch !important;
     order: 2;
   }
-  .dispatch-section-tabs [role='tablist'] {
+  .dispatch-section-tablist {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
     width: 100%;
+    max-width: none !important;
+    padding: 6px !important;
+    border-radius: 16px !important;
+    overflow: visible !important;
   }
   .dispatch-section-tab-slot {
-    flex: 1 0 auto;
+    display: block !important;
+    flex: none !important;
+    min-width: 0;
   }
-  .dispatch-section-tablist [role='tab'] {
+  .dispatch-section-tab-rule {
+    display: none !important;
+  }
+  .dispatch-section-tablist [role='tab'],
+  .dispatch-section-tab {
+    width: 100% !important;
     min-width: 0 !important;
-    width: 100%;
-    padding-left: 12px !important;
-    padding-right: 12px !important;
+    min-height: 52px !important;
+    padding: 12px 14px !important;
+    border-radius: 12px !important;
+    gap: 4px !important;
+  }
+  .dispatch-section-tab-label {
+    font-size: 0.72rem !important;
+    letter-spacing: 0.08em !important;
+    white-space: normal !important;
+  }
+  .dispatch-section-tab-hint {
+    font-size: 0.62rem !important;
+    white-space: normal !important;
   }
   .dispatch-header-actions {
     order: 1;
+    width: 100%;
+    margin-left: 0 !important;
+    justify-content: space-between;
+  }
+  .dispatch-header-actions [role='group'] button {
+    min-height: 40px;
+    padding: 8px 14px !important;
+    font-size: 0.68rem !important;
   }
 }
 
