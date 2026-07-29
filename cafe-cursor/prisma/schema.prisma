@@ -93,6 +93,9 @@ model SupportTicket {
   locale       String?
   userAgent    String?
   adminNote    String?
+  /// Required for new tickets: browser-compressed screenshot of cursor.com/dashboard/spending
+  hasScreenshot     Boolean  @default(false)
+  screenshotDataUrl String?  @db.Text
   createdAt    DateTime  @default(now())
   resolvedAt   DateTime?
 

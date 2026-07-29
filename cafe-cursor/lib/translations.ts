@@ -57,21 +57,22 @@ export const translations = {
       "常见原因：① 没点白色「使用 credits →」；② Cursor 登录邮箱 ≠ Luma 报名/签到邮箱；③ 打开链接但没完成登录/确认。",
     troubleCheckUsage:
       "一般到这里看有没有到账：",
-    troubleUsageUrl: "https://cursor.com/dashboard/usage",
+    troubleUsageUrl: "https://cursor.com/dashboard/spending",
     troubleVerifyAccount:
       "核对：Cursor 当前登录邮箱必须 = Luma 当时注册/签到的邮箱。",
     troubleUnifiedSolve:
       "自查仍不行 → 统一找现场志愿者处理（不要自己反复换邮箱乱试）。志愿者会按签到邮箱帮你核对 / 必要时后台协助。",
     troubleAskStaff:
-      "活动后请提交工单（写入后台；cafe@ 只发信不收信，不要发邮件到 cafe@）：",
+      "活动后请提交工单（必须附 Spending 页截图；cafe@ 只发信不收信）：",
     troubleTicketCta: "提交工单 →",
 
     // Support ticket (/help)
     ticketPageTitle: "工单帮助",
     ticketPageSubtitle:
-      "说明问题后提交。主办在 Admin 处理；不会发到 cafe@aileena.xyz 收件箱。",
+      "必须上传 https://cursor.com/dashboard/spending 截图后再提交。主办在 Admin 处理。",
     ticketTitle: "提交工单",
-    ticketIntro: "请尽量填写 Luma 签到邮箱，方便核对。",
+    ticketIntro:
+      "请先打开 Spending 页截图整页（含余额/credits），再填写并上传。",
     ticketEmailLabel: "联系邮箱",
     ticketLumaLabel: "Luma 签到邮箱（可选）",
     ticketLumaPlaceholder: "若与联系邮箱不同请填写",
@@ -82,16 +83,22 @@ export const translations = {
     ticketCatOther: "其他",
     ticketMessageLabel: "问题描述",
     ticketMessagePlaceholder:
-      "例如：已点白色按键，Cursor 登录邮箱是 xxx，Balance 仍为 0…",
+      "例如：已点白色按键，Cursor 登录邮箱是 xxx，Spending 页仍看不到 credits…",
+    ticketScreenshotLabel: "Spending 页截图（必填）",
+    ticketScreenshotHint:
+      "打开 https://cursor.com/dashboard/spending 后截图上传（PNG/JPEG）。无截图无法提交。",
+    ticketScreenshotOpen: "打开 Spending 页",
+    ticketScreenshotMissing: "请先上传 Spending 页截图",
+    ticketScreenshotBad: "图片处理失败，请换一张更小的截图",
     ticketSubmit: "提交工单",
     ticketSubmitting: "提交中…",
     ticketSuccessTitle: "工单已收到",
-    ticketSuccessBody: "主办会按签到邮箱核对。请保留工单编号。",
+    ticketSuccessBody: "主办会按签到邮箱 + Spending 截图核对。请保留工单编号。",
     ticketIdLabel: "工单编号",
     ticketBackHome: "返回领取页",
     ticketError: "提交失败，请稍后重试。",
     ticketPrivacyNote:
-      "你的联系方式仅用于处理本工单；不会公开。",
+      "你的联系方式与截图仅用于处理本工单；不会公开。",
 
     // Errors
     notEligible: "请先找工作人员完成现场 Luma checked in，再来领取。",
@@ -169,21 +176,22 @@ export const translations = {
     troubleReasons:
       "Common causes: (1) didn’t tap white “Use credits →”; (2) Cursor login email ≠ Luma register/check-in email; (3) opened the link but didn’t finish login/confirm.",
     troubleCheckUsage: "Usually check whether it landed here:",
-    troubleUsageUrl: "https://cursor.com/dashboard/usage",
+    troubleUsageUrl: "https://cursor.com/dashboard/spending",
     troubleVerifyAccount:
       "Verify: your current Cursor login email must equal the Luma register/check-in email.",
     troubleUnifiedSolve:
       "Still stuck → ask an on-site volunteer (one unified path — don’t keep trying random emails). Volunteers verify against the check-in email / assist via Admin if needed.",
     troubleAskStaff:
-      "After the event, submit a ticket (stored in Admin — do not email cafe@; that address is send-only):",
+      "After the event, submit a ticket (Spending-page screenshot required — do not email cafe@; that address is send-only):",
     troubleTicketCta: "Submit a ticket →",
 
     // Support ticket (/help)
     ticketPageTitle: "Support ticket",
     ticketPageSubtitle:
-      "Describe the issue and submit. Organizers handle it in Admin — cafe@aileena.xyz is not an inbox.",
+      "A screenshot of https://cursor.com/dashboard/spending is required before submit.",
     ticketTitle: "Submit a ticket",
-    ticketIntro: "Include your Luma check-in email when possible.",
+    ticketIntro:
+      "Open the Spending page, capture the full view (credits/balance), then upload it.",
     ticketEmailLabel: "Contact email",
     ticketLumaLabel: "Luma check-in email (optional)",
     ticketLumaPlaceholder: "If different from contact email",
@@ -194,17 +202,23 @@ export const translations = {
     ticketCatOther: "Other",
     ticketMessageLabel: "Description",
     ticketMessagePlaceholder:
-      "e.g. Tapped Use credits, Cursor login is xxx, Balance still 0…",
+      "e.g. Tapped Use credits, Cursor login is xxx, Spending page still shows no credits…",
+    ticketScreenshotLabel: "Spending page screenshot (required)",
+    ticketScreenshotHint:
+      "Open https://cursor.com/dashboard/spending, then upload a PNG/JPEG. No screenshot = cannot submit.",
+    ticketScreenshotOpen: "Open Spending page",
+    ticketScreenshotMissing: "Please upload a Spending page screenshot first",
+    ticketScreenshotBad: "Could not process image — try a smaller crop",
     ticketSubmit: "Submit ticket",
     ticketSubmitting: "Submitting…",
     ticketSuccessTitle: "Ticket received",
     ticketSuccessBody:
-      "We’ll verify against the check-in email. Keep your ticket ID.",
+      "We’ll verify against the check-in email + your Spending screenshot. Keep your ticket ID.",
     ticketIdLabel: "Ticket ID",
     ticketBackHome: "Back to redeem",
     ticketError: "Could not submit. Please try again.",
     ticketPrivacyNote:
-      "Your contact details are only used to resolve this ticket.",
+      "Your contact details and screenshot are only used to resolve this ticket.",
 
     // Errors
     notEligible:

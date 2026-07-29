@@ -65,13 +65,27 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
-    const [openTickets, tickets] = await Promise.all([
+    const [openTickets, ticketsRaw] = await Promise.all([
       prisma.supportTicket.count({ where: { status: "open" } }),
       prisma.supportTicket.findMany({
         orderBy: [{ status: "asc" }, { createdAt: "desc" }],
         take: 100,
+        select: {
+          id: true,
+          email: true,
+          lumaEmail: true,
+          category: true,
+          message: true,
+          status: true,
+          locale: true,
+          adminNote: true,
+          hasScreenshot: true,
+          createdAt: true,
+          resolvedAt: true,
+        },
       }),
     ]);
+    const tickets = ticketsRaw;
 
     const haveNeed = computeHaveNeed({
       availableCount: availableRealCredits,

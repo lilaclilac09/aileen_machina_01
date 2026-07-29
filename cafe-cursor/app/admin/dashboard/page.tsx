@@ -80,6 +80,7 @@ interface SupportTicketRow {
   status: string;
   locale: string | null;
   adminNote: string | null;
+  hasScreenshot?: boolean;
   createdAt: string;
   resolvedAt: string | null;
 }
@@ -154,6 +155,42 @@ export default function AdminDashboard() {
   const handleReopenTicket = async (ticketId: string) => {
     if (!window.confirm(`Reopen ticket ${ticketId}?`)) return;
     await executeAction("REOPEN_TICKET", { ticketId });
+  };
+
+  const handleViewTicketScreenshot = async (ticketId: string) => {
+    setActionLoading(true);
+    try {
+      const res = await fetch("/api/admin/actions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "GET_TICKET_SCREENSHOT",
+          data: { ticketId },
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || json.error) {
+        alert(`Error: ${json.error || "Could not load screenshot"}`);
+        return;
+      }
+      const url = json.screenshotDataUrl as string;
+      const w = window.open("", "_blank");
+      if (w) {
+        w.document.write(
+          `<!DOCTYPE html><title>Ticket ${ticketId}</title>` +
+            `<body style="margin:0;background:#111;display:flex;justify-content:center;align-items:flex-start;padding:16px">` +
+            `<img src="${url}" alt="Spending screenshot" style="max-width:100%;height:auto"/>` +
+            `</body>`
+        );
+        w.document.close();
+      } else {
+        alert("Popup blocked — allow popups to view screenshot.");
+      }
+    } catch {
+      alert("Failed to load screenshot");
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const executeAction = async (action: string, actionData: Record<string, unknown>) => {
@@ -1176,11 +1213,13 @@ export default function AdminDashboard() {
         {activeTab === "tickets" && (
           <div className="overflow-hidden rounded-xl border border-gray-800">
             <div className="border-b border-gray-800 bg-gray-900/80 px-4 py-3 text-xs text-gray-400">
-              Guests submit at <code className="text-gray-200">/help</code>.{" "}
+              Guests submit at <code className="text-gray-200">/help</code> with a
+              required screenshot of{" "}
+              <code className="text-gray-200">cursor.com/dashboard/spending</code>.{" "}
               <strong className="text-amber-200">cafe@aileena.xyz is send-only</strong>{" "}
-              (Resend From/Reply-To) — inbound mail is not received. New tickets also
-              notify <code className="text-gray-200">NOTIFY_CC_EMAIL</code> when Resend
-              is configured.
+              (Resend From/Reply-To). New tickets notify{" "}
+              <code className="text-gray-200">NOTIFY_CC_EMAIL</code> when Resend is
+              configured.
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
@@ -1191,6 +1230,7 @@ export default function AdminDashboard() {
                     <th className="px-4 py-3">Contact</th>
                     <th className="px-4 py-3">Luma</th>
                     <th className="px-4 py-3">Message</th>
+                    <th className="px-4 py-3">Shot</th>
                     <th className="px-4 py-3">Created</th>
                     <th className="px-4 py-3">Actions</th>
                   </tr>
@@ -1199,7 +1239,7 @@ export default function AdminDashboard() {
                   {(data?.tickets || []).length === 0 ? (
                     <tr>
                       <td
-                        colSpan={7}
+                        colSpan={8}
                         className="px-4 py-8 text-center text-gray-500"
                       >
                         No tickets yet.
@@ -1252,6 +1292,22 @@ export default function AdminDashboard() {
                                 Note: {ticket.adminNote}
                               </p>
                             ) : null}
+                          </td>
+                          <td className="px-4 py-3 text-xs">
+                            {ticket.hasScreenshot ? (
+                              <button
+                                type="button"
+                                disabled={actionLoading}
+                                onClick={() =>
+                                  handleViewTicketScreenshot(ticket.id)
+                                }
+                                className="rounded border border-sky-600/50 px-2 py-1 text-sky-100 hover:bg-sky-500/20 disabled:opacity-50"
+                              >
+                                View
+                              </button>
+                            ) : (
+                              <span className="text-gray-500">—</span>
+                            )}
                           </td>
                           <td className="px-4 py-3 text-xs text-gray-400">
                             {new Date(ticket.createdAt).toLocaleString("en-US")}

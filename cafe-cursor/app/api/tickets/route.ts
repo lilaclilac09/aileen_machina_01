@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
       message: data.message,
       locale: data.locale || null,
       userAgent: request.headers.get("user-agent"),
+      screenshotDataUrl: data.screenshotDataUrl,
     });
 
     if (!result.ok) {
