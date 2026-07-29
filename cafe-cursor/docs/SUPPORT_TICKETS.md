@@ -9,6 +9,8 @@
 - Guests **never** see `NOTIFY_CC_EMAIL` (your real inbox).
 - Guest-facing **From / Reply-To** must stay on brand (`cafe@aileena.xyz`); personal domains (Gmail / QQ / Outlook / …) are blocked in code.
 - Ticket alerts go **only** to `NOTIFY_CC_EMAIL` (private). API responses use masked addresses only.
+- **Never hit Reply in Gmail** on a ticket alert — that would send From your personal inbox to the guest.
+- Answer guests with **Admin → Tickets → Reply (brand)** (Resend From/Reply-To = cafe@).
 
 ## What guests should do
 

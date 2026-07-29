@@ -51,4 +51,11 @@ const reply = getPublicReplyToAddress();
 assert(!isPersonalInbox(reply), `public reply-to must not be personal: ${reply}`);
 assert(maskContact("hello@gmail.com") === "h***@gmail.com", "mask");
 
-console.log("verify-organizer-privacy: ok");
+process.env.FROM_EMAIL = "Aileen <me@gmail.com>";
+// Re-import after env mutation — email module reads env at call time
+void import("../lib/email").then(({ getFromEmail }) => {
+  const forced = getFromEmail();
+  assert(!/@gmail\.com/i.test(forced), `from sanitized: ${forced}`);
+  assert(/cafe@aileena\.xyz/i.test(forced), "forced brand from");
+  console.log("verify-organizer-privacy: ok");
+});

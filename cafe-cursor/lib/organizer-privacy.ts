@@ -75,6 +75,14 @@ export function isPersonalInbox(email: string): boolean {
 }
 
 const BRAND_FALLBACK = "cafe@aileena.xyz";
+export const BRAND_FROM_DISPLAY = `Cafe Cursor Shanghai <${BRAND_FALLBACK}>`;
+
+/** Extract bare address from `Name <addr>` or bare addr. */
+export function extractEmailAddress(raw: string): string {
+  const s = raw.trim().replace(/^["']|["']$/g, "");
+  const m = s.match(/<([^>]+)>/);
+  return (m?.[1] || s).trim().toLowerCase();
+}
 
 /** Public Reply-To shown to guests — never a personal inbox. */
 export function getPublicReplyToAddress(): string {
@@ -85,10 +93,9 @@ export function getPublicReplyToAddress(): string {
   if (explicit.includes("@") && !isPersonalInbox(explicit)) {
     return explicit;
   }
-  // Prefer verified brand address from FROM_EMAIL
+  // Prefer verified brand address from FROM_EMAIL (after personal-block)
   const from = (process.env.FROM_EMAIL || "").trim();
-  const m = from.match(/<([^>]+)>/);
-  const addr = (m?.[1] || from).trim().toLowerCase();
+  const addr = extractEmailAddress(from);
   if (addr.includes("@") && !isPersonalInbox(addr)) return addr;
   return BRAND_FALLBACK;
 }

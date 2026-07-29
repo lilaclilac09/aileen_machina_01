@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isAuthenticated } from "@/lib/auth";
-import { sendCreditEmail, sendUnclaimedReminderBccBlast, sendUnclaimedReminderTestToOrganizer, getEmailSendConfig } from "@/lib/email";
+import { sendCreditEmail, sendUnclaimedReminderBccBlast, sendUnclaimedReminderTestToOrganizer, getEmailSendConfig, sendBrandGuestReply } from "@/lib/email";
 import { syncReminderSentAtFromResend } from "@/lib/resend-reminder-sync";
 import { decryptOrganizerAudit } from "@/lib/organizer-privacy";
 import {
@@ -874,6 +874,56 @@ export async function POST(request: NextRequest) {
           from: result.from,
           forceResend,
           failures: result.failures.slice(0, 20),
+        });
+      }
+
+      case "REPLY_TICKET": {
+        const ticketId = String(data?.ticketId || "").trim();
+        const message = String(data?.message || "").trim();
+        if (!ticketId) {
+          return NextResponse.json(
+            { error: "ticketId required" },
+            { status: 400 }
+          );
+        }
+        if (message.length < 5) {
+          return NextResponse.json(
+            { error: "Reply message too short" },
+            { status: 400 }
+          );
+        }
+        const ticket = await prisma.supportTicket.findUnique({
+          where: { id: ticketId },
+        });
+        if (!ticket) {
+          return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
+        }
+        const result = await sendBrandGuestReply({
+          to: ticket.email,
+          subject: `Cafe Cursor Shanghai — reply to your ticket`,
+          bodyText: message,
+          ticketId: ticket.id,
+        });
+        if (!result.success) {
+          return NextResponse.json(
+            {
+              error: result.error || "Failed to send brand reply",
+              from: result.from,
+              replyTo: result.replyTo,
+            },
+            { status: 500 }
+          );
+        }
+        console.log(
+          `[ADMIN] REPLY_TICKET: ${ticketId} → ${ticket.email} via brand`
+        );
+        return NextResponse.json({
+          success: true,
+          message:
+            `Reply sent to ${ticket.email} via brand From/Reply-To only ` +
+            `(${result.replyTo}). Your personal inbox was not used.`,
+          from: result.from,
+          replyTo: result.replyTo,
         });
       }
 
