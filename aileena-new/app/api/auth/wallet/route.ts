@@ -1,4 +1,5 @@
 import { getContactInbox } from '@/lib/contact-inbox';
+import { getResendFrom } from '@/lib/resend-from';
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { Resend } from 'resend';
@@ -74,7 +75,7 @@ export async function POST(req: NextRequest) {
       if (inbox) {
         const resend = new Resend(process.env.RESEND_API_KEY);
         await resend.emails.send({
-          from: 'AILEENA MACHINA <onboarding@resend.dev>',
+          from: getResendFrom(),
           to: inbox,
           subject: `[AILEENA] Blog login · wallet · ${address}`,
           text: `Wallet login.\nAddress: ${address}\n${visitorLines(req, { client: body.client })}`,
