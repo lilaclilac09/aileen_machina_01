@@ -47,12 +47,12 @@ export default function YmtcNandWuhanArticle() {
       category="Analysis"
       date="2026.07.28"
       tags="CXMT · YMTC · NAND · Wuhan · 国资 · SemiAnalysis · IPO"
-      title="长江存储 YMTC — Wuhan NAND After CXMT's IPO"
+      title="下一个 IPO 在武汉 — 长江存储 YMTC"
       dek={
         <>
-          Hefei priced China&apos;s DRAM champion. Wuhan is the NAND city: YMTC&apos;s Optics Valley
-          base, state-capital stack, wafer-start capacity, and the SemiAnalysis trail from 2021 density
-          lead to 2026 ChipBook trackers — while deep coverage shifted toward CXMT.
+          Hefei just listed CXMT. The next memory IPO story is Wuhan — the Wuhan you know —
+          Optics Valley, 国资, NAND fabs: <strong>长江存储</strong>. Not a footnote city. The other
+          half of China memory.
         </>
       }
     >
@@ -68,12 +68,13 @@ export default function YmtcNandWuhanArticle() {
           It is also a map event.
         </p>
         <p style={bodyStyle}>
-          If Hefei is where China lists <em>DRAM</em>, <strong style={strong}>Wuhan</strong> is where
-          China built the other half of the memory stack: <strong style={strong}>NAND flash</strong>,
-          under <strong style={strong}>Yangtze Memory Technologies Co. (YMTC)</strong>. The IPO
-          headlines will keep saying &ldquo;memory.&rdquo; The useful follow-up is: which memory,
-          which city, and which analyst already treated that city as a structural variable — not a
-          footnote.
+          The next IPO line people are already drawing points at{' '}
+          <strong style={strong}>Wuhan</strong> — the Wuhan you know — and at{' '}
+          <strong style={strong}>长江存储 / YMTC</strong>. If Hefei is where China lists{' '}
+          <em>DRAM</em>, Wuhan is where China built the other half of the memory stack:{' '}
+          <strong style={strong}>NAND flash</strong>. The IPO headlines will keep saying
+          &ldquo;memory.&rdquo; The useful follow-up is: which memory, which city, and which
+          analyst already treated that city as a structural variable — not a footnote.
         </p>
         <p style={bodyStyle}>
           Short answer: <strong style={strong}>SemiAnalysis did</strong> — repeatedly, and in depth —
