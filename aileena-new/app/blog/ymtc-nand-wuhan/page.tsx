@@ -50,9 +50,8 @@ export default function YmtcNandWuhanArticle() {
       title="下一个 IPO 在武汉 — 长江存储 YMTC"
       dek={
         <>
-          Hefei just listed CXMT. The next memory IPO story is Wuhan — the Wuhan you know —
-          Optics Valley, 国资, NAND fabs: <strong>长江存储</strong>. Not a footnote city. The other
-          half of China memory.
+          Hefei just listed CXMT. The next memory IPO story is Wuhan Optics Valley —
+          NAND fabs, 国资, <strong>长江存储</strong>. The other half of China memory.
         </>
       }
     >
@@ -69,7 +68,7 @@ export default function YmtcNandWuhanArticle() {
         </p>
         <p style={bodyStyle}>
           The next IPO line people are already drawing points at{' '}
-          <strong style={strong}>Wuhan</strong> — the Wuhan you know — and at{' '}
+          <strong style={strong}>Wuhan Optics Valley</strong> — and at{' '}
           <strong style={strong}>长江存储 / YMTC</strong>. If Hefei is where China lists{' '}
           <em>DRAM</em>, Wuhan is where China built the other half of the memory stack:{' '}
           <strong style={strong}>NAND flash</strong>. The IPO headlines will keep saying
