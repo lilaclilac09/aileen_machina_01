@@ -82,6 +82,7 @@ const COVER_BY_SLUG: Record<string, string> = {
   robots: COVER_AI_ABSTRACT,
   centaur: COVER_AI_ABSTRACT,
   cli: COVER_TERMINAL,
+  'local-models': COVER_TERMINAL,
 
   // Privacy / Zcash
   'zcash-fpga': COVER_CIRCUIT_CLOSEUP,
