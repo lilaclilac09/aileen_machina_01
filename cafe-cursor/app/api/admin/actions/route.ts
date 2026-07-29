@@ -877,6 +877,40 @@ export async function POST(request: NextRequest) {
         });
       }
 
+      case "GET_TICKET_SCREENSHOT": {
+        const ticketId = String(data?.ticketId || "").trim();
+        if (!ticketId) {
+          return NextResponse.json(
+            { error: "ticketId required" },
+            { status: 400 }
+          );
+        }
+        const ticket = await prisma.supportTicket.findUnique({
+          where: { id: ticketId },
+          select: {
+            id: true,
+            email: true,
+            hasScreenshot: true,
+            screenshotDataUrl: true,
+          },
+        });
+        if (!ticket) {
+          return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
+        }
+        if (!ticket.hasScreenshot || !ticket.screenshotDataUrl) {
+          return NextResponse.json(
+            { error: "No screenshot on this ticket" },
+            { status: 404 }
+          );
+        }
+        return NextResponse.json({
+          success: true,
+          ticketId: ticket.id,
+          email: ticket.email,
+          screenshotDataUrl: ticket.screenshotDataUrl,
+        });
+      }
+
       case "RESOLVE_TICKET": {
         const ticketId = String(data?.ticketId || "").trim();
         if (!ticketId) {

@@ -863,6 +863,7 @@ export async function sendSupportTicketAlert(opts: {
   category: string;
   message: string;
   createdAt: string;
+  hasScreenshot?: boolean;
 }): Promise<{ sent: boolean; error?: string }> {
   const resendClient = getResendClient();
   const to = getOrganizerInbox();
@@ -878,18 +879,22 @@ export async function sendSupportTicketAlert(opts: {
     process.env.NEXT_PUBLIC_SITE_URL || "https://cursor-cafe.aileena.xyz"
   ).replace(/\/$/, "");
   const from = getFromEmail();
+  const shotNote = opts.hasScreenshot
+    ? "Spending-page screenshot attached — open Admin → Tickets → View screenshot."
+    : "No screenshot (legacy ticket).";
   const html = `<!DOCTYPE html><html><body style="font-family:system-ui,sans-serif;line-height:1.5;color:#111">
 <p><strong>Cafe Cursor — new support ticket</strong></p>
 <p>ID: <code>${opts.ticketId}</code><br/>
 Created: ${opts.createdAt}<br/>
-Category: <strong>${opts.category}</strong></p>
+Category: <strong>${opts.category}</strong><br/>
+${shotNote}</p>
 <p>Contact email: <strong>${opts.email}</strong><br/>
 Luma / check-in email: ${opts.lumaEmail || "—"}</p>
 <pre style="white-space:pre-wrap;background:#f4f4f5;padding:12px;border-radius:8px">${opts.message
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")}</pre>
 <p style="font-size:12px;color:#666">Open Admin → Tickets: ${site}/admin/dashboard<br/>
-Guests submit via ${site}/help — do not rely on inbound mail to cafe@aileena.xyz (send-only).</p>
+Guests check landing at https://cursor.com/dashboard/spending and submit via ${site}/help.</p>
 </body></html>`;
 
   try {

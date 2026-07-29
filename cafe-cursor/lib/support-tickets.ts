@@ -5,6 +5,7 @@ import type { SupportCategory } from "@/lib/support-ticket-types";
 export {
   SUPPORT_CATEGORIES,
   createTicketSchema,
+  CURSOR_SPENDING_URL,
   type SupportCategory,
   type CreateTicketInput,
 } from "@/lib/support-ticket-types";
@@ -18,6 +19,7 @@ export async function createSupportTicket(input: {
   message: string;
   locale?: string | null;
   userAgent?: string | null;
+  screenshotDataUrl: string;
 }): Promise<
   | { ok: true; id: string; notified: boolean }
   | { ok: false; error: string; status: number }
@@ -48,6 +50,8 @@ export async function createSupportTicket(input: {
       message: input.message.trim(),
       locale: input.locale || null,
       userAgent: input.userAgent?.slice(0, 400) || null,
+      hasScreenshot: true,
+      screenshotDataUrl: input.screenshotDataUrl,
       status: "open",
     },
   });
@@ -61,6 +65,7 @@ export async function createSupportTicket(input: {
       category: ticket.category,
       message: ticket.message,
       createdAt: ticket.createdAt.toISOString(),
+      hasScreenshot: true,
     });
     notified = result.sent;
   } catch (err) {

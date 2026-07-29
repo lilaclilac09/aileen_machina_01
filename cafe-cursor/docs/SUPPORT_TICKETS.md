@@ -28,3 +28,8 @@ cd cafe-cursor && npx prisma db push
 ```
 
 Confirm Vercel has `NOTIFY_CC_EMAIL` set to an inbox you actually read (never put it in git or guest UI).
+
+## Spending screenshot (required)
+
+Guests must check **https://cursor.com/dashboard/spending** and upload a screenshot
+with every `/help` ticket. Admin → Tickets → **View** opens the image.
