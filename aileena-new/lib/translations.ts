@@ -63,7 +63,7 @@ export const t = {
           tag: 'EVENT',
           title: 'Cafe Cursor',
           body:
-            'Claim Cursor credits for Cafe Cursor Shanghai — checked-in guests only.',
+            'Claim Cursor credits for Cafe Cursor Shanghai — checked-in guests only. Opens cursor-cafe.aileena.xyz.',
         },
         'feed-flash': {
           tag: 'RSS',
