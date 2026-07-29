@@ -15,6 +15,8 @@ import {
   routeToolsForQuestion,
   applyToolRoute,
   formatToolRouteForPrompt,
+  isLatestUpdatesQuestion,
+  LATEST_CONTENT_MEMORY_QUERY,
 } from '../../../lib/toolRouter';
 import {
   routeModel,
@@ -234,7 +236,13 @@ export async function POST(req: Request) {
   const baseSystem = agentMode === 'machina' ? buildMachinaSystemPrompt() : SYSTEM_PROMPT;
 
   const lastQ = lastUserQuery(trimmed);
-  const memoryPrefetch = lastQ ? searchMemories(lastQ, 2) : [];
+  // Chinese "更新了吗" misses TF-IDF — force English shelf query for prefetch.
+  const memoryPrefetch = lastQ
+    ? searchMemories(
+        isLatestUpdatesQuestion(lastQ) ? LATEST_CONTENT_MEMORY_QUERY : lastQ,
+        isLatestUpdatesQuestion(lastQ) ? 4 : 2,
+      )
+    : [];
   const memMeta = memoryIndexMeta();
 
   // Per-visitor soft memory: one Redis GET on the hot path; merge locally for

@@ -52,6 +52,20 @@ const CHIP_TOOLS: AgentToolName[] = [
 const NEWS_TOOLS: AgentToolName[] = ['latestNews', 'searchNews'];
 const TECH_TOOLS: AgentToolName[] = [...CHIP_TOOLS, ...NEWS_TOOLS, ...DOC_TOOLS, ...ARTICLE_TOOLS];
 
+/** "What's new / 更新了吗" — must hit latest-content.md, not invent old blog posts. */
+export function isLatestUpdatesQuestion(q: string): boolean {
+  const t = q.toLowerCase().trim();
+  if (!t) return false;
+  return (
+    /更新|有没有新|新文章|写了什么新|最近写了|最近更新|有什么新|最新文章|新发/.test(t) ||
+    /\b(what('s| is)?\s+new|any updates?|what (updated|changed)|new articles?|latest (articles?|posts?|content|writing|updates?)|recently (wrote|published|added|updated)|what did she (write|publish|add) (lately|recently))\b/.test(
+      t,
+    )
+  );
+}
+
+export const LATEST_CONTENT_MEMORY_QUERY = 'latest content';
+
 function uniq(names: AgentToolName[]): AgentToolName[] {
   return [...new Set(names)];
 }
@@ -63,6 +77,17 @@ function emptySoft(): VisitorSoftMemory {
 /** Named-entity / topic hard routes (checked before soft intents). */
 function hardRoute(q: string): ToolRoute | null {
   const t = q.toLowerCase();
+
+  // What's new / 更新 — force latest-content shelf (Chinese queries miss TF-IDF otherwise).
+  if (isLatestUpdatesQuestion(q)) {
+    return {
+      route: 'latest_updates',
+      allowed: uniq([...MEMORY_TOOLS, ...ARTICLE_TOOLS]),
+      preferred: ['searchMemories'],
+      reason: 'what updated → latest-content.md',
+      hint: `REQUIRED: call searchMemories with query exactly "${LATEST_CONTENT_MEMORY_QUERY}". Answer from that shelf (newest articles by date, /updates, research, songs). Do NOT invent from training or cite old posts (e.g. /blog/cli) unless they appear in the retrieved latest-content. Optional: searchArticles only to expand a slug already listed there.`,
+    };
+  }
 
   // Hire / CV / contact — answer from static prompt only.
   if (

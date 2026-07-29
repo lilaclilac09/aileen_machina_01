@@ -61,6 +61,7 @@ pnpm build                # includes memory index on every deploy
 | Question type | Exposed tools | Effect |
 |---------------|---------------|--------|
 | hire / CV / contact | **none** | Cannot waste steps on search; answers from static prompt |
+| **what's new / 更新了吗** | memories (+ articles) | **Must** `searchMemories("latest content")` — not training invent |
 | music / taste / Hockney | memories (+ articles) | **Cannot** call `queryChip` |
 | faith / belief | memories (+ articles) | Hits `faith-from-essays` path |
 | Centaur | articles + research/docs | Forced retrieval; no chip tools |
