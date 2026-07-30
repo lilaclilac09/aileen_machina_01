@@ -270,7 +270,7 @@ export default function WatchListeningShelfArticle() {
 
         <section className="rec-section" id="euro-life" aria-labelledby="euro-life-recs">
           <p className="rec-section-label">Euro life guide</p>
-          <h2 id="euro-life-recs">Euro life guide — European living</h2>
+          <h2 id="euro-life-recs">European living</h2>
           <p className="rec-section-dek">
             Off-screen notes for a European life-texture — walk, look, language, cut, museum pace, table ritual.
             Steal method from the films; do not cosplay them.
@@ -288,7 +288,7 @@ export default function WatchListeningShelfArticle() {
 
         <section className="rec-section" id="lifestyle" aria-labelledby="lifestyle-recs">
           <p className="rec-section-label">Lifestyle</p>
-          <h2 id="lifestyle-recs">Lifestyle — weekly practices</h2>
+          <h2 id="lifestyle-recs">Weekly practices</h2>
           <p className="rec-section-dek">
             Turn the shelf into a week. Small repeats beat long lists.
           </p>
