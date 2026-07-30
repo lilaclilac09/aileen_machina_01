@@ -5933,5 +5933,327 @@
     "tags": [],
     "source": "fxtwitter",
     "ingestedAt": "2026-07-30T14:31:35.770Z"
+  },
+  {
+    "id": "2082914346850734278",
+    "url": "https://x.com/SemiAnalysis_/status/2082914346850734278",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Ep. 022 - Market Drawdown, Historic Bubbles, Funding The Buildout, AI Politics\n\nDoug is back this week! @fabknowledge \n\nTimestamps:\n00:00 Market Update\n07:02 Comparing to Past Bubbles in Taiwan and Korea\n10:08 Memory Prices, LTAs, and Market Cycles\n18:11 Future Demand for AI and Model Usage\n37:40 Scaling Laws and Supply Constraints\n44:45 Financial and Capital Constraints in Tech Expansion\n50:57 Geopolitical Risks, Policy Impact, Long Term Outlook",
+    "createdAt": "Thu Jul 30 19:40:53 +0000 2026",
+    "createdTimestamp": 1785440453,
+    "likes": 12,
+    "retweets": 1,
+    "replies": 0,
+    "bookmarks": 10,
+    "views": 3720,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://video.twimg.com/amplify_video/2082913068921810945/vid/avc1/1920x1080/D57Pzv3_wLEaAiKY.mp4?tag=29"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-30T19:51:19.251Z"
+  },
+  {
+    "id": "2082874107025117561",
+    "url": "https://x.com/SemiAnalysis_/status/2082874107025117561",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Short Statement, More Dissents, New Normal\nWarsh claimed tightening of long rates as market success. And no trade off between inflation and employment. So how do rates impact the economy?",
+    "createdAt": "Thu Jul 30 17:00:59 +0000 2026",
+    "createdTimestamp": 1785430859,
+    "likes": 19,
+    "retweets": 0,
+    "replies": 1,
+    "bookmarks": 3,
+    "views": 12335,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HOfa9nLWAAAAs0x.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-30T19:51:20.699Z"
+  },
+  {
+    "id": "2082871542216630287",
+    "url": "https://x.com/SemiAnalysis_/status/2082871542216630287",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "@GPU_MODE @AIatAMD @marksaroufim @AnushElangovan Huge shoutout to @roaner and his team for leading the organization of this competition, which got many community members involved!!",
+    "createdAt": "Thu Jul 30 16:50:48 +0000 2026",
+    "createdTimestamp": 1785430248,
+    "likes": 2,
+    "retweets": 0,
+    "replies": 2,
+    "bookmarks": 0,
+    "views": 4478,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "gpu"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-30T19:51:22.130Z"
+  },
+  {
+    "id": "2082896307341897875",
+    "url": "https://x.com/aaronburnett/status/2082896307341897875",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Starlink team deserves some recognition. These bad boys are the future of connectivity. (~50x+ global bandwidth today). And will be absolute critical infrastructure for our the intelligence distribution layer.",
+    "createdAt": "Thu Jul 30 18:29:12 +0000 2026",
+    "createdTimestamp": 1785436152,
+    "likes": 36,
+    "retweets": 2,
+    "replies": 1,
+    "bookmarks": 2,
+    "views": 1245,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-30T19:51:25.016Z"
+  },
+  {
+    "id": "2082868945678209329",
+    "url": "https://x.com/aaronburnett/status/2082868945678209329",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Funny enough “no longer just 100kw” a year ago would have sounded completely dumb. 100kw was a lot at the time. \n\nNow when you’re looking at inference containment you start to realize NVL144 equivalents looks pretty good.",
+    "createdAt": "Thu Jul 30 16:40:29 +0000 2026",
+    "createdTimestamp": 1785429629,
+    "likes": 22,
+    "retweets": 5,
+    "replies": 0,
+    "bookmarks": 2,
+    "views": 3042,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "inference"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-30T19:51:26.554Z"
+  },
+  {
+    "id": "2082867551416057965",
+    "url": "https://x.com/aaronburnett/status/2082867551416057965",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "This week we covered Amazon DTC, Starfire, Starship 13, upcoming SpaceX earnings and AI compute supply analysis",
+    "createdAt": "Thu Jul 30 16:34:56 +0000 2026",
+    "createdTimestamp": 1785429296,
+    "likes": 14,
+    "retweets": 2,
+    "replies": 0,
+    "bookmarks": 6,
+    "views": 1615,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-30T19:51:28.120Z"
+  },
+  {
+    "id": "2082867140978245644",
+    "url": "https://x.com/aaronburnett/status/2082867140978245644",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "If true, that’s a significant build out. Possibly tied to the Texas facility and DoW compute deal rumors. \n\nSprinkle in Grok 4.5 and cursor Q3 could be the SpaceXAI quarter.",
+    "createdAt": "Thu Jul 30 16:33:18 +0000 2026",
+    "createdTimestamp": 1785429198,
+    "likes": 44,
+    "retweets": 5,
+    "replies": 1,
+    "bookmarks": 8,
+    "views": 3390,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-30T19:51:29.595Z"
+  },
+  {
+    "id": "2082843603156513027",
+    "url": "https://x.com/aaronburnett/status/2082843603156513027",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "SpaceX's First Earnings Report, AI Compute Market Predictions | Episode #13 https://x.com/i/broadcasts/1DGleelqRzzJL",
+    "createdAt": "Thu Jul 30 14:59:47 +0000 2026",
+    "createdTimestamp": 1785423587,
+    "likes": 27,
+    "retweets": 6,
+    "replies": 1,
+    "bookmarks": 7,
+    "views": 2651,
+    "isNoteTweet": false,
+    "linkedUrls": [
+      "https://x.com/i/broadcasts/1DGleelqRzzJL"
+    ],
+    "topics": [
+      "mach33",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-30T19:51:31.105Z"
+  },
+  {
+    "id": "2082839639614775333",
+    "url": "https://x.com/aaronburnett/status/2082839639614775333",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "going live in 16 mins. come join us.",
+    "createdAt": "Thu Jul 30 14:44:02 +0000 2026",
+    "createdTimestamp": 1785422642,
+    "likes": 9,
+    "retweets": 1,
+    "replies": 1,
+    "bookmarks": 0,
+    "views": 778,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-30T19:51:32.535Z"
+  },
+  {
+    "id": "2082811035983941710",
+    "url": "https://x.com/aaronburnett/status/2082811035983941710",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Doing the math turns the impossible into a matter of “do they have the money and desire?” Cool calculator",
+    "createdAt": "Thu Jul 30 12:50:22 +0000 2026",
+    "createdTimestamp": 1785415822,
+    "likes": 13,
+    "retweets": 1,
+    "replies": 1,
+    "bookmarks": 2,
+    "views": 1754,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-30T19:51:33.969Z"
+  },
+  {
+    "id": "2082844161347101093",
+    "url": "https://x.com/mach33/status/2082844161347101093",
+    "screenName": "mach33",
+    "authorId": "2051360039869276160",
+    "authorName": "Mach33 Financial Group",
+    "text": "SpaceX's First Earnings Report, AI Compute Market Predictions | Episode #13 https://x.com/i/broadcasts/1kKzDDjkyAWJv",
+    "createdAt": "Thu Jul 30 15:02:00 +0000 2026",
+    "createdTimestamp": 1785423720,
+    "likes": 15,
+    "retweets": 4,
+    "replies": 0,
+    "bookmarks": 7,
+    "views": 1601,
+    "isNoteTweet": false,
+    "linkedUrls": [
+      "https://x.com/i/broadcasts/1kKzDDjkyAWJv"
+    ],
+    "topics": [
+      "spacex"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-30T19:51:36.687Z"
+  },
+  {
+    "id": "2082901006661128680",
+    "url": "https://x.com/VladSaigau/status/2082901006661128680",
+    "screenName": "VladSaigau",
+    "authorId": "1496125256624484362",
+    "authorName": "Vlad Saigau",
+    "text": "When demand for AI compute outruns supply, profit margins accrete down the stack to the infrastructure beneath: chips, data centers (or satellites), and energy. Open source (Kimi K3...) accelerates that shift by commoditizing the model layer of the AI stack. So when Jensen (chips) and Elon (launch, satellites, chips, energy) both champion open models, that's margin flowing in their direction. Mentioned this in our live today...",
+    "createdAt": "Thu Jul 30 18:47:53 +0000 2026",
+    "createdTimestamp": 1785437273,
+    "likes": 12,
+    "retweets": 1,
+    "replies": 3,
+    "bookmarks": 1,
+    "views": 894,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [
+      "orbital-compute"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-30T19:51:40.247Z"
+  },
+  {
+    "id": "2082904393016377608",
+    "url": "https://x.com/VladSaigau/status/2082904393016377608",
+    "screenName": "VladSaigau",
+    "authorId": "1496125256624484362",
+    "authorName": "Vlad Saigau",
+    "text": "The point I reference above is 43 mins in",
+    "createdAt": "Thu Jul 30 19:01:20 +0000 2026",
+    "createdTimestamp": 1785438080,
+    "likes": 1,
+    "retweets": 0,
+    "replies": 0,
+    "bookmarks": 0,
+    "views": 118,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-30T19:51:42.009Z"
   }
 ]
