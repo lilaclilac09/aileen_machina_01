@@ -6,9 +6,9 @@
     "description": "Founder, CEO @mach33 | Research and Investment in Expansion Technologies",
     "location": "Merrit Island, FL",
     "website": "https://www.33fg.com/",
-    "followers": 26036,
+    "followers": 26050,
     "following": 624,
-    "tweets": 8807,
+    "tweets": 8822,
     "verified": true,
     "avatarUrl": "https://pbs.twimg.com/profile_images/2049987217477513216/GJx9_LdR_normal.jpg",
     "tags": [
@@ -16,7 +16,7 @@
     ],
     "org": "mach33 / 33fg",
     "source": "fxtwitter",
-    "updatedAt": "2026-07-29T19:42:28.389Z"
+    "updatedAt": "2026-07-30T03:27:56.604Z"
   },
   {
     "id": "985281530070265862",
@@ -128,14 +128,14 @@
     "screenName": "SemiAnalysis_",
     "name": "SemiAnalysis",
     "website": "https://www.semianalysis.com",
-    "followers": 145239,
+    "followers": 145294,
     "following": 29,
-    "tweets": 2885,
+    "tweets": 2892,
     "verified": true,
     "avatarUrl": "https://pbs.twimg.com/profile_images/2062973370157694976/CdplNoi1_normal.jpg",
     "tags": [],
     "source": "fxtwitter",
-    "updatedAt": "2026-07-29T19:42:23.442Z"
+    "updatedAt": "2026-07-30T03:27:49.206Z"
   },
   {
     "id": "2039137985179127808",
@@ -176,9 +176,9 @@
     "description": "Space Investor @Mach33 | 🇬🇧🇷🇴",
     "location": "London, England",
     "website": "https://research.33fg.com/",
-    "followers": 3686,
-    "following": 469,
-    "tweets": 1845,
+    "followers": 3691,
+    "following": 472,
+    "tweets": 1851,
     "verified": true,
     "avatarUrl": "https://pbs.twimg.com/profile_images/2048709268069916672/Nz_BJSKj_normal.jpg",
     "tags": [
@@ -186,7 +186,7 @@
     ],
     "org": "mach33 / 33fg",
     "source": "fxtwitter",
-    "updatedAt": "2026-07-29T03:38:24.246Z"
+    "updatedAt": "2026-07-30T03:28:03.911Z"
   },
   {
     "id": "2051360039869276160",
@@ -208,14 +208,14 @@
     "id": "44196397",
     "screenName": "elonmusk",
     "name": "Elon Musk",
-    "followers": 241030708,
-    "following": 1375,
-    "tweets": 106175,
+    "followers": 241072849,
+    "following": 1377,
+    "tweets": 106351,
     "verified": true,
     "avatarUrl": "https://pbs.twimg.com/profile_images/2053244804520427520/m8mdWZCG_normal.jpg",
     "tags": [],
     "source": "fxtwitter",
-    "updatedAt": "2026-07-26T03:54:55.084Z"
+    "updatedAt": "2026-07-30T03:27:52.236Z"
   },
   {
     "id": "778922476570943489",
@@ -286,14 +286,14 @@
     "name": "Sawyer Merritt",
     "description": "EVs/space/tech. Bringing you the latest news in a single, easy-to-read feed. $TSLA & $SPCX investor, Model Y owner.",
     "website": "https://linktr.ee/merrittsawyer",
-    "followers": 1106987,
-    "following": 473,
-    "tweets": 108928,
+    "followers": 1108562,
+    "following": 472,
+    "tweets": 109013,
     "verified": true,
     "avatarUrl": "https://pbs.twimg.com/profile_images/1837744842715082752/xH9vYixL_normal.jpg",
     "tags": [],
     "source": "fxtwitter",
-    "updatedAt": "2026-07-25T03:36:43.915Z"
+    "updatedAt": "2026-07-30T03:27:55.177Z"
   },
   {
     "id": "108167190",
@@ -341,5 +341,21 @@
     "tags": [],
     "source": "fxtwitter",
     "updatedAt": "2026-07-29T19:42:18.460Z"
+  },
+  {
+    "id": "760345658",
+    "screenName": "wintonARK",
+    "name": "Brett Winton",
+    "description": "Chief Futurist @ARKInvest. ARK Venture IC. Welcome to the Great Acceleration.  https://ark-invest.com/terms/",
+    "location": "Venice, CA",
+    "website": "http://ark-invest.com",
+    "followers": 210421,
+    "following": 594,
+    "tweets": 12413,
+    "verified": true,
+    "avatarUrl": "https://pbs.twimg.com/profile_images/1600714802925486080/slXUxK2X_normal.jpg",
+    "tags": [],
+    "source": "fxtwitter",
+    "updatedAt": "2026-07-30T03:28:02.438Z"
   }
 ]
