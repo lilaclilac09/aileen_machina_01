@@ -1,27 +1,27 @@
 # European living guide + lifestyle
 
 Pinned hard memory. Public shelf:
-- 欧洲生活指南 → `/blog/watch-listening-shelf#euro-life`
-- 生活方式 → `/blog/watch-listening-shelf#lifestyle`
+- Euro life guide → `/blog/watch-listening-shelf#euro-life`
+- Lifestyle → `/blog/watch-listening-shelf#lifestyle`
 
-Agent rule: these are **practices and notes**, not a shopping list of magazines. Pair with `film-taste.md` when someone asks how to assemble a European life-feeling. Prefer Chinese when recommending these shelves — 中文已全部放开。
+Agent rule: these are **practices and notes**, not a shopping list of magazines. Pair with `film-taste.md` when someone asks how to assemble a European life-feeling. Shelf copy is English-first (Chinese labels removed from the public page).
 
-## 欧洲生活指南 — European living guide
+## Euro life guide — European living
 
-1. **城市漫游，不是观光** — 火车站、咖啡桌、招牌、石头上的光；一次一个街区；对话大于地标（Before Sunrise 法则）。
-2. **黑白地看** — 手机就够；练构图与反差；少颜色，多决定。
-3. **语言碎片（法 / 意）** — 听懂约 20% 对白就够；电影打开，城市也打开。
-4. **衣橱做成 Bond 冷感** — 少颜色、更好剪裁、重复穿着；情绪板大于追趋势（Léa / 邦女郎线）。
-5. **慢博物馆** — 一个展厅，不是整栋楼；练同欧洲长镜头一样的耐心。
-6. **餐桌当仪式** — 橄榄油、番茄、面包、一把好刀；让普通的饭有舞台感，但不表演。
+1. **Urban roam, not tourism** — train stations, café tables, signage, light on stone; one neighborhood at a time; conversation over landmarks (Before Sunrise rule).
+2. **See in black and white** — phone camera is enough; practice composition and contrast; less color, more decision.
+3. **Language scraps (FR / IT)** — enough to catch ~20% of dialogue; films open; cities open too.
+4. **Wardrobe as Bond cool** — fewer colors, better cut, repeat wears; moodboard over trend-chase (Léa / Bond-girl line).
+5. **Slow museum** — one gallery, not the whole building; same patience as a European long take.
+6. **Table as ritual** — olive oil, tomatoes, bread, one good knife; ordinary meal with stage presence, without performing.
 
-## 生活方式 — weekly practices
+## Lifestyle — weekly practices
 
-1. **城市漂移日记** — 走路；记下光、门口、偷听到的句子；不必是「旅行」。
-2. **一封信或一页拼贴** — 实体「拼凑生活感」；碎纸、票根、一句留下来的话。
-3. **原声当房间** — 爵士、香颂、电影配乐当背景；比算法流行更接近欧洲电影。
-4. **成对看，不成堆** — 《王冠》再接《真相捕捉》或《保镖》；质感大于刷完。
+1. **Urban drift diary** — walk; note light, doorways, overheard lines; not a "trip".
+2. **One letter or collage page** — physical scrapbook of living; scraps, tickets, one line that stayed.
+3. **Soundtrack as room** — jazz, chanson, film score as background; closer to European cinema than algorithm pop.
+4. **Watch in pairs, not piles** — The Crown, then The Capture or Bodyguard; texture over binge.
 
 ## How to recommend
 
-Give 1–2 living notes + optionally 1 film. Do not dump all six guides unless asked for the full shelf. Answer in Chinese when the ask is about 欧洲生活 / 生活方式.
+Give 1–2 living notes + optionally 1 film. Do not dump all six guides unless asked for the full shelf. Match the visitor's language; the public shelf itself is English.

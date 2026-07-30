@@ -83,7 +83,7 @@ type RoomDoor = {
  *
  *   Section 01  Cinematic opening   — scene + one line + one CTA
  *   Section 02  Clipping desk       — article scraps + direct doors
- *   Section 03  Watch / Listen      — DJ door + one shelf door
+ *   Section 03  Watch / Listen      — labeled doors (DJ → /sound, shelf, …)
  *   Section 04  Visual              — kiln / glass bench (handmade work)
  *
  * The Machina mark on the cinematic opening doubles as the door to the
@@ -403,213 +403,93 @@ export default function Home() {
 }
 
 function HomeWatchHub() {
+  const { language } = useLanguage();
+  const hub = t[language].watchHub;
+  const doors = hub.doors;
+
   return (
     <section
-      className="min-h-full px-5 sm:px-9 lg:px-14"
+      className="min-h-full overflow-y-auto px-5 sm:px-9 lg:px-14"
       style={{
         background: '#ffffff',
         color: palette.ink,
         fontFamily: nunito,
+        WebkitOverflowScrolling: 'touch',
       }}
       aria-label="Watch and listen hub"
     >
-      <div className="mx-auto flex max-w-[880px] flex-col gap-12 pb-28 pt-[96px] sm:gap-14 sm:pb-24 lg:pb-32 lg:pt-[104px]">
-        <div style={{ maxWidth: 560 }}>
+      <div
+        className="mx-auto flex max-w-[880px] flex-col"
+        style={{
+          gap: 'clamp(28px, 5vh, 48px)',
+          paddingTop: 'max(72px, calc(env(safe-area-inset-top, 0px) + 64px))',
+          paddingBottom: 'max(48px, calc(env(safe-area-inset-bottom, 0px) + 40px))',
+        }}
+      >
+        <div style={{ maxWidth: 520 }}>
           <p
             style={{
               color: palette.cyan,
-              fontFamily: nunito,
-              fontSize: '0.62rem',
+              fontFamily: mono,
+              fontSize: '0.58rem',
               fontWeight: 850,
-              letterSpacing: '0.28em',
-              marginBottom: 20,
+              letterSpacing: '0.22em',
+              marginBottom: 14,
               textTransform: 'uppercase',
             }}
           >
-            Watch / Listen
+            {hub.kicker}
           </p>
           <h2
             style={{
               color: palette.ink,
-              fontFamily: 'Georgia, Times New Roman, serif',
-              fontSize: 'clamp(2.35rem, 5.2vw, 3.9rem)',
-              fontWeight: 500,
-              fontStyle: 'italic',
+              fontFamily: nunito,
+              fontSize: 'clamp(1.85rem, 6.2vw, 2.75rem)',
+              fontWeight: 700,
+              fontStyle: 'normal',
               letterSpacing: '-0.03em',
-              lineHeight: 0.98,
-              marginBottom: 18,
+              lineHeight: 1.05,
+              marginBottom: 12,
             }}
           >
-            One door. DJ first.
+            {hub.heading}
           </h2>
           <p
             style={{
               color: 'rgba(10,10,10,0.58)',
               fontFamily: nunito,
-              fontSize: '1.02rem',
+              fontSize: 'clamp(0.92rem, 2.8vw, 1.02rem)',
               fontWeight: 500,
-              lineHeight: 1.65,
+              lineHeight: 1.55,
               maxWidth: 440,
             }}
           >
-            DJ is the black room. Everything else is a labeled door below —
-            shelf, book club, writing, tools.
+            {hub.body}
           </p>
         </div>
 
-        <Link
-          href="/sound"
-          id="hub-dj"
-          style={{
-            display: 'block',
-            borderRadius: 2,
-            overflow: 'hidden',
-            textDecoration: 'none',
-            background: '#0b0d10',
-            color: '#fffdf8',
-            border: '1px solid rgba(26,24,20,0.08)',
-          }}
-        >
-          <div
-            className="grid gap-0 md:grid-cols-[1.2fr_0.8fr]"
-            style={{ minHeight: 'clamp(200px, 28vh, 280px)' }}
-          >
-            <div
-              style={{
-                padding: 'clamp(26px, 3.6vw, 40px)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                gap: 24,
-              }}
-            >
-              <div>
-                <p
-                  style={{
-                    color: '#00a89d',
-                    fontFamily: mono,
-                    fontSize: '0.62rem',
-                    fontWeight: 850,
-                    letterSpacing: '0.28em',
-                    marginBottom: 12,
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  DJ set
-                </p>
-                <h3
-                  style={{
-                    fontSize: 'clamp(1.7rem, 3.4vw, 2.7rem)',
-                    fontWeight: 620,
-                    letterSpacing: '-0.03em',
-                    lineHeight: 1.02,
-                    marginBottom: 12,
-                    color: '#fffdf8',
-                  }}
-                >
-                  Two decks. Full library. Black room.
-                </h3>
-                <p
-                  style={{
-                    color: 'rgba(255,253,248,0.55)',
-                    fontFamily: 'Georgia, serif',
-                    fontSize: '0.98rem',
-                    lineHeight: 1.55,
-                    maxWidth: 420,
-                  }}
-                >
-                  Open the station — not a playlist card.
-                </p>
-              </div>
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  color: '#00a89d',
-                  fontFamily: mono,
-                  fontSize: '0.68rem',
-                  fontWeight: 900,
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase',
-                }}
-              >
-                Enter /sound <span aria-hidden>→</span>
-              </span>
-            </div>
-            <div
-              aria-hidden
-              style={{
-                position: 'relative',
-                minHeight: 160,
-                background:
-                  'radial-gradient(ellipse at 70% 40%, rgba(0,168,157,0.22) 0%, transparent 55%), linear-gradient(145deg, #12161b 0%, #0b0d10 60%)',
-                borderLeft: '1px solid rgba(255,253,248,0.06)',
-                display: 'grid',
-                placeItems: 'center',
-                padding: 28,
-              }}
-            >
-              <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-                {[0, 1].map((i) => (
-                  <div
-                    key={i}
-                    style={{
-                      width: 84,
-                      height: 84,
-                      borderRadius: '50%',
-                      border: '1px solid rgba(0,168,157,0.45)',
-                      background:
-                        'repeating-radial-gradient(circle at center, transparent 0 7px, rgba(255,253,248,0.06) 7px 8px)',
-                      boxShadow: i === 0 ? '0 0 24px rgba(0,168,157,0.25)' : 'none',
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        </Link>
-
         <nav
-          aria-label="Rooms"
+          aria-label={hub.kicker}
           style={{
             display: 'grid',
             gap: 0,
-            marginTop: 4,
             borderTop: '1px solid rgba(20,17,12,0.12)',
+            /* Reserve breathing room under the last door so snap crop never clips it */
+            paddingBottom: 8,
           }}
         >
-          {[
-            {
-              label: 'Shelf',
-              hint: 'films · podcasts · living',
-              href: '/blog/watch-listening-shelf',
-            },
-            {
-              label: 'Metal & Pages',
-              hint: 'book club',
-              href: '/updates',
-            },
-            {
-              label: 'Dispatch',
-              hint: 'essays · news',
-              href: '/dispatch',
-            },
-            {
-              label: 'Tools',
-              hint: 'small utilities',
-              href: '/tools',
-            },
-          ].map((door) => (
+          {doors.map((door) => (
             <Link
               key={door.href}
               href={door.href}
+              id={'id' in door && door.id ? door.id : undefined}
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'minmax(0, 1fr) auto',
-                gap: 16,
-                alignItems: 'baseline',
-                padding: '18px 0',
+                gap: 12,
+                alignItems: 'center',
+                minHeight: 52,
+                padding: '14px 0',
                 borderBottom: '1px dashed rgba(20,17,12,0.14)',
                 textDecoration: 'none',
                 color: palette.ink,
@@ -617,27 +497,30 @@ function HomeWatchHub() {
             >
               <span
                 style={{
-                  fontFamily: 'Georgia, Times New Roman, serif',
-                  fontSize: 'clamp(1.2rem, 2.2vw, 1.45rem)',
-                  fontWeight: 500,
-                  fontStyle: 'italic',
-                  letterSpacing: '-0.02em',
+                  fontFamily: nunito,
+                  fontSize: 'clamp(1.05rem, 3.6vw, 1.28rem)',
+                  fontWeight: 600,
+                  fontStyle: 'normal',
+                  letterSpacing: '-0.015em',
+                  lineHeight: 1.2,
                 }}
               >
                 {door.label}
-                <span style={{ marginLeft: 10, color: palette.cyan, fontStyle: 'normal' }} aria-hidden>
+                <span style={{ marginLeft: 8, color: palette.cyan, fontWeight: 500 }} aria-hidden>
                   →
                 </span>
               </span>
               <span
                 style={{
-                  color: 'rgba(20,17,12,0.42)',
+                  color: 'rgba(20,17,12,0.48)',
                   fontFamily: mono,
-                  fontSize: '0.52rem',
-                  fontWeight: 800,
-                  letterSpacing: '0.14em',
+                  fontSize: 'clamp(0.55rem, 1.8vw, 0.62rem)',
+                  fontWeight: 700,
+                  letterSpacing: '0.1em',
                   textTransform: 'uppercase',
                   textAlign: 'right',
+                  lineHeight: 1.35,
+                  maxWidth: '42vw',
                 }}
               >
                 {door.hint}
