@@ -40,6 +40,32 @@ const palette = {
 const SESSION_LOADED_KEY = 'aileena_loaded_once';
 const dragMeCursor =
   'url("data:image/svg+xml,%3Csvg%20xmlns=\'http://www.w3.org/2000/svg\'%20width=\'104\'%20height=\'34\'%20viewBox=\'0%200%20104%2034\'%3E%3Ctext%20x=\'4\'%20y=\'23\'%20font-family=\'Georgia%2Cserif\'%20font-size=\'20\'%20font-style=\'italic\'%20fill=\'%2314110c\'%3Edrag%20me%3C/text%3E%3C/svg%3E") 8 18, grab';
+/** Visible on-card hint — CSS cursors vanish on Safari / during pointer capture. */
+function DragMeHint({ tone = 'ink' }: { tone?: 'ink' | 'light' }) {
+  return (
+    <span
+      aria-hidden
+      data-drag-me="true"
+      style={{
+        position: 'absolute',
+        left: 10,
+        top: 6,
+        zIndex: 6,
+        color: tone === 'light' ? 'rgba(255,253,248,0.95)' : 'rgba(20,17,12,0.7)',
+        fontFamily: 'Georgia, Times New Roman, serif',
+        fontSize: '1rem',
+        fontStyle: 'italic',
+        letterSpacing: '0.01em',
+        pointerEvents: 'none',
+        whiteSpace: 'nowrap',
+        textShadow: tone === 'light' ? '0 1px 10px rgba(0,0,0,0.55)' : 'none',
+        userSelect: 'none',
+      }}
+    >
+      drag me
+    </span>
+  );
+}
 const dragThreshold = 3;
 const atriumArticleWidth = 'min(28vw, 280px)';
 const atriumCoverWidth = 'min(15vw, 148px)';
@@ -539,6 +565,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
   const dragOffsetsRef = useRef<Record<string, DragOffset>>({});
   const baseTransformRef = useRef<Record<string, string>>({});
   const dragNodeRef = useRef<HTMLElement | null>(null);
+  const deskRef = useRef<HTMLDivElement | null>(null);
   const socialLinks = [
     { label: 'github', href: 'https://github.com/lilaclilac09' },
     { label: 'substack', href: '/dispatch' },
@@ -555,6 +582,22 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
     const base = baseTransformRef.current[id] ?? baseFor(id);
     node.style.transition = 'none';
     node.style.transform = `translate3d(${x}px, ${y}px, 0) ${base}`;
+  };
+  /** Keep every scrap fully on the desk — drag-me labels must never leave the page. */
+  const clampToDesk = (node: HTMLElement, id: string, x: number, y: number) => {
+    const desk = deskRef.current;
+    if (!desk) return { x, y };
+    paint(node, id, x, y);
+    const pad = 10;
+    const d = desk.getBoundingClientRect();
+    const n = node.getBoundingClientRect();
+    let nextX = x;
+    let nextY = y;
+    if (n.left < d.left + pad) nextX += d.left + pad - n.left;
+    if (n.right > d.right - pad) nextX += d.right - pad - n.right;
+    if (n.top < d.top + pad) nextY += d.top + pad - n.top;
+    if (n.bottom > d.bottom - pad) nextY += d.bottom - pad - n.bottom;
+    return { x: nextX, y: nextY };
   };
   const dragTransform = (id: string, baseTransform: string) => {
     const offset = getDragOffset(id);
@@ -581,7 +624,8 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
     node.style.transition = 'transform 0.22s cubic-bezier(0.22, 1, 0.36, 1)';
     node.style.transform = `translate3d(${final.x}px, ${final.y}px, 0) ${base}`;
     node.style.willChange = 'auto';
-    node.style.cursor = '';
+    /* Keep custom drag-me cursor — never leave blank / default after drag */
+    node.style.cursor = dragMeCursor;
     delete node.dataset.dragging;
     node.style.zIndex = homeZFor(drag.id);
     setDragOffsets({ ...dragOffsetsRef.current });
@@ -603,7 +647,8 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
     if (!drag.moved && Math.hypot(dx, dy) <= dragThreshold) return;
     event.preventDefault();
     drag.moved = true;
-    const next = { x: drag.originX + dx, y: drag.originY + dy };
+    const proposed = { x: drag.originX + dx, y: drag.originY + dy };
+    const next = clampToDesk(node, drag.id, proposed.x, proposed.y);
     dragOffsetsRef.current[drag.id] = next;
     paint(node, drag.id, next.x, next.y);
   };
@@ -633,7 +678,8 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
     dragNodeRef.current = node;
     node.dataset.dragging = 'true';
     node.style.zIndex = '60';
-    node.style.cursor = 'grabbing';
+    /* Keep "drag me" cursor visible while dragging (Safari drops CSS cursors otherwise) */
+    node.style.cursor = dragMeCursor;
     node.style.transition = 'none';
     node.style.willChange = 'transform';
     node.setPointerCapture(event.pointerId);
@@ -706,6 +752,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
         </header>
 
         <div
+          ref={deskRef}
           className="relative z-10 min-h-0 flex-1 sm:min-h-0"
           style={{
             background:
@@ -769,8 +816,9 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                   outline: 'none',
                   backgroundImage: "url('/dispatch-covers/harassment.jpg')",
                   backgroundPosition: '48% 42%',
-                  backgroundSize: 'cover',
+                  backgroundSize: 'contain',
                   backgroundRepeat: 'no-repeat',
+                  backgroundColor: '#0b0b0b',
                   boxShadow: 'none',
                   textDecoration: 'none',
                   position: 'relative',
@@ -827,8 +875,9 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                     border: 'none',
                     backgroundImage: "url('/bg_pic/03.jpeg')",
                     backgroundPosition: '36% 14%',
-                    backgroundSize: 'cover',
+                    backgroundSize: 'contain',
                     backgroundRepeat: 'no-repeat',
+                    backgroundColor: '#0b0b0b',
                     boxShadow: 'none',
                   }}
                 />
@@ -904,6 +953,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 aria-label={`Open ${room.label}`}
                 {...dragHandlers(room.id)}
               >
+                <DragMeHint tone={isPaper ? 'ink' : 'light'} />
                 <ObjectFace room={room} />
               </a>
             ) : (
@@ -915,6 +965,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 aria-label={`Open ${room.label}`}
                 {...dragHandlers(room.id)}
               >
+                <DragMeHint tone={isPaper || isArticle ? 'ink' : 'light'} />
                 <ObjectFace room={room} />
               </Link>
             );
@@ -947,6 +998,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             }}
             {...dragHandlers('woman-cover-print')}
           >
+            <DragMeHint tone="light" />
             <BleedPhoto
               src="/dispatch-covers/harassment.jpg"
               position="48% 38%"
@@ -997,6 +1049,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             }}
             {...dragHandlers('didion-scrap')}
           >
+            <DragMeHint tone="light" />
             <BleedPhoto
               src="/dispatch-covers/books-joan-didion-readings.jpg"
               position="50% 18%"
@@ -1048,6 +1101,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               window.dispatchEvent(new CustomEvent('open-agent-chat'));
             }}
           >
+            <DragMeHint tone="ink" />
             <span
               aria-hidden
               style={{
@@ -1132,7 +1186,7 @@ const thumbnailShellStyle: CSSProperties = {
   boxShadow: 'none',
 };
 
-/** Full-bleed photo face: dark underlay + overscan crop kills rotate white fringe. */
+/** Full photo face — contain so nothing is cropped; black letterbox if aspect differs. */
 function BleedPhoto({
   src,
   position = 'center',
@@ -1161,10 +1215,10 @@ function BleedPhoto({
       <span
         style={{
           position: 'absolute',
-          inset: '-8%',
+          inset: 0,
           backgroundImage: `url('${src}')`,
           backgroundPosition: position,
-          backgroundSize: 'cover',
+          backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
           filter,
           transform: 'translateZ(0)',
@@ -1295,21 +1349,6 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           >
             {room.blurb}
           </span>
-        </span>
-        <span
-          aria-hidden
-          style={{
-            position: 'absolute',
-            left: 16,
-            top: 2,
-            zIndex: 3,
-            color: 'rgba(20,17,12,0.62)',
-            fontFamily: 'Georgia, serif',
-            fontSize: '1.05rem',
-            fontStyle: 'italic',
-          }}
-        >
-          drag me
         </span>
         <span
           aria-hidden
