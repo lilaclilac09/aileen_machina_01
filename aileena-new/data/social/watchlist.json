@@ -1,5 +1,5 @@
 {
-  "description": "Accounts to track. Auto shallow sync: pnpm sync:social-rss (Nitter). Deep: pnpm social:grok-prompt → paste Grok → pnpm ingest:grok.",
+  "description": "Accounts to track. Auto shallow sync: pnpm sync:social-rss (Nitter). Deep: pnpm social:grok-prompt → paste Grok → pnpm ingest:grok. Ingest is watchlist-author only (skips timeline RTs of meme/Elon/SpaceX).",
   "accounts": [
     {
       "screenName": "dylan522p",

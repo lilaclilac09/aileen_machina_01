@@ -13,6 +13,7 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { isWatchlistScreen, loadWatchlistScreenNames } from '../lib/data/socialWatchlist';
 
 const ROOT = process.cwd();
 const WATCH = join(ROOT, 'data', 'social', 'watchlist.json');
@@ -156,15 +157,20 @@ async function main() {
   let accounts = watch.accounts ?? [];
   if (only) accounts = accounts.filter((a) => only.has(a.screenName.toLowerCase()));
 
+  // Only ingest tweets authored by watchlist handles (skip RTs of Elon/SpaceX/meme accounts).
+  const allowedScreens = loadWatchlistScreenNames(ROOT);
+
   const existing = loadExistingIds();
   const report = {
     ranAt: new Date().toISOString(),
     nitterBases: NITTER_BASES,
     dry,
+    ownOnly: true,
     accounts: [] as Array<{
       screenName: string;
       rssCount: number;
       missing: string[];
+      skippedOffWatchlist: string[];
       ingested: string[];
       failed: string[];
       error?: string;
@@ -172,7 +178,7 @@ async function main() {
   };
 
   console.log(
-    `[rss] watchlist=${accounts.length} existingTweets=${existing.size} dry=${dry} bases=${NITTER_BASES.join(',')}`,
+    `[rss] watchlist=${accounts.length} allow=${allowedScreens.size} existingTweets=${existing.size} dry=${dry} bases=${NITTER_BASES.join(',')}`,
   );
 
   for (const acc of accounts) {
@@ -180,6 +186,7 @@ async function main() {
       screenName: acc.screenName,
       rssCount: 0,
       missing: [] as string[],
+      skippedOffWatchlist: [] as string[],
       ingested: [] as string[],
       failed: [] as string[],
       error: undefined as string | undefined,
@@ -191,13 +198,21 @@ async function main() {
       row.missing = missing.map((m) => m.id);
       console.log(`[rss] @${acc.screenName}: rss=${items.length} missing=${missing.length}`);
       for (const it of missing) {
-        if (dry) {
+        const author = it.screenName || acc.screenName;
+        if (!isWatchlistScreen(author, allowedScreens)) {
+          row.skippedOffWatchlist.push(`${author}/${it.id}`);
           console.log(
-            `[rss] dry would ingest ${it.screenName}/${it.id} — ${it.title.slice(0, 80)}`,
+            `[rss] skip off-watchlist @${author}/${it.id} — ${(it.title || '').slice(0, 72)}`,
           );
           continue;
         }
-        const ok = ingestStatus(it.screenName || acc.screenName, it.id);
+        if (dry) {
+          console.log(
+            `[rss] dry would ingest ${author}/${it.id} — ${it.title.slice(0, 80)}`,
+          );
+          continue;
+        }
+        const ok = ingestStatus(author, it.id);
         if (ok) {
           row.ingested.push(it.id);
           existing.add(it.id);
@@ -215,7 +230,10 @@ async function main() {
   writeFileSync(REPORT, JSON.stringify(report, null, 2) + '\n');
   const totalIn = report.accounts.reduce((n, a) => n + a.ingested.length, 0);
   const totalMiss = report.accounts.reduce((n, a) => n + a.missing.length, 0);
-  console.log(`[rss] done missing=${totalMiss} ingested=${totalIn} → ${REPORT}`);
+  const totalSkip = report.accounts.reduce((n, a) => n + a.skippedOffWatchlist.length, 0);
+  console.log(
+    `[rss] done missing=${totalMiss} ingested=${totalIn} skippedOffWatchlist=${totalSkip} → ${REPORT}`,
+  );
 
   const ingestedIds = report.accounts.flatMap((a) => a.ingested);
   if (!dry && ingestedIds.length > 0) {
