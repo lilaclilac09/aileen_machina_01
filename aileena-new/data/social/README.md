@@ -47,6 +47,14 @@ watchlist.json
 
 Edit: `aileena-new/data/social/watchlist.json`
 
+**Ingest policy:** RSS only keeps tweets whose **author is on the watchlist**. Timeline RTs of Elon / SpaceX / meme accounts are skipped. Dreaming recent sample also applies a soft **substance** filter (length / digits / URL) so short banter does not flood the digest.
+
+```bash
+# One-shot: delete already-ingested off-watchlist rows + rebuild tweets.json
+pnpm prune:social-watchlist
+pnpm prune:social-watchlist -- --dry-run
+```
+
 ## Local commands
 
 ```bash

@@ -62,6 +62,8 @@ pnpm build:data-index
 - `@dylan522p` / `@SemiAnalysis_` — SemiAnalysis
 - `@aaronburnett` / `@mach33` / `@VladSaigau` — mach33 / 33fg
 
+**Filter:** RSS ingest + Dreaming digest are **watchlist-author only** (no RT meme leakage). Soft substance filter drops short banter from the 7d sample. Prune existing junk: `pnpm prune:social-watchlist`.
+
 ## Agent tools
 
 - `searchTweets` / `lookupSocialProfile` via `lib/data/social.ts`
