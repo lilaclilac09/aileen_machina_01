@@ -5909,5 +5909,29 @@
     "tags": [],
     "source": "fxtwitter",
     "ingestedAt": "2026-07-30T03:28:03.759Z"
+  },
+  {
+    "id": "2082813647034749262",
+    "url": "https://x.com/SemiAnalysis_/status/2082813647034749262",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Ever wonder why PCB folks throw around \"M8\" or \"M9\" like a spec sheet magic word?\n\nThe \"M\" traces back to Panasonic's Megtron series — long the benchmark for low-loss, high-speed copper clad laminate (CCL).\n\nEach generation from Megtron 4 to 8 progressively lowered the dissipation factor (Df), meaning less signal loss at high frequencies.\n\nBecause Megtron set the bar, it became industry shorthand for a performance tier rather than a Panasonic-exclusive part number. Say \"M8 grade\" today, and it simply means \"meets Megtron 8 electrical specs\" — whether it's made by Panasonic, EMC, or Doosan.\n\nAs AI servers demand ever-higher SerDes speeds, high-tier CCL has become the critical bottleneck material. That makes it one of the tightest, fastest-growing segments in the entire hardware supply chain.",
+    "createdAt": "Thu Jul 30 13:00:44 +0000 2026",
+    "createdTimestamp": 1785416444,
+    "likes": 38,
+    "retweets": 5,
+    "replies": 3,
+    "bookmarks": 10,
+    "views": 10701,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HOej-TDWEAA1jym.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-07-30T14:31:35.770Z"
   }
 ]
