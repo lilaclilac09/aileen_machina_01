@@ -6808,5 +6808,33 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-01T03:49:36.224Z"
+  },
+  {
+    "id": "2083538533889757206",
+    "url": "https://x.com/aaronburnett/status/2083538533889757206",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Helpful context the rough token counts for …\n\nThe word “tree”: 1\nAn image of a tree: 1,000\nA 30fps video of a tree: ~80,000\n\nLots of information compression going on from reality to human linguistics",
+    "createdAt": "Sat Aug 01 13:01:11 +0000 2026",
+    "createdTimestamp": 1785589271,
+    "likes": 17,
+    "retweets": 2,
+    "replies": 1,
+    "bookmarks": 0,
+    "views": 1538,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HOo3QHaWYAACLva.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-01T13:54:46.618Z"
   }
 ]
