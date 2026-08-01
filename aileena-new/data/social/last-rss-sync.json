@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-08-01T13:54:42.823Z",
+  "ranAt": "2026-08-01T19:33:12.554Z",
   "nitterBases": [
     "https://nitter.net"
   ],
@@ -28,17 +28,25 @@
     },
     {
       "screenName": "SemiAnalysis_",
-      "rssCount": 18,
-      "missing": [],
+      "rssCount": 19,
+      "missing": [
+        "2083598748018454726",
+        "2083598753320079438",
+        "2083598754234400830"
+      ],
       "skippedOffWatchlist": [],
-      "ingested": [],
+      "ingested": [
+        "2083598748018454726",
+        "2083598753320079438",
+        "2083598754234400830"
+      ],
       "failed": []
     },
     {
       "screenName": "aaronburnett",
       "rssCount": 19,
       "missing": [
-        "2083538533889757206",
+        "2083597066962456705",
         "2083353705504469233",
         "2083343510757892116"
       ],
@@ -47,7 +55,7 @@
         "elonmusk/2083343510757892116"
       ],
       "ingested": [
-        "2083538533889757206"
+        "2083597066962456705"
       ],
       "failed": []
     },
@@ -61,27 +69,12 @@
     },
     {
       "screenName": "VladSaigau",
-      "rssCount": 18,
-      "missing": [
-        "2083268172602372368",
-        "2082303239983099957",
-        "2082097648769610098",
-        "2080812297694409014",
-        "2080798034540310799",
-        "2080377221030555963",
-        "2080302195677728803"
-      ],
-      "skippedOffWatchlist": [
-        "elonmusk/2083268172602372368",
-        "DJEsmeraldMusic/2082303239983099957",
-        "wintonARK/2082097648769610098",
-        "elonmusk/2080812297694409014",
-        "CSI_Starbase/2080798034540310799",
-        "RupertLowe10/2080377221030555963",
-        "SpaceX/2080302195677728803"
-      ],
+      "rssCount": 0,
+      "missing": [],
+      "skippedOffWatchlist": [],
       "ingested": [],
-      "failed": []
+      "failed": [],
+      "error": "empty RSS from https://nitter.net/VladSaigau/rss (bytes=3346)"
     }
   ]
 }
