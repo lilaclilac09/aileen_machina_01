@@ -778,12 +778,24 @@ export default function AgentChat() {
                   if (!next) {
                     setVoiceDraft('');
                     setInput('');
+                    return next;
                   }
+                  // Unlock mic in the same user gesture (Safari needs this).
+                  void (async () => {
+                    try {
+                      if (navigator.mediaDevices?.getUserMedia) {
+                        const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        s.getTracks().forEach((t) => t.stop());
+                      }
+                    } catch {
+                      setVoiceDraft('Mic blocked — allow microphone in the address bar');
+                    }
+                  })();
                   return next;
                 });
               }}
               aria-label={voiceMode ? 'Turn voice off' : 'Turn voice on'}
-              title={voiceMode ? 'Voice on — tap the orb to talk' : 'Turn on voice, then tap the orb'}
+              title={voiceMode ? 'Voice on — speak to the orb' : 'Turn on voice (allow mic)'}
               className="inline-flex items-center gap-1 text-[0.55rem] tracking-[0.2em] uppercase px-1.5 py-0.5 rounded transition-colors"
               style={{
                 color: voiceMode ? '#007d75' : 'rgba(27,23,19,0.55)',
@@ -884,7 +896,7 @@ export default function AgentChat() {
             <p className="text-[0.82rem] sm:text-sm leading-6 text-[#007d75]/85 whitespace-pre-wrap break-words">
               <span className="text-[#00a89d]/55 mr-2 animate-pulse">&gt;</span>
               <span className="italic opacity-95">
-                {voiceDraft.trim() || 'Tap the orb, then speak — words appear here'}
+                {voiceDraft.trim() || 'Listening… speak — your words appear here'}
               </span>
             </p>
           )}
@@ -1041,7 +1053,7 @@ export default function AgentChat() {
             )}
           </div>
           <p className="mt-2 flex items-center justify-between gap-3 text-[0.52rem] tracking-[0.3em] text-[#1b1713]/40 uppercase">
-            <span>{voiceMode ? 'tap orb · speak · pause to send · esc' : '↵ send · reset · esc · voice'}</span>
+            <span>{voiceMode ? 'speak now · pause to send · esc' : '↵ send · reset · esc · voice'}</span>
             <span className={remaining === 0 ? 'text-red-400/70' : remaining <= 2 ? 'text-[#007d75]/55' : 'text-[#1b1713]/40'}>
               {remaining === 0
                 ? '0 left · resets at local midnight'

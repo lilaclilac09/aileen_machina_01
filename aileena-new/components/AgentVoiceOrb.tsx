@@ -647,9 +647,13 @@ export default function AgentVoiceOrb({
     else pushCaption('');
   }, [onAsk, onListeningChange, pushCaption, stopOpenAiListen, stopPlayback, stopWebSpeech]);
 
-  // Voice off / console closed → stop. Do NOT auto-start (tap the orb).
+  // Voice on → auto-start listen (Voice button / orb already unlocked mic).
   useEffect(() => {
-    if (!active || disabled) stopListening();
+    if (!active || disabled) {
+      stopListening();
+      return;
+    }
+    void startListening();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, disabled]);
 
@@ -666,15 +670,15 @@ export default function AgentVoiceOrb({
   if (!active) return null;
 
   const label =
-    phase === 'speaking' ? '…' : listening ? (phase === 'hearing' ? '…' : 'stop') : 'talk';
+    phase === 'speaking' ? '…' : listening ? (phase === 'hearing' ? '…' : 'stop') : 'tap';
 
   const hint =
     caption ||
     (phase === 'speaking'
       ? 'Speaking…'
       : listening
-        ? 'Listening… speak, then pause'
-        : 'Tap the orb to talk');
+        ? 'Listening… speak now'
+        : 'Tap here to talk — then speak');
 
   return (
     <div className="border-t border-[#e7e0d6] px-5 py-4 bg-[#faf7f0]/80">
