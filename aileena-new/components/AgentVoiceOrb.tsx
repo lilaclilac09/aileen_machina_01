@@ -90,7 +90,7 @@ export default function AgentVoiceOrb({
   const [presetKey, setPresetKey] = useState<VoicePresetKey>('auntie');
 
   const playCtxRef = useRef<AudioContext | null>(null);
-  const voiceIdRef = useRef(VOICE_PRESETS[0].voiceId);
+  const voiceIdRef = useRef<string>(VOICE_PRESETS[0].voiceId);
   const playGenRef = useRef(0);
   const nextPlayAtRef = useRef(0);
   const sourcesRef = useRef<AudioBufferSourceNode[]>([]);
