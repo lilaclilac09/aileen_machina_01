@@ -40,39 +40,23 @@ type Props = {
   variant?: 'dock' | 'panel';
 };
 
-/** Four console voices — style presets, not celebrity clones. */
+/** Two clear console voices. */
 export const VOICE_PRESETS = [
   {
-    key: 'british',
-    label: 'British English',
-    short: 'British',
-    voiceId: 'pFZP5JQG7iQjIQuC4Bku', // Lily — classic RP
-    hint: 'Clear British English',
-    lang: 'en-GB',
-  },
-  {
     key: 'shanghai',
-    label: 'Shanghai Dialect',
+    label: 'Shanghai',
     short: 'Shanghai',
     voiceId: 'Ca5bKgudqKJzq8YRFoAz', // Coco Li — Shanghainese soft
     hint: 'Soft Shanghai dialect',
     lang: 'zh-CN',
   },
   {
-    key: 'german',
-    label: 'German',
-    short: 'German',
-    voiceId: 'flq6f7yk4E4fJM5XTYuZ', // Michael — German
-    hint: 'Standard German',
-    lang: 'de-DE',
-  },
-  {
-    key: 'leijun',
-    label: 'Leijun',
-    short: 'Leijun',
-    voiceId: '4VZIsMPtgggwNg7OXbPY', // James Gao — mid male Mandarin vibe
-    hint: 'Tech-founder Mandarin vibe',
-    lang: 'zh-CN',
+    key: 'london',
+    label: 'London',
+    short: 'London',
+    voiceId: 'pFZP5JQG7iQjIQuC4Bku', // Lily — classic RP
+    hint: 'British English',
+    lang: 'en-GB',
   },
 ] as const;
 
@@ -81,10 +65,13 @@ export type VoicePresetKey = (typeof VOICE_PRESETS)[number]['key'];
 const VOICE_STORAGE_KEY = 'aileena.console.voicePreset';
 const LEGACY_PRESET_MAP: Record<string, VoicePresetKey> = {
   auntie: 'shanghai',
-  london: 'british',
-  crown: 'british',
-  dongbei: 'leijun',
-  tech: 'leijun',
+  british: 'london',
+  crown: 'london',
+  dongbei: 'shanghai',
+  german: 'london',
+  leijun: 'shanghai',
+  tech: 'shanghai',
+  north: 'shanghai',
 };
 
 const SENTENCE_RE = /(?<=[.!?。！？…])\s+|(?<=\n)/;
@@ -696,17 +683,11 @@ export default function AgentVoiceOrb({
     setHint('tap mic');
   }, [onListeningChange, stopOpenAiListen, stopPlayback, stopWebSpeech]);
 
-  // Start listening when voice mode turns on; stop when it turns off.
-  // Do not re-run on caps changes (that killed recognition mid-flight).
+  // Voice mode on does not auto-start mic — user clicks the microphone (clear affordance).
   useEffect(() => {
     if (!active || disabled) {
       stopListening();
-      return;
     }
-    void startListening();
-    return () => {
-      stopListening();
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, disabled]);
 
@@ -734,29 +715,20 @@ export default function AgentVoiceOrb({
 
   if (!active) return null;
 
-  const activePreset = VOICE_PRESETS.find((p) => p.key === presetKey) ?? VOICE_PRESETS[0];
-  const statusLine =
-    phase === 'speaking'
-      ? 'Aileena is speaking…'
-      : phase === 'hearing' || listening
-        ? 'Aileena is listening…'
-        : 'tap mic to talk';
-
   const micButton = (
     <button
       type="button"
       disabled={disabled}
       onClick={() => (listening ? stopListening() : void startListening())}
-      aria-label={listening ? 'Mute mic' : 'Aileena listens'}
-      title={listening ? 'Mute' : 'Aileena listens'}
-      className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+      aria-label={listening ? 'Stop listening' : 'Click to talk'}
+      title={listening ? 'Click to stop' : 'Click the microphone to talk'}
+      className={`relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
         listening || phase === 'speaking'
-          ? 'border-[#00a89d]/70 bg-[#00a89d]/12 animate-pulse'
-          : 'border-[#1b1713]/15 bg-transparent hover:border-[#00a89d]/50'
+          ? 'border-[#00a89d]/80 bg-[#00a89d]/15 animate-pulse'
+          : 'border-[#00a89d]/45 bg-[#00a89d]/08 hover:border-[#00a89d]/70 hover:bg-[#00a89d]/12'
       }`}
     >
-      {/* Simple mic glyph — no crystal ball */}
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden className="text-[#008f86]">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden className="text-[#008f86]">
         <rect x="9" y="2" width="6" height="11" rx="3" stroke="currentColor" strokeWidth="1.8" />
         <path d="M5 11a7 7 0 0 0 14 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
         <path d="M12 18v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
@@ -764,53 +736,38 @@ export default function AgentVoiceOrb({
     </button>
   );
 
-  const presetStrip = (
-    <div className="flex flex-col gap-2">
-      {(liveCaption || listening || phase === 'speaking' || phase === 'idle') && (
-        <p className="text-[0.78rem] leading-5 text-[#1b1713]/55 truncate">
-          <span className="text-[#008f86]">{liveCaption || statusLine}</span>
-        </p>
-      )}
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div
-          className="inline-flex flex-wrap items-center gap-0.5 rounded-md border border-[#e7e0d6] bg-[#f7f4ee] p-0.5"
-          role="group"
-          aria-label="Voice"
-        >
-          {VOICE_PRESETS.map((p) => {
-            const on = p.key === presetKey;
-            return (
-              <button
-                key={p.key}
-                type="button"
-                onClick={() => selectPreset(p.key)}
-                title={p.hint}
-                aria-pressed={on}
-                className={`rounded px-2.5 py-[5px] text-[0.68rem] tracking-[0.02em] transition-colors ${
-                  on
-                    ? 'bg-[#fffdf8] text-[#007d75] shadow-[0_1px_2px_rgba(31,26,20,0.08)]'
-                    : 'text-[#1b1713]/42 hover:text-[#1b1713]/7'
-                }`}
-              >
-                {p.short}
-              </button>
-            );
-          })}
-        </div>
-        {(!caps.tts || ttsFallback) && (
-          <span className="text-[0.58rem] tracking-[0.04em] text-[#b45309]/90">
-            set ELEVENLABS_API_KEY for real voices
-          </span>
-        )}
-      </div>
-    </div>
-  );
-
   if (variant === 'dock') {
+    const voicePicker = (
+      <div
+        className="mt-2 inline-flex w-full max-w-sm items-stretch gap-1 rounded-lg border border-[#e7e0d6] bg-[#f7f4ee] p-1"
+        role="group"
+        aria-label="Voice accent"
+      >
+        {VOICE_PRESETS.map((p) => {
+          const on = p.key === presetKey;
+          return (
+            <button
+              key={p.key}
+              type="button"
+              onClick={() => selectPreset(p.key)}
+              title={p.hint}
+              aria-pressed={on}
+              className={`flex-1 rounded-md px-3 py-2 text-[0.82rem] transition-colors ${
+                on
+                  ? 'bg-[#fffdf8] text-[#007d75] shadow-[0_1px_3px_rgba(31,26,20,0.1)] font-medium'
+                  : 'text-[#1b1713]/45 hover:text-[#1b1713]/75'
+              }`}
+            >
+              {p.label}
+            </button>
+          );
+        })}
+      </div>
+    );
     return (
       <>
         {dockHosts.mic ? createPortal(micButton, dockHosts.mic) : null}
-        {dockHosts.strip ? createPortal(presetStrip, dockHosts.strip) : null}
+        {dockHosts.strip ? createPortal(voicePicker, dockHosts.strip) : null}
       </>
     );
   }
@@ -819,7 +776,7 @@ export default function AgentVoiceOrb({
     <div className="border-t border-[#e7e0d6] px-5 py-3">
       <div className="flex items-center gap-3">
         {micButton}
-        <div className="min-w-0 flex-1">{presetStrip}</div>
+        <p className="text-[0.78rem] text-[#1b1713]/50">Click the microphone to talk</p>
       </div>
     </div>
   );

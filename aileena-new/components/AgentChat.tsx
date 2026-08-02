@@ -780,7 +780,7 @@ export default function AgentChat() {
                 });
               }}
               aria-label={voiceMode ? 'Turn voice off' : 'Turn voice on'}
-              title={voiceMode ? 'Voice on · speak into the mic' : 'Talk with Aileena'}
+              title={voiceMode ? 'Voice on — click the microphone to talk' : 'Turn on voice, then click the microphone'}
               className="inline-flex items-center gap-1 text-[0.55rem] tracking-[0.2em] uppercase px-1.5 py-0.5 rounded transition-colors"
               style={{
                 color: voiceMode ? '#007d75' : 'rgba(27,23,19,0.55)',
@@ -822,8 +822,9 @@ export default function AgentChat() {
               <p className="text-[0.62rem] tracking-[0.25em] text-[#1b1713]/50 uppercase mb-2">
                 ▸ ready · say hi or ask anything
               </p>
-              <p className="text-[0.72rem] leading-5 text-[#008f86]/85 mb-3">
-                Tap <span className="font-medium">Voice</span> in the header — speak, and your words appear in the chat live.
+              <p className="text-[0.78rem] leading-5 text-[#1b1713]/55 mb-3">
+                Tap <span className="text-[#008f86]">Voice</span>, then click the{' '}
+                <span className="text-[#008f86]">microphone</span> to talk. Your words show up in the chat.
               </p>
               {buildCatchUpHint(readTopicMemory().topics) && (
                 <p className="text-[0.75rem] leading-5 text-[#008f86]/85 mb-2">
@@ -873,12 +874,9 @@ export default function AgentChat() {
           )}
 
           {voiceMode && voiceDraft.trim() && (
-            <p className="text-[0.82rem] sm:text-sm leading-6 text-[#007d75]/70 whitespace-pre-wrap break-words">
+            <p className="text-[0.82rem] sm:text-sm leading-6 text-[#007d75]/75 whitespace-pre-wrap break-words">
               <span className="text-[#00a89d]/40 mr-2">&gt;</span>
               <span className="italic opacity-90">{voiceDraft}</span>
-              <span className="ml-2 font-mono text-[0.5rem] tracking-[0.2em] uppercase text-[#00a89d]/55">
-                listening
-              </span>
             </p>
           )}
 
@@ -990,8 +988,8 @@ export default function AgentChat() {
                   : voiceMode
                     ? voiceDraft
                       ? ''
-                      : 'Speak — words appear here and in the chat'
-                    : 'Type, or tap Voice'
+                      : 'Click the microphone to talk'
+                    : 'Type a message, or tap Voice'
               }
               disabled={sessionMaxed}
               rows={1}
@@ -1026,7 +1024,6 @@ export default function AgentChat() {
               ask(text);
             }}
             onLiveCaption={(text) => {
-              // Skip status strings — only mirror real speech into the dialog
               if (
                 !text ||
                 text === 'Speak now…' ||
@@ -1042,7 +1039,7 @@ export default function AgentChat() {
             variant="dock"
           />
           <p className="mt-2 flex items-center justify-between gap-3 text-[0.52rem] tracking-[0.3em] text-[#1b1713]/40 uppercase">
-            <span>{voiceMode ? 'voice · ↵ send · reset · esc' : '↵ send · reset · esc close · / open'}</span>
+            <span>{voiceMode ? 'click mic to talk · ↵ send · reset · esc' : '↵ send · reset · esc · voice'}</span>
             <span className={remaining === 0 ? 'text-red-400/70' : remaining <= 2 ? 'text-[#007d75]/55' : 'text-[#1b1713]/40'}>
               {remaining === 0
                 ? '0 left · resets at local midnight'
