@@ -1011,7 +1011,6 @@ export default function AgentChat() {
               </span>
             )}
           </div>
-          <div id="console-voice-strip" className={voiceMode ? 'mt-2' : 'hidden'} />
           <AgentVoiceOrb
             active={open && voiceMode}
             busy={busy}
