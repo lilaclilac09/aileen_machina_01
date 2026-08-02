@@ -4,32 +4,30 @@ export const runtime = 'edge';
 export const maxDuration = 60;
 
 /**
- * Article-narration TTS proxy.
+ * Console / narration TTS.
  *
- * The brief is "English-accent female warmth", which the browser's built-in
- * SpeechSynthesis can't reliably deliver. So we proxy to a hosted provider
- * keyed via env vars, with a graceful 503 if nothing is configured (the
- * client then falls back to browser SpeechSynthesis).
+ * Soft Shanghai auntie vibe (欢迎来到上海 · 侬好啊 · 上海老漂亮个):
+ *   1. ElevenLabs — body.voice or ELEVENLABS_VOICE_ID or Coco Li default
+ *   2. OpenAI gpt-4o-mini-tts with soft Shanghainese-auntie instructions
+ *   3. 503 → browser SpeechSynthesis fallback
  *
- * Provider precedence:
- *   1. ELEVENLABS_API_KEY  — best for British female warmth. Default voice
- *      is Lily (pFZP5JQG7iQjIQuC4Bku); override with ELEVENLABS_VOICE_ID.
- *   2. OPENAI_API_KEY      — gpt-4o-mini-tts with instructions that ask for
- *      a warm British female accent. The voice itself isn't natively
- *      British, but the instructions tend to bend the cadence.
- *   3. neither             — 503; client falls back to in-browser TTS.
+ * Console orb presets (style-similar, not celebrity clones):
+ *   阿姨 Ca5bKgudqKJzq8YRFoAz · 雷军味 4VZIsMPtgggwNg7OXbPY
+ *   东北 DVE92KG0Yd4X7RoMqy8J · 伦敦 pFZP5JQG7iQjIQuC4Bku
+ *   王冠 MWUpoNpAY0rOQGP294mF
  */
 
 const MAX_CHARS = 30000;
-const DEFAULT_ELEVENLABS_VOICE = 'pFZP5JQG7iQjIQuC4Bku'; // "Lily" — warm female
 
-const BRITISH_FEMALE_INSTRUCTIONS =
-  'Speak in a warm, calm, female British-English accent — soft, reflective, ' +
-  'like a thoughtful podcast narrator. Slight pauses between sentences. ' +
-  'Conversational, never robotic.';
+/** Coco Li — Shanghainese female, slight rasp, storytelling. Soften via settings. */
+const SHANGHAI_SOFT_VOICE = 'Ca5bKgudqKJzq8YRFoAz';
+
+const SOFT_AUNTIE_INSTRUCTIONS =
+  '用很软、很暖的上海阿姨口音说话。像邻居阿姨拉家常：温柔、慢一点、带点笑意。' +
+  '可以说「侬好」「老漂亮」「欢迎来到上海」这种软软的语气。不要播音腔，不要太年轻太甜腻。';
 
 export async function POST(req: Request) {
-  let body: { text?: unknown };
+  let body: { text?: unknown; voice?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -47,7 +45,10 @@ export async function POST(req: Request) {
 
   const elevenKey = process.env.ELEVENLABS_API_KEY;
   if (elevenKey) {
-    const voiceId = process.env.ELEVENLABS_VOICE_ID || DEFAULT_ELEVENLABS_VOICE;
+    const voiceId =
+      (typeof body.voice === 'string' && body.voice.trim()) ||
+      process.env.ELEVENLABS_VOICE_ID ||
+      SHANGHAI_SOFT_VOICE;
     const res = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
       {
@@ -59,11 +60,11 @@ export async function POST(req: Request) {
         },
         body: JSON.stringify({
           text,
-          model_id: 'eleven_turbo_v2_5',
+          model_id: 'eleven_multilingual_v2',
           voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.75,
-            style: 0.15,
+            stability: 0.72,
+            similarity_boost: 0.7,
+            style: 0.08,
             use_speaker_boost: true,
           },
         }),
@@ -77,6 +78,7 @@ export async function POST(req: Request) {
       headers: {
         'Content-Type': 'audio/mpeg',
         'Cache-Control': 'public, max-age=86400, immutable',
+        'X-TTS-Voice': voiceId,
       },
     });
   }
@@ -91,9 +93,9 @@ export async function POST(req: Request) {
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini-tts',
-        voice: 'nova',
+        voice: 'coral',
         input: text,
-        instructions: BRITISH_FEMALE_INSTRUCTIONS,
+        instructions: SOFT_AUNTIE_INSTRUCTIONS,
         response_format: 'mp3',
       }),
     });
@@ -105,6 +107,7 @@ export async function POST(req: Request) {
       headers: {
         'Content-Type': 'audio/mpeg',
         'Cache-Control': 'public, max-age=86400, immutable',
+        'X-TTS-Voice': 'coral-shanghai-soft',
       },
     });
   }
@@ -112,7 +115,7 @@ export async function POST(req: Request) {
   return NextResponse.json(
     {
       error:
-        'No TTS provider configured. Set ELEVENLABS_API_KEY (preferred, real British female voice) or OPENAI_API_KEY (gpt-4o-mini-tts with British-accent instructions) in Vercel, then redeploy.',
+        'No TTS provider. Set ELEVENLABS_API_KEY (Coco Li Shanghai soft) or OPENAI_API_KEY, then redeploy.',
     },
     { status: 503 },
   );

@@ -13,6 +13,7 @@ import {
 import { appendUserTopic, readTopicMemory, buildCatchUpGreeting, buildCatchUpHint, clearTopicMemory } from '../lib/articleTopicMemory';
 import { matchCanned } from '../lib/agentCannedResponses';
 import SiteLeftChrome from './SiteLeftChrome';
+import AgentVoiceOrb from './AgentVoiceOrb';
 
 const STARTER_PROMPTS = [
   "what's her solana stack?",
@@ -99,6 +100,7 @@ export default function AgentChat() {
   const [leadName, setLeadName] = useState('');
   const [leadState, setLeadState] = useState<LeadState>('idle');
   const [leadError, setLeadError] = useState<string | null>(null);
+  const [voiceMode, setVoiceMode] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const welcomedRef = useRef(false);
@@ -399,6 +401,7 @@ export default function AgentChat() {
         ? crypto.randomUUID()
         : `s-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`;
 
+    setVoiceMode(false);
     setOpen(false);
   }, [forwardTranscriptNow, setMessages]);
 
@@ -600,6 +603,24 @@ export default function AgentChat() {
 
   const remaining = Math.max(0, DAILY_LIMIT - sessionCount);
 
+  // Latest assistant text for voice TTS (skip welcome canned until user spoke).
+  const lastAssistant = (() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i];
+      if (m.role !== 'assistant') continue;
+      const text = getMessageText(m).trim();
+      if (!text || text === '…') continue;
+      return { id: m.id, text };
+    }
+    return { id: '', text: '' };
+  })();
+  const voiceSpeakReady =
+    voiceMode &&
+    open &&
+    !busy &&
+    Boolean(lastAssistant.id) &&
+    messages.some((m) => m.role === 'user');
+
   // Contact panel: optional soft invite after a few turns — never a hard gate.
   const showLeadPanel = open && leadState !== 'sent' && leadSoftNudge;
 
@@ -748,6 +769,16 @@ export default function AgentChat() {
               <span className="h-1.5 w-1.5 rounded-full bg-[#00ffea] shadow-[0_0_6px_rgba(0,255,234,0.9)] animate-pulse" />
               <span className="text-[0.55rem] tracking-[0.25em] text-[#00ffea]/60 uppercase">live</span>
             </div>
+            <button
+              type="button"
+              onClick={() => setVoiceMode((v) => !v)}
+              aria-label={voiceMode ? '关闭语音' : '打开语音'}
+              title={voiceMode ? '语音开着 · 点光球说话' : '打开语音光球'}
+              className="text-[0.55rem] tracking-[0.25em] uppercase px-1 transition-colors"
+              style={{ color: voiceMode ? '#00a89d' : 'rgba(27,23,19,0.48)' }}
+            >
+              {voiceMode ? '◆ 语音' : '○ 语音'}
+            </button>
             <button
               type="button"
               onClick={resetChat}
@@ -910,6 +941,15 @@ export default function AgentChat() {
           </div>
         )}
 
+        <AgentVoiceOrb
+          active={open && voiceMode}
+          busy={busy}
+          disabled={sessionMaxed}
+          speakText={voiceSpeakReady ? lastAssistant.text : ''}
+          speakId={voiceSpeakReady ? lastAssistant.id : ''}
+          onAsk={(text) => ask(text)}
+        />
+
         {/* Input row */}
         <div className="border-t border-[#e7e0d6] px-5 py-3">
           <div className="flex items-center gap-2">
@@ -927,7 +967,9 @@ export default function AgentChat() {
               placeholder={
                 sessionMaxed
                   ? 'come back tomorrow ♡'
-                  : ''
+                  : voiceMode
+                    ? '也可以打字 · 光球在听'
+                    : ''
               }
               disabled={sessionMaxed}
               rows={1}
@@ -943,7 +985,7 @@ export default function AgentChat() {
             )}
           </div>
           <p className="mt-2 flex items-center justify-between gap-3 text-[0.52rem] tracking-[0.3em] text-[#1b1713]/40 uppercase">
-            <span>↵ send · reset · esc close · / open</span>
+            <span>{voiceMode ? '语音 · ↵ 发送 · reset · esc' : '↵ send · reset · esc close · / open'}</span>
             <span className={remaining === 0 ? 'text-red-400/70' : remaining <= 2 ? 'text-[#007d75]/55' : 'text-[#1b1713]/40'}>
               {remaining === 0
                 ? '0 left · resets at local midnight'
