@@ -772,12 +772,12 @@ export default function AgentChat() {
             <button
               type="button"
               onClick={() => setVoiceMode((v) => !v)}
-              aria-label={voiceMode ? '关闭语音' : '打开语音'}
-              title={voiceMode ? '语音开着 · 点光球说话' : '打开语音光球'}
+              aria-label={voiceMode ? 'Turn voice off' : 'Turn voice on'}
+              title={voiceMode ? 'Voice on · Aileena is listening' : 'Enable voice'}
               className="text-[0.55rem] tracking-[0.25em] uppercase px-1 transition-colors"
               style={{ color: voiceMode ? '#00a89d' : 'rgba(27,23,19,0.48)' }}
             >
-              {voiceMode ? '◆ 语音' : '○ 语音'}
+              {voiceMode ? '◆ voice' : '○ voice'}
             </button>
             <button
               type="button"
@@ -941,16 +941,7 @@ export default function AgentChat() {
           </div>
         )}
 
-        <AgentVoiceOrb
-          active={open && voiceMode}
-          busy={busy}
-          disabled={sessionMaxed}
-          speakText={voiceSpeakReady ? lastAssistant.text : ''}
-          speakId={voiceSpeakReady ? lastAssistant.id : ''}
-          onAsk={(text) => ask(text)}
-        />
-
-        {/* Input row */}
+        {/* Input row — voice mic docks here (no giant orb panel) */}
         <div className="border-t border-[#e7e0d6] px-5 py-3">
           <div className="flex items-center gap-2">
             <span className={`text-sm ${sessionMaxed ? 'text-[#1b1713]/20' : 'text-[#00a89d]'}`}>&gt;</span>
@@ -968,7 +959,7 @@ export default function AgentChat() {
                 sessionMaxed
                   ? 'come back tomorrow ♡'
                   : voiceMode
-                    ? '也可以打字 · 光球在听'
+                    ? 'Aileena is listening…'
                     : ''
               }
               disabled={sessionMaxed}
@@ -978,14 +969,25 @@ export default function AgentChat() {
               autoCorrect="off"
               autoCapitalize="off"
             />
+            <span id="console-voice-mic" className="flex items-center shrink-0" />
             {busy && (
               <span className="text-[0.55rem] tracking-[0.25em] text-[#00ffea]/60 uppercase animate-pulse">
                 scratching it
               </span>
             )}
           </div>
+          <div id="console-voice-strip" className={voiceMode ? 'mt-2' : 'hidden'} />
+          <AgentVoiceOrb
+            active={open && voiceMode}
+            busy={busy}
+            disabled={sessionMaxed}
+            speakText={voiceSpeakReady ? lastAssistant.text : ''}
+            speakId={voiceSpeakReady ? lastAssistant.id : ''}
+            onAsk={(text) => ask(text)}
+            variant="dock"
+          />
           <p className="mt-2 flex items-center justify-between gap-3 text-[0.52rem] tracking-[0.3em] text-[#1b1713]/40 uppercase">
-            <span>{voiceMode ? '语音 · ↵ 发送 · reset · esc' : '↵ send · reset · esc close · / open'}</span>
+            <span>{voiceMode ? 'voice · ↵ send · reset · esc' : '↵ send · reset · esc close · / open'}</span>
             <span className={remaining === 0 ? 'text-red-400/70' : remaining <= 2 ? 'text-[#007d75]/55' : 'text-[#1b1713]/40'}>
               {remaining === 0
                 ? '0 left · resets at local midnight'

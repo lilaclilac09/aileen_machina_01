@@ -11,11 +11,13 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 type Caps = {
   whisper: boolean;
   tts: boolean;
   mode: 'openai' | 'webspeech' | 'mixed';
+  provider?: 'elevenlabs' | 'openai' | 'none';
 };
 
 type Props = {
@@ -27,39 +29,44 @@ type Props = {
   speakId?: string;
   onAsk: (text: string) => void;
   onListeningChange?: (listening: boolean) => void;
+  /**
+   * `dock` = tiny orb/mic in the input row + thin preset strip (default).
+   * `panel` = legacy large centered orb (unused).
+   */
+  variant?: 'dock' | 'panel';
 };
 
-/** Style presets only — not real 雷军 / 汪苏泷 / Claire Foy clones. */
+/** Style presets only — not celebrity clones. */
 export const VOICE_PRESETS = [
   {
     key: 'auntie',
-    label: '阿姨',
+    label: 'Auntie',
     voiceId: 'Ca5bKgudqKJzq8YRFoAz', // Coco Li — Shanghainese soft
-    hint: '上海软软',
+    hint: 'soft Shanghai',
   },
   {
     key: 'leijun',
-    label: '雷军味',
+    label: 'Tech',
     voiceId: '4VZIsMPtgggwNg7OXbPY', // James Gao — mid male Mandarin vibe
-    hint: '科技男·风格',
+    hint: 'tech-bro vibe',
   },
   {
     key: 'dongbei',
-    label: '东北',
+    label: 'North',
     voiceId: 'DVE92KG0Yd4X7RoMqy8J', // Zicai — lively male stand-in
-    hint: '活泼男·凑',
+    hint: 'lively north',
   },
   {
     key: 'london',
-    label: '伦敦',
+    label: 'London',
     voiceId: 'pFZP5JQG7iQjIQuC4Bku', // Lily — classic RP
-    hint: '经典 RP',
+    hint: 'classic RP',
   },
   {
     key: 'crown',
-    label: '王冠',
+    label: 'Crown',
     voiceId: 'MWUpoNpAY0rOQGP294mF', // Clarice — calm posh British
-    hint: '女王气质·风格',
+    hint: 'calm posh',
   },
 ] as const;
 
@@ -81,13 +88,25 @@ export default function AgentVoiceOrb({
   speakId,
   onAsk,
   onListeningChange,
+  variant = 'dock',
 }: Props) {
-  const [caps, setCaps] = useState<Caps>({ whisper: false, tts: true, mode: 'webspeech' });
+  const [caps, setCaps] = useState<Caps>({
+    whisper: false,
+    tts: false,
+    mode: 'webspeech',
+    provider: 'none',
+  });
   const [listening, setListening] = useState(false);
   const [phase, setPhase] = useState<'idle' | 'listening' | 'hearing' | 'speaking'>('idle');
   const [level, setLevel] = useState(0);
-  const [hint, setHint] = useState('点光球 · 说话');
+  const [hint, setHint] = useState('tap mic · talk');
   const [presetKey, setPresetKey] = useState<VoicePresetKey>('auntie');
+  const [ttsFallback, setTtsFallback] = useState(false);
+  const [liveCaption, setLiveCaption] = useState('');
+  const [dockHosts, setDockHosts] = useState<{
+    mic: HTMLElement | null;
+    strip: HTMLElement | null;
+  }>({ mic: null, strip: null });
 
   const playCtxRef = useRef<AudioContext | null>(null);
   const voiceIdRef = useRef<string>(VOICE_PRESETS[0].voiceId);
@@ -118,9 +137,12 @@ export default function AgentVoiceOrb({
         if (d && typeof d === 'object') {
           setCaps({
             whisper: Boolean(d.whisper),
-            tts: d.tts !== false,
+            tts: d.tts !== false && Boolean(d.tts),
             mode: d.mode === 'openai' || d.mode === 'mixed' ? d.mode : 'webspeech',
+            provider:
+              d.provider === 'elevenlabs' || d.provider === 'openai' ? d.provider : 'none',
           });
+          if (!d.tts) setTtsFallback(true);
         }
       })
       .catch(() => {
@@ -192,17 +214,17 @@ export default function AgentVoiceOrb({
       sourcesRef.current.push(src);
       ttsPlayingRef.current = true;
       setPhase('speaking');
-      setHint('在说…');
+      setHint('Aileena is speaking…');
       src.onended = () => {
         sourcesRef.current = sourcesRef.current.filter((s) => s !== src);
         if (!sourcesRef.current.length && gen === playGenRef.current) {
           ttsPlayingRef.current = false;
           if (listening) {
             setPhase('listening');
-            setHint('在听呢 · 侬讲');
+            setHint('Aileena is listening…');
           } else {
             setPhase('idle');
-            setHint('点光球 · 说话');
+            setHint('tap mic');
           }
         }
       };
@@ -217,19 +239,34 @@ export default function AgentVoiceOrb({
           resolve();
           return;
         }
+        setTtsFallback(true);
         const u = new SpeechSynthesisUtterance(text);
-        u.rate = 1.02;
+        const preset = VOICE_PRESETS.find((p) => p.key === presetKey) ?? VOICE_PRESETS[0];
+        const wantZh = preset.key === 'auntie' || preset.key === 'leijun' || preset.key === 'dongbei';
+        const voices = window.speechSynthesis.getVoices();
+        const pick =
+          voices.find((v) =>
+            wantZh
+              ? /zh[-_]?CN|chinese/i.test(`${v.lang} ${v.name}`)
+              : /en[-_]?(GB|UK)/i.test(v.lang),
+          ) ||
+          voices.find((v) => (wantZh ? /zh/i.test(v.lang) : /en/i.test(v.lang))) ||
+          null;
+        if (pick) u.voice = pick;
+        u.lang = wantZh ? 'zh-CN' : 'en-GB';
+        u.rate = 0.92;
+        u.pitch = wantZh ? 1.05 : 1;
         ttsPlayingRef.current = true;
         setPhase('speaking');
-        setHint('在说…');
+        setHint(caps.tts ? 'Aileena is speaking…' : 'browser voice · not Auntie');
         u.onend = () => {
           ttsPlayingRef.current = false;
           if (listening) {
             setPhase('listening');
-            setHint('在听呢 · 侬讲');
+            setHint('Aileena is listening…');
           } else {
             setPhase('idle');
-            setHint('点光球 · 说话');
+            setHint('tap mic');
           }
           resolve();
         };
@@ -239,7 +276,7 @@ export default function AgentVoiceOrb({
         };
         window.speechSynthesis.speak(u);
       }),
-    [listening],
+    [caps.tts, listening, presetKey],
   );
 
   const speakSentence = useCallback(
@@ -260,6 +297,7 @@ export default function AgentVoiceOrb({
           }),
         });
         if (!res.ok) throw new Error('tts ' + res.status);
+        setTtsFallback(false);
         const ab = await res.arrayBuffer();
         if (gen !== playGenRef.current) return;
         const ctx = ensurePlayCtx();
@@ -342,7 +380,7 @@ export default function AgentVoiceOrb({
     });
     if (!blob || blob.size < 800) return;
     setPhase('hearing');
-    setHint('听到了…');
+    setHint('got it…');
     try {
       const ext = (blob.type || '').includes('mp4') ? 'm4a' : 'webm';
       const res = await fetch(`/api/transcribe?filename=audio.${ext}`, {
@@ -354,12 +392,12 @@ export default function AgentVoiceOrb({
       if (data.ok && data.text) handleUtterance(data.text);
       else if (listening) {
         setPhase('listening');
-        setHint('在听呢 · 侬讲');
+        setHint('listening…');
       }
     } catch {
       if (listening) {
         setPhase('listening');
-        setHint('在听呢 · 侬讲');
+        setHint('listening…');
       }
     }
   }, [handleUtterance, listening]);
@@ -384,7 +422,7 @@ export default function AgentVoiceOrb({
       if (rms > thresh && ttsPlayingRef.current) {
         stopPlayback();
         setPhase('listening');
-        setHint('在听呢 · 侬讲');
+        setHint('listening…');
       }
 
       if (!busyRef.current && !ttsPlayingRef.current) {
@@ -455,11 +493,11 @@ export default function AgentVoiceOrb({
     rec.continuous = true;
     rec.onstart = () => {
       setPhase('listening');
-      setHint('在听呢 · 侬讲');
+      setHint('listening…');
     };
     rec.onerror = (e: SpeechRecognitionErrorEvent) => {
       if (e.error === 'no-speech' || e.error === 'aborted') return;
-      setHint('麦克风有点问题');
+      setHint('mic glitch');
     };
     rec.onend = () => {
       if (listening && !busyRef.current) {
@@ -474,10 +512,19 @@ export default function AgentVoiceOrb({
     };
     rec.onresult = (ev: SpeechRecognitionEvent) => {
       let finalText = '';
+      let interim = '';
       for (let i = ev.resultIndex; i < ev.results.length; i++) {
-        if (ev.results[i].isFinal) finalText += ev.results[i][0].transcript;
+        const piece = ev.results[i][0].transcript;
+        if (ev.results[i].isFinal) finalText += piece;
+        else interim += piece;
+      }
+      if (interim.trim()) {
+        setLiveCaption(interim.trim());
+        setPhase('hearing');
+        setHint('Aileena is listening…');
       }
       if (finalText.trim()) {
+        setLiveCaption('');
         if (ttsPlayingRef.current) stopPlayback();
         handleUtterance(finalText.trim());
       }
@@ -505,7 +552,8 @@ export default function AgentVoiceOrb({
     setListening(true);
     onListeningChange?.(true);
     setPhase('listening');
-    setHint('在听呢 · 侬讲');
+    setHint('Aileena is listening…');
+    setLiveCaption('');
     ensurePlayCtx();
     try {
       if (caps.whisper && navigator.mediaDevices && window.MediaRecorder) {
@@ -517,7 +565,7 @@ export default function AgentVoiceOrb({
       setListening(false);
       onListeningChange?.(false);
       setPhase('idle');
-      setHint('麦克风打不开');
+      setHint('mic blocked');
     }
   }, [
     caps.whisper,
@@ -535,13 +583,38 @@ export default function AgentVoiceOrb({
     stopOpenAiListen();
     stopWebSpeech();
     setPhase('idle');
-    setHint('点光球 · 说话');
+    setLiveCaption('');
+    setHint('tap mic');
   }, [onListeningChange, stopOpenAiListen, stopPlayback, stopWebSpeech]);
 
-  // Stop when voice mode turns off or console closes.
+  // Auto-listen when voice mode turns on (continuous streaming).
+  // User can still mute via the mic button; we only auto-start on mode open.
   useEffect(() => {
-    if (!active && listening) stopListening();
-  }, [active, listening, stopListening]);
+    if (!active || disabled) {
+      stopListening();
+      return;
+    }
+    void startListening();
+    return () => {
+      stopListening();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, disabled, caps.whisper]);
+
+  useEffect(() => {
+    if (!active || variant !== 'dock') {
+      setDockHosts({ mic: null, strip: null });
+      return;
+    }
+    const sync = () =>
+      setDockHosts({
+        mic: document.getElementById('console-voice-mic'),
+        strip: document.getElementById('console-voice-strip'),
+      });
+    sync();
+    const t = window.setTimeout(sync, 0);
+    return () => window.clearTimeout(t);
+  }, [active, variant]);
 
   useEffect(() => {
     return () => {
@@ -553,43 +626,51 @@ export default function AgentVoiceOrb({
   if (!active) return null;
 
   const activePreset = VOICE_PRESETS.find((p) => p.key === presetKey) ?? VOICE_PRESETS[0];
+  const statusLine =
+    phase === 'speaking'
+      ? 'Aileena is speaking…'
+      : phase === 'hearing' || listening
+        ? 'Aileena is listening…'
+        : 'tap mic to talk';
 
-  return (
-    <div className="border-t border-[#e7e0d6] px-5 py-4 bg-[#faf7f0]/80">
-      <div className="flex flex-col items-center gap-3">
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={() => (listening ? stopListening() : void startListening())}
-          aria-label={listening ? 'Stop listening' : 'Start voice'}
-          className={`relative h-[88px] w-[88px] shrink-0 rounded-full border-0 transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40 ${
-            phase === 'listening' || phase === 'hearing'
-              ? 'animate-pulse shadow-[0_0_0_2px_#fffdf8,0_0_0_5px_rgba(0,255,234,0.45),0_14px_42px_rgba(0,168,157,0.4)]'
-              : phase === 'speaking'
-                ? 'shadow-[0_0_0_2px_#fffdf8,0_0_0_5px_rgba(0,168,157,0.5),0_16px_48px_rgba(0,127,117,0.4)]'
-                : 'shadow-[0_0_0_2px_#fffdf8,0_0_0_4px_rgba(0,168,157,0.35),0_12px_36px_rgba(0,127,117,0.28)]'
-          }`}
-          style={{
-            background:
-              'radial-gradient(circle at 32% 28%, rgba(255,255,255,0.95), transparent 42%), radial-gradient(circle at 60% 65%, rgba(0,200,180,0.55), transparent 52%), radial-gradient(circle at 50% 50%, #7ee8dc 0%, #008f86 45%, #12332f 78%)',
-          }}
-        >
-          <span className="absolute inset-0 grid place-items-center font-mono text-[0.62rem] uppercase tracking-[0.28em] text-white [text-shadow:0_1px_8px_rgba(0,40,36,0.45)]">
-            {listening ? (phase === 'speaking' ? '…' : '结束') : '说话'}
+  const micButton = (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={() => (listening ? stopListening() : void startListening())}
+      aria-label={listening ? 'Mute mic' : 'Aileena listens'}
+      title={listening ? 'Mute' : 'Aileena listens'}
+      className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+        listening || phase === 'speaking'
+          ? 'border-[#00a89d]/70 bg-[#00a89d]/12 animate-pulse'
+          : 'border-[#1b1713]/15 bg-transparent hover:border-[#00a89d]/50'
+      }`}
+    >
+      {/* Simple mic glyph — no crystal ball */}
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden className="text-[#008f86]">
+        <rect x="9" y="2" width="6" height="11" rx="3" stroke="currentColor" strokeWidth="1.8" />
+        <path d="M5 11a7 7 0 0 0 14 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        <path d="M12 18v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      </svg>
+    </button>
+  );
+
+  const presetStrip = (
+    <div className="flex flex-col gap-1.5">
+      {(liveCaption || listening || phase === 'speaking') && (
+        <p className="font-mono text-[0.7rem] leading-5 text-[#008f86]/90 truncate">
+          <span className="text-[0.5rem] tracking-[0.22em] uppercase text-[#1b1713]/35 mr-2">
+            {phase === 'speaking' ? 'out' : 'live'}
           </span>
-        </button>
-        <div className="h-[3px] w-16 overflow-hidden rounded-sm bg-[#1b1713]/08">
-          <i
-            className="block h-full bg-[#00a89d] transition-[width] duration-75"
-            style={{ width: `${level}%`, display: 'block' }}
-          />
-        </div>
+          {liveCaption || statusLine}
+        </p>
+      )}
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <p
-          className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 font-mono text-[0.55rem] tracking-[0.18em] text-[#1b1713]/45"
+          className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[0.5rem] tracking-[0.14em] text-[#1b1713]/40"
           role="group"
-          aria-label="音色"
+          aria-label="Voice"
         >
-          <span className="text-[#1b1713]/35">音色</span>
           {VOICE_PRESETS.map((p) => (
             <button
               key={p.key}
@@ -598,20 +679,46 @@ export default function AgentVoiceOrb({
               title={p.hint}
               className="uppercase transition-colors"
               style={{
-                color: p.key === presetKey ? '#008f86' : 'rgba(27,23,19,0.38)',
-                letterSpacing: '0.14em',
+                color: p.key === presetKey ? '#008f86' : 'rgba(27,23,19,0.35)',
+                letterSpacing: '0.12em',
               }}
             >
               {p.key === presetKey ? `◆ ${p.label}` : p.label}
             </button>
           ))}
         </p>
-        <p className="font-mono text-[0.58rem] tracking-[0.22em] uppercase text-[#008f86]/85">
-          ▸ {hint}
-          {caps.whisper ? ' · 听写' : ' · 浏览器听写'}
-          {' · '}
-          {activePreset.label}
-        </p>
+        <span
+          className="font-mono text-[0.48rem] tracking-[0.16em] uppercase"
+          style={{ color: !caps.tts || ttsFallback ? '#b45309' : 'rgba(27,23,19,0.35)' }}
+        >
+          {!caps.tts || ttsFallback
+            ? 'browser TTS · set ELEVENLABS_API_KEY'
+            : `${caps.provider || 'tts'} · ${activePreset.label}`}
+        </span>
+        <span className="ml-auto inline-block h-[2px] w-10 overflow-hidden rounded-sm bg-[#1b1713]/08 align-middle">
+          <i
+            className="block h-full bg-[#00a89d] transition-[width] duration-75"
+            style={{ width: `${level}%`, display: 'block' }}
+          />
+        </span>
+      </div>
+    </div>
+  );
+
+  if (variant === 'dock') {
+    return (
+      <>
+        {dockHosts.mic ? createPortal(micButton, dockHosts.mic) : null}
+        {dockHosts.strip ? createPortal(presetStrip, dockHosts.strip) : null}
+      </>
+    );
+  }
+
+  return (
+    <div className="border-t border-[#e7e0d6] px-5 py-3">
+      <div className="flex items-center gap-3">
+        {micButton}
+        <div className="min-w-0 flex-1">{presetStrip}</div>
       </div>
     </div>
   );
