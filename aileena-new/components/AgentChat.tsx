@@ -775,12 +775,15 @@ export default function AgentChat() {
               onClick={() => {
                 setVoiceMode((v) => {
                   const next = !v;
-                  if (!next) setVoiceDraft('');
+                  if (!next) {
+                    setVoiceDraft('');
+                    setInput('');
+                  }
                   return next;
                 });
               }}
               aria-label={voiceMode ? 'Turn voice off' : 'Turn voice on'}
-              title={voiceMode ? 'Voice on — click the microphone to talk' : 'Turn on voice, then click the microphone'}
+              title={voiceMode ? 'Voice on — tap the orb to talk' : 'Turn on voice, then tap the orb'}
               className="inline-flex items-center gap-1 text-[0.55rem] tracking-[0.2em] uppercase px-1.5 py-0.5 rounded transition-colors"
               style={{
                 color: voiceMode ? '#007d75' : 'rgba(27,23,19,0.55)',
@@ -788,12 +791,16 @@ export default function AgentChat() {
                 border: voiceMode ? '1px solid rgba(0,168,157,0.35)' : '1px solid transparent',
               }}
             >
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <rect x="9" y="2" width="6" height="11" rx="3" stroke="currentColor" strokeWidth="2" />
-                <path d="M5 11a7 7 0 0 0 14 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                <path d="M12 18v3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-              {voiceMode ? 'voice on' : 'voice'}
+              <span
+                aria-hidden
+                className="inline-block h-2.5 w-2.5 rounded-full"
+                style={{
+                  background:
+                    'radial-gradient(circle at 35% 30%, #fff, #7ee8dc 40%, #008f86 75%)',
+                  boxShadow: voiceMode ? '0 0 6px rgba(0,168,157,0.55)' : 'none',
+                }}
+              />
+              {voiceMode ? 'orb on' : 'voice'}
             </button>
             <button
               type="button"
@@ -873,10 +880,12 @@ export default function AgentChat() {
             <Line role="assistant" text="…" muted />
           )}
 
-          {voiceMode && voiceDraft.trim() && (
-            <p className="text-[0.82rem] sm:text-sm leading-6 text-[#007d75]/75 whitespace-pre-wrap break-words">
-              <span className="text-[#00a89d]/40 mr-2">&gt;</span>
-              <span className="italic opacity-90">{voiceDraft}</span>
+          {voiceMode && (
+            <p className="text-[0.82rem] sm:text-sm leading-6 text-[#007d75]/85 whitespace-pre-wrap break-words">
+              <span className="text-[#00a89d]/55 mr-2 animate-pulse">&gt;</span>
+              <span className="italic opacity-95">
+                {voiceDraft.trim() || 'Tap the orb, then speak — words appear here'}
+              </span>
             </p>
           )}
 
@@ -968,7 +977,36 @@ export default function AgentChat() {
           </div>
         )}
 
-        {/* Input row — voice mic docks here (no giant orb panel) */}
+        {/* Big voice orb (replaces tiny mic) */}
+        <AgentVoiceOrb
+          active={open && voiceMode}
+          busy={busy}
+          disabled={sessionMaxed}
+          speakText={voiceSpeakReady ? lastAssistant.text : ''}
+          speakId={voiceSpeakReady ? lastAssistant.id : ''}
+          speakStreaming={voiceStreaming}
+          onAsk={(text) => {
+            setVoiceDraft('');
+            setInput('');
+            ask(text);
+          }}
+          onLiveCaption={(text) => {
+            setVoiceDraft(text);
+            const isStatus =
+              !text ||
+              text.startsWith('Listening') ||
+              text.startsWith('Hearing') ||
+              text.startsWith('Mic ') ||
+              text.startsWith('Need Chrome') ||
+              text.startsWith('Allow ') ||
+              text.startsWith('Open Chrome') ||
+              text.startsWith('Speaking');
+            if (!isStatus) setInput(text);
+            if (!text) setInput('');
+          }}
+        />
+
+        {/* Input row */}
         <div className="border-t border-[#e7e0d6] px-5 py-3">
           <div className="relative flex items-center gap-2">
             <span className={`text-sm ${sessionMaxed ? 'text-[#1b1713]/20' : 'text-[#00a89d]'}`}>&gt;</span>
@@ -986,9 +1024,7 @@ export default function AgentChat() {
                 sessionMaxed
                   ? 'come back tomorrow ♡'
                   : voiceMode
-                    ? voiceDraft
-                      ? ''
-                      : 'Click the microphone to talk'
+                    ? 'Or type here'
                     : 'Type a message, or tap Voice'
               }
               disabled={sessionMaxed}
@@ -998,47 +1034,14 @@ export default function AgentChat() {
               autoCorrect="off"
               autoCapitalize="off"
             />
-            {/* Live voice draft mirrors into the input so people see STT instantly */}
-            {voiceMode && voiceDraft && !input && (
-              <span className="pointer-events-none absolute left-8 right-14 text-sm leading-6 text-[#007d75]/55 truncate italic">
-                {voiceDraft}
-              </span>
-            )}
-            <span id="console-voice-mic" className="flex items-center shrink-0" />
             {busy && (
               <span className="text-[0.55rem] tracking-[0.25em] text-[#00ffea]/60 uppercase animate-pulse">
                 scratching it
               </span>
             )}
           </div>
-          <AgentVoiceOrb
-            active={open && voiceMode}
-            busy={busy}
-            disabled={sessionMaxed}
-            speakText={voiceSpeakReady ? lastAssistant.text : ''}
-            speakId={voiceSpeakReady ? lastAssistant.id : ''}
-            speakStreaming={voiceStreaming}
-            onAsk={(text) => {
-              setVoiceDraft('');
-              ask(text);
-            }}
-            onLiveCaption={(text) => {
-              if (
-                !text ||
-                text === 'Speak now…' ||
-                text.startsWith('Allow mic') ||
-                text.startsWith('Speech') ||
-                text.startsWith('This browser')
-              ) {
-                if (!text) setVoiceDraft('');
-                return;
-              }
-              setVoiceDraft(text);
-            }}
-            variant="dock"
-          />
           <p className="mt-2 flex items-center justify-between gap-3 text-[0.52rem] tracking-[0.3em] text-[#1b1713]/40 uppercase">
-            <span>{voiceMode ? 'click mic to talk · ↵ send · reset · esc' : '↵ send · reset · esc · voice'}</span>
+            <span>{voiceMode ? 'tap orb · speak · pause to send · esc' : '↵ send · reset · esc · voice'}</span>
             <span className={remaining === 0 ? 'text-red-400/70' : remaining <= 2 ? 'text-[#007d75]/55' : 'text-[#1b1713]/40'}>
               {remaining === 0
                 ? '0 left · resets at local midnight'
