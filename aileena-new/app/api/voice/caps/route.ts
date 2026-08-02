@@ -9,7 +9,9 @@ import { NextResponse } from 'next/server';
  */
 export async function GET() {
   const openai = Boolean(process.env.OPENAI_API_KEY?.trim());
-  const eleven = Boolean(process.env.ELEVENLABS_API_KEY?.trim());
+  const eleven = Boolean(
+    process.env.ELEVENLABS_API_KEY?.trim() || process.env.ELEVEN_LABS_API_KEY?.trim(),
+  );
   const tts = openai || eleven;
   const whisper = openai;
   const provider = eleven ? 'elevenlabs' : openai ? 'openai' : 'none';

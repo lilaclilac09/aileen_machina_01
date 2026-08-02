@@ -11,10 +11,9 @@ export const maxDuration = 60;
  *   2. OpenAI gpt-4o-mini-tts with soft Shanghainese-auntie instructions
  *   3. 503 → browser SpeechSynthesis fallback
  *
- * Console orb presets (style-similar, not celebrity clones):
- *   阿姨 Ca5bKgudqKJzq8YRFoAz · 雷军味 4VZIsMPtgggwNg7OXbPY
- *   东北 DVE92KG0Yd4X7RoMqy8J · 伦敦 pFZP5JQG7iQjIQuC4Bku
- *   王冠 MWUpoNpAY0rOQGP294mF
+ * Console voice presets:
+ *   British English pFZP5JQG7iQjIQuC4Bku · Shanghai Dialect Ca5bKgudqKJzq8YRFoAz
+ *   German flq6f7yk4E4fJM5XTYuZ · Leijun 4VZIsMPtgggwNg7OXbPY
  */
 
 const MAX_CHARS = 30000;
@@ -43,7 +42,10 @@ export async function POST(req: Request) {
     );
   }
 
-  const elevenKey = process.env.ELEVENLABS_API_KEY;
+  const elevenKey =
+    process.env.ELEVENLABS_API_KEY?.trim() ||
+    process.env.ELEVEN_LABS_API_KEY?.trim() || // common typo alias
+    '';
   if (elevenKey) {
     const voiceId =
       (typeof body.voice === 'string' && body.voice.trim()) ||

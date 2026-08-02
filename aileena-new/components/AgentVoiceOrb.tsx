@@ -27,7 +27,11 @@ type Props = {
   /** Latest assistant reply to speak (parent watches messages). */
   speakText?: string;
   speakId?: string;
+  /** True while assistant tokens are still streaming — speak sentences early. */
+  speakStreaming?: boolean;
   onAsk: (text: string) => void;
+  /** Live STT draft — parent shows this in the dialog + input. */
+  onLiveCaption?: (text: string) => void;
   onListeningChange?: (listening: boolean) => void;
   /**
    * `dock` = tiny orb/mic in the input row + thin preset strip (default).
@@ -36,49 +40,60 @@ type Props = {
   variant?: 'dock' | 'panel';
 };
 
-/** Style presets only — not celebrity clones. */
+/** Four console voices — style presets, not celebrity clones. */
 export const VOICE_PRESETS = [
   {
-    key: 'auntie',
-    label: 'Auntie',
+    key: 'british',
+    label: 'British English',
+    short: 'British',
+    voiceId: 'pFZP5JQG7iQjIQuC4Bku', // Lily — classic RP
+    hint: 'Clear British English',
+    lang: 'en-GB',
+  },
+  {
+    key: 'shanghai',
+    label: 'Shanghai Dialect',
+    short: 'Shanghai',
     voiceId: 'Ca5bKgudqKJzq8YRFoAz', // Coco Li — Shanghainese soft
-    hint: 'soft Shanghai',
+    hint: 'Soft Shanghai dialect',
+    lang: 'zh-CN',
+  },
+  {
+    key: 'german',
+    label: 'German',
+    short: 'German',
+    voiceId: 'flq6f7yk4E4fJM5XTYuZ', // Michael — German
+    hint: 'Standard German',
+    lang: 'de-DE',
   },
   {
     key: 'leijun',
-    label: 'Tech',
+    label: 'Leijun',
+    short: 'Leijun',
     voiceId: '4VZIsMPtgggwNg7OXbPY', // James Gao — mid male Mandarin vibe
-    hint: 'tech-bro vibe',
-  },
-  {
-    key: 'dongbei',
-    label: 'North',
-    voiceId: 'DVE92KG0Yd4X7RoMqy8J', // Zicai — lively male stand-in
-    hint: 'lively north',
-  },
-  {
-    key: 'london',
-    label: 'London',
-    voiceId: 'pFZP5JQG7iQjIQuC4Bku', // Lily — classic RP
-    hint: 'classic RP',
-  },
-  {
-    key: 'crown',
-    label: 'Crown',
-    voiceId: 'MWUpoNpAY0rOQGP294mF', // Clarice — calm posh British
-    hint: 'calm posh',
+    hint: 'Tech-founder Mandarin vibe',
+    lang: 'zh-CN',
   },
 ] as const;
 
 export type VoicePresetKey = (typeof VOICE_PRESETS)[number]['key'];
 
 const VOICE_STORAGE_KEY = 'aileena.console.voicePreset';
+const LEGACY_PRESET_MAP: Record<string, VoicePresetKey> = {
+  auntie: 'shanghai',
+  london: 'british',
+  crown: 'british',
+  dongbei: 'leijun',
+  tech: 'leijun',
+};
 
 const SENTENCE_RE = /(?<=[.!?。！？…])\s+|(?<=\n)/;
 const SPEECH_THRESH = 0.018;
-const SILENCE_END_MS = 750;
-const MIN_SPEECH_MS = 280;
-const COOLDOWN_MS = 500;
+const SILENCE_END_MS = 380; // snappier end-of-utterance for Whisper VAD
+const MIN_SPEECH_MS = 160;
+const COOLDOWN_MS = 180;
+const WEB_RETRY_MS = 80;
+const WEB_BUSY_RETRY_MS = 100;
 
 export default function AgentVoiceOrb({
   active,
@@ -86,7 +101,9 @@ export default function AgentVoiceOrb({
   disabled,
   speakText,
   speakId,
+  speakStreaming = false,
   onAsk,
+  onLiveCaption,
   onListeningChange,
   variant = 'dock',
 }: Props) {
@@ -100,13 +117,20 @@ export default function AgentVoiceOrb({
   const [phase, setPhase] = useState<'idle' | 'listening' | 'hearing' | 'speaking'>('idle');
   const [level, setLevel] = useState(0);
   const [hint, setHint] = useState('tap mic · talk');
-  const [presetKey, setPresetKey] = useState<VoicePresetKey>('auntie');
+  const [presetKey, setPresetKey] = useState<VoicePresetKey>('shanghai');
   const [ttsFallback, setTtsFallback] = useState(false);
   const [liveCaption, setLiveCaption] = useState('');
   const [dockHosts, setDockHosts] = useState<{
     mic: HTMLElement | null;
     strip: HTMLElement | null;
   }>({ mic: null, strip: null });
+  const onLiveCaptionRef = useRef(onLiveCaption);
+  onLiveCaptionRef.current = onLiveCaption;
+
+  const pushCaption = useCallback((text: string) => {
+    setLiveCaption(text);
+    onLiveCaptionRef.current?.(text);
+  }, []);
 
   const playCtxRef = useRef<AudioContext | null>(null);
   const voiceIdRef = useRef<string>(VOICE_PRESETS[0].voiceId);
@@ -114,6 +138,7 @@ export default function AgentVoiceOrb({
   const nextPlayAtRef = useRef(0);
   const sourcesRef = useRef<AudioBufferSourceNode[]>([]);
   const lastSpokenIdRef = useRef<string>('');
+  const spokenCharRef = useRef(0); // streaming TTS cursor into speakText
   const lastAskAtRef = useRef(0);
 
   const mediaStreamRef = useRef<MediaStream | null>(null);
@@ -128,7 +153,9 @@ export default function AgentVoiceOrb({
   const webRestartRef = useRef(0);
   const ttsPlayingRef = useRef(false);
   const busyRef = useRef(busy);
+  const listeningRef = useRef(false);
   busyRef.current = busy;
+  listeningRef.current = listening;
 
   useEffect(() => {
     fetch('/api/voice/caps')
@@ -152,8 +179,14 @@ export default function AgentVoiceOrb({
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(VOICE_STORAGE_KEY) as VoicePresetKey | null;
-      if (saved && VOICE_PRESETS.some((p) => p.key === saved)) setPresetKey(saved);
+      const saved = localStorage.getItem(VOICE_STORAGE_KEY);
+      if (!saved) return;
+      if (VOICE_PRESETS.some((p) => p.key === saved)) {
+        setPresetKey(saved as VoicePresetKey);
+        return;
+      }
+      const mapped = LEGACY_PRESET_MAP[saved];
+      if (mapped) setPresetKey(mapped);
     } catch {
       /* ignore */
     }
@@ -242,20 +275,22 @@ export default function AgentVoiceOrb({
         setTtsFallback(true);
         const u = new SpeechSynthesisUtterance(text);
         const preset = VOICE_PRESETS.find((p) => p.key === presetKey) ?? VOICE_PRESETS[0];
-        const wantZh = preset.key === 'auntie' || preset.key === 'leijun' || preset.key === 'dongbei';
         const voices = window.speechSynthesis.getVoices();
+        const lang = preset.lang;
         const pick =
+          voices.find((v) => v.lang.toLowerCase().startsWith(lang.toLowerCase().slice(0, 2))) ||
           voices.find((v) =>
-            wantZh
-              ? /zh[-_]?CN|chinese/i.test(`${v.lang} ${v.name}`)
-              : /en[-_]?(GB|UK)/i.test(v.lang),
+            lang.startsWith('zh')
+              ? /zh/i.test(v.lang)
+              : lang.startsWith('de')
+                ? /de/i.test(v.lang)
+                : /en[-_]?(GB|UK)/i.test(v.lang),
           ) ||
-          voices.find((v) => (wantZh ? /zh/i.test(v.lang) : /en/i.test(v.lang))) ||
           null;
         if (pick) u.voice = pick;
-        u.lang = wantZh ? 'zh-CN' : 'en-GB';
-        u.rate = 0.92;
-        u.pitch = wantZh ? 1.05 : 1;
+        u.lang = lang;
+        u.rate = 0.94;
+        u.pitch = preset.key === 'shanghai' ? 1.05 : 1;
         ttsPlayingRef.current = true;
         setPhase('speaking');
         setHint(caps.tts ? 'Aileena is speaking…' : 'browser voice · not Auntie');
@@ -310,34 +345,76 @@ export default function AgentVoiceOrb({
     [caps.tts, ensurePlayCtx, enqueueBuffer, speakBrowser],
   );
 
-  // Speak new assistant turns while voice mode is active.
+  // Stream-speak: as assistant text grows, speak each newly completed sentence
+  // immediately — do not wait for the full reply.
   useEffect(() => {
-    if (!active || !speakText?.trim() || !speakId) return;
-    if (speakId === lastSpokenIdRef.current) return;
-    lastSpokenIdRef.current = speakId;
+    if (!active || !speakId) return;
+    const full = (speakText || '').trim();
+    if (!full) return;
+
+    if (speakId !== lastSpokenIdRef.current) {
+      lastSpokenIdRef.current = speakId;
+      spokenCharRef.current = 0;
+      stopPlayback();
+    }
+
+    let cursor = spokenCharRef.current;
+    if (cursor >= full.length) return;
+
+    const terminal = /[.!?。！？…]$/;
+    const ready: string[] = [];
+    // Scan forward for sentence boundaries in the yet-unspoken region
+    const region = full.slice(cursor);
+    const rough = region.split(SENTENCE_RE).filter((s) => s.trim());
+    let walk = cursor;
+    for (let i = 0; i < rough.length; i++) {
+      const p = rough[i].trim();
+      if (!p) continue;
+      const at = full.indexOf(p, walk);
+      if (at < 0) break;
+      const end = at + p.length;
+      const isLastFrag = i === rough.length - 1;
+      const complete = terminal.test(p) || p.length >= 56;
+      if (isLastFrag && speakStreaming && !complete) {
+        break; // wait for more tokens
+      }
+      ready.push(p);
+      walk = end;
+    }
+
+    // End of stream: flush remaining tail even without punctuation
+    if (!speakStreaming && walk < full.length && !ready.length) {
+      const tail = full.slice(cursor).trim();
+      if (tail) {
+        ready.push(tail);
+        walk = full.length;
+      }
+    }
+
+    if (!ready.length) return;
+    spokenCharRef.current = walk;
+
     const gen = playGenRef.current;
-    const full = speakText.trim();
-    // sentence-chunk for snappier first audio
-    const parts = full.split(SENTENCE_RE).map((s) => s.trim()).filter(Boolean);
     void (async () => {
-      for (const p of parts.length ? parts : [full]) {
+      for (const p of ready) {
         if (gen !== playGenRef.current) break;
         await speakSentence(p, gen);
       }
     })();
-  }, [active, speakText, speakId, speakSentence]);
+  }, [active, speakText, speakId, speakStreaming, speakSentence, stopPlayback]);
 
   const handleUtterance = useCallback(
     (text: string) => {
       const t = text.trim();
-      if (!t || busyRef.current || disabled) return;
+      if (!t || disabled) return;
       const now = Date.now();
       if (now - lastAskAtRef.current < COOLDOWN_MS) return;
       lastAskAtRef.current = now;
       stopPlayback();
-      onAsk(t);
+      pushCaption('');
+      onAsk(t); // barge-in allowed even while previous reply streams
     },
-    [disabled, onAsk, stopPlayback],
+    [disabled, onAsk, pushCaption, stopPlayback],
   );
 
   const pickMime = () => {
@@ -488,27 +565,47 @@ export default function AgentVoiceOrb({
     if (!SR) throw new Error('no Web Speech');
     const rec = new SR();
     webRecRef.current = rec;
-    rec.lang = 'zh-CN';
+    const preset = VOICE_PRESETS.find((p) => p.key === presetKey) ?? VOICE_PRESETS[0];
+    rec.lang = preset.lang;
     rec.interimResults = true;
-    rec.continuous = true;
+    // continuous=false + restart on end is more reliable (esp. Safari)
+    rec.continuous = false;
     rec.onstart = () => {
       setPhase('listening');
-      setHint('listening…');
+      setHint('Aileena is listening…');
     };
     rec.onerror = (e: SpeechRecognitionErrorEvent) => {
       if (e.error === 'no-speech' || e.error === 'aborted') return;
-      setHint('mic glitch');
+      if (e.error === 'not-allowed') {
+        setHint('mic blocked · allow microphone');
+        pushCaption('Allow mic in the browser, then tap the mic button');
+        listeningRef.current = false;
+        setListening(false);
+        return;
+      }
+      if (e.error === 'network') {
+        setHint('speech network error · try Chrome');
+        pushCaption('Speech recognition needs network / Chrome');
+        return;
+      }
+      setHint(`mic: ${e.error}`);
+      pushCaption(`Speech error: ${e.error}`);
     };
     rec.onend = () => {
-      if (listening && !busyRef.current) {
-        webRestartRef.current = window.setTimeout(() => {
-          try {
-            rec.start();
-          } catch {
-            /* ignore */
-          }
-        }, 120);
-      }
+      if (!listeningRef.current) return;
+      const retry = () => {
+        if (!listeningRef.current || !webRecRef.current) return;
+        if (busyRef.current || ttsPlayingRef.current) {
+          webRestartRef.current = window.setTimeout(retry, WEB_BUSY_RETRY_MS);
+          return;
+        }
+        try {
+          webRecRef.current.start();
+        } catch {
+          /* already started */
+        }
+      };
+      webRestartRef.current = window.setTimeout(retry, WEB_RETRY_MS);
     };
     rec.onresult = (ev: SpeechRecognitionEvent) => {
       let finalText = '';
@@ -519,18 +616,18 @@ export default function AgentVoiceOrb({
         else interim += piece;
       }
       if (interim.trim()) {
-        setLiveCaption(interim.trim());
+        pushCaption(interim.trim());
         setPhase('hearing');
         setHint('Aileena is listening…');
       }
       if (finalText.trim()) {
-        setLiveCaption('');
+        pushCaption(finalText.trim());
         if (ttsPlayingRef.current) stopPlayback();
         handleUtterance(finalText.trim());
       }
     };
     rec.start();
-  }, [handleUtterance, listening, stopPlayback]);
+  }, [handleUtterance, presetKey, stopPlayback]);
 
   const startOpenAiListen = useCallback(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -539,6 +636,7 @@ export default function AgentVoiceOrb({
     mediaStreamRef.current = stream;
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     audioCtxRef.current = ctx;
+    if (ctx.state === 'suspended') await ctx.resume();
     const src = ctx.createMediaStreamSource(stream);
     const analyser = ctx.createAnalyser();
     analyser.fftSize = 2048;
@@ -549,23 +647,33 @@ export default function AgentVoiceOrb({
 
   const startListening = useCallback(async () => {
     if (disabled) return;
+    listeningRef.current = true;
     setListening(true);
     onListeningChange?.(true);
     setPhase('listening');
     setHint('Aileena is listening…');
-    setLiveCaption('');
+    pushCaption('Speak now…');
     ensurePlayCtx();
     try {
+      // Prefer Web Speech when Whisper key is absent (current production).
+      // Whisper path only when caps.whisper is true.
       if (caps.whisper && navigator.mediaDevices && window.MediaRecorder) {
         await startOpenAiListen();
       } else {
         startWebSpeech();
       }
-    } catch {
+    } catch (err) {
+      listeningRef.current = false;
       setListening(false);
       onListeningChange?.(false);
       setPhase('idle');
-      setHint('mic blocked');
+      const msg = err instanceof Error ? err.message : 'mic blocked';
+      setHint(msg.includes('Speech') ? 'need Chrome for voice' : 'mic blocked · tap again');
+      pushCaption(
+        msg.includes('Speech') || msg.includes('Web Speech')
+          ? 'This browser has no speech recognition — use Chrome, or set OPENAI_API_KEY for Whisper'
+          : 'Allow microphone, then tap the mic',
+      );
     }
   }, [
     caps.whisper,
@@ -577,18 +685,19 @@ export default function AgentVoiceOrb({
   ]);
 
   const stopListening = useCallback(() => {
+    listeningRef.current = false;
     setListening(false);
     onListeningChange?.(false);
     stopPlayback();
     stopOpenAiListen();
     stopWebSpeech();
     setPhase('idle');
-    setLiveCaption('');
+    pushCaption('');
     setHint('tap mic');
   }, [onListeningChange, stopOpenAiListen, stopPlayback, stopWebSpeech]);
 
-  // Auto-listen when voice mode turns on (continuous streaming).
-  // User can still mute via the mic button; we only auto-start on mode open.
+  // Start listening when voice mode turns on; stop when it turns off.
+  // Do not re-run on caps changes (that killed recognition mid-flight).
   useEffect(() => {
     if (!active || disabled) {
       stopListening();
@@ -599,7 +708,7 @@ export default function AgentVoiceOrb({
       stopListening();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, disabled, caps.whisper]);
+  }, [active, disabled]);
 
   useEffect(() => {
     if (!active || variant !== 'dock') {
@@ -656,51 +765,43 @@ export default function AgentVoiceOrb({
   );
 
   const presetStrip = (
-    <div className="flex flex-col gap-1.5">
-      {(liveCaption || listening || phase === 'speaking') && (
-        <p className="font-mono text-[0.7rem] leading-5 text-[#008f86]/90 truncate">
-          <span className="text-[0.5rem] tracking-[0.22em] uppercase text-[#1b1713]/35 mr-2">
-            {phase === 'speaking' ? 'out' : 'live'}
-          </span>
-          {liveCaption || statusLine}
+    <div className="flex flex-col gap-2">
+      {(liveCaption || listening || phase === 'speaking' || phase === 'idle') && (
+        <p className="text-[0.78rem] leading-5 text-[#1b1713]/55 truncate">
+          <span className="text-[#008f86]">{liveCaption || statusLine}</span>
         </p>
       )}
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-        <p
-          className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[0.5rem] tracking-[0.14em] text-[#1b1713]/40"
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div
+          className="inline-flex flex-wrap items-center gap-0.5 rounded-md border border-[#e7e0d6] bg-[#f7f4ee] p-0.5"
           role="group"
           aria-label="Voice"
         >
-          {VOICE_PRESETS.map((p) => (
-            <button
-              key={p.key}
-              type="button"
-              onClick={() => selectPreset(p.key)}
-              title={p.hint}
-              className="uppercase transition-colors"
-              style={{
-                color: p.key === presetKey ? '#008f86' : 'rgba(27,23,19,0.35)',
-                letterSpacing: '0.12em',
-              }}
-            >
-              {p.key === presetKey ? `◆ ${p.label}` : p.label}
-            </button>
-          ))}
-        </p>
-        <span
-          className="font-mono text-[0.48rem] tracking-[0.16em] uppercase"
-          style={{ color: !caps.tts || ttsFallback ? '#b45309' : 'rgba(27,23,19,0.35)' }}
-        >
-          {!caps.tts || ttsFallback
-            ? 'browser TTS · set ELEVENLABS_API_KEY'
-            : `${caps.provider || 'tts'} · ${activePreset.label}`}
-        </span>
-        <span className="ml-auto inline-block h-[2px] w-10 overflow-hidden rounded-sm bg-[#1b1713]/08 align-middle">
-          <i
-            className="block h-full bg-[#00a89d] transition-[width] duration-75"
-            style={{ width: `${level}%`, display: 'block' }}
-          />
-        </span>
+          {VOICE_PRESETS.map((p) => {
+            const on = p.key === presetKey;
+            return (
+              <button
+                key={p.key}
+                type="button"
+                onClick={() => selectPreset(p.key)}
+                title={p.hint}
+                aria-pressed={on}
+                className={`rounded px-2.5 py-[5px] text-[0.68rem] tracking-[0.02em] transition-colors ${
+                  on
+                    ? 'bg-[#fffdf8] text-[#007d75] shadow-[0_1px_2px_rgba(31,26,20,0.08)]'
+                    : 'text-[#1b1713]/42 hover:text-[#1b1713]/7'
+                }`}
+              >
+                {p.short}
+              </button>
+            );
+          })}
+        </div>
+        {(!caps.tts || ttsFallback) && (
+          <span className="text-[0.58rem] tracking-[0.04em] text-[#b45309]/90">
+            set ELEVENLABS_API_KEY for real voices
+          </span>
+        )}
       </div>
     </div>
   );

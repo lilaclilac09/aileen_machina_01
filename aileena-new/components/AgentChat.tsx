@@ -101,6 +101,7 @@ export default function AgentChat() {
   const [leadState, setLeadState] = useState<LeadState>('idle');
   const [leadError, setLeadError] = useState<string | null>(null);
   const [voiceMode, setVoiceMode] = useState(false);
+  const [voiceDraft, setVoiceDraft] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const welcomedRef = useRef(false);
@@ -617,9 +618,9 @@ export default function AgentChat() {
   const voiceSpeakReady =
     voiceMode &&
     open &&
-    !busy &&
     Boolean(lastAssistant.id) &&
     messages.some((m) => m.role === 'user');
+  const voiceStreaming = voiceMode && (status === 'submitted' || status === 'streaming');
 
   // Contact panel: optional soft invite after a few turns — never a hard gate.
   const showLeadPanel = open && leadState !== 'sent' && leadSoftNudge;
@@ -771,13 +772,28 @@ export default function AgentChat() {
             </div>
             <button
               type="button"
-              onClick={() => setVoiceMode((v) => !v)}
+              onClick={() => {
+                setVoiceMode((v) => {
+                  const next = !v;
+                  if (!next) setVoiceDraft('');
+                  return next;
+                });
+              }}
               aria-label={voiceMode ? 'Turn voice off' : 'Turn voice on'}
-              title={voiceMode ? 'Voice on · Aileena is listening' : 'Enable voice'}
-              className="text-[0.55rem] tracking-[0.25em] uppercase px-1 transition-colors"
-              style={{ color: voiceMode ? '#00a89d' : 'rgba(27,23,19,0.48)' }}
+              title={voiceMode ? 'Voice on · speak into the mic' : 'Talk with Aileena'}
+              className="inline-flex items-center gap-1 text-[0.55rem] tracking-[0.2em] uppercase px-1.5 py-0.5 rounded transition-colors"
+              style={{
+                color: voiceMode ? '#007d75' : 'rgba(27,23,19,0.55)',
+                background: voiceMode ? 'rgba(0,168,157,0.1)' : 'transparent',
+                border: voiceMode ? '1px solid rgba(0,168,157,0.35)' : '1px solid transparent',
+              }}
             >
-              {voiceMode ? '◆ voice' : '○ voice'}
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <rect x="9" y="2" width="6" height="11" rx="3" stroke="currentColor" strokeWidth="2" />
+                <path d="M5 11a7 7 0 0 0 14 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                <path d="M12 18v3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+              {voiceMode ? 'voice on' : 'voice'}
             </button>
             <button
               type="button"
@@ -805,6 +821,9 @@ export default function AgentChat() {
             <>
               <p className="text-[0.62rem] tracking-[0.25em] text-[#1b1713]/50 uppercase mb-2">
                 ▸ ready · say hi or ask anything
+              </p>
+              <p className="text-[0.72rem] leading-5 text-[#008f86]/85 mb-3">
+                Tap <span className="font-medium">Voice</span> in the header — speak, and your words appear in the chat live.
               </p>
               {buildCatchUpHint(readTopicMemory().topics) && (
                 <p className="text-[0.75rem] leading-5 text-[#008f86]/85 mb-2">
@@ -851,6 +870,16 @@ export default function AgentChat() {
 
           {busy && messages[messages.length - 1]?.role !== 'assistant' && (
             <Line role="assistant" text="…" muted />
+          )}
+
+          {voiceMode && voiceDraft.trim() && (
+            <p className="text-[0.82rem] sm:text-sm leading-6 text-[#007d75]/70 whitespace-pre-wrap break-words">
+              <span className="text-[#00a89d]/40 mr-2">&gt;</span>
+              <span className="italic opacity-90">{voiceDraft}</span>
+              <span className="ml-2 font-mono text-[0.5rem] tracking-[0.2em] uppercase text-[#00a89d]/55">
+                listening
+              </span>
+            </p>
           )}
 
           {showError && (
@@ -943,7 +972,7 @@ export default function AgentChat() {
 
         {/* Input row — voice mic docks here (no giant orb panel) */}
         <div className="border-t border-[#e7e0d6] px-5 py-3">
-          <div className="flex items-center gap-2">
+          <div className="relative flex items-center gap-2">
             <span className={`text-sm ${sessionMaxed ? 'text-[#1b1713]/20' : 'text-[#00a89d]'}`}>&gt;</span>
             <textarea
               ref={inputRef}
@@ -959,8 +988,10 @@ export default function AgentChat() {
                 sessionMaxed
                   ? 'come back tomorrow ♡'
                   : voiceMode
-                    ? 'Aileena is listening…'
-                    : ''
+                    ? voiceDraft
+                      ? ''
+                      : 'Speak — words appear here and in the chat'
+                    : 'Type, or tap Voice'
               }
               disabled={sessionMaxed}
               rows={1}
@@ -969,6 +1000,12 @@ export default function AgentChat() {
               autoCorrect="off"
               autoCapitalize="off"
             />
+            {/* Live voice draft mirrors into the input so people see STT instantly */}
+            {voiceMode && voiceDraft && !input && (
+              <span className="pointer-events-none absolute left-8 right-14 text-sm leading-6 text-[#007d75]/55 truncate italic">
+                {voiceDraft}
+              </span>
+            )}
             <span id="console-voice-mic" className="flex items-center shrink-0" />
             {busy && (
               <span className="text-[0.55rem] tracking-[0.25em] text-[#00ffea]/60 uppercase animate-pulse">
@@ -983,7 +1020,25 @@ export default function AgentChat() {
             disabled={sessionMaxed}
             speakText={voiceSpeakReady ? lastAssistant.text : ''}
             speakId={voiceSpeakReady ? lastAssistant.id : ''}
-            onAsk={(text) => ask(text)}
+            speakStreaming={voiceStreaming}
+            onAsk={(text) => {
+              setVoiceDraft('');
+              ask(text);
+            }}
+            onLiveCaption={(text) => {
+              // Skip status strings — only mirror real speech into the dialog
+              if (
+                !text ||
+                text === 'Speak now…' ||
+                text.startsWith('Allow mic') ||
+                text.startsWith('Speech') ||
+                text.startsWith('This browser')
+              ) {
+                if (!text) setVoiceDraft('');
+                return;
+              }
+              setVoiceDraft(text);
+            }}
             variant="dock"
           />
           <p className="mt-2 flex items-center justify-between gap-3 text-[0.52rem] tracking-[0.3em] text-[#1b1713]/40 uppercase">
