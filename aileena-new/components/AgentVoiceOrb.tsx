@@ -1,9 +1,9 @@
 'use client';
 
 /**
- * Console Voice — big orb (not tiny mic).
- * Tap orb → speak → words show under orb + in chat → pause → send to /api/chat.
- * Soft Shanghai TTS for replies. No accent picker.
+ * Console Voice — big orb.
+ * Accents: 上海 (soft Chinese) | London (裴淳华 / Claire Foy British).
+ * Tap orb → speak → words show → pause → /api/chat.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -27,8 +27,26 @@ type Props = {
   onListeningChange?: (listening: boolean) => void;
 };
 
-const DEFAULT_VOICE_ID = 'Ca5bKgudqKJzq8YRFoAz';
-const DEFAULT_STT_LANG = 'zh-CN';
+const ACCENTS = [
+  {
+    key: 'shanghai' as const,
+    label: '上海',
+    sub: 'Shanghai Chinese',
+    voiceId: 'Ca5bKgudqKJzq8YRFoAz', // Coco Li
+    lang: 'zh-CN',
+  },
+  {
+    key: 'london' as const,
+    label: 'London',
+    sub: '裴淳华 · British',
+    voiceId: 'MWUpoNpAY0rOQGP294mF', // Clarice — posh British
+    lang: 'en-GB',
+  },
+] as const;
+
+type AccentKey = (typeof ACCENTS)[number]['key'];
+const STORAGE_ACCENT = 'aileena.console.voiceAccent';
+
 const SENTENCE_RE = /(?<=[.!?。！？…])\s+|(?<=\n)/;
 const SPEECH_THRESH = 0.018;
 const SILENCE_END_MS = 380;
@@ -55,6 +73,7 @@ export default function AgentVoiceOrb({
     mode: 'webspeech',
     provider: 'none',
   });
+  const [accent, setAccent] = useState<AccentKey>('shanghai');
   const [listening, setListening] = useState(false);
   const [phase, setPhase] = useState<'idle' | 'listening' | 'hearing' | 'speaking'>('idle');
   const [level, setLevel] = useState(0);
@@ -68,7 +87,9 @@ export default function AgentVoiceOrb({
   }, []);
 
   const playCtxRef = useRef<AudioContext | null>(null);
-  const voiceIdRef = useRef(DEFAULT_VOICE_ID);
+  const voiceIdRef = useRef<string>(ACCENTS[0].voiceId);
+  const sttLangRef = useRef<string>(ACCENTS[0].lang);
+  const accentRef = useRef<AccentKey>('shanghai');
   const playGenRef = useRef(0);
   const nextPlayAtRef = useRef(0);
   const sourcesRef = useRef<AudioBufferSourceNode[]>([]);
@@ -95,6 +116,27 @@ export default function AgentVoiceOrb({
   const meterRafRef = useRef(0);
   busyRef.current = busy;
   listeningRef.current = listening;
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_ACCENT) as AccentKey | null;
+      if (saved && ACCENTS.some((a) => a.key === saved)) setAccent(saved);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  useEffect(() => {
+    const a = ACCENTS.find((x) => x.key === accent) ?? ACCENTS[0];
+    accentRef.current = accent;
+    voiceIdRef.current = a.voiceId;
+    sttLangRef.current = a.lang;
+    try {
+      localStorage.setItem(STORAGE_ACCENT, accent);
+    } catch {
+      /* ignore */
+    }
+  }, [accent]);
 
   useEffect(() => {
     fetch('/api/voice/caps')
@@ -166,16 +208,20 @@ export default function AgentVoiceOrb({
         resolve();
         return;
       }
+      const lang = sttLangRef.current;
       const u = new SpeechSynthesisUtterance(text);
       const voices = window.speechSynthesis.getVoices();
       const pick =
-        voices.find((v) => /zh|cmn|chinese/i.test(`${v.lang} ${v.name}`)) ||
-        voices.find((v) => v.lang.toLowerCase().startsWith('zh')) ||
-        null;
+        lang.startsWith('zh')
+          ? voices.find((v) => /zh|cmn|chinese/i.test(`${v.lang} ${v.name}`)) ||
+            voices.find((v) => v.lang.toLowerCase().startsWith('zh'))
+          : voices.find((v) => /en[-_]?(GB|UK)/i.test(v.lang)) ||
+            voices.find((v) => v.lang.toLowerCase().startsWith('en')) ||
+            null;
       if (pick) u.voice = pick;
-      u.lang = DEFAULT_STT_LANG;
-      u.rate = 0.94;
-      u.pitch = 1.05;
+      u.lang = lang;
+      u.rate = lang.startsWith('zh') ? 0.94 : 0.96;
+      u.pitch = lang.startsWith('zh') ? 1.05 : 1;
       ttsPlayingRef.current = true;
       setPhase('speaking');
       u.onend = () => {
@@ -276,21 +322,6 @@ export default function AgentVoiceOrb({
     },
     [disabled, onAsk, pushCaption, stopPlayback],
   );
-
-  const flushFinal = useCallback(() => {
-    if (commitTimerRef.current) {
-      window.clearTimeout(commitTimerRef.current);
-      commitTimerRef.current = 0;
-    }
-    const text = finalBufRef.current.trim();
-    finalBufRef.current = '';
-    if (text) handleUtterance(text);
-  }, [handleUtterance]);
-
-  const scheduleCommit = useCallback(() => {
-    if (commitTimerRef.current) window.clearTimeout(commitTimerRef.current);
-    commitTimerRef.current = window.setTimeout(() => flushFinal(), COMMIT_MS);
-  }, [flushFinal]);
 
   const pickMime = () => {
     for (const m of ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus']) {
@@ -450,7 +481,6 @@ export default function AgentVoiceOrb({
       /safari/i.test(ua) && !/chrome|crios|chromium|edg|android/i.test(ua);
     const useContinuous = !isSafari;
 
-    // Only tear down the recognizer — keep mic meter stream if we already have it.
     clearTimeout(webRestartRef.current);
     if (webRecRef.current) {
       try {
@@ -464,43 +494,45 @@ export default function AgentVoiceOrb({
       webRecRef.current = null;
     }
 
-    if (!mediaStreamRef.current || !analyserRef.current) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        audioCtxRef.current = ctx;
-        if (ctx.state === 'suspended') await ctx.resume();
-        const src = ctx.createMediaStreamSource(stream);
-        const analyser = ctx.createAnalyser();
-        analyser.fftSize = 2048;
-        src.connect(analyser);
-        analyserRef.current = analyser;
-        mediaStreamRef.current = stream;
-        const data = new Uint8Array(analyser.fftSize);
-        const meter = () => {
-          if (!analyserRef.current || !listeningRef.current) return;
-          analyser.getByteTimeDomainData(data);
-          let sum = 0;
-          for (let i = 0; i < data.length; i++) {
-            const v = (data[i] - 128) / 128;
-            sum += v * v;
-          }
-          setLevel(Math.min(100, Math.round(Math.sqrt(sum / data.length) * 450)));
-          meterRafRef.current = requestAnimationFrame(meter);
-        };
-        meterRafRef.current = requestAnimationFrame(meter);
-      } catch {
-        throw new Error('mic blocked');
-      }
-    } else if (audioCtxRef.current?.state === 'suspended') {
-      await audioCtxRef.current.resume();
+    // Don't hold getUserMedia while SpeechRecognition runs (kills transcripts).
+    cancelAnimationFrame(meterRafRef.current);
+    meterRafRef.current = 0;
+    mediaStreamRef.current?.getTracks().forEach((t) => t.stop());
+    mediaStreamRef.current = null;
+    void audioCtxRef.current?.close();
+    audioCtxRef.current = null;
+    analyserRef.current = null;
+
+    try {
+      const probe = await navigator.mediaDevices.getUserMedia({ audio: true });
+      probe.getTracks().forEach((t) => t.stop());
+    } catch {
+      throw new Error('mic blocked');
     }
+
+    const pulse = () => {
+      if (!listeningRef.current) {
+        setLevel(0);
+        return;
+      }
+      setLevel(28 + Math.round((Math.sin(Date.now() / 180) + 1) * 28));
+      meterRafRef.current = requestAnimationFrame(pulse);
+    };
+    meterRafRef.current = requestAnimationFrame(pulse);
 
     const rec = new SR();
     webRecRef.current = rec;
-    rec.lang = DEFAULT_STT_LANG;
+    rec.lang = sttLangRef.current;
     rec.interimResults = true;
     rec.continuous = useContinuous;
+    try {
+      (rec as SpeechRecognition & { maxAlternatives?: number }).maxAlternatives = 1;
+    } catch {
+      /* ignore */
+    }
+
+    let lastInterim = '';
+
     rec.onstart = () => {
       setPhase('listening');
       if (!finalBufRef.current) pushCaption('Listening… speak');
@@ -521,6 +553,19 @@ export default function AgentVoiceOrb({
       pushCaption(`Mic error: ${e.error}`);
     };
     rec.onend = () => {
+      if (lastInterim) {
+        finalBufRef.current = `${finalBufRef.current} ${lastInterim}`.trim();
+        lastInterim = '';
+        if (finalBufRef.current) pushCaption(finalBufRef.current);
+      }
+      if (finalBufRef.current && !commitTimerRef.current && listeningRef.current) {
+        commitTimerRef.current = window.setTimeout(() => {
+          commitTimerRef.current = 0;
+          const text = finalBufRef.current.trim();
+          finalBufRef.current = '';
+          if (text) handleUtterance(text);
+        }, isSafari ? 250 : COMMIT_MS);
+      }
       if (!listeningRef.current) return;
       const retry = () => {
         if (!listeningRef.current) return;
@@ -528,10 +573,9 @@ export default function AgentVoiceOrb({
           webRestartRef.current = window.setTimeout(retry, WEB_BUSY_RETRY_MS);
           return;
         }
-        // Safari: always new recognizer instance; keep same mic stream.
         void startWebSpeech().catch(() => undefined);
       };
-      webRestartRef.current = window.setTimeout(retry, isSafari ? 180 : WEB_RETRY_MS);
+      webRestartRef.current = window.setTimeout(retry, isSafari ? 220 : WEB_RETRY_MS);
     };
     rec.onresult = (ev: SpeechRecognitionEvent) => {
       let gotFinal = false;
@@ -542,27 +586,26 @@ export default function AgentVoiceOrb({
         if (ev.results[i].isFinal) {
           finalBufRef.current = `${finalBufRef.current} ${piece}`.trim();
           gotFinal = true;
+          lastInterim = '';
         } else {
           interim = interim ? `${interim} ${piece}` : piece;
+          lastInterim = interim;
         }
       }
-      const live = `${finalBufRef.current} ${interim}`.trim();
+      const live = `${finalBufRef.current} ${interim || lastInterim}`.trim();
       if (live) {
         pushCaption(live);
         setPhase('hearing');
       }
       if (gotFinal) {
         if (ttsPlayingRef.current) stopPlayback();
-        if (isSafari) {
-          if (commitTimerRef.current) window.clearTimeout(commitTimerRef.current);
-          commitTimerRef.current = window.setTimeout(() => {
-            const text = finalBufRef.current.trim();
-            finalBufRef.current = '';
-            if (text) handleUtterance(text);
-          }, 450);
-        } else {
-          scheduleCommit();
-        }
+        if (commitTimerRef.current) window.clearTimeout(commitTimerRef.current);
+        commitTimerRef.current = window.setTimeout(() => {
+          commitTimerRef.current = 0;
+          const text = finalBufRef.current.trim();
+          finalBufRef.current = '';
+          if (text) handleUtterance(text);
+        }, isSafari ? 350 : COMMIT_MS);
       }
     };
     try {
@@ -570,7 +613,7 @@ export default function AgentVoiceOrb({
     } catch (e) {
       throw e instanceof Error ? e : new Error('speech start failed');
     }
-  }, [handleUtterance, onListeningChange, pushCaption, scheduleCommit, stopPlayback]);
+  }, [handleUtterance, onListeningChange, pushCaption, stopPlayback]);
 
   const startOpenAiListen = useCallback(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -647,7 +690,23 @@ export default function AgentVoiceOrb({
     else pushCaption('');
   }, [onAsk, onListeningChange, pushCaption, stopOpenAiListen, stopPlayback, stopWebSpeech]);
 
-  // Voice on → auto-start listen (Voice button / orb already unlocked mic).
+  const selectAccent = useCallback(
+    (key: AccentKey) => {
+      if (key === accentRef.current) return;
+      stopPlayback();
+      setAccent(key);
+      // Restart STT with new language if currently listening
+      if (listeningRef.current) {
+        stopWebSpeech();
+        finalBufRef.current = '';
+        window.setTimeout(() => {
+          if (listeningRef.current) void startWebSpeech().catch(() => undefined);
+        }, 80);
+      }
+    },
+    [startWebSpeech, stopPlayback, stopWebSpeech],
+  );
+
   useEffect(() => {
     if (!active || disabled) {
       stopListening();
@@ -669,6 +728,7 @@ export default function AgentVoiceOrb({
 
   if (!active) return null;
 
+  const activeAccent = ACCENTS.find((a) => a.key === accent) ?? ACCENTS[0];
   const label =
     phase === 'speaking' ? '…' : listening ? (phase === 'hearing' ? '…' : 'stop') : 'tap';
 
@@ -712,12 +772,43 @@ export default function AgentVoiceOrb({
           />
         </div>
 
+        {/* Shanghai | London (裴淳华) */}
+        <div
+          className="inline-flex items-stretch gap-1 rounded-lg border border-[#e7e0d6] bg-[#f7f4ee] p-1"
+          role="group"
+          aria-label="Voice accent"
+        >
+          {ACCENTS.map((a) => {
+            const on = a.key === accent;
+            return (
+              <button
+                key={a.key}
+                type="button"
+                onClick={() => selectAccent(a.key)}
+                title={a.sub}
+                aria-pressed={on}
+                className={`min-w-[5.5rem] rounded-md px-3 py-2 text-[0.78rem] transition-colors ${
+                  on
+                    ? 'bg-[#fffdf8] text-[#007d75] shadow-[0_1px_3px_rgba(31,26,20,0.1)] font-medium'
+                    : 'text-[#1b1713]/45 hover:text-[#1b1713]/75'
+                }`}
+              >
+                <span className="block leading-tight">{a.label}</span>
+                <span className="mt-0.5 block font-mono text-[0.48rem] tracking-[0.12em] uppercase opacity-60">
+                  {a.key === 'shanghai' ? '中文' : '裴淳华'}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
         <p className="max-w-full px-2 text-center text-[0.82rem] leading-5 text-[#007d75] whitespace-pre-wrap break-words">
           {hint}
         </p>
         <p className="font-mono text-[0.5rem] tracking-[0.22em] uppercase text-[#1b1713]/35">
-          {listening ? 'orb live · pause to send' : 'tap orb · safari / chrome'}
+          {activeAccent.sub}
           {caps.tts ? '' : ' · browser voice'}
+          {listening ? ' · live' : ''}
         </p>
       </div>
     </div>

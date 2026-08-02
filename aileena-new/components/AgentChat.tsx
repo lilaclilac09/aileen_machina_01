@@ -893,10 +893,10 @@ export default function AgentChat() {
           )}
 
           {voiceMode && (
-            <p className="text-[0.82rem] sm:text-sm leading-6 text-[#007d75]/85 whitespace-pre-wrap break-words">
+            <p className="text-[0.95rem] sm:text-base leading-6 text-[#007d75] whitespace-pre-wrap break-words font-medium">
               <span className="text-[#00a89d]/55 mr-2 animate-pulse">&gt;</span>
-              <span className="italic opacity-95">
-                {voiceDraft.trim() || 'Listening… speak — your words appear here'}
+              <span className={voiceDraft.trim() ? '' : 'italic opacity-70'}>
+                {voiceDraft.trim() || 'Listening… speak — words show here'}
               </span>
             </p>
           )}
@@ -1003,17 +1003,17 @@ export default function AgentChat() {
             ask(text);
           }}
           onLiveCaption={(text) => {
+            // Always mirror into chat + input — never hide real speech.
             setVoiceDraft(text);
             const isStatus =
               !text ||
-              text.startsWith('Listening') ||
-              text.startsWith('Hearing') ||
+              text === 'Listening… speak' ||
+              text.startsWith('Listening… speak') ||
               text.startsWith('Mic ') ||
-              text.startsWith('Need Chrome') ||
+              text.startsWith('Speech network') ||
               text.startsWith('Allow ') ||
-              text.startsWith('Open Chrome') ||
               text.startsWith('Speaking');
-            if (!isStatus) setInput(text);
+            if (text && !isStatus) setInput(text);
             if (!text) setInput('');
           }}
         />
