@@ -85,7 +85,7 @@ function tidyTopic(topic: string): string {
 export function buildCatchUpGreeting(topics: string[] = []): string {
   const top = topics.map(tidyTopic).filter(Boolean).slice(0, 2);
   if (top.length === 0) {
-    return "Hey — good to see you. Ask about Aileen's work, writing, music shelf, or whether she's free to hire.";
+    return "Hey — good to see you. Ask about Aileen's work, writing, music shelf, or she's free to cooperate or partner with where she got the best reputation.";
   }
   if (top.length === 1) {
     return `Hey — welcome back. Last time you were into “${top[0]}”. Want to pick that up, or something new?`;

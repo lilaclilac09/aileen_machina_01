@@ -27,7 +27,7 @@ You are the senior engineer on this project. Default workflow:
 
 1. Run applicable verification before marking done (`pnpm build`, `pnpm lint`, `pnpm verify:sound` when touching sound/home layout, etc.).
 2. Give concrete verification steps (commands, URLs, clicks).
-3. For UI/interaction changes: screenshot or 录屏验收路径 — no verbal-only "done".
+3. For UI/interaction changes: follow **UI Merge Acceptance** (`.cursor/rules/ui-step-screenshot.mdc`) — at merge/验收, show **screenshots + interaction**, not text-only.
 4. For bugs: restate repro → root cause → why fix is safe.
 5. List risks and open questions.
 

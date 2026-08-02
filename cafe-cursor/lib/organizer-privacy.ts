@@ -60,26 +60,49 @@ export function decryptOrganizerAudit(blob: string): OrganizerAuditPayload {
   return JSON.parse(plain.toString("utf8")) as OrganizerAuditPayload;
 }
 
+/** Common personal / consumer inboxes — never guest-facing Reply-To / From. */
+const PERSONAL_INBOX_RE =
+  /@(gmail|googlemail|qq|163|126|outlook|hotmail|live|icloud|me|yahoo|proton\.?me|pm\.me)\./i;
+
+/**
+ * True if address looks like a personal mailbox (must stay private).
+ * Used to block leaks into guest-visible From / Reply-To.
+ */
+export function isPersonalInbox(email: string): boolean {
+  const addr = email.trim().toLowerCase();
+  if (!addr.includes("@")) return false;
+  return PERSONAL_INBOX_RE.test(addr);
+}
+
+const BRAND_FALLBACK = "cafe@aileena.xyz";
+export const BRAND_FROM_DISPLAY = `Cafe Cursor Shanghai <${BRAND_FALLBACK}>`;
+
+/** Extract bare address from `Name <addr>` or bare addr. */
+export function extractEmailAddress(raw: string): string {
+  const s = raw.trim().replace(/^["']|["']$/g, "");
+  const m = s.match(/<([^>]+)>/);
+  return (m?.[1] || s).trim().toLowerCase();
+}
+
 /** Public Reply-To shown to guests — never a personal inbox. */
 export function getPublicReplyToAddress(): string {
   const explicit = (process.env.NOTIFY_REPLY_TO || "")
     .trim()
     .replace(/^["']|["']$/g, "")
     .toLowerCase();
-  if (explicit && !/@gmail\.com$/i.test(explicit) && !/@qq\.com$/i.test(explicit)) {
+  if (explicit.includes("@") && !isPersonalInbox(explicit)) {
     return explicit;
   }
-  // Prefer verified brand address from FROM_EMAIL
+  // Prefer verified brand address from FROM_EMAIL (after personal-block)
   const from = (process.env.FROM_EMAIL || "").trim();
-  const m = from.match(/<([^>]+)>/);
-  const addr = (m?.[1] || from).trim().toLowerCase();
-  if (addr.includes("@") && !/@gmail\.com$/i.test(addr)) return addr;
-  return "cafe@aileena.xyz";
+  const addr = extractEmailAddress(from);
+  if (addr.includes("@") && !isPersonalInbox(addr)) return addr;
+  return BRAND_FALLBACK;
 }
 
 /**
- * Private organizer inbox for encrypted copies (Vercel NOTIFY_CC_EMAIL).
- * Never hardcode a personal address in source.
+ * Private organizer inbox for encrypted copies + ticket alerts (Vercel NOTIFY_CC_EMAIL).
+ * Never hardcode a personal address in source. Never return this to guest APIs.
  */
 export function getOrganizerInbox(): string {
   const cc = (process.env.NOTIFY_CC_EMAIL || "")
@@ -95,4 +118,24 @@ export function maskContact(email: string): string {
   const [user, domain] = email.split("@");
   if (!domain) return "***";
   return `${(user[0] || "*")}***@${domain}`;
+}
+
+/**
+ * Guest-facing mail headers must never include a personal inbox.
+ * Returns null if ok, else an error string.
+ */
+export function assertGuestFacingAddresses(opts: {
+  from?: string;
+  replyTo?: string;
+}): string | null {
+  const check = (label: string, raw?: string) => {
+    if (!raw) return null;
+    const m = raw.match(/<([^>]+)>/);
+    const addr = (m?.[1] || raw).trim().toLowerCase();
+    if (isPersonalInbox(addr)) {
+      return `${label} must not be a personal inbox (${maskContact(addr)}); use cafe@aileena.xyz`;
+    }
+    return null;
+  };
+  return check("From", opts.from) || check("Reply-To", opts.replyTo);
 }

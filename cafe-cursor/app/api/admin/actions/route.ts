@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isAuthenticated } from "@/lib/auth";
-import { sendCreditEmail, sendUnclaimedReminderBccBlast, sendUnclaimedReminderTestToOrganizer, getEmailSendConfig } from "@/lib/email";
+import { sendCreditEmail, sendUnclaimedReminderBccBlast, sendUnclaimedReminderTestToOrganizer, getEmailSendConfig, sendBrandGuestReply } from "@/lib/email";
 import { syncReminderSentAtFromResend } from "@/lib/resend-reminder-sync";
 import { decryptOrganizerAudit } from "@/lib/organizer-privacy";
 import {
@@ -12,6 +12,12 @@ import { displayNameFromEmail } from "@/lib/validations";
 import { syncCheckedInFromLuma, isLumaConfigured } from "@/lib/luma";
 import { importLumaGuestsFromCsv, clearUnclaimedGuestList } from "@/lib/luma-csv";
 import { getVolunteerMaxClaims } from "@/lib/claims";
+import { assignableCreditWhere, assignableRealPoolWhere } from "@/lib/credit-pool";
+import {
+  formatOpsStatsMessage,
+  getCreditOpsStats,
+  logCreditOpsEvent,
+} from "@/lib/credit-ops";
 
 /** Allow bulk notify on Vercel (Resend one-by-one + quota pauses). */
 export const maxDuration = 120;
@@ -64,45 +70,57 @@ export async function POST(request: NextRequest) {
         }
 
         const credit = await prisma.credit.findFirst({
-          where: {
-            isUsed: false,
-            isTest: useTestCredit || false,
-          },
+          where: assignableCreditWhere(Boolean(useTestCredit)),
           orderBy: { createdAt: "asc" },
         });
 
         if (!credit) {
           return NextResponse.json(
-            { error: "No credits available" },
+            {
+              error:
+                "No fresh credits available (quarantined/revoked links are not reissued — sync new ones from the sheet).",
+            },
             { status: 400 }
           );
         }
 
-        await prisma.$transaction([
-          prisma.eligibleUser.update({
+        await prisma.$transaction(async (tx) => {
+          await tx.eligibleUser.update({
             where: { id: eligibleUser.id },
             data: {
               hasClaimed: true,
               claimedAt: new Date(),
               creditId: credit.id,
             },
-          }),
-          prisma.credit.update({
+          });
+          await tx.credit.update({
             where: { id: credit.id },
             data: {
               isUsed: true,
               assignedAt: new Date(),
               ownerId: eligibleUser.id,
+              timesAssigned: { increment: 1 },
             },
-          }),
-        ]);
+          });
+          await logCreditOpsEvent(tx, {
+            type: "ASSIGN",
+            creditId: credit.id,
+            creditCode: credit.code,
+            userEmail: email,
+            note: "admin_assign",
+          });
+        });
 
         console.log(`[ADMIN] Credit assigned: ${email} -> ${credit.code}`);
+        const opsStats = await getCreditOpsStats();
 
         return NextResponse.json({
           success: true,
-          message: `Credit ${credit.code} assigned to ${email} (${ownedCount + 1}/${maxClaims})`,
+          message:
+            `Credit ${credit.code} assigned to ${email} (${ownedCount + 1}/${maxClaims})\n\n` +
+            formatOpsStatsMessage(opsStats),
           credit: credit.link,
+          opsStats,
         });
       }
 
@@ -121,37 +139,56 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        if (!user.hasClaimed || !user.creditId) {
+        if (!user.hasClaimed || !user.creditId || !user.credit) {
           return NextResponse.json(
             { error: "User has no credit assigned" },
             { status: 400 }
           );
         }
 
-        await prisma.$transaction([
-          prisma.eligibleUser.update({
+        const revokedCreditId = user.creditId;
+        const revokedCode = user.credit.code;
+
+        await prisma.$transaction(async (tx) => {
+          await tx.eligibleUser.update({
             where: { id: userId },
             data: {
               hasClaimed: false,
               claimedAt: null,
               creditId: null,
             },
-          }),
-          prisma.credit.update({
-            where: { id: user.creditId },
+          });
+          await tx.credit.update({
+            where: { id: revokedCreditId },
             data: {
               isUsed: false,
               assignedAt: null,
               ownerId: null,
+              timesRevoked: { increment: 1 },
+              lastRevokedAt: new Date(),
+              lastRevokedFromEmail: user.email,
             },
-          }),
-        ]);
+          });
+          await logCreditOpsEvent(tx, {
+            type: "REVOKE",
+            creditId: revokedCreditId,
+            creditCode: revokedCode,
+            userEmail: user.email,
+            note: "admin_revoke",
+          });
+        });
 
         console.log(`[ADMIN] Credit revoked: ${user.email}`);
+        const opsStats = await getCreditOpsStats();
 
         return NextResponse.json({
           success: true,
-          message: `Credit revoked from ${user.email}`,
+          message:
+            `Credit revoked from ${user.email} (code ${revokedCode}).\n` +
+            `Link is QUARANTINED (not returned to pool) — Cursor.com may already have consumed it.\n` +
+            `Guest can redeem again to get a fresh unused link.\n\n` +
+            formatOpsStatsMessage(opsStats),
+          opsStats,
         });
       }
 
@@ -274,14 +311,28 @@ export async function POST(request: NextRequest) {
           });
 
           if (releaseIds.length > 0) {
-            await tx.credit.updateMany({
-              where: { id: { in: releaseIds } },
-              data: {
-                isUsed: false,
-                assignedAt: null,
-                ownerId: null,
-              },
-            });
+            for (const cid of releaseIds) {
+              const c = await tx.credit.findUnique({ where: { id: cid } });
+              if (!c) continue;
+              await tx.credit.update({
+                where: { id: cid },
+                data: {
+                  isUsed: false,
+                  assignedAt: null,
+                  ownerId: null,
+                  timesRevoked: { increment: 1 },
+                  lastRevokedAt: new Date(),
+                  lastRevokedFromEmail: user.email,
+                },
+              });
+              await logCreditOpsEvent(tx, {
+                type: "REVOKE",
+                creditId: c.id,
+                creditCode: c.code,
+                userEmail: user.email,
+                note: "delete_user_release",
+              });
+            }
           }
 
           await tx.eligibleUser.delete({ where: { id: userId } });
@@ -290,14 +341,18 @@ export async function POST(request: NextRequest) {
         console.log(
           `[ADMIN] User deleted: ${user.email} (releasedCredits=${releaseIds.length})`
         );
+        const opsStats = await getCreditOpsStats();
 
         return NextResponse.json({
           success: true,
           message:
-            releaseIds.length > 0
-              ? `Deleted ${user.email} and returned ${releaseIds.length} credit(s) to the pool.`
-              : `Deleted ${user.email}.`,
+            (releaseIds.length > 0
+              ? `Deleted ${user.email}; ${releaseIds.length} credit(s) QUARANTINED (not reissued — may be consumed on Cursor.com).`
+              : `Deleted ${user.email}.`) +
+            "\n\n" +
+            formatOpsStatsMessage(opsStats),
           releasedCredits: releaseIds.length,
+          opsStats,
         });
       }
 
@@ -386,13 +441,22 @@ export async function POST(request: NextRequest) {
             isTest: isTest || false,
           },
         });
+        await logCreditOpsEvent(prisma, {
+          type: "ADD",
+          creditId: newCredit.id,
+          creditCode: newCredit.code,
+          note: "admin_add",
+        });
 
         console.log(`[ADMIN] Credit added: ${code}`);
+        const opsStats = await getCreditOpsStats();
 
         return NextResponse.json({
           success: true,
-          message: `Credit ${code} added`,
+          message:
+            `Credit ${code} added to system.\n\n` + formatOpsStatsMessage(opsStats),
           credit: newCredit,
+          opsStats,
         });
       }
 
@@ -441,6 +505,7 @@ export async function POST(request: NextRequest) {
           getCreditsSheetCsvUrl();
 
         const result = await syncCreditsFromSheet(csvUrl, { clearFirst: true });
+        const opsStats = await getCreditOpsStats();
 
         console.log(
           `[ADMIN] Sheet sync: cleared=${result.cleared} created=${result.created} skipped=${result.skipped} from ${result.source}`
@@ -448,8 +513,11 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
           success: true,
-          message: `Step1 clear: removed ${result.cleared} unused credits. Step2 sync: ${result.created} new from sheet (${result.skipped} already present / used). ${result.available} available. Kept ${result.keptUsed} used.`,
+          message:
+            `Step1 clear: removed ${result.cleared} unused credits. Step2 sync: ${result.created} new from sheet (${result.skipped} already present / used). ${result.available} available. Kept ${result.keptUsed} used.\n\n` +
+            formatOpsStatsMessage(opsStats),
           ...result,
+          opsStats,
         });
       }
 
@@ -806,6 +874,158 @@ export async function POST(request: NextRequest) {
           from: result.from,
           forceResend,
           failures: result.failures.slice(0, 20),
+        });
+      }
+
+      case "REPLY_TICKET": {
+        const ticketId = String(data?.ticketId || "").trim();
+        const message = String(data?.message || "").trim();
+        if (!ticketId) {
+          return NextResponse.json(
+            { error: "ticketId required" },
+            { status: 400 }
+          );
+        }
+        if (message.length < 5) {
+          return NextResponse.json(
+            { error: "Reply message too short" },
+            { status: 400 }
+          );
+        }
+        const ticket = await prisma.supportTicket.findUnique({
+          where: { id: ticketId },
+        });
+        if (!ticket) {
+          return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
+        }
+        const result = await sendBrandGuestReply({
+          to: ticket.email,
+          subject: `Cafe Cursor Shanghai — reply to your ticket`,
+          bodyText: message,
+          ticketId: ticket.id,
+        });
+        if (!result.success) {
+          return NextResponse.json(
+            {
+              error: result.error || "Failed to send brand reply",
+              from: result.from,
+              replyTo: result.replyTo,
+            },
+            { status: 500 }
+          );
+        }
+        console.log(
+          `[ADMIN] REPLY_TICKET: ${ticketId} → ${ticket.email} via brand`
+        );
+        return NextResponse.json({
+          success: true,
+          message:
+            `Reply sent to ${ticket.email} via brand From/Reply-To only ` +
+            `(${result.replyTo}). Your personal inbox was not used.`,
+          from: result.from,
+          replyTo: result.replyTo,
+        });
+      }
+
+      case "GET_TICKET_SCREENSHOT": {
+        const ticketId = String(data?.ticketId || "").trim();
+        const which = Number(data?.which) === 2 ? 2 : 1;
+        if (!ticketId) {
+          return NextResponse.json(
+            { error: "ticketId required" },
+            { status: 400 }
+          );
+        }
+        const ticket = await prisma.supportTicket.findUnique({
+          where: { id: ticketId },
+          select: {
+            id: true,
+            email: true,
+            hasScreenshot: true,
+            screenshotDataUrl: true,
+            hasScreenshot2: true,
+            screenshot2DataUrl: true,
+          },
+        });
+        if (!ticket) {
+          return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
+        }
+        const url =
+          which === 2 ? ticket.screenshot2DataUrl : ticket.screenshotDataUrl;
+        const has =
+          which === 2 ? ticket.hasScreenshot2 : ticket.hasScreenshot;
+        if (!has || !url) {
+          return NextResponse.json(
+            { error: `No screenshot #${which} on this ticket` },
+            { status: 404 }
+          );
+        }
+        return NextResponse.json({
+          success: true,
+          ticketId: ticket.id,
+          email: ticket.email,
+          which,
+          screenshotDataUrl: url,
+        });
+      }
+
+      case "RESOLVE_TICKET": {
+        const ticketId = String(data?.ticketId || "").trim();
+        if (!ticketId) {
+          return NextResponse.json(
+            { error: "ticketId required" },
+            { status: 400 }
+          );
+        }
+        const adminNote =
+          typeof data?.adminNote === "string"
+            ? data.adminNote.trim().slice(0, 1000)
+            : "";
+        const ticket = await prisma.supportTicket.findUnique({
+          where: { id: ticketId },
+        });
+        if (!ticket) {
+          return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
+        }
+        const updated = await prisma.supportTicket.update({
+          where: { id: ticketId },
+          data: {
+            status: "done",
+            resolvedAt: new Date(),
+            ...(adminNote ? { adminNote } : {}),
+          },
+        });
+        console.log(`[ADMIN] RESOLVE_TICKET: ${ticketId} (${ticket.email})`);
+        return NextResponse.json({
+          success: true,
+          message: `Ticket ${ticketId} marked done.`,
+          ticket: updated,
+        });
+      }
+
+      case "REOPEN_TICKET": {
+        const ticketId = String(data?.ticketId || "").trim();
+        if (!ticketId) {
+          return NextResponse.json(
+            { error: "ticketId required" },
+            { status: 400 }
+          );
+        }
+        const ticket = await prisma.supportTicket.findUnique({
+          where: { id: ticketId },
+        });
+        if (!ticket) {
+          return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
+        }
+        const updated = await prisma.supportTicket.update({
+          where: { id: ticketId },
+          data: { status: "open", resolvedAt: null },
+        });
+        console.log(`[ADMIN] REOPEN_TICKET: ${ticketId}`);
+        return NextResponse.json({
+          success: true,
+          message: `Ticket ${ticketId} reopened.`,
+          ticket: updated,
         });
       }
 

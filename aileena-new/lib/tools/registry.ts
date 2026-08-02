@@ -12,30 +12,33 @@ export type ToolDefinition = {
   };
 };
 
+/** Canonical Cafe Cursor redeem site (Shanghai credits). */
+export const CAFE_CURSOR_URL = 'https://cursor-cafe.aileena.xyz/';
+
 export const TOOL_DEFINITIONS: ToolDefinition[] = [
-  {
-    slug: 'inkling-clips',
-    tag: 'AUDIO',
-    title: 'Audio Clipping',
-    body:
-      'YouTube → short clips. Free local (no API). Product page + runner.',
-    href: '/audio-clipping',
-    status: 'live',
-    arcade: {
-      glyph: '▶',
-      screenGradient: '#d8eeeb',
-    },
-  },
   {
     slug: 'cafe-cursor',
     tag: 'EVENT',
     title: 'Cafe Cursor',
     body: 'Claim Cursor credits for Cafe Cursor Shanghai — checked-in guests only.',
-    href: 'https://cursor-cafe.aileena.xyz/',
+    href: CAFE_CURSOR_URL,
     status: 'live',
     arcade: {
       glyph: '◎',
       screenGradient: '#dde8e4',
+    },
+  },
+  {
+    slug: 'inkling-clips',
+    tag: 'AUDIO',
+    title: 'Audio Clipping',
+    body:
+      'YouTube → short clips. No Inkling API needed — free silence cuts.',
+    href: '/tools/inkling-clips',
+    status: 'live',
+    arcade: {
+      glyph: '▶',
+      screenGradient: '#d8eeeb',
     },
   },
   {

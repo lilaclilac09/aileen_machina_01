@@ -82,6 +82,7 @@ const COVER_BY_SLUG: Record<string, string> = {
   robots: COVER_AI_ABSTRACT,
   centaur: COVER_AI_ABSTRACT,
   cli: COVER_TERMINAL,
+  'local-models': COVER_TERMINAL,
 
   // Privacy / Zcash
   'zcash-fpga': COVER_CIRCUIT_CLOSEUP,
@@ -99,6 +100,7 @@ const COVER_BY_SLUG: Record<string, string> = {
   cpo: COVER_FIBER,
   'let-there-be-light': COVER_LIGHT,
   'nokia-dci': COVER_FIBER,
+  'ymtc-nand-wuhan': COVER_SILICON,
 
   // Data centre / cooling
   'ai-cooling': COVER_DATACENTER,

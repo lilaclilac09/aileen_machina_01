@@ -12,6 +12,8 @@ import {
 import { ensureCreditsSynced } from "@/lib/google-sheets";
 import { ensureLumaCheckedInUser, isLumaConfigured } from "@/lib/luma";
 import { getVolunteerMaxClaims } from "@/lib/claims";
+import { logCreditOpsEvent } from "@/lib/credit-ops";
+import { assignableCreditWhere } from "@/lib/credit-pool";
 
 /** Mask email in logs — never print full addresses to shared log sinks. */
 function maskEmail(email: string): string {
@@ -140,15 +142,12 @@ export async function POST(request: NextRequest) {
     const isTestUser = eligibleUser.company === "Test Company";
 
     const availableCredit = await prisma.credit.findFirst({
-      where: {
-        isUsed: false,
-        isTest: isTestUser,
-      },
+      where: assignableCreditWhere(isTestUser),
       orderBy: { createdAt: "asc" },
     });
 
     if (!availableCredit) {
-      console.log(`❌ [REGISTER] No credits (isTest: ${isTestUser})`);
+      console.log(`❌ [REGISTER] No fresh credits (isTest: ${isTestUser})`);
       return NextResponse.json(
         {
           success: false,
@@ -177,7 +176,16 @@ export async function POST(request: NextRequest) {
           isUsed: true,
           assignedAt: new Date(),
           ownerId: eligibleUser!.id,
+          timesAssigned: { increment: 1 },
         },
+      });
+
+      await logCreditOpsEvent(tx, {
+        type: "ASSIGN",
+        creditId: availableCredit.id,
+        creditCode: availableCredit.code,
+        userEmail: normalizedEmail,
+        note: "guest_redeem",
       });
 
       return updatedUser;

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isAuthenticated } from "@/lib/auth";
 import { ensureBundledLumaGuestsImported } from "@/lib/luma-csv";
+import { computeHaveNeed } from "@/lib/credit-ledger";
+import { getCreditOpsStats } from "@/lib/credit-ops";
+import { assignableRealPoolWhere } from "@/lib/credit-pool";
 
 /**
  * GET /api/admin/dashboard — admin stats + lists
@@ -23,15 +26,20 @@ export async function GET(request: NextRequest) {
       totalCredits,
       usedCredits,
       testCredits,
+      availableRealCredits,
       totalEligible,
       claimedUsers,
       approvedUsers,
       remindedUnclaimed,
       awaitingReminder,
+      unclaimedApproved,
     ] = await Promise.all([
       prisma.credit.count(),
       prisma.credit.count({ where: { isUsed: true } }),
       prisma.credit.count({ where: { isTest: true } }),
+      prisma.credit.count({
+        where: assignableRealPoolWhere(),
+      }),
       prisma.eligibleUser.count(),
       prisma.eligibleUser.count({ where: { hasClaimed: true } }),
       prisma.eligibleUser.count({ where: { approvalStatus: "approved" } }),
@@ -49,7 +57,42 @@ export async function GET(request: NextRequest) {
           reminderSentAt: null,
         },
       }),
+      prisma.eligibleUser.count({
+        where: {
+          approvalStatus: "approved",
+          hasClaimed: false,
+        },
+      }),
     ]);
+
+    const [openTickets, ticketsRaw] = await Promise.all([
+      prisma.supportTicket.count({ where: { status: "open" } }),
+      prisma.supportTicket.findMany({
+        orderBy: [{ status: "asc" }, { createdAt: "desc" }],
+        take: 100,
+        select: {
+          id: true,
+          email: true,
+          lumaEmail: true,
+          category: true,
+          message: true,
+          status: true,
+          locale: true,
+          adminNote: true,
+          hasScreenshot: true,
+          hasScreenshot2: true,
+          createdAt: true,
+          resolvedAt: true,
+        },
+      }),
+    ]);
+    const tickets = ticketsRaw;
+
+    const haveNeed = computeHaveNeed({
+      availableCount: availableRealCredits,
+      unclaimedApprovedCount: unclaimedApproved,
+    });
+    const opsStats = await getCreditOpsStats();
 
     const credits = await prisma.credit.findMany({
       orderBy: [
@@ -67,6 +110,17 @@ export async function GET(request: NextRequest) {
         assignedAt: true,
         createdAt: true,
         ownerId: true,
+        timesAssigned: true,
+        timesRevoked: true,
+        lastRevokedAt: true,
+        lastRevokedFromEmail: true,
+        owner: {
+          select: {
+            id: true,
+            email: true,
+            hasClaimed: true,
+          },
+        },
       },
     });
 
@@ -115,18 +169,22 @@ export async function GET(request: NextRequest) {
       stats: {
         totalCredits,
         usedCredits,
-        availableCredits: totalCredits - usedCredits,
+        availableCredits: availableRealCredits,
         testCredits,
         realCredits: totalCredits - testCredits,
         totalEligible,
         claimedUsers,
         approvedUsers,
-        pendingUsers: approvedUsers - claimedUsers,
+        pendingUsers: unclaimedApproved,
         remindedUnclaimed,
         awaitingReminder,
+        openTickets,
       },
+      haveNeed,
+      opsStats,
       credits,
       eligibleUsers: usersWithClaims,
+      tickets,
     });
   } catch (error) {
     console.error("[ADMIN] Dashboard error:", error);

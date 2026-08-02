@@ -61,6 +61,7 @@ pnpm build                # includes memory index on every deploy
 | Question type | Exposed tools | Effect |
 |---------------|---------------|--------|
 | hire / CV / contact | **none** | Cannot waste steps on search; answers from static prompt |
+| **what's new / 更新了吗** | memories (+ articles) | **Must** `searchMemories("latest content")` — not training invent |
 | music / taste / Hockney | memories (+ articles) | **Cannot** call `queryChip` |
 | faith / belief | memories (+ articles) | Hits `faith-from-essays` path |
 | Centaur | articles + research/docs | Forced retrieval; no chip tools |
@@ -108,26 +109,50 @@ Printed by `pnpm verify:memory` and stored in the report under `agentManualPromp
 4. podcasts on the shelf?
 5. what did I ask before? (after 1–4)
 6. is she available for hire? (must not invent taste from training)
+7. 更新了什么吗 / what's new? (must cite latest-content — Local Models / YMTC — not old /blog/cli)
 
 ## Fixed workflow (GitHub Actions)
 
-`.github/workflows/machina-memory.yml` runs the same pipeline on a schedule:
+| Workflow | Trigger | Role |
+|----------|---------|------|
+| **`.github/workflows/memory-on-article.yml`** | **`push` to `main` on fixed paths** | New article / updates / research / setlist → memory |
+| `.github/workflows/machina-memory.yml` | Mondays 06:00 UTC + `workflow_dispatch` | Weekly / manual Dreaming |
+| `.github/workflows/machina-memory-job.yml` | `workflow_call` only | Shared job body |
 
-| Trigger | When |
-|---------|------|
-| `schedule` | Mondays 06:00 UTC |
-| `workflow_dispatch` | Manual — optional `skip_commit: true` to dry-run |
+**Fixed paths (canonical):** `aileena-new/docs/MEMORY_WATCH_PATHS.md`
 
-Steps: **`sync:content-memory`** → `pnpm dreaming` → `pnpm build:memory-index` → commit `latest-content.md`, `content-changelog-*.md`, and Dreaming reports to `main`.
+```
+aileena-new/app/blog/**
+aileena-new/app/updates/**
+aileena-new/lib/research/**
+aileena-new/lib/djSetlist.ts
+aileena-new/public/dj-set/setlist.json
+aileena-new/components/DJStation.tsx
+```
+
+Local one-shot: `pnpm memory:on-article` (= `pnpm memory:workflow`).
+
+Steps: **`sync:content-memory`** → `pnpm dreaming` → `pnpm build:memory-index` → commit `latest-content.md`, changelogs, Dreaming reports to `main`.
+
+Push resilience: `fetch-depth: 0`, concurrency group `machina-memory-dreaming`, rebase + retry.
+
+Bot commits only touch `aileena_second_brain/**` (+ setlist assets) — **outside** the fixed path filter — so the Action does not loop.
+
+Dreaming also snapshots **social teachers** (SemiAnalysis / mach33) from `data/tweets.jsonl` + `data/social/*` (kept fresh by `.github/workflows/social-rss-sync.yml` every 6h) into:
+
+- `memories/archived/consolidate-report-*.md` → section **Social teachers**
+- `memories/episodic/social-changelog-YYYY-MM-DD.md` → promote durable facts into `analysts-dylan-aaron.md` / research ledgers
 
 ### What content sync detects
 
 | Source | Detects |
 |--------|---------|
 | `public/dj-set/setlist.json` | Curated DJ set tracks |
-| `components/DJStation.tsx` | Newest player deck additions |
+| `lib/djSetlist.ts` (`DECK_LIBRARY_TRACKS`) | Newest player deck additions |
 | `app/blog/watch-listening-shelf/page.tsx` | Podcasts, documentaries, channels |
-| `app/blog/*/page.tsx` | Latest articles (by `date` prop) |
+| `app/blog/*/page.tsx` | Latest articles (by `date` prop; supports `title={isDE ? … : …}`) |
+| `app/updates/page.tsx` | Metal & Pages shelf + update notes |
+| `lib/research/*.ts` | Research magazine issues |
 
 On change → writes `memories/episodic/content-changelog-YYYY-MM-DD.md` for Dreaming review.
 

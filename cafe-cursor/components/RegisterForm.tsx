@@ -120,6 +120,34 @@ export function RegisterForm() {
     }
   };
 
+  const troubleHelp = (
+    <div className="mt-4 rounded-xl border border-border bg-foreground/[0.03] p-4 text-left text-xs text-muted">
+      <p className="mb-2 font-medium text-foreground">{t("havingTrouble")}</p>
+      <p className="mb-1 font-medium text-foreground/80">{t("troubleTitle")}</p>
+      <p className="mb-3 leading-relaxed">{t("troubleReasons")}</p>
+      <p className="mb-1">{t("troubleCheckUsage")}</p>
+      <a
+        href={t("troubleUsageUrl")}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mb-3 inline-block break-all font-medium text-foreground underline underline-offset-2 hover:no-underline"
+      >
+        {t("troubleUsageUrl")}
+      </a>
+      <p className="mb-3 leading-relaxed">{t("troubleVerifyAccount")}</p>
+      <p className="mb-3 rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2 leading-relaxed text-amber-900 dark:text-amber-100">
+        {t("troubleUnifiedSolve")}
+      </p>
+      <p className="mb-1">{t("troubleAskStaff")}</p>
+      <a
+        href={`/help${email.trim() ? `?email=${encodeURIComponent(email.trim())}` : ""}`}
+        className="font-medium text-foreground underline underline-offset-2 hover:no-underline"
+      >
+        {t("troubleTicketCta")}
+      </a>
+    </div>
+  );
+
   // Already claimed — link is not re-shown publicly (staff / admin only)
   if (status === "success" && result?.alreadyClaimed && !result.credit) {
     return (
@@ -131,10 +159,11 @@ export function RegisterForm() {
           <p className="mb-6 text-center text-sm text-muted">
             {t("alreadyClaimedAskStaff")}
           </p>
+          {troubleHelp}
           <button
             type="button"
             onClick={handleReset}
-            className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm font-medium transition-colors hover:bg-foreground/5"
+            className="mt-4 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm font-medium transition-colors hover:bg-foreground/5"
           >
             {t("tryAnotherEmail")}
           </button>
@@ -195,6 +224,12 @@ export function RegisterForm() {
             <p className="break-all font-mono text-sm">{result.credit}</p>
           </div>
 
+          <div className="mb-3 rounded-xl border border-amber-500/40 bg-amber-500/15 p-4 text-center">
+            <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">
+              {t("mustClickUseButton")}
+            </p>
+          </div>
+
           <div className="flex gap-3">
             <button
               onClick={handleCopyLink}
@@ -206,7 +241,7 @@ export function RegisterForm() {
               href={result.credit}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 rounded-xl bg-foreground px-4 py-3 text-center text-sm font-medium text-background transition-opacity hover:opacity-90"
+              className="flex-1 rounded-xl bg-foreground px-4 py-3 text-center text-sm font-medium text-background transition-opacity hover:opacity-90 ring-2 ring-amber-400/60 ring-offset-2 ring-offset-background"
             >
               {t("useCredit")}
             </a>
@@ -214,6 +249,9 @@ export function RegisterForm() {
 
           <div className="mt-4 rounded-xl border border-border bg-foreground/5 p-4 text-center text-xs text-muted">
             <p>{t("successHint")}</p>
+            <p className="mt-2 text-amber-800/90 dark:text-amber-200/90">
+              {t("mobileRedeemHint")}
+            </p>
           </div>
 
           <a
@@ -233,9 +271,7 @@ export function RegisterForm() {
           {t("saveLink")}
         </p>
 
-        <p className="mt-3 text-center text-xs text-muted">
-          {t("havingTrouble")}
-        </p>
+        {troubleHelp}
 
         {result.emailSent ? (
           <div className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-[var(--success)]/20 bg-[var(--success)]/5 px-4 py-3">
@@ -378,9 +414,7 @@ export function RegisterForm() {
       <p className="mt-6 text-center text-xs text-muted">
         {t("footerNote")}
       </p>
-      <p className="mt-2 text-center text-xs text-muted">
-        {t("havingTrouble")}
-      </p>
+      {troubleHelp}
     </form>
   );
 }

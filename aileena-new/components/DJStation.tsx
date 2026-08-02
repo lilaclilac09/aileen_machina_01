@@ -38,6 +38,27 @@ function spotifyTrackId(track: Track): string | null {
   return null;
 }
 
+function firstPlayableTrack(from = 0, skipId?: string | null): Track | null {
+  for (let i = from; i < DJ_SET.length; i++) {
+    const t = DJ_SET[i];
+    const sid = spotifyTrackId(t);
+    if (!sid) continue;
+    if (skipId && sid === skipId) continue;
+    return t;
+  }
+  for (let i = 0; i < from; i++) {
+    const t = DJ_SET[i];
+    const sid = spotifyTrackId(t);
+    if (!sid) continue;
+    if (skipId && sid === skipId) continue;
+    return t;
+  }
+  return DJ_SET.find((t) => spotifyTrackId(t)) ?? DJ_SET[0] ?? null;
+}
+
+const INITIAL_LEFT = firstPlayableTrack(0);
+const INITIAL_RIGHT = firstPlayableTrack(1, INITIAL_LEFT ? spotifyTrackId(INITIAL_LEFT) : null);
+
 /* ─── Waveform helper ────────────────────────────────────── */
 function generateWaveform(seed: string, bars: number): number[] {
   let h = 0;
@@ -83,8 +104,8 @@ function useIsMobile() {
 /* ─── Main ───────────────────────────────────────────────── */
 export default function DJStation() {
   const isMobile = useIsMobile();
-  const [leftTrack,    setLeftTrack]    = useState<Track | null>(DJ_SET[0] ?? null);
-  const [rightTrack,   setRightTrack]   = useState<Track | null>(DJ_SET[Math.min(3, DJ_SET.length - 1)] ?? null);
+  const [leftTrack,    setLeftTrack]    = useState<Track | null>(INITIAL_LEFT);
+  const [rightTrack,   setRightTrack]   = useState<Track | null>(INITIAL_RIGHT);
   const [leftPlaying,  setLeftPlaying]  = useState(false);
   const [rightPlaying, setRightPlaying] = useState(false);
   const [leftPos,      setLeftPos]      = useState(0);
@@ -95,6 +116,8 @@ export default function DJStation() {
   const [rightPitch,   setRightPitch]   = useState(0);
   const [xfade,        setXfade]        = useState(50);
   const [dropSide,     setDropSide]     = useState<'left'|'right'|null>(null);
+  const [leftEmbedReady,  setLeftEmbedReady]  = useState(false);
+  const [rightEmbedReady, setRightEmbedReady] = useState(false);
 
   const leftContainerRef  = useRef<HTMLDivElement>(null);
   const rightContainerRef = useRef<HTMLDivElement>(null);
@@ -105,57 +128,109 @@ export default function DJStation() {
   const leftWasPlaying    = useRef(false);
   const rightWasPlaying   = useRef(false);
 
-  /* ── Spotify API ── */
+  /* ── Spotify API — tolerant of Strict Mode remount + late script ready ── */
   useEffect(() => {
-    const win = window as any;
-    const initControllers = (api: IFrameAPI) => {
-      if (leftContainerRef.current && !leftCtrl.current) {
-        const leftUri = spotifyTrackId(DJ_SET[0]);
-        if (!leftUri) return;
-        api.createController(leftContainerRef.current,
-          { uri: `spotify:track:${leftUri}`, width: '100%', height: '80' },
-          ctrl => {
-            leftCtrl.current = ctrl;
-            ctrl.addListener('playback_update', e => {
-              setLeftPlaying(!e.data.isPaused);
-              if (e.data.duration > 0) {
-                setLeftPos(e.data.position);
-                setLeftDur(e.data.duration);
-              }
-            });
-          });
+    const win = window as Window & {
+      SpotifyIframeApi?: IFrameAPI;
+      onSpotifyIframeApiReady?: (api: IFrameAPI) => void;
+    };
+    let cancelled = false;
+    let retries = 0;
+
+    const containerEmpty = (el: HTMLElement | null) =>
+      !!el && !el.querySelector('iframe');
+
+    const mountSide = (
+      api: IFrameAPI,
+      side: 'left' | 'right',
+      el: HTMLElement | null,
+      track: Track | null,
+      ctrlRef: React.MutableRefObject<SpotifyController | null>,
+      onUpdate: (e: { data: PlayUpdate }) => void,
+      onReady: () => void,
+    ) => {
+      if (!el || cancelled) return;
+      const uri = track ? spotifyTrackId(track) : null;
+      if (!uri) return;
+      // Strict Mode remount leaves a stale controller pointing at a detached node.
+      if (ctrlRef.current && containerEmpty(el)) {
+        ctrlRef.current = null;
+        el.innerHTML = '';
       }
-      if (rightContainerRef.current && !rightCtrl.current) {
-        const rightUri = spotifyTrackId(DJ_SET[Math.min(3, DJ_SET.length - 1)]) ?? spotifyTrackId(DJ_SET[0]);
-        if (!rightUri) return;
-        api.createController(rightContainerRef.current,
-          { uri: `spotify:track:${rightUri}`, width: '100%', height: '80' },
-          ctrl => {
-            rightCtrl.current = ctrl;
-            ctrl.addListener('playback_update', e => {
-              setRightPlaying(!e.data.isPaused);
-              if (e.data.duration > 0) {
-                setRightPos(e.data.position);
-                setRightDur(e.data.duration);
-              }
-            });
-          });
+      if (ctrlRef.current || !containerEmpty(el)) {
+        if (!containerEmpty(el)) onReady();
+        return;
       }
+
+      api.createController(
+        el,
+        { uri: `spotify:track:${uri}`, width: '100%', height: '80' },
+        (ctrl) => {
+          if (cancelled) return;
+          ctrlRef.current = ctrl;
+          ctrl.addListener('playback_update', onUpdate);
+          onReady();
+        },
+      );
     };
 
-    if (win.SpotifyIframeApi) { initControllers(win.SpotifyIframeApi); return; }
-    const prev = win.onSpotifyIframeApiReady;
-    win.onSpotifyIframeApiReady = (api: IFrameAPI) => {
+    const initControllers = (api: IFrameAPI) => {
+      if (cancelled) return;
       win.SpotifyIframeApi = api;
-      initControllers(api);
-      prev?.(api);
+      mountSide(api, 'left', leftContainerRef.current, INITIAL_LEFT, leftCtrl, (e) => {
+        setLeftPlaying(!e.data.isPaused);
+        if (e.data.duration > 0) {
+          setLeftPos(e.data.position);
+          setLeftDur(e.data.duration);
+        }
+      }, () => setLeftEmbedReady(true));
+      mountSide(api, 'right', rightContainerRef.current, INITIAL_RIGHT, rightCtrl, (e) => {
+        setRightPlaying(!e.data.isPaused);
+        if (e.data.duration > 0) {
+          setRightPos(e.data.position);
+          setRightDur(e.data.duration);
+        }
+      }, () => setRightEmbedReady(true));
     };
-    if (!document.querySelector('script[src*="spotify-iframe-api"]')) {
+
+    const prevReady = win.onSpotifyIframeApiReady;
+    win.onSpotifyIframeApiReady = (api: IFrameAPI) => {
+      initControllers(api);
+      prevReady?.(api);
+    };
+
+    if (win.SpotifyIframeApi) {
+      initControllers(win.SpotifyIframeApi);
+    } else if (!document.querySelector('script[src*="spotify-iframe-api"]')) {
       const s = document.createElement('script');
       s.src = 'https://open.spotify.com/embed/iframe-api/v1';
       s.async = true;
       document.head.appendChild(s);
     }
+
+    // Retry: script may have fired ready before this effect, or Strict Mode cleared DOM.
+    const timer = window.setInterval(() => {
+      if (cancelled) return;
+      retries += 1;
+      const api = win.SpotifyIframeApi;
+      if (api) initControllers(api);
+      const leftOk = !containerEmpty(leftContainerRef.current);
+      const rightOk = !containerEmpty(rightContainerRef.current);
+      if (leftOk) setLeftEmbedReady(true);
+      if (rightOk) setRightEmbedReady(true);
+      if ((leftOk && rightOk) || retries > 20) {
+        window.clearInterval(timer);
+      }
+    }, 400);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+      leftCtrl.current = null;
+      rightCtrl.current = null;
+      if (leftContainerRef.current) leftContainerRef.current.innerHTML = '';
+      if (rightContainerRef.current) rightContainerRef.current.innerHTML = '';
+    };
   }, []);
 
   const loadTrack = useCallback((side: 'left'|'right', track: Track) => {
@@ -209,17 +284,58 @@ export default function DJStation() {
   return (
     <div style={{ userSelect: 'none', width: '100%', background: '#0b0d10' }}>
 
-      {/* ── Spotify embed containers (functional audio) ── */}
+      {/* ── Spotify embed containers (functional audio + play mark) ── */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 6, marginBottom: 8 }}>
         {(['left','right'] as const).map(side => {
           const track = side === 'left' ? leftTrack : rightTrack;
           const ref   = side === 'left' ? leftContainerRef : rightContainerRef;
+          const sid   = track ? spotifyTrackId(track) : null;
+          const ready = side === 'left' ? leftEmbedReady : rightEmbedReady;
           return (
             <div key={side} style={{
               borderRadius: 6, overflow: 'hidden', background: C.bg,
               border: '1px solid rgba(170,179,187,0.12)', position: 'relative',
+              minHeight: 80,
             }}>
-              <div ref={ref} style={{ minHeight: 80 }} />
+              <div ref={ref} style={{ minHeight: 80, width: '100%' }} />
+              {/* Visible play chrome while Spotify iframe is still mounting */}
+              {!ready && (
+                <div
+                  aria-hidden
+                  style={{
+                    position: 'absolute', inset: 0, pointerEvents: 'none',
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '0 14px',
+                    background: 'linear-gradient(90deg, #12161b 0%, #0b0d10 100%)',
+                  }}
+                >
+                  <div style={{
+                    width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
+                    background: '#1DB954',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 0 0 1px rgba(29,185,84,0.35)',
+                  }}>
+                    <span style={{
+                      color: '#0b0d10', fontSize: 14, lineHeight: 1,
+                      marginLeft: 2, fontWeight: 700,
+                    }}>▶</span>
+                  </div>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{
+                      fontSize: '0.72rem', fontWeight: 600, color: C.text,
+                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                    }}>
+                      {track?.title ?? (side === 'left' ? 'Deck A' : 'Deck B')}
+                    </div>
+                    <div style={{
+                      fontSize: '0.58rem', color: C.dim, marginTop: 2,
+                      letterSpacing: '0.04em', textTransform: 'uppercase',
+                    }}>
+                      {sid ? 'Loading Spotify player…' : 'No Spotify id — pick a library track'}
+                    </div>
+                  </div>
+                </div>
+              )}
               {!track && (
                 <div style={{
                   position: 'absolute', inset: 0, display: 'flex',

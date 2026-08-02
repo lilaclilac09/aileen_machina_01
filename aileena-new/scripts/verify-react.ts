@@ -150,6 +150,20 @@ async function main() {
   const myth = routeToolsForQuestion('if I get senior enough will that protect women in tech?');
   assert('myth → false_belief', myth.route === 'false_belief', myth.route);
 
+  const updatesZh = routeToolsForQuestion('更新了什么吗');
+  assert('更新了什么吗 → latest_updates', updatesZh.route === 'latest_updates', updatesZh.route);
+  assert('更新 prefers searchMemories', updatesZh.preferred[0] === 'searchMemories');
+  assert('更新 allows searchMemories', isToolAllowed(updatesZh, 'searchMemories'));
+  assert('更新 blocks queryChip', !isToolAllowed(updatesZh, 'queryChip'));
+  assert(
+    '更新 hint mentions latest content',
+    /latest content/i.test(updatesZh.hint),
+    updatesZh.hint.slice(0, 80),
+  );
+
+  const updatesEn = routeToolsForQuestion("what's new?");
+  assert("what's new → latest_updates", updatesEn.route === 'latest_updates', updatesEn.route);
+
   const failed = checks.filter((c) => !c.ok);
   console.log(`\nResult: ${checks.length - failed.length}/${checks.length} passed`);
   if (failed.length) {

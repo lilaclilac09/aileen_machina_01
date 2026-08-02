@@ -1,4 +1,5 @@
 import { getContactInbox } from '@/lib/contact-inbox';
+import { getResendFrom, resendFailureMessage } from '@/lib/resend-from';
 import { Resend } from 'resend';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -101,15 +102,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Contact inbox not configured.' }, { status: 503 });
   }
   const resend = new Resend(process.env.RESEND_API_KEY);
+  const from = getResendFrom();
   const { error } = await resend.emails.send({
-    from: 'AILEENA MACHINA <onboarding@resend.dev>',
+    from,
     to: inbox,
     subject,
     text,
   });
 
   if (error) {
-    return NextResponse.json({ error: 'Failed to send.' }, { status: 502 });
+    const { publicError, logDetail } = resendFailureMessage(error);
+    console.error('[api/chat/forward] Resend failed', { from, to: inbox, detail: logDetail });
+    return NextResponse.json({ error: publicError }, { status: 502 });
   }
 
   return NextResponse.json({ ok: true });

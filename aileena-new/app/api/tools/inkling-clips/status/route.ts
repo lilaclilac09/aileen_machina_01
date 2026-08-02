@@ -1,4 +1,4 @@
-import { ok } from '../../../../../lib/api/jsonResp';
+import { ok, preflight } from '../../../../../lib/api/jsonResp';
 import { hasInklingApiKey } from '../../../../../lib/inkling/localClips';
 import { checkMediaDeps } from '../../../../../lib/inkling/media';
 
@@ -39,4 +39,8 @@ export async function GET() {
         ? 'Browser Run is available (Inkling).'
         : 'Browser Run is available in free local mode (silence gaps — no Together credits).',
   });
+}
+
+export async function OPTIONS() {
+  return preflight();
 }

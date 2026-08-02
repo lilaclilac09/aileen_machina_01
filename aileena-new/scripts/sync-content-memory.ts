@@ -26,6 +26,9 @@ const LATEST_PATH = join(SEMANTIC, 'latest-content.md');
 type TrackRow = { id: string; title: string; artist?: string; bpm?: number | null; key?: string | null };
 type MediaRow = { title: string; href?: string; meta?: string; label?: string; year?: string };
 type ArticleRow = { slug: string; title: string; date: string; url: string };
+type BookRow = { title: string; author?: string; status?: string; label?: string };
+type UpdateNote = { date: string; kind?: string; title: string; body?: string };
+type ResearchRow = { slug: string; coverTitle: string; coverQuestion?: string; url: string };
 
 type ContentSnapshot = {
   curatedSet: TrackRow[];
@@ -37,6 +40,9 @@ type ContentSnapshot = {
   lifestyle: MediaRow[];
   channels: MediaRow[];
   articles: ArticleRow[];
+  updatesBooks: BookRow[];
+  updateNotes: UpdateNote[];
+  researchIssues: ResearchRow[];
 };
 
 function readText(path: string): string {
@@ -66,25 +72,33 @@ function parseSetlist(): { genre: string; tracks: TrackRow[] } {
   };
 }
 
-function parseDjStationTracks(): TrackRow[] {
-  const src = readText(join(ROOT, 'components', 'DJStation.tsx'));
+/** Full /sound deck lives in `lib/djSetlist.ts` (not inline in DJStation anymore). */
+function parseDeckTracks(): TrackRow[] {
+  const src = readText(join(ROOT, 'lib', 'djSetlist.ts'));
+  const block = extractConstBlock(src, 'DECK_LIBRARY_TRACKS');
+  if (!block) return [];
   const re =
-    /\{\s*id:\s*['"]([^'"]+)['"],\s*title:\s*(?:"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)')/g;
+    /\{\s*id:\s*(?:"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)')\s*,\s*title:\s*(?:"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)')/g;
   const out: TrackRow[] = [];
   let m: RegExpExecArray | null;
-  while ((m = re.exec(src))) {
-    const title = (m[2] ?? m[3] ?? '').replace(/\\'/g, "'").replace(/\\"/g, '"');
-    out.push({ id: m[1], title });
+  while ((m = re.exec(block))) {
+    const id = (m[1] ?? m[2] ?? '').replace(/\\'/g, "'").replace(/\\"/g, '"');
+    const title = (m[3] ?? m[4] ?? '').replace(/\\'/g, "'").replace(/\\"/g, '"');
+    if (id && title) out.push({ id, title });
   }
   return out;
 }
 
 function extractConstBlock(source: string, constName: string): string {
-  const marker = `const ${constName} = [`;
-  const start = source.indexOf(marker);
-  if (start === -1) return '';
+  // Matches: const X = [  |  export const X: T[] = [  |  const X: Book[] = [
+  const re = new RegExp(
+    `(?:export\\s+)?const\\s+${constName}(?:\\s*:\\s*[^=]+)?\\s*=\\s*\\[`,
+  );
+  const m = re.exec(source);
+  if (!m || m.index === undefined) return '';
+  const start = m.index;
   let depth = 0;
-  let i = start + marker.length - 1;
+  let i = start + m[0].length - 1;
   for (; i < source.length; i++) {
     const ch = source[i];
     if (ch === '[') depth++;
@@ -153,13 +167,36 @@ function extractShellProp(source: string, propName: string): string {
   return m ? m[1].replace(/\\"/g, '"') : '';
 }
 
+/** Read `prop: '…'` / `prop: "…"` even when the value contains the other quote. */
+function extractQuotedProp(source: string, propName: string): string | undefined {
+  const re = new RegExp(
+    `\\b${propName}\\s*:\\s*(["'])((?:\\\\.|(?!\\1)[\\s\\S])*?)\\1`,
+  );
+  const m = source.match(re);
+  if (!m) return undefined;
+  return m[2].replace(/\\'/g, "'").replace(/\\"/g, '"');
+}
+
+/** Prefer English branch of `title={isDE ? '…' : '…'}` (third-culture-power etc.). */
+function extractArticleTitle(source: string): string {
+  const plain = extractShellProp(source, 'title');
+  if (plain) return plain;
+  const ternary = source.match(
+    /title=\{\s*isDE\s*\?\s*(['"])([\s\S]*?)\1\s*:\s*(['"])([\s\S]*?)\3\s*\}/,
+  );
+  if (ternary) return ternary[4].replace(/\s+/g, ' ').trim();
+  const expr = source.match(/title=\{\s*(['"])([\s\S]*?)\1\s*\}/);
+  if (expr) return expr[2].replace(/\s+/g, ' ').trim();
+  return '';
+}
+
 function parseArticles(): ArticleRow[] {
   const pages = walkBlogPages(join(ROOT, 'app', 'blog'));
   const rows: ArticleRow[] = [];
   for (const file of pages) {
     const src = readText(file);
     const slug = basename(dirname(file));
-    const title = extractShellProp(src, 'title');
+    const title = extractArticleTitle(src);
     const date = extractShellProp(src, 'date');
     if (!title) continue;
     rows.push({
@@ -170,6 +207,79 @@ function parseArticles(): ArticleRow[] {
     });
   }
   rows.sort((a, b) => b.date.localeCompare(a.date));
+  return rows;
+}
+
+function parseUpdatesPage(): { books: BookRow[]; notes: UpdateNote[] } {
+  const path = join(ROOT, 'app', 'updates', 'page.tsx');
+  if (!existsSync(path)) return { books: [], notes: [] };
+  const src = readText(path);
+  const books: BookRow[] = [];
+  const notes: UpdateNote[] = [];
+
+  const featured = src.match(/const FEATURED:\s*Book\s*=\s*\{([\s\S]*?)\n\};/);
+  if (featured) {
+    const block = featured[1];
+    const title = extractQuotedProp(block, 'title');
+    const author = extractQuotedProp(block, 'author');
+    const status = extractQuotedProp(block, 'status');
+    if (title) books.push({ title, author, status, label: 'featured' });
+  }
+
+  for (const name of ['DIDION_SHELF', 'ADJACENT'] as const) {
+    const block = extractConstBlock(src, name);
+    if (!block) continue;
+    const objects = block.match(/\{[^{}]*\}/g) ?? [];
+    for (const obj of objects) {
+      const title = extractQuotedProp(obj, 'title');
+      if (!title) continue;
+      books.push({
+        title,
+        author: extractQuotedProp(obj, 'author'),
+        status: extractQuotedProp(obj, 'status'),
+        label: name.toLowerCase(),
+      });
+    }
+  }
+
+  const updatesBlock = extractConstBlock(src, 'UPDATES');
+  if (updatesBlock) {
+    const objects = updatesBlock.match(/\{[^{}]*\}/g) ?? [];
+    for (const obj of objects) {
+      const title = extractQuotedProp(obj, 'title');
+      if (!title) continue;
+      notes.push({
+        title,
+        date: extractQuotedProp(obj, 'date') ?? '0000.00.00',
+        kind: extractQuotedProp(obj, 'kind'),
+        body: extractQuotedProp(obj, 'body'),
+      });
+    }
+    notes.sort((a, b) => b.date.localeCompare(a.date));
+  }
+
+  return { books, notes };
+}
+
+function parseResearchIssues(): ResearchRow[] {
+  const issuesPath = join(ROOT, 'lib', 'research', 'issues.ts');
+  if (!existsSync(issuesPath)) return [];
+  const dir = join(ROOT, 'lib', 'research');
+  const rows: ResearchRow[] = [];
+  for (const entry of readdirSync(dir)) {
+    if (!entry.endsWith('.ts') || entry === 'issues.ts' || entry === 'types.ts') continue;
+    const src = readText(join(dir, entry));
+    const slug = extractQuotedProp(src, 'slug') ?? basename(entry, '.ts');
+    const coverTitle = extractQuotedProp(src, 'coverTitle');
+    if (!coverTitle) continue;
+    const coverQuestion = extractQuotedProp(src, 'coverQuestion');
+    rows.push({
+      slug,
+      coverTitle,
+      coverQuestion,
+      url: `https://aileena.xyz/research/${slug}`,
+    });
+  }
   return rows;
 }
 
@@ -211,6 +321,22 @@ function formatMediaLine(m: MediaRow): string {
   return bits ? `- **${m.title}** (${bits})${link}` : `- **${m.title}**${link}`;
 }
 
+function formatBookLine(b: BookRow): string {
+  const bits = [b.author, b.status, b.label].filter(Boolean).join(' · ');
+  return bits ? `- **${b.title}** (${bits})` : `- **${b.title}**`;
+}
+
+function formatUpdateNote(n: UpdateNote): string {
+  const bits = [n.date, n.kind].filter(Boolean).join(' · ');
+  const body = n.body ? ` — ${n.body}` : '';
+  return bits ? `- **${n.title}** (${bits})${body}` : `- **${n.title}**${body}`;
+}
+
+function formatResearchLine(r: ResearchRow): string {
+  const q = r.coverQuestion ? ` — ${r.coverQuestion}` : '';
+  return `- **${r.coverTitle}** (\`${r.slug}\`)${q} — ${r.url}`;
+}
+
 function buildLatestMarkdown(
   snapshot: ContentSnapshot,
   hash: string,
@@ -228,7 +354,7 @@ source: scripts/sync-content-memory.ts
 
 # Latest content — auto-synced
 
-Agent truth for **newest songs, podcasts, documentaries, and articles** on aileena.xyz.
+Agent truth for **newest songs, podcasts, documentaries, articles, /updates shelf, and research** on aileena.xyz.
 Regenerated by \`pnpm sync:content-memory\` (weekly GitHub Action + before Dreaming).
 
 <!-- snapshot:${JSON.stringify(snapshot)} -->
@@ -241,9 +367,9 @@ ${snapshot.curatedSet.map(formatTrackLine).join('\n')}
 
 ## Player deck — newest additions (\`/sound\`)
 
-Last ${recentPlayer.length} tracks in \`DJStation.tsx\` (end of array = most recently added):
+Last ${recentPlayer.length} tracks in \`lib/djSetlist.ts\` \`DECK_LIBRARY_TRACKS\` (end of array = most recently added):
 
-${recentPlayer.map(formatTrackLine).join('\n')}
+${recentPlayer.map(formatTrackLine).join('\n') || '_none_'}
 
 ## Podcasts (\`/blog/watch-listening-shelf\`)
 
@@ -273,9 +399,21 @@ ${snapshot.channels.map(formatMediaLine).join('\n')}
 
 ${recentArticles.map((a) => `- **${a.title}** (${a.date}) — ${a.url}`).join('\n')}
 
+## /updates — Metal & Pages shelf
+
+${snapshot.updatesBooks.map(formatBookLine).join('\n') || '_none_'}
+
+## /updates — shelf notes
+
+${snapshot.updateNotes.map(formatUpdateNote).join('\n') || '_none_'}
+
+## Research magazine (\`/research\`)
+
+${snapshot.researchIssues.map(formatResearchLine).join('\n') || '_none_'}
+
 ## Agent rule
 
-When asked what Aileen recently added, published, or is listening to — call \`searchMemories\` with query "latest content" or the specific medium (podcast, documentary, song, article). This file is the canonical auto-updated shelf.
+When asked what Aileen recently added, published, or is listening to — call \`searchMemories\` with query "latest content" or the specific medium (podcast, documentary, song, article, book, research). This file is the canonical auto-updated shelf.
 `;
 }
 
@@ -301,7 +439,7 @@ function buildChangelog(
     sections.push(`## New curated set tracks\n\n${newCurated.map(formatTrackLine).join('\n')}`);
   }
   if (newPlayer.length) {
-    sections.push(`## New player tracks (DJStation)\n\n${newPlayer.map(formatTrackLine).join('\n')}`);
+    sections.push(`## New player tracks (deck library)\n\n${newPlayer.map(formatTrackLine).join('\n')}`);
   }
   if (newPodcasts.length) {
     sections.push(`## New podcasts\n\n${newPodcasts.map(formatMediaLine).join('\n')}`);
@@ -328,6 +466,21 @@ function buildChangelog(
     );
   }
 
+  const newBooks = diffLists(prev.updatesBooks ?? [], next.updatesBooks, (b) => b.title);
+  if (newBooks.length) {
+    sections.push(`## New /updates shelf books\n\n${newBooks.map(formatBookLine).join('\n')}`);
+  }
+
+  const newNotes = diffLists(prev.updateNotes ?? [], next.updateNotes, (n) => `${n.date}|${n.title}`);
+  if (newNotes.length) {
+    sections.push(`## New /updates notes\n\n${newNotes.map(formatUpdateNote).join('\n')}`);
+  }
+
+  const newResearch = diffLists(prev.researchIssues ?? [], next.researchIssues, (r) => r.slug);
+  if (newResearch.length) {
+    sections.push(`## New research\n\n${newResearch.map(formatResearchLine).join('\n')}`);
+  }
+
   if (!sections.length) return null;
 
   return `# Content changelog — ${date}
@@ -344,9 +497,11 @@ Review and merge durable facts into \`memories/semantic/\` or \`prompts/\` if ne
 
 function main() {
   const setlist = parseSetlist();
-  const playerTracks = parseDjStationTracks();
+  const playerTracks = parseDeckTracks();
   const shelf = parseWatchShelf();
   const articles = parseArticles();
+  const updates = parseUpdatesPage();
+  const researchIssues = parseResearchIssues();
 
   const snapshot: ContentSnapshot = {
     curatedSet: setlist.tracks,
@@ -358,6 +513,9 @@ function main() {
     lifestyle: shelf.lifestyle,
     channels: shelf.channels,
     articles,
+    updatesBooks: updates.books,
+    updateNotes: updates.notes,
+    researchIssues,
   };
 
   const hash = snapshotHash(snapshot);
@@ -382,12 +540,13 @@ function main() {
   } else if (!prevHash) {
     writeFileSync(
       join(EPISODIC, `content-baseline-${date}.md`),
-      `# Content baseline — ${date}\n\nInitial scan: ${snapshot.playerTracks.length} player tracks, ${snapshot.curatedSet.length} curated, ${snapshot.podcasts.length} podcasts, ${snapshot.documentaries.length} documentaries, ${snapshot.articles.length} articles.\n`,
+      `# Content baseline — ${date}\n\nInitial scan: ${snapshot.playerTracks.length} player tracks, ${snapshot.curatedSet.length} curated, ${snapshot.podcasts.length} podcasts, ${snapshot.documentaries.length} documentaries, ${snapshot.articles.length} articles, ${snapshot.updatesBooks.length} /updates books, ${snapshot.researchIssues.length} research.\n`,
     );
   }
 
   const newestArticle = articles[0];
   const newestPlayer = playerTracks.at(-1);
+  const newestNote = updates.notes[0];
 
   console.log(`[sync-content-memory] hash ${hash}${prevHash === hash ? ' (unchanged)' : ' (updated)'}`);
   console.log(`[sync-content-memory] → ${LATEST_PATH}`);
@@ -398,6 +557,12 @@ function main() {
   console.log(
     `[sync-content-memory] newest player track: ${newestPlayer?.title ?? '—'} (${newestPlayer?.id ?? '—'})`,
   );
+  console.log(
+    `[sync-content-memory] /updates books: ${snapshot.updatesBooks.length}, notes: ${snapshot.updateNotes.length}, research: ${snapshot.researchIssues.length}`,
+  );
+  if (newestNote) {
+    console.log(`[sync-content-memory] newest /updates note: ${newestNote.title} (${newestNote.date})`);
+  }
   console.log(
     `[sync-content-memory] podcasts: ${snapshot.podcasts.length}, documentaries: ${snapshot.documentaries.length}, films: ${snapshot.films.length}, euro: ${snapshot.euroGuides.length}, lifestyle: ${snapshot.lifestyle.length}`,
   );

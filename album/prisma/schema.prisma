@@ -1,0 +1,78 @@
+// Gather album
+// Local: SQLite (DATABASE_URL=file:./dev.db)
+// Production Vercel: set DATABASE_URL to Postgres — Prisma supports both;
+// if you use Postgres, change provider below to "postgresql".
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Album {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  title           String
+  adminSecretHash String
+  expiresAt       DateTime
+  uploadLocked    Boolean  @default(false)
+  photoCount      Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  photos          Photo[]
+}
+
+model Photo {
+  id           String    @id @default(cuid())
+  albumId      String
+  album        Album     @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  storageKey   String
+  thumbKey     String
+  /// Intl / default CDN URL (R2 or Blob or local)
+  url          String
+  thumbUrl     String
+  /// China CDN URL (阿里云 OSS) — empty when dual not configured
+  urlCn        String    @default("")
+  thumbUrlCn   String    @default("")
+  width        Int       @default(0)
+  height       Int       @default(0)
+  uploaderName String    @default("")
+  caption      String    @default("")
+  /// Legacy flag; keep in sync with pinMode !== "none"
+  pinned       Boolean   @default(false)
+  /// none | front | center
+  pinMode      String    @default("none")
+  pinnedAt     DateTime?
+  likeCount    Int       @default(0)
+  createdAt    DateTime  @default(now())
+  deletedAt    DateTime?
+  likes        Like[]
+  comments     Comment[]
+
+  @@index([albumId, deletedAt, pinned, createdAt])
+}
+
+model Like {
+  id         String   @id @default(cuid())
+  photoId    String
+  photo      Photo    @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  visitorKey String
+  createdAt  DateTime @default(now())
+
+  @@unique([photoId, visitorKey])
+  @@index([photoId])
+}
+
+model Comment {
+  id         String   @id @default(cuid())
+  photoId    String
+  photo      Photo    @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  authorName String
+  body       String
+  createdAt  DateTime @default(now())
+
+  @@index([photoId, createdAt])
+}

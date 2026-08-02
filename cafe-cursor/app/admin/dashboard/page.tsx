@@ -11,6 +11,12 @@ interface Credit {
   isTest: boolean;
   assignedAt: string | null;
   createdAt: string;
+  ownerId?: string | null;
+  timesAssigned?: number;
+  timesRevoked?: number;
+  lastRevokedAt?: string | null;
+  lastRevokedFromEmail?: string | null;
+  owner?: { id: string; email: string; hasClaimed: boolean } | null;
 }
 
 interface EligibleUser {
@@ -40,12 +46,53 @@ interface Stats {
   pendingUsers: number;
   remindedUnclaimed: number;
   awaitingReminder: number;
+  openTickets?: number;
+}
+
+interface HaveNeed {
+  denominationUsd: number;
+  denominationSource: "env" | "default";
+  canAutoDetectFaceValue: false;
+  availableCount: number;
+  unclaimedApprovedCount: number;
+  haveUsd: number;
+  needUsd: number;
+  shortUsd: number;
+  label: string;
+  note: string;
+}
+
+interface OpsStats {
+  addedToSystem: number;
+  assignEvents: number;
+  revokeEvents: number;
+  revokedAvailableCount: number;
+  usedCount: number;
+  availableCount: number;
+}
+
+interface SupportTicketRow {
+  id: string;
+  email: string;
+  lumaEmail: string | null;
+  category: string;
+  message: string;
+  status: string;
+  locale: string | null;
+  adminNote: string | null;
+  hasScreenshot?: boolean;
+  hasScreenshot2?: boolean;
+  createdAt: string;
+  resolvedAt: string | null;
 }
 
 interface DashboardData {
   stats: Stats;
+  haveNeed?: HaveNeed;
+  opsStats?: OpsStats;
   credits: Credit[];
   eligibleUsers: EligibleUser[];
+  tickets?: SupportTicketRow[];
 }
 
 /**
@@ -56,7 +103,12 @@ export default function AdminDashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [activeTab, setActiveTab] = useState<"users" | "credits">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "credits" | "tickets">(
+    "users"
+  );
+  const [creditStatusFilter, setCreditStatusFilter] = useState<
+    "all" | "available" | "used" | "revoked"
+  >("all");
   const [actionLoading, setActionLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddUserModal, setShowAddUserModal] = useState(false);
@@ -93,6 +145,71 @@ export default function AdminDashboard() {
     router.push("/admin");
   };
 
+  const handleResolveTicket = async (ticketId: string) => {
+    const note = window.prompt("Optional admin note (visible only in Admin):") || "";
+    await executeAction("RESOLVE_TICKET", {
+      ticketId,
+      adminNote: note.trim() || undefined,
+    });
+  };
+
+  const handleReopenTicket = async (ticketId: string) => {
+    if (!window.confirm(`Reopen ticket ${ticketId}?`)) return;
+    await executeAction("REOPEN_TICKET", { ticketId });
+  };
+
+  const handleReplyTicket = async (ticketId: string, guestEmail: string) => {
+    const message = window.prompt(
+      `Reply to ${guestEmail} via cafe@aileena.xyz ONLY.\n` +
+        `Do NOT reply from your personal Gmail/QQ — that leaks your real address.\n\n` +
+        `Message:`
+    );
+    if (!message || !message.trim()) return;
+    await executeAction("REPLY_TICKET", {
+      ticketId,
+      message: message.trim(),
+    });
+  };
+
+  const handleViewTicketScreenshot = async (
+    ticketId: string,
+    which: 1 | 2 = 1
+  ) => {
+    setActionLoading(true);
+    try {
+      const res = await fetch("/api/admin/actions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "GET_TICKET_SCREENSHOT",
+          data: { ticketId, which },
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || json.error) {
+        alert(`Error: ${json.error || "Could not load screenshot"}`);
+        return;
+      }
+      const url = json.screenshotDataUrl as string;
+      const w = window.open("", "_blank");
+      if (w) {
+        w.document.write(
+          `<!DOCTYPE html><title>Ticket ${ticketId} shot ${which}</title>` +
+            `<body style="margin:0;background:#111;display:flex;justify-content:center;align-items:flex-start;padding:16px">` +
+            `<img src="${url}" alt="Spending screenshot ${which}" style="max-width:100%;height:auto"/>` +
+            `</body>`
+        );
+        w.document.close();
+      } else {
+        alert("Popup blocked — allow popups to view screenshot.");
+      }
+    } catch {
+      alert("Failed to load screenshot");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const executeAction = async (action: string, actionData: Record<string, unknown>) => {
     setActionLoading(true);
     try {
@@ -127,6 +244,14 @@ export default function AdminDashboard() {
             msg += `\n… +${json.payload.recipients.length - 40} more`;
           }
         }
+        if (json.opsStats) {
+          msg +=
+            "\n\n--- Ops counts ---\n" +
+            `Added to system: ${json.opsStats.addedToSystem}\n` +
+            `Assign events: ${json.opsStats.assignEvents}\n` +
+            `Revoke events: ${json.opsStats.revokeEvents}\n` +
+            `Quarantined (not reissued): ${json.opsStats.revokedAvailableCount}`;
+        }
         alert(msg);
         fetchDashboard();
       }
@@ -144,7 +269,14 @@ export default function AdminDashboard() {
   };
 
   const handleRevokeCredit = async (userId: string, email: string) => {
-    if (confirm(`Revoke credit from ${email}? The credit will become available again.`)) {
+    if (
+      confirm(
+        `Revoke credit from ${email}?\n\n` +
+          `The link will be QUARANTINED (not put back in the pool).\n` +
+          `Cursor.com may already have consumed it — we never reissue that link.\n` +
+          `Guest can redeem again to get a fresh unused credit.`
+      )
+    ) {
       await executeAction("REVOKE_CREDIT", { userId });
     }
   };
@@ -443,11 +575,65 @@ export default function AdminDashboard() {
       (u.company && u.company.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const filteredCredits = data?.credits.filter(
-    (c) =>
-      c.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.link.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCredits = data?.credits.filter((c) => {
+    if (
+      creditStatusFilter === "available" &&
+      (c.isUsed || (c.timesAssigned || 0) > 0)
+    )
+      return false;
+    if (creditStatusFilter === "used" && !c.isUsed) return false;
+    if (
+      creditStatusFilter === "revoked" &&
+      !(
+        !c.isUsed &&
+        ((c.timesRevoked || 0) > 0 || (c.timesAssigned || 0) > 0)
+      )
+    ) {
+      return false;
+    }
+    if (!searchTerm.trim()) return true;
+    const q = searchTerm.toLowerCase();
+    return (
+      c.code.toLowerCase().includes(q) ||
+      c.link.toLowerCase().includes(q) ||
+      (c.owner?.email || "").toLowerCase().includes(q) ||
+      (c.lastRevokedFromEmail || "").toLowerCase().includes(q)
+    );
+  });
+
+  const handleDownloadUsedCredits = () => {
+    const rows = (data?.credits || []).filter((c) => c.isUsed && !c.isTest);
+    if (rows.length === 0) {
+      alert("No used (assigned) real credits to download.");
+      return;
+    }
+    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+    const csv =
+      "code,link,status,ownerEmail,assignedAt,note\n" +
+      rows
+        .map((c) => {
+          const owner = JSON.stringify(c.owner?.email || "");
+          const assigned = c.assignedAt || "";
+          const note = JSON.stringify(
+            "Used = assigned in cafe-cursor; not proof Cursor.com redeemed the link"
+          );
+          return `${c.code},${c.link},used,${owner},${assigned},${note}`;
+        })
+        .join("\n") +
+      "\n";
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `used-credits-${stamp}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    alert(
+      `Downloaded ${rows.length} used credits.\n\n` +
+        `Flag meaning: assigned in this system (isUsed=true).\n` +
+        `Does not prove the guest opened the Cursor referral link.`
+    );
+  };
 
   if (loading) {
     return (
@@ -513,6 +699,64 @@ export default function AdminDashboard() {
           </p>
         </div>
 
+        {data?.haveNeed && (
+          <div
+            className={`mb-6 rounded-xl border px-4 py-3 text-sm ${
+              data.haveNeed.shortUsd > 0
+                ? "border-rose-500/40 bg-rose-500/10 text-rose-50"
+                : "border-emerald-500/40 bg-emerald-500/10 text-emerald-50"
+            }`}
+          >
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <p className="font-medium">
+                Have / Need · ${data.haveNeed.denominationUsd} each (configured)
+              </p>
+              <p className="font-mono text-xs opacity-90">
+                {data.haveNeed.label}
+                {data.haveNeed.shortUsd > 0
+                  ? ` · short $${data.haveNeed.shortUsd}`
+                  : " · covered"}
+              </p>
+            </div>
+            <p className="mt-2 text-xs opacity-90">
+              Have: {data.haveNeed.availableCount} available × $
+              {data.haveNeed.denominationUsd} = ${data.haveNeed.haveUsd}
+              {" · "}
+              Need: {data.haveNeed.unclaimedApprovedCount} unclaimed × $
+              {data.haveNeed.denominationUsd} = ${data.haveNeed.needUsd}
+            </p>
+            <p className="mt-2 text-xs opacity-75">
+              Cannot auto-detect $30 vs $50 from unreemed referral links — set{" "}
+              <code className="rounded bg-black/30 px-1">CREDIT_DENOMINATION_USD</code>{" "}
+              (now {data.haveNeed.denominationSource}=
+              {data.haveNeed.denominationUsd}). No redeem required for this
+              inventory math.
+            </p>
+          </div>
+        )}
+
+        {data?.opsStats && (
+          <div className="mb-6 rounded-xl border border-violet-500/40 bg-violet-500/10 px-4 py-3 text-sm text-violet-50">
+            <p className="font-medium">Credit ops counts</p>
+            <p className="mt-2 font-mono text-xs opacity-95">
+              Added to system: {data.opsStats.addedToSystem}
+              {" · "}
+              Assign: {data.opsStats.assignEvents}
+              {" · "}
+              Revoke: {data.opsStats.revokeEvents}
+              {" · "}
+              Quarantined (not reissued):{" "}
+              {data.opsStats.revokedAvailableCount}
+            </p>
+            <p className="mt-2 text-xs opacity-75">
+              After each Add / Assign / Revoke, the alert also shows these updated
+              counts. &quot;Quarantined&quot; = was handed out then revoked —
+              never reissued (Cursor link may already be consumed). Fresh pool =
+              timesAssigned 0 only.
+            </p>
+          </div>
+        )}
+
         <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-8">
           <StatCard
             label="Total Credits"
@@ -554,6 +798,11 @@ export default function AdminDashboard() {
             value={data?.stats.awaitingReminder || 0}
             color="orange"
           />
+          <StatCard
+            label="Open tickets"
+            value={data?.stats.openTickets || 0}
+            color="pink"
+          />
         </div>
 
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
@@ -577,6 +826,16 @@ export default function AdminDashboard() {
               }`}
             >
               Credits ({data?.stats.totalCredits ?? 0})
+            </button>
+            <button
+              onClick={() => setActiveTab("tickets")}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                activeTab === "tickets"
+                  ? "bg-white text-black"
+                  : "border border-gray-700 hover:bg-gray-800"
+              }`}
+            >
+              Tickets ({data?.stats.openTickets ?? 0} open)
             </button>
           </div>
 
@@ -827,7 +1086,62 @@ export default function AdminDashboard() {
         )}
 
         {activeTab === "credits" && (
-          <div className="overflow-x-auto rounded-xl border border-gray-800">
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap gap-2">
+                {(
+                  [
+                    ["all", "All"],
+                    ["available", "Available"],
+                    ["used", "Used / flagged"],
+                    ["revoked", "Quarantined"],
+                  ] as const
+                ).map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setCreditStatusFilter(key)}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                      creditStatusFilter === key
+                        ? key === "used"
+                          ? "bg-orange-500 text-black"
+                          : key === "revoked"
+                            ? "bg-violet-400 text-black"
+                            : "bg-white text-black"
+                        : "border border-gray-700 text-gray-300 hover:bg-gray-800"
+                    }`}
+                  >
+                    {label}
+                    {key === "all" && data
+                      ? ` (${data.stats.totalCredits})`
+                      : key === "available" && data
+                        ? ` (${data.stats.availableCredits})`
+                        : key === "used" && data
+                          ? ` (${data.stats.usedCredits})`
+                          : key === "revoked" && data?.opsStats
+                            ? ` (${data.opsStats.revokedAvailableCount})`
+                            : ""}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={handleDownloadUsedCredits}
+                disabled={actionLoading || !data || !(data.stats.usedCredits > 0)}
+                className="rounded-lg border border-orange-600/50 bg-orange-500/10 px-3 py-1.5 text-xs text-orange-100 hover:bg-orange-500/20 disabled:opacity-50"
+                title="Download assigned/used credits CSV (flagged in this system)"
+              >
+                Download used CSV
+              </button>
+            </div>
+            <p className="text-xs text-gray-500">
+              <span className="text-orange-300">Used</span> = assigned now.{" "}
+              <span className="text-violet-300">Quarantined</span> = was handed
+              out then revoked — <strong>not reissued</strong> (Cursor may have
+              consumed the link). Fresh Available = never assigned
+              (timesAssigned 0).
+            </p>
+            <div className="overflow-x-auto rounded-xl border border-gray-800">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-gray-800 bg-gray-900/50">
                 <tr>
@@ -835,12 +1149,25 @@ export default function AdminDashboard() {
                   <th className="px-4 py-3 font-medium">Link</th>
                   <th className="px-4 py-3 font-medium">Type</th>
                   <th className="px-4 py-3 font-medium">Status</th>
+                  <th className="px-4 py-3 font-medium">Owner</th>
+                  <th className="px-4 py-3 font-medium">Assign×</th>
+                  <th className="px-4 py-3 font-medium">Revoke×</th>
+                  <th className="px-4 py-3 font-medium">Last revoked from</th>
                   <th className="px-4 py-3 font-medium">Assigned</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-800">
                 {filteredCredits?.map((credit) => (
-                  <tr key={credit.id} className="hover:bg-gray-900/50">
+                  <tr
+                    key={credit.id}
+                    className={`hover:bg-gray-900/50 ${
+                      credit.isUsed
+                        ? "bg-orange-500/5"
+                        : (credit.timesRevoked || 0) > 0
+                          ? "bg-violet-500/5"
+                          : ""
+                    }`}
+                  >
                     <td className="px-4 py-3 font-mono text-xs">{credit.code}</td>
                     <td className="max-w-xs truncate px-4 py-3 font-mono text-xs text-gray-400">
                       {credit.link}
@@ -861,11 +1188,31 @@ export default function AdminDashboard() {
                         <span className="rounded-full bg-orange-500/20 px-2 py-1 text-xs text-orange-400">
                           Used
                         </span>
+                      ) : (credit.timesAssigned || 0) > 0 ||
+                        (credit.timesRevoked || 0) > 0 ? (
+                        <span className="rounded-full bg-violet-500/20 px-2 py-1 text-xs text-violet-300">
+                          Quarantined
+                        </span>
                       ) : (
                         <span className="rounded-full bg-green-500/20 px-2 py-1 text-xs text-green-400">
                           Available
                         </span>
                       )}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-gray-300">
+                      {credit.owner?.email || (credit.isUsed ? "—" : "")}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-gray-300">
+                      {credit.timesAssigned ?? 0}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-gray-300">
+                      {credit.timesRevoked ?? 0}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-gray-400">
+                      {credit.lastRevokedFromEmail || "—"}
+                      {credit.lastRevokedAt
+                        ? ` · ${new Date(credit.lastRevokedAt).toLocaleDateString("en-US")}`
+                        : ""}
                     </td>
                     <td className="px-4 py-3 text-xs text-gray-400">
                       {credit.assignedAt
@@ -876,6 +1223,170 @@ export default function AdminDashboard() {
                 ))}
               </tbody>
             </table>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "tickets" && (
+          <div className="overflow-hidden rounded-xl border border-gray-800">
+            <div className="border-b border-gray-800 bg-gray-900/80 px-4 py-3 text-xs text-gray-400">
+              Guests submit at <code className="text-gray-200">/help</code> with a
+              required screenshot of{" "}
+              <code className="text-gray-200">cursor.com/dashboard/spending</code>.{" "}
+              <strong className="text-amber-200">
+                Never Reply from personal Gmail
+              </strong>{" "}
+              — use <strong>Reply (brand)</strong> so From/Reply-To stay{" "}
+              <code className="text-gray-200">cafe@aileena.xyz</code>. Ticket alerts
+              go to <code className="text-gray-200">NOTIFY_CC_EMAIL</code> privately.
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="border-b border-gray-800 bg-gray-900 text-xs uppercase text-gray-400">
+                  <tr>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Category</th>
+                    <th className="px-4 py-3">Contact</th>
+                    <th className="px-4 py-3">Luma</th>
+                    <th className="px-4 py-3">Message</th>
+                    <th className="px-4 py-3">Shot</th>
+                    <th className="px-4 py-3">Created</th>
+                    <th className="px-4 py-3">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(data?.tickets || []).length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={8}
+                        className="px-4 py-8 text-center text-gray-500"
+                      >
+                        No tickets yet.
+                      </td>
+                    </tr>
+                  ) : (
+                    (data?.tickets || [])
+                      .filter((t) => {
+                        if (!searchTerm.trim()) return true;
+                        const q = searchTerm.toLowerCase();
+                        return (
+                          t.email.includes(q) ||
+                          (t.lumaEmail || "").includes(q) ||
+                          t.message.toLowerCase().includes(q) ||
+                          t.category.includes(q) ||
+                          t.id.includes(q)
+                        );
+                      })
+                      .map((ticket) => (
+                        <tr
+                          key={ticket.id}
+                          className="border-b border-gray-800/80 hover:bg-gray-900/40"
+                        >
+                          <td className="px-4 py-3">
+                            <span
+                              className={`rounded px-2 py-0.5 text-xs ${
+                                ticket.status === "open"
+                                  ? "bg-amber-500/20 text-amber-100"
+                                  : "bg-emerald-500/20 text-emerald-100"
+                              }`}
+                            >
+                              {ticket.status}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-xs text-gray-300">
+                            {ticket.category}
+                          </td>
+                          <td className="px-4 py-3 text-xs text-gray-200">
+                            {ticket.email}
+                          </td>
+                          <td className="px-4 py-3 text-xs text-gray-400">
+                            {ticket.lumaEmail || "—"}
+                          </td>
+                          <td className="max-w-xs px-4 py-3 text-xs text-gray-300">
+                            <div className="line-clamp-3 whitespace-pre-wrap">
+                              {ticket.message}
+                            </div>
+                            {ticket.adminNote ? (
+                              <p className="mt-1 text-[10px] text-gray-500">
+                                Note: {ticket.adminNote}
+                              </p>
+                            ) : null}
+                          </td>
+                          <td className="px-4 py-3 text-xs">
+                            <div className="flex flex-col gap-1">
+                              {ticket.hasScreenshot ? (
+                                <button
+                                  type="button"
+                                  disabled={actionLoading}
+                                  onClick={() =>
+                                    handleViewTicketScreenshot(ticket.id, 1)
+                                  }
+                                  className="rounded border border-sky-600/50 px-2 py-1 text-sky-100 hover:bg-sky-500/20 disabled:opacity-50"
+                                >
+                                  View ①
+                                </button>
+                              ) : (
+                                <span className="text-gray-500">① —</span>
+                              )}
+                              {ticket.hasScreenshot2 ? (
+                                <button
+                                  type="button"
+                                  disabled={actionLoading}
+                                  onClick={() =>
+                                    handleViewTicketScreenshot(ticket.id, 2)
+                                  }
+                                  className="rounded border border-sky-600/50 px-2 py-1 text-sky-100 hover:bg-sky-500/20 disabled:opacity-50"
+                                >
+                                  View ②
+                                </button>
+                              ) : (
+                                <span className="text-gray-500">② —</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-xs text-gray-400">
+                            {new Date(ticket.createdAt).toLocaleString("en-US")}
+                          </td>
+                          <td className="px-4 py-3 text-xs">
+                            <div className="flex flex-col gap-1">
+                              <button
+                                type="button"
+                                disabled={actionLoading}
+                                onClick={() =>
+                                  handleReplyTicket(ticket.id, ticket.email)
+                                }
+                                className="rounded border border-amber-600/50 px-2 py-1 text-amber-100 hover:bg-amber-500/20 disabled:opacity-50"
+                                title="Send via cafe@aileena.xyz — never from personal Gmail"
+                              >
+                                Reply (brand)
+                              </button>
+                              {ticket.status === "open" ? (
+                                <button
+                                  type="button"
+                                  disabled={actionLoading}
+                                  onClick={() => handleResolveTicket(ticket.id)}
+                                  className="rounded border border-emerald-600/50 px-2 py-1 text-emerald-100 hover:bg-emerald-500/20 disabled:opacity-50"
+                                >
+                                  Mark done
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  disabled={actionLoading}
+                                  onClick={() => handleReopenTicket(ticket.id)}
+                                  className="rounded border border-gray-600 px-2 py-1 text-gray-200 hover:bg-gray-800 disabled:opacity-50"
+                                >
+                                  Reopen
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>

@@ -1,0 +1,39 @@
+---
+description: Fixed paths — new blog/updates/research auto-triggers Memory on Article workflow
+globs:
+  - aileena-new/app/blog/**/*
+  - aileena-new/app/updates/**/*
+  - aileena-new/lib/research/**/*
+alwaysApply: false
+---
+
+# Memory update — fixed paths
+
+Canonical list: `aileena-new/docs/MEMORY_WATCH_PATHS.md`
+
+```
+aileena-new/app/blog/**
+aileena-new/app/updates/**
+aileena-new/lib/research/**
+aileena-new/lib/djSetlist.ts
+aileena-new/public/dj-set/setlist.json
+aileena-new/components/DJStation.tsx
+```
+
+## Auto
+
+Merge to **`main`** touching any fixed path → Action **Memory on Article (fixed paths)**
+(`.github/workflows/memory-on-article.yml`).
+
+Do not ask the user to “start dreaming” after a normal article merge.
+
+## Local
+
+```bash
+cd aileena-new && pnpm memory:on-article
+```
+
+## Do not
+
+- Hand-edit `latest-content.md`
+- Add ad-hoc path globs in chat — update `MEMORY_WATCH_PATHS.md` + `memory-on-article.yml` together

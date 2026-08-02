@@ -108,67 +108,67 @@ const FILM_RECS = [
 
 const WATCH_ITEMS = [...DOCUMENTARY_RECS, ...FILM_RECS];
 
-/** 欧洲生活指南 — how to assemble a European life-texture off-screen. */
+/** Euro life guide — how to assemble a European life-texture off-screen. */
 const EURO_LIFE_GUIDE = [
   {
-    title: 'City wandering, not sightseeing',
-    label: 'walk / café',
+    title: 'Urban roam, not tourism',
+    label: 'walk / cafés',
     body:
-      'Train stations, café tables, shop signs, light on stone. One neighbourhood at a time. The Before Sunrise rule: conversation over landmarks.',
+      'Train stations, café tables, signage, light on stone. One neighborhood at a time. Before Sunrise rule: conversation over landmarks.',
   },
   {
-    title: 'Black-and-white looking',
+    title: 'See in black and white',
     label: 'eye / frame',
     body:
-      'Phone is enough. Practise composition and contrast. Same attention as B&W cinema — fewer colours, more decision.',
+      'Phone camera is enough. Practice composition and contrast. Same as the B&W films — less color, more decision.',
   },
   {
-    title: 'Language fragments',
+    title: 'Language scraps',
     label: 'FR / IT',
     body:
-      'Enough French or Italian to catch 20% of dialogue. The films open; the cities open.',
+      'Enough French or Italian to catch ~20% of dialogue. Films open; cities open too.',
   },
   {
     title: 'Wardrobe as Bond cool',
     label: 'cut / repeat',
     body:
-      'Léa / Bond-girl line: fewer colours, better cut, repeat pieces. Moodboard over trend chase.',
+      'Léa / Bond-girl line: fewer colors, better cut, repeat wears. Moodboard over trend-chase.',
   },
   {
     title: 'Slow museum',
     label: 'one room',
     body:
-      'One gallery, not the whole building. Train the same patience as a long European take.',
+      'One gallery, not the whole building. Practice the same patience as a European long take.',
   },
   {
     title: 'Table as ritual',
     label: 'IT / FR kitchen',
     body:
-      'Olive oil, tomato, bread, one good knife. Make an ordinary meal feel staged — without performing for anyone.',
+      'Olive oil, tomatoes, bread, one good knife. Make an ordinary meal feel staged — without performing for anyone.',
   },
 ];
 
-/** 生活方式 — practices that turn taste into a week. */
+/** Lifestyle — practices that turn taste into a week. */
 const LIFESTYLE_RECS = [
   {
     title: 'Urban drift diary',
     label: 'weekly',
-    body: 'Walk. Note light, doorways, overheard lines. No need for a “trip”.',
+    body: 'Walk. Note light, doorways, overheard lines. Not a "trip" — a practice.',
   },
   {
     title: 'One letter or collage page',
     label: 'paper',
-    body: 'Physical “拼凑生活感” — one page a week. Scraps, tickets, a sentence that held.',
+    body: 'Physical scrapbook of living — one page a week. Scraps, tickets, one line that stayed.',
   },
   {
     title: 'Soundtrack as room',
     label: 'listen',
-    body: 'Jazz, chanson, film scores as background — closer to European cinema than algorithmic pop.',
+    body: 'Jazz, chanson, film score as background — closer to European cinema than algorithm pop.',
   },
   {
     title: 'Watch in pairs, not piles',
-    label: 'rhythm',
-    body: 'The Crown for British public life, then The Capture or Bodyguard — texture over completionism.',
+    label: 'pace',
+    body: 'The Crown for British public life, then The Capture or Bodyguard — texture over binge.',
   },
 ];
 
@@ -196,7 +196,7 @@ export default function WatchListeningShelfArticle() {
       date="2026.07.12"
       tags="Podcast · Film · European living · Lifestyle"
       title="The Listening and Watching Shelf"
-      dek="A small rotation of podcasts, films, European living notes, and weekly practices beside the essays — life-texture, not a moodboard dump."
+      dek="A small rotation of podcasts, films, Euro life guide, and Lifestyle weekly practices beside the essays — life-texture, not a moodboard dump."
       showNarration={false}
     >
       <main className="recommendation-issue" aria-label="Listening, watching, and living recommendations">
@@ -269,11 +269,11 @@ export default function WatchListeningShelfArticle() {
         </section>
 
         <section className="rec-section" id="euro-life" aria-labelledby="euro-life-recs">
-          <p className="rec-section-label">欧洲生活指南</p>
-          <h2 id="euro-life-recs">European living guide</h2>
+          <p className="rec-section-label">Euro life guide</p>
+          <h2 id="euro-life-recs">European living</h2>
           <p className="rec-section-dek">
-            Off-screen notes for a European life-texture — walk, frame, language, cut,
-            museum pace, table ritual. Steal from the films; do not cosplay them.
+            Off-screen notes for a European life-texture — walk, look, language, cut, museum pace, table ritual.
+            Steal method from the films; do not cosplay them.
           </p>
           <div className="channel-rec-grid">
             {EURO_LIFE_GUIDE.map((item) => (
@@ -287,10 +287,10 @@ export default function WatchListeningShelfArticle() {
         </section>
 
         <section className="rec-section" id="lifestyle" aria-labelledby="lifestyle-recs">
-          <p className="rec-section-label">生活方式</p>
-          <h2 id="lifestyle-recs">Lifestyle — weekly practices</h2>
+          <p className="rec-section-label">Lifestyle</p>
+          <h2 id="lifestyle-recs">Weekly practices</h2>
           <p className="rec-section-dek">
-            Turn the shelf into a week. Small repeats beat a longer list.
+            Turn the shelf into a week. Small repeats beat long lists.
           </p>
           <div className="channel-rec-grid">
             {LIFESTYLE_RECS.map((item) => (

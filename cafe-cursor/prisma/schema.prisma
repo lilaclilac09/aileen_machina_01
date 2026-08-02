@@ -52,9 +52,56 @@ model Credit {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
+  /// How many times this credit was assigned (guest redeem or Admin Assign)
+  timesAssigned Int @default(0)
+  /// How many times this credit was revoked back to the pool
+  timesRevoked  Int @default(0)
+  lastRevokedAt DateTime?
+  /// Email of the user it was revoked from (last time)
+  lastRevokedFromEmail String?
+
   latestFor EligibleUser? @relation("LatestCredit")
 
   /// All credits this user has ever been assigned (supports volunteer multi-claim)
   ownerId String?
   owner   EligibleUser? @relation("OwnedCredits", fields: [ownerId], references: [id])
+}
+
+/// Append-only ops log so Admin can see ADD / REVOKE / ASSIGN counts over time
+model CreditOpsEvent {
+  id         String   @id @default(cuid())
+  type       String // ADD | ASSIGN | REVOKE
+  creditId   String?
+  creditCode String?
+  userEmail  String?
+  note       String?
+  createdAt  DateTime @default(now())
+
+  @@index([type, createdAt])
+}
+
+/// Guest support tickets (/help). cafe@aileena.xyz is send-only (Resend From/Reply-To);
+/// inbound mail is not a mailbox — tickets land here + optional notify to NOTIFY_CC_EMAIL.
+model SupportTicket {
+  id           String    @id @default(cuid())
+  email        String
+  /// Optional: Luma check-in email when it differs from Cursor login / contact email
+  lumaEmail    String?
+  category     String // credits_not_landed | email_mismatch | already_claimed | other
+  message      String
+  status       String    @default("open") // open | done
+  locale       String?
+  userAgent    String?
+  adminNote    String?
+  /// Required for new tickets: Spending screenshot of Cursor / contact account (email visible)
+  hasScreenshot     Boolean  @default(false)
+  screenshotDataUrl String?  @db.Text
+  /// Second account Spending screenshot (required for account-swap / email mismatch)
+  hasScreenshot2     Boolean  @default(false)
+  screenshot2DataUrl String?  @db.Text
+  createdAt    DateTime  @default(now())
+  resolvedAt   DateTime?
+
+  @@index([status, createdAt])
+  @@index([email])
 }

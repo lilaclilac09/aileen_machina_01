@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, 
 import { useLanguage } from '../LanguageProvider';
 import { t } from '../../lib/translations';
 import { getToolBySlug } from '../../lib/tools/registry';
+import { clipsApiUrl, clipsAssetUrl, clipsApiBase } from '../../lib/tools/clipsApi';
 import ArcadeLayout, { ArcadeCabinetFrame, mono } from './ArcadeLayout';
 
 type JobProgress = {
@@ -105,7 +106,7 @@ export default function InklingClipTool() {
     let cancelled = false;
     void (async () => {
       try {
-        const res = await fetch('/api/tools/inkling-clips/status');
+        const res = await fetch(clipsApiUrl('/api/tools/inkling-clips/status'));
         const json = (await res.json()) as { ok: boolean; data?: HostStatus };
         if (!cancelled && json.ok && json.data) setHost(json.data);
       } catch {
@@ -129,7 +130,7 @@ export default function InklingClipTool() {
 
   const pollJob = useCallback(
     async (jobId: string) => {
-      const res = await fetch(`/api/tools/inkling-clips?jobId=${encodeURIComponent(jobId)}`);
+      const res = await fetch(clipsApiUrl(`/api/tools/inkling-clips?jobId=${encodeURIComponent(jobId)}`));
       const json = (await res.json()) as { ok: boolean; data?: JobView; error?: { message: string } };
       if (!json.ok || !json.data) {
         setError(json.error?.message ?? tx.errors.pollFailed);
@@ -137,7 +138,17 @@ export default function InklingClipTool() {
         setSubmitting(false);
         return;
       }
-      setJob(json.data);
+      const data = json.data;
+      if (data.result?.candidates) {
+        data.result = {
+          ...data.result,
+          candidates: data.result.candidates.map((c) => ({
+            ...c,
+            downloadUrl: clipsAssetUrl(c.downloadUrl),
+          })),
+        };
+      }
+      setJob(data);
       if (json.data.status === 'done' || json.data.status === 'error') {
         stopPolling();
         setSubmitting(false);
@@ -149,6 +160,14 @@ export default function InklingClipTool() {
     [stopPolling, tx.errors.jobFailed, tx.errors.pollFailed],
   );
 
+  const canRun = host?.ready === true;
+  const remoteApi = Boolean(clipsApiBase());
+  const freeOnly = host?.api?.ok !== true;
+
+  useEffect(() => {
+    if (freeOnly && mode === 'query') setMode('best');
+  }, [freeOnly, mode]);
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
@@ -157,16 +176,17 @@ export default function InklingClipTool() {
     stopPolling();
 
     try {
-      const res = await fetch('/api/tools/inkling-clips', {
+      const res = await fetch(clipsApiUrl('/api/tools/inkling-clips'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           url: url.trim(),
-          mode,
-          query: mode === 'query' ? query.trim() : undefined,
+          mode: freeOnly ? 'best' : mode,
+          query: !freeOnly && mode === 'query' ? query.trim() : undefined,
           bestCount,
           dryRun: false,
           audioOnly: false,
+          engine: 'local',
         }),
       });
       const json = (await res.json()) as {
@@ -200,17 +220,15 @@ export default function InklingClipTool() {
   const running = submitting || job?.status === 'queued' || job?.status === 'running';
   const progress = job?.progress?.progress ?? 0;
   const phase = job?.progress?.phase ?? 'download';
-  const canRun = host?.ready === true;
 
   const cliCommand = useMemo(() => {
     const u = url.trim() || 'https://www.youtube.com/watch?v=VIDEO_ID';
-    const localFlag = host?.engine === 'local' || host?.api?.ok === false ? ' --local' : '';
-    const base = `pnpm inkling:clips -- ${shellQuote(u)}${localFlag}`;
-    if (mode === 'query') {
-      return `${base} --query ${shellQuote(query.trim() || 'your topic')}`;
+    const base = `pnpm inkling:clips -- ${shellQuote(u)} --local`;
+    if (!freeOnly && mode === 'query') {
+      return `${base.replace(' --local', '')} --query ${shellQuote(query.trim() || 'your topic')}`;
     }
     return `${base} --best ${Math.min(8, Math.max(1, bestCount || 3))}`;
-  }, [url, mode, query, bestCount, host?.engine, host?.api?.ok]);
+  }, [url, mode, query, bestCount, freeOnly]);
 
   async function copyCommand() {
     try {
@@ -249,8 +267,8 @@ export default function InklingClipTool() {
           {host
             ? canRun
               ? host.engine === 'local'
-                ? tx.hostReadyLocal
-                : tx.hostReady
+                ? `${tx.hostReadyLocal}${remoteApi ? ` ${tx.hostRemote}` : ''}`
+                : `${tx.hostReady}${remoteApi ? ` ${tx.hostRemote}` : ''}`
               : `${tx.hostNotReady} ${host.hint}`
             : tx.hostChecking}
         </p>
@@ -291,15 +309,22 @@ export default function InklingClipTool() {
             >
               {tx.modeBest}
             </button>
-            <button
-              type="button"
-              onClick={() => setMode('query')}
-              disabled={running}
-              style={modeBtn(mode === 'query', running)}
-            >
-              {tx.modeQuery}
-            </button>
+            {!freeOnly ? (
+              <button
+                type="button"
+                onClick={() => setMode('query')}
+                disabled={running}
+                style={modeBtn(mode === 'query', running)}
+              >
+                {tx.modeQuery}
+              </button>
+            ) : null}
           </div>
+          {freeOnly ? (
+            <p style={{ margin: 0, fontFamily: mono, fontSize: '0.68rem', color: 'rgba(20,17,12,0.42)', lineHeight: 1.45 }}>
+              {tx.modeQueryNeedsKey}
+            </p>
+          ) : null}
 
           {mode === 'query' ? (
             <div>
@@ -366,11 +391,24 @@ export default function InklingClipTool() {
         </form>
 
         <p style={{ margin: '14px 0 0', fontFamily: mono, fontSize: '0.68rem', color: 'rgba(20,17,12,0.4)', lineHeight: 1.5 }}>
-          {host?.engine === 'local' ? tx.disclaimerLocal : tx.disclaimer}{' '}
+          {freeOnly || host?.engine === 'local' ? tx.disclaimerLocal : tx.disclaimer}{' '}
           <a href="/audio-clipping" style={{ color: '#008f86' }}>
             Product →
           </a>
         </p>
+
+        {!canRun ? (
+          <div style={{ marginTop: 18, display: 'grid', gap: 8 }}>
+            <p style={{ margin: 0, fontFamily: mono, fontSize: '0.68rem', letterSpacing: '0.1em', color: 'rgba(20,17,12,0.45)', textTransform: 'uppercase' }}>
+              {tx.prereqTitle}
+            </p>
+            <ol style={{ margin: 0, paddingLeft: 18, fontSize: '0.82rem', lineHeight: 1.55, color: 'rgba(20,17,12,0.58)' }}>
+              <li>{tx.prereqKey}</li>
+              <li>{tx.prereqBrew}</li>
+              <li>{tx.prereqCd}</li>
+            </ol>
+          </div>
+        ) : null}
 
         <div style={{ marginTop: 22, display: 'grid', gap: 10 }}>
           <p style={{ margin: 0, fontFamily: mono, fontSize: '0.68rem', letterSpacing: '0.1em', color: 'rgba(20,17,12,0.45)', textTransform: 'uppercase' }}>
@@ -437,7 +475,7 @@ export default function InklingClipTool() {
             />
           </div>
           <p style={{ marginTop: 10, fontFamily: mono, fontSize: '0.78rem', color: 'rgba(20,17,12,0.5)' }}>
-            {(host?.engine === 'local' ? tx.listeningLocal : tx.listening)} · {job.progress.message}
+            {(freeOnly || host?.engine === 'local' ? tx.listeningLocal : tx.listening)} · {job.progress.message}
           </p>
         </div>
       ) : null}

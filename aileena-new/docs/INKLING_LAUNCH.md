@@ -4,6 +4,25 @@
 
 Vercel marketing site **cannot** run clips (no `yt-dlp` / `ffmpeg`). You need a **container** (or a laptop with those binaries).
 
+## Wire Fly → aileena.xyz Tools page
+
+Fly alone is **not** your Vercel tools page. Architecture:
+
+| Host | Role |
+|------|------|
+| **Vercel** `aileena.xyz` | Product `/audio-clipping` + Tools UI `/tools/inkling-clips` |
+| **Fly** `*.fly.dev` | Actual Run (yt-dlp + ffmpeg) |
+
+After `fly deploy` succeeds:
+
+1. Note the URL, e.g. `https://aileena-clips.fly.dev`
+2. Vercel → Project → Settings → Environment Variables → Production:
+   - `NEXT_PUBLIC_CLIPS_API_BASE` = `https://aileena-clips.fly.dev` (no trailing slash)
+3. Merge PR `#283` to `main` (so the wiring code + product page ship)
+4. Redeploy Vercel
+
+Then open `https://aileena.xyz/tools/inkling-clips` — Run talks to Fly; banner shows remote worker.
+
 ## If Mac disk is full (recommended)
 
 Do **not** `brew install` and do **not** `docker build` on the Mac (images are large). Deploy the existing Dockerfile to the cloud — build runs there.

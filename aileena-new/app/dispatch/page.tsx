@@ -6,6 +6,8 @@ import { useLanguage } from '../../components/LanguageProvider';
 import { t } from '../../lib/translations';
 import ScrollUnlock from '../blog/ScrollUnlock';
 import '../blog/_substack/substack.css';
+import RoomsFooter from '../../components/RoomsFooter';
+import PillToggle from '../../components/PillToggle';
 import SwipeRow, { type Post } from '../../components/SwipeRow';
 import CoverflowPanel from '../../components/CoverflowPanel';
 import {
@@ -37,6 +39,7 @@ const SLUG_TOPIC: Record<string, string> = {
   robots: 'Agents & robotics',
   centaur: 'Agents & robotics',
   cli: 'Agents & robotics',
+  'local-models': 'Agents & robotics',
 
   'zcash-fpga': 'Privacy',
   'zec-arbitrage': 'Privacy',
@@ -53,6 +56,7 @@ const SLUG_TOPIC: Record<string, string> = {
   'ai-hardware-scarcity': 'AI hardware',
   'let-there-be-light': 'AI hardware',
   'nokia-dci': 'AI hardware',
+  'ymtc-nand-wuhan': 'AI hardware',
 
   'nvidia-flywheel': 'Capital flywheels',
   'dell-nvidia-flywheel': 'Capital flywheels',
@@ -220,7 +224,15 @@ export default function DispatchArchive() {
             }}
           >
             {activeTab !== 'watch' ? (
-              <ViewToggle view={view} setView={updateView} />
+              <PillToggle
+                value={view}
+                onChange={updateView}
+                ariaLabel="Dispatch view"
+                options={[
+                  { id: 'image', label: 'Image' },
+                  { id: 'text', label: 'Text' },
+                ]}
+              />
             ) : null}
             <span
               style={{
@@ -245,7 +257,9 @@ export default function DispatchArchive() {
         {activeTab === 'watch' ? (
           <WatchListenTab post={watchIssue} />
         ) : isImage ? (
-          activeTab === 'dispatch' ? (
+          !coverflow.hydrated ? (
+            <div style={{ minHeight: '40vh' }} aria-hidden />
+          ) : activeTab === 'dispatch' ? (
             <SwipeRail
               tag={tx.blog.researchDispatch.tag}
               heading={tx.blog.researchDispatch.heading}
@@ -297,6 +311,8 @@ export default function DispatchArchive() {
           />
         )}
       </main>
+
+      <RoomsFooter />
       {activeTab !== 'watch' ? (
         <CoverflowPanel
           settings={coverflow.settings}
@@ -326,11 +342,12 @@ function SectionTabs({
     activeButton?.scrollIntoView({ block: 'nearest', inline: 'center' });
   }, [active]);
 
-  const tabs: { id: DispatchTab; label: string }[] = [
-    { id: 'dispatch', label: 'Dispatch' },
-    { id: 'investing', label: 'Investing' },
-    { id: 'perspective', label: 'Woman in Tech' },
-    { id: 'watch', label: 'Watch' },
+  // Label + hint so each room reads as its own door, not one flat string.
+  const tabs: { id: DispatchTab; label: string; hint: string }[] = [
+    { id: 'dispatch', label: 'Dispatch', hint: 'essays · news' },
+    { id: 'investing', label: 'Investing', hint: 'markets' },
+    { id: 'perspective', label: 'Woman in Tech', hint: 'perspective' },
+    { id: 'watch', label: 'Watch', hint: 'films · listen' },
   ];
 
   return (
@@ -339,7 +356,7 @@ function SectionTabs({
       aria-label="Archive tabs"
       style={{
         display: 'inline-flex',
-        flex: '1 1 460px',
+        flex: '1 1 560px',
         justifyContent: 'center',
         gap: 4,
         minWidth: 0,
@@ -348,48 +365,104 @@ function SectionTabs({
       <div
         ref={listRef}
         role="tablist"
+        className="dispatch-section-tablist"
         style={{
           display: 'inline-flex',
+          alignItems: 'stretch',
           maxWidth: '100%',
-          gap: 2,
-          padding: 3,
+          gap: 0,
+          padding: 4,
           borderRadius: 999,
-          border: '1px solid rgba(17,17,17,0.12)',
-          background: '#fff',
-          overflowX: 'auto',
+          border: '1.5px solid rgba(17,17,17,0.16)',
+          background: 'rgba(17,17,17,0.03)',
         }}
       >
-        {tabs.map((tab) => {
+        {tabs.map((tab, index) => {
           const selected = active === tab.id;
+          const showDivider = index > 0;
           return (
-            <button
+            <div
               key={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={selected}
-              onClick={() => setActive(tab.id)}
+              className="dispatch-section-tab-slot"
               style={{
-                appearance: 'none',
-                border: 0,
-                borderRadius: 999,
-                background: selected ? '#111' : 'transparent',
-                color: selected ? '#fff' : 'rgba(17,17,17,0.58)',
-                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'stretch',
                 flex: '0 0 auto',
-                fontFamily:
-                  "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
-                fontSize: '0.58rem',
-                fontWeight: 700,
-                letterSpacing: '0.13em',
-                lineHeight: 1,
-                padding: '8px 12px',
-                textTransform: 'uppercase',
-                transition: 'background 0.18s ease, color 0.18s ease',
-                whiteSpace: 'nowrap',
               }}
             >
-              {tab.label}
-            </button>
+              {showDivider ? (
+                <span
+                  aria-hidden
+                  className="dispatch-section-tab-rule"
+                  style={{
+                    width: 1,
+                    alignSelf: 'center',
+                    height: selected || active === tabs[index - 1]?.id ? 0 : 22,
+                    background: 'rgba(17,17,17,0.14)',
+                    transition: 'height 0.15s ease',
+                  }}
+                />
+              ) : null}
+              <button
+                type="button"
+                role="tab"
+                aria-selected={selected}
+                onClick={() => setActive(tab.id)}
+                className="dispatch-section-tab"
+                style={{
+                  appearance: 'none',
+                  border: 0,
+                  borderRadius: 999,
+                  background: selected ? '#008f84' : 'transparent',
+                  color: selected ? '#fff' : 'rgba(17,17,17,0.72)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                  justifyContent: 'center',
+                  gap: 3,
+                  minWidth: 108,
+                  minHeight: 44,
+                  padding: '9px 16px',
+                  textAlign: 'left',
+                  transition:
+                    'background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease',
+                  boxShadow: selected
+                    ? '0 1px 0 rgba(0,0,0,0.06), 0 6px 16px rgba(0,143,132,0.22)'
+                    : 'none',
+                }}
+              >
+                <span
+                  className="dispatch-section-tab-label"
+                  style={{
+                    fontFamily:
+                      "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+                    fontSize: '0.62rem',
+                    fontWeight: 800,
+                    letterSpacing: '0.14em',
+                    lineHeight: 1.15,
+                    textTransform: 'uppercase',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {tab.label}
+                </span>
+                <span
+                  className="dispatch-section-tab-hint"
+                  style={{
+                    fontFamily: nunito,
+                    fontSize: '0.58rem',
+                    fontWeight: 650,
+                    letterSpacing: '0.04em',
+                    lineHeight: 1.2,
+                    opacity: selected ? 0.86 : 0.48,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {tab.hint}
+                </span>
+              </button>
+            </div>
           );
         })}
       </div>
@@ -638,63 +711,6 @@ function WatchListenTab({ post }: { post?: Post }) {
         </div>
       </div>
     </section>
-  );
-}
-
-function ViewToggle({
-  view,
-  setView,
-}: {
-  view: DispatchView;
-  setView: (next: DispatchView) => void;
-}) {
-  const options: { id: DispatchView; label: string }[] = [
-    { id: 'image', label: 'Image' },
-    { id: 'text', label: 'Text' },
-  ];
-  return (
-    <div
-      role="group"
-      aria-label="Dispatch view"
-      style={{
-        display: 'inline-flex',
-        gap: 2,
-        padding: 2,
-        borderRadius: 999,
-        border: '1px solid rgba(17,17,17,0.12)',
-        background: '#fff',
-      }}
-    >
-      {options.map((opt) => {
-        const active = view === opt.id;
-        return (
-          <button
-            key={opt.id}
-            type="button"
-            aria-pressed={active}
-            onClick={() => setView(opt.id)}
-            style={{
-              appearance: 'none',
-              border: 0,
-              padding: '5px 12px',
-              borderRadius: 999,
-              fontFamily:
-                "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
-              fontSize: '0.62rem',
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              fontWeight: 500,
-              cursor: 'pointer',
-              color: active ? '#fff' : 'rgba(17,17,17,0.58)',
-              background: active ? '#008f84' : 'transparent',
-              transition: 'background 0.18s ease, color 0.18s ease',
-            }}
-          >
-            {opt.label}
-          </button>
-        );
-      })}
-    </div>
   );
 }
 
