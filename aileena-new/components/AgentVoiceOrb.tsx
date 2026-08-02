@@ -6,6 +6,8 @@
  * Transport only — brain stays /api/chat via the parent `onAsk` callback.
  * STT: MediaRecorder → /api/transcribe (Whisper) when available, else Web Speech.
  * TTS: /api/tts (ElevenLabs / OpenAI) with speechSynthesis fallback.
+ *
+ * Voice presets are style-similar public library voices — not celebrity clones.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -27,6 +29,44 @@ type Props = {
   onListeningChange?: (listening: boolean) => void;
 };
 
+/** Style presets only — not real 雷军 / 汪苏泷 / Claire Foy clones. */
+export const VOICE_PRESETS = [
+  {
+    key: 'auntie',
+    label: '阿姨',
+    voiceId: 'Ca5bKgudqKJzq8YRFoAz', // Coco Li — Shanghainese soft
+    hint: '上海软软',
+  },
+  {
+    key: 'leijun',
+    label: '雷军味',
+    voiceId: '4VZIsMPtgggwNg7OXbPY', // James Gao — mid male Mandarin vibe
+    hint: '科技男·风格',
+  },
+  {
+    key: 'dongbei',
+    label: '东北',
+    voiceId: 'DVE92KG0Yd4X7RoMqy8J', // Zicai — lively male stand-in
+    hint: '活泼男·凑',
+  },
+  {
+    key: 'london',
+    label: '伦敦',
+    voiceId: 'pFZP5JQG7iQjIQuC4Bku', // Lily — classic RP
+    hint: '经典 RP',
+  },
+  {
+    key: 'crown',
+    label: '王冠',
+    voiceId: 'MWUpoNpAY0rOQGP294mF', // Clarice — calm posh British
+    hint: '女王气质·风格',
+  },
+] as const;
+
+export type VoicePresetKey = (typeof VOICE_PRESETS)[number]['key'];
+
+const VOICE_STORAGE_KEY = 'aileena.console.voicePreset';
+
 const SENTENCE_RE = /(?<=[.!?。！？…])\s+|(?<=\n)/;
 const SPEECH_THRESH = 0.018;
 const SILENCE_END_MS = 750;
@@ -47,8 +87,10 @@ export default function AgentVoiceOrb({
   const [phase, setPhase] = useState<'idle' | 'listening' | 'hearing' | 'speaking'>('idle');
   const [level, setLevel] = useState(0);
   const [hint, setHint] = useState('点光球 · 说话');
+  const [presetKey, setPresetKey] = useState<VoicePresetKey>('auntie');
 
   const playCtxRef = useRef<AudioContext | null>(null);
+  const voiceIdRef = useRef(VOICE_PRESETS[0].voiceId);
   const playGenRef = useRef(0);
   const nextPlayAtRef = useRef(0);
   const sourcesRef = useRef<AudioBufferSourceNode[]>([]);
@@ -86,6 +128,25 @@ export default function AgentVoiceOrb({
       });
   }, []);
 
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(VOICE_STORAGE_KEY) as VoicePresetKey | null;
+      if (saved && VOICE_PRESETS.some((p) => p.key === saved)) setPresetKey(saved);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  useEffect(() => {
+    const preset = VOICE_PRESETS.find((p) => p.key === presetKey) ?? VOICE_PRESETS[0];
+    voiceIdRef.current = preset.voiceId;
+    try {
+      localStorage.setItem(VOICE_STORAGE_KEY, preset.key);
+    } catch {
+      /* ignore */
+    }
+  }, [presetKey]);
+
   const ensurePlayCtx = useCallback(() => {
     if (!playCtxRef.current) {
       playCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -108,6 +169,15 @@ export default function AgentVoiceOrb({
     ttsPlayingRef.current = false;
     if (window.speechSynthesis) window.speechSynthesis.cancel();
   }, []);
+
+  const selectPreset = useCallback(
+    (key: VoicePresetKey) => {
+      if (key === presetKey) return;
+      stopPlayback();
+      setPresetKey(key);
+    },
+    [presetKey, stopPlayback],
+  );
 
   const enqueueBuffer = useCallback(
     async (buf: AudioBuffer, gen: number) => {
@@ -184,7 +254,10 @@ export default function AgentVoiceOrb({
         const res = await fetch('/api/tts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: t.slice(0, 4000) }),
+          body: JSON.stringify({
+            text: t.slice(0, 4000),
+            voice: voiceIdRef.current,
+          }),
         });
         if (!res.ok) throw new Error('tts ' + res.status);
         const ab = await res.arrayBuffer();
@@ -479,6 +552,8 @@ export default function AgentVoiceOrb({
 
   if (!active) return null;
 
+  const activePreset = VOICE_PRESETS.find((p) => p.key === presetKey) ?? VOICE_PRESETS[0];
+
   return (
     <div className="border-t border-[#e7e0d6] px-5 py-4 bg-[#faf7f0]/80">
       <div className="flex flex-col items-center gap-3">
@@ -509,9 +584,33 @@ export default function AgentVoiceOrb({
             style={{ width: `${level}%`, display: 'block' }}
           />
         </div>
+        <p
+          className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 font-mono text-[0.55rem] tracking-[0.18em] text-[#1b1713]/45"
+          role="group"
+          aria-label="音色"
+        >
+          <span className="text-[#1b1713]/35">音色</span>
+          {VOICE_PRESETS.map((p) => (
+            <button
+              key={p.key}
+              type="button"
+              onClick={() => selectPreset(p.key)}
+              title={p.hint}
+              className="uppercase transition-colors"
+              style={{
+                color: p.key === presetKey ? '#008f86' : 'rgba(27,23,19,0.38)',
+                letterSpacing: '0.14em',
+              }}
+            >
+              {p.key === presetKey ? `◆ ${p.label}` : p.label}
+            </button>
+          ))}
+        </p>
         <p className="font-mono text-[0.58rem] tracking-[0.22em] uppercase text-[#008f86]/85">
           ▸ {hint}
           {caps.whisper ? ' · 听写' : ' · 浏览器听写'}
+          {' · '}
+          {activePreset.label}
         </p>
       </div>
     </div>

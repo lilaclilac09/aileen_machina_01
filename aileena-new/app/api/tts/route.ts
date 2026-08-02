@@ -7,12 +7,14 @@ export const maxDuration = 60;
  * Console / narration TTS.
  *
  * Soft Shanghai auntie vibe (欢迎来到上海 · 侬好啊 · 上海老漂亮个):
- *   1. ElevenLabs Coco Li — young Shanghainese female (default)
+ *   1. ElevenLabs — body.voice or ELEVENLABS_VOICE_ID or Coco Li default
  *   2. OpenAI gpt-4o-mini-tts with soft Shanghainese-auntie instructions
  *   3. 503 → browser SpeechSynthesis fallback
  *
- * Override voice: ELEVENLABS_VOICE_ID
- * Softer auntie alts: Yun YxbjaPemDJV2xlfvkiIG · Zi Yue 5qr5FEpvZGzmVOPBS55W
+ * Console orb presets (style-similar, not celebrity clones):
+ *   阿姨 Ca5bKgudqKJzq8YRFoAz · 雷军味 4VZIsMPtgggwNg7OXbPY
+ *   东北 DVE92KG0Yd4X7RoMqy8J · 伦敦 pFZP5JQG7iQjIQuC4Bku
+ *   王冠 MWUpoNpAY0rOQGP294mF
  */
 
 const MAX_CHARS = 30000;
