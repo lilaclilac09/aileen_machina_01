@@ -101,12 +101,11 @@ export default function AgentChat() {
   const [leadState, setLeadState] = useState<LeadState>('idle');
   const [leadError, setLeadError] = useState<string | null>(null);
   const [voiceMode, setVoiceMode] = useState(false);
-  const [voiceDraft, setVoiceDraft] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const welcomedRef = useRef(false);
 
-  const { messages, setMessages, sendMessage, status, error } = useChat({
+  const { messages, setMessages, sendMessage, status, error, stop, clearError } = useChat({
     transport: new DefaultChatTransport({
       api: '/api/chat',
       // Keep server cookie day keyed to the visitor's local calendar day
@@ -552,7 +551,29 @@ export default function AgentChat() {
 
   function ask(text: string) {
     const trimmed = text.trim();
-    if (!trimmed || busy || sessionMaxed) return;
+    if (!trimmed || sessionMaxed) return;
+
+    // Voice / hung streams used to leave status=streaming forever, so typed
+    // ↵ did nothing. Abort in-flight turn, then send the new question.
+    if (busy) {
+      try {
+        stop();
+      } catch {
+        /* ignore */
+      }
+      try {
+        browserAbortRef.current?.abort();
+      } catch {
+        /* ignore */
+      }
+      setBrowserBusy(false);
+      try {
+        clearError?.();
+      } catch {
+        /* ignore */
+      }
+    }
+
     setInput('');
 
     // Record what the visitor asked about for cross-session memory. Done
@@ -604,6 +625,19 @@ export default function AgentChat() {
 
   const remaining = Math.max(0, DAILY_LIMIT - sessionCount);
 
+  // When turning voice off, abort any hung stream so typing works again.
+  const wasVoiceRef = useRef(false);
+  useEffect(() => {
+    if (wasVoiceRef.current && !voiceMode) {
+      try {
+        stop();
+      } catch {
+        /* ignore */
+      }
+    }
+    wasVoiceRef.current = voiceMode;
+  }, [voiceMode, stop]);
+
   // Latest assistant text for voice TTS (skip welcome canned until user spoke).
   const lastAssistant = (() => {
     for (let i = messages.length - 1; i >= 0; i--) {
@@ -620,7 +654,6 @@ export default function AgentChat() {
     open &&
     Boolean(lastAssistant.id) &&
     messages.some((m) => m.role === 'user');
-  const voiceStreaming = voiceMode && (status === 'submitted' || status === 'streaming');
 
   // Contact panel: optional soft invite after a few turns — never a hard gate.
   const showLeadPanel = open && leadState !== 'sent' && leadSoftNudge;
@@ -892,15 +925,6 @@ export default function AgentChat() {
             <Line role="assistant" text="…" muted />
           )}
 
-          {voiceMode && (
-            <p className="text-[0.95rem] sm:text-base leading-6 text-[#007d75] whitespace-pre-wrap break-words font-medium">
-              <span className="text-[#00a89d]/55 mr-2 animate-pulse">&gt;</span>
-              <span className={voiceDraft.trim() ? '' : 'italic opacity-70'}>
-                {voiceDraft.trim() || 'Listening… speak — words show here'}
-              </span>
-            </p>
-          )}
-
           {showError && (
             <p className="text-[0.7rem] leading-5 tracking-[0.05em] text-red-400/85 whitespace-pre-wrap">
               <span className="font-mono text-[0.55rem] tracking-[0.3em] uppercase mr-1.5">▸ error</span>
@@ -989,33 +1013,14 @@ export default function AgentChat() {
           </div>
         )}
 
-        {/* Big voice orb (replaces tiny mic) */}
+        {/* Original working orb: tap 说话 → finals → ask → reply aloud */}
         <AgentVoiceOrb
           active={open && voiceMode}
           busy={busy}
           disabled={sessionMaxed}
           speakText={voiceSpeakReady ? lastAssistant.text : ''}
           speakId={voiceSpeakReady ? lastAssistant.id : ''}
-          speakStreaming={voiceStreaming}
-          onAsk={(text) => {
-            setVoiceDraft('');
-            setInput('');
-            ask(text);
-          }}
-          onLiveCaption={(text) => {
-            // Always mirror into chat + input — never hide real speech.
-            setVoiceDraft(text);
-            const isStatus =
-              !text ||
-              text === 'Listening… speak' ||
-              text.startsWith('Listening… speak') ||
-              text.startsWith('Mic ') ||
-              text.startsWith('Speech network') ||
-              text.startsWith('Allow ') ||
-              text.startsWith('Speaking');
-            if (text && !isStatus) setInput(text);
-            if (!text) setInput('');
-          }}
+          onAsk={(text) => ask(text)}
         />
 
         {/* Input row */}
@@ -1036,7 +1041,7 @@ export default function AgentChat() {
                 sessionMaxed
                   ? 'come back tomorrow ♡'
                   : voiceMode
-                    ? 'Or type here'
+                    ? '或在此打字'
                     : 'Type a message, or tap Voice'
               }
               disabled={sessionMaxed}
@@ -1053,7 +1058,7 @@ export default function AgentChat() {
             )}
           </div>
           <p className="mt-2 flex items-center justify-between gap-3 text-[0.52rem] tracking-[0.3em] text-[#1b1713]/40 uppercase">
-            <span>{voiceMode ? 'speak now · pause to send · esc' : '↵ send · reset · esc · voice'}</span>
+            <span>{voiceMode ? 'tap orb · speak · Shanghai / London / Berlin' : '↵ send · reset · esc · voice'}</span>
             <span className={remaining === 0 ? 'text-red-400/70' : remaining <= 2 ? 'text-[#007d75]/55' : 'text-[#1b1713]/40'}>
               {remaining === 0
                 ? '0 left · resets at local midnight'
