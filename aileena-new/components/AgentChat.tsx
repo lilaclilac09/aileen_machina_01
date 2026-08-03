@@ -26,7 +26,7 @@ const SESSION_KEY = 'aileena_chat_count_daily_v3'; // { date: 'YYYY-MM-DD' local
 const RUNTIME_KEY = 'aileena_runtime';
 type Runtime = 'cloud' | 'browser';
 
-/** Local calendar day — matches how people think “每人每天 20 条”, not UTC jargon. */
+/** Local calendar day — matches how people think “20 questions per day”, not UTC jargon. */
 function quotaDayKey(d = new Date()): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -1012,7 +1012,7 @@ export default function AgentChat() {
           </div>
         )}
 
-        {/* Original working orb: tap 说话 → finals → ask → reply aloud */}
+        {/* Original working orb: tap Speak → finals → ask → reply aloud */}
         <AgentVoiceOrb
           active={open && voiceMode}
           busy={busy}
@@ -1040,7 +1040,7 @@ export default function AgentChat() {
                 sessionMaxed
                   ? 'come back tomorrow ♡'
                   : voiceMode
-                    ? '或在此打字'
+                    ? 'Or type here'
                     : 'Type a message, or tap Voice'
               }
               disabled={sessionMaxed}

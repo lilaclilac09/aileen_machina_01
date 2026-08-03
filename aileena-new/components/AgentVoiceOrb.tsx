@@ -74,7 +74,7 @@ export default function AgentVoiceOrb({
   const [listening, setListening] = useState(false);
   const [phase, setPhase] = useState<'idle' | 'listening' | 'hearing' | 'speaking'>('idle');
   const [level, setLevel] = useState(0);
-  const [hint, setHint] = useState('点光球 · 说话');
+  const [hint, setHint] = useState('Tap orb · speak');
   const [accentKey, setAccentKey] = useState<AccentKey>('shanghai');
 
   const playCtxRef = useRef<AudioContext | null>(null);
@@ -183,17 +183,17 @@ export default function AgentVoiceOrb({
       sourcesRef.current.push(src);
       ttsPlayingRef.current = true;
       setPhase('speaking');
-      setHint('在说…');
+      setHint('Speaking…');
       src.onended = () => {
         sourcesRef.current = sourcesRef.current.filter((s) => s !== src);
         if (!sourcesRef.current.length && gen === playGenRef.current) {
           ttsPlayingRef.current = false;
           if (listeningRef.current) {
             setPhase('listening');
-            setHint('在听呢 · 侬讲');
+            setHint('Listening… speak');
           } else {
             setPhase('idle');
-            setHint('点光球 · 说话');
+            setHint('Tap orb · speak');
           }
         }
       };
@@ -261,16 +261,16 @@ export default function AgentVoiceOrb({
 
       ttsPlayingRef.current = true;
       setPhase('speaking');
-      setHint('机器声 · 在说…');
+      setHint('Speaking…');
 
       const finishIdle = () => {
         ttsPlayingRef.current = false;
         if (listeningRef.current) {
           setPhase('listening');
-          setHint('在听呢 · 侬讲');
+          setHint('Listening… speak');
         } else {
           setPhase('idle');
-          setHint('点光球 · 说话');
+          setHint('Tap orb · speak');
         }
         resolve();
       };
@@ -304,15 +304,26 @@ export default function AgentVoiceOrb({
     });
   }, []);
 
+  // After one ElevenLabs failure, stay on browser voice for the session
+  // (same as the first orb — machine voice that actually speaks).
+  const skipElevenRef = useRef(false);
+
   const speakSentence = useCallback(
     async (text: string, gen: number) => {
       const t = text.trim();
       if (!t || gen !== playGenRef.current) return;
-      if (!caps.tts) {
+
+      // First orb behavior: browser speechSynthesis is the reliable path.
+      // Soft ElevenLabs is optional — never block speaking on a 502.
+      const tryEleven = caps.tts && !skipElevenRef.current;
+      if (!tryEleven) {
         await speakBrowser(t, gen);
         return;
       }
+
       try {
+        const ac = new AbortController();
+        const timer = window.setTimeout(() => ac.abort(), 2500);
         const res = await fetch('/api/tts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -320,14 +331,20 @@ export default function AgentVoiceOrb({
             text: t.slice(0, 4000),
             voice: voiceIdRef.current,
           }),
+          signal: ac.signal,
         });
-        if (!res.ok) throw new Error('tts ' + res.status);
+        window.clearTimeout(timer);
+        if (!res.ok) {
+          skipElevenRef.current = true;
+          throw new Error('tts ' + res.status);
+        }
         const ab = await res.arrayBuffer();
         if (gen !== playGenRef.current) return;
         const ctx = ensurePlayCtx();
         const buf = await ctx.decodeAudioData(ab.slice(0));
         await enqueueBuffer(buf, gen);
       } catch {
+        skipElevenRef.current = true;
         await speakBrowser(t, gen);
       }
     },
@@ -402,7 +419,7 @@ export default function AgentVoiceOrb({
     });
     if (!blob || blob.size < 800) return;
     setPhase('hearing');
-    setHint('听到了…');
+    setHint('Got it…');
     try {
       const ext = (blob.type || '').includes('mp4') ? 'm4a' : 'webm';
       const res = await fetch(`/api/transcribe?filename=audio.${ext}`, {
@@ -414,12 +431,12 @@ export default function AgentVoiceOrb({
       if (data.ok && data.text) handleUtterance(data.text);
       else if (listeningRef.current) {
         setPhase('listening');
-        setHint('在听呢 · 侬讲');
+        setHint('Listening… speak');
       }
     } catch {
       if (listeningRef.current) {
         setPhase('listening');
-        setHint('在听呢 · 侬讲');
+        setHint('Listening… speak');
       }
     }
   }, [handleUtterance]);
@@ -444,7 +461,7 @@ export default function AgentVoiceOrb({
       if (rms > thresh && ttsPlayingRef.current) {
         stopPlayback();
         setPhase('listening');
-        setHint('在听呢 · 侬讲');
+        setHint('Listening… speak');
       }
 
       if (!busyRef.current && !ttsPlayingRef.current) {
@@ -515,11 +532,11 @@ export default function AgentVoiceOrb({
     rec.continuous = true;
     rec.onstart = () => {
       setPhase('listening');
-      setHint('在听呢 · 侬讲');
+      setHint('Listening… speak');
     };
     rec.onerror = (e: SpeechRecognitionErrorEvent) => {
       if (e.error === 'no-speech' || e.error === 'aborted') return;
-      setHint('麦克风有点问题');
+      setHint('Mic issue');
     };
     rec.onend = () => {
       // listeningRef — original orb used stale `listening` state and could fail to restart
@@ -568,7 +585,7 @@ export default function AgentVoiceOrb({
     setListening(true);
     onListeningChange?.(true);
     setPhase('listening');
-    setHint('在听呢 · 侬讲');
+    setHint('Listening… speak');
     ensurePlayCtx();
     try {
       if (caps.whisper && navigator.mediaDevices && window.MediaRecorder) {
@@ -581,7 +598,7 @@ export default function AgentVoiceOrb({
       setListening(false);
       onListeningChange?.(false);
       setPhase('idle');
-      setHint('麦克风打不开');
+      setHint('Mic unavailable');
     }
   }, [
     caps.whisper,
@@ -601,7 +618,7 @@ export default function AgentVoiceOrb({
     stopOpenAiListen();
     stopWebSpeech();
     setPhase('idle');
-    setHint('点光球 · 说话');
+    setHint('Tap orb · speak');
   }, [onListeningChange, stopOpenAiListen, stopPlayback, stopWebSpeech]);
 
   useEffect(() => {
@@ -640,7 +657,7 @@ export default function AgentVoiceOrb({
           }}
         >
           <span className="absolute inset-0 grid place-items-center font-mono text-[0.62rem] uppercase tracking-[0.28em] text-white [text-shadow:0_1px_8px_rgba(0,40,36,0.45)]">
-            {listening ? (phase === 'speaking' ? '…' : '结束') : '说话'}
+            {listening ? (phase === 'speaking' ? '…' : 'Stop') : 'Speak'}
           </span>
         </button>
         <div className="h-[3px] w-16 overflow-hidden rounded-sm bg-[#1b1713]/08">
@@ -649,33 +666,51 @@ export default function AgentVoiceOrb({
             style={{ width: `${level}%`, display: 'block' }}
           />
         </div>
-        <p
-          className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 font-mono text-[0.55rem] tracking-[0.18em] text-[#1b1713]/45"
+        <div
+          className="flex w-full max-w-md flex-col items-center gap-2.5"
           role="group"
           aria-label="Accent"
         >
-          <span className="text-[#1b1713]/35">Accent</span>
-          {ACCENTS.map((p) => (
-            <button
-              key={p.key}
-              type="button"
-              onClick={() => selectAccent(p.key)}
-              title={p.hint}
-              disabled={listening}
-              className="uppercase transition-colors disabled:opacity-40"
+          <p className="font-mono text-[0.7rem] font-medium tracking-[0.28em] uppercase text-[#007d75]">
+            City accent
+          </p>
+          <div
+            className={`relative grid w-full grid-cols-3 rounded-full border-2 border-[#00a89d]/55 bg-[#dff5f2] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.85),0_8px_24px_rgba(0,168,157,0.12)] ${
+              listening ? 'opacity-50' : ''
+            }`}
+          >
+            {/* Sliding thumb */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-y-1.5 left-1.5 w-[calc((100%-0.75rem)/3)] rounded-full bg-gradient-to-b from-[#1ad4c4] to-[#008f86] shadow-[0_6px_18px_rgba(0,168,157,0.5)] transition-transform duration-300 ease-out"
               style={{
-                color: p.key === accentKey ? '#008f86' : 'rgba(27,23,19,0.38)',
-                letterSpacing: '0.14em',
+                transform: `translateX(${Math.max(0, ACCENTS.findIndex((a) => a.key === accentKey)) * 100}%)`,
               }}
-            >
-              {p.key === accentKey ? `◆ ${p.label}` : p.label}
-            </button>
-          ))}
-        </p>
+            />
+            {ACCENTS.map((p) => {
+              const on = p.key === accentKey;
+              return (
+                <button
+                  key={p.key}
+                  type="button"
+                  onClick={() => selectAccent(p.key)}
+                  title={p.hint}
+                  disabled={listening}
+                  aria-pressed={on}
+                  className={`relative z-10 rounded-full px-2 py-3 font-mono text-[0.78rem] uppercase tracking-[0.12em] transition-colors duration-200 disabled:cursor-not-allowed ${
+                    on ? 'font-semibold text-white' : 'text-[#1b1713]/45 hover:text-[#007d75]'
+                  }`}
+                >
+                  {p.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
         <p className="font-mono text-[0.58rem] tracking-[0.22em] uppercase text-[#008f86]/85">
           ▸ {hint}
-          {caps.whisper ? ' · 听写' : ' · 浏览器听写'}
-          {caps.tts ? ' · soft TTS' : ' · 机器声也行'}
+          {caps.whisper ? ' · whisper' : ' · browser dictation'}
+          {' · browser voice'}
           {' · '}
           {activeAccent.label}
         </p>
