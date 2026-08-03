@@ -7199,5 +7199,106 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-03T03:54:08.955Z"
+  },
+  {
+    "id": "2084278532729889264",
+    "url": "https://x.com/SemiAnalysis_/status/2084278532729889264",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Late last year and earlier this year, AMD struck deals with Meta and OpenAI to provide them with performance-based warrants that vest based on the purchase and deployment of up to 6 GW of AMD Instinct GPUs – with vesting also dependent on AMD’s share price crossing various hurdles stepping up to $600. (1/3)🧵",
+    "createdAt": "Mon Aug 03 14:01:40 +0000 2026",
+    "createdTimestamp": 1785765700,
+    "likes": 83,
+    "retweets": 8,
+    "replies": 5,
+    "bookmarks": 29,
+    "views": 18777,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HOzYQkZWQAAw3Mz.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "gpu"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-03T15:15:46.541Z"
+  },
+  {
+    "id": "2084278534088835480",
+    "url": "https://x.com/SemiAnalysis_/status/2084278534088835480",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "With AMD’s share price shooting up from the ~$200 range in early 2026 to around $500-600 range now, this means that Meta and OpenAI’s capital cost of ownership (assuming vesting with respect to price level is roughly linear, and that the full 6GW of capacity is deployed) has dropped from ~$2.15/hr/GPU and ~$2.50/hr/GPU to only ~$1.60/hr/GPU and ~$1.75 respectively! (2/3)",
+    "createdAt": "Mon Aug 03 14:01:41 +0000 2026",
+    "createdTimestamp": 1785765701,
+    "likes": 25,
+    "retweets": 1,
+    "replies": 3,
+    "bookmarks": 5,
+    "views": 8802,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HOzYR95W4AAwrfA.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "gpu"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-03T15:15:47.985Z"
+  },
+  {
+    "id": "2084278535640830193",
+    "url": "https://x.com/SemiAnalysis_/status/2084278535640830193",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "If AMD’s share price rises to the $600-700 range – the capital cost for the GPUs only will effectively be zero for both! If AMD continues to make strides improving their software stack and winning large customer orders and sees their share price increase above $1,000 – then this will mean that the entire cluster all-in capital cost, including other server equipment, networking, CPUs and more will be zero effective cost to Meta and OpenAI! Read more in our AMD Advancing AI 2026 article and through our AI TCO Model content! (3/3)",
+    "createdAt": "Mon Aug 03 14:01:41 +0000 2026",
+    "createdTimestamp": 1785765701,
+    "likes": 50,
+    "retweets": 3,
+    "replies": 4,
+    "bookmarks": 12,
+    "views": 7297,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [
+      "gpu",
+      "ai-cost"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-03T15:15:49.432Z"
+  },
+  {
+    "id": "2084251607760339105",
+    "url": "https://x.com/aaronburnett/status/2084251607760339105",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "rare to find a $SPCX investor who doesn’t think this way tbh.",
+    "createdAt": "Mon Aug 03 12:14:41 +0000 2026",
+    "createdTimestamp": 1785759281,
+    "likes": 102,
+    "retweets": 1,
+    "replies": 3,
+    "bookmarks": 7,
+    "views": 11643,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-03T15:15:52.164Z"
   }
 ]
