@@ -809,7 +809,6 @@ export default function AgentChat() {
                 setVoiceMode((v) => {
                   const next = !v;
                   if (!next) {
-                    setVoiceDraft('');
                     setInput('');
                     return next;
                   }
@@ -821,7 +820,7 @@ export default function AgentChat() {
                         s.getTracks().forEach((t) => t.stop());
                       }
                     } catch {
-                      setVoiceDraft('Mic blocked — allow microphone in the address bar');
+                      setInput('Mic blocked — allow microphone in the address bar');
                     }
                   })();
                   return next;

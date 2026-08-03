@@ -78,8 +78,8 @@ export default function AgentVoiceOrb({
   const [accentKey, setAccentKey] = useState<AccentKey>('shanghai');
 
   const playCtxRef = useRef<AudioContext | null>(null);
-  const voiceIdRef = useRef(ACCENTS[0].voiceId);
-  const langRef = useRef(ACCENTS[0].lang);
+  const voiceIdRef = useRef<string>(ACCENTS[0].voiceId);
+  const langRef = useRef<string>(ACCENTS[0].lang);
   const playGenRef = useRef(0);
   const nextPlayAtRef = useRef(0);
   const sourcesRef = useRef<AudioBufferSourceNode[]>([]);
