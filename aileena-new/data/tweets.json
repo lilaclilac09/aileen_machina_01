@@ -7621,5 +7621,30 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-04T03:36:18.059Z"
+  },
+  {
+    "id": "2084649662565220829",
+    "url": "https://x.com/aaronburnett/status/2084649662565220829",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "I’ve seen several comments on this asking about the AI and compute stuff. No we didn’t forget that AI exists.\n\nThis infrastructure section will certainly fill out over time, I expect AI compute infrastructure to be among the largest near term infrastructure catalysts. Also Grok/cursor (and very under the radar imagine) are likely to have important milestones. The biggest reason they aren’t here now is we need to more guidance from management on what the strategy is and how they think about reporting? (Are DCs reported in GWs or racks? How is cursor reported? Grok?)\n\nAll in good time",
+    "createdAt": "Tue Aug 04 14:36:25 +0000 2026",
+    "createdTimestamp": 1785854185,
+    "likes": 4,
+    "retweets": 1,
+    "replies": 0,
+    "bookmarks": 0,
+    "views": 159,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-04T14:39:07.138Z"
   }
 ]
