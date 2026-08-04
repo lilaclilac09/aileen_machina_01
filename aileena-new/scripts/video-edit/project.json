@@ -103,14 +103,14 @@
     {
       "id": "community",
       "index": 5,
-      "title": "Community · girls energy",
+      "title": "Community · smiles & people",
       "role": "community",
-      "target_s": 14,
-      "max_s": 22,
-      "photoQuota": 5,
+      "target_s": 18,
+      "max_s": 28,
+      "photoQuota": 8,
       "videoQuota": 1,
       "absorbLeftovers": true,
-      "leftoverMaxExtra_s": 20
+      "leftoverMaxExtra_s": 30
     },
     {
       "id": "timelapse",
@@ -146,7 +146,11 @@
     "timelapseMin_s": 8,
     "timelapseMax_s": 14,
     "preferGirlsPhotos": true,
-    "girlsPhotoBonus": 30,
+    "preferSmilePhotos": true,
+    "includeGuysPhotos": true,
+    "girlsPhotoBonus": 18,
+    "guysPhotoBonus": 16,
+    "smilePhotoBonus": 28,
     "timelapseScoreBonus": 45,
     "whisper": {
       "enabled": true,
@@ -159,7 +163,7 @@
     "Soft public language only — no credit-swap talk",
     "Brand bookends required (title + outro)",
     "MUST include final timelapse before outro",
-    "Prefer girls / community faces in vibe + community beats",
+    "Prefer smile photos; include both women and some men",
     "Guest-led energy over scripted keynote framing"
   ]
 }

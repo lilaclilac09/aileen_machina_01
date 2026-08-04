@@ -118,7 +118,11 @@ export type ProjectManifest = {
     timelapseMax_s?: number;
     /** Prefer girls-tagged photos in community / vibe */
     preferGirlsPhotos?: boolean;
+    preferSmilePhotos?: boolean;
+    includeGuysPhotos?: boolean;
     girlsPhotoBonus?: number;
+    guysPhotoBonus?: number;
+    smilePhotoBonus?: number;
     timelapseScoreBonus?: number;
   };
   publicCopyRules: string[];

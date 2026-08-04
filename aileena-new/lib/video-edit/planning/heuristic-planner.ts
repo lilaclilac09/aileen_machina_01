@@ -15,6 +15,8 @@ import { writeOutroCard, writeTitleCard } from './cards';
 import {
   isFinalTimelapse,
   isGirls,
+  isGuys,
+  isSmile,
   isTimelapse,
   pickTimelapseWindow,
   type MediaTag,
@@ -86,8 +88,16 @@ function scoreVideoCandidate(
     reasons.push('final-timelapse');
   }
   if (isGirls(tags)) {
-    score += planner.girlsPhotoBonus ?? 25;
+    score += planner.girlsPhotoBonus ?? 18;
     reasons.push('girls-tagged');
+  }
+  if (isGuys(tags)) {
+    score += planner.guysPhotoBonus ?? 16;
+    reasons.push('guys-tagged');
+  }
+  if (isSmile(tags)) {
+    score += planner.smilePhotoBonus ?? 28;
+    reasons.push('smile');
   }
 
   if (transcript && !transcript.optionalSkipped && transcript.text.trim()) {
@@ -114,10 +124,14 @@ function scoreVideoCandidate(
   };
 }
 
-function photoSortKey(asset: MediaAsset, preferGirls: boolean): number {
+function photoSortKey(asset: MediaAsset, planner: ProjectManifest['planner']): number {
   const tags = assetTags(asset);
   let key = 0;
-  if (preferGirls && isGirls(tags)) key -= 100;
+  // Lower key = earlier in pool (preferred)
+  if (planner.preferSmilePhotos !== false && isSmile(tags)) key -= 200;
+  if (planner.preferGirlsPhotos !== false && isGirls(tags)) key -= 80;
+  if (planner.includeGuysPhotos !== false && isGuys(tags)) key -= 70;
+  // people in girls/ folder still count — keep them ahead of untagged
   if (asset.orientation === 'landscape') key -= 10;
   else if (asset.orientation === 'square') key -= 5;
   return key;
@@ -141,6 +155,8 @@ export function planEdit(
   const videos = catalog.assets.filter((a) => a.kind === 'video' && a.probeOk);
   const photos = catalog.assets.filter((a) => a.kind === 'photo');
   const preferGirls = project.planner.preferGirlsPhotos !== false;
+  const preferSmile = project.planner.preferSmilePhotos !== false;
+  const includeGuys = project.planner.includeGuysPhotos !== false;
 
   const cardsDir = join(root, project.paths.work, 'cards');
   const titlePath = join(cardsDir, 'title.svg');
@@ -160,8 +176,8 @@ export function planEdit(
     .sort((a, b) => b.cand.score - a.cand.score);
 
   const photoPool = [...photos].sort((a, b) => {
-    const ka = photoSortKey(a, preferGirls);
-    const kb = photoSortKey(b, preferGirls);
+    const ka = photoSortKey(a, project.planner);
+    const kb = photoSortKey(b, project.planner);
     return ka - kb || a.filename.localeCompare(b.filename);
   });
 
@@ -171,16 +187,25 @@ export function planEdit(
   function takePhotos(
     n: number,
     beat: ProjectManifest['beats'][number],
-    girlsOnly = false,
+    filter: 'any' | 'girls' | 'guys' | 'smile' = 'any',
   ): EdlClip[] {
     const out: EdlClip[] = [];
     for (const asset of photoPool) {
       if (out.length >= n) break;
       if (usedPhoto.has(asset.id)) continue;
-      if (girlsOnly && !isGirls(assetTags(asset))) continue;
+      const tags = assetTags(asset);
+      if (filter === 'girls' && !isGirls(tags)) continue;
+      if (filter === 'guys' && !isGuys(tags)) continue;
+      if (filter === 'smile' && !isSmile(tags)) continue;
       usedPhoto.add(asset.id);
       const dur = project.planner.photoDuration_s;
-      const girls = isGirls(assetTags(asset));
+      const labelBits = [
+        isSmile(tags) ? 'SMILE' : '',
+        isGirls(tags) ? 'GIRLS' : '',
+        isGuys(tags) ? 'GUYS' : '',
+      ]
+        .filter(Boolean)
+        .join('+');
       out.push({
         id: `photo-${asset.filename}`,
         kind: 'photo',
@@ -190,7 +215,7 @@ export function planEdit(
         end_s: dur,
         duration_s: dur,
         label: asset.filename,
-        rationale: `${beat.id}: Ken-Burns${girls ? ' · GIRLS priority' : ''} (${asset.orientation})`,
+        rationale: `${beat.id}: Ken-Burns${labelBits ? ` · ${labelBits}` : ''} (${asset.orientation})`,
         beatId: beat.id,
         enabled: true,
         audio: { keep: false, gainDb: 0 },
@@ -322,28 +347,48 @@ export function planEdit(
   const maxPhotoQ = Math.max(0, ...contentDefs.map((d) => d.photoQuota));
   const maxVideoQ = Math.max(0, ...contentDefs.map((d) => d.videoQuota));
 
-  // Reserve girls photos into community (and vibe) BEFORE other beats eat them
-  if (preferGirls) {
+  // Reserve mixed people into community/vibe: smiles first, then girls + guys
+  {
     const reserveOrder = contentDefs.filter((d) => d.id === 'community' || d.id === 'vibe');
     for (const def of reserveOrder) {
       const counts = filled.get(def.id)!;
       const beat = beats.find((b) => b.id === def.id)!;
-      while (counts.photos < def.photoQuota) {
-        const added = takePhotos(1, def, true);
+      // 1 smile if available
+      if (preferSmile && counts.photos < def.photoQuota) {
+        const added = takePhotos(1, def, 'smile');
+        if (added.length) {
+          beat.clips.push(...added);
+          counts.photos += 1;
+        }
+      }
+      // alternate girls / guys while quota remains
+      let flip = 0;
+      while (counts.photos < Math.min(def.photoQuota, def.id === 'community' ? 6 : 3)) {
+        const filter =
+          flip % 2 === 0
+            ? preferGirls
+              ? 'girls'
+              : 'any'
+            : includeGuys
+              ? 'guys'
+              : 'any';
+        let added = takePhotos(1, def, filter as 'girls' | 'guys' | 'any');
+        if (!added.length && filter !== 'any') added = takePhotos(1, def, 'any');
         if (!added.length) break;
         beat.clips.push(...added);
         counts.photos += 1;
+        flip += 1;
       }
     }
   }
 
-  // Remaining photo quotas (any photo)
+  // Remaining photo quotas (any photo — includes men & smiles already in pool)
   for (let round = 0; round < maxPhotoQ; round += 1) {
     for (const def of contentDefs) {
       const counts = filled.get(def.id)!;
       if (counts.photos >= def.photoQuota) continue;
       const beat = beats.find((b) => b.id === def.id)!;
-      const added = takePhotos(1, def, false);
+      const added = takePhotos(1, def, 'any');
       if (!added.length) continue;
       beat.clips.push(...added);
       counts.photos += 1;
@@ -452,14 +497,30 @@ export function planEdit(
     let extra = 0;
     const budget = communityDef.leftoverMaxExtra_s ?? 18;
     const leftoverPhotos = [
+      ...photoPool.filter((p) => !usedPhoto.has(p.id) && isSmile(assetTags(p))),
       ...photoPool.filter((p) => !usedPhoto.has(p.id) && isGirls(assetTags(p))),
-      ...photoPool.filter((p) => !usedPhoto.has(p.id) && !isGirls(assetTags(p))),
+      ...photoPool.filter((p) => !usedPhoto.has(p.id) && isGuys(assetTags(p))),
+      ...photoPool.filter(
+        (p) =>
+          !usedPhoto.has(p.id) &&
+          !isSmile(assetTags(p)) &&
+          !isGirls(assetTags(p)) &&
+          !isGuys(assetTags(p)),
+      ),
     ];
     for (const asset of leftoverPhotos) {
       if (usedPhoto.has(asset.id)) continue;
       if (extra + project.planner.photoDuration_s > budget) break;
       usedPhoto.add(asset.id);
       const dur = project.planner.photoDuration_s;
+      const tags = assetTags(asset);
+      const bits = [
+        isSmile(tags) ? 'SMILE' : '',
+        isGirls(tags) ? 'GIRLS' : '',
+        isGuys(tags) ? 'GUYS' : '',
+      ]
+        .filter(Boolean)
+        .join('+');
       community.clips.push({
         id: `photo-extra-${asset.filename}`,
         kind: 'photo',
@@ -469,7 +530,7 @@ export function planEdit(
         end_s: dur,
         duration_s: dur,
         label: asset.filename,
-        rationale: `community leftover${isGirls(assetTags(asset)) ? ' · GIRLS' : ''}`,
+        rationale: `community leftover${bits ? ` · ${bits}` : ''}`,
         beatId: 'community',
         enabled: true,
         audio: { keep: false, gainDb: 0 },
@@ -485,7 +546,9 @@ export function planEdit(
   }
 
   const girlsUsed = photos.filter((p) => usedPhoto.has(p.id) && isGirls(assetTags(p))).length;
-  notes.push(`Girls photos used: ${girlsUsed}`);
+  const guysUsed = photos.filter((p) => usedPhoto.has(p.id) && isGuys(assetTags(p))).length;
+  const smileUsed = photos.filter((p) => usedPhoto.has(p.id) && isSmile(assetTags(p))).length;
+  notes.push(`People photos used: girls=${girlsUsed} guys=${guysUsed} smiles=${smileUsed}`);
 
   const edl: FinalEdit = {
     schemaVersion: 1,
