@@ -7,15 +7,15 @@ DeFi propagation research & hardware supply chain analysis. Writing about why th
 
 ---
 
-### Recently Updated · 最近更新
-* **[aileena.xyz](https://aileena.xyz) Console** — Voice orb + soft Shanghai auntie TTS; summon “Aileena”; Prophecy Hall; Safari/iOS STT·TTS hardening; durable agent chat forwards (list / resend / 6h cron).
-* **[polar-lab](https://github.com/lilaclilac09/polar-lab)** — Self-correcting agent loop (plan → act → critic → adjust); Console voice integration path; Machina orb presence.
-* **Cafe Cursor** — Shanghai auto-recap / spending tooling at [cursor-cafe.aileena.xyz](https://cursor-cafe.aileena.xyz).
+### Recently Updated
+* **[aileena.xyz](https://aileena.xyz) Console**: Voice orb and soft Shanghai auntie TTS, Aileena summon, Prophecy Hall, Safari/iOS STT·TTS hardening, and durable agent chat forwards (list, resend, 6h cron).
+* **[polar-lab](https://github.com/lilaclilac09/polar-lab)**: Self-correcting agent loop (plan → act → critic → adjust), Console voice integration path, and Machina orb presence.
+* **Cafe Cursor**: Shanghai auto-recap and spending tooling at [cursor-cafe.aileena.xyz](https://cursor-cafe.aileena.xyz).
 
-### Recently Added · 最近添加
-* **[polar-lab](https://github.com/lilaclilac09/polar-lab)** *(Jul 2026)* — Owned-weight post-training playground: SFT (LoRA) → DPO → RL scaffold → holdout eval → chat on `Qwen2.5-0.5B-Instruct`.
-* **Console voice-code** — Orb voice → DeepSeek propose-only patches (no Cursor API tokens); visitor quota + live eval gates.
-* **[InferenceX](https://github.com/lilaclilac09/InferenceX)** *(Jun 2026)* — Continuous inference benchmark research fork (GB200/GB300 · open model stacks).
+### Recently Added
+* **[polar-lab](https://github.com/lilaclilac09/polar-lab)**: Owned-weight post-training playground — SFT (LoRA) → DPO → RL scaffold → holdout eval → chat on `Qwen2.5-0.5B-Instruct`.
+* **Console voice-code**: Orb voice to DeepSeek propose-only patches without Cursor API tokens, with visitor quota and live eval gates.
+* **[InferenceX](https://github.com/lilaclilac09/InferenceX)**: Continuous inference benchmark research fork covering GB200/GB300 and open model stacks.
 
 ---
 

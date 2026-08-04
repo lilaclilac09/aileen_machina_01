@@ -17,7 +17,7 @@ Keep `keyshield.md` in the profile repo — Featured Dispatch links to it.
 
 ## What changed
 
-Added two sections after Featured Dispatch:
+Added two English sections after Featured Dispatch (same `**Name**: prose` style as Research & Builds):
 
-- **Recently Updated · 最近更新** — Console voice / iOS, polar-lab agent loop, Cafe Cursor
-- **Recently Added · 最近添加** — polar-lab, Console voice-code, InferenceX fork
+- **Recently Updated** — Console voice / iOS, polar-lab agent loop, Cafe Cursor
+- **Recently Added** — polar-lab, Console voice-code, InferenceX fork
