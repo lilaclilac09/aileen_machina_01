@@ -3,11 +3,7 @@ import { join } from 'node:path';
 import type { EdlClip, FinalEdit, OutputSpec } from '../domain/types';
 import { toAbs } from '../domain/paths';
 import { requireFfmpeg, runOrThrow } from './ffmpeg-runner';
-
-function videoFilter(spec: OutputSpec): string {
-  const { width: w, height: h, padColor, fps } = spec;
-  return `scale=${w}:${h}:force_original_aspect_ratio=decrease,pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2:color=${padColor},fps=${fps},format=yuv420p`;
-}
+import { photoFilter, videoFilter } from './grade';
 
 function renderTitle(clip: EdlClip, out: string, root: string, spec: OutputSpec): void {
   const { ffmpeg } = requireFfmpeg();
@@ -64,10 +60,7 @@ function renderPhoto(clip: EdlClip, out: string, root: string, spec: OutputSpec)
   const src = toAbs(root, clip.source);
   const dur = Math.max(0.5, clip.duration_s);
   const frames = Math.round(dur * spec.fps);
-  const vf =
-    `scale=${spec.width}:${spec.height}:force_original_aspect_ratio=decrease,` +
-    `pad=${spec.width}:${spec.height}:(ow-iw)/2:(oh-ih)/2:color=${spec.padColor},` +
-    `zoompan=z='min(1.08,1+0.0015*on)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${frames}:s=${spec.width}x${spec.height}:fps=${spec.fps},format=yuv420p`;
+  const vf = photoFilter(spec, frames);
 
   runOrThrow(
     ffmpeg,

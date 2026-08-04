@@ -30,6 +30,27 @@ export type OutputSpec = {
   keepAudio: boolean;
   audioFadeIn_s: number;
   audioFadeOut_s: number;
+  /** Color grade — fix muddy yellow / lift dark phone footage */
+  grade?: {
+    /** brightness offset for eq filter, e.g. 0.06 */
+    brightness: number;
+    /** contrast, 1.0 = neutral */
+    contrast: number;
+    /** saturation, 1.0 = neutral */
+    saturation: number;
+    /** gamma, 1.0 = neutral; >1 lifts mids */
+    gamma: number;
+    /** colorbalance rs/gs/bs shadows (−1..1); negative rs = less yellow/red */
+    shadowsRed: number;
+    shadowsGreen: number;
+    shadowsBlue: number;
+    midtonesRed: number;
+    midtonesGreen: number;
+    midtonesBlue: number;
+    highlightsRed: number;
+    highlightsGreen: number;
+    highlightsBlue: number;
+  };
 };
 
 export type ProjectBeatDef = {
@@ -91,6 +112,14 @@ export type ProjectManifest = {
       model: string;
       language: string;
     };
+    /** Force-include final timelapse before outro */
+    forceFinalTimelapse?: boolean;
+    timelapseMin_s?: number;
+    timelapseMax_s?: number;
+    /** Prefer girls-tagged photos in community / vibe */
+    preferGirlsPhotos?: boolean;
+    girlsPhotoBonus?: number;
+    timelapseScoreBonus?: number;
   };
   publicCopyRules: string[];
 };
@@ -118,6 +147,8 @@ export type MediaAsset = {
   audioCodec: string | null;
   probeOk: boolean;
   probeError?: string;
+  /** Heuristic tags from path/filename: timelapse, girls, final, priority */
+  tags?: string[];
 };
 
 export type Catalog = {

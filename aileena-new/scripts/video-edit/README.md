@@ -1,106 +1,87 @@
 # Cafe Cursor Shanghai — Cheap Cursor Edit
 
-**不要上传。** Media stays on your Mac in `cursor_shanghai_07192026`.  
-Architecture: see [`ARCHITECTURE.md`](./ARCHITECTURE.md).
+**不要上传。** 在 Mac 本地跑。素材夹：`cursor_shanghai_07192026`
 
-Thariq loop: **catalog → (optional Whisper) → JSON EDL → ffmpeg → verify → edit-room**.
+剪辑也许粗糙，但规则已写死：
+1. **必须用最后那条延时**（`takes/timelapse/`）
+2. **尽量多放女孩子**（`photos/girls/`）
+3. **色调**：默认去黄、提亮（可在 `project.json` → `output.grade` 调）
 
 ---
 
-## Mac runbook
-
-### 0. Pull + deps
+## 你现在该复制的（从零 / 已 clone）
 
 ```bash
-cd /path/to/aileen_machina_01
+# 进仓库（不是 ~ 家目录！）
+cd ~/aileen_machina_01          # 若还没有：git clone https://github.com/lilaclilac09/aileen_machina_01.git
 git fetch && git checkout cursor/cafe-recap-edit-8f58
-cd aileena-new && pnpm install
-# need ffmpeg + ffprobe on PATH
+cd aileena-new
+pnpm install
+
+# ① 先分拣到正确位置（预览）
+bash scripts/video-edit/stage-media.sh
+
+# ② 确认后：拷贝 + 剪
+bash scripts/video-edit/stage-media.sh --go --render
+
+open scripts/video-edit/out/cafe-cursor-shanghai-recap.mp4
 ```
 
-### 1. Import from `cursor_shanghai_07192026`
+若自动没认出「女孩子」照片（文件名不含女/girl），**手动拖**：
 
-```bash
-# preview
-bash scripts/video-edit/from-downloads.sh
+```text
+Finder 打开：
+  ~/aileen_machina_01/aileena-new/scripts/video-edit/photos/girls/
+把女孩子照片拖进去（越多越好）
 
-# copy into takes/ + photos/, then cut
-bash scripts/video-edit/from-downloads.sh --go --render
+延时一定要在：
+  ~/aileen_machina_01/aileena-new/scripts/video-edit/takes/timelapse/
 ```
 
-Or explicit:
+然后再：
 
 ```bash
-bash scripts/video-edit/from-downloads.sh \
-  --src ~/Downloads/cursor_shanghai_07192026 \
-  --go --render
-```
-
-### 2. Or step-by-step
-
-```bash
-pnpm video:catalog    # work/catalog.json
-pnpm video:plan       # work/final-edit.json
-pnpm video:render     # out/cafe-cursor-shanghai-recap.mp4
-pnpm video:verify     # work/verify-report.json
-
-# all-in-one
+cd ~/aileen_machina_01/aileena-new
 pnpm video:recap
 ```
 
-### 3. Edit room
+---
+
+## 文件夹约定（放对位置）
+
+| 放什么 | 路径 |
+|--------|------|
+| **最后延时（必须）** | `scripts/video-edit/takes/timelapse/` |
+| **女孩子照片（尽量多）** | `scripts/video-edit/photos/girls/` |
+| 其它视频 | `scripts/video-edit/takes/` |
+| 其它照片 | `scripts/video-edit/photos/` |
+| 成片 | `scripts/video-edit/out/cafe-cursor-shanghai-recap.mp4` |
+
+文件名带 `延时` / `timelapse` / `最后延时` 也会被自动分进 timelapse。
+
+---
+
+## 色调（去黄偏暗）
+
+默认 grade（`project.json`）：
+
+- 提亮 + 抬 gamma（不那么暗）
+- shadows/midtones **减红/减黄**，加一点蓝
+
+想再亮一点：把 `output.grade.brightness` 改成 `0.10`，`gamma` 改成 `1.15`，然后：
 
 ```bash
-open scripts/video-edit/edit-room.html
-# Load work/final-edit.json + attach out/*.mp4
-# Tweak sliders → Copy feedback prompt → paste back into Cursor
+pnpm video:render && pnpm video:verify
 ```
 
 ---
 
-## Where files go
+## 成片结构
 
-| What | Path |
-|------|------|
-| Videos | `scripts/video-edit/takes/` |
-| Photos | `scripts/video-edit/photos/` |
-| EDL | `scripts/video-edit/work/final-edit.json` |
-| Catalog | `scripts/video-edit/work/catalog.json` |
-| QC | `scripts/video-edit/work/verify-report.json` |
-| Final | `scripts/video-edit/out/cafe-cursor-shanghai-recap.mp4` |
-| Config | `scripts/video-edit/project.json` |
-
-Engine lives in `aileena-new/lib/video-edit/` (reusable).
+title → vibe → demos → product → **community(girls)** → **final timelapse** → outro
 
 ---
 
-## Recap spine
+## 架构
 
-| Beat | Role | Notes |
-|------|------|-------|
-| 1 | Brand open | Title card |
-| 2 | Place / vibe | Photos + B-roll |
-| 3 | Guest demos | Scored video takes |
-| 4 | Soft product | Credits soft copy only |
-| 5 | Community | Budgeted leftovers |
-| 6 | Brand close | `#CafeCursorShanghai` |
-
----
-
-## Optional Whisper
-
-If you install `openai-whisper` CLI, re-run without `--skip-whisper`:
-
-```bash
-pnpm exec tsx scripts/video-edit/cli.ts recap
-```
-
-Without Whisper, heuristic_v2 still plans (orientation / duration / audio).
-
----
-
-## Smoke (dev)
-
-```bash
-pnpm video:smoke
-```
+见 [`ARCHITECTURE.md`](./ARCHITECTURE.md)。引擎：`aileena-new/lib/video-edit/`。

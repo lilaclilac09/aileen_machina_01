@@ -78,6 +78,23 @@ export const OutputSpecSchema = z.object({
   keepAudio: z.boolean(),
   audioFadeIn_s: z.number().finite().nonnegative(),
   audioFadeOut_s: z.number().finite().nonnegative(),
+  grade: z
+    .object({
+      brightness: z.number(),
+      contrast: z.number(),
+      saturation: z.number(),
+      gamma: z.number(),
+      shadowsRed: z.number(),
+      shadowsGreen: z.number(),
+      shadowsBlue: z.number(),
+      midtonesRed: z.number(),
+      midtonesGreen: z.number(),
+      midtonesBlue: z.number(),
+      highlightsRed: z.number(),
+      highlightsGreen: z.number(),
+      highlightsBlue: z.number(),
+    })
+    .optional(),
 });
 
 export const FinalEditSchema = z.object({
@@ -129,6 +146,7 @@ export const MediaAssetSchema = z.object({
   audioCodec: z.string().nullable(),
   probeOk: z.boolean(),
   probeError: z.string().optional(),
+  tags: z.array(z.string()).optional(),
 });
 
 export const CatalogSchema = z.object({

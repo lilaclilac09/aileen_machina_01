@@ -1,7 +1,11 @@
-takes/*
+takes/**
 !takes/.gitkeep
-photos/*
+!takes/timelapse/
+!takes/timelapse/.gitkeep
+photos/**
 !photos/.gitkeep
+!photos/girls/
+!photos/girls/.gitkeep
 out/*
 !out/.gitkeep
 work/cuts/
@@ -9,8 +13,6 @@ work/transcripts/
 work/cards/
 work/concat.txt
 work/smoke-ok.txt
-# Keep EDL / catalog / verify in git when present (diffable edit decisions)
-# but ignore absolute-path local copies if any:
 work/*.mp4
 work/*.wav
 work/*.png
