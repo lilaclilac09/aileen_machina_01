@@ -58,31 +58,34 @@ TMP="${TMPDIR:-/tmp}/stage-cafe-$$"
 mkdir -p "$TMP"
 : >"$TMP/all.txt"
 
-# NO unzip — ignore *.zip (user request). Only loose files in SRC.
+# NO unzip. Skip AppleDouble junk (._*), skip zip.
 find "$SRC" -type f \( \
   -iname '*.mp4' -o -iname '*.mov' -o -iname '*.m4v' -o -iname '*.webm' -o -iname '*.mkv' -o \
   -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.heic' -o -iname '*.heif' -o \
   -iname '*.webp' -o -iname '*.tif' -o -iname '*.tiff' -o -iname '*.dng' \
-\) ! -iname '*.zip' 2>/dev/null | sort -u >"$TMP/all.txt" || true
+\) ! -name '._*' ! -iname '*.zip' 2>/dev/null | sort -u >"$TMP/all.txt" || true
 
 TOTAL=$(grep -c . "$TMP/all.txt" 2>/dev/null | head -1 | tr -d ' ')
 TOTAL=${TOTAL:-0}
 
-# Pick latest DJI timestamp as final timelapse (unless a named 延时 exists)
+# Prefer real 延时.MP4; never pick ._延时.MP4
 LATEST_DJI=""
 LATEST_TS=0
 NAMED_TL=""
 while IFS= read -r f; do
   [[ -z "$f" ]] && continue
   base="$(basename "$f")"
+  [[ "$base" == ._* ]] && continue
   low="$(printf '%s' "$base" | tr '[:upper:]' '[:lower:]')"
   if ! printf '%s' "$low" | grep -Eq '\.(mp4|mov|m4v|webm|mkv)$'; then
     continue
   fi
-  if printf '%s' "$base$low" | grep -Eiq '延时|延時|timelapse|time[-_ ]?lapse|hyperlapse'; then
+  # exact / clear timelapse name wins
+  if [[ "$base" == "延时.MP4" || "$base" == "延时.mp4" || "$base" == "延時.MP4" ]]; then
+    NAMED_TL="$f"
+  elif [[ -z "$NAMED_TL" ]] && printf '%s' "$base" | grep -Eiq '延时|延時|timelapse|time[-_ ]?lapse|hyperlapse'; then
     NAMED_TL="$f"
   fi
-  # DJI_20260719100954_0034_D.MP4
   if [[ "$base" =~ DJI_([0-9]{14})_ ]]; then
     ts="${BASH_REMATCH[1]}"
     if [[ "$ts" -gt "$LATEST_TS" ]]; then
