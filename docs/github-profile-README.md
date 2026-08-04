@@ -7,23 +7,11 @@ DeFi propagation research & hardware supply chain analysis. Writing about why th
 
 ---
 
-### Recently Updated
-* **[aileena.xyz](https://aileena.xyz) Console**: Aileena summon, soft oracle, Prophecy Hall, Shanghai|London voice accents, Safari/iOS STT·TTS hardening, voice-code (DeepSeek propose-only), and durable agent chat forwards (list, resend, 6h cron).
-* **[polar-lab](https://github.com/lilaclilac09/polar-lab)**: Self-correcting agent loop (plan → act → critic → adjust), Machina orb voice surface, and Cafe/SEMIS/Space LoRA packs with holdout `exact_match` 1.000.
-* **Cafe Cursor**: Credits distribution and user support tooling at [cursor-cafe.aileena.xyz](https://cursor-cafe.aileena.xyz).
-
-### Recently Added
-* **[polar-lab](https://github.com/lilaclilac09/polar-lab)**: Owned-weight post-training playground — SFT (LoRA) → DPO → RL scaffold → holdout eval → chat on `Qwen2.5-0.5B-Instruct`.
-* **Console voice-code**: Orb voice to DeepSeek propose-only patches without Cursor API tokens, with visitor quota and live eval gates.
-* **Machina memory**: Site memory loop and *[How the Site Remembers](https://aileena.xyz)* dispatch — Dreaming reports plus watchlist-only RSS ingest.
-
----
-
 ### Research & Builds
 * **KeyShield (Solana Mini Hack SG #5)**: Zero-knowledge credential isolation proxy for autonomous agents. Built with a Rust reverse proxy, AES-256-GCM, and a 50–80ms hot path to secure session-scoped credentials.
-* **[polar-lab](https://github.com/lilaclilac09/polar-lab)**: Owned-weight post-training playground — holdout-gated LoRA/SFT on open 0.5B weights, with DPO/RL scaffold and a self-correcting agent loop.
 * **Solana MEV Contagion**: Multi-pool shock propagation modeling and prop AMM risk mechanics.
 * **Semiconductor Supply Chain**: Mapping the physical and economic dependencies of AI silicon — focusing on Co-Packaged Optics (CPO) and NVIDIA GB200/GB300 packaging bottlenecks.
+* **[polar-lab](https://github.com/lilaclilac09/polar-lab)**: Owned-weight post-training playground — holdout-gated LoRA/SFT on open 0.5B weights, with DPO/RL scaffold and a self-correcting agent loop.
 
 ### Process & Precision
 * **Spec-Driven AI Co-authoring**: Treating human-written specs as the source of truth; leveraging AI to generate structural scaffolding, while leaving zero room for LLM drift or hallucination.
@@ -33,6 +21,18 @@ DeFi propagation research & hardware supply chain analysis. Writing about why th
 ### Stack
 * Rust, TypeScript, Python
 * Solana VM, ZK, MEV Simulation, LoRA post-training
+
+---
+
+### Recently Updated
+* **[aileena.xyz](https://aileena.xyz) Console**: Aileena summon, soft oracle, Prophecy Hall, Shanghai|London voice accents, Safari/iOS STT·TTS hardening, voice-code (DeepSeek propose-only), and durable agent chat forwards (list, resend, 6h cron).
+* **[polar-lab](https://github.com/lilaclilac09/polar-lab)**: Self-correcting agent loop (plan → act → critic → adjust), Machina orb voice surface, and Cafe/SEMIS/Space LoRA packs with holdout `exact_match` 1.000.
+* **Cafe Cursor**: Credits distribution and user support tooling at [cursor-cafe.aileena.xyz](https://cursor-cafe.aileena.xyz).
+
+### Recently Added
+* **[polar-lab](https://github.com/lilaclilac09/polar-lab)**: Owned-weight post-training playground — SFT (LoRA) → DPO → RL scaffold → holdout eval → chat on `Qwen2.5-0.5B-Instruct`.
+* **Console voice-code**: Orb voice to DeepSeek propose-only patches without Cursor API tokens, with visitor quota and live eval gates.
+* **Machina memory**: Site memory loop and *[How the Site Remembers](https://aileena.xyz/blog/machina-memory)* dispatch — Dreaming reports plus watchlist-only RSS ingest.
 
 ---
 

@@ -15,11 +15,12 @@ Cloud Agent GitHub App for this environment only has write access to `aileen_mac
 
 Keep `keyshield.md` in the profile repo — Featured Dispatch links to it.
 
-## What changed (from latest commits, Aug 2026)
+## Diff vs live profile (append-only)
 
-Synced to merged work on `aileen_machina_01` (#348–#352) and `polar-lab` (#17–#23):
+Keeps existing Featured Dispatch / Research & Builds / Process & Precision text.
 
-- **Recently Updated** — Console summon/Prophecy Hall/voice-code/iOS; polar-lab agent loop + LoRA holdout 1.000; Cafe Cursor credits/support
-- **Recently Added** — polar-lab; Console voice-code; Machina memory (replaces stale InferenceX line)
-- **Research & Builds** — added polar-lab alongside KeyShield / MEV / semiconductor
-- **Stack** — added LoRA post-training
+Appended:
+
+- **Research & Builds** — `polar-lab` bullet
+- **Stack** — `, LoRA post-training`
+- **Recently Updated** + **Recently Added** sections (before footer)
