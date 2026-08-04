@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
-# Stage media from ~/Downloads/cursor_shanghai_07192026 into the RIGHT folders.
+# Smart stage: Downloads/cursor_shanghai_07192026 → takes/ + photos/
 #
-#   takes/timelapse/   ← 最后那条延时（必须）
-#   photos/girls/      ← 女孩子照片（尽量多）
-#   takes/             ← 其它视频
-#   photos/            ← 其它照片
+# DJI-aware rules:
+#   - unzip any *.zip (photos often inside DJI00.zip)
+#   - filename 延时/timelapse → takes/timelapse/
+#   - else latest DJI_YYYYMMDDHHMMSS_*.MP4 → takes/timelapse/  (「最后延时」)
+#   - all stills → photos/girls/  (本场默认多放女孩子；场地图可再挪回 photos/)
+#   - other videos → takes/
 #
-# Usage (from aileena-new/):
-#   bash scripts/video-edit/stage-media.sh                 # dry-run
-#   bash scripts/video-edit/stage-media.sh --go            # copy
-#   bash scripts/video-edit/stage-media.sh --go --render   # copy + cut
-#   bash scripts/video-edit/stage-media.sh --src ~/Downloads/cursor_shanghai_07192026 --go
+# From aileena-new/:
+#   bash scripts/video-edit/stage-media.sh
+#   bash scripts/video-edit/stage-media.sh --go
+#   bash scripts/video-edit/stage-media.sh --go --render
 #
 set -euo pipefail
 
@@ -29,7 +30,7 @@ while [[ $# -gt 0 ]]; do
     --render) DO_RENDER=1; shift ;;
     --move) DO_MOVE=1; shift ;;
     --src) SRC="$2"; shift 2 ;;
-    -h|--help) sed -n '2,16p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,18p' "$0"; exit 0 ;;
     *) echo "Unknown: $1"; exit 1 ;;
   esac
 done
@@ -48,112 +49,159 @@ if [[ -z "$SRC" ]]; then
 fi
 
 if [[ -z "${SRC:-}" || ! -d "$SRC" ]]; then
-  echo "找不到素材夹。请确认："
-  echo "  ~/Downloads/${EVENT}"
-  echo "或: --src /完整路径/${EVENT}"
+  echo "找不到素材夹: ~/Downloads/${EVENT}"
   exit 1
 fi
 
 mkdir -p "$VE/takes/timelapse" "$VE/photos/girls" "$VE/takes" "$VE/photos"
 
 TMP="${TMPDIR:-/tmp}/stage-cafe-$$"
-mkdir -p "$TMP"
+EXTRACT="$TMP/extract"
+mkdir -p "$TMP" "$EXTRACT"
 : >"$TMP/all.txt"
-find "$SRC" -type f \( \
+
+# Unzip archives so we pick up stills inside DJI00.zip etc.
+while IFS= read -r z; do
+  [[ -z "$z" ]] && continue
+  echo "unzip: $(basename "$z")"
+  unzip -o -q "$z" -d "$EXTRACT" 2>/dev/null || true
+done < <(find "$SRC" -maxdepth 2 -type f \( -iname '*.zip' -o -iname '*.ZIP' \) 2>/dev/null | sort)
+
+find "$SRC" "$EXTRACT" -type f \( \
   -iname '*.mp4' -o -iname '*.mov' -o -iname '*.m4v' -o -iname '*.webm' -o -iname '*.mkv' -o \
   -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.heic' -o -iname '*.heif' -o \
-  -iname '*.webp' -o -iname '*.tif' -o -iname '*.tiff' \
+  -iname '*.webp' -o -iname '*.tif' -o -iname '*.tiff' -o -iname '*.dng' \
 \) 2>/dev/null | sort -u >"$TMP/all.txt" || true
 
 TOTAL=$(grep -c . "$TMP/all.txt" 2>/dev/null | head -1 | tr -d ' ')
 TOTAL=${TOTAL:-0}
 
-echo "=== Stage Cafe Cursor media ==="
+# Pick latest DJI timestamp as final timelapse (unless a named 延时 exists)
+LATEST_DJI=""
+LATEST_TS=0
+NAMED_TL=""
+while IFS= read -r f; do
+  [[ -z "$f" ]] && continue
+  base="$(basename "$f")"
+  low="$(printf '%s' "$base" | tr '[:upper:]' '[:lower:]')"
+  if ! printf '%s' "$low" | grep -Eq '\.(mp4|mov|m4v|webm|mkv)$'; then
+    continue
+  fi
+  if printf '%s' "$base$low" | grep -Eiq '延时|延時|timelapse|time[-_ ]?lapse|hyperlapse'; then
+    NAMED_TL="$f"
+  fi
+  # DJI_20260719100954_0034_D.MP4
+  if [[ "$base" =~ DJI_([0-9]{14})_ ]]; then
+    ts="${BASH_REMATCH[1]}"
+    if [[ "$ts" -gt "$LATEST_TS" ]]; then
+      LATEST_TS="$ts"
+      LATEST_DJI="$f"
+    fi
+  fi
+done <"$TMP/all.txt"
+
+TIMELAPSE_SRC="${NAMED_TL:-$LATEST_DJI}"
+
+echo "=== Stage Cafe Cursor media (smart DJI) ==="
 echo "src:  $SRC"
 echo "dest: $VE"
 echo "files found: $TOTAL"
 echo "mode: $([[ $DO_COPY -eq 1 ]] && echo COPY || echo DRY-RUN)"
 echo ""
-echo "规则："
-echo "  1) 文件名含 延时/timelapse/最后延时 → takes/timelapse/  （成片结尾必用）"
-echo "  2) 文件名含 女/女孩/girl 或你手动归类 → photos/girls/"
-echo "  3) 其它视频 → takes/   其它照片 → photos/"
+if [[ -n "$TIMELAPSE_SRC" ]]; then
+  echo "最后延时 → $(basename "$TIMELAPSE_SRC")"
+  if [[ -n "$NAMED_TL" ]]; then
+    echo "  (文件名含延时/timelapse)"
+  else
+    echo "  (智能：DJI 时间戳最新的一条)"
+  fi
+else
+  echo "⚠️  没找到延时候选"
+fi
+echo "照片默认进 photos/girls/（本场多放女孩子）"
 echo ""
 
-classify() {
-  local f="$1" base low dest
-  base="$(basename "$f")"
-  low="$(printf '%s' "$base" | tr '[:upper:]' '[:lower:]')"
-
-  # video?
-  if printf '%s' "$low" | grep -Eq '\.(mp4|mov|m4v|webm|mkv)$'; then
-    if printf '%s' "$base$low" | grep -Eiq '延时|延時|timelapse|time[-_ ]?lapse|hyperlapse|最后.*延|延.*最后|final.*lapse|lapse.*final'; then
-      dest="$VE/takes/timelapse/$base"
-      echo "TIMELAPSE  $base"
-    else
-      dest="$VE/takes/$base"
-      echo "video      $base"
-    fi
-  else
-    # photo — user should put girls in photos/girls; auto-tag by name
-    if printf '%s' "$base$low" | grep -Eiq '女|女孩|女生|姑娘|小姐姐|姐妹|girl|women|woman|lady|ladies|female'; then
-      dest="$VE/photos/girls/$base"
-      echo "GIRLS      $base"
-    else
-      dest="$VE/photos/$base"
-      echo "photo      $base"
-    fi
-  fi
-
-  if [[ $DO_COPY -eq 0 ]]; then
-    echo "         → $dest"
-    return
-  fi
-
-  if [[ -e "$dest" ]]; then
+place() {
+  local file="$1"
+  local dest="$2"
+  local base
+  base="$(basename "$file")"
+  if [[ -e "$dest/$base" ]]; then
     local stem ext
     stem="${base%.*}"
     ext="${base##*.}"
-    dest="$(dirname "$dest")/${stem}-$(date +%s).${ext}"
-  fi
-  if [[ $DO_MOVE -eq 1 ]]; then
-    mv "$f" "$dest"
+    dest_file="$dest/${stem}-$(date +%s).${ext}"
   else
-    cp "$f" "$dest"
+    dest_file="$dest/$base"
+  fi
+  if [[ $DO_COPY -eq 0 ]]; then
+    echo "  [dry] $base"
+    echo "     → $dest_file"
+    return
+  fi
+  if [[ $DO_MOVE -eq 1 && "$file" == "$SRC"* ]]; then
+    mv "$file" "$dest_file"
+    echo "  moved  $base"
+  else
+    cp "$file" "$dest_file"
+    echo "  copied $base"
   fi
 }
 
+echo "-- videos --"
 while IFS= read -r f; do
   [[ -z "$f" ]] && continue
-  classify "$f"
+  base="$(basename "$f")"
+  low="$(printf '%s' "$base" | tr '[:upper:]' '[:lower:]')"
+  if ! printf '%s' "$low" | grep -Eq '\.(mp4|mov|m4v|webm|mkv)$'; then
+    continue
+  fi
+  if [[ -n "$TIMELAPSE_SRC" && "$f" == "$TIMELAPSE_SRC" ]]; then
+    echo "TIMELAPSE  $base"
+    place "$f" "$VE/takes/timelapse"
+  else
+    echo "video      $base"
+    place "$f" "$VE/takes"
+  fi
+done <"$TMP/all.txt"
+
+echo "-- photos (→ girls) --"
+PHOTO_N=0
+while IFS= read -r f; do
+  [[ -z "$f" ]] && continue
+  base="$(basename "$f")"
+  low="$(printf '%s' "$base" | tr '[:upper:]' '[:lower:]')"
+  if ! printf '%s' "$low" | grep -Eq '\.(jpg|jpeg|png|heic|heif|webp|tif|tiff|dng)$'; then
+    continue
+  fi
+  echo "GIRLS      $base"
+  place "$f" "$VE/photos/girls"
+  PHOTO_N=$((PHOTO_N + 1))
 done <"$TMP/all.txt"
 
 rm -rf "$TMP"
 
 TL=$(find "$VE/takes/timelapse" -type f ! -name '.gitkeep' 2>/dev/null | wc -l | tr -d ' ')
 GG=$(find "$VE/photos/girls" -type f ! -name '.gitkeep' 2>/dev/null | wc -l | tr -d ' ')
+VV=$(find "$VE/takes" -maxdepth 1 -type f ! -name '.gitkeep' 2>/dev/null | wc -l | tr -d ' ')
 echo ""
-echo "timelapse folder: $TL file(s)   girls folder: $GG file(s)"
+echo "结果: timelapse=$TL  other_videos=$VV  girls_photos=$GG"
 
 if [[ "$TL" -eq 0 ]]; then
-  echo ""
-  echo "⚠️  还没有延时文件！请把「最后那条延时」放进："
+  echo "⚠️  延时仍为空 —— 请手动把最后延时拖进:"
   echo "   $VE/takes/timelapse/"
-  echo "   或文件名带：延时 / 最后延时 / timelapse"
 fi
 
 if [[ $DO_COPY -eq 0 ]]; then
   echo ""
-  echo "确认后执行："
-  echo "  bash scripts/video-edit/stage-media.sh --go --render"
+  echo "下一步只跑:"
+  echo "  bash scripts/video-edit/stage-media.sh --go"
   exit 0
 fi
 
-# Manual reminder: girls photos without keyword still need hand-drop
 echo ""
-echo "女孩子照片如果文件名没有「女/girl」——请手动拖进："
-echo "  $VE/photos/girls/"
-echo ""
+echo "原 Downloads 先别删，等成片出来再删。"
+echo "场地图若不该进 girls，可挪到: $VE/photos/"
 
 if [[ $DO_RENDER -eq 1 ]]; then
   cd "$ROOT"
