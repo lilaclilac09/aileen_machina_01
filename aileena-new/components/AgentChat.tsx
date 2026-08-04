@@ -87,8 +87,10 @@ const LEAD_DISMISS_KEY = 'aileena_lead_state'; // 'sent' | (unset) — historica
  *   Every chat session is forwarded to her email via /api/chat/forward,
  *   triggered on three signals: 4 s debounce after an assistant response,
  *   on `pagehide` (tab close / navigation), and immediately when the per-
- *   session limit is reached. Snapshots are best-effort via sendBeacon.
- *   Subject line carries a sessionId prefix so Gmail threads them.
+ *   session limit is reached. Prefer sendBeacon; if the browser refuses the
+ *   queue, fall back to fetch({ keepalive: true }). Subject carries a
+ *   sessionId prefix so Gmail threads them. Server also logs to Redis when
+ *   Upstash is set (see docs/CHAT_FORWARD.md).
  */
 type LeadState = 'idle' | 'submitting' | 'sent';
 

@@ -23,8 +23,9 @@ import { NextRequest, NextResponse } from 'next/server';
  * thread.
  *
  * Durability: every attempt is also written to Redis (`chatForwardStore`) when
- * Upstash is configured — failed sends stay in `chat:forward:pending` so
- * `pnpm chat:pending` / `pnpm chat:resend-pending` can recover them.
+ * Upstash is configured — failed sends (including missing RESEND_API_KEY) stay
+ * in `chat:forward:pending` so `pnpm chat:pending` / `pnpm chat:resend-pending`
+ * (and the 6h GH Action) can recover them.
  *
  * Distinct from /api/lead, which is the synchronous lead-form submission
  * fired when the visitor hits the 2-message hard gate. Auto-forward fires
@@ -61,13 +62,6 @@ function firstUserSnippet(messages: ChatForwardMessage[]): string {
 }
 
 export async function POST(req: NextRequest) {
-  if (!process.env.RESEND_API_KEY) {
-    return NextResponse.json(
-      { error: 'Server is missing RESEND_API_KEY.' },
-      { status: 500 },
-    );
-  }
-
   let body: { sessionId?: unknown; transcript?: unknown };
   try {
     body = await req.json();
@@ -107,20 +101,36 @@ export async function POST(req: NextRequest) {
     '────────── /Transcript ─────────',
   ].join('\n');
 
+  const baseRecord = {
+    id,
+    sessionId,
+    subject,
+    transcript: messages,
+    referer,
+    ua,
+    createdAt,
+  };
+
   const inbox = getContactInbox();
   if (!inbox) {
     await saveChatForward({
-      id,
-      sessionId,
+      ...baseRecord,
       status: 'failed',
-      subject,
-      transcript: messages,
-      referer,
-      ua,
       error: 'Contact inbox not configured.',
-      createdAt,
     });
-    return NextResponse.json({ error: 'Contact inbox not configured.' }, { status: 503 });
+    return NextResponse.json({ error: 'Contact inbox not configured.', id }, { status: 503 });
+  }
+
+  if (!process.env.RESEND_API_KEY) {
+    await saveChatForward({
+      ...baseRecord,
+      status: 'failed',
+      error: 'Server is missing RESEND_API_KEY.',
+    });
+    return NextResponse.json(
+      { error: 'Server is missing RESEND_API_KEY.', id },
+      { status: 500 },
+    );
   }
 
   const resend = new Resend(process.env.RESEND_API_KEY);
@@ -136,28 +146,16 @@ export async function POST(req: NextRequest) {
     const { publicError, logDetail } = resendFailureMessage(error);
     console.error('[api/chat/forward] Resend failed', { from, to: inbox, detail: logDetail });
     await saveChatForward({
-      id,
-      sessionId,
+      ...baseRecord,
       status: 'failed',
-      subject,
-      transcript: messages,
-      referer,
-      ua,
       error: logDetail,
-      createdAt,
     });
     return NextResponse.json({ error: publicError, id }, { status: 502 });
   }
 
   await saveChatForward({
-    id,
-    sessionId,
+    ...baseRecord,
     status: 'sent',
-    subject,
-    transcript: messages,
-    referer,
-    ua,
-    createdAt,
     sentAt: new Date().toISOString(),
   });
 

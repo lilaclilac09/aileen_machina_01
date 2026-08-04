@@ -1,0 +1,85 @@
+name: Chat forward resend (pending transcripts)
+
+# Drain failed agent chat transcript emails from Upstash Redis.
+# Source of truth for ops: aileena-new/docs/CHAT_FORWARD.md
+#
+# Required repo secrets (same values as Vercel production):
+#   UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN, RESEND_API_KEY
+# Optional: CONTACT_TO, LEAD_INBOX, RESEND_FROM, FROM_EMAIL, CONTACT_FROM
+
+on:
+  schedule:
+    # Every 6 hours UTC (same cadence as social RSS)
+    - cron: '45 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: chat-forward-resend
+  cancel-in-progress: false
+
+jobs:
+  resend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: aileena-new
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Check required secrets
+        id: secrets
+        env:
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: |
+          if [ -z "$UPSTASH_REDIS_REST_URL" ] || [ -z "$UPSTASH_REDIS_REST_TOKEN" ] || [ -z "$RESEND_API_KEY" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Missing UPSTASH_* or RESEND_API_KEY repo secrets — skip drain. See aileena-new/docs/CHAT_FORWARD.md"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Node
+        if: steps.secrets.outputs.ready == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        if: steps.secrets.outputs.ready == 'true'
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install deps
+        if: steps.secrets.outputs.ready == 'true'
+        run: pnpm install --frozen-lockfile || pnpm install --no-frozen-lockfile
+
+      - name: List pending forwards
+        if: steps.secrets.outputs.ready == 'true'
+        env:
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+        run: pnpm chat:pending
+
+      - name: Resend pending forwards
+        if: steps.secrets.outputs.ready == 'true'
+        env:
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          CONTACT_TO: ${{ secrets.CONTACT_TO }}
+          LEAD_INBOX: ${{ secrets.LEAD_INBOX }}
+          RESEND_FROM: ${{ secrets.RESEND_FROM }}
+          FROM_EMAIL: ${{ secrets.FROM_EMAIL }}
+          CONTACT_FROM: ${{ secrets.CONTACT_FROM }}
+        run: pnpm chat:resend-pending -- --limit 50

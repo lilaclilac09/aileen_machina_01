@@ -54,6 +54,9 @@ pnpm chat:resend-pending -- --dry-run
 Transcripts from **before** this store shipped cannot be reconstructed from git —
 check the Resend dashboard (Emails) for `[AILEENA Chat …]` subjects.
 
+Ops detail + two-week inventory: `docs/CHAT_FORWARD.md`.  
+Scheduled drain: `.github/workflows/chat-forward-resend.yml` (every 6h + manual).
+
 ## Commands
 
 ```bash
