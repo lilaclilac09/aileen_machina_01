@@ -20,33 +20,35 @@ pnpm install
 # 需要 ffmpeg：brew install ffmpeg
 ```
 
-### 1. 从 Downloads 自动分拣（推荐）
+### 1. 从 `cursor_shanghai_07192026` 自动分拣（推荐）
 
-脚本会扫 `~/Downloads`，视频 → `takes/`，照片 → `photos/`。
+默认会找这个文件夹（按顺序）：
+
+1. `~/Downloads/cursor_shanghai_07192026`
+2. `~/Desktop/cursor_shanghai_07192026`
+3. `~/Documents/cursor_shanghai_07192026`
+4. `~/cursor_shanghai_07192026`
+
+视频 → `takes/`，照片 → `photos/`。
 
 ```bash
 cd aileena-new
 
-# 先预览（不拷贝）——看会选中哪些文件
+# 先预览（不拷贝）
 bash scripts/video-edit/from-downloads.sh
 
-# 确认后真正拷贝
-bash scripts/video-edit/from-downloads.sh --go
-
-# 拷贝并直接剪成片
+# 确认后：拷贝 + 剪成片
 bash scripts/video-edit/from-downloads.sh --go --render
 ```
 
-常用选项：
+若文件夹不在默认位置，显式指定：
 
 ```bash
-# 只拿文件名含 cafe / Cursor / 日期的
-bash scripts/video-edit/from-downloads.sh --filter cafe --go
+bash scripts/video-edit/from-downloads.sh \
+  --src ~/Downloads/cursor_shanghai_07192026 \
+  --go --render
 
-# Downloads 里某个子文件夹
-bash scripts/video-edit/from-downloads.sh --src ~/Downloads/CafeCursor --go --render
-
-# 磁盘紧：用 --move 搬走（不是复制）
+# 磁盘紧：搬走而不是复制
 bash scripts/video-edit/from-downloads.sh --go --move --render
 ```
 

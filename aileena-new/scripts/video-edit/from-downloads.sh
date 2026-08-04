@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
-# From ~/Downloads → video-edit takes/ + photos/ (local Mac only, no upload)
+# From cursor_shanghai_07192026 (or ~/Downloads) → takes/ + photos/
 #
 # Usage:
-#   bash scripts/video-edit/from-downloads.sh                 # dry-run
-#   bash scripts/video-edit/from-downloads.sh --go            # copy for real
+#   bash scripts/video-edit/from-downloads.sh                 # dry-run (auto-finds folder)
 #   bash scripts/video-edit/from-downloads.sh --go --render   # copy + cut
-#   bash scripts/video-edit/from-downloads.sh --go --filter cafe
-#   bash scripts/video-edit/from-downloads.sh --src ~/Downloads/CafeCursor --go
+#   bash scripts/video-edit/from-downloads.sh --src ~/Downloads/cursor_shanghai_07192026 --go
 #   bash scripts/video-edit/from-downloads.sh --go --move     # move (saves disk)
 #
 set -euo pipefail
@@ -16,7 +14,9 @@ VE="$ROOT/scripts/video-edit"
 TAKES="$VE/takes"
 PHOTOS="$VE/photos"
 
-SRC="${HOME}/Downloads"
+# Cafe Cursor Shanghai drop folder (preferred), else ~/Downloads
+EVENT_DIR_NAME="cursor_shanghai_07192026"
+SRC=""
 FILTER=""
 DO_COPY=0
 DO_RENDER=0
@@ -41,12 +41,31 @@ while [[ $# -gt 0 ]]; do
 done
 
 # expand ~
-case "$SRC" in
+case "${SRC}" in
   "~"*) SRC="${HOME}${SRC:1}" ;;
 esac
 
-if [[ ! -d "$SRC" ]]; then
-  echo "Source folder not found: $SRC"
+# Resolve default source if --src not given
+if [[ -z "$SRC" ]]; then
+  for candidate in \
+    "${HOME}/Downloads/${EVENT_DIR_NAME}" \
+    "${HOME}/Desktop/${EVENT_DIR_NAME}" \
+    "${HOME}/Documents/${EVENT_DIR_NAME}" \
+    "${HOME}/${EVENT_DIR_NAME}" \
+    "./${EVENT_DIR_NAME}" \
+    "${HOME}/Downloads"
+  do
+    if [[ -d "$candidate" ]]; then
+      SRC="$candidate"
+      break
+    fi
+  done
+fi
+
+if [[ -z "$SRC" || ! -d "$SRC" ]]; then
+  echo "Source folder not found."
+  echo "Expected: ~/Downloads/${EVENT_DIR_NAME}"
+  echo "Or pass:  --src /path/to/${EVENT_DIR_NAME}"
   exit 1
 fi
 
