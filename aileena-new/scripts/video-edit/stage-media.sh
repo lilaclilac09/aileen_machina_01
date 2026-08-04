@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 # Smart stage: Downloads/cursor_shanghai_07192026 → takes/ + photos/
 #
-# DJI-aware rules:
-#   - unzip any *.zip (photos often inside DJI00.zip)
+# DJI-aware rules (NO unzip — ignore *.zip):
 #   - filename 延时/timelapse → takes/timelapse/
 #   - else latest DJI_YYYYMMDDHHMMSS_*.MP4 → takes/timelapse/  (「最后延时」)
-#   - all stills → photos/girls/  (本场默认多放女孩子；场地图可再挪回 photos/)
+#   - all stills → photos/girls/
 #   - other videos → takes/
 #
 # From aileena-new/:
@@ -56,22 +55,15 @@ fi
 mkdir -p "$VE/takes/timelapse" "$VE/photos/girls" "$VE/takes" "$VE/photos"
 
 TMP="${TMPDIR:-/tmp}/stage-cafe-$$"
-EXTRACT="$TMP/extract"
-mkdir -p "$TMP" "$EXTRACT"
+mkdir -p "$TMP"
 : >"$TMP/all.txt"
 
-# Unzip archives so we pick up stills inside DJI00.zip etc.
-while IFS= read -r z; do
-  [[ -z "$z" ]] && continue
-  echo "unzip: $(basename "$z")"
-  unzip -o -q "$z" -d "$EXTRACT" 2>/dev/null || true
-done < <(find "$SRC" -maxdepth 2 -type f \( -iname '*.zip' -o -iname '*.ZIP' \) 2>/dev/null | sort)
-
-find "$SRC" "$EXTRACT" -type f \( \
+# NO unzip — ignore *.zip (user request). Only loose files in SRC.
+find "$SRC" -type f \( \
   -iname '*.mp4' -o -iname '*.mov' -o -iname '*.m4v' -o -iname '*.webm' -o -iname '*.mkv' -o \
   -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.heic' -o -iname '*.heif' -o \
   -iname '*.webp' -o -iname '*.tif' -o -iname '*.tiff' -o -iname '*.dng' \
-\) 2>/dev/null | sort -u >"$TMP/all.txt" || true
+\) ! -iname '*.zip' 2>/dev/null | sort -u >"$TMP/all.txt" || true
 
 TOTAL=$(grep -c . "$TMP/all.txt" 2>/dev/null | head -1 | tr -d ' ')
 TOTAL=${TOTAL:-0}
