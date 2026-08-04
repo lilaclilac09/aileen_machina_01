@@ -613,6 +613,16 @@ export default function AgentChat() {
         : `s-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`;
   }, [forwardTranscriptNow, setMessages]);
 
+  // Phone: lock page scroll while console covers the viewport.
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
   // `/` opens, Esc closes (+ resets transcript), ignore when typing in a field.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -1069,23 +1079,23 @@ export default function AgentChat() {
       <div
         onClick={closeConsole}
         aria-hidden
-        className={`fixed inset-0 z-[70] bg-[#fbfaf7]/80 backdrop-blur-sm transition-opacity duration-200 ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        className={`fixed inset-0 z-[70] bg-[#fbfaf7]/95 sm:bg-[#fbfaf7]/80 backdrop-blur-md sm:backdrop-blur-sm transition-opacity duration-200 ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       />
 
-      {/* Console card */}
+      {/* Console card — full-bleed on phone so homepage chrome doesn't bleed through */}
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Aileena Console"
-        className={`fixed z-[80] inset-x-3 top-1/2 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 -translate-y-1/2 sm:w-[640px] sm:max-w-[calc(100vw-3rem)] max-h-[80vh] flex flex-col bg-[#fffdf8]/95 border border-[#ded8ce] shadow-[0_24px_80px_-34px_rgba(31,26,20,0.42)] backdrop-blur-md transition-all duration-200 ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-[0.96] pointer-events-none'} font-mono`}
+        className={`fixed z-[80] inset-0 sm:inset-x-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[640px] sm:max-w-[calc(100vw-3rem)] max-h-[100dvh] sm:max-h-[80vh] flex flex-col bg-[#fffdf8] sm:bg-[#fffdf8]/95 border-0 sm:border sm:border-[#ded8ce] shadow-none sm:shadow-[0_24px_80px_-34px_rgba(31,26,20,0.42)] backdrop-blur-md transition-all duration-200 ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-[0.98] sm:scale-[0.96] pointer-events-none'} font-mono`}
         style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace' }}
       >
         {/* Header bar */}
-        <div className="flex items-center justify-between border-b border-[#e7e0d6] px-4 py-2.5">
+        <div className="flex items-center justify-between gap-2 border-b border-[#e7e0d6] px-3 sm:px-4 py-2.5 shrink-0">
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-[0.6rem] tracking-[0.3em] text-[#00ffea]/80 uppercase truncate">aileena · console</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             {/* Runtime toggle — cloud (server) ↔ local (Chrome Prompt API).
                 Disabled when the browser doesn't expose window.LanguageModel. */}
             {(() => {
@@ -1110,7 +1120,7 @@ export default function AgentChat() {
                   disabled={!canToggle}
                   title={title}
                   aria-label={title}
-                  className="text-[0.55rem] tracking-[0.25em] uppercase px-1 transition-colors disabled:cursor-not-allowed"
+                  className="hidden sm:inline text-[0.55rem] tracking-[0.25em] uppercase px-1 transition-colors disabled:cursor-not-allowed"
                   style={{
                     color: !canToggle
                       ? 'rgba(27,23,19,0.22)'
@@ -1123,7 +1133,7 @@ export default function AgentChat() {
                 </button>
               );
             })()}
-            <div className="flex items-center gap-1.5">
+            <div className="hidden sm:flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-[#00ffea] shadow-[0_0_6px_rgba(0,255,234,0.9)] animate-pulse" />
               <span className="text-[0.55rem] tracking-[0.25em] text-[#00ffea]/60 uppercase">live</span>
             </div>
@@ -1192,27 +1202,43 @@ export default function AgentChat() {
         </div>
 
         {/* Transcript */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-5 space-y-3 min-h-[180px]">
+        <div
+          ref={scrollRef}
+          className={`flex-1 overflow-y-auto overscroll-contain px-4 sm:px-5 py-4 sm:py-5 space-y-3 ${
+            voiceMode ? 'min-h-0' : 'min-h-[140px] sm:min-h-[180px]'
+          }`}
+        >
           {messages.length === 0 ? (
             <>
               <p className="text-[0.62rem] tracking-[0.25em] text-[#1b1713]/50 uppercase mb-2">
                 ▸ ready · say hi or ask anything
               </p>
               <p className="text-[0.78rem] leading-5 text-[#1b1713]/55 mb-3">
-                Tap <span className="text-[#008f86]">Voice</span>, then click the{' '}
-                <span className="text-[#008f86]">microphone</span> to talk. Or say{' '}
-                <span className="text-[#008f86]">Aileena</span> after arming Summon. Soft
-                hints stay kind — mist, not cruelty — and always land in this dialog.
-                Say <span className="text-[#008f86]">fix</span> /{' '}
-                <span className="text-[#008f86]">implement</span> /{' '}
-                <span className="text-[#008f86]">Voice → code</span> for a propose-only
-                patch (5/day, same DeepSeek stack as chat — no Cursor tokens).
+                {voiceMode ? (
+                  <>
+                    Tap the <span className="text-[#008f86]">orb</span> and speak. Or type below.
+                  </>
+                ) : (
+                  <>
+                    Tap <span className="text-[#008f86]">Voice</span>, then the{' '}
+                    <span className="text-[#008f86]">orb</span> to talk. Or say{' '}
+                    <span className="text-[#008f86]">Aileena</span> after arming Summon.
+                    Soft hints stay kind — mist, not cruelty.
+                    <span className="hidden sm:inline">
+                      {' '}Say <span className="text-[#008f86]">fix</span> /{' '}
+                      <span className="text-[#008f86]">implement</span> /{' '}
+                      <span className="text-[#008f86]">Voice → code</span> for a
+                      propose-only patch (5/day).
+                    </span>
+                  </>
+                )}
               </p>
-              {buildCatchUpHint(readTopicMemory().topics) && (
+              {!voiceMode && buildCatchUpHint(readTopicMemory().topics) && (
                 <p className="text-[0.75rem] leading-5 text-[#008f86]/85 mb-2">
                   {buildCatchUpHint(readTopicMemory().topics)}
                 </p>
               )}
+              {!voiceMode && (
               <ul className="space-y-1.5">
                 {STARTER_PROMPTS.map((p) => (
                   <li key={p}>
@@ -1227,6 +1253,7 @@ export default function AgentChat() {
                   </li>
                 ))}
               </ul>
+              )}
             </>
           ) : (
             messages.map((m) => {
@@ -1411,21 +1438,29 @@ export default function AgentChat() {
             )}
           </div>
           <p className="mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 text-[0.52rem] tracking-[0.3em] text-[#1b1713]/40 uppercase">
-            <span>
-              {voiceMode
-                ? 'stream · barge-in · Say Aileena · voice→code'
-                : '↵ send · voice · Say Aileena · voice→code (5/day)'}
+            <span className="truncate">
+              {voiceMode ? (
+                <>
+                  <span className="sm:hidden">tap orb · speak</span>
+                  <span className="hidden sm:inline">stream · barge-in · Say Aileena · voice→code</span>
+                </>
+              ) : (
+                <>
+                  <span className="sm:hidden">↵ send · voice</span>
+                  <span className="hidden sm:inline">↵ send · voice · Say Aileena · voice→code (5/day)</span>
+                </>
+              )}
             </span>
-            <span className="flex flex-wrap gap-x-3 gap-y-1 justify-end">
+            <span className="flex flex-wrap gap-x-3 gap-y-1 justify-end shrink-0">
               <span className={remaining === 0 ? 'text-red-400/70' : remaining <= 2 ? 'text-[#007d75]/55' : 'text-[#1b1713]/40'}>
                 {remaining === 0
-                  ? 'chat 0 left'
+                  ? 'chat 0'
                   : `chat ${remaining}/${DAILY_LIMIT}`}
               </span>
               <span className={vcodeRemaining === 0 ? 'text-red-400/70' : 'text-[#007d75]/70'}>
                 {vcodeRemaining === 0
-                  ? 'voice-code 0 left'
-                  : `voice-code ${vcodeRemaining}/${VCODE_DAILY_LIMIT}`}
+                  ? 'vcode 0'
+                  : `vcode ${vcodeRemaining}/${VCODE_DAILY_LIMIT}`}
               </span>
             </span>
           </p>
