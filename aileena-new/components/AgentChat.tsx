@@ -12,6 +12,14 @@ import {
 } from '../lib/browserAgent';
 import { appendUserTopic, readTopicMemory, buildCatchUpGreeting, buildCatchUpHint, clearTopicMemory } from '../lib/articleTopicMemory';
 import { matchCanned } from '../lib/agentCannedResponses';
+import { composeSoftHint } from '../lib/softOracle';
+import {
+  isVoiceCodeIntent,
+  quotaDayKey as vcodeDayKey,
+  readStoredVcodeCount,
+  writeStoredVcodeCount,
+  VCODE_DAILY_LIMIT,
+} from '../lib/voiceCodeIntent';
 import SiteLeftChrome from './SiteLeftChrome';
 import AgentVoiceOrb from './AgentVoiceOrb';
 
@@ -19,6 +27,7 @@ const STARTER_PROMPTS = [
   "what's her solana stack?",
   'show me her writing on mev',
   'is she available for hire?',
+  'Voice → code: sketch a small patch for the Console footer',
 ];
 
 const DAILY_LIMIT = 20;
@@ -70,6 +79,18 @@ const MODEL_PAUSE_MSG =
   "I'm pausing for a moment on the model side. Leave a note below if you'd like Aileen to see it, or try again shortly.";
 const LEAD_SOFT_AFTER = 5; // soft nudge only — never blocks the daily 20
 const LEAD_DISMISS_KEY = 'aileena_lead_state'; // 'sent' | (unset) — historical 'dismissed' values are tolerated but no longer set
+const SUMMON_ARMED_KEY = 'aileena_summon_armed';
+const SUMMON_COOLDOWN_MS = 2000;
+const WAKE_RE = /\baileena\b/i;
+
+/** Strip soft wake phrase so "Hey Aileena, …" becomes the real ask. */
+function stripWakePhrase(text: string): string {
+  return text
+    .replace(/^(hey\s+)?aileena\b[,!.?]?\s*/i, '')
+    .replace(/\baileena\b[,!.?]?\s*/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 /**
  * Aileena · Console
@@ -87,10 +108,8 @@ const LEAD_DISMISS_KEY = 'aileena_lead_state'; // 'sent' | (unset) — historica
  *   Every chat session is forwarded to her email via /api/chat/forward,
  *   triggered on three signals: 4 s debounce after an assistant response,
  *   on `pagehide` (tab close / navigation), and immediately when the per-
- *   session limit is reached. Prefer sendBeacon; if the browser refuses the
- *   queue, fall back to fetch({ keepalive: true }). Subject carries a
- *   sessionId prefix so Gmail threads them. Server also logs to Redis when
- *   Upstash is set (see docs/CHAT_FORWARD.md).
+ *   session limit is reached. Snapshots are best-effort via sendBeacon.
+ *   Subject line carries a sessionId prefix so Gmail threads them.
  */
 type LeadState = 'idle' | 'submitting' | 'sent';
 
@@ -103,9 +122,24 @@ export default function AgentChat() {
   const [leadState, setLeadState] = useState<LeadState>('idle');
   const [leadError, setLeadError] = useState<string | null>(null);
   const [voiceMode, setVoiceMode] = useState(false);
+  const [voiceLive, setVoiceLive] = useState('');
+  /** Soft wake armed after one mic gesture (Speak / voice / Summon chip). */
+  const [summonArmed, setSummonArmed] = useState(false);
+  /** Start orb listen once after a successful "Aileena" summon. */
+  const [autoListen, setAutoListen] = useState(false);
+  const [orbListening, setOrbListening] = useState(false);
+  const [vcodeCount, setVcodeCount] = useState(0);
+  const [vcodeBusy, setVcodeBusy] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const welcomedRef = useRef(false);
+  const summonCooldownRef = useRef(0);
+  const openRef = useRef(false);
+  const voiceModeRef = useRef(false);
+  const orbListeningRef = useRef(false);
+  openRef.current = open;
+  voiceModeRef.current = voiceMode;
+  orbListeningRef.current = orbListening;
 
   const { messages, setMessages, sendMessage, status, error, stop, clearError } = useChat({
     transport: new DefaultChatTransport({
@@ -136,7 +170,9 @@ export default function AgentChat() {
     if (welcomedRef.current || messages.length > 0) return;
     welcomedRef.current = true;
     const topics = readTopicMemory().topics;
-    const text = buildCatchUpGreeting(topics);
+    const greeting = buildCatchUpGreeting(topics);
+    const soft = composeSoftHint(topics);
+    const text = `${greeting}\n\n— Soft hint: ${soft}`;
     const id =
       typeof crypto !== 'undefined' && crypto.randomUUID
         ? crypto.randomUUID()
@@ -218,9 +254,10 @@ export default function AgentChat() {
     };
   }, [open, activeRuntime]);
 
-  const busy = status === 'submitted' || status === 'streaming' || browserBusy;
+  const busy = status === 'submitted' || status === 'streaming' || browserBusy || vcodeBusy;
   // Hard stop only when today's 20 are gone — email must never unlock extra quota.
   const sessionMaxed = sessionCount >= DAILY_LIMIT;
+  const vcodeMaxed = vcodeCount >= VCODE_DAILY_LIMIT;
   // Soft nudge after a few turns; contact stays optional for the full daily 20.
   const leadSoftNudge = sessionCount >= LEAD_SOFT_AFTER && leadState !== 'sent';
 
@@ -229,6 +266,8 @@ export default function AgentChat() {
   const reconcileDailyQuota = useCallback(() => {
     const next = readStoredDailyCount();
     setSessionCount((prev) => (prev === next ? prev : next));
+    const vc = readStoredVcodeCount();
+    setVcodeCount((prev) => (prev === vc ? prev : vc));
   }, []);
 
   useEffect(() => {
@@ -296,24 +335,165 @@ export default function AgentChat() {
   }, [messages, status]);
 
   // Listen for external open events (hero pill, prompt chips, AI Agents
-  // callout, etc.). CustomEvent.detail.prompt — if present — triggers an
-  // auto-send so a chip click feels like a direct conversation kickoff.
-  // ask is captured via a ref refreshed on every render so the listener
-  // doesn't re-attach (and so the ref always holds the latest closure).
+  // callout, voice summon, prophecy hall, etc.). CustomEvent.detail.prompt —
+  // if present — triggers an auto-send. detail.voice / detail.autoListen arm
+  // the orb. ask is captured via a ref refreshed on every render.
   const askRef = useRef<((text: string) => void) | null>(null);
+
+  const unlockMic = useCallback(async () => {
+    try {
+      if (navigator.mediaDevices?.getUserMedia) {
+        const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+        s.getTracks().forEach((t) => t.stop());
+      }
+      setSummonArmed(true);
+      try {
+        localStorage.setItem(SUMMON_ARMED_KEY, '1');
+      } catch {
+        /* ignore */
+      }
+      return true;
+    } catch {
+      setInput('Mic blocked — allow microphone in the address bar');
+      return false;
+    }
+  }, []);
+
+  const summonConsole = useCallback((followUp?: string) => {
+    const now = Date.now();
+    if (now - summonCooldownRef.current < SUMMON_COOLDOWN_MS) return;
+    // Ignore while already open + listening (false-trigger guard).
+    if (openRef.current && voiceModeRef.current && orbListeningRef.current) return;
+    summonCooldownRef.current = now;
+    setOpen(true);
+    setVoiceMode(true);
+    setAutoListen(true);
+    setSummonArmed(true);
+    const leftover = followUp ? stripWakePhrase(followUp) : '';
+    if (leftover && askRef.current) {
+      setTimeout(() => askRef.current?.(leftover), 100);
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(SUMMON_ARMED_KEY) === '1') setSummonArmed(true);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   useEffect(() => {
     const handler = (e: Event) => {
+      const ce = e as CustomEvent<{
+        prompt?: string;
+        voice?: boolean;
+        autoListen?: boolean;
+        prophecy?: string;
+        inject?: Array<{ role: 'user' | 'assistant'; text: string }>;
+      }>;
       setOpen(true);
-      const ce = e as CustomEvent<{ prompt?: string }>;
-      const prompt = ce.detail?.prompt;
+      if (ce.detail?.voice || ce.detail?.autoListen) {
+        setVoiceMode(true);
+        if (ce.detail?.autoListen) setAutoListen(true);
+      }
+      const inject = ce.detail?.inject;
+      if (inject?.length) {
+        welcomedRef.current = true;
+        setTimeout(() => {
+          const lines = inject.map((row) => {
+            const id =
+              typeof crypto !== 'undefined' && crypto.randomUUID
+                ? crypto.randomUUID()
+                : `inj-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+            return {
+              id,
+              role: row.role,
+              parts: [{ type: 'text' as const, text: row.text }],
+            };
+          });
+          setMessages((prev) => {
+            // Drop canned welcome if it raced in before inject.
+            const base =
+              prev.length === 1 && prev[0]?.role === 'assistant' ? [] : prev;
+            return [...base, ...lines];
+          });
+        }, 80);
+        return;
+      }
+      const prompt = ce.detail?.prophecy || ce.detail?.prompt;
       if (prompt && askRef.current) {
-        // Defer one tick so the console mounts before the message lands.
         setTimeout(() => askRef.current?.(prompt), 80);
       }
     };
     window.addEventListener('open-agent-chat', handler);
     return () => window.removeEventListener('open-agent-chat', handler);
-  }, []);
+  }, [setMessages]);
+
+  // Soft wake: lightweight continuous Web Speech while Console is closed
+  // and mic has been unlocked once (Speak / voice / Summon chip).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (open || !summonArmed) return;
+    const SR =
+      (window as Window & {
+        SpeechRecognition?: new () => SpeechRecognition;
+        webkitSpeechRecognition?: new () => SpeechRecognition;
+      }).SpeechRecognition ||
+      (window as Window & { webkitSpeechRecognition?: new () => SpeechRecognition })
+        .webkitSpeechRecognition;
+    if (!SR) return;
+
+    let stopped = false;
+    let restartTimer = 0;
+    const rec = new SR();
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.lang = 'en-US';
+
+    rec.onresult = (ev: SpeechRecognitionEvent) => {
+      let finalText = '';
+      for (let i = ev.resultIndex; i < ev.results.length; i++) {
+        if (!ev.results[i].isFinal) continue;
+        const piece = (ev.results[i][0]?.transcript || '').trim();
+        if (piece) finalText += (finalText ? ' ' : '') + piece;
+      }
+      if (!finalText || !WAKE_RE.test(finalText)) return;
+      summonConsole(finalText);
+    };
+
+    rec.onend = () => {
+      if (stopped || openRef.current || !summonArmed) return;
+      restartTimer = window.setTimeout(() => {
+        try {
+          rec.start();
+        } catch {
+          /* ignore */
+        }
+      }, 200);
+    };
+
+    rec.onerror = (e: SpeechRecognitionErrorEvent) => {
+      if (e.error === 'no-speech' || e.error === 'aborted') return;
+    };
+
+    try {
+      rec.start();
+    } catch {
+      /* ignore */
+    }
+
+    return () => {
+      stopped = true;
+      clearTimeout(restartTimer);
+      try {
+        rec.onend = null;
+        rec.stop();
+      } catch {
+        /* ignore */
+      }
+    };
+  }, [open, summonArmed, summonConsole]);
 
   // Focus input when opened.
   useEffect(() => {
@@ -347,21 +527,17 @@ export default function AgentChat() {
       role: m.role === 'user' ? 'user' : 'assistant',
       text: getMessageText(m),
     }));
-    // Skip pure welcome / empty user turns — still allow if any user text exists.
-    const hasUser = transcript.some((t) => t.role === 'user' && t.text.trim());
-    if (!hasUser) return;
     const hash = `${transcript.length}:${transcript.map((t) => t.text.length).join(',')}`;
     if (hash === lastForwardedHashRef.current) return;
     lastForwardedHashRef.current = hash;
     const payload = JSON.stringify({ sessionId: sessionIdRef.current, transcript });
-    const blob = new Blob([payload], { type: 'application/json' });
     try {
-      let beaconOk = false;
       if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
-        beaconOk = navigator.sendBeacon('/api/chat/forward', blob);
-      }
-      // sendBeacon returns false when the browser refuses the queue — fall back to fetch.
-      if (!beaconOk) {
+        navigator.sendBeacon(
+          '/api/chat/forward',
+          new Blob([payload], { type: 'application/json' }),
+        );
+      } else {
         fetch('/api/chat/forward', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -565,8 +741,115 @@ export default function AgentChat() {
     }
   }
 
+  async function sendVoiceCode(trimmed: string) {
+    const userId =
+      typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `u-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const assistantId =
+      typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `a-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+    if (vcodeMaxed || readStoredVcodeCount() >= VCODE_DAILY_LIMIT) {
+      setMessages((prev) => [
+        ...prev,
+        { id: userId, role: 'user', parts: [{ type: 'text', text: trimmed }] },
+        {
+          id: assistantId,
+          role: 'assistant',
+          parts: [
+            {
+              type: 'text',
+              text: `You've used today's ${VCODE_DAILY_LIMIT} voice-code proposals. Fresh set tomorrow — ordinary chat still works within the 20/day limit.`,
+            },
+          ],
+        },
+      ]);
+      setVcodeCount(VCODE_DAILY_LIMIT);
+      writeStoredVcodeCount(VCODE_DAILY_LIMIT);
+      return;
+    }
+
+    setVcodeBusy(true);
+    setMessages((prev) => [
+      ...prev,
+      { id: userId, role: 'user', parts: [{ type: 'text', text: trimmed }] },
+      {
+        id: assistantId,
+        role: 'assistant',
+        parts: [{ type: 'text', text: '… drafting a propose-only patch (not applied)' }],
+      },
+    ]);
+
+    try {
+      const res = await fetch('/api/voice-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-VCode-Day': vcodeDayKey(),
+        },
+        body: JSON.stringify({
+          prompt: trimmed,
+          priorTopics: readTopicMemory().topics,
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        proposal?: string;
+        error?: string;
+        remaining?: number;
+        limit?: number;
+      };
+
+      if (typeof data.remaining === 'number') {
+        const used = Math.max(0, (data.limit ?? VCODE_DAILY_LIMIT) - data.remaining);
+        writeStoredVcodeCount(used);
+        setVcodeCount(used);
+      }
+
+      const reply = data.ok && data.proposal
+        ? `▸ voice → code · propose only (no Cursor tokens · not written to disk)\n\n${data.proposal}`
+        : data.error ||
+          `Voice-code paused (${res.status}). Try again shortly — chat still works.`;
+
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantId
+            ? { ...m, parts: [{ type: 'text', text: reply }] }
+            : m,
+        ),
+      );
+
+      if (res.ok && data.ok && typeof data.remaining !== 'number') {
+        const next = readStoredVcodeCount() + 1;
+        writeStoredVcodeCount(next);
+        setVcodeCount(next);
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'network error';
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantId
+            ? {
+                ...m,
+                parts: [
+                  {
+                    type: 'text',
+                    text: `Voice-code request failed (${msg}). Nothing was written.`,
+                  },
+                ],
+              }
+            : m,
+        ),
+      );
+    } finally {
+      setVcodeBusy(false);
+    }
+  }
+
   function ask(text: string) {
-    const trimmed = text.trim();
+    const trimmed = stripWakePhrase(text);
     if (!trimmed || sessionMaxed) return;
 
     // Voice / hung streams used to leave status=streaming forever, so typed
@@ -583,6 +866,7 @@ export default function AgentChat() {
         /* ignore */
       }
       setBrowserBusy(false);
+      setVcodeBusy(false);
       try {
         clearError?.();
       } catch {
@@ -596,6 +880,12 @@ export default function AgentChat() {
     // for both runtimes so a visitor's browser-mode questions also seed
     // their future cloud-mode visits and vice versa.
     appendUserTopic(trimmed);
+
+    // Voice-to-code path — separate 5/day quota; Machina propose-only (no Cursor).
+    if (isVoiceCodeIntent(trimmed)) {
+      void sendVoiceCode(trimmed);
+      return;
+    }
 
     // Fast path — canned-response short-circuit. Greetings, thanks, meta-
     // questions about the agent itself, top-level CV one-liners. Returns
@@ -640,6 +930,7 @@ export default function AgentChat() {
   askRef.current = ask;
 
   const remaining = Math.max(0, DAILY_LIMIT - sessionCount);
+  const vcodeRemaining = Math.max(0, VCODE_DAILY_LIMIT - vcodeCount);
 
   // When turning voice off, abort any hung stream so typing works again.
   const wasVoiceRef = useRef(false);
@@ -757,6 +1048,33 @@ export default function AgentChat() {
           Pages must not render a second Home in this corner. */}
       <SiteLeftChrome onOpenConsole={() => setOpen(true)} consoleOpen={open} />
 
+      {/* Soft summon arm — mic once, then say Aileena while Console is closed. */}
+      {!open && (
+        <div className="fixed bottom-4 left-3 sm:bottom-6 sm:left-4 z-[60] flex flex-col gap-1.5 items-start max-w-[14rem]">
+          <button
+            type="button"
+            onClick={() => {
+              void unlockMic().then((ok) => {
+                if (ok) setInput('');
+              });
+            }}
+            className="font-mono text-[0.55rem] tracking-[0.18em] uppercase px-2.5 py-1.5 rounded border transition-colors"
+            style={{
+              color: summonArmed ? '#007d75' : 'rgba(255,253,248,0.75)',
+              background: summonArmed ? 'rgba(0,168,157,0.18)' : 'rgba(0,0,0,0.45)',
+              borderColor: summonArmed ? 'rgba(0,168,157,0.45)' : 'rgba(255,253,248,0.2)',
+              backdropFilter: 'blur(8px)',
+            }}
+            title={summonArmed ? 'Listening for Aileena' : 'Allow mic, then say Aileena'}
+          >
+            {summonArmed ? 'summon armed' : 'summon'}
+          </button>
+          <p className="font-mono text-[0.5rem] tracking-[0.14em] uppercase text-[#fffdf8]/55 px-0.5 leading-4">
+            Say Aileena to summon
+          </p>
+        </div>
+      )}
+
       {/* Backdrop */}
       <div
         onClick={closeConsole}
@@ -826,29 +1144,20 @@ export default function AgentChat() {
                   const next = !v;
                   if (!next) {
                     setInput('');
+                    setVoiceLive('');
+                    setAutoListen(false);
                     return next;
                   }
-                  // Unlock mic in the same user gesture (Safari needs this).
-                  void (async () => {
-                    try {
-                      if (navigator.mediaDevices?.getUserMedia) {
-                        const s = await navigator.mediaDevices.getUserMedia({ audio: true });
-                        s.getTracks().forEach((t) => t.stop());
-                      }
-                    } catch {
-                      const ios = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-                      setInput(
-                        ios
-                          ? 'Mic blocked — Settings → Safari → Microphone'
-                          : 'Mic blocked — allow microphone in the address bar',
-                      );
-                    }
-                  })();
+                  void unlockMic();
                   return next;
                 });
               }}
               aria-label={voiceMode ? 'Turn voice off' : 'Turn voice on'}
-              title={voiceMode ? 'Voice on — speak to the orb' : 'Turn on voice (allow mic)'}
+              title={
+                voiceMode
+                  ? 'Voice on — speak to the orb · say Aileena to summon when closed'
+                  : 'Turn on voice (allow mic) · Say Aileena to summon'
+              }
               className="inline-flex items-center gap-1 text-[0.55rem] tracking-[0.2em] uppercase px-1.5 py-0.5 rounded transition-colors"
               style={{
                 color: voiceMode ? '#007d75' : 'rgba(27,23,19,0.55)',
@@ -867,6 +1176,11 @@ export default function AgentChat() {
               />
               {voiceMode ? 'orb on' : 'voice'}
             </button>
+            {voiceMode && (
+              <span className="hidden sm:inline text-[0.48rem] tracking-[0.16em] uppercase text-[#007d75]/70">
+                Say Aileena to summon
+              </span>
+            )}
             <button
               type="button"
               onClick={resetChat}
@@ -907,7 +1221,15 @@ export default function AgentChat() {
                 ) : (
                   <>
                     Tap <span className="text-[#008f86]">Voice</span>, then the{' '}
-                    <span className="text-[#008f86]">orb</span> to talk — or type below.
+                    <span className="text-[#008f86]">orb</span> to talk. Or say{' '}
+                    <span className="text-[#008f86]">Aileena</span> after arming Summon.
+                    Soft hints stay kind — mist, not cruelty.
+                    <span className="hidden sm:inline">
+                      {' '}Say <span className="text-[#008f86]">fix</span> /{' '}
+                      <span className="text-[#008f86]">implement</span> /{' '}
+                      <span className="text-[#008f86]">Voice → code</span> for a
+                      propose-only patch (5/day).
+                    </span>
                   </>
                 )}
               </p>
@@ -958,6 +1280,13 @@ export default function AgentChat() {
 
           {busy && messages[messages.length - 1]?.role !== 'assistant' && (
             <Line role="assistant" text="…" muted />
+          )}
+
+          {voiceMode && voiceLive.trim() && (
+            <p className="text-[0.95rem] sm:text-base leading-6 text-[#007d75] whitespace-pre-wrap break-words">
+              <span className="text-[#00a89d]/55 mr-2 animate-pulse">&gt;</span>
+              {voiceLive}
+            </p>
           )}
 
           {showError && (
@@ -1048,14 +1377,30 @@ export default function AgentChat() {
           </div>
         )}
 
-        {/* Original working orb: tap Speak → finals → ask → reply aloud */}
+        {/* Stream + barge-in orb: live captions, interrupt anytime */}
         <AgentVoiceOrb
           active={open && voiceMode}
+          autoListen={autoListen}
           busy={busy}
           disabled={sessionMaxed}
           speakText={voiceSpeakReady ? lastAssistant.text : ''}
           speakId={voiceSpeakReady ? lastAssistant.id : ''}
-          onAsk={(text) => ask(text)}
+          onLiveCaption={(text) => {
+            setVoiceLive(text);
+            if (text) setInput(text);
+            else if (!busy) setInput('');
+          }}
+          onAsk={(text) => {
+            setVoiceLive('');
+            setAutoListen(false);
+            ask(text);
+          }}
+          onListeningChange={(listening) => {
+            setOrbListening(listening);
+            // Clear summon autoListen after the first start/stop signal
+            // so a failed mic start cannot loop.
+            setAutoListen(false);
+          }}
         />
 
         {/* Input row */}
@@ -1092,21 +1437,31 @@ export default function AgentChat() {
               </span>
             )}
           </div>
-          <p className="mt-2 flex items-center justify-between gap-3 text-[0.52rem] tracking-[0.3em] text-[#1b1713]/40 uppercase">
+          <p className="mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 text-[0.52rem] tracking-[0.3em] text-[#1b1713]/40 uppercase">
             <span className="truncate">
               {voiceMode ? (
                 <>
                   <span className="sm:hidden">tap orb · speak</span>
-                  <span className="hidden sm:inline">tap orb · speak · Shanghai / London / Berlin</span>
+                  <span className="hidden sm:inline">stream · barge-in · Say Aileena · voice→code</span>
                 </>
               ) : (
-                '↵ send · reset · esc · voice'
+                <>
+                  <span className="sm:hidden">↵ send · voice</span>
+                  <span className="hidden sm:inline">↵ send · voice · Say Aileena · voice→code (5/day)</span>
+                </>
               )}
             </span>
-            <span className={`shrink-0 ${remaining === 0 ? 'text-red-400/70' : remaining <= 2 ? 'text-[#007d75]/55' : 'text-[#1b1713]/40'}`}>
-              {remaining === 0
-                ? '0 left'
-                : `${remaining}/${DAILY_LIMIT}`}
+            <span className="flex flex-wrap gap-x-3 gap-y-1 justify-end shrink-0">
+              <span className={remaining === 0 ? 'text-red-400/70' : remaining <= 2 ? 'text-[#007d75]/55' : 'text-[#1b1713]/40'}>
+                {remaining === 0
+                  ? 'chat 0'
+                  : `chat ${remaining}/${DAILY_LIMIT}`}
+              </span>
+              <span className={vcodeRemaining === 0 ? 'text-red-400/70' : 'text-[#007d75]/70'}>
+                {vcodeRemaining === 0
+                  ? 'vcode 0'
+                  : `vcode ${vcodeRemaining}/${VCODE_DAILY_LIMIT}`}
+              </span>
             </span>
           </p>
         </div>
@@ -1205,4 +1560,24 @@ function linkify(text: string) {
       </a>
     ),
   );
+}
+
+/* Minimal Web Speech types for soft wake listener (AgentChat). */
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onstart: ((this: SpeechRecognition, ev: Event) => void) | null;
+  onend: ((this: SpeechRecognition, ev: Event) => void) | null;
+  onerror: ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => void) | null;
+  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => void) | null;
+  start(): void;
+  stop(): void;
+}
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+}
+interface SpeechRecognitionEvent extends Event {
+  resultIndex: number;
+  results: SpeechRecognitionResultList;
 }
