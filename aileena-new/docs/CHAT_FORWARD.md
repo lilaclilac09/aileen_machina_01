@@ -18,7 +18,8 @@ Owner inbox delivery for every console conversation.
 AgentChat (browser)
   → POST /api/chat/forward   (auto: debounce / pagehide / session max)
   → Redis durable log (Upstash) when configured
-  → Resend email → CONTACT_TO | LEAD_INBOX | NOTIFY_CC_EMAIL | cafe@aileena.xyz
+  → Resend email → CONTACT_TO | LEAD_INBOX | NOTIFY_CC_EMAIL
+    (required real inbox; cafe@ is From-only — never To)
 
 AgentChat leave-a-note
   → POST /api/lead           (visitor email + optional transcript)
@@ -45,7 +46,7 @@ Code: `components/AgentChat.tsx` · `app/api/chat/forward/route.ts` · `app/api/
 |-----|--------------|-------|
 | `RESEND_API_KEY` | send email | Without it, route still logs `failed` to Redis when Upstash is set |
 | `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` | durable log + resend queue | Same as visitor soft memory |
-| `CONTACT_TO` / `LEAD_INBOX` | inbox To | Defaults to `cafe@aileena.xyz` |
+| `CONTACT_TO` / `LEAD_INBOX` / `NOTIFY_CC_EMAIL` | inbox To | **Required.** No cafe@ fallback (send-only → bounce). |
 | `RESEND_FROM` / `FROM_EMAIL` / `CONTACT_FROM` | From | Defaults to `AILEENA MACHINA <cafe@aileena.xyz>` (must be verified domain) |
 
 This cloud-agent environment typically has **none** of the above — run list/resend on a machine with production secrets (or via the GH Action).

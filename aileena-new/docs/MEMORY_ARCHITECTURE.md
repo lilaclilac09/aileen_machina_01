@@ -44,7 +44,7 @@ CHAT_QUOTA_SECRET=...   # also signs __aileena_vid
 ## Agent chat transcript forward (owner inbox)
 
 Every console conversation is emailed to the contact inbox via `/api/chat/forward`
-(`From`: `cafe@aileena.xyz` via `getResendFrom()`, `To`: `CONTACT_TO` / `cafe@aileena.xyz`).
+(`From`: `cafe@aileena.xyz` via `getResendFrom()`, `To`: `CONTACT_TO` / `LEAD_INBOX` / `NOTIFY_CC_EMAIL` — never cafe@).
 
 When Upstash is configured, every attempt is also stored in Redis:
 
