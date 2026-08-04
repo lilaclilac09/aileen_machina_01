@@ -5,20 +5,20 @@
 import type { OutputSpec } from '../domain/types';
 
 const DEFAULT_GRADE: NonNullable<OutputSpec['grade']> = {
-  brightness: 0.06,
-  contrast: 1.05,
+  brightness: 0.05,
+  contrast: 1.04,
   saturation: 1.02,
-  gamma: 1.08,
-  // Pull red/yellow out of shadows & mids; add a touch of blue
-  shadowsRed: -0.12,
-  shadowsGreen: -0.04,
-  shadowsBlue: 0.08,
-  midtonesRed: -0.08,
-  midtonesGreen: -0.02,
-  midtonesBlue: 0.06,
-  highlightsRed: -0.04,
+  gamma: 1.06,
+  // Mild warm-cast fix only — avoid cyan/blue skin
+  shadowsRed: -0.04,
+  shadowsGreen: -0.01,
+  shadowsBlue: 0.02,
+  midtonesRed: -0.03,
+  midtonesGreen: 0,
+  midtonesBlue: 0.015,
+  highlightsRed: -0.01,
   highlightsGreen: 0,
-  highlightsBlue: 0.03,
+  highlightsBlue: 0.01,
 };
 
 export function resolveGrade(spec: OutputSpec): NonNullable<OutputSpec['grade']> {

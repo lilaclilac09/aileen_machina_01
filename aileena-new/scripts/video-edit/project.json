@@ -34,19 +34,19 @@
     "audioFadeIn_s": 0.12,
     "audioFadeOut_s": 0.18,
     "grade": {
-      "brightness": 0.07,
-      "contrast": 1.06,
-      "saturation": 1.03,
-      "gamma": 1.1,
-      "shadowsRed": -0.14,
-      "shadowsGreen": -0.05,
-      "shadowsBlue": 0.1,
-      "midtonesRed": -0.1,
-      "midtonesGreen": -0.02,
-      "midtonesBlue": 0.07,
-      "highlightsRed": -0.05,
+      "brightness": 0.05,
+      "contrast": 1.04,
+      "saturation": 1.02,
+      "gamma": 1.06,
+      "shadowsRed": -0.04,
+      "shadowsGreen": -0.01,
+      "shadowsBlue": 0.02,
+      "midtonesRed": -0.03,
+      "midtonesGreen": 0,
+      "midtonesBlue": 0.015,
+      "highlightsRed": -0.01,
       "highlightsGreen": 0,
-      "highlightsBlue": 0.04
+      "highlightsBlue": 0.01
     }
   },
   "brand": {

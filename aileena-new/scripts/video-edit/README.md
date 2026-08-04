@@ -61,14 +61,10 @@ pnpm video:recap
 
 ---
 
-## 色调（去黄偏暗）
+## 色调（轻微去黄，别加蓝）
 
-默认 grade（`project.json`）：
-
-- 提亮 + 抬 gamma（不那么暗）
-- shadows/midtones **减红/减黄**，加一点蓝
-
-想再亮一点：把 `output.grade.brightness` 改成 `0.10`，`gamma` 改成 `1.15`，然后：
+默认 grade（`project.json`）只做一点提亮 + 很轻的减黄。  
+若仍偏蓝：把 `shadowsBlue` / `midtonesBlue` 调到 `0`，再：
 
 ```bash
 pnpm video:render && pnpm video:verify
