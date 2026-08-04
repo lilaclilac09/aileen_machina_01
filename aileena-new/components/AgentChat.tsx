@@ -768,7 +768,7 @@ export default function AgentChat() {
       {
         id: assistantId,
         role: 'assistant',
-        parts: [{ type: 'text', text: '… launching Cursor Cloud Agent (your API key · propose/plan)' }],
+        parts: [{ type: 'text', text: '… drafting a propose-only patch (not applied)' }],
       },
     ]);
 
@@ -799,7 +799,7 @@ export default function AgentChat() {
       }
 
       const reply = data.ok && data.proposal
-        ? data.proposal
+        ? `▸ voice → code · propose only (no Cursor tokens · not written to disk)\n\n${data.proposal}`
         : data.error ||
           `Voice-code paused (${res.status}). Try again shortly — chat still works.`;
 
@@ -1205,8 +1205,8 @@ export default function AgentChat() {
                 hints stay kind — mist, not cruelty — and always land in this dialog.
                 Say <span className="text-[#008f86]">fix</span> /{' '}
                 <span className="text-[#008f86]">implement</span> /{' '}
-                <span className="text-[#008f86]">Voice → code</span> to launch a{' '}
-                <span className="text-[#008f86]">Cursor Cloud Agent</span> (5/day · your API key).
+                <span className="text-[#008f86]">Voice → code</span> for a propose-only
+                patch (5/day, same DeepSeek stack as chat — no Cursor tokens).
               </p>
               {buildCatchUpHint(readTopicMemory().topics) && (
                 <p className="text-[0.75rem] leading-5 text-[#008f86]/85 mb-2">
