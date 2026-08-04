@@ -10,7 +10,7 @@ DeFi propagation research & hardware supply chain analysis. Writing about why th
 ### Recently Updated
 * **[aileena.xyz](https://aileena.xyz) Console**: Voice orb and soft Shanghai auntie TTS, Aileena summon, Prophecy Hall, Safari/iOS STT·TTS hardening, and durable agent chat forwards (list, resend, 6h cron).
 * **[polar-lab](https://github.com/lilaclilac09/polar-lab)**: Self-correcting agent loop (plan → act → critic → adjust), Console voice integration path, and Machina orb presence.
-* **Cafe Cursor**: Shanghai auto-recap and spending tooling at [cursor-cafe.aileena.xyz](https://cursor-cafe.aileena.xyz).
+* **Cafe Cursor**: Credits distribution and user support tooling at [cursor-cafe.aileena.xyz](https://cursor-cafe.aileena.xyz).
 
 ### Recently Added
 * **[polar-lab](https://github.com/lilaclilac09/polar-lab)**: Owned-weight post-training playground — SFT (LoRA) → DPO → RL scaffold → holdout eval → chat on `Qwen2.5-0.5B-Instruct`.
