@@ -435,7 +435,10 @@ export default function AgentVoiceOrb({
   );
 
   const pickMime = () => {
-    const cands = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'];
+    // iOS Safari: no webm — prefer mp4/aac first when available.
+    const cands = isSafariUa()
+      ? ['audio/mp4', 'audio/aac', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus']
+      : ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'];
     for (const m of cands) {
       if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(m)) return m;
     }
