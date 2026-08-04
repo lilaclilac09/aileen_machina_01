@@ -21,11 +21,25 @@ type Props = {
   active: boolean;
   busy: boolean;
   disabled?: boolean;
+  /** When true and active, start listening once (voice summon). */
+  autoListen?: boolean;
   speakText?: string;
   speakId?: string;
+  /** Live STT captions — interim + final (streaming input). */
+  onLiveCaption?: (text: string, isFinal: boolean) => void;
   onAsk: (text: string) => void;
   onListeningChange?: (listening: boolean) => void;
 };
+
+const WAKE_STRIP_RE = /^(hey\s+)?aileena\b[,!.?]?\s*/i;
+
+function stripWakePhrase(text: string): string {
+  return text
+    .replace(WAKE_STRIP_RE, '')
+    .replace(/\baileena\b[,!.?]?\s*/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 const ACCENTS = [
   {
@@ -58,14 +72,16 @@ const SENTENCE_RE = /(?<=[.!?。！？…])\s+|(?<=\n)/;
 const SPEECH_THRESH = 0.018;
 const SILENCE_END_MS = 750;
 const MIN_SPEECH_MS = 280;
-const COOLDOWN_MS = 500;
+const COOLDOWN_MS = 280;
 
 export default function AgentVoiceOrb({
   active,
   busy,
   disabled,
+  autoListen,
   speakText,
   speakId,
+  onLiveCaption,
   onAsk,
   onListeningChange,
 }: Props) {
@@ -75,6 +91,7 @@ export default function AgentVoiceOrb({
   const [phase, setPhase] = useState<'idle' | 'listening' | 'hearing' | 'speaking'>('idle');
   const [level, setLevel] = useState(0);
   const [hint, setHint] = useState('Tap orb · speak');
+  const [caption, setCaption] = useState('');
   const [accentKey, setAccentKey] = useState<AccentKey>('shanghai');
 
   const playCtxRef = useRef<AudioContext | null>(null);
@@ -98,8 +115,10 @@ export default function AgentVoiceOrb({
   const webRestartRef = useRef(0);
   const ttsPlayingRef = useRef(false);
   const listeningRef = useRef(false);
+  const onLiveCaptionRef = useRef(onLiveCaption);
   const busyRef = useRef(busy);
   busyRef.current = busy;
+  onLiveCaptionRef.current = onLiveCaption;
 
   useEffect(() => {
     fetch('/api/voice/caps')
@@ -190,7 +209,7 @@ export default function AgentVoiceOrb({
           ttsPlayingRef.current = false;
           if (listeningRef.current) {
             setPhase('listening');
-            setHint('Listening… speak');
+            setHint('Listening… speak anytime');
           } else {
             setPhase('idle');
             setHint('Tap orb · speak');
@@ -267,7 +286,7 @@ export default function AgentVoiceOrb({
         ttsPlayingRef.current = false;
         if (listeningRef.current) {
           setPhase('listening');
-          setHint('Listening… speak');
+          setHint('Listening… speak anytime');
         } else {
           setPhase('idle');
           setHint('Tap orb · speak');
@@ -366,17 +385,27 @@ export default function AgentVoiceOrb({
     })();
   }, [active, speakText, speakId, speakSentence]);
 
+  const pushCaption = useCallback((text: string, isFinal: boolean) => {
+    setCaption(text);
+    onLiveCaptionRef.current?.(text, isFinal);
+  }, []);
+
   const handleUtterance = useCallback(
     (text: string) => {
-      const t = text.trim();
-      if (!t || busyRef.current || disabled) return;
+      const t = stripWakePhrase(text);
+      if (!t || disabled) return;
       const now = Date.now();
-      if (now - lastAskAtRef.current < COOLDOWN_MS) return;
+      // Allow barge-in while busy/speaking — only soft-throttle identical rapid finals.
+      if (now - lastAskAtRef.current < COOLDOWN_MS && !ttsPlayingRef.current && !busyRef.current) {
+        return;
+      }
       lastAskAtRef.current = now;
       stopPlayback();
+      pushCaption(t, true);
       onAsk(t);
+      setHint('Heard you · answering…');
     },
-    [disabled, onAsk, stopPlayback],
+    [disabled, onAsk, pushCaption, stopPlayback],
   );
 
   const pickMime = () => {
@@ -431,12 +460,12 @@ export default function AgentVoiceOrb({
       if (data.ok && data.text) handleUtterance(data.text);
       else if (listeningRef.current) {
         setPhase('listening');
-        setHint('Listening… speak');
+        setHint('Listening… speak anytime');
       }
     } catch {
       if (listeningRef.current) {
         setPhase('listening');
-        setHint('Listening… speak');
+        setHint('Listening… speak anytime');
       }
     }
   }, [handleUtterance]);
@@ -461,7 +490,7 @@ export default function AgentVoiceOrb({
       if (rms > thresh && ttsPlayingRef.current) {
         stopPlayback();
         setPhase('listening');
-        setHint('Listening… speak');
+        setHint('Listening… speak anytime');
       }
 
       if (!busyRef.current && !ttsPlayingRef.current) {
@@ -531,16 +560,16 @@ export default function AgentVoiceOrb({
     rec.interimResults = true;
     rec.continuous = true;
     rec.onstart = () => {
-      setPhase('listening');
-      setHint('Listening… speak');
+      setPhase(ttsPlayingRef.current ? 'speaking' : 'listening');
+      setHint(ttsPlayingRef.current ? 'Speaking… interrupt anytime' : 'Listening… speak anytime');
     };
     rec.onerror = (e: SpeechRecognitionErrorEvent) => {
       if (e.error === 'no-speech' || e.error === 'aborted') return;
       setHint('Mic issue');
     };
     rec.onend = () => {
-      // listeningRef — original orb used stale `listening` state and could fail to restart
-      if (listeningRef.current && !busyRef.current) {
+      // Keep the loop alive even while the model answers — so barge-in works.
+      if (listeningRef.current) {
         webRestartRef.current = window.setTimeout(() => {
           try {
             rec.start();
@@ -551,17 +580,31 @@ export default function AgentVoiceOrb({
       }
     };
     rec.onresult = (ev: SpeechRecognitionEvent) => {
+      let interim = '';
       let finalText = '';
       for (let i = ev.resultIndex; i < ev.results.length; i++) {
-        if (ev.results[i].isFinal) finalText += ev.results[i][0].transcript;
+        const piece = (ev.results[i][0]?.transcript || '').trim();
+        if (!piece) continue;
+        if (ev.results[i].isFinal) finalText += (finalText ? ' ' : '') + piece;
+        else interim += (interim ? ' ' : '') + piece;
       }
-      if (finalText.trim()) {
-        if (ttsPlayingRef.current) stopPlayback();
-        handleUtterance(finalText.trim());
+      // Barge-in: any live speech cuts TTS / lets a new turn take over.
+      if ((interim || finalText) && ttsPlayingRef.current) {
+        stopPlayback();
+        setPhase('listening');
+        setHint('Listening… speak anytime');
+      }
+      if (interim) {
+        pushCaption(interim, false);
+        setHint('Hearing you…');
+      }
+      if (finalText) {
+        pushCaption(finalText, true);
+        handleUtterance(finalText);
       }
     };
     rec.start();
-  }, [handleUtterance, stopPlayback]);
+  }, [handleUtterance, pushCaption, stopPlayback]);
 
   const startOpenAiListen = useCallback(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -585,7 +628,7 @@ export default function AgentVoiceOrb({
     setListening(true);
     onListeningChange?.(true);
     setPhase('listening');
-    setHint('Listening… speak');
+    setHint('Listening… speak anytime');
     ensurePlayCtx();
     try {
       if (caps.whisper && navigator.mediaDevices && window.MediaRecorder) {
@@ -618,12 +661,20 @@ export default function AgentVoiceOrb({
     stopOpenAiListen();
     stopWebSpeech();
     setPhase('idle');
+    setCaption('');
+    pushCaption('', false);
     setHint('Tap orb · speak');
-  }, [onListeningChange, stopOpenAiListen, stopPlayback, stopWebSpeech]);
+  }, [onListeningChange, pushCaption, stopOpenAiListen, stopPlayback, stopWebSpeech]);
 
   useEffect(() => {
     if (!active && listening) stopListening();
   }, [active, listening, stopListening]);
+
+  // Voice summon: when Console opens with autoListen, start mic once.
+  useEffect(() => {
+    if (!active || !autoListen || disabled || listening) return;
+    void startListening();
+  }, [active, autoListen, disabled, listening, startListening]);
 
   useEffect(() => {
     return () => {
@@ -707,10 +758,23 @@ export default function AgentVoiceOrb({
             })}
           </div>
         </div>
+        <p className="min-h-[1.4rem] max-w-md px-2 text-center text-[0.95rem] leading-6 text-[#007d75]">
+          {caption ? (
+            <>
+              <span className="mr-1.5 inline-block h-2 w-2 animate-pulse rounded-full bg-[#00a89d] align-middle" />
+              {caption}
+            </>
+          ) : (
+            <span className="text-[#1b1713]/35 italic">
+              {listening ? 'Words stream here · interrupt anytime' : 'Live caption idle'}
+            </span>
+          )}
+        </p>
         <p className="font-mono text-[0.58rem] tracking-[0.22em] uppercase text-[#008f86]/85">
           ▸ {hint}
           {caps.whisper ? ' · whisper' : ' · browser dictation'}
-          {' · browser voice'}
+          {' · stream · barge-in'}
+          {' · Say Aileena to summon'}
           {' · '}
           {activeAccent.label}
         </p>
