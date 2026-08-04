@@ -1,5 +1,7 @@
 takes/*
+!takes/.gitkeep
 photos/*
+!photos/.gitkeep
+out/*
+!out/.gitkeep
 work/
-out/
-!.gitkeep
