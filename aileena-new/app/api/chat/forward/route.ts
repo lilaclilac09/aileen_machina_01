@@ -1,5 +1,10 @@
 import { getContactInbox } from '@/lib/contact-inbox';
 import { getResendFrom, resendFailureMessage } from '@/lib/resend-from';
+import {
+  makeForwardId,
+  saveChatForward,
+  type ChatForwardMessage,
+} from '@/lib/chatForwardStore';
 import { Resend } from 'resend';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -8,14 +13,18 @@ import { NextRequest, NextResponse } from 'next/server';
  *
  * Every chat session — anonymous or otherwise — gets emailed to Aileen as a
  * transcript snapshot. The client fires this from AgentChat.tsx via
- * navigator.sendBeacon on three triggers:
+ * navigator.sendBeacon / fetch keepalive on three triggers:
  *   1. Debounced ~4 s after the assistant finishes a response.
  *   2. On `pagehide` (visitor closes the tab or navigates away).
  *   3. Immediately when the per-session chat limit is reached.
  *
  * Dedup strategy: the subject line includes a short prefix of the sessionId,
  * so Gmail threads multiple snapshots for the same conversation into a single
- * thread. We don't store any server-side state.
+ * thread.
+ *
+ * Durability: every attempt is also written to Redis (`chatForwardStore`) when
+ * Upstash is configured — failed sends stay in `chat:forward:pending` so
+ * `pnpm chat:pending` / `pnpm chat:resend-pending` can recover them.
  *
  * Distinct from /api/lead, which is the synchronous lead-form submission
  * fired when the visitor hits the 2-message hard gate. Auto-forward fires
@@ -23,28 +32,30 @@ import { NextRequest, NextResponse } from 'next/server';
  * so Aileen sees every conversation, gated or not.
  */
 
-function renderTranscript(transcript: unknown): string {
-  if (!Array.isArray(transcript)) return '(no transcript)';
-  const lines: string[] = [];
+function normalizeTranscript(transcript: unknown): ChatForwardMessage[] {
+  if (!Array.isArray(transcript)) return [];
+  const out: ChatForwardMessage[] = [];
   for (const m of transcript) {
     if (!m || typeof m !== 'object') continue;
-    const role = (m as { role?: string }).role === 'user' ? 'VISITOR' : 'AGENT';
+    const roleRaw = (m as { role?: string }).role;
+    const role = roleRaw === 'user' ? 'user' : roleRaw === 'assistant' ? 'assistant' : null;
     const text = (m as { text?: string }).text;
-    if (typeof text !== 'string' || !text.trim()) continue;
-    lines.push(`[${role}]\n${text.trim()}`);
+    if (!role || typeof text !== 'string' || !text.trim()) continue;
+    out.push({ role, text: text.trim() });
   }
-  return lines.length > 0 ? lines.join('\n\n') : '(empty conversation)';
+  return out;
 }
 
-function firstUserSnippet(transcript: unknown): string {
-  if (!Array.isArray(transcript)) return '';
-  for (const m of transcript) {
-    if (!m || typeof m !== 'object') continue;
-    if ((m as { role?: string }).role !== 'user') continue;
-    const text = (m as { text?: string }).text;
-    if (typeof text === 'string' && text.trim()) {
-      return text.trim().slice(0, 80);
-    }
+function renderTranscript(messages: ChatForwardMessage[]): string {
+  if (messages.length === 0) return '(empty conversation)';
+  return messages
+    .map((m) => `[${m.role === 'user' ? 'VISITOR' : 'AGENT'}]\n${m.text}`)
+    .join('\n\n');
+}
+
+function firstUserSnippet(messages: ChatForwardMessage[]): string {
+  for (const m of messages) {
+    if (m.role === 'user' && m.text) return m.text.slice(0, 80);
   }
   return '';
 }
@@ -64,31 +75,30 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON.' }, { status: 400 });
   }
 
-  const transcript = body.transcript;
-  if (!Array.isArray(transcript) || transcript.length === 0) {
+  const messages = normalizeTranscript(body.transcript);
+  if (messages.length === 0) {
     // Visitor opened the console but never sent a message — nothing to forward.
     return NextResponse.json({ ok: true, skipped: 'empty' });
   }
 
-  const transcriptText = renderTranscript(transcript);
-  if (transcriptText === '(empty conversation)') {
-    return NextResponse.json({ ok: true, skipped: 'empty' });
-  }
-
+  const transcriptText = renderTranscript(messages);
   const sessionId =
     typeof body.sessionId === 'string' && body.sessionId.length > 0
       ? body.sessionId.slice(0, 100)
       : 'unknown';
 
-  const snippet = firstUserSnippet(transcript) || '(no user message)';
+  const snippet = firstUserSnippet(messages) || '(no user message)';
   const referer = req.headers.get('referer') ?? '(none)';
   const ua = req.headers.get('user-agent') ?? '(unknown)';
+  const createdAt = new Date().toISOString();
+  const id = makeForwardId(sessionId, messages);
 
   // sessionId prefix in the subject so Gmail threads same-session snapshots together.
   const subject = `[AILEENA Chat ${sessionId.slice(0, 8)}] ${snippet}`;
   const text = [
     `Session: ${sessionId}`,
-    `Captured: ${new Date().toISOString()}`,
+    `ForwardId: ${id}`,
+    `Captured: ${createdAt}`,
     `Referer:  ${referer}`,
     `UA:       ${ua}`,
     '',
@@ -99,8 +109,20 @@ export async function POST(req: NextRequest) {
 
   const inbox = getContactInbox();
   if (!inbox) {
+    await saveChatForward({
+      id,
+      sessionId,
+      status: 'failed',
+      subject,
+      transcript: messages,
+      referer,
+      ua,
+      error: 'Contact inbox not configured.',
+      createdAt,
+    });
     return NextResponse.json({ error: 'Contact inbox not configured.' }, { status: 503 });
   }
+
   const resend = new Resend(process.env.RESEND_API_KEY);
   const from = getResendFrom();
   const { error } = await resend.emails.send({
@@ -113,8 +135,31 @@ export async function POST(req: NextRequest) {
   if (error) {
     const { publicError, logDetail } = resendFailureMessage(error);
     console.error('[api/chat/forward] Resend failed', { from, to: inbox, detail: logDetail });
-    return NextResponse.json({ error: publicError }, { status: 502 });
+    await saveChatForward({
+      id,
+      sessionId,
+      status: 'failed',
+      subject,
+      transcript: messages,
+      referer,
+      ua,
+      error: logDetail,
+      createdAt,
+    });
+    return NextResponse.json({ error: publicError, id }, { status: 502 });
   }
 
-  return NextResponse.json({ ok: true });
+  await saveChatForward({
+    id,
+    sessionId,
+    status: 'sent',
+    subject,
+    transcript: messages,
+    referer,
+    ua,
+    createdAt,
+    sentAt: new Date().toISOString(),
+  });
+
+  return NextResponse.json({ ok: true, id });
 }

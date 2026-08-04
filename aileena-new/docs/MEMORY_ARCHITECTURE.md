@@ -31,6 +31,29 @@ CHAT_QUOTA_SECRET=...   # also signs __aileena_vid
 - Code: `lib/visitorMemory.ts` · wired in `app/api/chat/route.ts`
 - Response header: `X-Visitor-Soft-Memory: redis|off`
 
+## Agent chat transcript forward (owner inbox)
+
+Every console conversation is emailed to the contact inbox via `/api/chat/forward`
+(`From`: `cafe@aileena.xyz` via `getResendFrom()`, `To`: `CONTACT_TO` / `cafe@aileena.xyz`).
+
+When Upstash is configured, every attempt is also stored in Redis:
+
+| Key | Purpose |
+|-----|---------|
+| `chat:forward:rec:{id}` | Full transcript + status (`sent` / `failed`) |
+| `chat:forward:index` | Sorted set of recent ids |
+| `chat:forward:pending` | Failed ids waiting for resend |
+
+```bash
+pnpm chat:pending              # list failed / unsent
+pnpm chat:pending -- --all     # recent history
+pnpm chat:resend-pending       # retry failed emails
+pnpm chat:resend-pending -- --dry-run
+```
+
+Transcripts from **before** this store shipped cannot be reconstructed from git —
+check the Resend dashboard (Emails) for `[AILEENA Chat …]` subjects.
+
 ## Commands
 
 ```bash

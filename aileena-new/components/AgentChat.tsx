@@ -345,17 +345,21 @@ export default function AgentChat() {
       role: m.role === 'user' ? 'user' : 'assistant',
       text: getMessageText(m),
     }));
+    // Skip pure welcome / empty user turns — still allow if any user text exists.
+    const hasUser = transcript.some((t) => t.role === 'user' && t.text.trim());
+    if (!hasUser) return;
     const hash = `${transcript.length}:${transcript.map((t) => t.text.length).join(',')}`;
     if (hash === lastForwardedHashRef.current) return;
     lastForwardedHashRef.current = hash;
     const payload = JSON.stringify({ sessionId: sessionIdRef.current, transcript });
+    const blob = new Blob([payload], { type: 'application/json' });
     try {
+      let beaconOk = false;
       if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
-        navigator.sendBeacon(
-          '/api/chat/forward',
-          new Blob([payload], { type: 'application/json' }),
-        );
-      } else {
+        beaconOk = navigator.sendBeacon('/api/chat/forward', blob);
+      }
+      // sendBeacon returns false when the browser refuses the queue — fall back to fetch.
+      if (!beaconOk) {
         fetch('/api/chat/forward', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
