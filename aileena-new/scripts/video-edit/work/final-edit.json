@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "projectId": "cafe-cursor-shanghai-20260719",
+  "event": "Cafe Cursor Shanghai 20260719",
+  "generatedAt": "2026-08-04T13:38:42.442Z",
+  "plannerEngine": "heuristic_v2",
+  "script": "script.md",
+  "brief": "EVENT.md",
+  "logo": "brand/cursor-logo.svg",
+  "catalogPath": "work/catalog.json",
+  "output": {
+    "filename": "cafe-cursor-shanghai-recap.mp4",
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "videoCodec": "libx264",
+    "audioCodec": "aac",
+    "audioBitrate": "192k",
+    "crf": 20,
+    "preset": "veryfast",
+    "padColor": "0x0f1c1b",
+    "keepAudio": true,
+    "audioFadeIn_s": 0.12,
+    "audioFadeOut_s": 0.18
+  },
+  "audio": {
+    "keepAudio": true,
+    "fadeIn_s": 0.12,
+    "fadeOut_s": 0.18,
+    "codec": "aac",
+    "bitrate": "192k"
+  },
+  "beats": [
+    {
+      "beat": 1,
+      "id": "title",
+      "title": "Logo / title sting",
+      "role": "brand_open",
+      "target_s": 3,
+      "max_s": 4,
+      "clips": [
+        {
+          "id": "title-card",
+          "kind": "title",
+          "source": "work/cards/title.svg",
+          "start_s": 0,
+          "end_s": 3,
+          "duration_s": 3,
+          "label": "title.svg",
+          "rationale": "Brand-first open",
+          "beatId": "title",
+          "enabled": true,
+          "audio": {
+            "keep": false,
+            "gainDb": 0
+          }
+        }
+      ]
+    },
+    {
+      "beat": 2,
+      "id": "vibe",
+      "title": "Arrival / vibe",
+      "role": "place",
+      "target_s": 10,
+      "max_s": 14,
+      "clips": []
+    },
+    {
+      "beat": 3,
+      "id": "demos",
+      "title": "Guest-led energy",
+      "role": "guest_demos",
+      "target_s": 16,
+      "max_s": 22,
+      "clips": []
+    },
+    {
+      "beat": 4,
+      "id": "product",
+      "title": "Product moment (soft credits)",
+      "role": "soft_product",
+      "target_s": 10,
+      "max_s": 14,
+      "clips": []
+    },
+    {
+      "beat": 5,
+      "id": "community",
+      "title": "Community",
+      "role": "community",
+      "target_s": 10,
+      "max_s": 16,
+      "clips": []
+    },
+    {
+      "beat": 6,
+      "id": "outro",
+      "title": "Close",
+      "role": "brand_close",
+      "target_s": 4,
+      "max_s": 5,
+      "clips": [
+        {
+          "id": "outro-card",
+          "kind": "title",
+          "source": "work/cards/outro.svg",
+          "start_s": 0,
+          "end_s": 4,
+          "duration_s": 4,
+          "label": "outro.svg",
+          "rationale": "Brand-last + #CafeCursorShanghai",
+          "beatId": "outro",
+          "enabled": true,
+          "audio": {
+            "keep": false,
+            "gainDb": 0
+          }
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "NO MEDIA YET — drop files into takes/ and photos/ (or: bash scripts/video-edit/from-downloads.sh --go from cursor_shanghai_07192026)"
+  ],
+  "publicCopyRules": [
+    "Soft public language only — no credit-swap talk",
+    "Brand bookends required (title + outro)",
+    "Guest-led energy over scripted keynote framing"
+  ],
+  "provenance": {
+    "cwd": "/workspace/aileena-new",
+    "node": "v22.14.0",
+    "argv": [
+      "/exec-daemon/node",
+      "/workspace/aileena-new/scripts/video-edit/cli.ts",
+      "plan",
+      "--skip-whisper"
+    ]
+  }
+}

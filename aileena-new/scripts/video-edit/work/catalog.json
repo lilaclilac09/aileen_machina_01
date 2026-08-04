@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "projectId": "cafe-cursor-shanghai-20260719",
+  "generatedAt": "2026-08-04T13:38:42.047Z",
+  "rootRel": ".",
+  "assets": [],
+  "notes": [
+    "NO MEDIA YET — drop files into takes/ and photos/ (or: bash scripts/video-edit/from-downloads.sh --go from cursor_shanghai_07192026)"
+  ]
+}

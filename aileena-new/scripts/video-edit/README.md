@@ -1,131 +1,106 @@
-# Cafe Cursor Shanghai — 本机自动剪辑 / local auto-recap
+# Cafe Cursor Shanghai — Cheap Cursor Edit
 
-**不要上传到云端。** 素材太大 → 全部留在你 Mac 上跑。  
-**Do not upload.** Media stays local; render on your laptop.
+**不要上传。** Media stays on your Mac in `cursor_shanghai_07192026`.  
+Architecture: see [`ARCHITECTURE.md`](./ARCHITECTURE.md).
 
-Event: **Cafe Cursor Shanghai 20260719** · narrative: `EVENT.md`
+Thariq loop: **catalog → (optional Whisper) → JSON EDL → ffmpeg → verify → edit-room**.
 
 ---
 
-## 本机步骤 / Mac steps（素材在 Downloads）
+## Mac runbook
 
-### 0. 拉代码 + 依赖（一次）
+### 0. Pull + deps
 
 ```bash
-cd /path/to/aileen_machina_01   # 你的本地 clone
-git fetch origin
-git checkout cursor/cafe-recap-edit-8f58
-cd aileena-new
-pnpm install
-# 需要 ffmpeg：brew install ffmpeg
+cd /path/to/aileen_machina_01
+git fetch && git checkout cursor/cafe-recap-edit-8f58
+cd aileena-new && pnpm install
+# need ffmpeg + ffprobe on PATH
 ```
 
-### 1. 从 `cursor_shanghai_07192026` 自动分拣（推荐）
-
-默认会找这个文件夹（按顺序）：
-
-1. `~/Downloads/cursor_shanghai_07192026`
-2. `~/Desktop/cursor_shanghai_07192026`
-3. `~/Documents/cursor_shanghai_07192026`
-4. `~/cursor_shanghai_07192026`
-
-视频 → `takes/`，照片 → `photos/`。
+### 1. Import from `cursor_shanghai_07192026`
 
 ```bash
-cd aileena-new
-
-# 先预览（不拷贝）
+# preview
 bash scripts/video-edit/from-downloads.sh
 
-# 确认后：拷贝 + 剪成片
+# copy into takes/ + photos/, then cut
 bash scripts/video-edit/from-downloads.sh --go --render
 ```
 
-若文件夹不在默认位置，显式指定：
+Or explicit:
 
 ```bash
 bash scripts/video-edit/from-downloads.sh \
   --src ~/Downloads/cursor_shanghai_07192026 \
   --go --render
-
-# 磁盘紧：搬走而不是复制
-bash scripts/video-edit/from-downloads.sh --go --move --render
 ```
 
-### 1b. 手动拖 / 手动 cp
-
-| 文件类型 | 放到这里 |
-|----------|----------|
-| 视频 `.mp4` `.mov` `.m4v` | `aileena-new/scripts/video-edit/takes/` |
-| 照片 `.jpg` `.png` `.heic` `.webp` | `aileena-new/scripts/video-edit/photos/` |
+### 2. Or step-by-step
 
 ```bash
-# 手动示例
-cp ~/Downloads/*.mp4  scripts/video-edit/takes/
-cp ~/Downloads/*.MOV  scripts/video-edit/takes/
-cp ~/Downloads/*.jpg  scripts/video-edit/photos/
-cp ~/Downloads/*.HEIC scripts/video-edit/photos/
-```
+pnpm video:catalog    # work/catalog.json
+pnpm video:plan       # work/final-edit.json
+pnpm video:render     # out/cafe-cursor-shanghai-recap.mp4
+pnpm video:verify     # work/verify-report.json
 
-Finder：打开两个窗口，把文件拖进上面两个文件夹即可。
-
-```text
-scripts/video-edit/
-  takes/     ← 视频
-  photos/    ← 照片
-  brand/     ← logo 已有
-  out/       ← 成片输出（自动生成）
-```
-
-`takes/` / `photos/` / `out/` / `work/` 已 gitignore，**不会进 git**。
-
-### 2. 剪辑（若第 1 步没用 --render）
-
-```bash
-cd aileena-new
+# all-in-one
 pnpm video:recap
-# 或: bash scripts/video-edit/run-local.sh
-
-open scripts/video-edit/out/cafe-cursor-shanghai-recap.mp4
-open scripts/video-edit/edit-room.html
 ```
 
-成片：`scripts/video-edit/out/cafe-cursor-shanghai-recap.mp4`（1080p）。
+### 3. Edit room
+
+```bash
+open scripts/video-edit/edit-room.html
+# Load work/final-edit.json + attach out/*.mp4
+# Tweak sliders → Copy feedback prompt → paste back into Cursor
+```
 
 ---
 
-## Recap spine（活动总结逻辑）
+## Where files go
 
-| Beat | Target | Show | Why |
-|------|--------|------|-----|
-| 1 · Logo | 2.5s | Cursor logo + title | Brand first |
-| 2 · Vibe | 8–12s | Venue / rain / queue | Place |
-| 3 · Guests | 12–20s | Demos / screens | Guest-led |
-| 4 · Product | 8–12s | Redeem / phones | Soft credits only |
-| 5 · Community | 8–12s | Group / volunteers | Aftercare |
-| 6 · Outro | 4s | Logo + `#CafeCursorShanghai` | Brand last |
-
-- Photos → ~3.2s Ken-Burns  
-- Videos → mid-window 4–8s cut  
-- No “credit swap” public copy  
-
----
-
-## Files
-
-| File | Role |
+| What | Path |
 |------|------|
-| `EVENT.md` | Soft copy / Ben wrap-up |
-| `script.md` | On-screen beats |
-| `inventory.ts` | Scan → `work/final-edit.json` |
-| `render-recap.ts` | ffmpeg EDL → mp4 |
-| `edit-room.html` | Control room UI |
-| `from-downloads.sh` | Scan Downloads → takes/photos |
-| `run-local.sh` | One-shot inventory + render |
+| Videos | `scripts/video-edit/takes/` |
+| Photos | `scripts/video-edit/photos/` |
+| EDL | `scripts/video-edit/work/final-edit.json` |
+| Catalog | `scripts/video-edit/work/catalog.json` |
+| QC | `scripts/video-edit/work/verify-report.json` |
+| Final | `scripts/video-edit/out/cafe-cursor-shanghai-recap.mp4` |
+| Config | `scripts/video-edit/project.json` |
+
+Engine lives in `aileena-new/lib/video-edit/` (reusable).
 
 ---
 
-## 若 disk / brew 挂了
+## Recap spine
 
-以前 brew 因磁盘失败时：不必装 yt-dlp。这个流水线**只要 ffmpeg + node/pnpm**。  
-可用 [evermeet.cx/ffmpeg](https://evermeet.cx/ffmpeg/) 静态包，把 `ffmpeg` 放进 `PATH` 后再跑 `pnpm video:recap`。
+| Beat | Role | Notes |
+|------|------|-------|
+| 1 | Brand open | Title card |
+| 2 | Place / vibe | Photos + B-roll |
+| 3 | Guest demos | Scored video takes |
+| 4 | Soft product | Credits soft copy only |
+| 5 | Community | Budgeted leftovers |
+| 6 | Brand close | `#CafeCursorShanghai` |
+
+---
+
+## Optional Whisper
+
+If you install `openai-whisper` CLI, re-run without `--skip-whisper`:
+
+```bash
+pnpm exec tsx scripts/video-edit/cli.ts recap
+```
+
+Without Whisper, heuristic_v2 still plans (orientation / duration / audio).
+
+---
+
+## Smoke (dev)
+
+```bash
+pnpm video:smoke
+```

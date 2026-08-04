@@ -1,0 +1,132 @@
+{
+  "id": "cafe-cursor-shanghai-20260719",
+  "schemaVersion": 1,
+  "title": "Cafe Cursor Shanghai",
+  "subtitle": "IRL · Credits · Community",
+  "date": "2026-07-19",
+  "hashtag": "#CafeCursorShanghai",
+  "url": "cursor-cafe.aileena.xyz",
+  "mediaDropFolder": "cursor_shanghai_07192026",
+  "paths": {
+    "takes": "takes",
+    "photos": "photos",
+    "brand": "brand",
+    "work": "work",
+    "out": "out",
+    "script": "script.md",
+    "brief": "EVENT.md",
+    "edl": "work/final-edit.json",
+    "catalog": "work/catalog.json",
+    "verifyReport": "work/verify-report.json"
+  },
+  "output": {
+    "filename": "cafe-cursor-shanghai-recap.mp4",
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "videoCodec": "libx264",
+    "audioCodec": "aac",
+    "audioBitrate": "192k",
+    "crf": 20,
+    "preset": "veryfast",
+    "padColor": "0x0f1c1b",
+    "keepAudio": true,
+    "audioFadeIn_s": 0.12,
+    "audioFadeOut_s": 0.18
+  },
+  "brand": {
+    "accent": "#5ee0d6",
+    "bg": "#0f1c1b",
+    "fg": "#fffdf8",
+    "logoFile": "cursor-logo.svg"
+  },
+  "beats": [
+    {
+      "id": "title",
+      "index": 1,
+      "title": "Logo / title sting",
+      "role": "brand_open",
+      "target_s": 3,
+      "max_s": 4,
+      "photoQuota": 0,
+      "videoQuota": 0,
+      "card": "title"
+    },
+    {
+      "id": "vibe",
+      "index": 2,
+      "title": "Arrival / vibe",
+      "role": "place",
+      "target_s": 10,
+      "max_s": 14,
+      "photoQuota": 2,
+      "videoQuota": 1,
+      "preferLandscape": true
+    },
+    {
+      "id": "demos",
+      "index": 3,
+      "title": "Guest-led energy",
+      "role": "guest_demos",
+      "target_s": 16,
+      "max_s": 22,
+      "photoQuota": 2,
+      "videoQuota": 2,
+      "preferLandscape": true
+    },
+    {
+      "id": "product",
+      "index": 4,
+      "title": "Product moment (soft credits)",
+      "role": "soft_product",
+      "target_s": 10,
+      "max_s": 14,
+      "photoQuota": 2,
+      "videoQuota": 1,
+      "softCopyOnly": true
+    },
+    {
+      "id": "community",
+      "index": 5,
+      "title": "Community",
+      "role": "community",
+      "target_s": 10,
+      "max_s": 16,
+      "photoQuota": 2,
+      "videoQuota": 1,
+      "absorbLeftovers": true,
+      "leftoverMaxExtra_s": 12
+    },
+    {
+      "id": "outro",
+      "index": 6,
+      "title": "Close",
+      "role": "brand_close",
+      "target_s": 4,
+      "max_s": 5,
+      "photoQuota": 0,
+      "videoQuota": 0,
+      "card": "outro"
+    }
+  ],
+  "planner": {
+    "photoDuration_s": 3.2,
+    "videoWindowMin_s": 4,
+    "videoWindowMax_s": 7,
+    "videoWindowFrac": 0.22,
+    "skipLead_s": 0.4,
+    "skipTail_s": 0.2,
+    "engine": "heuristic_v2",
+    "whisper": {
+      "enabled": true,
+      "optional": true,
+      "model": "base",
+      "language": "auto"
+    }
+  },
+  "publicCopyRules": [
+    "Soft public language only — no credit-swap talk",
+    "Brand bookends required (title + outro)",
+    "Guest-led energy over scripted keynote framing"
+  ]
+}

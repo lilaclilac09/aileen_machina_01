@@ -3,201 +3,286 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Cafe Cursor Recap — Edit Room</title>
+  <title>Cheap Cursor Edit Room — Cafe Shanghai</title>
   <style>
     :root {
       --ink: #14110c;
       --paper: #fbfaf6;
-      --cyan: #00a99f;
+      --cyan: #0d9488;
       --muted: rgba(20,17,12,0.55);
-      --card: #fffdf8;
+      --line: rgba(20,17,12,0.1);
+      --ok: #15803d;
+      --warn: #b45309;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: "Nunito", system-ui, sans-serif;
+      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
       background:
-        radial-gradient(circle at 12% 0%, rgba(0,169,159,0.08), transparent 40%),
-        linear-gradient(180deg, #fffdf7, #f8f5ee);
+        radial-gradient(ellipse at 10% -10%, rgba(13,148,136,0.12), transparent 42%),
+        linear-gradient(180deg, #f7f4ec, #efe8da);
       color: var(--ink);
       min-height: 100vh;
     }
-    header {
-      padding: 28px 24px 12px;
-      max-width: 920px;
-      margin: 0 auto;
-    }
+    header, main { max-width: 1080px; margin: 0 auto; padding: 24px; }
     .brand {
-      font-family: ui-monospace, Menlo, monospace;
-      letter-spacing: 0.16em;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
       color: var(--cyan);
       font-size: 0.72rem;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
-    h1 {
-      margin: 0 0 8px;
-      font-size: clamp(1.6rem, 4vw, 2.2rem);
-      letter-spacing: -0.02em;
-    }
-    .dek { color: var(--muted); max-width: 42ch; line-height: 1.55; }
-    main { max-width: 920px; margin: 0 auto; padding: 12px 24px 80px; }
-    .row { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0 28px; }
+    h1 { margin: 0 0 8px; font-size: clamp(1.5rem, 3.5vw, 2rem); letter-spacing: -0.02em; }
+    .dek { color: var(--muted); max-width: 52ch; line-height: 1.55; margin: 0; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; margin: 20px 0 8px; }
     button, label.file {
-      appearance: none;
-      border: none;
-      background: #14110c;
-      color: #fffdf8;
-      font-family: ui-monospace, Menlo, monospace;
-      font-size: 0.72rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      padding: 12px 16px;
-      cursor: pointer;
+      appearance: none; border: none; background: #14110c; color: #fffdf8;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 12px 14px; cursor: pointer;
     }
     button.secondary { background: var(--cyan); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
     label.file { display: inline-block; }
+    .status {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.75rem; color: var(--muted); margin: 8px 0 20px;
+    }
+    .grid { display: grid; gap: 14px; }
     .beat {
-      background: var(--card);
-      padding: 18px 18px 10px;
-      margin-bottom: 14px;
+      background: rgba(255,253,248,0.92);
+      border: 1px solid var(--line);
+      padding: 16px 16px 8px;
     }
-    .beat h2 {
-      margin: 0 0 6px;
-      font-size: 1.05rem;
-    }
+    .beat h2 { margin: 0 0 4px; font-size: 1.05rem; }
     .meta {
-      font-family: ui-monospace, Menlo, monospace;
-      font-size: 0.68rem;
-      color: var(--muted);
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      margin-bottom: 12px;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.68rem; color: var(--muted); letter-spacing: 0.04em;
+      text-transform: uppercase; margin-bottom: 10px;
     }
     .clip {
-      border-top: 1px solid rgba(20,17,12,0.08);
+      border-top: 1px solid var(--line);
       padding: 10px 0;
-      font-size: 0.9rem;
-      line-height: 1.45;
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 10px;
+      align-items: start;
     }
-    .clip strong { font-weight: 600; }
-    .rationale { color: var(--muted); font-size: 0.85rem; }
-    pre {
-      background: #14110c;
-      color: #f4f1ea;
-      padding: 14px 16px;
-      font-size: 0.78rem;
-      white-space: pre-wrap;
-      word-break: break-word;
+    .clip.disabled { opacity: 0.45; }
+    .kind {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.65rem; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--cyan); padding-top: 2px;
     }
-    .warn {
-      background: #f3e0e0;
-      color: #8a2a2a;
-      padding: 12px 14px;
-      font-family: ui-monospace, Menlo, monospace;
-      font-size: 0.78rem;
-      line-height: 1.5;
-      margin-bottom: 18px;
+    .label { font-weight: 600; }
+    .rationale { color: var(--muted); font-size: 0.88rem; line-height: 1.45; margin-top: 4px; }
+    .cand {
+      margin-top: 6px; font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.68rem; color: var(--muted);
     }
-    .ok {
-      background: #d8eeeb;
-      color: rgba(20,17,12,0.7);
-      padding: 12px 14px;
-      font-family: ui-monospace, Menlo, monospace;
-      font-size: 0.78rem;
-      line-height: 1.5;
-      margin-bottom: 18px;
+    .controls {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px; margin: 18px 0 28px; padding: 14px;
+      background: rgba(255,253,248,0.7); border: 1px solid var(--line);
     }
+    .controls label { display: grid; gap: 6px; font-size: 0.8rem; }
+    .controls input[type="range"] { width: 100%; }
+    .controls .val {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.72rem; color: var(--cyan);
+    }
+    .notes { white-space: pre-wrap; font-size: 0.88rem; color: var(--warn); }
+    video {
+      width: 100%; max-height: 360px; background: #0f1c1b; margin: 12px 0 20px;
+      border: 1px solid var(--line);
+    }
+    .toast {
+      position: fixed; bottom: 18px; right: 18px; background: #14110c; color: #fffdf8;
+      padding: 10px 14px; font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.72rem; opacity: 0; transition: opacity .2s; pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
   </style>
 </head>
 <body>
   <header>
-    <p class="brand">Edit Room · Cafe Cursor Shanghai</p>
-    <h1>Recap control room</h1>
+    <div class="brand">Cheap Cursor · Edit Room</div>
+    <h1>Cafe Cursor Shanghai Recap</h1>
     <p class="dek">
-      Load <code>work/final-edit.json</code>, review beats, copy a thin feedback prompt back into Cursor.
+      Load <code>work/final-edit.json</code>, scrub the beat spine, tweak motion/grade sliders,
+      then copy an exact feedback prompt back into Cursor — Thariq control-room loop, local only.
     </p>
-  </header>
-  <main>
     <div class="row">
-      <label class="file">
-        Load final-edit.json
-        <input id="file" type="file" accept="application/json,.json" hidden />
+      <label class="file">Load EDL JSON<input id="edlFile" type="file" accept="application/json,.json" hidden /></label>
+      <button type="button" id="btnDemo" class="secondary">Load sample path hint</button>
+      <button type="button" id="btnCopyEdl" disabled>Copy EDL JSON</button>
+      <button type="button" id="btnCopyPrompt" disabled>Copy feedback prompt</button>
+    </div>
+    <p class="status" id="status">No EDL loaded. On Mac: open this file, then choose <code>work/final-edit.json</code>.</p>
+  </header>
+
+  <main>
+    <video id="preview" controls playsinline></video>
+    <div class="row">
+      <label class="file">Attach preview mp4<input id="mp4File" type="file" accept="video/mp4" hidden /></label>
+    </div>
+
+    <div class="controls" id="sliders" hidden>
+      <label>Ken-Burns zoom <span class="val" id="vZoom">1.08</span>
+        <input type="range" id="sZoom" min="1.02" max="1.2" step="0.01" value="1.08" />
       </label>
-      <button type="button" class="secondary" id="copyPrompt">Copy feedback as prompt</button>
-      <button type="button" id="copyJson">Copy EDL JSON</button>
+      <label>Cut pacing <span class="val" id="vPace">1.0×</span>
+        <input type="range" id="sPace" min="0.7" max="1.4" step="0.05" value="1" />
+      </label>
+      <label>Audio gain <span class="val" id="vGain">0 dB</span>
+        <input type="range" id="sGain" min="-12" max="6" step="1" value="0" />
+      </label>
+      <label>Keep soft product beat <span class="val" id="vProduct">on</span>
+        <input type="range" id="sProduct" min="0" max="1" step="1" value="1" />
+      </label>
     </div>
-    <div id="status" class="warn">
-      No EDL loaded. After inventory.ts, open this file and load <code>work/final-edit.json</code>
-      — or drop media into <code>takes/</code> + <code>photos/</code> first.
-    </div>
-    <div id="beats"></div>
-    <h2 style="margin-top:32px;font-size:1rem;">Thin feedback prompt</h2>
-    <pre id="prompt">Load an EDL to generate a prompt.</pre>
+
+    <div class="grid" id="beats"></div>
+    <p class="notes" id="notes"></p>
   </main>
+  <div class="toast" id="toast"></div>
+
   <script>
     let edl = null;
-    const status = document.getElementById('status');
-    const beatsEl = document.getElementById('beats');
-    const promptEl = document.getElementById('prompt');
+    const $ = (id) => document.getElementById(id);
+    const toast = (msg) => {
+      const t = $('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 1600);
+    };
 
-    function render(data) {
-      edl = data;
-      const empty = (data.notes || []).some((n) => String(n).includes('NO MEDIA'));
-      status.className = empty ? 'warn' : 'ok';
-      status.textContent = empty
-        ? (data.notes || []).join(' · ')
-        : `${data.event} · generated ${data.generatedAt}`;
-
-      beatsEl.innerHTML = '';
-      for (const b of data.beats || []) {
-        const dur = (b.clips || []).reduce((s, c) => s + (c.duration_s || 0), 0);
-        const art = document.createElement('article');
-        art.className = 'beat';
-        art.innerHTML = `
-          <h2>Beat ${b.beat} — ${b.title}</h2>
-          <p class="meta">${(b.clips || []).length} clips · ~${dur.toFixed(1)}s · target ${b.target_s}s</p>
-          ${(b.clips || []).map((c) => `
-            <div class="clip">
-              <strong>${c.kind}</strong> · ${c.label}
-              <div class="rationale">${c.rationale || ''} · ${c.start_s?.toFixed?.(1) ?? 0}→${c.end_s?.toFixed?.(1) ?? c.duration_s}s</div>
-            </div>
-          `).join('') || '<div class="clip rationale">(no clips yet)</div>'}
-        `;
-        beatsEl.appendChild(art);
-      }
-
-      const clipCount = (data.beats || []).reduce((s, b) => s + (b.clips || []).length, 0);
-      promptEl.textContent =
-`Update Cafe Cursor Shanghai recap EDL (@scripts/video-edit/work/final-edit.json).
-Keep the 6-beat spine: logo → vibe → guest demos → soft product → community → outro.
-I have ${clipCount} clips assigned. Prefer landscape B-roll; photos as 3.2s Ken-Burns.
-Do NOT use credit-swap language. Soft public only.
-Re-run inventory if needed, then render-recap.ts. Don't stop until out/cafe-cursor-shanghai-recap.mp4 plays.`;
+    function esc(s) {
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
     }
 
-    document.getElementById('file').addEventListener('change', async (e) => {
-      const f = e.target.files?.[0];
-      if (!f) return;
-      const text = await f.text();
-      render(JSON.parse(text));
+    function sliderState() {
+      return {
+        kenBurnsZoom: Number($('sZoom').value),
+        pacing: Number($('sPace').value),
+        gainDb: Number($('sGain').value),
+        keepProductBeat: Number($('sProduct').value) === 1,
+      };
+    }
+
+    function syncSliderLabels() {
+      const s = sliderState();
+      $('vZoom').textContent = s.kenBurnsZoom.toFixed(2);
+      $('vPace').textContent = s.pacing.toFixed(2) + '×';
+      $('vGain').textContent = (s.gainDb >= 0 ? '+' : '') + s.gainDb + ' dB';
+      $('vProduct').textContent = s.keepProductBeat ? 'on' : 'off';
+    }
+
+    function render() {
+      if (!edl) return;
+      const beats = $('beats');
+      beats.innerHTML = '';
+      let total = 0;
+      for (const beat of edl.beats || []) {
+        const clips = (beat.clips || []).filter(Boolean);
+        const dur = clips.filter((c) => c.enabled !== false).reduce((s, c) => s + (c.duration_s || 0), 0);
+        total += dur;
+        const el = document.createElement('section');
+        el.className = 'beat';
+        el.innerHTML =
+          '<h2>' + esc(beat.beat + ' · ' + beat.title) + '</h2>' +
+          '<div class="meta">role ' + esc(beat.role || beat.id || '') +
+          ' · target ' + esc(String(beat.target_s)) + 's · actual ~' + dur.toFixed(1) + 's · ' +
+          clips.length + ' clips</div>';
+        for (const clip of clips) {
+          const row = document.createElement('div');
+          row.className = 'clip' + (clip.enabled === false ? ' disabled' : '');
+          const cand = (clip.candidates || [])
+            .map((c) => c.start_s.toFixed(1) + '–' + c.end_s.toFixed(1) + 's score=' + c.score)
+            .join(' · ');
+          row.innerHTML =
+            '<div class="kind">' + esc(clip.kind) + '</div>' +
+            '<div><div class="label">' + esc(clip.label) +
+            ' <span class="meta" style="display:inline;text-transform:none">' +
+            (clip.start_s || 0).toFixed(1) + '–' + (clip.end_s || 0).toFixed(1) + 's</span></div>' +
+            '<div class="rationale">' + esc(clip.rationale || '') + '</div>' +
+            (cand ? '<div class="cand">candidates: ' + esc(cand) + '</div>' : '') +
+            '</div>';
+          el.appendChild(row);
+        }
+        beats.appendChild(el);
+      }
+      $('notes').textContent = (edl.notes || []).join('\n');
+      $('status').textContent =
+        (edl.event || edl.projectId || 'EDL') +
+        ' · engine ' + (edl.plannerEngine || '?') +
+        ' · ~' + total.toFixed(1) + 's · schema v' + (edl.schemaVersion || '?');
+      $('btnCopyEdl').disabled = false;
+      $('btnCopyPrompt').disabled = false;
+      $('sliders').hidden = false;
+      syncSliderLabels();
+    }
+
+    function buildPrompt() {
+      const s = sliderState();
+      return [
+        'Re-plan Cafe Cursor Shanghai recap (cheap Cursor edit).',
+        'Keep the 6-beat spine: title → vibe → demos → soft product → community → outro.',
+        'Public soft language only — no credit-swap talk.',
+        'Apply control-room params:',
+        '- kenBurnsZoom=' + s.kenBurnsZoom,
+        '- pacing=' + s.pacing,
+        '- audioGainDb=' + s.gainDb,
+        '- keepProductBeat=' + s.keepProductBeat,
+        'Then: pnpm video:plan && pnpm video:render && pnpm video:verify',
+        'EDL path: scripts/video-edit/work/final-edit.json',
+      ].join('\n');
+    }
+
+    $('edlFile').addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      try {
+        edl = JSON.parse(await file.text());
+        render();
+        toast('EDL loaded');
+      } catch (err) {
+        $('status').textContent = 'Invalid JSON: ' + err;
+      }
     });
 
-    document.getElementById('copyPrompt').onclick = async () => {
-      await navigator.clipboard.writeText(promptEl.textContent || '');
-      alert('Copied feedback prompt');
-    };
-    document.getElementById('copyJson').onclick = async () => {
-      if (!edl) return alert('Load EDL first');
-      await navigator.clipboard.writeText(JSON.stringify(edl, null, 2));
-      alert('Copied EDL JSON');
-    };
+    $('mp4File').addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      $('preview').src = url;
+      toast('Preview attached');
+    });
 
-    // Try fetch when served over http; file:// will fail quietly
-    fetch('./work/final-edit.json')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => { if (data) render(data); })
-      .catch(() => {});
+    for (const id of ['sZoom', 'sPace', 'sGain', 'sProduct']) {
+      $(id).addEventListener('input', syncSliderLabels);
+    }
+
+    $('btnCopyEdl').addEventListener('click', async () => {
+      await navigator.clipboard.writeText(JSON.stringify(edl, null, 2));
+      toast('EDL copied');
+    });
+
+    $('btnCopyPrompt').addEventListener('click', async () => {
+      await navigator.clipboard.writeText(buildPrompt());
+      toast('Feedback prompt copied');
+    });
+
+    $('btnDemo').addEventListener('click', () => {
+      $('status').textContent =
+        'After pnpm video:plan, load: aileena-new/scripts/video-edit/work/final-edit.json · preview: out/cafe-cursor-shanghai-recap.mp4';
+      toast('Path hint set');
+    });
   </script>
 </body>
 </html>
