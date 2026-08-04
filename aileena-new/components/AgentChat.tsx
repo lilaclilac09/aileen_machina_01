@@ -87,8 +87,10 @@ const LEAD_DISMISS_KEY = 'aileena_lead_state'; // 'sent' | (unset) — historica
  *   Every chat session is forwarded to her email via /api/chat/forward,
  *   triggered on three signals: 4 s debounce after an assistant response,
  *   on `pagehide` (tab close / navigation), and immediately when the per-
- *   session limit is reached. Snapshots are best-effort via sendBeacon.
- *   Subject line carries a sessionId prefix so Gmail threads them.
+ *   session limit is reached. Prefer sendBeacon; if the browser refuses the
+ *   queue, fall back to fetch({ keepalive: true }). Subject carries a
+ *   sessionId prefix so Gmail threads them. Server also logs to Redis when
+ *   Upstash is set (see docs/CHAT_FORWARD.md).
  */
 type LeadState = 'idle' | 'submitting' | 'sent';
 
@@ -345,17 +347,21 @@ export default function AgentChat() {
       role: m.role === 'user' ? 'user' : 'assistant',
       text: getMessageText(m),
     }));
+    // Skip pure welcome / empty user turns — still allow if any user text exists.
+    const hasUser = transcript.some((t) => t.role === 'user' && t.text.trim());
+    if (!hasUser) return;
     const hash = `${transcript.length}:${transcript.map((t) => t.text.length).join(',')}`;
     if (hash === lastForwardedHashRef.current) return;
     lastForwardedHashRef.current = hash;
     const payload = JSON.stringify({ sessionId: sessionIdRef.current, transcript });
+    const blob = new Blob([payload], { type: 'application/json' });
     try {
+      let beaconOk = false;
       if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
-        navigator.sendBeacon(
-          '/api/chat/forward',
-          new Blob([payload], { type: 'application/json' }),
-        );
-      } else {
+        beaconOk = navigator.sendBeacon('/api/chat/forward', blob);
+      }
+      // sendBeacon returns false when the browser refuses the queue — fall back to fetch.
+      if (!beaconOk) {
         fetch('/api/chat/forward', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
