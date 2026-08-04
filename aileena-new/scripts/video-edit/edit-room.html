@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cafe Cursor Recap — Edit Room</title>
+  <style>
+    :root {
+      --ink: #14110c;
+      --paper: #fbfaf6;
+      --cyan: #00a99f;
+      --muted: rgba(20,17,12,0.55);
+      --card: #fffdf8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Nunito", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 12% 0%, rgba(0,169,159,0.08), transparent 40%),
+        linear-gradient(180deg, #fffdf7, #f8f5ee);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+    header {
+      padding: 28px 24px 12px;
+      max-width: 920px;
+      margin: 0 auto;
+    }
+    .brand {
+      font-family: ui-monospace, Menlo, monospace;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      font-size: 0.72rem;
+      margin-bottom: 10px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      letter-spacing: -0.02em;
+    }
+    .dek { color: var(--muted); max-width: 42ch; line-height: 1.55; }
+    main { max-width: 920px; margin: 0 auto; padding: 12px 24px 80px; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0 28px; }
+    button, label.file {
+      appearance: none;
+      border: none;
+      background: #14110c;
+      color: #fffdf8;
+      font-family: ui-monospace, Menlo, monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 12px 16px;
+      cursor: pointer;
+    }
+    button.secondary { background: var(--cyan); }
+    label.file { display: inline-block; }
+    .beat {
+      background: var(--card);
+      padding: 18px 18px 10px;
+      margin-bottom: 14px;
+    }
+    .beat h2 {
+      margin: 0 0 6px;
+      font-size: 1.05rem;
+    }
+    .meta {
+      font-family: ui-monospace, Menlo, monospace;
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .clip {
+      border-top: 1px solid rgba(20,17,12,0.08);
+      padding: 10px 0;
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+    .clip strong { font-weight: 600; }
+    .rationale { color: var(--muted); font-size: 0.85rem; }
+    pre {
+      background: #14110c;
+      color: #f4f1ea;
+      padding: 14px 16px;
+      font-size: 0.78rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .warn {
+      background: #f3e0e0;
+      color: #8a2a2a;
+      padding: 12px 14px;
+      font-family: ui-monospace, Menlo, monospace;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      margin-bottom: 18px;
+    }
+    .ok {
+      background: #d8eeeb;
+      color: rgba(20,17,12,0.7);
+      padding: 12px 14px;
+      font-family: ui-monospace, Menlo, monospace;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      margin-bottom: 18px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <p class="brand">Edit Room · Cafe Cursor Shanghai</p>
+    <h1>Recap control room</h1>
+    <p class="dek">
+      Load <code>work/final-edit.json</code>, review beats, copy a thin feedback prompt back into Cursor.
+    </p>
+  </header>
+  <main>
+    <div class="row">
+      <label class="file">
+        Load final-edit.json
+        <input id="file" type="file" accept="application/json,.json" hidden />
+      </label>
+      <button type="button" class="secondary" id="copyPrompt">Copy feedback as prompt</button>
+      <button type="button" id="copyJson">Copy EDL JSON</button>
+    </div>
+    <div id="status" class="warn">
+      No EDL loaded. After inventory.ts, open this file and load <code>work/final-edit.json</code>
+      — or drop media into <code>takes/</code> + <code>photos/</code> first.
+    </div>
+    <div id="beats"></div>
+    <h2 style="margin-top:32px;font-size:1rem;">Thin feedback prompt</h2>
+    <pre id="prompt">Load an EDL to generate a prompt.</pre>
+  </main>
+  <script>
+    let edl = null;
+    const status = document.getElementById('status');
+    const beatsEl = document.getElementById('beats');
+    const promptEl = document.getElementById('prompt');
+
+    function render(data) {
+      edl = data;
+      const empty = (data.notes || []).some((n) => String(n).includes('NO MEDIA'));
+      status.className = empty ? 'warn' : 'ok';
+      status.textContent = empty
+        ? (data.notes || []).join(' · ')
+        : `${data.event} · generated ${data.generatedAt}`;
+
+      beatsEl.innerHTML = '';
+      for (const b of data.beats || []) {
+        const dur = (b.clips || []).reduce((s, c) => s + (c.duration_s || 0), 0);
+        const art = document.createElement('article');
+        art.className = 'beat';
+        art.innerHTML = `
+          <h2>Beat ${b.beat} — ${b.title}</h2>
+          <p class="meta">${(b.clips || []).length} clips · ~${dur.toFixed(1)}s · target ${b.target_s}s</p>
+          ${(b.clips || []).map((c) => `
+            <div class="clip">
+              <strong>${c.kind}</strong> · ${c.label}
+              <div class="rationale">${c.rationale || ''} · ${c.start_s?.toFixed?.(1) ?? 0}→${c.end_s?.toFixed?.(1) ?? c.duration_s}s</div>
+            </div>
+          `).join('') || '<div class="clip rationale">(no clips yet)</div>'}
+        `;
+        beatsEl.appendChild(art);
+      }
+
+      const clipCount = (data.beats || []).reduce((s, b) => s + (b.clips || []).length, 0);
+      promptEl.textContent =
+`Update Cafe Cursor Shanghai recap EDL (@scripts/video-edit/work/final-edit.json).
+Keep the 6-beat spine: logo → vibe → guest demos → soft product → community → outro.
+I have ${clipCount} clips assigned. Prefer landscape B-roll; photos as 3.2s Ken-Burns.
+Do NOT use credit-swap language. Soft public only.
+Re-run inventory if needed, then render-recap.ts. Don't stop until out/cafe-cursor-shanghai-recap.mp4 plays.`;
+    }
+
+    document.getElementById('file').addEventListener('change', async (e) => {
+      const f = e.target.files?.[0];
+      if (!f) return;
+      const text = await f.text();
+      render(JSON.parse(text));
+    });
+
+    document.getElementById('copyPrompt').onclick = async () => {
+      await navigator.clipboard.writeText(promptEl.textContent || '');
+      alert('Copied feedback prompt');
+    };
+    document.getElementById('copyJson').onclick = async () => {
+      if (!edl) return alert('Load EDL first');
+      await navigator.clipboard.writeText(JSON.stringify(edl, null, 2));
+      alert('Copied EDL JSON');
+    };
+
+    // Try fetch when served over http; file:// will fail quietly
+    fetch('./work/final-edit.json')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => { if (data) render(data); })
+      .catch(() => {});
+  </script>
+</body>
+</html>

@@ -32,6 +32,9 @@
     "chat:pending": "tsx scripts/list-chat-forwards.ts",
     "chat:resend-pending": "tsx scripts/resend-pending-chat-forwards.ts",
     "inkling:clips": "tsx scripts/inkling-clips.ts",
+    "video:inventory": "tsx scripts/video-edit/inventory.ts",
+    "video:render": "tsx scripts/video-edit/render-recap.ts",
+    "video:recap": "tsx scripts/video-edit/inventory.ts && tsx scripts/video-edit/render-recap.ts",
     "start": "next start",
     "lint": "eslint"
   },
