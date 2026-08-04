@@ -6,6 +6,10 @@ photos/**
 !photos/.gitkeep
 !photos/girls/
 !photos/girls/.gitkeep
+!photos/guys/
+!photos/guys/.gitkeep
+!photos/smiles/
+!photos/smiles/.gitkeep
 out/*
 !out/.gitkeep
 work/cuts/
