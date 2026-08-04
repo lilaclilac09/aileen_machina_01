@@ -7422,5 +7422,204 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-03T19:56:55.539Z"
+  },
+  {
+    "id": "2084459410265411615",
+    "url": "https://x.com/SemiAnalysis_/status/2084459410265411615",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "We believe the MI455 is the first known chip to ship with active Local Silicon Interconnect (LSI) bridges, the chiplet-to-chiplet links inside a CoWoS-L package.\n\nIn CoWoS-L's short history, those bridges have always been passive: wiring and capacitors, nothing more. Active LSIs carry real circuitry. At ISSCC 2026, TSMC demoed active bridges with a low-power repeater that regenerates signals mid-channel.\n\nWhy it matters: once the bridge shares the signal-integrity burden, the PHYs on the top dies can shrink meaningfully at near-zero energy cost, reclaiming leading-edge silicon and shoreline for compute and memory.\n\nThe giveaway that this is a shipping product rather than a research vehicle: the interposer TSMC showed matches the MI455 exactly. Two base dies, twelve HBM4 stacks, two IO dies.",
+    "createdAt": "Tue Aug 04 02:00:25 +0000 2026",
+    "createdTimestamp": 1785808825,
+    "likes": 154,
+    "retweets": 13,
+    "replies": 7,
+    "bookmarks": 51,
+    "views": 30537,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HO18yZPWwAA2ZQN.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "moe"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-04T03:36:06.998Z"
+  },
+  {
+    "id": "2084394819145674794",
+    "url": "https://x.com/SemiAnalysis_/status/2084394819145674794",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Kimi K3, The Manos, The Mythos, The Legendos\nKimi K3’s architecture: compressed memory,\nattention across depth, latent expert routing,\nand serving performance\n\nhttps://newsletter.semianalysis.com/p/kimi-k3-the-manos-the-mythos-the",
+    "createdAt": "Mon Aug 03 21:43:45 +0000 2026",
+    "createdTimestamp": 1785793425,
+    "likes": 78,
+    "retweets": 4,
+    "replies": 2,
+    "bookmarks": 61,
+    "views": 30724,
+    "isNoteTweet": false,
+    "linkedUrls": [
+      "https://newsletter.semianalysis.com/p/kimi-k3-the-manos-the-mythos-the"
+    ],
+    "topics": [
+      "moe"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-04T03:36:08.393Z"
+  },
+  {
+    "id": "2084384040434467317",
+    "url": "https://x.com/SemiAnalysis_/status/2084384040434467317",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "We got a bit emotional in our last newsletter article and brought back your inner kid 🥹🥹 Did you know the world's largest datacenters are today built like your old LEGO sets? Only that each brick weighs over 50,000 pounds and sometimes tips over on a West Virginia highway. Modularization is now THE default playbook to build fast, as seen in the new datacenter designs from AWS to Meta. In our latest Deep Dive we unpack what this whole thing actually means. Our Industrials Model tracks 60GW+ of modular and prefab construction across 1,000+ sites. (1/3)🧵",
+    "createdAt": "Mon Aug 03 21:00:55 +0000 2026",
+    "createdTimestamp": 1785790855,
+    "likes": 78,
+    "retweets": 3,
+    "replies": 2,
+    "bookmarks": 45,
+    "views": 24400,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HO04PSNX0AACOJh.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-04T03:36:09.813Z"
+  },
+  {
+    "id": "2084384043479556445",
+    "url": "https://x.com/SemiAnalysis_/status/2084384043479556445",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Why all this? Basically because you can't print more electricians. They alone are 30-40% of construction man-hours in a datacenter project, and our Industrials Model shows the shortage would go structural in 2027 if modular didn’t get in the picture. This is worst in states like TX and AZ, where Crusoe already paid +30% wages to staff Abilene's 7,000-worker peak. One fix is to move construction scope, from MEP skids to the shell panels, into factories running in parallel with the siteworks, enabling to squeeze construction timelines to under 12 months.(2/3)",
+    "createdAt": "Mon Aug 03 21:00:56 +0000 2026",
+    "createdTimestamp": 1785790856,
+    "likes": 13,
+    "retweets": 1,
+    "replies": 3,
+    "bookmarks": 6,
+    "views": 9176,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HO04OvgWsAAlKLq.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "optical"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-04T03:36:11.235Z"
+  },
+  {
+    "id": "2084384046675632627",
+    "url": "https://x.com/SemiAnalysis_/status/2084384046675632627",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "The problem that primed this piece is that it seems today everything is marketed as m o d u l a r, so here we tried to bring some order to this wild west. Our article includes a full taxonomy for what can be and cannot be modularized, from skids to prefab blocks, and we map a vendor universe of 80+ players. Check out the full article at (3/3) https://newsletter.semianalysis.com/p/the-wild-wild-west-of-lego-datacenters",
+    "createdAt": "Mon Aug 03 21:00:57 +0000 2026",
+    "createdTimestamp": 1785790857,
+    "likes": 18,
+    "retweets": 0,
+    "replies": 1,
+    "bookmarks": 12,
+    "views": 8402,
+    "isNoteTweet": true,
+    "linkedUrls": [
+      "https://newsletter.semianalysis.com/p/the-wild-wild-west-of-lego-datacenters"
+    ],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-04T03:36:12.612Z"
+  },
+  {
+    "id": "2084369816941465618",
+    "url": "https://x.com/SemiAnalysis_/status/2084369816941465618",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "",
+    "createdAt": "Mon Aug 03 20:04:24 +0000 2026",
+    "createdTimestamp": 1785787464,
+    "likes": 379,
+    "retweets": 19,
+    "replies": 12,
+    "bookmarks": 47,
+    "views": 57714,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HO0q5fxWMAAKlyt.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-04T03:36:14.031Z"
+  },
+  {
+    "id": "2084411888910409793",
+    "url": "https://x.com/aaronburnett/status/2084411888910409793",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Spent the weekend looking into what I felt were reasonable time frames (some optimistic) for upcoming SpaceX catalysts with Cern. Infrastructure matters. Giga Bays in Starbase and Florida along with first V3 starship deliveries to via the starship barge are under the radar catalysts for Starlink V3 and AI sat scaling.",
+    "createdAt": "Mon Aug 03 22:51:35 +0000 2026",
+    "createdTimestamp": 1785797495,
+    "likes": 47,
+    "retweets": 6,
+    "replies": 6,
+    "bookmarks": 13,
+    "views": 3541,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-04T03:36:16.641Z"
+  },
+  {
+    "id": "2084381671399231897",
+    "url": "https://x.com/aaronburnett/status/2084381671399231897",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "First $SPCX earnings. Looking forward to discussing live",
+    "createdAt": "Mon Aug 03 20:51:31 +0000 2026",
+    "createdTimestamp": 1785790291,
+    "likes": 73,
+    "retweets": 2,
+    "replies": 3,
+    "bookmarks": 6,
+    "views": 4447,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-04T03:36:18.059Z"
   }
 ]
