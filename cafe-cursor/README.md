@@ -81,6 +81,7 @@ Access the admin panel at `/admin`:
 - **Dashboard** - View credit statistics and user registrations
 - **User Management** - See who claimed credits
 - **Credit Management** - Track available and used credits
+- **Export available** - Download unused (`available-unclaimed`) credits as CSV → Google Sheets → File → Import into a **new** spreadsheet. Export only: does **not** mark redeemed; unclaimed guests can still claim on site. Do **not** point `GOOGLE_SHEET_CREDITS_ID` at that export and Clear+Sync unless you mean to replace the live pool.
 
 Admin login: set `ADMIN_USERNAME`, `ADMIN_PASSWORD` (or `ADMIN_PASSWORD_HASH`), and `SESSION_SECRET` in Vercel env only — never commit real values.
 
@@ -229,10 +230,11 @@ Production URL: **https://cursor-cafe.aileena.xyz**
 This fork is set up for **Luma guest list → redeem** (no shared event code, **no Luma Plus**):
 
 1. Credits come from the Google Sheet ([Cafe Cursor Shanghai - Aileen](YOUR_PRIVATE_GOOGLE_SHEET)).
-2. In Admin → **Sync Sheet** to import / refresh referral links.
-3. Set `REDEEM_MODE=allowlist`.
-4. Luma → Guests → **Download CSV** → Admin → **Import Luma CSV** (approved emails; or checked-in only on door day).
-5. Attendees redeem with **email only** (same email as Luma registration).
+2. In Admin → **Clear + Sync Sheet** to import / refresh referral links.
+3. To snapshot leftover unused credits into a **new** sheet: Admin → **Export available** → Sheets → File → Import (credits stay Available in DB).
+4. Set `REDEEM_MODE=allowlist`.
+5. Luma → Guests → **Download CSV** → Admin → **Import Luma CSV** (approved emails; or checked-in only on door day).
+6. Attendees redeem with **email only** (same email as Luma registration).
 
 ```env
 REDEEM_MODE=allowlist
