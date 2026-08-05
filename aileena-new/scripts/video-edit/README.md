@@ -1,6 +1,6 @@
 # Cafe Cursor Shanghai — Cheap Cursor Edit
 
-**Playbook (English):** [`docs/CHEAP_CURSOR_VIDEO_EDIT.md`](../../docs/CHEAP_CURSOR_VIDEO_EDIT.md) — scope, vs manual edit, knobs, QC, Thariq/Anthropic reference.
+**Playbook (English):** [`docs/FIRST_CUT.md`](../../docs/FIRST_CUT.md) — scope, vs manual edit, knobs, QC, Thariq/Anthropic reference.
 
 **不要上传。** 在 Mac 本地跑。素材夹：`cursor_shanghai_07192026`
 
