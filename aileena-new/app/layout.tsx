@@ -28,7 +28,7 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Allura&display=swap"
         />
       </head>
-      <body style={{ height: '100%', overflow: 'hidden' }}>
+      <body className="site-body">
         <ThemeProvider>
           <LanguageProvider>{children}</LanguageProvider>
           <AgentChat />

@@ -712,7 +712,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               'radial-gradient(ellipse 70% 55% at 72% 18%, rgba(232,180,184,0.10), transparent 58%), radial-gradient(ellipse 55% 45% at 12% 78%, rgba(0,169,159,0.06), transparent 55%)',
           }}
         >
-          <div className="h-full overflow-y-auto px-3 pb-24 pt-8 sm:hidden">
+          <div className="min-h-full overflow-visible px-3 pb-24 pt-8 sm:hidden">
             <div className="grid gap-14">
               {rooms.map((room) => {
                 const isArticle = room.motif === 'article';
