@@ -407,3 +407,45 @@ select,
     scroll-snap-stop: normal;
   }
 }
+
+/* Prefer class on <body> (layout.tsx) so mobile media can unlock scroll */
+body.site-body {
+  height: 100%;
+  overflow: hidden;
+}
+
+input,
+textarea,
+select,
+[contenteditable='true'] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+@media (max-width: 768px) {
+  html,
+  body,
+  body.site-body {
+    height: auto;
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .snap-container {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+    scroll-snap-type: none;
+    overscroll-behavior: auto;
+  }
+
+  .snap-section {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+    scroll-snap-align: none;
+    scroll-snap-stop: normal;
+  }
+}
