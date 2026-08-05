@@ -7930,5 +7930,535 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-04T19:56:23.652Z"
+  },
+  {
+    "id": "2084728715679023358",
+    "url": "https://x.com/dylan522p/status/2084728715679023358",
+    "screenName": "dylan522p",
+    "authorId": "985281530070265862",
+    "authorName": "Dylan Patel",
+    "text": "Learned about how Samsung does capacity planning.\nMost retarded organizational structure ever",
+    "createdAt": "Tue Aug 04 19:50:32 +0000 2026",
+    "createdTimestamp": 1785873032,
+    "likes": 755,
+    "retweets": 17,
+    "replies": 46,
+    "bookmarks": 136,
+    "views": 130881,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "semianalysis"
+    ],
+    "tags": [
+      "semianalysis"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-05T03:31:49.793Z"
+  },
+  {
+    "id": "2084811554961121348",
+    "url": "https://x.com/SemiAnalysis_/status/2084811554961121348",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "SemiAnalysis Datacenter team tracks all dc sites. Datacenter team started noticing new builds missing the gensets. Datacenter team checked the Industrials Model and now tracks 15GW+ of capacity with no gensets, no central UPS, or neither. (1/3)🧵",
+    "createdAt": "Wed Aug 05 01:19:43 +0000 2026",
+    "createdTimestamp": 1785892783,
+    "likes": 159,
+    "retweets": 14,
+    "replies": 11,
+    "bookmarks": 77,
+    "views": 46216,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HO69D5TXEAIicQt.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-05T03:31:51.626Z"
+  },
+  {
+    "id": "2084811556974473416",
+    "url": "https://x.com/SemiAnalysis_/status/2084811556974473416",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "But why run a GPU cluster with zero backup power? \n🟠  training doesn't care, constant checkpointing tolerates downtime \n🟠  build speed and cost, realizing capex savings and cutting lead times, permits, commissioning, and multi-vendor contracts. Today, bringing compute online f a s t is everything.  (2/3)",
+    "createdAt": "Wed Aug 05 01:19:43 +0000 2026",
+    "createdTimestamp": 1785892783,
+    "likes": 28,
+    "retweets": 1,
+    "replies": 5,
+    "bookmarks": 7,
+    "views": 8572,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [
+      "gpu",
+      "ai-cost"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-05T03:31:53.048Z"
+  },
+  {
+    "id": "2084811557964231066",
+    "url": "https://x.com/SemiAnalysis_/status/2084811557964231066",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "This is not a small-deployment thing, top dogs are doing it. Microsoft Fairwater runs the GPU hall fully unbacked, gensets only on the network core. Anthropic's datacenter design also strips the genset. Meta's AI datacenters (the two that look like a Rectangle and Tent) show zero gensets on satellite. Elon just parked 168 Megapacks at Colossus instead. (3/3)",
+    "createdAt": "Wed Aug 05 01:19:44 +0000 2026",
+    "createdTimestamp": 1785892784,
+    "likes": 40,
+    "retweets": 2,
+    "replies": 1,
+    "bookmarks": 13,
+    "views": 8349,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HO69D5GX0AEFi1l.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "orbital-compute",
+      "gpu",
+      "optical"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-05T03:31:54.449Z"
+  },
+  {
+    "id": "2084751860297056700",
+    "url": "https://x.com/SemiAnalysis_/status/2084751860297056700",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "ANTHROPIC JUST SIGNED A $10B COMPUTE DEAL WITH VOLTA INFRA, a new neocloud founded by ex-Brookfield executives. To support this deal, Volta Infra is renting colocation space from Bitdeer. We explain below👇️ 1/6🧵",
+    "createdAt": "Tue Aug 04 21:22:30 +0000 2026",
+    "createdTimestamp": 1785878550,
+    "likes": 209,
+    "retweets": 9,
+    "replies": 7,
+    "bookmarks": 96,
+    "views": 43026,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HO6GxQJWUAAibro.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "optical"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-05T03:31:55.851Z"
+  },
+  {
+    "id": "2084751865074319767",
+    "url": "https://x.com/SemiAnalysis_/status/2084751865074319767",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Furthermore, Volta's contracted obligations are backed by a $1.3B letter-of-credit backstop, likely collateralized by an investment-grade counterparty. 5/6🧵",
+    "createdAt": "Tue Aug 04 21:22:32 +0000 2026",
+    "createdTimestamp": 1785878552,
+    "likes": 5,
+    "retweets": 0,
+    "replies": 1,
+    "bookmarks": 1,
+    "views": 8322,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-05T03:31:57.290Z"
+  },
+  {
+    "id": "2084751866089410914",
+    "url": "https://x.com/SemiAnalysis_/status/2084751866089410914",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "To learn more, check out our Datacenter Model, which covers BitDeer, and our AI TCO Model, which covers the economics of NeoClouds. 6/6🧵 \nhttps://semianalysis.com/ai-cloud-tco-model/ \nhttps://semianalysis.com/datacenter-industry-model/",
+    "createdAt": "Tue Aug 04 21:22:32 +0000 2026",
+    "createdTimestamp": 1785878552,
+    "likes": 7,
+    "retweets": 0,
+    "replies": 0,
+    "bookmarks": 4,
+    "views": 8436,
+    "isNoteTweet": false,
+    "linkedUrls": [
+      "https://semianalysis.com/ai-cloud-tco-model/",
+      "https://semianalysis.com/datacenter-industry-model/"
+    ],
+    "topics": [
+      "ai-cost"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-05T03:31:58.704Z"
+  },
+  {
+    "id": "2084731095665263006",
+    "url": "https://x.com/SemiAnalysis_/status/2084731095665263006",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "",
+    "createdAt": "Tue Aug 04 20:00:00 +0000 2026",
+    "createdTimestamp": 1785873600,
+    "likes": 328,
+    "retweets": 14,
+    "replies": 7,
+    "bookmarks": 35,
+    "views": 42649,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HO5lcmiWEAAXl5t.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-05T03:32:00.132Z"
+  },
+  {
+    "id": "2084837427768705514",
+    "url": "https://x.com/aaronburnett/status/2084837427768705514",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Cleaned up replay of the earnings call. Second listen is a good idea.",
+    "createdAt": "Wed Aug 05 03:02:31 +0000 2026",
+    "createdTimestamp": 1785898951,
+    "likes": 13,
+    "retweets": 3,
+    "replies": 0,
+    "bookmarks": 1,
+    "views": 849,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-05T03:32:02.842Z"
+  },
+  {
+    "id": "2084785312014741656",
+    "url": "https://x.com/aaronburnett/status/2084785312014741656",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Cern has the complete transcript with pictures. Very helpful… the insight that most won’t appreciate and likely overlook.\n\n“And then with respect to the Starmind AI satellite, which will be essentially an optimized Vera Rubin NVL72 computer, this is not some sort of far-future, distant thing, we expect to start launching these next year. And the -- we think the design of the  NVL72 computer is a much better design than is typical -- than say, having a standard rack-style design, and so we expect to actually deploy this on the ground as well as in orbit because we think it's going to be a radical simplification of the normal NVL72-rack. It will cost less, it will be more effective. And so if we're going to put it in space, why not want to put it on the ground? So I think that's going to be pretty cool.”",
+    "createdAt": "Tue Aug 04 23:35:26 +0000 2026",
+    "createdTimestamp": 1785886526,
+    "likes": 114,
+    "retweets": 15,
+    "replies": 2,
+    "bookmarks": 27,
+    "views": 8791,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "orbital-compute",
+      "gpu",
+      "optical"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-05T03:32:04.659Z"
+  },
+  {
+    "id": "2084779164003910094",
+    "url": "https://x.com/aaronburnett/status/2084779164003910094",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Well said",
+    "createdAt": "Tue Aug 04 23:11:00 +0000 2026",
+    "createdTimestamp": 1785885060,
+    "likes": 15,
+    "retweets": 1,
+    "replies": 0,
+    "bookmarks": 0,
+    "views": 2131,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-05T03:32:06.029Z"
+  },
+  {
+    "id": "2084763127535620350",
+    "url": "https://x.com/aaronburnett/status/2084763127535620350",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "congratulations to Elon, Gwynne, Bret and the team. I'm clearly biased but by far the most interesting and insightful earnings call. absolutely phenomenal",
+    "createdAt": "Tue Aug 04 22:07:17 +0000 2026",
+    "createdTimestamp": 1785881237,
+    "likes": 76,
+    "retweets": 5,
+    "replies": 2,
+    "bookmarks": 1,
+    "views": 1959,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-05T03:32:07.485Z"
+  },
+  {
+    "id": "2084759641594921083",
+    "url": "https://x.com/aaronburnett/status/2084759641594921083",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "guys, we get these every quarter. so much great insight.",
+    "createdAt": "Tue Aug 04 21:53:26 +0000 2026",
+    "createdTimestamp": 1785880406,
+    "likes": 94,
+    "retweets": 3,
+    "replies": 4,
+    "bookmarks": 3,
+    "views": 4706,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-05T03:32:08.912Z"
+  },
+  {
+    "id": "2084756707847123098",
+    "url": "https://x.com/aaronburnett/status/2084756707847123098",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "imagine these numbers but global eventually.",
+    "createdAt": "Tue Aug 04 21:41:46 +0000 2026",
+    "createdTimestamp": 1785879706,
+    "likes": 57,
+    "retweets": 3,
+    "replies": 2,
+    "bookmarks": 3,
+    "views": 5853,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-05T03:32:10.356Z"
+  },
+  {
+    "id": "2084756473368764730",
+    "url": "https://x.com/aaronburnett/status/2084756473368764730",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "obvious to anyone who's been paying attention tbh",
+    "createdAt": "Tue Aug 04 21:40:50 +0000 2026",
+    "createdTimestamp": 1785879650,
+    "likes": 43,
+    "retweets": 1,
+    "replies": 4,
+    "bookmarks": 0,
+    "views": 2213,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-05T03:32:11.837Z"
+  },
+  {
+    "id": "2084748439187751207",
+    "url": "https://x.com/aaronburnett/status/2084748439187751207",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Elon is a big loyalty guy. Doesn't take a move like this lightly. there are a lot of options out there, but he's choosing Nvidia. He expects a high % of Rubin allocation and is co-designing starmind 'racks' (both terrestrial and space). Jensen and Elon are aligned.",
+    "createdAt": "Tue Aug 04 21:08:55 +0000 2026",
+    "createdTimestamp": 1785877735,
+    "likes": 109,
+    "retweets": 7,
+    "replies": 8,
+    "bookmarks": 3,
+    "views": 3578,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-05T03:32:13.257Z"
+  },
+  {
+    "id": "2084747306679549992",
+    "url": "https://x.com/aaronburnett/status/2084747306679549992",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "the future of AI probably involves both Nvidia and SpaceX.",
+    "createdAt": "Tue Aug 04 21:04:25 +0000 2026",
+    "createdTimestamp": 1785877465,
+    "likes": 31,
+    "retweets": 2,
+    "replies": 5,
+    "bookmarks": 1,
+    "views": 2364,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-05T03:32:14.694Z"
+  },
+  {
+    "id": "2084742901892825102",
+    "url": "https://x.com/aaronburnett/status/2084742901892825102",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "I can't get rid of this dumb grin. listening in on an actual SpaceX earnings call. \n\nhttps://x.com/i/broadcasts/1XxyggqBZZRGM",
+    "createdAt": "Tue Aug 04 20:46:55 +0000 2026",
+    "createdTimestamp": 1785876415,
+    "likes": 103,
+    "retweets": 5,
+    "replies": 6,
+    "bookmarks": 10,
+    "views": 3117,
+    "isNoteTweet": false,
+    "linkedUrls": [
+      "https://x.com/i/broadcasts/1XxyggqBZZRGM"
+    ],
+    "topics": [
+      "mach33",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-05T03:32:16.137Z"
+  },
+  {
+    "id": "2084742046485487694",
+    "url": "https://x.com/aaronburnett/status/2084742046485487694",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "elon says a simplification of the NVL 72 rack",
+    "createdAt": "Tue Aug 04 20:43:31 +0000 2026",
+    "createdTimestamp": 1785876211,
+    "likes": 2,
+    "retweets": 0,
+    "replies": 0,
+    "bookmarks": 0,
+    "views": 485,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-05T03:32:17.560Z"
+  },
+  {
+    "id": "2084741678762459285",
+    "url": "https://x.com/aaronburnett/status/2084741678762459285",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Exclusive to Nvidia is a big reveal!\n\n\"Closed multiple industry-leading Cloud Services Agreements resulting in $14.1 billion of contracted sales\"",
+    "createdAt": "Tue Aug 04 20:42:03 +0000 2026",
+    "createdTimestamp": 1785876123,
+    "likes": 27,
+    "retweets": 3,
+    "replies": 2,
+    "bookmarks": 2,
+    "views": 1715,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-05T03:32:19.019Z"
+  },
+  {
+    "id": "2084740620606726518",
+    "url": "https://x.com/aaronburnett/status/2084740620606726518",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "this is incredible. co-designed racks with the same design for both earth and space. who does this? \n\ntoken efficiency doesn't care about where it lives.",
+    "createdAt": "Tue Aug 04 20:37:51 +0000 2026",
+    "createdTimestamp": 1785875871,
+    "likes": 75,
+    "retweets": 6,
+    "replies": 5,
+    "bookmarks": 3,
+    "views": 3216,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-05T03:32:20.585Z"
   }
 ]
