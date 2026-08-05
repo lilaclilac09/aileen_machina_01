@@ -3,6 +3,7 @@
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { SYSTEM_PROMPT_LITE } from '../lib/agentContextLite';
 import {
   getBrowserAgentAvailability,
@@ -339,6 +340,7 @@ export default function AgentChat() {
   // if present — triggers an auto-send. detail.voice / detail.autoListen arm
   // the orb. ask is captured via a ref refreshed on every render.
   const askRef = useRef<((text: string) => void) | null>(null);
+  const startOrbListenRef = useRef<(() => Promise<void>) | null>(null);
 
   const unlockMic = useCallback(async () => {
     try {
@@ -430,11 +432,17 @@ export default function AgentChat() {
     return () => window.removeEventListener('open-agent-chat', handler);
   }, [setMessages]);
 
-  // Soft wake: lightweight continuous Web Speech while Console is closed
-  // and mic has been unlocked once (Speak / voice / Summon chip).
+  // Soft wake while Console is closed after mic unlock.
+  // Desktop: continuous SR. Safari/iOS: non-continuous + new instance on end (same as orb).
+  // Both paths stay armed — phone can still say Aileena after Summon, or tap Voice→orb.
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (open || !summonArmed) return;
+    const ua = navigator.userAgent || '';
+    const safariLike =
+      /iPad|iPhone|iPod/i.test(ua) ||
+      (/Safari/i.test(ua) && !/Chrome|Chromium|Edg|OPR|Firefox/i.test(ua)) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     const SR =
       (window as Window & {
         SpeechRecognition?: new () => SpeechRecognition;
@@ -446,61 +454,84 @@ export default function AgentChat() {
 
     let stopped = false;
     let restartTimer = 0;
-    const rec = new SR();
-    rec.continuous = true;
-    rec.interimResults = true;
-    rec.lang = 'en-US';
+    let rec: SpeechRecognition | null = null;
 
-    rec.onresult = (ev: SpeechRecognitionEvent) => {
-      let finalText = '';
-      for (let i = ev.resultIndex; i < ev.results.length; i++) {
-        if (!ev.results[i].isFinal) continue;
-        const piece = (ev.results[i][0]?.transcript || '').trim();
-        if (piece) finalText += (finalText ? ' ' : '') + piece;
-      }
-      if (!finalText || !WAKE_RE.test(finalText)) return;
-      summonConsole(finalText);
-    };
-
-    rec.onend = () => {
+    const begin = () => {
       if (stopped || openRef.current || !summonArmed) return;
-      restartTimer = window.setTimeout(() => {
+      if (rec) {
         try {
-          rec.start();
+          rec.onend = null;
+          rec.onresult = null;
+          rec.onerror = null;
+          rec.stop();
         } catch {
           /* ignore */
         }
-      }, 200);
-    };
-
-    rec.onerror = (e: SpeechRecognitionErrorEvent) => {
-      if (e.error === 'no-speech' || e.error === 'aborted') return;
-    };
-
-    try {
-      rec.start();
-    } catch {
-      /* ignore */
-    }
-
-    return () => {
-      stopped = true;
-      clearTimeout(restartTimer);
+        rec = null;
+      }
+      const next = new SR();
+      rec = next;
+      next.continuous = !safariLike;
+      next.interimResults = true;
+      next.lang = 'en-US';
+      next.onresult = (ev: SpeechRecognitionEvent) => {
+        let finalText = '';
+        for (let i = ev.resultIndex; i < ev.results.length; i++) {
+          if (!ev.results[i].isFinal) continue;
+          const piece = (ev.results[i][0]?.transcript || '').trim();
+          if (piece) finalText += (finalText ? ' ' : '') + piece;
+        }
+        if (!finalText || !WAKE_RE.test(finalText)) return;
+        summonConsole(finalText);
+      };
+      next.onend = () => {
+        if (stopped || openRef.current || !summonArmed) return;
+        restartTimer = window.setTimeout(() => {
+          if (safariLike) begin();
+          else {
+            try {
+              next.start();
+            } catch {
+              begin();
+            }
+          }
+        }, safariLike ? 220 : 200);
+      };
+      next.onerror = (e: SpeechRecognitionErrorEvent) => {
+        if (e.error === 'no-speech' || e.error === 'aborted') return;
+      };
       try {
-        rec.onend = null;
-        rec.stop();
+        next.start();
       } catch {
         /* ignore */
       }
     };
+
+    begin();
+
+    return () => {
+      stopped = true;
+      clearTimeout(restartTimer);
+      if (rec) {
+        try {
+          rec.onend = null;
+          rec.stop();
+        } catch {
+          /* ignore */
+        }
+      }
+    };
   }, [open, summonArmed, summonConsole]);
 
-  // Focus input when opened.
+  // Focus input when opened — skip on touch so iOS keyboard does not cover Console.
   useEffect(() => {
-    if (open) {
-      const t = setTimeout(() => inputRef.current?.focus(), 60);
-      return () => clearTimeout(t);
-    }
+    if (!open || typeof window === 'undefined') return;
+    const coarse =
+      window.matchMedia('(pointer: coarse)').matches ||
+      window.matchMedia('(hover: none)').matches;
+    if (coarse) return;
+    const t = setTimeout(() => inputRef.current?.focus(), 60);
+    return () => clearTimeout(t);
   }, [open]);
 
   // ──────────────── Auto-forward transcript to Aileen ────────────────
@@ -1065,12 +1096,16 @@ export default function AgentChat() {
               borderColor: summonArmed ? 'rgba(0,168,157,0.45)' : 'rgba(255,253,248,0.2)',
               backdropFilter: 'blur(8px)',
             }}
-            title={summonArmed ? 'Listening for Aileena' : 'Allow mic, then say Aileena'}
+            title={
+              summonArmed
+                ? 'Wake armed — say Aileena (desktop/Safari best-effort) or open Console → Voice'
+                : 'Allow mic once to arm wake + voice'
+            }
           >
-            {summonArmed ? 'summon armed' : 'summon'}
+            {summonArmed ? 'wake armed' : 'summon'}
           </button>
           <p className="font-mono text-[0.5rem] tracking-[0.14em] uppercase text-[#fffdf8]/55 px-0.5 leading-4">
-            Say Aileena to summon
+            Say Aileena · or Voice → orb
           </p>
         </div>
       )}
@@ -1140,23 +1175,29 @@ export default function AgentChat() {
             <button
               type="button"
               onClick={() => {
-                setVoiceMode((v) => {
-                  const next = !v;
-                  if (!next) {
+                void (async () => {
+                  const turningOff = voiceMode;
+                  if (turningOff) {
+                    setVoiceMode(false);
                     setInput('');
                     setVoiceLive('');
                     setAutoListen(false);
-                    return next;
+                    return;
                   }
-                  void unlockMic();
-                  return next;
-                });
+                  const ok = await unlockMic();
+                  // Mount orb in this click turn so Safari can start SR in-chain.
+                  flushSync(() => {
+                    setVoiceMode(true);
+                    setAutoListen(true);
+                  });
+                  if (ok) await startOrbListenRef.current?.();
+                })();
               }}
               aria-label={voiceMode ? 'Turn voice off' : 'Turn voice on'}
               title={
                 voiceMode
-                  ? 'Voice on — speak to the orb · say Aileena to summon when closed'
-                  : 'Turn on voice (allow mic) · Say Aileena to summon'
+                  ? 'Voice on — speak, or tap the orb again'
+                  : 'Turn on voice (allow mic). Phone: tap orb if needed. Desktop: say Aileena when closed.'
               }
               className="inline-flex items-center gap-1 text-[0.55rem] tracking-[0.2em] uppercase px-1.5 py-0.5 rounded transition-colors"
               style={{
@@ -1216,14 +1257,16 @@ export default function AgentChat() {
               <p className="text-[0.78rem] leading-5 text-[#1b1713]/55 mb-3">
                 {voiceMode ? (
                   <>
-                    Tap the <span className="text-[#008f86]">orb</span> and speak. Or type below.
+                    Speak now, or tap the <span className="text-[#008f86]">orb</span>. When Console is
+                    closed, Summon + say <span className="text-[#008f86]">Aileena</span> also works.
                   </>
                 ) : (
                   <>
-                    Tap <span className="text-[#008f86]">Voice</span>, then the{' '}
-                    <span className="text-[#008f86]">orb</span> to talk. Or say{' '}
-                    <span className="text-[#008f86]">Aileena</span> after arming Summon.
-                    Soft hints stay kind — mist, not cruelty.
+                    Tap <span className="text-[#008f86]">Voice</span> (then the{' '}
+                    <span className="text-[#008f86]">orb</span> if needed). Or arm{' '}
+                    <span className="text-[#008f86]">Summon</span> and say{' '}
+                    <span className="text-[#008f86]">Aileena</span>. Soft hints stay kind — mist, not
+                    cruelty.
                     <span className="hidden sm:inline">
                       {' '}Say <span className="text-[#008f86]">fix</span> /{' '}
                       <span className="text-[#008f86]">implement</span> /{' '}
@@ -1385,6 +1428,9 @@ export default function AgentChat() {
           disabled={sessionMaxed}
           speakText={voiceSpeakReady ? lastAssistant.text : ''}
           speakId={voiceSpeakReady ? lastAssistant.id : ''}
+          onRegisterStart={(start) => {
+            startOrbListenRef.current = start;
+          }}
           onLiveCaption={(text) => {
             setVoiceLive(text);
             if (text) setInput(text);

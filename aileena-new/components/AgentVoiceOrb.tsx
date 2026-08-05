@@ -30,6 +30,8 @@ type Props = {
   onLiveCaption?: (text: string, isFinal: boolean) => void;
   onAsk: (text: string) => void;
   onListeningChange?: (listening: boolean) => void;
+  /** Parent registers startListening to call inside a user-gesture click chain (Safari). */
+  onRegisterStart?: (start: () => Promise<void>) => void;
 };
 
 const WAKE_STRIP_RE = /^(hey\s+)?aileena\b[,!.?]?\s*/i;
@@ -93,6 +95,7 @@ export default function AgentVoiceOrb({
   onLiveCaption,
   onAsk,
   onListeningChange,
+  onRegisterStart,
 }: Props) {
   // Default tts:false — live Production often has no ElevenLabs; browser voice must work first.
   const [caps, setCaps] = useState<Caps>({ whisper: false, tts: false, mode: 'webspeech' });
@@ -795,13 +798,23 @@ export default function AgentVoiceOrb({
   }, [onListeningChange, pushCaption, stopOpenAiListen, stopPlayback, stopWebSpeech]);
 
   useEffect(() => {
+    onRegisterStart?.(startListening);
+  }, [onRegisterStart, startListening]);
+
+  useEffect(() => {
     if (!active && listening) stopListening();
   }, [active, listening, stopListening]);
 
-  // Voice summon: when Console opens with autoListen, start mic once.
+  // Voice summon / Voice toggle: start mic when requested.
+  // Prefer parent calling startListening inside the same click chain (onRegisterStart).
+  // Effect path still runs for desktop summon; Safari may need a follow-up orb tap.
   useEffect(() => {
     if (!active || !autoListen || disabled || listening) return;
-    void startListening();
+    void startListening().then(() => {
+      if (!listeningRef.current && isSafariUa()) {
+        setHint('Tap orb to speak');
+      }
+    });
   }, [active, autoListen, disabled, listening, startListening]);
 
   useEffect(() => {
