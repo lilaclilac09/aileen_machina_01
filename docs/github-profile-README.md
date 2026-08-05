@@ -25,7 +25,7 @@ DeFi propagation research & hardware supply chain analysis. Writing about why th
 ---
 
 ### Recently Updated
-<!-- profile:synced-at 2026-08-05T07:49:01.766Z -->
+<!-- profile:synced-at 2026-08-05T11:59:09.181Z -->
 <!-- profile:recently-updated:start -->
 * **[aileena.xyz](https://aileena.xyz) Console**: Durable agent chat forwards, and Console voice orb + soft Shanghai auntie TTS.
 * **[polar-lab](https://github.com/lilaclilac09/polar-lab)**: Self-correcting agent loop (act → critic → adjust), Polar Lab recent work (three packs at 1.000), Polar-native harness for 0.5B + LoRA, and Cafe/SEMIS miss polish + full-attn LoRA: holdout 1.000.
