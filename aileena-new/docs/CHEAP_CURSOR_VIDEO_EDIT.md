@@ -1,175 +1,169 @@
-# Cheap Cursor Video Edit — playbook
+# First cut: editing with AI tools I built myself
 
-**Scope of this doc.** How we built a *local*, rule-based event-recap editor in this repo; how it differs from Premiere-style cutting; how to tune it; what “quality” and “story coherence” mean here; and what we do *not* have yet (real face detection). It is written so the next Cafe / IRL event can reuse the same engine without rediscovering the loop.
-
-**Not in scope.** Cloud upload, Remotion-required motion graphics, paid edit APIs, or a claim that v1 looks like a finished trailer.
-
-**One-line meme (honest).** First time editing videos with AI tools I built myself — and they gave me a slide deck, in chronological order. Amazing. This playbook is how that stack works, and how to make the next cut less Keynote.
+*Cheap Cursor Video Edit — Cafe Cursor Shanghai, and the loop we reuse next time.*
 
 ---
 
-## 1. What this is
+## Scope
 
-A Mac-local pipeline inspired by the **agent-writes-JSON-EDL → ffmpeg executes** pattern popularized for Claude Code video work (see [References](#9-references)):
+This article explains **one local video stack** in the Machina repo: how it was built, what it deliberately is not, how it differs from ordinary NLE cutting, how to tune a recap, and how we talk about quality, story, and faces without lying.
+
+**In scope**
+
+- The reusable engine under `aileena-new/lib/video-edit/`
+- The event project under `aileena-new/scripts/video-edit/`
+- Operator knobs in `project.json`
+- Honest limits (slideshow failure mode, no face CV yet)
+
+**Out of scope**
+
+- Cloud upload of event media
+- Remotion as a hard dependency
+- Paid “AI editor” APIs
+- Claiming v1 looked like a finished trailer
+
+**Line we earned the hard way**
+
+> First time editing videos with AI tools I built myself.  
+> And they gave me a slide — in chronological order.  
+> Amazing.
+
+The rest of this piece is how that machine works, who we cite for the pattern, and how the next event avoids Keynote energy.
+
+---
+
+## The idea (and who we cite)
+
+Ordinary editors live on a timeline. You scrub, mark in/out, grade by eye, export.
+
+A different pattern showed up in agentic coding: **write the edit as data, then let ffmpeg execute it.** Transcribe or score takes, pick windows, dump a JSON edit decision list, cut segments, concat, verify like a build. That shape is what we mean when the repo says *Thariq-style local loop* — after **Thariq Shihipar (Anthropic)** and the public walkthrough of how Fable’s launch video was cut with Claude Code → Whisper → JSON → ffmpeg (see References).
+
+Our Cafe Cursor Shanghai cut is a **cheaper cousin** of that idea:
+
+- Heuristic planner instead of a full agent rewrite every night  
+- Folder tags instead of deep vision  
+- Remotion optional later; rough cut is ffmpeg only  
+- Media never leaves the Mac  
+
+Loop:
 
 ```text
-drop media → catalog → (optional Whisper) → plan (JSON EDL) → ffmpeg → verify → human watch
+drop media → stage → catalog → (optional Whisper) → plan (JSON EDL) → ffmpeg → verify → human watch
 ```
 
-| Piece | Path |
-|-------|------|
-| Reusable engine | [`aileena-new/lib/video-edit/`](../lib/video-edit/) |
-| Event project + CLI | [`aileena-new/scripts/video-edit/`](../scripts/video-edit/) |
-| Beat / grade / brand knobs | [`scripts/video-edit/project.json`](../scripts/video-edit/project.json) |
-| Architecture notes | [`scripts/video-edit/ARCHITECTURE.md`](../scripts/video-edit/ARCHITECTURE.md) |
-| Operator README (中文 steps) | [`scripts/video-edit/README.md`](../scripts/video-edit/README.md) |
-
-**Source of truth for a cut:** `work/final-edit.json` (schema v1 EDL), not a Premiere project file.
-
-**Constraint:** media stays on the machine. No upload step in the happy path.
+Source of truth for a cut: `work/final-edit.json`, not a Premiere project.
 
 ---
 
-## 2. How the repo piece was made (reuse for the next event)
+## How we built it in this repo
 
-1. **Keep the engine** — `lib/video-edit/` (ingest, tags, heuristic planner, ffmpeg render, Zod QC).
-2. **Fork the project folder** — copy or edit `scripts/video-edit/project.json`: `id`, `title`, `date`, `hashtag`, `url`, `mediaDropFolder`, `beats[]`, `output.grade`, `brand`.
-3. **Folders = labels** — put priority media where tags are cheap:
-   - Final timelapse → `takes/timelapse/` (or filename with `延时` / `timelapse`)
-   - Smiles / people stills → `photos/smiles/`, `photos/girls/`, `photos/guys/`
-   - Other video / photo → `takes/`, `photos/`
-4. **Stage** — `bash scripts/video-edit/stage-media.sh` then `--go` (DJI-aware; skips `._*`).
-5. **Run** — `pnpm video:recap` (or `catalog` → `plan` → `render` → `verify`).
-6. **Watch** — `out/<filename>.mp4` + optional `edit-room.html` for feedback, not as an NLE.
+Two layers:
 
-```mermaid
-flowchart LR
-  Drop[Media drop] --> Stage[stage-media.sh]
-  Stage --> Catalog[catalog.json]
-  Catalog --> Plan[final-edit.json]
-  Plan --> Cuts[cuts/seg-NNN.mp4]
-  Cuts --> Out[out/*.mp4]
-  Out --> QC[verify-report.json]
-```
+| Layer | Where | Job |
+|-------|--------|-----|
+| Engine | `lib/video-edit/` | Probe, tag, plan, render, Zod QC |
+| Project | `scripts/video-edit/` | One event’s `project.json`, takes, photos, out |
+
+**Folders are labels.** Put the finale in `takes/timelapse/` (or name it `延时` / `timelapse`). Put people stills in `photos/smiles/`, `photos/girls/`, `photos/guys/`. Staging (`stage-media.sh`) bins Downloads; catalog writes `work/catalog.json`; the planner fills beats under time budgets; render writes `cuts/seg-*.mp4` and concatenates to `out/*.mp4`; verify writes `verify-report.json`.
+
+Reuse for the next IRL night: keep the engine, edit `project.json` (id, title, date, hashtag, beats, grade), replace media, stage, `pnpm video:recap`.
 
 ---
 
-## 3. vs ordinary editing
+## What is different from “normal” editing
 
-| Ordinary NLE | This stack |
-|--------------|------------|
-| Human watches every take | Heuristic scores + path/filename tags |
-| Continuous timeline drag | Discrete clips + beat budgets |
-| Binary / proprietary project | Diffable JSON EDL |
-| Face / smile by eye | **No face model today** — folder + filename tags only |
-| Story by editor judgment | Fixed beat skeleton (title → … → timelapse → outro) |
-| Quality = “does it feel right?” | Machine QC = duration / streams / resolution; look = human |
+| Manual NLE | This stack |
+|------------|------------|
+| Taste on every frame | Scores + path/filename tags |
+| Continuous timeline | Discrete clips + beat quotas |
+| Opaque project file | Diffable JSON EDL |
+| Faces by eye | **No face model** — bins and names only |
+| Story by the editor | Fixed skeleton: open → vibe → demos → product → community → **timelapse** → outro |
+| “Does it feel right?” | Machine checks duration / streams / 1080p; look is still human |
 
-**Collage model.** Manual edit is a continuum. Here collage is Lego: quotas fill beats; leftovers can flood `community` into a chronological stills slideshow (the “amazing slides” failure mode). Fix with quotas, not with hoping the model “gets taste.”
+**Collage.** In Premiere, collage is continuous. Here it is Lego. Quotas fill beats. If `community` absorbs too many leftovers, you get the meme: a chronological stills deck with Ken Burns. That is not “AI narrative.” That is a budget bug. Fix quotas (`photoQuota`, `photoDuration_s`, `leftoverMaxExtra_s`), do not wait for vibes.
 
-**Tools.**
+**Tools in the loop:** ffmpeg/ffprobe (only renderer), Node + tsx + Zod, optional local Whisper, bash staging. Premiere stays available *after* the rough cut.
 
-| Tool | Role |
+---
+
+## How to adjust without reopening Premiere
+
+| Goal | Move |
 |------|------|
-| ffmpeg / ffprobe | Probe, Ken Burns, grade, cut, concat — **only renderer** |
-| Node + tsx + Zod | Orchestration + EDL validation |
-| whisper CLI (optional) | Local transcripts to boost take scores |
-| bash `stage-media` | Binning instead of manual bins |
-| Premiere / FCP / Resolve | Optional *after* rough cut |
-
-Remotion is intentionally **not** required for the rough cut (same EDL could feed a Composer later).
-
----
-
-## 4. How to adjust
-
-| Want | Knob |
-|------|------|
-| Shorter / less “PPT” | Lower `beats[].photoQuota`, `planner.photoDuration_s`, `leftoverMaxExtra_s`; set `absorbLeftovers` carefully |
-| More people energy | Put stills in `photos/smiles/` (and girls/guys); check planner bonuses in `project.json` |
-| Force real finale | File in `takes/timelapse/` or name with `延时` / `timelapse`; `forceFinalTimelapse: true` |
-| Color (less blue / less yellow) | `output.grade` — `eq` + `colorbalance`; reduce `*Blue` if skin goes cyan |
-| Audio | `keepAudio`, fades; timelapse often silent by design |
-| Re-plan only | `pnpm video:plan` |
-| Re-grade / re-render only | `pnpm video:render && pnpm video:verify` |
-| Full loop | `pnpm video:recap` |
+| Less slideshow | Cut photo quotas and leftover seconds; re-plan |
+| More smiles / people | Put files in the right photo bins; check planner bonuses |
+| Real finale | Real `延时` file in `takes/timelapse/`; `forceFinalTimelapse` |
+| Color (too blue / too yellow) | `output.grade` — pull `*Blue` down if skin goes cyan |
+| Audio | `keepAudio` + fades; timelapse often silent |
+| Rules only | `pnpm video:plan` |
+| Grade / pixels only | `pnpm video:render` |
+| Everything | `pnpm video:recap` |
 
 ---
 
-## 5. Quality — what we guarantee vs what we don’t
+## Quality: machine vs human
 
-**Machine (already in repo)**
+**Machine already does:** Zod on the EDL, missing-source checks, duration drift, presence of video/audio, resolution, smoke without a full drop.
 
-- Zod on EDL before render
-- Sources exist on disk
-- `verify-report.json`: expected vs actual duration, has video/audio, 1920×1080
-- `pnpm video:smoke` without a full media drop
+**Machine does not do:** beauty, emotion, “is this the right smile,” “does this feel like Cafe.”
 
-**Human checklist (required before sharing)**
+**Before you share, a human still checks:**
 
-- [ ] Title / outro show real text (not a blank brand-color bar — brew ffmpeg may fail SVG raster)
-- [ ] Finale is the real timelapse, not a random DJI take
-- [ ] Community does not feel like Keynote
-- [ ] Skin / room color not crushed cyan or muddy yellow
-- [ ] Soft public copy only (no credit-swap talk)
-
-QC does **not** score beauty, smiles, or narrative emotion.
+1. Title and outro show **text**, not a blank brand bar (brew ffmpeg often cannot rasterize SVG cards).  
+2. Finale is the **real** timelapse, not a random DJI clip that sorted first.  
+3. Middle section is not Keynote.  
+4. Grade is not crushed cyan or muddy yellow.  
+5. Soft public copy only.
 
 ---
 
-## 6. Story coherence — how far it goes
+## Story coherence (the honest version)
 
-**Coherence here = a fixed narrative skeleton**, not an LLM screenwriter:
+Coherence here means a **fixed beat spine**, not an LLM screenwriter:
 
-`brand_open → place → guest_demos → soft_product → community → timelapse_finale → brand_close`
+`brand open → place → guest energy → soft product → community → timelapse finale → close`
 
-Within beats: quotas, `max_s` trimming, smile-first then girls/guys mix, forced timelapse before outro.
+Inside a beat: quotas, `max_s` trim, smile-first then mixed people, forced finale before outro. Optional Whisper can help score talky takes; it does not write voiceover.
 
-**Not implemented:** shot-to-shot semantic matching, emotion curves, multi-camera person tracking, automatic “best smile” CV.
-
-Optional Whisper improves *take* scoring when speech density helps; it does not write VO.
+We do **not** have shot-to-shot semantic matching, emotion curves, or person tracking across cameras.
 
 ---
 
-## 7. Faces / smiles — current vs later
+## Faces — what we pretend vs what we have
 
-**Current.** No OpenCV / Vision / landmark model. Tags in [`lib/video-edit/planning/tags.ts`](../lib/video-edit/planning/tags.ts) from path + filename (`smile`, `girls`, `guys`, `timelapse`, …). Quality lever: **put the right stills in the right folders.**
+We do not run face detection. “Smile” and “girls/guys” are **path and filename tags** (see `planning/tags.ts`). The quality lever is boring and real: put the right stills in the right folders.
 
-**Later (interface only — not built).** Catalog fields like `faceScore` / `smileScore` → planner bonuses; local-only detectors to keep the no-upload rule; QC check “≥ N face-bearing stills.”
-
----
-
-## 8. Formats
-
-| Artifact | Format |
-|----------|--------|
-| Event config | `project.json` |
-| Media inventory | `work/catalog.json` |
-| Edit decision list | `work/final-edit.json` (schema v1) |
-| Title / outro cards | `work/cards/*.svg` |
-| Segments | `work/cuts/seg-*.mp4` |
-| Concat list | `work/concat.txt` |
-| QC | `work/verify-report.json` |
-| Delivery | `out/*.mp4` (H.264 + AAC, default 1080p) |
+Later, if AI Lab grows this stack: catalog scores (`faceScore` / `smileScore`), local-only detectors (no upload), QC gates like “at least N face-bearing stills.” Not built yet.
 
 ---
 
-## 9. References
+## Formats worth remembering
 
-1. **Thariq Shihipar (Anthropic)** — *How Fable Edited Its Own Video* (Claude Code / agent loop: Whisper → JSON edit list → ffmpeg → verify). Deck: [thariqs.github.io/cc-video-editing-deck](https://thariqs.github.io/cc-video-editing-deck/). This repo’s `lib/video-edit` comments and [`ARCHITECTURE.md`](../scripts/video-edit/ARCHITECTURE.md) call the same shape a “Thariq-style local loop”; our Cafe cut is a **cheaper, heuristic, Remotion-optional** cousin for IRL recap media, not a reimplementation of Fable’s launch edit.
-2. **FFmpeg** — [ffmpeg.org](https://ffmpeg.org/) — cut, grade (`eq` / `colorbalance`), `zoompan`, concat.
-3. **OpenAI Whisper** (optional local CLI) — transcript anchors for take scoring when installed.
-4. **Zod** — runtime EDL / catalog / QC schemas in `lib/video-edit/domain/schemas.ts`.
+`project.json` → `catalog.json` → **`final-edit.json` (EDL)** → `cards/*.svg` → `cuts/seg-*.mp4` → `concat.txt` → `verify-report.json` → **`out/*.mp4`**.
 
 ---
 
-## 10. Minimum checklist for the next event
+## References
 
-1. Copy / edit `project.json` metadata and beats.  
-2. Clear or replace `takes/` + `photos/`.  
-3. Stage from Downloads → confirm timelapse + smile bins.  
+1. **Thariq Shihipar (Anthropic).** *How Fable Edited Its Own Video* — agent loop: Whisper → JSON edit list → ffmpeg → verify. Deck: [thariqs.github.io/cc-video-editing-deck](https://thariqs.github.io/cc-video-editing-deck/). Our architecture notes name this a Thariq-style loop; Cafe recap is a heuristic, Remotion-optional cousin for IRL media, not a port of Fable’s launch edit.  
+2. **FFmpeg** — [ffmpeg.org](https://ffmpeg.org/) — cut, `eq` / `colorbalance`, `zoompan`, concat.  
+3. **OpenAI Whisper** (optional local CLI) — transcript anchors for take scoring.  
+4. **Zod** — EDL / catalog / QC schemas in `lib/video-edit/domain/schemas.ts`.
+
+---
+
+## Next event, minimum path
+
+1. Edit `project.json` for the new night.  
+2. Replace `takes/` and `photos/`.  
+3. Stage; confirm timelapse + smile bins.  
 4. `pnpm video:recap`.  
-5. Run the human checklist in §5.  
-6. If it still looks like chronological slides: cut photo quotas first, then re-plan.
+5. Run the human checklist.  
+6. If it still looks like chronological slides — cut photo budget first, then re-plan.
 
-**Planned home on Machina:** a future **AI Lab** section (`/ai-lab`) for this write-up and sibling experiments — separate from the `/tools` arcade.
+**On Machina later:** this write-up belongs in a new **AI Lab** section (`/ai-lab`), separate from the `/tools` arcade — experiments and “how we built it,” not only utilities.
+
+---
+
+*Operator steps in Chinese live in [`scripts/video-edit/README.md`](../scripts/video-edit/README.md). Layout detail: [`ARCHITECTURE.md`](../scripts/video-edit/ARCHITECTURE.md).*
