@@ -1,6 +1,8 @@
 # Cheap Cursor Edit — Architecture
 
-Thariq-style local loop for Cafe Cursor Shanghai (and future events):
+Long-form playbook (scope, reuse, QC, references): [`docs/CHEAP_CURSOR_VIDEO_EDIT.md`](../../docs/CHEAP_CURSOR_VIDEO_EDIT.md).
+
+Thariq-style local loop for Cafe Cursor Shanghai (and future events) — named after **Thariq Shihipar (Anthropic)**’s Claude Code → JSON EDL → ffmpeg pattern ([deck](https://thariqs.github.io/cc-video-editing-deck/)):
 
 **catalog → optional Whisper → plan (JSON EDL) → ffmpeg render → verify → edit-room feedback**
 
