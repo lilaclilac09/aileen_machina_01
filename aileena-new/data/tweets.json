@@ -8460,5 +8460,101 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-05T03:32:20.585Z"
+  },
+  {
+    "id": "2085003474463269011",
+    "url": "https://x.com/SemiAnalysis_/status/2085003474463269011",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Satya Nadella recently cited Morgan Stanley’s ROIC report as demonstrating the returns are there for Token As a Service (TaaS) businesses – a 31% ROIC for Hyperscaler IaaS business and another 46% ROIC at the TaaS layer! (1/4)\nhttps://x.com/pequityresearch/status/2081845228022182194?s=12",
+    "createdAt": "Wed Aug 05 14:02:20 +0000 2026",
+    "createdTimestamp": 1785938540,
+    "likes": 56,
+    "retweets": 6,
+    "replies": 1,
+    "bookmarks": 52,
+    "views": 14062,
+    "isNoteTweet": false,
+    "linkedUrls": [
+      "https://x.com/pequityresearch/status/2081845228022182194?s=12"
+    ],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-05T14:32:37.467Z"
+  },
+  {
+    "id": "2085003478074601652",
+    "url": "https://x.com/SemiAnalysis_/status/2085003478074601652",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "However – they seem to have backed into the correct answer anyway thanks to another error in figuring the invested capital! A $12.1/W NOPAT and a 31% ROIC works out to an invested capital of $40.3/W. However – they got there by assuming $23/W of IT Capex and about ~$16/W of Datacenter Capex. The problem with this is that useful life is very different for Datacenter Capex and IT Capex - 5 to 6 years for IT equipment and 15 years for a Datacenter. If we were to run this business model for the full 15 years’ useful life of a Datacenter – one would incur three tranches of IT Capex (5 year useful life) and only one tranche of Datacenter capex (15-year useful life), and hence ROICs would be even higher! (3/4)",
+    "createdAt": "Wed Aug 05 14:02:21 +0000 2026",
+    "createdTimestamp": 1785938541,
+    "likes": 7,
+    "retweets": 2,
+    "replies": 1,
+    "bookmarks": 7,
+    "views": 4636,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [
+      "ai-cost"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-05T14:32:38.904Z"
+  },
+  {
+    "id": "2085003479416754482",
+    "url": "https://x.com/SemiAnalysis_/status/2085003479416754482",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Instead – we suggest that analysts go with $38/W for IT Capex but rather than use the full $14/W for Datacenter capex, instead only factoring cost for 5 out of the 15 years of useful life – so about $4.7/W for a grand total of ~$43/W. This will only drop ROIC slightly from what MS had – down to about ~28%. (4/4)\n\nBTW – thanks to Brian Nowak and the MS team for the shoutout to SemiAnalysis InferenceX as their source for token throughput – but next time please don’t forget to capitalize the “A” – it’s SemiAnalysis not Semianalysis!",
+    "createdAt": "Wed Aug 05 14:02:21 +0000 2026",
+    "createdTimestamp": 1785938541,
+    "likes": 9,
+    "retweets": 1,
+    "replies": 0,
+    "bookmarks": 5,
+    "views": 3052,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [
+      "inference",
+      "ai-cost"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-05T14:32:40.315Z"
+  },
+  {
+    "id": "2084989072968176076",
+    "url": "https://x.com/aaronburnett/status/2084989072968176076",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Good question should we do a SpaceX post call call? Happy to if street thinks it’s helpful.",
+    "createdAt": "Wed Aug 05 13:05:06 +0000 2026",
+    "createdTimestamp": 1785935106,
+    "likes": 28,
+    "retweets": 2,
+    "replies": 6,
+    "bookmarks": 0,
+    "views": 1643,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-05T14:32:43.836Z"
   }
 ]
