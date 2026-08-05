@@ -1,7 +1,5 @@
 # First cut: editing with AI tools I built myself
 
-*Cheap Cursor Video Edit — Cafe Cursor Shanghai, and the loop we reuse next time.*
-
 ---
 
 ## Scope
