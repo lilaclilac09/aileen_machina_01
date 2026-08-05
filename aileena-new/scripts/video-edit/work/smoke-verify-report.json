@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "projectId": "cafe-cursor-shanghai-20260719",
+  "generatedAt": "2026-08-04T13:38:41.238Z",
+  "ok": true,
+  "edlPath": "/workspace/aileena-new/scripts/video-edit/work/final-edit.json",
+  "outputPath": "/workspace/aileena-new/scripts/video-edit/out/cafe-cursor-shanghai-recap.mp4",
+  "expectedDuration_s": 18.2,
+  "actualDuration_s": 18.233333,
+  "hasVideo": true,
+  "hasAudio": true,
+  "width": 1920,
+  "height": 1080,
+  "checks": [
+    {
+      "id": "edl-has-enabled-clips",
+      "ok": true,
+      "detail": "expected timeline ~18.20s"
+    },
+    {
+      "id": "media-present",
+      "ok": true,
+      "detail": "media referenced in EDL"
+    },
+    {
+      "id": "sources-exist",
+      "ok": true,
+      "detail": "all sources found"
+    },
+    {
+      "id": "output-exists",
+      "ok": true,
+      "detail": "/workspace/aileena-new/scripts/video-edit/out/cafe-cursor-shanghai-recap.mp4"
+    },
+    {
+      "id": "output-has-video",
+      "ok": true,
+      "detail": "video stream present"
+    },
+    {
+      "id": "output-has-audio-stream",
+      "ok": true,
+      "detail": "audio stream present (may be silence on cards)"
+    },
+    {
+      "id": "duration-near-expected",
+      "ok": true,
+      "detail": "actual=18.23s expected≈18.20s drift=0.03s"
+    },
+    {
+      "id": "resolution",
+      "ok": true,
+      "detail": "1920x1080 (want 1920x1080)"
+    }
+  ],
+  "notes": []
+}

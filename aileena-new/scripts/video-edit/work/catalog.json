@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "projectId": "cafe-cursor-shanghai-20260719",
+  "generatedAt": "2026-08-04T13:47:07.456Z",
+  "rootRel": ".",
+  "assets": [],
+  "notes": [
+    "NO MEDIA YET — drop files into takes/ and photos/ (or: bash scripts/video-edit/stage-media.sh)",
+    "Priority summary: girls_photos=0 timelapse_videos=0"
+  ]
+}
