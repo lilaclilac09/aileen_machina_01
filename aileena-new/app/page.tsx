@@ -14,6 +14,7 @@ import Header from '../components/Header';
 import LoadingScreen from '../components/LoadingScreen';
 import GlassBench from '../components/GlassBench';
 import { SnapContainer, SnapSection } from '../components/SnapScroll';
+import { TornScrap } from '../components/zine/TornScrap';
 import { useLanguage } from '../components/LanguageProvider';
 import { t } from '../lib/translations';
 import { ALL_ISSUES } from '../lib/research/issues';
@@ -549,6 +550,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
     if (id === 'woman-cover-print') return 'rotate(2.4deg)';
     if (id === 'machina-polaroid') return 'rotate(3.2deg)';
     if (id === 'didion-scrap') return 'rotate(-2.8deg)';
+    if (id === 'zine-clipping') return 'rotate(-4.6deg)';
     return String(rooms.find((room) => room.id === id)?.placement.transform ?? '');
   };
   const paint = (node: HTMLElement, id: string, x: number, y: number) => {
@@ -565,11 +567,13 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
     String(
       id === 'machina-polaroid'
         ? 16
-        : id === 'woman-cover-print'
-          ? 8
-          : id === 'didion-scrap'
-            ? 9
-            : rooms.find((r) => r.id === id)?.placement.zIndex ?? 1,
+        : id === 'zine-clipping'
+          ? 10
+          : id === 'woman-cover-print'
+            ? 8
+            : id === 'didion-scrap'
+              ? 9
+              : rooms.find((r) => r.id === id)?.placement.zIndex ?? 1,
     );
   const finishDrag = (pointerId: number, moved: boolean) => {
     const drag = dragStateRef.current;
@@ -762,38 +766,79 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 style={{
                   display: 'block',
                   width: '100%',
-                  minHeight: 220,
                   marginTop: 8,
                   padding: 0,
                   border: 'none',
                   outline: 'none',
-                  backgroundImage: "url('/dispatch-covers/harassment.jpg')",
-                  backgroundPosition: '48% 42%',
-                  backgroundSize: 'cover',
-                  backgroundRepeat: 'no-repeat',
+                  background: 'transparent',
                   boxShadow: 'none',
                   textDecoration: 'none',
-                  position: 'relative',
-                  overflow: 'hidden',
                 }}
               >
-                <span
-                  style={{
-                    position: 'absolute',
-                    left: 12,
-                    bottom: 12,
-                    padding: '4px 8px',
-                    background: 'rgba(20,17,12,0.72)',
-                    color: '#fffdf8',
-                    fontFamily: mono,
-                    fontSize: '0.52rem',
-                    fontWeight: 850,
-                    letterSpacing: '0.14em',
-                    textTransform: 'uppercase',
-                  }}
+                <TornScrap
+                  face="photo"
+                  accent="blue"
+                  tape
+                  style={{ width: '100%', aspectRatio: '16 / 10' }}
+                  accentStyle={{ top: '8%', left: '-4%', right: 'auto', width: '36%', height: '34%', transform: 'rotate(-12deg)' }}
                 >
-                  woman in tech archive →
-                </span>
+                  <span
+                    aria-hidden
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      backgroundImage: "url('/dispatch-covers/harassment.jpg')",
+                      backgroundPosition: '48% 42%',
+                      backgroundSize: 'cover',
+                      backgroundRepeat: 'no-repeat',
+                    }}
+                  />
+                  <span
+                    style={{
+                      position: 'absolute',
+                      left: 14,
+                      bottom: 14,
+                      zIndex: 2,
+                      color: '#fffdf8',
+                      fontFamily: 'Georgia, serif',
+                      fontSize: '0.95rem',
+                      fontStyle: 'italic',
+                      textShadow: '0 1px 10px rgba(0,0,0,0.5)',
+                    }}
+                  >
+                    essay
+                  </span>
+                </TornScrap>
+              </Link>
+
+              <Link
+                href="/updates"
+                aria-label="Open Metal & Pages — zine scrap"
+                className="text-left"
+                style={{
+                  display: 'block',
+                  width: 'min(72%, 240px)',
+                  margin: '8px auto 0',
+                  padding: 0,
+                  border: 'none',
+                  background: 'transparent',
+                  textDecoration: 'none',
+                  transform: 'rotate(-2.4deg)',
+                }}
+              >
+                <TornScrap face="photo" grain="soft" tape style={{ width: '100%', aspectRatio: '3 / 4' }}>
+                  <span
+                    aria-hidden
+                    style={{
+                      position: 'absolute',
+                      inset: '-2%',
+                      backgroundImage: "url('/zine/essay-scrap.jpg')",
+                      backgroundPosition: '50% 42%',
+                      backgroundSize: 'cover',
+                      backgroundRepeat: 'no-repeat',
+                    }}
+                  />
+                </TornScrap>
               </Link>
 
               <button
@@ -816,22 +861,24 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 }}
                 onClick={() => window.dispatchEvent(new CustomEvent('open-agent-chat'))}
               >
-                <span
-                  aria-hidden
-                  style={{
-                    display: 'block',
-                    width: '100%',
-                    aspectRatio: '3 / 4',
-                    margin: 0,
-                    padding: 0,
-                    border: 'none',
-                    backgroundImage: "url('/bg_pic/03.jpeg')",
-                    backgroundPosition: '36% 14%',
-                    backgroundSize: 'cover',
-                    backgroundRepeat: 'no-repeat',
-                    boxShadow: 'none',
-                  }}
-                />
+                <TornScrap
+                  face="photo"
+                  accent="teal"
+                  style={{ width: '100%', aspectRatio: '3 / 4' }}
+                  accentStyle={{ top: 'auto', bottom: '-4%', right: '-6%', width: '48%', height: '22%', transform: 'rotate(14deg)' }}
+                >
+                  <span
+                    aria-hidden
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      backgroundImage: "url('/bg_pic/03.jpeg')",
+                      backgroundPosition: '36% 14%',
+                      backgroundSize: 'cover',
+                      backgroundRepeat: 'no-repeat',
+                    }}
+                  />
+                </TornScrap>
                 <span
                   style={{
                     marginTop: 8,
@@ -934,7 +981,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               margin: 0,
               border: 'none',
               outline: 'none',
-              background: '#0b0b0b',
+              background: 'transparent',
               boxShadow: 'none',
               cursor: dragMeCursor,
               transform: dragTransform('woman-cover-print', 'rotate(2.4deg)'),
@@ -943,32 +990,39 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               userSelect: 'none',
               zIndex: 8,
               textDecoration: 'none',
-              overflow: 'hidden',
             }}
             {...dragHandlers('woman-cover-print')}
           >
-            <BleedPhoto
-              src="/dispatch-covers/harassment.jpg"
-              position="48% 38%"
-              filter="contrast(1.05) saturate(0.92)"
-              overlay="linear-gradient(180deg, transparent 55%, rgba(20,17,12,0.58) 100%)"
-            />
-            <span
-              style={{
-                position: 'absolute',
-                left: 10,
-                bottom: 12,
-                zIndex: 1,
-                color: '#fffdf8',
-                fontFamily: 'Georgia, serif',
-                fontSize: '0.95rem',
-                fontStyle: 'italic',
-                textShadow: '0 1px 10px rgba(0,0,0,0.5)',
-                pointerEvents: 'none',
-              }}
+            <TornScrap
+              face="photo"
+              accent="blue"
+              tape
+              style={{ width: '100%', height: '100%' }}
+              accentStyle={{ top: '6%', left: '-8%', right: 'auto', width: '44%', height: '32%', transform: 'rotate(-14deg)' }}
             >
-              essay
-            </span>
+              <BleedPhoto
+                src="/dispatch-covers/harassment.jpg"
+                position="48% 38%"
+                filter="contrast(1.05) saturate(0.92)"
+                overlay="linear-gradient(180deg, transparent 55%, rgba(20,17,12,0.58) 100%)"
+              />
+              <span
+                style={{
+                  position: 'absolute',
+                  left: 10,
+                  bottom: 12,
+                  zIndex: 2,
+                  color: '#fffdf8',
+                  fontFamily: 'Georgia, serif',
+                  fontSize: '0.95rem',
+                  fontStyle: 'italic',
+                  textShadow: '0 1px 10px rgba(0,0,0,0.5)',
+                  pointerEvents: 'none',
+                }}
+              >
+                essay
+              </span>
+            </TornScrap>
           </Link>
 
           <Link
@@ -984,7 +1038,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               margin: 0,
               border: 'none',
               outline: 'none',
-              background: '#0b0b0b',
+              background: 'transparent',
               boxShadow: 'none',
               cursor: dragMeCursor,
               transform: dragTransform('didion-scrap', 'rotate(-2.8deg)'),
@@ -993,32 +1047,89 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               userSelect: 'none',
               zIndex: 9,
               textDecoration: 'none',
-              overflow: 'hidden',
             }}
             {...dragHandlers('didion-scrap')}
           >
-            <BleedPhoto
-              src="/dispatch-covers/books-joan-didion-readings.jpg"
-              position="50% 18%"
-              filter="saturate(0.88) contrast(1.04)"
-              overlay="linear-gradient(180deg, transparent 50%, rgba(20,17,12,0.6) 100%)"
-            />
-            <span
-              style={{
-                position: 'absolute',
-                left: 10,
-                bottom: 10,
-                zIndex: 1,
-                color: '#fffdf8',
-                fontFamily: 'Georgia, serif',
-                fontSize: '0.9rem',
-                fontStyle: 'italic',
-                textShadow: '0 1px 10px rgba(0,0,0,0.45)',
-                pointerEvents: 'none',
-              }}
+            <TornScrap
+              face="photo"
+              accent="amber"
+              style={{ width: '100%', height: '100%' }}
+              accentStyle={{ top: 'auto', bottom: '-8%', right: '-10%', width: '55%', height: '30%', transform: 'rotate(18deg)' }}
             >
-              reading
-            </span>
+              <BleedPhoto
+                src="/dispatch-covers/books-joan-didion-readings.jpg"
+                position="50% 18%"
+                filter="saturate(0.88) contrast(1.04)"
+                overlay="linear-gradient(180deg, transparent 50%, rgba(20,17,12,0.6) 100%)"
+              />
+              <span
+                style={{
+                  position: 'absolute',
+                  left: 10,
+                  bottom: 10,
+                  zIndex: 2,
+                  color: '#fffdf8',
+                  fontFamily: 'Georgia, serif',
+                  fontSize: '0.9rem',
+                  fontStyle: 'italic',
+                  textShadow: '0 1px 10px rgba(0,0,0,0.45)',
+                  pointerEvents: 'none',
+                }}
+              >
+                reading
+              </span>
+            </TornScrap>
+          </Link>
+
+          <Link
+            href="/updates"
+            aria-label="Open Metal & Pages — zine clipping poster"
+            className="absolute z-[10] hidden md:block"
+            style={{
+              top: '42%',
+              left: `calc(${atriumPolaroidLeft} + clamp(24px, 3vw, 48px))`,
+              width: 'min(11vw, 118px)',
+              height: 'clamp(150px, 20dvh, 178px)',
+              padding: 0,
+              margin: 0,
+              border: 'none',
+              outline: 'none',
+              background: 'transparent',
+              boxShadow: 'none',
+              cursor: dragMeCursor,
+              transform: dragTransform('zine-clipping', 'rotate(-4.6deg)'),
+              transition: 'transform 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+              touchAction: 'none',
+              userSelect: 'none',
+              zIndex: 10,
+              textDecoration: 'none',
+            }}
+            {...dragHandlers('zine-clipping')}
+          >
+            <TornScrap face="photo" grain="soft" tape style={{ width: '100%', height: '100%' }}>
+              <BleedPhoto
+                src="/zine/clipping-desk.jpg"
+                position="50% 40%"
+                filter="contrast(1.02) saturate(0.95)"
+              />
+              <span
+                style={{
+                  position: 'absolute',
+                  left: 8,
+                  bottom: 10,
+                  zIndex: 2,
+                  color: 'rgba(20,17,12,0.72)',
+                  fontFamily: mono,
+                  fontSize: '0.48rem',
+                  fontWeight: 800,
+                  letterSpacing: '0.16em',
+                  textTransform: 'uppercase',
+                  pointerEvents: 'none',
+                }}
+              >
+                zine
+              </span>
+            </TornScrap>
           </Link>
 
           <button
@@ -1048,28 +1159,18 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               window.dispatchEvent(new CustomEvent('open-agent-chat'));
             }}
           >
-            <span
-              aria-hidden
-              style={{
-                position: 'relative',
-                display: 'block',
-                width: '100%',
-                aspectRatio: '3 / 4',
-                margin: 0,
-                padding: 0,
-                border: 'none',
-                outline: 'none',
-                background: '#0b0b0b',
-                boxShadow: 'none',
-                overflow: 'hidden',
-              }}
+            <TornScrap
+              face="photo"
+              accent="teal"
+              style={{ width: '100%', aspectRatio: '3 / 4' }}
+              accentStyle={{ top: 'auto', bottom: '-6%', right: '-8%', width: '52%', height: '24%', transform: 'rotate(16deg)' }}
             >
               <BleedPhoto
                 src="/bg_pic/03.jpeg"
                 position="34% 8%"
                 filter="saturate(0.94) contrast(1.04)"
               />
-            </span>
+            </TornScrap>
             <span
               style={{
                 display: 'block',
@@ -1195,20 +1296,22 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           padding: '4px 0 12px',
         }}
       >
-        <span
-          style={{
-            position: 'relative',
-            zIndex: 1,
-            display: 'block',
-            width: atriumArticleWidth,
-            minHeight: 'clamp(240px, 32dvh, 300px)',
-            padding: 'clamp(20px, 2.8dvh, 28px) clamp(16px, 2.6vw, 24px) clamp(16px, 2.4dvh, 22px)',
-            background:
-              'linear-gradient(165deg, #ffffff 0%, #fffdf8 55%, #f7f1e8 100%)',
-            boxShadow: 'none',
-            border: 'none',
-          }}
+        <TornScrap
+          face="paper"
+          grain="soft"
+          tape
+          style={{ width: atriumArticleWidth }}
+          tapeStyle={{ top: 8, left: '22%', width: '56%', transform: 'rotate(1.5deg)' }}
         >
+          <span
+            style={{
+              position: 'relative',
+              zIndex: 1,
+              display: 'block',
+              minHeight: 'clamp(240px, 32dvh, 300px)',
+              padding: 'clamp(20px, 2.8dvh, 28px) clamp(16px, 2.6vw, 24px) clamp(16px, 2.4dvh, 22px)',
+            }}
+          >
           <span
             style={{
               display: 'flex',
@@ -1295,7 +1398,8 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           >
             {room.blurb}
           </span>
-        </span>
+          </span>
+        </TornScrap>
         <span
           aria-hidden
           style={{
@@ -1333,18 +1437,15 @@ function ObjectFace({ room }: { room: RoomDoor }) {
 
   if (room.motif === 'investing') {
     return (
-      <span
+      <TornScrap
+        face="photo"
+        accent="teal"
         style={{
-          position: 'relative',
           display: 'block',
           width: 'min(34vw, 220px)',
           minHeight: 200,
-          overflow: 'hidden',
-          border: 'none',
-          outline: 'none',
-          background: '#0b0b0b',
-          boxShadow: 'none',
         }}
+        accentStyle={{ top: '-4%', right: '-6%', width: '40%', height: '26%', transform: 'rotate(-10deg)' }}
       >
         <BleedPhoto
           src="/dispatch-covers/investing-hero.jpg"
@@ -1374,7 +1475,7 @@ function ObjectFace({ room }: { room: RoomDoor }) {
             investing
           </span>
         </span>
-      </span>
+      </TornScrap>
     );
   }
 
@@ -1517,18 +1618,14 @@ function ObjectFace({ room }: { room: RoomDoor }) {
   if (room.motif === 'hbm') {
     return (
       <span style={thumbnailShellStyle}>
-        <span
-          aria-hidden
+        <TornScrap
+          face="photo"
+          accent="amber"
           style={{
-            position: 'relative',
             display: 'block',
             height: 220,
-            overflow: 'hidden',
-            borderRadius: 0,
-            background: '#0b0b0b',
-            border: 'none',
-            boxShadow: 'none',
           }}
+          accentStyle={{ top: 'auto', bottom: '-6%', left: '-8%', right: 'auto', width: '46%', height: '28%', transform: 'rotate(-16deg)' }}
         >
           <BleedPhoto
             src="/dispatch-covers/investing-hero.jpg"
@@ -1541,7 +1638,7 @@ function ObjectFace({ room }: { room: RoomDoor }) {
               position: 'absolute',
               left: 14,
               bottom: 14,
-              zIndex: 1,
+              zIndex: 2,
               color: '#fffdf8',
               fontFamily: 'Georgia, serif',
               fontSize: '1.05rem',
@@ -1551,7 +1648,7 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           >
             magazine
           </span>
-        </span>
+        </TornScrap>
       </span>
     );
   }
@@ -1559,18 +1656,14 @@ function ObjectFace({ room }: { room: RoomDoor }) {
   if (room.motif === 'pcb') {
     return (
       <span style={thumbnailShellStyle}>
-        <span
-          aria-hidden
+        <TornScrap
+          face="photo"
+          accent="teal"
           style={{
-            position: 'relative',
             display: 'block',
             height: 220,
-            overflow: 'hidden',
-            borderRadius: 0,
-            background: '#0b0b0b',
-            border: 'none',
-            boxShadow: 'none',
           }}
+          accentStyle={{ top: '4%', right: '-10%', width: '38%', height: '30%', transform: 'rotate(12deg)' }}
         >
           <BleedPhoto
             src="/projects/keyshield.png"
@@ -1583,7 +1676,7 @@ function ObjectFace({ room }: { room: RoomDoor }) {
               position: 'absolute',
               left: 16,
               bottom: 16,
-              zIndex: 1,
+              zIndex: 2,
               color: '#fffdf8',
               fontFamily: 'Georgia, serif',
               fontSize: '1.05rem',
@@ -1593,7 +1686,7 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           >
             news
           </span>
-        </span>
+        </TornScrap>
       </span>
     );
   }
