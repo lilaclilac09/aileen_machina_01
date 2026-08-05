@@ -1,0 +1,21 @@
+---
+description: Keep GitHub profile README (Recently Updated / Added) fresh daily
+alwaysApply: true
+---
+
+# GitHub profile README — daily sync
+
+Profile draft lives at `docs/github-profile-README.md` (append-only vs live `lilaclilac09/lilaclilac09`).
+
+## Automation
+
+- Workflow: `.github/workflows/github-profile-readme-sync.yml` — cron `0 10 * * *` UTC + `workflow_dispatch`
+- Script: `node scripts/sync-github-profile-readme.mjs` (rewrites marker blocks from last 14d merged PRs)
+- Optional secret `PROFILE_README_TOKEN`: PAT with `contents:write` on `lilaclilac09/lilaclilac09` to push the live profile README
+
+## When an agent touches this
+
+1. After meaningful merges (Console / polar-lab / Cafe Cursor / memory), run `node scripts/sync-github-profile-readme.mjs` and commit if changed.
+2. Do **not** rewrite Featured Dispatch / Research & Builds / Process & Precision unless the user asks — only refresh marked Recently* sections (or append bullets).
+3. English only; match `**Name**: prose` style.
+4. Live profile push still needs `PROFILE_README_TOKEN` or App install on `lilaclilac09/lilaclilac09` — without it, update the draft + tell the user to paste.

@@ -1,26 +1,35 @@
 # GitHub profile README sync
 
 **Target:** [`lilaclilac09/lilaclilac09`](https://github.com/lilaclilac09/lilaclilac09) → `README.md`  
-**Drop-in file:** [`github-profile-README.md`](./github-profile-README.md)
+**Draft:** [`github-profile-README.md`](./github-profile-README.md)
 
-## Why this lives here
+## Daily automation
 
-Cloud Agent GitHub App for this environment only has write access to `aileen_machina_01`. Profile repo pushes return `403` for `cursor[bot]`.
+| Piece | Path |
+|-------|------|
+| Cron | `.github/workflows/github-profile-readme-sync.yml` — `0 10 * * *` UTC |
+| Script | `node scripts/sync-github-profile-readme.mjs` |
+| Markers | `<!-- profile:recently-updated:* -->` / `<!-- profile:recently-added:* -->` |
 
-## Apply (one paste)
+Manual run:
 
-1. Open https://github.com/lilaclilac09/lilaclilac09/edit/main/README.md
-2. Replace the whole file with the contents of `docs/github-profile-README.md`
-3. Commit on `main` (or open a PR in the profile repo)
+```bash
+node scripts/sync-github-profile-readme.mjs --dry-run
+node scripts/sync-github-profile-readme.mjs
+gh workflow run github-profile-readme-sync.yml
+```
 
-Keep `keyshield.md` in the profile repo — Featured Dispatch links to it.
+## Push live profile (optional)
 
-## Diff vs live profile (append-only)
+Cloud Agent / `GITHUB_TOKEN` cannot write `lilaclilac09/lilaclilac09` (403).
 
-Keeps existing Featured Dispatch / Research & Builds / Process & Precision text.
+1. Create a fine-grained PAT with **Contents: Read and write** on `lilaclilac09/lilaclilac09`
+2. Add repo secret **`PROFILE_README_TOKEN`** on `aileen_machina_01`
+3. Next daily run (or `workflow_dispatch`) also updates the live profile README
 
-Appended:
+Without the secret, the workflow still refreshes `docs/github-profile-README.md` on this repo.
 
-- **Research & Builds** — `polar-lab` bullet
-- **Stack** — `, LoRA post-training`
-- **Recently Updated** + **Recently Added** sections (before footer)
+## Append-only policy
+
+Keep Featured Dispatch / Research & Builds / Process & Precision unless explicitly asked.
+Only the marked Recently* blocks are auto-rewritten.

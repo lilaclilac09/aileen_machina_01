@@ -25,14 +25,20 @@ DeFi propagation research & hardware supply chain analysis. Writing about why th
 ---
 
 ### Recently Updated
-* **[aileena.xyz](https://aileena.xyz) Console**: Aileena summon, soft oracle, Prophecy Hall, Shanghai|London voice accents, Safari/iOS STT·TTS hardening, voice-code (DeepSeek propose-only), and durable agent chat forwards (list, resend, 6h cron).
-* **[polar-lab](https://github.com/lilaclilac09/polar-lab)**: Self-correcting agent loop (plan → act → critic → adjust), Machina orb voice surface, and Cafe/SEMIS/Space LoRA packs with holdout `exact_match` 1.000.
+<!-- profile:synced-at 2026-08-05T07:49:01.766Z -->
+<!-- profile:recently-updated:start -->
+* **[aileena.xyz](https://aileena.xyz) Console**: Durable agent chat forwards, and Console voice orb + soft Shanghai auntie TTS.
+* **[polar-lab](https://github.com/lilaclilac09/polar-lab)**: Self-correcting agent loop (act → critic → adjust), Polar Lab recent work (three packs at 1.000), Polar-native harness for 0.5B + LoRA, and Cafe/SEMIS miss polish + full-attn LoRA: holdout 1.000.
 * **Cafe Cursor**: Credits distribution and user support tooling at [cursor-cafe.aileena.xyz](https://cursor-cafe.aileena.xyz).
+* **Machina memory**: How the Site Remembers — Machina memory essay, and watchlist-only RSS ingest + Dreaming.
+<!-- profile:recently-updated:end -->
 
 ### Recently Added
+<!-- profile:recently-added:start -->
 * **[polar-lab](https://github.com/lilaclilac09/polar-lab)**: Owned-weight post-training playground — SFT (LoRA) → DPO → RL scaffold → holdout eval → chat on `Qwen2.5-0.5B-Instruct`.
-* **Console voice-code**: Orb voice to DeepSeek propose-only patches without Cursor API tokens, with visitor quota and live eval gates.
 * **Machina memory**: Site memory loop and *[How the Site Remembers](https://aileena.xyz/blog/machina-memory)* dispatch — Dreaming reports plus watchlist-only RSS ingest.
+* **Console voice-code**: Orb voice to DeepSeek propose-only patches without Cursor API tokens, with visitor quota and live eval gates.
+<!-- profile:recently-added:end -->
 
 ---
 

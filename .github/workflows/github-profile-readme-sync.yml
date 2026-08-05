@@ -1,0 +1,52 @@
+name: GitHub profile README sync
+
+# Daily refresh of docs/github-profile-README.md from recent merged PRs.
+# Optional: set repo secret PROFILE_README_TOKEN (PAT with contents:write on
+# lilaclilac09/lilaclilac09) to also push the live GitHub profile README.
+
+on:
+  schedule:
+    # 10:00 UTC daily (≈ 18:00 CST)
+    - cron: '0 10 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: github-profile-readme-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Sync profile README from recent merges
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROFILE_README_TOKEN: ${{ secrets.PROFILE_README_TOKEN }}
+        run: node scripts/sync-github-profile-readme.mjs
+
+      - name: Commit if changed
+        run: |
+          git config user.name "aileena-profile-bot"
+          git config user.email "bot@aileena.xyz"
+          git add docs/github-profile-README.md
+          if git diff --cached --quiet; then
+            echo "No profile README changes"
+          else
+            git commit -m "chore(profile-readme): daily sync [$(date -u +%Y-%m-%d)]"
+            git push
+            echo "Pushed docs/github-profile-README.md"
+          fi
