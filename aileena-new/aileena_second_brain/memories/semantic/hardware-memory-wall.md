@@ -10,9 +10,18 @@
 
 # Hardware — Memory Wall (SemiAnalysis lens)
 
-## Core claim
+## Two “Memory” tracks (do not conflate)
+
+| Track | What | Where |
+|-------|------|--------|
+| **Inference / agent** | KV cache, retrieval, Dreaming compression | this file |
+| **Industry DRAM/HBM** | SemiAnalysis reports, HBM4, CXMT/YMTC | `data/research/2026-08-semianalysis-dram-hbm-memory.md` |
+
+## Core claim (inference)
 
 HBM bandwidth is the binding constraint on modern AI accelerators. GPUs often stall waiting for weights + KV cache during **decode** (one token at a time, full weight + full KV read per step).
+
+Industry deep-dive (Semi public + models map): `data/research/2026-08-semianalysis-dram-hbm-memory.md` — Memory Wall (2024), Scaling HBM (2025), HBM4 custom base die, SPHBM4, CXMT/YMTC.
 
 ## Why external file memory helps
 

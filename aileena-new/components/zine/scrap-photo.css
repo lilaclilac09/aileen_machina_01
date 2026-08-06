@@ -1,0 +1,23 @@
+/* Desk scrap media — height follows the image; no cover crop shell. */
+.scrap-photo {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  background: transparent;
+}
+
+.scrap-photo__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: none;
+  vertical-align: top;
+}
+
+.scrap-photo__overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
