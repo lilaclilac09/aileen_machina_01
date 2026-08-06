@@ -1168,7 +1168,7 @@ const thumbnailShellStyle: CSSProperties = {
   boxShadow: 'none',
 };
 
-/** Persistent "drag me" label on every atrium scrap — must stay visible. */
+/** Persistent "drag me" label — mix-blend keeps it readable on light and dark. */
 function DragMeHint({ onDark = false }: { onDark?: boolean }) {
   return (
     <span
@@ -1179,14 +1179,15 @@ function DragMeHint({ onDark = false }: { onDark?: boolean }) {
         left: onDark ? 10 : 12,
         top: 8,
         zIndex: 6,
-        color: onDark ? 'rgba(255,253,248,0.92)' : 'rgba(20,17,12,0.82)',
+        // White + difference → black on cream/white, white on black photos.
+        color: '#fffdf8',
+        mixBlendMode: 'difference',
         fontFamily: 'Georgia, serif',
         fontSize: '1.05rem',
         fontStyle: 'italic',
         lineHeight: 1,
         pointerEvents: 'none',
         whiteSpace: 'nowrap',
-        textShadow: onDark ? '0 1px 8px rgba(0,0,0,0.55)' : '0 1px 0 rgba(255,253,248,0.65)',
       }}
     >
       drag me
