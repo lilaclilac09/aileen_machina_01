@@ -208,8 +208,12 @@ export default function MemoryTaxArticle() {
         />
         <p style={bodyStyle}>
           Huawei&apos;s question remains the fourth column we already wrote:{' '}
-          <strong style={strong}>stockpile burn versus CXMT HBM yield</strong>. That cell is still{' '}
-          <em>待填</em> month-by-month.
+          <strong style={strong}>stockpile burn versus CXMT HBM yield</strong>. That cell is now an
+          open public ledger —{' '}
+          <Link href="/blog/cxmt-yield-watch" style={inlineLink}>
+            CXMT HBM Yield Watch
+          </Link>
+          — anchors filled, monthly % still <em>待填</em>.
         </p>
 
         <SectionLabel>Two scorecards — do not merge</SectionLabel>
@@ -259,7 +263,10 @@ export default function MemoryTaxArticle() {
         <p style={bodyStyle}>
           If you only remember one firewall:{' '}
           <strong style={strong}>SPHBM4 ≠ SP-HBM</strong>. If you only remember one open cell:{' '}
-          <strong style={strong}>CXMT HBM monthly yield</strong>.
+          <Link href="/blog/cxmt-yield-watch" style={inlineLink}>
+            CXMT HBM monthly yield
+          </Link>
+          .
         </p>
 
         <SectionLabel>References</SectionLabel>

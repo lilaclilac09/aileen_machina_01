@@ -563,6 +563,12 @@ export const t = {
             body: 'Three SemiAnalysis threads, one naming trap. Tax 1 — wafer: HBM eats DRAM bits (TSV KOZ, sub-50μm thinning, stack yield ~92%/87% at 99%/layer). Tax 2 — substrate: SPHBM4 (JESD330-4) cuts pins ~1/5, runs 32 Gbps out to ~20 mm, forces 20–28+ layer ABF — CoWoS escape that moves the bill, not a free lunch. Naming firewall: SPHBM4 ≠ Google SP-HBM pooling. Tax 3 — CXMT: #4 DRAM, IPO +466% / ~$488B, not a near-term cycle-killer (CN ASP rises with the world). None of that resets Huawei\'s stockpile vs CXMT HBM yield clock. Survey vs Semi scorecards stay separate.',
           },
           {
+            date: '2026.08.06',
+            href: '/blog/cxmt-yield-watch',
+            title: 'CXMT HBM Yield Watch',
+            body: 'We open the empty cell: CXMT HBM yield / stacks as a dated public ledger. Anchors only — Semi ~2M stacks/yr thesis, TechNews ~5k→30k→55k HBM WPM path vs ~60k/20% alternate, ~25% 8Hi yield rumor vs <60% band, end-2026 HBM3 MP target, samples to Huawei. Conflicts kept side-by-side. Monthly % and stacks still 待填. WPM ≠ stacks. This is the Huawei Ascend hinge, not SPHBM4 and not YMTC.',
+          },
+          {
             date: '2026.07.28',
             href: '/blog/local-models',
             title: 'How I Fell for Local Models',
@@ -1310,6 +1316,12 @@ export const t = {
             href: '/blog/memory-tax',
             title: 'The Memory Tax Moves',
             body: 'Drei SemiAnalysis-Threads, eine Namensfalle. Steuer 1 — Wafer: HBM frisst DRAM-Bits (TSV-KOZ, sub-50μm, Stack-Yield ~92%/87% bei 99%/Lage). Steuer 2 — Substrate: SPHBM4 (JESD330-4) pin ~1/5, 32 Gbps bis ~20 mm, 20–28+ Lagen ABF — CoWoS-Entlastung verschiebt die Rechnung. Namensfirewall: SPHBM4 ≠ Google SP-HBM-Pooling. Steuer 3 — CXMT: #4 DRAM, IPO +466% / ~$488B, kein kurzfristiger Cycle-Killer. Nichts davon setzt Huaweis Stockpile-vs-CXMT-Yield-Uhr zurück. Survey- und Semi-Zahlen getrennt halten.',
+          },
+          {
+            date: '2026.08.06',
+            href: '/blog/cxmt-yield-watch',
+            title: 'CXMT HBM Yield Watch',
+            body: 'Wir öffnen die leere Zelle: CXMT-HBM-Yield/Stacks als datiertes öffentliches Ledger. Nur Anker — Semi ~2M Stacks/Jahr, TechNews ~5k→30k→55k HBM-WPM vs ~60k/20%-Alternative, ~25% 8Hi-Yield-Gerücht vs <60%-Band, HBM3-MP-Ziel Ende 2026, Samples an Huawei. Konflikte nebeneinander. Monatliche %/Stacks weiter 待填. WPM ≠ Stacks. Das ist Huaweis Ascend-Scharnier — nicht SPHBM4, nicht YMTC.',
           },
           {
             date: '2026.07.28',

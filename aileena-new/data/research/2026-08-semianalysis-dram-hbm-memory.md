@@ -368,12 +368,35 @@ Cross-links — Semi China memory coverage + Aileena corpus (not a substitute fo
 | **Observability gap** vs CXMT | CXMT 有 public tape；YMTC 仍难观测 | 可作对照标志 |
 | 明确边界 | **不救 Ascend HBM** | ✓ 本表 + 上表 Relation row |
 
-## 4.3 填表模板（CXMT yield — 复制行）
+## 4.3 CXMT HBM yield watch（公开锚点 — 不编造月度%）
+
+**Public twin:** [`/blog/cxmt-yield-watch`](https://aileena.xyz/blog/cxmt-yield-watch)（2026-08-06 开表）
+
+| As-of | Metric | Value | Source | Confidence |
+|-------|--------|-------|--------|------------|
+| 2025-09 | Annual stacks thesis | ~**2M**/yr → ~250–300K 910C | Semi Ascend → huawei-hbm | site ← Semi |
+| 2025-09 | Foreign stockpile | ~**13M** → ~1.6M 910C | same | site ← Semi |
+| 2025 YE est. | HBM wafer starts | ~**5k WPM** (&lt;2% of ~265k) | TechNews on filing read | secondary |
+| 2026 YE est. | HBM wafer starts | ~**30k WPM** (→ ~55k 2027 YE) | TechNews path | secondary |
+| 2026 alt. | HBM wafer allocation | ~**60k WPM** / ~20% of ~300k | DigitalToday chain | secondary — **conflicts** |
+| ~2026 mid | HBM3 8Hi yield est. | ~**25%** comprehensive | TechNews market est. | rumor / secondary |
+| ~2026 | Initial yield band alt. | **&lt;60%** vs leaders &gt;80% | LavX-class write-up | secondary — different band |
+| 2026 | MP target | HBM3 end-2026; samples to Huawei | Tom's / CNBC | quoted-secondary |
+| 2026-07 | IPO proceeds | Filing read: money → commodity DRAM, not HBM | TechNews | secondary |
+| 2026-06 | Cycle | Not near-term cycle-killer | Semi X `2071767…` | quoted |
+| **2026-08** | **Monthly yield %** | **待填** | — | open |
+| **2026-08** | **Monthly stacks** | **待填** | — | open |
+
+**规则：** WPM ≠ stacks；冲突行并置不平均；无日期来源不写假 %.
 
 ```
 | YYYY-MM | HBM gen | Yield % | Stacks shipped (est.) | Source | Notes |
 |---------|---------|---------|------------------------|--------|-------|
-|         |         | 待填    |                        |        |       |
+| 2026-08 | HBM3?   | 待填    | 待填                   | —      | watch opened |
+| 2026-09 |         | 待填    | 待填                   |        |        |
+| 2026-10 |         | 待填    | 待填                   |        |        |
+| 2026-11 |         | 待填    | 待填                   |        |        |
+| 2026-12 |         | 待填    | 待填                   |        | end-2026 MP check |
 ```
 
 # 5. Agent / ops pointers
@@ -385,7 +408,7 @@ Cross-links — Semi China memory coverage + Aileena corpus (not a substitute fo
 | Site Memory Wall (inference) | `aileena_second_brain/memories/semantic/hardware-memory-wall.md` |
 | Huawei × HBM × CXMT | `lib/research/huawei-hbm.ts` / `/research/huawei-hbm` |
 | YMTC Wuhan | `/blog/ymtc-nand-wuhan` |
-| **Public essay (own)** | `/blog/memory-tax` — tax moves wafer→substrate→cycle; SPHBM4≠SP-HBM |
+| **Public essay (own)** | `/blog/memory-tax` — tax moves; `/blog/cxmt-yield-watch` — yield ledger |
 | Social numbers / RSS | `data/social/` + Dreaming `social-changelog-*.md` |
 | Teachers dossier | `memories/semantic/analysts-dylan-aaron.md` |
 
@@ -393,7 +416,7 @@ Cross-links — Semi China memory coverage + Aileena corpus (not a substitute fo
 
 1. Paywall Memory Model / Accelerator-HBM: extract tables only if user pastes Grok/subscriber export (do not invent).
 2. ~~SPHBM4 + HBM wafer + CXMT deep threads~~ → **filed §3c** (roots `2029286…` / `2073036…` / `2071767…` / `2081749…`).
-3. **Fill §4.3** CXMT HBM monthly yield — single most leveraged China variable.
+3. ~~Fill §4.3 CXMT HBM monthly yield~~ → **watch opened** `/blog/cxmt-yield-watch` + §4.3 anchors; **monthly % / stacks still 待填**.
 4. Meta MI400 6×8Hi vs 12×12Hi: confirm against Accelerator Model SKU row when pasted.
 5. `@SKundojjala` first RSS/Grok backfill for WFE / Memory CapEx numbers.
 6. YMTC: fill §4.2 watch row blanks (IPO / layers / WPM) from next Semi or Caproasia hit.
