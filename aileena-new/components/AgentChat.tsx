@@ -322,6 +322,7 @@ export default function AgentChat() {
   // the orb. ask is captured via a ref refreshed on every render.
   const askRef = useRef<((text: string) => void) | null>(null);
   const startOrbListenRef = useRef<(() => Promise<void>) | null>(null);
+  const unlockOrbAudioRef = useRef<(() => void) | null>(null);
 
   const unlockMic = useCallback(async () => {
     try {
@@ -334,6 +335,20 @@ export default function AgentChat() {
       setInput('Mic blocked — allow microphone in the address bar');
       return false;
     }
+  }, []);
+
+  const isPhoneLike = useCallback(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      if (window.matchMedia('(pointer: coarse)').matches) return true;
+    } catch {
+      /* ignore */
+    }
+    const ua = navigator.userAgent || '';
+    return (
+      /iPad|iPhone|iPod/i.test(ua) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+    );
   }, []);
 
   useEffect(() => {
@@ -1013,20 +1028,24 @@ export default function AgentChat() {
                     setAutoListen(false);
                     return;
                   }
+                  const phone = isPhoneLike();
                   const ok = await unlockMic();
-                  // Mount orb in this click turn so Safari can start SR in-chain.
+                  // Mount orb in this click turn. Phones: do not autoListen
+                  // (Safari drops SR outside gesture) — user taps orb to speak.
                   flushSync(() => {
                     setVoiceMode(true);
-                    setAutoListen(true);
+                    setAutoListen(!phone);
                   });
-                  if (ok) await startOrbListenRef.current?.();
+                  // Warm HTMLAudio / speechSynthesis in this same gesture.
+                  unlockOrbAudioRef.current?.();
+                  if (ok && !phone) await startOrbListenRef.current?.();
                 })();
               }}
               aria-label={voiceMode ? 'Turn voice off' : 'Turn voice on'}
               title={
                 voiceMode
-                  ? 'Voice on — speak, or tap the orb again'
-                  : 'Tap Voice to unlock mic and talk'
+                  ? 'Voice on — tap the orb to speak'
+                  : 'Tap Voice, then tap the orb to speak (phone)'
               }
               className="inline-flex items-center gap-1 text-[0.55rem] tracking-[0.2em] uppercase px-1.5 py-0.5 rounded transition-colors"
               style={{
@@ -1081,13 +1100,13 @@ export default function AgentChat() {
               <p className="text-[0.78rem] leading-5 text-[#1b1713]/55 mb-3">
                 {voiceMode ? (
                   <>
-                    Speak now, or tap the <span className="text-[#008f86]">orb</span> if the mic
-                    didn&apos;t start.
+                    Tap the <span className="text-[#008f86]">orb</span> to speak. You should see a
+                    live caption, then hear the reply.
                   </>
                 ) : (
                   <>
-                    Tap <span className="text-[#008f86]">Voice</span> to unlock the mic and talk
-                    (phone: tap the <span className="text-[#008f86]">orb</span> if needed).
+                    Tap <span className="text-[#008f86]">Voice</span>, then tap the{' '}
+                    <span className="text-[#008f86]">orb</span> to speak (phone needs the orb tap).
                     <span className="hidden sm:inline">
                       {' '}Say <span className="text-[#008f86]">fix</span> /{' '}
                       <span className="text-[#008f86]">implement</span> /{' '}
@@ -1251,6 +1270,9 @@ export default function AgentChat() {
           speakId={voiceSpeakReady ? lastAssistant.id : ''}
           onRegisterStart={(start) => {
             startOrbListenRef.current = start;
+          }}
+          onRegisterUnlock={(unlock) => {
+            unlockOrbAudioRef.current = unlock;
           }}
           onLiveCaption={(text) => {
             setVoiceLive(text);
