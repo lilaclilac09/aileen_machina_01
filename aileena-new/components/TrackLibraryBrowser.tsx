@@ -781,16 +781,11 @@ function PlaylistCarousel({
             </span>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <span style={{
-              fontFamily: 'monospace', fontSize: '0.26rem', letterSpacing: '0.12em',
-              color: T.l3m, textTransform: 'uppercase',
-            }}>
-              Load
-            </span>
             {(['left', 'right'] as const).map((side) => (
               <button
                 key={side}
                 type="button"
+                data-dj-load-deck={side}
                 onClick={() => onLoadTrack?.(side, active)}
                 style={{
                   fontFamily: 'monospace',
@@ -806,7 +801,7 @@ function PlaylistCarousel({
                   cursor: 'pointer',
                 }}
               >
-                {side === 'left' ? 'A' : 'B'}
+                {side === 'left' ? 'Load A' : 'Load B'}
               </button>
             ))}
             {finePointer && (
