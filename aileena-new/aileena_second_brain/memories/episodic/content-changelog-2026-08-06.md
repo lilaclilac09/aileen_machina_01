@@ -2,13 +2,10 @@
 
 Auto-detected updates from site sources (`sync-content-memory`).
 
-## New channels
-
-- **Branch Education** (semis basics / YouTube) — /blog/semi-basics-review
-
 ## New articles
 
-- **Concepts You Think You Know** (2026.08.06) — https://aileena.xyz/blog/semi-basics-review
+- **CXMT HBM Yield Watch** (2026.08.06) — https://aileena.xyz/blog/cxmt-yield-watch
+- **The Memory Tax Moves** (2026.08.06) — https://aileena.xyz/blog/memory-tax
 
 ## Next step
 
