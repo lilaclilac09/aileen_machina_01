@@ -5089,11 +5089,11 @@
     "text": "CXMT just had the most absurd debut in semiconductor history. Priced at ¥8.66, opened at ¥49.50, closed +466% at ¥49. Market cap: ~$488B — bigger than Intel. A DRAM maker that didn't exist ten years ago. (1/2)🧵",
     "createdAt": "Mon Jul 27 14:30:16 +0000 2026",
     "createdTimestamp": 1785162616,
-    "likes": 91,
-    "retweets": 4,
-    "replies": 8,
-    "bookmarks": 15,
-    "views": 15242,
+    "likes": 758,
+    "retweets": 49,
+    "replies": 25,
+    "bookmarks": 118,
+    "views": 105367,
     "isNoteTweet": false,
     "mediaUrls": [
       "https://pbs.twimg.com/media/HOPbsZQXwAAF_fH.jpg?name=orig"
@@ -5102,7 +5102,7 @@
     "topics": [],
     "tags": [],
     "source": "fxtwitter",
-    "ingestedAt": "2026-07-27T15:13:05.591Z"
+    "ingestedAt": "2026-08-06T03:19:24.685Z"
   },
   {
     "id": "2081749013339017391",
@@ -5113,11 +5113,11 @@
     "text": "We saw this coming. Our deep dive last month broke down CXMT's rise from Qimonda's ashes to the world's #4 DRAM maker — the tech transfer, the Hefei patient capital, and the IPO math. (2/2)  \nhttps://newsletter.semianalysis.com/p/chinas-cxmt-is-set-to-challenge-dram",
     "createdAt": "Mon Jul 27 14:30:16 +0000 2026",
     "createdTimestamp": 1785162616,
-    "likes": 9,
-    "retweets": 0,
+    "likes": 64,
+    "retweets": 1,
     "replies": 1,
-    "bookmarks": 4,
-    "views": 6426,
+    "bookmarks": 22,
+    "views": 17225,
     "isNoteTweet": false,
     "linkedUrls": [
       "https://newsletter.semianalysis.com/p/chinas-cxmt-is-set-to-challenge-dram"
@@ -5125,7 +5125,7 @@
     "topics": [],
     "tags": [],
     "source": "fxtwitter",
-    "ingestedAt": "2026-07-27T15:13:07.002Z"
+    "ingestedAt": "2026-08-06T03:19:26.896Z"
   },
   {
     "id": "2081796919802703897",
@@ -8690,5 +8690,76 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-05T19:54:21.629Z"
+  },
+  {
+    "id": "2029286002745819255",
+    "url": "https://x.com/SemiAnalysis_/status/2029286002745819255",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "HBM consumes several times the wafer capacity per bit vs commodity DDR DRAM. This is driven by higher die sizes and compounding losses at every stage of manufacturing. The gap is widening as stacks go from 8-hi to 12-hi to 16-hi. It starts with die size. TSVs require dedicated keep-out zones that consume usable array area and inflate die dimensions. HBM dies are optimized for bandwidth, not density—materially fewer dies are harvested per wafer before yield even enters the picture. (1/3)🧵",
+    "createdAt": "Wed Mar 04 20:01:00 +0000 2026",
+    "createdTimestamp": 1772654460,
+    "likes": 198,
+    "retweets": 29,
+    "replies": 3,
+    "bookmarks": 91,
+    "views": 21417,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HCl43W2WEAAgFp1.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "optical"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-06T03:19:18.813Z"
+  },
+  {
+    "id": "2073036634094784720",
+    "url": "https://x.com/SemiAnalysis_/status/2073036634094784720",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "This last week JEDEC announced a new standard for SPHBM4: Standard Package High Bandwidth Memory (JESD330-4).\n\nIt utilizes the same DRAM stacks as HBM4, but swaps in a different buffer die. The goal? Enable HBM assembly in standard packaging and break the AI Advanced Packaging bottleneck. (1/6)🧵",
+    "createdAt": "Fri Jul 03 13:30:23 +0000 2026",
+    "createdTimestamp": 1783085423,
+    "likes": 272,
+    "retweets": 43,
+    "replies": 10,
+    "bookmarks": 186,
+    "views": 105186,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HMTn1PjWkAAsUhr.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-06T03:19:20.493Z"
+  },
+  {
+    "id": "2071767487662768547",
+    "url": "https://x.com/SemiAnalysis_/status/2071767487662768547",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "CXMT is now clearly the No. 4 DRAM player globally, and it aims to exert increasing pressure on leading memory suppliers such as SK Hynix, Samsung, and Micron. While the company has been expanding capacity, with further additions likely supported by significant cash flow accumulation in the coming months, CXMT still faces several key challenges: (1/6)🧵",
+    "createdAt": "Tue Jun 30 01:27:15 +0000 2026",
+    "createdTimestamp": 1782782835,
+    "likes": 816,
+    "retweets": 84,
+    "replies": 19,
+    "bookmarks": 436,
+    "views": 257206,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-06T03:19:22.512Z"
   }
 ]

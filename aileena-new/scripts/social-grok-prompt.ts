@@ -45,7 +45,7 @@ function orgOf(t: TweetRow): 'mach33' | 'semianalysis' | 'other' {
   }
   if (
     tags.includes('semianalysis') ||
-    ['dylan522p', 'semianalysis_'].includes(sn)
+    ['dylan522p', 'semianalysis_', 'skundojjala'].includes(sn)
   ) {
     return 'semianalysis';
   }
@@ -84,7 +84,7 @@ function main() {
     orgArg === 'mach33'
       ? (watch.accounts ?? []).filter((a) => /mach33/i.test(a.org ?? '') || ['aaronburnett', 'mach33', 'VladSaigau'].includes(a.screenName))
       : orgArg === 'semianalysis' || orgArg === 'semi'
-        ? (watch.accounts ?? []).filter((a) => /semi/i.test(a.org ?? '') || ['dylan522p', 'SemiAnalysis_'].includes(a.screenName))
+        ? (watch.accounts ?? []).filter((a) => /semi/i.test(a.org ?? '') || ['dylan522p', 'SemiAnalysis_', 'SKundojjala'].includes(a.screenName))
         : watch.accounts ?? [];
 
   const accountLines = accounts

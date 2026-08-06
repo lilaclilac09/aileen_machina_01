@@ -16,6 +16,13 @@
       "priority": 1
     },
     {
+      "screenName": "SKundojjala",
+      "name": "Sravan Kundojjala",
+      "org": "SemiAnalysis",
+      "tags": ["semianalysis", "memory", "wfe", "capex"],
+      "priority": 1
+    },
+    {
       "screenName": "aaronburnett",
       "name": "Aaron Burnett",
       "org": "mach33 / 33fg",
