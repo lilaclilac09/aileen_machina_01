@@ -1177,16 +1177,16 @@ function DragMeHint({ onDark = false }: { onDark?: boolean }) {
       style={{
         position: 'absolute',
         left: onDark ? 10 : 12,
-        top: onDark ? 8 : 8,
+        top: 8,
         zIndex: 6,
-        color: onDark ? 'rgba(255,253,248,0.88)' : 'rgba(20,17,12,0.62)',
+        color: onDark ? 'rgba(255,253,248,0.92)' : 'rgba(20,17,12,0.82)',
         fontFamily: 'Georgia, serif',
         fontSize: '1.05rem',
         fontStyle: 'italic',
         lineHeight: 1,
         pointerEvents: 'none',
         whiteSpace: 'nowrap',
-        textShadow: onDark ? '0 1px 8px rgba(0,0,0,0.55)' : undefined,
+        textShadow: onDark ? '0 1px 8px rgba(0,0,0,0.55)' : '0 1px 0 rgba(255,253,248,0.65)',
       }}
     >
       drag me
