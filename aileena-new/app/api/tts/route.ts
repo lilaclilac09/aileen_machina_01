@@ -6,20 +6,21 @@ export const maxDuration = 60;
 /**
  * Console / narration TTS.
  *
- * Soft Shanghai auntie vibe (欢迎来到上海 · 侬好啊 · 上海老漂亮个):
- *   1. ElevenLabs — body.voice or ELEVENLABS_VOICE_ID or Coco Li default
+ * Soft default voice (欢迎来到上海 · 侬好啊):
+ *   1. ElevenLabs — body.voice or ELEVENLABS_VOICE_ID or Bella default
  *   2. OpenAI gpt-4o-mini-tts with soft Shanghainese-auntie instructions
  *   3. 503 → browser SpeechSynthesis fallback
  *
- * Console voice presets:
- *   British English pFZP5JQG7iQjIQuC4Bku · Shanghai Dialect Ca5bKgudqKJzq8YRFoAz
- *   German flq6f7yk4E4fJM5XTYuZ · Leijun 4VZIsMPtgggwNg7OXbPY
+ * Free-tier note: ElevenLabs Voice Library IDs (e.g. Coco Li) return 402 on
+ * free plans. Console presets use premade voices that work on free API:
+ *   Shanghai EXAVITQu4vr4xnSDxMaL (Bella) · London pFZP5JQG7iQjIQuC4Bku (Lily)
+ *   Berlin JBFqnCBsd6RMkjVDRZzb (George)
  */
 
 const MAX_CHARS = 30000;
 
-/** Coco Li — Shanghainese female, slight rasp, storytelling. Soften via settings. */
-const SHANGHAI_SOFT_VOICE = 'Ca5bKgudqKJzq8YRFoAz';
+/** Bella — soft female premade; free-tier API OK (library voices need paid). */
+const SHANGHAI_SOFT_VOICE = 'EXAVITQu4vr4xnSDxMaL';
 
 const SOFT_AUNTIE_INSTRUCTIONS =
   '用很软、很暖的上海阿姨口音说话。像邻居阿姨拉家常：温柔、慢一点、带点笑意。' +
@@ -117,7 +118,7 @@ export async function POST(req: Request) {
   return NextResponse.json(
     {
       error:
-        'No TTS provider. Set ELEVENLABS_API_KEY (Coco Li Shanghai soft) or OPENAI_API_KEY, then redeploy.',
+        'No TTS provider. Set ELEVENLABS_API_KEY (Bella soft default) or OPENAI_API_KEY, then redeploy.',
     },
     { status: 503 },
   );

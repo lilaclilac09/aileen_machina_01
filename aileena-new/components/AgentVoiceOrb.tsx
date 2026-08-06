@@ -48,21 +48,22 @@ const ACCENTS = [
   {
     key: 'shanghai' as const,
     label: 'Shanghai',
-    voiceId: 'Ca5bKgudqKJzq8YRFoAz', // Coco Li — soft Shanghai
+    // Bella — free-tier premade (Coco Li library voice is paid-API-only)
+    voiceId: 'EXAVITQu4vr4xnSDxMaL',
     lang: 'zh-CN',
-    hint: 'Shanghai Chinese',
+    hint: 'Soft Chinese (Bella)',
   },
   {
     key: 'london' as const,
     label: 'London',
-    voiceId: 'MWUpoNpAY0rOQGP294mF', // Clarice — British
+    voiceId: 'pFZP5JQG7iQjIQuC4Bku', // Lily — free-tier OK
     lang: 'en-GB',
     hint: 'British English',
   },
   {
     key: 'berlin' as const,
     label: 'Berlin',
-    voiceId: 'flq6f7yk4E4fJM5XTYuZ', // Michael — German
+    voiceId: 'JBFqnCBsd6RMkjVDRZzb', // George — free-tier OK
     lang: 'de-DE',
     hint: 'Berlin German',
   },
