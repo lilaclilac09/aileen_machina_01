@@ -50,6 +50,7 @@ const SLUG_TOPIC: Record<string, string> = {
   'cxmt-yield-watch': 'AI infrastructure',
 
   // ── Investing ─────────────────────────────────────────────
+  'semi-basics-review': 'AI hardware',
   'ai-pcb': 'AI hardware',
   broadcom: 'AI hardware',
   marvell: 'AI hardware',

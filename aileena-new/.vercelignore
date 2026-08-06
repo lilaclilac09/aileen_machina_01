@@ -1,0 +1,4 @@
+scripts/video-edit
+scripts/video-edit/**
+node_modules
+.next

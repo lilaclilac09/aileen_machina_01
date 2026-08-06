@@ -637,6 +637,12 @@ export const t = {
             body: 'CPO is the technology that erases the pluggable optical-module empire — and the headline ship dates have slipped by a quarter every quarter. Walks what\'s actually inside the optical engine (PIC at 65 nm + EIC at 6 nm + 3-D FAU with sub-µm alignment + external ≥300 mW CW source), the six-step packaging flow, where the yield breaks (TSMC at ~75% vs 90–95% target — PIC/EIC hybrid bond loses ~10% alone; FAU active coupling needs engineers with 6-month training cycles), and why the ecosystem is structurally slow: Nvidia–TSMC own a closed main line, third parties are second-tier, CSPs hedge into NPO and keep pluggables. Real volume is 2027–2029; 2026 ships ~15,000 CPO switches off the back of a wafer test floor where one wafer takes 20+ hours to fully test. NVIDIA has prepaid via a $2B Coherent equity stake and a multi-B Lumentum commitment; Foxconn assembles exclusively (~25k unit 2027 target, ~10k+ likely actual); TFC delivered 7,200 FAU for demo only.',
           },
           {
+            date: '2026.08.06',
+            href: '/blog/semi-basics-review',
+            title: 'Concepts You Think You Know',
+            body: 'Five-minute English reset on three semi basics that feel obvious until you have to explain them: cache / memory / storage hierarchy, what a PCB actually is (and the factory walk that builds it), and GPU as a parallel machine — not a faster CPU. Paired with three Branch Education videos so the picture sticks before the denser HBM / rack essays.',
+          },
+          {
             date: '2026.06.02',
             href: '/blog/ai-pcb',
             title: 'The PCB Stack Inside an AI Rack',
@@ -1390,6 +1396,12 @@ export const t = {
             href: '/blog/cpo',
             title: 'Wie CPO tatsächlich gebaut wird',
             body: 'CPO ist die Technik, die das steckbare Lichtmodul-Imperium auslöschen würde — und die Liefertermine rutschen Quartal um Quartal. Der Artikel zerlegt, was in der Optical Engine wirklich steckt (PIC in 65 nm + EIC in 6 nm + 3-D-FAU mit Sub-µm-Alignment + externe ≥300 mW CW-Quelle), die sechs Verpackungsschritte, wo die Ausbeute zerbricht (TSMC bei ~75% gegen 90–95% Ziel — PIC/EIC-Hybridbonding allein verliert ~10%; FAU-Aktivkopplung braucht Ingenieure mit 6-monatigem Trainingszyklus), und warum das Ökosystem strukturell langsam ist: Nvidia und TSMC besitzen eine geschlossene Hauptlinie, Dritte sind zweite Reihe, CSPs hedgen in NPO und behalten Pluggables. Reales Volumen liegt 2027–2029; 2026 werden ~15.000 CPO-Switches geliefert, hinter einer Testfläche, auf der ein Wafer 20+ Stunden braucht. NVIDIA hat per 2 Mrd. $ Coherent-Beteiligung und mehrstelliger Lumentum-Zusage vorgekauft; Foxconn montiert exklusiv (~25k Ziel 2027, ~10k+ wahrscheinlich real); TFC lieferte 7.200 FAU nur als Demo.',
+          },
+          {
+            date: '2026.08.06',
+            href: '/blog/semi-basics-review',
+            title: 'Concepts You Think You Know',
+            body: 'Fünf Minuten Englisch: drei Semi-Basics, die vertraut klingen, bis man sie erklären muss — Cache/Memory/Storage, PCB (+ Fertigungs-Walk), GPU als Parallelmaschine. Drei Branch-Education-Videos, bevor die dichteren HBM-/Rack-Essays.',
           },
           {
             date: '2026.06.02',

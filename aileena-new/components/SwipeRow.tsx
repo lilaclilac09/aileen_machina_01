@@ -89,6 +89,7 @@ const COVER_BY_SLUG: Record<string, string> = {
   'zec-arbitrage': COVER_GALAXY,
 
   // Investing — AI hardware silicon
+  'semi-basics-review': COVER_SILICON,
   'ai-pcb': COVER_SILICON,
   broadcom: COVER_SILICON,
   marvell: COVER_CIRCUIT_CLOSEUP,

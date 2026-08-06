@@ -30,7 +30,9 @@ export default function AiPcbArticle() {
           (the cages stacked above them), and{' '}
           <Link href="/blog/cpo" style={linkStyle}>How CPO Actually Gets Built</Link> (the
           576-rack architecture that makes the mid plane and the orthogonal backplane necessary in
-          the first place).
+          the first place). If the vocabulary is familiar but the picture is not, start with the{' '}
+          <Link href="/blog/semi-basics-review" style={linkStyle}>five-minute basics review</Link>{' '}
+          (cache / memory, PCB factory walk, GPU).
         </p>
 
         <SectionLabel>The five boards inside the rack</SectionLabel>

@@ -118,8 +118,8 @@ Hall touch          →  CustomEvent open-agent-chat  →  dialog`}</pre>
         <p style={bodyStyle}>
           Fixes that match the product law: on mobile, disable snap and let sections grow; unlock form
           selection; Console goes <code style={codeStyle}>inset-0 / 100dvh</code> with safe-area; skip
-          autofocus on coarse pointers; iOS Summon does not run continuous wake; orb shows &ldquo;Tap orb to
-          speak&rdquo; instead of auto-starting.
+          autofocus on coarse pointers; name-wake removed; on phone Voice mounts the orb and shows
+          &ldquo;Tap orb to speak&rdquo; (autoListen disabled — Safari needs the orb gesture).
         </p>
         <pre style={preStyle}>{`@media (max-width: 768px) {
   .snap-container { scroll-snap-type: none; overflow: visible; height: auto; }

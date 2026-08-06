@@ -7,7 +7,7 @@
  * STT: Whisper+VAD when caps.whisper (Safari: resume AudioContext + fallback
  * to Web Speech); else Web Speech (Safari: non-continuous, new instance).
  * TTS: /api/tts (HTMLAudio on iOS/Safari) with speechSynthesis fallback.
- * Live caption + barge-in + wake-phrase strip from summon path.
+ * Live caption + barge-in. Voice path: Console → Voice → speak.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -22,7 +22,7 @@ type Props = {
   active: boolean;
   busy: boolean;
   disabled?: boolean;
-  /** When true and active, start listening once (voice summon). */
+  /** When true and active, start listening once (Voice toggle). */
   autoListen?: boolean;
   speakText?: string;
   speakId?: string;
@@ -32,6 +32,8 @@ type Props = {
   onListeningChange?: (listening: boolean) => void;
   /** Parent registers startListening to call inside a user-gesture click chain (Safari). */
   onRegisterStart?: (start: () => Promise<void>) => void;
+  /** Parent registers audio unlock to warm HTMLAudio/speechSynthesis in the Voice click. */
+  onRegisterUnlock?: (unlock: () => void) => void;
 };
 
 const WAKE_STRIP_RE = /^(hey\s+)?aileena\b[,!.?]?\s*/i;
@@ -48,21 +50,22 @@ const ACCENTS = [
   {
     key: 'shanghai' as const,
     label: 'Shanghai',
-    voiceId: 'Ca5bKgudqKJzq8YRFoAz', // Coco Li — soft Shanghai
+    // Bella — free-tier premade (Coco Li library voice is paid-API-only)
+    voiceId: 'EXAVITQu4vr4xnSDxMaL',
     lang: 'zh-CN',
-    hint: 'Shanghai Chinese',
+    hint: 'Soft Chinese (Bella)',
   },
   {
     key: 'london' as const,
     label: 'London',
-    voiceId: 'MWUpoNpAY0rOQGP294mF', // Clarice — British
+    voiceId: 'pFZP5JQG7iQjIQuC4Bku', // Lily — free-tier OK
     lang: 'en-GB',
     hint: 'British English',
   },
   {
     key: 'berlin' as const,
     label: 'Berlin',
-    voiceId: 'flq6f7yk4E4fJM5XTYuZ', // Michael — German
+    voiceId: 'JBFqnCBsd6RMkjVDRZzb', // George — free-tier OK
     lang: 'de-DE',
     hint: 'Berlin German',
   },
@@ -85,6 +88,31 @@ function isSafariUa(): boolean {
   return /safari/i.test(ua) && !/chrome|crios|chromium|edg|android/i.test(ua);
 }
 
+/** iPhone/iPad (any browser) — WebKit gesture / autoplay rules. */
+function isIosUa(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  return (
+    /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  );
+}
+
+/** Phone / tablet: require orb tap to start STT (autoListen often fails). */
+function needsTapToSpeak(): boolean {
+  if (typeof window === 'undefined') return false;
+  if (isIosUa() || isSafariUa()) return true;
+  try {
+    return window.matchMedia('(pointer: coarse)').matches;
+  } catch {
+    return false;
+  }
+}
+
+/** Prefer HTMLAudio talk-back (iOS / Safari). */
+function preferHtmlAudioTts(): boolean {
+  return isIosUa() || isSafariUa();
+}
+
 export default function AgentVoiceOrb({
   active,
   busy,
@@ -96,6 +124,7 @@ export default function AgentVoiceOrb({
   onAsk,
   onListeningChange,
   onRegisterStart,
+  onRegisterUnlock,
 }: Props) {
   // Default tts:false — live Production often has no ElevenLabs; browser voice must work first.
   const [caps, setCaps] = useState<Caps>({ whisper: false, tts: false, mode: 'webspeech' });
@@ -105,6 +134,7 @@ export default function AgentVoiceOrb({
   const [hint, setHint] = useState('Tap orb · speak');
   const [caption, setCaption] = useState('');
   const [accentKey, setAccentKey] = useState<AccentKey>('shanghai');
+  const [needsHearTap, setNeedsHearTap] = useState(false);
 
   const playCtxRef = useRef<AudioContext | null>(null);
   const voiceIdRef = useRef<string>(ACCENTS[0].voiceId);
@@ -128,6 +158,10 @@ export default function AgentVoiceOrb({
   const commitTimerRef = useRef(0);
   const whisperWatchdogRef = useRef(0);
   const htmlAudioRef = useRef<HTMLAudioElement | null>(null);
+  const pendingHearRef = useRef<{ url: string; gen: number } | null>(null);
+  const webMeterStreamRef = useRef<MediaStream | null>(null);
+  const webMeterRafRef = useRef(0);
+  const stickyErrorRef = useRef(false);
   const ttsPlayingRef = useRef(false);
   const listeningRef = useRef(false);
   const onLiveCaptionRef = useRef(onLiveCaption);
@@ -192,6 +226,7 @@ export default function AgentVoiceOrb({
     sourcesRef.current = [];
     nextPlayAtRef.current = 0;
     ttsPlayingRef.current = false;
+    // Keep the HTMLAudio element alive (iOS session unlock); only pause.
     if (htmlAudioRef.current) {
       try {
         htmlAudioRef.current.pause();
@@ -200,7 +235,14 @@ export default function AgentVoiceOrb({
       } catch {
         /* ignore */
       }
-      htmlAudioRef.current = null;
+    }
+    if (pendingHearRef.current) {
+      try {
+        URL.revokeObjectURL(pendingHearRef.current.url);
+      } catch {
+        /* ignore */
+      }
+      pendingHearRef.current = null;
     }
     if (window.speechSynthesis) window.speechSynthesis.cancel();
   }, []);
@@ -245,18 +287,55 @@ export default function AgentVoiceOrb({
     [ensurePlayCtx],
   );
 
+  const ensureHtmlAudio = useCallback(() => {
+    if (typeof window === 'undefined') return null;
+    if (!htmlAudioRef.current) {
+      const a = new Audio();
+      a.setAttribute('playsinline', 'true');
+      a.preload = 'auto';
+      htmlAudioRef.current = a;
+    }
+    return htmlAudioRef.current;
+  }, []);
+
   const unlockBrowserVoice = useCallback(() => {
-    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+    if (typeof window === 'undefined') return;
+    if (window.speechSynthesis) {
+      try {
+        // Chrome/Safari: first speak() must ride a user gesture or stays silent.
+        window.speechSynthesis.getVoices();
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.resume();
+        const warm = new SpeechSynthesisUtterance(' ');
+        warm.volume = 0;
+        warm.rate = 2;
+        window.speechSynthesis.speak(warm);
+        window.speechSynthesis.cancel();
+      } catch {
+        /* ignore */
+      }
+    }
+    // Warm a long-lived HTMLAudio element for later async /api/tts play on iOS.
     try {
-      // Chrome/Safari: first speak() must ride a user gesture or stays silent.
-      window.speechSynthesis.getVoices();
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.resume();
-      const warm = new SpeechSynthesisUtterance(' ');
-      warm.volume = 0;
-      warm.rate = 2;
-      window.speechSynthesis.speak(warm);
-      window.speechSynthesis.cancel();
+      const a = ensureHtmlAudio();
+      if (a) {
+        a.src =
+          'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+        void a
+          .play()
+          .then(() => {
+            try {
+              a.pause();
+              a.removeAttribute('src');
+              a.load();
+            } catch {
+              /* ignore */
+            }
+          })
+          .catch(() => {
+            /* ignore — unlock best-effort */
+          });
+      }
     } catch {
       /* ignore */
     }
@@ -265,7 +344,77 @@ export default function AgentVoiceOrb({
     } catch {
       /* ignore */
     }
-  }, [ensurePlayCtx]);
+  }, [ensureHtmlAudio, ensurePlayCtx]);
+
+  const playHtmlBlobUrl = useCallback(
+    (url: string, gen: number) => {
+      return new Promise<void>((resolve) => {
+        const audio = ensureHtmlAudio();
+        if (!audio || gen !== playGenRef.current) {
+          URL.revokeObjectURL(url);
+          resolve();
+          return;
+        }
+        try {
+          audio.pause();
+        } catch {
+          /* ignore */
+        }
+        audio.src = url;
+        ttsPlayingRef.current = true;
+        setPhase('speaking');
+        setHint('Speaking… interrupt anytime');
+        stickyErrorRef.current = false;
+
+        const finish = (revoke: boolean) => {
+          if (revoke) {
+            try {
+              URL.revokeObjectURL(url);
+            } catch {
+              /* ignore */
+            }
+          }
+          ttsPlayingRef.current = false;
+          setNeedsHearTap(false);
+          if (listeningRef.current) {
+            setPhase('listening');
+            setHint('Listening… speak anytime');
+          } else {
+            setPhase('idle');
+            setHint('Tap orb · speak');
+          }
+          resolve();
+        };
+
+        audio.onended = () => finish(true);
+        audio.onerror = () => {
+          pendingHearRef.current = { url, gen };
+          setNeedsHearTap(true);
+          setHint('Tap orb to hear reply');
+          stickyErrorRef.current = true;
+          ttsPlayingRef.current = false;
+          setPhase('idle');
+          resolve();
+        };
+        void audio.play().then(
+          () => {
+            pendingHearRef.current = null;
+            setNeedsHearTap(false);
+          },
+          () => {
+            pendingHearRef.current = { url, gen };
+            setNeedsHearTap(true);
+            setHint('Tap orb to hear reply');
+            stickyErrorRef.current = true;
+            ttsPlayingRef.current = false;
+            setPhase('idle');
+            resolve();
+          },
+        );
+      });
+    },
+    [ensureHtmlAudio],
+  );
 
   const speakBrowser = useCallback((text: string, gen: number) => {
     return new Promise<void>((resolve) => {
@@ -357,17 +506,19 @@ export default function AgentVoiceOrb({
       const t = text.trim();
       if (!t || gen !== playGenRef.current) return;
 
-      // First orb behavior: browser speechSynthesis is the reliable path.
-      // Soft ElevenLabs is optional — never block speaking on a 502.
-      const tryEleven = caps.tts && !skipElevenRef.current;
-      if (!tryEleven) {
+      const tryHosted = caps.tts && !skipElevenRef.current;
+      if (!tryHosted) {
+        // iOS speechSynthesis after async chat is unreliable — ask for a tap if needed.
+        if (preferHtmlAudioTts()) {
+          setHint('No TTS audio — check /api/tts keys, or tap orb after reply');
+        }
         await speakBrowser(t, gen);
         return;
       }
 
       try {
         const ac = new AbortController();
-        const timer = window.setTimeout(() => ac.abort(), 2500);
+        const timer = window.setTimeout(() => ac.abort(), 8000);
         const res = await fetch('/api/tts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -384,33 +535,9 @@ export default function AgentVoiceOrb({
         }
         const ab = await res.arrayBuffer();
         if (gen !== playGenRef.current) return;
-        if (isSafariUa()) {
+        if (preferHtmlAudioTts()) {
           const url = URL.createObjectURL(new Blob([ab], { type: 'audio/mpeg' }));
-          const audio = new Audio(url);
-          htmlAudioRef.current = audio;
-          ttsPlayingRef.current = true;
-          setPhase('speaking');
-          setHint('Speaking… interrupt anytime');
-          await new Promise<void>((resolve) => {
-            audio.onended = () => {
-              URL.revokeObjectURL(url);
-              if (htmlAudioRef.current === audio) htmlAudioRef.current = null;
-              ttsPlayingRef.current = false;
-              if (listeningRef.current) {
-                setPhase('listening');
-                setHint('Listening… speak anytime');
-              } else {
-                setPhase('idle');
-                setHint('Tap orb · speak');
-              }
-              resolve();
-            };
-            audio.onerror = () => {
-              URL.revokeObjectURL(url);
-              resolve();
-            };
-            void audio.play().catch(() => resolve());
-          });
+          await playHtmlBlobUrl(url, gen);
           return;
         }
         const ctx = ensurePlayCtx();
@@ -418,10 +545,14 @@ export default function AgentVoiceOrb({
         await enqueueBuffer(buf, gen);
       } catch {
         skipElevenRef.current = true;
+        if (preferHtmlAudioTts()) {
+          setHint('TTS failed — tap orb after next reply, or check keys');
+          stickyErrorRef.current = true;
+        }
         await speakBrowser(t, gen);
       }
     },
-    [caps.tts, ensurePlayCtx, enqueueBuffer, speakBrowser],
+    [caps.tts, ensurePlayCtx, enqueueBuffer, playHtmlBlobUrl, speakBrowser],
   );
 
   useEffect(() => {
@@ -597,6 +728,50 @@ export default function AgentVoiceOrb({
     setLevel(0);
   }, []);
 
+  const stopWebSpeechMeter = useCallback(() => {
+    cancelAnimationFrame(webMeterRafRef.current);
+    webMeterRafRef.current = 0;
+    webMeterStreamRef.current?.getTracks().forEach((t) => t.stop());
+    webMeterStreamRef.current = null;
+    setLevel(0);
+  }, []);
+
+  const startWebSpeechMeter = useCallback(async () => {
+    stopWebSpeechMeter();
+    if (!navigator.mediaDevices?.getUserMedia) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+      });
+      webMeterStreamRef.current = stream;
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === 'suspended') await ctx.resume();
+      const src = ctx.createMediaStreamSource(stream);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 1024;
+      src.connect(analyser);
+      const data = new Uint8Array(analyser.fftSize);
+      const tick = () => {
+        if (!webMeterStreamRef.current) {
+          void ctx.close();
+          return;
+        }
+        analyser.getByteTimeDomainData(data);
+        let sum = 0;
+        for (let i = 0; i < data.length; i++) {
+          const v = (data[i] - 128) / 128;
+          sum += v * v;
+        }
+        const rms = Math.sqrt(sum / data.length);
+        setLevel(Math.min(100, Math.round(rms * 450)));
+        webMeterRafRef.current = requestAnimationFrame(tick);
+      };
+      webMeterRafRef.current = requestAnimationFrame(tick);
+    } catch {
+      /* meter is best-effort */
+    }
+  }, [stopWebSpeechMeter]);
+
   const stopWebSpeech = useCallback(() => {
     clearTimeout(webRestartRef.current);
     if (commitTimerRef.current) {
@@ -614,12 +789,13 @@ export default function AgentVoiceOrb({
       }
       webRecRef.current = null;
     }
-  }, []);
+    stopWebSpeechMeter();
+  }, [stopWebSpeechMeter]);
 
   const startWebSpeech = useCallback(() => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) throw new Error('no Web Speech');
-    const safari = isSafariUa();
+    const safariLike = isSafariUa() || isIosUa();
 
     clearTimeout(webRestartRef.current);
     if (webRecRef.current) {
@@ -634,36 +810,42 @@ export default function AgentVoiceOrb({
       webRecRef.current = null;
     }
 
+    void startWebSpeechMeter();
+
     const rec = new SR();
     webRecRef.current = rec;
     rec.lang = langRef.current;
     rec.interimResults = true;
-    rec.continuous = !safari;
+    rec.continuous = !safariLike;
     rec.onstart = () => {
+      stickyErrorRef.current = false;
       setPhase(ttsPlayingRef.current ? 'speaking' : 'listening');
       setHint(ttsPlayingRef.current ? 'Speaking… interrupt anytime' : 'Listening… speak anytime');
     };
     rec.onerror = (e: SpeechRecognitionErrorEvent) => {
       if (e.error === 'no-speech' || e.error === 'aborted') return;
       if (e.error === 'not-allowed') {
-        setHint('Mic blocked — allow in Settings');
+        setHint('Mic blocked — allow in Settings, then tap orb');
+        stickyErrorRef.current = true;
         listeningRef.current = false;
         setListening(false);
         onListeningChange?.(false);
+        setPhase('idle');
         return;
       }
-      setHint(e.error === 'network' ? 'Speech network error' : 'Mic issue');
+      stickyErrorRef.current = true;
+      setHint(e.error === 'network' ? 'Speech network error — tap orb again' : 'Mic issue — tap orb again');
     };
     rec.onend = () => {
       // Keep the loop alive even while the model answers — so barge-in works.
       if (!listeningRef.current) return;
       const retry = () => {
         if (!listeningRef.current) return;
-        if (busyRef.current && !safari) {
+        if (busyRef.current && !safariLike) {
           webRestartRef.current = window.setTimeout(retry, 400);
           return;
         }
-        if (safari) {
+        if (safariLike) {
           try {
             startWebSpeech();
           } catch {
@@ -677,7 +859,7 @@ export default function AgentVoiceOrb({
           }
         }
       };
-      webRestartRef.current = window.setTimeout(retry, safari ? 180 : 120);
+      webRestartRef.current = window.setTimeout(retry, safariLike ? 180 : 120);
     };
     rec.onresult = (ev: SpeechRecognitionEvent) => {
       let interim = '';
@@ -696,11 +878,13 @@ export default function AgentVoiceOrb({
       }
       if (interim) {
         pushCaption(interim, false);
+        setPhase('hearing');
         setHint('Hearing you…');
       }
       if (finalText) {
         pushCaption(finalText, true);
-        if (safari) {
+        setPhase('hearing');
+        if (safariLike) {
           if (commitTimerRef.current) window.clearTimeout(commitTimerRef.current);
           commitTimerRef.current = window.setTimeout(() => {
             handleUtterance(finalText);
@@ -711,7 +895,7 @@ export default function AgentVoiceOrb({
       }
     };
     rec.start();
-  }, [handleUtterance, onListeningChange, pushCaption, stopPlayback]);
+  }, [handleUtterance, onListeningChange, pushCaption, startWebSpeechMeter, stopPlayback]);
 
   const startOpenAiListen = useCallback(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -732,6 +916,7 @@ export default function AgentVoiceOrb({
   const startListening = useCallback(async () => {
     if (disabled) return;
     unlockBrowserVoice();
+    stickyErrorRef.current = false;
     listeningRef.current = true;
     setListening(true);
     onListeningChange?.(true);
@@ -740,6 +925,7 @@ export default function AgentVoiceOrb({
     ensurePlayCtx();
     window.clearTimeout(whisperWatchdogRef.current);
     try {
+      // Prefer Whisper when available (more reliable than Web Speech on iOS).
       const preferWhisper = caps.whisper && navigator.mediaDevices && window.MediaRecorder;
       if (preferWhisper) {
         await startOpenAiListen();
@@ -751,7 +937,7 @@ export default function AgentVoiceOrb({
         } else {
           whisperWatchdogRef.current = window.setTimeout(() => {
             if (!listeningRef.current || speechActiveRef.current || mediaRecRef.current) return;
-            if (isSafariUa()) {
+            if (isSafariUa() || isIosUa()) {
               stopOpenAiListen();
               try {
                 startWebSpeech();
@@ -770,7 +956,12 @@ export default function AgentVoiceOrb({
       setListening(false);
       onListeningChange?.(false);
       setPhase('idle');
-      setHint(isSafariUa() ? 'Allow mic in Settings, tap again' : 'Mic unavailable');
+      stickyErrorRef.current = true;
+      setHint(
+        isIosUa() || isSafariUa()
+          ? 'Allow mic in Settings, then tap orb'
+          : 'Mic unavailable — tap orb again',
+      );
     }
   }, [
     caps.whisper,
@@ -794,24 +985,44 @@ export default function AgentVoiceOrb({
     setPhase('idle');
     setCaption('');
     pushCaption('', false);
-    setHint('Tap orb · speak');
+    if (!stickyErrorRef.current) setHint('Tap orb · speak');
   }, [onListeningChange, pushCaption, stopOpenAiListen, stopPlayback, stopWebSpeech]);
+
+  const onOrbClick = useCallback(() => {
+    // Replay blocked TTS from a fresh user gesture (iOS autoplay).
+    const pending = pendingHearRef.current;
+    if (pending) {
+      pendingHearRef.current = null;
+      setNeedsHearTap(false);
+      stickyErrorRef.current = false;
+      void playHtmlBlobUrl(pending.url, pending.gen);
+      return;
+    }
+    if (listening) stopListening();
+    else void startListening();
+  }, [listening, playHtmlBlobUrl, startListening, stopListening]);
 
   useEffect(() => {
     onRegisterStart?.(startListening);
   }, [onRegisterStart, startListening]);
 
   useEffect(() => {
+    onRegisterUnlock?.(unlockBrowserVoice);
+  }, [onRegisterUnlock, unlockBrowserVoice]);
+
+  useEffect(() => {
     if (!active && listening) stopListening();
   }, [active, listening, stopListening]);
 
-  // Voice summon / Voice toggle: start mic when requested.
-  // Prefer parent calling startListening inside the same click chain (onRegisterStart).
-  // Effect path still runs for desktop summon; Safari may need a follow-up orb tap.
+  // Desktop only: Voice toggle may auto-start. Coarse/iOS must tap orb (gesture).
   useEffect(() => {
     if (!active || !autoListen || disabled || listening) return;
+    if (needsTapToSpeak()) {
+      setHint('Tap orb to speak');
+      return;
+    }
     void startListening().then(() => {
-      if (!listeningRef.current && isSafariUa()) {
+      if (!listeningRef.current) {
         setHint('Tap orb to speak');
       }
     });
@@ -827,6 +1038,9 @@ export default function AgentVoiceOrb({
   if (!active) return null;
 
   const activeAccent = ACCENTS.find((p) => p.key === accentKey) ?? ACCENTS[0];
+  const hintIsError =
+    needsHearTap ||
+    /blocked|error|failed|allow mic|tap orb to hear/i.test(hint);
 
   return (
     <div className="border-t border-[#e7e0d6] px-5 py-4 bg-[#faf7f0]/80">
@@ -834,8 +1048,10 @@ export default function AgentVoiceOrb({
         <button
           type="button"
           disabled={disabled}
-          onClick={() => (listening ? stopListening() : void startListening())}
-          aria-label={listening ? 'Stop listening' : 'Start voice'}
+          onClick={onOrbClick}
+          aria-label={
+            needsHearTap ? 'Tap to hear reply' : listening ? 'Stop listening' : 'Start voice'
+          }
           className={`relative h-[88px] w-[88px] shrink-0 rounded-full border-0 transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40 ${
             phase === 'listening' || phase === 'hearing'
               ? 'animate-pulse shadow-[0_0_0_2px_#fffdf8,0_0_0_5px_rgba(0,255,234,0.45),0_14px_42px_rgba(0,168,157,0.4)]'
@@ -849,7 +1065,7 @@ export default function AgentVoiceOrb({
           }}
         >
           <span className="absolute inset-0 grid place-items-center font-mono text-[0.62rem] uppercase tracking-[0.28em] text-white [text-shadow:0_1px_8px_rgba(0,40,36,0.45)]">
-            {listening ? (phase === 'speaking' ? '…' : 'Stop') : 'Speak'}
+            {needsHearTap ? 'Hear' : listening ? (phase === 'speaking' ? '…' : 'Stop') : 'Speak'}
           </span>
         </button>
         <div className="h-[3px] w-16 overflow-hidden rounded-sm bg-[#1b1713]/08">
@@ -871,7 +1087,6 @@ export default function AgentVoiceOrb({
               listening ? 'opacity-50' : ''
             }`}
           >
-            {/* Sliding thumb */}
             <span
               aria-hidden
               className="pointer-events-none absolute inset-y-1.5 left-1.5 w-[calc((100%-0.75rem)/3)] rounded-full bg-gradient-to-b from-[#1ad4c4] to-[#008f86] shadow-[0_6px_18px_rgba(0,168,157,0.5)] transition-transform duration-300 ease-out"
@@ -907,16 +1122,24 @@ export default function AgentVoiceOrb({
             </>
           ) : (
             <span className="text-[#1b1713]/35 italic">
-              {listening ? 'Listening…' : 'Live caption idle'}
+              {listening
+                ? phase === 'hearing'
+                  ? 'Hearing you…'
+                  : 'Listening…'
+                : 'Live caption — tap Speak'}
             </span>
           )}
         </p>
-        <p className="max-w-[20rem] truncate text-center font-mono text-[0.55rem] tracking-[0.18em] uppercase text-[#008f86]/85">
+        <p
+          className={`max-w-[22rem] text-center font-mono text-[0.55rem] tracking-[0.14em] uppercase ${
+            hintIsError ? 'text-red-500/80' : 'text-[#008f86]/85'
+          }`}
+        >
           {hint}
-          <span className="hidden sm:inline">
+          <span className="sm:inline">
             {' · '}
             {caps.whisper ? 'whisper' : 'dictation'}
-            {' · barge-in · '}
+            {' · '}
             {activeAccent.label}
           </span>
         </p>
