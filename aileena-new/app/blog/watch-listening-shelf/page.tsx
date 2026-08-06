@@ -187,6 +187,13 @@ const CHANNEL_RECS = [
     body:
       'The semiconductor and AI-infrastructure shelf: supply chains, chips, clusters, and the bottlenecks underneath the headline.',
   },
+  {
+    title: 'Branch Education',
+    label: 'semis basics / YouTube',
+    href: '/blog/semi-basics-review',
+    body:
+      'Cache, memory, storage · PCB (+ factory walk) · GPU architecture — three explainers you think you already know. Start with the five-minute review, then watch.',
+  },
 ];
 
 export default function WatchListeningShelfArticle() {

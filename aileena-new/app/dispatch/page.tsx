@@ -48,6 +48,7 @@ const SLUG_TOPIC: Record<string, string> = {
   'huawei-supply': 'AI infrastructure',
 
   // ── Investing ─────────────────────────────────────────────
+  'semi-basics-review': 'AI hardware',
   'ai-pcb': 'AI hardware',
   broadcom: 'AI hardware',
   marvell: 'AI hardware',
