@@ -8690,5 +8690,222 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-05T19:54:21.629Z"
+  },
+  {
+    "id": "2085203412040434079",
+    "url": "https://x.com/dylan522p/status/2085203412040434079",
+    "screenName": "dylan522p",
+    "authorId": "985281530070265862",
+    "authorName": "Dylan Patel",
+    "text": "\"Everytime Googlers leave, the TPU ecosystem grows stronger\"\nDeepmind friend coping so hard in my DMs rn",
+    "createdAt": "Thu Aug 06 03:16:49 +0000 2026",
+    "createdTimestamp": 1785986209,
+    "likes": 91,
+    "retweets": 2,
+    "replies": 9,
+    "bookmarks": 7,
+    "views": 7587,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "semianalysis"
+    ],
+    "tags": [
+      "semianalysis"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-06T03:35:49.089Z"
+  },
+  {
+    "id": "2085196853373718752",
+    "url": "https://x.com/dylan522p/status/2085196853373718752",
+    "screenName": "dylan522p",
+    "authorId": "985281530070265862",
+    "authorName": "Dylan Patel",
+    "text": "IS JEFF DEAN LEAVING POSITIVE OR NEGATIVE FOR BMC",
+    "createdAt": "Thu Aug 06 02:50:45 +0000 2026",
+    "createdTimestamp": 1785984645,
+    "likes": 40,
+    "retweets": 0,
+    "replies": 9,
+    "bookmarks": 2,
+    "views": 12954,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "semianalysis"
+    ],
+    "tags": [
+      "semianalysis"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-06T03:35:50.519Z"
+  },
+  {
+    "id": "2085191620048326947",
+    "url": "https://x.com/dylan522p/status/2085191620048326947",
+    "screenName": "dylan522p",
+    "authorId": "985281530070265862",
+    "authorName": "Dylan Patel",
+    "text": "People ask me why Micron trades at a multiple to SK Hynix now that the ADR exists.\nIt's very simple.\nCorporate governance exists.",
+    "createdAt": "Thu Aug 06 02:29:57 +0000 2026",
+    "createdTimestamp": 1785983397,
+    "likes": 197,
+    "retweets": 5,
+    "replies": 15,
+    "bookmarks": 32,
+    "views": 25158,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "semianalysis"
+    ],
+    "tags": [
+      "semianalysis"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-06T03:35:51.935Z"
+  },
+  {
+    "id": "2085154084521222184",
+    "url": "https://x.com/SemiAnalysis_/status/2085154084521222184",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Hochul's order is essentially a pause-and-study. It holds discretionary DEC environmental permits for projects of 50 MW and up while the state completes a generic environmental review, and it tells the Department of Public Service to finish its large-load interconnection study. Facilities already built or permitted carry on as before. (4/5)",
+    "createdAt": "Thu Aug 06 00:00:48 +0000 2026",
+    "createdTimestamp": 1785974448,
+    "likes": 4,
+    "retweets": 0,
+    "replies": 1,
+    "bookmarks": 1,
+    "views": 4490,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-06T03:35:54.088Z"
+  },
+  {
+    "id": "2085154085733318726",
+    "url": "https://x.com/SemiAnalysis_/status/2085154085733318726",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Although the bill isn't dead and a revised version is being negotiated now, we expect Hochul to veto the Act, and use her less stringent pause as leverage. Until then, the only rule binding datacenters in New York is one the Governor can rescind.\nProject-level detail on the New York pipeline is in our datacenter model: https://semianalysis.com/datacenter-industry-model/",
+    "createdAt": "Thu Aug 06 00:00:48 +0000 2026",
+    "createdTimestamp": 1785974448,
+    "likes": 6,
+    "retweets": 0,
+    "replies": 0,
+    "bookmarks": 4,
+    "views": 4964,
+    "isNoteTweet": true,
+    "linkedUrls": [
+      "https://semianalysis.com/datacenter-industry-model/"
+    ],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-06T03:35:55.576Z"
+  },
+  {
+    "id": "2085154083254542527",
+    "url": "https://x.com/SemiAnalysis_/status/2085154083254542527",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "The Act reaches further, pausing datacenter at 20 MW rather than 50 and writing lasting rules into law: dedicated electric and water rate classes above 20 MW, public hearings before new permits, efficiency goals for anything over 5 MW, a host community benefit program, and prevailing wage requirements added to the Labor Law. (3/5)",
+    "createdAt": "Thu Aug 06 00:00:48 +0000 2026",
+    "createdTimestamp": 1785974448,
+    "likes": 7,
+    "retweets": 0,
+    "replies": 1,
+    "bookmarks": 2,
+    "views": 5069,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-06T03:35:56.986Z"
+  },
+  {
+    "id": "2085154082210140274",
+    "url": "https://x.com/SemiAnalysis_/status/2085154082210140274",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "She wasn't short of options: a moratorium had been sitting on her desk since June 4, when the legislature passed the Responsible Data Center Development Act by wide margins (44-16 in the Senate, 102-39 in the Assembly). It remains unsigned. (2/5)",
+    "createdAt": "Thu Aug 06 00:00:48 +0000 2026",
+    "createdTimestamp": 1785974448,
+    "likes": 7,
+    "retweets": 0,
+    "replies": 1,
+    "bookmarks": 0,
+    "views": 5057,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-06T03:35:58.421Z"
+  },
+  {
+    "id": "2085154080037429715",
+    "url": "https://x.com/SemiAnalysis_/status/2085154080037429715",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "The datacenter fight in the US has so far run through county boards and city councils. But that ended on July 14, when Gov Kathy Hochul signed Executive Order 62 and New York became the first state to implement a datacenter moratorium. (1/5)🧵",
+    "createdAt": "Thu Aug 06 00:00:47 +0000 2026",
+    "createdTimestamp": 1785974447,
+    "likes": 37,
+    "retweets": 3,
+    "replies": 5,
+    "bookmarks": 10,
+    "views": 14931,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HO_0leqXQAACgOM.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-06T03:35:59.877Z"
+  },
+  {
+    "id": "2085110410152202252",
+    "url": "https://x.com/aaronburnett/status/2085110410152202252",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Thought provoking. One core claim here that I find intriguing is that  (slight paraphrase) “allocating more compute to inference suggests you aren’t growing fast because if you were you’d put more compute toward training to get a better model” \n\nThis makes sense on the surface but it strikes me as something only valid in a compute constrained paradigm which can be local not global. \n\nFor example Spacex is guiding toward using only ~10% of their compute for training. You can argue that means it’s because Spacex isn’t leading (but wouldn’t they want to catch up faster then) or you can argue that majority of compute dedicated to training isn’t a default true assumption. \n\nCompute co-design also suggests that efficiency in training would dramatically reduce the required compute for training. \n\nLeaves the question why wouldn’t SpaceX just dedicated all their compute to train the god model? 🤔 https://x.com/dwarkesh_sp/status/2084333160075055122/video/1",
+    "createdAt": "Wed Aug 05 21:07:15 +0000 2026",
+    "createdTimestamp": 1785964035,
+    "likes": 200,
+    "retweets": 7,
+    "replies": 18,
+    "bookmarks": 58,
+    "views": 44110,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://video.twimg.com/amplify_video/2084329606031548416/vid/avc1/1920x1080/WCUeCpEv-qNAWj2Z.mp4?tag=29"
+    ],
+    "linkedUrls": [
+      "https://x.com/dwarkesh_sp/status/2084333160075055122/video/1"
+    ],
+    "topics": [
+      "mach33",
+      "inference",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-06T03:36:02.587Z"
   }
 ]
