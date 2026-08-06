@@ -30,7 +30,7 @@ url: https://aileena.xyz/blog/huawei-supply
 | HBM4 量产降价 **−15–20%**（2026Q3–27） | Semi：短缺进 2028 / HBM4E 叙事 | **张力** — 标调研假设 |
 | 谷歌 SP-HBM = CXL+OCS 池化 | Semi **SPHBM4** = 标准封装 HBM4 | **必须分名** |
 
-站点主文：[`/blog/huawei-supply`](https://aileena.xyz/blog/huawei-supply) · [`/blog/huawei-hbm`](https://aileena.xyz/blog/huawei-hbm) · Memory hub `2026-08-semianalysis-dram-hbm-memory.md`
+站点主文：[`/blog/memory-tax`](https://aileena.xyz/blog/memory-tax)（own synthesis）· [`/blog/huawei-supply`](https://aileena.xyz/blog/huawei-supply) · [`/blog/huawei-hbm`](https://aileena.xyz/blog/huawei-hbm) · Memory hub `2026-08-semianalysis-dram-hbm-memory.md`
 
 # 一、引言（稿）
 
@@ -125,4 +125,4 @@ HBM 与 DDR 共享 DRAM 晶圆产线，调研差异：
 
 1. 用户补全 §4.1 三层解耦及后文。  
 2. 发布前统一「据行业调研」措辞；Semi 数字与 survey 数字分表。  
-3. 可选：把 B300 胜宏 50–60% / IBIDEN 80–90% 写入 supply 文旁注（需你确认是否改 public blog）。
+3. ~~可选：B300 胜宏 50–60% / IBIDEN 80–90% 写入 supply 文~~ → **filed** in `/blog/huawei-supply` (survey framing).

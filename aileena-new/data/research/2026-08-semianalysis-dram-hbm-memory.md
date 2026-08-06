@@ -385,6 +385,7 @@ Cross-links — Semi China memory coverage + Aileena corpus (not a substitute fo
 | Site Memory Wall (inference) | `aileena_second_brain/memories/semantic/hardware-memory-wall.md` |
 | Huawei × HBM × CXMT | `lib/research/huawei-hbm.ts` / `/research/huawei-hbm` |
 | YMTC Wuhan | `/blog/ymtc-nand-wuhan` |
+| **Public essay (own)** | `/blog/memory-tax` — tax moves wafer→substrate→cycle; SPHBM4≠SP-HBM |
 | Social numbers / RSS | `data/social/` + Dreaming `social-changelog-*.md` |
 | Teachers dossier | `memories/semantic/analysts-dylan-aaron.md` |
 
