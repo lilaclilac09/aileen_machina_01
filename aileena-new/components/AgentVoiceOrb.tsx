@@ -7,7 +7,7 @@
  * STT: Whisper+VAD when caps.whisper (Safari: resume AudioContext + fallback
  * to Web Speech); else Web Speech (Safari: non-continuous, new instance).
  * TTS: /api/tts (HTMLAudio on iOS/Safari) with speechSynthesis fallback.
- * Live caption + barge-in + wake-phrase strip from summon path.
+ * Live caption + barge-in. Voice path: Console → Voice → speak.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -22,7 +22,7 @@ type Props = {
   active: boolean;
   busy: boolean;
   disabled?: boolean;
-  /** When true and active, start listening once (voice summon). */
+  /** When true and active, start listening once (Voice toggle). */
   autoListen?: boolean;
   speakText?: string;
   speakId?: string;
@@ -806,9 +806,9 @@ export default function AgentVoiceOrb({
     if (!active && listening) stopListening();
   }, [active, listening, stopListening]);
 
-  // Voice summon / Voice toggle: start mic when requested.
+  // Voice toggle: start mic when requested.
   // Prefer parent calling startListening inside the same click chain (onRegisterStart).
-  // Effect path still runs for desktop summon; Safari may need a follow-up orb tap.
+  // Effect path still runs as fallback; Safari may need a follow-up orb tap.
   useEffect(() => {
     if (!active || !autoListen || disabled || listening) return;
     void startListening().then(() => {

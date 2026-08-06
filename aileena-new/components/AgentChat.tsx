@@ -80,20 +80,6 @@ const MODEL_PAUSE_MSG =
   "I'm pausing for a moment on the model side. Leave a note below if you'd like Aileen to see it, or try again shortly.";
 const LEAD_SOFT_AFTER = 5; // soft nudge only — never blocks the daily 20
 const LEAD_DISMISS_KEY = 'aileena_lead_state'; // 'sent' | (unset) — historical 'dismissed' values are tolerated but no longer set
-const SUMMON_ARMED_KEY = 'aileena_summon_armed';
-/** First-visit coach for browser mic unlock (not always-on like Siri). */
-const VOICE_COACH_KEY = 'aileena_voice_coach_seen';
-const SUMMON_COOLDOWN_MS = 2000;
-const WAKE_RE = /\baileena\b/i;
-
-/** Strip soft wake phrase so "Hey Aileena, …" becomes the real ask. */
-function stripWakePhrase(text: string): string {
-  return text
-    .replace(/^(hey\s+)?aileena\b[,!.?]?\s*/i, '')
-    .replace(/\baileena\b[,!.?]?\s*/gi, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
 
 /**
  * Aileena · Console
@@ -101,6 +87,9 @@ function stripWakePhrase(text: string): string {
  * Not a chat widget. A command-palette-style overlay that matches the site's
  * SAT-LINK / terminal language. Invoked via `/` from anywhere on the site or
  * via the machina-portrait launcher at the bottom-left of the viewport.
+ *
+ * Voice: tap Voice in Console (mic unlock in that click) → speak. No always-on
+ * name wake — browsers require a gesture; "Say Aileena" was misleading UX.
  *
  * Rate limiting — product promise:
  *   - 20 questions per visitor per local calendar day (not UTC).
@@ -126,27 +115,13 @@ export default function AgentChat() {
   const [leadError, setLeadError] = useState<string | null>(null);
   const [voiceMode, setVoiceMode] = useState(false);
   const [voiceLive, setVoiceLive] = useState('');
-  /** Soft wake armed after one mic gesture (Speak / voice / Summon chip). */
-  const [summonArmed, setSummonArmed] = useState(false);
-  /** First-visit tip: browsers require one click before name wake. */
-  const [showVoiceCoach, setShowVoiceCoach] = useState(false);
-  /** Short confirmation after mic unlock. */
-  const [micToast, setMicToast] = useState<string | null>(null);
-  /** Start orb listen once after a successful "Aileena" summon. */
+  /** Start orb listen once after Voice toggle / open-agent-chat autoListen. */
   const [autoListen, setAutoListen] = useState(false);
-  const [orbListening, setOrbListening] = useState(false);
   const [vcodeCount, setVcodeCount] = useState(0);
   const [vcodeBusy, setVcodeBusy] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const welcomedRef = useRef(false);
-  const summonCooldownRef = useRef(0);
-  const openRef = useRef(false);
-  const voiceModeRef = useRef(false);
-  const orbListeningRef = useRef(false);
-  openRef.current = open;
-  voiceModeRef.current = voiceMode;
-  orbListeningRef.current = orbListening;
 
   const { messages, setMessages, sendMessage, status, error, stop, clearError } = useChat({
     transport: new DefaultChatTransport({
@@ -348,61 +323,16 @@ export default function AgentChat() {
   const askRef = useRef<((text: string) => void) | null>(null);
   const startOrbListenRef = useRef<(() => Promise<void>) | null>(null);
 
-  const dismissVoiceCoach = useCallback(() => {
-    setShowVoiceCoach(false);
-    try {
-      localStorage.setItem(VOICE_COACH_KEY, '1');
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
   const unlockMic = useCallback(async () => {
     try {
       if (navigator.mediaDevices?.getUserMedia) {
         const s = await navigator.mediaDevices.getUserMedia({ audio: true });
         s.getTracks().forEach((t) => t.stop());
       }
-      setSummonArmed(true);
-      try {
-        localStorage.setItem(SUMMON_ARMED_KEY, '1');
-      } catch {
-        /* ignore */
-      }
-      dismissVoiceCoach();
-      setMicToast('Mic on — close Console, then say Aileena (desktop)');
-      window.setTimeout(() => setMicToast(null), 5200);
       return true;
     } catch {
       setInput('Mic blocked — allow microphone in the address bar');
-      setMicToast('Mic blocked — allow microphone in the address bar');
-      window.setTimeout(() => setMicToast(null), 5200);
       return false;
-    }
-  }, [dismissVoiceCoach]);
-
-  const summonConsole = useCallback((followUp?: string) => {
-    const now = Date.now();
-    if (now - summonCooldownRef.current < SUMMON_COOLDOWN_MS) return;
-    // Ignore while already open + listening (false-trigger guard).
-    if (openRef.current && voiceModeRef.current && orbListeningRef.current) return;
-    summonCooldownRef.current = now;
-    setOpen(true);
-    setVoiceMode(true);
-    setAutoListen(true);
-    setSummonArmed(true);
-    const leftover = followUp ? stripWakePhrase(followUp) : '';
-    if (leftover && askRef.current) {
-      setTimeout(() => askRef.current?.(leftover), 100);
-    }
-  }, []);
-
-  useEffect(() => {
-    try {
-      if (localStorage.getItem(SUMMON_ARMED_KEY) === '1') setSummonArmed(true);
-      if (localStorage.getItem(VOICE_COACH_KEY) !== '1') setShowVoiceCoach(true);
-    } catch {
-      setShowVoiceCoach(true);
     }
   }, []);
 
@@ -452,97 +382,6 @@ export default function AgentChat() {
     window.addEventListener('open-agent-chat', handler);
     return () => window.removeEventListener('open-agent-chat', handler);
   }, [setMessages]);
-
-  // Soft wake while Console is closed after mic unlock.
-  // Desktop: continuous SR. Safari/iOS: non-continuous + new instance on end (same as orb).
-  // Both paths stay armed — phone can still say Aileena after Summon, or tap Voice→orb.
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (open || !summonArmed) return;
-    const ua = navigator.userAgent || '';
-    const safariLike =
-      /iPad|iPhone|iPod/i.test(ua) ||
-      (/Safari/i.test(ua) && !/Chrome|Chromium|Edg|OPR|Firefox/i.test(ua)) ||
-      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    const SR =
-      (window as Window & {
-        SpeechRecognition?: new () => SpeechRecognition;
-        webkitSpeechRecognition?: new () => SpeechRecognition;
-      }).SpeechRecognition ||
-      (window as Window & { webkitSpeechRecognition?: new () => SpeechRecognition })
-        .webkitSpeechRecognition;
-    if (!SR) return;
-
-    let stopped = false;
-    let restartTimer = 0;
-    let rec: SpeechRecognition | null = null;
-
-    const begin = () => {
-      if (stopped || openRef.current || !summonArmed) return;
-      if (rec) {
-        try {
-          rec.onend = null;
-          rec.onresult = null;
-          rec.onerror = null;
-          rec.stop();
-        } catch {
-          /* ignore */
-        }
-        rec = null;
-      }
-      const next = new SR();
-      rec = next;
-      next.continuous = !safariLike;
-      next.interimResults = true;
-      next.lang = 'en-US';
-      next.onresult = (ev: SpeechRecognitionEvent) => {
-        let finalText = '';
-        for (let i = ev.resultIndex; i < ev.results.length; i++) {
-          if (!ev.results[i].isFinal) continue;
-          const piece = (ev.results[i][0]?.transcript || '').trim();
-          if (piece) finalText += (finalText ? ' ' : '') + piece;
-        }
-        if (!finalText || !WAKE_RE.test(finalText)) return;
-        summonConsole(finalText);
-      };
-      next.onend = () => {
-        if (stopped || openRef.current || !summonArmed) return;
-        restartTimer = window.setTimeout(() => {
-          if (safariLike) begin();
-          else {
-            try {
-              next.start();
-            } catch {
-              begin();
-            }
-          }
-        }, safariLike ? 220 : 200);
-      };
-      next.onerror = (e: SpeechRecognitionErrorEvent) => {
-        if (e.error === 'no-speech' || e.error === 'aborted') return;
-      };
-      try {
-        next.start();
-      } catch {
-        /* ignore */
-      }
-    };
-
-    begin();
-
-    return () => {
-      stopped = true;
-      clearTimeout(restartTimer);
-      if (rec) {
-        try {
-          rec.onend = null;
-          rec.stop();
-        } catch {
-          /* ignore */
-        }
-      }
-    };
-  }, [open, summonArmed, summonConsole]);
 
   // Focus input when opened — skip on touch so iOS keyboard does not cover Console.
   useEffect(() => {
@@ -901,7 +740,7 @@ export default function AgentChat() {
   }
 
   function ask(text: string) {
-    const trimmed = stripWakePhrase(text);
+    const trimmed = text.trim();
     if (!trimmed || sessionMaxed) return;
 
     // Voice / hung streams used to leave status=streaming forever, so typed
@@ -1100,69 +939,6 @@ export default function AgentChat() {
           Pages must not render a second Home in this corner. */}
       <SiteLeftChrome onOpenConsole={() => setOpen(true)} consoleOpen={open} />
 
-      {/* Soft summon arm — browsers require one mic gesture before name wake. */}
-      {!open && (
-        <div className="fixed bottom-4 left-3 sm:bottom-6 sm:left-4 z-[60] flex flex-col gap-1.5 items-start max-w-[16rem]">
-          <button
-            type="button"
-            onClick={() => {
-              void unlockMic().then((ok) => {
-                if (ok) setInput('');
-              });
-            }}
-            className="font-mono text-[0.55rem] tracking-[0.18em] uppercase px-2.5 py-1.5 rounded border transition-colors"
-            style={{
-              color: summonArmed ? '#007d75' : 'rgba(255,253,248,0.75)',
-              background: summonArmed ? 'rgba(0,168,157,0.18)' : 'rgba(0,0,0,0.45)',
-              borderColor: summonArmed ? 'rgba(0,168,157,0.45)' : 'rgba(255,253,248,0.2)',
-              backdropFilter: 'blur(8px)',
-            }}
-            title={
-              summonArmed
-                ? 'Mic unlocked — say Aileena with Console closed (desktop). Or open Console → Voice.'
-                : 'Browsers block always-on mic. Tap once to unlock, then say Aileena.'
-            }
-          >
-            {summonArmed ? 'mic on' : 'summon'}
-          </button>
-          <p className="font-mono text-[0.5rem] tracking-[0.12em] uppercase text-[#fffdf8]/55 px-0.5 leading-4">
-            {summonArmed
-              ? 'Say Aileena · or Console → Voice'
-              : 'Tap once to unlock mic · then say Aileena'}
-          </p>
-          {showVoiceCoach && !summonArmed && (
-            <div
-              className="mt-0.5 rounded border px-2 py-1.5 font-mono text-[0.5rem] leading-4 tracking-[0.06em] normal-case"
-              style={{
-                color: 'rgba(255,253,248,0.88)',
-                background: 'rgba(0,0,0,0.55)',
-                borderColor: 'rgba(0,168,157,0.35)',
-                backdropFilter: 'blur(8px)',
-              }}
-              role="status"
-            >
-              Not like Siri — the web needs one tap first.
-              <button
-                type="button"
-                onClick={dismissVoiceCoach}
-                className="ml-2 uppercase tracking-[0.14em] text-[#7ee8dc] underline-offset-2 hover:underline"
-              >
-                got it
-              </button>
-            </div>
-          )}
-          {micToast && (
-            <p
-              className="font-mono text-[0.5rem] leading-4 tracking-[0.08em] normal-case px-0.5"
-              style={{ color: '#7ee8dc' }}
-              role="status"
-            >
-              {micToast}
-            </p>
-          )}
-        </div>
-      )}
-
       {/* Backdrop */}
       <div
         onClick={closeConsole}
@@ -1250,7 +1026,7 @@ export default function AgentChat() {
               title={
                 voiceMode
                   ? 'Voice on — speak, or tap the orb again'
-                  : 'Tap once to unlock mic and talk now. Later: close Console and say Aileena (desktop).'
+                  : 'Tap Voice to unlock mic and talk'
               }
               className="inline-flex items-center gap-1 text-[0.55rem] tracking-[0.2em] uppercase px-1.5 py-0.5 rounded transition-colors"
               style={{
@@ -1270,19 +1046,6 @@ export default function AgentChat() {
               />
               {voiceMode ? 'orb on' : 'voice'}
             </button>
-            {voiceMode && (
-              <span className="hidden sm:inline text-[0.48rem] tracking-[0.14em] uppercase text-[#007d75]/70">
-                {summonArmed ? 'mic on · Aileena when closed' : 'mic unlocked this session'}
-              </span>
-            )}
-            {micToast && open && (
-              <span
-                className="hidden sm:inline max-w-[11rem] truncate text-[0.48rem] tracking-[0.08em] normal-case text-[#007d75]/85"
-                role="status"
-              >
-                {micToast}
-              </span>
-            )}
             <button
               type="button"
               onClick={resetChat}
@@ -1318,17 +1081,13 @@ export default function AgentChat() {
               <p className="text-[0.78rem] leading-5 text-[#1b1713]/55 mb-3">
                 {voiceMode ? (
                   <>
-                    Speak now, or tap the <span className="text-[#008f86]">orb</span>. Want name-wake
-                    later? Keep mic unlocked, close Console, then say{' '}
-                    <span className="text-[#008f86]">Aileena</span> (desktop — not always-on like
-                    Siri).
+                    Speak now, or tap the <span className="text-[#008f86]">orb</span> if the mic
+                    didn&apos;t start.
                   </>
                 ) : (
                   <>
-                    Tap <span className="text-[#008f86]">Voice</span> once to unlock the mic and talk
-                    (phone: tap the <span className="text-[#008f86]">orb</span> if needed). Browsers
-                    block always-on listening — after that unlock, you can close Console and say{' '}
-                    <span className="text-[#008f86]">Aileena</span> on desktop.
+                    Tap <span className="text-[#008f86]">Voice</span> to unlock the mic and talk
+                    (phone: tap the <span className="text-[#008f86]">orb</span> if needed).
                     <span className="hidden sm:inline">
                       {' '}Say <span className="text-[#008f86]">fix</span> /{' '}
                       <span className="text-[#008f86]">implement</span> /{' '}
@@ -1503,10 +1262,9 @@ export default function AgentChat() {
             setAutoListen(false);
             ask(text);
           }}
-          onListeningChange={(listening) => {
-            setOrbListening(listening);
-            // Clear summon autoListen after the first start/stop signal
-            // so a failed mic start cannot loop.
+          onListeningChange={() => {
+            // Clear autoListen after the first start/stop so a failed mic
+            // start cannot loop.
             setAutoListen(false);
           }}
         />
@@ -1550,16 +1308,12 @@ export default function AgentChat() {
               {voiceMode ? (
                 <>
                   <span className="sm:hidden">tap orb · speak</span>
-                  <span className="hidden sm:inline">
-                    stream · barge-in · mic tap once · Aileena when closed · voice→code
-                  </span>
+                  <span className="hidden sm:inline">stream · barge-in · voice→code</span>
                 </>
               ) : (
                 <>
                   <span className="sm:hidden">↵ send · voice</span>
-                  <span className="hidden sm:inline">
-                    ↵ send · tap Voice once · then Aileena when closed · voice→code (5/day)
-                  </span>
+                  <span className="hidden sm:inline">↵ send · tap Voice · voice→code (5/day)</span>
                 </>
               )}
             </span>
@@ -1672,24 +1426,4 @@ function linkify(text: string) {
       </a>
     ),
   );
-}
-
-/* Minimal Web Speech types for soft wake listener (AgentChat). */
-interface SpeechRecognition extends EventTarget {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  onstart: ((this: SpeechRecognition, ev: Event) => void) | null;
-  onend: ((this: SpeechRecognition, ev: Event) => void) | null;
-  onerror: ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => void) | null;
-  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => void) | null;
-  start(): void;
-  stop(): void;
-}
-interface SpeechRecognitionErrorEvent extends Event {
-  error: string;
-}
-interface SpeechRecognitionEvent extends Event {
-  resultIndex: number;
-  results: SpeechRecognitionResultList;
 }
