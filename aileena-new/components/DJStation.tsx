@@ -118,6 +118,7 @@ export default function DJStation() {
   const [dropSide,     setDropSide]     = useState<'left'|'right'|null>(null);
   const [leftEmbedReady,  setLeftEmbedReady]  = useState(false);
   const [rightEmbedReady, setRightEmbedReady] = useState(false);
+  const [deckHint, setDeckHint] = useState<string | null>(null);
 
   const leftContainerRef  = useRef<HTMLDivElement>(null);
   const rightContainerRef = useRef<HTMLDivElement>(null);
@@ -127,6 +128,17 @@ export default function DJStation() {
   const prevXfade         = useRef(50);
   const leftWasPlaying    = useRef(false);
   const rightWasPlaying   = useRef(false);
+  const hintTimer         = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showDeckHint = useCallback((msg: string) => {
+    setDeckHint(msg);
+    if (hintTimer.current) clearTimeout(hintTimer.current);
+    hintTimer.current = setTimeout(() => setDeckHint(null), 4200);
+  }, []);
+
+  useEffect(() => () => {
+    if (hintTimer.current) clearTimeout(hintTimer.current);
+  }, []);
 
   /* ── Spotify API — tolerant of Strict Mode remount + late script ready ── */
   useEffect(() => {
@@ -157,8 +169,16 @@ export default function DJStation() {
         ctrlRef.current = null;
         el.innerHTML = '';
       }
-      if (ctrlRef.current || !containerEmpty(el)) {
-        if (!containerEmpty(el)) onReady();
+      // Iframe present but controller lost (Strict Mode / race) — remount.
+      if (!ctrlRef.current && !containerEmpty(el)) {
+        el.innerHTML = '';
+      }
+      if (ctrlRef.current) {
+        onReady();
+        return;
+      }
+      if (!containerEmpty(el)) {
+        onReady();
         return;
       }
 
@@ -239,14 +259,56 @@ export default function DJStation() {
       setLeftTrack(track);
       setLeftPos(0);
       setLeftDur(0);
-      if (sid) leftCtrl.current?.loadUri(`spotify:track:${sid}`);
+      if (sid) {
+        leftCtrl.current?.loadUri(`spotify:track:${sid}`);
+        setDeckHint(null);
+      } else {
+        showDeckHint(`“${track.title}” has no Spotify id — pick a library track to play`);
+      }
     } else {
       setRightTrack(track);
       setRightPos(0);
       setRightDur(0);
-      if (sid) rightCtrl.current?.loadUri(`spotify:track:${sid}`);
+      if (sid) {
+        rightCtrl.current?.loadUri(`spotify:track:${sid}`);
+        setDeckHint(null);
+      } else {
+        showDeckHint(`“${track.title}” has no Spotify id — pick a library track to play`);
+      }
     }
-  }, []);
+  }, [showDeckHint]);
+
+  const toggleDeck = useCallback((side: 'left' | 'right') => {
+    const track = side === 'left' ? leftTrack : rightTrack;
+    const ctrl = side === 'left' ? leftCtrl.current : rightCtrl.current;
+    const ready = side === 'left' ? leftEmbedReady : rightEmbedReady;
+    const el = side === 'left' ? leftContainerRef.current : rightContainerRef.current;
+    const label = side === 'left' ? 'A' : 'B';
+
+    if (!track) {
+      showDeckHint(`Deck ${label} is empty — drag a cover or tap Load A / B`);
+      return;
+    }
+    if (!spotifyTrackId(track)) {
+      showDeckHint(`Deck ${label}: no Spotify id for “${track.title}”`);
+      return;
+    }
+    if (!ctrl) {
+      showDeckHint(
+        ready
+          ? `Deck ${label}: tap the green Spotify player once to unlock play`
+          : `Deck ${label}: Spotify still loading — wait a second, then tap ▶`,
+      );
+      el?.querySelector('iframe')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      return;
+    }
+    try {
+      ctrl.togglePlay();
+      setDeckHint(null);
+    } catch {
+      showDeckHint(`Deck ${label}: tap the green Spotify widget once to unlock play`);
+    }
+  }, [leftTrack, rightTrack, leftEmbedReady, rightEmbedReady, showDeckHint]);
 
   const handleXfade = useCallback((v: number) => {
     const prev = prevXfade.current;
@@ -392,7 +454,7 @@ export default function DJStation() {
               onDragOver={e => { e.preventDefault(); setDropSide('left'); }}
               onDragLeave={() => setDropSide(null)}
               onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('left', dragTrack.current); setDropSide(null); }}
-              onToggle={() => leftCtrl.current?.togglePlay()}
+              onToggle={() => toggleDeck('left')}
               onPitch={setLeftPitch}
               onScratchStart={() => { leftWasPlaying.current = leftPlaying; if (leftPlaying) leftCtrl.current?.togglePlay(); }}
               onScratchEnd={() => { if (leftWasPlaying.current) leftCtrl.current?.togglePlay(); }}
@@ -406,7 +468,7 @@ export default function DJStation() {
               onDragOver={e => { e.preventDefault(); setDropSide('right'); }}
               onDragLeave={() => setDropSide(null)}
               onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('right', dragTrack.current); setDropSide(null); }}
-              onToggle={() => rightCtrl.current?.togglePlay()}
+              onToggle={() => toggleDeck('right')}
               onPitch={setRightPitch}
               onScratchStart={() => { rightWasPlaying.current = rightPlaying; if (rightPlaying) rightCtrl.current?.togglePlay(); }}
               onScratchEnd={() => { if (rightWasPlaying.current) rightCtrl.current?.togglePlay(); }}
@@ -422,7 +484,7 @@ export default function DJStation() {
               onDragOver={e => { e.preventDefault(); setDropSide('left'); }}
               onDragLeave={() => setDropSide(null)}
               onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('left', dragTrack.current); setDropSide(null); }}
-              onToggle={() => leftCtrl.current?.togglePlay()}
+              onToggle={() => toggleDeck('left')}
               onPitch={setLeftPitch}
               onScratchStart={() => { leftWasPlaying.current = leftPlaying; if (leftPlaying) leftCtrl.current?.togglePlay(); }}
               onScratchEnd={() => { if (leftWasPlaying.current) leftCtrl.current?.togglePlay(); }}
@@ -436,13 +498,33 @@ export default function DJStation() {
               onDragOver={e => { e.preventDefault(); setDropSide('right'); }}
               onDragLeave={() => setDropSide(null)}
               onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('right', dragTrack.current); setDropSide(null); }}
-              onToggle={() => rightCtrl.current?.togglePlay()}
+              onToggle={() => toggleDeck('right')}
               onPitch={setRightPitch}
               onScratchStart={() => { rightWasPlaying.current = rightPlaying; if (rightPlaying) rightCtrl.current?.togglePlay(); }}
               onScratchEnd={() => { if (rightWasPlaying.current) rightCtrl.current?.togglePlay(); }}
               onSync={handleSyncRight}
             />
           </div>
+        )}
+
+        {deckHint && (
+          <p
+            role="status"
+            style={{
+              margin: '0 0 8px',
+              padding: '8px 10px',
+              borderRadius: 4,
+              border: '1px solid rgba(0,168,157,0.35)',
+              background: 'rgba(0,168,157,0.08)',
+              fontFamily: 'monospace',
+              fontSize: '0.58rem',
+              letterSpacing: '0.04em',
+              color: C.text,
+              textAlign: 'center',
+            }}
+          >
+            {deckHint}
+          </p>
         )}
       </div>
 
@@ -549,7 +631,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
         {!track ? (
           <p style={{ fontSize: '0.34rem', letterSpacing: '0.5em', textTransform: 'uppercase',
             color: dropActive ? 'rgba(100,220,210,0.8)' : C.dim }}>
-            {dropActive ? '↓ DROP' : 'drag record'}
+            {dropActive ? '↓ DROP' : 'drop or A / B'}
           </p>
         ) : (
           <div style={{ position: 'relative', width: D, height: D }}>

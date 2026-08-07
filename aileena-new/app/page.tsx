@@ -10,10 +10,12 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import Header from '../components/Header';
 import LoadingScreen from '../components/LoadingScreen';
 import GlassBench from '../components/GlassBench';
 import { SnapContainer, SnapSection } from '../components/SnapScroll';
+import { ScrapPhoto } from '../components/zine/ScrapPhoto';
 import { useLanguage } from '../components/LanguageProvider';
 import { t } from '../lib/translations';
 import { ALL_ISSUES } from '../lib/research/issues';
@@ -87,14 +89,12 @@ function dragMeCursorFor(onDark: boolean): string {
   return onDark ? dragMeCursorOnDark : dragMeCursor;
 }
 
-function dragMeCursorForId(
-  id: string,
-  rooms: RoomDoor[],
-): string {
+function dragMeCursorForId(id: string, rooms: RoomDoor[]): string {
   if (
     id === 'woman-cover-print' ||
     id === 'didion-scrap' ||
-    id === 'machina-polaroid'
+    id === 'machina-polaroid' ||
+    id === 'zine-clipping'
   ) {
     return dragMeCursorOnDark;
   }
@@ -577,6 +577,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
     if (id === 'woman-cover-print') return 'rotate(2.4deg)';
     if (id === 'machina-polaroid') return 'rotate(3.2deg)';
     if (id === 'didion-scrap') return 'rotate(-2.8deg)';
+    if (id === 'zine-clipping') return 'rotate(-4.6deg)';
     return String(rooms.find((room) => room.id === id)?.placement.transform ?? '');
   };
   const paint = (node: HTMLElement, id: string, x: number, y: number) => {
@@ -593,11 +594,13 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
     String(
       id === 'machina-polaroid'
         ? 16
-        : id === 'woman-cover-print'
-          ? 8
-          : id === 'didion-scrap'
-            ? 9
-            : rooms.find((r) => r.id === id)?.placement.zIndex ?? 1,
+        : id === 'zine-clipping'
+          ? 10
+          : id === 'woman-cover-print'
+            ? 8
+            : id === 'didion-scrap'
+              ? 9
+              : rooms.find((r) => r.id === id)?.placement.zIndex ?? 1,
     );
   const finishDrag = (pointerId: number, moved: boolean) => {
     const drag = dragStateRef.current;
@@ -752,7 +755,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 const mobileRoomStyle: CSSProperties = {
                   display: 'block',
                   width: '100%',
-                  minHeight: isArticle ? 380 : isRecord ? 240 : 200,
+                  minHeight: isArticle ? 380 : isRecord ? 240 : undefined,
                   padding: 0,
                   border: 'none',
                   background: 'transparent',
@@ -794,38 +797,72 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 style={{
                   display: 'block',
                   width: '100%',
-                  minHeight: 220,
                   marginTop: 8,
                   padding: 0,
                   border: 'none',
                   outline: 'none',
-                  backgroundImage: "url('/dispatch-covers/harassment.jpg')",
-                  backgroundPosition: '48% 42%',
-                  backgroundSize: 'cover',
-                  backgroundRepeat: 'no-repeat',
+                  background: 'transparent',
                   boxShadow: 'none',
                   textDecoration: 'none',
                   position: 'relative',
-                  overflow: 'hidden',
                 }}
               >
-                <span
-                  style={{
-                    position: 'absolute',
-                    left: 12,
-                    bottom: 12,
-                    padding: '4px 8px',
-                    background: 'rgba(20,17,12,0.72)',
-                    color: '#fffdf8',
-                    fontFamily: mono,
-                    fontSize: '0.52rem',
-                    fontWeight: 850,
-                    letterSpacing: '0.14em',
-                    textTransform: 'uppercase',
-                  }}
+                <ScrapPhoto
+                  src="/dispatch-covers/harassment.jpg"
+                  filter="contrast(1.05) saturate(0.92)"
+                  overlay="linear-gradient(180deg, transparent 55%, rgba(20,17,12,0.58) 100%)"
                 >
-                  woman in tech archive →
-                </span>
+                  <span
+                    style={{
+                      position: 'absolute',
+                      left: 12,
+                      bottom: 12,
+                      zIndex: 1,
+                      padding: '4px 8px',
+                      background: 'rgba(20,17,12,0.72)',
+                      color: '#fffdf8',
+                      fontFamily: mono,
+                      fontSize: '0.52rem',
+                      fontWeight: 850,
+                      letterSpacing: '0.14em',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    woman in tech archive →
+                  </span>
+                </ScrapPhoto>
+              </Link>
+
+              <Link
+                href="/updates"
+                aria-label="Open Metal & Pages — zine clipping poster"
+                className="text-left"
+                style={{
+                  display: 'block',
+                  width: 'min(68%, 220px)',
+                  margin: '20px auto 8px',
+                  padding: 0,
+                  border: 'none',
+                  background: 'transparent',
+                  textDecoration: 'none',
+                  transform: 'rotate(-2.8deg)',
+                  filter: 'drop-shadow(2px 8px 14px rgba(20,17,12,0.16))',
+                }}
+              >
+                {/* Natural aspect — poster art already has torn edges; no CSS crop shell */}
+                <Image
+                  src="/zine/clipping-desk.jpg"
+                  alt=""
+                  width={640}
+                  height={960}
+                  sizes="220px"
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    height: 'auto',
+                    border: 'none',
+                  }}
+                />
               </Link>
 
               <button
@@ -848,21 +885,9 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 }}
                 onClick={() => window.dispatchEvent(new CustomEvent('open-agent-chat'))}
               >
-                <span
-                  aria-hidden
-                  style={{
-                    display: 'block',
-                    width: '100%',
-                    aspectRatio: '3 / 4',
-                    margin: 0,
-                    padding: 0,
-                    border: 'none',
-                    backgroundImage: "url('/bg_pic/03.jpeg')",
-                    backgroundPosition: '36% 14%',
-                    backgroundSize: 'cover',
-                    backgroundRepeat: 'no-repeat',
-                    boxShadow: 'none',
-                  }}
+                <ScrapPhoto
+                  src="/bg_pic/03.jpeg"
+                  filter="saturate(0.94) contrast(1.04)"
                 />
                 <span
                   style={{
@@ -904,14 +929,12 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                       : 'min(22vw, 200px)',
               minHeight: isArticle
                 ? 'clamp(250px, 34dvh, 310px)'
-                : isInvesting
-                  ? 180
-                  : isTrendy
-                    ? 'clamp(340px, 44dvh, 390px)'
-                    : isRecord
-                      ? 300
-                      : 220,
-              height: isTrendy ? 'clamp(340px, 44dvh, 390px)' : undefined,
+                : isTrendy
+                  ? undefined
+                  : isRecord
+                    ? 300
+                    : undefined,
+              height: undefined,
               padding: 0,
               border: isPaper ? '1px solid rgba(20,17,12,0.16)' : 'none',
               background: isPaper ? palette.paper : 'transparent',
@@ -962,12 +985,11 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               top: '8%',
               left: atriumCoverLeft,
               width: atriumCoverWidth,
-              height: 'clamp(210px, 28dvh, 250px)',
               padding: 0,
               margin: 0,
               border: 'none',
               outline: 'none',
-              background: '#0b0b0b',
+              background: 'transparent',
               boxShadow: 'none',
               cursor: dragMeCursorOnDark,
               transform: dragTransform('woman-cover-print', 'rotate(2.4deg)'),
@@ -976,33 +998,32 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               userSelect: 'none',
               zIndex: 8,
               textDecoration: 'none',
-              overflow: 'hidden',
             }}
             {...dragHandlers('woman-cover-print')}
           >
-            <BleedPhoto
+            <ScrapPhoto
               src="/dispatch-covers/harassment.jpg"
-              position="48% 38%"
               filter="contrast(1.05) saturate(0.92)"
               overlay="linear-gradient(180deg, transparent 55%, rgba(20,17,12,0.58) 100%)"
-            />
-            <DragMeHint onDark />
-            <span
-              style={{
-                position: 'absolute',
-                left: 10,
-                bottom: 12,
-                zIndex: 1,
-                color: '#fffdf8',
-                fontFamily: 'Georgia, serif',
-                fontSize: '0.95rem',
-                fontStyle: 'italic',
-                textShadow: '0 1px 10px rgba(0,0,0,0.5)',
-                pointerEvents: 'none',
-              }}
             >
-              essay
-            </span>
+              <DragMeHint onDark />
+              <span
+                style={{
+                  position: 'absolute',
+                  left: 10,
+                  bottom: 12,
+                  zIndex: 1,
+                  color: '#fffdf8',
+                  fontFamily: 'Georgia, serif',
+                  fontSize: '0.95rem',
+                  fontStyle: 'italic',
+                  textShadow: '0 1px 10px rgba(0,0,0,0.5)',
+                  pointerEvents: 'none',
+                }}
+              >
+                essay
+              </span>
+            </ScrapPhoto>
           </Link>
 
           <Link
@@ -1013,12 +1034,11 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               top: '58%',
               left: atriumCoverLeft,
               width: 'min(13vw, 128px)',
-              height: 'clamp(140px, 18dvh, 168px)',
               padding: 0,
               margin: 0,
               border: 'none',
               outline: 'none',
-              background: '#0b0b0b',
+              background: 'transparent',
               boxShadow: 'none',
               cursor: dragMeCursorOnDark,
               transform: dragTransform('didion-scrap', 'rotate(-2.8deg)'),
@@ -1027,33 +1047,76 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               userSelect: 'none',
               zIndex: 9,
               textDecoration: 'none',
-              overflow: 'hidden',
             }}
             {...dragHandlers('didion-scrap')}
           >
-            <BleedPhoto
+            <ScrapPhoto
               src="/dispatch-covers/books-joan-didion-readings.jpg"
-              position="50% 18%"
               filter="saturate(0.88) contrast(1.04)"
               overlay="linear-gradient(180deg, transparent 50%, rgba(20,17,12,0.6) 100%)"
-            />
+            >
+              <DragMeHint onDark />
+              <span
+                style={{
+                  position: 'absolute',
+                  left: 10,
+                  bottom: 10,
+                  zIndex: 1,
+                  color: '#fffdf8',
+                  fontFamily: 'Georgia, serif',
+                  fontSize: '0.9rem',
+                  fontStyle: 'italic',
+                  textShadow: '0 1px 10px rgba(0,0,0,0.45)',
+                  pointerEvents: 'none',
+                }}
+              >
+                reading
+              </span>
+            </ScrapPhoto>
+          </Link>
+
+          <Link
+            href="/updates"
+            aria-label="Open Metal & Pages — zine clipping poster"
+            className="absolute z-[10] hidden md:block"
+            style={{
+              top: '42%',
+              left: `calc(${atriumPolaroidLeft} + clamp(20px, 2.5vw, 40px))`,
+              width: 'min(12vw, 128px)',
+              padding: 0,
+              margin: 0,
+              border: 'none',
+              outline: 'none',
+              background: 'transparent',
+              boxShadow: 'none',
+              cursor: dragMeCursorOnDark,
+              transform: dragTransform('zine-clipping', 'rotate(-4.6deg)'),
+              transition: 'transform 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+              touchAction: 'none',
+              userSelect: 'none',
+              zIndex: 10,
+              textDecoration: 'none',
+              filter: 'drop-shadow(2px 8px 14px rgba(20,17,12,0.16))',
+              position: 'relative' as const,
+            }}
+            {...dragHandlers('zine-clipping')}
+          >
             <DragMeHint onDark />
-            <span
+            <Image
+              src="/zine/clipping-desk.jpg"
+              alt=""
+              width={640}
+              height={960}
+              sizes="128px"
+              draggable={false}
               style={{
-                position: 'absolute',
-                left: 10,
-                bottom: 10,
-                zIndex: 1,
-                color: '#fffdf8',
-                fontFamily: 'Georgia, serif',
-                fontSize: '0.9rem',
-                fontStyle: 'italic',
-                textShadow: '0 1px 10px rgba(0,0,0,0.45)',
+                display: 'block',
+                width: '100%',
+                height: 'auto',
+                border: 'none',
                 pointerEvents: 'none',
               }}
-            >
-              reading
-            </span>
+            />
           </Link>
 
           <button
@@ -1083,29 +1146,12 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               window.dispatchEvent(new CustomEvent('open-agent-chat'));
             }}
           >
-            <span
-              aria-hidden
-              style={{
-                position: 'relative',
-                display: 'block',
-                width: '100%',
-                aspectRatio: '3 / 4',
-                margin: 0,
-                padding: 0,
-                border: 'none',
-                outline: 'none',
-                background: '#0b0b0b',
-                boxShadow: 'none',
-                overflow: 'hidden',
-              }}
+            <ScrapPhoto
+              src="/bg_pic/03.jpeg"
+              filter="saturate(0.94) contrast(1.04)"
             >
-              <BleedPhoto
-                src="/bg_pic/03.jpeg"
-                position="34% 8%"
-                filter="saturate(0.94) contrast(1.04)"
-              />
               <DragMeHint onDark />
-            </span>
+            </ScrapPhoto>
             <span
               style={{
                 display: 'block',
@@ -1195,58 +1241,7 @@ function DragMeHint({ onDark = false }: { onDark?: boolean }) {
   );
 }
 
-/** Full-bleed photo face: dark underlay + overscan crop kills rotate white fringe. */
-function BleedPhoto({
-  src,
-  position = 'center',
-  filter,
-  overlay,
-}: {
-  src: string;
-  position?: string;
-  filter?: string;
-  overlay?: CSSProperties['background'];
-}) {
-  return (
-    <span
-      aria-hidden
-      style={{
-        position: 'absolute',
-        inset: 0,
-        display: 'block',
-        overflow: 'hidden',
-        background: '#0b0b0b',
-        border: 'none',
-        outline: 'none',
-        boxShadow: 'none',
-      }}
-    >
-      <span
-        style={{
-          position: 'absolute',
-          inset: '-8%',
-          backgroundImage: `url('${src}')`,
-          backgroundPosition: position,
-          backgroundSize: 'cover',
-          backgroundRepeat: 'no-repeat',
-          filter,
-          transform: 'translateZ(0)',
-        }}
-      />
-      {overlay ? (
-        <span
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: overlay,
-            pointerEvents: 'none',
-          }}
-        />
-      ) : null}
-    </span>
-  );
-}
-
+/** Natural-aspect scrap — see `ScrapPhoto`. */
 function ObjectFace({ room }: { room: RoomDoor }) {
   if (room.motif === 'article') {
     return (
@@ -1382,49 +1377,28 @@ function ObjectFace({ room }: { room: RoomDoor }) {
 
   if (room.motif === 'investing') {
     return (
-      <span
-        style={{
-          position: 'relative',
-          display: 'block',
-          width: 'min(34vw, 220px)',
-          minHeight: 200,
-          overflow: 'hidden',
-          border: 'none',
-          outline: 'none',
-          background: '#0b0b0b',
-          boxShadow: 'none',
-        }}
+      <ScrapPhoto
+        src="/dispatch-covers/investing-hero.jpg"
+        style={{ width: 'min(34vw, 220px)' }}
+        overlay="linear-gradient(180deg, rgba(13,17,16,0.18) 0%, rgba(13,17,16,0.2) 35%, rgba(13,17,16,0.82) 100%)"
       >
-        <BleedPhoto
-          src="/dispatch-covers/investing-hero.jpg"
-          position="center 30%"
-          overlay="linear-gradient(180deg, rgba(13,17,16,0.18) 0%, rgba(13,17,16,0.2) 35%, rgba(13,17,16,0.82) 100%)"
-        />
         <DragMeHint onDark />
         <span
           style={{
-            position: 'relative',
+            position: 'absolute',
+            left: 16,
+            bottom: 18,
             zIndex: 1,
-            display: 'block',
-            padding: '18px 16px 20px',
-            minHeight: 200,
+            color: '#fffdf8',
+            fontFamily: 'Georgia, serif',
+            fontSize: '1.05rem',
+            fontStyle: 'italic',
+            textShadow: '0 1px 10px rgba(0,0,0,0.45)',
           }}
         >
-          <span
-            style={{
-              display: 'block',
-              marginTop: 72,
-              color: '#fffdf8',
-              fontFamily: 'Georgia, serif',
-              fontSize: '1.05rem',
-              fontStyle: 'italic',
-              textShadow: '0 1px 10px rgba(0,0,0,0.45)',
-            }}
-          >
-            investing
-          </span>
+          investing
         </span>
-      </span>
+      </ScrapPhoto>
     );
   }
 
@@ -1434,8 +1408,6 @@ function ObjectFace({ room }: { room: RoomDoor }) {
         style={{
           position: 'relative',
           display: 'block',
-          height: 'clamp(340px, 44dvh, 390px)',
-          overflow: 'hidden',
           padding: 'clamp(34px, 5dvh, 42px) 32px 22px',
           background:
             `repeating-linear-gradient(180deg, transparent 0 33px, rgba(20,17,12,0.052) 34px 35px), linear-gradient(90deg, transparent 0 58px, ${palette.cyanSoft} 59px 60px, transparent 61px)`,
@@ -1568,25 +1540,11 @@ function ObjectFace({ room }: { room: RoomDoor }) {
   if (room.motif === 'hbm') {
     return (
       <span style={thumbnailShellStyle}>
-        <span
-          aria-hidden
-          style={{
-            position: 'relative',
-            display: 'block',
-            height: 220,
-            overflow: 'hidden',
-            borderRadius: 0,
-            background: '#0b0b0b',
-            border: 'none',
-            boxShadow: 'none',
-          }}
+        <ScrapPhoto
+          src="/dispatch-covers/investing-hero.jpg"
+          filter="saturate(0.9) contrast(1.05)"
+          overlay="linear-gradient(180deg, rgba(10,13,12,0.08), rgba(10,13,12,0.7))"
         >
-          <BleedPhoto
-            src="/dispatch-covers/investing-hero.jpg"
-            position="center"
-            filter="saturate(0.9) contrast(1.05)"
-            overlay="linear-gradient(180deg, rgba(10,13,12,0.08), rgba(10,13,12,0.7))"
-          />
           <DragMeHint onDark />
           <span
             style={{
@@ -1603,7 +1561,7 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           >
             magazine
           </span>
-        </span>
+        </ScrapPhoto>
       </span>
     );
   }
@@ -1611,25 +1569,11 @@ function ObjectFace({ room }: { room: RoomDoor }) {
   if (room.motif === 'pcb') {
     return (
       <span style={thumbnailShellStyle}>
-        <span
-          aria-hidden
-          style={{
-            position: 'relative',
-            display: 'block',
-            height: 220,
-            overflow: 'hidden',
-            borderRadius: 0,
-            background: '#0b0b0b',
-            border: 'none',
-            boxShadow: 'none',
-          }}
+        <ScrapPhoto
+          src="/projects/keyshield.png"
+          filter="saturate(0.9) contrast(1.08)"
+          overlay="linear-gradient(90deg, rgba(8,16,18,0.72), rgba(8,16,18,0.18))"
         >
-          <BleedPhoto
-            src="/projects/keyshield.png"
-            position="center"
-            filter="saturate(0.9) contrast(1.08)"
-            overlay="linear-gradient(90deg, rgba(8,16,18,0.72), rgba(8,16,18,0.18))"
-          />
           <DragMeHint onDark />
           <span
             style={{
@@ -1646,7 +1590,7 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           >
             news
           </span>
-        </span>
+        </ScrapPhoto>
       </span>
     );
   }

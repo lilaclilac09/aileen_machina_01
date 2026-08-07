@@ -51,6 +51,7 @@ watchlist.json
 |--------|-----|
 | `@dylan522p` | SemiAnalysis |
 | `@SemiAnalysis_` | SemiAnalysis |
+| `@SKundojjala` | SemiAnalysis (Memory CapEx / WFE / earnings) |
 | `@aaronburnett` | mach33 / 33fg |
 | `@mach33` | mach33 / 33fg |
 | `@VladSaigau` | mach33 / 33fg |

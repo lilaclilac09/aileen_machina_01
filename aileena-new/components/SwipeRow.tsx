@@ -83,6 +83,9 @@ const COVER_BY_SLUG: Record<string, string> = {
   centaur: COVER_AI_ABSTRACT,
   cli: COVER_TERMINAL,
   'local-models': COVER_TERMINAL,
+  'software-watch': COVER_TERMINAL,
+  'post-training-path': COVER_TERMINAL,
+  'own-your-stack': COVER_TERMINAL,
 
   // Privacy / Zcash
   'zcash-fpga': COVER_CIRCUIT_CLOSEUP,
@@ -90,12 +93,15 @@ const COVER_BY_SLUG: Record<string, string> = {
 
   // Investing — AI hardware silicon
   'semi-basics-review': COVER_SILICON,
+  'semi-watch-tpu-cpo': COVER_SILICON,
   'ai-pcb': COVER_SILICON,
   broadcom: COVER_SILICON,
   marvell: COVER_CIRCUIT_CLOSEUP,
   'ai-hardware-scarcity': COVER_SILICON,
   'huawei-hbm': COVER_CIRCUIT_CLOSEUP,
   'huawei-supply': COVER_SILICON,
+  'memory-tax': COVER_SILICON,
+  'cxmt-yield-watch': COVER_CIRCUIT_CLOSEUP,
 
   // Optical / fibre
   cpo: COVER_FIBER,

@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-08-06T03:35:47.379Z",
+  "ranAt": "2026-08-07T07:40:34.950Z",
   "nitterBases": [
     "https://nitter.net"
   ],
@@ -10,105 +10,62 @@
       "screenName": "dylan522p",
       "rssCount": 20,
       "missing": [
-        "2085203412040434079",
-        "2085196853373718752",
-        "2085191620048326947",
+        "2085610927760511360",
         "2082526248287523199",
-        "2078694522373157347",
-        "2075592577135329655",
-        "2075364232623956227",
-        "2075290667031404588"
+        "2078694522373157347"
       ],
       "skippedOffWatchlist": [
         "jaiyagill/2082526248287523199",
-        "Reshusaur/2078694522373157347",
-        "AndrewGSugrue/2075592577135329655",
-        "alexandr_wang/2075364232623956227",
-        "MollySOShea/2075290667031404588"
+        "Reshusaur/2078694522373157347"
       ],
       "ingested": [
-        "2085203412040434079",
-        "2085196853373718752",
-        "2085191620048326947"
+        "2085610927760511360"
       ],
       "failed": []
     },
     {
       "screenName": "SemiAnalysis_",
       "rssCount": 16,
-      "missing": [
-        "2085154084521222184",
-        "2085154085733318726",
-        "2085154083254542527",
-        "2085154082210140274",
-        "2085154080037429715"
-      ],
-      "skippedOffWatchlist": [],
-      "ingested": [
-        "2085154084521222184",
-        "2085154085733318726",
-        "2085154083254542527",
-        "2085154082210140274",
-        "2085154080037429715"
-      ],
-      "failed": []
-    },
-    {
-      "screenName": "aaronburnett",
-      "rssCount": 19,
-      "missing": [
-        "2085132754224861595",
-        "2085110895659925791",
-        "2085110410152202252",
-        "2085102393667322354",
-        "2085101779147231348",
-        "2085060770564374847"
-      ],
-      "skippedOffWatchlist": [
-        "elonmusk/2085132754224861595",
-        "typesfast/2085110895659925791",
-        "TeslaBoomerMama/2085102393667322354",
-        "TeslaBoomerMama/2085101779147231348",
-        "SpaceInvestor_D/2085060770564374847"
-      ],
-      "ingested": [
-        "2085110410152202252"
-      ],
-      "failed": []
-    },
-    {
-      "screenName": "mach33",
-      "rssCount": 18,
       "missing": [],
       "skippedOffWatchlist": [],
       "ingested": [],
       "failed": []
     },
     {
-      "screenName": "VladSaigau",
-      "rssCount": 19,
-      "missing": [
-        "2084397350588658070",
-        "2083268172602372368",
-        "2082303239983099957",
-        "2082097648769610098",
-        "2080812297694409014",
-        "2080798034540310799",
-        "2080377221030555963",
-        "2080302195677728803"
-      ],
-      "skippedOffWatchlist": [
-        "CernBasher/2084397350588658070",
-        "elonmusk/2083268172602372368",
-        "DJEsmeraldMusic/2082303239983099957",
-        "wintonARK/2082097648769610098",
-        "elonmusk/2080812297694409014",
-        "CSI_Starbase/2080798034540310799",
-        "RupertLowe10/2080377221030555963",
-        "SpaceX/2080302195677728803"
-      ],
+      "screenName": "SKundojjala",
+      "rssCount": 0,
+      "missing": [],
+      "skippedOffWatchlist": [],
       "ingested": [],
-      "failed": []
+      "failed": [],
+      "error": "empty RSS from https://nitter.net/SKundojjala/rss (bytes=3372)"
+    },
+    {
+      "screenName": "aaronburnett",
+      "rssCount": 0,
+      "missing": [],
+      "skippedOffWatchlist": [],
+      "ingested": [],
+      "failed": [],
+      "error": "empty RSS from https://nitter.net/aaronburnett/rss (bytes=3375)"
+    },
+    {
+      "screenName": "mach33",
+      "rssCount": 0,
+      "missing": [],
+      "skippedOffWatchlist": [],
+      "ingested": [],
+      "failed": [],
+      "error": "empty RSS from https://nitter.net/mach33/rss (bytes=3357)"
+    },
+    {
+      "screenName": "VladSaigau",
+      "rssCount": 0,
+      "missing": [],
+      "skippedOffWatchlist": [],
+      "ingested": [],
+      "failed": [],
+      "error": "empty RSS from https://nitter.net/VladSaigau/rss (bytes=3369)"
     }
   ]
 }

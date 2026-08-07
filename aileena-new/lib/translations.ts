@@ -497,6 +497,24 @@ export const t = {
             body: 'Part II of the prop AMM reversal. Part I said humidifi\'s mints don\'t live on chain. Part II goes back in to map what does. 3.3% of the 1728-byte account is live, spread across six narrow ranges, including two u16 price ticks and a monotonic e18 counter. The byte map is enough to build a real-time humidifi quote firehose without humidifi\'s cooperation.',
           },
           {
+            date: '2026.08.07',
+            href: '/blog/own-your-stack',
+            title: 'Know Good Code. Own the Repo. Know Your Stack.',
+            body: 'Four habits beside the post-training path: recognize good code, write and own it on GitHub, name the stack you actually run, and know what you need before you build.',
+          },
+          {
+            date: '2026.08.07',
+            href: '/blog/post-training-path',
+            title: 'Post-Training Path: Rust, CLI, Eval, Base Model',
+            body: 'Short curriculum to post-train a small open model yourself: Rust literacy, thin CLIs, holdout exact_match before training, then LoRA SFT on Qwen2.5-0.5B-Instruct (Polar Lab). MCP YouTube stays on the software watch shelf; Rust video slot open until a URL lands.',
+          },
+          {
+            date: '2026.08.07',
+            href: '/blog/software-watch',
+            title: 'Software YouTube — MCP',
+            body: 'In-page theater: what MCP is, then MCP vs API. Rust quick-master slot left open until a link is chosen. Protocols beside the agent essays.',
+          },
+          {
             date: '2026.05.26',
             href: '/blog/centaur',
             title: 'Centaur, and the Market It\'s Landing In',
@@ -554,7 +572,19 @@ export const t = {
             date: '2026.06.23',
             href: '/blog/huawei-supply',
             title: 'Two Supply Chains, One Bottleneck',
-            body: 'Companion to David\'s stone. Put the chip down and look at the board: a single GB200 cabinet\'s PCB stack is worth ~$170K. The real supply-chain divergence between Huawei and NVIDIA lives there — and on the copper-clad laminate (CCL), and on who decides whose board. NVIDIA: open + tightly controlled — Victory Giant (>30% global AI-server PCB share) on GB200, WUS + TTM on GB300 UBB ($750–800 ASP, 18 layers, 14 M8 + 4 M4), Taiwan Union Tech sole-sourcing Switch Tray CCL at $4K+ M8U (up from $2K+ M7), buy-and-consign on high-value parts, TSMC lock through CoWoS and CPO. Huawei: closed + self-reliant — Shennan Circuits (>30% Ascend PCB share), the only mainland firm doing 14-layer FC-BGA with ABF substrate; Huafeng connectors, Xinsen ABF, Shenling liquid cooling (~70% share). Ascend domesticization >82%; 910C per-card PCB value above H100\'s ~$407. Layer by layer Huawei finds a domestic answer at almost every cell — protocol (UnifiedBus, full-stack), board (Shennan), CCL (Shengyi at 27% global share, sells to both chains), logic (SMIC) — until the last cell: HBM. CXMT next year ~2M stacks = 250–300K Ascend; ~13M stacks smuggled = 1.6M 910Cs, burning down by year-end; without foreign HBM, <1M Ascend next year. Huawei wins every layer it can build itself. What pins it is the one layer it can\'t build, can\'t buy, and can\'t substitute.',
+            body: 'Companion to David\'s stone. Put the chip down and look at the board: a single GB200 cabinet\'s PCB stack is worth ~$170K. The real supply-chain divergence between Huawei and NVIDIA lives there — and on the copper-clad laminate (CCL), and on who decides whose board. NVIDIA: open + tightly controlled — Victory Giant (>30% global AI-server PCB share) on GB200; industry survey puts Victory Giant at ~50–60% of B300 PCB and IBIDEN at ~80–90% of B300 package substrate; WUS + TTM on GB300 UBB ($750–800 ASP, 18 layers, 14 M8 + 4 M4), Taiwan Union Tech sole-sourcing Switch Tray CCL at $4K+ M8U (up from $2K+ M7), buy-and-consign on high-value parts, TSMC lock through CoWoS and CPO. Huawei: closed + self-reliant — Shennan Circuits (>30% Ascend PCB share), the only mainland firm doing 14-layer FC-BGA with ABF substrate; Huafeng connectors, Xinsen ABF, Shenling liquid cooling (~70% share). Ascend domesticization >82%; 910C per-card PCB value above H100\'s ~$407. Layer by layer Huawei finds a domestic answer at almost every cell — protocol (UnifiedBus, full-stack), board (Shennan), CCL (Shengyi at 27% global share, sells to both chains), logic (SMIC) — until the last cell: HBM. CXMT next year ~2M stacks = 250–300K Ascend; ~13M stacks smuggled = 1.6M 910Cs, burning down by year-end; without foreign HBM, <1M Ascend next year. Huawei wins every layer it can build itself. What pins it is the one layer it can\'t build, can\'t buy, and can\'t substitute.',
+          },
+          {
+            date: '2026.08.06',
+            href: '/blog/memory-tax',
+            title: 'The Memory Tax Moves',
+            body: 'Three SemiAnalysis threads, one naming trap. Tax 1 — wafer: HBM eats DRAM bits (TSV KOZ, sub-50μm thinning, stack yield ~92%/87% at 99%/layer). Tax 2 — substrate: SPHBM4 (JESD330-4) cuts pins ~1/5, runs 32 Gbps out to ~20 mm, forces 20–28+ layer ABF — CoWoS escape that moves the bill, not a free lunch. Naming firewall: SPHBM4 ≠ Google SP-HBM pooling. Tax 3 — CXMT: #4 DRAM, IPO +466% / ~$488B, not a near-term cycle-killer (CN ASP rises with the world). None of that resets Huawei\'s stockpile vs CXMT HBM yield clock. Survey vs Semi scorecards stay separate.',
+          },
+          {
+            date: '2026.08.06',
+            href: '/blog/cxmt-yield-watch',
+            title: 'CXMT HBM Yield Watch',
+            body: 'We open the empty cell: CXMT HBM yield / stacks as a dated public ledger. Anchors only — Semi ~2M stacks/yr thesis, TechNews ~5k→30k→55k HBM WPM path vs ~60k/20% alternate, ~25% 8Hi yield rumor vs <60% band, end-2026 HBM3 MP target, samples to Huawei. Conflicts kept side-by-side. Monthly % and stacks still 待填. WPM ≠ stacks. This is the Huawei Ascend hinge, not SPHBM4 and not YMTC.',
           },
           {
             date: '2026.07.28',
@@ -623,6 +653,12 @@ export const t = {
             href: '/blog/cpo',
             title: 'How CPO Actually Gets Built',
             body: 'CPO is the technology that erases the pluggable optical-module empire — and the headline ship dates have slipped by a quarter every quarter. Walks what\'s actually inside the optical engine (PIC at 65 nm + EIC at 6 nm + 3-D FAU with sub-µm alignment + external ≥300 mW CW source), the six-step packaging flow, where the yield breaks (TSMC at ~75% vs 90–95% target — PIC/EIC hybrid bond loses ~10% alone; FAU active coupling needs engineers with 6-month training cycles), and why the ecosystem is structurally slow: Nvidia–TSMC own a closed main line, third parties are second-tier, CSPs hedge into NPO and keep pluggables. Real volume is 2027–2029; 2026 ships ~15,000 CPO switches off the back of a wafer test floor where one wafer takes 20+ hours to fully test. NVIDIA has prepaid via a $2B Coherent equity stake and a multi-B Lumentum commitment; Foxconn assembles exclusively (~25k unit 2027 target, ~10k+ likely actual); TFC delivered 7,200 FAU for demo only.',
+          },
+          {
+            date: '2026.08.07',
+            href: '/blog/semi-watch-tpu-cpo',
+            title: 'TPU & CPO — High-Signal YouTube Only',
+            body: 'Curated YouTube only — strong picture quality and information density, with an in-page theater player + playlist. Google TPU (Ironwood unbox, data-center walk, MXU / systolic array) and CPO (NVIDIA switch deep dive, Broadcom official, agentic network, Corning glass-substrate 3D). Watch first: NVIDIA + Broadcom CPO, then Ironwood.',
           },
           {
             date: '2026.08.06',
@@ -1246,6 +1282,24 @@ export const t = {
             body: 'Teil II der Prop-AMM-Reversal. Teil I hat festgestellt, dass humidifis Mints nicht on-chain liegen. Teil II geht zurück und kartiert, was on-chain liegt. 3,3 % des 1728-Byte-Accounts sind live, verteilt auf sechs schmale Bereiche, darunter zwei u16-Preis-Ticks und ein monotoner e18-Zähler. Die Byte-Map reicht aus, um einen Echtzeit-humidifi-Quote-Firehose ohne humidifis Mitwirkung zu bauen.',
           },
           {
+            date: '2026.08.07',
+            href: '/blog/own-your-stack',
+            title: 'Know Good Code. Own the Repo. Know Your Stack.',
+            body: 'Four habits beside the post-training path: recognize good code, own it on GitHub, name your real stack, know what you need before you build.',
+          },
+          {
+            date: '2026.08.07',
+            href: '/blog/post-training-path',
+            title: 'Post-Training Path: Rust, CLI, Eval, Base Model',
+            body: 'Short curriculum to post-train a small open model: Rust literacy, thin CLIs, holdout exact_match, then LoRA SFT on Qwen2.5-0.5B (Polar Lab). MCP YouTube on the software watch shelf; Rust video TBD.',
+          },
+          {
+            date: '2026.08.07',
+            href: '/blog/software-watch',
+            title: 'Software YouTube — MCP',
+            body: 'In-Page-Theater: Was MCP ist, dann MCP vs API. Rust-Schnellkurs-Slot offen, bis ein Link feststeht. Protokolle neben den Agent-Essays.',
+          },
+          {
             date: '2026.05.26',
             href: '/blog/centaur',
             title: 'Centaur und der Markt, in den es landet',
@@ -1303,7 +1357,19 @@ export const t = {
             date: '2026.06.23',
             href: '/blog/huawei-supply',
             title: 'Zwei Lieferketten, ein Engpass',
-            body: 'Begleittext zu Davids Stein. Lass den Chip beiseite und schau auf die Platine: Der PCB-Stack in einem einzigen GB200-Schrank ist rund 170.000 $ wert. Die echte Lieferketten-Trennung zwischen Huawei und NVIDIA liegt genau dort — auf der Platine, auf dem Kupfer-beschichteten Laminat (CCL), und an der Frage, wer entscheidet, wessen Platine verwendet wird. NVIDIA: offen + streng kontrolliert. Victory Giant (>30 % globaler Anteil am AI-Server-PCB) auf GB200; WUS + TTM auf GB300 UBB (750–800 $ ASP, 18 Lagen, 14 M8 + 4 M4); Taiwan Union Tech als alleiniger Lieferant für Switch-Tray-CCL bei 4.000+ $ M8U (von 2.000+ $ M7); Buy-and-Consign für hochwertige Komponenten; TSMC-Bindung über CoWoS bis CPO. Huawei: geschlossen + selbstversorgt. Shennan Circuits (>30 % Ascend-PCB-Anteil), als einer der wenigen Festland-Hersteller mit 14-Lagen-FC-BGA-Fähigkeit und ABF-Substrat; Huafeng (Hochgeschwindigkeits-Stecker); Xinsen (ABF); Shenling (Flüssigkeitskühlung, ~70 % Anteil). Ascend-Inländerquote über 82 %; Pro-Karten-PCB-Wert des 910C liegt über den ~407 $ der H100. Schicht für Schicht findet Huawei eine inländische Antwort — Protokoll (UnifiedBus), Platine (Shennan), CCL (Shengyi mit 27 % globalem Anteil, liefert an beide Ketten), Logik (SMIC) — bis zur letzten Zelle: HBM. CXMT nächstes Jahr ~2 Mio. Stacks = 250–300 K Ascend; ~13 Mio. geschmuggelte Stacks = 1,6 Mio. 910Cs, brennen bis Jahresende ab; ohne ausländisches HBM weniger als 1 Mio. Ascend nächstes Jahr. Huawei gewinnt jede Schicht, die es selbst bauen kann. Was es festsetzt, ist die eine Schicht, die es nicht bauen, nicht kaufen und nicht ersetzen kann.',
+            body: 'Begleittext zu Davids Stein. Lass den Chip beiseite und schau auf die Platine: Der PCB-Stack in einem einzigen GB200-Schrank ist rund 170.000 $ wert. Die echte Lieferketten-Trennung zwischen Huawei und NVIDIA liegt genau dort — auf der Platine, auf dem Kupfer-beschichteten Laminat (CCL), und an der Frage, wer entscheidet, wessen Platine verwendet wird. NVIDIA: offen + streng kontrolliert. Victory Giant (>30 % globaler Anteil am AI-Server-PCB) auf GB200; Branchen-Survey: Victory Giant ~50–60 % B300-PCB, IBIDEN ~80–90 % B300-Substrat; WUS + TTM auf GB300 UBB (750–800 $ ASP, 18 Lagen, 14 M8 + 4 M4); Taiwan Union Tech als alleiniger Lieferant für Switch-Tray-CCL bei 4.000+ $ M8U (von 2.000+ $ M7); Buy-and-Consign für hochwertige Komponenten; TSMC-Bindung über CoWoS bis CPO. Huawei: geschlossen + selbstversorgt. Shennan Circuits (>30 % Ascend-PCB-Anteil), als einer der wenigen Festland-Hersteller mit 14-Lagen-FC-BGA-Fähigkeit und ABF-Substrat; Huafeng (Hochgeschwindigkeits-Stecker); Xinsen (ABF); Shenling (Flüssigkeitskühlung, ~70 % Anteil). Ascend-Inländerquote über 82 %; Pro-Karten-PCB-Wert des 910C liegt über den ~407 $ der H100. Schicht für Schicht findet Huawei eine inländische Antwort — Protokoll (UnifiedBus), Platine (Shennan), CCL (Shengyi mit 27 % globalem Anteil, liefert an beide Ketten), Logik (SMIC) — bis zur letzten Zelle: HBM. CXMT nächstes Jahr ~2 Mio. Stacks = 250–300 K Ascend; ~13 Mio. geschmuggelte Stacks = 1,6 Mio. 910Cs, brennen bis Jahresende ab; ohne ausländisches HBM weniger als 1 Mio. Ascend nächstes Jahr. Huawei gewinnt jede Schicht, die es selbst bauen kann. Was es festsetzt, ist die eine Schicht, die es nicht bauen, nicht kaufen und nicht ersetzen kann.',
+          },
+          {
+            date: '2026.08.06',
+            href: '/blog/memory-tax',
+            title: 'The Memory Tax Moves',
+            body: 'Drei SemiAnalysis-Threads, eine Namensfalle. Steuer 1 — Wafer: HBM frisst DRAM-Bits (TSV-KOZ, sub-50μm, Stack-Yield ~92%/87% bei 99%/Lage). Steuer 2 — Substrate: SPHBM4 (JESD330-4) pin ~1/5, 32 Gbps bis ~20 mm, 20–28+ Lagen ABF — CoWoS-Entlastung verschiebt die Rechnung. Namensfirewall: SPHBM4 ≠ Google SP-HBM-Pooling. Steuer 3 — CXMT: #4 DRAM, IPO +466% / ~$488B, kein kurzfristiger Cycle-Killer. Nichts davon setzt Huaweis Stockpile-vs-CXMT-Yield-Uhr zurück. Survey- und Semi-Zahlen getrennt halten.',
+          },
+          {
+            date: '2026.08.06',
+            href: '/blog/cxmt-yield-watch',
+            title: 'CXMT HBM Yield Watch',
+            body: 'Wir öffnen die leere Zelle: CXMT-HBM-Yield/Stacks als datiertes öffentliches Ledger. Nur Anker — Semi ~2M Stacks/Jahr, TechNews ~5k→30k→55k HBM-WPM vs ~60k/20%-Alternative, ~25% 8Hi-Yield-Gerücht vs <60%-Band, HBM3-MP-Ziel Ende 2026, Samples an Huawei. Konflikte nebeneinander. Monatliche %/Stacks weiter 待填. WPM ≠ Stacks. Das ist Huaweis Ascend-Scharnier — nicht SPHBM4, nicht YMTC.',
           },
           {
             date: '2026.07.28',
@@ -1372,6 +1438,12 @@ export const t = {
             href: '/blog/cpo',
             title: 'Wie CPO tatsächlich gebaut wird',
             body: 'CPO ist die Technik, die das steckbare Lichtmodul-Imperium auslöschen würde — und die Liefertermine rutschen Quartal um Quartal. Der Artikel zerlegt, was in der Optical Engine wirklich steckt (PIC in 65 nm + EIC in 6 nm + 3-D-FAU mit Sub-µm-Alignment + externe ≥300 mW CW-Quelle), die sechs Verpackungsschritte, wo die Ausbeute zerbricht (TSMC bei ~75% gegen 90–95% Ziel — PIC/EIC-Hybridbonding allein verliert ~10%; FAU-Aktivkopplung braucht Ingenieure mit 6-monatigem Trainingszyklus), und warum das Ökosystem strukturell langsam ist: Nvidia und TSMC besitzen eine geschlossene Hauptlinie, Dritte sind zweite Reihe, CSPs hedgen in NPO und behalten Pluggables. Reales Volumen liegt 2027–2029; 2026 werden ~15.000 CPO-Switches geliefert, hinter einer Testfläche, auf der ein Wafer 20+ Stunden braucht. NVIDIA hat per 2 Mrd. $ Coherent-Beteiligung und mehrstelliger Lumentum-Zusage vorgekauft; Foxconn montiert exklusiv (~25k Ziel 2027, ~10k+ wahrscheinlich real); TFC lieferte 7.200 FAU nur als Demo.',
+          },
+          {
+            date: '2026.08.07',
+            href: '/blog/semi-watch-tpu-cpo',
+            title: 'TPU & CPO — High-Signal YouTube Only',
+            body: 'Nur YouTube mit starker Bild- und Informationsdichte — mit In-Page-Theater + Playlist. Google TPU (Ironwood, Data Center, MXU/Systolic Array) und CPO (NVIDIA, Broadcom, Agentic Network, Corning-Glas-3D). Zuerst: NVIDIA + Broadcom CPO, dann Ironwood.',
           },
           {
             date: '2026.08.06',

@@ -90,3 +90,36 @@ FxTwitter = per-status; Nitter RSS ≈ 20 newest / account. AgentCash timeline n
 | Ledgers | `data/research/2026-07-grok-semi-twitter-numbers.md`, `2026-07-grok-mach33-twitter-numbers.md` |
 | Command | `pnpm ingest:grok` · `pnpm sync:social-rss` · `pnpm social:grok-prompt` |
 | Dreaming | `pnpm dreaming` → `episodic/social-changelog-*.md` + Social section in consolidate report (Monday CI) |
+
+## Dig log (2026-08-06) — Semi Memory (DRAM/HBM) hub
+
+| Source | Result |
+|--------|--------|
+| Grok Memory corpus map | Memory Wall (2024-09) + Scaling HBM (2025-08) + Memory/Accelerator models + ISSCC 2026 + SPHBM4 |
+| Hub filed | `data/research/2026-08-semianalysis-dram-hbm-memory.md` |
+| CXMT 长鑫 | IPO +466% / ~$488B (Semi X); Big Fund ~$2B; ~2M HBM stacks thesis → Huawei-HBM note |
+| YMTC 长江存储 | Memory Model peer; site essay `/blog/ymtc-nand-wuhan` |
+| Numbers | HBM cost-share theses >30%/ >40%; wafer 3–4×; Samsung HBM4 36GB / ~3.3TB/s |
+| Inbox note | `data/social/inbox/grok-semi-memory-2026-08-06.md` |
+
+## Dig log (2026-08-06) — Semi X Memory accounts + threads
+
+| Source | Result |
+|--------|--------|
+| Grok X map | `@SemiAnalysis_` · `@dylan522p` · `@SKundojjala` + HBM wafer / SPHBM4 / CXMT / Meta MI400 / cycle |
+| Hub §3b | `data/research/2026-08-semianalysis-dram-hbm-memory.md` |
+| SPHBM4 | JESD330-4; ~1/5 pins; 32 Gbps; organic substrate (2026-07-03) |
+| CXMT | IPO thread + **won’t break supercycle** near-term |
+| Client SKUs | Meta MI400 6×8Hi ~144GB; Rubin Ultra 16→12Hi |
+| Watchlist | Added `@SKundojjala` for CapEx/WFE |
+| Inbox | `data/social/inbox/grok-semi-x-memory-2026-08-06.md` |
+
+## Dig log (2026-08-06) — three Semi Memory X threads (full)
+
+| Root | Topic |
+|------|-------|
+| `2029286002745819255` | HBM wafer intensity 3/3 |
+| `2073036634094784720` | SPHBM4 6/6 |
+| `2071767487662768547` | CXMT deep + supercycle 6/6 |
+| `2081749011745137090` | CXMT IPO 2/2 |
+| Hub | §3c full extracts + compact contrast |

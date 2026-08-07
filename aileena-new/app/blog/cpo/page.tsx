@@ -38,7 +38,9 @@ export default function CpoArticle() {
           Out Of</Link>,{' '}
           <Link href="/blog/ai-cooling" style={linkStyle}>What&rsquo;s Cooling the AI Build-Out</Link>,{' '}
           <Link href="/blog/marvell" style={linkStyle}>Where Marvell Sits</Link>,{' '}
-          <Link href="/blog/broadcom" style={linkStyle}>Where Broadcom Sits</Link>.
+          <Link href="/blog/broadcom" style={linkStyle}>Where Broadcom Sits</Link>. For high-signal
+          official / lab video (NVIDIA + Broadcom CPO first):{' '}
+          <Link href="/blog/semi-watch-tpu-cpo" style={linkStyle}>TPU &amp; CPO YouTube shelf</Link>.
         </p>
 
         <SectionLabel>What's actually being packaged — the optical engine</SectionLabel>

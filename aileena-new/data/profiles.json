@@ -6,9 +6,9 @@
     "description": "Founder, CEO @mach33 | Research and Investment in Expansion Technologies",
     "location": "Merrit Island, FL",
     "website": "https://www.33fg.com/",
-    "followers": 26952,
+    "followers": 27487,
     "following": 630,
-    "tweets": 9007,
+    "tweets": 9047,
     "verified": true,
     "avatarUrl": "https://pbs.twimg.com/profile_images/2049987217477513216/GJx9_LdR_normal.jpg",
     "tags": [
@@ -16,7 +16,7 @@
     ],
     "org": "mach33 / 33fg",
     "source": "fxtwitter",
-    "updatedAt": "2026-08-06T03:36:02.711Z"
+    "updatedAt": "2026-08-07T03:19:44.556Z"
   },
   {
     "id": "985281530070265862",
@@ -24,9 +24,9 @@
     "name": "Dylan Patel",
     "description": "SemiAnalysis\nBoutique AI Infrastructure Research and Consulting\nDMs are open for consulting, quotes, or to talk shop,\nOpinions my own",
     "website": "http://www.semianalysis.com/",
-    "followers": 154800,
+    "followers": 155120,
     "following": 1028,
-    "tweets": 13920,
+    "tweets": 13926,
     "verified": true,
     "avatarUrl": "https://pbs.twimg.com/profile_images/1903585505046093824/PTqeS09L_normal.jpg",
     "tags": [
@@ -34,7 +34,7 @@
     ],
     "org": "SemiAnalysis",
     "source": "fxtwitter",
-    "updatedAt": "2026-08-06T03:35:52.082Z"
+    "updatedAt": "2026-08-07T07:40:36.445Z"
   },
   {
     "id": "handle:SemiAnalysis_",
@@ -82,14 +82,14 @@
     "screenName": "SemiAnalysis_",
     "name": "SemiAnalysis",
     "website": "https://www.semianalysis.com",
-    "followers": 147128,
+    "followers": 147286,
     "following": 29,
-    "tweets": 2952,
+    "tweets": 2961,
     "verified": true,
     "avatarUrl": "https://pbs.twimg.com/profile_images/2062973370157694976/CdplNoi1_normal.jpg",
     "tags": [],
     "source": "fxtwitter",
-    "updatedAt": "2026-08-06T03:36:00.004Z"
+    "updatedAt": "2026-08-07T03:19:40.762Z"
   },
   {
     "id": "1496125256624484362",
@@ -98,9 +98,9 @@
     "description": "Space Investor @Mach33 | 🇬🇧🇷🇴",
     "location": "London, England",
     "website": "https://research.33fg.com/",
-    "followers": 3691,
-    "following": 473,
-    "tweets": 1856,
+    "followers": 3689,
+    "following": 476,
+    "tweets": 1867,
     "verified": true,
     "avatarUrl": "https://pbs.twimg.com/profile_images/2048709268069916672/Nz_BJSKj_normal.jpg",
     "tags": [
@@ -108,7 +108,7 @@
     ],
     "org": "mach33 / 33fg",
     "source": "fxtwitter",
-    "updatedAt": "2026-07-30T19:51:42.141Z"
+    "updatedAt": "2026-08-07T00:15:39.247Z"
   },
   {
     "id": "2051360039869276160",
@@ -117,13 +117,31 @@
     "description": "We research and invest in companies developing expansion technologies shaping the future of humanity, including space, AI, robotics, and advanced infrastructure",
     "location": "Florida",
     "website": "https://www.33fg.com/",
-    "followers": 530,
+    "followers": 604,
     "following": 3,
-    "tweets": 22,
+    "tweets": 24,
     "verified": true,
     "avatarUrl": "https://pbs.twimg.com/profile_images/2054270599107608576/SOrzE1wC_normal.jpg",
     "tags": [],
     "source": "fxtwitter",
-    "updatedAt": "2026-07-31T03:49:17.325Z"
+    "updatedAt": "2026-08-07T00:15:27.622Z"
+  },
+  {
+    "id": "379092222",
+    "screenName": "SKundojjala",
+    "name": "Sravan Kundojjala",
+    "description": "Semiconductors, Analyst @SemiAnalysis_\n\nNo investment advice. Opinions are mine only.",
+    "website": "https://www.semianalysis.com/",
+    "followers": 22280,
+    "following": 5597,
+    "tweets": 10211,
+    "verified": true,
+    "avatarUrl": "https://pbs.twimg.com/profile_images/1562107049/213_jpg_normal.jpg",
+    "tags": [
+      "semianalysis"
+    ],
+    "org": "SemiAnalysis",
+    "source": "fxtwitter",
+    "updatedAt": "2026-08-06T14:35:01.637Z"
   }
 ]

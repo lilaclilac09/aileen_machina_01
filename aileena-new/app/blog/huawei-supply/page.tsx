@@ -74,7 +74,13 @@ export default function HuaweiSupplyArticle() {
           per UBB around <strong style={strong}>$750–800</strong>, supplied by WUS and TTM. The
           Switch Tray's CCL is sole-sourced from Taiwan Union Tech — unit price jumped from
           <strong style={strong}> ~$2,000+</strong> in the M7 era to{' '}
-          <strong style={strong}>~$4,000+</strong> for M8U.
+          <strong style={strong}>~$4,000+</strong> for M8U. On the next Blackwell board generation,
+          industry survey estimates put Victory Giant at roughly{' '}
+          <strong style={strong}>50–60%</strong> of <strong style={strong}>B300</strong> PCB share,
+          with Japan&apos;s <strong style={strong}>IBIDEN (揖斐电)</strong> at roughly{' '}
+          <strong style={strong}>80–90%</strong> of B300 package-substrate / carrier share — a
+          tighter choke than the &gt;30% global AI-server PCB framing above (treat as survey, not
+          audited NVIDIA disclosure).
         </p>
 
         <p style={bodyStyle}>

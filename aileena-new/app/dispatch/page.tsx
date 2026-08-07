@@ -40,15 +40,21 @@ const SLUG_TOPIC: Record<string, string> = {
   centaur: 'Agents & robotics',
   cli: 'Agents & robotics',
   'local-models': 'Agents & robotics',
+  'software-watch': 'Agents & robotics',
+  'post-training-path': 'Agents & robotics',
+  'own-your-stack': 'Agents & robotics',
 
   'zcash-fpga': 'Privacy',
   'zec-arbitrage': 'Privacy',
 
   'huawei-hbm': 'AI infrastructure',
   'huawei-supply': 'AI infrastructure',
+  'memory-tax': 'AI infrastructure',
+  'cxmt-yield-watch': 'AI infrastructure',
 
   // ── Investing ─────────────────────────────────────────────
   'semi-basics-review': 'AI hardware',
+  'semi-watch-tpu-cpo': 'AI hardware',
   'ai-pcb': 'AI hardware',
   broadcom: 'AI hardware',
   marvell: 'AI hardware',
