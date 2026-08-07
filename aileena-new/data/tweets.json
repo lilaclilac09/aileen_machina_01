@@ -9984,5 +9984,188 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-07T07:40:36.318Z"
+  },
+  {
+    "id": "2085712906851651886",
+    "url": "https://x.com/SemiAnalysis_/status/2085712906851651886",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "CRACKED ALERT: The startup powering @sgl_project, @radixark, has some of the most hardcore engineers in inference. They power production at @xai and at many Chinese labs.",
+    "createdAt": "Fri Aug 07 13:01:22 +0000 2026",
+    "createdTimestamp": 1786107682,
+    "likes": 25,
+    "retweets": 1,
+    "replies": 2,
+    "bookmarks": 5,
+    "views": 8210,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPHw1cvXwAA1E41.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "inference"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T13:38:07.868Z"
+  },
+  {
+    "id": "2085712872387068397",
+    "url": "https://x.com/aaronburnett/status/2085712872387068397",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Truly appreciate Morgan’s kind words and always having a spot for an optimistic view even if it doesn’t maximize clicks. \n\nAnd also being patient with my early morning brain.",
+    "createdAt": "Fri Aug 07 13:01:14 +0000 2026",
+    "createdTimestamp": 1786107674,
+    "likes": 16,
+    "retweets": 1,
+    "replies": 2,
+    "bookmarks": 0,
+    "views": 1381,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T13:38:11.083Z"
+  },
+  {
+    "id": "2085677797964423479",
+    "url": "https://x.com/aaronburnett/status/2085677797964423479",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "I realize it’s a little early but given Grok 5 will have SpaceX engineering training data, I’m having a hard time envisioning anything better for Mach33 research use. \n\nAnyone know how to get on a list for early access? Is that even a thing?",
+    "createdAt": "Fri Aug 07 10:41:51 +0000 2026",
+    "createdTimestamp": 1786099311,
+    "likes": 30,
+    "retweets": 1,
+    "replies": 8,
+    "bookmarks": 1,
+    "views": 1746,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T13:38:12.495Z"
+  },
+  {
+    "id": "2085670088061948254",
+    "url": "https://x.com/aaronburnett/status/2085670088061948254",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "I believe they called it “exit liquidity”",
+    "createdAt": "Fri Aug 07 10:11:13 +0000 2026",
+    "createdTimestamp": 1786097473,
+    "likes": 36,
+    "retweets": 1,
+    "replies": 4,
+    "bookmarks": 0,
+    "views": 3241,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T13:38:13.886Z"
+  },
+  {
+    "id": "2085665762979496278",
+    "url": "https://x.com/aaronburnett/status/2085665762979496278",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Shaun’s a class act",
+    "createdAt": "Fri Aug 07 09:54:02 +0000 2026",
+    "createdTimestamp": 1786096442,
+    "likes": 22,
+    "retweets": 0,
+    "replies": 2,
+    "bookmarks": 0,
+    "views": 3043,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://video.twimg.com/tweet_video/HPHF9MIXgAEipl1.mp4"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T13:38:15.302Z"
+  },
+  {
+    "id": "2085638417983865161",
+    "url": "https://x.com/aaronburnett/status/2085638417983865161",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Neocloud investors are about to learn the lesson space investors learned over the past decade. \n\nSpaceX is an N of 1 on hardware execution. (In substantially harder domains than sticks computers in a cold box, btw) \n\nComparing your lottery ticket to SpaceX should be done with extreme caution and discrimination. \n\nIt’s an expensive lesson.",
+    "createdAt": "Fri Aug 07 08:05:22 +0000 2026",
+    "createdTimestamp": 1786089922,
+    "likes": 150,
+    "retweets": 13,
+    "replies": 9,
+    "bookmarks": 41,
+    "views": 14427,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T13:38:16.730Z"
+  },
+  {
+    "id": "2085636565859016790",
+    "url": "https://x.com/aaronburnett/status/2085636565859016790",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "The absolute cope in these comments about femtocell starlink mobile reveal is sad. Nearly identical to ‘expert’ and armchair opinions about Starlink 5 years ago. There are plenty of receipts if you have the time to look them up.\n\nStarlink has proven one thing above all. They build connectivity that just works. I experience this as my everyday internet and it’s also evidenced by the fact they’ve never lost an enterprise customer. \n\nThey aren’t claiming to have invented the concept of femtocells or claiming it’s the single solve solution. It’s clearly part of a suite of connection options (broadband quad-band, DTC and femtocells). What ever drives the best seamless connection.\n\nNo - your decade old experience in quasi related tech doesn’t map over to this.",
+    "createdAt": "Fri Aug 07 07:58:01 +0000 2026",
+    "createdTimestamp": 1786089481,
+    "likes": 123,
+    "retweets": 7,
+    "replies": 4,
+    "bookmarks": 6,
+    "views": 8386,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "moe",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T13:38:18.163Z"
   }
 ]

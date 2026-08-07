@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-08-07T07:40:34.950Z",
+  "ranAt": "2026-08-07T13:38:06.094Z",
   "nitterBases": [
     "https://nitter.net"
   ],
@@ -10,7 +10,6 @@
       "screenName": "dylan522p",
       "rssCount": 20,
       "missing": [
-        "2085610927760511360",
         "2082526248287523199",
         "2078694522373157347"
       ],
@@ -18,54 +17,87 @@
         "jaiyagill/2082526248287523199",
         "Reshusaur/2078694522373157347"
       ],
-      "ingested": [
-        "2085610927760511360"
-      ],
+      "ingested": [],
       "failed": []
     },
     {
       "screenName": "SemiAnalysis_",
-      "rssCount": 16,
+      "rssCount": 17,
+      "missing": [
+        "2085712906851651886"
+      ],
+      "skippedOffWatchlist": [],
+      "ingested": [
+        "2085712906851651886"
+      ],
+      "failed": []
+    },
+    {
+      "screenName": "SKundojjala",
+      "rssCount": 17,
       "missing": [],
       "skippedOffWatchlist": [],
       "ingested": [],
       "failed": []
     },
     {
-      "screenName": "SKundojjala",
-      "rssCount": 0,
-      "missing": [],
-      "skippedOffWatchlist": [],
-      "ingested": [],
-      "failed": [],
-      "error": "empty RSS from https://nitter.net/SKundojjala/rss (bytes=3372)"
-    },
-    {
       "screenName": "aaronburnett",
-      "rssCount": 0,
-      "missing": [],
-      "skippedOffWatchlist": [],
-      "ingested": [],
-      "failed": [],
-      "error": "empty RSS from https://nitter.net/aaronburnett/rss (bytes=3375)"
+      "rssCount": 20,
+      "missing": [
+        "2085712872387068397",
+        "2085677797964423479",
+        "2085670088061948254",
+        "2085665762979496278",
+        "2085638417983865161",
+        "2085636565859016790",
+        "2085472225340137703",
+        "2085443308055343149",
+        "2085390631690555400"
+      ],
+      "skippedOffWatchlist": [
+        "elonmusk/2085472225340137703",
+        "TeslaBoomerMama/2085443308055343149",
+        "elonmusk/2085390631690555400"
+      ],
+      "ingested": [
+        "2085712872387068397",
+        "2085677797964423479",
+        "2085670088061948254",
+        "2085665762979496278",
+        "2085638417983865161",
+        "2085636565859016790"
+      ],
+      "failed": []
     },
     {
       "screenName": "mach33",
-      "rssCount": 0,
+      "rssCount": 18,
       "missing": [],
       "skippedOffWatchlist": [],
       "ingested": [],
-      "failed": [],
-      "error": "empty RSS from https://nitter.net/mach33/rss (bytes=3357)"
+      "failed": []
     },
     {
       "screenName": "VladSaigau",
-      "rssCount": 0,
-      "missing": [],
-      "skippedOffWatchlist": [],
+      "rssCount": 17,
+      "missing": [
+        "2084397350588658070",
+        "2083268172602372368",
+        "2082303239983099957",
+        "2082097648769610098",
+        "2080812297694409014",
+        "2080798034540310799"
+      ],
+      "skippedOffWatchlist": [
+        "CernBasher/2084397350588658070",
+        "elonmusk/2083268172602372368",
+        "DJEsmeraldMusic/2082303239983099957",
+        "wintonARK/2082097648769610098",
+        "elonmusk/2080812297694409014",
+        "CSI_Starbase/2080798034540310799"
+      ],
       "ingested": [],
-      "failed": [],
-      "error": "empty RSS from https://nitter.net/VladSaigau/rss (bytes=3369)"
+      "failed": []
     }
   ]
 }
