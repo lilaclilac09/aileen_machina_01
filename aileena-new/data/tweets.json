@@ -10167,5 +10167,77 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-07T13:38:18.163Z"
+  },
+  {
+    "id": "2085785973745434835",
+    "url": "https://x.com/SemiAnalysis_/status/2085785973745434835",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "",
+    "createdAt": "Fri Aug 07 17:51:42 +0000 2026",
+    "createdTimestamp": 1786125102,
+    "likes": 107,
+    "retweets": 0,
+    "replies": 4,
+    "bookmarks": 6,
+    "views": 17541,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPIzR4QXYAA3QRp.png?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T19:14:41.784Z"
+  },
+  {
+    "id": "2085771438468853834",
+    "url": "https://x.com/SemiAnalysis_/status/2085771438468853834",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "The new Futurama Season 14 was a complete disappointment. Hulu should put Futurama back on the shelf if they are going to make lame episodes about hot dog–eating contests. Bring back classics like the SLURM factory episode. SLURM is also one of the leading orchestration systems for training at neolabs, alongside Kubernetes.",
+    "createdAt": "Fri Aug 07 16:53:57 +0000 2026",
+    "createdTimestamp": 1786121637,
+    "likes": 27,
+    "retweets": 2,
+    "replies": 1,
+    "bookmarks": 1,
+    "views": 9562,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPImEguXcAANtVS.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T19:14:43.189Z"
+  },
+  {
+    "id": "2085724698172952776",
+    "url": "https://x.com/SKundojjala/status/2085724698172952776",
+    "screenName": "SKundojjala",
+    "authorId": "379092222",
+    "authorName": "Sravan Kundojjala",
+    "text": "Every auto & industrial IDM has pivoted to datacenter now. Microchip's datacenter revenue will grow by 69% to $1B in CY26. Bigger than auto segment already. DC becoming bigger than either auto or industrial at most of these IDMs already. DC remains the fastest growing segment for most of these IDMs. Wonder what will happen when auto & industrial cycle hits peak and there will be a big fight for capacity. Companies like TI are well positioned with their internal fabs and inventory.",
+    "createdAt": "Fri Aug 07 13:48:13 +0000 2026",
+    "createdTimestamp": 1786110493,
+    "likes": 11,
+    "retweets": 3,
+    "replies": 0,
+    "bookmarks": 5,
+    "views": 5048,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPH6f3Kb0AA0GtZ.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T19:14:45.395Z"
   }
 ]
