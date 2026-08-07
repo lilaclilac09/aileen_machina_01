@@ -58,7 +58,12 @@ export default function SemiBasicsReviewArticle() {
           <Link href="/blog/ai-hardware-scarcity" style={linkStyle}>
             What AI Hardware Is Running Out Of
           </Link>
-          — after the mental model is clean.
+          — after the mental model is clean. Next shelf up (TPU + CPO, high-signal YouTube
+          only):{' '}
+          <Link href="/blog/semi-watch-tpu-cpo" style={linkStyle}>
+            TPU &amp; CPO watch list
+          </Link>
+          .
         </p>
 
         <SectionLabel>1 · Cache, memory, storage — three speeds, one lie</SectionLabel>

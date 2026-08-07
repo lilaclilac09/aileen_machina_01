@@ -1,0 +1,302 @@
+/* Light Substack-compatible theater — outside article flatteners */
+
+.semi-watch {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 8px 24px 100px;
+  color: rgba(17, 17, 17, 0.84);
+}
+
+.semi-watch-lede {
+  font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: rgba(17, 17, 17, 0.72);
+  margin: 0 0 2.25rem;
+}
+
+.semi-watch-lede a {
+  color: #111;
+  text-decoration: underline;
+  text-decoration-color: rgba(17, 17, 17, 0.28);
+  text-underline-offset: 3px;
+}
+
+.semi-watch-lede a:hover {
+  text-decoration-color: rgba(0, 143, 132, 0.85);
+}
+
+.semi-watch-kicker {
+  font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(17, 17, 17, 0.42);
+  margin: 0 0 12px;
+}
+
+.semi-watch-theater {
+  margin-bottom: 2.75rem;
+}
+
+.semi-watch-frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  overflow: hidden;
+  background: #111;
+  border: 1px solid rgba(17, 17, 17, 0.1);
+}
+
+.semi-watch-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+.semi-watch-poster {
+  position: absolute;
+  inset: 0;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.semi-watch-poster-veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.42) 100%);
+}
+
+.semi-watch-play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.94);
+  color: #111;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22);
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+
+.semi-watch-poster:hover .semi-watch-play {
+  transform: translate(-50%, -50%) scale(1.05);
+  background: #fff;
+}
+
+.semi-watch-play svg {
+  margin-left: 3px;
+}
+
+.semi-watch-title {
+  font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: clamp(1.2rem, 2.4vw, 1.45rem);
+  font-weight: 700;
+  line-height: 1.3;
+  color: #111;
+  margin: 1rem 0 0.4rem;
+  letter-spacing: -0.01em;
+}
+
+.semi-watch-meta {
+  font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(17, 17, 17, 0.45);
+  margin: 0 0 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.semi-watch-meta a {
+  color: #008f84;
+  text-decoration: none;
+}
+
+.semi-watch-meta a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.semi-watch-note {
+  font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: rgba(17, 17, 17, 0.72);
+  margin: 0;
+}
+
+.semi-watch-note a {
+  color: #111;
+  text-decoration: underline;
+  text-decoration-color: rgba(17, 17, 17, 0.28);
+  text-underline-offset: 3px;
+}
+
+.semi-watch-note a:hover {
+  text-decoration-color: rgba(0, 143, 132, 0.85);
+}
+
+.semi-watch-playlist {
+  margin-bottom: 2.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.semi-watch-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 560px) {
+  .semi-watch {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .semi-watch-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.semi-watch-card {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  padding: 0;
+  border: 1px solid rgba(17, 17, 17, 0.1);
+  background: #fff;
+  cursor: pointer;
+  color: inherit;
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.semi-watch-card:hover {
+  border-color: rgba(0, 143, 132, 0.45);
+}
+
+.semi-watch-card.is-active {
+  border-color: #008f84;
+  box-shadow: 0 0 0 1px #008f84;
+}
+
+.semi-watch-card-thumb {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: #111;
+  display: block;
+}
+
+.semi-watch-card-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.semi-watch-card-badge {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  font-family: 'Nunito', system-ui, sans-serif;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #111;
+}
+
+.semi-watch-card.is-active .semi-watch-card-badge {
+  background: #008f84;
+  color: #fff;
+}
+
+.semi-watch-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 12px 14px;
+}
+
+.semi-watch-card-role {
+  font-family: 'Nunito', system-ui, sans-serif;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(17, 17, 17, 0.42);
+}
+
+.semi-watch-card-title {
+  font-family: 'Iowan Old Style', 'Charter', Georgia, serif;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  color: rgba(17, 17, 17, 0.88);
+  font-weight: 600;
+}
+
+.semi-watch-card.is-active .semi-watch-card-title {
+  color: #111;
+}
+
+.semi-watch-article {
+  border-top: 1px solid rgba(17, 17, 17, 0.08);
+  padding-top: 1.75rem;
+}
+
+.semi-watch-article h3 {
+  font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111;
+  margin: 0 0 0.85rem;
+}
+
+.semi-watch-article ol {
+  margin: 0 0 1.75rem;
+  padding-left: 1.25rem;
+  font-family: 'Iowan Old Style', 'Charter', Georgia, serif;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: rgba(17, 17, 17, 0.78);
+}
+
+.semi-watch-article li {
+  margin-bottom: 0.45rem;
+}
+
+.semi-watch-article a {
+  color: #111;
+  text-decoration: underline;
+  text-decoration-color: rgba(17, 17, 17, 0.28);
+  text-underline-offset: 3px;
+}
+
+.semi-watch-back a {
+  font-family: 'Nunito', system-ui, sans-serif;
+  font-size: 0.82rem;
+  color: rgba(17, 17, 17, 0.5);
+  text-decoration: none;
+}
+
+.semi-watch-back a:hover {
+  color: #111;
+}

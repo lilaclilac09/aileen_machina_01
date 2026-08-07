@@ -497,6 +497,24 @@ export const t = {
             body: 'Part II of the prop AMM reversal. Part I said humidifi\'s mints don\'t live on chain. Part II goes back in to map what does. 3.3% of the 1728-byte account is live, spread across six narrow ranges, including two u16 price ticks and a monotonic e18 counter. The byte map is enough to build a real-time humidifi quote firehose without humidifi\'s cooperation.',
           },
           {
+            date: '2026.08.07',
+            href: '/blog/own-your-stack',
+            title: 'Know Good Code. Own the Repo. Know Your Stack.',
+            body: 'Four habits beside the post-training path: recognize good code, write and own it on GitHub, name the stack you actually run, and know what you need before you build.',
+          },
+          {
+            date: '2026.08.07',
+            href: '/blog/post-training-path',
+            title: 'Post-Training Path: Rust, CLI, Eval, Base Model',
+            body: 'Short curriculum to post-train a small open model yourself: Rust literacy, thin CLIs, holdout exact_match before training, then LoRA SFT on Qwen2.5-0.5B-Instruct (Polar Lab). MCP YouTube stays on the software watch shelf; Rust video slot open until a URL lands.',
+          },
+          {
+            date: '2026.08.07',
+            href: '/blog/software-watch',
+            title: 'Software YouTube — MCP',
+            body: 'In-page theater: what MCP is, then MCP vs API. Rust quick-master slot left open until a link is chosen. Protocols beside the agent essays.',
+          },
+          {
             date: '2026.05.26',
             href: '/blog/centaur',
             title: 'Centaur, and the Market It\'s Landing In',
@@ -635,6 +653,12 @@ export const t = {
             href: '/blog/cpo',
             title: 'How CPO Actually Gets Built',
             body: 'CPO is the technology that erases the pluggable optical-module empire — and the headline ship dates have slipped by a quarter every quarter. Walks what\'s actually inside the optical engine (PIC at 65 nm + EIC at 6 nm + 3-D FAU with sub-µm alignment + external ≥300 mW CW source), the six-step packaging flow, where the yield breaks (TSMC at ~75% vs 90–95% target — PIC/EIC hybrid bond loses ~10% alone; FAU active coupling needs engineers with 6-month training cycles), and why the ecosystem is structurally slow: Nvidia–TSMC own a closed main line, third parties are second-tier, CSPs hedge into NPO and keep pluggables. Real volume is 2027–2029; 2026 ships ~15,000 CPO switches off the back of a wafer test floor where one wafer takes 20+ hours to fully test. NVIDIA has prepaid via a $2B Coherent equity stake and a multi-B Lumentum commitment; Foxconn assembles exclusively (~25k unit 2027 target, ~10k+ likely actual); TFC delivered 7,200 FAU for demo only.',
+          },
+          {
+            date: '2026.08.07',
+            href: '/blog/semi-watch-tpu-cpo',
+            title: 'TPU & CPO — High-Signal YouTube Only',
+            body: 'Curated YouTube only — strong picture quality and information density, with an in-page theater player + playlist. Google TPU (Ironwood unbox, data-center walk, MXU / systolic array) and CPO (NVIDIA switch deep dive, Broadcom official, agentic network, Corning glass-substrate 3D). Watch first: NVIDIA + Broadcom CPO, then Ironwood.',
           },
           {
             date: '2026.08.06',
@@ -1258,6 +1282,24 @@ export const t = {
             body: 'Teil II der Prop-AMM-Reversal. Teil I hat festgestellt, dass humidifis Mints nicht on-chain liegen. Teil II geht zurück und kartiert, was on-chain liegt. 3,3 % des 1728-Byte-Accounts sind live, verteilt auf sechs schmale Bereiche, darunter zwei u16-Preis-Ticks und ein monotoner e18-Zähler. Die Byte-Map reicht aus, um einen Echtzeit-humidifi-Quote-Firehose ohne humidifis Mitwirkung zu bauen.',
           },
           {
+            date: '2026.08.07',
+            href: '/blog/own-your-stack',
+            title: 'Know Good Code. Own the Repo. Know Your Stack.',
+            body: 'Four habits beside the post-training path: recognize good code, own it on GitHub, name your real stack, know what you need before you build.',
+          },
+          {
+            date: '2026.08.07',
+            href: '/blog/post-training-path',
+            title: 'Post-Training Path: Rust, CLI, Eval, Base Model',
+            body: 'Short curriculum to post-train a small open model: Rust literacy, thin CLIs, holdout exact_match, then LoRA SFT on Qwen2.5-0.5B (Polar Lab). MCP YouTube on the software watch shelf; Rust video TBD.',
+          },
+          {
+            date: '2026.08.07',
+            href: '/blog/software-watch',
+            title: 'Software YouTube — MCP',
+            body: 'In-Page-Theater: Was MCP ist, dann MCP vs API. Rust-Schnellkurs-Slot offen, bis ein Link feststeht. Protokolle neben den Agent-Essays.',
+          },
+          {
             date: '2026.05.26',
             href: '/blog/centaur',
             title: 'Centaur und der Markt, in den es landet',
@@ -1396,6 +1438,12 @@ export const t = {
             href: '/blog/cpo',
             title: 'Wie CPO tatsächlich gebaut wird',
             body: 'CPO ist die Technik, die das steckbare Lichtmodul-Imperium auslöschen würde — und die Liefertermine rutschen Quartal um Quartal. Der Artikel zerlegt, was in der Optical Engine wirklich steckt (PIC in 65 nm + EIC in 6 nm + 3-D-FAU mit Sub-µm-Alignment + externe ≥300 mW CW-Quelle), die sechs Verpackungsschritte, wo die Ausbeute zerbricht (TSMC bei ~75% gegen 90–95% Ziel — PIC/EIC-Hybridbonding allein verliert ~10%; FAU-Aktivkopplung braucht Ingenieure mit 6-monatigem Trainingszyklus), und warum das Ökosystem strukturell langsam ist: Nvidia und TSMC besitzen eine geschlossene Hauptlinie, Dritte sind zweite Reihe, CSPs hedgen in NPO und behalten Pluggables. Reales Volumen liegt 2027–2029; 2026 werden ~15.000 CPO-Switches geliefert, hinter einer Testfläche, auf der ein Wafer 20+ Stunden braucht. NVIDIA hat per 2 Mrd. $ Coherent-Beteiligung und mehrstelliger Lumentum-Zusage vorgekauft; Foxconn montiert exklusiv (~25k Ziel 2027, ~10k+ wahrscheinlich real); TFC lieferte 7.200 FAU nur als Demo.',
+          },
+          {
+            date: '2026.08.07',
+            href: '/blog/semi-watch-tpu-cpo',
+            title: 'TPU & CPO — High-Signal YouTube Only',
+            body: 'Nur YouTube mit starker Bild- und Informationsdichte — mit In-Page-Theater + Playlist. Google TPU (Ironwood, Data Center, MXU/Systolic Array) und CPO (NVIDIA, Broadcom, Agentic Network, Corning-Glas-3D). Zuerst: NVIDIA + Broadcom CPO, dann Ironwood.',
           },
           {
             date: '2026.08.06',

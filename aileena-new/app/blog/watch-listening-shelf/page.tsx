@@ -194,6 +194,34 @@ const CHANNEL_RECS = [
     body:
       'Cache, memory, storage · PCB (+ factory walk) · GPU architecture — three explainers you think you already know. Start with the five-minute review, then watch.',
   },
+  {
+    title: 'TPU & CPO (high-signal YouTube)',
+    label: 'semis / curated video',
+    href: '/blog/semi-watch-tpu-cpo',
+    body:
+      'Ironwood unbox, TPU data-center + systolic array, NVIDIA / Broadcom CPO, Corning glass 3D — in-page player + playlist. Watch NVIDIA + Broadcom CPO and Ironwood first.',
+  },
+  {
+    title: 'Software YouTube — MCP',
+    label: 'agents / protocol',
+    href: '/blog/software-watch',
+    body:
+      'What MCP is, then MCP vs API — in-page theater. Rust quick-master slot open until a link lands.',
+  },
+  {
+    title: 'Post-Training Path',
+    label: 'Rust · CLI · Eval · SFT',
+    href: '/blog/post-training-path',
+    body:
+      'Order of operations to post-train a small base model: Rust literacy, thin CLIs, holdout exact_match, LoRA on Qwen2.5-0.5B (Polar Lab).',
+  },
+  {
+    title: 'Know Good Code. Own the Repo.',
+    label: 'taste · stack · needs',
+    href: '/blog/own-your-stack',
+    body:
+      'Recognize good code, own it on GitHub, name your real stack, know what you need before you build.',
+  },
 ];
 
 export default function WatchListeningShelfArticle() {

@@ -23,6 +23,11 @@ export default function LocalModelsArticle() {
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
         <p style={{ ...bodyStyle, color: 'rgba(255,255,255,0.45)', fontSize: '0.85rem' }}>
           <strong style={strong}>Not this:</strong> Claude/Codex API fine-tune · Centaur replacement · production persona.
+          {' '}Curriculum order (Rust → CLI → eval → SFT):{' '}
+          <Link href="/blog/post-training-path" style={inlineLink}>
+            Post-Training Path
+          </Link>
+          .
         </p>
 
         <SectionLabel>1 · Why — how I started loving local models</SectionLabel>
