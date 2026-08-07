@@ -40,8 +40,12 @@ const palette = {
 };
 
 const SESSION_LOADED_KEY = 'aileena_loaded_once';
+/** Ink 「drag me」 — cream desk / white paper scraps */
 const dragMeCursor =
   'url("data:image/svg+xml,%3Csvg%20xmlns=\'http://www.w3.org/2000/svg\'%20width=\'104\'%20height=\'34\'%20viewBox=\'0%200%20104%2034\'%3E%3Ctext%20x=\'4\'%20y=\'23\'%20font-family=\'Georgia%2Cserif\'%20font-size=\'20\'%20font-style=\'italic\'%20fill=\'%2314110c\'%3Edrag%20me%3C/text%3E%3C/svg%3E") 8 18, grab';
+/** Cream 「drag me」 + dark stroke — dark photo scraps */
+const dragMeCursorOnDark =
+  'url("data:image/svg+xml,%3Csvg%20xmlns=\'http://www.w3.org/2000/svg\'%20width=\'104\'%20height=\'34\'%20viewBox=\'0%200%20104%2034\'%3E%3Ctext%20x=\'4\'%20y=\'23\'%20font-family=\'Georgia%2Cserif\'%20font-size=\'20\'%20font-style=\'italic\'%20fill=\'%23fffdf8\'%20stroke=\'%23000000\'%20stroke-width=\'2.5\'%20paint-order=\'stroke\'%20stroke-linejoin=\'round\'%3Edrag%20me%3C/text%3E%3C/svg%3E") 8 18, grab';
 const dragThreshold = 3;
 const atriumArticleWidth = 'min(28vw, 280px)';
 const atriumCoverWidth = 'min(15vw, 148px)';
@@ -76,6 +80,28 @@ type RoomDoor = {
   placement: CSSProperties;
   note?: string;
 };
+
+function isDarkScrapMotif(motif: RoomDoor['motif']): boolean {
+  return motif === 'hbm' || motif === 'pcb' || motif === 'investing' || motif === 'record';
+}
+
+function dragMeCursorFor(onDark: boolean): string {
+  return onDark ? dragMeCursorOnDark : dragMeCursor;
+}
+
+function dragMeCursorForId(id: string, rooms: RoomDoor[]): string {
+  if (
+    id === 'woman-cover-print' ||
+    id === 'didion-scrap' ||
+    id === 'machina-polaroid' ||
+    id === 'zine-clipping'
+  ) {
+    return dragMeCursorOnDark;
+  }
+  const room = rooms.find((r) => r.id === id);
+  if (!room) return dragMeCursor;
+  return dragMeCursorFor(isDarkScrapMotif(room.motif));
+}
 
 /* ── Homepage ─────────────────────────────────────────────────────────
  *
@@ -586,7 +612,8 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
     node.style.transition = 'transform 0.22s cubic-bezier(0.22, 1, 0.36, 1)';
     node.style.transform = `translate3d(${final.x}px, ${final.y}px, 0) ${base}`;
     node.style.willChange = 'auto';
-    node.style.cursor = '';
+    // Keep 「drag me」 cursor after release — never clear to default.
+    node.style.cursor = dragMeCursorForId(drag.id, rooms);
     delete node.dataset.dragging;
     node.style.zIndex = homeZFor(drag.id);
     setDragOffsets({ ...dragOffsetsRef.current });
@@ -608,6 +635,8 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
     if (!drag.moved && Math.hypot(dx, dy) <= dragThreshold) return;
     event.preventDefault();
     drag.moved = true;
+    // Keep 「drag me」 painted while moving — never bare grabbing.
+    node.style.cursor = dragMeCursorForId(drag.id, rooms);
     const next = { x: drag.originX + dx, y: drag.originY + dy };
     dragOffsetsRef.current[drag.id] = next;
     paint(node, drag.id, next.x, next.y);
@@ -638,7 +667,8 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
     dragNodeRef.current = node;
     node.dataset.dragging = 'true';
     node.style.zIndex = '60';
-    node.style.cursor = 'grabbing';
+    // Keep the 「drag me」 cursor visible the whole time — never swap to bare grabbing.
+    node.style.cursor = dragMeCursorForId(id, rooms);
     node.style.transition = 'none';
     node.style.willChange = 'transform';
     node.setPointerCapture(event.pointerId);
@@ -884,6 +914,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             const isInvesting = room.motif === 'investing';
             const isRecord = room.motif === 'record';
             const isPaper = isTrendy;
+            const onDarkCursor = isDarkScrapMotif(room.motif);
             const desktopRoomStyle: CSSProperties = {
               ...room.placement,
               position: 'absolute',
@@ -908,7 +939,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               border: isPaper ? '1px solid rgba(20,17,12,0.16)' : 'none',
               background: isPaper ? palette.paper : 'transparent',
               color: palette.ink,
-              cursor: dragMeCursor,
+              cursor: dragMeCursorFor(onDarkCursor),
               textDecoration: 'none',
               boxShadow: isPaper ? '0 24px 70px -42px rgba(20,17,12,0.5)' : 'none',
               transform: dragTransform(room.id, baseTransform),
@@ -960,7 +991,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               outline: 'none',
               background: 'transparent',
               boxShadow: 'none',
-              cursor: dragMeCursor,
+              cursor: dragMeCursorOnDark,
               transform: dragTransform('woman-cover-print', 'rotate(2.4deg)'),
               transition: 'transform 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
               touchAction: 'none',
@@ -975,6 +1006,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               filter="contrast(1.05) saturate(0.92)"
               overlay="linear-gradient(180deg, transparent 55%, rgba(20,17,12,0.58) 100%)"
             >
+              <DragMeHint onDark />
               <span
                 style={{
                   position: 'absolute',
@@ -1008,7 +1040,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               outline: 'none',
               background: 'transparent',
               boxShadow: 'none',
-              cursor: dragMeCursor,
+              cursor: dragMeCursorOnDark,
               transform: dragTransform('didion-scrap', 'rotate(-2.8deg)'),
               transition: 'transform 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
               touchAction: 'none',
@@ -1023,6 +1055,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               filter="saturate(0.88) contrast(1.04)"
               overlay="linear-gradient(180deg, transparent 50%, rgba(20,17,12,0.6) 100%)"
             >
+              <DragMeHint onDark />
               <span
                 style={{
                   position: 'absolute',
@@ -1056,7 +1089,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               outline: 'none',
               background: 'transparent',
               boxShadow: 'none',
-              cursor: dragMeCursor,
+              cursor: dragMeCursorOnDark,
               transform: dragTransform('zine-clipping', 'rotate(-4.6deg)'),
               transition: 'transform 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
               touchAction: 'none',
@@ -1064,9 +1097,11 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               zIndex: 10,
               textDecoration: 'none',
               filter: 'drop-shadow(2px 8px 14px rgba(20,17,12,0.16))',
+              position: 'relative' as const,
             }}
             {...dragHandlers('zine-clipping')}
           >
+            <DragMeHint onDark />
             <Image
               src="/zine/clipping-desk.jpg"
               alt=""
@@ -1098,7 +1133,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               outline: 'none',
               background: 'transparent',
               boxShadow: 'none',
-              cursor: dragMeCursor,
+              cursor: dragMeCursorOnDark,
               transform: dragTransform('machina-polaroid', 'rotate(3.2deg)'),
               transition: 'transform 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
               touchAction: 'none',
@@ -1114,7 +1149,9 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             <ScrapPhoto
               src="/bg_pic/03.jpeg"
               filter="saturate(0.94) contrast(1.04)"
-            />
+            >
+              <DragMeHint onDark />
+            </ScrapPhoto>
             <span
               style={{
                 display: 'block',
@@ -1176,6 +1213,33 @@ const thumbnailShellStyle: CSSProperties = {
   background: 'transparent',
   boxShadow: 'none',
 };
+
+/** Persistent "drag me" label — mix-blend keeps it readable on light and dark. */
+function DragMeHint({ onDark = false }: { onDark?: boolean }) {
+  return (
+    <span
+      aria-hidden
+      className="drag-me-hint"
+      style={{
+        position: 'absolute',
+        left: onDark ? 10 : 12,
+        top: 8,
+        zIndex: 6,
+        // White + difference → black on cream/white, white on black photos.
+        color: '#fffdf8',
+        mixBlendMode: 'difference',
+        fontFamily: 'Georgia, serif',
+        fontSize: '1.05rem',
+        fontStyle: 'italic',
+        lineHeight: 1,
+        pointerEvents: 'none',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      drag me
+    </span>
+  );
+}
 
 /** Natural-aspect scrap — see `ScrapPhoto`. */
 function ObjectFace({ room }: { room: RoomDoor }) {
@@ -1290,21 +1354,7 @@ function ObjectFace({ room }: { room: RoomDoor }) {
             {room.blurb}
           </span>
         </span>
-        <span
-          aria-hidden
-          style={{
-            position: 'absolute',
-            left: 16,
-            top: 2,
-            zIndex: 3,
-            color: 'rgba(20,17,12,0.62)',
-            fontFamily: 'Georgia, serif',
-            fontSize: '1.05rem',
-            fontStyle: 'italic',
-          }}
-        >
-          drag me
-        </span>
+        <DragMeHint />
         <span
           aria-hidden
           style={{
@@ -1332,6 +1382,7 @@ function ObjectFace({ room }: { room: RoomDoor }) {
         style={{ width: 'min(34vw, 220px)' }}
         overlay="linear-gradient(180deg, rgba(13,17,16,0.18) 0%, rgba(13,17,16,0.2) 35%, rgba(13,17,16,0.82) 100%)"
       >
+        <DragMeHint onDark />
         <span
           style={{
             position: 'absolute',
@@ -1362,6 +1413,7 @@ function ObjectFace({ room }: { room: RoomDoor }) {
             `repeating-linear-gradient(180deg, transparent 0 33px, rgba(20,17,12,0.052) 34px 35px), linear-gradient(90deg, transparent 0 58px, ${palette.cyanSoft} 59px 60px, transparent 61px)`,
         }}
       >
+        <DragMeHint />
         <span
           aria-hidden
           style={{
@@ -1493,6 +1545,7 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           filter="saturate(0.9) contrast(1.05)"
           overlay="linear-gradient(180deg, rgba(10,13,12,0.08), rgba(10,13,12,0.7))"
         >
+          <DragMeHint onDark />
           <span
             style={{
               position: 'absolute',
@@ -1521,6 +1574,7 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           filter="saturate(0.9) contrast(1.08)"
           overlay="linear-gradient(90deg, rgba(8,16,18,0.72), rgba(8,16,18,0.18))"
         >
+          <DragMeHint onDark />
           <span
             style={{
               position: 'absolute',
@@ -1542,7 +1596,8 @@ function ObjectFace({ room }: { room: RoomDoor }) {
   }
 
   return (
-    <span style={{ ...objectShellStyle, background: palette.soot, color: '#f5f1e8' }}>
+    <span style={{ ...objectShellStyle, background: palette.soot, color: '#f5f1e8', position: 'relative' }}>
+      <DragMeHint onDark />
       <span style={{ ...objectKickerStyle, color: 'rgba(245,241,232,0.55)' }}>{room.category}</span>
       <span
         aria-hidden
