@@ -9383,5 +9383,470 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-06T14:35:06.002Z"
+  },
+  {
+    "id": "2085480002917945449",
+    "url": "https://x.com/dylan522p/status/2085480002917945449",
+    "screenName": "dylan522p",
+    "authorId": "985281530070265862",
+    "authorName": "Dylan Patel",
+    "text": "YC mantra is \"talk to your users\"\nYet every good AI or software founder I know secretly thinks their users are retards",
+    "createdAt": "Thu Aug 06 21:35:53 +0000 2026",
+    "createdTimestamp": 1786052153,
+    "likes": 433,
+    "retweets": 4,
+    "replies": 41,
+    "bookmarks": 56,
+    "views": 37432,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "semianalysis"
+    ],
+    "tags": [
+      "semianalysis"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T00:15:11.807Z"
+  },
+  {
+    "id": "2085505657927500206",
+    "url": "https://x.com/SemiAnalysis_/status/2085505657927500206",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Most of AMD’s top 10x AI engineers are in Shanghai 🔥 This includes AMD’s MoRI collective and UMBP KV-cache offloading and pooling team, its disaggregated-applications forward-deployed engineering team, and other AMD teams that understand how to approach inference engineering from first principles.\n\nMany of the most important components of the ROCm software stack are built in mainland China.",
+    "createdAt": "Thu Aug 06 23:17:50 +0000 2026",
+    "createdTimestamp": 1786058270,
+    "likes": 52,
+    "retweets": 6,
+    "replies": 6,
+    "bookmarks": 22,
+    "views": 9752,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPE0WASXsAEtxJN.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "inference"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T00:15:13.580Z"
+  },
+  {
+    "id": "2085478991842959786",
+    "url": "https://x.com/SemiAnalysis_/status/2085478991842959786",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Hot early estimates from the Atlanta Fed GDPNow have eroded 11 out of 12 times excluding the Covid period. Heroic forecasts require heroic proof. Thankfully GDPNow is self-correcting as more info is released in the quarter. \nhttps://x.com/AtlantaFed/status/2084661399112860012?s=20",
+    "createdAt": "Thu Aug 06 21:31:52 +0000 2026",
+    "createdTimestamp": 1786051912,
+    "likes": 15,
+    "retweets": 1,
+    "replies": 0,
+    "bookmarks": 2,
+    "views": 14692,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPEcF2zXQAA5mYe.jpg?name=orig",
+      "https://pbs.twimg.com/media/HPEcF2nXIAAIsJr.jpg?name=orig"
+    ],
+    "linkedUrls": [
+      "https://x.com/AtlantaFed/status/2084661399112860012?s=20"
+    ],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T00:15:14.908Z"
+  },
+  {
+    "id": "2085411186779046048",
+    "url": "https://x.com/SemiAnalysis_/status/2085411186779046048",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Our Taiwan test consumable vendor trackers keep flashing the same signal: demand is robust. The real question isn't whether it's strong today - it's whether it's sustainable. For that, you have to look one layer up the chain, at test equipment. (1/6)🧵",
+    "createdAt": "Thu Aug 06 17:02:26 +0000 2026",
+    "createdTimestamp": 1786035746,
+    "likes": 118,
+    "retweets": 15,
+    "replies": 5,
+    "bookmarks": 77,
+    "views": 29565,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPDebDDWoAAvOpr.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T00:15:16.184Z"
+  },
+  {
+    "id": "2085411192105730071",
+    "url": "https://x.com/SemiAnalysis_/status/2085411192105730071",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "One of the cleanest ways to watch the overall test inflection is test capex at the major OSATs. ASE is a great tell. Q2 test capex hit an all-time high; nearly 2x the prior peak. Monthly incremental tester installs also hit a record, roughly 2x the previous high-water mark. (5/6)",
+    "createdAt": "Thu Aug 06 17:02:27 +0000 2026",
+    "createdTimestamp": 1786035747,
+    "likes": 7,
+    "retweets": 2,
+    "replies": 3,
+    "bookmarks": 1,
+    "views": 9373,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPDea6QWsAE4WD_.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "ai-cost"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T00:15:17.418Z"
+  },
+  {
+    "id": "2085411193561194865",
+    "url": "https://x.com/SemiAnalysis_/status/2085411193561194865",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Put it together: ASE's tester deployment is running at 2x prior peak, both ATE major suppliers are raising memory TAM for both Memory and SoC, and Teradyne’s book-to-bill for memory is >2. All this points to another wave of demand for test consumables; incremental to the current SoC-led cycle. (6/6)",
+    "createdAt": "Thu Aug 06 17:02:28 +0000 2026",
+    "createdTimestamp": 1786035748,
+    "likes": 10,
+    "retweets": 0,
+    "replies": 1,
+    "bookmarks": 6,
+    "views": 7121,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPDea5MXAAEfr41.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T00:15:18.819Z"
+  },
+  {
+    "id": "2085458873104707833",
+    "url": "https://x.com/aaronburnett/status/2085458873104707833",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "My first real ratio came on an account 20x my size. I hope the algo elders don’t send him all the creator payouts just because it was good rage bait. 😎",
+    "createdAt": "Thu Aug 06 20:11:55 +0000 2026",
+    "createdTimestamp": 1786047115,
+    "likes": 44,
+    "retweets": 1,
+    "replies": 8,
+    "bookmarks": 0,
+    "views": 3853,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPEJyw-WIAEQIxA.jpg?name=orig",
+      "https://pbs.twimg.com/media/HPEJyw6WYAAswpn.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T00:15:22.063Z"
+  },
+  {
+    "id": "2085436957820166290",
+    "url": "https://x.com/aaronburnett/status/2085436957820166290",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "I was bullish on $SPCX until the storage unit rental guy told me his price target.",
+    "createdAt": "Thu Aug 06 18:44:50 +0000 2026",
+    "createdTimestamp": 1786041890,
+    "likes": 1217,
+    "retweets": 24,
+    "replies": 54,
+    "bookmarks": 19,
+    "views": 76510,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T00:15:23.487Z"
+  },
+  {
+    "id": "2085447435560644977",
+    "url": "https://x.com/aaronburnett/status/2085447435560644977",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "How does a quote post ratio work? Is there a zoomer who can explain it to me?",
+    "createdAt": "Thu Aug 06 19:26:29 +0000 2026",
+    "createdTimestamp": 1786044389,
+    "likes": 7,
+    "retweets": 0,
+    "replies": 0,
+    "bookmarks": 1,
+    "views": 2037,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPD_ZCNXYAEbK3d.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T00:15:24.930Z"
+  },
+  {
+    "id": "2085435859948413298",
+    "url": "https://x.com/aaronburnett/status/2085435859948413298",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "trading bro waiting for the fictional $SPCX price bottom.",
+    "createdAt": "Thu Aug 06 18:40:29 +0000 2026",
+    "createdTimestamp": 1786041629,
+    "likes": 57,
+    "retweets": 2,
+    "replies": 5,
+    "bookmarks": 2,
+    "views": 3737,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://video.twimg.com/tweet_video/HPD027dWIAA6erO.mp4"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T00:15:26.183Z"
+  },
+  {
+    "id": "2085380499984548085",
+    "url": "https://x.com/mach33/status/2085380499984548085",
+    "screenName": "mach33",
+    "authorId": "2051360039869276160",
+    "authorName": "Mach33 Financial Group",
+    "text": "SpaceX's First Earnings, the Nvidia Starmind AI1 Deal, and Supercomputers On and Off Earth| Episode #14 https://x.com/i/broadcasts/1DxleeAVRlDKL",
+    "createdAt": "Thu Aug 06 15:00:30 +0000 2026",
+    "createdTimestamp": 1786028430,
+    "likes": 13,
+    "retweets": 3,
+    "replies": 0,
+    "bookmarks": 5,
+    "views": 1052,
+    "isNoteTweet": false,
+    "linkedUrls": [
+      "https://x.com/i/broadcasts/1DxleeAVRlDKL"
+    ],
+    "topics": [
+      "spacex"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T00:15:27.493Z"
+  },
+  {
+    "id": "2085426205923103081",
+    "url": "https://x.com/aaronburnett/status/2085426205923103081",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "The “Kardashev Cradle” as its colloquially known",
+    "createdAt": "Thu Aug 06 18:02:07 +0000 2026",
+    "createdTimestamp": 1786039327,
+    "likes": 38,
+    "retweets": 5,
+    "replies": 1,
+    "bookmarks": 0,
+    "views": 2315,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T00:15:28.906Z"
+  },
+  {
+    "id": "2085424928690500025",
+    "url": "https://x.com/aaronburnett/status/2085424928690500025",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Funny equation… Commodity + commodity = differentiated value ",
+    "createdAt": "Thu Aug 06 17:57:02 +0000 2026",
+    "createdTimestamp": 1786039022,
+    "likes": 13,
+    "retweets": 4,
+    "replies": 0,
+    "bookmarks": 2,
+    "views": 2246,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://video.twimg.com/amplify_video/2085419938781839360/vid/avc1/1920x1080/U_vmvfsnrghK-8DS.mp4?tag=29"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T00:15:30.150Z"
+  },
+  {
+    "id": "2085405605372535275",
+    "url": "https://x.com/aaronburnett/status/2085405605372535275",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "There is a palpable sense of calm from the cursor grok and SpaceXAI team. I think they see writing on the wall that we may not",
+    "createdAt": "Thu Aug 06 16:40:15 +0000 2026",
+    "createdTimestamp": 1786034415,
+    "likes": 97,
+    "retweets": 5,
+    "replies": 4,
+    "bookmarks": 10,
+    "views": 7393,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T00:15:31.402Z"
+  },
+  {
+    "id": "2085381210541269237",
+    "url": "https://x.com/aaronburnett/status/2085381210541269237",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "mach33 research live on X now. \n\nhttps://x.com/i/broadcasts/1OGwbbdnYjmKB",
+    "createdAt": "Thu Aug 06 15:03:19 +0000 2026",
+    "createdTimestamp": 1786028599,
+    "likes": 13,
+    "retweets": 2,
+    "replies": 0,
+    "bookmarks": 4,
+    "views": 1249,
+    "isNoteTweet": false,
+    "linkedUrls": [
+      "https://x.com/i/broadcasts/1OGwbbdnYjmKB"
+    ],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T00:15:32.738Z"
+  },
+  {
+    "id": "2085380499963547971",
+    "url": "https://x.com/aaronburnett/status/2085380499963547971",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "SpaceX's First Earnings, the Nvidia Starmind AI1 Deal, and Supercomputers On and Off Earth| Episode #14 https://x.com/i/broadcasts/1OGwbbdnYjmKB",
+    "createdAt": "Thu Aug 06 15:00:30 +0000 2026",
+    "createdTimestamp": 1786028430,
+    "likes": 23,
+    "retweets": 3,
+    "replies": 2,
+    "bookmarks": 7,
+    "views": 1421,
+    "isNoteTweet": false,
+    "linkedUrls": [
+      "https://x.com/i/broadcasts/1OGwbbdnYjmKB"
+    ],
+    "topics": [
+      "mach33",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T00:15:34.014Z"
+  },
+  {
+    "id": "2085499883188785478",
+    "url": "https://x.com/VladSaigau/status/2085499883188785478",
+    "screenName": "VladSaigau",
+    "authorId": "1496125256624484362",
+    "authorName": "Vlad Saigau",
+    "text": "I am a man that values aesthetics. I am glad Elon’s companies like @Tesla and @SpaceX take this into secondary consideration. Utility is the priority ofc, but its gotta look sexy too to impress human consciousness. No disappointment here…\n\nBeauty has guided us throughout evolution, lets not stop now.",
+    "createdAt": "Thu Aug 06 22:54:53 +0000 2026",
+    "createdTimestamp": 1786056893,
+    "likes": 8,
+    "retweets": 0,
+    "replies": 0,
+    "bookmarks": 0,
+    "views": 409,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [
+      "spacex"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T00:15:37.856Z"
+  },
+  {
+    "id": "2085495656832028752",
+    "url": "https://x.com/VladSaigau/status/2085495656832028752",
+    "screenName": "VladSaigau",
+    "authorId": "1496125256624484362",
+    "authorName": "Vlad Saigau",
+    "text": "Most of the market doesnt care about this cuz it hasnt hit the income statement yet. This is your Alpha. Go.",
+    "createdAt": "Thu Aug 06 22:38:05 +0000 2026",
+    "createdTimestamp": 1786055885,
+    "likes": 8,
+    "retweets": 0,
+    "replies": 1,
+    "bookmarks": 0,
+    "views": 372,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T00:15:39.108Z"
   }
 ]
