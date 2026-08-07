@@ -9956,5 +9956,33 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-07T03:19:44.336Z"
+  },
+  {
+    "id": "2085610927760511360",
+    "url": "https://x.com/dylan522p/status/2085610927760511360",
+    "screenName": "dylan522p",
+    "authorId": "985281530070265862",
+    "authorName": "Dylan Patel",
+    "text": "Team just posted a note with the title \"I can make your Bedrock\" to discuss Amazon bedrock revenue mix to institional clients.\nIncredible title",
+    "createdAt": "Fri Aug 07 06:16:08 +0000 2026",
+    "createdTimestamp": 1786083368,
+    "likes": 55,
+    "retweets": 2,
+    "replies": 4,
+    "bookmarks": 8,
+    "views": 8812,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPGUFcxaAAAmNgx.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "semianalysis"
+    ],
+    "tags": [
+      "semianalysis"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-07T07:40:36.318Z"
   }
 ]
