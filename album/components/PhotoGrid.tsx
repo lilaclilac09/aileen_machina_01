@@ -65,7 +65,7 @@ export function PhotoGrid({
               return (
                 <figure
                   key={photo.id}
-                  className="animate-pin-pop group relative overflow-hidden rounded-sm bg-mist/40 ring-2 ring-ember/60"
+                  className="animate-pin-pop group relative rounded-sm bg-mist/40 ring-2 ring-ember/60"
                 >
                   <button
                     type="button"
@@ -79,7 +79,7 @@ export function PhotoGrid({
                     <img
                       src={photo.thumbUrl}
                       alt=""
-                      className="max-h-[70vh] w-full object-cover transition duration-500 group-hover:scale-[1.01]"
+                      className="h-auto w-full rounded-sm transition duration-500 group-hover:scale-[1.01]"
                       loading="eager"
                     />
                   </button>
@@ -120,7 +120,7 @@ export function PhotoGrid({
           return (
             <figure
               key={photo.id}
-              className={`animate-rise group relative mb-3 break-inside-avoid overflow-hidden rounded-sm bg-mist/40 sm:mb-4 ${
+              className={`animate-rise group relative mb-3 break-inside-avoid rounded-sm bg-mist/40 sm:mb-4 ${
                 photo.pinMode === "front" ? "animate-pin-pop ring-2 ring-moss/70" : ""
               }`}
               style={{ animationDelay: `${Math.min(i, 12) * 40}ms` }}
@@ -137,7 +137,7 @@ export function PhotoGrid({
                 <img
                   src={photo.thumbUrl}
                   alt=""
-                  className="w-full object-cover transition duration-500 group-hover:scale-[1.02]"
+                  className="h-auto w-full rounded-sm transition duration-500 group-hover:scale-[1.02]"
                   loading={i < 8 ? "eager" : "lazy"}
                 />
               </button>
