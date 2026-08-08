@@ -10239,5 +10239,106 @@
     "tags": [],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-07T19:14:45.395Z"
+  },
+  {
+    "id": "2085894617065734600",
+    "url": "https://x.com/dylan522p/status/2085894617065734600",
+    "screenName": "dylan522p",
+    "authorId": "985281530070265862",
+    "authorName": "Dylan Patel",
+    "text": "Everyone in SF is talking about OSL, but no one wanna talk about ISL and cache hit rates :(",
+    "createdAt": "Sat Aug 08 01:03:25 +0000 2026",
+    "createdTimestamp": 1786151005,
+    "likes": 58,
+    "retweets": 0,
+    "replies": 13,
+    "bookmarks": 10,
+    "views": 12567,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "semianalysis"
+    ],
+    "tags": [
+      "semianalysis"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-08T02:21:02.892Z"
+  },
+  {
+    "id": "2085821313919472016",
+    "url": "https://x.com/SemiAnalysis_/status/2085821313919472016",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "SpaceX 10GW in 2027 – Why It’s Real, \nWill Drive $500B ARR for SpaceX, \nand Why Microsoft Will Be the Largest Offtaker\nInference at 100B/GW/year, SpaceX's stellar pace,\nMicrosoft's 10GW 2026 Awakening, \nAzure Can Grow Tiple-Digits\n\nhttps://semianalysis.substack.com/p/spacex-10gw-in-2027-why-its-real",
+    "createdAt": "Fri Aug 07 20:12:08 +0000 2026",
+    "createdTimestamp": 1786133528,
+    "likes": 823,
+    "retweets": 88,
+    "replies": 40,
+    "bookmarks": 510,
+    "views": 295916,
+    "isNoteTweet": false,
+    "linkedUrls": [
+      "https://semianalysis.substack.com/p/spacex-10gw-in-2027-why-its-real"
+    ],
+    "topics": [
+      "inference",
+      "spacex"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-08T02:21:04.314Z"
+  },
+  {
+    "id": "2085826083698467245",
+    "url": "https://x.com/aaronburnett/status/2085826083698467245",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "He bottom ticked ‘for the kids’ 🫡",
+    "createdAt": "Fri Aug 07 20:31:05 +0000 2026",
+    "createdTimestamp": 1786134665,
+    "likes": 44,
+    "retweets": 2,
+    "replies": 6,
+    "bookmarks": 0,
+    "views": 4252,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-08T02:21:08.720Z"
+  },
+  {
+    "id": "2085813889887781300",
+    "url": "https://x.com/aaronburnett/status/2085813889887781300",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "When starship calls for help and n the other side of the globe, you answer the call.",
+    "createdAt": "Fri Aug 07 19:42:38 +0000 2026",
+    "createdTimestamp": 1786131758,
+    "likes": 164,
+    "retweets": 5,
+    "replies": 3,
+    "bookmarks": 7,
+    "views": 14454,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-08T02:21:10.174Z"
   }
 ]
