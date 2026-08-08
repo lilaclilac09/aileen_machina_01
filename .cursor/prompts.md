@@ -16,9 +16,11 @@
 - §2 编码守则 + evidence 要求
 - §3 验证命令清单
 - §4 DJ Set 验收工作流
-- §5 Prompt 模板（12 个）
+- §5 Prompt 模板（13 个；含 §5.12 Drag/drop 回归证据优先）
 - §6 最终确认模板
 
 防乱改一句：`先不要写代码，先读相关文件并给我最小修改计划。`
+
+DnD 回归（证据优先）：见 `aileena-new/docs/工作准册.md` §5.12 — reproduce → lifecycle logs → CSS blockers → smallest fix → verify（done = main + live when shipping）。
 
 UI merge 验收：截图 + 交互都要给看（中间微调别刷屏）— `.cursor/rules/ui-step-screenshot.mdc`。
