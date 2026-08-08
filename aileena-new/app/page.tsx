@@ -742,11 +742,35 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
 
         <div
           className="relative z-10 min-h-0 flex-1 sm:min-h-0"
+          data-atrium-stage
           style={{
+            // Ink 「drag me」 on blank cream canvas; scraps override with their own cursors.
+            cursor: dragMeCursor,
             background:
               'radial-gradient(ellipse 70% 55% at 72% 18%, rgba(232,180,184,0.10), transparent 58%), radial-gradient(ellipse 55% 45% at 12% 78%, rgba(0,169,159,0.06), transparent 55%)',
           }}
         >
+          {/* One global hint — stage layer only; never on cards; does not move with scraps */}
+          <span
+            aria-hidden
+            data-drag-me-canvas
+            className="pointer-events-none hidden select-none sm:block"
+            style={{
+              position: 'absolute',
+              left: '50%',
+              bottom: '18%',
+              zIndex: 0,
+              transform: 'translateX(-50%)',
+              color: 'rgba(20,17,12,0.32)',
+              fontFamily: 'Georgia, serif',
+              fontSize: '1.05rem',
+              fontStyle: 'italic',
+              lineHeight: 1,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            drag me
+          </span>
           <div className="min-h-full overflow-visible px-3 pb-24 pt-8 sm:hidden">
             <div className="grid gap-14">
               {rooms.map((room) => {
@@ -1006,7 +1030,6 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               filter="contrast(1.05) saturate(0.92)"
               overlay="linear-gradient(180deg, transparent 55%, rgba(20,17,12,0.58) 100%)"
             >
-              <DragMeHint onDark />
               <span
                 style={{
                   position: 'absolute',
@@ -1055,7 +1078,6 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               filter="saturate(0.88) contrast(1.04)"
               overlay="linear-gradient(180deg, transparent 50%, rgba(20,17,12,0.6) 100%)"
             >
-              <DragMeHint onDark />
               <span
                 style={{
                   position: 'absolute',
@@ -1101,7 +1123,6 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             }}
             {...dragHandlers('zine-clipping')}
           >
-            <DragMeHint onDark />
             <Image
               src="/zine/clipping-desk.jpg"
               alt=""
@@ -1150,7 +1171,6 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               src="/bg_pic/03.jpeg"
               filter="saturate(0.94) contrast(1.04)"
             >
-              <DragMeHint onDark />
             </ScrapPhoto>
             <span
               style={{
@@ -1214,32 +1234,6 @@ const thumbnailShellStyle: CSSProperties = {
   boxShadow: 'none',
 };
 
-/** Persistent "drag me" label — mix-blend keeps it readable on light and dark. */
-function DragMeHint({ onDark = false }: { onDark?: boolean }) {
-  return (
-    <span
-      aria-hidden
-      className="drag-me-hint"
-      style={{
-        position: 'absolute',
-        left: onDark ? 10 : 12,
-        top: 8,
-        zIndex: 6,
-        // White + difference → black on cream/white, white on black photos.
-        color: '#fffdf8',
-        mixBlendMode: 'difference',
-        fontFamily: 'Georgia, serif',
-        fontSize: '1.05rem',
-        fontStyle: 'italic',
-        lineHeight: 1,
-        pointerEvents: 'none',
-        whiteSpace: 'nowrap',
-      }}
-    >
-      drag me
-    </span>
-  );
-}
 
 /** Natural-aspect scrap — see `ScrapPhoto`. */
 function ObjectFace({ room }: { room: RoomDoor }) {
@@ -1354,7 +1348,6 @@ function ObjectFace({ room }: { room: RoomDoor }) {
             {room.blurb}
           </span>
         </span>
-        <DragMeHint />
         <span
           aria-hidden
           style={{
@@ -1382,7 +1375,6 @@ function ObjectFace({ room }: { room: RoomDoor }) {
         style={{ width: 'min(34vw, 220px)' }}
         overlay="linear-gradient(180deg, rgba(13,17,16,0.18) 0%, rgba(13,17,16,0.2) 35%, rgba(13,17,16,0.82) 100%)"
       >
-        <DragMeHint onDark />
         <span
           style={{
             position: 'absolute',
@@ -1413,7 +1405,6 @@ function ObjectFace({ room }: { room: RoomDoor }) {
             `repeating-linear-gradient(180deg, transparent 0 33px, rgba(20,17,12,0.052) 34px 35px), linear-gradient(90deg, transparent 0 58px, ${palette.cyanSoft} 59px 60px, transparent 61px)`,
         }}
       >
-        <DragMeHint />
         <span
           aria-hidden
           style={{
@@ -1545,7 +1536,6 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           filter="saturate(0.9) contrast(1.05)"
           overlay="linear-gradient(180deg, rgba(10,13,12,0.08), rgba(10,13,12,0.7))"
         >
-          <DragMeHint onDark />
           <span
             style={{
               position: 'absolute',
@@ -1574,7 +1564,6 @@ function ObjectFace({ room }: { room: RoomDoor }) {
           filter="saturate(0.9) contrast(1.08)"
           overlay="linear-gradient(90deg, rgba(8,16,18,0.72), rgba(8,16,18,0.18))"
         >
-          <DragMeHint onDark />
           <span
             style={{
               position: 'absolute',
@@ -1597,7 +1586,6 @@ function ObjectFace({ room }: { room: RoomDoor }) {
 
   return (
     <span style={{ ...objectShellStyle, background: palette.soot, color: '#f5f1e8', position: 'relative' }}>
-      <DragMeHint onDark />
       <span style={{ ...objectKickerStyle, color: 'rgba(245,241,232,0.55)' }}>{room.category}</span>
       <span
         aria-hidden
