@@ -75,7 +75,7 @@ export default function MachinaMemoryArticle() {
 preferred: searchMemories
 blocked: queryChip, latestPrice, …`}</pre>
 
-        <SectionLabel>4 · Scenario B — &ldquo;更新了什么吗&rdquo; (this week&apos;s bug)</SectionLabel>
+        <SectionLabel>4 · Scenario B — &ldquo;What&apos;s new?&rdquo; (this week&apos;s bug)</SectionLabel>
         <p style={bodyStyle}>
           A visitor asked what updated. The console answered with an old essay (
           <Link href="/blog/cli" style={inlineLink}>
@@ -85,16 +85,16 @@ blocked: queryChip, latestPrice, …`}</pre>
         </p>
         <p style={bodyStyle}>
           The Markdown shelf was fine — Local Models and YMTC Wuhan were already in{' '}
-          <code style={codeStyle}>latest-content.md</code>. The failure was retrieval shape: Chinese
-          &ldquo;更新了什么吗&rdquo; scored zero against English chunks, prefetch was empty, and the model
-          filled the gap from training.
+          <code style={codeStyle}>latest-content.md</code>. The failure was retrieval shape: a Chinese
+          phrasing of &ldquo;what&apos;s new?&rdquo; scored zero against English chunks, prefetch was empty,
+          and the model filled the gap from training.
         </p>
         <p style={bodyStyle}>
           Fix: a hard route <code style={codeStyle}>latest_updates</code> that <em>requires</em>{' '}
           <code style={codeStyle}>searchMemories(&quot;latest content&quot;)</code>, and the same English query
           for prefetch. After deploy, that question must cite the shelf by date — not invent May.
         </p>
-        <pre style={preStyle}>{`ASK:  更新了什么吗
+        <pre style={preStyle}>{`ASK:  what's new?
 ROUTE: latest_updates
 QUERY: "latest content"   ← forced English shelf key
 HIT:   How I Fell for Local Models · YMTC Wuhan · …`}</pre>
@@ -167,7 +167,7 @@ aileena-new/lib/research/**
         <p style={bodyStyle}>Paste these into the console after a deploy:</p>
         <ol style={listStyle}>
           <li>what music / DJ set?</li>
-          <li>更新了什么吗</li>
+          <li>what&apos;s new? / what updated this week?</li>
           <li>is she available for hire?</li>
           <li>what did I ask before? (after 1–3)</li>
         </ol>
