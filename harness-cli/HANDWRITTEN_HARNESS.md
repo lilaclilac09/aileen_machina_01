@@ -211,3 +211,14 @@ S0 边界
 - [ ] IDE JSON-RPC（下一步）  
 
 对照实现：本目录源码。对照架构：`AMP_STYLE.md` · `CURSOR_REWRITE.md`。
+
+---
+
+## 上游 Nanocodex（老师）
+
+扒皮笔记（不改 `hx` 运行时，只对照）：
+
+- [NANOCODEX_ARCHITECTURE.md](./NANOCODEX_ARCHITECTURE.md) — 分层 · ownership · turn 时序 · 部署  
+- [NANOCODEX_SOURCE_MAP.md](./NANOCODEX_SOURCE_MAP.md) — crate→文件 · examples 阶梯 · `hx` 差距表  
+
+上游仓库：https://github.com/gakonst/nanocodex

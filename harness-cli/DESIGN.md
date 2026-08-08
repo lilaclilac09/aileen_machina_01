@@ -149,3 +149,12 @@ You rewrite the **loop**, not the IDE.
 
 See [AMP_STYLE.md](./AMP_STYLE.md): every future command (`mcp`, `review`, IDE bridge, runner, SDK)
 is an **adapter** over this same `Harness` driver — same pattern as Amp’s `amp` / `amp -x` / IDE / SDK sharing one agent runtime.
+
+## Upstream Nanocodex (teacher)
+
+System map and source pointers for Georgios’s library-first harness (read-only study notes in this folder):
+
+- [NANOCODEX_ARCHITECTURE.md](./NANOCODEX_ARCHITECTURE.md) — layers, ownership, turn sequence, adapters  
+- [NANOCODEX_SOURCE_MAP.md](./NANOCODEX_SOURCE_MAP.md) — crate→path map, example ladder, Nanocodex↔hx gaps  
+
+https://github.com/gakonst/nanocodex

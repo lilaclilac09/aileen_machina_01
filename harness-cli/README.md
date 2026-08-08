@@ -51,6 +51,8 @@ src/adapters/    CLI only (no history ownership)
 bin/hx.ts        thin dispatcher
 ```
 
+Teacher harness study notes: [NANOCODEX_ARCHITECTURE.md](./NANOCODEX_ARCHITECTURE.md) · [NANOCODEX_SOURCE_MAP.md](./NANOCODEX_SOURCE_MAP.md)
+
 ## See the resolved harness
 
 ```sh
