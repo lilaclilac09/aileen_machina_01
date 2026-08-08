@@ -10340,5 +10340,59 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-08T02:21:10.174Z"
+  },
+  {
+    "id": "2086076919192141948",
+    "url": "https://x.com/aaronburnett/status/2086076919192141948",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "David Sacks giving Starlink V3 math the attention it deserves. Each Starship is the equivalent of 20 F9 launches of bandwidth. \n\nElon estimated that they get up 1,000 V3 by Q2 (not one of his aggressive estimates) which would more the double the total global Starlink bandwidth in less than a year. \n\nOur modeling suggests they will be able to put up to 4,000s V3 sats by EoY 2027. Global bandwidth from orbit could very well be 5x what it is today within 18 months. \n\nThis is a cash generating business that will handle a lot of their data center build out. \n\nAll of Brad’s points on handwringing around compute financing become far easier to understand in that light.",
+    "createdAt": "Sat Aug 08 13:07:49 +0000 2026",
+    "createdTimestamp": 1786194469,
+    "likes": 3,
+    "retweets": 0,
+    "replies": 0,
+    "bookmarks": 0,
+    "views": 224,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://video.twimg.com/amplify_video/2086076626698223616/vid/avc1/2622x1206/iqFuNEBqUflQRii_.mp4?tag=29"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-08T13:11:38.413Z"
+  },
+  {
+    "id": "2086064817777906026",
+    "url": "https://x.com/aaronburnett/status/2086064817777906026",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Apparently my sense of humor is very British 😂",
+    "createdAt": "Sat Aug 08 12:19:44 +0000 2026",
+    "createdTimestamp": 1786191584,
+    "likes": 6,
+    "retweets": 1,
+    "replies": 1,
+    "bookmarks": 0,
+    "views": 1161,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-08T13:11:39.859Z"
   }
 ]
