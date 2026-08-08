@@ -750,6 +750,27 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               'radial-gradient(ellipse 70% 55% at 72% 18%, rgba(232,180,184,0.10), transparent 58%), radial-gradient(ellipse 55% 45% at 12% 78%, rgba(0,169,159,0.06), transparent 55%)',
           }}
         >
+          {/* One global hint — stage layer only; never on cards; does not move with scraps */}
+          <span
+            aria-hidden
+            data-drag-me-canvas
+            className="pointer-events-none hidden select-none sm:block"
+            style={{
+              position: 'absolute',
+              left: '50%',
+              bottom: '18%',
+              zIndex: 0,
+              transform: 'translateX(-50%)',
+              color: 'rgba(20,17,12,0.32)',
+              fontFamily: 'Georgia, serif',
+              fontSize: '1.05rem',
+              fontStyle: 'italic',
+              lineHeight: 1,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            drag me
+          </span>
           <div className="min-h-full overflow-visible px-3 pb-24 pt-8 sm:hidden">
             <div className="grid gap-14">
               {rooms.map((room) => {
