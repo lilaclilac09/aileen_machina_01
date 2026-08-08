@@ -88,7 +88,7 @@ Hall touch          →  CustomEvent open-agent-chat  →  dialog`}</pre>
           + human <code style={codeStyle}>git push origin main</code>.
         </p>
 
-        <SectionLabel>4 · Scenario A — &ldquo;完全不能用&rdquo; on iPhone</SectionLabel>
+        <SectionLabel>4 · Scenario A — &ldquo;completely broken&rdquo; on iPhone</SectionLabel>
         <p style={bodyStyle}>
           The homepage is not a blank crash. SSR returns the opening slide. What fails is gesture physics:
         </p>
