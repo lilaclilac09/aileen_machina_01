@@ -332,7 +332,8 @@ export default function AgentChat() {
       }
       return true;
     } catch {
-      setInput('Mic blocked — allow microphone in the address bar');
+      const ios = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+      setInput(ios ? 'Mic blocked — Safari Settings → Microphone' : 'Mic blocked — allow mic in the address bar');
       return false;
     }
   }, []);
