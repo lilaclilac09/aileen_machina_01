@@ -10394,5 +10394,139 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-08T13:11:39.859Z"
+  },
+  {
+    "id": "2086135577733108189",
+    "url": "https://x.com/SemiAnalysis_/status/2086135577733108189",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "DSA challenges the dominant paradigm. Under finite resources, DSA favors selective redistribution, directing resources where they matter most while reducing waste.\n\nWe’re talking about DeepSeek Sparse Attention.\nPicture unrelated.",
+    "createdAt": "Sat Aug 08 17:00:54 +0000 2026",
+    "createdTimestamp": 1786208454,
+    "likes": 43,
+    "retweets": 6,
+    "replies": 12,
+    "bookmarks": 5,
+    "views": 10706,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPNxQJPXUAA02kl.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "optical",
+      "ai-cost"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-08T18:57:56.933Z"
+  },
+  {
+    "id": "2086161887574581493",
+    "url": "https://x.com/aaronburnett/status/2086161887574581493",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Worth the price of admission",
+    "createdAt": "Sat Aug 08 18:45:27 +0000 2026",
+    "createdTimestamp": 1786214727,
+    "likes": 19,
+    "retweets": 1,
+    "replies": 1,
+    "bookmarks": 1,
+    "views": 645,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-08T18:58:00.757Z"
+  },
+  {
+    "id": "2086146967952932929",
+    "url": "https://x.com/aaronburnett/status/2086146967952932929",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Short clip of my conversation with Morgan Brennan yesterday for those interested.\n\nTL;DR - the numbers suggest that even with a strong amount of conservatism SpaceX has reasonable opportunity to be valued at 10s of Trillions in the 2030s. \n\nThe biggest conservative lever in our modeling assumes it takes 10 years longer to hit Starship hourly cadence than Elon is targeting. Which I’d argue is more than enough timeline shift to be considered conservative. Anything beyond that is simple pessimism. \n\nOf course I’m bias, we are long term holders. I’d suggest you do the work yourself and read http://research.33fg.com (free newsletter) as an optimistic guide post alongside some of the skeptical pessimistic takes out there.",
+    "createdAt": "Sat Aug 08 17:46:10 +0000 2026",
+    "createdTimestamp": 1786211170,
+    "likes": 41,
+    "retweets": 2,
+    "replies": 3,
+    "bookmarks": 8,
+    "views": 1706,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://video.twimg.com/amplify_video/2086146643477274624/vid/avc1/1206x668/RlPif_LWwqhhDiye.mp4?tag=29"
+    ],
+    "linkedUrls": [
+      "http://research.33fg.com"
+    ],
+    "topics": [
+      "mach33",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-08T18:58:02.141Z"
+  },
+  {
+    "id": "2086081606918242757",
+    "url": "https://x.com/aaronburnett/status/2086081606918242757",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "SpaceX is actually an unmatched global infrastructure builder. Just so happens that the world currently is in the midst of a massive intelligence buildout.",
+    "createdAt": "Sat Aug 08 13:26:27 +0000 2026",
+    "createdTimestamp": 1786195587,
+    "likes": 165,
+    "retweets": 9,
+    "replies": 7,
+    "bookmarks": 3,
+    "views": 6138,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-08T18:58:03.524Z"
+  },
+  {
+    "id": "2086079080328294843",
+    "url": "https://x.com/aaronburnett/status/2086079080328294843",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "When rigorous optimism meets performative skepticism…",
+    "createdAt": "Sat Aug 08 13:16:24 +0000 2026",
+    "createdTimestamp": 1786194984,
+    "likes": 25,
+    "retweets": 1,
+    "replies": 0,
+    "bookmarks": 0,
+    "views": 3951,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-08T18:58:04.923Z"
   }
 ]
