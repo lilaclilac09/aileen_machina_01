@@ -10528,5 +10528,363 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-08T18:58:04.923Z"
+  },
+  {
+    "id": "2086170813796118561",
+    "url": "https://x.com/dylan522p/status/2086170813796118561",
+    "screenName": "dylan522p",
+    "authorId": "985281530070265862",
+    "authorName": "Dylan Patel",
+    "text": "I was gifted this for my birthday a couple months ago but I have no clue who gave it to me. Does anyone know",
+    "createdAt": "Sat Aug 08 19:20:55 +0000 2026",
+    "createdTimestamp": 1786216855,
+    "likes": 75,
+    "retweets": 0,
+    "replies": 14,
+    "bookmarks": 6,
+    "views": 20269,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPORS3HbwAApXOC.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "semianalysis"
+    ],
+    "tags": [
+      "semianalysis"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-09T02:28:07.796Z"
+  },
+  {
+    "id": "2086241160243118556",
+    "url": "https://x.com/SemiAnalysis_/status/2086241160243118556",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Google has open-sourced their TPU Raiden inference optimization library. This is the equivalent layer of the stack to NVIDIA NIXL, where it provides KVCache transfer between prefill & decode instances & has primitives for KVCache offloading movements! It is great to see Google open-source & externalize more and more of their TPU stack!",
+    "createdAt": "Sun Aug 09 00:00:27 +0000 2026",
+    "createdTimestamp": 1786233627,
+    "likes": 273,
+    "retweets": 13,
+    "replies": 12,
+    "bookmarks": 53,
+    "views": 23097,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPPRR6FWUAE9bdn.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "inference"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-09T02:28:10.160Z"
+  },
+  {
+    "id": "2086203249229549652",
+    "url": "https://x.com/SemiAnalysis_/status/2086203249229549652",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "We invited Jon from Asianometry to speak on the recent developments.\n\n\"Welcome back to SemiAnalysis Weekly!\nWe've got our second guest ever on the program today.\nThat's Jon from Asianometry\"\n\n\"On this week we'll discuss everybody leaving Google, leaving Gemini hanging out to dry maybe?\nChinese ban on transceivers? Elon pulling in his $1 trillion revenue forecast from 2031 to 2030.\nGuys, welcome to the show.\"\n\n\"Thank you. Thank you for having me.\"",
+    "createdAt": "Sat Aug 08 21:29:49 +0000 2026",
+    "createdTimestamp": 1786224589,
+    "likes": 66,
+    "retweets": 4,
+    "replies": 4,
+    "bookmarks": 35,
+    "views": 20759,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://video.twimg.com/ext_tw_video/2086203228601888768/pu/vid/avc1/1280x720/ryo9ssh0F1IvNZXS.mp4?tag=12"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-09T02:28:11.556Z"
+  },
+  {
+    "id": "2086203250236162236",
+    "url": "https://x.com/SemiAnalysis_/status/2086203250236162236",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Watch it Now: https://youtu.be/q0GKTjhgkwk?si=B8-JZAgMciPRIiNB",
+    "createdAt": "Sat Aug 08 21:29:49 +0000 2026",
+    "createdTimestamp": 1786224589,
+    "likes": 4,
+    "retweets": 0,
+    "replies": 0,
+    "bookmarks": 3,
+    "views": 9746,
+    "isNoteTweet": false,
+    "linkedUrls": [
+      "https://youtu.be/q0GKTjhgkwk?si=B8-JZAgMciPRIiNB"
+    ],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-09T02:28:12.954Z"
+  },
+  {
+    "id": "2086276229368316158",
+    "url": "https://x.com/aaronburnett/status/2086276229368316158",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Good chart explaining part of the Starlink upside story",
+    "createdAt": "Sun Aug 09 02:19:48 +0000 2026",
+    "createdTimestamp": 1786241988,
+    "likes": 3,
+    "retweets": 0,
+    "replies": 2,
+    "bookmarks": 0,
+    "views": 568,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-09T02:28:17.102Z"
+  },
+  {
+    "id": "2086263933569024058",
+    "url": "https://x.com/aaronburnett/status/2086263933569024058",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Elon will be putting NVL72 Rubin racks in space and getting net new chips to power within months (eventually weeks) not years. \n\nWe’ll still have power shortages anyway once everyone tried to plugin their home robots.",
+    "createdAt": "Sun Aug 09 01:30:57 +0000 2026",
+    "createdTimestamp": 1786239057,
+    "likes": 22,
+    "retweets": 1,
+    "replies": 2,
+    "bookmarks": 0,
+    "views": 1863,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "gpu"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-09T02:28:18.516Z"
+  },
+  {
+    "id": "2086241933978931420",
+    "url": "https://x.com/aaronburnett/status/2086241933978931420",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "The Starlink opportunity is well articulated here. It remains my belief that the Starlink V3 and DTC opportunity is the most well evidenced and predictable of the markets over the next 3-5 years. (not to mention phenomenal margins) As such I think it’s under appreciated and under forecasted because it’s often evaluated on the same risk level as some of the more speculative claims. That is a mistake.",
+    "createdAt": "Sun Aug 09 00:03:32 +0000 2026",
+    "createdTimestamp": 1786233812,
+    "likes": 65,
+    "retweets": 7,
+    "replies": 2,
+    "bookmarks": 11,
+    "views": 5443,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-09T02:28:19.949Z"
+  },
+  {
+    "id": "2086206829810286682",
+    "url": "https://x.com/aaronburnett/status/2086206829810286682",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "There is some confusion about Elon’s mention of $1T revenue from internal targets moving from 2031 to 2030/2029. He said explicitly that the $1T was not ARR just revenue (I believe that means cumulative revenue).\n\nTheir goals are pretty audacious already good idea not to get ahead of ourselves and put even bigger claims into the expectations sphere. \n\nIn theory this would place the ARR in 2029/2030 in that ~$300B+ range, though I’m not privy to internal targets.\n\nHere is a clip of the recording of that exact phrasing.",
+    "createdAt": "Sat Aug 08 21:44:02 +0000 2026",
+    "createdTimestamp": 1786225442,
+    "likes": 414,
+    "retweets": 37,
+    "replies": 32,
+    "bookmarks": 54,
+    "views": 96921,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://video.twimg.com/amplify_video/2086206714664157184/vid/avc1/1206x1822/nQxcggjk-TrBHWaX.mp4?tag=29"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-09T02:28:21.375Z"
+  },
+  {
+    "id": "2086230875520315414",
+    "url": "https://x.com/aaronburnett/status/2086230875520315414",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Can’t edit as it’s too late, but Elon cleared this up. He didn’t mean cumulative he meant annual revenue but not all recurring. My assumption was too conservative. :) my curse",
+    "createdAt": "Sat Aug 08 23:19:35 +0000 2026",
+    "createdTimestamp": 1786231175,
+    "likes": 12,
+    "retweets": 1,
+    "replies": 3,
+    "bookmarks": 1,
+    "views": 1144,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-09T02:28:22.758Z"
+  },
+  {
+    "id": "2086227842837131706",
+    "url": "https://x.com/aaronburnett/status/2086227842837131706",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Elon adding clarification on the $1T annual revenue (not ARR) comment.",
+    "createdAt": "Sat Aug 08 23:07:32 +0000 2026",
+    "createdTimestamp": 1786230452,
+    "likes": 97,
+    "retweets": 6,
+    "replies": 3,
+    "bookmarks": 2,
+    "views": 10081,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-09T02:28:24.172Z"
+  },
+  {
+    "id": "2086211982160478553",
+    "url": "https://x.com/aaronburnett/status/2086211982160478553",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "to be clear cumulative is the most conservative read it could also mean $1T revenue with some portion being non-recurring.",
+    "createdAt": "Sat Aug 08 22:04:31 +0000 2026",
+    "createdTimestamp": 1786226671,
+    "likes": 7,
+    "retweets": 1,
+    "replies": 1,
+    "bookmarks": 0,
+    "views": 1432,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-09T02:28:25.563Z"
+  },
+  {
+    "id": "2086208380956205090",
+    "url": "https://x.com/aaronburnett/status/2086208380956205090",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Just to clear this up Elon actually said “our internal projections for reaching a trillion dollars in revenue, not ARR have moved up from 2031 to 2030.”\n\nStill way ahead of most expectations and incredibly audacious. I assume Brad just misheard.",
+    "createdAt": "Sat Aug 08 21:50:12 +0000 2026",
+    "createdTimestamp": 1786225812,
+    "likes": 52,
+    "retweets": 4,
+    "replies": 2,
+    "bookmarks": 3,
+    "views": 10017,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-09T02:28:26.978Z"
+  },
+  {
+    "id": "2086190249189749092",
+    "url": "https://x.com/aaronburnett/status/2086190249189749092",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "This is what another 2Tbps of global bandwidth looks like.",
+    "createdAt": "Sat Aug 08 20:38:09 +0000 2026",
+    "createdTimestamp": 1786221489,
+    "likes": 73,
+    "retweets": 4,
+    "replies": 3,
+    "bookmarks": 0,
+    "views": 3462,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-09T02:28:28.375Z"
+  },
+  {
+    "id": "2086189914027081894",
+    "url": "https://x.com/aaronburnett/status/2086189914027081894",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Very cool. Starlink mobile is a game changer on the road",
+    "createdAt": "Sat Aug 08 20:36:49 +0000 2026",
+    "createdTimestamp": 1786221409,
+    "likes": 45,
+    "retweets": 5,
+    "replies": 3,
+    "bookmarks": 0,
+    "views": 3593,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-09T02:28:29.825Z"
   }
 ]
