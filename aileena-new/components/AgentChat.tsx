@@ -961,12 +961,13 @@ export default function AgentChat() {
         className={`fixed inset-0 z-[70] bg-[#fbfaf7]/95 sm:bg-[#fbfaf7]/80 backdrop-blur-md sm:backdrop-blur-sm transition-opacity duration-200 ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       />
 
-      {/* Console card — full-bleed on phone so homepage chrome doesn't bleed through */}
+      {/* Console card — full-bleed on phone so homepage chrome doesn't bleed through.
+          overflow-hidden + flex column: transcript scrolls; header/orb/input stay visible. */}
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Aileena Console"
-        className={`fixed z-[80] inset-0 sm:inset-x-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[640px] sm:max-w-[calc(100vw-3rem)] max-h-[100dvh] sm:max-h-[80vh] flex flex-col bg-[#fffdf8] sm:bg-[#fffdf8]/95 border-0 sm:border sm:border-[#ded8ce] shadow-none sm:shadow-[0_24px_80px_-34px_rgba(31,26,20,0.42)] backdrop-blur-md transition-all duration-200 ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-[0.98] sm:scale-[0.96] pointer-events-none'} font-mono`}
+        className={`fixed z-[80] inset-0 sm:inset-x-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[640px] sm:max-w-[calc(100vw-3rem)] h-[100dvh] sm:h-[min(80vh,720px)] max-h-[100dvh] sm:max-h-[80vh] flex flex-col overflow-hidden bg-[#fffdf8] sm:bg-[#fffdf8]/95 border-0 sm:border sm:border-[#ded8ce] shadow-none sm:shadow-[0_24px_80px_-34px_rgba(31,26,20,0.42)] backdrop-blur-md transition-all duration-200 ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-[0.98] sm:scale-[0.96] pointer-events-none'} font-mono`}
         style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace' }}
       >
         {/* Header bar */}
@@ -1085,12 +1086,12 @@ export default function AgentChat() {
           </div>
         </div>
 
-        {/* Transcript */}
+        {/* Transcript — reserved height floor so voice orb cannot crush history to one line.
+            flex-1 + overflow-y-auto scrolls independently; layout only, no message logic. */}
         <div
           ref={scrollRef}
-          className={`flex-1 overflow-y-auto overscroll-contain px-4 sm:px-5 py-4 sm:py-5 space-y-3 ${
-            voiceMode ? 'min-h-0' : 'min-h-[140px] sm:min-h-[180px]'
-          }`}
+          data-agent-transcript
+          className="flex-1 min-h-[128px] sm:min-h-[168px] overflow-y-auto overscroll-contain px-4 sm:px-5 py-4 sm:py-5 space-y-3"
         >
           {messages.length === 0 ? (
             <>
@@ -1191,7 +1192,7 @@ export default function AgentChat() {
         {/* Contact panel — optional soft invite after a few turns.
             Never disables chat before the promised 20 / day. */}
         {showLeadPanel && (
-          <div className="border-t border-[#e7e0d6] px-5 py-3 bg-[#faf7f0]">
+          <div className="border-t border-[#e7e0d6] px-5 py-3 bg-[#faf7f0] shrink-0">
             <div className="mb-2.5">
               <p className="font-mono text-[0.55rem] tracking-[0.35em] uppercase text-[#008f86]/85">
                 ▸ leave a note
@@ -1253,46 +1254,49 @@ export default function AgentChat() {
         )}
 
         {leadState === 'sent' && (
-          <div className="border-t border-[#e7e0d6] px-5 py-2 bg-[#f3fbf9]">
+          <div className="border-t border-[#e7e0d6] px-5 py-2 bg-[#f3fbf9] shrink-0">
             <p className="font-mono text-[0.55rem] tracking-[0.3em] uppercase text-[#008f86]/90">
               ▸ note sent — thanks
             </p>
           </div>
         )}
 
-        {/* Stream + barge-in orb: live captions, interrupt anytime */}
-        <AgentVoiceOrb
-          active={open && voiceMode}
-          autoListen={autoListen}
-          busy={busy}
-          disabled={sessionMaxed}
-          speakText={voiceSpeakReady ? lastAssistant.text : ''}
-          speakId={voiceSpeakReady ? lastAssistant.id : ''}
-          onRegisterStart={(start) => {
-            startOrbListenRef.current = start;
-          }}
-          onRegisterUnlock={(unlock) => {
-            unlockOrbAudioRef.current = unlock;
-          }}
-          onLiveCaption={(text) => {
-            setVoiceLive(text);
-            if (text) setInput(text);
-            else if (!busy) setInput('');
-          }}
-          onAsk={(text) => {
-            setVoiceLive('');
-            setAutoListen(false);
-            ask(text);
-          }}
-          onListeningChange={() => {
-            // Clear autoListen after the first start/stop so a failed mic
-            // start cannot loop.
-            setAutoListen(false);
-          }}
-        />
+        {/* Stream + barge-in orb: live captions, interrupt anytime.
+            shrink-0 so orb panel cannot steal transcript flex space. */}
+        <div className="shrink-0">
+          <AgentVoiceOrb
+            active={open && voiceMode}
+            autoListen={autoListen}
+            busy={busy}
+            disabled={sessionMaxed}
+            speakText={voiceSpeakReady ? lastAssistant.text : ''}
+            speakId={voiceSpeakReady ? lastAssistant.id : ''}
+            onRegisterStart={(start) => {
+              startOrbListenRef.current = start;
+            }}
+            onRegisterUnlock={(unlock) => {
+              unlockOrbAudioRef.current = unlock;
+            }}
+            onLiveCaption={(text) => {
+              setVoiceLive(text);
+              if (text) setInput(text);
+              else if (!busy) setInput('');
+            }}
+            onAsk={(text) => {
+              setVoiceLive('');
+              setAutoListen(false);
+              ask(text);
+            }}
+            onListeningChange={() => {
+              // Clear autoListen after the first start/stop so a failed mic
+              // start cannot loop.
+              setAutoListen(false);
+            }}
+          />
+        </div>
 
         {/* Input row */}
-        <div className="border-t border-[#e7e0d6] px-5 py-3">
+        <div className="border-t border-[#e7e0d6] px-5 py-3 shrink-0">
           <div className="relative flex items-center gap-2">
             <span className={`text-sm ${sessionMaxed ? 'text-[#1b1713]/20' : 'text-[#00a89d]'}`}>&gt;</span>
             <textarea
