@@ -11195,5 +11195,28 @@
     "tags": [],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-10T08:03:48.874Z"
+  },
+  {
+    "id": "2086806145172410849",
+    "url": "https://x.com/SemiAnalysis_/status/2086806145172410849",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "We are excited to see Intel is capitalizing on the opportunity ahead of it, and hope they can raise even more capital soon to execute on their foundry ambitions!\n\nhttps://newsroom.intel.com/corporate/intel-announces-proposed-15-billion-common-stock-offering",
+    "createdAt": "Mon Aug 10 13:25:30 +0000 2026",
+    "createdTimestamp": 1786368330,
+    "likes": 46,
+    "retweets": 5,
+    "replies": 0,
+    "bookmarks": 5,
+    "views": 7423,
+    "isNoteTweet": false,
+    "linkedUrls": [
+      "https://newsroom.intel.com/corporate/intel-announces-proposed-15-billion-common-stock-offering"
+    ],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-10T13:43:23.622Z"
   }
 ]

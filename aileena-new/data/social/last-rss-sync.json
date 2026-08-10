@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-08-10T08:03:46.983Z",
+  "ranAt": "2026-08-10T13:43:20.941Z",
   "nitterBases": [
     "https://nitter.net"
   ],
@@ -22,13 +22,13 @@
     },
     {
       "screenName": "SemiAnalysis_",
-      "rssCount": 21,
+      "rssCount": 19,
       "missing": [
-        "2086697535549440370"
+        "2086806145172410849"
       ],
       "skippedOffWatchlist": [],
       "ingested": [
-        "2086697535549440370"
+        "2086806145172410849"
       ],
       "failed": []
     },
