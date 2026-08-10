@@ -81,6 +81,7 @@ export const DJ_SET_TRACKS: DjSetTrack[] = [
  */
 export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
   // Dua Lipa — lyric "Need someone to hold me close" = Training Season
+  // Covers vendored under /dj-set/assets/covers/dua-*.jpg (Spotify oEmbed art)
   {
     id: '0aYmkfcuxiLuCx906gze9I',
     title: 'Training Season',
@@ -88,7 +89,7 @@ export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
     bpm: 123,
     key: '8B',
     dur: 209,
-    thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e022f8790ed72296c2614607575',
+    thumb: '/dj-set/assets/covers/dua-training-season.jpg',
   },
   {
     id: '1Qvo9ZyBWoedUiOc0zTCbm',
@@ -97,7 +98,7 @@ export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
     bpm: 127,
     key: '4A',
     dur: 188,
-    thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e022f8790ed72296c2614607575',
+    thumb: '/dj-set/assets/covers/dua-illusion.jpg',
   },
   {
     id: '6D8y7Bck8h11byRY88Pt2z',
@@ -106,7 +107,7 @@ export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
     bpm: 117,
     key: '8A',
     dur: 185,
-    thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0245b408502b599fe9cd5a5508',
+    thumb: '/dj-set/assets/covers/dua-houdini.jpg',
   },
   {
     id: '5XQRwVt27kpMePz10dfA5K',
@@ -115,7 +116,7 @@ export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
     bpm: 124,
     key: '11A',
     dur: 183,
-    thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02c88bae7846e62a8ba59ee0bd',
+    thumb: '/dj-set/assets/covers/dua-dont-start-now.jpg',
   },
   {
     id: '1yaWyorMQLpRUNmKZlnACf',
@@ -124,7 +125,7 @@ export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
     bpm: 147,
     key: '7B',
     dur: 193,
-    thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02c88bae7846e62a8ba59ee0bd',
+    thumb: '/dj-set/assets/covers/dua-physical.jpg',
   },
   {
     id: '5nujrmhLynf4yMoMtj8AQF',
@@ -133,7 +134,7 @@ export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
     bpm: 103,
     key: '6B',
     dur: 203,
-    thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02bb1e7090e662ce98b0e1b4c0',
+    thumb: '/dj-set/assets/covers/dua-levitating.jpg',
   },
   {
     id: '1vYXt7VSjH9JIM5oRRo7vA',
@@ -142,7 +143,7 @@ export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
     bpm: 110,
     key: '9B',
     dur: 176,
-    thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0209188510e4e50b2c257cfe0f',
+    thumb: '/dj-set/assets/covers/dua-dance-the-night.jpg',
   },
   {
     id: '5Q2HcjmL9kkHZ4IplboNGw',
@@ -151,7 +152,7 @@ export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
     bpm: 116,
     key: '4A',
     dur: 209,
-    thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e027833c9a792ad032d788d4011',
+    thumb: '/dj-set/assets/covers/dua-new-rules.jpg',
   },
   { id: '189lkmwebOMpyLoyx1zkCS', title: 'Intro', bpm: 112, key: '4A', dur: 102, thumb: 'https://i.scdn.co/image/ab67616d0000b273fca7f5aebfb6010c6da60e00' },
   { id: '7Gi8h4mk92A5akMQBGnDXj', title: 'Berlin', bpm: 125, key: '6A', dur: 200, thumb: '/berlin.jpg' },
