@@ -1,0 +1,75 @@
+# Cursor agent — read-only PR review (CI guardrail)
+#
+# Bugbot = PR comment reviewer. This workflow = CI-style cursor-agent review.
+# Requires repo secret: CURSOR_API_KEY
+# Does NOT modify files, push, or merge.
+
+name: cursor-pr-review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  cursor-review:
+    runs-on: ubuntu-latest
+    # Skip if secret missing (forks / unset) so the job doesn't fail the required checks by accident.
+    if: ${{ vars.CURSOR_CI_REVIEW != 'off' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check CURSOR_API_KEY
+        id: key
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        run: |
+          if [ -z "$CURSOR_API_KEY" ]; then
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "CURSOR_API_KEY not set — skipping cursor-agent review."
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install Cursor CLI
+        if: steps.key.outputs.present == 'true'
+        run: |
+          curl https://cursor.com/install -fsS | bash
+          echo "$HOME/.cursor/bin" >> "$GITHUB_PATH"
+
+      - name: Run cursor-agent review (read-only)
+        if: steps.key.outputs.present == 'true'
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        run: |
+          cursor-agent -p "$(cat <<'PROMPT'
+          You are reviewing this PR in CI. Focus only on real regressions and bugs, especially interactive UI behavior.
+
+          Check the diff for broken drag/drop lifecycle:
+          - dragstart, dragover, drop
+          - draggable attributes
+          - preventDefault / stopPropagation
+          - pointer-events
+          - overlays, z-index, absolute positioning
+          - transforms, overflow, user-select
+          - state updates after drop
+          - rerender behavior
+          - changed component boundaries or props
+
+          Rules:
+          - only report likely real bugs
+          - ignore style and formatting
+          - do not suggest rewrites
+          - do not introduce new libraries
+          - suggest the smallest fix
+          - include file path, changed area, why it breaks, and how to verify manually
+          - Do not modify files
+
+          If no issue is found, say: no likely drag/drop regression found in diff.
+          PROMPT
+          )" --model gpt-5

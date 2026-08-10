@@ -24,3 +24,5 @@
 UI merge 验收：截图 + 交互都要给看（中间微调别刷屏）— `.cursor/rules/ui-step-screenshot.mdc`。
 
 Bugbot（审 PR / 交互回归，不当修车工）：`.cursor/BUGBOT.md` — DnD 优先查 event lifecycle；最小修复；PR 上 `bugbot run` 或 Cursor `/review-bugbot`。
+
+CI 守卫用 cursor-agent（不是 Bugbot）：`.github/workflows/cursor-pr-review.yml` — 需 `CURSOR_API_KEY`；只读审 diff；禁止 auto-merge。
