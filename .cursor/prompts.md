@@ -22,3 +22,5 @@
 防乱改一句：`先不要写代码，先读相关文件并给我最小修改计划。`
 
 UI merge 验收：截图 + 交互都要给看（中间微调别刷屏）— `.cursor/rules/ui-step-screenshot.mdc`。
+
+Bugbot（审 PR / 交互回归，不当修车工）：`.cursor/BUGBOT.md` — DnD 优先查 event lifecycle；最小修复；PR 上 `bugbot run` 或 Cursor `/review-bugbot`。
