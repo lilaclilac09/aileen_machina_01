@@ -1,12 +1,12 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import BackHomeLink from './BackHomeLink';
+import BackHomeLink, { chromeBackForPath } from './BackHomeLink';
 
 /**
- * Fixed top-left chrome: machina avatar (+ optional ← Home).
- * Pages must NOT render their own ← Home in the same corner — that was
- * the overlap. Use `site-top-nav` / substack-nav padding for the rest.
+ * Fixed top-left chrome: machina avatar (+ context-aware back).
+ * Pages must NOT render a competing ← Home / ← doors in the same corner.
+ * Use `site-top-nav` / substack-nav padding for the rest.
  */
 export default function SiteLeftChrome({
   onOpenConsole,
@@ -16,8 +16,7 @@ export default function SiteLeftChrome({
   consoleOpen: boolean;
 }) {
   const pathname = usePathname() || '/';
-  // Home only off the root — never compete with the avatar on `/`.
-  const showHome = pathname !== '/';
+  const back = chromeBackForPath(pathname);
 
   return (
     <div
@@ -50,11 +49,14 @@ export default function SiteLeftChrome({
         </span>
       </button>
 
-      {showHome ? (
+      {back ? (
         <BackHomeLink
+          href={back.href}
           className="site-chrome-home font-mono text-[0.62rem] sm:text-[0.68rem] tracking-[0.18em] uppercase text-[#fffdf8]/70 hover:text-[#fffdf8] transition-colors select-none"
           style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}
-        />
+        >
+          {back.label}
+        </BackHomeLink>
       ) : null}
     </div>
   );

@@ -297,6 +297,7 @@ export const t = {
     },
     rooms: [
       { href: '/', label: 'Home', hint: 'desk' },
+      { href: '/doors', label: 'Doors', hint: 'directory' },
       { href: '/sound', label: 'DJ', hint: 'sound' },
       { href: '/blog/watch-listening-shelf', label: 'Shelf', hint: 'films · podcasts' },
       { href: '/updates', label: 'Metal & Pages', hint: 'book club' },
@@ -1082,6 +1083,7 @@ export const t = {
     },
     rooms: [
       { href: '/', label: 'Home', hint: 'Schreibtisch' },
+      { href: '/doors', label: 'Doors', hint: 'Verzeichnis' },
       { href: '/sound', label: 'DJ', hint: 'Sound' },
       { href: '/blog/watch-listening-shelf', label: 'Regal', hint: 'Filme · Podcasts' },
       { href: '/updates', label: 'Metal & Pages', hint: 'Buchclub' },
