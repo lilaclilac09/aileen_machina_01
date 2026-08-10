@@ -11169,5 +11169,31 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-10T02:34:11.647Z"
+  },
+  {
+    "id": "2086697535549440370",
+    "url": "https://x.com/SemiAnalysis_/status/2086697535549440370",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Ultra-High Interactivity on NVIDIA GPUs?\nTileRT InferenceX\nCan TileRT software on NVIDIA GPU compete with Cerebras, Groq LPU, SambaNova?\nBatch Size 1, Disaggregated engine,\nHigh throughput prefill engine,\nHigh interactivity decode engine\n\nhttps://newsletter.semianalysis.com/p/ultra-high-interactivity-on-nvidia",
+    "createdAt": "Mon Aug 10 06:13:56 +0000 2026",
+    "createdTimestamp": 1786342436,
+    "likes": 36,
+    "retweets": 3,
+    "replies": 1,
+    "bookmarks": 26,
+    "views": 11650,
+    "isNoteTweet": false,
+    "linkedUrls": [
+      "https://newsletter.semianalysis.com/p/ultra-high-interactivity-on-nvidia"
+    ],
+    "topics": [
+      "inference",
+      "gpu"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-10T08:03:48.874Z"
   }
 ]
