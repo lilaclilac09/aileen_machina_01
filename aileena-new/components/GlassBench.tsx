@@ -3,9 +3,15 @@ import type { CSSProperties } from 'react';
 
 const mono = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
 
+/** Strongest kiln shot — placed as a small floating canvas object (not a gallery tile). */
+const CANVAS_IMAGE = '/pate-glass.jpg';
+
+type GlassItem = { src: string; alt: string; caption: string; href?: string };
+
 /**
- * Option A — centered full-bleed kiln wall.
- * 1–2 large edge-to-edge images, Allura pink captions overlaid, no Polaroid mats.
+ * Visual / kiln wall — multi-image gallery from translations `visual.items`.
+ * First row keeps the two-column base; remaining images extend below.
+ * Content images keep natural aspect (no object-fit: cover crop).
  */
 export default function GlassBench({
   tag,
@@ -18,61 +24,105 @@ export default function GlassBench({
   title: string;
   body: string;
   linkLabel: string;
-  items: Array<{ src: string; alt: string; caption: string; href?: string }>;
+  items: GlassItem[];
 }) {
-  // Prefer the two strongest process shots: clay + packed glass.
-  const preferred = items.filter((item) =>
-    /pate-clay|pate-glass/.test(item.src),
-  );
-  const featured = (preferred.length >= 2 ? preferred : items).slice(0, 2);
-  const dual = featured.length > 1;
+  // Keep strongest diptych (clay + glass) as the first two-column row; rest extend below.
+  const preferred = items.filter((item) => /pate-clay|pate-glass/.test(item.src));
+  const rest = items.filter((item) => !/pate-clay|pate-glass/.test(item.src));
+  const ordered = preferred.length >= 2 ? [...preferred, ...rest] : items;
+
+  const rows: GlassItem[][] = [];
+  for (let i = 0; i < ordered.length; i += 2) {
+    rows.push(ordered.slice(i, i + 2));
+  }
 
   return (
     <section id="glass-bench" className="glass-bench" style={glassSectionStyle} aria-label="Glass work">
       <style>{`
         .glass-bench {
+          position: relative;
           height: 100%;
           min-height: 100%;
         }
-        .glass-bench-stage {
-          grid-template-columns: 1fr;
+        .glass-bench-canvas-float {
+          position: absolute;
+          z-index: 0;
+          pointer-events: none;
+          user-select: none;
+          width: min(32vw, 200px);
+          max-width: 220px;
+          top: clamp(72px, 14vh, 120px);
+          right: clamp(4px, 3vw, 28px);
+          opacity: 0.92;
+          transform: rotate(3.5deg);
+          filter: drop-shadow(0 14px 28px rgba(20, 17, 12, 0.22));
+        }
+        .glass-bench-canvas-float img {
+          display: block;
+          width: 100%;
+          height: auto;
+          object-fit: contain;
+        }
+        @media (max-width: 859px) {
+          .glass-bench-canvas-float {
+            width: min(28vw, 120px);
+            top: clamp(56px, 10vh, 88px);
+            right: clamp(2px, 2vw, 12px);
+            opacity: 0.78;
+          }
+        }
+        .glass-bench-gallery {
+          position: relative;
+          z-index: 1;
+          display: flex;
+          flex-direction: column;
+          gap: clamp(8px, 1.2vw, 14px);
           flex: 1 1 auto;
           min-height: 0;
+          width: 100%;
+        }
+        .glass-bench-stage {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: clamp(8px, 1.2vw, 14px);
+          width: 100%;
+          margin: 0 auto;
+          align-items: start;
         }
         .glass-bench-shot {
           position: relative;
           display: block;
-          overflow: hidden;
+          overflow: visible;
           min-height: 0;
-          height: 100%;
+          height: auto;
           color: inherit;
           text-decoration: none;
-          background: #1a1610;
+          background: transparent;
         }
         .glass-bench-shot img {
           display: block;
           width: 100%;
-          height: 100%;
-          object-fit: cover;
+          height: auto;
+          object-fit: contain;
           object-position: center;
         }
         @media (min-width: 860px) {
-          .glass-bench-stage {
-            grid-template-columns: ${dual ? '1.08fr 0.92fr' : '1fr'};
-            height: min(58dvh, calc(100% - 210px));
+          .glass-bench-stage--dual {
+            grid-template-columns: 1.08fr 0.92fr;
           }
-          .glass-bench-shot--b { align-self: stretch; }
-        }
-        @media (max-width: 859px) {
-          .glass-bench-stage {
-            height: auto;
-            max-height: none;
-          }
-          .glass-bench-shot {
-            height: clamp(28dvh, 32dvh, 280px);
+          .glass-bench-stage--single {
+            grid-template-columns: 1fr;
+            max-width: 720px;
           }
         }
       `}</style>
+
+      {/* Canvas / background placed object — not a gallery tile, no drag label */}
+      <div className="glass-bench-canvas-float" aria-hidden="true" data-visual-canvas-image>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={CANVAS_IMAGE} alt="" />
+      </div>
+
       <header style={glassHeaderStyle}>
         <p style={glassKickerStyle}>{tag}</p>
         <h2 style={glassTitleStyle}>{title}</h2>
@@ -82,26 +132,37 @@ export default function GlassBench({
         </Link>
       </header>
 
-      <div className="glass-bench-stage" style={glassStageStyle}>
-        {featured.map((item, index) => (
-          <Link
-            key={item.src}
-            href={item.href ?? '/blog/pate-de-verre'}
-            className={`glass-bench-shot ${index === 0 ? 'glass-bench-shot--a' : 'glass-bench-shot--b'}`}
-            aria-label={item.caption}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={item.src} alt={item.alt} />
-            <span
-              style={{
-                ...glassCaptionStyle,
-                ...(index === 1 ? glassCaptionAltStyle : null),
-              }}
+      <div className="glass-bench-gallery">
+        {rows.map((row, rowIndex) => {
+          const dual = row.length > 1;
+          return (
+            <div
+              key={`row-${rowIndex}`}
+              className={`glass-bench-stage ${dual ? 'glass-bench-stage--dual' : 'glass-bench-stage--single'}`}
+              style={glassStageStyle}
             >
-              {item.caption}
-            </span>
-          </Link>
-        ))}
+              {row.map((item, index) => (
+                <Link
+                  key={item.src}
+                  href={item.href ?? '/blog/pate-de-verre'}
+                  className={`glass-bench-shot ${index === 0 ? 'glass-bench-shot--a' : 'glass-bench-shot--b'}`}
+                  aria-label={item.caption}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={item.src} alt={item.alt} />
+                  <span
+                    style={{
+                      ...glassCaptionStyle,
+                      ...(index === 1 ? glassCaptionAltStyle : null),
+                    }}
+                  >
+                    {item.caption}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          );
+        })}
       </div>
     </section>
   );
@@ -109,6 +170,7 @@ export default function GlassBench({
 
 const glassSectionStyle: CSSProperties = {
   boxSizing: 'border-box',
+  position: 'relative',
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'center',
@@ -119,9 +181,12 @@ const glassSectionStyle: CSSProperties = {
   background:
     'radial-gradient(120% 80% at 50% 18%, #fffdf8 0%, #f7f1e6 48%, #efe6d6 100%)',
   color: '#14110c',
+  overflow: 'hidden',
 };
 
 const glassHeaderStyle: CSSProperties = {
+  position: 'relative',
+  zIndex: 1,
   margin: '0 auto',
   maxWidth: 760,
   padding: '0 clamp(16px, 3vw, 28px)',
@@ -172,7 +237,7 @@ const glassStageStyle: CSSProperties = {
   gap: 'clamp(8px, 1.2vw, 14px)',
   width: '100%',
   margin: '0 auto',
-  alignItems: 'stretch',
+  alignItems: 'start',
 };
 
 const glassCaptionStyle: CSSProperties = {
