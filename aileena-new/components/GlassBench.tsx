@@ -26,9 +26,14 @@ export default function GlassBench({
   linkLabel: string;
   items: GlassItem[];
 }) {
+  // Keep strongest diptych (clay + glass) as the first two-column row; rest extend below.
+  const preferred = items.filter((item) => /pate-clay|pate-glass/.test(item.src));
+  const rest = items.filter((item) => !/pate-clay|pate-glass/.test(item.src));
+  const ordered = preferred.length >= 2 ? [...preferred, ...rest] : items;
+
   const rows: GlassItem[][] = [];
-  for (let i = 0; i < items.length; i += 2) {
-    rows.push(items.slice(i, i + 2));
+  for (let i = 0; i < ordered.length; i += 2) {
+    rows.push(ordered.slice(i, i + 2));
   }
 
   return (
