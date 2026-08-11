@@ -1088,12 +1088,12 @@ export default function AgentChat() {
           </div>
         </div>
 
-        {/* Transcript — flex-1 scrolls when capped by dialog max-height; min floor
-            keeps history visible with voice on; no forced empty tall pane. */}
+        {/* Transcript — mobile fills leftover (flex-1); desktop sizes to content
+            up to max-height so a short thread isn’t a tall empty pane. */}
         <div
           ref={scrollRef}
           data-agent-transcript
-          className="flex-1 min-h-[7.5rem] sm:min-h-[9rem] overflow-y-auto overscroll-contain px-4 sm:px-5 py-3 sm:py-4 space-y-3"
+          className="flex-1 sm:flex-none min-h-[7.5rem] sm:min-h-[9rem] sm:max-h-[min(38vh,calc(72vh-13rem))] overflow-y-auto overscroll-contain px-4 sm:px-5 py-3 sm:py-4 space-y-3"
         >
           {messages.length === 0 ? (
             <>
