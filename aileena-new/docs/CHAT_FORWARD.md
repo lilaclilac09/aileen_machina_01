@@ -54,6 +54,14 @@ This cloud-agent environment typically has **none** of the above — run list/re
 
 Public UI never says “inbox not configured”. Visitors see a gentle paused/offline state; missing env is logged server-side / browser console warn only.
 
+## Owner browse UI
+
+After OWNER_KEY session:
+
+- Page: `/inbox` (robots noindex)
+- Unlock: `/api/auth/owner?key=<OWNER_KEY>&next=/inbox`
+- API: `GET /api/owner/chat-forwards?days=14` · `GET /api/owner/chat-forwards/:id`
+
 ## Commands
 
 ```bash
