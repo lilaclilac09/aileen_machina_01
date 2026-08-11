@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo, useSyncExternalStore } from 'react';
 import TrackLibraryBrowser from './TrackLibraryBrowser';
 import { allDeckTracks, type DeckTrack } from '../lib/djSetlist';
 
@@ -96,16 +96,19 @@ function fmt(ms: number) {
 }
 
 /* ─── Responsive hook ────────────────────────────────────── */
+function subscribeMobile(onStoreChange: () => void) {
+  const mq = window.matchMedia('(max-width: 639px)');
+  mq.addEventListener('change', onStoreChange);
+  return () => mq.removeEventListener('change', onStoreChange);
+}
+function getMobileSnapshot() {
+  return window.matchMedia('(max-width: 639px)').matches;
+}
+function getMobileServerSnapshot() {
+  return false;
+}
 function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 639px)');
-    setIsMobile(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []);
-  return isMobile;
+  return useSyncExternalStore(subscribeMobile, getMobileSnapshot, getMobileServerSnapshot);
 }
 
 /* ─── Main ───────────────────────────────────────────────── */
@@ -720,7 +723,13 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
     }}>
 
       {/* Platter drop zone */}
-      <div onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop} style={{
+      <div
+        data-testid={side === 'left' ? 'dj-deck-a-drop' : 'dj-deck-b-drop'}
+        data-deck-side={side}
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
+        style={{
         position: 'relative', height: D + 16, borderRadius: 10,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         background: C.bg,
@@ -892,7 +901,10 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
         border: '1px solid rgba(170,179,187,0.1)',
         display: 'flex', flexDirection: 'column', gap: 3,
       }}>
-        <p style={{ fontSize: '0.44rem', letterSpacing: '0.12em',
+        <p
+          data-testid={side === 'left' ? 'dj-deck-a-title' : 'dj-deck-b-title'}
+          data-track-id={track?.id ?? ''}
+          style={{ fontSize: '0.44rem', letterSpacing: '0.12em',
           color: playing ? C.cyan : C.text,
           fontFamily: 'monospace', textTransform: 'uppercase',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',

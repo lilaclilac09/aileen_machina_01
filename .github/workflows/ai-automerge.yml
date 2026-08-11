@@ -1,0 +1,213 @@
+# AI auto-merge with guardrails
+#
+# Trust gate: label `ai-automerge` (auto-applied to cursor/* and ai/* via label-ai-prs.yml).
+# Flow: ci → playwright-dnd → cursor-review → gh pr merge --auto
+# Agent never force-merges. GitHub auto-merge waits for required checks.
+#
+# Repo setup (manual):
+# - Allow auto-merge
+# - Protect main; require checks: ci, playwright-dnd, cursor-review
+# - Secret: CURSOR_API_KEY
+# - Label: ai-automerge
+
+name: ai-automerge
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+  statuses: read
+
+concurrency:
+  group: ai-automerge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: aileena-new
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: aileena-new/pnpm-lock.yaml
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # Full-repo `pnpm lint` is red on main (~180 errors). Gate only the
+      # DnD / automerge surfaces this workflow is meant to protect.
+      - name: Lint (scoped DnD surfaces)
+        run: |
+          pnpm exec eslint \
+            components/DJStation.tsx \
+            components/TrackLibraryBrowser.tsx \
+            e2e/dj-drag-deck-a.spec.ts \
+            playwright.config.ts
+
+      - name: Build
+        # Must use full `pnpm build` (generates article/data/memory indexes).
+        # Bare `next build` fails: missing *.json index modules.
+        run: pnpm build
+
+      - name: Upload .next
+        uses: actions/upload-artifact@v4
+        with:
+          name: next-build
+          path: aileena-new/.next
+          retention-days: 1
+          include-hidden-files: true
+          if-no-files-found: error
+
+  playwright-dnd:
+    name: playwright-dnd
+    needs: ci
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: aileena-new
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: aileena-new/pnpm-lock.yaml
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Download .next
+        uses: actions/download-artifact@v4
+        with:
+          name: next-build
+          path: aileena-new/.next
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Start Next and run DnD smoke
+        env:
+          BASE_URL: http://127.0.0.1:3000
+        run: |
+          pnpm start --hostname 127.0.0.1 --port 3000 &
+          for i in $(seq 1 60); do
+            if curl -sf "$BASE_URL/sound" >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -sf "$BASE_URL/sound" >/dev/null
+          pnpm test:e2e:dnd
+
+  cursor-review:
+    name: cursor-review
+    needs: [ci]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip when not labeled
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'ai-automerge') }}
+        run: |
+          echo "No ai-automerge label — cursor-agent gate skipped (check passes)."
+          exit 0
+
+      - uses: actions/checkout@v4
+        if: contains(github.event.pull_request.labels.*.name, 'ai-automerge')
+        with:
+          fetch-depth: 0
+
+      - name: Require CURSOR_API_KEY
+        if: contains(github.event.pull_request.labels.*.name, 'ai-automerge')
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        run: |
+          if [ -z "$CURSOR_API_KEY" ]; then
+            echo "::error::CURSOR_API_KEY secret is required for ai-automerge labeled PRs"
+            exit 1
+          fi
+
+      - name: Install Cursor CLI
+        if: contains(github.event.pull_request.labels.*.name, 'ai-automerge')
+        run: |
+          curl https://cursor.com/install -fsS | bash
+          echo "$HOME/.cursor/bin" >> "$GITHUB_PATH"
+
+      - name: cursor-agent review (read-only; exit 1 on blocking bug)
+        if: contains(github.event.pull_request.labels.*.name, 'ai-automerge')
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        run: |
+          set -euo pipefail
+          OUT="$(mktemp)"
+          cursor-agent -p "$(cat <<'PROMPT'
+          You are reviewing this PR in CI. Do not modify files.
+
+          Focus only on real regressions and bugs. Ignore style and formatting.
+
+          For UI changes, check interactive behavior regressions:
+          - dragstart / dragover / drop lifecycle
+          - draggable attributes
+          - preventDefault / stopPropagation
+          - pointer-events
+          - overlays, z-index, absolute positioning
+          - transforms, overflow, user-select
+          - state updates after drop
+          - rerender behavior
+
+          Rules:
+          - only report likely blocking bugs
+          - do not suggest rewrites or new libraries
+          - suggest the smallest fix when reporting
+          - include file path and why it breaks
+
+          If you find a likely blocking bug, print findings then exit with code 1.
+          If no likely blocking bug is found, print: no likely blocking bug found in diff
+          then exit with code 0.
+          PROMPT
+          )" --model gpt-5 | tee "$OUT"
+          # Fail closed if the agent clearly reported a blocking issue without exiting non-zero.
+          if grep -qiE 'blocking bug|likely bug|will break|breaks drag' "$OUT" \
+            && ! grep -qi 'no likely blocking bug found' "$OUT"; then
+            echo "::error::cursor-agent reported a likely blocking bug"
+            exit 1
+          fi
+
+  enable-automerge:
+    name: enable-automerge
+    needs: [ci, playwright-dnd, cursor-review]
+    if: |
+      always() &&
+      contains(github.event.pull_request.labels.*.name, 'ai-automerge') &&
+      needs.ci.result == 'success' &&
+      needs.playwright-dnd.result == 'success' &&
+      needs.cursor-review.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Enable GitHub auto-merge (squash)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          # GitHub merges only after required checks pass — this does not force-merge.
+          gh pr merge "$PR_URL" --auto --squash --delete-branch
+          echo "Auto-merge enabled for $PR_URL"

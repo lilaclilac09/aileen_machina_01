@@ -29,6 +29,7 @@
     "verify:memory:live": "tsx scripts/build-memory-index.ts && VERIFY_BASE_URL=http://localhost:3000 tsx scripts/verify-memory.ts",
     "verify:react": "tsx scripts/verify-react.ts",
     "verify:ops": "tsx scripts/verify-ops.ts",
+    "test:e2e:dnd": "playwright test e2e/dj-drag-deck-a.spec.ts --config=playwright.config.ts",
     "chat:pending": "tsx scripts/list-chat-forwards.ts",
     "chat:resend-pending": "tsx scripts/resend-pending-chat-forwards.ts",
     "inkling:clips": "tsx scripts/inkling-clips.ts",
@@ -54,6 +55,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@playwright/test": "1.61.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

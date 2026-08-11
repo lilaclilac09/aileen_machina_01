@@ -1,0 +1,28 @@
+# Auto-label trusted agent branches for the ai-automerge gate.
+# Still requires: CURSOR_API_KEY, branch protection, Allow auto-merge.
+# Humans can remove the label to opt out.
+
+name: label-ai-prs
+
+on:
+  pull_request:
+    types: [opened]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  label:
+    if: startsWith(github.head_ref, 'cursor/') || startsWith(github.head_ref, 'ai/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ensure label exists and apply
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          gh label create ai-automerge \
+            --color BFDADC \
+            --description "Guardrailed auto-merge: CI + Playwright DnD + cursor-agent review" \
+            --force || true
+          gh pr edit "$PR" --add-label ai-automerge

@@ -643,6 +643,9 @@ function PlaylistCarousel({
               <div
                 key={track.id}
                 data-dj-set-card
+                data-testid="dj-carousel-card"
+                data-track-id={track.id}
+                data-track-title={track.title}
                 draggable={finePointer}
                 onDragStart={(e) => {
                   if (!finePointer) {
