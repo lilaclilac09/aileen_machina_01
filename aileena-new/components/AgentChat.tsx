@@ -295,6 +295,13 @@ export default function AgentChat() {
 
     if (status === 'ready' && (prev === 'submitted' || prev === 'streaming')) {
       pendingDailyBumpRef.current = false;
+      try {
+        if (window.localStorage?.getItem('aileena_voice_debug') !== '0') {
+          console.log('[voice] assistant stream end', { via: 'ready' });
+        }
+      } catch {
+        /* ignore */
+      }
       setSessionCount((prevCount) => {
         const base = readStoredDailyCount();
         const next = Math.max(prevCount, base) + 1;
@@ -766,6 +773,13 @@ export default function AgentChat() {
   function ask(text: string) {
     const trimmed = text.trim();
     if (!trimmed || sessionMaxed) return;
+    try {
+      if (window.localStorage?.getItem('aileena_voice_debug') !== '0') {
+        console.log('[voice] assistant stream start', { text: trimmed.slice(0, 80) });
+      }
+    } catch {
+      /* ignore */
+    }
 
     // Voice / hung streams used to leave status=streaming forever, so typed
     // ↵ did nothing. Abort in-flight turn, then send the new question.
@@ -828,6 +842,13 @@ export default function AgentChat() {
       const next = readStoredDailyCount() + 1;
       writeStoredDailyCount(next);
       setSessionCount(next);
+      try {
+        if (window.localStorage?.getItem('aileena_voice_debug') !== '0') {
+          console.log('[voice] assistant stream end', { via: 'canned' });
+        }
+      } catch {
+        /* ignore */
+      }
       return;
     }
 
