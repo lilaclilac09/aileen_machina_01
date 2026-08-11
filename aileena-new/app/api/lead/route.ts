@@ -6,6 +6,11 @@ import {
   renderTranscriptHtml,
   renderTranscriptText,
 } from '@/lib/mail-transcript';
+import {
+  buildOwnerChatSetCookie,
+  createOwnerChatToken,
+  isOwnerEmail,
+} from '@/lib/owner-access';
 import { getResendFrom, resendFailureMessage } from '@/lib/resend-from';
 import { Resend } from 'resend';
 import { NextRequest, NextResponse } from 'next/server';
@@ -206,10 +211,15 @@ export async function POST(req: NextRequest) {
 
   console.info('[api/lead] Resend ok', { id: data.id, to: maskEmail(inbox) });
 
-  const res = NextResponse.json({ ok: true, id: data.id });
-  res.headers.set(
+  const unlimited = isOwnerEmail(email);
+  const res = NextResponse.json({ ok: true, id: data.id, unlimited });
+  res.headers.append(
     'Set-Cookie',
     `${COOKIE_NAME}=1; Path=/; Max-Age=${COOKIE_MAX_AGE}; HttpOnly; Secure; SameSite=Strict`,
   );
+  if (unlimited) {
+    const token = await createOwnerChatToken(email);
+    res.headers.append('Set-Cookie', buildOwnerChatSetCookie(token));
+  }
   return res;
 }

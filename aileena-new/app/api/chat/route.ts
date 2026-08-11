@@ -37,6 +37,7 @@ import {
   formatVisitorSoftMemoryForPrompt,
   visitorSoftMemoryEnabled,
 } from '../../../lib/visitorMemory';
+import { hasOwnerUnlimitedChat } from '../../../lib/owner-access';
 
 export const runtime = 'edge';
 export const maxDuration = 30;
@@ -208,11 +209,16 @@ export async function POST(req: Request) {
         .slice(0, 5)
     : [];
 
-  // Daily quota
+  // Daily quota — owner (email unlock or OWNER_KEY session) is unlimited.
   const quotaSpan = trace.startSpan('quota');
+  const ownerUnlimited = await hasOwnerUnlimitedChat(req);
   const quota = await readQuota(req);
-  trace.endSpan(quotaSpan, true, { count: quota.count, date: quota.date });
-  if (quota.count >= DAILY_LIMIT) {
+  trace.endSpan(quotaSpan, true, {
+    count: quota.count,
+    date: quota.date,
+    ownerUnlimited,
+  });
+  if (!ownerUnlimited && quota.count >= DAILY_LIMIT) {
     console.warn('[chat] POST: daily limit reached for user', { count: quota.count, date: quota.date, traceId: trace.traceId });
     // Refresh cookie so Max-Age / date stay aligned with "today" — avoids stale
     // multi-day cookies that look like the counter never reset.
@@ -491,7 +497,10 @@ If the visitor names a specific article, project, product, person, company, tech
       },
     });
 
-    const setCookie = await buildQuotaCookie({ date: quota.date, count: quota.count + 1 });
+    // Owner unlimited: do not burn the visitor daily counter.
+    const setCookie = ownerUnlimited
+      ? ''
+      : await buildQuotaCookie({ date: quota.date, count: quota.count + 1 });
     // Always refresh visitor cookie Max-Age so browser id tracks the 90d Redis TTL.
     const visitorCookie = await buildVisitorCookie(visitorId);
 
@@ -516,7 +525,13 @@ If the visitor names a specific article, project, product, person, company, tech
       headers.append('Set-Cookie', visitorCookie);
     }
 
-    headers.set('X-Daily-Remaining', String(DAILY_LIMIT - (quota.count + 1)));
+    headers.set(
+      'X-Daily-Remaining',
+      ownerUnlimited ? 'unlimited' : String(DAILY_LIMIT - (quota.count + 1)),
+    );
+    if (ownerUnlimited) {
+      headers.set('X-Owner-Unlimited', '1');
+    }
     headers.set('X-Quota-Day', quota.date);
     headers.set('X-Provider', picked.provider);
     headers.set('X-Model-Tier', picked.tier);
