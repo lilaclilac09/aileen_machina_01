@@ -880,7 +880,7 @@ export default function AgentVoiceOrb({
       vlog('recognition onerror', e.error);
       if (e.error === 'no-speech' || e.error === 'aborted') return;
       if (e.error === 'not-allowed') {
-        setHint('Mic blocked — allow in Settings, then tap orb');
+        setHint('mic blocked · allow in browser settings');
         stickyErrorRef.current = true;
         listeningRef.current = false;
         setListening(false);
@@ -1048,8 +1048,8 @@ export default function AgentVoiceOrb({
       stickyErrorRef.current = true;
       setHint(
         isIosUa() || isSafariUa()
-          ? 'Allow mic in Settings, then tap orb'
-          : 'Mic unavailable — tap orb again',
+          ? 'mic blocked · allow in browser settings'
+          : 'mic unavailable · tap orb again',
       );
       vlog('orb listening failed / mic blocked');
     }
@@ -1130,7 +1130,10 @@ export default function AgentVoiceOrb({
   const activeAccent = ACCENTS.find((p) => p.key === accentKey) ?? ACCENTS[0];
   const hintIsError =
     needsHearTap ||
-    /blocked|error|failed|allow mic|tap orb to hear/i.test(hint);
+    /blocked|error|failed|allow mic|tap orb to hear|unavailable/i.test(hint);
+  const hintIsMicBlocked = /mic blocked|mic unavailable|not-allowed|allow in browser/i.test(
+    hint,
+  );
 
   const statusLine =
     listening && (phase === 'listening' || phase === 'hearing') && caption.trim()
@@ -1150,9 +1153,9 @@ export default function AgentVoiceOrb({
               : 'Tap speak to start';
 
   return (
-    <div className="border-t border-[#e7e0d6] px-4 py-1.5 sm:px-5 sm:py-2 bg-[#faf7f0]/80">
-      {/* Compact control bar — orb is a control, not a hero. ≈70–80px total. */}
-      <div className="flex items-center gap-2.5 sm:gap-3 min-h-[44px] sm:min-h-[48px]">
+    <div className="border-t border-[#e7e0d6] px-5 py-2.5 sm:py-3 bg-[#faf7f0]/80">
+      {/* Compact but ceremonial — instrument panel, not a squashed form row. */}
+      <div className="flex items-center gap-3 sm:gap-4">
         <button
           type="button"
           disabled={disabled}
@@ -1160,25 +1163,25 @@ export default function AgentVoiceOrb({
           aria-label={
             needsHearTap ? 'Tap to hear reply' : listening ? 'Stop listening' : 'Start voice'
           }
-          className={`relative h-10 w-10 sm:h-11 sm:w-11 shrink-0 rounded-full border-0 transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40 ${
+          className={`relative h-12 w-12 sm:h-[58px] sm:w-[58px] shrink-0 rounded-full border-0 transition-transform hover:scale-[1.04] disabled:cursor-not-allowed disabled:opacity-40 ${
             phase === 'listening' || phase === 'hearing'
-              ? 'animate-pulse shadow-[0_0_0_1px_#fffdf8,0_0_0_3px_rgba(0,255,234,0.35),0_6px_16px_rgba(0,168,157,0.28)]'
+              ? 'animate-pulse shadow-[0_0_0_2px_#fffdf8,0_0_0_4px_rgba(0,255,234,0.38),0_10px_26px_rgba(0,168,157,0.3)]'
               : phase === 'speaking'
-                ? 'shadow-[0_0_0_1px_#fffdf8,0_0_0_3px_rgba(0,168,157,0.4),0_6px_18px_rgba(0,127,117,0.3)]'
-                : 'shadow-[0_0_0_1px_#fffdf8,0_0_0_2px_rgba(0,168,157,0.28),0_4px_12px_rgba(0,127,117,0.2)]'
+                ? 'shadow-[0_0_0_2px_#fffdf8,0_0_0_4px_rgba(0,168,157,0.42),0_12px_28px_rgba(0,127,117,0.32)]'
+                : 'shadow-[0_0_0_2px_#fffdf8,0_0_0_3px_rgba(0,168,157,0.3),0_8px_22px_rgba(0,127,117,0.24)]'
           }`}
           style={{
             background:
               'radial-gradient(circle at 32% 28%, rgba(255,255,255,0.95), transparent 42%), radial-gradient(circle at 60% 65%, rgba(0,200,180,0.55), transparent 52%), radial-gradient(circle at 50% 50%, #7ee8dc 0%, #008f86 45%, #12332f 78%)',
           }}
         >
-          <span className="absolute inset-0 grid place-items-center font-mono text-[0.45rem] sm:text-[0.48rem] uppercase tracking-[0.2em] text-white [text-shadow:0_1px_6px_rgba(0,40,36,0.45)]">
+          <span className="absolute inset-0 grid place-items-center font-mono text-[0.5rem] sm:text-[0.52rem] uppercase tracking-[0.22em] text-white [text-shadow:0_1px_8px_rgba(0,40,36,0.45)]">
             {needsHearTap ? 'Hear' : listening ? (phase === 'speaking' ? '…' : 'Stop') : 'Speak'}
           </span>
         </button>
 
         <div
-          className={`relative grid h-8 sm:h-9 flex-1 min-w-0 max-w-[18rem] sm:max-w-[20rem] grid-cols-3 items-stretch rounded-full border border-[#00a89d]/28 bg-[#e8f7f4]/90 p-0.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] ${
+          className={`relative grid h-[42px] sm:h-11 flex-1 min-w-0 max-w-[20rem] sm:max-w-[22rem] grid-cols-3 items-stretch rounded-full border border-[#00a89d]/28 bg-[#e8f7f4]/90 p-[3px] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] ${
             listening ? 'opacity-50' : ''
           }`}
           role="group"
@@ -1186,7 +1189,7 @@ export default function AgentVoiceOrb({
         >
           <span
             aria-hidden
-            className="pointer-events-none absolute inset-y-0.5 left-0.5 w-[calc((100%-0.25rem)/3)] rounded-full bg-gradient-to-b from-[#1ad4c4] to-[#008f86] shadow-[0_2px_8px_rgba(0,168,157,0.3)] transition-transform duration-300 ease-out"
+            className="pointer-events-none absolute inset-y-[3px] left-[3px] w-[calc((100%-6px)/3)] rounded-full bg-gradient-to-b from-[#1ad4c4] to-[#008f86] shadow-[0_3px_10px_rgba(0,168,157,0.32)] transition-transform duration-300 ease-out"
             style={{
               transform: `translateX(${Math.max(0, ACCENTS.findIndex((a) => a.key === accentKey)) * 100}%)`,
             }}
@@ -1201,7 +1204,7 @@ export default function AgentVoiceOrb({
                 title={p.hint}
                 disabled={listening}
                 aria-pressed={on}
-                className={`relative z-10 rounded-full px-1 font-mono text-[0.55rem] sm:text-[0.58rem] uppercase tracking-[0.1em] transition-colors duration-200 disabled:cursor-not-allowed ${
+                className={`relative z-10 rounded-full px-1.5 font-mono text-[0.6rem] sm:text-[0.64rem] uppercase tracking-[0.12em] transition-colors duration-200 disabled:cursor-not-allowed ${
                   on ? 'font-semibold text-white' : 'text-[#1b1713]/32 hover:text-[#007d75]/75'
                 }`}
               >
@@ -1211,9 +1214,8 @@ export default function AgentVoiceOrb({
           })}
         </div>
 
-        {/* Tiny level meter — inline, not a separate vertical block */}
         <div
-          className="hidden sm:block h-[2px] w-8 shrink-0 overflow-hidden rounded-sm bg-[#1b1713]/06"
+          className="hidden sm:block h-[2px] w-10 shrink-0 overflow-hidden rounded-sm bg-[#1b1713]/06"
           aria-hidden
         >
           <i
@@ -1224,26 +1226,32 @@ export default function AgentVoiceOrb({
       </div>
 
       <p
-        className={`mt-1 truncate font-mono text-[0.5rem] sm:text-[0.55rem] tracking-[0.12em] uppercase leading-4 ${
-          hintIsError ? 'text-red-500/75' : 'text-[#1b1713]/45'
+        className={`mt-1.5 sm:mt-2 truncate font-mono text-[0.48rem] sm:text-[0.52rem] tracking-[0.14em] uppercase leading-4 ${
+          hintIsMicBlocked
+            ? 'text-[#8a6a68]/70'
+            : hintIsError
+              ? 'text-[#8a6a68]/80'
+              : 'text-[#1b1713]/40'
         }`}
       >
         {listening && (phase === 'listening' || phase === 'hearing') && caption.trim() ? (
           <>
             <span className="mr-1.5 inline-block h-1 w-1 animate-pulse rounded-full bg-[#00a89d] align-middle" />
-            <span className="text-[#1b1713]/40 mr-1.5">
+            <span className="text-[#1b1713]/35 mr-1.5">
               {phase === 'hearing' ? 'hearing' : 'listening'}
             </span>
-            <span className="normal-case tracking-normal text-[#007d75]/85">{statusLine}</span>
+            <span className="normal-case tracking-normal text-[#007d75]/80">{statusLine}</span>
           </>
         ) : (
-          <span className={hintIsError ? undefined : 'text-[#1b1713]/35'}>{statusLine}</span>
+          <span className={hintIsError || hintIsMicBlocked ? undefined : 'text-[#1b1713]/32'}>
+            {statusLine}
+          </span>
         )}
-        <span className="text-[#1b1713]/30">
+        <span className="text-[#1b1713]/28">
           {' · '}
           {caps.whisper ? 'whisper' : 'dictation'}
           {' · '}
-          <span className="text-[#008f86]/60">{activeAccent.label}</span>
+          <span className="text-[#008f86]/55">{activeAccent.label}</span>
         </span>
       </p>
     </div>

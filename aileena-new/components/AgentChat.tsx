@@ -335,7 +335,7 @@ export default function AgentChat() {
       }
       return true;
     } catch {
-      setInput('Mic blocked — allow microphone in the address bar');
+      setInput('mic blocked · allow in browser settings');
       return false;
     }
   }, []);
@@ -1262,8 +1262,8 @@ export default function AgentChat() {
 
         {/* Bottom chrome: orb → chat input → optional leave-a-note (collapsed). */}
         <div className="shrink-0 flex flex-col">
-        {/* Stream + barge-in orb: compact bottom control bar (≈70–80px). */}
-        <div className="shrink-0 max-h-[88px] overflow-hidden">
+        {/* Stream + barge-in orb: compact but ceremonial instrument panel. */}
+        <div className="shrink-0 max-h-[128px] overflow-hidden">
           <AgentVoiceOrb
             active={open && voiceMode}
             autoListen={autoListen}
