@@ -60,7 +60,9 @@ jobs:
             playwright.config.ts
 
       - name: Build
-        run: pnpm exec next build
+        # Must use full `pnpm build` (generates article/data/memory indexes).
+        # Bare `next build` fails: missing *.json index modules.
+        run: pnpm build
 
       - name: Upload .next
         uses: actions/upload-artifact@v4
