@@ -23,8 +23,9 @@ const MAX_CHARS = 30000;
 const SHANGHAI_SOFT_VOICE = 'EXAVITQu4vr4xnSDxMaL';
 
 const SOFT_AUNTIE_INSTRUCTIONS =
-  '用很软、很暖的上海阿姨口音说话。像邻居阿姨拉家常：温柔、慢一点、带点笑意。' +
-  '可以说「侬好」「老漂亮」「欢迎来到上海」这种软软的语气。不要播音腔，不要太年轻太甜腻。';
+  '用很软、很暖的上海阿姨口音说话。像邻居阿姨拉家常：温柔、慢一点、带点呼吸感。' +
+  '句子之间自然停顿，不要一口气读完整段，不要机场广播或播音腔。' +
+  '可以说「侬好」「老漂亮」「欢迎来到上海」这种软软的语气。不要太年轻太甜腻，也不要客服腔。';
 
 export async function POST(req: Request) {
   let body: { text?: unknown; voice?: unknown };
@@ -65,9 +66,10 @@ export async function POST(req: Request) {
           text,
           model_id: 'eleven_multilingual_v2',
           voice_settings: {
-            stability: 0.72,
-            similarity_boost: 0.7,
-            style: 0.08,
+            // Slightly less “broadcast locked” — warmer, still clear.
+            stability: 0.65,
+            similarity_boost: 0.72,
+            style: 0.14,
             use_speaker_boost: true,
           },
         }),
@@ -99,6 +101,8 @@ export async function POST(req: Request) {
         voice: 'coral',
         input: text,
         instructions: SOFT_AUNTIE_INSTRUCTIONS,
+        // 0.85–0.95: slower than default without dragging.
+        speed: 0.9,
         response_format: 'mp3',
       }),
     });
