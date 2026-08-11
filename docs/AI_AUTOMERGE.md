@@ -29,6 +29,19 @@ GitHub native auto-merge (`gh pr merge --auto`) only merges after **required** c
 5. Do **not** let agents bypass branch protection
 6. Never enable “admin force merge” as the default path
 
+### Proven blockers (agent cannot flip these)
+
+As of 2026-08-11 (API as this bot):
+
+| Setting | Observed | Effect |
+|---------|----------|--------|
+| `allow_auto_merge` | **false** | `gh pr merge --auto` cannot enable queue |
+| Rulesets on `main` | **[]** (empty) | No required checks enforced |
+| Branch protection API | **403** to bot | Cannot verify/edit protection via integration |
+| Full-repo `pnpm lint` | **~180 errors on main** | CI job uses **scoped** eslint on DnD surfaces only until debt is cleared |
+
+Until (1)+(2)+(3) are flipped by a human with admin, this stack can **run checks** but cannot prove end-to-end auto-merge into `main`.
+
 ## Opt out
 
 Remove the `ai-automerge` label from a PR. CI/playwright still run; auto-merge and cursor-agent gate do not.

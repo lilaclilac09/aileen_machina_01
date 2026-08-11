@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo, useSyncExternalStore } from 'react';
 import TrackLibraryBrowser from './TrackLibraryBrowser';
 import { allDeckTracks, type DeckTrack } from '../lib/djSetlist';
 
@@ -96,16 +96,19 @@ function fmt(ms: number) {
 }
 
 /* ─── Responsive hook ────────────────────────────────────── */
+function subscribeMobile(onStoreChange: () => void) {
+  const mq = window.matchMedia('(max-width: 639px)');
+  mq.addEventListener('change', onStoreChange);
+  return () => mq.removeEventListener('change', onStoreChange);
+}
+function getMobileSnapshot() {
+  return window.matchMedia('(max-width: 639px)').matches;
+}
+function getMobileServerSnapshot() {
+  return false;
+}
 function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 639px)');
-    setIsMobile(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []);
-  return isMobile;
+  return useSyncExternalStore(subscribeMobile, getMobileSnapshot, getMobileServerSnapshot);
 }
 
 /* ─── Main ───────────────────────────────────────────────── */
