@@ -9,6 +9,10 @@ type GlassItem = { src: string; alt: string; caption: string; href?: string };
  * Visual / kiln wall — one quiet composition: centered copy + 2-col mosaic.
  * Content photos: natural aspect, full image visible (never cover-crop).
  * Variable row heights OK — completeness > uniform cards.
+ *
+ * Snap-section height/overflow for #visual lives in globals.css so the
+ * default .snap-section { height:100dvh; overflow:hidden } cannot clip
+ * the bottom of the photo wall.
  */
 export default function GlassBench({
   tag,
@@ -26,17 +30,11 @@ export default function GlassBench({
   return (
     <section id="glass-bench" className="glass-bench" style={glassSectionStyle} aria-label="Glass work">
       <style>{`
-        /* Visual snap panel: grow with content so bottom isn't section-clipped */
-        #visual.snap-section {
-          height: auto;
-          min-height: 100vh;
-          min-height: 100dvh;
-          overflow: visible;
-        }
         .glass-bench {
           position: relative;
           height: auto;
-          min-height: 100%;
+          min-height: 0;
+          width: 100%;
         }
         .glass-bench-gallery {
           display: grid;
@@ -44,7 +42,7 @@ export default function GlassBench({
           gap: clamp(10px, 1.6vw, 16px);
           width: min(100%, 920px);
           margin: 0 auto;
-          padding: 0 clamp(14px, 2.5vw, 24px) clamp(28px, 5vh, 48px);
+          padding: 0 clamp(14px, 2.5vw, 24px) clamp(36px, 6vh, 56px);
           align-items: start;
         }
         @media (min-width: 640px) {
@@ -70,19 +68,22 @@ export default function GlassBench({
           outline: none;
           box-shadow: none;
         }
-        /* No fixed height / aspect / overflow — let the photo define the box */
+        /* Content images — no fixed height / aspect / overflow crop */
         .glass-bench-frame {
           position: relative;
           width: 100%;
+          height: auto;
           background: transparent;
           border: none;
           outline: none;
           box-shadow: none;
           border-radius: 0;
+          overflow: visible;
         }
         .glass-bench-frame img {
           display: block;
           width: 100%;
+          max-width: 100%;
           height: auto;
           object-fit: contain;
           border: none;
@@ -119,8 +120,14 @@ export default function GlassBench({
             aria-label={item.caption}
           >
             <div className="glass-bench-frame">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={item.src} alt={item.alt} />
+              {/* eslint-disable-next-line @next/next/no-img-element -- content photos need intrinsic ratio; avoid next/image fill crop */}
+              <img
+                src={item.src}
+                alt={item.alt}
+                width={1100}
+                height={1100}
+                decoding="async"
+              />
             </div>
             <p className="glass-bench-caption">{item.caption}</p>
           </Link>
@@ -135,11 +142,11 @@ const glassSectionStyle: CSSProperties = {
   position: 'relative',
   display: 'flex',
   flexDirection: 'column',
-  justifyContent: 'center',
+  justifyContent: 'flex-start',
   gap: 'clamp(18px, 3vh, 28px)',
   width: '100%',
   padding:
-    'clamp(64px, 9vh, 84px) clamp(0px, 1.2vw, 12px) clamp(24px, 4vh, 40px)',
+    'clamp(64px, 9vh, 84px) clamp(0px, 1.2vw, 12px) clamp(28px, 5vh, 48px)',
   background:
     'radial-gradient(120% 80% at 50% 18%, #fffdf8 0%, #f7f1e6 48%, #efe6d6 100%)',
   color: '#14110c',

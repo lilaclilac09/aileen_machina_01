@@ -110,6 +110,19 @@ html {
   flex-shrink: 0;
 }
 
+/*
+ * Visual kiln gallery is taller than one viewport once photos keep natural
+ * aspect. Do not clip with the default snap-section 100dvh + overflow:hidden.
+ * Photo wall > uniform card height.
+ */
+#visual.snap-section {
+  height: auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: visible;
+  scroll-snap-stop: normal;
+}
+
 /* Research Dispatch scroll area */
 .dispatch-scroll {
   scrollbar-width: thin;
