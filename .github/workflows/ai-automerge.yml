@@ -70,6 +70,8 @@ jobs:
           name: next-build
           path: aileena-new/.next
           retention-days: 1
+          include-hidden-files: true
+          if-no-files-found: error
 
   playwright-dnd:
     name: playwright-dnd
