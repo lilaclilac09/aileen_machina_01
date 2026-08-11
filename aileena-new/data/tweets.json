@@ -11723,5 +11723,131 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-11T02:27:22.605Z"
+  },
+  {
+    "id": "2087239578541334922",
+    "url": "https://x.com/SemiAnalysis_/status/2087239578541334922",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "ALERT🚨 TILERT from @TileRT_AI  TO BOOST DECODE INTERACTIVITY BY 1.9X AT THE SAME PER-TOKEN COST ON THE SAME NVIDIA BLACKWELL GPUs. What does this mean for Groq/Cerebras/SambaNova? 👇️ 1/5🧵",
+    "createdAt": "Tue Aug 11 18:07:49 +0000 2026",
+    "createdTimestamp": 1786471669,
+    "likes": 40,
+    "retweets": 3,
+    "replies": 5,
+    "bookmarks": 13,
+    "views": 10436,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPddVdTXsAAwpuy.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "gpu"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-11T19:19:20.891Z"
+  },
+  {
+    "id": "2087239582689472735",
+    "url": "https://x.com/SemiAnalysis_/status/2087239582689472735",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "This is where TileRT comes in. Instead of continuously launching kernels or replaying a DAG of kernels, TileRT has the GPU continuously execute a persistent pipeline, statically compiling the entire model ahead of time into a persistent Engine Kernel: the host launches once, execution stays resident on the GPU for the entire decode lifecycle, and most runtime orchestration moves into compile time. 4/5🧵",
+    "createdAt": "Tue Aug 11 18:07:50 +0000 2026",
+    "createdTimestamp": 1786471670,
+    "likes": 4,
+    "retweets": 0,
+    "replies": 1,
+    "bookmarks": 0,
+    "views": 3604,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPddVfJWwAA0zSL.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "gpu"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-11T19:19:22.391Z"
+  },
+  {
+    "id": "2087239584320987527",
+    "url": "https://x.com/SemiAnalysis_/status/2087239584320987527",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "@TileRT_AI For full explainer, check out our article 5/5🧵 https://newsletter.semianalysis.com/p/ultra-high-interactivity-on-nvidia",
+    "createdAt": "Tue Aug 11 18:07:50 +0000 2026",
+    "createdTimestamp": 1786471670,
+    "likes": 3,
+    "retweets": 2,
+    "replies": 0,
+    "bookmarks": 1,
+    "views": 3255,
+    "isNoteTweet": false,
+    "linkedUrls": [
+      "https://newsletter.semianalysis.com/p/ultra-high-interactivity-on-nvidia"
+    ],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-11T19:19:23.847Z"
+  },
+  {
+    "id": "2087249254326611984",
+    "url": "https://x.com/aaronburnett/status/2087249254326611984",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Orbital infrastructure is resilient to environmental disasters and fluctuations. It’s a good idea to build in more resilience",
+    "createdAt": "Tue Aug 11 18:46:16 +0000 2026",
+    "createdTimestamp": 1786473976,
+    "likes": 23,
+    "retweets": 1,
+    "replies": 0,
+    "bookmarks": 0,
+    "views": 1162,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "orbital-compute"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-11T19:19:27.955Z"
+  },
+  {
+    "id": "2087207810358509819",
+    "url": "https://x.com/aaronburnett/status/2087207810358509819",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "+2Tbps from the cape",
+    "createdAt": "Tue Aug 11 16:01:35 +0000 2026",
+    "createdTimestamp": 1786464095,
+    "likes": 37,
+    "retweets": 2,
+    "replies": 0,
+    "bookmarks": 0,
+    "views": 2051,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-11T19:19:29.482Z"
   }
 ]
