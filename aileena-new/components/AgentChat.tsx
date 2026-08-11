@@ -961,23 +961,19 @@ export default function AgentChat() {
         className={`fixed inset-0 z-[70] bg-[#fbfaf7]/95 sm:bg-[#fbfaf7]/80 backdrop-blur-md sm:backdrop-blur-sm transition-opacity duration-200 ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       />
 
-      {/* Console card — full-bleed on phone so homepage chrome doesn't bleed through.
-          CSS grid (not flex): transcript row is minmax(floor, 1fr) so the orb
-          cannot collapse history to one line. Dialog is taller on desktop
-          (expand unfinished from orb layout plan). Layout only. */}
+      {/* Console card — full-bleed on phone.
+          Flex column: header / flexible transcript / compact controls / input.
+          Desktop is wider + shorter (≤72vh) so the orb reads as a control node,
+          not a hero. Layout/proportions only. */}
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Aileena Console"
-        className={`fixed z-[80] inset-0 sm:inset-x-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[min(720px,calc(100vw-2.5rem))] sm:max-w-[calc(100vw-2.5rem)] h-[100dvh] sm:h-[min(92vh,900px)] max-h-[100dvh] sm:max-h-[92vh] grid overflow-hidden bg-[#fffdf8] sm:bg-[#fffdf8]/95 border-0 sm:border sm:border-[#ded8ce] shadow-none sm:shadow-[0_24px_80px_-34px_rgba(31,26,20,0.42)] backdrop-blur-md transition-all duration-200 ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-[0.98] sm:scale-[0.96] pointer-events-none'} font-mono`}
-        style={{
-          fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace',
-          // header | transcript (floor + grow) | bottom chrome (lead/orb/input)
-          gridTemplateRows: 'auto minmax(11rem, 1fr) auto',
-        }}
+        className={`fixed z-[80] inset-0 sm:inset-x-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[min(760px,calc(100vw-2.5rem))] sm:max-w-[calc(100vw-2.5rem)] h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[72vh] flex flex-col overflow-hidden bg-[#fffdf8] sm:bg-[#fffdf8]/95 border-0 sm:border sm:border-[#ded8ce] shadow-none sm:shadow-[0_24px_80px_-34px_rgba(31,26,20,0.42)] backdrop-blur-md transition-all duration-200 ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-[0.98] sm:scale-[0.96] pointer-events-none'} font-mono`}
+        style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace' }}
       >
         {/* Header bar */}
-        <div className="flex items-center justify-between gap-2 border-b border-[#e7e0d6] px-3 sm:px-4 py-2.5 min-h-0">
+        <div className="flex items-center justify-between gap-2 border-b border-[#e7e0d6] px-3 sm:px-4 py-2.5 shrink-0">
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-[0.6rem] tracking-[0.3em] text-[#00ffea]/80 uppercase truncate">aileena · console</span>
           </div>
@@ -1092,12 +1088,12 @@ export default function AgentChat() {
           </div>
         </div>
 
-        {/* Transcript — grid row 2 is minmax(11rem, 1fr): always enough height for
-            multiple messages; overflow-y scrolls independently. Layout only. */}
+        {/* Transcript — flex-1 scrolls when capped by dialog max-height; min floor
+            keeps history visible with voice on; no forced empty tall pane. */}
         <div
           ref={scrollRef}
           data-agent-transcript
-          className="min-h-0 overflow-y-auto overscroll-contain px-4 sm:px-5 py-4 sm:py-5 space-y-3"
+          className="flex-1 min-h-[7.5rem] sm:min-h-[9rem] overflow-y-auto overscroll-contain px-4 sm:px-5 py-3 sm:py-4 space-y-3"
         >
           {messages.length === 0 ? (
             <>
@@ -1195,12 +1191,12 @@ export default function AgentChat() {
 
         </div>
 
-        {/* Bottom chrome: lead / orb / input stay below transcript; never overlap it. */}
-        <div className="min-h-0 flex flex-col">
+        {/* Bottom chrome: lead + compact orb/city + sticky input. */}
+        <div className="shrink-0 flex flex-col">
         {/* Contact panel — optional soft invite after a few turns.
             Never disables chat before the promised 20 / day. */}
         {showLeadPanel && (
-          <div className="border-t border-[#e7e0d6] px-5 py-3 bg-[#faf7f0]">
+          <div className="border-t border-[#e7e0d6] px-5 py-3 bg-[#faf7f0] shrink-0">
             <div className="mb-2.5">
               <p className="font-mono text-[0.55rem] tracking-[0.35em] uppercase text-[#008f86]/85">
                 ▸ leave a note
@@ -1262,15 +1258,15 @@ export default function AgentChat() {
         )}
 
         {leadState === 'sent' && (
-          <div className="border-t border-[#e7e0d6] px-5 py-2 bg-[#f3fbf9]">
+          <div className="border-t border-[#e7e0d6] px-5 py-2 bg-[#f3fbf9] shrink-0">
             <p className="font-mono text-[0.55rem] tracking-[0.3em] uppercase text-[#008f86]/90">
               ▸ note sent — thanks
             </p>
           </div>
         )}
 
-        {/* Stream + barge-in orb: live captions, interrupt anytime. */}
-        <div>
+        {/* Stream + barge-in orb: compact control node under transcript (≤~210px). */}
+        <div className="shrink-0 max-h-[210px] overflow-y-auto overscroll-contain">
           <AgentVoiceOrb
             active={open && voiceMode}
             autoListen={autoListen}
@@ -1303,7 +1299,7 @@ export default function AgentChat() {
         </div>
 
         {/* Input row */}
-        <div className="border-t border-[#e7e0d6] px-5 py-3">
+        <div className="border-t border-[#e7e0d6] px-5 py-2.5 sm:py-3 shrink-0">
           <div className="relative flex items-center gap-2">
             <span className={`text-sm ${sessionMaxed ? 'text-[#1b1713]/20' : 'text-[#00a89d]'}`}>&gt;</span>
             <textarea
@@ -1336,12 +1332,16 @@ export default function AgentChat() {
               </span>
             )}
           </div>
-          <p className="mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 text-[0.52rem] tracking-[0.3em] text-[#1b1713]/40 uppercase">
+          <p className="mt-1.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-[0.48rem] sm:text-[0.5rem] tracking-[0.28em] text-[#1b1713]/40 uppercase">
             <span className="truncate">
               {voiceMode ? (
                 <>
-                  <span className="sm:hidden">tap orb · speak</span>
-                  <span className="hidden sm:inline">stream · barge-in · voice→code</span>
+                  <span className="sm:hidden">
+                    tap <span className="text-[#008f86]/70">orb</span> · speak
+                  </span>
+                  <span className="hidden sm:inline">
+                    stream · barge-in · <span className="text-[#008f86]/70">voice→code</span>
+                  </span>
                 </>
               ) : (
                 <>

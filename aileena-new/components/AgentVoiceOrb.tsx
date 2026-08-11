@@ -1043,8 +1043,8 @@ export default function AgentVoiceOrb({
     /blocked|error|failed|allow mic|tap orb to hear/i.test(hint);
 
   return (
-    <div className="border-t border-[#e7e0d6] px-5 py-4 bg-[#faf7f0]/80">
-      <div className="flex flex-col items-center gap-3">
+    <div className="border-t border-[#e7e0d6] px-5 py-2.5 sm:py-3 bg-[#faf7f0]/80">
+      <div className="flex flex-col items-center gap-1.5 sm:gap-2">
         <button
           type="button"
           disabled={disabled}
@@ -1052,44 +1052,44 @@ export default function AgentVoiceOrb({
           aria-label={
             needsHearTap ? 'Tap to hear reply' : listening ? 'Stop listening' : 'Start voice'
           }
-          className={`relative h-[88px] w-[88px] shrink-0 rounded-full border-0 transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40 ${
+          className={`relative h-14 w-14 sm:h-[60px] sm:w-[60px] shrink-0 rounded-full border-0 transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40 ${
             phase === 'listening' || phase === 'hearing'
-              ? 'animate-pulse shadow-[0_0_0_2px_#fffdf8,0_0_0_5px_rgba(0,255,234,0.45),0_14px_42px_rgba(0,168,157,0.4)]'
+              ? 'animate-pulse shadow-[0_0_0_2px_#fffdf8,0_0_0_4px_rgba(0,255,234,0.4),0_10px_28px_rgba(0,168,157,0.32)]'
               : phase === 'speaking'
-                ? 'shadow-[0_0_0_2px_#fffdf8,0_0_0_5px_rgba(0,168,157,0.5),0_16px_48px_rgba(0,127,117,0.4)]'
-                : 'shadow-[0_0_0_2px_#fffdf8,0_0_0_4px_rgba(0,168,157,0.35),0_12px_36px_rgba(0,127,117,0.28)]'
+                ? 'shadow-[0_0_0_2px_#fffdf8,0_0_0_4px_rgba(0,168,157,0.45),0_12px_32px_rgba(0,127,117,0.34)]'
+                : 'shadow-[0_0_0_2px_#fffdf8,0_0_0_3px_rgba(0,168,157,0.3),0_8px_24px_rgba(0,127,117,0.22)]'
           }`}
           style={{
             background:
               'radial-gradient(circle at 32% 28%, rgba(255,255,255,0.95), transparent 42%), radial-gradient(circle at 60% 65%, rgba(0,200,180,0.55), transparent 52%), radial-gradient(circle at 50% 50%, #7ee8dc 0%, #008f86 45%, #12332f 78%)',
           }}
         >
-          <span className="absolute inset-0 grid place-items-center font-mono text-[0.62rem] uppercase tracking-[0.28em] text-white [text-shadow:0_1px_8px_rgba(0,40,36,0.45)]">
+          <span className="absolute inset-0 grid place-items-center font-mono text-[0.52rem] sm:text-[0.55rem] uppercase tracking-[0.24em] text-white [text-shadow:0_1px_8px_rgba(0,40,36,0.45)]">
             {needsHearTap ? 'Hear' : listening ? (phase === 'speaking' ? '…' : 'Stop') : 'Speak'}
           </span>
         </button>
-        <div className="h-[3px] w-16 overflow-hidden rounded-sm bg-[#1b1713]/08">
+        <div className="h-[2px] w-12 overflow-hidden rounded-sm bg-[#1b1713]/06">
           <i
-            className="block h-full bg-[#00a89d] transition-[width] duration-75"
+            className="block h-full bg-[#00a89d]/80 transition-[width] duration-75"
             style={{ width: `${level}%`, display: 'block' }}
           />
         </div>
         <div
-          className="flex w-full max-w-md flex-col items-center gap-2.5"
+          className="flex w-full max-w-sm flex-col items-center gap-1"
           role="group"
           aria-label="Accent"
         >
-          <p className="font-mono text-[0.7rem] font-medium tracking-[0.28em] uppercase text-[#007d75]">
+          <p className="font-mono text-[0.58rem] font-medium tracking-[0.28em] uppercase text-[#007d75]/70">
             City accent
           </p>
           <div
-            className={`relative grid w-full grid-cols-3 rounded-full border-2 border-[#00a89d]/55 bg-[#dff5f2] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.85),0_8px_24px_rgba(0,168,157,0.12)] ${
+            className={`relative grid h-11 sm:h-12 w-full grid-cols-3 items-stretch rounded-full border border-[#00a89d]/28 bg-[#e8f7f4]/90 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] ${
               listening ? 'opacity-50' : ''
             }`}
           >
             <span
               aria-hidden
-              className="pointer-events-none absolute inset-y-1.5 left-1.5 w-[calc((100%-0.75rem)/3)] rounded-full bg-gradient-to-b from-[#1ad4c4] to-[#008f86] shadow-[0_6px_18px_rgba(0,168,157,0.5)] transition-transform duration-300 ease-out"
+              className="pointer-events-none absolute inset-y-1 left-1 w-[calc((100%-0.5rem)/3)] rounded-full bg-gradient-to-b from-[#1ad4c4] to-[#008f86] shadow-[0_3px_10px_rgba(0,168,157,0.35)] transition-transform duration-300 ease-out"
               style={{
                 transform: `translateX(${Math.max(0, ACCENTS.findIndex((a) => a.key === accentKey)) * 100}%)`,
               }}
@@ -1104,8 +1104,8 @@ export default function AgentVoiceOrb({
                   title={p.hint}
                   disabled={listening}
                   aria-pressed={on}
-                  className={`relative z-10 rounded-full px-2 py-3 font-mono text-[0.78rem] uppercase tracking-[0.12em] transition-colors duration-200 disabled:cursor-not-allowed ${
-                    on ? 'font-semibold text-white' : 'text-[#1b1713]/45 hover:text-[#007d75]'
+                  className={`relative z-10 rounded-full px-1.5 font-mono text-[0.68rem] sm:text-[0.72rem] uppercase tracking-[0.12em] transition-colors duration-200 disabled:cursor-not-allowed ${
+                    on ? 'font-semibold text-white' : 'text-[#1b1713]/32 hover:text-[#007d75]/75'
                   }`}
                 >
                   {p.label}
@@ -1114,14 +1114,14 @@ export default function AgentVoiceOrb({
             })}
           </div>
         </div>
-        <p className="min-h-[1.2rem] max-w-md px-2 text-center text-[0.85rem] sm:text-[0.95rem] leading-5 sm:leading-6 text-[#007d75]">
+        <p className="min-h-[1rem] max-w-md px-2 text-center text-[0.72rem] sm:text-[0.78rem] leading-4 text-[#007d75]/90">
           {caption ? (
             <>
-              <span className="mr-1.5 inline-block h-2 w-2 animate-pulse rounded-full bg-[#00a89d] align-middle" />
+              <span className="mr-1.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-[#00a89d] align-middle" />
               {caption}
             </>
           ) : (
-            <span className="text-[#1b1713]/35 italic">
+            <span className="text-[#1b1713]/28 italic">
               {listening
                 ? phase === 'hearing'
                   ? 'Hearing you…'
@@ -1131,16 +1131,16 @@ export default function AgentVoiceOrb({
           )}
         </p>
         <p
-          className={`max-w-[22rem] text-center font-mono text-[0.55rem] tracking-[0.14em] uppercase ${
-            hintIsError ? 'text-red-500/80' : 'text-[#008f86]/85'
+          className={`max-w-[22rem] text-center font-mono text-[0.5rem] sm:text-[0.55rem] tracking-[0.14em] uppercase ${
+            hintIsError ? 'text-red-500/75' : 'text-[#1b1713]/55'
           }`}
         >
-          {hint}
-          <span className="sm:inline">
+          <span className={hintIsError ? undefined : 'text-[#008f86]/70'}>{hint}</span>
+          <span className="text-[#1b1713]/40">
             {' · '}
             {caps.whisper ? 'whisper' : 'dictation'}
             {' · '}
-            {activeAccent.label}
+            <span className="text-[#008f86]/65">{activeAccent.label}</span>
           </span>
         </p>
       </div>
