@@ -1,0 +1,169 @@
+{
+  "id": "cafe-cursor-shanghai-20260719",
+  "schemaVersion": 1,
+  "title": "Cafe Cursor Shanghai",
+  "subtitle": "IRL · Credits · Community",
+  "date": "2026-07-19",
+  "hashtag": "#CafeCursorShanghai",
+  "url": "cursor-cafe.aileena.xyz",
+  "mediaDropFolder": "cursor_shanghai_07192026",
+  "paths": {
+    "takes": "takes",
+    "photos": "photos",
+    "brand": "brand",
+    "work": "work",
+    "out": "out",
+    "script": "script.md",
+    "brief": "EVENT.md",
+    "edl": "work/final-edit.json",
+    "catalog": "work/catalog.json",
+    "verifyReport": "work/verify-report.json"
+  },
+  "output": {
+    "filename": "cafe-cursor-shanghai-recap.mp4",
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "videoCodec": "libx264",
+    "audioCodec": "aac",
+    "audioBitrate": "192k",
+    "crf": 20,
+    "preset": "veryfast",
+    "padColor": "0x0f1c1b",
+    "keepAudio": true,
+    "audioFadeIn_s": 0.12,
+    "audioFadeOut_s": 0.18,
+    "grade": {
+      "brightness": 0.05,
+      "contrast": 1.04,
+      "saturation": 1.02,
+      "gamma": 1.06,
+      "shadowsRed": -0.04,
+      "shadowsGreen": -0.01,
+      "shadowsBlue": 0.02,
+      "midtonesRed": -0.03,
+      "midtonesGreen": 0,
+      "midtonesBlue": 0.015,
+      "highlightsRed": -0.01,
+      "highlightsGreen": 0,
+      "highlightsBlue": 0.01
+    }
+  },
+  "brand": {
+    "accent": "#5ee0d6",
+    "bg": "#0f1c1b",
+    "fg": "#fffdf8",
+    "logoFile": "cursor-logo.svg"
+  },
+  "beats": [
+    {
+      "id": "title",
+      "index": 1,
+      "title": "Logo / title sting",
+      "role": "brand_open",
+      "target_s": 3,
+      "max_s": 4,
+      "photoQuota": 0,
+      "videoQuota": 0,
+      "card": "title"
+    },
+    {
+      "id": "vibe",
+      "index": 2,
+      "title": "Arrival / vibe",
+      "role": "place",
+      "target_s": 10,
+      "max_s": 14,
+      "photoQuota": 3,
+      "videoQuota": 1,
+      "preferLandscape": true
+    },
+    {
+      "id": "demos",
+      "index": 3,
+      "title": "Guest-led energy",
+      "role": "guest_demos",
+      "target_s": 14,
+      "max_s": 20,
+      "photoQuota": 2,
+      "videoQuota": 2,
+      "preferLandscape": true
+    },
+    {
+      "id": "product",
+      "index": 4,
+      "title": "Product moment (soft credits)",
+      "role": "soft_product",
+      "target_s": 8,
+      "max_s": 12,
+      "photoQuota": 2,
+      "videoQuota": 1,
+      "softCopyOnly": true
+    },
+    {
+      "id": "community",
+      "index": 5,
+      "title": "Community · smiles & people",
+      "role": "community",
+      "target_s": 18,
+      "max_s": 28,
+      "photoQuota": 8,
+      "videoQuota": 1,
+      "absorbLeftovers": true,
+      "leftoverMaxExtra_s": 30
+    },
+    {
+      "id": "timelapse",
+      "index": 6,
+      "title": "Final timelapse",
+      "role": "timelapse_finale",
+      "target_s": 12,
+      "max_s": 16,
+      "photoQuota": 0,
+      "videoQuota": 0
+    },
+    {
+      "id": "outro",
+      "index": 7,
+      "title": "Close",
+      "role": "brand_close",
+      "target_s": 4,
+      "max_s": 5,
+      "photoQuota": 0,
+      "videoQuota": 0,
+      "card": "outro"
+    }
+  ],
+  "planner": {
+    "photoDuration_s": 3.0,
+    "videoWindowMin_s": 4,
+    "videoWindowMax_s": 7,
+    "videoWindowFrac": 0.22,
+    "skipLead_s": 0.4,
+    "skipTail_s": 0.2,
+    "engine": "heuristic_v2",
+    "forceFinalTimelapse": true,
+    "timelapseMin_s": 8,
+    "timelapseMax_s": 14,
+    "preferGirlsPhotos": true,
+    "preferSmilePhotos": true,
+    "includeGuysPhotos": true,
+    "girlsPhotoBonus": 18,
+    "guysPhotoBonus": 16,
+    "smilePhotoBonus": 28,
+    "timelapseScoreBonus": 45,
+    "whisper": {
+      "enabled": true,
+      "optional": true,
+      "model": "base",
+      "language": "auto"
+    }
+  },
+  "publicCopyRules": [
+    "Soft public language only — no credit-swap talk",
+    "Brand bookends required (title + outro)",
+    "MUST include final timelapse before outro",
+    "Prefer smile photos; include both women and some men",
+    "Guest-led energy over scripted keynote framing"
+  ]
+}

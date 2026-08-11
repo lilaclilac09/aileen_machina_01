@@ -42,6 +42,19 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     },
   },
   {
+    slug: 'cafe-recap',
+    tag: 'VIDEO',
+    title: 'Cafe Recap Edit',
+    body:
+      'Local JSON→ffmpeg recap: drop media → plan → cut → verify. Mac-only.',
+    href: '/tools/cafe-recap',
+    status: 'live',
+    arcade: {
+      glyph: '▣',
+      screenGradient: '#e8efe8',
+    },
+  },
+  {
     slug: 'feed-flash',
     tag: 'RSS',
     title: 'Feed Flash',

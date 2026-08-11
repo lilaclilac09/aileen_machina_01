@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cheap Cursor Edit Room — Cafe Shanghai</title>
+  <style>
+    :root {
+      --ink: #14110c;
+      --paper: #fbfaf6;
+      --cyan: #0d9488;
+      --muted: rgba(20,17,12,0.55);
+      --line: rgba(20,17,12,0.1);
+      --ok: #15803d;
+      --warn: #b45309;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(ellipse at 10% -10%, rgba(13,148,136,0.12), transparent 42%),
+        linear-gradient(180deg, #f7f4ec, #efe8da);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+    header, main { max-width: 1080px; margin: 0 auto; padding: 24px; }
+    .brand {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      font-size: 0.72rem;
+      margin-bottom: 8px;
+    }
+    h1 { margin: 0 0 8px; font-size: clamp(1.5rem, 3.5vw, 2rem); letter-spacing: -0.02em; }
+    .dek { color: var(--muted); max-width: 52ch; line-height: 1.55; margin: 0; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; margin: 20px 0 8px; }
+    button, label.file {
+      appearance: none; border: none; background: #14110c; color: #fffdf8;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 12px 14px; cursor: pointer;
+    }
+    button.secondary { background: var(--cyan); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    label.file { display: inline-block; }
+    .status {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.75rem; color: var(--muted); margin: 8px 0 20px;
+    }
+    .grid { display: grid; gap: 14px; }
+    .beat {
+      background: rgba(255,253,248,0.92);
+      border: 1px solid var(--line);
+      padding: 16px 16px 8px;
+    }
+    .beat h2 { margin: 0 0 4px; font-size: 1.05rem; }
+    .meta {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.68rem; color: var(--muted); letter-spacing: 0.04em;
+      text-transform: uppercase; margin-bottom: 10px;
+    }
+    .clip {
+      border-top: 1px solid var(--line);
+      padding: 10px 0;
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 10px;
+      align-items: start;
+    }
+    .clip.disabled { opacity: 0.45; }
+    .kind {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.65rem; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--cyan); padding-top: 2px;
+    }
+    .label { font-weight: 600; }
+    .rationale { color: var(--muted); font-size: 0.88rem; line-height: 1.45; margin-top: 4px; }
+    .cand {
+      margin-top: 6px; font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.68rem; color: var(--muted);
+    }
+    .controls {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px; margin: 18px 0 28px; padding: 14px;
+      background: rgba(255,253,248,0.7); border: 1px solid var(--line);
+    }
+    .controls label { display: grid; gap: 6px; font-size: 0.8rem; }
+    .controls input[type="range"] { width: 100%; }
+    .controls .val {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.72rem; color: var(--cyan);
+    }
+    .notes { white-space: pre-wrap; font-size: 0.88rem; color: var(--warn); }
+    video {
+      width: 100%; max-height: 360px; background: #0f1c1b; margin: 12px 0 20px;
+      border: 1px solid var(--line);
+    }
+    .toast {
+      position: fixed; bottom: 18px; right: 18px; background: #14110c; color: #fffdf8;
+      padding: 10px 14px; font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.72rem; opacity: 0; transition: opacity .2s; pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">Cheap Cursor · Edit Room</div>
+    <h1>Cafe Cursor Shanghai Recap</h1>
+    <p class="dek">
+      Load <code>work/final-edit.json</code>, scrub the beat spine, tweak motion/grade sliders,
+      then copy an exact feedback prompt back into Cursor — Thariq control-room loop, local only.
+    </p>
+    <div class="row">
+      <label class="file">Load EDL JSON<input id="edlFile" type="file" accept="application/json,.json" hidden /></label>
+      <button type="button" id="btnDemo" class="secondary">Load sample path hint</button>
+      <button type="button" id="btnCopyEdl" disabled>Copy EDL JSON</button>
+      <button type="button" id="btnCopyPrompt" disabled>Copy feedback prompt</button>
+    </div>
+    <p class="status" id="status">No EDL loaded. On Mac: open this file, then choose <code>work/final-edit.json</code>.</p>
+  </header>
+
+  <main>
+    <video id="preview" controls playsinline></video>
+    <div class="row">
+      <label class="file">Attach preview mp4<input id="mp4File" type="file" accept="video/mp4" hidden /></label>
+    </div>
+
+    <div class="controls" id="sliders" hidden>
+      <label>Ken-Burns zoom <span class="val" id="vZoom">1.08</span>
+        <input type="range" id="sZoom" min="1.02" max="1.2" step="0.01" value="1.08" />
+      </label>
+      <label>Cut pacing <span class="val" id="vPace">1.0×</span>
+        <input type="range" id="sPace" min="0.7" max="1.4" step="0.05" value="1" />
+      </label>
+      <label>Audio gain <span class="val" id="vGain">0 dB</span>
+        <input type="range" id="sGain" min="-12" max="6" step="1" value="0" />
+      </label>
+      <label>Keep soft product beat <span class="val" id="vProduct">on</span>
+        <input type="range" id="sProduct" min="0" max="1" step="1" value="1" />
+      </label>
+    </div>
+
+    <div class="grid" id="beats"></div>
+    <p class="notes" id="notes"></p>
+  </main>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    let edl = null;
+    const $ = (id) => document.getElementById(id);
+    const toast = (msg) => {
+      const t = $('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 1600);
+    };
+
+    function esc(s) {
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function sliderState() {
+      return {
+        kenBurnsZoom: Number($('sZoom').value),
+        pacing: Number($('sPace').value),
+        gainDb: Number($('sGain').value),
+        keepProductBeat: Number($('sProduct').value) === 1,
+      };
+    }
+
+    function syncSliderLabels() {
+      const s = sliderState();
+      $('vZoom').textContent = s.kenBurnsZoom.toFixed(2);
+      $('vPace').textContent = s.pacing.toFixed(2) + '×';
+      $('vGain').textContent = (s.gainDb >= 0 ? '+' : '') + s.gainDb + ' dB';
+      $('vProduct').textContent = s.keepProductBeat ? 'on' : 'off';
+    }
+
+    function render() {
+      if (!edl) return;
+      const beats = $('beats');
+      beats.innerHTML = '';
+      let total = 0;
+      for (const beat of edl.beats || []) {
+        const clips = (beat.clips || []).filter(Boolean);
+        const dur = clips.filter((c) => c.enabled !== false).reduce((s, c) => s + (c.duration_s || 0), 0);
+        total += dur;
+        const el = document.createElement('section');
+        el.className = 'beat';
+        el.innerHTML =
+          '<h2>' + esc(beat.beat + ' · ' + beat.title) + '</h2>' +
+          '<div class="meta">role ' + esc(beat.role || beat.id || '') +
+          ' · target ' + esc(String(beat.target_s)) + 's · actual ~' + dur.toFixed(1) + 's · ' +
+          clips.length + ' clips</div>';
+        for (const clip of clips) {
+          const row = document.createElement('div');
+          row.className = 'clip' + (clip.enabled === false ? ' disabled' : '');
+          const cand = (clip.candidates || [])
+            .map((c) => c.start_s.toFixed(1) + '–' + c.end_s.toFixed(1) + 's score=' + c.score)
+            .join(' · ');
+          row.innerHTML =
+            '<div class="kind">' + esc(clip.kind) + '</div>' +
+            '<div><div class="label">' + esc(clip.label) +
+            ' <span class="meta" style="display:inline;text-transform:none">' +
+            (clip.start_s || 0).toFixed(1) + '–' + (clip.end_s || 0).toFixed(1) + 's</span></div>' +
+            '<div class="rationale">' + esc(clip.rationale || '') + '</div>' +
+            (cand ? '<div class="cand">candidates: ' + esc(cand) + '</div>' : '') +
+            '</div>';
+          el.appendChild(row);
+        }
+        beats.appendChild(el);
+      }
+      $('notes').textContent = (edl.notes || []).join('\n');
+      $('status').textContent =
+        (edl.event || edl.projectId || 'EDL') +
+        ' · engine ' + (edl.plannerEngine || '?') +
+        ' · ~' + total.toFixed(1) + 's · schema v' + (edl.schemaVersion || '?');
+      $('btnCopyEdl').disabled = false;
+      $('btnCopyPrompt').disabled = false;
+      $('sliders').hidden = false;
+      syncSliderLabels();
+    }
+
+    function buildPrompt() {
+      const s = sliderState();
+      return [
+        'Re-plan Cafe Cursor Shanghai recap (cheap Cursor edit).',
+        'Keep the 6-beat spine: title → vibe → demos → soft product → community → outro.',
+        'Public soft language only — no credit-swap talk.',
+        'Apply control-room params:',
+        '- kenBurnsZoom=' + s.kenBurnsZoom,
+        '- pacing=' + s.pacing,
+        '- audioGainDb=' + s.gainDb,
+        '- keepProductBeat=' + s.keepProductBeat,
+        'Then: pnpm video:plan && pnpm video:render && pnpm video:verify',
+        'EDL path: scripts/video-edit/work/final-edit.json',
+      ].join('\n');
+    }
+
+    $('edlFile').addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      try {
+        edl = JSON.parse(await file.text());
+        render();
+        toast('EDL loaded');
+      } catch (err) {
+        $('status').textContent = 'Invalid JSON: ' + err;
+      }
+    });
+
+    $('mp4File').addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      $('preview').src = url;
+      toast('Preview attached');
+    });
+
+    for (const id of ['sZoom', 'sPace', 'sGain', 'sProduct']) {
+      $(id).addEventListener('input', syncSliderLabels);
+    }
+
+    $('btnCopyEdl').addEventListener('click', async () => {
+      await navigator.clipboard.writeText(JSON.stringify(edl, null, 2));
+      toast('EDL copied');
+    });
+
+    $('btnCopyPrompt').addEventListener('click', async () => {
+      await navigator.clipboard.writeText(buildPrompt());
+      toast('Feedback prompt copied');
+    });
+
+    $('btnDemo').addEventListener('click', () => {
+      $('status').textContent =
+        'After pnpm video:plan, load: aileena-new/scripts/video-edit/work/final-edit.json · preview: out/cafe-cursor-shanghai-recap.mp4';
+      toast('Path hint set');
+    });
+  </script>
+</body>
+</html>

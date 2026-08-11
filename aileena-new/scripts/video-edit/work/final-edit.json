@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 1,
+  "projectId": "cafe-cursor-shanghai-20260719",
+  "event": "Cafe Cursor Shanghai 20260719",
+  "generatedAt": "2026-08-04T13:47:07.844Z",
+  "plannerEngine": "heuristic_v2",
+  "script": "script.md",
+  "brief": "EVENT.md",
+  "logo": "brand/cursor-logo.svg",
+  "catalogPath": "work/catalog.json",
+  "output": {
+    "filename": "cafe-cursor-shanghai-recap.mp4",
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "videoCodec": "libx264",
+    "audioCodec": "aac",
+    "audioBitrate": "192k",
+    "crf": 20,
+    "preset": "veryfast",
+    "padColor": "0x0f1c1b",
+    "keepAudio": true,
+    "audioFadeIn_s": 0.12,
+    "audioFadeOut_s": 0.18,
+    "grade": {
+      "brightness": 0.07,
+      "contrast": 1.06,
+      "saturation": 1.03,
+      "gamma": 1.1,
+      "shadowsRed": -0.14,
+      "shadowsGreen": -0.05,
+      "shadowsBlue": 0.1,
+      "midtonesRed": -0.1,
+      "midtonesGreen": -0.02,
+      "midtonesBlue": 0.07,
+      "highlightsRed": -0.05,
+      "highlightsGreen": 0,
+      "highlightsBlue": 0.04
+    }
+  },
+  "audio": {
+    "keepAudio": true,
+    "fadeIn_s": 0.12,
+    "fadeOut_s": 0.18,
+    "codec": "aac",
+    "bitrate": "192k"
+  },
+  "beats": [
+    {
+      "beat": 1,
+      "id": "title",
+      "title": "Logo / title sting",
+      "role": "brand_open",
+      "target_s": 3,
+      "max_s": 4,
+      "clips": [
+        {
+          "id": "title-card",
+          "kind": "title",
+          "source": "work/cards/title.svg",
+          "start_s": 0,
+          "end_s": 3,
+          "duration_s": 3,
+          "label": "title.svg",
+          "rationale": "Brand-first open",
+          "beatId": "title",
+          "enabled": true,
+          "audio": {
+            "keep": false,
+            "gainDb": 0
+          }
+        }
+      ]
+    },
+    {
+      "beat": 2,
+      "id": "vibe",
+      "title": "Arrival / vibe",
+      "role": "place",
+      "target_s": 10,
+      "max_s": 14,
+      "clips": []
+    },
+    {
+      "beat": 3,
+      "id": "demos",
+      "title": "Guest-led energy",
+      "role": "guest_demos",
+      "target_s": 14,
+      "max_s": 20,
+      "clips": []
+    },
+    {
+      "beat": 4,
+      "id": "product",
+      "title": "Product moment (soft credits)",
+      "role": "soft_product",
+      "target_s": 8,
+      "max_s": 12,
+      "clips": []
+    },
+    {
+      "beat": 5,
+      "id": "community",
+      "title": "Community · girls energy",
+      "role": "community",
+      "target_s": 14,
+      "max_s": 22,
+      "clips": []
+    },
+    {
+      "beat": 6,
+      "id": "timelapse",
+      "title": "Final timelapse",
+      "role": "timelapse_finale",
+      "target_s": 12,
+      "max_s": 16,
+      "clips": []
+    },
+    {
+      "beat": 7,
+      "id": "outro",
+      "title": "Close",
+      "role": "brand_close",
+      "target_s": 4,
+      "max_s": 5,
+      "clips": [
+        {
+          "id": "outro-card",
+          "kind": "title",
+          "source": "work/cards/outro.svg",
+          "start_s": 0,
+          "end_s": 4,
+          "duration_s": 4,
+          "label": "outro.svg",
+          "rationale": "Brand-last + #CafeCursorShanghai",
+          "beatId": "outro",
+          "enabled": true,
+          "audio": {
+            "keep": false,
+            "gainDb": 0
+          }
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "NO MEDIA YET — drop files into takes/ and photos/ (or: bash scripts/video-edit/stage-media.sh)",
+    "Priority summary: girls_photos=0 timelapse_videos=0",
+    "WARNING: No timelapse found. Put the final 延时 file in takes/timelapse/ (or name it *延时* / *最后延时*) and re-run plan.",
+    "Girls photos used: 0"
+  ],
+  "publicCopyRules": [
+    "Soft public language only — no credit-swap talk",
+    "Brand bookends required (title + outro)",
+    "MUST include final timelapse before outro",
+    "Prefer girls / community faces in vibe + community beats",
+    "Guest-led energy over scripted keynote framing"
+  ],
+  "provenance": {
+    "cwd": "/workspace/aileena-new",
+    "node": "v22.14.0",
+    "argv": [
+      "/exec-daemon/node",
+      "/workspace/aileena-new/scripts/video-edit/cli.ts",
+      "plan",
+      "--skip-whisper"
+    ]
+  }
+}

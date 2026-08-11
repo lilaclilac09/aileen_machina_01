@@ -40,8 +40,8 @@ export const t = {
     tools: {
       tag: 'TOOLS',
       heading: 'Tools',
-      body: 'Small utilities on the same stack. Cafe Cursor + Audio Clipping; more TBC.',
-      marquee: 'TOOLS · CAFE CURSOR · AUDIO CLIPPING · MORE TBC',
+      body: 'Small utilities on the same stack. Cafe Cursor, Audio Clipping, Cafe Recap; more TBC.',
+      marquee: 'TOOLS · CAFE CURSOR · AUDIO CLIPPING · CAFE RECAP · MORE TBC',
       pressStart: 'Start',
       creditsLabel: 'TOOLS',
       creditsHint: '',
@@ -64,6 +64,12 @@ export const t = {
           title: 'Cafe Cursor',
           body:
             'Claim Cursor credits for Cafe Cursor Shanghai — checked-in guests only. Opens cursor-cafe.aileena.xyz.',
+        },
+        'cafe-recap': {
+          tag: 'VIDEO',
+          title: 'Cafe Recap Edit',
+          body:
+            'Local JSON→ffmpeg recap loop. Drop media on your Mac, plan, cut, verify.',
         },
         'feed-flash': {
           tag: 'RSS',
@@ -139,6 +145,36 @@ export const t = {
           jobFailed: 'Run failed.',
           network: 'Network error. Try again.',
         },
+      },
+      cafeRecap: {
+        tag: 'VIDEO',
+        heading: 'Cafe Recap Edit',
+        body:
+          'Thariq-style local loop: write the edit as JSON, let ffmpeg execute. Media never leaves your Mac.',
+        backToTools: '← Tools',
+        marquee: 'CAFE RECAP · JSON EDL · FFMPEG · LOCAL ONLY',
+        flowTitle: 'Flow',
+        steps: {
+          drop: 'Drop event media into the staging folders',
+          stage: 'Sort takes / photos (stage-media.sh)',
+          catalog: 'Catalog + optional Whisper',
+          plan: 'Heuristic planner → work/final-edit.json',
+          render: 'ffmpeg cuts + concat + grade',
+          verify: 'Media QC report',
+          watch: 'Human watch — reject Keynote energy',
+        },
+        localOnlyTitle: 'Local only',
+        localOnlyBody:
+          'This tool does not upload video to Vercel. Copy the CLI and run inside aileena-new/ on a Mac with ffmpeg.',
+        ruleTimelapse: 'Always use the final timelapse under takes/timelapse/',
+        rulePhotos: 'Prefer girls/ smiles/ community stills when picking photos',
+        ruleGrade: 'Default grade: de-yellow + lift (project.json → output.grade)',
+        cliTitle: 'Mac CLI',
+        copyCli: 'Copy CLI',
+        copied: 'Copied',
+        cliHint: 'Engine: lib/video-edit/ · project: scripts/video-edit/',
+        docsTitle: 'Docs',
+        docsBody: 'Playbook + operator notes live in the repo (not rendered here):',
       },
       audioClippingProduct: {
         navTag: 'Product',
@@ -827,8 +863,8 @@ export const t = {
     tools: {
       tag: 'TOOLS',
       heading: 'Tools',
-      body: 'Kleine Utilities auf demselben Stack. Cafe Cursor + Audio Clipping; mehr TBC.',
-      marquee: 'TOOLS · CAFE CURSOR · AUDIO CLIPPING · MEHR TBC',
+      body: 'Kleine Utilities auf demselben Stack. Cafe Cursor, Audio Clipping, Cafe Recap; mehr TBC.',
+      marquee: 'TOOLS · CAFE CURSOR · AUDIO CLIPPING · CAFE RECAP · MEHR TBC',
       pressStart: 'Start',
       creditsLabel: 'TOOLS',
       creditsHint: '',
@@ -851,6 +887,12 @@ export const t = {
           title: 'Cafe Cursor',
           body:
             'Cursor Credits für Cafe Cursor Shanghai einlösen — nur checked-in Gäste.',
+        },
+        'cafe-recap': {
+          tag: 'VIDEO',
+          title: 'Cafe Recap Edit',
+          body:
+            'Lokaler JSON→ffmpeg Recap. Medien auf dem Mac droppen, planen, schneiden, prüfen.',
         },
         'feed-flash': {
           tag: 'RSS',
@@ -926,6 +968,36 @@ export const t = {
           jobFailed: 'Run fehlgeschlagen.',
           network: 'Netzwerkfehler. Erneut versuchen.',
         },
+      },
+      cafeRecap: {
+        tag: 'VIDEO',
+        heading: 'Cafe Recap Edit',
+        body:
+          'Thariq-artiger lokaler Loop: Schnitt als JSON schreiben, ffmpeg ausführen. Medien bleiben auf dem Mac.',
+        backToTools: '← Tools',
+        marquee: 'CAFE RECAP · JSON EDL · FFMPEG · NUR LOKAL',
+        flowTitle: 'Ablauf',
+        steps: {
+          drop: 'Event-Medien in Staging-Ordner legen',
+          stage: 'Takes / Fotos sortieren (stage-media.sh)',
+          catalog: 'Katalog + optional Whisper',
+          plan: 'Heuristik-Planer → work/final-edit.json',
+          render: 'ffmpeg Cuts + Concat + Grade',
+          verify: 'Media-QC-Report',
+          watch: 'Mensch schaut — kein Keynote-Energie',
+        },
+        localOnlyTitle: 'Nur lokal',
+        localOnlyBody:
+          'Dieses Tool lädt kein Video zu Vercel. CLI kopieren und in aileena-new/ auf einem Mac mit ffmpeg ausführen.',
+        ruleTimelapse: 'Immer den finalen Timelapse unter takes/timelapse/ nutzen',
+        rulePhotos: 'Fotos bevorzugt aus girls/ smiles/ Community',
+        ruleGrade: 'Default-Grade: weniger Gelb + Lift (project.json → output.grade)',
+        cliTitle: 'Mac-CLI',
+        copyCli: 'CLI kopieren',
+        copied: 'Kopiert',
+        cliHint: 'Engine: lib/video-edit/ · Projekt: scripts/video-edit/',
+        docsTitle: 'Docs',
+        docsBody: 'Playbook + Operator-Notizen liegen im Repo (hier nicht gerendert):',
       },
       audioClippingProduct: {
         navTag: 'Produkt',
