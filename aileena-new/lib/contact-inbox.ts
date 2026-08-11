@@ -1,10 +1,10 @@
 /**
  * Private contact inbox for lead / auth / chat forwards.
  *
- * Prefer CONTACT_TO / LEAD_INBOX / NOTIFY_CC_EMAIL on Vercel (your real inbox).
- * Never fall back to cafe@aileena.xyz as To — that address is brand send-only
- * (From / Reply-To). Mailing To cafe@ bounces / delays and inflates Resend
- * bounce rate.
+ * Prefer CONTACT_TO / CONTACT_TO_EMAIL / LEAD_INBOX / NOTIFY_CC_EMAIL on Vercel
+ * (your real inbox). Never fall back to cafe@aileena.xyz as To — that address
+ * is brand send-only (From / Reply-To). Mailing To cafe@ bounces / delays and
+ * inflates Resend bounce rate.
  */
 
 /** Brand From address — not a receivable mailbox unless MX/forwarding exists. */
@@ -21,6 +21,7 @@ export function isBrandSendOnlyAddress(email: string): boolean {
 export function getContactInbox(): string | null {
   const candidates = [
     process.env.CONTACT_TO,
+    process.env.CONTACT_TO_EMAIL,
     process.env.LEAD_INBOX,
     process.env.NOTIFY_CC_EMAIL,
   ];
@@ -38,4 +39,25 @@ export function getContactInbox(): string | null {
     return email;
   }
   return null;
+}
+
+/** Ops-safe: whether mail can send (no secrets). */
+export function getContactMailStatus(): {
+  hasResendKey: boolean;
+  hasInbox: boolean;
+  from: string;
+  sandboxFrom: boolean;
+} {
+  const from =
+    process.env.RESEND_FROM ||
+    process.env.FROM_EMAIL ||
+    process.env.CONTACT_FROM ||
+    'AILEENA MACHINA <cafe@aileena.xyz>';
+  const fromClean = from.trim().replace(/^["']|["']$/g, '');
+  return {
+    hasResendKey: Boolean(process.env.RESEND_API_KEY?.trim()),
+    hasInbox: Boolean(getContactInbox()),
+    from: fromClean,
+    sandboxFrom: /@resend\.dev\b/i.test(fromClean),
+  };
 }

@@ -18,15 +18,16 @@ Owner inbox delivery for every console conversation.
 AgentChat (browser)
   → POST /api/chat/forward   (auto: debounce / pagehide / session max)
   → Redis durable log (Upstash) when configured
-  → Resend email → CONTACT_TO | LEAD_INBOX | NOTIFY_CC_EMAIL
+  → Resend email → CONTACT_TO | CONTACT_TO_EMAIL | LEAD_INBOX | NOTIFY_CC_EMAIL
     (required real inbox; cafe@ is From-only — never To)
 
 AgentChat leave-a-note
-  → POST /api/lead           (visitor email + optional transcript)
-  → Resend (Reply-To = visitor)
+  → GET  /api/lead           (ops status; soft-disable UI if not ready)
+  → POST /api/lead           (visitor email + memo + transcript + page context)
+  → Resend (Reply-To = visitor; text + HTML body with transcript)
 ```
 
-Code: `components/AgentChat.tsx` · `app/api/chat/forward/route.ts` · `app/api/lead/route.ts` · `lib/chatForwardStore.ts` · `lib/contact-inbox.ts` · `lib/resend-from.ts`
+Code: `components/AgentChat.tsx` · `app/api/chat/forward/route.ts` · `app/api/lead/route.ts` · `lib/mail-transcript.ts` · `lib/chatForwardStore.ts` · `lib/contact-inbox.ts` · `lib/resend-from.ts`
 
 ## Two-week inventory (2026-07-21 → 2026-08-04)
 
@@ -44,20 +45,44 @@ Code: `components/AgentChat.tsx` · `app/api/chat/forward/route.ts` · `app/api/
 
 | Env | Required for | Notes |
 |-----|--------------|-------|
-| `RESEND_API_KEY` | send email | Without it, route still logs `failed` to Redis when Upstash is set |
+| `RESEND_API_KEY` | send email | Without it, leave-a-note soft-disables; forward still logs `failed` to Redis when Upstash is set |
 | `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` | durable log + resend queue | Same as visitor soft memory |
-| `CONTACT_TO` / `LEAD_INBOX` / `NOTIFY_CC_EMAIL` | inbox To | **Required.** No cafe@ fallback (send-only → bounce). |
+| `CONTACT_TO` / `CONTACT_TO_EMAIL` / `LEAD_INBOX` / `NOTIFY_CC_EMAIL` | inbox To | **Required.** No cafe@ fallback (send-only → bounce). |
 | `RESEND_FROM` / `FROM_EMAIL` / `CONTACT_FROM` | From | Defaults to `AILEENA MACHINA <cafe@aileena.xyz>` (must be verified domain) |
 
 This cloud-agent environment typically has **none** of the above — run list/resend on a machine with production secrets (or via the GH Action).
 
+Public UI never says “inbox not configured”. Visitors see a gentle paused/offline state; missing env is logged server-side / browser console warn only.
+
 ## Commands
 
 ```bash
+pnpm lead:test                    # dry-run: env status + fake transcript preview
+pnpm lead:test -- --curl          # print curl for local /api/lead
+pnpm lead:test -- --send          # real Resend send with fake transcript
 pnpm chat:pending                 # failed / unsent
 pnpm chat:pending -- --all        # recent history
 pnpm chat:resend-pending -- --dry-run
 pnpm chat:resend-pending
 ```
+
+### Curl (local, with fake transcript)
+
+```bash
+curl -sS -X POST http://localhost:3000/api/lead \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "email":"visitor-test@example.com",
+    "name":"Lead pipeline test",
+    "note":"Lead pipeline test",
+    "transcript":[
+      {"role":"user","text":"Hello — pipeline test.","at":"2026-08-11T10:00:00.000Z"},
+      {"role":"assistant","text":"If you see this, delivery works.","at":"2026-08-11T10:00:01.000Z"}
+    ],
+    "context":"http://localhost:3000/?lead-test=1"
+  }'
+```
+
+Status probe (no secrets): `curl -sS http://localhost:3000/api/lead`
 
 Scheduled: `.github/workflows/chat-forward-resend.yml` every 6h + `workflow_dispatch`.

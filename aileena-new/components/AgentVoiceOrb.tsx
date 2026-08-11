@@ -6,6 +6,8 @@
  * Transport only — brain stays /api/chat via parent `onAsk`.
  * STT: Whisper+VAD when caps.whisper (Safari: resume AudioContext + fallback
  * to Web Speech); else Web Speech (Safari: non-continuous, new instance).
+ * Chrome continuous finals are accumulated + silence-committed (full sentence,
+ * not one-word turns). Debug: localStorage.aileena_voice_debug = '1'.
  * TTS: /api/tts (HTMLAudio on iOS/Safari) with speechSynthesis fallback.
  * Live caption + barge-in. Voice path: Console → Voice → speak.
  */
@@ -76,11 +78,23 @@ const VOICE_STORAGE_KEY = 'aileena.console.voiceAccent';
 
 const SENTENCE_RE = /(?<=[.!?。！？…])\s+|(?<=\n)/;
 const SPEECH_THRESH = 0.018;
-const SILENCE_END_MS = 750;
-const MIN_SPEECH_MS = 280;
+const SILENCE_END_MS = 900;
+const MIN_SPEECH_MS = 420;
 const COOLDOWN_MS = 280;
 const WHISPER_WATCHDOG_MS = 2800;
-const SAFARI_FINAL_DEBOUNCE_MS = 450;
+/** Wait after last STT result before committing a full user turn. */
+const UTTERANCE_COMMIT_MS = 1000;
+const SAFARI_FINAL_DEBOUNCE_MS = 700;
+
+function vlog(...args: unknown[]) {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage?.getItem('aileena_voice_debug') === '1') {
+      console.log('[voice]', ...args);
+    }
+  } catch {
+    /* ignore */
+  }
+}
 
 function isSafariUa(): boolean {
   if (typeof navigator === 'undefined') return false;
@@ -131,7 +145,7 @@ export default function AgentVoiceOrb({
   const [listening, setListening] = useState(false);
   const [phase, setPhase] = useState<'idle' | 'listening' | 'hearing' | 'speaking'>('idle');
   const [level, setLevel] = useState(0);
-  const [hint, setHint] = useState('Tap orb · speak');
+  const [hint, setHint] = useState('Tap speak to start');
   const [caption, setCaption] = useState('');
   const [accentKey, setAccentKey] = useState<AccentKey>('shanghai');
   const [needsHearTap, setNeedsHearTap] = useState(false);
@@ -156,6 +170,8 @@ export default function AgentVoiceOrb({
   const webRecRef = useRef<SpeechRecognition | null>(null);
   const webRestartRef = useRef(0);
   const commitTimerRef = useRef(0);
+  const finalAccumRef = useRef('');
+  const interimRef = useRef('');
   const whisperWatchdogRef = useRef(0);
   const htmlAudioRef = useRef<HTMLAudioElement | null>(null);
   const pendingHearRef = useRef<{ url: string; gen: number } | null>(null);
@@ -269,6 +285,7 @@ export default function AgentVoiceOrb({
       sourcesRef.current.push(src);
       ttsPlayingRef.current = true;
       setPhase('speaking');
+      setCaption('');
       setHint('Speaking…');
       src.onended = () => {
         sourcesRef.current = sourcesRef.current.filter((s) => s !== src);
@@ -279,7 +296,7 @@ export default function AgentVoiceOrb({
             setHint('Listening… speak anytime');
           } else {
             setPhase('idle');
-            setHint('Tap orb · speak');
+            setHint('Tap speak to start');
           }
         }
       };
@@ -363,6 +380,7 @@ export default function AgentVoiceOrb({
         audio.src = url;
         ttsPlayingRef.current = true;
         setPhase('speaking');
+        setCaption('');
         setHint('Speaking… interrupt anytime');
         stickyErrorRef.current = false;
 
@@ -381,7 +399,7 @@ export default function AgentVoiceOrb({
             setHint('Listening… speak anytime');
           } else {
             setPhase('idle');
-            setHint('Tap orb · speak');
+            setHint('Tap speak to start');
           }
           resolve();
         };
@@ -454,6 +472,7 @@ export default function AgentVoiceOrb({
 
       ttsPlayingRef.current = true;
       setPhase('speaking');
+      setCaption('');
       setHint('Speaking…');
 
       const finishIdle = () => {
@@ -463,7 +482,7 @@ export default function AgentVoiceOrb({
           setHint('Listening… speak anytime');
         } else {
           setPhase('idle');
-          setHint('Tap orb · speak');
+          setHint('Tap speak to start');
         }
         resolve();
       };
@@ -582,15 +601,41 @@ export default function AgentVoiceOrb({
       const now = Date.now();
       // Allow barge-in while busy/speaking — only soft-throttle identical rapid finals.
       if (now - lastAskAtRef.current < COOLDOWN_MS && !ttsPlayingRef.current && !busyRef.current) {
+        vlog('utterance throttled', t);
         return;
       }
       lastAskAtRef.current = now;
       stopPlayback();
-      pushCaption(t, true);
+      // Clear live caption so it doesn't permanently duplicate the transcript line.
+      finalAccumRef.current = '';
+      interimRef.current = '';
+      setCaption('');
+      onLiveCaptionRef.current?.('', false);
+      vlog('user utterance sent', t);
       onAsk(t);
       setHint('Heard you · answering…');
+      setPhase('listening');
     },
-    [disabled, onAsk, pushCaption, stopPlayback],
+    [disabled, onAsk, stopPlayback],
+  );
+
+  const scheduleUtteranceCommit = useCallback(
+    (delayMs: number) => {
+      if (commitTimerRef.current) window.clearTimeout(commitTimerRef.current);
+      commitTimerRef.current = window.setTimeout(() => {
+        commitTimerRef.current = 0;
+        const utterance = (finalAccumRef.current || interimRef.current).trim();
+        if (!utterance) {
+          vlog('commit skipped — empty buffer');
+          return;
+        }
+        vlog('commit utterance after silence', { utterance, delayMs });
+        finalAccumRef.current = '';
+        interimRef.current = '';
+        handleUtterance(utterance);
+      }, delayMs);
+    },
+    [handleUtterance],
   );
 
   const pickMime = () => {
@@ -647,8 +692,10 @@ export default function AgentVoiceOrb({
         body: blob,
       });
       const data = (await res.json()) as { ok?: boolean; text?: string };
-      if (data.ok && data.text) handleUtterance(data.text);
-      else if (listeningRef.current) {
+      if (data.ok && data.text) {
+        vlog('whisper transcript', data.text);
+        handleUtterance(data.text);
+      } else if (listeningRef.current) {
         setPhase('listening');
         setHint('Listening… speak anytime');
       }
@@ -778,6 +825,8 @@ export default function AgentVoiceOrb({
       window.clearTimeout(commitTimerRef.current);
       commitTimerRef.current = 0;
     }
+    finalAccumRef.current = '';
+    interimRef.current = '';
     if (webRecRef.current) {
       try {
         webRecRef.current.onend = null;
@@ -796,6 +845,7 @@ export default function AgentVoiceOrb({
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) throw new Error('no Web Speech');
     const safariLike = isSafariUa() || isIosUa();
+    const commitMs = safariLike ? SAFARI_FINAL_DEBOUNCE_MS : UTTERANCE_COMMIT_MS;
 
     clearTimeout(webRestartRef.current);
     if (webRecRef.current) {
@@ -816,13 +866,18 @@ export default function AgentVoiceOrb({
     webRecRef.current = rec;
     rec.lang = langRef.current;
     rec.interimResults = true;
+    // Chrome: continuous so we accumulate a full sentence.
+    // Safari/iOS: non-continuous (engine quirk) + restart on end.
     rec.continuous = !safariLike;
+    vlog('recognition start', { continuous: rec.continuous, lang: rec.lang, safariLike });
     rec.onstart = () => {
       stickyErrorRef.current = false;
       setPhase(ttsPlayingRef.current ? 'speaking' : 'listening');
       setHint(ttsPlayingRef.current ? 'Speaking… interrupt anytime' : 'Listening… speak anytime');
+      vlog('recognition onstart', { tts: ttsPlayingRef.current });
     };
     rec.onerror = (e: SpeechRecognitionErrorEvent) => {
+      vlog('recognition onerror', e.error);
       if (e.error === 'no-speech' || e.error === 'aborted') return;
       if (e.error === 'not-allowed') {
         setHint('Mic blocked — allow in Settings, then tap orb');
@@ -837,14 +892,31 @@ export default function AgentVoiceOrb({
       setHint(e.error === 'network' ? 'Speech network error — tap orb again' : 'Mic issue — tap orb again');
     };
     rec.onend = () => {
+      vlog('recognition onend', {
+        listening: listeningRef.current,
+        busy: busyRef.current,
+        tts: ttsPlayingRef.current,
+        accum: finalAccumRef.current,
+      });
+      // If the engine ended mid-phrase, flush after a short beat when we have text.
+      if (listeningRef.current && (finalAccumRef.current || interimRef.current)) {
+        scheduleUtteranceCommit(safariLike ? commitMs : Math.min(commitMs, 600));
+      }
       // Keep the loop alive even while the model answers — so barge-in works.
       if (!listeningRef.current) return;
       const retry = () => {
         if (!listeningRef.current) return;
+        // Pause restarts while TTS plays to reduce feedback; barge-in still works
+        // via residual session or the next start after speech ends.
+        if (ttsPlayingRef.current) {
+          webRestartRef.current = window.setTimeout(retry, 350);
+          return;
+        }
         if (busyRef.current && !safariLike) {
           webRestartRef.current = window.setTimeout(retry, 400);
           return;
         }
+        vlog('recognition restart', { safariLike });
         if (safariLike) {
           try {
             startWebSpeech();
@@ -863,39 +935,53 @@ export default function AgentVoiceOrb({
     };
     rec.onresult = (ev: SpeechRecognitionEvent) => {
       let interim = '';
-      let finalText = '';
+      let newFinals = '';
       for (let i = ev.resultIndex; i < ev.results.length; i++) {
         const piece = (ev.results[i][0]?.transcript || '').trim();
         if (!piece) continue;
-        if (ev.results[i].isFinal) finalText += (finalText ? ' ' : '') + piece;
+        if (ev.results[i].isFinal) newFinals += (newFinals ? ' ' : '') + piece;
         else interim += (interim ? ' ' : '') + piece;
       }
+      vlog('recognition result', {
+        resultIndex: ev.resultIndex,
+        results: ev.results.length,
+        newFinals,
+        interim,
+      });
+
       // Barge-in: any live speech cuts TTS / lets a new turn take over.
-      if ((interim || finalText) && ttsPlayingRef.current) {
+      if ((interim || newFinals) && ttsPlayingRef.current) {
         stopPlayback();
         setPhase('listening');
         setHint('Listening… speak anytime');
       }
-      if (interim) {
-        pushCaption(interim, false);
+
+      if (newFinals) {
+        finalAccumRef.current = `${finalAccumRef.current} ${newFinals}`.trim();
+      }
+      interimRef.current = interim;
+
+      const live = `${finalAccumRef.current}${interim ? ` ${interim}` : ''}`.trim();
+      if (live) {
+        pushCaption(live, false);
         setPhase('hearing');
         setHint('Hearing you…');
       }
-      if (finalText) {
-        pushCaption(finalText, true);
-        setPhase('hearing');
-        if (safariLike) {
-          if (commitTimerRef.current) window.clearTimeout(commitTimerRef.current);
-          commitTimerRef.current = window.setTimeout(() => {
-            handleUtterance(finalText);
-          }, SAFARI_FINAL_DEBOUNCE_MS);
-        } else {
-          handleUtterance(finalText);
-        }
+
+      // Do NOT send on every final — Chrome continuous finalizes word/phrase chunks.
+      // Accumulate, then commit after a silence gap.
+      if (newFinals || interim) {
+        scheduleUtteranceCommit(commitMs);
       }
     };
     rec.start();
-  }, [handleUtterance, onListeningChange, pushCaption, startWebSpeechMeter, stopPlayback]);
+  }, [
+    onListeningChange,
+    pushCaption,
+    scheduleUtteranceCommit,
+    startWebSpeechMeter,
+    stopPlayback,
+  ]);
 
   const startOpenAiListen = useCallback(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -922,8 +1008,11 @@ export default function AgentVoiceOrb({
     onListeningChange?.(true);
     setPhase('listening');
     setHint('Listening… speak anytime');
+    finalAccumRef.current = '';
+    interimRef.current = '';
     ensurePlayCtx();
     window.clearTimeout(whisperWatchdogRef.current);
+    vlog('orb listening start', { whisper: caps.whisper });
     try {
       // Prefer Whisper when available (more reliable than Web Speech on iOS).
       const preferWhisper = caps.whisper && navigator.mediaDevices && window.MediaRecorder;
@@ -962,6 +1051,7 @@ export default function AgentVoiceOrb({
           ? 'Allow mic in Settings, then tap orb'
           : 'Mic unavailable — tap orb again',
       );
+      vlog('orb listening failed / mic blocked');
     }
   }, [
     caps.whisper,
@@ -985,7 +1075,7 @@ export default function AgentVoiceOrb({
     setPhase('idle');
     setCaption('');
     pushCaption('', false);
-    if (!stickyErrorRef.current) setHint('Tap orb · speak');
+    if (!stickyErrorRef.current) setHint('Tap speak to start');
   }, [onListeningChange, pushCaption, stopOpenAiListen, stopPlayback, stopWebSpeech]);
 
   const onOrbClick = useCallback(() => {
@@ -1018,12 +1108,12 @@ export default function AgentVoiceOrb({
   useEffect(() => {
     if (!active || !autoListen || disabled || listening) return;
     if (needsTapToSpeak()) {
-      setHint('Tap orb to speak');
+      setHint('Tap speak to start');
       return;
     }
     void startListening().then(() => {
       if (!listeningRef.current) {
-        setHint('Tap orb to speak');
+        setHint('Tap speak to start');
       }
     });
   }, [active, autoListen, disabled, listening, startListening]);
@@ -1042,9 +1132,27 @@ export default function AgentVoiceOrb({
     needsHearTap ||
     /blocked|error|failed|allow mic|tap orb to hear/i.test(hint);
 
+  const statusLine =
+    listening && (phase === 'listening' || phase === 'hearing') && caption.trim()
+      ? caption.trim()
+      : needsHearTap
+        ? 'Tap orb to hear reply'
+        : listening
+          ? phase === 'speaking'
+            ? 'Speaking…'
+            : phase === 'hearing'
+              ? 'Hearing you…'
+              : 'Listening…'
+          : hintIsError
+            ? hint
+            : hint && /answering|Speaking|Heard|Got it|Hearing/i.test(hint)
+              ? hint
+              : 'Tap speak to start';
+
   return (
-    <div className="border-t border-[#e7e0d6] px-5 py-4 bg-[#faf7f0]/80">
-      <div className="flex flex-col items-center gap-3">
+    <div className="border-t border-[#e7e0d6] px-4 py-1.5 sm:px-5 sm:py-2 bg-[#faf7f0]/80">
+      {/* Compact control bar — orb is a control, not a hero. ≈70–80px total. */}
+      <div className="flex items-center gap-2.5 sm:gap-3 min-h-[44px] sm:min-h-[48px]">
         <button
           type="button"
           disabled={disabled}
@@ -1052,98 +1160,92 @@ export default function AgentVoiceOrb({
           aria-label={
             needsHearTap ? 'Tap to hear reply' : listening ? 'Stop listening' : 'Start voice'
           }
-          className={`relative h-[88px] w-[88px] shrink-0 rounded-full border-0 transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40 ${
+          className={`relative h-10 w-10 sm:h-11 sm:w-11 shrink-0 rounded-full border-0 transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40 ${
             phase === 'listening' || phase === 'hearing'
-              ? 'animate-pulse shadow-[0_0_0_2px_#fffdf8,0_0_0_5px_rgba(0,255,234,0.45),0_14px_42px_rgba(0,168,157,0.4)]'
+              ? 'animate-pulse shadow-[0_0_0_1px_#fffdf8,0_0_0_3px_rgba(0,255,234,0.35),0_6px_16px_rgba(0,168,157,0.28)]'
               : phase === 'speaking'
-                ? 'shadow-[0_0_0_2px_#fffdf8,0_0_0_5px_rgba(0,168,157,0.5),0_16px_48px_rgba(0,127,117,0.4)]'
-                : 'shadow-[0_0_0_2px_#fffdf8,0_0_0_4px_rgba(0,168,157,0.35),0_12px_36px_rgba(0,127,117,0.28)]'
+                ? 'shadow-[0_0_0_1px_#fffdf8,0_0_0_3px_rgba(0,168,157,0.4),0_6px_18px_rgba(0,127,117,0.3)]'
+                : 'shadow-[0_0_0_1px_#fffdf8,0_0_0_2px_rgba(0,168,157,0.28),0_4px_12px_rgba(0,127,117,0.2)]'
           }`}
           style={{
             background:
               'radial-gradient(circle at 32% 28%, rgba(255,255,255,0.95), transparent 42%), radial-gradient(circle at 60% 65%, rgba(0,200,180,0.55), transparent 52%), radial-gradient(circle at 50% 50%, #7ee8dc 0%, #008f86 45%, #12332f 78%)',
           }}
         >
-          <span className="absolute inset-0 grid place-items-center font-mono text-[0.62rem] uppercase tracking-[0.28em] text-white [text-shadow:0_1px_8px_rgba(0,40,36,0.45)]">
+          <span className="absolute inset-0 grid place-items-center font-mono text-[0.45rem] sm:text-[0.48rem] uppercase tracking-[0.2em] text-white [text-shadow:0_1px_6px_rgba(0,40,36,0.45)]">
             {needsHearTap ? 'Hear' : listening ? (phase === 'speaking' ? '…' : 'Stop') : 'Speak'}
           </span>
         </button>
-        <div className="h-[3px] w-16 overflow-hidden rounded-sm bg-[#1b1713]/08">
+
+        <div
+          className={`relative grid h-8 sm:h-9 flex-1 min-w-0 max-w-[18rem] sm:max-w-[20rem] grid-cols-3 items-stretch rounded-full border border-[#00a89d]/28 bg-[#e8f7f4]/90 p-0.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] ${
+            listening ? 'opacity-50' : ''
+          }`}
+          role="group"
+          aria-label="City accent"
+        >
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0.5 left-0.5 w-[calc((100%-0.25rem)/3)] rounded-full bg-gradient-to-b from-[#1ad4c4] to-[#008f86] shadow-[0_2px_8px_rgba(0,168,157,0.3)] transition-transform duration-300 ease-out"
+            style={{
+              transform: `translateX(${Math.max(0, ACCENTS.findIndex((a) => a.key === accentKey)) * 100}%)`,
+            }}
+          />
+          {ACCENTS.map((p) => {
+            const on = p.key === accentKey;
+            return (
+              <button
+                key={p.key}
+                type="button"
+                onClick={() => selectAccent(p.key)}
+                title={p.hint}
+                disabled={listening}
+                aria-pressed={on}
+                className={`relative z-10 rounded-full px-1 font-mono text-[0.55rem] sm:text-[0.58rem] uppercase tracking-[0.1em] transition-colors duration-200 disabled:cursor-not-allowed ${
+                  on ? 'font-semibold text-white' : 'text-[#1b1713]/32 hover:text-[#007d75]/75'
+                }`}
+              >
+                {p.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Tiny level meter — inline, not a separate vertical block */}
+        <div
+          className="hidden sm:block h-[2px] w-8 shrink-0 overflow-hidden rounded-sm bg-[#1b1713]/06"
+          aria-hidden
+        >
           <i
-            className="block h-full bg-[#00a89d] transition-[width] duration-75"
+            className="block h-full bg-[#00a89d]/80 transition-[width] duration-75"
             style={{ width: `${level}%`, display: 'block' }}
           />
         </div>
-        <div
-          className="flex w-full max-w-md flex-col items-center gap-2.5"
-          role="group"
-          aria-label="Accent"
-        >
-          <p className="font-mono text-[0.7rem] font-medium tracking-[0.28em] uppercase text-[#007d75]">
-            City accent
-          </p>
-          <div
-            className={`relative grid w-full grid-cols-3 rounded-full border-2 border-[#00a89d]/55 bg-[#dff5f2] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.85),0_8px_24px_rgba(0,168,157,0.12)] ${
-              listening ? 'opacity-50' : ''
-            }`}
-          >
-            <span
-              aria-hidden
-              className="pointer-events-none absolute inset-y-1.5 left-1.5 w-[calc((100%-0.75rem)/3)] rounded-full bg-gradient-to-b from-[#1ad4c4] to-[#008f86] shadow-[0_6px_18px_rgba(0,168,157,0.5)] transition-transform duration-300 ease-out"
-              style={{
-                transform: `translateX(${Math.max(0, ACCENTS.findIndex((a) => a.key === accentKey)) * 100}%)`,
-              }}
-            />
-            {ACCENTS.map((p) => {
-              const on = p.key === accentKey;
-              return (
-                <button
-                  key={p.key}
-                  type="button"
-                  onClick={() => selectAccent(p.key)}
-                  title={p.hint}
-                  disabled={listening}
-                  aria-pressed={on}
-                  className={`relative z-10 rounded-full px-2 py-3 font-mono text-[0.78rem] uppercase tracking-[0.12em] transition-colors duration-200 disabled:cursor-not-allowed ${
-                    on ? 'font-semibold text-white' : 'text-[#1b1713]/45 hover:text-[#007d75]'
-                  }`}
-                >
-                  {p.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        <p className="min-h-[1.2rem] max-w-md px-2 text-center text-[0.85rem] sm:text-[0.95rem] leading-5 sm:leading-6 text-[#007d75]">
-          {caption ? (
-            <>
-              <span className="mr-1.5 inline-block h-2 w-2 animate-pulse rounded-full bg-[#00a89d] align-middle" />
-              {caption}
-            </>
-          ) : (
-            <span className="text-[#1b1713]/35 italic">
-              {listening
-                ? phase === 'hearing'
-                  ? 'Hearing you…'
-                  : 'Listening…'
-                : 'Live caption — tap Speak'}
-            </span>
-          )}
-        </p>
-        <p
-          className={`max-w-[22rem] text-center font-mono text-[0.55rem] tracking-[0.14em] uppercase ${
-            hintIsError ? 'text-red-500/80' : 'text-[#008f86]/85'
-          }`}
-        >
-          {hint}
-          <span className="sm:inline">
-            {' · '}
-            {caps.whisper ? 'whisper' : 'dictation'}
-            {' · '}
-            {activeAccent.label}
-          </span>
-        </p>
       </div>
+
+      <p
+        className={`mt-1 truncate font-mono text-[0.5rem] sm:text-[0.55rem] tracking-[0.12em] uppercase leading-4 ${
+          hintIsError ? 'text-red-500/75' : 'text-[#1b1713]/45'
+        }`}
+      >
+        {listening && (phase === 'listening' || phase === 'hearing') && caption.trim() ? (
+          <>
+            <span className="mr-1.5 inline-block h-1 w-1 animate-pulse rounded-full bg-[#00a89d] align-middle" />
+            <span className="text-[#1b1713]/40 mr-1.5">
+              {phase === 'hearing' ? 'hearing' : 'listening'}
+            </span>
+            <span className="normal-case tracking-normal text-[#007d75]/85">{statusLine}</span>
+          </>
+        ) : (
+          <span className={hintIsError ? undefined : 'text-[#1b1713]/35'}>{statusLine}</span>
+        )}
+        <span className="text-[#1b1713]/30">
+          {' · '}
+          {caps.whisper ? 'whisper' : 'dictation'}
+          {' · '}
+          <span className="text-[#008f86]/60">{activeAccent.label}</span>
+        </span>
+      </p>
     </div>
   );
 }

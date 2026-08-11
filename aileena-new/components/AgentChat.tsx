@@ -113,6 +113,9 @@ export default function AgentChat() {
   const [leadName, setLeadName] = useState('');
   const [leadState, setLeadState] = useState<LeadState>('idle');
   const [leadError, setLeadError] = useState<string | null>(null);
+  const [leadOpen, setLeadOpen] = useState(false);
+  /** null = unknown / probing; false = backend offline → gentle disabled UI */
+  const [leadMailReady, setLeadMailReady] = useState<boolean | null>(null);
   const [voiceMode, setVoiceMode] = useState(false);
   const [voiceLive, setVoiceLive] = useState('');
   /** Start orb listen once after Voice toggle / open-agent-chat autoListen. */
@@ -490,6 +493,9 @@ export default function AgentChat() {
         : `s-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`;
 
     setVoiceMode(false);
+    setVoiceLive('');
+    setLeadOpen(false);
+    setLeadError(null);
     setOpen(false);
   }, [forwardTranscriptNow, setMessages]);
 
@@ -517,6 +523,9 @@ export default function AgentChat() {
       typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
         ? crypto.randomUUID()
         : `s-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`;
+    setVoiceLive('');
+    setLeadOpen(false);
+    setLeadError(null);
   }, [forwardTranscriptNow, setMessages]);
 
   // Phone: lock page scroll while console covers the viewport.
@@ -868,8 +877,8 @@ export default function AgentChat() {
     Boolean(lastAssistant.id) &&
     messages.some((m) => m.role === 'user');
 
-  // Contact panel: optional soft invite after a few turns — never a hard gate.
-  const showLeadPanel = open && leadState !== 'sent' && leadSoftNudge;
+  // Contact: soft invite after a few turns — collapsed link, never mid-flow.
+  const showLeadInvite = open && leadState !== 'sent' && leadSoftNudge;
 
   function persistLeadState(next: LeadState) {
     setLeadState(next);
@@ -882,20 +891,68 @@ export default function AgentChat() {
     }
   }
 
+  async function probeLeadMailReady(): Promise<boolean> {
+    try {
+      const res = await fetch('/api/lead', { method: 'GET', cache: 'no-store' });
+      const body = (await res.json().catch(() => ({}))) as { ok?: boolean };
+      const ready = Boolean(body.ok);
+      setLeadMailReady(ready);
+      if (!ready && typeof console !== 'undefined') {
+        console.warn('[aileena] leave-a-note mail backend not ready (see server logs)');
+      }
+      return ready;
+    } catch {
+      setLeadMailReady(false);
+      if (typeof console !== 'undefined') {
+        console.warn('[aileena] leave-a-note status check failed');
+      }
+      return false;
+    }
+  }
+
+  async function openLeadForm() {
+    setLeadError(null);
+    setLeadOpen(true);
+    const ready = await probeLeadMailReady();
+    if (!ready) {
+      // Gentle disabled — never "inbox not configured" in the UI.
+      setLeadError(null);
+    }
+  }
+
   async function submitLead() {
+    if (leadState === 'submitting') return;
     const email = leadEmail.trim();
+    const memo = leadName.trim();
+
+    if (leadMailReady === false) {
+      setLeadError('Note saving is offline right now.');
+      return;
+    }
+
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setLeadError('Enter a valid email.');
       return;
     }
-    setLeadError(null);
-    setLeadState('submitting');
 
     // Flatten the live transcript into the shape the API expects.
-    const transcript = messages.map((m) => ({
-      role: m.role === 'user' ? 'user' : 'assistant',
-      text: getMessageText(m),
-    }));
+    const capturedAt = new Date().toISOString();
+    const transcript = messages
+      .map((m) => ({
+        role: m.role === 'user' ? ('user' as const) : ('assistant' as const),
+        text: getMessageText(m),
+        at: capturedAt,
+      }))
+      .filter((m) => m.text.trim().length > 0);
+
+    // Reject fully empty (email alone is ok; note optional when transcript exists).
+    if (!email && !memo && transcript.length === 0) {
+      setLeadError('Nothing to send.');
+      return;
+    }
+
+    setLeadError(null);
+    setLeadState('submitting');
 
     try {
       const res = await fetch('/api/lead', {
@@ -903,16 +960,34 @@ export default function AgentChat() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email,
-          name: leadName.trim() || undefined,
+          name: memo || undefined,
+          note: memo || undefined,
           transcript,
+          context: typeof window !== 'undefined' ? window.location.href : undefined,
         }),
       });
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
-        setLeadError(body.error || 'Send failed. Try again.');
+      const body = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        ok?: boolean;
+        id?: string;
+      };
+      if (!res.ok || !body.ok) {
+        const raw = body.error || 'Send failed. Try again.';
+        // Never surface inbox/env/Resend config to visitors.
+        if (
+          /inbox not configured|not configured|resend|api key|503|offline|sender not ready|verify a domain|vercel|paused/i.test(
+            raw,
+          )
+        ) {
+          setLeadMailReady(false);
+          setLeadError('Note saving is offline right now.');
+        } else {
+          setLeadError(raw);
+        }
         setLeadState('idle');
         return;
       }
+      setLeadOpen(false);
       persistLeadState('sent');
     } catch {
       setLeadError('Network error. Try again.');
@@ -961,13 +1036,15 @@ export default function AgentChat() {
         className={`fixed inset-0 z-[70] bg-[#fbfaf7]/95 sm:bg-[#fbfaf7]/80 backdrop-blur-md sm:backdrop-blur-sm transition-opacity duration-200 ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       />
 
-      {/* Console card — full-bleed on phone so homepage chrome doesn't bleed through.
-          overflow-hidden + flex column: transcript scrolls; header/orb/input stay visible. */}
+      {/* Console card — full-bleed on phone.
+          Flex column: header / flexible transcript / compact controls / input.
+          Desktop is wider + shorter (≤72vh) so the orb reads as a control node,
+          not a hero. Layout/proportions only. */}
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Aileena Console"
-        className={`fixed z-[80] inset-0 sm:inset-x-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[640px] sm:max-w-[calc(100vw-3rem)] h-[100dvh] sm:h-[min(80vh,720px)] max-h-[100dvh] sm:max-h-[80vh] flex flex-col overflow-hidden bg-[#fffdf8] sm:bg-[#fffdf8]/95 border-0 sm:border sm:border-[#ded8ce] shadow-none sm:shadow-[0_24px_80px_-34px_rgba(31,26,20,0.42)] backdrop-blur-md transition-all duration-200 ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-[0.98] sm:scale-[0.96] pointer-events-none'} font-mono`}
+        className={`fixed z-[80] inset-0 sm:inset-x-auto sm:inset-y-auto sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[min(760px,calc(100vw-2.5rem))] sm:max-w-[calc(100vw-2.5rem)] h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[72vh] flex flex-col overflow-hidden bg-[#fffdf8] sm:bg-[#fffdf8]/95 border-0 sm:border sm:border-[#ded8ce] shadow-none sm:shadow-[0_24px_80px_-34px_rgba(31,26,20,0.42)] backdrop-blur-md transition-all duration-200 ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-[0.98] sm:scale-[0.96] pointer-events-none'} font-mono`}
         style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace' }}
       >
         {/* Header bar */}
@@ -1086,19 +1163,20 @@ export default function AgentChat() {
           </div>
         </div>
 
-        {/* Transcript — reserved height floor so voice orb cannot crush history to one line.
-            flex-1 + overflow-y-auto scrolls independently; layout only, no message logic. */}
+        {/* Transcript — flex-auto: content-sized when dialog is short; shrinks +
+            scrolls when dialog hits sm:max-h-[72vh]. Bottom chrome stays visible.
+            Soft veil only — same thin type, slightly clearer read on blur. */}
         <div
           ref={scrollRef}
           data-agent-transcript
-          className="flex-1 min-h-[128px] sm:min-h-[168px] overflow-y-auto overscroll-contain px-4 sm:px-5 py-4 sm:py-5 space-y-3"
+          className="flex-auto min-h-[7.5rem] sm:min-h-[9rem] overflow-y-auto overscroll-contain px-4 sm:px-5 py-3 sm:py-4 space-y-3.5 bg-[#fffcf7]/55"
         >
           {messages.length === 0 ? (
             <>
-              <p className="text-[0.62rem] tracking-[0.25em] text-[#1b1713]/50 uppercase mb-2">
+              <p className="text-[0.62rem] tracking-[0.25em] text-[#1b1713]/55 uppercase mb-2">
                 ▸ ready · say hi or ask anything
               </p>
-              <p className="text-[0.78rem] leading-5 text-[#1b1713]/55 mb-3">
+              <p className="text-[0.78rem] leading-[1.7] text-[#1b1713]/62 mb-3">
                 {voiceMode ? (
                   <>
                     Tap the <span className="text-[#008f86]">orb</span> to speak. You should see a
@@ -1118,18 +1196,18 @@ export default function AgentChat() {
                 )}
               </p>
               {!voiceMode && buildCatchUpHint(readTopicMemory().topics) && (
-                <p className="text-[0.75rem] leading-5 text-[#008f86]/85 mb-2">
+                <p className="text-[0.75rem] leading-[1.7] text-[#008f86]/85 mb-2">
                   {buildCatchUpHint(readTopicMemory().topics)}
                 </p>
               )}
               {!voiceMode && (
-              <ul className="space-y-1.5">
+              <ul className="space-y-2">
                 {STARTER_PROMPTS.map((p) => (
                   <li key={p}>
                     <button
                       type="button"
                       onClick={() => ask(p)}
-                      className="text-left text-[0.82rem] sm:text-sm leading-6 text-[#1b1713]/70 hover:text-[#008f86] transition-colors w-full"
+                      className="text-left text-[0.82rem] sm:text-sm leading-[1.7] text-[#1b1713]/72 hover:text-[#008f86] transition-colors w-full"
                     >
                       <span className="text-[#00a89d]/45 mr-2">&gt;</span>
                       {p}
@@ -1166,13 +1244,6 @@ export default function AgentChat() {
             <Line role="assistant" text="…" muted />
           )}
 
-          {voiceMode && voiceLive.trim() && (
-            <p className="text-[0.95rem] sm:text-base leading-6 text-[#007d75] whitespace-pre-wrap break-words">
-              <span className="text-[#00a89d]/55 mr-2 animate-pulse">&gt;</span>
-              {voiceLive}
-            </p>
-          )}
-
           {showError && (
             <p className="text-[0.7rem] leading-5 tracking-[0.05em] text-red-400/85 whitespace-pre-wrap">
               <span className="font-mono text-[0.55rem] tracking-[0.3em] uppercase mr-1.5">▸ error</span>
@@ -1189,81 +1260,10 @@ export default function AgentChat() {
 
         </div>
 
-        {/* Contact panel — optional soft invite after a few turns.
-            Never disables chat before the promised 20 / day. */}
-        {showLeadPanel && (
-          <div className="border-t border-[#e7e0d6] px-5 py-3 bg-[#faf7f0] shrink-0">
-            <div className="mb-2.5">
-              <p className="font-mono text-[0.55rem] tracking-[0.35em] uppercase text-[#008f86]/85">
-                ▸ leave a note
-              </p>
-              <p className="mt-1 text-[0.7rem] text-[#1b1713]/55">
-                Happy to keep talking here. Want a reply later? Leave your email and a short note — optional either way.
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-              <input
-                type="email"
-                inputMode="email"
-                autoComplete="email"
-                value={leadEmail}
-                onChange={(e) => setLeadEmail(e.target.value)}
-                placeholder="your email"
-                disabled={leadState === 'submitting'}
-                className="flex-1 min-w-0 bg-white border border-[#ded8ce] px-3 py-2 text-sm text-[#1b1713]/90 placeholder:text-[#1b1713]/35 outline-none focus:border-[#00a89d]/70 caret-[#00a89d] disabled:opacity-50"
-                spellCheck={false}
-                autoCorrect="off"
-                autoCapitalize="off"
-              />
-              <input
-                type="text"
-                value={leadName}
-                onChange={(e) => setLeadName(e.target.value)}
-                placeholder="name / WeChat / note (optional)"
-                disabled={leadState === 'submitting'}
-                className="flex-1 min-w-0 bg-white border border-[#ded8ce] px-3 py-2 text-sm text-[#1b1713]/90 placeholder:text-[#1b1713]/35 outline-none focus:border-[#00a89d]/70 caret-[#00a89d] disabled:opacity-50"
-                spellCheck={false}
-                autoCorrect="off"
-              />
-              <button
-                type="button"
-                onClick={submitLead}
-                disabled={leadState === 'submitting' || !leadEmail.trim()}
-                className="font-mono text-[0.62rem] tracking-[0.3em] uppercase text-[#007d75] border border-[#00a89d]/45 bg-white px-3 py-2 hover:bg-[#e9fffc] transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
-              >
-                {leadState === 'submitting' ? 'sending…' : 'send ↗'}
-              </button>
-            </div>
-            {leadError && (
-              <p className="mt-2 font-mono text-[0.55rem] tracking-[0.25em] uppercase text-red-400/85">
-                ▸ {leadError}
-              </p>
-            )}
-            <p className="mt-2 font-mono text-[0.5rem] tracking-[0.28em] uppercase text-[#1b1713]/35">
-              delivered privately ·{' '}
-              <a
-                href="/privacy"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline decoration-[#1b1713]/20 underline-offset-2 hover:text-[#1b1713]/70 hover:decoration-[#1b1713]/40"
-              >
-                privacy
-              </a>
-            </p>
-          </div>
-        )}
-
-        {leadState === 'sent' && (
-          <div className="border-t border-[#e7e0d6] px-5 py-2 bg-[#f3fbf9] shrink-0">
-            <p className="font-mono text-[0.55rem] tracking-[0.3em] uppercase text-[#008f86]/90">
-              ▸ note sent — thanks
-            </p>
-          </div>
-        )}
-
-        {/* Stream + barge-in orb: live captions, interrupt anytime.
-            shrink-0 so orb panel cannot steal transcript flex space. */}
-        <div className="shrink-0">
+        {/* Bottom chrome: orb → chat input → optional leave-a-note (collapsed). */}
+        <div className="shrink-0 flex flex-col">
+        {/* Stream + barge-in orb: compact bottom control bar (≈70–80px). */}
+        <div className="shrink-0 max-h-[88px] overflow-hidden">
           <AgentVoiceOrb
             active={open && voiceMode}
             autoListen={autoListen}
@@ -1278,6 +1278,7 @@ export default function AgentChat() {
               unlockOrbAudioRef.current = unlock;
             }}
             onLiveCaption={(text) => {
+              // Mirror into the chat field while speaking; live caption UI lives on the orb.
               setVoiceLive(text);
               if (text) setInput(text);
               else if (!busy) setInput('');
@@ -1295,8 +1296,8 @@ export default function AgentChat() {
           />
         </div>
 
-        {/* Input row */}
-        <div className="border-t border-[#e7e0d6] px-5 py-3 shrink-0">
+        {/* Chat input — separate from leave-a-note drawer below. */}
+        <div className="border-t border-[#e7e0d6] px-5 py-2.5 sm:py-3 shrink-0">
           <div className="relative flex items-center gap-2">
             <span className={`text-sm ${sessionMaxed ? 'text-[#1b1713]/20' : 'text-[#00a89d]'}`}>&gt;</span>
             <textarea
@@ -1318,7 +1319,7 @@ export default function AgentChat() {
               }
               disabled={sessionMaxed}
               rows={1}
-              className="flex-1 resize-none bg-transparent text-sm leading-6 text-[#1b1713]/90 placeholder:text-[#1b1713]/30 outline-none max-h-32 caret-[#00a89d] disabled:cursor-not-allowed"
+              className="flex-1 resize-none bg-transparent text-sm leading-6 text-[#1b1713]/90 placeholder:text-[#1b1713]/38 outline-none max-h-32 caret-[#00a89d] disabled:cursor-not-allowed"
               spellCheck={false}
               autoCorrect="off"
               autoCapitalize="off"
@@ -1329,12 +1330,16 @@ export default function AgentChat() {
               </span>
             )}
           </div>
-          <p className="mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 text-[0.52rem] tracking-[0.3em] text-[#1b1713]/40 uppercase">
+          <p className="mt-1.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-[0.48rem] sm:text-[0.5rem] tracking-[0.28em] text-[#1b1713]/40 uppercase">
             <span className="truncate">
               {voiceMode ? (
                 <>
-                  <span className="sm:hidden">tap orb · speak</span>
-                  <span className="hidden sm:inline">stream · barge-in · voice→code</span>
+                  <span className="sm:hidden">
+                    tap <span className="text-[#008f86]/70">orb</span> · speak
+                  </span>
+                  <span className="hidden sm:inline">
+                    stream · barge-in · <span className="text-[#008f86]/70">voice→code</span>
+                  </span>
                 </>
               ) : (
                 <>
@@ -1357,6 +1362,128 @@ export default function AgentChat() {
             </span>
           </p>
         </div>
+
+        {/* Leave a note — collapsed secondary action under chat, not mid-flow. */}
+        {showLeadInvite && (
+          <div className="border-t border-[#e7e0d6] px-5 py-2 bg-[#faf7f0]/70 shrink-0">
+            {!leadOpen ? (
+              <button
+                type="button"
+                onClick={() => {
+                  void openLeadForm();
+                }}
+                className="font-mono text-[0.55rem] tracking-[0.28em] uppercase text-[#008f86]/80 hover:text-[#007d75] transition-colors"
+              >
+                leave a note ↗
+              </button>
+            ) : (
+              <form
+                className="space-y-2"
+                autoComplete="off"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void submitLead();
+                }}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-mono text-[0.55rem] tracking-[0.28em] uppercase text-[#008f86]/85">
+                    leave a note
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLeadOpen(false);
+                      setLeadError(null);
+                    }}
+                    className="font-mono text-[0.5rem] tracking-[0.22em] uppercase text-[#1b1713]/40 hover:text-[#1b1713]/70"
+                  >
+                    close
+                  </button>
+                </div>
+                {leadMailReady === false ? (
+                  <p className="text-[0.68rem] leading-5 text-[#1b1713]/45">
+                    Note saving is paused right now — chat still works.
+                  </p>
+                ) : (
+                  <p className="text-[0.68rem] leading-5 text-[#1b1713]/50">
+                    Optional — email + a short note if you want a reply later. Chat stays open either way.
+                  </p>
+                )}
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="text"
+                    inputMode="email"
+                    name="aileena-console-note-email"
+                    autoComplete="off"
+                    autoCapitalize="off"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    data-1p-ignore="true"
+                    data-lpignore="true"
+                    data-bwignore="true"
+                    data-form-type="other"
+                    value={leadEmail}
+                    onChange={(e) => setLeadEmail(e.target.value)}
+                    placeholder="your email"
+                    disabled={leadState === 'submitting' || leadMailReady === false}
+                    className="flex-1 min-w-0 bg-white border border-[#ded8ce] px-3 py-2 text-sm text-[#1b1713]/90 placeholder:text-[#1b1713]/35 outline-none focus:border-[#00a89d]/70 caret-[#00a89d] disabled:opacity-50"
+                  />
+                  <input
+                    type="text"
+                    name="aileena-console-note-memo"
+                    autoComplete="off"
+                    data-1p-ignore="true"
+                    data-lpignore="true"
+                    data-form-type="other"
+                    value={leadName}
+                    onChange={(e) => setLeadName(e.target.value)}
+                    placeholder="name / WeChat / note (optional)"
+                    disabled={leadState === 'submitting' || leadMailReady === false}
+                    className="flex-1 min-w-0 bg-white border border-[#ded8ce] px-3 py-2 text-sm text-[#1b1713]/90 placeholder:text-[#1b1713]/35 outline-none focus:border-[#00a89d]/70 caret-[#00a89d] disabled:opacity-50"
+                    spellCheck={false}
+                    autoCorrect="off"
+                  />
+                  <button
+                    type="submit"
+                    disabled={
+                      leadState === 'submitting' ||
+                      leadMailReady === false ||
+                      !leadEmail.trim()
+                    }
+                    className="font-mono text-[0.62rem] tracking-[0.3em] uppercase text-[#007d75] border border-[#00a89d]/45 bg-white px-3 py-2 hover:bg-[#e9fffc] transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+                  >
+                    {leadState === 'submitting' ? 'sending…' : 'send ↗'}
+                  </button>
+                </div>
+                {leadError && (
+                  <p className="font-mono text-[0.55rem] tracking-[0.2em] uppercase text-[#1b1713]/55">
+                    ▸ {leadError}
+                  </p>
+                )}
+                <p className="font-mono text-[0.48rem] tracking-[0.24em] uppercase text-[#1b1713]/35">
+                  private ·{' '}
+                  <a
+                    href="/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline decoration-[#1b1713]/20 underline-offset-2 hover:text-[#1b1713]/70"
+                  >
+                    privacy
+                  </a>
+                </p>
+              </form>
+            )}
+          </div>
+        )}
+
+        {leadState === 'sent' && (
+          <div className="border-t border-[#e7e0d6] px-5 py-2 bg-[#f3fbf9] shrink-0">
+            <p className="font-mono text-[0.55rem] tracking-[0.3em] uppercase text-[#008f86]/90">
+              ▸ note sent — thanks
+            </p>
+          </div>
+        )}
+        </div>
       </div>
     </>
   );
@@ -1373,7 +1500,7 @@ function Line({
 }) {
   if (role === 'user') {
     return (
-      <p className="text-[0.82rem] sm:text-sm leading-6 text-[#007d75]/95 whitespace-pre-wrap break-words">
+      <p className="text-[0.82rem] sm:text-sm leading-[1.7] text-[#007d75] whitespace-pre-wrap break-words">
         <span className="text-[#00a89d]/55 mr-2">&gt;</span>
         {text}
       </p>
@@ -1381,10 +1508,10 @@ function Line({
   }
   return (
     <div className="flex gap-3">
-      <span className="text-[#00a89d]/35 select-none leading-6">│</span>
+      <span className="text-[#00a89d]/40 select-none leading-[1.7]">│</span>
       <p
-        className={`flex-1 text-[0.82rem] sm:text-sm leading-6 whitespace-pre-wrap break-words ${
-          muted ? 'text-[#1b1713]/40' : 'text-[#1b1713]/88'
+        className={`flex-1 text-[0.82rem] sm:text-sm leading-[1.7] whitespace-pre-wrap break-words ${
+          muted ? 'text-[#1b1713]/48' : 'text-[#1b1713]/92'
         }`}
       >
         {linkify(text)}
