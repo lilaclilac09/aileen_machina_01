@@ -1089,18 +1089,19 @@ export default function AgentChat() {
         </div>
 
         {/* Transcript — flex-auto: content-sized when dialog is short; shrinks +
-            scrolls when dialog hits sm:max-h-[72vh]. Bottom chrome stays visible. */}
+            scrolls when dialog hits sm:max-h-[72vh]. Bottom chrome stays visible.
+            Soft veil only — same thin type, slightly clearer read on blur. */}
         <div
           ref={scrollRef}
           data-agent-transcript
-          className="flex-auto min-h-[7.5rem] sm:min-h-[9rem] overflow-y-auto overscroll-contain px-4 sm:px-5 py-3 sm:py-4 space-y-3"
+          className="flex-auto min-h-[7.5rem] sm:min-h-[9rem] overflow-y-auto overscroll-contain px-4 sm:px-5 py-3 sm:py-4 space-y-3.5 bg-[#fffcf7]/55"
         >
           {messages.length === 0 ? (
             <>
-              <p className="text-[0.62rem] tracking-[0.25em] text-[#1b1713]/50 uppercase mb-2">
+              <p className="text-[0.62rem] tracking-[0.25em] text-[#1b1713]/55 uppercase mb-2">
                 ▸ ready · say hi or ask anything
               </p>
-              <p className="text-[0.78rem] leading-5 text-[#1b1713]/55 mb-3">
+              <p className="text-[0.78rem] leading-[1.7] text-[#1b1713]/62 mb-3">
                 {voiceMode ? (
                   <>
                     Tap the <span className="text-[#008f86]">orb</span> to speak. You should see a
@@ -1120,18 +1121,18 @@ export default function AgentChat() {
                 )}
               </p>
               {!voiceMode && buildCatchUpHint(readTopicMemory().topics) && (
-                <p className="text-[0.75rem] leading-5 text-[#008f86]/85 mb-2">
+                <p className="text-[0.75rem] leading-[1.7] text-[#008f86]/85 mb-2">
                   {buildCatchUpHint(readTopicMemory().topics)}
                 </p>
               )}
               {!voiceMode && (
-              <ul className="space-y-1.5">
+              <ul className="space-y-2">
                 {STARTER_PROMPTS.map((p) => (
                   <li key={p}>
                     <button
                       type="button"
                       onClick={() => ask(p)}
-                      className="text-left text-[0.82rem] sm:text-sm leading-6 text-[#1b1713]/70 hover:text-[#008f86] transition-colors w-full"
+                      className="text-left text-[0.82rem] sm:text-sm leading-[1.7] text-[#1b1713]/72 hover:text-[#008f86] transition-colors w-full"
                     >
                       <span className="text-[#00a89d]/45 mr-2">&gt;</span>
                       {p}
@@ -1169,7 +1170,7 @@ export default function AgentChat() {
           )}
 
           {voiceMode && voiceLive.trim() && (
-            <p className="text-[0.95rem] sm:text-base leading-6 text-[#007d75] whitespace-pre-wrap break-words">
+            <p className="text-[0.95rem] sm:text-base leading-[1.7] text-[#007d75] whitespace-pre-wrap break-words">
               <span className="text-[#00a89d]/55 mr-2 animate-pulse">&gt;</span>
               {voiceLive}
             </p>
@@ -1381,7 +1382,7 @@ function Line({
 }) {
   if (role === 'user') {
     return (
-      <p className="text-[0.82rem] sm:text-sm leading-6 text-[#007d75]/95 whitespace-pre-wrap break-words">
+      <p className="text-[0.82rem] sm:text-sm leading-[1.7] text-[#007d75] whitespace-pre-wrap break-words">
         <span className="text-[#00a89d]/55 mr-2">&gt;</span>
         {text}
       </p>
@@ -1389,10 +1390,10 @@ function Line({
   }
   return (
     <div className="flex gap-3">
-      <span className="text-[#00a89d]/35 select-none leading-6">│</span>
+      <span className="text-[#00a89d]/40 select-none leading-[1.7]">│</span>
       <p
-        className={`flex-1 text-[0.82rem] sm:text-sm leading-6 whitespace-pre-wrap break-words ${
-          muted ? 'text-[#1b1713]/40' : 'text-[#1b1713]/88'
+        className={`flex-1 text-[0.82rem] sm:text-sm leading-[1.7] whitespace-pre-wrap break-words ${
+          muted ? 'text-[#1b1713]/48' : 'text-[#1b1713]/92'
         }`}
       >
         {linkify(text)}
