@@ -7,7 +7,8 @@
  * STT: Whisper+VAD when caps.whisper (Safari: resume AudioContext + fallback
  * to Web Speech); else Web Speech (Safari: non-continuous, new instance).
  * Chrome continuous finals are accumulated + silence-committed (full sentence,
- * not one-word turns). Debug: localStorage.aileena_voice_debug = '1'.
+ * not one-word turns). Silence window ~1.8–2.4s; interim never replaces finals.
+ * Debug logs on by default ([voice]); set localStorage.aileena_voice_debug='0' to silence.
  * TTS: /api/tts (HTMLAudio on iOS/Safari) with speechSynthesis fallback.
  * Live caption + barge-in. Voice path: Console → Voice → speak.
  */
@@ -78,22 +79,35 @@ const VOICE_STORAGE_KEY = 'aileena.console.voiceAccent';
 
 const SENTENCE_RE = /(?<=[.!?。！？…])\s+|(?<=\n)/;
 const SPEECH_THRESH = 0.018;
-const SILENCE_END_MS = 900;
+/** Whisper VAD: end chunk after this much silence (was 900 — cut mid-sentence). */
+const SILENCE_END_MS = 1400;
 const MIN_SPEECH_MS = 420;
 const COOLDOWN_MS = 280;
 const WHISPER_WATCHDOG_MS = 2800;
-/** Wait after last STT result before committing a full user turn. */
-const UTTERANCE_COMMIT_MS = 1000;
-const SAFARI_FINAL_DEBOUNCE_MS = 700;
+/**
+ * Wait after last *final* STT result before committing a user turn.
+ * Chrome continuous finalizes word-by-word; 1s was committing one-word turns.
+ */
+const UTTERANCE_COMMIT_MS = 1800;
+/** Extra silence when the buffer is still very short (1–2 tokens). */
+const SHORT_UTTERANCE_COMMIT_MS = 2400;
+const SAFARI_FINAL_DEBOUNCE_MS = 1600;
 
+/** TEMP voice pipeline debug — always on; set localStorage.aileena_voice_debug='0' to silence. */
 function vlog(...args: unknown[]) {
   try {
-    if (typeof window !== 'undefined' && window.localStorage?.getItem('aileena_voice_debug') === '1') {
-      console.log('[voice]', ...args);
-    }
+    if (typeof window === 'undefined') return;
+    if (window.localStorage?.getItem('aileena_voice_debug') === '0') return;
+    console.log('[voice]', ...args);
   } catch {
     /* ignore */
   }
+}
+
+function commitDelayFor(text: string, baseMs: number): number {
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  if (words > 0 && words <= 2) return Math.max(baseMs, SHORT_UTTERANCE_COMMIT_MS);
+  return baseMs;
 }
 
 function isSafariUa(): boolean {
@@ -143,7 +157,9 @@ export default function AgentVoiceOrb({
   // Default tts:false — live Production often has no ElevenLabs; browser voice must work first.
   const [caps, setCaps] = useState<Caps>({ whisper: false, tts: false, mode: 'webspeech' });
   const [listening, setListening] = useState(false);
-  const [phase, setPhase] = useState<'idle' | 'listening' | 'hearing' | 'speaking'>('idle');
+  const [phase, setPhase] = useState<
+    'idle' | 'listening' | 'hearing' | 'thinking' | 'speaking' | 'mic-blocked'
+  >('idle');
   const [level, setLevel] = useState(0);
   const [hint, setHint] = useState('Tap speak to start');
   const [caption, setCaption] = useState('');
@@ -180,6 +196,13 @@ export default function AgentVoiceOrb({
   const stickyErrorRef = useRef(false);
   const ttsPlayingRef = useRef(false);
   const listeningRef = useRef(false);
+  /** User tapped stop — do not auto-restart recognition. */
+  const manualStopRef = useRef(false);
+  /** Guard against tight onend → start loops. */
+  const restartCountRef = useRef(0);
+  const restartWindowRef = useRef(0);
+  const pauseWebSpeechForTtsRef = useRef<() => void>(() => {});
+  const kickWebSpeechRestartRef = useRef<() => void>(() => {});
   const onLiveCaptionRef = useRef(onLiveCaption);
   const busyRef = useRef(busy);
   busyRef.current = busy;
@@ -284,16 +307,20 @@ export default function AgentVoiceOrb({
       nextPlayAtRef.current = startAt + buf.duration;
       sourcesRef.current.push(src);
       ttsPlayingRef.current = true;
+      pauseWebSpeechForTtsRef.current();
       setPhase('speaking');
       setCaption('');
       setHint('Speaking…');
+      vlog('tts start', { via: 'webaudio' });
       src.onended = () => {
         sourcesRef.current = sourcesRef.current.filter((s) => s !== src);
         if (!sourcesRef.current.length && gen === playGenRef.current) {
           ttsPlayingRef.current = false;
+          vlog('tts end', { via: 'webaudio' });
           if (listeningRef.current) {
             setPhase('listening');
             setHint('Listening… speak anytime');
+            kickWebSpeechRestartRef.current();
           } else {
             setPhase('idle');
             setHint('Tap speak to start');
@@ -379,10 +406,12 @@ export default function AgentVoiceOrb({
         }
         audio.src = url;
         ttsPlayingRef.current = true;
+        pauseWebSpeechForTtsRef.current();
         setPhase('speaking');
         setCaption('');
         setHint('Speaking… interrupt anytime');
         stickyErrorRef.current = false;
+        vlog('tts start', { via: 'htmlaudio' });
 
         const finish = (revoke: boolean) => {
           if (revoke) {
@@ -394,9 +423,11 @@ export default function AgentVoiceOrb({
           }
           ttsPlayingRef.current = false;
           setNeedsHearTap(false);
+          vlog('tts end', { via: 'htmlaudio' });
           if (listeningRef.current) {
             setPhase('listening');
             setHint('Listening… speak anytime');
+            kickWebSpeechRestartRef.current();
           } else {
             setPhase('idle');
             setHint('Tap speak to start');
@@ -471,15 +502,19 @@ export default function AgentVoiceOrb({
       }
 
       ttsPlayingRef.current = true;
+      pauseWebSpeechForTtsRef.current();
       setPhase('speaking');
       setCaption('');
       setHint('Speaking…');
+      vlog('tts start', { via: 'speechSynthesis' });
 
       const finishIdle = () => {
         ttsPlayingRef.current = false;
+        vlog('tts end', { via: 'speechSynthesis' });
         if (listeningRef.current) {
           setPhase('listening');
           setHint('Listening… speak anytime');
+          kickWebSpeechRestartRef.current();
         } else {
           setPhase('idle');
           setHint('Tap speak to start');
@@ -614,7 +649,8 @@ export default function AgentVoiceOrb({
       vlog('user utterance sent', t);
       onAsk(t);
       setHint('Heard you · answering…');
-      setPhase('listening');
+      setPhase('thinking');
+      vlog('orb status → thinking');
     },
     [disabled, onAsk, stopPlayback],
   );
@@ -624,12 +660,31 @@ export default function AgentVoiceOrb({
       if (commitTimerRef.current) window.clearTimeout(commitTimerRef.current);
       commitTimerRef.current = window.setTimeout(() => {
         commitTimerRef.current = 0;
-        const utterance = (finalAccumRef.current || interimRef.current).trim();
+        // Prefer finals; interim-only only if the engine never finalized (rare).
+        const finals = finalAccumRef.current.trim();
+        const interim = interimRef.current.trim();
+        const utterance = (finals || interim).trim();
         if (!utterance) {
           vlog('commit skipped — empty buffer');
           return;
         }
-        vlog('commit utterance after silence', { utterance, delayMs });
+        if (ttsPlayingRef.current) {
+          vlog('commit deferred — TTS playing', utterance);
+          commitTimerRef.current = window.setTimeout(() => {
+            commitTimerRef.current = 0;
+            const again = (finalAccumRef.current || interimRef.current).trim() || utterance;
+            if (!again || ttsPlayingRef.current) return;
+            finalAccumRef.current = '';
+            interimRef.current = '';
+            handleUtterance(again);
+          }, 400);
+          return;
+        }
+        vlog('commit utterance after silence', {
+          utterance,
+          delayMs,
+          from: finals ? 'final' : 'interim-only',
+        });
         finalAccumRef.current = '';
         interimRef.current = '';
         handleUtterance(utterance);
@@ -730,7 +785,7 @@ export default function AgentVoiceOrb({
         setHint('Listening… speak anytime');
       }
 
-      if (!busyRef.current && !ttsPlayingRef.current) {
+      if (!ttsPlayingRef.current) {
         if (rms > thresh) {
           silenceMsRef.current = 0;
           if (!speechActiveRef.current) {
@@ -841,6 +896,58 @@ export default function AgentVoiceOrb({
     stopWebSpeechMeter();
   }, [stopWebSpeechMeter]);
 
+  /** Soft-stop recognition during TTS without clearing the live accumulators / listening flag. */
+  const pauseWebSpeechForTts = useCallback(() => {
+    clearTimeout(webRestartRef.current);
+    const rec = webRecRef.current;
+    if (!rec) return;
+    vlog('tts start — pause recognition');
+    try {
+      // Keep handlers; onend will see ttsPlaying and defer restart.
+      rec.stop();
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const startWebSpeechRef = useRef<(() => void) | null>(null);
+
+  const kickWebSpeechRestart = useCallback(() => {
+    if (!listeningRef.current || manualStopRef.current || ttsPlayingRef.current) return;
+    const now = Date.now();
+    if (now - restartWindowRef.current > 5000) {
+      restartWindowRef.current = now;
+      restartCountRef.current = 0;
+    }
+    restartCountRef.current += 1;
+    if (restartCountRef.current > 12) {
+      vlog('recognition restart aborted — loop guard');
+      setHint('Mic restarted too often — tap orb');
+      return;
+    }
+    const safariLike = isSafariUa() || isIosUa();
+    vlog('recognition restart', { safariLike, count: restartCountRef.current });
+    if (safariLike) {
+      try {
+        startWebSpeechRef.current?.();
+      } catch {
+        /* ignore */
+      }
+    } else if (webRecRef.current) {
+      try {
+        webRecRef.current.start();
+      } catch {
+        try {
+          startWebSpeechRef.current?.();
+        } catch {
+          /* ignore */
+        }
+      }
+    } else {
+      startWebSpeechRef.current?.();
+    }
+  }, []);
+
   const startWebSpeech = useCallback(() => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) throw new Error('no Web Speech');
@@ -872,9 +979,15 @@ export default function AgentVoiceOrb({
     vlog('recognition start', { continuous: rec.continuous, lang: rec.lang, safariLike });
     rec.onstart = () => {
       stickyErrorRef.current = false;
-      setPhase(ttsPlayingRef.current ? 'speaking' : 'listening');
-      setHint(ttsPlayingRef.current ? 'Speaking… interrupt anytime' : 'Listening… speak anytime');
-      vlog('recognition onstart', { tts: ttsPlayingRef.current });
+      setPhase(ttsPlayingRef.current ? 'speaking' : busyRef.current ? 'thinking' : 'listening');
+      setHint(
+        ttsPlayingRef.current
+          ? 'Speaking… interrupt anytime'
+          : busyRef.current
+            ? 'Answering… you can still barge in'
+            : 'Listening… speak anytime',
+      );
+      vlog('recognition onstart', { tts: ttsPlayingRef.current, busy: busyRef.current });
     };
     rec.onerror = (e: SpeechRecognitionErrorEvent) => {
       vlog('recognition onerror', e.error);
@@ -885,7 +998,8 @@ export default function AgentVoiceOrb({
         listeningRef.current = false;
         setListening(false);
         onListeningChange?.(false);
-        setPhase('idle');
+        setPhase('mic-blocked');
+        vlog('orb status → mic-blocked');
         return;
       }
       stickyErrorRef.current = true;
@@ -894,42 +1008,28 @@ export default function AgentVoiceOrb({
     rec.onend = () => {
       vlog('recognition onend', {
         listening: listeningRef.current,
+        manualStop: manualStopRef.current,
         busy: busyRef.current,
         tts: ttsPlayingRef.current,
         accum: finalAccumRef.current,
+        interim: interimRef.current,
       });
-      // If the engine ended mid-phrase, flush after a short beat when we have text.
-      if (listeningRef.current && (finalAccumRef.current || interimRef.current)) {
-        scheduleUtteranceCommit(safariLike ? commitMs : Math.min(commitMs, 600));
+      // Chrome auto-ends even with continuous=true. Do NOT flush a short buffer
+      // immediately — that caused one-word turns. Keep accumulators; restart;
+      // let the silence timer from onresult commit the full utterance.
+      if (safariLike && listeningRef.current && (finalAccumRef.current || interimRef.current)) {
+        const buf = (finalAccumRef.current || interimRef.current).trim();
+        scheduleUtteranceCommit(commitDelayFor(buf, commitMs));
       }
-      // Keep the loop alive even while the model answers — so barge-in works.
-      if (!listeningRef.current) return;
+      if (!listeningRef.current || manualStopRef.current) return;
       const retry = () => {
-        if (!listeningRef.current) return;
-        // Pause restarts while TTS plays to reduce feedback; barge-in still works
-        // via residual session or the next start after speech ends.
+        if (!listeningRef.current || manualStopRef.current) return;
+        // Pause restarts while TTS plays (avoid feedback). Resume after TTS ends.
         if (ttsPlayingRef.current) {
           webRestartRef.current = window.setTimeout(retry, 350);
           return;
         }
-        if (busyRef.current && !safariLike) {
-          webRestartRef.current = window.setTimeout(retry, 400);
-          return;
-        }
-        vlog('recognition restart', { safariLike });
-        if (safariLike) {
-          try {
-            startWebSpeech();
-          } catch {
-            /* ignore */
-          }
-        } else {
-          try {
-            rec.start();
-          } catch {
-            /* ignore */
-          }
-        }
+        kickWebSpeechRestart();
       };
       webRestartRef.current = window.setTimeout(retry, safariLike ? 180 : 120);
     };
@@ -947,6 +1047,7 @@ export default function AgentVoiceOrb({
         results: ev.results.length,
         newFinals,
         interim,
+        accumBefore: finalAccumRef.current,
       });
 
       // Barge-in: any live speech cuts TTS / lets a new turn take over.
@@ -954,34 +1055,51 @@ export default function AgentVoiceOrb({
         stopPlayback();
         setPhase('listening');
         setHint('Listening… speak anytime');
+        vlog('orb status → listening (barge-in)');
       }
 
       if (newFinals) {
+        // Accumulate finals — never replace the whole buffer with only the latest word.
         finalAccumRef.current = `${finalAccumRef.current} ${newFinals}`.trim();
       }
+      // Interim is the *current* hypothesis only (not appended across events).
       interimRef.current = interim;
 
       const live = `${finalAccumRef.current}${interim ? ` ${interim}` : ''}`.trim();
       if (live) {
-        pushCaption(live, false);
+        pushCaption(live, Boolean(newFinals) && !interim);
         setPhase('hearing');
         setHint('Hearing you…');
       }
 
-      // Do NOT send on every final — Chrome continuous finalizes word/phrase chunks.
-      // Accumulate, then commit after a silence gap.
-      if (newFinals || interim) {
+      // Commit only after silence following finals (or extend timer if finals exist).
+      // Interim-only updates the live caption — do not send yet.
+      if (newFinals) {
+        const delay = commitDelayFor(finalAccumRef.current, commitMs);
+        scheduleUtteranceCommit(delay);
+      } else if (interim && finalAccumRef.current) {
+        // Still talking after some finals — keep extending the silence window.
         scheduleUtteranceCommit(commitMs);
       }
     };
-    rec.start();
+    try {
+      rec.start();
+    } catch (err) {
+      vlog('recognition start threw', err);
+      throw err;
+    }
   }, [
+    kickWebSpeechRestart,
     onListeningChange,
     pushCaption,
     scheduleUtteranceCommit,
     startWebSpeechMeter,
     stopPlayback,
   ]);
+
+  startWebSpeechRef.current = startWebSpeech;
+  pauseWebSpeechForTtsRef.current = pauseWebSpeechForTts;
+  kickWebSpeechRestartRef.current = kickWebSpeechRestart;
 
   const startOpenAiListen = useCallback(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -1003,6 +1121,8 @@ export default function AgentVoiceOrb({
     if (disabled) return;
     unlockBrowserVoice();
     stickyErrorRef.current = false;
+    manualStopRef.current = false;
+    restartCountRef.current = 0;
     listeningRef.current = true;
     setListening(true);
     onListeningChange?.(true);
@@ -1044,7 +1164,7 @@ export default function AgentVoiceOrb({
       listeningRef.current = false;
       setListening(false);
       onListeningChange?.(false);
-      setPhase('idle');
+      setPhase('mic-blocked');
       stickyErrorRef.current = true;
       setHint(
         isIosUa() || isSafariUa()
@@ -1065,6 +1185,7 @@ export default function AgentVoiceOrb({
   ]);
 
   const stopListening = useCallback(() => {
+    manualStopRef.current = true;
     listeningRef.current = false;
     setListening(false);
     onListeningChange?.(false);
@@ -1076,6 +1197,7 @@ export default function AgentVoiceOrb({
     setCaption('');
     pushCaption('', false);
     if (!stickyErrorRef.current) setHint('Tap speak to start');
+    vlog('orb listening stop (manual)');
   }, [onListeningChange, pushCaption, stopOpenAiListen, stopPlayback, stopWebSpeech]);
 
   const onOrbClick = useCallback(() => {
@@ -1118,6 +1240,19 @@ export default function AgentVoiceOrb({
     });
   }, [active, autoListen, disabled, listening, startListening]);
 
+  // When chat finishes streaming and TTS is not playing, return to listening.
+  useEffect(() => {
+    if (!listeningRef.current) return;
+    if (busy) return;
+    if (ttsPlayingRef.current) return;
+    if (phase === 'thinking') {
+      setPhase('listening');
+      setHint('Listening… speak anytime');
+      vlog('orb status → listening (stream end)');
+      kickWebSpeechRestartRef.current();
+    }
+  }, [busy, phase]);
+
   useEffect(() => {
     return () => {
       stopListening();
@@ -1140,17 +1275,21 @@ export default function AgentVoiceOrb({
       ? caption.trim()
       : needsHearTap
         ? 'Tap orb to hear reply'
-        : listening
-          ? phase === 'speaking'
-            ? 'Speaking…'
-            : phase === 'hearing'
-              ? 'Hearing you…'
-              : 'Listening…'
-          : hintIsError
-            ? hint
-            : hint && /answering|Speaking|Heard|Got it|Hearing/i.test(hint)
+        : phase === 'mic-blocked'
+          ? hint
+          : listening
+            ? phase === 'speaking'
+              ? 'Speaking…'
+              : phase === 'thinking'
+                ? 'Thinking…'
+                : phase === 'hearing'
+                  ? 'Hearing you…'
+                  : 'Listening…'
+            : hintIsError
               ? hint
-              : 'Tap speak to start';
+              : hint && /answering|Speaking|Heard|Got it|Hearing|Thinking/i.test(hint)
+                ? hint
+                : 'Tap speak to start';
 
   return (
     <div className="border-t border-[#e7e0d6] px-5 py-2.5 sm:py-3 bg-[#faf7f0]/80">
@@ -1166,7 +1305,7 @@ export default function AgentVoiceOrb({
           className={`relative h-[52px] w-[52px] sm:h-[60px] sm:w-[60px] shrink-0 rounded-full border-0 transition-transform hover:scale-[1.04] disabled:cursor-not-allowed disabled:opacity-40 ${
             phase === 'listening' || phase === 'hearing'
               ? 'animate-pulse shadow-[0_0_0_2px_#fffdf8,0_0_0_4px_rgba(0,255,234,0.38),0_10px_26px_rgba(0,168,157,0.3)]'
-              : phase === 'speaking'
+              : phase === 'speaking' || phase === 'thinking'
                 ? 'shadow-[0_0_0_2px_#fffdf8,0_0_0_4px_rgba(0,168,157,0.42),0_12px_28px_rgba(0,127,117,0.32)]'
                 : 'shadow-[0_0_0_2px_#fffdf8,0_0_0_3px_rgba(0,168,157,0.3),0_8px_22px_rgba(0,127,117,0.24)]'
           }`}
