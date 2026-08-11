@@ -32,6 +32,7 @@
     "test:e2e:dnd": "playwright test e2e/dj-drag-deck-a.spec.ts --config=playwright.config.ts",
     "chat:pending": "tsx scripts/list-chat-forwards.ts",
     "chat:resend-pending": "tsx scripts/resend-pending-chat-forwards.ts",
+    "lead:test": "tsx scripts/test-lead-email.ts",
     "inkling:clips": "tsx scripts/inkling-clips.ts",
     "video:catalog": "tsx scripts/video-edit/cli.ts catalog --skip-whisper",
     "video:inventory": "tsx scripts/video-edit/cli.ts plan --skip-whisper",

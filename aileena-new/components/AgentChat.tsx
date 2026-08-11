@@ -114,6 +114,8 @@ export default function AgentChat() {
   const [leadState, setLeadState] = useState<LeadState>('idle');
   const [leadError, setLeadError] = useState<string | null>(null);
   const [leadOpen, setLeadOpen] = useState(false);
+  /** null = unknown / probing; false = backend offline → gentle disabled UI */
+  const [leadMailReady, setLeadMailReady] = useState<boolean | null>(null);
   const [voiceMode, setVoiceMode] = useState(false);
   const [voiceLive, setVoiceLive] = useState('');
   /** Start orb listen once after Voice toggle / open-agent-chat autoListen. */
@@ -889,20 +891,68 @@ export default function AgentChat() {
     }
   }
 
+  async function probeLeadMailReady(): Promise<boolean> {
+    try {
+      const res = await fetch('/api/lead', { method: 'GET', cache: 'no-store' });
+      const body = (await res.json().catch(() => ({}))) as { ok?: boolean };
+      const ready = Boolean(body.ok);
+      setLeadMailReady(ready);
+      if (!ready && typeof console !== 'undefined') {
+        console.warn('[aileena] leave-a-note mail backend not ready (see server logs)');
+      }
+      return ready;
+    } catch {
+      setLeadMailReady(false);
+      if (typeof console !== 'undefined') {
+        console.warn('[aileena] leave-a-note status check failed');
+      }
+      return false;
+    }
+  }
+
+  async function openLeadForm() {
+    setLeadError(null);
+    setLeadOpen(true);
+    const ready = await probeLeadMailReady();
+    if (!ready) {
+      // Gentle disabled — never "inbox not configured" in the UI.
+      setLeadError(null);
+    }
+  }
+
   async function submitLead() {
+    if (leadState === 'submitting') return;
     const email = leadEmail.trim();
+    const memo = leadName.trim();
+
+    if (leadMailReady === false) {
+      setLeadError('Note saving is offline right now.');
+      return;
+    }
+
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setLeadError('Enter a valid email.');
       return;
     }
-    setLeadError(null);
-    setLeadState('submitting');
 
     // Flatten the live transcript into the shape the API expects.
-    const transcript = messages.map((m) => ({
-      role: m.role === 'user' ? 'user' : 'assistant',
-      text: getMessageText(m),
-    }));
+    const capturedAt = new Date().toISOString();
+    const transcript = messages
+      .map((m) => ({
+        role: m.role === 'user' ? ('user' as const) : ('assistant' as const),
+        text: getMessageText(m),
+        at: capturedAt,
+      }))
+      .filter((m) => m.text.trim().length > 0);
+
+    // Reject fully empty (email alone is ok; note optional when transcript exists).
+    if (!email && !memo && transcript.length === 0) {
+      setLeadError('Nothing to send.');
+      return;
+    }
+
+    setLeadError(null);
+    setLeadState('submitting');
 
     try {
       const res = await fetch('/api/lead', {
@@ -910,15 +960,26 @@ export default function AgentChat() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email,
-          name: leadName.trim() || undefined,
+          name: memo || undefined,
+          note: memo || undefined,
           transcript,
+          context: typeof window !== 'undefined' ? window.location.href : undefined,
         }),
       });
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
+      const body = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        ok?: boolean;
+        id?: string;
+      };
+      if (!res.ok || !body.ok) {
         const raw = body.error || 'Send failed. Try again.';
-        // Never surface inbox/env configuration to visitors.
-        if (/inbox not configured|not configured|resend|api key|503/i.test(raw)) {
+        // Never surface inbox/env/Resend config to visitors.
+        if (
+          /inbox not configured|not configured|resend|api key|503|offline|sender not ready|verify a domain|vercel|paused/i.test(
+            raw,
+          )
+        ) {
+          setLeadMailReady(false);
           setLeadError('Note saving is offline right now.');
         } else {
           setLeadError(raw);
@@ -1309,8 +1370,7 @@ export default function AgentChat() {
               <button
                 type="button"
                 onClick={() => {
-                  setLeadError(null);
-                  setLeadOpen(true);
+                  void openLeadForm();
                 }}
                 className="font-mono text-[0.55rem] tracking-[0.28em] uppercase text-[#008f86]/80 hover:text-[#007d75] transition-colors"
               >
@@ -1340,9 +1400,15 @@ export default function AgentChat() {
                     close
                   </button>
                 </div>
-                <p className="text-[0.68rem] leading-5 text-[#1b1713]/50">
-                  Optional — email + a short note if you want a reply later. Chat stays open either way.
-                </p>
+                {leadMailReady === false ? (
+                  <p className="text-[0.68rem] leading-5 text-[#1b1713]/45">
+                    Note saving is paused right now — chat still works.
+                  </p>
+                ) : (
+                  <p className="text-[0.68rem] leading-5 text-[#1b1713]/50">
+                    Optional — email + a short note if you want a reply later. Chat stays open either way.
+                  </p>
+                )}
                 <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="text"
@@ -1359,7 +1425,7 @@ export default function AgentChat() {
                     value={leadEmail}
                     onChange={(e) => setLeadEmail(e.target.value)}
                     placeholder="your email"
-                    disabled={leadState === 'submitting'}
+                    disabled={leadState === 'submitting' || leadMailReady === false}
                     className="flex-1 min-w-0 bg-white border border-[#ded8ce] px-3 py-2 text-sm text-[#1b1713]/90 placeholder:text-[#1b1713]/35 outline-none focus:border-[#00a89d]/70 caret-[#00a89d] disabled:opacity-50"
                   />
                   <input
@@ -1372,14 +1438,18 @@ export default function AgentChat() {
                     value={leadName}
                     onChange={(e) => setLeadName(e.target.value)}
                     placeholder="name / WeChat / note (optional)"
-                    disabled={leadState === 'submitting'}
+                    disabled={leadState === 'submitting' || leadMailReady === false}
                     className="flex-1 min-w-0 bg-white border border-[#ded8ce] px-3 py-2 text-sm text-[#1b1713]/90 placeholder:text-[#1b1713]/35 outline-none focus:border-[#00a89d]/70 caret-[#00a89d] disabled:opacity-50"
                     spellCheck={false}
                     autoCorrect="off"
                   />
                   <button
                     type="submit"
-                    disabled={leadState === 'submitting' || !leadEmail.trim()}
+                    disabled={
+                      leadState === 'submitting' ||
+                      leadMailReady === false ||
+                      !leadEmail.trim()
+                    }
                     className="font-mono text-[0.62rem] tracking-[0.3em] uppercase text-[#007d75] border border-[#00a89d]/45 bg-white px-3 py-2 hover:bg-[#e9fffc] transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
                   >
                     {leadState === 'submitting' ? 'sending…' : 'send ↗'}
