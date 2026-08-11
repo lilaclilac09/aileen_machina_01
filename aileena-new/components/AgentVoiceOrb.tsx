@@ -1149,9 +1149,13 @@ export default function AgentVoiceOrb({
             hintIsError ? 'text-red-500/75' : 'text-[#1b1713]/55'
           }`}
         >
-          <span className={hintIsError ? undefined : 'text-[#008f86]/70'}>{hint}</span>
+          {hintIsError || listening || needsHearTap || /answering|Speaking|Heard|Got it|Hearing/i.test(hint) ? (
+            <span className={hintIsError ? undefined : 'text-[#008f86]/70'}>{hint}</span>
+          ) : null}
           <span className="text-[#1b1713]/40">
-            {' · '}
+            {hintIsError || listening || needsHearTap || /answering|Speaking|Heard|Got it|Hearing/i.test(hint)
+              ? ' · '
+              : ''}
             {caps.whisper ? 'whisper' : 'dictation'}
             {' · '}
             <span className="text-[#008f86]/65">{activeAccent.label}</span>

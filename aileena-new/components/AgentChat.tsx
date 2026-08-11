@@ -1345,21 +1345,22 @@ export default function AgentChat() {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <input
-                    type="email"
+                    type="text"
                     inputMode="email"
                     name="aileena-console-note-email"
                     autoComplete="off"
+                    autoCapitalize="off"
+                    autoCorrect="off"
+                    spellCheck={false}
                     data-1p-ignore="true"
                     data-lpignore="true"
+                    data-bwignore="true"
                     data-form-type="other"
                     value={leadEmail}
                     onChange={(e) => setLeadEmail(e.target.value)}
                     placeholder="your email"
                     disabled={leadState === 'submitting'}
                     className="flex-1 min-w-0 bg-white border border-[#ded8ce] px-3 py-2 text-sm text-[#1b1713]/90 placeholder:text-[#1b1713]/35 outline-none focus:border-[#00a89d]/70 caret-[#00a89d] disabled:opacity-50"
-                    spellCheck={false}
-                    autoCorrect="off"
-                    autoCapitalize="off"
                   />
                   <input
                     type="text"
