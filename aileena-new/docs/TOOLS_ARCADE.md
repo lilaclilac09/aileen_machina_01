@@ -12,7 +12,8 @@
 
 Public utilities live under **`/tools`**. Flat geometric tiles (no borders / arcade chrome). Each tool is one registry entry + one route.
 
-**Reference:** [Audio Clipping](/tools/inkling-clips) — YouTube → Inkling → ffmpeg cuts.
+**Reference:** [Audio Clipping](/tools/inkling-clips) — YouTube → silence cuts / optional Inkling.  
+Also live: [Cafe Recap Edit](/tools/cafe-recap) — local JSON→ffmpeg event recap (Mac CLI; no cloud upload).
 
 ---
 
