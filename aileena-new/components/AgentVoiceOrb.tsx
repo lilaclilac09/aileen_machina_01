@@ -6,6 +6,8 @@
  * Transport only — brain stays /api/chat via parent `onAsk`.
  * STT: Whisper+VAD when caps.whisper (Safari: resume AudioContext + fallback
  * to Web Speech); else Web Speech (Safari: non-continuous, new instance).
+ * Chrome continuous finals are accumulated + silence-committed (full sentence,
+ * not one-word turns). Debug: localStorage.aileena_voice_debug = '1'.
  * TTS: /api/tts (HTMLAudio on iOS/Safari) with speechSynthesis fallback.
  * Live caption + barge-in. Voice path: Console → Voice → speak.
  */
@@ -76,11 +78,23 @@ const VOICE_STORAGE_KEY = 'aileena.console.voiceAccent';
 
 const SENTENCE_RE = /(?<=[.!?。！？…])\s+|(?<=\n)/;
 const SPEECH_THRESH = 0.018;
-const SILENCE_END_MS = 750;
-const MIN_SPEECH_MS = 280;
+const SILENCE_END_MS = 900;
+const MIN_SPEECH_MS = 420;
 const COOLDOWN_MS = 280;
 const WHISPER_WATCHDOG_MS = 2800;
-const SAFARI_FINAL_DEBOUNCE_MS = 450;
+/** Wait after last STT result before committing a full user turn. */
+const UTTERANCE_COMMIT_MS = 1000;
+const SAFARI_FINAL_DEBOUNCE_MS = 700;
+
+function vlog(...args: unknown[]) {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage?.getItem('aileena_voice_debug') === '1') {
+      console.log('[voice]', ...args);
+    }
+  } catch {
+    /* ignore */
+  }
+}
 
 function isSafariUa(): boolean {
   if (typeof navigator === 'undefined') return false;
@@ -156,6 +170,8 @@ export default function AgentVoiceOrb({
   const webRecRef = useRef<SpeechRecognition | null>(null);
   const webRestartRef = useRef(0);
   const commitTimerRef = useRef(0);
+  const finalAccumRef = useRef('');
+  const interimRef = useRef('');
   const whisperWatchdogRef = useRef(0);
   const htmlAudioRef = useRef<HTMLAudioElement | null>(null);
   const pendingHearRef = useRef<{ url: string; gen: number } | null>(null);
@@ -585,17 +601,41 @@ export default function AgentVoiceOrb({
       const now = Date.now();
       // Allow barge-in while busy/speaking — only soft-throttle identical rapid finals.
       if (now - lastAskAtRef.current < COOLDOWN_MS && !ttsPlayingRef.current && !busyRef.current) {
+        vlog('utterance throttled', t);
         return;
       }
       lastAskAtRef.current = now;
       stopPlayback();
       // Clear live caption so it doesn't permanently duplicate the transcript line.
+      finalAccumRef.current = '';
+      interimRef.current = '';
       setCaption('');
       onLiveCaptionRef.current?.('', false);
+      vlog('user utterance sent', t);
       onAsk(t);
       setHint('Heard you · answering…');
+      setPhase('listening');
     },
     [disabled, onAsk, stopPlayback],
+  );
+
+  const scheduleUtteranceCommit = useCallback(
+    (delayMs: number) => {
+      if (commitTimerRef.current) window.clearTimeout(commitTimerRef.current);
+      commitTimerRef.current = window.setTimeout(() => {
+        commitTimerRef.current = 0;
+        const utterance = (finalAccumRef.current || interimRef.current).trim();
+        if (!utterance) {
+          vlog('commit skipped — empty buffer');
+          return;
+        }
+        vlog('commit utterance after silence', { utterance, delayMs });
+        finalAccumRef.current = '';
+        interimRef.current = '';
+        handleUtterance(utterance);
+      }, delayMs);
+    },
+    [handleUtterance],
   );
 
   const pickMime = () => {
@@ -652,8 +692,10 @@ export default function AgentVoiceOrb({
         body: blob,
       });
       const data = (await res.json()) as { ok?: boolean; text?: string };
-      if (data.ok && data.text) handleUtterance(data.text);
-      else if (listeningRef.current) {
+      if (data.ok && data.text) {
+        vlog('whisper transcript', data.text);
+        handleUtterance(data.text);
+      } else if (listeningRef.current) {
         setPhase('listening');
         setHint('Listening… speak anytime');
       }
@@ -783,6 +825,8 @@ export default function AgentVoiceOrb({
       window.clearTimeout(commitTimerRef.current);
       commitTimerRef.current = 0;
     }
+    finalAccumRef.current = '';
+    interimRef.current = '';
     if (webRecRef.current) {
       try {
         webRecRef.current.onend = null;
@@ -801,6 +845,7 @@ export default function AgentVoiceOrb({
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) throw new Error('no Web Speech');
     const safariLike = isSafariUa() || isIosUa();
+    const commitMs = safariLike ? SAFARI_FINAL_DEBOUNCE_MS : UTTERANCE_COMMIT_MS;
 
     clearTimeout(webRestartRef.current);
     if (webRecRef.current) {
@@ -821,13 +866,18 @@ export default function AgentVoiceOrb({
     webRecRef.current = rec;
     rec.lang = langRef.current;
     rec.interimResults = true;
+    // Chrome: continuous so we accumulate a full sentence.
+    // Safari/iOS: non-continuous (engine quirk) + restart on end.
     rec.continuous = !safariLike;
+    vlog('recognition start', { continuous: rec.continuous, lang: rec.lang, safariLike });
     rec.onstart = () => {
       stickyErrorRef.current = false;
       setPhase(ttsPlayingRef.current ? 'speaking' : 'listening');
       setHint(ttsPlayingRef.current ? 'Speaking… interrupt anytime' : 'Listening… speak anytime');
+      vlog('recognition onstart', { tts: ttsPlayingRef.current });
     };
     rec.onerror = (e: SpeechRecognitionErrorEvent) => {
+      vlog('recognition onerror', e.error);
       if (e.error === 'no-speech' || e.error === 'aborted') return;
       if (e.error === 'not-allowed') {
         setHint('Mic blocked — allow in Settings, then tap orb');
@@ -842,14 +892,31 @@ export default function AgentVoiceOrb({
       setHint(e.error === 'network' ? 'Speech network error — tap orb again' : 'Mic issue — tap orb again');
     };
     rec.onend = () => {
+      vlog('recognition onend', {
+        listening: listeningRef.current,
+        busy: busyRef.current,
+        tts: ttsPlayingRef.current,
+        accum: finalAccumRef.current,
+      });
+      // If the engine ended mid-phrase, flush after a short beat when we have text.
+      if (listeningRef.current && (finalAccumRef.current || interimRef.current)) {
+        scheduleUtteranceCommit(safariLike ? commitMs : Math.min(commitMs, 600));
+      }
       // Keep the loop alive even while the model answers — so barge-in works.
       if (!listeningRef.current) return;
       const retry = () => {
         if (!listeningRef.current) return;
+        // Pause restarts while TTS plays to reduce feedback; barge-in still works
+        // via residual session or the next start after speech ends.
+        if (ttsPlayingRef.current) {
+          webRestartRef.current = window.setTimeout(retry, 350);
+          return;
+        }
         if (busyRef.current && !safariLike) {
           webRestartRef.current = window.setTimeout(retry, 400);
           return;
         }
+        vlog('recognition restart', { safariLike });
         if (safariLike) {
           try {
             startWebSpeech();
@@ -868,39 +935,53 @@ export default function AgentVoiceOrb({
     };
     rec.onresult = (ev: SpeechRecognitionEvent) => {
       let interim = '';
-      let finalText = '';
+      let newFinals = '';
       for (let i = ev.resultIndex; i < ev.results.length; i++) {
         const piece = (ev.results[i][0]?.transcript || '').trim();
         if (!piece) continue;
-        if (ev.results[i].isFinal) finalText += (finalText ? ' ' : '') + piece;
+        if (ev.results[i].isFinal) newFinals += (newFinals ? ' ' : '') + piece;
         else interim += (interim ? ' ' : '') + piece;
       }
+      vlog('recognition result', {
+        resultIndex: ev.resultIndex,
+        results: ev.results.length,
+        newFinals,
+        interim,
+      });
+
       // Barge-in: any live speech cuts TTS / lets a new turn take over.
-      if ((interim || finalText) && ttsPlayingRef.current) {
+      if ((interim || newFinals) && ttsPlayingRef.current) {
         stopPlayback();
         setPhase('listening');
         setHint('Listening… speak anytime');
       }
-      if (interim) {
-        pushCaption(interim, false);
+
+      if (newFinals) {
+        finalAccumRef.current = `${finalAccumRef.current} ${newFinals}`.trim();
+      }
+      interimRef.current = interim;
+
+      const live = `${finalAccumRef.current}${interim ? ` ${interim}` : ''}`.trim();
+      if (live) {
+        pushCaption(live, false);
         setPhase('hearing');
         setHint('Hearing you…');
       }
-      if (finalText) {
-        pushCaption(finalText, true);
-        setPhase('hearing');
-        if (safariLike) {
-          if (commitTimerRef.current) window.clearTimeout(commitTimerRef.current);
-          commitTimerRef.current = window.setTimeout(() => {
-            handleUtterance(finalText);
-          }, SAFARI_FINAL_DEBOUNCE_MS);
-        } else {
-          handleUtterance(finalText);
-        }
+
+      // Do NOT send on every final — Chrome continuous finalizes word/phrase chunks.
+      // Accumulate, then commit after a silence gap.
+      if (newFinals || interim) {
+        scheduleUtteranceCommit(commitMs);
       }
     };
     rec.start();
-  }, [handleUtterance, onListeningChange, pushCaption, startWebSpeechMeter, stopPlayback]);
+  }, [
+    onListeningChange,
+    pushCaption,
+    scheduleUtteranceCommit,
+    startWebSpeechMeter,
+    stopPlayback,
+  ]);
 
   const startOpenAiListen = useCallback(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -927,8 +1008,11 @@ export default function AgentVoiceOrb({
     onListeningChange?.(true);
     setPhase('listening');
     setHint('Listening… speak anytime');
+    finalAccumRef.current = '';
+    interimRef.current = '';
     ensurePlayCtx();
     window.clearTimeout(whisperWatchdogRef.current);
+    vlog('orb listening start', { whisper: caps.whisper });
     try {
       // Prefer Whisper when available (more reliable than Web Speech on iOS).
       const preferWhisper = caps.whisper && navigator.mediaDevices && window.MediaRecorder;
@@ -967,6 +1051,7 @@ export default function AgentVoiceOrb({
           ? 'Allow mic in Settings, then tap orb'
           : 'Mic unavailable — tap orb again',
       );
+      vlog('orb listening failed / mic blocked');
     }
   }, [
     caps.whisper,
