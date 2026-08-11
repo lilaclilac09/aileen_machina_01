@@ -104,6 +104,15 @@ const FILM_RECS = [
     body:
       'Protection detail, Westminster, paranoia paced like a thriller — same British-public-life room as The Crown, hotter pulse.',
   },
+  {
+    title: 'Miss Sloane',
+    year: '2016',
+    label: 'lobby · power',
+    href: 'https://en.wikipedia.org/wiki/Miss_Sloane',
+    image: '/shelf/miss-sloane.jpg',
+    body:
+      'Jessica Chastain as the sharpest lobbyist in the room — strategy as bloodsport, guns as numbers, and a woman who refuses to lose quietly. 斯隆女士.',
+  },
 ];
 
 const WATCH_ITEMS = [...DOCUMENTARY_RECS, ...FILM_RECS];
@@ -276,8 +285,8 @@ export default function WatchListeningShelfArticle() {
           <p className="rec-section-label">watch · listening shelf</p>
           <h2 id="watch-recs">Watch — documentaries & films</h2>
           <p className="rec-section-dek">
-            Didion / Hockney for calibration; Léa · Bond · The Crown · The Capture · Bodyguard
-            for life-texture — pacing and temperature, not a checklist.
+            Didion / Hockney for calibration; Léa · Bond · The Crown · The Capture · Bodyguard · Miss
+            Sloane for life-texture — pacing and temperature, not a checklist.
           </p>
           <div className="documentary-rec-wall">
             {WATCH_ITEMS.map((item) => (
