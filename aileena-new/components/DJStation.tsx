@@ -38,6 +38,13 @@ function spotifyTrackId(track: Track): string | null {
   return null;
 }
 
+function findTrackById(id: string | null | undefined): Track | null {
+  if (!id) return null;
+  return DJ_SET.find((t) => t.id === id || t.spotifyId === id) ?? null;
+}
+
+const DJ_AUDIT = '[dj-audit]';
+
 function firstPlayableTrack(from = 0, skipId?: string | null): Track | null {
   for (let i = from; i < DJ_SET.length; i++) {
     const t = DJ_SET[i];
@@ -125,6 +132,8 @@ export default function DJStation() {
   const leftCtrl          = useRef<SpotifyController | null>(null);
   const rightCtrl         = useRef<SpotifyController | null>(null);
   const dragTrack         = useRef<Track | null>(null);
+  /** Deck A only — URI queued when leftCtrl is not ready yet (migration reconnect). */
+  const pendingLeftUri    = useRef<string | null>(null);
   const prevXfade         = useRef(50);
   const leftWasPlaying    = useRef(false);
   const rightWasPlaying   = useRef(false);
@@ -138,6 +147,22 @@ export default function DJStation() {
 
   useEffect(() => () => {
     if (hintTimer.current) clearTimeout(hintTimer.current);
+  }, []);
+
+  useEffect(() => {
+    const sample = DJ_SET.slice(0, 3).map((t) => ({
+      id: t.id,
+      title: t.title,
+      thumb: !!t.thumb,
+      bpm: t.bpm,
+      key: t.key,
+      dur: t.dur,
+      playable: !!spotifyTrackId(t),
+    }));
+    console.log(DJ_AUDIT, 'carousel state after catalogue bind', {
+      count: DJ_SET.length,
+      sample,
+    });
   }, []);
 
   /* ── Spotify API — tolerant of Strict Mode remount + late script ready ── */
@@ -189,6 +214,17 @@ export default function DJStation() {
           if (cancelled) return;
           ctrlRef.current = ctrl;
           ctrl.addListener('playback_update', onUpdate);
+          // Deck A slice: flush queued loadUri when controller becomes ready
+          if (side === 'left' && pendingLeftUri.current) {
+            const queued = pendingLeftUri.current;
+            pendingLeftUri.current = null;
+            console.log(DJ_AUDIT, 'leftCtrl ready — flush pendingLeftUri', queued);
+            try {
+              ctrl.loadUri(queued);
+            } catch (err) {
+              console.log(DJ_AUDIT, 'flush pendingLeftUri failed', err);
+            }
+          }
           onReady();
         },
       );
@@ -255,17 +291,45 @@ export default function DJStation() {
 
   const loadTrack = useCallback((side: 'left'|'right', track: Track) => {
     const sid = spotifyTrackId(track);
+    console.log(DJ_AUDIT, 'loadTrack', {
+      side,
+      id: track.id,
+      title: track.title,
+      thumb: track.thumb?.slice?.(0, 48),
+      bpm: track.bpm,
+      key: track.key,
+      dur: track.dur,
+      spotifyId: sid,
+    });
+
     if (side === 'left') {
       setLeftTrack(track);
       setLeftPos(0);
       setLeftDur(0);
       if (sid) {
-        leftCtrl.current?.loadUri(`spotify:track:${sid}`);
-        setDeckHint(null);
+        const uri = `spotify:track:${sid}`;
+        if (leftCtrl.current) {
+          pendingLeftUri.current = null;
+          try {
+            leftCtrl.current.loadUri(uri);
+            console.log(DJ_AUDIT, 'audio source assigned', { deck: 'A', uri, via: 'loadUri' });
+            setDeckHint(null);
+          } catch (err) {
+            console.log(DJ_AUDIT, 'loadUri error', { deck: 'A', err });
+            showDeckHint('Deck A: press ▶ to start');
+          }
+        } else {
+          // Reconnect: queue until leftCtrl createController callback (same IFrame, no second player)
+          pendingLeftUri.current = uri;
+          console.log(DJ_AUDIT, 'leftCtrl null — queued pendingLeftUri', uri);
+          showDeckHint('Deck A: Spotify loading — press ▶ when ready');
+        }
       } else {
+        pendingLeftUri.current = null;
         showDeckHint(`“${track.title}” has no Spotify id — pick a library track to play`);
       }
     } else {
+      // Deck B unchanged this slice — keep prior behavior
       setRightTrack(track);
       setRightPos(0);
       setRightDur(0);
@@ -278,12 +342,42 @@ export default function DJStation() {
     }
   }, [showDeckHint]);
 
+  const resolveDropTrack = useCallback((e: React.DragEvent, fallback: Track | null): Track | null => {
+    if (fallback) return fallback;
+    let id = '';
+    try {
+      id = e.dataTransfer.getData('text/plain') || '';
+    } catch {
+      id = '';
+    }
+    const found = findTrackById(id);
+    console.log(DJ_AUDIT, 'resolveDropTrack', { id, found: found?.id ?? null });
+    return found;
+  }, []);
+
+  const dropOnDeckA = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    const track = resolveDropTrack(e, dragTrack.current);
+    console.log(DJ_AUDIT, 'drop target deck', { deck: 'A', trackId: track?.id ?? null });
+    if (track) loadTrack('left', track);
+    dragTrack.current = null;
+    setDropSide(null);
+  }, [loadTrack, resolveDropTrack]);
+
   const toggleDeck = useCallback((side: 'left' | 'right') => {
     const track = side === 'left' ? leftTrack : rightTrack;
     const ctrl = side === 'left' ? leftCtrl.current : rightCtrl.current;
     const ready = side === 'left' ? leftEmbedReady : rightEmbedReady;
     const el = side === 'left' ? leftContainerRef.current : rightContainerRef.current;
     const label = side === 'left' ? 'A' : 'B';
+
+    console.log(DJ_AUDIT, 'play button click', {
+      deck: label,
+      trackId: track?.id ?? null,
+      hasCtrl: !!ctrl,
+      embedReady: ready,
+      pendingLeft: side === 'left' ? pendingLeftUri.current : null,
+    });
 
     if (!track) {
       showDeckHint(`Deck ${label} is empty — drag a cover or tap Load A / B`);
@@ -294,19 +388,22 @@ export default function DJStation() {
       return;
     }
     if (!ctrl) {
+      // If Deck A has a queued URI, keep the press-play hint (controller still mounting)
       showDeckHint(
         ready
-          ? `Deck ${label}: tap the green Spotify player once to unlock play`
-          : `Deck ${label}: Spotify still loading — wait a second, then tap ▶`,
+          ? `Deck ${label}: press ▶ / tap the green Spotify player to start`
+          : `Deck ${label}: Spotify still loading — wait a second, then press ▶`,
       );
       el?.querySelector('iframe')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       return;
     }
     try {
       ctrl.togglePlay();
+      console.log(DJ_AUDIT, 'togglePlay ok', { deck: label });
       setDeckHint(null);
-    } catch {
-      showDeckHint(`Deck ${label}: tap the green Spotify widget once to unlock play`);
+    } catch (err) {
+      console.log(DJ_AUDIT, 'togglePlay error', { deck: label, err });
+      showDeckHint(`Deck ${label}: press ▶ to start (autoplay blocked)`);
     }
   }, [leftTrack, rightTrack, leftEmbedReady, rightEmbedReady, showDeckHint]);
 
@@ -453,7 +550,7 @@ export default function DJStation() {
               pitch={leftPitch} dim={leftDim} dropActive={dropSide === 'left'}
               onDragOver={e => { e.preventDefault(); setDropSide('left'); }}
               onDragLeave={() => setDropSide(null)}
-              onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('left', dragTrack.current); setDropSide(null); }}
+              onDrop={dropOnDeckA}
               onToggle={() => toggleDeck('left')}
               onPitch={setLeftPitch}
               onScratchStart={() => { leftWasPlaying.current = leftPlaying; if (leftPlaying) leftCtrl.current?.togglePlay(); }}
@@ -483,7 +580,7 @@ export default function DJStation() {
               pitch={leftPitch} dim={leftDim} dropActive={dropSide === 'left'}
               onDragOver={e => { e.preventDefault(); setDropSide('left'); }}
               onDragLeave={() => setDropSide(null)}
-              onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('left', dragTrack.current); setDropSide(null); }}
+              onDrop={dropOnDeckA}
               onToggle={() => toggleDeck('left')}
               onPitch={setLeftPitch}
               onScratchStart={() => { leftWasPlaying.current = leftPlaying; if (leftPlaying) leftCtrl.current?.togglePlay(); }}
@@ -534,7 +631,10 @@ export default function DJStation() {
           tracks={DJ_SET}
           reverseCarousel={false}
           onLoadTrack={loadTrack}
-          onSetDragTrack={(t) => { dragTrack.current = t; }}
+          onSetDragTrack={(t) => {
+            dragTrack.current = t;
+            console.log(DJ_AUDIT, 'drag start track id', t?.id ?? null, t?.title ?? null);
+          }}
           playingLeft={leftPlaying ? (leftTrack?.id ?? null) : null}
           playingRight={rightPlaying ? (rightTrack?.id ?? null) : null}
           leftPos={leftPos} leftDur={leftDur}

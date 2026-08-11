@@ -48,21 +48,22 @@ The argument is a Spotify track URL, optionally followed by extra fields separat
      art can be fetched. Either way the deck's Spotify iframe still renders the real album art at
      playback time, so the carousel thumb is never a blocker.
 
-3. **Append the entry** to the `TRACKS` array in `aileena-new/components/DJStation.tsx`, right
-   before the closing `];`. Match the existing formatting exactly:
+3. **Append the entry** to the `DECK_LIBRARY_TRACKS` array in
+   `aileena-new/lib/djSetlist.ts`, right before the closing `];`.
+   Match the existing formatting exactly:
 
    ```ts
    { id: '<ID>', title: '<TITLE>', bpm: <BPM>, key: '<KEY>', dur: <SECONDS>, thumb: '<COVER_URL>' },
    ```
 
+   - The Spotify track id is the entry `id` (22-char). Deck playback resolves it via
+     `spotifyTrackId()` in `DJStation.tsx` (`track.id` when it matches `/^[a-zA-Z0-9]{22}$/`).
    - Use the real `'<COVER_URL>'` you fetched in step 2 (a quoted string). Only substitute the
-     bare `PLACEHOLDER_THUMB` token (no quotes) when no cover could be fetched.
-   - If you use `PLACEHOLDER_THUMB`, confirm it's imported at the top of `DJStation.tsx`
-     (`import TrackLibraryBrowser, { PLACEHOLDER_THUMB } from './TrackLibraryBrowser';`).
-     If not, add it.
-   - Don't duplicate a track that's already in the array (check the id first). If the id is
-     already present but you now have a real cover, **update that entry's `thumb` in place**
-     instead of appending a duplicate.
+     bare `PLACEHOLDER_THUMB` token (no quotes) when no cover could be fetched — that constant
+     already lives at the top of `djSetlist.ts`.
+   - Don't duplicate a track that's already in `DECK_LIBRARY_TRACKS` or the handoff five
+     (check `id` / `spotifyId` first). If the id is already present but you now have a real
+     cover, **update that entry's `thumb` in place** instead of appending a duplicate.
 
 4. **Sync memory:** `cd aileena-new && pnpm sync:carousel-evolve` (optional — updates agent memory markdown)
 
@@ -71,7 +72,7 @@ The argument is a Spotify track URL, optionally followed by extra fields separat
 6. **Ship it** on a feature branch, per the repo's git workflow:
    ```bash
    git checkout -b chore/dj-add-<short-title-slug>
-   git add aileena-new/components/DJStation.tsx aileena-new/public/dj-set/
+   git add aileena-new/lib/djSetlist.ts
    git add aileena-new/aileena_second_brain/memories/ aileena-new/aileena_second_brain/prompts/music-taste.md
    git commit -m "chore(dj): add <title> to deck + carousel memory"
    git push -u origin chore/dj-add-<short-title-slug>
@@ -81,6 +82,9 @@ The argument is a Spotify track URL, optionally followed by extra fields separat
 
 ## Notes
 
-- **Player** reads `DJStation.tsx` `TRACKS`. **Curated carousel** (5 handoff tracks) is on `/sound#dj-set`.
+- **Player + carousel** read `allDeckTracks()` from `lib/djSetlist.ts`
+  (`DJ_SET_TRACKS` handoff five + `DECK_LIBRARY_TRACKS`). `/addmusic` appends to
+  `DECK_LIBRARY_TRACKS` only — do **not** write a `TRACKS` array in `DJStation.tsx`
+  (that path was removed in the sound migration).
 - If the user pastes several links at once, add them all in one commit.
 - Keep the array visually aligned the way it already is; it's hand-formatted.

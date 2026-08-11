@@ -212,18 +212,19 @@ is invisible and shows up as "Unknown command: /…").
 - **`/addmusic <spotify-track-url> [| title | bpm | key | seconds]`** — add a Spotify track to
   the DJ-set carousel. Just drop a track link; it extracts the id, **searches for the real song +
   cover art** (Odesli/song.link → Spotify oEmbed, via `curl` or `WebFetch`), appends an entry to
-  the `TRACKS` array in `components/DJStation.tsx`, builds, and ships via PR. Optional `|`-separated
+  `DECK_LIBRARY_TRACKS` in `lib/djSetlist.ts`, builds, and ships via PR. Optional `|`-separated
   fields override the title / bpm / key / duration. If the network allowlist blocks the lookup
   (`open.spotify.com` / `api.song.link` → "Host not in allowlist"), it falls back to
   `PLACEHOLDER_THUMB` (the deck's Spotify iframe still shows real art at play time).
 
 ### DJ track catalogue
 
-`components/DJStation.tsx` holds the `TRACKS` array — the single source for both the two-deck player
-and the carousel (`components/TrackLibraryBrowser.tsx`). Each entry is
-`{ id, title, bpm, key, dur, thumb }`. `thumb` may be a real cover URL or `PLACEHOLDER_THUMB`
-(exported from `TrackLibraryBrowser.tsx`); the carousel `<img>` falls back to the placeholder on any
-load error, so a missing/404 cover never shows a broken image.
+`lib/djSetlist.ts` is the single source: `allDeckTracks()` = handoff five (`DJ_SET_TRACKS`) +
+`DECK_LIBRARY_TRACKS`. `DJStation.tsx` and the carousel (`TrackLibraryBrowser.tsx`) both consume
+that list. Library entries are `{ id, title, bpm, key, dur, thumb }` where `id` is the 22-char
+Spotify track id. `thumb` may be a real cover URL or `PLACEHOLDER_THUMB` (defined in `djSetlist.ts`
+and also exported from `TrackLibraryBrowser.tsx`); the carousel `<img>` falls back to the
+placeholder on any load error, so a missing/404 cover never shows a broken image.
 
 ## Git Workflow
 
