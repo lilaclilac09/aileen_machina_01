@@ -915,11 +915,27 @@ export default function AgentChat() {
   async function probeLeadMailReady(): Promise<boolean> {
     try {
       const res = await fetch('/api/lead', { method: 'GET', cache: 'no-store' });
-      const body = (await res.json().catch(() => ({}))) as { ok?: boolean };
+      const body = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        missing?: string[];
+        hasResendKey?: boolean;
+        hasInbox?: boolean;
+      };
       const ready = Boolean(body.ok);
       setLeadMailReady(ready);
       if (!ready && typeof console !== 'undefined') {
-        console.warn('[aileena] leave-a-note mail backend not ready (see server logs)');
+        const missing =
+          Array.isArray(body.missing) && body.missing.length > 0
+            ? body.missing.join(', ')
+            : 'see server logs';
+        console.warn(
+          '[aileena] leave-a-note offline — missing/invalid env (names only):',
+          missing,
+          {
+            hasResendKey: body.hasResendKey,
+            hasInbox: body.hasInbox,
+          },
+        );
       }
       return ready;
     } catch {
@@ -1432,11 +1448,11 @@ export default function AgentChat() {
                 )}
                 <div className="flex flex-col sm:flex-row gap-2">
                   <input
-                    type="text"
+                    type="email"
                     inputMode="email"
-                    name="aileena-console-note-email"
-                    autoComplete="off"
-                    autoCapitalize="off"
+                    name="contact-email"
+                    autoComplete="email"
+                    autoCapitalize="none"
                     autoCorrect="off"
                     spellCheck={false}
                     data-1p-ignore="true"

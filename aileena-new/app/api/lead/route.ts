@@ -40,6 +40,7 @@ export async function GET() {
       hasInbox: status.hasInbox,
       sandboxFrom: status.sandboxFrom,
       from: status.from,
+      missing: status.missing,
     });
   }
   return NextResponse.json({
@@ -48,6 +49,8 @@ export async function GET() {
     hasInbox: status.hasInbox,
     sandboxFrom: status.sandboxFrom,
     from: status.from,
+    // Public-safe env *names* only — never values.
+    missing: status.missing,
   });
 }
 
@@ -61,9 +64,10 @@ export async function POST(req: NextRequest) {
       hasInbox: status.hasInbox,
       sandboxFrom: status.sandboxFrom,
       from: status.from,
+      missing: status.missing,
     });
     return NextResponse.json(
-      { ok: false, error: CONTACT_OFFLINE_PUBLIC },
+      { ok: false, error: CONTACT_OFFLINE_PUBLIC, missing: status.missing },
       { status: 503 },
     );
   }

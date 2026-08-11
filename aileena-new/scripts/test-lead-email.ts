@@ -59,6 +59,7 @@ async function main() {
     sandboxFrom: status.sandboxFrom,
     from: status.from,
     to: inbox ? maskEmail(inbox) : null,
+    missing: status.missing,
     ready: status.hasResendKey && status.hasInbox && !status.sandboxFrom,
     transcriptLength: lines.length,
   });

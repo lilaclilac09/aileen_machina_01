@@ -20,6 +20,7 @@ export function getResendFrom(): string {
     process.env.RESEND_FROM ||
     process.env.FROM_EMAIL ||
     process.env.CONTACT_FROM ||
+    process.env.CONTACT_FROM_EMAIL ||
     '';
   if (raw.trim()) return stripQuotes(raw);
   return BRAND_FROM;
