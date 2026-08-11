@@ -1132,9 +1132,27 @@ export default function AgentVoiceOrb({
     needsHearTap ||
     /blocked|error|failed|allow mic|tap orb to hear/i.test(hint);
 
+  const statusLine =
+    listening && (phase === 'listening' || phase === 'hearing') && caption.trim()
+      ? caption.trim()
+      : needsHearTap
+        ? 'Tap orb to hear reply'
+        : listening
+          ? phase === 'speaking'
+            ? 'Speaking…'
+            : phase === 'hearing'
+              ? 'Hearing you…'
+              : 'Listening…'
+          : hintIsError
+            ? hint
+            : hint && /answering|Speaking|Heard|Got it|Hearing/i.test(hint)
+              ? hint
+              : 'Tap speak to start';
+
   return (
-    <div className="border-t border-[#e7e0d6] px-5 py-2.5 sm:py-3 bg-[#faf7f0]/80">
-      <div className="flex flex-col items-center gap-1.5 sm:gap-2">
+    <div className="border-t border-[#e7e0d6] px-4 py-1.5 sm:px-5 sm:py-2 bg-[#faf7f0]/80">
+      {/* Compact control bar — orb is a control, not a hero. ≈70–80px total. */}
+      <div className="flex items-center gap-2.5 sm:gap-3 min-h-[44px] sm:min-h-[48px]">
         <button
           type="button"
           disabled={disabled}
@@ -1142,111 +1160,92 @@ export default function AgentVoiceOrb({
           aria-label={
             needsHearTap ? 'Tap to hear reply' : listening ? 'Stop listening' : 'Start voice'
           }
-          className={`relative h-14 w-14 sm:h-[60px] sm:w-[60px] shrink-0 rounded-full border-0 transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40 ${
+          className={`relative h-10 w-10 sm:h-11 sm:w-11 shrink-0 rounded-full border-0 transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40 ${
             phase === 'listening' || phase === 'hearing'
-              ? 'animate-pulse shadow-[0_0_0_2px_#fffdf8,0_0_0_4px_rgba(0,255,234,0.4),0_10px_28px_rgba(0,168,157,0.32)]'
+              ? 'animate-pulse shadow-[0_0_0_1px_#fffdf8,0_0_0_3px_rgba(0,255,234,0.35),0_6px_16px_rgba(0,168,157,0.28)]'
               : phase === 'speaking'
-                ? 'shadow-[0_0_0_2px_#fffdf8,0_0_0_4px_rgba(0,168,157,0.45),0_12px_32px_rgba(0,127,117,0.34)]'
-                : 'shadow-[0_0_0_2px_#fffdf8,0_0_0_3px_rgba(0,168,157,0.3),0_8px_24px_rgba(0,127,117,0.22)]'
+                ? 'shadow-[0_0_0_1px_#fffdf8,0_0_0_3px_rgba(0,168,157,0.4),0_6px_18px_rgba(0,127,117,0.3)]'
+                : 'shadow-[0_0_0_1px_#fffdf8,0_0_0_2px_rgba(0,168,157,0.28),0_4px_12px_rgba(0,127,117,0.2)]'
           }`}
           style={{
             background:
               'radial-gradient(circle at 32% 28%, rgba(255,255,255,0.95), transparent 42%), radial-gradient(circle at 60% 65%, rgba(0,200,180,0.55), transparent 52%), radial-gradient(circle at 50% 50%, #7ee8dc 0%, #008f86 45%, #12332f 78%)',
           }}
         >
-          <span className="absolute inset-0 grid place-items-center font-mono text-[0.52rem] sm:text-[0.55rem] uppercase tracking-[0.24em] text-white [text-shadow:0_1px_8px_rgba(0,40,36,0.45)]">
+          <span className="absolute inset-0 grid place-items-center font-mono text-[0.45rem] sm:text-[0.48rem] uppercase tracking-[0.2em] text-white [text-shadow:0_1px_6px_rgba(0,40,36,0.45)]">
             {needsHearTap ? 'Hear' : listening ? (phase === 'speaking' ? '…' : 'Stop') : 'Speak'}
           </span>
         </button>
-        <div className="h-[2px] w-12 overflow-hidden rounded-sm bg-[#1b1713]/06">
+
+        <div
+          className={`relative grid h-8 sm:h-9 flex-1 min-w-0 max-w-[18rem] sm:max-w-[20rem] grid-cols-3 items-stretch rounded-full border border-[#00a89d]/28 bg-[#e8f7f4]/90 p-0.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] ${
+            listening ? 'opacity-50' : ''
+          }`}
+          role="group"
+          aria-label="City accent"
+        >
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0.5 left-0.5 w-[calc((100%-0.25rem)/3)] rounded-full bg-gradient-to-b from-[#1ad4c4] to-[#008f86] shadow-[0_2px_8px_rgba(0,168,157,0.3)] transition-transform duration-300 ease-out"
+            style={{
+              transform: `translateX(${Math.max(0, ACCENTS.findIndex((a) => a.key === accentKey)) * 100}%)`,
+            }}
+          />
+          {ACCENTS.map((p) => {
+            const on = p.key === accentKey;
+            return (
+              <button
+                key={p.key}
+                type="button"
+                onClick={() => selectAccent(p.key)}
+                title={p.hint}
+                disabled={listening}
+                aria-pressed={on}
+                className={`relative z-10 rounded-full px-1 font-mono text-[0.55rem] sm:text-[0.58rem] uppercase tracking-[0.1em] transition-colors duration-200 disabled:cursor-not-allowed ${
+                  on ? 'font-semibold text-white' : 'text-[#1b1713]/32 hover:text-[#007d75]/75'
+                }`}
+              >
+                {p.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Tiny level meter — inline, not a separate vertical block */}
+        <div
+          className="hidden sm:block h-[2px] w-8 shrink-0 overflow-hidden rounded-sm bg-[#1b1713]/06"
+          aria-hidden
+        >
           <i
             className="block h-full bg-[#00a89d]/80 transition-[width] duration-75"
             style={{ width: `${level}%`, display: 'block' }}
           />
         </div>
-        <div
-          className="flex w-full max-w-sm flex-col items-center gap-1"
-          role="group"
-          aria-label="Accent"
-        >
-          <p className="font-mono text-[0.58rem] font-medium tracking-[0.28em] uppercase text-[#007d75]/70">
-            City accent
-          </p>
-          <div
-            className={`relative grid h-11 sm:h-12 w-full grid-cols-3 items-stretch rounded-full border border-[#00a89d]/28 bg-[#e8f7f4]/90 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] ${
-              listening ? 'opacity-50' : ''
-            }`}
-          >
-            <span
-              aria-hidden
-              className="pointer-events-none absolute inset-y-1 left-1 w-[calc((100%-0.5rem)/3)] rounded-full bg-gradient-to-b from-[#1ad4c4] to-[#008f86] shadow-[0_3px_10px_rgba(0,168,157,0.35)] transition-transform duration-300 ease-out"
-              style={{
-                transform: `translateX(${Math.max(0, ACCENTS.findIndex((a) => a.key === accentKey)) * 100}%)`,
-              }}
-            />
-            {ACCENTS.map((p) => {
-              const on = p.key === accentKey;
-              return (
-                <button
-                  key={p.key}
-                  type="button"
-                  onClick={() => selectAccent(p.key)}
-                  title={p.hint}
-                  disabled={listening}
-                  aria-pressed={on}
-                  className={`relative z-10 rounded-full px-1.5 font-mono text-[0.68rem] sm:text-[0.72rem] uppercase tracking-[0.12em] transition-colors duration-200 disabled:cursor-not-allowed ${
-                    on ? 'font-semibold text-white' : 'text-[#1b1713]/32 hover:text-[#007d75]/75'
-                  }`}
-                >
-                  {p.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        <p className="min-h-[1rem] max-w-md px-2 text-center text-[0.72rem] sm:text-[0.78rem] leading-4 text-[#007d75]/90">
-          {listening && (phase === 'listening' || phase === 'hearing') && caption.trim() ? (
-            <>
-              <span className="mr-1.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-[#00a89d] align-middle" />
-              <span className="text-[#1b1713]/45 mr-1.5 font-mono text-[0.5rem] tracking-[0.18em] uppercase">
-                {phase === 'hearing' ? 'hearing' : 'listening'}
-              </span>
-              {caption}
-            </>
-          ) : (
-            <span className="text-[#1b1713]/28 italic">
-              {needsHearTap
-                ? 'Tap orb to hear reply'
-                : listening
-                  ? phase === 'speaking'
-                    ? 'Speaking…'
-                    : phase === 'hearing'
-                      ? 'Hearing you…'
-                      : 'Listening…'
-                  : hintIsError
-                    ? ''
-                    : 'Tap speak to start'}
-            </span>
-          )}
-        </p>
-        <p
-          className={`max-w-[22rem] text-center font-mono text-[0.5rem] sm:text-[0.55rem] tracking-[0.14em] uppercase ${
-            hintIsError ? 'text-red-500/75' : 'text-[#1b1713]/55'
-          }`}
-        >
-          {hintIsError || listening || needsHearTap || /answering|Speaking|Heard|Got it|Hearing/i.test(hint) ? (
-            <span className={hintIsError ? undefined : 'text-[#008f86]/70'}>{hint}</span>
-          ) : null}
-          <span className="text-[#1b1713]/40">
-            {hintIsError || listening || needsHearTap || /answering|Speaking|Heard|Got it|Hearing/i.test(hint)
-              ? ' · '
-              : ''}
-            {caps.whisper ? 'whisper' : 'dictation'}
-            {' · '}
-            <span className="text-[#008f86]/65">{activeAccent.label}</span>
-          </span>
-        </p>
       </div>
+
+      <p
+        className={`mt-1 truncate font-mono text-[0.5rem] sm:text-[0.55rem] tracking-[0.12em] uppercase leading-4 ${
+          hintIsError ? 'text-red-500/75' : 'text-[#1b1713]/45'
+        }`}
+      >
+        {listening && (phase === 'listening' || phase === 'hearing') && caption.trim() ? (
+          <>
+            <span className="mr-1.5 inline-block h-1 w-1 animate-pulse rounded-full bg-[#00a89d] align-middle" />
+            <span className="text-[#1b1713]/40 mr-1.5">
+              {phase === 'hearing' ? 'hearing' : 'listening'}
+            </span>
+            <span className="normal-case tracking-normal text-[#007d75]/85">{statusLine}</span>
+          </>
+        ) : (
+          <span className={hintIsError ? undefined : 'text-[#1b1713]/35'}>{statusLine}</span>
+        )}
+        <span className="text-[#1b1713]/30">
+          {' · '}
+          {caps.whisper ? 'whisper' : 'dictation'}
+          {' · '}
+          <span className="text-[#008f86]/60">{activeAccent.label}</span>
+        </span>
+      </p>
     </div>
   );
 }

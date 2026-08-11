@@ -1262,8 +1262,8 @@ export default function AgentChat() {
 
         {/* Bottom chrome: orb → chat input → optional leave-a-note (collapsed). */}
         <div className="shrink-0 flex flex-col">
-        {/* Stream + barge-in orb: compact control node under transcript (≤~210px). */}
-        <div className="shrink-0 max-h-[210px] overflow-y-auto overscroll-contain">
+        {/* Stream + barge-in orb: compact bottom control bar (≈70–80px). */}
+        <div className="shrink-0 max-h-[88px] overflow-hidden">
           <AgentVoiceOrb
             active={open && voiceMode}
             autoListen={autoListen}
