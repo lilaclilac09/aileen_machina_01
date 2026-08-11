@@ -17,6 +17,4 @@ UI merge 验收：截图 + 交互都要给看（中间微调别刷屏）— `.cu
 
 Production ship / 多 PR 合入：见 `AGENTS.md` 施工队安全条例 — **不能在线上证明就不准说修好了**。
 
-Bugbot（PR 审稿人，不当修车工）：`.cursor/BUGBOT.md` · PR 上 `bugbot run` / Cursor `/review-bugbot`。
-
 AI auto-merge 护栏：`docs/AI_AUTOMERGE.md` · label `ai-automerge` → ci + playwright-dnd + cursor-agent → `gh pr merge --auto`（禁止 agent 强行合 main）。
