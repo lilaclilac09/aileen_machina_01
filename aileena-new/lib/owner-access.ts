@@ -142,5 +142,6 @@ export async function hasOwnerUnlimitedChat(req: Request): Promise<boolean> {
 }
 
 export function buildOwnerChatSetCookie(token: string): string {
-  return `${OWNER_CHAT_COOKIE}=${encodeURIComponent(token)}; Path=/; Max-Age=${OWNER_MAX_AGE}; HttpOnly; Secure; SameSite=Lax`;
+  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
+  return `${OWNER_CHAT_COOKIE}=${encodeURIComponent(token)}; Path=/; Max-Age=${OWNER_MAX_AGE}; HttpOnly${secure}; SameSite=Lax`;
 }
