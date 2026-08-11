@@ -6,8 +6,9 @@ const mono = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
 type GlassItem = { src: string; alt: string; caption: string; href?: string };
 
 /**
- * Visual / kiln wall — one quiet composition: centered copy + 2×2 kiln mosaic.
- * Natural aspect (contain), no duplicate float, no crop cover.
+ * Visual / kiln wall — one quiet composition: centered copy + 2-col mosaic.
+ * Content photos: natural aspect, full image visible (never cover-crop).
+ * Variable row heights OK — completeness > uniform cards.
  */
 export default function GlassBench({
   tag,
@@ -25,9 +26,16 @@ export default function GlassBench({
   return (
     <section id="glass-bench" className="glass-bench" style={glassSectionStyle} aria-label="Glass work">
       <style>{`
+        /* Visual snap panel: grow with content so bottom isn't section-clipped */
+        #visual.snap-section {
+          height: auto;
+          min-height: 100vh;
+          min-height: 100dvh;
+          overflow: visible;
+        }
         .glass-bench {
           position: relative;
-          height: 100%;
+          height: auto;
           min-height: 100%;
         }
         .glass-bench-gallery {
@@ -36,7 +44,8 @@ export default function GlassBench({
           gap: clamp(10px, 1.6vw, 16px);
           width: min(100%, 920px);
           margin: 0 auto;
-          padding: 0 clamp(14px, 2.5vw, 24px);
+          padding: 0 clamp(14px, 2.5vw, 24px) clamp(28px, 5vh, 48px);
+          align-items: start;
         }
         @media (min-width: 640px) {
           .glass-bench-gallery {
@@ -61,11 +70,10 @@ export default function GlassBench({
           outline: none;
           box-shadow: none;
         }
+        /* No fixed height / aspect / overflow — let the photo define the box */
         .glass-bench-frame {
           position: relative;
           width: 100%;
-          aspect-ratio: 5 / 4;
-          overflow: hidden;
           background: transparent;
           border: none;
           outline: none;
@@ -75,9 +83,8 @@ export default function GlassBench({
         .glass-bench-frame img {
           display: block;
           width: 100%;
-          height: 100%;
-          object-fit: cover;
-          object-position: center;
+          height: auto;
+          object-fit: contain;
           border: none;
           outline: none;
           box-shadow: none;
@@ -136,7 +143,7 @@ const glassSectionStyle: CSSProperties = {
   background:
     'radial-gradient(120% 80% at 50% 18%, #fffdf8 0%, #f7f1e6 48%, #efe6d6 100%)',
   color: '#14110c',
-  overflow: 'hidden',
+  overflow: 'visible',
 };
 
 const glassHeaderStyle: CSSProperties = {
