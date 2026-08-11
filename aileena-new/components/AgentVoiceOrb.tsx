@@ -10,6 +10,8 @@
  * not one-word turns). Silence window ~1.8–2.4s; interim never replaces finals.
  * Debug logs on by default ([voice]); set localStorage.aileena_voice_debug='0' to silence.
  * TTS: /api/tts (HTMLAudio on iOS/Safari) with speechSynthesis fallback.
+ * Speak only after the assistant stream settles (!busy) — never the first
+ * streamed token. Long replies: sentence-level chunks, not words.
  * Live caption + barge-in. Voice path: Console → Voice → speak.
  */
 
@@ -78,6 +80,28 @@ type AccentKey = (typeof ACCENTS)[number]['key'];
 const VOICE_STORAGE_KEY = 'aileena.console.voiceAccent';
 
 const SENTENCE_RE = /(?<=[.!?。！？…])\s+|(?<=\n)/;
+
+/** Split a finished reply into speakable sentence groups (never by word). */
+function splitSpeakableChunks(full: string): string[] {
+  const text = full.trim();
+  if (!text) return [];
+  if (text.length <= 220) return [text];
+  const sentences = text.split(SENTENCE_RE).map((s) => s.trim()).filter(Boolean);
+  if (sentences.length <= 1) return [text];
+  const out: string[] = [];
+  let buf = '';
+  for (const s of sentences) {
+    const next = buf ? `${buf} ${s}` : s;
+    if (next.length > 220 && buf) {
+      out.push(buf);
+      buf = s;
+    } else {
+      buf = next;
+    }
+  }
+  if (buf) out.push(buf);
+  return out.length ? out : [text];
+}
 const SPEECH_THRESH = 0.018;
 /** Whisper VAD: end chunk after this much silence (was 900 — cut mid-sentence). */
 const SILENCE_END_MS = 1400;
@@ -255,6 +279,7 @@ export default function AgentVoiceOrb({
 
   const stopPlayback = useCallback(() => {
     playGenRef.current += 1;
+    vlog('tts cancel/stopPlayback', { gen: playGenRef.current });
     sourcesRef.current.forEach((s) => {
       try {
         s.stop();
@@ -482,24 +507,13 @@ export default function AgentVoiceOrb({
           : null) ||
         null;
 
-      const chunks: string[] = [];
-      // Chrome cuts off long utterances — keep chunks short.
-      const raw = text.trim();
-      if (raw.length <= 180) {
-        chunks.push(raw);
-      } else {
-        const parts = raw.split(/(?<=[.!?。！？…])\s+/);
-        let buf = '';
-        for (const p of parts) {
-          if ((buf + ' ' + p).trim().length > 180) {
-            if (buf) chunks.push(buf.trim());
-            buf = p;
-          } else {
-            buf = (buf ? buf + ' ' : '') + p;
-          }
-        }
-        if (buf.trim()) chunks.push(buf.trim());
-      }
+      // Chrome cuts off very long utterances — chunk by sentences, never words.
+      const chunks = splitSpeakableChunks(text);
+      vlog('tts speechSynthesis queue', {
+        length: text.trim().length,
+        chunks: chunks.length,
+        preview: text.trim().slice(0, 100),
+      });
 
       ttsPlayingRef.current = true;
       pauseWebSpeechForTtsRef.current();
@@ -527,12 +541,22 @@ export default function AgentVoiceOrb({
           finishIdle();
           return;
         }
-        const u = new SpeechSynthesisUtterance(chunks[i]);
+        const piece = chunks[i];
+        const u = new SpeechSynthesisUtterance(piece);
         u.lang = lang;
         u.rate = lang.startsWith('zh') ? 0.95 : 1.02;
         if (prefer) u.voice = prefer;
-        u.onend = () => speakOne(i + 1);
-        u.onerror = () => speakOne(i + 1);
+        u.onstart = () => {
+          vlog('tts utterance start', { i, length: piece.length });
+        };
+        u.onend = () => {
+          vlog('tts utterance end', { i, length: piece.length });
+          speakOne(i + 1);
+        };
+        u.onerror = (ev) => {
+          vlog('tts utterance error', { i, error: (ev as SpeechSynthesisErrorEvent).error });
+          speakOne(i + 1);
+        };
         try {
           window.speechSynthesis.resume();
         } catch {
@@ -541,8 +565,10 @@ export default function AgentVoiceOrb({
         window.speechSynthesis.speak(u);
       };
 
+      // Clear only once at the start of this reply queue — not per streamed token.
       try {
         window.speechSynthesis.cancel();
+        vlog('tts cancel once before reply queue');
         window.speechSynthesis.resume();
       } catch {
         /* ignore */
@@ -611,18 +637,40 @@ export default function AgentVoiceOrb({
 
   useEffect(() => {
     if (!active || !speakText?.trim() || !speakId) return;
+    // Wait until the assistant stream settles — speaking on the first token
+    // locks lastSpokenIdRef and produces one-word TTS.
+    if (busy) {
+      vlog('tts wait for stream end', {
+        speakId,
+        length: speakText.trim().length,
+        preview: speakText.trim().slice(0, 40),
+      });
+      return;
+    }
     if (speakId === lastSpokenIdRef.current) return;
     lastSpokenIdRef.current = speakId;
     const gen = playGenRef.current;
     const full = speakText.trim();
-    const parts = full.split(SENTENCE_RE).map((s) => s.trim()).filter(Boolean);
+    const parts = splitSpeakableChunks(full);
+    // Claim speaking before async work so the stream-end effect does not
+    // restart the mic and cancel the utterance mid-start.
+    ttsPlayingRef.current = true;
+    setPhase('speaking');
+    setHint('Speaking…');
+    vlog('tts speak full reply', {
+      speakId,
+      length: full.length,
+      chunks: parts.length,
+      preview: full.slice(0, 120),
+    });
     void (async () => {
-      for (const p of parts.length ? parts : [full]) {
+      for (const p of parts) {
         if (gen !== playGenRef.current) break;
+        vlog('tts speak chunk', { length: p.length, preview: p.slice(0, 80) });
         await speakSentence(p, gen);
       }
     })();
-  }, [active, speakText, speakId, speakSentence]);
+  }, [active, busy, speakText, speakId, speakSentence]);
 
   const pushCaption = useCallback((text: string, isFinal: boolean) => {
     setCaption(text);

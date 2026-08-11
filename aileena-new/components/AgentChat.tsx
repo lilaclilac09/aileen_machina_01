@@ -1306,8 +1306,8 @@ export default function AgentChat() {
             autoListen={autoListen}
             busy={busy}
             disabled={sessionMaxed}
-            speakText={voiceSpeakReady ? lastAssistant.text : ''}
-            speakId={voiceSpeakReady ? lastAssistant.id : ''}
+            speakText={voiceSpeakReady && !busy ? lastAssistant.text : ''}
+            speakId={voiceSpeakReady && !busy ? lastAssistant.id : ''}
             onRegisterStart={(start) => {
               startOrbListenRef.current = start;
             }}
