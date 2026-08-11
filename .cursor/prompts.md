@@ -1,14 +1,6 @@
-# AGENTS.md
-- Do not preserve backward compatibility. Remove obsolete paths instead of adding compatibility layers, fallbacks, or migrations.
-- Choose the simplest implementation that fully meets the current requirements. Avoid speculative abstractions, configuration, and indirection.
-- Grow the system in layers. Start from the smallest version that works end to end, and add each new capability on top of a product that already works. Never trade a working product for unfinished complexity.
-- Keep components modular and concerns clearly separated.
-- Prefer established, well-maintained libraries when they reduce overall complexity or improve reliability. Do not reimplement common functionality without a clear reason.
-- Lean on the dependencies already in the project before writing your own implementation or adding packages. Do not assume a library lacks a capability without checking its documentation and types.
-- Make architectural decisions for the long term. Do not accept a stopgap that only works for now and is meant to be replaced later.
-- Study how established products solve the problem before designing a solution. Adopt their proven patterns and conventions rather than inventing an approach from scratch.
-
 # Cursor Prompt 快查
+
+Agent 总则 + **施工队安全条例（production ship）** 见仓库根目录：**[`AGENTS.md`](../AGENTS.md)**
 
 完整工程标准见：**[`aileena-new/docs/工作准册.md`](../aileena-new/docs/工作准册.md)**
 
@@ -22,3 +14,5 @@
 防乱改一句：`先不要写代码，先读相关文件并给我最小修改计划。`
 
 UI merge 验收：截图 + 交互都要给看（中间微调别刷屏）— `.cursor/rules/ui-step-screenshot.mdc`。
+
+Production ship / 多 PR 合入：见 `AGENTS.md` 施工队安全条例 — **不能在线上证明就不准说修好了**。
