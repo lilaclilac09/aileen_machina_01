@@ -962,16 +962,22 @@ export default function AgentChat() {
       />
 
       {/* Console card — full-bleed on phone so homepage chrome doesn't bleed through.
-          overflow-hidden + flex column: transcript scrolls; header/orb/input stay visible. */}
+          CSS grid (not flex): transcript row is minmax(floor, 1fr) so the orb
+          cannot collapse history to one line. Dialog is taller on desktop
+          (expand unfinished from orb layout plan). Layout only. */}
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Aileena Console"
-        className={`fixed z-[80] inset-0 sm:inset-x-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[640px] sm:max-w-[calc(100vw-3rem)] h-[100dvh] sm:h-[min(80vh,720px)] max-h-[100dvh] sm:max-h-[80vh] flex flex-col overflow-hidden bg-[#fffdf8] sm:bg-[#fffdf8]/95 border-0 sm:border sm:border-[#ded8ce] shadow-none sm:shadow-[0_24px_80px_-34px_rgba(31,26,20,0.42)] backdrop-blur-md transition-all duration-200 ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-[0.98] sm:scale-[0.96] pointer-events-none'} font-mono`}
-        style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace' }}
+        className={`fixed z-[80] inset-0 sm:inset-x-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[min(720px,calc(100vw-2.5rem))] sm:max-w-[calc(100vw-2.5rem)] h-[100dvh] sm:h-[min(92vh,900px)] max-h-[100dvh] sm:max-h-[92vh] grid overflow-hidden bg-[#fffdf8] sm:bg-[#fffdf8]/95 border-0 sm:border sm:border-[#ded8ce] shadow-none sm:shadow-[0_24px_80px_-34px_rgba(31,26,20,0.42)] backdrop-blur-md transition-all duration-200 ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-[0.98] sm:scale-[0.96] pointer-events-none'} font-mono`}
+        style={{
+          fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace',
+          // header | transcript (floor + grow) | bottom chrome (lead/orb/input)
+          gridTemplateRows: 'auto minmax(11rem, 1fr) auto',
+        }}
       >
         {/* Header bar */}
-        <div className="flex items-center justify-between gap-2 border-b border-[#e7e0d6] px-3 sm:px-4 py-2.5 shrink-0">
+        <div className="flex items-center justify-between gap-2 border-b border-[#e7e0d6] px-3 sm:px-4 py-2.5 min-h-0">
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-[0.6rem] tracking-[0.3em] text-[#00ffea]/80 uppercase truncate">aileena · console</span>
           </div>
@@ -1086,12 +1092,12 @@ export default function AgentChat() {
           </div>
         </div>
 
-        {/* Transcript — reserved height floor so voice orb cannot crush history to one line.
-            flex-1 + overflow-y-auto scrolls independently; layout only, no message logic. */}
+        {/* Transcript — grid row 2 is minmax(11rem, 1fr): always enough height for
+            multiple messages; overflow-y scrolls independently. Layout only. */}
         <div
           ref={scrollRef}
           data-agent-transcript
-          className="flex-1 min-h-[128px] sm:min-h-[168px] overflow-y-auto overscroll-contain px-4 sm:px-5 py-4 sm:py-5 space-y-3"
+          className="min-h-0 overflow-y-auto overscroll-contain px-4 sm:px-5 py-4 sm:py-5 space-y-3"
         >
           {messages.length === 0 ? (
             <>
@@ -1189,10 +1195,12 @@ export default function AgentChat() {
 
         </div>
 
+        {/* Bottom chrome: lead / orb / input stay below transcript; never overlap it. */}
+        <div className="min-h-0 flex flex-col">
         {/* Contact panel — optional soft invite after a few turns.
             Never disables chat before the promised 20 / day. */}
         {showLeadPanel && (
-          <div className="border-t border-[#e7e0d6] px-5 py-3 bg-[#faf7f0] shrink-0">
+          <div className="border-t border-[#e7e0d6] px-5 py-3 bg-[#faf7f0]">
             <div className="mb-2.5">
               <p className="font-mono text-[0.55rem] tracking-[0.35em] uppercase text-[#008f86]/85">
                 ▸ leave a note
@@ -1254,16 +1262,15 @@ export default function AgentChat() {
         )}
 
         {leadState === 'sent' && (
-          <div className="border-t border-[#e7e0d6] px-5 py-2 bg-[#f3fbf9] shrink-0">
+          <div className="border-t border-[#e7e0d6] px-5 py-2 bg-[#f3fbf9]">
             <p className="font-mono text-[0.55rem] tracking-[0.3em] uppercase text-[#008f86]/90">
               ▸ note sent — thanks
             </p>
           </div>
         )}
 
-        {/* Stream + barge-in orb: live captions, interrupt anytime.
-            shrink-0 so orb panel cannot steal transcript flex space. */}
-        <div className="shrink-0">
+        {/* Stream + barge-in orb: live captions, interrupt anytime. */}
+        <div>
           <AgentVoiceOrb
             active={open && voiceMode}
             autoListen={autoListen}
@@ -1296,7 +1303,7 @@ export default function AgentChat() {
         </div>
 
         {/* Input row */}
-        <div className="border-t border-[#e7e0d6] px-5 py-3 shrink-0">
+        <div className="border-t border-[#e7e0d6] px-5 py-3">
           <div className="relative flex items-center gap-2">
             <span className={`text-sm ${sessionMaxed ? 'text-[#1b1713]/20' : 'text-[#00a89d]'}`}>&gt;</span>
             <textarea
@@ -1356,6 +1363,7 @@ export default function AgentChat() {
               </span>
             </span>
           </p>
+        </div>
         </div>
       </div>
     </>
