@@ -914,7 +914,11 @@ export default function AgentChat() {
 
   async function probeLeadMailReady(): Promise<boolean> {
     try {
-      const res = await fetch('/api/lead', { method: 'GET', cache: 'no-store' });
+      const res = await fetch('/api/lead', {
+        method: 'GET',
+        cache: 'no-store',
+        headers: { Pragma: 'no-cache' },
+      });
       const body = (await res.json().catch(() => ({}))) as {
         ok?: boolean;
         missing?: string[];
@@ -949,12 +953,11 @@ export default function AgentChat() {
 
   async function openLeadForm() {
     setLeadError(null);
+    // Drop stale offline from an earlier probe so a fixed Production env
+    // can recover without a full page reload.
+    setLeadMailReady(null);
     setLeadOpen(true);
-    const ready = await probeLeadMailReady();
-    if (!ready) {
-      // Gentle disabled — never "inbox not configured" in the UI.
-      setLeadError(null);
-    }
+    await probeLeadMailReady();
   }
 
   async function submitLead() {
@@ -962,7 +965,12 @@ export default function AgentChat() {
     const email = leadEmail.trim();
     const memo = leadName.trim();
 
-    if (leadMailReady === false) {
+    // Re-probe before blocking — env may have been fixed after first open.
+    let ready = leadMailReady;
+    if (ready !== true) {
+      ready = await probeLeadMailReady();
+    }
+    if (!ready) {
       setLeadError('Note saving is offline right now.');
       return;
     }
@@ -1416,7 +1424,6 @@ export default function AgentChat() {
             ) : (
               <form
                 className="space-y-2"
-                autoComplete="off"
                 onSubmit={(e) => {
                   e.preventDefault();
                   void submitLead();
@@ -1439,7 +1446,22 @@ export default function AgentChat() {
                 </div>
                 {leadMailReady === false ? (
                   <p className="text-[0.68rem] leading-5 text-[#1b1713]/45">
-                    Note saving is paused right now — chat still works.
+                    Note saving is paused right now — chat still works.{' '}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLeadError(null);
+                        setLeadMailReady(null);
+                        void probeLeadMailReady();
+                      }}
+                      className="underline decoration-[#1b1713]/25 underline-offset-2 hover:text-[#1b1713]/75"
+                    >
+                      check again
+                    </button>
+                  </p>
+                ) : leadMailReady === null ? (
+                  <p className="text-[0.68rem] leading-5 text-[#1b1713]/45">
+                    Checking note delivery…
                   </p>
                 ) : (
                   <p className="text-[0.68rem] leading-5 text-[#1b1713]/50">
@@ -1451,6 +1473,7 @@ export default function AgentChat() {
                     type="email"
                     inputMode="email"
                     name="contact-email"
+                    id="aileena-contact-email"
                     autoComplete="email"
                     autoCapitalize="none"
                     autoCorrect="off"
@@ -1469,8 +1492,10 @@ export default function AgentChat() {
                     type="text"
                     name="aileena-console-note-memo"
                     autoComplete="off"
+                    autoCapitalize="off"
                     data-1p-ignore="true"
                     data-lpignore="true"
+                    data-bwignore="true"
                     data-form-type="other"
                     value={leadName}
                     onChange={(e) => setLeadName(e.target.value)}
@@ -1485,6 +1510,7 @@ export default function AgentChat() {
                     disabled={
                       leadState === 'submitting' ||
                       leadMailReady === false ||
+                      leadMailReady === null ||
                       !leadEmail.trim()
                     }
                     className="font-mono text-[0.62rem] tracking-[0.3em] uppercase text-[#007d75] border border-[#00a89d]/45 bg-white px-3 py-2 hover:bg-[#e9fffc] transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"

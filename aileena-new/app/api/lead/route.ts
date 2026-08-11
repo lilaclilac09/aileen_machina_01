@@ -43,15 +43,22 @@ export async function GET() {
       missing: status.missing,
     });
   }
-  return NextResponse.json({
-    ok: ready,
-    hasResendKey: status.hasResendKey,
-    hasInbox: status.hasInbox,
-    sandboxFrom: status.sandboxFrom,
-    from: status.from,
-    // Public-safe env *names* only — never values.
-    missing: status.missing,
-  });
+  return NextResponse.json(
+    {
+      ok: ready,
+      hasResendKey: status.hasResendKey,
+      hasInbox: status.hasInbox,
+      sandboxFrom: status.sandboxFrom,
+      from: status.from,
+      // Public-safe env *names* only — never values.
+      missing: status.missing,
+    },
+    {
+      headers: {
+        'Cache-Control': 'no-store, max-age=0',
+      },
+    },
+  );
 }
 
 export async function POST(req: NextRequest) {
