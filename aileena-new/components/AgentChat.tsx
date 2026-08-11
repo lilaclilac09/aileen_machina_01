@@ -335,7 +335,7 @@ export default function AgentChat() {
       }
       return true;
     } catch {
-      setInput('mic blocked · allow in browser settings');
+      // Keep mic-blocked quiet in the orb status line — don't paint the chat field.
       return false;
     }
   }, []);

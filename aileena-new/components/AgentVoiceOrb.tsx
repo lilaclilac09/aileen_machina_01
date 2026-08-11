@@ -1163,7 +1163,7 @@ export default function AgentVoiceOrb({
           aria-label={
             needsHearTap ? 'Tap to hear reply' : listening ? 'Stop listening' : 'Start voice'
           }
-          className={`relative h-12 w-12 sm:h-[58px] sm:w-[58px] shrink-0 rounded-full border-0 transition-transform hover:scale-[1.04] disabled:cursor-not-allowed disabled:opacity-40 ${
+          className={`relative h-[52px] w-[52px] sm:h-[60px] sm:w-[60px] shrink-0 rounded-full border-0 transition-transform hover:scale-[1.04] disabled:cursor-not-allowed disabled:opacity-40 ${
             phase === 'listening' || phase === 'hearing'
               ? 'animate-pulse shadow-[0_0_0_2px_#fffdf8,0_0_0_4px_rgba(0,255,234,0.38),0_10px_26px_rgba(0,168,157,0.3)]'
               : phase === 'speaking'
@@ -1181,7 +1181,7 @@ export default function AgentVoiceOrb({
         </button>
 
         <div
-          className={`relative grid h-[42px] sm:h-11 flex-1 min-w-0 max-w-[20rem] sm:max-w-[22rem] grid-cols-3 items-stretch rounded-full border border-[#00a89d]/28 bg-[#e8f7f4]/90 p-[3px] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] ${
+          className={`relative grid h-11 sm:h-12 flex-1 min-w-0 max-w-[20rem] sm:max-w-[22rem] grid-cols-3 items-stretch rounded-full border border-[#00a89d]/28 bg-[#e8f7f4]/90 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] ${
             listening ? 'opacity-50' : ''
           }`}
           role="group"
@@ -1189,7 +1189,7 @@ export default function AgentVoiceOrb({
         >
           <span
             aria-hidden
-            className="pointer-events-none absolute inset-y-[3px] left-[3px] w-[calc((100%-6px)/3)] rounded-full bg-gradient-to-b from-[#1ad4c4] to-[#008f86] shadow-[0_3px_10px_rgba(0,168,157,0.32)] transition-transform duration-300 ease-out"
+            className="pointer-events-none absolute inset-y-1 left-1 w-[calc((100%-0.5rem)/3)] rounded-full bg-gradient-to-b from-[#1ad4c4] to-[#008f86] shadow-[0_3px_10px_rgba(0,168,157,0.32)] transition-transform duration-300 ease-out"
             style={{
               transform: `translateX(${Math.max(0, ACCENTS.findIndex((a) => a.key === accentKey)) * 100}%)`,
             }}
