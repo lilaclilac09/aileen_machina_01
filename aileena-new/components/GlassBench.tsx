@@ -3,15 +3,11 @@ import type { CSSProperties } from 'react';
 
 const mono = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
 
-/** Strongest kiln shot — placed as a small floating canvas object (not a gallery tile). */
-const CANVAS_IMAGE = '/pate-glass.jpg';
-
 type GlassItem = { src: string; alt: string; caption: string; href?: string };
 
 /**
- * Visual / kiln wall — multi-image gallery from translations `visual.items`.
- * First row keeps the two-column base; remaining images extend below.
- * Content images keep natural aspect (no object-fit: cover crop).
+ * Visual / kiln wall — one quiet composition: centered copy + 2×2 kiln mosaic.
+ * Natural aspect (contain), no duplicate float, no crop cover.
  */
 export default function GlassBench({
   tag,
@@ -26,16 +22,6 @@ export default function GlassBench({
   linkLabel: string;
   items: GlassItem[];
 }) {
-  // Keep strongest diptych (clay + glass) as the first two-column row; rest extend below.
-  const preferred = items.filter((item) => /pate-clay|pate-glass/.test(item.src));
-  const rest = items.filter((item) => !/pate-clay|pate-glass/.test(item.src));
-  const ordered = preferred.length >= 2 ? [...preferred, ...rest] : items;
-
-  const rows: GlassItem[][] = [];
-  for (let i = 0; i < ordered.length; i += 2) {
-    rows.push(ordered.slice(i, i + 2));
-  }
-
   return (
     <section id="glass-bench" className="glass-bench" style={glassSectionStyle} aria-label="Glass work">
       <style>{`
@@ -44,84 +30,54 @@ export default function GlassBench({
           height: 100%;
           min-height: 100%;
         }
-        .glass-bench-canvas-float {
-          position: absolute;
-          z-index: 0;
-          pointer-events: none;
-          user-select: none;
-          width: min(32vw, 200px);
-          max-width: 220px;
-          top: clamp(72px, 14vh, 120px);
-          right: clamp(4px, 3vw, 28px);
-          opacity: 0.92;
-          transform: rotate(3.5deg);
-          filter: drop-shadow(0 14px 28px rgba(20, 17, 12, 0.22));
-        }
-        .glass-bench-canvas-float img {
-          display: block;
-          width: 100%;
-          height: auto;
-          object-fit: contain;
-        }
-        @media (max-width: 859px) {
-          .glass-bench-canvas-float {
-            width: min(28vw, 120px);
-            top: clamp(56px, 10vh, 88px);
-            right: clamp(2px, 2vw, 12px);
-            opacity: 0.78;
-          }
-        }
         .glass-bench-gallery {
-          position: relative;
-          z-index: 1;
-          display: flex;
-          flex-direction: column;
-          gap: clamp(8px, 1.2vw, 14px);
-          flex: 1 1 auto;
-          min-height: 0;
-          width: 100%;
-        }
-        .glass-bench-stage {
           display: grid;
           grid-template-columns: 1fr;
-          gap: clamp(8px, 1.2vw, 14px);
-          width: 100%;
+          gap: clamp(10px, 1.6vw, 16px);
+          width: min(100%, 920px);
           margin: 0 auto;
-          align-items: start;
+          padding: 0 clamp(14px, 2.5vw, 24px);
+        }
+        @media (min-width: 640px) {
+          .glass-bench-gallery {
+            grid-template-columns: 1fr 1fr;
+            gap: clamp(12px, 1.8vw, 18px);
+          }
         }
         .glass-bench-shot {
-          position: relative;
-          display: block;
-          overflow: visible;
-          min-height: 0;
-          height: auto;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          min-width: 0;
           color: inherit;
           text-decoration: none;
           background: transparent;
         }
-        .glass-bench-shot img {
+        .glass-bench-frame {
+          position: relative;
+          width: 100%;
+          aspect-ratio: 5 / 4;
+          overflow: hidden;
+          background: transparent;
+        }
+        .glass-bench-frame img {
           display: block;
           width: 100%;
-          height: auto;
-          object-fit: contain;
+          height: 100%;
+          object-fit: cover;
           object-position: center;
         }
-        @media (min-width: 860px) {
-          .glass-bench-stage--dual {
-            grid-template-columns: 1.08fr 0.92fr;
-          }
-          .glass-bench-stage--single {
-            grid-template-columns: 1fr;
-            max-width: 720px;
-          }
+        .glass-bench-caption {
+          margin: 0;
+          padding: 0 1px;
+          color: rgba(20, 17, 12, 0.58);
+          font-family: Georgia, 'Times New Roman', serif;
+          font-size: clamp(0.78rem, 1.1vw, 0.9rem);
+          font-style: italic;
+          letter-spacing: 0.01em;
+          line-height: 1.25;
         }
       `}</style>
-
-      {/* Canvas / background placed object — not a gallery tile, no drag label */}
-      <div className="glass-bench-canvas-float" aria-hidden="true" data-visual-canvas-image>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={CANVAS_IMAGE} alt="" />
-      </div>
 
       <header style={glassHeaderStyle}>
         <p style={glassKickerStyle}>{tag}</p>
@@ -132,37 +88,21 @@ export default function GlassBench({
         </Link>
       </header>
 
-      <div className="glass-bench-gallery">
-        {rows.map((row, rowIndex) => {
-          const dual = row.length > 1;
-          return (
-            <div
-              key={`row-${rowIndex}`}
-              className={`glass-bench-stage ${dual ? 'glass-bench-stage--dual' : 'glass-bench-stage--single'}`}
-              style={glassStageStyle}
-            >
-              {row.map((item, index) => (
-                <Link
-                  key={item.src}
-                  href={item.href ?? '/blog/pate-de-verre'}
-                  className={`glass-bench-shot ${index === 0 ? 'glass-bench-shot--a' : 'glass-bench-shot--b'}`}
-                  aria-label={item.caption}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={item.src} alt={item.alt} />
-                  <span
-                    style={{
-                      ...glassCaptionStyle,
-                      ...(index === 1 ? glassCaptionAltStyle : null),
-                    }}
-                  >
-                    {item.caption}
-                  </span>
-                </Link>
-              ))}
+      <div className="glass-bench-gallery" data-visual-gallery>
+        {items.map((item) => (
+          <Link
+            key={item.src}
+            href={item.href ?? '/blog/pate-de-verre'}
+            className="glass-bench-shot"
+            aria-label={item.caption}
+          >
+            <div className="glass-bench-frame">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={item.src} alt={item.alt} />
             </div>
-          );
-        })}
+            <p className="glass-bench-caption">{item.caption}</p>
+          </Link>
+        ))}
       </div>
     </section>
   );
@@ -174,10 +114,10 @@ const glassSectionStyle: CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'center',
-  gap: 'clamp(12px, 2.2vh, 22px)',
+  gap: 'clamp(18px, 3vh, 28px)',
   width: '100%',
   padding:
-    'clamp(64px, 9vh, 84px) clamp(0px, 1.2vw, 12px) clamp(18px, 3vh, 28px)',
+    'clamp(64px, 9vh, 84px) clamp(0px, 1.2vw, 12px) clamp(24px, 4vh, 40px)',
   background:
     'radial-gradient(120% 80% at 50% 18%, #fffdf8 0%, #f7f1e6 48%, #efe6d6 100%)',
   color: '#14110c',
@@ -188,7 +128,7 @@ const glassHeaderStyle: CSSProperties = {
   position: 'relative',
   zIndex: 1,
   margin: '0 auto',
-  maxWidth: 760,
+  maxWidth: 560,
   padding: '0 clamp(16px, 3vw, 28px)',
   textAlign: 'center',
   flex: '0 0 auto',
@@ -207,18 +147,18 @@ const glassKickerStyle: CSSProperties = {
 const glassTitleStyle: CSSProperties = {
   margin: '0 0 10px',
   color: '#14110c',
-  fontSize: 'clamp(3.2rem, 8.5vw, 6.8rem)',
+  fontSize: 'clamp(2.4rem, 6vw, 4.2rem)',
   fontWeight: 650,
-  letterSpacing: '-0.045em',
-  lineHeight: 0.88,
+  letterSpacing: '-0.04em',
+  lineHeight: 0.92,
 };
 
 const glassBodyStyle: CSSProperties = {
   margin: '0 auto 12px',
-  maxWidth: 460,
+  maxWidth: 420,
   color: 'rgba(20,17,12,0.68)',
   fontFamily: 'Georgia, serif',
-  fontSize: 'clamp(1.02rem, 1.5vw, 1.18rem)',
+  fontSize: 'clamp(0.98rem, 1.35vw, 1.12rem)',
   lineHeight: 1.45,
 };
 
@@ -230,34 +170,4 @@ const glassLinkStyle: CSSProperties = {
   letterSpacing: '0.18em',
   textDecoration: 'none',
   textTransform: 'uppercase',
-};
-
-const glassStageStyle: CSSProperties = {
-  display: 'grid',
-  gap: 'clamp(8px, 1.2vw, 14px)',
-  width: '100%',
-  margin: '0 auto',
-  alignItems: 'start',
-};
-
-const glassCaptionStyle: CSSProperties = {
-  position: 'absolute',
-  left: 'clamp(14px, 2vw, 26px)',
-  bottom: 'clamp(12px, 2vh, 22px)',
-  zIndex: 2,
-  color: '#e9829d',
-  fontFamily: "'Allura', cursive",
-  fontSize: 'clamp(1.85rem, 3.6vw, 3rem)',
-  lineHeight: 0.92,
-  textShadow:
-    '0 1px 0 rgba(255,255,255,0.55), 0 0 18px rgba(255,253,248,0.55), 0 10px 28px rgba(20,17,12,0.4)',
-  transform: 'rotate(-2deg)',
-  pointerEvents: 'none',
-};
-
-const glassCaptionAltStyle: CSSProperties = {
-  left: 'auto',
-  right: 'clamp(14px, 2vw, 26px)',
-  transform: 'rotate(1.5deg)',
-  textAlign: 'right',
 };
