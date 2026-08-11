@@ -55,6 +55,7 @@ export async function GET() {
     hasInbox: status.hasInbox,
     sandboxFrom: status.sandboxFrom,
     from: status.from,
+    missing: status.missing,
   });
 }
 
