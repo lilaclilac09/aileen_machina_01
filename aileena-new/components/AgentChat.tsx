@@ -113,6 +113,7 @@ export default function AgentChat() {
   const [leadName, setLeadName] = useState('');
   const [leadState, setLeadState] = useState<LeadState>('idle');
   const [leadError, setLeadError] = useState<string | null>(null);
+  const [leadOpen, setLeadOpen] = useState(false);
   const [voiceMode, setVoiceMode] = useState(false);
   const [voiceLive, setVoiceLive] = useState('');
   /** Start orb listen once after Voice toggle / open-agent-chat autoListen. */
@@ -490,6 +491,9 @@ export default function AgentChat() {
         : `s-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`;
 
     setVoiceMode(false);
+    setVoiceLive('');
+    setLeadOpen(false);
+    setLeadError(null);
     setOpen(false);
   }, [forwardTranscriptNow, setMessages]);
 
@@ -517,6 +521,9 @@ export default function AgentChat() {
       typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
         ? crypto.randomUUID()
         : `s-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`;
+    setVoiceLive('');
+    setLeadOpen(false);
+    setLeadError(null);
   }, [forwardTranscriptNow, setMessages]);
 
   // Phone: lock page scroll while console covers the viewport.
@@ -868,8 +875,8 @@ export default function AgentChat() {
     Boolean(lastAssistant.id) &&
     messages.some((m) => m.role === 'user');
 
-  // Contact panel: optional soft invite after a few turns — never a hard gate.
-  const showLeadPanel = open && leadState !== 'sent' && leadSoftNudge;
+  // Contact: soft invite after a few turns — collapsed link, never mid-flow.
+  const showLeadInvite = open && leadState !== 'sent' && leadSoftNudge;
 
   function persistLeadState(next: LeadState) {
     setLeadState(next);
@@ -909,10 +916,17 @@ export default function AgentChat() {
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { error?: string };
-        setLeadError(body.error || 'Send failed. Try again.');
+        const raw = body.error || 'Send failed. Try again.';
+        // Never surface inbox/env configuration to visitors.
+        if (/inbox not configured|not configured|resend|api key|503/i.test(raw)) {
+          setLeadError('Note saving is offline right now.');
+        } else {
+          setLeadError(raw);
+        }
         setLeadState('idle');
         return;
       }
+      setLeadOpen(false);
       persistLeadState('sent');
     } catch {
       setLeadError('Network error. Try again.');
@@ -1169,13 +1183,6 @@ export default function AgentChat() {
             <Line role="assistant" text="…" muted />
           )}
 
-          {voiceMode && voiceLive.trim() && (
-            <p className="text-[0.95rem] sm:text-base leading-[1.7] text-[#007d75] whitespace-pre-wrap break-words">
-              <span className="text-[#00a89d]/55 mr-2 animate-pulse">&gt;</span>
-              {voiceLive}
-            </p>
-          )}
-
           {showError && (
             <p className="text-[0.7rem] leading-5 tracking-[0.05em] text-red-400/85 whitespace-pre-wrap">
               <span className="font-mono text-[0.55rem] tracking-[0.3em] uppercase mr-1.5">▸ error</span>
@@ -1192,80 +1199,8 @@ export default function AgentChat() {
 
         </div>
 
-        {/* Bottom chrome: lead + compact orb/city + sticky input. */}
+        {/* Bottom chrome: orb → chat input → optional leave-a-note (collapsed). */}
         <div className="shrink-0 flex flex-col">
-        {/* Contact panel — optional soft invite after a few turns.
-            Never disables chat before the promised 20 / day. */}
-        {showLeadPanel && (
-          <div className="border-t border-[#e7e0d6] px-5 py-3 bg-[#faf7f0] shrink-0">
-            <div className="mb-2.5">
-              <p className="font-mono text-[0.55rem] tracking-[0.35em] uppercase text-[#008f86]/85">
-                ▸ leave a note
-              </p>
-              <p className="mt-1 text-[0.7rem] text-[#1b1713]/55">
-                Happy to keep talking here. Want a reply later? Leave your email and a short note — optional either way.
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-              <input
-                type="email"
-                inputMode="email"
-                autoComplete="email"
-                value={leadEmail}
-                onChange={(e) => setLeadEmail(e.target.value)}
-                placeholder="your email"
-                disabled={leadState === 'submitting'}
-                className="flex-1 min-w-0 bg-white border border-[#ded8ce] px-3 py-2 text-sm text-[#1b1713]/90 placeholder:text-[#1b1713]/35 outline-none focus:border-[#00a89d]/70 caret-[#00a89d] disabled:opacity-50"
-                spellCheck={false}
-                autoCorrect="off"
-                autoCapitalize="off"
-              />
-              <input
-                type="text"
-                value={leadName}
-                onChange={(e) => setLeadName(e.target.value)}
-                placeholder="name / WeChat / note (optional)"
-                disabled={leadState === 'submitting'}
-                className="flex-1 min-w-0 bg-white border border-[#ded8ce] px-3 py-2 text-sm text-[#1b1713]/90 placeholder:text-[#1b1713]/35 outline-none focus:border-[#00a89d]/70 caret-[#00a89d] disabled:opacity-50"
-                spellCheck={false}
-                autoCorrect="off"
-              />
-              <button
-                type="button"
-                onClick={submitLead}
-                disabled={leadState === 'submitting' || !leadEmail.trim()}
-                className="font-mono text-[0.62rem] tracking-[0.3em] uppercase text-[#007d75] border border-[#00a89d]/45 bg-white px-3 py-2 hover:bg-[#e9fffc] transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
-              >
-                {leadState === 'submitting' ? 'sending…' : 'send ↗'}
-              </button>
-            </div>
-            {leadError && (
-              <p className="mt-2 font-mono text-[0.55rem] tracking-[0.25em] uppercase text-red-400/85">
-                ▸ {leadError}
-              </p>
-            )}
-            <p className="mt-2 font-mono text-[0.5rem] tracking-[0.28em] uppercase text-[#1b1713]/35">
-              delivered privately ·{' '}
-              <a
-                href="/privacy"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline decoration-[#1b1713]/20 underline-offset-2 hover:text-[#1b1713]/70 hover:decoration-[#1b1713]/40"
-              >
-                privacy
-              </a>
-            </p>
-          </div>
-        )}
-
-        {leadState === 'sent' && (
-          <div className="border-t border-[#e7e0d6] px-5 py-2 bg-[#f3fbf9] shrink-0">
-            <p className="font-mono text-[0.55rem] tracking-[0.3em] uppercase text-[#008f86]/90">
-              ▸ note sent — thanks
-            </p>
-          </div>
-        )}
-
         {/* Stream + barge-in orb: compact control node under transcript (≤~210px). */}
         <div className="shrink-0 max-h-[210px] overflow-y-auto overscroll-contain">
           <AgentVoiceOrb
@@ -1282,6 +1217,7 @@ export default function AgentChat() {
               unlockOrbAudioRef.current = unlock;
             }}
             onLiveCaption={(text) => {
+              // Mirror into the chat field while speaking; live caption UI lives on the orb.
               setVoiceLive(text);
               if (text) setInput(text);
               else if (!busy) setInput('');
@@ -1299,7 +1235,7 @@ export default function AgentChat() {
           />
         </div>
 
-        {/* Input row */}
+        {/* Chat input — separate from leave-a-note drawer below. */}
         <div className="border-t border-[#e7e0d6] px-5 py-2.5 sm:py-3 shrink-0">
           <div className="relative flex items-center gap-2">
             <span className={`text-sm ${sessionMaxed ? 'text-[#1b1713]/20' : 'text-[#00a89d]'}`}>&gt;</span>
@@ -1322,7 +1258,7 @@ export default function AgentChat() {
               }
               disabled={sessionMaxed}
               rows={1}
-              className="flex-1 resize-none bg-transparent text-sm leading-6 text-[#1b1713]/90 placeholder:text-[#1b1713]/30 outline-none max-h-32 caret-[#00a89d] disabled:cursor-not-allowed"
+              className="flex-1 resize-none bg-transparent text-sm leading-6 text-[#1b1713]/90 placeholder:text-[#1b1713]/38 outline-none max-h-32 caret-[#00a89d] disabled:cursor-not-allowed"
               spellCheck={false}
               autoCorrect="off"
               autoCapitalize="off"
@@ -1365,6 +1301,117 @@ export default function AgentChat() {
             </span>
           </p>
         </div>
+
+        {/* Leave a note — collapsed secondary action under chat, not mid-flow. */}
+        {showLeadInvite && (
+          <div className="border-t border-[#e7e0d6] px-5 py-2 bg-[#faf7f0]/70 shrink-0">
+            {!leadOpen ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setLeadError(null);
+                  setLeadOpen(true);
+                }}
+                className="font-mono text-[0.55rem] tracking-[0.28em] uppercase text-[#008f86]/80 hover:text-[#007d75] transition-colors"
+              >
+                leave a note ↗
+              </button>
+            ) : (
+              <form
+                className="space-y-2"
+                autoComplete="off"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void submitLead();
+                }}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-mono text-[0.55rem] tracking-[0.28em] uppercase text-[#008f86]/85">
+                    leave a note
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLeadOpen(false);
+                      setLeadError(null);
+                    }}
+                    className="font-mono text-[0.5rem] tracking-[0.22em] uppercase text-[#1b1713]/40 hover:text-[#1b1713]/70"
+                  >
+                    close
+                  </button>
+                </div>
+                <p className="text-[0.68rem] leading-5 text-[#1b1713]/50">
+                  Optional — email + a short note if you want a reply later. Chat stays open either way.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="email"
+                    inputMode="email"
+                    name="aileena-console-note-email"
+                    autoComplete="off"
+                    data-1p-ignore="true"
+                    data-lpignore="true"
+                    data-form-type="other"
+                    value={leadEmail}
+                    onChange={(e) => setLeadEmail(e.target.value)}
+                    placeholder="your email"
+                    disabled={leadState === 'submitting'}
+                    className="flex-1 min-w-0 bg-white border border-[#ded8ce] px-3 py-2 text-sm text-[#1b1713]/90 placeholder:text-[#1b1713]/35 outline-none focus:border-[#00a89d]/70 caret-[#00a89d] disabled:opacity-50"
+                    spellCheck={false}
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                  />
+                  <input
+                    type="text"
+                    name="aileena-console-note-memo"
+                    autoComplete="off"
+                    data-1p-ignore="true"
+                    data-lpignore="true"
+                    data-form-type="other"
+                    value={leadName}
+                    onChange={(e) => setLeadName(e.target.value)}
+                    placeholder="name / WeChat / note (optional)"
+                    disabled={leadState === 'submitting'}
+                    className="flex-1 min-w-0 bg-white border border-[#ded8ce] px-3 py-2 text-sm text-[#1b1713]/90 placeholder:text-[#1b1713]/35 outline-none focus:border-[#00a89d]/70 caret-[#00a89d] disabled:opacity-50"
+                    spellCheck={false}
+                    autoCorrect="off"
+                  />
+                  <button
+                    type="submit"
+                    disabled={leadState === 'submitting' || !leadEmail.trim()}
+                    className="font-mono text-[0.62rem] tracking-[0.3em] uppercase text-[#007d75] border border-[#00a89d]/45 bg-white px-3 py-2 hover:bg-[#e9fffc] transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+                  >
+                    {leadState === 'submitting' ? 'sending…' : 'send ↗'}
+                  </button>
+                </div>
+                {leadError && (
+                  <p className="font-mono text-[0.55rem] tracking-[0.2em] uppercase text-[#1b1713]/55">
+                    ▸ {leadError}
+                  </p>
+                )}
+                <p className="font-mono text-[0.48rem] tracking-[0.24em] uppercase text-[#1b1713]/35">
+                  private ·{' '}
+                  <a
+                    href="/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline decoration-[#1b1713]/20 underline-offset-2 hover:text-[#1b1713]/70"
+                  >
+                    privacy
+                  </a>
+                </p>
+              </form>
+            )}
+          </div>
+        )}
+
+        {leadState === 'sent' && (
+          <div className="border-t border-[#e7e0d6] px-5 py-2 bg-[#f3fbf9] shrink-0">
+            <p className="font-mono text-[0.55rem] tracking-[0.3em] uppercase text-[#008f86]/90">
+              ▸ note sent — thanks
+            </p>
+          </div>
+        )}
         </div>
       </div>
     </>

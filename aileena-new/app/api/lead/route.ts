@@ -75,7 +75,9 @@ export async function POST(req: NextRequest) {
 
   const inbox = getContactInbox();
   if (!inbox) {
-    return NextResponse.json({ error: 'Contact inbox not configured.' }, { status: 503 });
+    console.error('[api/lead] contact inbox not configured');
+    // Public copy stays soft — do not expose env/config details.
+    return NextResponse.json({ error: 'Note saving is offline right now.' }, { status: 503 });
   }
   const resend = new Resend(process.env.RESEND_API_KEY);
   const from = getResendFrom();

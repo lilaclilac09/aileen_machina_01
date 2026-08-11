@@ -131,7 +131,7 @@ export default function AgentVoiceOrb({
   const [listening, setListening] = useState(false);
   const [phase, setPhase] = useState<'idle' | 'listening' | 'hearing' | 'speaking'>('idle');
   const [level, setLevel] = useState(0);
-  const [hint, setHint] = useState('Tap orb · speak');
+  const [hint, setHint] = useState('Tap speak to start');
   const [caption, setCaption] = useState('');
   const [accentKey, setAccentKey] = useState<AccentKey>('shanghai');
   const [needsHearTap, setNeedsHearTap] = useState(false);
@@ -269,6 +269,7 @@ export default function AgentVoiceOrb({
       sourcesRef.current.push(src);
       ttsPlayingRef.current = true;
       setPhase('speaking');
+      setCaption('');
       setHint('Speaking…');
       src.onended = () => {
         sourcesRef.current = sourcesRef.current.filter((s) => s !== src);
@@ -279,7 +280,7 @@ export default function AgentVoiceOrb({
             setHint('Listening… speak anytime');
           } else {
             setPhase('idle');
-            setHint('Tap orb · speak');
+            setHint('Tap speak to start');
           }
         }
       };
@@ -363,6 +364,7 @@ export default function AgentVoiceOrb({
         audio.src = url;
         ttsPlayingRef.current = true;
         setPhase('speaking');
+        setCaption('');
         setHint('Speaking… interrupt anytime');
         stickyErrorRef.current = false;
 
@@ -381,7 +383,7 @@ export default function AgentVoiceOrb({
             setHint('Listening… speak anytime');
           } else {
             setPhase('idle');
-            setHint('Tap orb · speak');
+            setHint('Tap speak to start');
           }
           resolve();
         };
@@ -454,6 +456,7 @@ export default function AgentVoiceOrb({
 
       ttsPlayingRef.current = true;
       setPhase('speaking');
+      setCaption('');
       setHint('Speaking…');
 
       const finishIdle = () => {
@@ -463,7 +466,7 @@ export default function AgentVoiceOrb({
           setHint('Listening… speak anytime');
         } else {
           setPhase('idle');
-          setHint('Tap orb · speak');
+          setHint('Tap speak to start');
         }
         resolve();
       };
@@ -586,11 +589,13 @@ export default function AgentVoiceOrb({
       }
       lastAskAtRef.current = now;
       stopPlayback();
-      pushCaption(t, true);
+      // Clear live caption so it doesn't permanently duplicate the transcript line.
+      setCaption('');
+      onLiveCaptionRef.current?.('', false);
       onAsk(t);
       setHint('Heard you · answering…');
     },
-    [disabled, onAsk, pushCaption, stopPlayback],
+    [disabled, onAsk, stopPlayback],
   );
 
   const pickMime = () => {
@@ -985,7 +990,7 @@ export default function AgentVoiceOrb({
     setPhase('idle');
     setCaption('');
     pushCaption('', false);
-    if (!stickyErrorRef.current) setHint('Tap orb · speak');
+    if (!stickyErrorRef.current) setHint('Tap speak to start');
   }, [onListeningChange, pushCaption, stopOpenAiListen, stopPlayback, stopWebSpeech]);
 
   const onOrbClick = useCallback(() => {
@@ -1018,12 +1023,12 @@ export default function AgentVoiceOrb({
   useEffect(() => {
     if (!active || !autoListen || disabled || listening) return;
     if (needsTapToSpeak()) {
-      setHint('Tap orb to speak');
+      setHint('Tap speak to start');
       return;
     }
     void startListening().then(() => {
       if (!listeningRef.current) {
-        setHint('Tap orb to speak');
+        setHint('Tap speak to start');
       }
     });
   }, [active, autoListen, disabled, listening, startListening]);
@@ -1115,18 +1120,27 @@ export default function AgentVoiceOrb({
           </div>
         </div>
         <p className="min-h-[1rem] max-w-md px-2 text-center text-[0.72rem] sm:text-[0.78rem] leading-4 text-[#007d75]/90">
-          {caption ? (
+          {listening && (phase === 'listening' || phase === 'hearing') && caption.trim() ? (
             <>
               <span className="mr-1.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-[#00a89d] align-middle" />
+              <span className="text-[#1b1713]/45 mr-1.5 font-mono text-[0.5rem] tracking-[0.18em] uppercase">
+                {phase === 'hearing' ? 'hearing' : 'listening'}
+              </span>
               {caption}
             </>
           ) : (
             <span className="text-[#1b1713]/28 italic">
-              {listening
-                ? phase === 'hearing'
-                  ? 'Hearing you…'
-                  : 'Listening…'
-                : 'Live caption — tap Speak'}
+              {needsHearTap
+                ? 'Tap orb to hear reply'
+                : listening
+                  ? phase === 'speaking'
+                    ? 'Speaking…'
+                    : phase === 'hearing'
+                      ? 'Hearing you…'
+                      : 'Listening…'
+                  : hintIsError
+                    ? ''
+                    : 'Tap speak to start'}
             </span>
           )}
         </p>
