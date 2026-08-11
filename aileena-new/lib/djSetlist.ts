@@ -1,8 +1,5 @@
 /** DJ set + full deck library for /sound#dj-set carousel. */
 
-const PLACEHOLDER_THUMB =
-  "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='300'%20height='300'%3E%3Crect%20width='300'%20height='300'%20fill='%230b0d10'/%3E%3Ccircle%20cx='150'%20cy='150'%20r='118'%20fill='none'%20stroke='%2300ffea'%20stroke-opacity='0.22'/%3E%3Ccircle%20cx='150'%20cy='150'%20r='78'%20fill='none'%20stroke='%2300ffea'%20stroke-opacity='0.15'/%3E%3Ctext%20x='150'%20y='172'%20font-family='monospace'%20font-size='44'%20fill='%2300ffea'%20fill-opacity='0.4'%20text-anchor='middle'%3E%E2%99%AA%3C/text%3E%3C/svg%3E";
-
 export const DJ_SET_GENRE =
   'Techno (personal): harder driving techno — DVS1, Blawan, Rødhåd';
 
@@ -161,8 +158,6 @@ export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
   { id: '3CYFxT3dBwOd9Ap0zKXHk7', title: 'GALA', bpm: 128, key: '6B', dur: 178, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02c1456e351abb6d5b1a8ffbef' },
   { id: '2pIUpMhHL6L9Z5lnKxJJr9', title: 'Attention', bpm: 122, key: '8A', dur: 200, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e029d28fd01859073a3ae6ea209' },
   { id: '1qbEfJ6F5Ryn1RYfJheZem', title: 'Late Night Job', bpm: 118, key: '3A', dur: 225, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e023108f7d165756b51d81ea3ba' },
-  { id: '7b1uaIR2va05jHG5fnVbMu', title: 'Lab Rat 3', bpm: 130, key: '5B', dur: 185, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02fad7ae8dfc681c2f9f8333ef' },
-  { id: '2lFp0xJL7yGD7CtiQPqpwb', title: '700358bc5', bpm: 126, key: '7A', dur: 210, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e0214e8b7396634f604692c67ff' },
   { id: '3rw4HfYW3XJMSm11Z5Qn4c', title: 'Roses + Thorns', bpm: 116, key: '9B', dur: 198, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0225de4144381ec14d111c5380' },
   { id: '7i1qsbXNf6C8Zdo3COMzJY', title: 'WISE', bpm: 129, key: '5A', dur: 204, thumb: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/b3/73/e9/b373e9b8-9ead-e9a7-0825-f8d8a30dabd6/3617221727448_cover.png/600x600bb.jpg' },
   { id: '62PSNt68BxMaxl9U50PIdW', title: 'Crush On You', bpm: 120, key: '4B', dur: 180, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02f3d67ea5769af25963f86120' },
@@ -175,13 +170,52 @@ export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
   { id: '69xZrRwScYMhlCMcxrF958', title: 'Luxurious', bpm: 120, key: '4A', dur: 200, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e027c7136a182372ccdffb3d3c4' },
   { id: '1mBzeQjQPxdT693fIlmA4k', title: 'Small City', bpm: 120, key: '4A', dur: 200, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02722d5a45a1f8246fd620cb22' },
   { id: '5RUJ1B8Yrh7w4PT0W8KVPk', title: 'Ba-Da-Ba', bpm: 120, key: '4A', dur: 200, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e0252f54296b90eee374de846e3' },
-  { id: '5ANaCqoIl0gQyphoYTaQAj', title: 'Ha Jam', bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
-  { id: '03Y3K0S8WLjyvV7Z2qSdlh', title: 'Surface', bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
-  { id: '5i18ZFR4g3xC4uHlNFHkGH', title: 'Ottagone 013', bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
-  { id: '3X9betUxSQLTAltImJZ3So', title: 'Double Scoop', bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
-  { id: '4zDmVNxz1t4zwHqasJt8LT', title: 'Jazz Is the Teacher', bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
-  { id: '1qEmFfgcLObUfQm0j1W2CK', title: 'Late Night Talking', bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
-  { id: '2IOFZdYYkFxEHVz1w34PoL', title: 'Cherry', bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
+  // Was PLACEHOLDER — covers vendored under /dj-set/assets/covers/*.jpg (Spotify oEmbed)
+  {
+    id: '03Y3K0S8WLjyvV7Z2qSdlh',
+    title: 'Surface',
+    artist: 'Substance · Vainqueur',
+    bpm: 120,
+    key: '4A',
+    dur: 200,
+    thumb: '/dj-set/assets/covers/surface.jpg',
+  },
+  {
+    id: '3X9betUxSQLTAltImJZ3So',
+    title: 'Double Scoop',
+    artist: 'Shed',
+    bpm: 120,
+    key: '4A',
+    dur: 200,
+    thumb: '/dj-set/assets/covers/double-scoop.jpg',
+  },
+  {
+    id: '4zDmVNxz1t4zwHqasJt8LT',
+    title: 'Jazz Is the Teacher',
+    artist: '3MB · Magic Juan Atkins',
+    bpm: 120,
+    key: '4A',
+    dur: 200,
+    thumb: '/dj-set/assets/covers/jazz-is-the-teacher.jpg',
+  },
+  {
+    id: '1qEmFfgcLObUfQm0j1W2CK',
+    title: 'Late Night Talking',
+    artist: 'Harry Styles',
+    bpm: 120,
+    key: '4A',
+    dur: 200,
+    thumb: '/dj-set/assets/covers/late-night-talking.jpg',
+  },
+  {
+    id: '2IOFZdYYkFxEHVz1w34PoL',
+    title: 'Cherry',
+    artist: 'Harry Styles',
+    bpm: 120,
+    key: '4A',
+    dur: 200,
+    thumb: '/dj-set/assets/covers/cherry.jpg',
+  },
 ];
 
 export function djSetToDeckTracks(): DeckTrack[] {
