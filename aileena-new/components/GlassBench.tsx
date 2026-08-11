@@ -52,6 +52,14 @@ export default function GlassBench({
           color: inherit;
           text-decoration: none;
           background: transparent;
+          border: none;
+          outline: none;
+          box-shadow: none;
+        }
+        .glass-bench-shot:focus,
+        .glass-bench-shot:focus-visible {
+          outline: none;
+          box-shadow: none;
         }
         .glass-bench-frame {
           position: relative;
@@ -59,6 +67,10 @@ export default function GlassBench({
           aspect-ratio: 5 / 4;
           overflow: hidden;
           background: transparent;
+          border: none;
+          outline: none;
+          box-shadow: none;
+          border-radius: 0;
         }
         .glass-bench-frame img {
           display: block;
@@ -66,6 +78,9 @@ export default function GlassBench({
           height: 100%;
           object-fit: cover;
           object-position: center;
+          border: none;
+          outline: none;
+          box-shadow: none;
         }
         .glass-bench-caption {
           margin: 0;
