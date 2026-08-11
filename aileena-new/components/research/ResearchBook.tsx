@@ -97,6 +97,7 @@ export default function ResearchBook({ issue }: { issue: MagazineIssue }) {
 
       {/* Sticky top bar */}
       <header
+        className="site-top-nav"
         style={{
           position: 'fixed',
           top: 0,
@@ -119,18 +120,8 @@ export default function ResearchBook({ issue }: { issue: MagazineIssue }) {
             gap: 16,
           }}
         >
-          <Link
-            href="/research"
-            style={{
-              fontFamily: nunito,
-              fontSize: '0.85rem',
-              fontWeight: 500,
-              color: 'rgba(255,255,255,0.6)',
-              textDecoration: 'none',
-            }}
-          >
-            ← Bookshelf
-          </Link>
+          {/* ← dispatch lives in SiteLeftChrome */}
+          <span aria-hidden />
           <span
             style={{
               fontFamily: mono,

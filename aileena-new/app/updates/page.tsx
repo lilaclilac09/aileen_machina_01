@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import ScrollUnlock from '../blog/ScrollUnlock';
 import PillToggle from '../../components/PillToggle';
-import RoomsFooter from '../../components/RoomsFooter';
 import './updates.css';
 
 type Book = {
@@ -321,8 +320,6 @@ export default function UpdatesPage() {
         </section>
 
       </main>
-
-      <RoomsFooter />
     </div>
   );
 }

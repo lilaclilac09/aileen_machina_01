@@ -6,7 +6,6 @@ import { useLanguage } from '../../components/LanguageProvider';
 import { t } from '../../lib/translations';
 import ScrollUnlock from '../blog/ScrollUnlock';
 import '../blog/_substack/substack.css';
-import RoomsFooter from '../../components/RoomsFooter';
 import PillToggle from '../../components/PillToggle';
 import SwipeRow, { type Post } from '../../components/SwipeRow';
 import CoverflowPanel from '../../components/CoverflowPanel';
@@ -319,7 +318,6 @@ export default function DispatchArchive() {
         )}
       </main>
 
-      <RoomsFooter />
       {activeTab !== 'watch' ? (
         <CoverflowPanel
           settings={coverflow.settings}

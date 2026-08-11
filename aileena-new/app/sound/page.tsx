@@ -1,6 +1,5 @@
 'use client';
 
-import RoomsFooter from '../../components/RoomsFooter';
 import DJStation from '../../components/DJStation';
 import ScrollUnlock from '../blog/ScrollUnlock';
 import { useLanguage } from '../../components/LanguageProvider';
@@ -80,8 +79,6 @@ export default function SoundPage() {
 
         <DJStation />
       </main>
-
-      <RoomsFooter />
     </div>
   );
 }

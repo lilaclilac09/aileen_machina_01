@@ -1,6 +1,5 @@
 'use client';
 
-import RoomsFooter from '../../components/RoomsFooter';
 import ProphecyHall from '../../components/ProphecyHall';
 import ScrollUnlock from '../blog/ScrollUnlock';
 
@@ -95,8 +94,6 @@ export default function ProphecyPage() {
 
         <ProphecyHall />
       </main>
-
-      <RoomsFooter />
     </div>
   );
 }

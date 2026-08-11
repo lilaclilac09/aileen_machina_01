@@ -1,7 +1,8 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import BackHomeLink, { chromeBackForPath } from './BackHomeLink';
+import BackHomeLink from './BackHomeLink';
+import { chromeBackForPath, chromeInkForPath } from '../lib/doorsNav';
 
 /**
  * Fixed top-left chrome: machina avatar (+ context-aware back).
@@ -17,6 +18,7 @@ export default function SiteLeftChrome({
 }) {
   const pathname = usePathname() || '/';
   const back = chromeBackForPath(pathname);
+  const ink = chromeInkForPath(pathname);
 
   return (
     <div
@@ -52,7 +54,11 @@ export default function SiteLeftChrome({
       {back ? (
         <BackHomeLink
           href={back.href}
-          className="site-chrome-home font-mono text-[0.62rem] sm:text-[0.68rem] tracking-[0.18em] uppercase text-[#fffdf8]/70 hover:text-[#fffdf8] transition-colors select-none"
+          className={`site-chrome-home font-mono text-[0.62rem] sm:text-[0.68rem] tracking-[0.18em] uppercase transition-colors select-none ${
+            ink
+              ? 'site-chrome-home--ink text-[rgba(27,23,19,0.58)] hover:text-[rgba(27,23,19,0.95)]'
+              : 'text-[#fffdf8]/70 hover:text-[#fffdf8]'
+          }`}
           style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}
         >
           {back.label}
