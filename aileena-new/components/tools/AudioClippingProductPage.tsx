@@ -77,24 +77,11 @@ export default function AudioClippingProductPage() {
               maxWidth: 1040,
               margin: '0 auto',
               display: 'flex',
-              justifyContent: 'space-between',
+              justifyContent: 'flex-end',
               alignItems: 'center',
               gap: 16,
             }}
           >
-            <Link
-              href="/tools"
-              style={{
-                fontFamily: mono,
-                fontSize: '0.72rem',
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                color: 'rgba(20,17,12,0.48)',
-                textDecoration: 'none',
-              }}
-            >
-              {tx.backToTools}
-            </Link>
             <span
               style={{
                 fontFamily: mono,

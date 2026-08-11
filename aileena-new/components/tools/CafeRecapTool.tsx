@@ -59,7 +59,6 @@ export default function CafeRecapTool() {
       tag={tx.tag}
       title={tx.heading}
       subtitle={tx.body}
-      backLabel={tx.backToTools}
       marquee={tx.marquee}
     >
       <div style={{ display: 'grid', gap: 28, maxWidth: 720, margin: '0 auto' }}>

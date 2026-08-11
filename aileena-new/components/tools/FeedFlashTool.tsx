@@ -113,7 +113,6 @@ export default function FeedFlashTool() {
       tag={tx.tag}
       title={tx.heading}
       subtitle={tx.body}
-      backLabel={tx.backToTools}
       marquee={tx.marquee}
     >
       <div

@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { CSSProperties, MouseEvent, ReactNode } from 'react';
 
+export { chromeBackForPath, chromeInkForPath } from '../lib/doorsNav';
+
 /** Must match `SESSION_LOADED_KEY` in `app/page.tsx` — skips boot screen on exit. */
 const SESSION_LOADED_KEY = 'aileena_loaded_once';
 
@@ -41,59 +43,4 @@ export default function BackHomeLink({
       {children}
     </Link>
   );
-}
-
-/** Path → chrome back target for Doors IA. */
-export function chromeBackForPath(pathname: string): { href: string; label: string } | null {
-  if (!pathname || pathname === '/') return null;
-
-  // Doors directory → home
-  if (pathname === '/doors') {
-    return { href: '/', label: '← home' };
-  }
-
-  // Utility pages → home
-  if (
-    pathname === '/privacy' ||
-    pathname === '/api-docs' ||
-    pathname === '/unlock' ||
-    pathname === '/support'
-  ) {
-    return { href: '/', label: '← home' };
-  }
-
-  // Tool children keep page-local ← Tools; chrome goes to doors (directory)
-  // Tool index + audio-clipping + room hubs → doors
-  const doorsHubs = new Set([
-    '/sound',
-    '/dispatch',
-    '/updates',
-    '/tools',
-    '/works',
-    '/prophecy',
-    '/audio-clipping',
-    '/blog/watch-listening-shelf',
-    '/blog/pate-de-verre',
-  ]);
-  if (doorsHubs.has(pathname)) {
-    return { href: '/doors', label: '← doors' };
-  }
-
-  // Nested tools → doors (Arcade also offers ← Tools)
-  if (pathname.startsWith('/tools/')) {
-    return { href: '/doors', label: '← doors' };
-  }
-
-  // Research → dispatch parent
-  if (pathname === '/research' || pathname.startsWith('/research/')) {
-    return { href: '/dispatch', label: '← dispatch' };
-  }
-
-  // Blog essays / explainers → dispatch (shelf + pate handled above)
-  if (pathname.startsWith('/blog/')) {
-    return { href: '/dispatch', label: '← dispatch' };
-  }
-
-  // Default subpage → doors
-  return { href: '/doors', label: '← doors' };
 }

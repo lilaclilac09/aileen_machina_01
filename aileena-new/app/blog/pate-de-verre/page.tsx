@@ -78,14 +78,17 @@ export default function PateDeVerreArticle() {
         </p>
 
         <div style={{ marginTop: 56 }}>
-          <Link href="/#glass-bench" style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8,
-            fontFamily: 'monospace', fontSize: '0.6rem', letterSpacing: '0.35em',
-            color: 'rgba(255,255,255,0.35)', textDecoration: 'none', textTransform: 'uppercase',
-            transition: 'color 0.2s',
-          }}>
-            ← Back to Visual
-          </Link>
+            <Link
+              href="/updates"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                fontFamily: 'monospace', fontSize: '0.6rem', letterSpacing: '0.35em',
+                color: 'rgba(255,255,255,0.35)', textDecoration: 'none', textTransform: 'uppercase',
+                transition: 'color 0.2s',
+              }}
+            >
+              ← Metal & Pages
+            </Link>
         </div>
 
       </article>

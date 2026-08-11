@@ -42,15 +42,29 @@
   }
 }
 
-/* Light pages: Home label reads as ink next to the avatar */
+/* Light pages: ink Home/doors label next to the avatar.
+   Prefer `.site-chrome-home--ink` from SiteLeftChrome (pathname-aware).
+   Keep :has() fallbacks for SSR / pages that already mark themselves. */
+.site-chrome-home--ink {
+  color: rgba(27, 23, 19, 0.58) !important;
+}
+.site-chrome-home--ink:hover {
+  color: rgba(27, 23, 19, 0.95) !important;
+}
 html:has(.substack-article) .site-chrome-home,
 html:has(.dispatch-archive-header) .site-chrome-home,
-html:has(.explainer-article) .site-chrome-home {
+html:has(.explainer-article) .site-chrome-home,
+html:has([data-doors-directory]) .site-chrome-home,
+html:has(.mp-page) .site-chrome-home,
+html:has(.arcade-root) .site-chrome-home {
   color: rgba(27, 23, 19, 0.58) !important;
 }
 html:has(.substack-article) .site-chrome-home:hover,
 html:has(.dispatch-archive-header) .site-chrome-home:hover,
-html:has(.explainer-article) .site-chrome-home:hover {
+html:has(.explainer-article) .site-chrome-home:hover,
+html:has([data-doors-directory]) .site-chrome-home:hover,
+html:has(.mp-page) .site-chrome-home:hover,
+html:has(.arcade-root) .site-chrome-home:hover {
   color: rgba(27, 23, 19, 0.95) !important;
 }
 

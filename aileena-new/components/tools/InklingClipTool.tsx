@@ -245,8 +245,6 @@ export default function InklingClipTool() {
       tag={tx.tag}
       title={tx.heading}
       subtitle={tx.body}
-      backLabel={tx.backToTools}
-      backHref="/tools"
       marquee={`AUDIO CLIPPING · FREE LOCAL · NOT INKLING · CLI`}
     >
       <ArcadeCabinetFrame

@@ -136,7 +136,6 @@ export default function PricingSlotTool() {
       tag={tx.tag}
       title={tx.heading}
       subtitle={tx.body}
-      backLabel={tx.backToTools}
       marquee={tx.marquee}
     >
       <p style={{ margin: '0 0 16px', fontFamily: mono, fontSize: '0.72rem', color: 'rgba(20,17,12,0.45)' }}>

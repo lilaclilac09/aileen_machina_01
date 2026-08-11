@@ -129,8 +129,6 @@ export default function ChipGuessTool() {
       tag={tx.tag}
       title={tx.heading}
       subtitle={tx.body}
-      backLabel={tx.backToTools}
-      backHref="/tools"
       marquee={tx.marquee}
     >
       <div

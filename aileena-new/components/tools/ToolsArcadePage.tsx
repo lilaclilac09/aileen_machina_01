@@ -1,6 +1,5 @@
 'use client';
 
-import RoomsFooter from '../RoomsFooter';
 import Link from 'next/link';
 import { useLanguage } from '../LanguageProvider';
 import { t } from '../../lib/translations';
@@ -9,7 +8,7 @@ import {
   TOOL_DEFINITIONS,
   type ToolDefinition,
 } from '../../lib/tools/registry';
-import ArcadeLayout, { mono } from './ArcadeLayout';
+import ArcadeLayout from './ArcadeLayout';
 
 function hostLabel(href: string): string | null {
   try {
@@ -172,7 +171,6 @@ export default function ToolsArcadePage() {
           </section>
         ) : null}
       </div>
-      <RoomsFooter />
     </ArcadeLayout>
   );
 }
