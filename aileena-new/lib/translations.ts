@@ -736,6 +736,12 @@ export const t = {
         read: 'Read',
         posts: [
           {
+            date: '2026.08.12',
+            href: '/blog/suffocating-bias',
+            title: 'The Suffocating Bias',
+            body: 'Bias does not suffocate loudly — it lowers the ceiling until you duck without noticing. England taught dignity as form; Europe taught fairness as measure; America amplifies whatever you put in. Bear with it to stay operational. Change it with 100% confidence — claim the room without selling your form.',
+          },
+          {
             date: '2026.07.09',
             href: '/blog/third-culture-power',
             title: 'Third Culture Kid Without Consciousness',
@@ -1563,6 +1569,12 @@ export const t = {
         heading: 'Frau in Tech',
         read: 'Lesen',
         posts: [
+          {
+            date: '2026.08.12',
+            href: '/blog/suffocating-bias',
+            title: 'Die erstickende Voreingenommenheit',
+            body: 'Bias erstickt nicht laut — er senkt die Decke, bis du dich bückst, ohne es zu merken. England lehrte Würde als Form; Europa Fairness als Maßstab; Amerika verstärkt, was du hineinlegst. Aushalten hält dich handlungsfähig. Ändern mit 100% Zuversicht — beanspruche den Raum, ohne deine Form zu verkaufen.',
+          },
           {
             date: '2026.07.09',
             href: '/blog/third-culture-power',

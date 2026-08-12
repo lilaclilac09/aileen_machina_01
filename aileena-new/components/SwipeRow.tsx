@@ -124,6 +124,7 @@ const COVER_BY_SLUG: Record<string, string> = {
   lion: COVER_LION,
   misread: '/dispatch-covers/misread-boy-girl.jpg',
   'third-culture-power': COVER_PORTRAIT,
+  'suffocating-bias': COVER_NEBULA,
   harassment: '/dispatch-covers/harassment.jpg',
 
   // Recommendations

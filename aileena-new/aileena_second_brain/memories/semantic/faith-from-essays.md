@@ -47,6 +47,17 @@ Grasping power: *Names on commits. Contracts. Numbers you checked yourself. Text
 
 No handed manual — **write your own**.
 
+### Bear with bias; change it with 100% confidence
+Source: `/blog/suffocating-bias`
+
+Bias as atmosphere (*lowers the ceiling until you duck*). Bearing with it = stay operational, record, do not burn out on every slight — **not** seniority-as-salvation.
+
+English: dignity as form / calibrated witness. Europe: fairness as measure. America: amplifier — claim the room without selling your form.
+
+> America says: claim the room. England says: hold the form. Europe says: fairness is the measure. Together: claim the room without selling your form.
+
+> Change the air — with 100% confidence.
+
 ### Trust the kiln (process you cannot undo)
 Source: `/blog/pate-de-verre`
 
@@ -72,7 +83,7 @@ Same logic as the harassment essay: verify; do not jump.
 
 ## One-line for the agent
 
-Her faith, as written: **the world and the room can be incomplete or unfair — evidence, sentences, commits, contracts, a public archive, and irreversible craft can still hold you; comforting beliefs that seniority or belonging will save you, she does not trust.**
+Her faith, as written: **the world and the room can be incomplete or unfair — evidence, sentences, commits, contracts, a public archive, and irreversible craft can still hold you; comforting beliefs that seniority or belonging will save you, she does not trust; bear with suffocating bias to stay operational, then change the air with 100% confidence (claim the room without selling your form).**
 
 ## Culture shelf (interest ≠ creed)
 
