@@ -12213,5 +12213,30 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-12T02:43:47.511Z"
+  },
+  {
+    "id": "2087405029410103632",
+    "url": "https://x.com/dylan522p/status/2087405029410103632",
+    "screenName": "dylan522p",
+    "authorId": "985281530070265862",
+    "authorName": "Dylan Patel",
+    "text": "If a bagel can have everything, so can I",
+    "createdAt": "Wed Aug 12 05:05:15 +0000 2026",
+    "createdTimestamp": 1786511115,
+    "likes": 123,
+    "retweets": 5,
+    "replies": 17,
+    "bookmarks": 5,
+    "views": 12746,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "semianalysis"
+    ],
+    "tags": [
+      "semianalysis"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-12T07:51:45.882Z"
   }
 ]
