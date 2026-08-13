@@ -14,6 +14,7 @@ import {
 import { appendUserTopic, readTopicMemory, buildCatchUpGreeting, buildCatchUpHint, clearTopicMemory } from '../lib/articleTopicMemory';
 import { matchCanned } from '../lib/agentCannedResponses';
 import { composeSoftHint } from '../lib/softOracle';
+import { CONTACT_OFFLINE_PUBLIC } from '../lib/mail-transcript';
 import {
   isVoiceCodeIntent,
   quotaDayKey as vcodeDayKey,
@@ -996,7 +997,7 @@ export default function AgentChat() {
     const memo = leadName.trim();
 
     if (leadMailReady === false) {
-      setLeadError('Note saving is offline right now.');
+      setLeadError(CONTACT_OFFLINE_PUBLIC);
       return;
     }
 
@@ -1051,7 +1052,7 @@ export default function AgentChat() {
           )
         ) {
           setLeadMailReady(false);
-          setLeadError('Note saving is offline right now.');
+          setLeadError(CONTACT_OFFLINE_PUBLIC);
         } else {
           setLeadError(raw);
         }
