@@ -55,7 +55,7 @@ html:has(.substack-article) .site-chrome-home,
 html:has(.dispatch-archive-header) .site-chrome-home,
 html:has(.explainer-article) .site-chrome-home,
 html:has([data-doors-directory]) .site-chrome-home,
-html:has(.mp-page) .site-chrome-home,
+html:has(.arc-page) .site-chrome-home,
 html:has(.arcade-root) .site-chrome-home {
   color: rgba(27, 23, 19, 0.58) !important;
 }
@@ -63,7 +63,7 @@ html:has(.substack-article) .site-chrome-home:hover,
 html:has(.dispatch-archive-header) .site-chrome-home:hover,
 html:has(.explainer-article) .site-chrome-home:hover,
 html:has([data-doors-directory]) .site-chrome-home:hover,
-html:has(.mp-page) .site-chrome-home:hover,
+html:has(.arc-page) .site-chrome-home:hover,
 html:has(.arcade-root) .site-chrome-home:hover {
   color: rgba(27, 23, 19, 0.95) !important;
 }
