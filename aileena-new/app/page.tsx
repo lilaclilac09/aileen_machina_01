@@ -90,7 +90,22 @@ function dragMeCursorFor(onDark: boolean): string {
   return onDark ? dragMeCursorOnDark : dragMeCursor;
 }
 
+const livedInBase: Record<string, string> = {
+  'kiln-glass': 'rotate(-3.2deg)',
+  'street-back': 'rotate(1.6deg)',
+  'vinyl-surface': 'rotate(-5.2deg)',
+};
+const livedInZ: Record<string, number> = {
+  'kiln-glass': 11,
+  'street-back': 7,
+  'vinyl-surface': 13,
+};
+const livedInDark = new Set(['street-back', 'vinyl-surface']);
+
 function dragMeCursorForId(id: string, rooms: RoomDoor[]): string {
+  if (id in livedInBase) {
+    return livedInDark.has(id) ? dragMeCursorOnDark : dragMeCursor;
+  }
   if (
     id === 'woman-cover-print' ||
     id === 'didion-scrap' ||
@@ -104,6 +119,36 @@ function dragMeCursorForId(id: string, rooms: RoomDoor[]): string {
   return dragMeCursorFor(isDarkScrapMotif(room.motif));
 }
 
+function LivedInPrint({
+  src,
+  filter,
+  caption,
+}: {
+  src: string;
+  filter?: string;
+  caption: string;
+}) {
+  return (
+    <>
+      <ScrapPhoto src={src} filter={filter} className="scrap-photo--paper" />
+      <span
+        style={{
+          display: 'block',
+          marginTop: 7,
+          color: 'rgba(20,17,12,0.52)',
+          fontFamily: 'Georgia, serif',
+          fontSize: '0.82rem',
+          fontStyle: 'italic',
+          textAlign: 'center',
+          pointerEvents: 'none',
+        }}
+      >
+        {caption}
+      </span>
+    </>
+  );
+}
+
 /* ── Homepage ─────────────────────────────────────────────────────────
  *
  * A cinematic opening, then one clickable clipping desk. Information is
@@ -111,7 +156,8 @@ function dragMeCursorForId(id: string, rooms: RoomDoor[]): string {
  * contain the content.
  *
  *   Section 01  Cinematic opening   — scene + one line + one CTA
- *   Section 02  Clipping desk       — article scraps + direct doors
+ *   Section 02  Clipping desk       — article scraps + a few lived-in prints
+ *                                     mixed in (kiln / street / vinyl), not a gallery
  *   Section 03  Watch / Listen      — labeled doors (DJ → /sound, shelf, …)
  *   Section 04  Visual              — kiln / glass bench (handmade work)
  *
@@ -444,6 +490,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
   ];
   const getDragOffset = (id: string) => dragOffsets[id] ?? { x: 0, y: 0 };
   const baseFor = (id: string) => {
+    if (id in livedInBase) return livedInBase[id];
     if (id === 'woman-cover-print') return 'rotate(2.4deg)';
     if (id === 'machina-polaroid') return 'rotate(3.2deg)';
     if (id === 'didion-scrap') return 'rotate(-2.8deg)';
@@ -462,15 +509,17 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
   };
   const homeZFor = (id: string) =>
     String(
-      id === 'machina-polaroid'
-        ? 16
-        : id === 'zine-clipping'
-          ? 10
-          : id === 'woman-cover-print'
-            ? 8
-            : id === 'didion-scrap'
-              ? 9
-              : rooms.find((r) => r.id === id)?.placement.zIndex ?? 1,
+      id in livedInZ
+        ? livedInZ[id]
+        : id === 'machina-polaroid'
+          ? 16
+          : id === 'zine-clipping'
+            ? 10
+            : id === 'woman-cover-print'
+              ? 8
+              : id === 'didion-scrap'
+                ? 9
+                : rooms.find((r) => r.id === id)?.placement.zIndex ?? 1,
     );
   const finishDrag = (pointerId: number, moved: boolean) => {
     const drag = dragStateRef.current;
@@ -725,6 +774,30 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                     woman in tech archive →
                   </span>
                 </ScrapPhoto>
+              </Link>
+
+              <Link
+                href="/blog/pate-de-verre"
+                aria-label="Open pâte de verre — kiln glass on the bench"
+                className="text-left"
+                data-lived-in="kiln-glass"
+                style={{
+                  display: 'block',
+                  width: 'min(56%, 176px)',
+                  margin: '18px auto 4px',
+                  padding: 0,
+                  border: 'none',
+                  background: 'transparent',
+                  textDecoration: 'none',
+                  transform: 'rotate(-2.4deg)',
+                  filter: 'drop-shadow(2px 8px 14px rgba(20,17,12,0.14))',
+                }}
+              >
+                <LivedInPrint
+                  src="/pate-glass.jpg"
+                  filter="saturate(0.9) contrast(1.02)"
+                  caption="kiln"
+                />
               </Link>
 
               <Link
@@ -1007,6 +1080,103 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
                 border: 'none',
                 pointerEvents: 'none',
               }}
+            />
+          </Link>
+
+          {/* Lived-in fragments — mixed with posters, not a gallery */}
+          <Link
+            href="/blog/pate-de-verre"
+            aria-label="Open pâte de verre — kiln glass on the bench"
+            data-lived-in="kiln-glass"
+            className="absolute hidden sm:block"
+            style={{
+              top: '46%',
+              left: `calc(2% + ${atriumArticleWidth} + 8px)`,
+              width: 'min(14vw, 138px)',
+              padding: 0,
+              margin: 0,
+              border: 'none',
+              outline: 'none',
+              background: 'transparent',
+              boxShadow: 'none',
+              cursor: dragMeCursor,
+              transform: dragTransform('kiln-glass', livedInBase['kiln-glass']),
+              transition: 'transform 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+              touchAction: 'none',
+              userSelect: 'none',
+              zIndex: livedInZ['kiln-glass'],
+              textDecoration: 'none',
+            }}
+            {...dragHandlers('kiln-glass')}
+          >
+            <LivedInPrint
+              src="/pate-glass.jpg"
+              filter="saturate(0.9) contrast(1.02)"
+              caption="kiln"
+            />
+          </Link>
+
+          <Link
+            href="/blog/misread"
+            aria-label="Open Misread — street back, elsewhere"
+            data-lived-in="street-back"
+            className="absolute hidden sm:block"
+            style={{
+              top: '71%',
+              left: atriumPolaroidLeft,
+              width: 'min(12vw, 116px)',
+              padding: 0,
+              margin: 0,
+              border: 'none',
+              outline: 'none',
+              background: 'transparent',
+              boxShadow: 'none',
+              cursor: dragMeCursorOnDark,
+              transform: dragTransform('street-back', livedInBase['street-back']),
+              transition: 'transform 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+              touchAction: 'none',
+              userSelect: 'none',
+              zIndex: livedInZ['street-back'],
+              textDecoration: 'none',
+            }}
+            {...dragHandlers('street-back')}
+          >
+            <LivedInPrint
+              src="/dispatch-covers/misread-boy-girl.jpg"
+              filter="saturate(0.82) contrast(1.03)"
+              caption="elsewhere"
+            />
+          </Link>
+
+          <Link
+            href="/sound#dj-set"
+            aria-label="Open DJ set — vinyl surface"
+            data-lived-in="vinyl-surface"
+            className="absolute hidden md:block"
+            style={{
+              top: '76%',
+              right: '20%',
+              width: 'min(10.5vw, 102px)',
+              padding: 0,
+              margin: 0,
+              border: 'none',
+              outline: 'none',
+              background: 'transparent',
+              boxShadow: 'none',
+              cursor: dragMeCursorOnDark,
+              transform: dragTransform('vinyl-surface', livedInBase['vinyl-surface']),
+              transition: 'transform 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+              touchAction: 'none',
+              userSelect: 'none',
+              zIndex: livedInZ['vinyl-surface'],
+              textDecoration: 'none',
+            }}
+            {...dragHandlers('vinyl-surface')}
+          >
+            <LivedInPrint
+              src="/dj-set/assets/covers/surface.jpg"
+              filter="saturate(0.88) contrast(1.04)"
+              caption="sound"
             />
           </Link>
 
