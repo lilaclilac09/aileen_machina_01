@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import SubstackShell from '../_substack/SubstackShell';
 
@@ -360,7 +361,13 @@ export default function WatchListeningShelfArticle() {
                 rel="noopener noreferrer"
               >
                 <span className="poster-card-frame">
-                  <img src={item.image} alt="" />
+                  <Image
+                    src={item.image}
+                    alt=""
+                    fill
+                    sizes="(min-width: 900px) 18vw, 142px"
+                    style={{ objectFit: 'contain' }}
+                  />
                 </span>
                 <span className="poster-card-title">{item.shelfTitle}</span>
                 <span className="poster-card-meta">
@@ -391,9 +398,7 @@ export default function WatchListeningShelfArticle() {
                     {item.shelfTitle}
                   </ShelfHref>
                   <span className="notes-item-meta">
-                    {item.shelfTitle !== item.title
-                      ? `${item.title} · ${item.meta}`
-                      : `${item.label} · ${item.meta}`}
+                    {item.label} · {item.meta}
                   </span>
                   <p className="notes-item-body">{item.body}</p>
                 </li>
@@ -410,9 +415,7 @@ export default function WatchListeningShelfArticle() {
                     {item.shelfTitle}
                   </ShelfHref>
                   <span className="notes-item-meta">
-                    {item.shelfTitle !== item.title
-                      ? `${item.title} · ${item.year}`
-                      : `${item.year} · ${item.label}`}
+                    {item.year} · {item.label}
                   </span>
                   <p className="notes-item-body">{item.body}</p>
                 </li>
@@ -428,11 +431,7 @@ export default function WatchListeningShelfArticle() {
                   <ShelfHref href={item.href} className="notes-item-title">
                     {item.shelfTitle}
                   </ShelfHref>
-                  <span className="notes-item-meta">
-                    {item.shelfTitle !== item.title
-                      ? `${item.title} · ${item.label}`
-                      : item.label}
-                  </span>
+                  <span className="notes-item-meta">{item.label}</span>
                   <p className="notes-item-body">{item.body}</p>
                 </li>
               ))}
