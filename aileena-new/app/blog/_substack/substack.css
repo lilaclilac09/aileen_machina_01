@@ -1237,3 +1237,418 @@
   -webkit-line-clamp: 2;
   overflow: hidden;
 }
+
+/* ── watch · listening shelf — three planes ─────────────────
+   poster shelf = look · notes = think · tips = use
+   ─────────────────────────────────────────────────────────── */
+
+.substack-article:has(.shelf-issue) .substack-hero {
+  max-width: 1040px;
+  padding: 40px 24px 8px;
+}
+
+.substack-article:has(.shelf-issue) .substack-meta {
+  margin: 0 0 14px;
+  letter-spacing: 0.14em;
+}
+
+.substack-article:has(.shelf-issue) .substack-title {
+  font-size: clamp(1.55rem, 4.2vw, 2.15rem);
+  font-weight: 640;
+  letter-spacing: 0.01em;
+  margin: 0 0 10px;
+}
+
+.substack-article:has(.shelf-issue) .substack-dek {
+  max-width: 22em;
+  margin: 0;
+  font-size: 1.02rem;
+  line-height: 1.45;
+  color: rgba(17, 17, 17, 0.52);
+}
+
+.substack-article:has(.shelf-issue) .substack-rule {
+  display: none;
+}
+
+.shelf-issue {
+  padding-top: 28px;
+}
+
+.shelf-layer-label {
+  margin: 0 0 16px;
+  color: rgba(0, 143, 132, 0.78);
+  font-family: 'JetBrains Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-size: 0.6rem;
+  font-weight: 820;
+  letter-spacing: 0.28em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.shelf-hash-alias {
+  display: block;
+  height: 0;
+  overflow: hidden;
+  scroll-margin-top: 96px;
+}
+
+/* 1. poster shelf — covers, almost no prose */
+.poster-shelf {
+  margin: 0 0 8px;
+  scroll-margin-top: 96px;
+}
+
+.poster-shelf-rail {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: 4px;
+  padding: 4px 2px 18px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.poster-shelf-rail::-webkit-scrollbar {
+  height: 3px;
+}
+
+.poster-shelf-rail::-webkit-scrollbar-thumb {
+  background: rgba(17, 17, 17, 0.18);
+}
+
+.poster-card {
+  flex: 0 0 142px;
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  min-width: 0;
+  color: #111;
+  text-decoration: none;
+  scroll-snap-align: start;
+}
+
+.poster-card-frame {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 0.7;
+  width: 100%;
+  overflow: hidden;
+  background: #f4efe4;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.65) inset,
+    0 18px 36px -28px rgba(17, 17, 17, 0.55);
+}
+
+.poster-card-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+.poster-card-title {
+  display: block;
+  margin: 2px 1px 0;
+  font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 0.84rem;
+  font-weight: 760;
+  letter-spacing: 0;
+  line-height: 1.15;
+}
+
+.poster-card-meta {
+  display: block;
+  margin: 0 1px;
+  color: rgba(17, 17, 17, 0.42);
+  font-family: 'JetBrains Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-size: 0.5rem;
+  font-weight: 820;
+  letter-spacing: 0.12em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.poster-card-note {
+  display: block;
+  margin: 0 1px;
+  color: rgba(17, 17, 17, 0.52);
+  font-family: 'Iowan Old Style', 'Charter', 'Georgia', serif;
+  font-size: 0.78rem;
+  font-style: italic;
+  line-height: 1.28;
+}
+
+.poster-shelf-ledge {
+  height: 9px;
+  margin-top: -6px;
+  border-radius: 1px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), transparent 40%),
+    linear-gradient(90deg, #c4a06a, #a67c4e 55%, #8d6840);
+  box-shadow: 0 10px 18px -12px rgba(80, 50, 20, 0.55);
+}
+
+/* 2. notes — annotated list, narrower, quieter */
+.shelf-notes {
+  max-width: 640px;
+  margin: 72px auto 0;
+  scroll-margin-top: 96px;
+}
+
+.shelf-notes-lede {
+  max-width: 34em;
+  margin: -4px 0 36px;
+  color: rgba(17, 17, 17, 0.5);
+  font-family: 'Iowan Old Style', 'Charter', 'Georgia', serif;
+  font-size: 1.02rem;
+  font-style: italic;
+  line-height: 1.55;
+}
+
+.notes-group {
+  margin-top: 42px;
+  scroll-margin-top: 96px;
+}
+
+.notes-group:first-of-type {
+  margin-top: 0;
+}
+
+.notes-group h2 {
+  margin: 0 0 4px;
+  color: #111;
+  font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 720;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: lowercase;
+}
+
+.notes-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.notes-item {
+  display: grid;
+  gap: 6px;
+  padding: 16px 0 18px;
+  border-bottom: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.notes-item:last-child {
+  border-bottom: 0;
+}
+
+.notes-item-title {
+  color: #111;
+  font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 1.12rem;
+  font-weight: 720;
+  letter-spacing: 0;
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+.notes-item-title:hover {
+  color: #008f84;
+}
+
+.notes-item-meta {
+  color: rgba(17, 17, 17, 0.4);
+  font-family: 'JetBrains Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-size: 0.54rem;
+  font-weight: 820;
+  letter-spacing: 0.14em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.notes-item-body {
+  margin: 0;
+  max-width: 38em;
+  color: rgba(17, 17, 17, 0.62);
+  font-family: 'Iowan Old Style', 'Charter', 'Georgia', serif;
+  font-size: 0.98rem;
+  line-height: 1.55;
+}
+
+/* 3. tips — lighter, stealable, not mixed into notes */
+.shelf-tips {
+  margin-top: 88px;
+  padding: 32px 22px 8px;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      transparent 0 27px,
+      rgba(17, 17, 17, 0.035) 28px 29px
+    ),
+    #f7f1e4;
+  border: 1px solid rgba(17, 17, 17, 0.07);
+  scroll-margin-top: 96px;
+}
+
+.shelf-tips .shelf-layer-label {
+  color: rgba(141, 104, 64, 0.9);
+}
+
+.tips-epigraph {
+  margin: -6px 0 22px;
+  color: #111;
+  font-family: 'Bradley Hand', 'Comic Sans MS', 'Marker Felt', cursive;
+  font-size: 1.85rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.tips-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.tip-card {
+  min-width: 0;
+  padding: 16px 15px 14px;
+  background: #fffdf8;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  box-shadow: 0 14px 28px -24px rgba(17, 17, 17, 0.45);
+}
+
+.tip-card:nth-child(odd) {
+  transform: rotate(-0.4deg);
+}
+
+.tip-card:nth-child(even) {
+  transform: rotate(0.35deg);
+}
+
+.tip-card-quiet {
+  background: transparent;
+  box-shadow: none;
+  border-style: dashed;
+}
+
+.tip-card-title {
+  margin: 0 0 8px;
+  color: #111;
+  font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 740;
+  letter-spacing: 0;
+  line-height: 1.15;
+}
+
+.tip-card-body {
+  margin: 0;
+  color: rgba(17, 17, 17, 0.6);
+  font-family: 'Iowan Old Style', 'Charter', 'Georgia', serif;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+@media (min-width: 900px) {
+  .poster-shelf-rail {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    overflow: visible;
+    gap: 18px 16px;
+    padding-bottom: 22px;
+  }
+
+  .poster-card {
+    flex: none;
+  }
+
+  .poster-card:hover .poster-card-frame {
+    transform: translateY(-3px);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.65) inset,
+      0 22px 40px -26px rgba(17, 17, 17, 0.58);
+  }
+
+  .poster-card-frame {
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  .tips-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 780px) {
+  .substack-article:has(.shelf-issue) .substack-hero {
+    padding: 28px 18px 4px;
+  }
+
+  .shelf-issue {
+    padding-top: 18px;
+  }
+
+  .shelf-notes {
+    margin-top: 56px;
+  }
+
+  .shelf-notes-lede {
+    font-size: 0.98rem;
+    margin-bottom: 28px;
+  }
+
+  .notes-group {
+    margin-top: 32px;
+  }
+
+  .notes-item {
+    padding: 14px 0 16px;
+  }
+
+  .notes-item-title {
+    font-size: 1.02rem;
+  }
+
+  .notes-item-body {
+    font-size: 0.94rem;
+    line-height: 1.5;
+  }
+
+  .shelf-tips {
+    margin-top: 64px;
+    padding: 24px 14px 4px;
+  }
+
+  .tips-epigraph {
+    font-size: 1.55rem;
+    margin-bottom: 18px;
+  }
+
+  .tips-grid {
+    gap: 10px;
+  }
+
+  .tip-card {
+    padding: 13px 12px 12px;
+  }
+
+  .tip-card-title {
+    font-size: 0.86rem;
+  }
+
+  .tip-card-body {
+    font-size: 0.8rem;
+    line-height: 1.4;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .poster-card:hover .poster-card-frame {
+    transform: none;
+  }
+}
