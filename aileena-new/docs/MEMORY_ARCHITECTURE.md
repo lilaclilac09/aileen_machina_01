@@ -208,6 +208,7 @@ On change → writes `memories/episodic/content-changelog-YYYY-MM-DD.md` for Dre
 - `/api/chat` injects `MEMORY_STACK_PROMPT` + hard-memory prefetch + visitor soft block
 - Tool: `searchMemories(query, k)` (Aileen taste — not visitor history)
 - Optional body: `{ "agentMode": "machina" }` → first-person Machina prompt (`buildMachinaSystemPrompt`)
+- Optional body: `{ "agentMode": "council", "councilLens"?: "strategy"|"negotiation"|"product"|"review"|"editor"|"political"|"vent" }` → private council. **Owner session required** (`OWNER_KEY` cookie). Non-owners receive **403**. UI: `/council` (robots noindex). Not the public orb. No leave-a-note, no public/contact transcript. Owner also skips the visitor 20/day quota.
 
 ## Hardware (Memory Wall)
 

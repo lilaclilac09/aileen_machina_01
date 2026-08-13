@@ -5,7 +5,7 @@
  *   pnpm verify:ops
  */
 
-import { existsSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   routeModel,
@@ -19,6 +19,10 @@ import {
   MODEL_TOTAL_BUDGET_MS,
 } from '../lib/modelRouter';
 import { createRequestTrace } from '../lib/requestTrace';
+import { decideAgentMode, isCouncilPipelineRequest, skipVisitorQuota } from '../lib/agentMode';
+import { COUNCIL_SYSTEM_PROMPT } from '../lib/aileenaCouncil';
+import { SYSTEM_PROMPT } from '../lib/agentContext';
+import { COUNCIL_OPENING } from '../lib/councilCopy';
 
 type Check = { name: string; ok: boolean; detail?: string };
 const checks: Check[] = [];
@@ -62,6 +66,46 @@ function main() {
   assert('timeout classified', classifyModelError(new Error('AbortError: timeout')).reason === 'timeout');
   assert('billing classified', classifyModelError(new Error('credit balance too low')).reason === 'billing');
   assert('degrade timeout copy', /too long|again/i.test(degradeMessage('timeout')));
+
+  const visitorCouncil = decideAgentMode('council', false);
+  assert(
+    'visitor council request is 403',
+    !visitorCouncil.ok && visitorCouncil.status === 403,
+    visitorCouncil.ok ? visitorCouncil.mode : visitorCouncil.error,
+  );
+  const ownerCouncil = decideAgentMode('council', true);
+  assert('owner council request is council', ownerCouncil.ok && ownerCouncil.mode === 'council');
+  const publicDefault = decideAgentMode(undefined, false);
+  assert('omitted mode is public', publicDefault.ok && publicDefault.mode === 'public');
+  const siteAlias = decideAgentMode('site', false);
+  assert('site alias is public', siteAlias.ok && siteAlias.mode === 'public');
+  const publicNamed = decideAgentMode('public', false);
+  assert('public mode is public', publicNamed.ok && publicNamed.mode === 'public');
+  const unknownMode = decideAgentMode('wizard', true);
+  assert('unknown mode is public', unknownMode.ok && unknownMode.mode === 'public');
+  assert('visitor cannot skip quota via mode', skipVisitorQuota(false) === false);
+  assert('owner skips visitor quota', skipVisitorQuota(true) === true);
+  assert('forged council contact is blocked', isCouncilPipelineRequest({ agentMode: 'council' }));
+  assert('public contact is allowed', !isCouncilPipelineRequest({ agentMode: 'public' }));
+  assert('public prompt is not council', !/private council/i.test(SYSTEM_PROMPT));
+  assert('council prompt is private', /private council/i.test(COUNCIL_SYSTEM_PROMPT));
+  assert('council does not do therapy', /no therapy voice/i.test(COUNCIL_SYSTEM_PROMPT));
+  assert('council opening is not the public greeting', !/music shelf/i.test(COUNCIL_OPENING));
+  assert('council opening forbids leave-a-note', /no leave-a-note/i.test(COUNCIL_OPENING));
+
+  const agentChatSrc = readFileSync(join(process.cwd(), 'components/AgentChat.tsx'), 'utf8');
+  const councilChatSrc = readFileSync(join(process.cwd(), 'components/CouncilChat.tsx'), 'utf8');
+  const chatRouteSrc = readFileSync(join(process.cwd(), 'app/api/chat/route.ts'), 'utf8');
+  assert('public console sends agentMode public', /agentMode:\s*'public'/.test(agentChatSrc));
+  assert('public console does not send council', !/agentMode:\s*'council'/.test(agentChatSrc));
+  assert('public console still has leave-a-note', /leave a note/i.test(agentChatSrc));
+  assert('public console still forwards', /\/api\/chat\/forward/.test(agentChatSrc));
+  assert('council UI sends agentMode council', /agentMode:\s*'council'/.test(councilChatSrc));
+  assert('council UI has no leave-a-note', !/leave a note|\/api\/lead/i.test(councilChatSrc));
+  assert('council UI does not forward', !/\/api\/chat\/forward/.test(councilChatSrc));
+  assert('chat route 403s non-owner council', /decideAgentMode/.test(chatRouteSrc) && /Council is owner-only/.test(readFileSync(join(process.cwd(), 'lib/agentMode.ts'), 'utf8')));
+  assert('chat route selects council prompt', /COUNCIL_SYSTEM_PROMPT/.test(chatRouteSrc));
+  assert('chat route skips visitor memory on council', /isCouncil \? '' : formatVisitorSoftMemoryForPrompt/.test(chatRouteSrc));
 
   const trace = createRequestTrace('abc12345trace');
   const s = trace.startSpan('test');

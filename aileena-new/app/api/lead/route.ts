@@ -7,6 +7,7 @@ import {
   renderTranscriptText,
 } from '@/lib/mail-transcript';
 import { getResendFrom, resendFailureMessage } from '@/lib/resend-from';
+import { isCouncilPipelineRequest } from '@/lib/agentMode';
 import { Resend } from 'resend';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -78,11 +79,19 @@ export async function POST(req: NextRequest) {
     note?: unknown;
     transcript?: unknown;
     context?: unknown;
+    agentMode?: unknown;
   };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ ok: false, error: 'Invalid JSON.' }, { status: 400 });
+  }
+
+  if (isCouncilPipelineRequest({ agentMode: body.agentMode })) {
+    return NextResponse.json(
+      { ok: false, error: 'Council transcripts stay private.' },
+      { status: 403 },
+    );
   }
 
   const email = typeof body.email === 'string' ? body.email.trim() : '';

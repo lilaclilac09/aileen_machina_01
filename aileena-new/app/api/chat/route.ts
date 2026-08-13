@@ -2,6 +2,10 @@ import { streamText, convertToModelMessages, tool, stepCountIs, type UIMessage }
 import { z } from 'zod';
 import { SYSTEM_PROMPT } from '../../../lib/agentContext';
 import { buildMachinaSystemPrompt } from '../../../lib/aileenaSecondBrain';
+import { COUNCIL_SYSTEM_PROMPT, formatCouncilLensForPrompt } from '../../../lib/aileenaCouncil';
+import { decideAgentMode, skipVisitorQuota, type AgentMode } from '../../../lib/agentMode';
+import { isCouncilLens } from '../../../lib/councilCopy';
+import { requireOwnerFromRequest } from '../../../lib/owner-gate';
 import { searchArticles } from '../../../lib/agentSearch';
 import { searchMemories, memoryIndexMeta } from '../../../lib/memorySearch';
 import { MEMORY_STACK_PROMPT } from '../../../lib/memoryStack';
@@ -187,7 +191,12 @@ export async function POST(req: Request) {
   const trace = createRequestTrace(req.headers.get('x-trace-id'));
   trace.log('request_start');
 
-  let body: { messages?: UIMessage[]; priorTopics?: string[]; agentMode?: 'site' | 'machina' };
+  let body: {
+    messages?: UIMessage[];
+    priorTopics?: string[];
+    agentMode?: 'public' | 'site' | 'machina' | 'council';
+    councilLens?: string;
+  };
   try {
     body = await req.json();
   } catch (err) {
@@ -208,11 +217,24 @@ export async function POST(req: Request) {
         .slice(0, 5)
     : [];
 
-  // Daily quota
+  const owner = await requireOwnerFromRequest(req);
+  const decided = decideAgentMode(body.agentMode, Boolean(owner));
+  if (!decided.ok) {
+    return jsonError(decided.error, decided.status, trace.traceId, {
+      'X-Agent-Mode': 'forbidden',
+    });
+  }
+  const agentMode: AgentMode = decided.mode;
+  const isCouncil = agentMode === 'council';
+  const skipQuota = skipVisitorQuota(Boolean(owner));
+  const councilLens = isCouncil && isCouncilLens(body.councilLens) ? body.councilLens : undefined;
+
+  // Daily quota — public visitors only. Owner session (council or public
+  // preview) skips the 20/day cookie. Forged agentMode cannot bypass this.
   const quotaSpan = trace.startSpan('quota');
   const quota = await readQuota(req);
-  trace.endSpan(quotaSpan, true, { count: quota.count, date: quota.date });
-  if (quota.count >= DAILY_LIMIT) {
+  trace.endSpan(quotaSpan, true, { count: quota.count, date: quota.date, skipQuota });
+  if (!skipQuota && quota.count >= DAILY_LIMIT) {
     console.warn('[chat] POST: daily limit reached for user', { count: quota.count, date: quota.date, traceId: trace.traceId });
     // Refresh cookie so Max-Age / date stay aligned with "today" — avoids stale
     // multi-day cookies that look like the counter never reset.
@@ -232,8 +254,12 @@ export async function POST(req: Request) {
   const prepSpan = trace.startSpan('prepare');
   const trimmed = messages.slice(-20);
   const modelMessages = await convertToModelMessages(trimmed);
-  const agentMode = body.agentMode === 'machina' ? 'machina' : 'site';
-  const baseSystem = agentMode === 'machina' ? buildMachinaSystemPrompt() : SYSTEM_PROMPT;
+  const baseSystem =
+    isCouncil
+      ? COUNCIL_SYSTEM_PROMPT
+      : agentMode === 'machina'
+        ? buildMachinaSystemPrompt()
+        : SYSTEM_PROMPT;
 
   const lastQ = lastUserQuery(trimmed);
   // Chinese "更新了吗" misses TF-IDF — force English shelf query for prefetch.
@@ -248,9 +274,11 @@ export async function POST(req: Request) {
   // Per-visitor soft memory: one Redis GET on the hot path; merge locally for
   // this turn's prompt; SET is fire-and-forget so TTFT isn't blocked by write RTT.
   const { id: visitorId, isNew: newVisitorCookie } = await ensureVisitorId(req);
-  const visitorSoftLoaded = await loadVisitorSoftMemory(visitorId);
+  const visitorSoftLoaded = isCouncil
+    ? { questions: [] as string[], topics: [] as string[], updatedAt: '', hitCount: 0 }
+    : await loadVisitorSoftMemory(visitorId);
   let visitorSoft = visitorSoftLoaded;
-  if (lastQ && visitorSoftMemoryEnabled()) {
+  if (!isCouncil && lastQ && visitorSoftMemoryEnabled()) {
     const merged = mergeVisitorQuestion(visitorSoftLoaded, lastQ);
     if (merged) {
       visitorSoft = merged;
@@ -280,8 +308,11 @@ export async function POST(req: Request) {
     provider: picked.provider,
     tier: picked.tier,
     modelReason: modelDecision.reason,
+    agentMode,
+    owner: Boolean(owner),
+    skipQuota,
     priorTopicsCount: priorTopics.length,
-    visitorSoftEnabled: visitorSoftMemoryEnabled(),
+    visitorSoftEnabled: !isCouncil && visitorSoftMemoryEnabled(),
     visitorQuestions: visitorSoft.questions.length,
     newVisitor: newVisitorCookie,
     toolRoute: toolRoute.route,
@@ -311,7 +342,7 @@ ${memoryPrefetch
   .join('\n')}`
       : '') +
     formatToolRouteForPrompt(toolRoute) +
-    (agentMode === 'site'
+    (agentMode === 'public'
       ? `
 
 # Agent tools
@@ -359,14 +390,21 @@ If the visitor names a specific article, project, product, person, company, tech
 # Link formatting
 - ALWAYS write links as full URLs starting with "https://" — e.g. https://aileena.xyz/blog/centaur, not aileena.xyz/blog/centaur. The UI auto-linkifies https:// URLs cleanly; bare domains render as plain text and frustrate the reader.`
       : '') +
-    // Soft memory + auto stance: same rules for site and machina.
-    formatVisitorSoftMemoryForPrompt(visitorSoft, priorTopics, lastQ) +
+    // Soft memory + auto stance: public hall and machina only. Never council.
+    (isCouncil ? '' : formatVisitorSoftMemoryForPrompt(visitorSoft, priorTopics, lastQ)) +
     (agentMode === 'machina'
       ? `
 
 # Machina mode tools
 - searchMemories(query, k): required for taste, setlist, culture, frameworks, Dreaming, hardware notes.
 - searchArticles(query, k): optional when visitor asks about her published writing.`
+      : '') +
+    (isCouncil
+      ? formatCouncilLensForPrompt(councilLens) +
+        `
+
+# Council tools
+Same retrieval tools as the site. Use them for evidence (articles, memory, chips, prices). Do not pad answers to look busy. Drafts (emails, scopes, site copy) may run longer than five sentences; decisions stay short: judgment / leverage / next move / do not.`
       : '');
 
   try {
@@ -450,7 +488,7 @@ If the visitor names a specific article, project, product, person, company, tech
       // Cap final ASSISTANT-text response at 200 tokens; tool calls
       // themselves don't count against this. The Helius-style 2-3
       // sentence answer is still the target.
-      maxOutputTokens: 200,
+      maxOutputTokens: isCouncil ? 900 : 200,
       // ReAct short loop: think → tool → observe → … then answer.
       // Cap so a confused model can't burn quota looping forever.
       stopWhen: stepCountIs(REACT_MAX_STEPS),
@@ -491,7 +529,9 @@ If the visitor names a specific article, project, product, person, company, tech
       },
     });
 
-    const setCookie = await buildQuotaCookie({ date: quota.date, count: quota.count + 1 });
+    const setCookie = skipQuota
+      ? null
+      : await buildQuotaCookie({ date: quota.date, count: quota.count + 1 });
     // Always refresh visitor cookie Max-Age so browser id tracks the 90d Redis TTL.
     const visitorCookie = await buildVisitorCookie(visitorId);
 
@@ -516,11 +556,12 @@ If the visitor names a specific article, project, product, person, company, tech
       headers.append('Set-Cookie', visitorCookie);
     }
 
-    headers.set('X-Daily-Remaining', String(DAILY_LIMIT - (quota.count + 1)));
+    headers.set('X-Daily-Remaining', skipQuota ? 'owner' : String(DAILY_LIMIT - (quota.count + 1)));
     headers.set('X-Quota-Day', quota.date);
     headers.set('X-Provider', picked.provider);
     headers.set('X-Model-Tier', picked.tier);
-    headers.set('X-System-Prompt-Chars', String(SYSTEM_PROMPT.length));
+    headers.set('X-System-Prompt-Chars', String(baseSystem.length));
+    headers.set('X-Agent-Mode', agentMode);
     headers.set('X-Visitor-Soft-Memory', visitorSoftMemoryEnabled() ? 'redis' : 'off');
     headers.set('X-React-Max-Steps', String(REACT_MAX_STEPS));
     headers.set('X-Tool-Route', toolRoute.route);

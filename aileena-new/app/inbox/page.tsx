@@ -37,6 +37,10 @@ export default async function InboxPage() {
             <Link href="/" className="hover:text-[#008f86]">
               ← home
             </Link>
+            <span className="mx-2">·</span>
+            <Link href="/council" className="hover:text-[#008f86]">
+              council
+            </Link>
           </p>
         </header>
 
