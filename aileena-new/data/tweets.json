@@ -12850,5 +12850,29 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-13T02:47:10.026Z"
+  },
+  {
+    "id": "2087883347058143405",
+    "url": "https://x.com/SKundojjala/status/2087883347058143405",
+    "screenName": "SKundojjala",
+    "authorId": "379092222",
+    "authorName": "Sravan Kundojjala",
+    "text": "China-based foundries SMIC and Hua Hong are making the most of domestic demand. Up double-digit y/y for 8 straight quarters and near 100% utilization rate. Together on a $15B annual revenue run-rate. Capacity and revenue growing at a much faster pace vs global mature node peers.",
+    "createdAt": "Thu Aug 13 12:45:55 +0000 2026",
+    "createdTimestamp": 1786625155,
+    "likes": 11,
+    "retweets": 1,
+    "replies": 0,
+    "bookmarks": 2,
+    "views": 1240,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPmbmjNbEAA6Iyr.png?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-13T13:46:49.689Z"
   }
 ]
