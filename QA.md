@@ -19,6 +19,8 @@ pnpm test:e2e:dnd      # carousel card → Deck A drag
 pnpm verify:sound      # /sound + home Visual layout (default production URL)
 pnpm verify:doors-nav  # doors back-link chrome
 pnpm lead:test         # Resend lead/contact smoke (needs env)
+pnpm verify:council-cli # local council CLI gate + redaction (no model)
+pnpm council           # owner-only local council (needs OWNER_KEY + model key)
 ```
 
 Ship / merge to `main` still follows `AGENTS.md` 施工队安全条例 — localhost is not production proof.
@@ -36,6 +38,7 @@ Run the rows that match the slice. Skip the rest; do not “fix orb” as one pa
 | visual images not cropped | `#glass-bench` / Visual photos fully visible (`contain`, not cover-crop) |
 | doors back links work | `pnpm verify:doors-nav` + click ← doors / ← home |
 | dj add → carousel → deck A → play | add track → film-strip → drag/load Deck A → audio |
+| council CLI (local) | `pnpm council` is owner-only; missing OWNER_KEY fails; no public route |
 
 ## Not code failures
 
