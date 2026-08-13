@@ -57,7 +57,7 @@
 }
 
 .arc-nav-link.is-here {
-  color: var(--arc-ink);
+  color: var(--arc-teal);
 }
 
 .arc-nav-link:hover {
@@ -110,11 +110,11 @@
 
 .arc-kicker {
   margin: 0 0 12px;
-  color: var(--arc-teal);
+  color: var(--arc-faint);
   font-family: var(--arc-sans);
   font-size: 0.68rem;
   font-weight: 500;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: lowercase;
 }
 
