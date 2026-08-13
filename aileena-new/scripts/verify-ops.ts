@@ -171,6 +171,15 @@ function main() {
   assert('council UI does not persist transcripts', !/chatForwardStore|saveChatForward|\/api\/owner/.test(councilChatSrc));
   assert('chat route does not persist council', !/saveChatForward|encodeForwardRecord/.test(chatRouteSrc));
 
+  const councilPageSrc = readFileSync(join(process.cwd(), 'app/council/page.tsx'), 'utf8');
+  const cabinetPageSrc = readFileSync(join(process.cwd(), 'app/cabinet/page.tsx'), 'utf8');
+  const ownerAuthSrc = readFileSync(join(process.cwd(), 'app/api/auth/owner/route.ts'), 'utf8');
+  assert('council page has owner key form', /OwnerUnlockForm/.test(councilPageSrc) && /next="\/council"/.test(councilPageSrc));
+  assert('council page links cabinet', /href="\/cabinet"/.test(councilPageSrc));
+  assert('cabinet page is owner-only', /getOwnerIdentity/.test(cabinetPageSrc) && /OwnerUnlockForm/.test(cabinetPageSrc));
+  assert('owner auth accepts POST', /export async function POST/.test(ownerAuthSrc));
+  assert('public console has no council href', !/href=['"]\/council['"]/.test(agentChatSrc));
+
   const prevKey = process.env.PRIVATE_DATA_ENCRYPTION_KEY;
   resetPrivateCryptoCache();
   delete process.env.PRIVATE_DATA_ENCRYPTION_KEY;

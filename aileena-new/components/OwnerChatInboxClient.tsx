@@ -73,7 +73,7 @@ export default function OwnerChatInboxClient({ locked }: { locked: boolean }) {
         pending?: number;
       };
       if (res.status === 401) {
-        setError('Owner session required. Open /api/auth/owner?key=OWNER_KEY&next=/inbox once.');
+        setError('Owner session required. Enter from /council or /cabinet.');
         setItems([]);
         return;
       }
@@ -128,16 +128,7 @@ export default function OwnerChatInboxClient({ locked }: { locked: boolean }) {
     return (
       <div className="space-y-4 max-w-xl">
         <p className="text-[0.9rem] leading-relaxed text-[#1b1713]/75">
-          This page is owner-only. Unlock once with your{' '}
-          <code className="text-[#008f86]">OWNER_KEY</code> link, then come back.
-        </p>
-        <p className="font-mono text-[0.65rem] tracking-[0.12em] text-[#1b1713]/45 break-all">
-          /api/auth/owner?key=YOUR_OWNER_KEY&amp;next=/inbox
-        </p>
-        <p className="text-[0.8rem] leading-relaxed text-[#1b1713]/55">
-          Meanwhile, search your mail / Resend for subjects starting with{' '}
-          <span className="text-[#008f86]">[AILEENA Chat</span>. Leave-a-note emails are separate
-          lead subjects.
+          This page is owner-only. Enter from /council or /cabinet.
         </p>
       </div>
     );

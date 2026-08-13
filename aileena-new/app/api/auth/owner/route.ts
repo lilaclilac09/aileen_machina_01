@@ -2,37 +2,41 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SESSION_COOKIE, OWNER_MAX_AGE, createOwnerSession, safeEqual } from '../../../../lib/auth';
 
 /**
- * Owner bypass. Visit /api/auth/owner?key=<OWNER_KEY>&next=/inbox once and you
- * get a 1-year session — so the owner never gets stopped by her own blog gate
- * (or chat inbox). Bookmark the link; no email, no wallet. If OWNER_KEY isn't
- * set, or the key is wrong, it just bounces to /unlock like any other visitor.
+ * Owner door. POST a form from /council or /cabinet (preferred — key stays
+ * out of the URL). GET ?key= still works for old bookmarks.
+ *
+ * One good enter sets a 1-year httpOnly cookie. Wrong key returns to the
+ * room with ?error=denied — not the public wallet unlock page.
  */
 export const runtime = 'nodejs';
 
+const OWNER_ROOMS = new Set(['/council', '/cabinet', '/inbox']);
+
 function safeNextPath(raw: string | null): string {
-  if (!raw) return '/';
-  if (!raw.startsWith('/') || raw.startsWith('//')) return '/';
-  // Stay on-site; allow /inbox and blog paths.
-  if (raw.length > 200) return '/';
+  if (!raw) return '/council';
+  if (!raw.startsWith('/') || raw.startsWith('//')) return '/council';
+  if (raw.length > 200) return '/council';
   return raw;
 }
 
-export async function GET(req: NextRequest) {
-  const key = req.nextUrl.searchParams.get('key') || '';
-  const expected = process.env.OWNER_KEY || '';
-  const nextPath = safeNextPath(req.nextUrl.searchParams.get('next'));
+function denyPath(nextPath: string): string {
+  return OWNER_ROOMS.has(nextPath) ? nextPath : '/unlock';
+}
 
+async function finishUnlock(req: NextRequest, key: string, nextRaw: string | null) {
+  const expected = process.env.OWNER_KEY || '';
+  const nextPath = safeNextPath(nextRaw);
   const url = req.nextUrl.clone();
   url.search = '';
 
   if (!expected || key.length !== expected.length || !safeEqual(key, expected)) {
-    url.pathname = '/unlock';
+    url.pathname = denyPath(nextPath);
     url.search = '?error=denied';
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(url, 303);
   }
 
   url.pathname = nextPath;
-  const res = NextResponse.redirect(url);
+  const res = NextResponse.redirect(url, 303);
   res.cookies.set(SESSION_COOKIE, await createOwnerSession(), {
     path: '/',
     maxAge: OWNER_MAX_AGE,
@@ -41,4 +45,16 @@ export async function GET(req: NextRequest) {
     sameSite: 'lax',
   });
   return res;
+}
+
+export async function GET(req: NextRequest) {
+  const key = req.nextUrl.searchParams.get('key') || '';
+  return finishUnlock(req, key, req.nextUrl.searchParams.get('next'));
+}
+
+export async function POST(req: NextRequest) {
+  const form = await req.formData().catch(() => null);
+  const key = String(form?.get('key') ?? '');
+  const nextRaw = String(form?.get('next') ?? '') || null;
+  return finishUnlock(req, key, nextRaw);
 }

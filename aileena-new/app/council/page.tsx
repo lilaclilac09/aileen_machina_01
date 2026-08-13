@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getOwnerIdentity } from '@/lib/owner-gate';
 import CouncilChat from '@/components/CouncilChat';
+import OwnerUnlockForm from '@/components/OwnerUnlockForm';
 
 export const metadata: Metadata = {
   title: 'Council · AILEENA MACHINA',
@@ -12,11 +13,16 @@ export const dynamic = 'force-dynamic';
 
 /**
  * Private council — owner only. Session-only: transcripts are not persisted.
- * Unlock: /api/auth/owner?key=OWNER_KEY&next=/council
+ * Door: this page. Cabinet of visitor notes: /cabinet.
  */
-export default async function CouncilPage() {
+export default async function CouncilPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
   const owner = await getOwnerIdentity();
   const locked = !owner;
+  const denied = (await searchParams).error === 'denied';
 
   return (
     <main className="min-h-[100dvh] bg-[#fbfaf7] text-[#1b1713]">
@@ -41,20 +47,19 @@ export default async function CouncilPage() {
               ← home
             </Link>
             <span className="mx-2">·</span>
-            <Link href="/inbox" className="hover:text-[#008f86]">
-              inbox
+            <Link href="/cabinet" className="hover:text-[#008f86]">
+              cabinet
             </Link>
           </p>
         </header>
 
         {locked ? (
-          <div className="border border-[#ded8ce] bg-white px-5 py-6 space-y-3">
+          <div className="border border-[#ded8ce] bg-white px-5 py-6 space-y-4">
             <p className="text-[0.9rem] leading-relaxed text-[#1b1713]/70">
-              Owner session required. This room is not for visitors.
+              This room is not for visitors. Enter with the owner key, then the
+              cabinet is one step away.
             </p>
-            <p className="font-mono text-[0.62rem] leading-6 text-[#1b1713]/50 break-all">
-              /api/auth/owner?key=YOUR_OWNER_KEY&amp;next=/council
-            </p>
+            <OwnerUnlockForm next="/council" enterLabel="enter council" denied={denied} />
           </div>
         ) : (
           <CouncilChat />
