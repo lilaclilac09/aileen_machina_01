@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic';
 
 /**
- * Private council — owner only.
+ * Private council — owner only. Session-only: transcripts are not persisted.
  * Unlock: /api/auth/owner?key=OWNER_KEY&next=/council
  */
 export default async function CouncilPage() {

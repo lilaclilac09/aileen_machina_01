@@ -23,6 +23,17 @@ import { decideAgentMode, isCouncilPipelineRequest, skipVisitorQuota } from '../
 import { COUNCIL_SYSTEM_PROMPT } from '../lib/aileenaCouncil';
 import { SYSTEM_PROMPT } from '../lib/agentContext';
 import { COUNCIL_OPENING } from '../lib/councilCopy';
+import {
+  decodeForwardRecord,
+  encodeForwardRecord,
+  type ChatForwardRecord,
+} from '../lib/chatForwardStore';
+import {
+  decryptPrivateText,
+  encryptPrivateText,
+  privateEncryptionAvailable,
+  resetPrivateCryptoCache,
+} from '../lib/server/crypto';
 
 type Check = { name: string; ok: boolean; detail?: string };
 const checks: Check[] = [];
@@ -106,6 +117,53 @@ function main() {
   assert('chat route 403s non-owner council', /decideAgentMode/.test(chatRouteSrc) && /Council is owner-only/.test(readFileSync(join(process.cwd(), 'lib/agentMode.ts'), 'utf8')));
   assert('chat route selects council prompt', /COUNCIL_SYSTEM_PROMPT/.test(chatRouteSrc));
   assert('chat route skips visitor memory on council', /isCouncil \? '' : formatVisitorSoftMemoryForPrompt/.test(chatRouteSrc));
+  assert('council UI does not persist transcripts', !/chatForwardStore|saveChatForward|\/api\/owner/.test(councilChatSrc));
+  assert('chat route does not persist council', !/saveChatForward|encodeForwardRecord/.test(chatRouteSrc));
+
+  const prevKey = process.env.PRIVATE_DATA_ENCRYPTION_KEY;
+  resetPrivateCryptoCache();
+  delete process.env.PRIVATE_DATA_ENCRYPTION_KEY;
+  assert('missing encryption key is unavailable', privateEncryptionAvailable() === false);
+  const sample: ChatForwardRecord = {
+    id: 'sess1234-abc',
+    sessionId: 'sess1234-session',
+    status: 'sent',
+    subject: '[AILEENA Chat sess1234] NEGOTIATE_FEE_SECRET',
+    transcript: [{ role: 'user', text: 'NEGOTIATE_FEE_SECRET do not store plaintext' }],
+    createdAt: '2026-08-13T00:00:00.000Z',
+  };
+  assert('missing key refuses plaintext persist', encodeForwardRecord(sample) === null);
+
+  process.env.PRIVATE_DATA_ENCRYPTION_KEY = Buffer.alloc(32, 9).toString('base64');
+  resetPrivateCryptoCache();
+  assert('explicit 32-byte key is available', privateEncryptionAvailable() === true);
+  const a = encryptPrivateText('hello council');
+  const b = encryptPrivateText('hello council');
+  assert('each encrypt uses a unique iv', a.iv !== b.iv);
+  assert('gcm envelope has version', a.v === 1 && a.alg === 'aes-256-gcm');
+  assert('decrypt roundtrip', decryptPrivateText(a) === 'hello council');
+  const stored = encodeForwardRecord(sample);
+  assert('forward encode stores ciphertext blob', Boolean(stored?.enc?.ct));
+  const storedJson = JSON.stringify(stored);
+  assert('redis payload has no plaintext transcript', !storedJson.includes('NEGOTIATE_FEE_SECRET'));
+  assert('redis payload has no subject field', stored != null && !('subject' in stored) && !('transcript' in stored));
+  const decoded = decodeForwardRecord(stored);
+  assert('owner decode restores transcript', decoded?.transcript[0]?.text === sample.transcript[0].text);
+  assert(
+    'legacy plaintext still readable',
+    decodeForwardRecord({
+      id: 'legacy',
+      sessionId: 'legacy-sess',
+      status: 'sent',
+      createdAt: sample.createdAt,
+      subject: 'old',
+      transcript: [{ role: 'user', text: 'legacy plaintext' }],
+    })?.transcript[0]?.text === 'legacy plaintext',
+  );
+
+  if (prevKey === undefined) delete process.env.PRIVATE_DATA_ENCRYPTION_KEY;
+  else process.env.PRIVATE_DATA_ENCRYPTION_KEY = prevKey;
+  resetPrivateCryptoCache();
 
   const trace = createRequestTrace('abc12345trace');
   const s = trace.startSpan('test');

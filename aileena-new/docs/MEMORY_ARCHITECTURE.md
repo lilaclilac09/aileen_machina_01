@@ -46,11 +46,15 @@ CHAT_QUOTA_SECRET=...   # also signs __aileena_vid
 Every console conversation is emailed to the contact inbox via `/api/chat/forward`
 (`From`: `cafe@aileena.xyz` via `getResendFrom()`, `To`: `CONTACT_TO` / `LEAD_INBOX` / `NOTIFY_CC_EMAIL` — never cafe@).
 
-When Upstash is configured, every attempt is also stored in Redis:
+When Upstash is configured, every attempt is also stored in Redis.
+**Transcript + subject are AES-256-GCM encrypted at rest** (`PRIVATE_DATA_ENCRYPTION_KEY`).
+Missing key → do not write plaintext. Email can still send.
+
+Council `/api/chat` transcripts are **not** stored (session only).
 
 | Key | Purpose |
 |-----|---------|
-| `chat:forward:rec:{id}` | Full transcript + status (`sent` / `failed`) |
+| `chat:forward:rec:{id}` | Encrypted transcript blob + send status (`sent` / `failed`) |
 | `chat:forward:index` | Sorted set of recent ids |
 | `chat:forward:pending` | Failed ids waiting for resend |
 
