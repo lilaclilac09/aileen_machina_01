@@ -34,8 +34,26 @@ const STARTER_PROMPTS = [
 
 const DAILY_LIMIT = 20;
 const SESSION_KEY = 'aileena_chat_count_daily_v3'; // { date: 'YYYY-MM-DD' local, count: number }
+const OWNER_UNLIMITED_KEY = 'aileena_owner_unlimited';
 const RUNTIME_KEY = 'aileena_runtime';
 type Runtime = 'cloud' | 'browser';
+
+function readOwnerUnlimitedFlag(): boolean {
+  try {
+    return localStorage.getItem(OWNER_UNLIMITED_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function writeOwnerUnlimitedFlag(on: boolean) {
+  try {
+    if (on) localStorage.setItem(OWNER_UNLIMITED_KEY, '1');
+    else localStorage.removeItem(OWNER_UNLIMITED_KEY);
+  } catch {
+    /* ignore */
+  }
+}
 
 /** Local calendar day — matches how people think “20 questions per day”, not UTC jargon. */
 function quotaDayKey(d = new Date()): string {
@@ -95,7 +113,9 @@ const LEAD_DISMISS_KEY = 'aileena_lead_state'; // 'sent' | (unset) — historica
  * Rate limiting — product promise:
  *   - 20 questions per visitor per local calendar day (not UTC).
  *   - Client: localStorage day key. Server: signed cookie keyed by X-Quota-Day.
- *   - Contact / email is optional outreach — it must never cut the daily 20 short.
+ *   - Contact / email is optional outreach for visitors — it does not buy extra
+ *     visitor quota. Recognized owner email (leave-a-note / unlock) mints a
+ *     signed cookie → unlimited console chat.
  *
  * Auto-forward to Aileen's inbox:
  *   Every chat session is forwarded to her email via /api/chat/forward,
@@ -110,7 +130,9 @@ export default function AgentChat() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
   const [sessionCount, setSessionCount] = useState(0);
+  const [ownerUnlimited, setOwnerUnlimited] = useState(false);
   const [leadEmail, setLeadEmail] = useState('');
+  const [ownerUnlockHint, setOwnerUnlockHint] = useState<string | null>(null);
   const [leadName, setLeadName] = useState('');
   const [leadState, setLeadState] = useState<LeadState>('idle');
   const [leadError, setLeadError] = useState<string | null>(null);
@@ -246,9 +268,8 @@ export default function AgentChat() {
   }, [open, activeRuntime]);
 
   const busy = status === 'submitted' || status === 'streaming' || browserBusy || vcodeBusy;
-  // Hard stop only when today's 20 are gone — email must never unlock extra quota.
-  // Owner session (public preview) is unlimited; visitors cannot fake this (httpOnly cookie).
-  const sessionMaxed = !isOwner && sessionCount >= DAILY_LIMIT;
+  // Visitors hard-stop at 20/day. OWNER_KEY session or owner-email cookie is unlimited.
+  const sessionMaxed = !isOwner && !ownerUnlimited && sessionCount >= DAILY_LIMIT;
   const vcodeMaxed = vcodeCount >= VCODE_DAILY_LIMIT;
   // Soft nudge after a few turns; contact stays optional for the full daily 20.
   const leadSoftNudge = sessionCount >= LEAD_SOFT_AFTER && leadState !== 'sent';
@@ -260,7 +281,42 @@ export default function AgentChat() {
     setSessionCount((prev) => (prev === next ? prev : next));
     const vc = readStoredVcodeCount();
     setVcodeCount((prev) => (prev === vc ? prev : vc));
+    setOwnerUnlimited(readOwnerUnlimitedFlag());
   }, []);
+
+  const markOwnerUnlimited = useCallback(() => {
+    writeOwnerUnlimitedFlag(true);
+    setOwnerUnlimited(true);
+    setOwnerUnlockHint(null);
+  }, []);
+
+  /** Server-signed cookie unlock — only recognized owner emails succeed. */
+  const tryUnlockOwnerChat = useCallback(
+    async (rawEmail: string): Promise<boolean> => {
+      const email = rawEmail.trim();
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return false;
+      try {
+        const res = await fetch('/api/owner/chat-access', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ email }),
+        });
+        const body = (await res.json().catch(() => ({}))) as {
+          ok?: boolean;
+          unlimited?: boolean;
+        };
+        if (res.ok && body.ok && body.unlimited) {
+          markOwnerUnlimited();
+          return true;
+        }
+        return false;
+      } catch {
+        return false;
+      }
+    },
+    [markOwnerUnlimited],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -292,7 +348,22 @@ export default function AgentChat() {
     } catch {
       /* storage unavailable — ignore */
     }
-  }, [reconcileDailyQuota]);
+    // Confirm server cookie / OWNER_KEY session (source of truth).
+    void (async () => {
+      try {
+        const res = await fetch('/api/owner/chat-access', {
+          method: 'GET',
+          cache: 'no-store',
+          credentials: 'same-origin',
+        });
+        const body = (await res.json().catch(() => ({}))) as { unlimited?: boolean };
+        if (body.unlimited) markOwnerUnlimited();
+        else if (!readOwnerUnlimitedFlag()) setOwnerUnlimited(false);
+      } catch {
+        /* ignore — local flag still applies for UX until next probe */
+      }
+    })();
+  }, [reconcileDailyQuota, markOwnerUnlimited]);
 
   useEffect(() => {
     if (open) reconcileDailyQuota();
@@ -327,6 +398,7 @@ export default function AgentChat() {
       } catch {
         /* ignore */
       }
+      if (ownerUnlimited || readOwnerUnlimitedFlag()) return;
       setSessionCount((prevCount) => {
         if (isOwnerRef.current) return prevCount;
         const base = readStoredDailyCount();
@@ -345,7 +417,7 @@ export default function AgentChat() {
         setSessionCount(DAILY_LIMIT);
       }
     }
-  }, [status, error]);
+  }, [status, error, ownerUnlimited]);
 
   useEffect(() => {
     if (!scrollRef.current) return;
@@ -668,7 +740,7 @@ export default function AgentChat() {
           ),
         );
       }
-      if (!isOwnerRef.current) {
+      if (!isOwnerRef.current && !ownerUnlimited) {
         const next = readStoredDailyCount() + 1;
         writeStoredDailyCount(next);
         setSessionCount(next);
@@ -871,7 +943,7 @@ export default function AgentChat() {
           parts: [{ type: 'text', text: canned.reply }],
         },
       ]);
-      if (!isOwnerRef.current) {
+      if (!isOwnerRef.current && !ownerUnlimited) {
         const next = readStoredDailyCount() + 1;
         writeStoredDailyCount(next);
         setSessionCount(next);
@@ -889,7 +961,7 @@ export default function AgentChat() {
     if (activeRuntime === 'browser') {
       void sendBrowser(trimmed);
     } else {
-      if (!isOwnerRef.current) pendingDailyBumpRef.current = true;
+      if (!isOwnerRef.current && !ownerUnlimited) pendingDailyBumpRef.current = true;
       sendMessage({ text: trimmed });
     }
   }
@@ -899,7 +971,7 @@ export default function AgentChat() {
   // (with current sessionCount, busy state, lead gate, etc.).
   askRef.current = ask;
 
-  const remaining = Math.max(0, DAILY_LIMIT - sessionCount);
+  const remaining = ownerUnlimited ? Number.POSITIVE_INFINITY : Math.max(0, DAILY_LIMIT - sessionCount);
   const vcodeRemaining = Math.max(0, VCODE_DAILY_LIMIT - vcodeCount);
 
   // When turning voice off, abort any hung stream so typing works again.
@@ -933,7 +1005,9 @@ export default function AgentChat() {
     messages.some((m) => m.role === 'user');
 
   // Contact: soft invite after a few turns — collapsed link, never mid-flow.
-  const showLeadInvite = open && leadState !== 'sent' && leadSoftNudge;
+  // Also keep the form available at the visitor limit so owner can unlock via email.
+  const showLeadInvite =
+    open && leadState !== 'sent' && (leadSoftNudge || (sessionMaxed && !ownerUnlimited));
 
   function persistLeadState(next: LeadState) {
     setLeadState(next);
@@ -1042,6 +1116,7 @@ export default function AgentChat() {
         error?: string;
         ok?: boolean;
         id?: string;
+        unlimited?: boolean;
       };
       if (!res.ok || !body.ok) {
         const raw = body.error || 'Send failed. Try again.';
@@ -1053,16 +1128,37 @@ export default function AgentChat() {
         ) {
           setLeadMailReady(false);
           setLeadError(CONTACT_OFFLINE_PUBLIC);
+          // Mail offline — still try owner unlock (does not need Resend).
+          if (await tryUnlockOwnerChat(email)) {
+            setOwnerUnlockHint('Owner access unlocked — unlimited chat.');
+            setLeadOpen(false);
+            setLeadState('idle');
+            return;
+          }
         } else {
           setLeadError(raw);
         }
         setLeadState('idle');
         return;
       }
+      if (body.unlimited) {
+        markOwnerUnlimited();
+        setOwnerUnlockHint('Owner access unlocked — unlimited chat.');
+      } else {
+        // Double-check allow-list path (cookie may still be set).
+        await tryUnlockOwnerChat(email);
+      }
       setLeadOpen(false);
       persistLeadState('sent');
     } catch {
       setLeadError('Network error. Try again.');
+      // Network fail on lead — still attempt unlock for owner email.
+      if (await tryUnlockOwnerChat(email)) {
+        setOwnerUnlockHint('Owner access unlocked — unlimited chat.');
+        setLeadOpen(false);
+        setLeadState('idle');
+        return;
+      }
       setLeadState('idle');
     }
   }
@@ -1324,10 +1420,55 @@ export default function AgentChat() {
           )}
 
           {sessionMaxed && (
-            <p className="text-[0.7rem] leading-5 tracking-[0.05em] text-[#007d75]/75 whitespace-pre-wrap">
-              <span className="font-mono text-[0.55rem] tracking-[0.3em] uppercase mr-1.5">▸ limit</span>
-              You&apos;ve used today&apos;s {DAILY_LIMIT} messages. Fresh set tomorrow — see you then.
-            </p>
+            <div className="space-y-2">
+              <p className="text-[0.7rem] leading-5 tracking-[0.05em] text-[#007d75]/75 whitespace-pre-wrap">
+                <span className="font-mono text-[0.55rem] tracking-[0.3em] uppercase mr-1.5">▸ limit</span>
+                You&apos;ve used today&apos;s {DAILY_LIMIT} messages. Fresh set tomorrow — see you then.
+              </p>
+              <form
+                className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void (async () => {
+                    const ok = await tryUnlockOwnerChat(leadEmail);
+                    if (ok) setOwnerUnlockHint('Owner access unlocked — unlimited chat.');
+                    else setOwnerUnlockHint('Email not recognized for unlimited access.');
+                  })();
+                }}
+              >
+                <input
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  name="owner-unlock-email"
+                  placeholder="your email unlocks unlimited"
+                  value={leadEmail}
+                  onChange={(e) => {
+                    setLeadEmail(e.target.value);
+                    setOwnerUnlockHint(null);
+                  }}
+                  onBlur={() => {
+                    void tryUnlockOwnerChat(leadEmail).then((ok) => {
+                      if (ok) setOwnerUnlockHint('Owner access unlocked — unlimited chat.');
+                    });
+                  }}
+                  className="flex-1 min-w-0 bg-transparent border border-[#e7e0d6] px-2 py-1.5 text-[0.75rem] text-[#1b1713]/85 placeholder:text-[#1b1713]/35 outline-none focus:border-[#008f86]/50"
+                />
+                <button
+                  type="submit"
+                  className="font-mono text-[0.5rem] tracking-[0.22em] uppercase text-[#008f86] hover:text-[#007d75] px-2 py-1.5 border border-[#e7e0d6]"
+                >
+                  unlock
+                </button>
+              </form>
+              {ownerUnlockHint && (
+                <p className="text-[0.65rem] text-[#008f86]/85">{ownerUnlockHint}</p>
+              )}
+            </div>
+          )}
+
+          {!sessionMaxed && ownerUnlockHint && (
+            <p className="text-[0.65rem] text-[#008f86]/85">{ownerUnlockHint}</p>
           )}
 
         </div>
@@ -1421,12 +1562,24 @@ export default function AgentChat() {
               )}
             </span>
             <span className="flex flex-wrap gap-x-3 gap-y-1 justify-end shrink-0">
-              <span className={remaining === 0 && !isOwner ? 'text-red-400/70' : remaining <= 2 && !isOwner ? 'text-[#007d75]/55' : 'text-[#1b1713]/40'}>
+              <span
+                className={
+                  isOwner || ownerUnlimited
+                    ? 'text-[#008f86]/80'
+                    : remaining === 0
+                      ? 'text-red-400/70'
+                      : remaining <= 2
+                        ? 'text-[#007d75]/55'
+                        : 'text-[#1b1713]/40'
+                }
+              >
                 {isOwner
                   ? 'owner'
-                  : remaining === 0
-                    ? 'chat 0'
-                    : `chat ${remaining}/${DAILY_LIMIT}`}
+                  : ownerUnlimited
+                    ? 'chat ∞'
+                    : remaining === 0
+                      ? 'chat 0'
+                      : `chat ${remaining}/${DAILY_LIMIT}`}
               </span>
               <span className={vcodeRemaining === 0 ? 'text-red-400/70' : 'text-[#007d75]/70'}>
                 {vcodeRemaining === 0
@@ -1497,9 +1650,17 @@ export default function AgentChat() {
                     data-bwignore="true"
                     data-form-type="other"
                     value={leadEmail}
-                    onChange={(e) => setLeadEmail(e.target.value)}
+                    onChange={(e) => {
+                      setLeadEmail(e.target.value);
+                      setOwnerUnlockHint(null);
+                    }}
+                    onBlur={() => {
+                      void tryUnlockOwnerChat(leadEmail).then((ok) => {
+                        if (ok) setOwnerUnlockHint('Owner access unlocked — unlimited chat.');
+                      });
+                    }}
                     placeholder="your email"
-                    disabled={leadState === 'submitting' || leadMailReady === false}
+                    disabled={leadState === 'submitting'}
                     className="flex-1 min-w-0 bg-white border border-[#ded8ce] px-3 py-2 text-sm text-[#1b1713]/90 placeholder:text-[#1b1713]/35 outline-none focus:border-[#00a89d]/70 caret-[#00a89d] disabled:opacity-50"
                   />
                   <input

@@ -41,6 +41,7 @@ import {
   formatVisitorSoftMemoryForPrompt,
   visitorSoftMemoryEnabled,
 } from '../../../lib/visitorMemory';
+import { hasOwnerUnlimitedChat } from '../../../lib/owner-access';
 
 export const runtime = 'edge';
 export const maxDuration = 30;
@@ -229,12 +230,19 @@ export async function POST(req: Request) {
   const skipQuota = skipVisitorQuota(Boolean(owner));
   const councilLens = isCouncil && isCouncilLens(body.councilLens) ? body.councilLens : undefined;
 
-  // Daily quota — public visitors only. Owner session (council or public
-  // preview) skips the 20/day cookie. Forged agentMode cannot bypass this.
+  // Daily quota — public visitors only. OWNER_KEY session or recognized
+  // owner-email cookie skips the 20/day cap. Forged agentMode cannot bypass this.
   const quotaSpan = trace.startSpan('quota');
+  const ownerUnlimited = await hasOwnerUnlimitedChat(req);
+  const unlimitedChat = skipQuota || ownerUnlimited;
   const quota = await readQuota(req);
-  trace.endSpan(quotaSpan, true, { count: quota.count, date: quota.date, skipQuota });
-  if (!skipQuota && quota.count >= DAILY_LIMIT) {
+  trace.endSpan(quotaSpan, true, {
+    count: quota.count,
+    date: quota.date,
+    skipQuota,
+    ownerUnlimited,
+  });
+  if (!unlimitedChat && quota.count >= DAILY_LIMIT) {
     console.warn('[chat] POST: daily limit reached for user', { count: quota.count, date: quota.date, traceId: trace.traceId });
     // Refresh cookie so Max-Age / date stay aligned with "today" — avoids stale
     // multi-day cookies that look like the counter never reset.
@@ -302,7 +310,11 @@ export async function POST(req: Request) {
       'X-Degrade-Reason': modelDecision.reason,
       'X-Tool-Route': toolRoute.route,
       'X-Agent-Mode': agentMode,
-      'X-Daily-Remaining': skipQuota ? 'owner' : String(Math.max(0, DAILY_LIMIT - quota.count)),
+      'X-Daily-Remaining': unlimitedChat
+        ? skipQuota
+          ? 'owner'
+          : 'unlimited'
+        : String(Math.max(0, DAILY_LIMIT - quota.count)),
     });
   }
 
@@ -534,7 +546,8 @@ Same retrieval tools as the site. Use them for evidence (articles, memory, chips
       },
     });
 
-    const setCookie = skipQuota
+    // Owner unlimited (session or email cookie): do not burn the visitor counter.
+    const setCookie = unlimitedChat
       ? null
       : await buildQuotaCookie({ date: quota.date, count: quota.count + 1 });
     // Always refresh visitor cookie Max-Age so browser id tracks the 90d Redis TTL.
@@ -561,7 +574,17 @@ Same retrieval tools as the site. Use them for evidence (articles, memory, chips
       headers.append('Set-Cookie', visitorCookie);
     }
 
-    headers.set('X-Daily-Remaining', skipQuota ? 'owner' : String(DAILY_LIMIT - (quota.count + 1)));
+    headers.set(
+      'X-Daily-Remaining',
+      unlimitedChat
+        ? skipQuota
+          ? 'owner'
+          : 'unlimited'
+        : String(DAILY_LIMIT - (quota.count + 1)),
+    );
+    if (unlimitedChat) {
+      headers.set('X-Owner-Unlimited', '1');
+    }
     headers.set('X-Quota-Day', quota.date);
     headers.set('X-Provider', picked.provider);
     headers.set('X-Model-Tier', picked.tier);
