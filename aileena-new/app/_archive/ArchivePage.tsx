@@ -1,6 +1,7 @@
 'use client';
 
 import ScrollUnlock from '../blog/ScrollUnlock';
+import ArchiveDoorsNote from './ArchiveDoorsNote';
 import ArchiveNav, { type ArchiveRoom } from './ArchiveNav';
 import './archive.css';
 
@@ -28,6 +29,7 @@ export default function ArchivePage({
           <p className="arc-dek">{dek}</p>
         </header>
         {children}
+        <ArchiveDoorsNote />
       </main>
     </div>
   );
