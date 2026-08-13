@@ -17,6 +17,11 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  parseVoiceAccent,
+  VOICE_ACCENT_STORAGE_KEY,
+  type VoiceAccent,
+} from '../lib/voiceAccent';
 
 type Caps = {
   whisper: boolean;
@@ -77,8 +82,7 @@ const ACCENTS = [
   },
 ] as const;
 
-type AccentKey = (typeof ACCENTS)[number]['key'];
-const VOICE_STORAGE_KEY = 'aileena.console.voiceAccent';
+type AccentKey = VoiceAccent;
 
 /**
  * Sentence / clause boundaries for TTS pacing (never word chunks).
@@ -348,7 +352,7 @@ export default function AgentVoiceOrb({
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(VOICE_STORAGE_KEY) as AccentKey | null;
+      const saved = parseVoiceAccent(localStorage.getItem(VOICE_ACCENT_STORAGE_KEY));
       if (saved && ACCENTS.some((p) => p.key === saved)) setAccentKey(saved);
     } catch {
       /* ignore */
@@ -360,7 +364,7 @@ export default function AgentVoiceOrb({
     voiceIdRef.current = accent.voiceId;
     langRef.current = accent.lang;
     try {
-      localStorage.setItem(VOICE_STORAGE_KEY, accent.key);
+      localStorage.setItem(VOICE_ACCENT_STORAGE_KEY, accent.key);
     } catch {
       /* ignore */
     }

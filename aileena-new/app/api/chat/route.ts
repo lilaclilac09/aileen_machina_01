@@ -42,6 +42,7 @@ import {
   visitorSoftMemoryEnabled,
 } from '../../../lib/visitorMemory';
 import { hasOwnerUnlimitedChat } from '../../../lib/owner-access';
+import { parseVoiceAccent, spokenRegisterPrompt } from '../../../lib/voiceAccent';
 
 export const runtime = 'edge';
 export const maxDuration = 30;
@@ -197,6 +198,7 @@ export async function POST(req: Request) {
     priorTopics?: string[];
     agentMode?: 'public' | 'site' | 'machina' | 'council';
     councilLens?: string;
+    voiceAccent?: string;
   };
   try {
     body = await req.json();
@@ -229,6 +231,7 @@ export async function POST(req: Request) {
   const isCouncil = agentMode === 'council';
   const skipQuota = skipVisitorQuota(Boolean(owner));
   const councilLens = isCouncil && isCouncilLens(body.councilLens) ? body.councilLens : undefined;
+  const voiceAccent = isCouncil ? null : parseVoiceAccent(body.voiceAccent);
 
   // Daily quota — public visitors only. OWNER_KEY session or recognized
   // owner-email cookie skips the 20/day cap. Forged agentMode cannot bypass this.
@@ -295,7 +298,11 @@ export async function POST(req: Request) {
   }
 
   const toolRoute = routeToolsForQuestion(lastQ, visitorSoft, priorTopics);
-  const modelDecision = routeModel({ toolRoute: toolRoute.route, lastQuestion: lastQ });
+  const modelDecision = routeModel({
+    toolRoute: toolRoute.route,
+    lastQuestion: lastQ,
+    voiceAccent,
+  });
   trace.endSpan(prepSpan, true, {
     toolRoute: toolRoute.route,
     modelMode: modelDecision.mode,
@@ -326,6 +333,7 @@ export async function POST(req: Request) {
     tier: picked.tier,
     modelReason: modelDecision.reason,
     agentMode,
+    voiceAccent: voiceAccent ?? 'off',
     owner: Boolean(owner),
     skipQuota,
     priorTopicsCount: priorTopics.length,
@@ -342,6 +350,7 @@ export async function POST(req: Request) {
   const ds = datasetSummary();
   const augmentedSystem =
     baseSystem +
+    spokenRegisterPrompt(voiceAccent) +
     MEMORY_STACK_PROMPT +
     `
 
@@ -590,6 +599,7 @@ Same retrieval tools as the site. Use them for evidence (articles, memory, chips
     headers.set('X-Model-Tier', picked.tier);
     headers.set('X-System-Prompt-Chars', String(baseSystem.length));
     headers.set('X-Agent-Mode', agentMode);
+    headers.set('X-Voice-Accent', voiceAccent ?? 'off');
     headers.set('X-Visitor-Soft-Memory', visitorSoftMemoryEnabled() ? 'redis' : 'off');
     headers.set('X-React-Max-Steps', String(REACT_MAX_STEPS));
     headers.set('X-Tool-Route', toolRoute.route);
