@@ -190,7 +190,7 @@ export default function Home() {
       blurb: 'HBM stacks, David, and the day the stockpile hits zero.',
       signal: latestIssue ? `${latestIssue.issueNumber} · ${latestIssue.coverTitle}` : 'Open the magazine rack',
       motif: 'hbm',
-      placement: { top: '10%', right: '8%', transform: 'rotate(-2deg)', zIndex: 6 },
+      placement: { top: '10%', right: '10%', transform: 'rotate(-2deg)', zIndex: 6 },
     },
     {
       id: 'dispatch',
@@ -201,7 +201,7 @@ export default function Home() {
       blurb: 'GB200 boards, CCL, M8/M9, and who gets to choose the board.',
       signal: latestDispatch ? latestDispatch.title : 'Open the archive',
       motif: 'pcb',
-      placement: { top: '38%', right: '9%', transform: 'rotate(1.6deg)', zIndex: 5 },
+      placement: { top: '38%', right: '10%', transform: 'rotate(1.6deg)', zIndex: 5 },
     },
     {
       id: 'woman-tech',
@@ -212,7 +212,7 @@ export default function Home() {
       blurb: metooArticle ? metooArticle.body : 'Long-form essays and the back catalogue.',
       signal: metooArticle ? metooArticle.title : 'Every Woman in Tech Has a #MeToo Story',
       motif: 'article',
-      placement: { top: '11%', left: '8%', transform: 'rotate(-1deg)', zIndex: 14 },
+      placement: { top: '11%', left: '10%', transform: 'rotate(-1deg)', zIndex: 14 },
     },
     {
       id: 'woman-investing',
@@ -223,7 +223,7 @@ export default function Home() {
       blurb: featuredInvesting ? featuredInvesting.body : 'A woman should have her own portfolio.',
       signal: featuredInvesting ? featuredInvesting.title : tx.blog.investing.heading,
       motif: 'investing',
-      placement: { top: '64%', right: '8.5%', transform: 'rotate(1.2deg)', zIndex: 12 },
+      placement: { top: '64%', right: '10%', transform: 'rotate(1.2deg)', zIndex: 12 },
     },
   ];
 
@@ -1206,7 +1206,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             className="absolute z-[16] hidden sm:block"
             style={{
               top: '22%',
-              left: '46%',
+              left: '44%',
               width: deskAskWidth,
               padding: 0,
               margin: 0,
@@ -1253,7 +1253,7 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
             aria-label="Social links"
             data-desk-role="links"
             style={{
-              right: '8%',
+              right: '10%',
               bottom: '5%',
               zIndex: 20,
             }}
