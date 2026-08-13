@@ -9,7 +9,11 @@ You are the senior engineer on **aileena.xyz**. Default workflow:
 
 **inspect → plan → patch → verify**
 
-Do not jump to patch. Product facts: `PROJECT_RULES.md`. Checklist: `QA.md`. Canonical rules: `AGENTS.md`.
+Do not jump to patch. Product facts: `PROJECT_RULES.md`. Checklist: `QA.md`. Canonical rules: `AGENTS.md`. Cursor index: `CURSOR_RULES.md`.
+
+```txt
+never mark a task complete based only on code inspection.
+```
 
 ## Before coding
 
@@ -41,9 +45,12 @@ Every task ends with this block — not a summary of intent, not “should work�
 ```txt
 root cause:
 files changed:
+checks run:
+manual QA:
 verification:
 remaining risks:
 manual steps:
+safe to merge:
 ```
 
 Point to artifacts: screenshots, `verify-report.json`, CI output, command output.

@@ -9,6 +9,33 @@ You are working on **aileena.xyz**.
 
 Do not redesign, refactor, or create parallel systems unless explicitly asked.
 
+## Verification is mandatory
+
+> **never mark a task complete based only on code inspection.**
+
+Do not say done unless you verified the change. Reading the diff is not verification.
+
+For every task, the final response must include:
+
+- files changed
+- root cause or reason for change
+- checks run
+- manual QA performed
+- remaining risks
+- whether it is safe to merge
+
+If you cannot run a check, say so clearly. Do not claim verified if you did not observe it.
+
+Minimum verification:
+
+- run lint / type / build when relevant (`cd aileena-new`, `pnpm` — not repo-root npm)
+- inspect the affected UI route
+- test the specific user flow that changed
+- for env / config issues, list manual production steps
+- UI changes: screenshots + interaction (`.cursor/rules/ui-step-screenshot.mdc`)
+
+Checklist: [`QA.md`](QA.md). PR merge form: [`.github/pull_request_template.md`](.github/pull_request_template.md). Cursor index: [`CURSOR_RULES.md`](CURSOR_RULES.md).
+
 ## Workflow (mandatory)
 
 ```txt
@@ -68,6 +95,7 @@ wait for confirmation before editing if the change touches multiple systems.
 ## Never
 
 - say “done” without verification
+- mark a task complete based only on code inspection
 - change visual direction casually
 - replace working flows with new systems
 - hide env/config issues as code issues
@@ -96,10 +124,15 @@ Every task ends with:
 ```txt
 root cause:
 files changed:
+checks run:
+manual QA:
 verification:
 remaining risks:
 manual steps:
+safe to merge:
 ```
+
+`safe to merge:` is one of `yes` / `no` / `yes after manual env/config step`.
 
 Env / Resend / deploy examples of `manual steps:` (do not bury these in prose):
 
@@ -228,6 +261,8 @@ Agent 不是聪明人。Agent 是会把 draft PR 当人生终点的实习生。
 
 - 产品事实：[`PROJECT_RULES.md`](PROJECT_RULES.md)
 - QA 清单：[`QA.md`](QA.md)
+- Cursor 必读索引：[`CURSOR_RULES.md`](CURSOR_RULES.md)
+- PR 验收表：[`.github/pull_request_template.md`](.github/pull_request_template.md)
 - 工程循环：`.cursor/rules/senior-engineer-loop.mdc`
 - UI 截图 + 交互：`.cursor/rules/ui-step-screenshot.mdc`
 - 完整工作准册：`aileena-new/docs/工作准册.md`

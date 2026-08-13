@@ -1,17 +1,32 @@
 # QA.md
 
-Verify with commands and this checklist. No evidence → not done. App lives in `aileena-new/` (`pnpm`, not repo-root npm).
+Verify with commands and this checklist. No evidence → not done.
 
-## Toolchain
+> **never mark a task complete based only on code inspection.**
+
+App lives in `aileena-new/` (`pnpm`, not repo-root npm). Run only the rows that match the slice. Skip the rest; do not “fix orb” as one pass.
+
+Ship / merge to `main` still follows `AGENTS.md` 施工队安全条例 — localhost is not production proof. Preview Ready ≠ Production Ready.
+
+## Before merge
 
 ```bash
 cd aileena-new
 pnpm lint              # full-repo is red on main (~180). Gate files you touched, not the whole debt.
-pnpm exec tsc --noEmit # needs Next generated types (after a build, or ignore missing .next/types)
+pnpm exec tsc --noEmit # typecheck. Needs Next generated types (after a build, or ignore missing .next/types)
 pnpm build             # required: generates article/data/memory indexes. Bare `next build` fails.
 ```
 
-When the slice has a test:
+Also:
+
+- deploy preview loads
+- no failing **required** checks on the PR
+- affected route opened
+- affected user flow tested
+- UI change → screenshots + interaction (`.cursor/rules/ui-step-screenshot.mdc`)
+- env/config issues listed as `manual steps`, not hidden as code
+
+When the slice has a dedicated test:
 
 ```bash
 cd aileena-new
@@ -21,21 +36,57 @@ pnpm verify:doors-nav  # doors back-link chrome
 pnpm lead:test         # Resend lead/contact smoke (needs env)
 ```
 
-Ship / merge to `main` still follows `AGENTS.md` 施工队安全条例 — localhost is not production proof.
+## Agent / orb
 
-## Product checklist
+- transcript visible and scrollable
+- voice hears the full sentence (recognition accumulates the turn; not first fragment only)
+- voice speaks the full response
+- voice pace is calm
+- mic blocked state is gentle
+- city / language switch works
+- public mode respects the message limit
+- one orb slice per change set (do not “fix orb” as one task)
 
-Run the rows that match the slice. Skip the rest; do not “fix orb” as one pass.
+## Council
 
-| Slice | Pass when |
-|-------|-----------|
-| contact sends email | Resend delivers to `CONTACT_TO` (not cafe@) |
-| transcript included | mail body contains the chat / note transcript |
-| orb hears full sentence | recognition accumulates the turn; not first fragment only |
-| orb speaks full response slowly | TTS speaks the complete reply at calm human pace |
-| visual images not cropped | `#glass-bench` / Visual photos fully visible (`contain`, not cover-crop) |
-| doors back links work | `pnpm verify:doors-nav` + click ← doors / ← home |
-| dj add → carousel → deck A → play | add track → film-strip → drag/load Deck A → audio |
+- council mode is **owner-only**
+- visitor / public session cannot enter council
+- public orb stays `agentMode: public`
+- owner session is the only path into `/council`
+
+## Contact
+
+- leave-a-note submits successfully
+- Resend email received at `CONTACT_TO` (not cafe@)
+- transcript included in the mail body
+- missing env shows a private / dev-safe error
+- public UI does not expose scary backend errors
+- missing `RESEND_API_KEY` / `CONTACT_TO` → env `manual steps`, not a new mailer
+
+## Visual / collage
+
+- images are not cropped (`object-fit: contain`, natural aspect — never cover-crop)
+- links work
+- drag behavior works if enabled
+- layout responsive (desktop cluster + 390×844)
+- home clipping desk stays collage, not a gallery grid
+
+## Doors / navigation
+
+- every subpage has a back link
+- doors routes work (`/doors`, DJ, Shelf, Metal & Pages, Dispatch, Tools)
+- `pnpm verify:doors-nav` when chrome / back links changed
+- no orphaned important page
+
+## DJ
+
+- add song
+- appears in carousel
+- drag to deck A
+- play / pause works
+- deck B works if touched
+- mixer controls affect actual audio if touched
+- Visual / `#glass-bench` is **not** on `/sound`
 
 ## Not code failures
 
@@ -54,7 +105,10 @@ Copy into the task reply:
 ```txt
 root cause:
 files changed:
+checks run:
+manual QA:
 verification:
 remaining risks:
 manual steps:
+safe to merge:
 ```
