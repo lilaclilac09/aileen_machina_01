@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-08-13T13:46:46.457Z",
+  "ranAt": "2026-08-13T19:19:54.944Z",
   "nitterBases": [
     "https://nitter.net"
   ],
@@ -22,58 +22,84 @@
     },
     {
       "screenName": "SemiAnalysis_",
-      "rssCount": 17,
-      "missing": [],
+      "rssCount": 18,
+      "missing": [
+        "2087945015079075869"
+      ],
       "skippedOffWatchlist": [],
-      "ingested": [],
+      "ingested": [
+        "2087945015079075869"
+      ],
       "failed": []
     },
     {
       "screenName": "SKundojjala",
       "rssCount": 20,
-      "missing": [
-        "2087883347058143405"
-      ],
+      "missing": [],
       "skippedOffWatchlist": [],
-      "ingested": [
-        "2087883347058143405"
-      ],
+      "ingested": [],
       "failed": []
     },
     {
       "screenName": "aaronburnett",
       "rssCount": 20,
-      "missing": [],
-      "skippedOffWatchlist": [],
-      "ingested": [],
+      "missing": [
+        "2087967004477067341",
+        "2087965709930569758",
+        "2087963543224148039",
+        "2087957699333869748",
+        "2087918224448852109",
+        "2087921194599059511",
+        "2087917271582957728"
+      ],
+      "skippedOffWatchlist": [
+        "shaunmmaguire/2087965709930569758"
+      ],
+      "ingested": [
+        "2087967004477067341",
+        "2087963543224148039",
+        "2087957699333869748",
+        "2087918224448852109",
+        "2087921194599059511",
+        "2087917271582957728"
+      ],
       "failed": []
     },
     {
       "screenName": "mach33",
       "rssCount": 18,
-      "missing": [],
+      "missing": [
+        "2087956261895643333",
+        "2087917270677029317"
+      ],
       "skippedOffWatchlist": [],
-      "ingested": [],
+      "ingested": [
+        "2087956261895643333",
+        "2087917270677029317"
+      ],
       "failed": []
     },
     {
       "screenName": "VladSaigau",
-      "rssCount": 16,
+      "rssCount": 17,
       "missing": [
+        "2087965709930569758",
+        "2087955507650724344",
         "2084397350588658070",
         "2083268172602372368",
         "2082303239983099957",
-        "2082097648769610098",
-        "2080812297694409014"
+        "2082097648769610098"
       ],
       "skippedOffWatchlist": [
+        "shaunmmaguire/2087965709930569758",
         "CernBasher/2084397350588658070",
         "elonmusk/2083268172602372368",
         "DJEsmeraldMusic/2082303239983099957",
-        "wintonARK/2082097648769610098",
-        "elonmusk/2080812297694409014"
+        "wintonARK/2082097648769610098"
       ],
-      "ingested": [],
+      "ingested": [
+        "2087955507650724344"
+      ],
       "failed": []
     }
   ]
