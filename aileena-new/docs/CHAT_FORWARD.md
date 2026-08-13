@@ -57,10 +57,10 @@ Email to the inbox is **not** end-to-end encrypted (Resend and the mailbox provi
 
 ## Owner browse UI
 
-After OWNER_KEY session:
+After owner key on `/council` or `/cabinet`:
 
-- Page: `/inbox` (robots noindex)
-- Unlock: `/api/auth/owner?key=<OWNER_KEY>&next=/inbox`
+- Door: `/council` (form POST, not a query-string bookmark)
+- Cabinet: `/cabinet` (same store as `/inbox`, robots noindex)
 - API: `GET /api/owner/chat-forwards?days=14` · `GET /api/owner/chat-forwards/:id`
 
 ## Commands
