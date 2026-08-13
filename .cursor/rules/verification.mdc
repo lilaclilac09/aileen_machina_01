@@ -1,0 +1,43 @@
+---
+description: Mandatory verification — no done from code inspection
+alwaysApply: true
+---
+
+# Verification is mandatory
+
+```txt
+never mark a task complete based only on code inspection.
+```
+
+Do not say done unless you verified the change. Reading the diff is not verification.
+
+Canonical rules: `AGENTS.md`. Checklist: `QA.md`. PR form: `.github/pull_request_template.md`.
+
+## Every final reply
+
+```txt
+root cause:
+files changed:
+checks run:
+manual QA:
+verification:
+remaining risks:
+manual steps:
+safe to merge:
+```
+
+If a check did not run, say so. Do not claim verified if you did not observe it.
+
+## Minimum
+
+- lint / type / build when relevant (`cd aileena-new`, `pnpm`)
+- open the affected UI route
+- test the specific user flow that changed
+- UI: screenshots + interaction
+- env/config: list production `manual steps`
+
+## Never
+
+- mark complete from code inspection alone
+- skip QA because a previous session “already looked fine”
+- use localhost as production proof
