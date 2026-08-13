@@ -11,7 +11,8 @@
  * Debug logs on by default ([voice]); set localStorage.aileena_voice_debug='0' to silence.
  * TTS: /api/tts (HTMLAudio on iOS/Safari) with speechSynthesis fallback.
  * Speak only after the assistant stream settles (!busy) — never the first
- * streamed token. Long replies: sentence-level chunks, not words.
+ * streamed token. Long replies: sentence/clause chunks with short breaths,
+ * slower warmer SpeechSynthesis rate/pitch (not PA-broadcast).
  * Live caption + barge-in. Voice path: Console → Voice → speak.
  */
 
@@ -79,20 +80,37 @@ const ACCENTS = [
 type AccentKey = (typeof ACCENTS)[number]['key'];
 const VOICE_STORAGE_KEY = 'aileena.console.voiceAccent';
 
-const SENTENCE_RE = /(?<=[.!?。！？…])\s+|(?<=\n)/;
+/**
+ * Sentence / clause boundaries for TTS pacing (never word chunks).
+ * Keep punctuation on the preceding piece so pauses land after ，。！？ etc.
+ * Chinese 。！？ rarely have a following space — split without requiring \s.
+ */
+const SPEAK_BOUNDARY_RE =
+  /(?<=[。！？…])|(?<=[.!?])\s+|(?<=[；;])\s*|(?<=[：:])\s*|(?<=[，、])|(?<=[,])\s+|(?<=\n+)/;
 
-/** Split a finished reply into speakable sentence groups (never by word). */
+/** Split a finished reply into speakable sentence/clause chunks (never by word). */
 function splitSpeakableChunks(full: string): string[] {
   const text = full.trim();
   if (!text) return [];
-  if (text.length <= 220) return [text];
-  const sentences = text.split(SENTENCE_RE).map((s) => s.trim()).filter(Boolean);
-  if (sentences.length <= 1) return [text];
+
+  const raw = text
+    .split(SPEAK_BOUNDARY_RE)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (raw.length <= 1) return [text];
+
+  // Merge tiny fragments so we don't sound choppy; still prefer short breaths.
   const out: string[] = [];
   let buf = '';
-  for (const s of sentences) {
-    const next = buf ? `${buf} ${s}` : s;
-    if (next.length > 220 && buf) {
+  for (const s of raw) {
+    const prev = buf.slice(-1);
+    const noSpace =
+      Boolean(buf) &&
+      (/[\u4e00-\u9fff]/.test(prev) || /[，。！？、；：…]/.test(prev)) &&
+      /^[\u4e00-\u9fff]/.test(s);
+    const next = buf ? `${buf}${noSpace ? '' : ' '}${s}` : s;
+    const softCap = /[.!?。！？…]$/.test(buf) ? 1 : /[;；：:]$/.test(buf) ? 90 : 140;
+    if (buf && (buf.length >= softCap || next.length > 180)) {
       out.push(buf);
       buf = s;
     } else {
@@ -101,6 +119,85 @@ function splitSpeakableChunks(full: string): string[] {
   }
   if (buf) out.push(buf);
   return out.length ? out : [text];
+}
+
+/** Primary utterance lang from text script (accent used as English/German hint). */
+function detectUtteranceLang(text: string, accentLang: string): string {
+  const zh = (text.match(/[\u4e00-\u9fff]/g) || []).length;
+  const de = (text.match(/[äöüÄÖÜß]/g) || []).length;
+  const latin = (text.match(/[A-Za-z]/g) || []).length;
+  if (zh >= 2 && zh >= latin * 0.25) return 'zh-CN';
+  if (accentLang.startsWith('de') && (de > 0 || latin > zh)) return 'de-DE';
+  if (accentLang.startsWith('en-GB')) return 'en-GB';
+  if (accentLang.startsWith('en')) return 'en-US';
+  if (latin > 0 && zh === 0) return accentLang.startsWith('zh') ? 'en-US' : accentLang;
+  return accentLang || 'en-US';
+}
+
+/** Prefer warmer local / neural voices; avoid novelty and overly “PA system” picks. */
+function pickNaturalVoice(
+  voices: SpeechSynthesisVoice[],
+  lang: string,
+): SpeechSynthesisVoice | null {
+  if (!voices.length) return null;
+  const base = lang.slice(0, 2).toLowerCase();
+  const pool = voices.filter((v) => {
+    const hay = `${v.lang} ${v.name}`.toLowerCase();
+    if (v.lang?.toLowerCase() === lang.toLowerCase()) return true;
+    if (v.lang?.toLowerCase().startsWith(base)) return true;
+    if (base === 'zh') return /zh|cmn|chinese|华文|中文/.test(hay);
+    return false;
+  });
+  const list = pool.length ? pool : voices;
+
+  const score = (v: SpeechSynthesisVoice): number => {
+    const n = `${v.name} ${v.lang}`.toLowerCase();
+    let s = 0;
+    if (v.localService) s += 4;
+    if (v.lang?.toLowerCase() === lang.toLowerCase()) s += 5;
+    else if (v.lang?.toLowerCase().startsWith(base)) s += 2;
+    if (/neural|natural|enhanced|premium|online \(natural\)|premium online/.test(n)) s += 8;
+    if (/google|microsoft|apple|siri/.test(n)) s += 3;
+    if (base === 'zh' && /tingting|mei-jia|meijia|xiaoxiao|xiaoyi|yunxi|sin-ji|li-mu|hanhan|yaoyao/.test(n)) {
+      s += 7;
+    }
+    if (
+      base === 'en' &&
+      /samantha|karen|moira|serena|fiona|martha|aria|jenny|google us english|google uk english|siri/.test(n)
+    ) {
+      s += 7;
+    }
+    // Soften “customer service / PA” defaults without blocking them entirely.
+    if (/microsoft david|microsoft mark|alex\b|daniel\b|ralph|bruce/.test(n)) s -= 3;
+    if (/compact|eloquence|novelty|whisper|zarvox|bad news|bahh|boing|bells|cellos|trinoids/.test(n)) {
+      s -= 12;
+    }
+    return s;
+  };
+
+  return list.slice().sort((a, b) => score(b) - score(a))[0] ?? null;
+}
+
+/** Breath between chunks — longer after sentence/paragraph, shorter after commas. */
+function pauseAfterChunkMs(chunk: string, isLast: boolean): number {
+  if (isLast) return 0;
+  if (/\n/.test(chunk)) return 480;
+  if (/[.!?。！？…]\s*$/.test(chunk)) return 380;
+  if (/[;；：:]\s*$/.test(chunk)) return 300;
+  if (/[,，、]\s*$/.test(chunk)) return 240;
+  return 320;
+}
+
+function ttsRateForLang(lang: string): number {
+  if (lang.startsWith('zh')) return 0.85;
+  if (lang.startsWith('de')) return 0.88;
+  return 0.9; // en — warm, not call-center rush
+}
+
+function ttsPitchForLang(lang: string): number {
+  if (lang.startsWith('zh')) return 1.0;
+  if (lang.startsWith('de')) return 0.98;
+  return 0.98;
 }
 const SPEECH_THRESH = 0.018;
 /** Whisper VAD: end chunk after this much silence (was 900 — cut mid-sentence). */
@@ -498,16 +595,8 @@ export default function AgentVoiceOrb({
       }
       // Chrome: voices often empty until getVoices() / voiceschanged.
       const voices = window.speechSynthesis.getVoices();
-      const lang = langRef.current;
-      const prefer =
-        voices.find((v) => v.lang === lang) ||
-        voices.find((v) => v.lang?.toLowerCase().startsWith(lang.slice(0, 2).toLowerCase())) ||
-        (lang.startsWith('zh')
-          ? voices.find((v) => /zh|cmn|chinese/i.test(`${v.lang} ${v.name}`))
-          : null) ||
-        null;
 
-      // Chrome cuts off very long utterances — chunk by sentences, never words.
+      // Sentence/clause queue — never one long PA-style blast.
       const chunks = splitSpeakableChunks(text);
       vlog('tts speechSynthesis queue', {
         length: text.trim().length,
@@ -522,7 +611,13 @@ export default function AgentVoiceOrb({
       setHint('Speaking…');
       vlog('tts start', { via: 'speechSynthesis' });
 
+      let cancelled = false;
+      const pauseTimers: number[] = [];
+
       const finishIdle = () => {
+        if (cancelled) return;
+        cancelled = true;
+        for (const t of pauseTimers) window.clearTimeout(t);
         ttsPlayingRef.current = false;
         vlog('tts end', { via: 'speechSynthesis' });
         if (listeningRef.current) {
@@ -537,24 +632,54 @@ export default function AgentVoiceOrb({
       };
 
       const speakOne = (i: number) => {
-        if (gen !== playGenRef.current || i >= chunks.length) {
+        if (cancelled || gen !== playGenRef.current) {
+          finishIdle();
+          return;
+        }
+        if (i >= chunks.length) {
           finishIdle();
           return;
         }
         const piece = chunks[i];
+        const lang = detectUtteranceLang(piece, langRef.current);
+        const prefer = pickNaturalVoice(voices, lang);
         const u = new SpeechSynthesisUtterance(piece);
         u.lang = lang;
-        u.rate = lang.startsWith('zh') ? 0.95 : 1.02;
+        u.rate = ttsRateForLang(lang);
+        u.pitch = ttsPitchForLang(lang);
+        u.volume = 0.92;
         if (prefer) u.voice = prefer;
         u.onstart = () => {
-          vlog('tts utterance start', { i, length: piece.length });
+          vlog('tts utterance start', {
+            i,
+            length: piece.length,
+            lang,
+            rate: u.rate,
+            pitch: u.pitch,
+            voice: prefer?.name ?? '(default)',
+          });
         };
         u.onend = () => {
           vlog('tts utterance end', { i, length: piece.length });
-          speakOne(i + 1);
+          if (cancelled || gen !== playGenRef.current) {
+            finishIdle();
+            return;
+          }
+          const gap = pauseAfterChunkMs(piece, i >= chunks.length - 1);
+          if (gap <= 0) {
+            speakOne(i + 1);
+            return;
+          }
+          const tid = window.setTimeout(() => speakOne(i + 1), gap);
+          pauseTimers.push(tid);
         };
         u.onerror = (ev) => {
           vlog('tts utterance error', { i, error: (ev as SpeechSynthesisErrorEvent).error });
+          if (cancelled || gen !== playGenRef.current) {
+            finishIdle();
+            return;
+          }
+          // Skip gap on error — keep the queue moving.
           speakOne(i + 1);
         };
         try {
@@ -663,13 +788,9 @@ export default function AgentVoiceOrb({
       chunks: parts.length,
       preview: full.slice(0, 120),
     });
-    void (async () => {
-      for (const p of parts) {
-        if (gen !== playGenRef.current) break;
-        vlog('tts speak chunk', { length: p.length, preview: p.slice(0, 80) });
-        await speakSentence(p, gen);
-      }
-    })();
+    // One speakSentence for the whole reply — internal queue adds breaths;
+    // avoids reopening the mic between sentences.
+    void speakSentence(full, gen);
   }, [active, busy, speakText, speakId, speakSentence]);
 
   const pushCaption = useCallback((text: string, isFinal: boolean) => {

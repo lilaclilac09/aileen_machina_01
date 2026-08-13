@@ -46,11 +46,15 @@ CHAT_QUOTA_SECRET=...   # also signs __aileena_vid
 Every console conversation is emailed to the contact inbox via `/api/chat/forward`
 (`From`: `cafe@aileena.xyz` via `getResendFrom()`, `To`: `CONTACT_TO` / `LEAD_INBOX` / `NOTIFY_CC_EMAIL` — never cafe@).
 
-When Upstash is configured, every attempt is also stored in Redis:
+When Upstash is configured, every attempt is also stored in Redis.
+**Transcript + subject are AES-256-GCM encrypted at rest** (`PRIVATE_DATA_ENCRYPTION_KEY`).
+Missing key → do not write plaintext. Email can still send.
+
+Council `/api/chat` transcripts are **not** stored (session only).
 
 | Key | Purpose |
 |-----|---------|
-| `chat:forward:rec:{id}` | Full transcript + status (`sent` / `failed`) |
+| `chat:forward:rec:{id}` | Encrypted transcript blob + send status (`sent` / `failed`) |
 | `chat:forward:index` | Sorted set of recent ids |
 | `chat:forward:pending` | Failed ids waiting for resend |
 
@@ -208,6 +212,7 @@ On change → writes `memories/episodic/content-changelog-YYYY-MM-DD.md` for Dre
 - `/api/chat` injects `MEMORY_STACK_PROMPT` + hard-memory prefetch + visitor soft block
 - Tool: `searchMemories(query, k)` (Aileen taste — not visitor history)
 - Optional body: `{ "agentMode": "machina" }` → first-person Machina prompt (`buildMachinaSystemPrompt`)
+- Optional body: `{ "agentMode": "council", "councilLens"?: "strategy"|"negotiation"|"product"|"review"|"editor"|"political"|"vent" }` → private council. **Owner session required** (`OWNER_KEY` cookie). Non-owners receive **403**. UI: `/council` (robots noindex). Not the public orb. No leave-a-note, no public/contact transcript. Owner also skips the visitor 20/day quota.
 
 ## Hardware (Memory Wall)
 

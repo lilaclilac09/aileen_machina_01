@@ -12,6 +12,7 @@ import {
   isOwnerEmail,
 } from '@/lib/owner-access';
 import { getResendFrom, resendFailureMessage } from '@/lib/resend-from';
+import { isCouncilPipelineRequest } from '@/lib/agentMode';
 import { Resend } from 'resend';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -62,6 +63,27 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   console.info('[api/lead] contact route called');
 
+  let body: {
+    email?: unknown;
+    name?: unknown;
+    note?: unknown;
+    transcript?: unknown;
+    context?: unknown;
+    agentMode?: unknown;
+  };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ ok: false, error: 'Invalid JSON.' }, { status: 400 });
+  }
+
+  if (isCouncilPipelineRequest({ agentMode: body.agentMode })) {
+    return NextResponse.json(
+      { ok: false, error: 'Council transcripts stay private.' },
+      { status: 403 },
+    );
+  }
+
   const status = getContactMailStatus();
   if (!status.hasResendKey || !status.hasInbox || status.sandboxFrom) {
     console.error('[api/lead] mail backend not configured', {
@@ -75,19 +97,6 @@ export async function POST(req: NextRequest) {
       { ok: false, error: CONTACT_OFFLINE_PUBLIC, missing: status.missing },
       { status: 503 },
     );
-  }
-
-  let body: {
-    email?: unknown;
-    name?: unknown;
-    note?: unknown;
-    transcript?: unknown;
-    context?: unknown;
-  };
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ ok: false, error: 'Invalid JSON.' }, { status: 400 });
   }
 
   const email = typeof body.email === 'string' ? body.email.trim() : '';

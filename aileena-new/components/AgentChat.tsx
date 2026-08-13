@@ -14,6 +14,7 @@ import {
 import { appendUserTopic, readTopicMemory, buildCatchUpGreeting, buildCatchUpHint, clearTopicMemory } from '../lib/articleTopicMemory';
 import { matchCanned } from '../lib/agentCannedResponses';
 import { composeSoftHint } from '../lib/softOracle';
+import { CONTACT_OFFLINE_PUBLIC } from '../lib/mail-transcript';
 import {
   isVoiceCodeIntent,
   quotaDayKey as vcodeDayKey,
@@ -144,6 +145,8 @@ export default function AgentChat() {
   const [autoListen, setAutoListen] = useState(false);
   const [vcodeCount, setVcodeCount] = useState(0);
   const [vcodeBusy, setVcodeBusy] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
+  const isOwnerRef = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const welcomedRef = useRef(false);
@@ -159,7 +162,10 @@ export default function AgentChat() {
       // previous visits, read fresh from localStorage on every request so
       // the server can soft-condition the system prompt on it. See
       // lib/articleTopicMemory.ts.
-      body: () => ({ priorTopics: readTopicMemory().topics }),
+      body: () => ({
+        priorTopics: readTopicMemory().topics,
+        agentMode: 'public' as const,
+      }),
     }),
   });
   // useChat keeps `error` until the next successful turn. Mute it on reset
@@ -262,8 +268,8 @@ export default function AgentChat() {
   }, [open, activeRuntime]);
 
   const busy = status === 'submitted' || status === 'streaming' || browserBusy || vcodeBusy;
-  // Visitors hard-stop at 20/day. Owner email unlock (server cookie) is unlimited.
-  const sessionMaxed = !ownerUnlimited && sessionCount >= DAILY_LIMIT;
+  // Visitors hard-stop at 20/day. OWNER_KEY session or owner-email cookie is unlimited.
+  const sessionMaxed = !isOwner && !ownerUnlimited && sessionCount >= DAILY_LIMIT;
   const vcodeMaxed = vcodeCount >= VCODE_DAILY_LIMIT;
   // Soft nudge after a few turns; contact stays optional for the full daily 20.
   const leadSoftNudge = sessionCount >= LEAD_SOFT_AFTER && leadState !== 'sent';
@@ -311,6 +317,24 @@ export default function AgentChat() {
     },
     [markOwnerUnlimited],
   );
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/auth/owner/status', { credentials: 'include', cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : { owner: false }))
+      .then((d: { owner?: boolean }) => {
+        if (cancelled) return;
+        const next = d.owner === true;
+        isOwnerRef.current = next;
+        setIsOwner(next);
+      })
+      .catch(() => {
+        /* visitor — keep quota */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     reconcileDailyQuota();
@@ -376,6 +400,7 @@ export default function AgentChat() {
       }
       if (ownerUnlimited || readOwnerUnlimitedFlag()) return;
       setSessionCount((prevCount) => {
+        if (isOwnerRef.current) return prevCount;
         const base = readStoredDailyCount();
         const next = Math.max(prevCount, base) + 1;
         writeStoredDailyCount(next);
@@ -519,7 +544,11 @@ export default function AgentChat() {
     const hash = `${transcript.length}:${transcript.map((t) => t.text.length).join(',')}`;
     if (hash === lastForwardedHashRef.current) return;
     lastForwardedHashRef.current = hash;
-    const payload = JSON.stringify({ sessionId: sessionIdRef.current, transcript });
+    const payload = JSON.stringify({
+      sessionId: sessionIdRef.current,
+      transcript,
+      agentMode: 'public' as const,
+    });
     try {
       if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
         navigator.sendBeacon(
@@ -711,9 +740,11 @@ export default function AgentChat() {
           ),
         );
       }
-      const next = readStoredDailyCount() + 1;
-      writeStoredDailyCount(next);
-      setSessionCount(next);
+      if (!isOwnerRef.current && !ownerUnlimited) {
+        const next = readStoredDailyCount() + 1;
+        writeStoredDailyCount(next);
+        setSessionCount(next);
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Local agent error.';
       setMessages((prev) =>
@@ -912,9 +943,11 @@ export default function AgentChat() {
           parts: [{ type: 'text', text: canned.reply }],
         },
       ]);
-      const next = readStoredDailyCount() + 1;
-      writeStoredDailyCount(next);
-      setSessionCount(next);
+      if (!isOwnerRef.current && !ownerUnlimited) {
+        const next = readStoredDailyCount() + 1;
+        writeStoredDailyCount(next);
+        setSessionCount(next);
+      }
       try {
         if (window.localStorage?.getItem('aileena_voice_debug') !== '0') {
           console.log('[voice] assistant stream end', { via: 'canned' });
@@ -928,7 +961,7 @@ export default function AgentChat() {
     if (activeRuntime === 'browser') {
       void sendBrowser(trimmed);
     } else {
-      pendingDailyBumpRef.current = true;
+      if (!isOwnerRef.current && !ownerUnlimited) pendingDailyBumpRef.current = true;
       sendMessage({ text: trimmed });
     }
   }
@@ -1038,7 +1071,7 @@ export default function AgentChat() {
     const memo = leadName.trim();
 
     if (leadMailReady === false) {
-      setLeadError('Note saving is offline right now.');
+      setLeadError(CONTACT_OFFLINE_PUBLIC);
       return;
     }
 
@@ -1075,6 +1108,7 @@ export default function AgentChat() {
           name: memo || undefined,
           note: memo || undefined,
           transcript,
+          agentMode: 'public' as const,
           context: typeof window !== 'undefined' ? window.location.href : undefined,
         }),
       });
@@ -1093,7 +1127,7 @@ export default function AgentChat() {
           )
         ) {
           setLeadMailReady(false);
-          setLeadError('Note saving is offline right now.');
+          setLeadError(CONTACT_OFFLINE_PUBLIC);
           // Mail offline — still try owner unlock (does not need Resend).
           if (await tryUnlockOwnerChat(email)) {
             setOwnerUnlockHint('Owner access unlocked — unlimited chat.');
@@ -1530,7 +1564,7 @@ export default function AgentChat() {
             <span className="flex flex-wrap gap-x-3 gap-y-1 justify-end shrink-0">
               <span
                 className={
-                  ownerUnlimited
+                  isOwner || ownerUnlimited
                     ? 'text-[#008f86]/80'
                     : remaining === 0
                       ? 'text-red-400/70'
@@ -1539,11 +1573,13 @@ export default function AgentChat() {
                         : 'text-[#1b1713]/40'
                 }
               >
-                {ownerUnlimited
-                  ? 'chat ∞'
-                  : remaining === 0
-                    ? 'chat 0'
-                    : `chat ${remaining}/${DAILY_LIMIT}`}
+                {isOwner
+                  ? 'owner'
+                  : ownerUnlimited
+                    ? 'chat ∞'
+                    : remaining === 0
+                      ? 'chat 0'
+                      : `chat ${remaining}/${DAILY_LIMIT}`}
               </span>
               <span className={vcodeRemaining === 0 ? 'text-red-400/70' : 'text-[#007d75]/70'}>
                 {vcodeRemaining === 0
@@ -1593,7 +1629,7 @@ export default function AgentChat() {
                 </div>
                 {leadMailReady === false ? (
                   <p className="text-[0.68rem] leading-5 text-[#1b1713]/45">
-                    Note saving is paused right now — chat still works.
+                    {CONTACT_OFFLINE_PUBLIC}
                   </p>
                 ) : (
                   <p className="text-[0.68rem] leading-5 text-[#1b1713]/50">

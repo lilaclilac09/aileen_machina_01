@@ -17,7 +17,7 @@ Owner inbox delivery for every console conversation.
 ```
 AgentChat (browser)
   → POST /api/chat/forward   (auto: debounce / pagehide / session max)
-  → Redis durable log (Upstash) when configured
+  → Redis durable log (Upstash) when configured — transcript encrypted at rest
   → Resend email → CONTACT_TO | CONTACT_TO_EMAIL | LEAD_INBOX | NOTIFY_CC_EMAIL
     (required real inbox; cafe@ is From-only — never To)
 
@@ -27,7 +27,7 @@ AgentChat leave-a-note
   → Resend (Reply-To = visitor; text + HTML body with transcript)
 ```
 
-Code: `components/AgentChat.tsx` · `app/api/chat/forward/route.ts` · `app/api/lead/route.ts` · `lib/mail-transcript.ts` · `lib/chatForwardStore.ts` · `lib/contact-inbox.ts` · `lib/resend-from.ts`
+Code: `components/AgentChat.tsx` · `app/api/chat/forward/route.ts` · `app/api/lead/route.ts` · `lib/mail-transcript.ts` · `lib/chatForwardStore.ts` · `lib/server/crypto.ts` · `lib/contact-inbox.ts` · `lib/resend-from.ts`
 
 ## Two-week inventory (2026-07-21 → 2026-08-04)
 
@@ -47,12 +47,21 @@ Code: `components/AgentChat.tsx` · `app/api/chat/forward/route.ts` · `app/api/
 |-----|--------------|-------|
 | `RESEND_API_KEY` | send email | Without it, leave-a-note soft-disables; forward still logs `failed` to Redis when Upstash is set |
 | `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` | durable log + resend queue | Same as visitor soft memory |
+| `PRIVATE_DATA_ENCRYPTION_KEY` | encrypt transcripts in Redis | 32-byte key, base64 (`openssl rand -base64 32`). Server-only. Missing → no plaintext persist. |
 | `CONTACT_TO` / `CONTACT_TO_EMAIL` / `LEAD_INBOX` / `NOTIFY_CC_EMAIL` | inbox To | **Required.** No cafe@ fallback (send-only → bounce). |
 | `RESEND_FROM` / `FROM_EMAIL` / `CONTACT_FROM` | From | Defaults to `AILEENA MACHINA <cafe@aileena.xyz>` (must be verified domain) |
 
 This cloud-agent environment typically has **none** of the above — run list/resend on a machine with production secrets (or via the GH Action).
 
-Public UI never says “inbox not configured”. Visitors see a gentle paused/offline state; missing env is logged server-side / browser console warn only.
+Email to the inbox is **not** end-to-end encrypted (Resend and the mailbox provider can read it). Redis at-rest encryption protects a dumped database, not the mail path.
+
+## Owner browse UI
+
+After owner key on `/council` or `/cabinet`:
+
+- Door: `/council` (form POST, not a query-string bookmark)
+- Cabinet: `/cabinet` (same store as `/inbox`, robots noindex)
+- API: `GET /api/owner/chat-forwards?days=14` · `GET /api/owner/chat-forwards/:id`
 
 ## Commands
 

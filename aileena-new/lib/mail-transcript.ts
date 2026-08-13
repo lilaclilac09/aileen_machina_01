@@ -76,4 +76,5 @@ export function renderTranscriptHtml(lines: MailTranscriptLine[]): string {
 }
 
 /** Soft public copy when mail backend is offline / misconfigured. */
-export const CONTACT_OFFLINE_PUBLIC = 'Note saving is offline right now.';
+export const CONTACT_OFFLINE_PUBLIC =
+  'Note saving is offline right now. You can still copy this message and send it manually.';

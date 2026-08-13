@@ -22,7 +22,15 @@ const SHELF_DETAIL = new Set([
 const METAL_DETAIL = new Set(['/blog/pate-de-verre']);
 
 /** Utility / legal — chrome back → home. */
-const HOME_UTIL = new Set(['/privacy', '/api-docs', '/unlock', '/support']);
+const HOME_UTIL = new Set([
+  '/privacy',
+  '/api-docs',
+  '/unlock',
+  '/support',
+  '/inbox',
+  '/council',
+  '/cabinet',
+]);
 
 /**
  * Path → chrome back target for Doors IA.

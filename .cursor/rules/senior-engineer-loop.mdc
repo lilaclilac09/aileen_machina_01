@@ -1,44 +1,64 @@
 ---
-description: Senior engineer loop — read, plan, small diff, verify, evidence
+description: Senior engineer loop — inspect, plan, patch, verify, evidence
 alwaysApply: true
 ---
 
 # Engineering Loop
 
-You are the senior engineer on this project. Default workflow:
+You are the senior engineer on **aileena.xyz**. Default workflow:
 
-**read → plan → small diff → verify → show evidence → iterate**
+**inspect → plan → patch → verify**
+
+Do not jump to patch. Product facts: `PROJECT_RULES.md`. Checklist: `QA.md`. Canonical rules: `AGENTS.md`. Cursor index: `CURSOR_RULES.md`.
+
+```txt
+never mark a task complete based only on code inspection.
+```
 
 ## Before coding
 
-1. Read relevant files first; do not guess structure.
-2. If uncertain, list questions — do not assume.
-3. For non-trivial work, output a minimal plan before editing.
-4. Magic phrase when scope is unclear: **「先不要写代码，先读相关文件并给我最小修改计划。」**
+1. Inspect existing implementation first; do not guess structure.
+2. Identify root cause. For bugs: reproduce, trace data flow, list ≥2 hypotheses, **verify hypotheses before editing**.
+3. Propose the smallest safe diff. One vertical slice. Do not redesign, create parallel systems, or delete working flows unless explicitly asked.
+4. Multi-system or visual-direction changes: output the plan and **wait for confirmation**. Small single-slice bugs may patch after inspect.
+5. Magic phrase when scope is unclear: **「先不要写代码，先读相关文件并给我最小修改计划。」**
 
 ## While coding
 
 1. Minimal necessary diff only; no unrelated refactors.
-2. Match existing style, naming, and abstractions.
+2. Match existing style, naming, and abstractions. Preserve visual direction (thin type, cream/teal, orb compact/tactile, Visual images uncropped).
 3. No new dependencies unless necessity is stated.
 4. Do not change public APIs unless required.
 
 ## After coding — required for every change
 
-1. Run applicable verification before marking done (`pnpm build`, `pnpm lint`, `pnpm verify:sound` when touching sound/home layout, etc.).
+1. Run applicable verification before marking done (`pnpm build`, scoped lint on files you touched, `pnpm verify:sound` when touching sound/home layout, `pnpm verify:doors-nav` when touching doors). See `QA.md`.
 2. Give concrete verification steps (commands, URLs, clicks).
 3. For UI/interaction changes: follow **UI Merge Acceptance** (`.cursor/rules/ui-step-screenshot.mdc`) — at merge/验收, show **screenshots + interaction**, not text-only.
-4. For bugs: restate repro → root cause → why fix is safe.
-5. List risks and open questions.
+4. Separate code blockers from env/config. Bugbot usage-limit is not a code failure. Full-repo `pnpm lint` red on main is existing debt.
+5. List remaining risks. Put human-only env/deploy work under **manual steps**, not buried in prose.
 
-## Evidence over claims (non-negotiable)
+## Evidence closer (non-negotiable)
 
-- **Every task ends with verify + evidence**, not a summary of intent.
-- Prefer runnable checks over "should work".
-- Point to artifacts: screenshots, `verify-report.json`, CI artifacts, command output.
-- If verification cannot run (missing creds, env), say so explicitly and what the user should run.
+Every task ends with this block — not a summary of intent, not “should work”:
+
+```txt
+root cause:
+files changed:
+checks run:
+manual QA:
+verification:
+remaining risks:
+manual steps:
+safe to merge:
+```
+
+Point to artifacts: screenshots, `verify-report.json`, CI output, command output.
+If verification cannot run (missing creds, env), `impact: degraded` or `blocked` per `AGENTS.md` blocker table.
+
+Production ship / multi-PR merge: `AGENTS.md` 施工队安全条例 — 不能在线上证明就不准说修好了.
 
 ## Prompt templates & handbook
 
-Full engineering standards: `aileena-new/docs/工作准册.md`  
+Full engineering standards: `aileena-new/docs/工作准册.md`
 Quick prompts: `.cursor/prompts.md`
