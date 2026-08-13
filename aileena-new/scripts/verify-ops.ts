@@ -5,7 +5,7 @@
  *   pnpm verify:ops
  */
 
-import { existsSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   routeModel,
@@ -86,6 +86,15 @@ function main() {
   assert(
     'offline copy stays public-safe',
     /offline right now/i.test(CONTACT_OFFLINE_PUBLIC) && !/resend|api key|vercel/i.test(CONTACT_OFFLINE_PUBLIC),
+  );
+  const agentChatSrc = readFileSync(join(process.cwd(), 'components/AgentChat.tsx'), 'utf8');
+  assert(
+    'leave-a-note form uses CONTACT_OFFLINE_PUBLIC',
+    agentChatSrc.includes('{CONTACT_OFFLINE_PUBLIC}'),
+  );
+  assert(
+    'leave-a-note form does not use paused copy',
+    !/paused right now/i.test(agentChatSrc),
   );
   assert(
     'no_model degrade hides env',

@@ -1440,7 +1440,7 @@ export default function AgentChat() {
                 </div>
                 {leadMailReady === false ? (
                   <p className="text-[0.68rem] leading-5 text-[#1b1713]/45">
-                    Note saving is paused right now — chat still works.
+                    {CONTACT_OFFLINE_PUBLIC}
                   </p>
                 ) : (
                   <p className="text-[0.68rem] leading-5 text-[#1b1713]/50">
