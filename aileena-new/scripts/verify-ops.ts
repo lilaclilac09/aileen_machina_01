@@ -156,7 +156,6 @@ function main() {
   assert('council opening is the invoice detector', /invoice hiding inside/i.test(COUNCIL_OPENING));
   assert('council prompt forbids leave-a-note', /leave-a-note/i.test(COUNCIL_SYSTEM_PROMPT));
 
-  const agentChatSrc = readFileSync(join(process.cwd(), 'components/AgentChat.tsx'), 'utf8');
   const councilChatSrc = readFileSync(join(process.cwd(), 'components/CouncilChat.tsx'), 'utf8');
   const chatRouteSrc = readFileSync(join(process.cwd(), 'app/api/chat/route.ts'), 'utf8');
   assert('public console sends agentMode public', /agentMode:\s*'public'/.test(agentChatSrc));

@@ -199,3 +199,37 @@ export function formatCouncilLensForPrompt(lens: CouncilLens | undefined): strin
   }
   return `\n\n# Active lens: ${lens}\n${LENS_HINT[lens]}\nStay in this lens until she switches.`;
 }
+
+/** CLI / TUI output contract. Does not apply to the public site agent. */
+export const COUNCIL_CLI_OUTPUT_CONTRACT = `
+# CLI session
+This is a local owner terminal, not the public orb and not a web page.
+You cannot edit the repository, run git writes, or apply patches from here.
+Do not claim you changed files. Give her the exact commands or Cursor prompt to run herself.
+
+# Output shape (always)
+what is happening
+
+what matters
+
+what not to do
+
+smallest next move
+
+exact prompt / commands
+`;
+
+export function buildCouncilCliSystemPrompt(opts: {
+  lens?: CouncilLens;
+  repoContext?: string;
+}): string {
+  const parts = [
+    COUNCIL_SYSTEM_PROMPT,
+    formatCouncilLensForPrompt(opts.lens),
+    COUNCIL_CLI_OUTPUT_CONTRACT,
+  ];
+  if (opts.repoContext?.trim()) {
+    parts.push(`\n# Repo context (local, secrets redacted)\n${opts.repoContext.trim()}`);
+  }
+  return parts.join('\n');
+}

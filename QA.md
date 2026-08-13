@@ -34,6 +34,8 @@ pnpm test:e2e:dnd      # carousel card → Deck A drag
 pnpm verify:sound      # /sound + home Visual layout (default production URL)
 pnpm verify:doors-nav  # doors back-link chrome
 pnpm lead:test         # Resend lead/contact smoke (needs env)
+pnpm verify:council-cli # local council CLI gate + redaction (no model)
+pnpm council           # owner-only local council (needs OWNER_KEY + model key)
 ```
 
 ## Agent / orb
@@ -53,6 +55,7 @@ pnpm lead:test         # Resend lead/contact smoke (needs env)
 - visitor / public session cannot enter council
 - public orb stays `agentMode: public`
 - owner session is the only path into `/council`
+- council CLI (local): `pnpm council` is owner-only; missing OWNER_KEY fails; no public route
 
 ## Contact
 
