@@ -58,21 +58,6 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   console.info('[api/lead] contact route called');
 
-  const status = getContactMailStatus();
-  if (!status.hasResendKey || !status.hasInbox || status.sandboxFrom) {
-    console.error('[api/lead] mail backend not configured', {
-      hasResendKey: status.hasResendKey,
-      hasInbox: status.hasInbox,
-      sandboxFrom: status.sandboxFrom,
-      from: status.from,
-      missing: status.missing,
-    });
-    return NextResponse.json(
-      { ok: false, error: CONTACT_OFFLINE_PUBLIC, missing: status.missing },
-      { status: 503 },
-    );
-  }
-
   let body: {
     email?: unknown;
     name?: unknown;
@@ -91,6 +76,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       { ok: false, error: 'Council transcripts stay private.' },
       { status: 403 },
+    );
+  }
+
+  const status = getContactMailStatus();
+  if (!status.hasResendKey || !status.hasInbox || status.sandboxFrom) {
+    console.error('[api/lead] mail backend not configured', {
+      hasResendKey: status.hasResendKey,
+      hasInbox: status.hasInbox,
+      sandboxFrom: status.sandboxFrom,
+      from: status.from,
+      missing: status.missing,
+    });
+    return NextResponse.json(
+      { ok: false, error: CONTACT_OFFLINE_PUBLIC, missing: status.missing },
+      { status: 503 },
     );
   }
 

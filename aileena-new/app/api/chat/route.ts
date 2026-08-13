@@ -294,10 +294,15 @@ export async function POST(req: Request) {
   });
 
   if (modelDecision.mode === 'degrade') {
-    trace.log('degrade', { reason: modelDecision.reason });
-    return jsonError(modelDecision.message, modelDecision.status, trace.traceId, {
+    trace.log('degrade', { reason: modelDecision.reason, agentMode });
+    const degradeCopy = isCouncil
+      ? 'Council is paused on the model side. Try again in a moment.'
+      : modelDecision.message;
+    return jsonError(degradeCopy, modelDecision.status, trace.traceId, {
       'X-Degrade-Reason': modelDecision.reason,
       'X-Tool-Route': toolRoute.route,
+      'X-Agent-Mode': agentMode,
+      'X-Daily-Remaining': skipQuota ? 'owner' : String(Math.max(0, DAILY_LIMIT - quota.count)),
     });
   }
 
