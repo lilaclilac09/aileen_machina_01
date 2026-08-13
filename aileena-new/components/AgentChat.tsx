@@ -15,6 +15,7 @@ import { appendUserTopic, readTopicMemory, buildCatchUpGreeting, buildCatchUpHin
 import { matchCanned } from '../lib/agentCannedResponses';
 import { composeSoftHint } from '../lib/softOracle';
 import { CONTACT_OFFLINE_PUBLIC } from '../lib/mail-transcript';
+import { readStoredVoiceAccent } from '../lib/voiceAccent';
 import {
   isVoiceCodeIntent,
   quotaDayKey as vcodeDayKey,
@@ -140,6 +141,8 @@ export default function AgentChat() {
   /** null = unknown / probing; false = backend offline → gentle disabled UI */
   const [leadMailReady, setLeadMailReady] = useState<boolean | null>(null);
   const [voiceMode, setVoiceMode] = useState(false);
+  const voiceModeRef = useRef(false);
+  voiceModeRef.current = voiceMode;
   const [voiceLive, setVoiceLive] = useState('');
   /** Start orb listen once after Voice toggle / open-agent-chat autoListen. */
   const [autoListen, setAutoListen] = useState(false);
@@ -165,6 +168,7 @@ export default function AgentChat() {
       body: () => ({
         priorTopics: readTopicMemory().topics,
         agentMode: 'public' as const,
+        voiceAccent: voiceModeRef.current ? readStoredVoiceAccent() : undefined,
       }),
     }),
   });

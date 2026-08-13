@@ -20,6 +20,7 @@ import {
 } from '../lib/modelRouter';
 import { createRequestTrace } from '../lib/requestTrace';
 import { decideAgentMode, isCouncilPipelineRequest, skipVisitorQuota } from '../lib/agentMode';
+import { parseVoiceAccent, spokenRegisterPrompt } from '../lib/voiceAccent';
 import { COUNCIL_SYSTEM_PROMPT } from '../lib/aileenaCouncil';
 import { SYSTEM_PROMPT } from '../lib/agentContext';
 import { COUNCIL_OPENING } from '../lib/councilCopy';
@@ -81,6 +82,25 @@ function main() {
   assert('timeout classified', classifyModelError(new Error('AbortError: timeout')).reason === 'timeout');
   assert('billing classified', classifyModelError(new Error('credit balance too low')).reason === 'billing');
   assert('degrade timeout copy', /too long|again/i.test(degradeMessage('timeout')));
+
+  assert('parse shanghai accent', parseVoiceAccent('Shanghai') === 'shanghai');
+  assert('reject junk accent', parseVoiceAccent('argentina') === null);
+  assert('shanghai spoken register is Chinese-auntie not dsh', /上海阿姨/.test(spokenRegisterPrompt('shanghai')) && !/dsh/i.test(spokenRegisterPrompt('shanghai')));
+  assert('typed voice is silent', spokenRegisterPrompt(null) === '');
+  const shRoute = routeModel({ toolRoute: 'taste', lastQuestion: '你好', voiceAccent: 'shanghai' });
+  if (okRoute.mode === 'llm') {
+    assert(
+      'shanghai voice stays on deepseek when keyed',
+      shRoute.mode === 'llm' && shRoute.reason.startsWith('shanghai_voice:'),
+      shRoute.mode === 'llm' ? shRoute.reason : shRoute.reason,
+    );
+  } else {
+    assert(
+      'shanghai voice still degrades without a key',
+      shRoute.mode === 'degrade',
+      shRoute.mode === 'degrade' ? shRoute.reason : shRoute.mode,
+    );
+  }
 
   const greet = matchCanned('hi');
   assert('canned hi uses site opening', greet?.reply === SITE_AGENT_OPENING, greet?.reply?.slice(0, 80));
@@ -162,6 +182,13 @@ function main() {
   assert('public console does not send council', !/agentMode:\s*'council'/.test(agentChatSrc));
   assert('public console still has leave-a-note', /leave a note/i.test(agentChatSrc));
   assert('public console still forwards', /\/api\/chat\/forward/.test(agentChatSrc));
+  assert(
+    'public console sends voiceAccent when Voice is on',
+    /voiceAccent:/.test(agentChatSrc) && /readStoredVoiceAccent/.test(agentChatSrc),
+  );
+  assert('chat route applies spoken register', /spokenRegisterPrompt\(voiceAccent\)/.test(chatRouteSrc));
+  assert('chat route ignores voice on council', /isCouncil \? null : parseVoiceAccent/.test(chatRouteSrc));
+  assert('council UI does not send voiceAccent', !/voiceAccent/.test(councilChatSrc));
   assert('council UI sends agentMode council', /agentMode:\s*'council'/.test(councilChatSrc));
   assert('council UI has no leave-a-note', !/leave a note|\/api\/lead/i.test(councilChatSrc));
   assert('council UI does not forward', !/\/api\/chat\/forward/.test(councilChatSrc));

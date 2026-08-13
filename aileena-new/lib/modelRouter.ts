@@ -8,6 +8,7 @@
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import type { LanguageModel } from 'ai';
 import { matchCanned } from './agentCannedResponses';
+import type { VoiceAccent } from './voiceAccent';
 
 /** Total model budget inside Vercel maxDuration=30s */
 export const MODEL_TOTAL_BUDGET_MS = 22_000;
@@ -131,11 +132,14 @@ export function degradeMessage(reason: string, lastQuestion?: string): string {
 
 /**
  * Choose LLM or degrade. Task type can prefer fallback later; today primary=DeepSeek.
+ * Shanghai orb keeps DeepSeek when the key exists — that is the Chinese-native path.
+ * DeepSeek Harness (dsh) is a separate local coding agent; not this router.
  */
 export function routeModel(opts: {
   toolRoute: string;
   lastQuestion: string;
   preferFallback?: boolean;
+  voiceAccent?: VoiceAccent | null;
 }): ModelRouteDecision {
   if (isCircuitOpen()) {
     return {
@@ -149,6 +153,11 @@ export function routeModel(opts: {
   const primaryKey = process.env.DEEPSEEK_API_KEY || process.env.AGENT_API_KEY;
   const primary = primaryKey ? buildDeepSeek(primaryKey, 'aileena-deepseek') : null;
   const fallback = buildFallback();
+
+  // Shanghai voice: stay on DeepSeek even if something asked for fallback.
+  if (opts.voiceAccent === 'shanghai' && primary) {
+    return { mode: 'llm', pick: primary, reason: `shanghai_voice:${opts.toolRoute}` };
+  }
 
   // Simple / hire can still use LLM; routing today is mostly circuit + optional fallback.
   if (opts.preferFallback && fallback) {
