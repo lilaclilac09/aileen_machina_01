@@ -20,4 +20,4 @@ export function isCouncilLens(value: unknown): value is CouncilLens {
 }
 
 export const COUNCIL_OPENING =
-  'Private council. Not the public guide. No leave-a-note, no visitor transcript. Goal, leverage, next move — or vent first.';
+  "council online.\nshow me the mess. i'll find the invoice hiding inside it.";

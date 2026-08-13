@@ -101,8 +101,22 @@ function main() {
   assert('public prompt is not council', !/private council/i.test(SYSTEM_PROMPT));
   assert('council prompt is private', /private council/i.test(COUNCIL_SYSTEM_PROMPT));
   assert('council does not do therapy', /no therapy voice/i.test(COUNCIL_SYSTEM_PROMPT));
+  assert(
+    'council is emotionally literate not persuadable',
+    /emotionally literate but not emotionally persuadable/i.test(COUNCIL_SYSTEM_PROMPT),
+  );
+  assert(
+    'council rejects therapy cliches',
+    /i understand how you feel/i.test(COUNCIL_SYSTEM_PROMPT) &&
+      /as an ai assistant/i.test(COUNCIL_SYSTEM_PROMPT),
+  );
+  assert(
+    'council messy format is read-risk-move-wording',
+    /read:/i.test(COUNCIL_SYSTEM_PROMPT) && /wording:/i.test(COUNCIL_SYSTEM_PROMPT),
+  );
   assert('council opening is not the public greeting', !/music shelf/i.test(COUNCIL_OPENING));
-  assert('council opening forbids leave-a-note', /no leave-a-note/i.test(COUNCIL_OPENING));
+  assert('council opening is the invoice detector', /invoice hiding inside/i.test(COUNCIL_OPENING));
+  assert('council prompt forbids leave-a-note', /leave-a-note/i.test(COUNCIL_SYSTEM_PROMPT));
 
   const agentChatSrc = readFileSync(join(process.cwd(), 'components/AgentChat.tsx'), 'utf8');
   const councilChatSrc = readFileSync(join(process.cwd(), 'components/CouncilChat.tsx'), 'utf8');

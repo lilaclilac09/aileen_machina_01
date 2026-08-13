@@ -29,8 +29,9 @@ export default async function CouncilPage() {
             aileena council
           </h1>
           <p className="max-w-2xl text-[0.88rem] leading-relaxed text-[#1b1713]/55">
-            War room, not the public guide. Strategy, negotiation, product,
-            review, editor, political timing, or vent. Protects leverage and time.
+            Private staff, not a comfort bot. Sharp, dry, not persuadable.
+            Splits emotion from money, scope, and power. Protects leverage
+            and time.
           </p>
           <p className="font-mono text-[0.55rem] tracking-[0.14em] uppercase text-[#1b1713]/40">
             private mode · no public transcript · no leave-a-note
