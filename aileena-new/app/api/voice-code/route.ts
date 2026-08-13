@@ -17,6 +17,7 @@ import {
   classifyModelError,
   degradeMessage,
 } from '../../../lib/modelRouter';
+import { parseVoiceAccent } from '../../../lib/voiceAccent';
 
 export const runtime = 'edge';
 export const maxDuration = 30;
@@ -29,11 +30,14 @@ const CRUEL_FORBID =
 
 const SYSTEM = `You are Aileena's voice-to-code helper on aileena.xyz.
 Return a CODE PROPOSAL only — unified diff and/or short numbered steps.
+You are not DeepSeek Harness (dsh). dsh is a local coding CLI with disk and sandbox.
+This Console loop is propose-only: no git, no apply, write_target is always null.
 Rules:
 - Do NOT claim you wrote files, ran git, or applied a patch.
 - Do NOT ask the visitor to paste Cursor API keys or use Cursor tokens.
 - Prefer small, reviewable changes. If the ask is vague, propose the smallest clarifying patch sketch.
-- English-first. Be kind and practical. No cruel or fatalistic language.
+- English-first even if the visitor spoke Chinese. Be kind and practical. No cruel or fatalistic language.
+- Do not use spoken/auntie cadence. Diffs are for reading, not TTS.
 - End with one line: "Apply on your machine after review — this Console only proposes."`;
 
 function utcDay(): string {
@@ -128,7 +132,7 @@ function json(
 }
 
 export async function POST(req: Request) {
-  let body: { prompt?: unknown; priorTopics?: unknown };
+  let body: { prompt?: unknown; priorTopics?: unknown; voiceAccent?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -146,6 +150,7 @@ export async function POST(req: Request) {
         .filter((t): t is string => typeof t === 'string' && t.trim().length > 0)
         .slice(0, 5)
     : [];
+  const voiceAccent = parseVoiceAccent(body.voiceAccent);
 
   const quota = await readQuota(req);
   if (quota.count >= VCODE_DAILY_LIMIT) {
@@ -159,17 +164,24 @@ export async function POST(req: Request) {
         show_in_dialog: true,
         write_target: null,
         permission: 'propose',
+        harness: 'propose-only',
       },
       429,
       {
         ...(exhaustedCookie ? { 'Set-Cookie': exhaustedCookie } : {}),
         'X-VCode-Remaining': '0',
         'X-VCode-Day': quota.date,
+        'X-Voice-Accent': voiceAccent ?? 'off',
+        'X-Harness': 'propose-only',
       },
     );
   }
 
-  const decision = routeModel({ toolRoute: 'voice_code', lastQuestion: prompt });
+  const decision = routeModel({
+    toolRoute: 'voice_code',
+    lastQuestion: prompt,
+    voiceAccent,
+  });
   if (decision.mode === 'degrade') {
     return json(
       {
@@ -180,6 +192,7 @@ export async function POST(req: Request) {
         show_in_dialog: true,
         write_target: null,
         permission: 'propose',
+        harness: 'propose-only',
       },
       decision.status,
     );
@@ -213,6 +226,7 @@ export async function POST(req: Request) {
         show_in_dialog: true,
         write_target: null,
         permission: 'propose',
+        harness: 'propose-only',
       },
       reason === 'billing' ? 502 : 503,
     );
@@ -228,6 +242,7 @@ export async function POST(req: Request) {
         show_in_dialog: true,
         write_target: null,
         permission: 'propose',
+        harness: 'propose-only',
       },
       502,
     );
@@ -251,12 +266,15 @@ export async function POST(req: Request) {
       show_in_dialog: true,
       write_target: null,
       permission: 'propose',
+      harness: 'propose-only',
     },
     200,
     {
       ...(cookie ? { 'Set-Cookie': cookie } : {}),
       'X-VCode-Remaining': String(remaining),
       'X-VCode-Day': quota.date,
+      'X-Voice-Accent': voiceAccent ?? 'off',
+      'X-Harness': 'propose-only',
     },
   );
 }

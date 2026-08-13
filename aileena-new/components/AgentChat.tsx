@@ -822,6 +822,7 @@ export default function AgentChat() {
         body: JSON.stringify({
           prompt: trimmed,
           priorTopics: readTopicMemory().topics,
+          voiceAccent: voiceModeRef.current ? readStoredVoiceAccent() : undefined,
         }),
       });
       const data = (await res.json().catch(() => ({}))) as {

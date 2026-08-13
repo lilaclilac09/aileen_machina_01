@@ -188,6 +188,11 @@ function main() {
   );
   assert('chat route applies spoken register', /spokenRegisterPrompt\(voiceAccent\)/.test(chatRouteSrc));
   assert('chat route ignores voice on council', /isCouncil \? null : parseVoiceAccent/.test(chatRouteSrc));
+  const vcodeSrc = readFileSync(join(process.cwd(), 'app/api/voice-code/route.ts'), 'utf8');
+  assert('voice-code pins model with voiceAccent', /voiceAccent/.test(vcodeSrc) && /toolRoute: 'voice_code'/.test(vcodeSrc));
+  assert('voice-code never applies spoken register', !/spokenRegisterPrompt/.test(vcodeSrc));
+  assert('voice-code stays propose-only not dsh', /harness: 'propose-only'/.test(vcodeSrc) && /write_target: null/.test(vcodeSrc) && /not DeepSeek Harness/.test(vcodeSrc));
+  assert('voice-code fetch sends voiceAccent', /\/api\/voice-code/.test(agentChatSrc) && /prompt: trimmed/.test(agentChatSrc));
   assert('council UI does not send voiceAccent', !/voiceAccent/.test(councilChatSrc));
   assert('council UI sends agentMode council', /agentMode:\s*'council'/.test(councilChatSrc));
   assert('council UI has no leave-a-note', !/leave a note|\/api\/lead/i.test(councilChatSrc));

@@ -4,9 +4,13 @@
  * A harness is the loop around a model (tools, context, retries).
  * DeepSeek Harness (`dsh`) is a local coding agent (CLI / :3080 web UI).
  * It is not something you bake into base-model weights, and it cannot
- * run on the Vercel Edge orb. This module only routes *speech*: when
- * the visitor is on Shanghai voice, keep DeepSeek and speak in a short
- * warm Chinese register so TTS matches the auntie voice.
+ * run on the Vercel Edge orb.
+ *
+ * Two Console paths, same DeepSeek pin, different loops:
+ * - Talk (`/api/chat`): spoken register so Bella TTS matches 上海阿姨.
+ * - Voice → code (`/api/voice-code`): propose-only diffs. Never wrap this
+ *   path in spokenRegisterPrompt — auntie cadence would ruin a unified diff.
+ *   Still not dsh: no disk, no sandbox, write_target stays null.
  */
 
 export const VOICE_ACCENT_STORAGE_KEY = 'aileena.console.voiceAccent';
