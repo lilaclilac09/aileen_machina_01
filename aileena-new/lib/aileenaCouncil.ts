@@ -233,4 +233,3 @@ export function buildCouncilCliSystemPrompt(opts: {
   }
   return parts.join('\n');
 }
-

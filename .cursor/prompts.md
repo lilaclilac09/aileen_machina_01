@@ -2,8 +2,12 @@
 
 Agent 总则（**inspect → plan → patch → verify** + 施工队安全条例）见仓库根目录：**[`AGENTS.md`](../AGENTS.md)**
 
+新 session 先说：`follow AGENTS.md and QA.md. do not say done without verification.`
+
 - 产品事实（mood / orb / Visual / contact / doors）：[`PROJECT_RULES.md`](../PROJECT_RULES.md)
 - QA 清单 + 命令：[`QA.md`](../QA.md)
+- Cursor 必读索引：[`CURSOR_RULES.md`](../CURSOR_RULES.md)
+- PR 验收表：[`.github/pull_request_template.md`](../.github/pull_request_template.md)
 
 完整工程标准见：**[`aileena-new/docs/工作准册.md`](../aileena-new/docs/工作准册.md)**
 

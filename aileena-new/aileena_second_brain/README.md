@@ -33,6 +33,8 @@ Site agent (`lib/agentContext.ts`) stays third-person. Memory tool `searchMemori
 
 Machina mode: POST `/api/chat` with `{ "agentMode": "machina" }`.
 
+Council (private, owner-only): `/council` after `OWNER_KEY` session. POST `{ "agentMode": "council" }`. Non-owners get 403 — not a silent fallback to the public site agent.
+
 ## Dreaming
 
 ```bash

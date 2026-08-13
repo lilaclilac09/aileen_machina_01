@@ -16,6 +16,23 @@
   vertical-align: top;
 }
 
+/* Lived-in print fragment — paper edge, no cover-crop */
+.scrap-photo--paper {
+  background: #f4efe6;
+  padding: 5px 5px 9px;
+  box-shadow:
+    0 1px 0 rgba(255, 253, 248, 0.7) inset,
+    0 10px 26px -12px rgba(20, 17, 12, 0.3);
+}
+
+.scrap-photo--paper .scrap-photo__img {
+  object-fit: contain;
+  object-position: center;
+  width: 100%;
+  height: auto;
+  opacity: 0.92;
+}
+
 .scrap-photo__overlay {
   position: absolute;
   inset: 0;

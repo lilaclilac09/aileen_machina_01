@@ -52,6 +52,8 @@ const CASES: Expect[] = [
   { path: '/works', back: { href: '/doors', label: '← doors' }, ink: false },
   { path: '/prophecy', back: { href: '/doors', label: '← doors' }, ink: false },
   { path: '/privacy', back: { href: '/', label: '← home' }, ink: true },
+  { path: '/inbox', back: { href: '/', label: '← home' }, ink: true },
+  { path: '/council', back: { href: '/', label: '← home' }, ink: true },
 ];
 
 let failed = 0;

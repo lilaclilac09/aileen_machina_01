@@ -6,6 +6,7 @@ export const runtime = 'nodejs';
 
 /**
  * Owner-only: one durable chat forward with full transcript.
+ * Decrypts server-side after the owner session check.
  * GET /api/owner/chat-forwards/:id
  */
 export async function GET(

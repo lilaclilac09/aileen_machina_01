@@ -123,6 +123,8 @@ export default function AgentChat() {
   const [autoListen, setAutoListen] = useState(false);
   const [vcodeCount, setVcodeCount] = useState(0);
   const [vcodeBusy, setVcodeBusy] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
+  const isOwnerRef = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const welcomedRef = useRef(false);
@@ -138,7 +140,10 @@ export default function AgentChat() {
       // previous visits, read fresh from localStorage on every request so
       // the server can soft-condition the system prompt on it. See
       // lib/articleTopicMemory.ts.
-      body: () => ({ priorTopics: readTopicMemory().topics }),
+      body: () => ({
+        priorTopics: readTopicMemory().topics,
+        agentMode: 'public' as const,
+      }),
     }),
   });
   // useChat keeps `error` until the next successful turn. Mute it on reset
@@ -242,7 +247,8 @@ export default function AgentChat() {
 
   const busy = status === 'submitted' || status === 'streaming' || browserBusy || vcodeBusy;
   // Hard stop only when today's 20 are gone — email must never unlock extra quota.
-  const sessionMaxed = sessionCount >= DAILY_LIMIT;
+  // Owner session (public preview) is unlimited; visitors cannot fake this (httpOnly cookie).
+  const sessionMaxed = !isOwner && sessionCount >= DAILY_LIMIT;
   const vcodeMaxed = vcodeCount >= VCODE_DAILY_LIMIT;
   // Soft nudge after a few turns; contact stays optional for the full daily 20.
   const leadSoftNudge = sessionCount >= LEAD_SOFT_AFTER && leadState !== 'sent';
@@ -254,6 +260,24 @@ export default function AgentChat() {
     setSessionCount((prev) => (prev === next ? prev : next));
     const vc = readStoredVcodeCount();
     setVcodeCount((prev) => (prev === vc ? prev : vc));
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/auth/owner/status', { credentials: 'include', cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : { owner: false }))
+      .then((d: { owner?: boolean }) => {
+        if (cancelled) return;
+        const next = d.owner === true;
+        isOwnerRef.current = next;
+        setIsOwner(next);
+      })
+      .catch(() => {
+        /* visitor — keep quota */
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -304,6 +328,7 @@ export default function AgentChat() {
         /* ignore */
       }
       setSessionCount((prevCount) => {
+        if (isOwnerRef.current) return prevCount;
         const base = readStoredDailyCount();
         const next = Math.max(prevCount, base) + 1;
         writeStoredDailyCount(next);
@@ -447,7 +472,11 @@ export default function AgentChat() {
     const hash = `${transcript.length}:${transcript.map((t) => t.text.length).join(',')}`;
     if (hash === lastForwardedHashRef.current) return;
     lastForwardedHashRef.current = hash;
-    const payload = JSON.stringify({ sessionId: sessionIdRef.current, transcript });
+    const payload = JSON.stringify({
+      sessionId: sessionIdRef.current,
+      transcript,
+      agentMode: 'public' as const,
+    });
     try {
       if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
         navigator.sendBeacon(
@@ -639,9 +668,11 @@ export default function AgentChat() {
           ),
         );
       }
-      const next = readStoredDailyCount() + 1;
-      writeStoredDailyCount(next);
-      setSessionCount(next);
+      if (!isOwnerRef.current) {
+        const next = readStoredDailyCount() + 1;
+        writeStoredDailyCount(next);
+        setSessionCount(next);
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Local agent error.';
       setMessages((prev) =>
@@ -840,9 +871,11 @@ export default function AgentChat() {
           parts: [{ type: 'text', text: canned.reply }],
         },
       ]);
-      const next = readStoredDailyCount() + 1;
-      writeStoredDailyCount(next);
-      setSessionCount(next);
+      if (!isOwnerRef.current) {
+        const next = readStoredDailyCount() + 1;
+        writeStoredDailyCount(next);
+        setSessionCount(next);
+      }
       try {
         if (window.localStorage?.getItem('aileena_voice_debug') !== '0') {
           console.log('[voice] assistant stream end', { via: 'canned' });
@@ -856,7 +889,7 @@ export default function AgentChat() {
     if (activeRuntime === 'browser') {
       void sendBrowser(trimmed);
     } else {
-      pendingDailyBumpRef.current = true;
+      if (!isOwnerRef.current) pendingDailyBumpRef.current = true;
       sendMessage({ text: trimmed });
     }
   }
@@ -1001,6 +1034,7 @@ export default function AgentChat() {
           name: memo || undefined,
           note: memo || undefined,
           transcript,
+          agentMode: 'public' as const,
           context: typeof window !== 'undefined' ? window.location.href : undefined,
         }),
       });
@@ -1387,10 +1421,12 @@ export default function AgentChat() {
               )}
             </span>
             <span className="flex flex-wrap gap-x-3 gap-y-1 justify-end shrink-0">
-              <span className={remaining === 0 ? 'text-red-400/70' : remaining <= 2 ? 'text-[#007d75]/55' : 'text-[#1b1713]/40'}>
-                {remaining === 0
-                  ? 'chat 0'
-                  : `chat ${remaining}/${DAILY_LIMIT}`}
+              <span className={remaining === 0 && !isOwner ? 'text-red-400/70' : remaining <= 2 && !isOwner ? 'text-[#007d75]/55' : 'text-[#1b1713]/40'}>
+                {isOwner
+                  ? 'owner'
+                  : remaining === 0
+                    ? 'chat 0'
+                    : `chat ${remaining}/${DAILY_LIMIT}`}
               </span>
               <span className={vcodeRemaining === 0 ? 'text-red-400/70' : 'text-[#007d75]/70'}>
                 {vcodeRemaining === 0
@@ -1440,7 +1476,7 @@ export default function AgentChat() {
                 </div>
                 {leadMailReady === false ? (
                   <p className="text-[0.68rem] leading-5 text-[#1b1713]/45">
-                    Note saving is paused right now — chat still works.
+                    {CONTACT_OFFLINE_PUBLIC}
                   </p>
                 ) : (
                   <p className="text-[0.68rem] leading-5 text-[#1b1713]/50">

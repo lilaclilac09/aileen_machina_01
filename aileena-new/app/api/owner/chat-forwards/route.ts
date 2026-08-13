@@ -10,6 +10,7 @@ export const runtime = 'nodejs';
 
 /**
  * Owner-only: list durable console chat forwards (Redis, ~90d).
+ * Decrypts transcript/subject server-side after the owner session check.
  * GET /api/owner/chat-forwards?days=14&limit=200&status=all|sent|failed|pending
  */
 export async function GET(req: NextRequest) {

@@ -7,6 +7,7 @@ import {
   renderTranscriptText,
 } from '@/lib/mail-transcript';
 import { getResendFrom, resendFailureMessage } from '@/lib/resend-from';
+import { isCouncilPipelineRequest } from '@/lib/agentMode';
 import {
   makeForwardId,
   saveChatForward,
@@ -62,11 +63,15 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   console.info('[api/chat/forward] contact route called');
 
-  let body: { sessionId?: unknown; transcript?: unknown };
+  let body: { sessionId?: unknown; transcript?: unknown; agentMode?: unknown };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: 'Invalid JSON.' }, { status: 400 });
+  }
+
+  if (isCouncilPipelineRequest({ agentMode: body.agentMode })) {
+    return NextResponse.json({ error: 'Council transcripts stay private.' }, { status: 403 });
   }
 
   console.info('[api/chat/forward] payload keys', {
