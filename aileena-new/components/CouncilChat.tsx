@@ -9,11 +9,12 @@ import {
   type CouncilLens,
 } from '../lib/councilCopy';
 
+/** Latest lens for the in-flight request. Chat transport is created once. */
+let councilLensForRequest: CouncilLens | undefined;
+
 export default function CouncilChat() {
   const [input, setInput] = useState('');
   const [lens, setLens] = useState<CouncilLens | undefined>(undefined);
-  const lensRef = useRef<CouncilLens | undefined>(undefined);
-  lensRef.current = lens;
   const welcomedRef = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -23,7 +24,7 @@ export default function CouncilChat() {
       api: '/api/chat',
       body: () => ({
         agentMode: 'council' as const,
-        councilLens: lensRef.current,
+        councilLens: councilLensForRequest,
       }),
     }),
   });
@@ -48,6 +49,11 @@ export default function CouncilChat() {
     el.scrollTop = el.scrollHeight;
   }, [messages, busy]);
 
+  function pinLens(next: CouncilLens | undefined) {
+    councilLensForRequest = next;
+    setLens(next);
+  }
+
   function ask(raw: string) {
     const trimmed = raw.trim();
     if (!trimmed || busy) return;
@@ -64,7 +70,7 @@ export default function CouncilChat() {
         <div className="flex flex-wrap gap-1.5">
         <button
           type="button"
-          onClick={() => setLens(undefined)}
+          onClick={() => pinLens(undefined)}
           className={`font-mono text-[0.52rem] tracking-[0.18em] uppercase px-2 py-1 border ${
             lens === undefined
               ? 'border-[#00a89d] text-[#007d75] bg-[#e9fffc]'
@@ -77,7 +83,7 @@ export default function CouncilChat() {
           <button
             key={name}
             type="button"
-            onClick={() => setLens(name)}
+            onClick={() => pinLens(name)}
             className={`font-mono text-[0.52rem] tracking-[0.18em] uppercase px-2 py-1 border ${
               lens === name
                 ? 'border-[#00a89d] text-[#007d75] bg-[#e9fffc]'
