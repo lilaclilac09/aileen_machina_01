@@ -1,5 +1,133 @@
 # AGENTS.md
 
+You are working on **aileena.xyz**.
+
+> Agent 聪明不是让它想更多，是让它少犯不可逆的蠢。
+> A stronger API only gives “talks smart.” Responsible smart comes from rules, tools, verification, memory, boundaries, and failure review.
+
+## Core rule
+
+Do not redesign, refactor, or create parallel systems unless explicitly asked.
+
+## Workflow (mandatory)
+
+```txt
+inspect → plan → patch → verify
+```
+
+Do not jump to patch.
+
+1. **inspect** — read the existing implementation; do not guess structure.
+2. **plan** — name the root cause and the smallest safe diff.
+3. **patch** — one vertical slice. No extra systems, no drive-by refactors.
+4. **verify** — runnable evidence. No evidence → not done.
+
+Prompt lock:
+
+```txt
+first inspect and report root cause. then propose the smallest diff.
+wait for confirmation before editing if the change touches multiple systems.
+```
+
+- Small, single-file / single-component bugs: inspect → patch → verify (no wait).
+- Multi-system or visual-direction changes: inspect → plan, **wait for confirmation**, then patch.
+- Split large asks (“fix orb”) into one slice per turn (transcript / TTS full sentence / TTS pace / recognition / proportions). Fewer variables in flight = fewer irreversible mistakes.
+
+### Before editing
+
+- inspect existing implementation first
+- identify root cause
+- propose smallest safe diff
+- do not redesign unless explicitly asked
+- do not create parallel systems
+- do not delete working flows
+- do not say done without verification
+
+### For bugs
+
+- reproduce or inspect the failing path
+- trace data flow end to end
+- list ≥2 hypotheses; verify with commands/logs **before** editing
+- fix the confirmed root cause only — one vertical slice first
+- report exact files changed
+- report root cause
+- report how to test
+
+### For UI
+
+- preserve current visual direction
+- do not change typography / layout / colors unless requested
+- fix proportions / readability / function only
+
+### For deploy
+
+- check build / lint / type / deploy preview
+- check env / config separately from code
+- if Bugbot fails due to usage limit, do not treat as a code failure
+
+## Never
+
+- say “done” without verification
+- change visual direction casually
+- replace working flows with new systems
+- hide env/config issues as code issues
+- crop Visual page content images
+- expose scary backend errors in public UI
+- treat Bugbot usage-limit as a real code failure
+- treat full-repo `pnpm lint` red on `main` (~180 existing errors) as *your* regression unless you touched those files
+- use localhost as production proof (see 施工队安全条例)
+
+## Always preserve
+
+Product facts live in [`PROJECT_RULES.md`](PROJECT_RULES.md). Short form:
+
+- soft, strange, technical, personal mood
+- thin typography
+- cream / teal visual language
+- doors as the directory structure
+- contact transcript delivery via Resend
+- orb as compact tactile control (not hero-sized, not tiny)
+- full image visibility on Visual (`object-fit: contain`, no cover-crop)
+
+## Evidence (required closer — no mood, no “should work”)
+
+Every task ends with:
+
+```txt
+root cause:
+files changed:
+verification:
+remaining risks:
+manual steps:
+```
+
+Env / Resend / deploy examples of `manual steps:` (do not bury these in prose):
+
+```txt
+manual steps:
+- add RESEND_API_KEY to production env
+- add CONTACT_TO (real inbox — not cafe@aileena.xyz)
+- redeploy
+```
+
+QA checklist: [`QA.md`](QA.md).
+
+## Blocker table (when stuck — stop, do not invent a bypass)
+
+| field | meaning |
+|-------|---------|
+| `blocked_on` | what is missing (secret / permission / red check / SHA mismatch) |
+| `evidence` | command or API output, not “should” |
+| `impact` | `blocked` (stop) or `degraded` (continue only with the limitation written down) |
+| `human_action` | the one step only a human can do |
+| `not_doing` | the bypass you refuse (no second implementation, no localhost-as-prod, no force-merge) |
+
+Missing `PROFILE_README_TOKEN` is **degraded** (update the draft, tell the user to paste). Missing merge permission on a ship task is **blocked**.
+
+---
+
+## Architecture (keep the product working; do not grow a second one)
+
 - Do not preserve backward compatibility. Remove obsolete paths instead of adding compatibility layers, fallbacks, or migrations.
 - Choose the simplest implementation that fully meets the current requirements. Avoid speculative abstractions, configuration, and indirection.
 - Grow the system in layers. Start from the smallest version that works end to end, and add each new capability on top of a product that already works. Never trade a working product for unfinished complexity.
@@ -13,7 +141,7 @@
 
 ## 施工队安全条例 — Production ship / multi-PR merge
 
-Agent 不是聪明人。Agent 是会把 draft PR 当人生终点的实习生。  
+Agent 不是聪明人。Agent 是会把 draft PR 当人生终点的实习生。
 下面每一步都有**红线**。每个 done 都要**验收凭证**。口头不算。
 
 ### 0. 最重要的一句（放最前面）
@@ -93,11 +221,14 @@ Agent 不是聪明人。Agent 是会把 draft PR 当人生终点的实习生。
 2. **production 上能看到效果**，并且
 3. 上面的 **凭证表交齐**
 
-才算 **done**。  
+才算 **done**。
 否则就是 **not done**。
 
 ### 相关规则
 
+- 产品事实：[`PROJECT_RULES.md`](PROJECT_RULES.md)
+- QA 清单：[`QA.md`](QA.md)
 - 工程循环：`.cursor/rules/senior-engineer-loop.mdc`
 - UI 截图 + 交互：`.cursor/rules/ui-step-screenshot.mdc`
 - 完整工作准册：`aileena-new/docs/工作准册.md`
+- AI auto-merge：`docs/AI_AUTOMERGE.md`

@@ -201,7 +201,7 @@ npm run lint         # ESLint
 pnpm verify:dj-set   # DJ set carousel — screenshots + video + verify-report.json
 ```
 
-**Engineering handbook（工作准册）**: `docs/工作准册.md` — read → plan → small diff → verify → evidence for every change.
+**Engineering handbook（工作准册）**: `docs/工作准册.md` — inspect → plan → patch → verify for every change. Root: `AGENTS.md`, `PROJECT_RULES.md`, `QA.md`.
 
 ## Slash Commands
 
