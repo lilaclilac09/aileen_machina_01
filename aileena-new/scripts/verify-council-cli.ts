@@ -11,6 +11,7 @@ import {
   redactSecrets,
 } from '../lib/councilCliContext';
 import { buildCouncilCliSystemPrompt } from '../lib/aileenaCouncil';
+import { COUNCIL_OPENING } from '../lib/councilCopy';
 
 type Check = { name: string; ok: boolean; detail?: string };
 const checks: Check[] = [];
@@ -35,6 +36,19 @@ function main() {
     repoContext: 'branch: test\nDEEPSEEK_API_KEY=should-not-matter',
   });
   assert('cli system prompt is council not public guide', /private council/i.test(prompt) && /not a public site guide/i.test(prompt));
+  assert(
+    'cli is emotionally literate not persuadable',
+    /emotionally literate but not emotionally persuadable/i.test(prompt),
+  );
+  assert(
+    'cli rejects therapy cliches',
+    /i understand how you feel/i.test(prompt) && /as an ai assistant/i.test(prompt),
+  );
+  assert(
+    'cli messy format is read-risk-move-wording',
+    /read:/i.test(prompt) && /wording:/i.test(prompt),
+  );
+  assert('cli opening is the invoice detector', /invoice hiding inside/i.test(COUNCIL_OPENING));
   assert('cli output contract present', /what is happening/i.test(prompt) && /exact prompt \/ commands/i.test(prompt));
   assert('cli cannot claim file writes', /cannot edit the repository/i.test(prompt));
 

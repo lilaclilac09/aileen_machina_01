@@ -11,7 +11,7 @@
 
 import { createInterface } from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
-import type { CouncilLens } from '../lib/councilCopy';
+import { COUNCIL_OPENING, type CouncilLens } from '../lib/councilCopy';
 import {
   CLI_MODE_ALIASES,
   assertCouncilCliAllowed,
@@ -24,6 +24,8 @@ import {
 import { runCouncilTurn, type CouncilChatMessage } from '../lib/councilRunner';
 
 const HELP = `AILEENA COUNCIL  (local, owner-only — not the public site)
+
+${COUNCIL_OPENING}
 
 Usage:
   pnpm council
@@ -94,7 +96,7 @@ function lensFor(mode: CliModeName | undefined): CouncilLens | undefined {
 }
 
 function printBanner(mode: CliModeName | undefined, branch: string): void {
-  console.log('AILEENA COUNCIL');
+  console.log(COUNCIL_OPENING);
   console.log('local owner terminal — not the public orb');
   console.log(`[1] strategy  [2] negotiation  [3] site  [4] pr  [5] vent  [6] writing`);
   console.log(`mode: ${mode ?? '(infer)'}   branch: ${branch}`);
