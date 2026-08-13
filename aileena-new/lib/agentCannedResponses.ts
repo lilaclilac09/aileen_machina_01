@@ -1,3 +1,9 @@
+import {
+  SITE_AGENT_OPENING,
+  SITE_AGENT_OPENING_DE,
+  SITE_AGENT_OPENING_ZH,
+} from './siteAgentCopy';
+
 /**
  * Client-side canned-response short-circuit for the chat agent.
  *
@@ -30,17 +36,17 @@ const RULES: Rule[] = [
   {
     name: 'greeting-en',
     test: /^\s*(hi|hello|hey|yo|sup|howdy|hiya)[\s.!,?]*$/i,
-    reply: "Hey. Ask anything about Aileen's work, projects, writing, or whether she's hiring out.",
+    reply: SITE_AGENT_OPENING,
   },
   {
     name: 'greeting-zh',
     test: /^\s*(你好|嗨|哈喽|hello您好)[\s。！，？.!,?]*$/,
-    reply: '你好。可以问 Aileen 的项目、文章、技术栈,或者她最近有没有空接 role。',
+    reply: SITE_AGENT_OPENING_ZH,
   },
   {
     name: 'greeting-de',
     test: /^\s*(hallo|hi|guten\s*tag|servus|moin)[\s.!,?]*$/i,
-    reply: "Hallo. Frag mich nach Aileens Projekten, Artikeln, Tech-Stack oder ob sie verfügbar ist.",
+    reply: SITE_AGENT_OPENING_DE,
   },
 
   // ── Thanks ─────────────────────────────────────────────────────────────
@@ -65,7 +71,7 @@ const RULES: Rule[] = [
     name: 'who-are-you',
     test: /\b(who\s*are\s*you|what\s*are\s*you|are\s*you\s*(real|human|ai|a\s*bot|chatgpt|gpt))\b/i,
     reply:
-      "I'm a small AI agent Aileen built for this site. Streaming LLM (DeepSeek) plus a build-time TF-IDF index over her 35+ articles I can search on demand. Not Aileen herself.",
+      "I'm the small machine inside aileena.xyz — a guide to her work, writing, and music shelf. Not Aileen. Not customer support.",
   },
   {
     name: 'who-built-this',
@@ -77,7 +83,7 @@ const RULES: Rule[] = [
     name: 'who-is-aileen',
     test: /^(\s*who(\s+is|'s)\s+aileen|tell\s+me\s+about\s+aileen|what\s+does\s+aileen\s+do)\b/i,
     reply:
-      "Software engineer + on-chain researcher, Solana focus. M.Sc. Statistics, Humboldt Berlin. Builds AI agents in production. Solana SG Mini Hackathon Winner 2026. Currently open to engineering / research roles.",
+      "Software engineer + on-chain researcher, Solana focus. M.Sc. Statistics, Humboldt Berlin. Builds AI agents in production. Solana SG Mini Hackathon Winner 2026. Open to serious collaboration — leave a note if the fit is real.",
   },
 
   // ── Availability / hire ────────────────────────────────────────────────
@@ -85,13 +91,13 @@ const RULES: Rule[] = [
     name: 'availability',
     test: /\b(available|hire|hiring|open\s*to\s*work|job|role|position|looking\s*for\s*work)\b/i,
     reply:
-      "Yes — open to engineering, research, and product-minded technical roles. If you'd like her to write back, leave your email (and optional WeChat / note) in the panel below — it goes straight to her.",
+      "She's open to serious collaboration — engineering, research, product-minded technical work. Leave a note with what you're building and why she's the right person. Vague asks tend to die here.",
   },
   {
     name: 'contact',
     test: /\b(contact|reach|email|wechat|微信|联系|get\s*in\s*touch|how\s*do\s*i\s*find|how\s*to\s*reach)\b/i,
     reply:
-      "Leave your email in the panel below (name / WeChat / note optional). It goes straight to her — chat keeps going either way. GitHub for code: github.com/lilaclilac09.",
+      "Leave a note below with your email and a short context. The chat transcript goes with it. GitHub for code: github.com/lilaclilac09.",
   },
   {
     name: 'contact-zh',

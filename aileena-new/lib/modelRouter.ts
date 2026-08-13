@@ -121,7 +121,7 @@ export function degradeMessage(reason: string, lastQuestion?: string): string {
     return 'That took longer than it should have. Try a shorter question, or ask again in a moment.';
   }
   if (reason === 'no_model') {
-    return 'No model configured. Set DEEPSEEK_API_KEY in Vercel, then redeploy.';
+    return "I'm quiet on the model side right now. Try again in a moment, or leave a note below.";
   }
   if (reason === 'billing') {
     return "I'm pausing for a moment on the model side. Leave a note below if you'd like Aileen to see it, or try again shortly.";

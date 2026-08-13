@@ -19,6 +19,11 @@ import {
   MODEL_TOTAL_BUDGET_MS,
 } from '../lib/modelRouter';
 import { createRequestTrace } from '../lib/requestTrace';
+import { matchCanned } from '../lib/agentCannedResponses';
+import { SITE_AGENT_OPENING } from '../lib/siteAgentCopy';
+import { SYSTEM_PROMPT } from '../lib/agentContext';
+import { buildCatchUpGreeting } from '../lib/articleTopicMemory';
+import { CONTACT_OFFLINE_PUBLIC } from '../lib/mail-transcript';
 
 type Check = { name: string; ok: boolean; detail?: string };
 const checks: Check[] = [];
@@ -62,6 +67,31 @@ function main() {
   assert('timeout classified', classifyModelError(new Error('AbortError: timeout')).reason === 'timeout');
   assert('billing classified', classifyModelError(new Error('credit balance too low')).reason === 'billing');
   assert('degrade timeout copy', /too long|again/i.test(degradeMessage('timeout')));
+
+  const greet = matchCanned('hi');
+  assert('canned hi uses site opening', greet?.reply === SITE_AGENT_OPENING, greet?.reply?.slice(0, 80));
+  assert(
+    'empty-state greeting is the opening line',
+    buildCatchUpGreeting([]) === SITE_AGENT_OPENING,
+    buildCatchUpGreeting([]).slice(0, 80),
+  );
+  assert(
+    'system prompt is site-agent spec not chatbot',
+    /not a generic chatbot/i.test(SYSTEM_PROMPT) && /contact collector/i.test(SYSTEM_PROMPT),
+  );
+  assert(
+    'system prompt forbids assistant cliches',
+    /How can I assist you today/i.test(SYSTEM_PROMPT) && /As an AI/i.test(SYSTEM_PROMPT),
+  );
+  assert(
+    'offline copy stays public-safe',
+    /offline right now/i.test(CONTACT_OFFLINE_PUBLIC) && !/resend|api key|vercel/i.test(CONTACT_OFFLINE_PUBLIC),
+  );
+  assert(
+    'no_model degrade hides env',
+    !/DEEPSEEK|API_KEY|Vercel/i.test(degradeMessage('no_model')),
+    degradeMessage('no_model').slice(0, 80),
+  );
 
   const trace = createRequestTrace('abc12345trace');
   const s = trace.startSpan('test');
