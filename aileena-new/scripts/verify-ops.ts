@@ -193,6 +193,14 @@ function main() {
   assert('voice-code never applies spoken register', !/spokenRegisterPrompt/.test(vcodeSrc));
   assert('voice-code stays propose-only not dsh', /harness: 'propose-only'/.test(vcodeSrc) && /write_target: null/.test(vcodeSrc) && /not DeepSeek Harness/.test(vcodeSrc));
   assert('voice-code fetch sends voiceAccent', /\/api\/voice-code/.test(agentChatSrc) && /prompt: trimmed/.test(agentChatSrc));
+  assert(
+    'voice-on empty state still teaches voice-code',
+    /voiceMode \?/.test(agentChatSrc) && /写代码/.test(agentChatSrc) && /propose-only patch/.test(agentChatSrc),
+  );
+  assert(
+    'vcode counter is a Voice → code button',
+    /vcode \$\{vcodeRemaining\}/.test(agentChatSrc) && /ask\('Voice → code:/.test(agentChatSrc),
+  );
   assert('council UI does not send voiceAccent', !/voiceAccent/.test(councilChatSrc));
   assert('council UI sends agentMode council', /agentMode:\s*'council'/.test(councilChatSrc));
   assert('council UI has no leave-a-note', !/leave a note|\/api\/lead/i.test(councilChatSrc));

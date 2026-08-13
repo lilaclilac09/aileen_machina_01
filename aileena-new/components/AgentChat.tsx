@@ -1352,19 +1352,20 @@ export default function AgentChat() {
               <p className="text-[0.78rem] leading-[1.7] text-[#1b1713]/62 mb-3">
                 {voiceMode ? (
                   <>
-                    Tap the <span className="text-[#008f86]">orb</span> to speak. You should see a
-                    live caption, then hear the reply.
+                    Tap the <span className="text-[#008f86]">orb</span> to speak. Live caption,
+                    then a reply. Say <span className="text-[#008f86]">fix</span> /{' '}
+                    <span className="text-[#008f86]">写代码</span> for a propose-only patch
+                    (5/day) — nothing is written to disk.
                   </>
                 ) : (
                   <>
                     Tap <span className="text-[#008f86]">Voice</span>, then tap the{' '}
                     <span className="text-[#008f86]">orb</span> to speak (phone needs the orb tap).
-                    <span className="hidden sm:inline">
-                      {' '}Say <span className="text-[#008f86]">fix</span> /{' '}
-                      <span className="text-[#008f86]">implement</span> /{' '}
-                      <span className="text-[#008f86]">Voice → code</span> for a
-                      propose-only patch (5/day).
-                    </span>
+                    {' '}Say <span className="text-[#008f86]">fix</span> /{' '}
+                    <span className="text-[#008f86]">implement</span> /{' '}
+                    <span className="text-[#008f86]">写代码</span> /{' '}
+                    <span className="text-[#008f86]">Voice → code</span> for a
+                    propose-only patch (5/day).
                   </>
                 )}
               </p>
@@ -1373,9 +1374,11 @@ export default function AgentChat() {
                   {buildCatchUpHint(readTopicMemory().topics)}
                 </p>
               )}
-              {!voiceMode && (
               <ul className="space-y-2">
-                {STARTER_PROMPTS.map((p) => (
+                {(voiceMode
+                  ? STARTER_PROMPTS.filter((p) => /voice\s*→\s*code/i.test(p))
+                  : STARTER_PROMPTS
+                ).map((p) => (
                   <li key={p}>
                     <button
                       type="button"
@@ -1388,7 +1391,6 @@ export default function AgentChat() {
                   </li>
                 ))}
               </ul>
-              )}
             </>
           ) : (
             messages.map((m) => {
@@ -1553,10 +1555,10 @@ export default function AgentChat() {
               {voiceMode ? (
                 <>
                   <span className="sm:hidden">
-                    tap <span className="text-[#008f86]/70">orb</span> · speak
+                    tap <span className="text-[#008f86]/70">orb</span> · say fix → vcode
                   </span>
                   <span className="hidden sm:inline">
-                    stream · barge-in · <span className="text-[#008f86]/70">voice→code</span>
+                    stream · barge-in · say <span className="text-[#008f86]/70">fix / 写代码</span> → voice→code
                   </span>
                 </>
               ) : (
@@ -1586,11 +1588,23 @@ export default function AgentChat() {
                       ? 'chat 0'
                       : `chat ${remaining}/${DAILY_LIMIT}`}
               </span>
-              <span className={vcodeRemaining === 0 ? 'text-red-400/70' : 'text-[#007d75]/70'}>
+              <button
+                type="button"
+                disabled={vcodeMaxed || busy}
+                onClick={() =>
+                  ask('Voice → code: sketch a small patch for the Console footer')
+                }
+                title="Propose-only patch, 5/day, not written to disk"
+                className={
+                  vcodeRemaining === 0
+                    ? 'text-red-400/70 uppercase'
+                    : 'text-[#007d75]/70 hover:text-[#008f86] uppercase'
+                }
+              >
                 {vcodeRemaining === 0
                   ? 'vcode 0'
                   : `vcode ${vcodeRemaining}/${VCODE_DAILY_LIMIT}`}
-              </span>
+              </button>
             </span>
           </p>
         </div>
