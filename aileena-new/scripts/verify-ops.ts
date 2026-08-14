@@ -307,6 +307,7 @@ function main() {
   assert('draw is not in the system prompt file', !/抽牌|今日牌|tarot|draw deck/.test(SYSTEM_PROMPT));
   assert('console runtime switch starts a new root', /beginNewRoot\(MODEL_SWAP_PING\)/.test(agentChatSrc));
   assert('console draw chip does not sit in system block', /data-draw-card/.test(agentChatSrc) && /isDrawIntent/.test(agentChatSrc));
+  assert('console Enter waits for IME composition', /isComposing/.test(agentChatSrc));
   assert('draw day lock uses localStorage', /aileena_draw_daily_v1/.test(agentChatSrc) && /cardById/.test(agentChatSrc));
   assert('console still does not call public apply', !/fetch\(['"]\/api\/voice-code\/apply/.test(agentChatSrc));
 
