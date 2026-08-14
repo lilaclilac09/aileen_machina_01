@@ -18,11 +18,15 @@ import {
   type VisitorSoftMemory,
 } from './visitorMemory';
 import type { AgentMode } from './agentMode';
+import { frozenRootIdentity } from './consolePrefixCopy';
 
 export {
   ACCENT_SWAP_PING,
   COMPACTION_PING,
   MODEL_SWAP_PING,
+  classifyRootProvider,
+  frozenRootIdentity,
+  machinaRootSpoken,
   parseNewRootError,
   pingForNewRootReason,
 } from './consolePrefixCopy';
@@ -40,6 +44,8 @@ export type FrozenPrefixInput = {
   baseSystem: string;
   agentMode: AgentMode;
   voiceAccent: VoiceAccent | null;
+  /** Locked speaking model for this root. Provider swap → new root. */
+  rootProvider?: string;
   memoryIndexLine: string;
   publicToolTable: string;
   machinaToolTable: string;
@@ -58,6 +64,7 @@ export type SessionTailInput = {
 
 export function buildFrozenSystemPrompt(input: FrozenPrefixInput): string {
   const spoken = input.agentMode === 'council' ? '' : spokenRegisterPrompt(input.voiceAccent);
+  const identity = input.agentMode === 'council' ? '' : frozenRootIdentity(input.rootProvider);
   const memory =
     input.agentMode === 'council' ? '' : MEMORY_STACK_PROMPT + input.memoryIndexLine;
   const tools =
@@ -67,7 +74,7 @@ export function buildFrozenSystemPrompt(input: FrozenPrefixInput): string {
         ? input.machinaToolTable
         : input.publicToolTable;
 
-  return input.baseSystem + spoken + memory + FROZEN_PREFIX_NOTE + tools;
+  return input.baseSystem + spoken + identity + memory + FROZEN_PREFIX_NOTE + tools;
 }
 
 export function buildSessionTail(input: SessionTailInput): string {

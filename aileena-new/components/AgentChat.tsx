@@ -30,6 +30,7 @@ import {
   ACCENT_SWAP_PING,
   COMPACTION_PING,
   MODEL_SWAP_PING,
+  frozenRootIdentity,
   parseNewRootError,
   pingForNewRootReason,
 } from '../lib/consolePrefixCopy';
@@ -350,7 +351,7 @@ export default function AgentChat() {
     let cancelled = false;
     (async () => {
       try {
-        const s = await createBrowserSession(SYSTEM_PROMPT_LITE);
+        const s = await createBrowserSession(SYSTEM_PROMPT_LITE + frozenRootIdentity('on-device'));
         if (cancelled) {
           s?.destroy();
           return;
@@ -871,7 +872,7 @@ export default function AgentChat() {
 
   async function ensureBrowserSession(): Promise<BrowserSession | null> {
     if (browserSessionRef.current) return browserSessionRef.current;
-    const session = await createBrowserSession(SYSTEM_PROMPT_LITE);
+    const session = await createBrowserSession(SYSTEM_PROMPT_LITE + frozenRootIdentity('on-device'));
     browserSessionRef.current = session;
     return session;
   }
@@ -1322,7 +1323,10 @@ export default function AgentChat() {
     // questions about the agent itself, top-level CV one-liners. Returns
     // ~10–30 ms (regex match + setState) instead of ~1.5–3 s LLM round-
     // trip. Substantive questions fall through to the real model.
-    const canned = matchCanned(trimmed, readTopicMemory().topics);
+    const canned = matchCanned(trimmed, readTopicMemory().topics, {
+      rootProvider:
+        activeRuntime === 'browser' ? 'on-device' : sessionProviderRef.current || 'deepseek',
+    });
     if (canned) {
       const userId =
         typeof crypto !== 'undefined' && crypto.randomUUID

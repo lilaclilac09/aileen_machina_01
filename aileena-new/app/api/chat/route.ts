@@ -451,6 +451,7 @@ Same retrieval tools as the site. Use them for evidence (articles, memory, chips
     baseSystem,
     agentMode,
     voiceAccent,
+    rootProvider: picked.provider,
     memoryIndexLine,
     publicToolTable,
     machinaToolTable,
