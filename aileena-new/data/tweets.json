@@ -13128,5 +13128,163 @@
     "tags": [],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-13T19:20:15.224Z"
+  },
+  {
+    "id": "2088077154877637008",
+    "url": "https://x.com/SemiAnalysis_/status/2088077154877637008",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "",
+    "createdAt": "Fri Aug 14 01:36:02 +0000 2026",
+    "createdTimestamp": 1786671362,
+    "likes": 65,
+    "retweets": 5,
+    "replies": 6,
+    "bookmarks": 3,
+    "views": 9515,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPpXG1NWYAAdaJo.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-14T02:45:27.118Z"
+  },
+  {
+    "id": "2087992514355540251",
+    "url": "https://x.com/SemiAnalysis_/status/2087992514355540251",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Everyone is always criticizing @GitHub Actions for their outages, but today one of the most popular alternatives @useblacksmith has been experiencing a \"partial\" outage for the last 8 hours. Before 2026, it was almost unheard of to hear of outages that lasted more than a couple hours, let alone a majority of the day.",
+    "createdAt": "Thu Aug 13 19:59:43 +0000 2026",
+    "createdTimestamp": 1786651183,
+    "likes": 95,
+    "retweets": 6,
+    "replies": 8,
+    "bookmarks": 10,
+    "views": 28440,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPoKIHiWsAAUpD3.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-14T02:45:28.521Z"
+  },
+  {
+    "id": "2088073320830771236",
+    "url": "https://x.com/aaronburnett/status/2088073320830771236",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "it's counter-intuitive to see a slow down in AI compute energy come from our modeling. we didn't program it in, it was emergent from compounding effects of energy and token efficiency. we talked through this phenomena on our live earlier today.  The value is the framework not the exact shape of the chart.",
+    "createdAt": "Fri Aug 14 01:20:48 +0000 2026",
+    "createdTimestamp": 1786670448,
+    "likes": 20,
+    "retweets": 2,
+    "replies": 2,
+    "bookmarks": 2,
+    "views": 1604,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://video.twimg.com/amplify_video/2088070786561015808/vid/avc1/1920x1080/YwDl9BDE-DnT-vlc.mp4?tag=29"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-14T02:45:32.027Z"
+  },
+  {
+    "id": "2088038852237705718",
+    "url": "https://x.com/aaronburnett/status/2088038852237705718",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "I’d vote for bumping up to 60% if/when he gets us to 1M humans on Mars.",
+    "createdAt": "Thu Aug 13 23:03:50 +0000 2026",
+    "createdTimestamp": 1786662230,
+    "likes": 75,
+    "retweets": 2,
+    "replies": 5,
+    "bookmarks": 2,
+    "views": 5958,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-14T02:45:33.487Z"
+  },
+  {
+    "id": "2088006111488270791",
+    "url": "https://x.com/aaronburnett/status/2088006111488270791",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "we are projecting AI Compute infrastructure will crunch 800,000 Quadrillion tokens by 2040 on ~500GWs of dedicated infrastructure and generate ~$3.2T from the infrastructure alone. (not including model+apps layers)\n\nOur AI compute Keystone runs 5,000 simulations across more than 400 sourced bear/base/bull assumptions. It's our own version of psychohistory :)\n\nas you might expect demand variables drive the vast majority of the range for revenue outcomes, but demand exceeds supply in 79% of those outcomes. \n\nOur brief released today dives into the key learnings from the keystone. check it out here...\nhttps://research.33fg.com/analysis/brief-ai-compute-grows-180x-while-prices-fall-96\n\nin this keystone we include scenario planners, which is a pretty cool feature that helps map out what could happen given some fairly impactful conditions. \n\nFirst our central case (blue one path): predicts a fairly sharp build out into the 2030s followed by some ebbs and flows from dramatic improvements in chip power efficiency and token efficiency. where installed GWs doesn't increase highly until late decade. \n\nSecond our \"Demand Compounds\" (greens yellow path): where build out accelerates far faster in the 2030s and take-off hits harder and sooner.\n\nThird our \"Demand Dissapoints\" (red paths): where both  of our demand motors fail, adoption stalls and cheaper compute never induces the extra usage. \n\nWhile i don't personally expect this one to materialize we have to keep ourselves honest and run the negative scenarios along with the positive (we ran 6 negative scenarios across the model)\n\nMy fourth chart is the one where we calculate expected tokens generated by 2040 and where it's coming from (mostly orbit). 800,000 quadrillion is a lot of tokens driven by compute efficiency gains, costs drop and jevon's paradox kicking in. \n\nWe'll be releasing a dashboard (hopefully this weekend) that lets you explore these scenarios yourself based on the keystone model. \n\nWe hope you find the brief and the dashboard helpful. \n\n@VladSaigau spent 6 weeks in an AI induced comma building this bad boy with support from our larger team. If he seems disjointed from reality you know why.",
+    "createdAt": "Thu Aug 13 20:53:44 +0000 2026",
+    "createdTimestamp": 1786654424,
+    "likes": 390,
+    "retweets": 34,
+    "replies": 20,
+    "bookmarks": 56,
+    "views": 43966,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPoR0BNWAAAx-U5.jpg?name=orig",
+      "https://pbs.twimg.com/media/HPoSE3eXcAAehTH.jpg?name=orig",
+      "https://pbs.twimg.com/media/HPoUTu1WsAEU8d9.jpg?name=orig",
+      "https://pbs.twimg.com/media/HPoUzo8XYAACodq.jpg?name=orig"
+    ],
+    "linkedUrls": [
+      "https://research.33fg.com/analysis/brief-ai-compute-grows-180x-while-prices-fall-96"
+    ],
+    "topics": [
+      "mach33",
+      "ai-cost"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-14T02:45:34.852Z"
+  },
+  {
+    "id": "2087988244507951544",
+    "url": "https://x.com/VladSaigau/status/2087988244507951544",
+    "screenName": "VladSaigau",
+    "authorId": "1496125256624484362",
+    "authorName": "Vlad Saigau",
+    "text": "SpaceX and Tesla will merge predominantly for at-cost Terafab chips. \n\nThe chip layer of the AI stack carries fat margins (think NVDA) and bargaining power. SpaceX deploying Terafab-at-cost-chips is the most economically impactful reason for the merger.",
+    "createdAt": "Thu Aug 13 19:42:45 +0000 2026",
+    "createdTimestamp": 1786650165,
+    "likes": 94,
+    "retweets": 4,
+    "replies": 7,
+    "bookmarks": 4,
+    "views": 6062,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "spacex"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-14T02:45:39.063Z"
   }
 ]
