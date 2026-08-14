@@ -25,7 +25,7 @@ import {
 } from '../lib/voiceCodeIntent';
 import { isDrawIntent } from '../lib/drawIntent';
 import { taipeiDay } from '../lib/taipeiDay';
-import type { DrawCard } from '../lib/drawDeck';
+import { cardById, reciteDrawCard, type DrawCard } from '../lib/drawDeck';
 import { COMPACTION_PING, MODEL_SWAP_PING } from '../lib/consolePrefixCopy';
 import SiteLeftChrome from './SiteLeftChrome';
 import AgentVoiceOrb from './AgentVoiceOrb';
@@ -1136,6 +1136,34 @@ export default function AgentChat() {
         parts: [{ type: 'text', text: '… drawing today\'s card' }],
       },
     ]);
+
+    const stored = readStoredDrawDay();
+    const cached = stored ? cardById(stored.cardId) : undefined;
+    if (cached) {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantId
+            ? {
+                ...m,
+                parts: [
+                  {
+                    type: 'text',
+                    text: `Today's card is still this one.\n\n${reciteDrawCard(cached)}`,
+                  },
+                ],
+              }
+            : m,
+        ),
+      );
+      setDrawById((prev) => ({
+        ...prev,
+        [assistantId]: { card: cached, date: stored!.date, repeat: true },
+      }));
+      setDrawnToday(true);
+      setDrawBusy(false);
+      void fetch('/api/draw', { method: 'GET', credentials: 'same-origin', cache: 'no-store' });
+      return;
+    }
 
     try {
       const res = await fetch('/api/draw', {
