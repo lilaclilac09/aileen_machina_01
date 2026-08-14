@@ -54,7 +54,7 @@ import {
   readSessionProviderLock,
   FROZEN_MAX_MESSAGES,
 } from '../lib/consolePrefix';
-import { parseNewRootError } from '../lib/consolePrefixCopy';
+import { parseNewRootError, frozenRootIdentity, machinaRootSpoken } from '../lib/consolePrefixCopy';
 import { routeToolsForQuestion } from '../lib/toolRouter';
 import {
   isAllowedVoiceCodePath,
@@ -132,6 +132,39 @@ function main() {
 
   const greet = matchCanned('hi');
   assert('canned hi uses site opening', greet?.reply === SITE_AGENT_OPENING, greet?.reply?.slice(0, 80));
+  const modelEn = matchCanned('what model are you');
+  assert(
+    'canned model identity is machina deepseek not dsh',
+    Boolean(modelEn?.reply) &&
+      /Machina/.test(modelEn!.reply) &&
+      /DeepSeek via modelRouter/.test(modelEn!.reply) &&
+      /not dsh/i.test(modelEn!.reply) &&
+      !/Claude|GPT-4|ChatGPT/i.test(modelEn!.reply),
+    modelEn?.reply,
+  );
+  const modelZh = matchCanned('你是什么模型');
+  assert(
+    'canned zh model identity is machina not dsh',
+    Boolean(modelZh?.reply) && /Machina/.test(modelZh!.reply) && /DeepSeek/.test(modelZh!.reply) && /不是 dsh/.test(modelZh!.reply),
+    modelZh?.reply,
+  );
+  const modelOn = matchCanned('who are you running on', [], { rootProvider: 'on-device' });
+  assert(
+    'on-device root does not claim deepseek',
+    Boolean(modelOn?.reply) && /on-device/i.test(modelOn!.reply) && !/This root is DeepSeek/.test(modelOn!.reply),
+    modelOn?.reply,
+  );
+  const modelQwen = matchCanned('what model are you', [], { rootProvider: 'qwen' });
+  assert('qwen on-device is named', Boolean(modelQwen?.reply) && /Qwen on-device/.test(modelQwen!.reply), modelQwen?.reply);
+  assert('are you chatgpt does not waffle', /Machina/.test(matchCanned('are you chatgpt')?.reply ?? '') && !/small machine/.test(matchCanned('are you chatgpt')?.reply ?? ''));
+  assert(
+    'frozen identity is stable machina line',
+    /You are Machina/.test(frozenRootIdentity('deepseek')) &&
+      /DeepSeek via modelRouter/.test(frozenRootIdentity('deepseek')) &&
+      /not DeepSeek Harness/.test(frozenRootIdentity('deepseek')) &&
+      /Qwen on-device/.test(frozenRootIdentity('qwen')),
+  );
+  assert('spoken fallback does not claim to be gpt', /fallback via modelRouter/.test(machinaRootSpoken('fallback:gpt-4o-mini')) && !/I am GPT/i.test(machinaRootSpoken('fallback:gpt-4o-mini')));
   assert(
     'empty-state greeting is the opening line',
     buildCatchUpGreeting([]) === SITE_AGENT_OPENING,
@@ -277,6 +310,7 @@ function main() {
     baseSystem: SYSTEM_PROMPT,
     agentMode: 'public',
     voiceAccent: null,
+    rootProvider: 'deepseek',
     memoryIndexLine: '\n# Memory index (L2)\n0 chunks.',
     publicToolTable: '\n# Agent tools\n- searchArticles',
     machinaToolTable: '\n# Machina mode tools',
@@ -327,6 +361,18 @@ function main() {
     'console always sends sessionProvider string',
     /sessionProvider: sessionProviderRef\.current \?\? ''/.test(agentChatSrc) &&
       /X-Session-Provider/.test(agentChatSrc),
+  );
+  assert(
+    'frozen prefix names machina deepseek not dsh',
+    /You are Machina/.test(frozenSample) &&
+      /DeepSeek via modelRouter/.test(frozenSample) &&
+      /not DeepSeek Harness/.test(frozenSample),
+  );
+  assert('chat route freezes picked provider identity', /rootProvider: picked\.provider/.test(chatRouteSrc));
+  assert(
+    'console canned model identity uses root provider',
+    /matchCanned\(trimmed, readTopicMemory\(\)\.topics, \{/.test(agentChatSrc) &&
+      /rootProvider:/.test(agentChatSrc),
   );
   assert(
     'console handles HTTP 409 new_root',
