@@ -88,7 +88,7 @@ const RULES: Rule[] = [
     name: 'who-built-this',
     test: /\b(who\s*(built|made|wrote|coded)\s*(this|you|the\s*agent|the\s*chat))\b/i,
     reply:
-      'Aileen did. Fresh implementation on Vercel AI SDK + Next.js, DeepSeek-chat as the model, build-time TF-IDF RAG over her own article corpus. No frameworks borrowed.',
+      'Aileen did. Fresh implementation on Vercel AI SDK + Next.js, model via modelRouter (this root\'s lock), build-time TF-IDF RAG over her own article corpus. No frameworks borrowed.',
   },
   {
     name: 'who-is-aileen',

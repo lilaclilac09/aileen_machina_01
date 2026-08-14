@@ -59,6 +59,6 @@ System prompt + tool table are one **frozen root** per visitor session. RAG hits
 
 Cloud ↔ on-device (or any `modelRouter` provider swap) mid-session starts a **new root**, not a hot-swap. If context must drop: ping the visitor, then new root. No silent `slice` / ghost KV.
 
-The Console is **Machina**. A cloud root speaks DeepSeek via `lib/modelRouter` (Shanghai register when Voice is on). It is not DeepSeek Harness / dsh. An on-device root says on-device (Qwen if that is the root). `DEEPSEEK_API_KEY` lives on Vercel preview + production; a missing local key is not a product gap and not a reason to 200 a public write.
+The Console is **Machina**. The frozen `# This root` line names **this root's** provider only (DeepSeek via `modelRouter`, Qwen on-device, etc.). A provider swap is `409` + new root — do not keep a “speaking DeepSeek” string across that boundary. Not DeepSeek Harness / dsh. `DEEPSEEK_API_KEY` lives on Vercel preview + production; a missing local key is not a product gap and not a reason to 200 a public write.
 
 Daily draw: one card per Asia/Taipei civil day (`/api/draw`), recited in the Console tail. Deck is site lines (kiln / shelf / wire / desk / door). Not astrology. Do not burn draw on idle chat.

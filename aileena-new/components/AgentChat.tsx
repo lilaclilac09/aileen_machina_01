@@ -1324,8 +1324,7 @@ export default function AgentChat() {
     // ~10–30 ms (regex match + setState) instead of ~1.5–3 s LLM round-
     // trip. Substantive questions fall through to the real model.
     const canned = matchCanned(trimmed, readTopicMemory().topics, {
-      rootProvider:
-        activeRuntime === 'browser' ? 'on-device' : sessionProviderRef.current || 'deepseek',
+      rootProvider: activeRuntime === 'browser' ? 'on-device' : sessionProviderRef.current,
     });
     if (canned) {
       const userId =

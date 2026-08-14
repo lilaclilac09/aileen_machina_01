@@ -451,7 +451,8 @@ Same retrieval tools as the site. Use them for evidence (articles, memory, chips
     baseSystem,
     agentMode,
     voiceAccent,
-    rootProvider: picked.provider,
+    // THIS root only — lock matches pick or we already 409'd. New root may be Qwen.
+    rootProvider: sessionProvider ?? picked.provider,
     memoryIndexLine,
     publicToolTable,
     machinaToolTable,
