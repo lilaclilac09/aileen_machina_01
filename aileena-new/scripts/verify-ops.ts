@@ -296,8 +296,26 @@ function main() {
   assert('owner apply does not import dsh', !/deepseek-harness|@deepseek-ai\/dsh/.test(ownerApplySrc));
 
   assert('idle chat does not burn vcode', isVoiceCodeIntent('hi') === false && isVoiceCodeIntent("what's her solana stack?") === false);
+  assert(
+    'casual English fix stays on chat',
+    isVoiceCodeIntent('can you fix my understanding of her solana work?') === false &&
+      isVoiceCodeIntent('nothing to fix here') === false,
+  );
   assert('fix / implement / 写代码 burn vcode', isVoiceCodeIntent('fix the footer') && isVoiceCodeIntent('implement a patch') && isVoiceCodeIntent('写代码'));
+  assert(
+    'write code / 改代码 / 修bug / 重构 burn vcode',
+    isVoiceCodeIntent('write code for the footer') &&
+      isVoiceCodeIntent('改代码') &&
+      isVoiceCodeIntent('修bug') &&
+      isVoiceCodeIntent('重构'),
+  );
   assert('Voice → code chip burns vcode', isVoiceCodeIntent('Voice → code: sketch a small patch for the Console footer'));
+  assert('Voice -> code ascii prefix burns vcode', isVoiceCodeIntent('Voice -> code: patch the console footer'));
+  assert('voice-code POST gates on isVoiceCodeIntent', /isVoiceCodeIntent/.test(vcodeSrc));
+  assert(
+    'convertToModelMessages throw is 400 jsonError',
+    /convertToModelMessages/.test(chatRouteSrc) && /Invalid messages/.test(chatRouteSrc),
+  );
   assert('allowlist is Console + footer copy', VOICE_CODE_WRITE_ALLOWLIST.includes('components/AgentChat.tsx') && VOICE_CODE_WRITE_ALLOWLIST.includes('lib/translations.ts'));
   assert('allowlist rejects kiln/visual root assets', isAllowedVoiceCodePath('public/bg_pic/03.jpeg') === false);
   assert('allowlist rejects harness-cli', isAllowedVoiceCodePath('harness-cli/src/tools/applyPatch.ts') === false);
