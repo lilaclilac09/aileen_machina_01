@@ -629,6 +629,12 @@ export const t = {
             title: 'How I Fell for Local Models',
             body: 'Polar Lab: prove owned data → owned weights → holdout score on Qwen2.5-0.5B + LoRA. Not a Centaur/Claude replacement — a side lab for measurement. Machina and space packs moved from flat 0.200 / mid scores to LoRA 1.000 vs base after short identical golds, miss-boost, and full-attn (q/k/v/o) LoRA. Exact-match eval, disjoint holdout, useful (≥0.60) and clear-win (≥ base+0.20) gates both pass. Harness ships answers; registry holds live truth; Polar proves the weight change; cloud records the loop on video.',
           },
+          {
+            date: '2026.08.14',
+            href: '/blog/china-neocloud',
+            title: 'Is a Terrestrial Neocloud Possible in China?',
+            body: 'The megawatts are there. The company is not. China can already stand up terrestrial AI MW at CoreWeave and Nebius scale — Runze ~750 MW live / ~6 GW planned, VNET 907 MW wholesale, GDS ~1.56 GW designed IT. What it does not have, and will not have under current GPU, customer, and capital rules, is a listed NVIDIA-native third-party GPU cloud. NVIDIA China DC Hopper went from $4.6B in Q1 FY26 to $0 in Q1 FY27; Blackwell is presumption of denial. ByteDance/Alibaba/Tencent keep the overflow; Kingsoft is a Xiaomi captive (31% of revenue). Kingsoft capex RMB 15–20B is the independent ceiling against CRWV $35–39B. If you want "China NBIS" as a stock, it does not exist. If you want "China AI MW," it trades as Runze 300442, GDS, and VNET.',
+          },
 
         ],
       },
@@ -1450,6 +1456,12 @@ export const t = {
             href: '/blog/local-models',
             title: 'Wie ich lokale Modelle lieben lernte',
             body: 'Polar Lab: beweisen owned data → owned weights → Holdout-Score auf Qwen2.5-0.5B + LoRA. Kein Centaur/Claude-Ersatz — ein Nebenlabor für Messung. Machina- und Space-Packs von flachem 0.200 / Mittelwerten auf LoRA 1.000 vs Base, nach kurzen identischen Golds, Miss-Boost und Full-Attn (q/k/v/o) LoRA. Exact-Match-Eval, disjunkter Holdout; Useful (≥0.60) und Clear-Win (≥ Base+0.20) bestanden. Harness liefert Antworten; Registry hält Live-Wahrheit; Polar beweist die Gewichtsänderung; Cloud zeichnet den Loop als Video auf.',
+          },
+          {
+            date: '2026.08.14',
+            href: '/blog/china-neocloud',
+            title: 'Ist eine terrestrische Neocloud in China möglich?',
+            body: 'Die Megawatt sind da. Die Firma ist es nicht. China kann terrestrische KI-MW schon in CoreWeave- und Nebius-Größe aufstellen — Runze ~750 MW live / ~6 GW geplant, VNET 907 MW Wholesale, GDS ~1,56 GW designed IT. Was es unter den geltenden GPU-, Kunden- und Kapitalregeln nicht hat und nicht haben wird: eine gelistete NVIDIA-native Third-Party-GPU-Cloud. NVIDIA China-DC-Hopper von 4,6 Mrd. $ in Q1 GJ26 auf 0 $ in Q1 GJ27; Blackwell steht unter presumption of denial. ByteDance/Alibaba/Tencent behalten den Overflow; Kingsoft ist ein Xiaomi-Captive (31 % Umsatz). Kingsoft-Capex RMB 15–20 Mrd. ist die Independent-Decke gegen CRWV 35–39 Mrd. $. Wer „China-NBIS“ als Aktie will, findet sie nicht. Wer „China-KI-MW“ will, handelt Runze 300442, GDS und VNET.',
           },
 
         ],

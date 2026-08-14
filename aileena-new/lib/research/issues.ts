@@ -8,7 +8,8 @@
  * newsstand for the magazine, not an archive.
  */
 
+import { CHINA_NEOCLOUD } from './china-neocloud';
 import { HUAWEI_HBM } from './huawei-hbm';
 import type { MagazineIssue } from './huawei-hbm';
 
-export const ALL_ISSUES: MagazineIssue[] = [HUAWEI_HBM];
+export const ALL_ISSUES: MagazineIssue[] = [CHINA_NEOCLOUD, HUAWEI_HBM];

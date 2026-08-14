@@ -50,6 +50,7 @@ const SLUG_TOPIC: Record<string, string> = {
   'huawei-supply': 'AI infrastructure',
   'memory-tax': 'AI infrastructure',
   'cxmt-yield-watch': 'AI infrastructure',
+  'china-neocloud': 'AI infrastructure',
 
   // ── Investing ─────────────────────────────────────────────
   'semi-basics-review': 'AI hardware',

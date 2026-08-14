@@ -49,6 +49,16 @@ const CASES: Expect[] = [
     back: { href: '/dispatch', label: '← dispatch' },
     ink: false,
   },
+  {
+    path: '/research/china-neocloud',
+    back: { href: '/dispatch', label: '← dispatch' },
+    ink: false,
+  },
+  {
+    path: '/blog/china-neocloud',
+    back: { href: '/dispatch', label: '← dispatch' },
+    ink: true,
+  },
   { path: '/works', back: { href: '/doors', label: '← doors' }, ink: false },
   { path: '/prophecy', back: { href: '/doors', label: '← doors' }, ink: false },
   { path: '/privacy', back: { href: '/', label: '← home' }, ink: true },
