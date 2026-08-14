@@ -19,7 +19,13 @@ import {
 } from './visitorMemory';
 import type { AgentMode } from './agentMode';
 
-export { COMPACTION_PING, MODEL_SWAP_PING } from './consolePrefixCopy';
+export {
+  ACCENT_SWAP_PING,
+  COMPACTION_PING,
+  MODEL_SWAP_PING,
+  parseNewRootError,
+  pingForNewRootReason,
+} from './consolePrefixCopy';
 
 /** Match the old silent window — but never slice. Ping + new root instead. */
 export const FROZEN_MAX_MESSAGES = 20;
@@ -92,12 +98,43 @@ export function needsNewRootForLength(messageCount: number): boolean {
   return messageCount > FROZEN_MAX_MESSAGES;
 }
 
+export function readSessionProviderLock(
+  bodyValue: unknown,
+  headerValue: string | null,
+): string | undefined {
+  const fromBody = typeof bodyValue === 'string' ? bodyValue.trim() : '';
+  const fromHeader = (headerValue ?? '').trim();
+  const raw = fromBody || fromHeader;
+  return raw.length > 0 ? raw : undefined;
+}
+
 export function needsNewRootForProvider(
   sessionProvider: string | undefined,
   pickedProvider: string,
 ): boolean {
   if (!sessionProvider) return false;
   return sessionProvider !== pickedProvider;
+}
+
+export function readSessionAccentLock(
+  bodyValue: unknown,
+  headerValue: string | null,
+): string | undefined {
+  const fromBody = typeof bodyValue === 'string' ? bodyValue.trim().toLowerCase() : '';
+  const fromHeader = (headerValue ?? '').trim().toLowerCase();
+  const raw = fromBody || fromHeader;
+  return raw.length > 0 ? raw : undefined;
+}
+
+/** Locked spoken register vs this request. Empty lock = first turn of a root. */
+export function needsNewRootForAccent(
+  sessionAccent: string | undefined,
+  current: VoiceAccent | null,
+): boolean {
+  if (!sessionAccent) return false;
+  const locked = sessionAccent === 'off' ? 'off' : sessionAccent;
+  const now = current ?? 'off';
+  return locked !== now;
 }
 
 /** Guard: frozen text must not contain draw / quota / prefetch hits. */

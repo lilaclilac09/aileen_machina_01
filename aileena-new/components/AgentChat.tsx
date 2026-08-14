@@ -15,7 +15,7 @@ import { appendUserTopic, readTopicMemory, buildCatchUpGreeting, buildCatchUpHin
 import { matchCanned } from '../lib/agentCannedResponses';
 import { composeSoftHint } from '../lib/softOracle';
 import { CONTACT_OFFLINE_PUBLIC } from '../lib/mail-transcript';
-import { readStoredVoiceAccent } from '../lib/voiceAccent';
+import { readStoredVoiceAccent, type VoiceAccent } from '../lib/voiceAccent';
 import {
   isVoiceCodeIntent,
   quotaDayKey as vcodeDayKey,
@@ -26,7 +26,13 @@ import {
 import { isDrawIntent } from '../lib/drawIntent';
 import { taipeiDay } from '../lib/taipeiDay';
 import { cardById, reciteDrawCard, type DrawCard } from '../lib/drawDeck';
-import { COMPACTION_PING, MODEL_SWAP_PING } from '../lib/consolePrefixCopy';
+import {
+  ACCENT_SWAP_PING,
+  COMPACTION_PING,
+  MODEL_SWAP_PING,
+  parseNewRootError,
+  pingForNewRootReason,
+} from '../lib/consolePrefixCopy';
 import SiteLeftChrome from './SiteLeftChrome';
 import AgentVoiceOrb from './AgentVoiceOrb';
 
@@ -204,6 +210,7 @@ export default function AgentChat() {
   );
   const pendingNewRootRef = useRef<{ message: string; resend?: string } | null>(null);
   const lastAskedRef = useRef('');
+  const beginNewRootRef = useRef<(ping: string, resend?: string) => void>(() => {});
 
   const { messages, setMessages, sendMessage, status, error, stop, clearError } = useChat({
     transport: new DefaultChatTransport({
@@ -211,19 +218,30 @@ export default function AgentChat() {
       // Keep server cookie day keyed to the visitor's local calendar day
       // (same as localStorage). UTC-only keys made the counter look stuck
       // between local midnight and UTC midnight.
-      headers: () => ({ 'X-Quota-Day': quotaDayKey() }),
-      // Frozen prefix: voiceAccent + provider lock for this root.
-      // priorTopics still go in the request so the server can append them
-      // on the session tail (not rewrite the system block).
+      headers: () => {
+        const h: Record<string, string> = { 'X-Quota-Day': quotaDayKey() };
+        const provider = sessionProviderRef.current ?? '';
+        if (provider) h['X-Session-Provider'] = provider;
+        if (rootVoiceAccentRef.current !== undefined) {
+          h['X-Session-Voice-Accent'] = rootVoiceAccentRef.current ?? 'off';
+        }
+        return h;
+      },
+      // Frozen prefix: always send sessionProvider as a string ('' on first
+      // turn). JSON.stringify drops `undefined`, which made the server 409
+      // provider-swap path unreachable.
       body: () => {
         if (rootVoiceAccentRef.current === undefined) {
           rootVoiceAccentRef.current = voiceModeRef.current ? readStoredVoiceAccent() : null;
         }
+        const freeze = rootVoiceAccentRef.current;
+        const live = voiceModeRef.current ? readStoredVoiceAccent() : freeze;
         return {
           priorTopics: readTopicMemory().topics,
           agentMode: 'public' as const,
-          voiceAccent: rootVoiceAccentRef.current ?? undefined,
-          sessionProvider: sessionProviderRef.current,
+          voiceAccent: live ?? undefined,
+          sessionProvider: sessionProviderRef.current ?? '',
+          sessionVoiceAccent: freeze === undefined ? '' : (freeze ?? 'off'),
         };
       },
       fetch: async (input, init) => {
@@ -231,17 +249,12 @@ export default function AgentChat() {
         const provider = res.headers.get('X-Provider');
         if (provider) sessionProviderRef.current = provider;
         if (res.status === 409) {
-          const body = (await res.clone().json().catch(() => ({}))) as {
-            code?: string;
-            error?: string;
-            reason?: string;
-          };
-          if (body.code === 'new_root') {
+          const text = await res.clone().text().catch(() => '');
+          const parsed = parseNewRootError(text);
+          const reason = res.headers.get('X-New-Root') || parsed?.reason;
+          if (parsed || reason) {
             pendingNewRootRef.current = {
-              message:
-                body.reason === 'model_swap'
-                  ? MODEL_SWAP_PING
-                  : body.error || COMPACTION_PING,
+              message: parsed?.message || pingForNewRootReason(reason, COMPACTION_PING),
               resend: lastAskedRef.current || undefined,
             };
           }
@@ -256,7 +269,11 @@ export default function AgentChat() {
   useEffect(() => {
     if (error && !pendingNewRootRef.current) setErrorMuted(false);
   }, [error]);
-  const showError = Boolean(error) && !errorMuted;
+  const showError =
+    Boolean(error) &&
+    !errorMuted &&
+    !pendingNewRootRef.current &&
+    !parseNewRootError(error?.message ?? '');
 
   // Open console → greet first (catch-up if we remember prior topics).
   // Closing clears the transcript (see closeConsole) so this runs fresh each open.
@@ -749,6 +766,11 @@ export default function AgentChat() {
       setDrawById({});
       setInput('');
       setErrorMuted(true);
+      try {
+        clearError?.();
+      } catch {
+        /* ignore */
+      }
       clearTopicMemory();
       lastForwardedHashRef.current = '';
       sessionIdRef.current =
@@ -773,15 +795,21 @@ export default function AgentChat() {
         }, 0);
       }
     },
-    [forwardTranscriptNow, setMessages],
+    [clearError, forwardTranscriptNow, setMessages],
   );
+  beginNewRootRef.current = beginNewRoot;
 
   useEffect(() => {
     if (status !== 'error') return;
     const pending = pendingNewRootRef.current;
-    if (!pending) return;
-    pendingNewRootRef.current = null;
-    beginNewRoot(pending.message, pending.resend);
+    if (pending) {
+      pendingNewRootRef.current = null;
+      beginNewRoot(pending.message, pending.resend);
+      return;
+    }
+    const parsed = parseNewRootError(error?.message ?? '');
+    if (!parsed) return;
+    beginNewRoot(parsed.message, lastAskedRef.current || undefined);
   }, [status, error, beginNewRoot]);
 
   // Phone: lock page scroll while console covers the viewport.
@@ -1552,7 +1580,8 @@ export default function AgentChat() {
         /* fall through */
       }
     }
-    if (text === COMPACTION_PING || text === MODEL_SWAP_PING) return '';
+    if (parseNewRootError(raw)) return '';
+    if (text === COMPACTION_PING || text === MODEL_SWAP_PING || text === ACCENT_SWAP_PING) return '';
     // Never surface the provider's billing/credit internals to visitors —
     // this agent isn't a free public service. Map any such error to our line.
     if (/credit balance|too low|insufficient|quota|billing|purchase credits|payment/i.test(text)) {
@@ -1904,6 +1933,12 @@ export default function AgentChat() {
               // Clear autoListen after the first start/stop so a failed mic
               // start cannot loop.
               setAutoListen(false);
+            }}
+            onAccentChange={(key: VoiceAccent) => {
+              const frozen = rootVoiceAccentRef.current;
+              if (frozen === undefined || frozen === null) return;
+              if (frozen === key) return;
+              beginNewRootRef.current(ACCENT_SWAP_PING);
             }}
           />
         </div>
