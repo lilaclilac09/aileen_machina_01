@@ -45,6 +45,8 @@ type Props = {
   onRegisterStart?: (start: () => Promise<void>) => void;
   /** Parent registers audio unlock to warm HTMLAudio/speechSynthesis in the Voice click. */
   onRegisterUnlock?: (unlock: () => void) => void;
+  /** City accent changed — parent starts a new frozen root when one is live. */
+  onAccentChange?: (key: VoiceAccent) => void;
 };
 
 const WAKE_STRIP_RE = /^(hey\s+)?aileena\b[,!.?]?\s*/i;
@@ -278,6 +280,7 @@ export default function AgentVoiceOrb({
   onListeningChange,
   onRegisterStart,
   onRegisterUnlock,
+  onAccentChange,
 }: Props) {
   // Default tts:false — live Production often has no ElevenLabs; browser voice must work first.
   const [caps, setCaps] = useState<Caps>({ whisper: false, tts: false, mode: 'webspeech' });
@@ -416,9 +419,15 @@ export default function AgentVoiceOrb({
     (key: AccentKey) => {
       if (key === accentKey) return;
       stopPlayback();
+      try {
+        localStorage.setItem(VOICE_ACCENT_STORAGE_KEY, key);
+      } catch {
+        /* ignore */
+      }
       setAccentKey(key);
+      onAccentChange?.(key);
     },
-    [accentKey, stopPlayback],
+    [accentKey, stopPlayback, onAccentChange],
   );
 
   const enqueueBuffer = useCallback(

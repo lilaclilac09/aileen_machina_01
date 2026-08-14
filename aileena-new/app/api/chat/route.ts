@@ -45,8 +45,12 @@ import {
   buildSessionTail,
   needsNewRootForLength,
   needsNewRootForProvider,
+  needsNewRootForAccent,
+  readSessionProviderLock,
+  readSessionAccentLock,
   COMPACTION_PING,
   MODEL_SWAP_PING,
+  ACCENT_SWAP_PING,
 } from '../../../lib/consolePrefix';
 
 export const runtime = 'edge';
@@ -209,6 +213,7 @@ export async function POST(req: Request) {
     councilLens?: string;
     voiceAccent?: string;
     sessionProvider?: string;
+    sessionVoiceAccent?: string;
   };
   try {
     body = await req.json();
@@ -242,6 +247,15 @@ export async function POST(req: Request) {
   const skipQuota = skipVisitorQuota(Boolean(owner));
   const councilLens = isCouncil && isCouncilLens(body.councilLens) ? body.councilLens : undefined;
   const voiceAccent = isCouncil ? null : parseVoiceAccent(body.voiceAccent);
+  const sessionVoiceAccent = isCouncil
+    ? undefined
+    : readSessionAccentLock(body.sessionVoiceAccent, req.headers.get('x-session-voice-accent'));
+  if (!isCouncil && needsNewRootForAccent(sessionVoiceAccent, voiceAccent)) {
+    return jsonError(ACCENT_SWAP_PING, 409, trace.traceId, { 'X-New-Root': 'accent_swap' }, {
+      code: 'new_root',
+      reason: 'accent_swap',
+    });
+  }
 
   // Daily quota — public visitors only. OWNER_KEY session or recognized
   // owner-email cookie skips the 20/day cap. Forged agentMode cannot bypass this.
@@ -343,10 +357,10 @@ export async function POST(req: Request) {
   }
 
   const picked = modelDecision.pick;
-  const sessionProvider =
-    typeof body.sessionProvider === 'string' && body.sessionProvider.trim()
-      ? body.sessionProvider.trim()
-      : undefined;
+  const sessionProvider = readSessionProviderLock(
+    body.sessionProvider,
+    req.headers.get('x-session-provider'),
+  );
   if (needsNewRootForProvider(sessionProvider, picked.provider)) {
     return jsonError(MODEL_SWAP_PING, 409, trace.traceId, { 'X-New-Root': 'model_swap' }, {
       code: 'new_root',

@@ -50,8 +50,11 @@ import {
   frozenPrefixForbidden,
   needsNewRootForLength,
   needsNewRootForProvider,
+  needsNewRootForAccent,
+  readSessionProviderLock,
   FROZEN_MAX_MESSAGES,
 } from '../lib/consolePrefix';
+import { parseNewRootError } from '../lib/consolePrefixCopy';
 import { routeToolsForQuestion } from '../lib/toolRouter';
 import {
   isAllowedVoiceCodePath,
@@ -298,6 +301,20 @@ function main() {
   assert('compaction pings instead of silent slice', needsNewRootForLength(FROZEN_MAX_MESSAGES + 1) && !needsNewRootForLength(1));
   assert('provider swap needs new root', needsNewRootForProvider('deepseek', 'fallback:gpt-4o-mini'));
   assert('first turn has no provider lock', needsNewRootForProvider(undefined, 'deepseek') === false);
+  assert('empty sessionProvider string is unlocked', readSessionProviderLock('', null) === undefined);
+  assert('sessionProvider body lock is read', readSessionProviderLock('deepseek', null) === 'deepseek');
+  assert('sessionProvider header lock is read', readSessionProviderLock('', 'fallback:x') === 'fallback:x');
+  assert('accent swap needs new root', needsNewRootForAccent('shanghai', 'london') === true);
+  assert('matching accent stays on root', needsNewRootForAccent('shanghai', 'shanghai') === false);
+  assert('first turn has no accent lock', needsNewRootForAccent(undefined, 'shanghai') === false);
+  const nr = parseNewRootError(
+    JSON.stringify({ error: 'Context is full.', code: 'new_root', reason: 'compaction' }),
+  );
+  assert('parses 409 new_root JSON', nr?.reason === 'compaction' && /Fresh thread/.test(nr.message ?? ''));
+  const nrWrapped = parseNewRootError(
+    'Error: ' + JSON.stringify({ error: 'Accent changed.', code: 'new_root', reason: 'accent_swap' }),
+  );
+  assert('parses wrapped 409 new_root JSON', nrWrapped?.reason === 'accent_swap' && /Accent changed/.test(nrWrapped.message ?? ''));
   assert('chat route never silent-slices', !/messages\.slice\(-20\)/.test(chatRouteSrc) && /needsNewRootForLength/.test(chatRouteSrc));
   assert('chat route appends session tail', /messagesWithTail/.test(chatRouteSrc) && /sessionTail/.test(chatRouteSrc));
   assert('chat route does not import dsh', !/from ['"][^'"]*dsh|@deepseek-ai\/dsh|npx @deepseek-ai/.test(chatRouteSrc));
@@ -306,6 +323,24 @@ function main() {
   assert('draw route does not import dsh', !/dsh|@deepseek-ai/.test(drawSrc));
   assert('draw is not in the system prompt file', !/抽牌|今日牌|tarot|draw deck/.test(SYSTEM_PROMPT));
   assert('console runtime switch starts a new root', /beginNewRoot\(MODEL_SWAP_PING\)/.test(agentChatSrc));
+  assert(
+    'console always sends sessionProvider string',
+    /sessionProvider: sessionProviderRef\.current \?\? ''/.test(agentChatSrc) &&
+      /X-Session-Provider/.test(agentChatSrc),
+  );
+  assert(
+    'console handles HTTP 409 new_root',
+    /parseNewRootError/.test(agentChatSrc) &&
+      /status !== 'error'/.test(agentChatSrc) &&
+      /beginNewRoot\(parsed\.message/.test(agentChatSrc) &&
+      /pingForNewRootReason/.test(agentChatSrc),
+  );
+  assert(
+    'accent toggle starts a new root',
+    /onAccentChange/.test(agentChatSrc) && /ACCENT_SWAP_PING/.test(agentChatSrc),
+  );
+  assert('chat route 409s accent mismatch', /needsNewRootForAccent/.test(chatRouteSrc) && /accent_swap/.test(chatRouteSrc));
+  assert('chat route reads sessionProvider header', /readSessionProviderLock/.test(chatRouteSrc) && /x-session-provider/.test(chatRouteSrc));
   assert('console draw chip does not sit in system block', /data-draw-card/.test(agentChatSrc) && /isDrawIntent/.test(agentChatSrc));
   assert('console Enter waits for IME composition', /isComposing/.test(agentChatSrc));
   assert('draw day lock uses localStorage', /aileena_draw_daily_v1/.test(agentChatSrc) && /cardById/.test(agentChatSrc));
