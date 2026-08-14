@@ -10,7 +10,7 @@ export const CHINA_NEOCLOUD: MagazineIssue = {
   issueNumber: 'Issue 02',
   longFormHref: '/blog/china-neocloud',
   coverScene:
-    '9 July 2026. A reporter in a taxi on sand-and-wormwood wasteland outside Wulanchabu: Huawei grey boxes, Alibaba’s orange round building, Kuaishou’s gate. A month later Yicai drives into Bayin and adds VNET, Envision, and cranes. Nobody in 2026 visitor copy describes an empty hyperscale hall here. The hangar is full. The airline is missing.',
+    'Wulanchabu at year-end 2025: 84 signed DC projects, more than 4 million racks signed, 330,000 in operation, occupancy 66%. DeepSeek is hiring civil engineers. Hub cities do not have named idle MW-class halls in 2026 visitor copy. The hangar is full. The airline is missing.',
   coverTitle: 'The Company Is Not',
   coverQuestion: 'Is a terrestrial neocloud possible in China?',
 
@@ -121,7 +121,7 @@ export const CHINA_NEOCLOUD: MagazineIssue = {
           points: [
             'CAICT 2025: 3.8B 智算 card-hours supplied, 1.4B used (36.8%)',
             'ByteDance 2026 domestic IDC demand ~1.4–1.5 GW, 85–90% leased halls not rented GPU hours',
-            'UCloud 24,131 cards, 91.3% sold, 2025 AI-related rev ~RMB 685m — Voltage Park neighborhood on count, not Lambda on generation',
+            'UCloud 24,131 cards, GPU 91.29% sold, 2025 AI-related rev ~RMB 685m — Voltage Park neighborhood on count, not Lambda on generation',
           ],
           impact: 'reinforces',
           impactNote: 'Halls looking for a tenant who already has a hall',
@@ -151,21 +151,20 @@ export const CHINA_NEOCLOUD: MagazineIssue = {
         {
           id: 'wulanchabu',
           title: 'Wulanchabu is full',
-          scene: 'Air halls roar, immersion halls whisper; B-building sold out; D not yet fitted',
+          scene: '84 signed DC projects, >4 million racks signed, 330,000 in operation, occupancy 66%',
           judgment:
-            'The hangar is occupied by hyperscalers and landlords, not by a third-party GPU catalog.',
+            'The hangar is occupied by hyperscalers and landlords, not by a third-party GPU catalog. Building D is intent kilowatts, not signed leases.',
           points: [
-            'China Newsweek 9 Jul 2026: Huawei, Alibaba, Kuaishou on sand-and-wormwood wasteland',
-            'Yicai 13 Aug 2026: Alibaba, Huawei, Kuaishou, VNET, Envision, cranes in Bayin',
-            'Zhongjin Bayin: 300 MW own wind/PV covers 38.74% of kWh; signed 4 million racks, energized 330,000',
+            'YE 2025: 84 signed DC projects, capex about RMB 39.975bn; built 500,000 racks (Cailian, 26 Jun 2026)',
+            'UCloud cabinets above 95% at 30 June 2026; GPU 91.29%; Building D 75% intent kW',
+            'Zhongjin Bayin: dedicated 220 kV, year-1 renewable replacement 38.74% (Xinhua, 18 Jul 2025). Alibaba GM claims 90% local green. Compare Zhongjin. DeepSeek is hiring civil engineers',
           ],
           impact: 'reinforces',
           impactNote: 'Live MW ≠ rentable CUDA 万卡',
           drawer: {
             sources: [
-              'China Newsweek, 9 Jul 2026',
-              'Yicai, 13 Aug 2026',
-              '21jingji at UCloud, 18 Jun 2026',
+              'https://www.cls.cn/detail/2410558',
+              'http://www.nmg.xinhuanet.com/20250718/70f1cc85c9c84743a203a8eb13d984eb/c.html',
             ],
           },
         },
@@ -176,12 +175,15 @@ export const CHINA_NEOCLOUD: MagazineIssue = {
           judgment:
             'Watch it. Do not re-rate it as CRWV. The equity, if a catalog ever appears, lives inside a telco.',
           points: [
-            'Dec 2025 snapshot ~14k GPUs / 85% cabinets / 98 MW IT (Guandian, unaudited)',
-            'Apr 2026 visit ~70k cards / 40k standard racks (Sina); plan >300 MW / >10万卡',
-            'Datang 500 MW PV is the physical pipe; 1.5 GW wind is a virtual PPA',
+            'Dec 2025: 14k GPUs / 85% / 98 MW IT. Apr 2026 visit: >70k cards',
+            'Datang 500 MW PV is physical; 1.5 GW wind is a virtual PPA',
+            'China Mobile Ningxia bought 78% green kWh in 2025 (Qi Jun, Guangming, 25 May 2026)',
           ],
           impact: 'uncertain',
           impactNote: 'Door 2 prototype — service, not a NBIS ticker',
+          drawer: {
+            sources: ['https://tech.gmw.cn/2026-05/25/content_38788826.htm'],
+          },
         },
         {
           id: 'qingyang',
@@ -190,9 +192,9 @@ export const CHINA_NEOCLOUD: MagazineIssue = {
           judgment:
             'Kingsoft is a real tenant-operator here, not a CoreWeave offtake story.',
           points: [
-            'China Mobile park ~2/3 of city PFLOPS; Telecom phase-1 occupancy ~97%',
-            'Kingsoft 2025 capex >RMB 5bn, cluster light-up 18 May 2026, delivered tariff 0.398 RMB/kWh',
-            'Gansu PV utilization 82.5% in early 2026; grid on the record: wind/solar “don’t obey”',
+            'Mobile park: Kingsoft, Ali, MiniMax, Kimi, Suiyuan; Telecom phase-1 occupancy ~97%',
+            'Kingsoft 2025 capex >RMB 5bn, cluster light-up 18 May 2026, tariff 0.398 via aggregation',
+            'Grid company: wind/solar “don’t obey,” halls want 7×24',
           ],
           impact: 'reinforces',
           impactNote: 'Power is permissioning plus intermittency, not a Nordic PPA product',
@@ -200,19 +202,36 @@ export const CHINA_NEOCLOUD: MagazineIssue = {
         {
           id: 'lingang',
           title: 'Lingang will not train in Qingyang',
-          scene: 'Gu Ruoyu drives 60 km / one hour every morning to SenseCore',
+          scene: 'Gu Ruoyu drives 60 km / one hour every morning. Latency is the product.',
           judgment:
-            'Opposite of a western neocloud: expensive coastal power, full halls, customers who will not train in Qingyang.',
+            'Customers who will not train in Qingyang. Opposite of a western neocloud.',
           points: [
             'Buildings 1 and 3 have not been below 90% occupancy since Sep 2023',
-            'End-2025: 18 MW stuffed into four warehouses at 48 kW/rack with Huawei in six weeks',
-            'Tenants: MiniMax, Stepfun, SenseTime’s own training',
+            'Zhangjiakou H1 2025 big-data use 4.071 TWh, green share about one-third — not 82.88% transaction share',
+            'Runze Langfang 200 MW all-liquid: sold out, still commissioning as of April 2026 IR. No August site photo of live IT',
           ],
           impact: 'weakens',
-          impactNote: 'Real third-party demand exists — inference/token shaped, coastal, not reserved IB overflow',
+          impactNote: 'Real third-party demand exists — coastal latency, not reserved IB overflow',
           drawer: {
-            sources: ['People.cn, 14 Jul 2026'],
+            sources: [
+              'http://sh.people.com.cn/n2/2026/0714/c138654-41638450.html',
+              'http://he.people.com.cn/n2/2025/0713/c192235-41289615.html',
+            ],
           },
+        },
+        {
+          id: 'idle-elsewhere',
+          title: 'The idle is not on this tour',
+          scene: 'Hub cities do not have named idle MW-class halls in 2026 visitor copy',
+          judgment:
+            'The idle is real. Shi Ke’s “digital unfinished buildings” is 2025 CPPCC. It is not the hangar tour.',
+          points: [
+            'CAICT: 3.8bn card-hours supplied, 1.4bn used, 36.8%',
+            'Some 国产 pools 70–80% idle — generic 智算, not named hub halls',
+            'Visitor copy in Wulanchabu / Zhongwei / Qingyang / Lingang describes occupancy, not empty hyperscale',
+          ],
+          impact: 'uncertain',
+          impactNote: 'Overbuilt 智算 hours ≠ empty MW-class halls on the tour',
         },
       ],
     },
@@ -387,10 +406,15 @@ export const CHINA_NEOCLOUD: MagazineIssue = {
           points: [
             'Finland 2025: nuclear 37%, wind 26%, hydro 14.5%; Mäntsälä PUE as low as 1.13; 2026 100% renewable contracts',
             '蒙西 2025 new-energy generation 32% (capacity 53%); Ningxia 2024 ~76% thermal; Gansu 2024 ~52% thermal',
-            'Hebei Daily 13 Jul 2025: H1 big-data use 4.071 TWh, green share about one-third — do not confuse with 82.88% transaction share',
+            'Hebei Daily / People.cn 13 Jul 2025: H1 big-data use 4.071 TWh, green share about one-third — do not confuse with 82.88% transaction share',
           ],
           impact: 'reinforces',
           impactNote: 'Door 4 does not open for training',
+          drawer: {
+            sources: [
+              'http://he.people.com.cn/n2/2025/0713/c192235-41289615.html',
+            ],
+          },
         },
         {
           id: 'jiliu',

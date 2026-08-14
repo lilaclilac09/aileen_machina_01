@@ -31,7 +31,7 @@ If you want "China NBIS" as a stock, it does not exist. If you want "China AI MW
 | VNET | 907 MW wholesale in-service (31 Mar 2026) | 450–500 MW 2026 delivery | Wholesale colo. Wulanchabu AI workhorse |
 | GDS | ~1.56 GW designed IT (derived) | 1 GW FY 2026 sales; H1 bookings 470 MW | Mix ~50% CPU / 50% GPU. Hyperscaler/wholesale |
 | Kingsoft Cloud | not disclosed as MW | AI gross billing ~RMB 1.0bn Q1 2026 | GPU cloud, heavily captive. Xiaomi ~31% total rev |
-| UCloud | 24,131 cards; Wulanchabu A/B/C 61.7 MW | 定增 ≤RMB 1.5B | 91.3% sold. 2025 AI-related rev ~RMB 685m |
+| UCloud | 24,131 cards; Wulanchabu A/B/C 61.7 MW | 定增 ≤RMB 1.5B | GPU 91.29% sold. 2025 AI-related rev ~RMB 685m |
 
 CAICT 2025: 3.8B 智算 card-hours supplied, 1.4B used (36.8%). Some 国产 pools 70–80% idle.
 
@@ -67,7 +67,7 @@ Kingsoft Q1 2026 AI gross billing ~RMB 1.0bn, 50.1% of public cloud. Xiaomi ecos
 |--|------|------|----------|--------|-----------|
 | 2026 spend | FY capex $35–39B; Q2 $9.4B | Q1 raised $6.3B (NVIDIA $2.0B equity + $4.3B converts); Jul 2026 first ABS $775m | FY capex+leases RMB 15–20B; Q1 RMB 3.0B | 定增 ≤RMB 1.5B; project IRR 8.49% | 2025 capex RMB 1.129B |
 | NVIDIA | Largest non-founder shareholder; Exemplar; B300/Rubin first wave | $2B equity; Exemplar GB300 | None. Cannot buy Blackwell | None | None |
-| Offtake | Backlog $104B | Meta up to $27B; MSFT up to $19.4B | Xiaomi 31% of rev | 22,030 / 24,131 GPUs sold (91.3%) | Mix. Not IG take-or-pay |
+| Offtake | Backlog $104B | Meta up to $27B; MSFT up to $19.4B | Xiaomi 31% of rev | 22,030 / 24,131 GPUs sold (91.29%) | Mix. Not IG take-or-pay |
 
 # Power product
 
@@ -87,6 +87,16 @@ SenseCore: 40,400 PFLOPS FP16 YE2025; GenAI revenue RMB 3.63B (72% of 2025 sales
 2. Telco SOE commercial 万卡 catalog at CRWV SLAs (联通中卫 prototype). Equity inside a telco.
 3. Export controls reverse + repeating specialist NVIDIA allocation. Until then, model zero.
 4. Global customers accept 绿证 — they will not, for training. Sichuan hydro is the honest kWh exception; 6 GW of planned halls are not clustering there.
+
+# Hangar tour
+
+- **Wulanchabu.** YE 2025: 84 signed DC projects, capex about RMB 39.975bn. Signed racks >4 million. Built 500,000. In operation 330,000. Occupancy 66% ([Cailian](https://www.cls.cn/detail/2410558), 26 Jun 2026). UCloud cabinets above 95% at 30 June 2026; GPU 91.29%. Building D is 75% intent kilowatts, not signed leases. Zhongjin Bayin: dedicated 220 kV, year-1 renewable replacement **38.74%** ([Xinhua](http://www.nmg.xinhuanet.com/20250718/70f1cc85c9c84743a203a8eb13d984eb/c.html), 18 Jul 2025). Alibaba GM claims 90% local green. Compare Zhongjin. DeepSeek is hiring civil engineers.
+- **Zhongwei.** Unicom 1–2 storage, 3–4 training. Monthly power RMB 10–13 million (Qi Jun, [Guangming](https://tech.gmw.cn/2026-05/25/content_38788826.htm), 25 May 2026). Dec 2025: 14k GPUs / 85% / 98 MW IT. Apr 2026 visit: >70k cards. Datang 500 MW PV physical; 1.5 GW wind virtual PPA. China Mobile Ningxia 78% green kWh in 2025.
+- **Qingyang.** Securities Times off Xifeng airport. Mobile park: Kingsoft, Ali, MiniMax, Kimi, Suiyuan. Telecom phase-1 occupancy ~97%. Kingsoft 2025 capex >RMB 5bn, cluster light-up 18 May 2026. Tariff 0.398 via aggregation. Grid: wind/solar "don't obey," halls want 7×24.
+- **Zhangjiakou.** Sun Jun, Hebei Daily: H1 2025 big-data use 4.071 TWh, green share about **one-third** ([People.cn](http://he.people.com.cn/n2/2025/0713/c192235-41289615.html), 13 Jul 2025). Do not confuse with 82.88% green *transaction* share. Chindata Huailai HQ >200 MW IT. Runze Langfang 200 MW all-liquid: sold out, still commissioning as of April 2026 IR. No August site photo of live IT.
+- **Lingang.** Gu Ruoyu 60 km / one hour. Buildings 1 and 3 not below 90% occupancy since Sep 2023 ([People.cn](http://sh.people.com.cn/n2/2026/0714/c138654-41638450.html), 14 Jul 2026). Customers who will not train in Qingyang. Latency is the product.
+
+The idle is real, and it is not on this tour. CAICT: 3.8bn card-hours supplied, 1.4bn used, 36.8%. Shi Ke's "digital unfinished buildings" is 2025 CPPCC. Hub cities do not have named idle MW-class halls in 2026 visitor copy.
 
 # Watch
 

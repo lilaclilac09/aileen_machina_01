@@ -2,6 +2,24 @@
 import Link from 'next/link';
 import SubstackShell from '../_substack/SubstackShell';
 
+const hangarRefs = {
+  cailian: 'https://www.cls.cn/detail/2410558',
+  xinhuaBayin: 'http://www.nmg.xinhuanet.com/20250718/70f1cc85c9c84743a203a8eb13d984eb/c.html',
+  guangming: 'https://tech.gmw.cn/2026-05/25/content_38788826.htm',
+  peopleZhangjiakou: 'http://he.people.com.cn/n2/2025/0713/c192235-41289615.html',
+  peopleLingang: 'http://sh.people.com.cn/n2/2026/0714/c138654-41638450.html',
+} as const;
+
+const references: { label: string; href: string }[] = [
+  { label: 'Cailian — Wulanchabu DC census (26 Jun 2026)', href: hangarRefs.cailian },
+  { label: 'Xinhua — Zhongjin Bayin 220 kV / 38.74% year-1 renewable (18 Jul 2025)', href: hangarRefs.xinhuaBayin },
+  { label: 'Guangming — Unicom Zhongwei, Qi Jun (25 May 2026)', href: hangarRefs.guangming },
+  { label: 'People.cn / Hebei Daily — Zhangjiakou H1 2025 big-data kWh (13 Jul 2025)', href: hangarRefs.peopleZhangjiakou },
+  { label: 'People.cn — SenseCore Lingang occupancy (14 Jul 2026)', href: hangarRefs.peopleLingang },
+  { label: 'Companion — Why Huawei\'s Bet Isn\'t on the Chip', href: '/blog/huawei-hbm' },
+  { label: 'Companion — NVIDIA Is Buying Its Own Demand', href: '/blog/nvidia-flywheel' },
+];
+
 export default function ChinaNeocloudArticle() {
   return (
     <SubstackShell
@@ -195,7 +213,7 @@ export default function ChinaNeocloudArticle() {
                 <td style={tdStyle}>定增 ≤RMB 1.5B</td>
                 <td style={tdStyle}>GPU cloud, small</td>
                 <td style={tdStyle}>Card count disclosed, not generation</td>
-                <td style={tdStyle}>91.3% sold. 2025 AI-related rev ~RMB 685m</td>
+                <td style={tdStyle}>GPU 91.29% sold. 2025 AI-related rev ~RMB 685m</td>
               </tr>
             </tbody>
           </table>
@@ -410,7 +428,7 @@ export default function ChinaNeocloudArticle() {
                 <td style={tdStyle}>Backlog $104B</td>
                 <td style={tdStyle}>Meta up to $27B; MSFT up to $19.4B</td>
                 <td style={tdStyle}>Xiaomi 31% of rev; Ali 5-yr unverified</td>
-                <td style={tdStyle}>22,030 / 24,131 GPUs sold (91.3%)</td>
+                <td style={tdStyle}>22,030 / 24,131 GPUs sold (91.29%)</td>
                 <td style={tdStyle}>Mix. Not IG take-or-pay</td>
               </tr>
             </tbody>
@@ -539,7 +557,7 @@ export default function ChinaNeocloudArticle() {
           2025 sales), WAIC 2026 plan of at least five domestic 万卡 clusters. Plan, not census.
           ACV is model plus token, not reserved IB. Kingsoft is the listed name with actual AI
           billing and a Xiaomi-shaped P&amp;L. UCloud is the only name with a public card census
-          worth using: 24,131 cards, 91.3% sold, max single cluster ~16,000, Wulanchabu 61.7 MW
+          worth using: 24,131 cards, GPU 91.29% sold, max single cluster ~16,000, Wulanchabu 61.7 MW
           usable. 24,131 cards is Voltage Park&rsquo;s neighborhood on count (36k) and nowhere
           near Lambda&rsquo;s 10k+ GB300 in one factory on generation. 61.7 MW is a rounding
           error on Runze&rsquo;s 750 MW and on Nebius&rsquo;s 800 MW–1 GW connected target.
@@ -663,60 +681,72 @@ export default function ChinaNeocloudArticle() {
           The megawatts were never the question. The company is.
         </p>
 
-        <SectionLabel>Field notes</SectionLabel>
+        <SectionLabel>The hangar tour</SectionLabel>
         <p style={bodyStyle}>
-          <strong style={strong}>Wulanchabu.</strong> China Newsweek (9 Jul 2026) put a reporter
-          in a taxi past Huawei grey boxes, Alibaba&rsquo;s orange round building, Kuaishou&rsquo;s
-          gate, on sand-and-wormwood wasteland. Yicai (13 Aug 2026) drove into Bayin and saw
-          Alibaba, Huawei, Kuaishou, VNET, Envision, and cranes. 21jingji (18 Jun 2026) at
-          UCloud: air halls roar, immersion halls whisper; B-building sold out; D not yet fitted.
-          Zhongjin&rsquo;s Bayin campus: servers with blue LEDs 24/7, a dedicated 220 kV line from
-          300 MW of own wind / PV that covers 38.74% of kWh. Signed 4 million racks, energized
-          330,000. Nobody in 2026 visitor copy describes an empty hyperscale hall here.
+          <strong style={strong}>Wulanchabu.</strong> Year-end 2025: 84 signed DC projects, capex
+          about RMB 39.975bn. Signed racks: more than 4 million. Built: 500,000. In operation:
+          330,000. Occupancy: 66% (<ExtLink href={hangarRefs.cailian}>Cailian</ExtLink>, 26 Jun
+          2026). UCloud cabinets above 95% at 30 June 2026; GPU 91.29%. Building D is 75% intent
+          kilowatts, not signed leases. Zhongjin Bayin: dedicated 220 kV, own wind and PV, year-1
+          renewable replacement <strong style={strong}>38.74%</strong> (<ExtLink href={hangarRefs.xinhuaBayin}>Xinhua</ExtLink>, 18 Jul 2025). Alibaba&rsquo;s GM
+          claims 90% local green. Compare Zhongjin. DeepSeek is hiring civil engineers.
         </p>
         <p style={bodyStyle}>
-          <strong style={strong}>Zhongwei.</strong> Unicom: storage in buildings 1–2, training in
-          3–4, RMB 10–13 million electricity per month (Qi Jun, 25 May 2026). Dec 2025 snapshot
-          ~14k GPUs / 85% cabinets / 98 MW IT (Guandian, unaudited). Apr 2026 visit ~70k cards /
-          40k standard racks (Sina). Datang 500 MW PV is the physical pipe; 1.5 GW wind is a
-          virtual PPA. China Mobile Ningxia bought 78% green kWh in 2025. Evaporative cooling is
-          being designed out. The DeepSeek-idle story is national domestic-chip inventory, not
-          this campus.
+          <strong style={strong}>Zhongwei.</strong> Unicom buildings 1–2 storage, 3–4 training.
+          Monthly power bill RMB 10–13 million (Qi Jun, <ExtLink href={hangarRefs.guangming}>Guangming</ExtLink>, 25 May 2026). Dec 2025: 14k
+          GPUs / 85% / 98 MW IT. Apr 2026 visit: &gt;70k cards. Datang 500 MW PV is physical; 1.5
+          GW wind is a virtual PPA. China Mobile Ningxia bought 78% green kWh in 2025.
         </p>
         <p style={bodyStyle}>
           <strong style={strong}>Qingyang.</strong> Securities Times walked off Xifeng airport
-          past a &ldquo;China Computing Valley&rdquo; sign. China Mobile park (~2/3 of city
-          PFLOPS): Kingsoft, Ali, MiniMax, Kimi, Suiyuan among 70+; immersion tanks, almost no
-          fan noise. Telecom phase-1 occupancy ~97%. Kingsoft is a real tenant-operator: 2025
-          capex &gt;RMB 5bn, cluster light-up 18 May 2026. Delivered tariff 0.398 RMB/kWh via
-          green aggregation. Grid company on the record: wind / solar &ldquo;don&rsquo;t
-          obey,&rdquo; halls want 7×24. Gansu PV utilization 82.5% in early 2026.
+          past a &ldquo;China Computing Valley&rdquo; sign. Mobile park: Kingsoft, Ali, MiniMax,
+          Kimi, Suiyuan; immersion tanks, almost no fan noise. Telecom phase-1 occupancy ~97%.
+          Kingsoft 2025 capex &gt;RMB 5bn, cluster light-up 18 May 2026. Tariff 0.398 via
+          aggregation. Grid company: wind / solar &ldquo;don&rsquo;t obey,&rdquo; halls want 7×24.
         </p>
         <p style={bodyStyle}>
-          <strong style={strong}>Zhangjiakou / Langfang.</strong> Sun Jun, Hebei Daily (13 Jul
-          2025): H1 big-data use 4.071 TWh, green share about one-third. Do not confuse with
-          82.88% green-power <em>transaction</em> share. Chindata Huailai HQ &gt;200 MW IT in
-          op+construction (Xinhua, 9 Apr 2026). Runze Langfang 200 MW all-liquid is still, as of
-          April 2026 IR, a sold-out building in commissioning. No August 2026 site photo of live
-          IT.
+          <strong style={strong}>Zhangjiakou.</strong> Sun Jun, Hebei Daily: H1 2025 big-data use
+          4.071 TWh, green share about <strong style={strong}>one-third</strong> (<ExtLink href={hangarRefs.peopleZhangjiakou}>People.cn</ExtLink>, 13 Jul 2025). Do not
+          confuse with 82.88% green <em>transaction</em> share. Chindata Huailai HQ &gt;200 MW IT.
+          Runze Langfang 200 MW all-liquid: sold out, still commissioning as of April 2026 IR. No
+          August site photo of live IT.
         </p>
         <p style={bodyStyle}>
-          <strong style={strong}>Lingang.</strong> Gu Ruoyu drives 60 km / one hour every morning
-          to SenseCore. Buildings 1 and 3 have not been below 90% occupancy since Sep 2023
-          (People.cn, 14 Jul 2026). End-2025 they stuffed 18 MW into four warehouses at 48 kW/rack
-          with Huawei in six weeks. Tenants: MiniMax, Stepfun, SenseTime&rsquo;s own training.
-          Opposite of a western neocloud: expensive coastal power, full halls, customers who will
-          not train in Qingyang.
+          <strong style={strong}>Lingang.</strong> Gu Ruoyu drives 60 km / one hour every morning.
+          Buildings 1 and 3 have not been below 90% occupancy since Sep 2023 (<ExtLink href={hangarRefs.peopleLingang}>People.cn</ExtLink>, 14 Jul 2026). Customers who
+          will not train in Qingyang. Latency is the product.
+        </p>
+        <p style={bodyStyle}>
+          The idle is real, and it is not on this tour. CAICT: 3.8bn card-hours supplied, 1.4bn
+          used, 36.8%. Shi Ke&rsquo;s &ldquo;digital unfinished buildings&rdquo; is 2025 CPPCC. Hub
+          cities do not have named idle MW-class halls in 2026 visitor copy.
         </p>
 
+        <SectionLabel>References</SectionLabel>
+        <ul style={listStyle}>
+          {references.map((r) => (
+            <li key={r.href} style={{ marginBottom: 10 }}>
+              {r.href.startsWith('/') ? (
+                <Link href={r.href} style={linkStyle}>
+                  {r.label}
+                </Link>
+              ) : (
+                <a href={r.href} style={linkStyle} target="_blank" rel="noopener noreferrer">
+                  {r.label}
+                </a>
+              )}
+            </li>
+          ))}
+        </ul>
+
         <div style={{ marginTop: 56 }}>
-          <Link href="/#dispatch" style={{
+          <Link href="/dispatch" style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
             fontFamily: 'monospace', fontSize: '0.6rem', letterSpacing: '0.35em',
             color: 'rgba(255,255,255,0.35)', textDecoration: 'none', textTransform: 'uppercase',
             transition: 'color 0.2s',
           }}>
-            ← Back to Archive
+            ← Back to Dispatch
           </Link>
         </div>
 
@@ -775,6 +805,14 @@ const listStyle: React.CSSProperties = {
   marginBottom: 24,
   paddingLeft: 22,
 };
+
+function ExtLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <a href={href} style={linkStyle} target="_blank" rel="noopener noreferrer">
+      {children}
+    </a>
+  );
+}
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
