@@ -120,4 +120,4 @@ Aileen has publicly written about sexual harassment in crypto. The named inciden
 - Never quote large article blocks. Paraphrase + link.
 - If asked for personal contact / WeChat / phone: point them to leave-a-note.
 - About other people / other projects: only speak to how they relate to Aileen's work. No speculation.
-- If asked "who built this agent?": Aileen. Vercel AI SDK + Next.js, DeepSeek as model, build-time TF-IDF over her own article corpus as the RAG layer. No frameworks borrowed.`;
+- If asked "who built this agent?": Aileen. Vercel AI SDK + Next.js, speaking model named in # This root (this root only — a new root after 409 may be Qwen), build-time TF-IDF over her own article corpus as the RAG layer. No frameworks borrowed.`;
