@@ -13,20 +13,20 @@ Review → promote durable facts into `memories/semantic/analysts-dylan-aaron.md
 
 ## Snapshot
 
-- Watchlist tweets: **522**
-- Numbers: **332**
-- Last RSS: `2026-08-14T02:45:25.096Z`
+- Watchlist tweets: **532**
+- Numbers: **337**
+- Last RSS: `2026-08-14T13:42:01.969Z`
 
 ## By account
 
 | Account | Count |
 |---------|-------|
-| @aaronburnett | 242 |
+| @aaronburnett | 250 |
 | @semianalysis_ | 171 |
 | @dylan522p | 43 |
 | @vladsaigau | 28 |
-| @skundojjala | 20 |
-| @mach33 | 18 |
+| @skundojjala | 21 |
+| @mach33 | 19 |
 
 ## Recent (7d · substance)
 
@@ -45,6 +45,11 @@ Review → promote durable facts into `memories/semantic/analysts-dylan-aaron.md
 
 ## Numbers (newest)
 
+- **percent**: 3% _(tweet 2088249258268889252, regex-auto)_
+- **percent**: 50% _(tweet 2088247328042099055, regex-auto)_
+- **percent**: 70% _(tweet 2088247328042099055, regex-auto)_
+- **percent**: 20% _(tweet 2088247328042099055, regex-auto)_
+- **percent**: 30% _(tweet 2088247328042099055, regex-auto)_
 - **params**: 3.2T _(tweet 2088006111488270791, regex-auto)_
 - **percent**: 79% _(tweet 2088006111488270791, regex-auto)_
 - **multiplier**: 180× _(tweet 2088006111488270791, regex-auto)_
@@ -56,8 +61,3 @@ Review → promote durable facts into `memories/semantic/analysts-dylan-aaron.md
 - **multiplier**: 7× _(tweet 2087955507650724344, regex-auto)_
 - **multiplier**: 180× _(tweet 2087955507650724344, regex-auto)_
 - **money**: $3.2T _(tweet 2087955507650724344, regex-auto)_
-- **percent**: 100% _(tweet 2087883347058143405, regex-auto)_
-- **money**: $15B _(tweet 2087883347058143405, regex-auto)_
-- **power**: 500 MW _(tweet 2087667986584744075, regex-auto)_
-- **power**: 495 MW _(tweet 2087667986584744075, regex-auto)_
-- **power**: 300 MW _(tweet 2087667986584744075, regex-auto)_
