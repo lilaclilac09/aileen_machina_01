@@ -127,6 +127,15 @@ const LEAD_DISMISS_KEY = 'aileena_lead_state'; // 'sent' | (unset) — historica
  */
 type LeadState = 'idle' | 'submitting' | 'sent';
 
+type VcodeAttachment = {
+  patch: string;
+  filename: string;
+  applying?: boolean;
+  applied?: boolean;
+  applyError?: string;
+  copied?: boolean;
+};
+
 export default function AgentChat() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
@@ -148,6 +157,7 @@ export default function AgentChat() {
   const [autoListen, setAutoListen] = useState(false);
   const [vcodeCount, setVcodeCount] = useState(0);
   const [vcodeBusy, setVcodeBusy] = useState(false);
+  const [vcodeById, setVcodeById] = useState<Record<string, VcodeAttachment>>({});
   const [isOwner, setIsOwner] = useState(false);
   const isOwnerRef = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -828,9 +838,12 @@ export default function AgentChat() {
       const data = (await res.json().catch(() => ({}))) as {
         ok?: boolean;
         proposal?: string;
+        patch?: string;
+        patch_filename?: string;
         error?: string;
         remaining?: number;
         limit?: number;
+        apply?: boolean;
       };
 
       if (typeof data.remaining === 'number') {
@@ -839,10 +852,11 @@ export default function AgentChat() {
         setVcodeCount(used);
       }
 
-      const reply = data.ok && data.proposal
-        ? `▸ voice → code · propose only (no Cursor tokens · not written to disk)\n\n${data.proposal}`
-        : data.error ||
-          `Voice-code paused (${res.status}). Try again shortly — chat still works.`;
+      const reply =
+        data.ok && data.proposal
+          ? `▸ voice → code · propose only (copy / take the .patch — not written to disk)\n\n${data.proposal}`
+          : data.error ||
+            `Voice-code paused (${res.status}). Try again shortly — chat still works.`;
 
       setMessages((prev) =>
         prev.map((m) =>
@@ -851,6 +865,27 @@ export default function AgentChat() {
             : m,
         ),
       );
+
+      if (res.ok && data.ok && typeof data.patch === 'string' && data.patch.length > 0) {
+        setVcodeById((prev) => ({
+          ...prev,
+          [assistantId]: {
+            patch: data.patch as string,
+            filename:
+              typeof data.patch_filename === 'string' && data.patch_filename.trim()
+                ? data.patch_filename.trim()
+                : 'aileena-vcode.patch',
+          },
+        }));
+      } else if (res.ok && data.ok && data.proposal) {
+        setVcodeById((prev) => ({
+          ...prev,
+          [assistantId]: {
+            patch: data.proposal as string,
+            filename: 'aileena-vcode.patch',
+          },
+        }));
+      }
 
       if (res.ok && data.ok && typeof data.remaining !== 'number') {
         const next = readStoredVcodeCount() + 1;
@@ -876,6 +911,75 @@ export default function AgentChat() {
       );
     } finally {
       setVcodeBusy(false);
+    }
+  }
+
+  function takePatch(att: VcodeAttachment) {
+    const blob = new Blob([att.patch], { type: 'text/x-patch' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = att.filename || 'aileena-vcode.patch';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function copyPatch(id: string, att: VcodeAttachment) {
+    try {
+      await navigator.clipboard.writeText(att.patch);
+      setVcodeById((prev) => ({ ...prev, [id]: { ...att, copied: true } }));
+      window.setTimeout(() => {
+        setVcodeById((prev) => {
+          const cur = prev[id];
+          if (!cur) return prev;
+          return { ...prev, [id]: { ...cur, copied: false } };
+        });
+      }, 1600);
+    } catch {
+      /* clipboard blocked */
+    }
+  }
+
+  async function ownerApplyPatch(id: string, att: VcodeAttachment) {
+    if (!isOwnerRef.current) return;
+    setVcodeById((prev) => ({
+      ...prev,
+      [id]: { ...att, applying: true, applyError: undefined },
+    }));
+    try {
+      const res = await fetch('/api/owner/voice-code/apply', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ patch: att.patch }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        apply?: boolean;
+        error?: string;
+      };
+      if (!res.ok || !data.ok || data.apply !== true) {
+        setVcodeById((prev) => ({
+          ...prev,
+          [id]: {
+            ...att,
+            applying: false,
+            applied: false,
+            applyError: data.error || `apply refused (${res.status})`,
+          },
+        }));
+        return;
+      }
+      setVcodeById((prev) => ({
+        ...prev,
+        [id]: { ...att, applying: false, applied: true, applyError: undefined },
+      }));
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'network error';
+      setVcodeById((prev) => ({
+        ...prev,
+        [id]: { ...att, applying: false, applied: false, applyError: msg },
+      }));
     }
   }
 
@@ -1405,12 +1509,23 @@ export default function AgentChat() {
                   return <Line key={m.id} role="assistant" text={activity} muted />;
                 }
               }
+              const att = m.role === 'assistant' ? vcodeById[m.id] : undefined;
               return (
-                <Line
-                  key={m.id}
-                  role={m.role === 'user' ? 'user' : 'assistant'}
-                  text={text}
-                />
+                <div key={m.id}>
+                  <Line
+                    role={m.role === 'user' ? 'user' : 'assistant'}
+                    text={text}
+                  />
+                  {att ? (
+                    <VcodeActions
+                      att={att}
+                      isOwner={isOwner}
+                      onCopy={() => void copyPatch(m.id, att)}
+                      onTake={() => takePatch(att)}
+                      onApply={() => void ownerApplyPatch(m.id, att)}
+                    />
+                  ) : null}
+                </div>
               );
             })
           )}
@@ -1594,17 +1709,22 @@ export default function AgentChat() {
                 onClick={() =>
                   ask('Voice → code: sketch a small patch for the Console footer')
                 }
-                title="Propose-only patch, 5/day, not written to disk"
+                title="Propose-only patch — copy or take the .patch, nothing written"
                 className={
                   vcodeRemaining === 0
                     ? 'text-red-400/70 uppercase'
                     : 'text-[#007d75]/70 hover:text-[#008f86] uppercase'
                 }
               >
-                {vcodeRemaining === 0
-                  ? 'vcode 0'
-                  : `vcode ${vcodeRemaining}/${VCODE_DAILY_LIMIT}`}
+                Voice → code
               </button>
+              <span
+                className={
+                  vcodeRemaining === 0 ? 'text-red-400/70' : 'text-[#1b1713]/40'
+                }
+              >
+                {vcodeRemaining} left today
+              </span>
             </span>
           </p>
         </div>
@@ -1740,6 +1860,55 @@ export default function AgentChat() {
         </div>
       </div>
     </>
+  );
+}
+
+function VcodeActions({
+  att,
+  isOwner,
+  onCopy,
+  onTake,
+  onApply,
+}: {
+  att: VcodeAttachment;
+  isOwner: boolean;
+  onCopy: () => void;
+  onTake: () => void;
+  onApply: () => void;
+}) {
+  return (
+    <div className="pl-5 mt-1 mb-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+      <button
+        type="button"
+        onClick={onCopy}
+        className="font-mono text-[0.48rem] tracking-[0.22em] uppercase text-[#008f86]/85 hover:text-[#007d75]"
+      >
+        {att.copied ? 'copied' : 'copy'}
+      </button>
+      <button
+        type="button"
+        onClick={onTake}
+        className="font-mono text-[0.48rem] tracking-[0.22em] uppercase text-[#008f86]/85 hover:text-[#007d75]"
+      >
+        take .patch
+      </button>
+      {isOwner ? (
+        <button
+          type="button"
+          disabled={att.applying || att.applied}
+          onClick={onApply}
+          className="font-mono text-[0.48rem] tracking-[0.22em] uppercase text-[#1b1713]/45 hover:text-[#008f86] disabled:opacity-40"
+          title="Owner session only — Console/footer allowlist"
+        >
+          {att.applied ? 'applied' : att.applying ? 'applying…' : 'owner apply'}
+        </button>
+      ) : null}
+      {att.applyError ? (
+        <span className="font-mono text-[0.48rem] tracking-[0.16em] text-red-400/70">
+          {att.applyError}
+        </span>
+      ) : null}
+    </div>
   );
 }
 

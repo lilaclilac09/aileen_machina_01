@@ -6,8 +6,12 @@
 export const VCODE_DAILY_LIMIT = 5;
 export const VCODE_SESSION_KEY = 'aileena_vcode_count_daily_v1';
 
+/**
+ * Idle chat must not burn vcode. Only implement / fix / 写代码 /
+ * an explicit Voice → code chip (or close Chinese coding verbs).
+ */
 const INTENT_RE =
-  /(code|coding|patch|fix|implement|refactor|diff|pull request|\bpr\b|bugfix|write code|改代码|写代码|修bug|修代码|重构)/i;
+  /(\bimplement\b|\bfix\b|write code|改代码|写代码|修bug|修代码|重构)/i;
 
 /** True when the utterance should burn a voice-code quota slot (not chat 20). */
 export function isVoiceCodeIntent(text: string): boolean {

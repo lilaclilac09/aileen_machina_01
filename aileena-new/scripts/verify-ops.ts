@@ -5,7 +5,8 @@
  *   pnpm verify:ops
  */
 
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
   routeModel,
@@ -39,6 +40,18 @@ import { matchCanned } from '../lib/agentCannedResponses';
 import { SITE_AGENT_OPENING } from '../lib/siteAgentCopy';
 import { buildCatchUpGreeting } from '../lib/articleTopicMemory';
 import { CONTACT_OFFLINE_PUBLIC } from '../lib/mail-transcript';
+import { isVoiceCodeIntent } from '../lib/voiceCodeIntent';
+import {
+  isAllowedVoiceCodePath,
+  VOICE_CODE_WRITE_ALLOWLIST,
+} from '../lib/voiceCodeAllowlist';
+import {
+  applyHunksToText,
+  buildDownloadablePatch,
+  extractUnifiedDiff,
+  parseUnifiedDiff,
+} from '../lib/voiceCodePatch';
+import { applyAllowlistedPatch } from '../lib/voiceCodeApply';
 
 type Check = { name: string; ok: boolean; detail?: string };
 const checks: Check[] = [];
@@ -192,15 +205,77 @@ function main() {
   assert('voice-code pins model with voiceAccent', /voiceAccent/.test(vcodeSrc) && /toolRoute: 'voice_code'/.test(vcodeSrc));
   assert('voice-code never applies spoken register', !/spokenRegisterPrompt/.test(vcodeSrc));
   assert('voice-code stays propose-only not dsh', /harness: 'propose-only'/.test(vcodeSrc) && /write_target: null/.test(vcodeSrc) && /not DeepSeek Harness/.test(vcodeSrc));
+  assert('voice-code never returns apply true', /apply: false/.test(vcodeSrc) && /wantsWrite/.test(vcodeSrc));
+  assert('voice-code does not import dsh', !/from ['"][^'"]*dsh|@deepseek-ai\/dsh|npx @deepseek-ai/.test(vcodeSrc));
   assert('voice-code fetch sends voiceAccent', /\/api\/voice-code/.test(agentChatSrc) && /prompt: trimmed/.test(agentChatSrc));
   assert(
     'voice-on empty state still teaches voice-code',
     /voiceMode \?/.test(agentChatSrc) && /写代码/.test(agentChatSrc) && /propose-only patch/.test(agentChatSrc),
   );
   assert(
-    'vcode counter is a Voice → code button',
-    /vcode \$\{vcodeRemaining\}/.test(agentChatSrc) && /ask\('Voice → code:/.test(agentChatSrc),
+    'vcode chip is Voice → code with leftover quota',
+    /Voice → code/.test(agentChatSrc) && /\{vcodeRemaining\} left today/.test(agentChatSrc) && /ask\('Voice → code:/.test(agentChatSrc),
   );
+  assert('visitor UI has copy + take patch', /copy/.test(agentChatSrc) && /take \.patch/.test(agentChatSrc));
+  assert('visitor UI has no public Apply button', !/['"]Apply['"]/.test(agentChatSrc) && /isOwner \?/.test(agentChatSrc) && /owner apply/.test(agentChatSrc));
+  assert('console does not call public apply', !/fetch\(['"]\/api\/voice-code\/apply/.test(agentChatSrc));
+  assert('owner apply uses existing owner session', /\/api\/owner\/voice-code\/apply/.test(agentChatSrc));
+
+  const publicApplySrc = readFileSync(join(process.cwd(), 'app/api/voice-code/apply/route.ts'), 'utf8');
+  assert('public apply route never 200', /status: 403/.test(publicApplySrc) && !/status:\s*200/.test(publicApplySrc));
+  assert('public apply never writes', !/writeFile|git apply|applyAllowlistedPatch/.test(publicApplySrc));
+
+  const ownerApplySrc = readFileSync(join(process.cwd(), 'app/api/owner/voice-code/apply/route.ts'), 'utf8');
+  assert('owner apply requires owner session', /requireOwnerFromRequest/.test(ownerApplySrc) && /Owner session required/.test(ownerApplySrc) && /401/.test(ownerApplySrc));
+  assert('owner apply uses console/footer allowlist', /VOICE_CODE_WRITE_ALLOWLIST/.test(ownerApplySrc));
+  assert('owner apply does not import dsh', !/deepseek-harness|@deepseek-ai\/dsh/.test(ownerApplySrc));
+
+  assert('idle chat does not burn vcode', isVoiceCodeIntent('hi') === false && isVoiceCodeIntent("what's her solana stack?") === false);
+  assert('fix / implement / 写代码 burn vcode', isVoiceCodeIntent('fix the footer') && isVoiceCodeIntent('implement a patch') && isVoiceCodeIntent('写代码'));
+  assert('Voice → code chip burns vcode', isVoiceCodeIntent('Voice → code: sketch a small patch for the Console footer'));
+  assert('allowlist is Console + footer copy', VOICE_CODE_WRITE_ALLOWLIST.includes('components/AgentChat.tsx') && VOICE_CODE_WRITE_ALLOWLIST.includes('lib/translations.ts'));
+  assert('allowlist rejects kiln/visual root assets', isAllowedVoiceCodePath('public/bg_pic/03.jpeg') === false);
+  assert('allowlist rejects harness-cli', isAllowedVoiceCodePath('harness-cli/src/tools/applyPatch.ts') === false);
+
+  const sampleDiff = `--- a/components/AgentChat.tsx
++++ b/components/AgentChat.tsx
+@@ -1,3 +1,3 @@
+ line-a
+-line-b
++line-b-fixed
+ line-c
+`;
+  assert('extracts unified diff', extractUnifiedDiff(`notes\n\`\`\`diff\n${sampleDiff}\`\`\`\n`)?.includes('+++ b/components/AgentChat.tsx') === true);
+  const parsed = parseUnifiedDiff(sampleDiff);
+  assert('parses allowlisted path', parsed[0]?.rel === 'components/AgentChat.tsx');
+  const appliedText = applyHunksToText('line-a\nline-b\nline-c\n', parsed[0].hunks);
+  assert('hunk apply rewrites line', appliedText === 'line-a\nline-b-fixed\nline-c\n');
+  const dl = buildDownloadablePatch({ proposal: sampleDiff, remaining: 4, limit: 5 });
+  assert('downloadable patch is not apply true', /apply: false/.test(dl.patch) && dl.hasDiff && dl.filename.endsWith('.patch'));
+
+  const tmp = mkdtempSync(join(tmpdir(), 'vcode-'));
+  try {
+    mkdirSync(join(tmp, 'components'));
+    writeFileSync(join(tmp, 'components/AgentChat.tsx'), 'line-a\nline-b\nline-c\n');
+    const off = applyAllowlistedPatch(tmp, `--- a/lib/agentContext.ts\n+++ b/lib/agentContext.ts\n@@ -1,1 +1,1 @@\n-old\n+new\n`);
+    assert('off-allowlist apply is 403 no write', off.ok === false && off.status === 403 && off.written.length === 0);
+    const empty = applyAllowlistedPatch(tmp, '');
+    assert('empty patch is not 200', empty.ok === false && empty.status === 400);
+    const okApply = applyAllowlistedPatch(tmp, sampleDiff);
+    assert('allowlisted apply writes AgentChat', okApply.ok === true && okApply.written[0] === 'components/AgentChat.tsx');
+    const noopDiff = `--- a/components/AgentChat.tsx
++++ b/components/AgentChat.tsx
+@@ -1,3 +1,3 @@
+ line-a
+-line-b-fixed
++line-b-fixed
+ line-c
+`;
+    const noop = applyAllowlistedPatch(tmp, noopDiff);
+    assert('noop write is not 200', noop.ok === false && noop.status === 409);
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });
+  }
   assert('council UI does not send voiceAccent', !/voiceAccent/.test(councilChatSrc));
   assert('council UI sends agentMode council', /agentMode:\s*'council'/.test(councilChatSrc));
   assert('council UI has no leave-a-note', !/leave a note|\/api\/lead/i.test(councilChatSrc));

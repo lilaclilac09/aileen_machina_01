@@ -43,6 +43,10 @@ If those are missing, the site is **degraded** (offline copy). That is an env bl
 
 One slice per change set.
 
-## Doors
+## Voice → code (two doors)
 
-Back-link chrome is `lib/doorsNav.ts`. Verify with `pnpm verify:doors-nav` in `aileena-new/`. Do not invent a second nav tree.
+Public Console: `POST /api/voice-code` is propose-only (unified diff + downloadable `.patch`). Never writes, never `git apply`, never `apply: true`. Visitor UI is Copy + Take `.patch` only.
+
+Owner write: `POST /api/owner/voice-code/apply` with existing OWNER_KEY session (`__aileena_pass` via=owner). Missing session → 401, no file touch. Writes only under the Console/footer allowlist (`components/AgentChat.tsx`, `lib/translations.ts`).
+
+Do **not** vendor DeepSeek Harness / dsh onto the public site. Shanghai accent = DeepSeek the model via `lib/modelRouter`. harness-cli / council stay local/owner tools.
