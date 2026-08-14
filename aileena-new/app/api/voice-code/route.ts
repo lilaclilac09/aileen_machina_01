@@ -19,6 +19,7 @@ import {
   degradeMessage,
 } from '../../../lib/modelRouter';
 import { parseVoiceAccent } from '../../../lib/voiceAccent';
+import { isVoiceCodeIntent } from '../../../lib/voiceCodeIntent';
 import { buildDownloadablePatch } from '../../../lib/voiceCodePatch';
 
 export const runtime = 'edge';
@@ -174,6 +175,16 @@ export async function POST(req: Request) {
   if (!prompt) return json({ error: 'No prompt.', ok: false, ...PROPOSE_FIELDS }, 400);
   if (prompt.length > 4000) {
     return json({ error: 'Prompt too long.', ok: false, ...PROPOSE_FIELDS }, 413);
+  }
+  if (!isVoiceCodeIntent(prompt)) {
+    return json(
+      {
+        ok: false,
+        error: 'Not a voice-code ask. Use chat instead.',
+        ...PROPOSE_FIELDS,
+      },
+      400,
+    );
   }
 
   const priorTopics = Array.isArray(body.priorTopics)

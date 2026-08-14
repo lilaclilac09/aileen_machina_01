@@ -295,7 +295,14 @@ export async function POST(req: Request) {
     });
   }
   const trimmed = messages;
-  const modelMessages = await convertToModelMessages(trimmed);
+  let modelMessages: ModelMessage[];
+  try {
+    modelMessages = await convertToModelMessages(trimmed);
+  } catch (err) {
+    trace.endSpan(prepSpan, false, { reason: 'invalid_messages' });
+    console.error('[chat] POST: invalid messages', err);
+    return jsonError('Invalid messages.', 400, trace.traceId);
+  }
   const baseSystem =
     isCouncil
       ? COUNCIL_SYSTEM_PROMPT
