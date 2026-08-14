@@ -134,6 +134,9 @@ export function degradeMessage(reason: string, lastQuestion?: string): string {
  * Choose LLM or degrade. Task type can prefer fallback later; today primary=DeepSeek.
  * Shanghai orb keeps DeepSeek when the key exists — that is the Chinese-native path.
  * DeepSeek Harness (dsh) is a separate local coding agent; not this router.
+ *
+ * DEEPSEEK_API_KEY is set on Vercel (preview + production). A missing key in a
+ * local isolate is env, not a product gap — do not mock a public write door for it.
  */
 export function routeModel(opts: {
   toolRoute: string;

@@ -41,6 +41,21 @@ import { SITE_AGENT_OPENING } from '../lib/siteAgentCopy';
 import { buildCatchUpGreeting } from '../lib/articleTopicMemory';
 import { CONTACT_OFFLINE_PUBLIC } from '../lib/mail-transcript';
 import { isVoiceCodeIntent } from '../lib/voiceCodeIntent';
+import { isDrawIntent } from '../lib/drawIntent';
+import { DRAW_DECK, DRAW_DECK_SIZE, pickDrawCard, reciteDrawCard } from '../lib/drawDeck';
+import { taipeiDay } from '../lib/taipeiDay';
+import {
+  buildFrozenSystemPrompt,
+  buildSessionTail,
+  frozenPrefixForbidden,
+  needsNewRootForLength,
+  needsNewRootForProvider,
+  needsNewRootForAccent,
+  readSessionProviderLock,
+  FROZEN_MAX_MESSAGES,
+} from '../lib/consolePrefix';
+import { parseNewRootError, frozenRootIdentity, machinaRootSpoken, classifyRootProvider } from '../lib/consolePrefixCopy';
+import { routeToolsForQuestion } from '../lib/toolRouter';
 import {
   isAllowedVoiceCodePath,
   VOICE_CODE_WRITE_ALLOWLIST,
@@ -117,6 +132,56 @@ function main() {
 
   const greet = matchCanned('hi');
   assert('canned hi uses site opening', greet?.reply === SITE_AGENT_OPENING, greet?.reply?.slice(0, 80));
+  const modelEn = matchCanned('what model are you', [], { rootProvider: 'deepseek' });
+  assert(
+    'canned model identity is machina deepseek not dsh',
+    Boolean(modelEn?.reply) &&
+      /Machina/.test(modelEn!.reply) &&
+      /DeepSeek via modelRouter/.test(modelEn!.reply) &&
+      /not dsh/i.test(modelEn!.reply) &&
+      !/Claude|GPT-4|ChatGPT/i.test(modelEn!.reply),
+    modelEn?.reply,
+  );
+  const modelUnlocked = matchCanned('what model are you');
+  assert(
+    'unlocked root does not bake DeepSeek',
+    Boolean(modelUnlocked?.reply) &&
+      /Machina/.test(modelUnlocked!.reply) &&
+      !/DeepSeek via modelRouter/.test(modelUnlocked!.reply) &&
+      /not dsh/i.test(modelUnlocked!.reply),
+    modelUnlocked?.reply,
+  );
+  const modelZh = matchCanned('你是什么模型', [], { rootProvider: 'deepseek' });
+  assert(
+    'canned zh model identity is machina not dsh',
+    Boolean(modelZh?.reply) && /Machina/.test(modelZh!.reply) && /DeepSeek/.test(modelZh!.reply) && /不是 dsh/.test(modelZh!.reply),
+    modelZh?.reply,
+  );
+  const modelOn = matchCanned('who are you running on', [], { rootProvider: 'on-device' });
+  assert(
+    'on-device root does not claim deepseek',
+    Boolean(modelOn?.reply) && /on-device/i.test(modelOn!.reply) && !/This root is DeepSeek/.test(modelOn!.reply),
+    modelOn?.reply,
+  );
+  const modelQwen = matchCanned('what model are you', [], { rootProvider: 'qwen' });
+  assert(
+    'qwen on-device is named',
+    Boolean(modelQwen?.reply) && /Qwen on-device/.test(modelQwen!.reply) && !/This root is DeepSeek/.test(modelQwen!.reply),
+    modelQwen?.reply,
+  );
+  assert('are you chatgpt does not waffle', /Machina/.test(matchCanned('are you chatgpt', [], { rootProvider: 'deepseek' })?.reply ?? '') && !/small machine/.test(matchCanned('are you chatgpt', [], { rootProvider: 'deepseek' })?.reply ?? ''));
+  assert(
+    'frozen identity is this-root only',
+    /You are Machina/.test(frozenRootIdentity('deepseek')) &&
+      /DeepSeek via modelRouter/.test(frozenRootIdentity('deepseek')) &&
+      /not DeepSeek Harness/.test(frozenRootIdentity('deepseek')) &&
+      /Qwen on-device/.test(frozenRootIdentity('qwen')) &&
+      !/speaking model is DeepSeek/.test(frozenRootIdentity('qwen')) &&
+      !/DeepSeek via modelRouter/.test(frozenRootIdentity(undefined)) &&
+      /THIS root only/.test(frozenRootIdentity('qwen')),
+  );
+  assert('empty lock does not name DeepSeek', classifyRootProvider(undefined) === 'unset' && classifyRootProvider('') === 'unset');
+  assert('spoken fallback does not claim to be gpt', /fallback via modelRouter/.test(machinaRootSpoken('fallback:gpt-4o-mini')) && !/I am GPT/i.test(machinaRootSpoken('fallback:gpt-4o-mini')));
   assert(
     'empty-state greeting is the opening line',
     buildCatchUpGreeting([]) === SITE_AGENT_OPENING,
@@ -199,7 +264,7 @@ function main() {
     'public console sends voiceAccent when Voice is on',
     /voiceAccent:/.test(agentChatSrc) && /readStoredVoiceAccent/.test(agentChatSrc),
   );
-  assert('chat route applies spoken register', /spokenRegisterPrompt\(voiceAccent\)/.test(chatRouteSrc));
+  assert('chat route applies spoken register via frozen prefix', /buildFrozenSystemPrompt/.test(chatRouteSrc) && /spokenRegisterPrompt/.test(readFileSync(join(process.cwd(), 'lib/consolePrefix.ts'), 'utf8')));
   assert('chat route ignores voice on council', /isCouncil \? null : parseVoiceAccent/.test(chatRouteSrc));
   const vcodeSrc = readFileSync(join(process.cwd(), 'app/api/voice-code/route.ts'), 'utf8');
   assert('voice-code pins model with voiceAccent', /voiceAccent/.test(vcodeSrc) && /toolRoute: 'voice_code'/.test(vcodeSrc));
@@ -236,6 +301,118 @@ function main() {
   assert('allowlist is Console + footer copy', VOICE_CODE_WRITE_ALLOWLIST.includes('components/AgentChat.tsx') && VOICE_CODE_WRITE_ALLOWLIST.includes('lib/translations.ts'));
   assert('allowlist rejects kiln/visual root assets', isAllowedVoiceCodePath('public/bg_pic/03.jpeg') === false);
   assert('allowlist rejects harness-cli', isAllowedVoiceCodePath('harness-cli/src/tools/applyPatch.ts') === false);
+
+  assert('idle chat does not burn draw', isDrawIntent('hi') === false && isDrawIntent("what's her solana stack?") === false && isDrawIntent('draw a diagram') === false);
+  assert('抽牌 / 今日牌 / draw / tarot burn draw', isDrawIntent('抽牌') && isDrawIntent('今日牌') && isDrawIntent('draw') && isDrawIntent('tarot') && isDrawIntent('算一卦'));
+  assert('draw deck is about 36 site cards', DRAW_DECK_SIZE >= 30 && DRAW_DECK_SIZE <= 40, String(DRAW_DECK_SIZE));
+  assert(
+    'draw rooms are kiln/shelf/wire/desk/door',
+    DRAW_DECK.every((c) => ['kiln', 'shelf', 'wire', 'desk', 'door'].includes(c.room)),
+  );
+  assert(
+    'draw cards link real site pages',
+    DRAW_DECK.every((c) => c.href.startsWith('https://aileena.xyz')),
+  );
+  assert(
+    'draw copy is not astrology',
+    DRAW_DECK.every((c) => !/horoscope|zodiac|rising sign|mercury|star sign|fortune/i.test(c.recitation + c.title)),
+  );
+  const d1 = pickDrawCard('2026-08-14', 'vid-a');
+  const d2 = pickDrawCard('2026-08-14', 'vid-a');
+  assert('same Taipei day + visitor returns same card', d1.id === d2.id, `${d1.id} vs ${d2.id}`);
+  assert('recite includes href', reciteDrawCard(d1).includes(d1.href));
+  assert('taipei day is YYYY-MM-DD', /^\d{4}-\d{2}-\d{2}$/.test(taipeiDay(new Date('2026-08-14T16:00:00.000Z'))));
+
+  const frozenSample = buildFrozenSystemPrompt({
+    baseSystem: SYSTEM_PROMPT,
+    agentMode: 'public',
+    voiceAccent: null,
+    rootProvider: 'deepseek',
+    memoryIndexLine: '\n# Memory index (L2)\n0 chunks.',
+    publicToolTable: '\n# Agent tools\n- searchArticles',
+    machinaToolTable: '\n# Machina mode tools',
+    councilToolTable: '\n# Council tools',
+  });
+  assert(
+    'frozen prefix has no draw/quota/prefetch',
+    frozenPrefixForbidden(frozenSample).length === 0,
+    frozenPrefixForbidden(frozenSample).join(','),
+  );
+  assert('static system prompt has no draw', frozenPrefixForbidden(SYSTEM_PROMPT).length === 0);
+  const tailSample = buildSessionTail({
+    agentMode: 'public',
+    memoryPrefetchBlock: '# Memory prefetch\n- hit',
+    toolRoute: routeToolsForQuestion('hi'),
+    visitorSoft: { questions: [], topics: [], updatedAt: '', hitCount: 0 },
+    priorTopics: [],
+    lastQuestion: 'hi',
+    councilLensBlock: '',
+  });
+  assert('prefetch lives in the tail', /Memory prefetch/.test(tailSample));
+  assert('compaction pings instead of silent slice', needsNewRootForLength(FROZEN_MAX_MESSAGES + 1) && !needsNewRootForLength(1));
+  assert('provider swap needs new root', needsNewRootForProvider('deepseek', 'fallback:gpt-4o-mini'));
+  assert('first turn has no provider lock', needsNewRootForProvider(undefined, 'deepseek') === false);
+  assert('empty sessionProvider string is unlocked', readSessionProviderLock('', null) === undefined);
+  assert('sessionProvider body lock is read', readSessionProviderLock('deepseek', null) === 'deepseek');
+  assert('sessionProvider header lock is read', readSessionProviderLock('', 'fallback:x') === 'fallback:x');
+  assert('accent swap needs new root', needsNewRootForAccent('shanghai', 'london') === true);
+  assert('matching accent stays on root', needsNewRootForAccent('shanghai', 'shanghai') === false);
+  assert('first turn has no accent lock', needsNewRootForAccent(undefined, 'shanghai') === false);
+  const nr = parseNewRootError(
+    JSON.stringify({ error: 'Context is full.', code: 'new_root', reason: 'compaction' }),
+  );
+  assert('parses 409 new_root JSON', nr?.reason === 'compaction' && /Fresh thread/.test(nr.message ?? ''));
+  const nrWrapped = parseNewRootError(
+    'Error: ' + JSON.stringify({ error: 'Accent changed.', code: 'new_root', reason: 'accent_swap' }),
+  );
+  assert('parses wrapped 409 new_root JSON', nrWrapped?.reason === 'accent_swap' && /Accent changed/.test(nrWrapped.message ?? ''));
+  assert('chat route never silent-slices', !/messages\.slice\(-20\)/.test(chatRouteSrc) && /needsNewRootForLength/.test(chatRouteSrc));
+  assert('chat route appends session tail', /messagesWithTail/.test(chatRouteSrc) && /sessionTail/.test(chatRouteSrc));
+  assert('chat route does not import dsh', !/from ['"][^'"]*dsh|@deepseek-ai\/dsh|npx @deepseek-ai/.test(chatRouteSrc));
+  assert('draw route exists', existsSync(join(process.cwd(), 'app/api/draw/route.ts')));
+  const drawSrc = readFileSync(join(process.cwd(), 'app/api/draw/route.ts'), 'utf8');
+  assert('draw route does not import dsh', !/dsh|@deepseek-ai/.test(drawSrc));
+  assert('draw is not in the system prompt file', !/抽牌|今日牌|tarot|draw deck/.test(SYSTEM_PROMPT));
+  assert('console runtime switch starts a new root', /beginNewRoot\(MODEL_SWAP_PING\)/.test(agentChatSrc));
+  assert(
+    'console always sends sessionProvider string',
+    /sessionProvider: sessionProviderRef\.current \?\? ''/.test(agentChatSrc) &&
+      /X-Session-Provider/.test(agentChatSrc),
+  );
+  assert(
+    'frozen prefix names machina deepseek not dsh',
+    /You are Machina/.test(frozenSample) &&
+      /DeepSeek via modelRouter/.test(frozenSample) &&
+      /not DeepSeek Harness/.test(frozenSample),
+  );
+  assert(
+    'chat route identity is this-root lock or pick',
+    /rootProvider: sessionProvider \?\? picked\.provider/.test(chatRouteSrc),
+  );
+  assert(
+    'console canned model identity uses root provider',
+    /matchCanned\(trimmed, readTopicMemory\(\)\.topics, \{/.test(agentChatSrc) &&
+      /rootProvider:/.test(agentChatSrc) &&
+      !/sessionProviderRef\.current \|\| 'deepseek'/.test(agentChatSrc),
+  );
+  assert('static system prompt does not bake speaking DeepSeek', !/DeepSeek as model/i.test(SYSTEM_PROMPT));
+  assert(
+    'console handles HTTP 409 new_root',
+    /parseNewRootError/.test(agentChatSrc) &&
+      /status !== 'error'/.test(agentChatSrc) &&
+      /beginNewRoot\(parsed\.message/.test(agentChatSrc) &&
+      /pingForNewRootReason/.test(agentChatSrc),
+  );
+  assert(
+    'accent toggle starts a new root',
+    /onAccentChange/.test(agentChatSrc) && /ACCENT_SWAP_PING/.test(agentChatSrc),
+  );
+  assert('chat route 409s accent mismatch', /needsNewRootForAccent/.test(chatRouteSrc) && /accent_swap/.test(chatRouteSrc));
+  assert('chat route reads sessionProvider header', /readSessionProviderLock/.test(chatRouteSrc) && /x-session-provider/.test(chatRouteSrc));
+  assert('console draw chip does not sit in system block', /data-draw-card/.test(agentChatSrc) && /isDrawIntent/.test(agentChatSrc));
+  assert('console Enter waits for IME composition', /isComposing/.test(agentChatSrc));
+  assert('draw day lock uses localStorage', /aileena_draw_daily_v1/.test(agentChatSrc) && /cardById/.test(agentChatSrc));
+  assert('console still does not call public apply', !/fetch\(['"]\/api\/voice-code\/apply/.test(agentChatSrc));
 
   const sampleDiff = `--- a/components/AgentChat.tsx
 +++ b/components/AgentChat.tsx
@@ -282,7 +459,7 @@ function main() {
   assert('council UI does not forward', !/\/api\/chat\/forward/.test(councilChatSrc));
   assert('chat route 403s non-owner council', /decideAgentMode/.test(chatRouteSrc) && /Council is owner-only/.test(readFileSync(join(process.cwd(), 'lib/agentMode.ts'), 'utf8')));
   assert('chat route selects council prompt', /COUNCIL_SYSTEM_PROMPT/.test(chatRouteSrc));
-  assert('chat route skips visitor memory on council', /isCouncil \? '' : formatVisitorSoftMemoryForPrompt/.test(chatRouteSrc));
+  assert('chat route skips visitor memory on council', /buildSessionTail/.test(chatRouteSrc) && /agentMode !== 'council'/.test(readFileSync(join(process.cwd(), 'lib/consolePrefix.ts'), 'utf8')));
   assert('council UI does not persist transcripts', !/chatForwardStore|saveChatForward|\/api\/owner/.test(councilChatSrc));
   assert('chat route does not persist council', !/saveChatForward|encodeForwardRecord/.test(chatRouteSrc));
 
