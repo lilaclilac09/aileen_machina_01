@@ -13286,5 +13286,263 @@
     "tags": [],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-14T02:45:39.063Z"
+  },
+  {
+    "id": "2088247328042099055",
+    "url": "https://x.com/SKundojjala/status/2088247328042099055",
+    "screenName": "SKundojjala",
+    "authorId": "379092222",
+    "authorName": "Sravan Kundojjala",
+    "text": "Quite a few incremental things from AMAT\n- guidance raise for CY26 semi equipment (>>30% now what started as >20% and later >30%. \n- ICAPS inflection and China growing in C26/C27 (analog/power/photonics). \n- Ad pkg growth upgraded to >70% in C26 (vs >50% in May); panel-level packaging revenue to grow significantly in 2027; hybrid bonding now called a meaningful growth driver\n- Visibility extended again; rolling 8-quarter forecasts from largest customers now backed by longer lead-time POs with cancellation and expedite charges",
+    "createdAt": "Fri Aug 14 12:52:15 +0000 2026",
+    "createdTimestamp": 1786711935,
+    "likes": 9,
+    "retweets": 4,
+    "replies": 1,
+    "bookmarks": 3,
+    "views": 1359,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPrry_9akAAKuXY.png?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-14T13:42:04.416Z"
+  },
+  {
+    "id": "2088252726161412334",
+    "url": "https://x.com/aaronburnett/status/2088252726161412334",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "",
+    "createdAt": "Fri Aug 14 13:13:42 +0000 2026",
+    "createdTimestamp": 1786713222,
+    "likes": 4,
+    "retweets": 0,
+    "replies": 0,
+    "bookmarks": 0,
+    "views": 675,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPr2yVCW8AAl2C-.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-14T13:42:07.446Z"
+  },
+  {
+    "id": "2088251072431231234",
+    "url": "https://x.com/aaronburnett/status/2088251072431231234",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "I’m old enough to remember when this business unit was considered a bailout",
+    "createdAt": "Fri Aug 14 13:07:08 +0000 2026",
+    "createdTimestamp": 1786712828,
+    "likes": 32,
+    "retweets": 3,
+    "replies": 2,
+    "bookmarks": 0,
+    "views": 1263,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-14T13:42:08.979Z"
+  },
+  {
+    "id": "2088249258268889252",
+    "url": "https://x.com/aaronburnett/status/2088249258268889252",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "~3% for Grok Bot is a steal.",
+    "createdAt": "Fri Aug 14 12:59:55 +0000 2026",
+    "createdTimestamp": 1786712395,
+    "likes": 18,
+    "retweets": 2,
+    "replies": 2,
+    "bookmarks": 1,
+    "views": 895,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPrzofqXcAAGGOl.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-14T13:42:10.421Z"
+  },
+  {
+    "id": "2088247784830824452",
+    "url": "https://x.com/aaronburnett/status/2088247784830824452",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "I promoted an agent this morning because it was the only one of the team that could execute a specific task well. Felt entirely natural.",
+    "createdAt": "Fri Aug 14 12:54:04 +0000 2026",
+    "createdTimestamp": 1786712044,
+    "likes": 2,
+    "retweets": 1,
+    "replies": 1,
+    "bookmarks": 0,
+    "views": 831,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-14T13:42:11.841Z"
+  },
+  {
+    "id": "2088247780049383624",
+    "url": "https://x.com/aaronburnett/status/2088247780049383624",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "I think there is a non-zero chance that Grok Bot is an iPhone style moment for agents. It sounds dumb but ease of set up and use is almost everything for these new tools. Cursor team cooked on this. Let’s see how things shape up over the next few weeks.",
+    "createdAt": "Fri Aug 14 12:54:03 +0000 2026",
+    "createdTimestamp": 1786712043,
+    "likes": 22,
+    "retweets": 1,
+    "replies": 2,
+    "bookmarks": 3,
+    "views": 1375,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPrySaBW0AAj2dz.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-14T13:42:13.315Z"
+  },
+  {
+    "id": "2088240500490797462",
+    "url": "https://x.com/aaronburnett/status/2088240500490797462",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Feels like it was easier to convince people that AI will live in orbital data centers than it is that AI will actually grow exponentially. I guess complex physics is easier to accept than non-linear growth.",
+    "createdAt": "Fri Aug 14 12:25:07 +0000 2026",
+    "createdTimestamp": 1786710307,
+    "likes": 21,
+    "retweets": 1,
+    "replies": 1,
+    "bookmarks": 1,
+    "views": 1095,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "orbital-compute"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-14T13:42:14.713Z"
+  },
+  {
+    "id": "2088224096798576927",
+    "url": "https://x.com/aaronburnett/status/2088224096798576927",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "There is also accessibility benefits to keeping it a clean agent system. Grok has many options and levers. Can be daunting. Something appealing about only seeing and talking to your “team” all tools and capabilities are at their disposal.",
+    "createdAt": "Fri Aug 14 11:19:56 +0000 2026",
+    "createdTimestamp": 1786706396,
+    "likes": 7,
+    "retweets": 1,
+    "replies": 1,
+    "bookmarks": 0,
+    "views": 1598,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-14T13:42:16.233Z"
+  },
+  {
+    "id": "2088221753994523061",
+    "url": "https://x.com/aaronburnett/status/2088221753994523061",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "This is the very near future. Miles on cars will explode. Grok Bot during long trips not only gives back the productivity time it multiplies it",
+    "createdAt": "Fri Aug 14 11:10:38 +0000 2026",
+    "createdTimestamp": 1786705838,
+    "likes": 35,
+    "retweets": 5,
+    "replies": 3,
+    "bookmarks": 1,
+    "views": 2670,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-14T13:42:17.681Z"
+  },
+  {
+    "id": "2088245779810971972",
+    "url": "https://x.com/mach33/status/2088245779810971972",
+    "screenName": "mach33",
+    "authorId": "2051360039869276160",
+    "authorName": "Mach33 Financial Group",
+    "text": "Grok Bot has made agents more accessible. That might be more important than it seems",
+    "createdAt": "Fri Aug 14 12:46:06 +0000 2026",
+    "createdTimestamp": 1786711566,
+    "likes": 6,
+    "retweets": 1,
+    "replies": 0,
+    "bookmarks": 1,
+    "views": 1458,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://video.twimg.com/amplify_video/2088244357295943680/vid/avc1/1080x1920/iFE2lNyWGOq-sYso.mp4?tag=29"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-14T13:42:20.943Z"
   }
 ]
