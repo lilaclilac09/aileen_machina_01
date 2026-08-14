@@ -100,6 +100,7 @@ const COVER_BY_SLUG: Record<string, string> = {
   'ai-hardware-scarcity': COVER_SILICON,
   'huawei-hbm': COVER_CIRCUIT_CLOSEUP,
   'huawei-supply': COVER_SILICON,
+  'china-neocloud': COVER_DATACENTER,
   'memory-tax': COVER_SILICON,
   'cxmt-yield-watch': COVER_CIRCUIT_CLOSEUP,
 
