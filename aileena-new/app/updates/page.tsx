@@ -1,10 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import Link from 'next/link';
-import ScrollUnlock from '../blog/ScrollUnlock';
-import PillToggle from '../../components/PillToggle';
-import './updates.css';
+import ArchivePage from '../_archive/ArchivePage';
 
 type Book = {
   title: string;
@@ -14,16 +10,13 @@ type Book = {
   status?: string;
 };
 
-type BookView = 'shelf' | 'list';
-const BOOK_VIEW_KEY = 'metal-pages-book-view';
-
 const FEATURED: Book = {
   title: 'The Year of Magical Thinking',
   author: 'Joan Didion',
   tags: ['grief', 'ritual', 'observation'],
   status: "Aileena's Biweekly Read · Issue 01",
   body:
-    'The calibration text. Didion watches herself refuse the ordinary grammar of loss — and somehow still writes the room with the lights on. Identity here is not a brand; it is what remains when the furniture of a life has been rearranged overnight.',
+    'The calibration text. Didion reports on her own mind without turning grief into performance — identity is what remains when the furniture of a life has been rearranged overnight.',
 };
 
 const DIDION_SHELF: Book[] = [
@@ -124,202 +117,69 @@ const UPDATES = [
   },
 ];
 
-const ON_PAGE = [
-  { label: 'This issue', href: '#this-issue' },
-  { label: 'Didion shelf', href: '#didion-shelf' },
-  { label: 'Reading now', href: '#adjacent-shelf' },
-  { label: 'Notes', href: '#updates-log' },
-];
-
-function BookCard({
-  book,
-  index,
-  view,
-  indexLabel,
-}: {
-  book: Book;
-  index: number;
-  view: BookView;
-  indexLabel?: string;
-}) {
-  const label = indexLabel ?? book.status ?? String(index + 1).padStart(2, '0');
-  if (view === 'list') {
-    return (
-      <article className="mp-book mp-book--list">
-        <span className="mp-book-index">{label}</span>
-        <div className="mp-book-list-main">
-          <h3 className="mp-book-title">{book.title}</h3>
-          <p className="mp-book-author">{book.author}</p>
-        </div>
-        <div className="mp-book-tags">
-          {book.tags.map((tag) => (
-            <span key={tag} className="mp-tag">
-              {tag}
-            </span>
-          ))}
-        </div>
-      </article>
-    );
-  }
+function BookRow({ book }: { book: Book }) {
   return (
-    <article className="mp-book">
-      <span className="mp-book-index">{label}</span>
-      <h3 className="mp-book-title">{book.title}</h3>
-      <p className="mp-book-author">{book.author}</p>
-      <div className="mp-book-tags">
-        {book.tags.map((tag) => (
-          <span key={tag} className="mp-tag">
-            {tag}
-          </span>
-        ))}
-      </div>
-      <p className="mp-book-body">{book.body}</p>
-    </article>
+    <li className="arc-item">
+      <span className="arc-item-title">{book.title}</span>
+      <span className="arc-item-meta">{book.author}</span>
+    </li>
   );
 }
 
 export default function UpdatesPage() {
-  const [view, setView] = useState<BookView>('shelf');
-
-  useEffect(() => {
-    const id = window.setTimeout(() => {
-      try {
-        const saved = window.localStorage.getItem(BOOK_VIEW_KEY);
-        if (saved === 'shelf' || saved === 'list') setView(saved);
-      } catch {
-        /* private mode */
-      }
-    }, 0);
-    return () => window.clearTimeout(id);
-  }, []);
-
-  const setViewPersist = useCallback((next: BookView) => {
-    setView(next);
-    try {
-      window.localStorage.setItem(BOOK_VIEW_KEY, next);
-    } catch {
-      /* private mode */
-    }
-  }, []);
-
   return (
-    <div className="mp-page">
-      <ScrollUnlock />
-
-      <header className="mp-nav site-top-nav">
-        <Link href="/" className="mp-nav-brand">
-          Aileena
-        </Link>
-        <p className="mp-nav-here">
-          You are here · <strong>Book club</strong>
+    <ArchivePage
+      room="club"
+      title="book club"
+      dek="Didion on the desk. A quiet record of what she’s actually reading."
+    >
+      <section className="arc-section" id="this-issue" aria-labelledby="current-reading">
+        <p className="arc-kicker" id="current-reading">
+          current reading
         </p>
-      </header>
-
-      <main className="mp-wrap">
-        <hr className="mp-rule" />
-
-        <section className="mp-hero" aria-labelledby="mp-hero-title">
-          <div>
-            <p className="mp-kicker">Book Club · /updates</p>
-            <h1 id="mp-hero-title" className="mp-hero-title">
-              Metal & Pages
-            </h1>
-          </div>
-          <div>
-            <p className="mp-hero-dek">
-              This room is only the book club — biweekly picks with Didion voltage.
-              Films and podcasts are on the Shelf. Essays and news are on Dispatch.
-            </p>
-            <div className="mp-hero-tools">
-              <PillToggle
-                value={view}
-                onChange={setViewPersist}
-                ariaLabel="Book club view"
-                options={[
-                  { id: 'shelf', label: 'Shelf' },
-                  { id: 'list', label: 'List' },
-                ]}
-              />
-              <nav className="mp-meta-row mp-toc" aria-label="On this page">
-                {ON_PAGE.map((item) => (
-                  <a key={item.href} href={item.href} className="mp-meta mp-toc-link">
-                    {item.label}
-                  </a>
-                ))}
-              </nav>
-            </div>
-          </div>
-        </section>
-
-        <hr className="mp-rule" />
-
-        <article className="mp-featured" id="this-issue" aria-labelledby="featured-title">
-          <div>
-            <p className="mp-featured-label">{FEATURED.status}</p>
-            <h2 id="featured-title">{FEATURED.title}</h2>
-            <p className="mp-featured-author">{FEATURED.author}</p>
-            <p>{FEATURED.body}</p>
-          </div>
-          <aside className="mp-featured-aside">
-            <p className="mp-featured-label">Why this fortnight</p>
-            <p>
-              Because grief is a public and private architecture at once — and Didion
-              still teaches how to report on your own mind without turning it into
-              performance.
-            </p>
-          </aside>
+        <article className="arc-now">
+          <h2 className="arc-item-title">{FEATURED.title}</h2>
+          <span className="arc-item-meta">{FEATURED.author}</span>
+          <p className="arc-item-note">{FEATURED.body}</p>
         </article>
+      </section>
 
-        <section className="mp-section" aria-labelledby="didion-shelf">
-          <div className="mp-section-head">
-            <h2 id="didion-shelf">Didion shelf</h2>
-            <p className="mp-section-note">Core · from the library</p>
-          </div>
-          <div className={view === 'list' ? 'mp-book-list' : 'mp-book-grid'}>
-            {DIDION_SHELF.map((book, index) => (
-              <BookCard key={book.title} book={book} index={index} view={view} />
-            ))}
-          </div>
-        </section>
+      <section className="arc-section" id="didion-shelf" aria-labelledby="shelf-label">
+        <p className="arc-kicker" id="shelf-label">
+          shelf
+        </p>
+        <ul className="arc-list">
+          {DIDION_SHELF.map((book) => (
+            <BookRow key={book.title} book={book} />
+          ))}
+        </ul>
+      </section>
 
-        <section className="mp-section" aria-labelledby="adjacent-shelf">
-          <div className="mp-section-head">
-            <h2 id="adjacent-shelf">Reading now</h2>
-            <p className="mp-section-note">Same frequency · other rooms</p>
-          </div>
-          <div className={view === 'list' ? 'mp-book-list' : 'mp-book-grid'}>
-            {ADJACENT.map((book, index) => (
-              <BookCard
-                key={book.title}
-                book={book}
-                index={index}
-                view={view}
-                indexLabel={`A${index + 1}`}
-              />
-            ))}
-          </div>
-        </section>
+      <section className="arc-section" id="adjacent-shelf" aria-labelledby="reading-now">
+        <p className="arc-kicker" id="reading-now">
+          reading now
+        </p>
+        <ul className="arc-list">
+          {ADJACENT.map((book) => (
+            <BookRow key={book.title} book={book} />
+          ))}
+        </ul>
+      </section>
 
-        <section className="mp-section" aria-labelledby="updates-log">
-          <div className="mp-section-head">
-            <h2 id="updates-log">Notes</h2>
-            <p className="mp-section-note">About this club</p>
-          </div>
-          <div className="mp-updates">
-            {UPDATES.map((item) => (
-              <article key={item.title} className="mp-update">
-                <div className="mp-update-meta">
-                  <span className="mp-update-date">{item.date}</span>
-                  <span className="mp-update-kind">{item.kind}</span>
-                </div>
-                <h3>{item.title}</h3>
-                <p>{item.body}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-      </main>
-    </div>
+      <section className="arc-section" id="updates-log" aria-labelledby="notes-label">
+        <p className="arc-kicker" id="notes-label">
+          notes
+        </p>
+        <ul className="arc-list">
+          {UPDATES.map((item) => (
+            <li key={item.title} className="arc-item">
+              <span className="arc-item-title">{item.title}</span>
+              <span className="arc-item-meta">{item.date}</span>
+              <p className="arc-item-note">{item.body}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </ArchivePage>
   );
 }

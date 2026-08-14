@@ -1,7 +1,8 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
-import SubstackShell from '../_substack/SubstackShell';
+import ArchivePage from '../../_archive/ArchivePage';
 
 const PODCAST_RECS = [
   {
@@ -304,12 +305,10 @@ const SHELF_TIPS = [
   {
     tip: 'language scraps',
     body: bodyOf(EURO_LIFE_GUIDE, 'Language scraps'),
-    quiet: true,
   },
   {
     tip: 'soundtrack as room',
     body: bodyOf(LIFESTYLE_RECS, 'Soundtrack as room'),
-    quiet: true,
   },
 ];
 
@@ -339,130 +338,117 @@ function ShelfHref({
 
 export default function WatchListeningShelfArticle() {
   return (
-    <SubstackShell
+    <ArchivePage
+      room="shelf"
       date="2026.07.12"
       title="watch · listening shelf"
       dek="covers first. notes after. what to steal for a week, last."
-      showNarration={false}
     >
-      <main className="recommendation-issue shelf-issue" aria-label="watch listening shelf">
-        <section className="poster-shelf" aria-labelledby="poster-shelf-label">
-          <p className="shelf-layer-label" id="poster-shelf-label">
-            poster shelf
-          </p>
-          <div className="poster-shelf-rail">
+      <section className="arc-section" aria-labelledby="poster-shelf-label">
+        <p className="arc-kicker" id="poster-shelf-label">
+          poster shelf
+        </p>
+        <div className="arc-posters">
+          {WATCH_ITEMS.map((item) => (
+            <a
+              key={item.title}
+              className="arc-poster"
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span className="arc-poster-frame">
+                <Image
+                  src={item.image}
+                  alt=""
+                  fill
+                  sizes="(min-width: 820px) 140px, 108px"
+                  style={{ objectFit: 'contain' }}
+                />
+              </span>
+              <span className="arc-poster-title">{item.shelfTitle}</span>
+              <span className="arc-poster-meta">{item.year}</span>
+              <span className="arc-poster-note">{item.note}</span>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      <section className="arc-section" aria-labelledby="shelf-notes-label">
+        <p className="arc-kicker" id="shelf-notes-label">
+          notes from the shelf
+        </p>
+        <p className="arc-lede">
+          if it changes how I hear a sentence, look at an image, assemble a week, or
+          read a market — it sits here.
+        </p>
+
+        <div className="arc-group" id="podcasts" aria-labelledby="listen-recs">
+          <h2 className="arc-group-title" id="listen-recs">
+            listen
+          </h2>
+          <ul className="arc-list">
+            {PODCAST_RECS.map((item) => (
+              <li key={item.title} className="arc-item">
+                <ShelfHref href={item.href} className="arc-item-title">
+                  {item.shelfTitle}
+                </ShelfHref>
+                <span className="arc-item-meta">{item.meta}</span>
+                <p className="arc-item-note">{item.body}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="arc-group" id="films" aria-labelledby="watch-recs">
+          <h2 className="arc-group-title" id="watch-recs">
+            watch
+          </h2>
+          <ul className="arc-list">
             {WATCH_ITEMS.map((item) => (
-              <a
-                key={item.title}
-                className="poster-card"
-                href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <span className="poster-card-frame">
-                  <img src={item.image} alt="" />
-                </span>
-                <span className="poster-card-title">{item.shelfTitle}</span>
-                <span className="poster-card-meta">
-                  {item.year} · {item.label}
-                </span>
-                <span className="poster-card-note">{item.note}</span>
-              </a>
+              <li key={item.title} className="arc-item">
+                <ShelfHref href={item.href} className="arc-item-title">
+                  {item.shelfTitle}
+                </ShelfHref>
+                <span className="arc-item-meta">{item.year}</span>
+                <p className="arc-item-note">{item.body}</p>
+              </li>
             ))}
-          </div>
-          <div className="poster-shelf-ledge" aria-hidden />
-        </section>
+          </ul>
+        </div>
 
-        <section className="shelf-notes" aria-labelledby="shelf-notes-label">
-          <p className="shelf-layer-label" id="shelf-notes-label">
-            notes from the shelf
-          </p>
-          <p className="shelf-notes-lede">
-            if it changes how I hear a sentence, look at an image, assemble a week, or
-            read a market — it sits here.
-          </p>
-
-          <div className="notes-group" id="podcasts" aria-labelledby="listen-recs">
-            <h2 id="listen-recs">listen</h2>
-            <ul className="notes-list">
-              {PODCAST_RECS.map((item) => (
-                <li key={item.title} className="notes-item">
-                  <ShelfHref href={item.href} className="notes-item-title">
-                    {item.shelfTitle}
-                  </ShelfHref>
-                  <span className="notes-item-meta">
-                    {item.shelfTitle !== item.title
-                      ? `${item.title} · ${item.meta}`
-                      : `${item.label} · ${item.meta}`}
-                  </span>
-                  <p className="notes-item-body">{item.body}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="notes-group" id="films" aria-labelledby="watch-recs">
-            <h2 id="watch-recs">watch</h2>
-            <ul className="notes-list">
-              {WATCH_ITEMS.map((item) => (
-                <li key={item.title} className="notes-item">
-                  <ShelfHref href={item.href} className="notes-item-title">
-                    {item.shelfTitle}
-                  </ShelfHref>
-                  <span className="notes-item-meta">
-                    {item.shelfTitle !== item.title
-                      ? `${item.title} · ${item.year}`
-                      : `${item.year} · ${item.label}`}
-                  </span>
-                  <p className="notes-item-body">{item.body}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="notes-group" id="channels" aria-labelledby="channel-recs">
-            <h2 id="channel-recs">read next</h2>
-            <ul className="notes-list">
-              {CHANNEL_RECS.map((item) => (
-                <li key={item.title} className="notes-item">
-                  <ShelfHref href={item.href} className="notes-item-title">
-                    {item.shelfTitle}
-                  </ShelfHref>
-                  <span className="notes-item-meta">
-                    {item.shelfTitle !== item.title
-                      ? `${item.title} · ${item.label}`
-                      : item.label}
-                  </span>
-                  <p className="notes-item-body">{item.body}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
-
-        <section
-          className="shelf-tips"
-          id="euro-life"
-          aria-labelledby="shelf-tips-label"
-        >
-          <span id="lifestyle" className="shelf-hash-alias" />
-          <p className="shelf-layer-label" id="shelf-tips-label">
-            life tips stolen from the shelf
-          </p>
-          <p className="tips-epigraph">Trendy is obsolete.</p>
-          <div className="tips-grid">
-            {SHELF_TIPS.map((item) => (
-              <article
-                key={item.tip}
-                className={item.quiet ? 'tip-card tip-card-quiet' : 'tip-card'}
-              >
-                <h3 className="tip-card-title">{item.tip}</h3>
-                <p className="tip-card-body">{item.body}</p>
-              </article>
+        <div className="arc-group" id="channels" aria-labelledby="channel-recs">
+          <h2 className="arc-group-title" id="channel-recs">
+            read next
+          </h2>
+          <ul className="arc-list">
+            {CHANNEL_RECS.map((item) => (
+              <li key={item.title} className="arc-item">
+                <ShelfHref href={item.href} className="arc-item-title">
+                  {item.shelfTitle}
+                </ShelfHref>
+                <p className="arc-item-note">{item.body}</p>
+              </li>
             ))}
-          </div>
-        </section>
-      </main>
-    </SubstackShell>
+          </ul>
+        </div>
+      </section>
+
+      <section className="arc-section" id="euro-life" aria-labelledby="shelf-tips-label">
+        <span id="lifestyle" className="shelf-hash-alias" />
+        <p className="arc-kicker" id="shelf-tips-label">
+          life tips stolen from the shelf
+        </p>
+        <p className="arc-lede">Trendy is obsolete.</p>
+        <ul className="arc-list">
+          {SHELF_TIPS.map((item) => (
+            <li key={item.tip} className="arc-item">
+              <span className="arc-item-title">{item.tip}</span>
+              <p className="arc-item-note">{item.body}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </ArchivePage>
   );
 }
