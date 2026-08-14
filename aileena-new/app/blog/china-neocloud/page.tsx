@@ -10,12 +10,33 @@ const hangarRefs = {
   peopleLingang: 'http://sh.people.com.cn/n2/2026/0714/c138654-41638450.html',
 } as const;
 
+const asiaRefs = {
+  bmi: 'https://technode.global/2026/07/29/singapore-to-retain-top-southeast-asia-data-center-status-despite-capacity-constraints-bmi/',
+  mondaq: 'https://www.mondaq.com/new-technology/1729734/singapores-second-data-centre-call-for-application-from-pilot-to-power-play',
+  technodeCfa: 'https://technode.global/2026/07/31/singapore-tightens-data-center-growth-as-johor-bangkok-jakarta-race-ahead/',
+  firmus: 'https://firmus.co/newsroom/firmus-to-build-170-000-gpu-ai-factor-y-campus-with-nvidia-for-global-ai-natives',
+  dcd: 'https://www.datacenterdynamics.com/en/news/firmus-to-deploy-170000-gpu-cluster-in-batam-indonesia/',
+  cnbc: 'https://www.cnbc.com/2025/10/10/singapore-us-investigate-nvidia-client-megaspeed-export-controls-violation.html',
+  edge: 'https://theedgemalaysia.com/node/799045',
+  softbank: 'https://www.softbank.jp/en/corp/news/press/sbkk/2026/20260525_01/',
+  yotta: 'https://yotta.com/press-releases/yotta-to-deploy-20000-nvidia-blackwell-ultra-gpus/',
+} as const;
+
 const references: { label: string; href: string }[] = [
   { label: 'Cailian — Wulanchabu DC census (26 Jun 2026)', href: hangarRefs.cailian },
   { label: 'Xinhua — Zhongjin Bayin 220 kV / 38.74% year-1 renewable (18 Jul 2025)', href: hangarRefs.xinhuaBayin },
   { label: 'Guangming — Unicom Zhongwei, Qi Jun (25 May 2026)', href: hangarRefs.guangming },
   { label: 'People.cn / Hebei Daily — Zhangjiakou H1 2025 big-data kWh (13 Jul 2025)', href: hangarRefs.peopleZhangjiakou },
   { label: 'People.cn — SenseCore Lingang occupancy (14 Jul 2026)', href: hangarRefs.peopleLingang },
+  { label: 'TechNode Global / BMI — Singapore DC capacity (29 Jul 2026)', href: asiaRefs.bmi },
+  { label: 'Mondaq — Singapore DC-CFA2 (pilot to power play)', href: asiaRefs.mondaq },
+  { label: 'TechNode — Singapore tightens DC growth vs Johor / Bangkok / Jakarta (31 Jul 2026)', href: asiaRefs.technodeCfa },
+  { label: 'Firmus — 170,000-GPU Batam campus with NVIDIA', href: asiaRefs.firmus },
+  { label: 'DCD — Firmus 170,000-GPU cluster in Batam', href: asiaRefs.dcd },
+  { label: 'CNBC / NYT — Megaspeed NVIDIA export-control probe (10 Oct 2025)', href: asiaRefs.cnbc },
+  { label: 'The Edge — Bridge reallocates 68.4 MW from Megaspeed to Zenlayer (8 Apr 2026)', href: asiaRefs.edge },
+  { label: 'SoftBank — AI Data Center GPU Cloud (25 May 2026)', href: asiaRefs.softbank },
+  { label: 'Yotta — 20,000 NVIDIA Blackwell Ultra GPUs (18 Feb 2026)', href: asiaRefs.yotta },
   { label: 'Companion — Why Huawei\'s Bet Isn\'t on the Chip', href: '/blog/huawei-hbm' },
   { label: 'Companion — NVIDIA Is Buying Its Own Demand', href: '/blog/nvidia-flywheel' },
 ];
@@ -25,7 +46,7 @@ export default function ChinaNeocloudArticle() {
     <SubstackShell
       category="Analysis"
       date="2026.08.14"
-      tags="China · Neocloud · AIDC · NVIDIA · CoreWeave · Nebius · GDS · VNET · Runze"
+      tags="China · Singapore · Neocloud · AIDC · NVIDIA · CoreWeave · Firmus · GDS · VNET · Runze"
       title="Is a Terrestrial Neocloud Possible in China?"
       dek="The megawatts are there. The company is not."
     >
@@ -676,6 +697,17 @@ export default function ChinaNeocloudArticle() {
             <strong style={strong}>BIS remote-rental of overseas NVIDIA.</strong> Still legal,
             under review. If banned, even the Singapore workaround for <em>workloads</em> dies.
           </li>
+          <li>
+            <strong style={strong}>Firmus Batam rack date.</strong> Q1 2027 campus; 170,000
+            accelerators through 2027–28. Watch whether the $25–30bn offtake shows up as signed
+            ACV, not a Bloomberg sentence.
+          </li>
+          <li>
+            <strong style={strong}>Yotta D2 / SoftBank GPU Cloud.</strong> Yotta 20,736 B300
+            targeted live August 2026. SoftBank &ldquo;AI Data Center GPU Cloud&rdquo; October
+            2026. Legal NVIDIA. Sovereign Lambda, not CoreWeave, until someone other than a
+            telco or a state mission writes ten-billion take-or-pay to an independent.
+          </li>
         </ul>
         <p style={bodyStyle}>
           The megawatts were never the question. The company is.
@@ -720,6 +752,268 @@ export default function ChinaNeocloudArticle() {
           The idle is real, and it is not on this tour. CAICT: 3.8bn card-hours supplied, 1.4bn
           used, 36.8%. Shi Ke&rsquo;s &ldquo;digital unfinished buildings&rdquo; is 2025 CPPCC. Hub
           cities do not have named idle MW-class halls in 2026 visitor copy.
+        </p>
+
+        <SectionLabel>Can Singapore — or Asia — have a neocloud?</SectionLabel>
+        <p style={bodyStyle}>
+          Southeast Asia is not blocked on NVIDIA. Singapore island is blocked on power.
+          China-parented vehicles in Singapore and Malaysia are blocked on BIS. Those three
+          sentences are different businesses. Mixing them is how &ldquo;SEA has so many
+          cards&rdquo; becomes a neocloud thesis.
+        </p>
+
+        <p style={{ ...bodyStyle, color: 'rgba(255,255,255,0.9)', fontWeight: 600, marginTop: 40 }}>
+          Singapore the island cannot host a training neocloud
+        </p>
+        <p style={bodyStyle}>
+          Live IT capacity is about 1.1 GW, with BMI putting 2026 live capacity around 1.46 GW,
+          still the largest in Southeast Asia (<ExtLink href={asiaRefs.bmi}>TechNode Global / BMI</ExtLink>, 29 Jul 2026). Data centres already use about 7% of national electricity,
+          heading toward 12%. Land is 745 km². After the 2019 moratorium, new MW is rationed.
+        </p>
+        <p style={bodyStyle}>
+          <strong style={strong}>DC-CFA1</strong> (2023, the first Data Centre Call for
+          Applications) awarded <strong style={strong}>80 MW</strong> to four names: Equinix, GDS,
+          Microsoft, and an AirTrunk–ByteDance consortium.{' '}
+          <strong style={strong}>DC-CFA2</strong>, launched 1 Dec 2025, closed 31 Mar 2026,
+          allocates <strong style={strong}>at least 200 MW</strong>,{' '}
+          <strong style={strong}>PUE</strong> 1.25 or better, Green Mark Platinum, ≥50% eligible
+          green energy (<ExtLink href={asiaRefs.mondaq}>Mondaq</ExtLink>;{' '}
+          <ExtLink href={asiaRefs.technodeCfa}>TechNode</ExtLink>, 31 Jul 2026). BMI notes only
+          ~20 MW under construction against ~980 MW in the development pipeline. Jurong Island has
+          been earmarked 20 hectares for a low-carbon park that could take{' '}
+          <strong style={strong}>up to 700 MW</strong> if built. That is a planning envelope, not
+          a 2026 hall.
+        </p>
+        <p style={bodyStyle}>
+          What Singapore is good for: low-latency inference, interconnect, banking and model-API
+          front ends, a corporate HQ that can sign NVIDIA paper. What it is not good for: a 1 GW
+          training factory. A CoreWeave-class campus is a power product. Singapore sells scarcity.
+        </p>
+
+        <p style={{ ...bodyStyle, color: 'rgba(255,255,255,0.9)', fontWeight: 600, marginTop: 40 }}>
+          The MW is across the causeway and across the strait
+        </p>
+        <p style={bodyStyle}>
+          Johor is the spillover. Operational capacity is often cited around 1–2 GW in 2025–26;
+          committed and planned pipelines are talked about at 5 GW or more, with some consultants
+          stretching to 8–12 GW by 2030. Treat the high end as pipeline, not live IT. Clusters:
+          Sedenak, Kulai, Nusajaya / Iskandar Puteri.
+        </p>
+        <p style={bodyStyle}>Named campuses (announced, mixed live/pipeline):</p>
+        <ul style={listStyle}>
+          <li>
+            YTL + NVIDIA, YTL Green Data Center Park, Kulai: up to ~500 MW phased; first
+            NVIDIA-powered hall about <strong style={strong}>20 MW</strong>, live Oct 2025.
+          </li>
+          <li>
+            Vantage JHB1, Sedenak: 300 MW campus potential, Phase 1 go-live Jan 2026,
+            liquid-cooled, 100 kW/rack class.
+          </li>
+          <li>
+            Princeton Digital Group JH1, Sedenak: ~150 MW AI-ready.
+          </li>
+          <li>
+            AirTrunk Johor ~150 MW early phase; Yondr 200–300 MW class; GDS Nusajaya / Kulai
+            phased toward ~280 MW.
+          </li>
+          <li>
+            ByteDance / TikTok Johor: reported 1–2 GW pipeline, RM10 bn. Pipeline.
+          </li>
+          <li>
+            AWS, Microsoft, Google Malaysia regions: hyperscaler cloud, not a specialist GPU
+            cloud.
+          </li>
+          <li>
+            Equinix JH1/JH2: carrier-neutral, tens of MW.
+          </li>
+        </ul>
+        <p style={bodyStyle}>
+          Batam is the other lung. Firmus (Australia, Coatue round at $5.5bn, NVIDIA-backed) +
+          Singapore-headquartered DayOne: <strong style={strong}>360 MW</strong> NVIDIA DSX AI
+          Factory, up to{' '}
+          <strong style={strong}>170,000</strong> Grace-Blackwell / Vera-Rubin / Vera accelerators
+          through 2027–28, campus targeted Q1 2027 (<ExtLink href={asiaRefs.firmus}>Firmus</ExtLink>;{' '}
+          <ExtLink href={asiaRefs.dcd}>DCD</ExtLink>). NVIDIA takes product revenue plus a share of
+          cloud revenue. Firmus has talked $25–30bn offtake over six years. That is a target, not
+          a backlog print like CoreWeave&rsquo;s $104bn. DayOne is already building; it has a 450
+          MW PPA at Kabil Tech Park. Runze&rsquo;s planned Batam ~360 MW is a Chinese landlord
+          going overseas. The tenant still brings the cards.
+        </p>
+        <p style={bodyStyle}>
+          This is the actual &ldquo;Singapore neocloud&rdquo; geography:{' '}
+          <strong style={strong}>company and network in Singapore, factory in Johor or
+          Batam.</strong> Same latency band, different power politics.
+        </p>
+
+        <p style={{ ...bodyStyle, color: 'rgba(255,255,255,0.9)', fontWeight: 600, marginTop: 40 }}>
+          &ldquo;SEA has so many cards&rdquo; is three inventories mixed together
+        </p>
+        <p style={bodyStyle}>
+          <strong style={strong}>Inventory A:</strong> hyperscaler and landlord MW. AWS /
+          Microsoft / Google / ByteDance halls, GDS / AirTrunk / Vantage shells. Cards belong to
+          the hyperscaler. Not a rental catalog.
+        </p>
+        <p style={bodyStyle}>
+          <strong style={strong}>Inventory B:</strong> the China cutout, now being unwound.
+          Megaspeed (Singapore, spun out of a Chinese gaming company in 2023) bought nearly{' '}
+          <strong style={strong}>$2bn</strong> of advanced NVIDIA product through a Malaysian
+          subsidiary, into Malaysia and Indonesia DCs that appeared to remotely serve Chinese
+          clients (<ExtLink href={asiaRefs.cnbc}>CNBC / NYT</ExtLink>, 10 Oct 2025). Bridge Data
+          Centres (Bain) had allocated <strong style={strong}>68.4 MW</strong> to Megaspeed in
+          Malaysia; by Feb 2026 that capacity was given to Zenlayer (
+          <ExtLink href={asiaRefs.edge}>Bloomberg via Edge</ExtLink>, 8 Apr 2026). NVIDIA did
+          spot checks. Megaspeed denies illegal transfers. BIS, 31 May 2026: a license is required
+          for advanced chips to <strong style={strong}>any entity whose ultimate parent is
+          headquartered in China or Macau, wherever located</strong>. Reexports stay presumption
+          of denial. NVIDIA also tightened SG / MY / JP approved-buyer lists. Malaysia started
+          NVIDIA export permits in 2025.
+        </p>
+        <p style={bodyStyle}>
+          That inventory was real cards. It was not a local neocloud TAM. It was China demand
+          sitting in Johor and Batam. The parent-HQ rule is designed to kill it. Remote rental of
+          remaining SEA Blackwell by PRC labs is still legally grey and under BIS review.
+        </p>
+        <p style={bodyStyle}>
+          <strong style={strong}>Inventory C:</strong> genuine non-China GPU cloud, mostly not
+          live yet. Firmus Batam (Q1 2027). YTL Kulai first 20 MW (live, small). Yotta in India
+          (below). SoftBank in Japan (Oct 2026). These can buy Blackwell because the parent is
+          Australian, Malaysian-listed, Indian, or Japanese.
+        </p>
+        <p style={bodyStyle}>
+          If you add A+B+C and call it &ldquo;SEA neocloud capacity,&rdquo; you have counted
+          shells, a closing loophole, and press releases. Only C is the object. C is still small,
+          and a lot of it is 2027.
+        </p>
+
+        <p style={{ ...bodyStyle, color: 'rgba(255,255,255,0.9)', fontWeight: 600, marginTop: 40 }}>
+          Japan: sovereign neocloud, Lambda-scale, legal NVIDIA
+        </p>
+        <p style={bodyStyle}>
+          SoftBank will launch &ldquo;AI Data Center GPU Cloud&rdquo; on GB200 NVL72 plus its
+          Infrinia OS in October 2026, and uses the word neocloud in the press release (
+          <ExtLink href={asiaRefs.softbank}>SoftBank</ExtLink>, 25 May 2026). Sakura Internet:
+          Koukaryoku expanding toward ~10,800 GPUs, including HGX B200 at Ishikari, targeting 100%
+          renewable by 2027. GMO GPU Cloud on H200; KDDI planning GB200 NVL72; Highreso Kagawa;
+          Rutilea &gt;1,000 Hopper. METI-aligned. Cards are legal. Customers are domestic
+          enterprises, robotics, telco, healthcare. Power is expensive; nuclear restart helps.
+          This is a <strong style={strong}>sovereign Lambda</strong>, not CoreWeave. There is no
+          Microsoft $60bn overflow onto an independent Japanese specialist. SoftBank is the
+          telco-conglomerate doing it itself.
+        </p>
+
+        <p style={{ ...bodyStyle, color: 'rgba(255,255,255,0.9)', fontWeight: 600, marginTop: 40 }}>
+          India: the other legal NVIDIA pool
+        </p>
+        <p style={bodyStyle}>
+          Yotta: 20,736 liquid-cooled Blackwell Ultra (HGX B300) at the 60 MW D2 hall in Greater
+          Noida, targeted live August 2026, &gt;$2bn, Quantum-X800 InfiniBand (
+          <ExtLink href={asiaRefs.yotta}>Yotta PR</ExtLink>, 18 Feb 2026). More than 10,000 of
+          those B300s committed to the IndiaAI Mission. Separate four-year, &gt;$1bn NVIDIA DGX
+          Cloud engagement, billed as one of APAC&rsquo;s largest. Yotta says &gt;10,000 NVIDIA
+          GPUs already live, another 8,000 near-term, roadmap &gt;80,000 by FY27. Navi Mumbai
+          campus scalable to 2 GW. Treat the million-GPU long-term line as marketing.
+        </p>
+        <p style={bodyStyle}>
+          This is closer to a national AI factory with a commercial window than to CoreWeave. A
+          large slice is sovereign. The commercial slice is real NVIDIA, legal, liquid-cooled, IB.
+          Capital is Indian + NVIDIA engagement, not GPU-ABS against Meta / Microsoft paper.
+        </p>
+
+        <p style={{ ...bodyStyle, color: 'rgba(255,255,255,0.9)', fontWeight: 600, marginTop: 40 }}>
+          Korea and the rest
+        </p>
+        <p style={bodyStyle}>
+          Korea: SK Telecom in the telco-neocloud club (with NTT, Deutsche Telekom, Orange).
+          National AI Computing Center broken ground 2026, target 15,000 AI semiconductors by
+          2028. Captive and sovereign. Taiwan: TSMC already fights for power; a specialist GPU
+          cloud is politically and electrically crowded. Australia: Firmus&rsquo;s home, CDC,
+          plenty of MW on paper, far from Asian users. UAE / Saudi (G42, Humain) are the non-US
+          sovereign GPU clouds that actually look like a state-backed CoreWeave. They are not
+          Southeast Asia, but they are the template &ldquo;Asia-Pacific&rdquo; bulls keep reaching
+          for.
+        </p>
+
+        <p style={{ ...bodyStyle, color: 'rgba(255,255,255,0.9)', fontWeight: 600, marginTop: 40 }}>
+          Mapping onto the three Western products
+        </p>
+        <div style={{ overflowX: 'auto', marginBottom: 28 }}>
+          <table style={tableStyle}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.22)' }}>
+                <th style={thStyle}>Western object</th>
+                <th style={thStyle}>Asia analog that actually exists</th>
+                <th style={thStyle}>What is missing</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style={trStyle}>
+                <td style={{ ...tdStyle, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>CoreWeave (reserved IB, IG offtake, NVIDIA allocation, GPU debt)</td>
+                <td style={tdStyle}>Not yet. Firmus offtake <em>target</em> $25–30bn is the closest press line. SoftBank is doing it inside the telco.</td>
+                <td style={tdStyle}>Microsoft / Meta-style overflow onto an independent; GPU residual market in Asia</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={{ ...tdStyle, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>Lambda / developer GPU cloud</td>
+                <td style={tdStyle}>Sakura, GMO, Highreso, bits of Yotta commercial, YTL&rsquo;s first 20 MW</td>
+                <td style={tdStyle}>Scale and a self-serve catalog at US prices</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={{ ...tdStyle, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>Crusoe factory (single-tenant GW)</td>
+                <td style={tdStyle}>Johor ByteDance pipeline, AWS / MSFT / Google Malaysia regions, DayOne shells</td>
+                <td style={tdStyle}>That is the hyperscaler, not a ticker</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={{ ...tdStyle, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>Landlord (APLD / GDS)</td>
+                <td style={tdStyle}>GDS Nusajaya, AirTrunk, Vantage, DayOne, Runze Batam plan</td>
+                <td style={tdStyle}>Already here</td>
+              </tr>
+              <tr style={trStyle}>
+                <td style={{ ...tdStyle, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>China cutout &ldquo;neocloud&rdquo;</td>
+                <td style={tdStyle}>Megaspeed 68.4 MW at Bridge, $2bn Malaysian buy</td>
+                <td style={tdStyle}>Being unwound by BIS parent-HQ rule</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p style={{ ...bodyStyle, color: 'rgba(255,255,255,0.9)', fontWeight: 600, marginTop: 40 }}>
+          So can Singapore have one? Can Asia?
+        </p>
+        <p style={bodyStyle}>
+          <strong style={strong}>Singapore-the-island:</strong> no, not at training scale. 80+200
+          MW of new approvals against a 1 GW+ live base, 7–12% of national power, is a boutique.
+          Inference, yes. Training factory, no.
+        </p>
+        <p style={bodyStyle}>
+          <strong style={strong}>Singapore-the-company:</strong> yes, if the parent is not China.
+          Firmus+DayOne is the working drawing. HQ, contracting, NVIDIA relationship in Singapore;
+          360 MW and 170k GPUs in Batam. That can be a neocloud in the Lambda-to-small-CRWV sense{' '}
+          <strong style={strong}>if</strong> the $25–30bn offtake shows up as signed ACV, not a
+          Bloomberg sentence, and <strong style={strong}>if</strong> the GPUs actually rack in
+          2027.
+        </p>
+        <p style={bodyStyle}>
+          <strong style={strong}>Southeast Asia:</strong> not blocked on NVIDIA for non-China
+          parents. Blocked on confusing three inventories. Johor&rsquo;s GW pipeline is mostly
+          colo and hyperscaler. The China-linked racks are a shrinking stock. The new legal GPU
+          clouds are 20 MW live (YTL), 170k GPUs promised (Firmus, 2027), plus whatever honest
+          local clouds remain after whitelist cuts.
+        </p>
+        <p style={bodyStyle}>
+          <strong style={strong}>Asia as a whole:</strong> Japan and India can and are building
+          legal NVIDIA GPU clouds. They look like sovereign Lambdas and national factories. They
+          do not look like CoreWeave until someone other than a telco or a state mission writes a
+          ten-billion-dollar take-or-pay to an independent. Firmus is the only name in the
+          Singapore orbit even claiming that offtake. Watch the 2027 rack date and whether those
+          contracts are real.
+        </p>
+        <p style={bodyStyle}>
+          The China question does not get a Singapore escape hatch. BIS parent-HQ closed it. A
+          Wulanchabu training run cannot legally sit on Batam Blackwell through a Singapore shell
+          anymore. Remote rental is the leftover grey. That is a workload path, not a campus path,
+          and it is on the BIS watch list.
+        </p>
+        <p style={bodyStyle}>
+          Cards in Southeast Asia were never the scarce object. Clean title to those cards was.
         </p>
 
         <SectionLabel>References</SectionLabel>

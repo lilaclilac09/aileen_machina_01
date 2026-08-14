@@ -348,6 +348,48 @@ export const CHINA_NEOCLOUD: MagazineIssue = {
           impactNote: 'The 8 December 2025 opening is a trapdoor',
         },
         {
+          id: 'singapore-hatch',
+          title: 'Singapore is not an escape hatch',
+          scene: 'Company and network in Singapore, factory in Johor or Batam — until BIS parent-HQ closed the China cutout',
+          judgment:
+            'A Wulanchabu training run cannot legally sit on Batam Blackwell through a Singapore shell anymore.',
+          points: [
+            'Singapore island: ~1.1 GW live IT, BMI 2026 ~1.46 GW; DC-CFA1 80 MW; DC-CFA2 ≥200 MW; 7–12% of national power. Inference boutique, not a 1 GW training factory',
+            'Megaspeed: nearly $2bn NVIDIA via a Malaysian subsidiary; Bridge 68.4 MW given to Zenlayer by Feb 2026. Inventory B is being unwound',
+            'Remote rental of remaining SEA Blackwell by PRC labs is still legally grey and under BIS review — a workload path, not a campus path',
+          ],
+          impact: 'reinforces',
+          impactNote: 'The China question does not get a Singapore campus',
+          drawer: {
+            sources: [
+              'https://technode.global/2026/07/29/singapore-to-retain-top-southeast-asia-data-center-status-despite-capacity-constraints-bmi/',
+              'https://www.cnbc.com/2025/10/10/singapore-us-investigate-nvidia-client-megaspeed-export-controls-violation.html',
+              'https://theedgemalaysia.com/node/799045',
+            ],
+          },
+        },
+        {
+          id: 'firmus-yotta',
+          title: 'Firmus 2027, Yotta August, SoftBank October',
+          scene: 'Inventory C: legal NVIDIA, mostly not live yet, parent not China',
+          judgment:
+            'Japan and India look like sovereign Lambdas and national factories. They do not look like CoreWeave until someone other than a telco or a state mission writes ten-billion take-or-pay to an independent.',
+          points: [
+            'Firmus + DayOne Batam: 360 MW, up to 170,000 accelerators through 2027–28, Q1 2027 campus; $25–30bn offtake is a target, not a $104bn backlog',
+            'Yotta: 20,736 HGX B300 at 60 MW D2 Greater Noida, targeted live August 2026; >10,000 committed to IndiaAI Mission',
+            'SoftBank AI Data Center GPU Cloud on GB200 NVL72, October 2026. YTL Kulai first NVIDIA hall about 20 MW, live Oct 2025',
+          ],
+          impact: 'uncertain',
+          impactNote: 'Watch the 2027 rack date and whether Firmus contracts are signed ACV',
+          drawer: {
+            sources: [
+              'https://firmus.co/newsroom/firmus-to-build-170-000-gpu-ai-factor-y-campus-with-nvidia-for-global-ai-natives',
+              'https://yotta.com/press-releases/yotta-to-deploy-20000-nvidia-blackwell-ultra-gpus/',
+              'https://www.softbank.jp/en/corp/news/press/sbkk/2026/20260525_01/',
+            ],
+          },
+        },
+        {
           id: 'mid-tier-tam',
           title: '智谱 and MiniMax do rent',
           scene: '智谱 2025 R&D RMB 3.18B, more than 70% compute; compute share of R&D 17.3% (2022) → 71.8% (2025H1)',
@@ -451,11 +493,11 @@ export const CHINA_NEOCLOUD: MagazineIssue = {
     indicators: [
       'Kingsoft 智算 mix: Xiaomi stays above 50% of 智算, or third-party reserved ACV shows up as a disclosed line with a customer count that is not two names.',
       'UCloud card census next print: count, generation mix, Wulanchabu MW, AI revenue versus 2025 ~RMB 685m. Cards 3x and revenue flat = 国产 ASP problem, not a neocloud ramp.',
-      'H200 units actually landed after Kessler’s “very few”; any independent (not Ali/Tencent/ByteDance/JD) on a license list; 昇腾 rental GMV; 联通中卫 commercial catalog at a published SLA.',
+      'H200 units actually landed after Kessler’s “very few”; any independent (not Ali/Tencent/ByteDance/JD) on a license list; 昇腾 rental GMV; 联通中卫 commercial catalog at a published SLA; Firmus Batam 2027 rack date and whether $25–30bn offtake is signed ACV.',
     ],
     timeWindow: '2026–2027 under current BIS rules and the captive/SOE demand structure. Revisit if a specialist actually receives repeating NVIDIA allocation, or if 昇腾 reserved-hour GMV becomes the median renter.',
   },
 
   nextIssueTracks:
-    'Kingsoft 智算 mix, UCloud generation census, H200 units actually landed, 昇腾 rental GMV, 联通中卫 commercial catalog, and whether BIS bans remote rental of overseas NVIDIA.',
+    'Kingsoft 智算 mix, UCloud generation census, H200 units actually landed, 昇腾 rental GMV, 联通中卫 commercial catalog, BIS remote-rental, and Firmus Batam 2027 rack / signed ACV.',
 };

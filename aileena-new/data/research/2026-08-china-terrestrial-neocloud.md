@@ -98,6 +98,21 @@ SenseCore: 40,400 PFLOPS FP16 YE2025; GenAI revenue RMB 3.63B (72% of 2025 sales
 
 The idle is real, and it is not on this tour. CAICT: 3.8bn card-hours supplied, 1.4bn used, 36.8%. Shi Ke's "digital unfinished buildings" is 2025 CPPCC. Hub cities do not have named idle MW-class halls in 2026 visitor copy.
 
+# Singapore / Asia — not a China escape hatch
+
+Southeast Asia is not blocked on NVIDIA. Singapore island is blocked on power. China-parented vehicles in SG/MY are blocked on BIS. Mixing those three is how "SEA has so many cards" becomes a neocloud thesis.
+
+- **Singapore island.** Live IT ~1.1 GW; BMI 2026 ~1.46 GW ([TechNode / BMI](https://technode.global/2026/07/29/singapore-to-retain-top-southeast-asia-data-center-status-despite-capacity-constraints-bmi/), 29 Jul 2026). DCs ~7% of national electricity, heading toward 12%. Land 745 km². DC-CFA1 (2023) **80 MW** to Equinix, GDS, Microsoft, AirTrunk–ByteDance. DC-CFA2 (closed 31 Mar 2026) **≥200 MW**, PUE 1.25, Green Mark Platinum, ≥50% eligible green ([Mondaq](https://www.mondaq.com/new-technology/1729734/singapores-second-data-centre-call-for-application-from-pilot-to-power-play); [TechNode](https://technode.global/2026/07/31/singapore-tightens-data-center-growth-as-johor-bangkok-jakarta-race-ahead/), 31 Jul 2026). BMI: ~20 MW under construction vs ~980 MW pipeline. Jurong Island envelope **up to 700 MW** — planning, not a 2026 hall. Inference / HQ yes. 1 GW training factory no.
+- **Johor.** Operational often cited 1–2 GW 2025–26; pipelines 5 GW+ / some 8–12 GW by 2030 = pipeline. YTL Kulai first NVIDIA hall ~**20 MW** live Oct 2025; Vantage JHB1 300 MW potential, Phase 1 Jan 2026; PDG JH1 ~150 MW; AirTrunk ~150 MW early; Yondr 200–300 MW class; GDS Nusajaya/Kulai ~280 MW phased; ByteDance/TikTok 1–2 GW pipeline, RM10 bn.
+- **Batam.** Firmus + DayOne: **360 MW** NVIDIA DSX AI Factory, up to **170,000** Grace-Blackwell / Vera-Rubin / Vera through 2027–28, campus Q1 2027 ([Firmus](https://firmus.co/newsroom/firmus-to-build-170-000-gpu-ai-factor-y-campus-with-nvidia-for-global-ai-natives); [DCD](https://www.datacenterdynamics.com/en/news/firmus-to-deploy-170000-gpu-cluster-in-batam-indonesia/)). Coatue round $5.5bn. Offtake talk $25–30bn over six years = target, not CRWV $104bn backlog. DayOne 450 MW PPA at Kabil. Runze Batam ~360 MW = Chinese landlord overseas; tenant brings cards.
+- **Inventory A.** Hyperscaler/landlord MW. Cards belong to the hyperscaler.
+- **Inventory B.** China cutout, unwinding. Megaspeed nearly **$2bn** NVIDIA via Malaysian sub ([CNBC](https://www.cnbc.com/2025/10/10/singapore-us-investigate-nvidia-client-megaspeed-export-controls-violation.html), 10 Oct 2025). Bridge allocated **68.4 MW**; given to Zenlayer by Feb 2026 ([Edge](https://theedgemalaysia.com/node/799045), 8 Apr 2026). BIS 31 May 2026 parent-HQ rule. Remote rental still grey.
+- **Inventory C.** Legal non-China GPU cloud, mostly 2027. Firmus, YTL 20 MW live, Yotta, SoftBank Oct 2026.
+- **Japan.** SoftBank "AI Data Center GPU Cloud" GB200 NVL72 + Infrinia, Oct 2026 ([SoftBank](https://www.softbank.jp/en/corp/news/press/sbkk/2026/20260525_01/), 25 May 2026). Sakura Koukaryoku ~10,800 GPUs. Sovereign Lambda, not CoreWeave.
+- **India.** Yotta 20,736 HGX B300 at 60 MW D2 Greater Noida, targeted live Aug 2026, >$2bn, Quantum-X800 IB ([Yotta](https://yotta.com/press-releases/yotta-to-deploy-20000-nvidia-blackwell-ultra-gpus/), 18 Feb 2026). >10,000 to IndiaAI Mission. National factory with a commercial window.
+
+Cards in SEA were never the scarce object. Clean title to those cards was.
+
 # Watch
 
 - Kingsoft 智算 mix (Xiaomi vs third-party reserved ACV)
@@ -106,3 +121,5 @@ The idle is real, and it is not on this tour. CAICT: 3.8bn card-hours supplied, 
 - 昇腾 rental GMV, utilization, repeat third-party reserved hours
 - 联通中卫 commercial catalog at a published SLA
 - BIS remote-rental of overseas NVIDIA (still legal, under review)
+- Firmus Batam 2027 rack date / whether $25–30bn offtake is signed ACV
+- Yotta D2 August 2026 live; SoftBank GPU Cloud October 2026
