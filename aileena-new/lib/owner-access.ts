@@ -1,10 +1,10 @@
 /**
  * Owner unlimited console chat.
  *
- * Visitors stay at 20 messages/day. Recognized owner emails (OWNER_EMAILS /
- * contact inbox env — no email is hardcoded) mint a long-lived signed cookie
- * that skips the chat quota. Blog owner session (__aileena_pass via=owner)
- * also unlocks chat.
+ * Visitors stay at 20 messages/day. Recognized owner emails (OWNER_EMAILS
+ * only — no email is hardcoded; contact inbox env does not unlock) mint a
+ * long-lived signed cookie that skips the chat quota. Blog owner session
+ * (__aileena_pass via=owner) also unlocks chat.
  */
 
 import { OWNER_MAX_AGE, SESSION_COOKIE, readSession } from './auth';
@@ -56,7 +56,7 @@ function timingSafeEqual(a: string, b: string): boolean {
   return diff === 0;
 }
 
-/** Owner allow-list: OWNER_EMAILS + contact To env. No email is hardcoded. */
+/** Owner allow-list: OWNER_EMAILS only. Empty OWNER_EMAILS → always false. No email is hardcoded. */
 export function isOwnerEmail(email: string): boolean {
   const n = normalizeEmail(email);
   if (!n || !n.includes('@')) return false;
@@ -66,16 +66,7 @@ export function isOwnerEmail(email: string): boolean {
     .map(normalizeEmail)
     .filter(Boolean);
 
-  const fromContact = [
-    process.env.CONTACT_TO,
-    process.env.CONTACT_TO_EMAIL,
-    process.env.LEAD_INBOX,
-    process.env.NOTIFY_CC_EMAIL,
-  ]
-    .filter((s): s is string => typeof s === 'string' && s.includes('@'))
-    .map(normalizeEmail);
-
-  const allow = new Set<string>([...fromEnv, ...fromContact]);
+  const allow = new Set<string>(fromEnv);
   return allow.has(n);
 }
 

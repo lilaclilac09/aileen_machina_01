@@ -499,11 +499,25 @@ function main() {
   const ownerEnvKeys = ['OWNER_EMAILS', 'CONTACT_TO', 'CONTACT_TO_EMAIL', 'LEAD_INBOX', 'NOTIFY_CC_EMAIL'] as const;
   const prevOwnerEnv = Object.fromEntries(ownerEnvKeys.map((k) => [k, process.env[k]]));
   for (const k of ownerEnvKeys) delete process.env[k];
-  assert(
-    'isOwnerEmail rejects hardcoded address when not in env',
-    isOwnerEmail('rosazxc0915@gmail.com') === false,
-  );
   assert('isOwnerEmail rejects empty string', isOwnerEmail('') === false);
+  process.env.CONTACT_TO = 'inbox@example.com';
+  process.env.CONTACT_TO_EMAIL = 'inbox2@example.com';
+  process.env.LEAD_INBOX = 'inbox3@example.com';
+  process.env.NOTIFY_CC_EMAIL = 'inbox4@example.com';
+  assert(
+    'isOwnerEmail is false when OWNER_EMAILS unset even if contact inbox env is set',
+    isOwnerEmail('inbox@example.com') === false &&
+      isOwnerEmail('inbox2@example.com') === false &&
+      isOwnerEmail('inbox3@example.com') === false &&
+      isOwnerEmail('inbox4@example.com') === false &&
+      isOwnerEmail('rosazxc0915@gmail.com') === false,
+  );
+  process.env.OWNER_EMAILS = 'owner@example.com';
+  assert('isOwnerEmail is true only for OWNER_EMAILS', isOwnerEmail('owner@example.com') === true);
+  assert(
+    'isOwnerEmail stays false for contact inbox when OWNER_EMAILS is set',
+    isOwnerEmail('inbox@example.com') === false && isOwnerEmail('visitor@example.com') === false,
+  );
   for (const k of ownerEnvKeys) {
     if (prevOwnerEnv[k] === undefined) delete process.env[k];
     else process.env[k] = prevOwnerEnv[k];
