@@ -380,4 +380,16 @@ a.arc-item-title:hover {
   .arc-now .arc-item-title {
     font-size: 1.16rem;
   }
+
+  .arc-posters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+    gap: 14px 12px;
+  }
+
+  .arc-poster {
+    flex: none;
+    min-width: 0;
+  }
 }
