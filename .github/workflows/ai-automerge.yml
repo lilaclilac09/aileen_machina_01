@@ -35,6 +35,9 @@ jobs:
         working-directory: aileena-new
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Triple-dot diff vs base needs merge-base history.
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@v4
         with:
@@ -48,6 +51,50 @@ jobs:
 
       - name: Install
         run: pnpm install --frozen-lockfile
+
+      # Indexes are gitignored; tsc imports those JSON modules. Same scripts
+      # as `pnpm build`. Do not run full-repo `pnpm lint` (red on main).
+      - name: Typecheck
+        run: |
+          pnpm build:index
+          pnpm build:data-index
+          pnpm build:memory-index
+          pnpm exec tsc --noEmit
+
+      - name: Lint (changed files)
+        working-directory: .
+        run: |
+          set -euo pipefail
+          BASE_REF="${{ github.base_ref }}"
+          if [ -z "$BASE_REF" ]; then
+            BASE_REF=main
+          fi
+          git fetch --no-tags origin "$BASE_REF"
+          mapfile -t files < <(
+            git diff --name-only "origin/${BASE_REF}...HEAD" -- \
+              'aileena-new/**/*.ts' \
+              'aileena-new/**/*.tsx' \
+              'aileena-new/**/*.js' \
+              'aileena-new/**/*.jsx' \
+            | grep -v '/node_modules/' || true
+          )
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No changed TS/JS files under aileena-new — skip."
+            exit 0
+          fi
+          rel=()
+          for f in "${files[@]}"; do
+            [ -f "$f" ] || continue
+            rel+=("${f#aileena-new/}")
+          done
+          if [ ${#rel[@]} -eq 0 ]; then
+            echo "Changed TS/JS files were deleted — skip."
+            exit 0
+          fi
+          echo "Linting ${#rel[@]} changed file(s):"
+          printf '  %s\n' "${rel[@]}"
+          cd aileena-new
+          pnpm exec eslint -- "${rel[@]}"
 
       # Full-repo `pnpm lint` is red on main (~180 errors). Gate only the
       # DnD / automerge surfaces this workflow is meant to protect.
