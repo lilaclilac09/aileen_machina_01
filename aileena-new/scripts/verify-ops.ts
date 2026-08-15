@@ -67,6 +67,7 @@ import {
   parseUnifiedDiff,
 } from '../lib/voiceCodePatch';
 import { applyAllowlistedPatch } from '../lib/voiceCodeApply';
+import { isOwnerEmail } from '../lib/owner-access';
 
 type Check = { name: string; ok: boolean; detail?: string };
 const checks: Check[] = [];
@@ -489,6 +490,24 @@ function main() {
   assert('cabinet page is owner-only', /getOwnerIdentity/.test(cabinetPageSrc) && /OwnerUnlockForm/.test(cabinetPageSrc));
   assert('owner auth accepts POST', /export async function POST/.test(ownerAuthSrc));
   assert('public console has no council href', !/href=['"]\/council['"]/.test(agentChatSrc));
+
+  const ownerAccessSrc = readFileSync(join(process.cwd(), 'lib/owner-access.ts'), 'utf8');
+  assert(
+    'owner-access source has no hardcoded owner email',
+    !/rosazxc0915@gmail.com/.test(ownerAccessSrc) && !/DEFAULT_OWNER_EMAILS/.test(ownerAccessSrc),
+  );
+  const ownerEnvKeys = ['OWNER_EMAILS', 'CONTACT_TO', 'CONTACT_TO_EMAIL', 'LEAD_INBOX', 'NOTIFY_CC_EMAIL'] as const;
+  const prevOwnerEnv = Object.fromEntries(ownerEnvKeys.map((k) => [k, process.env[k]]));
+  for (const k of ownerEnvKeys) delete process.env[k];
+  assert(
+    'isOwnerEmail rejects hardcoded address when not in env',
+    isOwnerEmail('rosazxc0915@gmail.com') === false,
+  );
+  assert('isOwnerEmail rejects empty string', isOwnerEmail('') === false);
+  for (const k of ownerEnvKeys) {
+    if (prevOwnerEnv[k] === undefined) delete process.env[k];
+    else process.env[k] = prevOwnerEnv[k];
+  }
 
   const prevKey = process.env.PRIVATE_DATA_ENCRYPTION_KEY;
   resetPrivateCryptoCache();
