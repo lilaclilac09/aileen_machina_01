@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SESSION_COOKIE, OWNER_MAX_AGE, createOwnerSession, safeEqual } from '../../../../lib/auth';
 
 /**
- * Owner door. POST a form from /council or /cabinet (preferred — key stays
- * out of the URL). GET ?key= still works for old bookmarks.
+ * Owner door. POST a form from /council or /cabinet (key stays out of
+ * the URL). GET must not accept ?key= — that leaks OWNER_KEY via Referer,
+ * proxies, and history.
  *
- * One good enter sets a 1-year httpOnly cookie. Wrong key returns to the
- * room with ?error=denied — not the public wallet unlock page.
+ * One good POST enter sets a 1-year httpOnly cookie. Wrong key returns
+ * to the room with ?error=denied — not the public wallet unlock page.
  */
 export const runtime = 'nodejs';
 
@@ -47,9 +48,8 @@ async function finishUnlock(req: NextRequest, key: string, nextRaw: string | nul
   return res;
 }
 
-export async function GET(req: NextRequest) {
-  const key = req.nextUrl.searchParams.get('key') || '';
-  return finishUnlock(req, key, req.nextUrl.searchParams.get('next'));
+export async function GET() {
+  return NextResponse.json({ error: 'denied' }, { status: 403 });
 }
 
 export async function POST(req: NextRequest) {

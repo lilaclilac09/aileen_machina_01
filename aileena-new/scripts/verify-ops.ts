@@ -488,6 +488,8 @@ function main() {
   assert('council page links cabinet', /href="\/cabinet"/.test(councilPageSrc));
   assert('cabinet page is owner-only', /getOwnerIdentity/.test(cabinetPageSrc) && /OwnerUnlockForm/.test(cabinetPageSrc));
   assert('owner auth accepts POST', /export async function POST/.test(ownerAuthSrc));
+  assert('owner auth does not read query key', !/searchParams\.get\(\s*['"]key['"]/.test(ownerAuthSrc));
+  assert('owner auth GET is 403', /export async function GET/.test(ownerAuthSrc) && /status:\s*403/.test(ownerAuthSrc));
   assert('public console has no council href', !/href=['"]\/council['"]/.test(agentChatSrc));
 
   const prevKey = process.env.PRIVATE_DATA_ENCRYPTION_KEY;
