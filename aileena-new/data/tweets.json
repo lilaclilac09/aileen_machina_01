@@ -13679,7 +13679,7 @@
     "retweets": 1,
     "replies": 0,
     "bookmarks": 1,
-    "views": 459,
+    "views": 467,
     "isNoteTweet": true,
     "mediaUrls": [
       "https://pbs.twimg.com/media/HPsiE_CWcAEzFDi.png?name=orig"
@@ -13690,7 +13690,7 @@
     "topics": [],
     "tags": [],
     "source": "fxtwitter",
-    "ingestedAt": "2026-08-15T12:58:37.277Z"
+    "ingestedAt": "2026-08-15T18:47:02.409Z"
   },
   {
     "id": "2088301410827763723",
@@ -13988,5 +13988,101 @@
     "tags": [],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-15T01:49:31.651Z"
+  },
+  {
+    "id": "2088672273154626013",
+    "url": "https://x.com/SemiAnalysis_/status/2088672273154626013",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Energy and housing are coming down in CPI inflation, but everything else is holding stable. For a Fed chairman who is talking tough on inflation, but also appears to not want to hike the pressure is building.",
+    "createdAt": "Sat Aug 15 17:00:50 +0000 2026",
+    "createdTimestamp": 1786813250,
+    "likes": 32,
+    "retweets": 1,
+    "replies": 9,
+    "bookmarks": 8,
+    "views": 9705,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPx0XSZWEAAjJBE.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-15T18:46:55.398Z"
+  },
+  {
+    "id": "2088626891561292249",
+    "url": "https://x.com/SemiAnalysis_/status/2088626891561292249",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Great to see @dotsstudioai from the popular Chinese social media app (@xiaohongshu, known as RedNote in English) join the open-weight community! ❤️ The team is still trying it out for day-to-day use to see the actual quality of the model or if it is eval maxed.\n\nRegardless, it is always great to see another company join the open community!",
+    "createdAt": "Sat Aug 15 14:00:30 +0000 2026",
+    "createdTimestamp": 1786802430,
+    "likes": 101,
+    "retweets": 9,
+    "replies": 9,
+    "bookmarks": 11,
+    "views": 17590,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPxLFu3WIAAIlwi.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-15T18:46:56.844Z"
+  },
+  {
+    "id": "2088642253971693691",
+    "url": "https://x.com/SKundojjala/status/2088642253971693691",
+    "screenName": "SKundojjala",
+    "authorId": "379092222",
+    "authorName": "Sravan Kundojjala",
+    "text": "Semicap DRAM revenue is on  fire. New peaks are loading. ASML has been gaining share in DRAM, driven by higher EUV adoption. AMAT stable. Lam and KLA cyclical gainers. TEL has been a share donor and surprisingly underperformed.",
+    "createdAt": "Sat Aug 15 15:01:33 +0000 2026",
+    "createdTimestamp": 1786806093,
+    "likes": 31,
+    "retweets": 4,
+    "replies": 1,
+    "bookmarks": 10,
+    "views": 6357,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPxYYLBaYAEX_ny.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-15T18:46:58.704Z"
+  },
+  {
+    "id": "2088691791591522436",
+    "url": "https://x.com/mach33/status/2088691791591522436",
+    "screenName": "mach33",
+    "authorId": "2051360039869276160",
+    "authorName": "Mach33 Financial Group",
+    "text": "cheaper steam engines burn more coal. Dropping cost's effect on increasing volume can be measured. That's been built into the AI compute Keystone",
+    "createdAt": "Sat Aug 15 18:18:23 +0000 2026",
+    "createdTimestamp": 1786817903,
+    "likes": 1,
+    "retweets": 0,
+    "replies": 0,
+    "bookmarks": 1,
+    "views": 75,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://video.twimg.com/amplify_video/2088691503673520128/vid/avc1/1080x1920/RJ0sBJJDFNqxSQTP.mp4?tag=29"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-15T18:47:05.363Z"
   }
 ]
