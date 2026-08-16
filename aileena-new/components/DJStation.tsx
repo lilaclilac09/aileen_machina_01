@@ -700,7 +700,7 @@ export default function DJStation() {
 
         {/* Deck + Mixer grid */}
         {isMobile ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 10 }}>
+          <div className="dj-mixer-grid" style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 12 }}>
             <DeckPanel
               side="left" track={displayTrack('left')} playing={leftPlaying} isMobile={true} synced={bpmHint?.type === 'sync'}
               pos={leftPos} dur={leftDur}
@@ -761,7 +761,7 @@ export default function DJStation() {
             />
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 1fr', gap: 8, marginBottom: 10 }}>
+          <div className="dj-mixer-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 100px 1fr', gap: 8, marginBottom: 10 }}>
             <DeckPanel
               side="left" track={displayTrack('left')} playing={leftPlaying} synced={bpmHint?.type === 'sync'}
               pos={leftPos} dur={leftDur}
@@ -1189,10 +1189,12 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {/* Play/Pause */}
           <button
+            className="dj-tap"
             data-testid={side === 'left' ? 'dj-play-a' : 'dj-play-b'}
             onClick={onToggle}
+            aria-label={playing ? 'Pause' : 'Play'}
             style={{
-            width: 38, height: 38, borderRadius: '50%', cursor: 'pointer',
+            width: isMobile ? 48 : 38, height: isMobile ? 48 : 38, borderRadius: '50%', cursor: 'pointer',
             background: playing ? `rgba(0,168,157,0.1)` : '#14181e',
             border: `1px solid ${playing ? 'rgba(0,168,157,0.55)' : 'rgba(170,179,187,0.22)'}`,
             boxShadow: playing ? `0 0 10px rgba(0,168,157,0.28)` : 'inset 0 2px 5px rgba(0,0,0,0.4)',
@@ -1203,14 +1205,16 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
           }}>{playing ? '⏸' : '▶'}</button>
           {/* CUE */}
           <button
+            className="dj-tap"
             title={playing ? 'return to cue and pause' : 'set cue at playhead'}
             onClick={onCue}
+            aria-label="Cue"
             style={{
-            width: 38, height: 38, borderRadius: '50%', cursor: 'pointer',
+            width: isMobile ? 48 : 38, height: isMobile ? 48 : 38, borderRadius: '50%', cursor: 'pointer',
             background: cueMs > 0 ? 'rgba(125,183,255,0.1)' : '#14181e',
             border: `1px solid ${cueMs > 0 ? 'rgba(125,183,255,0.55)' : 'rgba(170,179,187,0.22)'}`,
             boxShadow: cueMs > 0 ? '0 0 8px rgba(125,183,255,0.25)' : 'inset 0 2px 5px rgba(0,0,0,0.4)',
-            color: cueMs > 0 ? C.blue : C.silverDark, fontSize: '0.28rem', letterSpacing: '0.04em',
+            color: cueMs > 0 ? C.blue : C.silverDark, fontSize: isMobile ? '0.42rem' : '0.28rem', letterSpacing: '0.04em',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 1,
             transition: 'all 0.15s',
           }}>
@@ -1276,6 +1280,7 @@ function DeckMarks({ side, playing, synced, pos, onSync,
       }}>
         {/* SYNC */}
         <button
+          className="dj-tap"
           onClick={onSync}
           disabled={!syncEnabled}
           title={syncEnabled ? 'match this deck BPM to the other deck via playbackRate' : 'needs BPM on both decks — v2 beat detection'}
@@ -1292,7 +1297,7 @@ function DeckMarks({ side, playing, synced, pos, onSync,
         </button>
 
         {/* LOOP IN */}
-        <button onClick={onLoopIn} style={{
+        <button className="dj-tap" onClick={onLoopIn} style={{
           padding: '4px 8px', borderRadius: 4, cursor: 'pointer',
           background: loopIn !== null ? 'rgba(125,183,255,0.08)' : '#14181e',
           border: `1px solid ${loopIn !== null ? 'rgba(125,183,255,0.45)' : 'rgba(170,179,187,0.22)'}`,
@@ -1307,7 +1312,7 @@ function DeckMarks({ side, playing, synced, pos, onSync,
         </button>
 
         {/* LOOP OUT */}
-        <button onClick={onLoopOut} style={{
+        <button className="dj-tap" onClick={onLoopOut} style={{
           padding: '4px 8px', borderRadius: 4, cursor: 'pointer',
           background: loopActive ? 'rgba(255,155,94,0.08)' : '#14181e',
           border: `1px solid ${loopActive ? 'rgba(255,155,94,0.45)' : 'rgba(170,179,187,0.22)'}`,
@@ -1326,6 +1331,7 @@ function DeckMarks({ side, playing, synced, pos, onSync,
           {loopSizes.map(s => (
             <button
               key={s}
+              className="dj-tap"
               onClick={() => onLoopBars(s)}
               disabled={!loopBarsEnabled}
               title={loopBarsEnabled ? `loop ${s} bars from playhead` : 'needs BPM — v2 beat detection'}

@@ -7,22 +7,30 @@ export default function Header() {
 
   return (
     <header className="site-lang-chrome fixed right-0 top-0 z-50 px-5 pt-4 sm:px-10 lg:px-12">
-      <div className="flex items-center gap-3 rounded-full border border-black/10 bg-white/88 px-3 py-2 text-[0.62rem] uppercase tracking-[0.3em] text-[#14110c]/62 shadow-[0_12px_34px_-28px_rgba(20,17,12,0.5)] backdrop-blur sm:gap-5">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1 rounded-full border border-black/10 bg-white/92 px-1.5 py-1 text-[0.62rem] uppercase tracking-[0.3em] text-[#14110c]/62 shadow-[0_12px_34px_-28px_rgba(20,17,12,0.5)] sm:gap-3 sm:px-3 sm:py-2 sm:bg-white/88 sm:backdrop-blur">
+        <div className="flex items-center">
           <button
+            type="button"
             onClick={() => setLanguage('EN')}
-            className={`transition ${language === 'EN' ? 'text-[#00a99f]' : 'hover:text-[#14110c]'}`}
+            aria-pressed={language === 'EN'}
+            className={`inline-flex min-h-11 min-w-11 items-center justify-center transition sm:min-h-0 sm:min-w-0 ${language === 'EN' ? 'text-[#00a99f]' : 'hover:text-[#14110c]'}`}
           >
             EN
           </button>
           <button
+            type="button"
             onClick={() => setLanguage('DE')}
-            className={`transition ${language === 'DE' ? 'text-[#00a99f]' : 'hover:text-[#14110c]'}`}
+            aria-pressed={language === 'DE'}
+            className={`inline-flex min-h-11 min-w-11 items-center justify-center transition sm:min-h-0 sm:min-w-0 ${language === 'DE' ? 'text-[#00a99f]' : 'hover:text-[#14110c]'}`}
           >
             DE
           </button>
         </div>
-        <button className="text-sm leading-none text-[#14110c]/72 transition hover:text-[#00a99f]" aria-label="Menu">
+        <button
+          type="button"
+          className="inline-flex min-h-11 min-w-11 items-center justify-center text-sm leading-none text-[#14110c]/72 transition hover:text-[#00a99f] sm:min-h-0 sm:min-w-0"
+          aria-label="Menu"
+        >
           ≡
         </button>
       </div>
