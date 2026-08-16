@@ -40,6 +40,7 @@ type Track = {
   source?: 'spotify';
   previewUrl?: string | null;
   externalUrl?: string;
+  mixable?: boolean;
 };
 
 type ViewMode = 'list' | 'playlist';
