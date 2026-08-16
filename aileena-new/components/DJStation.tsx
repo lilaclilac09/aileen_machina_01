@@ -574,7 +574,7 @@ export default function DJStation() {
           borderBottom: 'none', paddingBottom: 6, marginBottom: 8,
         }}>
           <span style={{ fontFamily: 'monospace', fontSize: '0.34rem', letterSpacing: '0.5em', color: C.dim, textTransform: 'uppercase' }}>
-            AILEENA DJ
+            AILEENA DESK
           </span>
           {bpmHint && (
             <span style={{
@@ -599,6 +599,15 @@ export default function DJStation() {
           recording={mix.recording}
           exportReady={mix.exportReady}
         />
+        <p style={{
+          margin: '-4px 0 8px',
+          fontFamily: 'monospace',
+          fontSize: '0.28rem',
+          letterSpacing: '0.08em',
+          color: C.muted,
+        }}>
+          club-desk ergonomics · not a product clone
+        </p>
 
         {/* Deck + Mixer grid */}
         {isMobile ? (
@@ -1144,8 +1153,8 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
         </div>
       </div>
 
-      {/* ── Pioneer section: Sync + Loop + Hot Cues ── */}
-      <PioneerControls
+      {/* Club-desk marks — ergonomics, not a CDJ clone */}
+      <DeckMarks
         side={side} playing={playing} synced={!!synced} pos={pos} onSync={onSync}
         syncEnabled={syncEnabled} loopBarsEnabled={loopBarsEnabled}
         loopActive={loopActive} loopIn={loopIn} loopOut={loopOut} loopBars={loopBars}
@@ -1159,10 +1168,8 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
   );
 }
 
-/* ─── Pioneer Controls ───────────────────────────────────── */
-const HOT_CUE_COLORS = ['#3b82f6','#f97316','#a3e635','#a855f7','#22d3ee','#ef4444','#10b981','#f472b6'];
-
-function PioneerControls({ side, playing, synced, pos, onSync,
+/* ─── Deck marks (club-desk logic, not CDJ trade dress) ──── */
+function DeckMarks({ side, playing, synced, pos, onSync,
   syncEnabled, loopBarsEnabled, loopActive, loopIn, loopOut, loopBars, hotCues,
   onLoopIn, onLoopOut, onLoopBars, onLoopExit, onHotCue }: {
   side: 'left'|'right'; playing: boolean; synced: boolean;
@@ -1174,6 +1181,7 @@ function PioneerControls({ side, playing, synced, pos, onSync,
   onHotCue(i: number, clear: boolean): void;
 }) {
   const loopSizes = [1, 2, 4, 8];
+  const mark = side === 'left' ? C.cyan : C.orange;
   void playing;
   void pos;
 
@@ -1201,7 +1209,6 @@ function PioneerControls({ side, playing, synced, pos, onSync,
           transition: 'all 0.2s', minWidth: 52, opacity: syncEnabled ? 1 : 0.4,
         }}>
           SYNC
-          {synced && <span style={{ display: 'block', fontSize: '0.3rem', letterSpacing: '0.2em', opacity: 0.7, fontFamily: 'monospace' }}>LOCKED</span>}
         </button>
 
         {/* LOOP IN */}
@@ -1215,7 +1222,7 @@ function PioneerControls({ side, playing, synced, pos, onSync,
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
           transition: 'all 0.15s',
         }}>
-          <span>⌐ IN</span>
+          <span>IN</span>
           {loopIn !== null && <span style={{ fontFamily: 'monospace', fontSize: '0.22rem', opacity: 0.7 }}>{fmtSecLabel(loopIn)}</span>}
         </button>
 
@@ -1230,7 +1237,7 @@ function PioneerControls({ side, playing, synced, pos, onSync,
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
           transition: 'all 0.15s', opacity: loopIn === null ? 0.4 : 1,
         }}>
-          <span>¬ OUT</span>
+          <span>OUT</span>
           {loopOut !== null && loopActive && <span style={{ fontFamily: 'monospace', fontSize: '0.22rem', opacity: 0.7 }}>{fmtSecLabel(loopOut)}</span>}
         </button>
 
@@ -1267,62 +1274,57 @@ function PioneerControls({ side, playing, synced, pos, onSync,
         )}
       </div>
 
-      {/* ── Row 2: Hot Cue Pads (8 pads, 4×2) ── */}
+      {/* Marks — numbered pads, teal/orange family, not rainbow CDJ letters */}
       <div style={{
         background: C.bg, borderRadius: 6, padding: '7px 8px',
         border: '1px solid rgba(170,179,187,0.1)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
           <span style={{ fontFamily: 'monospace', fontSize: '0.38rem', letterSpacing: '0.35em', color: 'rgba(255,255,255,0.2)' }}>
-            HOT CUE
+            MARKS
           </span>
           <span style={{ fontFamily: 'monospace', fontSize: '0.32rem', letterSpacing: '0.2em', color: 'rgba(255,255,255,0.12)' }}>
             {side === 'left' ? 'DECK A' : 'DECK B'}
           </span>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4 }}>
-          {HOT_CUE_COLORS.map((color, i) => {
-            const stored = hotCues[i];
+          {hotCues.map((stored, i) => {
             const hasPos = stored != null;
             return (
               <button
                 key={i}
                 onPointerDown={(e) => onHotCue(i, e.altKey || e.metaKey)}
-                title={hasPos ? `Jump to cue ${String.fromCharCode(65+i)} (${fmtSecLabel(stored)}). Alt-click to clear.` : `Set cue ${String.fromCharCode(65+i)} at playhead`}
+                title={hasPos ? `Jump to mark ${i + 1} (${fmtSecLabel(stored)}). Alt-click to clear.` : `Set mark ${i + 1} at playhead`}
                 style={{
                   height: hasPos ? 38 : 32, borderRadius: 4, cursor: 'pointer',
-                  background: hasPos ? `${color}18` : '#14181e',
-                  border: `1px solid ${hasPos ? `${color}80` : 'rgba(170,179,187,0.18)'}`,
+                  background: hasPos ? `${mark}18` : '#14181e',
+                  border: `1px solid ${hasPos ? `${mark}80` : 'rgba(170,179,187,0.18)'}`,
                   boxShadow: hasPos
-                    ? `0 0 8px ${color}40`
+                    ? `0 0 8px ${mark}40`
                     : 'inset 0 2px 4px rgba(0,0,0,0.5)',
                   position: 'relative',
                   transition: 'all 0.08s',
-                  transform: 'scale(1)',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1,
                   paddingTop: 6,
                 }}
               >
-                {/* LED dot */}
                 <div style={{
                   width: 5, height: 5, borderRadius: '50%',
-                  background: hasPos ? color : 'rgba(255,255,255,0.08)',
-                  boxShadow: hasPos ? `0 0 6px ${color}` : 'none',
+                  background: hasPos ? mark : 'rgba(255,255,255,0.08)',
+                  boxShadow: hasPos ? `0 0 6px ${mark}` : 'none',
                   transition: 'all 0.1s', flexShrink: 0,
                 }} />
-                {/* Letter label */}
                 <span style={{
                   fontFamily: 'monospace', fontSize: '0.28rem', fontWeight: 700,
-                  color: hasPos ? color : 'rgba(255,255,255,0.15)',
+                  color: hasPos ? mark : 'rgba(255,255,255,0.15)',
                   letterSpacing: '0.05em',
                 }}>
-                  {String.fromCharCode(65 + i)}
+                  {i + 1}
                 </span>
-                {/* Time label when cue is set */}
                 {hasPos && (
                   <span style={{
                     fontFamily: 'monospace', fontSize: '0.22rem',
-                    color: color, opacity: 0.8,
+                    color: mark, opacity: 0.8,
                     letterSpacing: '0.02em',
                   }}>
                     {fmtSecLabel(stored ?? 0)}
@@ -1362,22 +1364,26 @@ function MixerPanel({ xfade, onXfade, isMobile, eqA, eqB, onEq, filterA, filterB
       boxShadow: 'inset 0 1px 0 rgba(217,224,230,0.07), inset 0 -1px 0 rgba(0,0,0,0.3), 0 0 0 1px rgba(0,0,0,0.3)',
     }}>
 
-      {/* ── Beat FX + phones — v2, not wired ── */}
+      {/* Send / phones — labeled v2, no DJM effect-name row */}
       <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 4 }}>
         <div style={{ display: 'flex', gap: 3 }}>
-          {(['ECHO','REVERB','FLANGER'] as const).map(fx => (
-            <button key={fx} disabled title="Beat FX v2 — not in the audio graph yet" style={{
-              flex: 1, padding: '3px 0', borderRadius: 3, cursor: 'not-allowed',
-              background: '#14181e',
-              border: '1px solid rgba(170,179,187,0.18)',
-              fontFamily: 'monospace', fontSize: '0.30rem', fontWeight: 600, letterSpacing: '0.08em',
-              color: C.silverDark, opacity: 0.4,
-            }}>{fx}</button>
+          {(['SEND v2', 'PHONES v2'] as const).map((label) => (
+            <button
+              key={label}
+              disabled
+              title="not in the audio graph yet"
+              style={{
+                flex: 1, padding: '4px 0', borderRadius: 3, cursor: 'not-allowed',
+                background: '#14181e',
+                border: '1px solid rgba(170,179,187,0.18)',
+                fontFamily: 'monospace', fontSize: '0.28rem', fontWeight: 600, letterSpacing: '0.1em',
+                color: C.silverDark, opacity: 0.45,
+              }}
+            >
+              {label}
+            </button>
           ))}
         </div>
-        <span style={{ fontFamily: 'monospace', fontSize: '0.26rem', letterSpacing: '0.2em', color: C.dim, textAlign: 'center' }}>
-          FX / PHONES v2
-        </span>
       </div>
 
       <div style={{ width: '100%', height: 1, background: 'rgba(255,255,255,0.05)' }} />

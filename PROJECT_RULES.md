@@ -22,6 +22,7 @@ Site: **https://www.aileena.xyz** (app in `aileena-new/`).
 - `cafe@aileena.xyz` is **brand send-only (From)**. Real inbox is `CONTACT_TO` / `CONTACT_TO_EMAIL` / `LEAD_INBOX` — never To: cafe@
 - DJ Station lives on `/sound#dj-set`. Visual / `#glass-bench` lives on the **home** page only — not on `/sound`
 - Real DJ mix is Web Audio (local / uploaded files, optional CORS-safe URL). Spotify iframe is preview only and cannot enter the mix. SoundCloud v1 is export-ready (manual upload), not OAuth.
+- Sound Lab mixer is inspired by club-gear ergonomics (two decks, centre strip, crossfader). Not a Pioneer/CDJ clone — no logos, product names, or trade dress.
 - do not replace a working flow with a parallel implementation
 
 ## Contact / env (ops, not code)
