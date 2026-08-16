@@ -190,13 +190,16 @@ a.arc-item-title:hover {
 
 .arc-hero-visual {
   margin: 0;
+  max-height: min(52vh, 420px);
+  overflow: hidden;
+  background: #efeae0;
 }
 
 .arc-hero-visual img {
   display: block;
   width: 100%;
   height: auto;
-  background: #efeae0;
+  object-fit: contain;
 }
 
 .arc-book-shelf {

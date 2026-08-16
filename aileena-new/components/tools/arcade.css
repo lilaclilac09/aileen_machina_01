@@ -258,7 +258,27 @@
 }
 
 .tools-lab-card--featured {
+  display: grid;
+  grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
+  gap: 8px 22px;
+  align-items: end;
   padding: 0 0 4px;
+}
+
+.tools-lab-card--featured .tools-preview,
+.tools-lab-card--featured .tools-lab-card-head,
+.tools-lab-card--featured .tools-lab-card-title,
+.tools-lab-card--featured .tools-lab-note-line,
+.tools-lab-card--featured .tools-lab-host,
+.tools-lab-card--featured .tools-lab-cta {
+  grid-column: 2;
+}
+
+.tools-lab-card--featured .tools-preview {
+  grid-column: 1;
+  grid-row: 1 / span 6;
+  margin: 0;
+  min-height: 100%;
 }
 
 .tools-preview {
@@ -512,6 +532,25 @@
 
   .tools-lab-card-title {
     font-size: 1.22rem;
+  }
+
+  .tools-lab-card--featured {
+    grid-template-columns: 1fr;
+  }
+
+  .tools-lab-card--featured .tools-preview,
+  .tools-lab-card--featured .tools-lab-card-head,
+  .tools-lab-card--featured .tools-lab-card-title,
+  .tools-lab-card--featured .tools-lab-note-line,
+  .tools-lab-card--featured .tools-lab-host,
+  .tools-lab-card--featured .tools-lab-cta {
+    grid-column: 1;
+  }
+
+  .tools-lab-card--featured .tools-preview {
+    grid-row: auto;
+    min-height: 120px;
+    margin-bottom: 14px;
   }
 
   .tools-lab-card--featured .tools-lab-card-title {
