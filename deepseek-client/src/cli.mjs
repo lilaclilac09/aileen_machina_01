@@ -4,18 +4,36 @@ import { stdin as input, stdout as output } from 'node:process';
 import { resolveConfig, requireConfig } from './config.mjs';
 import { chatCompletion, getBalance, listModels } from './client.mjs';
 
+export function howToUse() {
+  return `How to use
+----------
+1. Buy a key:  https://platform.deepseek.com
+2. cd deepseek-client
+3. cp .env.example .env
+4. Edit .env and set:
+     DEEPSEEK_API_KEY=sk-the-key-you-bought
+5. node src/cli.mjs check
+     Expect: "ok": true and apiKey like set(…xxxx)
+6. node src/cli.mjs chat "Hello from my DeepSeek key"
+     One reply, then the process exits.
+7. node src/cli.mjs chat
+     Interactive. Type a line, get a reply. /exit to quit.
+8. node src/cli.mjs chat --stream "Write a haiku about tea"
+9. node src/cli.mjs balance
+     Your DeepSeek wallet.
+10. node src/cli.mjs chat --model deepseek-v4-pro --thinking "Explain caches"
+
+Flags: --stream   --thinking   --model deepseek-v4-flash|deepseek-v4-pro
+npm:   npm run check | chat | models | balance | test
+
+Requests go to https://api.deepseek.com. DeepSeek bills your key.
+Never commit .env.`;
+}
+
 function printHelp() {
   console.log(`DeepSeek Client — official API, your purchased key.
 
-Usage:
-  node src/cli.mjs check
-  node src/cli.mjs models
-  node src/cli.mjs balance
-  node src/cli.mjs chat [--stream] [--thinking] [--model NAME] [prompt...]
-  node src/cli.mjs chat
-
-Put the key you bought on platform.deepseek.com in .env as DEEPSEEK_API_KEY.
-Requests go to https://api.deepseek.com. DeepSeek bills that key.
+${howToUse()}
 `);
 }
 
@@ -54,7 +72,10 @@ async function cmdCheck() {
     apiKey: cfg.keyMasked,
     quotaInThisClient: 'none',
   }, null, 2));
-  if (!cfg.ok) process.exitCode = 2;
+  if (!cfg.ok) {
+    console.error(`\n${howToUse()}\n`);
+    process.exitCode = 2;
+  }
 }
 
 async function cmdModels(cfg) {
@@ -124,7 +145,7 @@ async function interactive(cfg, stream) {
 
 async function main() {
   const { cmd, rest, flags } = parseArgs(process.argv);
-  if (flags.help || cmd === 'help') {
+  if (flags.help || cmd === 'help' || cmd === 'usage' || cmd === 'how') {
     printHelp();
     return;
   }

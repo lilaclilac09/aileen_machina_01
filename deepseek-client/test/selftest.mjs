@@ -125,6 +125,11 @@ await test('README is English and tells you to use your purchased key', () => {
   assert.match(readme, /key you bought/i);
   assert.match(readme, /platform\.deepseek\.com/);
   assert.match(readme, /DEEPSEEK_API_KEY/);
+  assert.match(readme, /^## How to use$/m);
+  assert.match(readme, /node src\/cli\.mjs check/);
+  assert.match(readme, /node src\/cli\.mjs chat "Hello from my DeepSeek key"/);
+  assert.match(readme, /node src\/cli\.mjs chat$/m);
+  assert.match(readme, /node src\/cli\.mjs balance/);
   assert.doesNotMatch(readme, /[\u4e00-\u9fff]/);
   assert.doesNotMatch(readme, /workbench\.desktop\.main\.js|slow pool|usage-limit banner/i);
 });
@@ -250,6 +255,21 @@ await test('cli check without key exits 2 and prints JSON', () => {
   assert.equal(json.ok, false);
   assert.equal(json.quotaInThisClient, 'none');
   assert.equal(json.apiKey, 'unset');
+  assert.match(result.stderr, /How to use/);
+  assert.match(result.stderr, /cp \.env\.example \.env/);
+});
+
+await test('cli how prints How to use', () => {
+  const result = spawnSync(process.execPath, ['src/cli.mjs', 'how'], {
+    cwd: ROOT,
+    env: { ...process.env, DEEPSEEK_API_KEY: '' },
+    encoding: 'utf8',
+  });
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /How to use/);
+  assert.match(result.stdout, /node src\/cli\.mjs check/);
+  assert.match(result.stdout, /node src\/cli\.mjs chat "Hello from my DeepSeek key"/);
+  assert.match(result.stdout, /platform\.deepseek\.com/);
 });
 
 await test('this package has no app-level quota code', () => {

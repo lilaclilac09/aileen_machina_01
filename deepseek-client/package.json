@@ -8,6 +8,8 @@
     "deepseek-chat": "./src/cli.mjs"
   },
   "scripts": {
+    "how": "node src/cli.mjs how",
+    "start": "node src/cli.mjs how",
     "check": "node src/cli.mjs check",
     "chat": "node src/cli.mjs chat",
     "models": "node src/cli.mjs models",
