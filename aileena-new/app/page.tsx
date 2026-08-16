@@ -197,7 +197,7 @@ export default function Home() {
       index: '02',
       label: 'News Desk',
       href: latestDispatch ? latestDispatch.href : '/dispatch',
-      category: 'Teaser · 概念扫盲',
+      category: 'Part 1 · Primer',
       blurb: 'What a neocloud is, how a number is verified, whose order bought the megawatts.',
       signal: latestDispatch ? latestDispatch.title : 'Open the archive',
       motif: 'pcb',

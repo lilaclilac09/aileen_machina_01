@@ -37,7 +37,7 @@ const references: { label: string; href: string }[] = [
   { label: 'The Edge — Bridge reallocates 68.4 MW from Megaspeed to Zenlayer (8 Apr 2026)', href: asiaRefs.edge },
   { label: 'SoftBank — AI Data Center GPU Cloud (25 May 2026)', href: asiaRefs.softbank },
   { label: 'Yotta — 20,000 NVIDIA Blackwell Ultra GPUs (18 Feb 2026)', href: asiaRefs.yotta },
-  { label: 'Teaser · 概念扫盲 — units, power, whose order (15 August)', href: '/blog/china-neocloud-teaser' },
+  { label: 'Part 1 — A Primer (15 August)', href: '/blog/china-neocloud-teaser' },
   { label: 'Companion — Why Huawei\'s Bet Isn\'t on the Chip', href: '/blog/huawei-hbm' },
   { label: 'Companion — NVIDIA Is Buying Its Own Demand', href: '/blog/nvidia-flywheel' },
 ];
@@ -45,20 +45,20 @@ const references: { label: string; href: string }[] = [
 export default function ChinaNeocloudArticle() {
   return (
     <SubstackShell
-      category="Analysis"
+      category="Part 2 · Analysis"
       date="2026.08.14"
-      tags="China · Singapore · Neocloud · AIDC · NVIDIA · CoreWeave · Firmus · GDS · VNET · Runze"
-      title="Is a Terrestrial Neocloud Possible in China?"
+      tags="Part 2 · Analysis · China · Singapore · Neocloud · AIDC · NVIDIA · CoreWeave · Firmus · GDS · VNET · Runze"
+      title="Is a Terrestrial Neocloud Possible in China? — Part 2"
       dek="The megawatts are there. The company is not."
     >
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
 
         <p style={bodyStyle}>
           <Link href="/blog/china-neocloud-teaser" style={linkStyle}>
-            Teaser · 概念扫盲
+            Part 1 — A Primer
           </Link>
-          {' '}(15 August) — what a neocloud is, how a number is verified, whose order bought
-          the megawatts.
+          {' '}(15 August): what a neocloud is, how a number is verified, whose order bought
+          the megawatts. This is Part 2.
         </p>
 
         <p style={bodyStyle}>
