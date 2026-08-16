@@ -4,6 +4,7 @@ import TrackLibraryBrowser from './TrackLibraryBrowser';
 import DJDeckWaveform from './DJDeckWaveform';
 import DJMixBooth from './DJMixBooth';
 import DJPairPanel from './DJPairPanel';
+import DJSetStickers from './DJSetStickers';
 import { allDeckTracks, type DeckTrack } from '../lib/djSetlist';
 import { useDjMixer } from '../lib/useDjMixer';
 import { fmtMs } from '../lib/djMixerMath';
@@ -398,9 +399,7 @@ export default function DJStation() {
       setDeckHint(null);
       return;
     }
-    showDeckHint(
-      `Deck ${label}: upload an audio file to mix. Spotify below is preview only — iframe audio cannot enter the mix.`,
-    );
+    showDeckHint(`Deck ${label}: upload a file — Spotify is preview only`);
   }, [mix, showDeckHint]);
 
   const handleXfade = useCallback((v: number) => {
@@ -482,18 +481,7 @@ export default function DJStation() {
         }}
       />
 
-      <p
-        data-testid="dj-spotify-preview-note"
-        style={{
-          margin: '0 0 8px',
-          fontFamily: 'monospace',
-          fontSize: '0.34rem',
-          letterSpacing: '0.08em',
-          color: C.dim,
-        }}
-      >
-        SPOTIFY PREVIEW — iframe audio cannot be mixed through Web Audio. Upload files (or a CORS-safe URL) to mix.
-      </p>
+      <DJSetStickers />
 
       {/* ── Handoff set carousel (film strip) — top of the desk ── */}
       <div id="dj-set" data-testid="dj-set" style={{ marginTop: 4, marginBottom: 10 }}>
