@@ -1,7 +1,19 @@
 'use client';
 import { useState, useRef, useEffect, useCallback, useMemo, useSyncExternalStore } from 'react';
 import TrackLibraryBrowser from './TrackLibraryBrowser';
+import SpotifySearchAdd from './SpotifySearchAdd';
 import { allDeckTracks, type DeckTrack } from '../lib/djSetlist';
+import {
+  getSpotifyCarouselServerSnapshot,
+  getSpotifyCarouselSnapshot,
+  parseStoredSpotifyTracks,
+  readStoredSpotifyTracks,
+  searchHitToDeckTrack,
+  subscribeSpotifyCarousel,
+  writeStoredSpotifyTracks,
+} from '../lib/spotifyCarouselStore';
+import { isSpotifyDuplicate } from '../lib/spotifySearchShared';
+import type { SpotifySearchTrack } from '../lib/spotifySearchShared';
 
 /* ─── Palette — aligned to AgentChat cream + deep green ─── */
 const C = {
@@ -29,7 +41,7 @@ const C = {
 };
 
 /* ─── Full deck library: handoff five + previous tracks ───── */
-const DJ_SET = allDeckTracks();
+const CATALOGUE = allDeckTracks();
 type Track = DeckTrack;
 
 function spotifyTrackId(track: Track): string | null {
@@ -38,29 +50,29 @@ function spotifyTrackId(track: Track): string | null {
   return null;
 }
 
-function findTrackById(id: string | null | undefined): Track | null {
+function findTrackById(list: Track[], id: string | null | undefined): Track | null {
   if (!id) return null;
-  return DJ_SET.find((t) => t.id === id || t.spotifyId === id) ?? null;
+  return list.find((t) => t.id === id || t.spotifyId === id) ?? null;
 }
 
 const DJ_AUDIT = '[dj-audit]';
 
 function firstPlayableTrack(from = 0, skipId?: string | null): Track | null {
-  for (let i = from; i < DJ_SET.length; i++) {
-    const t = DJ_SET[i];
+  for (let i = from; i < CATALOGUE.length; i++) {
+    const t = CATALOGUE[i];
     const sid = spotifyTrackId(t);
     if (!sid) continue;
     if (skipId && sid === skipId) continue;
     return t;
   }
   for (let i = 0; i < from; i++) {
-    const t = DJ_SET[i];
+    const t = CATALOGUE[i];
     const sid = spotifyTrackId(t);
     if (!sid) continue;
     if (skipId && sid === skipId) continue;
     return t;
   }
-  return DJ_SET.find((t) => spotifyTrackId(t)) ?? DJ_SET[0] ?? null;
+  return CATALOGUE.find((t) => spotifyTrackId(t)) ?? CATALOGUE[0] ?? null;
 }
 
 const INITIAL_LEFT = firstPlayableTrack(0);
@@ -129,6 +141,28 @@ export default function DJStation() {
   const [leftEmbedReady,  setLeftEmbedReady]  = useState(false);
   const [rightEmbedReady, setRightEmbedReady] = useState(false);
   const [deckHint, setDeckHint] = useState<string | null>(null);
+  const [focusTrackId, setFocusTrackId] = useState<string | null>(null);
+  const extrasRaw = useSyncExternalStore(
+    subscribeSpotifyCarousel,
+    getSpotifyCarouselSnapshot,
+    getSpotifyCarouselServerSnapshot,
+  );
+  const spotifyExtras = useMemo(() => parseStoredSpotifyTracks(extrasRaw), [extrasRaw]);
+
+  const library = useMemo(() => [...CATALOGUE, ...spotifyExtras], [spotifyExtras]);
+  const libraryRef = useRef(library);
+  useEffect(() => {
+    libraryRef.current = library;
+  }, [library]);
+
+  const existingSpotifyIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const t of library) {
+      ids.add(t.id.toLowerCase());
+      if (t.spotifyId) ids.add(t.spotifyId.toLowerCase());
+    }
+    return ids;
+  }, [library]);
 
   const leftContainerRef  = useRef<HTMLDivElement>(null);
   const rightContainerRef = useRef<HTMLDivElement>(null);
@@ -153,7 +187,7 @@ export default function DJStation() {
   }, []);
 
   useEffect(() => {
-    const sample = DJ_SET.slice(0, 3).map((t) => ({
+    const sample = CATALOGUE.slice(0, 3).map((t) => ({
       id: t.id,
       title: t.title,
       thumb: !!t.thumb,
@@ -163,10 +197,11 @@ export default function DJStation() {
       playable: !!spotifyTrackId(t),
     }));
     console.log(DJ_AUDIT, 'carousel state after catalogue bind', {
-      count: DJ_SET.length,
+      count: CATALOGUE.length,
+      extras: spotifyExtras.length,
       sample,
     });
-  }, []);
+  }, [spotifyExtras.length]);
 
   /* ── Spotify API — tolerant of Strict Mode remount + late script ready ── */
   useEffect(() => {
@@ -294,6 +329,7 @@ export default function DJStation() {
 
   const loadTrack = useCallback((side: 'left'|'right', track: Track) => {
     const sid = spotifyTrackId(track);
+    const isRef = track.source === 'spotify';
     console.log(DJ_AUDIT, 'loadTrack', {
       side,
       id: track.id,
@@ -303,7 +339,18 @@ export default function DJStation() {
       key: track.key,
       dur: track.dur,
       spotifyId: sid,
+      source: track.source ?? 'catalogue',
     });
+
+    if (isRef) {
+      if (track.previewUrl) {
+        showDeckHint(`“${track.title}” · preview only — not mixable or exportable. upload a file to mix.`);
+      } else if (sid) {
+        showDeckHint(`“${track.title}” · reference only — Spotify playback, not mixable or exportable.`);
+      } else {
+        showDeckHint(`“${track.title}” is not mixable — no preview or Spotify id.`);
+      }
+    }
 
     if (side === 'left') {
       setLeftTrack(track);
@@ -316,7 +363,7 @@ export default function DJStation() {
           try {
             leftCtrl.current.loadUri(uri);
             console.log(DJ_AUDIT, 'audio source assigned', { deck: 'A', uri, via: 'loadUri' });
-            setDeckHint(null);
+            if (!isRef) setDeckHint(null);
           } catch (err) {
             console.log(DJ_AUDIT, 'loadUri error', { deck: 'A', err });
             showDeckHint('Deck A: press ▶ to start');
@@ -325,11 +372,11 @@ export default function DJStation() {
           // Reconnect: queue until leftCtrl createController callback (same IFrame, no second player)
           pendingLeftUri.current = uri;
           console.log(DJ_AUDIT, 'leftCtrl null — queued pendingLeftUri', uri);
-          showDeckHint('Deck A: Spotify loading — press ▶ when ready');
+          if (!isRef) showDeckHint('Deck A: Spotify loading — press ▶ when ready');
         }
       } else {
         pendingLeftUri.current = null;
-        showDeckHint(`“${track.title}” has no Spotify id — pick a library track to play`);
+        if (!isRef) showDeckHint(`“${track.title}” has no Spotify id — pick a library track to play`);
       }
     } else {
       // Deck B unchanged this slice — keep prior behavior
@@ -338,12 +385,28 @@ export default function DJStation() {
       setRightDur(0);
       if (sid) {
         rightCtrl.current?.loadUri(`spotify:track:${sid}`);
-        setDeckHint(null);
-      } else {
+        if (!isRef) setDeckHint(null);
+      } else if (!isRef) {
         showDeckHint(`“${track.title}” has no Spotify id — pick a library track to play`);
       }
     }
   }, [showDeckHint]);
+
+  const addSpotifyTrack = useCallback((hit: SpotifySearchTrack): 'added' | 'duplicate' => {
+    const current = [...CATALOGUE, ...readStoredSpotifyTracks()];
+    if (isSpotifyDuplicate(current, hit.spotifyId)) return 'duplicate';
+    const track = searchHitToDeckTrack(hit);
+    writeStoredSpotifyTracks([...readStoredSpotifyTracks(), track]);
+    setFocusTrackId(track.id);
+    return 'added';
+  }, []);
+
+  const removeSpotifyTrack = useCallback((id: string) => {
+    writeStoredSpotifyTracks(
+      readStoredSpotifyTracks().filter((t) => t.id !== id && t.spotifyId !== id),
+    );
+    setFocusTrackId(null);
+  }, []);
 
   const resolveDropTrack = useCallback((e: React.DragEvent, fallback: Track | null): Track | null => {
     if (fallback) return fallback;
@@ -353,7 +416,7 @@ export default function DJStation() {
     } catch {
       id = '';
     }
-    const found = findTrackById(id);
+    const found = findTrackById(libraryRef.current, id);
     console.log(DJ_AUDIT, 'resolveDropTrack', { id, found: found?.id ?? null });
     return found;
   }, []);
@@ -545,12 +608,10 @@ export default function DJStation() {
         </div>
 
         {/* Deck + Mixer grid */}
-        <div
-          className="dj-mixer-grid"
-          style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 100px 1fr', gap: 8, marginBottom: 10 }}
-        >
+        {isMobile ? (
+          <div className="dj-mixer-grid" style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 12 }}>
             <DeckPanel
-              side="left" track={leftTrack} playing={leftPlaying} isMobile={isMobile} synced={bpmHint?.type === 'sync'}
+              side="left" track={leftTrack} playing={leftPlaying} isMobile={true} synced={bpmHint?.type === 'sync'}
               pos={leftPos} dur={leftDur || (leftTrack?.dur ?? 0) * 1000}
               pitch={leftPitch} dim={leftDim} dropActive={dropSide === 'left'}
               onDragOver={e => { e.preventDefault(); setDropSide('left'); }}
@@ -562,9 +623,9 @@ export default function DJStation() {
               onScratchEnd={() => { if (leftWasPlaying.current) leftCtrl.current?.togglePlay(); }}
               onSync={handleSyncLeft}
             />
-            <MixerPanel xfade={xfade} onXfade={handleXfade} isMobile={isMobile} />
+            <MixerPanel xfade={xfade} onXfade={handleXfade} isMobile={true} />
             <DeckPanel
-              side="right" track={rightTrack} playing={rightPlaying} isMobile={isMobile} synced={bpmHint?.type === 'sync'}
+              side="right" track={rightTrack} playing={rightPlaying} isMobile={true} synced={bpmHint?.type === 'sync'}
               pos={rightPos} dur={rightDur || (rightTrack?.dur ?? 0) * 1000}
               pitch={rightPitch} dim={rightDim} dropActive={dropSide === 'right'}
               onDragOver={e => { e.preventDefault(); setDropSide('right'); }}
@@ -576,7 +637,38 @@ export default function DJStation() {
               onScratchEnd={() => { if (rightWasPlaying.current) rightCtrl.current?.togglePlay(); }}
               onSync={handleSyncRight}
             />
-        </div>
+          </div>
+        ) : (
+          <div className="dj-mixer-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 100px 1fr', gap: 8, marginBottom: 10 }}>
+            <DeckPanel
+              side="left" track={leftTrack} playing={leftPlaying} synced={bpmHint?.type === 'sync'}
+              pos={leftPos} dur={leftDur || (leftTrack?.dur ?? 0) * 1000}
+              pitch={leftPitch} dim={leftDim} dropActive={dropSide === 'left'}
+              onDragOver={e => { e.preventDefault(); setDropSide('left'); }}
+              onDragLeave={() => setDropSide(null)}
+              onDrop={dropOnDeckA}
+              onToggle={() => toggleDeck('left')}
+              onPitch={setLeftPitch}
+              onScratchStart={() => { leftWasPlaying.current = leftPlaying; if (leftPlaying) leftCtrl.current?.togglePlay(); }}
+              onScratchEnd={() => { if (leftWasPlaying.current) leftCtrl.current?.togglePlay(); }}
+              onSync={handleSyncLeft}
+            />
+            <MixerPanel xfade={xfade} onXfade={handleXfade} />
+            <DeckPanel
+              side="right" track={rightTrack} playing={rightPlaying} synced={bpmHint?.type === 'sync'}
+              pos={rightPos} dur={rightDur || (rightTrack?.dur ?? 0) * 1000}
+              pitch={rightPitch} dim={rightDim} dropActive={dropSide === 'right'}
+              onDragOver={e => { e.preventDefault(); setDropSide('right'); }}
+              onDragLeave={() => setDropSide(null)}
+              onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('right', dragTrack.current); setDropSide(null); }}
+              onToggle={() => toggleDeck('right')}
+              onPitch={setRightPitch}
+              onScratchStart={() => { rightWasPlaying.current = rightPlaying; if (rightPlaying) rightCtrl.current?.togglePlay(); }}
+              onScratchEnd={() => { if (rightWasPlaying.current) rightCtrl.current?.togglePlay(); }}
+              onSync={handleSyncRight}
+            />
+          </div>
+        )}
 
         {deckHint && (
           <p
@@ -602,8 +694,10 @@ export default function DJStation() {
       {/* ── Handoff set carousel (film strip) ── */}
       <div id="dj-set" style={{ marginTop: 10 }}>
         <TrackLibraryBrowser
-          tracks={DJ_SET}
+          tracks={library}
           reverseCarousel={false}
+          focusTrackId={focusTrackId}
+          onRemoveTrack={removeSpotifyTrack}
           onLoadTrack={loadTrack}
           onSetDragTrack={(t) => {
             dragTrack.current = t;
@@ -614,6 +708,7 @@ export default function DJStation() {
           leftPos={leftPos} leftDur={leftDur}
           rightPos={rightPos} rightDur={rightDur}
         />
+        <SpotifySearchAdd existingIds={existingSpotifyIds} onAdd={addSpotifyTrack} />
       </div>
     </div>
   );
@@ -630,7 +725,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
   onScratchStart(): void; onScratchEnd(): void;
   onSync: () => void;
 }) {
-  const D    = isMobile ? 130 : 172;
+  const D    = isMobile ? 168 : 172;
   const R    = D / 2;
   const r    = R - 7;
   const circ = 2 * Math.PI * r;
@@ -638,6 +733,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
   const offset = circ * (1 - prog);
   const remaining = dur > 0 ? fmt(Math.max(0, dur - pos)) : (track ? `-${fmt((track.dur) * 1000)}` : '--:--');
   const elapsed   = dur > 0 ? fmt(pos) : '0:00';
+  const btn = isMobile ? 48 : 38;
 
   // CUE state
   const [cueMs, setCueMs] = useState<number | null>(null);
@@ -689,8 +785,9 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
   return (
     <div style={{
       display: 'flex', flexDirection: 'column',
-      gap: isMobile ? 10 : 5, alignItems: 'stretch',
+      gap: isMobile ? 12 : 5, alignItems: 'stretch',
       opacity: 0.4 + 0.6 * dim, transition: 'opacity 0.4s ease',
+      width: '100%', maxWidth: '100%',
     }}>
 
       {/* Platter drop zone */}
@@ -707,6 +804,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
         border: dropActive ? `1px solid rgba(0,168,157,0.5)` : `1px solid rgba(170,179,187,0.12)`,
         boxShadow: dropActive ? `inset 0 0 30px rgba(0,168,157,0.08)` : 'none',
         transition: 'border 0.15s, box-shadow 0.15s',
+        width: '100%',
       }}>
         {!track ? (
           <p style={{ fontSize: '0.34rem', letterSpacing: '0.5em', textTransform: 'uppercase',
@@ -862,12 +960,12 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
         )}
       </div>
 
-      {/* Info + Controls wrapper — takes remaining space on mobile */}
-      <div style={{ flex: isMobile ? 1 : undefined, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>
+      {/* Info + Controls wrapper — full width under platter (mobile + desktop) */}
+      <div style={{ flex: undefined, minWidth: 0, width: '100%', display: 'flex', flexDirection: 'column', gap: isMobile ? 8 : 5 }}>
 
       {/* Info row */}
       <div style={{
-        borderRadius: 5, padding: '5px 8px',
+        borderRadius: 5, padding: isMobile ? '10px 12px' : '5px 8px',
         background: C.deck,
         border: '1px solid rgba(170,179,187,0.1)',
         display: 'flex', flexDirection: 'column', gap: 3,
@@ -875,17 +973,17 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
         <p
           data-testid={side === 'left' ? 'dj-deck-a-title' : 'dj-deck-b-title'}
           data-track-id={track?.id ?? ''}
-          style={{ fontSize: '0.44rem', letterSpacing: '0.12em',
+          style={{ fontSize: isMobile ? '0.72rem' : '0.44rem', letterSpacing: '0.12em',
           color: playing ? C.cyan : C.text,
           fontFamily: 'monospace', textTransform: 'uppercase',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           transition: 'color 0.5s',
         }}>{track?.title ?? 'NO TRACK'}</p>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontFamily: 'monospace', fontSize: '0.34rem', color: C.cyan, letterSpacing: '0.1em' }}>
+          <span style={{ fontFamily: 'monospace', fontSize: isMobile ? '0.58rem' : '0.34rem', color: C.cyan, letterSpacing: '0.1em' }}>
             {elapsed}
           </span>
-          <span style={{ fontFamily: 'monospace', fontSize: '0.34rem', color: C.sub, letterSpacing: '0.1em' }}>
+          <span style={{ fontFamily: 'monospace', fontSize: isMobile ? '0.58rem' : '0.34rem', color: C.sub, letterSpacing: '0.1em' }}>
             {remaining}
           </span>
         </div>
@@ -893,45 +991,47 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
 
       {/* Controls */}
       <div style={{
-        borderRadius: 6, padding: '7px 7px',
+        borderRadius: 6, padding: isMobile ? '10px 10px' : '7px 7px',
         background: C.deck,
         border: '1px solid rgba(170,179,187,0.08)',
-        display: 'flex', alignItems: 'center', gap: 6,
+        display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 6,
       }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {/* Play/Pause */}
-          <button className="dj-tap" data-testid={side === 'left' ? 'dj-play-a' : 'dj-play-b'} onClick={onToggle} style={{
-            width: isMobile ? 44 : 38, height: isMobile ? 44 : 38, borderRadius: '50%', cursor: 'pointer',
+          <button className="dj-tap" data-testid={side === 'left' ? 'dj-play-a' : 'dj-play-b'} onClick={onToggle} aria-label={playing ? 'Pause' : 'Play'} style={{
+            width: btn, height: btn, borderRadius: '50%', cursor: 'pointer',
             background: playing ? `rgba(0,168,157,0.1)` : '#14181e',
             border: `1px solid ${playing ? 'rgba(0,168,157,0.55)' : 'rgba(170,179,187,0.22)'}`,
             boxShadow: playing ? `0 0 10px rgba(0,168,157,0.28)` : 'inset 0 2px 5px rgba(0,0,0,0.4)',
             color: playing ? C.cyan : C.silver,
-            fontSize: '0.8rem',
+            fontSize: isMobile ? '1rem' : '0.8rem',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             transition: 'all 0.15s',
+            touchAction: 'manipulation',
           }}>{playing ? '⏸' : '▶'}</button>
           {/* CUE */}
-          <button className="dj-tap" onClick={() => setCueMs(pos > 0 ? pos : null)} style={{
-            width: isMobile ? 44 : 38, height: isMobile ? 44 : 38, borderRadius: '50%', cursor: 'pointer',
+          <button className="dj-tap" onClick={() => setCueMs(pos > 0 ? pos : null)} aria-label="Cue" style={{
+            width: btn, height: btn, borderRadius: '50%', cursor: 'pointer',
             background: cueMs !== null ? 'rgba(125,183,255,0.1)' : '#14181e',
             border: `1px solid ${cueMs !== null ? 'rgba(125,183,255,0.55)' : 'rgba(170,179,187,0.22)'}`,
             boxShadow: cueMs !== null ? '0 0 8px rgba(125,183,255,0.25)' : 'inset 0 2px 5px rgba(0,0,0,0.4)',
-            color: cueMs !== null ? C.blue : C.silverDark, fontSize: '0.28rem', letterSpacing: '0.04em',
+            color: cueMs !== null ? C.blue : C.silverDark, fontSize: isMobile ? '0.42rem' : '0.28rem', letterSpacing: '0.04em',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 1,
             transition: 'all 0.15s',
+            touchAction: 'manipulation',
           }}>
             <span style={{ fontFamily: 'monospace' }}>CUE</span>
             {cueMs !== null && <span style={{ fontFamily: 'monospace', fontSize: '0.22rem', opacity: 0.7 }}>{fmt(cueMs)}</span>}
           </button>
         </div>
-        <PitchFader pitch={pitch} onChange={onPitch} isMobile={isMobile} />
+        <PitchFader pitch={pitch} onChange={onPitch} isMobile={!!isMobile} />
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
           <VU active={playing} />
-          <MKnob size={isMobile ? 36 : 22} />
-          <span style={{ fontFamily: 'monospace', fontSize: '0.28rem', letterSpacing: '0.3em', color: C.sub }}>GAIN</span>
+          <MKnob size={isMobile ? 28 : 22} />
+          <span style={{ fontFamily: 'monospace', fontSize: isMobile ? '0.4rem' : '0.28rem', letterSpacing: '0.3em', color: C.sub }}>GAIN</span>
           {/* Pitch readout */}
           <span style={{
-            fontFamily: 'monospace', fontSize: '0.36rem', letterSpacing: '0.1em',
+            fontFamily: 'monospace', fontSize: isMobile ? '0.5rem' : '0.36rem', letterSpacing: '0.1em',
             color: Math.abs(pitch) > 0.5 ? C.orange : C.sub,
             transition: 'color 0.3s',
           }}>
@@ -941,7 +1041,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
       </div>
 
       {/* ── Pioneer section: Sync + Loop + Hot Cues ── */}
-      <PioneerControls side={side} playing={playing} synced={!!synced} pos={pos} onSync={onSync} isMobile={isMobile} />
+      <PioneerControls side={side} playing={playing} synced={!!synced} pos={pos} onSync={onSync} isMobile={!!isMobile} />
 
       </div>{/* end info+controls wrapper */}
     </div>
@@ -963,6 +1063,8 @@ function PioneerControls({ side, playing, synced, pos, onSync, isMobile }: {
   const [cuePositions, setCuePositions] = useState<{[i: number]: number}>({});
 
   const loopSizes = [1/4, 1/2, 1, 2, 4, 8];
+  const pad = isMobile ? 10 : 4;
+  const cueMin = isMobile ? 44 : 28;
 
   function handleCuePad(i: number) {
     if (cuePositions[i] !== undefined) {
@@ -979,19 +1081,21 @@ function PioneerControls({ side, playing, synced, pos, onSync, isMobile }: {
 
       {/* ── Row 1: SYNC + LOOP controls ── */}
       <div style={{
-        background: C.bg, borderRadius: 6, padding: '6px 8px',
+        background: C.bg, borderRadius: 6, padding: isMobile ? '10px 10px' : '6px 8px',
         border: '1px solid rgba(170,179,187,0.1)',
-        display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap',
+        display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 5, flexWrap: 'wrap',
       }}>
         {/* SYNC */}
         <button className="dj-tap" onClick={onSync} style={{
-          padding: isMobile ? '10px 12px' : '4px 10px', borderRadius: 4, cursor: 'pointer',
+          padding: isMobile ? '10px 14px' : '4px 10px', borderRadius: 4, cursor: 'pointer',
           background: synced ? 'rgba(0,168,157,0.1)' : '#14181e',
           border: `1px solid ${synced ? 'rgba(0,168,157,0.5)' : 'rgba(170,179,187,0.22)'}`,
           boxShadow: synced ? '0 0 8px rgba(0,168,157,0.25)' : 'inset 0 2px 4px rgba(0,0,0,0.5)',
-          fontFamily: 'monospace', fontSize: '0.52rem', fontWeight: 700, letterSpacing: '0.12em',
+          fontFamily: 'monospace', fontSize: isMobile ? '0.7rem' : '0.52rem', fontWeight: 700, letterSpacing: '0.12em',
           color: synced ? C.cyan : C.silverDark,
-          transition: 'all 0.2s', minWidth: isMobile ? 44 : 52, minHeight: isMobile ? 44 : undefined,
+          transition: 'all 0.2s', minWidth: isMobile ? 64 : 52,
+          minHeight: isMobile ? 44 : undefined,
+          touchAction: 'manipulation',
         }}>
           SYNC
           {synced && <span style={{ display: 'block', fontSize: '0.3rem', letterSpacing: '0.2em', opacity: 0.7, fontFamily: 'monospace' }}>LOCKED</span>}
@@ -999,14 +1103,16 @@ function PioneerControls({ side, playing, synced, pos, onSync, isMobile }: {
 
         {/* LOOP IN */}
         <button className="dj-tap" onClick={() => { setLoopIn(pos); setLoopActive(false); }} style={{
-          padding: isMobile ? '10px 10px' : '4px 8px', minHeight: isMobile ? 44 : undefined, borderRadius: 4, cursor: 'pointer',
+          padding: isMobile ? `${pad}px 12px` : '4px 8px', borderRadius: 4, cursor: 'pointer',
           background: loopIn !== null ? 'rgba(125,183,255,0.08)' : '#14181e',
           border: `1px solid ${loopIn !== null ? 'rgba(125,183,255,0.45)' : 'rgba(170,179,187,0.22)'}`,
           boxShadow: loopIn !== null ? '0 0 6px rgba(125,183,255,0.2)' : 'inset 0 2px 4px rgba(0,0,0,0.5)',
-          fontFamily: 'monospace', fontSize: '0.44rem', fontWeight: 600, letterSpacing: '0.08em',
+          fontFamily: 'monospace', fontSize: isMobile ? '0.58rem' : '0.44rem', fontWeight: 600, letterSpacing: '0.08em',
           color: loopIn !== null ? C.blue : C.silverDark,
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
           transition: 'all 0.15s',
+          minHeight: isMobile ? 44 : undefined,
+          touchAction: 'manipulation',
         }}>
           <span>⌐ IN</span>
           {loopIn !== null && <span style={{ fontFamily: 'monospace', fontSize: '0.22rem', opacity: 0.7 }}>{fmt(loopIn)}</span>}
@@ -1014,29 +1120,32 @@ function PioneerControls({ side, playing, synced, pos, onSync, isMobile }: {
 
         {/* LOOP OUT */}
         <button className="dj-tap" onClick={() => { if (loopIn !== null) { setLoopOut(pos); setLoopActive(true); } }} style={{
-          padding: isMobile ? '10px 10px' : '4px 8px', minHeight: isMobile ? 44 : undefined, borderRadius: 4, cursor: 'pointer',
+          padding: isMobile ? `${pad}px 12px` : '4px 8px', borderRadius: 4, cursor: 'pointer',
           background: loopActive ? 'rgba(255,155,94,0.08)' : '#14181e',
           border: `1px solid ${loopActive ? 'rgba(255,155,94,0.45)' : 'rgba(170,179,187,0.22)'}`,
           boxShadow: loopActive ? '0 0 6px rgba(255,155,94,0.2)' : 'inset 0 2px 4px rgba(0,0,0,0.5)',
-          fontFamily: 'monospace', fontSize: '0.44rem', fontWeight: 600, letterSpacing: '0.08em',
+          fontFamily: 'monospace', fontSize: isMobile ? '0.58rem' : '0.44rem', fontWeight: 600, letterSpacing: '0.08em',
           color: loopActive ? C.orange : loopIn !== null ? C.silver : C.silverDark,
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
           transition: 'all 0.15s', opacity: loopIn === null ? 0.4 : 1,
+          minHeight: isMobile ? 44 : undefined,
+          touchAction: 'manipulation',
         }}>
           <span>¬ OUT</span>
           {loopOut !== null && loopActive && <span style={{ fontFamily: 'monospace', fontSize: '0.22rem', opacity: 0.7 }}>{fmt(loopOut)}</span>}
         </button>
 
         {/* Loop size selector */}
-        <div style={{ display: 'flex', gap: 2 }}>
+        <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
           {loopSizes.map(s => (
             <button key={s} className="dj-tap" onClick={() => setLoopSize(s)} style={{
-              width: isMobile ? 44 : 26, height: isMobile ? 44 : 22, borderRadius: 3, cursor: 'pointer',
+              width: isMobile ? 40 : 26, height: isMobile ? 40 : 22, borderRadius: 3, cursor: 'pointer',
               background: loopSize === s ? (loopActive ? 'rgba(255,155,94,0.12)' : 'rgba(125,183,255,0.1)') : '#14181e',
               border: `1px solid ${loopSize === s ? (loopActive ? 'rgba(255,155,94,0.4)' : 'rgba(125,183,255,0.4)') : 'rgba(170,179,187,0.15)'}`,
-              fontFamily: 'monospace', fontSize: '0.34rem', fontWeight: 600,
+              fontFamily: 'monospace', fontSize: isMobile ? '0.5rem' : '0.34rem', fontWeight: 600,
               color: loopSize === s ? (loopActive ? C.orange : C.blue) : C.silverDark,
               transition: 'all 0.1s',
+              touchAction: 'manipulation',
             }}>
               {s < 1 ? `1/${1/s}` : s}
             </button>
@@ -1077,7 +1186,9 @@ function PioneerControls({ side, playing, synced, pos, onSync, isMobile }: {
                 onPointerDown={() => handleCuePad(i)}
                 title={hasPos ? `Press to clear cue ${String.fromCharCode(65+i)} (${fmt(cuePositions[i])})` : `Press to set cue ${String.fromCharCode(65+i)} at ${fmt(pos)}`}
                 style={{
-                  height: isMobile ? 44 : hasPos ? 38 : 32, borderRadius: 4, cursor: 'pointer',
+                  height: hasPos ? (isMobile ? cueMin : 38) : (isMobile ? cueMin : 32), borderRadius: 4, cursor: 'pointer',
+                  minHeight: isMobile ? cueMin : undefined,
+                  touchAction: 'manipulation',
                   background: hasPos ? `${color}18` : '#14181e',
                   border: `1px solid ${hasPos ? `${color}80` : 'rgba(170,179,187,0.18)'}`,
                   boxShadow: hasPos
@@ -1135,11 +1246,13 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
 
   return (
     <div style={{
-      borderRadius: 6, padding: isMobile ? '8px 14px' : '8px 7px',
+      borderRadius: 6, padding: isMobile ? '12px 14px' : '8px 7px',
       background: 'linear-gradient(to bottom, #1a1e24, #14181d 55%, #1a1e24)',
       border: '1px solid rgba(170,179,187,0.22)',
       display: 'flex', flexDirection: 'column',
       alignItems: 'center', gap: isMobile ? 12 : 8,
+      width: '100%',
+      boxSizing: 'border-box',
       boxShadow: 'inset 0 1px 0 rgba(217,224,230,0.07), inset 0 -1px 0 rgba(0,0,0,0.3), 0 0 0 1px rgba(0,0,0,0.3)',
     }}>
 
@@ -1148,32 +1261,44 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
         <div style={{ display: 'flex', gap: 3 }}>
           {(['ECHO','REVERB','FLANGER'] as const).map(fx => (
             <button key={fx} onClick={() => { setFxType(fx); setFxOn(true); }} style={{
-              flex: 1, padding: isMobile ? '10px 0' : '3px 0', minHeight: isMobile ? 44 : undefined, borderRadius: 3, cursor: 'pointer',
+              flex: 1, padding: isMobile ? '10px 0' : '3px 0', borderRadius: 3, cursor: 'pointer',
               background: fxOn && fxType === fx ? 'rgba(255,155,94,0.1)' : '#14181e',
               border: `1px solid ${fxOn && fxType === fx ? 'rgba(255,155,94,0.45)' : 'rgba(170,179,187,0.18)'}`,
-              fontFamily: 'monospace', fontSize: '0.30rem', fontWeight: 600, letterSpacing: '0.08em',
+              fontFamily: 'monospace', fontSize: isMobile ? '0.5rem' : '0.30rem', fontWeight: 600, letterSpacing: '0.08em',
               color: fxOn && fxType === fx ? C.orange : C.silverDark,
               transition: 'all 0.12s',
+              minHeight: isMobile ? 44 : undefined,
+              touchAction: 'manipulation',
             }}>{fx}</button>
           ))}
           <button onClick={() => setFxOn(false)} style={{
-            padding: isMobile ? '10px 10px' : '3px 6px', minHeight: isMobile ? 44 : undefined, borderRadius: 3, cursor: 'pointer',
+            padding: isMobile ? '10px 10px' : '3px 6px', borderRadius: 3, cursor: 'pointer',
             background: !fxOn ? 'rgba(255,155,94,0.08)' : '#14181e',
             border: `1px solid ${!fxOn ? 'rgba(255,155,94,0.35)' : 'rgba(170,179,187,0.18)'}`,
-            fontFamily: 'monospace', fontSize: '0.28rem',
+            fontFamily: 'monospace', fontSize: isMobile ? '0.48rem' : '0.28rem',
             color: !fxOn ? C.orange : C.silverDark,
+            minHeight: isMobile ? 44 : undefined,
+            touchAction: 'manipulation',
           }}>OFF</button>
         </div>
         <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <EQKnob label="FX" value={50} size={isMobile ? 40 : 22} color="#f97316" />
+          <EQKnob label="FX" value={50} size={isMobile ? 36 : 22} color="#f97316" />
         </div>
       </div>
 
       <div style={{ width: '100%', height: 1, background: 'rgba(255,255,255,0.05)' }} />
 
       {/* ── Channel EQ ── */}
-      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <span style={{ fontFamily: 'monospace', fontSize: '0.28rem', letterSpacing: '0.4em', color: 'rgba(255,255,255,0.2)', textAlign: 'center' }}>EQ</span>
+      <div style={{
+        width: '100%', display: 'flex', flexWrap: isMobile ? 'wrap' : undefined,
+        flexDirection: isMobile ? 'row' : 'column',
+        justifyContent: isMobile ? 'space-around' : undefined, gap: isMobile ? 8 : 3,
+      }}>
+        <span style={{
+          fontFamily: 'monospace', fontSize: isMobile ? '0.4rem' : '0.28rem', letterSpacing: '0.4em',
+          color: 'rgba(255,255,255,0.2)', textAlign: 'center',
+          width: isMobile ? '100%' : undefined, flexBasis: isMobile ? '100%' : undefined,
+        }}>EQ</span>
         {(['hi','mid','lo'] as const).map(band => (
           <div key={band} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
             <EQKnob
@@ -1195,7 +1320,7 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
           <div key={lbl} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
             <EQKnob label="FILTER" value={val as number} size={isMobile ? 40 : 20} color={col as string}
               onChange={v => (set as (n: number) => void)(v)} />
-            <span style={{ fontFamily: 'monospace', fontSize: '0.28rem', color: col as string, letterSpacing: '0.1em' }}>{lbl}</span>
+            <span style={{ fontFamily: 'monospace', fontSize: isMobile ? '0.4rem' : '0.28rem', color: col as string, letterSpacing: '0.1em' }}>{lbl}</span>
           </div>
         ))}
       </div>
@@ -1203,20 +1328,21 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
       <div style={{ width: '100%', height: 1, background: 'rgba(255,255,255,0.05)' }} />
 
       {/* ── Crossfader ── */}
-      <div style={{ width: '100%', flexBasis: isMobile ? '100%' : undefined }}>
-        <p style={{ fontFamily: 'monospace', fontSize: '0.26rem', letterSpacing: '0.35em', color: 'rgba(255,255,255,0.2)',
+      <div style={{ width: '100%' }}>
+        <p style={{ fontFamily: 'monospace', fontSize: isMobile ? '0.4rem' : '0.26rem', letterSpacing: '0.35em', color: 'rgba(255,255,255,0.2)',
           textAlign: 'center', marginBottom: 4 }}>CROSSFADER</p>
         <div style={{
-          position: 'relative', height: isMobile ? 44 : 18, borderRadius: 3,
+          position: 'relative', height: isMobile ? 36 : 18, borderRadius: 3,
           background: `linear-gradient(to right, rgba(0,168,157,0.18), rgba(18,22,27,0.9) 50%, rgba(255,155,94,0.15))`,
           border: '1px solid rgba(170,179,187,0.15)',
           boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.7)',
         }}>
           <input type="range" min={0} max={100} value={xfade} onChange={e => onXfade(+e.target.value)}
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer', margin: 0 }} />
+            aria-label="Crossfader"
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer', margin: 0, touchAction: 'none' }} />
           <div style={{
-            position: 'absolute', width: 18, height: 30, left: `calc(${xfade}% - 9px)`,
-            borderRadius: 3, pointerEvents: 'none', top: -6,
+            position: 'absolute', width: isMobile ? 28 : 18, height: isMobile ? 44 : 30, left: `calc(${xfade}% - ${isMobile ? 14 : 9}px)`,
+            borderRadius: 3, pointerEvents: 'none', top: isMobile ? -4 : -6,
             background: 'linear-gradient(160deg, #d9e0e6 0%, #b9c0c7 30%, #8e979f 65%, #72797f 100%)',
             boxShadow: '0 2px 10px rgba(0,0,0,0.9), inset 0 1px 0 rgba(217,224,230,0.7)',
             border: '1px solid rgba(100,108,116,0.6)',
@@ -1227,8 +1353,8 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
           </div>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
-          <span style={{ fontFamily: 'monospace', fontSize: '0.32rem', fontWeight: 700, color: C.cyan, letterSpacing: '0.1em', textShadow: '0 0 6px rgba(0,168,157,0.45)' }}>A</span>
-          <span style={{ fontFamily: 'monospace', fontSize: '0.32rem', fontWeight: 700, color: C.orange, letterSpacing: '0.1em' }}>B</span>
+          <span style={{ fontFamily: 'monospace', fontSize: isMobile ? '0.5rem' : '0.32rem', fontWeight: 700, color: C.cyan, letterSpacing: '0.1em', textShadow: '0 0 6px rgba(0,168,157,0.45)' }}>A</span>
+          <span style={{ fontFamily: 'monospace', fontSize: isMobile ? '0.5rem' : '0.32rem', fontWeight: 700, color: C.orange, letterSpacing: '0.1em' }}>B</span>
         </div>
       </div>
 
@@ -1272,7 +1398,9 @@ function EQKnob({ label, value, size, color, onChange }: {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
-      cursor: onChange ? 'ns-resize' : 'default' }}
+      cursor: onChange ? 'ns-resize' : 'default', touchAction: onChange ? 'none' : undefined,
+      minWidth: size < 36 ? 44 : undefined, minHeight: size < 36 ? 44 : undefined,
+      justifyContent: 'center' }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -1479,14 +1607,14 @@ function TrackRow({ index, track, isLeft, isRight, onDragStart, onDragEnd, onLoa
       {/* Load A / B buttons */}
       <div style={{ display: 'flex', gap: 4 }}>
         <button onClick={e => { e.stopPropagation(); onLoadLeft(); }} style={{
-          padding: '10px 12px', minWidth: 44, minHeight: 44, borderRadius: 3, border: `1px solid ${C.cyan}00`,
+          padding: '2px 5px', borderRadius: 3, border: `1px solid ${C.cyan}00`,
           background: isLeft ? `${C.cyan}25` : 'transparent',
           color: isLeft ? C.cyan : C.sub,
           fontFamily: 'monospace', fontSize: '0.28rem', cursor: 'pointer',
           letterSpacing: '0.1em',
         }}>A</button>
         <button onClick={e => { e.stopPropagation(); onLoadRight(); }} style={{
-          padding: '10px 12px', minWidth: 44, minHeight: 44, borderRadius: 3, border: `1px solid ${C.blue}00`,
+          padding: '2px 5px', borderRadius: 3, border: `1px solid ${C.blue}00`,
           background: isRight ? `${C.blue}25` : 'transparent',
           color: isRight ? C.blue : C.sub,
           fontFamily: 'monospace', fontSize: '0.28rem', cursor: 'pointer',
@@ -1522,20 +1650,26 @@ function MKnob({ size = 28, lit }: { size?: number; lit?: boolean }) {
 
 function PitchFader({ pitch, onChange, isMobile }: { pitch: number; onChange(v: number): void; isMobile?: boolean }) {
   const pct = 50 - (pitch / 8) * 44;
+  const trackH = isMobile ? 96 : 78;
+  const handleW = isMobile ? 32 : 26;
+  const handleH = isMobile ? 16 : 11;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flex: 1 }}>
-      <p style={{ fontFamily: 'monospace', fontSize: '0.26rem', letterSpacing: '0.4em', color: C.dim }}>PITCH</p>
-      <div style={{ position: 'relative', width: isMobile ? 44 : 14, height: isMobile ? 96 : 78 }}>
-        <div style={{ position: 'absolute', left: isMobile ? 20 : 5, width: 4, height: '100%', borderRadius: 3,
+      <p style={{ fontFamily: 'monospace', fontSize: isMobile ? '0.4rem' : '0.26rem', letterSpacing: '0.4em', color: C.dim }}>PITCH</p>
+      <div style={{ position: 'relative', width: isMobile ? 22 : 14, height: trackH }}>
+        <div style={{ position: 'absolute', left: isMobile ? 9 : 5, width: isMobile ? 5 : 4, height: '100%', borderRadius: 3,
           background: '#0a0c0f',
           boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(170,179,187,0.1)' }} />
-        <div style={{ position: 'absolute', left: isMobile ? 17 : 2, width: 10, top: '50%', height: 1,
+        <div style={{ position: 'absolute', left: isMobile ? 4 : 2, width: isMobile ? 14 : 10, top: '50%', height: 1,
           background: `rgba(170,179,187,0.25)` }} />
         <input type="range" min={-8} max={8} step={0.1} value={pitch} onChange={e => onChange(+e.target.value)}
+          aria-label="Pitch"
           style={{ writingMode: 'vertical-lr', direction: 'rtl', position: 'absolute',
-            height: '100%', width: isMobile ? 44 : 30, left: isMobile ? 0 : -8, opacity: 0, cursor: 'pointer', margin: 0 }} />
+            height: '100%', width: isMobile ? 44 : 30, left: isMobile ? -11 : -8, opacity: 0, cursor: 'pointer', margin: 0,
+            touchAction: 'none' }} />
         <div style={{
-          position: 'absolute', width: 26, height: 11, top: `calc(${pct}% - 5.5px)`, left: isMobile ? 9 : -6,
+          position: 'absolute', width: handleW, height: handleH,
+          top: `calc(${pct}% - ${handleH / 2}px)`, left: isMobile ? -5 : -6,
           borderRadius: 2, pointerEvents: 'none',
           background: 'linear-gradient(160deg, #d9e0e6 0%, #b9c0c7 30%, #8e979f 65%, #72797f 100%)',
           boxShadow: '0 2px 7px rgba(0,0,0,0.8), inset 0 1px 0 rgba(217,224,230,0.7)',
