@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+import ArchiveIndex, { slugify } from '../_archive/ArchiveIndex';
 import ArchivePage from '../_archive/ArchivePage';
 
 type Book = {
@@ -8,40 +10,17 @@ type Book = {
   tags: string[];
   body: string;
   status?: string;
+  tone?: 'ink' | 'cream' | 'teal' | 'dust' | 'slate';
 };
 
-type FeaturedBook = Book & {
-  why: string;
-  mood: string;
-  thread: string;
-};
-
-type ShelfGroup = {
-  id: string;
-  title: string;
-  dek: string;
-  books: Book[];
-};
-
-const FEATURED: FeaturedBook = {
+const FEATURED: Book = {
   title: 'The Year of Magical Thinking',
   author: 'Joan Didion',
-  tags: ['grief', 'ritual', 'observation'],
-  status: 'reading now',
-  mood: 'grief as structure',
-  thread: 'identity / loss / performance',
-  why: 'The calibration text. Grief treated as structure, not sentiment.',
-  body:
-    'Didion reports on her own mind without turning grief into performance — identity is what remains when the furniture of a life has been rearranged overnight.',
+  tags: ['grief', 'ritual'],
+  status: 'issue 01',
+  tone: 'ink',
+  body: 'Grief as observation, not performance.',
 };
-
-const READING_THREADS = [
-  'grief',
-  'identity',
-  'systems',
-  'women writing',
-  'performance',
-] as const;
 
 const DIDION_SHELF: Book[] = [
   {
@@ -49,40 +28,43 @@ const DIDION_SHELF: Book[] = [
     author: 'Joan Didion',
     tags: ['essays'],
     status: '31% in',
-    body: 'the sentence as a measuring instrument',
+    tone: 'cream',
+    body: 'California as a measuring instrument.',
   },
   {
     title: 'The White Album',
     author: 'Joan Didion',
     tags: ['essays'],
-    body: 'fragmented america, fragmented self',
+    tone: 'slate',
+    body: 'A decade in fragments.',
   },
   {
     title: 'Play It As It Lays',
     author: 'Joan Didion',
     tags: ['novel'],
-    body: 'california as a nervous system',
+    tone: 'dust',
+    body: 'Freeways. Silence.',
   },
   {
     title: 'Notes to John',
     author: 'Joan Didion',
     tags: ['archive'],
-    body: 'private record, public discomfort',
+    tone: 'teal',
+    body: 'The mind before it becomes the essay.',
   },
   {
     title: 'Let Me Tell You What I Mean',
     author: 'Joan Didion',
     tags: ['essays'],
-    body: 'later pieces, same steel',
+    tone: 'ink',
+    body: 'Short. Exact. Allergic to vagueness.',
   },
-];
-
-const SYSTEMS_SHELF: Book[] = [
   {
     title: 'Philosophy and Vulnerability',
     author: 'Matthew R. McLennan',
-    tags: ['systems'],
-    body: 'where exposure becomes a system problem',
+    tags: ['Didion'],
+    tone: 'cream',
+    body: 'Vulnerability as method.',
   },
 ];
 
@@ -91,87 +73,79 @@ const ADJACENT: Book[] = [
     title: 'Crying in H Mart',
     author: 'Michelle Zauner',
     tags: ['grief'],
-    body: 'loss through the grocery aisle',
+    tone: 'dust',
+    body: 'Loss through the grocery aisle.',
   },
   {
     title: 'Bad Feminist',
     author: 'Roxane Gay',
     tags: ['essays'],
-    body: 'contradictions left on the table',
+    tone: 'slate',
+    body: 'Contradictions stay on the table.',
   },
   {
     title: 'On Earth We’re Briefly Gorgeous',
     author: 'Ocean Vuong',
-    tags: ['identity'],
-    body: 'a letter that becomes a life',
+    tags: ['letter'],
+    tone: 'teal',
+    body: 'A letter that becomes a life.',
   },
   {
     title: 'Still Born',
     author: 'Guadalupe Nettel',
     tags: ['choice'],
-    body: 'what we owe, what we refuse',
-  },
-];
-
-const SHELF_GROUPS: ShelfGroup[] = [
-  {
-    id: 'didion-desk',
-    title: 'didion desk',
-    dek: 'sentences that cut without raising their voice.',
-    books: DIDION_SHELF,
-  },
-  {
-    id: 'systems-vulnerability',
-    title: 'systems / vulnerability',
-    dek: 'where exposure is treated as method, not branding.',
-    books: SYSTEMS_SHELF,
-  },
-  {
-    id: 'women-writing',
-    title: 'women writing',
-    dek: 'the same voltage: identity, grief, the social eye.',
-    books: ADJACENT,
+    tone: 'cream',
+    body: 'What we owe. What we refuse.',
   },
 ];
 
 const UPDATES = [
   {
-    date: '2026.08.16',
-    kind: 'design',
-    title: 'Book club gets editorial rooms',
-    body: 'Current reading becomes the feature. Shelf splits into desks — Didion, systems, women writing — so the page answers why these books share a room.',
-  },
-  {
     date: '2026.07.25',
     kind: 'design',
     title: 'Metal & Pages goes magazine',
-    body: 'White field, heavy headlines, dashed rules — Service95 book-club energy with Aileena teal as the only accent.',
+    body: 'White field, teal accent.',
   },
   {
     date: '2026.07.17',
     kind: 'bookclub',
     title: 'Metal & Pages opens',
-    body: 'Biweekly bookclub page is live — Didion shelf first, then adjacent reads that share the same sharp voltage: identity, grief, feminism, social observation.',
+    body: 'Didion shelf first.',
   },
   {
     date: '2026.07.17',
     kind: 'shelf',
     title: 'Library pull from Apple Books',
-    body: 'Selections from the current library: Didion core plus Zauner, Gay, Vuong, and Nettel.',
+    body: 'Didion core plus adjacent voltage.',
   },
 ];
 
-function BookRow({ book }: { book: Book }) {
-  const tag = book.tags[0];
+function BookObject({
+  book,
+  featured,
+}: {
+  book: Book;
+  featured?: boolean;
+}) {
   return (
-    <li className="arc-book">
-      <div className="arc-book-main">
-        <span className="arc-item-title">{book.title}</span>
-        <span className="arc-item-meta">{book.author}</span>
-        <p className="arc-book-note">{book.body}</p>
+    <article
+      id={slugify(book.title)}
+      className={`arc-book${featured ? ' arc-book--featured' : ''} arc-book--${book.tone ?? 'cream'}`}
+    >
+      <div className="arc-book-object" aria-hidden>
+        <span className="arc-book-spine" />
+        <span className="arc-book-face">
+          <span className="arc-book-face-author">{book.author}</span>
+          <span className="arc-book-face-title">{book.title}</span>
+        </span>
       </div>
-      {tag ? <span className="arc-book-tag">{tag}</span> : null}
-    </li>
+      <h2 className="arc-book-title">{book.title}</h2>
+      <p className="arc-book-meta">
+        {book.author}
+        {book.status ? ` · ${book.status}` : ''}
+      </p>
+      <p className="arc-book-note">{book.body}</p>
+    </article>
   );
 }
 
@@ -180,81 +154,106 @@ export default function UpdatesPage() {
     <ArchivePage
       room="club"
       title="book club"
-      dek="Didion on the desk. A quiet record of what she’s actually reading — and why those books share a room."
+      dek="Didion on the desk."
     >
-      <section className="arc-section" id="this-issue" aria-labelledby="current-reading">
-        <p className="arc-kicker" id="current-reading">
-          current reading
+      <section className="arc-section" aria-labelledby="desk-photo">
+        <p className="arc-kicker" id="desk-photo">
+          desk
         </p>
-        <article className="arc-feature">
-          <div className="arc-feature-copy">
-            <h2 className="arc-feature-title">{FEATURED.title}</h2>
-            <p className="arc-feature-author">{FEATURED.author}</p>
-            <p className="arc-why-label">why it’s here</p>
-            <p className="arc-feature-why">{FEATURED.why}</p>
-            <p className="arc-feature-note">{FEATURED.body}</p>
-          </div>
-          <dl className="arc-feature-meta">
-            <div>
-              <dt>mood</dt>
-              <dd>{FEATURED.mood}</dd>
-            </div>
-            <div>
-              <dt>status</dt>
-              <dd>{FEATURED.status}</dd>
-            </div>
-            <div>
-              <dt>thread</dt>
-              <dd>{FEATURED.thread}</dd>
-            </div>
-          </dl>
-        </article>
+        <figure className="arc-hero-visual">
+          <Image
+            src="/dispatch-covers/books-joan-didion-readings.jpg"
+            alt="Annotated readings from the work of Joan Didion"
+            width={1600}
+            height={1200}
+            priority
+            sizes="(min-width: 820px) 980px, 100vw"
+          />
+        </figure>
       </section>
 
-      <section className="arc-section" id="reading-threads" aria-labelledby="threads-label">
-        <p className="arc-kicker" id="threads-label">
-          reading threads
-        </p>
-        <ul className="arc-threads">
-          {READING_THREADS.map((thread) => (
-            <li key={thread}>{thread}</li>
-          ))}
-        </ul>
-      </section>
+      <div className="arc-stage">
+        <ArchiveIndex
+          label="book club index"
+          groups={[
+            {
+              id: 'this-issue',
+              label: 'now',
+              items: [{ href: `#${slugify(FEATURED.title)}`, label: FEATURED.title }],
+            },
+            {
+              id: 'didion-shelf',
+              label: 'didion',
+              items: DIDION_SHELF.map((book) => ({
+                href: `#${slugify(book.title)}`,
+                label: book.title,
+              })),
+            },
+            {
+              id: 'adjacent-shelf',
+              label: 'adjacent',
+              items: ADJACENT.map((book) => ({
+                href: `#${slugify(book.title)}`,
+                label: book.title,
+              })),
+            },
+            {
+              id: 'updates-log',
+              label: 'notes',
+              items: UPDATES.map((item) => ({
+                href: `#${slugify(item.title)}`,
+                label: item.title,
+              })),
+            },
+          ]}
+        />
 
-      <section className="arc-section" id="didion-shelf" aria-labelledby="shelf-label">
-        <p className="arc-kicker" id="shelf-label">
-          shelf
-        </p>
-        {SHELF_GROUPS.map((group) => (
-          <div key={group.id} className="arc-group" id={group.id} aria-labelledby={`${group.id}-title`}>
-            <h3 className="arc-group-title" id={`${group.id}-title`}>
-              {group.title}
-            </h3>
-            <p className="arc-group-dek">{group.dek}</p>
+        <div className="arc-stage-main">
+          <section className="arc-section" id="this-issue" aria-labelledby="current-reading">
+            <p className="arc-kicker" id="current-reading">
+              current reading
+            </p>
+            <BookObject book={FEATURED} featured />
+          </section>
+
+          <section className="arc-section" id="didion-shelf" aria-labelledby="shelf-label">
+            <p className="arc-kicker" id="shelf-label">
+              didion
+            </p>
+            <div className="arc-book-shelf">
+              {DIDION_SHELF.map((book) => (
+                <BookObject key={book.title} book={book} />
+              ))}
+            </div>
+          </section>
+
+          <section className="arc-section" id="adjacent-shelf" aria-labelledby="reading-now">
+            <p className="arc-kicker" id="reading-now">
+              adjacent
+            </p>
+            <div className="arc-book-shelf">
+              {ADJACENT.map((book) => (
+                <BookObject key={book.title} book={book} />
+              ))}
+            </div>
+          </section>
+
+          <section className="arc-section" id="updates-log" aria-labelledby="notes-label">
+            <p className="arc-kicker" id="notes-label">
+              notes
+            </p>
             <ul className="arc-list">
-              {group.books.map((book) => (
-                <BookRow key={book.title} book={book} />
+              {UPDATES.map((item) => (
+                <li key={item.title} id={slugify(item.title)} className="arc-item">
+                  <span className="arc-item-title">{item.title}</span>
+                  <span className="arc-item-meta">{item.date}</span>
+                  <p className="arc-item-note">{item.body}</p>
+                </li>
               ))}
             </ul>
-          </div>
-        ))}
-      </section>
-
-      <section className="arc-section" id="updates-log" aria-labelledby="notes-label">
-        <p className="arc-kicker" id="notes-label">
-          notes
-        </p>
-        <ul className="arc-list">
-          {UPDATES.map((item) => (
-            <li key={item.title} className="arc-item">
-              <span className="arc-item-title">{item.title}</span>
-              <span className="arc-item-meta">{item.date}</span>
-              <p className="arc-item-note">{item.body}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
+          </section>
+        </div>
+      </div>
     </ArchivePage>
   );
 }
