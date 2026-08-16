@@ -61,6 +61,8 @@ Production ship / multi-PR merge: `AGENTS.md` 施工队安全条例 — 不能�
 ## Prompt templates & handbook
 
 Full engineering standards: `aileena-new/docs/工作准册.md`  
-Quick prompts: `.cursor/prompts.md`  
+Quick prompts + orchestration table: `.cursor/prompts.md`  
+Tool map: `docs/AGENT_TOOL_MAP.md`  
+Known failures: `docs/KNOWN_FAILURES.md`  
 Debug loop: `.cursor/rules/debug-repro-loop.mdc`  
 Production ship: `AGENTS.md`
