@@ -1,10 +1,20 @@
+export type ToolMaturity = 'useful' | 'experiment' | 'paused';
+
+export type ToolTier = 'featured' | 'utility' | 'experiment' | 'paused';
+
 export type ToolDefinition = {
   slug: string;
   tag: string;
   title: string;
   body: string;
+  why: string;
+  verdict: string;
   href: string;
-  status: 'live' | 'beta' | 'tbc';
+  /** Honest maturity — do not mark unfinished work as live. */
+  status: ToolMaturity;
+  tier: ToolTier;
+  /** Existing public asset only. Omit when none exists. */
+  screenshot?: string;
   arcade: {
     glyph: string;
     /** Flat fill for the geometric block (no border chrome). */
@@ -21,8 +31,11 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     tag: 'EVENT',
     title: 'Cafe Cursor',
     body: 'Claim Cursor credits for Cafe Cursor Shanghai — checked-in guests only.',
+    why: 'The room needed a redeem path that was not a spreadsheet.',
+    verdict: 'Actually useful when the room is real.',
     href: CAFE_CURSOR_URL,
-    status: 'live',
+    status: 'useful',
+    tier: 'featured',
     arcade: {
       glyph: '◎',
       screenGradient: '#dde8e4',
@@ -32,10 +45,12 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     slug: 'inkling-clips',
     tag: 'AUDIO',
     title: 'Audio Clipping',
-    body:
-      'YouTube → short clips. No Inkling API needed — free silence cuts.',
+    body: 'YouTube → short clips. No Inkling API, free-mode workaround.',
+    why: 'Needed a cut without paying a listening API.',
+    verdict: 'Small, ugly, useful.',
     href: '/tools/inkling-clips',
-    status: 'live',
+    status: 'useful',
+    tier: 'utility',
     arcade: {
       glyph: '▶',
       screenGradient: '#d8eeeb',
@@ -45,10 +60,12 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     slug: 'cafe-recap',
     tag: 'VIDEO',
     title: 'Cafe Recap Edit',
-    body:
-      'Local JSON→ffmpeg recap: drop media → plan → cut → verify. Mac-only.',
+    body: 'Local JSON → ffmpeg recap loop. Plan, cut, verify.',
+    why: 'A receipt from trying to edit an IRL night without opening CapCut first.',
+    verdict: 'Not better than CapCut yet. Kept as an experiment.',
     href: '/tools/cafe-recap',
-    status: 'live',
+    status: 'experiment',
+    tier: 'experiment',
     arcade: {
       glyph: '▣',
       screenGradient: '#e8efe8',
@@ -58,9 +75,12 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     slug: 'feed-flash',
     tag: 'RSS',
     title: 'Feed Flash',
-    body: 'TBC',
+    body: 'Headline desk, not shipped.',
+    why: 'Wanted a thin RSS surface on the same stack.',
+    verdict: 'Paused. Not a product yet.',
     href: '/tools/feed-flash',
-    status: 'tbc',
+    status: 'paused',
+    tier: 'paused',
     arcade: {
       glyph: '☰',
       screenGradient: '#ebe6db',
@@ -70,9 +90,12 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     slug: 'chip-guess',
     tag: 'SEMIS',
     title: 'Chip Guess',
-    body: 'TBC',
+    body: 'Guess-the-die, not shipped.',
+    why: 'A desk toy against the chip catalogue.',
+    verdict: 'Paused. Not a product yet.',
     href: '/tools/chip-guess',
-    status: 'tbc',
+    status: 'paused',
+    tier: 'paused',
     arcade: {
       glyph: '◇',
       screenGradient: '#e4e8f0',
@@ -82,9 +105,12 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     slug: 'pricing-slot',
     tag: 'DATA',
     title: 'Pricing Lookup',
-    body: 'TBC',
+    body: 'SKU lookup, not shipped.',
+    why: 'A slot for prices already in the site corpus.',
+    verdict: 'Paused. Not a product yet.',
     href: '/tools/pricing-slot',
-    status: 'tbc',
+    status: 'paused',
+    tier: 'paused',
     arcade: {
       glyph: '▢',
       screenGradient: '#efe6d6',
