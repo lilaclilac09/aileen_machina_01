@@ -333,18 +333,18 @@ export default function DJStation() {
           try {
             leftCtrl.current.loadUri(uri);
             console.log(DJ_AUDIT, 'audio source assigned', { deck: 'A', uri, via: 'loadUri' });
-            setDeckHint(null);
+            if (!isRef) setDeckHint(null);
           } catch (err) {
             console.log(DJ_AUDIT, 'loadUri error', { deck: 'A', err });
-            showDeckHint('Deck A: press ▶ to start');
+            if (!isRef) showDeckHint('Deck A: press ▶ to start');
           }
         } else {
           // Reconnect: queue until leftCtrl createController callback (same IFrame, no second player)
           pendingLeftUri.current = uri;
           console.log(DJ_AUDIT, 'leftCtrl null — queued pendingLeftUri', uri);
-          showDeckHint('Deck A: Spotify loading — press ▶ when ready');
+          if (!isRef) showDeckHint('Deck A: Spotify loading — press ▶ when ready');
         }
-      } else {
+      } else if (!isRef) {
         pendingLeftUri.current = null;
         showDeckHint(`“${track.title}” has no Spotify id — pick a library track to play`);
       }
@@ -352,8 +352,8 @@ export default function DJStation() {
       setRightTrack(track);
       if (sid) {
         rightCtrl.current?.loadUri(`spotify:track:${sid}`);
-        setDeckHint(null);
-      } else {
+        if (!isRef) setDeckHint(null);
+      } else if (!isRef) {
         showDeckHint(`“${track.title}” has no Spotify id — pick a library track to play`);
       }
     }
