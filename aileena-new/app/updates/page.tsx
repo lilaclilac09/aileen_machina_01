@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import ArchivePage from '../_archive/ArchivePage';
 
 type Book = {
@@ -8,60 +9,61 @@ type Book = {
   tags: string[];
   body: string;
   status?: string;
+  tone?: 'ink' | 'cream' | 'teal' | 'dust' | 'slate';
 };
 
 const FEATURED: Book = {
   title: 'The Year of Magical Thinking',
   author: 'Joan Didion',
-  tags: ['grief', 'ritual', 'observation'],
-  status: "Aileena's Biweekly Read · Issue 01",
-  body:
-    'The calibration text. Didion reports on her own mind without turning grief into performance — identity is what remains when the furniture of a life has been rearranged overnight.',
+  tags: ['grief', 'ritual'],
+  status: 'issue 01',
+  tone: 'ink',
+  body: 'Grief as observation, not performance.',
 };
 
 const DIDION_SHELF: Book[] = [
   {
     title: 'Slouching Towards Bethlehem',
     author: 'Joan Didion',
-    tags: ['essays', 'California'],
+    tags: ['essays'],
     status: '31% in',
-    body:
-      'The early sharp eye: counterculture, place, and the sentence as a measuring instrument.',
+    tone: 'cream',
+    body: 'California as a measuring instrument.',
   },
   {
     title: 'The White Album',
     author: 'Joan Didion',
-    tags: ['essays', '1960s'],
-    body:
-      'A decade dissolving into fragments — Hollywood, hospitals, politics — held by a refusal to pretend the center is holding.',
+    tags: ['essays'],
+    tone: 'slate',
+    body: 'A decade in fragments.',
   },
   {
     title: 'Play It As It Lays',
     author: 'Joan Didion',
-    tags: ['novel', 'Los Angeles'],
-    body:
-      'Freeways, silence, and a woman learning how little narrative can save you.',
+    tags: ['novel'],
+    tone: 'dust',
+    body: 'Freeways. Silence.',
   },
   {
     title: 'Notes to John',
     author: 'Joan Didion',
-    tags: ['private voice', 'archive'],
-    body:
-      'Closer to the desk and the ordinary day — notes that feel like overhearing the mind before it becomes the essay.',
+    tags: ['archive'],
+    tone: 'teal',
+    body: 'The mind before it becomes the essay.',
   },
   {
     title: 'Let Me Tell You What I Mean',
     author: 'Joan Didion',
-    tags: ['essays', 'precision'],
-    body:
-      'Later pieces, same steel: short, exact, allergic to vagueness.',
+    tags: ['essays'],
+    tone: 'ink',
+    body: 'Short. Exact. Allergic to vagueness.',
   },
   {
     title: 'Philosophy and Vulnerability',
     author: 'Matthew R. McLennan',
-    tags: ['Didion', 'Lorde'],
-    body:
-      'A side door into Didion through philosophy — vulnerability as method, not soft branding.',
+    tags: ['Didion'],
+    tone: 'cream',
+    body: 'Vulnerability as method.',
   },
 ];
 
@@ -69,30 +71,30 @@ const ADJACENT: Book[] = [
   {
     title: 'Crying in H Mart',
     author: 'Michelle Zauner',
-    tags: ['grief', 'food'],
-    body:
-      'Loss through taste and aisle fluorescent light — inheritance as something you can still cook.',
+    tags: ['grief'],
+    tone: 'dust',
+    body: 'Loss through the grocery aisle.',
   },
   {
     title: 'Bad Feminist',
     author: 'Roxane Gay',
-    tags: ['essays', 'feminism'],
-    body:
-      'Feminism without the costume. Gay keeps the contradictions on the table.',
+    tags: ['essays'],
+    tone: 'slate',
+    body: 'Contradictions stay on the table.',
   },
   {
     title: 'On Earth We’re Briefly Gorgeous',
     author: 'Ocean Vuong',
-    tags: ['identity', 'letter'],
-    body:
-      'A letter that becomes a life: migration, desire, and the violence of beautiful English.',
+    tags: ['letter'],
+    tone: 'teal',
+    body: 'A letter that becomes a life.',
   },
   {
     title: 'Still Born',
     author: 'Guadalupe Nettel',
-    tags: ['motherhood', 'choice'],
-    body:
-      'What we owe children — and what we refuse. Quietly radical social observation.',
+    tags: ['choice'],
+    tone: 'cream',
+    body: 'What we owe. What we refuse.',
   },
 ];
 
@@ -101,28 +103,47 @@ const UPDATES = [
     date: '2026.07.25',
     kind: 'design',
     title: 'Metal & Pages goes magazine',
-    body: 'White field, heavy headlines, dashed rules — Service95 book-club energy with Aileena teal as the only accent.',
+    body: 'White field, teal accent.',
   },
   {
     date: '2026.07.17',
     kind: 'bookclub',
     title: 'Metal & Pages opens',
-    body: 'Biweekly bookclub page is live — Didion shelf first, then adjacent reads that share the same sharp voltage: identity, grief, feminism, social observation.',
+    body: 'Didion shelf first.',
   },
   {
     date: '2026.07.17',
     kind: 'shelf',
     title: 'Library pull from Apple Books',
-    body: 'Selections from the current library: Didion core plus Zauner, Gay, Vuong, and Nettel.',
+    body: 'Didion core plus adjacent voltage.',
   },
 ];
 
-function BookRow({ book }: { book: Book }) {
+function BookObject({
+  book,
+  featured,
+}: {
+  book: Book;
+  featured?: boolean;
+}) {
   return (
-    <li className="arc-item">
-      <span className="arc-item-title">{book.title}</span>
-      <span className="arc-item-meta">{book.author}</span>
-    </li>
+    <article
+      className={`arc-book${featured ? ' arc-book--featured' : ''} arc-book--${book.tone ?? 'cream'}`}
+    >
+      <div className="arc-book-object" aria-hidden>
+        <span className="arc-book-spine" />
+        <span className="arc-book-face">
+          <span className="arc-book-face-author">{book.author}</span>
+          <span className="arc-book-face-title">{book.title}</span>
+        </span>
+      </div>
+      <h2 className="arc-book-title">{book.title}</h2>
+      <p className="arc-book-meta">
+        {book.author}
+        {book.status ? ` · ${book.status}` : ''}
+      </p>
+      <p className="arc-book-note">{book.body}</p>
+    </article>
   );
 }
 
@@ -131,39 +152,51 @@ export default function UpdatesPage() {
     <ArchivePage
       room="club"
       title="book club"
-      dek="Didion on the desk. A quiet record of what she’s actually reading."
+      dek="Didion on the desk."
     >
+      <section className="arc-section" aria-labelledby="desk-photo">
+        <p className="arc-kicker" id="desk-photo">
+          desk
+        </p>
+        <figure className="arc-hero-visual">
+          <Image
+            src="/dispatch-covers/books-joan-didion-readings.jpg"
+            alt="Annotated readings from the work of Joan Didion"
+            width={1600}
+            height={1200}
+            priority
+            sizes="(min-width: 820px) 820px, 100vw"
+          />
+        </figure>
+      </section>
+
       <section className="arc-section" id="this-issue" aria-labelledby="current-reading">
         <p className="arc-kicker" id="current-reading">
           current reading
         </p>
-        <article className="arc-now">
-          <h2 className="arc-item-title">{FEATURED.title}</h2>
-          <span className="arc-item-meta">{FEATURED.author}</span>
-          <p className="arc-item-note">{FEATURED.body}</p>
-        </article>
+        <BookObject book={FEATURED} featured />
       </section>
 
       <section className="arc-section" id="didion-shelf" aria-labelledby="shelf-label">
         <p className="arc-kicker" id="shelf-label">
-          shelf
+          didion desk
         </p>
-        <ul className="arc-list">
+        <div className="arc-book-shelf">
           {DIDION_SHELF.map((book) => (
-            <BookRow key={book.title} book={book} />
+            <BookObject key={book.title} book={book} />
           ))}
-        </ul>
+        </div>
       </section>
 
       <section className="arc-section" id="adjacent-shelf" aria-labelledby="reading-now">
         <p className="arc-kicker" id="reading-now">
-          reading now
+          adjacent
         </p>
-        <ul className="arc-list">
+        <div className="arc-book-shelf">
           {ADJACENT.map((book) => (
-            <BookRow key={book.title} book={book} />
+            <BookObject key={book.title} book={book} />
           ))}
-        </ul>
+        </div>
       </section>
 
       <section className="arc-section" id="updates-log" aria-labelledby="notes-label">

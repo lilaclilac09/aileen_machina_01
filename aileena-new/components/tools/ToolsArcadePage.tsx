@@ -28,73 +28,87 @@ function hostLabel(href: string): string | null {
   }
 }
 
+function ToolPreview({ slug }: { slug: string }) {
+  if (slug === 'cafe-cursor') {
+    return (
+      <div className="tools-preview tools-preview--ticket" aria-hidden>
+        <span className="tools-preview-punch" />
+        <span className="tools-preview-punch" />
+        <p className="tools-preview-kicker">Cafe Cursor Shanghai</p>
+        <p className="tools-preview-hero">credits</p>
+        <p className="tools-preview-line">guest · checked in</p>
+      </div>
+    );
+  }
+
+  if (slug === 'inkling-clips') {
+    return (
+      <div className="tools-preview tools-preview--wave" aria-hidden>
+        <p className="tools-preview-url">youtube.com/watch?v=</p>
+        <div className="tools-wave">
+          {Array.from({ length: 18 }, (_, i) => (
+            <span key={i} style={{ height: `${28 + ((i * 17) % 52)}%` }} />
+          ))}
+        </div>
+        <p className="tools-preview-line">clip 01 · clip 02 · clip 03</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="tools-preview tools-preview--terminal" aria-hidden>
+      <p className="tools-preview-code">{'{ "cut": 12 }'}</p>
+      <p className="tools-preview-code">ffmpeg → recap.mp4</p>
+      <p className="tools-preview-line">≠ CapCut</p>
+    </div>
+  );
+}
+
 function LabCard({
   tool,
   copy,
   openLabel,
-  whatLabel,
-  whyLabel,
-  verdictLabel,
   featured,
 }: {
   tool: ToolDefinition;
   copy?: ItemCopy;
   openLabel: string;
-  whatLabel: string;
-  whyLabel: string;
-  verdictLabel: string;
   featured?: boolean;
 }) {
   const paused = tool.status === 'paused';
   const title = copy?.title ?? tool.title;
   const tag = copy?.tag ?? tool.tag;
-  const body = copy?.body ?? tool.body;
-  const why = copy?.why ?? tool.why;
-  const verdict = copy?.verdict ?? tool.verdict;
+  const note = copy?.verdict ?? tool.verdict;
   const statusLabel = copy?.statusLabel ?? tool.status;
   const external = /^https?:\/\//i.test(tool.href);
   const host = hostLabel(tool.href);
-
-  const inner = (
-    <article
-      className={`tools-lab-card${featured ? ' tools-lab-card--featured' : ''}${
-        tool.tier === 'experiment' ? ' tools-lab-card--experiment' : ''
-      }${paused ? ' tools-lab-card--paused' : ''}`}
-    >
-      <header className="tools-lab-card-head">
-        <p className="tools-lab-card-tag">{tag}</p>
-        <p className={`tools-lab-status tools-lab-status--${tool.status}`}>{statusLabel}</p>
-      </header>
-      <h2 className="tools-lab-card-title">{title}</h2>
-      <dl className="tools-lab-fields">
-        <div>
-          <dt>{whatLabel}</dt>
-          <dd>{body}</dd>
-        </div>
-        <div>
-          <dt>{whyLabel}</dt>
-          <dd>{why}</dd>
-        </div>
-        <div>
-          <dt>{verdictLabel}</dt>
-          <dd>{verdict}</dd>
-        </div>
-      </dl>
-      {!paused && host ? <p className="tools-lab-host">{host}</p> : null}
-      <span className={`tools-lab-cta${paused ? ' tools-lab-cta--muted' : ''}`}>
-        {paused ? statusLabel : external ? `${openLabel} ↗` : `${openLabel} →`}
-      </span>
-    </article>
-  );
 
   if (paused) {
     return (
       <li className="tools-lab-paused-item">
         <p className="tools-lab-paused-title">{title}</p>
-        <p className="tools-lab-paused-verdict">{verdict}</p>
+        <p className="tools-lab-paused-verdict">{note}</p>
       </li>
     );
   }
+
+  const inner = (
+    <article
+      className={`tools-lab-card${featured ? ' tools-lab-card--featured' : ''}${
+        tool.tier === 'experiment' ? ' tools-lab-card--experiment' : ''
+      }`}
+    >
+      <ToolPreview slug={tool.slug} />
+      <header className="tools-lab-card-head">
+        <p className="tools-lab-card-tag">{tag}</p>
+        <p className={`tools-lab-status tools-lab-status--${tool.status}`}>{statusLabel}</p>
+      </header>
+      <h2 className="tools-lab-card-title">{title}</h2>
+      <p className="tools-lab-note-line">{note}</p>
+      {host ? <p className="tools-lab-host">{host}</p> : null}
+      <span className="tools-lab-cta">{external ? `${openLabel} ↗` : `${openLabel} →`}</span>
+    </article>
+  );
 
   if (external) {
     return (
@@ -121,10 +135,10 @@ export default function ToolsArcadePage() {
   const { language } = useLanguage();
   const tx = t[language].tools;
   const featured = TOOL_DEFINITIONS.filter((tool) => tool.tier === 'featured');
-  const utility = TOOL_DEFINITIONS.filter((tool) => tool.tier === 'utility');
-  const experiment = TOOL_DEFINITIONS.filter((tool) => tool.tier === 'experiment');
+  const bench = TOOL_DEFINITIONS.filter(
+    (tool) => tool.tier === 'utility' || tool.tier === 'experiment',
+  );
   const paused = TOOL_DEFINITIONS.filter((tool) => tool.tier === 'paused');
-  const bench = [...utility, ...experiment];
 
   return (
     <ArcadeLayout tag={tx.tag} title={tx.heading} subtitle={tx.body} marquee={tx.marquee}>
@@ -147,9 +161,6 @@ export default function ToolsArcadePage() {
                 tool={tool}
                 copy={tx.items[tool.slug as keyof typeof tx.items]}
                 openLabel={tx.openTool}
-                whatLabel={tx.whatLabel}
-                whyLabel={tx.whyLabel}
-                verdictLabel={tx.verdictLabel}
                 featured
               />
             ))}
@@ -167,9 +178,6 @@ export default function ToolsArcadePage() {
                 tool={tool}
                 copy={tx.items[tool.slug as keyof typeof tx.items]}
                 openLabel={tx.openTool}
-                whatLabel={tx.whatLabel}
-                whyLabel={tx.whyLabel}
-                verdictLabel={tx.verdictLabel}
               />
             ))}
           </div>
@@ -187,9 +195,6 @@ export default function ToolsArcadePage() {
                   tool={tool}
                   copy={tx.items[tool.slug as keyof typeof tx.items]}
                   openLabel={tx.openTool}
-                  whatLabel={tx.whatLabel}
-                  whyLabel={tx.whyLabel}
-                  verdictLabel={tx.verdictLabel}
                 />
               ))}
             </ul>
