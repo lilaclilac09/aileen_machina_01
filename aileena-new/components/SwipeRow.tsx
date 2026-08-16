@@ -101,6 +101,7 @@ const COVER_BY_SLUG: Record<string, string> = {
   'huawei-hbm': COVER_CIRCUIT_CLOSEUP,
   'huawei-supply': COVER_SILICON,
   'china-neocloud': COVER_DATACENTER,
+  'china-neocloud-teaser': COVER_DATACENTER,
   'memory-tax': COVER_SILICON,
   'cxmt-yield-watch': COVER_CIRCUIT_CLOSEUP,
 

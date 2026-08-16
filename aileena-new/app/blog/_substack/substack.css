@@ -8,6 +8,7 @@
 
 .substack-article {
   min-height: 100vh;
+  min-height: 100dvh;
   background: #fff;
   color: rgba(17, 17, 17, 0.88);
   font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', 'Georgia', 'Times New Roman', serif;

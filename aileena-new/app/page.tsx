@@ -197,8 +197,8 @@ export default function Home() {
       index: '02',
       label: 'News Desk',
       href: latestDispatch ? latestDispatch.href : '/dispatch',
-      category: 'Neocloud',
-      blurb: 'China cleared the MW bar. The listed NVIDIA-native GPU airline does not exist.',
+      category: 'Teaser · 概念扫盲',
+      blurb: 'What a neocloud is, how a number is verified, whose order bought the megawatts.',
       signal: latestDispatch ? latestDispatch.title : 'Open the archive',
       motif: 'pcb',
       placement: { top: '38%', right: '10%', transform: 'rotate(1.6deg)', zIndex: 5 },
@@ -267,7 +267,7 @@ export default function Home() {
         {/* ── 01 CINEMATIC OPENING ──────────────────────────────── */}
         <SnapSection id="opening" className="order-1">
           <div
-            className="mobile-opening-shell h-full min-h-[100dvh] flex flex-col bg-white relative overflow-hidden max-md:overflow-visible max-md:h-auto"
+            className="mobile-opening-shell h-full min-h-[100dvh] flex flex-col bg-white relative overflow-hidden max-md:overflow-visible max-md:h-auto max-md:pt-[max(0.5rem,env(safe-area-inset-top,0px))]"
             style={{ fontFamily: nunito }}
           >
             {/* Background portrait — large, partially out of frame on the right */}
@@ -289,7 +289,7 @@ export default function Home() {
             {/* Mobile-only portrait — smaller, top */}
             <div
               aria-hidden
-              className="md:hidden self-center mt-12"
+              className="md:hidden self-start ml-5 mt-[max(3.25rem,calc(env(safe-area-inset-top,0px)+2.75rem))]"
               style={{
                 width: 140,
                 height: 180,
@@ -470,6 +470,8 @@ export default function Home() {
               body={tx.visual.kilnNote}
               linkLabel={tx.visual.readGlass}
               items={tx.visual.items}
+              modeWall={tx.visual.modeWall}
+              modeFocus={tx.visual.modeFocus}
             />
           </div>
         </SnapSection>

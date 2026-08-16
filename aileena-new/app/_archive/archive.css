@@ -1,3 +1,5 @@
+@import './index-rail.css';
+
 /* Shared Substack-quiet archive: book club + watch/listen shelf */
 
 .arc-page {
@@ -70,6 +72,10 @@
   padding: 36px 22px 120px;
 }
 
+.arc-wrap:has(.arc-stage) {
+  max-width: 980px;
+}
+
 .arc-hero {
   margin: 0 0 8px;
 }
@@ -104,7 +110,8 @@
   scroll-margin-top: 88px;
 }
 
-.arc-section:first-of-type {
+.arc-section:first-of-type,
+.arc-stage-main > .arc-section:first-child {
   margin-top: 8px;
 }
 
@@ -136,6 +143,7 @@
 .arc-item {
   padding: 13px 0 15px;
   border-bottom: 1px solid var(--arc-line);
+  scroll-margin-top: 88px;
 }
 
 .arc-item:last-child {
@@ -188,6 +196,208 @@ a.arc-item-title:hover {
   line-height: 1.58;
 }
 
+.arc-hero-visual {
+  margin: 0;
+  max-height: min(52vh, 420px);
+  overflow: hidden;
+  background: #efeae0;
+}
+
+.arc-hero-visual img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.arc-book-shelf {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 14px;
+}
+
+.arc-book {
+  min-width: 0;
+  scroll-margin-top: 88px;
+}
+
+.arc-book-object {
+  position: relative;
+  display: flex;
+  aspect-ratio: 0.68;
+  overflow: hidden;
+  box-shadow:
+    inset 0 0 0 1px rgba(17, 17, 17, 0.08),
+    4px 6px 0 rgba(17, 17, 17, 0.04);
+}
+
+.arc-book-spine {
+  flex: 0 0 11px;
+  background:
+    linear-gradient(90deg, rgba(17, 17, 17, 0.14), rgba(17, 17, 17, 0.04) 40%, transparent);
+}
+
+.arc-book-face {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 12px 10px 14px;
+}
+
+.arc-book-face-author,
+.arc-book-face-title {
+  display: block;
+}
+
+.arc-book-face-author {
+  color: rgba(17, 17, 17, 0.42);
+  font-family: var(--arc-sans);
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.arc-book-face-title {
+  font-size: 0.86rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.arc-book--ink .arc-book-object {
+  background: #1b1814;
+  color: #f4efe6;
+}
+
+.arc-book--ink .arc-book-face-author {
+  color: rgba(244, 239, 230, 0.5);
+}
+
+.arc-book--cream .arc-book-object {
+  background: #f3efe6;
+}
+
+.arc-book--teal .arc-book-object {
+  background: #d8ebe6;
+}
+
+.arc-book--dust .arc-book-object {
+  background: #e8ddd0;
+}
+
+.arc-book--slate .arc-book-object {
+  background: #d9dde2;
+}
+
+.arc-book-title {
+  margin: 10px 0 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.arc-book-meta {
+  margin: 3px 0 0;
+  color: var(--arc-faint);
+  font-family: var(--arc-sans);
+  font-size: 0.72rem;
+  line-height: 1.3;
+}
+
+.arc-book-note {
+  margin: 4px 0 0;
+  color: var(--arc-mute);
+  font-size: 0.82rem;
+  font-style: italic;
+  line-height: 1.35;
+}
+
+.arc-book--featured {
+  display: grid;
+  grid-template-columns: minmax(120px, 160px) minmax(0, 1fr);
+  gap: 16px 20px;
+  align-items: end;
+}
+
+.arc-book--featured .arc-book-title {
+  margin-top: 0;
+  font-size: 1.28rem;
+}
+
+.arc-book--featured .arc-book-face-title {
+  font-size: 1.05rem;
+}
+
+.arc-cassettes {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.arc-cassette {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  color: inherit;
+  text-decoration: none;
+  scroll-margin-top: 88px;
+}
+
+.arc-cassette-body {
+  position: relative;
+  aspect-ratio: 1.55;
+  background: #ece6d8;
+  box-shadow: inset 0 0 0 1px rgba(17, 17, 17, 0.1);
+}
+
+.arc-cassette-window {
+  position: absolute;
+  inset: 22% 14%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  background: #1b1814;
+}
+
+.arc-cassette-reel {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #f4efe6;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 4px #1b1814;
+}
+
+.arc-cassette-title {
+  display: block;
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.arc-cassette-meta,
+.arc-cassette-note {
+  display: block;
+}
+
+.arc-cassette-meta {
+  margin-top: 3px;
+  color: var(--arc-faint);
+  font-family: var(--arc-sans);
+  font-size: 0.72rem;
+}
+
+.arc-cassette-note {
+  margin-top: 4px;
+  color: var(--arc-mute);
+  font-size: 0.86rem;
+  font-style: italic;
+  line-height: 1.35;
+}
+
 /* posters — a light strip, not a card wall */
 .arc-posters {
   display: flex;
@@ -211,6 +421,7 @@ a.arc-item-title:hover {
   min-width: 0;
   color: inherit;
   text-decoration: none;
+  scroll-margin-top: 88px;
 }
 
 .arc-poster-frame {
@@ -349,13 +560,23 @@ a.arc-item-title:hover {
 
   .arc-posters {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     overflow: visible;
     gap: 18px 16px;
   }
 
   .arc-poster {
     flex: none;
+  }
+
+  .arc-book-shelf {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 22px 16px;
+  }
+
+  .arc-cassettes {
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
   }
 }
 
@@ -379,6 +600,19 @@ a.arc-item-title:hover {
 
   .arc-now .arc-item-title {
     font-size: 1.16rem;
+  }
+
+  .arc-book--featured {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .arc-book--featured .arc-book-object {
+    max-width: 160px;
+  }
+
+  .arc-book--featured .arc-book-title {
+    font-size: 1.12rem;
   }
 
   .arc-posters {
