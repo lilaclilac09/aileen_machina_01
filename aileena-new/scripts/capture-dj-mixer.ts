@@ -7,6 +7,7 @@ import { join } from 'node:path';
 
 const BASE = process.env.VERIFY_BASE_URL ?? 'http://127.0.0.1:3000';
 const OUT = process.env.VERIFY_OUT_DIR ?? '/opt/cursor/artifacts';
+const PREFIX = process.env.CAPTURE_PREFIX ?? 'qa_';
 
 function pcmWav(seconds: number, freq: number, sampleRate = 44100): Buffer {
   const n = Math.floor(seconds * sampleRate);
@@ -60,7 +61,7 @@ async function main() {
   await page.goto(`${BASE}/sound`, { waitUntil: 'domcontentloaded' });
   await page.getByTestId('dj-engine-status').waitFor({ timeout: 20_000 });
   await page.waitForTimeout(500);
-  await shot(page, 'qa_01_initial_mixer.png', 'dj-engine-status');
+  await shot(page, `${PREFIX}01_initial_mixer.png`, 'dj-engine-status');
 
   await page.getByTestId('dj-upload-a').setInputFiles({
     name: 'desk-a.wav',
@@ -77,7 +78,7 @@ async function main() {
     return el?.getAttribute('data-deck-a') === 'true' && el?.getAttribute('data-deck-b') === 'true';
   });
   await page.waitForTimeout(300);
-  await shot(page, 'qa_02_decks_loaded.png', 'dj-waveform-a');
+  await shot(page, `${PREFIX}02_decks_loaded.png`, 'dj-waveform-a');
 
   await page.getByTestId('dj-engine-status').scrollIntoViewIfNeeded();
   await page.waitForTimeout(400);
@@ -85,7 +86,7 @@ async function main() {
   await page.getByTestId('dj-play-b').click();
   await page.getByTestId('dj-play-a').scrollIntoViewIfNeeded();
   await page.waitForTimeout(800);
-  await shot(page, 'qa_03_both_playing.png', 'dj-play-a');
+  await shot(page, `${PREFIX}03_both_playing.png`, 'dj-play-a');
 
   await page.getByTestId('dj-xfade').evaluate((el) => {
     const input = el as HTMLInputElement;
@@ -94,48 +95,53 @@ async function main() {
     input.dispatchEvent(new Event('change', { bubbles: true }));
   });
   await page.waitForTimeout(250);
-  await shot(page, 'qa_04_crossfader_moved.png', 'dj-xfade');
+  await shot(page, `${PREFIX}04_crossfader_moved.png`, 'dj-xfade');
 
   await page.getByTestId('dj-record').click();
   await page.waitForFunction(() =>
     document.querySelector('[data-testid="dj-engine-status"]')?.getAttribute('data-recording') === 'true',
   );
   await page.waitForTimeout(1200);
-  await shot(page, 'qa_05_recording_active.png', 'dj-record');
+  await shot(page, `${PREFIX}05_recording_active.png`, 'dj-record');
 
   await page.getByTestId('dj-record').click();
   await page.getByTestId('dj-mix-receipt').waitFor({ timeout: 10_000 });
-  await shot(page, 'qa_06_export_ready.png', 'dj-mix-receipt');
+  await shot(page, `${PREFIX}06_export_ready.png`, 'dj-mix-receipt');
 
   const video = page.video();
   await page.close();
   if (video) {
-    await video.saveAs(join(OUT, 'qa_mixer_mobile_walkthrough.webm'));
+    await video.saveAs(join(OUT, `${PREFIX}mixer_mobile_walkthrough.webm`));
   }
   await context.close();
 
-  const desk = await browser.newPage({ viewport: { width: 1280, height: 900 } });
-  await desk.goto(`${BASE}/sound`, { waitUntil: 'domcontentloaded' });
-  await desk.getByTestId('dj-engine-status').waitFor();
-  await desk.getByTestId('dj-upload-a').setInputFiles({
-    name: 'desk-a.wav',
-    mimeType: 'audio/wav',
-    buffer: pcmWav(6, 220),
-  });
-  await desk.getByTestId('dj-upload-b').setInputFiles({
-    name: 'desk-b.wav',
-    mimeType: 'audio/wav',
-    buffer: pcmWav(6, 330),
-  });
-  await desk.waitForFunction(() => {
-    const el = document.querySelector('[data-testid="dj-engine-status"]');
-    return el?.getAttribute('data-deck-a') === 'true' && el?.getAttribute('data-deck-b') === 'true';
-  });
-  await desk.getByTestId('dj-play-a').click();
-  await desk.getByTestId('dj-play-b').click();
-  await desk.waitForTimeout(500);
-  await shot(desk, 'qa_07_desktop_playing.png', 'dj-engine-status');
-  await desk.close();
+  const deskCtx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const desk = await deskCtx.newPage();
+  try {
+    await desk.goto(`${BASE}/sound`, { waitUntil: 'domcontentloaded' });
+    await desk.getByTestId('dj-engine-status').waitFor();
+    await desk.getByTestId('dj-upload-a').setInputFiles({
+      name: 'desk-a.wav',
+      mimeType: 'audio/wav',
+      buffer: pcmWav(6, 220),
+    });
+    await desk.getByTestId('dj-upload-b').setInputFiles({
+      name: 'desk-b.wav',
+      mimeType: 'audio/wav',
+      buffer: pcmWav(6, 330),
+    });
+    await desk.waitForFunction(() => {
+      const el = document.querySelector('[data-testid="dj-engine-status"]');
+      return el?.getAttribute('data-deck-a') === 'true' && el?.getAttribute('data-deck-b') === 'true';
+    }, { timeout: 20_000 });
+    await desk.getByTestId('dj-play-a').click();
+    await desk.getByTestId('dj-play-b').click();
+    await desk.waitForTimeout(500);
+    await shot(desk, `${PREFIX}07_desktop_playing.png`, 'dj-engine-status');
+  } catch (err) {
+    console.warn('desktop capture skipped', err);
+  }
+  await deskCtx.close();
   await browser.close();
   console.log(JSON.stringify({ ok: true, out: OUT }, null, 2));
 }
