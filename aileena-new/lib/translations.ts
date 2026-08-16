@@ -661,14 +661,14 @@ export const t = {
           {
             date: '2026.08.14',
             href: '/blog/china-neocloud',
-            title: 'Is a Terrestrial Neocloud Possible in China?',
+            title: 'Is a Terrestrial Neocloud Possible in China? — Part 2',
             body: 'The megawatts are there. The company is not. China can already stand up terrestrial AI MW at CoreWeave and Nebius scale — Runze ~750 MW live / ~6 GW planned, VNET 907 MW wholesale, GDS ~1.56 GW designed IT. What it does not have, and will not have under current GPU, customer, and capital rules, is a listed NVIDIA-native third-party GPU cloud. NVIDIA China DC Hopper went from $4.6B in Q1 FY26 to $0 in Q1 FY27; Blackwell is presumption of denial. ByteDance/Alibaba/Tencent keep the overflow; Kingsoft is a Xiaomi captive (31% of revenue). Kingsoft capex RMB 15–20B is the independent ceiling against CRWV $35–39B. If you want "China NBIS" as a stock, it does not exist. If you want "China AI MW," it trades as Runze 300442, GDS, and VNET.',
           },
           {
             date: '2026.08.15',
             href: '/blog/china-neocloud-teaser',
-            title: 'Is a Terrestrial Neocloud Possible in China?',
-            body: 'Teaser · 概念扫盲. What a neocloud is, how big, and what sits inside it. How a number is verified, what unit it is in, and which GPU it assumes. Then the two numbers that decide the economics: the power price and the compute that is actually usable. Then whose order bought the megawatts. A megawatt in the shell table is not an offtake. The company is not in the taxi on Huawei Avenue.',
+            title: 'Is a Terrestrial Neocloud Possible in China? — Part 1: A Primer',
+            body: 'Part 1 — a primer. What a neocloud is, how big, and what sits inside it. How a number is verified, what unit it is in, and which GPU it assumes. Then the two numbers that decide the economics: the power price and the compute that is actually usable. Then whose order bought the megawatts. A megawatt in the shell table is not an offtake. The company is not in the taxi on Huawei Avenue.',
           },
 
         ],
@@ -1524,14 +1524,14 @@ export const t = {
           {
             date: '2026.08.14',
             href: '/blog/china-neocloud',
-            title: 'Ist eine terrestrische Neocloud in China möglich?',
+            title: 'Ist eine terrestrische Neocloud in China möglich? — Teil 2',
             body: 'Die Megawatt sind da. Die Firma ist es nicht. China kann terrestrische KI-MW schon in CoreWeave- und Nebius-Größe aufstellen — Runze ~750 MW live / ~6 GW geplant, VNET 907 MW Wholesale, GDS ~1,56 GW designed IT. Was es unter den geltenden GPU-, Kunden- und Kapitalregeln nicht hat und nicht haben wird: eine gelistete NVIDIA-native Third-Party-GPU-Cloud. NVIDIA China-DC-Hopper von 4,6 Mrd. $ in Q1 GJ26 auf 0 $ in Q1 GJ27; Blackwell steht unter presumption of denial. ByteDance/Alibaba/Tencent behalten den Overflow; Kingsoft ist ein Xiaomi-Captive (31 % Umsatz). Kingsoft-Capex RMB 15–20 Mrd. ist die Independent-Decke gegen CRWV 35–39 Mrd. $. Wer „China-NBIS“ als Aktie will, findet sie nicht. Wer „China-KI-MW“ will, handelt Runze 300442, GDS und VNET.',
           },
           {
             date: '2026.08.15',
             href: '/blog/china-neocloud-teaser',
-            title: 'Ist eine terrestrische Neocloud in China möglich?',
-            body: 'Teaser · 概念扫盲. Was eine Neocloud ist, wie groß, und was darin sitzt. Wie eine Zahl geprüft wird, in welcher Einheit, und welche GPU sie annimmt. Dann die zwei Zahlen der Ökonomie: der Strompreis und die wirklich nutzbare Rechenleistung. Dann wessen Auftrag die Megawatt gekauft hat. Ein Megawatt in der Hallen-Tabelle ist kein Offtake. Die Firma sitzt nicht im Taxi auf der Huawei Avenue.',
+            title: 'Ist eine terrestrische Neocloud in China möglich? — Teil 1: Ein Primer',
+            body: 'Teil 1 — ein Primer. Was eine Neocloud ist, wie groß, und was darin sitzt. Wie eine Zahl geprüft wird, in welcher Einheit, und welche GPU sie annimmt. Dann die zwei Zahlen der Ökonomie: der Strompreis und die wirklich nutzbare Rechenleistung. Dann wessen Auftrag die Megawatt gekauft hat. Ein Megawatt in der Hallen-Tabelle ist kein Offtake. Die Firma sitzt nicht im Taxi auf der Huawei Avenue.',
           },
 
         ],

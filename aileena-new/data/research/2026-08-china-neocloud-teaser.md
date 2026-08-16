@@ -2,16 +2,16 @@
 id: 2026-08-china-neocloud-teaser
 type: research
 date: 2026-08-15
-title: Is a Terrestrial Neocloud Possible in China? (Teaser · 概念扫盲)
+title: Is a Terrestrial Neocloud Possible in China? — Part 1: A Primer
 source: Aileena dispatch (own synthesis)
 topics: [china, neocloud, teaser, ulanqab, coreweave, nebius, semianalysis, power-price, offtake]
 confidence: public
 url: https://aileena.xyz/blog/china-neocloud-teaser
 ---
 
-# Is a Terrestrial Neocloud Possible in China? — Teaser · 概念扫盲
+# Is a Terrestrial Neocloud Possible in China? — Part 1: A Primer
 
-**The megawatts are there. The company is not.** 15 August 2026. Site: `/blog/china-neocloud-teaser`. Companion analysis: `/blog/china-neocloud` (14 August).
+**The megawatts are there. The company is not.** 15 August 2026. Site: `/blog/china-neocloud-teaser`. Part 2 (14 August analysis): `/blog/china-neocloud`.
 
 This is the method piece, not the hangar tour. Structure: what a neocloud is / how big / what is inside → comparable campuses → how a number is verified (unit + SKU) → power price and usable compute → whose order → what SemiAnalysis watches.
 
