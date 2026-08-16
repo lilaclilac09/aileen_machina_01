@@ -7,24 +7,26 @@ import { chatCompletion, getBalance, listModels } from './client.mjs';
 export function howToUse() {
   return `How to use
 ----------
+Read USAGE.md in this directory, or follow these steps.
+
 1. Buy a key:  https://platform.deepseek.com
-2. cd deepseek-client
-3. cp .env.example .env
-4. Edit .env and set:
+2. In this project directory:
+     cp .env.example .env
+3. Edit .env and set:
      DEEPSEEK_API_KEY=sk-the-key-you-bought
-5. node src/cli.mjs check
+4. node src/cli.mjs check
      Expect: "ok": true and apiKey like set(…xxxx)
-6. node src/cli.mjs chat "Hello from my DeepSeek key"
+5. node src/cli.mjs chat "Hello from my DeepSeek key"
      One reply, then the process exits.
-7. node src/cli.mjs chat
+6. node src/cli.mjs chat
      Interactive. Type a line, get a reply. /exit to quit.
-8. node src/cli.mjs chat --stream "Write a haiku about tea"
-9. node src/cli.mjs balance
+7. node src/cli.mjs chat --stream "Write a haiku about tea"
+8. node src/cli.mjs balance
      Your DeepSeek wallet.
-10. node src/cli.mjs chat --model deepseek-v4-pro --thinking "Explain caches"
+9. node src/cli.mjs chat --model deepseek-v4-pro --thinking "Explain caches"
 
 Flags: --stream   --thinking   --model deepseek-v4-flash|deepseek-v4-pro
-npm:   npm run check | chat | models | balance | test
+npm:   npm start | npm run check | chat | models | balance | test
 
 Requests go to https://api.deepseek.com. DeepSeek bills your key.
 Never commit .env.`;
