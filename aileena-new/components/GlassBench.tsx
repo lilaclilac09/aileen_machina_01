@@ -1,18 +1,15 @@
 import Link from 'next/link';
 import type { CSSProperties } from 'react';
+import TactileGallery, { type TactileImage } from './TactileGallery';
 
 const mono = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
 
-type GlassItem = { src: string; alt: string; caption: string; href?: string };
+type GlassItem = TactileImage;
 
 /**
- * Visual / kiln wall — one quiet composition: centered copy + 2-col mosaic.
- * Content photos: natural aspect, full image visible (never cover-crop).
- * Variable row heights OK — completeness > uniform cards.
- *
- * Snap-section height/overflow for #visual lives in globals.css so the
- * default .snap-section { height:100dvh; overflow:hidden } cannot clip
- * the bottom of the photo wall.
+ * Visual / kiln archive — centered copy + tactile adaptive image wall.
+ * Photos keep natural aspect (never cover-crop). Wall / focus toggle.
+ * Snap-section height/overflow for #visual lives in globals.css.
  */
 export default function GlassBench({
   tag,
@@ -20,12 +17,16 @@ export default function GlassBench({
   body,
   linkLabel,
   items,
+  modeWall = 'wall',
+  modeFocus = 'focus',
 }: {
   tag: string;
   title: string;
   body: string;
   linkLabel: string;
   items: GlassItem[];
+  modeWall?: string;
+  modeFocus?: string;
 }) {
   return (
     <section id="glass-bench" className="glass-bench" style={glassSectionStyle} aria-label="Glass work">
@@ -35,70 +36,6 @@ export default function GlassBench({
           height: auto;
           min-height: 0;
           width: 100%;
-        }
-        .glass-bench-gallery {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: clamp(10px, 1.6vw, 16px);
-          width: min(100%, 920px);
-          margin: 0 auto;
-          padding: 0 clamp(14px, 2.5vw, 24px) clamp(36px, 6vh, 56px);
-          align-items: start;
-        }
-        @media (min-width: 640px) {
-          .glass-bench-gallery {
-            grid-template-columns: 1fr 1fr;
-            gap: clamp(12px, 1.8vw, 18px);
-          }
-        }
-        .glass-bench-shot {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-          min-width: 0;
-          color: inherit;
-          text-decoration: none;
-          background: transparent;
-          border: none;
-          outline: none;
-          box-shadow: none;
-        }
-        .glass-bench-shot:focus,
-        .glass-bench-shot:focus-visible {
-          outline: none;
-          box-shadow: none;
-        }
-        /* Content images — no fixed height / aspect / overflow crop */
-        .glass-bench-frame {
-          position: relative;
-          width: 100%;
-          height: auto;
-          background: transparent;
-          border: none;
-          outline: none;
-          box-shadow: none;
-          border-radius: 0;
-          overflow: visible;
-        }
-        .glass-bench-frame img {
-          display: block;
-          width: 100%;
-          max-width: 100%;
-          height: auto;
-          object-fit: contain;
-          border: none;
-          outline: none;
-          box-shadow: none;
-        }
-        .glass-bench-caption {
-          margin: 0;
-          padding: 0 1px;
-          color: rgba(20, 17, 12, 0.58);
-          font-family: Georgia, 'Times New Roman', serif;
-          font-size: clamp(0.78rem, 1.1vw, 0.9rem);
-          font-style: italic;
-          letter-spacing: 0.01em;
-          line-height: 1.25;
         }
       `}</style>
 
@@ -111,28 +48,12 @@ export default function GlassBench({
         </Link>
       </header>
 
-      <div className="glass-bench-gallery" data-visual-gallery>
-        {items.map((item) => (
-          <Link
-            key={item.src}
-            href={item.href ?? '/blog/pate-de-verre'}
-            className="glass-bench-shot"
-            aria-label={item.caption}
-          >
-            <div className="glass-bench-frame">
-              {/* eslint-disable-next-line @next/next/no-img-element -- content photos need intrinsic ratio; avoid next/image fill crop */}
-              <img
-                src={item.src}
-                alt={item.alt}
-                width={1100}
-                height={1100}
-                decoding="async"
-              />
-            </div>
-            <p className="glass-bench-caption">{item.caption}</p>
-          </Link>
-        ))}
-      </div>
+      <TactileGallery
+        images={items}
+        defaultMode="wall"
+        labels={{ wall: modeWall, focus: modeFocus, prev: '←', next: '→' }}
+        galleryTestId="glass-bench-gallery"
+      />
     </section>
   );
 }
