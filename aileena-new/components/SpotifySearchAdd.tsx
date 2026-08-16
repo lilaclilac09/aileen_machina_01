@@ -165,11 +165,7 @@ export default function SpotifySearchAdd({
         onFocus={() => {
           if (hits.length || searchError) setOpen(true);
         }}
-        placeholder={
-          configured === 'missing'
-            ? 'Spotify search is not configured.'
-            : 'search Spotify to add a track'
-        }
+        placeholder="search Spotify to add a track"
         aria-label="Search Spotify to add a track"
         style={{
           width: '100%',

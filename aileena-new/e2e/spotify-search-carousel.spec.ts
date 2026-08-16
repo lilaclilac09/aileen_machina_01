@@ -104,7 +104,8 @@ test.describe('Spotify search → carousel', () => {
     await page.goto('/sound#dj-set', { waitUntil: 'domcontentloaded' });
     const search = page.getByTestId('spotify-search');
     await expect(search).toBeVisible({ timeout: 20_000 });
-    await search.scrollIntoViewIfNeeded();
+    await expect(search).toHaveAttribute('data-spotify-configured', /ready|missing|error/, { timeout: 10_000 });
+    await page.locator('#dj-set').scrollIntoViewIfNeeded();
     await expect(page.getByTestId('spotify-search-input')).toBeEnabled();
     await expect(search).toContainText('reference tracks only');
     await expect(search).toContainText('upload audio files for real mixing');
@@ -140,8 +141,14 @@ test.describe('Spotify search → carousel', () => {
     expect(afterCards).toBeGreaterThanOrEqual(beforeCards);
     await expect(page.getByTestId('spotify-ref-badge').first()).toBeVisible();
     await expect(page.locator('#dj-set')).toContainText(/not mixable/i);
+    await page.locator('[data-dj-load-deck="left"]').click();
+    await expect(page.getByText(/preview only — not mixable or exportable/i)).toBeVisible();
     await page.locator('#dj-set').screenshot({
       path: `${ARTIFACTS}/spotify_search_track_added.png`,
+    });
+    await page.screenshot({
+      path: `${ARTIFACTS}/spotify_search_load_ref_hint.png`,
+      fullPage: false,
     });
 
     await page.getByTestId('spotify-search-input').fill('');
@@ -168,12 +175,13 @@ test.describe('Spotify search → carousel', () => {
     await page.goto('/sound#dj-set', { waitUntil: 'domcontentloaded' });
     const search = page.getByTestId('spotify-search');
     await expect(search).toBeVisible({ timeout: 20_000 });
-    await search.scrollIntoViewIfNeeded();
+    await expect(search).toHaveAttribute('data-spotify-configured', 'missing', { timeout: 10_000 });
+    await page.locator('#dj-set').scrollIntoViewIfNeeded();
     await expect(page.getByTestId('spotify-search-disabled')).toHaveText(/not configured/i);
     await expect(page.getByTestId('spotify-search-input')).toBeDisabled();
     await expect(page.getByTestId('spotify-search-input')).toHaveAttribute(
       'placeholder',
-      'Spotify search is not configured.',
+      'search Spotify to add a track',
     );
     await page.screenshot({
       path: `${ARTIFACTS}/spotify_search_env_missing.png`,
