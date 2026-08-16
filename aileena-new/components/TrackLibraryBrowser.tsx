@@ -588,7 +588,7 @@ function PlaylistCarousel({
   return (
     <div style={{ padding: '16px 0 8px' }}>
       {/* ── Coverflow stage ── */}
-      <div style={{ position: 'relative', height: CARD + 16, touchAction: 'pan-y' }}>
+      <div className="mobile-stage-clip" style={{ position: 'relative', height: CARD + 16, touchAction: 'pan-y', overflow: 'hidden', maxWidth: '100%' }}>
         {/* Prev arrow */}
         <button
           type="button"
