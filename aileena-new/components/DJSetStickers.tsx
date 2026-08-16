@@ -4,7 +4,7 @@
 export const DJ_SET_STICKERS = [
   { n: '1', label: 'load', hint: 'add two tracks' },
   { n: '2', label: 'cue', hint: 'set your start' },
-  { n: '3', label: 'blend', hint: 'ride the crossfader' },
+  { n: '3', label: 'blend', hint: 'ride the fader' },
   { n: '4', label: 'record', hint: 'capture master' },
   { n: '5', label: 'export', hint: 'download + post' },
 ] as const;
@@ -26,11 +26,8 @@ export default function DJSetStickers() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(5, minmax(108px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 152px), 1fr))',
           gap: 6,
-          overflowX: 'auto',
-          WebkitOverflowScrolling: 'touch',
-          paddingBottom: 2,
         }}
       >
         {DJ_SET_STICKERS.map((s) => (
@@ -38,7 +35,7 @@ export default function DJSetStickers() {
             key={s.label}
             data-testid={`dj-sticker-${s.label}`}
             style={{
-              minWidth: 108,
+              minWidth: 0,
               padding: '7px 8px 6px',
               borderRadius: 3,
               background: C.panel,
@@ -66,8 +63,7 @@ export default function DJSetStickers() {
                 fontSize: '0.62rem',
                 letterSpacing: '0.02em',
                 color: C.sub,
-                lineHeight: 1.2,
-                whiteSpace: 'nowrap',
+                lineHeight: 1.25,
               }}
             >
               {s.hint}
