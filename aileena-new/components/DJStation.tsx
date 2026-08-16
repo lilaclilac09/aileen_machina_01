@@ -4,8 +4,12 @@ import TrackLibraryBrowser from './TrackLibraryBrowser';
 import SpotifySearchAdd from './SpotifySearchAdd';
 import { allDeckTracks, type DeckTrack } from '../lib/djSetlist';
 import {
+  getSpotifyCarouselServerSnapshot,
+  getSpotifyCarouselSnapshot,
+  parseStoredSpotifyTracks,
   readStoredSpotifyTracks,
   searchHitToDeckTrack,
+  subscribeSpotifyCarousel,
   writeStoredSpotifyTracks,
 } from '../lib/spotifyCarouselStore';
 import { isSpotifyDuplicate } from '../lib/spotifySearchShared';
@@ -137,12 +141,19 @@ export default function DJStation() {
   const [leftEmbedReady,  setLeftEmbedReady]  = useState(false);
   const [rightEmbedReady, setRightEmbedReady] = useState(false);
   const [deckHint, setDeckHint] = useState<string | null>(null);
-  const [spotifyExtras, setSpotifyExtras] = useState<Track[]>([]);
   const [focusTrackId, setFocusTrackId] = useState<string | null>(null);
+  const extrasRaw = useSyncExternalStore(
+    subscribeSpotifyCarousel,
+    getSpotifyCarouselSnapshot,
+    getSpotifyCarouselServerSnapshot,
+  );
+  const spotifyExtras = useMemo(() => parseStoredSpotifyTracks(extrasRaw), [extrasRaw]);
 
   const library = useMemo(() => [...CATALOGUE, ...spotifyExtras], [spotifyExtras]);
   const libraryRef = useRef(library);
-  libraryRef.current = library;
+  useEffect(() => {
+    libraryRef.current = library;
+  }, [library]);
 
   const existingSpotifyIds = useMemo(() => {
     const ids = new Set<string>();
@@ -173,10 +184,6 @@ export default function DJStation() {
 
   useEffect(() => () => {
     if (hintTimer.current) clearTimeout(hintTimer.current);
-  }, []);
-
-  useEffect(() => {
-    setSpotifyExtras(readStoredSpotifyTracks());
   }, []);
 
   useEffect(() => {
@@ -386,24 +393,18 @@ export default function DJStation() {
   }, [showDeckHint]);
 
   const addSpotifyTrack = useCallback((hit: SpotifySearchTrack): 'added' | 'duplicate' => {
-    if (isSpotifyDuplicate(libraryRef.current, hit.spotifyId)) return 'duplicate';
+    const current = [...CATALOGUE, ...readStoredSpotifyTracks()];
+    if (isSpotifyDuplicate(current, hit.spotifyId)) return 'duplicate';
     const track = searchHitToDeckTrack(hit);
-    setSpotifyExtras((prev) => {
-      if (isSpotifyDuplicate([...CATALOGUE, ...prev], hit.spotifyId)) return prev;
-      const next = [...prev, track];
-      writeStoredSpotifyTracks(next);
-      return next;
-    });
+    writeStoredSpotifyTracks([...readStoredSpotifyTracks(), track]);
     setFocusTrackId(track.id);
     return 'added';
   }, []);
 
   const removeSpotifyTrack = useCallback((id: string) => {
-    setSpotifyExtras((prev) => {
-      const next = prev.filter((t) => t.id !== id && t.spotifyId !== id);
-      writeStoredSpotifyTracks(next);
-      return next;
-    });
+    writeStoredSpotifyTracks(
+      readStoredSpotifyTracks().filter((t) => t.id !== id && t.spotifyId !== id),
+    );
     setFocusTrackId(null);
   }, []);
 

@@ -109,21 +109,23 @@ export default function TrackLibraryBrowser({ tracks, reverseCarousel = true, on
   onRemoveTrack?: (id: string) => void;
 }) {
   const [mode, setMode] = useState<ViewMode>('playlist');
-  const [playlistIdx, setPlaylistIdx] = useState(0);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [seenFocus, setSeenFocus] = useState<string | null>(null);
   const [query, setQuery] = useState('');
 
-  useEffect(() => {
-    if (playlistIdx >= tracks.length) {
-      setPlaylistIdx(Math.max(0, tracks.length - 1));
-    }
-  }, [tracks.length, playlistIdx]);
+  if (focusTrackId && focusTrackId !== seenFocus) {
+    setSeenFocus(focusTrackId);
+    setActiveId(focusTrackId);
+  }
 
-  useEffect(() => {
-    if (!focusTrackId) return;
-    const display = reverseCarousel ? [...tracks].slice().reverse() : tracks;
-    const idx = display.findIndex((t) => t.id === focusTrackId || t.spotifyId === focusTrackId);
-    if (idx >= 0) setPlaylistIdx(idx);
-  }, [focusTrackId, tracks, reverseCarousel]);
+  const displayTracks = reverseCarousel ? [...tracks].slice().reverse() : tracks;
+  const foundIdx = activeId
+    ? displayTracks.findIndex((t) => t.id === activeId || t.spotifyId === activeId)
+    : 0;
+  const playlistIdx = foundIdx >= 0 ? foundIdx : 0;
+  const setPlaylistIdx = (i: number) => {
+    setActiveId(displayTracks[i]?.id ?? null);
+  };
 
   const filtered = query.trim()
     ? tracks.filter(t =>

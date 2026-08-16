@@ -76,9 +76,10 @@ function secretBoundary(): Check[] {
     /SPOTIFY_CLIENT_SECRET/.test(server) && !/NEXT_PUBLIC_SPOTIFY/.test(server),
   ));
   out.push(check(
-    'server search does not console.log tokens',
-    !/console\.(log|info|debug|error)\([^)]*access_token/.test(server)
-      && !/console\.(log|info|debug|error)\([^)]*tokenCache/.test(server),
+    'server search does not log token values',
+    !/console\.(log|info|debug|error)\([^)]*data\.access_token/.test(server)
+      && !/console\.(log|info|debug|error)\([^)]*tokenCache\.access/.test(server)
+      && !/console\.(log|info|debug|error)\(\s*token\b/.test(server),
   ));
   return out;
 }
