@@ -70,6 +70,12 @@ function secretBoundary(): Check[] {
       mentionsSecret ? 'secret identifier present' : 'ok',
     ));
   }
+  const searchUi = readFileSync(join(root, 'components/SpotifySearchAdd.tsx'), 'utf8');
+  const resultsBlock = searchUi.split('data-testid="spotify-search-results"')[1] ?? '';
+  out.push(check(
+    'search results render in-flow (not an absolute overlay under the page)',
+    resultsBlock.includes("position: 'relative'") && !resultsBlock.includes("position: 'absolute'"),
+  ));
   const server = readFileSync(join(root, 'lib/spotifySearch.ts'), 'utf8');
   out.push(check(
     'server search uses Client Credentials env (not NEXT_PUBLIC)',
