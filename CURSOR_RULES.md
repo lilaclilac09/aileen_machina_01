@@ -11,8 +11,10 @@ never mark a task complete based only on code inspection.
 
 1. [`AGENTS.md`](AGENTS.md) — inspect → plan → patch → verify; production ship 红线
 2. [`QA.md`](QA.md) — commands + flow checklists
-3. [`PROJECT_RULES.md`](PROJECT_RULES.md) — product facts (mood, orb, Visual, contact, doors)
-4. [`.github/pull_request_template.md`](.github/pull_request_template.md) — every PR fills this
+3. [`docs/AGENT_TOOL_MAP.md`](docs/AGENT_TOOL_MAP.md) — task → required tools
+4. [`docs/KNOWN_FAILURES.md`](docs/KNOWN_FAILURES.md) — verified pitfalls (CI / cover / ship)
+5. [`PROJECT_RULES.md`](PROJECT_RULES.md) — product facts (mood, orb, Visual, contact, doors)
+6. [`.github/pull_request_template.md`](.github/pull_request_template.md) — every PR fills this
 
 Injected every session (`.cursor/rules/`):
 
@@ -25,6 +27,8 @@ Injected every session (`.cursor/rules/`):
 
 - inspect before edit
 - bugs: no fix without repro + verified root cause (see `debug-repro-loop.mdc`)
+- pick tools from `docs/AGENT_TOOL_MAP.md`; do not invent a parallel stack
+- CI/cover/ship: skim `docs/KNOWN_FAILURES.md` first
 - smallest safe diff
 - no redesign unless asked
 - no parallel systems
@@ -32,3 +36,4 @@ Injected every session (`.cursor/rules/`):
 - UI changes need screenshots
 - env/config issues go in `manual steps` + fail-closed blocker table in `AGENTS.md`
 - end with `safe to merge:`
+- orchestration: see decision table in `.cursor/prompts.md`

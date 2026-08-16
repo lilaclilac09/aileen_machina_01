@@ -284,6 +284,8 @@ Always-on：[`.cursor/rules/debug-repro-loop.mdc`](.cursor/rules/debug-repro-loo
 - PR 验收表：[`.github/pull_request_template.md`](.github/pull_request_template.md)
 - 工程循环：`.cursor/rules/senior-engineer-loop.mdc`
 - Debug 推理环：`.cursor/rules/debug-repro-loop.mdc`
+- 任务→工具：[`docs/AGENT_TOOL_MAP.md`](docs/AGENT_TOOL_MAP.md)
+- 已验证坑：[`docs/KNOWN_FAILURES.md`](docs/KNOWN_FAILURES.md)
 - UI 截图 + 交互：`.cursor/rules/ui-step-screenshot.mdc`
 - 完整工作准册：`aileena-new/docs/工作准册.md`
 - AI auto-merge：`docs/AI_AUTOMERGE.md`
