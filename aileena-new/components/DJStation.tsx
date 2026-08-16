@@ -1,7 +1,19 @@
 'use client';
 import { useState, useRef, useEffect, useCallback, useMemo, useSyncExternalStore } from 'react';
 import TrackLibraryBrowser from './TrackLibraryBrowser';
+import SpotifySearchAdd from './SpotifySearchAdd';
 import { allDeckTracks, type DeckTrack } from '../lib/djSetlist';
+import {
+  getSpotifyCarouselServerSnapshot,
+  getSpotifyCarouselSnapshot,
+  parseStoredSpotifyTracks,
+  readStoredSpotifyTracks,
+  searchHitToDeckTrack,
+  subscribeSpotifyCarousel,
+  writeStoredSpotifyTracks,
+} from '../lib/spotifyCarouselStore';
+import { isSpotifyDuplicate } from '../lib/spotifySearchShared';
+import type { SpotifySearchTrack } from '../lib/spotifySearchShared';
 
 /* ─── Palette — aligned to AgentChat cream + deep green ─── */
 const C = {
@@ -29,7 +41,7 @@ const C = {
 };
 
 /* ─── Full deck library: handoff five + previous tracks ───── */
-const DJ_SET = allDeckTracks();
+const CATALOGUE = allDeckTracks();
 type Track = DeckTrack;
 
 function spotifyTrackId(track: Track): string | null {
@@ -38,29 +50,29 @@ function spotifyTrackId(track: Track): string | null {
   return null;
 }
 
-function findTrackById(id: string | null | undefined): Track | null {
+function findTrackById(list: Track[], id: string | null | undefined): Track | null {
   if (!id) return null;
-  return DJ_SET.find((t) => t.id === id || t.spotifyId === id) ?? null;
+  return list.find((t) => t.id === id || t.spotifyId === id) ?? null;
 }
 
 const DJ_AUDIT = '[dj-audit]';
 
 function firstPlayableTrack(from = 0, skipId?: string | null): Track | null {
-  for (let i = from; i < DJ_SET.length; i++) {
-    const t = DJ_SET[i];
+  for (let i = from; i < CATALOGUE.length; i++) {
+    const t = CATALOGUE[i];
     const sid = spotifyTrackId(t);
     if (!sid) continue;
     if (skipId && sid === skipId) continue;
     return t;
   }
   for (let i = 0; i < from; i++) {
-    const t = DJ_SET[i];
+    const t = CATALOGUE[i];
     const sid = spotifyTrackId(t);
     if (!sid) continue;
     if (skipId && sid === skipId) continue;
     return t;
   }
-  return DJ_SET.find((t) => spotifyTrackId(t)) ?? DJ_SET[0] ?? null;
+  return CATALOGUE.find((t) => spotifyTrackId(t)) ?? CATALOGUE[0] ?? null;
 }
 
 const INITIAL_LEFT = firstPlayableTrack(0);
@@ -129,6 +141,28 @@ export default function DJStation() {
   const [leftEmbedReady,  setLeftEmbedReady]  = useState(false);
   const [rightEmbedReady, setRightEmbedReady] = useState(false);
   const [deckHint, setDeckHint] = useState<string | null>(null);
+  const [focusTrackId, setFocusTrackId] = useState<string | null>(null);
+  const extrasRaw = useSyncExternalStore(
+    subscribeSpotifyCarousel,
+    getSpotifyCarouselSnapshot,
+    getSpotifyCarouselServerSnapshot,
+  );
+  const spotifyExtras = useMemo(() => parseStoredSpotifyTracks(extrasRaw), [extrasRaw]);
+
+  const library = useMemo(() => [...CATALOGUE, ...spotifyExtras], [spotifyExtras]);
+  const libraryRef = useRef(library);
+  useEffect(() => {
+    libraryRef.current = library;
+  }, [library]);
+
+  const existingSpotifyIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const t of library) {
+      ids.add(t.id.toLowerCase());
+      if (t.spotifyId) ids.add(t.spotifyId.toLowerCase());
+    }
+    return ids;
+  }, [library]);
 
   const leftContainerRef  = useRef<HTMLDivElement>(null);
   const rightContainerRef = useRef<HTMLDivElement>(null);
@@ -153,7 +187,7 @@ export default function DJStation() {
   }, []);
 
   useEffect(() => {
-    const sample = DJ_SET.slice(0, 3).map((t) => ({
+    const sample = CATALOGUE.slice(0, 3).map((t) => ({
       id: t.id,
       title: t.title,
       thumb: !!t.thumb,
@@ -163,10 +197,11 @@ export default function DJStation() {
       playable: !!spotifyTrackId(t),
     }));
     console.log(DJ_AUDIT, 'carousel state after catalogue bind', {
-      count: DJ_SET.length,
+      count: CATALOGUE.length,
+      extras: spotifyExtras.length,
       sample,
     });
-  }, []);
+  }, [spotifyExtras.length]);
 
   /* ── Spotify API — tolerant of Strict Mode remount + late script ready ── */
   useEffect(() => {
@@ -294,6 +329,7 @@ export default function DJStation() {
 
   const loadTrack = useCallback((side: 'left'|'right', track: Track) => {
     const sid = spotifyTrackId(track);
+    const isRef = track.source === 'spotify';
     console.log(DJ_AUDIT, 'loadTrack', {
       side,
       id: track.id,
@@ -303,7 +339,18 @@ export default function DJStation() {
       key: track.key,
       dur: track.dur,
       spotifyId: sid,
+      source: track.source ?? 'catalogue',
     });
+
+    if (isRef) {
+      if (track.previewUrl) {
+        showDeckHint(`“${track.title}” · preview only — not mixable or exportable. upload a file to mix.`);
+      } else if (sid) {
+        showDeckHint(`“${track.title}” · reference only — Spotify playback, not mixable or exportable.`);
+      } else {
+        showDeckHint(`“${track.title}” is not mixable — no preview or Spotify id.`);
+      }
+    }
 
     if (side === 'left') {
       setLeftTrack(track);
@@ -316,7 +363,7 @@ export default function DJStation() {
           try {
             leftCtrl.current.loadUri(uri);
             console.log(DJ_AUDIT, 'audio source assigned', { deck: 'A', uri, via: 'loadUri' });
-            setDeckHint(null);
+            if (!isRef) setDeckHint(null);
           } catch (err) {
             console.log(DJ_AUDIT, 'loadUri error', { deck: 'A', err });
             showDeckHint('Deck A: press ▶ to start');
@@ -325,11 +372,11 @@ export default function DJStation() {
           // Reconnect: queue until leftCtrl createController callback (same IFrame, no second player)
           pendingLeftUri.current = uri;
           console.log(DJ_AUDIT, 'leftCtrl null — queued pendingLeftUri', uri);
-          showDeckHint('Deck A: Spotify loading — press ▶ when ready');
+          if (!isRef) showDeckHint('Deck A: Spotify loading — press ▶ when ready');
         }
       } else {
         pendingLeftUri.current = null;
-        showDeckHint(`“${track.title}” has no Spotify id — pick a library track to play`);
+        if (!isRef) showDeckHint(`“${track.title}” has no Spotify id — pick a library track to play`);
       }
     } else {
       // Deck B unchanged this slice — keep prior behavior
@@ -338,12 +385,28 @@ export default function DJStation() {
       setRightDur(0);
       if (sid) {
         rightCtrl.current?.loadUri(`spotify:track:${sid}`);
-        setDeckHint(null);
-      } else {
+        if (!isRef) setDeckHint(null);
+      } else if (!isRef) {
         showDeckHint(`“${track.title}” has no Spotify id — pick a library track to play`);
       }
     }
   }, [showDeckHint]);
+
+  const addSpotifyTrack = useCallback((hit: SpotifySearchTrack): 'added' | 'duplicate' => {
+    const current = [...CATALOGUE, ...readStoredSpotifyTracks()];
+    if (isSpotifyDuplicate(current, hit.spotifyId)) return 'duplicate';
+    const track = searchHitToDeckTrack(hit);
+    writeStoredSpotifyTracks([...readStoredSpotifyTracks(), track]);
+    setFocusTrackId(track.id);
+    return 'added';
+  }, []);
+
+  const removeSpotifyTrack = useCallback((id: string) => {
+    writeStoredSpotifyTracks(
+      readStoredSpotifyTracks().filter((t) => t.id !== id && t.spotifyId !== id),
+    );
+    setFocusTrackId(null);
+  }, []);
 
   const resolveDropTrack = useCallback((e: React.DragEvent, fallback: Track | null): Track | null => {
     if (fallback) return fallback;
@@ -353,7 +416,7 @@ export default function DJStation() {
     } catch {
       id = '';
     }
-    const found = findTrackById(id);
+    const found = findTrackById(libraryRef.current, id);
     console.log(DJ_AUDIT, 'resolveDropTrack', { id, found: found?.id ?? null });
     return found;
   }, []);
@@ -631,8 +694,10 @@ export default function DJStation() {
       {/* ── Handoff set carousel (film strip) ── */}
       <div id="dj-set" style={{ marginTop: 10 }}>
         <TrackLibraryBrowser
-          tracks={DJ_SET}
+          tracks={library}
           reverseCarousel={false}
+          focusTrackId={focusTrackId}
+          onRemoveTrack={removeSpotifyTrack}
           onLoadTrack={loadTrack}
           onSetDragTrack={(t) => {
             dragTrack.current = t;
@@ -643,6 +708,7 @@ export default function DJStation() {
           leftPos={leftPos} leftDur={leftDur}
           rightPos={rightPos} rightDur={rightDur}
         />
+        <SpotifySearchAdd existingIds={existingSpotifyIds} onAdd={addSpotifyTrack} />
       </div>
     </div>
   );
