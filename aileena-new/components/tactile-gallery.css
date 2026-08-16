@@ -65,7 +65,8 @@
   width: 100%;
 }
 
-@media (min-width: 560px) {
+/* Phone landscape / large phone: 2-col archive (still 1-col on very narrow) */
+@media (min-width: 360px) {
   .tactile-gallery__wall {
     column-count: 2;
   }
