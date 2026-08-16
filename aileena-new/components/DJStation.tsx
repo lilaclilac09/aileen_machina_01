@@ -1216,7 +1216,7 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
           }}>OFF</button>
         </div>
         <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <EQKnob label="FX" value={50} size={isMobile ? 32 : 22} color="#f97316" />
+          <EQKnob label="FX" value={50} size={isMobile ? 36 : 22} color="#f97316" />
         </div>
       </div>
 
