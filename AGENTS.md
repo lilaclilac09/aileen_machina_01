@@ -145,6 +145,17 @@ manual steps:
 
 QA checklist: [`QA.md`](QA.md).
 
+## Self-improvement (immune system, not a brain)
+
+Failures become lessons. Repeated lessons may be **proposed** — never silently written into hard rules.
+
+- Record: [`ops/lessons/`](ops/lessons/README.md) (copy `TEMPLATE.md`)
+- Propose: [`ops/improvement-queue.md`](ops/improvement-queue.md) — **owner approval** before touching `AGENTS.md` / `QA.md` / `PROJECT_RULES.md`
+- After a PR: [`ops/post-pr-review.md`](ops/post-pr-review.md)
+- Do not autonomously refactor the site because a lesson exists
+
+Golden paths: `cd aileena-new && pnpm qa:mobile` · `pnpm qa:agent` · `pnpm qa:contact` · `pnpm qa:sound` · `pnpm audit:runtime` · `pnpm report:merge`
+
 ## Blocker table (when stuck — stop, do not invent a bypass)
 
 | field | meaning |
@@ -286,6 +297,7 @@ Always-on：[`.cursor/rules/debug-repro-loop.mdc`](.cursor/rules/debug-repro-loo
 - Debug 推理环：`.cursor/rules/debug-repro-loop.mdc`
 - 任务→工具：[`docs/AGENT_TOOL_MAP.md`](docs/AGENT_TOOL_MAP.md)
 - 已验证坑：[`docs/KNOWN_FAILURES.md`](docs/KNOWN_FAILURES.md)
+- 失败课 / 规则提案（须 owner 批准）：[`ops/lessons/README.md`](ops/lessons/README.md) · [`ops/improvement-queue.md`](ops/improvement-queue.md)
 - UI 截图 + 交互：`.cursor/rules/ui-step-screenshot.mdc`
 - 完整工作准册：`aileena-new/docs/工作准册.md`
 - AI auto-merge：`docs/AI_AUTOMERGE.md`

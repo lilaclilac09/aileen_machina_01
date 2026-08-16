@@ -9,7 +9,23 @@ App lives in `aileena-new/` (`pnpm`, not repo-root npm). Run only the rows that 
 Ship / merge to `main` still follows `AGENTS.md` 施工队安全条例 — localhost is not production proof. Preview Ready ≠ Production Ready.
 
 Quick map (task → command/tool): [`docs/AGENT_TOOL_MAP.md`](docs/AGENT_TOOL_MAP.md).  
-Verified pitfalls: [`docs/KNOWN_FAILURES.md`](docs/KNOWN_FAILURES.md).
+Verified pitfalls: [`docs/KNOWN_FAILURES.md`](docs/KNOWN_FAILURES.md).  
+Lessons / rule proposals (owner approval): [`ops/lessons/README.md`](ops/lessons/README.md).
+
+## Golden paths
+
+```bash
+cd aileena-new
+pnpm qa:mobile         # 390×844 overflow + screenshots when a server is up; always checks safe-area CSS
+pnpm qa:agent          # prompt/rule lint (AGENTS / QA / council vs public / lessons)
+pnpm qa:contact        # Resend env names, lead route, transcript, offline copy
+pnpm qa:sound          # same as verify:sound
+pnpm verify:visual     # GlassBench / ScrapPhoto no cover-crop
+pnpm audit:runtime     # known /api routes keep expected runtime
+pnpm report:merge      # print post-PR checklist; --blocked appends a queue proposal only
+```
+
+Layout PRs: run `pnpm qa:mobile` before claiming mobile fixed. Live overflow needs `pnpm dev` or `VERIFY_BASE_URL`.
 
 ## Before merge
 
