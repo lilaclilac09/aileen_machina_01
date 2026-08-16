@@ -9,6 +9,7 @@ import {
   KNOB_MIN_ANGLE,
   angleToValue,
   clampKnobValue,
+  knobStepAmount,
   pointerToKnobValue,
   valueToAngle,
 } from '../lib/djKnob';
@@ -51,13 +52,30 @@ function run(): Check[] {
   checks.push(check('click-to-set via pointer angle', knob.includes('pointerToKnobValue') && knob.includes('dragged.current')));
   checks.push(check('ignore near-center clicks for angle jump', knob.includes('rect.width * 0.28')));
   checks.push(check('ring jump on pointerdown', knob.includes('const jumped = valueFromPointer') && knob.includes('startVal.current = jumped')));
+  checks.push(check('mouse wheel', knob.includes("addEventListener('wheel'") && knob.includes('passive: false')));
+  checks.push(check('alt fine step', knob.includes('altKey') && knob.includes('knobStepAmount')));
+  checks.push(check('onChange is required', /onChange:\s*\(v: number\) => void/.test(knob) && !/onChange\?:/.test(knob)));
+  checks.push(check('shift step is larger', knobStepAmount(1, 0, 100, { shift: true }).delta === 10));
+  checks.push(check('alt step is finer', knobStepAmount(1, 0, 100, { alt: true }).delta === 0.1));
 
   const station = readFileSync(join(process.cwd(), 'components/DJStation.tsx'), 'utf8');
   checks.push(check('DJStation uses shared DJKnob', station.includes("from './DJKnob'") && !station.includes('function EQKnob')));
+  checks.push(check('no leftover MKnob nightlight', !station.includes('function MKnob') && !station.includes('<MKnob')));
   checks.push(check(
-    'EQ + Filter knobs keep onChange',
-    station.includes('ariaLabel={`EQ') && station.includes('ariaLabel={`Filter') && station.includes('onChange={v => setEqVals'),
+    'every rotary uses DJKnob + onChange',
+    station.includes("'Gain A'")
+      && station.includes("'Gain B'")
+      && station.includes('ariaLabel="FX"')
+      && station.includes('ariaLabel="Master"')
+      && station.includes('ariaLabel={`EQ')
+      && station.includes('ariaLabel={`Filter')
+      && station.includes('onChange={onGain}')
+      && station.includes('onChange={setFxAmt}')
+      && station.includes('onChange={setMaster}')
+      && station.includes('onChange={v => setEqVals'),
   ));
+  const knobTags = station.split('<DJKnob').length - 1;
+  checks.push(check('shared DJKnob is the only rotary markup', knobTags >= 5, `got ${knobTags}`));
   checks.push(check(
     'Spotify load hint is reference-only',
     station.includes('Spotify reference only. Upload audio to mix/export.'),

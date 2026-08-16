@@ -138,6 +138,8 @@ export default function DJStation() {
   const [leftPitch,    setLeftPitch]    = useState(0);
   const [rightPitch,   setRightPitch]   = useState(0);
   const [xfade,        setXfade]        = useState(50);
+  const [gainA,        setGainA]        = useState(75);
+  const [gainB,        setGainB]        = useState(75);
   const [dropSide,     setDropSide]     = useState<'left'|'right'|null>(null);
   const [leftEmbedReady,  setLeftEmbedReady]  = useState(false);
   const [rightEmbedReady, setRightEmbedReady] = useState(false);
@@ -505,6 +507,8 @@ export default function DJStation() {
     <div
       data-testid="dj-station"
       data-dj-layout={isMobile ? 'mobile' : 'desktop'}
+      data-gain-a={String(Math.round(gainA))}
+      data-gain-b={String(Math.round(gainB))}
       style={{ userSelect: 'none', width: '100%', maxWidth: '100%', boxSizing: 'border-box', background: '#0b0d10', overflowX: 'clip' }}
     >
 
@@ -612,12 +616,13 @@ export default function DJStation() {
             <DeckPanel
               side="left" track={leftTrack} playing={leftPlaying} isMobile={true} synced={bpmHint?.type === 'sync'}
               pos={leftPos} dur={leftDur || (leftTrack?.dur ?? 0) * 1000}
-              pitch={leftPitch} dim={leftDim} dropActive={dropSide === 'left'}
+              pitch={leftPitch} gain={gainA} dim={leftDim} dropActive={dropSide === 'left'}
               onDragOver={e => { e.preventDefault(); setDropSide('left'); }}
               onDragLeave={() => setDropSide(null)}
               onDrop={dropOnDeckA}
               onToggle={() => toggleDeck('left')}
               onPitch={setLeftPitch}
+              onGain={setGainA}
               onScratchStart={() => { leftWasPlaying.current = leftPlaying; if (leftPlaying) leftCtrl.current?.togglePlay(); }}
               onScratchEnd={() => { if (leftWasPlaying.current) leftCtrl.current?.togglePlay(); }}
               onSync={handleSyncLeft}
@@ -626,12 +631,13 @@ export default function DJStation() {
             <DeckPanel
               side="right" track={rightTrack} playing={rightPlaying} isMobile={true} synced={bpmHint?.type === 'sync'}
               pos={rightPos} dur={rightDur || (rightTrack?.dur ?? 0) * 1000}
-              pitch={rightPitch} dim={rightDim} dropActive={dropSide === 'right'}
+              pitch={rightPitch} gain={gainB} dim={rightDim} dropActive={dropSide === 'right'}
               onDragOver={e => { e.preventDefault(); setDropSide('right'); }}
               onDragLeave={() => setDropSide(null)}
               onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('right', dragTrack.current); setDropSide(null); }}
               onToggle={() => toggleDeck('right')}
               onPitch={setRightPitch}
+              onGain={setGainB}
               onScratchStart={() => { rightWasPlaying.current = rightPlaying; if (rightPlaying) rightCtrl.current?.togglePlay(); }}
               onScratchEnd={() => { if (rightWasPlaying.current) rightCtrl.current?.togglePlay(); }}
               onSync={handleSyncRight}
@@ -642,12 +648,13 @@ export default function DJStation() {
             <DeckPanel
               side="left" track={leftTrack} playing={leftPlaying} synced={bpmHint?.type === 'sync'}
               pos={leftPos} dur={leftDur || (leftTrack?.dur ?? 0) * 1000}
-              pitch={leftPitch} dim={leftDim} dropActive={dropSide === 'left'}
+              pitch={leftPitch} gain={gainA} dim={leftDim} dropActive={dropSide === 'left'}
               onDragOver={e => { e.preventDefault(); setDropSide('left'); }}
               onDragLeave={() => setDropSide(null)}
               onDrop={dropOnDeckA}
               onToggle={() => toggleDeck('left')}
               onPitch={setLeftPitch}
+              onGain={setGainA}
               onScratchStart={() => { leftWasPlaying.current = leftPlaying; if (leftPlaying) leftCtrl.current?.togglePlay(); }}
               onScratchEnd={() => { if (leftWasPlaying.current) leftCtrl.current?.togglePlay(); }}
               onSync={handleSyncLeft}
@@ -656,12 +663,13 @@ export default function DJStation() {
             <DeckPanel
               side="right" track={rightTrack} playing={rightPlaying} synced={bpmHint?.type === 'sync'}
               pos={rightPos} dur={rightDur || (rightTrack?.dur ?? 0) * 1000}
-              pitch={rightPitch} dim={rightDim} dropActive={dropSide === 'right'}
+              pitch={rightPitch} gain={gainB} dim={rightDim} dropActive={dropSide === 'right'}
               onDragOver={e => { e.preventDefault(); setDropSide('right'); }}
               onDragLeave={() => setDropSide(null)}
               onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('right', dragTrack.current); setDropSide(null); }}
               onToggle={() => toggleDeck('right')}
               onPitch={setRightPitch}
+              onGain={setGainB}
               onScratchStart={() => { rightWasPlaying.current = rightPlaying; if (rightPlaying) rightCtrl.current?.togglePlay(); }}
               onScratchEnd={() => { if (rightWasPlaying.current) rightCtrl.current?.togglePlay(); }}
               onSync={handleSyncRight}
@@ -714,13 +722,13 @@ export default function DJStation() {
 }
 
 /* ─── Deck Panel ─────────────────────────────────────────── */
-function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isMobile, synced,
-  onDragOver, onDragLeave, onDrop, onToggle, onPitch, onScratchStart, onScratchEnd, onSync }: {
+function DeckPanel({ side, track, playing, pos, dur, pitch, gain, dim, dropActive, isMobile, synced,
+  onDragOver, onDragLeave, onDrop, onToggle, onPitch, onGain, onScratchStart, onScratchEnd, onSync }: {
   side: 'left'|'right'; track: Track|null; playing: boolean;
-  pos: number; dur: number; pitch: number; dim: number; dropActive: boolean;
+  pos: number; dur: number; pitch: number; gain: number; dim: number; dropActive: boolean;
   isMobile?: boolean; synced?: boolean;
   onDragOver(e: React.DragEvent): void; onDragLeave(): void; onDrop(e: React.DragEvent): void;
-  onToggle(): void; onPitch(v: number): void;
+  onToggle(): void; onPitch(v: number): void; onGain(v: number): void;
   onScratchStart(): void; onScratchEnd(): void;
   onSync: () => void;
 }) {
@@ -1026,8 +1034,15 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
         <PitchFader pitch={pitch} onChange={onPitch} isMobile={!!isMobile} />
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
           <VU active={playing} />
-          <MKnob size={isMobile ? 28 : 22} />
-          <span style={{ fontFamily: 'monospace', fontSize: isMobile ? '0.4rem' : '0.28rem', letterSpacing: '0.3em', color: C.sub }}>GAIN</span>
+          <DJKnob
+            label="GAIN"
+            ariaLabel={side === 'left' ? 'Gain A' : 'Gain B'}
+            value={gain}
+            size={isMobile ? 28 : 22}
+            color={C.cyan}
+            defaultValue={75}
+            onChange={onGain}
+          />
           {/* Pitch readout */}
           <span style={{
             fontFamily: 'monospace', fontSize: isMobile ? '0.5rem' : '0.36rem', letterSpacing: '0.1em',
@@ -1240,11 +1255,22 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
   const [eqVals, setEqVals] = useState({ hi: 50, mid: 50, lo: 50 });
   const [filterA, setFilterA] = useState(50);
   const [filterB, setFilterB] = useState(50);
+  const [fxAmt, setFxAmt] = useState(50);
+  const [master, setMaster] = useState(75);
   const [fxOn, setFxOn] = useState(false);
   const [fxType, setFxType] = useState<'ECHO'|'REVERB'|'FLANGER'>('ECHO');
 
   return (
-    <div style={{
+    <div
+      data-testid="dj-mixer"
+      data-eq-hi={String(Math.round(eqVals.hi))}
+      data-eq-mid={String(Math.round(eqVals.mid))}
+      data-eq-lo={String(Math.round(eqVals.lo))}
+      data-filter-a={String(Math.round(filterA))}
+      data-filter-b={String(Math.round(filterB))}
+      data-fx={String(Math.round(fxAmt))}
+      data-master={String(Math.round(master))}
+      style={{
       borderRadius: 6, padding: isMobile ? '12px 14px' : '8px 7px',
       background: 'linear-gradient(to bottom, #1a1e24, #14181d 55%, #1a1e24)',
       border: '1px solid rgba(170,179,187,0.22)',
@@ -1281,7 +1307,7 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
           }}>OFF</button>
         </div>
         <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <DJKnob label="FX" ariaLabel="FX" value={50} size={isMobile ? 36 : 22} color="#f97316" defaultValue={50} />
+          <DJKnob label="FX" ariaLabel="FX" value={fxAmt} size={isMobile ? 36 : 22} color="#f97316" defaultValue={50} onChange={setFxAmt} />
         </div>
       </div>
 
@@ -1368,7 +1394,7 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
 
       {/* ── Master ── */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-        <DJKnob label="MASTER" ariaLabel="Master" value={75} size={isMobile ? 44 : 28} color="#22c55e" defaultValue={75} />
+        <DJKnob label="MASTER" ariaLabel="Master" value={master} size={isMobile ? 44 : 28} color="#22c55e" defaultValue={75} onChange={setMaster} />
       </div>
 
     </div>
@@ -1550,28 +1576,6 @@ function TrackRow({ index, track, isLeft, isRight, onDragStart, onDragEnd, onLoa
 }
 
 /* ─── Atoms ──────────────────────────────────────────────── */
-function MKnob({ size = 28, lit }: { size?: number; lit?: boolean }) {
-  return (
-    <div style={{ position: 'relative', width: size, height: size, cursor: 'pointer' }}>
-      {lit && <div style={{ position: 'absolute', inset: -4, borderRadius: '50%',
-        background: `radial-gradient(circle, ${C.cyan}20 0%, transparent 70%)`, filter: 'blur(4px)' }} />}
-      <div style={{
-        width: '100%', height: '100%', borderRadius: '50%',
-        background: 'radial-gradient(circle at 33% 28%, #484850 0%, #282830 45%, #141418 100%)',
-        boxShadow: `0 ${size * .1}px ${size * .25}px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1)`,
-        border: 'none', position: 'relative',
-      }}>
-        <div style={{
-          position: 'absolute', width: Math.max(2, size * .09), height: Math.max(3, size * .24),
-          borderRadius: 2, top: size * .08, left: '50%', transform: 'translateX(-50%)',
-          background: lit ? C.cyan : 'rgba(255,255,255,0.38)',
-          boxShadow: lit ? `0 0 6px ${C.cyan}` : 'none',
-        }} />
-      </div>
-    </div>
-  );
-}
-
 function PitchFader({ pitch, onChange, isMobile }: { pitch: number; onChange(v: number): void; isMobile?: boolean }) {
   const pct = 50 - (pitch / 8) * 44;
   const trackH = isMobile ? 96 : 78;

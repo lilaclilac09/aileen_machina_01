@@ -62,3 +62,20 @@ export function pointerToKnobValue(
 }
 
 export const KNOB_TICK_PCTS = [0, 25, 50, 75, 100] as const;
+
+export function knobStepAmount(
+  step: number,
+  min: number,
+  max: number,
+  mods: { shift?: boolean; alt?: boolean },
+): { delta: number; snap: number } {
+  const span = max - min || 1;
+  const base = step > 0 ? step : 1;
+  if (mods.alt) {
+    return { delta: 0.1, snap: 0.1 };
+  }
+  if (mods.shift) {
+    return { delta: Math.max(base * 10, span / 10), snap: base };
+  }
+  return { delta: base, snap: base };
+}

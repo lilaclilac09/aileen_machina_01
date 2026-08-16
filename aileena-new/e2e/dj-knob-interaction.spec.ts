@@ -3,55 +3,72 @@ import { mkdir } from 'node:fs/promises';
 
 const ARTIFACTS = '/opt/cursor/artifacts';
 
+const ALL_KNOBS = [
+  'dj-knob-gain-a',
+  'dj-knob-gain-b',
+  'dj-knob-fx',
+  'dj-knob-eq-hi',
+  'dj-knob-eq-mid',
+  'dj-knob-eq-lo',
+  'dj-knob-filter-a',
+  'dj-knob-filter-b',
+  'dj-knob-master',
+] as const;
+
 test.describe('DJ knob click / keyboard', () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test('click tick, keyboard step, double-click reset', async ({ page }) => {
+  test('every rotary shares click, drag, wheel, keyboard, reset', async ({ page }) => {
     await mkdir(ARTIFACTS, { recursive: true });
     await page.goto('/sound', { waitUntil: 'domcontentloaded' });
     await expect(page.getByTestId('dj-station')).toHaveAttribute('data-dj-layout', 'mobile', { timeout: 20_000 });
-    const knob = page.getByTestId('dj-knob-filter-a');
-    await expect(knob).toBeVisible({ timeout: 20_000 });
-    await knob.scrollIntoViewIfNeeded();
-    await expect(knob).toHaveAttribute('role', 'slider');
-    await expect(knob).toHaveAttribute('data-knob-value', '50');
-    await page.screenshot({
-      path: `${ARTIFACTS}/dj_knob_before.png`,
-      fullPage: false,
-    });
 
-    await page.getByTestId('dj-knob-tick-filter-a-100').click();
-    await expect(knob).toHaveAttribute('data-knob-value', '100');
-    await page.screenshot({
-      path: `${ARTIFACTS}/dj_knob_click_tick.png`,
-      fullPage: false,
-    });
+    for (const id of ALL_KNOBS) {
+      const knob = page.getByTestId(id);
+      await expect(knob, id).toBeVisible();
+      await expect(knob).toHaveAttribute('role', 'slider');
+    }
 
-    await knob.focus();
-    await knob.press('ArrowDown');
-    await expect(knob).toHaveAttribute('data-knob-value', '99');
-    await knob.press('Shift+ArrowDown');
-    await expect.poll(async () => knob.getAttribute('data-knob-value')).not.toBe('99');
-
-    await knob.dblclick();
-    await expect(knob).toHaveAttribute('data-knob-value', '50');
-    await page.screenshot({
-      path: `${ARTIFACTS}/dj_knob_after_reset.png`,
-      fullPage: false,
-    });
-
-    const box = await knob.boundingBox();
-    expect(box).toBeTruthy();
-    await page.mouse.click(box!.x + box!.width * 0.82, box!.y + box!.height * 0.78);
-    await expect.poll(async () => knob.getAttribute('data-knob-value')).not.toBe('50');
-    await page.screenshot({
-      path: `${ARTIFACTS}/dj_knob_ring_click.png`,
-      fullPage: false,
-    });
+    const gain = page.getByTestId('dj-knob-gain-a');
+    await gain.scrollIntoViewIfNeeded();
+    await gain.focus();
+    await page.screenshot({ path: `${ARTIFACTS}/dj_knob_focused.png`, fullPage: false });
+    await page.getByTestId('dj-knob-tick-gain-a-100').click();
+    await expect(gain).toHaveAttribute('data-knob-value', '100');
+    await expect(page.getByTestId('dj-station')).toHaveAttribute('data-gain-a', '100');
+    await page.screenshot({ path: `${ARTIFACTS}/dj_knob_gain_clicked.png`, fullPage: false });
 
     const eq = page.getByTestId('dj-knob-eq-hi');
     await eq.scrollIntoViewIfNeeded();
-    await page.getByTestId('dj-knob-tick-eq-hi-0').click();
-    await expect(eq).toHaveAttribute('data-knob-value', '0');
+    const eqBox = await eq.boundingBox();
+    expect(eqBox).toBeTruthy();
+    await page.mouse.move(eqBox!.x + eqBox!.width / 2, eqBox!.y + eqBox!.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(eqBox!.x + eqBox!.width / 2, eqBox!.y + eqBox!.height / 2 - 40);
+    await page.mouse.up();
+    await expect.poll(async () => page.getByTestId('dj-mixer').getAttribute('data-eq-hi')).not.toBe('50');
+    await page.screenshot({ path: `${ARTIFACTS}/dj_knob_eq_dragged.png`, fullPage: false });
+
+    const filter = page.getByTestId('dj-knob-filter-a');
+    await filter.scrollIntoViewIfNeeded();
+    await filter.hover();
+    const beforeFilter = await filter.getAttribute('data-knob-value');
+    await page.mouse.wheel(0, -240);
+    await expect.poll(async () => filter.getAttribute('data-knob-value')).not.toBe(beforeFilter);
+    await expect.poll(async () => page.getByTestId('dj-mixer').getAttribute('data-filter-a')).not.toBe('50');
+    await page.screenshot({ path: `${ARTIFACTS}/dj_knob_filter_wheel.png`, fullPage: false });
+
+    const master = page.getByTestId('dj-knob-master');
+    await master.scrollIntoViewIfNeeded();
+    await master.focus();
+    await master.press('ArrowUp');
+    await expect(master).toHaveAttribute('data-knob-value', '76');
+    await expect(page.getByTestId('dj-mixer')).toHaveAttribute('data-master', '76');
+    await page.screenshot({ path: `${ARTIFACTS}/dj_knob_master_keyboard.png`, fullPage: false });
+
+    await master.dblclick();
+    await expect(master).toHaveAttribute('data-knob-value', '75');
+    await expect(page.getByTestId('dj-mixer')).toHaveAttribute('data-master', '75');
+    await page.screenshot({ path: `${ARTIFACTS}/dj_knob_master_reset.png`, fullPage: false });
   });
 });

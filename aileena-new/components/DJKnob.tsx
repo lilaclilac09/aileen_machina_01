@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import {
   KNOB_TICK_PCTS,
   clampKnobValue,
+  knobStepAmount,
   pointerToKnobValue,
   valueToAngle,
 } from '../lib/djKnob';
@@ -27,7 +28,7 @@ export default function DJKnob({
   value: number;
   size: number;
   color: string;
-  onChange?: (v: number) => void;
+  onChange: (v: number) => void;
   min?: number;
   max?: number;
   step?: number;
@@ -42,11 +43,14 @@ export default function DJKnob({
   const startVal = useRef(0);
   const dragged = useRef(false);
   const ringRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const valRef = useRef(value);
   const reactId = useId();
   const name = (ariaLabel || label).toLowerCase().replace(/\s+/g, '-');
 
   useEffect(() => {
     setLocalVal(value);
+    valRef.current = value;
   }, [value]);
 
   const angle = valueToAngle(localVal, min, max);
@@ -55,11 +59,28 @@ export default function DJKnob({
   const interactive = true;
   const title = `${ariaLabel || label} ${Math.round(localVal)}`;
 
-  function commit(next: number) {
-    const clamped = clampKnobValue(next, min, max, step);
+  const commit = useCallback((next: number, snap = step) => {
+    const clamped = clampKnobValue(next, min, max, snap);
+    valRef.current = clamped;
     setLocalVal(clamped);
-    onChange?.(clamped);
-  }
+    onChange(clamped);
+  }, [min, max, step, onChange]);
+
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const { delta, snap } = knobStepAmount(step, min, max, {
+        shift: e.shiftKey,
+        alt: e.altKey,
+      });
+      const dir = e.deltaY > 0 ? -1 : 1;
+      commit(valRef.current + dir * delta, snap);
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, [min, max, step, commit]);
 
   function valueFromPointer(clientX: number, clientY: number): number | null {
     const el = ringRef.current;
@@ -110,15 +131,16 @@ export default function DJKnob({
   }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
-    const span = max - min;
-    const base = step > 0 ? step : 1;
-    const jump = e.shiftKey ? Math.max(base * 10, span / 10) : base;
+    const { delta, snap } = knobStepAmount(step, min, max, {
+      shift: e.shiftKey,
+      alt: e.altKey,
+    });
     if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
       e.preventDefault();
-      commit(localVal + jump);
+      commit(localVal + delta, snap);
     } else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') {
       e.preventDefault();
-      commit(localVal - jump);
+      commit(localVal - delta, snap);
     } else if (e.key === 'Home') {
       e.preventDefault();
       commit(min);
@@ -130,6 +152,7 @@ export default function DJKnob({
 
   return (
     <div
+      ref={rootRef}
       data-testid={`dj-knob-${name}`}
       data-knob-value={String(Math.round(localVal))}
       role="slider"
