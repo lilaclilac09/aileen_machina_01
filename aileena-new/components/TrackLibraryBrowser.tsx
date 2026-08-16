@@ -37,6 +37,9 @@ type Track = {
   key: string;
   dur: number;
   thumb: string;
+  source?: 'spotify';
+  previewUrl?: string | null;
+  externalUrl?: string;
 };
 
 type ViewMode = 'list' | 'playlist';
@@ -90,7 +93,8 @@ const T = {
 };
 
 export default function TrackLibraryBrowser({ tracks, reverseCarousel = true, onLoadTrack, onSetDragTrack,
-  playingLeft, playingRight, leftPos, leftDur, rightPos, rightDur }: {
+  playingLeft, playingRight, leftPos, leftDur, rightPos, rightDur,
+  focusTrackId = null, onRemoveTrack }: {
   tracks: Track[];
   reverseCarousel?: boolean;
   onLoadTrack?: (side: 'left' | 'right', track: Track) => void;
@@ -101,10 +105,25 @@ export default function TrackLibraryBrowser({ tracks, reverseCarousel = true, on
   leftDur?: number;
   rightPos?: number;
   rightDur?: number;
+  focusTrackId?: string | null;
+  onRemoveTrack?: (id: string) => void;
 }) {
   const [mode, setMode] = useState<ViewMode>('playlist');
   const [playlistIdx, setPlaylistIdx] = useState(0);
   const [query, setQuery] = useState('');
+
+  useEffect(() => {
+    if (playlistIdx >= tracks.length) {
+      setPlaylistIdx(Math.max(0, tracks.length - 1));
+    }
+  }, [tracks.length, playlistIdx]);
+
+  useEffect(() => {
+    if (!focusTrackId) return;
+    const display = reverseCarousel ? [...tracks].slice().reverse() : tracks;
+    const idx = display.findIndex((t) => t.id === focusTrackId || t.spotifyId === focusTrackId);
+    if (idx >= 0) setPlaylistIdx(idx);
+  }, [focusTrackId, tracks, reverseCarousel]);
 
   const filtered = query.trim()
     ? tracks.filter(t =>
@@ -120,6 +139,7 @@ export default function TrackLibraryBrowser({ tracks, reverseCarousel = true, on
         <ListView
           tracks={filtered} query={query} onQuery={setQuery}
           onSetDragTrack={onSetDragTrack}
+          onRemoveTrack={onRemoveTrack}
           playingLeft={playingLeft} playingRight={playingRight}
           leftPos={leftPos} leftDur={leftDur}
           rightPos={rightPos} rightDur={rightDur}
@@ -132,6 +152,7 @@ export default function TrackLibraryBrowser({ tracks, reverseCarousel = true, on
           setActiveIdx={setPlaylistIdx}
           onLoadTrack={onLoadTrack}
           onSetDragTrack={onSetDragTrack}
+          onRemoveTrack={onRemoveTrack}
         />
       )}
 
@@ -207,11 +228,12 @@ export default function TrackLibraryBrowser({ tracks, reverseCarousel = true, on
 
 /* ─── LIST VIEW ─────────────────────────────────────────── */
 function ListView({
-  tracks, query, onQuery, onSetDragTrack,
+  tracks, query, onQuery, onSetDragTrack, onRemoveTrack,
   playingLeft, playingRight, leftPos, leftDur, rightPos, rightDur,
 }: {
   tracks: Track[]; query: string; onQuery: (q: string) => void;
   onSetDragTrack?: (track: Track) => void;
+  onRemoveTrack?: (id: string) => void;
   playingLeft?: string | null; playingRight?: string | null;
   leftPos?: number; leftDur?: number;
   rightPos?: number; rightDur?: number;
@@ -332,6 +354,7 @@ function ListView({
             pos={isLeft ? (leftPos ?? 0) : isRight ? (rightPos ?? 0) : 0}
             dur={isLeft ? (leftDur ?? 0) : isRight ? (rightDur ?? 0) : 0}
             onSetDragTrack={onSetDragTrack}
+            onRemoveTrack={onRemoveTrack}
           />
         );
       })}
@@ -340,11 +363,12 @@ function ListView({
 }
 
 function ListTrackRow({ index, track, isPlayingLeft, isPlayingRight, pos, dur,
-  onSetDragTrack }: {
+  onSetDragTrack, onRemoveTrack }: {
   index: number; track: Track;
   isPlayingLeft: boolean; isPlayingRight: boolean;
   pos: number; dur: number;
   onSetDragTrack?: (track: Track) => void;
+  onRemoveTrack?: (id: string) => void;
 }) {
   const [hov, setHov] = useState(false);
   const isPlaying = isPlayingLeft || isPlayingRight;
@@ -396,7 +420,7 @@ function ListTrackRow({ index, track, isPlayingLeft, isPlayingRight, pos, dur,
           marginBottom: 5,
           transition: 'color 0.2s',
         }}>
-          {track.title}
+          {track.title}{track.source === 'spotify' ? ' · REF' : ''}
         </span>
         {/* Waveform */}
         <svg width="100%" height="20" viewBox={`0 0 ${WAVE_BARS * 2.5} 20`}
@@ -453,6 +477,32 @@ function ListTrackRow({ index, track, isPlayingLeft, isPlayingRight, pos, dur,
       }}>
         {fmtDur(track.dur)}
       </span>
+      {track.source === 'spotify' && onRemoveTrack ? (
+        <button
+          type="button"
+          data-testid="spotify-carousel-remove"
+          aria-label={`Remove ${track.title} from carousel`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemoveTrack(track.id);
+          }}
+          style={{
+            gridColumn: '1 / -1',
+            justifySelf: 'end',
+            margin: '0 0 8px',
+            fontFamily: 'monospace',
+            fontSize: '0.26rem',
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            background: 'none',
+            border: 'none',
+            color: T.l2,
+            cursor: 'pointer',
+          }}
+        >
+          remove
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -465,6 +515,7 @@ function PlaylistCarousel({
   setActiveIdx,
   onLoadTrack,
   onSetDragTrack,
+  onRemoveTrack,
 }: {
   tracks: Track[];
   reverseCarousel?: boolean;
@@ -472,6 +523,7 @@ function PlaylistCarousel({
   setActiveIdx: (i: number) => void;
   onLoadTrack?: (side: 'left' | 'right', track: Track) => void;
   onSetDragTrack?: (track: Track) => void;
+  onRemoveTrack?: (id: string) => void;
 }) {
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -646,6 +698,7 @@ function PlaylistCarousel({
                 data-testid="dj-carousel-card"
                 data-track-id={track.id}
                 data-track-title={track.title}
+                data-source={track.source || 'catalogue'}
                 draggable={finePointer}
                 onDragStart={(e) => {
                   if (!finePointer) {
@@ -706,6 +759,29 @@ function PlaylistCarousel({
                     }}
                     draggable={false}
                   />
+                  {track.source === 'spotify' && (
+                    <span
+                      data-testid="spotify-ref-badge"
+                      style={{
+                        position: 'absolute',
+                        top: 6,
+                        left: 6,
+                        zIndex: 2,
+                        fontFamily: 'monospace',
+                        fontSize: 8,
+                        letterSpacing: '0.12em',
+                        textTransform: 'uppercase',
+                        color: T.l1,
+                        background: 'rgba(0,0,0,0.62)',
+                        border: `1px solid ${T.cyanSoft}`,
+                        padding: '2px 5px',
+                        borderRadius: 2,
+                        pointerEvents: 'none',
+                      }}
+                    >
+                      REF
+                    </span>
+                  )}
                   {rel === 0 && (
                     <div style={{
                       position: 'absolute', bottom: 0, left: 0, right: 0,
@@ -780,7 +856,9 @@ function PlaylistCarousel({
               letterSpacing: '0.08em',
               color: T.l3m,
             }}>
-              {active.title} · {active.bpm} BPM · {active.key} · {fmtDur(active.dur)}
+              {active.source === 'spotify'
+                ? `${active.title} · preview / reference · ${fmtDur(active.dur)} · not mixable`
+                : `${active.title} · ${active.bpm} BPM · ${active.key} · ${fmtDur(active.dur)}`}
             </span>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -804,15 +882,40 @@ function PlaylistCarousel({
                   cursor: 'pointer',
                 }}
               >
-                {side === 'left' ? 'Load A' : 'Load B'}
+                {side === 'left'
+                  ? (active.source === 'spotify' ? 'Load A · ref' : 'Load A')
+                  : (active.source === 'spotify' ? 'Load B · ref' : 'Load B')}
               </button>
             ))}
+            {active.source === 'spotify' && onRemoveTrack ? (
+              <button
+                type="button"
+                data-testid="spotify-carousel-remove"
+                aria-label={`Remove ${active.title} from carousel`}
+                onClick={() => onRemoveTrack(active.id)}
+                style={{
+                  fontFamily: 'monospace',
+                  fontSize: '0.32rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  padding: '6px 14px',
+                  borderRadius: 3,
+                  border: '1px solid rgba(255,253,248,0.22)',
+                  background: 'transparent',
+                  color: T.l2,
+                  cursor: 'pointer',
+                }}
+              >
+                Remove
+              </button>
+            ) : null}
             {finePointer && (
               <span style={{
                 fontFamily: 'monospace', fontSize: '0.26rem', letterSpacing: '0.08em',
                 color: T.l3m,
               }}>
-                or drag cover → deck
+                {active.source === 'spotify' ? 'reference / preview only' : 'or drag cover → deck'}
               </span>
             )}
           </div>

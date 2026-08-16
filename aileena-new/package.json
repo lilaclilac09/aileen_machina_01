@@ -26,6 +26,8 @@
     "verify:sound": "tsx scripts/verify-dj-set.ts",
     "verify:dj-set:local": "VERIFY_BASE_URL=http://localhost:3011 tsx scripts/verify-dj-set.ts",
     "verify:sound:local": "VERIFY_BASE_URL=http://localhost:3011 tsx scripts/verify-dj-set.ts",
+    "verify:spotify-search": "tsx scripts/verify-spotify-search.ts",
+    "test:e2e:spotify-search": "playwright test e2e/spotify-search-carousel.spec.ts --config=playwright.config.ts",
     "verify:memory": "tsx scripts/build-memory-index.ts && tsx scripts/verify-memory.ts",
     "verify:memory:live": "tsx scripts/build-memory-index.ts && VERIFY_BASE_URL=http://localhost:3000 tsx scripts/verify-memory.ts",
     "verify:react": "tsx scripts/verify-react.ts",

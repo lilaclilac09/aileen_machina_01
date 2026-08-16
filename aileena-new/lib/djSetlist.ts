@@ -23,10 +23,16 @@ export type DeckTrack = {
   spotifyId?: string;
   title: string;
   artist?: string;
+  artists?: string[];
+  album?: string;
   bpm: number;
   key: string;
   dur: number;
   thumb: string;
+  /** User-added Spotify search card — reference/preview, not mixable. */
+  source?: 'spotify';
+  previewUrl?: string | null;
+  externalUrl?: string;
 };
 
 /** Curated handoff five — also mirrored in public/dj-set/setlist.json */
