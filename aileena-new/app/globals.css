@@ -529,4 +529,16 @@ select,
   .explainer-article {
     min-height: 100dvh;
   }
+
+  /* Sound Lab: stack A / mixer / B before JS hydrates; keep taps ≥44px */
+  .dj-mixer-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  .dj-tap {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    box-sizing: border-box !important;
+  }
 }

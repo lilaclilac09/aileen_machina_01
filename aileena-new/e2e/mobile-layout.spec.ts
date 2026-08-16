@@ -20,12 +20,12 @@ test.describe('iOS / mobile layout pass', () => {
     await page.goto('/sound', { waitUntil: 'domcontentloaded' });
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 2);
     expect(overflow).toBe(false);
-    const play = page.locator('button', { hasText: '▶' }).first();
+    const play = page.getByTestId('dj-play-a');
     await expect(play).toBeVisible();
-    const box = await play.boundingBox();
-    expect(box).toBeTruthy();
-    expect(box!.height).toBeGreaterThanOrEqual(40);
-    expect(box!.width).toBeGreaterThanOrEqual(40);
+    await expect.poll(async () => {
+      const box = await play.boundingBox();
+      return box ? Math.min(box.height, box.width) : 0;
+    }).toBeGreaterThanOrEqual(44);
   });
 
   test('console opens and leave-a-note stays in viewport', async ({ page }) => {

@@ -788,6 +788,7 @@ function PlaylistCarousel({
               <button
                 key={side}
                 type="button"
+                className="dj-tap"
                 data-dj-load-deck={side}
                 onClick={() => onLoadTrack?.(side, active)}
                 style={{

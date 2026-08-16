@@ -545,10 +545,12 @@ export default function DJStation() {
         </div>
 
         {/* Deck + Mixer grid */}
-        {isMobile ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 10 }}>
+        <div
+          className="dj-mixer-grid"
+          style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 100px 1fr', gap: 8, marginBottom: 10 }}
+        >
             <DeckPanel
-              side="left" track={leftTrack} playing={leftPlaying} isMobile={true} synced={bpmHint?.type === 'sync'}
+              side="left" track={leftTrack} playing={leftPlaying} isMobile={isMobile} synced={bpmHint?.type === 'sync'}
               pos={leftPos} dur={leftDur || (leftTrack?.dur ?? 0) * 1000}
               pitch={leftPitch} dim={leftDim} dropActive={dropSide === 'left'}
               onDragOver={e => { e.preventDefault(); setDropSide('left'); }}
@@ -560,9 +562,9 @@ export default function DJStation() {
               onScratchEnd={() => { if (leftWasPlaying.current) leftCtrl.current?.togglePlay(); }}
               onSync={handleSyncLeft}
             />
-            <MixerPanel xfade={xfade} onXfade={handleXfade} isMobile={true} />
+            <MixerPanel xfade={xfade} onXfade={handleXfade} isMobile={isMobile} />
             <DeckPanel
-              side="right" track={rightTrack} playing={rightPlaying} isMobile={true} synced={bpmHint?.type === 'sync'}
+              side="right" track={rightTrack} playing={rightPlaying} isMobile={isMobile} synced={bpmHint?.type === 'sync'}
               pos={rightPos} dur={rightDur || (rightTrack?.dur ?? 0) * 1000}
               pitch={rightPitch} dim={rightDim} dropActive={dropSide === 'right'}
               onDragOver={e => { e.preventDefault(); setDropSide('right'); }}
@@ -574,38 +576,7 @@ export default function DJStation() {
               onScratchEnd={() => { if (rightWasPlaying.current) rightCtrl.current?.togglePlay(); }}
               onSync={handleSyncRight}
             />
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 1fr', gap: 8, marginBottom: 10 }}>
-            <DeckPanel
-              side="left" track={leftTrack} playing={leftPlaying} synced={bpmHint?.type === 'sync'}
-              pos={leftPos} dur={leftDur || (leftTrack?.dur ?? 0) * 1000}
-              pitch={leftPitch} dim={leftDim} dropActive={dropSide === 'left'}
-              onDragOver={e => { e.preventDefault(); setDropSide('left'); }}
-              onDragLeave={() => setDropSide(null)}
-              onDrop={dropOnDeckA}
-              onToggle={() => toggleDeck('left')}
-              onPitch={setLeftPitch}
-              onScratchStart={() => { leftWasPlaying.current = leftPlaying; if (leftPlaying) leftCtrl.current?.togglePlay(); }}
-              onScratchEnd={() => { if (leftWasPlaying.current) leftCtrl.current?.togglePlay(); }}
-              onSync={handleSyncLeft}
-            />
-            <MixerPanel xfade={xfade} onXfade={handleXfade} />
-            <DeckPanel
-              side="right" track={rightTrack} playing={rightPlaying} synced={bpmHint?.type === 'sync'}
-              pos={rightPos} dur={rightDur || (rightTrack?.dur ?? 0) * 1000}
-              pitch={rightPitch} dim={rightDim} dropActive={dropSide === 'right'}
-              onDragOver={e => { e.preventDefault(); setDropSide('right'); }}
-              onDragLeave={() => setDropSide(null)}
-              onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('right', dragTrack.current); setDropSide(null); }}
-              onToggle={() => toggleDeck('right')}
-              onPitch={setRightPitch}
-              onScratchStart={() => { rightWasPlaying.current = rightPlaying; if (rightPlaying) rightCtrl.current?.togglePlay(); }}
-              onScratchEnd={() => { if (rightWasPlaying.current) rightCtrl.current?.togglePlay(); }}
-              onSync={handleSyncRight}
-            />
-          </div>
-        )}
+        </div>
 
         {deckHint && (
           <p
@@ -929,7 +900,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {/* Play/Pause */}
-          <button onClick={onToggle} style={{
+          <button className="dj-tap" data-testid={side === 'left' ? 'dj-play-a' : 'dj-play-b'} onClick={onToggle} style={{
             width: isMobile ? 44 : 38, height: isMobile ? 44 : 38, borderRadius: '50%', cursor: 'pointer',
             background: playing ? `rgba(0,168,157,0.1)` : '#14181e',
             border: `1px solid ${playing ? 'rgba(0,168,157,0.55)' : 'rgba(170,179,187,0.22)'}`,
@@ -940,7 +911,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
             transition: 'all 0.15s',
           }}>{playing ? '⏸' : '▶'}</button>
           {/* CUE */}
-          <button onClick={() => setCueMs(pos > 0 ? pos : null)} style={{
+          <button className="dj-tap" onClick={() => setCueMs(pos > 0 ? pos : null)} style={{
             width: isMobile ? 44 : 38, height: isMobile ? 44 : 38, borderRadius: '50%', cursor: 'pointer',
             background: cueMs !== null ? 'rgba(125,183,255,0.1)' : '#14181e',
             border: `1px solid ${cueMs !== null ? 'rgba(125,183,255,0.55)' : 'rgba(170,179,187,0.22)'}`,
@@ -1013,7 +984,7 @@ function PioneerControls({ side, playing, synced, pos, onSync, isMobile }: {
         display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap',
       }}>
         {/* SYNC */}
-        <button onClick={onSync} style={{
+        <button className="dj-tap" onClick={onSync} style={{
           padding: isMobile ? '10px 12px' : '4px 10px', borderRadius: 4, cursor: 'pointer',
           background: synced ? 'rgba(0,168,157,0.1)' : '#14181e',
           border: `1px solid ${synced ? 'rgba(0,168,157,0.5)' : 'rgba(170,179,187,0.22)'}`,
@@ -1027,7 +998,7 @@ function PioneerControls({ side, playing, synced, pos, onSync, isMobile }: {
         </button>
 
         {/* LOOP IN */}
-        <button onClick={() => { setLoopIn(pos); setLoopActive(false); }} style={{
+        <button className="dj-tap" onClick={() => { setLoopIn(pos); setLoopActive(false); }} style={{
           padding: isMobile ? '10px 10px' : '4px 8px', minHeight: isMobile ? 44 : undefined, borderRadius: 4, cursor: 'pointer',
           background: loopIn !== null ? 'rgba(125,183,255,0.08)' : '#14181e',
           border: `1px solid ${loopIn !== null ? 'rgba(125,183,255,0.45)' : 'rgba(170,179,187,0.22)'}`,
@@ -1042,7 +1013,7 @@ function PioneerControls({ side, playing, synced, pos, onSync, isMobile }: {
         </button>
 
         {/* LOOP OUT */}
-        <button onClick={() => { if (loopIn !== null) { setLoopOut(pos); setLoopActive(true); } }} style={{
+        <button className="dj-tap" onClick={() => { if (loopIn !== null) { setLoopOut(pos); setLoopActive(true); } }} style={{
           padding: isMobile ? '10px 10px' : '4px 8px', minHeight: isMobile ? 44 : undefined, borderRadius: 4, cursor: 'pointer',
           background: loopActive ? 'rgba(255,155,94,0.08)' : '#14181e',
           border: `1px solid ${loopActive ? 'rgba(255,155,94,0.45)' : 'rgba(170,179,187,0.22)'}`,
@@ -1059,7 +1030,7 @@ function PioneerControls({ side, playing, synced, pos, onSync, isMobile }: {
         {/* Loop size selector */}
         <div style={{ display: 'flex', gap: 2 }}>
           {loopSizes.map(s => (
-            <button key={s} onClick={() => setLoopSize(s)} style={{
+            <button key={s} className="dj-tap" onClick={() => setLoopSize(s)} style={{
               width: isMobile ? 44 : 26, height: isMobile ? 44 : 22, borderRadius: 3, cursor: 'pointer',
               background: loopSize === s ? (loopActive ? 'rgba(255,155,94,0.12)' : 'rgba(125,183,255,0.1)') : '#14181e',
               border: `1px solid ${loopSize === s ? (loopActive ? 'rgba(255,155,94,0.4)' : 'rgba(125,183,255,0.4)') : 'rgba(170,179,187,0.15)'}`,
