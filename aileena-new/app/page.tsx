@@ -470,8 +470,6 @@ export default function Home() {
               body={tx.visual.kilnNote}
               linkLabel={tx.visual.readGlass}
               items={tx.visual.items}
-              modeWall={tx.visual.modeWall}
-              modeFocus={tx.visual.modeFocus}
             />
           </div>
         </SnapSection>
