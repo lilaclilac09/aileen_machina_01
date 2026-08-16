@@ -16,6 +16,7 @@
   --ex-vessel: #008f84;
 
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--ex-bg);
   color: rgba(26, 22, 18, 0.88);
   font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;

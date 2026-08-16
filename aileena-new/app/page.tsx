@@ -267,7 +267,7 @@ export default function Home() {
         {/* ── 01 CINEMATIC OPENING ──────────────────────────────── */}
         <SnapSection id="opening" className="order-1">
           <div
-            className="mobile-opening-shell h-full min-h-[100dvh] flex flex-col bg-white relative overflow-hidden max-md:overflow-visible max-md:h-auto"
+            className="mobile-opening-shell h-full min-h-[100dvh] flex flex-col bg-white relative overflow-hidden max-md:overflow-visible max-md:h-auto max-md:pt-[max(0.5rem,env(safe-area-inset-top,0px))]"
             style={{ fontFamily: nunito }}
           >
             {/* Background portrait — large, partially out of frame on the right */}
@@ -289,7 +289,7 @@ export default function Home() {
             {/* Mobile-only portrait — smaller, top */}
             <div
               aria-hidden
-              className="md:hidden self-center mt-12"
+              className="md:hidden self-start ml-5 mt-[max(3.25rem,calc(env(safe-area-inset-top,0px)+2.75rem))]"
               style={{
                 width: 140,
                 height: 180,

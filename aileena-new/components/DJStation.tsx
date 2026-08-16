@@ -609,7 +609,7 @@ export default function DJStation() {
 
         {/* Deck + Mixer grid */}
         {isMobile ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 12 }}>
+          <div className="dj-mixer-grid" style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 12 }}>
             <DeckPanel
               side="left" track={leftTrack} playing={leftPlaying} isMobile={true} synced={bpmHint?.type === 'sync'}
               pos={leftPos} dur={leftDur || (leftTrack?.dur ?? 0) * 1000}
@@ -639,7 +639,7 @@ export default function DJStation() {
             />
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 1fr', gap: 8, marginBottom: 10 }}>
+          <div className="dj-mixer-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 100px 1fr', gap: 8, marginBottom: 10 }}>
             <DeckPanel
               side="left" track={leftTrack} playing={leftPlaying} synced={bpmHint?.type === 'sync'}
               pos={leftPos} dur={leftDur || (leftTrack?.dur ?? 0) * 1000}
@@ -998,7 +998,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {/* Play/Pause */}
-          <button onClick={onToggle} aria-label={playing ? 'Pause' : 'Play'} style={{
+          <button className="dj-tap" data-testid={side === 'left' ? 'dj-play-a' : 'dj-play-b'} onClick={onToggle} aria-label={playing ? 'Pause' : 'Play'} style={{
             width: btn, height: btn, borderRadius: '50%', cursor: 'pointer',
             background: playing ? `rgba(0,168,157,0.1)` : '#14181e',
             border: `1px solid ${playing ? 'rgba(0,168,157,0.55)' : 'rgba(170,179,187,0.22)'}`,
@@ -1010,7 +1010,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
             touchAction: 'manipulation',
           }}>{playing ? '⏸' : '▶'}</button>
           {/* CUE */}
-          <button onClick={() => setCueMs(pos > 0 ? pos : null)} aria-label="Cue" style={{
+          <button className="dj-tap" onClick={() => setCueMs(pos > 0 ? pos : null)} aria-label="Cue" style={{
             width: btn, height: btn, borderRadius: '50%', cursor: 'pointer',
             background: cueMs !== null ? 'rgba(125,183,255,0.1)' : '#14181e',
             border: `1px solid ${cueMs !== null ? 'rgba(125,183,255,0.55)' : 'rgba(170,179,187,0.22)'}`,
@@ -1086,7 +1086,7 @@ function PioneerControls({ side, playing, synced, pos, onSync, isMobile }: {
         display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 5, flexWrap: 'wrap',
       }}>
         {/* SYNC */}
-        <button onClick={onSync} style={{
+        <button className="dj-tap" onClick={onSync} style={{
           padding: isMobile ? '10px 14px' : '4px 10px', borderRadius: 4, cursor: 'pointer',
           background: synced ? 'rgba(0,168,157,0.1)' : '#14181e',
           border: `1px solid ${synced ? 'rgba(0,168,157,0.5)' : 'rgba(170,179,187,0.22)'}`,
@@ -1102,7 +1102,7 @@ function PioneerControls({ side, playing, synced, pos, onSync, isMobile }: {
         </button>
 
         {/* LOOP IN */}
-        <button onClick={() => { setLoopIn(pos); setLoopActive(false); }} style={{
+        <button className="dj-tap" onClick={() => { setLoopIn(pos); setLoopActive(false); }} style={{
           padding: isMobile ? `${pad}px 12px` : '4px 8px', borderRadius: 4, cursor: 'pointer',
           background: loopIn !== null ? 'rgba(125,183,255,0.08)' : '#14181e',
           border: `1px solid ${loopIn !== null ? 'rgba(125,183,255,0.45)' : 'rgba(170,179,187,0.22)'}`,
@@ -1119,7 +1119,7 @@ function PioneerControls({ side, playing, synced, pos, onSync, isMobile }: {
         </button>
 
         {/* LOOP OUT */}
-        <button onClick={() => { if (loopIn !== null) { setLoopOut(pos); setLoopActive(true); } }} style={{
+        <button className="dj-tap" onClick={() => { if (loopIn !== null) { setLoopOut(pos); setLoopActive(true); } }} style={{
           padding: isMobile ? `${pad}px 12px` : '4px 8px', borderRadius: 4, cursor: 'pointer',
           background: loopActive ? 'rgba(255,155,94,0.08)' : '#14181e',
           border: `1px solid ${loopActive ? 'rgba(255,155,94,0.45)' : 'rgba(170,179,187,0.22)'}`,
@@ -1138,7 +1138,7 @@ function PioneerControls({ side, playing, synced, pos, onSync, isMobile }: {
         {/* Loop size selector */}
         <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
           {loopSizes.map(s => (
-            <button key={s} onClick={() => setLoopSize(s)} style={{
+            <button key={s} className="dj-tap" onClick={() => setLoopSize(s)} style={{
               width: isMobile ? 40 : 26, height: isMobile ? 40 : 22, borderRadius: 3, cursor: 'pointer',
               background: loopSize === s ? (loopActive ? 'rgba(255,155,94,0.12)' : 'rgba(125,183,255,0.1)') : '#14181e',
               border: `1px solid ${loopSize === s ? (loopActive ? 'rgba(255,155,94,0.4)' : 'rgba(125,183,255,0.4)') : 'rgba(170,179,187,0.15)'}`,

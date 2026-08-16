@@ -868,6 +868,7 @@ function PlaylistCarousel({
               <button
                 key={side}
                 type="button"
+                className="dj-tap"
                 data-dj-load-deck={side}
                 onClick={() => onLoadTrack?.(side, active)}
                 style={{
@@ -876,7 +877,8 @@ function PlaylistCarousel({
                   fontWeight: 700,
                   letterSpacing: '0.14em',
                   textTransform: 'uppercase',
-                  padding: '6px 14px',
+                  padding: '10px 14px',
+                  minHeight: 44,
                   borderRadius: 3,
                   border: `1px solid ${T.cyanSoft}`,
                   background: 'rgba(0,168,157,0.12)',
