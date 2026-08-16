@@ -1,0 +1,21 @@
+{
+  "name": "deepseek-byok-client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Standalone BYOK client for the official DeepSeek HTTP API. Not a Cursor IDE patch.",
+  "bin": {
+    "deepseek-chat": "./src/cli.mjs"
+  },
+  "scripts": {
+    "check": "node src/cli.mjs check",
+    "chat": "node src/cli.mjs chat",
+    "models": "node src/cli.mjs models",
+    "balance": "node src/cli.mjs balance",
+    "test": "node test/selftest.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "AGPL-3.0-or-later"
+}
