@@ -173,11 +173,6 @@ export default function DJStation() {
   }, []);
 
   useEffect(() => {
-    if (!mix.error) return;
-    showDeckHint(shortMixError(mix.error));
-  }, [mix.error, showDeckHint]);
-
-  useEffect(() => {
     const sample = CATALOGUE.slice(0, 3).map((t) => ({
       id: t.id,
       title: t.title,
@@ -435,7 +430,6 @@ export default function DJStation() {
   }, [loadTrack, assignFile]);
 
   const toggleDeck = useCallback(async (side: 'left' | 'right') => {
-    const label = side === 'left' ? 'A' : 'B';
     const started = await mix.toggle(side);
     if (started) {
       setDeckHint(null);
@@ -701,8 +695,10 @@ export default function DJStation() {
           </div>
         )}
 
-        {deckHint && (
-          <SystemToast testId="dj-deck-hint">{deckHint}</SystemToast>
+        {(deckHint || mix.error) && (
+          <SystemToast testId="dj-deck-hint" role={mix.error && !deckHint ? 'alert' : 'status'}>
+            {deckHint || shortMixError(mix.error || '')}
+          </SystemToast>
         )}
       </div>
 
