@@ -8,6 +8,9 @@ App lives in `aileena-new/` (`pnpm`, not repo-root npm). Run only the rows that 
 
 Ship / merge to `main` still follows `AGENTS.md` 施工队安全条例 — localhost is not production proof. Preview Ready ≠ Production Ready.
 
+Quick map (task → command/tool): [`docs/AGENT_TOOL_MAP.md`](docs/AGENT_TOOL_MAP.md).  
+Verified pitfalls: [`docs/KNOWN_FAILURES.md`](docs/KNOWN_FAILURES.md).
+
 ## Before merge
 
 ```bash
