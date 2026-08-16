@@ -1,15 +1,15 @@
 {
-  "name": "deepseek-byok-client",
-  "version": "0.1.0",
+  "name": "deepseek-client",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "CLI for the official DeepSeek HTTP API using the key you buy on platform.deepseek.com.",
+  "description": "CLI for the official DeepSeek HTTP API. Use the key you buy on platform.deepseek.com.",
   "bin": {
     "deepseek-chat": "./src/cli.mjs"
   },
   "scripts": {
-    "how": "node src/cli.mjs how",
     "start": "node src/cli.mjs how",
+    "how": "node src/cli.mjs how",
     "check": "node src/cli.mjs check",
     "chat": "node src/cli.mjs chat",
     "models": "node src/cli.mjs models",
@@ -19,5 +19,5 @@
   "engines": {
     "node": ">=22"
   },
-  "license": "AGPL-3.0-or-later"
+  "license": "MIT"
 }

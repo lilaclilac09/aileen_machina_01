@@ -119,23 +119,18 @@ await test('redact never leaks the key', () => {
   assert.match(out, /redacted-key/);
 });
 
-await test('README and USAGE.md are English and tell you how to use your key', () => {
+await test('README is English and tells you how to use your key', () => {
   const readme = readFileSync(join(ROOT, 'README.md'), 'utf8');
-  const usage = readFileSync(join(ROOT, 'USAGE.md'), 'utf8');
   assert.match(readme, /official DeepSeek HTTP API/i);
-  assert.match(readme, /USAGE\.md/);
+  assert.match(readme, /^## How to use$/m);
   assert.match(readme, /platform\.deepseek\.com/);
   assert.match(readme, /DEEPSEEK_API_KEY/);
+  assert.match(readme, /cp \.env\.example \.env/);
   assert.match(readme, /node src\/cli\.mjs check/);
   assert.match(readme, /node src\/cli\.mjs chat "Hello from my DeepSeek key"/);
-  assert.match(usage, /^# Usage$/m);
-  assert.match(usage, /cp \.env\.example \.env/);
-  assert.match(usage, /node src\/cli\.mjs check/);
-  assert.match(usage, /node src\/cli\.mjs chat "Hello from my DeepSeek key"/);
-  assert.match(usage, /node src\/cli\.mjs chat$/m);
-  assert.match(usage, /node src\/cli\.mjs balance/);
+  assert.match(readme, /node src\/cli\.mjs chat$/m);
+  assert.match(readme, /node src\/cli\.mjs balance/);
   assert.doesNotMatch(readme, /[\u4e00-\u9fff]/);
-  assert.doesNotMatch(usage, /[\u4e00-\u9fff]/);
 });
 
 await test('package has no runtime dependencies', () => {
@@ -271,7 +266,7 @@ await test('cli how prints How to use', () => {
   });
   assert.equal(result.status, 0);
   assert.match(result.stdout, /How to use/);
-  assert.match(result.stdout, /USAGE\.md/);
+  assert.match(result.stdout, /README\.md/);
   assert.match(result.stdout, /node src\/cli\.mjs check/);
   assert.match(result.stdout, /node src\/cli\.mjs chat "Hello from my DeepSeek key"/);
   assert.match(result.stdout, /platform\.deepseek\.com/);

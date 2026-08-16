@@ -7,7 +7,7 @@ import { chatCompletion, getBalance, listModels } from './client.mjs';
 export function howToUse() {
   return `How to use
 ----------
-Read USAGE.md in this directory, or follow these steps.
+Read README.md in this directory, or follow these steps.
 
 1. Buy a key:  https://platform.deepseek.com
 2. In this project directory:
