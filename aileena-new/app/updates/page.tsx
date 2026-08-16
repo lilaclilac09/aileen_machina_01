@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import ArchiveIndex, { slugify } from '../_archive/ArchiveIndex';
 import ArchivePage from '../_archive/ArchivePage';
 
 type Book = {
@@ -128,6 +129,7 @@ function BookObject({
 }) {
   return (
     <article
+      id={slugify(book.title)}
       className={`arc-book${featured ? ' arc-book--featured' : ''} arc-book--${book.tone ?? 'cream'}`}
     >
       <div className="arc-book-object" aria-hidden>
@@ -165,54 +167,93 @@ export default function UpdatesPage() {
             width={1600}
             height={1200}
             priority
-            sizes="(min-width: 820px) 820px, 100vw"
+            sizes="(min-width: 820px) 980px, 100vw"
           />
         </figure>
       </section>
 
-      <section className="arc-section" id="this-issue" aria-labelledby="current-reading">
-        <p className="arc-kicker" id="current-reading">
-          current reading
-        </p>
-        <BookObject book={FEATURED} featured />
-      </section>
+      <div className="arc-stage">
+        <ArchiveIndex
+          label="book club index"
+          groups={[
+            {
+              id: 'this-issue',
+              label: 'now',
+              items: [{ href: `#${slugify(FEATURED.title)}`, label: FEATURED.title }],
+            },
+            {
+              id: 'didion-shelf',
+              label: 'didion',
+              items: DIDION_SHELF.map((book) => ({
+                href: `#${slugify(book.title)}`,
+                label: book.title,
+              })),
+            },
+            {
+              id: 'adjacent-shelf',
+              label: 'adjacent',
+              items: ADJACENT.map((book) => ({
+                href: `#${slugify(book.title)}`,
+                label: book.title,
+              })),
+            },
+            {
+              id: 'updates-log',
+              label: 'notes',
+              items: UPDATES.map((item) => ({
+                href: `#${slugify(item.title)}`,
+                label: item.title,
+              })),
+            },
+          ]}
+        />
 
-      <section className="arc-section" id="didion-shelf" aria-labelledby="shelf-label">
-        <p className="arc-kicker" id="shelf-label">
-          didion desk
-        </p>
-        <div className="arc-book-shelf">
-          {DIDION_SHELF.map((book) => (
-            <BookObject key={book.title} book={book} />
-          ))}
+        <div className="arc-stage-main">
+          <section className="arc-section" id="this-issue" aria-labelledby="current-reading">
+            <p className="arc-kicker" id="current-reading">
+              current reading
+            </p>
+            <BookObject book={FEATURED} featured />
+          </section>
+
+          <section className="arc-section" id="didion-shelf" aria-labelledby="shelf-label">
+            <p className="arc-kicker" id="shelf-label">
+              didion
+            </p>
+            <div className="arc-book-shelf">
+              {DIDION_SHELF.map((book) => (
+                <BookObject key={book.title} book={book} />
+              ))}
+            </div>
+          </section>
+
+          <section className="arc-section" id="adjacent-shelf" aria-labelledby="reading-now">
+            <p className="arc-kicker" id="reading-now">
+              adjacent
+            </p>
+            <div className="arc-book-shelf">
+              {ADJACENT.map((book) => (
+                <BookObject key={book.title} book={book} />
+              ))}
+            </div>
+          </section>
+
+          <section className="arc-section" id="updates-log" aria-labelledby="notes-label">
+            <p className="arc-kicker" id="notes-label">
+              notes
+            </p>
+            <ul className="arc-list">
+              {UPDATES.map((item) => (
+                <li key={item.title} id={slugify(item.title)} className="arc-item">
+                  <span className="arc-item-title">{item.title}</span>
+                  <span className="arc-item-meta">{item.date}</span>
+                  <p className="arc-item-note">{item.body}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
         </div>
-      </section>
-
-      <section className="arc-section" id="adjacent-shelf" aria-labelledby="reading-now">
-        <p className="arc-kicker" id="reading-now">
-          adjacent
-        </p>
-        <div className="arc-book-shelf">
-          {ADJACENT.map((book) => (
-            <BookObject key={book.title} book={book} />
-          ))}
-        </div>
-      </section>
-
-      <section className="arc-section" id="updates-log" aria-labelledby="notes-label">
-        <p className="arc-kicker" id="notes-label">
-          notes
-        </p>
-        <ul className="arc-list">
-          {UPDATES.map((item) => (
-            <li key={item.title} className="arc-item">
-              <span className="arc-item-title">{item.title}</span>
-              <span className="arc-item-meta">{item.date}</span>
-              <p className="arc-item-note">{item.body}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
+      </div>
     </ArchivePage>
   );
 }

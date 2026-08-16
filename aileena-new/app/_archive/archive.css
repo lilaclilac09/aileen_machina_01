@@ -1,3 +1,5 @@
+@import './index-rail.css';
+
 /* Shared Substack-quiet archive: book club + watch/listen shelf */
 
 .arc-page {
@@ -70,6 +72,10 @@
   padding: 36px 22px 120px;
 }
 
+.arc-wrap:has(.arc-stage) {
+  max-width: 980px;
+}
+
 .arc-hero {
   margin: 0 0 8px;
 }
@@ -104,7 +110,8 @@
   scroll-margin-top: 88px;
 }
 
-.arc-section:first-of-type {
+.arc-section:first-of-type,
+.arc-stage-main > .arc-section:first-child {
   margin-top: 8px;
 }
 
@@ -136,6 +143,7 @@
 .arc-item {
   padding: 13px 0 15px;
   border-bottom: 1px solid var(--arc-line);
+  scroll-margin-top: 88px;
 }
 
 .arc-item:last-child {
@@ -210,6 +218,7 @@ a.arc-item-title:hover {
 
 .arc-book {
   min-width: 0;
+  scroll-margin-top: 88px;
 }
 
 .arc-book-object {
@@ -334,6 +343,7 @@ a.arc-item-title:hover {
   align-items: center;
   color: inherit;
   text-decoration: none;
+  scroll-margin-top: 88px;
 }
 
 .arc-cassette-body {
@@ -411,6 +421,7 @@ a.arc-item-title:hover {
   min-width: 0;
   color: inherit;
   text-decoration: none;
+  scroll-margin-top: 88px;
 }
 
 .arc-poster-frame {
@@ -549,7 +560,7 @@ a.arc-item-title:hover {
 
   .arc-posters {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     overflow: visible;
     gap: 18px 16px;
   }

@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import ArchiveIndex, { slugify } from '../../_archive/ArchiveIndex';
 import ArchivePage from '../../_archive/ArchivePage';
 
 const PODCAST_RECS = [
@@ -129,8 +130,6 @@ const FILM_RECS = [
   },
 ];
 
-const WATCH_ITEMS = [...DOCUMENTARY_RECS, ...FILM_RECS];
-
 const EURO_LIFE_GUIDE = [
   { title: 'Urban roam, not tourism', label: 'walk', body: 'Conversation over landmarks.' },
   { title: 'See in black and white', label: 'eye', body: 'Less color, more decision.' },
@@ -231,92 +230,177 @@ export default function WatchListeningShelfArticle() {
       title="watch · listening shelf"
       dek="covers first."
     >
-      <section className="arc-section" aria-labelledby="poster-shelf-label">
-        <p className="arc-kicker" id="poster-shelf-label">
-          watch
-        </p>
-        <div className="arc-posters">
-          {WATCH_ITEMS.map((item) => (
-            <a
-              key={item.title}
-              className="arc-poster"
-              href={item.href}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <span className="arc-poster-frame">
-                <Image
-                  src={item.image}
-                  alt=""
-                  fill
-                  sizes="(min-width: 820px) 140px, 108px"
-                  style={{ objectFit: 'contain' }}
-                />
-              </span>
-              <span className="arc-poster-title">{item.shelfTitle}</span>
-              <span className="arc-poster-meta">{item.year}</span>
-              <span className="arc-poster-note">{item.note}</span>
-            </a>
-          ))}
+      <div className="arc-stage">
+        <ArchiveIndex
+          label="shelf index"
+          groups={[
+            {
+              id: 'documentaries',
+              label: 'docs',
+              items: DOCUMENTARY_RECS.map((item) => ({
+                href: `#${slugify(item.shelfTitle)}`,
+                label: item.shelfTitle,
+              })),
+            },
+            {
+              id: 'films',
+              label: 'films',
+              items: FILM_RECS.map((item) => ({
+                href: `#${slugify(item.shelfTitle)}`,
+                label: item.shelfTitle,
+              })),
+            },
+            {
+              id: 'podcasts',
+              label: 'listen',
+              items: PODCAST_RECS.map((item) => ({
+                href: `#${slugify(item.shelfTitle)}`,
+                label: item.shelfTitle,
+              })),
+            },
+            {
+              id: 'channels',
+              label: 'read',
+              items: CHANNEL_RECS.map((item) => ({
+                href: `#${slugify(item.shelfTitle)}`,
+                label: item.shelfTitle,
+              })),
+            },
+            {
+              id: 'euro-life',
+              label: 'living',
+              items: [...EURO_LIFE_GUIDE, ...LIFESTYLE_RECS].map((item) => ({
+                href: `#${slugify(item.title)}`,
+                label: item.title,
+              })),
+            },
+          ]}
+        />
+
+        <div className="arc-stage-main">
+          <section className="arc-section" id="documentaries" aria-labelledby="docs-label">
+            <p className="arc-kicker" id="docs-label">
+              documentaries
+            </p>
+            <div className="arc-posters">
+              {DOCUMENTARY_RECS.map((item) => (
+                <a
+                  key={item.title}
+                  id={slugify(item.shelfTitle)}
+                  className="arc-poster"
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span className="arc-poster-frame">
+                    <Image
+                      src={item.image}
+                      alt=""
+                      fill
+                      sizes="(min-width: 820px) 140px, 108px"
+                      style={{ objectFit: 'contain' }}
+                    />
+                  </span>
+                  <span className="arc-poster-title">{item.shelfTitle}</span>
+                  <span className="arc-poster-meta">{item.year}</span>
+                  <span className="arc-poster-note">{item.note}</span>
+                </a>
+              ))}
+            </div>
+          </section>
+
+          <section className="arc-section" id="films" aria-labelledby="films-label">
+            <p className="arc-kicker" id="films-label">
+              films
+            </p>
+            <div className="arc-posters">
+              {FILM_RECS.map((item) => (
+                <a
+                  key={item.title}
+                  id={slugify(item.shelfTitle)}
+                  className="arc-poster"
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span className="arc-poster-frame">
+                    <Image
+                      src={item.image}
+                      alt=""
+                      fill
+                      sizes="(min-width: 820px) 140px, 108px"
+                      style={{ objectFit: 'contain' }}
+                    />
+                  </span>
+                  <span className="arc-poster-title">{item.shelfTitle}</span>
+                  <span className="arc-poster-meta">{item.year}</span>
+                  <span className="arc-poster-note">{item.note}</span>
+                </a>
+              ))}
+            </div>
+          </section>
+
+          <section className="arc-section" id="podcasts" aria-labelledby="listen-recs">
+            <p className="arc-kicker" id="listen-recs">
+              listen
+            </p>
+            <div className="arc-cassettes">
+              {PODCAST_RECS.map((item) => (
+                <ShelfHref
+                  key={item.title}
+                  href={item.href}
+                  className="arc-cassette"
+                >
+                  <span className="arc-cassette-body" aria-hidden>
+                    <span className="arc-cassette-window">
+                      <span className="arc-cassette-reel" />
+                      <span className="arc-cassette-reel" />
+                    </span>
+                  </span>
+                  <span id={slugify(item.shelfTitle)}>
+                    <span className="arc-cassette-title">{item.shelfTitle}</span>
+                    <span className="arc-cassette-meta">{item.meta}</span>
+                    <span className="arc-cassette-note">{item.body}</span>
+                  </span>
+                </ShelfHref>
+              ))}
+            </div>
+          </section>
+
+          <section className="arc-section" id="channels" aria-labelledby="channel-recs">
+            <p className="arc-kicker" id="channel-recs">
+              read
+            </p>
+            <ul className="arc-list">
+              {CHANNEL_RECS.map((item) => (
+                <li key={item.title} id={slugify(item.shelfTitle)} className="arc-item">
+                  <ShelfHref href={item.href} className="arc-item-title">
+                    {item.shelfTitle}
+                  </ShelfHref>
+                  <span className="arc-item-meta">{item.label}</span>
+                  <p className="arc-item-note">{item.body}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="arc-section" id="euro-life" aria-labelledby="shelf-tips-label">
+            <span id="lifestyle" className="shelf-hash-alias" />
+            <p className="arc-kicker" id="shelf-tips-label">
+              living
+            </p>
+            <ul className="arc-list">
+              {[...EURO_LIFE_GUIDE, ...LIFESTYLE_RECS].map((item) => (
+                <li key={item.title} id={slugify(item.title)} className="arc-item">
+                  <span className="arc-item-title">{item.title}</span>
+                  <span className="arc-item-meta">{item.label}</span>
+                  <p className="arc-item-note">{item.body}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
         </div>
-      </section>
-
-      <section className="arc-section" id="podcasts" aria-labelledby="listen-recs">
-        <p className="arc-kicker" id="listen-recs">
-          listen
-        </p>
-        <div className="arc-cassettes">
-          {PODCAST_RECS.map((item) => (
-            <ShelfHref key={item.title} href={item.href} className="arc-cassette">
-              <span className="arc-cassette-body" aria-hidden>
-                <span className="arc-cassette-window">
-                  <span className="arc-cassette-reel" />
-                  <span className="arc-cassette-reel" />
-                </span>
-              </span>
-              <span>
-                <span className="arc-cassette-title">{item.shelfTitle}</span>
-                <span className="arc-cassette-meta">{item.meta}</span>
-                <span className="arc-cassette-note">{item.body}</span>
-              </span>
-            </ShelfHref>
-          ))}
-        </div>
-      </section>
-
-      <section className="arc-section" id="channels" aria-labelledby="channel-recs">
-        <p className="arc-kicker" id="channel-recs">
-          read next
-        </p>
-        <ul className="arc-list">
-          {CHANNEL_RECS.map((item) => (
-            <li key={item.title} className="arc-item">
-              <ShelfHref href={item.href} className="arc-item-title">
-                {item.shelfTitle}
-              </ShelfHref>
-              <span className="arc-item-meta">{item.label}</span>
-              <p className="arc-item-note">{item.body}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="arc-section" id="euro-life" aria-labelledby="shelf-tips-label">
-        <span id="lifestyle" className="shelf-hash-alias" />
-        <span id="films" className="shelf-hash-alias" />
-        <p className="arc-kicker" id="shelf-tips-label">
-          stolen from the shelf
-        </p>
-        <ul className="arc-list">
-          {[...EURO_LIFE_GUIDE, ...LIFESTYLE_RECS].map((item) => (
-            <li key={item.title} className="arc-item">
-              <span className="arc-item-title">{item.title}</span>
-              <span className="arc-item-meta">{item.label}</span>
-              <p className="arc-item-note">{item.body}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
+      </div>
     </ArchivePage>
   );
 }

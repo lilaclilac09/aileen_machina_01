@@ -9,6 +9,7 @@ import {
   type ToolDefinition,
 } from '../../lib/tools/registry';
 import ArcadeLayout from './ArcadeLayout';
+import ArchiveIndex from '../../app/_archive/ArchiveIndex';
 
 type ItemCopy = {
   tag: string;
@@ -85,7 +86,7 @@ function LabCard({
 
   if (paused) {
     return (
-      <li className="tools-lab-paused-item">
+      <li id={tool.slug} className="tools-lab-paused-item">
         <p className="tools-lab-paused-title">{title}</p>
         <p className="tools-lab-paused-verdict">{note}</p>
       </li>
@@ -94,6 +95,7 @@ function LabCard({
 
   const inner = (
     <article
+      id={tool.slug}
       className={`tools-lab-card${featured ? ' tools-lab-card--featured' : ''}${
         tool.tier === 'experiment' ? ' tools-lab-card--experiment' : ''
       }`}
@@ -150,58 +152,108 @@ export default function ToolsArcadePage() {
           </a>
         </p>
 
-        <section className="tools-lab-section" aria-labelledby="tools-featured-heading">
-          <h2 id="tools-featured-heading" className="tools-lab-section-title">
-            {tx.featuredLabel}
-          </h2>
-          <div className="tools-lab-featured">
-            {featured.map((tool) => (
-              <LabCard
-                key={tool.slug}
-                tool={tool}
-                copy={tx.items[tool.slug as keyof typeof tx.items]}
-                openLabel={tx.openTool}
-                featured
-              />
-            ))}
+        <div className="arc-stage">
+          <ArchiveIndex
+            label="tools index"
+            groups={[
+              {
+                id: 'tools-featured',
+                label: tx.featuredLabel,
+                items: featured.map((tool) => ({
+                  href: `#${tool.slug}`,
+                  label: tx.items[tool.slug as keyof typeof tx.items]?.title ?? tool.title,
+                })),
+              },
+              {
+                id: 'tools-bench',
+                label: tx.benchLabel,
+                items: bench.map((tool) => ({
+                  href: `#${tool.slug}`,
+                  label: tx.items[tool.slug as keyof typeof tx.items]?.title ?? tool.title,
+                })),
+              },
+              ...(paused.length > 0
+                ? [
+                    {
+                      id: 'tools-paused',
+                      label: tx.pausedLabel,
+                      items: paused.map((tool) => ({
+                        href: `#${tool.slug}`,
+                        label: tx.items[tool.slug as keyof typeof tx.items]?.title ?? tool.title,
+                      })),
+                    },
+                  ]
+                : []),
+            ]}
+          />
+
+          <div className="arc-stage-main">
+            <section
+              id="tools-featured"
+              className="tools-lab-section"
+              aria-labelledby="tools-featured-heading"
+            >
+              <h2 id="tools-featured-heading" className="tools-lab-section-title">
+                {tx.featuredLabel}
+              </h2>
+              <div className="tools-lab-featured">
+                {featured.map((tool) => (
+                  <LabCard
+                    key={tool.slug}
+                    tool={tool}
+                    copy={tx.items[tool.slug as keyof typeof tx.items]}
+                    openLabel={tx.openTool}
+                    featured
+                  />
+                ))}
+              </div>
+            </section>
+
+            <section
+              id="tools-bench"
+              className="tools-lab-section"
+              aria-labelledby="tools-bench-heading"
+            >
+              <h2 id="tools-bench-heading" className="tools-lab-section-title">
+                {tx.benchLabel}
+              </h2>
+              <div className="tools-lab-pair">
+                {bench.map((tool) => (
+                  <LabCard
+                    key={tool.slug}
+                    tool={tool}
+                    copy={tx.items[tool.slug as keyof typeof tx.items]}
+                    openLabel={tx.openTool}
+                  />
+                ))}
+              </div>
+            </section>
+
+            {paused.length > 0 ? (
+              <section
+                id="tools-paused"
+                className="tools-lab-section"
+                aria-labelledby="tools-paused-heading"
+              >
+                <h2 id="tools-paused-heading" className="tools-lab-section-title">
+                  {tx.pausedLabel}
+                </h2>
+                <ul className="tools-lab-paused">
+                  {paused.map((tool) => (
+                    <LabCard
+                      key={tool.slug}
+                      tool={tool}
+                      copy={tx.items[tool.slug as keyof typeof tx.items]}
+                      openLabel={tx.openTool}
+                    />
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+
+            <p className="tools-lab-note">{tx.labNote}</p>
           </div>
-        </section>
-
-        <section className="tools-lab-section" aria-labelledby="tools-bench-heading">
-          <h2 id="tools-bench-heading" className="tools-lab-section-title">
-            {tx.benchLabel}
-          </h2>
-          <div className="tools-lab-pair">
-            {bench.map((tool) => (
-              <LabCard
-                key={tool.slug}
-                tool={tool}
-                copy={tx.items[tool.slug as keyof typeof tx.items]}
-                openLabel={tx.openTool}
-              />
-            ))}
-          </div>
-        </section>
-
-        {paused.length > 0 ? (
-          <section className="tools-lab-section" aria-labelledby="tools-paused-heading">
-            <h2 id="tools-paused-heading" className="tools-lab-section-title">
-              {tx.pausedLabel}
-            </h2>
-            <ul className="tools-lab-paused">
-              {paused.map((tool) => (
-                <LabCard
-                  key={tool.slug}
-                  tool={tool}
-                  copy={tx.items[tool.slug as keyof typeof tx.items]}
-                  openLabel={tx.openTool}
-                />
-              ))}
-            </ul>
-          </section>
-        ) : null}
-
-        <p className="tools-lab-note">{tx.labNote}</p>
+        </div>
       </div>
     </ArcadeLayout>
   );

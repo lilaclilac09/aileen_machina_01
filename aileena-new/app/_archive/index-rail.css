@@ -1,0 +1,82 @@
+/* Shared classification rail — cream tree, not a dark store clone. */
+
+.arc-stage {
+  display: grid;
+  gap: 28px;
+}
+
+.arc-stage-main {
+  min-width: 0;
+}
+
+.arc-index {
+  min-width: 0;
+  margin: 0;
+  padding: 0 0 8px;
+  border-bottom: 1px solid var(--arc-line, rgba(17, 17, 17, 0.08));
+}
+
+.arc-index-group + .arc-index-group {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--arc-line, rgba(17, 17, 17, 0.08));
+}
+
+.arc-index-head {
+  display: block;
+  margin: 0 0 8px;
+  color: var(--arc-ink, rgba(17, 17, 17, 0.88));
+  font-family: var(--arc-sans, system-ui, sans-serif);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: lowercase;
+  text-decoration: none;
+}
+
+.arc-index-head:hover {
+  color: var(--arc-teal, #008f84);
+}
+
+.arc-index-list {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+  padding: 0 0 0 10px;
+  list-style: none;
+  border-left: 1px solid var(--arc-line, rgba(17, 17, 17, 0.08));
+}
+
+.arc-index-list li {
+  margin: 0;
+}
+
+.arc-index-list a {
+  display: block;
+  padding: 1px 0;
+  color: var(--arc-mute, rgba(17, 17, 17, 0.56));
+  font-family: var(--arc-sans, system-ui, sans-serif);
+  font-size: 0.76rem;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+}
+
+.arc-index-list a:hover {
+  color: var(--arc-teal, #008f84);
+}
+
+@media (min-width: 820px) {
+  .arc-stage {
+    grid-template-columns: 168px minmax(0, 1fr);
+    align-items: start;
+    gap: 36px;
+  }
+
+  .arc-index {
+    position: sticky;
+    top: 72px;
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+}

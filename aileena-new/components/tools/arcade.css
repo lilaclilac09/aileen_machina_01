@@ -1,3 +1,5 @@
+@import '../../app/_archive/index-rail.css';
+
 @keyframes arcade-marquee {
   0% {
     transform: translateX(0);
@@ -40,6 +42,11 @@
   --arcade-cyan: #00a99f;
   --arcade-amber: #c9872f;
   --arcade-line: rgba(20, 17, 12, 0.08);
+  --arc-ink: #14110c;
+  --arc-mute: rgba(20, 17, 12, 0.58);
+  --arc-line: rgba(20, 17, 12, 0.08);
+  --arc-teal: #008f86;
+  --arc-sans: 'Nunito', system-ui, sans-serif;
 
   min-height: 100vh;
   background:
@@ -197,7 +204,18 @@
 /* —— Tools lab —— */
 .tools-lab {
   display: grid;
+  gap: 28px;
+}
+
+.tools-lab .arc-stage-main {
+  display: grid;
   gap: 44px;
+}
+
+.tools-lab-section,
+.tools-lab-card,
+.tools-lab-paused-item {
+  scroll-margin-top: 88px;
 }
 
 .tools-lab-cafe-hint {
