@@ -2,9 +2,10 @@
 
 Auto-detected updates from site sources (`sync-content-memory`).
 
-## New articles
+## New player tracks (deck library)
 
-- **Is a Terrestrial Neocloud Possible in China?** (2026.08.15) — https://aileena.xyz/blog/china-neocloud-teaser
+- **Love Honey** (43UmOsrAaLEmqSHJYFeiRw)
+- **11110B** (WAX11110B)
 
 ## Next step
 
