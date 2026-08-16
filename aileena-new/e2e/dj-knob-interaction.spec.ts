@@ -40,6 +40,15 @@ test.describe('DJ knob click / keyboard', () => {
       fullPage: false,
     });
 
+    const box = await knob.boundingBox();
+    expect(box).toBeTruthy();
+    await page.mouse.click(box!.x + box!.width * 0.82, box!.y + box!.height * 0.78);
+    await expect.poll(async () => knob.getAttribute('data-knob-value')).not.toBe('50');
+    await page.screenshot({
+      path: `${ARTIFACTS}/dj_knob_ring_click.png`,
+      fullPage: false,
+    });
+
     const eq = page.getByTestId('dj-knob-eq-hi');
     await eq.scrollIntoViewIfNeeded();
     await page.getByTestId('dj-knob-tick-eq-hi-0').click();

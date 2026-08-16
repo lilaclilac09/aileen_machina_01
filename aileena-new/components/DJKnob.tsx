@@ -81,7 +81,13 @@ export default function DJKnob({
     dragged.current = false;
     startY.current = e.clientY;
     startX.current = e.clientX;
-    startVal.current = localVal;
+    const jumped = valueFromPointer(e.clientX, e.clientY);
+    if (jumped != null) {
+      commit(jumped);
+      startVal.current = jumped;
+    } else {
+      startVal.current = localVal;
+    }
   }
 
   function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
