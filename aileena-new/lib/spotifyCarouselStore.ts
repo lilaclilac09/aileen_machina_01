@@ -27,6 +27,7 @@ export function searchHitToDeckTrack(hit: SpotifySearchTrack): DeckTrack {
     source: 'spotify',
     previewUrl: hit.previewUrl,
     externalUrl: hit.externalUrl,
+    mixable: false,
   };
 }
 
@@ -53,7 +54,12 @@ export function parseStoredSpotifyTracks(raw: string): DeckTrack[] {
       const key = (row.spotifyId || row.id).toLowerCase();
       if (seen.has(key)) continue;
       seen.add(key);
-      out.push({ ...row, source: 'spotify', spotifyId: row.spotifyId || row.id });
+      out.push({
+        ...row,
+        source: 'spotify',
+        spotifyId: row.spotifyId || row.id,
+        mixable: false,
+      });
     }
     return out;
   } catch {

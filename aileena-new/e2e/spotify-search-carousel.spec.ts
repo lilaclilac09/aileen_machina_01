@@ -64,6 +64,7 @@ async function mockSpotify(page: Page, configured: boolean) {
     }
     const url = new URL(route.request().url());
     const q = (url.searchParams.get('q') || '').trim();
+    await new Promise((r) => setTimeout(r, 350));
     if (q.toLowerCase().includes('zzzz')) {
       await route.fulfill({
         status: 200,
@@ -115,6 +116,11 @@ test.describe('Spotify search → carousel', () => {
     });
 
     await page.getByTestId('spotify-search-input').fill('muse');
+    await expect(page.getByTestId('spotify-search-loading')).toBeVisible({ timeout: 4_000 });
+    await page.screenshot({
+      path: `${ARTIFACTS}/spotify_search_loading.png`,
+      fullPage: false,
+    });
     const results = page.getByTestId('spotify-search-results');
     await expect(results).toBeVisible({ timeout: 8_000 });
     await expect(page.getByTestId('spotify-search-hit')).toHaveCount(3);
@@ -142,7 +148,7 @@ test.describe('Spotify search → carousel', () => {
     await expect(page.getByTestId('spotify-ref-badge').first()).toBeVisible();
     await expect(page.locator('#dj-set')).toContainText(/not mixable/i);
     await page.locator('[data-dj-load-deck="left"]').click();
-    await expect(page.getByText(/preview only — not mixable or exportable/i)).toBeVisible();
+    await expect(page.getByText('Spotify reference only. Upload audio to mix/export.')).toBeVisible();
     await page.locator('#dj-set').screenshot({
       path: `${ARTIFACTS}/spotify_search_track_added.png`,
     });
@@ -177,6 +183,8 @@ test.describe('Spotify search → carousel', () => {
     await expect(search).toBeVisible({ timeout: 20_000 });
     await expect(search).toHaveAttribute('data-spotify-configured', 'missing', { timeout: 10_000 });
     await page.locator('#dj-set').scrollIntoViewIfNeeded();
+    await expect(page.getByTestId('spotify-search-disabled')).toContainText('SPOTIFY_CLIENT_ID');
+    await expect(page.getByTestId('spotify-search-disabled')).toContainText('SPOTIFY_CLIENT_SECRET');
     await expect(page.getByTestId('spotify-search-disabled')).toHaveText(/not configured/i);
     await expect(page.getByTestId('spotify-search-input')).toBeDisabled();
     await expect(page.getByTestId('spotify-search-input')).toHaveAttribute(

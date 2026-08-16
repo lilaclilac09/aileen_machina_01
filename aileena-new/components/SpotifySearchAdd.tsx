@@ -183,7 +183,8 @@ export default function SpotifySearchAdd({
       />
       {configured === 'missing' && (
         <p data-testid="spotify-search-disabled" style={hintStyle}>
-          Spotify search is not configured. Add the server Spotify credentials, then redeploy.
+          Spotify search is not configured. Add server env SPOTIFY_CLIENT_ID and
+          SPOTIFY_CLIENT_SECRET, then redeploy.
         </p>
       )}
       {configured === 'error' && (
@@ -214,7 +215,9 @@ export default function SpotifySearchAdd({
           }}
         >
           {searching && (
-            <p style={{ ...rowHint, color: 'rgba(255,253,248,0.5)' }}>searching…</p>
+            <p data-testid="spotify-search-loading" style={{ ...rowHint, color: 'rgba(255,253,248,0.5)' }}>
+              searching…
+            </p>
           )}
           {!searching && searchError && (
             <p style={{ ...rowHint, color: '#ff9b5e' }}>{searchError}</p>

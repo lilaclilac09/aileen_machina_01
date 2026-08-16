@@ -33,6 +33,8 @@ export type DeckTrack = {
   source?: 'spotify';
   previewUrl?: string | null;
   externalUrl?: string;
+  /** False for Spotify search cards — preview is not a mix/export source. */
+  mixable?: boolean;
 };
 
 /** Curated handoff five — also mirrored in public/dj-set/setlist.json */

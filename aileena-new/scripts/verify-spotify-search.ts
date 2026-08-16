@@ -62,15 +62,22 @@ function secretBoundary(): Check[] {
   const out: Check[] = [];
   for (const rel of clientFiles) {
     const src = readFileSync(join(root, rel), 'utf8');
-    const mentionsSecret = /SPOTIFY_CLIENT_SECRET/.test(src);
-    const mentionsPublic = /NEXT_PUBLIC_SPOTIFY_CLIENT_SECRET/.test(src);
+    const readsSecret = /process\.env\.SPOTIFY_CLIENT_(ID|SECRET)/.test(src);
+    const mentionsPublic = /NEXT_PUBLIC_SPOTIFY/.test(src);
     out.push(check(
-      `${rel} does not mention SPOTIFY_CLIENT_SECRET`,
-      !mentionsSecret && !mentionsPublic,
-      mentionsSecret ? 'secret identifier present' : 'ok',
+      `${rel} does not read Spotify secrets`,
+      !readsSecret && !mentionsPublic,
+      readsSecret ? 'client reads process.env Spotify keys' : 'ok',
     ));
   }
   const searchUi = readFileSync(join(root, 'components/SpotifySearchAdd.tsx'), 'utf8');
+  out.push(check(
+    'disabled hint names SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET',
+    /SPOTIFY_CLIENT_ID/.test(searchUi)
+      && /SPOTIFY_CLIENT_SECRET/.test(searchUi)
+      && /not configured/.test(searchUi)
+      && !/process\.env\.SPOTIFY_CLIENT_SECRET/.test(searchUi),
+  ));
   const resultsBlock = searchUi.split('data-testid="spotify-search-results"')[1] ?? '';
   out.push(check(
     'search results render in-flow (not an absolute overlay under the page)',
@@ -117,6 +124,7 @@ function run(): Check[] {
   if (preview) {
     const deck = searchHitToDeckTrack(preview);
     checks.push(check('deck track source=spotify', deck.source === 'spotify'));
+    checks.push(check('deck track mixable is false', deck.mixable === false));
     checks.push(check('deck track keeps preview + external', deck.previewUrl === preview.previewUrl && deck.externalUrl === preview.externalUrl));
     checks.push(check('deck duration seconds', deck.dur === 366));
     const first = addSpotifyHitToLibrary(catalogue, preview);

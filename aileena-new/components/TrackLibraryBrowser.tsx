@@ -763,25 +763,48 @@ function PlaylistCarousel({
                   />
                   {track.source === 'spotify' && (
                     <span
-                      data-testid="spotify-ref-badge"
                       style={{
                         position: 'absolute',
                         top: 6,
                         left: 6,
                         zIndex: 2,
-                        fontFamily: 'monospace',
-                        fontSize: 8,
-                        letterSpacing: '0.12em',
-                        textTransform: 'uppercase',
-                        color: T.l1,
-                        background: 'rgba(0,0,0,0.62)',
-                        border: `1px solid ${T.cyanSoft}`,
-                        padding: '2px 5px',
-                        borderRadius: 2,
+                        display: 'flex',
+                        gap: 4,
                         pointerEvents: 'none',
                       }}
                     >
-                      REF
+                      <span
+                        data-testid="spotify-source-badge"
+                        style={{
+                          fontFamily: 'monospace',
+                          fontSize: 8,
+                          letterSpacing: '0.12em',
+                          textTransform: 'uppercase',
+                          color: T.l1,
+                          background: 'rgba(0,0,0,0.62)',
+                          border: `1px solid ${T.cyanSoft}`,
+                          padding: '2px 5px',
+                          borderRadius: 2,
+                        }}
+                      >
+                        spotify
+                      </span>
+                      <span
+                        data-testid="spotify-ref-badge"
+                        style={{
+                          fontFamily: 'monospace',
+                          fontSize: 8,
+                          letterSpacing: '0.12em',
+                          textTransform: 'uppercase',
+                          color: T.l1,
+                          background: 'rgba(0,0,0,0.62)',
+                          border: `1px solid ${track.previewUrl ? T.cyanSoft : 'rgba(255,253,248,0.28)'}`,
+                          padding: '2px 5px',
+                          borderRadius: 2,
+                        }}
+                      >
+                        {track.previewUrl ? 'preview' : 'reference'}
+                      </span>
                     </span>
                   )}
                   {rel === 0 && (
@@ -802,6 +825,19 @@ function PlaylistCarousel({
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                         margin: 0,
                       }}>{track.title}</p>
+                      {track.source === 'spotify' && (track.artist || track.artists?.length) ? (
+                        <p style={{
+                          fontFamily: 'monospace',
+                          fontSize: '0.24rem',
+                          letterSpacing: '0.06em',
+                          color: 'rgba(255,253,248,0.62)',
+                          textAlign: 'center',
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                          margin: '2px 0 0',
+                        }}>
+                          {track.artist || track.artists?.join(' · ')}
+                        </p>
+                      ) : null}
                     </div>
                   )}
                 </div>
@@ -859,7 +895,7 @@ function PlaylistCarousel({
               color: T.l3m,
             }}>
               {active.source === 'spotify'
-                ? `${active.title} · preview / reference · ${fmtDur(active.dur)} · not mixable`
+                ? `${active.title} · ${active.artist || active.artists?.join(' · ') || 'spotify'} · ${active.previewUrl ? 'preview' : 'reference only'} · ${fmtDur(active.dur)} · not mixable`
                 : `${active.title} · ${active.bpm} BPM · ${active.key} · ${fmtDur(active.dur)}`}
             </span>
           </div>
