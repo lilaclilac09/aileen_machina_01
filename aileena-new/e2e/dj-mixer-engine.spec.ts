@@ -29,7 +29,9 @@ test.describe('DJ mixer engine', () => {
     await page.goto('/sound', { waitUntil: 'domcontentloaded' });
     await expect(page.getByTestId('dj-engine-status')).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-ready', 'true');
-    await expect(page.getByTestId('dj-spotify-preview-note')).toContainText('cannot be mixed');
+    await expect(page.getByTestId('dj-set-tutorial')).toBeVisible();
+    await expect(page.getByTestId('dj-sticker-load')).toContainText(/add two tracks/i);
+    await expect(page.getByTestId('dj-spotify-preview-note')).toContainText(/real audio only/i);
 
     const wavA = pcmWav(3, 440);
     const wavB = pcmWav(3, 660);

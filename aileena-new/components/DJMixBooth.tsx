@@ -139,8 +139,7 @@ export default function DJMixBooth({
       </div>
 
       <p style={{ margin: '8px 0 0', fontFamily: 'monospace', fontSize: '0.32rem', letterSpacing: '0.06em', color: C.dim }}>
-        SoundCloud upload is manual in v1 — no OAuth, no credentials in the client. Open the upload page and attach the
-        downloaded mix.
+        manual upload · attach the file
       </p>
 
       <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap', alignItems: 'center' }}>
