@@ -49,6 +49,7 @@ function run(): Check[] {
   checks.push(check('touch-action none', knob.includes("touchAction: 'none'")));
   checks.push(check('tick marks', knob.includes('dj-knob-tick-') && knob.includes('KNOB_TICK_PCTS')));
   checks.push(check('click-to-set via pointer angle', knob.includes('pointerToKnobValue') && knob.includes('dragged.current')));
+  checks.push(check('ignore near-center clicks for angle jump', knob.includes('rect.width * 0.28')));
 
   const station = readFileSync(join(process.cwd(), 'components/DJStation.tsx'), 'utf8');
   checks.push(check('DJStation uses shared DJKnob', station.includes("from './DJKnob'") && !station.includes('function EQKnob')));

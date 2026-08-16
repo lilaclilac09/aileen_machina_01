@@ -61,19 +61,16 @@ export default function DJKnob({
     onChange?.(clamped);
   }
 
-  function valueFromPointer(clientX: number, clientY: number): number {
+  function valueFromPointer(clientX: number, clientY: number): number | null {
     const el = ringRef.current;
-    if (!el) return localVal;
+    if (!el) return null;
     const rect = el.getBoundingClientRect();
-    return pointerToKnobValue(
-      clientX,
-      clientY,
-      rect.left + rect.width / 2,
-      rect.top + rect.height / 2,
-      min,
-      max,
-      step,
-    );
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dist = Math.hypot(clientX - cx, clientY - cy);
+    // Inner body is too close to the origin for a stable angle — drag only.
+    if (dist < rect.width * 0.28) return null;
+    return pointerToKnobValue(clientX, clientY, cx, cy, min, max, step);
   }
 
   function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
@@ -101,7 +98,8 @@ export default function DJKnob({
     if (!dragging) return;
     setDragging(false);
     if (!dragged.current) {
-      commit(valueFromPointer(e.clientX, e.clientY));
+      const jumped = valueFromPointer(e.clientX, e.clientY);
+      if (jumped != null) commit(jumped);
     }
   }
 
@@ -193,10 +191,10 @@ export default function DJKnob({
               }}
               style={{
                 position: 'absolute',
-                left: x - 6,
-                top: y - 6,
-                width: 12,
-                height: 12,
+                left: x - 8,
+                top: y - 8,
+                width: 16,
+                height: 16,
                 padding: 0,
                 border: 'none',
                 background: 'transparent',
