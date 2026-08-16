@@ -1,7 +1,11 @@
 'use client';
 import { useState, useRef, useEffect, useCallback, useMemo, useSyncExternalStore } from 'react';
 import TrackLibraryBrowser from './TrackLibraryBrowser';
+import DJDeckWaveform from './DJDeckWaveform';
+import DJMixBooth from './DJMixBooth';
 import { allDeckTracks, type DeckTrack } from '../lib/djSetlist';
+import { useDjMixer } from '../lib/useDjMixer';
+import { fmtMs } from '../lib/djMixerMath';
 
 /* ─── Palette — aligned to AgentChat cream + deep green ─── */
 const C = {
@@ -95,6 +99,10 @@ function fmt(ms: number) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
+function fmtSecLabel(sec: number) {
+  return fmtMs(sec * 1000);
+}
+
 /* ─── Responsive hook ────────────────────────────────────── */
 function subscribeMobile(onStoreChange: () => void) {
   const mq = window.matchMedia('(max-width: 639px)');
@@ -114,17 +122,9 @@ function useIsMobile() {
 /* ─── Main ───────────────────────────────────────────────── */
 export default function DJStation() {
   const isMobile = useIsMobile();
+  const mix = useDjMixer();
   const [leftTrack,    setLeftTrack]    = useState<Track | null>(INITIAL_LEFT);
   const [rightTrack,   setRightTrack]   = useState<Track | null>(INITIAL_RIGHT);
-  const [leftPlaying,  setLeftPlaying]  = useState(false);
-  const [rightPlaying, setRightPlaying] = useState(false);
-  const [leftPos,      setLeftPos]      = useState(0);
-  const [rightPos,     setRightPos]     = useState(0);
-  const [leftDur,      setLeftDur]      = useState(0);
-  const [rightDur,     setRightDur]     = useState(0);
-  const [leftPitch,    setLeftPitch]    = useState(0);
-  const [rightPitch,   setRightPitch]   = useState(0);
-  const [xfade,        setXfade]        = useState(50);
   const [dropSide,     setDropSide]     = useState<'left'|'right'|null>(null);
   const [leftEmbedReady,  setLeftEmbedReady]  = useState(false);
   const [rightEmbedReady, setRightEmbedReady] = useState(false);
@@ -134,12 +134,11 @@ export default function DJStation() {
   const rightContainerRef = useRef<HTMLDivElement>(null);
   const leftCtrl          = useRef<SpotifyController | null>(null);
   const rightCtrl         = useRef<SpotifyController | null>(null);
+  const fileARef          = useRef<HTMLInputElement>(null);
+  const fileBRef          = useRef<HTMLInputElement>(null);
   const dragTrack         = useRef<Track | null>(null);
   /** Deck A only — URI queued when leftCtrl is not ready yet (migration reconnect). */
   const pendingLeftUri    = useRef<string | null>(null);
-  const prevXfade         = useRef(50);
-  const leftWasPlaying    = useRef(false);
-  const rightWasPlaying   = useRef(false);
   const hintTimer         = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const showDeckHint = useCallback((msg: string) => {
@@ -236,19 +235,11 @@ export default function DJStation() {
     const initControllers = (api: IFrameAPI) => {
       if (cancelled) return;
       win.SpotifyIframeApi = api;
-      mountSide(api, 'left', leftContainerRef.current, INITIAL_LEFT, leftCtrl, (e) => {
-        setLeftPlaying(!e.data.isPaused);
-        if (e.data.duration > 0) {
-          setLeftPos(e.data.position);
-          setLeftDur(e.data.duration);
-        }
+      mountSide(api, 'left', leftContainerRef.current, INITIAL_LEFT, leftCtrl, () => {
+        /* Spotify iframe is preview-only — not part of the mix graph */
       }, () => setLeftEmbedReady(true));
-      mountSide(api, 'right', rightContainerRef.current, INITIAL_RIGHT, rightCtrl, (e) => {
-        setRightPlaying(!e.data.isPaused);
-        if (e.data.duration > 0) {
-          setRightPos(e.data.position);
-          setRightDur(e.data.duration);
-        }
+      mountSide(api, 'right', rightContainerRef.current, INITIAL_RIGHT, rightCtrl, () => {
+        /* Spotify iframe is preview-only — not part of the mix graph */
       }, () => setRightEmbedReady(true));
     };
 
@@ -305,10 +296,10 @@ export default function DJStation() {
       spotifyId: sid,
     });
 
+    mix.setCrateMeta(side, { title: track.title, bpm: track.bpm, key: track.key });
+
     if (side === 'left') {
       setLeftTrack(track);
-      setLeftPos(0);
-      setLeftDur(0);
       if (sid) {
         const uri = `spotify:track:${sid}`;
         if (leftCtrl.current) {
@@ -332,10 +323,7 @@ export default function DJStation() {
         showDeckHint(`“${track.title}” has no Spotify id — pick a library track to play`);
       }
     } else {
-      // Deck B unchanged this slice — keep prior behavior
       setRightTrack(track);
-      setRightPos(0);
-      setRightDur(0);
       if (sid) {
         rightCtrl.current?.loadUri(`spotify:track:${sid}`);
         setDeckHint(null);
@@ -343,7 +331,7 @@ export default function DJStation() {
         showDeckHint(`“${track.title}” has no Spotify id — pick a library track to play`);
       }
     }
-  }, [showDeckHint]);
+  }, [showDeckHint, mix]);
 
   const resolveDropTrack = useCallback((e: React.DragEvent, fallback: Track | null): Track | null => {
     if (fallback) return fallback;
@@ -358,95 +346,155 @@ export default function DJStation() {
     return found;
   }, []);
 
+  const takeAudioFile = (e: React.DragEvent): File | null => {
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return null;
+    if (file.type.startsWith('audio/')) return file;
+    if (/\.(mp3|wav|ogg|m4a|flac|aac|webm)$/i.test(file.name)) return file;
+    return null;
+  };
+
+  const assignFile = useCallback(async (side: 'left' | 'right', file: File) => {
+    const crate = side === 'left' ? leftTrack : rightTrack;
+    await mix.loadFile(side, file, crate ? { title: crate.title, bpm: crate.bpm, key: crate.key } : undefined);
+    setDeckHint(null);
+  }, [leftTrack, rightTrack, mix]);
+
   const dropOnDeckA = useCallback((e: React.DragEvent) => {
     e.preventDefault();
+    const file = takeAudioFile(e);
+    if (file) {
+      void assignFile('left', file);
+      dragTrack.current = null;
+      setDropSide(null);
+      return;
+    }
     const track = resolveDropTrack(e, dragTrack.current);
     console.log(DJ_AUDIT, 'drop target deck', { deck: 'A', trackId: track?.id ?? null });
     if (track) loadTrack('left', track);
     dragTrack.current = null;
     setDropSide(null);
-  }, [loadTrack, resolveDropTrack]);
+  }, [loadTrack, resolveDropTrack, assignFile]);
 
-  const toggleDeck = useCallback((side: 'left' | 'right') => {
-    const track = side === 'left' ? leftTrack : rightTrack;
-    const ctrl = side === 'left' ? leftCtrl.current : rightCtrl.current;
-    const ready = side === 'left' ? leftEmbedReady : rightEmbedReady;
-    const el = side === 'left' ? leftContainerRef.current : rightContainerRef.current;
+  const dropOnDeckB = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    const file = takeAudioFile(e);
+    if (file) {
+      void assignFile('right', file);
+      dragTrack.current = null;
+      setDropSide(null);
+      return;
+    }
+    if (dragTrack.current) loadTrack('right', dragTrack.current);
+    dragTrack.current = null;
+    setDropSide(null);
+  }, [loadTrack, assignFile]);
+
+  const toggleDeck = useCallback(async (side: 'left' | 'right') => {
     const label = side === 'left' ? 'A' : 'B';
-
-    console.log(DJ_AUDIT, 'play button click', {
-      deck: label,
-      trackId: track?.id ?? null,
-      hasCtrl: !!ctrl,
-      embedReady: ready,
-      pendingLeft: side === 'left' ? pendingLeftUri.current : null,
-    });
-
-    if (!track) {
-      showDeckHint(`Deck ${label} is empty — drag a cover or tap Load A / B`);
-      return;
-    }
-    if (!spotifyTrackId(track)) {
-      showDeckHint(`Deck ${label}: no Spotify id for “${track.title}”`);
-      return;
-    }
-    if (!ctrl) {
-      // If Deck A has a queued URI, keep the press-play hint (controller still mounting)
-      showDeckHint(
-        ready
-          ? `Deck ${label}: press ▶ / tap the green Spotify player to start`
-          : `Deck ${label}: Spotify still loading — wait a second, then press ▶`,
-      );
-      el?.querySelector('iframe')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-      return;
-    }
-    try {
-      ctrl.togglePlay();
-      console.log(DJ_AUDIT, 'togglePlay ok', { deck: label });
+    const started = await mix.toggle(side);
+    if (started) {
       setDeckHint(null);
-    } catch (err) {
-      console.log(DJ_AUDIT, 'togglePlay error', { deck: label, err });
-      showDeckHint(`Deck ${label}: press ▶ to start (autoplay blocked)`);
+      return;
     }
-  }, [leftTrack, rightTrack, leftEmbedReady, rightEmbedReady, showDeckHint]);
+    showDeckHint(
+      `Deck ${label}: upload an audio file to mix. Spotify below is preview only — iframe audio cannot enter the mix.`,
+    );
+  }, [mix, showDeckHint]);
 
   const handleXfade = useCallback((v: number) => {
-    const prev = prevXfade.current;
-    setXfade(v); prevXfade.current = v;
-    if (v <= 8  && prev > 8  && rightPlaying) rightCtrl.current?.togglePlay();
-    if (v >= 92 && prev < 92 && leftPlaying)  leftCtrl.current?.togglePlay();
-  }, [leftPlaying, rightPlaying]);
+    mix.changeXfade(v);
+  }, [mix]);
+
+  const leftBpm = mix.deckA.bpm ?? leftTrack?.bpm ?? null;
+  const rightBpm = mix.deckB.bpm ?? rightTrack?.bpm ?? null;
 
   /* BPM sync suggestion */
   const bpmHint = useMemo(() => {
-    if (!leftTrack || !rightTrack) return null;
-    const diff = rightTrack.bpm * (1 + rightPitch / 100) - leftTrack.bpm * (1 + leftPitch / 100);
+    if (!leftBpm || !rightBpm) return null;
+    const diff = rightBpm * (1 + mix.deckB.pitch / 100) - leftBpm * (1 + mix.deckA.pitch / 100);
     if (Math.abs(diff) < 0.5) return { type: 'sync' as const, diff };
     return { type: 'hint' as const, diff };
-  }, [leftTrack, rightTrack, leftPitch, rightPitch]);
+  }, [leftBpm, rightBpm, mix.deckA.pitch, mix.deckB.pitch]);
 
-  const leftDim  = xfade > 80 ? (100 - xfade) / 20 : 1;
-  const rightDim = xfade < 20 ? xfade / 20 : 1;
+  const leftDim  = mix.xfade > 80 ? (100 - mix.xfade) / 20 : 1;
+  const rightDim = mix.xfade < 20 ? mix.xfade / 20 : 1;
 
-  /* ── SYNC: adjust pitch so deck BPMs match ── */
   const handleSyncLeft = useCallback(() => {
-    if (!leftTrack || !rightTrack) return;
-    const targetBpm = rightTrack.bpm * (1 + rightPitch / 100);
-    const newPitch = (targetBpm / leftTrack.bpm - 1) * 100;
-    setLeftPitch(Math.max(-8, Math.min(8, +newPitch.toFixed(1))));
-  }, [leftTrack, rightTrack, rightPitch]);
+    if (!mix.sync('left')) showDeckHint('SYNC needs BPM on both decks — upload/crate tags, or v2 beat detection');
+  }, [mix, showDeckHint]);
 
   const handleSyncRight = useCallback(() => {
-    if (!leftTrack || !rightTrack) return;
-    const targetBpm = leftTrack.bpm * (1 + leftPitch / 100);
-    const newPitch = (targetBpm / rightTrack.bpm - 1) * 100;
-    setRightPitch(Math.max(-8, Math.min(8, +newPitch.toFixed(1))));
-  }, [leftTrack, rightTrack, leftPitch]);
+    if (!mix.sync('right')) showDeckHint('SYNC needs BPM on both decks — upload/crate tags, or v2 beat detection');
+  }, [mix, showDeckHint]);
+
+  const leftPlaying = mix.deckA.playing;
+  const rightPlaying = mix.deckB.playing;
+  const leftPos = mix.deckA.mixLoaded ? mix.deckA.pos * 1000 : 0;
+  const rightPos = mix.deckB.mixLoaded ? mix.deckB.pos * 1000 : 0;
+  const leftDur = mix.deckA.mixLoaded ? mix.deckA.dur * 1000 : (leftTrack?.dur ?? 0) * 1000;
+  const rightDur = mix.deckB.mixLoaded ? mix.deckB.dur * 1000 : (rightTrack?.dur ?? 0) * 1000;
+
+  const displayTrack = (side: 'left' | 'right'): Track | null => {
+    const crate = side === 'left' ? leftTrack : rightTrack;
+    const deck = side === 'left' ? mix.deckA : mix.deckB;
+    if (crate) {
+      return deck.mixLoaded
+        ? { ...crate, title: deck.title || crate.title, bpm: deck.bpm ?? crate.bpm, dur: deck.dur || crate.dur }
+        : crate;
+    }
+    if (!deck.mixLoaded) return null;
+    return {
+      id: side === 'left' ? 'local-a' : 'local-b',
+      title: deck.title || (side === 'left' ? 'LOCAL A' : 'LOCAL B'),
+      bpm: deck.bpm ?? 0,
+      key: deck.key ?? '—',
+      dur: deck.dur,
+      thumb: '',
+    };
+  };
 
   return (
     <div style={{ userSelect: 'none', width: '100%', background: '#0b0d10' }}>
+      <input
+        ref={fileARef}
+        data-testid="dj-upload-a"
+        type="file"
+        accept="audio/*"
+        hidden
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) void assignFile('left', f);
+          e.target.value = '';
+        }}
+      />
+      <input
+        ref={fileBRef}
+        data-testid="dj-upload-b"
+        type="file"
+        accept="audio/*"
+        hidden
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) void assignFile('right', f);
+          e.target.value = '';
+        }}
+      />
 
-      {/* ── Spotify embed containers (functional audio + play mark) ── */}
+      <p
+        data-testid="dj-spotify-preview-note"
+        style={{
+          margin: '0 0 8px',
+          fontFamily: 'monospace',
+          fontSize: '0.34rem',
+          letterSpacing: '0.08em',
+          color: C.dim,
+        }}
+      >
+        SPOTIFY PREVIEW — iframe audio cannot be mixed through Web Audio. Upload files (or a CORS-safe URL) to mix.
+      </p>
+
+      {/* ── Spotify embed containers (preview only — not in the mix graph) ── */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 6, marginBottom: 8 }}>
         {(['left','right'] as const).map(side => {
           const track = side === 'left' ? leftTrack : rightTrack;
@@ -540,68 +588,138 @@ export default function DJStation() {
             </span>
           )}
           <span style={{ fontFamily: 'monospace', fontSize: '0.34rem', letterSpacing: '0.4em', color: C.dim }}>
-            {leftTrack?.bpm ?? '--'} / {rightTrack?.bpm ?? '--'} BPM
+            {leftBpm ?? '--'} / {rightBpm ?? '--'} BPM
           </span>
         </div>
+
+        <EngineStatus
+          ready={mix.ready}
+          a={mix.deckA.mixLoaded}
+          b={mix.deckB.mixLoaded}
+          recording={mix.recording}
+          exportReady={mix.exportReady}
+        />
 
         {/* Deck + Mixer grid */}
         {isMobile ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 10 }}>
             <DeckPanel
-              side="left" track={leftTrack} playing={leftPlaying} isMobile={true} synced={bpmHint?.type === 'sync'}
-              pos={leftPos} dur={leftDur || (leftTrack?.dur ?? 0) * 1000}
-              pitch={leftPitch} dim={leftDim} dropActive={dropSide === 'left'}
-              onDragOver={e => { e.preventDefault(); setDropSide('left'); }}
+              side="left" track={displayTrack('left')} playing={leftPlaying} isMobile={true} synced={bpmHint?.type === 'sync'}
+              pos={leftPos} dur={leftDur}
+              pitch={mix.deckA.pitch} dim={leftDim} dropActive={dropSide === 'left'}
+              mixLoaded={mix.deckA.mixLoaded} peaks={mix.deckA.peaks} gain={mix.deckA.gain} vu={mix.vuA}
+              cueMs={mix.deckA.cue * 1000}
+              loopActive={mix.deckA.loopActive} loopIn={mix.deckA.loopIn} loopOut={mix.deckA.loopOut}
+              loopBars={mix.deckA.loopBars} hotCues={mix.deckA.hotCues}
+              syncEnabled={!!(leftBpm && rightBpm)} loopBarsEnabled={!!leftBpm}
+              onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; setDropSide('left'); }}
               onDragLeave={() => setDropSide(null)}
               onDrop={dropOnDeckA}
-              onToggle={() => toggleDeck('left')}
-              onPitch={setLeftPitch}
-              onScratchStart={() => { leftWasPlaying.current = leftPlaying; if (leftPlaying) leftCtrl.current?.togglePlay(); }}
-              onScratchEnd={() => { if (leftWasPlaying.current) leftCtrl.current?.togglePlay(); }}
+              onToggle={() => void toggleDeck('left')}
+              onPitch={v => mix.setPitch('left', v)}
+              onGain={v => mix.setGain('left', v)}
+              onSeek={sec => mix.seek('left', sec)}
+              onCue={() => mix.deckA.playing ? mix.returnToCue('left') : mix.setCueNow('left')}
+              onUpload={() => fileARef.current?.click()}
+              onLoopIn={() => mix.loopIn('left')}
+              onLoopOut={() => mix.loopOut('left')}
+              onLoopBars={n => { if (!mix.loopBars('left', n)) showDeckHint('Loop 1/2/4/8 needs BPM — v2 beat detection'); }}
+              onLoopExit={() => mix.loopExit('left')}
+              onHotCue={(i, clear) => mix.hotCue('left', i, clear)}
               onSync={handleSyncLeft}
             />
-            <MixerPanel xfade={xfade} onXfade={handleXfade} isMobile={true} />
+            <MixerPanel
+              xfade={mix.xfade} onXfade={handleXfade} isMobile={true}
+              eqA={mix.eqA} eqB={mix.eqB} onEq={mix.changeEq}
+              filterA={mix.filterA} filterB={mix.filterB} onFilter={mix.changeFilter}
+              faderA={mix.faderA} faderB={mix.faderB} onFader={mix.changeFader}
+              master={mix.master} onMaster={mix.changeMaster}
+              vuA={mix.vuA} vuB={mix.vuB} vuM={mix.vuM}
+            />
             <DeckPanel
-              side="right" track={rightTrack} playing={rightPlaying} isMobile={true} synced={bpmHint?.type === 'sync'}
-              pos={rightPos} dur={rightDur || (rightTrack?.dur ?? 0) * 1000}
-              pitch={rightPitch} dim={rightDim} dropActive={dropSide === 'right'}
-              onDragOver={e => { e.preventDefault(); setDropSide('right'); }}
+              side="right" track={displayTrack('right')} playing={rightPlaying} isMobile={true} synced={bpmHint?.type === 'sync'}
+              pos={rightPos} dur={rightDur}
+              pitch={mix.deckB.pitch} dim={rightDim} dropActive={dropSide === 'right'}
+              mixLoaded={mix.deckB.mixLoaded} peaks={mix.deckB.peaks} gain={mix.deckB.gain} vu={mix.vuB}
+              cueMs={mix.deckB.cue * 1000}
+              loopActive={mix.deckB.loopActive} loopIn={mix.deckB.loopIn} loopOut={mix.deckB.loopOut}
+              loopBars={mix.deckB.loopBars} hotCues={mix.deckB.hotCues}
+              syncEnabled={!!(leftBpm && rightBpm)} loopBarsEnabled={!!rightBpm}
+              onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; setDropSide('right'); }}
               onDragLeave={() => setDropSide(null)}
-              onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('right', dragTrack.current); setDropSide(null); }}
-              onToggle={() => toggleDeck('right')}
-              onPitch={setRightPitch}
-              onScratchStart={() => { rightWasPlaying.current = rightPlaying; if (rightPlaying) rightCtrl.current?.togglePlay(); }}
-              onScratchEnd={() => { if (rightWasPlaying.current) rightCtrl.current?.togglePlay(); }}
+              onDrop={dropOnDeckB}
+              onToggle={() => void toggleDeck('right')}
+              onPitch={v => mix.setPitch('right', v)}
+              onGain={v => mix.setGain('right', v)}
+              onSeek={sec => mix.seek('right', sec)}
+              onCue={() => mix.deckB.playing ? mix.returnToCue('right') : mix.setCueNow('right')}
+              onUpload={() => fileBRef.current?.click()}
+              onLoopIn={() => mix.loopIn('right')}
+              onLoopOut={() => mix.loopOut('right')}
+              onLoopBars={n => { if (!mix.loopBars('right', n)) showDeckHint('Loop 1/2/4/8 needs BPM — v2 beat detection'); }}
+              onLoopExit={() => mix.loopExit('right')}
+              onHotCue={(i, clear) => mix.hotCue('right', i, clear)}
               onSync={handleSyncRight}
             />
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 1fr', gap: 8, marginBottom: 10 }}>
             <DeckPanel
-              side="left" track={leftTrack} playing={leftPlaying} synced={bpmHint?.type === 'sync'}
-              pos={leftPos} dur={leftDur || (leftTrack?.dur ?? 0) * 1000}
-              pitch={leftPitch} dim={leftDim} dropActive={dropSide === 'left'}
-              onDragOver={e => { e.preventDefault(); setDropSide('left'); }}
+              side="left" track={displayTrack('left')} playing={leftPlaying} synced={bpmHint?.type === 'sync'}
+              pos={leftPos} dur={leftDur}
+              pitch={mix.deckA.pitch} dim={leftDim} dropActive={dropSide === 'left'}
+              mixLoaded={mix.deckA.mixLoaded} peaks={mix.deckA.peaks} gain={mix.deckA.gain} vu={mix.vuA}
+              cueMs={mix.deckA.cue * 1000}
+              loopActive={mix.deckA.loopActive} loopIn={mix.deckA.loopIn} loopOut={mix.deckA.loopOut}
+              loopBars={mix.deckA.loopBars} hotCues={mix.deckA.hotCues}
+              syncEnabled={!!(leftBpm && rightBpm)} loopBarsEnabled={!!leftBpm}
+              onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; setDropSide('left'); }}
               onDragLeave={() => setDropSide(null)}
               onDrop={dropOnDeckA}
-              onToggle={() => toggleDeck('left')}
-              onPitch={setLeftPitch}
-              onScratchStart={() => { leftWasPlaying.current = leftPlaying; if (leftPlaying) leftCtrl.current?.togglePlay(); }}
-              onScratchEnd={() => { if (leftWasPlaying.current) leftCtrl.current?.togglePlay(); }}
+              onToggle={() => void toggleDeck('left')}
+              onPitch={v => mix.setPitch('left', v)}
+              onGain={v => mix.setGain('left', v)}
+              onSeek={sec => mix.seek('left', sec)}
+              onCue={() => mix.deckA.playing ? mix.returnToCue('left') : mix.setCueNow('left')}
+              onUpload={() => fileARef.current?.click()}
+              onLoopIn={() => mix.loopIn('left')}
+              onLoopOut={() => mix.loopOut('left')}
+              onLoopBars={n => { if (!mix.loopBars('left', n)) showDeckHint('Loop 1/2/4/8 needs BPM — v2 beat detection'); }}
+              onLoopExit={() => mix.loopExit('left')}
+              onHotCue={(i, clear) => mix.hotCue('left', i, clear)}
               onSync={handleSyncLeft}
             />
-            <MixerPanel xfade={xfade} onXfade={handleXfade} />
+            <MixerPanel
+              xfade={mix.xfade} onXfade={handleXfade}
+              eqA={mix.eqA} eqB={mix.eqB} onEq={mix.changeEq}
+              filterA={mix.filterA} filterB={mix.filterB} onFilter={mix.changeFilter}
+              faderA={mix.faderA} faderB={mix.faderB} onFader={mix.changeFader}
+              master={mix.master} onMaster={mix.changeMaster}
+              vuA={mix.vuA} vuB={mix.vuB} vuM={mix.vuM}
+            />
             <DeckPanel
-              side="right" track={rightTrack} playing={rightPlaying} synced={bpmHint?.type === 'sync'}
-              pos={rightPos} dur={rightDur || (rightTrack?.dur ?? 0) * 1000}
-              pitch={rightPitch} dim={rightDim} dropActive={dropSide === 'right'}
-              onDragOver={e => { e.preventDefault(); setDropSide('right'); }}
+              side="right" track={displayTrack('right')} playing={rightPlaying} synced={bpmHint?.type === 'sync'}
+              pos={rightPos} dur={rightDur}
+              pitch={mix.deckB.pitch} dim={rightDim} dropActive={dropSide === 'right'}
+              mixLoaded={mix.deckB.mixLoaded} peaks={mix.deckB.peaks} gain={mix.deckB.gain} vu={mix.vuB}
+              cueMs={mix.deckB.cue * 1000}
+              loopActive={mix.deckB.loopActive} loopIn={mix.deckB.loopIn} loopOut={mix.deckB.loopOut}
+              loopBars={mix.deckB.loopBars} hotCues={mix.deckB.hotCues}
+              syncEnabled={!!(leftBpm && rightBpm)} loopBarsEnabled={!!rightBpm}
+              onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; setDropSide('right'); }}
               onDragLeave={() => setDropSide(null)}
-              onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('right', dragTrack.current); setDropSide(null); }}
-              onToggle={() => toggleDeck('right')}
-              onPitch={setRightPitch}
-              onScratchStart={() => { rightWasPlaying.current = rightPlaying; if (rightPlaying) rightCtrl.current?.togglePlay(); }}
-              onScratchEnd={() => { if (rightWasPlaying.current) rightCtrl.current?.togglePlay(); }}
+              onDrop={dropOnDeckB}
+              onToggle={() => void toggleDeck('right')}
+              onPitch={v => mix.setPitch('right', v)}
+              onGain={v => mix.setGain('right', v)}
+              onSeek={sec => mix.seek('right', sec)}
+              onCue={() => mix.deckB.playing ? mix.returnToCue('right') : mix.setCueNow('right')}
+              onUpload={() => fileBRef.current?.click()}
+              onLoopIn={() => mix.loopIn('right')}
+              onLoopOut={() => mix.loopOut('right')}
+              onLoopBars={n => { if (!mix.loopBars('right', n)) showDeckHint('Loop 1/2/4/8 needs BPM — v2 beat detection'); }}
+              onLoopExit={() => mix.loopExit('right')}
+              onHotCue={(i, clear) => mix.hotCue('right', i, clear)}
               onSync={handleSyncRight}
             />
           </div>
@@ -628,6 +746,21 @@ export default function DJStation() {
         )}
       </div>
 
+      <DJMixBooth
+        recording={mix.recording}
+        recSec={mix.recSec}
+        exportReady={mix.exportReady}
+        exportMime={mix.exportMime}
+        receipt={mix.receipt}
+        error={mix.error}
+        onRecord={() => void mix.startRecord()}
+        onStop={() => void mix.stopRecord()}
+        onDownloadAudio={mix.downloadAudio}
+        onDownloadMeta={mix.downloadMeta}
+        onCopyReceipt={() => void mix.copyReceiptText()}
+        onLoadUrl={(side, url) => void mix.loadUrl(side, url)}
+      />
+
       {/* ── Handoff set carousel (film strip) ── */}
       <div id="dj-set" style={{ marginTop: 10 }}>
         <TrackLibraryBrowser
@@ -638,8 +771,8 @@ export default function DJStation() {
             dragTrack.current = t;
             console.log(DJ_AUDIT, 'drag start track id', t?.id ?? null, t?.title ?? null);
           }}
-          playingLeft={leftPlaying ? (leftTrack?.id ?? null) : null}
-          playingRight={rightPlaying ? (rightTrack?.id ?? null) : null}
+          playingLeft={leftPlaying ? (leftTrack?.id ?? mix.deckA.fileName) : null}
+          playingRight={rightPlaying ? (rightTrack?.id ?? mix.deckB.fileName) : null}
           leftPos={leftPos} leftDur={leftDur}
           rightPos={rightPos} rightDur={rightDur}
         />
@@ -650,13 +783,22 @@ export default function DJStation() {
 
 /* ─── Deck Panel ─────────────────────────────────────────── */
 function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isMobile, synced,
-  onDragOver, onDragLeave, onDrop, onToggle, onPitch, onScratchStart, onScratchEnd, onSync }: {
+  mixLoaded, peaks, gain, vu, cueMs, loopActive, loopIn, loopOut, loopBars, hotCues,
+  syncEnabled, loopBarsEnabled,
+  onDragOver, onDragLeave, onDrop, onToggle, onPitch, onGain, onSeek, onCue, onUpload,
+  onLoopIn, onLoopOut, onLoopBars, onLoopExit, onHotCue, onSync }: {
   side: 'left'|'right'; track: Track|null; playing: boolean;
   pos: number; dur: number; pitch: number; dim: number; dropActive: boolean;
   isMobile?: boolean; synced?: boolean;
+  mixLoaded: boolean; peaks: number[] | null; gain: number; vu: number; cueMs: number;
+  loopActive: boolean; loopIn: number | null; loopOut: number | null; loopBars: number | null;
+  hotCues: Array<number | null>;
+  syncEnabled: boolean; loopBarsEnabled: boolean;
   onDragOver(e: React.DragEvent): void; onDragLeave(): void; onDrop(e: React.DragEvent): void;
-  onToggle(): void; onPitch(v: number): void;
-  onScratchStart(): void; onScratchEnd(): void;
+  onToggle(): void; onPitch(v: number): void; onGain(v: number): void;
+  onSeek(sec: number): void; onCue(): void; onUpload(): void;
+  onLoopIn(): void; onLoopOut(): void; onLoopBars(n: number): void; onLoopExit(): void;
+  onHotCue(i: number, clear: boolean): void;
   onSync: () => void;
 }) {
   const D    = isMobile ? 130 : 172;
@@ -668,10 +810,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
   const remaining = dur > 0 ? fmt(Math.max(0, dur - pos)) : (track ? `-${fmt((track.dur) * 1000)}` : '--:--');
   const elapsed   = dur > 0 ? fmt(pos) : '0:00';
 
-  // CUE state
-  const [cueMs, setCueMs] = useState<number | null>(null);
-
-  // Scratch state
+  // Scratch is visual-only (platter spin). Not vinyl audio.
   const [scratchAngle, setScratchAngle] = useState(0);
   const [isScratching, setIsScratching] = useState(false);
   const lastPtrAngle = useRef(0);
@@ -689,7 +828,6 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
     e.currentTarget.setPointerCapture(e.pointerId);
     lastPtrAngle.current = getPtrAngle(e);
     setIsScratching(true);
-    onScratchStart();
   }
   function onDiscMove(e: React.PointerEvent) {
     if (!isScratching) return;
@@ -703,7 +841,6 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
   function onDiscUp() {
     if (!isScratching) return;
     setIsScratching(false);
-    onScratchEnd();
   }
 
   // Tonearm: two fixed positions only — parked vs on outer groove
@@ -726,6 +863,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
       <div
         data-testid={side === 'left' ? 'dj-deck-a-drop' : 'dj-deck-b-drop'}
         data-deck-side={side}
+        data-mix-loaded={mixLoaded ? 'true' : 'false'}
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
@@ -740,7 +878,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
         {!track ? (
           <p style={{ fontSize: '0.34rem', letterSpacing: '0.5em', textTransform: 'uppercase',
             color: dropActive ? 'rgba(100,220,210,0.8)' : C.dim }}>
-            {dropActive ? '↓ DROP' : 'drop or A / B'}
+            {dropActive ? '↓ DROP FILE' : 'drop file or A / B'}
           </p>
         ) : (
           <div style={{ position: 'relative', width: D, height: D }}>
@@ -901,6 +1039,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
         border: '1px solid rgba(170,179,187,0.1)',
         display: 'flex', flexDirection: 'column', gap: 3,
       }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
         <p
           data-testid={side === 'left' ? 'dj-deck-a-title' : 'dj-deck-b-title'}
           data-track-id={track?.id ?? ''}
@@ -908,8 +1047,39 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
           color: playing ? C.cyan : C.text,
           fontFamily: 'monospace', textTransform: 'uppercase',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          transition: 'color 0.5s',
+          transition: 'color 0.5s', flex: 1, margin: 0,
         }}>{track?.title ?? 'NO TRACK'}</p>
+        <span style={{
+          fontFamily: 'monospace', fontSize: '0.26rem', letterSpacing: '0.14em',
+          color: mixLoaded ? C.cyan : C.orange, whiteSpace: 'nowrap',
+        }}>{mixLoaded ? 'MIX' : 'PREVIEW'}</span>
+        </div>
+        <DJDeckWaveform
+          side={side}
+          peaks={peaks}
+          pos={pos / 1000}
+          dur={dur / 1000}
+          onSeek={onSeek}
+        />
+        <button
+          type="button"
+          data-testid={side === 'left' ? 'dj-load-file-a' : 'dj-load-file-b'}
+          onClick={onUpload}
+          style={{
+            alignSelf: 'flex-start',
+            padding: '3px 8px',
+            borderRadius: 3,
+            cursor: 'pointer',
+            background: '#14181e',
+            border: '1px solid rgba(0,168,157,0.35)',
+            color: C.cyan,
+            fontFamily: 'monospace',
+            fontSize: '0.3rem',
+            letterSpacing: '0.14em',
+          }}
+        >
+          LOAD FILE
+        </button>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontFamily: 'monospace', fontSize: '0.34rem', color: C.cyan, letterSpacing: '0.1em' }}>
             {elapsed}
@@ -929,7 +1099,10 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {/* Play/Pause */}
-          <button onClick={onToggle} style={{
+          <button
+            data-testid={side === 'left' ? 'dj-play-a' : 'dj-play-b'}
+            onClick={onToggle}
+            style={{
             width: 38, height: 38, borderRadius: '50%', cursor: 'pointer',
             background: playing ? `rgba(0,168,157,0.1)` : '#14181e',
             border: `1px solid ${playing ? 'rgba(0,168,157,0.55)' : 'rgba(170,179,187,0.22)'}`,
@@ -940,24 +1113,26 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
             transition: 'all 0.15s',
           }}>{playing ? '⏸' : '▶'}</button>
           {/* CUE */}
-          <button onClick={() => setCueMs(pos > 0 ? pos : null)} style={{
+          <button
+            title={playing ? 'return to cue and pause' : 'set cue at playhead'}
+            onClick={onCue}
+            style={{
             width: 38, height: 38, borderRadius: '50%', cursor: 'pointer',
-            background: cueMs !== null ? 'rgba(125,183,255,0.1)' : '#14181e',
-            border: `1px solid ${cueMs !== null ? 'rgba(125,183,255,0.55)' : 'rgba(170,179,187,0.22)'}`,
-            boxShadow: cueMs !== null ? '0 0 8px rgba(125,183,255,0.25)' : 'inset 0 2px 5px rgba(0,0,0,0.4)',
-            color: cueMs !== null ? C.blue : C.silverDark, fontSize: '0.28rem', letterSpacing: '0.04em',
+            background: cueMs > 0 ? 'rgba(125,183,255,0.1)' : '#14181e',
+            border: `1px solid ${cueMs > 0 ? 'rgba(125,183,255,0.55)' : 'rgba(170,179,187,0.22)'}`,
+            boxShadow: cueMs > 0 ? '0 0 8px rgba(125,183,255,0.25)' : 'inset 0 2px 5px rgba(0,0,0,0.4)',
+            color: cueMs > 0 ? C.blue : C.silverDark, fontSize: '0.28rem', letterSpacing: '0.04em',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 1,
             transition: 'all 0.15s',
           }}>
             <span style={{ fontFamily: 'monospace' }}>CUE</span>
-            {cueMs !== null && <span style={{ fontFamily: 'monospace', fontSize: '0.22rem', opacity: 0.7 }}>{fmt(cueMs)}</span>}
+            <span style={{ fontFamily: 'monospace', fontSize: '0.22rem', opacity: 0.7 }}>{fmt(cueMs)}</span>
           </button>
         </div>
         <PitchFader pitch={pitch} onChange={onPitch} />
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-          <VU active={playing} />
-          <MKnob size={22} />
-          <span style={{ fontFamily: 'monospace', fontSize: '0.28rem', letterSpacing: '0.3em', color: C.sub }}>GAIN</span>
+          <VU level={vu} />
+          <EQKnob label="GAIN" value={gain} size={22} color={C.cyan} onChange={onGain} />
           {/* Pitch readout */}
           <span style={{
             fontFamily: 'monospace', fontSize: '0.36rem', letterSpacing: '0.1em',
@@ -970,7 +1145,14 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
       </div>
 
       {/* ── Pioneer section: Sync + Loop + Hot Cues ── */}
-      <PioneerControls side={side} playing={playing} synced={!!synced} pos={pos} onSync={onSync} />
+      <PioneerControls
+        side={side} playing={playing} synced={!!synced} pos={pos} onSync={onSync}
+        syncEnabled={syncEnabled} loopBarsEnabled={loopBarsEnabled}
+        loopActive={loopActive} loopIn={loopIn} loopOut={loopOut} loopBars={loopBars}
+        hotCues={hotCues}
+        onLoopIn={onLoopIn} onLoopOut={onLoopOut} onLoopBars={onLoopBars}
+        onLoopExit={onLoopExit} onHotCue={onHotCue}
+      />
 
       </div>{/* end info+controls wrapper */}
     </div>
@@ -980,28 +1162,20 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
 /* ─── Pioneer Controls ───────────────────────────────────── */
 const HOT_CUE_COLORS = ['#3b82f6','#f97316','#a3e635','#a855f7','#22d3ee','#ef4444','#10b981','#f472b6'];
 
-function PioneerControls({ side, playing, synced, pos, onSync }: {
+function PioneerControls({ side, playing, synced, pos, onSync,
+  syncEnabled, loopBarsEnabled, loopActive, loopIn, loopOut, loopBars, hotCues,
+  onLoopIn, onLoopOut, onLoopBars, onLoopExit, onHotCue }: {
   side: 'left'|'right'; playing: boolean; synced: boolean;
   pos: number; onSync: () => void;
+  syncEnabled: boolean; loopBarsEnabled: boolean;
+  loopActive: boolean; loopIn: number | null; loopOut: number | null; loopBars: number | null;
+  hotCues: Array<number | null>;
+  onLoopIn(): void; onLoopOut(): void; onLoopBars(n: number): void; onLoopExit(): void;
+  onHotCue(i: number, clear: boolean): void;
 }) {
-  const [loopActive, setLoopActive]   = useState(false);
-  const [loopIn,     setLoopIn]       = useState<number | null>(null);
-  const [loopOut,    setLoopOut]      = useState<number | null>(null);
-  const [loopSize,   setLoopSize]     = useState(2);
-  // hot cue: index → stored position ms (first press = set, second press = clear)
-  const [cuePositions, setCuePositions] = useState<{[i: number]: number}>({});
-
-  const loopSizes = [1/4, 1/2, 1, 2, 4, 8];
-
-  function handleCuePad(i: number) {
-    if (cuePositions[i] !== undefined) {
-      // Second press: clear the cue point
-      setCuePositions(prev => { const n = {...prev}; delete n[i]; return n; });
-    } else {
-      // First press: record current playback position
-      setCuePositions(prev => ({...prev, [i]: pos}));
-    }
-  }
+  const loopSizes = [1, 2, 4, 8];
+  void playing;
+  void pos;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
@@ -1013,21 +1187,25 @@ function PioneerControls({ side, playing, synced, pos, onSync }: {
         display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap',
       }}>
         {/* SYNC */}
-        <button onClick={onSync} style={{
-          padding: '4px 10px', borderRadius: 4, cursor: 'pointer',
+        <button
+          onClick={onSync}
+          disabled={!syncEnabled}
+          title={syncEnabled ? 'match this deck BPM to the other deck via playbackRate' : 'needs BPM on both decks — v2 beat detection'}
+          style={{
+          padding: '4px 10px', borderRadius: 4, cursor: syncEnabled ? 'pointer' : 'not-allowed',
           background: synced ? 'rgba(0,168,157,0.1)' : '#14181e',
           border: `1px solid ${synced ? 'rgba(0,168,157,0.5)' : 'rgba(170,179,187,0.22)'}`,
           boxShadow: synced ? '0 0 8px rgba(0,168,157,0.25)' : 'inset 0 2px 4px rgba(0,0,0,0.5)',
           fontFamily: 'monospace', fontSize: '0.52rem', fontWeight: 700, letterSpacing: '0.12em',
           color: synced ? C.cyan : C.silverDark,
-          transition: 'all 0.2s', minWidth: 52,
+          transition: 'all 0.2s', minWidth: 52, opacity: syncEnabled ? 1 : 0.4,
         }}>
           SYNC
           {synced && <span style={{ display: 'block', fontSize: '0.3rem', letterSpacing: '0.2em', opacity: 0.7, fontFamily: 'monospace' }}>LOCKED</span>}
         </button>
 
         {/* LOOP IN */}
-        <button onClick={() => { setLoopIn(pos); setLoopActive(false); }} style={{
+        <button onClick={onLoopIn} style={{
           padding: '4px 8px', borderRadius: 4, cursor: 'pointer',
           background: loopIn !== null ? 'rgba(125,183,255,0.08)' : '#14181e',
           border: `1px solid ${loopIn !== null ? 'rgba(125,183,255,0.45)' : 'rgba(170,179,187,0.22)'}`,
@@ -1038,11 +1216,11 @@ function PioneerControls({ side, playing, synced, pos, onSync }: {
           transition: 'all 0.15s',
         }}>
           <span>⌐ IN</span>
-          {loopIn !== null && <span style={{ fontFamily: 'monospace', fontSize: '0.22rem', opacity: 0.7 }}>{fmt(loopIn)}</span>}
+          {loopIn !== null && <span style={{ fontFamily: 'monospace', fontSize: '0.22rem', opacity: 0.7 }}>{fmtSecLabel(loopIn)}</span>}
         </button>
 
         {/* LOOP OUT */}
-        <button onClick={() => { if (loopIn !== null) { setLoopOut(pos); setLoopActive(true); } }} style={{
+        <button onClick={onLoopOut} style={{
           padding: '4px 8px', borderRadius: 4, cursor: 'pointer',
           background: loopActive ? 'rgba(255,155,94,0.08)' : '#14181e',
           border: `1px solid ${loopActive ? 'rgba(255,155,94,0.45)' : 'rgba(170,179,187,0.22)'}`,
@@ -1053,28 +1231,33 @@ function PioneerControls({ side, playing, synced, pos, onSync }: {
           transition: 'all 0.15s', opacity: loopIn === null ? 0.4 : 1,
         }}>
           <span>¬ OUT</span>
-          {loopOut !== null && loopActive && <span style={{ fontFamily: 'monospace', fontSize: '0.22rem', opacity: 0.7 }}>{fmt(loopOut)}</span>}
+          {loopOut !== null && loopActive && <span style={{ fontFamily: 'monospace', fontSize: '0.22rem', opacity: 0.7 }}>{fmtSecLabel(loopOut)}</span>}
         </button>
 
         {/* Loop size selector */}
         <div style={{ display: 'flex', gap: 2 }}>
           {loopSizes.map(s => (
-            <button key={s} onClick={() => setLoopSize(s)} style={{
-              width: 26, height: 22, borderRadius: 3, cursor: 'pointer',
-              background: loopSize === s ? (loopActive ? 'rgba(255,155,94,0.12)' : 'rgba(125,183,255,0.1)') : '#14181e',
-              border: `1px solid ${loopSize === s ? (loopActive ? 'rgba(255,155,94,0.4)' : 'rgba(125,183,255,0.4)') : 'rgba(170,179,187,0.15)'}`,
+            <button
+              key={s}
+              onClick={() => onLoopBars(s)}
+              disabled={!loopBarsEnabled}
+              title={loopBarsEnabled ? `loop ${s} bars from playhead` : 'needs BPM — v2 beat detection'}
+              style={{
+              width: 26, height: 22, borderRadius: 3, cursor: loopBarsEnabled ? 'pointer' : 'not-allowed',
+              background: loopBars === s ? (loopActive ? 'rgba(255,155,94,0.12)' : 'rgba(125,183,255,0.1)') : '#14181e',
+              border: `1px solid ${loopBars === s ? (loopActive ? 'rgba(255,155,94,0.4)' : 'rgba(125,183,255,0.4)') : 'rgba(170,179,187,0.15)'}`,
               fontFamily: 'monospace', fontSize: '0.34rem', fontWeight: 600,
-              color: loopSize === s ? (loopActive ? C.orange : C.blue) : C.silverDark,
-              transition: 'all 0.1s',
+              color: loopBars === s ? (loopActive ? C.orange : C.blue) : C.silverDark,
+              transition: 'all 0.1s', opacity: loopBarsEnabled ? 1 : 0.35,
             }}>
-              {s < 1 ? `1/${1/s}` : s}
+              {s}
             </button>
           ))}
         </div>
 
         {/* EXIT LOOP */}
         {loopActive && (
-          <button onClick={() => { setLoopActive(false); setLoopIn(null); setLoopOut(null); }} style={{
+          <button onClick={onLoopExit} style={{
             padding: '4px 7px', borderRadius: 4, cursor: 'pointer',
             background: 'rgba(255,155,94,0.08)',
             border: '1px solid rgba(255,155,94,0.4)',
@@ -1099,12 +1282,13 @@ function PioneerControls({ side, playing, synced, pos, onSync }: {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4 }}>
           {HOT_CUE_COLORS.map((color, i) => {
-            const hasPos = cuePositions[i] !== undefined;
+            const stored = hotCues[i];
+            const hasPos = stored != null;
             return (
               <button
                 key={i}
-                onPointerDown={() => handleCuePad(i)}
-                title={hasPos ? `Press to clear cue ${String.fromCharCode(65+i)} (${fmt(cuePositions[i])})` : `Press to set cue ${String.fromCharCode(65+i)} at ${fmt(pos)}`}
+                onPointerDown={(e) => onHotCue(i, e.altKey || e.metaKey)}
+                title={hasPos ? `Jump to cue ${String.fromCharCode(65+i)} (${fmtSecLabel(stored)}). Alt-click to clear.` : `Set cue ${String.fromCharCode(65+i)} at playhead`}
                 style={{
                   height: hasPos ? 38 : 32, borderRadius: 4, cursor: 'pointer',
                   background: hasPos ? `${color}18` : '#14181e',
@@ -1141,7 +1325,7 @@ function PioneerControls({ side, playing, synced, pos, onSync }: {
                     color: color, opacity: 0.8,
                     letterSpacing: '0.02em',
                   }}>
-                    {fmt(cuePositions[i])}
+                    {fmtSecLabel(stored ?? 0)}
                   </span>
                 )}
               </button>
@@ -1155,12 +1339,17 @@ function PioneerControls({ side, playing, synced, pos, onSync }: {
 }
 
 /* ─── Mixer Panel ────────────────────────────────────────── */
-function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: number): void; isMobile?: boolean }) {
-  const [eqVals, setEqVals] = useState({ hi: 50, mid: 50, lo: 50 });
-  const [filterA, setFilterA] = useState(50);
-  const [filterB, setFilterB] = useState(50);
-  const [fxOn, setFxOn] = useState(false);
-  const [fxType, setFxType] = useState<'ECHO'|'REVERB'|'FLANGER'>('ECHO');
+function MixerPanel({ xfade, onXfade, isMobile, eqA, eqB, onEq, filterA, filterB, onFilter,
+  faderA, faderB, onFader, master, onMaster, vuA, vuB, vuM }: {
+  xfade: number; onXfade(v: number): void; isMobile?: boolean;
+  eqA: { lo: number; mid: number; hi: number };
+  eqB: { lo: number; mid: number; hi: number };
+  onEq(id: 'A' | 'B', band: 'lo' | 'mid' | 'hi', v: number): void;
+  filterA: number; filterB: number; onFilter(id: 'A' | 'B', v: number): void;
+  faderA: number; faderB: number; onFader(id: 'A' | 'B', v: number): void;
+  master: number; onMaster(v: number): void;
+  vuA: number; vuB: number; vuM: number;
+}) {
 
   return (
     <div style={{
@@ -1173,59 +1362,78 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
       boxShadow: 'inset 0 1px 0 rgba(217,224,230,0.07), inset 0 -1px 0 rgba(0,0,0,0.3), 0 0 0 1px rgba(0,0,0,0.3)',
     }}>
 
-      {/* ── Beat FX ── */}
+      {/* ── Beat FX + phones — v2, not wired ── */}
       <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 4 }}>
         <div style={{ display: 'flex', gap: 3 }}>
           {(['ECHO','REVERB','FLANGER'] as const).map(fx => (
-            <button key={fx} onClick={() => { setFxType(fx); setFxOn(true); }} style={{
-              flex: 1, padding: '3px 0', borderRadius: 3, cursor: 'pointer',
-              background: fxOn && fxType === fx ? 'rgba(255,155,94,0.1)' : '#14181e',
-              border: `1px solid ${fxOn && fxType === fx ? 'rgba(255,155,94,0.45)' : 'rgba(170,179,187,0.18)'}`,
+            <button key={fx} disabled title="Beat FX v2 — not in the audio graph yet" style={{
+              flex: 1, padding: '3px 0', borderRadius: 3, cursor: 'not-allowed',
+              background: '#14181e',
+              border: '1px solid rgba(170,179,187,0.18)',
               fontFamily: 'monospace', fontSize: '0.30rem', fontWeight: 600, letterSpacing: '0.08em',
-              color: fxOn && fxType === fx ? C.orange : C.silverDark,
-              transition: 'all 0.12s',
+              color: C.silverDark, opacity: 0.4,
             }}>{fx}</button>
           ))}
-          <button onClick={() => setFxOn(false)} style={{
-            padding: '3px 6px', borderRadius: 3, cursor: 'pointer',
-            background: !fxOn ? 'rgba(255,155,94,0.08)' : '#14181e',
-            border: `1px solid ${!fxOn ? 'rgba(255,155,94,0.35)' : 'rgba(170,179,187,0.18)'}`,
-            fontFamily: 'monospace', fontSize: '0.28rem',
-            color: !fxOn ? C.orange : C.silverDark,
-          }}>OFF</button>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <EQKnob label="FX" value={50} size={22} color="#f97316" />
-        </div>
+        <span style={{ fontFamily: 'monospace', fontSize: '0.26rem', letterSpacing: '0.2em', color: C.dim, textAlign: 'center' }}>
+          FX / PHONES v2
+        </span>
       </div>
 
       <div style={{ width: '100%', height: 1, background: 'rgba(255,255,255,0.05)' }} />
 
-      {/* ── Channel EQ ── */}
+      {/* ── Channel EQ A | B ── */}
       <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <span style={{ fontFamily: 'monospace', fontSize: '0.28rem', letterSpacing: '0.4em', color: 'rgba(255,255,255,0.2)', textAlign: 'center' }}>EQ</span>
-        {(['hi','mid','lo'] as const).map(band => (
-          <div key={band} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <EQKnob
-              label={band.toUpperCase()}
-              value={eqVals[band]}
-              size={24}
-              color={band === 'hi' ? '#38bdf8' : band === 'mid' ? '#a3e635' : '#f97316'}
-              onChange={v => setEqVals(p => ({ ...p, [band]: v }))}
-            />
-          </div>
-        ))}
+        <span style={{ fontFamily: 'monospace', fontSize: '0.28rem', letterSpacing: '0.4em', color: 'rgba(255,255,248,0.2)', textAlign: 'center' }}>EQ</span>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>
+          {(['A', 'B'] as const).map((id) => {
+            const eq = id === 'A' ? eqA : eqB;
+            return (
+              <div key={id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <span style={{ fontFamily: 'monospace', fontSize: '0.26rem', color: id === 'A' ? C.cyan : C.orange }}>{id}</span>
+                {(['hi', 'mid', 'lo'] as const).map((band) => (
+                  <EQKnob
+                    key={band}
+                    label={band.toUpperCase()}
+                    value={eq[band]}
+                    size={isMobile ? 22 : 20}
+                    color={band === 'hi' ? '#38bdf8' : band === 'mid' ? '#a3e635' : '#f97316'}
+                    onChange={(v) => onEq(id, band, v)}
+                  />
+                ))}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <div style={{ width: '100%', height: 1, background: 'rgba(255,255,255,0.05)' }} />
 
       {/* ── Filter knobs A / B ── */}
       <div style={{ width: '100%', display: 'flex', justifyContent: 'space-around' }}>
-        {([['A', filterA, setFilterA, C.cyan], ['B', filterB, setFilterB, C.orange]] as const).map(([lbl, val, set, col]) => (
+        {([['A', filterA, C.cyan], ['B', filterB, C.orange]] as const).map(([lbl, val, col]) => (
           <div key={lbl} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <EQKnob label="FILTER" value={val as number} size={20} color={col as string}
-              onChange={v => (set as (n: number) => void)(v)} />
-            <span style={{ fontFamily: 'monospace', fontSize: '0.28rem', color: col as string, letterSpacing: '0.1em' }}>{lbl}</span>
+            <EQKnob label="FILTER" value={val} size={20} color={col}
+              onChange={v => onFilter(lbl, v)} />
+            <span style={{ fontFamily: 'monospace', fontSize: '0.28rem', color: col, letterSpacing: '0.1em' }}>{lbl}</span>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ width: '100%', height: 1, background: 'rgba(255,255,255,0.05)' }} />
+
+      {/* ── Channel faders ── */}
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'space-around', gap: 6 }}>
+        {([['A', faderA, C.cyan, vuA], ['B', faderB, C.orange, vuB]] as const).map(([lbl, val, col, vu]) => (
+          <div key={lbl} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+            <VU level={vu} />
+            <input
+              data-testid={lbl === 'A' ? 'dj-fader-a' : 'dj-fader-b'}
+              type="range" min={0} max={100} value={val}
+              onChange={e => onFader(lbl, +e.target.value)}
+              style={{ writingMode: 'vertical-lr', direction: 'rtl', height: 64, width: 22, cursor: 'pointer', accentColor: col }}
+            />
+            <span style={{ fontFamily: 'monospace', fontSize: '0.26rem', color: col }}>{lbl}</span>
           </div>
         ))}
       </div>
@@ -1242,7 +1450,7 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
           border: '1px solid rgba(170,179,187,0.15)',
           boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.7)',
         }}>
-          <input type="range" min={0} max={100} value={xfade} onChange={e => onXfade(+e.target.value)}
+          <input data-testid="dj-xfade" type="range" min={0} max={100} value={xfade} onChange={e => onXfade(+e.target.value)}
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer', margin: 0 }} />
           <div style={{
             position: 'absolute', width: 18, height: 30, left: `calc(${xfade}% - 9px)`,
@@ -1264,7 +1472,8 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
 
       {/* ── Master ── */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-        <EQKnob label="MASTER" value={75} size={28} color="#22c55e" />
+        <VU level={vuM} />
+        <EQKnob label="MASTER" value={master} size={28} color="#22c55e" onChange={onMaster} />
       </div>
 
     </div>
@@ -1276,9 +1485,10 @@ function EQKnob({ label, value, size, color, onChange }: {
   label: string; value: number; size: number; color: string; onChange?: (v: number) => void;
 }) {
   const [dragging, setDragging] = useState(false);
-  const [localVal, setLocalVal] = useState(value);
+  const [dragVal, setDragVal] = useState(value);
   const startY = useRef(0);
   const startVal = useRef(0);
+  const localVal = dragging ? dragVal : value;
 
   // Angle: 0% = -135deg, 50% = 0deg, 100% = +135deg
   const angle = -135 + (localVal / 100) * 270;
@@ -1289,13 +1499,14 @@ function EQKnob({ label, value, size, color, onChange }: {
     e.currentTarget.setPointerCapture(e.pointerId);
     setDragging(true);
     startY.current = e.clientY;
-    startVal.current = localVal;
+    startVal.current = value;
+    setDragVal(value);
   }
   function onPointerMove(e: React.PointerEvent) {
     if (!dragging || !onChange) return;
     const delta = (startY.current - e.clientY) * 0.8;
     const next = Math.max(0, Math.min(100, startVal.current + delta));
-    setLocalVal(next);
+    setDragVal(next);
     onChange(next);
   }
   function onPointerUp() { setDragging(false); }
@@ -1580,18 +1791,60 @@ function PitchFader({ pitch, onChange }: { pitch: number; onChange(v: number): v
   );
 }
 
-function VU({ active }: { active: boolean }) {
+function VU({ level }: { level: number }) {
+  const n = Math.min(1, level * 3.6);
   return (
     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 22 }}>
-      {[0.35, 0.65, 1, 0.75, 0.45].map((h, i) => (
+      {[0.35, 0.65, 1, 0.75, 0.45].map((h, i) => {
+        const on = n > i * 0.16;
+        return (
         <div key={i} style={{
           width: 3, borderRadius: 1,
-          height: active ? h * 22 : 2,
+          height: on ? h * 22 * Math.max(0.25, n) : 2,
           background: i < 2 ? C.green : i === 2 ? '#a3e635' : i === 3 ? C.orange : '#ef4444',
-          boxShadow: active && i >= 3 ? `0 0 4px ${i === 4 ? '#ef4444' : C.orange}` : 'none',
+          boxShadow: on && i >= 3 ? `0 0 4px ${i === 4 ? '#ef4444' : C.orange}` : 'none',
           transition: `height ${0.08 + i * 0.05}s ease`,
         }} />
-      ))}
+        );
+      })}
     </div>
+  );
+}
+
+function EngineStatus({ ready, a, b, recording, exportReady }: {
+  ready: boolean; a: boolean; b: boolean; recording: boolean; exportReady: boolean;
+}) {
+  const bits: Array<[string, boolean]> = [
+    ['audio ready', ready],
+    ['deck A loaded', a],
+    ['deck B loaded', b],
+    ['recording', recording],
+    ['export ready', exportReady],
+  ];
+  return (
+    <p
+      data-testid="dj-engine-status"
+      data-ready={ready ? 'true' : 'false'}
+      data-deck-a={a ? 'true' : 'false'}
+      data-deck-b={b ? 'true' : 'false'}
+      data-recording={recording ? 'true' : 'false'}
+      data-export-ready={exportReady ? 'true' : 'false'}
+      style={{
+        margin: '0 0 8px',
+        fontFamily: 'monospace',
+        fontSize: '0.32rem',
+        letterSpacing: '0.08em',
+        color: C.dim,
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 10,
+      }}
+    >
+      {bits.map(([label, on]) => (
+        <span key={label} style={{ color: on ? C.cyan : C.dim }}>
+          {on ? '●' : '○'} {label}
+        </span>
+      ))}
+    </p>
   );
 }
