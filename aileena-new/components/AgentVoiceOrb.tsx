@@ -1476,7 +1476,7 @@ export default function AgentVoiceOrb({
   return (
     <div className="border-t border-[#e7e0d6] px-5 py-2.5 sm:py-3 bg-[#faf7f0]/80">
       {/* Compact but ceremonial — instrument panel, not a squashed form row. */}
-      <div className="flex items-center gap-3 sm:gap-4">
+      <div className="flex flex-wrap items-center gap-3 sm:flex-nowrap sm:gap-4">
         <button
           type="button"
           disabled={disabled}
@@ -1502,7 +1502,7 @@ export default function AgentVoiceOrb({
         </button>
 
         <div
-          className={`relative grid h-11 sm:h-12 flex-1 min-w-0 max-w-[20rem] sm:max-w-[22rem] grid-cols-3 items-stretch rounded-full border border-[#00a89d]/28 bg-[#e8f7f4]/90 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] ${
+          className={`relative grid h-11 min-h-11 sm:h-12 flex-1 min-w-[16rem] max-w-[20rem] sm:max-w-[22rem] grid-cols-3 items-stretch rounded-full border border-[#00a89d]/28 bg-[#e8f7f4]/90 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] ${
             listening ? 'opacity-50' : ''
           }`}
           role="group"
