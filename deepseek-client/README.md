@@ -1,51 +1,83 @@
-# DeepSeek BYOK client
+# DeepSeek Client
 
-Standalone Node client for the **official DeepSeek HTTP API**, using **your own** `DEEPSEEK_API_KEY`.
+Use the DeepSeek API key you bought on [platform.deepseek.com](https://platform.deepseek.com).
 
-This is **not a Cursor IDE patch**. It does not modify Cursor, hide usage banners, or change Cursor account limits. It only sends OpenAI-compatible requests to `https://api.deepseek.com`.
+This repo is a small Node CLI. It sends OpenAI-compatible chat requests to the official DeepSeek HTTP API at `https://api.deepseek.com`. You pay DeepSeek. This client does not add its own daily message cap.
 
-## What “no app quota” means
+Docs: [api-docs.deepseek.com](https://api-docs.deepseek.com)
 
-This client does **not** add a daily message cap. You can call the API as often as your DeepSeek account allows.
+## Quick start
 
-DeepSeek still bills and rate-limits the key. If the platform balance is empty or the account is rate-limited, requests fail. That is expected.
-
-Get a key: [https://platform.deepseek.com](https://platform.deepseek.com)  
-API docs: [https://api-docs.deepseek.com](https://api-docs.deepseek.com)
-
-## Setup
+1. Buy or top up a key at [platform.deepseek.com](https://platform.deepseek.com).
+2. Requires Node 22+. No `npm install`.
 
 ```bash
 cd deepseek-client
 cp .env.example .env
-# paste DEEPSEEK_API_KEY=sk-...
+```
+
+3. Put your purchased key in `.env`:
+
+```bash
+DEEPSEEK_API_KEY=sk-the-key-you-bought
+```
+
+4. Confirm the key loaded (no network):
+
+```bash
 node src/cli.mjs check
 ```
 
-Requires Node 22+. No npm packages.
+5. Chat:
+
+```bash
+node src/cli.mjs chat "Hello from my DeepSeek key"
+node src/cli.mjs chat --stream "Write a haiku about tea"
+node src/cli.mjs chat
+```
+
+Type `/exit` to leave the interactive session.
 
 ## Commands
 
-```bash
-node src/cli.mjs check                         # validate env, no network
-node src/cli.mjs models                        # GET /models
-node src/cli.mjs balance                       # GET /user/balance
-node src/cli.mjs chat "Hello"                  # one-shot
-node src/cli.mjs chat --stream "Hello"         # SSE stream
-node src/cli.mjs chat --thinking --model deepseek-v4-pro "Hello"
-node src/cli.mjs chat                          # interactive, /exit to quit
-npm test                                       # mock + config tests (no live key)
-```
+| Command | What it does |
+| --- | --- |
+| `node src/cli.mjs check` | Read `.env`, print model + masked key |
+| `node src/cli.mjs models` | `GET /models` |
+| `node src/cli.mjs balance` | `GET /user/balance` (your DeepSeek wallet) |
+| `node src/cli.mjs chat "…"` | One-shot completion |
+| `node src/cli.mjs chat --stream "…"` | Stream tokens |
+| `node src/cli.mjs chat --thinking --model deepseek-v4-pro "…"` | Pro model + thinking |
+| `npm test` | Local tests (mock server, no live key) |
+
+Same commands via npm: `npm run check`, `npm run chat`, `npm run models`, `npm run balance`.
 
 ## Models
 
-| `DEEPSEEK_MODEL` | Notes |
+Set `DEEPSEEK_MODEL` in `.env` or pass `--model`.
+
+| Model | Use |
 | --- | --- |
-| `deepseek-v4-flash` | default |
-| `deepseek-v4-pro` | higher quality, higher price |
+| `deepseek-v4-flash` | Default. Fast and cheaper. |
+| `deepseek-v4-pro` | Higher quality. Costs more on your DeepSeek bill. |
 
-Optional thinking mode: `DEEPSEEK_THINKING=enabled` or `--thinking`.
+Thinking mode: `DEEPSEEK_THINKING=enabled` or `--thinking`.
 
-## Own repo later
+## Environment
 
-This folder is self-contained. Copy `deepseek-client/` into a new git repo if you want it separate from aileena.xyz. Do not commit `.env`.
+| Variable | Required | Default |
+| --- | --- | --- |
+| `DEEPSEEK_API_KEY` | yes | — |
+| `DEEPSEEK_BASE_URL` | no | `https://api.deepseek.com` |
+| `DEEPSEEK_MODEL` | no | `deepseek-v4-flash` |
+| `DEEPSEEK_THINKING` | no | `disabled` |
+
+Never commit `.env`. The example file is `.env.example`.
+
+## Billing
+
+Usage is billed to the DeepSeek account that issued the key. If balance is empty or DeepSeek rate-limits the key, the API returns an error. That is DeepSeek’s meter, not a limit in this repo.
+
+## Extract later
+
+`deepseek-client/` is self-contained. Copy the folder into its own git repo if you want it separate from aileena.xyz.

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Standalone BYOK client for the official DeepSeek HTTP API. Not a Cursor IDE patch.",
+  "description": "CLI for the official DeepSeek HTTP API using the key you buy on platform.deepseek.com.",
   "bin": {
     "deepseek-chat": "./src/cli.mjs"
   },

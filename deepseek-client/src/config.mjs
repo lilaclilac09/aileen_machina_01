@@ -44,7 +44,9 @@ export function resolveConfig(env = process.env, fileEnv = loadDotEnv()) {
   const thinking = thinkingRaw === 'enabled' || thinkingRaw === 'true' || thinkingRaw === '1';
 
   const errors = [];
-  if (!apiKey) errors.push('DEEPSEEK_API_KEY is missing. Copy .env.example to .env and paste your own key from https://platform.deepseek.com');
+  if (!apiKey) {
+    errors.push('DEEPSEEK_API_KEY is missing. Copy .env.example to .env and paste the key you bought at https://platform.deepseek.com');
+  }
   if (!ALLOWED_MODELS.includes(model)) {
     errors.push(`DEEPSEEK_MODEL must be one of: ${ALLOWED_MODELS.join(', ')}`);
   }

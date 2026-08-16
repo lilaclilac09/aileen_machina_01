@@ -5,18 +5,17 @@ import { resolveConfig, requireConfig } from './config.mjs';
 import { chatCompletion, getBalance, listModels } from './client.mjs';
 
 function printHelp() {
-  console.log(`DeepSeek BYOK client — official API only.
+  console.log(`DeepSeek Client — official API, your purchased key.
 
 Usage:
   node src/cli.mjs check
   node src/cli.mjs models
   node src/cli.mjs balance
   node src/cli.mjs chat [--stream] [--thinking] [--model NAME] [prompt...]
-  node src/cli.mjs chat            # interactive, no app-level quota
+  node src/cli.mjs chat
 
-This tool calls https://api.deepseek.com with YOUR key.
-It is not a Cursor IDE patch and does not change Cursor usage limits.
-DeepSeek account balance still applies.
+Put the key you bought on platform.deepseek.com in .env as DEEPSEEK_API_KEY.
+Requests go to https://api.deepseek.com. DeepSeek bills that key.
 `);
 }
 
@@ -97,7 +96,7 @@ async function interactive(cfg, stream) {
   const rl = createInterface({ input, output });
   const messages = [{ role: 'system', content: 'You are a helpful assistant.' }];
   console.error(`DeepSeek ${cfg.model} @ ${cfg.baseURL}  key=${cfg.keyMasked}`);
-  console.error('No app-level quota. /exit to quit.');
+  console.error('Using your purchased DeepSeek key. Type /exit to quit.');
   try {
     while (true) {
       const line = (await rl.question('you> ')).trim();

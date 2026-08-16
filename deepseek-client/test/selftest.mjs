@@ -74,7 +74,7 @@ await test('rejects unknown model', () => {
 
 await test('loadDotEnv ignores comments and quotes', () => {
   const parsed = loadDotEnv(join(ROOT, '.env.example'));
-  assert.equal(parsed.DEEPSEEK_API_KEY, 'sk-your-key-here');
+  assert.equal(parsed.DEEPSEEK_API_KEY, 'sk-the-key-you-bought');
 });
 
 await test('chat body matches official OpenAI-compatible shape', () => {
@@ -119,11 +119,13 @@ await test('redact never leaks the key', () => {
   assert.match(out, /redacted-key/);
 });
 
-await test('README is English BYOK client, not a Cursor patch', () => {
+await test('README is English and tells you to use your purchased key', () => {
   const readme = readFileSync(join(ROOT, 'README.md'), 'utf8');
   assert.match(readme, /official DeepSeek HTTP API/i);
-  assert.match(readme, /not a Cursor IDE patch/i);
+  assert.match(readme, /key you bought/i);
+  assert.match(readme, /platform\.deepseek\.com/);
   assert.match(readme, /DEEPSEEK_API_KEY/);
+  assert.doesNotMatch(readme, /[\u4e00-\u9fff]/);
   assert.doesNotMatch(readme, /workbench\.desktop\.main\.js|slow pool|usage-limit banner/i);
 });
 
