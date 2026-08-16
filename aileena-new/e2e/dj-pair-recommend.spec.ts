@@ -16,7 +16,10 @@ test.describe('DJ pair recommendation', () => {
     await page.screenshot({ path: '/opt/cursor/artifacts/mobile-pair-recommendation.png' });
     await page.screenshot({ path: '/opt/cursor/artifacts/pair-recommendation.png' });
 
+    await expect(panel).toHaveAttribute('data-hard-techno', 'true');
     const before = await page.getByTestId('dj-pair-hit').first().innerText();
+    await page.getByTestId('dj-hard-techno-bias').uncheck();
+    await expect(panel).toHaveAttribute('data-hard-techno', 'false');
     await page.getByTestId('dj-hard-techno-bias').check();
     await expect(panel).toHaveAttribute('data-hard-techno', 'true');
     await expect(page.getByTestId('dj-pair-hit').first()).toBeVisible();

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { stat } from 'node:fs/promises';
 
 function pcmWav(seconds: number, freq: number, sampleRate = 44100): Buffer {
   const n = Math.floor(seconds * sampleRate);
@@ -30,6 +31,7 @@ test.describe('DJ mixer engine', () => {
     await expect(page.getByTestId('dj-engine-status')).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-ready', 'true');
     await expect(page.getByTestId('dj-spotify-preview-note')).toContainText('cannot be mixed');
+    await expect(page.getByTestId('dj-station')).toBeVisible();
 
     const wavA = pcmWav(3, 440);
     const wavB = pcmWav(3, 660);
@@ -53,15 +55,43 @@ test.describe('DJ mixer engine', () => {
 
     await page.getByTestId('dj-play-a').click();
     await page.getByTestId('dj-play-b').click();
+    await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-playing-a', 'true');
+    await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-playing-b', 'true');
     await page.waitForTimeout(400);
 
+    const gainA = page.getByTestId('dj-knob-gain-a');
+    const gainBefore = await gainA.getAttribute('data-knob-value');
+    await gainA.focus();
+    await page.keyboard.press('ArrowUp');
+    await expect(gainA).not.toHaveAttribute('data-knob-value', gainBefore ?? '');
+
+    await page.getByTestId('dj-knob-eq-a-hi').focus();
+    await page.keyboard.press('Home');
+    await expect(page.getByTestId('dj-knob-eq-a-hi')).toHaveAttribute('data-knob-value', '0');
+    await expect(page.getByTestId('dj-mixer')).toHaveAttribute('data-eq-a-hi', '0');
+
+    await page.getByTestId('dj-knob-tick-filter-a-0').click();
+    await expect(page.getByTestId('dj-knob-filter-a')).toHaveAttribute('data-knob-value', '0');
+
+    await page.getByTestId('dj-knob-master').dblclick();
+    await expect(page.getByTestId('dj-knob-master')).toHaveAttribute('data-knob-value', '75');
+
+    await page.getByTestId('dj-fader-a').focus();
+    await page.keyboard.press('Home');
+    await expect(page.getByTestId('dj-fader-a')).toHaveAttribute('data-fader-value', '0');
+    await expect(page.getByTestId('dj-mixer')).toHaveAttribute('data-fader-a', '0');
+    await page.getByTestId('dj-fader-a').dblclick();
+    await expect(page.getByTestId('dj-fader-a')).toHaveAttribute('data-fader-value', '80');
+
     const xfade = page.getByTestId('dj-xfade');
-    await xfade.evaluate((el) => {
-      const input = el as HTMLInputElement;
-      input.value = '80';
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-      input.dispatchEvent(new Event('change', { bubbles: true }));
-    });
+    await xfade.focus();
+    await page.keyboard.press('End');
+    await expect(xfade).toHaveAttribute('data-fader-value', '100');
+    await expect(page.getByTestId('dj-mixer')).toHaveAttribute('data-xfade', '100');
+
+    await page.getByTestId('dj-pitch-a').focus();
+    await page.keyboard.press('ArrowUp');
+    await expect(page.getByTestId('dj-pitch-a')).not.toHaveAttribute('data-fader-value', '0.0');
 
     await page.getByTestId('dj-record').click();
     await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-recording', 'true');
@@ -72,9 +102,20 @@ test.describe('DJ mixer engine', () => {
     await expect(page.getByTestId('dj-mix-receipt')).toBeVisible();
     await expect(page.getByTestId('dj-mix-receipt')).toContainText('MIX RECEIPT');
     await expect(page.getByTestId('dj-soundcloud-open')).toHaveAttribute('href', 'https://soundcloud.com/upload');
+    await expect(page.getByTestId('dj-mix-booth')).toContainText(/SoundCloud upload is manual/i);
     await expect(page.getByTestId('dj-export-audio')).toBeEnabled();
     await expect(page.getByTestId('dj-export-meta')).toBeEnabled();
     await expect(page.getByTestId('dj-copy-soundcloud')).toBeEnabled();
     await expect(page.getByText(/export ready\. not a masterpiece yet/i)).toBeVisible();
+
+    const [download] = await Promise.all([
+      page.waitForEvent('download'),
+      page.getByTestId('dj-export-audio').click(),
+    ]);
+    expect(download.suggestedFilename()).toMatch(/aileena-desk-mix\.(webm|m4a|ogg)/);
+    const filePath = await download.path();
+    expect(filePath).toBeTruthy();
+    const info = await stat(filePath!);
+    expect(info.size).toBeGreaterThan(0);
   });
 });

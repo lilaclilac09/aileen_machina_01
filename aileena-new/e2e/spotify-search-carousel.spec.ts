@@ -142,7 +142,7 @@ test.describe('Spotify search → carousel', () => {
     await expect(page.getByTestId('spotify-ref-badge').first()).toBeVisible();
     await expect(page.locator('#dj-set')).toContainText(/not mixable/i);
     await page.locator('[data-dj-load-deck="left"]').click();
-    await expect(page.getByText(/preview only — not mixable or exportable/i)).toBeVisible();
+    await expect(page.getByText(/Spotify reference only\. Upload audio to mix\/export/i)).toBeVisible();
     await page.locator('#dj-set').screenshot({
       path: `${ARTIFACTS}/spotify_search_track_added.png`,
     });
@@ -178,6 +178,8 @@ test.describe('Spotify search → carousel', () => {
     await expect(search).toHaveAttribute('data-spotify-configured', 'missing', { timeout: 10_000 });
     await page.locator('#dj-set').scrollIntoViewIfNeeded();
     await expect(page.getByTestId('spotify-search-disabled')).toHaveText(/not configured/i);
+    await expect(page.getByTestId('spotify-search-disabled')).toContainText('SPOTIFY_CLIENT_ID');
+    await expect(page.getByTestId('spotify-search-disabled')).toContainText('SPOTIFY_CLIENT_SECRET');
     await expect(page.getByTestId('spotify-search-input')).toBeDisabled();
     await expect(page.getByTestId('spotify-search-input')).toHaveAttribute(
       'placeholder',

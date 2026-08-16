@@ -90,12 +90,9 @@ async function main() {
   await page.waitForTimeout(800);
   await shot(page, `${PREFIX}03_both_playing.png`, 'dj-play-a');
 
-  await page.getByTestId('dj-xfade').evaluate((el) => {
-    const input = el as HTMLInputElement;
-    input.value = '100';
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-    input.dispatchEvent(new Event('change', { bubbles: true }));
-  });
+  const xfade = page.getByTestId('dj-xfade');
+  await xfade.focus();
+  await page.keyboard.press('End');
   await page.waitForTimeout(250);
   await shot(page, `${PREFIX}04_crossfader_moved.png`, 'dj-xfade');
 

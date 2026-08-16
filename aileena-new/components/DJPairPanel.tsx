@@ -20,7 +20,7 @@ export default function DJPairPanel({
   library: PairableTrack[];
   onLoadB: (id: string) => void;
 }) {
-  const [hard, setHard] = useState(false);
+  const [hard, setHard] = useState(true);
   const pairs = useMemo(
     () => (selected ? recommendPairs(selected, library, { hardTechnoBias: hard, limit: 4 }) : []),
     [selected, library, hard],

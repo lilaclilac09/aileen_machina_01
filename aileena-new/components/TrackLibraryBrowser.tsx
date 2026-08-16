@@ -701,6 +701,7 @@ function PlaylistCarousel({
                 data-track-id={track.id}
                 data-track-title={track.title}
                 data-source={track.source || 'catalogue'}
+                data-mixable={track.source === 'spotify' || track.mixable === false ? 'false' : 'true'}
                 draggable={finePointer}
                 onDragStart={(e) => {
                   if (!finePointer) {
@@ -781,7 +782,7 @@ function PlaylistCarousel({
                         pointerEvents: 'none',
                       }}
                     >
-                      REF
+                      {track.previewUrl ? 'PREVIEW' : 'REF'}
                     </span>
                   )}
                   {rel === 0 && (
