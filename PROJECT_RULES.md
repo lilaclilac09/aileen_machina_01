@@ -22,6 +22,7 @@ Site: **https://www.aileena.xyz** (app in `aileena-new/`).
 - `cafe@aileena.xyz` is **brand send-only (From)**. Real inbox is `CONTACT_TO` / `CONTACT_TO_EMAIL` / `LEAD_INBOX` — never To: cafe@
 - DJ Station lives on `/sound#dj-set`. Visual / `#glass-bench` lives on the **home** page only — not on `/sound`
 - do not replace a working flow with a parallel implementation
+- `/sound` Spotify search adds **reference / preview** cards to the existing `#dj-set` carousel. It is not mix/record/export. Real mixing stays on uploaded / local / static audio. Server-only Client Credentials: `SPOTIFY_CLIENT_ID` + `SPOTIFY_CLIENT_SECRET` — never expose the secret to the browser. Missing env → “Spotify search is not configured.” Web Playback SDK login is a separate v2 slice.
 
 ## Contact / env (ops, not code)
 
