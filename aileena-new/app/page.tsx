@@ -197,8 +197,8 @@ export default function Home() {
       index: '02',
       label: 'News Desk',
       href: latestDispatch ? latestDispatch.href : '/dispatch',
-      category: 'Neocloud',
-      blurb: 'China cleared the MW bar. The listed NVIDIA-native GPU airline does not exist.',
+      category: 'Teaser · 概念扫盲',
+      blurb: 'What a neocloud is, how a number is verified, whose order bought the megawatts.',
       signal: latestDispatch ? latestDispatch.title : 'Open the archive',
       motif: 'pcb',
       placement: { top: '38%', right: '10%', transform: 'rotate(1.6deg)', zIndex: 5 },
@@ -470,6 +470,8 @@ export default function Home() {
               body={tx.visual.kilnNote}
               linkLabel={tx.visual.readGlass}
               items={tx.visual.items}
+              modeWall={tx.visual.modeWall}
+              modeFocus={tx.visual.modeFocus}
             />
           </div>
         </SnapSection>
