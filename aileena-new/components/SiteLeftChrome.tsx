@@ -36,7 +36,7 @@ export default function SiteLeftChrome({
         <span className="relative inline-block">
           <span
             aria-hidden
-            className="block h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-no-repeat ring-1 ring-[#00a89d]/40 transition-all duration-200 group-hover:ring-[#00a89d]/80 group-hover:scale-[1.05]"
+            className="block h-11 w-11 sm:h-9 sm:w-9 rounded-full bg-no-repeat ring-1 ring-[#00a89d]/40 transition-all duration-200 group-hover:ring-[#00a89d]/80 group-hover:scale-[1.05]"
             style={{
               backgroundImage: "url('/bg_pic/03.jpeg')",
               backgroundPosition: '18% 5%',
