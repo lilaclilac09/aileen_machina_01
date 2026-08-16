@@ -27,12 +27,11 @@ Flags: --stream   --thinking   --model deepseek-v4-flash|deepseek-v4-pro
 npm:   npm run check | chat | models | balance | test
 
 Requests go to https://api.deepseek.com. DeepSeek bills your key.
-This does not bypass Cursor. It is a separate DeepSeek CLI.
 Never commit .env.`;
 }
 
 function printHelp() {
-  console.log(`DeepSeek Client — official API, your purchased key.
+  console.log(`DeepSeek Client — official API, the key you bought.
 
 ${howToUse()}
 `);

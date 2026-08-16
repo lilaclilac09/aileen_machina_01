@@ -1,41 +1,24 @@
 # DeepSeek Client
 
-Use the DeepSeek API key you bought on [platform.deepseek.com](https://platform.deepseek.com).
+A small Node CLI for the official DeepSeek HTTP API. You use the API key you bought on [platform.deepseek.com](https://platform.deepseek.com). Requests go to `https://api.deepseek.com`. DeepSeek bills that key.
 
-This repo is a small Node CLI. It sends OpenAI-compatible chat requests to the official DeepSeek HTTP API at `https://api.deepseek.com`. You pay DeepSeek. This client does not add its own daily message cap.
-
-Docs: [api-docs.deepseek.com](https://api-docs.deepseek.com)
-
-Print the same steps in the terminal:
+API docs: [api-docs.deepseek.com](https://api-docs.deepseek.com)
 
 ```bash
 cd deepseek-client
 node src/cli.mjs how
 ```
 
-## Alongside Cursor
-
-This does **not** bypass Cursor. It does not patch the Cursor app, hide Cursor usage UI, or send Cursor agent traffic through DeepSeek.
-
-It is a **separate** CLI. Cursor stays Cursor. When you want DeepSeek with the key you bought, open a terminal and run this client. DeepSeek bills that key.
-
-What this adds next to Cursor:
-
-- Your own DeepSeek key (`DEEPSEEK_API_KEY`)
-- Official API only: `https://api.deepseek.com`
-- No extra daily cap inside this client (DeepSeek’s own balance still applies)
-- `check` / `chat` / `balance` without opening Cursor
-
 ## How to use
 
 ### 1. Get a key
 
-1. Open [https://platform.deepseek.com](https://platform.deepseek.com) and sign in.
+1. Sign in at [https://platform.deepseek.com](https://platform.deepseek.com).
 2. Open API keys and create a key.
-3. Top up the wallet if the balance is empty. DeepSeek bills this key.
-4. Copy the key. It looks like `sk-...`. You will not see the full key again.
+3. Top up the wallet if the balance is empty.
+4. Copy the key. It looks like `sk-...`.
 
-Need: Node 22 or newer. No `npm install`.
+Need Node 22 or newer. No `npm install`.
 
 ### 2. Put the key in this folder
 
@@ -44,13 +27,13 @@ cd deepseek-client
 cp .env.example .env
 ```
 
-Edit `.env` and replace the placeholder with the key you bought:
+Edit `.env`:
 
 ```bash
 DEEPSEEK_API_KEY=sk-the-key-you-bought
 ```
 
-Do not commit `.env`. Do not paste the key into chat or git.
+Do not commit `.env`.
 
 ### 3. Confirm the key loaded
 
@@ -58,7 +41,7 @@ Do not commit `.env`. Do not paste the key into chat or git.
 node src/cli.mjs check
 ```
 
-Success looks like:
+Success:
 
 ```json
 {
@@ -69,7 +52,7 @@ Success looks like:
 }
 ```
 
-`xxxx` is the last four characters of your key. If `ok` is false, the command prints these How to use steps and exits `2`.
+`xxxx` is the last four characters of your key. If `ok` is false, the command prints How to use and exits `2`.
 
 ### 4. Send one message
 
@@ -77,7 +60,7 @@ Success looks like:
 node src/cli.mjs chat "Hello from my DeepSeek key"
 ```
 
-The model reply prints, then the process exits. That call is billed to your DeepSeek account.
+The reply prints, then the process exits. DeepSeek bills the call.
 
 ### 5. Talk in a loop
 
@@ -106,18 +89,16 @@ node src/cli.mjs balance
 node src/cli.mjs models
 ```
 
-`balance` is your DeepSeek wallet, not a limit in this repo.
-
 ### 8. Pick a model
 
-Default is `deepseek-v4-flash` (faster, cheaper).
+Default: `deepseek-v4-flash`.
 
 ```bash
 node src/cli.mjs chat --model deepseek-v4-pro "Explain caches in one paragraph"
 node src/cli.mjs chat --thinking --model deepseek-v4-pro "Why do CPUs have L1/L2/L3?"
 ```
 
-Or set them in `.env`:
+Or in `.env`:
 
 ```bash
 DEEPSEEK_MODEL=deepseek-v4-pro
@@ -126,9 +107,8 @@ DEEPSEEK_THINKING=enabled
 
 ### 9. npm shortcuts
 
-From `deepseek-client/`:
-
 ```bash
+npm run how
 npm run check
 npm run chat
 npm run models
@@ -136,7 +116,7 @@ npm run balance
 npm test
 ```
 
-`npm test` uses a mock server. It does not need your key and does not call DeepSeek.
+`npm test` uses a mock server. It does not need your key.
 
 ## Commands
 
@@ -145,19 +125,19 @@ npm test
 | `node src/cli.mjs how` | Print How to use |
 | `node src/cli.mjs check` | Read `.env`, print model + masked key |
 | `node src/cli.mjs models` | `GET /models` |
-| `node src/cli.mjs balance` | `GET /user/balance` (your DeepSeek wallet) |
+| `node src/cli.mjs balance` | `GET /user/balance` |
 | `node src/cli.mjs chat "…"` | One-shot completion |
 | `node src/cli.mjs chat --stream "…"` | Stream tokens |
 | `node src/cli.mjs chat --thinking --model deepseek-v4-pro "…"` | Pro model + thinking |
 | `node src/cli.mjs chat` | Interactive. `/exit` to quit |
-| `npm test` | Local tests (mock server, no live key) |
+| `npm test` | Local tests (no live key) |
 
 ## Models
 
 | Model | Use |
 | --- | --- |
 | `deepseek-v4-flash` | Default. Fast and cheaper. |
-| `deepseek-v4-pro` | Higher quality. Costs more on your DeepSeek bill. |
+| `deepseek-v4-pro` | Higher quality. Costs more. |
 
 ## Environment
 
@@ -172,16 +152,12 @@ npm test
 
 | What you see | What to do |
 | --- | --- |
-| `DEEPSEEK_API_KEY is missing` | `cp .env.example .env` and paste the key you bought |
-| `ok: false` on `check` | Read the How to use block printed under the JSON |
-| `401` / Authentication Fails | Key is wrong, revoked, or has extra spaces/quotes |
+| `DEEPSEEK_API_KEY is missing` | `cp .env.example .env` and paste your key |
+| `ok: false` on `check` | Follow the How to use block under the JSON |
+| `401` / Authentication Fails | Wrong, revoked, or extra spaces in the key |
 | billing / balance / quota from DeepSeek | Top up at [platform.deepseek.com](https://platform.deepseek.com) |
 | `DEEPSEEK_MODEL must be one of` | Use `deepseek-v4-flash` or `deepseek-v4-pro` |
 
 ## Billing
 
-Usage is billed to the DeepSeek account that issued the key. If balance is empty or DeepSeek rate-limits the key, the API returns an error. That is DeepSeek’s meter, not a limit in this repo.
-
-## Extract later
-
-`deepseek-client/` is self-contained. Copy the folder into its own git repo if you want it separate from aileena.xyz.
+DeepSeek bills the account that issued the key. An empty balance or a DeepSeek rate limit returns an API error. This client does not add its own daily cap.
