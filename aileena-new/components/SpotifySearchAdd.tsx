@@ -183,7 +183,7 @@ export default function SpotifySearchAdd({
       />
       {configured === 'missing' && (
         <p data-testid="spotify-search-disabled" style={hintStyle}>
-          Spotify search is not configured.
+          Spotify search is not configured. Add the server Spotify credentials, then redeploy.
         </p>
       )}
       {configured === 'error' && (
@@ -204,18 +204,13 @@ export default function SpotifySearchAdd({
         <div
           data-testid="spotify-search-results"
           style={{
-            position: 'absolute',
-            left: 12,
-            right: 12,
-            top: '100%',
-            zIndex: 40,
-            marginTop: 4,
+            position: 'relative',
+            marginTop: 8,
             maxHeight: 280,
             overflowY: 'auto',
             background: '#0b0d10',
             border: '1px solid rgba(0,168,157,0.28)',
             borderRadius: 6,
-            boxShadow: '0 16px 40px rgba(0,0,0,0.55)',
           }}
         >
           {searching && (
