@@ -15,6 +15,7 @@ import { appendUserTopic, readTopicMemory, buildCatchUpGreeting, buildCatchUpHin
 import { matchCanned } from '../lib/agentCannedResponses';
 import { composeSoftHint } from '../lib/softOracle';
 import { CONTACT_OFFLINE_PUBLIC } from '../lib/mail-transcript';
+import { readStoredVoiceAccent, type VoiceAccent } from '../lib/voiceAccent';
 import {
   isVoiceCodeIntent,
   quotaDayKey as vcodeDayKey,
@@ -22,6 +23,17 @@ import {
   writeStoredVcodeCount,
   VCODE_DAILY_LIMIT,
 } from '../lib/voiceCodeIntent';
+import { isDrawIntent } from '../lib/drawIntent';
+import { taipeiDay } from '../lib/taipeiDay';
+import { cardById, reciteDrawCard, type DrawCard } from '../lib/drawDeck';
+import {
+  ACCENT_SWAP_PING,
+  COMPACTION_PING,
+  MODEL_SWAP_PING,
+  frozenRootIdentity,
+  parseNewRootError,
+  pingForNewRootReason,
+} from '../lib/consolePrefixCopy';
 import SiteLeftChrome from './SiteLeftChrome';
 import AgentVoiceOrb from './AgentVoiceOrb';
 
@@ -34,8 +46,27 @@ const STARTER_PROMPTS = [
 
 const DAILY_LIMIT = 20;
 const SESSION_KEY = 'aileena_chat_count_daily_v3'; // { date: 'YYYY-MM-DD' local, count: number }
+const OWNER_UNLIMITED_KEY = 'aileena_owner_unlimited';
+const DRAW_SESSION_KEY = 'aileena_draw_daily_v1';
 const RUNTIME_KEY = 'aileena_runtime';
 type Runtime = 'cloud' | 'browser';
+
+function readOwnerUnlimitedFlag(): boolean {
+  try {
+    return localStorage.getItem(OWNER_UNLIMITED_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function writeOwnerUnlimitedFlag(on: boolean) {
+  try {
+    if (on) localStorage.setItem(OWNER_UNLIMITED_KEY, '1');
+    else localStorage.removeItem(OWNER_UNLIMITED_KEY);
+  } catch {
+    /* ignore */
+  }
+}
 
 /** Local calendar day — matches how people think “20 questions per day”, not UTC jargon. */
 function quotaDayKey(d = new Date()): string {
@@ -95,7 +126,9 @@ const LEAD_DISMISS_KEY = 'aileena_lead_state'; // 'sent' | (unset) — historica
  * Rate limiting — product promise:
  *   - 20 questions per visitor per local calendar day (not UTC).
  *   - Client: localStorage day key. Server: signed cookie keyed by X-Quota-Day.
- *   - Contact / email is optional outreach — it must never cut the daily 20 short.
+ *   - Contact / email is optional outreach for visitors — it does not buy extra
+ *     visitor quota. Recognized owner email (leave-a-note / unlock) mints a
+ *     signed cookie → unlimited console chat.
  *
  * Auto-forward to Aileen's inbox:
  *   Every chat session is forwarded to her email via /api/chat/forward,
@@ -106,11 +139,49 @@ const LEAD_DISMISS_KEY = 'aileena_lead_state'; // 'sent' | (unset) — historica
  */
 type LeadState = 'idle' | 'submitting' | 'sent';
 
+type VcodeAttachment = {
+  patch: string;
+  filename: string;
+  applying?: boolean;
+  applied?: boolean;
+  applyError?: string;
+  copied?: boolean;
+};
+
+type DrawAttachment = {
+  card: DrawCard;
+  date: string;
+  repeat: boolean;
+};
+
+function readStoredDrawDay(): { date: string; cardId: string } | null {
+  try {
+    const today = taipeiDay();
+    const raw = localStorage.getItem(DRAW_SESSION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { date?: unknown; cardId?: unknown };
+    if (parsed.date !== today || typeof parsed.cardId !== 'string') return null;
+    return { date: parsed.date, cardId: parsed.cardId };
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredDrawDay(date: string, cardId: string): void {
+  try {
+    localStorage.setItem(DRAW_SESSION_KEY, JSON.stringify({ date, cardId }));
+  } catch {
+    /* private mode */
+  }
+}
+
 export default function AgentChat() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
   const [sessionCount, setSessionCount] = useState(0);
+  const [ownerUnlimited, setOwnerUnlimited] = useState(false);
   const [leadEmail, setLeadEmail] = useState('');
+  const [ownerUnlockHint, setOwnerUnlockHint] = useState<string | null>(null);
   const [leadName, setLeadName] = useState('');
   const [leadState, setLeadState] = useState<LeadState>('idle');
   const [leadError, setLeadError] = useState<string | null>(null);
@@ -118,16 +189,29 @@ export default function AgentChat() {
   /** null = unknown / probing; false = backend offline → gentle disabled UI */
   const [leadMailReady, setLeadMailReady] = useState<boolean | null>(null);
   const [voiceMode, setVoiceMode] = useState(false);
+  const voiceModeRef = useRef(false);
+  voiceModeRef.current = voiceMode;
   const [voiceLive, setVoiceLive] = useState('');
   /** Start orb listen once after Voice toggle / open-agent-chat autoListen. */
   const [autoListen, setAutoListen] = useState(false);
   const [vcodeCount, setVcodeCount] = useState(0);
   const [vcodeBusy, setVcodeBusy] = useState(false);
+  const [vcodeById, setVcodeById] = useState<Record<string, VcodeAttachment>>({});
+  const [drawById, setDrawById] = useState<Record<string, DrawAttachment>>({});
+  const [drawBusy, setDrawBusy] = useState(false);
+  const [drawnToday, setDrawnToday] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const isOwnerRef = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const welcomedRef = useRef(false);
+  const sessionProviderRef = useRef<string | undefined>(undefined);
+  const rootVoiceAccentRef = useRef<ReturnType<typeof readStoredVoiceAccent> | null | undefined>(
+    undefined,
+  );
+  const pendingNewRootRef = useRef<{ message: string; resend?: string } | null>(null);
+  const lastAskedRef = useRef('');
+  const beginNewRootRef = useRef<(ping: string, resend?: string) => void>(() => {});
 
   const { messages, setMessages, sendMessage, status, error, stop, clearError } = useChat({
     transport: new DefaultChatTransport({
@@ -135,24 +219,62 @@ export default function AgentChat() {
       // Keep server cookie day keyed to the visitor's local calendar day
       // (same as localStorage). UTC-only keys made the counter look stuck
       // between local midnight and UTC midnight.
-      headers: () => ({ 'X-Quota-Day': quotaDayKey() }),
-      // Cross-session "topic memory" — what this visitor cared about on
-      // previous visits, read fresh from localStorage on every request so
-      // the server can soft-condition the system prompt on it. See
-      // lib/articleTopicMemory.ts.
-      body: () => ({
-        priorTopics: readTopicMemory().topics,
-        agentMode: 'public' as const,
-      }),
+      headers: () => {
+        const h: Record<string, string> = { 'X-Quota-Day': quotaDayKey() };
+        const provider = sessionProviderRef.current ?? '';
+        if (provider) h['X-Session-Provider'] = provider;
+        if (rootVoiceAccentRef.current !== undefined) {
+          h['X-Session-Voice-Accent'] = rootVoiceAccentRef.current ?? 'off';
+        }
+        return h;
+      },
+      // Frozen prefix: always send sessionProvider as a string ('' on first
+      // turn). JSON.stringify drops `undefined`, which made the server 409
+      // provider-swap path unreachable.
+      body: () => {
+        if (rootVoiceAccentRef.current === undefined) {
+          rootVoiceAccentRef.current = voiceModeRef.current ? readStoredVoiceAccent() : null;
+        }
+        const freeze = rootVoiceAccentRef.current;
+        const live = voiceModeRef.current ? readStoredVoiceAccent() : freeze;
+        return {
+          priorTopics: readTopicMemory().topics,
+          agentMode: 'public' as const,
+          voiceAccent: live ?? undefined,
+          sessionProvider: sessionProviderRef.current ?? '',
+          sessionVoiceAccent: freeze === undefined ? '' : (freeze ?? 'off'),
+        };
+      },
+      fetch: async (input, init) => {
+        const res = await fetch(input, init);
+        const provider = res.headers.get('X-Provider');
+        if (provider) sessionProviderRef.current = provider;
+        if (res.status === 409) {
+          const text = await res.clone().text().catch(() => '');
+          const parsed = parseNewRootError(text);
+          const reason = res.headers.get('X-New-Root') || parsed?.reason;
+          if (parsed || reason) {
+            pendingNewRootRef.current = {
+              message: parsed?.message || pingForNewRootReason(reason, COMPACTION_PING),
+              resend: lastAskedRef.current || undefined,
+            };
+          }
+        }
+        return res;
+      },
     }),
   });
   // useChat keeps `error` until the next successful turn. Mute it on reset
   // so a snag doesn't stick across a fresh thread.
   const [errorMuted, setErrorMuted] = useState(false);
   useEffect(() => {
-    if (error) setErrorMuted(false);
+    if (error && !pendingNewRootRef.current) setErrorMuted(false);
   }, [error]);
-  const showError = Boolean(error) && !errorMuted;
+  const showError =
+    Boolean(error) &&
+    !errorMuted &&
+    !pendingNewRootRef.current &&
+    !parseNewRootError(error?.message ?? '');
 
   // Open console → greet first (catch-up if we remember prior topics).
   // Closing clears the transcript (see closeConsole) so this runs fresh each open.
@@ -229,7 +351,7 @@ export default function AgentChat() {
     let cancelled = false;
     (async () => {
       try {
-        const s = await createBrowserSession(SYSTEM_PROMPT_LITE);
+        const s = await createBrowserSession(SYSTEM_PROMPT_LITE + frozenRootIdentity('on-device'));
         if (cancelled) {
           s?.destroy();
           return;
@@ -245,10 +367,9 @@ export default function AgentChat() {
     };
   }, [open, activeRuntime]);
 
-  const busy = status === 'submitted' || status === 'streaming' || browserBusy || vcodeBusy;
-  // Hard stop only when today's 20 are gone — email must never unlock extra quota.
-  // Owner session (public preview) is unlimited; visitors cannot fake this (httpOnly cookie).
-  const sessionMaxed = !isOwner && sessionCount >= DAILY_LIMIT;
+  const busy = status === 'submitted' || status === 'streaming' || browserBusy || vcodeBusy || drawBusy;
+  // Visitors hard-stop at 20/day. OWNER_KEY session or owner-email cookie is unlimited.
+  const sessionMaxed = !isOwner && !ownerUnlimited && sessionCount >= DAILY_LIMIT;
   const vcodeMaxed = vcodeCount >= VCODE_DAILY_LIMIT;
   // Soft nudge after a few turns; contact stays optional for the full daily 20.
   const leadSoftNudge = sessionCount >= LEAD_SOFT_AFTER && leadState !== 'sent';
@@ -260,7 +381,42 @@ export default function AgentChat() {
     setSessionCount((prev) => (prev === next ? prev : next));
     const vc = readStoredVcodeCount();
     setVcodeCount((prev) => (prev === vc ? prev : vc));
+    setOwnerUnlimited(readOwnerUnlimitedFlag());
   }, []);
+
+  const markOwnerUnlimited = useCallback(() => {
+    writeOwnerUnlimitedFlag(true);
+    setOwnerUnlimited(true);
+    setOwnerUnlockHint(null);
+  }, []);
+
+  /** Server-signed cookie unlock — only recognized owner emails succeed. */
+  const tryUnlockOwnerChat = useCallback(
+    async (rawEmail: string): Promise<boolean> => {
+      const email = rawEmail.trim();
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return false;
+      try {
+        const res = await fetch('/api/owner/chat-access', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ email }),
+        });
+        const body = (await res.json().catch(() => ({}))) as {
+          ok?: boolean;
+          unlimited?: boolean;
+        };
+        if (res.ok && body.ok && body.unlimited) {
+          markOwnerUnlimited();
+          return true;
+        }
+        return false;
+      } catch {
+        return false;
+      }
+    },
+    [markOwnerUnlimited],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -286,13 +442,29 @@ export default function AgentChat() {
       // Drop pre-fix keys so UTC-stuck / hard-gate counts can't linger.
       localStorage.removeItem('aileena_chat_count_daily');
       localStorage.removeItem('aileena_chat_count_daily_v2');
+      setDrawnToday(Boolean(readStoredDrawDay()));
       const lead = sessionStorage.getItem(LEAD_DISMISS_KEY);
       if (lead === 'sent') setLeadState('sent');
       else if (typeof document !== 'undefined' && document.cookie.includes('__aileena_lead')) setLeadState('sent');
     } catch {
       /* storage unavailable — ignore */
     }
-  }, [reconcileDailyQuota]);
+    // Confirm server cookie / OWNER_KEY session (source of truth).
+    void (async () => {
+      try {
+        const res = await fetch('/api/owner/chat-access', {
+          method: 'GET',
+          cache: 'no-store',
+          credentials: 'same-origin',
+        });
+        const body = (await res.json().catch(() => ({}))) as { unlimited?: boolean };
+        if (body.unlimited) markOwnerUnlimited();
+        else if (!readOwnerUnlimitedFlag()) setOwnerUnlimited(false);
+      } catch {
+        /* ignore — local flag still applies for UX until next probe */
+      }
+    })();
+  }, [reconcileDailyQuota, markOwnerUnlimited]);
 
   useEffect(() => {
     if (open) reconcileDailyQuota();
@@ -327,6 +499,7 @@ export default function AgentChat() {
       } catch {
         /* ignore */
       }
+      if (ownerUnlimited || readOwnerUnlimitedFlag()) return;
       setSessionCount((prevCount) => {
         if (isOwnerRef.current) return prevCount;
         const base = readStoredDailyCount();
@@ -345,7 +518,7 @@ export default function AgentChat() {
         setSessionCount(DAILY_LIMIT);
       }
     }
-  }, [status, error]);
+  }, [status, error, ownerUnlimited]);
 
   useEffect(() => {
     if (!scrollRef.current) return;
@@ -523,6 +696,10 @@ export default function AgentChat() {
     clearTopicMemory();
     welcomedRef.current = false;
     lastForwardedHashRef.current = '';
+    sessionProviderRef.current = undefined;
+    rootVoiceAccentRef.current = undefined;
+    setDrawById({});
+    lastAskedRef.current = '';
     // New Gmail thread for the next conversation.
     sessionIdRef.current =
       typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
@@ -556,6 +733,10 @@ export default function AgentChat() {
     clearTopicMemory();
     welcomedRef.current = false;
     lastForwardedHashRef.current = '';
+    sessionProviderRef.current = undefined;
+    rootVoiceAccentRef.current = undefined;
+    setDrawById({});
+    lastAskedRef.current = '';
     sessionIdRef.current =
       typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
         ? crypto.randomUUID()
@@ -564,6 +745,73 @@ export default function AgentChat() {
     setLeadOpen(false);
     setLeadError(null);
   }, [forwardTranscriptNow, setMessages]);
+
+  /** Ping the visitor, then forget/re-prefill a new frozen root. Never silent rewrite. */
+  const beginNewRoot = useCallback(
+    (ping: string, resend?: string) => {
+      if (forwardTimerRef.current) {
+        clearTimeout(forwardTimerRef.current);
+        forwardTimerRef.current = null;
+      }
+      forwardTranscriptNow();
+
+      browserAbortRef.current?.abort();
+      browserAbortRef.current = null;
+      browserSessionRef.current?.destroy();
+      browserSessionRef.current = null;
+      setBrowserBusy(false);
+
+      sessionProviderRef.current = undefined;
+      rootVoiceAccentRef.current = undefined;
+      lastAskedRef.current = '';
+      setDrawById({});
+      setInput('');
+      setErrorMuted(true);
+      try {
+        clearError?.();
+      } catch {
+        /* ignore */
+      }
+      clearTopicMemory();
+      lastForwardedHashRef.current = '';
+      sessionIdRef.current =
+        typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+          ? crypto.randomUUID()
+          : `s-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`;
+      const id =
+        typeof crypto !== 'undefined' && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `root-${Date.now()}`;
+      welcomedRef.current = true;
+      setMessages([
+        {
+          id,
+          role: 'assistant',
+          parts: [{ type: 'text', text: ping }],
+        },
+      ]);
+      if (resend) {
+        window.setTimeout(() => {
+          askRef.current?.(resend);
+        }, 0);
+      }
+    },
+    [clearError, forwardTranscriptNow, setMessages],
+  );
+  beginNewRootRef.current = beginNewRoot;
+
+  useEffect(() => {
+    if (status !== 'error') return;
+    const pending = pendingNewRootRef.current;
+    if (pending) {
+      pendingNewRootRef.current = null;
+      beginNewRoot(pending.message, pending.resend);
+      return;
+    }
+    const parsed = parseNewRootError(error?.message ?? '');
+    if (!parsed) return;
+    beginNewRoot(parsed.message, lastAskedRef.current || undefined);
+  }, [status, error, beginNewRoot]);
 
   // Phone: lock page scroll while console covers the viewport.
   useEffect(() => {
@@ -624,7 +872,7 @@ export default function AgentChat() {
 
   async function ensureBrowserSession(): Promise<BrowserSession | null> {
     if (browserSessionRef.current) return browserSessionRef.current;
-    const session = await createBrowserSession(SYSTEM_PROMPT_LITE);
+    const session = await createBrowserSession(SYSTEM_PROMPT_LITE + frozenRootIdentity('on-device'));
     browserSessionRef.current = session;
     return session;
   }
@@ -668,7 +916,7 @@ export default function AgentChat() {
           ),
         );
       }
-      if (!isOwnerRef.current) {
+      if (!isOwnerRef.current && !ownerUnlimited) {
         const next = readStoredDailyCount() + 1;
         writeStoredDailyCount(next);
         setSessionCount(next);
@@ -746,14 +994,18 @@ export default function AgentChat() {
         body: JSON.stringify({
           prompt: trimmed,
           priorTopics: readTopicMemory().topics,
+          voiceAccent: voiceModeRef.current ? readStoredVoiceAccent() : undefined,
         }),
       });
       const data = (await res.json().catch(() => ({}))) as {
         ok?: boolean;
         proposal?: string;
+        patch?: string;
+        patch_filename?: string;
         error?: string;
         remaining?: number;
         limit?: number;
+        apply?: boolean;
       };
 
       if (typeof data.remaining === 'number') {
@@ -762,10 +1014,11 @@ export default function AgentChat() {
         setVcodeCount(used);
       }
 
-      const reply = data.ok && data.proposal
-        ? `▸ voice → code · propose only (no Cursor tokens · not written to disk)\n\n${data.proposal}`
-        : data.error ||
-          `Voice-code paused (${res.status}). Try again shortly — chat still works.`;
+      const reply =
+        data.ok && data.proposal
+          ? `▸ voice → code · propose only (copy / take the .patch — not written to disk)\n\n${data.proposal}`
+          : data.error ||
+            `Voice-code paused (${res.status}). Try again shortly — chat still works.`;
 
       setMessages((prev) =>
         prev.map((m) =>
@@ -774,6 +1027,27 @@ export default function AgentChat() {
             : m,
         ),
       );
+
+      if (res.ok && data.ok && typeof data.patch === 'string' && data.patch.length > 0) {
+        setVcodeById((prev) => ({
+          ...prev,
+          [assistantId]: {
+            patch: data.patch as string,
+            filename:
+              typeof data.patch_filename === 'string' && data.patch_filename.trim()
+                ? data.patch_filename.trim()
+                : 'aileena-vcode.patch',
+          },
+        }));
+      } else if (res.ok && data.ok && data.proposal) {
+        setVcodeById((prev) => ({
+          ...prev,
+          [assistantId]: {
+            patch: data.proposal as string,
+            filename: 'aileena-vcode.patch',
+          },
+        }));
+      }
 
       if (res.ok && data.ok && typeof data.remaining !== 'number') {
         const next = readStoredVcodeCount() + 1;
@@ -799,6 +1073,198 @@ export default function AgentChat() {
       );
     } finally {
       setVcodeBusy(false);
+    }
+  }
+
+  function takePatch(att: VcodeAttachment) {
+    const blob = new Blob([att.patch], { type: 'text/x-patch' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = att.filename || 'aileena-vcode.patch';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function copyPatch(id: string, att: VcodeAttachment) {
+    try {
+      await navigator.clipboard.writeText(att.patch);
+      setVcodeById((prev) => ({ ...prev, [id]: { ...att, copied: true } }));
+      window.setTimeout(() => {
+        setVcodeById((prev) => {
+          const cur = prev[id];
+          if (!cur) return prev;
+          return { ...prev, [id]: { ...cur, copied: false } };
+        });
+      }, 1600);
+    } catch {
+      /* clipboard blocked */
+    }
+  }
+
+  async function ownerApplyPatch(id: string, att: VcodeAttachment) {
+    if (!isOwnerRef.current) return;
+    setVcodeById((prev) => ({
+      ...prev,
+      [id]: { ...att, applying: true, applyError: undefined },
+    }));
+    try {
+      const res = await fetch('/api/owner/voice-code/apply', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ patch: att.patch }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        apply?: boolean;
+        error?: string;
+      };
+      if (!res.ok || !data.ok || data.apply !== true) {
+        setVcodeById((prev) => ({
+          ...prev,
+          [id]: {
+            ...att,
+            applying: false,
+            applied: false,
+            applyError: data.error || `apply refused (${res.status})`,
+          },
+        }));
+        return;
+      }
+      setVcodeById((prev) => ({
+        ...prev,
+        [id]: { ...att, applying: false, applied: true, applyError: undefined },
+      }));
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'network error';
+      setVcodeById((prev) => ({
+        ...prev,
+        [id]: { ...att, applying: false, applied: false, applyError: msg },
+      }));
+    }
+  }
+
+  async function sendDraw(trimmed: string) {
+    const userId =
+      typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `u-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const assistantId =
+      typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `a-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+    setDrawBusy(true);
+    setMessages((prev) => [
+      ...prev,
+      { id: userId, role: 'user', parts: [{ type: 'text', text: trimmed }] },
+      {
+        id: assistantId,
+        role: 'assistant',
+        parts: [{ type: 'text', text: '… drawing today\'s card' }],
+      },
+    ]);
+
+    const stored = readStoredDrawDay();
+    const cached = stored ? cardById(stored.cardId) : undefined;
+    if (cached) {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantId
+            ? {
+                ...m,
+                parts: [
+                  {
+                    type: 'text',
+                    text: `Today's card is still this one.\n\n${reciteDrawCard(cached)}`,
+                  },
+                ],
+              }
+            : m,
+        ),
+      );
+      setDrawById((prev) => ({
+        ...prev,
+        [assistantId]: { card: cached, date: stored!.date, repeat: true },
+      }));
+      setDrawnToday(true);
+      setDrawBusy(false);
+      void fetch('/api/draw', { method: 'GET', credentials: 'same-origin', cache: 'no-store' });
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/draw', {
+        method: 'GET',
+        credentials: 'same-origin',
+        cache: 'no-store',
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        date?: string;
+        repeat?: boolean;
+        text?: string;
+        card?: DrawCard;
+        error?: string;
+      };
+      if (!res.ok || !data.ok || !data.card || !data.text) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId
+              ? {
+                  ...m,
+                  parts: [
+                    {
+                      type: 'text',
+                      text: 'The desk is quiet on the card today. Try the doors instead.',
+                    },
+                  ],
+                }
+              : m,
+          ),
+        );
+        return;
+      }
+      const prefix = data.repeat ? 'Today\'s card is still this one.\n\n' : '';
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantId
+            ? { ...m, parts: [{ type: 'text', text: prefix + data.text }] }
+            : m,
+        ),
+      );
+      setDrawById((prev) => ({
+        ...prev,
+        [assistantId]: {
+          card: data.card as DrawCard,
+          date: typeof data.date === 'string' ? data.date : taipeiDay(),
+          repeat: Boolean(data.repeat),
+        },
+      }));
+      writeStoredDrawDay(
+        typeof data.date === 'string' ? data.date : taipeiDay(),
+        data.card.id,
+      );
+      setDrawnToday(true);
+    } catch {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantId
+            ? {
+                ...m,
+                parts: [
+                  {
+                    type: 'text',
+                    text: 'The desk is quiet on the card today. Try the doors instead.',
+                  },
+                ],
+              }
+            : m,
+        ),
+      );
+    } finally {
+      setDrawBusy(false);
     }
   }
 
@@ -842,6 +1308,11 @@ export default function AgentChat() {
     // their future cloud-mode visits and vice versa.
     appendUserTopic(trimmed);
 
+    if (isDrawIntent(trimmed)) {
+      void sendDraw(trimmed);
+      return;
+    }
+
     // Voice-to-code path — separate 5/day quota; Machina propose-only (no Cursor).
     if (isVoiceCodeIntent(trimmed)) {
       void sendVoiceCode(trimmed);
@@ -852,7 +1323,9 @@ export default function AgentChat() {
     // questions about the agent itself, top-level CV one-liners. Returns
     // ~10–30 ms (regex match + setState) instead of ~1.5–3 s LLM round-
     // trip. Substantive questions fall through to the real model.
-    const canned = matchCanned(trimmed, readTopicMemory().topics);
+    const canned = matchCanned(trimmed, readTopicMemory().topics, {
+      rootProvider: activeRuntime === 'browser' ? 'on-device' : sessionProviderRef.current,
+    });
     if (canned) {
       const userId =
         typeof crypto !== 'undefined' && crypto.randomUUID
@@ -871,7 +1344,7 @@ export default function AgentChat() {
           parts: [{ type: 'text', text: canned.reply }],
         },
       ]);
-      if (!isOwnerRef.current) {
+      if (!isOwnerRef.current && !ownerUnlimited) {
         const next = readStoredDailyCount() + 1;
         writeStoredDailyCount(next);
         setSessionCount(next);
@@ -889,7 +1362,8 @@ export default function AgentChat() {
     if (activeRuntime === 'browser') {
       void sendBrowser(trimmed);
     } else {
-      if (!isOwnerRef.current) pendingDailyBumpRef.current = true;
+      lastAskedRef.current = trimmed;
+      if (!isOwnerRef.current && !ownerUnlimited) pendingDailyBumpRef.current = true;
       sendMessage({ text: trimmed });
     }
   }
@@ -899,7 +1373,7 @@ export default function AgentChat() {
   // (with current sessionCount, busy state, lead gate, etc.).
   askRef.current = ask;
 
-  const remaining = Math.max(0, DAILY_LIMIT - sessionCount);
+  const remaining = ownerUnlimited ? Number.POSITIVE_INFINITY : Math.max(0, DAILY_LIMIT - sessionCount);
   const vcodeRemaining = Math.max(0, VCODE_DAILY_LIMIT - vcodeCount);
 
   // When turning voice off, abort any hung stream so typing works again.
@@ -933,7 +1407,9 @@ export default function AgentChat() {
     messages.some((m) => m.role === 'user');
 
   // Contact: soft invite after a few turns — collapsed link, never mid-flow.
-  const showLeadInvite = open && leadState !== 'sent' && leadSoftNudge;
+  // Also keep the form available at the visitor limit so owner can unlock via email.
+  const showLeadInvite =
+    open && leadState !== 'sent' && (leadSoftNudge || (sessionMaxed && !ownerUnlimited));
 
   function persistLeadState(next: LeadState) {
     setLeadState(next);
@@ -1042,6 +1518,7 @@ export default function AgentChat() {
         error?: string;
         ok?: boolean;
         id?: string;
+        unlimited?: boolean;
       };
       if (!res.ok || !body.ok) {
         const raw = body.error || 'Send failed. Try again.';
@@ -1053,16 +1530,37 @@ export default function AgentChat() {
         ) {
           setLeadMailReady(false);
           setLeadError(CONTACT_OFFLINE_PUBLIC);
+          // Mail offline — still try owner unlock (does not need Resend).
+          if (await tryUnlockOwnerChat(email)) {
+            setOwnerUnlockHint('Owner access unlocked — unlimited chat.');
+            setLeadOpen(false);
+            setLeadState('idle');
+            return;
+          }
         } else {
           setLeadError(raw);
         }
         setLeadState('idle');
         return;
       }
+      if (body.unlimited) {
+        markOwnerUnlimited();
+        setOwnerUnlockHint('Owner access unlocked — unlimited chat.');
+      } else {
+        // Double-check allow-list path (cookie may still be set).
+        await tryUnlockOwnerChat(email);
+      }
       setLeadOpen(false);
       persistLeadState('sent');
     } catch {
       setLeadError('Network error. Try again.');
+      // Network fail on lead — still attempt unlock for owner email.
+      if (await tryUnlockOwnerChat(email)) {
+        setOwnerUnlockHint('Owner access unlocked — unlimited chat.');
+        setLeadOpen(false);
+        setLeadState('idle');
+        return;
+      }
       setLeadState('idle');
     }
   }
@@ -1076,7 +1574,8 @@ export default function AgentChat() {
     let text = raw;
     if (raw.startsWith('{') && raw.endsWith('}')) {
       try {
-        const parsed = JSON.parse(raw) as { error?: unknown };
+        const parsed = JSON.parse(raw) as { error?: unknown; code?: unknown };
+        if (parsed.code === 'new_root') return '';
         if (typeof parsed.error === 'string' && parsed.error.length > 0) {
           text = parsed.error;
         }
@@ -1084,6 +1583,8 @@ export default function AgentChat() {
         /* fall through */
       }
     }
+    if (parseNewRootError(raw)) return '';
+    if (text === COMPACTION_PING || text === MODEL_SWAP_PING || text === ACCENT_SWAP_PING) return '';
     // Never surface the provider's billing/credit internals to visitors —
     // this agent isn't a free public service. Map any such error to our line.
     if (/credit balance|too low|insufficient|quota|billing|purchase credits|payment/i.test(text)) {
@@ -1116,7 +1617,7 @@ export default function AgentChat() {
         role="dialog"
         aria-modal="true"
         aria-label="Aileena Console"
-        className={`fixed z-[80] inset-0 sm:inset-x-auto sm:inset-y-auto sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[min(760px,calc(100vw-2.5rem))] sm:max-w-[calc(100vw-2.5rem)] h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[72vh] flex flex-col overflow-hidden bg-[#fffdf8] sm:bg-[#fffdf8]/95 border-0 sm:border sm:border-[#ded8ce] shadow-none sm:shadow-[0_24px_80px_-34px_rgba(31,26,20,0.42)] backdrop-blur-md transition-all duration-200 ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-[0.98] sm:scale-[0.96] pointer-events-none'} font-mono`}
+        className={`fixed z-[80] inset-0 sm:inset-x-auto sm:inset-y-auto sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[min(760px,calc(100vw-2.5rem))] sm:max-w-[calc(100vw-2.5rem)] h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[72vh] flex flex-col overflow-hidden bg-[#fffdf8] sm:bg-[#fffdf8]/95 border-0 sm:border sm:border-[#ded8ce] shadow-none sm:shadow-[0_24px_80px_-34px_rgba(31,26,20,0.42)] backdrop-blur-md transition-all duration-200 pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] sm:pt-0 sm:pb-0 ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-[0.98] sm:scale-[0.96] pointer-events-none'} font-mono`}
         style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace' }}
       >
         {/* Header bar */}
@@ -1144,7 +1645,18 @@ export default function AgentChat() {
                   type="button"
                   onClick={() => {
                     if (!canToggle) return;
-                    setRuntime(runtime === 'browser' ? 'cloud' : 'browser');
+                    const next: Runtime = runtime === 'browser' ? 'cloud' : 'browser';
+                    const hasThread = messages.some((m) => m.role === 'user');
+                    setRuntime(next);
+                    if (hasThread) {
+                      beginNewRoot(MODEL_SWAP_PING);
+                    } else {
+                      browserAbortRef.current?.abort();
+                      browserSessionRef.current?.destroy();
+                      browserSessionRef.current = null;
+                      sessionProviderRef.current = undefined;
+                      rootVoiceAccentRef.current = undefined;
+                    }
                   }}
                   disabled={!canToggle}
                   title={title}
@@ -1251,19 +1763,20 @@ export default function AgentChat() {
               <p className="text-[0.78rem] leading-[1.7] text-[#1b1713]/62 mb-3">
                 {voiceMode ? (
                   <>
-                    Tap the <span className="text-[#008f86]">orb</span> to speak. You should see a
-                    live caption, then hear the reply.
+                    Tap the <span className="text-[#008f86]">orb</span> to speak. Live caption,
+                    then a reply. Say <span className="text-[#008f86]">fix</span> /{' '}
+                    <span className="text-[#008f86]">写代码</span> for a propose-only patch
+                    (5/day) — nothing is written to disk.
                   </>
                 ) : (
                   <>
                     Tap <span className="text-[#008f86]">Voice</span>, then tap the{' '}
                     <span className="text-[#008f86]">orb</span> to speak (phone needs the orb tap).
-                    <span className="hidden sm:inline">
-                      {' '}Say <span className="text-[#008f86]">fix</span> /{' '}
-                      <span className="text-[#008f86]">implement</span> /{' '}
-                      <span className="text-[#008f86]">Voice → code</span> for a
-                      propose-only patch (5/day).
-                    </span>
+                    {' '}Say <span className="text-[#008f86]">fix</span> /{' '}
+                    <span className="text-[#008f86]">implement</span> /{' '}
+                    <span className="text-[#008f86]">写代码</span> /{' '}
+                    <span className="text-[#008f86]">Voice → code</span> for a
+                    propose-only patch (5/day).
                   </>
                 )}
               </p>
@@ -1272,9 +1785,11 @@ export default function AgentChat() {
                   {buildCatchUpHint(readTopicMemory().topics)}
                 </p>
               )}
-              {!voiceMode && (
               <ul className="space-y-2">
-                {STARTER_PROMPTS.map((p) => (
+                {(voiceMode
+                  ? STARTER_PROMPTS.filter((p) => /voice\s*→\s*code/i.test(p))
+                  : STARTER_PROMPTS
+                ).map((p) => (
                   <li key={p}>
                     <button
                       type="button"
@@ -1287,7 +1802,6 @@ export default function AgentChat() {
                   </li>
                 ))}
               </ul>
-              )}
             </>
           ) : (
             messages.map((m) => {
@@ -1302,12 +1816,25 @@ export default function AgentChat() {
                   return <Line key={m.id} role="assistant" text={activity} muted />;
                 }
               }
+              const att = m.role === 'assistant' ? vcodeById[m.id] : undefined;
+              const draw = m.role === 'assistant' ? drawById[m.id] : undefined;
               return (
-                <Line
-                  key={m.id}
-                  role={m.role === 'user' ? 'user' : 'assistant'}
-                  text={text}
-                />
+                <div key={m.id}>
+                  <Line
+                    role={m.role === 'user' ? 'user' : 'assistant'}
+                    text={text}
+                  />
+                  {draw ? <DrawCardTail att={draw} /> : null}
+                  {att ? (
+                    <VcodeActions
+                      att={att}
+                      isOwner={isOwner}
+                      onCopy={() => void copyPatch(m.id, att)}
+                      onTake={() => takePatch(att)}
+                      onApply={() => void ownerApplyPatch(m.id, att)}
+                    />
+                  ) : null}
+                </div>
               );
             })
           )}
@@ -1316,7 +1843,7 @@ export default function AgentChat() {
             <Line role="assistant" text="…" muted />
           )}
 
-          {showError && (
+          {showError && serverErrorText && (
             <p className="text-[0.7rem] leading-5 tracking-[0.05em] text-red-400/85 whitespace-pre-wrap">
               <span className="font-mono text-[0.55rem] tracking-[0.3em] uppercase mr-1.5">▸ error</span>
               {serverErrorText || 'connection failed · try again'}
@@ -1324,10 +1851,55 @@ export default function AgentChat() {
           )}
 
           {sessionMaxed && (
-            <p className="text-[0.7rem] leading-5 tracking-[0.05em] text-[#007d75]/75 whitespace-pre-wrap">
-              <span className="font-mono text-[0.55rem] tracking-[0.3em] uppercase mr-1.5">▸ limit</span>
-              You&apos;ve used today&apos;s {DAILY_LIMIT} messages. Fresh set tomorrow — see you then.
-            </p>
+            <div className="space-y-2">
+              <p className="text-[0.7rem] leading-5 tracking-[0.05em] text-[#007d75]/75 whitespace-pre-wrap">
+                <span className="font-mono text-[0.55rem] tracking-[0.3em] uppercase mr-1.5">▸ limit</span>
+                You&apos;ve used today&apos;s {DAILY_LIMIT} messages. Fresh set tomorrow — see you then.
+              </p>
+              <form
+                className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void (async () => {
+                    const ok = await tryUnlockOwnerChat(leadEmail);
+                    if (ok) setOwnerUnlockHint('Owner access unlocked — unlimited chat.');
+                    else setOwnerUnlockHint('Email not recognized for unlimited access.');
+                  })();
+                }}
+              >
+                <input
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  name="owner-unlock-email"
+                  placeholder="your email unlocks unlimited"
+                  value={leadEmail}
+                  onChange={(e) => {
+                    setLeadEmail(e.target.value);
+                    setOwnerUnlockHint(null);
+                  }}
+                  onBlur={() => {
+                    void tryUnlockOwnerChat(leadEmail).then((ok) => {
+                      if (ok) setOwnerUnlockHint('Owner access unlocked — unlimited chat.');
+                    });
+                  }}
+                  className="flex-1 min-w-0 bg-transparent border border-[#e7e0d6] px-2 py-1.5 text-[0.75rem] text-[#1b1713]/85 placeholder:text-[#1b1713]/35 outline-none focus:border-[#008f86]/50"
+                />
+                <button
+                  type="submit"
+                  className="font-mono text-[0.5rem] tracking-[0.22em] uppercase text-[#008f86] hover:text-[#007d75] px-2 py-1.5 border border-[#e7e0d6]"
+                >
+                  unlock
+                </button>
+              </form>
+              {ownerUnlockHint && (
+                <p className="text-[0.65rem] text-[#008f86]/85">{ownerUnlockHint}</p>
+              )}
+            </div>
+          )}
+
+          {!sessionMaxed && ownerUnlockHint && (
+            <p className="text-[0.65rem] text-[#008f86]/85">{ownerUnlockHint}</p>
           )}
 
         </div>
@@ -1365,18 +1937,25 @@ export default function AgentChat() {
               // start cannot loop.
               setAutoListen(false);
             }}
+            onAccentChange={(key: VoiceAccent) => {
+              const frozen = rootVoiceAccentRef.current;
+              if (frozen === undefined || frozen === null) return;
+              if (frozen === key) return;
+              beginNewRootRef.current(ACCENT_SWAP_PING);
+            }}
           />
         </div>
 
         {/* Chat input — separate from leave-a-note drawer below. */}
-        <div className="border-t border-[#e7e0d6] px-5 py-2.5 sm:py-3 shrink-0">
-          <div className="relative flex items-center gap-2">
+        <div className="border-t border-[#e7e0d6] px-5 py-2.5 sm:py-3 shrink-0 pb-[max(0.625rem,env(safe-area-inset-bottom,0px))] sm:pb-3">
+          <div className="relative flex items-center gap-2 min-w-0">
             <span className={`text-sm ${sessionMaxed ? 'text-[#1b1713]/20' : 'text-[#00a89d]'}`}>&gt;</span>
             <textarea
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
+                if (e.nativeEvent.isComposing || e.key === 'Process') return;
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
                   ask(input);
@@ -1407,10 +1986,10 @@ export default function AgentChat() {
               {voiceMode ? (
                 <>
                   <span className="sm:hidden">
-                    tap <span className="text-[#008f86]/70">orb</span> · speak
+                    tap <span className="text-[#008f86]/70">orb</span> · say fix → vcode
                   </span>
                   <span className="hidden sm:inline">
-                    stream · barge-in · <span className="text-[#008f86]/70">voice→code</span>
+                    stream · barge-in · say <span className="text-[#008f86]/70">fix / 写代码</span> → voice→code
                   </span>
                 </>
               ) : (
@@ -1421,18 +2000,60 @@ export default function AgentChat() {
               )}
             </span>
             <span className="flex flex-wrap gap-x-3 gap-y-1 justify-end shrink-0">
-              <span className={remaining === 0 && !isOwner ? 'text-red-400/70' : remaining <= 2 && !isOwner ? 'text-[#007d75]/55' : 'text-[#1b1713]/40'}>
+              <span
+                className={
+                  isOwner || ownerUnlimited
+                    ? 'text-[#008f86]/80'
+                    : remaining === 0
+                      ? 'text-red-400/70'
+                      : remaining <= 2
+                        ? 'text-[#007d75]/55'
+                        : 'text-[#1b1713]/40'
+                }
+              >
                 {isOwner
                   ? 'owner'
-                  : remaining === 0
-                    ? 'chat 0'
-                    : `chat ${remaining}/${DAILY_LIMIT}`}
+                  : ownerUnlimited
+                    ? 'chat ∞'
+                    : remaining === 0
+                      ? 'chat 0'
+                      : `chat ${remaining}/${DAILY_LIMIT}`}
               </span>
-              <span className={vcodeRemaining === 0 ? 'text-red-400/70' : 'text-[#007d75]/70'}>
-                {vcodeRemaining === 0
-                  ? 'vcode 0'
-                  : `vcode ${vcodeRemaining}/${VCODE_DAILY_LIMIT}`}
+              <button
+                type="button"
+                disabled={vcodeMaxed || busy}
+                onClick={() =>
+                  ask('Voice → code: sketch a small patch for the Console footer')
+                }
+                title="Propose-only patch — copy or take the .patch, nothing written"
+                className={
+                  vcodeRemaining === 0
+                    ? 'text-red-400/70 uppercase'
+                    : 'text-[#007d75]/70 hover:text-[#008f86] uppercase'
+                }
+              >
+                Voice → code
+              </button>
+              <span
+                className={
+                  vcodeRemaining === 0 ? 'text-red-400/70' : 'text-[#1b1713]/40'
+                }
+              >
+                {vcodeRemaining} left today
               </span>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => ask('今日牌')}
+                title="One card per Taipei day — recited at the tail, not in the system block"
+                className={
+                  drawnToday
+                    ? 'text-[#1b1713]/40 uppercase'
+                    : 'text-[#007d75]/70 hover:text-[#008f86] uppercase'
+                }
+              >
+                draw
+              </button>
             </span>
           </p>
         </div>
@@ -1497,9 +2118,17 @@ export default function AgentChat() {
                     data-bwignore="true"
                     data-form-type="other"
                     value={leadEmail}
-                    onChange={(e) => setLeadEmail(e.target.value)}
+                    onChange={(e) => {
+                      setLeadEmail(e.target.value);
+                      setOwnerUnlockHint(null);
+                    }}
+                    onBlur={() => {
+                      void tryUnlockOwnerChat(leadEmail).then((ok) => {
+                        if (ok) setOwnerUnlockHint('Owner access unlocked — unlimited chat.');
+                      });
+                    }}
                     placeholder="your email"
-                    disabled={leadState === 'submitting' || leadMailReady === false}
+                    disabled={leadState === 'submitting'}
                     className="flex-1 min-w-0 bg-white border border-[#ded8ce] px-3 py-2 text-sm text-[#1b1713]/90 placeholder:text-[#1b1713]/35 outline-none focus:border-[#00a89d]/70 caret-[#00a89d] disabled:opacity-50"
                   />
                   <input
@@ -1560,6 +2189,78 @@ export default function AgentChat() {
         </div>
       </div>
     </>
+  );
+}
+
+function DrawCardTail({ att }: { att: DrawAttachment }) {
+  const { card, date, repeat } = att;
+  return (
+    <aside
+      className="ml-5 mt-1 mb-2 max-w-[22rem] border border-[#e7e0d6] bg-[#fffdf8] px-3 py-2"
+      data-draw-card={card.id}
+    >
+      <p className="font-mono text-[0.48rem] tracking-[0.28em] uppercase text-[#008f86]/80">
+        ▸ {card.room}
+        {repeat ? ' · same day' : ''} · {date}
+      </p>
+      <p className="mt-1 text-[0.78rem] leading-[1.6] text-[#1b1713]/88">{card.title}</p>
+      <p className="mt-0.5 text-[0.72rem] leading-[1.55] text-[#1b1713]/62">{card.recitation}</p>
+      <a
+        href={card.href}
+        className="mt-1 inline-block font-mono text-[0.48rem] tracking-[0.18em] uppercase text-[#007d75] hover:text-[#008f86]"
+      >
+        {card.href.replace(/^https:\/\//, '')} ↗
+      </a>
+    </aside>
+  );
+}
+
+function VcodeActions({
+  att,
+  isOwner,
+  onCopy,
+  onTake,
+  onApply,
+}: {
+  att: VcodeAttachment;
+  isOwner: boolean;
+  onCopy: () => void;
+  onTake: () => void;
+  onApply: () => void;
+}) {
+  return (
+    <div className="pl-5 mt-1 mb-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+      <button
+        type="button"
+        onClick={onCopy}
+        className="font-mono text-[0.48rem] tracking-[0.22em] uppercase text-[#008f86]/85 hover:text-[#007d75]"
+      >
+        {att.copied ? 'copied' : 'copy'}
+      </button>
+      <button
+        type="button"
+        onClick={onTake}
+        className="font-mono text-[0.48rem] tracking-[0.22em] uppercase text-[#008f86]/85 hover:text-[#007d75]"
+      >
+        take .patch
+      </button>
+      {isOwner ? (
+        <button
+          type="button"
+          disabled={att.applying || att.applied}
+          onClick={onApply}
+          className="font-mono text-[0.48rem] tracking-[0.22em] uppercase text-[#1b1713]/45 hover:text-[#008f86] disabled:opacity-40"
+          title="Owner session only — Console/footer allowlist"
+        >
+          {att.applied ? 'applied' : att.applying ? 'applying…' : 'owner apply'}
+        </button>
+      ) : null}
+      {att.applyError ? (
+        <span className="font-mono text-[0.48rem] tracking-[0.16em] text-red-400/70">
+          {att.applyError}
+        </span>
+      ) : null}
+    </div>
   );
 }
 

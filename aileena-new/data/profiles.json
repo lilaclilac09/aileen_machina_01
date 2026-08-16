@@ -6,9 +6,9 @@
     "description": "Founder, CEO @mach33 | technical investment research on space & spacex | investing in early stage expansion tech",
     "location": "Merrit Island, FL",
     "website": "https://www.33fg.com/",
-    "followers": 29313,
-    "following": 638,
-    "tweets": 9260,
+    "followers": 30120,
+    "following": 642,
+    "tweets": 9370,
     "verified": true,
     "avatarUrl": "https://pbs.twimg.com/profile_images/2049987217477513216/GJx9_LdR_normal.jpg",
     "tags": [
@@ -16,7 +16,7 @@
     ],
     "org": "mach33 / 33fg",
     "source": "fxtwitter",
-    "updatedAt": "2026-08-13T02:47:10.180Z"
+    "updatedAt": "2026-08-16T01:56:58.225Z"
   },
   {
     "id": "985281530070265862",
@@ -82,14 +82,14 @@
     "screenName": "SemiAnalysis_",
     "name": "SemiAnalysis",
     "website": "https://www.semianalysis.com",
-    "followers": 149781,
+    "followers": 151837,
     "following": 29,
-    "tweets": 3009,
+    "tweets": 3022,
     "verified": true,
     "avatarUrl": "https://pbs.twimg.com/profile_images/2062973370157694976/CdplNoi1_normal.jpg",
     "tags": [],
     "source": "fxtwitter",
-    "updatedAt": "2026-08-13T02:46:55.307Z"
+    "updatedAt": "2026-08-16T01:56:42.023Z"
   },
   {
     "id": "1496125256624484362",
@@ -98,9 +98,9 @@
     "description": "Space Investor @Mach33 | 🇬🇧🇷🇴",
     "location": "London, England",
     "website": "https://research.33fg.com/",
-    "followers": 3689,
-    "following": 478,
-    "tweets": 1873,
+    "followers": 5488,
+    "following": 486,
+    "tweets": 1897,
     "verified": true,
     "avatarUrl": "https://pbs.twimg.com/profile_images/2048709268069916672/Nz_BJSKj_normal.jpg",
     "tags": [
@@ -108,7 +108,7 @@
     ],
     "org": "mach33 / 33fg",
     "source": "fxtwitter",
-    "updatedAt": "2026-08-12T19:20:13.671Z"
+    "updatedAt": "2026-08-16T01:57:03.381Z"
   },
   {
     "id": "2051360039869276160",
@@ -117,14 +117,14 @@
     "description": "We research and invest in companies developing expansion technologies shaping the future of humanity, including space, AI, robotics, and advanced infrastructure",
     "location": "Florida",
     "website": "https://www.33fg.com/",
-    "followers": 716,
-    "following": 3,
-    "tweets": 25,
+    "followers": 1923,
+    "following": 5,
+    "tweets": 33,
     "verified": true,
     "avatarUrl": "https://pbs.twimg.com/profile_images/2054270599107608576/SOrzE1wC_normal.jpg",
     "tags": [],
     "source": "fxtwitter",
-    "updatedAt": "2026-08-10T19:16:48.201Z"
+    "updatedAt": "2026-08-15T18:47:05.504Z"
   },
   {
     "id": "379092222",
@@ -132,9 +132,9 @@
     "name": "Sravan Kundojjala",
     "description": "Semiconductors, Analyst @SemiAnalysis_\n\nNo investment advice. Opinions are mine only.",
     "website": "https://www.semianalysis.com/",
-    "followers": 22290,
-    "following": 5597,
-    "tweets": 10213,
+    "followers": 22369,
+    "following": 5598,
+    "tweets": 10220,
     "verified": true,
     "avatarUrl": "https://pbs.twimg.com/profile_images/1562107049/213_jpg_normal.jpg",
     "tags": [
@@ -142,6 +142,25 @@
     ],
     "org": "SemiAnalysis",
     "source": "fxtwitter",
-    "updatedAt": "2026-08-07T19:14:45.508Z"
+    "updatedAt": "2026-08-15T18:46:58.916Z"
+  },
+  {
+    "id": "834782162629120001",
+    "screenName": "jbarseneau",
+    "name": "J. Brant Arseneau",
+    "description": "Chairman & CIO @ Mach33 - Neural Network guy since the 80’s… deep tech architect and investor. http://33fg.com",
+    "location": "New York, USA",
+    "website": "http://www.33fg.com",
+    "followers": 362,
+    "following": 310,
+    "tweets": 335,
+    "verified": true,
+    "avatarUrl": "https://pbs.twimg.com/profile_images/2028281258103726082/HFaB6Gd__normal.jpg",
+    "tags": [
+      "mach33"
+    ],
+    "org": "mach33 / 33fg",
+    "source": "fxtwitter",
+    "updatedAt": "2026-08-15T18:47:02.555Z"
   }
 ]

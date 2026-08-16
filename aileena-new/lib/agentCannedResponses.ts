@@ -3,6 +3,7 @@ import {
   SITE_AGENT_OPENING_DE,
   SITE_AGENT_OPENING_ZH,
 } from './siteAgentCopy';
+import { machinaRootSpoken } from './consolePrefixCopy';
 
 /**
  * Client-side canned-response short-circuit for the chat agent.
@@ -68,6 +69,16 @@ const RULES: Rule[] = [
 
   // ── Meta: who are you / what is this ───────────────────────────────────
   {
+    name: 'model-identity-zh',
+    test: /(你是什么模型|你用什么模型|你跑在什么|什么大模型|你是\s*(chatgpt|gpt|claude|dsh)|是不是\s*(chatgpt|gpt|claude|dsh)|deepseek\s*harness)/i,
+    reply: '',
+  },
+  {
+    name: 'model-identity-en',
+    test: /\b(what\s+model|which\s+model|what\s+llm|who\s+are\s+you\s+running\s+on|what\s+are\s+you\s+running\s+on|are\s+you\s+(chatgpt|gpt-?\d*|claude|dsh|deepseek\s*harness)|running\s+on\s+(chatgpt|gpt|claude|dsh))\b/i,
+    reply: '',
+  },
+  {
     name: 'who-are-you',
     test: /\b(who\s*are\s*you|what\s*are\s*you|are\s*you\s*(real|human|ai|a\s*bot|chatgpt|gpt))\b/i,
     reply:
@@ -77,7 +88,7 @@ const RULES: Rule[] = [
     name: 'who-built-this',
     test: /\b(who\s*(built|made|wrote|coded)\s*(this|you|the\s*agent|the\s*chat))\b/i,
     reply:
-      'Aileen did. Fresh implementation on Vercel AI SDK + Next.js, DeepSeek-chat as the model, build-time TF-IDF RAG over her own article corpus. No frameworks borrowed.',
+      'Aileen did. Fresh implementation on Vercel AI SDK + Next.js, model via modelRouter (this root\'s lock), build-time TF-IDF RAG over her own article corpus. No frameworks borrowed.',
   },
   {
     name: 'who-is-aileen',
@@ -115,11 +126,20 @@ const RULES: Rule[] = [
   },
 ];
 
+export type CannedOpts = {
+  /** Locked speaking model for this root. Cloud default is DeepSeek. */
+  rootProvider?: string;
+};
+
 /**
  * Return a canned response for the input text if any rule matches, else null.
  * Pass priorTopics so greetings can catch up without an LLM round-trip.
  */
-export function matchCanned(text: string, priorTopics: string[] = []): CannedHit | null {
+export function matchCanned(
+  text: string,
+  priorTopics: string[] = [],
+  opts: CannedOpts = {},
+): CannedHit | null {
   const stripped = text.trim();
   if (!stripped) return null;
   // Only short queries are candidates for canned replies. Long inputs
@@ -128,6 +148,13 @@ export function matchCanned(text: string, priorTopics: string[] = []): CannedHit
 
   for (const rule of RULES) {
     if (!rule.test.test(stripped)) continue;
+
+    if (rule.name === 'model-identity-zh') {
+      return { reply: machinaRootSpoken(opts.rootProvider, 'zh'), pattern: rule.name };
+    }
+    if (rule.name === 'model-identity-en') {
+      return { reply: machinaRootSpoken(opts.rootProvider, 'en'), pattern: rule.name };
+    }
 
     // Personalize greetings with catch-up when we know prior topics.
     if (rule.name.startsWith('greeting-') && priorTopics.length > 0) {

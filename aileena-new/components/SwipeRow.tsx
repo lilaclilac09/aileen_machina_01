@@ -100,6 +100,8 @@ const COVER_BY_SLUG: Record<string, string> = {
   'ai-hardware-scarcity': COVER_SILICON,
   'huawei-hbm': COVER_CIRCUIT_CLOSEUP,
   'huawei-supply': COVER_SILICON,
+  'china-neocloud': COVER_DATACENTER,
+  'china-neocloud-teaser': COVER_DATACENTER,
   'memory-tax': COVER_SILICON,
   'cxmt-yield-watch': COVER_CIRCUIT_CLOSEUP,
 
@@ -409,10 +411,11 @@ export default function SwipeRow({
         role="region"
         aria-roledescription="carousel"
         aria-label="Research dispatch cover flow"
-        className="dispatch-swipe-stage"
+        className="dispatch-swipe-stage mobile-stage-clip"
         style={{
           position: 'relative',
           width: '100%',
+          maxWidth: '100%',
           height: 'min(48vw, 360px)',
           margin: '8px 0 28px',
           cursor: isDragging ? 'grabbing' : 'grab',
@@ -421,6 +424,7 @@ export default function SwipeRow({
           perspective: `${settings.perspective}px`,
           perspectiveOrigin: '50% 55%',
           outline: 'none',
+          overflow: 'hidden',
         }}
       >
         {posts.map((post, i) => {

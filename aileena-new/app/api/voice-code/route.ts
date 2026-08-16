@@ -1,11 +1,12 @@
 /**
- * POST /api/voice-code — propose-only code drafts for the Console orb.
+ * POST /api/voice-code — public door. Propose-only.
  *
- * - Brain: same Machina/DeepSeek stack as /api/chat (NOT Cursor tokens).
+ * - Brain: same Machina/DeepSeek stack as /api/chat (NOT Cursor tokens, NOT dsh).
  * - Quota: signed cookie `__aileena_vcode`, 5 proposals / visitor / local day.
- * - Product: proposal text for Console dialog only; never claims disk writes.
+ * - Returns a unified diff + downloadable .patch metadata. Never writes.
+ * - `apply: true` / write flags → 403. Never 200 that implies a write.
  *
- * Curl-apply to: aileena-new/app/api/voice-code/route.ts
+ * Owner apply is `/api/owner/voice-code/apply` (OWNER_KEY session + allowlist).
  */
 
 import { generateText } from 'ai';
@@ -17,6 +18,9 @@ import {
   classifyModelError,
   degradeMessage,
 } from '../../../lib/modelRouter';
+import { parseVoiceAccent } from '../../../lib/voiceAccent';
+import { isVoiceCodeIntent } from '../../../lib/voiceCodeIntent';
+import { buildDownloadablePatch } from '../../../lib/voiceCodePatch';
 
 export const runtime = 'edge';
 export const maxDuration = 30;
@@ -29,12 +33,15 @@ const CRUEL_FORBID =
 
 const SYSTEM = `You are Aileena's voice-to-code helper on aileena.xyz.
 Return a CODE PROPOSAL only — unified diff and/or short numbered steps.
+You are not DeepSeek Harness (dsh). dsh is a local coding CLI with disk and sandbox.
+This Console loop is propose-only: no git, no apply, write_target is always null.
 Rules:
 - Do NOT claim you wrote files, ran git, or applied a patch.
 - Do NOT ask the visitor to paste Cursor API keys or use Cursor tokens.
 - Prefer small, reviewable changes. If the ask is vague, propose the smallest clarifying patch sketch.
-- English-first. Be kind and practical. No cruel or fatalistic language.
-- End with one line: "Apply on your machine after review — this Console only proposes."`;
+- English-first even if the visitor spoke Chinese. Be kind and practical. No cruel or fatalistic language.
+- Do not use spoken/auntie cadence. Diffs are for reading, not TTS.
+- End with one line: "Copy or take the .patch — this Console only proposes."`;
 
 function utcDay(): string {
   return new Date().toISOString().slice(0, 10);
@@ -127,18 +134,57 @@ function json(
   });
 }
 
+function wantsWrite(body: Record<string, unknown>): boolean {
+  if (body.apply === true || body.write === true) return true;
+  if (body.permission === 'apply') return true;
+  const target = body.write_target;
+  if (typeof target === 'string' && target.trim().length > 0) return true;
+  if (target && typeof target === 'object') return true;
+  return false;
+}
+
+const PROPOSE_FIELDS = {
+  apply: false,
+  write_target: null,
+  permission: 'propose',
+  harness: 'propose-only',
+} as const;
+
 export async function POST(req: Request) {
-  let body: { prompt?: unknown; priorTopics?: unknown };
+  let body: Record<string, unknown>;
   try {
-    body = await req.json();
+    body = (await req.json()) as Record<string, unknown>;
   } catch {
-    return json({ error: 'Invalid JSON.', ok: false }, 400);
+    return json({ error: 'Invalid JSON.', ok: false, ...PROPOSE_FIELDS }, 400);
+  }
+
+  if (wantsWrite(body)) {
+    return json(
+      {
+        ok: false,
+        error: 'Public voice-code is propose-only. Nothing was written.',
+        remaining: null,
+        show_in_dialog: true,
+        ...PROPOSE_FIELDS,
+      },
+      403,
+    );
   }
 
   const prompt = typeof body.prompt === 'string' ? body.prompt.trim() : '';
-  if (!prompt) return json({ error: 'No prompt.', ok: false }, 400);
+  if (!prompt) return json({ error: 'No prompt.', ok: false, ...PROPOSE_FIELDS }, 400);
   if (prompt.length > 4000) {
-    return json({ error: 'Prompt too long.', ok: false }, 413);
+    return json({ error: 'Prompt too long.', ok: false, ...PROPOSE_FIELDS }, 413);
+  }
+  if (!isVoiceCodeIntent(prompt)) {
+    return json(
+      {
+        ok: false,
+        error: 'Not a voice-code ask. Use chat instead.',
+        ...PROPOSE_FIELDS,
+      },
+      400,
+    );
   }
 
   const priorTopics = Array.isArray(body.priorTopics)
@@ -146,6 +192,7 @@ export async function POST(req: Request) {
         .filter((t): t is string => typeof t === 'string' && t.trim().length > 0)
         .slice(0, 5)
     : [];
+  const voiceAccent = parseVoiceAccent(body.voiceAccent);
 
   const quota = await readQuota(req);
   if (quota.count >= VCODE_DAILY_LIMIT) {
@@ -157,19 +204,24 @@ export async function POST(req: Request) {
         remaining: 0,
         limit: VCODE_DAILY_LIMIT,
         show_in_dialog: true,
-        write_target: null,
-        permission: 'propose',
+        ...PROPOSE_FIELDS,
       },
       429,
       {
         ...(exhaustedCookie ? { 'Set-Cookie': exhaustedCookie } : {}),
         'X-VCode-Remaining': '0',
         'X-VCode-Day': quota.date,
+        'X-Voice-Accent': voiceAccent ?? 'off',
+        'X-Harness': 'propose-only',
       },
     );
   }
 
-  const decision = routeModel({ toolRoute: 'voice_code', lastQuestion: prompt });
+  const decision = routeModel({
+    toolRoute: 'voice_code',
+    lastQuestion: prompt,
+    voiceAccent,
+  });
   if (decision.mode === 'degrade') {
     return json(
       {
@@ -178,8 +230,7 @@ export async function POST(req: Request) {
         remaining: Math.max(0, VCODE_DAILY_LIMIT - quota.count),
         limit: VCODE_DAILY_LIMIT,
         show_in_dialog: true,
-        write_target: null,
-        permission: 'propose',
+        ...PROPOSE_FIELDS,
       },
       decision.status,
     );
@@ -211,8 +262,7 @@ export async function POST(req: Request) {
         remaining: Math.max(0, VCODE_DAILY_LIMIT - quota.count),
         limit: VCODE_DAILY_LIMIT,
         show_in_dialog: true,
-        write_target: null,
-        permission: 'propose',
+        ...PROPOSE_FIELDS,
       },
       reason === 'billing' ? 502 : 503,
     );
@@ -226,8 +276,7 @@ export async function POST(req: Request) {
         remaining: Math.max(0, VCODE_DAILY_LIMIT - quota.count),
         limit: VCODE_DAILY_LIMIT,
         show_in_dialog: true,
-        write_target: null,
-        permission: 'propose',
+        ...PROPOSE_FIELDS,
       },
       502,
     );
@@ -241,22 +290,32 @@ export async function POST(req: Request) {
   const nextCount = quota.count + 1;
   const cookie = await buildQuotaCookie({ date: quota.date, count: nextCount });
   const remaining = Math.max(0, VCODE_DAILY_LIMIT - nextCount);
+  const download = buildDownloadablePatch({
+    proposal,
+    prompt,
+    remaining,
+    limit: VCODE_DAILY_LIMIT,
+  });
 
   return json(
     {
       ok: true,
       proposal,
+      patch: download.patch,
+      patch_filename: download.filename,
+      has_diff: download.hasDiff,
       remaining,
       limit: VCODE_DAILY_LIMIT,
       show_in_dialog: true,
-      write_target: null,
-      permission: 'propose',
+      ...PROPOSE_FIELDS,
     },
     200,
     {
       ...(cookie ? { 'Set-Cookie': cookie } : {}),
       'X-VCode-Remaining': String(remaining),
       'X-VCode-Day': quota.date,
+      'X-Voice-Accent': voiceAccent ?? 'off',
+      'X-Harness': 'propose-only',
     },
   );
 }

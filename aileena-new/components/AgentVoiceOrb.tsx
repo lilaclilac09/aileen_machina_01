@@ -17,6 +17,11 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  parseVoiceAccent,
+  VOICE_ACCENT_STORAGE_KEY,
+  type VoiceAccent,
+} from '../lib/voiceAccent';
 
 type Caps = {
   whisper: boolean;
@@ -40,6 +45,8 @@ type Props = {
   onRegisterStart?: (start: () => Promise<void>) => void;
   /** Parent registers audio unlock to warm HTMLAudio/speechSynthesis in the Voice click. */
   onRegisterUnlock?: (unlock: () => void) => void;
+  /** City accent changed — parent starts a new frozen root when one is live. */
+  onAccentChange?: (key: VoiceAccent) => void;
 };
 
 const WAKE_STRIP_RE = /^(hey\s+)?aileena\b[,!.?]?\s*/i;
@@ -77,8 +84,7 @@ const ACCENTS = [
   },
 ] as const;
 
-type AccentKey = (typeof ACCENTS)[number]['key'];
-const VOICE_STORAGE_KEY = 'aileena.console.voiceAccent';
+type AccentKey = VoiceAccent;
 
 /**
  * Sentence / clause boundaries for TTS pacing (never word chunks).
@@ -274,6 +280,7 @@ export default function AgentVoiceOrb({
   onListeningChange,
   onRegisterStart,
   onRegisterUnlock,
+  onAccentChange,
 }: Props) {
   // Default tts:false — live Production often has no ElevenLabs; browser voice must work first.
   const [caps, setCaps] = useState<Caps>({ whisper: false, tts: false, mode: 'webspeech' });
@@ -348,7 +355,7 @@ export default function AgentVoiceOrb({
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(VOICE_STORAGE_KEY) as AccentKey | null;
+      const saved = parseVoiceAccent(localStorage.getItem(VOICE_ACCENT_STORAGE_KEY));
       if (saved && ACCENTS.some((p) => p.key === saved)) setAccentKey(saved);
     } catch {
       /* ignore */
@@ -360,7 +367,7 @@ export default function AgentVoiceOrb({
     voiceIdRef.current = accent.voiceId;
     langRef.current = accent.lang;
     try {
-      localStorage.setItem(VOICE_STORAGE_KEY, accent.key);
+      localStorage.setItem(VOICE_ACCENT_STORAGE_KEY, accent.key);
     } catch {
       /* ignore */
     }
@@ -412,9 +419,15 @@ export default function AgentVoiceOrb({
     (key: AccentKey) => {
       if (key === accentKey) return;
       stopPlayback();
+      try {
+        localStorage.setItem(VOICE_ACCENT_STORAGE_KEY, key);
+      } catch {
+        /* ignore */
+      }
       setAccentKey(key);
+      onAccentChange?.(key);
     },
-    [accentKey, stopPlayback],
+    [accentKey, stopPlayback, onAccentChange],
   );
 
   const enqueueBuffer = useCallback(

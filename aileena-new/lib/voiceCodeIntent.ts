@@ -6,15 +6,22 @@
 export const VCODE_DAILY_LIMIT = 5;
 export const VCODE_SESSION_KEY = 'aileena_vcode_count_daily_v1';
 
+/**
+ * Idle chat must not burn vcode. Only implement / write code / 写代码 /
+ * an explicit Voice → code chip (or close Chinese coding verbs).
+ * Bare English "fix" is not enough — it must pair with a code/patch ask.
+ */
 const INTENT_RE =
-  /(code|coding|patch|fix|implement|refactor|diff|pull request|\bpr\b|bugfix|write code|改代码|写代码|修bug|修代码|重构)/i;
+  /(\bimplement\b|write code|改代码|写代码|修bug|修代码|重构)/i;
+const FIX_PAIRED_RE =
+  /\bfix\b.{0,40}\b(code|bug|patch|implement|footer|console)\b|\b(code|bug|patch|implement|footer|console)\b.{0,40}\bfix\b/i;
 
 /** True when the utterance should burn a voice-code quota slot (not chat 20). */
 export function isVoiceCodeIntent(text: string): boolean {
   const t = text.trim();
   if (!t) return false;
   if (/^voice\s*→\s*code/i.test(t) || /^voice\s*->\s*code/i.test(t)) return true;
-  return INTENT_RE.test(t);
+  return INTENT_RE.test(t) || FIX_PAIRED_RE.test(t);
 }
 
 export function quotaDayKey(d = new Date()): string {

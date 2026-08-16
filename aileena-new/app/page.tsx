@@ -186,8 +186,8 @@ export default function Home() {
       index: '01',
       label: 'Magazine',
       href: latestIssueHref,
-      category: 'AI stock',
-      blurb: 'HBM stacks, David, and the day the stockpile hits zero.',
+      category: 'China AI MW',
+      blurb: 'The megawatts are there. The company is not.',
       signal: latestIssue ? `${latestIssue.issueNumber} · ${latestIssue.coverTitle}` : 'Open the magazine rack',
       motif: 'hbm',
       placement: { top: '10%', right: '10%', transform: 'rotate(-2deg)', zIndex: 6 },
@@ -197,8 +197,8 @@ export default function Home() {
       index: '02',
       label: 'News Desk',
       href: latestDispatch ? latestDispatch.href : '/dispatch',
-      category: 'PCB stack',
-      blurb: 'GB200 boards, CCL, M8/M9, and who gets to choose the board.',
+      category: 'Teaser · 概念扫盲',
+      blurb: 'What a neocloud is, how a number is verified, whose order bought the megawatts.',
       signal: latestDispatch ? latestDispatch.title : 'Open the archive',
       motif: 'pcb',
       placement: { top: '38%', right: '10%', transform: 'rotate(1.6deg)', zIndex: 5 },
@@ -267,7 +267,7 @@ export default function Home() {
         {/* ── 01 CINEMATIC OPENING ──────────────────────────────── */}
         <SnapSection id="opening" className="order-1">
           <div
-            className="h-full flex flex-col bg-white relative overflow-hidden"
+            className="mobile-opening-shell h-full min-h-[100dvh] flex flex-col bg-white relative overflow-hidden max-md:overflow-visible max-md:h-auto"
             style={{ fontFamily: nunito }}
           >
             {/* Background portrait — large, partially out of frame on the right */}
@@ -302,8 +302,8 @@ export default function Home() {
             />
 
             {/* Foreground content */}
-            <div className="relative z-10 flex-1 flex items-center px-6 sm:px-12 lg:px-20">
-              <div className="max-w-[640px] w-full">
+            <div className="relative z-10 flex-1 flex items-center px-6 sm:px-12 lg:px-20 max-md:pt-6 max-md:pb-16 max-md:items-start">
+              <div className="max-w-[640px] w-full min-w-0">
                 <p
                   className="anim-up"
                   style={{
@@ -470,6 +470,8 @@ export default function Home() {
               body={tx.visual.kilnNote}
               linkLabel={tx.visual.readGlass}
               items={tx.visual.items}
+              modeWall={tx.visual.modeWall}
+              modeFocus={tx.visual.modeFocus}
             />
           </div>
         </SnapSection>
@@ -699,8 +701,8 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
           >
             move things around
           </span>
-          <div className="min-h-full overflow-visible px-3 pb-24 pt-8 sm:hidden">
-            <div className="grid gap-14">
+          <div className="min-h-full overflow-visible px-3 pb-[max(6rem,calc(env(safe-area-inset-bottom,0px)+4.5rem))] pt-[max(2rem,calc(env(safe-area-inset-top,0px)+3.5rem))] sm:hidden">
+            <div className="grid gap-14 w-full max-w-full min-w-0">
               {[...rooms]
                 .sort((a, b) => Number(b.id === 'woman-tech') - Number(a.id === 'woman-tech'))
                 .map((room) => {

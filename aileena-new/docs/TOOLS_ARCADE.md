@@ -13,7 +13,7 @@
 Public utilities live under **`/tools`**. Flat geometric tiles (no borders / arcade chrome). Each tool is one registry entry + one route.
 
 **Reference:** [Audio Clipping](/tools/inkling-clips) — YouTube → silence cuts / optional Inkling.  
-Also live: [Cafe Recap Edit](/tools/cafe-recap) — local JSON→ffmpeg event recap (Mac CLI; no cloud upload).
+Also on the hub: [Cafe Recap Edit](/tools/cafe-recap) — local JSON→ffmpeg event recap (Mac CLI; experiment, not better than CapCut yet).
 
 ---
 
@@ -45,9 +45,12 @@ Shared shell:
   slug: 'chip-guess',
   tag: 'SEMIS',
   title: 'Chip Guess',
-  body: 'One-line pitch on the hub.',
+  body: 'What it does.',
+  why: 'Why it exists.',
+  verdict: 'Current honest verdict.',
   href: '/tools/chip-guess',
-  status: 'live',
+  status: 'useful', // useful | experiment | paused — never mark unfinished work live
+  tier: 'utility', // featured | utility | experiment | paused
   arcade: {
     glyph: '◇',
     screenGradient: '#e4e8f0', // flat fill, not a bordered card
@@ -86,11 +89,12 @@ Open `/tools` → new tile visible → open tool once end-to-end.
 
 | Slug | Route | Status |
 |------|-------|--------|
-| `inkling-clips` | `/tools/inkling-clips` | **Live** — CLI command builder (local run) |
-| `cafe-cursor` | `https://cursor-cafe.aileena.xyz/` | **Live** — external Cafe Cursor credits redeem |
-| `feed-flash` | `/tools/feed-flash` | TBC on hub |
-| `chip-guess` | `/tools/chip-guess` | TBC on hub |
-| `pricing-slot` | `/tools/pricing-slot` | TBC on hub |
+| `cafe-cursor` | `https://cursor-cafe.aileena.xyz/` | **Useful** — redeem for checked-in Cafe Cursor guests |
+| `inkling-clips` | `/tools/inkling-clips` | **Useful** — YouTube → clips, free-mode workaround |
+| `cafe-recap` | `/tools/cafe-recap` | **Experiment** — local JSON→ffmpeg; not better than CapCut yet |
+| `feed-flash` | `/tools/feed-flash` | Paused on hub |
+| `chip-guess` | `/tools/chip-guess` | Paused on hub |
+| `pricing-slot` | `/tools/pricing-slot` | Paused on hub |
 
 Nav: homepage dock `{ label: 'tools', href: '/tools' }`.
 
