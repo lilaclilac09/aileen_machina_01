@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo, useSyncExternalStore } from 'react';
 import TrackLibraryBrowser from './TrackLibraryBrowser';
 import SpotifySearchAdd from './SpotifySearchAdd';
+import DJKnob from './DJKnob';
 import { allDeckTracks, type DeckTrack } from '../lib/djSetlist';
 import {
   getSpotifyCarouselServerSnapshot,
@@ -343,13 +344,7 @@ export default function DJStation() {
     });
 
     if (isRef) {
-      if (track.previewUrl) {
-        showDeckHint(`“${track.title}” · preview only — not mixable or exportable. upload a file to mix.`);
-      } else if (sid) {
-        showDeckHint(`“${track.title}” · reference only — Spotify playback, not mixable or exportable.`);
-      } else {
-        showDeckHint(`“${track.title}” is not mixable — no preview or Spotify id.`);
-      }
+      showDeckHint('Spotify reference only. Upload audio to mix/export.');
     }
 
     if (side === 'left') {
@@ -1282,7 +1277,7 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
           }}>OFF</button>
         </div>
         <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <EQKnob label="FX" value={50} size={isMobile ? 36 : 22} color="#f97316" />
+          <DJKnob label="FX" ariaLabel="FX" value={50} size={isMobile ? 36 : 22} color="#f97316" defaultValue={50} />
         </div>
       </div>
 
@@ -1301,11 +1296,13 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
         }}>EQ</span>
         {(['hi','mid','lo'] as const).map(band => (
           <div key={band} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <EQKnob
+            <DJKnob
               label={band.toUpperCase()}
+              ariaLabel={`EQ ${band.toUpperCase()}`}
               value={eqVals[band]}
               size={isMobile ? 40 : 24}
               color={band === 'hi' ? '#38bdf8' : band === 'mid' ? '#a3e635' : '#f97316'}
+              defaultValue={50}
               onChange={v => setEqVals(p => ({ ...p, [band]: v }))}
             />
           </div>
@@ -1318,8 +1315,15 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
       <div style={{ width: '100%', display: 'flex', justifyContent: 'space-around' }}>
         {([['A', filterA, setFilterA, C.cyan], ['B', filterB, setFilterB, C.orange]] as const).map(([lbl, val, set, col]) => (
           <div key={lbl} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <EQKnob label="FILTER" value={val as number} size={isMobile ? 40 : 20} color={col as string}
-              onChange={v => (set as (n: number) => void)(v)} />
+            <DJKnob
+              label="FILTER"
+              ariaLabel={`Filter ${lbl}`}
+              value={val as number}
+              size={isMobile ? 40 : 20}
+              color={col as string}
+              defaultValue={50}
+              onChange={v => (set as (n: number) => void)(v)}
+            />
             <span style={{ fontFamily: 'monospace', fontSize: isMobile ? '0.4rem' : '0.28rem', color: col as string, letterSpacing: '0.1em' }}>{lbl}</span>
           </div>
         ))}
@@ -1360,93 +1364,9 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
 
       {/* ── Master ── */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-        <EQKnob label="MASTER" value={75} size={isMobile ? 44 : 28} color="#22c55e" />
+        <DJKnob label="MASTER" ariaLabel="Master" value={75} size={isMobile ? 44 : 28} color="#22c55e" defaultValue={75} />
       </div>
 
-    </div>
-  );
-}
-
-/* ─── EQ Knob (interactive rotary) ──────────────────────── */
-function EQKnob({ label, value, size, color, onChange }: {
-  label: string; value: number; size: number; color: string; onChange?: (v: number) => void;
-}) {
-  const [dragging, setDragging] = useState(false);
-  const [localVal, setLocalVal] = useState(value);
-  const startY = useRef(0);
-  const startVal = useRef(0);
-
-  // Angle: 0% = -135deg, 50% = 0deg, 100% = +135deg
-  const angle = -135 + (localVal / 100) * 270;
-  const isCenter = Math.abs(localVal - 50) < 3;
-
-  function onPointerDown(e: React.PointerEvent) {
-    if (!onChange) return;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    setDragging(true);
-    startY.current = e.clientY;
-    startVal.current = localVal;
-  }
-  function onPointerMove(e: React.PointerEvent) {
-    if (!dragging || !onChange) return;
-    const delta = (startY.current - e.clientY) * 0.8;
-    const next = Math.max(0, Math.min(100, startVal.current + delta));
-    setLocalVal(next);
-    onChange(next);
-  }
-  function onPointerUp() { setDragging(false); }
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
-      cursor: onChange ? 'ns-resize' : 'default', touchAction: onChange ? 'none' : undefined,
-      minWidth: size < 36 ? 44 : undefined, minHeight: size < 36 ? 44 : undefined,
-      justifyContent: 'center' }}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-    >
-      <div style={{ position: 'relative', width: size, height: size }}>
-        {/* Outer ring — silver channel */}
-        <svg width={size} height={size} viewBox="0 0 40 40" style={{ position: 'absolute', inset: 0 }}>
-          <circle cx="20" cy="20" r="18" fill="none" stroke="rgba(142,151,159,0.2)" strokeWidth="3"/>
-          {/* Arc — silver fill, glows with color at center */}
-          <circle cx="20" cy="20" r="18" fill="none"
-            stroke={isCenter ? color : 'rgba(185,192,199,0.55)'}
-            strokeWidth="2.5"
-            strokeDasharray={`${(localVal / 100) * 113} 200`}
-            strokeDashoffset="85"
-            strokeLinecap="round"
-            style={{ transition: dragging ? 'none' : 'stroke 0.2s',
-              filter: isCenter ? `drop-shadow(0 0 3px ${color}80)` : 'none' }}
-          />
-        </svg>
-        {/* Knob body — dark brushed metal */}
-        <div style={{
-          position: 'absolute', inset: size * 0.12,
-          borderRadius: '50%',
-          background: `radial-gradient(circle at 38% 35%, #2a2e36, #0e1014)`,
-          boxShadow: `inset 0 2px 4px rgba(0,0,0,0.8), inset 0 -1px 0 rgba(185,192,199,0.08),
-            0 0 ${isCenter ? 8 : 0}px ${color}50`,
-          transition: 'box-shadow 0.2s',
-          border: '1px solid rgba(170,179,187,0.12)',
-        }}>
-          {/* Indicator line */}
-          <div style={{
-            position: 'absolute', top: '12%', left: '50%',
-            width: 2, height: '30%',
-            background: color,
-            borderRadius: 1,
-            transformOrigin: `1px ${size * 0.38 * 0.88 * 0.76}px`,
-            transform: `translateX(-50%) rotate(${angle}deg)`,
-            boxShadow: `0 0 4px ${color}`,
-            transition: dragging ? 'none' : 'transform 0.1s',
-          }} />
-        </div>
-      </div>
-      <span style={{ fontFamily: 'monospace', fontSize: '0.26rem', letterSpacing: '0.25em',
-        color: isCenter ? color : 'rgba(255,255,255,0.25)', transition: 'color 0.2s' }}>
-        {label}
-      </span>
     </div>
   );
 }
