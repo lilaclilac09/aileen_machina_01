@@ -246,6 +246,25 @@ Agent 不是聪明人。Agent 是会把 draft PR 当人生终点的实习生。
 - 不准在没有 **production evidence** 前结束任务
 - 如果不能 merge：必须停下并报告**具体 blocker**，不准绕路
 
+### Fail-closed blockers（不能解就停）
+
+权限 / 设置 / 缺 secret / 用量上限 / API 403 等：**不准绕路**，不准改写成「差不多好了」。用同一张表：
+
+| Blocker | 证据（命令或原文） | 谁能解 | 不解则任务状态 |
+|---------|-------------------|--------|----------------|
+| e.g. `allow_auto_merge=false` | `gh api repos/... --jq .allow_auto_merge` → `false` | repo admin | **not done** |
+| e.g. Bugbot usage limit | PR 评论原文 | Cursor billing / admin | **not done**（该项） |
+| e.g. secrets/labels API 403 | HTTP status + message | repo admin | **not done** |
+
+红线：散文式「好像没权限」不算；没有证据行不算。
+
+### Debug / 推理（bug 与「不对」）
+
+Always-on：[`.cursor/rules/debug-repro-loop.mdc`](.cursor/rules/debug-repro-loop.mdc)
+
+顺序：**Repro → Hypotheses (1–3) → Evidence → Root cause → Fix (minimal) → Why safe**。  
+无复现与根因 → **不准开修**。
+
 ### Done 定义
 
 只有当：
@@ -264,6 +283,7 @@ Agent 不是聪明人。Agent 是会把 draft PR 当人生终点的实习生。
 - Cursor 必读索引：[`CURSOR_RULES.md`](CURSOR_RULES.md)
 - PR 验收表：[`.github/pull_request_template.md`](.github/pull_request_template.md)
 - 工程循环：`.cursor/rules/senior-engineer-loop.mdc`
+- Debug 推理环：`.cursor/rules/debug-repro-loop.mdc`
 - UI 截图 + 交互：`.cursor/rules/ui-step-screenshot.mdc`
 - 完整工作准册：`aileena-new/docs/工作准册.md`
 - AI auto-merge：`docs/AI_AUTOMERGE.md`

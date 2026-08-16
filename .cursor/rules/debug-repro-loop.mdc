@@ -1,0 +1,41 @@
+---
+description: Bug/debug — repro → hypotheses → evidence → root cause → minimal fix
+alwaysApply: true
+---
+
+# Debug / Repro Loop
+
+Applies to **bugs**, “不对”, “broken”, regressions, and any “fix it” without a clear root cause.
+
+**No repro + no root cause → do not start coding a fix.**
+
+## Required sequence
+
+1. **Repro** — URL / clicks / env; expected vs actual (concrete, not vibes)
+2. **Hypotheses** — rank 1–3 only; do not spray-edit ten places
+3. **Evidence** — falsify with the smallest check (read code / curl / screenshot / test / prod)
+4. **Root cause** — only patch what evidence supports
+5. **Why safe** — blast radius + residual risk
+
+## Output shape (use in the reply when fixing)
+
+```md
+## Repro
+## Hypotheses (ranked)
+## Evidence (commands / files / screenshots)
+## Root cause
+## Fix (minimal)
+## Why safe / residual risk
+```
+
+## Red lines
+
+- No “should be fixed” without evidence
+- No shotgun diffs while guessing
+- If blocked (creds, permissions, settings): stop and use the **fail-closed blocker table** in `AGENTS.md` — do not invent a bypass
+
+## Related
+
+- Engineering loop: `.cursor/rules/senior-engineer-loop.mdc`
+- Production ship: `AGENTS.md`
+- Bug prompt: `aileena-new/docs/工作准册.md` §5.8

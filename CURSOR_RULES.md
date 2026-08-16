@@ -18,15 +18,17 @@ Injected every session (`.cursor/rules/`):
 
 - `senior-engineer-loop.mdc`
 - `verification.mdc`
+- `debug-repro-loop.mdc` (bugs: repro → hypotheses → evidence → root cause)
 - `ui-step-screenshot.mdc` (UI merge: stills + interaction)
 
 ## Hard rules (short)
 
 - inspect before edit
+- bugs: no fix without repro + verified root cause (see `debug-repro-loop.mdc`)
 - smallest safe diff
 - no redesign unless asked
 - no parallel systems
 - no “done” without verification you actually ran
 - UI changes need screenshots
-- env/config issues go in `manual steps`
+- env/config issues go in `manual steps` + fail-closed blocker table in `AGENTS.md`
 - end with `safe to merge:`

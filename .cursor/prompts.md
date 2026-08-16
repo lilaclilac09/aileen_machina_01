@@ -26,4 +26,6 @@ UI merge 验收：截图 + 交互都要给看（中间微调别刷屏）— `.cu
 
 Production ship / 多 PR 合入：见 `AGENTS.md` 施工队安全条例 — **不能在线上证明就不准说修好了**。
 
+Debug / bug：「不对」先走 `.cursor/rules/debug-repro-loop.mdc` — **Repro → Hypotheses → Evidence → Root cause → Fix**；卡住用 `AGENTS.md` fail-closed blocker 表。
+
 AI auto-merge 护栏：`docs/AI_AUTOMERGE.md` · label `ai-automerge` → ci + playwright-dnd + cursor-agent → `gh pr merge --auto`（禁止 agent 强行合 main）。
