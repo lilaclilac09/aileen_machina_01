@@ -116,6 +116,7 @@ test.describe('Spotify search → carousel', () => {
     });
 
     await page.getByTestId('spotify-search-input').fill('muse');
+    await expect(page.getByTestId('spotify-search')).toHaveAttribute('data-searching', 'true', { timeout: 4_000 });
     await expect(page.getByTestId('spotify-search-loading')).toBeVisible({ timeout: 4_000 });
     await page.screenshot({
       path: `${ARTIFACTS}/spotify_search_loading.png`,

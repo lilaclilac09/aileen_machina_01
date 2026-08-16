@@ -9,6 +9,7 @@ test.describe('DJ knob click / keyboard', () => {
   test('click tick, keyboard step, double-click reset', async ({ page }) => {
     await mkdir(ARTIFACTS, { recursive: true });
     await page.goto('/sound', { waitUntil: 'domcontentloaded' });
+    await expect(page.getByTestId('dj-station')).toHaveAttribute('data-dj-layout', 'mobile', { timeout: 20_000 });
     const knob = page.getByTestId('dj-knob-filter-a');
     await expect(knob).toBeVisible({ timeout: 20_000 });
     await knob.scrollIntoViewIfNeeded();

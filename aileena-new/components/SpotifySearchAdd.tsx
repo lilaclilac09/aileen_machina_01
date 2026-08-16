@@ -103,6 +103,8 @@ export default function SpotifySearchAdd({
       setOpen(false);
       return;
     }
+    setSearching(true);
+    setOpen(true);
     debounceRef.current = setTimeout(() => runSearch(term), 380);
   }
 
@@ -135,6 +137,7 @@ export default function SpotifySearchAdd({
     <div
       data-testid="spotify-search"
       data-spotify-configured={configured}
+      data-searching={searching ? 'true' : 'false'}
       style={{
         position: 'relative',
         marginTop: 14,

@@ -33,6 +33,7 @@ type Track = {
   spotifyId?: string;
   title: string;
   artist?: string;
+  artists?: string[];
   bpm: number;
   key: string;
   dur: number;
@@ -40,6 +41,7 @@ type Track = {
   source?: 'spotify';
   previewUrl?: string | null;
   externalUrl?: string;
+  mixable?: boolean;
 };
 
 type ViewMode = 'list' | 'playlist';
