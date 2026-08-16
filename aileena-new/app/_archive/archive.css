@@ -188,6 +188,137 @@ a.arc-item-title:hover {
   line-height: 1.58;
 }
 
+/* book club — featured current reading + grouped shelf */
+.arc-feature {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 22px;
+  padding: 22px 20px 24px;
+  background: rgba(255, 255, 255, 0.42);
+  box-shadow: inset 0 0 0 1px var(--arc-line);
+}
+
+.arc-feature-title {
+  margin: 0;
+  color: #111;
+  font-size: clamp(1.42rem, 3.4vw, 1.85rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.18;
+}
+
+.arc-feature-author {
+  margin: 6px 0 0;
+  color: var(--arc-faint);
+  font-family: var(--arc-sans);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.arc-why-label {
+  margin: 18px 0 6px;
+  color: var(--arc-faint);
+  font-family: var(--arc-sans);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: lowercase;
+}
+
+.arc-feature-why {
+  margin: 0;
+  max-width: 34em;
+  color: var(--arc-ink);
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.arc-feature-note {
+  margin: 10px 0 0;
+  max-width: 36em;
+  color: var(--arc-mute);
+  font-size: 0.98rem;
+  line-height: 1.55;
+}
+
+.arc-feature-meta {
+  margin: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.arc-feature-meta dt {
+  margin: 0;
+  color: var(--arc-faint);
+  font-family: var(--arc-sans);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: lowercase;
+}
+
+.arc-feature-meta dd {
+  margin: 3px 0 0;
+  color: var(--arc-ink);
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.arc-threads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.arc-threads li {
+  color: var(--arc-mute);
+  font-family: var(--arc-sans);
+  font-size: 0.82rem;
+  letter-spacing: 0.01em;
+}
+
+.arc-group-dek {
+  margin: 0 0 10px;
+  max-width: 34em;
+  color: var(--arc-mute);
+  font-size: 0.95rem;
+  font-style: italic;
+  line-height: 1.45;
+}
+
+.arc-book {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 20px;
+  align-items: baseline;
+  padding: 18px 0 20px;
+  border-bottom: 1px solid var(--arc-line);
+}
+
+.arc-book:last-child {
+  border-bottom: 0;
+}
+
+.arc-book-note {
+  margin: 6px 0 0;
+  max-width: 36em;
+  color: var(--arc-mute);
+  font-size: 0.92rem;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.arc-book-tag {
+  color: var(--arc-faint);
+  font-family: var(--arc-sans);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
 /* posters — a light strip, not a card wall */
 .arc-posters {
   display: flex;
@@ -342,6 +473,19 @@ a.arc-item-title:hover {
   scroll-margin-top: 88px;
 }
 
+@media (min-width: 720px) {
+  .arc-feature {
+    grid-template-columns: minmax(0, 1fr) 11.5rem;
+    gap: 28px 40px;
+    align-items: start;
+    padding: 26px 28px 28px;
+  }
+
+  .arc-feature-meta {
+    padding-top: 6px;
+  }
+}
+
 @media (min-width: 820px) {
   .arc-wrap {
     padding: 48px 28px 140px;
@@ -379,6 +523,18 @@ a.arc-item-title:hover {
 
   .arc-now .arc-item-title {
     font-size: 1.16rem;
+  }
+
+  .arc-feature {
+    padding: 18px 16px 20px;
+  }
+
+  .arc-feature-title {
+    font-size: 1.32rem;
+  }
+
+  .arc-book {
+    padding: 16px 0 18px;
   }
 
   .arc-posters {
