@@ -108,7 +108,6 @@ test.describe('Spotify search → carousel', () => {
     await page.locator('#dj-set').scrollIntoViewIfNeeded();
     await expect(page.getByTestId('spotify-search-input')).toBeEnabled();
     await expect(search).toContainText('reference tracks only');
-    await expect(search).toContainText('upload audio files for real mixing');
     await page.screenshot({
       path: `${ARTIFACTS}/spotify_search_idle.png`,
       fullPage: false,

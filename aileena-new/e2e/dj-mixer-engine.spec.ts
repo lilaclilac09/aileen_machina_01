@@ -105,11 +105,10 @@ test.describe('DJ mixer engine', () => {
     await expect(page.getByTestId('dj-mix-receipt')).toBeVisible();
     await expect(page.getByTestId('dj-mix-receipt')).toContainText('MIX RECEIPT');
     await expect(page.getByTestId('dj-soundcloud-open')).toHaveAttribute('href', 'https://soundcloud.com/upload');
-    await expect(page.getByTestId('dj-mix-booth')).toContainText(/SoundCloud upload is manual/i);
     await expect(page.getByTestId('dj-export-audio')).toBeEnabled();
     await expect(page.getByTestId('dj-export-meta')).toBeEnabled();
     await expect(page.getByTestId('dj-copy-soundcloud')).toBeEnabled();
-    await expect(page.getByText(/export ready\. not a masterpiece yet/i)).toBeVisible();
+    await expect(page.getByText(/Export ready/i)).toBeVisible();
 
     const [download] = await Promise.all([
       page.waitForEvent('download'),

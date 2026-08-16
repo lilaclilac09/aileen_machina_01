@@ -149,14 +149,13 @@ export default function SpotifySearchAdd({
       <p
         style={{
           fontFamily: 'monospace',
-          fontSize: '0.42rem',
-          letterSpacing: '0.22em',
-          textTransform: 'uppercase',
-          color: 'rgba(255,253,248,0.42)',
+          fontSize: 15,
+          letterSpacing: '0.04em',
+          color: '#fffdf8',
           margin: '0 0 8px',
         }}
       >
-        spotify search · reference tracks only
+        Search Spotify · reference tracks only
       </p>
       <input
         data-testid="spotify-search-input"
@@ -185,16 +184,11 @@ export default function SpotifySearchAdd({
       />
       {configured === 'missing' && (
         <p data-testid="spotify-search-disabled" style={hintStyle}>
-          Spotify search is not configured. Add SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET on the server, then redeploy.
+          Spotify search is not configured. Add SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET, then redeploy.
         </p>
       )}
       {configured === 'error' && (
-        <p style={hintStyle}>Could not reach Spotify search status.</p>
-      )}
-      {configured === 'ready' && (
-        <p style={hintStyle}>
-          add as reference or preview. upload audio files for real mixing / export.
-        </p>
+        <p style={hintStyle}>Spotify search is down.</p>
       )}
       {notice && (
         <p data-testid="spotify-search-notice" role="status" style={{ ...hintStyle, color: '#00a89d' }}>
@@ -260,7 +254,7 @@ export default function SpotifySearchAdd({
                       style={{
                         margin: 0,
                         fontFamily: 'monospace',
-                        fontSize: '0.62rem',
+                        fontSize: 14,
                         color: '#fffdf8',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
@@ -273,7 +267,7 @@ export default function SpotifySearchAdd({
                       style={{
                         margin: '2px 0 0',
                         fontFamily: 'monospace',
-                        fontSize: '0.5rem',
+                        fontSize: 13,
                         color: 'rgba(255,253,248,0.45)',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
@@ -332,28 +326,27 @@ export default function SpotifySearchAdd({
 const hintStyle: CSSProperties = {
   margin: '8px 0 0',
   fontFamily: 'monospace',
-  fontSize: '0.48rem',
-  letterSpacing: '0.06em',
-  color: 'rgba(255,253,248,0.38)',
-  lineHeight: 1.45,
+  fontSize: 13,
+  letterSpacing: '0.02em',
+  color: 'rgba(255,253,248,0.62)',
+  lineHeight: 1.4,
 };
 
 const rowHint: CSSProperties = {
   margin: 0,
   padding: '12px 10px',
   fontFamily: 'monospace',
-  fontSize: '0.55rem',
-  color: 'rgba(255,253,248,0.45)',
+  fontSize: 14,
+  color: 'rgba(255,253,248,0.55)',
 };
 
 const miniBtn: CSSProperties = {
   fontFamily: 'monospace',
-  fontSize: '0.42rem',
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase',
-  padding: '8px 8px',
-  minHeight: 36,
-  borderRadius: 3,
+  fontSize: 13,
+  letterSpacing: '0.04em',
+  padding: '8px 10px',
+  minHeight: 44,
+  borderRadius: 4,
   border: '1px solid rgba(170,179,187,0.22)',
   background: 'transparent',
   color: 'rgba(255,253,248,0.7)',
