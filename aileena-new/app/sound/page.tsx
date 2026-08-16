@@ -35,8 +35,8 @@ export default function SoundPage() {
           top: 0,
           zIndex: 50,
           padding: '18px 24px',
-          background: 'rgba(0,0,0,0.92)',
-          backdropFilter: 'blur(12px)',
+          background: 'rgba(0,0,0,0.96)',
+          backdropFilter: 'none',
           borderBottom: '1px solid rgba(255,253,248,0.08)',
         }}
       >

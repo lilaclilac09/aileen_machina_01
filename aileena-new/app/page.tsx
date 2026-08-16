@@ -289,7 +289,7 @@ export default function Home() {
             {/* Mobile-only portrait — smaller, top */}
             <div
               aria-hidden
-              className="md:hidden self-center mt-12"
+              className="md:hidden self-center mt-[max(3rem,calc(env(safe-area-inset-top,0px)+2.75rem))]"
               style={{
                 width: 140,
                 height: 180,

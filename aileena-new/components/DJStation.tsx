@@ -717,8 +717,8 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
 
   return (
     <div style={{
-      display: 'flex', flexDirection: isMobile ? 'row' : 'column',
-      gap: isMobile ? 10 : 5, alignItems: isMobile ? 'flex-start' : 'stretch',
+      display: 'flex', flexDirection: 'column',
+      gap: isMobile ? 10 : 5, alignItems: 'stretch',
       opacity: 0.4 + 0.6 * dim, transition: 'opacity 0.4s ease',
     }}>
 
@@ -930,7 +930,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {/* Play/Pause */}
           <button onClick={onToggle} style={{
-            width: 38, height: 38, borderRadius: '50%', cursor: 'pointer',
+            width: isMobile ? 44 : 38, height: isMobile ? 44 : 38, borderRadius: '50%', cursor: 'pointer',
             background: playing ? `rgba(0,168,157,0.1)` : '#14181e',
             border: `1px solid ${playing ? 'rgba(0,168,157,0.55)' : 'rgba(170,179,187,0.22)'}`,
             boxShadow: playing ? `0 0 10px rgba(0,168,157,0.28)` : 'inset 0 2px 5px rgba(0,0,0,0.4)',
@@ -941,7 +941,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
           }}>{playing ? '⏸' : '▶'}</button>
           {/* CUE */}
           <button onClick={() => setCueMs(pos > 0 ? pos : null)} style={{
-            width: 38, height: 38, borderRadius: '50%', cursor: 'pointer',
+            width: isMobile ? 44 : 38, height: isMobile ? 44 : 38, borderRadius: '50%', cursor: 'pointer',
             background: cueMs !== null ? 'rgba(125,183,255,0.1)' : '#14181e',
             border: `1px solid ${cueMs !== null ? 'rgba(125,183,255,0.55)' : 'rgba(170,179,187,0.22)'}`,
             boxShadow: cueMs !== null ? '0 0 8px rgba(125,183,255,0.25)' : 'inset 0 2px 5px rgba(0,0,0,0.4)',
@@ -953,10 +953,10 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
             {cueMs !== null && <span style={{ fontFamily: 'monospace', fontSize: '0.22rem', opacity: 0.7 }}>{fmt(cueMs)}</span>}
           </button>
         </div>
-        <PitchFader pitch={pitch} onChange={onPitch} />
+        <PitchFader pitch={pitch} onChange={onPitch} isMobile={isMobile} />
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
           <VU active={playing} />
-          <MKnob size={22} />
+          <MKnob size={isMobile ? 36 : 22} />
           <span style={{ fontFamily: 'monospace', fontSize: '0.28rem', letterSpacing: '0.3em', color: C.sub }}>GAIN</span>
           {/* Pitch readout */}
           <span style={{
@@ -970,7 +970,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
       </div>
 
       {/* ── Pioneer section: Sync + Loop + Hot Cues ── */}
-      <PioneerControls side={side} playing={playing} synced={!!synced} pos={pos} onSync={onSync} />
+      <PioneerControls side={side} playing={playing} synced={!!synced} pos={pos} onSync={onSync} isMobile={isMobile} />
 
       </div>{/* end info+controls wrapper */}
     </div>
@@ -980,9 +980,9 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
 /* ─── Pioneer Controls ───────────────────────────────────── */
 const HOT_CUE_COLORS = ['#3b82f6','#f97316','#a3e635','#a855f7','#22d3ee','#ef4444','#10b981','#f472b6'];
 
-function PioneerControls({ side, playing, synced, pos, onSync }: {
+function PioneerControls({ side, playing, synced, pos, onSync, isMobile }: {
   side: 'left'|'right'; playing: boolean; synced: boolean;
-  pos: number; onSync: () => void;
+  pos: number; onSync: () => void; isMobile?: boolean;
 }) {
   const [loopActive, setLoopActive]   = useState(false);
   const [loopIn,     setLoopIn]       = useState<number | null>(null);
@@ -1014,13 +1014,13 @@ function PioneerControls({ side, playing, synced, pos, onSync }: {
       }}>
         {/* SYNC */}
         <button onClick={onSync} style={{
-          padding: '4px 10px', borderRadius: 4, cursor: 'pointer',
+          padding: isMobile ? '10px 12px' : '4px 10px', borderRadius: 4, cursor: 'pointer',
           background: synced ? 'rgba(0,168,157,0.1)' : '#14181e',
           border: `1px solid ${synced ? 'rgba(0,168,157,0.5)' : 'rgba(170,179,187,0.22)'}`,
           boxShadow: synced ? '0 0 8px rgba(0,168,157,0.25)' : 'inset 0 2px 4px rgba(0,0,0,0.5)',
           fontFamily: 'monospace', fontSize: '0.52rem', fontWeight: 700, letterSpacing: '0.12em',
           color: synced ? C.cyan : C.silverDark,
-          transition: 'all 0.2s', minWidth: 52,
+          transition: 'all 0.2s', minWidth: isMobile ? 44 : 52, minHeight: isMobile ? 44 : undefined,
         }}>
           SYNC
           {synced && <span style={{ display: 'block', fontSize: '0.3rem', letterSpacing: '0.2em', opacity: 0.7, fontFamily: 'monospace' }}>LOCKED</span>}
@@ -1028,7 +1028,7 @@ function PioneerControls({ side, playing, synced, pos, onSync }: {
 
         {/* LOOP IN */}
         <button onClick={() => { setLoopIn(pos); setLoopActive(false); }} style={{
-          padding: '4px 8px', borderRadius: 4, cursor: 'pointer',
+          padding: isMobile ? '10px 10px' : '4px 8px', minHeight: isMobile ? 44 : undefined, borderRadius: 4, cursor: 'pointer',
           background: loopIn !== null ? 'rgba(125,183,255,0.08)' : '#14181e',
           border: `1px solid ${loopIn !== null ? 'rgba(125,183,255,0.45)' : 'rgba(170,179,187,0.22)'}`,
           boxShadow: loopIn !== null ? '0 0 6px rgba(125,183,255,0.2)' : 'inset 0 2px 4px rgba(0,0,0,0.5)',
@@ -1043,7 +1043,7 @@ function PioneerControls({ side, playing, synced, pos, onSync }: {
 
         {/* LOOP OUT */}
         <button onClick={() => { if (loopIn !== null) { setLoopOut(pos); setLoopActive(true); } }} style={{
-          padding: '4px 8px', borderRadius: 4, cursor: 'pointer',
+          padding: isMobile ? '10px 10px' : '4px 8px', minHeight: isMobile ? 44 : undefined, borderRadius: 4, cursor: 'pointer',
           background: loopActive ? 'rgba(255,155,94,0.08)' : '#14181e',
           border: `1px solid ${loopActive ? 'rgba(255,155,94,0.45)' : 'rgba(170,179,187,0.22)'}`,
           boxShadow: loopActive ? '0 0 6px rgba(255,155,94,0.2)' : 'inset 0 2px 4px rgba(0,0,0,0.5)',
@@ -1060,7 +1060,7 @@ function PioneerControls({ side, playing, synced, pos, onSync }: {
         <div style={{ display: 'flex', gap: 2 }}>
           {loopSizes.map(s => (
             <button key={s} onClick={() => setLoopSize(s)} style={{
-              width: 26, height: 22, borderRadius: 3, cursor: 'pointer',
+              width: isMobile ? 44 : 26, height: isMobile ? 44 : 22, borderRadius: 3, cursor: 'pointer',
               background: loopSize === s ? (loopActive ? 'rgba(255,155,94,0.12)' : 'rgba(125,183,255,0.1)') : '#14181e',
               border: `1px solid ${loopSize === s ? (loopActive ? 'rgba(255,155,94,0.4)' : 'rgba(125,183,255,0.4)') : 'rgba(170,179,187,0.15)'}`,
               fontFamily: 'monospace', fontSize: '0.34rem', fontWeight: 600,
@@ -1106,7 +1106,7 @@ function PioneerControls({ side, playing, synced, pos, onSync }: {
                 onPointerDown={() => handleCuePad(i)}
                 title={hasPos ? `Press to clear cue ${String.fromCharCode(65+i)} (${fmt(cuePositions[i])})` : `Press to set cue ${String.fromCharCode(65+i)} at ${fmt(pos)}`}
                 style={{
-                  height: hasPos ? 38 : 32, borderRadius: 4, cursor: 'pointer',
+                  height: isMobile ? 44 : hasPos ? 38 : 32, borderRadius: 4, cursor: 'pointer',
                   background: hasPos ? `${color}18` : '#14181e',
                   border: `1px solid ${hasPos ? `${color}80` : 'rgba(170,179,187,0.18)'}`,
                   boxShadow: hasPos
@@ -1167,9 +1167,8 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
       borderRadius: 6, padding: isMobile ? '8px 14px' : '8px 7px',
       background: 'linear-gradient(to bottom, #1a1e24, #14181d 55%, #1a1e24)',
       border: '1px solid rgba(170,179,187,0.22)',
-      display: 'flex', flexDirection: isMobile ? 'row' : 'column',
-      alignItems: 'center', gap: isMobile ? 16 : 8,
-      flexWrap: isMobile ? 'wrap' : undefined,
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', gap: isMobile ? 12 : 8,
       boxShadow: 'inset 0 1px 0 rgba(217,224,230,0.07), inset 0 -1px 0 rgba(0,0,0,0.3), 0 0 0 1px rgba(0,0,0,0.3)',
     }}>
 
@@ -1178,7 +1177,7 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
         <div style={{ display: 'flex', gap: 3 }}>
           {(['ECHO','REVERB','FLANGER'] as const).map(fx => (
             <button key={fx} onClick={() => { setFxType(fx); setFxOn(true); }} style={{
-              flex: 1, padding: '3px 0', borderRadius: 3, cursor: 'pointer',
+              flex: 1, padding: isMobile ? '10px 0' : '3px 0', minHeight: isMobile ? 44 : undefined, borderRadius: 3, cursor: 'pointer',
               background: fxOn && fxType === fx ? 'rgba(255,155,94,0.1)' : '#14181e',
               border: `1px solid ${fxOn && fxType === fx ? 'rgba(255,155,94,0.45)' : 'rgba(170,179,187,0.18)'}`,
               fontFamily: 'monospace', fontSize: '0.30rem', fontWeight: 600, letterSpacing: '0.08em',
@@ -1187,7 +1186,7 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
             }}>{fx}</button>
           ))}
           <button onClick={() => setFxOn(false)} style={{
-            padding: '3px 6px', borderRadius: 3, cursor: 'pointer',
+            padding: isMobile ? '10px 10px' : '3px 6px', minHeight: isMobile ? 44 : undefined, borderRadius: 3, cursor: 'pointer',
             background: !fxOn ? 'rgba(255,155,94,0.08)' : '#14181e',
             border: `1px solid ${!fxOn ? 'rgba(255,155,94,0.35)' : 'rgba(170,179,187,0.18)'}`,
             fontFamily: 'monospace', fontSize: '0.28rem',
@@ -1195,7 +1194,7 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
           }}>OFF</button>
         </div>
         <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <EQKnob label="FX" value={50} size={22} color="#f97316" />
+          <EQKnob label="FX" value={50} size={isMobile ? 40 : 22} color="#f97316" />
         </div>
       </div>
 
@@ -1209,7 +1208,7 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
             <EQKnob
               label={band.toUpperCase()}
               value={eqVals[band]}
-              size={24}
+              size={isMobile ? 40 : 24}
               color={band === 'hi' ? '#38bdf8' : band === 'mid' ? '#a3e635' : '#f97316'}
               onChange={v => setEqVals(p => ({ ...p, [band]: v }))}
             />
@@ -1223,7 +1222,7 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
       <div style={{ width: '100%', display: 'flex', justifyContent: 'space-around' }}>
         {([['A', filterA, setFilterA, C.cyan], ['B', filterB, setFilterB, C.orange]] as const).map(([lbl, val, set, col]) => (
           <div key={lbl} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <EQKnob label="FILTER" value={val as number} size={20} color={col as string}
+            <EQKnob label="FILTER" value={val as number} size={isMobile ? 40 : 20} color={col as string}
               onChange={v => (set as (n: number) => void)(v)} />
             <span style={{ fontFamily: 'monospace', fontSize: '0.28rem', color: col as string, letterSpacing: '0.1em' }}>{lbl}</span>
           </div>
@@ -1237,7 +1236,7 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
         <p style={{ fontFamily: 'monospace', fontSize: '0.26rem', letterSpacing: '0.35em', color: 'rgba(255,255,255,0.2)',
           textAlign: 'center', marginBottom: 4 }}>CROSSFADER</p>
         <div style={{
-          position: 'relative', height: 18, borderRadius: 3,
+          position: 'relative', height: isMobile ? 44 : 18, borderRadius: 3,
           background: `linear-gradient(to right, rgba(0,168,157,0.18), rgba(18,22,27,0.9) 50%, rgba(255,155,94,0.15))`,
           border: '1px solid rgba(170,179,187,0.15)',
           boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.7)',
@@ -1264,7 +1263,7 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
 
       {/* ── Master ── */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-        <EQKnob label="MASTER" value={75} size={28} color="#22c55e" />
+        <EQKnob label="MASTER" value={75} size={isMobile ? 44 : 28} color="#22c55e" />
       </div>
 
     </div>
@@ -1509,14 +1508,14 @@ function TrackRow({ index, track, isLeft, isRight, onDragStart, onDragEnd, onLoa
       {/* Load A / B buttons */}
       <div style={{ display: 'flex', gap: 4 }}>
         <button onClick={e => { e.stopPropagation(); onLoadLeft(); }} style={{
-          padding: '2px 5px', borderRadius: 3, border: `1px solid ${C.cyan}00`,
+          padding: '10px 12px', minWidth: 44, minHeight: 44, borderRadius: 3, border: `1px solid ${C.cyan}00`,
           background: isLeft ? `${C.cyan}25` : 'transparent',
           color: isLeft ? C.cyan : C.sub,
           fontFamily: 'monospace', fontSize: '0.28rem', cursor: 'pointer',
           letterSpacing: '0.1em',
         }}>A</button>
         <button onClick={e => { e.stopPropagation(); onLoadRight(); }} style={{
-          padding: '2px 5px', borderRadius: 3, border: `1px solid ${C.blue}00`,
+          padding: '10px 12px', minWidth: 44, minHeight: 44, borderRadius: 3, border: `1px solid ${C.blue}00`,
           background: isRight ? `${C.blue}25` : 'transparent',
           color: isRight ? C.blue : C.sub,
           fontFamily: 'monospace', fontSize: '0.28rem', cursor: 'pointer',
@@ -1550,22 +1549,22 @@ function MKnob({ size = 28, lit }: { size?: number; lit?: boolean }) {
   );
 }
 
-function PitchFader({ pitch, onChange }: { pitch: number; onChange(v: number): void }) {
+function PitchFader({ pitch, onChange, isMobile }: { pitch: number; onChange(v: number): void; isMobile?: boolean }) {
   const pct = 50 - (pitch / 8) * 44;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flex: 1 }}>
       <p style={{ fontFamily: 'monospace', fontSize: '0.26rem', letterSpacing: '0.4em', color: C.dim }}>PITCH</p>
-      <div style={{ position: 'relative', width: 14, height: 78 }}>
-        <div style={{ position: 'absolute', left: 5, width: 4, height: '100%', borderRadius: 3,
+      <div style={{ position: 'relative', width: isMobile ? 44 : 14, height: isMobile ? 96 : 78 }}>
+        <div style={{ position: 'absolute', left: isMobile ? 20 : 5, width: 4, height: '100%', borderRadius: 3,
           background: '#0a0c0f',
           boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(170,179,187,0.1)' }} />
-        <div style={{ position: 'absolute', left: 2, width: 10, top: '50%', height: 1,
+        <div style={{ position: 'absolute', left: isMobile ? 17 : 2, width: 10, top: '50%', height: 1,
           background: `rgba(170,179,187,0.25)` }} />
         <input type="range" min={-8} max={8} step={0.1} value={pitch} onChange={e => onChange(+e.target.value)}
           style={{ writingMode: 'vertical-lr', direction: 'rtl', position: 'absolute',
-            height: '100%', width: 30, left: -8, opacity: 0, cursor: 'pointer', margin: 0 }} />
+            height: '100%', width: isMobile ? 44 : 30, left: isMobile ? 0 : -8, opacity: 0, cursor: 'pointer', margin: 0 }} />
         <div style={{
-          position: 'absolute', width: 26, height: 11, top: `calc(${pct}% - 5.5px)`, left: -6,
+          position: 'absolute', width: 26, height: 11, top: `calc(${pct}% - 5.5px)`, left: isMobile ? 9 : -6,
           borderRadius: 2, pointerEvents: 'none',
           background: 'linear-gradient(160deg, #d9e0e6 0%, #b9c0c7 30%, #8e979f 65%, #72797f 100%)',
           boxShadow: '0 2px 7px rgba(0,0,0,0.8), inset 0 1px 0 rgba(217,224,230,0.7)',

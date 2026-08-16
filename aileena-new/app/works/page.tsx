@@ -13,11 +13,15 @@ export default function WorksPage() {
   return (
     <div
       style={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         background: '#070707',
         color: 'rgba(255,255,255,0.86)',
         fontFamily: nunito,
         overflowY: 'auto',
+        overflowX: 'clip',
+        width: '100%',
+        maxWidth: '100%',
+        boxSizing: 'border-box',
       }}
     >
       <ScrollUnlock />

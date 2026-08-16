@@ -10,7 +10,7 @@ export default function ProphecyPage() {
   return (
     <div
       style={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         background:
           'radial-gradient(ellipse 90% 60% at 50% -10%, rgba(0,168,157,0.18), transparent 55%), radial-gradient(ellipse 70% 50% at 80% 80%, rgba(80,40,20,0.35), transparent 50%), #0a0908',
         color: 'rgba(255,253,248,0.88)',

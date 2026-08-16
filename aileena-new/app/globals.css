@@ -87,6 +87,8 @@ body {
 html {
   height: 100%;
   overflow: hidden;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 /* Fullscreen scroll-snap */
@@ -407,12 +409,6 @@ select,
   user-select: text;
 }
 
-/* Prefer class on <body> (layout.tsx) so mobile media can unlock scroll */
-body.site-body {
-  height: 100%;
-  overflow: hidden;
-}
-
 /* ── Mobile layout emergency (preserve desktop) ───────────────
  * Stacked readable flows; do not rely on overflow-x alone to
  * "fix" off-screen collage. Reposition/stack first; clip only
@@ -510,5 +506,27 @@ body.site-body {
   .site-left-chrome {
     top: max(10px, calc(var(--safe-top) + 6px)) !important;
     left: max(10px, calc(var(--safe-left) + 6px)) !important;
+  }
+
+  /* iOS: sub-16px inputs zoom the page; keep text fields readable */
+  input:not([type='range']):not([type='checkbox']):not([type='radio']):not([type='hidden']),
+  textarea,
+  select {
+    font-size: max(16px, 1em);
+  }
+
+  /* Heavy blur is expensive on iPhone Safari — solid wash instead */
+  .site-lang-chrome > div,
+  .site-top-nav,
+  .dispatch-archive-header,
+  .substack-nav,
+  .explainer-nav {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .substack-article,
+  .explainer-article {
+    min-height: 100dvh;
   }
 }
