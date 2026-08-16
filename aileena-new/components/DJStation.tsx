@@ -3,6 +3,7 @@ import { useState, useRef, useEffect, useCallback, useMemo, useSyncExternalStore
 import TrackLibraryBrowser from './TrackLibraryBrowser';
 import DJDeckWaveform from './DJDeckWaveform';
 import DJMixBooth from './DJMixBooth';
+import DJPairPanel from './DJPairPanel';
 import { allDeckTracks, type DeckTrack } from '../lib/djSetlist';
 import { useDjMixer } from '../lib/useDjMixer';
 import { fmtMs } from '../lib/djMixerMath';
@@ -510,6 +511,16 @@ export default function DJStation() {
           rightPos={rightPos} rightDur={rightDur}
         />
       </div>
+      <DJPairPanel
+        selected={leftTrack}
+        library={DJ_SET}
+        onLoadB={(id) => {
+          const t = findTrackById(id);
+          if (!t) return;
+          loadTrack('right', t);
+          showDeckHint('good pair. keep the blend short.');
+        }}
+      />
 
       {/* ── Spotify embed containers (preview only — not in the mix graph) ── */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 6, marginBottom: 8 }}>
