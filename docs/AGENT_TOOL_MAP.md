@@ -21,6 +21,10 @@ App 在 `aileena-new/`（`pnpm`）。
 | CI / automerge / Bugbot | 证明 check 跑过 **或** fail-closed blocker 表 | 「yml 存在」= 生效 |
 | Contact / Resend | `pnpm lead:test` 或真实投递证据；缺 env → `manual steps` | 新写一套 mailer |
 | Docs-only | diff 自查 + 链接可点 | 假装改了产品行为 |
+| 失败复盘 | `ops/lessons/TEMPLATE.md` + 必要时 `pnpm report:merge -- --blocked "…"` | 直接改 `AGENTS.md` |
+| 布局 / mobile | `pnpm qa:mobile`（390×844 + scrollWidth） | 「overflow hidden 就好了」 |
+| Visual 裁切 | `pnpm verify:visual` | 给内容图加 `object-cover` |
+| Contact / 文案 | `pnpm qa:contact` | 新写一套 mailer |
 
 ## 优先工具（收紧，不扩张）
 

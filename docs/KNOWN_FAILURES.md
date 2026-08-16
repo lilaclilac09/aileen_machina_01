@@ -3,6 +3,8 @@
 **已验证** 坑位。Agent 开场涉及 CI / cover / ship / lint 时先读本页。  
 只追加有证据的条目；聊天回忆不算。
 
+长文课（trigger / root cause / future instruction）写在 [`ops/lessons/`](../ops/lessons/README.md)。本页保持一行。升格硬规则必须经 [`ops/improvement-queue.md`](../ops/improvement-queue.md) **owner 批准**。
+
 格式：`[日期] 现象 → 正确做法`
 
 ---

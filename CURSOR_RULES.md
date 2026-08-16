@@ -15,6 +15,7 @@ never mark a task complete based only on code inspection.
 4. [`docs/KNOWN_FAILURES.md`](docs/KNOWN_FAILURES.md) — verified pitfalls (CI / cover / ship)
 5. [`PROJECT_RULES.md`](PROJECT_RULES.md) — product facts (mood, orb, Visual, contact, doors)
 6. [`.github/pull_request_template.md`](.github/pull_request_template.md) — every PR fills this
+7. [`ops/lessons/README.md`](ops/lessons/README.md) — after a failure, write a lesson; propose rules, do not rewrite them
 
 Injected every session (`.cursor/rules/`):
 
