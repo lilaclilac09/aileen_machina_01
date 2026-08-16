@@ -114,11 +114,12 @@ export default function DJMixBooth({
         </button>
         <button
           type="button"
+          data-testid="dj-copy-soundcloud"
           disabled={!receipt}
           onClick={onCopyReceipt}
           style={{ ...btn, opacity: receipt ? 1 : 0.4, cursor: receipt ? 'pointer' : 'not-allowed' }}
         >
-          copy receipt
+          copy SoundCloud description
         </button>
         <a
           data-testid="dj-soundcloud-open"

@@ -62,6 +62,7 @@ async function main() {
   await page.getByTestId('dj-engine-status').waitFor({ timeout: 20_000 });
   await page.waitForTimeout(500);
   await shot(page, `${PREFIX}01_initial_mixer.png`, 'dj-engine-status');
+  await shot(page, 'mobile-sound-initial.png', 'dj-set');
 
   await page.getByTestId('dj-upload-a').setInputFiles({
     name: 'desk-a.wav',
@@ -79,6 +80,7 @@ async function main() {
   });
   await page.waitForTimeout(300);
   await shot(page, `${PREFIX}02_decks_loaded.png`, 'dj-waveform-a');
+  await shot(page, 'mobile-deck-loaded.png', 'dj-waveform-a');
 
   await page.getByTestId('dj-engine-status').scrollIntoViewIfNeeded();
   await page.waitForTimeout(400);
@@ -103,10 +105,13 @@ async function main() {
   );
   await page.waitForTimeout(1200);
   await shot(page, `${PREFIX}05_recording_active.png`, 'dj-record');
+  await shot(page, 'recording-active.png', 'dj-record');
 
   await page.getByTestId('dj-record').click();
   await page.getByTestId('dj-mix-receipt').waitFor({ timeout: 10_000 });
   await shot(page, `${PREFIX}06_export_ready.png`, 'dj-mix-receipt');
+  await shot(page, 'mobile-export-ready.png', 'dj-mix-receipt');
+  await shot(page, 'export-ready.png', 'dj-mix-receipt');
 
   const video = page.video();
   await page.close();
@@ -138,6 +143,8 @@ async function main() {
     await desk.getByTestId('dj-play-b').click();
     await desk.waitForTimeout(500);
     await shot(desk, `${PREFIX}07_desktop_playing.png`, 'dj-engine-status');
+    await shot(desk, 'sound-initial.png', 'dj-set');
+    await shot(desk, 'both-decks-playing.png', 'dj-engine-status');
   } catch (err) {
     console.warn('desktop capture skipped', err);
   }

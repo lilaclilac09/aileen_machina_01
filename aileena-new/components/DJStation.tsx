@@ -357,8 +357,8 @@ export default function DJStation() {
   const assignFile = useCallback(async (side: 'left' | 'right', file: File) => {
     const crate = side === 'left' ? leftTrack : rightTrack;
     await mix.loadFile(side, file, crate ? { title: crate.title, bpm: crate.bpm, key: crate.key } : undefined);
-    setDeckHint(null);
-  }, [leftTrack, rightTrack, mix]);
+    showDeckHint('loaded. this one has teeth.');
+  }, [leftTrack, rightTrack, mix, showDeckHint]);
 
   const dropOnDeckA = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -493,6 +493,23 @@ export default function DJStation() {
       >
         SPOTIFY PREVIEW — iframe audio cannot be mixed through Web Audio. Upload files (or a CORS-safe URL) to mix.
       </p>
+
+      {/* ── Handoff set carousel (film strip) — top of the desk ── */}
+      <div id="dj-set" data-testid="dj-set" style={{ marginTop: 4, marginBottom: 10 }}>
+        <TrackLibraryBrowser
+          tracks={DJ_SET}
+          reverseCarousel={false}
+          onLoadTrack={loadTrack}
+          onSetDragTrack={(t) => {
+            dragTrack.current = t;
+            console.log(DJ_AUDIT, 'drag start track id', t?.id ?? null, t?.title ?? null);
+          }}
+          playingLeft={leftPlaying ? (leftTrack?.id ?? mix.deckA.fileName) : null}
+          playingRight={rightPlaying ? (rightTrack?.id ?? mix.deckB.fileName) : null}
+          leftPos={leftPos} leftDur={leftDur}
+          rightPos={rightPos} rightDur={rightDur}
+        />
+      </div>
 
       {/* ── Spotify embed containers (preview only — not in the mix graph) ── */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 6, marginBottom: 8 }}>
@@ -762,30 +779,21 @@ export default function DJStation() {
         exportMime={mix.exportMime}
         receipt={mix.receipt}
         error={mix.error}
-        onRecord={() => void mix.startRecord()}
-        onStop={() => void mix.stopRecord()}
+        onRecord={() => {
+          void mix.startRecord().then((ok) => {
+            if (ok) showDeckHint('recording the master bus.');
+          });
+        }}
+        onStop={() => {
+          void mix.stopRecord().then(() => {
+            showDeckHint('export ready. not a masterpiece yet, but it moves.');
+          });
+        }}
         onDownloadAudio={mix.downloadAudio}
         onDownloadMeta={mix.downloadMeta}
         onCopyReceipt={() => void mix.copyReceiptText()}
         onLoadUrl={(side, url) => void mix.loadUrl(side, url)}
       />
-
-      {/* ── Handoff set carousel (film strip) ── */}
-      <div id="dj-set" style={{ marginTop: 10 }}>
-        <TrackLibraryBrowser
-          tracks={DJ_SET}
-          reverseCarousel={false}
-          onLoadTrack={loadTrack}
-          onSetDragTrack={(t) => {
-            dragTrack.current = t;
-            console.log(DJ_AUDIT, 'drag start track id', t?.id ?? null, t?.title ?? null);
-          }}
-          playingLeft={leftPlaying ? (leftTrack?.id ?? mix.deckA.fileName) : null}
-          playingRight={rightPlaying ? (rightTrack?.id ?? mix.deckB.fileName) : null}
-          leftPos={leftPos} leftDur={leftDur}
-          rightPos={rightPos} rightDur={rightDur}
-        />
-      </div>
     </div>
   );
 }
@@ -1061,7 +1069,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
         <span style={{
           fontFamily: 'monospace', fontSize: '0.26rem', letterSpacing: '0.14em',
           color: mixLoaded ? C.cyan : C.orange, whiteSpace: 'nowrap',
-        }}>{mixLoaded ? 'MIX' : 'PREVIEW'}</span>
+        }}>{mixLoaded ? (playing ? 'MIX · playing' : 'MIX · loaded') : 'PREVIEW · not mixable'}</span>
         </div>
         <DJDeckWaveform
           side={side}

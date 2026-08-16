@@ -404,7 +404,7 @@ export function useDjMixer() {
 
   const copyReceiptText = useCallback(async () => {
     if (!receipt) return;
-    await navigator.clipboard.writeText(receiptToText(receipt));
+    await navigator.clipboard.writeText(receipt.soundcloudCaption || receiptToText(receipt));
   }, [receipt]);
 
   return {
