@@ -51,6 +51,7 @@ const SLUG_TOPIC: Record<string, string> = {
   'memory-tax': 'AI infrastructure',
   'cxmt-yield-watch': 'AI infrastructure',
   'china-neocloud': 'AI infrastructure',
+  'china-neocloud-teaser': 'AI infrastructure',
 
   // ── Investing ─────────────────────────────────────────────
   'semi-basics-review': 'AI hardware',
@@ -186,12 +187,17 @@ export default function DispatchArchive() {
 
   return (
     <div
+      className="mobile-page"
       style={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         background: '#fff',
         color: '#111',
         fontFamily: nunito,
         overflowY: 'auto',
+        overflowX: 'clip',
+        width: '100%',
+        maxWidth: '100%',
+        boxSizing: 'border-box',
       }}
     >
       <ScrollUnlock />
@@ -258,7 +264,7 @@ export default function DispatchArchive() {
         </div>
       </header>
 
-      <main style={{ maxWidth: 960, margin: '0 auto', padding: '56px 24px 120px' }}>
+      <main style={{ maxWidth: 960, margin: '0 auto', padding: 'clamp(28px, 6vw, 56px) clamp(14px, 4vw, 24px) max(120px, calc(env(safe-area-inset-bottom, 0px) + 80px))', width: '100%', boxSizing: 'border-box' }}>
         {/* The category tabs keep recommendation shelves from becoming
             another buried rail. Image/Text still controls article rails. */}
         {activeTab === 'watch' ? (

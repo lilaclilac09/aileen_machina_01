@@ -25,6 +25,7 @@ Site: **https://www.aileena.xyz** (app in `aileena-new/`).
 - Real DJ mix is Web Audio (local / uploaded files, optional CORS-safe URL). Spotify iframe is preview only and cannot enter the mix. SoundCloud v1 is export-ready (manual upload), not OAuth.
 - Sound Lab mixer is inspired by club-gear ergonomics (two decks, centre strip, crossfader). Not a Pioneer/CDJ clone — no logos, product names, or trade dress.
 - do not replace a working flow with a parallel implementation
+- `/sound` Spotify search adds **reference / preview** cards to the existing `#dj-set` carousel. It is not mix/record/export. Real mixing stays on uploaded / local / static audio. Server-only Client Credentials: `SPOTIFY_CLIENT_ID` + `SPOTIFY_CLIENT_SECRET` — never expose the secret to the browser. Missing env → “Spotify search is not configured.” Web Playback SDK login is a separate v2 slice.
 
 ## Contact / env (ops, not code)
 

@@ -31,6 +31,8 @@
     "test:e2e:dj-pair": "playwright test e2e/dj-pair-recommend.spec.ts --config=playwright.config.ts",
     "capture:dj-mixer": "tsx scripts/capture-dj-mixer.ts",
     "test:e2e:dj-mixer": "playwright test e2e/dj-mixer-engine.spec.ts --config=playwright.config.ts",
+    "verify:spotify-search": "tsx scripts/verify-spotify-search.ts",
+    "test:e2e:spotify-search": "playwright test e2e/spotify-search-carousel.spec.ts --config=playwright.config.ts",
     "verify:memory": "tsx scripts/build-memory-index.ts && tsx scripts/verify-memory.ts",
     "verify:memory:live": "tsx scripts/build-memory-index.ts && VERIFY_BASE_URL=http://localhost:3000 tsx scripts/verify-memory.ts",
     "verify:react": "tsx scripts/verify-react.ts",

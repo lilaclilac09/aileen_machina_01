@@ -1617,7 +1617,7 @@ export default function AgentChat() {
         role="dialog"
         aria-modal="true"
         aria-label="Aileena Console"
-        className={`fixed z-[80] inset-0 sm:inset-x-auto sm:inset-y-auto sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[min(760px,calc(100vw-2.5rem))] sm:max-w-[calc(100vw-2.5rem)] h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[72vh] flex flex-col overflow-hidden bg-[#fffdf8] sm:bg-[#fffdf8]/95 border-0 sm:border sm:border-[#ded8ce] shadow-none sm:shadow-[0_24px_80px_-34px_rgba(31,26,20,0.42)] backdrop-blur-md transition-all duration-200 ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-[0.98] sm:scale-[0.96] pointer-events-none'} font-mono`}
+        className={`fixed z-[80] inset-0 sm:inset-x-auto sm:inset-y-auto sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[min(760px,calc(100vw-2.5rem))] sm:max-w-[calc(100vw-2.5rem)] h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[72vh] flex flex-col overflow-hidden bg-[#fffdf8] sm:bg-[#fffdf8]/95 border-0 sm:border sm:border-[#ded8ce] shadow-none sm:shadow-[0_24px_80px_-34px_rgba(31,26,20,0.42)] backdrop-blur-md transition-all duration-200 pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] sm:pt-0 sm:pb-0 ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-[0.98] sm:scale-[0.96] pointer-events-none'} font-mono`}
         style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace' }}
       >
         {/* Header bar */}
@@ -1947,8 +1947,8 @@ export default function AgentChat() {
         </div>
 
         {/* Chat input — separate from leave-a-note drawer below. */}
-        <div className="border-t border-[#e7e0d6] px-5 py-2.5 sm:py-3 shrink-0">
-          <div className="relative flex items-center gap-2">
+        <div className="border-t border-[#e7e0d6] px-5 py-2.5 sm:py-3 shrink-0 pb-[max(0.625rem,env(safe-area-inset-bottom,0px))] sm:pb-3">
+          <div className="relative flex items-center gap-2 min-w-0">
             <span className={`text-sm ${sessionMaxed ? 'text-[#1b1713]/20' : 'text-[#00a89d]'}`}>&gt;</span>
             <textarea
               ref={inputRef}

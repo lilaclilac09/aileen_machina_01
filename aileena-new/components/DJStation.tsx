@@ -4,9 +4,21 @@ import TrackLibraryBrowser from './TrackLibraryBrowser';
 import DJDeckWaveform from './DJDeckWaveform';
 import DJMixBooth from './DJMixBooth';
 import DJPairPanel from './DJPairPanel';
+import SpotifySearchAdd from './SpotifySearchAdd';
 import { allDeckTracks, type DeckTrack } from '../lib/djSetlist';
 import { useDjMixer } from '../lib/useDjMixer';
 import { fmtMs } from '../lib/djMixerMath';
+import {
+  getSpotifyCarouselServerSnapshot,
+  getSpotifyCarouselSnapshot,
+  parseStoredSpotifyTracks,
+  readStoredSpotifyTracks,
+  searchHitToDeckTrack,
+  subscribeSpotifyCarousel,
+  writeStoredSpotifyTracks,
+} from '../lib/spotifyCarouselStore';
+import { isSpotifyDuplicate } from '../lib/spotifySearchShared';
+import type { SpotifySearchTrack } from '../lib/spotifySearchShared';
 
 /* ─── Palette — aligned to AgentChat cream + deep green ─── */
 const C = {
@@ -34,7 +46,7 @@ const C = {
 };
 
 /* ─── Full deck library: handoff five + previous tracks ───── */
-const DJ_SET = allDeckTracks();
+const CATALOGUE = allDeckTracks();
 type Track = DeckTrack;
 
 function spotifyTrackId(track: Track): string | null {
@@ -43,29 +55,29 @@ function spotifyTrackId(track: Track): string | null {
   return null;
 }
 
-function findTrackById(id: string | null | undefined): Track | null {
+function findTrackById(list: Track[], id: string | null | undefined): Track | null {
   if (!id) return null;
-  return DJ_SET.find((t) => t.id === id || t.spotifyId === id) ?? null;
+  return list.find((t) => t.id === id || t.spotifyId === id) ?? null;
 }
 
 const DJ_AUDIT = '[dj-audit]';
 
 function firstPlayableTrack(from = 0, skipId?: string | null): Track | null {
-  for (let i = from; i < DJ_SET.length; i++) {
-    const t = DJ_SET[i];
+  for (let i = from; i < CATALOGUE.length; i++) {
+    const t = CATALOGUE[i];
     const sid = spotifyTrackId(t);
     if (!sid) continue;
     if (skipId && sid === skipId) continue;
     return t;
   }
   for (let i = 0; i < from; i++) {
-    const t = DJ_SET[i];
+    const t = CATALOGUE[i];
     const sid = spotifyTrackId(t);
     if (!sid) continue;
     if (skipId && sid === skipId) continue;
     return t;
   }
-  return DJ_SET.find((t) => spotifyTrackId(t)) ?? DJ_SET[0] ?? null;
+  return CATALOGUE.find((t) => spotifyTrackId(t)) ?? CATALOGUE[0] ?? null;
 }
 
 const INITIAL_LEFT = firstPlayableTrack(0);
@@ -130,6 +142,26 @@ export default function DJStation() {
   const [leftEmbedReady,  setLeftEmbedReady]  = useState(false);
   const [rightEmbedReady, setRightEmbedReady] = useState(false);
   const [deckHint, setDeckHint] = useState<string | null>(null);
+  const [focusTrackId, setFocusTrackId] = useState<string | null>(null);
+  const extrasRaw = useSyncExternalStore(
+    subscribeSpotifyCarousel,
+    getSpotifyCarouselSnapshot,
+    getSpotifyCarouselServerSnapshot,
+  );
+  const spotifyExtras = useMemo(() => parseStoredSpotifyTracks(extrasRaw), [extrasRaw]);
+  const library = useMemo(() => [...CATALOGUE, ...spotifyExtras], [spotifyExtras]);
+  const libraryRef = useRef(library);
+  useEffect(() => {
+    libraryRef.current = library;
+  }, [library]);
+  const existingSpotifyIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const t of library) {
+      ids.add(t.id.toLowerCase());
+      if (t.spotifyId) ids.add(t.spotifyId.toLowerCase());
+    }
+    return ids;
+  }, [library]);
 
   const leftContainerRef  = useRef<HTMLDivElement>(null);
   const rightContainerRef = useRef<HTMLDivElement>(null);
@@ -153,7 +185,7 @@ export default function DJStation() {
   }, []);
 
   useEffect(() => {
-    const sample = DJ_SET.slice(0, 3).map((t) => ({
+    const sample = CATALOGUE.slice(0, 3).map((t) => ({
       id: t.id,
       title: t.title,
       thumb: !!t.thumb,
@@ -163,7 +195,7 @@ export default function DJStation() {
       playable: !!spotifyTrackId(t),
     }));
     console.log(DJ_AUDIT, 'carousel state after catalogue bind', {
-      count: DJ_SET.length,
+      count: CATALOGUE.length,
       sample,
     });
   }, []);
@@ -298,6 +330,16 @@ export default function DJStation() {
     });
 
     mix.setCrateMeta(side, { title: track.title, bpm: track.bpm, key: track.key });
+    const isRef = track.source === 'spotify';
+    if (isRef) {
+      if (track.previewUrl) {
+        showDeckHint(`“${track.title}” · preview only — not mixable or exportable. upload a file to mix.`);
+      } else if (sid) {
+        showDeckHint(`“${track.title}” · reference only — Spotify playback, not mixable or exportable.`);
+      } else {
+        showDeckHint(`“${track.title}” is not mixable — no preview or Spotify id.`);
+      }
+    }
 
     if (side === 'left') {
       setLeftTrack(track);
@@ -342,9 +384,25 @@ export default function DJStation() {
     } catch {
       id = '';
     }
-    const found = findTrackById(id);
+    const found = findTrackById(libraryRef.current, id);
     console.log(DJ_AUDIT, 'resolveDropTrack', { id, found: found?.id ?? null });
     return found;
+  }, []);
+
+  const addSpotifyTrack = useCallback((hit: SpotifySearchTrack): 'added' | 'duplicate' => {
+    const current = [...CATALOGUE, ...readStoredSpotifyTracks()];
+    if (isSpotifyDuplicate(current, hit.spotifyId)) return 'duplicate';
+    const track = searchHitToDeckTrack(hit);
+    writeStoredSpotifyTracks([...readStoredSpotifyTracks(), track]);
+    setFocusTrackId(track.id);
+    return 'added';
+  }, []);
+
+  const removeSpotifyTrack = useCallback((id: string) => {
+    writeStoredSpotifyTracks(
+      readStoredSpotifyTracks().filter((t) => t.id !== id && t.spotifyId !== id),
+    );
+    setFocusTrackId(null);
   }, []);
 
   const takeAudioFile = (e: React.DragEvent): File | null => {
@@ -456,7 +514,7 @@ export default function DJStation() {
   };
 
   return (
-    <div style={{ userSelect: 'none', width: '100%', background: '#0b0d10' }}>
+    <div style={{ userSelect: 'none', width: '100%', maxWidth: '100%', boxSizing: 'border-box', background: '#0b0d10', overflowX: 'clip' }}>
       <input
         ref={fileARef}
         data-testid="dj-upload-a"
@@ -498,8 +556,10 @@ export default function DJStation() {
       {/* ── Handoff set carousel (film strip) — top of the desk ── */}
       <div id="dj-set" data-testid="dj-set" style={{ marginTop: 4, marginBottom: 10 }}>
         <TrackLibraryBrowser
-          tracks={DJ_SET}
+          tracks={library}
           reverseCarousel={false}
+          focusTrackId={focusTrackId}
+          onRemoveTrack={removeSpotifyTrack}
           onLoadTrack={loadTrack}
           onSetDragTrack={(t) => {
             dragTrack.current = t;
@@ -510,12 +570,13 @@ export default function DJStation() {
           leftPos={leftPos} leftDur={leftDur}
           rightPos={rightPos} rightDur={rightDur}
         />
+        <SpotifySearchAdd existingIds={existingSpotifyIds} onAdd={addSpotifyTrack} />
       </div>
       <DJPairPanel
         selected={leftTrack}
-        library={DJ_SET}
+        library={library}
         onLoadB={(id) => {
-          const t = findTrackById(id);
+          const t = findTrackById(library, id);
           if (!t) return;
           loadTrack('right', t);
           showDeckHint('good pair. keep the blend short.');
