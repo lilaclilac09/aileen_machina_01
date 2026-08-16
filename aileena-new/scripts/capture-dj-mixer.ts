@@ -132,10 +132,14 @@ async function main() {
       mimeType: 'audio/wav',
       buffer: pcmWav(6, 330),
     });
-    await desk.waitForFunction(() => {
-      const el = document.querySelector('[data-testid="dj-engine-status"]');
-      return el?.getAttribute('data-deck-a') === 'true' && el?.getAttribute('data-deck-b') === 'true';
-    }, { timeout: 20_000 });
+    await desk.waitForFunction(
+      () => {
+        const el = document.querySelector('[data-testid="dj-engine-status"]');
+        return el?.getAttribute('data-deck-a') === 'true' && el?.getAttribute('data-deck-b') === 'true';
+      },
+      undefined,
+      { timeout: 40_000 },
+    );
     await desk.getByTestId('dj-play-a').click();
     await desk.getByTestId('dj-play-b').click();
     await desk.waitForTimeout(500);

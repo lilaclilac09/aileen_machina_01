@@ -52,6 +52,7 @@ test.describe('DJ mixer engine', () => {
     await expect(page.getByTestId('dj-deck-a-drop')).toHaveAttribute('data-mix-loaded', 'true');
     await expect(page.getByTestId('dj-waveform-a')).toBeVisible();
     await expect(page.getByTestId('dj-waveform-b')).toBeVisible();
+    await page.screenshot({ path: '/opt/cursor/artifacts/desktop_decks_loaded.png' });
 
     await page.getByTestId('dj-play-a').click();
     await page.getByTestId('dj-play-b').click();
@@ -88,6 +89,8 @@ test.describe('DJ mixer engine', () => {
     await page.keyboard.press('End');
     await expect(xfade).toHaveAttribute('data-fader-value', '100');
     await expect(page.getByTestId('dj-mixer')).toHaveAttribute('data-xfade', '100');
+    await page.screenshot({ path: '/opt/cursor/artifacts/desktop_both_decks_playing.png' });
+    await page.getByTestId('dj-mixer').screenshot({ path: '/opt/cursor/artifacts/desktop_mixer_controls.png' });
 
     await page.getByTestId('dj-pitch-a').focus();
     await page.keyboard.press('ArrowUp');
@@ -117,5 +120,6 @@ test.describe('DJ mixer engine', () => {
     expect(filePath).toBeTruthy();
     const info = await stat(filePath!);
     expect(info.size).toBeGreaterThan(0);
+    await page.screenshot({ path: '/opt/cursor/artifacts/desktop_export_ready.png' });
   });
 });
