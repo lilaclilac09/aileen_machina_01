@@ -83,6 +83,28 @@ export const DJ_SET_TRACKS: DjSetTrack[] = [
  * Spotify id is the track `id` (22-char). Keep these in the carousel with the handoff five.
  */
 export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
+  // Infra-Red — Love Honey (A1 on …The Second Phase…, Strobe ST 004, 1991)
+  // Spotify 43UmOsrAaLEmqSHJYFeiRw · cover vendored from oEmbed
+  {
+    id: '43UmOsrAaLEmqSHJYFeiRw',
+    title: 'Love Honey',
+    artist: 'Infra-Red · The Second Phase',
+    bpm: 120,
+    key: '4A',
+    dur: 355,
+    thumb: '/dj-set/assets/covers/love-honey.jpg',
+  },
+  // WAX — 11110B (B-side of No. 11110 / WAX11110, 2026)
+  // No Spotify on Odesli (Apple/Deezer/Tidal). Cover vendored from Apple 1000²
+  {
+    id: 'WAX11110B',
+    title: '11110B',
+    artist: 'WAX · No. 11110',
+    bpm: 126,
+    key: '10B',
+    dur: 382,
+    thumb: '/dj-set/assets/covers/wax-11110b.jpg',
+  },
   // Dua Lipa — lyric "Need someone to hold me close" = Training Season
   // Covers vendored under /dj-set/assets/covers/dua-*.jpg (Spotify oEmbed art)
   {
