@@ -130,6 +130,9 @@ await test('README is English and tells you to use your purchased key', () => {
   assert.match(readme, /node src\/cli\.mjs chat "Hello from my DeepSeek key"/);
   assert.match(readme, /node src\/cli\.mjs chat$/m);
   assert.match(readme, /node src\/cli\.mjs balance/);
+  assert.match(readme, /^## Alongside Cursor$/m);
+  assert.match(readme, /does \*\*not\*\* bypass Cursor/i);
+  assert.match(readme, /separate\*\* CLI/i);
   assert.doesNotMatch(readme, /[\u4e00-\u9fff]/);
   assert.doesNotMatch(readme, /workbench\.desktop\.main\.js|slow pool|usage-limit banner/i);
 });
@@ -270,6 +273,7 @@ await test('cli how prints How to use', () => {
   assert.match(result.stdout, /node src\/cli\.mjs check/);
   assert.match(result.stdout, /node src\/cli\.mjs chat "Hello from my DeepSeek key"/);
   assert.match(result.stdout, /platform\.deepseek\.com/);
+  assert.match(result.stdout, /does not bypass Cursor/);
 });
 
 await test('this package has no app-level quota code', () => {

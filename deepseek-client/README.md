@@ -13,6 +13,19 @@ cd deepseek-client
 node src/cli.mjs how
 ```
 
+## Alongside Cursor
+
+This does **not** bypass Cursor. It does not patch the Cursor app, hide Cursor usage UI, or send Cursor agent traffic through DeepSeek.
+
+It is a **separate** CLI. Cursor stays Cursor. When you want DeepSeek with the key you bought, open a terminal and run this client. DeepSeek bills that key.
+
+What this adds next to Cursor:
+
+- Your own DeepSeek key (`DEEPSEEK_API_KEY`)
+- Official API only: `https://api.deepseek.com`
+- No extra daily cap inside this client (DeepSeek’s own balance still applies)
+- `check` / `chat` / `balance` without opening Cursor
+
 ## How to use
 
 ### 1. Get a key
