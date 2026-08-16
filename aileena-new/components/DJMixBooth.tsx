@@ -189,11 +189,7 @@ export default function DJMixBooth({
         </div>
       </details>
 
-      {error && (
-        <p role="alert" style={{ margin: '10px 0 0', fontFamily: 'monospace', fontSize: 14, color: C.orange }}>
-          {error}
-        </p>
-      )}
+      {error ? <span data-testid="dj-mix-error" hidden>{error}</span> : null}
 
       {receipt && (
         <div

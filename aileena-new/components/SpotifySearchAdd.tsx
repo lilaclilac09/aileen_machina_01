@@ -2,6 +2,9 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { SpotifySearchTrack } from '../lib/spotifySearchShared';
+import SystemToast from './SystemToast';
+
+// Operator only — do not show in UI: SPOTIFY_CLIENT_ID + SPOTIFY_CLIENT_SECRET on the server.
 
 type Status = 'loading' | 'ready' | 'missing' | 'error';
 
@@ -83,7 +86,7 @@ export default function SpotifySearchAdd({
       })
       .catch((e: unknown) => {
         if (e instanceof DOMException && e.name === 'AbortError') return;
-        setSearchError('Spotify search failed. Try again shortly.');
+        setSearchError('Network error.');
         setHits([]);
         setOpen(true);
       })
@@ -111,10 +114,10 @@ export default function SpotifySearchAdd({
   function addHit(hit: SpotifySearchTrack) {
     const result = onAdd(hit);
     if (result === 'duplicate') {
-      setNotice('already in carousel');
+      setNotice('Already added.');
       return;
     }
-    setNotice(`added “${hit.title}” · reference only`);
+    setNotice('Track added.');
     setOpen(false);
   }
 
@@ -127,7 +130,7 @@ export default function SpotifySearchAdd({
     }
     el.src = url;
     void el.play().catch(() => {
-      setNotice('preview blocked — use Open in Spotify');
+      setNotice('Preview blocked.');
     });
   }
 
@@ -155,7 +158,7 @@ export default function SpotifySearchAdd({
           margin: '0 0 8px',
         }}
       >
-        Search Spotify · reference tracks only
+        Search Spotify
       </p>
       <input
         data-testid="spotify-search-input"
@@ -183,17 +186,17 @@ export default function SpotifySearchAdd({
         }}
       />
       {configured === 'missing' && (
-        <p data-testid="spotify-search-disabled" style={hintStyle}>
-          Spotify search is not configured. Add SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET, then redeploy.
-        </p>
+        <SystemToast testId="spotify-search-disabled" inline>
+          Spotify not connected.
+        </SystemToast>
       )}
       {configured === 'error' && (
-        <p style={hintStyle}>Spotify search is down.</p>
+        <SystemToast inline>Network error.</SystemToast>
       )}
       {notice && (
-        <p data-testid="spotify-search-notice" role="status" style={{ ...hintStyle, color: '#00a89d' }}>
+        <SystemToast testId="spotify-search-notice" inline>
           {notice}
-        </p>
+        </SystemToast>
       )}
 
       {open && configured === 'ready' && (
@@ -322,15 +325,6 @@ export default function SpotifySearchAdd({
     </div>
   );
 }
-
-const hintStyle: CSSProperties = {
-  margin: '8px 0 0',
-  fontFamily: 'monospace',
-  fontSize: 13,
-  letterSpacing: '0.02em',
-  color: 'rgba(255,253,248,0.62)',
-  lineHeight: 1.4,
-};
 
 const rowHint: CSSProperties = {
   margin: 0,

@@ -30,7 +30,7 @@ test.describe('DJ mixer engine', () => {
     await page.goto('/sound', { waitUntil: 'domcontentloaded' });
     await expect(page.getByTestId('dj-engine-status')).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-ready', 'true');
-    await expect(page.getByTestId('dj-spotify-preview-note')).toContainText('cannot be mixed');
+    await expect(page.getByTestId('dj-spotify-preview-note')).toContainText('Not mixable');
     await expect(page.getByTestId('dj-station')).toBeVisible();
 
     const wavA = pcmWav(3, 440);

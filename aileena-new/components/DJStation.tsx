@@ -7,6 +7,7 @@ import DJKnob from './DJKnob';
 import DJMixBooth from './DJMixBooth';
 import DJPairPanel from './DJPairPanel';
 import SpotifySearchAdd from './SpotifySearchAdd';
+import SystemToast, { shortMixError } from './SystemToast';
 import { allDeckTracks, type DeckTrack } from '../lib/djSetlist';
 import { useDjMixer } from '../lib/useDjMixer';
 import { fmtMs } from '../lib/djMixerMath';
@@ -172,6 +173,11 @@ export default function DJStation() {
   }, []);
 
   useEffect(() => {
+    if (!mix.error) return;
+    showDeckHint(shortMixError(mix.error));
+  }, [mix.error, showDeckHint]);
+
+  useEffect(() => {
     const sample = CATALOGUE.slice(0, 3).map((t) => ({
       id: t.id,
       title: t.title,
@@ -317,7 +323,7 @@ export default function DJStation() {
     mix.setCrateMeta(side, { title: track.title, bpm: track.bpm, key: track.key });
     const isRef = track.source === 'spotify' || track.mixable === false;
     if (isRef) {
-      showDeckHint('Spotify reference only. Upload audio to mix/export.');
+      showDeckHint('Reference only.');
     }
 
     if (side === 'left') {
@@ -332,17 +338,17 @@ export default function DJStation() {
             if (!isRef) setDeckHint(null);
           } catch (err) {
             console.log(DJ_AUDIT, 'loadUri error', { deck: 'A', err });
-            if (!isRef) showDeckHint('Deck A: press ▶ to start');
+            if (!isRef) showDeckHint('Press play.');
           }
         } else {
           // Reconnect: queue until leftCtrl createController callback (same IFrame, no second player)
           pendingLeftUri.current = uri;
           console.log(DJ_AUDIT, 'leftCtrl null — queued pendingLeftUri', uri);
-          if (!isRef) showDeckHint('Deck A: Spotify loading — press ▶ when ready');
+          if (!isRef) showDeckHint('Still loading.');
         }
       } else if (!isRef) {
         pendingLeftUri.current = null;
-        showDeckHint(`“${track.title}” has no Spotify id — pick a library track to play`);
+        showDeckHint('Not playable.');
       }
     } else {
       setRightTrack(track);
@@ -350,7 +356,7 @@ export default function DJStation() {
         rightCtrl.current?.loadUri(`spotify:track:${sid}`);
         if (!isRef) setDeckHint(null);
       } else if (!isRef) {
-        showDeckHint(`“${track.title}” has no Spotify id — pick a library track to play`);
+        showDeckHint('Not playable.');
       }
     }
   }, [showDeckHint, mix]);
@@ -435,7 +441,7 @@ export default function DJStation() {
       setDeckHint(null);
       return;
     }
-    showDeckHint(`Deck ${label}: upload audio to play.`);
+    showDeckHint('Upload audio first.');
   }, [mix, showDeckHint]);
 
   const handleXfade = useCallback((v: number) => {
@@ -457,11 +463,11 @@ export default function DJStation() {
   const rightDim = mix.xfade < 20 ? mix.xfade / 20 : 1;
 
   const handleSyncLeft = useCallback(() => {
-    if (!mix.sync('left')) showDeckHint('SYNC needs BPM on both decks — upload/crate tags, or v2 beat detection');
+    if (!mix.sync('left')) showDeckHint('Needs BPM.');
   }, [mix, showDeckHint]);
 
   const handleSyncRight = useCallback(() => {
-    if (!mix.sync('right')) showDeckHint('SYNC needs BPM on both decks — upload/crate tags, or v2 beat detection');
+    if (!mix.sync('right')) showDeckHint('Needs BPM.');
   }, [mix, showDeckHint]);
 
   const leftPlaying = mix.deckA.playing;
@@ -521,18 +527,11 @@ export default function DJStation() {
         }}
       />
 
-      <p
-        data-testid="dj-spotify-preview-note"
-        style={{
-          margin: '0 0 10px',
-          fontFamily: 'monospace',
-          fontSize: 13,
-          letterSpacing: '0.02em',
-          color: C.sub,
-        }}
-      >
-        Upload audio to mix. Spotify cannot be mixed.
-      </p>
+      <div style={{ margin: '0 0 12px' }}>
+        <SystemToast testId="dj-spotify-preview-note" inline>
+          Not mixable.
+        </SystemToast>
+      </div>
 
       {/* ── Desk first: decks + mixer ── */}
       <div
@@ -600,7 +599,7 @@ export default function DJStation() {
               onUpload={() => fileARef.current?.click()}
               onLoopIn={() => mix.loopIn('left')}
               onLoopOut={() => mix.loopOut('left')}
-              onLoopBars={n => { if (!mix.loopBars('left', n)) showDeckHint('Loop 1/2/4/8 needs BPM — v2 beat detection'); }}
+              onLoopBars={n => { if (!mix.loopBars('left', n)) showDeckHint('Needs BPM.'); }}
               onLoopExit={() => mix.loopExit('left')}
               onHotCue={(i, clear) => mix.hotCue('left', i, clear)}
               onSync={handleSyncLeft}
@@ -633,7 +632,7 @@ export default function DJStation() {
               onUpload={() => fileBRef.current?.click()}
               onLoopIn={() => mix.loopIn('right')}
               onLoopOut={() => mix.loopOut('right')}
-              onLoopBars={n => { if (!mix.loopBars('right', n)) showDeckHint('Loop 1/2/4/8 needs BPM — v2 beat detection'); }}
+              onLoopBars={n => { if (!mix.loopBars('right', n)) showDeckHint('Needs BPM.'); }}
               onLoopExit={() => mix.loopExit('right')}
               onHotCue={(i, clear) => mix.hotCue('right', i, clear)}
               onSync={handleSyncRight}
@@ -661,7 +660,7 @@ export default function DJStation() {
               onUpload={() => fileARef.current?.click()}
               onLoopIn={() => mix.loopIn('left')}
               onLoopOut={() => mix.loopOut('left')}
-              onLoopBars={n => { if (!mix.loopBars('left', n)) showDeckHint('Loop 1/2/4/8 needs BPM — v2 beat detection'); }}
+              onLoopBars={n => { if (!mix.loopBars('left', n)) showDeckHint('Needs BPM.'); }}
               onLoopExit={() => mix.loopExit('left')}
               onHotCue={(i, clear) => mix.hotCue('left', i, clear)}
               onSync={handleSyncLeft}
@@ -694,7 +693,7 @@ export default function DJStation() {
               onUpload={() => fileBRef.current?.click()}
               onLoopIn={() => mix.loopIn('right')}
               onLoopOut={() => mix.loopOut('right')}
-              onLoopBars={n => { if (!mix.loopBars('right', n)) showDeckHint('Loop 1/2/4/8 needs BPM — v2 beat detection'); }}
+              onLoopBars={n => { if (!mix.loopBars('right', n)) showDeckHint('Needs BPM.'); }}
               onLoopExit={() => mix.loopExit('right')}
               onHotCue={(i, clear) => mix.hotCue('right', i, clear)}
               onSync={handleSyncRight}
@@ -703,23 +702,7 @@ export default function DJStation() {
         )}
 
         {deckHint && (
-          <p
-            role="status"
-            style={{
-              margin: '0 0 8px',
-              padding: '8px 10px',
-              borderRadius: 4,
-              border: '1px solid rgba(0,168,157,0.35)',
-              background: 'rgba(0,168,157,0.08)',
-              fontFamily: 'monospace',
-              fontSize: 14,
-              letterSpacing: '0.02em',
-              color: C.text,
-              textAlign: 'center',
-            }}
-          >
-            {deckHint}
-          </p>
+          <SystemToast testId="dj-deck-hint">{deckHint}</SystemToast>
         )}
       </div>
 
