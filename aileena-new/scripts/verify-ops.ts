@@ -489,6 +489,10 @@ function main() {
   assert('council page links cabinet', /href="\/cabinet"/.test(councilPageSrc));
   assert('cabinet page is owner-only', /getOwnerIdentity/.test(cabinetPageSrc) && /OwnerUnlockForm/.test(cabinetPageSrc));
   assert('owner auth accepts POST', /export async function POST/.test(ownerAuthSrc));
+  assert('owner auth does not read query key', !/searchParams\.get\(['"]key['"]\)/.test(ownerAuthSrc));
+  assert('owner auth GET is 401', /export async function GET/.test(ownerAuthSrc) && /status:\s*401/.test(ownerAuthSrc));
+  assert('owner auth requires OWNER_KEY env', /process\.env\.OWNER_KEY/.test(ownerAuthSrc) && /!expected/.test(ownerAuthSrc));
+  assert('owner auth uses safeEqual', /safeEqual\(key, expected\)/.test(ownerAuthSrc));
   assert('public console has no council href', !/href=['"]\/council['"]/.test(agentChatSrc));
 
   const ownerAccessSrc = readFileSync(join(process.cwd(), 'lib/owner-access.ts'), 'utf8');
