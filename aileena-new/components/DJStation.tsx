@@ -444,7 +444,7 @@ export default function DJStation() {
   }, [leftTrack, rightTrack, leftPitch]);
 
   return (
-    <div style={{ userSelect: 'none', width: '100%', background: '#0b0d10' }}>
+    <div style={{ userSelect: 'none', width: '100%', maxWidth: '100%', boxSizing: 'border-box', background: '#0b0d10', overflowX: 'clip' }}>
 
       {/* ── Spotify embed containers (functional audio + play mark) ── */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 6, marginBottom: 8 }}>

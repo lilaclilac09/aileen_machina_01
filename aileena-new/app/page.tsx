@@ -267,7 +267,7 @@ export default function Home() {
         {/* ── 01 CINEMATIC OPENING ──────────────────────────────── */}
         <SnapSection id="opening" className="order-1">
           <div
-            className="h-full flex flex-col bg-white relative overflow-hidden"
+            className="mobile-opening-shell h-full min-h-[100dvh] flex flex-col bg-white relative overflow-hidden max-md:overflow-visible max-md:h-auto"
             style={{ fontFamily: nunito }}
           >
             {/* Background portrait — large, partially out of frame on the right */}
@@ -302,8 +302,8 @@ export default function Home() {
             />
 
             {/* Foreground content */}
-            <div className="relative z-10 flex-1 flex items-center px-6 sm:px-12 lg:px-20">
-              <div className="max-w-[640px] w-full">
+            <div className="relative z-10 flex-1 flex items-center px-6 sm:px-12 lg:px-20 max-md:pt-6 max-md:pb-16 max-md:items-start">
+              <div className="max-w-[640px] w-full min-w-0">
                 <p
                   className="anim-up"
                   style={{
@@ -699,8 +699,8 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
           >
             move things around
           </span>
-          <div className="min-h-full overflow-visible px-3 pb-24 pt-8 sm:hidden">
-            <div className="grid gap-14">
+          <div className="min-h-full overflow-visible px-3 pb-[max(6rem,calc(env(safe-area-inset-bottom,0px)+4.5rem))] pt-[max(2rem,calc(env(safe-area-inset-top,0px)+3.5rem))] sm:hidden">
+            <div className="grid gap-14 w-full max-w-full min-w-0">
               {[...rooms]
                 .sort((a, b) => Number(b.id === 'woman-tech') - Number(a.id === 'woman-tech'))
                 .map((room) => {
