@@ -94,13 +94,13 @@ Last 8 tracks in `lib/djSetlist.ts` `DECK_LIBRARY_TRACKS` (end of array = most r
 
 ## /updates — Metal & Pages shelf
 
-- **The Year of Magical Thinking** (Joan Didion · Aileena's Biweekly Read · Issue 01 · featured)
+- **The Year of Magical Thinking** (Joan Didion · reading now · featured)
 - **Slouching Towards Bethlehem** (Joan Didion · 31% in · didion_shelf)
 - **The White Album** (Joan Didion · didion_shelf)
 - **Play It As It Lays** (Joan Didion · didion_shelf)
 - **Notes to John** (Joan Didion · didion_shelf)
 - **Let Me Tell You What I Mean** (Joan Didion · didion_shelf)
-- **Philosophy and Vulnerability** (Matthew R. McLennan · didion_shelf)
+- **Philosophy and Vulnerability** (Matthew R. McLennan · systems_shelf)
 - **Crying in H Mart** (Michelle Zauner · adjacent)
 - **Bad Feminist** (Roxane Gay · adjacent)
 - **On Earth We’re Briefly Gorgeous** (Ocean Vuong · adjacent)
@@ -108,6 +108,7 @@ Last 8 tracks in `lib/djSetlist.ts` `DECK_LIBRARY_TRACKS` (end of array = most r
 
 ## /updates — shelf notes
 
+- **Book club gets editorial rooms** (2026.08.16 · design) — Current reading becomes the feature. Shelf splits into desks — Didion, systems, women writing — so the page answers why these books share a room.
 - **Metal & Pages goes magazine** (2026.07.25 · design) — White field, heavy headlines, dashed rules — Service95 book-club energy with Aileena teal as the only accent.
 - **Metal & Pages opens** (2026.07.17 · bookclub) — Biweekly bookclub page is live — Didion shelf first, then adjacent reads that share the same sharp voltage: identity, grief, feminism, social observation.
 - **Library pull from Apple Books** (2026.07.17 · shelf) — Selections from the current library: Didion core plus Zauner, Gay, Vuong, and Nettel.

@@ -217,7 +217,7 @@ function parseUpdatesPage(): { books: BookRow[]; notes: UpdateNote[] } {
   const books: BookRow[] = [];
   const notes: UpdateNote[] = [];
 
-  const featured = src.match(/const FEATURED:\s*Book\s*=\s*\{([\s\S]*?)\n\};/);
+  const featured = src.match(/const FEATURED:\s*\w+\s*=\s*\{([\s\S]*?)\n\};/);
   if (featured) {
     const block = featured[1];
     const title = extractQuotedProp(block, 'title');
@@ -226,7 +226,7 @@ function parseUpdatesPage(): { books: BookRow[]; notes: UpdateNote[] } {
     if (title) books.push({ title, author, status, label: 'featured' });
   }
 
-  for (const name of ['DIDION_SHELF', 'ADJACENT'] as const) {
+  for (const name of ['DIDION_SHELF', 'SYSTEMS_SHELF', 'ADJACENT'] as const) {
     const block = extractConstBlock(src, name);
     if (!block) continue;
     const objects = block.match(/\{[^{}]*\}/g) ?? [];
