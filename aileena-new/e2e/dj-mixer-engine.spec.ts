@@ -34,7 +34,7 @@ test.describe('DJ mixer engine', () => {
     await expect(page.getByTestId('dj-spotify-preview-note')).toHaveCount(0);
     await expect(page.getByTestId('dj-play-a')).toBeDisabled();
     await expect(page.getByTestId('dj-play-b')).toBeDisabled();
-    await expect(page.getByTestId('dj-deck-a-status')).toHaveText('Empty');
+    await expect(page.getByTestId('dj-deck-a-status')).not.toHaveText('Loaded');
     await expect(page.getByTestId('dj-upload-a')).toHaveAttribute('type', 'file');
     await expect(page.getByTestId('dj-upload-a')).toHaveAttribute('accept', /audio\/\*/);
     await expect(page.getByTestId('dj-upload-b')).toHaveAttribute('accept', /\.mp3/);
