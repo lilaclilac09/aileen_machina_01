@@ -50,16 +50,28 @@ test.describe('DJ mixer engine', () => {
     await expect(page.getByTestId('dj-deck-hint')).toContainText('Need an audio file');
     await expect(page.getByTestId('dj-play-a')).toBeDisabled();
 
-    await page.getByTestId('dj-upload-a').setInputFiles({
-      name: 'desk-a.wav',
-      mimeType: 'audio/wav',
-      buffer: wavA,
-    });
-    await page.getByTestId('dj-upload-b').setInputFiles({
-      name: 'desk-b.wav',
-      mimeType: 'audio/wav',
-      buffer: wavB,
-    });
+    {
+      const [chooserA] = await Promise.all([
+        page.waitForEvent('filechooser'),
+        page.getByTestId('dj-load-file-a').click(),
+      ]);
+      await chooserA.setFiles({
+        name: 'desk-a.wav',
+        mimeType: 'audio/wav',
+        buffer: wavA,
+      });
+    }
+    {
+      const [chooserB] = await Promise.all([
+        page.waitForEvent('filechooser'),
+        page.getByTestId('dj-load-file-b').click(),
+      ]);
+      await chooserB.setFiles({
+        name: 'desk-b.wav',
+        mimeType: 'audio/wav',
+        buffer: wavB,
+      });
+    }
 
     await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-deck-a', 'true', { timeout: 15_000 });
     await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-deck-b', 'true');
