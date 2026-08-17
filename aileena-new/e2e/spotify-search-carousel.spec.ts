@@ -107,8 +107,7 @@ test.describe('Spotify search → carousel', () => {
     await expect(search).toHaveAttribute('data-spotify-configured', /ready|missing|error/, { timeout: 10_000 });
     await page.locator('#dj-set').scrollIntoViewIfNeeded();
     await expect(page.getByTestId('spotify-search-input')).toBeEnabled();
-    await expect(search).toContainText('reference tracks only');
-    await expect(search).toContainText('upload audio files for real mixing');
+    await expect(search).toContainText('Search Spotify');
     await page.screenshot({
       path: `${ARTIFACTS}/spotify_search_idle.png`,
       fullPage: false,
@@ -128,8 +127,7 @@ test.describe('Spotify search → carousel', () => {
 
     const beforeCards = await page.getByTestId('dj-carousel-card').count();
     await page.getByTestId('spotify-search-add').first().click();
-    await expect(page.getByTestId('spotify-search-notice')).toContainText(/added/i);
-    await expect(page.getByTestId('spotify-search-notice')).toContainText(/reference only/i);
+    await expect(page.getByTestId('spotify-search-notice')).toContainText(/Track added/i);
 
     await expect
       .poll(async () => page.locator('[data-testid="dj-carousel-card"][data-source="spotify"]').count(), {
@@ -142,7 +140,7 @@ test.describe('Spotify search → carousel', () => {
     await expect(page.getByTestId('spotify-ref-badge').first()).toBeVisible();
     await expect(page.locator('#dj-set')).toContainText(/not mixable/i);
     await page.locator('[data-dj-load-deck="left"]').click();
-    await expect(page.getByText(/preview only — not mixable or exportable/i)).toBeVisible();
+    await expect(page.getByText(/Reference only/i)).toBeVisible();
     await page.locator('#dj-set').screenshot({
       path: `${ARTIFACTS}/spotify_search_track_added.png`,
     });
@@ -155,7 +153,7 @@ test.describe('Spotify search → carousel', () => {
     await page.getByTestId('spotify-search-input').fill('muse');
     await expect(results).toBeVisible({ timeout: 8_000 });
     await page.getByTestId('spotify-search-add').first().click();
-    await expect(page.getByTestId('spotify-search-notice')).toContainText(/already in carousel/i);
+    await expect(page.getByTestId('spotify-search-notice')).toContainText(/Already added/i);
     await page.screenshot({
       path: `${ARTIFACTS}/spotify_search_duplicate_prevented.png`,
       fullPage: false,
@@ -177,7 +175,7 @@ test.describe('Spotify search → carousel', () => {
     await expect(search).toBeVisible({ timeout: 20_000 });
     await expect(search).toHaveAttribute('data-spotify-configured', 'missing', { timeout: 10_000 });
     await page.locator('#dj-set').scrollIntoViewIfNeeded();
-    await expect(page.getByTestId('spotify-search-disabled')).toHaveText(/not configured/i);
+    await expect(page.getByTestId('spotify-search-disabled')).toContainText(/Spotify not connected/i);
     await expect(page.getByTestId('spotify-search-input')).toBeDisabled();
     await expect(page.getByTestId('spotify-search-input')).toHaveAttribute(
       'placeholder',

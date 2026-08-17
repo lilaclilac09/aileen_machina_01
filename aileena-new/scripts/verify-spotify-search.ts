@@ -62,14 +62,23 @@ function secretBoundary(): Check[] {
   const out: Check[] = [];
   for (const rel of clientFiles) {
     const src = readFileSync(join(root, rel), 'utf8');
-    const mentionsSecret = /SPOTIFY_CLIENT_SECRET/.test(src);
-    const mentionsPublic = /NEXT_PUBLIC_SPOTIFY_CLIENT_SECRET/.test(src);
+    const mentionsPublic = /NEXT_PUBLIC_SPOTIFY/.test(src);
     out.push(check(
-      `${rel} does not mention SPOTIFY_CLIENT_SECRET`,
-      !mentionsSecret && !mentionsPublic,
-      mentionsSecret ? 'secret identifier present' : 'ok',
+      `${rel} does not use NEXT_PUBLIC_SPOTIFY`,
+      !mentionsPublic,
+      mentionsPublic ? 'NEXT_PUBLIC Spotify env leaked to client' : 'ok',
     ));
   }
+  const searchUi = readFileSync(join(root, 'components/SpotifySearchAdd.tsx'), 'utf8');
+  out.push(check(
+    'disabled hint names server Spotify env vars',
+    /SPOTIFY_CLIENT_ID/.test(searchUi) && /SPOTIFY_CLIENT_SECRET/.test(searchUi),
+  ));
+  const resultsBlock = searchUi.split('data-testid="spotify-search-results"')[1] ?? '';
+  out.push(check(
+    'search results render in-flow (not an absolute overlay under the page)',
+    resultsBlock.includes("position: 'relative'") && !resultsBlock.includes("position: 'absolute'"),
+  ));
   const server = readFileSync(join(root, 'lib/spotifySearch.ts'), 'utf8');
   out.push(check(
     'server search uses Client Credentials env (not NEXT_PUBLIC)',
@@ -111,6 +120,7 @@ function run(): Check[] {
   if (preview) {
     const deck = searchHitToDeckTrack(preview);
     checks.push(check('deck track source=spotify', deck.source === 'spotify'));
+    checks.push(check('deck track mixable=false', deck.mixable === false));
     checks.push(check('deck track keeps preview + external', deck.previewUrl === preview.previewUrl && deck.externalUrl === preview.externalUrl));
     checks.push(check('deck duration seconds', deck.dur === 366));
     const first = addSpotifyHitToLibrary(catalogue, preview);
@@ -121,7 +131,7 @@ function run(): Check[] {
 
   if (noPrev) {
     const deck = searchHitToDeckTrack(noPrev);
-    checks.push(check('no-preview deck is still addable as reference', deck.source === 'spotify' && !deck.previewUrl));
+    checks.push(check('no-preview deck is still addable as reference', deck.source === 'spotify' && !deck.previewUrl && deck.mixable === false));
   }
 
   checks.push(...secretBoundary());

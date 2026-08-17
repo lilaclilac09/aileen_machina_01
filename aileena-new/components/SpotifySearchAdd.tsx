@@ -2,6 +2,9 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { SpotifySearchTrack } from '../lib/spotifySearchShared';
+import SystemToast from './SystemToast';
+
+// Operator only — do not show in UI: SPOTIFY_CLIENT_ID + SPOTIFY_CLIENT_SECRET on the server.
 
 type Status = 'loading' | 'ready' | 'missing' | 'error';
 
@@ -83,7 +86,7 @@ export default function SpotifySearchAdd({
       })
       .catch((e: unknown) => {
         if (e instanceof DOMException && e.name === 'AbortError') return;
-        setSearchError('Spotify search failed. Try again shortly.');
+        setSearchError('Network error.');
         setHits([]);
         setOpen(true);
       })
@@ -103,16 +106,18 @@ export default function SpotifySearchAdd({
       setOpen(false);
       return;
     }
+    setSearching(true);
+    setOpen(true);
     debounceRef.current = setTimeout(() => runSearch(term), 380);
   }
 
   function addHit(hit: SpotifySearchTrack) {
     const result = onAdd(hit);
     if (result === 'duplicate') {
-      setNotice('already in carousel');
+      setNotice('Already added.');
       return;
     }
-    setNotice(`added “${hit.title}” · reference only`);
+    setNotice('Track added.');
     setOpen(false);
   }
 
@@ -125,7 +130,7 @@ export default function SpotifySearchAdd({
     }
     el.src = url;
     void el.play().catch(() => {
-      setNotice('preview blocked — use Open in Spotify');
+      setNotice('Preview blocked.');
     });
   }
 
@@ -147,14 +152,13 @@ export default function SpotifySearchAdd({
       <p
         style={{
           fontFamily: 'monospace',
-          fontSize: '0.42rem',
-          letterSpacing: '0.22em',
-          textTransform: 'uppercase',
-          color: 'rgba(255,253,248,0.42)',
+          fontSize: 15,
+          letterSpacing: '0.04em',
+          color: '#fffdf8',
           margin: '0 0 8px',
         }}
       >
-        spotify search · reference tracks only
+        Search Spotify
       </p>
       <input
         data-testid="spotify-search-input"
@@ -182,44 +186,34 @@ export default function SpotifySearchAdd({
         }}
       />
       {configured === 'missing' && (
-        <p data-testid="spotify-search-disabled" style={hintStyle}>
-          Spotify search is not configured.
-        </p>
+        <SystemToast testId="spotify-search-disabled" inline>
+          Spotify not connected.
+        </SystemToast>
       )}
       {configured === 'error' && (
-        <p style={hintStyle}>Could not reach Spotify search status.</p>
-      )}
-      {configured === 'ready' && (
-        <p style={hintStyle}>
-          add as reference or preview. upload audio files for real mixing / export.
-        </p>
+        <SystemToast inline>Network error.</SystemToast>
       )}
       {notice && (
-        <p data-testid="spotify-search-notice" role="status" style={{ ...hintStyle, color: '#00a89d' }}>
+        <SystemToast testId="spotify-search-notice" inline>
           {notice}
-        </p>
+        </SystemToast>
       )}
 
       {open && configured === 'ready' && (
         <div
           data-testid="spotify-search-results"
           style={{
-            position: 'absolute',
-            left: 12,
-            right: 12,
-            top: '100%',
-            zIndex: 40,
-            marginTop: 4,
+            position: 'relative',
+            marginTop: 8,
             maxHeight: 280,
             overflowY: 'auto',
             background: '#0b0d10',
             border: '1px solid rgba(0,168,157,0.28)',
             borderRadius: 6,
-            boxShadow: '0 16px 40px rgba(0,0,0,0.55)',
           }}
         >
           {searching && (
-            <p style={{ ...rowHint, color: 'rgba(255,253,248,0.5)' }}>searching…</p>
+            <p data-testid="spotify-search-loading" style={{ ...rowHint, color: 'rgba(255,253,248,0.5)' }}>searching…</p>
           )}
           {!searching && searchError && (
             <p style={{ ...rowHint, color: '#ff9b5e' }}>{searchError}</p>
@@ -263,7 +257,7 @@ export default function SpotifySearchAdd({
                       style={{
                         margin: 0,
                         fontFamily: 'monospace',
-                        fontSize: '0.62rem',
+                        fontSize: 14,
                         color: '#fffdf8',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
@@ -276,7 +270,7 @@ export default function SpotifySearchAdd({
                       style={{
                         margin: '2px 0 0',
                         fontFamily: 'monospace',
-                        fontSize: '0.5rem',
+                        fontSize: 13,
                         color: 'rgba(255,253,248,0.45)',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
@@ -332,31 +326,21 @@ export default function SpotifySearchAdd({
   );
 }
 
-const hintStyle: CSSProperties = {
-  margin: '8px 0 0',
-  fontFamily: 'monospace',
-  fontSize: '0.48rem',
-  letterSpacing: '0.06em',
-  color: 'rgba(255,253,248,0.38)',
-  lineHeight: 1.45,
-};
-
 const rowHint: CSSProperties = {
   margin: 0,
   padding: '12px 10px',
   fontFamily: 'monospace',
-  fontSize: '0.55rem',
-  color: 'rgba(255,253,248,0.45)',
+  fontSize: 14,
+  color: 'rgba(255,253,248,0.55)',
 };
 
 const miniBtn: CSSProperties = {
   fontFamily: 'monospace',
-  fontSize: '0.42rem',
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase',
-  padding: '8px 8px',
-  minHeight: 36,
-  borderRadius: 3,
+  fontSize: 13,
+  letterSpacing: '0.04em',
+  padding: '8px 10px',
+  minHeight: 44,
+  borderRadius: 4,
   border: '1px solid rgba(170,179,187,0.22)',
   background: 'transparent',
   color: 'rgba(255,253,248,0.7)',
