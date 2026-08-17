@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef, useMemo, useEffect } from 'react';
+import { isMixableTrack } from '../lib/djLoadTrack';
 
 /**
  * Fallback cover used when a track has no thumb (or its thumb URL 404s).
@@ -37,6 +38,7 @@ type Track = {
   key: string;
   dur: number;
   thumb: string;
+  audioSrc?: string;
   source?: 'spotify';
   previewUrl?: string | null;
   externalUrl?: string;
@@ -705,7 +707,7 @@ function PlaylistCarousel({
                 data-track-id={track.id}
                 data-track-title={track.title}
                 data-source={track.source || 'catalogue'}
-                data-mixable={track.source === 'spotify' || track.mixable === false ? 'false' : 'true'}
+                data-mixable={isMixableTrack(track) ? 'true' : 'false'}
                 draggable={finePointer}
                 onDragStart={(e) => {
                   if (!finePointer) {
@@ -874,6 +876,7 @@ function PlaylistCarousel({
                 type="button"
                 className="dj-tap"
                 data-dj-load-deck={side}
+                data-testid={side === 'left' ? 'dj-carousel-load-a' : 'dj-carousel-load-b'}
                 onClick={() => onLoadTrack?.(side, active)}
                 style={{
                   fontFamily: 'monospace',
