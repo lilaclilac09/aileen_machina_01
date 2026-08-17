@@ -30,7 +30,7 @@ export default function DoorsDirectory({
 
   return (
     <section
-      className={minFullHeight ? 'min-h-full overflow-y-auto px-5 sm:px-9 lg:px-14' : 'min-h-screen overflow-y-auto px-5 sm:px-9 lg:px-14'}
+      className={minFullHeight ? 'min-h-full overflow-y-auto px-5 sm:px-9 lg:px-14' : 'mobile-page min-h-[100dvh] overflow-y-auto px-5 sm:px-9 lg:px-14'}
       style={{
         background: '#ffffff',
         color: palette.ink,

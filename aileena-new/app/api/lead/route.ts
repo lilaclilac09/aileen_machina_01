@@ -89,6 +89,7 @@ export async function POST(req: NextRequest) {
     transcript?: unknown;
     context?: unknown;
     agentMode?: unknown;
+    councilLens?: unknown;
   };
   try {
     body = await req.json();
@@ -96,7 +97,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'Invalid JSON.' }, { status: 400 });
   }
 
-  if (isCouncilPipelineRequest({ agentMode: body.agentMode })) {
+  if (
+    isCouncilPipelineRequest({
+      agentMode: body.agentMode,
+      councilLens: body.councilLens,
+      transcript: body.transcript,
+      context: typeof body.context === 'string' ? body.context : req.headers.get('referer'),
+      note: body.note,
+      name: body.name,
+    })
+  ) {
     return NextResponse.json(
       { ok: false, error: 'Council transcripts stay private.' },
       { status: 403 },

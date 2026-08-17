@@ -197,8 +197,8 @@ export default function Home() {
       index: '02',
       label: 'News Desk',
       href: latestDispatch ? latestDispatch.href : '/dispatch',
-      category: 'Neocloud',
-      blurb: 'China cleared the MW bar. The listed NVIDIA-native GPU airline does not exist.',
+      category: 'Part 1 · Primer',
+      blurb: 'What a neocloud is, how a number is verified, whose order bought the megawatts.',
       signal: latestDispatch ? latestDispatch.title : 'Open the archive',
       motif: 'pcb',
       placement: { top: '38%', right: '10%', transform: 'rotate(1.6deg)', zIndex: 5 },
@@ -267,7 +267,7 @@ export default function Home() {
         {/* ── 01 CINEMATIC OPENING ──────────────────────────────── */}
         <SnapSection id="opening" className="order-1">
           <div
-            className="h-full flex flex-col bg-white relative overflow-hidden"
+            className="mobile-opening-shell h-full min-h-[100dvh] flex flex-col bg-white relative overflow-hidden max-md:overflow-visible max-md:h-auto max-md:pt-[max(0.5rem,env(safe-area-inset-top,0px))]"
             style={{ fontFamily: nunito }}
           >
             {/* Background portrait — large, partially out of frame on the right */}
@@ -289,7 +289,7 @@ export default function Home() {
             {/* Mobile-only portrait — smaller, top */}
             <div
               aria-hidden
-              className="md:hidden self-center mt-12"
+              className="md:hidden self-start ml-5 mt-[max(3.25rem,calc(env(safe-area-inset-top,0px)+2.75rem))]"
               style={{
                 width: 140,
                 height: 180,
@@ -302,8 +302,8 @@ export default function Home() {
             />
 
             {/* Foreground content */}
-            <div className="relative z-10 flex-1 flex items-center px-6 sm:px-12 lg:px-20">
-              <div className="max-w-[640px] w-full">
+            <div className="relative z-10 flex-1 flex items-center px-6 sm:px-12 lg:px-20 max-md:pt-6 max-md:pb-16 max-md:items-start">
+              <div className="max-w-[640px] w-full min-w-0">
                 <p
                   className="anim-up"
                   style={{
@@ -699,8 +699,8 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
           >
             move things around
           </span>
-          <div className="min-h-full overflow-visible px-3 pb-24 pt-8 sm:hidden">
-            <div className="grid gap-14">
+          <div className="min-h-full overflow-visible px-3 pb-[max(6rem,calc(env(safe-area-inset-bottom,0px)+4.5rem))] pt-[max(2rem,calc(env(safe-area-inset-top,0px)+3.5rem))] sm:hidden">
+            <div className="grid gap-14 w-full max-w-full min-w-0">
               {[...rooms]
                 .sort((a, b) => Number(b.id === 'woman-tech') - Number(a.id === 'woman-tech'))
                 .map((room) => {

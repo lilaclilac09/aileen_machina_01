@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { slugify } from '../../_archive/ArchiveIndex';
 import ArchivePage from '../../_archive/ArchivePage';
 
 const PODCAST_RECS = [
@@ -11,17 +12,20 @@ const PODCAST_RECS = [
     label: 'podcast',
     meta: 'Kate Moss episode',
     href: 'https://open.spotify.com/episode/0ZxMxV8EiZ9DkAPJWU0If7',
-    body:
-      'A velvet couch, fashion as anxiety, and the kind of conversation that makes taste feel less like certainty and more like confession.',
+    body: 'A velvet couch, fashion as anxiety, and taste as confession rather than certainty.',
+    why: 'A velvet couch, fashion as anxiety, and taste as confession rather than certainty.',
+    tags: ['voice', 'taste', 'anxiety'],
+    featured: true,
   },
   {
     title: 'Do You Read Her',
     shelfTitle: 'Do You Read Her',
     label: 'podcast',
-    meta: 'women / reading / voice',
+    meta: 'episode · women reading women',
     href: 'https://open.spotify.com/episode/0cx1oBoJEwfaKGVbITcD5K',
-    body:
-      'A show about how we read the women we love, the women we resist, and the private canon we build around them.',
+    body: 'Private canon, women reading women, the voice as a room.',
+    signal: 'Private canon, women reading women, the voice as a room.',
+    tags: ['voice', 'reading', 'women'],
   },
 ];
 
@@ -33,9 +37,9 @@ const DOCUMENTARY_RECS = [
     label: 'writer / witness',
     href: 'https://www.rottentomatoes.com/m/joan_didion_the_center_will_not_hold',
     image: '/shelf/didion-center.jpg',
-    note: 'a sentence holding while the world refuses to.',
-    body:
-      'Didion as calibration: how to watch a sentence hold together while the world refuses to.',
+    note: 'Watch the sentence hold together while the world refuses to.',
+    body: 'Watch the sentence hold together while the world refuses to.',
+    tags: ['seeing', 'women'],
   },
   {
     title: 'Exhibition on Screen: David Hockney RA',
@@ -44,9 +48,9 @@ const DOCUMENTARY_RECS = [
     label: 'exhibition film',
     href: 'https://en.wikipedia.org/wiki/Exhibition_on_Screen',
     image: '/shelf/hockney-ra.jpg',
-    note: 'colour, scale, looking slowly.',
-    body:
-      'A studio-eye film: colour, scale, looking slowly, and the pleasure of seeing a picture decide what it wants to be.',
+    note: 'Colour, scale, and the pleasure of looking slowly.',
+    body: 'Colour, scale, and the pleasure of looking slowly.',
+    tags: ['colour', 'seeing', 'studio'],
   },
   {
     title: 'A Bigger Splash',
@@ -54,14 +58,12 @@ const DOCUMENTARY_RECS = [
     year: '1973',
     label: 'Hockney / pool',
     href: 'https://en.wikipedia.org/wiki/A_Bigger_Splash_(1973_film)',
-    image: '/shelf/bigger-splash.jpg',
-    note: 'pool water, staged intimacy.',
-    body:
-      'Image-making as theatre: pool water, staged intimacy, and the strange flatness that makes Hockney feel alive.',
+    note: 'Staged intimacy; the pool as a pose that will not stay still.',
+    body: 'Staged intimacy; the pool as a pose that will not stay still.',
+    tags: ['seeing'],
   },
 ];
 
-/** Narrative cinema — life-texture, not a Letterboxd dump. Same Watch wall as docs. */
 const FILM_RECS = [
   {
     title: 'Blue Is the Warmest Color',
@@ -70,8 +72,9 @@ const FILM_RECS = [
     label: 'Léa · intimacy',
     href: 'https://en.wikipedia.org/wiki/Blue_Is_the_Warmest_Colour',
     image: '/shelf/blue-is-the-warmest-color.jpg',
-    note: 'honesty in the body — not spectacle.',
-    body: 'Léa early: intimacy, pain, growing up. Honesty in the body — not spectacle.',
+    note: 'Honesty in the body — looking that does not flinch.',
+    body: 'Honesty in the body — looking that does not flinch.',
+    tags: ['seeing'],
   },
   {
     title: 'The French Dispatch',
@@ -79,9 +82,9 @@ const FILM_RECS = [
     year: '2021',
     label: 'magazine life · Léa',
     href: 'https://en.wikipedia.org/wiki/The_French_Dispatch',
-    image: '/shelf/french-dispatch.jpg',
-    note: 'layout, short chapters, city as set.',
-    body: 'Fashion magazine, European literary rooms. Layout, short chapters, city as set — life aesthetics you can steal.',
+    note: 'The city dressed as a magazine; looking as layout.',
+    body: 'The city dressed as a magazine; looking as layout.',
+    tags: ['colour'],
   },
   {
     title: 'Spectre / No Time to Die',
@@ -89,9 +92,8 @@ const FILM_RECS = [
     year: '2015–21',
     label: 'Bond girl arc',
     href: 'https://en.wikipedia.org/wiki/No_Time_to_Die',
-    image: '/shelf/spectre.jpg',
-    note: 'restraint, distance. finish the arc.',
-    body: 'The Bond-girl line she already likes — restraint, distance, black-and-white emotion. Finish the arc.',
+    note: 'Finish the arc. Clothes as the second script.',
+    body: 'Finish the arc. Clothes as the second script.',
   },
   {
     title: 'The Crown',
@@ -99,10 +101,8 @@ const FILM_RECS = [
     year: 'series',
     label: 'British public life',
     href: 'https://en.wikipedia.org/wiki/The_Crown_(TV_series)',
-    image: '/shelf/the-crown.jpg',
-    note: 'power worn on a body.',
-    body:
-      'British public life: crown, cabinet, marriage, press. Power worn on a body — cold elegance.',
+    note: 'Power worn until the body is the office.',
+    body: 'Power worn until the body is the office.',
   },
   {
     title: 'The Capture',
@@ -110,10 +110,8 @@ const FILM_RECS = [
     year: 'series',
     label: 'new untrust',
     href: 'https://en.wikipedia.org/wiki/The_Capture_(TV_series)',
-    image: '/shelf/the-capture.jpg',
-    note: 'a world you cannot trust.',
-    body:
-      'Surveillance, deepfakes, fake evidence. Opposite of The Crown: old-order dignity vs a world you cannot trust.',
+    note: 'A world you cannot trust, framed as evidence.',
+    body: 'A world you cannot trust, framed as evidence.',
   },
   {
     title: 'Bodyguard',
@@ -121,10 +119,8 @@ const FILM_RECS = [
     year: '2018',
     label: 'BBC thriller',
     href: 'https://en.wikipedia.org/wiki/Bodyguard_(British_TV_series)',
-    image: '/shelf/bodyguard.jpg',
-    note: 'same room as The Crown, hotter pulse.',
-    body:
-      'Protection detail, Westminster, paranoia paced like a thriller — same British-public-life room as The Crown, hotter pulse.',
+    note: 'Same rooms, hotter pulse. Proximity as plot.',
+    body: 'Same rooms, hotter pulse. Proximity as plot.',
   },
   {
     title: 'Miss Sloane',
@@ -132,184 +128,86 @@ const FILM_RECS = [
     year: '2016',
     label: 'lobby · power',
     href: 'https://en.wikipedia.org/wiki/Miss_Sloane',
-    image: '/shelf/miss-sloane.jpg',
-    note: 'strategy as bloodsport.',
-    body:
-      'Jessica Chastain as the sharpest lobbyist in the room — strategy as bloodsport, guns as numbers, and a woman who refuses to lose quietly. 斯隆女士.',
+    note: 'Strategy as bloodsport. The voice does the cutting.',
+    body: 'Strategy as bloodsport. The voice does the cutting.',
+    tags: ['voice'],
   },
 ];
 
-const WATCH_ITEMS = [...DOCUMENTARY_RECS, ...FILM_RECS];
-
-/** Euro life guide — how to assemble a European life-texture off-screen. */
 const EURO_LIFE_GUIDE = [
-  {
-    title: 'Urban roam, not tourism',
-    label: 'walk / cafés',
-    body:
-      'Train stations, café tables, signage, light on stone. One neighborhood at a time. Before Sunrise rule: conversation over landmarks.',
-  },
-  {
-    title: 'See in black and white',
-    label: 'eye / frame',
-    body:
-      'Phone camera is enough. Practice composition and contrast. Same as the B&W films — less color, more decision.',
-  },
-  {
-    title: 'Language scraps',
-    label: 'FR / IT',
-    body:
-      'Enough French or Italian to catch ~20% of dialogue. Films open; cities open too.',
-  },
-  {
-    title: 'Wardrobe as Bond cool',
-    label: 'cut / repeat',
-    body:
-      'Léa / Bond-girl line: fewer colors, better cut, repeat wears. Moodboard over trend-chase.',
-  },
-  {
-    title: 'Slow museum',
-    label: 'one room',
-    body:
-      'One gallery, not the whole building. Practice the same patience as a European long take.',
-  },
-  {
-    title: 'Table as ritual',
-    label: 'IT / FR kitchen',
-    body:
-      'Olive oil, tomatoes, bread, one good knife. Make an ordinary meal feel staged — without performing for anyone.',
-  },
+  { title: 'Urban roam, not tourism', label: 'walk', body: 'Conversation over landmarks.' },
+  { title: 'See in black and white', label: 'eye', body: 'Less color, more decision.' },
+  { title: 'Language scraps', label: 'FR / IT', body: 'Enough to catch 20% of dialogue.' },
+  { title: 'Wardrobe as Bond cool', label: 'cut', body: 'Fewer colors, better cut.' },
+  { title: 'Slow museum', label: 'one room', body: 'Not the whole building.' },
+  { title: 'Table as ritual', label: 'kitchen', body: 'An ordinary meal, staged.' },
 ];
 
-/** Lifestyle — practices that turn taste into a week. */
 const LIFESTYLE_RECS = [
-  {
-    title: 'Urban drift diary',
-    label: 'weekly',
-    body: 'Walk. Note light, doorways, overheard lines. Not a "trip" — a practice.',
-  },
-  {
-    title: 'One letter or collage page',
-    label: 'paper',
-    body: 'Physical scrapbook of living — one page a week. Scraps, tickets, one line that stayed.',
-  },
-  {
-    title: 'Soundtrack as room',
-    label: 'listen',
-    body: 'Jazz, chanson, film score as background — closer to European cinema than algorithm pop.',
-  },
-  {
-    title: 'Watch in pairs, not piles',
-    label: 'pace',
-    body: 'The Crown for British public life, then The Capture or Bodyguard — texture over binge.',
-  },
+  { title: 'Urban drift diary', label: 'weekly', body: 'Walk. Note light. Not a trip.' },
+  { title: 'One letter or collage page', label: 'paper', body: 'One page a week.' },
+  { title: 'Soundtrack as room', label: 'listen', body: 'Closer to cinema than algorithm pop.' },
+  { title: 'Watch in pairs, not piles', label: 'pace', body: 'Texture over binge.' },
 ];
 
 const CHANNEL_RECS = [
   {
     title: 'Asymmetrical Bets',
     shelfTitle: 'Asymmetrical Bets',
-    label: 'markets / narratives',
+    label: 'markets',
     href: 'https://asymmetricalbets.substack.com',
-    body:
-      'Narrative-driven market reading with enough conviction to be useful and enough taste to stay readable.',
+    body: 'Narrative-driven market reading.',
   },
   {
     title: 'SemiAnalysis',
     shelfTitle: 'SemiAnalysis',
-    label: 'semis / AI infrastructure',
+    label: 'semis',
     href: 'https://www.semianalysis.com',
-    body:
-      'The semiconductor and AI-infrastructure shelf: supply chains, chips, clusters, and the bottlenecks underneath the headline.',
+    body: 'Chips, clusters, bottlenecks.',
   },
   {
     title: 'Branch Education',
     shelfTitle: 'Branch Education',
-    label: 'semis basics / YouTube',
+    label: 'YouTube',
     href: '/blog/semi-basics-review',
-    body:
-      'Cache, memory, storage · PCB (+ factory walk) · GPU architecture — three explainers you think you already know. Start with the five-minute review, then watch.',
+    body: 'Cache, PCB, GPU — five-minute review.',
   },
   {
     title: 'TPU & CPO (high-signal YouTube)',
     shelfTitle: 'TPU & CPO',
-    label: 'semis / curated video',
+    label: 'video',
     href: '/blog/semi-watch-tpu-cpo',
-    body:
-      'Ironwood unbox, TPU data-center + systolic array, NVIDIA / Broadcom CPO, Corning glass 3D — in-page player + playlist. Watch NVIDIA + Broadcom CPO and Ironwood first.',
+    body: 'Ironwood, systolic array, CPO.',
   },
   {
     title: 'Software YouTube — MCP',
     shelfTitle: 'MCP',
-    label: 'agents / protocol',
+    label: 'agents',
     href: '/blog/software-watch',
-    body:
-      'What MCP is, then MCP vs API — in-page theater. Rust quick-master slot open until a link lands.',
+    body: 'What MCP is, then MCP vs API.',
   },
   {
     title: 'Post-Training Path',
     shelfTitle: 'Post-Training Path',
-    label: 'Rust · CLI · Eval · SFT',
+    label: 'SFT',
     href: '/blog/post-training-path',
-    body:
-      'Order of operations to post-train a small base model: Rust literacy, thin CLIs, holdout exact_match, LoRA on Qwen2.5-0.5B (Polar Lab).',
+    body: 'Rust, CLI, holdout, LoRA.',
   },
   {
     title: 'Know Good Code. Own the Repo.',
     shelfTitle: 'Own the Repo',
-    label: 'taste · stack · needs',
+    label: 'taste',
     href: '/blog/own-your-stack',
-    body:
-      'Recognize good code, own it on GitHub, name your real stack, know what you need before you build.',
+    body: 'Own the repo before you build.',
   },
 ];
 
-function bodyOf(
-  rows: { title: string; body: string }[],
-  title: string,
-): string {
-  const row = rows.find((item) => item.title === title);
-  return row?.body ?? '';
-}
-
-/** Distilled from EURO_LIFE_GUIDE + LIFESTYLE_RECS — same text, different plane. */
-const SHELF_TIPS = [
-  {
-    tip: 'walk one neighborhood',
-    body: `${bodyOf(EURO_LIFE_GUIDE, 'Urban roam, not tourism')} ${bodyOf(LIFESTYLE_RECS, 'Urban drift diary')}`,
-  },
-  {
-    tip: 'watch in pairs, not piles',
-    body: bodyOf(LIFESTYLE_RECS, 'Watch in pairs, not piles'),
-  },
-  {
-    tip: 'one museum room',
-    body: bodyOf(EURO_LIFE_GUIDE, 'Slow museum'),
-  },
-  {
-    tip: 'phone in black and white',
-    body: bodyOf(EURO_LIFE_GUIDE, 'See in black and white'),
-  },
-  {
-    tip: 'one letter or collage page',
-    body: bodyOf(LIFESTYLE_RECS, 'One letter or collage page'),
-  },
-  {
-    tip: 'table as ritual',
-    body: bodyOf(EURO_LIFE_GUIDE, 'Table as ritual'),
-  },
-  {
-    tip: 'repeat better clothes',
-    body: bodyOf(EURO_LIFE_GUIDE, 'Wardrobe as Bond cool'),
-  },
-  {
-    tip: 'language scraps',
-    body: bodyOf(EURO_LIFE_GUIDE, 'Language scraps'),
-  },
-  {
-    tip: 'soundtrack as room',
-    body: bodyOf(LIFESTYLE_RECS, 'Soundtrack as room'),
-  },
+const RAIL = [
+  { href: '#featured-listen', label: 'featured listen' },
+  { href: '#podcasts', label: 'listen' },
+  { href: '#watch', label: 'watch' },
+  { href: '#channels', label: 'read' },
+  { href: '#euro-life', label: 'living' },
 ];
 
 function ShelfHref({
@@ -336,119 +234,231 @@ function ShelfHref({
   );
 }
 
+function Tags({ tags }: { tags?: string[] }) {
+  if (!tags?.length) return null;
+  return <p className="shelf-tags">{tags.join(' / ')}</p>;
+}
+
+function WatchCard({
+  title,
+  shelfTitle,
+  year,
+  href,
+  frame,
+  image,
+  tags,
+}: {
+  title: string;
+  shelfTitle: string;
+  year: string;
+  href: string;
+  frame: string;
+  image?: string;
+  tags?: string[];
+}) {
+  return (
+    <ShelfHref href={href} className="shelf-watch-card">
+      <article id={slugify(shelfTitle)} className="shelf-watch-inner">
+        {image ? (
+          <span className="shelf-watch-thumb">
+            <Image src={image} alt="" fill sizes="88px" style={{ objectFit: 'contain' }} />
+          </span>
+        ) : null}
+        <div className="shelf-watch-copy">
+          <header className="shelf-card-head">
+            <p className="shelf-card-kicker">watch</p>
+            <p className="shelf-card-meta">{year}</p>
+          </header>
+          <h3 className="shelf-card-title">{shelfTitle}</h3>
+          <p className="shelf-card-source">{title}</p>
+          <dl className="shelf-fields">
+            <div>
+              <dt>frame</dt>
+              <dd>{frame}</dd>
+            </div>
+          </dl>
+          <Tags tags={tags} />
+        </div>
+      </article>
+    </ShelfHref>
+  );
+}
+
 export default function WatchListeningShelfArticle() {
+  const featured = PODCAST_RECS.find((item) => item.featured) ?? PODCAST_RECS[0];
+  const listens = PODCAST_RECS.filter((item) => !item.featured);
+
   return (
     <ArchivePage
       room="shelf"
       date="2026.07.12"
-      title="watch · listening shelf"
-      dek="covers first. notes after. what to steal for a week, last."
+      title="watch / listening shelf"
+      dek="things that tune the eye and ear"
     >
-      <section className="arc-section" aria-labelledby="poster-shelf-label">
-        <p className="arc-kicker" id="poster-shelf-label">
-          poster shelf
-        </p>
-        <div className="arc-posters">
-          {WATCH_ITEMS.map((item) => (
-            <a
-              key={item.title}
-              className="arc-poster"
-              href={item.href}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <span className="arc-poster-frame">
-                <Image
-                  src={item.image}
-                  alt=""
-                  fill
-                  sizes="(min-width: 820px) 140px, 108px"
-                  style={{ objectFit: 'contain' }}
-                />
-              </span>
-              <span className="arc-poster-title">{item.shelfTitle}</span>
-              <span className="arc-poster-meta">{item.year}</span>
-              <span className="arc-poster-note">{item.note}</span>
-            </a>
-          ))}
-        </div>
-      </section>
+      <div className="arc-stage shelf-stage">
+        <div className="arc-stage-main">
+          <p className="arc-lede">
+            a shelf for things that recalibrate taste: voices, films, interviews, and small
+            obsessions.
+          </p>
+          <p className="shelf-intro-note">
+            not a recommendation list. a record of what trains the eye and ear.
+          </p>
 
-      <section className="arc-section" aria-labelledby="shelf-notes-label">
-        <p className="arc-kicker" id="shelf-notes-label">
-          notes from the shelf
-        </p>
-        <p className="arc-lede">
-          if it changes how I hear a sentence, look at an image, assemble a week, or
-          read a market — it sits here.
-        </p>
+          <section
+            id="featured-listen"
+            className="arc-section shelf-section"
+            aria-labelledby="featured-listen-label"
+          >
+            <p className="arc-kicker" id="featured-listen-label">
+              featured listen
+            </p>
+            <ShelfHref href={featured.href} className="shelf-feature">
+              <article id={slugify(featured.shelfTitle)} className="shelf-feature-inner">
+                <header className="shelf-card-head">
+                  <p className="shelf-card-kicker">listen</p>
+                  <p className="shelf-card-meta">{featured.meta}</p>
+                </header>
+                <h2 className="shelf-feature-title">{featured.shelfTitle}</h2>
+                <p className="shelf-card-source">{featured.title}</p>
+                <dl className="shelf-fields">
+                  <div>
+                    <dt>why it stays</dt>
+                    <dd>{featured.why}</dd>
+                  </div>
+                </dl>
+                <Tags tags={featured.tags} />
+                <span className="shelf-cta">open ↗</span>
+              </article>
+            </ShelfHref>
+          </section>
 
-        <div className="arc-group" id="podcasts" aria-labelledby="listen-recs">
-          <h2 className="arc-group-title" id="listen-recs">
-            listen
-          </h2>
-          <ul className="arc-list">
-            {PODCAST_RECS.map((item) => (
-              <li key={item.title} className="arc-item">
-                <ShelfHref href={item.href} className="arc-item-title">
-                  {item.shelfTitle}
+          <section
+            id="podcasts"
+            className="arc-section shelf-section"
+            aria-labelledby="listen-recs"
+          >
+            <p className="arc-kicker" id="listen-recs">
+              listen
+            </p>
+            <p className="shelf-section-hint">voice notes — what the episode tunes</p>
+            <div className="shelf-listen-list">
+              {listens.map((item) => (
+                <ShelfHref key={item.title} href={item.href} className="shelf-listen-card">
+                  <article id={slugify(item.shelfTitle)} className="shelf-listen-inner">
+                    <header className="shelf-card-head">
+                      <p className="shelf-card-kicker">listen</p>
+                      <p className="shelf-card-meta">{item.label}</p>
+                    </header>
+                    <h3 className="shelf-card-title">{item.shelfTitle}</h3>
+                    <p className="shelf-card-source">{item.meta}</p>
+                    <dl className="shelf-fields">
+                      <div>
+                        <dt>signal</dt>
+                        <dd>{item.signal ?? item.body}</dd>
+                      </div>
+                    </dl>
+                    <Tags tags={item.tags} />
+                    <span className="shelf-cta">open ↗</span>
+                  </article>
                 </ShelfHref>
-                <span className="arc-item-meta">{item.meta}</span>
-                <p className="arc-item-note">{item.body}</p>
-              </li>
-            ))}
-          </ul>
+              ))}
+            </div>
+          </section>
+
+          <section id="watch" className="arc-section shelf-section" aria-labelledby="watch-label">
+            <p className="arc-kicker" id="watch-label">
+              watch
+            </p>
+            <p className="shelf-section-hint">screening notes — what to look for</p>
+
+            <div id="documentaries" className="shelf-watch-group">
+              <p className="shelf-subkicker">docs</p>
+              <div className="shelf-watch-list">
+                {DOCUMENTARY_RECS.map((item) => (
+                  <WatchCard
+                    key={item.title}
+                    title={item.title}
+                    shelfTitle={item.shelfTitle}
+                    year={item.year}
+                    href={item.href}
+                    frame={item.note}
+                    image={item.image}
+                    tags={item.tags}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div id="films" className="shelf-watch-group">
+              <p className="shelf-subkicker">films</p>
+              <div className="shelf-watch-list">
+                {FILM_RECS.map((item) => (
+                  <WatchCard
+                    key={item.title}
+                    title={item.title}
+                    shelfTitle={item.shelfTitle}
+                    year={item.year}
+                    href={item.href}
+                    frame={item.note}
+                    image={item.image}
+                    tags={item.tags}
+                  />
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="arc-section" id="channels" aria-labelledby="channel-recs">
+            <p className="arc-kicker" id="channel-recs">
+              read
+            </p>
+            <ul className="arc-list">
+              {CHANNEL_RECS.map((item) => (
+                <li key={item.title} id={slugify(item.shelfTitle)} className="arc-item">
+                  <ShelfHref href={item.href} className="arc-item-title">
+                    {item.shelfTitle}
+                  </ShelfHref>
+                  <span className="arc-item-meta">{item.label}</span>
+                  <p className="arc-item-note">{item.body}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="arc-section" id="euro-life" aria-labelledby="shelf-tips-label">
+            <span id="lifestyle" className="shelf-hash-alias" />
+            <p className="arc-kicker" id="shelf-tips-label">
+              living
+            </p>
+            <ul className="arc-list">
+              {[...EURO_LIFE_GUIDE, ...LIFESTYLE_RECS].map((item) => (
+                <li key={item.title} id={slugify(item.title)} className="arc-item">
+                  <span className="arc-item-title">{item.title}</span>
+                  <span className="arc-item-meta">{item.label}</span>
+                  <p className="arc-item-note">{item.body}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
         </div>
 
-        <div className="arc-group" id="films" aria-labelledby="watch-recs">
-          <h2 className="arc-group-title" id="watch-recs">
-            watch
-          </h2>
-          <ul className="arc-list">
-            {WATCH_ITEMS.map((item) => (
-              <li key={item.title} className="arc-item">
-                <ShelfHref href={item.href} className="arc-item-title">
-                  {item.shelfTitle}
-                </ShelfHref>
-                <span className="arc-item-meta">{item.year}</span>
-                <p className="arc-item-note">{item.body}</p>
-              </li>
+        <aside className="shelf-rail" aria-label="shelf notes">
+          <p className="shelf-rail-kicker">on this shelf</p>
+          <nav className="shelf-rail-nav">
+            {RAIL.map((item) => (
+              <a key={item.href} href={item.href}>
+                {item.label}
+              </a>
             ))}
-          </ul>
-        </div>
-
-        <div className="arc-group" id="channels" aria-labelledby="channel-recs">
-          <h2 className="arc-group-title" id="channel-recs">
-            read next
-          </h2>
-          <ul className="arc-list">
-            {CHANNEL_RECS.map((item) => (
-              <li key={item.title} className="arc-item">
-                <ShelfHref href={item.href} className="arc-item-title">
-                  {item.shelfTitle}
-                </ShelfHref>
-                <p className="arc-item-note">{item.body}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      <section className="arc-section" id="euro-life" aria-labelledby="shelf-tips-label">
-        <span id="lifestyle" className="shelf-hash-alias" />
-        <p className="arc-kicker" id="shelf-tips-label">
-          life tips stolen from the shelf
-        </p>
-        <p className="arc-lede">Trendy is obsolete.</p>
-        <ul className="arc-list">
-          {SHELF_TIPS.map((item) => (
-            <li key={item.tip} className="arc-item">
-              <span className="arc-item-title">{item.tip}</span>
-              <p className="arc-item-note">{item.body}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
+          </nav>
+          <p className="shelf-rail-note">
+            listen asks what a voice tunes.
+            <br />
+            watch asks what a frame trains.
+          </p>
+        </aside>
+      </div>
     </ArchivePage>
   );
 }

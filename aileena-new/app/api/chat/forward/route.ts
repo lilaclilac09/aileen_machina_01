@@ -82,14 +82,28 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let body: { sessionId?: unknown; transcript?: unknown; agentMode?: unknown };
+  let body: {
+    sessionId?: unknown;
+    transcript?: unknown;
+    agentMode?: unknown;
+    councilLens?: unknown;
+    context?: unknown;
+  };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: 'Invalid JSON.' }, { status: 400 });
   }
 
-  if (isCouncilPipelineRequest({ agentMode: body.agentMode })) {
+  if (
+    isCouncilPipelineRequest({
+      agentMode: body.agentMode,
+      councilLens: body.councilLens,
+      transcript: body.transcript,
+      context:
+        typeof body.context === 'string' ? body.context : req.headers.get('referer'),
+    })
+  ) {
     return NextResponse.json({ error: 'Council transcripts stay private.' }, { status: 403 });
   }
 
