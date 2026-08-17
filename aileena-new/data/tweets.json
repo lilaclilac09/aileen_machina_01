@@ -14746,5 +14746,29 @@
     "tags": [],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-17T07:15:51.564Z"
+  },
+  {
+    "id": "2089264236983681307",
+    "url": "https://x.com/SemiAnalysis_/status/2089264236983681307",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "",
+    "createdAt": "Mon Aug 17 08:13:05 +0000 2026",
+    "createdTimestamp": 1786954385,
+    "likes": 521,
+    "retweets": 35,
+    "replies": 19,
+    "bookmarks": 29,
+    "views": 40340,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HP6OwCvXIAAZL76.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-17T13:05:02.874Z"
   }
 ]
