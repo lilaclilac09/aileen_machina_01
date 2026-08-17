@@ -8,6 +8,7 @@ import {
 } from '@/lib/mail-transcript';
 import { getResendFrom, resendFailureMessage } from '@/lib/resend-from';
 import { isCouncilPipelineRequest } from '@/lib/agentMode';
+import { checkRateLimit, LLM_RATE } from '@/lib/api/ratelimit';
 import {
   makeForwardId,
   saveChatForward,
@@ -62,6 +63,24 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   console.info('[api/chat/forward] contact route called');
+
+  const rl = checkRateLimit(req, LLM_RATE, 'chat-forward');
+  if (!rl.ok) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          rl.reason === 'burst'
+            ? `Too many requests. Try again in ${rl.retryAfterSec}s.`
+            : `Daily rate limit reached. Resets in ${Math.round(rl.retryAfterSec / 3600)}h.`,
+        code: rl.reason === 'burst' ? 'rate_limit_burst' : 'rate_limit_daily',
+      },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(rl.retryAfterSec) },
+      },
+    );
+  }
 
   let body: {
     sessionId?: unknown;

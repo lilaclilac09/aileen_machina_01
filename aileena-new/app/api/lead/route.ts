@@ -13,6 +13,7 @@ import {
 } from '@/lib/owner-access';
 import { getResendFrom, resendFailureMessage } from '@/lib/resend-from';
 import { isCouncilPipelineRequest } from '@/lib/agentMode';
+import { checkRateLimit, LLM_RATE } from '@/lib/api/ratelimit';
 import { Resend } from 'resend';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -62,6 +63,24 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   console.info('[api/lead] contact route called');
+
+  const rl = checkRateLimit(req, LLM_RATE, 'lead');
+  if (!rl.ok) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          rl.reason === 'burst'
+            ? `Too many requests. Try again in ${rl.retryAfterSec}s.`
+            : `Daily rate limit reached. Resets in ${Math.round(rl.retryAfterSec / 3600)}h.`,
+        code: rl.reason === 'burst' ? 'rate_limit_burst' : 'rate_limit_daily',
+      },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(rl.retryAfterSec) },
+      },
+    );
+  }
 
   let body: {
     email?: unknown;
