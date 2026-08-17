@@ -33,7 +33,7 @@ export type DeckTrack = {
   source?: 'spotify';
   previewUrl?: string | null;
   externalUrl?: string;
-  /** False for Spotify search cards — preview is not a mix/export source. */
+  /** False for Spotify reference/preview cards. Omitted = mixable local/crate audio. */
   mixable?: boolean;
 };
 

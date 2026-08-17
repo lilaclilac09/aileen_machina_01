@@ -33,7 +33,6 @@ type Track = {
   spotifyId?: string;
   title: string;
   artist?: string;
-  artists?: string[];
   bpm: number;
   key: string;
   dur: number;
@@ -137,7 +136,10 @@ export default function TrackLibraryBrowser({ tracks, reverseCarousel = true, on
     : tracks;
 
   return (
-    <div style={{ marginTop: 20 }} aria-label="DJ set carousel">
+    <div style={{ marginTop: 8 }} aria-label="DJ set carousel">
+      <p style={{ margin: '0 0 8px', fontFamily: 'monospace', fontSize: 15, color: T.l1 }}>
+        Crate
+      </p>
       {/* ── Content ── */}
       {mode === 'list' ? (
         <ListView
@@ -276,7 +278,7 @@ function ListView({
           placeholder="SEARCH TITLE · BPM · KEY"
           style={{
             flex: 1, background: 'transparent', border: 'none', outline: 'none',
-            fontFamily: 'monospace', fontSize: '0.30rem',
+            fontFamily: 'monospace', fontSize: 14,
             fontWeight: 500, letterSpacing: '0.10em',
             color: query ? T.l3t : T.l2,
           }}
@@ -703,6 +705,7 @@ function PlaylistCarousel({
                 data-track-id={track.id}
                 data-track-title={track.title}
                 data-source={track.source || 'catalogue'}
+                data-mixable={track.source === 'spotify' || track.mixable === false ? 'false' : 'true'}
                 draggable={finePointer}
                 onDragStart={(e) => {
                   if (!finePointer) {
@@ -765,48 +768,25 @@ function PlaylistCarousel({
                   />
                   {track.source === 'spotify' && (
                     <span
+                      data-testid="spotify-ref-badge"
                       style={{
                         position: 'absolute',
                         top: 6,
                         left: 6,
                         zIndex: 2,
-                        display: 'flex',
-                        gap: 4,
+                        fontFamily: 'monospace',
+                        fontSize: 8,
+                        letterSpacing: '0.12em',
+                        textTransform: 'uppercase',
+                        color: T.l1,
+                        background: 'rgba(0,0,0,0.62)',
+                        border: `1px solid ${T.cyanSoft}`,
+                        padding: '2px 5px',
+                        borderRadius: 2,
                         pointerEvents: 'none',
                       }}
                     >
-                      <span
-                        data-testid="spotify-source-badge"
-                        style={{
-                          fontFamily: 'monospace',
-                          fontSize: 8,
-                          letterSpacing: '0.12em',
-                          textTransform: 'uppercase',
-                          color: T.l1,
-                          background: 'rgba(0,0,0,0.62)',
-                          border: `1px solid ${T.cyanSoft}`,
-                          padding: '2px 5px',
-                          borderRadius: 2,
-                        }}
-                      >
-                        spotify
-                      </span>
-                      <span
-                        data-testid="spotify-ref-badge"
-                        style={{
-                          fontFamily: 'monospace',
-                          fontSize: 8,
-                          letterSpacing: '0.12em',
-                          textTransform: 'uppercase',
-                          color: T.l1,
-                          background: 'rgba(0,0,0,0.62)',
-                          border: `1px solid ${track.previewUrl ? T.cyanSoft : 'rgba(255,253,248,0.28)'}`,
-                          padding: '2px 5px',
-                          borderRadius: 2,
-                        }}
-                      >
-                        {track.previewUrl ? 'preview' : 'reference'}
-                      </span>
+                      {track.previewUrl ? 'PREVIEW' : 'REF'}
                     </span>
                   )}
                   {rel === 0 && (
@@ -818,28 +798,15 @@ function PlaylistCarousel({
                     }}>
                       <p style={{
                         fontFamily: 'monospace',
-                        fontSize: '0.3rem',
+                        fontSize: 12,
                         fontWeight: 600,
-                        letterSpacing: '0.08em',
+                        letterSpacing: '0.04em',
                         color: T.l1,
                         textTransform: 'uppercase',
                         textAlign: 'center',
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                         margin: 0,
                       }}>{track.title}</p>
-                      {track.source === 'spotify' && (track.artist || track.artists?.length) ? (
-                        <p style={{
-                          fontFamily: 'monospace',
-                          fontSize: '0.24rem',
-                          letterSpacing: '0.06em',
-                          color: 'rgba(255,253,248,0.62)',
-                          textAlign: 'center',
-                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                          margin: '2px 0 0',
-                        }}>
-                          {track.artist || track.artists?.join(' · ')}
-                        </p>
-                      ) : null}
                     </div>
                   )}
                 </div>
@@ -881,24 +848,23 @@ function PlaylistCarousel({
           }}>
             <span style={{
               fontFamily: 'monospace',
-              fontSize: '0.36rem',
+              fontSize: 15,
               fontWeight: 600,
-              letterSpacing: '0.10em',
+              letterSpacing: '0.04em',
               color: T.l1,
-              textTransform: 'uppercase',
             }}>
-              TRACK {active.id}
+              {active.title}
             </span>
             <span style={{
               fontFamily: 'monospace',
-              fontSize: '0.28rem',
+              fontSize: 13,
               fontWeight: 400,
-              letterSpacing: '0.08em',
-              color: T.l3m,
+              letterSpacing: '0.02em',
+              color: T.l2,
             }}>
               {active.source === 'spotify'
-                ? `${active.title} · ${active.artist || active.artists?.join(' · ') || 'spotify'} · ${active.previewUrl ? 'preview' : 'reference only'} · ${fmtDur(active.dur)} · not mixable`
-                : `${active.title} · ${active.bpm} BPM · ${active.key} · ${fmtDur(active.dur)}`}
+                ? `${fmtDur(active.dur)} · not mixable`
+                : `${active.bpm} BPM · ${fmtDur(active.dur)}`}
             </span>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -911,10 +877,9 @@ function PlaylistCarousel({
                 onClick={() => onLoadTrack?.(side, active)}
                 style={{
                   fontFamily: 'monospace',
-                  fontSize: '0.32rem',
+                  fontSize: 14,
                   fontWeight: 700,
-                  letterSpacing: '0.14em',
-                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
                   padding: '10px 14px',
                   minHeight: 44,
                   borderRadius: 3,
@@ -924,9 +889,7 @@ function PlaylistCarousel({
                   cursor: 'pointer',
                 }}
               >
-                {side === 'left'
-                  ? (active.source === 'spotify' ? 'Load A · ref' : 'Load A')
-                  : (active.source === 'spotify' ? 'Load B · ref' : 'Load B')}
+                {side === 'left' ? 'Load A' : 'Load B'}
               </button>
             ))}
             {active.source === 'spotify' && onRemoveTrack ? (
@@ -937,11 +900,11 @@ function PlaylistCarousel({
                 onClick={() => onRemoveTrack(active.id)}
                 style={{
                   fontFamily: 'monospace',
-                  fontSize: '0.32rem',
+                  fontSize: 14,
                   fontWeight: 700,
-                  letterSpacing: '0.14em',
-                  textTransform: 'uppercase',
-                  padding: '6px 14px',
+                  letterSpacing: '0.04em',
+                  padding: '10px 14px',
+                  minHeight: 44,
                   borderRadius: 3,
                   border: '1px solid rgba(255,253,248,0.22)',
                   background: 'transparent',
@@ -952,14 +915,6 @@ function PlaylistCarousel({
                 Remove
               </button>
             ) : null}
-            {finePointer && (
-              <span style={{
-                fontFamily: 'monospace', fontSize: '0.26rem', letterSpacing: '0.08em',
-                color: T.l3m,
-              }}>
-                {active.source === 'spotify' ? 'reference / preview only' : 'or drag cover → deck'}
-              </span>
-            )}
           </div>
         </div>
       )}

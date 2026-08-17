@@ -54,12 +54,7 @@ export function parseStoredSpotifyTracks(raw: string): DeckTrack[] {
       const key = (row.spotifyId || row.id).toLowerCase();
       if (seen.has(key)) continue;
       seen.add(key);
-      out.push({
-        ...row,
-        source: 'spotify',
-        spotifyId: row.spotifyId || row.id,
-        mixable: false,
-      });
+      out.push({ ...row, source: 'spotify', spotifyId: row.spotifyId || row.id, mixable: false });
     }
     return out;
   } catch {

@@ -2,16 +2,16 @@
 id: 2026-08-china-terrestrial-neocloud
 type: research
 date: 2026-08-14
-title: Is a Terrestrial Neocloud Possible in China?
+title: Is a Terrestrial Neocloud Possible in China? — Part 2
 source: Aileena dispatch (own synthesis)
 topics: [china, neocloud, aidc, nvidia, coreweave, nebius, gds, vnet, runze, kingsoft, ucloud, bis, export-controls]
 confidence: public
 url: https://aileena.xyz/blog/china-neocloud
 ---
 
-# Is a Terrestrial Neocloud Possible in China?
+# Is a Terrestrial Neocloud Possible in China? — Part 2
 
-**The megawatts are there. The company is not.** 14 August 2026. Site: `/blog/china-neocloud`. Magazine: `/research/china-neocloud` (redirects to long-form).
+**The megawatts are there. The company is not.** 14 August 2026. Site: `/blog/china-neocloud`. Part 1 (15 August primer): `/blog/china-neocloud-teaser`. Magazine: `/research/china-neocloud` (redirects to long-form).
 
 A neocloud is a specialist that rents reserved, leading-edge GPU cluster time to third parties, financed like a fleet. Four tests, all required: leading-edge GPUs; 万卡-scale IB/Ethernet fabric; third-party reserved ACV (not captive Xiaomi, not a national supercomputer login); residual-value risk on the balance sheet.
 

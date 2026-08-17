@@ -1,6 +1,7 @@
 #!/usr/bin/env tsx
 /**
- * Unit checks for Sound Lab rotary mapping + DJKnob interaction contract.
+ * Unit checks for Sound Lab rotary/fader mapping + DJStation wiring.
+ * Dual-deck EQ A/B + filter + master. No FX knob. No leftover fake rotaries.
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -32,12 +33,10 @@ function run(): Check[] {
   checks.push(check('dead-zone below clamps to max', angleToValue(180) === 100));
   checks.push(check('dead-zone below other side clamps to min', angleToValue(-180) === 0));
 
-  // Pointer at center-top should be ~50 (0deg).
   checks.push(check(
     'pointer above center is mid',
     Math.abs(pointerToKnobValue(20, 0, 20, 20) - 50) < 0.5,
   ));
-  // Pointer left-down-ish at -135: x left, y down from center.
   const left = pointerToKnobValue(20 - 20, 20 + 20, 20, 20);
   checks.push(check('pointer lower-left is near min', left <= 5, `got ${left}`));
   const right = pointerToKnobValue(20 + 20, 20 + 20, 20, 20);
@@ -58,28 +57,49 @@ function run(): Check[] {
   checks.push(check('shift step is larger', knobStepAmount(1, 0, 100, { shift: true }).delta === 10));
   checks.push(check('alt step is finer', knobStepAmount(1, 0, 100, { alt: true }).delta === 0.1));
 
+  const fader = readFileSync(join(process.cwd(), 'components/DJFader.tsx'), 'utf8');
+  checks.push(check('fader role=slider', fader.includes('role="slider"')));
+  checks.push(check('fader keyboard', fader.includes('ArrowUp') && fader.includes('Home') && fader.includes('End')));
+  checks.push(check('fader wheel', fader.includes("addEventListener('wheel'") && fader.includes('passive: false')));
+  checks.push(check('fader click-to-set', fader.includes('valueFromPointer') && fader.includes('commit(start.current.val)')));
+  checks.push(check('fader double-click reset', fader.includes('onDoubleClick') && fader.includes('commit(reset)')));
+  checks.push(check('fader touch-action none', fader.includes("touchAction: 'none'")));
+  checks.push(check('fader ticks', fader.includes('ticks.map')));
+
   const station = readFileSync(join(process.cwd(), 'components/DJStation.tsx'), 'utf8');
   checks.push(check('DJStation uses shared DJKnob', station.includes("from './DJKnob'") && !station.includes('function EQKnob')));
+  checks.push(check('DJStation uses shared DJFader', station.includes("from './DJFader'") && !station.includes('function PitchFader')));
   checks.push(check('no leftover MKnob nightlight', !station.includes('function MKnob') && !station.includes('<MKnob')));
+  checks.push(check('no native range faders', !station.includes('type="range"')));
   checks.push(check(
-    'every rotary uses DJKnob + onChange',
-    station.includes("'Gain A'")
-      && station.includes("'Gain B'")
-      && station.includes('ariaLabel="FX"')
-      && station.includes('ariaLabel="Master"')
-      && station.includes('ariaLabel={`EQ')
-      && station.includes('ariaLabel={`Filter')
+    'gain / EQ / filter / master knobs wired',
+    station.includes('dj-knob-gain-a')
+      && station.includes('dj-knob-gain-b')
+      && station.includes('dj-knob-eq-')
+      && station.includes('dj-knob-filter-')
+      && station.includes('dj-knob-master')
       && station.includes('onChange={onGain}')
-      && station.includes('onChange={setFxAmt}')
-      && station.includes('onChange={setMaster}')
-      && station.includes('onChange={v => setEqVals'),
+      && station.includes('onChange={onMaster}'),
   ));
+  checks.push(check(
+    'pitch / channel / xfade faders wired',
+    station.includes('dj-pitch-a')
+      && station.includes('dj-pitch-b')
+      && station.includes("'dj-fader-a'")
+      && station.includes("'dj-fader-b'")
+      && station.includes('testId="dj-xfade"'),
+  ));
+  checks.push(check('no FX / setFxAmt knob', !station.includes('setFxAmt') && !station.includes('ariaLabel="FX"')));
+  checks.push(check('SEND/PHONES stay disabled v2', station.includes('SEND v2') && station.includes('PHONES v2') && station.includes('not in the audio graph yet')));
   const knobTags = station.split('<DJKnob').length - 1;
-  checks.push(check('shared DJKnob is the only rotary markup', knobTags >= 5, `got ${knobTags}`));
+  checks.push(check('DJKnob markup for gain + EQ map + filter map + master', knobTags === 4, `got ${knobTags}`));
+  const faderTags = station.split('<DJFader').length - 1;
+  checks.push(check('DJFader markup for pitch + channel map + xfade', faderTags === 3, `got ${faderTags}`));
   checks.push(check(
     'Spotify load hint is reference-only',
-    station.includes('Spotify reference only. Upload audio to mix/export.'),
+    station.includes('Reference only.'),
   ));
+  checks.push(check('platter is display-only', station.includes('scratch v2') && station.includes("pointerEvents: 'none'")));
   return checks;
 }
 

@@ -23,6 +23,8 @@ export default function DJKnob({
   step = 1,
   defaultValue = 50,
   ariaLabel,
+  testId,
+  tapMin,
 }: {
   label: string;
   value: number;
@@ -34,10 +36,12 @@ export default function DJKnob({
   step?: number;
   defaultValue?: number;
   ariaLabel?: string;
+  testId?: string;
+  /** Minimum hit area. Pass 0 to skip (tight mixer columns). */
+  tapMin?: number;
 }) {
   const [dragging, setDragging] = useState(false);
   const [focused, setFocused] = useState(false);
-  const [localVal, setLocalVal] = useState(value);
   const startY = useRef(0);
   const startX = useRef(0);
   const startVal = useRef(0);
@@ -47,22 +51,23 @@ export default function DJKnob({
   const valRef = useRef(value);
   const reactId = useId();
   const name = (ariaLabel || label).toLowerCase().replace(/\s+/g, '-');
+  const id = testId || `dj-knob-${name}`;
+  const slug = id.replace(/^dj-knob-/, '');
+  const hit = tapMin === 0 ? undefined : (tapMin ?? (size < 36 ? 44 : undefined));
+
+  const angle = valueToAngle(value, min, max);
+  const mid = (min + max) / 2;
+  const isCenter = Math.abs(value - mid) < (max - min) * 0.03;
+  const interactive = true;
+  const title = `${ariaLabel || label} ${Math.round(value)}`;
 
   useEffect(() => {
-    setLocalVal(value);
     valRef.current = value;
   }, [value]);
-
-  const angle = valueToAngle(localVal, min, max);
-  const mid = (min + max) / 2;
-  const isCenter = Math.abs(localVal - mid) < (max - min) * 0.03;
-  const interactive = true;
-  const title = `${ariaLabel || label} ${Math.round(localVal)}`;
 
   const commit = useCallback((next: number, snap = step) => {
     const clamped = clampKnobValue(next, min, max, snap);
     valRef.current = clamped;
-    setLocalVal(clamped);
     onChange(clamped);
   }, [min, max, step, onChange]);
 
@@ -107,7 +112,7 @@ export default function DJKnob({
       commit(jumped);
       startVal.current = jumped;
     } else {
-      startVal.current = localVal;
+      startVal.current = value;
     }
   }
 
@@ -137,10 +142,10 @@ export default function DJKnob({
     });
     if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
       e.preventDefault();
-      commit(localVal + delta, snap);
+      commit(value + delta, snap);
     } else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') {
       e.preventDefault();
-      commit(localVal - delta, snap);
+      commit(value - delta, snap);
     } else if (e.key === 'Home') {
       e.preventDefault();
       commit(min);
@@ -153,14 +158,14 @@ export default function DJKnob({
   return (
     <div
       ref={rootRef}
-      data-testid={`dj-knob-${name}`}
-      data-knob-value={String(Math.round(localVal))}
+      data-testid={id}
+      data-knob-value={String(Math.round(value))}
       role="slider"
       tabIndex={0}
       aria-label={ariaLabel || label}
       aria-valuemin={min}
       aria-valuemax={max}
-      aria-valuenow={Math.round(localVal)}
+      aria-valuenow={Math.round(value)}
       aria-describedby={`${reactId}-readout`}
       title={title}
       onPointerDown={onPointerDown}
@@ -182,8 +187,8 @@ export default function DJKnob({
         gap: 3,
         cursor: interactive ? (dragging ? 'ns-resize' : 'pointer') : 'default',
         touchAction: 'none',
-        minWidth: size < 36 ? 44 : undefined,
-        minHeight: size < 36 ? 44 : undefined,
+        minWidth: hit,
+        minHeight: hit,
         justifyContent: 'center',
         userSelect: 'none',
         WebkitUserSelect: 'none',
@@ -211,7 +216,7 @@ export default function DJKnob({
               key={pct}
               type="button"
               tabIndex={-1}
-              data-testid={`dj-knob-tick-${name}-${pct}`}
+              data-testid={`dj-knob-tick-${slug}-${pct}`}
               aria-label={`${ariaLabel || label} ${pct}`}
               onPointerDown={(e) => {
                 e.stopPropagation();
@@ -253,7 +258,7 @@ export default function DJKnob({
             fill="none"
             stroke={isCenter ? color : 'rgba(185,192,199,0.55)'}
             strokeWidth="2.5"
-            strokeDasharray={`${((localVal - min) / (max - min || 1)) * 113} 200`}
+            strokeDasharray={`${((value - min) / (max - min || 1)) * 113} 200`}
             strokeDashoffset="85"
             strokeLinecap="round"
             style={{
@@ -316,7 +321,7 @@ export default function DJKnob({
           pointerEvents: 'none',
         }}
       >
-        {Math.round(localVal)}
+        {Math.round(value)}
       </span>
     </div>
   );

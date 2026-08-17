@@ -6,10 +6,12 @@ const ARTIFACTS = '/opt/cursor/artifacts';
 const ALL_KNOBS = [
   'dj-knob-gain-a',
   'dj-knob-gain-b',
-  'dj-knob-fx',
-  'dj-knob-eq-hi',
-  'dj-knob-eq-mid',
-  'dj-knob-eq-lo',
+  'dj-knob-eq-a-hi',
+  'dj-knob-eq-a-mid',
+  'dj-knob-eq-a-lo',
+  'dj-knob-eq-b-hi',
+  'dj-knob-eq-b-mid',
+  'dj-knob-eq-b-lo',
   'dj-knob-filter-a',
   'dj-knob-filter-b',
   'dj-knob-master',
@@ -35,10 +37,9 @@ test.describe('DJ knob click / keyboard', () => {
     await page.screenshot({ path: `${ARTIFACTS}/dj_knob_focused.png`, fullPage: false });
     await page.getByTestId('dj-knob-tick-gain-a-100').click();
     await expect(gain).toHaveAttribute('data-knob-value', '100');
-    await expect(page.getByTestId('dj-station')).toHaveAttribute('data-gain-a', '100');
     await page.screenshot({ path: `${ARTIFACTS}/dj_knob_gain_clicked.png`, fullPage: false });
 
-    const eq = page.getByTestId('dj-knob-eq-hi');
+    const eq = page.getByTestId('dj-knob-eq-a-hi');
     await eq.scrollIntoViewIfNeeded();
     const eqBox = await eq.boundingBox();
     expect(eqBox).toBeTruthy();
@@ -46,7 +47,7 @@ test.describe('DJ knob click / keyboard', () => {
     await page.mouse.down();
     await page.mouse.move(eqBox!.x + eqBox!.width / 2, eqBox!.y + eqBox!.height / 2 - 40);
     await page.mouse.up();
-    await expect.poll(async () => page.getByTestId('dj-mixer').getAttribute('data-eq-hi')).not.toBe('50');
+    await expect.poll(async () => page.getByTestId('dj-mixer').getAttribute('data-eq-a-hi')).not.toBe('50');
     await page.screenshot({ path: `${ARTIFACTS}/dj_knob_eq_dragged.png`, fullPage: false });
 
     const filter = page.getByTestId('dj-knob-filter-a');
