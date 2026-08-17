@@ -10,20 +10,21 @@ const hangarRefs = {
 export default function ChinaNeocloudTeaserArticle() {
   return (
     <SubstackShell
-      category="Teaser · 概念扫盲"
+      category="Part 1 · Primer"
       date="2026.08.15"
-      tags="Teaser · 概念扫盲 · Neocloud · China · SemiAnalysis · Ulanqab · CoreWeave · Nebius"
-      title="Is a Terrestrial Neocloud Possible in China?"
+      tags="Part 1 · Primer · Neocloud · China · SemiAnalysis · Ulanqab · CoreWeave · Nebius"
+      title="Is a Terrestrial Neocloud Possible in China? — Part 1: A Primer"
       dek="The megawatts are there. The company is not."
     >
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
 
         <p style={bodyStyle}>
-          This is the <strong style={strong}>teaser</strong> —{' '}
-          <strong style={strong}>概念扫盲</strong>. Same title as the{' '}
-          <Link href="/blog/china-neocloud" style={linkStyle}>14 August analysis</Link>.
-          That piece is the hangar tour and the Singapore appendix. This one is the method:
-          what a neocloud is, how a number is verified, and whose order bought the megawatts.
+          This is <strong style={strong}>Part 1</strong> — a primer. The words, the units, and
+          how a number is checked.{' '}
+          <Link href="/blog/china-neocloud" style={linkStyle}>
+            Part 2
+          </Link>
+          {' '}is the 14 August analysis: the hangar tour and the Singapore appendix.
         </p>
 
         <p style={bodyStyle}>
@@ -401,7 +402,7 @@ export default function ChinaNeocloudTeaserArticle() {
         <ul style={listStyle}>
           <li>
             <Link href="/blog/china-neocloud" style={linkStyle}>
-              Analysis — Is a Terrestrial Neocloud Possible in China? (14 August)
+              Part 2 — Is a Terrestrial Neocloud Possible in China?
             </Link>
             {' '}— hangar tour, Singapore / Asia appendix, four missing ingredients.
           </li>

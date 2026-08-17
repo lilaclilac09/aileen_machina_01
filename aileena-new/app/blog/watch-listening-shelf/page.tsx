@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import ArchiveIndex, { slugify } from '../../_archive/ArchiveIndex';
+import { slugify } from '../../_archive/ArchiveIndex';
 import ArchivePage from '../../_archive/ArchivePage';
 
 const PODCAST_RECS = [
@@ -12,15 +12,20 @@ const PODCAST_RECS = [
     label: 'podcast',
     meta: 'Kate Moss episode',
     href: 'https://open.spotify.com/episode/0ZxMxV8EiZ9DkAPJWU0If7',
-    body: 'Taste as confession.',
+    body: 'A velvet couch, fashion as anxiety, and taste as confession rather than certainty.',
+    why: 'A velvet couch, fashion as anxiety, and taste as confession rather than certainty.',
+    tags: ['voice', 'taste', 'anxiety'],
+    featured: true,
   },
   {
     title: 'Do You Read Her',
     shelfTitle: 'Do You Read Her',
     label: 'podcast',
-    meta: 'women / reading',
+    meta: 'episode · women reading women',
     href: 'https://open.spotify.com/episode/0cx1oBoJEwfaKGVbITcD5K',
-    body: 'A private canon of women.',
+    body: 'Private canon, women reading women, the voice as a room.',
+    signal: 'Private canon, women reading women, the voice as a room.',
+    tags: ['voice', 'reading', 'women'],
   },
 ];
 
@@ -32,8 +37,9 @@ const DOCUMENTARY_RECS = [
     label: 'writer / witness',
     href: 'https://www.rottentomatoes.com/m/joan_didion_the_center_will_not_hold',
     image: '/shelf/didion-center.jpg',
-    note: 'a sentence holding.',
-    body: 'a sentence holding.',
+    note: 'Watch the sentence hold together while the world refuses to.',
+    body: 'Watch the sentence hold together while the world refuses to.',
+    tags: ['seeing', 'women'],
   },
   {
     title: 'Exhibition on Screen: David Hockney RA',
@@ -42,8 +48,9 @@ const DOCUMENTARY_RECS = [
     label: 'exhibition film',
     href: 'https://en.wikipedia.org/wiki/Exhibition_on_Screen',
     image: '/shelf/hockney-ra.jpg',
-    note: 'looking slowly.',
-    body: 'looking slowly.',
+    note: 'Colour, scale, and the pleasure of looking slowly.',
+    body: 'Colour, scale, and the pleasure of looking slowly.',
+    tags: ['colour', 'seeing', 'studio'],
   },
   {
     title: 'A Bigger Splash',
@@ -51,9 +58,9 @@ const DOCUMENTARY_RECS = [
     year: '1973',
     label: 'Hockney / pool',
     href: 'https://en.wikipedia.org/wiki/A_Bigger_Splash_(1973_film)',
-    image: '/shelf/bigger-splash.jpg',
-    note: 'staged intimacy.',
-    body: 'staged intimacy.',
+    note: 'Staged intimacy; the pool as a pose that will not stay still.',
+    body: 'Staged intimacy; the pool as a pose that will not stay still.',
+    tags: ['seeing'],
   },
 ];
 
@@ -65,8 +72,9 @@ const FILM_RECS = [
     label: 'Léa · intimacy',
     href: 'https://en.wikipedia.org/wiki/Blue_Is_the_Warmest_Colour',
     image: '/shelf/blue-is-the-warmest-color.jpg',
-    note: 'honesty in the body.',
-    body: 'honesty in the body.',
+    note: 'Honesty in the body — looking that does not flinch.',
+    body: 'Honesty in the body — looking that does not flinch.',
+    tags: ['seeing'],
   },
   {
     title: 'The French Dispatch',
@@ -74,9 +82,9 @@ const FILM_RECS = [
     year: '2021',
     label: 'magazine life · Léa',
     href: 'https://en.wikipedia.org/wiki/The_French_Dispatch',
-    image: '/shelf/french-dispatch.jpg',
-    note: 'city as set.',
-    body: 'city as set.',
+    note: 'The city dressed as a magazine; looking as layout.',
+    body: 'The city dressed as a magazine; looking as layout.',
+    tags: ['colour'],
   },
   {
     title: 'Spectre / No Time to Die',
@@ -84,9 +92,8 @@ const FILM_RECS = [
     year: '2015–21',
     label: 'Bond girl arc',
     href: 'https://en.wikipedia.org/wiki/No_Time_to_Die',
-    image: '/shelf/spectre.jpg',
-    note: 'finish the arc.',
-    body: 'finish the arc.',
+    note: 'Finish the arc. Clothes as the second script.',
+    body: 'Finish the arc. Clothes as the second script.',
   },
   {
     title: 'The Crown',
@@ -94,9 +101,8 @@ const FILM_RECS = [
     year: 'series',
     label: 'British public life',
     href: 'https://en.wikipedia.org/wiki/The_Crown_(TV_series)',
-    image: '/shelf/the-crown.jpg',
-    note: 'power worn on a body.',
-    body: 'power worn on a body.',
+    note: 'Power worn until the body is the office.',
+    body: 'Power worn until the body is the office.',
   },
   {
     title: 'The Capture',
@@ -104,9 +110,8 @@ const FILM_RECS = [
     year: 'series',
     label: 'new untrust',
     href: 'https://en.wikipedia.org/wiki/The_Capture_(TV_series)',
-    image: '/shelf/the-capture.jpg',
-    note: 'a world you cannot trust.',
-    body: 'a world you cannot trust.',
+    note: 'A world you cannot trust, framed as evidence.',
+    body: 'A world you cannot trust, framed as evidence.',
   },
   {
     title: 'Bodyguard',
@@ -114,9 +119,8 @@ const FILM_RECS = [
     year: '2018',
     label: 'BBC thriller',
     href: 'https://en.wikipedia.org/wiki/Bodyguard_(British_TV_series)',
-    image: '/shelf/bodyguard.jpg',
-    note: 'same room, hotter pulse.',
-    body: 'same room, hotter pulse.',
+    note: 'Same rooms, hotter pulse. Proximity as plot.',
+    body: 'Same rooms, hotter pulse. Proximity as plot.',
   },
   {
     title: 'Miss Sloane',
@@ -124,9 +128,9 @@ const FILM_RECS = [
     year: '2016',
     label: 'lobby · power',
     href: 'https://en.wikipedia.org/wiki/Miss_Sloane',
-    image: '/shelf/miss-sloane.jpg',
-    note: 'strategy as bloodsport.',
-    body: 'strategy as bloodsport.',
+    note: 'Strategy as bloodsport. The voice does the cutting.',
+    body: 'Strategy as bloodsport. The voice does the cutting.',
+    tags: ['voice'],
   },
 ];
 
@@ -198,6 +202,14 @@ const CHANNEL_RECS = [
   },
 ];
 
+const RAIL = [
+  { href: '#featured-listen', label: 'featured listen' },
+  { href: '#podcasts', label: 'listen' },
+  { href: '#watch', label: 'watch' },
+  { href: '#channels', label: 'read' },
+  { href: '#euro-life', label: 'living' },
+];
+
 function ShelfHref({
   href,
   className,
@@ -222,148 +234,178 @@ function ShelfHref({
   );
 }
 
+function Tags({ tags }: { tags?: string[] }) {
+  if (!tags?.length) return null;
+  return <p className="shelf-tags">{tags.join(' / ')}</p>;
+}
+
+function WatchCard({
+  title,
+  shelfTitle,
+  year,
+  href,
+  frame,
+  image,
+  tags,
+}: {
+  title: string;
+  shelfTitle: string;
+  year: string;
+  href: string;
+  frame: string;
+  image?: string;
+  tags?: string[];
+}) {
+  return (
+    <ShelfHref href={href} className="shelf-watch-card">
+      <article id={slugify(shelfTitle)} className="shelf-watch-inner">
+        {image ? (
+          <span className="shelf-watch-thumb">
+            <Image src={image} alt="" fill sizes="88px" style={{ objectFit: 'contain' }} />
+          </span>
+        ) : null}
+        <div className="shelf-watch-copy">
+          <header className="shelf-card-head">
+            <p className="shelf-card-kicker">watch</p>
+            <p className="shelf-card-meta">{year}</p>
+          </header>
+          <h3 className="shelf-card-title">{shelfTitle}</h3>
+          <p className="shelf-card-source">{title}</p>
+          <dl className="shelf-fields">
+            <div>
+              <dt>frame</dt>
+              <dd>{frame}</dd>
+            </div>
+          </dl>
+          <Tags tags={tags} />
+        </div>
+      </article>
+    </ShelfHref>
+  );
+}
+
 export default function WatchListeningShelfArticle() {
+  const featured = PODCAST_RECS.find((item) => item.featured) ?? PODCAST_RECS[0];
+  const listens = PODCAST_RECS.filter((item) => !item.featured);
+
   return (
     <ArchivePage
       room="shelf"
       date="2026.07.12"
-      title="watch · listening shelf"
-      dek="covers first."
+      title="watch / listening shelf"
+      dek="things that tune the eye and ear"
     >
-      <div className="arc-stage">
-        <ArchiveIndex
-          label="shelf index"
-          groups={[
-            {
-              id: 'documentaries',
-              label: 'docs',
-              items: DOCUMENTARY_RECS.map((item) => ({
-                href: `#${slugify(item.shelfTitle)}`,
-                label: item.shelfTitle,
-              })),
-            },
-            {
-              id: 'films',
-              label: 'films',
-              items: FILM_RECS.map((item) => ({
-                href: `#${slugify(item.shelfTitle)}`,
-                label: item.shelfTitle,
-              })),
-            },
-            {
-              id: 'podcasts',
-              label: 'listen',
-              items: PODCAST_RECS.map((item) => ({
-                href: `#${slugify(item.shelfTitle)}`,
-                label: item.shelfTitle,
-              })),
-            },
-            {
-              id: 'channels',
-              label: 'read',
-              items: CHANNEL_RECS.map((item) => ({
-                href: `#${slugify(item.shelfTitle)}`,
-                label: item.shelfTitle,
-              })),
-            },
-            {
-              id: 'euro-life',
-              label: 'living',
-              items: [...EURO_LIFE_GUIDE, ...LIFESTYLE_RECS].map((item) => ({
-                href: `#${slugify(item.title)}`,
-                label: item.title,
-              })),
-            },
-          ]}
-        />
-
+      <div className="arc-stage shelf-stage">
         <div className="arc-stage-main">
-          <section className="arc-section" id="documentaries" aria-labelledby="docs-label">
-            <p className="arc-kicker" id="docs-label">
-              documentaries
+          <p className="arc-lede">
+            a shelf for things that recalibrate taste: voices, films, interviews, and small
+            obsessions.
+          </p>
+          <p className="shelf-intro-note">
+            not a recommendation list. a record of what trains the eye and ear.
+          </p>
+
+          <section
+            id="featured-listen"
+            className="arc-section shelf-section"
+            aria-labelledby="featured-listen-label"
+          >
+            <p className="arc-kicker" id="featured-listen-label">
+              featured listen
             </p>
-            <div className="arc-posters">
-              {DOCUMENTARY_RECS.map((item) => (
-                <a
-                  key={item.title}
-                  id={slugify(item.shelfTitle)}
-                  className="arc-poster"
-                  href={item.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <span className="arc-poster-frame">
-                    <Image
-                      src={item.image}
-                      alt=""
-                      fill
-                      sizes="(min-width: 820px) 140px, 108px"
-                      style={{ objectFit: 'contain' }}
-                    />
-                  </span>
-                  <span className="arc-poster-title">{item.shelfTitle}</span>
-                  <span className="arc-poster-meta">{item.year}</span>
-                  <span className="arc-poster-note">{item.note}</span>
-                </a>
-              ))}
-            </div>
+            <ShelfHref href={featured.href} className="shelf-feature">
+              <article id={slugify(featured.shelfTitle)} className="shelf-feature-inner">
+                <header className="shelf-card-head">
+                  <p className="shelf-card-kicker">listen</p>
+                  <p className="shelf-card-meta">{featured.meta}</p>
+                </header>
+                <h2 className="shelf-feature-title">{featured.shelfTitle}</h2>
+                <p className="shelf-card-source">{featured.title}</p>
+                <dl className="shelf-fields">
+                  <div>
+                    <dt>why it stays</dt>
+                    <dd>{featured.why}</dd>
+                  </div>
+                </dl>
+                <Tags tags={featured.tags} />
+                <span className="shelf-cta">open ↗</span>
+              </article>
+            </ShelfHref>
           </section>
 
-          <section className="arc-section" id="films" aria-labelledby="films-label">
-            <p className="arc-kicker" id="films-label">
-              films
-            </p>
-            <div className="arc-posters">
-              {FILM_RECS.map((item) => (
-                <a
-                  key={item.title}
-                  id={slugify(item.shelfTitle)}
-                  className="arc-poster"
-                  href={item.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <span className="arc-poster-frame">
-                    <Image
-                      src={item.image}
-                      alt=""
-                      fill
-                      sizes="(min-width: 820px) 140px, 108px"
-                      style={{ objectFit: 'contain' }}
-                    />
-                  </span>
-                  <span className="arc-poster-title">{item.shelfTitle}</span>
-                  <span className="arc-poster-meta">{item.year}</span>
-                  <span className="arc-poster-note">{item.note}</span>
-                </a>
-              ))}
-            </div>
-          </section>
-
-          <section className="arc-section" id="podcasts" aria-labelledby="listen-recs">
+          <section
+            id="podcasts"
+            className="arc-section shelf-section"
+            aria-labelledby="listen-recs"
+          >
             <p className="arc-kicker" id="listen-recs">
               listen
             </p>
-            <div className="arc-cassettes">
-              {PODCAST_RECS.map((item) => (
-                <ShelfHref
-                  key={item.title}
-                  href={item.href}
-                  className="arc-cassette"
-                >
-                  <span className="arc-cassette-body" aria-hidden>
-                    <span className="arc-cassette-window">
-                      <span className="arc-cassette-reel" />
-                      <span className="arc-cassette-reel" />
-                    </span>
-                  </span>
-                  <span id={slugify(item.shelfTitle)}>
-                    <span className="arc-cassette-title">{item.shelfTitle}</span>
-                    <span className="arc-cassette-meta">{item.meta}</span>
-                    <span className="arc-cassette-note">{item.body}</span>
-                  </span>
+            <p className="shelf-section-hint">voice notes — what the episode tunes</p>
+            <div className="shelf-listen-list">
+              {listens.map((item) => (
+                <ShelfHref key={item.title} href={item.href} className="shelf-listen-card">
+                  <article id={slugify(item.shelfTitle)} className="shelf-listen-inner">
+                    <header className="shelf-card-head">
+                      <p className="shelf-card-kicker">listen</p>
+                      <p className="shelf-card-meta">{item.label}</p>
+                    </header>
+                    <h3 className="shelf-card-title">{item.shelfTitle}</h3>
+                    <p className="shelf-card-source">{item.meta}</p>
+                    <dl className="shelf-fields">
+                      <div>
+                        <dt>signal</dt>
+                        <dd>{item.signal ?? item.body}</dd>
+                      </div>
+                    </dl>
+                    <Tags tags={item.tags} />
+                    <span className="shelf-cta">open ↗</span>
+                  </article>
                 </ShelfHref>
               ))}
+            </div>
+          </section>
+
+          <section id="watch" className="arc-section shelf-section" aria-labelledby="watch-label">
+            <p className="arc-kicker" id="watch-label">
+              watch
+            </p>
+            <p className="shelf-section-hint">screening notes — what to look for</p>
+
+            <div id="documentaries" className="shelf-watch-group">
+              <p className="shelf-subkicker">docs</p>
+              <div className="shelf-watch-list">
+                {DOCUMENTARY_RECS.map((item) => (
+                  <WatchCard
+                    key={item.title}
+                    title={item.title}
+                    shelfTitle={item.shelfTitle}
+                    year={item.year}
+                    href={item.href}
+                    frame={item.note}
+                    image={item.image}
+                    tags={item.tags}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div id="films" className="shelf-watch-group">
+              <p className="shelf-subkicker">films</p>
+              <div className="shelf-watch-list">
+                {FILM_RECS.map((item) => (
+                  <WatchCard
+                    key={item.title}
+                    title={item.title}
+                    shelfTitle={item.shelfTitle}
+                    year={item.year}
+                    href={item.href}
+                    frame={item.note}
+                    image={item.image}
+                    tags={item.tags}
+                  />
+                ))}
+              </div>
             </div>
           </section>
 
@@ -400,6 +442,22 @@ export default function WatchListeningShelfArticle() {
             </ul>
           </section>
         </div>
+
+        <aside className="shelf-rail" aria-label="shelf notes">
+          <p className="shelf-rail-kicker">on this shelf</p>
+          <nav className="shelf-rail-nav">
+            {RAIL.map((item) => (
+              <a key={item.href} href={item.href}>
+                {item.label}
+              </a>
+            ))}
+          </nav>
+          <p className="shelf-rail-note">
+            listen asks what a voice tunes.
+            <br />
+            watch asks what a frame trains.
+          </p>
+        </aside>
       </div>
     </ArchivePage>
   );

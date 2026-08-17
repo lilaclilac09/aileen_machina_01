@@ -26,6 +26,26 @@ test.describe('iOS / mobile layout pass', () => {
       const box = await play.boundingBox();
       return box ? Math.min(box.height, box.width) : 0;
     }).toBeGreaterThanOrEqual(44);
+
+    const tops = await page.evaluate(() => {
+      const pick = (sel: string) => document.querySelector(sel)?.getBoundingClientRect().top ?? -1;
+      return {
+        set: pick('#dj-set'),
+        search: pick('[data-testid="spotify-search"]'),
+        pair: pick('[data-testid="dj-pair-panel"]'),
+        a: pick('[data-testid="dj-deck-a-drop"]'),
+        mixer: pick('[data-testid="dj-mixer"]'),
+        b: pick('[data-testid="dj-deck-b-drop"]'),
+        export: pick('[data-testid="dj-mix-booth"]'),
+      };
+    });
+    expect(tops.a).toBeGreaterThan(-1);
+    expect(tops.mixer).toBeGreaterThan(tops.a);
+    expect(tops.b).toBeGreaterThan(tops.mixer);
+    expect(tops.export).toBeGreaterThan(tops.b);
+    expect(tops.set).toBeGreaterThan(tops.export);
+    expect(tops.search).toBeGreaterThan(tops.set - 1);
+    expect(tops.pair).toBeGreaterThan(tops.search);
   });
 
   test('console opens and leave-a-note stays in viewport', async ({ page }) => {

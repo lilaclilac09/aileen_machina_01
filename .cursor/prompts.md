@@ -8,6 +8,7 @@ Agent 总则（**inspect → plan → patch → verify** + 施工队安全条例
 - QA 清单 + 命令：[`QA.md`](../QA.md)
 - 任务→工具：[`docs/AGENT_TOOL_MAP.md`](../docs/AGENT_TOOL_MAP.md)
 - 已验证坑：[`docs/KNOWN_FAILURES.md`](../docs/KNOWN_FAILURES.md)
+- 失败课（提案，不自动升格）：[`ops/lessons/README.md`](../ops/lessons/README.md)
 - Cursor 必读索引：[`CURSOR_RULES.md`](../CURSOR_RULES.md)
 - PR 验收表：[`.github/pull_request_template.md`](../.github/pull_request_template.md)
 

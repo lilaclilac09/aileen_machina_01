@@ -4,7 +4,7 @@ Auto-detected updates from site sources (`sync-content-memory`).
 
 ## New articles
 
-- **Is a Terrestrial Neocloud Possible in China?** (2026.08.14) — https://aileena.xyz/blog/china-neocloud
+- **Is a Terrestrial Neocloud Possible in China? — Part 2** (2026.08.14) — https://aileena.xyz/blog/china-neocloud
 
 ## New research
 
