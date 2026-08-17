@@ -618,6 +618,34 @@ export default function AgentChat() {
     return () => clearTimeout(t);
   }, [open]);
 
+  // iOS Safari: pin the dialog to visualViewport so the keyboard does not hide input.
+  const [vvBox, setVvBox] = useState<{ height: number; offsetTop: number } | null>(null);
+  useEffect(() => {
+    if (!open || typeof window === 'undefined') return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const sync = () => {
+      setVvBox({ height: vv.height, offsetTop: vv.offsetTop });
+    };
+    sync();
+    vv.addEventListener('resize', sync);
+    vv.addEventListener('scroll', sync);
+    return () => {
+      vv.removeEventListener('resize', sync);
+      vv.removeEventListener('scroll', sync);
+    };
+  }, [open]);
+
+  const phoneConsoleStyle =
+    vvBox && typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches
+      ? {
+          height: `${Math.round(vvBox.height)}px`,
+          maxHeight: `${Math.round(vvBox.height)}px`,
+          top: `${Math.round(vvBox.offsetTop)}px`,
+          bottom: 'auto' as const,
+        }
+      : undefined;
+
   // ──────────────── Auto-forward transcript to Aileen ────────────────
   // sessionId stays stable for the life of this AgentChat instance so Gmail
   // threads multiple snapshots of the same conversation together.
@@ -1606,7 +1634,7 @@ export default function AgentChat() {
       <div
         onClick={closeConsole}
         aria-hidden
-        className={`fixed inset-0 z-[70] bg-[#fbfaf7]/95 sm:bg-[#fbfaf7]/80 backdrop-blur-md sm:backdrop-blur-sm transition-opacity duration-200 ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        className={`fixed inset-0 z-[70] bg-[#fbfaf7]/98 sm:bg-[#fbfaf7]/80 backdrop-blur-none sm:backdrop-blur-sm transition-opacity duration-200 ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       />
 
       {/* Console card — full-bleed on phone.
@@ -1617,8 +1645,11 @@ export default function AgentChat() {
         role="dialog"
         aria-modal="true"
         aria-label="Aileena Console"
-        className={`fixed z-[80] inset-0 sm:inset-x-auto sm:inset-y-auto sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[min(760px,calc(100vw-2.5rem))] sm:max-w-[calc(100vw-2.5rem)] h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[72vh] flex flex-col overflow-hidden bg-[#fffdf8] sm:bg-[#fffdf8]/95 border-0 sm:border sm:border-[#ded8ce] shadow-none sm:shadow-[0_24px_80px_-34px_rgba(31,26,20,0.42)] backdrop-blur-md transition-all duration-200 ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-[0.98] sm:scale-[0.96] pointer-events-none'} font-mono`}
-        style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace' }}
+        className={`fixed z-[80] inset-0 sm:inset-x-auto sm:inset-y-auto sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[min(760px,calc(100vw-2.5rem))] sm:max-w-[calc(100vw-2.5rem)] h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[72vh] flex flex-col overflow-hidden bg-[#fffdf8] sm:bg-[#fffdf8]/95 border-0 sm:border sm:border-[#ded8ce] shadow-none sm:shadow-[0_24px_80px_-34px_rgba(31,26,20,0.42)] backdrop-blur-none sm:backdrop-blur-md transition-all duration-200 pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] sm:pt-0 sm:pb-0 ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-[0.98] sm:scale-[0.96] pointer-events-none'} font-mono`}
+        style={{
+          fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace',
+          ...phoneConsoleStyle,
+        }}
       >
         {/* Header bar */}
         <div className="flex items-center justify-between gap-2 border-b border-[#e7e0d6] px-3 sm:px-4 py-2.5 shrink-0">
@@ -1709,7 +1740,7 @@ export default function AgentChat() {
                   ? 'Voice on — tap the orb to speak'
                   : 'Tap Voice, then tap the orb to speak (phone)'
               }
-              className="inline-flex items-center gap-1 text-[0.55rem] tracking-[0.2em] uppercase px-1.5 py-0.5 rounded transition-colors"
+              className="inline-flex min-h-11 items-center gap-1 text-[0.55rem] tracking-[0.2em] uppercase px-2 py-0.5 rounded transition-colors sm:min-h-0"
               style={{
                 color: voiceMode ? '#007d75' : 'rgba(27,23,19,0.55)',
                 background: voiceMode ? 'rgba(0,168,157,0.1)' : 'transparent',
@@ -1732,7 +1763,7 @@ export default function AgentChat() {
               onClick={resetChat}
               aria-label="Reset conversation"
               title="Clear chat and start over"
-              className="text-[0.65rem] tracking-[0.2em] text-[#1b1713]/35 hover:text-[#008f86] uppercase px-1"
+              className="inline-flex min-h-11 items-center text-[0.65rem] tracking-[0.2em] text-[#1b1713]/35 hover:text-[#008f86] uppercase px-2 sm:min-h-0"
             >
               reset
             </button>
@@ -1740,7 +1771,7 @@ export default function AgentChat() {
               type="button"
               onClick={closeConsole}
               aria-label="Close console"
-              className="text-[0.65rem] tracking-[0.2em] text-[#1b1713]/35 hover:text-[#1b1713]/85 uppercase px-1"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center text-[0.65rem] tracking-[0.2em] text-[#1b1713]/35 hover:text-[#1b1713]/85 uppercase px-1 sm:min-h-0 sm:min-w-0"
             >
               esc
             </button>
@@ -1753,7 +1784,7 @@ export default function AgentChat() {
         <div
           ref={scrollRef}
           data-agent-transcript
-          className="flex-auto min-h-[7.5rem] sm:min-h-[9rem] overflow-y-auto overscroll-contain px-4 sm:px-5 py-3 sm:py-4 space-y-3.5 bg-[#fffcf7]/55"
+          className="flex-auto min-h-0 sm:min-h-[9rem] overflow-y-auto overscroll-contain px-4 sm:px-5 py-3 sm:py-4 space-y-3.5 bg-[#fffcf7]/55"
         >
           {messages.length === 0 ? (
             <>
@@ -1907,7 +1938,7 @@ export default function AgentChat() {
         {/* Bottom chrome: orb → chat input → optional leave-a-note (collapsed). */}
         <div className="shrink-0 flex flex-col">
         {/* Stream + barge-in orb: compact but ceremonial instrument panel. */}
-        <div className="shrink-0 max-h-[128px] overflow-hidden">
+        <div className={`shrink-0 overflow-hidden ${leadOpen ? 'max-h-[88px] sm:max-h-[128px]' : 'max-h-[128px]'}`}>
           <AgentVoiceOrb
             active={open && voiceMode}
             autoListen={autoListen}
@@ -1947,13 +1978,16 @@ export default function AgentChat() {
         </div>
 
         {/* Chat input — separate from leave-a-note drawer below. */}
-        <div className="border-t border-[#e7e0d6] px-5 py-2.5 sm:py-3 shrink-0">
-          <div className="relative flex items-center gap-2">
+        <div className="border-t border-[#e7e0d6] px-5 py-2.5 sm:py-3 shrink-0 pb-[max(0.625rem,env(safe-area-inset-bottom,0px))] sm:pb-3">
+          <div className="relative flex items-center gap-2 min-w-0">
             <span className={`text-sm ${sessionMaxed ? 'text-[#1b1713]/20' : 'text-[#00a89d]'}`}>&gt;</span>
             <textarea
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              onFocus={() => {
+                inputRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+              }}
               onKeyDown={(e) => {
                 if (e.nativeEvent.isComposing || e.key === 'Process') return;
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -1970,7 +2004,7 @@ export default function AgentChat() {
               }
               disabled={sessionMaxed}
               rows={1}
-              className="flex-1 resize-none bg-transparent text-sm leading-6 text-[#1b1713]/90 placeholder:text-[#1b1713]/38 outline-none max-h-32 caret-[#00a89d] disabled:cursor-not-allowed"
+              className="flex-1 resize-none bg-transparent text-base sm:text-sm leading-6 text-[#1b1713]/90 placeholder:text-[#1b1713]/38 outline-none max-h-32 caret-[#00a89d] disabled:cursor-not-allowed min-h-11 sm:min-h-0"
               spellCheck={false}
               autoCorrect="off"
               autoCapitalize="off"
@@ -2060,7 +2094,7 @@ export default function AgentChat() {
 
         {/* Leave a note — collapsed secondary action under chat, not mid-flow. */}
         {showLeadInvite && (
-          <div className="border-t border-[#e7e0d6] px-5 py-2 bg-[#faf7f0]/70 shrink-0">
+          <div className="border-t border-[#e7e0d6] px-5 py-2 bg-[#faf7f0]/70 shrink-0 max-h-[min(42vh,16rem)] overflow-y-auto sm:max-h-none">
             {!leadOpen ? (
               <button
                 type="button"
@@ -2129,7 +2163,7 @@ export default function AgentChat() {
                     }}
                     placeholder="your email"
                     disabled={leadState === 'submitting'}
-                    className="flex-1 min-w-0 bg-white border border-[#ded8ce] px-3 py-2 text-sm text-[#1b1713]/90 placeholder:text-[#1b1713]/35 outline-none focus:border-[#00a89d]/70 caret-[#00a89d] disabled:opacity-50"
+                    className="flex-1 min-w-0 min-h-11 bg-white border border-[#ded8ce] px-3 py-2 text-base sm:text-sm text-[#1b1713]/90 placeholder:text-[#1b1713]/35 outline-none focus:border-[#00a89d]/70 caret-[#00a89d] disabled:opacity-50"
                   />
                   <input
                     type="text"
@@ -2142,7 +2176,7 @@ export default function AgentChat() {
                     onChange={(e) => setLeadName(e.target.value)}
                     placeholder="name / WeChat / note (optional)"
                     disabled={leadState === 'submitting' || leadMailReady === false}
-                    className="flex-1 min-w-0 bg-white border border-[#ded8ce] px-3 py-2 text-sm text-[#1b1713]/90 placeholder:text-[#1b1713]/35 outline-none focus:border-[#00a89d]/70 caret-[#00a89d] disabled:opacity-50"
+                    className="flex-1 min-w-0 min-h-11 bg-white border border-[#ded8ce] px-3 py-2 text-base sm:text-sm text-[#1b1713]/90 placeholder:text-[#1b1713]/35 outline-none focus:border-[#00a89d]/70 caret-[#00a89d] disabled:opacity-50"
                     spellCheck={false}
                     autoCorrect="off"
                   />
@@ -2153,7 +2187,7 @@ export default function AgentChat() {
                       leadMailReady === false ||
                       !leadEmail.trim()
                     }
-                    className="font-mono text-[0.62rem] tracking-[0.3em] uppercase text-[#007d75] border border-[#00a89d]/45 bg-white px-3 py-2 hover:bg-[#e9fffc] transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+                    className="font-mono text-[0.62rem] tracking-[0.3em] uppercase text-[#007d75] border border-[#00a89d]/45 bg-white px-3 py-2 min-h-11 hover:bg-[#e9fffc] transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
                   >
                     {leadState === 'submitting' ? 'sending…' : 'send ↗'}
                   </button>

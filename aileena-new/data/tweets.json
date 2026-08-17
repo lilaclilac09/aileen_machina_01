@@ -13679,7 +13679,7 @@
     "retweets": 1,
     "replies": 0,
     "bookmarks": 1,
-    "views": 448,
+    "views": 467,
     "isNoteTweet": true,
     "mediaUrls": [
       "https://pbs.twimg.com/media/HPsiE_CWcAEzFDi.png?name=orig"
@@ -13690,7 +13690,7 @@
     "topics": [],
     "tags": [],
     "source": "fxtwitter",
-    "ingestedAt": "2026-08-15T01:49:26.861Z"
+    "ingestedAt": "2026-08-15T18:47:02.409Z"
   },
   {
     "id": "2088301410827763723",
@@ -13988,5 +13988,739 @@
     "tags": [],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-15T01:49:31.651Z"
+  },
+  {
+    "id": "2088672273154626013",
+    "url": "https://x.com/SemiAnalysis_/status/2088672273154626013",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Energy and housing are coming down in CPI inflation, but everything else is holding stable. For a Fed chairman who is talking tough on inflation, but also appears to not want to hike the pressure is building.",
+    "createdAt": "Sat Aug 15 17:00:50 +0000 2026",
+    "createdTimestamp": 1786813250,
+    "likes": 32,
+    "retweets": 1,
+    "replies": 9,
+    "bookmarks": 8,
+    "views": 9705,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPx0XSZWEAAjJBE.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-15T18:46:55.398Z"
+  },
+  {
+    "id": "2088626891561292249",
+    "url": "https://x.com/SemiAnalysis_/status/2088626891561292249",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Great to see @dotsstudioai from the popular Chinese social media app (@xiaohongshu, known as RedNote in English) join the open-weight community! ❤️ The team is still trying it out for day-to-day use to see the actual quality of the model or if it is eval maxed.\n\nRegardless, it is always great to see another company join the open community!",
+    "createdAt": "Sat Aug 15 14:00:30 +0000 2026",
+    "createdTimestamp": 1786802430,
+    "likes": 101,
+    "retweets": 9,
+    "replies": 9,
+    "bookmarks": 11,
+    "views": 17590,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPxLFu3WIAAIlwi.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-15T18:46:56.844Z"
+  },
+  {
+    "id": "2088642253971693691",
+    "url": "https://x.com/SKundojjala/status/2088642253971693691",
+    "screenName": "SKundojjala",
+    "authorId": "379092222",
+    "authorName": "Sravan Kundojjala",
+    "text": "Semicap DRAM revenue is on  fire. New peaks are loading. ASML has been gaining share in DRAM, driven by higher EUV adoption. AMAT stable. Lam and KLA cyclical gainers. TEL has been a share donor and surprisingly underperformed.",
+    "createdAt": "Sat Aug 15 15:01:33 +0000 2026",
+    "createdTimestamp": 1786806093,
+    "likes": 31,
+    "retweets": 4,
+    "replies": 1,
+    "bookmarks": 10,
+    "views": 6357,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPxYYLBaYAEX_ny.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-15T18:46:58.704Z"
+  },
+  {
+    "id": "2088691791591522436",
+    "url": "https://x.com/mach33/status/2088691791591522436",
+    "screenName": "mach33",
+    "authorId": "2051360039869276160",
+    "authorName": "Mach33 Financial Group",
+    "text": "cheaper steam engines burn more coal. Dropping cost's effect on increasing volume can be measured. That's been built into the AI compute Keystone",
+    "createdAt": "Sat Aug 15 18:18:23 +0000 2026",
+    "createdTimestamp": 1786817903,
+    "likes": 1,
+    "retweets": 0,
+    "replies": 0,
+    "bookmarks": 1,
+    "views": 75,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://video.twimg.com/amplify_video/2088691503673520128/vid/avc1/1080x1920/RJ0sBJJDFNqxSQTP.mp4?tag=29"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-15T18:47:05.363Z"
+  },
+  {
+    "id": "2088732611917004913",
+    "url": "https://x.com/SemiAnalysis_/status/2088732611917004913",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Hey @elonmusk , Chernobyl Units 1–3 RBMK-1000 reactors could, in theory (though very hard), be retrofitted to generate 2.9 GW of electricity, enough to power 1.2 million Rubin GPUs. This is because Unit 4 was the one that exploded. Maybe @nvidiaai is willing to look into backstopping this. Have you looked into this?",
+    "createdAt": "Sat Aug 15 21:00:36 +0000 2026",
+    "createdTimestamp": 1786827636,
+    "likes": 203,
+    "retweets": 10,
+    "replies": 21,
+    "bookmarks": 22,
+    "views": 33042,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPyrPfeW8AA_YTs.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "gpu"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-16T01:56:41.843Z"
+  },
+  {
+    "id": "2088803742426562949",
+    "url": "https://x.com/aaronburnett/status/2088803742426562949",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "For context: I just reran 5,000 simulations on our models (two seeds noise check) looking specifically at Orbital Compute. 78% of all worlds had more than 0 GWs in orbit by 2030. The median was 3 GWs in orbit by 2030.\n\nThat’s about ~25,000 AI1 sat equivalents. 200-350 launches (depending on Starships payload tonnage improvements)",
+    "createdAt": "Sun Aug 16 01:43:14 +0000 2026",
+    "createdTimestamp": 1786844594,
+    "likes": 3,
+    "retweets": 1,
+    "replies": 0,
+    "bookmarks": 1,
+    "views": 583,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "orbital-compute"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-16T01:56:44.916Z"
+  },
+  {
+    "id": "2088798788336906424",
+    "url": "https://x.com/aaronburnett/status/2088798788336906424",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Can confirm. Just heard the double boom. Congrats on a successful launch (of a competitors comms sat)!",
+    "createdAt": "Sun Aug 16 01:23:33 +0000 2026",
+    "createdTimestamp": 1786843413,
+    "likes": 29,
+    "retweets": 1,
+    "replies": 3,
+    "bookmarks": 0,
+    "views": 1119,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-16T01:56:46.199Z"
+  },
+  {
+    "id": "2088797808602104168",
+    "url": "https://x.com/aaronburnett/status/2088797808602104168",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Slight paraphrase: Take high agency risks and they can’t touch you.",
+    "createdAt": "Sun Aug 16 01:19:40 +0000 2026",
+    "createdTimestamp": 1786843180,
+    "likes": 4,
+    "retweets": 0,
+    "replies": 0,
+    "bookmarks": 0,
+    "views": 951,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-16T01:56:47.497Z"
+  },
+  {
+    "id": "2088777567746621921",
+    "url": "https://x.com/aaronburnett/status/2088777567746621921",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Also his Fiber Internet has had more service outages than my Starlink.",
+    "createdAt": "Sat Aug 15 23:59:14 +0000 2026",
+    "createdTimestamp": 1786838354,
+    "likes": 8,
+    "retweets": 1,
+    "replies": 2,
+    "bookmarks": 0,
+    "views": 1769,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-16T01:56:48.794Z"
+  },
+  {
+    "id": "2088769736133734685",
+    "url": "https://x.com/aaronburnett/status/2088769736133734685",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "You have to respect this whole transparent back and forth. This is a step in the right direction.",
+    "createdAt": "Sat Aug 15 23:28:07 +0000 2026",
+    "createdTimestamp": 1786836487,
+    "likes": 70,
+    "retweets": 3,
+    "replies": 8,
+    "bookmarks": 3,
+    "views": 5781,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-16T01:56:50.111Z"
+  },
+  {
+    "id": "2088767753943454203",
+    "url": "https://x.com/aaronburnett/status/2088767753943454203",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "True. Happy to start calling orbital compute if it helps more accept the truth.",
+    "createdAt": "Sat Aug 15 23:20:14 +0000 2026",
+    "createdTimestamp": 1786836014,
+    "likes": 17,
+    "retweets": 1,
+    "replies": 1,
+    "bookmarks": 0,
+    "views": 2734,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "orbital-compute"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-16T01:56:51.421Z"
+  },
+  {
+    "id": "2088741025753793020",
+    "url": "https://x.com/aaronburnett/status/2088741025753793020",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "tbh speed is a form of intelligence.",
+    "createdAt": "Sat Aug 15 21:34:02 +0000 2026",
+    "createdTimestamp": 1786829642,
+    "likes": 631,
+    "retweets": 37,
+    "replies": 32,
+    "bookmarks": 23,
+    "views": 66733,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-16T01:56:52.714Z"
+  },
+  {
+    "id": "2088738518751223867",
+    "url": "https://x.com/aaronburnett/status/2088738518751223867",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Guys the Grok plus starlink bundle is coming. I don’t know when and I dont know how much but it is. The stickiness will be off the charts.",
+    "createdAt": "Sat Aug 15 21:24:04 +0000 2026",
+    "createdTimestamp": 1786829044,
+    "likes": 68,
+    "retweets": 4,
+    "replies": 6,
+    "bookmarks": 5,
+    "views": 7794,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-16T01:56:54.004Z"
+  },
+  {
+    "id": "2088733753975644528",
+    "url": "https://x.com/aaronburnett/status/2088733753975644528",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "We built an interactive dashboard so you can explore our AI Compute Keystone yourself. Its a lot of fun to play with, I highly recommend it. \n\nhttps://research.33fg.com/analysis/dashboard-ai-compute-keystone\n\nThe model produces a recurring theme that i've found intriguing which is pretty visible in our \"Demand Compounds\" (Jevon's Paradox) scenario.\n\nTo start the model suggests that the 2030 AI Compute (not models+) revenue for infrastructure hits ~$1.9T on 112 GWs of AI Compute. \n\nThis is relatively known quantity as its not far off from stated data center plans. 2030-2040 is where the model mechanics really take over and what it implies is interesting. \n\nIn this scenario demand remains relatively tight (all the GPUs are highly utilized), but installed GWs grows ~5x to 526GW over 10 years and revenue only 2.4x to ~$4.5T. \n\nthis seems a bit counter-intuitive and low, but this is because the model bakes in massive capability per watt or what could be called token/intelligence efficiency.\n\nFrom 2026, tokens per GW of compute grows ~220x driving total tokens served across the fleet ~3,400x from 2026. \n\nThis predicted explosion in token efficiency does two things. \n\none: it drives ROIC away from the infrastructure layers. which fundamentally is what makes Orbital Data Centers existential for growth. Manically driving down cost of AI compute capex is the only way to survive a dropping ROIC.\n\ntwo: That same ROIC is driven toward the \"intelligence layer\" (models+harnass+apps). in fact the implied ROIC in this model for Intelligence drives from 23% → 143% (not a prediction as much as an emergent artifact) which is a compelling trend.\n\nThis pattern is not all that dissimilar from canals and railroads during the industrial revolution. where the canals (terrestrial data centers) made good money initially but railroads (orbital data centers) ultimately took all the incremental freight. All in all, the canals/railroad returns paled in comparison to the value the cargo (intelligence layer) created. The pattern will repeat.\n\nOf course this is just one named path that falls within the cloud of 5,000 simulations so really the learning here is from the patterns that emerge. \n\nWatch token efficiency as it is leading indicator for value shift toward intelligence. The better it does the more infrastructure in orbit becomes required (due to diminishing ROIC in the face of expanding ground costs). \n\nI love playing with this dashboard.",
+    "createdAt": "Sat Aug 15 21:05:08 +0000 2026",
+    "createdTimestamp": 1786827908,
+    "likes": 30,
+    "retweets": 4,
+    "replies": 3,
+    "bookmarks": 7,
+    "views": 2759,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://video.twimg.com/amplify_video/2088716147692539904/vid/avc1/1080x692/Mzw7ZdSGhrk7Mqje.mp4?tag=29",
+      "https://pbs.twimg.com/media/HPycYFGXMAA6IYO.jpg?name=orig",
+      "https://pbs.twimg.com/media/HPycYFHWEAAKWbt.jpg?name=orig"
+    ],
+    "linkedUrls": [
+      "https://research.33fg.com/analysis/dashboard-ai-compute-keystone"
+    ],
+    "topics": [
+      "mach33",
+      "orbital-compute",
+      "gpu",
+      "ai-cost"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-16T01:56:55.433Z"
+  },
+  {
+    "id": "2088730584012947666",
+    "url": "https://x.com/aaronburnett/status/2088730584012947666",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Exceedingly kind words from Larry. AI Compute Keystone is a byproduct of obsession and curiosity about the rapidly evolving future. It is, of course, guaranteed to be wrong and we prefer to be honest about that. \n\nBut I truly hope it’s helpful in shedding just a bit of light on the future.",
+    "createdAt": "Sat Aug 15 20:52:32 +0000 2026",
+    "createdTimestamp": 1786827152,
+    "likes": 32,
+    "retweets": 3,
+    "replies": 0,
+    "bookmarks": 1,
+    "views": 2701,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-16T01:56:56.714Z"
+  },
+  {
+    "id": "2088701787607892074",
+    "url": "https://x.com/aaronburnett/status/2088701787607892074",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Tell Grok Bot you have ADHD so it knows how best to communicate with you. Thank me later",
+    "createdAt": "Sat Aug 15 18:58:07 +0000 2026",
+    "createdTimestamp": 1786820287,
+    "likes": 81,
+    "retweets": 0,
+    "replies": 5,
+    "bookmarks": 10,
+    "views": 3769,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-16T01:56:58.010Z"
+  },
+  {
+    "id": "2088777178477375939",
+    "url": "https://x.com/VladSaigau/status/2088777178477375939",
+    "screenName": "VladSaigau",
+    "authorId": "1496125256624484362",
+    "authorName": "Vlad Saigau",
+    "text": "Cell service in London is relatively terrible for what you would expect,  and ripe for some DTC disruption. God forbid I try send a message when walking the dog in the park..",
+    "createdAt": "Sat Aug 15 23:57:41 +0000 2026",
+    "createdTimestamp": 1786838261,
+    "likes": 2,
+    "retweets": 0,
+    "replies": 0,
+    "bookmarks": 1,
+    "views": 1974,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-16T01:57:01.955Z"
+  },
+  {
+    "id": "2088771873517564217",
+    "url": "https://x.com/VladSaigau/status/2088771873517564217",
+    "screenName": "VladSaigau",
+    "authorId": "1496125256624484362",
+    "authorName": "Vlad Saigau",
+    "text": "Made a public high level dashboard of our compute model. Hopefully conveys a lot of the intuition. \n\nhttps://research.33fg.com/analysis/dashboard-ai-compute-keystone\n\nMy favourite part is switching between the GW and token view of the capacity projection. GW view shows a slump in energy in early 2030s. Token view shows the slump in booked energy is due to chip improvements… and also that ODCs in late 2030s dwarf anything that happens in the next 10 years 👀",
+    "createdAt": "Sat Aug 15 23:36:36 +0000 2026",
+    "createdTimestamp": 1786836996,
+    "likes": 5,
+    "retweets": 1,
+    "replies": 0,
+    "bookmarks": 3,
+    "views": 386,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HPzNrXGWAAAarmi.jpg?name=orig",
+      "https://pbs.twimg.com/media/HPzO8qvXgAAsjd6.jpg?name=orig"
+    ],
+    "linkedUrls": [
+      "https://research.33fg.com/analysis/dashboard-ai-compute-keystone"
+    ],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-16T01:57:03.243Z"
+  },
+  {
+    "id": "2089012648931471750",
+    "url": "https://x.com/SKundojjala/status/2089012648931471750",
+    "screenName": "SKundojjala",
+    "authorId": "379092222",
+    "authorName": "Sravan Kundojjala",
+    "text": "Lam Research's FY26 (ended in June) purchase obligations hit an ATH. Commitments grew faster than revenue (+43% vs +26%). In recent quarters, Lam's suppliers stepped up and talked about capacity increases and record orders. Narrative shifted from cleanroom constraints to semicap supply constraints as companies look to capitalize on generational WFE boom.",
+    "createdAt": "Sun Aug 16 15:33:22 +0000 2026",
+    "createdTimestamp": 1786894402,
+    "likes": 20,
+    "retweets": 4,
+    "replies": 1,
+    "bookmarks": 1,
+    "views": 1866,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HP2nz88acAAIzNw.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-16T18:46:44.902Z"
+  },
+  {
+    "id": "2089054754030629147",
+    "url": "https://x.com/aaronburnett/status/2089054754030629147",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Listen the simple fact that there are bargain hunters looking for loopholes tells you all you need to know about demand.",
+    "createdAt": "Sun Aug 16 18:20:40 +0000 2026",
+    "createdTimestamp": 1786904440,
+    "likes": 15,
+    "retweets": 1,
+    "replies": 4,
+    "bookmarks": 0,
+    "views": 1058,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-16T18:46:48.258Z"
+  },
+  {
+    "id": "2089038560334696768",
+    "url": "https://x.com/aaronburnett/status/2089038560334696768",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "I avoid 1-2 accidents per trip down I95 to Miami.",
+    "createdAt": "Sun Aug 16 17:16:19 +0000 2026",
+    "createdTimestamp": 1786900579,
+    "likes": 31,
+    "retweets": 1,
+    "replies": 5,
+    "bookmarks": 0,
+    "views": 2546,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-16T18:46:49.706Z"
+  },
+  {
+    "id": "2089042793243054361",
+    "url": "https://x.com/aaronburnett/status/2089042793243054361",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "To be clear FSD avoids these accidents for me. I thought it might be implied in context",
+    "createdAt": "Sun Aug 16 17:33:09 +0000 2026",
+    "createdTimestamp": 1786901589,
+    "likes": 6,
+    "retweets": 0,
+    "replies": 2,
+    "bookmarks": 0,
+    "views": 402,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-16T18:46:51.094Z"
+  },
+  {
+    "id": "2089009107009208355",
+    "url": "https://x.com/aaronburnett/status/2089009107009208355",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "I knew when this came out I’d kick myself for not grabbing it. Curse my overly frugal genetics",
+    "createdAt": "Sun Aug 16 15:19:17 +0000 2026",
+    "createdTimestamp": 1786893557,
+    "likes": 28,
+    "retweets": 1,
+    "replies": 10,
+    "bookmarks": 0,
+    "views": 3926,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-16T18:46:52.514Z"
+  },
+  {
+    "id": "2088986177391018288",
+    "url": "https://x.com/aaronburnett/status/2088986177391018288",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Honestly the worst it will ever be.",
+    "createdAt": "Sun Aug 16 13:48:10 +0000 2026",
+    "createdTimestamp": 1786888090,
+    "likes": 31,
+    "retweets": 2,
+    "replies": 3,
+    "bookmarks": 2,
+    "views": 1757,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HP2R21QXkAAEF6w.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-16T18:46:53.920Z"
+  },
+  {
+    "id": "2089143804695916646",
+    "url": "https://x.com/dylan522p/status/2089143804695916646",
+    "screenName": "dylan522p",
+    "authorId": "985281530070265862",
+    "authorName": "Dylan Patel",
+    "text": "Incompetence in grid modeling is causing US ratepayers to pay $12B more than necessary.\nThe auction system of PJM is damaging to building more capacity.\nThe US needs market based reforms.",
+    "createdAt": "Mon Aug 17 00:14:32 +0000 2026",
+    "createdTimestamp": 1786925672,
+    "likes": 86,
+    "retweets": 5,
+    "replies": 8,
+    "bookmarks": 21,
+    "views": 23851,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "semianalysis"
+    ],
+    "tags": [
+      "semianalysis"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-17T01:54:27.371Z"
+  },
+  {
+    "id": "2089118272473960604",
+    "url": "https://x.com/SemiAnalysis_/status/2089118272473960604",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "$12B of US ratepayers' money wasted on a modeling mistake \nand PJM wants to do it again.\nAmerican Grid design needs an overhaul,\nWhy it is good to be full of cold air.\n\nhttps://semianalysis.substack.com/p/12b-of-us-ratepayers-money-wasted",
+    "createdAt": "Sun Aug 16 22:33:04 +0000 2026",
+    "createdTimestamp": 1786919584,
+    "likes": 61,
+    "retweets": 5,
+    "replies": 7,
+    "bookmarks": 30,
+    "views": 38324,
+    "isNoteTweet": false,
+    "linkedUrls": [
+      "https://semianalysis.substack.com/p/12b-of-us-ratepayers-money-wasted"
+    ],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-17T01:54:29.733Z"
+  },
+  {
+    "id": "2089167828226097477",
+    "url": "https://x.com/aaronburnett/status/2089167828226097477",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "I’m pretty sure Jim Cramer will be on TV one day this week saying something to the effect of …\n\n“have you heard of this bot? they call it Grok Bot. I tell you. I think this could be big…”",
+    "createdAt": "Mon Aug 17 01:49:59 +0000 2026",
+    "createdTimestamp": 1786931399,
+    "likes": 6,
+    "retweets": 0,
+    "replies": 1,
+    "bookmarks": 0,
+    "views": 184,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-17T01:54:33.204Z"
+  },
+  {
+    "id": "2089159257547551196",
+    "url": "https://x.com/aaronburnett/status/2089159257547551196",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Looking forward to more details. Grok Bot productivity boost is very addicting. I fully expect this demand explosion to continue.",
+    "createdAt": "Mon Aug 17 01:15:56 +0000 2026",
+    "createdTimestamp": 1786929356,
+    "likes": 27,
+    "retweets": 1,
+    "replies": 4,
+    "bookmarks": 1,
+    "views": 1654,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-17T01:54:34.634Z"
+  },
+  {
+    "id": "2089115748723491315",
+    "url": "https://x.com/aaronburnett/status/2089115748723491315",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Looking forward to a better base unit of intelligence because token is crude (not all tokens are created equal), accuracy is subjective (benchmarks differ).",
+    "createdAt": "Sun Aug 16 22:23:03 +0000 2026",
+    "createdTimestamp": 1786918983,
+    "likes": 19,
+    "retweets": 4,
+    "replies": 4,
+    "bookmarks": 0,
+    "views": 2597,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-17T01:54:36.045Z"
   }
 ]
