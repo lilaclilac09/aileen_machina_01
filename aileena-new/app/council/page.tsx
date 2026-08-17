@@ -25,8 +25,8 @@ export default async function CouncilPage({
   const denied = (await searchParams).error === 'denied';
 
   return (
-    <main className="min-h-[100dvh] bg-[#fbfaf7] text-[#1b1713]">
-      <div className="mx-auto max-w-3xl px-5 sm:px-8 py-10 sm:py-14">
+    <main className="mobile-page min-h-[100dvh] bg-[#fbfaf7] text-[#1b1713] pb-[max(1.5rem,env(safe-area-inset-bottom,0px))]">
+      <div className="mx-auto max-w-3xl px-5 sm:px-8 py-10 sm:py-14 pt-[max(2.5rem,calc(env(safe-area-inset-top,0px)+2.5rem))] w-full min-w-0 box-border">
         <header className="mb-8 space-y-2">
           <p className="font-mono text-[0.55rem] tracking-[0.28em] uppercase text-[#008f86]/85">
             owner · private council

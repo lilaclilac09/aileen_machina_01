@@ -24,12 +24,12 @@ export default function OwnerUnlockForm({
           required
           autoComplete="off"
           spellCheck={false}
-          className="w-full bg-white border border-[#ded8ce] px-3 py-2 text-sm text-[#1b1713]/90 outline-none focus:border-[#00a89d]/70 caret-[#00a89d]"
+          className="w-full min-h-11 bg-white border border-[#ded8ce] px-3 py-2 text-base sm:text-sm text-[#1b1713]/90 outline-none focus:border-[#00a89d]/70 caret-[#00a89d]"
         />
       </label>
       <button
         type="submit"
-        className="font-mono text-[0.62rem] tracking-[0.3em] uppercase text-[#007d75] border border-[#00a89d]/45 bg-white px-3 py-2 hover:bg-[#e9fffc] transition-colors"
+        className="inline-flex min-h-11 items-center font-mono text-[0.62rem] tracking-[0.3em] uppercase text-[#007d75] border border-[#00a89d]/45 bg-white px-4 py-2 hover:bg-[#e9fffc] transition-colors"
       >
         {enterLabel}
       </button>
