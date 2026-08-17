@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-08-17T01:54:25.488Z",
+  "ranAt": "2026-08-17T07:15:44.186Z",
   "nitterBases": [
     "https://nitter.net"
   ],
@@ -10,7 +10,6 @@
       "screenName": "dylan522p",
       "rssCount": 20,
       "missing": [
-        "2089143804695916646",
         "2086176349337919947",
         "2082526248287523199"
       ],
@@ -18,20 +17,18 @@
         "anikamirzaa/2086176349337919947",
         "jaiyagill/2082526248287523199"
       ],
-      "ingested": [
-        "2089143804695916646"
-      ],
+      "ingested": [],
       "failed": []
     },
     {
       "screenName": "SemiAnalysis_",
-      "rssCount": 18,
+      "rssCount": 19,
       "missing": [
-        "2089118272473960604"
+        "2089185584250032614"
       ],
       "skippedOffWatchlist": [],
       "ingested": [
-        "2089118272473960604"
+        "2089185584250032614"
       ],
       "failed": []
     },
@@ -46,44 +43,28 @@
     {
       "screenName": "aaronburnett",
       "rssCount": 20,
-      "missing": [
-        "2089167828226097477",
-        "2089159257547551196",
-        "2089115748723491315"
-      ],
-      "skippedOffWatchlist": [],
-      "ingested": [
-        "2089167828226097477",
-        "2089159257547551196",
-        "2089115748723491315"
-      ],
-      "failed": []
-    },
-    {
-      "screenName": "mach33",
-      "rssCount": 18,
       "missing": [],
       "skippedOffWatchlist": [],
       "ingested": [],
       "failed": []
     },
     {
-      "screenName": "VladSaigau",
-      "rssCount": 14,
-      "missing": [
-        "2088666284645138780",
-        "2087965709930569758",
-        "2084397350588658070",
-        "2083268172602372368"
-      ],
-      "skippedOffWatchlist": [
-        "TeslaLarry/2088666284645138780",
-        "shaunmmaguire/2087965709930569758",
-        "CernBasher/2084397350588658070",
-        "elonmusk/2083268172602372368"
-      ],
+      "screenName": "mach33",
+      "rssCount": 0,
+      "missing": [],
+      "skippedOffWatchlist": [],
       "ingested": [],
-      "failed": []
+      "failed": [],
+      "error": "empty RSS from https://nitter.net/mach33/rss (bytes=3221)"
+    },
+    {
+      "screenName": "VladSaigau",
+      "rssCount": 0,
+      "missing": [],
+      "skippedOffWatchlist": [],
+      "ingested": [],
+      "failed": [],
+      "error": "empty RSS from https://nitter.net/VladSaigau/rss (bytes=3347)"
     }
   ]
 }
