@@ -39,13 +39,13 @@ test.describe('iOS / mobile layout pass', () => {
         export: pick('[data-testid="dj-mix-booth"]'),
       };
     });
-    expect(tops.set).toBeGreaterThan(-1);
-    expect(tops.search).toBeGreaterThan(tops.set - 1);
-    expect(tops.pair).toBeGreaterThan(tops.search);
-    expect(tops.a).toBeGreaterThan(tops.pair);
+    expect(tops.a).toBeGreaterThan(-1);
     expect(tops.mixer).toBeGreaterThan(tops.a);
     expect(tops.b).toBeGreaterThan(tops.mixer);
     expect(tops.export).toBeGreaterThan(tops.b);
+    expect(tops.set).toBeGreaterThan(tops.export);
+    expect(tops.search).toBeGreaterThan(tops.set - 1);
+    expect(tops.pair).toBeGreaterThan(tops.search);
   });
 
   test('console opens and leave-a-note stays in viewport', async ({ page }) => {

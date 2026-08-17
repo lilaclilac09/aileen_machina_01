@@ -65,7 +65,7 @@ export default function SoundPage() {
           boxSizing: 'border-box',
         }}
       >
-        <div style={{ maxWidth: 680, marginBottom: 40 }}>
+        <div style={{ maxWidth: 680, marginBottom: 16 }}>
           <h1
             style={{
               fontSize: 'clamp(1.8rem, 4.5vw, 2.8rem)',

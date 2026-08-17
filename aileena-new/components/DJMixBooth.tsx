@@ -15,13 +15,13 @@ const C = {
 const SOUNDCLOUD_UPLOAD = 'https://soundcloud.com/upload';
 
 const btn: React.CSSProperties = {
-  padding: '6px 10px',
+  padding: '10px 14px',
+  minHeight: 44,
   borderRadius: 4,
   cursor: 'pointer',
   fontFamily: 'monospace',
-  fontSize: '0.4rem',
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase',
+  fontSize: 14,
+  letterSpacing: '0.04em',
   background: '#14181e',
   border: '1px solid rgba(170,179,187,0.22)',
   color: C.text,
@@ -63,23 +63,23 @@ export default function DJMixBooth({
     <div
       data-testid="dj-mix-booth"
       style={{
-        marginTop: 10,
+        marginTop: 12,
         borderRadius: 10,
-        padding: '10px 12px',
+        padding: '12px 12px',
         background: C.panel,
         border: '1px solid rgba(170,179,187,0.1)',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-        <span style={{ fontFamily: 'monospace', fontSize: '0.34rem', letterSpacing: '0.45em', color: C.dim }}>
-          MASTER RECORD
+        <span style={{ fontFamily: 'monospace', fontSize: 15, letterSpacing: '0.08em', color: C.text }}>
+          Record
         </span>
-        <span style={{ fontFamily: 'monospace', fontSize: '0.32rem', letterSpacing: '0.08em', color: C.sub }}>
-          records the mixed bus · {ext} · not a single deck
+        <span style={{ fontFamily: 'monospace', fontSize: 13, color: C.sub }}>
+          Records the mix · {ext}
         </span>
       </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10, alignItems: 'center' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12, alignItems: 'center' }}>
         <button
           data-testid="dj-record"
           type="button"
@@ -91,17 +91,17 @@ export default function DJMixBooth({
             boxShadow: recording ? '0 0 10px rgba(255,155,94,0.25)' : 'none',
           }}
         >
-          {recording ? `■ stop  ${fmt}` : '● record master'}
+          {recording ? `Stop  ${fmt}` : 'Record'}
         </button>
         <button
           data-testid="dj-export-audio"
           type="button"
           disabled={!exportReady}
           onClick={onDownloadAudio}
-          title={exportReady ? `download mix .${ext}` : 'record first'}
+          title={exportReady ? `Export .${ext}` : 'Record first'}
           style={{ ...btn, opacity: exportReady ? 1 : 0.4, cursor: exportReady ? 'pointer' : 'not-allowed' }}
         >
-          download mix .{ext}
+          Export
         </button>
         <button
           data-testid="dj-export-meta"
@@ -110,7 +110,7 @@ export default function DJMixBooth({
           onClick={onDownloadMeta}
           style={{ ...btn, opacity: receipt ? 1 : 0.4, cursor: receipt ? 'pointer' : 'not-allowed' }}
         >
-          download metadata
+          Meta
         </button>
         <button
           type="button"
@@ -119,7 +119,7 @@ export default function DJMixBooth({
           onClick={onCopyReceipt}
           style={{ ...btn, opacity: receipt ? 1 : 0.4, cursor: receipt ? 'pointer' : 'not-allowed' }}
         >
-          copy SoundCloud description
+          Copy
         </button>
         <a
           data-testid="dj-soundcloud-open"
@@ -129,64 +129,67 @@ export default function DJMixBooth({
           style={{
             ...btn,
             textDecoration: 'none',
-            display: 'inline-block',
+            display: 'inline-flex',
+            alignItems: 'center',
             border: '1px solid rgba(255,155,94,0.35)',
             color: C.orange,
           }}
         >
-          export ready for SoundCloud
+          SoundCloud
         </a>
       </div>
 
-      <p style={{ margin: '8px 0 0', fontFamily: 'monospace', fontSize: '0.32rem', letterSpacing: '0.06em', color: C.dim }}>
-        SoundCloud upload is manual in v1 — no OAuth, no credentials in the client. Open the upload page and attach the
-        downloaded mix.
-      </p>
-
-      <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-        <span style={{ fontFamily: 'monospace', fontSize: '0.3rem', letterSpacing: '0.3em', color: C.dim }}>
-          CORS URL
-        </span>
-        <select
-          value={urlSide}
-          onChange={(e) => setUrlSide(e.target.value as 'left' | 'right')}
-          style={{ ...btn, padding: '4px 6px' }}
-        >
-          <option value="left">Deck A</option>
-          <option value="right">Deck B</option>
-        </select>
-        <input
-          data-testid="dj-url-input"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="https://… only if CORS allows"
+      <details style={{ marginTop: 12 }}>
+        <summary
           style={{
-            flex: 1,
-            minWidth: 160,
-            background: '#0b0d10',
-            border: '1px solid rgba(170,179,187,0.18)',
-            color: C.text,
+            cursor: 'pointer',
             fontFamily: 'monospace',
-            fontSize: '0.4rem',
-            padding: '6px 8px',
-            borderRadius: 4,
+            fontSize: 13,
+            color: C.sub,
+            listStyle: 'none',
           }}
-        />
-        <button
-          data-testid="dj-url-load"
-          type="button"
-          onClick={() => url.trim() && onLoadUrl(urlSide, url.trim())}
-          style={btn}
         >
-          load url
-        </button>
-      </div>
+          Load URL
+        </summary>
+        <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+          <select
+            value={urlSide}
+            onChange={(e) => setUrlSide(e.target.value as 'left' | 'right')}
+            style={{ ...btn, padding: '8px 10px' }}
+          >
+            <option value="left">Deck A</option>
+            <option value="right">Deck B</option>
+          </select>
+          <input
+            data-testid="dj-url-input"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="https://…"
+            style={{
+              flex: 1,
+              minWidth: 160,
+              minHeight: 44,
+              background: '#0b0d10',
+              border: '1px solid rgba(170,179,187,0.18)',
+              color: C.text,
+              fontFamily: 'monospace',
+              fontSize: 16,
+              padding: '8px 10px',
+              borderRadius: 4,
+            }}
+          />
+          <button
+            data-testid="dj-url-load"
+            type="button"
+            onClick={() => url.trim() && onLoadUrl(urlSide, url.trim())}
+            style={btn}
+          >
+            Load
+          </button>
+        </div>
+      </details>
 
-      {error && (
-        <p role="alert" style={{ margin: '8px 0 0', fontFamily: 'monospace', fontSize: '0.4rem', color: C.orange }}>
-          {error}
-        </p>
-      )}
+      {error ? <span data-testid="dj-mix-error" hidden>{error}</span> : null}
 
       {receipt && (
         <div
@@ -199,26 +202,30 @@ export default function DJMixBooth({
             border: '1px solid rgba(0,168,157,0.28)',
           }}
         >
-          <p style={{ margin: 0, fontFamily: 'monospace', fontSize: '0.32rem', letterSpacing: '0.4em', color: C.cyan }}>
+          <p style={{ margin: 0, fontFamily: 'monospace', fontSize: 13, letterSpacing: '0.2em', color: C.cyan }}>
             MIX RECEIPT
           </p>
-          <h3 style={{ margin: '8px 0 4px', fontSize: '0.95rem', fontWeight: 500, color: C.text }}>{receipt.title}</h3>
-          <p style={{ margin: '0 0 8px', fontFamily: 'monospace', fontSize: '0.38rem', color: C.sub }}>
+          <h3 style={{ margin: '8px 0 4px', fontSize: 16, fontWeight: 500, color: C.text }}>{receipt.title}</h3>
+          <p style={{ margin: 0, fontFamily: 'monospace', fontSize: 13, color: C.sub }}>
             {receipt.date} · {receipt.mood}
           </p>
-          <p style={{ margin: '0 0 10px', fontSize: '0.78rem', lineHeight: 1.5, color: C.sub }}>{receipt.description}</p>
-          <pre
-            style={{
-              margin: 0,
-              whiteSpace: 'pre-wrap',
-              fontFamily: 'monospace',
-              fontSize: '0.4rem',
-              lineHeight: 1.55,
-              color: C.text,
-            }}
-          >
-            {`Tracklist\n${receipt.tracklist}\n\nTimestamps\n${receipt.timestamps}\n\nTags  ${receipt.tags.join(' · ')}\n\nSoundCloud caption\n${receipt.soundcloudCaption}\n\nCover prompt\n${receipt.coverPrompt}`}
-          </pre>
+          <details style={{ marginTop: 8 }}>
+            <summary style={{ cursor: 'pointer', fontFamily: 'monospace', fontSize: 13, color: C.sub }}>
+              Details
+            </summary>
+            <pre
+              style={{
+                margin: '8px 0 0',
+                whiteSpace: 'pre-wrap',
+                fontFamily: 'monospace',
+                fontSize: 13,
+                lineHeight: 1.5,
+                color: C.text,
+              }}
+            >
+              {`Tracklist\n${receipt.tracklist}\n\nTimestamps\n${receipt.timestamps}\n\nTags  ${receipt.tags.join(' · ')}\n\nSoundCloud caption\n${receipt.soundcloudCaption}\n\nCover prompt\n${receipt.coverPrompt}`}
+            </pre>
+          </details>
         </div>
       )}
     </div>
