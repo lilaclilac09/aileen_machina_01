@@ -4,7 +4,7 @@ Auto-detected updates from site sources (`sync-content-memory`).
 
 ## New /updates notes
 
-- **Book club gets editorial rooms** (2026.08.16 · design) — Current reading becomes the feature. Shelf splits into desks — Didion, systems, women writing — so the page answers why these books share a room.
+- **Book club as a room** (2026.08.16 · design) — Current reading is the feature. Shelf splits so the page answers why these books share a room.
 
 ## Next step
 
