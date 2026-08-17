@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-08-16T18:46:40.591Z",
+  "ranAt": "2026-08-17T01:54:25.488Z",
   "nitterBases": [
     "https://nitter.net"
   ],
@@ -10,6 +10,7 @@
       "screenName": "dylan522p",
       "rssCount": 20,
       "missing": [
+        "2089143804695916646",
         "2086176349337919947",
         "2082526248287523199"
       ],
@@ -17,49 +18,44 @@
         "anikamirzaa/2086176349337919947",
         "jaiyagill/2082526248287523199"
       ],
-      "ingested": [],
+      "ingested": [
+        "2089143804695916646"
+      ],
       "failed": []
     },
     {
       "screenName": "SemiAnalysis_",
-      "rssCount": 20,
+      "rssCount": 18,
+      "missing": [
+        "2089118272473960604"
+      ],
+      "skippedOffWatchlist": [],
+      "ingested": [
+        "2089118272473960604"
+      ],
+      "failed": []
+    },
+    {
+      "screenName": "SKundojjala",
+      "rssCount": 19,
       "missing": [],
       "skippedOffWatchlist": [],
       "ingested": [],
       "failed": []
     },
     {
-      "screenName": "SKundojjala",
-      "rssCount": 19,
-      "missing": [
-        "2089012648931471750"
-      ],
-      "skippedOffWatchlist": [],
-      "ingested": [
-        "2089012648931471750"
-      ],
-      "failed": []
-    },
-    {
       "screenName": "aaronburnett",
       "rssCount": 20,
       "missing": [
-        "2089054754030629147",
-        "2089038560334696768",
-        "2089042793243054361",
-        "2089009107009208355",
-        "2088986177391018288",
-        "2088362117179359505"
+        "2089167828226097477",
+        "2089159257547551196",
+        "2089115748723491315"
       ],
-      "skippedOffWatchlist": [
-        "Starlink/2088362117179359505"
-      ],
+      "skippedOffWatchlist": [],
       "ingested": [
-        "2089054754030629147",
-        "2089038560334696768",
-        "2089042793243054361",
-        "2089009107009208355",
-        "2088986177391018288"
+        "2089167828226097477",
+        "2089159257547551196",
+        "2089115748723491315"
       ],
       "failed": []
     },

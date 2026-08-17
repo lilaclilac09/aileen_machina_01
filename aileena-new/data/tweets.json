@@ -14599,5 +14599,128 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-16T18:46:53.920Z"
+  },
+  {
+    "id": "2089143804695916646",
+    "url": "https://x.com/dylan522p/status/2089143804695916646",
+    "screenName": "dylan522p",
+    "authorId": "985281530070265862",
+    "authorName": "Dylan Patel",
+    "text": "Incompetence in grid modeling is causing US ratepayers to pay $12B more than necessary.\nThe auction system of PJM is damaging to building more capacity.\nThe US needs market based reforms.",
+    "createdAt": "Mon Aug 17 00:14:32 +0000 2026",
+    "createdTimestamp": 1786925672,
+    "likes": 86,
+    "retweets": 5,
+    "replies": 8,
+    "bookmarks": 21,
+    "views": 23851,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "semianalysis"
+    ],
+    "tags": [
+      "semianalysis"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-17T01:54:27.371Z"
+  },
+  {
+    "id": "2089118272473960604",
+    "url": "https://x.com/SemiAnalysis_/status/2089118272473960604",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "$12B of US ratepayers' money wasted on a modeling mistake \nand PJM wants to do it again.\nAmerican Grid design needs an overhaul,\nWhy it is good to be full of cold air.\n\nhttps://semianalysis.substack.com/p/12b-of-us-ratepayers-money-wasted",
+    "createdAt": "Sun Aug 16 22:33:04 +0000 2026",
+    "createdTimestamp": 1786919584,
+    "likes": 61,
+    "retweets": 5,
+    "replies": 7,
+    "bookmarks": 30,
+    "views": 38324,
+    "isNoteTweet": false,
+    "linkedUrls": [
+      "https://semianalysis.substack.com/p/12b-of-us-ratepayers-money-wasted"
+    ],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-17T01:54:29.733Z"
+  },
+  {
+    "id": "2089167828226097477",
+    "url": "https://x.com/aaronburnett/status/2089167828226097477",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "I’m pretty sure Jim Cramer will be on TV one day this week saying something to the effect of …\n\n“have you heard of this bot? they call it Grok Bot. I tell you. I think this could be big…”",
+    "createdAt": "Mon Aug 17 01:49:59 +0000 2026",
+    "createdTimestamp": 1786931399,
+    "likes": 6,
+    "retweets": 0,
+    "replies": 1,
+    "bookmarks": 0,
+    "views": 184,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-17T01:54:33.204Z"
+  },
+  {
+    "id": "2089159257547551196",
+    "url": "https://x.com/aaronburnett/status/2089159257547551196",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Looking forward to more details. Grok Bot productivity boost is very addicting. I fully expect this demand explosion to continue.",
+    "createdAt": "Mon Aug 17 01:15:56 +0000 2026",
+    "createdTimestamp": 1786929356,
+    "likes": 27,
+    "retweets": 1,
+    "replies": 4,
+    "bookmarks": 1,
+    "views": 1654,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-17T01:54:34.634Z"
+  },
+  {
+    "id": "2089115748723491315",
+    "url": "https://x.com/aaronburnett/status/2089115748723491315",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Looking forward to a better base unit of intelligence because token is crude (not all tokens are created equal), accuracy is subjective (benchmarks differ).",
+    "createdAt": "Sun Aug 16 22:23:03 +0000 2026",
+    "createdTimestamp": 1786918983,
+    "likes": 19,
+    "retweets": 4,
+    "replies": 4,
+    "bookmarks": 0,
+    "views": 2597,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-17T01:54:36.045Z"
   }
 ]
