@@ -67,6 +67,7 @@ import {
   parseUnifiedDiff,
 } from '../lib/voiceCodePatch';
 import { applyAllowlistedPatch } from '../lib/voiceCodeApply';
+import { isOwnerEmail } from '../lib/owner-access';
 
 type Check = { name: string; ok: boolean; detail?: string };
 const checks: Check[] = [];
@@ -548,6 +549,38 @@ function main() {
   assert('owner auth requires OWNER_KEY env', /process\.env\.OWNER_KEY/.test(ownerAuthSrc) && /!expected/.test(ownerAuthSrc));
   assert('owner auth uses safeEqual', /safeEqual\(key, expected\)/.test(ownerAuthSrc));
   assert('public console has no council href', !/href=['"]\/council['"]/.test(agentChatSrc));
+
+  const ownerAccessSrc = readFileSync(join(process.cwd(), 'lib/owner-access.ts'), 'utf8');
+  assert(
+    'owner-access source has no hardcoded owner email',
+    !/rosazxc0915@gmail.com/.test(ownerAccessSrc) && !/DEFAULT_OWNER_EMAILS/.test(ownerAccessSrc),
+  );
+  const ownerEnvKeys = ['OWNER_EMAILS', 'CONTACT_TO', 'CONTACT_TO_EMAIL', 'LEAD_INBOX', 'NOTIFY_CC_EMAIL'] as const;
+  const prevOwnerEnv = Object.fromEntries(ownerEnvKeys.map((k) => [k, process.env[k]]));
+  for (const k of ownerEnvKeys) delete process.env[k];
+  assert('isOwnerEmail rejects empty string', isOwnerEmail('') === false);
+  process.env.CONTACT_TO = 'inbox@example.com';
+  process.env.CONTACT_TO_EMAIL = 'inbox2@example.com';
+  process.env.LEAD_INBOX = 'inbox3@example.com';
+  process.env.NOTIFY_CC_EMAIL = 'inbox4@example.com';
+  assert(
+    'isOwnerEmail is false when OWNER_EMAILS unset even if contact inbox env is set',
+    isOwnerEmail('inbox@example.com') === false &&
+      isOwnerEmail('inbox2@example.com') === false &&
+      isOwnerEmail('inbox3@example.com') === false &&
+      isOwnerEmail('inbox4@example.com') === false &&
+      isOwnerEmail('rosazxc0915@gmail.com') === false,
+  );
+  process.env.OWNER_EMAILS = 'owner@example.com';
+  assert('isOwnerEmail is true only for OWNER_EMAILS', isOwnerEmail('owner@example.com') === true);
+  assert(
+    'isOwnerEmail stays false for contact inbox when OWNER_EMAILS is set',
+    isOwnerEmail('inbox@example.com') === false && isOwnerEmail('visitor@example.com') === false,
+  );
+  for (const k of ownerEnvKeys) {
+    if (prevOwnerEnv[k] === undefined) delete process.env[k];
+    else process.env[k] = prevOwnerEnv[k];
+  }
 
   const prevKey = process.env.PRIVATE_DATA_ENCRYPTION_KEY;
   resetPrivateCryptoCache();
