@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-08-17T13:05:00.686Z",
+  "ranAt": "2026-08-17T18:56:56.609Z",
   "nitterBases": [
     "https://nitter.net"
   ],
@@ -22,13 +22,15 @@
     },
     {
       "screenName": "SemiAnalysis_",
-      "rssCount": 20,
+      "rssCount": 22,
       "missing": [
-        "2089264236983681307"
+        "2089366953521537028",
+        "2089366954733670562"
       ],
       "skippedOffWatchlist": [],
       "ingested": [
-        "2089264236983681307"
+        "2089366953521537028",
+        "2089366954733670562"
       ],
       "failed": []
     },
@@ -42,39 +44,36 @@
     },
     {
       "screenName": "aaronburnett",
-      "rssCount": 0,
-      "missing": [],
+      "rssCount": 19,
+      "missing": [
+        "2089388424482501105",
+        "2089375845634777150",
+        "2089371389669109815"
+      ],
       "skippedOffWatchlist": [],
-      "ingested": [],
-      "failed": [],
-      "error": "empty RSS from https://nitter.net/aaronburnett/rss (bytes=3245)"
+      "ingested": [
+        "2089388424482501105",
+        "2089375845634777150",
+        "2089371389669109815"
+      ],
+      "failed": []
     },
     {
       "screenName": "mach33",
+      "rssCount": 18,
+      "missing": [],
+      "skippedOffWatchlist": [],
+      "ingested": [],
+      "failed": []
+    },
+    {
+      "screenName": "VladSaigau",
       "rssCount": 0,
       "missing": [],
       "skippedOffWatchlist": [],
       "ingested": [],
       "failed": [],
-      "error": "empty RSS from https://nitter.net/mach33/rss (bytes=3221)"
-    },
-    {
-      "screenName": "VladSaigau",
-      "rssCount": 14,
-      "missing": [
-        "2088666284645138780",
-        "2087965709930569758",
-        "2084397350588658070",
-        "2083268172602372368"
-      ],
-      "skippedOffWatchlist": [
-        "TeslaLarry/2088666284645138780",
-        "shaunmmaguire/2087965709930569758",
-        "CernBasher/2084397350588658070",
-        "elonmusk/2083268172602372368"
-      ],
-      "ingested": [],
-      "failed": []
+      "error": "empty RSS from https://nitter.net/VladSaigau/rss (bytes=3237)"
     }
   ]
 }

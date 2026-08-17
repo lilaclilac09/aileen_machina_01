@@ -14770,5 +14770,130 @@
     "tags": [],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-17T13:05:02.874Z"
+  },
+  {
+    "id": "2089366953521537028",
+    "url": "https://x.com/SemiAnalysis_/status/2089366953521537028",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "The only feedback on this podcast is that it's too good. So Dylan came on to fix that and discuss SemiAnalysis AI Spend, Gemini, his favorite anime and more!",
+    "createdAt": "Mon Aug 17 15:01:14 +0000 2026",
+    "createdTimestamp": 1786978874,
+    "likes": 166,
+    "retweets": 7,
+    "replies": 4,
+    "bookmarks": 85,
+    "views": 36676,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://video.twimg.com/ext_tw_video/2089366858327597057/pu/vid/avc1/1280x720/rS-URoP1QAxtdH3E.mp4?tag=12"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-17T18:56:58.498Z"
+  },
+  {
+    "id": "2089366954733670562",
+    "url": "https://x.com/SemiAnalysis_/status/2089366954733670562",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Watch it Now: https://youtu.be/Trm74fovjaA",
+    "createdAt": "Mon Aug 17 15:01:15 +0000 2026",
+    "createdTimestamp": 1786978875,
+    "likes": 16,
+    "retweets": 2,
+    "replies": 1,
+    "bookmarks": 23,
+    "views": 9745,
+    "isNoteTweet": false,
+    "linkedUrls": [
+      "https://youtu.be/Trm74fovjaA"
+    ],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-17T18:56:59.820Z"
+  },
+  {
+    "id": "2089388424482501105",
+    "url": "https://x.com/aaronburnett/status/2089388424482501105",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "I asked Grok Bot to estimate my token usage this weekend and it said 1-2B (that’s a lot more than normal for one person)",
+    "createdAt": "Mon Aug 17 16:26:34 +0000 2026",
+    "createdTimestamp": 1786983994,
+    "likes": 46,
+    "retweets": 2,
+    "replies": 1,
+    "bookmarks": 0,
+    "views": 3149,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-17T18:57:05.312Z"
+  },
+  {
+    "id": "2089375845634777150",
+    "url": "https://x.com/aaronburnett/status/2089375845634777150",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "IMO, most of Wall Street is trying to underwrite DC demand from external sources so they are over fixated on Anthropic numbers as directional indication of SpaceX external demand. As a reminder Elon suggested 90% of their DCs will be inference. It’s certainly possible that with a Grok Bot inference spike and the right rollout of Grok to larger user base (eg- all SuperGrok tiers) we may be looking at Grok being the largest inference user of that 90% by EoY 2026. \n\nI doubt anyone looking to buy more $SPCX has factored grok inference explosion in as anything more than wishful thinking by bulls. \n\nFood for thought.",
+    "createdAt": "Mon Aug 17 15:36:34 +0000 2026",
+    "createdTimestamp": 1786980994,
+    "likes": 76,
+    "retweets": 6,
+    "replies": 8,
+    "bookmarks": 9,
+    "views": 6607,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "inference",
+      "spacex",
+      "optical"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-17T18:57:06.780Z"
+  },
+  {
+    "id": "2089371389669109815",
+    "url": "https://x.com/aaronburnett/status/2089371389669109815",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "the simulation certainly is ironymaxxing",
+    "createdAt": "Mon Aug 17 15:18:52 +0000 2026",
+    "createdTimestamp": 1786979932,
+    "likes": 25,
+    "retweets": 3,
+    "replies": 4,
+    "bookmarks": 3,
+    "views": 2710,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-17T18:57:08.270Z"
   }
 ]
