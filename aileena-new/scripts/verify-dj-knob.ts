@@ -99,6 +99,23 @@ function run(): Check[] {
     'Spotify load hint is reference-only',
     station.includes('Reference only.'),
   ));
+  checks.push(check(
+    'mixer header does not block mix with Not mixable banner',
+    !station.includes('dj-spotify-preview-note'),
+  ));
+  checks.push(check(
+    'Load A/B accept local audio types',
+    station.includes("audio/*,.mp3,.wav,.m4a,.aac,.ogg,.webm"),
+  ));
+  const uploadA = station.split('dj-upload-a')[1]?.slice(0, 500) ?? '';
+  checks.push(check(
+    'deck file input is not hidden (iOS picker)',
+    uploadA.includes('type="file"') && !/\bhidden\b/.test(uploadA),
+  ));
+  checks.push(check(
+    'Load A/B is a label wrapping the file input',
+    station.includes("dj-load-file-a") && station.includes('<label') && station.includes('onPointerDown={onUnlock}'),
+  ));
   checks.push(check('platter is display-only', station.includes('scratch v2') && station.includes("pointerEvents: 'none'")));
   return checks;
 }

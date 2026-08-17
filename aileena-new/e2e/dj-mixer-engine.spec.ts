@@ -30,11 +30,25 @@ test.describe('DJ mixer engine', () => {
     await page.goto('/sound', { waitUntil: 'domcontentloaded' });
     await expect(page.getByTestId('dj-engine-status')).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-ready', 'true');
-    await expect(page.getByTestId('dj-spotify-preview-note')).toContainText('Not mixable');
     await expect(page.getByTestId('dj-station')).toBeVisible();
+    await expect(page.getByTestId('dj-spotify-preview-note')).toHaveCount(0);
+    await expect(page.getByTestId('dj-play-a')).toBeDisabled();
+    await expect(page.getByTestId('dj-play-b')).toBeDisabled();
+    await expect(page.getByTestId('dj-deck-a-status')).toHaveText('Empty');
+    await expect(page.getByTestId('dj-upload-a')).toHaveAttribute('type', 'file');
+    await expect(page.getByTestId('dj-upload-a')).toHaveAttribute('accept', /audio\/\*/);
+    await expect(page.getByTestId('dj-upload-b')).toHaveAttribute('accept', /\.mp3/);
 
     const wavA = pcmWav(3, 440);
     const wavB = pcmWav(3, 660);
+
+    await page.getByTestId('dj-upload-a').setInputFiles({
+      name: 'note.txt',
+      mimeType: 'text/plain',
+      buffer: Buffer.from('not audio'),
+    });
+    await expect(page.getByTestId('dj-deck-hint')).toContainText('Need an audio file');
+    await expect(page.getByTestId('dj-play-a')).toBeDisabled();
 
     await page.getByTestId('dj-upload-a').setInputFiles({
       name: 'desk-a.wav',
@@ -50,6 +64,13 @@ test.describe('DJ mixer engine', () => {
     await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-deck-a', 'true', { timeout: 15_000 });
     await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-deck-b', 'true');
     await expect(page.getByTestId('dj-deck-a-drop')).toHaveAttribute('data-mix-loaded', 'true');
+    await expect(page.getByTestId('dj-deck-a-title')).toContainText(/desk-a\.wav/i);
+    await expect(page.getByTestId('dj-deck-b-title')).toContainText(/desk-b\.wav/i);
+    await expect(page.getByTestId('dj-deck-a-status')).toHaveText('Loaded');
+    await expect(page.getByTestId('dj-deck-b-status')).toHaveText('Loaded');
+    await expect(page.getByTestId('dj-deck-a-dur')).toHaveText(/0:0[2-4]/);
+    await expect(page.getByTestId('dj-play-a')).toBeEnabled();
+    await expect(page.getByTestId('dj-play-b')).toBeEnabled();
     await expect(page.getByTestId('dj-waveform-a')).toBeVisible();
     await expect(page.getByTestId('dj-waveform-b')).toBeVisible();
     await page.screenshot({ path: '/opt/cursor/artifacts/desktop_decks_loaded.png' });

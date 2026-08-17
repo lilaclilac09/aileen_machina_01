@@ -67,5 +67,6 @@ export function shortMixError(raw: string): string {
   if (/MediaRecorder|unavailable/i.test(raw)) return 'Record failed.';
   if (/empty file/i.test(raw)) return 'Export failed.';
   if (/decode/i.test(raw)) return 'Upload failed.';
+  if (/Need an audio file/i.test(raw)) return 'Need an audio file.';
   return 'Something broke.';
 }

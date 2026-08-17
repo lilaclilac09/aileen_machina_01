@@ -148,6 +148,13 @@ export function useDjMixer() {
     return e;
   }, []);
 
+  /** Call from Load pointerdown so iOS AudioContext resumes in the user gesture. */
+  const unlock = useCallback(() => {
+    const e = engineRef.current;
+    if (!e) return;
+    void e.resume();
+  }, []);
+
   const loadFile = useCallback(
     async (side: 'left' | 'right', file: File, keep?: { title?: string; bpm?: number | null; key?: string | null }) => {
       setError(null);
@@ -155,8 +162,7 @@ export function useDjMixer() {
         const e = await ensure();
         const id = sideToId(side);
         const { duration } = await e.loadFile(id, file, keep?.title);
-        setDeck(id, (prev) => ({
-          ...prev,
+        setDeck(id, {
           mixLoaded: true,
           playing: false,
           pos: 0,
@@ -164,17 +170,19 @@ export function useDjMixer() {
           peaks: e.voice(id).peaks,
           fileName: file.name,
           title: keep?.title || e.voice(id).title,
-          bpm: keep?.bpm ?? prev.bpm,
-          key: keep?.key ?? prev.key,
+          bpm: keep?.bpm ?? null,
+          key: keep?.key ?? null,
           cue: 0,
           hotCues: Array.from({ length: 8 }, () => null),
           loopIn: null,
           loopOut: null,
           loopBars: null,
           loopActive: false,
-        }));
+        });
+        return true;
       } catch (err) {
         setError(err instanceof Error ? err.message : 'decode failed');
+        return false;
       }
     },
     [ensure],
@@ -429,6 +437,7 @@ export function useDjMixer() {
     exportBlob,
     exportMime,
     receipt,
+    unlock,
     loadFile,
     loadUrl,
     setCrateMeta,

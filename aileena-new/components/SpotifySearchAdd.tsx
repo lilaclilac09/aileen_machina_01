@@ -187,7 +187,7 @@ export default function SpotifySearchAdd({
       />
       {configured === 'missing' && (
         <SystemToast testId="spotify-search-disabled" inline>
-          Spotify not connected.
+          Spotify not connected. Reference only.
         </SystemToast>
       )}
       {configured === 'error' && (
