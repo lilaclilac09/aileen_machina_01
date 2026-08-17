@@ -90,12 +90,9 @@ async function main() {
   await page.waitForTimeout(800);
   await shot(page, `${PREFIX}03_both_playing.png`, 'dj-play-a');
 
-  await page.getByTestId('dj-xfade').evaluate((el) => {
-    const input = el as HTMLInputElement;
-    input.value = '100';
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-    input.dispatchEvent(new Event('change', { bubbles: true }));
-  });
+  const xfade = page.getByTestId('dj-xfade');
+  await xfade.focus();
+  await page.keyboard.press('End');
   await page.waitForTimeout(250);
   await shot(page, `${PREFIX}04_crossfader_moved.png`, 'dj-xfade');
 
@@ -135,10 +132,14 @@ async function main() {
       mimeType: 'audio/wav',
       buffer: pcmWav(6, 330),
     });
-    await desk.waitForFunction(() => {
-      const el = document.querySelector('[data-testid="dj-engine-status"]');
-      return el?.getAttribute('data-deck-a') === 'true' && el?.getAttribute('data-deck-b') === 'true';
-    }, { timeout: 20_000 });
+    await desk.waitForFunction(
+      () => {
+        const el = document.querySelector('[data-testid="dj-engine-status"]');
+        return el?.getAttribute('data-deck-a') === 'true' && el?.getAttribute('data-deck-b') === 'true';
+      },
+      undefined,
+      { timeout: 40_000 },
+    );
     await desk.getByTestId('dj-play-a').click();
     await desk.getByTestId('dj-play-b').click();
     await desk.waitForTimeout(500);

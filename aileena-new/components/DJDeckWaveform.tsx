@@ -50,13 +50,12 @@ export default function DJDeckWaveform({
             margin: 0,
             padding: '10px 8px',
             fontFamily: 'monospace',
-            fontSize: '0.28rem',
-            letterSpacing: '0.28em',
-            color: 'rgba(255,253,248,0.28)',
-            textTransform: 'uppercase',
+            fontSize: 12,
+            letterSpacing: '0.04em',
+            color: 'rgba(255,253,248,0.55)',
           }}
         >
-          no mix buffer — upload to draw waveform
+          Upload to mix
         </p>
       ) : (
         <svg width="100%" height="36" viewBox={`0 0 ${bars.length} 36`} preserveAspectRatio="none">

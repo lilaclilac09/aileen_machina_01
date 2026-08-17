@@ -2,9 +2,12 @@
 import { useState, useRef, useEffect, useCallback, useMemo, useSyncExternalStore } from 'react';
 import TrackLibraryBrowser from './TrackLibraryBrowser';
 import DJDeckWaveform from './DJDeckWaveform';
+import DJFader from './DJFader';
+import DJKnob from './DJKnob';
 import DJMixBooth from './DJMixBooth';
 import DJPairPanel from './DJPairPanel';
 import SpotifySearchAdd from './SpotifySearchAdd';
+import SystemToast, { shortMixError } from './SystemToast';
 import { allDeckTracks, type DeckTrack } from '../lib/djSetlist';
 import { useDjMixer } from '../lib/useDjMixer';
 import { fmtMs } from '../lib/djMixerMath';
@@ -83,19 +86,6 @@ function firstPlayableTrack(from = 0, skipId?: string | null): Track | null {
 const INITIAL_LEFT = firstPlayableTrack(0);
 const INITIAL_RIGHT = firstPlayableTrack(1, INITIAL_LEFT ? spotifyTrackId(INITIAL_LEFT) : null);
 
-/* ─── Waveform helper ────────────────────────────────────── */
-function generateWaveform(seed: string, bars: number): number[] {
-  let h = 0;
-  for (const c of seed) h = (h << 5) - h + c.charCodeAt(0);
-  const out: number[] = [];
-  for (let i = 0; i < bars; i++) {
-    h = ((h * 1103515245) + 12345) & 0x7fffffff;
-    const env = Math.sin((i / bars) * Math.PI) * 0.45 + 0.55;
-    out.push(0.06 + ((h % 100) / 100) * env * 0.94);
-  }
-  return out;
-}
-
 /* ─── Spotify IFrame API types ───────────────────────────── */
 interface SpotifyController {
   togglePlay(): void;
@@ -139,8 +129,6 @@ export default function DJStation() {
   const [leftTrack,    setLeftTrack]    = useState<Track | null>(INITIAL_LEFT);
   const [rightTrack,   setRightTrack]   = useState<Track | null>(INITIAL_RIGHT);
   const [dropSide,     setDropSide]     = useState<'left'|'right'|null>(null);
-  const [leftEmbedReady,  setLeftEmbedReady]  = useState(false);
-  const [rightEmbedReady, setRightEmbedReady] = useState(false);
   const [deckHint, setDeckHint] = useState<string | null>(null);
   const [focusTrackId, setFocusTrackId] = useState<string | null>(null);
   const extrasRaw = useSyncExternalStore(
@@ -270,10 +258,10 @@ export default function DJStation() {
       win.SpotifyIframeApi = api;
       mountSide(api, 'left', leftContainerRef.current, INITIAL_LEFT, leftCtrl, () => {
         /* Spotify iframe is preview-only — not part of the mix graph */
-      }, () => setLeftEmbedReady(true));
+      }, () => {});
       mountSide(api, 'right', rightContainerRef.current, INITIAL_RIGHT, rightCtrl, () => {
         /* Spotify iframe is preview-only — not part of the mix graph */
-      }, () => setRightEmbedReady(true));
+      }, () => {});
     };
 
     const prevReady = win.onSpotifyIframeApiReady;
@@ -299,8 +287,6 @@ export default function DJStation() {
       if (api) initControllers(api);
       const leftOk = !containerEmpty(leftContainerRef.current);
       const rightOk = !containerEmpty(rightContainerRef.current);
-      if (leftOk) setLeftEmbedReady(true);
-      if (rightOk) setRightEmbedReady(true);
       if ((leftOk && rightOk) || retries > 20) {
         window.clearInterval(timer);
       }
@@ -330,15 +316,9 @@ export default function DJStation() {
     });
 
     mix.setCrateMeta(side, { title: track.title, bpm: track.bpm, key: track.key });
-    const isRef = track.source === 'spotify';
+    const isRef = track.source === 'spotify' || track.mixable === false;
     if (isRef) {
-      if (track.previewUrl) {
-        showDeckHint(`“${track.title}” · preview only — not mixable or exportable. upload a file to mix.`);
-      } else if (sid) {
-        showDeckHint(`“${track.title}” · reference only — Spotify playback, not mixable or exportable.`);
-      } else {
-        showDeckHint(`“${track.title}” is not mixable — no preview or Spotify id.`);
-      }
+      showDeckHint('Reference only.');
     }
 
     if (side === 'left') {
@@ -350,28 +330,28 @@ export default function DJStation() {
           try {
             leftCtrl.current.loadUri(uri);
             console.log(DJ_AUDIT, 'audio source assigned', { deck: 'A', uri, via: 'loadUri' });
-            setDeckHint(null);
+            if (!isRef) setDeckHint(null);
           } catch (err) {
             console.log(DJ_AUDIT, 'loadUri error', { deck: 'A', err });
-            showDeckHint('Deck A: press ▶ to start');
+            if (!isRef) showDeckHint('Press play.');
           }
         } else {
           // Reconnect: queue until leftCtrl createController callback (same IFrame, no second player)
           pendingLeftUri.current = uri;
           console.log(DJ_AUDIT, 'leftCtrl null — queued pendingLeftUri', uri);
-          showDeckHint('Deck A: Spotify loading — press ▶ when ready');
+          if (!isRef) showDeckHint('Still loading.');
         }
-      } else {
+      } else if (!isRef) {
         pendingLeftUri.current = null;
-        showDeckHint(`“${track.title}” has no Spotify id — pick a library track to play`);
+        showDeckHint('Not playable.');
       }
     } else {
       setRightTrack(track);
       if (sid) {
         rightCtrl.current?.loadUri(`spotify:track:${sid}`);
-        setDeckHint(null);
-      } else {
-        showDeckHint(`“${track.title}” has no Spotify id — pick a library track to play`);
+        if (!isRef) setDeckHint(null);
+      } else if (!isRef) {
+        showDeckHint('Not playable.');
       }
     }
   }, [showDeckHint, mix]);
@@ -416,7 +396,7 @@ export default function DJStation() {
   const assignFile = useCallback(async (side: 'left' | 'right', file: File) => {
     const crate = side === 'left' ? leftTrack : rightTrack;
     await mix.loadFile(side, file, crate ? { title: crate.title, bpm: crate.bpm, key: crate.key } : undefined);
-    showDeckHint('loaded. this one has teeth.');
+    showDeckHint(side === 'left' ? 'Loaded A.' : 'Loaded B.');
   }, [leftTrack, rightTrack, mix, showDeckHint]);
 
   const dropOnDeckA = useCallback((e: React.DragEvent) => {
@@ -450,15 +430,12 @@ export default function DJStation() {
   }, [loadTrack, assignFile]);
 
   const toggleDeck = useCallback(async (side: 'left' | 'right') => {
-    const label = side === 'left' ? 'A' : 'B';
     const started = await mix.toggle(side);
     if (started) {
       setDeckHint(null);
       return;
     }
-    showDeckHint(
-      `Deck ${label}: upload an audio file to mix. Spotify below is preview only — iframe audio cannot enter the mix.`,
-    );
+    showDeckHint('Upload audio first.');
   }, [mix, showDeckHint]);
 
   const handleXfade = useCallback((v: number) => {
@@ -480,11 +457,11 @@ export default function DJStation() {
   const rightDim = mix.xfade < 20 ? mix.xfade / 20 : 1;
 
   const handleSyncLeft = useCallback(() => {
-    if (!mix.sync('left')) showDeckHint('SYNC needs BPM on both decks — upload/crate tags, or v2 beat detection');
+    if (!mix.sync('left')) showDeckHint('Needs BPM.');
   }, [mix, showDeckHint]);
 
   const handleSyncRight = useCallback(() => {
-    if (!mix.sync('right')) showDeckHint('SYNC needs BPM on both decks — upload/crate tags, or v2 beat detection');
+    if (!mix.sync('right')) showDeckHint('Needs BPM.');
   }, [mix, showDeckHint]);
 
   const leftPlaying = mix.deckA.playing;
@@ -514,7 +491,11 @@ export default function DJStation() {
   };
 
   return (
-    <div style={{ userSelect: 'none', width: '100%', maxWidth: '100%', boxSizing: 'border-box', background: '#0b0d10', overflowX: 'clip' }}>
+    <div
+      data-testid="dj-station"
+      data-dj-layout={isMobile ? 'mobile' : 'desktop'}
+      style={{ position: 'relative', userSelect: 'none', width: '100%', maxWidth: '100%', boxSizing: 'border-box', background: '#0b0d10', overflowX: 'clip' }}
+    >
       <input
         ref={fileARef}
         data-testid="dj-upload-a"
@@ -540,143 +521,39 @@ export default function DJStation() {
         }}
       />
 
-      <p
-        data-testid="dj-spotify-preview-note"
+      <div style={{ margin: '0 0 12px' }}>
+        <SystemToast testId="dj-spotify-preview-note" inline>
+          Not mixable.
+        </SystemToast>
+      </div>
+
+      {/* ── Desk first: decks + mixer ── */}
+      <div
+        data-testid="dj-desk"
         style={{
-          margin: '0 0 8px',
-          fontFamily: 'monospace',
-          fontSize: '0.34rem',
-          letterSpacing: '0.08em',
-          color: C.dim,
-        }}
-      >
-        SPOTIFY PREVIEW — iframe audio cannot be mixed through Web Audio. Upload files (or a CORS-safe URL) to mix.
-      </p>
-
-      {/* ── Handoff set carousel (film strip) — top of the desk ── */}
-      <div id="dj-set" data-testid="dj-set" style={{ marginTop: 4, marginBottom: 10 }}>
-        <TrackLibraryBrowser
-          tracks={library}
-          reverseCarousel={false}
-          focusTrackId={focusTrackId}
-          onRemoveTrack={removeSpotifyTrack}
-          onLoadTrack={loadTrack}
-          onSetDragTrack={(t) => {
-            dragTrack.current = t;
-            console.log(DJ_AUDIT, 'drag start track id', t?.id ?? null, t?.title ?? null);
-          }}
-          playingLeft={leftPlaying ? (leftTrack?.id ?? mix.deckA.fileName) : null}
-          playingRight={rightPlaying ? (rightTrack?.id ?? mix.deckB.fileName) : null}
-          leftPos={leftPos} leftDur={leftDur}
-          rightPos={rightPos} rightDur={rightDur}
-        />
-        <SpotifySearchAdd existingIds={existingSpotifyIds} onAdd={addSpotifyTrack} />
-      </div>
-      <DJPairPanel
-        selected={leftTrack}
-        library={library}
-        onLoadB={(id) => {
-          const t = findTrackById(library, id);
-          if (!t) return;
-          loadTrack('right', t);
-          showDeckHint('good pair. keep the blend short.');
-        }}
-      />
-
-      {/* ── Spotify embed containers (preview only — not in the mix graph) ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 6, marginBottom: 8 }}>
-        {(['left','right'] as const).map(side => {
-          const track = side === 'left' ? leftTrack : rightTrack;
-          const ref   = side === 'left' ? leftContainerRef : rightContainerRef;
-          const sid   = track ? spotifyTrackId(track) : null;
-          const ready = side === 'left' ? leftEmbedReady : rightEmbedReady;
-          return (
-            <div key={side} style={{
-              borderRadius: 6, overflow: 'hidden', background: C.bg,
-              border: '1px solid rgba(170,179,187,0.12)', position: 'relative',
-              minHeight: 80,
-            }}>
-              <div ref={ref} style={{ minHeight: 80, width: '100%' }} />
-              {/* Visible play chrome while Spotify iframe is still mounting */}
-              {!ready && (
-                <div
-                  aria-hidden
-                  style={{
-                    position: 'absolute', inset: 0, pointerEvents: 'none',
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    padding: '0 14px',
-                    background: 'linear-gradient(90deg, #12161b 0%, #0b0d10 100%)',
-                  }}
-                >
-                  <div style={{
-                    width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
-                    background: '#1DB954',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: '0 0 0 1px rgba(29,185,84,0.35)',
-                  }}>
-                    <span style={{
-                      color: '#0b0d10', fontSize: 14, lineHeight: 1,
-                      marginLeft: 2, fontWeight: 700,
-                    }}>▶</span>
-                  </div>
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <div style={{
-                      fontSize: '0.72rem', fontWeight: 600, color: C.text,
-                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                    }}>
-                      {track?.title ?? (side === 'left' ? 'Deck A' : 'Deck B')}
-                    </div>
-                    <div style={{
-                      fontSize: '0.58rem', color: C.dim, marginTop: 2,
-                      letterSpacing: '0.04em', textTransform: 'uppercase',
-                    }}>
-                      {sid ? 'Loading Spotify player…' : 'No Spotify id — pick a library track'}
-                    </div>
-                  </div>
-                </div>
-              )}
-              {!track && (
-                <div style={{
-                  position: 'absolute', inset: 0, display: 'flex',
-                  alignItems: 'center', justifyContent: 'center', background: '#0a0a0c',
-                }}>
-                  <p style={{ fontSize: '0.34rem', letterSpacing: '0.4em', color: C.dim, textTransform: 'uppercase' }}>
-                    {side === 'left' ? 'DECK A' : 'DECK B'} — EMPTY
-                  </p>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* ── Main console (deck + mixer layout) ── */}
-      <div style={{
-        borderRadius: 10, padding: '10px 10px 8px',
+        borderRadius: 10, padding: '12px 10px 10px',
         background: C.panel,
         border: '1px solid rgba(170,179,187,0.1)',
         boxShadow: 'inset 0 1px 0 rgba(217,224,230,0.04)',
       }}>
-        {/* system bar */}
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          borderBottom: 'none', paddingBottom: 6, marginBottom: 8,
+          gap: 8, flexWrap: 'wrap', paddingBottom: 8, marginBottom: 8,
         }}>
-          <span style={{ fontFamily: 'monospace', fontSize: '0.34rem', letterSpacing: '0.5em', color: C.dim, textTransform: 'uppercase' }}>
-            AILEENA DESK
+          <span style={{ fontFamily: 'monospace', fontSize: 15, letterSpacing: '0.08em', color: C.text, textTransform: 'uppercase' }}>
+            Deck A · Mix · Deck B
           </span>
           {bpmHint && (
             <span style={{
-              fontFamily: 'monospace', fontSize: '0.34rem', letterSpacing: '0.3em',
+              fontFamily: 'monospace', fontSize: 13, letterSpacing: '0.06em',
               color: bpmHint.type === 'sync' ? C.green : C.orange,
               textTransform: 'uppercase',
-              border: `1px solid ${bpmHint.type === 'sync' ? C.green : C.orange}00`,
               padding: '2px 6px', borderRadius: 3,
             }}>
-              {bpmHint.type === 'sync' ? '⟺ SYNC' : `${bpmHint.diff > 0 ? '+' : ''}${bpmHint.diff.toFixed(1)} BPM`}
+              {bpmHint.type === 'sync' ? 'SYNC' : `${bpmHint.diff > 0 ? '+' : ''}${bpmHint.diff.toFixed(1)} BPM`}
             </span>
           )}
-          <span style={{ fontFamily: 'monospace', fontSize: '0.34rem', letterSpacing: '0.4em', color: C.dim }}>
+          <span style={{ fontFamily: 'monospace', fontSize: 13, letterSpacing: '0.04em', color: C.sub }}>
             {leftBpm ?? '--'} / {rightBpm ?? '--'} BPM
           </span>
         </div>
@@ -685,19 +562,14 @@ export default function DJStation() {
           ready={mix.ready}
           a={mix.deckA.mixLoaded}
           b={mix.deckB.mixLoaded}
+          playingA={mix.deckA.playing}
+          playingB={mix.deckB.playing}
           recording={mix.recording}
           exportReady={mix.exportReady}
+          vuA={mix.vuA}
+          vuB={mix.vuB}
+          vuM={mix.vuM}
         />
-        <p style={{
-          margin: '-4px 0 8px',
-          fontFamily: 'monospace',
-          fontSize: '0.28rem',
-          letterSpacing: '0.08em',
-          color: C.muted,
-        }}>
-          club-desk ergonomics · not a product clone
-        </p>
-
         {/* Deck + Mixer grid */}
         {isMobile ? (
           <div className="dj-mixer-grid" style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 12 }}>
@@ -721,7 +593,7 @@ export default function DJStation() {
               onUpload={() => fileARef.current?.click()}
               onLoopIn={() => mix.loopIn('left')}
               onLoopOut={() => mix.loopOut('left')}
-              onLoopBars={n => { if (!mix.loopBars('left', n)) showDeckHint('Loop 1/2/4/8 needs BPM — v2 beat detection'); }}
+              onLoopBars={n => { if (!mix.loopBars('left', n)) showDeckHint('Needs BPM.'); }}
               onLoopExit={() => mix.loopExit('left')}
               onHotCue={(i, clear) => mix.hotCue('left', i, clear)}
               onSync={handleSyncLeft}
@@ -754,7 +626,7 @@ export default function DJStation() {
               onUpload={() => fileBRef.current?.click()}
               onLoopIn={() => mix.loopIn('right')}
               onLoopOut={() => mix.loopOut('right')}
-              onLoopBars={n => { if (!mix.loopBars('right', n)) showDeckHint('Loop 1/2/4/8 needs BPM — v2 beat detection'); }}
+              onLoopBars={n => { if (!mix.loopBars('right', n)) showDeckHint('Needs BPM.'); }}
               onLoopExit={() => mix.loopExit('right')}
               onHotCue={(i, clear) => mix.hotCue('right', i, clear)}
               onSync={handleSyncRight}
@@ -782,7 +654,7 @@ export default function DJStation() {
               onUpload={() => fileARef.current?.click()}
               onLoopIn={() => mix.loopIn('left')}
               onLoopOut={() => mix.loopOut('left')}
-              onLoopBars={n => { if (!mix.loopBars('left', n)) showDeckHint('Loop 1/2/4/8 needs BPM — v2 beat detection'); }}
+              onLoopBars={n => { if (!mix.loopBars('left', n)) showDeckHint('Needs BPM.'); }}
               onLoopExit={() => mix.loopExit('left')}
               onHotCue={(i, clear) => mix.hotCue('left', i, clear)}
               onSync={handleSyncLeft}
@@ -815,7 +687,7 @@ export default function DJStation() {
               onUpload={() => fileBRef.current?.click()}
               onLoopIn={() => mix.loopIn('right')}
               onLoopOut={() => mix.loopOut('right')}
-              onLoopBars={n => { if (!mix.loopBars('right', n)) showDeckHint('Loop 1/2/4/8 needs BPM — v2 beat detection'); }}
+              onLoopBars={n => { if (!mix.loopBars('right', n)) showDeckHint('Needs BPM.'); }}
               onLoopExit={() => mix.loopExit('right')}
               onHotCue={(i, clear) => mix.hotCue('right', i, clear)}
               onSync={handleSyncRight}
@@ -823,24 +695,10 @@ export default function DJStation() {
           </div>
         )}
 
-        {deckHint && (
-          <p
-            role="status"
-            style={{
-              margin: '0 0 8px',
-              padding: '8px 10px',
-              borderRadius: 4,
-              border: '1px solid rgba(0,168,157,0.35)',
-              background: 'rgba(0,168,157,0.08)',
-              fontFamily: 'monospace',
-              fontSize: '0.58rem',
-              letterSpacing: '0.04em',
-              color: C.text,
-              textAlign: 'center',
-            }}
-          >
-            {deckHint}
-          </p>
+        {(deckHint || mix.error) && (
+          <SystemToast testId="dj-deck-hint" role={mix.error && !deckHint ? 'alert' : 'status'}>
+            {deckHint || shortMixError(mix.error || '')}
+          </SystemToast>
         )}
       </div>
 
@@ -853,12 +711,12 @@ export default function DJStation() {
         error={mix.error}
         onRecord={() => {
           void mix.startRecord().then((ok) => {
-            if (ok) showDeckHint('recording the master bus.');
+            if (ok) showDeckHint('Recording.');
           });
         }}
         onStop={() => {
           void mix.stopRecord().then(() => {
-            showDeckHint('export ready. not a masterpiece yet, but it moves.');
+            showDeckHint('Export ready.');
           });
         }}
         onDownloadAudio={mix.downloadAudio}
@@ -866,6 +724,57 @@ export default function DJStation() {
         onCopyReceipt={() => void mix.copyReceiptText()}
         onLoadUrl={(side, url) => void mix.loadUrl(side, url)}
       />
+
+      <div id="dj-set" data-testid="dj-set" style={{ marginTop: 16, marginBottom: 10 }}>
+        <TrackLibraryBrowser
+          tracks={library}
+          reverseCarousel={false}
+          focusTrackId={focusTrackId}
+          onRemoveTrack={removeSpotifyTrack}
+          onLoadTrack={loadTrack}
+          onSetDragTrack={(t) => {
+            dragTrack.current = t;
+            console.log(DJ_AUDIT, 'drag start track id', t?.id ?? null, t?.title ?? null);
+          }}
+          playingLeft={leftPlaying ? (leftTrack?.id ?? mix.deckA.fileName) : null}
+          playingRight={rightPlaying ? (rightTrack?.id ?? mix.deckB.fileName) : null}
+          leftPos={leftPos} leftDur={leftDur}
+          rightPos={rightPos} rightDur={rightDur}
+        />
+        <SpotifySearchAdd existingIds={existingSpotifyIds} onAdd={addSpotifyTrack} />
+      </div>
+      <DJPairPanel
+        selected={leftTrack}
+        library={library}
+        onLoadB={(id) => {
+          const t = findTrackById(library, id);
+          if (!t) return;
+          loadTrack('right', t);
+          showDeckHint('Loaded B.');
+        }}
+      />
+
+      <div
+        data-testid="dj-spotify-embeds"
+        aria-hidden
+        style={{
+          position: 'absolute',
+          width: 1,
+          height: 1,
+          overflow: 'hidden',
+          clip: 'rect(0, 0, 0, 0)',
+          pointerEvents: 'none',
+        }}
+      >
+        {(['left', 'right'] as const).map((side) => {
+          const ref = side === 'left' ? leftContainerRef : rightContainerRef;
+          return (
+            <div key={side} style={{ minHeight: 80, width: 320 }}>
+              <div ref={ref} style={{ minHeight: 80, width: '100%' }} />
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -899,38 +808,8 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
   const remaining = dur > 0 ? fmt(Math.max(0, dur - pos)) : (track ? `-${fmt((track.dur) * 1000)}` : '--:--');
   const elapsed   = dur > 0 ? fmt(pos) : '0:00';
 
-  // Scratch is visual-only (platter spin). Not vinyl audio.
-  const [scratchAngle, setScratchAngle] = useState(0);
-  const [isScratching, setIsScratching] = useState(false);
-  const lastPtrAngle = useRef(0);
+  // Platter is a display (spin when playing). Scratch is v2 — not in the audio graph.
   const discRef = useRef<HTMLDivElement>(null);
-
-  function getPtrAngle(e: React.PointerEvent): number {
-    const el = discRef.current;
-    if (!el) return 0;
-    const rect = el.getBoundingClientRect();
-    return Math.atan2(e.clientY - (rect.top + rect.height / 2),
-                      e.clientX - (rect.left + rect.width  / 2)) * (180 / Math.PI);
-  }
-  function onDiscDown(e: React.PointerEvent) {
-    if (!track) return;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    lastPtrAngle.current = getPtrAngle(e);
-    setIsScratching(true);
-  }
-  function onDiscMove(e: React.PointerEvent) {
-    if (!isScratching) return;
-    const cur = getPtrAngle(e);
-    let delta = cur - lastPtrAngle.current;
-    if (delta > 180) delta -= 360;
-    if (delta < -180) delta += 360;
-    lastPtrAngle.current = cur;
-    setScratchAngle(prev => prev + delta);
-  }
-  function onDiscUp() {
-    if (!isScratching) return;
-    setIsScratching(false);
-  }
 
   // Tonearm: two fixed positions only — parked vs on outer groove
   // Left deck pivot: top-right. Right deck pivot: top-left.
@@ -965,9 +844,9 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
         transition: 'border 0.15s, box-shadow 0.15s',
       }}>
         {!track ? (
-          <p style={{ fontSize: '0.34rem', letterSpacing: '0.5em', textTransform: 'uppercase',
-            color: dropActive ? 'rgba(100,220,210,0.8)' : C.dim }}>
-            {dropActive ? '↓ DROP FILE' : 'drop file or A / B'}
+          <p style={{ fontSize: 14, letterSpacing: '0.08em', textTransform: 'uppercase',
+            color: dropActive ? 'rgba(100,220,210,0.8)' : C.sub }}>
+            {dropActive ? 'Drop file' : 'Load a file'}
           </p>
         ) : (
           <div style={{ position: 'relative', width: D, height: D }}>
@@ -975,10 +854,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
             {/* Disc body — AT-style glowing translucent platter */}
             <div
               ref={discRef}
-              onPointerDown={onDiscDown}
-              onPointerMove={onDiscMove}
-              onPointerUp={onDiscUp}
-              onPointerLeave={onDiscUp}
+              title="visual platter · scratch v2"
               style={{
               position: 'absolute', inset: 0, borderRadius: '50%',
               background: `radial-gradient(circle at 50% 50%,
@@ -1001,10 +877,10 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
               boxShadow: playing
                 ? '0 0 55px rgba(0,168,157,0.45), 0 0 110px rgba(0,168,157,0.18), inset 0 0 35px rgba(0,0,0,0.45)'
                 : '0 0 22px rgba(0,168,157,0.18), 0 0 50px rgba(0,168,157,0.06), inset 0 0 20px rgba(0,0,0,0.35)',
-              animation: isScratching ? 'none' : (playing ? 'turntableSpin 2.4s linear infinite' : 'none'),
-              transform: isScratching ? `rotate(${scratchAngle}deg)` : undefined,
+              animation: playing ? 'turntableSpin 2.4s linear infinite' : 'none',
               transition: 'box-shadow 1.8s ease',
-              cursor: track ? (isScratching ? 'grabbing' : 'grab') : 'default',
+              pointerEvents: 'none',
+              cursor: 'default',
             }}>
               {/* Concentric depth bands — subtle tone variation like frosted acrylic */}
               {[18, 30, 42].map((pct, i) => (
@@ -1132,16 +1008,16 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
         <p
           data-testid={side === 'left' ? 'dj-deck-a-title' : 'dj-deck-b-title'}
           data-track-id={track?.id ?? ''}
-          style={{ fontSize: '0.44rem', letterSpacing: '0.12em',
+          style={{ fontSize: 16, letterSpacing: '0.04em',
           color: playing ? C.cyan : C.text,
           fontFamily: 'monospace', textTransform: 'uppercase',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           transition: 'color 0.5s', flex: 1, margin: 0,
         }}>{track?.title ?? 'NO TRACK'}</p>
         <span style={{
-          fontFamily: 'monospace', fontSize: '0.26rem', letterSpacing: '0.14em',
+          fontFamily: 'monospace', fontSize: 12, letterSpacing: '0.06em',
           color: mixLoaded ? C.cyan : C.orange, whiteSpace: 'nowrap',
-        }}>{mixLoaded ? (playing ? 'MIX · playing' : 'MIX · loaded') : 'PREVIEW · not mixable'}</span>
+        }}>{mixLoaded ? (playing ? 'Playing' : 'Loaded') : 'Preview'}</span>
         </div>
         <DJDeckWaveform
           side={side}
@@ -1156,24 +1032,25 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
           onClick={onUpload}
           style={{
             alignSelf: 'flex-start',
-            padding: '3px 8px',
-            borderRadius: 3,
+            padding: '10px 14px',
+            minHeight: 44,
+            borderRadius: 4,
             cursor: 'pointer',
             background: '#14181e',
-            border: '1px solid rgba(0,168,157,0.35)',
+            border: '1px solid rgba(0,168,157,0.45)',
             color: C.cyan,
             fontFamily: 'monospace',
-            fontSize: '0.3rem',
-            letterSpacing: '0.14em',
+            fontSize: 14,
+            letterSpacing: '0.06em',
           }}
         >
-          LOAD FILE
+          {side === 'left' ? 'Load A' : 'Load B'}
         </button>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontFamily: 'monospace', fontSize: '0.34rem', color: C.cyan, letterSpacing: '0.1em' }}>
+          <span style={{ fontFamily: 'monospace', fontSize: 13, color: C.cyan, letterSpacing: '0.04em' }}>
             {elapsed}
           </span>
-          <span style={{ fontFamily: 'monospace', fontSize: '0.34rem', color: C.sub, letterSpacing: '0.1em' }}>
+          <span style={{ fontFamily: 'monospace', fontSize: 13, color: C.sub, letterSpacing: '0.04em' }}>
             {remaining}
           </span>
         </div>
@@ -1222,10 +1099,32 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
             <span style={{ fontFamily: 'monospace', fontSize: '0.22rem', opacity: 0.7 }}>{fmt(cueMs)}</span>
           </button>
         </div>
-        <PitchFader pitch={pitch} onChange={onPitch} />
+        <DJFader
+          testId={side === 'left' ? 'dj-pitch-a' : 'dj-pitch-b'}
+          label="PITCH"
+          ariaLabel={side === 'left' ? 'Pitch A' : 'Pitch B'}
+          value={pitch}
+          min={-8}
+          max={8}
+          step={0.1}
+          defaultValue={0}
+          onChange={onPitch}
+          orientation="vertical"
+          length={78}
+        />
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
           <VU level={vu} />
-          <EQKnob label="GAIN" value={gain} size={22} color={C.cyan} onChange={onGain} />
+          <DJKnob
+            testId={side === 'left' ? 'dj-knob-gain-a' : 'dj-knob-gain-b'}
+            label="GAIN"
+            ariaLabel={side === 'left' ? 'Gain A' : 'Gain B'}
+            value={gain}
+            size={22}
+            color={C.cyan}
+            defaultValue={75}
+            onChange={onGain}
+            tapMin={isMobile ? 44 : 0}
+          />
           {/* Pitch readout */}
           <span style={{
             fontFamily: 'monospace', fontSize: '0.36rem', letterSpacing: '0.1em',
@@ -1440,36 +1339,50 @@ function MixerPanel({ xfade, onXfade, isMobile, eqA, eqB, onEq, filterA, filterB
 }) {
 
   return (
-    <div style={{
+    <div
+      data-testid="dj-mixer"
+      data-xfade={String(Math.round(xfade))}
+      data-master={String(Math.round(master))}
+      data-fader-a={String(Math.round(faderA))}
+      data-fader-b={String(Math.round(faderB))}
+      data-eq-a-hi={String(Math.round(eqA.hi))}
+      data-eq-a-mid={String(Math.round(eqA.mid))}
+      data-eq-a-lo={String(Math.round(eqA.lo))}
+      data-eq-b-hi={String(Math.round(eqB.hi))}
+      data-eq-b-mid={String(Math.round(eqB.mid))}
+      data-eq-b-lo={String(Math.round(eqB.lo))}
+      data-filter-a={String(Math.round(filterA))}
+      data-filter-b={String(Math.round(filterB))}
+      style={{
       borderRadius: 6, padding: isMobile ? '8px 14px' : '8px 7px',
       background: 'linear-gradient(to bottom, #1a1e24, #14181d 55%, #1a1e24)',
       border: '1px solid rgba(170,179,187,0.22)',
-      display: 'flex', flexDirection: isMobile ? 'row' : 'column',
-      alignItems: 'center', gap: isMobile ? 16 : 8,
-      flexWrap: isMobile ? 'wrap' : undefined,
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', gap: isMobile ? 12 : 8,
+      width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box',
       boxShadow: 'inset 0 1px 0 rgba(217,224,230,0.07), inset 0 -1px 0 rgba(0,0,0,0.3), 0 0 0 1px rgba(0,0,0,0.3)',
     }}>
 
-      {/* Send / phones — labeled v2, no DJM effect-name row */}
-      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 4 }}>
-        <div style={{ display: 'flex', gap: 3 }}>
-          {(['SEND v2', 'PHONES v2'] as const).map((label) => (
-            <button
-              key={label}
-              disabled
-              title="not in the audio graph yet"
-              style={{
-                flex: 1, padding: '4px 0', borderRadius: 3, cursor: 'not-allowed',
-                background: '#14181e',
-                border: '1px solid rgba(170,179,187,0.18)',
-                fontFamily: 'monospace', fontSize: '0.28rem', fontWeight: 600, letterSpacing: '0.1em',
-                color: C.silverDark, opacity: 0.45,
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+      <span style={{ fontFamily: 'monospace', fontSize: 13, letterSpacing: '0.14em', color: C.text }}>
+        Mix
+      </span>
+      <div style={{ width: '100%', display: 'flex', gap: 4 }}>
+        {(['SEND v2', 'PHONES v2'] as const).map((label) => (
+          <button
+            key={label}
+            disabled
+            title="not in the audio graph yet"
+            style={{
+              flex: 1, padding: '6px 0', borderRadius: 3, cursor: 'not-allowed',
+              background: '#14181e',
+              border: '1px solid rgba(170,179,187,0.18)',
+              fontFamily: 'monospace', fontSize: 11, fontWeight: 600, letterSpacing: '0.08em',
+              color: C.silverDark, opacity: 0.45,
+            }}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       <div style={{ width: '100%', height: 1, background: 'rgba(255,255,255,0.05)' }} />
@@ -1484,13 +1397,17 @@ function MixerPanel({ xfade, onXfade, isMobile, eqA, eqB, onEq, filterA, filterB
               <div key={id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                 <span style={{ fontFamily: 'monospace', fontSize: '0.26rem', color: id === 'A' ? C.cyan : C.orange }}>{id}</span>
                 {(['hi', 'mid', 'lo'] as const).map((band) => (
-                  <EQKnob
+                  <DJKnob
                     key={band}
+                    testId={`dj-knob-eq-${id.toLowerCase()}-${band}`}
                     label={band.toUpperCase()}
+                    ariaLabel={`EQ ${id} ${band.toUpperCase()}`}
                     value={eq[band]}
                     size={isMobile ? 22 : 20}
                     color={band === 'hi' ? '#38bdf8' : band === 'mid' ? '#a3e635' : '#f97316'}
+                    defaultValue={50}
                     onChange={(v) => onEq(id, band, v)}
+                    tapMin={isMobile ? 44 : 0}
                   />
                 ))}
               </div>
@@ -1505,8 +1422,17 @@ function MixerPanel({ xfade, onXfade, isMobile, eqA, eqB, onEq, filterA, filterB
       <div style={{ width: '100%', display: 'flex', justifyContent: 'space-around' }}>
         {([['A', filterA, C.cyan], ['B', filterB, C.orange]] as const).map(([lbl, val, col]) => (
           <div key={lbl} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <EQKnob label="FILTER" value={val} size={20} color={col}
-              onChange={v => onFilter(lbl, v)} />
+            <DJKnob
+              testId={`dj-knob-filter-${lbl.toLowerCase()}`}
+              label="FILTER"
+              ariaLabel={`Filter ${lbl}`}
+              value={val}
+              size={20}
+              color={col}
+              defaultValue={50}
+              onChange={(v) => onFilter(lbl, v)}
+              tapMin={isMobile ? 44 : 0}
+            />
             <span style={{ fontFamily: 'monospace', fontSize: '0.28rem', color: col, letterSpacing: '0.1em' }}>{lbl}</span>
           </div>
         ))}
@@ -1519,11 +1445,17 @@ function MixerPanel({ xfade, onXfade, isMobile, eqA, eqB, onEq, filterA, filterB
         {([['A', faderA, C.cyan, vuA], ['B', faderB, C.orange, vuB]] as const).map(([lbl, val, col, vu]) => (
           <div key={lbl} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
             <VU level={vu} />
-            <input
-              data-testid={lbl === 'A' ? 'dj-fader-a' : 'dj-fader-b'}
-              type="range" min={0} max={100} value={val}
-              onChange={e => onFader(lbl, +e.target.value)}
-              style={{ writingMode: 'vertical-lr', direction: 'rtl', height: 64, width: 22, cursor: 'pointer', accentColor: col }}
+            <DJFader
+              testId={lbl === 'A' ? 'dj-fader-a' : 'dj-fader-b'}
+              label={lbl}
+              ariaLabel={`Channel ${lbl}`}
+              value={val}
+              defaultValue={80}
+              onChange={(v) => onFader(lbl, v)}
+              orientation="vertical"
+              color={col}
+              length={64}
+              showLabel={false}
             />
             <span style={{ fontFamily: 'monospace', fontSize: '0.26rem', color: col }}>{lbl}</span>
           </div>
@@ -1533,30 +1465,17 @@ function MixerPanel({ xfade, onXfade, isMobile, eqA, eqB, onEq, filterA, filterB
       <div style={{ width: '100%', height: 1, background: 'rgba(255,255,255,0.05)' }} />
 
       {/* ── Crossfader ── */}
-      <div style={{ width: '100%', flexBasis: isMobile ? '100%' : undefined }}>
-        <p style={{ fontFamily: 'monospace', fontSize: '0.26rem', letterSpacing: '0.35em', color: 'rgba(255,255,255,0.2)',
-          textAlign: 'center', marginBottom: 4 }}>CROSSFADER</p>
-        <div style={{
-          position: 'relative', height: 18, borderRadius: 3,
-          background: `linear-gradient(to right, rgba(0,168,157,0.18), rgba(18,22,27,0.9) 50%, rgba(255,155,94,0.15))`,
-          border: '1px solid rgba(170,179,187,0.15)',
-          boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.7)',
-        }}>
-          <input data-testid="dj-xfade" type="range" min={0} max={100} value={xfade} onChange={e => onXfade(+e.target.value)}
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer', margin: 0 }} />
-          <div style={{
-            position: 'absolute', width: 18, height: 30, left: `calc(${xfade}% - 9px)`,
-            borderRadius: 3, pointerEvents: 'none', top: -6,
-            background: 'linear-gradient(160deg, #d9e0e6 0%, #b9c0c7 30%, #8e979f 65%, #72797f 100%)',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.9), inset 0 1px 0 rgba(217,224,230,0.7)',
-            border: '1px solid rgba(100,108,116,0.6)',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
-          }}>
-            {[0,1,2,3].map(i => <div key={i} style={{ width: '60%', height: 1,
-              background: 'rgba(0,0,0,0.15)', borderBottom: '1px solid rgba(255,255,255,0.3)' }} />)}
-          </div>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
+      <div style={{ width: '100%', padding: '8px 0 6px', boxSizing: 'border-box' }}>
+        <DJFader
+          testId="dj-xfade"
+          label="CROSSFADER"
+          ariaLabel="Crossfader"
+          value={xfade}
+          defaultValue={50}
+          onChange={onXfade}
+          orientation="horizontal"
+        />
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
           <span style={{ fontFamily: 'monospace', fontSize: '0.32rem', fontWeight: 700, color: C.cyan, letterSpacing: '0.1em', textShadow: '0 0 6px rgba(0,168,157,0.45)' }}>A</span>
           <span style={{ fontFamily: 'monospace', fontSize: '0.32rem', fontWeight: 700, color: C.orange, letterSpacing: '0.1em' }}>B</span>
         </div>
@@ -1565,324 +1484,24 @@ function MixerPanel({ xfade, onXfade, isMobile, eqA, eqB, onEq, filterA, filterB
       {/* ── Master ── */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
         <VU level={vuM} />
-        <EQKnob label="MASTER" value={master} size={28} color="#22c55e" onChange={onMaster} />
-      </div>
-
-    </div>
-  );
-}
-
-/* ─── EQ Knob (interactive rotary) ──────────────────────── */
-function EQKnob({ label, value, size, color, onChange }: {
-  label: string; value: number; size: number; color: string; onChange?: (v: number) => void;
-}) {
-  const [dragging, setDragging] = useState(false);
-  const [dragVal, setDragVal] = useState(value);
-  const startY = useRef(0);
-  const startVal = useRef(0);
-  const localVal = dragging ? dragVal : value;
-
-  // Angle: 0% = -135deg, 50% = 0deg, 100% = +135deg
-  const angle = -135 + (localVal / 100) * 270;
-  const isCenter = Math.abs(localVal - 50) < 3;
-
-  function onPointerDown(e: React.PointerEvent) {
-    if (!onChange) return;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    setDragging(true);
-    startY.current = e.clientY;
-    startVal.current = value;
-    setDragVal(value);
-  }
-  function onPointerMove(e: React.PointerEvent) {
-    if (!dragging || !onChange) return;
-    const delta = (startY.current - e.clientY) * 0.8;
-    const next = Math.max(0, Math.min(100, startVal.current + delta));
-    setDragVal(next);
-    onChange(next);
-  }
-  function onPointerUp() { setDragging(false); }
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
-      cursor: onChange ? 'ns-resize' : 'default' }}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-    >
-      <div style={{ position: 'relative', width: size, height: size }}>
-        {/* Outer ring — silver channel */}
-        <svg width={size} height={size} viewBox="0 0 40 40" style={{ position: 'absolute', inset: 0 }}>
-          <circle cx="20" cy="20" r="18" fill="none" stroke="rgba(142,151,159,0.2)" strokeWidth="3"/>
-          {/* Arc — silver fill, glows with color at center */}
-          <circle cx="20" cy="20" r="18" fill="none"
-            stroke={isCenter ? color : 'rgba(185,192,199,0.55)'}
-            strokeWidth="2.5"
-            strokeDasharray={`${(localVal / 100) * 113} 200`}
-            strokeDashoffset="85"
-            strokeLinecap="round"
-            style={{ transition: dragging ? 'none' : 'stroke 0.2s',
-              filter: isCenter ? `drop-shadow(0 0 3px ${color}80)` : 'none' }}
-          />
-        </svg>
-        {/* Knob body — dark brushed metal */}
-        <div style={{
-          position: 'absolute', inset: size * 0.12,
-          borderRadius: '50%',
-          background: `radial-gradient(circle at 38% 35%, #2a2e36, #0e1014)`,
-          boxShadow: `inset 0 2px 4px rgba(0,0,0,0.8), inset 0 -1px 0 rgba(185,192,199,0.08),
-            0 0 ${isCenter ? 8 : 0}px ${color}50`,
-          transition: 'box-shadow 0.2s',
-          border: '1px solid rgba(170,179,187,0.12)',
-        }}>
-          {/* Indicator line */}
-          <div style={{
-            position: 'absolute', top: '12%', left: '50%',
-            width: 2, height: '30%',
-            background: color,
-            borderRadius: 1,
-            transformOrigin: `1px ${size * 0.38 * 0.88 * 0.76}px`,
-            transform: `translateX(-50%) rotate(${angle}deg)`,
-            boxShadow: `0 0 4px ${color}`,
-            transition: dragging ? 'none' : 'transform 0.1s',
-          }} />
-        </div>
-      </div>
-      <span style={{ fontFamily: 'monospace', fontSize: '0.26rem', letterSpacing: '0.25em',
-        color: isCenter ? color : 'rgba(255,255,255,0.25)', transition: 'color 0.2s' }}>
-        {label}
-      </span>
-    </div>
-  );
-}
-
-/* ─── Crate / Track Strip ────────────────────────────────── */
-function CrateStrip({ tracks, query, onQuery, loadedLeft, loadedRight, onDragStart, onDragEnd, onLoad }: {
-  tracks: Track[];
-  query: string;
-  onQuery(q: string): void;
-  loadedLeft: Track | null;
-  loadedRight: Track | null;
-  onDragStart(t: Track): void;
-  onDragEnd(): void;
-  onLoad(side: 'left'|'right', t: Track): void;
-}) {
-  return (
-    <div style={{ marginTop: 10 }}>
-      {/* Crate header + search */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 10,
-        padding: '6px 10px', borderRadius: '6px 6px 0 0',
-        background: C.panel, border: 'none', borderBottom: 'none',
-      }}>
-        <span style={{ fontFamily: 'monospace', fontSize: '0.32rem', letterSpacing: '0.45em', color: C.dim, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
-          CRATE
-        </span>
-        <input
-          value={query} onChange={e => onQuery(e.target.value)}
-          placeholder="search title · bpm · key"
-          style={{
-            flex: 1, background: 'transparent',
-            border: 'none', outline: 'none',
-            fontFamily: 'monospace', fontSize: '0.36rem', letterSpacing: '0.2em',
-            color: C.text,
-          }}
+        <DJKnob
+          testId="dj-knob-master"
+          label="MASTER"
+          ariaLabel="Master"
+          value={master}
+          size={28}
+          color="#22c55e"
+          defaultValue={75}
+          onChange={onMaster}
+          tapMin={isMobile ? 44 : 0}
         />
-        <span style={{ fontFamily: 'monospace', fontSize: '0.28rem', letterSpacing: '0.3em', color: C.dim }}>
-          {tracks.length} tracks
-        </span>
       </div>
 
-      {/* Column headers */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '32px 1fr 110px 52px 38px 52px 60px',
-        gap: 0, padding: '4px 10px',
-        background: '#0f0f12', border: 'none', borderTop: 'none', borderBottom: 'none',
-      }}>
-        {['#','TITLE','WAVEFORM','BPM','KEY','DUR','DECK'].map(h => (
-          <span key={h} style={{ fontFamily: 'monospace', fontSize: '0.26rem', letterSpacing: '0.35em',
-            color: C.dim, textTransform: 'uppercase' }}>{h}</span>
-        ))}
-      </div>
-
-      {/* Track rows */}
-      <div style={{ border: 'none', borderTop: 'none', borderRadius: '0 0 6px 6px', overflow: 'hidden' }}>
-        {tracks.map((track, i) => (
-          <TrackRow
-            key={track.id}
-            index={i + 1}
-            track={track}
-            isLeft={loadedLeft?.id === track.id}
-            isRight={loadedRight?.id === track.id}
-            onDragStart={() => onDragStart(track)}
-            onDragEnd={onDragEnd}
-            onLoadLeft={() => onLoad('left', track)}
-            onLoadRight={() => onLoad('right', track)}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/* ─── Track Row ──────────────────────────────────────────── */
-const BARS = 52;
-function TrackRow({ index, track, isLeft, isRight, onDragStart, onDragEnd, onLoadLeft, onLoadRight }: {
-  index: number; track: Track; isLeft: boolean; isRight: boolean;
-  onDragStart(): void; onDragEnd(): void;
-  onLoadLeft(): void; onLoadRight(): void;
-}) {
-  const [hov = false, setHov] = useState<boolean>(false);
-  const bars = useMemo(() => generateWaveform(track.id, BARS), [track.id]);
-  const active = isLeft || isRight;
-
-  return (
-    <div
-      draggable
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      style={{
-        display: 'grid',
-        gridTemplateColumns: '32px 1fr 110px 52px 38px 52px 60px',
-        alignItems: 'center', gap: 0,
-        padding: '5px 10px',
-        background: hov ? '#1c1c24' : active ? '#16161e' : '#111114',
-        borderBottom: `1px solid ${C.border}`,
-        cursor: 'grab',
-        transition: 'background 0.15s',
-      }}
-    >
-      {/* Index */}
-      <span style={{ fontFamily: 'monospace', fontSize: '0.3rem', color: C.dim, letterSpacing: '0.2em' }}>
-        {String(index).padStart(2, '0')}
-      </span>
-
-      {/* Title + thumb */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
-        <div style={{ width: 28, height: 28, borderRadius: 3, overflow: 'hidden', flexShrink: 0,
-          border: active ? `1px solid ${isLeft ? C.cyan : C.blue}` : `1px solid ${C.border}` }}>
-          <img src={track.thumb} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        </div>
-        <div style={{ minWidth: 0 }}>
-          <p style={{ fontFamily: 'monospace', fontSize: '0.38rem', letterSpacing: '0.1em',
-            color: active ? (isLeft ? C.cyan : C.blue) : C.text,
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            transition: 'color 0.3s',
-          }}>{track.title}</p>
-        </div>
-      </div>
-
-      {/* Waveform */}
-      <svg width="110" height="26" style={{ display: 'block' }}>
-        {bars.map((h, i) => {
-          const barH = Math.max(2, h * 24);
-          const x = (i / BARS) * 110;
-          const barW = (110 / BARS) * 0.7;
-          return (
-            <rect key={i}
-              x={x} y={(26 - barH) / 2} width={barW} height={barH}
-              fill={active ? `${isLeft ? C.cyan : C.blue}CC` : 'rgba(255,255,255,0.2)'}
-              rx="0.5"
-            />
-          );
-        })}
-      </svg>
-
-      {/* BPM */}
-      <span style={{ fontFamily: 'monospace', fontSize: '0.42rem', letterSpacing: '0.05em',
-        color: C.text, textAlign: 'center' as const }}>
-        {track.bpm}
-      </span>
-
-      {/* Key */}
-      <span style={{ fontFamily: 'monospace', fontSize: '0.38rem', letterSpacing: '0.05em',
-        color: C.sub, textAlign: 'center' as const }}>
-        {track.key}
-      </span>
-
-      {/* Duration */}
-      <span style={{ fontFamily: 'monospace', fontSize: '0.38rem', letterSpacing: '0.05em',
-        color: C.sub }}>
-        {fmt(track.dur * 1000)}
-      </span>
-
-      {/* Load A / B buttons */}
-      <div style={{ display: 'flex', gap: 4 }}>
-        <button onClick={e => { e.stopPropagation(); onLoadLeft(); }} style={{
-          padding: '2px 5px', borderRadius: 3, border: `1px solid ${C.cyan}00`,
-          background: isLeft ? `${C.cyan}25` : 'transparent',
-          color: isLeft ? C.cyan : C.sub,
-          fontFamily: 'monospace', fontSize: '0.28rem', cursor: 'pointer',
-          letterSpacing: '0.1em',
-        }}>A</button>
-        <button onClick={e => { e.stopPropagation(); onLoadRight(); }} style={{
-          padding: '2px 5px', borderRadius: 3, border: `1px solid ${C.blue}00`,
-          background: isRight ? `${C.blue}25` : 'transparent',
-          color: isRight ? C.blue : C.sub,
-          fontFamily: 'monospace', fontSize: '0.28rem', cursor: 'pointer',
-          letterSpacing: '0.1em',
-        }}>B</button>
-      </div>
     </div>
   );
 }
 
 /* ─── Atoms ──────────────────────────────────────────────── */
-function MKnob({ size = 28, lit }: { size?: number; lit?: boolean }) {
-  return (
-    <div style={{ position: 'relative', width: size, height: size, cursor: 'pointer' }}>
-      {lit && <div style={{ position: 'absolute', inset: -4, borderRadius: '50%',
-        background: `radial-gradient(circle, ${C.cyan}20 0%, transparent 70%)`, filter: 'blur(4px)' }} />}
-      <div style={{
-        width: '100%', height: '100%', borderRadius: '50%',
-        background: 'radial-gradient(circle at 33% 28%, #484850 0%, #282830 45%, #141418 100%)',
-        boxShadow: `0 ${size * .1}px ${size * .25}px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1)`,
-        border: 'none', position: 'relative',
-      }}>
-        <div style={{
-          position: 'absolute', width: Math.max(2, size * .09), height: Math.max(3, size * .24),
-          borderRadius: 2, top: size * .08, left: '50%', transform: 'translateX(-50%)',
-          background: lit ? C.cyan : 'rgba(255,255,255,0.38)',
-          boxShadow: lit ? `0 0 6px ${C.cyan}` : 'none',
-        }} />
-      </div>
-    </div>
-  );
-}
-
-function PitchFader({ pitch, onChange }: { pitch: number; onChange(v: number): void }) {
-  const pct = 50 - (pitch / 8) * 44;
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flex: 1 }}>
-      <p style={{ fontFamily: 'monospace', fontSize: '0.26rem', letterSpacing: '0.4em', color: C.dim }}>PITCH</p>
-      <div style={{ position: 'relative', width: 14, height: 78 }}>
-        <div style={{ position: 'absolute', left: 5, width: 4, height: '100%', borderRadius: 3,
-          background: '#0a0c0f',
-          boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(170,179,187,0.1)' }} />
-        <div style={{ position: 'absolute', left: 2, width: 10, top: '50%', height: 1,
-          background: `rgba(170,179,187,0.25)` }} />
-        <input type="range" min={-8} max={8} step={0.1} value={pitch} onChange={e => onChange(+e.target.value)}
-          style={{ writingMode: 'vertical-lr', direction: 'rtl', position: 'absolute',
-            height: '100%', width: 30, left: -8, opacity: 0, cursor: 'pointer', margin: 0 }} />
-        <div style={{
-          position: 'absolute', width: 26, height: 11, top: `calc(${pct}% - 5.5px)`, left: -6,
-          borderRadius: 2, pointerEvents: 'none',
-          background: 'linear-gradient(160deg, #d9e0e6 0%, #b9c0c7 30%, #8e979f 65%, #72797f 100%)',
-          boxShadow: '0 2px 7px rgba(0,0,0,0.8), inset 0 1px 0 rgba(217,224,230,0.7)',
-          border: '1px solid rgba(100,108,116,0.55)',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
-        }}>
-          {[0,1].map(i => <div key={i} style={{ width: '55%', height: 1,
-            background: 'rgba(0,0,0,0.18)', borderBottom: '1px solid rgba(255,255,255,0.2)' }} />)}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function VU({ level }: { level: number }) {
   const n = Math.min(1, level * 3.6);
   return (
@@ -1903,15 +1522,18 @@ function VU({ level }: { level: number }) {
   );
 }
 
-function EngineStatus({ ready, a, b, recording, exportReady }: {
-  ready: boolean; a: boolean; b: boolean; recording: boolean; exportReady: boolean;
+function EngineStatus({ ready, a, b, playingA, playingB, recording, exportReady, vuA, vuB, vuM }: {
+  ready: boolean; a: boolean; b: boolean; playingA: boolean; playingB: boolean;
+  recording: boolean; exportReady: boolean; vuA: number; vuB: number; vuM: number;
 }) {
   const bits: Array<[string, boolean]> = [
-    ['audio ready', ready],
-    ['deck A loaded', a],
-    ['deck B loaded', b],
-    ['recording', recording],
-    ['export ready', exportReady],
+    ['Ready', ready],
+    ['A', a],
+    ['B', b],
+    ['Play A', playingA],
+    ['Play B', playingB],
+    ['Rec', recording],
+    ['Export', exportReady],
   ];
   return (
     <p
@@ -1919,13 +1541,18 @@ function EngineStatus({ ready, a, b, recording, exportReady }: {
       data-ready={ready ? 'true' : 'false'}
       data-deck-a={a ? 'true' : 'false'}
       data-deck-b={b ? 'true' : 'false'}
+      data-playing-a={playingA ? 'true' : 'false'}
+      data-playing-b={playingB ? 'true' : 'false'}
       data-recording={recording ? 'true' : 'false'}
       data-export-ready={exportReady ? 'true' : 'false'}
+      data-vu-a={String(Math.round(vuA * 1000))}
+      data-vu-b={String(Math.round(vuB * 1000))}
+      data-vu-m={String(Math.round(vuM * 1000))}
       style={{
-        margin: '0 0 8px',
+        margin: '0 0 10px',
         fontFamily: 'monospace',
-        fontSize: '0.32rem',
-        letterSpacing: '0.08em',
+        fontSize: 12,
+        letterSpacing: '0.04em',
         color: C.dim,
         display: 'flex',
         flexWrap: 'wrap',
