@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-08-18T07:04:07.364Z",
+  "ranAt": "2026-08-18T13:07:32.459Z",
   "nitterBases": [
     "https://nitter.net"
   ],
@@ -22,36 +22,43 @@
     },
     {
       "screenName": "SemiAnalysis_",
-      "rssCount": 15,
-      "missing": [
-        "2089587226027905444",
-        "2089528969456480579",
-        "2089528971293553011"
-      ],
-      "skippedOffWatchlist": [],
-      "ingested": [
-        "2089587226027905444",
-        "2089528969456480579",
-        "2089528971293553011"
-      ],
-      "failed": []
-    },
-    {
-      "screenName": "SKundojjala",
-      "rssCount": 19,
-      "missing": [],
-      "skippedOffWatchlist": [],
-      "ingested": [],
-      "failed": []
-    },
-    {
-      "screenName": "aaronburnett",
       "rssCount": 0,
       "missing": [],
       "skippedOffWatchlist": [],
       "ingested": [],
       "failed": [],
-      "error": "empty RSS from https://nitter.net/aaronburnett/rss (bytes=3245)"
+      "error": "empty RSS from https://nitter.net/SemiAnalysis_/rss (bytes=3249)"
+    },
+    {
+      "screenName": "SKundojjala",
+      "rssCount": 20,
+      "missing": [
+        "2089652505106157872"
+      ],
+      "skippedOffWatchlist": [],
+      "ingested": [
+        "2089652505106157872"
+      ],
+      "failed": []
+    },
+    {
+      "screenName": "aaronburnett",
+      "rssCount": 20,
+      "missing": [
+        "2089686426593943925",
+        "2089535659086069945",
+        "2089534128861655431",
+        "2089468519742079267"
+      ],
+      "skippedOffWatchlist": [
+        "ApoStructura/2089468519742079267"
+      ],
+      "ingested": [
+        "2089686426593943925",
+        "2089535659086069945",
+        "2089534128861655431"
+      ],
+      "failed": []
     },
     {
       "screenName": "mach33",
@@ -63,12 +70,21 @@
     },
     {
       "screenName": "VladSaigau",
-      "rssCount": 0,
-      "missing": [],
-      "skippedOffWatchlist": [],
+      "rssCount": 14,
+      "missing": [
+        "2088666284645138780",
+        "2087965709930569758",
+        "2084397350588658070",
+        "2083268172602372368"
+      ],
+      "skippedOffWatchlist": [
+        "TeslaLarry/2088666284645138780",
+        "shaunmmaguire/2087965709930569758",
+        "CernBasher/2084397350588658070",
+        "elonmusk/2083268172602372368"
+      ],
       "ingested": [],
-      "failed": [],
-      "error": "empty RSS from https://nitter.net/VladSaigau/rss (bytes=3237)"
+      "failed": []
     }
   ]
 }

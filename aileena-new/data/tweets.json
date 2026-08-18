@@ -15220,5 +15220,104 @@
     "tags": [],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-18T07:04:12.540Z"
+  },
+  {
+    "id": "2089652505106157872",
+    "url": "https://x.com/SKundojjala/status/2089652505106157872",
+    "screenName": "SKundojjala",
+    "authorId": "379092222",
+    "authorName": "Sravan Kundojjala",
+    "text": "Apple moves onto N2 at 1.5x the pace of its N3 and N5 ramps, even though N2 wafers start nearly 50% above where N3 started. Apple will still be the anchor N2 customer for TSMC, despite near simultaneous adoption from AMD, Qualcomm and MediaTek.",
+    "createdAt": "Tue Aug 18 09:55:55 +0000 2026",
+    "createdTimestamp": 1787046955,
+    "likes": 10,
+    "retweets": 0,
+    "replies": 0,
+    "bookmarks": 0,
+    "views": 2746,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-18T13:07:36.499Z"
+  },
+  {
+    "id": "2089686426593943925",
+    "url": "https://x.com/aaronburnett/status/2089686426593943925",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "This may help explain a small portion of the “why don’t we just do it in the ocean” that regularly comes as rebuttal for literally every thing that we want to put space.",
+    "createdAt": "Tue Aug 18 12:10:43 +0000 2026",
+    "createdTimestamp": 1787055043,
+    "likes": 54,
+    "retweets": 6,
+    "replies": 1,
+    "bookmarks": 5,
+    "views": 2005,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HQAOuqOXsAANKmL.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-18T13:07:39.613Z"
+  },
+  {
+    "id": "2089535659086069945",
+    "url": "https://x.com/aaronburnett/status/2089535659086069945",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Come on, Matt. You’re building Starship Launchpads you were ruined for other jobs the moment you signed the contract. Congrats! Some the most meaningful work in the world imo",
+    "createdAt": "Tue Aug 18 02:11:37 +0000 2026",
+    "createdTimestamp": 1787019097,
+    "likes": 275,
+    "retweets": 9,
+    "replies": 5,
+    "bookmarks": 5,
+    "views": 13820,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-18T13:07:41.094Z"
+  },
+  {
+    "id": "2089534128861655431",
+    "url": "https://x.com/aaronburnett/status/2089534128861655431",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Please note the @mach33 account got hit with a pretty convincing phishing scheme and has been hacked. We’re messaged with @X support to get it locked down but in the meantime please don’t fall for fraudulent claims whether posted or in DMs. Particularly about mach33 related coins/crypto. This is not us.\n\nBe on the lookout for fake copyright claims. This fooled two of us on the team. It’s surprisingly good",
+    "createdAt": "Tue Aug 18 02:05:32 +0000 2026",
+    "createdTimestamp": 1787018732,
+    "likes": 46,
+    "retweets": 2,
+    "replies": 10,
+    "bookmarks": 2,
+    "views": 2879,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-18T13:07:42.610Z"
   }
 ]
