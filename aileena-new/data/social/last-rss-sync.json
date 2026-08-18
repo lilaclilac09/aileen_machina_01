@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-08-18T13:07:32.459Z",
+  "ranAt": "2026-08-18T18:55:42.893Z",
   "nitterBases": [
     "https://nitter.net"
   ],
@@ -32,41 +32,42 @@
     {
       "screenName": "SKundojjala",
       "rssCount": 20,
-      "missing": [
-        "2089652505106157872"
-      ],
+      "missing": [],
       "skippedOffWatchlist": [],
-      "ingested": [
-        "2089652505106157872"
-      ],
+      "ingested": [],
       "failed": []
     },
     {
       "screenName": "aaronburnett",
-      "rssCount": 20,
+      "rssCount": 19,
       "missing": [
-        "2089686426593943925",
-        "2089535659086069945",
-        "2089534128861655431",
+        "2089781227284779263",
+        "2089774402489528569",
+        "2089752294791500126",
+        "2089747176259780882",
+        "2089710080539119784",
         "2089468519742079267"
       ],
       "skippedOffWatchlist": [
         "ApoStructura/2089468519742079267"
       ],
       "ingested": [
-        "2089686426593943925",
-        "2089535659086069945",
-        "2089534128861655431"
+        "2089781227284779263",
+        "2089774402489528569",
+        "2089752294791500126",
+        "2089747176259780882",
+        "2089710080539119784"
       ],
       "failed": []
     },
     {
       "screenName": "mach33",
-      "rssCount": 18,
+      "rssCount": 0,
       "missing": [],
       "skippedOffWatchlist": [],
       "ingested": [],
-      "failed": []
+      "failed": [],
+      "error": "empty RSS from https://nitter.net/mach33/rss (bytes=3221)"
     },
     {
       "screenName": "VladSaigau",

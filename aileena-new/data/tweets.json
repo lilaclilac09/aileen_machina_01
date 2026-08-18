@@ -15319,5 +15319,134 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-18T13:07:42.610Z"
+  },
+  {
+    "id": "2089781227284779263",
+    "url": "https://x.com/aaronburnett/status/2089781227284779263",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "decisions, decisions",
+    "createdAt": "Tue Aug 18 18:27:25 +0000 2026",
+    "createdTimestamp": 1787077645,
+    "likes": 19,
+    "retweets": 2,
+    "replies": 3,
+    "bookmarks": 0,
+    "views": 758,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HQBk1hwXUAAdefW.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-18T18:55:48.183Z"
+  },
+  {
+    "id": "2089774402489528569",
+    "url": "https://x.com/aaronburnett/status/2089774402489528569",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Just going to help Polymarket and Kalshi with this one… \n\nBreaking: Elon says space is big.",
+    "createdAt": "Tue Aug 18 18:00:18 +0000 2026",
+    "createdTimestamp": 1787076018,
+    "likes": 48,
+    "retweets": 3,
+    "replies": 6,
+    "bookmarks": 0,
+    "views": 2730,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-18T18:55:49.764Z"
+  },
+  {
+    "id": "2089752294791500126",
+    "url": "https://x.com/aaronburnett/status/2089752294791500126",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Just imagine economists from the 1600s arguing about the max GDP of the western hemisphere as a % of UK GDP.  Now that’s funny and obvious. Same for space but space has many orders of magnitude more energy and mass to turn into productivity. It’s just a matter of when, and things are accelerating",
+    "createdAt": "Tue Aug 18 16:32:27 +0000 2026",
+    "createdTimestamp": 1787070747,
+    "likes": 528,
+    "retweets": 50,
+    "replies": 57,
+    "bookmarks": 36,
+    "views": 912734,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-18T18:55:51.222Z"
+  },
+  {
+    "id": "2089747176259780882",
+    "url": "https://x.com/aaronburnett/status/2089747176259780882",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "this number just keeps moving up used to be 1.8T by 2040. I expect we hit it by 2030 instead of 2035.",
+    "createdAt": "Tue Aug 18 16:12:07 +0000 2026",
+    "createdTimestamp": 1787069527,
+    "likes": 85,
+    "retweets": 4,
+    "replies": 5,
+    "bookmarks": 3,
+    "views": 8494,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-18T18:55:52.645Z"
+  },
+  {
+    "id": "2089710080539119784",
+    "url": "https://x.com/aaronburnett/status/2089710080539119784",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Starship floats! Coming to a SpaceX merch store near you!",
+    "createdAt": "Tue Aug 18 13:44:42 +0000 2026",
+    "createdTimestamp": 1787060682,
+    "likes": 135,
+    "retweets": 11,
+    "replies": 7,
+    "bookmarks": 2,
+    "views": 8587,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-18T18:55:54.060Z"
   }
 ]
