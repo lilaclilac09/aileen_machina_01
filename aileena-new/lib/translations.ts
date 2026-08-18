@@ -359,6 +359,7 @@ export const t = {
       { href: '/', label: 'Home', hint: 'desk' },
       { href: '/doors', label: 'Doors', hint: 'directory' },
       { href: '/sound', label: 'DJ', hint: 'sound' },
+      { href: '/daily', label: 'Daily', hint: 'notes' },
       { href: '/blog/watch-listening-shelf', label: 'Shelf', hint: 'films · podcasts' },
       { href: '/updates', label: 'Metal & Pages', hint: 'book club · visual' },
       { href: '/dispatch', label: 'Dispatch', hint: 'essays · news' },
@@ -376,6 +377,7 @@ export const t = {
       djCta: 'Enter /sound',
       doors: [
         { href: '/sound', label: 'DJ', hint: 'sound · decks', id: 'hub-dj' },
+        { href: '/daily', label: 'Daily', hint: 'notes · bubbles', id: 'hub-daily' },
         { href: '/blog/watch-listening-shelf', label: 'Shelf', hint: 'films · podcasts · living' },
         { href: '/updates', label: 'Metal & Pages', hint: 'book club · visual' },
         { href: '/dispatch', label: 'Dispatch', hint: 'essays · news' },
@@ -1223,6 +1225,7 @@ export const t = {
       { href: '/', label: 'Home', hint: 'Schreibtisch' },
       { href: '/doors', label: 'Doors', hint: 'Verzeichnis' },
       { href: '/sound', label: 'DJ', hint: 'Sound' },
+      { href: '/daily', label: 'Daily', hint: 'Notizen' },
       { href: '/blog/watch-listening-shelf', label: 'Regal', hint: 'Filme · Podcasts' },
       { href: '/updates', label: 'Metal & Pages', hint: 'Buchclub · Visual' },
       { href: '/dispatch', label: 'Dispatch', hint: 'Essays · News' },
@@ -1240,6 +1243,7 @@ export const t = {
       djCta: '/sound betreten',
       doors: [
         { href: '/sound', label: 'DJ', hint: 'Sound · Decks', id: 'hub-dj' },
+        { href: '/daily', label: 'Daily', hint: 'Notizen · Blasen', id: 'hub-daily' },
         { href: '/blog/watch-listening-shelf', label: 'Regal', hint: 'Filme · Podcasts · Living' },
         { href: '/updates', label: 'Metal & Pages', hint: 'Buchclub · Visual' },
         { href: '/dispatch', label: 'Dispatch', hint: 'Essays · News' },

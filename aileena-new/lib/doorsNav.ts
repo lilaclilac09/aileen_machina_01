@@ -6,6 +6,7 @@
 /** Doors section hubs — chrome back → /doors. */
 const DOORS_SECTION_HUBS = new Set([
   '/sound',
+  '/daily',
   '/dispatch',
   '/updates',
   '/tools',
