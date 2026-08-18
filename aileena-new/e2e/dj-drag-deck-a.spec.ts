@@ -16,6 +16,13 @@ async function html5Drag(page: Page, source: Locator, target: Locator, phase: 'o
   await page.evaluate(
     ({ sourceEl, targetEl, phase: p }) => {
       const dt = new DataTransfer();
+      const id = sourceEl.getAttribute('data-track-id') || '';
+      try {
+        dt.setData('text/plain', id);
+        dt.effectAllowed = 'copy';
+      } catch {
+        /* ignore */
+      }
       const fire = (el: Element, type: string) => {
         const ev = new DragEvent(type, {
           bubbles: true,
@@ -25,8 +32,11 @@ async function html5Drag(page: Page, source: Locator, target: Locator, phase: 'o
         el.dispatchEvent(ev);
       };
       fire(sourceEl, 'dragstart');
-      fire(targetEl, 'dragenter');
-      fire(targetEl, 'dragover');
+      const over = new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: dt });
+      targetEl.dispatchEvent(over);
+      if (!over.defaultPrevented) {
+        over.preventDefault();
+      }
       if (p === 'drop') {
         fire(targetEl, 'drop');
         fire(sourceEl, 'dragend');
@@ -80,6 +90,7 @@ test.describe('DJ carousel → decks', () => {
     await page.addInitScript(() => {
       window.localStorage.removeItem('aileena_sound_spotify_carousel_v1');
     });
+    await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/sound', { waitUntil: 'domcontentloaded' });
     await expect(page.getByTestId('dj-engine-status')).toBeVisible({ timeout: 20_000 });
 
@@ -130,6 +141,7 @@ test.describe('DJ carousel → decks', () => {
     await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-playing-a', 'true');
     await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-playing-b', 'true');
 
+    await page.getByTestId('spotify-search').scrollIntoViewIfNeeded();
     await page.getByTestId('spotify-search-input').fill('muse');
     await expect(page.getByTestId('spotify-search-hit')).toBeVisible({ timeout: 8_000 });
     await page.getByTestId('spotify-search-add').first().click();
@@ -137,8 +149,15 @@ test.describe('DJ carousel → decks', () => {
     await expect(page.locator('[data-testid="dj-carousel-card"][data-source="spotify"]')).toBeVisible({
       timeout: 8_000,
     });
+    const spotifyCard = page.locator('[data-testid="dj-carousel-card"][data-source="spotify"]');
+    await html5Drag(page, spotifyCard, deckA, 'over');
+    await expect(page.getByTestId('dj-drop-hint-a')).toContainText(/Reference only/i);
+    await html5Drag(page, spotifyCard, deckA, 'drop');
+    await expect(page.getByTestId('dj-deck-hint')).toContainText('Reference only.');
     await page.getByTestId('dj-carousel-load-a').click();
     await expect(page.getByTestId('dj-deck-hint')).toContainText('Reference only.');
     await page.screenshot({ path: `${ARTIFACTS}/reference-only-toast.png` });
+    await expect(deckA).toHaveAttribute('data-mix-loaded', 'true');
+    await expect(page.getByTestId('dj-play-a')).toBeEnabled();
   });
 });

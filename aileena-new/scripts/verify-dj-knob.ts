@@ -14,6 +14,7 @@ import {
   pointerToKnobValue,
   valueToAngle,
 } from '../lib/djKnob';
+import { isMixableTrack, isReferenceTrack } from '../lib/djLoadTrack';
 
 type Check = { name: string; ok: boolean; detail?: string };
 
@@ -134,6 +135,15 @@ function run(): Check[] {
       && station.includes('Drop to Deck A')
       && station.includes('Drop to Deck B'),
   ));
+  checks.push(check(
+    'whole deck card is the drop target',
+    station.includes("data-testid={side === 'left' ? 'dj-deck-a-drop'")
+      && station.includes('onDrop={onDrop}')
+      && station.includes('Drop to Deck A'),
+  ));
+  checks.push(check('tone with audioSrc is mixable', isMixableTrack({ audioSrc: '/dj-set/audio/tone-a.wav', mixable: true })));
+  checks.push(check('spotify search card is reference', isReferenceTrack({ source: 'spotify', previewUrl: 'https://p.scdn.co/x' }) && !isMixableTrack({ source: 'spotify', previewUrl: 'https://p.scdn.co/x' })));
+  checks.push(check('preview-only is not mixable', !isMixableTrack({ previewUrl: 'https://p.scdn.co/x' }) && isReferenceTrack({ previewUrl: 'https://p.scdn.co/x' })));
   checks.push(check('platter is display-only', station.includes('scratch v2') && station.includes("pointerEvents: 'none'")));
   return checks;
 }

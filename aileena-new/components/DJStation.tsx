@@ -420,8 +420,16 @@ export default function DJStation() {
     setDropBlocked(!fromFiles && !!t && !isMixableTrack(t));
   }, []);
 
+  const endDeckDrag = useCallback((e: React.DragEvent) => {
+    const next = e.relatedTarget as Node | null;
+    if (next && e.currentTarget.contains(next)) return;
+    setDropSide(null);
+    setDropBlocked(false);
+  }, []);
+
   const dropOnDeck = useCallback((side: 'left' | 'right', e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     const file = takeAudioFile(e);
     if (file) {
       void loadTrackToDeck(file, side);
@@ -558,7 +566,7 @@ export default function DJStation() {
               loopBars={mix.deckA.loopBars} hotCues={mix.deckA.hotCues}
               syncEnabled={!!(leftBpm && rightBpm)} loopBarsEnabled={!!leftBpm}
               onDragOver={(e) => beginDeckDragOver('left', e)}
-              onDragLeave={() => { setDropSide(null); setDropBlocked(false); }}
+              onDragLeave={endDeckDrag}
               onDrop={(e) => dropOnDeck('left', e)}
               onToggle={() => void toggleDeck('left')}
               onPitch={v => mix.setPitch('left', v)}
@@ -592,7 +600,7 @@ export default function DJStation() {
               loopBars={mix.deckB.loopBars} hotCues={mix.deckB.hotCues}
               syncEnabled={!!(leftBpm && rightBpm)} loopBarsEnabled={!!rightBpm}
               onDragOver={(e) => beginDeckDragOver('right', e)}
-              onDragLeave={() => { setDropSide(null); setDropBlocked(false); }}
+              onDragLeave={endDeckDrag}
               onDrop={(e) => dropOnDeck('right', e)}
               onToggle={() => void toggleDeck('right')}
               onPitch={v => mix.setPitch('right', v)}
@@ -621,7 +629,7 @@ export default function DJStation() {
               loopBars={mix.deckA.loopBars} hotCues={mix.deckA.hotCues}
               syncEnabled={!!(leftBpm && rightBpm)} loopBarsEnabled={!!leftBpm}
               onDragOver={(e) => beginDeckDragOver('left', e)}
-              onDragLeave={() => { setDropSide(null); setDropBlocked(false); }}
+              onDragLeave={endDeckDrag}
               onDrop={(e) => dropOnDeck('left', e)}
               onToggle={() => void toggleDeck('left')}
               onPitch={v => mix.setPitch('left', v)}
@@ -655,7 +663,7 @@ export default function DJStation() {
               loopBars={mix.deckB.loopBars} hotCues={mix.deckB.hotCues}
               syncEnabled={!!(leftBpm && rightBpm)} loopBarsEnabled={!!rightBpm}
               onDragOver={(e) => beginDeckDragOver('right', e)}
-              onDragLeave={() => { setDropSide(null); setDropBlocked(false); }}
+              onDragLeave={endDeckDrag}
               onDrop={(e) => dropOnDeck('right', e)}
               onToggle={() => void toggleDeck('right')}
               onPitch={v => mix.setPitch('right', v)}
@@ -771,7 +779,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, dro
   loopActive: boolean; loopIn: number | null; loopOut: number | null; loopBars: number | null;
   hotCues: Array<number | null>;
   syncEnabled: boolean; loopBarsEnabled: boolean;
-  onDragOver(e: React.DragEvent): void; onDragLeave(): void; onDrop(e: React.DragEvent): void;
+  onDragOver(e: React.DragEvent): void; onDragLeave(e: React.DragEvent): void; onDrop(e: React.DragEvent): void;
   onToggle(): void; onPitch(v: number): void; onGain(v: number): void;
   onSeek(sec: number): void; onCue(): void; onAssignFile(file: File): void; onUnlock(): void;
   onLoopIn(): void; onLoopOut(): void; onLoopBars(n: number): void; onLoopExit(): void;
@@ -800,30 +808,39 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, dro
   const tipY   = playing ? D * 0.26 : D * 0.0;
 
   return (
-    <div style={{
+    <div
+      data-testid={side === 'left' ? 'dj-deck-a-drop' : 'dj-deck-b-drop'}
+      data-deck-side={side}
+      data-mix-loaded={mixLoaded ? 'true' : 'false'}
+      data-drop-blocked={dropActive && dropBlocked ? 'true' : 'false'}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+      style={{
       display: 'flex', flexDirection: isMobile ? 'row' : 'column',
       gap: isMobile ? 10 : 5, alignItems: isMobile ? 'flex-start' : 'stretch',
-      opacity: 0.4 + 0.6 * dim, transition: 'opacity 0.4s ease',
+      opacity: 0.4 + 0.6 * dim, transition: 'opacity 0.4s ease, box-shadow 0.15s, border-color 0.15s',
+      position: 'relative',
+      borderRadius: 10,
+      border: dropActive
+        ? `1px solid ${dropBlocked ? 'rgba(255,155,94,0.7)' : 'rgba(0,168,157,0.75)'}`
+        : '1px solid transparent',
+      boxShadow: dropActive
+        ? (dropBlocked ? '0 0 18px rgba(255,155,94,0.18)' : '0 0 18px rgba(0,168,157,0.28)')
+        : 'none',
     }}>
 
-      {/* Platter drop zone */}
+      {/* Platter */}
       <div
-        data-testid={side === 'left' ? 'dj-deck-a-drop' : 'dj-deck-b-drop'}
-        data-deck-side={side}
-        data-mix-loaded={mixLoaded ? 'true' : 'false'}
-        data-drop-blocked={dropActive && dropBlocked ? 'true' : 'false'}
-        onDragOver={onDragOver}
-        onDragLeave={onDragLeave}
-        onDrop={onDrop}
         style={{
         position: 'relative', height: D + 16, borderRadius: 10,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         background: C.bg,
         border: dropActive
-          ? `1px solid ${dropBlocked ? 'rgba(255,155,94,0.7)' : 'rgba(0,168,157,0.75)'}`
+          ? `1px solid ${dropBlocked ? 'rgba(255,155,94,0.7)' : 'rgba(0,168,157,0.5)'}`
           : `1px solid rgba(170,179,187,0.12)`,
         boxShadow: dropActive
-          ? (dropBlocked ? 'inset 0 0 30px rgba(255,155,94,0.12)' : 'inset 0 0 30px rgba(0,168,157,0.18), 0 0 18px rgba(0,168,157,0.22)')
+          ? (dropBlocked ? 'inset 0 0 30px rgba(255,155,94,0.12)' : 'inset 0 0 30px rgba(0,168,157,0.18)')
           : 'none',
         transition: 'border 0.15s, box-shadow 0.15s',
       }}>
@@ -976,31 +993,6 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, dro
             </svg>
           </div>
         )}
-        {dropActive && (
-          <div
-            data-testid={side === 'left' ? 'dj-drop-hint-a' : 'dj-drop-hint-b'}
-            style={{
-              position: 'absolute',
-              inset: 0,
-              zIndex: 6,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: 10,
-              background: dropBlocked ? 'rgba(11,13,16,0.78)' : 'rgba(0,20,18,0.72)',
-              pointerEvents: 'none',
-              fontFamily: 'monospace',
-              fontSize: 14,
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              color: dropBlocked ? '#ff9b5e' : '#00a89d',
-              textAlign: 'center',
-              padding: 8,
-            }}
-          >
-            {dropBlocked ? 'Reference only' : (side === 'left' ? 'Drop to Deck A' : 'Drop to Deck B')}
-          </div>
-        )}
       </div>
 
       {/* Info + Controls wrapper — takes remaining space on mobile */}
@@ -1048,6 +1040,8 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, dro
         <label
           data-testid={side === 'left' ? 'dj-load-file-a' : 'dj-load-file-b'}
           onPointerDown={onUnlock}
+          onDragOver={onDragOver}
+          onDrop={onDrop}
           style={{
             position: 'relative',
             alignSelf: 'flex-start',
@@ -1190,6 +1184,31 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, dro
       />
 
       </div>{/* end info+controls wrapper */}
+      {dropActive && (
+        <div
+          data-testid={side === 'left' ? 'dj-drop-hint-a' : 'dj-drop-hint-b'}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 6,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 10,
+            background: dropBlocked ? 'rgba(11,13,16,0.78)' : 'rgba(0,20,18,0.72)',
+            pointerEvents: 'none',
+            fontFamily: 'monospace',
+            fontSize: 14,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: dropBlocked ? '#ff9b5e' : '#00a89d',
+            textAlign: 'center',
+            padding: 8,
+          }}
+        >
+          {dropBlocked ? 'Reference only' : (side === 'left' ? 'Drop to Deck A' : 'Drop to Deck B')}
+        </div>
+      )}
     </div>
   );
 }

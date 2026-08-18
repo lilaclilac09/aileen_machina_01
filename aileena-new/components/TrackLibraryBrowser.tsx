@@ -389,7 +389,16 @@ function ListTrackRow({ index, track, isPlayingLeft, isPlayingRight, pos, dur,
   return (
     <div
       draggable={true}
-      onDragStart={() => onSetDragTrack?.(track)}
+      data-mixable={isMixableTrack(track) ? 'true' : 'false'}
+      onDragStart={(e) => {
+        onSetDragTrack?.(track);
+        try {
+          e.dataTransfer.setData('text/plain', track.id);
+          e.dataTransfer.effectAllowed = 'copy';
+        } catch {
+          /* some browsers throw on setData during tests */
+        }
+      }}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
