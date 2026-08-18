@@ -127,6 +127,7 @@ test.describe('DJ carousel → decks', () => {
     await expect(page.getByTestId('dj-deck-b-status')).toHaveText('Loaded');
     await expect(page.getByTestId('dj-play-b')).toBeEnabled();
     await expect(page.getByTestId('dj-deck-hint')).toContainText('Loaded to B.');
+    await deckB.scrollIntoViewIfNeeded();
     await page.screenshot({ path: `${ARTIFACTS}/deck-b-loaded-from-carousel.png` });
 
     await page.getByTestId('dj-carousel-load-a').click();
