@@ -15146,5 +15146,79 @@
     ],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-18T01:50:16.065Z"
+  },
+  {
+    "id": "2089587226027905444",
+    "url": "https://x.com/SemiAnalysis_/status/2089587226027905444",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "OpenAI just announced a 50% price cut for GPT 5.6 Sol exclusively on OpenRouter and Vercel's AI Gateway. This is potentially a clever marketing ploy. Despite being a very small portion of OAI's total token volumes, OpenRouter and Vercel are disproportionately impactful because they are two of the main datasources everyone uses to estimate AI lab/model market share. If the 50% price cut is able to more than 2x token volumes for 5.6 Sol over the next month, many investors will likely naively view it as a big win for OAI vs Anthropic.",
+    "createdAt": "Tue Aug 18 05:36:31 +0000 2026",
+    "createdTimestamp": 1787031391,
+    "likes": 439,
+    "retweets": 34,
+    "replies": 26,
+    "bookmarks": 79,
+    "views": 33465,
+    "isNoteTweet": true,
+    "linkedUrls": [],
+    "topics": [
+      "optical"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-18T07:04:09.426Z"
+  },
+  {
+    "id": "2089528969456480579",
+    "url": "https://x.com/SemiAnalysis_/status/2089528969456480579",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "There are a lot of haters of @elonmusk, but we believe that, due to Elon's first-principles engineering, SpaceX has likely found a handful of sites to deploy the remaining GW, and the 10GW 2027 target is within reach.\n\nElon is singular in his ability to do what haters & doubters think is impossible. (1/2)🧵",
+    "createdAt": "Tue Aug 18 01:45:02 +0000 2026",
+    "createdTimestamp": 1787017502,
+    "likes": 1490,
+    "retweets": 106,
+    "replies": 58,
+    "bookmarks": 330,
+    "views": 154101,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HP9_hltWEAEzbE6.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "spacex"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-18T07:04:11.085Z"
+  },
+  {
+    "id": "2089528971293553011",
+    "url": "https://x.com/SemiAnalysis_/status/2089528971293553011",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "@elonmusk We wrote more about this and flex on the haters here👇️ (2/2) https://newsletter.semianalysis.com/p/spacex-10gw-in-2027-why-its-real",
+    "createdAt": "Tue Aug 18 01:45:02 +0000 2026",
+    "createdTimestamp": 1787017502,
+    "likes": 163,
+    "retweets": 6,
+    "replies": 0,
+    "bookmarks": 106,
+    "views": 19045,
+    "isNoteTweet": false,
+    "linkedUrls": [
+      "https://newsletter.semianalysis.com/p/spacex-10gw-in-2027-why-its-real"
+    ],
+    "topics": [
+      "spacex"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-18T07:04:12.540Z"
   }
 ]
