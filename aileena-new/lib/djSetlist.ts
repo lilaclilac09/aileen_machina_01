@@ -29,13 +29,41 @@ export type DeckTrack = {
   key: string;
   dur: number;
   thumb: string;
+  /** Same-origin audio for the mix graph (demo / uploaded crate). */
+  audioSrc?: string;
   /** User-added Spotify search card — reference/preview, not mixable. */
   source?: 'spotify';
   previewUrl?: string | null;
   externalUrl?: string;
-  /** False for Spotify reference/preview cards. Omitted = mixable local/crate audio. */
+  /** False for Spotify reference/preview cards. Omitted = mixable when audioSrc is set. */
   mixable?: boolean;
 };
+
+/** Two local tones so carousel → deck has a real mixable source without Spotify. */
+export const DEMO_MIX_TRACKS: DeckTrack[] = [
+  {
+    id: 'LOCAL-TONE-A',
+    title: 'Tone A',
+    artist: 'Sound Lab',
+    bpm: 120,
+    key: '8A',
+    dur: 2,
+    thumb: '',
+    audioSrc: '/dj-set/audio/tone-a.wav',
+    mixable: true,
+  },
+  {
+    id: 'LOCAL-TONE-B',
+    title: 'Tone B',
+    artist: 'Sound Lab',
+    bpm: 120,
+    key: '9A',
+    dur: 2,
+    thumb: '',
+    audioSrc: '/dj-set/audio/tone-b.wav',
+    mixable: true,
+  },
+];
 
 /** Curated handoff five — also mirrored in public/dj-set/setlist.json */
 export const DJ_SET_TRACKS: DjSetTrack[] = [
@@ -416,5 +444,5 @@ export function djSetToDeckTracks(): DeckTrack[] {
 
 /** Everything shown in the /sound deck carousel: handoff five + full library. */
 export function allDeckTracks(): DeckTrack[] {
-  return [...djSetToDeckTracks(), ...DECK_LIBRARY_TRACKS];
+  return [...DEMO_MIX_TRACKS, ...djSetToDeckTracks(), ...DECK_LIBRARY_TRACKS];
 }
