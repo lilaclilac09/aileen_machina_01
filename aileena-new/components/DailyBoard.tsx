@@ -156,9 +156,18 @@ export default function DailyBoard() {
     setBody(todayNote?.body ?? '');
   }, []);
 
+  const owner = Boolean(board?.owner);
+
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${Math.max(120, el.scrollHeight)}px`;
+  }, [body, owner]);
 
   useEffect(() => {
     return () => {
@@ -171,7 +180,6 @@ export default function DailyBoard() {
   const today = board?.today ?? '';
   const latest = notes[0] ?? null;
   const todayNote = notes.find((n) => n.date === today) ?? null;
-  const owner = Boolean(board?.owner);
   const older = owner ? notes.filter((n) => n.date !== today) : notes.slice(1);
   const showDecorativeCaret = !owner || !editing;
   const commentNote = todayNote ?? latest;
@@ -343,13 +351,17 @@ export default function DailyBoard() {
               placeholder="write one or two lines"
               value={body}
               maxLength={DAILY_NOTE_BODY_MAX}
-              rows={3}
+              rows={5}
               onFocus={() => setEditing(true)}
               onBlur={() => {
                 setEditing(false);
                 void saveNote();
               }}
-              onChange={(e) => setBody(e.target.value)}
+              onChange={(e) => {
+                setBody(e.target.value);
+                e.target.style.height = 'auto';
+                e.target.style.height = `${Math.max(96, e.target.scrollHeight)}px`;
+              }}
               onKeyDown={(e) => {
                 if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
                   e.preventDefault();
@@ -360,6 +372,7 @@ export default function DailyBoard() {
                 display: 'block',
                 width: '100%',
                 resize: 'none',
+                overflow: 'hidden',
                 background: 'transparent',
                 border: 'none',
                 outline: 'none',
@@ -370,7 +383,7 @@ export default function DailyBoard() {
                 lineHeight: 1.45,
                 letterSpacing: '-0.01em',
                 padding: 0,
-                minHeight: 96,
+                minHeight: 120,
               }}
             />
             <p style={{ margin: '8px 0 0', fontSize: 11, opacity: 0.4, fontFamily: sans }}>
