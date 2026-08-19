@@ -15784,5 +15784,256 @@
     "tags": [],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-19T07:05:03.459Z"
+  },
+  {
+    "id": "2090138774537740409",
+    "url": "https://x.com/SemiAnalysis_/status/2090138774537740409",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Does anyone know whether the @Etched chip will support @__tinygrad__ out of the box on Day 0 of General Availability?",
+    "createdAt": "Wed Aug 19 18:08:11 +0000 2026",
+    "createdTimestamp": 1787162891,
+    "likes": 112,
+    "retweets": 1,
+    "replies": 20,
+    "bookmarks": 6,
+    "views": 12044,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HQGqI7xWIAAuW3q.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-19T18:52:59.792Z"
+  },
+  {
+    "id": "2090122133036806468",
+    "url": "https://x.com/SemiAnalysis_/status/2090122133036806468",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "For the past 10 years, NVIDIA prevented AMD from upstreaming its code into NVIDIA’s libraries, but over the past 24 months, SemiAnalysis has squashed the beef, and NVIDIA has started accepting AMD PRs into the ultra-important NIXL Inference communication library. We explain below👇️ 1/6🧵",
+    "createdAt": "Wed Aug 19 17:02:03 +0000 2026",
+    "createdTimestamp": 1787158923,
+    "likes": 178,
+    "retweets": 8,
+    "replies": 5,
+    "bookmarks": 51,
+    "views": 21749,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HQGbAAJXUAAwroS.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "inference"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-19T18:53:01.522Z"
+  },
+  {
+    "id": "2090122138174804159",
+    "url": "https://x.com/SemiAnalysis_/status/2090122138174804159",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "AMD has now deprecated its fork and is fully supporting upstream NIXL development. 5/6🧵",
+    "createdAt": "Wed Aug 19 17:02:04 +0000 2026",
+    "createdTimestamp": 1787158924,
+    "likes": 21,
+    "retweets": 1,
+    "replies": 1,
+    "bookmarks": 0,
+    "views": 4915,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HQGbAAKWAAAFS0O.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-19T18:53:03.176Z"
+  },
+  {
+    "id": "2090122139747631181",
+    "url": "https://x.com/SemiAnalysis_/status/2090122139747631181",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "AMD engineers are now landing their code changes directly into NIXL upstream instead of needing to waste dozens of engineering hours every month syncing upstream into their RIXL fork. 6/6🧵",
+    "createdAt": "Wed Aug 19 17:02:05 +0000 2026",
+    "createdTimestamp": 1787158925,
+    "likes": 28,
+    "retweets": 0,
+    "replies": 2,
+    "bookmarks": 2,
+    "views": 4728,
+    "isNoteTweet": false,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HQGbABVWgAAKEQV.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-19T18:53:04.678Z"
+  },
+  {
+    "id": "2090076706543394881",
+    "url": "https://x.com/SemiAnalysis_/status/2090076706543394881",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "The HuggingFace and OpenAI cybersecurity incident raises concerns on AI reward optimization.\n\n\"They're trying to make the model good at cyber. So how does it try to achieve these goals? It tries to find zero days in software, and it successfully does this. And then it can run away.\"\n\n\"If you have a model that wants to reward hack, it figures out the best way to achieve the goal is not what the environment wants. It's to find the zero day.\"\n\n\"You can think of it like a human. If I'm ultimately reward hacking my dopamine circuits, I'd just go out there, buy heroin, and inject it.\"\n\n\"If I really just want to chase the reward, do I just topple all of human civilization? Because I can own the button and press reward, reward, reward over and over again and be the heroin addict.\"",
+    "createdAt": "Wed Aug 19 14:01:33 +0000 2026",
+    "createdTimestamp": 1787148093,
+    "likes": 80,
+    "retweets": 9,
+    "replies": 14,
+    "bookmarks": 22,
+    "views": 20066,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://video.twimg.com/ext_tw_video/2090076597470588929/pu/vid/avc1/1280x720/fUW6SoPqpwKoAY_9.mp4?tag=12"
+    ],
+    "linkedUrls": [],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-19T18:53:06.170Z"
+  },
+  {
+    "id": "2090076707839422529",
+    "url": "https://x.com/SemiAnalysis_/status/2090076707839422529",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "Watch Now: https://youtu.be/Trm74fovjaA?si=qmBThmOzA3gTLgFh",
+    "createdAt": "Wed Aug 19 14:01:33 +0000 2026",
+    "createdTimestamp": 1787148093,
+    "likes": 6,
+    "retweets": 1,
+    "replies": 0,
+    "bookmarks": 3,
+    "views": 8662,
+    "isNoteTweet": false,
+    "linkedUrls": [
+      "https://youtu.be/Trm74fovjaA?si=qmBThmOzA3gTLgFh"
+    ],
+    "topics": [],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-19T18:53:07.610Z"
+  },
+  {
+    "id": "2090125373467980031",
+    "url": "https://x.com/aaronburnett/status/2090125373467980031",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Don’t hedge funds normally pay CC processors beaucoup bucks for this kind of short term alpha?",
+    "createdAt": "Wed Aug 19 17:14:56 +0000 2026",
+    "createdTimestamp": 1787159696,
+    "likes": 4,
+    "retweets": 0,
+    "replies": 0,
+    "bookmarks": 1,
+    "views": 1533,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-19T18:53:12.045Z"
+  },
+  {
+    "id": "2090096697602949369",
+    "url": "https://x.com/aaronburnett/status/2090096697602949369",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "A week ago we discussed Grok Bot on our live. It really feels like the iPhone moment. I think this for two reasons. 1) it’s the most intuitive agent experience 2) it simply just works (grok4.6).\n\nfwiw, I helped a friend of mine set up a brokerage account about 15 years ago, specifically because he wanted to invest in Apple. His only diligence was that he loved his iPhone 4. I regularly think about how smart he was for not overthinking it.",
+    "createdAt": "Wed Aug 19 15:20:59 +0000 2026",
+    "createdTimestamp": 1787152859,
+    "likes": 32,
+    "retweets": 2,
+    "replies": 3,
+    "bookmarks": 3,
+    "views": 2665,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HQGD3qZXgAAfwms.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "mach33"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-19T18:53:13.479Z"
+  },
+  {
+    "id": "2090090494533488992",
+    "url": "https://x.com/aaronburnett/status/2090090494533488992",
+    "screenName": "aaronburnett",
+    "authorId": "331865640",
+    "authorName": "Aaron Burnett",
+    "text": "Only two orders of magnitude left to go to fill out the FCC applications for Starlink and Starmind",
+    "createdAt": "Wed Aug 19 14:56:20 +0000 2026",
+    "createdTimestamp": 1787151380,
+    "likes": 60,
+    "retweets": 4,
+    "replies": 3,
+    "bookmarks": 2,
+    "views": 3240,
+    "isNoteTweet": false,
+    "linkedUrls": [],
+    "topics": [
+      "mach33",
+      "spacex"
+    ],
+    "tags": [
+      "mach33"
+    ],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-19T18:53:14.914Z"
+  },
+  {
+    "id": "2090147896544911464",
+    "url": "https://x.com/VladSaigau/status/2090147896544911464",
+    "screenName": "VladSaigau",
+    "authorId": "1496125256624484362",
+    "authorName": "Vlad Saigau",
+    "text": "Looked into when launch price decreases unlock new space markets. We estimated when 21 uses of a launch vehicle would arrive...against two prices: SpaceX's own cost vs. the minimum market ticket anyone else pays.\n\nMost important thing I learned: the gap between SpaceX and market launch price is vital. SpaceX will prioritise internal launch, and external launch premiums are likely to persist until competition reaches comparable volume.\n\nSpaceX will therefore make the most of the Starship step-change at an internal cost that is years ahead of the market ticket. Every use becomes economical for SpaceX first: for example, the market sees SpaceX's 2029 orbital compute launch costs in 2033. Whatever space segment SpaceX dedicates capacity to is likely to be the best in class for a few years, with that lead reducing over time.",
+    "createdAt": "Wed Aug 19 18:44:26 +0000 2026",
+    "createdTimestamp": 1787165066,
+    "likes": 0,
+    "retweets": 0,
+    "replies": 0,
+    "bookmarks": 0,
+    "views": 118,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HQGyPccXUAArrSJ.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "orbital-compute",
+      "spacex"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-19T18:53:18.904Z"
   }
 ]
