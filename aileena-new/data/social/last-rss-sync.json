@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-08-19T18:52:58.023Z",
+  "ranAt": "2026-08-20T01:51:07.204Z",
   "nitterBases": [
     "https://nitter.net"
   ],
@@ -22,56 +22,33 @@
     },
     {
       "screenName": "SemiAnalysis_",
-      "rssCount": 17,
+      "rssCount": 16,
       "missing": [
-        "2090138774537740409",
-        "2090122133036806468",
-        "2090122138174804159",
-        "2090122139747631181",
-        "2090076706543394881",
-        "2090076707839422529"
+        "2090197436614557797"
       ],
       "skippedOffWatchlist": [],
       "ingested": [
-        "2090138774537740409",
-        "2090122133036806468",
-        "2090122138174804159",
-        "2090122139747631181",
-        "2090076706543394881",
-        "2090076707839422529"
+        "2090197436614557797"
       ],
       "failed": []
     },
     {
       "screenName": "SKundojjala",
-      "rssCount": 20,
+      "rssCount": 0,
       "missing": [],
       "skippedOffWatchlist": [],
       "ingested": [],
-      "failed": []
+      "failed": [],
+      "error": "empty RSS from https://nitter.net/SKundojjala/rss (bytes=3241)"
     },
     {
       "screenName": "aaronburnett",
-      "rssCount": 19,
-      "missing": [
-        "2090125373467980031",
-        "2090096697602949369",
-        "2090090494533488992",
-        "2090046053395402862",
-        "2090002984315097205",
-        "2089821351091798283"
-      ],
-      "skippedOffWatchlist": [
-        "GavinSBaker/2090046053395402862",
-        "cb_doge/2090002984315097205",
-        "elonmusk/2089821351091798283"
-      ],
-      "ingested": [
-        "2090125373467980031",
-        "2090096697602949369",
-        "2090090494533488992"
-      ],
-      "failed": []
+      "rssCount": 0,
+      "missing": [],
+      "skippedOffWatchlist": [],
+      "ingested": [],
+      "failed": [],
+      "error": "empty RSS from https://nitter.net/aaronburnett/rss (bytes=3245)"
     },
     {
       "screenName": "mach33",
@@ -85,7 +62,6 @@
       "screenName": "VladSaigau",
       "rssCount": 14,
       "missing": [
-        "2090147896544911464",
         "2088666284645138780",
         "2087965709930569758",
         "2084397350588658070"
@@ -95,9 +71,7 @@
         "shaunmmaguire/2087965709930569758",
         "CernBasher/2084397350588658070"
       ],
-      "ingested": [
-        "2090147896544911464"
-      ],
+      "ingested": [],
       "failed": []
     }
   ]

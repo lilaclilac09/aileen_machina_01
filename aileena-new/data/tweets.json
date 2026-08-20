@@ -16035,5 +16035,33 @@
     "tags": [],
     "source": "fxtwitter",
     "ingestedAt": "2026-08-19T18:53:18.904Z"
+  },
+  {
+    "id": "2090197436614557797",
+    "url": "https://x.com/SemiAnalysis_/status/2090197436614557797",
+    "screenName": "SemiAnalysis_",
+    "authorId": "1745106082790318080",
+    "authorName": "SemiAnalysis",
+    "text": "TPU🚨 is working with the popular OSS inference optimization library Mooncake on integrating TPU with Mooncake Store. Similar to NVL72, KVCache DRAM P2P pooling will initially happen on the scale-out network via TENT instead of using ICI/NVLink. 🔥 Mooncake basically improves performance per TCO of production inference!",
+    "createdAt": "Wed Aug 19 22:01:17 +0000 2026",
+    "createdTimestamp": 1787176877,
+    "likes": 117,
+    "retweets": 8,
+    "replies": 4,
+    "bookmarks": 27,
+    "views": 18187,
+    "isNoteTweet": true,
+    "mediaUrls": [
+      "https://pbs.twimg.com/media/HQHffgBWMAEz5Rk.jpg?name=orig"
+    ],
+    "linkedUrls": [],
+    "topics": [
+      "inference",
+      "gpu",
+      "ai-cost"
+    ],
+    "tags": [],
+    "source": "fxtwitter",
+    "ingestedAt": "2026-08-20T01:51:09.191Z"
   }
 ]
