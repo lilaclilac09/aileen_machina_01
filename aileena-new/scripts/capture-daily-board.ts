@@ -32,6 +32,11 @@ const OUT = process.env.VERIFY_OUT_DIR ?? '/opt/cursor/artifacts';
 const NOTE =
   'I love part of you and you only like the best part of me\nAnd so are we to the world so you hate me no more';
 
+async function expectValue(page: import('playwright').Page, testId: string, value: string) {
+  const got = await page.locator(`[data-testid="${testId}"]`).inputValue();
+  if (got !== value) throw new Error(`${testId} expected ${JSON.stringify(value)} got ${JSON.stringify(got)}`);
+}
+
 async function waitReady() {
   for (let i = 0; i < 40; i++) {
     try {
@@ -55,11 +60,15 @@ async function main() {
   const visitor = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   const vPage = await visitor.newPage();
   await vPage.goto(`${BASE}/daily`, { waitUntil: 'networkidle' });
+  await vPage.keyboard.press('Escape');
   await vPage.waitForSelector('[data-testid="daily-title"]');
   await vPage.waitForTimeout(400);
-  const empty = await vPage.locator('[data-testid="daily-empty"]').count();
-  if (empty) {
-    await vPage.screenshot({ path: join(OUT, 'daily-empty.png'), fullPage: true });
+  const writer = vPage.locator('[data-testid="daily-owner-textarea"]');
+  if (await writer.count()) {
+    await writer.click();
+    await writer.fill('typing works');
+    await expectValue(vPage, 'daily-owner-textarea', 'typing works');
+    await vPage.screenshot({ path: join(OUT, 'daily-visitor-empty-typing.png'), fullPage: true });
   }
 
   const ownerPost = await fetch(`${BASE}/api/daily/notes`, {
@@ -103,9 +112,14 @@ async function main() {
   ]);
   const oPage = await ownerCtx.newPage();
   await oPage.goto(`${BASE}/daily`, { waitUntil: 'networkidle' });
+  await oPage.keyboard.press('Escape');
   await oPage.waitForSelector('[data-testid="daily-owner-editor"]');
   await oPage.waitForTimeout(400);
   await oPage.screenshot({ path: join(OUT, 'daily-owner-editor.png'), fullPage: true });
+  await oPage.locator('[data-testid="daily-owner-textarea"]').click();
+  await oPage.locator('[data-testid="daily-owner-textarea"]').fill('typing works for owner');
+  await expectValue(oPage, 'daily-owner-textarea', 'typing works for owner');
+  await oPage.screenshot({ path: join(OUT, 'daily-owner-typing.png'), fullPage: true });
   await oPage.locator('[data-testid="daily-theme-controls"]').scrollIntoViewIfNeeded();
   await oPage.screenshot({ path: join(OUT, 'daily-theme-controls.png'), fullPage: true });
 
@@ -116,9 +130,14 @@ async function main() {
   });
   const mv = await mobileV.newPage();
   await mv.goto(`${BASE}/daily`, { waitUntil: 'networkidle' });
+  await mv.keyboard.press('Escape');
   await mv.waitForSelector('[data-testid="daily-latest-body"]');
   await mv.waitForTimeout(400);
   await mv.screenshot({ path: join(OUT, 'mobile-daily-latest.png') });
+  await mv.locator('[data-testid="daily-bubble-input"]').click();
+  await mv.locator('[data-testid="daily-bubble-input"]').fill('typing works');
+  await expectValue(mv, 'daily-bubble-input', 'typing works');
+  await mv.screenshot({ path: join(OUT, 'mobile-daily-bubble-typing.png') });
   await mv.locator('[data-testid="daily-comments"]').scrollIntoViewIfNeeded();
   await mv.screenshot({ path: join(OUT, 'mobile-daily-comments.png') });
 
@@ -130,8 +149,13 @@ async function main() {
   await mobileO.addCookies([{ name: SESSION_COOKIE, value: token, url: BASE, httpOnly: true }]);
   const mo = await mobileO.newPage();
   await mo.goto(`${BASE}/daily`, { waitUntil: 'networkidle' });
+  await mo.keyboard.press('Escape');
   await mo.waitForSelector('[data-testid="daily-owner-editor"]');
   await mo.waitForTimeout(400);
+  await mo.locator('[data-testid="daily-owner-textarea"]').click();
+  await mo.locator('[data-testid="daily-owner-textarea"]').fill('typing works here');
+  await expectValue(mo, 'daily-owner-textarea', 'typing works here');
+  await mo.screenshot({ path: join(OUT, 'mobile-daily-typing.png') });
   await mo.screenshot({ path: join(OUT, 'mobile-daily-editor.png') });
 
   const doors = await visitor.newPage();

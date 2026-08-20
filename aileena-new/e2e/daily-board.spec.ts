@@ -23,7 +23,8 @@ loadEnvLocal();
 
 test.describe('daily board', () => {
   test('visitor can read, cannot write main note', async ({ page, request }) => {
-    await page.goto('/daily', { waitUntil: 'domcontentloaded' });
+    await page.goto('/daily', { waitUntil: 'networkidle' });
+    await page.keyboard.press('Escape');
     await expect(page.getByTestId('daily-title')).toHaveText('daily board');
     await expect(page.getByTestId('daily-theme-controls')).toHaveCount(0);
 
@@ -66,16 +67,23 @@ test.describe('daily board', () => {
     expect(write.ok()).toBeTruthy();
     const { note } = (await write.json()) as { note: { id: string } };
 
-    await page.goto('/daily', { waitUntil: 'domcontentloaded' });
+    await page.goto('/daily', { waitUntil: 'networkidle' });
+    await page.keyboard.press('Escape');
     await expect(page.getByTestId('daily-owner-editor')).toBeVisible();
     await expect(page.getByTestId('daily-theme-controls')).toBeVisible();
+    await page.getByTestId('daily-owner-textarea').click();
+    await page.getByTestId('daily-owner-textarea').fill('typing works for owner');
+    await expect(page.getByTestId('daily-owner-textarea')).toHaveValue('typing works for owner');
 
     await context.clearCookies();
-    await page.goto('/daily', { waitUntil: 'domcontentloaded' });
+    await page.goto('/daily', { waitUntil: 'networkidle' });
+    await page.keyboard.press('Escape');
     await expect(page.getByTestId('daily-latest-body')).toContainText('hate me no more');
     await expect(page.getByTestId('daily-owner-editor')).toHaveCount(0);
 
+    await page.getByTestId('daily-bubble-input').click();
     await page.getByTestId('daily-bubble-input').fill('this hurt nicely');
+    await expect(page.getByTestId('daily-bubble-input')).toHaveValue('this hurt nicely');
     await page.getByTestId('daily-bubble-send').click();
     await expect(page.getByTestId('daily-toast')).toContainText('Bubble sent.');
     await expect(page.getByTestId('daily-bubble').first()).toContainText('this hurt nicely');
