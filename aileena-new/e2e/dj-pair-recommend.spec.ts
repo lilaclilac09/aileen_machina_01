@@ -18,8 +18,8 @@ test.describe('DJ pair recommendation', () => {
     await expect(page.getByTestId('dj-pair-hit')).toHaveCount(1, { timeout: 20_000 });
     await expect(page.getByTestId('dj-pair-hit').first()).toContainText(/Stab Loop/i);
 
+    await page.getByTestId('dj-pair-panel').screenshot({ path: '/opt/cursor/artifacts/pair-recommendation.png' });
     await page.screenshot({ path: '/opt/cursor/artifacts/mobile-pair-recommendation.png' });
-    await page.screenshot({ path: '/opt/cursor/artifacts/pair-recommendation.png' });
 
     await expect(panel).toHaveAttribute('data-hard-techno', 'true');
     await page.getByTestId('dj-hard-techno-bias').uncheck();

@@ -219,6 +219,6 @@ test.describe('DJ mixer engine', () => {
       await expect(hits.first()).toBeVisible();
       expect(await hits.count()).toBeLessThanOrEqual(3);
     }
-    await page.screenshot({ path: '/opt/cursor/artifacts/pair-hidden-or-suggestions.png' });
+    await pair.screenshot({ path: '/opt/cursor/artifacts/pair-hidden-or-suggestions.png' });
   });
 });
