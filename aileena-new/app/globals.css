@@ -473,6 +473,38 @@ select,
   -webkit-user-select: text !important;
 }
 
+.two-lines-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "note"
+    "cosmic"
+    "comments"
+    "older";
+  gap: 28px 36px;
+  align-items: start;
+}
+
+.two-lines-note { grid-area: note; min-width: 0; }
+.two-lines-cosmic { grid-area: cosmic; }
+.two-lines-comments { grid-area: comments; min-width: 0; }
+.two-lines-older { grid-area: older; min-width: 0; }
+
+@media (min-width: 860px) {
+  .two-lines-stage {
+    grid-template-columns: minmax(0, 1fr) 140px;
+    grid-template-areas:
+      "note cosmic"
+      "comments cosmic"
+      "older cosmic";
+  }
+  .two-lines-cosmic {
+    justify-self: end;
+    position: sticky;
+    top: 96px;
+  }
+}
+
 /* Contain sideways stage chrome (coverflow) without losing swipe access */
 .mobile-stage-clip {
   overflow-x: clip;

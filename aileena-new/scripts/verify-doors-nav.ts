@@ -15,6 +15,7 @@ const CASES: Expect[] = [
   { path: '/doors', back: { href: '/', label: '← home' }, ink: true },
   { path: '/sound', back: { href: '/doors', label: '← doors' }, ink: false },
   { path: '/daily', back: { href: '/doors', label: '← doors' }, ink: true },
+  { path: '/two-lines', back: { href: '/doors', label: '← doors' }, ink: true },
   {
     path: '/blog/watch-listening-shelf',
     back: { href: '/doors', label: '← doors' },

@@ -10,6 +10,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { commentLooksSpammy, sanitizeNickname, sanitizeTheme } from '../lib/dailyBoard';
 import { addDailyComment, hideDailyComment, readDailyBoard, upsertDailyNote, writeDailyTheme } from '../lib/dailyBoardStore';
+import { marsClockAt, moonPhaseAt, rocketProgressAt, saturnWatchAt } from '../lib/twoLinesCosmic';
 import { createOwnerSession, SESSION_COOKIE } from '../lib/auth';
 
 type Check = { name: string; ok: boolean; detail?: string };
@@ -50,6 +51,8 @@ async function liveHttp() {
 
   const page = await fetch(`${base}/daily`);
   assert('GET /daily', page.ok, String(page.status));
+  const alias = await fetch(`${base}/two-lines`);
+  assert('GET /two-lines alias', alias.ok, String(alias.status));
 
   const visitorGet = await fetch(`${base}/api/daily`);
   const visitorJson = visitorGet.ok ? ((await visitorGet.json()) as { owner?: boolean }) : {};
@@ -153,6 +156,16 @@ async function storeUnit() {
   });
   const board = await readDailyBoard({ owner: true });
   assert('store theme roundtrip', board.theme.background === themed.background, board.theme.background);
+
+  const newMoon = moonPhaseAt(new Date(Date.UTC(2000, 0, 6, 18, 14)));
+  assert('moon new is dark', newMoon.illumination < 0.08, `${newMoon.name} ${newMoon.illumination.toFixed(3)}`);
+  const mid = moonPhaseAt(new Date(Date.UTC(2000, 0, 21, 12, 0)));
+  assert('moon ~full mid-cycle', mid.illumination > 0.85, `${mid.name} ${mid.illumination.toFixed(3)}`);
+  const mars = marsClockAt(new Date('2026-08-20T12:00:00Z'));
+  assert('mars clock hhmm', /^\d{2}:\d{2}$/.test(mars.hhmm) && mars.sol > 0, `${mars.sol} ${mars.hhmm}`);
+  assert('saturn watch hhmm', /^\d{2}:\d{2}$/.test(saturnWatchAt(new Date('2026-08-20T12:00:00Z'))));
+  const rocket = rocketProgressAt(new Date('2026-08-20T00:00:00Z'), '2026-11-15T16:00:00.000Z');
+  assert('rocket progress before launch', rocket.kind === 'progress', rocket.kind);
 }
 
 function sourceChecks() {
@@ -165,7 +178,9 @@ function sourceChecks() {
   assert('theme route requires owner', /requireOwnerFromRequest/.test(theme) && /status: 403/.test(theme));
   assert('comment hide requires owner', /method: 'DELETE'/.test(comments) || /export async function DELETE/.test(comments));
   assert('doors hub includes /daily', doors.includes("'/daily'"));
-  assert('page copy daily board', ui.includes('daily board') && ui.includes('one or two lines a day.'));
+  assert('page copy two lines', ui.includes('two lines') && ui.includes('one or two lines a day.'));
+  assert('owner-only editor gate', /const showWriter = owner\b/.test(ui));
+  assert('cosmic strip mounted', ui.includes('TwoLinesCosmicStrip') || ui.includes('daily-cosmic-strip'));
   assert('owner placeholder', ui.includes('write one or two lines'));
   assert('bubble placeholder', ui.includes('leave a small bubble'));
   assert('empty copy', ui.includes('nothing today yet.'));
@@ -173,6 +188,7 @@ function sourceChecks() {
   assert('no OWNER_KEY in client', !ui.includes('OWNER_KEY'));
   assert('redis env uses runtime bracket access', read('lib/visitorMemory.ts').includes("process.env['UPSTASH_REDIS_REST_URL']"));
   assert('vercel memory writes blocked', read('lib/dailyBoardStore.ts').includes('dailyBoardWritesOk'));
+  assert('two-lines rewrite', read('next.config.ts').includes("source: '/two-lines'"));
 }
 
 async function main() {

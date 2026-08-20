@@ -21,30 +21,33 @@ function loadEnvLocal() {
 }
 loadEnvLocal();
 
-test.describe('daily board', () => {
+test.describe('two lines', () => {
   test('visitor can read, cannot write main note', async ({ page, request }) => {
     await page.goto('/daily', { waitUntil: 'networkidle' });
     await page.keyboard.press('Escape');
-    await expect(page.getByTestId('daily-title')).toHaveText('daily board');
+    await expect(page.getByTestId('daily-title')).toHaveText('two lines');
+    await expect(page.getByTestId('daily-owner-editor')).toHaveCount(0);
     await expect(page.getByTestId('daily-theme-controls')).toHaveCount(0);
+    await expect(page.getByTestId('daily-cosmic-strip')).toBeVisible();
 
     const res = await request.post('/api/daily/notes', {
       data: { body: 'should 403' },
     });
     expect(res.status()).toBe(403);
 
-    const writer = page.getByTestId('daily-owner-textarea');
     const latest = page.getByTestId('daily-latest-body');
-    if ((await writer.count()) > 0) {
-      await writer.click();
-      await writer.fill('typing works');
-      await expect(writer).toHaveValue('typing works');
-    } else {
+    const empty = page.getByTestId('daily-empty');
+    if ((await latest.count()) > 0) {
       await expect(latest).toBeVisible();
       await page.getByTestId('daily-bubble-input').click();
       await page.getByTestId('daily-bubble-input').fill('typing works');
       await expect(page.getByTestId('daily-bubble-input')).toHaveValue('typing works');
+    } else {
+      await expect(empty).toContainText('nothing today yet.');
     }
+
+    await page.goto('/two-lines', { waitUntil: 'networkidle' });
+    await expect(page.getByTestId('daily-title')).toHaveText('two lines');
   });
 
   test('owner can write a note; visitor can leave a bubble', async ({ page, context, request }) => {
@@ -58,11 +61,11 @@ test.describe('daily board', () => {
       },
     ]);
 
+    const body =
+      'I love part of you and you only like the best part of me\nAnd so are we to the world so you hate me no more';
     const write = await request.post('/api/daily/notes', {
       headers: { Cookie: `${SESSION_COOKIE}=${token}` },
-      data: {
-        body: 'I love part of you and you only like the best part of me\nAnd so are we to the world so you hate me no more',
-      },
+      data: { body },
     });
     expect(write.ok()).toBeTruthy();
     const { note } = (await write.json()) as { note: { id: string } };
@@ -71,9 +74,11 @@ test.describe('daily board', () => {
     await page.keyboard.press('Escape');
     await expect(page.getByTestId('daily-owner-editor')).toBeVisible();
     await expect(page.getByTestId('daily-theme-controls')).toBeVisible();
+    await expect(page.getByTestId('daily-cosmic-strip')).toBeVisible();
     await page.getByTestId('daily-owner-textarea').click();
-    await page.getByTestId('daily-owner-textarea').fill('typing works for owner');
-    await expect(page.getByTestId('daily-owner-textarea')).toHaveValue('typing works for owner');
+    await page.getByTestId('daily-owner-textarea').fill(body);
+    await expect(page.getByTestId('daily-owner-textarea')).toHaveValue(body);
+    await page.getByTestId('daily-save').click();
 
     await context.clearCookies();
     await page.goto('/daily', { waitUntil: 'networkidle' });

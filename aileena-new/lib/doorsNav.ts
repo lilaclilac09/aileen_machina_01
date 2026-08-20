@@ -7,6 +7,7 @@
 const DOORS_SECTION_HUBS = new Set([
   '/sound',
   '/daily',
+  '/two-lines',
   '/dispatch',
   '/updates',
   '/tools',
