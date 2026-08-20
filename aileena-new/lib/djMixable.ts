@@ -11,13 +11,19 @@ export const MIX_FILE_ACCEPT =
 export type MixableTrackShape = {
   mixable?: boolean;
   source?: string;
+  audioSrc?: string | null;
   audioUrl?: string | null;
 };
+
+export function trackAudioSrc(track: MixableTrackShape): string | null {
+  const src = track.audioSrc || track.audioUrl;
+  return typeof src === 'string' && src.length > 0 ? src : null;
+}
 
 export function isMixableTrack(track: MixableTrackShape): boolean {
   if (track.mixable === false) return false;
   if (track.source === 'spotify') return false;
-  return typeof track.audioUrl === 'string' && track.audioUrl.length > 0;
+  return Boolean(trackAudioSrc(track));
 }
 
 export function isSpotifyAudioUrl(url: string): boolean {

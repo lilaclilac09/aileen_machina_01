@@ -110,7 +110,10 @@ function run(): Check[] {
 
   const catalogue = allDeckTracks();
   const demos = catalogue.filter((t) => t.demo);
-  checks.push(check('two legal demo loops', demos.length === 2 && demos.every((t) => isMixableTrack(t) && Boolean(t.audioUrl))));
+  checks.push(check(
+    'two legal demo loops',
+    demos.length === 2 && demos.every((t) => isMixableTrack(t) && Boolean(t.audioSrc || t.audioUrl)),
+  ));
   checks.push(check(
     'catalogue Spotify/cover cards are not mixable',
     catalogue.filter((t) => !t.demo).every((t) => !isMixableTrack(t)),

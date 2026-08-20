@@ -138,9 +138,8 @@ test.describe('Spotify search → carousel', () => {
     const afterCards = await page.getByTestId('dj-carousel-card').count();
     expect(afterCards).toBeGreaterThanOrEqual(beforeCards);
     await expect(page.getByTestId('spotify-ref-badge').first()).toBeVisible();
-    await expect(page.locator('#dj-set')).toContainText(/not mixable/i);
     await page.locator('[data-dj-load-deck="left"]').click();
-    await expect(page.getByTestId('dj-deck-hint')).toContainText(/Reference only/i);
+    await expect(page.getByTestId('dj-deck-hint')).toContainText(/Not mixable/i);
     await page.locator('#dj-set').screenshot({
       path: `${ARTIFACTS}/spotify_search_track_added.png`,
     });

@@ -7,7 +7,7 @@ import DJKnob from './DJKnob';
 import DJMixBooth from './DJMixBooth';
 import DJPairPanel from './DJPairPanel';
 import SpotifySearchAdd from './SpotifySearchAdd';
-import SystemToast, { shortMixError } from './SystemToast';
+import { shortMixError } from './SystemToast';
 import { allDeckTracks, type DeckTrack } from '../lib/djSetlist';
 import { useDjMixer } from '../lib/useDjMixer';
 import { fmtMs } from '../lib/djMixerMath';
@@ -16,6 +16,7 @@ import {
   isMixableTrack,
   isSupportedMixFile,
   MIX_FILE_ACCEPT,
+  trackAudioSrc,
 } from '../lib/djMixable';
 import {
   getSpotifyCarouselServerSnapshot,
@@ -118,6 +119,7 @@ export default function DJStation() {
   const [rightTrack,   setRightTrack]   = useState<Track | null>(INITIAL_RIGHT);
   const [dropSide,     setDropSide]     = useState<'left'|'right'|null>(null);
   const [deckHint, setDeckHint] = useState<string | null>(null);
+  const [selectedTrack, setSelectedTrack] = useState<Track | null>(CATALOGUE[0] ?? null);
   const [focusTrackId, setFocusTrackId] = useState<string | null>(null);
   const extrasRaw = useSyncExternalStore(
     subscribeSpotifyCarousel,
@@ -153,7 +155,7 @@ export default function DJStation() {
   const showDeckHint = useCallback((msg: string) => {
     setDeckHint(msg);
     if (hintTimer.current) clearTimeout(hintTimer.current);
-    hintTimer.current = setTimeout(() => setDeckHint(null), 4200);
+    hintTimer.current = setTimeout(() => setDeckHint(null), 2800);
   }, []);
 
   useEffect(() => () => {
@@ -290,37 +292,57 @@ export default function DJStation() {
     };
   }, []);
 
+  const selectCarouselTrack = useCallback((track: Track) => {
+    setSelectedTrack(track);
+    dragTrack.current = track;
+  }, []);
+
   const loadTrackToDeck = useCallback(async (track: Track, deckId: 'A' | 'B' | 'left' | 'right') => {
+    selectCarouselTrack(track);
     const side: 'left' | 'right' = deckId === 'B' || deckId === 'right' ? 'right' : 'left';
+    const src = trackAudioSrc(track);
     console.log(DJ_AUDIT, 'loadTrackToDeck', {
       side,
       id: track.id,
       title: track.title,
       mixable: isMixableTrack(track),
-      audioUrl: track.audioUrl ?? null,
-      source: track.source ?? 'catalogue',
+      audioSrc: src,
+      source: track.source ?? 'external',
     });
 
-    if (!isMixableTrack(track) || !track.audioUrl) {
-      showDeckHint(track.source === 'spotify' ? 'Reference only.' : 'Not mixable.');
+    if (!isMixableTrack(track)) {
+      showDeckHint('Not mixable.');
+      return;
+    }
+    if (!src) {
+      showDeckHint('No audio.');
       return;
     }
 
     if (side === 'left') setLeftTrack(track);
     else setRightTrack(track);
 
-    const ok = await mix.loadUrl(side, track.audioUrl, {
+    const ok = await mix.loadUrl(side, src, {
       title: track.title,
       bpm: track.bpm,
       key: track.key,
     });
-    if (ok) showDeckHint(side === 'left' ? 'Loaded to A.' : 'Loaded to B.');
+    if (ok) showDeckHint(side === 'left' ? 'Loaded A.' : 'Loaded B.');
     else showDeckHint('Load failed.');
-  }, [mix, showDeckHint]);
+  }, [mix, selectCarouselTrack, showDeckHint]);
+
+  const loadSelectedToDeck = useCallback((deckId: 'A' | 'B') => {
+    if (!selectedTrack) {
+      showDeckHint('Select track.');
+      return;
+    }
+    void loadTrackToDeck(selectedTrack, deckId);
+  }, [selectedTrack, loadTrackToDeck, showDeckHint]);
 
   const loadTrack = useCallback((side: 'left' | 'right', track: Track) => {
+    selectCarouselTrack(track);
     void loadTrackToDeck(track, side);
-  }, [loadTrackToDeck]);
+  }, [loadTrackToDeck, selectCarouselTrack]);
 
   const resolveDropTrack = useCallback((e: React.DragEvent, fallback: Track | null): Track | null => {
     if (fallback) return fallback;
@@ -341,8 +363,9 @@ export default function DJStation() {
     const track = searchHitToDeckTrack(hit);
     writeStoredSpotifyTracks([...readStoredSpotifyTracks(), track]);
     setFocusTrackId(track.id);
+    selectCarouselTrack(track);
     return 'added';
-  }, []);
+  }, [selectCarouselTrack]);
 
   const removeSpotifyTrack = useCallback((id: string) => {
     writeStoredSpotifyTracks(
@@ -371,11 +394,12 @@ export default function DJStation() {
       dur: 0,
       thumb: '',
       mixable: true,
+      source: 'local',
     };
     if (side === 'left') setLeftTrack(local);
     else setRightTrack(local);
     const ok = await mix.loadFile(side, file, { title: local.title });
-    if (ok) showDeckHint(side === 'left' ? 'Loaded to A.' : 'Loaded to B.');
+    if (ok) showDeckHint(side === 'left' ? 'Loaded A.' : 'Loaded B.');
     else showDeckHint('Load failed.');
   }, [mix, showDeckHint]);
 
@@ -426,12 +450,16 @@ export default function DJStation() {
   }, [loadTrackToDeck, resolveDropTrack, assignFile, showDeckHint]);
 
   const toggleDeck = useCallback(async (side: 'left' | 'right') => {
-    const started = await mix.toggle(side);
-    if (started) {
-      setDeckHint(null);
-      return;
+    try {
+      const started = await mix.toggle(side);
+      if (started) {
+        setDeckHint(null);
+        return;
+      }
+      showDeckHint('No audio.');
+    } catch {
+      showDeckHint('Play failed.');
     }
-    showDeckHint('Load audio first.');
   }, [mix, showDeckHint]);
 
   const handleXfade = useCallback((v: number) => {
@@ -486,10 +514,17 @@ export default function DJStation() {
     };
   };
 
+  const hintText = deckHint || (mix.error ? shortMixError(mix.error) : null);
+  const hintOk = !!hintText && /Loaded|Recording|Export ready/i.test(hintText);
+  const hintWarn = !!hintText && /Select track|Need two/i.test(hintText);
+  const hintColor = hintOk ? C.cyan : hintWarn ? '#f5a524' : '#ef4444';
+
   return (
     <div
       data-testid="dj-station"
       data-dj-layout={isMobile ? 'mobile' : 'desktop'}
+      data-selected-id={selectedTrack?.id ?? ''}
+      data-selected-mixable={selectedTrack && isMixableTrack(selectedTrack) ? 'true' : 'false'}
       style={{ position: 'relative', userSelect: 'none', width: '100%', maxWidth: '100%', boxSizing: 'border-box', background: '#0b0d10', overflowX: 'clip' }}
     >
       <input
@@ -516,19 +551,6 @@ export default function DJStation() {
           e.target.value = '';
         }}
       />
-
-      <p
-        data-testid="dj-mix-source-note"
-        style={{
-          margin: '0 0 10px',
-          fontFamily: 'monospace',
-          fontSize: 13,
-          letterSpacing: '0.03em',
-          color: C.sub,
-        }}
-      >
-        Upload audio to mix. Spotify is reference only.
-      </p>
 
       {/* ── Desk first: decks + mixer ── */}
       <div
@@ -561,6 +583,7 @@ export default function DJStation() {
           </span>
         </div>
 
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
         <EngineStatus
           ready={mix.ready}
           a={mix.deckA.mixLoaded}
@@ -569,11 +592,41 @@ export default function DJStation() {
           playingB={mix.deckB.playing}
           recording={mix.recording}
           exportReady={mix.exportReady}
-          error={Boolean(mix.error)}
+          error={Boolean(mix.error) && !deckHint}
           vuA={mix.vuA}
           vuB={mix.vuB}
           vuM={mix.vuM}
         />
+        {hintText && (
+            <span
+              data-testid="dj-deck-hint"
+              data-hint={hintText}
+              role={hintOk || hintWarn ? 'status' : 'alert'}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                fontFamily: 'monospace',
+                fontSize: 12,
+                letterSpacing: '0.02em',
+                color: hintColor,
+              }}
+            >
+              <span
+                aria-hidden
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  background: hintColor,
+                  boxShadow: `0 0 6px ${hintColor}`,
+                  flexShrink: 0,
+                }}
+              />
+              ⚡ {hintText}
+            </span>
+        )}
+        </div>
         {/* Deck + Mixer grid */}
         {isMobile ? (
           <div className="dj-mixer-grid" style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 12 }}>
@@ -594,6 +647,7 @@ export default function DJStation() {
               onGain={v => mix.setGain('left', v)}
               onSeek={sec => mix.seek('left', sec)}
               onCue={() => mix.deckA.playing ? mix.returnToCue('left') : mix.setCueNow('left')}
+              onLoadSelected={() => loadSelectedToDeck('A')}
               onUpload={() => fileARef.current?.click()}
               onLoopIn={() => mix.loopIn('left')}
               onLoopOut={() => mix.loopOut('left')}
@@ -627,6 +681,7 @@ export default function DJStation() {
               onGain={v => mix.setGain('right', v)}
               onSeek={sec => mix.seek('right', sec)}
               onCue={() => mix.deckB.playing ? mix.returnToCue('right') : mix.setCueNow('right')}
+              onLoadSelected={() => loadSelectedToDeck('B')}
               onUpload={() => fileBRef.current?.click()}
               onLoopIn={() => mix.loopIn('right')}
               onLoopOut={() => mix.loopOut('right')}
@@ -655,6 +710,7 @@ export default function DJStation() {
               onGain={v => mix.setGain('left', v)}
               onSeek={sec => mix.seek('left', sec)}
               onCue={() => mix.deckA.playing ? mix.returnToCue('left') : mix.setCueNow('left')}
+              onLoadSelected={() => loadSelectedToDeck('A')}
               onUpload={() => fileARef.current?.click()}
               onLoopIn={() => mix.loopIn('left')}
               onLoopOut={() => mix.loopOut('left')}
@@ -688,6 +744,7 @@ export default function DJStation() {
               onGain={v => mix.setGain('right', v)}
               onSeek={sec => mix.seek('right', sec)}
               onCue={() => mix.deckB.playing ? mix.returnToCue('right') : mix.setCueNow('right')}
+              onLoadSelected={() => loadSelectedToDeck('B')}
               onUpload={() => fileBRef.current?.click()}
               onLoopIn={() => mix.loopIn('right')}
               onLoopOut={() => mix.loopOut('right')}
@@ -697,12 +754,6 @@ export default function DJStation() {
               onSync={handleSyncRight}
             />
           </div>
-        )}
-
-        {(deckHint || mix.error) && (
-          <SystemToast testId="dj-deck-hint" role={mix.error && !deckHint ? 'alert' : 'status'}>
-            {deckHint || shortMixError(mix.error || '')}
-          </SystemToast>
         )}
       </div>
 
@@ -729,7 +780,7 @@ export default function DJStation() {
         onCopyReceipt={() => void mix.copyReceiptText()}
         onLoadUrl={(side, url) => {
           void mix.loadUrl(side, url).then((ok) => {
-            if (ok) showDeckHint(side === 'left' ? 'Loaded to A.' : 'Loaded to B.');
+            if (ok) showDeckHint(side === 'left' ? 'Loaded A.' : 'Loaded B.');
             else showDeckHint('Load failed.');
           });
         }}
@@ -739,11 +790,14 @@ export default function DJStation() {
         <TrackLibraryBrowser
           tracks={library}
           reverseCarousel={false}
+          selectedTrackId={selectedTrack?.id ?? null}
+          onSelectTrack={selectCarouselTrack}
           focusTrackId={focusTrackId}
           onRemoveTrack={removeSpotifyTrack}
           onLoadTrack={loadTrack}
           onSetDragTrack={(t) => {
             dragTrack.current = t;
+            selectCarouselTrack(t);
             console.log(DJ_AUDIT, 'drag start track id', t?.id ?? null, t?.title ?? null);
           }}
           playingLeft={leftPlaying ? (leftTrack?.id ?? mix.deckA.fileName) : null}
@@ -754,7 +808,7 @@ export default function DJStation() {
         <SpotifySearchAdd existingIds={existingSpotifyIds} onAdd={addSpotifyTrack} />
       </div>
       <DJPairPanel
-        selected={leftTrack}
+        selected={selectedTrack}
         library={library}
         onLoadB={(id) => {
           const t = findTrackById(library, id);
@@ -792,7 +846,7 @@ export default function DJStation() {
 function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isMobile, synced,
   mixLoaded, peaks, gain, vu, cueMs, loopActive, loopIn, loopOut, loopBars, hotCues,
   syncEnabled, loopBarsEnabled,
-  onDragOver, onDragLeave, onDrop, onToggle, onPitch, onGain, onSeek, onCue, onUpload,
+  onDragOver, onDragLeave, onDrop, onToggle, onPitch, onGain, onSeek, onCue, onLoadSelected, onUpload,
   onLoopIn, onLoopOut, onLoopBars, onLoopExit, onHotCue, onSync }: {
   side: 'left'|'right'; track: Track|null; playing: boolean;
   pos: number; dur: number; pitch: number; dim: number; dropActive: boolean;
@@ -803,7 +857,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
   syncEnabled: boolean; loopBarsEnabled: boolean;
   onDragOver(e: React.DragEvent): void; onDragLeave(): void; onDrop(e: React.DragEvent): void;
   onToggle(): void; onPitch(v: number): void; onGain(v: number): void;
-  onSeek(sec: number): void; onCue(): void; onUpload(): void;
+  onSeek(sec: number): void; onCue(): void; onLoadSelected(): void; onUpload(): void;
   onLoopIn(): void; onLoopOut(): void; onLoopBars(n: number): void; onLoopExit(): void;
   onHotCue(i: number, clear: boolean): void;
   onSync: () => void;
@@ -855,7 +909,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
         {!track ? (
           <p style={{ fontSize: 14, letterSpacing: '0.08em', textTransform: 'uppercase',
             color: dropActive ? 'rgba(100,220,210,0.8)' : C.sub }}>
-            {dropActive ? 'Drop file' : 'Load a file'}
+            {dropActive ? 'Drop' : 'Load'}
           </p>
         ) : (
           <div style={{ position: 'relative', width: D, height: D }}>
@@ -1031,26 +1085,46 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
           dur={dur / 1000}
           onSeek={onSeek}
         />
-        <button
-          type="button"
-          data-testid={side === 'left' ? 'dj-load-file-a' : 'dj-load-file-b'}
-          onClick={onUpload}
-          style={{
-            alignSelf: 'flex-start',
-            padding: '10px 14px',
-            minHeight: 44,
-            borderRadius: 4,
-            cursor: 'pointer',
-            background: '#14181e',
-            border: '1px solid rgba(0,168,157,0.45)',
-            color: C.cyan,
-            fontFamily: 'monospace',
-            fontSize: 14,
-            letterSpacing: '0.06em',
-          }}
-        >
-          {side === 'left' ? 'Load A' : 'Load B'}
-        </button>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            data-testid={side === 'left' ? 'dj-load-selected-a' : 'dj-load-selected-b'}
+            onClick={onLoadSelected}
+            style={{
+              padding: '10px 14px',
+              minHeight: 44,
+              borderRadius: 4,
+              cursor: 'pointer',
+              background: '#14181e',
+              border: '1px solid rgba(0,168,157,0.45)',
+              color: C.cyan,
+              fontFamily: 'monospace',
+              fontSize: 14,
+              letterSpacing: '0.06em',
+            }}
+          >
+            {side === 'left' ? 'Load A' : 'Load B'}
+          </button>
+          <button
+            type="button"
+            data-testid={side === 'left' ? 'dj-load-file-a' : 'dj-load-file-b'}
+            onClick={onUpload}
+            style={{
+              padding: '10px 12px',
+              minHeight: 44,
+              borderRadius: 4,
+              cursor: 'pointer',
+              background: 'transparent',
+              border: '1px solid rgba(170,179,187,0.22)',
+              color: C.sub,
+              fontFamily: 'monospace',
+              fontSize: 13,
+              letterSpacing: '0.04em',
+            }}
+          >
+            Upload
+          </button>
+        </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontFamily: 'monospace', fontSize: 13, color: C.cyan, letterSpacing: '0.04em' }}>
             {elapsed}

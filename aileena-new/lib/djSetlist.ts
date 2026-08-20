@@ -29,20 +29,26 @@ export type DeckTrack = {
   key: string;
   dur: number;
   thumb: string;
-  /** User-added Spotify search card — reference/preview, not mixable. */
-  source?: 'spotify';
+  /** local | demo | spotify | external */
+  source?: 'local' | 'demo' | 'spotify' | 'external';
   previewUrl?: string | null;
   externalUrl?: string;
-  /**
-   * Same-origin or CORS-safe audio for decodeAudioData.
-   * Required for mixable. Spotify ids / covers are not audio.
-   */
+  /** Playable same-origin / CORS audio. Required for mixable. */
+  audioSrc?: string;
+  /** @deprecated alias of audioSrc */
   audioUrl?: string;
   /** Bundled legal demo loop (generated / owned). */
   demo?: boolean;
-  /** False = reference only. True = can load into the mix graph. */
+  /** False = reference only. True requires audioSrc. */
   mixable?: boolean;
 };
+
+function crateSource(track: Pick<DeckTrack, 'source' | 'demo' | 'spotifyId' | 'id'>): DeckTrack['source'] {
+  if (track.source) return track.source;
+  if (track.demo) return 'demo';
+  if (track.spotifyId || /^[a-zA-Z0-9]{22}$/.test(track.id)) return 'spotify';
+  return 'external';
+}
 
 /** Owned generated loops — the only catalogue items that can actually mix. */
 export const DEMO_DECK_TRACKS: DeckTrack[] = [
@@ -54,9 +60,11 @@ export const DEMO_DECK_TRACKS: DeckTrack[] = [
     key: '1A',
     dur: 4,
     thumb: '/dj-set/assets/covers/demo-kick.svg',
+    audioSrc: '/dj-set/demo/kick.wav',
     audioUrl: '/dj-set/demo/kick.wav',
     mixable: true,
     demo: true,
+    source: 'demo',
   },
   {
     id: 'demo-stab',
@@ -66,17 +74,21 @@ export const DEMO_DECK_TRACKS: DeckTrack[] = [
     key: '8A',
     dur: 4,
     thumb: '/dj-set/assets/covers/demo-stab.svg',
+    audioSrc: '/dj-set/demo/stab.wav',
     audioUrl: '/dj-set/demo/stab.wav',
     mixable: true,
     demo: true,
+    source: 'demo',
   },
 ];
 
 function asReference(track: DeckTrack): DeckTrack {
-  if (track.audioUrl && track.mixable !== false && track.source !== 'spotify') {
-    return { ...track, mixable: true };
+  const source = crateSource(track);
+  const src = track.audioSrc || track.audioUrl;
+  if (src && track.mixable !== false && source !== 'spotify') {
+    return { ...track, source, audioSrc: src, audioUrl: src, mixable: true };
   }
-  return { ...track, mixable: false };
+  return { ...track, source, mixable: false, audioSrc: undefined, audioUrl: undefined };
 }
 
 /** Curated handoff five — also mirrored in public/dj-set/setlist.json */
