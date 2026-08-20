@@ -65,11 +65,12 @@ async function main() {
   await vPage.waitForTimeout(400);
   const writer = vPage.locator('[data-testid="daily-owner-textarea"]');
   if (await writer.count()) {
-    await writer.click();
-    await writer.fill('typing works');
-    await expectValue(vPage, 'daily-owner-textarea', 'typing works');
-    await vPage.screenshot({ path: join(OUT, 'daily-visitor-empty-typing.png'), fullPage: true });
+    throw new Error('visitor saw owner editor');
   }
+  if (await vPage.locator('[data-testid="daily-empty"]').count()) {
+    await vPage.screenshot({ path: join(OUT, 'daily-empty-visitor.png'), fullPage: true });
+  }
+  await vPage.locator('[data-testid="daily-cosmic-strip"]').screenshot({ path: join(OUT, 'daily-cosmic-strip.png') });
 
   const ownerPost = await fetch(`${BASE}/api/daily/notes`, {
     method: 'POST',
@@ -100,9 +101,10 @@ async function main() {
   });
 
   await vPage.reload({ waitUntil: 'networkidle' });
+  await vPage.keyboard.press('Escape');
   await vPage.waitForSelector('[data-testid="daily-latest-body"]');
   await vPage.waitForTimeout(500);
-  await vPage.screenshot({ path: join(OUT, 'daily-latest-note.png'), fullPage: true });
+  await vPage.screenshot({ path: join(OUT, 'daily-note-saved.png'), fullPage: true });
   await vPage.locator('[data-testid="daily-comments"]').scrollIntoViewIfNeeded();
   await vPage.screenshot({ path: join(OUT, 'daily-comments.png'), fullPage: true });
 
@@ -134,11 +136,14 @@ async function main() {
   await mv.waitForSelector('[data-testid="daily-latest-body"]');
   await mv.waitForTimeout(400);
   await mv.screenshot({ path: join(OUT, 'mobile-daily-latest.png') });
+  await mv.locator('[data-testid="daily-cosmic-strip"]').scrollIntoViewIfNeeded();
+  await mv.screenshot({ path: join(OUT, 'mobile-daily-cosmic.png') });
   await mv.locator('[data-testid="daily-bubble-input"]').click();
   await mv.locator('[data-testid="daily-bubble-input"]').fill('typing works');
   await expectValue(mv, 'daily-bubble-input', 'typing works');
   await mv.screenshot({ path: join(OUT, 'mobile-daily-bubble-typing.png') });
   await mv.locator('[data-testid="daily-comments"]').scrollIntoViewIfNeeded();
+  await mv.screenshot({ path: join(OUT, 'mobile-daily-note-comments.png') });
   await mv.screenshot({ path: join(OUT, 'mobile-daily-comments.png') });
 
   const mobileO = await browser.newContext({
@@ -157,6 +162,7 @@ async function main() {
   await expectValue(mo, 'daily-owner-textarea', 'typing works here');
   await mo.screenshot({ path: join(OUT, 'mobile-daily-typing.png') });
   await mo.screenshot({ path: join(OUT, 'mobile-daily-editor.png') });
+  await mo.screenshot({ path: join(OUT, 'mobile-daily-owner-editor.png') });
 
   const doors = await visitor.newPage();
   await doors.goto(`${BASE}/doors`, { waitUntil: 'networkidle' });

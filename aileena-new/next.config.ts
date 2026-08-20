@@ -13,6 +13,9 @@ const nextConfig: NextConfig = {
       { source: '/dj-set/', destination: '/sound#dj-set', permanent: true },
     ];
   },
+  async rewrites() {
+    return [{ source: '/two-lines', destination: '/daily' }];
+  },
 };
 
 export default nextConfig;

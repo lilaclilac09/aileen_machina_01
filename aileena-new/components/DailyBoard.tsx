@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import OwnerUnlockForm from './OwnerUnlockForm';
 import SystemToast from './SystemToast';
+import TwoLinesCosmicStrip from './TwoLinesCosmicStrip';
 import {
   type DailyComment,
   type DailyNote,
@@ -53,7 +54,7 @@ function formatQuietDate(ymd: string): string {
   const [y, m, d] = ymd.split('-').map(Number);
   if (!y || !m || !d) return ymd;
   const dt = new Date(Date.UTC(y, m - 1, d));
-  return dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 function SwatchRow({
@@ -215,11 +216,9 @@ export default function DailyBoard({
   const today = board?.today ?? '';
   const latest = notes[0] ?? null;
   const todayNote = notes.find((n) => n.date === today) ?? null;
-  const showWriter = owner || !todayNote;
-  const older = owner || showWriter
-    ? notes.filter((n) => n.date !== today)
-    : notes.slice(1);
-  const showDecorativeCaret = !showWriter;
+  const showWriter = owner;
+  const older = notes.filter((n) => n.date !== today);
+  const showDecorativeCaret = !owner && Boolean(latest);
   const commentNote = todayNote ?? latest;
 
   const flash = (msg: string, fail = false) => {
@@ -354,7 +353,7 @@ export default function DailyBoard({
     <div className="mobile-page daily-board" data-testid="daily-board" style={pageStyle}>
       <div
         style={{
-          maxWidth: 560,
+          maxWidth: 680,
           margin: '0 auto',
           padding:
             'max(88px, calc(env(safe-area-inset-top, 0px) + 72px)) 22px max(48px, calc(env(safe-area-inset-bottom, 0px) + 28px))',
@@ -372,7 +371,7 @@ export default function DailyBoard({
               lineHeight: 1.1,
             }}
           >
-            daily board
+            two lines
           </h1>
           <p
             style={{
@@ -398,8 +397,10 @@ export default function DailyBoard({
           </div>
         ) : null}
 
+        <div className="two-lines-stage">
+        <div className="two-lines-note">
         {showWriter ? (
-          <section data-testid="daily-owner-editor" style={{ marginBottom: 40 }}>
+          <section data-testid="daily-owner-editor" style={{ marginBottom: 8 }}>
             <input
               aria-label="title"
               placeholder="title, if you want"
@@ -477,7 +478,6 @@ export default function DailyBoard({
             />
             <p style={{ margin: '8px 0 0', fontSize: 11, opacity: 0.4, fontFamily: sans, display: 'flex', gap: 12 }}>
               <span>{saving ? 'saving' : today ? formatQuietDate(today) : 'today'}</span>
-              {owner ? (
               <button
                 type="button"
                 data-testid="daily-save"
@@ -495,9 +495,6 @@ export default function DailyBoard({
               >
                 save
               </button>
-              ) : (
-                <span>on this phone until you enter</span>
-              )}
             </p>
           </section>
         ) : (
@@ -531,9 +528,12 @@ export default function DailyBoard({
             )}
           </section>
         )}
+        </div>
+
+        <TwoLinesCosmicStrip ink={theme.text} accent={theme.accent} />
 
         {commentNote ? (
-          <div data-testid="daily-comments" style={{ display: 'grid', gap: 10, marginBottom: 36 }}>
+          <div className="two-lines-comments" data-testid="daily-comments" style={{ display: 'grid', gap: 10, marginBottom: 8 }}>
             {commentsFor(commentNote.id).map((c) => (
               <div
                 key={c.id}
@@ -619,6 +619,12 @@ export default function DailyBoard({
                   maxLength={DAILY_COMMENT_MAX}
                   rows={2}
                   onChange={(e) => setBubble(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      e.currentTarget.form?.requestSubmit();
+                    }
+                  }}
                   style={{
                     flex: 1,
                     resize: 'none',
@@ -641,35 +647,37 @@ export default function DailyBoard({
                   type="submit"
                   data-testid="daily-bubble-send"
                   disabled={!bubble.trim()}
+                  aria-label="send"
                   style={{
                     background: 'none',
                     border: 'none',
                     color: theme.accent,
                     fontFamily: sans,
-                    fontSize: 13,
+                    fontSize: 18,
                     cursor: bubble.trim() ? 'pointer' : 'default',
                     opacity: bubble.trim() ? 1 : 0.35,
                     padding: '8px 0',
                     minHeight: 44,
+                    minWidth: 28,
                   }}
                 >
-                  send
+                  ↵
                 </button>
               </div>
             </form>
           </div>
         ) : null}
 
-        {!owner ? (
-          <div data-testid="daily-owner-enter" style={{ marginTop: 28, maxWidth: 280, opacity: 0.85 }}>
-            <OwnerUnlockForm next="/daily" enterLabel="enter" denied={denied} />
-          </div>
+        <div className="two-lines-older">
+        {older.length ? (
+          <p style={{ margin: '8px 0 0', fontSize: 11, opacity: 0.4, fontFamily: sans, letterSpacing: '0.04em' }}>
+            older
+          </p>
         ) : null}
-
         {older.map((note) => (
           <section
             key={note.id}
-            style={{ marginTop: 36, opacity: 0.55 }}
+            style={{ marginTop: 28, opacity: 0.55 }}
             data-testid="daily-older-note"
           >
             <p style={{ margin: '0 0 8px', fontSize: 12, fontFamily: sans }}>{formatQuietDate(note.date)}</p>
@@ -699,6 +707,14 @@ export default function DailyBoard({
             </div>
           </section>
         ))}
+        </div>
+        </div>
+
+        {!owner ? (
+          <div data-testid="daily-owner-enter" style={{ marginTop: 28, maxWidth: 280, opacity: 0.85 }}>
+            <OwnerUnlockForm next="/daily" enterLabel="enter" denied={denied} />
+          </div>
+        ) : null}
         </>
         )}
       </div>
