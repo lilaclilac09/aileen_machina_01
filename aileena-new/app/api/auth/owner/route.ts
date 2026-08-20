@@ -11,7 +11,7 @@ import { SESSION_COOKIE, OWNER_MAX_AGE, createOwnerSession, safeEqual } from '..
  */
 export const runtime = 'nodejs';
 
-const OWNER_ROOMS = new Set(['/council', '/cabinet', '/inbox']);
+const OWNER_ROOMS = new Set(['/council', '/cabinet', '/inbox', '/daily']);
 
 function safeNextPath(raw: string | null): string {
   if (!raw) return '/council';

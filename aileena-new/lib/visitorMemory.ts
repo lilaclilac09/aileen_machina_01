@@ -34,10 +34,24 @@ const EMPTY: VisitorSoftMemory = {
 
 let redisClient: Redis | null | undefined;
 
+/** Bracket access so Next does not inline empty Redis URLs at build time. */
+function redisRestEnv(): { url: string; token: string } {
+  const url = (
+    process.env['UPSTASH_REDIS_REST_URL'] ||
+    process.env['KV_REST_API_URL'] ||
+    ''
+  ).trim();
+  const token = (
+    process.env['UPSTASH_REDIS_REST_TOKEN'] ||
+    process.env['KV_REST_API_TOKEN'] ||
+    ''
+  ).trim();
+  return { url, token };
+}
+
 export function getVisitorRedis(): Redis | null {
   if (redisClient !== undefined) return redisClient;
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const { url, token } = redisRestEnv();
   if (!url || !token) {
     redisClient = null;
     return null;

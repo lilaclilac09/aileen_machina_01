@@ -16,6 +16,7 @@ import {
   clipText,
   isYmd,
   noteIdForDate,
+  publicComment,
   sanitizeNickname,
   sanitizeTheme,
 } from './dailyBoard';
@@ -44,6 +45,12 @@ function memory(): Memory {
 
 export function dailyBoardPersistence(): 'redis' | 'memory' {
   return getVisitorRedis() ? 'redis' : 'memory';
+}
+
+/** Vercel instances do not share RAM — refuse memory writes in production. */
+export function dailyBoardWritesOk(): boolean {
+  if (dailyBoardPersistence() === 'redis') return true;
+  return process.env['VERCEL'] !== '1';
 }
 
 function parseJson<T>(raw: unknown): T | null {
@@ -218,5 +225,30 @@ export async function readDailyBoard(opts?: { owner?: boolean }) {
     comments,
     persistence: dailyBoardPersistence(),
     today: taipeiDay(),
+  };
+}
+
+export type PublicDailyBoard = {
+  theme: DailyTheme;
+  notes: DailyNote[];
+  comments: Record<string, ReturnType<typeof publicComment>[]>;
+  persistence: 'redis' | 'memory';
+  today: string;
+  owner: boolean;
+};
+
+export async function readPublicDailyBoard(owner: boolean): Promise<PublicDailyBoard> {
+  const board = await readDailyBoard({ owner });
+  const comments: PublicDailyBoard['comments'] = {};
+  for (const [noteId, list] of Object.entries(board.comments)) {
+    comments[noteId] = list.filter((c) => !c.hidden).map(publicComment);
+  }
+  return {
+    theme: board.theme,
+    notes: board.notes,
+    comments,
+    persistence: board.persistence,
+    today: board.today,
+    owner,
   };
 }

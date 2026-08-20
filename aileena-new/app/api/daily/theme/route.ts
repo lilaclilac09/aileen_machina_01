@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireOwnerFromRequest } from '@/lib/owner-gate';
 import { sanitizeTheme } from '@/lib/dailyBoard';
-import { writeDailyTheme } from '@/lib/dailyBoardStore';
+import { dailyBoardWritesOk, writeDailyTheme } from '@/lib/dailyBoardStore';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -11,6 +11,9 @@ export async function POST(req: Request) {
   const owner = await requireOwnerFromRequest(req);
   if (!owner) {
     return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+  }
+  if (!dailyBoardWritesOk()) {
+    return NextResponse.json({ error: 'not_stored', persistence: 'memory' }, { status: 503 });
   }
 
   let body: unknown;
