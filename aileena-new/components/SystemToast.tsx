@@ -63,9 +63,14 @@ const chip: CSSProperties = {
 };
 
 export function shortMixError(raw: string): string {
-  if (/CORS|blocked/i.test(raw)) return 'Upload the file.';
+  if (/Load audio first/i.test(raw)) return 'Load audio first.';
+  if (/Reference only/i.test(raw)) return 'Reference only.';
+  if (/Not mixable/i.test(raw)) return 'Not mixable.';
+  if (/Format not supported/i.test(raw)) return 'Format not supported.';
+  if (/Load failed/i.test(raw)) return 'Load failed.';
+  if (/CORS|blocked/i.test(raw)) return 'Load failed.';
   if (/MediaRecorder|unavailable/i.test(raw)) return 'Record failed.';
   if (/empty file/i.test(raw)) return 'Export failed.';
-  if (/decode/i.test(raw)) return 'Upload failed.';
+  if (/decode/i.test(raw)) return 'Format not supported.';
   return 'Something broke.';
 }

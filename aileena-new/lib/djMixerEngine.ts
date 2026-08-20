@@ -1,13 +1,17 @@
 /**
  * Real two-deck Web Audio graph.
  *
- * source → trim → EQ lo/mid/hi → filter → channel fader → analyser
- *                                                      ↘
- * deck A xfade ──→ master → speakers
- * deck B xfade ──↗        → master analyser
- *                         → MediaStreamDestination (MediaRecorder)
+ * Path: File / same-origin URL → decodeAudioData → AudioBuffer
+ *   → AudioBufferSourceNode (one per play) → trim → EQ → filter → fader
+ *   → analyser → xfade → master → speakers
+ *                              → master analyser
+ *                              → MediaStreamDestination (MediaRecorder)
  *
- * Spotify iframe audio is not in this graph and cannot be mixed here.
+ * One AudioContext for the desk. Decks do not use HTMLAudioElement /
+ * MediaElementSource. Object URLs are not used (decode from ArrayBuffer).
+ *
+ * Spotify iframe / preview_url audio is not in this graph and cannot be
+ * mixed or exported here — Premium does not change that.
  */
 
 import {

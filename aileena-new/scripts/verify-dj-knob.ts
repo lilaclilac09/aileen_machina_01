@@ -96,8 +96,8 @@ function run(): Check[] {
   const faderTags = station.split('<DJFader').length - 1;
   checks.push(check('DJFader markup for pitch + channel map + xfade', faderTags === 3, `got ${faderTags}`));
   checks.push(check(
-    'Spotify load hint is reference-only',
-    station.includes('Reference only.'),
+    'non-mixable load hint is compact',
+    station.includes('Not mixable.'),
   ));
   checks.push(check('platter is display-only', station.includes('scratch v2') && station.includes("pointerEvents: 'none'")));
   return checks;

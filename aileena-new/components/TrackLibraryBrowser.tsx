@@ -1,5 +1,6 @@
 'use client';
-import { useState, useRef, useMemo, useEffect } from 'react';
+import { useState, useRef, useMemo, useEffect, useSyncExternalStore } from 'react';
+import { isMixableTrack } from '../lib/djMixable';
 
 /**
  * Fallback cover used when a track has no thumb (or its thumb URL 404s).
@@ -37,10 +38,13 @@ type Track = {
   key: string;
   dur: number;
   thumb: string;
-  source?: 'spotify';
+  source?: 'local' | 'demo' | 'spotify' | 'external';
   previewUrl?: string | null;
   externalUrl?: string;
   mixable?: boolean;
+  audioSrc?: string;
+  audioUrl?: string;
+  demo?: boolean;
 };
 
 type ViewMode = 'list' | 'playlist';
@@ -95,7 +99,7 @@ const T = {
 
 export default function TrackLibraryBrowser({ tracks, reverseCarousel = true, onLoadTrack, onSetDragTrack,
   playingLeft, playingRight, leftPos, leftDur, rightPos, rightDur,
-  focusTrackId = null, onRemoveTrack }: {
+  onRemoveTrack, selectedTrackId = null, onSelectTrack }: {
   tracks: Track[];
   reverseCarousel?: boolean;
   onLoadTrack?: (side: 'left' | 'right', track: Track) => void;
@@ -108,16 +112,13 @@ export default function TrackLibraryBrowser({ tracks, reverseCarousel = true, on
   rightDur?: number;
   focusTrackId?: string | null;
   onRemoveTrack?: (id: string) => void;
+  selectedTrackId?: string | null;
+  onSelectTrack?: (track: Track) => void;
 }) {
   const [mode, setMode] = useState<ViewMode>('playlist');
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [seenFocus, setSeenFocus] = useState<string | null>(null);
+  const [localActiveId, setLocalActiveId] = useState<string | null>(null);
   const [query, setQuery] = useState('');
-
-  if (focusTrackId && focusTrackId !== seenFocus) {
-    setSeenFocus(focusTrackId);
-    setActiveId(focusTrackId);
-  }
+  const activeId = selectedTrackId ?? localActiveId;
 
   const displayTracks = reverseCarousel ? [...tracks].slice().reverse() : tracks;
   const foundIdx = activeId
@@ -125,7 +126,9 @@ export default function TrackLibraryBrowser({ tracks, reverseCarousel = true, on
     : 0;
   const playlistIdx = foundIdx >= 0 ? foundIdx : 0;
   const setPlaylistIdx = (i: number) => {
-    setActiveId(displayTracks[i]?.id ?? null);
+    const t = displayTracks[i];
+    if (t) onSelectTrack?.(t);
+    if (selectedTrackId == null) setLocalActiveId(t?.id ?? null);
   };
 
   const filtered = query.trim()
@@ -426,7 +429,7 @@ function ListTrackRow({ index, track, isPlayingLeft, isPlayingRight, pos, dur,
           marginBottom: 5,
           transition: 'color 0.2s',
         }}>
-          {track.title}{track.source === 'spotify' ? ' · REF' : ''}
+          {track.title}{isMixableTrack(track) ? (track.demo ? ' · DEMO' : '') : ' · REF'}
         </span>
         {/* Waveform */}
         <svg width="100%" height="20" viewBox={`0 0 ${WAVE_BARS * 2.5} 20`}
@@ -513,6 +516,18 @@ function ListTrackRow({ index, track, isPlayingLeft, isPlayingRight, pos, dur,
   );
 }
 
+function subscribeFinePointer(onChange: () => void) {
+  const mq = window.matchMedia('(pointer: fine)');
+  mq.addEventListener('change', onChange);
+  return () => mq.removeEventListener('change', onChange);
+}
+function getFinePointer() {
+  return window.matchMedia('(pointer: fine)').matches;
+}
+function getFinePointerServer() {
+  return false;
+}
+
 /* ─── PLAYLIST CAROUSEL ───────────────────────────────────── */
 function PlaylistCarousel({
   tracks: incomingTracks,
@@ -534,17 +549,7 @@ function PlaylistCarousel({
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   /** Desktop fine pointer: HTML5 drag-to-deck. Touch: swipe + A/B buttons. */
-  const [finePointer, setFinePointer] = useState(() =>
-    typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: fine)')?.matches,
-  );
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return;
-    const mq = window.matchMedia('(pointer: fine)');
-    const sync = (e?: MediaQueryListEvent) => setFinePointer(e ? e.matches : mq.matches);
-    mq.addEventListener?.('change', sync);
-    return () => mq.removeEventListener?.('change', sync);
-  }, []);
+  const finePointer = useSyncExternalStore(subscribeFinePointer, getFinePointer, getFinePointerServer);
 
   // Carousel renders newest-first. Source order in TRACKS stays append-only
   // (so /addmusic just pushes to the end), and we reverse for display here.
@@ -580,7 +585,10 @@ function PlaylistCarousel({
     return () => controller.abort();
   }, [tracks]);
 
-  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const choose = (i: number) => {
+    setActiveIdx(i);
+  };
+
   const ptrStartX = useRef<number | null>(null);
   const dragX = useRef(0);
   const lastMoveT = useRef(0);
@@ -591,15 +599,6 @@ function PlaylistCarousel({
     activeIdxRef.current = activeIdx;
   }, [activeIdx]);
   const active = tracks[activeIdx];
-
-  function onCardHover(i: number, rel: number) {
-    if (isDragging || rel === 0) return;
-    if (hoverTimer.current) clearTimeout(hoverTimer.current);
-    hoverTimer.current = setTimeout(() => setActiveIdx(i), 280);
-  }
-  function onCardLeave() {
-    if (hoverTimer.current) { clearTimeout(hoverTimer.current); hoverTimer.current = null; }
-  }
 
   function onPtrDown(e: React.PointerEvent<HTMLDivElement>) {
     // Fine pointer uses HTML5 drag-to-deck; swipe would steal the gesture.
@@ -631,8 +630,8 @@ function PlaylistCarousel({
     const flick = velocityX.current * 180; // px-ish impulse
     const travel = dx + flick;
     const idx = activeIdxRef.current;
-    if (travel < -48 && idx < tracks.length - 1) setActiveIdx(idx + 1);
-    else if (travel > 48 && idx > 0) setActiveIdx(idx - 1);
+    if (travel < -48 && idx < tracks.length - 1) choose(idx + 1);
+    else if (travel > 48 && idx > 0) choose(idx - 1);
     ptrStartX.current = null;
     dragX.current = 0;
     velocityX.current = 0;
@@ -650,7 +649,7 @@ function PlaylistCarousel({
         {/* Prev arrow */}
         <button
           type="button"
-          onClick={() => activeIdx > 0 && setActiveIdx(activeIdx - 1)}
+          onClick={() => activeIdx > 0 && choose(activeIdx - 1)}
           style={{
             position: 'absolute', left: 6, top: '50%', transform: 'translateY(-50%)',
             zIndex: 30, background: 'none', border: 'none', cursor: 'pointer',
@@ -662,7 +661,7 @@ function PlaylistCarousel({
         {/* Next arrow */}
         <button
           type="button"
-          onClick={() => activeIdx < tracks.length - 1 && setActiveIdx(activeIdx + 1)}
+          onClick={() => activeIdx < tracks.length - 1 && choose(activeIdx + 1)}
           style={{
             position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)',
             zIndex: 30, background: 'none', border: 'none', cursor: 'pointer',
@@ -705,7 +704,10 @@ function PlaylistCarousel({
                 data-track-id={track.id}
                 data-track-title={track.title}
                 data-source={track.source || 'catalogue'}
-                data-mixable={track.source === 'spotify' || track.mixable === false ? 'false' : 'true'}
+                data-mixable={isMixableTrack(track) ? 'true' : 'false'}
+                data-demo={track.demo ? 'true' : 'false'}
+                data-selected={rel === 0 ? 'true' : 'false'}
+                data-audio-src={track.audioSrc || track.audioUrl || ''}
                 draggable={finePointer}
                 onDragStart={(e) => {
                   if (!finePointer) {
@@ -720,12 +722,10 @@ function PlaylistCarousel({
                     /* some browsers throw on setData during tests */
                   }
                 }}
-                onMouseEnter={() => onCardHover(i, rel)}
-                onMouseLeave={onCardLeave}
                 onClick={() => {
                   if (movedEnough.current) return;
-                  if (rel !== 0) setActiveIdx(i);
-                  else onSetDragTrack?.(track);
+                  choose(i);
+                  onSetDragTrack?.(track);
                 }}
                 onDoubleClick={() => onLoadTrack?.('left', track)}
                 style={{
@@ -766,7 +766,30 @@ function PlaylistCarousel({
                     }}
                     draggable={false}
                   />
-                  {track.source === 'spotify' && (
+                  {track.demo && (
+                    <span
+                      data-testid="dj-demo-badge"
+                      style={{
+                        position: 'absolute',
+                        top: 6,
+                        left: 6,
+                        zIndex: 2,
+                        fontFamily: 'monospace',
+                        fontSize: 8,
+                        letterSpacing: '0.12em',
+                        textTransform: 'uppercase',
+                        color: T.l1,
+                        background: 'rgba(0,0,0,0.62)',
+                        border: `1px solid ${T.cyanSoft}`,
+                        padding: '2px 5px',
+                        borderRadius: 2,
+                        pointerEvents: 'none',
+                      }}
+                    >
+                      DEMO
+                    </span>
+                  )}
+                  {!isMixableTrack(track) && (
                     <span
                       data-testid="spotify-ref-badge"
                       style={{
@@ -821,7 +844,7 @@ function PlaylistCarousel({
         {tracks.map((_, i) => (
           <div
             key={i}
-            onClick={() => setActiveIdx(i)}
+            onClick={() => choose(i)}
             style={{
               width: i === activeIdx ? 20 : 5,
               height: 4,
@@ -846,7 +869,9 @@ function PlaylistCarousel({
             display: 'flex', alignItems: 'baseline', justifyContent: 'center',
             gap: '1em', flexWrap: 'wrap',
           }}>
-            <span style={{
+            <span
+              data-testid="dj-carousel-active-title"
+              style={{
               fontFamily: 'monospace',
               fontSize: 15,
               fontWeight: 600,
@@ -855,16 +880,16 @@ function PlaylistCarousel({
             }}>
               {active.title}
             </span>
-            <span style={{
+            <span
+              data-testid="dj-carousel-meta"
+              style={{
               fontFamily: 'monospace',
               fontSize: 13,
               fontWeight: 400,
               letterSpacing: '0.02em',
               color: T.l2,
             }}>
-              {active.source === 'spotify'
-                ? `${fmtDur(active.dur)} · not mixable`
-                : `${active.bpm} BPM · ${fmtDur(active.dur)}`}
+              {`${active.bpm} BPM · ${fmtDur(active.dur)}`}
             </span>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>

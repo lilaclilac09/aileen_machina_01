@@ -29,13 +29,67 @@ export type DeckTrack = {
   key: string;
   dur: number;
   thumb: string;
-  /** User-added Spotify search card — reference/preview, not mixable. */
-  source?: 'spotify';
+  /** local | demo | spotify | external */
+  source?: 'local' | 'demo' | 'spotify' | 'external';
   previewUrl?: string | null;
   externalUrl?: string;
-  /** False for Spotify reference/preview cards. Omitted = mixable local/crate audio. */
+  /** Playable same-origin / CORS audio. Required for mixable. */
+  audioSrc?: string;
+  /** @deprecated alias of audioSrc */
+  audioUrl?: string;
+  /** Bundled legal demo loop (generated / owned). */
+  demo?: boolean;
+  /** False = reference only. True requires audioSrc. */
   mixable?: boolean;
 };
+
+function crateSource(track: Pick<DeckTrack, 'source' | 'demo' | 'spotifyId' | 'id'>): DeckTrack['source'] {
+  if (track.source) return track.source;
+  if (track.demo) return 'demo';
+  if (track.spotifyId || /^[a-zA-Z0-9]{22}$/.test(track.id)) return 'spotify';
+  return 'external';
+}
+
+/** Owned generated loops — the only catalogue items that can actually mix. */
+export const DEMO_DECK_TRACKS: DeckTrack[] = [
+  {
+    id: 'demo-kick',
+    title: 'Kick Loop',
+    artist: 'aileena demo',
+    bpm: 132,
+    key: '1A',
+    dur: 4,
+    thumb: '/dj-set/assets/covers/demo-kick.svg',
+    audioSrc: '/dj-set/demo/kick.wav',
+    audioUrl: '/dj-set/demo/kick.wav',
+    mixable: true,
+    demo: true,
+    source: 'demo',
+  },
+  {
+    id: 'demo-stab',
+    title: 'Stab Loop',
+    artist: 'aileena demo',
+    bpm: 132,
+    key: '8A',
+    dur: 4,
+    thumb: '/dj-set/assets/covers/demo-stab.svg',
+    audioSrc: '/dj-set/demo/stab.wav',
+    audioUrl: '/dj-set/demo/stab.wav',
+    mixable: true,
+    demo: true,
+    source: 'demo',
+  },
+];
+
+function asReference(track: DeckTrack): DeckTrack {
+  const source = crateSource(track);
+  const src = track.audioSrc || track.audioUrl;
+  if (src && track.mixable !== false && source !== 'spotify') {
+    return { ...track, source, audioSrc: src, audioUrl: src, mixable: true };
+  }
+  return { ...track, source, mixable: false, audioSrc: undefined, audioUrl: undefined };
+}
 
 /** Curated handoff five — also mirrored in public/dj-set/setlist.json */
 export const DJ_SET_TRACKS: DjSetTrack[] = [
@@ -402,19 +456,21 @@ export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
 ];
 
 export function djSetToDeckTracks(): DeckTrack[] {
-  return DJ_SET_TRACKS.map((t) => ({
-    id: t.id,
-    spotifyId: t.spotifyId,
-    title: t.title,
-    artist: t.artist,
-    bpm: t.bpm ?? 120,
-    key: t.key ?? '—',
-    dur: t.durationSec ?? 200,
-    thumb: t.cover,
-  }));
+  return DJ_SET_TRACKS.map((t) =>
+    asReference({
+      id: t.id,
+      spotifyId: t.spotifyId,
+      title: t.title,
+      artist: t.artist,
+      bpm: t.bpm ?? 120,
+      key: t.key ?? '—',
+      dur: t.durationSec ?? 200,
+      thumb: t.cover,
+    }),
+  );
 }
 
-/** Everything shown in the /sound deck carousel: handoff five + full library. */
+/** Everything shown in the /sound deck carousel: demos + handoff five + library. */
 export function allDeckTracks(): DeckTrack[] {
-  return [...djSetToDeckTracks(), ...DECK_LIBRARY_TRACKS];
+  return [...DEMO_DECK_TRACKS, ...djSetToDeckTracks(), ...DECK_LIBRARY_TRACKS.map(asReference)];
 }

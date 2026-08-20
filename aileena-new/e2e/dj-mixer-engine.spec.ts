@@ -30,8 +30,9 @@ test.describe('DJ mixer engine', () => {
     await page.goto('/sound', { waitUntil: 'domcontentloaded' });
     await expect(page.getByTestId('dj-engine-status')).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-ready', 'true');
-    await expect(page.getByTestId('dj-spotify-preview-note')).toContainText('Not mixable');
+    await expect(page.getByTestId('dj-engine-status')).not.toContainText('Play A');
     await expect(page.getByTestId('dj-station')).toBeVisible();
+    await page.screenshot({ path: '/opt/cursor/artifacts/leds-status.png' });
 
     const wavA = pcmWav(3, 440);
     const wavB = pcmWav(3, 660);
@@ -52,6 +53,7 @@ test.describe('DJ mixer engine', () => {
     await expect(page.getByTestId('dj-deck-a-drop')).toHaveAttribute('data-mix-loaded', 'true');
     await expect(page.getByTestId('dj-waveform-a')).toBeVisible();
     await expect(page.getByTestId('dj-waveform-b')).toBeVisible();
+    await page.screenshot({ path: '/opt/cursor/artifacts/deck-a-loaded-from-upload.png' });
     await page.screenshot({ path: '/opt/cursor/artifacts/desktop_decks_loaded.png' });
 
     await page.getByTestId('dj-play-a').click();
@@ -89,6 +91,7 @@ test.describe('DJ mixer engine', () => {
     await page.keyboard.press('End');
     await expect(xfade).toHaveAttribute('data-fader-value', '100');
     await expect(page.getByTestId('dj-mixer')).toHaveAttribute('data-xfade', '100');
+    await page.screenshot({ path: '/opt/cursor/artifacts/both-playing.png' });
     await page.screenshot({ path: '/opt/cursor/artifacts/desktop_both_decks_playing.png' });
     await page.getByTestId('dj-mixer').screenshot({ path: '/opt/cursor/artifacts/desktop_mixer_controls.png' });
 
@@ -108,7 +111,7 @@ test.describe('DJ mixer engine', () => {
     await expect(page.getByTestId('dj-export-audio')).toBeEnabled();
     await expect(page.getByTestId('dj-export-meta')).toBeEnabled();
     await expect(page.getByTestId('dj-copy-soundcloud')).toBeEnabled();
-    await expect(page.getByText(/Export ready/i)).toBeVisible();
+    await expect(page.getByTestId('dj-deck-hint')).toContainText(/Export ready/i);
 
     const [download] = await Promise.all([
       page.waitForEvent('download'),
@@ -119,6 +122,103 @@ test.describe('DJ mixer engine', () => {
     expect(filePath).toBeTruthy();
     const info = await stat(filePath!);
     expect(info.size).toBeGreaterThan(0);
+    await page.screenshot({ path: '/opt/cursor/artifacts/export-ready.png' });
     await page.screenshot({ path: '/opt/cursor/artifacts/desktop_export_ready.png' });
+  });
+
+  test('unsupported format toasts and does not load', async ({ page }) => {
+    await page.goto('/sound', { waitUntil: 'domcontentloaded' });
+    await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-ready', 'true', { timeout: 20_000 });
+    await page.getByTestId('dj-upload-a').setInputFiles({
+      name: 'notes.txt',
+      mimeType: 'text/plain',
+      buffer: Buffer.from('not audio'),
+    });
+    await expect(page.getByTestId('dj-deck-hint')).toContainText(/Format not supported/i);
+    await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-deck-a', 'false');
+  });
+
+  test('carousel demo loads and plays; reference stays out of the mix', async ({ page }) => {
+    await page.goto('/sound', { waitUntil: 'domcontentloaded' });
+    await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-ready', 'true', { timeout: 20_000 });
+
+    const mixable = page.locator('[data-testid="dj-carousel-card"][data-mixable="true"]').first();
+    await expect(mixable).toBeVisible({ timeout: 20_000 });
+    await page.locator('[data-dj-load-deck="left"]').click();
+    await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-deck-a', 'true', { timeout: 15_000 });
+    await expect(page.getByTestId('dj-deck-a-title')).toContainText(/Kick Loop/i);
+    await page.getByTestId('dj-play-a').click();
+    await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-playing-a', 'true');
+
+    const crate = page.locator('#dj-set');
+    await crate.locator('button').filter({ hasText: '›' }).click();
+    await expect(page.getByTestId('dj-carousel-active-title')).toHaveText(/Stab Loop/i);
+    await page.locator('[data-dj-load-deck="right"]').click();
+    await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-deck-b', 'true', { timeout: 15_000 });
+    await expect(page.getByTestId('dj-deck-b-title')).toContainText(/Stab Loop/i);
+    await page.screenshot({ path: '/opt/cursor/artifacts/deck-b-loaded-from-carousel.png' });
+
+    await crate.locator('button').filter({ hasText: '›' }).click();
+    await expect(page.getByTestId('dj-carousel-active-title')).not.toHaveText(/Kick Loop|Stab Loop/i);
+    await page.locator('[data-dj-load-deck="left"]').click();
+    await expect(page.getByTestId('dj-deck-hint')).toContainText(/Not mixable/i);
+    await page.screenshot({ path: '/opt/cursor/artifacts/not-mixable-toast.png' });
+  });
+
+  test('click carousel item then deck Load A/B actually plays', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/sound', { waitUntil: 'domcontentloaded' });
+    await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-ready', 'true', { timeout: 20_000 });
+
+    const kick = page.locator('[data-testid="dj-carousel-card"][data-track-id="demo-kick"]');
+    await kick.scrollIntoViewIfNeeded();
+    await kick.click();
+    await expect(kick).toHaveAttribute('data-selected', 'true');
+    await expect(page.getByTestId('dj-station')).toHaveAttribute('data-selected-id', 'demo-kick');
+    await expect(page.getByTestId('dj-carousel-active-title')).toHaveText(/Kick Loop/i);
+    await expect(page.getByTestId('dj-carousel-meta')).toContainText(/BPM/);
+    await page.screenshot({ path: '/opt/cursor/artifacts/carousel-selected.png' });
+
+    await page.getByTestId('dj-load-selected-a').click();
+    await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-deck-a', 'true', { timeout: 15_000 });
+    await expect(page.getByTestId('dj-deck-a-title')).toContainText(/Kick Loop/i);
+    await expect(page.getByTestId('dj-deck-hint')).toContainText(/Loaded A/i);
+    await page.screenshot({ path: '/opt/cursor/artifacts/load-a-success.png' });
+
+    await page.getByTestId('dj-play-a').click();
+    await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-playing-a', 'true');
+    await page.screenshot({ path: '/opt/cursor/artifacts/deck-a-playing.png' });
+
+    const stab = page.locator('[data-testid="dj-carousel-card"][data-track-id="demo-stab"]');
+    await stab.click();
+    await expect(page.getByTestId('dj-station')).toHaveAttribute('data-selected-id', 'demo-stab');
+    await page.getByTestId('dj-load-selected-b').click();
+    await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-deck-b', 'true', { timeout: 15_000 });
+    await expect(page.getByTestId('dj-deck-b-title')).toContainText(/Stab Loop/i);
+    await page.getByTestId('dj-play-b').click();
+    await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-playing-b', 'true');
+
+    await page.getByTestId('dj-xfade').focus();
+    await page.keyboard.press('End');
+    await expect(page.getByTestId('dj-mixer')).toHaveAttribute('data-xfade', '100');
+
+    const ref = page.locator('[data-testid="dj-carousel-card"][data-mixable="false"]').first();
+    await ref.click();
+    await page.getByTestId('dj-load-selected-a').click();
+    await expect(page.getByTestId('dj-deck-hint')).toContainText(/Not mixable/i);
+    await page.screenshot({ path: '/opt/cursor/artifacts/not-mixable-red-bolt.png' });
+
+    const pair = page.getByTestId('dj-pair-panel');
+    await expect(pair).toBeVisible();
+    await expect(page.getByText(/Suggestions for/i)).toHaveCount(0);
+    const empty = page.getByTestId('dj-pair-empty');
+    const hits = page.getByTestId('dj-pair-hit');
+    if (await empty.count()) {
+      await expect(empty).toContainText(/Need two tracks/i);
+    } else {
+      await expect(hits.first()).toBeVisible();
+      expect(await hits.count()).toBeLessThanOrEqual(3);
+    }
+    await pair.screenshot({ path: '/opt/cursor/artifacts/pair-hidden-or-suggestions.png' });
   });
 });

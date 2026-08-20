@@ -41,6 +41,25 @@ async function checkRedirect(): Promise<Check> {
   }
 }
 
+async function checkDemoAssets(): Promise<Check[]> {
+  const paths = [
+    '/dj-set/demo/kick.wav',
+    '/dj-set/demo/stab.wav',
+    '/dj-set/assets/covers/demo-kick.svg',
+    '/dj-set/assets/covers/demo-stab.svg',
+  ];
+  return Promise.all(
+    paths.map(async (p) => {
+      try {
+        const res = await fetch(`${BASE_URL}${p}`);
+        return { name: `demo ${p}`, ok: res.ok, detail: String(res.status) };
+      } catch (e) {
+        return { name: `demo ${p}`, ok: false, detail: String(e) };
+      }
+    }),
+  );
+}
+
 async function checkCoverAssets(): Promise<Check[]> {
   return Promise.all(
     DJ_SET_TRACKS.map(async (t) => {
@@ -102,8 +121,8 @@ async function runBrowser(checks: Check[]): Promise<void> {
     const titles: string[] = [];
 
     for (let i = 0; i < expected; i++) {
-      const detail = await carousel.locator('span').filter({ hasText: ' BPM · ' }).innerText();
-      titles.push(detail.split(' · ')[0]?.trim() ?? '');
+      const title = (await carousel.getByTestId('dj-carousel-active-title').innerText()).trim();
+      titles.push(title);
 
       const loaded = await carousel
         .locator('[data-dj-set-card] img')
@@ -199,6 +218,7 @@ async function main() {
     await checkGet('/'),
     await checkRedirect(),
     ...(await checkCoverAssets()),
+    ...(await checkDemoAssets()),
   ];
 
   await runBrowser(checks);
