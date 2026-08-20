@@ -6,6 +6,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { allDeckTracks } from '../lib/djSetlist';
+import { isMixableTrack, isSupportedMixFile } from '../lib/djMixable';
 import {
   addSpotifyHitToLibrary,
   searchHitToDeckTrack,
@@ -108,6 +109,16 @@ function run(): Check[] {
   checks.push(check('reject missing title', mapSpotifyApiTrack({ id: PREVIEW_ID, name: '  ' }) === null));
 
   const catalogue = allDeckTracks();
+  const demos = catalogue.filter((t) => t.demo);
+  checks.push(check('two legal demo loops', demos.length === 2 && demos.every((t) => isMixableTrack(t) && Boolean(t.audioUrl))));
+  checks.push(check(
+    'catalogue Spotify/cover cards are not mixable',
+    catalogue.filter((t) => !t.demo).every((t) => !isMixableTrack(t)),
+  ));
+  const fakeWav = { name: 'loop.wav', type: 'audio/wav' };
+  const fakeTxt = { name: 'notes.txt', type: 'text/plain' };
+  checks.push(check('wav upload is supported', isSupportedMixFile(fakeWav)));
+  checks.push(check('txt upload is rejected', !isSupportedMixFile(fakeTxt)));
   const daydream = catalogue.find((t) => t.spotifyId === '69w5X6uTrOaWM32IetSzvO' || t.id === 'DAYDRM');
   checks.push(check('catalogue includes Daydreaming spotify id', Boolean(daydream)));
   if (daydream?.spotifyId) {

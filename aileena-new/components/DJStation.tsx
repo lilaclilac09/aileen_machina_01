@@ -12,6 +12,12 @@ import { allDeckTracks, type DeckTrack } from '../lib/djSetlist';
 import { useDjMixer } from '../lib/useDjMixer';
 import { fmtMs } from '../lib/djMixerMath';
 import {
+  isLikelyUnsupportedAudio,
+  isMixableTrack,
+  isSupportedMixFile,
+  MIX_FILE_ACCEPT,
+} from '../lib/djMixable';
+import {
   getSpotifyCarouselServerSnapshot,
   getSpotifyCarouselSnapshot,
   parseStoredSpotifyTracks,
@@ -65,26 +71,8 @@ function findTrackById(list: Track[], id: string | null | undefined): Track | nu
 
 const DJ_AUDIT = '[dj-audit]';
 
-function firstPlayableTrack(from = 0, skipId?: string | null): Track | null {
-  for (let i = from; i < CATALOGUE.length; i++) {
-    const t = CATALOGUE[i];
-    const sid = spotifyTrackId(t);
-    if (!sid) continue;
-    if (skipId && sid === skipId) continue;
-    return t;
-  }
-  for (let i = 0; i < from; i++) {
-    const t = CATALOGUE[i];
-    const sid = spotifyTrackId(t);
-    if (!sid) continue;
-    if (skipId && sid === skipId) continue;
-    return t;
-  }
-  return CATALOGUE.find((t) => spotifyTrackId(t)) ?? CATALOGUE[0] ?? null;
-}
-
-const INITIAL_LEFT = firstPlayableTrack(0);
-const INITIAL_RIGHT = firstPlayableTrack(1, INITIAL_LEFT ? spotifyTrackId(INITIAL_LEFT) : null);
+const INITIAL_LEFT: Track | null = null;
+const INITIAL_RIGHT: Track | null = null;
 
 /* ─── Spotify IFrame API types ───────────────────────────── */
 interface SpotifyController {
@@ -180,7 +168,7 @@ export default function DJStation() {
       bpm: t.bpm,
       key: t.key,
       dur: t.dur,
-      playable: !!spotifyTrackId(t),
+      playable: isMixableTrack(t),
     }));
     console.log(DJ_AUDIT, 'carousel state after catalogue bind', {
       count: CATALOGUE.length,
@@ -302,59 +290,37 @@ export default function DJStation() {
     };
   }, []);
 
-  const loadTrack = useCallback((side: 'left'|'right', track: Track) => {
-    const sid = spotifyTrackId(track);
-    console.log(DJ_AUDIT, 'loadTrack', {
+  const loadTrackToDeck = useCallback(async (track: Track, deckId: 'A' | 'B' | 'left' | 'right') => {
+    const side: 'left' | 'right' = deckId === 'B' || deckId === 'right' ? 'right' : 'left';
+    console.log(DJ_AUDIT, 'loadTrackToDeck', {
       side,
       id: track.id,
       title: track.title,
-      thumb: track.thumb?.slice?.(0, 48),
-      bpm: track.bpm,
-      key: track.key,
-      dur: track.dur,
-      spotifyId: sid,
+      mixable: isMixableTrack(track),
+      audioUrl: track.audioUrl ?? null,
+      source: track.source ?? 'catalogue',
     });
 
-    mix.setCrateMeta(side, { title: track.title, bpm: track.bpm, key: track.key });
-    const isRef = track.source === 'spotify' || track.mixable === false;
-    if (isRef) {
-      showDeckHint('Reference only.');
+    if (!isMixableTrack(track) || !track.audioUrl) {
+      showDeckHint(track.source === 'spotify' ? 'Reference only.' : 'Not mixable.');
+      return;
     }
 
-    if (side === 'left') {
-      setLeftTrack(track);
-      if (sid) {
-        const uri = `spotify:track:${sid}`;
-        if (leftCtrl.current) {
-          pendingLeftUri.current = null;
-          try {
-            leftCtrl.current.loadUri(uri);
-            console.log(DJ_AUDIT, 'audio source assigned', { deck: 'A', uri, via: 'loadUri' });
-            if (!isRef) setDeckHint(null);
-          } catch (err) {
-            console.log(DJ_AUDIT, 'loadUri error', { deck: 'A', err });
-            if (!isRef) showDeckHint('Press play.');
-          }
-        } else {
-          // Reconnect: queue until leftCtrl createController callback (same IFrame, no second player)
-          pendingLeftUri.current = uri;
-          console.log(DJ_AUDIT, 'leftCtrl null — queued pendingLeftUri', uri);
-          if (!isRef) showDeckHint('Still loading.');
-        }
-      } else if (!isRef) {
-        pendingLeftUri.current = null;
-        showDeckHint('Not playable.');
-      }
-    } else {
-      setRightTrack(track);
-      if (sid) {
-        rightCtrl.current?.loadUri(`spotify:track:${sid}`);
-        if (!isRef) setDeckHint(null);
-      } else if (!isRef) {
-        showDeckHint('Not playable.');
-      }
-    }
-  }, [showDeckHint, mix]);
+    if (side === 'left') setLeftTrack(track);
+    else setRightTrack(track);
+
+    const ok = await mix.loadUrl(side, track.audioUrl, {
+      title: track.title,
+      bpm: track.bpm,
+      key: track.key,
+    });
+    if (ok) showDeckHint(side === 'left' ? 'Loaded to A.' : 'Loaded to B.');
+    else showDeckHint('Load failed.');
+  }, [mix, showDeckHint]);
+
+  const loadTrack = useCallback((side: 'left' | 'right', track: Track) => {
+    void loadTrackToDeck(track, side);
+  }, [loadTrackToDeck]);
 
   const resolveDropTrack = useCallback((e: React.DragEvent, fallback: Track | null): Track | null => {
     if (fallback) return fallback;
@@ -388,19 +354,40 @@ export default function DJStation() {
   const takeAudioFile = (e: React.DragEvent): File | null => {
     const file = e.dataTransfer.files?.[0];
     if (!file) return null;
-    if (file.type.startsWith('audio/')) return file;
-    if (/\.(mp3|wav|ogg|m4a|flac|aac|webm)$/i.test(file.name)) return file;
+    if (isSupportedMixFile(file)) return file;
     return null;
   };
 
   const assignFile = useCallback(async (side: 'left' | 'right', file: File) => {
-    const crate = side === 'left' ? leftTrack : rightTrack;
-    await mix.loadFile(side, file, crate ? { title: crate.title, bpm: crate.bpm, key: crate.key } : undefined);
-    showDeckHint(side === 'left' ? 'Loaded A.' : 'Loaded B.');
-  }, [leftTrack, rightTrack, mix, showDeckHint]);
+    if (!isSupportedMixFile(file)) {
+      showDeckHint('Format not supported.');
+      return;
+    }
+    const local: Track = {
+      id: side === 'left' ? `local-a-${file.name}` : `local-b-${file.name}`,
+      title: file.name.replace(/\.[^.]+$/, ''),
+      bpm: 0,
+      key: '—',
+      dur: 0,
+      thumb: '',
+      mixable: true,
+    };
+    if (side === 'left') setLeftTrack(local);
+    else setRightTrack(local);
+    const ok = await mix.loadFile(side, file, { title: local.title });
+    if (ok) showDeckHint(side === 'left' ? 'Loaded to A.' : 'Loaded to B.');
+    else showDeckHint('Load failed.');
+  }, [mix, showDeckHint]);
 
   const dropOnDeckA = useCallback((e: React.DragEvent) => {
     e.preventDefault();
+    const raw = e.dataTransfer.files?.[0];
+    if (raw && isLikelyUnsupportedAudio(raw)) {
+      showDeckHint('Format not supported.');
+      dragTrack.current = null;
+      setDropSide(null);
+      return;
+    }
     const file = takeAudioFile(e);
     if (file) {
       void assignFile('left', file);
@@ -410,13 +397,20 @@ export default function DJStation() {
     }
     const track = resolveDropTrack(e, dragTrack.current);
     console.log(DJ_AUDIT, 'drop target deck', { deck: 'A', trackId: track?.id ?? null });
-    if (track) loadTrack('left', track);
+    if (track) void loadTrackToDeck(track, 'A');
     dragTrack.current = null;
     setDropSide(null);
-  }, [loadTrack, resolveDropTrack, assignFile]);
+  }, [loadTrackToDeck, resolveDropTrack, assignFile, showDeckHint]);
 
   const dropOnDeckB = useCallback((e: React.DragEvent) => {
     e.preventDefault();
+    const raw = e.dataTransfer.files?.[0];
+    if (raw && isLikelyUnsupportedAudio(raw)) {
+      showDeckHint('Format not supported.');
+      dragTrack.current = null;
+      setDropSide(null);
+      return;
+    }
     const file = takeAudioFile(e);
     if (file) {
       void assignFile('right', file);
@@ -424,10 +418,12 @@ export default function DJStation() {
       setDropSide(null);
       return;
     }
-    if (dragTrack.current) loadTrack('right', dragTrack.current);
+    const track = resolveDropTrack(e, dragTrack.current);
+    console.log(DJ_AUDIT, 'drop target deck', { deck: 'B', trackId: track?.id ?? null });
+    if (track) void loadTrackToDeck(track, 'B');
     dragTrack.current = null;
     setDropSide(null);
-  }, [loadTrack, assignFile]);
+  }, [loadTrackToDeck, resolveDropTrack, assignFile, showDeckHint]);
 
   const toggleDeck = useCallback(async (side: 'left' | 'right') => {
     const started = await mix.toggle(side);
@@ -435,7 +431,7 @@ export default function DJStation() {
       setDeckHint(null);
       return;
     }
-    showDeckHint('Upload audio first.');
+    showDeckHint('Load audio first.');
   }, [mix, showDeckHint]);
 
   const handleXfade = useCallback((v: number) => {
@@ -500,7 +496,7 @@ export default function DJStation() {
         ref={fileARef}
         data-testid="dj-upload-a"
         type="file"
-        accept="audio/*"
+        accept={MIX_FILE_ACCEPT}
         hidden
         onChange={(e) => {
           const f = e.target.files?.[0];
@@ -512,7 +508,7 @@ export default function DJStation() {
         ref={fileBRef}
         data-testid="dj-upload-b"
         type="file"
-        accept="audio/*"
+        accept={MIX_FILE_ACCEPT}
         hidden
         onChange={(e) => {
           const f = e.target.files?.[0];
@@ -521,11 +517,18 @@ export default function DJStation() {
         }}
       />
 
-      <div style={{ margin: '0 0 12px' }}>
-        <SystemToast testId="dj-spotify-preview-note" inline>
-          Not mixable.
-        </SystemToast>
-      </div>
+      <p
+        data-testid="dj-mix-source-note"
+        style={{
+          margin: '0 0 10px',
+          fontFamily: 'monospace',
+          fontSize: 13,
+          letterSpacing: '0.03em',
+          color: C.sub,
+        }}
+      >
+        Upload audio to mix. Spotify is reference only.
+      </p>
 
       {/* ── Desk first: decks + mixer ── */}
       <div
@@ -566,6 +569,7 @@ export default function DJStation() {
           playingB={mix.deckB.playing}
           recording={mix.recording}
           exportReady={mix.exportReady}
+          error={Boolean(mix.error)}
           vuA={mix.vuA}
           vuB={mix.vuB}
           vuM={mix.vuM}
@@ -712,6 +716,7 @@ export default function DJStation() {
         onRecord={() => {
           void mix.startRecord().then((ok) => {
             if (ok) showDeckHint('Recording.');
+            else showDeckHint('Load audio first.');
           });
         }}
         onStop={() => {
@@ -722,7 +727,12 @@ export default function DJStation() {
         onDownloadAudio={mix.downloadAudio}
         onDownloadMeta={mix.downloadMeta}
         onCopyReceipt={() => void mix.copyReceiptText()}
-        onLoadUrl={(side, url) => void mix.loadUrl(side, url)}
+        onLoadUrl={(side, url) => {
+          void mix.loadUrl(side, url).then((ok) => {
+            if (ok) showDeckHint(side === 'left' ? 'Loaded to A.' : 'Loaded to B.');
+            else showDeckHint('Load failed.');
+          });
+        }}
       />
 
       <div id="dj-set" data-testid="dj-set" style={{ marginTop: 16, marginBottom: 10 }}>
@@ -749,8 +759,7 @@ export default function DJStation() {
         onLoadB={(id) => {
           const t = findTrackById(library, id);
           if (!t) return;
-          loadTrack('right', t);
-          showDeckHint('Loaded B.');
+          void loadTrackToDeck(t, 'B');
         }}
       />
 
@@ -1014,10 +1023,6 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           transition: 'color 0.5s', flex: 1, margin: 0,
         }}>{track?.title ?? 'NO TRACK'}</p>
-        <span style={{
-          fontFamily: 'monospace', fontSize: 12, letterSpacing: '0.06em',
-          color: mixLoaded ? C.cyan : C.orange, whiteSpace: 'nowrap',
-        }}>{mixLoaded ? (playing ? 'Playing' : 'Loaded') : 'Preview'}</span>
         </div>
         <DJDeckWaveform
           side={side}
@@ -1522,22 +1527,25 @@ function VU({ level }: { level: number }) {
   );
 }
 
-function EngineStatus({ ready, a, b, playingA, playingB, recording, exportReady, vuA, vuB, vuM }: {
+function EngineStatus({ ready, a, b, playingA, playingB, recording, exportReady, error, vuA, vuB, vuM }: {
   ready: boolean; a: boolean; b: boolean; playingA: boolean; playingB: boolean;
-  recording: boolean; exportReady: boolean; vuA: number; vuB: number; vuM: number;
+  recording: boolean; exportReady: boolean; error: boolean; vuA: number; vuB: number; vuM: number;
 }) {
-  const bits: Array<[string, boolean]> = [
-    ['Ready', ready],
-    ['A', a],
-    ['B', b],
-    ['Play A', playingA],
-    ['Play B', playingB],
-    ['Rec', recording],
-    ['Export', exportReady],
+  const leds: Array<{ title: string; on: boolean; tone: 'teal' | 'amber' | 'red' }> = [
+    { title: 'Ready', on: ready && !error, tone: 'teal' },
+    { title: 'A loaded', on: a, tone: 'teal' },
+    { title: 'B loaded', on: b, tone: 'teal' },
+    { title: 'A playing', on: playingA, tone: 'teal' },
+    { title: 'B playing', on: playingB, tone: 'teal' },
+    { title: 'Recording', on: recording, tone: 'amber' },
+    { title: 'Export ready', on: exportReady, tone: 'teal' },
+    { title: 'Error', on: error, tone: 'red' },
   ];
   return (
-    <p
+    <div
       data-testid="dj-engine-status"
+      role="status"
+      aria-label="Mixer status"
       data-ready={ready ? 'true' : 'false'}
       data-deck-a={a ? 'true' : 'false'}
       data-deck-b={b ? 'true' : 'false'}
@@ -1545,25 +1553,41 @@ function EngineStatus({ ready, a, b, playingA, playingB, recording, exportReady,
       data-playing-b={playingB ? 'true' : 'false'}
       data-recording={recording ? 'true' : 'false'}
       data-export-ready={exportReady ? 'true' : 'false'}
+      data-error={error ? 'true' : 'false'}
       data-vu-a={String(Math.round(vuA * 1000))}
       data-vu-b={String(Math.round(vuB * 1000))}
       data-vu-m={String(Math.round(vuM * 1000))}
       style={{
         margin: '0 0 10px',
-        fontFamily: 'monospace',
-        fontSize: 12,
-        letterSpacing: '0.04em',
-        color: C.dim,
         display: 'flex',
         flexWrap: 'wrap',
-        gap: 10,
+        alignItems: 'center',
+        gap: 8,
       }}
     >
-      {bits.map(([label, on]) => (
-        <span key={label} style={{ color: on ? C.cyan : C.dim }}>
-          {on ? '●' : '○'} {label}
-        </span>
-      ))}
-    </p>
+      {leds.map((led) => {
+        const color = led.tone === 'teal' ? C.cyan : led.tone === 'amber' ? '#f5a524' : '#ef4444';
+        const idle = 'rgba(255,253,248,0.16)';
+        return (
+          <span
+            key={led.title}
+            title={led.title}
+            aria-label={`${led.title} ${led.on ? 'on' : 'off'}`}
+            data-led={led.title}
+            style={{ display: 'inline-flex', alignItems: 'center' }}
+          >
+            <span
+              style={{
+                width: 9,
+                height: 9,
+                borderRadius: '50%',
+                background: led.on ? color : idle,
+                boxShadow: led.on ? `0 0 7px ${color}` : 'inset 0 0 0 1px rgba(255,253,248,0.12)',
+              }}
+            />
+          </span>
+        );
+      })}
+    </div>
   );
 }

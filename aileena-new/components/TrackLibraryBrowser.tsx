@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef, useMemo, useEffect } from 'react';
+import { isMixableTrack } from '../lib/djMixable';
 
 /**
  * Fallback cover used when a track has no thumb (or its thumb URL 404s).
@@ -41,6 +42,8 @@ type Track = {
   previewUrl?: string | null;
   externalUrl?: string;
   mixable?: boolean;
+  audioUrl?: string;
+  demo?: boolean;
 };
 
 type ViewMode = 'list' | 'playlist';
@@ -426,7 +429,7 @@ function ListTrackRow({ index, track, isPlayingLeft, isPlayingRight, pos, dur,
           marginBottom: 5,
           transition: 'color 0.2s',
         }}>
-          {track.title}{track.source === 'spotify' ? ' · REF' : ''}
+          {track.title}{isMixableTrack(track) ? (track.demo ? ' · DEMO' : '') : ' · REF'}
         </span>
         {/* Waveform */}
         <svg width="100%" height="20" viewBox={`0 0 ${WAVE_BARS * 2.5} 20`}
@@ -705,7 +708,8 @@ function PlaylistCarousel({
                 data-track-id={track.id}
                 data-track-title={track.title}
                 data-source={track.source || 'catalogue'}
-                data-mixable={track.source === 'spotify' || track.mixable === false ? 'false' : 'true'}
+                data-mixable={isMixableTrack(track) ? 'true' : 'false'}
+                data-demo={track.demo ? 'true' : 'false'}
                 draggable={finePointer}
                 onDragStart={(e) => {
                   if (!finePointer) {
@@ -766,7 +770,30 @@ function PlaylistCarousel({
                     }}
                     draggable={false}
                   />
-                  {track.source === 'spotify' && (
+                  {track.demo && (
+                    <span
+                      data-testid="dj-demo-badge"
+                      style={{
+                        position: 'absolute',
+                        top: 6,
+                        left: 6,
+                        zIndex: 2,
+                        fontFamily: 'monospace',
+                        fontSize: 8,
+                        letterSpacing: '0.12em',
+                        textTransform: 'uppercase',
+                        color: T.l1,
+                        background: 'rgba(0,0,0,0.62)',
+                        border: `1px solid ${T.cyanSoft}`,
+                        padding: '2px 5px',
+                        borderRadius: 2,
+                        pointerEvents: 'none',
+                      }}
+                    >
+                      DEMO
+                    </span>
+                  )}
+                  {!isMixableTrack(track) && (
                     <span
                       data-testid="spotify-ref-badge"
                       style={{
@@ -846,7 +873,9 @@ function PlaylistCarousel({
             display: 'flex', alignItems: 'baseline', justifyContent: 'center',
             gap: '1em', flexWrap: 'wrap',
           }}>
-            <span style={{
+            <span
+              data-testid="dj-carousel-active-title"
+              style={{
               fontFamily: 'monospace',
               fontSize: 15,
               fontWeight: 600,
@@ -862,9 +891,9 @@ function PlaylistCarousel({
               letterSpacing: '0.02em',
               color: T.l2,
             }}>
-              {active.source === 'spotify'
-                ? `${fmtDur(active.dur)} · not mixable`
-                : `${active.bpm} BPM · ${fmtDur(active.dur)}`}
+              {isMixableTrack(active)
+                ? `${active.bpm} BPM · ${fmtDur(active.dur)}${active.demo ? ' · demo' : ''}`
+                : `${active.bpm} BPM · ${fmtDur(active.dur)} · not mixable`}
             </span>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>

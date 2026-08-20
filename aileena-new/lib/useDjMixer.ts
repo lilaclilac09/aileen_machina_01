@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { DjMixerEngine, exportExtension, type DeckId } from './djMixerEngine';
 import { buildMixReceipt, receiptToJson, receiptToText, type MixReceipt, type MixTrackInfo } from './djMixReceipt';
+import { isSpotifyAudioUrl, isSupportedMixFile } from './djMixable';
 import { syncPitchPct } from './djMixerMath';
 
 export type EqBand = { lo: number; mid: number; hi: number };
@@ -149,8 +150,16 @@ export function useDjMixer() {
   }, []);
 
   const loadFile = useCallback(
-    async (side: 'left' | 'right', file: File, keep?: { title?: string; bpm?: number | null; key?: string | null }) => {
+    async (
+      side: 'left' | 'right',
+      file: File,
+      keep?: { title?: string; bpm?: number | null; key?: string | null },
+    ): Promise<boolean> => {
       setError(null);
+      if (!isSupportedMixFile(file)) {
+        setError('Format not supported.');
+        return false;
+      }
       try {
         const e = await ensure();
         const id = sideToId(side);
@@ -173,31 +182,54 @@ export function useDjMixer() {
           loopBars: null,
           loopActive: false,
         }));
+        return true;
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'decode failed');
+        const msg = err instanceof Error ? err.message : '';
+        if (/decode|EncodingError|NotSupported/i.test(msg)) setError('Format not supported.');
+        else setError('Load failed.');
+        return false;
       }
     },
     [ensure],
   );
 
   const loadUrl = useCallback(
-    async (side: 'left' | 'right', url: string) => {
+    async (
+      side: 'left' | 'right',
+      url: string,
+      keep?: { title?: string; bpm?: number | null; key?: string | null },
+    ): Promise<boolean> => {
       setError(null);
+      if (isSpotifyAudioUrl(url)) {
+        setError('Reference only.');
+        return false;
+      }
       try {
         const e = await ensure();
         const id = sideToId(side);
-        const { duration } = await e.loadUrl(id, url);
-        setDeck(id, {
+        const { duration } = await e.loadUrl(id, url, keep?.title);
+        setDeck(id, (prev) => ({
+          ...prev,
           mixLoaded: true,
           playing: false,
           pos: 0,
           dur: duration,
           peaks: e.voice(id).peaks,
           fileName: url,
-          title: e.voice(id).title,
-        });
+          title: keep?.title || e.voice(id).title,
+          bpm: keep?.bpm ?? prev.bpm,
+          key: keep?.key ?? prev.key,
+          cue: 0,
+          hotCues: Array.from({ length: 8 }, () => null),
+          loopIn: null,
+          loopOut: null,
+          loopBars: null,
+          loopActive: false,
+        }));
+        return true;
       } catch {
-        setError('URL blocked or not CORS-safe — download the file and upload it.');
+        setError('Load failed.');
+        return false;
       }
     },
     [ensure],
@@ -323,10 +355,14 @@ export function useDjMixer() {
   }, [deckA, deckB, setPitch]);
 
   const startRecord = useCallback(async () => {
+    if (!deckA.mixLoaded && !deckB.mixLoaded) {
+      setError('Load audio first.');
+      return false;
+    }
     const e = await ensure();
     const ok = e.startRecord();
     if (!ok) {
-      setError('MediaRecorder unavailable in this browser');
+      setError('Record failed.');
       return false;
     }
     setExportBlob(null);
@@ -334,7 +370,7 @@ export function useDjMixer() {
     setRecording(true);
     setRecSec(0);
     return true;
-  }, [ensure]);
+  }, [ensure, deckA.mixLoaded, deckB.mixLoaded]);
 
   const stopRecord = useCallback(async () => {
     const e = engineRef.current;
