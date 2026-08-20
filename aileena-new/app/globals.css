@@ -84,6 +84,17 @@ body {
   transition: background 0.5s ease, color 0.5s ease;
 }
 
+/* iOS: body user-select:none blocks caret/keyboard in fields. */
+input,
+textarea,
+select,
+[contenteditable="true"] {
+  pointer-events: auto;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -webkit-touch-callout: default;
+}
+
 html {
   height: 100%;
   overflow: hidden;
@@ -405,8 +416,9 @@ input,
 textarea,
 select,
 [contenteditable='true'] {
-  -webkit-user-select: text;
-  user-select: text;
+  pointer-events: auto;
+  -webkit-user-select: text !important;
+  user-select: text !important;
 }
 
 /* ── Mobile layout emergency (preserve desktop) ───────────────
@@ -451,6 +463,14 @@ select,
   vertical-align: -0.08em;
   background: var(--daily-accent, #00a89d);
   animation: daily-caret-blink 1.05s steps(1) infinite;
+}
+
+.daily-board,
+.daily-board input,
+.daily-board textarea {
+  pointer-events: auto;
+  user-select: text !important;
+  -webkit-user-select: text !important;
 }
 
 /* Contain sideways stage chrome (coverflow) without losing swipe access */

@@ -19,6 +19,26 @@ import {
 
 const serif = "'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif";
 const sans = "'Nunito', system-ui, -apple-system, sans-serif";
+const DRAFT_KEY = 'daily:draft-body';
+
+function readDraft(): string {
+  if (typeof window === 'undefined') return '';
+  try {
+    return sessionStorage.getItem(DRAFT_KEY) || '';
+  } catch {
+    return '';
+  }
+}
+
+function writeDraft(value: string) {
+  if (typeof window === 'undefined') return;
+  try {
+    if (value) sessionStorage.setItem(DRAFT_KEY, value);
+    else sessionStorage.removeItem(DRAFT_KEY);
+  } catch {
+    /* private mode */
+  }
+}
 
 type BoardPayload = {
   theme: DailyTheme;
@@ -141,7 +161,6 @@ export default function DailyBoard({
     const today = initial?.today ?? '';
     return initial?.notes?.find((n) => n.date === today)?.body ?? '';
   });
-  const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [nick, setNick] = useState('');
   const [bubble, setBubble] = useState('');
@@ -149,6 +168,7 @@ export default function DailyBoard({
   const [toastFail, setToastFail] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const toastTimer = useRef<number | null>(null);
+  const didRestoreDraft = useRef(false);
 
   const load = useCallback(async () => {
     const res = await fetch('/api/daily', { cache: 'no-store', credentials: 'include' });
@@ -165,9 +185,9 @@ export default function DailyBoard({
       owner: Boolean(data.owner),
     });
     const todayNote = notes.find((n) => n.date === today);
-    if (todayNote) {
+    if (todayNote?.body) {
       setTitle(todayNote.title ?? '');
-      setBody(todayNote.body ?? '');
+      setBody(todayNote.body);
     }
   }, []);
 
@@ -195,8 +215,11 @@ export default function DailyBoard({
   const today = board?.today ?? '';
   const latest = notes[0] ?? null;
   const todayNote = notes.find((n) => n.date === today) ?? null;
-  const older = owner ? notes.filter((n) => n.date !== today) : notes.slice(1);
-  const showDecorativeCaret = !owner || !editing;
+  const showWriter = owner || !todayNote;
+  const older = owner || showWriter
+    ? notes.filter((n) => n.date !== today)
+    : notes.slice(1);
+  const showDecorativeCaret = !showWriter;
   const commentNote = todayNote ?? latest;
 
   const flash = (msg: string, fail = false) => {
@@ -206,7 +229,7 @@ export default function DailyBoard({
     toastTimer.current = window.setTimeout(() => setToast(null), 2200);
   };
 
-  const saveNote = async () => {
+  const saveNote = async (nextBody = body, nextTitle = title) => {
     if (!owner) return;
     setSaving(true);
     try {
@@ -214,7 +237,7 @@ export default function DailyBoard({
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, body }),
+        body: JSON.stringify({ title: nextTitle, body: nextBody }),
       });
       if (res.status === 403) {
         flash('Not allowed.', true);
@@ -228,11 +251,35 @@ export default function DailyBoard({
         flash('Save failed.', true);
         return;
       }
+      writeDraft('');
       await load();
     } finally {
       setSaving(false);
     }
   };
+
+  useEffect(() => {
+    if (didRestoreDraft.current) return;
+    if (todayNote?.body) {
+      didRestoreDraft.current = true;
+      return;
+    }
+    const draft = readDraft();
+    if (draft) setBody(draft);
+    didRestoreDraft.current = true;
+  }, [todayNote?.body]);
+
+  useEffect(() => {
+    if (!owner) return;
+    const id = window.setTimeout(() => {
+      const draft = body.trim() ? body : readDraft();
+      if (!draft.trim() && !title.trim()) return;
+      if (todayNote && draft === todayNote.body && title === todayNote.title) return;
+      void saveNote(draft, title);
+    }, 900);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [owner, body, title, todayNote?.id, todayNote?.body, todayNote?.title]);
 
   const patchTheme = async (partial: Partial<DailyTheme>) => {
     if (!owner) return;
@@ -351,7 +398,7 @@ export default function DailyBoard({
           </div>
         ) : null}
 
-        {owner ? (
+        {showWriter ? (
           <section data-testid="daily-owner-editor" style={{ marginBottom: 40 }}>
             <input
               aria-label="title"
@@ -359,7 +406,9 @@ export default function DailyBoard({
               value={title}
               maxLength={DAILY_NOTE_TITLE_MAX}
               onChange={(e) => setTitle(e.target.value)}
-              onBlur={() => void saveNote()}
+              onBlur={() => {
+                if (owner) void saveNote();
+              }}
               style={{
                 display: 'block',
                 width: '100%',
@@ -372,6 +421,8 @@ export default function DailyBoard({
                 opacity: 0.5,
                 marginBottom: 8,
                 padding: 0,
+                userSelect: 'text',
+                WebkitUserSelect: 'text',
               }}
             />
             <textarea
@@ -381,22 +432,27 @@ export default function DailyBoard({
               value={body}
               maxLength={DAILY_NOTE_BODY_MAX}
               rows={5}
-              onFocus={() => setEditing(true)}
               onBlur={() => {
-                setEditing(false);
-                void saveNote();
+                if (owner) void saveNote();
               }}
               onChange={(e) => {
-                setBody(e.target.value);
+                const next = e.target.value;
+                setBody(next);
+                writeDraft(next);
                 e.target.style.height = 'auto';
                 e.target.style.height = `${Math.max(96, e.target.scrollHeight)}px`;
               }}
               onKeyDown={(e) => {
                 if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
                   e.preventDefault();
-                  void saveNote();
+                  if (owner) void saveNote();
                 }
               }}
+              inputMode="text"
+              autoCapitalize="sentences"
+              autoCorrect="on"
+              spellCheck
+              enterKeyHint="done"
               style={{
                 display: 'block',
                 width: '100%',
@@ -408,15 +464,20 @@ export default function DailyBoard({
                 color: 'inherit',
                 caretColor: theme.accent,
                 fontFamily: serif,
-                fontSize: 'clamp(1.35rem, 4.6vw, 1.85rem)',
+                fontSize: 'max(16px, clamp(1.35rem, 4.6vw, 1.85rem))',
                 lineHeight: 1.45,
                 letterSpacing: '-0.01em',
                 padding: 0,
                 minHeight: 120,
+                cursor: 'text',
+                touchAction: 'manipulation',
+                userSelect: 'text',
+                WebkitUserSelect: 'text',
               }}
             />
             <p style={{ margin: '8px 0 0', fontSize: 11, opacity: 0.4, fontFamily: sans, display: 'flex', gap: 12 }}>
               <span>{saving ? 'saving' : today ? formatQuietDate(today) : 'today'}</span>
+              {owner ? (
               <button
                 type="button"
                 data-testid="daily-save"
@@ -434,6 +495,9 @@ export default function DailyBoard({
               >
                 save
               </button>
+              ) : (
+                <span>on this phone until you enter</span>
+              )}
             </p>
           </section>
         ) : (
@@ -539,10 +603,12 @@ export default function DailyBoard({
                   borderBottom: `1px solid color-mix(in srgb, ${theme.text} 18%, transparent)`,
                   color: 'inherit',
                   fontFamily: sans,
-                  fontSize: 13,
+                  fontSize: 16,
                   opacity: 0.55,
                   outline: 'none',
                   padding: '4px 0',
+                  userSelect: 'text',
+                  WebkitUserSelect: 'text',
                 }}
               />
               <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
@@ -566,6 +632,9 @@ export default function DailyBoard({
                     padding: '10px 12px',
                     outline: 'none',
                     minHeight: 44,
+                    cursor: 'text',
+                    userSelect: 'text',
+                    WebkitUserSelect: 'text',
                   }}
                 />
                 <button

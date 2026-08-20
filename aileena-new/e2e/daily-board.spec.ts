@@ -25,7 +25,6 @@ test.describe('daily board', () => {
   test('visitor can read, cannot write main note', async ({ page, request }) => {
     await page.goto('/daily', { waitUntil: 'domcontentloaded' });
     await expect(page.getByTestId('daily-title')).toHaveText('daily board');
-    await expect(page.getByTestId('daily-owner-editor')).toHaveCount(0);
     await expect(page.getByTestId('daily-theme-controls')).toHaveCount(0);
 
     const res = await request.post('/api/daily/notes', {
@@ -33,14 +32,17 @@ test.describe('daily board', () => {
     });
     expect(res.status()).toBe(403);
 
-    const empty = page.getByTestId('daily-empty');
+    const writer = page.getByTestId('daily-owner-textarea');
     const latest = page.getByTestId('daily-latest-body');
-    if ((await empty.count()) > 0) {
-      await expect(empty).toContainText('nothing today yet.');
-    }
-    await expect(page.getByTestId('daily-caret')).toBeVisible();
-    if ((await latest.count()) > 0) {
+    if ((await writer.count()) > 0) {
+      await writer.click();
+      await writer.fill('typing works');
+      await expect(writer).toHaveValue('typing works');
+    } else {
       await expect(latest).toBeVisible();
+      await page.getByTestId('daily-bubble-input').click();
+      await page.getByTestId('daily-bubble-input').fill('typing works');
+      await expect(page.getByTestId('daily-bubble-input')).toHaveValue('typing works');
     }
   });
 
