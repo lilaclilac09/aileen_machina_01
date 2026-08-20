@@ -44,20 +44,7 @@ export default function DJDeckWaveform({
         overflow: 'hidden',
       }}
     >
-      {bars.length === 0 ? (
-        <p
-          style={{
-            margin: 0,
-            padding: '10px 8px',
-            fontFamily: 'monospace',
-            fontSize: 12,
-            letterSpacing: '0.04em',
-            color: 'rgba(255,253,248,0.55)',
-          }}
-        >
-          Upload to mix
-        </p>
-      ) : (
+      {bars.length === 0 ? null : (
         <svg width="100%" height="36" viewBox={`0 0 ${bars.length} 36`} preserveAspectRatio="none">
           {bars.map((h, i) => {
             const barH = Math.max(1.2, h * 30);
