@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import OwnerUnlockForm from './OwnerUnlockForm';
 import SystemToast from './SystemToast';
 import {
   type DailyComment,
@@ -22,7 +23,7 @@ const sans = "'Nunito', system-ui, -apple-system, sans-serif";
 type BoardPayload = {
   theme: DailyTheme;
   notes: DailyNote[];
-  comments: Record<string, DailyComment[]>;
+  comments: Record<string, Omit<DailyComment, 'hidden'>[]>;
   persistence: 'redis' | 'memory';
   today: string;
   owner: boolean;
@@ -124,10 +125,22 @@ function NoteBody({
   );
 }
 
-export default function DailyBoard() {
-  const [board, setBoard] = useState<BoardPayload | null>(null);
-  const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
+export default function DailyBoard({
+  initial = null,
+  denied = false,
+}: {
+  initial?: BoardPayload | null;
+  denied?: boolean;
+}) {
+  const [board, setBoard] = useState<BoardPayload | null>(initial);
+  const [title, setTitle] = useState(() => {
+    const today = initial?.today ?? '';
+    return initial?.notes?.find((n) => n.date === today)?.title ?? '';
+  });
+  const [body, setBody] = useState(() => {
+    const today = initial?.today ?? '';
+    return initial?.notes?.find((n) => n.date === today)?.body ?? '';
+  });
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [nick, setNick] = useState('');
@@ -138,7 +151,7 @@ export default function DailyBoard() {
   const toastTimer = useRef<number | null>(null);
 
   const load = useCallback(async () => {
-    const res = await fetch('/api/daily', { cache: 'no-store' });
+    const res = await fetch('/api/daily', { cache: 'no-store', credentials: 'include' });
     if (!res.ok) return;
     const data = (await res.json()) as BoardPayload;
     const notes = Array.isArray(data.notes) ? data.notes : [];
@@ -152,8 +165,10 @@ export default function DailyBoard() {
       owner: Boolean(data.owner),
     });
     const todayNote = notes.find((n) => n.date === today);
-    setTitle(todayNote?.title ?? '');
-    setBody(todayNote?.body ?? '');
+    if (todayNote) {
+      setTitle(todayNote.title ?? '');
+      setBody(todayNote.body ?? '');
+    }
   }, []);
 
   const owner = Boolean(board?.owner);
@@ -197,11 +212,16 @@ export default function DailyBoard() {
     try {
       const res = await fetch('/api/daily/notes', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, body }),
       });
       if (res.status === 403) {
         flash('Not allowed.', true);
+        return;
+      }
+      if (res.status === 503) {
+        flash('Not stored.', true);
         return;
       }
       if (!res.ok) {
@@ -220,6 +240,7 @@ export default function DailyBoard() {
     setBoard((prev) => (prev ? { ...prev, theme: next } : prev));
     const res = await fetch('/api/daily/theme', {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(next),
     });
@@ -236,9 +257,14 @@ export default function DailyBoard() {
     if (!text) return;
     const res = await fetch('/api/daily/comments', {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ noteId: commentNote.id, body: text, nickname: nick }),
     });
+    if (res.status === 503) {
+      flash('Bubble failed.', true);
+      return;
+    }
     if (!res.ok) {
       flash('Bubble failed.', true);
       return;
@@ -250,7 +276,10 @@ export default function DailyBoard() {
 
   const hideComment = async (id: string) => {
     if (!owner) return;
-    const res = await fetch(`/api/daily/comments?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    const res = await fetch(`/api/daily/comments?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
     if (res.ok) await load();
   };
 
@@ -386,8 +415,25 @@ export default function DailyBoard() {
                 minHeight: 120,
               }}
             />
-            <p style={{ margin: '8px 0 0', fontSize: 11, opacity: 0.4, fontFamily: sans }}>
-              {saving ? 'saving' : today ? formatQuietDate(today) : 'today'}
+            <p style={{ margin: '8px 0 0', fontSize: 11, opacity: 0.4, fontFamily: sans, display: 'flex', gap: 12 }}>
+              <span>{saving ? 'saving' : today ? formatQuietDate(today) : 'today'}</span>
+              <button
+                type="button"
+                data-testid="daily-save"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => void saveNote()}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: theme.accent,
+                  fontFamily: sans,
+                  fontSize: 11,
+                  cursor: 'pointer',
+                  padding: 0,
+                }}
+              >
+                save
+              </button>
             </p>
           </section>
         ) : (
@@ -542,6 +588,12 @@ export default function DailyBoard() {
                 </button>
               </div>
             </form>
+          </div>
+        ) : null}
+
+        {!owner ? (
+          <div data-testid="daily-owner-enter" style={{ marginTop: 28, maxWidth: 280, opacity: 0.85 }}>
+            <OwnerUnlockForm next="/daily" enterLabel="enter" denied={denied} />
           </div>
         ) : null}
 

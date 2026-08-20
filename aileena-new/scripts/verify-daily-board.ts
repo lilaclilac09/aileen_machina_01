@@ -170,6 +170,8 @@ function sourceChecks() {
   assert('bubble placeholder', ui.includes('leave a small bubble'));
   assert('empty copy', ui.includes('nothing today yet.'));
   assert('no OWNER_KEY in client', !ui.includes('OWNER_KEY'));
+  assert('redis env uses runtime bracket access', read('lib/visitorMemory.ts').includes("process.env['UPSTASH_REDIS_REST_URL']"));
+  assert('vercel memory writes blocked', read('lib/dailyBoardStore.ts').includes('dailyBoardWritesOk'));
 }
 
 async function main() {

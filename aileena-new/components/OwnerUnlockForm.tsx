@@ -7,7 +7,7 @@ export default function OwnerUnlockForm({
   enterLabel = 'enter',
   denied = false,
 }: {
-  next: '/council' | '/cabinet' | '/inbox';
+  next: '/council' | '/cabinet' | '/inbox' | '/daily';
   enterLabel?: string;
   denied?: boolean;
 }) {

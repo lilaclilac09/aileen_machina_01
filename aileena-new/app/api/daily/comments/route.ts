@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { requireOwnerFromRequest } from '@/lib/owner-gate';
 import { checkRateLimit, type RateLimitConfig } from '@/lib/api/ratelimit';
 import { commentLooksSpammy, DAILY_COMMENT_MAX, publicComment } from '@/lib/dailyBoard';
-import { addDailyComment, hideDailyComment } from '@/lib/dailyBoardStore';
+import { addDailyComment, dailyBoardWritesOk, hideDailyComment } from '@/lib/dailyBoardStore';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -33,6 +33,10 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ error: 'invalid' }, { status: 400 });
   }
+  if (!dailyBoardWritesOk()) {
+    return NextResponse.json({ error: 'not_stored', persistence: 'memory' }, { status: 503 });
+  }
+
   const rec = body && typeof body === 'object' ? (body as Record<string, unknown>) : {};
   const noteId = typeof rec.noteId === 'string' ? rec.noteId : '';
   const text = typeof rec.body === 'string' ? rec.body : '';
