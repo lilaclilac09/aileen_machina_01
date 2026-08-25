@@ -43,7 +43,7 @@ Also:
 - affected route opened
 - affected user flow tested
 - UI change → screenshots + interaction (`.cursor/rules/ui-step-screenshot.mdc`)
-- Landing experiment (`/` · `LandingStudio`) → `.cursor/rules/landing-experiment-gate.mdc`. **no screenshots = no merge recommendation.**
+- Home marquee (`/` · `LandingMarquee`) → `.cursor/rules/landing-experiment-gate.mdc`. Do not restore ascii / moodboard / serials / zine. **no screenshots = no merge recommendation.**
 - env/config issues listed as `manual steps`, not hidden as code
 
 When the slice has a dedicated test:
@@ -94,9 +94,11 @@ pnpm council           # owner-only local council (needs OWNER_KEY + model key)
 - layout responsive (desktop cluster + 390×844)
 - home clipping desk stays collage, not a gallery grid
 
-## Landing experiment (`/` · `LandingStudio`)
+## Home marquee (`/` · `LandingMarquee`)
 
-Do not stop at “done”. Full gate: `.cursor/rules/landing-experiment-gate.mdc`.
+Cinematic opening stays. **Only** the `new →` ticker shipped. Do not restore ascii, vellum studio, moodboard, object doors, serials shelf, or zine object.
+
+Gate: `.cursor/rules/landing-experiment-gate.mdc`.
 
 ```txt
 no screenshots = no merge recommendation.
@@ -104,31 +106,12 @@ no screenshots = no merge recommendation.
 
 Runtime:
 
-- `/` renders the new landing
-- top marquee visible
-- ascii/generative object visible
-- moodboard visible
-- doors/entry links visible and clickable
-- mobile layout usable
-- no horizontal overflow (especially 390px)
-- existing routes still work
+- `/` still shows portrait + Machina CTA
+- top marquee visible, not covering the CTA
+- ascii / moodboard / serials / zine **absent**
+- no horizontal overflow at 390px
 
-Required screenshots (real captures, never invented):
-
-- `landing-desktop.png`
-- `landing-mobile-390.png`
-- `landing-mobile-430.png`
-- `landing-marquee.png`
-- `landing-ascii-object.png`
-- `landing-moodboard.png`
-- `landing-doors.png`
-- bugs: `landing-bug-[issue].png`
-
-Click each door: two lines `/daily` · sound lab `/sound` · book club `/updates` · watch/listening `/blog/watch-listening-shelf` · tools `/tools` · updates `/dispatch`.
-
-Also: marquee not blocking content; desktop hover/focus; mobile tap targets; 390px no horizontal scroll.
-
-Merge recommendation only if screenshots exist, `/` works, doors work, 390px has no overflow, and build passes (or failure is explained and unrelated).
+Required screenshots: `landing-desktop.png`, `landing-mobile-390.png`, `landing-marquee.png`.
 
 ## Doors / navigation
 

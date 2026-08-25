@@ -86,7 +86,7 @@ wait for confirmation before editing if the change touches multiple systems.
 - do not change typography / layout / colors unless requested
 - fix proportions / readability / function only
 - UI merge: screenshots + interaction (`.cursor/rules/ui-step-screenshot.mdc`)
-- **landing experiment** (`/` · `LandingStudio`): do not stop at “done”. Follow `.cursor/rules/landing-experiment-gate.mdc`. Runtime proof + named screenshots + door clicks **before** any PR/merge recommendation.
+- **home marquee** (`/` · `LandingMarquee`): cinematic opening stays. Do not restore ascii / moodboard / serials / zine. Follow `.cursor/rules/landing-experiment-gate.mdc`.
 
 ```txt
 no screenshots = no merge recommendation.

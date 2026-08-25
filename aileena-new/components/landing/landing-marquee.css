@@ -1,0 +1,79 @@
+/* Thin news ticker on the cinematic opening. Cream/teal identity; coral stamp. */
+
+.landing-marquee {
+  --ls-ink: #14110c;
+  --ls-coral: #c45c58;
+  --ls-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  position: relative;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+  width: 100%;
+  min-height: 28px;
+  margin: 0;
+  padding:
+    max(3.35rem, calc(env(safe-area-inset-top, 0px) + 2.85rem))
+    clamp(16px, 4vw, 40px)
+    8px;
+  border-bottom: 1px solid rgba(196, 92, 88, 0.28);
+  background: rgba(255, 253, 247, 0.78);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.landing-marquee__label {
+  flex: 0 0 auto;
+  color: var(--ls-coral);
+  font-family: var(--ls-mono);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.landing-marquee__window {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.landing-marquee__track {
+  display: flex;
+  width: max-content;
+  gap: 2.4rem;
+  animation: landing-marquee-scroll 28s linear infinite;
+}
+
+.landing-marquee:hover .landing-marquee__track,
+.landing-marquee:focus-within .landing-marquee__track {
+  animation-play-state: paused;
+}
+
+.landing-marquee__item {
+  color: rgba(20, 17, 12, 0.72);
+  font-family: var(--ls-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.landing-marquee__item em {
+  color: var(--ls-coral);
+  font-style: normal;
+  font-weight: 700;
+}
+
+@keyframes landing-marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-marquee__track {
+    animation: none;
+    gap: 1.4rem;
+  }
+}
