@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useCallback, useEffect, useState } from 'react';
 import { slugify } from '../../_archive/ArchiveIndex';
 import ArchivePage from '../../_archive/ArchivePage';
 
@@ -202,13 +203,26 @@ const CHANNEL_RECS = [
   },
 ];
 
-const RAIL = [
-  { href: '#featured-listen', label: 'featured listen' },
-  { href: '#podcasts', label: 'listen' },
-  { href: '#watch', label: 'watch' },
-  { href: '#channels', label: 'read' },
-  { href: '#euro-life', label: 'living' },
-];
+const INDEX = [
+  { id: 'featured', label: 'featured' },
+  { id: 'listen', label: 'listen' },
+  { id: 'watch', label: 'watch' },
+  { id: 'notes', label: 'notes' },
+] as const;
+
+const HASH_SECTION: Record<string, (typeof INDEX)[number]['id']> = {
+  featured: 'featured',
+  'featured-listen': 'featured',
+  listen: 'listen',
+  podcasts: 'listen',
+  watch: 'watch',
+  films: 'watch',
+  documentaries: 'watch',
+  notes: 'notes',
+  channels: 'notes',
+  'euro-life': 'notes',
+  lifestyle: 'notes',
+};
 
 function ShelfHref({
   href,
@@ -239,54 +253,147 @@ function Tags({ tags }: { tags?: string[] }) {
   return <p className="shelf-tags">{tags.join(' / ')}</p>;
 }
 
-function WatchCard({
-  title,
-  shelfTitle,
-  year,
-  href,
-  frame,
-  image,
-  tags,
+function openDrawer(id: string) {
+  const el = document.getElementById(id);
+  if (el instanceof HTMLDetailsElement) el.open = true;
+}
+
+function bindDefaultOpen(defaultOpen: boolean) {
+  return (el: HTMLDetailsElement | null) => {
+    if (!el || !defaultOpen || el.dataset.shelfInit) return;
+    el.open = true;
+    el.dataset.shelfInit = '1';
+  };
+}
+
+function Drawer({
+  id,
+  label,
+  defaultOpen = false,
+  children,
+  testId,
 }: {
-  title: string;
-  shelfTitle: string;
-  year: string;
-  href: string;
-  frame: string;
-  image?: string;
-  tags?: string[];
+  id: string;
+  label: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+  testId?: string;
 }) {
   return (
-    <ShelfHref href={href} className="shelf-watch-card">
-      <article id={slugify(shelfTitle)} className="shelf-watch-inner">
-        {image ? (
-          <span className="shelf-watch-thumb">
-            <Image src={image} alt="" fill sizes="88px" style={{ objectFit: 'contain' }} />
-          </span>
-        ) : null}
-        <div className="shelf-watch-copy">
-          <header className="shelf-card-head">
-            <p className="shelf-card-kicker">watch</p>
-            <p className="shelf-card-meta">{year}</p>
-          </header>
-          <h3 className="shelf-card-title">{shelfTitle}</h3>
-          <p className="shelf-card-source">{title}</p>
-          <dl className="shelf-fields">
-            <div>
-              <dt>frame</dt>
-              <dd>{frame}</dd>
-            </div>
-          </dl>
-          <Tags tags={tags} />
-        </div>
-      </article>
-    </ShelfHref>
+    <details
+      id={id}
+      className="shelf-drawer"
+      data-testid={testId}
+      ref={bindDefaultOpen(defaultOpen)}
+    >
+      <summary className="shelf-drawer-label">{label}</summary>
+      {children}
+    </details>
+  );
+}
+
+function ShelfRow({
+  id,
+  title,
+  type,
+  note,
+  href,
+  image,
+  tags,
+  detail,
+  defaultOpen = false,
+}: {
+  id: string;
+  title: string;
+  type: string;
+  note?: string;
+  href?: string;
+  image?: string;
+  tags?: string[];
+  detail?: string;
+  defaultOpen?: boolean;
+}) {
+  const extra = detail && detail !== note ? detail : null;
+  const canExpand = Boolean(extra || href || tags?.length);
+  const head = (
+    <>
+      {image ? (
+        <span className="shelf-row-thumb">
+          <Image src={image} alt="" fill sizes="48px" style={{ objectFit: 'contain' }} />
+        </span>
+      ) : null}
+      <span className="shelf-row-copy">
+        <span className="shelf-row-title">{title}</span>
+        <span className="shelf-row-type">{type}</span>
+        {note ? <span className="shelf-row-note">{note}</span> : null}
+      </span>
+    </>
+  );
+  const panel = (
+    <div className="shelf-row-panel">
+      {extra ? <p className="shelf-row-detail">{extra}</p> : null}
+      <Tags tags={tags} />
+      {href ? (
+        <ShelfHref href={href} className="shelf-cta">
+          open ↗
+        </ShelfHref>
+      ) : null}
+    </div>
+  );
+
+  if (!canExpand) {
+    return (
+      <div id={id} className="shelf-row is-static">
+        {head}
+      </div>
+    );
+  }
+
+  return (
+    <details id={id} className="shelf-row" ref={bindDefaultOpen(defaultOpen)}>
+      <summary className="shelf-row-summary">{head}</summary>
+      {panel}
+    </details>
   );
 }
 
 export default function WatchListeningShelfArticle() {
   const featured = PODCAST_RECS.find((item) => item.featured) ?? PODCAST_RECS[0];
   const listens = PODCAST_RECS.filter((item) => !item.featured);
+  const [active, setActive] = useState<(typeof INDEX)[number]['id']>('featured');
+
+  const goTo = useCallback((hashId: string) => {
+    const section = HASH_SECTION[hashId] ?? HASH_SECTION[hashId.replace(/^#/, '')];
+    if (section) {
+      openDrawer(section);
+      setActive(section);
+    }
+    const target = document.getElementById(hashId.replace(/^#/, ''));
+    target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
+  useEffect(() => {
+    const raw = window.location.hash.replace(/^#/, '');
+    if (raw) {
+      goTo(raw);
+    }
+    const drawers = INDEX.map((item) => document.getElementById(item.id)).filter(
+      (el): el is HTMLElement => !!el,
+    );
+    if (!drawers.length || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        const hit = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        const id = hit?.target.id;
+        if (id && HASH_SECTION[id]) setActive(HASH_SECTION[id]);
+      },
+      { rootMargin: '-20% 0px -55% 0px', threshold: [0.15, 0.4, 0.7] },
+    );
+    drawers.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, [goTo]);
 
   return (
     <ArchivePage
@@ -296,168 +403,118 @@ export default function WatchListeningShelfArticle() {
       dek="things that tune the eye and ear"
     >
       <div className="arc-stage shelf-stage">
-        <div className="arc-stage-main">
-          <p className="arc-lede">
-            a shelf for things that recalibrate taste: voices, films, interviews, and small
-            obsessions.
-          </p>
-          <p className="shelf-intro-note">
-            not a recommendation list. a record of what trains the eye and ear.
-          </p>
+        <nav className="shelf-index" aria-label="shelf labels" data-testid="shelf-index">
+          {INDEX.map((item) => (
+            <a
+              key={item.id}
+              href={`#${item.id}`}
+              className={active === item.id ? 'is-active' : undefined}
+              aria-current={active === item.id ? 'location' : undefined}
+              data-testid={`shelf-index-${item.id}`}
+              onClick={(e) => {
+                e.preventDefault();
+                goTo(item.id);
+                history.replaceState(null, '', `#${item.id}`);
+              }}
+            >
+              {item.label}
+            </a>
+          ))}
+        </nav>
 
-          <section
-            id="featured-listen"
-            className="arc-section shelf-section"
-            aria-labelledby="featured-listen-label"
-          >
-            <p className="arc-kicker" id="featured-listen-label">
-              featured listen
-            </p>
-            <ShelfHref href={featured.href} className="shelf-feature">
-              <article id={slugify(featured.shelfTitle)} className="shelf-feature-inner">
-                <header className="shelf-card-head">
-                  <p className="shelf-card-kicker">listen</p>
-                  <p className="shelf-card-meta">{featured.meta}</p>
-                </header>
-                <h2 className="shelf-feature-title">{featured.shelfTitle}</h2>
-                <p className="shelf-card-source">{featured.title}</p>
-                <dl className="shelf-fields">
-                  <div>
-                    <dt>why it stays</dt>
-                    <dd>{featured.why}</dd>
-                  </div>
-                </dl>
-                <Tags tags={featured.tags} />
-                <span className="shelf-cta">open ↗</span>
-              </article>
-            </ShelfHref>
-          </section>
+        <div className="arc-stage-main shelf-drawers">
+          <Drawer id="featured" label="featured" defaultOpen testId="shelf-drawer-featured">
+            <span id="featured-listen" className="shelf-hash-alias" />
+            <ShelfRow
+              id={slugify(featured.shelfTitle)}
+              title={featured.shelfTitle}
+              type={featured.label}
+              note={featured.meta}
+              href={featured.href}
+              tags={featured.tags}
+              detail={featured.why}
+              defaultOpen
+            />
+          </Drawer>
 
-          <section
-            id="podcasts"
-            className="arc-section shelf-section"
-            aria-labelledby="listen-recs"
-          >
-            <p className="arc-kicker" id="listen-recs">
-              listen
-            </p>
-            <p className="shelf-section-hint">voice notes — what the episode tunes</p>
-            <div className="shelf-listen-list">
-              {listens.map((item) => (
-                <ShelfHref key={item.title} href={item.href} className="shelf-listen-card">
-                  <article id={slugify(item.shelfTitle)} className="shelf-listen-inner">
-                    <header className="shelf-card-head">
-                      <p className="shelf-card-kicker">listen</p>
-                      <p className="shelf-card-meta">{item.label}</p>
-                    </header>
-                    <h3 className="shelf-card-title">{item.shelfTitle}</h3>
-                    <p className="shelf-card-source">{item.meta}</p>
-                    <dl className="shelf-fields">
-                      <div>
-                        <dt>signal</dt>
-                        <dd>{item.signal ?? item.body}</dd>
-                      </div>
-                    </dl>
-                    <Tags tags={item.tags} />
-                    <span className="shelf-cta">open ↗</span>
-                  </article>
-                </ShelfHref>
-              ))}
-            </div>
-          </section>
-
-          <section id="watch" className="arc-section shelf-section" aria-labelledby="watch-label">
-            <p className="arc-kicker" id="watch-label">
-              watch
-            </p>
-            <p className="shelf-section-hint">screening notes — what to look for</p>
-
-            <div id="documentaries" className="shelf-watch-group">
-              <p className="shelf-subkicker">docs</p>
-              <div className="shelf-watch-list">
-                {DOCUMENTARY_RECS.map((item) => (
-                  <WatchCard
-                    key={item.title}
-                    title={item.title}
-                    shelfTitle={item.shelfTitle}
-                    year={item.year}
-                    href={item.href}
-                    frame={item.note}
-                    image={item.image}
-                    tags={item.tags}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div id="films" className="shelf-watch-group">
-              <p className="shelf-subkicker">films</p>
-              <div className="shelf-watch-list">
-                {FILM_RECS.map((item) => (
-                  <WatchCard
-                    key={item.title}
-                    title={item.title}
-                    shelfTitle={item.shelfTitle}
-                    year={item.year}
-                    href={item.href}
-                    frame={item.note}
-                    image={item.image}
-                    tags={item.tags}
-                  />
-                ))}
-              </div>
-            </div>
-          </section>
-
-          <section className="arc-section" id="channels" aria-labelledby="channel-recs">
-            <p className="arc-kicker" id="channel-recs">
-              read
-            </p>
-            <ul className="arc-list">
-              {CHANNEL_RECS.map((item) => (
-                <li key={item.title} id={slugify(item.shelfTitle)} className="arc-item">
-                  <ShelfHref href={item.href} className="arc-item-title">
-                    {item.shelfTitle}
-                  </ShelfHref>
-                  <span className="arc-item-meta">{item.label}</span>
-                  <p className="arc-item-note">{item.body}</p>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <section className="arc-section" id="euro-life" aria-labelledby="shelf-tips-label">
-            <span id="lifestyle" className="shelf-hash-alias" />
-            <p className="arc-kicker" id="shelf-tips-label">
-              living
-            </p>
-            <ul className="arc-list">
-              {[...EURO_LIFE_GUIDE, ...LIFESTYLE_RECS].map((item) => (
-                <li key={item.title} id={slugify(item.title)} className="arc-item">
-                  <span className="arc-item-title">{item.title}</span>
-                  <span className="arc-item-meta">{item.label}</span>
-                  <p className="arc-item-note">{item.body}</p>
-                </li>
-              ))}
-            </ul>
-          </section>
-        </div>
-
-        <aside className="shelf-rail" aria-label="shelf notes">
-          <p className="shelf-rail-kicker">on this shelf</p>
-          <nav className="shelf-rail-nav">
-            {RAIL.map((item) => (
-              <a key={item.href} href={item.href}>
-                {item.label}
-              </a>
+          <Drawer id="listen" label="listen" defaultOpen testId="shelf-drawer-listen">
+            <span id="podcasts" className="shelf-hash-alias" />
+            {listens.map((item) => (
+              <ShelfRow
+                key={item.title}
+                id={slugify(item.shelfTitle)}
+                title={item.shelfTitle}
+                type={item.label}
+                note={item.meta}
+                href={item.href}
+                tags={item.tags}
+                detail={item.signal ?? item.body}
+              />
             ))}
-          </nav>
-          <p className="shelf-rail-note">
-            listen asks what a voice tunes.
-            <br />
-            watch asks what a frame trains.
-          </p>
-        </aside>
+          </Drawer>
+
+          <Drawer id="watch" label="watch" testId="shelf-drawer-watch">
+            <div id="documentaries" className="shelf-group">
+              <p className="shelf-subkicker">docs</p>
+              {DOCUMENTARY_RECS.map((item) => (
+                <ShelfRow
+                  key={item.title}
+                  id={slugify(item.shelfTitle)}
+                  title={item.shelfTitle}
+                  type={`${item.label} · ${item.year}`}
+                  note={item.note}
+                  href={item.href}
+                  image={item.image}
+                  tags={item.tags}
+                />
+              ))}
+            </div>
+            <div id="films" className="shelf-group">
+              <p className="shelf-subkicker">films</p>
+              {FILM_RECS.map((item) => (
+                <ShelfRow
+                  key={item.title}
+                  id={slugify(item.shelfTitle)}
+                  title={item.shelfTitle}
+                  type={`${item.label} · ${item.year}`}
+                  note={item.note}
+                  href={item.href}
+                  image={item.image}
+                  tags={item.tags}
+                />
+              ))}
+            </div>
+          </Drawer>
+
+          <Drawer id="notes" label="notes" testId="shelf-drawer-notes">
+            <div id="channels" className="shelf-group">
+              <p className="shelf-subkicker">read</p>
+              {CHANNEL_RECS.map((item) => (
+                <ShelfRow
+                  key={item.title}
+                  id={slugify(item.shelfTitle)}
+                  title={item.shelfTitle}
+                  type={item.label}
+                  note={item.body}
+                  href={item.href}
+                />
+              ))}
+            </div>
+            <div id="euro-life" className="shelf-group">
+              <span id="lifestyle" className="shelf-hash-alias" />
+              <p className="shelf-subkicker">living</p>
+              {[...EURO_LIFE_GUIDE, ...LIFESTYLE_RECS].map((item) => (
+                <ShelfRow
+                  key={item.title}
+                  id={slugify(item.title)}
+                  title={item.title}
+                  type={item.label}
+                  note={item.body}
+                />
+              ))}
+            </div>
+          </Drawer>
+        </div>
       </div>
     </ArchivePage>
   );
