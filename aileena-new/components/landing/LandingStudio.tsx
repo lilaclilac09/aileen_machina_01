@@ -1,13 +1,13 @@
 'use client';
 
-import { useCallback, useState, type KeyboardEvent } from 'react';
+import { Fragment, useCallback, useState, type KeyboardEvent } from 'react';
 import Link from 'next/link';
 import './landing-studio.css';
 
 const MARQUEE = [
-  'two lines is open',
+  'vol. 01 two lines is open',
   'sound lab is learning to mix',
-  'book shelf rearranged',
+  'all knobs must have consequences',
 ];
 
 const ASCII_FULL = `
@@ -39,10 +39,10 @@ type Volume = {
   no: string;
   door: string;
   title: string;
+  stack: string[];
   line: string;
   href: string;
   status: 'open' | 'new' | 'live';
-  cover?: string;
   fragments: string[];
 };
 
@@ -51,6 +51,7 @@ const VOLUMES: Volume[] = [
     no: 'vol. 01',
     door: 'two lines',
     title: 'two lines',
+    stack: ['two', 'lines'],
     line: 'daily residue, kept small.',
     href: '/daily',
     status: 'open',
@@ -64,10 +65,10 @@ const VOLUMES: Volume[] = [
     no: 'vol. 02',
     door: 'watch / listen',
     title: 'watch / listen',
+    stack: ['watch', 'listen'],
     line: 'things that train the eye and ear.',
     href: '/blog/watch-listening-shelf',
     status: 'live',
-    cover: '/shelf/didion-center.jpg',
     fragments: [
       'voices as rooms.',
       'watch the frame, not the plot.',
@@ -78,10 +79,10 @@ const VOLUMES: Volume[] = [
     no: 'vol. 03',
     door: 'tools',
     title: 'tools lab',
+    stack: ['tools', 'lab'],
     line: 'small machines, some useful.',
     href: '/tools',
     status: 'live',
-    cover: '/projects/keyshield.png',
     fragments: [
       'not every tool deserves to become a product.',
       'small, ugly, useful.',
@@ -92,10 +93,10 @@ const VOLUMES: Volume[] = [
     no: 'vol. 04',
     door: 'sound lab',
     title: 'sound lab',
+    stack: ['sound', 'lab'],
     line: 'two decks, one export, no fake knobs.',
     href: '/sound',
     status: 'new',
-    cover: '/dj-set/assets/covers/love-honey.jpg',
     fragments: [
       'spotify is a shelf, not a pipe.',
       'all knobs must have consequences.',
@@ -106,10 +107,10 @@ const VOLUMES: Volume[] = [
     no: 'vol. 05',
     door: 'book club',
     title: 'book room',
+    stack: ['book', 'room'],
     line: 'a shelf with opinions.',
     href: '/updates',
     status: 'live',
-    cover: '/dispatch-covers/books-joan-didion-readings.jpg',
     fragments: [
       'the shelf is not neutral.',
       'a book spine is a small door.',
@@ -120,10 +121,10 @@ const VOLUMES: Volume[] = [
     no: 'vol. 06',
     door: 'updates',
     title: 'updates',
+    stack: ['updates'],
     line: 'receipts from the machine.',
     href: '/dispatch',
     status: 'live',
-    cover: '/dispatch-covers/investing-hero.jpg',
     fragments: [
       'receipts from the machine.',
       'not a changelog, a trail.',
@@ -143,9 +144,17 @@ function SerialsShelf({
 
   return (
     <section className="landing-serials" data-landing-serials aria-label="serials">
-      <header className="landing-serials__head">
-        <h2>serials</h2>
-        <p>small volumes. not a feed.</p>
+      <header className="landing-serials__top">
+        <div className="landing-serials__title">
+          <h2>serials</h2>
+          <p>small volumes from the machine. notes, tools, shelves, sound, receipts.</p>
+        </div>
+        <aside className="landing-serials__note">
+          <b>root@aileena:~$</b>
+          <span>open volume</span>
+          <span>read fragment</span>
+          <span>leave before it becomes content</span>
+        </aside>
       </header>
 
       <div className="landing-shelf">
@@ -159,23 +168,23 @@ function SerialsShelf({
             aria-expanded={i === active}
             onClick={() => onSelect(i)}
           >
-            <span className="landing-volume__spine" aria-hidden />
-            {item.cover ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={item.cover} alt="" draggable={false} className="landing-volume__print" />
-            ) : (
-              <span className="landing-volume__ruled" aria-hidden />
-            )}
             <span className="landing-volume__no">{item.no}</span>
-            <span className="landing-volume__title">{item.title}</span>
-            <span className="landing-volume__line">{item.line}</span>
+            <h3 className="landing-volume__title">
+              {item.stack.map((word, line) => (
+                <Fragment key={word}>
+                  {line > 0 ? <br /> : null}
+                  {word}
+                </Fragment>
+              ))}
+            </h3>
+            <p className="landing-volume__line">{item.line}</p>
           </button>
         ))}
       </div>
 
       <div className="landing-inside" data-serial-expanded>
         <div className="landing-inside__meta">
-          <span>{vol.no}</span>
+          <span className="landing-inside__label">{vol.no}</span>
           <h3>{vol.title}</h3>
           <Link href={vol.href} className="landing-inside__open" data-landing-door={vol.door}>
             open →
@@ -185,7 +194,7 @@ function SerialsShelf({
           {vol.fragments.map((line, idx) => (
             <li key={line}>
               <span>{String(idx + 1).padStart(2, '0')}</span>
-              {line}
+              <div>{line}</div>
             </li>
           ))}
         </ul>
