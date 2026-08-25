@@ -363,24 +363,31 @@ export default function WatchListeningShelfArticle() {
   const [active, setActive] = useState<(typeof INDEX)[number]['id']>('featured');
 
   const goTo = useCallback((hashId: string) => {
-    const section = HASH_SECTION[hashId] ?? HASH_SECTION[hashId.replace(/^#/, '')];
+    const key = hashId.replace(/^#/, '');
+    const section = HASH_SECTION[key];
     if (section) {
       openDrawer(section);
       setActive(section);
     }
-    const target = document.getElementById(hashId.replace(/^#/, ''));
-    target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById(key)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
 
   useEffect(() => {
-    const raw = window.location.hash.replace(/^#/, '');
-    if (raw) {
-      goTo(raw);
-    }
+    const applyHash = () => {
+      const raw = window.location.hash.replace(/^#/, '');
+      if (!raw) return;
+      const section = HASH_SECTION[raw];
+      if (section) openDrawer(section);
+      document.getElementById(raw)?.scrollIntoView({ block: 'start' });
+    };
+    applyHash();
+    window.addEventListener('hashchange', applyHash);
     const drawers = INDEX.map((item) => document.getElementById(item.id)).filter(
       (el): el is HTMLElement => !!el,
     );
-    if (!drawers.length || typeof IntersectionObserver === 'undefined') return;
+    if (!drawers.length || typeof IntersectionObserver === 'undefined') {
+      return () => window.removeEventListener('hashchange', applyHash);
+    }
     const io = new IntersectionObserver(
       (entries) => {
         const hit = entries
@@ -392,8 +399,11 @@ export default function WatchListeningShelfArticle() {
       { rootMargin: '-20% 0px -55% 0px', threshold: [0.15, 0.4, 0.7] },
     );
     drawers.forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, [goTo]);
+    return () => {
+      window.removeEventListener('hashchange', applyHash);
+      io.disconnect();
+    };
+  }, []);
 
   return (
     <ArchivePage
