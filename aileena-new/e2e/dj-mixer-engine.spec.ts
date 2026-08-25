@@ -30,8 +30,8 @@ test.describe('DJ mixer engine', () => {
     await page.goto('/sound', { waitUntil: 'domcontentloaded' });
     await expect(page.getByTestId('dj-engine-status')).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-ready', 'true');
-    await expect(page.getByTestId('dj-spotify-preview-note')).toContainText('Not mixable');
     await expect(page.getByTestId('dj-station')).toBeVisible();
+    await expect(page.getByTestId('dj-spotify-preview-note')).toHaveCount(0);
 
     const wavA = pcmWav(3, 440);
     const wavB = pcmWav(3, 660);
@@ -120,5 +120,39 @@ test.describe('DJ mixer engine', () => {
     const info = await stat(filePath!);
     expect(info.size).toBeGreaterThan(0);
     await page.screenshot({ path: '/opt/cursor/artifacts/desktop_export_ready.png' });
+  });
+
+  test('carousel Kick Load A plays, Stab Load B plays, Daydreaming not mixable', async ({ page }) => {
+    await page.goto('/sound', { waitUntil: 'domcontentloaded' });
+    await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-ready', 'true', { timeout: 20_000 });
+    await expect(page.getByTestId('dj-spotify-preview-note')).toHaveCount(0);
+
+    const crate = page.locator('#dj-set');
+    await crate.scrollIntoViewIfNeeded();
+    await expect(page.getByTestId('dj-carousel-active-title')).toHaveText(/Kick Loop/i);
+
+    await crate.locator('[data-dj-load-deck="left"]').click();
+    await expect(page.getByTestId('dj-deck-hint')).toContainText('Loaded A.');
+    await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-deck-a', 'true', { timeout: 15_000 });
+    await expect(page.getByTestId('dj-deck-a-title')).toContainText(/Kick Loop/i);
+
+    await page.getByTestId('dj-play-a').click();
+    await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-playing-a', 'true');
+
+    await page.locator('[data-testid="dj-carousel-card"][data-track-id="demo-stab"]').click();
+    await expect(page.getByTestId('dj-carousel-active-title')).toHaveText(/Stab Loop/i);
+    await crate.locator('[data-dj-load-deck="right"]').click();
+    await expect(page.getByTestId('dj-deck-hint')).toContainText('Loaded B.');
+    await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-deck-b', 'true', { timeout: 15_000 });
+    await expect(page.getByTestId('dj-deck-b-title')).toContainText(/Stab Loop/i);
+
+    await page.getByTestId('dj-play-b').click();
+    await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-playing-b', 'true');
+
+    await page.locator('[data-testid="dj-carousel-card"][data-track-id="DAYDRM"]').click();
+    await expect(page.getByTestId('dj-carousel-active-title')).toHaveText(/Daydreaming/i);
+    await crate.locator('[data-dj-load-deck="left"]').click();
+    await expect(page.getByTestId('dj-deck-hint')).toContainText('Not mixable.');
+    await expect(page.getByTestId('dj-deck-a-title')).toContainText(/Kick Loop/i);
   });
 });

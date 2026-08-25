@@ -173,31 +173,48 @@ export function useDjMixer() {
           loopBars: null,
           loopActive: false,
         }));
+        return true;
       } catch (err) {
         setError(err instanceof Error ? err.message : 'decode failed');
+        return false;
       }
     },
     [ensure],
   );
 
   const loadUrl = useCallback(
-    async (side: 'left' | 'right', url: string) => {
+    async (
+      side: 'left' | 'right',
+      url: string,
+      keep?: { title?: string; bpm?: number | null; key?: string | null },
+    ): Promise<boolean> => {
       setError(null);
       try {
         const e = await ensure();
         const id = sideToId(side);
-        const { duration } = await e.loadUrl(id, url);
-        setDeck(id, {
+        const { duration } = await e.loadUrl(id, url, keep?.title);
+        setDeck(id, (prev) => ({
+          ...prev,
           mixLoaded: true,
           playing: false,
           pos: 0,
           dur: duration,
           peaks: e.voice(id).peaks,
           fileName: url,
-          title: e.voice(id).title,
-        });
+          title: keep?.title || e.voice(id).title,
+          bpm: keep?.bpm ?? prev.bpm,
+          key: keep?.key ?? prev.key,
+          cue: 0,
+          hotCues: Array.from({ length: 8 }, () => null),
+          loopIn: null,
+          loopOut: null,
+          loopBars: null,
+          loopActive: false,
+        }));
+        return true;
       } catch {
-        setError('URL blocked or not CORS-safe — download the file and upload it.');
+        setError('No audio.');
+        return false;
       }
     },
     [ensure],
@@ -218,8 +235,13 @@ export function useDjMixer() {
       const id = sideToId(side);
       const e = await ensure();
       if (!e.isLoaded(id)) return false;
-      e.toggle(id);
-      return true;
+      try {
+        e.toggle(id);
+        return true;
+      } catch {
+        setError('Play failed.');
+        return false;
+      }
     },
     [ensure],
   );

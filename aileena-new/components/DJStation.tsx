@@ -9,6 +9,7 @@ import DJPairPanel from './DJPairPanel';
 import SpotifySearchAdd from './SpotifySearchAdd';
 import SystemToast, { shortMixError } from './SystemToast';
 import { allDeckTracks, type DeckTrack } from '../lib/djSetlist';
+import { isMixableTrack } from '../lib/djMixable';
 import { useDjMixer } from '../lib/useDjMixer';
 import { fmtMs } from '../lib/djMixerMath';
 import {
@@ -65,26 +66,8 @@ function findTrackById(list: Track[], id: string | null | undefined): Track | nu
 
 const DJ_AUDIT = '[dj-audit]';
 
-function firstPlayableTrack(from = 0, skipId?: string | null): Track | null {
-  for (let i = from; i < CATALOGUE.length; i++) {
-    const t = CATALOGUE[i];
-    const sid = spotifyTrackId(t);
-    if (!sid) continue;
-    if (skipId && sid === skipId) continue;
-    return t;
-  }
-  for (let i = 0; i < from; i++) {
-    const t = CATALOGUE[i];
-    const sid = spotifyTrackId(t);
-    if (!sid) continue;
-    if (skipId && sid === skipId) continue;
-    return t;
-  }
-  return CATALOGUE.find((t) => spotifyTrackId(t)) ?? CATALOGUE[0] ?? null;
-}
-
-const INITIAL_LEFT = firstPlayableTrack(0);
-const INITIAL_RIGHT = firstPlayableTrack(1, INITIAL_LEFT ? spotifyTrackId(INITIAL_LEFT) : null);
+const INITIAL_LEFT: Track | null = null;
+const INITIAL_RIGHT: Track | null = null;
 
 /* ─── Spotify IFrame API types ───────────────────────────── */
 interface SpotifyController {
@@ -128,6 +111,7 @@ export default function DJStation() {
   const mix = useDjMixer();
   const [leftTrack,    setLeftTrack]    = useState<Track | null>(INITIAL_LEFT);
   const [rightTrack,   setRightTrack]   = useState<Track | null>(INITIAL_RIGHT);
+  const [selectedTrack, setSelectedTrack] = useState<Track | null>(CATALOGUE[0] ?? null);
   const [dropSide,     setDropSide]     = useState<'left'|'right'|null>(null);
   const [deckHint, setDeckHint] = useState<string | null>(null);
   const [focusTrackId, setFocusTrackId] = useState<string | null>(null);
@@ -180,10 +164,12 @@ export default function DJStation() {
       bpm: t.bpm,
       key: t.key,
       dur: t.dur,
-      playable: !!spotifyTrackId(t),
+      mixable: isMixableTrack(t),
+      audioSrc: !!t.audioSrc,
     }));
     console.log(DJ_AUDIT, 'carousel state after catalogue bind', {
       count: CATALOGUE.length,
+      mixable: CATALOGUE.filter(isMixableTrack).map((t) => t.id),
       sample,
     });
   }, []);
@@ -302,59 +288,33 @@ export default function DJStation() {
     };
   }, []);
 
-  const loadTrack = useCallback((side: 'left'|'right', track: Track) => {
-    const sid = spotifyTrackId(track);
-    console.log(DJ_AUDIT, 'loadTrack', {
-      side,
-      id: track.id,
-      title: track.title,
-      thumb: track.thumb?.slice?.(0, 48),
-      bpm: track.bpm,
-      key: track.key,
-      dur: track.dur,
-      spotifyId: sid,
-    });
+  const selectCarouselTrack = useCallback((track: Track) => {
+    setSelectedTrack(track);
+    setFocusTrackId(track.id);
+  }, []);
 
-    mix.setCrateMeta(side, { title: track.title, bpm: track.bpm, key: track.key });
-    const isRef = track.source === 'spotify' || track.mixable === false;
-    if (isRef) {
-      showDeckHint('Reference only.');
+  const loadTrackToDeck = useCallback(async (track: Track | null, deckId: 'A' | 'B' | 'left' | 'right') => {
+    const side: 'left' | 'right' = deckId === 'B' || deckId === 'right' ? 'right' : 'left';
+    if (!track) {
+      showDeckHint('Select track.');
+      return;
     }
+    selectCarouselTrack(track);
+    const src = track.audioSrc;
+    if (!isMixableTrack(track) || !src) {
+      showDeckHint('Not mixable.');
+      return;
+    }
+    if (side === 'left') setLeftTrack(track);
+    else setRightTrack(track);
+    const ok = await mix.loadUrl(side, src, { title: track.title, bpm: track.bpm, key: track.key });
+    if (ok) showDeckHint(side === 'left' ? 'Loaded A.' : 'Loaded B.');
+    else showDeckHint('No audio.');
+  }, [mix, showDeckHint, selectCarouselTrack]);
 
-    if (side === 'left') {
-      setLeftTrack(track);
-      if (sid) {
-        const uri = `spotify:track:${sid}`;
-        if (leftCtrl.current) {
-          pendingLeftUri.current = null;
-          try {
-            leftCtrl.current.loadUri(uri);
-            console.log(DJ_AUDIT, 'audio source assigned', { deck: 'A', uri, via: 'loadUri' });
-            if (!isRef) setDeckHint(null);
-          } catch (err) {
-            console.log(DJ_AUDIT, 'loadUri error', { deck: 'A', err });
-            if (!isRef) showDeckHint('Press play.');
-          }
-        } else {
-          // Reconnect: queue until leftCtrl createController callback (same IFrame, no second player)
-          pendingLeftUri.current = uri;
-          console.log(DJ_AUDIT, 'leftCtrl null — queued pendingLeftUri', uri);
-          if (!isRef) showDeckHint('Still loading.');
-        }
-      } else if (!isRef) {
-        pendingLeftUri.current = null;
-        showDeckHint('Not playable.');
-      }
-    } else {
-      setRightTrack(track);
-      if (sid) {
-        rightCtrl.current?.loadUri(`spotify:track:${sid}`);
-        if (!isRef) setDeckHint(null);
-      } else if (!isRef) {
-        showDeckHint('Not playable.');
-      }
-    }
-  }, [showDeckHint, mix]);
+  const loadTrack = useCallback((side: 'left' | 'right', track: Track) => {
+    void loadTrackToDeck(track, side);
+  }, [loadTrackToDeck]);
 
   const resolveDropTrack = useCallback((e: React.DragEvent, fallback: Track | null): Track | null => {
     if (fallback) return fallback;
@@ -395,8 +355,8 @@ export default function DJStation() {
 
   const assignFile = useCallback(async (side: 'left' | 'right', file: File) => {
     const crate = side === 'left' ? leftTrack : rightTrack;
-    await mix.loadFile(side, file, crate ? { title: crate.title, bpm: crate.bpm, key: crate.key } : undefined);
-    showDeckHint(side === 'left' ? 'Loaded A.' : 'Loaded B.');
+    const ok = await mix.loadFile(side, file, crate ? { title: crate.title, bpm: crate.bpm, key: crate.key } : undefined);
+    showDeckHint(ok ? (side === 'left' ? 'Loaded A.' : 'Loaded B.') : 'No audio.');
   }, [leftTrack, rightTrack, mix, showDeckHint]);
 
   const dropOnDeckA = useCallback((e: React.DragEvent) => {
@@ -424,18 +384,25 @@ export default function DJStation() {
       setDropSide(null);
       return;
     }
-    if (dragTrack.current) loadTrack('right', dragTrack.current);
+    const track = resolveDropTrack(e, dragTrack.current);
+    console.log(DJ_AUDIT, 'drop target deck', { deck: 'B', trackId: track?.id ?? null });
+    if (track) loadTrack('right', track);
     dragTrack.current = null;
     setDropSide(null);
-  }, [loadTrack, assignFile]);
+  }, [loadTrack, resolveDropTrack, assignFile]);
 
   const toggleDeck = useCallback(async (side: 'left' | 'right') => {
+    const loaded = side === 'left' ? mix.deckA.mixLoaded : mix.deckB.mixLoaded;
+    if (!loaded) {
+      showDeckHint('No audio.');
+      return;
+    }
     const started = await mix.toggle(side);
     if (started) {
       setDeckHint(null);
       return;
     }
-    showDeckHint('Upload audio first.');
+    showDeckHint('Play failed.');
   }, [mix, showDeckHint]);
 
   const handleXfade = useCallback((v: number) => {
@@ -494,6 +461,7 @@ export default function DJStation() {
     <div
       data-testid="dj-station"
       data-dj-layout={isMobile ? 'mobile' : 'desktop'}
+      data-selected-track={selectedTrack?.id ?? ''}
       style={{ position: 'relative', userSelect: 'none', width: '100%', maxWidth: '100%', boxSizing: 'border-box', background: '#0b0d10', overflowX: 'clip' }}
     >
       <input
@@ -520,12 +488,6 @@ export default function DJStation() {
           e.target.value = '';
         }}
       />
-
-      <div style={{ margin: '0 0 12px' }}>
-        <SystemToast testId="dj-spotify-preview-note" inline>
-          Not mixable.
-        </SystemToast>
-      </div>
 
       {/* ── Desk first: decks + mixer ── */}
       <div
@@ -566,6 +528,7 @@ export default function DJStation() {
           playingB={mix.deckB.playing}
           recording={mix.recording}
           exportReady={mix.exportReady}
+          error={mix.error}
           vuA={mix.vuA}
           vuB={mix.vuB}
           vuM={mix.vuM}
@@ -696,7 +659,11 @@ export default function DJStation() {
         )}
 
         {(deckHint || mix.error) && (
-          <SystemToast testId="dj-deck-hint" role={mix.error && !deckHint ? 'alert' : 'status'}>
+          <SystemToast
+            testId="dj-deck-hint"
+            quiet
+            role={mix.error && !deckHint ? 'alert' : 'status'}
+          >
             {deckHint || shortMixError(mix.error || '')}
           </SystemToast>
         )}
@@ -731,6 +698,7 @@ export default function DJStation() {
           reverseCarousel={false}
           focusTrackId={focusTrackId}
           onRemoveTrack={removeSpotifyTrack}
+          onSelectTrack={selectCarouselTrack}
           onLoadTrack={loadTrack}
           onSetDragTrack={(t) => {
             dragTrack.current = t;
@@ -744,13 +712,11 @@ export default function DJStation() {
         <SpotifySearchAdd existingIds={existingSpotifyIds} onAdd={addSpotifyTrack} />
       </div>
       <DJPairPanel
-        selected={leftTrack}
+        selected={selectedTrack}
         library={library}
         onLoadB={(id) => {
           const t = findTrackById(library, id);
-          if (!t) return;
-          loadTrack('right', t);
-          showDeckHint('Loaded B.');
+          void loadTrackToDeck(t, 'B');
         }}
       />
 
@@ -1522,18 +1488,39 @@ function VU({ level }: { level: number }) {
   );
 }
 
-function EngineStatus({ ready, a, b, playingA, playingB, recording, exportReady, vuA, vuB, vuM }: {
+function Led({ on, color, label }: { on: boolean; color: string; label: string }) {
+  return (
+    <span
+      title={label}
+      aria-label={`${label} ${on ? 'on' : 'off'}`}
+      style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+    >
+      <span
+        style={{
+          width: 7,
+          height: 7,
+          borderRadius: '50%',
+          background: on ? color : 'rgba(255,253,248,0.16)',
+          boxShadow: on ? `0 0 6px ${color}` : 'none',
+        }}
+      />
+    </span>
+  );
+}
+
+function EngineStatus({ ready, a, b, playingA, playingB, recording, exportReady, error, vuA, vuB, vuM }: {
   ready: boolean; a: boolean; b: boolean; playingA: boolean; playingB: boolean;
-  recording: boolean; exportReady: boolean; vuA: number; vuB: number; vuM: number;
+  recording: boolean; exportReady: boolean; error?: string | null;
+  vuA: number; vuB: number; vuM: number;
 }) {
-  const bits: Array<[string, boolean]> = [
-    ['Ready', ready],
-    ['A', a],
-    ['B', b],
-    ['Play A', playingA],
-    ['Play B', playingB],
-    ['Rec', recording],
-    ['Export', exportReady],
+  const bits: Array<[string, boolean, string]> = [
+    ['Ready', ready, C.cyan],
+    ['A', a, C.cyan],
+    ['B', b, C.cyan],
+    ['Play A', playingA, C.cyan],
+    ['Play B', playingB, C.cyan],
+    ['Rec', recording, C.orange],
+    ['Export', exportReady, C.cyan],
   ];
   return (
     <p
@@ -1545,25 +1532,22 @@ function EngineStatus({ ready, a, b, playingA, playingB, recording, exportReady,
       data-playing-b={playingB ? 'true' : 'false'}
       data-recording={recording ? 'true' : 'false'}
       data-export-ready={exportReady ? 'true' : 'false'}
+      data-error={error ? 'true' : 'false'}
       data-vu-a={String(Math.round(vuA * 1000))}
       data-vu-b={String(Math.round(vuB * 1000))}
       data-vu-m={String(Math.round(vuM * 1000))}
       style={{
         margin: '0 0 10px',
-        fontFamily: 'monospace',
-        fontSize: 12,
-        letterSpacing: '0.04em',
-        color: C.dim,
         display: 'flex',
         flexWrap: 'wrap',
-        gap: 10,
+        alignItems: 'center',
+        gap: 8,
       }}
     >
-      {bits.map(([label, on]) => (
-        <span key={label} style={{ color: on ? C.cyan : C.dim }}>
-          {on ? '●' : '○'} {label}
-        </span>
+      {bits.map(([label, on, color]) => (
+        <Led key={label} label={label} on={on} color={color} />
       ))}
+      {error ? <Led label={error} on color="#ef4444" /> : null}
     </p>
   );
 }

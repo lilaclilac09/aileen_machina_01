@@ -9,13 +9,15 @@ export default function SystemToast({
   icon = '⚡',
   role = 'status',
   inline = false,
+  quiet = false,
 }: {
   children: ReactNode;
   testId?: string;
   icon?: string;
   role?: 'status' | 'alert';
-  /** Sit in-flow (search/disabled). Default is a fixed bottom toast. */
   inline?: boolean;
+  /** Tiny in-flow bolt — no big white pill. */
+  quiet?: boolean;
 }) {
   return (
     <p
@@ -23,7 +25,17 @@ export default function SystemToast({
       role={role}
       style={{
         ...chip,
-        ...(inline
+        ...(quiet
+          ? {
+              margin: 0,
+              padding: '3px 8px',
+              fontSize: 12,
+              boxShadow: 'none',
+              background: 'transparent',
+              color: '#fffdf8',
+              border: '1px solid rgba(255,253,248,0.16)',
+            }
+          : inline
           ? { margin: '8px 0 0' }
           : {
               position: 'fixed',
@@ -63,9 +75,14 @@ const chip: CSSProperties = {
 };
 
 export function shortMixError(raw: string): string {
-  if (/CORS|blocked/i.test(raw)) return 'Upload the file.';
+  if (/Select track/i.test(raw)) return 'Select track.';
+  if (/Not mixable/i.test(raw)) return 'Not mixable.';
+  if (/No audio/i.test(raw)) return 'No audio.';
+  if (/Play failed/i.test(raw)) return 'Play failed.';
+  if (/Need two tracks/i.test(raw)) return 'Need two tracks.';
+  if (/CORS|blocked/i.test(raw)) return 'No audio.';
   if (/MediaRecorder|unavailable/i.test(raw)) return 'Record failed.';
   if (/empty file/i.test(raw)) return 'Export failed.';
-  if (/decode/i.test(raw)) return 'Upload failed.';
-  return 'Something broke.';
+  if (/decode/i.test(raw)) return 'No audio.';
+  return 'Load failed.';
 }
