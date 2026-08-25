@@ -30,12 +30,51 @@ export type DeckTrack = {
   dur: number;
   thumb: string;
   /** User-added Spotify search card — reference/preview, not mixable. */
-  source?: 'spotify';
+  source?: 'local' | 'demo' | 'spotify' | 'external';
   previewUrl?: string | null;
   externalUrl?: string;
-  /** False for Spotify reference/preview cards. Omitted = mixable local/crate audio. */
+  /** Same-origin or CORS-safe audio. Required for mixable. */
+  audioSrc?: string;
+  demo?: boolean;
+  /** False = reference only. True only when audioSrc is playable. */
   mixable?: boolean;
 };
+
+export const DEMO_DECK_TRACKS: DeckTrack[] = [
+  {
+    id: 'demo-kick',
+    title: 'Kick Loop',
+    artist: 'aileena demo',
+    bpm: 132,
+    key: '1A',
+    dur: 4,
+    thumb: '/dj-set/assets/covers/demo-kick.svg',
+    audioSrc: '/dj-set/demo/kick.wav',
+    source: 'demo',
+    mixable: true,
+    demo: true,
+  },
+  {
+    id: 'demo-stab',
+    title: 'Stab Loop',
+    artist: 'aileena demo',
+    bpm: 132,
+    key: '8A',
+    dur: 4,
+    thumb: '/dj-set/assets/covers/demo-stab.svg',
+    audioSrc: '/dj-set/demo/stab.wav',
+    source: 'demo',
+    mixable: true,
+    demo: true,
+  },
+];
+
+function asReference(track: DeckTrack): DeckTrack {
+  if (track.audioSrc && track.mixable !== false && track.source !== 'spotify') {
+    return { ...track, mixable: true, source: track.source || 'demo' };
+  }
+  return { ...track, mixable: false, source: track.source === 'spotify' ? 'spotify' : 'external' };
+}
 
 /** Curated handoff five — also mirrored in public/dj-set/setlist.json */
 export const DJ_SET_TRACKS: DjSetTrack[] = [
@@ -402,19 +441,21 @@ export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
 ];
 
 export function djSetToDeckTracks(): DeckTrack[] {
-  return DJ_SET_TRACKS.map((t) => ({
-    id: t.id,
-    spotifyId: t.spotifyId,
-    title: t.title,
-    artist: t.artist,
-    bpm: t.bpm ?? 120,
-    key: t.key ?? '—',
-    dur: t.durationSec ?? 200,
-    thumb: t.cover,
-  }));
+  return DJ_SET_TRACKS.map((t) =>
+    asReference({
+      id: t.id,
+      spotifyId: t.spotifyId,
+      title: t.title,
+      artist: t.artist,
+      bpm: t.bpm ?? 120,
+      key: t.key ?? '—',
+      dur: t.durationSec ?? 200,
+      thumb: t.cover,
+    }),
+  );
 }
 
-/** Everything shown in the /sound deck carousel: handoff five + full library. */
+/** Demos first (playable), then handoff five + library as reference. */
 export function allDeckTracks(): DeckTrack[] {
-  return [...djSetToDeckTracks(), ...DECK_LIBRARY_TRACKS];
+  return [...DEMO_DECK_TRACKS, ...djSetToDeckTracks(), ...DECK_LIBRARY_TRACKS.map(asReference)];
 }

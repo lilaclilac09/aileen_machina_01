@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef, useMemo, useEffect } from 'react';
+import { isMixableTrack, type MixSource } from '../lib/djMixable';
 
 /**
  * Fallback cover used when a track has no thumb (or its thumb URL 404s).
@@ -37,10 +38,12 @@ type Track = {
   key: string;
   dur: number;
   thumb: string;
-  source?: 'spotify';
+  source?: MixSource;
   previewUrl?: string | null;
   externalUrl?: string;
   mixable?: boolean;
+  audioSrc?: string;
+  demo?: boolean;
 };
 
 type ViewMode = 'list' | 'playlist';
@@ -94,12 +97,14 @@ const T = {
 };
 
 export default function TrackLibraryBrowser({ tracks, reverseCarousel = true, onLoadTrack, onSetDragTrack,
+  onSelectTrack,
   playingLeft, playingRight, leftPos, leftDur, rightPos, rightDur,
   focusTrackId = null, onRemoveTrack }: {
   tracks: Track[];
   reverseCarousel?: boolean;
   onLoadTrack?: (side: 'left' | 'right', track: Track) => void;
   onSetDragTrack?: (track: Track) => void;
+  onSelectTrack?: (track: Track) => void;
   playingLeft?: string | null;
   playingRight?: string | null;
   leftPos?: number;
@@ -158,6 +163,7 @@ export default function TrackLibraryBrowser({ tracks, reverseCarousel = true, on
           setActiveIdx={setPlaylistIdx}
           onLoadTrack={onLoadTrack}
           onSetDragTrack={onSetDragTrack}
+          onSelectTrack={onSelectTrack}
           onRemoveTrack={onRemoveTrack}
         />
       )}
@@ -521,6 +527,7 @@ function PlaylistCarousel({
   setActiveIdx,
   onLoadTrack,
   onSetDragTrack,
+  onSelectTrack,
   onRemoveTrack,
 }: {
   tracks: Track[];
@@ -529,6 +536,7 @@ function PlaylistCarousel({
   setActiveIdx: (i: number) => void;
   onLoadTrack?: (side: 'left' | 'right', track: Track) => void;
   onSetDragTrack?: (track: Track) => void;
+  onSelectTrack?: (track: Track) => void;
   onRemoveTrack?: (id: string) => void;
 }) {
   const [dragOffset, setDragOffset] = useState(0);
@@ -591,6 +599,9 @@ function PlaylistCarousel({
     activeIdxRef.current = activeIdx;
   }, [activeIdx]);
   const active = tracks[activeIdx];
+  useEffect(() => {
+    if (active) onSelectTrack?.(active);
+  }, [active, onSelectTrack]);
 
   function onCardHover(i: number, rel: number) {
     if (isDragging || rel === 0) return;
@@ -704,8 +715,9 @@ function PlaylistCarousel({
                 data-testid="dj-carousel-card"
                 data-track-id={track.id}
                 data-track-title={track.title}
-                data-source={track.source || 'catalogue'}
-                data-mixable={track.source === 'spotify' || track.mixable === false ? 'false' : 'true'}
+                data-source={track.source || 'external'}
+                data-mixable={isMixableTrack(track) ? 'true' : 'false'}
+                data-selected={rel === 0 ? 'true' : 'false'}
                 draggable={finePointer}
                 onDragStart={(e) => {
                   if (!finePointer) {
@@ -726,6 +738,7 @@ function PlaylistCarousel({
                   if (movedEnough.current) return;
                   if (rel !== 0) setActiveIdx(i);
                   else onSetDragTrack?.(track);
+                  onSelectTrack?.(track);
                 }}
                 onDoubleClick={() => onLoadTrack?.('left', track)}
                 style={{
@@ -766,9 +779,11 @@ function PlaylistCarousel({
                     }}
                     draggable={false}
                   />
-                  {track.source === 'spotify' && (
+                  {(track.demo || track.source === 'demo' || !isMixableTrack(track)) && (
                     <span
-                      data-testid="spotify-ref-badge"
+                      data-testid={
+                        track.demo || track.source === 'demo' ? 'dj-demo-badge' : 'spotify-ref-badge'
+                      }
                       style={{
                         position: 'absolute',
                         top: 6,
@@ -786,7 +801,7 @@ function PlaylistCarousel({
                         pointerEvents: 'none',
                       }}
                     >
-                      {track.previewUrl ? 'PREVIEW' : 'REF'}
+                      {track.demo || track.source === 'demo' ? 'DEMO' : 'REF'}
                     </span>
                   )}
                   {rel === 0 && (
@@ -846,7 +861,9 @@ function PlaylistCarousel({
             display: 'flex', alignItems: 'baseline', justifyContent: 'center',
             gap: '1em', flexWrap: 'wrap',
           }}>
-            <span style={{
+            <span
+              data-testid="dj-carousel-active-title"
+              style={{
               fontFamily: 'monospace',
               fontSize: 15,
               fontWeight: 600,
@@ -862,9 +879,7 @@ function PlaylistCarousel({
               letterSpacing: '0.02em',
               color: T.l2,
             }}>
-              {active.source === 'spotify'
-                ? `${fmtDur(active.dur)} · not mixable`
-                : `${active.bpm} BPM · ${fmtDur(active.dur)}`}
+              {active.bpm} BPM · {fmtDur(active.dur)}
             </span>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
