@@ -1,0 +1,63 @@
+Seedance 2.5 — image-to-video pack
+Source: public/bg_pic/04.jpeg (same plate the landing hero already uses)
+Crops: this folder only. Do not mix other compositions.
+
+Upload
+  1  01-full.jpeg     full plate, original composition
+  2  02-face.jpeg     closed eyes, hair, profile
+  3  03-hand.jpeg     mechanical hands, fingers, joints
+  4  04-chrome.jpeg   chrome body, highlights, metal texture
+  5  depth map        not included — do not invent one
+
+Settings
+  mode: image to video
+  model: Seedance 2.5
+  duration: 4–6s (not 15s)
+  resolution: 720p first
+  aspect ratio: 16:9 (plate is 2752×1536)
+  motion: low
+  camera: slow push-in / tiny orbit
+
+Rule
+  Seedance is only allowed to do: breath, chrome highlight, tiny parallax.
+  Seedance is not allowed to: redesign the body, open eyes, add limbs.
+
+Drop finished files here as:
+  hero-loop.mp4
+  hero-loop.webm
+  poster is 01-full.jpeg / bg_pic/04.jpeg
+Then the landing hero can play muted loop + poster, reduced-motion = poster only.
+
+--- prompt 1: safest landing hero loop ---
+
+Use the uploaded reference image as the exact source of truth. Preserve the same composition, same side profile face, closed eyes, hair shape, metallic mechanical hands, chrome body details, and dark background.
+
+Create a subtle 5-second loop. The subject remains still and embodied. Only minimal motion: slow breathing, tiny head micro-movement, very slight finger tension in the mechanical hand, soft chrome highlights moving across the metal, faint dust and scanline texture.
+
+Camera: very slow push-in with a tiny 3D parallax shift, almost static. Elegant, tactile, intimate, magazine-like. Warm skin, ornate silver chrome, dark background, soft paper/vellum atmosphere.
+
+Do not change the face. Do not open the eyes. Do not change the pose. Do not redesign the body. Do not add new limbs. Do not add text. Do not add logos. No dramatic action.
+
+--- prompt 2: more 3d / site-hero ---
+
+Animate the uploaded image as a layered 3D website hero object. Keep the original body, face, closed eyes, mechanical hands, chrome details, and composition unchanged.
+
+Motion is subtle: the image layers separate slightly in depth, the face layer stays calm, the mechanical hand layer moves a few pixels with parallax, chrome highlights sweep softly, and the camera performs a slow 6-second orbital tilt from left to right.
+
+The result should feel like a physical magazine image becoming dimensional inside a personal website. Add faint vellum texture, scanlines, soft shadow, and quiet light movement.
+
+No new anatomy. No new outfit. No smile. No eye opening. No talking. No extra background objects. No text.
+
+--- prompt 3: dreamier, still safe ---
+
+Use the uploaded cyborg portrait image as the fixed reference. Preserve identity, pose, closed eyes, side profile, mechanical hands, and chrome body exactly.
+
+Create a calm dreamlike motion loop: soft breathing, subtle hair shimmer, tiny mechanical finger adjustment, chrome reflections sliding like liquid silver, faint paper grain moving in the background. The camera slowly pushes in and then eases back to the starting frame for a seamless loop.
+
+Mood: intimate, quiet, embodied, tactile, art-book cover, not sci-fi action.
+
+Do not alter the face, do not open eyes, do not change body shape, do not create new hands, do not add text, do not zoom too far.
+
+--- negative ---
+
+do not change face, do not open eyes, do not smile, do not talk, do not add teeth, do not add extra fingers, do not deform hands, do not change pose, do not change outfit, do not add new limbs, do not add text, do not add logo, no fast motion, no dramatic sci-fi action, no game character, no plastic skin, no uncanny face, no background replacement
