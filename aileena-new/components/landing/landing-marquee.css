@@ -1,0 +1,46 @@
+/* Static news strip on the cinematic opening. Not a scrolling marquee. */
+
+.landing-marquee {
+  --ls-ink: #14110c;
+  --ls-coral: #c45c58;
+  --ls-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  position: relative;
+  z-index: 12;
+  display: flex;
+  align-items: baseline;
+  flex: 0 0 auto;
+  width: 100%;
+  min-height: 28px;
+  margin: 0;
+  padding:
+    max(3.35rem, calc(env(safe-area-inset-top, 0px) + 2.85rem))
+    clamp(16px, 4vw, 40px)
+    8px;
+  border-bottom: 1px solid rgba(196, 92, 88, 0.28);
+  background: rgba(255, 253, 247, 0.78);
+  box-sizing: border-box;
+}
+
+.landing-marquee__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 1.35rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.landing-marquee__item {
+  color: rgba(20, 17, 12, 0.72);
+  font-family: var(--ls-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+}
+
+.landing-marquee__item em {
+  color: var(--ls-coral);
+  font-style: normal;
+  font-weight: 700;
+}

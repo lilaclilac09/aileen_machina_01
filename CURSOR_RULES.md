@@ -23,6 +23,7 @@ Injected every session (`.cursor/rules/`):
 - `verification.mdc`
 - `debug-repro-loop.mdc` (bugs: repro → hypotheses → evidence → root cause)
 - `ui-step-screenshot.mdc` (UI merge: stills + interaction)
+- `landing-experiment-gate.mdc` (home `/`: cinematic + marquee only; **no screenshots = no merge recommendation**)
 
 ## Hard rules (short)
 
@@ -35,6 +36,7 @@ Injected every session (`.cursor/rules/`):
 - no parallel systems
 - no “done” without verification you actually ran
 - UI changes need screenshots
+- landing experiment: **no screenshots = no merge recommendation** (`.cursor/rules/landing-experiment-gate.mdc`)
 - env/config issues go in `manual steps` + fail-closed blocker table in `AGENTS.md`
 - end with `safe to merge:`
 - orchestration: see decision table in `.cursor/prompts.md`

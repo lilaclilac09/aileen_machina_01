@@ -1,0 +1,35 @@
+---
+description: Home marquee only — do not restore ascii / moodboard / serials / zine. No screenshots = no merge recommendation.
+alwaysApply: true
+---
+
+# Home marquee (shipped slice)
+
+The landing experiment was **rejected except the top marquee**.
+
+Keep:
+
+- cinematic `/` opening (portrait + Machina CTA)
+- compact `new →` marquee on that opening
+
+Do **not** restore:
+
+- ascii desk
+- vellum studio / grain / stamps
+- moodboard pins
+- object-card doors
+- serials shelf / terminal index / zine object
+
+Hard rule:
+
+```txt
+no screenshots = no merge recommendation.
+```
+
+After touching `/` or `LandingMarquee`:
+
+- `/` still shows the cinematic opening
+- marquee is visible and does not block the Machina CTA
+- ascii / moodboard / serials / zine are **absent**
+- 390px has no horizontal overflow
+- capture `landing-desktop.png`, `landing-mobile-390.png`, `landing-marquee.png`

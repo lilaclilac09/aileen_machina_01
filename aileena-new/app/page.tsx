@@ -16,6 +16,7 @@ import Header from '../components/Header';
 import LoadingScreen from '../components/LoadingScreen';
 import GlassBench from '../components/GlassBench';
 import DoorsDirectory from '../components/DoorsDirectory';
+import LandingMarquee from '../components/landing/LandingMarquee';
 import { SnapContainer, SnapSection } from '../components/SnapScroll';
 import { ScrapPhoto } from '../components/zine/ScrapPhoto';
 import { useLanguage } from '../components/LanguageProvider';
@@ -264,12 +265,14 @@ export default function Home() {
       <Header />
       <SnapContainer key={language}>
 
-        {/* ── 01 CINEMATIC OPENING ──────────────────────────────── */}
+        {/* ── 01 CINEMATIC OPENING + news marquee ───────────────── */}
         <SnapSection id="opening" className="order-1">
           <div
             className="mobile-opening-shell h-full min-h-[100dvh] flex flex-col bg-white relative overflow-hidden max-md:overflow-visible max-md:h-auto max-md:pt-[max(0.5rem,env(safe-area-inset-top,0px))]"
             style={{ fontFamily: nunito }}
           >
+            <LandingMarquee />
+
             {/* Background portrait — large, partially out of frame on the right */}
             <div
               aria-hidden
@@ -289,7 +292,7 @@ export default function Home() {
             {/* Mobile-only portrait — smaller, top */}
             <div
               aria-hidden
-              className="md:hidden self-start ml-5 mt-[max(3.25rem,calc(env(safe-area-inset-top,0px)+2.75rem))]"
+              className="md:hidden self-start ml-5 mt-3"
               style={{
                 width: 140,
                 height: 180,

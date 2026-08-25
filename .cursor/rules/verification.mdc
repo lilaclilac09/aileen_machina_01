@@ -34,6 +34,7 @@ If a check did not run, say so. Do not claim verified if you did not observe it.
 - open the affected UI route
 - test the specific user flow that changed
 - UI: screenshots + interaction
+- landing experiment (`/`): `.cursor/rules/landing-experiment-gate.mdc` — **no screenshots = no merge recommendation**
 - env/config: list production `manual steps`
 
 ## Never
