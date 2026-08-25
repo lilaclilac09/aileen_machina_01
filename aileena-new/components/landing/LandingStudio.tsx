@@ -148,12 +148,11 @@ function SerialsShelf({
         <p>small volumes. not a feed.</p>
       </header>
 
-      <div className="landing-shelf" role="list">
+      <div className="landing-shelf">
         {VOLUMES.map((item, i) => (
           <button
             key={item.no}
             type="button"
-            role="listitem"
             className="landing-volume"
             data-vol={item.no}
             data-tone={i}
