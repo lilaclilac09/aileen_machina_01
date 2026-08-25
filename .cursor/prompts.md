@@ -25,7 +25,8 @@ Agent 总则（**inspect → plan → patch → verify** + 施工队安全条例
 
 大改锁：`first inspect and report root cause. then propose the smallest diff. wait for confirmation before editing if the change touches multiple systems.`
 
-UI merge 验收：截图 + 交互都要给看（中间微调别刷屏）— `.cursor/rules/ui-step-screenshot.mdc`。
+UI merge 验收：截图 + 交互都要给看（中间微调别刷屏）— `.cursor/rules/ui-step-screenshot.mdc`。  
+Landing experiment：`.cursor/rules/landing-experiment-gate.mdc` — **no screenshots = no merge recommendation.**
 
 Production ship / 多 PR 合入：见 `AGENTS.md` 施工队安全条例 — **不能在线上证明就不准说修好了**。
 

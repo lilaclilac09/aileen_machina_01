@@ -36,3 +36,5 @@ Prefer one of:
 ## Fail condition
 
 UI merge/验收 reply with only text, or only stills and no interaction proof = incomplete.
+
+Landing experiment (`/` · `LandingStudio`): also follow `.cursor/rules/landing-experiment-gate.mdc`. Named screenshots required. **no screenshots = no merge recommendation.**

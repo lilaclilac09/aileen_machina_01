@@ -1,0 +1,147 @@
+---
+description: Landing experiment — runtime screenshots + door clicks + PR/merge gate. No screenshots = no merge recommendation.
+alwaysApply: true
+---
+
+# Landing page experiment — verification + PR/merge gate
+
+Applies when implementing or touching the **landing page experiment** (`/`, `LandingStudio`, marquee / ascii / moodboard / doors).
+
+After implementing the landing page experiment, **do not stop at “done”**.
+
+You must verify, capture screenshots, and prepare a PR/merge recommendation.
+
+Hard rule:
+
+```txt
+no screenshots = no merge recommendation.
+```
+
+Do not invent screenshots. If screenshots cannot be captured, say why and provide an exact manual checklist — still **no merge recommendation**.
+
+## 1. Implementation verification
+
+Verify the landing page actually changed at runtime.
+
+Check:
+
+- `/` route renders the new landing
+- top marquee is visible
+- ascii/generative object is visible
+- moodboard is visible
+- doors/entry links are visible and clickable
+- mobile layout is usable
+- no horizontal overflow
+- existing routes still work
+
+## 2. Screenshots required
+
+Capture **real** screenshots from local dev server or deploy preview.
+
+Required screenshots:
+
+- `landing-desktop.png`
+- `landing-mobile-390.png`
+- `landing-mobile-430.png`
+- `landing-marquee.png`
+- `landing-ascii-object.png`
+- `landing-moodboard.png`
+- `landing-doors.png`
+
+If visual bugs exist, also capture:
+
+- `landing-bug-[issue].png`
+
+## 3. Interaction checks
+
+Actually click/test:
+
+- marquee visible and not blocking content
+- each door link works:
+  - two lines / daily
+  - sound lab
+  - book club
+  - watch/listening
+  - tools
+  - updates
+- hover/focus states if desktop
+- mobile tap targets
+- no horizontal scroll on 390px viewport
+
+## 4. Checks to run
+
+Run available project checks:
+
+- build
+- typecheck if available
+- lint or scoped lint
+- any route/screenshot QA script if available
+
+Report exact commands and results. Do not claim checks passed if not run.
+
+## 5. PR / merge output
+
+Prepare a final report in this format:
+
+### summary
+
+what changed.
+
+### files changed
+
+exact files and purpose.
+
+### runtime proof
+
+route | expected | observed | screenshot
+
+### screenshots
+
+filename | route | viewport | what it proves
+
+### interaction QA
+
+link/control | action | observed result | pass/fail
+
+### checks run
+
+command | result | notes
+
+### blockers
+
+hard blockers before merge.
+
+### non-blocking polish
+
+visual issues that can wait.
+
+### merge recommendation
+
+choose one:
+
+- open PR
+- merge after small fixes
+- do not merge
+- split PR
+
+Do **not** recommend merge unless:
+
+- screenshots exist
+- `/` route works
+- doors links work
+- mobile 390px has no horizontal overflow
+- build passes or failure is explained and unrelated
+
+### PR title
+
+short title.
+
+### PR description
+
+include:
+
+- what changed
+- screenshots attached
+- checks run
+- known limitations
+- mobile status

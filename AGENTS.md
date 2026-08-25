@@ -85,6 +85,12 @@ wait for confirmation before editing if the change touches multiple systems.
 - preserve current visual direction
 - do not change typography / layout / colors unless requested
 - fix proportions / readability / function only
+- UI merge: screenshots + interaction (`.cursor/rules/ui-step-screenshot.mdc`)
+- **landing experiment** (`/` · `LandingStudio`): do not stop at “done”. Follow `.cursor/rules/landing-experiment-gate.mdc`. Runtime proof + named screenshots + door clicks **before** any PR/merge recommendation.
+
+```txt
+no screenshots = no merge recommendation.
+```
 
 ### For deploy
 
@@ -95,6 +101,7 @@ wait for confirmation before editing if the change touches multiple systems.
 ## Never
 
 - say “done” without verification
+- recommend merge on the landing experiment without real screenshots
 - mark a task complete based only on code inspection
 - change visual direction casually
 - replace working flows with new systems
@@ -299,5 +306,6 @@ Always-on：[`.cursor/rules/debug-repro-loop.mdc`](.cursor/rules/debug-repro-loo
 - 已验证坑：[`docs/KNOWN_FAILURES.md`](docs/KNOWN_FAILURES.md)
 - 失败课 / 规则提案（须 owner 批准）：[`ops/lessons/README.md`](ops/lessons/README.md) · [`ops/improvement-queue.md`](ops/improvement-queue.md)
 - UI 截图 + 交互：`.cursor/rules/ui-step-screenshot.mdc`
+- Landing experiment 验收 + 截图 + merge gate：`.cursor/rules/landing-experiment-gate.mdc`（**no screenshots = no merge recommendation**）
 - 完整工作准册：`aileena-new/docs/工作准册.md`
 - AI auto-merge：`docs/AI_AUTOMERGE.md`
