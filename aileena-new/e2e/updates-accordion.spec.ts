@@ -8,6 +8,7 @@ test.describe('updates accordion logbook', () => {
     await mkdir(ARTIFACTS, { recursive: true });
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto('/updates', { waitUntil: 'domcontentloaded' });
+    await page.keyboard.press('Escape');
 
     await expect(page.getByTestId('updates-index')).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId('updates-index-latest')).toBeVisible();
@@ -25,19 +26,21 @@ test.describe('updates accordion logbook', () => {
     await expect(page.locator('#metal-pages-opens')).toHaveJSProperty('open', false);
 
     await expect(page.getByText('The calibration text')).toBeVisible();
-    await expect(page.getByText('Didion shelf first.')).toHaveCount(0);
-    await expect(page.getByText('the sentence as a measuring instrument')).toHaveCount(0);
+    await expect(page.getByText('Didion shelf first.')).not.toBeVisible();
+    await expect(page.getByText('the sentence as a measuring instrument')).not.toBeVisible();
 
     await page.screenshot({ path: `${ARTIFACTS}/updates-desktop-accordion.png` });
 
     await page.getByTestId('updates-index-archive').click();
     await expect(page.getByTestId('updates-drawer-archive')).toHaveJSProperty('open', true);
     await expect(page.getByText('Slouching Towards Bethlehem')).toBeVisible();
-    await expect(page.getByText('the sentence as a measuring instrument')).toHaveCount(0);
+    await expect(page.getByText('the sentence as a measuring instrument')).not.toBeVisible();
+    await page.screenshot({ path: `${ARTIFACTS}/updates-desktop-index-archive.png` });
 
     await page.locator('#slouching-towards-bethlehem summary').click();
     await expect(page.locator('#slouching-towards-bethlehem')).toHaveJSProperty('open', true);
     await expect(page.getByText('the sentence as a measuring instrument')).toBeVisible();
+    await page.screenshot({ path: `${ARTIFACTS}/updates-desktop-book-expanded.png` });
 
     await page.locator('#metal-pages-opens summary').click();
     await expect(page.locator('#metal-pages-opens')).toHaveJSProperty('open', true);
@@ -48,17 +51,21 @@ test.describe('updates accordion logbook', () => {
     const kiln = page.locator('.arc-doors-list a[href="/blog/pate-de-verre"]');
     await expect(kiln).toBeVisible();
     await expect(kiln).toHaveAttribute('href', '/blog/pate-de-verre');
+    await kiln.click();
+    await expect(page).toHaveURL(/\/blog\/pate-de-verre/);
   });
 
   test('mobile: compact index chips', async ({ page }) => {
     await mkdir(ARTIFACTS, { recursive: true });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/updates', { waitUntil: 'domcontentloaded' });
+    await page.keyboard.press('Escape');
     await expect(page.getByTestId('updates-index')).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId('updates-drawer-latest')).toHaveJSProperty('open', true);
     await expect(page.getByTestId('updates-drawer-archive')).toHaveJSProperty('open', false);
     await page.screenshot({ path: `${ARTIFACTS}/updates-mobile-accordion.png` });
     await page.getByTestId('updates-index-year-2026').click();
     await expect(page.getByText('Book club as a room')).toBeVisible();
+    await page.screenshot({ path: `${ARTIFACTS}/updates-mobile-index-2026.png` });
   });
 });
