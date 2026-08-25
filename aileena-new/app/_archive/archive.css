@@ -899,6 +899,7 @@ a.arc-item-title:hover {
   .shelf-index {
     position: sticky;
     top: 84px;
+    align-self: start;
     display: grid;
     gap: 2px;
     padding: 4px 0 0;
