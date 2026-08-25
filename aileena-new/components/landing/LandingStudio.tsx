@@ -1,6 +1,14 @@
 'use client';
 
-import { Fragment, useCallback, useState, type KeyboardEvent } from 'react';
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type PointerEvent,
+} from 'react';
 import Link from 'next/link';
 import './landing-studio.css';
 
@@ -10,30 +18,9 @@ const MARQUEE = [
   'all knobs must have consequences',
 ];
 
-const ASCII_FULL = `
-                 ___________________________
-                /                           \\
-               |   [·]  [·]  [·]   desk      |
-               |  .-----------------------.  |
-               |  | aileena               |  |
-               |  |  > notes              |  |
-               |  |  > sound              |  |
-               |  |           (='.'=)     |  |
-               |  '-----------------------'  |
-               |      ||             ||      |
-               |_____/__\\___________/__\\_____|
-`.trimEnd();
-
-const ASCII_COMPACT = `
-  .----------------------.
- /  paper / notes / mix /
-'------------------------'
-|  [aileena]             |
-|   > two lines          |
-|   > sound              |
-|          (='.'=)       |
-|____||__________||______|
-`.trimEnd();
+/** Existing mechanical side plate. Do not substitute or invent a body. */
+const REFERENCE_HERO = '/bg_pic/04.jpeg';
+const TILT_MAX = 7;
 
 type Volume = {
   no: string;
@@ -133,6 +120,96 @@ const VOLUMES: Volume[] = [
   },
 ];
 
+function canTilt() {
+  if (typeof window === 'undefined') return false;
+  return (
+    window.matchMedia('(pointer: fine)').matches &&
+    !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+}
+
+function EmbodiedHero() {
+  const stageRef = useRef<HTMLDivElement>(null);
+
+  const resetTilt = useCallback(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    stage.style.setProperty('--tilt-x', '0deg');
+    stage.style.setProperty('--tilt-y', '0deg');
+    stage.style.setProperty('--shift-x', '0px');
+    stage.style.setProperty('--shift-y', '0px');
+  }, []);
+
+  const onPointerMove = useCallback((event: PointerEvent<HTMLDivElement>) => {
+    if (!canTilt()) return;
+    const stage = stageRef.current;
+    if (!stage) return;
+    const box = stage.getBoundingClientRect();
+    const x = (event.clientX - box.left) / box.width - 0.5;
+    const y = (event.clientY - box.top) / box.height - 0.5;
+    stage.style.setProperty('--tilt-x', `${(-y * TILT_MAX).toFixed(2)}deg`);
+    stage.style.setProperty('--tilt-y', `${(x * TILT_MAX).toFixed(2)}deg`);
+    stage.style.setProperty('--shift-x', `${(x * 10).toFixed(2)}px`);
+    stage.style.setProperty('--shift-y', `${(y * 8).toFixed(2)}px`);
+  }, []);
+
+  useEffect(() => {
+    const onChange = () => {
+      if (!canTilt()) resetTilt();
+    };
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const pointer = window.matchMedia('(pointer: fine)');
+    motion.addEventListener('change', onChange);
+    pointer.addEventListener('change', onChange);
+    return () => {
+      motion.removeEventListener('change', onChange);
+      pointer.removeEventListener('change', onChange);
+    };
+  }, [resetTilt]);
+
+  return (
+    <div
+      className="hero-object"
+      data-reference-hero
+      onPointerMove={onPointerMove}
+      onPointerLeave={resetTilt}
+    >
+      <div className="hero-object__perspective">
+        <div className="hero-object__stage" ref={stageRef}>
+          <span className="hero-object__shadow" aria-hidden />
+          <div className="hero-object__print">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={REFERENCE_HERO}
+              alt="Close-up side profile, eyes closed, mechanical chrome arms against a dark field."
+              width={2752}
+              height={1536}
+              draggable={false}
+            />
+          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            className="hero-object__glint"
+            src={REFERENCE_HERO}
+            alt=""
+            aria-hidden
+            draggable={false}
+          />
+          <span className="hero-object__chrome" aria-hidden />
+          <span className="hero-object__vellum" aria-hidden />
+          <span className="hero-object__scan" aria-hidden />
+          <div className="hero-object__frame" aria-hidden>
+            <span className="hero-object__bracket hero-object__bracket--tl" />
+            <span className="hero-object__bracket hero-object__bracket--tr" />
+            <span className="hero-object__bracket hero-object__bracket--bl" />
+            <span className="hero-object__bracket hero-object__bracket--br" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SerialsShelf({
   active,
   onSelect,
@@ -204,7 +281,7 @@ function SerialsShelf({
 }
 
 /**
- * Experimental landing: tracing paper, one physical issue, serials as doors.
+ * Experimental landing: tracing paper, embodied reference plate, serials as doors.
  * Desk / /doors / kiln snap sections stay below.
  */
 export default function LandingStudio() {
@@ -248,22 +325,16 @@ export default function LandingStudio() {
           </div>
         </div>
 
-        <div className="landing-hero">
-          <pre className="landing-ascii landing-ascii--full" aria-hidden>
-            {ASCII_FULL}
-          </pre>
-          <pre className="landing-ascii landing-ascii--compact" aria-hidden>
-            {ASCII_COMPACT}
-          </pre>
-          <p className="sr-only">
-            A text drawing of a personal desk machine with a small cat at the console.
-          </p>
+        <div className="landing-hero landing-hero--embodied">
+          <EmbodiedHero />
           <aside className="landing-intro">
             <h1>aileena</h1>
             <span className="landing-intro__rule" aria-hidden />
-            <p>investor / tools / notes / sound / small machines</p>
+            <p>sitting inside the machine.</p>
           </aside>
         </div>
+
+        <SerialsShelf active={active} onSelect={setActive} />
 
         <div className="landing-issue" data-landing-moodboard>
           <Link
@@ -318,8 +389,6 @@ export default function LandingStudio() {
             ))}
           </nav>
         </div>
-
-        <SerialsShelf active={active} onSelect={setActive} />
       </div>
     </section>
   );
