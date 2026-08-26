@@ -107,12 +107,13 @@ function EmbodiedHero() {
       className="hero-object"
       data-landing-hero
       data-reference-hero
+      ref={stageRef}
       onPointerMove={onPointerMove}
       onPointerLeave={resetTilt}
     >
       <span className="hero-object__shadow" aria-hidden />
       {/* Plate is not transformed — vellum must sample the photos behind it. */}
-      <div className="hero-object__plate" ref={stageRef}>
+      <div className="hero-object__plate">
         <div className="hero-layer hero-layer--bg" aria-hidden>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={REF_BACK} alt="" draggable={false} />
