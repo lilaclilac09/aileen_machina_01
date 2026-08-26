@@ -11,20 +11,15 @@ export const metadata: Metadata = {
 
 export const dynamic = 'force-dynamic';
 
-export default async function DailyPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ error?: string }>;
-}) {
+export default async function DailyPage() {
   const identity = await getOwnerIdentity();
   const owner = Boolean(identity);
   const initial = await readPublicDailyBoard(owner);
-  const denied = (await searchParams).error === 'denied';
 
   return (
     <>
       <ScrollUnlock />
-      <DailyBoard initial={initial} denied={denied} />
+      <DailyBoard initial={initial} />
     </>
   );
 }

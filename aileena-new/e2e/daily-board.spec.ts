@@ -33,17 +33,18 @@ test.describe('daily board', () => {
     });
     expect(res.status()).toBe(403);
 
-    const writer = page.getByTestId('daily-owner-textarea');
+    await expect(page.getByTestId('daily-owner-editor')).toHaveCount(0);
+    await expect(page.getByTestId('daily-persistence')).toBeAttached();
     const latest = page.getByTestId('daily-latest-body');
-    if ((await writer.count()) > 0) {
-      await writer.click();
-      await writer.fill('typing works');
-      await expect(writer).toHaveValue('typing works');
-    } else {
+    const empty = page.getByTestId('daily-empty');
+    if ((await latest.count()) > 0) {
       await expect(latest).toBeVisible();
       await page.getByTestId('daily-bubble-input').click();
       await page.getByTestId('daily-bubble-input').fill('typing works');
       await expect(page.getByTestId('daily-bubble-input')).toHaveValue('typing works');
+    } else {
+      await expect(empty).toBeVisible();
+      await expect(page.getByTestId('daily-bubble-form')).toHaveCount(0);
     }
   });
 

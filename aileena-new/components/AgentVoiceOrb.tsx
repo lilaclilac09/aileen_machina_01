@@ -18,6 +18,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  ELEVEN_VOICE_ID,
   parseVoiceAccent,
   VOICE_ACCENT_STORAGE_KEY,
   type VoiceAccent,
@@ -64,21 +65,21 @@ const ACCENTS = [
     key: 'shanghai' as const,
     label: 'Shanghai',
     // Bella — free-tier premade (Coco Li library voice is paid-API-only)
-    voiceId: 'EXAVITQu4vr4xnSDxMaL',
+    voiceId: ELEVEN_VOICE_ID.shanghai,
     lang: 'zh-CN',
     hint: 'Soft Chinese (Bella)',
   },
   {
     key: 'london' as const,
     label: 'London',
-    voiceId: 'pFZP5JQG7iQjIQuC4Bku', // Lily — free-tier OK
+    voiceId: ELEVEN_VOICE_ID.london,
     lang: 'en-GB',
     hint: 'British English',
   },
   {
     key: 'berlin' as const,
     label: 'Berlin',
-    voiceId: 'JBFqnCBsd6RMkjVDRZzb', // George — free-tier OK
+    voiceId: ELEVEN_VOICE_ID.berlin,
     lang: 'de-DE',
     hint: 'Berlin German',
   },
@@ -167,14 +168,20 @@ function pickNaturalVoice(
     if (base === 'zh' && /tingting|mei-jia|meijia|xiaoxiao|xiaoyi|yunxi|sin-ji|li-mu|hanhan|yaoyao/.test(n)) {
       s += 7;
     }
-    if (
-      base === 'en' &&
-      /samantha|karen|moira|serena|fiona|martha|aria|jenny|google us english|google uk english|siri/.test(n)
-    ) {
-      s += 7;
+    if (base === 'en') {
+      const gb = /en-gb|uk english|british|gbr|daniel|serena|hazel|kate|libby|sonia/.test(n) || v.lang?.toLowerCase() === 'en-gb';
+      const us = /en-us|us english|samantha|aaron|google us english/.test(n);
+      if (lang.toLowerCase() === 'en-gb') {
+        if (gb) s += 10;
+        if (us) s -= 8;
+      } else if (/samantha|karen|moira|serena|fiona|martha|aria|jenny|google us english|google uk english|siri/.test(n)) {
+        s += 7;
+      }
     }
     // Soften “customer service / PA” defaults without blocking them entirely.
-    if (/microsoft david|microsoft mark|alex\b|daniel\b|ralph|bruce/.test(n)) s -= 3;
+    // Daniel is the common British system voice — do not penalize it for en-GB.
+    if (/microsoft david|microsoft mark|alex\b|ralph|bruce/.test(n)) s -= 3;
+    if (lang.toLowerCase() !== 'en-gb' && /daniel\b/.test(n)) s -= 3;
     if (/compact|eloquence|novelty|whisper|zarvox|bad news|bahh|boing|bells|cellos|trinoids/.test(n)) {
       s -= 12;
     }
@@ -292,6 +299,7 @@ export default function AgentVoiceOrb({
   const [hint, setHint] = useState('Tap speak to start');
   const [caption, setCaption] = useState('');
   const [accentKey, setAccentKey] = useState<AccentKey>('shanghai');
+  const [accentReady, setAccentReady] = useState(false);
   const [needsHearTap, setNeedsHearTap] = useState(false);
 
   const playCtxRef = useRef<AudioContext | null>(null);
@@ -354,15 +362,22 @@ export default function AgentVoiceOrb({
   }, []);
 
   useEffect(() => {
+    let saved: AccentKey = 'shanghai';
     try {
-      const saved = parseVoiceAccent(localStorage.getItem(VOICE_ACCENT_STORAGE_KEY));
-      if (saved && ACCENTS.some((p) => p.key === saved)) setAccentKey(saved);
+      const parsed = parseVoiceAccent(localStorage.getItem(VOICE_ACCENT_STORAGE_KEY));
+      if (parsed && ACCENTS.some((p) => p.key === parsed)) saved = parsed;
     } catch {
       /* ignore */
     }
+    const accent = ACCENTS.find((p) => p.key === saved) ?? ACCENTS[0];
+    voiceIdRef.current = accent.voiceId;
+    langRef.current = accent.lang;
+    setAccentKey(saved);
+    setAccentReady(true);
   }, []);
 
   useEffect(() => {
+    if (!accentReady) return;
     const accent = ACCENTS.find((p) => p.key === accentKey) ?? ACCENTS[0];
     voiceIdRef.current = accent.voiceId;
     langRef.current = accent.lang;
@@ -371,7 +386,7 @@ export default function AgentVoiceOrb({
     } catch {
       /* ignore */
     }
-  }, [accentKey]);
+  }, [accentKey, accentReady]);
 
   const ensurePlayCtx = useCallback(() => {
     if (!playCtxRef.current) {
@@ -419,6 +434,9 @@ export default function AgentVoiceOrb({
     (key: AccentKey) => {
       if (key === accentKey) return;
       stopPlayback();
+      const accent = ACCENTS.find((p) => p.key === key) ?? ACCENTS[0];
+      voiceIdRef.current = accent.voiceId;
+      langRef.current = accent.lang;
       try {
         localStorage.setItem(VOICE_ACCENT_STORAGE_KEY, key);
       } catch {
@@ -426,6 +444,13 @@ export default function AgentVoiceOrb({
       }
       setAccentKey(key);
       onAccentChange?.(key);
+      if (listeningRef.current && !manualStopRef.current) {
+        try {
+          startWebSpeechRef.current?.();
+        } catch {
+          /* recognition restart is best-effort */
+        }
+      }
     },
     [accentKey, stopPlayback, onAccentChange],
   );
@@ -600,14 +625,21 @@ export default function AgentVoiceOrb({
     [ensureHtmlAudio],
   );
 
-  const speakBrowser = useCallback((text: string, gen: number) => {
+  const speakBrowser = useCallback(async (text: string, gen: number) => {
+    if (!window.speechSynthesis || gen !== playGenRef.current) return;
+    let voices = window.speechSynthesis.getVoices();
+    if (!voices.length) {
+      voices = await new Promise((resolve) => {
+        const finish = () => resolve(window.speechSynthesis.getVoices());
+        window.speechSynthesis.addEventListener('voiceschanged', finish, { once: true });
+        window.setTimeout(finish, 500);
+      });
+    }
     return new Promise<void>((resolve) => {
-      if (!window.speechSynthesis || gen !== playGenRef.current) {
+      if (gen !== playGenRef.current) {
         resolve();
         return;
       }
-      // Chrome: voices often empty until getVoices() / voiceschanged.
-      const voices = window.speechSynthesis.getVoices();
 
       // Sentence/clause queue — never one long PA-style blast.
       const chunks = splitSpeakableChunks(text);
@@ -743,6 +775,7 @@ export default function AgentVoiceOrb({
           body: JSON.stringify({
             text: t.slice(0, 4000),
             voice: voiceIdRef.current,
+            accent: accentKey,
           }),
           signal: ac.signal,
         });
@@ -770,7 +803,7 @@ export default function AgentVoiceOrb({
         await speakBrowser(t, gen);
       }
     },
-    [caps.tts, ensurePlayCtx, enqueueBuffer, playHtmlBlobUrl, speakBrowser],
+    [accentKey, caps.tts, ensurePlayCtx, enqueueBuffer, playHtmlBlobUrl, speakBrowser],
   );
 
   useEffect(() => {
@@ -1502,9 +1535,7 @@ export default function AgentVoiceOrb({
         </button>
 
         <div
-          className={`relative grid h-11 min-h-11 sm:h-12 flex-1 min-w-[16rem] max-w-[20rem] sm:max-w-[22rem] grid-cols-3 items-stretch rounded-full border border-[#00a89d]/28 bg-[#e8f7f4]/90 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] ${
-            listening ? 'opacity-50' : ''
-          }`}
+          className="relative grid h-11 min-h-11 sm:h-12 flex-1 min-w-[16rem] max-w-[20rem] sm:max-w-[22rem] grid-cols-3 items-stretch rounded-full border border-[#00a89d]/28 bg-[#e8f7f4]/90 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"
           role="group"
           aria-label="City accent"
         >
@@ -1523,9 +1554,8 @@ export default function AgentVoiceOrb({
                 type="button"
                 onClick={() => selectAccent(p.key)}
                 title={p.hint}
-                disabled={listening}
                 aria-pressed={on}
-                className={`relative z-10 rounded-full px-1.5 font-mono text-[0.6rem] sm:text-[0.64rem] uppercase tracking-[0.12em] transition-colors duration-200 disabled:cursor-not-allowed ${
+                className={`relative z-10 rounded-full px-1.5 font-mono text-[0.6rem] sm:text-[0.64rem] uppercase tracking-[0.12em] transition-colors duration-200 ${
                   on ? 'font-semibold text-white' : 'text-[#1b1713]/32 hover:text-[#007d75]/75'
                 }`}
               >
@@ -1572,7 +1602,9 @@ export default function AgentVoiceOrb({
           {' · '}
           {caps.whisper ? 'whisper' : 'dictation'}
           {' · '}
-          <span className="text-[#008f86]/55">{activeAccent.label}</span>
+          <span className="text-[#008f86]/55">
+            {activeAccent.key === 'london' ? 'London · British' : activeAccent.label}
+          </span>
         </span>
       </p>
     </div>

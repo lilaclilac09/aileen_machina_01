@@ -2,16 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SESSION_COOKIE, OWNER_MAX_AGE, createOwnerSession, safeEqual } from '../../../../lib/auth';
 
 /**
- * Owner door. POST a form from /council or /cabinet — key stays out of the
- * URL. GET must not accept ?key= (Referer / access logs / history).
+ * Legacy typed-secret door. Site UI does not post here — owner rooms use
+ * Site UI uses KeyShield: WebAuthn PRF → HKDF → AES-256-GCM (`/api/auth/passkey/*`).
+ * Server stores ciphertext only.
  *
- * One good enter sets a 1-year httpOnly cookie. Wrong POST key returns to
- * the room with ?error=denied — not the public wallet unlock page.
- * Missing OWNER_KEY or empty key never succeeds.
+ * Kept so Council CLI / emergency POST still work. GET must not accept
+ * ?key= (Referer / access logs / history). Missing OWNER_KEY or empty
+ * key never succeeds.
  */
 export const runtime = 'nodejs';
 
-const OWNER_ROOMS = new Set(['/council', '/cabinet', '/inbox', '/daily']);
+const OWNER_ROOMS = new Set(['/council', '/cabinet', '/inbox', '/daily', '/proof']);
 
 function safeNextPath(raw: string | null): string {
   if (!raw) return '/council';

@@ -52,9 +52,24 @@ async function liveHttp() {
   assert('GET /daily', page.ok, String(page.status));
 
   const visitorGet = await fetch(`${base}/api/daily`);
-  const visitorJson = visitorGet.ok ? ((await visitorGet.json()) as { owner?: boolean }) : {};
+  const visitorJson = visitorGet.ok
+    ? ((await visitorGet.json()) as { owner?: boolean; persistence?: string; notes?: unknown[] })
+    : {};
   assert('GET /api/daily', visitorGet.ok, String(visitorGet.status));
   assert('visitor GET owner=false', visitorJson.owner === false, JSON.stringify({ owner: visitorJson.owner }));
+  assert(
+    'GET reports persistence',
+    visitorJson.persistence === 'memory' || visitorJson.persistence === 'redis',
+    String(visitorJson.persistence),
+  );
+
+  const pageHtml = page.ok ? await page.text() : '';
+  assert('visitor /daily has no owner writer', !pageHtml.includes('daily-owner-textarea'));
+  assert(
+    'visitor /daily shows latest or empty',
+    pageHtml.includes('daily-latest') || pageHtml.includes('daily-empty'),
+  );
+  assert('visitor /daily names persistence', pageHtml.includes('daily-persistence'));
 
   const forbidden = await fetch(`${base}/api/daily/notes`, {
     method: 'POST',
@@ -170,6 +185,9 @@ function sourceChecks() {
   assert('bubble placeholder', ui.includes('leave a small bubble'));
   assert('empty copy', ui.includes('nothing today yet.'));
   assert('real textarea for empty paper', ui.includes('daily-owner-textarea') && ui.includes('showWriter'));
+  assert('writer is owner-only', /const showWriter = owner;/.test(ui) && !/on this phone until you enter/.test(ui));
+  assert('public persistence is named', ui.includes('daily-persistence') && ui.includes('this instance'));
+  assert('503 toast is a bolt', ui.includes("flash('Nope.'"));
   assert('no OWNER_KEY in client', !ui.includes('OWNER_KEY'));
   assert('redis env uses runtime bracket access', read('lib/visitorMemory.ts').includes("process.env['UPSTASH_REDIS_REST_URL']"));
   assert('vercel memory writes blocked', read('lib/dailyBoardStore.ts').includes('dailyBoardWritesOk'));

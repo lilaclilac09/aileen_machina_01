@@ -2,6 +2,9 @@ node_modules
 .vercel
 .gstack/
 
+# Owner computer prototype local workspace
+aileena-new/.data/computer-prototype/
+
 .projects/cache
 .projects/vault
 .projects/state.test.json

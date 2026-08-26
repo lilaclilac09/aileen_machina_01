@@ -21,7 +21,7 @@ import {
 } from '../lib/modelRouter';
 import { createRequestTrace } from '../lib/requestTrace';
 import { decideAgentMode, isCouncilPipelineRequest, skipVisitorQuota } from '../lib/agentMode';
-import { parseVoiceAccent, spokenRegisterPrompt } from '../lib/voiceAccent';
+import { parseVoiceAccent, spokenRegisterPrompt, ttsSpokenInstructions } from '../lib/voiceAccent';
 import { COUNCIL_SYSTEM_PROMPT } from '../lib/aileenaCouncil';
 import { SYSTEM_PROMPT } from '../lib/agentContext';
 import { COUNCIL_OPENING } from '../lib/councilCopy';
@@ -113,8 +113,20 @@ function main() {
   assert('degrade timeout copy', /too long|again/i.test(degradeMessage('timeout')));
 
   assert('parse shanghai accent', parseVoiceAccent('Shanghai') === 'shanghai');
+  assert('parse london accent', parseVoiceAccent('London') === 'london');
   assert('reject junk accent', parseVoiceAccent('argentina') === null);
   assert('shanghai spoken register is Chinese-auntie not dsh', /上海阿姨/.test(spokenRegisterPrompt('shanghai')) && !/dsh/i.test(spokenRegisterPrompt('shanghai')));
+  assert(
+    'london spoken register is British RP not auntie',
+    /British English/.test(spokenRegisterPrompt('london')) &&
+      /not American/i.test(spokenRegisterPrompt('london')) &&
+      !/上海阿姨/.test(spokenRegisterPrompt('london')),
+  );
+  assert(
+    'hosted TTS London is British not auntie',
+    /British English/.test(ttsSpokenInstructions('london')) &&
+      !/上海阿姨/.test(ttsSpokenInstructions('london')),
+  );
   assert('typed voice is silent', spokenRegisterPrompt(null) === '');
   const shRoute = routeModel({ toolRoute: 'taste', lastQuestion: '你好', voiceAccent: 'shanghai' });
   if (okRoute.mode === 'llm') {
@@ -320,6 +332,13 @@ function main() {
     'public console sends voiceAccent when Voice is on',
     /voiceAccent:/.test(agentChatSrc) && /readStoredVoiceAccent/.test(agentChatSrc),
   );
+  const orbSrc = readFileSync(join(process.cwd(), 'components/AgentVoiceOrb.tsx'), 'utf8');
+  const ttsSrc = readFileSync(join(process.cwd(), 'app/api/tts/route.ts'), 'utf8');
+  assert('voice orb keeps London British chip', /key: 'london'/.test(orbSrc) && /en-GB/.test(orbSrc));
+  assert('voice orb can change accent while listening', /disabled=\{listening\}/.test(orbSrc) === false);
+  assert('voice orb waits for browser voices', /voiceschanged/.test(orbSrc));
+  assert('voice orb POSTs accent to TTS', /accent: accentKey/.test(orbSrc));
+  assert('tts route follows accent not auntie-only', /ttsSpokenInstructions/.test(ttsSrc));
   assert('chat route applies spoken register via frozen prefix', /buildFrozenSystemPrompt/.test(chatRouteSrc) && /spokenRegisterPrompt/.test(readFileSync(join(process.cwd(), 'lib/consolePrefix.ts'), 'utf8')));
   assert('chat route ignores voice on council', /isCouncil \? null : parseVoiceAccent/.test(chatRouteSrc));
   const vcodeSrc = readFileSync(join(process.cwd(), 'app/api/voice-code/route.ts'), 'utf8');
@@ -540,7 +559,7 @@ function main() {
   const councilPageSrc = readFileSync(join(process.cwd(), 'app/council/page.tsx'), 'utf8');
   const cabinetPageSrc = readFileSync(join(process.cwd(), 'app/cabinet/page.tsx'), 'utf8');
   const ownerAuthSrc = readFileSync(join(process.cwd(), 'app/api/auth/owner/route.ts'), 'utf8');
-  assert('council page has owner key form', /OwnerUnlockForm/.test(councilPageSrc) && /next="\/council"/.test(councilPageSrc));
+  assert('council page has KeyShield form', /OwnerUnlockForm/.test(councilPageSrc) && /next="\/council"/.test(councilPageSrc));
   assert('council page links cabinet', /href="\/cabinet"/.test(councilPageSrc));
   assert('cabinet page is owner-only', /getOwnerIdentity/.test(cabinetPageSrc) && /OwnerUnlockForm/.test(cabinetPageSrc));
   assert('owner auth accepts POST', /export async function POST/.test(ownerAuthSrc));
@@ -548,6 +567,30 @@ function main() {
   assert('owner auth GET is 401', /export async function GET/.test(ownerAuthSrc) && /status:\s*401/.test(ownerAuthSrc));
   assert('owner auth requires OWNER_KEY env', /process\.env\.OWNER_KEY/.test(ownerAuthSrc) && /!expected/.test(ownerAuthSrc));
   assert('owner auth uses safeEqual', /safeEqual\(key, expected\)/.test(ownerAuthSrc));
+  assert('owner auth allows /proof as a room', /\/proof/.test(ownerAuthSrc));
+  assert('chat route has owner computer fast path', /tryOwnerComputerFastPath/.test(chatRouteSrc));
+  assert(
+    'computer tasks API is owner-only node',
+    /requireOwnerFromRequest/.test(readFileSync(join(process.cwd(), 'app/api/agent/computer/tasks/route.ts'), 'utf8')) &&
+      /runtime = 'nodejs'/.test(readFileSync(join(process.cwd(), 'app/api/agent/computer/tasks/route.ts'), 'utf8')),
+  );
+  assert(
+    'computer prototype hard-off on Vercel production',
+    /VERCEL_ENV === 'production'/.test(readFileSync(join(process.cwd(), 'lib/computer/flag.ts'), 'utf8')),
+  );
+  const proofPageSrc = readFileSync(join(process.cwd(), 'app/proof/page.tsx'), 'utf8');
+  const unlockFormSrc = readFileSync(join(process.cwd(), 'components/OwnerUnlockForm.tsx'), 'utf8');
+  assert('proof page is owner-gated', /getOwnerIdentity/.test(proofPageSrc) && /OwnerUnlockForm/.test(proofPageSrc));
+  assert('proof page is not a computer window', !/ProofQueuePanel/.test(proofPageSrc) && /OpenAgentChatButton/.test(proofPageSrc));
+  assert(
+    'owner unlock is KeyShield not typed secret',
+    /owner-passkey-unlock/.test(unlockFormSrc) &&
+      /prf:/.test(unlockFormSrc) &&
+      /keyshield/.test(unlockFormSrc) &&
+      !/type=["']password["']/.test(unlockFormSrc) &&
+      !/OWNER_KEY/.test(unlockFormSrc),
+  );
+  assert('computer docks in public console for owner', /ComputerConsoleDock/.test(agentChatSrc));
   assert('public console has no council href', !/href=['"]\/council['"]/.test(agentChatSrc));
 
   const ownerAccessSrc = readFileSync(join(process.cwd(), 'lib/owner-access.ts'), 'utf8');
