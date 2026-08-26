@@ -486,6 +486,7 @@
   margin: 0 0 8% 2%;
   padding: 16px 16px 14px;
   clip-path: polygon(0.8% 1.4%, 99% 0%, 100% 98.2%, 0% 100%);
+  pointer-events: none;
 }
 
 .landing-intro h1 {
