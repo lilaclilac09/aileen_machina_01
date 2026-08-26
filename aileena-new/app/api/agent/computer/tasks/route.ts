@@ -12,6 +12,7 @@ import {
   attachTaskToProof,
   getProofItem,
   listProofItems,
+  nextOpenProof,
   newProofId,
   upsertProofItem,
 } from '@/lib/proofQueue/store';
@@ -85,11 +86,7 @@ export async function POST(req: Request) {
   let proofItemId = typeof body.proofItemId === 'string' ? body.proofItemId.trim() : '';
   let proof = proofItemId ? getProofItem(proofItemId) : null;
   if (!proof) {
-    const seeded =
-      route === '/daily'
-        ? getProofItem('proof-daily-owner-key')
-        : null;
-    proof = seeded;
+    proof = nextOpenProof(route);
     if (!proof) {
       const now = nowIso();
       proof = upsertProofItem({

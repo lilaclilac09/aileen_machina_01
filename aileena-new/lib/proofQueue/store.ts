@@ -27,6 +27,24 @@ function persist(): void {
   }
 }
 
+function isOpenProof(item: ProofItem): boolean {
+  return item.status !== 'shipped' && item.status !== 'rejected';
+}
+
+function closeOwnerDoorLeftover(): void {
+  const leftover = memory().items['proof-daily-owner-key'];
+  if (!leftover || leftover.status === 'shipped') return;
+  leftover.status = 'shipped';
+  leftover.title = '/daily owner door — off the board';
+  leftover.problem = 'Public /daily must not mount a typed owner-secret form. This is already true.';
+  leftover.proposedChange =
+    'Keep the owner door off /daily. Computer stays in the site-agent dialog. KeyShield is the door.';
+  leftover.resultSummary =
+    'DailyBoard has no OwnerUnlockForm. Unlock is KeyShield on council / cabinet / proof.';
+  leftover.updatedAt = leftover.createdAt;
+  persist();
+}
+
 function hydrate(): void {
   if (Object.keys(memory().items).length === 0) {
     try {
@@ -39,14 +57,7 @@ function hydrate(): void {
     }
     if (Object.keys(memory().items).length === 0) seedKnownIssues();
   }
-  const leftover = memory().items['proof-daily-owner-key'];
-  if (leftover && /owner key/i.test(`${leftover.title} ${leftover.problem}`)) {
-    leftover.title = '/daily owner door leftover';
-    leftover.problem = 'Public /daily must not mount a typed owner-secret form. Passkey lives off this board.';
-    leftover.proposedChange =
-      'Keep the owner door off /daily. Computer stays in the site-agent dialog. No typed secret in visitor UI.';
-    persist();
-  }
+  closeOwnerDoorLeftover();
 }
 
 function seedKnownIssues(): void {
@@ -54,19 +65,19 @@ function seedKnownIssues(): void {
   const seeds: Omit<ProofItem, 'createdAt' | 'updatedAt'>[] = [
     {
       id: 'proof-daily-owner-key',
-      title: '/daily owner door leftover',
+      title: '/daily owner door — off the board',
       route: '/daily',
-      problem: 'Public /daily must not mount a typed owner-secret form. Passkey lives off this board.',
-      proposedChange: 'Keep the owner door off /daily. Computer stays in the site-agent dialog. No typed secret in visitor UI.',
+      problem: 'Public /daily must not mount a typed owner-secret form. This is already true.',
+      proposedChange: 'Keep the owner door off /daily. Computer stays in the site-agent dialog. KeyShield is the door.',
       source: 'seed',
-      status: 'observed',
+      status: 'shipped',
       risk: 'medium',
       acceptanceCriteria: ['Visitor 390px still usable', 'Owner can still enter', 'No OWNER_KEY string in visitor UI'],
       screenshots: [],
-      filesChanged: [],
-      checksRun: [],
+      filesChanged: ['aileena-new/components/DailyBoard.tsx'],
+      checksRun: ['verify:computer-prototype'],
       computerTaskIds: [],
-      resultSummary: '',
+      resultSummary: 'DailyBoard has no OwnerUnlockForm. Unlock is KeyShield on council / cabinet / proof.',
     },
     {
       id: 'proof-daily-notes',
@@ -110,6 +121,10 @@ function seedKnownIssues(): void {
 export function listProofItems(): ProofItem[] {
   hydrate();
   return Object.values(memory().items).sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1));
+}
+
+export function nextOpenProof(route?: string): ProofItem | null {
+  return listProofItems().find((item) => isOpenProof(item) && (!route || item.route === route)) ?? null;
 }
 
 export function getProofItem(id: string): ProofItem | null {

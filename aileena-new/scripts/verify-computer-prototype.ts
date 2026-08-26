@@ -86,6 +86,13 @@ function sourceChecks() {
     existsSync(join(process.cwd(), 'app/api/auth/passkey/options/route.ts')) &&
       existsSync(join(process.cwd(), 'app/api/auth/passkey/verify/route.ts')),
   );
+  const proofStoreSrc = readFileSync(join(process.cwd(), 'lib/proofQueue/store.ts'), 'utf8');
+  assert(
+    'owner-door leftover seed is shipped',
+    /proof-daily-owner-key/.test(proofStoreSrc) && /off the board/.test(proofStoreSrc) && /status: 'shipped'/.test(proofStoreSrc),
+  );
+  assert('daily queue attaches next open proof', /nextOpenProof/.test(tasks));
+  assert('computer dock skips shipped hung proof', /status !== 'shipped'/.test(dockSrc));
   const ks = readFileSync(join(process.cwd(), 'lib/keyshield/constants.ts'), 'utf8');
   const ksPrf = readFileSync(join(process.cwd(), 'lib/keyshield/prf.ts'), 'utf8');
   assert(
@@ -119,8 +126,8 @@ function unitChecks() {
   assert('KeyShield HKDF vault id is vault-id', KS_HKDF_VAULT_ID === 'keyshield-prf-v1:vault-id');
   assert(
     'spoken names proof id',
-    spokenQueued({ taskType: 'draft_daily_fix_plan', route: '/daily', proofItemId: 'proof-daily-owner-key' }).includes(
-      'proof-daily-owner-key',
+    spokenQueued({ taskType: 'draft_daily_fix_plan', route: '/daily', proofItemId: 'proof-daily-notes' }).includes(
+      'proof-daily-notes',
     ),
   );
 
@@ -294,6 +301,12 @@ async function liveHttp() {
     'spoken names proof and work',
     Boolean(createdJson.spoken?.includes('queued') && createdJson.spoken?.includes('proof')),
     createdJson.spoken?.slice(0, 180),
+  );
+  assert(
+    'queue hangs on open daily proof not shipped door',
+    Boolean(createdJson.spoken && /proof-daily-notes|proof-daily-comments/.test(createdJson.spoken)) &&
+      !/owner door leftover/.test(createdJson.spoken || ''),
+    createdJson.spoken?.slice(0, 220),
   );
   const taskId = createdJson.task?.id || '';
   assert('task id returned', Boolean(taskId), taskId);

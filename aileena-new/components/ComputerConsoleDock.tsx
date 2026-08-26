@@ -38,7 +38,7 @@ export default function ComputerConsoleDock() {
     () => tasks.find((t) => t.id === selected) ?? tasks[0] ?? null,
     [tasks, selected],
   );
-  const hung = proof[0] ?? null;
+  const hung = proof.find((p) => p.status !== 'shipped' && p.status !== 'rejected') ?? null;
 
   const run = async (pluginId: string) => {
     const plugin = HARNESS_PLUGINS.find((p) => p.id === pluginId);
