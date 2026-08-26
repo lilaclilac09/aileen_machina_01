@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/next';
 import { LanguageProvider } from '../components/LanguageProvider';
 import { ThemeProvider } from '../components/ThemeProvider';
 import AgentChat from '../components/AgentChat';
+import ProofObserver from '../components/ProofObserver';
 
 export const metadata: Metadata = {
   title: 'AILEENA — MACHINA',
@@ -39,6 +40,7 @@ export default function RootLayout({
         <ThemeProvider>
           <LanguageProvider>{children}</LanguageProvider>
           <AgentChat />
+          <ProofObserver />
         </ThemeProvider>
         <Analytics />
       </body>

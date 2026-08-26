@@ -24,6 +24,7 @@ import {
   VCODE_DAILY_LIMIT,
 } from '../lib/voiceCodeIntent';
 import { isDrawIntent } from '../lib/drawIntent';
+import { isProofQueueCommand } from '../lib/proofQueue';
 import { taipeiDay } from '../lib/taipeiDay';
 import { cardById, reciteDrawCard, type DrawCard } from '../lib/drawDeck';
 import {
@@ -1173,6 +1174,61 @@ export default function AgentChat() {
     }
   }
 
+  async function sendProofQueue(trimmed: string) {
+    const userId =
+      typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `u-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const assistantId =
+      typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `a-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+    setMessages((prev) => [
+      ...prev,
+      { id: userId, role: 'user', parts: [{ type: 'text', text: trimmed }] },
+      {
+        id: assistantId,
+        role: 'assistant',
+        parts: [{ type: 'text', text: '… proof queue' }],
+      },
+    ]);
+
+    try {
+      const res = await fetch('/api/proof', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: trimmed }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        reply?: string;
+        error?: string;
+        merge?: boolean;
+      };
+      const text =
+        data.reply ||
+        data.error ||
+        (res.status === 403 ? '⚡ Owner only.' : 'proof queue did not take that.');
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantId
+            ? { ...m, parts: [{ type: 'text', text }] }
+            : m,
+        ),
+      );
+    } catch {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantId
+            ? { ...m, parts: [{ type: 'text', text: '⚡ Proof queue offline.' }] }
+            : m,
+        ),
+      );
+    }
+  }
+
   async function sendDraw(trimmed: string) {
     const userId =
       typeof crypto !== 'undefined' && crypto.randomUUID
@@ -1338,6 +1394,11 @@ export default function AgentChat() {
 
     if (isDrawIntent(trimmed)) {
       void sendDraw(trimmed);
+      return;
+    }
+
+    if (isProofQueueCommand(trimmed)) {
+      void sendProofQueue(trimmed);
       return;
     }
 

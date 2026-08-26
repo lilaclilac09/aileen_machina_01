@@ -22,6 +22,7 @@ pnpm qa:contact        # Resend env names, lead route, transcript, offline copy
 pnpm qa:sound          # same as verify:sound
 pnpm verify:visual     # GlassBench / ScrapPhoto no cover-crop
 pnpm audit:runtime     # known /api routes keep expected runtime
+pnpm verify:proof-queue # owner proof queue gates (no auto-merge)
 pnpm report:merge      # print post-PR checklist; --blocked appends a queue proposal only
 ```
 
@@ -76,6 +77,14 @@ pnpm council           # owner-only local council (needs OWNER_KEY + model key)
 - public orb stays `agentMode: public`
 - owner session is the only path into `/council`
 - council CLI (local): `pnpm council` is owner-only; missing OWNER_KEY fails; no public route
+
+## Proof queue
+
+- `/evolution` is **owner-only** (same `OWNER_KEY` session as cabinet)
+- visitors can log observed issues only — never approve, never merge
+- `ready for review` requires screenshots + summary + files + checks
+- no auto-merge path; `prepare PR` returns a prompt (`merge: false`)
+- `pnpm verify:proof-queue` (add `VERIFY_BASE_URL` for live HTTP)
 
 ## Contact
 

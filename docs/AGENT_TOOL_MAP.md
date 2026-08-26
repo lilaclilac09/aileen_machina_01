@@ -23,6 +23,7 @@ App 在 `aileena-new/`（`pnpm`）。
 | Contact / Resend | `pnpm lead:test` 或真实投递证据；缺 env → `manual steps` | 新写一套 mailer |
 | Docs-only | diff 自查 + 链接可点 | 假装改了产品行为 |
 | 失败复盘 | `ops/lessons/TEMPLATE.md` + 必要时 `pnpm report:merge -- --blocked "…"` | 直接改 `AGENTS.md` |
+| 站点改版提案 | `/evolution` proof queue · `pnpm verify:proof-queue` | 自动 merge / 直接改 production |
 | 布局 / mobile | `pnpm qa:mobile`（390×844 + scrollWidth） | 「overflow hidden 就好了」 |
 | Visual 裁切 | `pnpm verify:visual` | 给内容图加 `object-cover` |
 | Contact / 文案 | `pnpm qa:contact` | 新写一套 mailer |

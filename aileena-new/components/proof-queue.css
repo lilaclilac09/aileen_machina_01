@@ -1,0 +1,186 @@
+/* Owner proof queue — compact status lights, not a SaaS table. */
+
+.proof-queue {
+  --pq-ink: #1b1713;
+  --pq-teal: #008f86;
+  --pq-coral: #c45c58;
+  --pq-paper: #ffffff;
+  --pq-line: #ded8ce;
+  --pq-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.proof-queue__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1.1rem;
+  align-items: baseline;
+  margin: 0 0 1.25rem;
+  font-family: var(--pq-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(27, 23, 19, 0.48);
+}
+
+.proof-queue__meta button {
+  border: 0;
+  background: transparent;
+  color: var(--pq-teal);
+  cursor: pointer;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  min-height: 44px;
+  padding: 0;
+}
+
+.proof-queue__section {
+  margin: 0 0 1.35rem;
+}
+
+.proof-queue__section h2 {
+  margin: 0 0 0.55rem;
+  font-family: var(--pq-mono);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(27, 23, 19, 0.42);
+}
+
+.proof-card {
+  border: 1px solid var(--pq-line);
+  background: var(--pq-paper);
+  padding: 0.85rem 0.95rem 0.75rem;
+  margin: 0 0 0.65rem;
+}
+
+.proof-card__top {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.proof-light {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(0, 143, 134, 0.08);
+}
+
+.proof-light[data-status='observed'] { background: #b7b1a6; }
+.proof-light[data-status='proposed'] { background: #c9a227; }
+.proof-light[data-status='approved'] { background: var(--pq-teal); }
+.proof-light[data-status='in_progress'] { background: #00cfc0; }
+.proof-light[data-status='ready_for_review'] { background: #2f9e44; }
+.proof-light[data-status='rejected'] { background: var(--pq-coral); }
+.proof-light[data-status='shipped'] { background: #8a847a; }
+
+.proof-card__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--pq-ink);
+  min-width: 0;
+}
+
+.proof-card__id {
+  margin-left: auto;
+  font-family: var(--pq-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+  color: rgba(27, 23, 19, 0.38);
+  flex: 0 0 auto;
+}
+
+.proof-card__route {
+  margin: 0.28rem 0 0.45rem;
+  font-family: var(--pq-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  color: var(--pq-teal);
+}
+
+.proof-card p {
+  margin: 0 0 0.28rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: rgba(27, 23, 19, 0.68);
+}
+
+.proof-card__gates {
+  margin: 0.45rem 0 0.35rem;
+  font-family: var(--pq-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  color: var(--pq-coral);
+}
+
+.proof-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.85rem;
+  margin-top: 0.55rem;
+}
+
+.proof-card__actions button,
+.proof-queue__edit textarea,
+.proof-queue__edit input {
+  font-family: var(--pq-mono);
+}
+
+.proof-card__actions button {
+  border: 0;
+  background: transparent;
+  color: var(--pq-teal);
+  cursor: pointer;
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  min-height: 44px;
+  padding: 0;
+}
+
+.proof-card__actions button[disabled] {
+  color: rgba(27, 23, 19, 0.28);
+  cursor: not-allowed;
+}
+
+.proof-queue__edit {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 0.65rem;
+}
+
+.proof-queue__edit textarea,
+.proof-queue__edit input {
+  width: 100%;
+  border: 1px solid var(--pq-line);
+  background: #fffdf8;
+  color: var(--pq-ink);
+  font-size: 0.78rem;
+  padding: 0.45rem 0.55rem;
+  outline: none;
+}
+
+.proof-queue__flash {
+  margin: 0 0 0.85rem;
+  font-family: var(--pq-mono);
+  font-size: 0.68rem;
+  color: var(--pq-coral);
+}
+
+.proof-queue__prompt {
+  margin: 0.7rem 0 0;
+  white-space: pre-wrap;
+  font-family: var(--pq-mono);
+  font-size: 0.62rem;
+  line-height: 1.5;
+  color: rgba(27, 23, 19, 0.62);
+  background: #fffdf8;
+  border: 1px dashed var(--pq-line);
+  padding: 0.7rem 0.75rem;
+}

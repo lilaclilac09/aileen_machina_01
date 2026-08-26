@@ -31,6 +31,7 @@ const HOME_UTIL = new Set([
   '/inbox',
   '/council',
   '/cabinet',
+  '/evolution',
 ]);
 
 /**

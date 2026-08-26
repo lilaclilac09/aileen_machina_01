@@ -74,6 +74,10 @@ function main() {
     /ops\/lessons/.test(agents) && /improvement-queue/.test(agents),
   );
   assert(
+    'proof queue forbids auto-merge',
+    /proof queue/.test(agents) && /no auto-merge/.test(agents) && /\/evolution/.test(agents),
+  );
+  assert(
     'no second public SYSTEM_PROMPT in lite file',
     /SYSTEM_PROMPT_LITE/.test(lite) && !/^export const SYSTEM_PROMPT =/m.test(lite),
   );

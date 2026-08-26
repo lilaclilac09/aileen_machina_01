@@ -15,6 +15,8 @@ const EXPECT: Expect[] = [
   { file: 'app/api/tts/route.ts', runtime: 'edge' },
   { file: 'app/api/lead/route.ts', runtime: 'nodejs' },
   { file: 'app/api/auth/owner/route.ts', runtime: 'nodejs' },
+  { file: 'app/api/proof/route.ts', runtime: 'nodejs' },
+  { file: 'app/api/proof/observe/route.ts', runtime: 'nodejs' },
 ];
 
 type Check = { name: string; ok: boolean; detail?: string };

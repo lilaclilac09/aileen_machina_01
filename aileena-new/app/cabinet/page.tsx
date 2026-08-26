@@ -47,6 +47,10 @@ export default async function CabinetPage({
               ← council
             </Link>
             <span className="mx-2">·</span>
+            <Link href="/evolution" className="hover:text-[#008f86]">
+              proof queue
+            </Link>
+            <span className="mx-2">·</span>
             <Link href="/" className="hover:text-[#008f86]">
               home
             </Link>
