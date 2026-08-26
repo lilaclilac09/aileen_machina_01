@@ -148,6 +148,14 @@ export function useDjMixer() {
     return e;
   }, []);
 
+  const unlock = useCallback(async () => {
+    try {
+      await ensure();
+    } catch {
+      /* engine not mounted yet */
+    }
+  }, [ensure]);
+
   const loadFile = useCallback(
     async (side: 'left' | 'right', file: File, keep?: { title?: string; bpm?: number | null; key?: string | null }) => {
       setError(null);
@@ -453,6 +461,7 @@ export function useDjMixer() {
     receipt,
     loadFile,
     loadUrl,
+    unlock,
     setCrateMeta,
     toggle,
     seek,

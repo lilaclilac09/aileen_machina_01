@@ -100,6 +100,21 @@ function run(): Check[] {
     station.includes("showDeckHint('Not mixable.')") && !station.includes('Reference only.'),
   ));
   checks.push(check('platter is display-only', station.includes('scratch v2') && station.includes("pointerEvents: 'none'")));
+  checks.push(check(
+    'whole deck is the carousel drop target',
+    station.includes("Platter is display-only; the whole deck is the drop target")
+      && /data-testid=\{side === 'left' \? 'dj-deck-a-drop'[\s\S]{0,220}onDrop=\{onDrop\}/.test(station)
+      && !station.includes('Platter drop zone'),
+  ));
+  checks.push(check(
+    'deck Load A/B loads the selected carousel track',
+    station.includes("onUpload={() => void loadTrackToDeck(selectedTrack, 'left')}")
+      && station.includes("onUpload={() => void loadTrackToDeck(selectedTrack, 'right')}"),
+  ));
+  checks.push(check(
+    'play unlocks AudioContext then loads if empty',
+    station.includes('mix.unlock()') && station.includes('if (!already)'),
+  ));
   return checks;
 }
 

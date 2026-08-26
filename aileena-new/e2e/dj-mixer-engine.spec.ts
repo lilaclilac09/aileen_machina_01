@@ -155,4 +155,19 @@ test.describe('DJ mixer engine', () => {
     await expect(page.getByTestId('dj-deck-hint')).toContainText('Not mixable.');
     await expect(page.getByTestId('dj-deck-a-title')).toContainText(/Kick Loop/i);
   });
+
+  test('deck Load A then play uses the selected Kick Loop', async ({ page }) => {
+    await page.goto('/sound', { waitUntil: 'domcontentloaded' });
+    await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-ready', 'true', { timeout: 20_000 });
+    await expect(page.getByTestId('dj-carousel-active-title')).toHaveText(/Kick Loop/i);
+
+    await page.getByTestId('dj-load-file-a').click();
+    await expect(page.getByTestId('dj-deck-hint')).toContainText('Loaded A.');
+    await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-deck-a', 'true', { timeout: 15_000 });
+    await expect(page.getByTestId('dj-deck-a-title')).toContainText(/Kick Loop/i);
+
+    await page.getByTestId('dj-play-a').click();
+    await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-playing-a', 'true');
+    await page.screenshot({ path: '/opt/cursor/artifacts/dj_load_a_playing.png', fullPage: true });
+  });
 });

@@ -293,23 +293,24 @@ export default function DJStation() {
     setFocusTrackId(track.id);
   }, []);
 
-  const loadTrackToDeck = useCallback(async (track: Track | null, deckId: 'A' | 'B' | 'left' | 'right') => {
+  const loadTrackToDeck = useCallback(async (track: Track | null, deckId: 'A' | 'B' | 'left' | 'right'): Promise<boolean> => {
     const side: 'left' | 'right' = deckId === 'B' || deckId === 'right' ? 'right' : 'left';
     if (!track) {
       showDeckHint('Select track.');
-      return;
+      return false;
     }
     selectCarouselTrack(track);
     const src = track.audioSrc;
     if (!isMixableTrack(track) || !src) {
       showDeckHint('Not mixable.');
-      return;
+      return false;
     }
     if (side === 'left') setLeftTrack(track);
     else setRightTrack(track);
     const ok = await mix.loadUrl(side, src, { title: track.title, bpm: track.bpm, key: track.key });
     if (ok) showDeckHint(side === 'left' ? 'Loaded A.' : 'Loaded B.');
     else showDeckHint('No audio.');
+    return ok;
   }, [mix, showDeckHint, selectCarouselTrack]);
 
   const loadTrack = useCallback((side: 'left' | 'right', track: Track) => {
@@ -359,43 +360,43 @@ export default function DJStation() {
     showDeckHint(ok ? (side === 'left' ? 'Loaded A.' : 'Loaded B.') : 'No audio.');
   }, [leftTrack, rightTrack, mix, showDeckHint]);
 
-  const dropOnDeckA = useCallback((e: React.DragEvent) => {
+  const beginDeckDragOver = useCallback((side: 'left' | 'right', e: React.DragEvent) => {
     e.preventDefault();
-    const file = takeAudioFile(e);
-    if (file) {
-      void assignFile('left', file);
-      dragTrack.current = null;
-      setDropSide(null);
-      return;
-    }
-    const track = resolveDropTrack(e, dragTrack.current);
-    console.log(DJ_AUDIT, 'drop target deck', { deck: 'A', trackId: track?.id ?? null });
-    if (track) loadTrack('left', track);
-    dragTrack.current = null;
-    setDropSide(null);
-  }, [loadTrack, resolveDropTrack, assignFile]);
+    e.dataTransfer.dropEffect = 'copy';
+    setDropSide(side);
+  }, []);
 
-  const dropOnDeckB = useCallback((e: React.DragEvent) => {
+  const endDeckDrag = useCallback((e: React.DragEvent) => {
+    const next = e.relatedTarget as Node | null;
+    if (next && e.currentTarget.contains(next)) return;
+    setDropSide(null);
+  }, []);
+
+  const dropOnDeck = useCallback((side: 'left' | 'right', e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     const file = takeAudioFile(e);
     if (file) {
-      void assignFile('right', file);
+      void assignFile(side, file);
       dragTrack.current = null;
       setDropSide(null);
       return;
     }
     const track = resolveDropTrack(e, dragTrack.current);
-    console.log(DJ_AUDIT, 'drop target deck', { deck: 'B', trackId: track?.id ?? null });
-    if (track) loadTrack('right', track);
+    console.log(DJ_AUDIT, 'drop target deck', { deck: side === 'left' ? 'A' : 'B', trackId: track?.id ?? null });
+    if (track) loadTrack(side, track);
     dragTrack.current = null;
     setDropSide(null);
   }, [loadTrack, resolveDropTrack, assignFile]);
 
   const toggleDeck = useCallback(async (side: 'left' | 'right') => {
-    const loaded = side === 'left' ? mix.deckA.mixLoaded : mix.deckB.mixLoaded;
-    if (!loaded) {
-      showDeckHint('No audio.');
-      return;
+    await mix.unlock();
+    const already = side === 'left' ? mix.deckA.mixLoaded : mix.deckB.mixLoaded;
+    if (!already) {
+      const crate = side === 'left' ? leftTrack : rightTrack;
+      const candidate = crate && isMixableTrack(crate) ? crate : selectedTrack;
+      const ok = await loadTrackToDeck(candidate, side);
+      if (!ok) return;
     }
     const started = await mix.toggle(side);
     if (started) {
@@ -403,7 +404,7 @@ export default function DJStation() {
       return;
     }
     showDeckHint('Play failed.');
-  }, [mix, showDeckHint]);
+  }, [mix, showDeckHint, leftTrack, rightTrack, selectedTrack, loadTrackToDeck]);
 
   const handleXfade = useCallback((v: number) => {
     mix.changeXfade(v);
@@ -545,15 +546,16 @@ export default function DJStation() {
               loopActive={mix.deckA.loopActive} loopIn={mix.deckA.loopIn} loopOut={mix.deckA.loopOut}
               loopBars={mix.deckA.loopBars} hotCues={mix.deckA.hotCues}
               syncEnabled={!!(leftBpm && rightBpm)} loopBarsEnabled={!!leftBpm}
-              onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; setDropSide('left'); }}
-              onDragLeave={() => setDropSide(null)}
-              onDrop={dropOnDeckA}
+              onDragOver={(e) => beginDeckDragOver('left', e)}
+              onDragLeave={endDeckDrag}
+              onDrop={(e) => dropOnDeck('left', e)}
+              onUnlock={() => { void mix.unlock(); }}
               onToggle={() => void toggleDeck('left')}
               onPitch={v => mix.setPitch('left', v)}
               onGain={v => mix.setGain('left', v)}
               onSeek={sec => mix.seek('left', sec)}
               onCue={() => mix.deckA.playing ? mix.returnToCue('left') : mix.setCueNow('left')}
-              onUpload={() => fileARef.current?.click()}
+              onUpload={() => void loadTrackToDeck(selectedTrack, 'left')}
               onLoopIn={() => mix.loopIn('left')}
               onLoopOut={() => mix.loopOut('left')}
               onLoopBars={n => { if (!mix.loopBars('left', n)) showDeckHint('Needs BPM.'); }}
@@ -578,15 +580,16 @@ export default function DJStation() {
               loopActive={mix.deckB.loopActive} loopIn={mix.deckB.loopIn} loopOut={mix.deckB.loopOut}
               loopBars={mix.deckB.loopBars} hotCues={mix.deckB.hotCues}
               syncEnabled={!!(leftBpm && rightBpm)} loopBarsEnabled={!!rightBpm}
-              onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; setDropSide('right'); }}
-              onDragLeave={() => setDropSide(null)}
-              onDrop={dropOnDeckB}
+              onDragOver={(e) => beginDeckDragOver('right', e)}
+              onDragLeave={endDeckDrag}
+              onDrop={(e) => dropOnDeck('right', e)}
+              onUnlock={() => { void mix.unlock(); }}
               onToggle={() => void toggleDeck('right')}
               onPitch={v => mix.setPitch('right', v)}
               onGain={v => mix.setGain('right', v)}
               onSeek={sec => mix.seek('right', sec)}
               onCue={() => mix.deckB.playing ? mix.returnToCue('right') : mix.setCueNow('right')}
-              onUpload={() => fileBRef.current?.click()}
+              onUpload={() => void loadTrackToDeck(selectedTrack, 'right')}
               onLoopIn={() => mix.loopIn('right')}
               onLoopOut={() => mix.loopOut('right')}
               onLoopBars={n => { if (!mix.loopBars('right', n)) showDeckHint('Needs BPM.'); }}
@@ -606,15 +609,16 @@ export default function DJStation() {
               loopActive={mix.deckA.loopActive} loopIn={mix.deckA.loopIn} loopOut={mix.deckA.loopOut}
               loopBars={mix.deckA.loopBars} hotCues={mix.deckA.hotCues}
               syncEnabled={!!(leftBpm && rightBpm)} loopBarsEnabled={!!leftBpm}
-              onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; setDropSide('left'); }}
-              onDragLeave={() => setDropSide(null)}
-              onDrop={dropOnDeckA}
+              onDragOver={(e) => beginDeckDragOver('left', e)}
+              onDragLeave={endDeckDrag}
+              onDrop={(e) => dropOnDeck('left', e)}
+              onUnlock={() => { void mix.unlock(); }}
               onToggle={() => void toggleDeck('left')}
               onPitch={v => mix.setPitch('left', v)}
               onGain={v => mix.setGain('left', v)}
               onSeek={sec => mix.seek('left', sec)}
               onCue={() => mix.deckA.playing ? mix.returnToCue('left') : mix.setCueNow('left')}
-              onUpload={() => fileARef.current?.click()}
+              onUpload={() => void loadTrackToDeck(selectedTrack, 'left')}
               onLoopIn={() => mix.loopIn('left')}
               onLoopOut={() => mix.loopOut('left')}
               onLoopBars={n => { if (!mix.loopBars('left', n)) showDeckHint('Needs BPM.'); }}
@@ -639,15 +643,16 @@ export default function DJStation() {
               loopActive={mix.deckB.loopActive} loopIn={mix.deckB.loopIn} loopOut={mix.deckB.loopOut}
               loopBars={mix.deckB.loopBars} hotCues={mix.deckB.hotCues}
               syncEnabled={!!(leftBpm && rightBpm)} loopBarsEnabled={!!rightBpm}
-              onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; setDropSide('right'); }}
-              onDragLeave={() => setDropSide(null)}
-              onDrop={dropOnDeckB}
+              onDragOver={(e) => beginDeckDragOver('right', e)}
+              onDragLeave={endDeckDrag}
+              onDrop={(e) => dropOnDeck('right', e)}
+              onUnlock={() => { void mix.unlock(); }}
               onToggle={() => void toggleDeck('right')}
               onPitch={v => mix.setPitch('right', v)}
               onGain={v => mix.setGain('right', v)}
               onSeek={sec => mix.seek('right', sec)}
               onCue={() => mix.deckB.playing ? mix.returnToCue('right') : mix.setCueNow('right')}
-              onUpload={() => fileBRef.current?.click()}
+              onUpload={() => void loadTrackToDeck(selectedTrack, 'right')}
               onLoopIn={() => mix.loopIn('right')}
               onLoopOut={() => mix.loopOut('right')}
               onLoopBars={n => { if (!mix.loopBars('right', n)) showDeckHint('Needs BPM.'); }}
@@ -702,6 +707,7 @@ export default function DJStation() {
           onLoadTrack={loadTrack}
           onSetDragTrack={(t) => {
             dragTrack.current = t;
+            void mix.unlock();
             console.log(DJ_AUDIT, 'drag start track id', t?.id ?? null, t?.title ?? null);
           }}
           playingLeft={leftPlaying ? (leftTrack?.id ?? mix.deckA.fileName) : null}
@@ -749,7 +755,7 @@ export default function DJStation() {
 function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isMobile, synced,
   mixLoaded, peaks, gain, vu, cueMs, loopActive, loopIn, loopOut, loopBars, hotCues,
   syncEnabled, loopBarsEnabled,
-  onDragOver, onDragLeave, onDrop, onToggle, onPitch, onGain, onSeek, onCue, onUpload,
+  onDragOver, onDragLeave, onDrop, onToggle, onUnlock, onPitch, onGain, onSeek, onCue, onUpload,
   onLoopIn, onLoopOut, onLoopBars, onLoopExit, onHotCue, onSync }: {
   side: 'left'|'right'; track: Track|null; playing: boolean;
   pos: number; dur: number; pitch: number; dim: number; dropActive: boolean;
@@ -758,8 +764,8 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
   loopActive: boolean; loopIn: number | null; loopOut: number | null; loopBars: number | null;
   hotCues: Array<number | null>;
   syncEnabled: boolean; loopBarsEnabled: boolean;
-  onDragOver(e: React.DragEvent): void; onDragLeave(): void; onDrop(e: React.DragEvent): void;
-  onToggle(): void; onPitch(v: number): void; onGain(v: number): void;
+  onDragOver(e: React.DragEvent): void; onDragLeave(e: React.DragEvent): void; onDrop(e: React.DragEvent): void;
+  onToggle(): void; onUnlock(): void; onPitch(v: number): void; onGain(v: number): void;
   onSeek(sec: number): void; onCue(): void; onUpload(): void;
   onLoopIn(): void; onLoopOut(): void; onLoopBars(n: number): void; onLoopExit(): void;
   onHotCue(i: number, clear: boolean): void;
@@ -787,20 +793,26 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
   const tipY   = playing ? D * 0.26 : D * 0.0;
 
   return (
-    <div style={{
+    <div
+      data-testid={side === 'left' ? 'dj-deck-a-drop' : 'dj-deck-b-drop'}
+      data-deck-side={side}
+      data-mix-loaded={mixLoaded ? 'true' : 'false'}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+      style={{
       display: 'flex', flexDirection: isMobile ? 'row' : 'column',
       gap: isMobile ? 10 : 5, alignItems: isMobile ? 'flex-start' : 'stretch',
-      opacity: 0.4 + 0.6 * dim, transition: 'opacity 0.4s ease',
+      opacity: 0.4 + 0.6 * dim,
+      transition: 'opacity 0.4s ease, box-shadow 0.15s, border-color 0.15s',
+      position: 'relative',
+      borderRadius: 10,
+      border: dropActive ? `1px solid rgba(0,168,157,0.75)` : '1px solid transparent',
+      boxShadow: dropActive ? '0 0 18px rgba(0,168,157,0.28)' : 'none',
     }}>
 
-      {/* Platter drop zone */}
+      {/* Platter is display-only; the whole deck is the drop target */}
       <div
-        data-testid={side === 'left' ? 'dj-deck-a-drop' : 'dj-deck-b-drop'}
-        data-deck-side={side}
-        data-mix-loaded={mixLoaded ? 'true' : 'false'}
-        onDragOver={onDragOver}
-        onDragLeave={onDragLeave}
-        onDrop={onDrop}
         style={{
         position: 'relative', height: D + 16, borderRadius: 10,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -1034,6 +1046,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
           <button
             className="dj-tap"
             data-testid={side === 'left' ? 'dj-play-a' : 'dj-play-b'}
+            onPointerDown={onUnlock}
             onClick={onToggle}
             aria-label={playing ? 'Pause' : 'Play'}
             style={{
@@ -1113,6 +1126,31 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
       />
 
       </div>{/* end info+controls wrapper */}
+      {dropActive && (
+        <div
+          data-testid={side === 'left' ? 'dj-drop-hint-a' : 'dj-drop-hint-b'}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 6,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 10,
+            background: 'rgba(0,20,18,0.72)',
+            pointerEvents: 'none',
+            fontFamily: 'monospace',
+            fontSize: 14,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: '#00a89d',
+            textAlign: 'center',
+            padding: 8,
+          }}
+        >
+          {side === 'left' ? 'Drop to Deck A' : 'Drop to Deck B'}
+        </div>
+      )}
     </div>
   );
 }

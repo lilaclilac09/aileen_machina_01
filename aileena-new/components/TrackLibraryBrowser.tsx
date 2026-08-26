@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, useMemo, useEffect } from 'react';
+import { useState, useRef, useMemo, useEffect, useSyncExternalStore } from 'react';
 import { isMixableTrack, type MixSource } from '../lib/djMixable';
 
 /**
@@ -393,7 +393,15 @@ function ListTrackRow({ index, track, isPlayingLeft, isPlayingRight, pos, dur,
   return (
     <div
       draggable={true}
-      onDragStart={() => onSetDragTrack?.(track)}
+      onDragStart={(e) => {
+        onSetDragTrack?.(track);
+        try {
+          e.dataTransfer.setData('text/plain', track.id);
+          e.dataTransfer.effectAllowed = 'copy';
+        } catch {
+          /* some browsers throw on setData during tests */
+        }
+      }}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
@@ -519,6 +527,18 @@ function ListTrackRow({ index, track, isPlayingLeft, isPlayingRight, pos, dur,
   );
 }
 
+function subscribeFinePointer(onStoreChange: () => void) {
+  const mq = window.matchMedia('(pointer: fine)');
+  mq.addEventListener('change', onStoreChange);
+  return () => mq.removeEventListener('change', onStoreChange);
+}
+function getFinePointerSnapshot() {
+  return window.matchMedia('(pointer: fine)').matches;
+}
+function getFinePointerServerSnapshot() {
+  return false;
+}
+
 /* ─── PLAYLIST CAROUSEL ───────────────────────────────────── */
 function PlaylistCarousel({
   tracks: incomingTracks,
@@ -542,17 +562,11 @@ function PlaylistCarousel({
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   /** Desktop fine pointer: HTML5 drag-to-deck. Touch: swipe + A/B buttons. */
-  const [finePointer, setFinePointer] = useState(() =>
-    typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: fine)')?.matches,
+  const finePointer = useSyncExternalStore(
+    subscribeFinePointer,
+    getFinePointerSnapshot,
+    getFinePointerServerSnapshot,
   );
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return;
-    const mq = window.matchMedia('(pointer: fine)');
-    const sync = (e?: MediaQueryListEvent) => setFinePointer(e ? e.matches : mq.matches);
-    mq.addEventListener?.('change', sync);
-    return () => mq.removeEventListener?.('change', sync);
-  }, []);
 
   // Carousel renders newest-first. Source order in TRACKS stays append-only
   // (so /addmusic just pushes to the end), and we reverse for display here.

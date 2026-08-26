@@ -84,6 +84,39 @@ test.describe('DJ drag → Deck A', () => {
     await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-deck-a', 'true', { timeout: 15_000 });
   });
 
+  test('drop on Deck A title (not just platter) then play actually plays', async ({ page }) => {
+    await page.goto('/sound', { waitUntil: 'domcontentloaded' });
+    const mixable = page.locator('[data-testid="dj-carousel-card"][data-mixable="true"]');
+    await expect(mixable.first()).toBeVisible({ timeout: 20_000 });
+    let source = mixable.first();
+    for (let i = 0; i < await mixable.count(); i++) {
+      const c = mixable.nth(i);
+      if (await c.isVisible()) {
+        source = c;
+        break;
+      }
+    }
+    const sourceId = (await source.getAttribute('data-track-id')) || '';
+    expect(sourceId).toBeTruthy();
+
+    const title = page.getByTestId('dj-deck-a-title');
+    await expect(title).toBeVisible();
+    await html5DragDrop(page, source, title);
+
+    await expect
+      .poll(async () => (await title.getAttribute('data-track-id')) || '', {
+        timeout: 10_000,
+      })
+      .toBe(sourceId);
+    await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-deck-a', 'true', { timeout: 15_000 });
+    await expect(page.getByTestId('dj-deck-a-drop')).toHaveAttribute('data-mix-loaded', 'true');
+
+    await page.getByTestId('dj-play-a').click();
+    await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-playing-a', 'true', { timeout: 10_000 });
+    await page.screenshot({ path: '/opt/cursor/artifacts/dj_drag_title_then_play.png', fullPage: true });
+    await page.getByTestId('dj-deck-a-drop').screenshot({ path: '/opt/cursor/artifacts/dj_deck_a_playing.png' });
+  });
+
   test('dropping a reference card onto Deck A shows Not mixable', async ({ page }) => {
     await page.goto('/sound', { waitUntil: 'domcontentloaded' });
     const ref = page.locator('[data-testid="dj-carousel-card"][data-mixable="false"]');
