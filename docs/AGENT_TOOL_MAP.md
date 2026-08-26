@@ -2,7 +2,7 @@
 
 任务 → 必用工具 / 命令。**禁止把右列当终点。**
 
-开场仍先读：`AGENTS.md` · `QA.md` · 本页 · [`KNOWN_FAILURES.md`](KNOWN_FAILURES.md)
+开场仍先读：`AGENTS.md` · `docs/aileena-design-os.md` · `QA.md` · 本页 · [`KNOWN_FAILURES.md`](KNOWN_FAILURES.md)
 
 App 在 `aileena-new/`（`pnpm`）。
 
@@ -10,7 +10,7 @@ App 在 `aileena-new/`（`pnpm`）。
 
 | 任务类型 | 必用 | 禁止当终点 |
 |----------|------|------------|
-| 任意改动 | 触及文件的 scoped lint / 相关 `QA.md` 行；收尾 Evidence closer | 「看过代码了」 |
+| 任意改动 | `docs/aileena-design-os.md` + 触及文件的 scoped lint / 相关 `QA.md` 行；收尾 Evidence closer | 「看过代码了」 |
 | Bug / 「不对」 | `.cursor/rules/debug-repro-loop.mdc` 全块 | 无证据开修 |
 | UI / 交互 | 390×844 截图 + **命名**交互（`.cursor/rules/ui-step-screenshot.mdc`） | 只说 done / 只有 still |
 | Home marquee (`/`) | cinematic opening + `LandingMarquee`; `.cursor/rules/landing-experiment-gate.mdc` | restore ascii / moodboard / serials / zine |
@@ -23,7 +23,7 @@ App 在 `aileena-new/`（`pnpm`）。
 | Contact / Resend | `pnpm lead:test` 或真实投递证据；缺 env → `manual steps` | 新写一套 mailer |
 | Docs-only | diff 自查 + 链接可点 | 假装改了产品行为 |
 | 失败复盘 | `ops/lessons/TEMPLATE.md` + 必要时 `pnpm report:merge -- --blocked "…"` | 直接改 `AGENTS.md` |
-| 站点改版提案 | `/evolution` proof queue · `pnpm verify:proof-queue` | 自动 merge / 直接改 production |
+| 站点改版 / proof | `/proof` or `/evolution` · `docs/aileena-design-os.md` · `pnpm verify:proof-queue` | 自动 merge / 直接改 production |
 | 布局 / mobile | `pnpm qa:mobile`（390×844 + scrollWidth） | 「overflow hidden 就好了」 |
 | Visual 裁切 | `pnpm verify:visual` | 给内容图加 `object-cover` |
 | Contact / 文案 | `pnpm qa:contact` | 新写一套 mailer |

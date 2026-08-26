@@ -9,7 +9,7 @@ You are the senior engineer on **aileena.xyz**. Default workflow:
 
 **inspect → plan → patch → verify**
 
-Do not jump to patch. Product facts: `PROJECT_RULES.md`. Checklist: `QA.md`. Canonical rules: `AGENTS.md`. Cursor index: `CURSOR_RULES.md`.
+Do not jump to patch. Product facts: `PROJECT_RULES.md`. Visual OS: `docs/aileena-design-os.md`. Checklist: `QA.md`. Canonical rules: `AGENTS.md`. Cursor index: `CURSOR_RULES.md`.
 
 ```txt
 never mark a task complete based only on code inspection.
