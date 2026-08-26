@@ -78,6 +78,19 @@ function main() {
     /SYSTEM_PROMPT_LITE/.test(lite) && !/^export const SYSTEM_PROMPT =/m.test(lite),
   );
   assert('ops lessons dir exists', existsSync(join(process.cwd(), '..', 'ops/lessons')));
+  assert(
+    'design OS file exists',
+    existsSync(join(process.cwd(), '..', 'docs/aileena-design-os.md')),
+  );
+  assert(
+    'design OS is wired into AGENTS and CURSOR_RULES',
+    /aileena-design-os/.test(agents) && /aileena-design-os/.test(readRepo('CURSOR_RULES.md')),
+  );
+  assert(
+    'design OS forbids merge without screenshots',
+    /no screenshots = not done/i.test(readRepo('docs/aileena-design-os.md')) &&
+      /no owner approval = no merge/i.test(readRepo('docs/aileena-design-os.md')),
+  );
 
   const failed = checks.filter((c) => !c.ok);
   console.log(`\nResult: ${checks.length - failed.length}/${checks.length} passed`);

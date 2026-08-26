@@ -8,6 +8,8 @@ App lives in `aileena-new/` (`pnpm`, not repo-root npm). Run only the rows that 
 
 Ship / merge to `main` still follows `AGENTS.md` 施工队安全条例 — localhost is not production proof. Preview Ready ≠ Production Ready.
 
+Design OS: [`docs/aileena-design-os.md`](docs/aileena-design-os.md) — visual-first, less text, proof over claims. **no screenshots = not done. no owner approval = no merge.**
+
 Quick map (task → command/tool): [`docs/AGENT_TOOL_MAP.md`](docs/AGENT_TOOL_MAP.md).  
 Verified pitfalls: [`docs/KNOWN_FAILURES.md`](docs/KNOWN_FAILURES.md).  
 Lessons / rule proposals (owner approval): [`ops/lessons/README.md`](ops/lessons/README.md).

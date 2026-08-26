@@ -1,0 +1,21 @@
+---
+description: aileena.xyz design OS — visual-first, less text, proof over claims, no merge without owner.
+alwaysApply: true
+---
+
+# Design OS
+
+Follow [`docs/aileena-design-os.md`](docs/aileena-design-os.md) on every aileena.xyz task.
+
+```txt
+follow /docs/aileena-design-os.md. no screenshots = not done. no owner approval = no merge.
+```
+
+This is a personal machine, not a portfolio. Visual-first. Less text. Real interaction only. Proof over claims. Quiet owner mode. Public softness.
+
+Do not put `OWNER KEY` or “Visitors cannot…” in public page flow.  
+Do not fake knobs, exports, comments, or status lights.  
+Do not merge without screenshots + owner approval.  
+Do not restore rejected home experiments (ascii / moodboard / serials / zine) — see `landing-experiment-gate.mdc`.
+
+Engineering loop stays in `AGENTS.md`. This file is how the site should look and behave.

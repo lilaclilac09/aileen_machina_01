@@ -1,6 +1,6 @@
 # Improvement queue
 
-Agents **propose**. Owner **approves**. Nobody silently rewrites `AGENTS.md` / `QA.md` / `PROJECT_RULES.md`.
+Agents **propose**. Owner **approves**. Nobody silently rewrites `AGENTS.md` / `QA.md` / `PROJECT_RULES.md` / `docs/aileena-design-os.md`.
 
 Status: `pending` | `approved` | `rejected` | `applied`
 
@@ -42,7 +42,7 @@ reason:
 <evidence: PR, lesson, repeated “not verified”>
 
 suggested file:
-AGENTS.md | QA.md | PROJECT_RULES.md
+AGENTS.md | QA.md | PROJECT_RULES.md | docs/aileena-design-os.md
 
 risk:
 <overhead vs. the failure it stops>
