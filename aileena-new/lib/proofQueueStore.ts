@@ -133,11 +133,12 @@ function sortProposals(proposals: ProofProposal[]): ProofProposal[] {
   const rank: Record<ProofStatus, number> = {
     ready_for_review: 0,
     in_progress: 1,
-    approved: 2,
-    proposed: 3,
-    observed: 4,
-    rejected: 5,
-    shipped: 6,
+    needs_screenshots: 2,
+    approved: 3,
+    proposed: 4,
+    observed: 5,
+    rejected: 6,
+    shipped: 7,
   };
   return [...proposals].sort((a, b) => {
     const d = rank[a.status] - rank[b.status];

@@ -45,6 +45,19 @@ async function waitReady() {
   throw new Error(`daily not ready at ${BASE}`);
 }
 
+async function hideDevNoise(page: import('playwright').Page) {
+  await page.addStyleTag({
+    content: `
+      nextjs-portal,
+      [data-next-badge],
+      [data-next-mark],
+      #__next-build-watcher {
+        display: none !important;
+      }
+    `,
+  });
+}
+
 function cookie(token: string) {
   return { name: SESSION_COOKIE, value: token, url: BASE, httpOnly: true };
 }
@@ -54,6 +67,22 @@ async function main() {
   await mkdir(OUT, { recursive: true });
   await waitReady();
   const token = await createOwnerSession();
+  await fetch(`${BASE}/api/daily/theme`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Cookie: `${SESSION_COOKIE}=${token}` },
+    body: JSON.stringify({
+      background: '#f4efe6',
+      text: '#2a241c',
+      accent: '#00a89d',
+      bubble: '#ece6dc',
+    }),
+  });
+  // Clear today's body so visitor empty state is actually empty (prior live verifies write a note).
+  await fetch(`${BASE}/api/daily/notes`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Cookie: `${SESSION_COOKIE}=${token}` },
+    body: JSON.stringify({ body: '' }),
+  });
   const browser = await chromium.launch({
     headless: true,
     executablePath: existsSync('/usr/local/bin/google-chrome') ? '/usr/local/bin/google-chrome' : undefined,
@@ -63,6 +92,7 @@ async function main() {
   const vPage = await visitor.newPage();
   await vPage.goto(`${BASE}/daily`, { waitUntil: 'networkidle' });
   await vPage.keyboard.press('Escape');
+  await hideDevNoise(vPage);
   await vPage.waitForSelector('[data-testid="daily-title"]');
   await vPage.waitForTimeout(400);
   await vPage.screenshot({ path: join(OUT, 'daily-visitor-empty-clean.png'), fullPage: true });
@@ -99,11 +129,13 @@ async function main() {
   const visitorProof = await visitor.newPage();
   await visitorProof.goto(`${BASE}/proof`, { waitUntil: 'networkidle' });
   await visitorProof.keyboard.press('Escape');
+  await hideDevNoise(visitorProof);
   await visitorProof.waitForTimeout(300);
   await visitorProof.screenshot({ path: join(OUT, 'proof-visitor-owner-only.png'), fullPage: true });
 
   await vPage.goto(`${BASE}/daily`, { waitUntil: 'networkidle' });
   await vPage.keyboard.press('Escape');
+  await hideDevNoise(vPage);
   await vPage.waitForSelector('[data-testid="daily-latest-body"]');
   await vPage.waitForTimeout(400);
   await vPage.screenshot({ path: join(OUT, 'daily-note-saved.png'), fullPage: true });
@@ -115,19 +147,21 @@ async function main() {
   const oPage = await ownerCtx.newPage();
   await oPage.goto(`${BASE}/daily`, { waitUntil: 'networkidle' });
   await oPage.keyboard.press('Escape');
+  await hideDevNoise(oPage);
   await oPage.waitForSelector('[data-testid="daily-owner-editor"]');
   await oPage.waitForTimeout(400);
   await oPage.screenshot({ path: join(OUT, 'daily-owner-editor.png'), fullPage: true });
 
   await oPage.goto(`${BASE}/proof`, { waitUntil: 'networkidle' });
   await oPage.keyboard.press('Escape');
+  await hideDevNoise(oPage);
   await oPage.waitForSelector('[data-proof-queue]');
   await oPage.waitForTimeout(400);
   await oPage.screenshot({ path: join(OUT, 'proof-owner-queue.png'), fullPage: true });
-  const firstCard = oPage.locator('[data-proof-card]').first();
-  await firstCard.scrollIntoViewIfNeeded();
-  await firstCard.screenshot({ path: join(OUT, 'proof-proposal-card.png') });
-  await oPage.locator('.proof-light').first().scrollIntoViewIfNeeded();
+  const dailyCard = oPage.locator('[data-proof-card]').filter({ hasText: 'Fix /daily owner key UI' }).first();
+  await dailyCard.scrollIntoViewIfNeeded();
+  await dailyCard.screenshot({ path: join(OUT, 'proof-proposal-card.png') });
+  await oPage.locator('[data-section="ideas"]').scrollIntoViewIfNeeded();
   await oPage.screenshot({ path: join(OUT, 'proof-status-lights.png'), fullPage: true });
 
   const mobileV = await browser.newContext({
@@ -138,6 +172,7 @@ async function main() {
   const mv = await mobileV.newPage();
   await mv.goto(`${BASE}/daily`, { waitUntil: 'networkidle' });
   await mv.keyboard.press('Escape');
+  await hideDevNoise(mv);
   await mv.waitForTimeout(400);
   await mv.screenshot({ path: join(OUT, 'mobile-daily-visitor.png') });
   if (await mv.getByTestId('daily-comments').count()) {
@@ -154,11 +189,13 @@ async function main() {
   const mo = await mobileO.newPage();
   await mo.goto(`${BASE}/daily`, { waitUntil: 'networkidle' });
   await mo.keyboard.press('Escape');
+  await hideDevNoise(mo);
   await mo.waitForSelector('[data-testid="daily-owner-editor"]');
   await mo.waitForTimeout(300);
   await mo.screenshot({ path: join(OUT, 'mobile-daily-editor.png') });
   await mo.goto(`${BASE}/proof`, { waitUntil: 'networkidle' });
   await mo.keyboard.press('Escape');
+  await hideDevNoise(mo);
   await mo.waitForSelector('[data-proof-queue]');
   await mo.waitForTimeout(300);
   await mo.screenshot({ path: join(OUT, 'mobile-proof-queue.png') });
