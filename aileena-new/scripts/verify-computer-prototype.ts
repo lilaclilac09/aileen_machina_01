@@ -16,6 +16,9 @@ import { isComputerPrototypeEnabled } from '../lib/computer/flag';
 import { HARNESS_PLUGINS } from '../lib/computer/plugins';
 import { spokenQueued } from '../lib/computer/spokenQueue';
 import { workspaceReadFile, workspaceRuntimeProbe, workspaceWriteFile } from '../lib/computer/workspace';
+import { deriveKeyshield, sealOwner, openOwnerSeal } from '../lib/keyshield/prf';
+import { KS_HKDF_MASTER, KS_HKDF_VAULT_ID, KS_PRF_FIRST } from '../lib/keyshield/constants';
+import { b64urlFromBytes, bytesFromB64url } from '../lib/passkey/b64';
 
 type Check = { name: string; ok: boolean; detail?: string };
 const checks: Check[] = [];
@@ -85,9 +88,16 @@ function sourceChecks() {
   );
   const ks = readFileSync(join(process.cwd(), 'lib/keyshield/constants.ts'), 'utf8');
   const ksPrf = readFileSync(join(process.cwd(), 'lib/keyshield/prf.ts'), 'utf8');
-  assert('KeyShield HKDF info strings', /ks-master-key-v1/.test(ks) && /ks-vault-id-v1/.test(ks));
+  assert(
+    'KeyShield HKDF info strings',
+    ks.includes('keyshield-prf-v1:encryption-key') &&
+      ks.includes('keyshield-prf-v1:vault-id') &&
+      ks.includes('keyshield-prf-v1:vault-master-secret'),
+  );
   assert('KeyShield AES-GCM is non-extractable', /AES-GCM[\s\S]{0,120}false,[\s\S]{0,40}\['encrypt', 'decrypt'\]/.test(ksPrf));
+  assert('KeyShield PRF is 32 bytes', /PRF secret must be 32 bytes/.test(ksPrf) && /128/.test(ks));
   assert('KeyShield PRF is required', /readPrfFirst/.test(unlockSrc) && /prf:/.test(unlockSrc));
+  assert('KeyShield register asks for ES256 and RS256', /alg: -7/.test(unlockSrc) && /alg: -257/.test(unlockSrc));
 }
 
 function unitChecks() {
@@ -104,6 +114,9 @@ function unitChecks() {
   assert('harness plugins exist', HARNESS_PLUGINS.length >= 4);
   assert('no plugin can merge', HARNESS_PLUGINS.every((p) => p.canMerge === false));
   assert('merge plugin is a gate', HARNESS_PLUGINS.some((p) => p.id === 'merge' && p.kind === 'merge-gate'));
+  assert('KeyShield PRF salt is vault-master-secret', KS_PRF_FIRST === 'keyshield-prf-v1:vault-master-secret');
+  assert('KeyShield HKDF master is encryption-key', KS_HKDF_MASTER === 'keyshield-prf-v1:encryption-key');
+  assert('KeyShield HKDF vault id is vault-id', KS_HKDF_VAULT_ID === 'keyshield-prf-v1:vault-id');
   assert(
     'spoken names proof id',
     spokenQueued({ taskType: 'draft_daily_fix_plan', route: '/daily', proofItemId: 'proof-daily-owner-key' }).includes(
@@ -137,6 +150,30 @@ async function workspaceUnit() {
     denied = true;
   }
   assert('workspace rejects non-allowlisted path', denied);
+}
+
+async function keyshieldUnit() {
+  const noisy = new Uint8Array([0, 1, 0xfb, 0xff, 0x2b, 0x2f, 255, 10, 13, 61]);
+  const round = bytesFromB64url(b64urlFromBytes(noisy));
+  assert(
+    'base64url round-trips slash and plus bytes',
+    round.length === noisy.length && round.every((b, i) => b === noisy[i]),
+  );
+
+  let shortRejected = false;
+  try {
+    await deriveKeyshield(new Uint8Array(16));
+  } catch {
+    shortRejected = true;
+  }
+  assert('KeyShield rejects non-32-byte PRF', shortRejected);
+
+  const { aes, vaultId } = await deriveKeyshield(new Uint8Array(32).fill(0xaa));
+  assert('KeyShield vault id pin (PRF 0xaa)', vaultId === 'nHXL0jBaJxwIGSdMau45Rw', vaultId);
+  const seal = await sealOwner(aes);
+  assert('KeyShield owner seal round-trips', await openOwnerSeal(aes, seal.iv, seal.cipher));
+  const other = await deriveKeyshield(new Uint8Array(32).fill(0xbb));
+  assert('KeyShield cross-PRF seal fails', (await openOwnerSeal(other.aes, seal.iv, seal.cipher)) === false);
 }
 
 async function pollTask(base: string, cookie: string, id: string) {
@@ -173,6 +210,21 @@ async function liveHttp() {
   assert('visitor /proof does not name typed owner secret', !/owner key/i.test(html));
   assert('visitor /proof hides queue panel', !html.includes('proof-queue-daily') && !html.includes('proof-queue-panel'));
   assert('local experiment enter is offered', html.includes('proof-experiment-enter') || html.includes('enter local experiment'));
+
+  const opt = await fetch(`${base}/api/auth/passkey/options`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mode: 'unlock' }),
+  });
+  const optJson = opt.ok
+    ? ((await opt.json()) as { method?: string; prfFirst?: string })
+    : {};
+  assert('passkey options method is keyshield', optJson.method === 'keyshield', String(optJson.method));
+  assert(
+    'passkey options PRF salt is KeyShield vault-master-secret',
+    optJson.prfFirst === 'keyshield-prf-v1:vault-master-secret',
+    String(optJson.prfFirst),
+  );
 
   const expGet = await fetch(`${base}/api/auth/owner/experiment`);
   assert('GET experiment unlock → 404', expGet.status === 404, String(expGet.status));
@@ -323,6 +375,7 @@ async function main() {
   if (!process.env.COMPUTER_PROTOTYPE) process.env.COMPUTER_PROTOTYPE = '1';
   sourceChecks();
   unitChecks();
+  await keyshieldUnit();
   await workspaceUnit();
   await liveHttp();
   const failed = checks.filter((c) => !c.ok);

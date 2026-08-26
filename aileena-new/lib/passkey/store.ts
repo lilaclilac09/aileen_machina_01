@@ -5,7 +5,7 @@ export type StoredPasskey = {
   id: string;
   publicKeySpki: string;
   counter: number;
-  /** HKDF(PRF, ks-vault-id-v1). Server never stores PRF or AES key. */
+  /** HKDF(PRF, keyshield-prf-v1:vault-id). Server never stores PRF or AES key. */
   vaultId: string;
   /** AES-GCM envelope of aileena-owner-v1. Ciphertext only. */
   sealIv: string;

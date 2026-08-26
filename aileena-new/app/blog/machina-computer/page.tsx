@@ -100,8 +100,8 @@ unlock          →  KeyShield PRF → HKDF → AES-GCM   →  owner cookie  →
             KeyShield
           </a>
           : biometric unlocks a WebAuthn PRF, HKDF binds it (
-          <code style={codeStyle}>ks-master-key-v1</code> /{' '}
-          <code style={codeStyle}>ks-vault-id-v1</code>), AES-256-GCM seals{' '}
+          <code style={codeStyle}>keyshield-prf-v1:encryption-key</code> /{' '}
+          <code style={codeStyle}>keyshield-prf-v1:vault-id</code>), AES-256-GCM seals{' '}
           <code style={codeStyle}>aileena-owner-v1</code> in the browser. The site only stores the
           envelope. It cannot read the key. No fallback password. Register on localhost for the
           prototype. Vercel production will not bootstrap a new passkey for a stranger. Council CLI can

@@ -4,7 +4,13 @@
  */
 
 import { b64urlFromBytes, b64urlFromBuf, bytesFromB64url } from '../passkey/b64';
-import { KS_HKDF_MASTER, KS_HKDF_VAULT_ID, KS_OWNER_PLAINTEXT, KS_PRF_FIRST } from './constants';
+import {
+  KS_HKDF_MASTER,
+  KS_HKDF_VAULT_ID,
+  KS_OWNER_PLAINTEXT,
+  KS_PRF_FIRST,
+  KS_VAULT_ID_BITS,
+} from './constants';
 
 const enc = new TextEncoder();
 const dec = new TextDecoder();
@@ -21,8 +27,19 @@ export function readPrfFirst(cred: PublicKeyCredential): ArrayBuffer | null {
   return first && first.byteLength > 0 ? first : null;
 }
 
+function asPrfSecret(prfFirst: BufferSource): Uint8Array {
+  const u8 = ArrayBuffer.isView(prfFirst)
+    ? new Uint8Array(prfFirst.buffer, prfFirst.byteOffset, prfFirst.byteLength)
+    : new Uint8Array(prfFirst);
+  if (u8.byteLength !== 32) {
+    throw new Error(`PRF secret must be 32 bytes, got ${u8.byteLength}`);
+  }
+  return u8;
+}
+
 export async function deriveKeyshield(prfFirst: BufferSource): Promise<{ aes: CryptoKey; vaultId: string }> {
-  const ikm = await crypto.subtle.importKey('raw', prfFirst, 'HKDF', false, ['deriveKey', 'deriveBits']);
+  const prfSecret = asPrfSecret(prfFirst);
+  const ikm = await crypto.subtle.importKey('raw', prfSecret, 'HKDF', false, ['deriveKey', 'deriveBits']);
   const aes = await crypto.subtle.deriveKey(
     { name: 'HKDF', hash: 'SHA-256', salt: new Uint8Array(), info: enc.encode(KS_HKDF_MASTER) },
     ikm,
@@ -33,7 +50,7 @@ export async function deriveKeyshield(prfFirst: BufferSource): Promise<{ aes: Cr
   const vaultBits = await crypto.subtle.deriveBits(
     { name: 'HKDF', hash: 'SHA-256', salt: new Uint8Array(), info: enc.encode(KS_HKDF_VAULT_ID) },
     ikm,
-    256,
+    KS_VAULT_ID_BITS,
   );
   return { aes, vaultId: b64urlFromBytes(new Uint8Array(vaultBits)) };
 }

@@ -7,7 +7,7 @@ export function b64urlFromBytes(bytes: Uint8Array): string {
 }
 
 export function bytesFromB64url(input: string): Uint8Array {
-  let s = input.replace(/-/g, '+').replace(/\//g, '/');
+  let s = input.replace(/-/g, '+').replace(/_/g, '/');
   while (s.length % 4) s += '=';
   const bin = atob(s);
   const out = new Uint8Array(bin.length);

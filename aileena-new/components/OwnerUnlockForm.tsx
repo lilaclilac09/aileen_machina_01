@@ -67,11 +67,14 @@ export default function OwnerUnlockForm({
               name: 'owner',
               displayName: 'owner',
             },
-            pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
+            pubKeyCredParams: [
+              { type: 'public-key', alg: -7 },
+              { type: 'public-key', alg: -257 },
+            ],
             authenticatorSelection: {
               authenticatorAttachment: 'platform',
               userVerification: 'required',
-              residentKey: 'preferred',
+              residentKey: 'required',
             },
             timeout: 60_000,
             extensions: { prf: prfEval },
