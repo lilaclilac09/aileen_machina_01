@@ -25,3 +25,13 @@ export function prototypeDisabledReason(): string {
   }
   return '';
 }
+
+/** Local/dev experiment enter. Never on Vercel Production. Not a public shell. */
+export function isLocalExperimentUnlockAllowed(): boolean {
+  if (isVercelProduction()) return false;
+  if (!isComputerPrototypeEnabled()) return false;
+  const raw = (process.env.ALLOW_EXPERIMENT_UNLOCK || '').trim().toLowerCase();
+  if (raw === '0' || raw === 'false' || raw === 'off') return false;
+  if (raw === '1' || raw === 'true' || raw === 'on') return true;
+  return process.env.NODE_ENV !== 'production';
+}

@@ -21,7 +21,9 @@ export async function tryOwnerComputerFastPath(opts: {
   const origin = new URL(opts.req.url).origin;
 
   if (command.kind === 'show_queue') {
-    return queuedChatResponse('⚡ Proof queue: /proof — prototype only, owner review, no merge.');
+    return queuedChatResponse(
+      '⚡ Proof queue is at /proof. Prototype only — I can still talk here. Owner review, no merge.',
+    );
   }
 
   if (command.kind === 'log_issue') {
@@ -30,9 +32,11 @@ export async function tryOwnerComputerFastPath(opts: {
       headers: { 'Content-Type': 'application/json', cookie },
       body: JSON.stringify({ action: 'create', title: command.title, status: 'observed', route: '/' }),
     });
-    if (!res.ok) return queuedChatResponse('⚡ Nope. Proof log failed.');
+    if (!res.ok) return queuedChatResponse('⚡ Nope. Proof log failed. Tell me again or open /proof.');
     const body = (await res.json()) as { item?: { id?: string } };
-    return queuedChatResponse(`⚡ Logged. ${body.item?.id ?? ''} — /proof`);
+    return queuedChatResponse(
+      `⚡ Logged ${body.item?.id ?? 'the issue'}. I am still here. Open /proof when you want the queue. No merge.`,
+    );
   }
 
   if (command.kind === 'propose_fix') {
@@ -47,7 +51,9 @@ export async function tryOwnerComputerFastPath(opts: {
         status: 'proposed',
       }),
     });
-    return queuedChatResponse('⚡ Proposed. Open /proof — not started on the computer yet.');
+    return queuedChatResponse(
+      `⚡ Proposed a fix for ${command.route}. I did not start the computer yet. Open /proof to queue it. I can keep answering here.`,
+    );
   }
 
   if (command.kind === 'approve' || command.kind === 'reject') {
@@ -56,8 +62,12 @@ export async function tryOwnerComputerFastPath(opts: {
       headers: { 'Content-Type': 'application/json', cookie },
       body: JSON.stringify({ action: command.kind, id: command.id }),
     });
-    if (!res.ok) return queuedChatResponse('⚡ Nope.');
-    return queuedChatResponse(command.kind === 'approve' ? '⚡ Saved.' : '⚡ Nope. Rejected.');
+    if (!res.ok) return queuedChatResponse('⚡ Nope. That proposal did not move. Check /proof.');
+    return queuedChatResponse(
+      command.kind === 'approve'
+        ? '⚡ Saved. Still not merged. Computer does not deploy.'
+        : '⚡ Rejected. Queue left it. I am still here.',
+    );
   }
 
   if (command.kind === 'prepare_pr') {
@@ -71,9 +81,11 @@ export async function tryOwnerComputerFastPath(opts: {
         instructions: `prepare PR summary for ${command.id}. do not merge.`,
       }),
     });
-    if (res.status === 403 || res.status === 401) return queuedChatResponse('⚡ Owner only.');
-    if (!res.ok) return queuedChatResponse('⚡ Nope. Computer did not accept the task.');
-    return queuedChatResponse('⚡ queued.');
+    if (res.status === 403 || res.status === 401) return queuedChatResponse('⚡ Owner only. Unlock /proof first.');
+    if (!res.ok) return queuedChatResponse('⚡ Nope. Computer did not accept the task. I am still here.');
+    return queuedChatResponse(
+      '⚡ queued.\n\nPR summary is running in the background. I can keep talking. Open /proof for the worker. No merge.',
+    );
   }
 
   const res = await fetch(`${origin}/api/agent/computer/tasks`, {
@@ -86,8 +98,11 @@ export async function tryOwnerComputerFastPath(opts: {
       scope: 'owner-computer-prototype',
     }),
   });
-  if (res.status === 403 || res.status === 401) return queuedChatResponse('⚡ Owner only.');
-  if (res.status === 429) return queuedChatResponse('⚡ Slow down. Rate limit.');
-  if (!res.ok) return queuedChatResponse('⚡ Nope. Computer did not accept the task.');
-  return queuedChatResponse('⚡ queued.');
+  if (res.status === 403 || res.status === 401) return queuedChatResponse('⚡ Owner only. Unlock /proof first.');
+  if (res.status === 429) return queuedChatResponse('⚡ Slow down. Rate limit. I am still here.');
+  if (!res.ok) return queuedChatResponse('⚡ Nope. Computer did not accept the task. Ask me something else.');
+  const route = command.route;
+  return queuedChatResponse(
+    `⚡ queued.\n\nI took that. The computer is inspecting ${route} in the background — not a 30s spinner. I can still answer you. Open /proof for the worker status. No merge, no deploy.`,
+  );
 }

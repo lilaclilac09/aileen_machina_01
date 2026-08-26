@@ -96,7 +96,11 @@ export default function ProofQueuePanel() {
         setFlash(`⚡ Nope. ${data.error || res.status}`);
         return;
       }
-      setFlash(data.message || '⚡ queued.');
+      setFlash(
+        data.message
+          ? `${data.message} Still talking. Open the task below. No merge.`
+          : '⚡ queued. Computer is running in the background. I did not go silent. No merge.',
+      );
       if (data.task?.id) setSelected(data.task.id);
       await load();
     } finally {

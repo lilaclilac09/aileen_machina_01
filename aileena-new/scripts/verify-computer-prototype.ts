@@ -125,6 +125,10 @@ async function liveHttp() {
   assert('GET /proof', page.ok, String(page.status));
   assert('visitor /proof shows owner door', html.includes('OwnerUnlockForm') || html.includes('owner key') || html.includes('enter proof'));
   assert('visitor /proof hides queue panel', !html.includes('proof-queue-daily'));
+  assert('local experiment enter is offered', html.includes('proof-experiment-enter') || html.includes('enter local experiment'));
+
+  const expGet = await fetch(`${base}/api/auth/owner/experiment`);
+  assert('GET experiment unlock → 404', expGet.status === 404, String(expGet.status));
 
   const forbidden = await fetch(`${base}/api/agent/computer/tasks`, {
     method: 'POST',
