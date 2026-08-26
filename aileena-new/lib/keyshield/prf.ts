@@ -27,14 +27,20 @@ export function readPrfFirst(cred: PublicKeyCredential): ArrayBuffer | null {
   return first && first.byteLength > 0 ? first : null;
 }
 
-function asPrfSecret(prfFirst: BufferSource): Uint8Array {
+function copyBytes(view: Uint8Array): Uint8Array<ArrayBuffer> {
+  const out = new Uint8Array(view.byteLength);
+  out.set(view);
+  return out;
+}
+
+function asPrfSecret(prfFirst: BufferSource): Uint8Array<ArrayBuffer> {
   const u8 = ArrayBuffer.isView(prfFirst)
     ? new Uint8Array(prfFirst.buffer, prfFirst.byteOffset, prfFirst.byteLength)
     : new Uint8Array(prfFirst);
   if (u8.byteLength !== 32) {
     throw new Error(`PRF secret must be 32 bytes, got ${u8.byteLength}`);
   }
-  return u8;
+  return copyBytes(u8);
 }
 
 export async function deriveKeyshield(prfFirst: BufferSource): Promise<{ aes: CryptoKey; vaultId: string }> {
