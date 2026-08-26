@@ -63,12 +63,15 @@ async function main() {
   await vPage.keyboard.press('Escape');
   await vPage.waitForSelector('[data-testid="daily-title"]');
   await vPage.waitForTimeout(400);
-  const writer = vPage.locator('[data-testid="daily-owner-textarea"]');
-  if (await writer.count()) {
-    await writer.click();
-    await writer.fill('typing works');
-    await expectValue(vPage, 'daily-owner-textarea', 'typing works');
-    await vPage.screenshot({ path: join(OUT, 'daily-visitor-empty-typing.png'), fullPage: true });
+  if ((await vPage.locator('[data-testid="daily-owner-editor"]').count()) > 0) {
+    throw new Error('visitor must not see the owner writer');
+  }
+  const empty = vPage.locator('[data-testid="daily-empty"]');
+  const latestBefore = vPage.locator('[data-testid="daily-latest-body"]');
+  if (await empty.count()) {
+    await vPage.screenshot({ path: join(OUT, 'daily-visitor-empty.png'), fullPage: true });
+  } else if (await latestBefore.count()) {
+    await vPage.screenshot({ path: join(OUT, 'daily-visitor-latest-pre.png'), fullPage: true });
   }
 
   const ownerPost = await fetch(`${BASE}/api/daily/notes`, {

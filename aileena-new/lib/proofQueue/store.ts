@@ -31,17 +31,43 @@ function isOpenProof(item: ProofItem): boolean {
   return item.status !== 'shipped' && item.status !== 'rejected';
 }
 
-function closeOwnerDoorLeftover(): void {
-  const leftover = memory().items['proof-daily-owner-key'];
-  if (!leftover || leftover.status === 'shipped') return;
-  leftover.status = 'shipped';
-  leftover.title = '/daily owner door — off the board';
-  leftover.problem = 'Public /daily must not mount a typed owner-secret form. This is already true.';
-  leftover.proposedChange =
-    'Keep the owner door off /daily. Computer stays in the site-agent dialog. KeyShield is the door.';
-  leftover.resultSummary =
-    'DailyBoard has no OwnerUnlockForm. Unlock is KeyShield on council / cabinet / proof.';
-  leftover.updatedAt = leftover.createdAt;
+function shipProof(
+  id: string,
+  fields: Pick<ProofItem, 'title' | 'problem' | 'proposedChange' | 'resultSummary'>,
+): void {
+  const item = memory().items[id];
+  if (!item || item.status === 'shipped') return;
+  item.status = 'shipped';
+  item.title = fields.title;
+  item.problem = fields.problem;
+  item.proposedChange = fields.proposedChange;
+  item.resultSummary = fields.resultSummary;
+  item.updatedAt = item.createdAt;
+}
+
+function closeShippedDailyProofs(): void {
+  shipProof('proof-daily-owner-key', {
+    title: '/daily owner door — off the board',
+    problem: 'Public /daily must not mount a typed owner-secret form. This is already true.',
+    proposedChange:
+      'Keep the owner door off /daily. Computer stays in the site-agent dialog. KeyShield is the door.',
+    resultSummary: 'DailyBoard has no OwnerUnlockForm. Unlock is KeyShield on council / cabinet / proof.',
+  });
+  shipProof('proof-daily-notes', {
+    title: '/daily notes — public latest',
+    problem: 'Visitors must see the latest published note, or an explicit empty state. Writer is owner-only.',
+    proposedChange:
+      'Public read path shows latest stored note. Persistence is named when it is only this instance.',
+    resultSummary:
+      'showWriter is owner. Visitors see daily-latest or nothing today yet. Memory shows “this instance”.',
+  });
+  shipProof('proof-daily-comments', {
+    title: '/daily comments — on a published note',
+    problem: 'Bubbles need a published note. Production without Redis fails closed.',
+    proposedChange: 'Comment form mounts when a note exists. 503 is a bolt. No second store.',
+    resultSummary:
+      'commentNote is todayNote ?? latest. 503 toast is Nope. Writes still refuse memory on Vercel.',
+  });
   persist();
 }
 
@@ -57,7 +83,7 @@ function hydrate(): void {
     }
     if (Object.keys(memory().items).length === 0) seedKnownIssues();
   }
-  closeOwnerDoorLeftover();
+  closeShippedDailyProofs();
 }
 
 function seedKnownIssues(): void {
@@ -81,35 +107,38 @@ function seedKnownIssues(): void {
     },
     {
       id: 'proof-daily-notes',
-      title: '/daily notes not displaying',
+      title: '/daily notes — public latest',
       route: '/daily',
-      problem: 'Today’s note may not show for visitors when persistence is memory or today is empty.',
-      proposedChange: 'Make the public read path show the latest stored note, and report persistence honestly.',
+      problem: 'Visitors must see the latest published note, or an explicit empty state. Writer is owner-only.',
+      proposedChange:
+        'Public read path shows latest stored note. Persistence is named when it is only this instance.',
       source: 'seed',
-      status: 'observed',
+      status: 'shipped',
       risk: 'medium',
       acceptanceCriteria: ['Visitor sees latest published note', 'Empty state is explicit'],
       screenshots: [],
-      filesChanged: [],
-      checksRun: [],
+      filesChanged: ['aileena-new/components/DailyBoard.tsx'],
+      checksRun: ['verify:daily-board'],
       computerTaskIds: [],
-      resultSummary: '',
+      resultSummary:
+        'showWriter is owner. Visitors see daily-latest or nothing today yet. Memory shows “this instance”.',
     },
     {
       id: 'proof-daily-comments',
-      title: '/daily comments missing',
+      title: '/daily comments — on a published note',
       route: '/daily',
-      problem: 'Bubble form is hidden when there is no note; production without Redis returns 503.',
-      proposedChange: 'Keep a comment target when notes exist; fail closed without durable store.',
+      problem: 'Bubbles need a published note. Production without Redis fails closed.',
+      proposedChange: 'Comment form mounts when a note exists. 503 is a bolt. No second store.',
       source: 'seed',
-      status: 'observed',
+      status: 'shipped',
       risk: 'medium',
       acceptanceCriteria: ['Bubbles show when a note exists', '503 copy is a bolt, not a stack trace'],
       screenshots: [],
-      filesChanged: [],
-      checksRun: [],
+      filesChanged: ['aileena-new/components/DailyBoard.tsx'],
+      checksRun: ['verify:daily-board'],
       computerTaskIds: [],
-      resultSummary: '',
+      resultSummary:
+        'commentNote is todayNote ?? latest. 503 toast is Nope. Writes still refuse memory on Vercel.',
     },
   ];
   for (const s of seeds) {

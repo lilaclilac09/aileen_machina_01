@@ -212,10 +212,8 @@ export default function DailyBoard({
   const today = board?.today ?? '';
   const latest = notes[0] ?? null;
   const todayNote = notes.find((n) => n.date === today) ?? null;
-  const showWriter = owner || !todayNote;
-  const older = owner || showWriter
-    ? notes.filter((n) => n.date !== today)
-    : notes.slice(1);
+  const showWriter = owner;
+  const older = owner ? notes.filter((n) => n.date !== today) : notes.slice(1);
   const showDecorativeCaret = !showWriter;
   const commentNote = todayNote ?? latest;
 
@@ -241,7 +239,7 @@ export default function DailyBoard({
         return;
       }
       if (res.status === 503) {
-        flash('Not stored.', true);
+        flash('Nope.', true);
         return;
       }
       if (!res.ok) {
@@ -306,11 +304,11 @@ export default function DailyBoard({
       body: JSON.stringify({ noteId: commentNote.id, body: text, nickname: nick }),
     });
     if (res.status === 503) {
-      flash('Bubble failed.', true);
+      flash('Nope.', true);
       return;
     }
     if (!res.ok) {
-      flash('Bubble failed.', true);
+      flash('Nope.', true);
       return;
     }
     setBubble('');
@@ -382,6 +380,24 @@ export default function DailyBoard({
           >
             one or two lines a day.
           </p>
+          {board?.persistence === 'memory' ? (
+            <p
+              data-testid="daily-persistence"
+              style={{
+                margin: '4px 0 0',
+                fontFamily: sans,
+                fontSize: 11,
+                opacity: 0.4,
+                fontWeight: 500,
+              }}
+            >
+              this instance
+            </p>
+          ) : board ? (
+            <p data-testid="daily-persistence" hidden>
+              kept
+            </p>
+          ) : null}
         </header>
 
         {!board ? null : (
@@ -474,7 +490,6 @@ export default function DailyBoard({
             />
             <p style={{ margin: '8px 0 0', fontSize: 11, opacity: 0.4, fontFamily: sans, display: 'flex', gap: 12 }}>
               <span>{saving ? 'saving' : today ? formatQuietDate(today) : 'today'}</span>
-              {owner ? (
               <button
                 type="button"
                 data-testid="daily-save"
@@ -492,9 +507,6 @@ export default function DailyBoard({
               >
                 save
               </button>
-              ) : (
-                <span>on this phone until you enter</span>
-              )}
             </p>
           </section>
         ) : (

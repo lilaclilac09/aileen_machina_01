@@ -76,9 +76,15 @@ export function analyzeDailyFixPlan(files: InspectedFile[]): {
       'Note save: POST /api/daily/notes is owner-only and 503s when persistence is memory on Vercel.',
     );
   }
-  if (/showWriter = owner \|\| !todayNote/.test(board)) {
+  if (/showWriter = owner \|\|/.test(board) || /on this phone until you enter/.test(board)) {
     problemsFound.push(
       'Note display: visitors with no todayNote see a local writer (“on this phone until you enter”) instead of a clear public latest-note surface.',
+    );
+    proposedFilesToChange.push('aileena-new/components/DailyBoard.tsx');
+  }
+  if (!/daily-persistence/.test(board) || !/this instance/.test(board)) {
+    problemsFound.push(
+      'Note display: public board does not name memory persistence honestly (“this instance”).',
     );
     proposedFilesToChange.push('aileena-new/components/DailyBoard.tsx');
   }

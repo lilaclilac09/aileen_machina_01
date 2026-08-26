@@ -91,8 +91,16 @@ function sourceChecks() {
     'owner-door leftover seed is shipped',
     /proof-daily-owner-key/.test(proofStoreSrc) && /off the board/.test(proofStoreSrc) && /status: 'shipped'/.test(proofStoreSrc),
   );
+  assert(
+    'daily notes and comments seeds are shipped',
+    /proof-daily-notes/.test(proofStoreSrc) &&
+      /public latest/.test(proofStoreSrc) &&
+      /proof-daily-comments/.test(proofStoreSrc) &&
+      /on a published note/.test(proofStoreSrc),
+  );
   assert('daily queue attaches next open proof', /nextOpenProof/.test(tasks));
   assert('computer dock skips shipped hung proof', /status !== 'shipped'/.test(dockSrc));
+  assert('writer is owner-only', /const showWriter = owner;/.test(dailySrc) && !/on this phone until you enter/.test(dailySrc));
   const ks = readFileSync(join(process.cwd(), 'lib/keyshield/constants.ts'), 'utf8');
   const ksPrf = readFileSync(join(process.cwd(), 'lib/keyshield/prf.ts'), 'utf8');
   assert(
@@ -303,10 +311,13 @@ async function liveHttp() {
     createdJson.spoken?.slice(0, 180),
   );
   assert(
-    'queue hangs on open daily proof not shipped door',
-    Boolean(createdJson.spoken && /proof-daily-notes|proof-daily-comments/.test(createdJson.spoken)) &&
+    'queue hangs on a new open proof not a shipped daily leftover',
+    Boolean(createdJson.spoken && /proof-/.test(createdJson.spoken)) &&
+      createdJson.proofItem?.id !== 'proof-daily-owner-key' &&
+      createdJson.proofItem?.id !== 'proof-daily-notes' &&
+      createdJson.proofItem?.id !== 'proof-daily-comments' &&
       !/owner door leftover/.test(createdJson.spoken || ''),
-    createdJson.spoken?.slice(0, 220),
+    `${createdJson.proofItem?.id ?? ''} ${createdJson.spoken?.slice(0, 180) ?? ''}`,
   );
   const taskId = createdJson.task?.id || '';
   assert('task id returned', Boolean(taskId), taskId);
