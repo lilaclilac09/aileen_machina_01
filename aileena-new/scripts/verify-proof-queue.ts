@@ -222,10 +222,21 @@ async function liveHttp() {
   const visitorGet = await fetch(`${base}/api/proof`);
   assert('visitor GET /api/proof → 403', visitorGet.status === 403, String(visitorGet.status));
 
+  const visitorLog = await fetch(`${base}/api/proof`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'log', message: 'visitor should not approve this', route: '/daily' }),
+  });
+  const visitorLogJson = (await visitorLog.json().catch(() => ({}))) as { proposal?: { id?: string; status?: string } };
+  assert(
+    'visitor log stays observed',
+    visitorLog.ok && visitorLogJson.proposal?.status === 'observed',
+    String(visitorLog.status),
+  );
   const visitorApprove = await fetch(`${base}/api/proof`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'approve', id: 'pq-nope' }),
+    body: JSON.stringify({ action: 'approve', id: visitorLogJson.proposal?.id || 'pq-nope' }),
   });
   assert('visitor approve → 403', visitorApprove.status === 403, String(visitorApprove.status));
 

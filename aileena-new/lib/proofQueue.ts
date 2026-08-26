@@ -131,8 +131,10 @@ export function screenshotReady(proposal: Pick<ProofProposal, 'screenshots'>): b
 
 export function proofGateNotes(proposal: ProofProposal): string[] {
   const notes: string[] = [];
-  if (!screenshotReady(proposal) || proposal.screenshotsRequested) {
-    if (!screenshotReady(proposal)) notes.push('⚡ Need screenshots.');
+  const shotGap = !screenshotReady(proposal);
+  if (proposal.screenshotsRequested && shotGap) notes.push('⚡ Need screenshots.');
+  if ((proposal.status === 'in_progress' || proposal.status === 'approved') && shotGap) {
+    notes.push('⚡ Need screenshots.');
   }
   if (proposal.status === 'in_progress' && !proposal.implementationSummary.trim()) {
     notes.push('⚡ Need implementation summary.');
@@ -145,7 +147,7 @@ export function proofGateNotes(proposal: ProofProposal): string[] {
   }
   if (proposal.status === 'ready_for_review') notes.push('⚡ Ready.');
   if (proposal.status === 'rejected') notes.push('⚡ Rejected.');
-  return notes;
+  return [...new Set(notes)];
 }
 
 export function canBecomeReady(proposal: ProofProposal): { ok: boolean; reason: string } {
@@ -283,7 +285,7 @@ export function draftFromMessage(input: {
     id: newProofId('pq'),
     title: clipProof(input.title, 80) || titleFromMessage(problem, 'site friction'),
     problem,
-    proposedChange: clipProof(input.proposedChange || problem, 600),
+    proposedChange: clipProof(input.proposedChange || (input.status === 'proposed' ? problem : ''), 600),
     route: sanitizeRoute(input.route),
     source: input.source,
     status: input.status,

@@ -65,7 +65,7 @@ function Card({
         {proposal.route} · {proposal.risk} · {proposal.source}
       </p>
       <p>{proposal.problem}</p>
-      {proposal.proposedChange ? <p>{proposal.proposedChange}</p> : null}
+      {proposal.proposedChange && proposal.proposedChange !== proposal.problem ? <p>{proposal.proposedChange}</p> : null}
       {gates.length > 0 ? <div className="proof-card__gates">{gates.join(' ')}</div> : null}
       {proposal.screenshots.length > 0 ? (
         <p>
