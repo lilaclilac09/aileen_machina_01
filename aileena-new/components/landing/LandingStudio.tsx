@@ -4,6 +4,18 @@ import { useCallback, useEffect, useRef, useState, type PointerEvent } from 'rea
 import Link from 'next/link';
 import './vellum.css';
 import './landing-studio.css';
+import {
+  CrayonArrow,
+  CrayonBracket,
+  CrayonCircle,
+  CrayonDefs,
+  CrayonDot,
+  CrayonFrame,
+  CrayonSitemap,
+  CrayonScribble,
+  CrayonUnderline,
+  CrayonX,
+} from './CrayonMarks';
 
 const MARQUEE = [
   'two lines is open',
@@ -11,40 +23,15 @@ const MARQUEE = [
   'book shelf rearranged',
 ];
 
-const REF_FULL = '/bg_pic/04.jpeg';
-const REF_FACE = '/landing/seedance/02-face.jpeg';
-const REF_HAND = '/landing/seedance/03-hand.jpeg';
-const REF_CHROME = '/landing/seedance/04-chrome.jpeg';
-const REF_BACK = '/bg_pic/02.jpeg';
+const REF_PRINT = '/bg_pic/04.jpeg';
 const REF_ZINE = '/zine/clipping-desk.jpg';
 
-const TILT_MAX = 7;
+const TILT_MAX = 2.4;
 
-const ASCII_INK = `
-  map / notes / sound / shelves
-  [aileena]
-    > two lines
-    > watch / listen
-    > tools lab
-    > sound lab
-    > book room
-    > updates
+const DIAGRAM = `
+  proof / plate 04
+  map · notes · sound · shelves
 `.trim();
-
-const ASCII_HOUSE = `
-      .--------.
-     / /______/|
-    | | .--. | |
-    | | |[]| | |
-    | | '--' | /
-    | | [][] |/
-    | |  __  |
-    |_|_|__|_|
-      ||  ||
-     /__||__\\
-`.replace(/^\n/, '').replace(/\n$/, '');
-
-const ASCII_FACES = ['z3', 'z2', 'z1', 'bleed', 'front'] as const;
 
 const VOLUMES = [
   { no: '01', door: 'two lines', title: 'two lines', line: 'daily residue, kept small.', href: '/daily' },
@@ -63,7 +50,7 @@ function canTilt() {
   );
 }
 
-function EmbodiedHero() {
+function PrintHero() {
   const stageRef = useRef<HTMLDivElement>(null);
 
   const resetTilt = useCallback(() => {
@@ -71,8 +58,6 @@ function EmbodiedHero() {
     if (!stage) return;
     stage.style.setProperty('--tilt-x', '0deg');
     stage.style.setProperty('--tilt-y', '0deg');
-    stage.style.setProperty('--px', '0');
-    stage.style.setProperty('--py', '0');
   }, []);
 
   const onPointerMove = useCallback((event: PointerEvent<HTMLDivElement>) => {
@@ -84,8 +69,6 @@ function EmbodiedHero() {
     const y = (event.clientY - box.top) / box.height - 0.5;
     stage.style.setProperty('--tilt-x', `${(-y * TILT_MAX).toFixed(2)}deg`);
     stage.style.setProperty('--tilt-y', `${(x * TILT_MAX).toFixed(2)}deg`);
-    stage.style.setProperty('--px', x.toFixed(3));
-    stage.style.setProperty('--py', y.toFixed(3));
   }, []);
 
   useEffect(() => {
@@ -93,91 +76,74 @@ function EmbodiedHero() {
       if (!canTilt()) resetTilt();
     };
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const pointer = window.matchMedia('(pointer: fine)');
     motion.addEventListener('change', onChange);
-    pointer.addEventListener('change', onChange);
-    return () => {
-      motion.removeEventListener('change', onChange);
-      pointer.removeEventListener('change', onChange);
-    };
+    return () => motion.removeEventListener('change', onChange);
   }, [resetTilt]);
 
   return (
     <div
-      className="hero-object"
+      className="print-hero"
       data-landing-hero
       data-reference-hero
       ref={stageRef}
       onPointerMove={onPointerMove}
       onPointerLeave={resetTilt}
     >
-      <span className="hero-object__shadow" aria-hidden />
-      {/* Plate is not transformed — vellum must sample the photos behind it. */}
-      <div className="hero-object__plate">
-        <div className="hero-layer hero-layer--bg" aria-hidden>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={REF_BACK} alt="" draggable={false} />
-        </div>
-        <div className="hero-layer hero-layer--base">
+      <span className="print-hero__shadow" aria-hidden />
+      <div className="print-hero__mat">
+        <div className="print-hero__photo">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={REF_FULL}
-            alt="Close-up side profile, eyes closed, ornate chrome mechanical arm against a dark field."
+            src={REF_PRINT}
+            alt="Printed side profile, eyes closed, chrome mechanical arm. Plate 04."
             width={2752}
             height={1536}
             draggable={false}
           />
+          <span className="print-hero__scan" aria-hidden />
+          <span className="print-hero__vellum vellum" data-vellum aria-hidden />
+          <span className="print-hero__circle" aria-hidden>
+            <CrayonCircle />
+          </span>
+          <span className="print-hero__hand-mark" aria-hidden>
+            <CrayonBracket corner="br" />
+          </span>
+          <span className="print-hero__arrow" aria-hidden>
+            <CrayonArrow />
+            <em className="crayon-note">chrome / still</em>
+          </span>
+          <div className="print-hero__frame" aria-hidden>
+            <CrayonBracket corner="tl" />
+            <CrayonBracket corner="tr" />
+            <CrayonBracket corner="bl" />
+            <CrayonBracket corner="br" />
+          </div>
         </div>
-        <div className="hero-layer hero-layer--face" aria-hidden>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={REF_FACE} alt="" draggable={false} />
-        </div>
-        <div className="hero-layer hero-layer--hand" aria-hidden>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={REF_HAND} alt="" draggable={false} />
-        </div>
-        <div className="hero-layer hero-layer--chrome-plate" aria-hidden>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={REF_CHROME} alt="" draggable={false} />
-        </div>
-        <span className="hero-layer hero-layer--chrome" aria-hidden />
-        <span className="hero-layer hero-layer--vellum vellum" data-vellum aria-hidden />
-        <span className="hero-layer hero-layer--scan" aria-hidden />
-        <div className="hero-object__frame" aria-hidden>
-          <span className="hero-object__bracket hero-object__bracket--tl" />
-          <span className="hero-object__bracket hero-object__bracket--tr" />
-          <span className="hero-object__bracket hero-object__bracket--bl" />
-          <span className="hero-object__bracket hero-object__bracket--br" />
-        </div>
-        <span className="hero-object__serial" aria-hidden>
-          AILEENA · PLATE 04
+        <span className="print-hero__caption crayon-note">
+          plate 04 · print
         </span>
       </div>
     </div>
   );
 }
 
-function AsciiBuilding() {
+function CrayonSiteSketch() {
   return (
-    <div className="ascii-building" data-ascii-building aria-hidden="true">
-      <div className="ascii-building__scene">
-        <span className="ascii-building__shadow" />
-        <div className="ascii-building__stack">
-          {ASCII_FACES.map((face) => (
-            <pre key={face} className={`ascii-building__face ascii-building__face--${face}`}>
-              {ASCII_HOUSE}
-            </pre>
-          ))}
-        </div>
-      </div>
-    </div>
+    <aside className="site-sketch" data-crayon-sketch aria-hidden="true">
+      <CrayonSitemap />
+      <ol className="site-sketch__notes">
+        <li><CrayonDot /> two lines</li>
+        <li><CrayonDot /> sound</li>
+        <li><CrayonDot /> shelves</li>
+      </ol>
+      <span className="site-sketch__label crayon-note">site / rooms</span>
+    </aside>
   );
 }
 
 /**
- * Landing opening: ink-under-vellum, embodied reference plate,
- * floating ascii building, serial doors.
- * Desk / /doors / kiln stay below. No invented body.
+ * Landing opening: scanned paper, cyan crayon markup, printed plate.
+ * No fake 3D. Desk / /doors / kiln stay below.
  */
 export default function LandingStudio() {
   const marqueeLoop = [...MARQUEE, ...MARQUEE, ...MARQUEE];
@@ -185,30 +151,32 @@ export default function LandingStudio() {
 
   return (
     <section className="landing-studio" data-landing-studio aria-label="studio landing">
+      <CrayonDefs />
       <div className="landing-bg" aria-hidden>
         <span className="landing-bg__paper" data-bg="paper" />
         <span className="landing-bg__fiber" data-bg="fibers" />
-        <pre className="landing-bg__ink" data-bg="black-ink">
-          {ASCII_INK}
+        <pre className="landing-bg__ink" data-bg="diagram">
+          {DIAGRAM}
         </pre>
-        <span className="landing-bg__reg" data-bg="red-registration" />
-        <span className="landing-bg__bleed" data-bg="ink-bleed" />
-        <span className="landing-bg__dark" data-bg="dark-contrast">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={REF_BACK} alt="" draggable={false} />
+        <span className="landing-bg__crayon" data-bg="crayon">
+          <CrayonScribble className="landing-bg__scribble" />
+          <CrayonX className="landing-bg__x" />
+          <CrayonDot className="landing-bg__dot" />
         </span>
+        <span className="landing-bg__bleed" data-bg="ink-bleed" />
       </div>
 
       <div className="landing-studio__inner">
         <div className="landing-marquee" data-landing-marquee aria-label="site news">
-          <span className="landing-marquee__label" data-ink-bleed>
+          <span className="landing-marquee__label">
             new
+            <CrayonUnderline />
           </span>
           <div className="landing-marquee__window">
             <div className="landing-marquee__track">
               {marqueeLoop.map((item, i) => (
                 <span className="landing-marquee__item" key={`${item}-${i}`}>
-                  <em data-ink-bleed>new →</em> {item}
+                  <em>new →</em> {item}
                 </span>
               ))}
             </div>
@@ -216,18 +184,19 @@ export default function LandingStudio() {
         </div>
 
         <div className="landing-hero">
-          <span className="landing-ink-veil vellum" data-vellum data-landing-ink-veil aria-hidden />
-          <aside className="landing-intro vellum" data-vellum data-ink-bleed>
-            <h1>aileena</h1>
-            <span className="landing-intro__rule" aria-hidden />
+          <aside className="landing-intro vellum" data-vellum>
+            <h1>
+              aileena
+              <CrayonUnderline />
+            </h1>
             <p>sitting inside the machine.</p>
           </aside>
-          <EmbodiedHero />
-          <AsciiBuilding />
+          <PrintHero />
+          <CrayonSiteSketch />
           <nav className="landing-term" data-landing-term aria-label="serials index">
             <div className="landing-term__head">
               <span>index</span>
-              <span>serials</span>
+              <span>rooms</span>
             </div>
             {VOLUMES.map((item, i) => (
               <Link
@@ -254,12 +223,16 @@ export default function LandingStudio() {
               className="landing-volume"
               data-landing-door={item.door}
             >
-              <span className="landing-volume__spine" aria-hidden />
-              <span className="landing-volume__no" data-ink-bleed>
+              <span className="landing-volume__no">
                 vol. {item.no}
+                <CrayonUnderline />
               </span>
-              <span className="landing-volume__title">{item.title}</span>
+              <span className="landing-volume__title">
+                {item.title}
+                {item.no === '01' ? <CrayonScribble className="landing-volume__scribble" /> : null}
+              </span>
               <span className="landing-volume__line">{item.line}</span>
+              <CrayonArrow className="landing-volume__arrow" />
             </Link>
           ))}
         </section>
@@ -270,19 +243,16 @@ export default function LandingStudio() {
           data-zine-object
           aria-label="view issue — metal and pages"
         >
-          <span className="zine-object__spine" aria-hidden />
           <span className="zine-object__frame">
-            <span className="zine-object__bracket zine-object__bracket--tl" aria-hidden />
-            <span className="zine-object__bracket zine-object__bracket--br" aria-hidden />
+            <CrayonFrame className="zine-object__crayon-frame" />
             <span className="zine-object__plate">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={REF_ZINE} alt="" draggable={false} />
               <span className="zine-object__scan" aria-hidden />
               <span className="zine-object__veil vellum" data-vellum aria-hidden />
             </span>
-            <span className="zine-object__meta">
-              <span>issue 01</span>
-              <span>metal &amp; pages</span>
+            <span className="zine-object__meta crayon-note">
+              issue 01 · metal &amp; pages
             </span>
           </span>
         </Link>

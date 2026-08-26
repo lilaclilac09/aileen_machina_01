@@ -1,20 +1,22 @@
 ---
-description: Landing visual experiment — vellum / ink / embodied depth. No screenshots = no merge recommendation.
+description: Landing visual experiment — cyan crayon / paper / vellum. No fake 3D. No screenshots = no merge recommendation.
 alwaysApply: true
 ---
 
 # Landing visual experiment
 
 Do not ship a flat cream SaaS hero.
+Do not ship fake 3D / extruded ascii.
 
 The `/` opening must have:
 
-- scanned paper + ink bleed + registration marks
+- scanned paper + light ink bleed
+- cyan crayon / wax-pencil markup (underline, bracket, circle, arrow, frame)
 - reusable `.vellum` that veils ink/image underneath
-- embodied hero from existing `bg_pic/02.jpeg`, `03.jpeg`, `04.jpeg` — **do not invent a body**
+- embodied hero treated as a **printed plate** from `bg_pic/04.jpeg` — **do not invent a body**
 - tiny `new →` marquee
-- floating 3D ascii mini-building (CSS extrusion, not an image)
-- serial volumes as physical objects
+- flat crayon site-map sketch (not 3D)
+- serial volumes as marked-up booklets
 - minimal copy
 
 Do **not** redesign the rest of the site.
@@ -23,17 +25,15 @@ Hard rule:
 
 ```txt
 no screenshots = no merge recommendation.
-if the page still looks like a flat image on a clean cream background, the task failed.
+if it still looks like flat cards or fake 3D, the task failed.
 ```
 
 Do not merge automatically.
 
-Required screenshots after implementation:
+Required screenshots:
 
-- `landing-full-desktop.png`
-- `landing-embodied-hero.png`
-- `landing-vellum-over-ink.png`
-- `landing-ascii-building.png`
-- `landing-ascii-building-hover.png`
-- `landing-serials.png`
+- `landing-cyan-crayon-desktop.png`
+- `landing-crayon-hero.png`
+- `landing-crayon-marks-detail.png`
+- `landing-serials-crayon.png`
 - `landing-mobile-390.png`
