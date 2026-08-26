@@ -91,6 +91,10 @@ function main() {
     /no screenshots = not done/i.test(readRepo('docs/aileena-design-os.md')) &&
       /no owner approval = no merge/i.test(readRepo('docs/aileena-design-os.md')),
   );
+  assert(
+    'design OS always-on Cursor rule exists',
+    existsSync(join(process.cwd(), '..', '.cursor/rules/aileena-design-os.mdc')),
+  );
 
   const failed = checks.filter((c) => !c.ok);
   console.log(`\nResult: ${checks.length - failed.length}/${checks.length} passed`);

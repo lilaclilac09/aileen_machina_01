@@ -408,6 +408,20 @@ Public visitors may submit feedback only as **observed**. They cannot approve.
 
 No screenshots = `needs_screenshots`.
 
+## seeded issues
+
+Known issues should enter the proof queue (do not auto-approve):
+
+- `/daily` owner key UI ugly
+- `/daily` notes not displaying
+- `/daily` comments missing
+- landing hero flat
+- vellum not convincing
+- sound lab carousel cannot play
+- sound lab Spotify confusion
+- updates too flat
+- watch/listen too text-heavy
+
 ---
 
 # 7. interaction rules
