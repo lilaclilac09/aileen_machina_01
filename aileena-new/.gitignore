@@ -44,6 +44,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# Owner computer prototype workspace (local shim; never commit)
+.data/computer-prototype/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

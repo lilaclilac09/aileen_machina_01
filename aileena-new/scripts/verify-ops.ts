@@ -548,6 +548,19 @@ function main() {
   assert('owner auth GET is 401', /export async function GET/.test(ownerAuthSrc) && /status:\s*401/.test(ownerAuthSrc));
   assert('owner auth requires OWNER_KEY env', /process\.env\.OWNER_KEY/.test(ownerAuthSrc) && /!expected/.test(ownerAuthSrc));
   assert('owner auth uses safeEqual', /safeEqual\(key, expected\)/.test(ownerAuthSrc));
+  assert('owner auth allows /proof as a room', /\/proof/.test(ownerAuthSrc));
+  assert('chat route has owner computer fast path', /tryOwnerComputerFastPath/.test(chatRouteSrc));
+  assert(
+    'computer tasks API is owner-only node',
+    /requireOwnerFromRequest/.test(readFileSync(join(process.cwd(), 'app/api/agent/computer/tasks/route.ts'), 'utf8')) &&
+      /runtime = 'nodejs'/.test(readFileSync(join(process.cwd(), 'app/api/agent/computer/tasks/route.ts'), 'utf8')),
+  );
+  assert(
+    'computer prototype hard-off on Vercel production',
+    /VERCEL_ENV === 'production'/.test(readFileSync(join(process.cwd(), 'lib/computer/flag.ts'), 'utf8')),
+  );
+  const proofPageSrc = readFileSync(join(process.cwd(), 'app/proof/page.tsx'), 'utf8');
+  assert('proof page is owner-gated', /getOwnerIdentity/.test(proofPageSrc) && /OwnerUnlockForm/.test(proofPageSrc));
   assert('public console has no council href', !/href=['"]\/council['"]/.test(agentChatSrc));
 
   const ownerAccessSrc = readFileSync(join(process.cwd(), 'lib/owner-access.ts'), 'utf8');
