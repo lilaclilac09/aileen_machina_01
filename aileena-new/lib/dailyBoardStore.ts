@@ -182,7 +182,10 @@ export async function addDailyComment(input: {
   const body = clipText(input.body, DAILY_COMMENT_MAX).trim();
   if (!noteId || !body) return { error: 'empty' };
   const notes = await readDailyNotes();
-  if (!notes.some((n) => n.id === noteId)) return { error: 'missing_note' };
+  const todayThread = noteIdForDate(taipeiDay());
+  if (!notes.some((n) => n.id === noteId) && noteId !== todayThread) {
+    return { error: 'missing_note' };
+  }
   const comment: DailyComment = {
     id: newCommentId(),
     noteId,
@@ -200,11 +203,13 @@ export async function hideDailyComment(commentId: string): Promise<boolean> {
   const id = clipText(commentId, 80).trim();
   if (!id) return false;
   const notes = await readDailyNotes();
-  for (const note of notes) {
-    const comments = await readComments(note.id, true);
+  const ids = new Set(notes.map((n) => n.id));
+  ids.add(noteIdForDate(taipeiDay()));
+  for (const noteId of ids) {
+    const comments = await readComments(noteId, true);
     const next = comments.map((c) => (c.id === id ? { ...c, hidden: true } : c));
     if (next.some((c, i) => c.hidden !== comments[i]?.hidden)) {
-      await writeComments(note.id, next);
+      await writeComments(noteId, next);
       return true;
     }
   }
@@ -214,9 +219,11 @@ export async function hideDailyComment(commentId: string): Promise<boolean> {
 export async function readDailyBoard(opts?: { owner?: boolean }) {
   const [theme, notes] = await Promise.all([readDailyTheme(), readDailyNotes()]);
   const comments: Record<string, DailyComment[]> = {};
+  const ids = new Set(notes.map((n) => n.id));
+  ids.add(noteIdForDate(taipeiDay()));
   await Promise.all(
-    notes.map(async (note) => {
-      comments[note.id] = await readComments(note.id, Boolean(opts?.owner));
+    [...ids].map(async (noteId) => {
+      comments[noteId] = await readComments(noteId, Boolean(opts?.owner));
     }),
   );
   return {

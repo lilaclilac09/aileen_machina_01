@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import OwnerUnlockForm from './OwnerUnlockForm';
+import OwnerCornerUnlock from './OwnerCornerUnlock';
 import SystemToast from './SystemToast';
 import {
   type DailyComment,
@@ -15,6 +15,7 @@ import {
   DAILY_NOTE_TITLE_MAX,
   DAILY_TEXT_SWATCHES,
   DAILY_THEME_DEFAULT,
+  noteIdForDate,
 } from '../lib/dailyBoard';
 
 const serif = "'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif";
@@ -68,19 +69,19 @@ function SwatchRow({
   onPick: (hex: string) => void;
 }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
       <span
         style={{
-          width: 56,
+          width: 44,
           fontFamily: sans,
-          fontSize: 11,
+          fontSize: 10,
           letterSpacing: '0.04em',
-          opacity: 0.55,
+          opacity: 0.4,
         }}
       >
         {label}
       </span>
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
         {colors.map((hex) => {
           const on = hex.toLowerCase() === value.toLowerCase();
           return (
@@ -91,14 +92,14 @@ function SwatchRow({
               data-testid={`daily-swatch-${label}-${hex.slice(1)}`}
               onClick={() => onPick(hex)}
               style={{
-                width: 18,
-                height: 18,
+                width: 14,
+                height: 14,
                 borderRadius: '50%',
                 background: hex,
-                border: on ? '1.5px solid currentColor' : '1px solid rgba(0,0,0,0.18)',
+                border: on ? '1.5px solid currentColor' : '1px solid rgba(0,0,0,0.16)',
                 padding: 0,
                 cursor: 'pointer',
-                boxShadow: on ? '0 0 0 2px rgba(0,0,0,0.12)' : 'none',
+                boxShadow: on ? '0 0 0 2px rgba(0,0,0,0.1)' : 'none',
               }}
             />
           );
@@ -145,6 +146,63 @@ function NoteBody({
   );
 }
 
+function Bubble({
+  comment,
+  owner,
+  onHide,
+}: {
+  comment: Omit<DailyComment, 'hidden'>;
+  owner: boolean;
+  onHide: (id: string) => void;
+}) {
+  return (
+    <div
+      data-testid="daily-bubble"
+      style={{
+        justifySelf: 'start',
+        maxWidth: '88%',
+        background: 'var(--daily-bubble)',
+        borderRadius: '18px 18px 18px 6px',
+        padding: '8px 12px 9px',
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+        <span style={{ fontSize: 11, opacity: 0.5, fontFamily: sans }}>{comment.nickname || 'anon'}</span>
+        {owner ? (
+          <button
+            type="button"
+            aria-label="hide bubble"
+            onClick={() => onHide(comment.id)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'inherit',
+              opacity: 0.35,
+              cursor: 'pointer',
+              fontSize: 11,
+              padding: 0,
+            }}
+          >
+            hide
+          </button>
+        ) : null}
+      </div>
+      <p
+        style={{
+          margin: '2px 0 0',
+          fontFamily: sans,
+          fontSize: 14,
+          lineHeight: 1.35,
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word',
+        }}
+      >
+        {comment.body}
+      </p>
+    </div>
+  );
+}
+
 export default function DailyBoard({
   initial = null,
   denied = false,
@@ -185,9 +243,9 @@ export default function DailyBoard({
       owner: Boolean(data.owner),
     });
     const todayNote = notes.find((n) => n.date === today);
-    if (todayNote?.body) {
-      setTitle(todayNote.title ?? '');
-      setBody(todayNote.body);
+    if (data.owner) {
+      setTitle(todayNote?.title ?? '');
+      setBody(todayNote?.body ?? '');
     }
   }, []);
 
@@ -213,14 +271,16 @@ export default function DailyBoard({
   const theme = board?.theme ?? DAILY_THEME_DEFAULT;
   const notes = board?.notes ?? [];
   const today = board?.today ?? '';
-  const latest = notes[0] ?? null;
+  const visibleNotes = notes.filter((n) => n.body.trim());
+  const latest = visibleNotes[0] ?? null;
   const todayNote = notes.find((n) => n.date === today) ?? null;
-  const showWriter = owner || !todayNote;
-  const older = owner || showWriter
-    ? notes.filter((n) => n.date !== today)
-    : notes.slice(1);
-  const showDecorativeCaret = !showWriter;
-  const commentNote = todayNote ?? latest;
+  const showWriter = owner;
+  const older = owner
+    ? visibleNotes.filter((n) => n.date !== today)
+    : visibleNotes.slice(1);
+  const commentNoteId = owner
+    ? todayNote?.id || (today ? noteIdForDate(today) : '')
+    : latest?.id || (today ? noteIdForDate(today) : '');
 
   const flash = (msg: string, fail = false) => {
     setToast(msg);
@@ -232,6 +292,7 @@ export default function DailyBoard({
   const saveNote = async (nextBody = body, nextTitle = title) => {
     if (!owner) return;
     setSaving(true);
+    flash('⚡ Saving.');
     try {
       const res = await fetch('/api/daily/notes', {
         method: 'POST',
@@ -240,25 +301,27 @@ export default function DailyBoard({
         body: JSON.stringify({ title: nextTitle, body: nextBody }),
       });
       if (res.status === 403) {
-        flash('Not allowed.', true);
+        flash('⚡ Save failed.', true);
         return;
       }
       if (res.status === 503) {
-        flash('Not stored.', true);
+        flash('⚡ Save failed.', true);
         return;
       }
       if (!res.ok) {
-        flash('Save failed.', true);
+        flash('⚡ Save failed.', true);
         return;
       }
       writeDraft('');
       await load();
+      flash('⚡ Saved.');
     } finally {
       setSaving(false);
     }
   };
 
   useEffect(() => {
+    if (!owner) return;
     if (didRestoreDraft.current) return;
     if (todayNote?.body) {
       didRestoreDraft.current = true;
@@ -267,7 +330,7 @@ export default function DailyBoard({
     const draft = readDraft();
     if (draft) setBody(draft);
     didRestoreDraft.current = true;
-  }, [todayNote?.body]);
+  }, [owner, todayNote?.body]);
 
   useEffect(() => {
     if (!owner) return;
@@ -292,32 +355,28 @@ export default function DailyBoard({
       body: JSON.stringify(next),
     });
     if (!res.ok) {
-      flash('Save failed.', true);
+      flash('⚡ Save failed.', true);
       await load();
     }
   };
 
-  const sendBubble = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!commentNote) return;
+  const sendBubble = async (e?: FormEvent) => {
+    e?.preventDefault();
+    if (!commentNoteId) return;
     const text = bubble.trim();
     if (!text) return;
     const res = await fetch('/api/daily/comments', {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ noteId: commentNote.id, body: text, nickname: nick }),
+      body: JSON.stringify({ noteId: commentNoteId, body: text, nickname: nick }),
     });
-    if (res.status === 503) {
-      flash('Bubble failed.', true);
-      return;
-    }
     if (!res.ok) {
-      flash('Bubble failed.', true);
+      flash('⚡ Bubble failed.', true);
       return;
     }
     setBubble('');
-    flash('Bubble sent.');
+    flash('⚡ Bubble sent.');
     await load();
   };
 
@@ -372,7 +431,7 @@ export default function DailyBoard({
               lineHeight: 1.1,
             }}
           >
-            daily board
+            two lines
           </h1>
           <p
             style={{
@@ -390,9 +449,9 @@ export default function DailyBoard({
         {!board ? null : (
         <>
         {owner ? (
-          <div data-testid="daily-theme-controls" style={{ display: 'grid', gap: 8, marginBottom: 28 }}>
-            <SwatchRow label="paper" value={theme.background} colors={DAILY_BG_SWATCHES} onPick={(hex) => void patchTheme({ background: hex })} />
-            <SwatchRow label="ink" value={theme.text} colors={DAILY_TEXT_SWATCHES} onPick={(hex) => void patchTheme({ text: hex })} />
+          <div data-testid="daily-theme-controls" style={{ display: 'grid', gap: 6, marginBottom: 28 }}>
+            <SwatchRow label="bg" value={theme.background} colors={DAILY_BG_SWATCHES} onPick={(hex) => void patchTheme({ background: hex })} />
+            <SwatchRow label="text" value={theme.text} colors={DAILY_TEXT_SWATCHES} onPick={(hex) => void patchTheme({ text: hex })} />
             <SwatchRow label="accent" value={theme.accent} colors={DAILY_ACCENT_SWATCHES} onPick={(hex) => void patchTheme({ accent: hex })} />
             <SwatchRow label="bubble" value={theme.bubble} colors={DAILY_BUBBLE_SWATCHES} onPick={(hex) => void patchTheme({ bubble: hex })} />
           </div>
@@ -402,7 +461,7 @@ export default function DailyBoard({
           <section data-testid="daily-owner-editor" style={{ marginBottom: 40 }}>
             <input
               aria-label="title"
-              placeholder="title, if you want"
+              placeholder=""
               value={title}
               maxLength={DAILY_NOTE_TITLE_MAX}
               onChange={(e) => setTitle(e.target.value)}
@@ -410,15 +469,15 @@ export default function DailyBoard({
                 if (owner) void saveNote();
               }}
               style={{
-                display: 'block',
+                display: title || owner ? 'block' : 'none',
                 width: '100%',
                 background: 'transparent',
                 border: 'none',
                 outline: 'none',
                 color: 'inherit',
                 fontFamily: sans,
-                fontSize: 13,
-                opacity: 0.5,
+                fontSize: 12,
+                opacity: 0.4,
                 marginBottom: 8,
                 padding: 0,
                 userSelect: 'text',
@@ -477,7 +536,6 @@ export default function DailyBoard({
             />
             <p style={{ margin: '8px 0 0', fontSize: 11, opacity: 0.4, fontFamily: sans, display: 'flex', gap: 12 }}>
               <span>{saving ? 'saving' : today ? formatQuietDate(today) : 'today'}</span>
-              {owner ? (
               <button
                 type="button"
                 data-testid="daily-save"
@@ -495,9 +553,6 @@ export default function DailyBoard({
               >
                 save
               </button>
-              ) : (
-                <span>on this phone until you enter</span>
-              )}
             </p>
           </section>
         ) : (
@@ -511,7 +566,7 @@ export default function DailyBoard({
                   <p style={{ margin: '0 0 8px', fontSize: 13, opacity: 0.5, fontFamily: sans }}>{latest.title}</p>
                 ) : null}
                 <div style={{ fontSize: 'clamp(1.35rem, 4.6vw, 1.85rem)' }}>
-                  <NoteBody text={latest.body} caret={showDecorativeCaret} />
+                  <NoteBody text={latest.body} caret />
                 </div>
               </>
             ) : (
@@ -526,59 +581,16 @@ export default function DailyBoard({
                 }}
               >
                 nothing today yet.
-                {showDecorativeCaret ? <Caret /> : null}
+                <Caret />
               </p>
             )}
           </section>
         )}
 
-        {commentNote ? (
+        {commentNoteId ? (
           <div data-testid="daily-comments" style={{ display: 'grid', gap: 10, marginBottom: 36 }}>
-            {commentsFor(commentNote.id).map((c) => (
-              <div
-                key={c.id}
-                data-testid="daily-bubble"
-                style={{
-                  justifySelf: 'start',
-                  maxWidth: '88%',
-                  background: theme.bubble,
-                  borderRadius: '18px 18px 18px 6px',
-                  padding: '8px 12px 9px',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-                  <span style={{ fontSize: 11, opacity: 0.5, fontFamily: sans }}>{c.nickname || 'anon'}</span>
-                  {owner ? (
-                    <button
-                      type="button"
-                      aria-label="hide bubble"
-                      onClick={() => void hideComment(c.id)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: 'inherit',
-                        opacity: 0.35,
-                        cursor: 'pointer',
-                        fontSize: 11,
-                        padding: 0,
-                      }}
-                    >
-                      hide
-                    </button>
-                  ) : null}
-                </div>
-                <p
-                  style={{
-                    margin: '2px 0 0',
-                    fontFamily: sans,
-                    fontSize: 14,
-                    lineHeight: 1.35,
-                    whiteSpace: 'pre-wrap',
-                  }}
-                >
-                  “{c.body}”
-                </p>
-              </div>
+            {commentsFor(commentNoteId).map((c) => (
+              <Bubble key={c.id} comment={c} owner={owner} onHide={(id) => void hideComment(id)} />
             ))}
             <form
               onSubmit={(e) => void sendBubble(e)}
@@ -619,6 +631,12 @@ export default function DailyBoard({
                   maxLength={DAILY_COMMENT_MAX}
                   rows={2}
                   onChange={(e) => setBubble(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      void sendBubble();
+                    }
+                  }}
                   style={{
                     flex: 1,
                     resize: 'none',
@@ -660,12 +678,6 @@ export default function DailyBoard({
           </div>
         ) : null}
 
-        {!owner ? (
-          <div data-testid="daily-owner-enter" style={{ marginTop: 28, maxWidth: 280, opacity: 0.85 }}>
-            <OwnerUnlockForm next="/daily" enterLabel="enter" denied={denied} />
-          </div>
-        ) : null}
-
         {older.map((note) => (
           <section
             key={note.id}
@@ -681,20 +693,7 @@ export default function DailyBoard({
             </div>
             <div style={{ display: 'grid', gap: 8, marginTop: 12 }}>
               {commentsFor(note.id).map((c) => (
-                <div
-                  key={c.id}
-                  style={{
-                    justifySelf: 'start',
-                    maxWidth: '88%',
-                    background: theme.bubble,
-                    borderRadius: '16px 16px 16px 6px',
-                    padding: '6px 10px 7px',
-                    fontSize: 13,
-                  }}
-                >
-                  <span style={{ fontSize: 10, opacity: 0.55 }}>{c.nickname || 'anon'}</span>
-                  <p style={{ margin: '1px 0 0', fontFamily: sans }}>“{c.body}”</p>
-                </div>
+                <Bubble key={c.id} comment={c} owner={owner} onHide={(id) => void hideComment(id)} />
               ))}
             </div>
           </section>
@@ -702,6 +701,8 @@ export default function DailyBoard({
         </>
         )}
       </div>
+
+      {!owner ? <OwnerCornerUnlock denied={denied} /> : null}
 
       {toast ? (
         <SystemToast testId="daily-toast" role={toastFail ? 'alert' : 'status'}>

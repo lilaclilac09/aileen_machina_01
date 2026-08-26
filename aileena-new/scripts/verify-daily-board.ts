@@ -49,7 +49,12 @@ async function liveHttp() {
   }
 
   const page = await fetch(`${base}/daily`);
+  const dailyHtml = await page.text();
   assert('GET /daily', page.ok, String(page.status));
+  assert('daily title is two lines', /two lines/.test(dailyHtml));
+  assert('daily html has no OWNER KEY', !/OWNER KEY/i.test(dailyHtml));
+  assert('daily html has no visitor warning', !/Visitors cannot use this room/i.test(dailyHtml));
+  assert('daily html has no login explanation', !/One good enter/i.test(dailyHtml));
 
   const visitorGet = await fetch(`${base}/api/daily`);
   const visitorJson = visitorGet.ok ? ((await visitorGet.json()) as { owner?: boolean }) : {};
@@ -165,12 +170,15 @@ function sourceChecks() {
   assert('theme route requires owner', /requireOwnerFromRequest/.test(theme) && /status: 403/.test(theme));
   assert('comment hide requires owner', /method: 'DELETE'/.test(comments) || /export async function DELETE/.test(comments));
   assert('doors hub includes /daily', doors.includes("'/daily'"));
-  assert('page copy daily board', ui.includes('daily board') && ui.includes('one or two lines a day.'));
+  assert('page copy two lines', ui.includes('two lines') && ui.includes('one or two lines a day.'));
   assert('owner placeholder', ui.includes('write one or two lines'));
   assert('bubble placeholder', ui.includes('leave a small bubble'));
   assert('empty copy', ui.includes('nothing today yet.'));
-  assert('real textarea for empty paper', ui.includes('daily-owner-textarea') && ui.includes('showWriter'));
+  assert('owner editor only when owner', ui.includes('daily-owner-textarea') && ui.includes('showWriter = owner'));
+  assert('no owner key form on daily', !ui.includes('OwnerUnlockForm') && !ui.includes('OWNER KEY') && !ui.includes('owner key'));
+  assert('no visitor warning copy', !ui.includes('Visitors cannot use this room'));
   assert('no OWNER_KEY in client', !ui.includes('OWNER_KEY'));
+  assert('corner unlock used', ui.includes('OwnerCornerUnlock'));
   assert('redis env uses runtime bracket access', read('lib/visitorMemory.ts').includes("process.env['UPSTASH_REDIS_REST_URL']"));
   assert('vercel memory writes blocked', read('lib/dailyBoardStore.ts').includes('dailyBoardWritesOk'));
 }

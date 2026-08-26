@@ -120,6 +120,18 @@ export function safeEqual(a: string, b: string): boolean {
   return timingSafeEqual(a, b);
 }
 
+/**
+ * Owner passphrase: OWNER_RIDDLE if set, else OWNER_KEY.
+ * If both exist, either unlocks. Never log or return these values.
+ */
+export function ownerSecretMatches(key: string): boolean {
+  if (!key) return false;
+  const riddle = (process.env.OWNER_RIDDLE || '').trim();
+  const ownerKey = (process.env.OWNER_KEY || '').trim();
+  const candidates = [riddle, ownerKey].filter(Boolean);
+  return candidates.some((expected) => key.length === expected.length && safeEqual(key, expected));
+}
+
 /* ── Email magic-link token ── */
 type Magic = { t: 'magic'; email: string; exp: number };
 
