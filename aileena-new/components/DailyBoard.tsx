@@ -1,7 +1,6 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import OwnerUnlockForm from './OwnerUnlockForm';
 import SystemToast from './SystemToast';
 import {
   type DailyComment,
@@ -147,10 +146,8 @@ function NoteBody({
 
 export default function DailyBoard({
   initial = null,
-  denied = false,
 }: {
   initial?: BoardPayload | null;
-  denied?: boolean;
 }) {
   const [board, setBoard] = useState<BoardPayload | null>(initial);
   const [title, setTitle] = useState(() => {
@@ -657,12 +654,6 @@ export default function DailyBoard({
                 </button>
               </div>
             </form>
-          </div>
-        ) : null}
-
-        {!owner ? (
-          <div data-testid="daily-owner-enter" style={{ marginTop: 28, maxWidth: 280, opacity: 0.85 }}>
-            <OwnerUnlockForm next="/daily" enterLabel="enter" denied={denied} />
           </div>
         ) : null}
 

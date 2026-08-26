@@ -28,16 +28,25 @@ function persist(): void {
 }
 
 function hydrate(): void {
-  if (Object.keys(memory().items).length > 0) return;
-  try {
-    if (existsSync(storePath())) {
-      const parsed = JSON.parse(readFileSync(storePath(), 'utf8')) as Record<string, ProofItem>;
-      if (parsed && typeof parsed === 'object') memory().items = parsed;
+  if (Object.keys(memory().items).length === 0) {
+    try {
+      if (existsSync(storePath())) {
+        const parsed = JSON.parse(readFileSync(storePath(), 'utf8')) as Record<string, ProofItem>;
+        if (parsed && typeof parsed === 'object') memory().items = parsed;
+      }
+    } catch {
+      /* ignore */
     }
-  } catch {
-    /* ignore */
+    if (Object.keys(memory().items).length === 0) seedKnownIssues();
   }
-  if (Object.keys(memory().items).length === 0) seedKnownIssues();
+  const leftover = memory().items['proof-daily-owner-key'];
+  if (leftover && /owner key/i.test(`${leftover.title} ${leftover.problem}`)) {
+    leftover.title = '/daily owner door leftover';
+    leftover.problem = 'Public /daily must not mount a typed owner-secret form. Passkey lives off this board.';
+    leftover.proposedChange =
+      'Keep the owner door off /daily. Computer stays in the site-agent dialog. No typed secret in visitor UI.';
+    persist();
+  }
 }
 
 function seedKnownIssues(): void {
@@ -45,10 +54,10 @@ function seedKnownIssues(): void {
   const seeds: Omit<ProofItem, 'createdAt' | 'updatedAt'>[] = [
     {
       id: 'proof-daily-owner-key',
-      title: '/daily owner key UI ugly',
+      title: '/daily owner door leftover',
       route: '/daily',
-      problem: 'Owner unlock form on the public daily board clashes with the page and names the secret.',
-      proposedChange: 'Hide or restyle the owner door; keep the key out of visitor copy.',
+      problem: 'Public /daily must not mount a typed owner-secret form. Passkey lives off this board.',
+      proposedChange: 'Keep the owner door off /daily. Computer stays in the site-agent dialog. No typed secret in visitor UI.',
       source: 'seed',
       status: 'observed',
       risk: 'medium',

@@ -540,7 +540,7 @@ function main() {
   const councilPageSrc = readFileSync(join(process.cwd(), 'app/council/page.tsx'), 'utf8');
   const cabinetPageSrc = readFileSync(join(process.cwd(), 'app/cabinet/page.tsx'), 'utf8');
   const ownerAuthSrc = readFileSync(join(process.cwd(), 'app/api/auth/owner/route.ts'), 'utf8');
-  assert('council page has owner key form', /OwnerUnlockForm/.test(councilPageSrc) && /next="\/council"/.test(councilPageSrc));
+  assert('council page has passkey form', /OwnerUnlockForm/.test(councilPageSrc) && /next="\/council"/.test(councilPageSrc));
   assert('council page links cabinet', /href="\/cabinet"/.test(councilPageSrc));
   assert('cabinet page is owner-only', /getOwnerIdentity/.test(cabinetPageSrc) && /OwnerUnlockForm/.test(cabinetPageSrc));
   assert('owner auth accepts POST', /export async function POST/.test(ownerAuthSrc));
@@ -560,7 +560,14 @@ function main() {
     /VERCEL_ENV === 'production'/.test(readFileSync(join(process.cwd(), 'lib/computer/flag.ts'), 'utf8')),
   );
   const proofPageSrc = readFileSync(join(process.cwd(), 'app/proof/page.tsx'), 'utf8');
+  const unlockFormSrc = readFileSync(join(process.cwd(), 'components/OwnerUnlockForm.tsx'), 'utf8');
   assert('proof page is owner-gated', /getOwnerIdentity/.test(proofPageSrc) && /OwnerUnlockForm/.test(proofPageSrc));
+  assert('proof page is not a computer window', !/ProofQueuePanel/.test(proofPageSrc) && /OpenAgentChatButton/.test(proofPageSrc));
+  assert(
+    'owner unlock is passkey not typed secret',
+    /owner-passkey-unlock/.test(unlockFormSrc) && !/type=["']password["']/.test(unlockFormSrc) && !/OWNER_KEY/.test(unlockFormSrc),
+  );
+  assert('computer docks in public console for owner', /ComputerConsoleDock/.test(agentChatSrc));
   assert('public console has no council href', !/href=['"]\/council['"]/.test(agentChatSrc));
 
   const ownerAccessSrc = readFileSync(join(process.cwd(), 'lib/owner-access.ts'), 'utf8');

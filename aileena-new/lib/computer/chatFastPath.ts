@@ -22,7 +22,7 @@ export async function tryOwnerComputerFastPath(opts: {
 
   if (command.kind === 'show_queue') {
     return queuedChatResponse(
-      '⚡ Proof queue is at /proof. Prototype only — I can still talk here. Owner review, no merge.',
+      '⚡ Computer lives in this dialog — same window as chat. Prototype only. Owner review, no merge.',
     );
   }
 
@@ -32,10 +32,10 @@ export async function tryOwnerComputerFastPath(opts: {
       headers: { 'Content-Type': 'application/json', cookie },
       body: JSON.stringify({ action: 'create', title: command.title, status: 'observed', route: '/' }),
     });
-    if (!res.ok) return queuedChatResponse('⚡ Nope. Proof log failed. Tell me again or open /proof.');
+    if (!res.ok) return queuedChatResponse('⚡ Nope. Proof log failed. Tell me again in this dialog.');
     const body = (await res.json()) as { item?: { id?: string } };
     return queuedChatResponse(
-      `⚡ Logged ${body.item?.id ?? 'the issue'}. I am still here. Open /proof when you want the queue. No merge.`,
+      `⚡ Logged ${body.item?.id ?? 'the issue'}. I am still here. Computer stays in this dialog. No merge.`,
     );
   }
 
@@ -52,7 +52,7 @@ export async function tryOwnerComputerFastPath(opts: {
       }),
     });
     return queuedChatResponse(
-      `⚡ Proposed a fix for ${command.route}. I did not start the computer yet. Open /proof to queue it. I can keep answering here.`,
+      `⚡ Proposed a fix for ${command.route}. I did not start the computer yet. Queue it from this dialog. I can keep answering here.`,
     );
   }
 
@@ -62,7 +62,7 @@ export async function tryOwnerComputerFastPath(opts: {
       headers: { 'Content-Type': 'application/json', cookie },
       body: JSON.stringify({ action: command.kind, id: command.id }),
     });
-    if (!res.ok) return queuedChatResponse('⚡ Nope. That proposal did not move. Check /proof.');
+    if (!res.ok) return queuedChatResponse('⚡ Nope. That proposal did not move. Stay in this dialog.');
     return queuedChatResponse(
       command.kind === 'approve'
         ? '⚡ Saved. Still not merged. Computer does not deploy.'
@@ -81,12 +81,12 @@ export async function tryOwnerComputerFastPath(opts: {
         instructions: `prepare PR summary for ${command.id}. do not merge.`,
       }),
     });
-    if (res.status === 403 || res.status === 401) return queuedChatResponse('⚡ Owner only. Unlock /proof first.');
+    if (res.status === 403 || res.status === 401) return queuedChatResponse('⚡ Owner only. Unlock with this device first.');
     if (!res.ok) return queuedChatResponse('⚡ Nope. Computer did not accept the task. I am still here.');
     const body = (await res.json()) as { spoken?: string };
     return queuedChatResponse(
       body.spoken ||
-        '⚡ queued. PR summary is running in the background. I can keep talking. Open /proof. No merge.',
+        '⚡ queued. PR summary is running in the background. I can keep talking. Same dialog. No merge.',
     );
   }
 
@@ -100,12 +100,12 @@ export async function tryOwnerComputerFastPath(opts: {
       scope: 'owner-computer-prototype',
     }),
   });
-  if (res.status === 403 || res.status === 401) return queuedChatResponse('⚡ Owner only. Unlock /proof first.');
+  if (res.status === 403 || res.status === 401) return queuedChatResponse('⚡ Owner only. Unlock with this device first.');
   if (res.status === 429) return queuedChatResponse('⚡ Slow down. Rate limit. I am still here.');
   if (!res.ok) return queuedChatResponse('⚡ Nope. Computer did not accept the task. Ask me something else.');
   const queued = (await res.json()) as { spoken?: string };
   return queuedChatResponse(
     queued.spoken ||
-      `⚡ queued. Working ${command.route} in the background. I can still answer you. Open /proof. No merge.`,
+      `⚡ queued. Working ${command.route} in the background. I can still answer you. Same dialog. No merge.`,
   );
 }

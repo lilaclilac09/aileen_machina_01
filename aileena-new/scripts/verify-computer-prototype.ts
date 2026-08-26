@@ -48,7 +48,11 @@ function sourceChecks() {
   const flag = readFileSync(join(process.cwd(), 'lib/computer/flag.ts'), 'utf8');
   const runner = readFileSync(join(process.cwd(), 'lib/computer/runner.ts'), 'utf8');
   const pluginsSrc = readFileSync(join(process.cwd(), 'lib/computer/plugins.ts'), 'utf8');
-  const panelSrc = readFileSync(join(process.cwd(), 'components/ProofQueuePanel.tsx'), 'utf8');
+  const dockSrc = readFileSync(join(process.cwd(), 'components/ComputerConsoleDock.tsx'), 'utf8');
+  const agentChatSrc = readFileSync(join(process.cwd(), 'components/AgentChat.tsx'), 'utf8');
+  const proofPageSrc = readFileSync(join(process.cwd(), 'app/proof/page.tsx'), 'utf8');
+  const unlockSrc = readFileSync(join(process.cwd(), 'components/OwnerUnlockForm.tsx'), 'utf8');
+  const dailySrc = readFileSync(join(process.cwd(), 'components/DailyBoard.tsx'), 'utf8');
   assert('chat stays edge', /export const runtime = 'edge'/.test(chat));
   assert('chat does not import computer runner', !/from ['"].*computer\/runner['"]/.test(chat));
   assert('tasks route is nodejs', /export const runtime = 'nodejs'/.test(tasks));
@@ -62,7 +66,19 @@ function sourceChecks() {
     'plugins are not DeepSeek Harness',
     pluginsSrc.includes('not DeepSeek Harness') && !/from ['"]@deepseek-ai\/dsh['"]/.test(pluginsSrc),
   );
-  assert('merge is blocked in the window', /harness-merge-blocked/.test(panelSrc) && /canMerge: false/.test(pluginsSrc));
+  assert('merge is blocked in the dialog', /harness-merge-blocked/.test(dockSrc) && /canMerge: false/.test(pluginsSrc));
+  assert('computer docks in AgentChat', /ComputerConsoleDock/.test(agentChatSrc));
+  assert('proof page does not mount ProofQueuePanel', !/ProofQueuePanel/.test(proofPageSrc));
+  assert(
+    'unlock form is passkey not typed secret',
+    /owner-passkey-unlock/.test(unlockSrc) && !/type=["']password["']/.test(unlockSrc) && !/OWNER_KEY/.test(unlockSrc),
+  );
+  assert('daily board has no owner door', !/OwnerUnlockForm/.test(dailySrc) && !/daily-owner-enter/.test(dailySrc));
+  assert(
+    'passkey routes exist',
+    existsSync(join(process.cwd(), 'app/api/auth/passkey/options/route.ts')) &&
+      existsSync(join(process.cwd(), 'app/api/auth/passkey/verify/route.ts')),
+  );
 }
 
 function unitChecks() {
@@ -93,7 +109,7 @@ function unitChecks() {
     inspected.filter((f) => !f.exists).map((f) => f.path).join(',') || 'all exist',
   );
   const plan = analyzeDailyFixPlan(inspected);
-  assert('finds owner key UI problem', plan.problemsFound.some((p) => /owner key/i.test(p)));
+  assert('daily owner door is off the board', !plan.problemsFound.some((p) => /owner door|owner key/i.test(p)));
   assert('finds note path', plan.problemsFound.some((p) => /note/i.test(p)));
   assert('finds comment path', plan.problemsFound.some((p) => /comment/i.test(p)));
   assert('does not list merge as a step', !plan.implementationPlan.some((p) => /merge this/i.test(p)));
@@ -141,8 +157,12 @@ async function liveHttp() {
   const page = await fetch(`${base}/proof`);
   const html = page.ok ? await page.text() : '';
   assert('GET /proof', page.ok, String(page.status));
-  assert('visitor /proof shows owner door', html.includes('OwnerUnlockForm') || html.includes('owner key') || html.includes('enter proof'));
-  assert('visitor /proof hides queue panel', !html.includes('proof-queue-daily'));
+  assert(
+    'visitor /proof shows passkey door',
+    html.includes('owner-passkey-unlock') || html.includes('passkey'),
+  );
+  assert('visitor /proof does not name typed owner secret', !/owner key/i.test(html));
+  assert('visitor /proof hides queue panel', !html.includes('proof-queue-daily') && !html.includes('proof-queue-panel'));
   assert('local experiment enter is offered', html.includes('proof-experiment-enter') || html.includes('enter local experiment'));
 
   const expGet = await fetch(`${base}/api/auth/owner/experiment`);
@@ -171,6 +191,14 @@ async function liveHttp() {
 
   const token = await createOwnerSession();
   const cookie = `${SESSION_COOKIE}=${token}`;
+
+  const ownerProof = await fetch(`${base}/proof`, { headers: { Cookie: cookie } });
+  const ownerProofHtml = ownerProof.ok ? await ownerProof.text() : '';
+  assert(
+    'owner /proof is signpost not panel',
+    ownerProofHtml.includes('proof-console-signpost') && !ownerProofHtml.includes('proof-queue-panel'),
+    String(ownerProof.status),
+  );
 
   const listed = await fetch(`${base}/api/agent/computer/tasks`, { headers: { Cookie: cookie } });
   const listedJson = listed.ok ? ((await listed.json()) as { plugins?: unknown[]; deepSeekHarness?: boolean }) : {};

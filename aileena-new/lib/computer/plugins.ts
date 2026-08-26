@@ -1,5 +1,5 @@
 /**
- * Owner harness plugins. Allowlisted slots in one /proof window.
+ * Owner harness plugins. Allowlisted slots in the site-agent dialog.
  * This is Machina's owner harness prototype — not DeepSeek Harness (dsh).
  * Do not import @deepseek-ai/dsh. Merge is a pane, not a git action.
  */
@@ -64,7 +64,7 @@ export const HARNESS_PLUGINS: readonly HarnessPlugin[] = [
     label: 'merge',
     kind: 'merge-gate',
     taskType: null,
-    blurb: 'Approve or reject in this window. GitHub merge stays owner-only outside the worker.',
+    blurb: 'Approve or reject in this dialog. GitHub merge stays owner-only outside the worker.',
     canMerge: false,
   },
 ] as const;

@@ -52,20 +52,21 @@ export function analyzeDailyFixPlan(files: InspectedFile[]): {
   const implementationPlan: string[] = [];
   const risksBlockers: string[] = [];
 
-  if (/OwnerUnlockForm/.test(board)) {
+  if (/OwnerUnlockForm/.test(board) || /daily-owner-enter/.test(board)) {
     problemsFound.push(
-      'Owner key UI: DailyBoard renders OwnerUnlockForm on the public page when !owner (data-testid=daily-owner-enter).',
+      'Owner door: DailyBoard still renders an owner unlock on the public page (data-testid=daily-owner-enter). Passkey belongs off this board.',
     );
+    proposedFilesToChange.push('aileena-new/components/DailyBoard.tsx');
   }
-  if (/OWNER_KEY/.test(unlock)) {
+  if (/OWNER_KEY/.test(unlock) || /type=["']password["']/.test(unlock)) {
     problemsFound.push(
-      'Owner key UI: denied copy names Vercel OWNER_KEY / .env.local — secret name leaks to anyone who fails the door.',
+      'Owner door: unlock form still names a typed secret or uses a password field. Site UI is passkey / this device only.',
     );
     proposedFilesToChange.push('aileena-new/components/OwnerUnlockForm.tsx');
   }
-  if (/className=/.test(unlock) && /--daily-/.test(board)) {
+  if (/className=/.test(unlock) && /--daily-/.test(board) && /OwnerUnlockForm/.test(board)) {
     problemsFound.push(
-      'Owner key UI: unlock form uses Tailwind cream/teal, not daily theme CSS variables — looks bolted onto the board.',
+      'Owner door: unlock form uses Tailwind cream/teal, not daily theme CSS variables — looks bolted onto the board.',
     );
     proposedFilesToChange.push('aileena-new/components/DailyBoard.tsx');
   }
@@ -102,7 +103,7 @@ export function analyzeDailyFixPlan(files: InspectedFile[]): {
 
   implementationPlan.push(
     'Do not modify files in this computer task. Plan only.',
-    'Owner-key: keep the door, move it off the public board or restyle to daily tokens; stop naming OWNER_KEY in visitor copy.',
+    'Owner door: passkey / this device on council and Console, never a typed secret on /daily.',
     'Notes: public GET should show latest published note; writer stays owner-only; empty state stays “nothing today yet.”',
     'Comments: require a published note as the target; keep 503 bolt copy; do not invent a second store.',
     'Verify with pnpm verify:daily-board + 390px stills. No merge without owner approval and screenshots.',

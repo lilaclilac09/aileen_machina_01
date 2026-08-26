@@ -21,5 +21,5 @@ export function spokenQueued(opts: {
   const hung = opts.proofTitle
     ? `${opts.proofItemId} (${opts.proofTitle})`
     : opts.proofItemId;
-  return `⚡ queued. ${doing} for ${opts.route}. Hung on proof ${hung}. Computer is in the background. I can still talk. No merge.`;
+  return `⚡ queued. ${doing} for ${opts.route}. Hung on proof ${hung}. Computer stays in this dialog. I can still talk. No merge.`;
 }

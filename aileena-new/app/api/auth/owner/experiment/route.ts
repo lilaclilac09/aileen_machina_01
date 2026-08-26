@@ -6,8 +6,8 @@ import {
 } from '../../../../../lib/computer/flag';
 
 /**
- * Local experiment door. Mints an owner session without OWNER_KEY so the
- * prototype can be tested on localhost. 404 on Vercel Production.
+ * Local experiment door. Mints an owner session without a typed secret so
+ * the prototype can be tested on localhost. 404 on Vercel Production.
  */
 export const runtime = 'nodejs';
 
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
   const host = req.headers.get('host') || req.nextUrl.host;
   const https = req.nextUrl.protocol === 'https:' || req.headers.get('x-forwarded-proto') === 'https';
-  const res = NextResponse.redirect(`${https ? 'https' : 'http'}://${host}/proof?experiment=1`, 303);
+  const res = NextResponse.redirect(`${https ? 'https' : 'http'}://${host}/?experiment=1`, 303);
   res.cookies.set(SESSION_COOKIE, await createOwnerSession(), {
     path: '/',
     maxAge: OWNER_MAX_AGE,
