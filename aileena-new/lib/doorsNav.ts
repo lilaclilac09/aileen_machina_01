@@ -32,6 +32,7 @@ const HOME_UTIL = new Set([
   '/council',
   '/cabinet',
   '/evolution',
+  '/proof',
 ]);
 
 /**

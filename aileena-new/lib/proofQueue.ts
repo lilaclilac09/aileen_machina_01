@@ -10,6 +10,7 @@ export const PROOF_STATUSES = [
   'proposed',
   'approved',
   'in_progress',
+  'needs_screenshots',
   'ready_for_review',
   'rejected',
   'shipped',
@@ -66,6 +67,7 @@ export type ProofCommand =
   | { kind: 'list' }
   | { kind: 'approve'; id: string }
   | { kind: 'reject'; id: string }
+  | { kind: 'ready'; id: string }
   | { kind: 'prepare'; id: string };
 
 const SECRETISH =
@@ -132,7 +134,9 @@ export function screenshotReady(proposal: Pick<ProofProposal, 'screenshots'>): b
 export function proofGateNotes(proposal: ProofProposal): string[] {
   const notes: string[] = [];
   const shotGap = !screenshotReady(proposal);
-  if (proposal.screenshotsRequested && shotGap) notes.push('⚡ Need screenshots.');
+  if (proposal.status === 'needs_screenshots' || (proposal.screenshotsRequested && shotGap)) {
+    notes.push('⚡ Need screenshots.');
+  }
   if ((proposal.status === 'in_progress' || proposal.status === 'approved') && shotGap) {
     notes.push('⚡ Need screenshots.');
   }
@@ -151,7 +155,7 @@ export function proofGateNotes(proposal: ProofProposal): string[] {
 }
 
 export function canBecomeReady(proposal: ProofProposal): { ok: boolean; reason: string } {
-  if (proposal.status !== 'in_progress') {
+  if (proposal.status !== 'in_progress' && proposal.status !== 'needs_screenshots') {
     return { ok: false, reason: 'only in_progress can become ready for review' };
   }
   if (!screenshotReady(proposal)) {
@@ -173,7 +177,8 @@ const TRANSITIONS: Record<ProofStatus, ProofStatus[]> = {
   observed: ['proposed', 'rejected'],
   proposed: ['approved', 'rejected', 'observed'],
   approved: ['in_progress', 'rejected'],
-  in_progress: ['ready_for_review', 'rejected', 'approved'],
+  in_progress: ['ready_for_review', 'needs_screenshots', 'rejected', 'approved'],
+  needs_screenshots: ['in_progress', 'ready_for_review', 'rejected'],
   ready_for_review: ['shipped', 'in_progress', 'rejected'],
   rejected: [],
   shipped: [],
@@ -245,6 +250,9 @@ export function parseProofQueueCommand(text: string): ProofCommand | null {
 
   const prepare = t.match(/^prepare\s+pr\s+for\s+proposal\s+(pq-[a-z0-9]+)\s*[.!?。！？]*$/i);
   if (prepare) return { kind: 'prepare', id: prepare[1].toLowerCase() };
+
+  const ready = t.match(/^mark\s+ready(?:\s+proposal)?\s+(pq-[a-z0-9]+)\s*[.!?。！？]*$/i);
+  if (ready) return { kind: 'ready', id: ready[1].toLowerCase() };
 
   const logOn = t.match(/^log\s+issue\s+on\s+(\/\S+):\s*(.+)$/i);
   if (logOn) return { kind: 'log', route: sanitizeRoute(logOn[1]), message: clipProof(logOn[2], 400) };
@@ -378,18 +386,76 @@ export function buildPreparePrPrompt(proposal: ProofProposal): string {
 
 export function formatQueueList(proposals: ProofProposal[]): string {
   const open = proposals.filter((p) => p.status !== 'shipped' && p.status !== 'rejected');
-  if (open.length === 0) return 'proof queue is empty. log issue: … or open /evolution (owner).';
+  if (open.length === 0) return 'proof queue is empty. log issue: … or open /proof (owner).';
   const lines = open.slice(0, 12).map((p) => `${p.id} · ${p.status} · ${p.route} · ${p.title}`);
-  return [`proof queue · ${open.length} open`, ...lines, 'owner panel: /evolution'].join('\n');
+  return [`proof queue · ${open.length} open`, ...lines, 'owner panel: /proof'].join('\n');
 }
 
-export const DAILY_OWNER_KEY_SEED = {
-  title: 'Fix /daily owner key UI',
-  problem: 'Owner cannot write; ugly owner key block appears in the main daily flow.',
-  proposedChange:
-    'Move unlock to site agent/corner popover, show inline editor only for owner.',
-  route: '/daily',
-  acceptanceCriteria:
-    'no owner key in main flow · owner can save note · visitor can comment · screenshots attached · no merge without owner approval',
-  risk: 'medium' as const,
+export type ProofSeed = {
+  title: string;
+  problem: string;
+  proposedChange: string;
+  route: string;
+  acceptanceCriteria: string;
+  risk: 'low' | 'medium' | 'high';
+  status: 'observed' | 'proposed';
 };
+
+export const PROOF_QUEUE_SEEDS: ProofSeed[] = [
+  {
+    title: 'Fix /daily owner key UI',
+    problem: 'Owner key form appears in the main content and ruins the page.',
+    proposedChange:
+      'Move unlock to site agent owner mode or tiny corner popover. Remove all owner key wording from main note flow.',
+    route: '/daily',
+    acceptanceCriteria:
+      'no OWNER KEY visible in main page · no “Visitors cannot use this room” · clean visitor view · owner can unlock · screenshots attached',
+    risk: 'medium',
+    status: 'proposed',
+  },
+  {
+    title: 'Fix /daily note display and save',
+    problem: 'Daily notes are not displaying/saving reliably.',
+    proposedChange:
+      'Make latest note render, preserve line breaks, add inline owner editor, persist after refresh.',
+    route: '/daily',
+    acceptanceCriteria:
+      'owner writes note · save works · refresh persists · visitor sees note · placeholder not shown as content',
+    risk: 'high',
+    status: 'proposed',
+  },
+  {
+    title: 'Add anonymous bubble comments',
+    problem: 'Visitors have no place to comment.',
+    proposedChange: 'Add small anonymous iMessage-like bubble comments under latest note.',
+    route: '/daily',
+    acceptanceCriteria:
+      'visitor submits bubble · comment persists · input sanitized · owner can hide/delete or v2 noted',
+    risk: 'medium',
+    status: 'proposed',
+  },
+  {
+    title: 'Landing material pass',
+    problem: 'Landing hero looks flat and ugly; vellum/ink bleed not convincing.',
+    proposedChange:
+      'Create color/style experiments with crayon marks, scanned paper, vellum, and screenshots only.',
+    route: '/',
+    acceptanceCriteria: '4 color variants · screenshots · no merge · owner chooses direction',
+    risk: 'low',
+    status: 'observed',
+  },
+  {
+    title: 'Sound Lab core playback loop',
+    problem: 'Carousel can select/drag but cannot reliably load/play music in decks.',
+    proposedChange:
+      'Fix carousel selected track → Load A/B → deck audio → play path before Spotify/suggestions.',
+    route: '/sound',
+    acceptanceCriteria:
+      'mixable carousel item loads and plays · non-mixable shows ⚡ Not mixable. · upload works · export works if audio loaded',
+    risk: 'high',
+    status: 'observed',
+  },
+];
+
+export const DAILY_OWNER_KEY_SEED = PROOF_QUEUE_SEEDS[0];
+

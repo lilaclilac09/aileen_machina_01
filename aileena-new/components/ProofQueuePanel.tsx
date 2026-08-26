@@ -17,7 +17,7 @@ type QueuePayload = {
 const SECTIONS: { key: ProofStatus | 'ideas' | 'approved_tasks' | 'archive'; title: string; match: ProofStatus[] }[] = [
   { key: 'observed', title: 'observed issues', match: ['observed'] },
   { key: 'ideas', title: 'ideas', match: ['proposed'] },
-  { key: 'approved_tasks', title: 'approved tasks', match: ['approved', 'in_progress'] },
+  { key: 'approved_tasks', title: 'approved tasks', match: ['approved', 'in_progress', 'needs_screenshots'] },
   { key: 'ready_for_review', title: 'ready for review', match: ['ready_for_review'] },
   { key: 'archive', title: 'shipped archive', match: ['rejected', 'shipped'] },
 ];
@@ -89,7 +89,7 @@ function Card({
             prepare PR
           </button>
         ) : null}
-        {proposal.status === 'in_progress' ? (
+        {proposal.status === 'in_progress' || proposal.status === 'needs_screenshots' ? (
           <button type="button" disabled={busy} onClick={() => onAct('ready')}>
             mark ready
           </button>

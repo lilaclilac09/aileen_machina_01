@@ -6,7 +6,7 @@ import {
   createObserved,
   createProposal,
   editProposalScope,
-  ensureDailyOwnerKeySeed,
+  ensureProofQueueSeeds,
   executeProofCommand,
   listProofQueue,
   markReady,
@@ -31,9 +31,8 @@ export async function GET(req: Request) {
   if (!owner) {
     return NextResponse.json({ error: '⚡ Owner only.' }, { status: 403 });
   }
-  const seed = new URL(req.url).searchParams.get('seed');
-  if (seed === 'daily' && proofQueueWritesOk()) {
-    await ensureDailyOwnerKeySeed();
+  if (proofQueueWritesOk()) {
+    await ensureProofQueueSeeds();
   }
   const queue = await listProofQueue();
   return NextResponse.json({
@@ -107,8 +106,8 @@ export async function POST(req: Request) {
 
   if (action === 'seed') {
     if (!owner) return NextResponse.json({ error: '⚡ Owner only.' }, { status: 403 });
-    const proposal = await ensureDailyOwnerKeySeed();
-    return NextResponse.json({ ok: true, proposal, merge: false });
+    const proposals = await ensureProofQueueSeeds();
+    return NextResponse.json({ ok: true, proposals, merge: false });
   }
 
   if (!id) return NextResponse.json({ error: 'missing id' }, { status: 400 });

@@ -75,7 +75,7 @@ function main() {
   );
   assert(
     'proof queue forbids auto-merge',
-    /proof queue/.test(agents) && /no auto-merge/.test(agents) && /\/evolution/.test(agents),
+    /proof queue/.test(agents) && /no auto-merge/.test(agents) && /\/proof/.test(agents),
   );
   assert(
     'no second public SYSTEM_PROMPT in lite file',

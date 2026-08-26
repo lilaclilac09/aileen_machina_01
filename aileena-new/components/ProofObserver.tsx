@@ -12,7 +12,7 @@ export default function ProofObserver() {
 
     const send = (type: string, message: string) => {
       const route = window.location.pathname || '/';
-      if (route === '/evolution') return;
+      if (route === '/evolution' || route === '/proof') return;
       const text = String(message || '').replace(/\s+/g, ' ').trim().slice(0, 160);
       if (!text) return;
       if (/OWNER_KEY|AUTH_SECRET|sk-|Bearer /i.test(text)) return;

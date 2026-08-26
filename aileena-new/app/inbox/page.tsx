@@ -46,7 +46,7 @@ export default async function InboxPage({
               cabinet
             </Link>
             <span className="mx-2">·</span>
-            <Link href="/evolution" className="hover:text-[#008f86]">
+            <Link href="/proof" className="hover:text-[#008f86]">
               proof queue
             </Link>
           </p>

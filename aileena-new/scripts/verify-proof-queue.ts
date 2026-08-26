@@ -16,6 +16,7 @@ import {
   applyStatusChange,
   canBecomeReady,
   DAILY_OWNER_KEY_SEED,
+  PROOF_QUEUE_SEEDS,
   draftFromMessage,
   parseProofQueueCommand,
   redactProofText,
@@ -24,6 +25,7 @@ import {
   createObserved,
   createProposal,
   ensureDailyOwnerKeySeed,
+  ensureProofQueueSeeds,
   executeProofCommand,
   markReady,
   preparePr,
@@ -84,6 +86,8 @@ async function unit() {
   assert('parse approve', parseProofQueueCommand('approve proposal pq-abc123')?.kind === 'approve');
   assert('parse reject', parseProofQueueCommand('reject proposal pq-abc123')?.kind === 'reject');
   assert('parse prepare', parseProofQueueCommand('prepare PR for proposal pq-abc123')?.kind === 'prepare');
+  assert('parse mark ready', parseProofQueueCommand('mark ready pq-abc123')?.kind === 'ready');
+  assert('parse mark ready proposal', parseProofQueueCommand('mark ready proposal pq-abc123')?.kind === 'ready');
   assert('non-command is null', parseProofQueueCommand('hello there') === null);
 
   const redacted = redactProofText('OWNER_KEY=super-secret-value and Bearer abcdef and sk-123456789');
@@ -147,12 +151,17 @@ async function unit() {
 
   resetProofQueueForTests();
   const seeded = await ensureDailyOwnerKeySeed();
-  assert('seed daily owner key UI as observed', seeded.status === 'observed' && seeded.title === DAILY_OWNER_KEY_SEED.title);
-  const proposed = await transitionProposal(seeded.id, 'proposed', true);
-  assert('seed moves observed → proposed', proposed.ok === true && proposed.ok && proposed.proposal.status === 'proposed');
-  if (proposed.ok) {
-    assert('seed is not auto-approved', proposed.proposal.status !== 'approved' && !proposed.proposal.approvedAt);
-  }
+  assert(
+    'seed daily owner key UI as proposed',
+    seeded.status === 'proposed' && seeded.title === DAILY_OWNER_KEY_SEED.title,
+  );
+  assert('seed is not auto-approved', seeded.status !== 'approved' && !seeded.approvedAt);
+  const seeds = await ensureProofQueueSeeds();
+  assert(
+    'five known-issue seeds',
+    PROOF_QUEUE_SEEDS.every((s) => seeds.some((p) => p.title === s.title && p.status === s.status)),
+    String(seeds.length),
+  );
 
   resetProofQueueForTests();
   const visitorIssue = await createObserved({
@@ -213,11 +222,15 @@ async function liveHttp() {
     return;
   }
 
-  const page = await fetch(`${base}/evolution`);
+  const page = await fetch(`${base}/proof`);
   const html = await page.text();
-  assert('GET /evolution', page.ok, String(page.status));
-  assert('locked page says owner only', /Owner only|owner key|proof queue/i.test(html));
+  assert('GET /proof', page.ok, String(page.status));
+  assert('locked page says owner only', /Owner only/i.test(html));
+  assert('locked /proof has no owner key form', !/owner key/i.test(html) && !/Visitors cannot use this room/i.test(html));
   assert('locked page has no proposal cards', !/data-proof-card/.test(html));
+
+  const alias = await fetch(`${base}/evolution`, { redirect: 'manual' });
+  assert('GET /evolution redirects to /proof', alias.status === 307 || alias.status === 308, String(alias.status));
 
   const visitorGet = await fetch(`${base}/api/proof`);
   assert('visitor GET /api/proof → 403', visitorGet.status === 403, String(visitorGet.status));
@@ -272,20 +285,8 @@ async function liveHttp() {
   assert('API autoMerge false', ownerJson.autoMerge === false && ownerJson.merge === false);
   const daily = ownerJson.proposals?.find((p) => p.title === DAILY_OWNER_KEY_SEED.title);
   assert('seeded daily proposal present', Boolean(daily), daily?.status);
-  if (daily && daily.status === 'observed') {
-    const promoted = await fetch(`${base}/api/proof`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Cookie: cookie },
-      body: JSON.stringify({ action: 'promote', id: daily.id }),
-    });
-    const promotedJson = (await promoted.json().catch(() => ({}))) as {
-      proposal?: { status?: string };
-    };
-    assert(
-      'owner observed → proposed',
-      promoted.ok && promotedJson.proposal?.status === 'proposed',
-      String(promoted.status),
-    );
+  assert('daily seed is not approved', daily?.status !== 'approved');
+  if (daily) {
     const readyTooSoon = await fetch(`${base}/api/proof`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Cookie: cookie },
@@ -294,9 +295,9 @@ async function liveHttp() {
     assert('ready without screenshots blocked', readyTooSoon.status === 409, String(readyTooSoon.status));
   }
 
-  const ownerPage = await fetch(`${base}/evolution`, { headers: { Cookie: cookie } });
+  const ownerPage = await fetch(`${base}/proof`, { headers: { Cookie: cookie } });
   const ownerHtml = await ownerPage.text();
-  assert('owner /evolution unlocks panel', /data-proof-queue/.test(ownerHtml) || ownerPage.ok, String(ownerPage.status));
+  assert('owner /proof unlocks panel', /data-proof-queue/.test(ownerHtml) || ownerPage.ok, String(ownerPage.status));
 }
 
 async function staticGates() {
@@ -305,16 +306,18 @@ async function staticGates() {
   sourceHasNoMerge('app/api/proof/route.ts');
   sourceHasNoMerge('components/ProofQueuePanel.tsx');
 
-  const page = read('app/evolution/page.tsx');
-  assert('evolution page owner-gated', /getOwnerIdentity/.test(page) && /OwnerUnlockForm/.test(page));
-  assert('evolution robots noindex', /index:\s*false/.test(page));
-  assert('evolution title is proof queue', /proof queue/i.test(page));
+  const page = read('app/proof/page.tsx');
+  assert('proof page owner-gated', /getOwnerIdentity/.test(page) && /Owner only/.test(page));
+  assert('proof page has no owner key form', !/OwnerUnlockForm/.test(page));
+  assert('proof robots noindex', /index:\s*false/.test(page));
+  assert('proof title is proof queue', /proof queue/i.test(page));
 
   const panel = read('components/ProofQueuePanel.tsx');
   assert('panel has status lights', /proof-light/.test(panel));
   assert('panel mark shipped does not say merge', /mark shipped/.test(panel) && !/gh pr merge/.test(panel));
 
   const auth = read('app/api/auth/owner/route.ts');
+  assert('owner rooms include /proof', /\/proof/.test(auth));
   assert('owner rooms include /evolution', /\/evolution/.test(auth));
 
   const agent = read('components/AgentChat.tsx');

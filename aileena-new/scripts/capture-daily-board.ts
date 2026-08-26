@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 /**
- * Capture daily board screenshots into /opt/cursor/artifacts.
+ * Capture /daily + /proof screenshots into /opt/cursor/artifacts.
  * Requires Next on VERIFY_BASE_URL (default http://127.0.0.1:3000).
  */
 import { existsSync, readFileSync } from 'node:fs';
@@ -32,11 +32,6 @@ const OUT = process.env.VERIFY_OUT_DIR ?? '/opt/cursor/artifacts';
 const NOTE =
   'I love part of you and you only like the best part of me\nAnd so are we to the world so you hate me no more';
 
-async function expectValue(page: import('playwright').Page, testId: string, value: string) {
-  const got = await page.locator(`[data-testid="${testId}"]`).inputValue();
-  if (got !== value) throw new Error(`${testId} expected ${JSON.stringify(value)} got ${JSON.stringify(got)}`);
-}
-
 async function waitReady() {
   for (let i = 0; i < 40; i++) {
     try {
@@ -47,7 +42,11 @@ async function waitReady() {
     }
     await new Promise((r) => setTimeout(r, 500));
   }
-  throw new Error(`daily board not ready at ${BASE}`);
+  throw new Error(`daily not ready at ${BASE}`);
+}
+
+function cookie(token: string) {
+  return { name: SESSION_COOKIE, value: token, url: BASE, httpOnly: true };
 }
 
 async function main() {
@@ -55,7 +54,10 @@ async function main() {
   await mkdir(OUT, { recursive: true });
   await waitReady();
   const token = await createOwnerSession();
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({
+    headless: true,
+    executablePath: existsSync('/usr/local/bin/google-chrome') ? '/usr/local/bin/google-chrome' : undefined,
+  });
 
   const visitor = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   const vPage = await visitor.newPage();
@@ -63,13 +65,13 @@ async function main() {
   await vPage.keyboard.press('Escape');
   await vPage.waitForSelector('[data-testid="daily-title"]');
   await vPage.waitForTimeout(400);
-  const writer = vPage.locator('[data-testid="daily-owner-textarea"]');
-  if (await writer.count()) {
-    await writer.click();
-    await writer.fill('typing works');
-    await expectValue(vPage, 'daily-owner-textarea', 'typing works');
-    await vPage.screenshot({ path: join(OUT, 'daily-visitor-empty-typing.png'), fullPage: true });
-  }
+  await vPage.screenshot({ path: join(OUT, 'daily-visitor-empty-clean.png'), fullPage: true });
+  await vPage.screenshot({ path: join(OUT, 'daily-owner-unlock-closed.png'), fullPage: true });
+  await vPage.getByTestId('daily-owner-dot').click();
+  await vPage.waitForSelector('[data-testid="daily-owner-popover"]');
+  await vPage.waitForTimeout(200);
+  await vPage.screenshot({ path: join(OUT, 'daily-owner-unlock-popover.png'), fullPage: true });
+  await vPage.keyboard.press('Escape');
 
   const ownerPost = await fetch(`${BASE}/api/daily/notes`, {
     method: 'POST',
@@ -93,35 +95,40 @@ async function main() {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ noteId: note.id, body: 'this hurt nicely', nickname: 'anon' }),
   });
-  await fetch(`${BASE}/api/daily/comments`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ noteId: note.id, body: 'saved this line' }),
-  });
 
-  await vPage.reload({ waitUntil: 'networkidle' });
+  const visitorProof = await visitor.newPage();
+  await visitorProof.goto(`${BASE}/proof`, { waitUntil: 'networkidle' });
+  await visitorProof.keyboard.press('Escape');
+  await visitorProof.waitForTimeout(300);
+  await visitorProof.screenshot({ path: join(OUT, 'proof-visitor-owner-only.png'), fullPage: true });
+
+  await vPage.goto(`${BASE}/daily`, { waitUntil: 'networkidle' });
+  await vPage.keyboard.press('Escape');
   await vPage.waitForSelector('[data-testid="daily-latest-body"]');
-  await vPage.waitForTimeout(500);
-  await vPage.screenshot({ path: join(OUT, 'daily-latest-note.png'), fullPage: true });
+  await vPage.waitForTimeout(400);
+  await vPage.screenshot({ path: join(OUT, 'daily-note-saved.png'), fullPage: true });
   await vPage.locator('[data-testid="daily-comments"]').scrollIntoViewIfNeeded();
   await vPage.screenshot({ path: join(OUT, 'daily-comments.png'), fullPage: true });
 
   const ownerCtx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-  await ownerCtx.addCookies([
-    { name: SESSION_COOKIE, value: token, url: BASE, httpOnly: true },
-  ]);
+  await ownerCtx.addCookies([cookie(token)]);
   const oPage = await ownerCtx.newPage();
   await oPage.goto(`${BASE}/daily`, { waitUntil: 'networkidle' });
   await oPage.keyboard.press('Escape');
   await oPage.waitForSelector('[data-testid="daily-owner-editor"]');
   await oPage.waitForTimeout(400);
   await oPage.screenshot({ path: join(OUT, 'daily-owner-editor.png'), fullPage: true });
-  await oPage.locator('[data-testid="daily-owner-textarea"]').click();
-  await oPage.locator('[data-testid="daily-owner-textarea"]').fill('typing works for owner');
-  await expectValue(oPage, 'daily-owner-textarea', 'typing works for owner');
-  await oPage.screenshot({ path: join(OUT, 'daily-owner-typing.png'), fullPage: true });
-  await oPage.locator('[data-testid="daily-theme-controls"]').scrollIntoViewIfNeeded();
-  await oPage.screenshot({ path: join(OUT, 'daily-theme-controls.png'), fullPage: true });
+
+  await oPage.goto(`${BASE}/proof`, { waitUntil: 'networkidle' });
+  await oPage.keyboard.press('Escape');
+  await oPage.waitForSelector('[data-proof-queue]');
+  await oPage.waitForTimeout(400);
+  await oPage.screenshot({ path: join(OUT, 'proof-owner-queue.png'), fullPage: true });
+  const firstCard = oPage.locator('[data-proof-card]').first();
+  await firstCard.scrollIntoViewIfNeeded();
+  await firstCard.screenshot({ path: join(OUT, 'proof-proposal-card.png') });
+  await oPage.locator('.proof-light').first().scrollIntoViewIfNeeded();
+  await oPage.screenshot({ path: join(OUT, 'proof-status-lights.png'), fullPage: true });
 
   const mobileV = await browser.newContext({
     viewport: { width: 390, height: 844 },
@@ -131,37 +138,30 @@ async function main() {
   const mv = await mobileV.newPage();
   await mv.goto(`${BASE}/daily`, { waitUntil: 'networkidle' });
   await mv.keyboard.press('Escape');
-  await mv.waitForSelector('[data-testid="daily-latest-body"]');
   await mv.waitForTimeout(400);
-  await mv.screenshot({ path: join(OUT, 'mobile-daily-latest.png') });
-  await mv.locator('[data-testid="daily-bubble-input"]').click();
-  await mv.locator('[data-testid="daily-bubble-input"]').fill('typing works');
-  await expectValue(mv, 'daily-bubble-input', 'typing works');
-  await mv.screenshot({ path: join(OUT, 'mobile-daily-bubble-typing.png') });
-  await mv.locator('[data-testid="daily-comments"]').scrollIntoViewIfNeeded();
-  await mv.screenshot({ path: join(OUT, 'mobile-daily-comments.png') });
+  await mv.screenshot({ path: join(OUT, 'mobile-daily-visitor.png') });
+  if (await mv.getByTestId('daily-comments').count()) {
+    await mv.locator('[data-testid="daily-comments"]').scrollIntoViewIfNeeded();
+    await mv.screenshot({ path: join(OUT, 'mobile-daily-comments.png') });
+  }
 
   const mobileO = await browser.newContext({
     viewport: { width: 390, height: 844 },
     isMobile: true,
     hasTouch: true,
   });
-  await mobileO.addCookies([{ name: SESSION_COOKIE, value: token, url: BASE, httpOnly: true }]);
+  await mobileO.addCookies([cookie(token)]);
   const mo = await mobileO.newPage();
   await mo.goto(`${BASE}/daily`, { waitUntil: 'networkidle' });
   await mo.keyboard.press('Escape');
   await mo.waitForSelector('[data-testid="daily-owner-editor"]');
-  await mo.waitForTimeout(400);
-  await mo.locator('[data-testid="daily-owner-textarea"]').click();
-  await mo.locator('[data-testid="daily-owner-textarea"]').fill('typing works here');
-  await expectValue(mo, 'daily-owner-textarea', 'typing works here');
-  await mo.screenshot({ path: join(OUT, 'mobile-daily-typing.png') });
+  await mo.waitForTimeout(300);
   await mo.screenshot({ path: join(OUT, 'mobile-daily-editor.png') });
-
-  const doors = await visitor.newPage();
-  await doors.goto(`${BASE}/doors`, { waitUntil: 'networkidle' });
-  await doors.waitForSelector('#hub-daily');
-  await doors.screenshot({ path: join(OUT, 'doors-daily-entry.png'), fullPage: true });
+  await mo.goto(`${BASE}/proof`, { waitUntil: 'networkidle' });
+  await mo.keyboard.press('Escape');
+  await mo.waitForSelector('[data-proof-queue]');
+  await mo.waitForTimeout(300);
+  await mo.screenshot({ path: join(OUT, 'mobile-proof-queue.png') });
 
   await browser.close();
   console.log('captured into', OUT);

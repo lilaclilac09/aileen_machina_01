@@ -8,6 +8,7 @@ import { taipeiDay } from './taipeiDay';
 import { readDailyNotes } from './dailyBoardStore';
 import {
   DAILY_OWNER_KEY_SEED,
+  PROOF_QUEUE_SEEDS,
   applyStatusChange,
   buildPreparePrPrompt,
   canBecomeReady,
@@ -290,6 +291,9 @@ export async function requestScreenshots(
   if (!owner) return { ok: false, error: '⚡ Owner only.', status: 403 };
   const current = await getProposal(id);
   if (!current) return { ok: false, error: 'not found', status: 404 };
+  if (current.status === 'in_progress') {
+    return transitionProposal(id, 'needs_screenshots', owner);
+  }
   const next: ProofProposal = { ...current, screenshotsRequested: true, updatedAt: nowIso() };
   const saved = await saveProposal(next, 'screenshots', `${next.id} ⚡ Need screenshots.`);
   return { ok: true, proposal: saved };
@@ -428,23 +432,47 @@ export async function scanOwnerSignals(owner: boolean): Promise<ProofProposal[]>
   return created;
 }
 
-export async function ensureDailyOwnerKeySeed(): Promise<ProofProposal> {
+export async function ensureProofQueueSeeds(): Promise<ProofProposal[]> {
   const all = await readAllProposals();
-  const existing = all.find(
-    (p) => p.title === DAILY_OWNER_KEY_SEED.title && p.status !== 'rejected' && p.status !== 'shipped',
-  );
-  if (existing) return existing;
+  const saved: ProofProposal[] = [];
+  for (const seed of PROOF_QUEUE_SEEDS) {
+    const existing = all.find(
+      (p) => p.title === seed.title && p.status !== 'rejected' && p.status !== 'shipped',
+    );
+    if (existing) {
+      saved.push(existing);
+      continue;
+    }
+    const proposal = draftFromMessage({
+      title: seed.title,
+      message: seed.problem,
+      route: seed.route,
+      source: 'owner',
+      status: seed.status,
+      risk: seed.risk,
+      proposedChange: seed.proposedChange,
+      acceptanceCriteria: seed.acceptanceCriteria,
+    });
+    saved.push(await saveProposal(proposal, seed.status, `${proposal.title} seeded ${seed.status}`));
+  }
+  return saved;
+}
+
+export async function ensureDailyOwnerKeySeed(): Promise<ProofProposal> {
+  const seeded = await ensureProofQueueSeeds();
+  const daily = seeded.find((p) => p.title === DAILY_OWNER_KEY_SEED.title);
+  if (daily) return daily;
   const proposal = draftFromMessage({
     title: DAILY_OWNER_KEY_SEED.title,
     message: DAILY_OWNER_KEY_SEED.problem,
     route: DAILY_OWNER_KEY_SEED.route,
     source: 'owner',
-    status: 'observed',
+    status: DAILY_OWNER_KEY_SEED.status,
     risk: DAILY_OWNER_KEY_SEED.risk,
     proposedChange: DAILY_OWNER_KEY_SEED.proposedChange,
     acceptanceCriteria: DAILY_OWNER_KEY_SEED.acceptanceCriteria,
   });
-  return saveProposal(proposal, 'observed', `${proposal.title} seeded observed`);
+  return saveProposal(proposal, DAILY_OWNER_KEY_SEED.status, `${proposal.title} seeded`);
 }
 
 export async function runProofCommand(
@@ -475,7 +503,7 @@ export async function executeProofCommand(
     return {
       ok: true,
       reply: owner
-        ? `logged ${proposal.id} as observed · ${proposal.route}\nopen /evolution to propose.`
+        ? `logged ${proposal.id} as observed · ${proposal.route}\nopen /proof to propose.`
         : `logged ${proposal.id} as observed. not approved. owner decides.`,
       proposal,
     };
@@ -516,6 +544,12 @@ export async function executeProofCommand(
     const moved = await transitionProposal(cmd.id, 'rejected', owner);
     if (!moved.ok) return moved;
     return { ok: true, reply: `rejected ${moved.proposal.id}.`, proposal: moved.proposal };
+  }
+
+  if (cmd.kind === 'ready') {
+    const moved = await markReady(cmd.id, owner);
+    if (!moved.ok) return moved;
+    return { ok: true, reply: `⚡ Ready. ${moved.proposal.id} — still no merge.`, proposal: moved.proposal };
   }
 
   const prepared = await preparePr(cmd.id, owner);

@@ -74,6 +74,7 @@
 .proof-light[data-status='proposed'] { background: #c9a227; }
 .proof-light[data-status='approved'] { background: var(--pq-teal); }
 .proof-light[data-status='in_progress'] { background: #00cfc0; }
+.proof-light[data-status='needs_screenshots'] { background: #d47a3a; }
 .proof-light[data-status='ready_for_review'] { background: #2f9e44; }
 .proof-light[data-status='rejected'] { background: var(--pq-coral); }
 .proof-light[data-status='shipped'] { background: #8a847a; }
