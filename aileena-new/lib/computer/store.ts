@@ -77,8 +77,8 @@ export function countOpenTasks(): { running: number; open: number } {
 }
 
 export function canEnqueueTask(): { ok: true } | { ok: false; error: string } {
-  const { running, open } = countOpenTasks();
-  if (running >= COMPUTER_LIMITS.maxConcurrentRunning) {
+  const { open } = countOpenTasks();
+  if (open >= COMPUTER_LIMITS.maxConcurrentRunning) {
     return { ok: false, error: 'A computer task is already running. Wait or cancel it.' };
   }
   if (open >= COMPUTER_LIMITS.maxOpenTasks) {

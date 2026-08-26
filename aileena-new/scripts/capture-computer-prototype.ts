@@ -61,24 +61,32 @@ async function main() {
   await page.keyboard.press('Escape');
   await page.waitForSelector('[data-testid="proof-queue-panel"]');
 
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+  if (overflow) throw new Error('horizontal overflow on /proof 390');
+
   await page.locator('[data-testid="proof-queue-daily"]').click();
   await page.waitForFunction(() => document.querySelector('[data-testid="proof-flash"]')?.textContent?.includes('queued'));
   await page.screenshot({ path: join(OUT, 'proof-task-queued.png'), fullPage: true });
 
-  const running = page.locator('[data-testid="computer-task-running"]');
-  try {
-    await running.first().waitFor({ timeout: 4000 });
-    await page.screenshot({ path: join(OUT, 'proof-task-running.png'), fullPage: true });
-  } catch {
-    await page.screenshot({ path: join(OUT, 'proof-task-running.png'), fullPage: true });
-  }
+  await page.waitForFunction(() => {
+    const first = document.querySelector('[data-testid="computer-task-list"] button');
+    return first?.getAttribute('data-testid') === 'computer-task-running';
+  }, null, { timeout: 8000 });
+  await page.screenshot({ path: join(OUT, 'proof-task-running.png'), fullPage: true });
 
-  await page.waitForSelector('[data-testid="computer-task-completed"]', { timeout: 20_000 });
-  await page.waitForTimeout(400);
-  await page.locator('[data-testid="computer-task-completed"]').first().click();
-  await page.waitForSelector('[data-testid="computer-task-detail"]');
+  await page.waitForFunction(() => {
+    const first = document.querySelector('[data-testid="computer-task-list"] button');
+    return first?.getAttribute('data-testid') === 'computer-task-completed';
+  }, null, { timeout: 20_000 });
+  await page.locator('[data-testid="computer-task-list"] button').first().click();
+  await page.waitForSelector('[data-testid="computer-task-problems"]');
   await page.screenshot({ path: join(OUT, 'proof-task-result.png'), fullPage: true });
+  const detail = page.locator('[data-testid="computer-task-detail"]');
+  await detail.scrollIntoViewIfNeeded();
   await page.screenshot({ path: join(OUT, 'computer-task-detail.png'), fullPage: true });
+
+  const overflowAfter = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+  if (overflowAfter) throw new Error('horizontal overflow after task result');
 
   const desktop = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   await desktop.addCookies([{ name: SESSION_COOKIE, value: token, url: BASE, httpOnly: true }]);

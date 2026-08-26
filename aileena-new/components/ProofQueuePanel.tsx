@@ -225,7 +225,7 @@ export default function ProofQueuePanel() {
           {selectedTask.filesInspected.length > 0 ? (
             <div>
               <p className="font-mono text-[0.55rem] tracking-[0.2em] uppercase text-[#1b1713]/40">files inspected</p>
-              <ul className="mt-1 text-[0.75rem] leading-relaxed text-[#1b1713]/70">
+              <ul className="mt-1 text-[0.75rem] leading-relaxed text-[#1b1713]/70 break-all">
                 {selectedTask.filesInspected.map((f) => (
                   <li key={f}>{f}</li>
                 ))}
@@ -235,7 +235,7 @@ export default function ProofQueuePanel() {
           {selectedTask.problemsFound.length > 0 ? (
             <div data-testid="computer-task-problems">
               <p className="font-mono text-[0.55rem] tracking-[0.2em] uppercase text-[#1b1713]/40">problems</p>
-              <ul className="mt-1 text-[0.75rem] leading-relaxed text-[#1b1713]/70 list-disc pl-4">
+              <ul className="mt-1 text-[0.75rem] leading-relaxed text-[#1b1713]/70 list-disc pl-4 break-words">
                 {selectedTask.problemsFound.map((f) => (
                   <li key={f}>{f}</li>
                 ))}

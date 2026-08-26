@@ -42,7 +42,11 @@ async function runAllowlistedCheck(): Promise<{ ok: boolean; summary: string }> 
   return new Promise((resolve) => {
     const child = spawn(spec.argv[0], spec.argv.slice(1), {
       cwd: process.cwd(),
-      env: { PATH: process.env.PATH, HOME: process.env.HOME },
+      env: {
+        PATH: process.env.PATH ?? '/usr/bin:/bin',
+        HOME: process.env.HOME ?? '',
+        NODE_ENV: process.env.NODE_ENV ?? 'development',
+      },
       timeout: 8000,
     });
     let out = '';
@@ -80,8 +84,8 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
   });
   attachTaskToProof(task.proofItemId, task.id, 'in_progress');
   task = log(task, 'backend=local-shim (not @cloudflare/computer)');
-  // Short pause so owner UI can observe in_progress / running without a 30s spinner.
-  await new Promise((r) => setTimeout(r, 700));
+  // Short pause so owner UI can observe running without a 30s spinner.
+  await new Promise((r) => setTimeout(r, 1400));
 
   const fresh = getComputerTask(id);
   if (!fresh || fresh.cancelled) {
