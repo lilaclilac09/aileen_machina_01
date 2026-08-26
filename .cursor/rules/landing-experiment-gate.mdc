@@ -1,35 +1,39 @@
 ---
-description: Home marquee only — do not restore ascii / moodboard / serials / zine. No screenshots = no merge recommendation.
+description: Landing visual experiment — vellum / ink / embodied depth. No screenshots = no merge recommendation.
 alwaysApply: true
 ---
 
-# Home marquee (shipped slice)
+# Landing visual experiment
 
-The landing experiment was **rejected except the top marquee**.
+Do not ship a flat cream SaaS hero.
 
-Keep:
+The `/` opening must have:
 
-- cinematic `/` opening (portrait + Machina CTA)
-- compact `new →` marquee on that opening
+- scanned paper + ink bleed + registration marks
+- reusable `.vellum` that veils ink/image underneath
+- embodied hero from existing `bg_pic/02.jpeg`, `03.jpeg`, `04.jpeg` — **do not invent a body**
+- tiny `new →` marquee
+- floating 3D ascii mini-building (CSS extrusion, not an image)
+- serial volumes as physical objects
+- minimal copy
 
-Do **not** restore:
-
-- ascii desk
-- vellum studio / grain / stamps
-- moodboard pins
-- object-card doors
-- serials shelf / terminal index / zine object
+Do **not** redesign the rest of the site.
 
 Hard rule:
 
 ```txt
 no screenshots = no merge recommendation.
+if the page still looks like a flat image on a clean cream background, the task failed.
 ```
 
-After touching `/` or `LandingMarquee`:
+Do not merge automatically.
 
-- `/` still shows the cinematic opening
-- marquee is visible and does not block the Machina CTA
-- ascii / moodboard / serials / zine are **absent**
-- 390px has no horizontal overflow
-- capture `landing-desktop.png`, `landing-mobile-390.png`, `landing-marquee.png`
+Required screenshots after implementation:
+
+- `landing-full-desktop.png`
+- `landing-embodied-hero.png`
+- `landing-vellum-over-ink.png`
+- `landing-ascii-building.png`
+- `landing-ascii-building-hover.png`
+- `landing-serials.png`
+- `landing-mobile-390.png`
