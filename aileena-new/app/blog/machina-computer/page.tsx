@@ -7,9 +7,9 @@ export default function MachinaComputerArticle() {
     <SubstackShell
       category="Essay"
       date="2026.08.26"
-      tags="Machina · Console · Computer · Passkey · Tools"
+      tags="Machina · Console · Computer · KeyShield · Tools"
       title="Computer Lives in the Dialog"
-      dek="The site agent already has a mouth. Computer is a tool in that same Console — not a second window, not a typed owner secret, not Cloudflare Computer, and never a merge."
+      dek="The site agent already has a mouth. Computer is a tool in that same Console — not a second window, not a typed owner secret, not Cloudflare Computer, and never a merge. The door is KeyShield."
     >
       <article style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
         <p style={{ ...bodyStyle, color: 'rgba(255,255,255,0.45)', fontSize: '0.85rem' }}>
@@ -52,7 +52,7 @@ export default function MachinaComputerArticle() {
             never see it.
           </li>
           <li>
-            <strong style={strong}>/proof</strong> — a passkey door and a signpost. Not a harness window.
+            <strong style={strong}>/proof</strong> — a KeyShield door and a signpost. Not a harness window.
             The button fires <code style={codeStyle}>open-agent-chat</code>.
           </li>
           <li>
@@ -60,9 +60,9 @@ export default function MachinaComputerArticle() {
             experiment tier. Honest: not a live product. Opens the Console; links this essay.
           </li>
           <li>
-            <strong style={strong}>Passkey</strong> — platform authenticator (Touch ID / Face ID / Windows
-            Hello / local fingerprint). Owner rooms no longer ask for a typed secret. Production enroll
-            without an existing owner session stays off.
+            <strong style={strong}>KeyShield</strong> — WebAuthn PRF → HKDF → AES-256-GCM on this
+            device (Touch ID / Face ID / Windows Hello). Server holds ciphertext only. Owner rooms no
+            longer ask for a typed secret. Production enroll without an existing owner session stays off.
           </li>
         </ul>
 
@@ -72,7 +72,7 @@ owner heavy     →  Edge fast path         →  ⚡ queued. + spoken  →  dial
                 →  after() Node runner    →  local shim workspace
 owner plugin    →  POST /api/agent/computer/tasks  →  same dock
 merge plugin    →  gate only              →  GitHub merge is not a tool
-unlock          →  WebAuthn this-device   →  owner cookie  →  dock appears`}</pre>
+unlock          →  KeyShield PRF → HKDF → AES-GCM   →  owner cookie  →  dock appears`}</pre>
         <p style={bodyStyle}>
           Chat stays Edge. The runner stays Node. Production (
           <code style={codeStyle}>VERCEL_ENV === &apos;production&apos;</code>) hard-offs the prototype.
@@ -89,20 +89,31 @@ unlock          →  WebAuthn this-device   →  owner cookie  →  dock appears
         </p>
         <p style={bodyStyle}>
           <code style={codeStyle}>/daily</code> no longer carries an owner door. The board is paper.
-          Unlock is passkey on council / cabinet / this-device rooms, then the dock in Console.
+          Unlock is KeyShield on council / cabinet / this-device rooms, then the dock in Console.
         </p>
 
-        <SectionLabel>5 · Passkey, not a typed owner secret</SectionLabel>
+        <SectionLabel>5 · KeyShield, not a typed owner secret</SectionLabel>
         <p style={bodyStyle}>
           A password field on a public page is a setting that teaches the secret&apos;s name. The door is
-          now WebAuthn with user verification required. Register on localhost for the prototype.
-          Vercel production will not bootstrap a new passkey for a stranger. Council CLI can still use a
-          server env for the terminal; the site UI does not.
+          the same method as{' '}
+          <a href="https://github.com/lilaclilac09/keyshield" style={inlineLink}>
+            KeyShield
+          </a>
+          : biometric unlocks a WebAuthn PRF, HKDF binds it (
+          <code style={codeStyle}>ks-master-key-v1</code> /{' '}
+          <code style={codeStyle}>ks-vault-id-v1</code>), AES-256-GCM seals{' '}
+          <code style={codeStyle}>aileena-owner-v1</code> in the browser. The site only stores the
+          envelope. It cannot read the key. No fallback password. Register on localhost for the
+          prototype. Vercel production will not bootstrap a new passkey for a stranger. Council CLI can
+          still use a server env for the terminal; the site UI does not.
         </p>
-        <pre style={preStyle}>{`POST /api/auth/passkey/options   →  challenge cookie
-platform authenticator           →  fingerprint / Face ID / Hello
+        <pre style={preStyle}>{`POST /api/auth/passkey/options   →  challenge cookie + ciphertext envelope
+platform authenticator + PRF     →  fingerprint / Face ID / Hello
+HKDF-SHA-256                     →  AES-GCM (extractable: false) + vault id
+open seal in the browser         →  then POST verify
 POST /api/auth/passkey/verify    →  owner session cookie
-typed secret in the dialog       →  gone`}</pre>
+typed secret in the dialog       →  gone
+server                           →  ciphertext only`}</pre>
 
         <SectionLabel>6 · What this is not</SectionLabel>
         <ul style={listStyle}>
@@ -127,7 +138,7 @@ typed secret in the dialog       →  gone`}</pre>
         <SectionLabel>7 · How to try it (owner, localhost)</SectionLabel>
         <ol style={listStyle}>
           <li>Open Console. Ordinary questions still answer.</li>
-          <li>Unlock with this device (or local experiment enter on the proof door).</li>
+          <li>Unlock with KeyShield on this device (or local experiment enter on the proof door).</li>
           <li>
             The dock appears under the transcript. Queue inspect. You should see ⚡ queued. and a
             spoken proof id in the same dialog — then she still talks.

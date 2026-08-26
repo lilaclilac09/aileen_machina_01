@@ -54,10 +54,14 @@ export async function POST(req: Request) {
     authenticatorData?: string;
     signature?: string;
     publicKey?: string;
+    vaultId?: string;
+    sealIv?: string;
+    sealCipher?: string;
   } | null;
   if (!body?.id || !body.clientDataJSON || !body.authenticatorData) {
     return NextResponse.json({ error: 'invalid' }, { status: 400 });
   }
+  if (!body.vaultId) return NextResponse.json({ error: 'keyshield' }, { status: 400 });
 
   const ch = await readWebauthnChallenge(cookie(req, CH_COOKIE));
   if (!ch) return NextResponse.json({ error: 'challenge' }, { status: 400 });
@@ -81,11 +85,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'enrolled' }, { status: 403 });
     }
     if (!body.publicKey) return NextResponse.json({ error: 'publicKey' }, { status: 400 });
+    if (!body.sealIv || !body.sealCipher) return NextResponse.json({ error: 'seal' }, { status: 400 });
     if (client.type !== 'webauthn.create') return NextResponse.json({ error: 'type' }, { status: 400 });
     upsertPasskey({
       id: body.id,
       publicKeySpki: body.publicKey,
       counter: readCounter(bytesFromB64url(body.authenticatorData)),
+      vaultId: body.vaultId,
+      sealIv: body.sealIv,
+      sealCipher: body.sealCipher,
       createdAt: new Date().toISOString(),
     });
     const res = NextResponse.json({ ok: true, owner: true, mode: 'register' });
@@ -95,6 +103,9 @@ export async function POST(req: Request) {
   if (client.type !== 'webauthn.get') return NextResponse.json({ error: 'type' }, { status: 400 });
   const stored = getPasskey(body.id);
   if (!stored) return NextResponse.json({ error: 'unknown' }, { status: 401 });
+  if (!stored.vaultId || stored.vaultId !== body.vaultId) {
+    return NextResponse.json({ error: 'keyshield' }, { status: 401 });
+  }
   if (!body.signature) return NextResponse.json({ error: 'signature' }, { status: 400 });
   const ok = verifyEs256({
     publicKeySpkiB64url: stored.publicKeySpki,

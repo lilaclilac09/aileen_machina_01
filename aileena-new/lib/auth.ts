@@ -103,7 +103,7 @@ export const OWNER_MAX_AGE = 60 * 60 * 24 * 365; // 1 year — the owner shouldn
 export async function createSession(sub: string, via: 'email' | 'wallet'): Promise<string> {
   return signToken({ t: 'sess', sub, via, exp: Date.now() + SESSION_MAX_AGE * 1000 } satisfies Session);
 }
-/** Owner session minted after passkey / platform biometric. */
+/** Owner session minted after KeyShield (PRF → HKDF → AES-GCM) on this device. */
 export async function createOwnerSession(): Promise<string> {
   return signToken({ t: 'sess', sub: 'owner', via: 'owner', exp: Date.now() + OWNER_MAX_AGE * 1000 } satisfies Session);
 }

@@ -3,6 +3,7 @@ import { createWebauthnChallenge } from '@/lib/auth';
 import { isVercelProduction } from '@/lib/computer/flag';
 import { hasPasskeys, listPasskeys } from '@/lib/passkey/store';
 import { rpIdFromHost } from '@/lib/passkey/webauthn';
+import { KS_PRF_FIRST } from '@/lib/keyshield/constants';
 import { requireOwnerFromRequest } from '@/lib/owner-gate';
 
 export const runtime = 'nodejs';
@@ -33,16 +34,21 @@ export async function POST(req: Request) {
   const { token, challenge } = await createWebauthnChallenge();
   const host = hostOf(req);
   const rpId = rpIdFromHost(host);
+  const keys = listPasskeys();
   const res = NextResponse.json({
     ok: true,
     challenge,
     rpId,
     rpName: 'aileena.xyz',
     userVerified: true,
+    method: 'keyshield',
+    prfFirst: KS_PRF_FIRST,
     mode,
     allowCredentials:
+      mode === 'unlock' ? keys.map((k) => ({ type: 'public-key' as const, id: k.id })) : [],
+    seals:
       mode === 'unlock'
-        ? listPasskeys().map((k) => ({ type: 'public-key' as const, id: k.id }))
+        ? keys.map((k) => ({ id: k.id, iv: k.sealIv, cipher: k.sealCipher }))
         : [],
   });
   res.cookies.set(CH_COOKIE, token, {

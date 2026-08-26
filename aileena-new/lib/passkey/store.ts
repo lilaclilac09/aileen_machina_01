@@ -5,6 +5,11 @@ export type StoredPasskey = {
   id: string;
   publicKeySpki: string;
   counter: number;
+  /** HKDF(PRF, ks-vault-id-v1). Server never stores PRF or AES key. */
+  vaultId: string;
+  /** AES-GCM envelope of aileena-owner-v1. Ciphertext only. */
+  sealIv: string;
+  sealCipher: string;
   createdAt: string;
 };
 
@@ -34,7 +39,9 @@ function hydrate(): void {
   try {
     if (existsSync(storePath())) {
       const parsed = JSON.parse(readFileSync(storePath(), 'utf8')) as StoredPasskey[];
-      if (Array.isArray(parsed)) memory().keys = parsed;
+      if (Array.isArray(parsed)) {
+        memory().keys = parsed.filter((k) => k?.id && k.vaultId && k.sealIv && k.sealCipher);
+      }
     }
   } catch {
     /* ignore */

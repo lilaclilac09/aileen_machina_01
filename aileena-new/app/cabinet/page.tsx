@@ -56,7 +56,7 @@ export default async function CabinetPage({
         {locked ? (
           <div className="border border-[#ded8ce] bg-white px-5 py-6 space-y-4 max-w-xl">
             <p className="text-[0.9rem] leading-relaxed text-[#1b1713]/70">
-              Cabinet is owner-only. Same passkey as council.
+              Cabinet is owner-only. Same KeyShield as council.
             </p>
             <OwnerUnlockForm next="/cabinet" enterLabel="enter cabinet" denied={denied} />
           </div>

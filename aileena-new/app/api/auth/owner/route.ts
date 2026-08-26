@@ -3,7 +3,8 @@ import { SESSION_COOKIE, OWNER_MAX_AGE, createOwnerSession, safeEqual } from '..
 
 /**
  * Legacy typed-secret door. Site UI does not post here — owner rooms use
- * passkey / platform biometric (`/api/auth/passkey/*`).
+ * Site UI uses KeyShield: WebAuthn PRF → HKDF → AES-256-GCM (`/api/auth/passkey/*`).
+ * Server stores ciphertext only.
  *
  * Kept so Council CLI / emergency POST still work. GET must not accept
  * ?key= (Referer / access logs / history). Missing OWNER_KEY or empty

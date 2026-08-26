@@ -369,7 +369,7 @@ export default function AgentChat() {
   }, [open, activeRuntime]);
 
   const busy = status === 'submitted' || status === 'streaming' || browserBusy || vcodeBusy || drawBusy;
-  // Visitors hard-stop at 20/day. Owner passkey session or owner-email cookie is unlimited.
+  // Visitors hard-stop at 20/day. Owner KeyShield session or owner-email cookie is unlimited.
   const sessionMaxed = !isOwner && !ownerUnlimited && sessionCount >= DAILY_LIMIT;
   const vcodeMaxed = vcodeCount >= VCODE_DAILY_LIMIT;
   // Soft nudge after a few turns; contact stays optional for the full daily 20.
@@ -450,7 +450,7 @@ export default function AgentChat() {
     } catch {
       /* storage unavailable — ignore */
     }
-    // Confirm server cookie / owner passkey session (source of truth).
+    // Confirm server cookie / owner KeyShield session (source of truth).
     void (async () => {
       try {
         const res = await fetch('/api/owner/chat-access', {

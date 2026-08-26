@@ -56,7 +56,7 @@ export default async function CouncilPage({
         {locked ? (
           <div className="border border-[#ded8ce] bg-white px-5 py-6 space-y-4">
             <p className="text-[0.9rem] leading-relaxed text-[#1b1713]/70">
-              This room is not for visitors. Unlock with this device, then the
+              This room is not for visitors. Unlock with KeyShield on this device, then the
               cabinet is one step away.
             </p>
             <OwnerUnlockForm next="/council" enterLabel="enter council" denied={denied} />

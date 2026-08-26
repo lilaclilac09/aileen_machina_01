@@ -70,8 +70,12 @@ function sourceChecks() {
   assert('computer docks in AgentChat', /ComputerConsoleDock/.test(agentChatSrc));
   assert('proof page does not mount ProofQueuePanel', !/ProofQueuePanel/.test(proofPageSrc));
   assert(
-    'unlock form is passkey not typed secret',
-    /owner-passkey-unlock/.test(unlockSrc) && !/type=["']password["']/.test(unlockSrc) && !/OWNER_KEY/.test(unlockSrc),
+    'unlock form is KeyShield not typed secret',
+    /owner-passkey-unlock/.test(unlockSrc) &&
+      /prf:/.test(unlockSrc) &&
+      /keyshield/.test(unlockSrc) &&
+      !/type=["']password["']/.test(unlockSrc) &&
+      !/OWNER_KEY/.test(unlockSrc),
   );
   assert('daily board has no owner door', !/OwnerUnlockForm/.test(dailySrc) && !/daily-owner-enter/.test(dailySrc));
   assert(
@@ -79,6 +83,11 @@ function sourceChecks() {
     existsSync(join(process.cwd(), 'app/api/auth/passkey/options/route.ts')) &&
       existsSync(join(process.cwd(), 'app/api/auth/passkey/verify/route.ts')),
   );
+  const ks = readFileSync(join(process.cwd(), 'lib/keyshield/constants.ts'), 'utf8');
+  const ksPrf = readFileSync(join(process.cwd(), 'lib/keyshield/prf.ts'), 'utf8');
+  assert('KeyShield HKDF info strings', /ks-master-key-v1/.test(ks) && /ks-vault-id-v1/.test(ks));
+  assert('KeyShield AES-GCM is non-extractable', /AES-GCM[\s\S]{0,120}false,[\s\S]{0,40}\['encrypt', 'decrypt'\]/.test(ksPrf));
+  assert('KeyShield PRF is required', /readPrfFirst/.test(unlockSrc) && /prf:/.test(unlockSrc));
 }
 
 function unitChecks() {
@@ -158,8 +167,8 @@ async function liveHttp() {
   const html = page.ok ? await page.text() : '';
   assert('GET /proof', page.ok, String(page.status));
   assert(
-    'visitor /proof shows passkey door',
-    html.includes('owner-passkey-unlock') || html.includes('passkey'),
+    'visitor /proof shows KeyShield door',
+    html.includes('owner-passkey-unlock') && /keyshield/i.test(html),
   );
   assert('visitor /proof does not name typed owner secret', !/owner key/i.test(html));
   assert('visitor /proof hides queue panel', !html.includes('proof-queue-daily') && !html.includes('proof-queue-panel'));

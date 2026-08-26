@@ -32,7 +32,7 @@ export default async function ProofPage({
       <div className="mx-auto max-w-3xl px-5 sm:px-8 py-10 sm:py-14 pt-[max(2.5rem,calc(env(safe-area-inset-top,0px)+2.5rem))] w-full min-w-0 box-border">
         <header className="mb-8 space-y-2">
           <p className="font-mono text-[0.55rem] tracking-[0.28em] uppercase text-[#008f86]/85">
-            owner · passkey door
+            owner · keyshield door
           </p>
           <h1 className="font-serif text-[1.85rem] sm:text-[2.15rem] tracking-tight text-[#1b1713]">
             computer is in the dialog
@@ -64,8 +64,8 @@ export default async function ProofPage({
         ) : !owner ? (
           <div className="border border-[#ded8ce] bg-white px-5 py-6 space-y-4">
             <p className="text-[0.9rem] leading-relaxed text-[#1b1713]/70">
-              This room is not for visitors. Unlock with this device — fingerprint,
-              Face ID, or Windows Hello. Then open the site agent.
+              This room is not for visitors. Unlock with KeyShield on this device —
+              fingerprint, Face ID, or Windows Hello. Then open the site agent.
             </p>
             <OwnerUnlockForm next="/proof" enterLabel="unlock" denied={denied} />
             {localUnlock ? (

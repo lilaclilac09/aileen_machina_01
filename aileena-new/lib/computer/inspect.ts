@@ -60,7 +60,7 @@ export function analyzeDailyFixPlan(files: InspectedFile[]): {
   }
   if (/OWNER_KEY/.test(unlock) || /type=["']password["']/.test(unlock)) {
     problemsFound.push(
-      'Owner door: unlock form still names a typed secret or uses a password field. Site UI is passkey / this device only.',
+      'Owner door: unlock form still names a typed secret or uses a password field. Site UI is KeyShield (PRF → HKDF → AES-GCM) on this device only.',
     );
     proposedFilesToChange.push('aileena-new/components/OwnerUnlockForm.tsx');
   }
@@ -103,7 +103,7 @@ export function analyzeDailyFixPlan(files: InspectedFile[]): {
 
   implementationPlan.push(
     'Do not modify files in this computer task. Plan only.',
-    'Owner door: passkey / this device on council and Console, never a typed secret on /daily.',
+    'Owner door: KeyShield (WebAuthn PRF → HKDF → AES-256-GCM) on council and Console, never a typed secret on /daily.',
     'Notes: public GET should show latest published note; writer stays owner-only; empty state stays “nothing today yet.”',
     'Comments: require a published note as the target; keep 503 bolt copy; do not invent a second store.',
     'Verify with pnpm verify:daily-board + 390px stills. No merge without owner approval and screenshots.',
