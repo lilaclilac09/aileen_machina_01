@@ -1,0 +1,25 @@
+/** Immediate owner reply: bolt + one human sentence. Never silence after queue. */
+
+const DOING: Record<string, string> = {
+  draft_daily_fix_plan: 'Inspecting /daily and drafting a plan',
+  write_scratch_file: 'Writing a scratch file in the workspace',
+  inspect_route_files: 'Inspecting route files',
+  generate_implementation_prompt: 'Preparing an implementation prompt / PR summary',
+  draft_patch: 'Drafting a patch plan (not applying it)',
+  run_build_check: 'Running an allowlisted check',
+  collect_screenshot_checklist: 'Collecting a screenshot checklist',
+  update_proof_queue: 'Updating the proof queue',
+};
+
+export function spokenQueued(opts: {
+  taskType: string;
+  route: string;
+  proofItemId: string;
+  proofTitle?: string;
+}): string {
+  const doing = DOING[opts.taskType] || `Running ${opts.taskType}`;
+  const hung = opts.proofTitle
+    ? `${opts.proofItemId} (${opts.proofTitle})`
+    : opts.proofItemId;
+  return `⚡ queued. ${doing} for ${opts.route}. Hung on proof ${hung}. Computer is in the background. I can still talk. No merge.`;
+}

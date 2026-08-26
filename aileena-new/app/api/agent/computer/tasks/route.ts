@@ -15,6 +15,8 @@ import {
   newProofId,
   upsertProofItem,
 } from '@/lib/proofQueue/store';
+import { listHarnessPlugins } from '@/lib/computer/plugins';
+import { spokenQueued } from '@/lib/computer/spokenQueue';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -35,6 +37,9 @@ export async function GET(req: Request) {
     cloudflareComputer: false,
     tasks: listComputerTasks(),
     proof: listProofItems(),
+    plugins: listHarnessPlugins(),
+    harness: 'machina-owner-prototype',
+    deepSeekHarness: false,
   });
 }
 
@@ -140,10 +145,18 @@ export async function POST(req: Request) {
     await runComputerTask(task.id);
   });
 
+  const spoken = spokenQueued({
+    taskType: task.taskType,
+    route,
+    proofItemId,
+    proofTitle: proof.title,
+  });
+
   return NextResponse.json(
     {
       ok: true,
       message: '⚡ queued.',
+      spoken,
       prototype: true,
       backend: 'local-shim',
       cloudflareComputer: false,

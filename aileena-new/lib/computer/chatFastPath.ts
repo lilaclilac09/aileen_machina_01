@@ -83,8 +83,10 @@ export async function tryOwnerComputerFastPath(opts: {
     });
     if (res.status === 403 || res.status === 401) return queuedChatResponse('⚡ Owner only. Unlock /proof first.');
     if (!res.ok) return queuedChatResponse('⚡ Nope. Computer did not accept the task. I am still here.');
+    const body = (await res.json()) as { spoken?: string };
     return queuedChatResponse(
-      '⚡ queued.\n\nPR summary is running in the background. I can keep talking. Open /proof for the worker. No merge.',
+      body.spoken ||
+        '⚡ queued. PR summary is running in the background. I can keep talking. Open /proof. No merge.',
     );
   }
 
@@ -101,8 +103,9 @@ export async function tryOwnerComputerFastPath(opts: {
   if (res.status === 403 || res.status === 401) return queuedChatResponse('⚡ Owner only. Unlock /proof first.');
   if (res.status === 429) return queuedChatResponse('⚡ Slow down. Rate limit. I am still here.');
   if (!res.ok) return queuedChatResponse('⚡ Nope. Computer did not accept the task. Ask me something else.');
-  const route = command.route;
+  const queued = (await res.json()) as { spoken?: string };
   return queuedChatResponse(
-    `⚡ queued.\n\nI took that. The computer is inspecting ${route} in the background — not a 30s spinner. I can still answer you. Open /proof for the worker status. No merge, no deploy.`,
+    queued.spoken ||
+      `⚡ queued. Working ${command.route} in the background. I can still answer you. Open /proof. No merge.`,
   );
 }

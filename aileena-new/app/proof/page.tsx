@@ -32,11 +32,11 @@ export default async function ProofPage({
             owner · proof queue · prototype
           </p>
           <h1 className="font-serif text-[1.85rem] sm:text-[2.15rem] tracking-tight text-[#1b1713]">
-            computer
+            harness
           </h1>
           <p className="max-w-2xl text-[0.88rem] leading-relaxed text-[#1b1713]/55">
-            Background worker for repo-aware plans. The site agent stays fast.
-            Merge stays owner-only. Not production.
+            One owner window for plugins, proof, computer, and merge gate.
+            Public chat still answers. Not DeepSeek Harness. Not production.
           </p>
           <p className="font-mono text-[0.55rem] tracking-[0.14em] text-[#1b1713]/35">
             <Link href="/" className="hover:text-[#008f86]">

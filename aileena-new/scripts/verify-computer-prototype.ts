@@ -13,6 +13,8 @@ import { inspectRouteFiles, analyzeDailyFixPlan } from '../lib/computer/inspect'
 import { parseOwnerComputerCommand } from '../lib/computer/parseOwnerCommand';
 import { redactSecrets } from '../lib/computer/redact';
 import { isComputerPrototypeEnabled } from '../lib/computer/flag';
+import { HARNESS_PLUGINS } from '../lib/computer/plugins';
+import { spokenQueued } from '../lib/computer/spokenQueue';
 import { workspaceReadFile, workspaceRuntimeProbe, workspaceWriteFile } from '../lib/computer/workspace';
 
 type Check = { name: string; ok: boolean; detail?: string };
@@ -45,6 +47,8 @@ function sourceChecks() {
   const tasks = readFileSync(join(process.cwd(), 'app/api/agent/computer/tasks/route.ts'), 'utf8');
   const flag = readFileSync(join(process.cwd(), 'lib/computer/flag.ts'), 'utf8');
   const runner = readFileSync(join(process.cwd(), 'lib/computer/runner.ts'), 'utf8');
+  const pluginsSrc = readFileSync(join(process.cwd(), 'lib/computer/plugins.ts'), 'utf8');
+  const panelSrc = readFileSync(join(process.cwd(), 'components/ProofQueuePanel.tsx'), 'utf8');
   assert('chat stays edge', /export const runtime = 'edge'/.test(chat));
   assert('chat does not import computer runner', !/from ['"].*computer\/runner['"]/.test(chat));
   assert('tasks route is nodejs', /export const runtime = 'nodejs'/.test(tasks));
@@ -54,6 +58,11 @@ function sourceChecks() {
   assert('runner does not merge', /not performed/.test(runner) || /owner approval/.test(runner));
   assert('runner backend is local-shim', /local-shim/.test(runner));
   assert('does not import @cloudflare/computer', !existsSync(join(process.cwd(), 'node_modules/@cloudflare/computer')));
+  assert(
+    'plugins are not DeepSeek Harness',
+    pluginsSrc.includes('not DeepSeek Harness') && !/from ['"]@deepseek-ai\/dsh['"]/.test(pluginsSrc),
+  );
+  assert('merge is blocked in the window', /harness-merge-blocked/.test(panelSrc) && /canMerge: false/.test(pluginsSrc));
 }
 
 function unitChecks() {
@@ -67,6 +76,15 @@ function unitChecks() {
   assert('show proof queue is fast', parseOwnerComputerCommand('show proof queue')?.kind === 'show_queue');
   assert('redact OWNER_KEY', redactSecrets('set OWNER_KEY=secret') === 'set [redacted]=secret');
   assert('prototype enabled in this verify process', isComputerPrototypeEnabled() === true, String(isComputerPrototypeEnabled()));
+  assert('harness plugins exist', HARNESS_PLUGINS.length >= 4);
+  assert('no plugin can merge', HARNESS_PLUGINS.every((p) => p.canMerge === false));
+  assert('merge plugin is a gate', HARNESS_PLUGINS.some((p) => p.id === 'merge' && p.kind === 'merge-gate'));
+  assert(
+    'spoken names proof id',
+    spokenQueued({ taskType: 'draft_daily_fix_plan', route: '/daily', proofItemId: 'proof-daily-owner-key' }).includes(
+      'proof-daily-owner-key',
+    ),
+  );
 
   const inspected = inspectRouteFiles('/daily');
   assert(
@@ -154,6 +172,11 @@ async function liveHttp() {
   const token = await createOwnerSession();
   const cookie = `${SESSION_COOKIE}=${token}`;
 
+  const listed = await fetch(`${base}/api/agent/computer/tasks`, { headers: { Cookie: cookie } });
+  const listedJson = listed.ok ? ((await listed.json()) as { plugins?: unknown[]; deepSeekHarness?: boolean }) : {};
+  assert('owner GET lists plugins', Array.isArray(listedJson.plugins) && (listedJson.plugins?.length ?? 0) >= 4);
+  assert('owner GET says not dsh', listedJson.deepSeekHarness === false, String(listedJson.deepSeekHarness));
+
   const ownerShell = await fetch(`${base}/api/agent/computer/tasks`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Cookie: cookie },
@@ -173,10 +196,16 @@ async function liveHttp() {
   assert('owner POST queues 202', created.status === 202, String(created.status));
   const createdJson = created.ok || created.status === 202 ? ((await created.json()) as {
     message?: string;
+    spoken?: string;
     task?: { id?: string };
     proofItem?: { id?: string; status?: string };
   }) : {};
   assert('immediate ⚡ queued.', createdJson.message === '⚡ queued.', createdJson.message);
+  assert(
+    'spoken names proof and work',
+    Boolean(createdJson.spoken?.includes('queued') && createdJson.spoken?.includes('proof')),
+    createdJson.spoken?.slice(0, 180),
+  );
   const taskId = createdJson.task?.id || '';
   assert('task id returned', Boolean(taskId), taskId);
 
@@ -229,6 +258,7 @@ async function liveHttp() {
   );
   const chatText = await chat.text();
   assert('owner chat says queued', /queued/i.test(chatText), chatText.slice(0, 180));
+  assert('owner chat names proof', /proof/i.test(chatText), chatText.slice(0, 220));
 
   const visitorChat = await fetch(`${base}/api/chat`, {
     method: 'POST',

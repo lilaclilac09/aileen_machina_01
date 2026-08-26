@@ -1,13 +1,16 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { ComputerTask } from '../lib/computer/types';
+import type { ComputerTask, ComputerTaskType } from '../lib/computer/types';
+import type { HarnessPlugin } from '../lib/computer/plugins';
+import { HARNESS_PLUGINS } from '../lib/computer/plugins';
 import type { ProofItem } from '../lib/proofQueue/types';
 
 type QueuePayload = {
   ok?: boolean;
   tasks?: ComputerTask[];
   proof?: ProofItem[];
+  plugins?: HarnessPlugin[];
 };
 
 const LED: Record<string, string> = {
@@ -45,9 +48,12 @@ function Dot({ status }: { status: string }) {
 export default function ProofQueuePanel() {
   const [tasks, setTasks] = useState<ComputerTask[]>([]);
   const [proof, setProof] = useState<ProofItem[]>([]);
+  const [plugins, setPlugins] = useState<HarnessPlugin[]>([...HARNESS_PLUGINS]);
   const [selected, setSelected] = useState<string | null>(null);
-  const [flash, setFlash] = useState('⚡ Ready.');
+  const [selectedProof, setSelectedProof] = useState<string | null>(null);
+  const [flash, setFlash] = useState('⚡ Ready. Visitor chat still answers. Heavy work queues here.');
   const [busy, setBusy] = useState(false);
+  const [mergeOpen, setMergeOpen] = useState(true);
 
   const load = useCallback(async () => {
     const res = await fetch('/api/agent/computer/tasks', { cache: 'no-store', credentials: 'include' });
@@ -55,6 +61,7 @@ export default function ProofQueuePanel() {
     const data = (await res.json()) as QueuePayload;
     setTasks(Array.isArray(data.tasks) ? data.tasks : []);
     setProof(Array.isArray(data.proof) ? data.proof : []);
+    if (Array.isArray(data.plugins) && data.plugins.length) setPlugins(data.plugins);
   }, []);
 
   useEffect(() => {
@@ -73,7 +80,12 @@ export default function ProofQueuePanel() {
     [tasks, selected],
   );
 
-  const queue = async (taskType: 'draft_daily_fix_plan' | 'write_scratch_file') => {
+  const selectedProofItem = useMemo(
+    () => proof.find((p) => p.id === selectedProof) ?? proof[0] ?? null,
+    [proof, selectedProof],
+  );
+
+  const queue = async (taskType: ComputerTaskType, proofItemId?: string) => {
     setBusy(true);
     setFlash('⚡ queued.');
     try {
@@ -83,25 +95,66 @@ export default function ProofQueuePanel() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           taskType,
-          route: taskType === 'draft_daily_fix_plan' ? '/daily' : '/proof',
+          proofItemId: proofItemId || selectedProofItem?.id,
+          route: taskType === 'draft_daily_fix_plan' ? '/daily' : selectedProofItem?.route || '/proof',
           scope: 'prototype',
           instructions:
-            taskType === 'draft_daily_fix_plan'
-              ? 'prepare fix for /daily owner key UI'
-              : 'write /scratch/hello.txt and read it back',
+            taskType === 'write_scratch_file'
+              ? 'write /scratch/hello.txt and read it back'
+              : 'prepare fix for /daily owner key UI',
         }),
       });
-      const data = (await res.json()) as { message?: string; task?: ComputerTask; error?: string };
+      const data = (await res.json()) as {
+        message?: string;
+        spoken?: string;
+        task?: ComputerTask;
+        proofItem?: ProofItem;
+        error?: string;
+      };
+      if (!res.ok) {
+        setFlash(`⚡ Nope. ${data.error || res.status}`);
+        return;
+      }
+      setFlash(data.spoken || `${data.message || '⚡ queued.'} I am still here. No merge.`);
+      if (data.task?.id) setSelected(data.task.id);
+      if (data.proofItem?.id) setSelectedProof(data.proofItem.id);
+      await load();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const runPlugin = (plugin: HarnessPlugin) => {
+    if (plugin.kind === 'merge-gate') {
+      setMergeOpen(true);
+      setFlash(
+        '⚡ Merge stays in this window as a gate. Approve or reject the proof. GitHub merge is not a plugin. Not DeepSeek Harness.',
+      );
+      return;
+    }
+    if (!plugin.taskType) return;
+    void queue(plugin.taskType);
+  };
+
+  const proofAction = async (id: string, action: 'approve' | 'reject') => {
+    setBusy(true);
+    try {
+      const res = await fetch('/api/agent/proof', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, id }),
+      });
+      const data = (await res.json()) as { error?: string };
       if (!res.ok) {
         setFlash(`⚡ Nope. ${data.error || res.status}`);
         return;
       }
       setFlash(
-        data.message
-          ? `${data.message} Still talking. Open the task below. No merge.`
-          : '⚡ queued. Computer is running in the background. I did not go silent. No merge.',
+        action === 'approve'
+          ? `⚡ Approved ${id}. Still not merged. Computer does not deploy.`
+          : `⚡ Rejected ${id}. Queue left it. I am still here.`,
       );
-      if (data.task?.id) setSelected(data.task.id);
       await load();
     } finally {
       setBusy(false);
@@ -110,20 +163,44 @@ export default function ProofQueuePanel() {
 
   const cancel = async (id: string) => {
     await fetch(`/api/agent/computer/tasks/${id}/cancel`, { method: 'POST', credentials: 'include' });
-    setFlash('⚡ Nope. Cancelled.');
+    setFlash('⚡ Nope. Cancelled. I am still here.');
     await load();
   };
 
   return (
-    <div className="space-y-8" data-testid="proof-queue-panel">
-      <p className="font-mono text-[0.7rem] tracking-[0.08em] text-[#008f86]" data-testid="proof-flash">
+    <div className="space-y-8" data-testid="proof-queue-panel" data-harness="machina-owner-prototype">
+      <p className="font-mono text-[0.7rem] tracking-[0.08em] text-[#008f86] whitespace-pre-wrap" data-testid="proof-flash">
         {flash}
       </p>
       <p className="text-[0.82rem] leading-relaxed text-[#1b1713]/55 max-w-2xl">
-        Prototype computer: local shim, not Cloudflare Durable Objects. Fast path
-        stays the site agent. This worker inspects, plans, and writes scratch
-        reports. It does not merge, deploy, or take visitor shell.
+        One owner window: plugins, proof, computer, merge gate. Public chat still
+        answers. This is Machina&apos;s harness prototype — not DeepSeek Harness,
+        not Cloudflare Computer, not production merge.
       </p>
+
+      <section>
+        <h2 className="font-mono text-[0.55rem] tracking-[0.28em] uppercase text-[#008f86]/85 mb-3">
+          plugins
+        </h2>
+        <div className="flex flex-wrap gap-2" data-testid="harness-plugin-dock">
+          {plugins.map((plugin) => (
+            <button
+              key={plugin.id}
+              type="button"
+              data-testid={`harness-plugin-${plugin.id}`}
+              disabled={busy}
+              title={plugin.blurb}
+              onClick={() => runPlugin(plugin)}
+              className="min-h-11 font-mono text-[0.62rem] tracking-[0.22em] uppercase text-[#007d75] border border-[#00a89d]/45 bg-white px-4 py-2 hover:bg-[#e9fffc] disabled:opacity-40"
+            >
+              {plugin.label}
+            </button>
+          ))}
+        </div>
+        <p className="mt-2 font-mono text-[0.55rem] tracking-[0.08em] text-[#1b1713]/40">
+          slots are allowlisted. more plugins can dock here. none of them merge.
+        </p>
+      </section>
 
       <div className="flex flex-wrap gap-3">
         <button
@@ -152,23 +229,80 @@ export default function ProofQueuePanel() {
         </h2>
         <ul className="space-y-2" data-testid="proof-item-list">
           {proof.map((item) => (
-            <li
-              key={item.id}
-              className="border border-[#ded8ce] bg-white px-4 py-3 text-[0.85rem]"
-              data-testid={`proof-item-${item.id}`}
-            >
-              <div className="flex items-center gap-2">
-                <Dot status={item.status} />
-                <span className="font-medium">{item.title}</span>
-                <span className="ml-auto font-mono text-[0.62rem] uppercase tracking-[0.14em] text-[#1b1713]/45">
-                  {item.status}
-                </span>
-              </div>
-              <p className="mt-1 text-[0.78rem] text-[#1b1713]/55">{item.route} · {item.problem}</p>
+            <li key={item.id} data-testid={`proof-item-${item.id}`}>
+              <button
+                type="button"
+                onClick={() => setSelectedProof(item.id)}
+                className={`w-full text-left border bg-white px-4 py-3 ${
+                  selectedProofItem?.id === item.id ? 'border-[#00a89d]/70' : 'border-[#ded8ce]'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Dot status={item.status} />
+                  <span className="font-medium">{item.title}</span>
+                  <span className="ml-auto font-mono text-[0.62rem] uppercase tracking-[0.14em] text-[#1b1713]/45">
+                    {item.status}
+                  </span>
+                </div>
+                <p className="mt-1 text-[0.78rem] text-[#1b1713]/55">
+                  {item.id} · {item.route} · {item.problem}
+                </p>
+              </button>
             </li>
           ))}
         </ul>
       </section>
+
+      {mergeOpen ? (
+        <section
+          data-testid="harness-merge-pane"
+          className="border border-[#ded8ce] bg-white px-4 py-4 space-y-3"
+        >
+          <h2 className="font-mono text-[0.55rem] tracking-[0.28em] uppercase text-[#c46b2e]">
+            merge gate · same window · never auto
+          </h2>
+          <p className="text-[0.8rem] leading-relaxed text-[#1b1713]/60">
+            Approve or reject the selected proof here. This does not call GitHub
+            merge. This does not deploy. This is not DeepSeek Harness.
+          </p>
+          {selectedProofItem ? (
+            <p className="font-mono text-[0.7rem] text-[#1b1713]/70">
+              {selectedProofItem.id} · {selectedProofItem.status}
+            </p>
+          ) : (
+            <p className="text-[0.8rem] text-[#1b1713]/45">pick a proof item</p>
+          )}
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              data-testid="harness-approve"
+              disabled={busy || !selectedProofItem}
+              onClick={() => selectedProofItem && void proofAction(selectedProofItem.id, 'approve')}
+              className="min-h-11 font-mono text-[0.62rem] tracking-[0.22em] uppercase text-[#007d75] border border-[#00a89d]/45 bg-white px-4 py-2 hover:bg-[#e9fffc] disabled:opacity-40"
+            >
+              approve
+            </button>
+            <button
+              type="button"
+              data-testid="harness-reject"
+              disabled={busy || !selectedProofItem}
+              onClick={() => selectedProofItem && void proofAction(selectedProofItem.id, 'reject')}
+              className="min-h-11 font-mono text-[0.62rem] tracking-[0.22em] uppercase text-[#a33b32] border border-[#a33b32]/35 bg-white px-4 py-2 hover:bg-[#fff4f2] disabled:opacity-40"
+            >
+              reject
+            </button>
+            <button
+              type="button"
+              data-testid="harness-merge-blocked"
+              disabled
+              title="GitHub merge is owner-only and not a plugin"
+              className="min-h-11 font-mono text-[0.62rem] tracking-[0.22em] uppercase text-[#1b1713]/30 border border-[#ded8ce] bg-[#f6f3ee] px-4 py-2 cursor-not-allowed"
+            >
+              merge (blocked)
+            </button>
+          </div>
+        </section>
+      ) : null}
 
       <section>
         <h2 className="font-mono text-[0.55rem] tracking-[0.28em] uppercase text-[#008f86]/85 mb-3">
@@ -194,7 +328,7 @@ export default function ProofQueuePanel() {
                     </span>
                   </div>
                   <p className="mt-1 text-[0.78rem] text-[#1b1713]/55">
-                    {task.route} · {task.resultSummary || task.instructions || 'queued'}
+                    {task.proofItemId} · {task.route} · {task.resultSummary || task.instructions || 'queued'}
                   </p>
                 </button>
               </li>
