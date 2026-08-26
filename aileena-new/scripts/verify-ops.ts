@@ -21,7 +21,7 @@ import {
 } from '../lib/modelRouter';
 import { createRequestTrace } from '../lib/requestTrace';
 import { decideAgentMode, isCouncilPipelineRequest, skipVisitorQuota } from '../lib/agentMode';
-import { parseVoiceAccent, spokenRegisterPrompt } from '../lib/voiceAccent';
+import { parseVoiceAccent, spokenRegisterPrompt, ttsSpokenInstructions } from '../lib/voiceAccent';
 import { COUNCIL_SYSTEM_PROMPT } from '../lib/aileenaCouncil';
 import { SYSTEM_PROMPT } from '../lib/agentContext';
 import { COUNCIL_OPENING } from '../lib/councilCopy';
@@ -113,8 +113,20 @@ function main() {
   assert('degrade timeout copy', /too long|again/i.test(degradeMessage('timeout')));
 
   assert('parse shanghai accent', parseVoiceAccent('Shanghai') === 'shanghai');
+  assert('parse london accent', parseVoiceAccent('London') === 'london');
   assert('reject junk accent', parseVoiceAccent('argentina') === null);
   assert('shanghai spoken register is Chinese-auntie not dsh', /上海阿姨/.test(spokenRegisterPrompt('shanghai')) && !/dsh/i.test(spokenRegisterPrompt('shanghai')));
+  assert(
+    'london spoken register is British RP not auntie',
+    /British English/.test(spokenRegisterPrompt('london')) &&
+      /not American/i.test(spokenRegisterPrompt('london')) &&
+      !/上海阿姨/.test(spokenRegisterPrompt('london')),
+  );
+  assert(
+    'hosted TTS London is British not auntie',
+    /British English/.test(ttsSpokenInstructions('london')) &&
+      !/上海阿姨/.test(ttsSpokenInstructions('london')),
+  );
   assert('typed voice is silent', spokenRegisterPrompt(null) === '');
   const shRoute = routeModel({ toolRoute: 'taste', lastQuestion: '你好', voiceAccent: 'shanghai' });
   if (okRoute.mode === 'llm') {
@@ -320,6 +332,13 @@ function main() {
     'public console sends voiceAccent when Voice is on',
     /voiceAccent:/.test(agentChatSrc) && /readStoredVoiceAccent/.test(agentChatSrc),
   );
+  const orbSrc = readFileSync(join(process.cwd(), 'components/AgentVoiceOrb.tsx'), 'utf8');
+  const ttsSrc = readFileSync(join(process.cwd(), 'app/api/tts/route.ts'), 'utf8');
+  assert('voice orb keeps London British chip', /key: 'london'/.test(orbSrc) && /en-GB/.test(orbSrc));
+  assert('voice orb can change accent while listening', /disabled=\{listening\}/.test(orbSrc) === false);
+  assert('voice orb waits for browser voices', /voiceschanged/.test(orbSrc));
+  assert('voice orb POSTs accent to TTS', /accent: accentKey/.test(orbSrc));
+  assert('tts route follows accent not auntie-only', /ttsSpokenInstructions/.test(ttsSrc));
   assert('chat route applies spoken register via frozen prefix', /buildFrozenSystemPrompt/.test(chatRouteSrc) && /spokenRegisterPrompt/.test(readFileSync(join(process.cwd(), 'lib/consolePrefix.ts'), 'utf8')));
   assert('chat route ignores voice on council', /isCouncil \? null : parseVoiceAccent/.test(chatRouteSrc));
   const vcodeSrc = readFileSync(join(process.cwd(), 'app/api/voice-code/route.ts'), 'utf8');

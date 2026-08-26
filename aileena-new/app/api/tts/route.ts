@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { ELEVEN_VOICE_ID, parseVoiceAccent, ttsSpokenInstructions } from '../../../lib/voiceAccent';
 
 export const runtime = 'edge';
 export const maxDuration = 60;
@@ -8,7 +9,8 @@ export const maxDuration = 60;
  *
  * Soft default voice (欢迎来到上海 · 侬好啊):
  *   1. ElevenLabs — body.voice or ELEVENLABS_VOICE_ID or Bella default
- *   2. OpenAI gpt-4o-mini-tts with soft Shanghainese-auntie instructions
+ *   2. OpenAI gpt-4o-mini-tts — instructions follow body.accent / voice id
+ *      (London = British RP, not Shanghai auntie)
  *   3. 503 → browser SpeechSynthesis fallback
  *
  * Free-tier note: ElevenLabs Voice Library IDs (e.g. Coco Li) return 402 on
@@ -20,15 +22,10 @@ export const maxDuration = 60;
 const MAX_CHARS = 30000;
 
 /** Bella — soft female premade; free-tier API OK (library voices need paid). */
-const SHANGHAI_SOFT_VOICE = 'EXAVITQu4vr4xnSDxMaL';
-
-const SOFT_AUNTIE_INSTRUCTIONS =
-  '用很软、很暖的上海阿姨口音说话。像邻居阿姨拉家常：温柔、慢一点、带点呼吸感。' +
-  '句子之间自然停顿，不要一口气读完整段，不要机场广播或播音腔。' +
-  '可以说「侬好」「老漂亮」「欢迎来到上海」这种软软的语气。不要太年轻太甜腻，也不要客服腔。';
+const SHANGHAI_SOFT_VOICE = ELEVEN_VOICE_ID.shanghai;
 
 export async function POST(req: Request) {
-  let body: { text?: unknown; voice?: unknown };
+  let body: { text?: unknown; voice?: unknown; accent?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -100,7 +97,7 @@ export async function POST(req: Request) {
         model: 'gpt-4o-mini-tts',
         voice: 'coral',
         input: text,
-        instructions: SOFT_AUNTIE_INSTRUCTIONS,
+        instructions: ttsSpokenInstructions(parseVoiceAccent(body.accent), typeof body.voice === 'string' ? body.voice : undefined),
         // 0.85–0.95: slower than default without dragging.
         speed: 0.9,
         response_format: 'mp3',
@@ -114,7 +111,7 @@ export async function POST(req: Request) {
       headers: {
         'Content-Type': 'audio/mpeg',
         'Cache-Control': 'public, max-age=86400, immutable',
-        'X-TTS-Voice': 'coral-shanghai-soft',
+        'X-TTS-Voice': `coral-${parseVoiceAccent(body.accent) || 'shanghai'}`,
       },
     });
   }
