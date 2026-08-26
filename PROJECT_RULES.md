@@ -4,6 +4,12 @@ Project facts — not chat memory. Update this file when a product decision is s
 
 Site: **https://www.aileena.xyz** (app in `aileena-new/`).
 
+Design / visual OS (permanent): [`docs/aileena-design-os.md`](docs/aileena-design-os.md)
+
+```txt
+follow /docs/aileena-design-os.md. no screenshots = not done. no owner approval = no merge.
+```
+
 ## Site principles
 
 - aileena.xyz should feel **soft, strange, technical, personal**

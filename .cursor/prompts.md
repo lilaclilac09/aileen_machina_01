@@ -2,8 +2,9 @@
 
 Agent 总则（**inspect → plan → patch → verify** + 施工队安全条例）见仓库根目录：**[`AGENTS.md`](../AGENTS.md)**
 
-新 session 先说：`follow AGENTS.md and QA.md. do not say done without verification.`
+新 session 先说：`follow AGENTS.md, QA.md, and /docs/aileena-design-os.md. no screenshots = not done. no owner approval = no merge.`
 
+- 设计 / 视觉 OS：[`docs/aileena-design-os.md`](../docs/aileena-design-os.md)
 - 产品事实（mood / orb / Visual / contact / doors）：[`PROJECT_RULES.md`](../PROJECT_RULES.md)
 - QA 清单 + 命令：[`QA.md`](../QA.md)
 - 任务→工具：[`docs/AGENT_TOOL_MAP.md`](../docs/AGENT_TOOL_MAP.md)
