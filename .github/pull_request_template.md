@@ -20,9 +20,11 @@ App is `aileena-new/` (`pnpm`). Gate files you touched; full-repo lint is alread
 - [ ] screenshots attached if UI changed
 - [ ] production / env steps listed if needed
 
+Design OS: [`docs/aileena-design-os.md`](../docs/aileena-design-os.md). **no screenshots = not done. no owner approval = no merge.**
+
 Slice checklists live in [`QA.md`](../QA.md) (orb, council, contact, visual/collage, doors, DJ, landing experiment).
 
-Landing experiment (`/` · `LandingStudio`): `.cursor/rules/landing-experiment-gate.mdc`. **no screenshots = no merge recommendation.**
+Landing experiment (`/` · `LandingStudio`): `.cursor/rules/landing-experiment-gate.mdc`. Color review via `/?theme=`. **no screenshots = no merge recommendation.** This PR is review-only — do not merge.
 
 After merge (or a blocked gate): [`ops/post-pr-review.md`](../ops/post-pr-review.md). Do not promote lessons into `AGENTS.md` without owner approval.
 

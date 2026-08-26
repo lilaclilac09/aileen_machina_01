@@ -8,9 +8,15 @@ test.describe('DJ pair recommendation', () => {
     const panel = page.getByTestId('dj-pair-panel');
     await expect(panel).toBeVisible({ timeout: 20_000 });
     await panel.evaluate((el) => el.scrollIntoView({ block: 'center' }));
+    await expect(panel).toHaveAttribute('data-mixable-count', '2');
     await page.getByTestId('dj-pair-toggle').click();
-    await expect(page.getByTestId('dj-pair-hit')).toHaveCount(4, { timeout: 20_000 });
+    const hits = page.getByTestId('dj-pair-hit');
+    const hitCount = await hits.count();
+    expect(hitCount).toBeGreaterThanOrEqual(1);
+    expect(hitCount).toBeLessThanOrEqual(3);
+    expect(hitCount).not.toBe(4);
     await expect(page.getByTestId('dj-pair-feedback').first()).toBeVisible();
+    await expect(hits.first()).toContainText(/Stab Loop/i);
 
     await page.screenshot({ path: '/opt/cursor/artifacts/mobile-pair-recommendation.png' });
     await page.screenshot({ path: '/opt/cursor/artifacts/pair-recommendation.png' });

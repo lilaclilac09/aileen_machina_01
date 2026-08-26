@@ -13,6 +13,8 @@ export type PairableTrack = {
   key: string;
   dur: number;
   source?: string;
+  mixable?: boolean;
+  audioSrc?: string | null;
 };
 
 export type PairCandidate = {

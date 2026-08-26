@@ -86,7 +86,7 @@ wait for confirmation before editing if the change touches multiple systems.
 - do not change typography / layout / colors unless requested
 - fix proportions / readability / function only
 - UI merge: screenshots + interaction (`.cursor/rules/ui-step-screenshot.mdc`)
-- **landing experiment** (`/` · `LandingStudio`): paper / crayon markup / printed plate / vellum. Color review via `/?theme=cyan|coral|graphite|acid|violet|cobalt`. No fake 3D. Follow `.cursor/rules/landing-experiment-gate.mdc`.
+- **landing experiment** (`/` · `LandingStudio`): paper / crayon markup / printed plate / vellum. Color review via `/?theme=cyan|coral|graphite|acid|violet|cobalt`. No fake 3D. Follow `.cursor/rules/landing-experiment-gate.mdc`. Review only — do not merge.
 
 ```txt
 no screenshots = no merge recommendation.
@@ -114,7 +114,7 @@ no screenshots = no merge recommendation.
 
 ## Always preserve
 
-Product facts live in [`PROJECT_RULES.md`](PROJECT_RULES.md). Short form:
+Product facts live in [`PROJECT_RULES.md`](PROJECT_RULES.md). Visual / product OS: [`docs/aileena-design-os.md`](docs/aileena-design-os.md). Short form:
 
 - soft, strange, technical, personal mood
 - thin typography
@@ -297,6 +297,7 @@ Always-on：[`.cursor/rules/debug-repro-loop.mdc`](.cursor/rules/debug-repro-loo
 ### 相关规则
 
 - 产品事实：[`PROJECT_RULES.md`](PROJECT_RULES.md)
+- 设计 / 视觉操作系统：[`docs/aileena-design-os.md`](docs/aileena-design-os.md) — **no screenshots = not done. no owner approval = no merge.**
 - QA 清单：[`QA.md`](QA.md)
 - Cursor 必读索引：[`CURSOR_RULES.md`](CURSOR_RULES.md)
 - PR 验收表：[`.github/pull_request_template.md`](.github/pull_request_template.md)

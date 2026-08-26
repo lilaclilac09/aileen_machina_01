@@ -102,8 +102,8 @@ async function runBrowser(checks: Check[]): Promise<void> {
     const titles: string[] = [];
 
     for (let i = 0; i < expected; i++) {
-      const detail = await carousel.locator('span').filter({ hasText: ' BPM · ' }).innerText();
-      titles.push(detail.split(' · ')[0]?.trim() ?? '');
+      const title = await page.getByTestId('dj-carousel-active-title').innerText();
+      titles.push(title.trim());
 
       const loaded = await carousel
         .locator('[data-dj-set-card] img')

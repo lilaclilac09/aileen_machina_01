@@ -8,6 +8,8 @@ App lives in `aileena-new/` (`pnpm`, not repo-root npm). Run only the rows that 
 
 Ship / merge to `main` still follows `AGENTS.md` 施工队安全条例 — localhost is not production proof. Preview Ready ≠ Production Ready.
 
+Design OS: [`docs/aileena-design-os.md`](docs/aileena-design-os.md) — visual-first, less text, proof over claims. **no screenshots = not done. no owner approval = no merge.**
+
 Quick map (task → command/tool): [`docs/AGENT_TOOL_MAP.md`](docs/AGENT_TOOL_MAP.md).  
 Verified pitfalls: [`docs/KNOWN_FAILURES.md`](docs/KNOWN_FAILURES.md).  
 Lessons / rule proposals (owner approval): [`ops/lessons/README.md`](ops/lessons/README.md).
@@ -43,7 +45,7 @@ Also:
 - affected route opened
 - affected user flow tested
 - UI change → screenshots + interaction (`.cursor/rules/ui-step-screenshot.mdc`)
-- Landing experiment (`/` · `LandingStudio`) → `.cursor/rules/landing-experiment-gate.mdc`. **no screenshots = no merge recommendation.**
+- Landing experiment (`/` · `LandingStudio`) → `.cursor/rules/landing-experiment-gate.mdc`. Color review via `/?theme=`. **no screenshots = no merge recommendation.** Review only — do not merge.
 - env/config issues listed as `manual steps`, not hidden as code
 
 When the slice has a dedicated test:
@@ -96,7 +98,7 @@ pnpm council           # owner-only local council (needs OWNER_KEY + model key)
 
 ## Landing experiment (`/` · `LandingStudio`)
 
-Vellum / ink / embodied plate on `/`. Gate: `.cursor/rules/landing-experiment-gate.mdc`.
+Vellum / ink / embodied plate on `/`. Color review via `/?theme=cyan|coral|graphite|acid|violet|cobalt`. Gate: `.cursor/rules/landing-experiment-gate.mdc`. Review only — do not merge.
 
 ```txt
 no screenshots = no merge recommendation.
