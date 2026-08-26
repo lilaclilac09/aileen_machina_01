@@ -1,18 +1,18 @@
-/* Landing opening — scanned paper, cyan crayon markup, printed plate.
-   Not fake 3D. Not SaaS. Not cute doodle. */
+/* Landing opening — scanned paper, crayon markup, printed plate.
+   Accent is a review token: ?theme=cyan|coral|graphite|acid|violet|cobalt
+   Paper/ink stay constant. Not fake 3D. Not SaaS. */
 
 .landing-studio {
   --ls-ink: #1f1b17;
   --ls-paper: #eee8dc;
   --ls-paper-2: #f3ede2;
-  --ls-cyan: #28b9c2;
-  --ls-cyan-2: #36c7c9;
-  --ls-cyan-soft: #5ed9d6;
   --ls-gray: #8b8378;
-  --ls-coral: #c45c58;
+  --accent: #28b9c2;
+  --accent-soft: #36c7c9;
+  --accent-dark: #1e8a90;
+  --crayon: var(--accent);
   --ls-serif: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
   --ls-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-  --crayon: var(--ls-cyan);
   position: relative;
   isolation: isolate;
   min-height: 100dvh;
@@ -20,6 +20,42 @@
   color: var(--ls-ink);
   background: var(--ls-paper);
   font-family: var(--ls-serif);
+}
+
+.landing-studio[data-theme='cyan'] {
+  --accent: #28b9c2;
+  --accent-soft: #36c7c9;
+  --accent-dark: #1e8a90;
+}
+
+.landing-studio[data-theme='coral'] {
+  --accent: #c94f4f;
+  --accent-soft: #d85b5b;
+  --accent-dark: #a63d3d;
+}
+
+.landing-studio[data-theme='graphite'] {
+  --accent: #4d4a45;
+  --accent-soft: #6d6860;
+  --accent-dark: #2f2c28;
+}
+
+.landing-studio[data-theme='acid'] {
+  --accent: #9ccf3a;
+  --accent-soft: #b7e35a;
+  --accent-dark: #6f9a1f;
+}
+
+.landing-studio[data-theme='violet'] {
+  --accent: #8d6bd1;
+  --accent-soft: #b49ae4;
+  --accent-dark: #6a4aad;
+}
+
+.landing-studio[data-theme='cobalt'] {
+  --accent: #2f65d9;
+  --accent-soft: #5b86e8;
+  --accent-dark: #1e48a8;
 }
 
 .landing-bg {
@@ -34,7 +70,7 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 70% 50% at 12% 10%, rgba(54, 199, 201, 0.07), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 12% 10%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 55%),
     radial-gradient(ellipse 50% 40% at 88% 80%, rgba(31, 27, 23, 0.04), transparent 60%),
     linear-gradient(180deg, var(--ls-paper-2), var(--ls-paper));
 }
@@ -81,7 +117,7 @@
   top: 8%;
   right: 7%;
   width: 12px;
-  color: var(--ls-coral);
+  color: var(--accent);
   opacity: 0.55;
 }
 
@@ -97,7 +133,7 @@
   inset: 0;
   background:
     radial-gradient(circle at 18% 62%, rgba(31, 27, 23, 0.08), transparent 20%),
-    radial-gradient(circle at 72% 28%, rgba(40, 185, 194, 0.08), transparent 16%);
+    radial-gradient(circle at 72% 28%, color-mix(in srgb, var(--accent-soft) 14%, transparent), transparent 16%);
   filter: blur(16px);
   mix-blend-mode: multiply;
 }
@@ -128,7 +164,7 @@
 .landing-marquee__label {
   position: relative;
   flex: 0 0 auto;
-  color: var(--ls-cyan);
+  color: var(--accent);
   font-family: var(--ls-mono);
   font-size: 0.56rem;
   font-weight: 700;
@@ -171,7 +207,7 @@
 }
 
 .landing-marquee__item em {
-  color: var(--ls-cyan);
+  color: var(--accent);
   font-style: normal;
   font-weight: 700;
 }
@@ -364,7 +400,7 @@
 .crayon--sitemap {
   width: 100%;
   height: auto;
-  color: var(--ls-cyan);
+  color: var(--accent);
   opacity: 0.82;
 }
 
@@ -375,7 +411,7 @@
   font-family: var(--ls-mono);
   font-size: 0.58rem;
   letter-spacing: 0.06em;
-  color: var(--ls-cyan);
+  color: var(--accent);
   mix-blend-mode: multiply;
 }
 
@@ -435,16 +471,24 @@
 
 .landing-term__row em {
   font-style: normal;
-  color: var(--ls-cyan);
+  color: var(--accent-soft);
   font-size: 0.58rem;
 }
 
+.landing-term__row[data-active='true'] em {
+  color: var(--accent-dark);
+}
+
 .landing-term__row[data-active='true'] span {
-  color: var(--ls-cyan);
+  color: var(--accent-dark);
+}
+
+.landing-term__row:hover span {
+  color: var(--accent);
 }
 
 .landing-term__row:focus-visible {
-  outline: 1px solid var(--ls-cyan);
+  outline: 1px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -485,7 +529,7 @@
   font-size: 0.52rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--ls-cyan);
+  color: var(--accent);
 }
 
 .landing-volume__no .crayon--underline {
@@ -523,8 +567,13 @@
   opacity: 0.7;
 }
 
+.landing-volume:hover .landing-volume__no,
+.landing-volume:focus-visible .landing-volume__no {
+  color: var(--accent-dark);
+}
+
 .landing-volume:focus-visible {
-  outline: 1px solid var(--ls-cyan);
+  outline: 1px solid var(--accent);
   outline-offset: 3px;
 }
 
@@ -537,7 +586,7 @@
 }
 
 .zine-object:focus-visible {
-  outline: 1px solid var(--ls-cyan);
+  outline: 1px solid var(--accent);
   outline-offset: 4px;
 }
 

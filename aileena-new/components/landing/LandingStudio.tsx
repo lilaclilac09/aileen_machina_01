@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, type PointerEvent } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState, type PointerEvent } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import './vellum.css';
 import './landing-studio.css';
 import {
@@ -32,6 +33,13 @@ const DIAGRAM = `
   proof / plate 04
   map · notes · sound · shelves
 `.trim();
+
+const THEMES = ['cyan', 'coral', 'graphite', 'acid', 'violet', 'cobalt'] as const;
+type CrayonTheme = (typeof THEMES)[number];
+
+function parseTheme(value: string | null): CrayonTheme {
+  return THEMES.includes(value as CrayonTheme) ? (value as CrayonTheme) : 'cyan';
+}
 
 const VOLUMES = [
   { no: '01', door: 'two lines', title: 'two lines', line: 'daily residue, kept small.', href: '/daily' },
@@ -141,16 +149,18 @@ function CrayonSiteSketch() {
   );
 }
 
-/**
- * Landing opening: scanned paper, cyan crayon markup, printed plate.
- * No fake 3D. Desk / /doors / kiln stay below.
- */
-export default function LandingStudio() {
+function LandingStudioInner({ theme }: { theme: CrayonTheme }) {
   const marqueeLoop = [...MARQUEE, ...MARQUEE, ...MARQUEE];
   const [active, setActive] = useState(0);
 
   return (
-    <section className="landing-studio" data-landing-studio aria-label="studio landing">
+    <section
+      className="landing-studio"
+      data-landing-studio
+      data-theme={theme}
+      data-landing-theme={theme}
+      aria-label="studio landing"
+    >
       <CrayonDefs />
       <div className="landing-bg" aria-hidden>
         <span className="landing-bg__paper" data-bg="paper" />
@@ -258,5 +268,23 @@ export default function LandingStudio() {
         </Link>
       </div>
     </section>
+  );
+}
+
+function LandingStudioFromQuery() {
+  const params = useSearchParams();
+  return <LandingStudioInner theme={parseTheme(params.get('theme'))} />;
+}
+
+/**
+ * Landing opening: scanned paper, crayon markup, printed plate.
+ * Review colors via /?theme=cyan|coral|graphite|acid|violet|cobalt
+ * No fake 3D. Desk / /doors / kiln stay below.
+ */
+export default function LandingStudio() {
+  return (
+    <Suspense fallback={<LandingStudioInner theme="cyan" />}>
+      <LandingStudioFromQuery />
+    </Suspense>
   );
 }

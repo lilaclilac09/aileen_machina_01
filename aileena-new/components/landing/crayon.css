@@ -1,4 +1,4 @@
-/* Cyan crayon / wax pencil. Artist markup, not cute doodle, not vector UI. */
+/* Wax-pencil marks. Color from --accent / --crayon. Artist markup, not cute doodle. */
 
 .crayon-defs {
   position: absolute;
@@ -10,7 +10,7 @@
 .crayon {
   display: block;
   overflow: visible;
-  color: var(--crayon, #28b9c2);
+  color: var(--crayon, var(--accent, #28b9c2));
   pointer-events: none;
 }
 
@@ -74,7 +74,7 @@
 }
 
 .crayon--note {
-  color: #28b9c2;
+  color: var(--accent, #28b9c2);
   font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.58rem;
   letter-spacing: 0.04em;
