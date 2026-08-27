@@ -13,7 +13,7 @@ export type DjSetTrack = {
   durationSec?: number | null;
   cover: string;
   note?: string;
-  /** Spotify track id — deck playback when set */
+  /** Spotify track id — reference only; not mixable audio */
   spotifyId?: string;
 };
 
@@ -27,7 +27,33 @@ export type DeckTrack = {
   key: string;
   dur: number;
   thumb: string;
+  /** Real audio file. Catalog Spotify ids are not this. */
+  audioSrc?: string;
 };
+
+/** Same-origin tones so drag → plate → ▶ has something that actually plays. */
+export const DEMO_TONES: DeckTrack[] = [
+  {
+    id: 'TONE-A',
+    title: 'Tone A',
+    artist: 'local',
+    bpm: 120,
+    key: '8A',
+    dur: 4,
+    thumb: '/dj-set/assets/covers/tone-a.svg',
+    audioSrc: '/dj-set/audio/tone-a.wav',
+  },
+  {
+    id: 'TONE-B',
+    title: 'Tone B',
+    artist: 'local',
+    bpm: 120,
+    key: '8A',
+    dur: 4,
+    thumb: '/dj-set/assets/covers/tone-b.svg',
+    audioSrc: '/dj-set/audio/tone-b.wav',
+  },
+];
 
 /** Curated handoff five — also mirrored in public/dj-set/setlist.json */
 export const DJ_SET_TRACKS: DjSetTrack[] = [
@@ -386,5 +412,5 @@ export function djSetToDeckTracks(): DeckTrack[] {
 
 /** Everything shown in the /sound deck carousel: handoff five + full library. */
 export function allDeckTracks(): DeckTrack[] {
-  return [...djSetToDeckTracks(), ...DECK_LIBRARY_TRACKS];
+  return [...DEMO_TONES, ...djSetToDeckTracks(), ...DECK_LIBRARY_TRACKS];
 }

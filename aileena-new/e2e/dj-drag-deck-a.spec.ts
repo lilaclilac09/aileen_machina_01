@@ -51,12 +51,9 @@ test.describe('DJ drag → Deck A', () => {
     let source = cards.first();
     for (let i = 0; i < cardCount; i++) {
       const c = cards.nth(i);
-      if (!(await c.isVisible())) continue;
-      const id = (await c.getAttribute('data-track-id')) || '';
-      // Prefer a playable library id (22-char) when available; else any different id
-      if (id && id !== beforeId) {
+      if ((await c.getAttribute('data-track-id')) === 'TONE-A') {
         source = c;
-        if (/^[a-zA-Z0-9]{22}$/.test(id)) break;
+        break;
       }
     }
 
@@ -79,5 +76,14 @@ test.describe('DJ drag → Deck A', () => {
     if (sourceTitle) {
       expect(afterTitle.toLowerCase()).toContain(sourceTitle.slice(0, 8).toLowerCase());
     }
+
+    await expect(deckA).toHaveAttribute('data-mix-loaded', 'true');
+    await page.getByTestId('dj-play-a').click();
+    await expect.poll(async () => {
+      return page.locator('[data-testid="dj-audio-a"]').evaluate((el) => {
+        const audio = el as HTMLAudioElement;
+        return !audio.paused && audio.currentTime >= 0 && Boolean(audio.src);
+      });
+    }, { timeout: 8_000 }).toBe(true);
   });
 });
