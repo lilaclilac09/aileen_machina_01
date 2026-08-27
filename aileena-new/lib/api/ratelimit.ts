@@ -155,6 +155,6 @@ export const TOOLS_INKLING_RATE: RateLimitConfig = {
 export const COMPUTER_TASK_RATE: RateLimitConfig = {
   shortMax: 8,
   shortWindowMs: 60_000,
-  dailyMax: 24,
+  dailyMax: 48,
   dailyWindowMs: 86_400_000,
 };

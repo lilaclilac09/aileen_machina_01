@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { ELEVEN_VOICE_ID, parseVoiceAccent, ttsSpokenInstructions } from '../../../lib/voiceAccent';
+import { readTtsEnvPins, resolveTtsProfile } from '../../../lib/tts/voiceProfile';
 
 export const runtime = 'edge';
 export const maxDuration = 60;
@@ -7,51 +7,46 @@ export const maxDuration = 60;
 /**
  * Console / narration TTS.
  *
- * Soft default voice (欢迎来到上海 · 侬好啊):
- *   1. ElevenLabs — body.voice or ELEVENLABS_VOICE_ID or Bella default
- *   2. OpenAI gpt-4o-mini-tts — instructions follow body.accent / voice id
- *      (London = British RP, not Shanghai auntie)
- *   3. 503 → browser SpeechSynthesis fallback
+ * Voice profile is resolved server-side (env pins + allowlisted accent/voice).
+ * Client may send accent + voice id; it cannot invent provider secrets.
  *
- * Free-tier note: ElevenLabs Voice Library IDs (e.g. Coco Li) return 402 on
- * free plans. Console presets use premade voices that work on free API:
- *   Shanghai EXAVITQu4vr4xnSDxMaL (Bella) · London pFZP5JQG7iQjIQuC4Bku (Lily)
- *   Berlin JBFqnCBsd6RMkjVDRZzb (George)
+ *   1. ElevenLabs — profile.elevenVoiceId
+ *   2. OpenAI gpt-4o-mini-tts — profile.openaiVoice + same accent instructions
+ *   3. 503 → browser SpeechSynthesis fallback
  */
 
 const MAX_CHARS = 30000;
-
-/** Bella — soft female premade; free-tier API OK (library voices need paid). */
-const SHANGHAI_SOFT_VOICE = ELEVEN_VOICE_ID.shanghai;
 
 export async function POST(req: Request) {
   let body: { text?: unknown; voice?: unknown; accent?: unknown };
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON.' }, { status: 400 });
+    return NextResponse.json({ error: 'Invalid JSON.', code: 'failed' }, { status: 400 });
   }
 
   const text = typeof body.text === 'string' ? body.text.trim() : '';
-  if (!text) return NextResponse.json({ error: 'No text.' }, { status: 400 });
+  if (!text) return NextResponse.json({ error: 'No text.', code: 'failed' }, { status: 400 });
   if (text.length > MAX_CHARS) {
     return NextResponse.json(
-      { error: `Text too long (>${MAX_CHARS} chars).` },
+      { error: `Text too long (>${MAX_CHARS} chars).`, code: 'failed' },
       { status: 413 },
     );
   }
 
+  const profile = resolveTtsProfile({
+    accent: body.accent,
+    voice: body.voice,
+    env: readTtsEnvPins(),
+  });
+
   const elevenKey =
     process.env.ELEVENLABS_API_KEY?.trim() ||
-    process.env.ELEVEN_LABS_API_KEY?.trim() || // common typo alias
+    process.env.ELEVEN_LABS_API_KEY?.trim() ||
     '';
   if (elevenKey) {
-    const voiceId =
-      (typeof body.voice === 'string' && body.voice.trim()) ||
-      process.env.ELEVENLABS_VOICE_ID ||
-      SHANGHAI_SOFT_VOICE;
     const res = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+      `https://api.elevenlabs.io/v1/text-to-speech/${profile.elevenVoiceId}`,
       {
         method: 'POST',
         headers: {
@@ -63,24 +58,28 @@ export async function POST(req: Request) {
           text,
           model_id: 'eleven_multilingual_v2',
           voice_settings: {
-            // Slightly less “broadcast locked” — warmer, still clear.
-            stability: 0.65,
-            similarity_boost: 0.72,
-            style: 0.14,
+            stability: 0.72,
+            similarity_boost: 0.78,
+            style: profile.style,
             use_speaker_boost: true,
           },
         }),
       },
     );
+    if (res.status === 429) {
+      return NextResponse.json({ error: 'busy', code: 'busy' }, { status: 429 });
+    }
     if (!res.ok || !res.body) {
       console.error('[tts] ElevenLabs failed', res.status, await res.text().catch(() => ''));
-      return NextResponse.json({ error: 'TTS provider failed.' }, { status: 502 });
+      return NextResponse.json({ error: 'failed', code: 'failed' }, { status: 502 });
     }
     return new Response(res.body, {
       headers: {
         'Content-Type': 'audio/mpeg',
-        'Cache-Control': 'public, max-age=86400, immutable',
-        'X-TTS-Voice': voiceId,
+        'Cache-Control': 'private, max-age=0, no-store',
+        'X-TTS-Voice': profile.elevenVoiceId,
+        'X-TTS-Accent': profile.accent,
+        'X-TTS-Profile': `${profile.accent}:${profile.elevenVoiceId}`,
       },
     });
   }
@@ -95,31 +94,35 @@ export async function POST(req: Request) {
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini-tts',
-        voice: 'coral',
+        voice: profile.openaiVoice,
         input: text,
-        instructions: ttsSpokenInstructions(parseVoiceAccent(body.accent), typeof body.voice === 'string' ? body.voice : undefined),
-        // 0.85–0.95: slower than default without dragging.
-        speed: 0.9,
+        instructions: profile.instructions,
+        speed: profile.speed,
         response_format: 'mp3',
       }),
     });
+    if (res.status === 429) {
+      return NextResponse.json({ error: 'busy', code: 'busy' }, { status: 429 });
+    }
     if (!res.ok || !res.body) {
       console.error('[tts] OpenAI failed', res.status, await res.text().catch(() => ''));
-      return NextResponse.json({ error: 'TTS provider failed.' }, { status: 502 });
+      return NextResponse.json({ error: 'failed', code: 'failed' }, { status: 502 });
     }
     return new Response(res.body, {
       headers: {
         'Content-Type': 'audio/mpeg',
-        'Cache-Control': 'public, max-age=86400, immutable',
-        'X-TTS-Voice': `coral-${parseVoiceAccent(body.accent) || 'shanghai'}`,
+        'Cache-Control': 'private, max-age=0, no-store',
+        'X-TTS-Voice': `${profile.openaiVoice}-${profile.accent}`,
+        'X-TTS-Accent': profile.accent,
+        'X-TTS-Profile': `${profile.accent}:${profile.openaiVoice}`,
       },
     });
   }
 
   return NextResponse.json(
     {
-      error:
-        'No TTS provider. Set ELEVENLABS_API_KEY (Bella soft default) or OPENAI_API_KEY, then redeploy.',
+      error: 'No TTS provider.',
+      code: 'failed',
     },
     { status: 503 },
   );

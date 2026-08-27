@@ -86,7 +86,7 @@ wait for confirmation before editing if the change touches multiple systems.
 - do not change typography / layout / colors unless requested
 - fix proportions / readability / function only
 - UI merge: screenshots + interaction (`.cursor/rules/ui-step-screenshot.mdc`)
-- **home marquee** (`/` · `LandingMarquee`): cinematic opening stays. Do not restore ascii / moodboard / serials / zine. Follow `.cursor/rules/landing-experiment-gate.mdc`.
+- **landing experiment** (`/` · `LandingStudio`): paper / crayon markup / printed plate / vellum. Color review via `/?theme=cyan|coral|graphite|acid|violet|cobalt`. No fake 3D. Follow `.cursor/rules/landing-experiment-gate.mdc`. Review only — do not merge.
 
 ```txt
 no screenshots = no merge recommendation.

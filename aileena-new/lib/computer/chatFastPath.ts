@@ -20,6 +20,13 @@ export async function tryOwnerComputerFastPath(opts: {
   const cookie = opts.req.headers.get('cookie') || '';
   const origin = new URL(opts.req.url).origin;
 
+  if (command.kind === 'clarify') {
+    return queuedChatResponse(command.question);
+  }
+  if (command.kind === 'blocked') {
+    return queuedChatResponse(command.message);
+  }
+
   if (command.kind === 'show_queue') {
     return queuedChatResponse(
       '⚡ Computer lives in this dialog — same window as chat. Prototype only. Owner review, no merge.',
@@ -98,6 +105,7 @@ export async function tryOwnerComputerFastPath(opts: {
       route: command.route,
       instructions: command.instructions,
       scope: 'owner-computer-prototype',
+      proofItemId: command.taskType === 'git_find_commit' ? 'proof-sound-lab-rollback' : undefined,
     }),
   });
   if (res.status === 403 || res.status === 401) return queuedChatResponse('⚡ Owner only. Unlock with this device first.');
