@@ -96,7 +96,7 @@ async function main() {
     return Boolean(document.querySelector('[data-testid="computer-task-completed"]'));
   }, null, { timeout: 20_000 });
   await page.locator('[data-testid="computer-task-completed"]').first().click();
-  await page.waitForSelector('[data-testid="computer-task-problems"]', { timeout: 8_000 });
+  await page.waitForSelector('[data-testid="computer-task-detail"]', { timeout: 8_000 });
   await page.screenshot({ path: join(OUT, 'proof-task-result.png') });
   await page.locator('[data-testid="computer-task-detail"]').screenshot({ path: join(OUT, 'computer-task-detail.png') });
 
