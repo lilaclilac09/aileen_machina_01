@@ -13,7 +13,7 @@ App 在 `aileena-new/`（`pnpm`）。
 | 任意改动 | `docs/aileena-design-os.md` + 触及文件的 scoped lint / 相关 `QA.md` 行；收尾 Evidence closer | 「看过代码了」 |
 | Bug / 「不对」 | `.cursor/rules/debug-repro-loop.mdc` 全块 | 无证据开修 |
 | UI / 交互 | 390×844 截图 + **命名**交互（`.cursor/rules/ui-step-screenshot.mdc`） | 只说 done / 只有 still |
-| Landing experiment (`/`) | crayon / vellum `LandingStudio` + `/?theme=`; `.cursor/rules/landing-experiment-gate.mdc` | fake 3D / whole-site redesign / merge this review |
+| Home marquee (`/`) | cinematic opening + `LandingMarquee`; `.cursor/rules/landing-experiment-gate.mdc` | restore ascii / moodboard / serials / zine |
 | `/sound` · DJ · carousel | `pnpm verify:sound`；ship 时 prod `https://www.aileena.xyz/sound` | 仅 localhost |
 | DnD → Deck A | `pnpm test:e2e:dnd`（改了 drag/drop 时） | 「应该能拖」 |
 | Doors / back 链 | `pnpm verify:doors-nav` | 只改文案不测路由 |
@@ -24,7 +24,6 @@ App 在 `aileena-new/`（`pnpm`）。
 | Docs-only | diff 自查 + 链接可点 | 假装改了产品行为 |
 | 失败复盘 | `ops/lessons/TEMPLATE.md` + 必要时 `pnpm report:merge -- --blocked "…"` | 直接改 `AGENTS.md` |
 | 站点改版 / proof | `/proof` or `/evolution` · `docs/aileena-design-os.md` · `pnpm verify:proof-queue` when that script exists | 自动 merge / 直接改 production |
-| Console TTS / orb voice | `pnpm verify:tts-session` · `pnpm verify:ops` | 每段换口音 / 一次 4000 字 fetch / 假播放 |
 | 布局 / mobile | `pnpm qa:mobile`（390×844 + scrollWidth） | 「overflow hidden 就好了」 |
 | Visual 裁切 | `pnpm verify:visual` | 给内容图加 `object-cover` |
 | Contact / 文案 | `pnpm qa:contact` | 新写一套 mailer |

@@ -9,16 +9,6 @@ const DOING: Record<string, string> = {
   run_build_check: 'Running an allowlisted check',
   collect_screenshot_checklist: 'Collecting a screenshot checklist',
   update_proof_queue: 'Updating the proof queue',
-  git_status: 'Reading git status',
-  git_log: 'Reading recent commits',
-  git_find_commit: 'Finding commit candidates',
-  git_show: 'Showing a commit',
-  files_tree: 'Listing files',
-  files_search: 'Searching files',
-  files_open: 'Opening a file read-only',
-  email_draft: 'Drafting email (not sending)',
-  email_send: 'Email send is blocked until owner confirms',
-  browser_screenshot: 'Browser automation is blocked',
 };
 
 export function spokenQueued(opts: {
