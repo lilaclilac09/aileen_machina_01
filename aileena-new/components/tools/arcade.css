@@ -329,6 +329,12 @@
   padding: 14px 10px 0;
 }
 
+.tools-lab-card-title,
+.tools-lab-card-line,
+.tools-lab-card-kicker {
+  text-align: center;
+}
+
 .tools-lab-card-title {
   margin: 0 0 6px;
   color: #14110c;
