@@ -84,6 +84,7 @@ function hydrate(): void {
     if (Object.keys(memory().items).length === 0) seedKnownIssues();
   }
   closeShippedDailyProofs();
+  ensureSoundLabRollbackSeed();
 }
 
 function seedKnownIssues(): void {
@@ -140,10 +141,60 @@ function seedKnownIssues(): void {
       resultSummary:
         'commentNote is todayNote ?? latest. 503 toast is Nope. Writes still refuse memory on Vercel.',
     },
+    {
+      id: 'proof-sound-lab-rollback',
+      title: 'Sound Lab rollback investigation',
+      route: '/sound',
+      problem:
+        'Find the commit where Sound Lab changes were merged. Inspection only. No checkout, no reset, no merge.',
+      proposedChange: 'Report candidate commits. Do not roll back until the owner approves a separate task.',
+      source: 'seed',
+      status: 'proposed',
+      risk: 'medium',
+      acceptanceCriteria: [
+        'Git find returns 3–5 candidates',
+        'No repo mutation',
+        'Owner reviews before any rollback',
+      ],
+      screenshots: [],
+      filesChanged: [],
+      checksRun: [],
+      computerTaskIds: [],
+      resultSummary: '',
+    },
   ];
   for (const s of seeds) {
     memory().items[s.id] = { ...s, createdAt: now, updatedAt: now };
   }
+  persist();
+}
+
+function ensureSoundLabRollbackSeed(): void {
+  if (memory().items['proof-sound-lab-rollback']) return;
+  const now = new Date().toISOString();
+  memory().items['proof-sound-lab-rollback'] = {
+    id: 'proof-sound-lab-rollback',
+    title: 'Sound Lab rollback investigation',
+    route: '/sound',
+    problem:
+      'Find the commit where Sound Lab changes were merged. Inspection only. No checkout, no reset, no merge.',
+    proposedChange: 'Report candidate commits. Do not roll back until the owner approves a separate task.',
+    source: 'seed',
+    status: 'proposed',
+    risk: 'medium',
+    acceptanceCriteria: [
+      'Git find returns 3–5 candidates',
+      'No repo mutation',
+      'Owner reviews before any rollback',
+    ],
+    screenshots: [],
+    filesChanged: [],
+    checksRun: [],
+    computerTaskIds: [],
+    resultSummary: '',
+    createdAt: now,
+    updatedAt: now,
+  };
   persist();
 }
 
@@ -172,6 +223,51 @@ export function newProofId(): string {
   const c = globalThis.crypto;
   if (c && typeof c.randomUUID === 'function') return `proof-${c.randomUUID().slice(0, 8)}`;
   return `proof-${Date.now().toString(36)}`;
+}
+
+export const SOUND_LAB_ROLLBACK_PROOF_ID = 'proof-sound-lab-rollback';
+
+export function ensureProofItem(
+  seed: Omit<ProofItem, 'createdAt' | 'updatedAt'> & Partial<Pick<ProofItem, 'createdAt' | 'updatedAt'>>,
+): ProofItem {
+  const existing = getProofItem(seed.id);
+  if (existing) return existing;
+  const now = new Date().toISOString();
+  return upsertProofItem({
+    ...seed,
+    createdAt: seed.createdAt ?? now,
+    updatedAt: seed.updatedAt ?? now,
+  });
+}
+
+export function attachComputerFinding(
+  itemId: string,
+  finding: {
+    computerTaskId: string;
+    summary: string;
+    extraFiles?: string[];
+  },
+): ProofItem | null {
+  const item = getProofItem(itemId);
+  if (!item) return null;
+  const filesChanged = [...item.filesChanged];
+  for (const extra of finding.extraFiles ?? []) {
+    if (!filesChanged.includes(extra) && filesChanged.length < 8) filesChanged.push(extra);
+  }
+  const computerTaskIds = item.computerTaskIds.includes(finding.computerTaskId)
+    ? item.computerTaskIds
+    : [...item.computerTaskIds, finding.computerTaskId];
+  const resultSummary = [item.resultSummary, finding.summary]
+    .filter((part) => part && part.trim())
+    .join('\n\n')
+    .slice(0, 4000);
+  return upsertProofItem({
+    ...item,
+    filesChanged,
+    computerTaskIds,
+    resultSummary,
+    updatedAt: new Date().toISOString(),
+  });
 }
 
 export function attachTaskToProof(proofItemId: string, taskId: string, status?: ProofStatus): ProofItem | null {

@@ -5,6 +5,7 @@ import { clip, redactSecrets } from '@/lib/computer/redact';
 import { nowIso } from '@/lib/computer/store';
 import {
   applyOwnerProofAction,
+  attachComputerFinding,
   getProofItem,
   listProofItems,
   newProofId,
@@ -56,6 +57,29 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: result.error }, { status: 400 });
     }
     return NextResponse.json({ ok: true, item: result, prototype: true });
+  }
+
+  if (action === 'attach_finding') {
+    const id = typeof body.id === 'string' ? body.id : typeof body.itemId === 'string' ? body.itemId : '';
+    const computerTaskId =
+      typeof body.computerTaskId === 'string' ? body.computerTaskId.trim() : '';
+    const summary = typeof body.summary === 'string' ? redactSecrets(clip(body.summary, 4000)) : '';
+    if (!id || !computerTaskId || !summary) {
+      return NextResponse.json(
+        { ok: false, error: 'id, computerTaskId, and summary required' },
+        { status: 400 },
+      );
+    }
+    const extraFiles = Array.isArray(body.extraFiles)
+      ? body.extraFiles.filter(
+          (file): file is string => typeof file === 'string' && file.trim().length > 0,
+        )
+      : [];
+    const item = attachComputerFinding(id, { computerTaskId, summary, extraFiles });
+    if (!item) {
+      return NextResponse.json({ ok: false, error: 'missing' }, { status: 404 });
+    }
+    return NextResponse.json({ ok: true, item, prototype: true });
   }
 
   const now = nowIso();
