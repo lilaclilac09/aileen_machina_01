@@ -9,10 +9,10 @@
  * Chrome continuous finals are accumulated + silence-committed (full sentence,
  * not one-word turns). Silence window ~1.8–2.4s; interim never replaces finals.
  * Debug logs on by default ([voice]); set localStorage.aileena_voice_debug='0' to silence.
- * TTS: /api/tts (HTMLAudio on iOS/Safari) with speechSynthesis fallback.
- * Speak only after the assistant stream settles (!busy) — never the first
- * streamed token. Long replies: sentence/clause chunks with short breaths,
- * slower warmer SpeechSynthesis rate/pitch (not PA-broadcast).
+ * TTS: cancellable voice session — stable profile + chunk queue, not one fetch
+ * per message. Speak after the assistant stream settles (!busy). Hosted /api/tts
+ * chunks 200–500 chars with the same accent/voice; HTMLAudio (iOS) or Web Audio;
+ * speechSynthesis fallback uses one frozen voice per session.
  * Live caption + barge-in. Voice path: Console → Voice → speak.
  */
 
@@ -23,6 +23,15 @@ import {
   VOICE_ACCENT_STORAGE_KEY,
   type VoiceAccent,
 } from '../lib/voiceAccent';
+import {
+  chunkSpeakableText,
+  pauseAfterChunkMs,
+  prepareSpeakText,
+  runTtsQueue,
+  TTS_UI,
+  type TtsFetchResult,
+  type TtsUiStatus,
+} from '../lib/tts';
 
 type Caps = {
   whisper: boolean;
@@ -87,59 +96,7 @@ const ACCENTS = [
 
 type AccentKey = VoiceAccent;
 
-/**
- * Sentence / clause boundaries for TTS pacing (never word chunks).
- * Keep punctuation on the preceding piece so pauses land after ，。！？ etc.
- * Chinese 。！？ rarely have a following space — split without requiring \s.
- */
-const SPEAK_BOUNDARY_RE =
-  /(?<=[。！？…])|(?<=[.!?])\s+|(?<=[；;])\s*|(?<=[：:])\s*|(?<=[，、])|(?<=[,])\s+|(?<=\n+)/;
-
-/** Split a finished reply into speakable sentence/clause chunks (never by word). */
-function splitSpeakableChunks(full: string): string[] {
-  const text = full.trim();
-  if (!text) return [];
-
-  const raw = text
-    .split(SPEAK_BOUNDARY_RE)
-    .map((s) => s.trim())
-    .filter(Boolean);
-  if (raw.length <= 1) return [text];
-
-  // Merge tiny fragments so we don't sound choppy; still prefer short breaths.
-  const out: string[] = [];
-  let buf = '';
-  for (const s of raw) {
-    const prev = buf.slice(-1);
-    const noSpace =
-      Boolean(buf) &&
-      (/[\u4e00-\u9fff]/.test(prev) || /[，。！？、；：…]/.test(prev)) &&
-      /^[\u4e00-\u9fff]/.test(s);
-    const next = buf ? `${buf}${noSpace ? '' : ' '}${s}` : s;
-    const softCap = /[.!?。！？…]$/.test(buf) ? 1 : /[;；：:]$/.test(buf) ? 90 : 140;
-    if (buf && (buf.length >= softCap || next.length > 180)) {
-      out.push(buf);
-      buf = s;
-    } else {
-      buf = next;
-    }
-  }
-  if (buf) out.push(buf);
-  return out.length ? out : [text];
-}
-
-/** Primary utterance lang from text script (accent used as English/German hint). */
-function detectUtteranceLang(text: string, accentLang: string): string {
-  const zh = (text.match(/[\u4e00-\u9fff]/g) || []).length;
-  const de = (text.match(/[äöüÄÖÜß]/g) || []).length;
-  const latin = (text.match(/[A-Za-z]/g) || []).length;
-  if (zh >= 2 && zh >= latin * 0.25) return 'zh-CN';
-  if (accentLang.startsWith('de') && (de > 0 || latin > zh)) return 'de-DE';
-  if (accentLang.startsWith('en-GB')) return 'en-GB';
-  if (accentLang.startsWith('en')) return 'en-US';
-  if (latin > 0 && zh === 0) return accentLang.startsWith('zh') ? 'en-US' : accentLang;
-  return accentLang || 'en-US';
-}
+/** Accent lang is the session voice. Do not re-detect per chunk (that reincarnates the speaker). */
 
 /** Prefer warmer local / neural voices; avoid novelty and overly “PA system” picks. */
 function pickNaturalVoice(
@@ -189,16 +146,6 @@ function pickNaturalVoice(
   };
 
   return list.slice().sort((a, b) => score(b) - score(a))[0] ?? null;
-}
-
-/** Breath between chunks — longer after sentence/paragraph, shorter after commas. */
-function pauseAfterChunkMs(chunk: string, isLast: boolean): number {
-  if (isLast) return 0;
-  if (/\n/.test(chunk)) return 480;
-  if (/[.!?。！？…]\s*$/.test(chunk)) return 380;
-  if (/[;；：:]\s*$/.test(chunk)) return 300;
-  if (/[,，、]\s*$/.test(chunk)) return 240;
-  return 320;
 }
 
 function ttsRateForLang(lang: string): number {
@@ -326,6 +273,13 @@ export default function AgentVoiceOrb({
   const interimRef = useRef('');
   const whisperWatchdogRef = useRef(0);
   const htmlAudioRef = useRef<HTMLAudioElement | null>(null);
+  const ttsAbortRef = useRef<AbortController | null>(null);
+  const ttsCacheRef = useRef<Map<string, ArrayBuffer>>(new Map());
+  const sessionVoiceRef = useRef<{ voiceId: string; accent: AccentKey; lang: string }>({
+    voiceId: ACCENTS[0].voiceId,
+    accent: 'shanghai',
+    lang: ACCENTS[0].lang,
+  });
   const pendingHearRef = useRef<{ url: string; gen: number } | null>(null);
   const webMeterStreamRef = useRef<MediaStream | null>(null);
   const webMeterRafRef = useRef(0);
@@ -398,6 +352,12 @@ export default function AgentVoiceOrb({
 
   const stopPlayback = useCallback(() => {
     playGenRef.current += 1;
+    try {
+      ttsAbortRef.current?.abort();
+    } catch {
+      /* ignore */
+    }
+    ttsAbortRef.current = null;
     vlog('tts cancel/stopPlayback', { gen: playGenRef.current });
     sourcesRef.current.forEach((s) => {
       try {
@@ -469,24 +429,14 @@ export default function AgentVoiceOrb({
       ttsPlayingRef.current = true;
       pauseWebSpeechForTtsRef.current();
       setPhase('speaking');
-      setCaption('');
-      setHint('Speaking…');
       vlog('tts start', { via: 'webaudio' });
-      src.onended = () => {
-        sourcesRef.current = sourcesRef.current.filter((s) => s !== src);
-        if (!sourcesRef.current.length && gen === playGenRef.current) {
-          ttsPlayingRef.current = false;
-          vlog('tts end', { via: 'webaudio' });
-          if (listeningRef.current) {
-            setPhase('listening');
-            setHint('Listening… speak anytime');
-            kickWebSpeechRestartRef.current();
-          } else {
-            setPhase('idle');
-            setHint('Tap speak to start');
-          }
-        }
-      };
+      await new Promise<void>((resolve) => {
+        src.onended = () => {
+          sourcesRef.current = sourcesRef.current.filter((s) => s !== src);
+          vlog('tts chunk end', { via: 'webaudio' });
+          resolve();
+        };
+      });
     },
     [ensurePlayCtx],
   );
@@ -551,7 +501,7 @@ export default function AgentVoiceOrb({
   }, [ensureHtmlAudio, ensurePlayCtx]);
 
   const playHtmlBlobUrl = useCallback(
-    (url: string, gen: number) => {
+    (url: string, gen: number, keepSession = false) => {
       return new Promise<void>((resolve) => {
         const audio = ensureHtmlAudio();
         if (!audio || gen !== playGenRef.current) {
@@ -569,11 +519,11 @@ export default function AgentVoiceOrb({
         pauseWebSpeechForTtsRef.current();
         setPhase('speaking');
         setCaption('');
-        setHint('Speaking… interrupt anytime');
+        if (!keepSession) setHint('Speaking… interrupt anytime');
         stickyErrorRef.current = false;
         vlog('tts start', { via: 'htmlaudio' });
 
-        const finish = (revoke: boolean) => {
+        const finish = (revoke: boolean, settle: boolean) => {
           if (revoke) {
             try {
               URL.revokeObjectURL(url);
@@ -581,28 +531,32 @@ export default function AgentVoiceOrb({
               /* ignore */
             }
           }
-          ttsPlayingRef.current = false;
-          setNeedsHearTap(false);
-          vlog('tts end', { via: 'htmlaudio' });
-          if (listeningRef.current) {
-            setPhase('listening');
-            setHint('Listening… speak anytime');
-            kickWebSpeechRestartRef.current();
-          } else {
-            setPhase('idle');
-            setHint('Tap speak to start');
+          ttsPlayingRef.current = settle ? false : ttsPlayingRef.current;
+          if (settle) {
+            setNeedsHearTap(false);
+            vlog('tts end', { via: 'htmlaudio' });
+            if (listeningRef.current) {
+              setPhase('listening');
+              setHint('Listening… speak anytime');
+              kickWebSpeechRestartRef.current();
+            } else {
+              setPhase('idle');
+              setHint('Tap speak to start');
+            }
           }
           resolve();
         };
 
-        audio.onended = () => finish(true);
+        audio.onended = () => finish(true, !keepSession);
         audio.onerror = () => {
-          pendingHearRef.current = { url, gen };
-          setNeedsHearTap(true);
-          setHint('Tap orb to hear reply');
-          stickyErrorRef.current = true;
-          ttsPlayingRef.current = false;
-          setPhase('idle');
+          if (!keepSession) {
+            pendingHearRef.current = { url, gen };
+            setNeedsHearTap(true);
+            setHint('Tap orb to hear reply');
+            stickyErrorRef.current = true;
+            ttsPlayingRef.current = false;
+            setPhase('idle');
+          }
           resolve();
         };
         void audio.play().then(
@@ -641,12 +595,16 @@ export default function AgentVoiceOrb({
         return;
       }
 
-      // Sentence/clause queue — never one long PA-style blast.
-      const chunks = splitSpeakableChunks(text);
+      const spoken = prepareSpeakText(text);
+      const chunks = chunkSpeakableText(spoken);
+      const lang = sessionVoiceRef.current.lang || langRef.current;
+      const prefer = pickNaturalVoice(voices, lang);
       vlog('tts speechSynthesis queue', {
-        length: text.trim().length,
+        length: spoken.length,
         chunks: chunks.length,
-        preview: text.trim().slice(0, 100),
+        lang,
+        voice: prefer?.name ?? '(default)',
+        preview: spoken.slice(0, 100),
       });
 
       ttsPlayingRef.current = true;
@@ -654,14 +612,23 @@ export default function AgentVoiceOrb({
       setPhase('speaking');
       setCaption('');
       setHint('Speaking…');
-      vlog('tts start', { via: 'speechSynthesis' });
+      vlog('tts start', { via: 'speechSynthesis', profile: `${sessionVoiceRef.current.accent}:${lang}` });
 
       let cancelled = false;
       const pauseTimers: number[] = [];
+      const keepAlive = window.setInterval(() => {
+        if (cancelled || gen !== playGenRef.current) return;
+        try {
+          window.speechSynthesis.resume();
+        } catch {
+          /* chrome pause bug */
+        }
+      }, 8000);
 
       const finishIdle = () => {
         if (cancelled) return;
         cancelled = true;
+        window.clearInterval(keepAlive);
         for (const t of pauseTimers) window.clearTimeout(t);
         ttsPlayingRef.current = false;
         vlog('tts end', { via: 'speechSynthesis' });
@@ -686,8 +653,6 @@ export default function AgentVoiceOrb({
           return;
         }
         const piece = chunks[i];
-        const lang = detectUtteranceLang(piece, langRef.current);
-        const prefer = pickNaturalVoice(voices, lang);
         const u = new SpeechSynthesisUtterance(piece);
         u.lang = lang;
         u.rate = ttsRateForLang(lang);
@@ -724,7 +689,6 @@ export default function AgentVoiceOrb({
             finishIdle();
             return;
           }
-          // Skip gap on error — keep the queue moving.
           speakOne(i + 1);
         };
         try {
@@ -735,7 +699,6 @@ export default function AgentVoiceOrb({
         window.speechSynthesis.speak(u);
       };
 
-      // Clear only once at the start of this reply queue — not per streamed token.
       try {
         window.speechSynthesis.cancel();
         vlog('tts cancel once before reply queue');
@@ -751,60 +714,148 @@ export default function AgentVoiceOrb({
   // (same as the first orb — machine voice that actually speaks).
   const skipElevenRef = useRef(false);
 
-  const speakSentence = useCallback(
-    async (text: string, gen: number) => {
-      const t = text.trim();
-      if (!t || gen !== playGenRef.current) return;
+  const settleTtsSession = useCallback((gen: number) => {
+    if (gen !== playGenRef.current) return;
+    ttsPlayingRef.current = false;
+    if (listeningRef.current) {
+      setPhase('listening');
+      setHint('Listening… speak anytime');
+      kickWebSpeechRestartRef.current();
+    } else {
+      setPhase('idle');
+      setHint('Tap speak to start');
+    }
+  }, []);
 
-      const tryHosted = caps.tts && !skipElevenRef.current;
-      if (!tryHosted) {
-        // iOS speechSynthesis after async chat is unreliable — ask for a tap if needed.
-        if (preferHtmlAudioTts()) {
-          setHint('No TTS audio — check /api/tts keys, or tap orb after reply');
-        }
-        await speakBrowser(t, gen);
-        return;
-      }
+  const applyTtsStatus = useCallback((status: TtsUiStatus, hint?: string) => {
+    if (status === 'generating' || status === 'queued' || status === 'playing') {
+      ttsPlayingRef.current = true;
+      setPhase('speaking');
+      setHint(hint || (status === 'generating' ? 'Speaking…' : 'Speaking… interrupt anytime'));
+      return;
+    }
+    if (status === 'interrupted') {
+      ttsPlayingRef.current = false;
+      setHint(hint || TTS_UI.stopped);
+      setPhase(listeningRef.current ? 'listening' : 'idle');
+      return;
+    }
+    if (status === 'error') {
+      stickyErrorRef.current = true;
+      setHint(hint || TTS_UI.failed);
+      return;
+    }
+  }, []);
 
+  const fetchTtsChunk = useCallback(
+    async (text: string, signal: AbortSignal, gen: number): Promise<TtsFetchResult> => {
+      const session = sessionVoiceRef.current;
+      const cacheKey = `${session.voiceId}|${session.accent}|${text}`;
+      const hit = ttsCacheRef.current.get(cacheKey);
+      if (hit) return { ok: true, buf: hit.slice(0) };
+
+      const local = new AbortController();
+      const onAbort = () => local.abort();
+      signal.addEventListener('abort', onAbort, { once: true });
+      const timer = window.setTimeout(() => local.abort(), 25000);
       try {
-        const ac = new AbortController();
-        const timer = window.setTimeout(() => ac.abort(), 8000);
         const res = await fetch('/api/tts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            text: t.slice(0, 4000),
-            voice: voiceIdRef.current,
-            accent: accentKey,
+            text,
+            voice: session.voiceId,
+            accent: session.accent,
           }),
-          signal: ac.signal,
+          signal: local.signal,
         });
-        window.clearTimeout(timer);
-        if (!res.ok) {
+        if (gen !== playGenRef.current) return { ok: false, status: 0 };
+        if (res.status === 401 || res.status === 402 || res.status === 503) {
           skipElevenRef.current = true;
-          throw new Error('tts ' + res.status);
         }
-        const ab = await res.arrayBuffer();
-        if (gen !== playGenRef.current) return;
-        if (preferHtmlAudioTts()) {
-          const url = URL.createObjectURL(new Blob([ab], { type: 'audio/mpeg' }));
-          await playHtmlBlobUrl(url, gen);
-          return;
+        if (!res.ok) return { ok: false, status: res.status };
+        const buf = await res.arrayBuffer();
+        if (gen !== playGenRef.current) return { ok: false, status: 0 };
+        const cache = ttsCacheRef.current;
+        cache.set(cacheKey, buf.slice(0));
+        if (cache.size > 24) {
+          const first = cache.keys().next().value;
+          if (first) cache.delete(first);
         }
-        const ctx = ensurePlayCtx();
-        const buf = await ctx.decodeAudioData(ab.slice(0));
-        await enqueueBuffer(buf, gen);
-      } catch {
-        skipElevenRef.current = true;
-        if (preferHtmlAudioTts()) {
-          setHint('TTS failed — tap orb after next reply, or check keys');
-          stickyErrorRef.current = true;
+        return { ok: true, buf };
+      } catch (err) {
+        if (signal.aborted || (err instanceof DOMException && err.name === 'AbortError')) {
+          return { ok: false, status: 0 };
         }
-        await speakBrowser(t, gen);
+        return { ok: false, status: 502 };
+      } finally {
+        window.clearTimeout(timer);
+        signal.removeEventListener('abort', onAbort);
       }
     },
-    [accentKey, caps.tts, ensurePlayCtx, enqueueBuffer, playHtmlBlobUrl, speakBrowser],
+    [],
   );
+
+  const speakSentence = useCallback(
+    async (text: string, gen: number) => {
+      const spoken = prepareSpeakText(text);
+      if (!spoken || gen !== playGenRef.current) return;
+      const chunks = chunkSpeakableText(spoken);
+      vlog('tts speak session', {
+        length: spoken.length,
+        chunks: chunks.length,
+        voice: sessionVoiceRef.current.voiceId,
+        accent: sessionVoiceRef.current.accent,
+        preview: spoken.slice(0, 120),
+      });
+
+      const tryHosted = caps.tts && !skipElevenRef.current;
+      if (!tryHosted) {
+        await speakBrowser(spoken, gen);
+        return;
+      }
+
+      const ac = new AbortController();
+      ttsAbortRef.current = ac;
+      const outcome = await runTtsQueue({
+        chunks,
+        signal: ac.signal,
+        isCurrent: () => gen === playGenRef.current,
+        fetchChunk: (piece, signal) => fetchTtsChunk(piece, signal, gen),
+        playBuf: async (buf) => {
+          if (gen !== playGenRef.current) return;
+          if (preferHtmlAudioTts()) {
+            const url = URL.createObjectURL(new Blob([buf], { type: 'audio/mpeg' }));
+            await playHtmlBlobUrl(url, gen, true);
+            return;
+          }
+          const ctx = ensurePlayCtx();
+          const decoded = await ctx.decodeAudioData(buf.slice(0));
+          await enqueueBuffer(decoded, gen);
+        },
+        onStatus: applyTtsStatus,
+      });
+
+      if (gen !== playGenRef.current) return;
+      if (outcome === 'error' && skipElevenRef.current) {
+        await speakBrowser(spoken, gen);
+        return;
+      }
+      if (outcome === 'complete') settleTtsSession(gen);
+      if (outcome === 'error') {
+        ttsPlayingRef.current = false;
+        setPhase(listeningRef.current ? 'listening' : 'idle');
+      }
+    },
+    [applyTtsStatus, caps.tts, enqueueBuffer, ensurePlayCtx, fetchTtsChunk, playHtmlBlobUrl, settleTtsSession, speakBrowser],
+  );
+
+  useEffect(() => {
+    if (busy && ttsPlayingRef.current) {
+      stopPlayback();
+      setHint(TTS_UI.stopped);
+    }
+  }, [busy, stopPlayback]);
 
   useEffect(() => {
     if (!active || !speakText?.trim() || !speakId) return;
@@ -820,24 +871,18 @@ export default function AgentVoiceOrb({
     }
     if (speakId === lastSpokenIdRef.current) return;
     lastSpokenIdRef.current = speakId;
+    stopPlayback();
     const gen = playGenRef.current;
-    const full = speakText.trim();
-    const parts = splitSpeakableChunks(full);
-    // Claim speaking before async work so the stream-end effect does not
-    // restart the mic and cancel the utterance mid-start.
+    sessionVoiceRef.current = {
+      voiceId: voiceIdRef.current,
+      accent: accentKey,
+      lang: langRef.current,
+    };
     ttsPlayingRef.current = true;
     setPhase('speaking');
     setHint('Speaking…');
-    vlog('tts speak full reply', {
-      speakId,
-      length: full.length,
-      chunks: parts.length,
-      preview: full.slice(0, 120),
-    });
-    // One speakSentence for the whole reply — internal queue adds breaths;
-    // avoids reopening the mic between sentences.
-    void speakSentence(full, gen);
-  }, [active, busy, speakText, speakId, speakSentence]);
+    void speakSentence(speakText, gen);
+  }, [accentKey, active, busy, speakText, speakId, speakSentence, stopPlayback]);
 
   const pushCaption = useCallback((text: string, isFinal: boolean) => {
     setCaption(text);
@@ -1425,9 +1470,16 @@ export default function AgentVoiceOrb({
       void playHtmlBlobUrl(pending.url, pending.gen);
       return;
     }
+    if (ttsPlayingRef.current) {
+      stopPlayback();
+      stickyErrorRef.current = false;
+      setHint(TTS_UI.stopped);
+      setPhase(listening ? 'listening' : 'idle');
+      return;
+    }
     if (listening) stopListening();
     else void startListening();
-  }, [listening, playHtmlBlobUrl, startListening, stopListening]);
+  }, [listening, playHtmlBlobUrl, startListening, stopListening, stopPlayback]);
 
   useEffect(() => {
     onRegisterStart?.(startListening);
@@ -1480,7 +1532,7 @@ export default function AgentVoiceOrb({
   const activeAccent = ACCENTS.find((p) => p.key === accentKey) ?? ACCENTS[0];
   const hintIsError =
     needsHearTap ||
-    /blocked|error|failed|allow mic|tap orb to hear|unavailable/i.test(hint);
+    /blocked|error|failed|busy|allow mic|tap orb to hear|unavailable|⚡/i.test(hint);
   const hintIsMicBlocked = /mic blocked|mic unavailable|not-allowed|allow in browser/i.test(
     hint,
   );
@@ -1502,7 +1554,7 @@ export default function AgentVoiceOrb({
                   : 'Listening…'
             : hintIsError
               ? hint
-              : hint && /answering|Speaking|Heard|Got it|Hearing|Thinking/i.test(hint)
+              : hint && /answering|Speaking|Heard|Got it|Hearing|Thinking|Voice |Stopped/i.test(hint)
                 ? hint
                 : 'Tap speak to start';
 
