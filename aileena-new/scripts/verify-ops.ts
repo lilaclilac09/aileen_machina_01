@@ -337,8 +337,8 @@ function main() {
   assert('voice orb keeps London British chip', /key: 'london'/.test(orbSrc) && /en-GB/.test(orbSrc));
   assert('voice orb can change accent while listening', /disabled=\{listening\}/.test(orbSrc) === false);
   assert('voice orb waits for browser voices', /voiceschanged/.test(orbSrc));
-  assert('voice orb POSTs accent to TTS', /accent: accentKey/.test(orbSrc));
-  assert('tts route follows accent not auntie-only', /ttsSpokenInstructions/.test(ttsSrc));
+  assert('voice orb POSTs frozen session accent to TTS', /accent: session\.accent/.test(orbSrc));
+  assert('tts route uses stable voice profile', /resolveTtsProfile/.test(ttsSrc));
   assert('chat route applies spoken register via frozen prefix', /buildFrozenSystemPrompt/.test(chatRouteSrc) && /spokenRegisterPrompt/.test(readFileSync(join(process.cwd(), 'lib/consolePrefix.ts'), 'utf8')));
   assert('chat route ignores voice on council', /isCouncil \? null : parseVoiceAccent/.test(chatRouteSrc));
   const vcodeSrc = readFileSync(join(process.cwd(), 'app/api/voice-code/route.ts'), 'utf8');
