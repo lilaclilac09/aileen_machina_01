@@ -23,7 +23,6 @@ pnpm qa:agent          # prompt/rule lint (AGENTS / QA / council vs public / les
 pnpm qa:contact        # Resend env names, lead route, transcript, offline copy
 pnpm qa:sound          # same as verify:sound
 pnpm verify:visual     # GlassBench / ScrapPhoto no cover-crop
-pnpm verify:tts-session # site-agent TTS profile + chunk queue + cancel
 pnpm audit:runtime     # known /api routes keep expected runtime
 pnpm report:merge      # print post-PR checklist; --blocked appends a queue proposal only
 ```

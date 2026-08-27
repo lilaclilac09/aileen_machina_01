@@ -24,7 +24,6 @@ App 在 `aileena-new/`（`pnpm`）。
 | Docs-only | diff 自查 + 链接可点 | 假装改了产品行为 |
 | 失败复盘 | `ops/lessons/TEMPLATE.md` + 必要时 `pnpm report:merge -- --blocked "…"` | 直接改 `AGENTS.md` |
 | 站点改版 / proof | `/proof` or `/evolution` · `docs/aileena-design-os.md` · `pnpm verify:proof-queue` when that script exists | 自动 merge / 直接改 production |
-| Console TTS / orb voice | `pnpm verify:tts-session` · `pnpm verify:ops` | 每段换口音 / 一次 4000 字 fetch / 假播放 |
 | 布局 / mobile | `pnpm qa:mobile`（390×844 + scrollWidth） | 「overflow hidden 就好了」 |
 | Visual 裁切 | `pnpm verify:visual` | 给内容图加 `object-cover` |
 | Contact / 文案 | `pnpm qa:contact` | 新写一套 mailer |
