@@ -27,7 +27,7 @@ Injected every session (`.cursor/rules/`):
 - `verification.mdc`
 - `debug-repro-loop.mdc` (bugs: repro → hypotheses → evidence → root cause)
 - `ui-step-screenshot.mdc` (UI merge: stills + interaction)
-- `landing-experiment-gate.mdc` (home `/`: crayon / paper / vellum color review; **no screenshots = no merge recommendation**)
+- `landing-experiment-gate.mdc` (home `/`: cinematic + marquee only; **no screenshots = no merge recommendation**)
 
 ## Hard rules (short)
 

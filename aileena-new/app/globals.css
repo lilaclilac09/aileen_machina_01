@@ -128,8 +128,7 @@ html {
  * aspect. Do not clip with the default snap-section 100dvh + overflow:hidden.
  * Photo wall > uniform card height.
  */
-#visual.snap-section,
-#opening.snap-section {
+#visual.snap-section {
   height: auto;
   min-height: 100vh;
   min-height: 100dvh;
