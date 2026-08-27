@@ -30,6 +30,8 @@
     "test:e2e:daily-board": "playwright test e2e/daily-board.spec.ts --config=playwright.config.ts",
     "verify:dj-set": "tsx scripts/verify-dj-set.ts",
     "verify:sound": "tsx scripts/verify-dj-set.ts",
+    "verify:dj-mixer": "tsx scripts/verify-dj-mixer-math.ts",
+    "simulate:dj-mixer": "tsx scripts/simulate-dj-mixer.ts && tsx scripts/verify-dj-mixer-math.ts",
     "verify:dj-set:local": "VERIFY_BASE_URL=http://localhost:3011 tsx scripts/verify-dj-set.ts",
     "verify:sound:local": "VERIFY_BASE_URL=http://localhost:3011 tsx scripts/verify-dj-set.ts",
     "verify:memory": "tsx scripts/build-memory-index.ts && tsx scripts/verify-memory.ts",
