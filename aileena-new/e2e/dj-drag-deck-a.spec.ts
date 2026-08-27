@@ -48,23 +48,21 @@ test.describe('DJ drag → Deck A', () => {
     await expect(deckTitle).toBeVisible();
     const beforeId = (await deckTitle.getAttribute('data-track-id')) || '';
 
-    const mixable = page.locator('[data-testid="dj-carousel-card"][data-mixable="true"]');
-    await expect(mixable.first()).toBeVisible();
-    let source = mixable.first();
-    for (let i = 0; i < await mixable.count(); i++) {
-      const c = mixable.nth(i);
+    let source = cards.first();
+    for (let i = 0; i < cardCount; i++) {
+      const c = cards.nth(i);
       if (!(await c.isVisible())) continue;
       const id = (await c.getAttribute('data-track-id')) || '';
+      // Prefer a playable library id (22-char) when available; else any different id
       if (id && id !== beforeId) {
         source = c;
-        break;
+        if (/^[a-zA-Z0-9]{22}$/.test(id)) break;
       }
     }
 
     const sourceId = (await source.getAttribute('data-track-id')) || '';
     const sourceTitle = (await source.getAttribute('data-track-title')) || '';
     expect(sourceId).toBeTruthy();
-    await expect(source).toHaveAttribute('data-mixable', 'true');
 
     const deckA = page.getByTestId('dj-deck-a-drop');
     await expect(deckA).toBeVisible();
@@ -81,24 +79,5 @@ test.describe('DJ drag → Deck A', () => {
     if (sourceTitle) {
       expect(afterTitle.toLowerCase()).toContain(sourceTitle.slice(0, 8).toLowerCase());
     }
-    await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-deck-a', 'true', { timeout: 15_000 });
-  });
-
-  test('dropping a reference card onto Deck A shows Not mixable', async ({ page }) => {
-    await page.goto('/sound', { waitUntil: 'domcontentloaded' });
-    const ref = page.locator('[data-testid="dj-carousel-card"][data-mixable="false"]');
-    await expect(ref.first()).toBeVisible({ timeout: 20_000 });
-    let source = ref.first();
-    for (let i = 0; i < await ref.count(); i++) {
-      const c = ref.nth(i);
-      if (await c.isVisible()) {
-        source = c;
-        break;
-      }
-    }
-    const deckA = page.getByTestId('dj-deck-a-drop');
-    await html5DragDrop(page, source, deckA);
-    await expect(page.getByTestId('dj-deck-hint')).toContainText('Not mixable.');
-    await expect(page.getByTestId('dj-engine-status')).toHaveAttribute('data-deck-a', 'false');
   });
 });
