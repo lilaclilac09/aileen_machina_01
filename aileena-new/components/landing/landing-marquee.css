@@ -11,14 +11,12 @@
   flex: 0 0 auto;
   width: max-content;
   max-width: calc(100vw - 8.25rem);
-  /* Gutter is margin, not padding, so the nav box does not sit on the
-     machina launcher. No pointer-events:none — that made the news links
-     dead (clicks fell through to the full-height opening copy). */
-  margin: 0 0 0 var(--news-gutter);
-  padding: 0.35rem 0.75rem 0.2rem 0;
+  margin: 0;
+  padding: 0.35rem 0.75rem 0.2rem var(--news-gutter);
   border: 0;
   background: transparent;
   box-sizing: border-box;
+  pointer-events: none;
 }
 
 @media (min-width: 640px) {
@@ -53,6 +51,7 @@
     overscroll-behavior-x: contain;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    pointer-events: auto;
   }
 
   .landing-marquee__list::-webkit-scrollbar {
