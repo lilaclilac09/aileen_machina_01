@@ -135,7 +135,7 @@ function parseWatchShelf(): {
   lifestyle: MediaRow[];
   channels: MediaRow[];
 } {
-  const src = readText(join(ROOT, 'lib', 'watchListeningShelf.ts'));
+  const src = readText(join(ROOT, 'app', 'blog', 'watch-listening-shelf', 'page.tsx'));
   return {
     podcasts: parseMediaObjects(extractConstBlock(src, 'PODCAST_RECS')),
     documentaries: parseMediaObjects(extractConstBlock(src, 'DOCUMENTARY_RECS')),
