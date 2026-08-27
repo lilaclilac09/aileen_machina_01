@@ -100,7 +100,7 @@ async function main() {
   await page.screenshot({ path: join(OUT, 'proof-task-result.png') });
   await page.locator('[data-testid="computer-task-detail"]').screenshot({ path: join(OUT, 'computer-task-detail.png') });
 
-  await vPage.goto(`${BASE}/`, { waitUntil: 'networkidle' });
+  await vPage.goto(`${BASE}/proof`, { waitUntil: 'networkidle' });
   await vPage.keyboard.press('Escape');
   await vPage.evaluate(() => window.dispatchEvent(new CustomEvent('open-agent-chat')));
   await vPage.waitForSelector('[role="dialog"][aria-label="Aileena Console"]', { state: 'visible' });
