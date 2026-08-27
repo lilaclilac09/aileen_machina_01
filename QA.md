@@ -46,7 +46,7 @@ Also:
 - affected route opened
 - affected user flow tested
 - UI change → screenshots + interaction (`.cursor/rules/ui-step-screenshot.mdc`)
-- Landing experiment (`/` · `LandingStudio`) → `.cursor/rules/landing-experiment-gate.mdc`. Color review via `/?theme=`. **no screenshots = no merge recommendation.** Review only — do not merge.
+- Home marquee (`/` · `LandingMarquee`) → `.cursor/rules/landing-experiment-gate.mdc`. Do not restore ascii / moodboard / serials / zine. **no screenshots = no merge recommendation.**
 - env/config issues listed as `manual steps`, not hidden as code
 
 When the slice has a dedicated test:
@@ -97,22 +97,24 @@ pnpm council           # owner-only local council (needs OWNER_KEY + model key)
 - layout responsive (desktop cluster + 390×844)
 - home clipping desk stays collage, not a gallery grid
 
-## Landing experiment (`/` · `LandingStudio`)
+## Home marquee (`/` · `LandingMarquee`)
 
-Vellum / ink / embodied plate on `/`. Color review via `/?theme=cyan|coral|graphite|acid|violet|cobalt`. Gate: `.cursor/rules/landing-experiment-gate.mdc`. Review only — do not merge.
+Cinematic opening stays. **Only** the `new →` ticker shipped. Do not restore ascii, vellum studio, moodboard, object doors, serials shelf, or zine object.
+
+Gate: `.cursor/rules/landing-experiment-gate.mdc`.
 
 ```txt
 no screenshots = no merge recommendation.
-if the page still looks like a flat image on a clean cream background, the task failed.
 ```
 
 Runtime:
 
-- `/` renders `LandingStudio` (vellum over reference plate, tiny `new →` marquee, serial volumes)
+- `/` still shows portrait + Machina CTA
+- top marquee visible, not covering the CTA
+- ascii / moodboard / serials / zine **absent**
 - no horizontal overflow at 390px
-- desk `#dock`, `/doors` `#watch-hub`, kiln `#visual` untouched
 
-Required screenshots: `landing-full-desktop.png`, `landing-hero-layered.png`, `landing-vellum-over-ink.png`, `landing-ink-bleed-detail.png`, `landing-serials.png`, `landing-mobile-390.png`, `landing-mobile-430.png`.
+Required screenshots: `landing-desktop.png`, `landing-mobile-390.png`, `landing-marquee.png`.
 
 ## Doors / navigation
 
