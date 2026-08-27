@@ -135,7 +135,7 @@
 .watch-obj-cover {
   display: block;
   width: auto;
-  height: 88px;
+  height: 72px;
   background: #efeae0;
 }
 
@@ -174,8 +174,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 92px;
+  width: 20px;
+  height: 78px;
   padding: 8px 0;
   border: 1px solid rgba(17, 17, 17, 0.14);
   background: #ebe4d4;
