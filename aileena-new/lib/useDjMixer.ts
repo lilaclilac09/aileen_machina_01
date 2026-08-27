@@ -189,12 +189,12 @@ export function useDjMixer() {
   );
 
   const loadUrl = useCallback(
-    async (side: 'left' | 'right', url: string, keep?: { title?: string; bpm?: number | null; key?: string | null }) => {
+    async (side: 'left' | 'right', url: string) => {
       setError(null);
       try {
         const e = await ensure();
         const id = sideToId(side);
-        const { duration } = await e.loadUrl(id, url, keep?.title);
+        const { duration } = await e.loadUrl(id, url);
         setDeck(id, {
           mixLoaded: true,
           playing: false,
@@ -202,20 +202,10 @@ export function useDjMixer() {
           dur: duration,
           peaks: e.voice(id).peaks,
           fileName: url,
-          title: keep?.title || e.voice(id).title,
-          bpm: keep?.bpm ?? null,
-          key: keep?.key ?? null,
-          cue: 0,
-          hotCues: Array.from({ length: 8 }, () => null),
-          loopIn: null,
-          loopOut: null,
-          loopBars: null,
-          loopActive: false,
+          title: e.voice(id).title,
         });
-        return true;
       } catch {
         setError('URL blocked or not CORS-safe — download the file and upload it.');
-        return false;
       }
     },
     [ensure],

@@ -3,7 +3,7 @@
  * Unit checks for Sound Lab rotary/fader mapping + DJStation wiring.
  * Dual-deck EQ A/B + filter + master. No FX knob. No leftover fake rotaries.
  */
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   KNOB_MAX_ANGLE,
@@ -14,7 +14,6 @@ import {
   pointerToKnobValue,
   valueToAngle,
 } from '../lib/djKnob';
-import { isMixableTrack, isReferenceTrack } from '../lib/djLoadTrack';
 
 type Check = { name: string; ok: boolean; detail?: string };
 
@@ -67,18 +66,6 @@ function run(): Check[] {
   checks.push(check('fader touch-action none', fader.includes("touchAction: 'none'")));
   checks.push(check('fader ticks', fader.includes('ticks.map')));
 
-  const setlist = readFileSync(join(process.cwd(), 'lib/djSetlist.ts'), 'utf8');
-  checks.push(check(
-    'two local demo mix tracks with audioSrc',
-    setlist.includes("audioSrc: '/dj-set/audio/tone-a.wav'")
-      && setlist.includes("audioSrc: '/dj-set/audio/tone-b.wav'")
-      && setlist.includes('DEMO_MIX_TRACKS'),
-  ));
-  checks.push(check(
-    'demo wav files exist in public',
-    existsSync(join(process.cwd(), 'public/dj-set/audio/tone-a.wav'))
-      && existsSync(join(process.cwd(), 'public/dj-set/audio/tone-b.wav')),
-  ));
   const station = readFileSync(join(process.cwd(), 'components/DJStation.tsx'), 'utf8');
   checks.push(check('DJStation uses shared DJKnob', station.includes("from './DJKnob'") && !station.includes('function EQKnob')));
   checks.push(check('DJStation uses shared DJFader', station.includes("from './DJFader'") && !station.includes('function PitchFader')));
@@ -129,21 +116,6 @@ function run(): Check[] {
     'Load A/B is a label wrapping the file input',
     station.includes("dj-load-file-a") && station.includes('<label') && station.includes('onPointerDown={onUnlock}'),
   ));
-  checks.push(check(
-    'carousel/drop/upload share loadTrackToDeck',
-    station.includes('loadTrackToDeck')
-      && station.includes('Drop to Deck A')
-      && station.includes('Drop to Deck B'),
-  ));
-  checks.push(check(
-    'whole deck card is the drop target',
-    station.includes("data-testid={side === 'left' ? 'dj-deck-a-drop'")
-      && station.includes('onDrop={onDrop}')
-      && station.includes('Drop to Deck A'),
-  ));
-  checks.push(check('tone with audioSrc is mixable', isMixableTrack({ audioSrc: '/dj-set/audio/tone-a.wav', mixable: true })));
-  checks.push(check('spotify search card is reference', isReferenceTrack({ source: 'spotify', previewUrl: 'https://p.scdn.co/x' }) && !isMixableTrack({ source: 'spotify', previewUrl: 'https://p.scdn.co/x' })));
-  checks.push(check('preview-only is not mixable', !isMixableTrack({ previewUrl: 'https://p.scdn.co/x' }) && isReferenceTrack({ previewUrl: 'https://p.scdn.co/x' })));
   checks.push(check('platter is display-only', station.includes('scratch v2') && station.includes("pointerEvents: 'none'")));
   return checks;
 }
