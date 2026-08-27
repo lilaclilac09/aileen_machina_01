@@ -10,15 +10,12 @@ import { canEnqueueTask, getComputerTask, listComputerTasks, newId, nowIso, upse
 import type { ComputerTask } from '@/lib/computer/types';
 import {
   attachTaskToProof,
-  ensureProofItem,
   getProofItem,
   listProofItems,
   nextOpenProof,
   newProofId,
-  SOUND_LAB_ROLLBACK_PROOF_ID,
   upsertProofItem,
 } from '@/lib/proofQueue/store';
-import { COMPUTER_TABS, TAB_WIRE } from '@/lib/computer/capabilities';
 import { listHarnessPlugins } from '@/lib/computer/plugins';
 import { spokenQueued } from '@/lib/computer/spokenQueue';
 
@@ -41,7 +38,6 @@ export async function GET(req: Request) {
     cloudflareComputer: false,
     tasks: listComputerTasks(),
     proof: listProofItems(),
-    tabs: COMPUTER_TABS.map((id) => ({ id, wire: TAB_WIRE[id] })),
     plugins: listHarnessPlugins(),
     harness: 'machina-owner-prototype',
     deepSeekHarness: false,
@@ -89,30 +85,6 @@ export async function POST(req: Request) {
 
   let proofItemId = typeof body.proofItemId === 'string' ? body.proofItemId.trim() : '';
   let proof = proofItemId ? getProofItem(proofItemId) : null;
-  if (!proof && body.taskType === 'git_find_commit') {
-    proof = ensureProofItem({
-      id: SOUND_LAB_ROLLBACK_PROOF_ID,
-      title: 'Sound Lab rollback investigation',
-      route: '/sound',
-      problem:
-        'Find the commit where Sound Lab changes were merged. Inspection only. No checkout, no reset, no merge.',
-      proposedChange: 'Report candidate commits. Do not roll back until the owner approves a separate task.',
-      source: 'computer',
-      status: 'proposed',
-      risk: 'medium',
-      acceptanceCriteria: [
-        'Git find returns 3–5 candidates',
-        'No repo mutation',
-        'Owner reviews before any rollback',
-      ],
-      screenshots: [],
-      filesChanged: [],
-      checksRun: [],
-      computerTaskIds: [],
-      resultSummary: '',
-    });
-    proofItemId = proof.id;
-  }
   if (!proof) {
     proof = nextOpenProof(route);
     if (!proof) {
@@ -164,15 +136,7 @@ export async function POST(req: Request) {
     cancelled: false,
   };
   upsertComputerTask(task);
-  const proofStatus =
-    typeof body.taskType === 'string' &&
-    (body.taskType.startsWith('git_') ||
-      body.taskType.startsWith('files_') ||
-      body.taskType.startsWith('email_') ||
-      body.taskType.startsWith('browser_'))
-      ? 'in_progress'
-      : 'approved';
-  attachTaskToProof(proofItemId, task.id, proofStatus);
+  attachTaskToProof(proofItemId, task.id, 'approved');
 
   after(async () => {
     await runComputerTask(task.id);
