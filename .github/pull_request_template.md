@@ -24,7 +24,7 @@ Design OS: [`docs/aileena-design-os.md`](../docs/aileena-design-os.md). **no scr
 
 Slice checklists live in [`QA.md`](../QA.md) (orb, council, contact, visual/collage, doors, DJ, landing experiment).
 
-Landing experiment (`/` · `LandingStudio`): `.cursor/rules/landing-experiment-gate.mdc`. Color review via `/?theme=`. **no screenshots = no merge recommendation.** This PR is review-only — do not merge.
+Landing experiment (`/` · `LandingMarquee`): cinematic opening + marquee only. `.cursor/rules/landing-experiment-gate.mdc`. **no screenshots = no merge recommendation.**
 
 After merge (or a blocked gate): [`ops/post-pr-review.md`](../ops/post-pr-review.md). Do not promote lessons into `AGENTS.md` without owner approval.
 
