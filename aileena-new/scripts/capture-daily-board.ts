@@ -95,8 +95,18 @@ async function main() {
   await hideDevNoise(vPage);
   await vPage.waitForSelector('[data-testid="daily-title"]');
   await vPage.waitForTimeout(400);
+  if ((await vPage.locator('[data-testid="daily-owner-editor"]').count()) > 0) {
+    throw new Error('visitor must not see the owner writer');
+  }
   await vPage.screenshot({ path: join(OUT, 'daily-visitor-empty-clean.png'), fullPage: true });
   await vPage.screenshot({ path: join(OUT, 'daily-owner-unlock-closed.png'), fullPage: true });
+  const empty = vPage.locator('[data-testid="daily-empty"]');
+  const latestBefore = vPage.locator('[data-testid="daily-latest-body"]');
+  if (await empty.count()) {
+    await vPage.screenshot({ path: join(OUT, 'daily-visitor-empty.png'), fullPage: true });
+  } else if (await latestBefore.count()) {
+    await vPage.screenshot({ path: join(OUT, 'daily-visitor-latest-pre.png'), fullPage: true });
+  }
   await vPage.getByTestId('daily-owner-dot').click();
   await vPage.waitForSelector('[data-testid="daily-owner-popover"]');
   await vPage.waitForTimeout(200);

@@ -23,6 +23,7 @@ pnpm qa:agent          # prompt/rule lint (AGENTS / QA / council vs public / les
 pnpm qa:contact        # Resend env names, lead route, transcript, offline copy
 pnpm qa:sound          # same as verify:sound
 pnpm verify:visual     # GlassBench / ScrapPhoto no cover-crop
+pnpm verify:tts-session # site-agent TTS profile + chunk queue + cancel
 pnpm audit:runtime     # known /api routes keep expected runtime
 pnpm verify:proof-queue # owner proof queue gates (no auto-merge)
 pnpm report:merge      # print post-PR checklist; --blocked appends a queue proposal only
@@ -46,7 +47,7 @@ Also:
 - affected route opened
 - affected user flow tested
 - UI change → screenshots + interaction (`.cursor/rules/ui-step-screenshot.mdc`)
-- Home marquee (`/` · `LandingMarquee`) → `.cursor/rules/landing-experiment-gate.mdc`. Do not restore ascii / moodboard / serials / zine. **no screenshots = no merge recommendation.**
+- Landing experiment (`/` · `LandingStudio`) → `.cursor/rules/landing-experiment-gate.mdc`. Color review via `/?theme=`. **no screenshots = no merge recommendation.** Review only — do not merge.
 - env/config issues listed as `manual steps`, not hidden as code
 
 When the slice has a dedicated test:
@@ -82,7 +83,8 @@ pnpm council           # owner-only local council (needs OWNER_KEY + model key)
 
 ## Proof queue
 
-- `/proof` (alias `/evolution`) is **owner-only** (same owner session as cabinet)
+- `/evolution` is the **owner-only proof queue** (same owner session as cabinet)
+- `/proof` is the KeyShield computer door (not the queue panel)
 - visitors can log observed issues only — never approve, never merge
 - `ready for review` requires screenshots + summary + files + checks
 - no auto-merge path; `prepare PR` returns a prompt (`merge: false`)
@@ -105,24 +107,22 @@ pnpm council           # owner-only local council (needs OWNER_KEY + model key)
 - layout responsive (desktop cluster + 390×844)
 - home clipping desk stays collage, not a gallery grid
 
-## Home marquee (`/` · `LandingMarquee`)
+## Landing experiment (`/` · `LandingStudio`)
 
-Cinematic opening stays. **Only** the `new →` ticker shipped. Do not restore ascii, vellum studio, moodboard, object doors, serials shelf, or zine object.
-
-Gate: `.cursor/rules/landing-experiment-gate.mdc`.
+Vellum / ink / embodied plate on `/`. Color review via `/?theme=cyan|coral|graphite|acid|violet|cobalt`. Gate: `.cursor/rules/landing-experiment-gate.mdc`. Review only — do not merge.
 
 ```txt
 no screenshots = no merge recommendation.
+if the page still looks like a flat image on a clean cream background, the task failed.
 ```
 
 Runtime:
 
-- `/` still shows portrait + Machina CTA
-- top marquee visible, not covering the CTA
-- ascii / moodboard / serials / zine **absent**
+- `/` renders `LandingStudio` (vellum over reference plate, tiny `new →` marquee, serial volumes)
 - no horizontal overflow at 390px
+- desk `#dock`, `/doors` `#watch-hub`, kiln `#visual` untouched
 
-Required screenshots: `landing-desktop.png`, `landing-mobile-390.png`, `landing-marquee.png`.
+Required screenshots: `landing-full-desktop.png`, `landing-hero-layered.png`, `landing-vellum-over-ink.png`, `landing-ink-bleed-detail.png`, `landing-serials.png`, `landing-mobile-390.png`, `landing-mobile-430.png`.
 
 ## Doors / navigation
 

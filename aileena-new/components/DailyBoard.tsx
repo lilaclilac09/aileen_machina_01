@@ -205,10 +205,8 @@ function Bubble({
 
 export default function DailyBoard({
   initial = null,
-  denied = false,
 }: {
   initial?: BoardPayload | null;
-  denied?: boolean;
 }) {
   const [board, setBoard] = useState<BoardPayload | null>(initial);
   const [title, setTitle] = useState(() => {
@@ -371,6 +369,10 @@ export default function DailyBoard({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ noteId: commentNoteId, body: text, nickname: nick }),
     });
+    if (res.status === 503) {
+      flash('⚡ Bubble failed.', true);
+      return;
+    }
     if (!res.ok) {
       flash('⚡ Bubble failed.', true);
       return;
@@ -444,6 +446,24 @@ export default function DailyBoard({
           >
             one or two lines a day.
           </p>
+          {board?.persistence === 'memory' ? (
+            <p
+              data-testid="daily-persistence"
+              style={{
+                margin: '4px 0 0',
+                fontFamily: sans,
+                fontSize: 11,
+                opacity: 0.4,
+                fontWeight: 500,
+              }}
+            >
+              this instance
+            </p>
+          ) : board ? (
+            <p data-testid="daily-persistence" hidden>
+              kept
+            </p>
+          ) : null}
         </header>
 
         {!board ? null : (

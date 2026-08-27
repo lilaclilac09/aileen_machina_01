@@ -72,6 +72,21 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     },
   },
   {
+    slug: 'computer',
+    tag: 'AGENT',
+    title: 'Computer',
+    body: 'Owner computer in the site-agent dialog. Same window as chat. Not a second harness page.',
+    why: 'Heavy work was growing a window next to Console. The dialog already had a mouth.',
+    verdict: 'Experiment. Local shim. Not Cloudflare Computer. Merge stays blocked.',
+    href: '/tools/computer',
+    status: 'experiment',
+    tier: 'experiment',
+    arcade: {
+      glyph: '⌘',
+      screenGradient: '#dceee9',
+    },
+  },
+  {
     slug: 'feed-flash',
     tag: 'RSS',
     title: 'Feed Flash',

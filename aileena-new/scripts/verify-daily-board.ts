@@ -57,9 +57,24 @@ async function liveHttp() {
   assert('daily html has no login explanation', !/One good enter/i.test(dailyHtml));
 
   const visitorGet = await fetch(`${base}/api/daily`);
-  const visitorJson = visitorGet.ok ? ((await visitorGet.json()) as { owner?: boolean }) : {};
+  const visitorJson = visitorGet.ok
+    ? ((await visitorGet.json()) as { owner?: boolean; persistence?: string; notes?: unknown[] })
+    : {};
   assert('GET /api/daily', visitorGet.ok, String(visitorGet.status));
   assert('visitor GET owner=false', visitorJson.owner === false, JSON.stringify({ owner: visitorJson.owner }));
+  assert(
+    'GET reports persistence',
+    visitorJson.persistence === 'memory' || visitorJson.persistence === 'redis',
+    String(visitorJson.persistence),
+  );
+
+  const pageHtml = page.ok ? await page.text() : '';
+  assert('visitor /daily has no owner writer', !pageHtml.includes('daily-owner-textarea'));
+  assert(
+    'visitor /daily shows latest or empty',
+    pageHtml.includes('daily-latest') || pageHtml.includes('daily-empty'),
+  );
+  assert('visitor /daily names persistence', pageHtml.includes('daily-persistence'));
 
   const forbidden = await fetch(`${base}/api/daily/notes`, {
     method: 'POST',
@@ -177,6 +192,8 @@ function sourceChecks() {
   assert('owner editor only when owner', ui.includes('daily-owner-textarea') && ui.includes('showWriter = owner'));
   assert('no owner key form on daily', !ui.includes('OwnerUnlockForm') && !ui.includes('OWNER KEY') && !ui.includes('owner key'));
   assert('no visitor warning copy', !ui.includes('Visitors cannot use this room'));
+  assert('writer is owner-only', /const showWriter = owner;/.test(ui) && !/on this phone until you enter/.test(ui));
+  assert('public persistence is named', ui.includes('daily-persistence') && ui.includes('this instance'));
   assert('no OWNER_KEY in client', !ui.includes('OWNER_KEY'));
   assert('corner unlock used', ui.includes('OwnerCornerUnlock'));
   assert('redis env uses runtime bracket access', read('lib/visitorMemory.ts').includes("process.env['UPSTASH_REDIS_REST_URL']"));

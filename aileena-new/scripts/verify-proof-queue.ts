@@ -222,15 +222,17 @@ async function liveHttp() {
     return;
   }
 
-  const page = await fetch(`${base}/proof`);
-  const html = await page.text();
-  assert('GET /proof', page.ok, String(page.status));
-  assert('locked page says owner only', /Owner only/i.test(html));
-  assert('locked /proof has no owner key form', !/owner key/i.test(html) && !/Visitors cannot use this room/i.test(html));
-  assert('locked page has no proposal cards', !/data-proof-card/.test(html));
+  const door = await fetch(`${base}/proof`);
+  const doorHtml = await door.text();
+  assert('GET /proof', door.ok, String(door.status));
+  assert('locked /proof has no owner key form', !/owner key/i.test(doorHtml) && !/Visitors cannot use this room/i.test(doorHtml));
 
-  const alias = await fetch(`${base}/evolution`, { redirect: 'manual' });
-  assert('GET /evolution redirects to /proof', alias.status === 307 || alias.status === 308, String(alias.status));
+  const page = await fetch(`${base}/evolution`);
+  const html = await page.text();
+  assert('GET /evolution', page.ok, String(page.status));
+  assert('locked /evolution says owner only', /Owner only/i.test(html));
+  assert('locked /evolution has no owner key form', !/owner key/i.test(html) && !/Visitors cannot use this room/i.test(html));
+  assert('locked page has no proposal cards', !/data-proof-card/.test(html));
 
   const visitorGet = await fetch(`${base}/api/proof`);
   assert('visitor GET /api/proof → 403', visitorGet.status === 403, String(visitorGet.status));
@@ -295,9 +297,9 @@ async function liveHttp() {
     assert('ready without screenshots blocked', readyTooSoon.status === 409, String(readyTooSoon.status));
   }
 
-  const ownerPage = await fetch(`${base}/proof`, { headers: { Cookie: cookie } });
+  const ownerPage = await fetch(`${base}/evolution`, { headers: { Cookie: cookie } });
   const ownerHtml = await ownerPage.text();
-  assert('owner /proof unlocks panel', /data-proof-queue/.test(ownerHtml) || ownerPage.ok, String(ownerPage.status));
+  assert('owner /evolution unlocks panel', /data-proof-queue/.test(ownerHtml) || ownerPage.ok, String(ownerPage.status));
 }
 
 async function staticGates() {
@@ -306,11 +308,13 @@ async function staticGates() {
   sourceHasNoMerge('app/api/proof/route.ts');
   sourceHasNoMerge('components/ProofQueuePanel.tsx');
 
-  const page = read('app/proof/page.tsx');
-  assert('proof page owner-gated', /getOwnerIdentity/.test(page) && /Owner only/.test(page));
-  assert('proof page has no owner key form', !/OwnerUnlockForm/.test(page));
-  assert('proof robots noindex', /index:\s*false/.test(page));
-  assert('proof title is proof queue', /proof queue/i.test(page));
+  const page = read('app/evolution/page.tsx');
+  assert('evolution page owner-gated', /getOwnerIdentity/.test(page) && /Owner only/.test(page));
+  assert('evolution page has no owner key form', !/OwnerUnlockForm/.test(page));
+  assert('evolution robots noindex', /index:\s*false/.test(page));
+  assert('evolution title is proof queue', /proof queue/i.test(page));
+  const door = read('app/proof/page.tsx');
+  assert('proof door is not the queue panel', /OwnerUnlockForm/.test(door) && !/ProofQueuePanel/.test(door));
 
   const panel = read('components/ProofQueuePanel.tsx');
   assert('panel has status lights', /proof-light/.test(panel));

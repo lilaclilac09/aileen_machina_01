@@ -37,6 +37,7 @@ test.describe('daily board', () => {
     });
     expect(res.status()).toBe(403);
 
+    await expect(page.getByTestId('daily-persistence')).toBeAttached();
     const empty = page.getByTestId('daily-empty');
     const latest = page.getByTestId('daily-latest-body');
     if ((await empty.count()) > 0) {

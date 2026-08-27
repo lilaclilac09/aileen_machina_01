@@ -150,3 +150,11 @@ export const TOOLS_INKLING_RATE: RateLimitConfig = {
   dailyMax: 8,
   dailyWindowMs: 86_400_000,
 };
+
+/** Owner-only computer prototype — cost guardrail even after auth. */
+export const COMPUTER_TASK_RATE: RateLimitConfig = {
+  shortMax: 8,
+  shortWindowMs: 60_000,
+  dailyMax: 48,
+  dailyWindowMs: 86_400_000,
+};

@@ -86,6 +86,14 @@ export const t = {
           verdict: 'Not better than CapCut yet. Kept as an experiment.',
           statusLabel: 'experiment',
         },
+        computer: {
+          tag: 'AGENT',
+          title: 'Computer',
+          body: 'Owner computer in the site-agent dialog. Same window as chat. Not a second harness page.',
+          why: 'Heavy work was growing a window next to Console. The dialog already had a mouth.',
+          verdict: 'Experiment. Local shim. Not Cloudflare Computer. Merge stays blocked.',
+          statusLabel: 'experiment',
+        },
         'feed-flash': {
           tag: 'RSS',
           title: 'Feed Flash',
@@ -299,6 +307,19 @@ export const t = {
           noPrice: 'No per-chip price for this SKU yet.',
           network: 'Network error. Try again.',
         },
+      },
+      computer: {
+        tag: 'AGENT',
+        heading: 'Computer',
+        body: 'Owner computer in the site-agent dialog. Same window as chat.',
+        backToTools: '← Tools',
+        marquee: 'COMPUTER · SAME DIALOG · KEYSHIELD · NO MERGE',
+        sameDialog: 'same dialog · not a window',
+        howto:
+          'Unlock with KeyShield on this device. The dock sits under the transcript. Heavy work says queued and she still talks.',
+        openConsole: 'open site agent',
+        essay: 'Read the essay →',
+        disclaimer: 'Experiment. Local shim. Not Cloudflare Computer. Not DeepSeek Harness. Merge stays blocked.',
       },
     },
     elsewhere: {
@@ -953,6 +974,14 @@ export const t = {
           verdict: 'Noch nicht besser als CapCut. Bleibt ein Experiment.',
           statusLabel: 'experiment',
         },
+        computer: {
+          tag: 'AGENT',
+          title: 'Computer',
+          body: 'Owner-Computer im Site-Agent-Dialog. Dasselbe Fenster wie Chat. Keine zweite Harness-Seite.',
+          why: 'Schwere Arbeit wuchs zu einem Fenster neben der Console. Der Dialog hatte schon einen Mund.',
+          verdict: 'Experiment. Lokaler Shim. Nicht Cloudflare Computer. Merge bleibt gesperrt.',
+          statusLabel: 'experiment',
+        },
         'feed-flash': {
           tag: 'RSS',
           title: 'Feed Flash',
@@ -1165,6 +1194,19 @@ export const t = {
           noPrice: 'Noch kein per-chip Preis für diese SKU.',
           network: 'Netzwerkfehler. Erneut versuchen.',
         },
+      },
+      computer: {
+        tag: 'AGENT',
+        heading: 'Computer',
+        body: 'Owner-Computer im Site-Agent-Dialog. Dasselbe Fenster wie Chat.',
+        backToTools: '← Tools',
+        marquee: 'COMPUTER · SELBER DIALOG · KEYSHIELD · KEIN MERGE',
+        sameDialog: 'selber Dialog · kein Fenster',
+        howto:
+          'Mit KeyShield auf diesem Gerät entsperren. Das Dock sitzt unter dem Transkript. Schwere Arbeit sagt queued — und sie redet weiter.',
+        openConsole: 'Site-Agent öffnen',
+        essay: 'Essay lesen →',
+        disclaimer: 'Experiment. Lokaler Shim. Nicht Cloudflare Computer. Nicht DeepSeek Harness. Merge bleibt gesperrt.',
       },
     },
     elsewhere: {

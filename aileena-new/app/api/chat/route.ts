@@ -6,6 +6,7 @@ import { COUNCIL_SYSTEM_PROMPT, formatCouncilLensForPrompt } from '../../../lib/
 import { decideAgentMode, skipVisitorQuota, type AgentMode } from '../../../lib/agentMode';
 import { isCouncilLens } from '../../../lib/councilCopy';
 import { requireOwnerFromRequest } from '../../../lib/owner-gate';
+import { tryOwnerComputerFastPath } from '../../../lib/computer/chatFastPath';
 import { searchArticles } from '../../../lib/agentSearch';
 import { searchMemories, memoryIndexMeta } from '../../../lib/memorySearch';
 import { agentDataTools, datasetSummary } from '../../../lib/data/tools';
@@ -241,6 +242,20 @@ export async function POST(req: Request) {
     return jsonError(decided.error, decided.status, trace.traceId, {
       'X-Agent-Mode': 'forbidden',
     });
+  }
+
+  // Owner computer commands skip the model. Visitors never enqueue.
+  const lastQEarly = lastUserQuery(messages);
+  if (owner) {
+    const fast = await tryOwnerComputerFastPath({
+      req,
+      isOwner: true,
+      lastQ: lastQEarly,
+    });
+    if (fast) {
+      trace.log('computer_fast_path', { q: lastQEarly.slice(0, 80) });
+      return fast;
+    }
   }
   const agentMode: AgentMode = decided.mode;
   const isCouncil = agentMode === 'council';

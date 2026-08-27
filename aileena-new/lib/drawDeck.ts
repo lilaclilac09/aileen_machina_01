@@ -180,6 +180,13 @@ export const DRAW_DECK: readonly DrawCard[] = [
     recitation: 'Voice is the wire. The dialog is where answers land. Nothing writes the disk.',
     href: `${ORIGIN}/blog/console-orb`,
   },
+  {
+    id: 'wire-computer',
+    room: 'wire',
+    title: 'Computer in the dialog',
+    recitation: 'Computer is a tool in Console, not a second window. Queue it. Keep talking. Do not merge.',
+    href: `${ORIGIN}/blog/machina-computer`,
+  },
   // desk
   {
     id: 'desk-upstairs',

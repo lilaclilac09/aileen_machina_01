@@ -1,5 +1,8 @@
 /** DJ set + full deck library for /sound#dj-set carousel. */
 
+import { asCatalogRef, type CarouselTrack } from './djCarouselTrack';
+export type { CarouselTrack } from './djCarouselTrack';
+
 export const DJ_SET_GENRE =
   'Techno (personal): harder driving techno — DVS1, Blawan, Rødhåd';
 
@@ -23,58 +26,11 @@ export type DeckTrack = {
   spotifyId?: string;
   title: string;
   artist?: string;
-  artists?: string[];
-  album?: string;
   bpm: number;
   key: string;
   dur: number;
   thumb: string;
-  /** User-added Spotify search card — reference/preview, not mixable. */
-  source?: 'local' | 'demo' | 'spotify' | 'external';
-  previewUrl?: string | null;
-  externalUrl?: string;
-  /** Same-origin or CORS-safe audio. Required for mixable. */
-  audioSrc?: string;
-  demo?: boolean;
-  /** False = reference only. True only when audioSrc is playable. */
-  mixable?: boolean;
 };
-
-export const DEMO_DECK_TRACKS: DeckTrack[] = [
-  {
-    id: 'demo-kick',
-    title: 'Kick Loop',
-    artist: 'aileena demo',
-    bpm: 132,
-    key: '1A',
-    dur: 4,
-    thumb: '/dj-set/assets/covers/demo-kick.svg',
-    audioSrc: '/dj-set/demo/kick.wav',
-    source: 'demo',
-    mixable: true,
-    demo: true,
-  },
-  {
-    id: 'demo-stab',
-    title: 'Stab Loop',
-    artist: 'aileena demo',
-    bpm: 132,
-    key: '8A',
-    dur: 4,
-    thumb: '/dj-set/assets/covers/demo-stab.svg',
-    audioSrc: '/dj-set/demo/stab.wav',
-    source: 'demo',
-    mixable: true,
-    demo: true,
-  },
-];
-
-function asReference(track: DeckTrack): DeckTrack {
-  if (track.audioSrc && track.mixable !== false && track.source !== 'spotify') {
-    return { ...track, mixable: true, source: track.source || 'demo' };
-  }
-  return { ...track, mixable: false, source: track.source === 'spotify' ? 'spotify' : 'external' };
-}
 
 /** Curated handoff five — also mirrored in public/dj-set/setlist.json */
 export const DJ_SET_TRACKS: DjSetTrack[] = [
@@ -124,28 +80,6 @@ export const DJ_SET_TRACKS: DjSetTrack[] = [
  * Spotify id is the track `id` (22-char). Keep these in the carousel with the handoff five.
  */
 export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
-  // Infra-Red — Love Honey (A1 on …The Second Phase…, Strobe ST 004, 1991)
-  // Spotify 43UmOsrAaLEmqSHJYFeiRw · cover vendored from oEmbed
-  {
-    id: '43UmOsrAaLEmqSHJYFeiRw',
-    title: 'Love Honey',
-    artist: 'Infra-Red · The Second Phase',
-    bpm: 120,
-    key: '4A',
-    dur: 355,
-    thumb: '/dj-set/assets/covers/love-honey.jpg',
-  },
-  // WAX — 11110B (B-side of No. 11110 / WAX11110, 2026)
-  // No Spotify on Odesli (Apple/Deezer/Tidal). Cover vendored from Apple 1000²
-  {
-    id: 'WAX11110B',
-    title: '11110B',
-    artist: 'WAX · No. 11110',
-    bpm: 126,
-    key: '10B',
-    dur: 382,
-    thumb: '/dj-set/assets/covers/wax-11110b.jpg',
-  },
   // Dua Lipa — lyric "Need someone to hold me close" = Training Season
   // Covers vendored under /dj-set/assets/covers/dua-*.jpg (Spotify oEmbed art)
   {
@@ -441,21 +375,30 @@ export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
 ];
 
 export function djSetToDeckTracks(): DeckTrack[] {
-  return DJ_SET_TRACKS.map((t) =>
-    asReference({
-      id: t.id,
-      spotifyId: t.spotifyId,
-      title: t.title,
-      artist: t.artist,
-      bpm: t.bpm ?? 120,
-      key: t.key ?? '—',
-      dur: t.durationSec ?? 200,
-      thumb: t.cover,
-    }),
-  );
+  return DJ_SET_TRACKS.map((t) => ({
+    id: t.id,
+    spotifyId: t.spotifyId,
+    title: t.title,
+    artist: t.artist,
+    bpm: t.bpm ?? 120,
+    key: t.key ?? '—',
+    dur: t.durationSec ?? 200,
+    thumb: t.cover,
+  }));
 }
 
-/** Demos first (playable), then handoff five + library as reference. */
-export function allDeckTracks(): DeckTrack[] {
-  return [...DEMO_DECK_TRACKS, ...djSetToDeckTracks(), ...DECK_LIBRARY_TRACKS.map(asReference)];
+/** Everything shown in the /sound deck carousel: handoff five + full library. Catalog is reference-only (no playable audioSrc). */
+export function allDeckTracks(): CarouselTrack[] {
+  return [...djSetToDeckTracks(), ...DECK_LIBRARY_TRACKS].map((t) =>
+    asCatalogRef({
+      id: t.id,
+      title: t.title,
+      artist: t.artist,
+      bpm: t.bpm,
+      key: t.key,
+      dur: t.dur,
+      thumb: t.thumb,
+      spotifyId: t.spotifyId,
+    }),
+  );
 }

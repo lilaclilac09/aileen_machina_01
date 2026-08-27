@@ -86,7 +86,7 @@ wait for confirmation before editing if the change touches multiple systems.
 - do not change typography / layout / colors unless requested
 - fix proportions / readability / function only
 - UI merge: screenshots + interaction (`.cursor/rules/ui-step-screenshot.mdc`)
-- **home marquee** (`/` · `LandingMarquee`): cinematic opening stays. Do not restore ascii / moodboard / serials / zine. Follow `.cursor/rules/landing-experiment-gate.mdc`.
+- **landing experiment** (`/` · `LandingStudio`): paper / crayon markup / printed plate / vellum. Color review via `/?theme=cyan|coral|graphite|acid|violet|cobalt`. No fake 3D. Follow `.cursor/rules/landing-experiment-gate.mdc`. Review only — do not merge.
 
 ```txt
 no screenshots = no merge recommendation.
@@ -159,7 +159,7 @@ Failures become lessons. Repeated lessons may be **proposed** — never silently
 - Record: [`ops/lessons/`](ops/lessons/README.md) (copy `TEMPLATE.md`)
 - Propose: [`ops/improvement-queue.md`](ops/improvement-queue.md) — **owner approval** before touching `AGENTS.md` / `QA.md` / `PROJECT_RULES.md`
 - After a PR: [`ops/post-pr-review.md`](ops/post-pr-review.md)
-- Site product patches: owner **proof queue** at `/proof` (alias `/evolution`). Agents propose; owner approves; no auto-merge. `pnpm verify:proof-queue`.
+- Site product patches: owner **proof queue** at `/evolution`. `/proof` is the KeyShield computer door. Agents propose; owner approves; no auto-merge. `pnpm verify:proof-queue`.
 - Do not autonomously refactor the site because a lesson exists
 
 Golden paths: `cd aileena-new && pnpm qa:mobile` · `pnpm qa:agent` · `pnpm qa:contact` · `pnpm qa:sound` · `pnpm audit:runtime` · `pnpm report:merge`

@@ -103,7 +103,7 @@ export const OWNER_MAX_AGE = 60 * 60 * 24 * 365; // 1 year — the owner shouldn
 export async function createSession(sub: string, via: 'email' | 'wallet'): Promise<string> {
   return signToken({ t: 'sess', sub, via, exp: Date.now() + SESSION_MAX_AGE * 1000 } satisfies Session);
 }
-/** Owner bypass: a long-lived session minted from the OWNER_KEY secret link. */
+/** Owner session minted after KeyShield (PRF → HKDF → AES-GCM) on this device. */
 export async function createOwnerSession(): Promise<string> {
   return signToken({ t: 'sess', sub: 'owner', via: 'owner', exp: Date.now() + OWNER_MAX_AGE * 1000 } satisfies Session);
 }
@@ -115,7 +115,7 @@ export async function readSession(
   return { sub: s.sub, via: s.via };
 }
 
-/** Constant-time string compare for secrets (OWNER_KEY etc.). */
+/** Constant-time string compare for secrets. */
 export function safeEqual(a: string, b: string): boolean {
   return timingSafeEqual(a, b);
 }
@@ -130,6 +130,22 @@ export function ownerSecretMatches(key: string): boolean {
   const ownerKey = (process.env.OWNER_KEY || '').trim();
   const candidates = [riddle, ownerKey].filter(Boolean);
   return candidates.some((expected) => key.length === expected.length && safeEqual(key, expected));
+}
+
+type WebauthnCh = { t: 'wch'; ch: string; exp: number };
+const WEBAUTHN_CH_TTL_MS = 5 * 60 * 1000;
+
+export async function createWebauthnChallenge(): Promise<{ token: string; challenge: string }> {
+  const rnd = crypto.getRandomValues(new Uint8Array(32));
+  const ch = b64urlFromBytes(rnd);
+  const token = await signToken({ t: 'wch', ch, exp: Date.now() + WEBAUTHN_CH_TTL_MS } satisfies WebauthnCh);
+  return { token, challenge: ch };
+}
+
+export async function readWebauthnChallenge(token: string | undefined | null): Promise<string | null> {
+  const c = await readToken<WebauthnCh>(token);
+  if (!c || c.t !== 'wch' || typeof c.exp !== 'number' || c.exp < Date.now()) return null;
+  return c.ch;
 }
 
 /* ── Email magic-link token ── */

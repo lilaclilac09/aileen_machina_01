@@ -1,6 +1,6 @@
 /**
  * Server-side owner gate for inbox / chat-forward APIs.
- * Requires blog OWNER_KEY session (__aileena_pass via=owner).
+ * Requires owner KeyShield session (__aileena_pass via=owner).
  */
 
 import { cookies } from 'next/headers';
