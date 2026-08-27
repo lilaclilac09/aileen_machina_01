@@ -35,6 +35,7 @@ type PodcastRec = {
   signal?: string;
   tags?: string[];
   featured?: boolean;
+  image?: string;
 };
 
 /** Kept as named blocks so `scripts/sync-content-memory.ts` can still parse the shelf. */
@@ -45,6 +46,7 @@ export const PODCAST_RECS: PodcastRec[] = [
     label: 'podcast',
     meta: 'Kate Moss episode',
     href: 'https://open.spotify.com/episode/0ZxMxV8EiZ9DkAPJWU0If7',
+    image: '/shelf/fashion-neurosis.jpg',
     body: 'A velvet couch, fashion as anxiety, and taste as confession rather than certainty.',
     why: 'A velvet couch, fashion as anxiety, and taste as confession rather than certainty.',
     tags: ['voice', 'taste', 'anxiety'],
@@ -264,8 +266,9 @@ export const SHELF_ITEMS: ShelfItem[] = [
     note: item.why ?? item.signal ?? item.body,
     tags: item.tags,
     href: item.href,
+    cover: item.image,
     featured: Boolean(item.featured),
-    object: 'cassette' as const,
+    object: item.image ? ('cover' as const) : ('cassette' as const),
   })),
   ...DOCUMENTARY_RECS.map((item) => ({
     id: slugify(item.shelfTitle),

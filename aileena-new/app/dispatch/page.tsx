@@ -503,6 +503,7 @@ function WatchListenTab({ post }: { post?: Post }) {
     { title: 'The Crown', image: '/shelf/the-crown.jpg' },
     { title: 'The Capture', image: '/shelf/the-capture.jpg' },
     { title: 'Bodyguard', image: '/shelf/bodyguard.jpg' },
+    { title: 'Miss Sloane', image: '/shelf/miss-sloane.jpg' },
   ];
 
   return (
