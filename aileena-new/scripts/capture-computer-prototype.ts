@@ -100,6 +100,14 @@ async function main() {
   await page.screenshot({ path: join(OUT, 'proof-task-result.png') });
   await page.locator('[data-testid="computer-task-detail"]').screenshot({ path: join(OUT, 'computer-task-detail.png') });
 
+  await vPage.goto(`${BASE}/`, { waitUntil: 'networkidle' });
+  await vPage.keyboard.press('Escape');
+  await vPage.evaluate(() => window.dispatchEvent(new CustomEvent('open-agent-chat')));
+  await vPage.waitForSelector('[role="dialog"][aria-label="Aileena Console"]', { state: 'visible' });
+  const visitorDock = await vPage.locator('[data-testid="computer-console-dock"]').count();
+  if (visitorDock > 0) throw new Error('visitor saw computer dock');
+  await vPage.screenshot({ path: join(OUT, 'agent-tabs-visitor-hidden.png') });
+
   const tools = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   const tPage = await tools.newPage();
   await tPage.goto(`${BASE}/tools`, { waitUntil: 'networkidle' });
@@ -119,6 +127,56 @@ async function main() {
   await dPage.goto(`${BASE}/proof`, { waitUntil: 'networkidle' });
   await openConsole(dPage);
   await dPage.screenshot({ path: join(OUT, 'proof-desktop.png') });
+  await dPage.screenshot({ path: join(OUT, 'agent-tabs-owner.png') });
+
+  await dPage.locator('[data-testid="computer-tab-git"]').click();
+  await dPage.locator('[data-testid="git-action-recent"]').click();
+  await dPage.waitForFunction(() => {
+    const el = document.querySelector('[data-testid="git-recent-commits"]');
+    return /[0-9a-f]{7}/i.test(el?.textContent || '');
+  }, null, { timeout: 40_000 });
+  await dPage.waitForFunction(() => !document.querySelector('[data-testid="computer-task-running"]'), null, {
+    timeout: 40_000,
+  });
+  await dPage.locator('[data-testid="git-recent-commits"]').scrollIntoViewIfNeeded();
+  await dPage.locator('[data-testid="git-recent-commits"]').screenshot({ path: join(OUT, 'git-tab-recent-commits.png') });
+
+  await dPage.locator('[data-testid="git-action-find-sound"]').click();
+  await dPage.waitForFunction(() => {
+    const running = Boolean(document.querySelector('[data-testid="computer-task-running"]'));
+    const el = document.querySelector('[data-testid="git-merge-candidates"]');
+    const text = el?.textContent || '';
+    return !running && /files=/.test(text) && /[0-9a-f]{7}/i.test(text);
+  }, null, { timeout: 45_000 });
+  await dPage.locator('[data-testid="git-merge-candidates"]').scrollIntoViewIfNeeded();
+  await dPage.locator('[data-testid="git-merge-candidates"]').screenshot({
+    path: join(OUT, 'git-tab-sound-merge-candidates.png'),
+  });
+
+  await dPage.locator('[data-testid="computer-tab-files"]').click();
+  await dPage.locator('[data-testid="files-action-open"]').click();
+  await dPage.waitForFunction(() => {
+    const running = Boolean(document.querySelector('[data-testid="computer-task-running"]'));
+    const el = document.querySelector('[data-testid="files-readonly"]');
+    const t = el?.textContent || '';
+    return !running && t.length > 40 && !/open a file to preview/i.test(t);
+  }, null, { timeout: 40_000 });
+  await dPage.locator('[data-testid="files-readonly"]').scrollIntoViewIfNeeded();
+  await dPage.locator('[data-testid="computer-console-dock"]').screenshot({ path: join(OUT, 'files-tab-readonly.png') });
+
+  await dPage.locator('[data-testid="computer-tab-proof"]').click();
+  await dPage.waitForFunction(() => {
+    const el = document.querySelector('[data-testid="proof-attachment"]');
+    return /hash \| date|Sound Lab rollback|[0-9a-f]{7}/i.test(el?.textContent || '');
+  }, null, { timeout: 15_000 });
+  await dPage.locator('[data-testid="proof-attachment"]').scrollIntoViewIfNeeded();
+  await dPage.locator('[data-testid="computer-console-dock"]').screenshot({ path: join(OUT, 'proof-attachment.png') });
+
+  await dPage.locator('[data-testid="computer-tab-git"]').click();
+  await dPage.locator('[data-testid="git-action-status"]').click();
+  await dPage.locator('[data-testid="computer-tab-tasks"]').click();
+  await dPage.waitForSelector('[data-testid="computer-task-running"]', { timeout: 12_000 });
+  await dPage.locator('[data-testid="computer-console-dock"]').screenshot({ path: join(OUT, 'tasks-tab-running.png') });
 
   await browser.close();
   console.log(`wrote screenshots to ${OUT}`);
