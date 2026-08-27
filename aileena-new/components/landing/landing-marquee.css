@@ -4,33 +4,70 @@
   --ls-ink: #14110c;
   --ls-coral: #c45c58;
   --ls-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* Clear the fixed machina avatar (SiteLeftChrome). */
+  --news-gutter: calc(0.75rem + 2.75rem + 0.7rem);
   position: relative;
   z-index: 12;
   flex: 0 0 auto;
-  width: 100%;
+  width: max-content;
+  max-width: calc(100vw - 8.25rem);
   margin: 0;
-  padding: 0.55rem clamp(16px, 4vw, 40px) 0.1rem;
+  padding: 0.35rem 0.75rem 0.2rem var(--news-gutter);
   border: 0;
   background: transparent;
   box-sizing: border-box;
   pointer-events: none;
 }
 
+@media (min-width: 640px) {
+  .landing-marquee {
+    --news-gutter: calc(1rem + 2.25rem + 0.85rem);
+  }
+}
+
+@media (min-width: 768px) {
+  .landing-marquee {
+    position: absolute;
+    top: 0.85rem;
+    left: 0;
+  }
+}
+
 .landing-marquee__list {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0.15rem 1.25rem;
+  gap: 0.1rem 1.15rem;
   min-width: 0;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+@media (max-width: 767px) {
+  .landing-marquee__list {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    pointer-events: auto;
+  }
+
+  .landing-marquee__list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .landing-marquee__link {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}
+
 .landing-marquee__link {
   pointer-events: auto;
   display: inline-block;
-  padding: 0.35em 0.05em;
+  padding: 0.28em 0.04em;
   color: rgba(20, 17, 12, 0.7);
   font-family: var(--ls-mono);
   font-size: 0.68rem;
@@ -54,7 +91,7 @@
 .landing-marquee__link:focus-visible {
   color: rgba(20, 17, 12, 0.92);
   text-decoration: underline;
-  text-decoration-color: rgba(196, 92, 88, 0.55);
+  text-decoration-color: var(--ls-coral);
   text-decoration-thickness: 1px;
   text-underline-offset: 0.28em;
 }
