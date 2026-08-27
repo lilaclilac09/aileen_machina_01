@@ -15,6 +15,8 @@ type ArcadeLayoutProps = {
   backLabel?: string;
   backHref?: string;
   marquee?: string;
+  /** Tools hub is a centered shelf. Tool pages stay start-aligned. */
+  align?: 'start' | 'center';
   children: ReactNode;
 };
 
@@ -25,6 +27,7 @@ export default function ArcadeLayout({
   backLabel,
   backHref = '/tools',
   marquee,
+  align = 'start',
   children,
 }: ArcadeLayoutProps) {
   const marqueeText =
@@ -47,7 +50,7 @@ export default function ArcadeLayout({
         >
           <div
             style={{
-              maxWidth: 980,
+              maxWidth: align === 'center' ? 1100 : 980,
               margin: '0 auto',
               display: 'flex',
               justifyContent: 'space-between',
@@ -93,8 +96,24 @@ export default function ArcadeLayout({
           </div>
         </div>
 
-        <main style={{ maxWidth: 980, margin: '0 auto', padding: '36px 24px 96px' }}>
-          <div style={{ maxWidth: 720, marginBottom: 28 }}>
+        <main
+          className={align === 'center' ? 'arcade-main arcade-main--center' : 'arcade-main'}
+          style={{
+            maxWidth: align === 'center' ? 1100 : 980,
+            margin: '0 auto',
+            padding: '36px 24px 96px',
+          }}
+        >
+          <div
+            className={align === 'center' ? 'arcade-intro arcade-intro--center' : 'arcade-intro'}
+            style={{
+              maxWidth: align === 'center' ? 520 : 720,
+              marginBottom: 28,
+              ...(align === 'center'
+                ? { marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' as const }
+                : null),
+            }}
+          >
             <p
               style={{
                 fontFamily: mono,
