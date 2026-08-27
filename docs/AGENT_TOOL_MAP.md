@@ -13,7 +13,7 @@ App 在 `aileena-new/`（`pnpm`）。
 | 任意改动 | `docs/aileena-design-os.md` + 触及文件的 scoped lint / 相关 `QA.md` 行；收尾 Evidence closer | 「看过代码了」 |
 | Bug / 「不对」 | `.cursor/rules/debug-repro-loop.mdc` 全块 | 无证据开修 |
 | UI / 交互 | 390×844 截图 + **命名**交互（`.cursor/rules/ui-step-screenshot.mdc`） | 只说 done / 只有 still |
-| Landing experiment (`/`) | crayon / vellum `LandingStudio` + `/?theme=`; `.cursor/rules/landing-experiment-gate.mdc` | fake 3D / whole-site redesign / merge this review |
+| Home marquee (`/`) | cinematic opening + `LandingMarquee`; `.cursor/rules/landing-experiment-gate.mdc` | restore ascii / moodboard / serials / zine |
 | `/sound` · DJ · carousel | `pnpm verify:sound`；ship 时 prod `https://www.aileena.xyz/sound` | 仅 localhost |
 | DnD → Deck A | `pnpm test:e2e:dnd`（改了 drag/drop 时） | 「应该能拖」 |
 | Doors / back 链 | `pnpm verify:doors-nav` | 只改文案不测路由 |
