@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef, useMemo, useEffect } from 'react';
+import { sourceBadge, type CarouselTrack } from '@/lib/djCarouselTrack';
 
 /**
  * Fallback cover used when a track has no thumb (or its thumb URL 404s).
@@ -28,16 +29,7 @@ async function fetchSpotifyCover(trackId: string, signal: AbortSignal): Promise<
 export const PLACEHOLDER_THUMB =
   "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='300'%20height='300'%3E%3Crect%20width='300'%20height='300'%20fill='%230b0d10'/%3E%3Ccircle%20cx='150'%20cy='150'%20r='118'%20fill='none'%20stroke='%2300ffea'%20stroke-opacity='0.22'/%3E%3Ccircle%20cx='150'%20cy='150'%20r='78'%20fill='none'%20stroke='%2300ffea'%20stroke-opacity='0.15'/%3E%3Ctext%20x='150'%20y='172'%20font-family='monospace'%20font-size='44'%20fill='%2300ffea'%20fill-opacity='0.4'%20text-anchor='middle'%3E%E2%99%AA%3C/text%3E%3C/svg%3E";
 
-type Track = {
-  id: string;
-  spotifyId?: string;
-  title: string;
-  artist?: string;
-  bpm: number;
-  key: string;
-  dur: number;
-  thumb: string;
-};
+type Track = CarouselTrack;
 
 type ViewMode = 'list' | 'playlist';
 
@@ -90,7 +82,7 @@ const T = {
 };
 
 export default function TrackLibraryBrowser({ tracks, reverseCarousel = true, onLoadTrack, onSetDragTrack,
-  playingLeft, playingRight, leftPos, leftDur, rightPos, rightDur }: {
+  playingLeft, playingRight, leftPos, leftDur, rightPos, rightDur, focusTrackId }: {
   tracks: Track[];
   reverseCarousel?: boolean;
   onLoadTrack?: (side: 'left' | 'right', track: Track) => void;
@@ -101,6 +93,7 @@ export default function TrackLibraryBrowser({ tracks, reverseCarousel = true, on
   leftDur?: number;
   rightPos?: number;
   rightDur?: number;
+  focusTrackId?: string | null;
 }) {
   const [mode, setMode] = useState<ViewMode>('playlist');
   const [playlistIdx, setPlaylistIdx] = useState(0);
@@ -132,6 +125,7 @@ export default function TrackLibraryBrowser({ tracks, reverseCarousel = true, on
           setActiveIdx={setPlaylistIdx}
           onLoadTrack={onLoadTrack}
           onSetDragTrack={onSetDragTrack}
+          focusTrackId={focusTrackId}
         />
       )}
 
@@ -225,8 +219,8 @@ function ListView({
   }
 
   const sorted = [...tracks].sort((a, b) => {
-    const av = sortField === 'title' ? a.title.toLowerCase() : a.bpm;
-    const bv = sortField === 'title' ? b.title.toLowerCase() : b.bpm;
+    const av = sortField === 'title' ? a.title.toLowerCase() : (a.bpm ?? 0);
+    const bv = sortField === 'title' ? b.title.toLowerCase() : (b.bpm ?? 0);
     return sortDir === 'asc' ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
   });
 
@@ -352,7 +346,7 @@ function ListTrackRow({ index, track, isPlayingLeft, isPlayingRight, pos, dur,
   const deckColor = isPlayingLeft ? T.deckA : T.deckB;
   const progress  = dur > 0 ? Math.min(1, pos / dur) : 0;
   const bars      = useMemo(() => generateWaveform(track.id), [track.id]);
-  const beatMs    = 60000 / track.bpm;
+  const beatMs    = 60000 / (track.bpm || 120);
 
   return (
     <div
@@ -465,6 +459,7 @@ function PlaylistCarousel({
   setActiveIdx,
   onLoadTrack,
   onSetDragTrack,
+  focusTrackId,
 }: {
   tracks: Track[];
   reverseCarousel?: boolean;
@@ -472,18 +467,18 @@ function PlaylistCarousel({
   setActiveIdx: (i: number) => void;
   onLoadTrack?: (side: 'left' | 'right', track: Track) => void;
   onSetDragTrack?: (track: Track) => void;
+  focusTrackId?: string | null;
 }) {
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   /** Desktop fine pointer: HTML5 drag-to-deck. Touch: swipe + A/B buttons. */
-  const [finePointer, setFinePointer] = useState(() =>
-    typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: fine)')?.matches,
-  );
+  const [finePointer, setFinePointer] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return;
     const mq = window.matchMedia('(pointer: fine)');
     const sync = (e?: MediaQueryListEvent) => setFinePointer(e ? e.matches : mq.matches);
+    sync();
     mq.addEventListener?.('change', sync);
     return () => mq.removeEventListener?.('change', sync);
   }, []);
@@ -494,6 +489,12 @@ function PlaylistCarousel({
     () => (reverseCarousel ? [...incomingTracks].slice().reverse() : incomingTracks),
     [incomingTracks, reverseCarousel],
   );
+
+  useEffect(() => {
+    if (!focusTrackId) return;
+    const i = tracks.findIndex((t) => t.id === focusTrackId);
+    if (i >= 0) setActiveIdx(i);
+  }, [focusTrackId, tracks, setActiveIdx]);
 
   // Resolve missing/placeholder covers in the visitor's browser via Spotify
   // oEmbed. The server side can't reach api.spotify.com from the sandbox, but
@@ -646,6 +647,9 @@ function PlaylistCarousel({
                 data-testid="dj-carousel-card"
                 data-track-id={track.id}
                 data-track-title={track.title}
+                data-mixable={track.mixable ? '1' : '0'}
+                data-source={track.source}
+                data-selected={rel === 0 ? 'true' : 'false'}
                 draggable={finePointer}
                 onDragStart={(e) => {
                   if (!finePointer) {
@@ -726,6 +730,20 @@ function PlaylistCarousel({
                       }}>{track.title}</p>
                     </div>
                   )}
+                  <span
+                    data-testid="dj-carousel-badge"
+                    style={{
+                      position: 'absolute', top: 6, left: 6,
+                      fontFamily: 'monospace', fontSize: '0.28rem', letterSpacing: '0.08em',
+                      textTransform: 'uppercase',
+                      padding: '2px 6px', borderRadius: 2,
+                      background: track.mixable ? 'rgba(0,168,157,0.75)' : 'rgba(0,0,0,0.62)',
+                      color: '#fffdf8',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    {sourceBadge(track)}
+                  </span>
                 </div>
               </div>
             );
@@ -763,7 +781,9 @@ function PlaylistCarousel({
             display: 'flex', alignItems: 'baseline', justifyContent: 'center',
             gap: '1em', flexWrap: 'wrap',
           }}>
-            <span style={{
+            <span
+              data-testid="dj-carousel-selected-title"
+              style={{
               fontFamily: 'monospace',
               fontSize: '0.36rem',
               fontWeight: 600,
@@ -771,7 +791,7 @@ function PlaylistCarousel({
               color: T.l1,
               textTransform: 'uppercase',
             }}>
-              TRACK {active.id}
+              {sourceBadge(active)} · {active.title}
             </span>
             <span style={{
               fontFamily: 'monospace',
@@ -789,6 +809,7 @@ function PlaylistCarousel({
                 key={side}
                 type="button"
                 data-dj-load-deck={side}
+                data-testid={side === 'left' ? 'dj-load-a' : 'dj-load-b'}
                 onClick={() => onLoadTrack?.(side, active)}
                 style={{
                   fontFamily: 'monospace',
