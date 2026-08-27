@@ -1,35 +1,41 @@
 ---
-description: Home marquee only — do not restore ascii / moodboard / serials / zine. No screenshots = no merge recommendation.
+description: Landing visual experiment — crayon / paper / vellum. Color review only. No fake 3D. No screenshots = no merge recommendation.
 alwaysApply: true
 ---
 
-# Home marquee (shipped slice)
+# Landing visual experiment
 
-The landing experiment was **rejected except the top marquee**.
+Do not ship a flat cream SaaS hero.
+Do not ship fake 3D / extruded ascii.
 
-Keep:
+The `/` opening must have:
 
-- cinematic `/` opening (portrait + Machina CTA)
-- compact `new →` marquee on that opening
+- scanned paper + light ink bleed
+- crayon / wax-pencil markup (underline, bracket, circle, arrow, frame)
+- reusable `.vellum` that veils ink/image underneath
+- embodied hero treated as a **printed plate** from `bg_pic/04.jpeg` — **do not invent a body**
+- tiny `new →` marquee
+- crayon accent via `/?theme=cyan|coral|graphite|acid|violet|cobalt` (review only)
+- flat crayon site-map sketch (not 3D)
+- serial volumes as marked-up booklets
+- minimal copy
 
-Do **not** restore:
+Color experiments are **review only**. Do not merge. Do not recommend merge.
 
-- ascii desk
-- vellum studio / grain / stamps
-- moodboard pins
-- object-card doors
-- serials shelf / terminal index / zine object
+Do **not** redesign the rest of the site.
 
 Hard rule:
 
 ```txt
 no screenshots = no merge recommendation.
+if it still looks like flat cards or fake 3D, the task failed.
 ```
 
-After touching `/` or `LandingMarquee`:
+Do not merge automatically.
 
-- `/` still shows the cinematic opening
-- marquee is visible and does not block the Machina CTA
-- ascii / moodboard / serials / zine are **absent**
-- 390px has no horizontal overflow
-- capture `landing-desktop.png`, `landing-mobile-390.png`, `landing-marquee.png`
+Required screenshots for color review:
+
+- `landing-cyan-desktop.png` / `landing-coral-desktop.png` / `landing-graphite-desktop.png` / `landing-acid-desktop.png`
+- optional `landing-violet-desktop.png` / `landing-cobalt-desktop.png`
+- `landing-cyan-mobile.png` / `landing-coral-mobile.png` / `landing-graphite-mobile.png` / `landing-acid-mobile.png`
+- `crayon-mark-detail-cyan.png` / `vellum-over-ink-detail.png` / `serials-color-variants.png`
