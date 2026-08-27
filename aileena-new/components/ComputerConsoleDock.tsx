@@ -77,10 +77,13 @@ function parseGitRows(task: ComputerTask | null): GitRow[] {
     .filter(Boolean)
     .join('\n');
   const rows: GitRow[] = [];
+  const seen = new Set<string>();
   for (const line of text.split('\n')) {
     const parts = line.split(' | ');
     if (parts.length < 6) continue;
     if (!/^[0-9a-f]{7,40}$/i.test(parts[0])) continue;
+    if (seen.has(parts[0])) continue;
+    seen.add(parts[0]);
     rows.push({
       hash: parts[0],
       date: parts[1],
@@ -198,7 +201,7 @@ export default function ComputerConsoleDock() {
         body: JSON.stringify({
           taskType: opts.taskType,
           route: opts.route ?? '/proof',
-          proofItemId: opts.proofItemId ?? hung?.id,
+          proofItemId: opts.proofItemId,
           instructions: opts.instructions ?? '',
         }),
       });
@@ -611,6 +614,9 @@ export default function ComputerConsoleDock() {
               {rollback.title} · {rollback.status}
               {'\n'}
               {rollback.resultSummary || 'no git finding attached yet'}
+              {candidates.length
+                ? `\n${candidates.map((c) => `${c.hash} | ${c.date.slice(0, 10)} | ${c.message}`).join('\n')}`
+                : ''}
             </div>
           ) : (
             <p data-testid="proof-attachment" className="text-[0.68rem] text-[#1b1713]/40">

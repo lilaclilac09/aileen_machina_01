@@ -106,7 +106,11 @@ async function main() {
   await vPage.waitForSelector('[role="dialog"][aria-label="Aileena Console"]', { state: 'visible' });
   const visitorDock = await vPage.locator('[data-testid="computer-console-dock"]').count();
   if (visitorDock > 0) throw new Error('visitor saw computer dock');
-  await vPage.screenshot({ path: join(OUT, 'agent-tabs-visitor-hidden.png') });
+  const visitorTabs = await vPage.locator('[data-testid="computer-tabs"]').count();
+  if (visitorTabs > 0) throw new Error('visitor saw computer tabs');
+  await vPage.locator('[role="dialog"][aria-label="Aileena Console"]').screenshot({
+    path: join(OUT, 'agent-tabs-visitor-hidden.png'),
+  });
 
   const tools = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   const tPage = await tools.newPage();
@@ -167,10 +171,11 @@ async function main() {
   await dPage.locator('[data-testid="computer-tab-proof"]').click();
   await dPage.waitForFunction(() => {
     const el = document.querySelector('[data-testid="proof-attachment"]');
-    return /hash \| date|Sound Lab rollback|[0-9a-f]{7}/i.test(el?.textContent || '');
+    const text = el?.textContent || '';
+    return /Sound Lab rollback/i.test(text) && /[0-9a-f]{7}/i.test(text);
   }, null, { timeout: 15_000 });
   await dPage.locator('[data-testid="proof-attachment"]').scrollIntoViewIfNeeded();
-  await dPage.locator('[data-testid="computer-console-dock"]').screenshot({ path: join(OUT, 'proof-attachment.png') });
+  await dPage.locator('[data-testid="proof-attachment"]').screenshot({ path: join(OUT, 'proof-attachment.png') });
 
   await dPage.locator('[data-testid="computer-tab-git"]').click();
   await dPage.locator('[data-testid="git-action-status"]').click();

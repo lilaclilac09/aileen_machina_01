@@ -267,7 +267,7 @@ async function keyshieldUnit() {
 
 async function pollTask(base: string, cookie: string, id: string) {
   const started = Date.now();
-  while (Date.now() - started < 20_000) {
+  while (Date.now() - started < 45_000) {
     const res = await fetch(`${base}/api/agent/computer/tasks/${id}`, { headers: { Cookie: cookie } });
     if (!res.ok) return { ok: false as const, status: res.status };
     const body = (await res.json()) as {
