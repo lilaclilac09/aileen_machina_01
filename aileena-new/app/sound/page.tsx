@@ -13,17 +13,12 @@ export default function SoundPage() {
 
   return (
     <div
-      className="mobile-page"
       style={{
-        minHeight: '100dvh',
+        minHeight: '100vh',
         background: '#000',
         color: 'rgba(255,253,248,0.86)',
         fontFamily: nunito,
         overflowY: 'auto',
-        overflowX: 'clip',
-        width: '100%',
-        maxWidth: '100%',
-        boxSizing: 'border-box',
       }}
     >
       <ScrollUnlock />
@@ -35,8 +30,8 @@ export default function SoundPage() {
           top: 0,
           zIndex: 50,
           padding: '18px 24px',
-          background: 'rgba(0,0,0,0.96)',
-          backdropFilter: 'none',
+          background: 'rgba(0,0,0,0.92)',
+          backdropFilter: 'blur(12px)',
           borderBottom: '1px solid rgba(255,253,248,0.08)',
         }}
       >
@@ -56,16 +51,8 @@ export default function SoundPage() {
         </div>
       </header>
 
-      <main
-        style={{
-          maxWidth: 1400,
-          margin: '0 auto',
-          padding: 'clamp(24px, 5vw, 48px) clamp(12px, 4vw, 24px) max(80px, calc(env(safe-area-inset-bottom, 0px) + 48px))',
-          width: '100%',
-          boxSizing: 'border-box',
-        }}
-      >
-        <div style={{ maxWidth: 680, marginBottom: 16 }}>
+      <main style={{ maxWidth: 1400, margin: '0 auto', padding: '48px 24px 80px' }}>
+        <div style={{ maxWidth: 680, marginBottom: 40 }}>
           <h1
             style={{
               fontSize: 'clamp(1.8rem, 4.5vw, 2.8rem)',
