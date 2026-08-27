@@ -15,6 +15,9 @@ export default defineConfig({
     ...devices['Desktop Chrome'],
     headless: true,
     trace: 'on-first-retry',
+    launchOptions: {
+      args: ['--autoplay-policy=no-user-gesture-required'],
+    },
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
 });
