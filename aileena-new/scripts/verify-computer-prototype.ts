@@ -265,6 +265,24 @@ async function keyshieldUnit() {
   assert('KeyShield cross-PRF seal fails', (await openOwnerSeal(other.aes, seal.iv, seal.cipher)) === false);
 }
 
+async function postOwnerTask(base: string, cookie: string, body: Record<string, unknown>) {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const res = await fetch(`${base}/api/agent/computer/tasks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      body: JSON.stringify(body),
+    });
+    if (res.status !== 429) return res;
+    const waitSec = Math.min(Number(res.headers.get('Retry-After') || 8) + 1, 25);
+    await new Promise((r) => setTimeout(r, waitSec * 1000));
+  }
+  return fetch(`${base}/api/agent/computer/tasks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Cookie: cookie },
+    body: JSON.stringify(body),
+  });
+}
+
 async function pollTask(base: string, cookie: string, id: string) {
   const started = Date.now();
   while (Date.now() - started < 45_000) {
@@ -378,14 +396,10 @@ async function liveHttp() {
   });
   assert('owner arbitrary shell → 400', ownerShell.status === 400, String(ownerShell.status));
 
-  const created = await fetch(`${base}/api/agent/computer/tasks`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Cookie: cookie },
-    body: JSON.stringify({
-      taskType: 'draft_daily_fix_plan',
-      route: '/daily',
-      instructions: 'prepare fix for /daily owner key UI',
-    }),
+  const created = await postOwnerTask(base, cookie, {
+    taskType: 'draft_daily_fix_plan',
+    route: '/daily',
+    instructions: 'prepare fix for /daily owner key UI',
   });
   assert('owner POST queues 202', created.status === 202, String(created.status));
   const createdJson = created.ok || created.status === 202 ? ((await created.json()) as {
@@ -429,24 +443,16 @@ async function liveHttp() {
     );
   }
 
-  const scratch = await fetch(`${base}/api/agent/computer/tasks`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Cookie: cookie },
-    body: JSON.stringify({ taskType: 'write_scratch_file', route: '/proof' }),
-  });
+  const scratch = await postOwnerTask(base, cookie, { taskType: 'write_scratch_file', route: '/proof' });
   const scratchJson = scratch.status === 202 ? ((await scratch.json()) as { task?: { id?: string } }) : {};
   const scratchId = scratchJson.task?.id || '';
   const scratchDone = scratchId ? await pollTask(base, cookie, scratchId) : { ok: false as const, status: scratch.status };
   assert('scratch task completed', scratchDone.ok && scratchDone.st === 'completed', String(scratchDone.ok ? scratchDone.st : scratchDone.status));
 
-  const gitFind = await fetch(`${base}/api/agent/computer/tasks`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Cookie: cookie },
-    body: JSON.stringify({
-      taskType: 'git_find_commit',
-      route: '/sound',
-      instructions: 'find me the commit where I merged Sound Lab changes',
-    }),
+  const gitFind = await postOwnerTask(base, cookie, {
+    taskType: 'git_find_commit',
+    route: '/sound',
+    instructions: 'find me the commit where I merged Sound Lab changes',
   });
   assert('owner git_find_commit queues 202', gitFind.status === 202, String(gitFind.status));
   const gitJson = gitFind.status === 202 ? ((await gitFind.json()) as { task?: { id?: string }; proofItem?: { id?: string } }) : {};
@@ -469,11 +475,7 @@ async function liveHttp() {
     );
   }
 
-  const envOpen = await fetch(`${base}/api/agent/computer/tasks`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Cookie: cookie },
-    body: JSON.stringify({ taskType: 'files_open', instructions: '.env.local' }),
-  });
+  const envOpen = await postOwnerTask(base, cookie, { taskType: 'files_open', instructions: '.env.local' });
   const envJson = envOpen.status === 202 ? ((await envOpen.json()) as { task?: { id?: string } }) : {};
   const envDone = envJson.task?.id
     ? await pollTask(base, cookie, envJson.task.id)
@@ -484,11 +486,7 @@ async function liveHttp() {
     String(envDone.ok ? envDone.st : envDone.status),
   );
 
-  const browser = await fetch(`${base}/api/agent/computer/tasks`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Cookie: cookie },
-    body: JSON.stringify({ taskType: 'browser_screenshot', route: '/daily' }),
-  });
+  const browser = await postOwnerTask(base, cookie, { taskType: 'browser_screenshot', route: '/daily' });
   const browserJson = browser.status === 202 ? ((await browser.json()) as { task?: { id?: string } }) : {};
   const browserDone = browserJson.task?.id
     ? await pollTask(base, cookie, browserJson.task.id)
@@ -499,11 +497,7 @@ async function liveHttp() {
     String(browserDone.ok ? browserDone.st : browserDone.status),
   );
 
-  const send = await fetch(`${base}/api/agent/computer/tasks`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Cookie: cookie },
-    body: JSON.stringify({ taskType: 'email_send', instructions: 'send it' }),
-  });
+  const send = await postOwnerTask(base, cookie, { taskType: 'email_send', instructions: 'send it' });
   const sendJson = send.status === 202 ? ((await send.json()) as { task?: { id?: string } }) : {};
   const sendDone = sendJson.task?.id ? await pollTask(base, cookie, sendJson.task.id) : { ok: false as const, status: send.status };
   assert('email send task is blocked', sendDone.ok && sendDone.st === 'blocked', String(sendDone.ok ? sendDone.st : sendDone.status));
