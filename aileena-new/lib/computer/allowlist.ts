@@ -49,7 +49,7 @@ export const COMPUTER_LIMITS = {
   instructionChars: 4000,
   scopeChars: 500,
   maxArtifacts: 8,
-  maxArtifactPreviewChars: 1200,
+  maxArtifactPreviewChars: 2000,
   maxConcurrentRunning: 1,
   maxOpenTasks: 8,
   workspaceFileBytes: 64 * 1024,

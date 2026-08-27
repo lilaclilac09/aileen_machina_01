@@ -36,6 +36,7 @@
     "verify:memory:live": "tsx scripts/build-memory-index.ts && VERIFY_BASE_URL=http://localhost:3000 tsx scripts/verify-memory.ts",
     "verify:react": "tsx scripts/verify-react.ts",
     "verify:ops": "tsx scripts/verify-ops.ts",
+    "verify:tts-session": "tsx scripts/verify-tts-session.ts",
     "verify:agent-rules": "tsx scripts/verify-agent-rules.ts",
     "verify:visual": "tsx scripts/verify-visual.ts",
     "verify:contact": "tsx scripts/verify-contact.ts",

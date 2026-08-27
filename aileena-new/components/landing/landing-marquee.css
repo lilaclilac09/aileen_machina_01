@@ -1,46 +1,140 @@
-/* Static news strip on the cinematic opening. Not a scrolling marquee. */
+/* Clickable news whisper. Not a banner — no fill, no full-width strip. */
 
 .landing-marquee {
   --ls-ink: #14110c;
   --ls-coral: #c45c58;
   --ls-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* Clear the fixed machina avatar (SiteLeftChrome). */
+  --news-gutter: calc(0.75rem + 2.75rem + 0.7rem);
   position: relative;
   z-index: 12;
-  display: flex;
-  align-items: baseline;
   flex: 0 0 auto;
-  width: 100%;
-  min-height: 28px;
+  width: max-content;
+  max-width: calc(100vw - 8.25rem);
   margin: 0;
-  padding:
-    max(3.35rem, calc(env(safe-area-inset-top, 0px) + 2.85rem))
-    clamp(16px, 4vw, 40px)
-    8px;
-  border-bottom: 1px solid rgba(196, 92, 88, 0.28);
-  background: rgba(255, 253, 247, 0.78);
+  padding: 0.35rem 0.75rem 0.2rem var(--news-gutter);
+  border: 0;
+  background: transparent;
   box-sizing: border-box;
+  pointer-events: none;
+}
+
+@media (min-width: 640px) {
+  .landing-marquee {
+    --news-gutter: calc(1rem + 2.25rem + 0.85rem);
+  }
+}
+
+@media (min-width: 768px) {
+  .landing-marquee {
+    position: absolute;
+    top: 0.85rem;
+    left: 0;
+  }
 }
 
 .landing-marquee__list {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0.2rem 1.35rem;
+  gap: 0.1rem 1.15rem;
   min-width: 0;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.landing-marquee__item {
-  color: rgba(20, 17, 12, 0.72);
+@media (max-width: 767px) {
+  .landing-marquee__list {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    pointer-events: auto;
+  }
+
+  .landing-marquee__list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .landing-marquee__link {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}
+
+.landing-marquee__link {
+  pointer-events: auto;
+  display: inline-block;
+  padding: 0.28em 0.04em;
+  color: rgba(20, 17, 12, 0.7);
   font-family: var(--ls-mono);
   font-size: 0.68rem;
   letter-spacing: 0.04em;
+  line-height: 1.55;
+  text-decoration: none;
+  text-shadow:
+    0 0 10px rgba(255, 253, 247, 0.95),
+    0 1px 0 rgba(255, 253, 247, 0.72);
+  -webkit-tap-highlight-color: transparent;
 }
 
-.landing-marquee__item em {
+.landing-marquee__link em {
   color: var(--ls-coral);
   font-style: normal;
   font-weight: 700;
+  text-shadow: none;
+}
+
+.landing-marquee__link:hover,
+.landing-marquee__link:focus-visible {
+  color: rgba(20, 17, 12, 0.92);
+  text-decoration: underline;
+  text-decoration-color: var(--ls-coral);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.28em;
+}
+
+.landing-marquee__link:focus-visible {
+  outline: 1px solid var(--ls-coral);
+  outline-offset: 3px;
+}
+
+.landing-marquee__cursor {
+  display: inline-block;
+  width: 0.42em;
+  height: 0.85em;
+  margin-left: 0.18em;
+  vertical-align: -0.08em;
+  background: var(--ls-coral);
+  opacity: 0;
+}
+
+.landing-marquee__item[data-active='true'] .landing-marquee__cursor,
+.landing-marquee__link:hover .landing-marquee__cursor,
+.landing-marquee__link:focus-visible .landing-marquee__cursor {
+  opacity: 1;
+  animation: landing-news-blink 1.15s step-end infinite;
+}
+
+@keyframes landing-news-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-marquee__item[data-active='true'] .landing-marquee__cursor,
+  .landing-marquee__link:hover .landing-marquee__cursor,
+  .landing-marquee__link:focus-visible .landing-marquee__cursor {
+    animation: none;
+    opacity: 0.85;
+  }
 }

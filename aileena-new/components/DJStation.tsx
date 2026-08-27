@@ -1,7 +1,14 @@
 'use client';
 import { useState, useRef, useEffect, useCallback, useMemo, useSyncExternalStore } from 'react';
 import TrackLibraryBrowser from './TrackLibraryBrowser';
-import { allDeckTracks, type DeckTrack } from '../lib/djSetlist';
+import SystemToast from './SystemToast';
+import { allDeckTracks } from '../lib/djSetlist';
+import {
+  hasPlayableAudioSrc,
+  markMixable,
+  textCoverDataUri,
+  type CarouselTrack,
+} from '../lib/djCarouselTrack';
 
 /* ─── Palette — aligned to AgentChat cream + deep green ─── */
 const C = {
@@ -28,43 +35,15 @@ const C = {
   border:      'rgba(170,179,187,0.18)',
 };
 
-/* ─── Full deck library: handoff five + previous tracks ───── */
-const DJ_SET = allDeckTracks();
-type Track = DeckTrack;
+/* Catalog is reference-only. Live carousel = extras (local/ref) + catalog. */
+const CATALOG = allDeckTracks();
+type Track = CarouselTrack;
+type DeckId = 'A' | 'B';
+type ToastChip = { text: string; role?: 'status' | 'alert' } | null;
 
-function spotifyTrackId(track: Track): string | null {
-  if (track.spotifyId) return track.spotifyId;
-  if (/^[a-zA-Z0-9]{22}$/.test(track.id)) return track.id;
-  return null;
+function sideToDeck(side: 'left' | 'right'): DeckId {
+  return side === 'left' ? 'A' : 'B';
 }
-
-function findTrackById(id: string | null | undefined): Track | null {
-  if (!id) return null;
-  return DJ_SET.find((t) => t.id === id || t.spotifyId === id) ?? null;
-}
-
-const DJ_AUDIT = '[dj-audit]';
-
-function firstPlayableTrack(from = 0, skipId?: string | null): Track | null {
-  for (let i = from; i < DJ_SET.length; i++) {
-    const t = DJ_SET[i];
-    const sid = spotifyTrackId(t);
-    if (!sid) continue;
-    if (skipId && sid === skipId) continue;
-    return t;
-  }
-  for (let i = 0; i < from; i++) {
-    const t = DJ_SET[i];
-    const sid = spotifyTrackId(t);
-    if (!sid) continue;
-    if (skipId && sid === skipId) continue;
-    return t;
-  }
-  return DJ_SET.find((t) => spotifyTrackId(t)) ?? DJ_SET[0] ?? null;
-}
-
-const INITIAL_LEFT = firstPlayableTrack(0);
-const INITIAL_RIGHT = firstPlayableTrack(1, INITIAL_LEFT ? spotifyTrackId(INITIAL_LEFT) : null);
 
 /* ─── Waveform helper ────────────────────────────────────── */
 function generateWaveform(seed: string, bars: number): number[] {
@@ -77,17 +56,6 @@ function generateWaveform(seed: string, bars: number): number[] {
     out.push(0.06 + ((h % 100) / 100) * env * 0.94);
   }
   return out;
-}
-
-/* ─── Spotify IFrame API types ───────────────────────────── */
-interface SpotifyController {
-  togglePlay(): void;
-  loadUri(uri: string): void;
-  addListener(event: string, cb: (e: { data: PlayUpdate }) => void): void;
-}
-interface PlayUpdate { isPaused: boolean; position: number; duration: number }
-interface IFrameAPI {
-  createController(el: HTMLElement, opts: { uri?: string; width: string; height: string }, cb: (c: SpotifyController) => void): void;
 }
 
 function fmt(ms: number) {
@@ -114,413 +82,401 @@ function useIsMobile() {
 /* ─── Main ───────────────────────────────────────────────── */
 export default function DJStation() {
   const isMobile = useIsMobile();
-  const [leftTrack,    setLeftTrack]    = useState<Track | null>(INITIAL_LEFT);
-  const [rightTrack,   setRightTrack]   = useState<Track | null>(INITIAL_RIGHT);
-  const [leftPlaying,  setLeftPlaying]  = useState(false);
+  const [extras, setExtras] = useState<CarouselTrack[]>([]);
+  const [focusTrackId, setFocusTrackId] = useState<string | null>(null);
+  const [leftTrack, setLeftTrack] = useState<Track | null>(null);
+  const [rightTrack, setRightTrack] = useState<Track | null>(null);
+  const [leftPlaying, setLeftPlaying] = useState(false);
   const [rightPlaying, setRightPlaying] = useState(false);
-  const [leftPos,      setLeftPos]      = useState(0);
-  const [rightPos,     setRightPos]     = useState(0);
-  const [leftDur,      setLeftDur]      = useState(0);
-  const [rightDur,     setRightDur]     = useState(0);
-  const [leftPitch,    setLeftPitch]    = useState(0);
-  const [rightPitch,   setRightPitch]   = useState(0);
-  const [xfade,        setXfade]        = useState(50);
-  const [dropSide,     setDropSide]     = useState<'left'|'right'|null>(null);
-  const [leftEmbedReady,  setLeftEmbedReady]  = useState(false);
-  const [rightEmbedReady, setRightEmbedReady] = useState(false);
-  const [deckHint, setDeckHint] = useState<string | null>(null);
+  const [leftPos, setLeftPos] = useState(0);
+  const [rightPos, setRightPos] = useState(0);
+  const [leftDur, setLeftDur] = useState(0);
+  const [rightDur, setRightDur] = useState(0);
+  const [leftPitch, setLeftPitch] = useState(0);
+  const [rightPitch, setRightPitch] = useState(0);
+  const [xfade, setXfade] = useState(50);
+  const [dropSide, setDropSide] = useState<'left' | 'right' | null>(null);
+  const [toast, setToast] = useState<ToastChip>(null);
+  const [refUrl, setRefUrl] = useState('');
+  const [refTitle, setRefTitle] = useState('');
+  const [refCover, setRefCover] = useState('');
+  const [addingRef, setAddingRef] = useState(false);
 
-  const leftContainerRef  = useRef<HTMLDivElement>(null);
-  const rightContainerRef = useRef<HTMLDivElement>(null);
-  const leftCtrl          = useRef<SpotifyController | null>(null);
-  const rightCtrl         = useRef<SpotifyController | null>(null);
-  const dragTrack         = useRef<Track | null>(null);
-  /** Deck A only — URI queued when leftCtrl is not ready yet (migration reconnect). */
-  const pendingLeftUri    = useRef<string | null>(null);
-  const prevXfade         = useRef(50);
-  const leftWasPlaying    = useRef(false);
-  const rightWasPlaying   = useRef(false);
-  const hintTimer         = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const audioARef = useRef<HTMLAudioElement | null>(null);
+  const audioBRef = useRef<HTMLAudioElement | null>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const dragTrack = useRef<Track | null>(null);
+  const leftWasPlaying = useRef(false);
+  const rightWasPlaying = useRef(false);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const extrasRef = useRef<CarouselTrack[]>([]);
 
-  const showDeckHint = useCallback((msg: string) => {
-    setDeckHint(msg);
-    if (hintTimer.current) clearTimeout(hintTimer.current);
-    hintTimer.current = setTimeout(() => setDeckHint(null), 4200);
+  const tracks = useMemo(() => [...extras, ...CATALOG], [extras]);
+  const tracksRef = useRef(tracks);
+  tracksRef.current = tracks;
+  extrasRef.current = extras;
+
+  const showToast = useCallback((text: string, role: 'status' | 'alert' = 'status') => {
+    setToast({ text, role });
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 2800);
   }, []);
 
   useEffect(() => () => {
-    if (hintTimer.current) clearTimeout(hintTimer.current);
-  }, []);
-
-  useEffect(() => {
-    const sample = DJ_SET.slice(0, 3).map((t) => ({
-      id: t.id,
-      title: t.title,
-      thumb: !!t.thumb,
-      bpm: t.bpm,
-      key: t.key,
-      dur: t.dur,
-      playable: !!spotifyTrackId(t),
-    }));
-    console.log(DJ_AUDIT, 'carousel state after catalogue bind', {
-      count: DJ_SET.length,
-      sample,
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    extrasRef.current.forEach((t) => {
+      if (t.audioSrc?.startsWith('blob:')) URL.revokeObjectURL(t.audioSrc);
     });
   }, []);
 
-  /* ── Spotify API — tolerant of Strict Mode remount + late script ready ── */
   useEffect(() => {
-    const win = window as Window & {
-      SpotifyIframeApi?: IFrameAPI;
-      onSpotifyIframeApiReady?: (api: IFrameAPI) => void;
+    const a = audioARef.current;
+    const b = audioBRef.current;
+    if (!a || !b) return;
+    const onA = () => {
+      if (Number.isFinite(a.duration) && a.duration > 0) setLeftDur(a.duration * 1000);
+      setLeftPos(a.currentTime * 1000);
     };
-    let cancelled = false;
-    let retries = 0;
-
-    const containerEmpty = (el: HTMLElement | null) =>
-      !!el && !el.querySelector('iframe');
-
-    const mountSide = (
-      api: IFrameAPI,
-      side: 'left' | 'right',
-      el: HTMLElement | null,
-      track: Track | null,
-      ctrlRef: React.MutableRefObject<SpotifyController | null>,
-      onUpdate: (e: { data: PlayUpdate }) => void,
-      onReady: () => void,
-    ) => {
-      if (!el || cancelled) return;
-      const uri = track ? spotifyTrackId(track) : null;
-      if (!uri) return;
-      // Strict Mode remount leaves a stale controller pointing at a detached node.
-      if (ctrlRef.current && containerEmpty(el)) {
-        ctrlRef.current = null;
-        el.innerHTML = '';
-      }
-      // Iframe present but controller lost (Strict Mode / race) — remount.
-      if (!ctrlRef.current && !containerEmpty(el)) {
-        el.innerHTML = '';
-      }
-      if (ctrlRef.current) {
-        onReady();
-        return;
-      }
-      if (!containerEmpty(el)) {
-        onReady();
-        return;
-      }
-
-      api.createController(
-        el,
-        { uri: `spotify:track:${uri}`, width: '100%', height: '80' },
-        (ctrl) => {
-          if (cancelled) return;
-          ctrlRef.current = ctrl;
-          ctrl.addListener('playback_update', onUpdate);
-          // Deck A slice: flush queued loadUri when controller becomes ready
-          if (side === 'left' && pendingLeftUri.current) {
-            const queued = pendingLeftUri.current;
-            pendingLeftUri.current = null;
-            console.log(DJ_AUDIT, 'leftCtrl ready — flush pendingLeftUri', queued);
-            try {
-              ctrl.loadUri(queued);
-            } catch (err) {
-              console.log(DJ_AUDIT, 'flush pendingLeftUri failed', err);
-            }
-          }
-          onReady();
-        },
-      );
+    const onB = () => {
+      if (Number.isFinite(b.duration) && b.duration > 0) setRightDur(b.duration * 1000);
+      setRightPos(b.currentTime * 1000);
     };
-
-    const initControllers = (api: IFrameAPI) => {
-      if (cancelled) return;
-      win.SpotifyIframeApi = api;
-      mountSide(api, 'left', leftContainerRef.current, INITIAL_LEFT, leftCtrl, (e) => {
-        setLeftPlaying(!e.data.isPaused);
-        if (e.data.duration > 0) {
-          setLeftPos(e.data.position);
-          setLeftDur(e.data.duration);
-        }
-      }, () => setLeftEmbedReady(true));
-      mountSide(api, 'right', rightContainerRef.current, INITIAL_RIGHT, rightCtrl, (e) => {
-        setRightPlaying(!e.data.isPaused);
-        if (e.data.duration > 0) {
-          setRightPos(e.data.position);
-          setRightDur(e.data.duration);
-        }
-      }, () => setRightEmbedReady(true));
-    };
-
-    const prevReady = win.onSpotifyIframeApiReady;
-    win.onSpotifyIframeApiReady = (api: IFrameAPI) => {
-      initControllers(api);
-      prevReady?.(api);
-    };
-
-    if (win.SpotifyIframeApi) {
-      initControllers(win.SpotifyIframeApi);
-    } else if (!document.querySelector('script[src*="spotify-iframe-api"]')) {
-      const s = document.createElement('script');
-      s.src = 'https://open.spotify.com/embed/iframe-api/v1';
-      s.async = true;
-      document.head.appendChild(s);
-    }
-
-    // Retry: script may have fired ready before this effect, or Strict Mode cleared DOM.
-    const timer = window.setInterval(() => {
-      if (cancelled) return;
-      retries += 1;
-      const api = win.SpotifyIframeApi;
-      if (api) initControllers(api);
-      const leftOk = !containerEmpty(leftContainerRef.current);
-      const rightOk = !containerEmpty(rightContainerRef.current);
-      if (leftOk) setLeftEmbedReady(true);
-      if (rightOk) setRightEmbedReady(true);
-      if ((leftOk && rightOk) || retries > 20) {
-        window.clearInterval(timer);
-      }
-    }, 400);
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(timer);
-      leftCtrl.current = null;
-      rightCtrl.current = null;
-      if (leftContainerRef.current) leftContainerRef.current.innerHTML = '';
-      if (rightContainerRef.current) rightContainerRef.current.innerHTML = '';
-    };
-  }, []);
-
-  const loadTrack = useCallback((side: 'left'|'right', track: Track) => {
-    const sid = spotifyTrackId(track);
-    console.log(DJ_AUDIT, 'loadTrack', {
-      side,
-      id: track.id,
-      title: track.title,
-      thumb: track.thumb?.slice?.(0, 48),
-      bpm: track.bpm,
-      key: track.key,
-      dur: track.dur,
-      spotifyId: sid,
-    });
-
-    if (side === 'left') {
-      setLeftTrack(track);
+    const endA = () => {
+      a.pause();
+      a.currentTime = 0;
+      setLeftPlaying(false);
       setLeftPos(0);
-      setLeftDur(0);
-      if (sid) {
-        const uri = `spotify:track:${sid}`;
-        if (leftCtrl.current) {
-          pendingLeftUri.current = null;
-          try {
-            leftCtrl.current.loadUri(uri);
-            console.log(DJ_AUDIT, 'audio source assigned', { deck: 'A', uri, via: 'loadUri' });
-            setDeckHint(null);
-          } catch (err) {
-            console.log(DJ_AUDIT, 'loadUri error', { deck: 'A', err });
-            showDeckHint('Deck A: press ▶ to start');
-          }
-        } else {
-          // Reconnect: queue until leftCtrl createController callback (same IFrame, no second player)
-          pendingLeftUri.current = uri;
-          console.log(DJ_AUDIT, 'leftCtrl null — queued pendingLeftUri', uri);
-          showDeckHint('Deck A: Spotify loading — press ▶ when ready');
-        }
-      } else {
-        pendingLeftUri.current = null;
-        showDeckHint(`“${track.title}” has no Spotify id — pick a library track to play`);
-      }
-    } else {
-      // Deck B unchanged this slice — keep prior behavior
-      setRightTrack(track);
+    };
+    const endB = () => {
+      b.pause();
+      b.currentTime = 0;
+      setRightPlaying(false);
       setRightPos(0);
-      setRightDur(0);
-      if (sid) {
-        rightCtrl.current?.loadUri(`spotify:track:${sid}`);
-        setDeckHint(null);
-      } else {
-        showDeckHint(`“${track.title}” has no Spotify id — pick a library track to play`);
-      }
-    }
-  }, [showDeckHint]);
-
-  const resolveDropTrack = useCallback((e: React.DragEvent, fallback: Track | null): Track | null => {
-    if (fallback) return fallback;
-    let id = '';
-    try {
-      id = e.dataTransfer.getData('text/plain') || '';
-    } catch {
-      id = '';
-    }
-    const found = findTrackById(id);
-    console.log(DJ_AUDIT, 'resolveDropTrack', { id, found: found?.id ?? null });
-    return found;
+    };
+    a.addEventListener('timeupdate', onA);
+    b.addEventListener('timeupdate', onB);
+    a.addEventListener('loadedmetadata', onA);
+    b.addEventListener('loadedmetadata', onB);
+    a.addEventListener('ended', endA);
+    b.addEventListener('ended', endB);
+    return () => {
+      a.removeEventListener('timeupdate', onA);
+      b.removeEventListener('timeupdate', onB);
+      a.removeEventListener('loadedmetadata', onA);
+      b.removeEventListener('loadedmetadata', onB);
+      a.removeEventListener('ended', endA);
+      b.removeEventListener('ended', endB);
+    };
   }, []);
 
-  const dropOnDeckA = useCallback((e: React.DragEvent) => {
+  const loadTrackToDeck = useCallback((track: CarouselTrack, deckId: DeckId) => {
+    if (!track.mixable || !hasPlayableAudioSrc(track.audioSrc)) {
+      showToast('No audio.', 'alert');
+      return;
+    }
+    const audio = deckId === 'A' ? audioARef.current : audioBRef.current;
+    if (!audio) {
+      showToast('Play failed.', 'alert');
+      return;
+    }
+    audio.pause();
+    try { audio.currentTime = 0; } catch { /* ignore */ }
+    audio.src = track.audioSrc as string;
+    audio.load();
+    const durMs = (track.duration || track.dur || 0) * 1000;
+    if (deckId === 'A') {
+      setLeftTrack(track);
+      setLeftPlaying(false);
+      setLeftPos(0);
+      setLeftDur(durMs);
+    } else {
+      setRightTrack(track);
+      setRightPlaying(false);
+      setRightPos(0);
+      setRightDur(durMs);
+    }
+    showToast(deckId === 'A' ? 'Loaded A.' : 'Loaded B.');
+  }, [showToast]);
+
+  const loadTrack = useCallback((side: 'left' | 'right', track: Track) => {
+    loadTrackToDeck(track, sideToDeck(side));
+  }, [loadTrackToDeck]);
+
+  const resolveDropTrack = useCallback((e: React.DragEvent): Track | null => {
+    let id = '';
+    try { id = e.dataTransfer.getData('text/plain') || ''; } catch { id = ''; }
+    if (!id) id = dragTrack.current?.id ?? '';
+    if (!id) return dragTrack.current;
+    return tracksRef.current.find((t) => t.id === id || t.spotifyId === id) ?? dragTrack.current;
+  }, []);
+
+  const dropOnDeck = useCallback((deckId: DeckId) => (e: React.DragEvent) => {
     e.preventDefault();
-    const track = resolveDropTrack(e, dragTrack.current);
-    console.log(DJ_AUDIT, 'drop target deck', { deck: 'A', trackId: track?.id ?? null });
-    if (track) loadTrack('left', track);
+    const track = resolveDropTrack(e);
+    if (track) loadTrackToDeck(track, deckId);
     dragTrack.current = null;
     setDropSide(null);
-  }, [loadTrack, resolveDropTrack]);
+  }, [loadTrackToDeck, resolveDropTrack]);
 
-  const toggleDeck = useCallback((side: 'left' | 'right') => {
-    const track = side === 'left' ? leftTrack : rightTrack;
-    const ctrl = side === 'left' ? leftCtrl.current : rightCtrl.current;
-    const ready = side === 'left' ? leftEmbedReady : rightEmbedReady;
-    const el = side === 'left' ? leftContainerRef.current : rightContainerRef.current;
-    const label = side === 'left' ? 'A' : 'B';
-
-    console.log(DJ_AUDIT, 'play button click', {
-      deck: label,
-      trackId: track?.id ?? null,
-      hasCtrl: !!ctrl,
-      embedReady: ready,
-      pendingLeft: side === 'left' ? pendingLeftUri.current : null,
+  const playDeck = useCallback((deckId: DeckId) => {
+    const track = deckId === 'A' ? leftTrack : rightTrack;
+    const audio = deckId === 'A' ? audioARef.current : audioBRef.current;
+    const playing = deckId === 'A' ? leftPlaying : rightPlaying;
+    if (!track?.mixable || !track.audioSrc || !audio) {
+      showToast('No audio.', 'alert');
+      return;
+    }
+    if (playing) {
+      audio.pause();
+      if (deckId === 'A') setLeftPlaying(false);
+      else setRightPlaying(false);
+      return;
+    }
+    void audio.play().then(() => {
+      if (deckId === 'A') setLeftPlaying(true);
+      else setRightPlaying(true);
+      showToast('Playing.');
+    }).catch(() => {
+      showToast('Play failed.', 'alert');
     });
+  }, [leftTrack, rightTrack, leftPlaying, rightPlaying, showToast]);
 
-    if (!track) {
-      showDeckHint(`Deck ${label} is empty — drag a cover or tap Load A / B`);
-      return;
+  const stopDeck = useCallback((deckId: DeckId) => {
+    const audio = deckId === 'A' ? audioARef.current : audioBRef.current;
+    if (audio) {
+      audio.pause();
+      try { audio.currentTime = 0; } catch { /* ignore */ }
     }
-    if (!spotifyTrackId(track)) {
-      showDeckHint(`Deck ${label}: no Spotify id for “${track.title}”`);
-      return;
+    if (deckId === 'A') {
+      setLeftPlaying(false);
+      setLeftPos(0);
+    } else {
+      setRightPlaying(false);
+      setRightPos(0);
     }
-    if (!ctrl) {
-      // If Deck A has a queued URI, keep the press-play hint (controller still mounting)
-      showDeckHint(
-        ready
-          ? `Deck ${label}: press ▶ / tap the green Spotify player to start`
-          : `Deck ${label}: Spotify still loading — wait a second, then press ▶`,
-      );
-      el?.querySelector('iframe')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-      return;
-    }
-    try {
-      ctrl.togglePlay();
-      console.log(DJ_AUDIT, 'togglePlay ok', { deck: label });
-      setDeckHint(null);
-    } catch (err) {
-      console.log(DJ_AUDIT, 'togglePlay error', { deck: label, err });
-      showDeckHint(`Deck ${label}: press ▶ to start (autoplay blocked)`);
-    }
-  }, [leftTrack, rightTrack, leftEmbedReady, rightEmbedReady, showDeckHint]);
+    showToast('Stopped.');
+  }, [showToast]);
 
   const handleXfade = useCallback((v: number) => {
-    const prev = prevXfade.current;
-    setXfade(v); prevXfade.current = v;
-    if (v <= 8  && prev > 8  && rightPlaying) rightCtrl.current?.togglePlay();
-    if (v >= 92 && prev < 92 && leftPlaying)  leftCtrl.current?.togglePlay();
-  }, [leftPlaying, rightPlaying]);
+    setXfade(v);
+  }, []);
 
-  /* BPM sync suggestion */
   const bpmHint = useMemo(() => {
-    if (!leftTrack || !rightTrack) return null;
+    if (!leftTrack?.bpm || !rightTrack?.bpm) return null;
     const diff = rightTrack.bpm * (1 + rightPitch / 100) - leftTrack.bpm * (1 + leftPitch / 100);
     if (Math.abs(diff) < 0.5) return { type: 'sync' as const, diff };
     return { type: 'hint' as const, diff };
   }, [leftTrack, rightTrack, leftPitch, rightPitch]);
 
-  const leftDim  = xfade > 80 ? (100 - xfade) / 20 : 1;
+  const leftDim = xfade > 80 ? (100 - xfade) / 20 : 1;
   const rightDim = xfade < 20 ? xfade / 20 : 1;
 
-  /* ── SYNC: adjust pitch so deck BPMs match ── */
   const handleSyncLeft = useCallback(() => {
-    if (!leftTrack || !rightTrack) return;
+    if (!leftTrack?.bpm || !rightTrack?.bpm) return;
     const targetBpm = rightTrack.bpm * (1 + rightPitch / 100);
     const newPitch = (targetBpm / leftTrack.bpm - 1) * 100;
     setLeftPitch(Math.max(-8, Math.min(8, +newPitch.toFixed(1))));
   }, [leftTrack, rightTrack, rightPitch]);
 
   const handleSyncRight = useCallback(() => {
-    if (!leftTrack || !rightTrack) return;
+    if (!leftTrack?.bpm || !rightTrack?.bpm) return;
     const targetBpm = leftTrack.bpm * (1 + leftPitch / 100);
     const newPitch = (targetBpm / rightTrack.bpm - 1) * 100;
     setRightPitch(Math.max(-8, Math.min(8, +newPitch.toFixed(1))));
   }, [leftTrack, rightTrack, leftPitch]);
 
+  const addLocalFile = useCallback((file: File) => {
+    if (!file.type.startsWith('audio/') && !/\.(mp3|wav|ogg|oga|m4a|aac|flac|webm)$/i.test(file.name)) {
+      showToast('No audio.', 'alert');
+      return;
+    }
+    const audioSrc = URL.createObjectURL(file);
+    const title = file.name.replace(/\.[^.]+$/, '') || 'local audio';
+    const cover = textCoverDataUri(title, 'AUDIO');
+    const track = markMixable({
+      id: `local-${Date.now().toString(36)}`,
+      title,
+      artist: 'local',
+      source: 'local',
+      audioSrc,
+      coverSrc: cover,
+      thumb: cover,
+      key: '—',
+      dur: 0,
+      bpm: 0,
+    });
+    const probe = new Audio();
+    probe.preload = 'metadata';
+    probe.src = audioSrc;
+    probe.onloadedmetadata = () => {
+      const duration = probe.duration;
+      if (Number.isFinite(duration) && duration > 0) {
+        setExtras((prev) => prev.map((t) => (t.id === track.id ? { ...t, duration, dur: duration } : t)));
+      }
+      probe.removeAttribute('src');
+      probe.load();
+    };
+    setExtras((prev) => [track, ...prev]);
+    setFocusTrackId(track.id);
+  }, [showToast]);
+
+  const addSongRef = useCallback(async () => {
+    const url = refUrl.trim();
+    const titleIn = refTitle.trim();
+    const coverIn = refCover.trim();
+    if (!url && !titleIn) return;
+
+    if (url && hasPlayableAudioSrc(url)) {
+      const title = titleIn || decodeURIComponent(url.split('/').pop() || 'audio').replace(/\.[^.]+$/, '');
+      const cover = coverIn || textCoverDataUri(title, 'AUDIO');
+      const track = markMixable({
+        id: `demo-${Date.now().toString(36)}`,
+        title,
+        source: 'demo',
+        audioSrc: url,
+        coverSrc: cover,
+        href: url,
+        thumb: cover,
+        key: '—',
+        dur: 0,
+        bpm: 0,
+      });
+      setExtras((prev) => [track, ...prev]);
+      setFocusTrackId(track.id);
+      setRefUrl('');
+      setRefTitle('');
+      setRefCover('');
+      return;
+    }
+
+    setAddingRef(true);
+    let title = titleIn;
+    let cover = coverIn;
+    let href = url || undefined;
+    let artist: string | undefined;
+    try {
+      if (url) {
+        try {
+          const res = await fetch(`/api/sound/ref-meta?url=${encodeURIComponent(url)}`);
+          const json = (await res.json()) as {
+            ok?: boolean;
+            data?: { title?: string; artist?: string; coverSrc?: string; href?: string };
+          };
+          if (json.ok && json.data) {
+            title = title || json.data.title || '';
+            cover = cover || json.data.coverSrc || '';
+            href = json.data.href || url;
+            artist = json.data.artist;
+          } else {
+            href = url;
+          }
+        } catch {
+          href = url;
+        }
+      }
+      try {
+        if (!title && href) title = new URL(href).hostname;
+      } catch {
+        title = title || 'reference';
+      }
+      title = title || 'reference';
+      const coverSrc = cover || textCoverDataUri(title, 'REF');
+      const track = markMixable({
+        id: `ref-${Date.now().toString(36)}`,
+        title,
+        artist,
+        source: 'ref',
+        coverSrc,
+        href,
+        thumb: coverSrc,
+        key: '—',
+        dur: 0,
+        bpm: 0,
+      });
+      setExtras((prev) => [track, ...prev]);
+      setFocusTrackId(track.id);
+      setRefUrl('');
+      setRefTitle('');
+      setRefCover('');
+    } finally {
+      setAddingRef(false);
+    }
+  }, [refCover, refTitle, refUrl]);
+
+  const feedBtn: React.CSSProperties = {
+    fontFamily: 'monospace',
+    fontSize: '0.32rem',
+    letterSpacing: '0.12em',
+    textTransform: 'uppercase',
+    padding: '6px 12px',
+    borderRadius: 3,
+    border: '1px solid rgba(0,168,157,0.45)',
+    background: 'rgba(0,168,157,0.1)',
+    color: C.text,
+    cursor: 'pointer',
+  };
+  const feedInput: React.CSSProperties = {
+    fontFamily: 'monospace',
+    fontSize: '0.32rem',
+    padding: '6px 8px',
+    borderRadius: 3,
+    border: '1px solid rgba(170,179,187,0.2)',
+    background: '#0b0d10',
+    color: C.text,
+    minWidth: 0,
+    flex: '1 1 120px',
+  };
+
+  const plateHandlers = (side: 'left' | 'right') => ({
+    onDragOver: (e: React.DragEvent) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+      setDropSide(side);
+    },
+    onDragLeave: (e: React.DragEvent) => {
+      if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+      setDropSide(null);
+    },
+    onDrop: dropOnDeck(sideToDeck(side)),
+    onToggle: () => playDeck(sideToDeck(side)),
+    onStop: () => stopDeck(sideToDeck(side)),
+    onScratchStart: () => {
+      const audio = side === 'left' ? audioARef.current : audioBRef.current;
+      const was = !!(audio && !audio.paused);
+      if (side === 'left') leftWasPlaying.current = was;
+      else rightWasPlaying.current = was;
+      audio?.pause();
+    },
+    onScratchEnd: () => {
+      const audio = side === 'left' ? audioARef.current : audioBRef.current;
+      const was = side === 'left' ? leftWasPlaying.current : rightWasPlaying.current;
+      if (was) void audio?.play();
+    },
+  });
+
   return (
-    <div style={{ userSelect: 'none', width: '100%', background: '#0b0d10' }}>
+    <div style={{ userSelect: 'none', width: '100%', background: '#0b0d10', maxWidth: '100%' }}>
+      <audio ref={audioARef} data-testid="dj-audio-a" preload="auto" playsInline />
+      <audio ref={audioBRef} data-testid="dj-audio-b" preload="auto" playsInline />
+      <input
+        ref={fileRef}
+        data-testid="dj-add-audio-input"
+        type="file"
+        accept="audio/*"
+        hidden
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = '';
+          if (file) addLocalFile(file);
+        }}
+      />
 
-      {/* ── Spotify embed containers (functional audio + play mark) ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 6, marginBottom: 8 }}>
-        {(['left','right'] as const).map(side => {
-          const track = side === 'left' ? leftTrack : rightTrack;
-          const ref   = side === 'left' ? leftContainerRef : rightContainerRef;
-          const sid   = track ? spotifyTrackId(track) : null;
-          const ready = side === 'left' ? leftEmbedReady : rightEmbedReady;
-          return (
-            <div key={side} style={{
-              borderRadius: 6, overflow: 'hidden', background: C.bg,
-              border: '1px solid rgba(170,179,187,0.12)', position: 'relative',
-              minHeight: 80,
-            }}>
-              <div ref={ref} style={{ minHeight: 80, width: '100%' }} />
-              {/* Visible play chrome while Spotify iframe is still mounting */}
-              {!ready && (
-                <div
-                  aria-hidden
-                  style={{
-                    position: 'absolute', inset: 0, pointerEvents: 'none',
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    padding: '0 14px',
-                    background: 'linear-gradient(90deg, #12161b 0%, #0b0d10 100%)',
-                  }}
-                >
-                  <div style={{
-                    width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
-                    background: '#1DB954',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: '0 0 0 1px rgba(29,185,84,0.35)',
-                  }}>
-                    <span style={{
-                      color: '#0b0d10', fontSize: 14, lineHeight: 1,
-                      marginLeft: 2, fontWeight: 700,
-                    }}>▶</span>
-                  </div>
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <div style={{
-                      fontSize: '0.72rem', fontWeight: 600, color: C.text,
-                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                    }}>
-                      {track?.title ?? (side === 'left' ? 'Deck A' : 'Deck B')}
-                    </div>
-                    <div style={{
-                      fontSize: '0.58rem', color: C.dim, marginTop: 2,
-                      letterSpacing: '0.04em', textTransform: 'uppercase',
-                    }}>
-                      {sid ? 'Loading Spotify player…' : 'No Spotify id — pick a library track'}
-                    </div>
-                  </div>
-                </div>
-              )}
-              {!track && (
-                <div style={{
-                  position: 'absolute', inset: 0, display: 'flex',
-                  alignItems: 'center', justifyContent: 'center', background: '#0a0a0c',
-                }}>
-                  <p style={{ fontSize: '0.34rem', letterSpacing: '0.4em', color: C.dim, textTransform: 'uppercase' }}>
-                    {side === 'left' ? 'DECK A' : 'DECK B'} — EMPTY
-                  </p>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* ── Main console (deck + mixer layout) ── */}
       <div style={{
         borderRadius: 10, padding: '10px 10px 8px',
         background: C.panel,
         border: '1px solid rgba(170,179,187,0.1)',
         boxShadow: 'inset 0 1px 0 rgba(217,224,230,0.04)',
       }}>
-        {/* system bar */}
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           borderBottom: 'none', paddingBottom: 6, marginBottom: 8,
@@ -540,39 +496,28 @@ export default function DJStation() {
             </span>
           )}
           <span style={{ fontFamily: 'monospace', fontSize: '0.34rem', letterSpacing: '0.4em', color: C.dim }}>
-            {leftTrack?.bpm ?? '--'} / {rightTrack?.bpm ?? '--'} BPM
+            {leftTrack?.bpm || '--'} / {rightTrack?.bpm || '--'} BPM
           </span>
         </div>
 
-        {/* Deck + Mixer grid */}
         {isMobile ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 10 }}>
             <DeckPanel
               side="left" track={leftTrack} playing={leftPlaying} isMobile={true} synced={bpmHint?.type === 'sync'}
               pos={leftPos} dur={leftDur || (leftTrack?.dur ?? 0) * 1000}
               pitch={leftPitch} dim={leftDim} dropActive={dropSide === 'left'}
-              onDragOver={e => { e.preventDefault(); setDropSide('left'); }}
-              onDragLeave={() => setDropSide(null)}
-              onDrop={dropOnDeckA}
-              onToggle={() => toggleDeck('left')}
               onPitch={setLeftPitch}
-              onScratchStart={() => { leftWasPlaying.current = leftPlaying; if (leftPlaying) leftCtrl.current?.togglePlay(); }}
-              onScratchEnd={() => { if (leftWasPlaying.current) leftCtrl.current?.togglePlay(); }}
               onSync={handleSyncLeft}
+              {...plateHandlers('left')}
             />
             <MixerPanel xfade={xfade} onXfade={handleXfade} isMobile={true} />
             <DeckPanel
               side="right" track={rightTrack} playing={rightPlaying} isMobile={true} synced={bpmHint?.type === 'sync'}
               pos={rightPos} dur={rightDur || (rightTrack?.dur ?? 0) * 1000}
               pitch={rightPitch} dim={rightDim} dropActive={dropSide === 'right'}
-              onDragOver={e => { e.preventDefault(); setDropSide('right'); }}
-              onDragLeave={() => setDropSide(null)}
-              onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('right', dragTrack.current); setDropSide(null); }}
-              onToggle={() => toggleDeck('right')}
               onPitch={setRightPitch}
-              onScratchStart={() => { rightWasPlaying.current = rightPlaying; if (rightPlaying) rightCtrl.current?.togglePlay(); }}
-              onScratchEnd={() => { if (rightWasPlaying.current) rightCtrl.current?.togglePlay(); }}
               onSync={handleSyncRight}
+              {...plateHandlers('right')}
             />
           </div>
         ) : (
@@ -581,81 +526,103 @@ export default function DJStation() {
               side="left" track={leftTrack} playing={leftPlaying} synced={bpmHint?.type === 'sync'}
               pos={leftPos} dur={leftDur || (leftTrack?.dur ?? 0) * 1000}
               pitch={leftPitch} dim={leftDim} dropActive={dropSide === 'left'}
-              onDragOver={e => { e.preventDefault(); setDropSide('left'); }}
-              onDragLeave={() => setDropSide(null)}
-              onDrop={dropOnDeckA}
-              onToggle={() => toggleDeck('left')}
               onPitch={setLeftPitch}
-              onScratchStart={() => { leftWasPlaying.current = leftPlaying; if (leftPlaying) leftCtrl.current?.togglePlay(); }}
-              onScratchEnd={() => { if (leftWasPlaying.current) leftCtrl.current?.togglePlay(); }}
               onSync={handleSyncLeft}
+              {...plateHandlers('left')}
             />
             <MixerPanel xfade={xfade} onXfade={handleXfade} />
             <DeckPanel
               side="right" track={rightTrack} playing={rightPlaying} synced={bpmHint?.type === 'sync'}
               pos={rightPos} dur={rightDur || (rightTrack?.dur ?? 0) * 1000}
               pitch={rightPitch} dim={rightDim} dropActive={dropSide === 'right'}
-              onDragOver={e => { e.preventDefault(); setDropSide('right'); }}
-              onDragLeave={() => setDropSide(null)}
-              onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('right', dragTrack.current); setDropSide(null); }}
-              onToggle={() => toggleDeck('right')}
               onPitch={setRightPitch}
-              onScratchStart={() => { rightWasPlaying.current = rightPlaying; if (rightPlaying) rightCtrl.current?.togglePlay(); }}
-              onScratchEnd={() => { if (rightWasPlaying.current) rightCtrl.current?.togglePlay(); }}
               onSync={handleSyncRight}
+              {...plateHandlers('right')}
             />
           </div>
         )}
-
-        {deckHint && (
-          <p
-            role="status"
-            style={{
-              margin: '0 0 8px',
-              padding: '8px 10px',
-              borderRadius: 4,
-              border: '1px solid rgba(0,168,157,0.35)',
-              background: 'rgba(0,168,157,0.08)',
-              fontFamily: 'monospace',
-              fontSize: '0.58rem',
-              letterSpacing: '0.04em',
-              color: C.text,
-              textAlign: 'center',
-            }}
-          >
-            {deckHint}
-          </p>
-        )}
       </div>
 
-      {/* ── Handoff set carousel (film strip) ── */}
-      <div id="dj-set" style={{ marginTop: 10 }}>
+      <div
+        data-testid="dj-feed-bar"
+        style={{
+          marginTop: 10,
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 8,
+          alignItems: 'center',
+          maxWidth: '100%',
+        }}
+      >
+        <button type="button" data-testid="dj-add-audio" style={feedBtn} onClick={() => fileRef.current?.click()}>
+          Add audio
+        </button>
+        <form
+          data-testid="dj-find-song"
+          onSubmit={(e) => { e.preventDefault(); void addSongRef(); }}
+          style={{ display: 'flex', flexWrap: 'wrap', gap: 8, flex: '1 1 280px', minWidth: 0, alignItems: 'center' }}
+        >
+          <input
+            data-testid="dj-find-url"
+            value={refUrl}
+            onChange={(e) => setRefUrl(e.target.value)}
+            placeholder="paste URL"
+            style={feedInput}
+          />
+          <input
+            data-testid="dj-find-title"
+            value={refTitle}
+            onChange={(e) => setRefTitle(e.target.value)}
+            placeholder="title optional"
+            style={feedInput}
+          />
+          <input
+            data-testid="dj-find-cover"
+            value={refCover}
+            onChange={(e) => setRefCover(e.target.value)}
+            placeholder="cover URL optional"
+            style={feedInput}
+          />
+          <button type="submit" data-testid="dj-find-add" disabled={addingRef} style={feedBtn}>
+            Add as ref
+          </button>
+        </form>
+        <span style={{ fontFamily: 'monospace', fontSize: '0.28rem', letterSpacing: '0.08em', color: C.dim }}>
+          agent search: v2
+        </span>
+      </div>
+
+      <div id="dj-set" style={{ marginTop: 10, maxWidth: '100%' }}>
         <TrackLibraryBrowser
-          tracks={DJ_SET}
+          tracks={tracks}
           reverseCarousel={false}
+          focusTrackId={focusTrackId}
           onLoadTrack={loadTrack}
-          onSetDragTrack={(t) => {
-            dragTrack.current = t;
-            console.log(DJ_AUDIT, 'drag start track id', t?.id ?? null, t?.title ?? null);
-          }}
+          onSetDragTrack={(t) => { dragTrack.current = t; }}
           playingLeft={leftPlaying ? (leftTrack?.id ?? null) : null}
           playingRight={rightPlaying ? (rightTrack?.id ?? null) : null}
           leftPos={leftPos} leftDur={leftDur}
           rightPos={rightPos} rightDur={rightDur}
         />
       </div>
+
+      {toast && (
+        <SystemToast testId="dj-toast" role={toast.role} icon="⚡">
+          {toast.text}
+        </SystemToast>
+      )}
     </div>
   );
 }
 
 /* ─── Deck Panel ─────────────────────────────────────────── */
 function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isMobile, synced,
-  onDragOver, onDragLeave, onDrop, onToggle, onPitch, onScratchStart, onScratchEnd, onSync }: {
+  onDragOver, onDragLeave, onDrop, onToggle, onStop, onPitch, onScratchStart, onScratchEnd, onSync }: {
   side: 'left'|'right'; track: Track|null; playing: boolean;
   pos: number; dur: number; pitch: number; dim: number; dropActive: boolean;
   isMobile?: boolean; synced?: boolean;
-  onDragOver(e: React.DragEvent): void; onDragLeave(): void; onDrop(e: React.DragEvent): void;
-  onToggle(): void; onPitch(v: number): void;
+  onDragOver(e: React.DragEvent): void; onDragLeave(e: React.DragEvent): void; onDrop(e: React.DragEvent): void;
+  onToggle(): void; onStop(): void; onPitch(v: number): void;
   onScratchStart(): void; onScratchEnd(): void;
   onSync: () => void;
 }) {
@@ -667,9 +634,6 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
   const offset = circ * (1 - prog);
   const remaining = dur > 0 ? fmt(Math.max(0, dur - pos)) : (track ? `-${fmt((track.dur) * 1000)}` : '--:--');
   const elapsed   = dur > 0 ? fmt(pos) : '0:00';
-
-  // CUE state
-  const [cueMs, setCueMs] = useState<number | null>(null);
 
   // Scratch state
   const [scratchAngle, setScratchAngle] = useState(0);
@@ -726,6 +690,8 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
       <div
         data-testid={side === 'left' ? 'dj-deck-a-drop' : 'dj-deck-b-drop'}
         data-deck-side={side}
+        data-loaded={track ? '1' : '0'}
+        data-playing={playing ? '1' : '0'}
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
@@ -737,10 +703,27 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
         boxShadow: dropActive ? `inset 0 0 30px rgba(0,168,157,0.08)` : 'none',
         transition: 'border 0.15s, box-shadow 0.15s',
       }}>
+        {dropActive && (
+          <div
+            data-testid={side === 'left' ? 'dj-drop-hint-a' : 'dj-drop-hint-b'}
+            style={{
+              position: 'absolute', inset: 0, zIndex: 8, pointerEvents: 'none',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              borderRadius: 10, background: 'rgba(0,168,157,0.22)',
+            }}
+          >
+            <span style={{
+              fontFamily: 'monospace', fontSize: '0.42rem', letterSpacing: '0.18em',
+              textTransform: 'uppercase', color: C.text,
+            }}>
+              {side === 'left' ? 'drop to A' : 'drop to B'}
+            </span>
+          </div>
+        )}
         {!track ? (
           <p style={{ fontSize: '0.34rem', letterSpacing: '0.5em', textTransform: 'uppercase',
             color: dropActive ? 'rgba(100,220,210,0.8)' : C.dim }}>
-            {dropActive ? '↓ DROP' : 'drop or A / B'}
+            drop or A / B
           </p>
         ) : (
           <div style={{ position: 'relative', width: D, height: D }}>
@@ -786,20 +769,30 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
                   border: `1px solid rgba(255,255,255,${0.06 + i * 0.03})`,
                 }} />
               ))}
-              {/* Center void — deep dark portal */}
+              {/* Center label / cover */}
               <div style={{
                 position: 'absolute', borderRadius: '50%', inset: '36%',
                 background: 'radial-gradient(circle, #010808 0%, #040f0c 45%, #081c16 80%, #102820 100%)',
                 boxShadow: 'inset 0 0 18px rgba(0,0,0,0.98), 0 0 8px rgba(0,0,0,0.6)',
+                overflow: 'hidden',
               }}>
-                {/* Spindle pin */}
-                <div style={{
-                  position: 'absolute', width: 6, height: 6,
-                  top: 'calc(50% - 3px)', left: 'calc(50% - 3px)',
-                  borderRadius: '50%',
-                  background: 'radial-gradient(circle, #2a2a26 0%, #181814 100%)',
-                  boxShadow: '0 0 3px rgba(0,0,0,0.9)',
-                }} />
+                {(track.coverSrc || track.thumb) ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={track.coverSrc || track.thumb}
+                    alt=""
+                    data-testid={side === 'left' ? 'dj-deck-a-cover' : 'dj-deck-b-cover'}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
+                ) : (
+                  <div style={{
+                    position: 'absolute', width: 6, height: 6,
+                    top: 'calc(50% - 3px)', left: 'calc(50% - 3px)',
+                    borderRadius: '50%',
+                    background: 'radial-gradient(circle, #2a2a26 0%, #181814 100%)',
+                    boxShadow: '0 0 3px rgba(0,0,0,0.9)',
+                  }} />
+                )}
               </div>
             </div>
 
@@ -901,15 +894,32 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
         border: '1px solid rgba(170,179,187,0.1)',
         display: 'flex', flexDirection: 'column', gap: 3,
       }}>
-        <p
-          data-testid={side === 'left' ? 'dj-deck-a-title' : 'dj-deck-b-title'}
-          data-track-id={track?.id ?? ''}
-          style={{ fontSize: '0.44rem', letterSpacing: '0.12em',
-          color: playing ? C.cyan : C.text,
-          fontFamily: 'monospace', textTransform: 'uppercase',
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          transition: 'color 0.5s',
-        }}>{track?.title ?? 'NO TRACK'}</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+          <span
+            data-testid={side === 'left' ? 'dj-deck-a-led' : 'dj-deck-b-led'}
+            data-on={track ? '1' : '0'}
+            data-playing={playing ? '1' : '0'}
+            style={{
+              width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
+              background: playing ? C.cyan : track ? 'rgba(0,168,157,0.55)' : 'rgba(170,179,187,0.25)',
+              boxShadow: playing ? '0 0 8px rgba(0,168,157,0.9)' : 'none',
+            }}
+          />
+          {track?.thumb ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={track.coverSrc || track.thumb} alt=""
+              style={{ width: 18, height: 18, borderRadius: 2, objectFit: 'cover', flexShrink: 0 }} />
+          ) : null}
+          <p
+            data-testid={side === 'left' ? 'dj-deck-a-title' : 'dj-deck-b-title'}
+            data-track-id={track?.id ?? ''}
+            style={{ fontSize: '0.44rem', letterSpacing: '0.12em',
+            color: playing ? C.cyan : C.text,
+            fontFamily: 'monospace', textTransform: 'uppercase',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            transition: 'color 0.5s', margin: 0, minWidth: 0, flex: 1,
+          }}>{track?.title ?? 'NO TRACK'}</p>
+        </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontFamily: 'monospace', fontSize: '0.34rem', color: C.cyan, letterSpacing: '0.1em' }}>
             {elapsed}
@@ -929,8 +939,14 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {/* Play/Pause */}
-          <button onClick={onToggle} style={{
-            width: 38, height: 38, borderRadius: '50%', cursor: 'pointer',
+          <button
+            type="button"
+            data-testid={side === 'left' ? 'dj-play-a' : 'dj-play-b'}
+            aria-label={playing ? `Pause ${side === 'left' ? 'A' : 'B'}` : `Play ${side === 'left' ? 'A' : 'B'}`}
+            onClick={onToggle}
+            disabled={!track?.mixable}
+            style={{
+            width: 38, height: 38, borderRadius: '50%', cursor: track?.mixable ? 'pointer' : 'not-allowed',
             background: playing ? `rgba(0,168,157,0.1)` : '#14181e',
             border: `1px solid ${playing ? 'rgba(0,168,157,0.55)' : 'rgba(170,179,187,0.22)'}`,
             boxShadow: playing ? `0 0 10px rgba(0,168,157,0.28)` : 'inset 0 2px 5px rgba(0,0,0,0.4)',
@@ -938,19 +954,24 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
             fontSize: '0.8rem',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             transition: 'all 0.15s',
+            opacity: track?.mixable ? 1 : 0.45,
           }}>{playing ? '⏸' : '▶'}</button>
-          {/* CUE */}
-          <button onClick={() => setCueMs(pos > 0 ? pos : null)} style={{
+          {/* CUE = stop (pause + reset) */}
+          <button
+            type="button"
+            data-testid={side === 'left' ? 'dj-stop-a' : 'dj-stop-b'}
+            aria-label={`Stop ${side === 'left' ? 'A' : 'B'}`}
+            onClick={onStop}
+            style={{
             width: 38, height: 38, borderRadius: '50%', cursor: 'pointer',
-            background: cueMs !== null ? 'rgba(125,183,255,0.1)' : '#14181e',
-            border: `1px solid ${cueMs !== null ? 'rgba(125,183,255,0.55)' : 'rgba(170,179,187,0.22)'}`,
-            boxShadow: cueMs !== null ? '0 0 8px rgba(125,183,255,0.25)' : 'inset 0 2px 5px rgba(0,0,0,0.4)',
-            color: cueMs !== null ? C.blue : C.silverDark, fontSize: '0.28rem', letterSpacing: '0.04em',
+            background: playing ? 'rgba(125,183,255,0.1)' : '#14181e',
+            border: `1px solid ${playing ? 'rgba(125,183,255,0.55)' : 'rgba(170,179,187,0.22)'}`,
+            boxShadow: playing ? '0 0 8px rgba(125,183,255,0.25)' : 'inset 0 2px 5px rgba(0,0,0,0.4)',
+            color: playing ? C.blue : C.silverDark, fontSize: '0.28rem', letterSpacing: '0.04em',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 1,
             transition: 'all 0.15s',
           }}>
             <span style={{ fontFamily: 'monospace' }}>CUE</span>
-            {cueMs !== null && <span style={{ fontFamily: 'monospace', fontSize: '0.22rem', opacity: 0.7 }}>{fmt(cueMs)}</span>}
           </button>
         </div>
         <PitchFader pitch={pitch} onChange={onPitch} />
