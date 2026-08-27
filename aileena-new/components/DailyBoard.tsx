@@ -722,7 +722,7 @@ export default function DailyBoard({
         )}
       </div>
 
-      {!owner ? <OwnerCornerUnlock denied={denied} /> : null}
+      {!owner ? <OwnerCornerUnlock /> : null}
 
       {toast ? (
         <SystemToast testId="daily-toast" role={toastFail ? 'alert' : 'status'}>

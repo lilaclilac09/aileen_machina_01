@@ -37,4 +37,4 @@ Prefer one of:
 
 UI merge/验收 reply with only text, or only stills and no interaction proof = incomplete.
 
-Landing experiment (`/` · `LandingStudio`): `.cursor/rules/landing-experiment-gate.mdc`. **no screenshots = no merge recommendation.**
+Landing experiment (`/` · `LandingMarquee`): cinematic opening + marquee only. `.cursor/rules/landing-experiment-gate.mdc`. **no screenshots = no merge recommendation.**

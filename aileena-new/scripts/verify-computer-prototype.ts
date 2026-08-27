@@ -15,9 +15,6 @@ import { redactSecrets } from '../lib/computer/redact';
 import { isComputerPrototypeEnabled } from '../lib/computer/flag';
 import { HARNESS_PLUGINS } from '../lib/computer/plugins';
 import { spokenQueued } from '../lib/computer/spokenQueue';
-import { gitFindCommit, gitStatus } from '../lib/computer/gitAllowlist';
-import { filesOpen } from '../lib/computer/filesAllowlist';
-import { TAB_WIRE } from '../lib/computer/capabilities';
 import { workspaceReadFile, workspaceRuntimeProbe, workspaceWriteFile } from '../lib/computer/workspace';
 import { deriveKeyshield, sealOwner, openOwnerSeal } from '../lib/keyshield/prf';
 import { KS_HKDF_MASTER, KS_HKDF_VAULT_ID, KS_PRF_FIRST } from '../lib/keyshield/constants';
@@ -59,29 +56,14 @@ function sourceChecks() {
   const proofPageSrc = readFileSync(join(process.cwd(), 'app/proof/page.tsx'), 'utf8');
   const unlockSrc = readFileSync(join(process.cwd(), 'components/OwnerUnlockForm.tsx'), 'utf8');
   const dailySrc = readFileSync(join(process.cwd(), 'components/DailyBoard.tsx'), 'utf8');
-  const gitSrc = readFileSync(join(process.cwd(), 'lib/computer/gitAllowlist.ts'), 'utf8');
-  const filesSrc = readFileSync(join(process.cwd(), 'lib/computer/filesAllowlist.ts'), 'utf8');
   assert('chat stays edge', /export const runtime = 'edge'/.test(chat));
   assert('chat does not import computer runner', !/from ['"].*computer\/runner['"]/.test(chat));
-  assert('chat does not import git allowlist', !/from ['"].*computer\/gitAllowlist['"]/.test(chat));
   assert('tasks route is nodejs', /export const runtime = 'nodejs'/.test(tasks));
   assert('tasks route owner-gated', /requireOwnerFromRequest/.test(tasks));
   assert('no arbitrary shell field', /forbiddenShellFields/.test(tasks));
   assert('production hard-off', /VERCEL_ENV === 'production'/.test(flag));
   assert('runner does not merge', /not performed/.test(runner) || /owner approval/.test(runner));
   assert('runner backend is local-shim', /local-shim/.test(runner));
-  assert('runner finds git commits', /git_find_commit/.test(runner) && /gitFindCommit/.test(runner));
-  assert('runner blocks email send', /email_send/.test(runner) && /email not connected/.test(runner));
-  assert('runner blocks fake browser screenshots', /browser_screenshot/.test(runner) && /No fake screenshots/.test(runner));
-  assert(
-    'git verbs are inspect-only',
-    /GIT_VERBS = new Set\(\['status', 'log', 'show', 'diff'\]\)/.test(gitSrc) &&
-      /No reset, clean, push, merge, checkout/.test(gitSrc),
-  );
-  assert('files block .env and keys', /BLOCKED_NAME/.test(filesSrc) && /\.env/.test(filesSrc));
-  assert('owner tabs exist', /computer-tabs/.test(dockSrc) && /computer-tab-\$\{id\}/.test(dockSrc));
-  assert('git candidates surface', /git-merge-candidates/.test(dockSrc));
-  assert('visitor never mounts dock without owner', /isOwner \? <ComputerConsoleDock/.test(agentChatSrc));
   assert('does not import @cloudflare/computer', !existsSync(join(process.cwd(), 'node_modules/@cloudflare/computer')));
   assert(
     'plugins are not DeepSeek Harness',
@@ -168,36 +150,6 @@ function unitChecks() {
   assert('finds note path', plan.problemsFound.some((p) => /note/i.test(p)));
   assert('finds comment path', plan.problemsFound.some((p) => /comment/i.test(p)));
   assert('does not list merge as a step', !plan.implementationPlan.some((p) => /merge this/i.test(p)));
-
-  const find = parseOwnerComputerCommand('find me the commit where I merged Sound Lab changes');
-  assert(
-    'find Sound Lab merge routes to git_find_commit',
-    find?.kind === 'queue_task' && find.taskType === 'git_find_commit',
-  );
-  const recent = parseOwnerComputerCommand('show me recent sound commits');
-  assert('recent sound commits routes to git_log', recent?.kind === 'queue_task' && recent.taskType === 'git_log');
-  const openSound = parseOwnerComputerCommand('open the /sound file');
-  assert(
-    'open /sound file routes to files_open',
-    openSound?.kind === 'queue_task' &&
-      openSound.taskType === 'files_open' &&
-      openSound.instructions.includes('app/sound/page.tsx'),
-  );
-  const draftMail = parseOwnerComputerCommand('draft an email to sponsor about Sound Lab');
-  assert('draft email routes to email_draft', draftMail?.kind === 'queue_task' && draftMail.taskType === 'email_draft');
-  const sendIt = parseOwnerComputerCommand('send it');
-  assert('send it is blocked not sent', sendIt?.kind === 'blocked');
-  const shots = parseOwnerComputerCommand('take screenshots of /daily mobile');
-  assert('browser screenshots are blocked', shots?.kind === 'blocked');
-  const patch = parseOwnerComputerCommand('draft a patch to remove owner key from /daily');
-  assert('draft patch is plan-only', patch?.kind === 'queue_task' && patch.taskType === 'draft_patch');
-  const ready = parseOwnerComputerCommand('mark proposal 3 ready');
-  assert('mark ready asks for proof first', ready?.kind === 'clarify');
-  assert('browser tab is blocked', TAB_WIRE.browser === 'blocked');
-  assert('email tab is draft-only', TAB_WIRE.email === 'draft-only');
-  assert('code tab is draft-only', TAB_WIRE.code === 'draft-only');
-  assert('git tab is wired', TAB_WIRE.git === 'wired');
-  assert('redact OWNER_RIDDLE', redactSecrets('OWNER_RIDDLE=secret') === '[redacted]=secret');
 }
 
 async function workspaceUnit() {
@@ -213,32 +165,6 @@ async function workspaceUnit() {
     denied = true;
   }
   assert('workspace rejects non-allowlisted path', denied);
-}
-
-async function gitAndFilesUnit() {
-  const status = await gitStatus();
-  assert('git status runs', status.ok, status.summary);
-  const found = await gitFindCommit('find me the commit where I merged Sound Lab changes');
-  assert(
-    'git find returns 3–5 Sound Lab candidates',
-    found.ok && found.candidates.length >= 3 && found.candidates.length <= 5,
-    `${found.candidates.length} ${found.summary}`,
-  );
-  assert(
-    'candidates have hash date message',
-    found.candidates.every((c) => /^[0-9a-f]{7,40}$/i.test(c.hash) && c.date && c.message),
-  );
-  assert(
-    'a candidate looks like a Sound Lab merge or revert',
-    found.candidates.some((c) => /merge|revert/i.test(c.message) && /sound/i.test(c.message)),
-    found.lines.slice(0, 3).join(' | '),
-  );
-  const env = filesOpen('.env.local');
-  assert('files open blocks .env', env.ok === false && /blocked/i.test(env.summary), env.summary);
-  const secret = filesOpen('id_rsa');
-  assert('files open blocks private key name', secret.ok === false, secret.summary);
-  const sound = filesOpen('aileena-new/app/sound/page.tsx');
-  assert('files open sound page read-only', sound.ok === true && /read-only/.test(sound.summary), sound.summary);
 }
 
 async function keyshieldUnit() {
@@ -265,42 +191,18 @@ async function keyshieldUnit() {
   assert('KeyShield cross-PRF seal fails', (await openOwnerSeal(other.aes, seal.iv, seal.cipher)) === false);
 }
 
-async function postOwnerTask(base: string, cookie: string, body: Record<string, unknown>) {
-  for (let attempt = 0; attempt < 5; attempt++) {
-    const res = await fetch(`${base}/api/agent/computer/tasks`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Cookie: cookie },
-      body: JSON.stringify(body),
-    });
-    if (res.status !== 429) return res;
-    const waitSec = Math.min(Number(res.headers.get('Retry-After') || 8) + 1, 25);
-    await new Promise((r) => setTimeout(r, waitSec * 1000));
-  }
-  return fetch(`${base}/api/agent/computer/tasks`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Cookie: cookie },
-    body: JSON.stringify(body),
-  });
-}
-
 async function pollTask(base: string, cookie: string, id: string) {
   const started = Date.now();
-  while (Date.now() - started < 45_000) {
+  while (Date.now() - started < 20_000) {
     const res = await fetch(`${base}/api/agent/computer/tasks/${id}`, { headers: { Cookie: cookie } });
     if (!res.ok) return { ok: false as const, status: res.status };
     const body = (await res.json()) as {
       status?: string;
-      task?: {
-        status?: string;
-        filesInspected?: string[];
-        artifacts?: { kind?: string; preview?: string }[];
-        proofItemId?: string;
-        resultSummary?: string;
-      };
-      proofItem?: { status?: string; computerTaskIds?: string[]; resultSummary?: string; id?: string };
+      task?: { status?: string; filesInspected?: string[]; artifacts?: unknown[]; proofItemId?: string };
+      proofItem?: { status?: string; computerTaskIds?: string[] };
     };
     const st = body.task?.status || body.status;
-    if (st === 'completed' || st === 'failed' || st === 'blocked') return { ok: true as const, body, st };
+    if (st === 'completed' || st === 'failed') return { ok: true as const, body, st };
     await new Promise((r) => setTimeout(r, 250));
   }
   return { ok: false as const, status: 'timeout' };
@@ -352,16 +254,6 @@ async function liveHttp() {
   const visitorGet = await fetch(`${base}/api/agent/computer/tasks`);
   assert('visitor GET computer tasks → 403', visitorGet.status === 403, String(visitorGet.status));
 
-  const visitorGit = await fetch(`${base}/api/agent/computer/tasks`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ taskType: 'git_find_commit', instructions: 'find me the commit where I merged Sound Lab changes' }),
-  });
-  assert('visitor POST git_find_commit → 403', visitorGit.status === 403, String(visitorGit.status));
-
-  const visitorProof = await fetch(`${base}/api/agent/proof`);
-  assert('visitor GET proof → 403', visitorProof.status === 403, String(visitorProof.status));
-
   const shell = await fetch(`${base}/api/agent/computer/tasks`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -396,10 +288,14 @@ async function liveHttp() {
   });
   assert('owner arbitrary shell → 400', ownerShell.status === 400, String(ownerShell.status));
 
-  const created = await postOwnerTask(base, cookie, {
-    taskType: 'draft_daily_fix_plan',
-    route: '/daily',
-    instructions: 'prepare fix for /daily owner key UI',
+  const created = await fetch(`${base}/api/agent/computer/tasks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Cookie: cookie },
+    body: JSON.stringify({
+      taskType: 'draft_daily_fix_plan',
+      route: '/daily',
+      instructions: 'prepare fix for /daily owner key UI',
+    }),
   });
   assert('owner POST queues 202', created.status === 202, String(created.status));
   const createdJson = created.ok || created.status === 202 ? ((await created.json()) as {
@@ -443,64 +339,15 @@ async function liveHttp() {
     );
   }
 
-  const scratch = await postOwnerTask(base, cookie, { taskType: 'write_scratch_file', route: '/proof' });
+  const scratch = await fetch(`${base}/api/agent/computer/tasks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Cookie: cookie },
+    body: JSON.stringify({ taskType: 'write_scratch_file', route: '/proof' }),
+  });
   const scratchJson = scratch.status === 202 ? ((await scratch.json()) as { task?: { id?: string } }) : {};
   const scratchId = scratchJson.task?.id || '';
   const scratchDone = scratchId ? await pollTask(base, cookie, scratchId) : { ok: false as const, status: scratch.status };
   assert('scratch task completed', scratchDone.ok && scratchDone.st === 'completed', String(scratchDone.ok ? scratchDone.st : scratchDone.status));
-
-  const gitFind = await postOwnerTask(base, cookie, {
-    taskType: 'git_find_commit',
-    route: '/sound',
-    instructions: 'find me the commit where I merged Sound Lab changes',
-  });
-  assert('owner git_find_commit queues 202', gitFind.status === 202, String(gitFind.status));
-  const gitJson = gitFind.status === 202 ? ((await gitFind.json()) as { task?: { id?: string }; proofItem?: { id?: string } }) : {};
-  assert(
-    'git find hangs on Sound Lab rollback proof',
-    gitJson.proofItem?.id === 'proof-sound-lab-rollback',
-    gitJson.proofItem?.id,
-  );
-  const gitId = gitJson.task?.id || '';
-  const gitDone = gitId ? await pollTask(base, cookie, gitId) : { ok: false as const, status: gitFind.status };
-  assert('git find completed', gitDone.ok && gitDone.st === 'completed', String(gitDone.ok ? gitDone.st : gitDone.status));
-  if (gitDone.ok) {
-    const preview = gitDone.body.task?.artifacts?.find((a) => a.kind === 'git')?.preview || gitDone.body.task?.resultSummary || '';
-    const n = preview.split('\n').filter((line) => /^[0-9a-f]{7,40}\s/i.test(line) || /^[0-9a-f]{7,40} \|/i.test(line)).length;
-    assert('live git find returned 3–5 candidates', n >= 3 && n <= 5, String(n));
-    assert(
-      'live proof attached',
-      Boolean(gitDone.body.proofItem?.computerTaskIds?.includes(gitId)),
-      String(gitDone.body.proofItem?.computerTaskIds),
-    );
-  }
-
-  const envOpen = await postOwnerTask(base, cookie, { taskType: 'files_open', instructions: '.env.local' });
-  const envJson = envOpen.status === 202 ? ((await envOpen.json()) as { task?: { id?: string } }) : {};
-  const envDone = envJson.task?.id
-    ? await pollTask(base, cookie, envJson.task.id)
-    : { ok: false as const, status: envOpen.status };
-  assert(
-    'owner .env open is blocked',
-    envDone.ok && envDone.st === 'blocked',
-    String(envDone.ok ? envDone.st : envDone.status),
-  );
-
-  const browser = await postOwnerTask(base, cookie, { taskType: 'browser_screenshot', route: '/daily' });
-  const browserJson = browser.status === 202 ? ((await browser.json()) as { task?: { id?: string } }) : {};
-  const browserDone = browserJson.task?.id
-    ? await pollTask(base, cookie, browserJson.task.id)
-    : { ok: false as const, status: browser.status };
-  assert(
-    'browser screenshot task is blocked',
-    browserDone.ok && browserDone.st === 'blocked',
-    String(browserDone.ok ? browserDone.st : browserDone.status),
-  );
-
-  const send = await postOwnerTask(base, cookie, { taskType: 'email_send', instructions: 'send it' });
-  const sendJson = send.status === 202 ? ((await send.json()) as { task?: { id?: string } }) : {};
-  const sendDone = sendJson.task?.id ? await pollTask(base, cookie, sendJson.task.id) : { ok: false as const, status: send.status };
-  assert('email send task is blocked', sendDone.ok && sendDone.st === 'blocked', String(sendDone.ok ? sendDone.st : sendDone.status));
 
   const chat = await fetch(`${base}/api/chat`, {
     method: 'POST',
@@ -554,7 +401,6 @@ async function main() {
   unitChecks();
   await keyshieldUnit();
   await workspaceUnit();
-  await gitAndFilesUnit();
   await liveHttp();
   const failed = checks.filter((c) => !c.ok);
   console.log(`\nResult: ${checks.length - failed.length}/${checks.length} passed`);

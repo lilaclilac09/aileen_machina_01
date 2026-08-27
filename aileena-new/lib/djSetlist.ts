@@ -1,8 +1,5 @@
 /** DJ set + full deck library for /sound#dj-set carousel. */
 
-import { asCatalogRef, type CarouselTrack } from './djCarouselTrack';
-export type { CarouselTrack } from './djCarouselTrack';
-
 export const DJ_SET_GENRE =
   'Techno (personal): harder driving techno — DVS1, Blawan, Rødhåd';
 
@@ -387,18 +384,7 @@ export function djSetToDeckTracks(): DeckTrack[] {
   }));
 }
 
-/** Everything shown in the /sound deck carousel: handoff five + full library. Catalog is reference-only (no playable audioSrc). */
-export function allDeckTracks(): CarouselTrack[] {
-  return [...djSetToDeckTracks(), ...DECK_LIBRARY_TRACKS].map((t) =>
-    asCatalogRef({
-      id: t.id,
-      title: t.title,
-      artist: t.artist,
-      bpm: t.bpm,
-      key: t.key,
-      dur: t.dur,
-      thumb: t.thumb,
-      spotifyId: t.spotifyId,
-    }),
-  );
+/** Everything shown in the /sound deck carousel: handoff five + full library. */
+export function allDeckTracks(): DeckTrack[] {
+  return [...djSetToDeckTracks(), ...DECK_LIBRARY_TRACKS];
 }

@@ -28,103 +28,22 @@ function hostLabel(href: string): string | null {
   }
 }
 
-function WaveBars() {
-  return (
-    <div className="tools-lab-wave" aria-hidden>
-      {Array.from({ length: 22 }, (_, i) => (
-        <span key={i} />
-      ))}
-    </div>
-  );
-}
-
-function ToolCover({
-  tool,
-  featured,
-}: {
-  tool: ToolDefinition;
-  featured?: boolean;
-}) {
-  const media = tool.tag === 'AUDIO' || tool.tag === 'VIDEO';
-  return (
-    <div
-      className={`tools-lab-cover tools-lab-cover--${tool.slug}`}
-      data-testid={`tools-cover-${tool.slug}`}
-      style={
-        tool.screenshot
-          ? { backgroundImage: `url(${tool.screenshot})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-          : undefined
-      }
-    >
-      {tool.screenshot ? null : (
-        <div className="tools-lab-cover-css" aria-hidden>
-          {tool.slug === 'cafe-cursor' ? (
-            <div className="tools-lab-receipt">
-              <span className="tools-lab-receipt-mark">◎</span>
-              <span className="tools-lab-receipt-line" />
-              <span className="tools-lab-receipt-line tools-lab-receipt-line--short" />
-              <span className="tools-lab-receipt-line" />
-              <span className="tools-lab-receipt-dots" />
-            </div>
-          ) : null}
-          {tool.slug === 'inkling-clips' ? <WaveBars /> : null}
-          {tool.slug === 'cafe-recap' ? (
-            <div className="tools-lab-film">
-              <span />
-              <span />
-              <span />
-              <div className="tools-lab-timeline" />
-            </div>
-          ) : null}
-          {tool.slug === 'computer' ? (
-            <div className="tools-lab-terminal">
-              <span>owner@machina:~$</span>
-              <span>inspect /daily</span>
-              <span className="tools-lab-terminal-cursor">█</span>
-            </div>
-          ) : null}
-          {tool.slug === 'feed-flash' ? (
-            <div className="tools-lab-headlines">
-              <span />
-              <span />
-              <span />
-            </div>
-          ) : null}
-          {tool.slug === 'chip-guess' ? <div className="tools-lab-die" /> : null}
-          {tool.slug === 'pricing-slot' ? (
-            <div className="tools-lab-sku">
-              <span />
-              <span />
-              <span />
-              <span />
-            </div>
-          ) : null}
-        </div>
-      )}
-      {media ? (
-        <span className="tools-lab-play" aria-hidden>
-          ▶
-        </span>
-      ) : null}
-      {featured ? <span className="tools-lab-featured-pill">featured</span> : null}
-    </div>
-  );
-}
-
 function LabCard({
   tool,
   copy,
+  labels,
   openLabel,
   featured,
 }: {
   tool: ToolDefinition;
   copy?: ItemCopy;
+  labels: { what: string; why: string; verdict: string };
   openLabel: string;
   featured?: boolean;
 }) {
   const paused = tool.status === 'paused';
   const title = copy?.title ?? tool.title;
-  const tag = (copy?.tag ?? tool.tag).toLowerCase();
+  const tag = copy?.tag ?? tool.tag;
   const body = copy?.body ?? tool.body;
   const why = copy?.why ?? tool.why;
   const verdict = copy?.verdict ?? tool.verdict;
@@ -132,47 +51,54 @@ function LabCard({
   const external = /^https?:\/\//i.test(tool.href);
   const host = hostLabel(tool.href);
 
+  if (paused) {
+    return (
+      <li id={tool.slug} className="tools-lab-paused-item">
+        <p className="tools-lab-paused-title">{title}</p>
+        <p className="tools-lab-paused-verdict">{verdict}</p>
+      </li>
+    );
+  }
+
   const inner = (
     <article
       id={tool.slug}
       className={`tools-lab-card${featured ? ' tools-lab-card--featured' : ''}${
         tool.tier === 'experiment' ? ' tools-lab-card--experiment' : ''
-      }${paused ? ' tools-lab-card--paused' : ''}`}
+      }`}
     >
-      <ToolCover tool={tool} featured={featured} />
-      <div className="tools-lab-card-meta">
-        <h2 className="tools-lab-card-title">{title}</h2>
-        <p className="tools-lab-card-line">{body}</p>
-        <p className="tools-lab-card-kicker">
-          {statusLabel} · {tag}
-        </p>
-        {paused ? null : (
-          <span className="tools-lab-cta">{external ? `${openLabel} ↗` : `${openLabel} →`}</span>
-        )}
-      </div>
-      <p className="tools-lab-card-detail">
-        {why} {verdict}
-      </p>
+      <header className="tools-lab-card-head">
+        <p className="tools-lab-card-tag">{tag}</p>
+        <p className={`tools-lab-status tools-lab-status--${tool.status}`}>{statusLabel}</p>
+      </header>
+      <h2 className="tools-lab-card-title">{title}</h2>
+      <dl className="tools-lab-fields">
+        <div>
+          <dt>{labels.what}</dt>
+          <dd>{body}</dd>
+        </div>
+        <div>
+          <dt>{labels.why}</dt>
+          <dd>{why}</dd>
+        </div>
+        <div>
+          <dt>{labels.verdict}</dt>
+          <dd>{verdict}</dd>
+        </div>
+      </dl>
+      {host ? <p className="tools-lab-host">{host}</p> : null}
+      <span className="tools-lab-cta">{external ? `${openLabel} ↗` : `${openLabel} →`}</span>
     </article>
   );
-
-  if (paused) {
-    return (
-      <div className="tools-lab-wrap tools-lab-wrap--paused" data-testid={`tools-card-${tool.slug}`}>
-        {inner}
-      </div>
-    );
-  }
 
   if (external) {
     return (
       <a
         href={tool.href}
-        className={`arcade-cabinet-link tools-lab-wrap${featured ? ' tools-lab-wrap--featured' : ''}`}
+        className="arcade-cabinet-link tools-lab-wrap"
         target="_blank"
         rel="noopener noreferrer"
         aria-label={`${title} — opens ${host ?? tool.href}`}
-        data-testid={`tools-card-${tool.slug}`}
       >
         {inner}
       </a>
@@ -180,11 +106,7 @@ function LabCard({
   }
 
   return (
-    <Link
-      href={tool.href}
-      className={`arcade-cabinet-link tools-lab-wrap${featured ? ' tools-lab-wrap--featured' : ''}`}
-      data-testid={`tools-card-${tool.slug}`}
-    >
+    <Link href={tool.href} className="arcade-cabinet-link tools-lab-wrap">
       {inner}
     </Link>
   );
@@ -193,38 +115,116 @@ function LabCard({
 export default function ToolsArcadePage() {
   const { language } = useLanguage();
   const tx = t[language].tools;
-  const live = TOOL_DEFINITIONS.filter((tool) => tool.tier !== 'paused');
+  const featured = TOOL_DEFINITIONS.filter((tool) => tool.tier === 'featured');
+  const useful = TOOL_DEFINITIONS.filter((tool) => tool.tier === 'utility');
+  const experiments = TOOL_DEFINITIONS.filter((tool) => tool.tier === 'experiment');
   const paused = TOOL_DEFINITIONS.filter((tool) => tool.tier === 'paused');
+  const fieldLabels = {
+    what: tx.whatLabel,
+    why: tx.whyLabel,
+    verdict: tx.verdictLabel,
+  };
 
   return (
-    <ArcadeLayout tag={tx.tag} title={tx.heading} subtitle={tx.body} marquee={tx.marquee} align="center">
-      <div className="tools-lab" data-testid="tools-shelf">
+    <ArcadeLayout tag={tx.tag} title={tx.heading} subtitle={tx.body} marquee={tx.marquee}>
+      <div className="tools-lab">
         <p className="tools-lab-cafe-hint">
-          Cafe Cursor{' '}
+          Cafe Cursor →{' '}
           <a href={CAFE_CURSOR_URL} target="_blank" rel="noopener noreferrer">
             cursor-cafe.aileena.xyz
           </a>
         </p>
 
-        <div className="tools-lab-shelf">
-          {live.map((tool) => (
-            <LabCard
-              key={tool.slug}
-              tool={tool}
-              copy={tx.items[tool.slug as keyof typeof tx.items]}
-              openLabel={tx.openTool}
-              featured={tool.tier === 'featured'}
-            />
-          ))}
-          {paused.map((tool) => (
-            <LabCard
-              key={tool.slug}
-              tool={tool}
-              copy={tx.items[tool.slug as keyof typeof tx.items]}
-              openLabel={tx.openTool}
-            />
-          ))}
+        <section
+          id="tools-featured"
+          className="tools-lab-section"
+          aria-labelledby="tools-featured-heading"
+        >
+          <h2 id="tools-featured-heading" className="tools-lab-section-title">
+            {tx.featuredLabel}
+          </h2>
+          <div className="tools-lab-featured">
+            {featured.map((tool) => (
+              <LabCard
+                key={tool.slug}
+                tool={tool}
+                copy={tx.items[tool.slug as keyof typeof tx.items]}
+                labels={fieldLabels}
+                openLabel={tx.openTool}
+                featured
+              />
+            ))}
+          </div>
+        </section>
+
+        <div className="tools-lab-pair-wrap">
+          <section
+            id="tools-useful"
+            className="tools-lab-section"
+            aria-labelledby="tools-useful-heading"
+          >
+            <h2 id="tools-useful-heading" className="tools-lab-section-title">
+              {tx.usefulLabel}
+            </h2>
+            <div className="tools-lab-pair">
+              {useful.map((tool) => (
+                <LabCard
+                  key={tool.slug}
+                  tool={tool}
+                  copy={tx.items[tool.slug as keyof typeof tx.items]}
+                  labels={fieldLabels}
+                  openLabel={tx.openTool}
+                />
+              ))}
+            </div>
+          </section>
+
+          <section
+            id="tools-experiment"
+            className="tools-lab-section"
+            aria-labelledby="tools-experiment-heading"
+          >
+            <h2 id="tools-experiment-heading" className="tools-lab-section-title">
+              {tx.experimentLabel}
+            </h2>
+            <div className="tools-lab-pair">
+              {experiments.map((tool) => (
+                <LabCard
+                  key={tool.slug}
+                  tool={tool}
+                  copy={tx.items[tool.slug as keyof typeof tx.items]}
+                  labels={fieldLabels}
+                  openLabel={tx.openTool}
+                />
+              ))}
+            </div>
+          </section>
         </div>
+
+        {paused.length > 0 ? (
+          <section
+            id="tools-paused"
+            className="tools-lab-section"
+            aria-labelledby="tools-paused-heading"
+          >
+            <h2 id="tools-paused-heading" className="tools-lab-section-title">
+              {tx.pausedLabel}
+            </h2>
+            <ul className="tools-lab-paused">
+              {paused.map((tool) => (
+                <LabCard
+                  key={tool.slug}
+                  tool={tool}
+                  copy={tx.items[tool.slug as keyof typeof tx.items]}
+                  labels={fieldLabels}
+                  openLabel={tx.openTool}
+                />
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
+        <p className="tools-lab-note">{tx.labNote}</p>
       </div>
     </ArcadeLayout>
   );

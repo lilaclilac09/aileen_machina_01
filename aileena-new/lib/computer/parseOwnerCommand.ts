@@ -7,8 +7,6 @@ export type OwnerComputerCommand =
   | { kind: 'approve'; id: string }
   | { kind: 'reject'; id: string }
   | { kind: 'prepare_pr'; id: string }
-  | { kind: 'clarify'; question: string }
-  | { kind: 'blocked'; message: string }
   | {
       kind: 'queue_task';
       taskType: ComputerTaskType;
@@ -47,87 +45,6 @@ export function parseOwnerComputerCommand(text: string): OwnerComputerCommand | 
 
   const prepPr = /^prepare pr for\s+(\S+)\s*$/i.exec(raw);
   if (prepPr) return { kind: 'prepare_pr', id: prepPr[1] };
-
-  if (
-    /find(?: me)?(?: the)? commit/i.test(raw) ||
-    /where I merged/i.test(raw) ||
-    /merged Sound Lab/i.test(raw)
-  ) {
-    return {
-      kind: 'queue_task',
-      taskType: 'git_find_commit',
-      route: '/sound',
-      instructions: raw.slice(0, 400),
-    };
-  }
-
-  if (/recent sound commits/i.test(raw)) {
-    return {
-      kind: 'queue_task',
-      taskType: 'git_log',
-      route: '/sound',
-      instructions: 'path:aileena-new/components/DJStation.tsx grep:sound',
-    };
-  }
-
-  if (/^git status\s*$/i.test(raw)) {
-    return { kind: 'queue_task', taskType: 'git_status', route: '/proof', instructions: 'git status --short' };
-  }
-
-  const openFile = /open(?: the)?\s+(\/\S+|\S+)\s+file/i.exec(raw);
-  if (openFile) {
-    const token = openFile[1].replace(/^\/+/, '');
-    const path = token === 'sound' || token === '/sound'
-      ? 'aileena-new/app/sound/page.tsx'
-      : token.startsWith('aileena-new/')
-        ? token
-        : `aileena-new/${token}`;
-    return {
-      kind: 'queue_task',
-      taskType: 'files_open',
-      route: token.startsWith('/') ? token : '/sound',
-      instructions: path,
-    };
-  }
-
-  if (/draft (?:an )?email/i.test(raw)) {
-    return {
-      kind: 'queue_task',
-      taskType: 'email_draft',
-      route: '/proof',
-      instructions: raw.slice(0, 400),
-    };
-  }
-
-  if (/^send(?: this)?(?: the)? email\s*$/i.test(raw) || /^send it\s*$/i.test(raw)) {
-    return {
-      kind: 'blocked',
-      message: '⚡ needs approval. Email send is not connected. Draft only. No send without owner confirm.',
-    };
-  }
-
-  if (/screenshot|take pictures of/i.test(raw) && /(\/daily|\/sound|\/ |landing|mobile)/i.test(raw)) {
-    return {
-      kind: 'blocked',
-      message: '⚡ blocked. Browser automation is not wired. No fake screenshots.',
-    };
-  }
-
-  if (/draft a patch/i.test(raw)) {
-    return {
-      kind: 'queue_task',
-      taskType: 'draft_patch',
-      route: '/proof',
-      instructions: raw.slice(0, 4000),
-    };
-  }
-
-  if (/mark proposal\s+\S+\s+ready/i.test(raw)) {
-    return {
-      kind: 'clarify',
-      question: '⚡ Screenshots and checks first. I will not mark ready without proof.',
-    };
-  }
 
   if (/^write scratch(?: file)?\s*$/i.test(raw) || /^scratch hello\s*$/i.test(raw)) {
     return {
