@@ -156,7 +156,7 @@ async function main() {
   assert('orb does not slice 4000-char one-shot', !/slice\(0,\s*4000\)/.test(orb));
   assert('orb aborts TTS fetches on stop', /ttsAbortRef/.test(orb) && /abort\(\)/.test(orb));
   assert('orb freezes session voice', /sessionVoiceRef/.test(orb));
-  assert('orb compact voice failed', /Voice failed/.test(orb));
+  assert('orb compact voice failed', /TTS_UI\.failed/.test(orb));
   assert('route resolves profile server-side', /resolveTtsProfile/.test(route));
   assert('route returns 429 busy', /status === 429/.test(route));
   assert('no secrets in client tts lib', !/ELEVENLABS_API_KEY/.test(read('lib/tts/voiceProfile.ts')));
