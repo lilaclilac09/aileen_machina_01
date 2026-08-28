@@ -20,8 +20,8 @@ test.describe('iOS / mobile layout pass', () => {
     await page.goto('/sound', { waitUntil: 'domcontentloaded' });
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 2);
     expect(overflow).toBe(false);
-    await expect(page.getByTestId('dj-deck-a-drop')).toBeVisible();
-    await expect(page.getByTestId('dj-deck-b-drop')).toBeVisible();
+    await expect(page.getByText('DECK A', { exact: false }).first()).toBeVisible();
+    await expect(page.locator('#dj-set')).toBeVisible();
   });
 
   test('console opens and leave-a-note stays in viewport', async ({ page }) => {

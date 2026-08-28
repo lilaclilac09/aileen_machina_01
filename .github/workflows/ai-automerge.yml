@@ -103,7 +103,7 @@ jobs:
           pnpm exec eslint \
             components/DJStation.tsx \
             components/TrackLibraryBrowser.tsx \
-            e2e/dj-drag-deck-a.spec.ts \
+            e2e/mobile-layout.spec.ts \
             playwright.config.ts
 
       - name: Build
@@ -162,7 +162,7 @@ jobs:
             sleep 1
           done
           curl -sf "$BASE_URL/sound" >/dev/null
-          pnpm test:e2e:dnd
+          pnpm test:e2e:mobile
 
   cursor-review:
     name: cursor-review

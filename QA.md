@@ -53,7 +53,7 @@ When the slice has a dedicated test:
 
 ```bash
 cd aileena-new
-pnpm test:e2e:dnd      # carousel card → Deck A drag
+pnpm test:e2e:mobile   # /sound decks + home overflow (390)
 pnpm verify:sound      # /sound + home Visual layout (default production URL)
 pnpm verify:doors-nav  # doors back-link chrome
 pnpm lead:test         # Resend lead/contact smoke (needs env)
