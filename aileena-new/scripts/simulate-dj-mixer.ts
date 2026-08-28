@@ -4,7 +4,8 @@
  *
  * Walks a two-deck mix the way djMixerEngine would: load A/B, play,
  * equal-power xfade, trim/EQ/filter, record, receipt.
- * Live Sound Lab stays the pre-mixer Pioneer chrome (#468).
+ * Live Sound Lab is restored to the 2026-07-29 Spotify-iframe decks.
+ * This script does not mount that UI.
  */
 
 import assert from 'node:assert/strict';

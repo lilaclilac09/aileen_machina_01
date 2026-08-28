@@ -46,6 +46,6 @@ Until (1)+(2)+(3) are flipped by a human with admin, this stack can **run checks
 
 Remove the `ai-automerge` label from a PR. CI/playwright still run; auto-merge and cursor-agent gate do not.
 
-## DnD smoke
+## Sound Lab smoke
 
-`aileena-new/e2e/dj-drag-deck-a.spec.ts` — desktop HTML5 drag from carousel card → Deck A platter. AI review alone cannot prove drag/drop; this check is required for auto-merge trust.
+`aileena-new/e2e/mobile-layout.spec.ts` — `/sound` still has Deck A / `#dj-set` after the 30-day restore. Pioneer HTMLAudio drop (`dj-drag-deck-a.spec.ts`) is no longer on this tree.

@@ -15,7 +15,7 @@ App 在 `aileena-new/`（`pnpm`）。
 | UI / 交互 | 390×844 截图 + **命名**交互（`.cursor/rules/ui-step-screenshot.mdc`） | 只说 done / 只有 still |
 | Home marquee (`/`) | cinematic opening + `LandingMarquee`; `.cursor/rules/landing-experiment-gate.mdc` | restore ascii / moodboard / serials / zine |
 | `/sound` · DJ · carousel | `pnpm verify:sound`；ship 时 prod `https://www.aileena.xyz/sound` | 仅 localhost |
-| DnD → Deck A | `pnpm test:e2e:dnd`（改了 drag/drop 时） | 「应该能拖」 |
+| `/sound` mobile decks | `pnpm test:e2e:mobile` | Pioneer drop testids after 30-day restore |
 | Doors / back 链 | `pnpm verify:doors-nav` | 只改文案不测路由 |
 | Cover / 加歌 | Spotify oEmbed **+** song.link；冲突用 Spotify canonical thumb；vendor 到 `public/dj-set/assets/covers/` | 盲信单一 CDN / oEmbed |
 | Ship / multi-PR | `AGENTS.md` 凭证表（main tip · MERGED · Vercel **Production** · prod 截图+交互） | draft · Preview · localhost |

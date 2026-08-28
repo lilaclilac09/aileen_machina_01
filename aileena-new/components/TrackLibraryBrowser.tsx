@@ -475,18 +475,6 @@ function PlaylistCarousel({
 }) {
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  /** Desktop fine pointer: HTML5 drag-to-deck. Touch: swipe + A/B buttons. */
-  const [finePointer, setFinePointer] = useState(() =>
-    typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: fine)')?.matches,
-  );
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return;
-    const mq = window.matchMedia('(pointer: fine)');
-    const sync = (e?: MediaQueryListEvent) => setFinePointer(e ? e.matches : mq.matches);
-    mq.addEventListener?.('change', sync);
-    return () => mq.removeEventListener?.('change', sync);
-  }, []);
 
   // Carousel renders newest-first. Source order in TRACKS stays append-only
   // (so /addmusic just pushes to the end), and we reverse for display here.
@@ -544,8 +532,7 @@ function PlaylistCarousel({
   }
 
   function onPtrDown(e: React.PointerEvent<HTMLDivElement>) {
-    // Fine pointer uses HTML5 drag-to-deck; swipe would steal the gesture.
-    if (finePointer) return;
+    // Ignore secondary buttons; keep HTML5 deck-drop separate from swipe.
     if (e.button !== 0) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     ptrStartX.current = e.clientX;
@@ -557,7 +544,7 @@ function PlaylistCarousel({
     setDragOffset(0);
   }
   function onPtrMove(e: React.PointerEvent<HTMLDivElement>) {
-    if (finePointer || ptrStartX.current === null) return;
+    if (ptrStartX.current === null) return;
     const now = performance.now();
     const dx = e.clientX - ptrStartX.current;
     const dt = Math.max(1, now - lastMoveT.current);
@@ -568,7 +555,7 @@ function PlaylistCarousel({
     setDragOffset(dx);
   }
   function finishDrag() {
-    if (finePointer || ptrStartX.current === null) return;
+    if (ptrStartX.current === null) return;
     const dx = dragX.current;
     const flick = velocityX.current * 180; // px-ish impulse
     const travel = dx + flick;
@@ -591,7 +578,6 @@ function PlaylistCarousel({
       <div style={{ position: 'relative', height: CARD + 16, touchAction: 'pan-y' }}>
         {/* Prev arrow */}
         <button
-          type="button"
           onClick={() => activeIdx > 0 && setActiveIdx(activeIdx - 1)}
           style={{
             position: 'absolute', left: 6, top: '50%', transform: 'translateY(-50%)',
@@ -603,7 +589,6 @@ function PlaylistCarousel({
         >‹</button>
         {/* Next arrow */}
         <button
-          type="button"
           onClick={() => activeIdx < tracks.length - 1 && setActiveIdx(activeIdx + 1)}
           style={{
             position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)',
@@ -614,7 +599,7 @@ function PlaylistCarousel({
           }}
         >›</button>
 
-        {/* Cards — touch: pointer swipe; desktop: HTML5 drag onto decks */}
+        {/* Cards — pointer swipe only (no HTML5 draggable on cards; that fought swipe) */}
         <div
           onPointerDown={onPtrDown}
           onPointerMove={onPtrMove}
@@ -643,23 +628,6 @@ function PlaylistCarousel({
               <div
                 key={track.id}
                 data-dj-set-card
-                data-testid="dj-carousel-card"
-                data-track-id={track.id}
-                data-track-title={track.title}
-                draggable={finePointer}
-                onDragStart={(e) => {
-                  if (!finePointer) {
-                    e.preventDefault();
-                    return;
-                  }
-                  onSetDragTrack?.(track);
-                  try {
-                    e.dataTransfer.setData('text/plain', track.id);
-                    e.dataTransfer.effectAllowed = 'copy';
-                  } catch {
-                    /* some browsers throw on setData during tests */
-                  }
-                }}
                 onMouseEnter={() => onCardHover(i, rel)}
                 onMouseLeave={onCardLeave}
                 onClick={() => {
@@ -677,9 +645,7 @@ function PlaylistCarousel({
                     ? 'none'
                     : 'transform 0.34s cubic-bezier(0.22,1,0.36,1), opacity 0.28s ease',
                   zIndex, opacity,
-                  cursor: finePointer
-                    ? (rel === 0 ? 'grab' : 'pointer')
-                    : rel === 0 ? (isDragging ? 'grabbing' : 'grab') : 'pointer',
+                  cursor: rel === 0 ? (isDragging ? 'grabbing' : 'grab') : 'pointer',
                   willChange: isDragging ? 'transform' : undefined,
                 }}
               >
@@ -753,69 +719,31 @@ function PlaylistCarousel({
         ))}
       </div>
 
-      {/* ── Track readout + A/B load ── */}
+      {/* ── Track readout below indicators — Layer 1 + Layer 3 meta ── */}
       {active && (
         <div style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center',
-          gap: 10, marginTop: 10, marginBottom: 0,
+          display: 'flex', alignItems: 'baseline', justifyContent: 'center',
+          gap: '1em', marginTop: 10, marginBottom: 0,
         }}>
-          <div style={{
-            display: 'flex', alignItems: 'baseline', justifyContent: 'center',
-            gap: '1em', flexWrap: 'wrap',
+          <span style={{
+            fontFamily: 'monospace',
+            fontSize: '0.36rem',
+            fontWeight: 600,
+            letterSpacing: '0.10em',
+            color: T.l1,
+            textTransform: 'uppercase',
           }}>
-            <span style={{
-              fontFamily: 'monospace',
-              fontSize: '0.36rem',
-              fontWeight: 600,
-              letterSpacing: '0.10em',
-              color: T.l1,
-              textTransform: 'uppercase',
-            }}>
-              TRACK {active.id}
-            </span>
-            <span style={{
-              fontFamily: 'monospace',
-              fontSize: '0.28rem',
-              fontWeight: 400,
-              letterSpacing: '0.08em',
-              color: T.l3m,
-            }}>
-              {active.title} · {active.bpm} BPM · {active.key} · {fmtDur(active.dur)}
-            </span>
-          </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            {(['left', 'right'] as const).map((side) => (
-              <button
-                key={side}
-                type="button"
-                data-dj-load-deck={side}
-                onClick={() => onLoadTrack?.(side, active)}
-                style={{
-                  fontFamily: 'monospace',
-                  fontSize: '0.32rem',
-                  fontWeight: 700,
-                  letterSpacing: '0.14em',
-                  textTransform: 'uppercase',
-                  padding: '6px 14px',
-                  borderRadius: 3,
-                  border: `1px solid ${T.cyanSoft}`,
-                  background: 'rgba(0,168,157,0.12)',
-                  color: T.l1,
-                  cursor: 'pointer',
-                }}
-              >
-                {side === 'left' ? 'Load A' : 'Load B'}
-              </button>
-            ))}
-            {finePointer && (
-              <span style={{
-                fontFamily: 'monospace', fontSize: '0.26rem', letterSpacing: '0.08em',
-                color: T.l3m,
-              }}>
-                or drag cover → deck
-              </span>
-            )}
-          </div>
+            TRACK {active.id}
+          </span>
+          <span style={{
+            fontFamily: 'monospace',
+            fontSize: '0.28rem',
+            fontWeight: 400,
+            letterSpacing: '0.08em',
+            color: T.l3m,
+          }}>
+            {active.title} · {active.bpm} BPM · {active.key} · {fmtDur(active.dur)}
+          </span>
         </div>
       )}
     </div>

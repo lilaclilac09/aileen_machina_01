@@ -15,7 +15,7 @@ const SOUND_PATHS = [
   'aileena-new/components/DJStation.tsx',
   'aileena-new/app/sound',
   'aileena-new/lib/djSetlist.ts',
-  'aileena-new/e2e/dj-drag-deck-a.spec.ts',
+  'aileena-new/components/TrackLibraryBrowser.tsx',
 ];
 
 export type GitCommitRow = {

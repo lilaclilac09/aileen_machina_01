@@ -49,7 +49,6 @@
     "audit:runtime": "tsx scripts/audit-runtime.ts",
     "report:merge": "tsx scripts/report-merge.ts",
     "verify:council-cli": "tsx scripts/verify-council-cli.ts",
-    "test:e2e:dnd": "playwright test e2e/dj-drag-deck-a.spec.ts --config=playwright.config.ts",
     "test:e2e:mobile": "playwright test e2e/mobile-layout.spec.ts --config=playwright.config.ts",
     "verify:mobile-layout": "tsx scripts/verify-mobile-layout.ts",
     "chat:pending": "tsx scripts/list-chat-forwards.ts",
