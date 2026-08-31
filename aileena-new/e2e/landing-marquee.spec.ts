@@ -8,11 +8,26 @@ function topHrefAtCenter(el: Element) {
 
 test.describe('landing news whisper', () => {
   test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.addInitScript(() => {
       try {
         sessionStorage.setItem('aileena_loaded_once', '1');
       } catch {
         /* ignore */
+      }
+
+      // Hit-testing with elementFromPoint needs a stationary page.
+      const freezeMotion = () => {
+        const style = document.createElement('style');
+        style.textContent =
+          '*, *::before, *::after { animation: none !important; transition: none !important; }';
+        document.head.appendChild(style);
+      };
+
+      if (document.head) {
+        freezeMotion();
+      } else {
+        document.addEventListener('DOMContentLoaded', freezeMotion, { once: true });
       }
     });
   });
