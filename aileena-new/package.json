@@ -31,6 +31,7 @@
     "verify:dj-set": "tsx scripts/verify-dj-set.ts",
     "verify:sound": "tsx scripts/verify-dj-set.ts",
     "verify:dj-mixer": "tsx scripts/verify-dj-mixer-math.ts",
+    "verify:tfidf": "tsx scripts/verify-tfidf.ts",
     "simulate:dj-mixer": "tsx scripts/simulate-dj-mixer.ts && tsx scripts/verify-dj-mixer-math.ts",
     "verify:dj-set:local": "VERIFY_BASE_URL=http://localhost:3011 tsx scripts/verify-dj-set.ts",
     "verify:sound:local": "VERIFY_BASE_URL=http://localhost:3011 tsx scripts/verify-dj-set.ts",
