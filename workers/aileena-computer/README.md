@@ -41,6 +41,19 @@ ls aileena-new
 
 If `ls workers/aileena-computer` still fails, you are on `main` (or a different clone). Stay on `cursor/cloudflare-computer-spec-7f4a`.
 
+If git says **local changes would be overwritten** (checkout/merge abort): you still have uncommitted edits on the old branch. Stash them, then checkout. Do **not** `cd workers/...` yet. Do **not** `pnpm install` at the repo root.
+
+```sh
+# stop a wrong pnpm install with Ctrl+C first
+cd ~/aileen_machina_01
+git stash push -m "local edits before computer branch"
+git checkout cursor/cloudflare-computer-spec-7f4a
+git pull origin cursor/cloudflare-computer-spec-7f4a
+ls workers/aileena-computer
+```
+
+Those stashed files are not the computer. Get them back later with `git stash pop` after you are done testing, on the branch you want those edits on.
+
 ---
 
 ## Every time you want the computer on
