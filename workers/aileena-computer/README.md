@@ -54,6 +54,8 @@ ls workers/aileena-computer
 
 Those stashed files are not the computer. Get them back later with `git stash pop` after you are done testing, on the branch you want those edits on.
 
+If you already ran `pnpm install` / `pnpm dev` at `~/aileen_machina_01` (repo root) and saw `Command "dev" not found`: that was the wrong folder. Ignore Solana / titan / recharts warnings. Do not run `pnpm dev` again until `ls workers/aileena-computer` works. Root `node_modules` is junk for this task; do not commit a root `package.json`.
+
 ---
 
 ## Every time you want the computer on
