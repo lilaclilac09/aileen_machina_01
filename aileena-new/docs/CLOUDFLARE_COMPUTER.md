@@ -269,14 +269,20 @@ Manual QA (390×844, owner):
 
 ## 12 · Manual steps (owner)
 
+Copy-paste from home (`~`): [`workers/aileena-computer/README.md`](../../workers/aileena-computer/README.md).
+
+Those folders live in the git repo, not in `~`. Until this PR is on `main`, checkout `cursor/cloudflare-computer-spec-7f4a`.
+
 ```txt
 manual steps:
-- Cloudflare account that can create Workers + Durable Objects + Worker Loader
-- wrangler login
-- wrangler secret put COMPUTER_WORKER_SECRET
+- cd into the clone (not ~): git clone …/aileen_machina_01.git then checkout this branch
+- Terminal A: workers/aileena-computer → pnpm dev (:8787)
+- Terminal B: aileena-new/.env.local + pnpm dev (:3000)
+- Browser: http://localhost:3000/proof → enter local experiment → Console dock worker-shell
+- Cloudflare account + wrangler login only if deploying the Worker to Preview
+- wrangler secret put COMPUTER_WORKER_SECRET (preview Worker only)
 - add COMPUTER_WORKER_URL + COMPUTER_WORKER_SECRET to local .env and Vercel Preview only
 - do not add those to Vercel Production
-- do not merge until slice A curl proof exists
 ```
 
 ---
