@@ -32,6 +32,10 @@
 - Preview Ready ≠ Production Ready（`AGENTS.md`）
 - [2026-08-11] tip SHA 上 Vercel 状态偶发 Dashboard **Canceled**，但静态资源/JS 可能已在 CDN → 以 **prod URL 探针 + JS chunk 内容** 为准，不能只看一个红点；仍应尽量等 Production **success**
 
+## Computer / Cloudflare
+
+- [2026-08-26] `@cloudflare/computer` 不能跑在 Vercel Next（要 Worker + Durable Object SQLite）→ **不要**装进 `aileena-new/`；小电脑是独立 `workers/aileena-computer` + worker-shell。见 `aileena-new/docs/CLOUDFLARE_COMPUTER.md`
+
 ## Product / scope（勿重开）
 
 - 不准平行重写已有 DJ drag / drag-me 实现（`AGENTS.md`）

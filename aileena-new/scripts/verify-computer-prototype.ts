@@ -69,7 +69,16 @@ function sourceChecks() {
   assert('no arbitrary shell field', /forbiddenShellFields/.test(tasks));
   assert('production hard-off', /VERCEL_ENV === 'production'/.test(flag));
   assert('runner does not merge', /not performed/.test(runner) || /owner approval/.test(runner));
-  assert('runner backend is local-shim', /local-shim/.test(runner));
+  assert('runner still has local-shim fallback', /local-shim/.test(runner));
+  const cfClientSrc = readFileSync(join(process.cwd(), 'lib/computer/cfClient.ts'), 'utf8');
+  assert('cfClient does not import @cloudflare/computer', !/from ['"]@cloudflare\/computer/.test(cfClientSrc));
+  assert(
+    'worker lives beside the Next app',
+    existsSync(join(process.cwd(), '..', 'workers', 'aileena-computer', 'src', 'index.ts')),
+  );
+  const workerSrc = readFileSync(join(process.cwd(), '..', 'workers', 'aileena-computer', 'src', 'index.ts'), 'utf8');
+  assert('worker requires bearer secret', /Bearer/.test(workerSrc) && /COMPUTER_WORKER_SECRET/.test(workerSrc));
+  assert('worker name-locks owner', /OWNER = 'owner'/.test(workerSrc));
   assert('runner finds git commits', /git_find_commit/.test(runner) && /gitFindCommit/.test(runner));
   assert('runner blocks email send', /email_send/.test(runner) && /email not connected/.test(runner));
   assert('runner blocks fake browser screenshots', /browser_screenshot/.test(runner) && /No fake screenshots/.test(runner));
@@ -388,6 +397,10 @@ async function liveHttp() {
   const listedJson = listed.ok ? ((await listed.json()) as { plugins?: unknown[]; deepSeekHarness?: boolean }) : {};
   assert('owner GET lists plugins', Array.isArray(listedJson.plugins) && (listedJson.plugins?.length ?? 0) >= 4);
   assert('owner GET says not dsh', listedJson.deepSeekHarness === false, String(listedJson.deepSeekHarness));
+  if (process.env.COMPUTER_WORKER_URL && process.env.COMPUTER_WORKER_SECRET) {
+    const cfListed = listed.ok ? ((listedJson as { cloudflareComputer?: boolean }).cloudflareComputer) : false;
+    assert('owner GET reports cloudflareComputer when Worker env is set', cfListed === true, String(cfListed));
+  }
 
   const ownerShell = await fetch(`${base}/api/agent/computer/tasks`, {
     method: 'POST',

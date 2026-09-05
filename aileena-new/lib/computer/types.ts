@@ -66,7 +66,7 @@ export type ComputerTask = {
   proposedFilesToChange: string[];
   implementationPlan: string[];
   risksBlockers: string[];
-  backend: 'local-shim';
+  backend: 'local-shim' | 'cloudflare-worker-shell';
   error: string | null;
   createdAt: string;
   updatedAt: string;

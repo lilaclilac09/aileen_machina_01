@@ -4,6 +4,7 @@ import { requireOwnerFromRequest } from '@/lib/owner-gate';
 import { checkRateLimit, COMPUTER_TASK_RATE } from '@/lib/api/ratelimit';
 import { COMPUTER_LIMITS, forbiddenShellFields, isComputerTaskType } from '@/lib/computer/allowlist';
 import { isComputerPrototypeEnabled, prototypeDisabledReason } from '@/lib/computer/flag';
+import { isCloudflareComputerReady, reportedBackend } from '@/lib/computer/cfClient';
 import { clip, redactSecrets } from '@/lib/computer/redact';
 import { runComputerTask } from '@/lib/computer/runner';
 import { canEnqueueTask, getComputerTask, listComputerTasks, newId, nowIso, upsertComputerTask } from '@/lib/computer/store';
@@ -27,7 +28,7 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 function deny(status: number, error: string) {
-  return NextResponse.json({ ok: false, error, prototype: true, backend: 'local-shim' }, { status });
+  return NextResponse.json({ ok: false, error, prototype: true, backend: reportedBackend() }, { status });
 }
 
 export async function GET(req: Request) {
@@ -37,8 +38,8 @@ export async function GET(req: Request) {
   return NextResponse.json({
     ok: true,
     prototype: true,
-    backend: 'local-shim',
-    cloudflareComputer: false,
+    backend: reportedBackend(),
+    cloudflareComputer: isCloudflareComputerReady(),
     tasks: listComputerTasks(),
     proof: listProofItems(),
     tabs: COMPUTER_TABS.map((id) => ({ id, wire: TAB_WIRE[id] })),
@@ -156,7 +157,7 @@ export async function POST(req: Request) {
     proposedFilesToChange: [],
     implementationPlan: [],
     risksBlockers: [],
-    backend: 'local-shim',
+    backend: reportedBackend(),
     error: null,
     createdAt: now,
     updatedAt: now,
@@ -191,8 +192,8 @@ export async function POST(req: Request) {
       message: '⚡ queued.',
       spoken,
       prototype: true,
-      backend: 'local-shim',
-      cloudflareComputer: false,
+      backend: reportedBackend(),
+      cloudflareComputer: isCloudflareComputerReady(),
       task: getComputerTask(task.id),
       proofItem: getProofItem(proofItemId),
     },
