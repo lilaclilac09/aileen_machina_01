@@ -122,6 +122,7 @@ function StatusDot({ light }: { light: Light }) {
  */
 export default function ComputerConsoleDock() {
   const [flash, setFlash] = useState('⚡ computer ready · same dialog');
+  const [cloudflare, setCloudflare] = useState(false);
   const [busy, setBusy] = useState(false);
   const [tasks, setTasks] = useState<ComputerTask[]>([]);
   const [proof, setProof] = useState<ProofItem[]>([]);
@@ -138,9 +139,14 @@ export default function ComputerConsoleDock() {
   const load = useCallback(async () => {
     const res = await fetch('/api/agent/computer/tasks', { cache: 'no-store', credentials: 'include' });
     if (!res.ok) return;
-    const data = (await res.json()) as { tasks?: ComputerTask[]; proof?: ProofItem[] };
+    const data = (await res.json()) as {
+      tasks?: ComputerTask[];
+      proof?: ProofItem[];
+      cloudflareComputer?: boolean;
+    };
     setTasks(Array.isArray(data.tasks) ? data.tasks : []);
     setProof(Array.isArray(data.proof) ? data.proof : []);
+    setCloudflare(Boolean(data.cloudflareComputer));
   }, []);
 
   useEffect(() => {
@@ -373,7 +379,7 @@ export default function ComputerConsoleDock() {
       className="border-t border-[#e7e0d6] px-4 py-2 space-y-2 bg-[#fffcf7]/80 max-h-[46vh] overflow-y-auto"
     >
       <p className="font-mono text-[0.52rem] tracking-[0.2em] uppercase text-[#008f86]/80">
-        computer · same dialog · not a window
+        computer · {cloudflare ? 'worker-shell' : 'local shim'} · same dialog
       </p>
       <p className="font-mono text-[0.62rem] leading-relaxed text-[#008f86] whitespace-pre-wrap" data-testid="proof-flash">
         {flash}
@@ -522,6 +528,18 @@ export default function ComputerConsoleDock() {
               onClick={() => void queue({ taskType: 'files_tree', route: '/sound', instructions: 'aileena-new' })}
             >
               tree
+            </button>
+            <button
+              type="button"
+              className={btn}
+              disabled={busy}
+              data-testid="files-action-workspace"
+              onClick={() => {
+                setFilePath('/workspace/scratch/hello.txt');
+                void queue({ taskType: 'files_tree', route: '/proof', instructions: '/workspace' });
+              }}
+            >
+              workspace
             </button>
           </div>
           <pre

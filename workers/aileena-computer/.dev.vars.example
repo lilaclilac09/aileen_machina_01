@@ -1,0 +1,3 @@
+# Local wrangler only. Copy to .dev.vars (gitignored).
+# Production / preview: wrangler secret put COMPUTER_WORKER_SECRET
+COMPUTER_WORKER_SECRET=dev-aileena-computer-local

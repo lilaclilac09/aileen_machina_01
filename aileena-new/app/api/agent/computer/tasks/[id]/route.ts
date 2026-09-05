@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireOwnerFromRequest } from '@/lib/owner-gate';
 import { isComputerPrototypeEnabled, prototypeDisabledReason } from '@/lib/computer/flag';
+import { reportedBackend } from '@/lib/computer/cfClient';
 import { getComputerTask } from '@/lib/computer/store';
 import { getProofItem } from '@/lib/proofQueue/store';
 
@@ -21,7 +22,7 @@ export async function GET(req: Request, ctx: Ctx) {
   return NextResponse.json({
     ok: true,
     prototype: true,
-    backend: 'local-shim',
+    backend: reportedBackend(),
     status: task.status,
     logsSummary: task.logsRedacted,
     artifacts: task.artifacts,

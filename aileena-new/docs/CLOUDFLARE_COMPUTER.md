@@ -1,6 +1,6 @@
 # Cloudflare Computer — make the small computer usable
 
-Status: **spec only. Do not implement until the owner confirms this slice.**  
+Status: **slice A+B coded. Local wrangler + site env still needed for end-to-end.**  
 Date: 2026-09-05  
 Source repo: [github.com/cloudflare/computer](https://github.com/cloudflare/computer)  
 npm: `@cloudflare/computer@0.2.1` (preview; APIs can move)
