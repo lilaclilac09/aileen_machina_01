@@ -137,7 +137,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
   const chips = useMemo(() => {
     const seen = new Set<string>();
     const rows: LearnedChip[] = [];
-    for (const row of [...(isOwner ? learned : []), ...(isOwner ? OWNER_STARTER_CHIPS : VISITOR_STARTER_CHIPS)]) {
+    for (const row of [...(isOwner ? OWNER_STARTER_CHIPS : VISITOR_STARTER_CHIPS), ...(isOwner ? learned : [])]) {
       const key = row.alias.trim().toLowerCase();
       if (!key || seen.has(key)) continue;
       seen.add(key);
