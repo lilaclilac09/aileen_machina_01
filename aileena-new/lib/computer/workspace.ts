@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, normalize, relative, resolve } from 'node:path';
 import { COMPUTER_LIMITS } from './allowlist';
 
@@ -56,4 +56,76 @@ export async function workspaceReadFile(
  */
 export async function workspaceRuntimeProbe(): Promise<{ stdout: string; exitCode: number }> {
   return { stdout: 'ok', exitCode: 0 };
+}
+
+function walkWorkspace(dir: string, root: string, out: string[], depth: number): void {
+  if (depth > 6 || !existsSync(dir)) return;
+  for (const name of readdirSync(dir)) {
+    const abs = join(dir, name);
+    const rel = relative(root, abs).replaceAll('\\', '/');
+    let st;
+    try {
+      st = statSync(abs);
+    } catch {
+      continue;
+    }
+    if (st.isDirectory()) {
+      out.push(`${rel}/`);
+      walkWorkspace(abs, root, out, depth + 1);
+    } else {
+      out.push(`${rel} ${st.size}`);
+    }
+  }
+}
+
+/** List a shim workspace. Never walks the site git tree. */
+export function workspaceList(workspaceId: string): { lines: string[]; summary: string } {
+  const root = workspaceRoot(workspaceId);
+  mkdirSync(join(root, 'scratch'), { recursive: true });
+  const lines: string[] = [];
+  walkWorkspace(root, root, lines, 0);
+  return {
+    lines: lines.slice(0, 200),
+    summary: lines.length ? `listed ${lines.length} paths in scratch pad` : 'empty scratch pad',
+  };
+}
+
+/** Literal search inside a shim workspace. Never greps the site git tree. */
+export function workspaceGrep(workspaceId: string, rawQuery: string): { lines: string[]; summary: string } {
+  const query = rawQuery.replace(/^\/workspace\s+/i, '').trim().slice(0, 80);
+  if (!query) return { lines: [], summary: 'empty query' };
+  const root = workspaceRoot(workspaceId);
+  if (!existsSync(root)) return { lines: [], summary: `no matches for ${query}` };
+  const hits: string[] = [];
+  const scan = (dir: string) => {
+    if (!existsSync(dir) || hits.length >= 50) return;
+    for (const name of readdirSync(dir)) {
+      const abs = join(dir, name);
+      let st;
+      try {
+        st = statSync(abs);
+      } catch {
+        continue;
+      }
+      if (st.isDirectory()) {
+        scan(abs);
+        continue;
+      }
+      if (st.size > COMPUTER_LIMITS.workspaceFileBytes) continue;
+      let text = '';
+      try {
+        text = readFileSync(abs, 'utf8');
+      } catch {
+        continue;
+      }
+      if (text.includes(query)) {
+        hits.push(`${relative(root, abs).replaceAll('\\', '/')}: match`);
+      }
+    }
+  };
+  scan(root);
+  return {
+    lines: hits,
+    summary: hits.length ? `${hits.length} matches for ${query}` : `no matches for ${query}`,
+  };
 }

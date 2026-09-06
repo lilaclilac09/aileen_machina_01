@@ -1,9 +1,9 @@
 /**
- * Owner-only computer-task prototype.
+ * Computer-task prototype.
  *
- * This is NOT Cloudflare Computer. @cloudflare/computer needs a Cloudflare
- * Worker + Durable Object SQLite storage. aileena.xyz chat runs on Next.js
- * (Vercel). Do not treat this module as a production agent runtime.
+ * Owner tasks may use the Cloudflare Worker Durable Object (`owner`).
+ * Visitor tasks are a local scratch pad only — never the owner DO, never
+ * site git. This is NOT installing @cloudflare/computer in Next.js.
  */
 
 export const COMPUTER_TASK_TYPES = [
@@ -52,6 +52,8 @@ export type ComputerArtifact = {
 
 export type ComputerTask = {
   id: string;
+  /** `owner` or `v-…`. Missing on old rows → treat as owner. */
+  actorId?: string;
   proofItemId: string;
   taskType: ComputerTaskType;
   status: ComputerTaskStatus;
@@ -66,7 +68,7 @@ export type ComputerTask = {
   proposedFilesToChange: string[];
   implementationPlan: string[];
   risksBlockers: string[];
-  backend: 'local-shim';
+  backend: 'local-shim' | 'cloudflare-worker-shell';
   error: string | null;
   createdAt: string;
   updatedAt: string;

@@ -10,7 +10,8 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createOwnerSession, SESSION_COOKIE } from '../lib/auth';
 import { inspectRouteFiles, analyzeDailyFixPlan } from '../lib/computer/inspect';
-import { parseOwnerComputerCommand } from '../lib/computer/parseOwnerCommand';
+import { parseOwnerComputerCommand, parseVisitorComputerCommand } from '../lib/computer/parseOwnerCommand';
+import { labelForTask, matchLearned, rememberCommand } from '../lib/computer/learned';
 import { redactSecrets } from '../lib/computer/redact';
 import { isComputerPrototypeEnabled } from '../lib/computer/flag';
 import { HARNESS_PLUGINS } from '../lib/computer/plugins';
@@ -18,7 +19,7 @@ import { spokenQueued } from '../lib/computer/spokenQueue';
 import { gitFindCommit, gitStatus } from '../lib/computer/gitAllowlist';
 import { filesOpen } from '../lib/computer/filesAllowlist';
 import { TAB_WIRE } from '../lib/computer/capabilities';
-import { workspaceReadFile, workspaceRuntimeProbe, workspaceWriteFile } from '../lib/computer/workspace';
+import { workspaceGrep, workspaceList, workspaceReadFile, workspaceRuntimeProbe, workspaceWriteFile } from '../lib/computer/workspace';
 import { deriveKeyshield, sealOwner, openOwnerSeal } from '../lib/keyshield/prf';
 import { KS_HKDF_MASTER, KS_HKDF_VAULT_ID, KS_PRF_FIRST } from '../lib/keyshield/constants';
 import { b64urlFromBytes, bytesFromB64url } from '../lib/passkey/b64';
@@ -61,15 +62,29 @@ function sourceChecks() {
   const dailySrc = readFileSync(join(process.cwd(), 'components/DailyBoard.tsx'), 'utf8');
   const gitSrc = readFileSync(join(process.cwd(), 'lib/computer/gitAllowlist.ts'), 'utf8');
   const filesSrc = readFileSync(join(process.cwd(), 'lib/computer/filesAllowlist.ts'), 'utf8');
+  const chatFast = readFileSync(join(process.cwd(), 'lib/computer/chatFastPath.ts'), 'utf8');
   assert('chat stays edge', /export const runtime = 'edge'/.test(chat));
+  assert('fast path expands learned aliases', /api\/agent\/computer\/learned/.test(chatFast) && /resolved\.kind !== 'queue_task'/.test(chatFast));
+  assert('visitor fast path exists', /tryVisitorComputerFastPath/.test(chatFast));
+  assert('fast path passes phrase', /phrase: opts.lastQ/.test(chatFast));
   assert('chat does not import computer runner', !/from ['"].*computer\/runner['"]/.test(chat));
   assert('chat does not import git allowlist', !/from ['"].*computer\/gitAllowlist['"]/.test(chat));
   assert('tasks route is nodejs', /export const runtime = 'nodejs'/.test(tasks));
-  assert('tasks route owner-gated', /requireOwnerFromRequest/.test(tasks));
+  assert('tasks route is actor-gated', /computerActorFromRequest/.test(tasks));
+  assert('visitor POST is scratch-only', /isVisitorComputerTaskType/.test(tasks));
   assert('no arbitrary shell field', /forbiddenShellFields/.test(tasks));
   assert('production hard-off', /VERCEL_ENV === 'production'/.test(flag));
   assert('runner does not merge', /not performed/.test(runner) || /owner approval/.test(runner));
-  assert('runner backend is local-shim', /local-shim/.test(runner));
+  assert('runner still has local-shim fallback', /local-shim/.test(runner));
+  const cfClientSrc = readFileSync(join(process.cwd(), 'lib/computer/cfClient.ts'), 'utf8');
+  assert('cfClient does not import @cloudflare/computer', !/from ['"]@cloudflare\/computer/.test(cfClientSrc));
+  assert(
+    'worker lives beside the Next app',
+    existsSync(join(process.cwd(), '..', 'workers', 'aileena-computer', 'src', 'index.ts')),
+  );
+  const workerSrc = readFileSync(join(process.cwd(), '..', 'workers', 'aileena-computer', 'src', 'index.ts'), 'utf8');
+  assert('worker requires bearer secret', /Bearer/.test(workerSrc) && /COMPUTER_WORKER_SECRET/.test(workerSrc));
+  assert('worker name-locks owner', /OWNER = 'owner'/.test(workerSrc));
   assert('runner finds git commits', /git_find_commit/.test(runner) && /gitFindCommit/.test(runner));
   assert('runner blocks email send', /email_send/.test(runner) && /email not connected/.test(runner));
   assert('runner blocks fake browser screenshots', /browser_screenshot/.test(runner) && /No fake screenshots/.test(runner));
@@ -81,7 +96,12 @@ function sourceChecks() {
   assert('files block .env and keys', /BLOCKED_NAME/.test(filesSrc) && /\.env/.test(filesSrc));
   assert('owner tabs exist', /computer-tabs/.test(dockSrc) && /computer-tab-\$\{id\}/.test(dockSrc));
   assert('git candidates surface', /git-merge-candidates/.test(dockSrc));
-  assert('visitor never mounts dock without owner', /isOwner \? <ComputerConsoleDock/.test(agentChatSrc));
+  assert(
+    'computer toggle gates the dock',
+    /computer-mode-toggle/.test(agentChatSrc) &&
+      /computerMode \? <ComputerConsoleDock isOwner=\{isOwner\}/.test(agentChatSrc),
+  );
+  assert('visitor chips skip git status', /VISITOR_STARTER_CHIPS/.test(dockSrc) && !/VISITOR_STARTER_CHIPS[\s\S]{0,200}git status/.test(dockSrc));
   assert('does not import @cloudflare/computer', !existsSync(join(process.cwd(), 'node_modules/@cloudflare/computer')));
   assert(
     'plugins are not DeepSeek Harness',
@@ -89,6 +109,15 @@ function sourceChecks() {
   );
   assert('merge is blocked in the dialog', /harness-merge-blocked/.test(dockSrc) && /canMerge: false/.test(pluginsSrc));
   assert('computer docks in AgentChat', /ComputerConsoleDock/.test(agentChatSrc));
+  const dockAt = agentChatSrc.indexOf('<ComputerConsoleDock');
+  const transAt = agentChatSrc.indexOf('data-agent-transcript');
+  assert('monitor sits above transcript', dockAt > 0 && transAt > 0 && dockAt < transAt);
+  assert('dock always polls', /setInterval\(\(\) => void load\(\), 900\)/.test(dockSrc));
+  assert('dock shows learned chips', /computer-learned/.test(dockSrc) && /computer-monitor/.test(dockSrc));
+  assert('starter chips stay before learned', /OWNER_STARTER_CHIPS : VISITOR_STARTER_CHIPS\), \.\.\.\(isOwner \? learned/.test(dockSrc));
+  assert('GET tasks includes learned', /learned: listLearned\(\)/.test(tasks));
+  assert('POST remembers phrase', /rememberCommand/.test(tasks) && /body.phrase/.test(tasks));
+  assert('learn route exists', existsSync(join(process.cwd(), 'app/api/agent/computer/learned/route.ts')));
   assert('proof page does not mount ProofQueuePanel', !/ProofQueuePanel/.test(proofPageSrc));
   assert(
     'unlock form is KeyShield not typed secret',
@@ -135,6 +164,25 @@ function sourceChecks() {
 
 function unitChecks() {
   assert('hi is not a computer command', parseOwnerComputerCommand('hi') === null);
+  assert('visitor hi is not a scratch command', parseVisitorComputerCommand('hi') === null);
+  assert(
+    'visitor git status is blocked',
+    parseVisitorComputerCommand('git status')?.kind === 'blocked',
+  );
+  const visitorNote = parseVisitorComputerCommand('note: oat');
+  assert(
+    'visitor note queues scratch',
+    visitorNote?.kind === 'queue_task' && visitorNote.taskType === 'write_scratch_file',
+  );
+  const visitorListCmd = parseVisitorComputerCommand('list');
+  assert(
+    'visitor list queues files_tree',
+    visitorListCmd?.kind === 'queue_task' && visitorListCmd.taskType === 'files_tree',
+  );
+  assert(
+    'visitor prepare fix is not a scratch command',
+    parseVisitorComputerCommand('prepare fix for /daily owner key UI') === null,
+  );
   assert('what did she write is not a computer command', parseOwnerComputerCommand('what did she write about solana?') === null);
   const daily = parseOwnerComputerCommand('prepare fix for /daily owner key UI');
   assert(
@@ -174,6 +222,16 @@ function unitChecks() {
     'find Sound Lab merge routes to git_find_commit',
     find?.kind === 'queue_task' && find.taskType === 'git_find_commit',
   );
+  const savedNote = parseOwnerComputerCommand('note: buy oat milk');
+  assert(
+    'note: queues write_scratch_file',
+    savedNote?.kind === 'queue_task' && savedNote.taskType === 'write_scratch_file' && savedNote.instructions === 'buy oat milk',
+  );
+  const findNote = parseOwnerComputerCommand('find oat');
+  assert(
+    'find queues workspace search',
+    findNote?.kind === 'queue_task' && findNote.taskType === 'files_search' && findNote.instructions === '/workspace oat',
+  );
   const recent = parseOwnerComputerCommand('show me recent sound commits');
   assert('recent sound commits routes to git_log', recent?.kind === 'queue_task' && recent.taskType === 'git_log');
   const openSound = parseOwnerComputerCommand('open the /sound file');
@@ -193,6 +251,20 @@ function unitChecks() {
   assert('draft patch is plan-only', patch?.kind === 'queue_task' && patch.taskType === 'draft_patch');
   const ready = parseOwnerComputerCommand('mark proposal 3 ready');
   assert('mark ready asks for proof first', ready?.kind === 'clarify');
+  const learn = parseOwnerComputerCommand('learn: 仓库 = git status');
+  assert(
+    'learn: stores alias',
+    learn?.kind === 'learn' && learn.alias === '仓库' && learn.expands === 'git status',
+  );
+  const remembered = rememberCommand({
+    alias: '仓库',
+    expands: 'git status',
+    taskType: 'git_status',
+    instructions: 'git status --short',
+    route: '/proof',
+  });
+  assert('remembered alias matches', matchLearned('仓库')?.taskType === 'git_status', remembered.alias);
+  assert('label for git status', labelForTask('git_status', '') === 'git status');
   assert('browser tab is blocked', TAB_WIRE.browser === 'blocked');
   assert('email tab is draft-only', TAB_WIRE.email === 'draft-only');
   assert('code tab is draft-only', TAB_WIRE.code === 'draft-only');
@@ -213,6 +285,13 @@ async function workspaceUnit() {
     denied = true;
   }
   assert('workspace rejects non-allowlisted path', denied);
+  await workspaceWriteFile('v-visitorone', '/scratch/notes/x.txt', 'visitor-secret-note');
+  const visitorList = workspaceList('v-visitorone');
+  assert('visitor workspace lists own files', visitorList.lines.some((l) => l.includes('scratch')));
+  const visitorHit = workspaceGrep('v-visitorone', 'visitor-secret-note');
+  assert('visitor workspace greps own files', visitorHit.lines.length >= 1);
+  const ownerMiss = workspaceGrep('owner', 'visitor-secret-note');
+  assert('owner workspace does not see visitor note', ownerMiss.lines.length === 0);
 }
 
 async function gitAndFilesUnit() {
@@ -306,6 +385,14 @@ async function pollTask(base: string, cookie: string, id: string) {
   return { ok: false as const, status: 'timeout' };
 }
 
+function cookieJar(res: Response): string {
+  const hdrs = res.headers as Headers & { getSetCookie?: () => string[] };
+  const list = typeof hdrs.getSetCookie === 'function' ? hdrs.getSetCookie() : [];
+  if (list.length) return list.map((c) => c.split(';')[0] || '').filter(Boolean).join('; ');
+  const one = res.headers.get('set-cookie');
+  return one ? one.split(';')[0] : '';
+}
+
 async function liveHttp() {
   const base = (process.env.VERIFY_BASE_URL || '').replace(/\/$/, '');
   if (!base) {
@@ -350,7 +437,61 @@ async function liveHttp() {
   assert('visitor POST computer tasks → 403', forbidden.status === 403, String(forbidden.status));
 
   const visitorGet = await fetch(`${base}/api/agent/computer/tasks`);
-  assert('visitor GET computer tasks → 403', visitorGet.status === 403, String(visitorGet.status));
+  assert('visitor GET computer tasks → 200', visitorGet.status === 200, String(visitorGet.status));
+  const visitorGetJson = visitorGet.ok
+    ? ((await visitorGet.json()) as {
+        actor?: string;
+        cloudflareComputer?: boolean;
+        learned?: unknown[];
+        proof?: unknown[];
+        harness?: string;
+      })
+    : {};
+  assert('visitor GET is scratch actor', visitorGetJson.actor === 'visitor', String(visitorGetJson.actor));
+  assert('visitor GET has no learned aliases', Array.isArray(visitorGetJson.learned) && visitorGetJson.learned.length === 0);
+  assert('visitor GET has no proof queue', Array.isArray(visitorGetJson.proof) && visitorGetJson.proof.length === 0);
+  assert('visitor GET is not worker-shell', visitorGetJson.cloudflareComputer === false);
+
+  const visitorCookie = cookieJar(visitorGet);
+  assert('visitor GET mints workspace cookie', /__aileena_cwid=v-/.test(visitorCookie), visitorCookie.slice(0, 80));
+
+  const visitorScratch = await fetch(`${base}/api/agent/computer/tasks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Cookie: visitorCookie },
+    body: JSON.stringify({ taskType: 'write_scratch_file', route: '/proof', instructions: 'visitor-isolation-note' }),
+  });
+  assert('visitor POST write_scratch_file → 202', visitorScratch.status === 202, String(visitorScratch.status));
+  const visitorScratchJson = visitorScratch.status === 202
+    ? ((await visitorScratch.json()) as { task?: { id?: string; actorId?: string }; proofItem?: unknown })
+    : {};
+  assert('visitor scratch has no proof item', visitorScratchJson.proofItem == null);
+  const visitorScratchId = visitorScratchJson.task?.id || '';
+  const visitorScratchDone = visitorScratchId
+    ? await pollTask(base, visitorCookie, visitorScratchId)
+    : { ok: false as const, status: visitorScratch.status };
+  assert(
+    'visitor scratch completed',
+    visitorScratchDone.ok && visitorScratchDone.st === 'completed',
+    String(visitorScratchDone.ok ? visitorScratchDone.st : visitorScratchDone.status),
+  );
+
+  const otherVisitor = await fetch(`${base}/api/agent/computer/tasks`);
+  const otherCookie = cookieJar(otherVisitor);
+  const otherList = otherVisitor.ok
+    ? ((await otherVisitor.json()) as { tasks?: { id?: string }[] })
+    : { tasks: [] };
+  assert(
+    'other visitor does not see first visitor task',
+    !(otherList.tasks || []).some((t) => t.id === visitorScratchId),
+    otherCookie.slice(0, 40),
+  );
+
+  const visitorOpen = await fetch(`${base}/api/agent/computer/tasks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Cookie: visitorCookie },
+    body: JSON.stringify({ taskType: 'files_open', instructions: 'aileena-new/app/sound/page.tsx' }),
+  });
+  assert('visitor POST files_open → 403', visitorOpen.status === 403, String(visitorOpen.status));
 
   const visitorGit = await fetch(`${base}/api/agent/computer/tasks`, {
     method: 'POST',
@@ -385,9 +526,24 @@ async function liveHttp() {
   );
 
   const listed = await fetch(`${base}/api/agent/computer/tasks`, { headers: { Cookie: cookie } });
-  const listedJson = listed.ok ? ((await listed.json()) as { plugins?: unknown[]; deepSeekHarness?: boolean }) : {};
+  const listedJson = listed.ok
+    ? ((await listed.json()) as {
+        plugins?: unknown[];
+        deepSeekHarness?: boolean;
+        tasks?: { id?: string }[];
+        cloudflareComputer?: boolean;
+      })
+    : {};
   assert('owner GET lists plugins', Array.isArray(listedJson.plugins) && (listedJson.plugins?.length ?? 0) >= 4);
   assert('owner GET says not dsh', listedJson.deepSeekHarness === false, String(listedJson.deepSeekHarness));
+  assert(
+    'owner GET hides visitor tasks',
+    !(listedJson.tasks || []).some((t) => t.id === visitorScratchId),
+  );
+  if (process.env.COMPUTER_WORKER_URL && process.env.COMPUTER_WORKER_SECRET) {
+    const cfListed = listed.ok ? ((listedJson as { cloudflareComputer?: boolean }).cloudflareComputer) : false;
+    assert('owner GET reports cloudflareComputer when Worker env is set', cfListed === true, String(cfListed));
+  }
 
   const ownerShell = await fetch(`${base}/api/agent/computer/tasks`, {
     method: 'POST',
@@ -545,6 +701,24 @@ async function liveHttp() {
     visitorChat.headers.get('x-computer-fast-path') !== '1',
     visitorChat.headers.get('x-computer-fast-path') ?? 'none',
   );
+
+  const visitorNoteChat = await fetch(`${base}/api/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      agentMode: 'public',
+      messages: [
+        {
+          id: 'u3',
+          role: 'user',
+          parts: [{ type: 'text', text: 'note: visitor chat scratch' }],
+        },
+      ],
+    }),
+  });
+  assert('visitor note chat is computer fast path', visitorNoteChat.headers.get('x-computer-fast-path') === '1');
+  const visitorNoteText = await visitorNoteChat.text();
+  assert('visitor note chat says queued', /queued/i.test(visitorNoteText), visitorNoteText.slice(0, 180));
 }
 
 async function main() {

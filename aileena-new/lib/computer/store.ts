@@ -52,9 +52,23 @@ export function nowIso(): string {
   return new Date().toISOString();
 }
 
-export function listComputerTasks(): ComputerTask[] {
+export function taskActorId(task: ComputerTask): string {
+  return task.actorId && task.actorId.length > 0 ? task.actorId : 'owner';
+}
+
+export function isOwnerComputerTask(task: ComputerTask): boolean {
+  return taskActorId(task) === 'owner';
+}
+
+function allTasks(): ComputerTask[] {
   hydrate();
-  return Object.values(memory().tasks).sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+  return Object.values(memory().tasks);
+}
+
+export function listComputerTasks(actorId: string): ComputerTask[] {
+  return allTasks()
+    .filter((t) => taskActorId(t) === actorId)
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 }
 
 export function getComputerTask(id: string): ComputerTask | null {
@@ -69,20 +83,25 @@ export function upsertComputerTask(task: ComputerTask): ComputerTask {
   return task;
 }
 
-export function countOpenTasks(): { running: number; open: number } {
-  const tasks = listComputerTasks();
+function isOpen(task: ComputerTask): boolean {
+  return task.status === 'queued' || task.status === 'running';
+}
+
+export function countOpenTasks(actorId?: string): { running: number; open: number } {
+  const tasks = actorId ? listComputerTasks(actorId) : allTasks();
   const running = tasks.filter((t) => t.status === 'running').length;
-  const open = tasks.filter((t) => t.status === 'queued' || t.status === 'running').length;
+  const open = tasks.filter(isOpen).length;
   return { running, open };
 }
 
-export function canEnqueueTask(): { ok: true } | { ok: false; error: string } {
-  const { open } = countOpenTasks();
-  if (open >= COMPUTER_LIMITS.maxConcurrentRunning) {
-    return { ok: false, error: 'A computer task is already running. Wait or cancel it.' };
-  }
-  if (open >= COMPUTER_LIMITS.maxOpenTasks) {
+/** One open task per actor. Global cap so visitors cannot fill the store. */
+export function canEnqueueTask(actorId: string): { ok: true } | { ok: false; error: string } {
+  const all = allTasks();
+  if (all.filter(isOpen).length >= COMPUTER_LIMITS.maxOpenTasks) {
     return { ok: false, error: 'Too many open computer tasks. Cancel one first.' };
+  }
+  if (all.filter((t) => taskActorId(t) === actorId && isOpen(t)).length >= COMPUTER_LIMITS.maxConcurrentRunning) {
+    return { ok: false, error: 'A computer task is already running. Wait or cancel it.' };
   }
   return { ok: true };
 }

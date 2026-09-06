@@ -17,3 +17,8 @@ aileena-new/.data/computer-prototype/
 **/.env
 **/.env.*
 !**/.env.example
+
+# Cloudflare Computer worker local state
+**/.dev.vars
+!**/.dev.vars.example
+**/.wrangler/

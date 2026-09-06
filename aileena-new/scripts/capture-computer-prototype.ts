@@ -41,11 +41,14 @@ async function waitReady() {
   throw new Error(`proof page not ready at ${BASE}`);
 }
 
-async function openConsole(page: import('playwright').Page) {
+async function openConsole(page: import('playwright').Page, withComputer = true) {
   await page.keyboard.press('Escape');
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('open-agent-chat')));
-  await page.waitForSelector('[data-testid="computer-console-dock"]', { timeout: 15_000, state: 'visible' });
   await page.waitForSelector('[role="dialog"][aria-label="Aileena Console"]', { state: 'visible' });
+  if (withComputer) {
+    await page.locator('[data-testid="computer-mode-toggle"]').click();
+    await page.waitForSelector('[data-testid="computer-console-dock"]', { timeout: 15_000, state: 'visible' });
+  }
   await page.waitForTimeout(400);
 }
 
@@ -88,28 +91,61 @@ async function main() {
   if (overflow) throw new Error('horizontal overflow on console 390');
   await page.screenshot({ path: join(OUT, 'console-computer-dock.png') });
 
-  await page.locator('[data-testid="harness-plugin-inspect"]').click();
-  await page.waitForFunction(() => document.querySelector('[data-testid="proof-flash"]')?.textContent?.includes('queued'));
+  const noteLine = `note: capture ${Date.now()}`;
+  const chatBox = page.locator('[role="dialog"][aria-label="Aileena Console"] textarea');
+  await chatBox.fill(noteLine);
+  await chatBox.press('Enter');
+  await page.waitForFunction((expect) => {
+    const monitor = document.querySelector('[data-testid="computer-monitor"]')?.textContent || '';
+    return monitor.includes(expect);
+  }, noteLine.replace(/^note:\s*/i, ''), { timeout: 15_000 });
+  const monitor = await page.locator('[data-testid="computer-monitor"]').innerText();
+  if (!/NOW|queued|running|note|hello from dock|scratch/i.test(monitor)) {
+    throw new Error(`monitor idle after queue: ${monitor}`);
+  }
   await page.screenshot({ path: join(OUT, 'proof-task-queued.png') });
+  await page.locator('[data-testid="computer-monitor"]').screenshot({ path: join(OUT, 'computer-monitor-live.png') });
 
   await page.waitForFunction(() => {
-    return Boolean(document.querySelector('[data-testid="computer-task-completed"]'));
+    const monitor = document.querySelector('[data-testid="computer-monitor"]')?.textContent || '';
+    return /NOW\s+note · completed/i.test(monitor);
   }, null, { timeout: 20_000 });
-  await page.locator('[data-testid="computer-task-completed"]').first().click();
+  await page.locator('[data-testid="computer-task-completed"]').first().click({ force: true });
   await page.waitForSelector('[data-testid="computer-task-detail"]', { timeout: 8_000 });
   await page.screenshot({ path: join(OUT, 'proof-task-result.png') });
-  await page.locator('[data-testid="computer-task-detail"]').screenshot({ path: join(OUT, 'computer-task-detail.png') });
+  await page.locator('[data-testid="computer-monitor"]').screenshot({ path: join(OUT, 'computer-task-detail.png') });
+  await page.locator('[data-testid="computer-learned"]').screenshot({ path: join(OUT, 'computer-learned-chips.png') });
+
+  const gitChip = page.locator('[data-testid="computer-learned-git-status"]');
+  for (let attempt = 0; attempt < 4; attempt++) {
+    await gitChip.click();
+    const flash = (await page.locator('[data-testid="proof-flash"]').textContent()) || '';
+    if (!/409|rate_limit|busy/i.test(flash)) break;
+    await page.waitForTimeout(1500);
+  }
+  await page.waitForFunction(() => {
+    const monitor = document.querySelector('[data-testid="computer-monitor"]')?.textContent || '';
+    return /NOW\s+git/i.test(monitor);
+  }, null, { timeout: 15_000 });
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: join(OUT, 'computer-chip-replay.png') });
 
   await vPage.goto(`${BASE}/proof`, { waitUntil: 'networkidle' });
   await vPage.keyboard.press('Escape');
   await vPage.evaluate(() => window.dispatchEvent(new CustomEvent('open-agent-chat')));
   await vPage.waitForSelector('[role="dialog"][aria-label="Aileena Console"]', { state: 'visible' });
-  const visitorDock = await vPage.locator('[data-testid="computer-console-dock"]').count();
-  if (visitorDock > 0) throw new Error('visitor saw computer dock');
-  const visitorTabs = await vPage.locator('[data-testid="computer-tabs"]').count();
-  if (visitorTabs > 0) throw new Error('visitor saw computer tabs');
+  const visitorDockOff = await vPage.locator('[data-testid="computer-console-dock"]').count();
+  if (visitorDockOff > 0) throw new Error('visitor saw computer dock before toggle');
   await vPage.locator('[role="dialog"][aria-label="Aileena Console"]').screenshot({
     path: join(OUT, 'agent-tabs-visitor-hidden.png'),
+  });
+  await vPage.locator('[data-testid="computer-mode-toggle"]').click();
+  await vPage.waitForSelector('[data-testid="computer-console-dock"]', { state: 'visible', timeout: 15_000 });
+  const visitorGitChip = await vPage.locator('[data-testid="computer-learned-git-status"]').count();
+  if (visitorGitChip > 0) throw new Error('visitor saw git status chip');
+  await vPage.locator('[data-testid="computer-learned-list"]').waitFor({ state: 'visible' });
+  await vPage.locator('[role="dialog"][aria-label="Aileena Console"]').screenshot({
+    path: join(OUT, 'agent-visitor-computer-on.png'),
   });
 
   const tools = await browser.newContext({ viewport: { width: 1280, height: 800 } });
@@ -133,8 +169,11 @@ async function main() {
   await dPage.screenshot({ path: join(OUT, 'proof-desktop.png') });
   await dPage.screenshot({ path: join(OUT, 'agent-tabs-owner.png') });
 
-  await dPage.locator('[data-testid="computer-tab-git"]').click();
-  await dPage.locator('[data-testid="git-action-recent"]').click();
+  await dPage.waitForFunction(() => !document.querySelector('[data-testid="computer-task-running"]'), null, {
+    timeout: 40_000,
+  });
+  await dPage.locator('[data-testid="computer-tab-git"]').click({ force: true });
+  await dPage.locator('[data-testid="git-action-recent"]').click({ force: true });
   await dPage.waitForFunction(() => {
     const el = document.querySelector('[data-testid="git-recent-commits"]');
     return /[0-9a-f]{7}/i.test(el?.textContent || '');
@@ -145,41 +184,19 @@ async function main() {
   await dPage.locator('[data-testid="git-recent-commits"]').scrollIntoViewIfNeeded();
   await dPage.locator('[data-testid="git-recent-commits"]').screenshot({ path: join(OUT, 'git-tab-recent-commits.png') });
 
-  await dPage.locator('[data-testid="git-action-find-sound"]').click();
-  await dPage.waitForFunction(() => {
-    const running = Boolean(document.querySelector('[data-testid="computer-task-running"]'));
-    const el = document.querySelector('[data-testid="git-merge-candidates"]');
-    const text = el?.textContent || '';
-    return !running && /files=/.test(text) && /[0-9a-f]{7}/i.test(text);
-  }, null, { timeout: 45_000 });
-  await dPage.locator('[data-testid="git-merge-candidates"]').scrollIntoViewIfNeeded();
-  await dPage.locator('[data-testid="git-merge-candidates"]').screenshot({
-    path: join(OUT, 'git-tab-sound-merge-candidates.png'),
-  });
-
-  await dPage.locator('[data-testid="computer-tab-files"]').click();
-  await dPage.locator('[data-testid="files-action-open"]').click();
+  await dPage.locator('[data-testid="computer-tab-find"]').click({ force: true });
+  await dPage.locator('[data-testid="files-action-workspace"]').click({ force: true });
   await dPage.waitForFunction(() => {
     const running = Boolean(document.querySelector('[data-testid="computer-task-running"]'));
     const el = document.querySelector('[data-testid="files-readonly"]');
     const t = el?.textContent || '';
-    return !running && t.length > 40 && !/open a file to preview/i.test(t);
+    return !running && t.length > 8 && !/⚡ idle/i.test(t);
   }, null, { timeout: 40_000 });
   await dPage.locator('[data-testid="files-readonly"]').scrollIntoViewIfNeeded();
   await dPage.locator('[data-testid="computer-console-dock"]').screenshot({ path: join(OUT, 'files-tab-readonly.png') });
 
-  await dPage.locator('[data-testid="computer-tab-proof"]').click();
-  await dPage.waitForFunction(() => {
-    const el = document.querySelector('[data-testid="proof-attachment"]');
-    const text = el?.textContent || '';
-    return /Sound Lab rollback/i.test(text) && /[0-9a-f]{7}/i.test(text);
-  }, null, { timeout: 15_000 });
-  await dPage.locator('[data-testid="proof-attachment"]').scrollIntoViewIfNeeded();
-  await dPage.locator('[data-testid="proof-attachment"]').screenshot({ path: join(OUT, 'proof-attachment.png') });
-
-  await dPage.locator('[data-testid="computer-tab-git"]').click();
-  await dPage.locator('[data-testid="git-action-status"]').click();
-  await dPage.locator('[data-testid="computer-tab-tasks"]').click();
+  await dPage.locator('[data-testid="computer-tab-git"]').click({ force: true });
+  await dPage.locator('[data-testid="git-action-status"]').click({ force: true });
   await dPage.waitForSelector('[data-testid="computer-task-running"]', { timeout: 12_000 });
   await dPage.locator('[data-testid="computer-console-dock"]').screenshot({ path: join(OUT, 'tasks-tab-running.png') });
 

@@ -1,5 +1,5 @@
 /**
- * Owner harness plugins. Allowlisted slots in the site-agent dialog.
+ * Owner computer apps in the site-agent dialog.
  * This is Machina's owner harness prototype — not DeepSeek Harness (dsh).
  * Do not import @deepseek-ai/dsh. Merge is a pane, not a git action.
  */
@@ -20,43 +20,27 @@ export type HarnessPlugin = {
 
 export const HARNESS_PLUGINS: readonly HarnessPlugin[] = [
   {
-    id: 'inspect',
-    label: 'inspect',
-    kind: 'computer',
-    taskType: 'draft_daily_fix_plan',
-    blurb: 'Read /daily files and draft a plan. Does not write the repo.',
-    canMerge: false,
-  },
-  {
-    id: 'scratch',
-    label: 'scratch',
+    id: 'note',
+    label: 'note',
     kind: 'computer',
     taskType: 'write_scratch_file',
-    blurb: 'Write /scratch/hello.txt in the workspace and read it back.',
+    blurb: 'Save a note into /workspace/scratch/notes.',
     canMerge: false,
   },
   {
-    id: 'screenshots',
-    label: 'screenshots',
+    id: 'find',
+    label: 'find',
     kind: 'computer',
-    taskType: 'collect_screenshot_checklist',
-    blurb: 'Collect a screenshot checklist for the proof item.',
+    taskType: 'files_tree',
+    blurb: 'List /workspace',
     canMerge: false,
   },
   {
-    id: 'checks',
-    label: 'checks',
+    id: 'git',
+    label: 'git',
     kind: 'computer',
-    taskType: 'run_build_check',
-    blurb: 'Run an allowlisted probe. Not pnpm build. Not deploy.',
-    canMerge: false,
-  },
-  {
-    id: 'patch',
-    label: 'patch',
-    kind: 'computer',
-    taskType: 'draft_patch',
-    blurb: 'Draft a patch plan. Does not apply. Does not commit.',
+    taskType: 'git_status',
+    blurb: 'git status --short',
     canMerge: false,
   },
   {

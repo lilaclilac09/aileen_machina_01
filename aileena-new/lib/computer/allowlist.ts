@@ -34,6 +34,15 @@ export function isComputerTaskType(value: unknown): value is ComputerTaskType {
   return typeof value === 'string' && (COMPUTER_TASK_TYPES as readonly string[]).includes(value);
 }
 
+/** Visitors may only touch their own shim workspace. Never git, email, repo files, or proof. */
+export const VISITOR_COMPUTER_TASK_TYPES = ['write_scratch_file', 'files_tree', 'files_search'] as const;
+
+export type VisitorComputerTaskType = (typeof VISITOR_COMPUTER_TASK_TYPES)[number];
+
+export function isVisitorComputerTaskType(value: unknown): value is VisitorComputerTaskType {
+  return typeof value === 'string' && (VISITOR_COMPUTER_TASK_TYPES as readonly string[]).includes(value);
+}
+
 export function inspectFilesForRoute(route: string): readonly string[] {
   const key = route.trim() || '/';
   return ROUTE_INSPECT_FILES[key] ?? ROUTE_INSPECT_FILES['/daily'];

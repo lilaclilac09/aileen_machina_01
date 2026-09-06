@@ -192,6 +192,7 @@ export default function AgentChat() {
   const [voiceMode, setVoiceMode] = useState(false);
   const voiceModeRef = useRef(false);
   voiceModeRef.current = voiceMode;
+  const [computerMode, setComputerMode] = useState(false);
   const [voiceLive, setVoiceLive] = useState('');
   /** Start orb listen once after Voice toggle / open-agent-chat autoListen. */
   const [autoListen, setAutoListen] = useState(false);
@@ -203,6 +204,7 @@ export default function AgentChat() {
   const [drawnToday, setDrawnToday] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const isOwnerRef = useRef(false);
+  const [ownerStatusKnown, setOwnerStatusKnown] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const welcomedRef = useRef(false);
@@ -277,10 +279,11 @@ export default function AgentChat() {
     !pendingNewRootRef.current &&
     !parseNewRootError(error?.message ?? '');
 
-  // Open console → greet first (catch-up if we remember prior topics).
-  // Closing clears the transcript (see closeConsole) so this runs fresh each open.
+  // Open console → greet visitors. Owner sees the computer monitor, not the essay.
   useEffect(() => {
     if (!open) return;
+    if (!ownerStatusKnown) return;
+    if (isOwner) return;
     if (welcomedRef.current || messages.length > 0) return;
     welcomedRef.current = true;
     const topics = readTopicMemory().topics;
@@ -298,7 +301,7 @@ export default function AgentChat() {
         parts: [{ type: 'text', text }],
       },
     ]);
-  }, [open, messages.length, setMessages]);
+  }, [open, messages.length, setMessages, isOwner, ownerStatusKnown]);
 
   // ──────────────── On-device runtime (Chrome Prompt API) ────────────────
   const [runtime, setRuntime] = useState<Runtime>('cloud');
@@ -428,9 +431,13 @@ export default function AgentChat() {
         const next = d.owner === true;
         isOwnerRef.current = next;
         setIsOwner(next);
+        setOwnerStatusKnown(true);
       })
       .catch(() => {
-        /* visitor — keep quota */
+        if (cancelled) return;
+        isOwnerRef.current = false;
+        setIsOwner(false);
+        setOwnerStatusKnown(true);
       });
     return () => {
       cancelled = true;
@@ -737,6 +744,7 @@ export default function AgentChat() {
 
     setVoiceMode(false);
     setVoiceLive('');
+    setComputerMode(false);
     setLeadOpen(false);
     setLeadError(null);
     setOpen(false);
@@ -1761,6 +1769,26 @@ export default function AgentChat() {
             </button>
             <button
               type="button"
+              data-testid="computer-mode-toggle"
+              aria-pressed={computerMode}
+              aria-label={computerMode ? 'Turn computer off' : 'Turn computer on'}
+              title={
+                computerMode
+                  ? 'Computer on — monitor in this dialog'
+                  : 'Tap Computer for the scratch pad in this dialog'
+              }
+              onClick={() => setComputerMode((on) => !on)}
+              className="inline-flex min-h-11 items-center text-[0.55rem] tracking-[0.2em] uppercase px-2 py-0.5 rounded transition-colors sm:min-h-0"
+              style={{
+                color: computerMode ? '#007d75' : 'rgba(27,23,19,0.55)',
+                background: computerMode ? 'rgba(0,168,157,0.1)' : 'transparent',
+                border: computerMode ? '1px solid rgba(0,168,157,0.35)' : '1px solid transparent',
+              }}
+            >
+              {computerMode ? 'computer on' : 'computer'}
+            </button>
+            <button
+              type="button"
               onClick={resetChat}
               aria-label="Reset conversation"
               title="Clear chat and start over"
@@ -1779,6 +1807,8 @@ export default function AgentChat() {
           </div>
         </div>
 
+        {computerMode ? <ComputerConsoleDock isOwner={isOwner} /> : null}
+
         {/* Transcript — flex-auto: content-sized when dialog is short; shrinks +
             scrolls when dialog hits sm:max-h-[72vh]. Bottom chrome stays visible.
             Soft veil only — same thin type, slightly clearer read on blur. */}
@@ -1787,7 +1817,7 @@ export default function AgentChat() {
           data-agent-transcript
           className="flex-auto min-h-0 sm:min-h-[9rem] overflow-y-auto overscroll-contain px-4 sm:px-5 py-3 sm:py-4 space-y-3.5 bg-[#fffcf7]/55"
         >
-          {messages.length === 0 ? (
+          {messages.length === 0 && !isOwner ? (
             <>
               <p className="text-[0.62rem] tracking-[0.25em] text-[#1b1713]/55 uppercase mb-2">
                 ▸ ready · say hi or ask anything
@@ -1936,8 +1966,6 @@ export default function AgentChat() {
 
         </div>
 
-        {isOwner ? <ComputerConsoleDock /> : null}
-
         {/* Bottom chrome: orb → chat input → optional leave-a-note (collapsed). */}
         <div className="shrink-0 flex flex-col">
         {/* Stream + barge-in orb: compact but ceremonial instrument panel. */}
@@ -2001,9 +2029,13 @@ export default function AgentChat() {
               placeholder={
                 sessionMaxed
                   ? 'come back tomorrow ♡'
-                  : voiceMode
-                    ? 'Or type here'
-                    : 'Type a message, or tap Voice'
+                  : computerMode
+                    ? isOwner
+                      ? 'note · find x · git status'
+                      : 'note · find x · list'
+                    : voiceMode
+                      ? 'Or type here'
+                      : 'Type a message, or tap Voice'
               }
               disabled={sessionMaxed}
               rows={1}
@@ -2029,6 +2061,8 @@ export default function AgentChat() {
                     stream · barge-in · say <span className="text-[#008f86]/70">fix / 写代码</span> → voice→code
                   </span>
                 </>
+              ) : isOwner ? (
+                <span>↵</span>
               ) : (
                 <>
                   <span className="sm:hidden">↵ send · voice</span>
@@ -2056,41 +2090,45 @@ export default function AgentChat() {
                       ? 'chat 0'
                       : `chat ${remaining}/${DAILY_LIMIT}`}
               </span>
-              <button
-                type="button"
-                disabled={vcodeMaxed || busy}
-                onClick={() =>
-                  ask('Voice → code: sketch a small patch for the Console footer')
-                }
-                title="Propose-only patch — copy or take the .patch, nothing written"
-                className={
-                  vcodeRemaining === 0
-                    ? 'text-red-400/70 uppercase'
-                    : 'text-[#007d75]/70 hover:text-[#008f86] uppercase'
-                }
-              >
-                Voice → code
-              </button>
-              <span
-                className={
-                  vcodeRemaining === 0 ? 'text-red-400/70' : 'text-[#1b1713]/40'
-                }
-              >
-                {vcodeRemaining} left today
-              </span>
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => ask('今日牌')}
-                title="One card per Taipei day — recited at the tail, not in the system block"
-                className={
-                  drawnToday
-                    ? 'text-[#1b1713]/40 uppercase'
-                    : 'text-[#007d75]/70 hover:text-[#008f86] uppercase'
-                }
-              >
-                draw
-              </button>
+              {!isOwner ? (
+                <>
+                  <button
+                    type="button"
+                    disabled={vcodeMaxed || busy}
+                    onClick={() =>
+                      ask('Voice → code: sketch a small patch for the Console footer')
+                    }
+                    title="Propose-only patch — copy or take the .patch, nothing written"
+                    className={
+                      vcodeRemaining === 0
+                        ? 'text-red-400/70 uppercase'
+                        : 'text-[#007d75]/70 hover:text-[#008f86] uppercase'
+                    }
+                  >
+                    Voice → code
+                  </button>
+                  <span
+                    className={
+                      vcodeRemaining === 0 ? 'text-red-400/70' : 'text-[#1b1713]/40'
+                    }
+                  >
+                    {vcodeRemaining} left today
+                  </span>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => ask('今日牌')}
+                    title="One card per Taipei day — recited at the tail, not in the system block"
+                    className={
+                      drawnToday
+                        ? 'text-[#1b1713]/40 uppercase'
+                        : 'text-[#007d75]/70 hover:text-[#008f86] uppercase'
+                    }
+                  >
+                    draw
+                  </button>
+                </>
+              ) : null}
             </span>
           </p>
         </div>

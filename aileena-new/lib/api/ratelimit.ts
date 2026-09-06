@@ -158,3 +158,11 @@ export const COMPUTER_TASK_RATE: RateLimitConfig = {
   dailyMax: 48,
   dailyWindowMs: 86_400_000,
 };
+
+/** Visitor scratch pad — stricter than owner. Separate bucket scope. */
+export const COMPUTER_VISITOR_TASK_RATE: RateLimitConfig = {
+  shortMax: 4,
+  shortWindowMs: 60_000,
+  dailyMax: 24,
+  dailyWindowMs: 86_400_000,
+};

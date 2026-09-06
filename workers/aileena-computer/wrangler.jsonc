@@ -1,0 +1,11 @@
+{
+  "name": "aileena-computer",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-05-26",
+  "compatibility_flags": ["nodejs_compat", "experimental"],
+  "worker_loaders": [{ "binding": "LOADER" }],
+  "durable_objects": {
+    "bindings": [{ "name": "OwnerComputer", "class_name": "OwnerComputer" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["OwnerComputer"] }]
+}

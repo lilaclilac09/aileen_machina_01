@@ -1,0 +1,24 @@
+{
+  "name": "aileena-computer",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Owner small computer: Cloudflare worker-shell + Durable Object. Not inside aileena-new.",
+  "scripts": {
+    "dev": "wrangler dev --port 8787",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "smoke": "node ./scripts/smoke.mjs"
+  },
+  "dependencies": {
+    "@cloudflare/computer": "0.2.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260616.1",
+    "typescript": "^5.8.3",
+    "wrangler": "^4.107.1"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "workerd"]
+  }
+}

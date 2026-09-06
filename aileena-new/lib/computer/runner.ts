@@ -3,9 +3,15 @@ import { join } from 'node:path';
 import { ALLOWED_CHECK_COMMANDS, COMPUTER_LIMITS } from './allowlist';
 import { analyzeDailyFixPlan, inspectRouteFiles } from './inspect';
 import { clip, redactSecrets } from './redact';
-import { getComputerTask, nowIso, upsertComputerTask } from './store';
+import { getComputerTask, isOwnerComputerTask, nowIso, taskActorId, upsertComputerTask } from './store';
 import type { ComputerArtifact, ComputerTask, ComputerTaskStatus } from './types';
-import { workspaceReadFile, workspaceRuntimeProbe, workspaceWriteFile } from './workspace';
+import {
+  workspaceGrep,
+  workspaceList,
+  workspaceReadFile,
+  workspaceRuntimeProbe,
+  workspaceWriteFile,
+} from './workspace';
 import {
   attachComputerFinding,
   attachTaskToProof,
@@ -25,8 +31,21 @@ import {
   type GitInspectResult,
 } from './gitAllowlist';
 import { filesOpen, filesSearch, filesTree, type FileInspectResult } from './filesAllowlist';
+import {
+  cfExec,
+  cfGetFile,
+  cfPutFile,
+  isCloudflareComputerReady,
+  isWorkspaceIntent,
+  reportedBackend,
+  toWorkspacePath,
+  workspaceSearchQuery,
+} from './cfClient';
+import type { ComputerBackend } from './cfClient';
 
-const WORKSPACE_ID = 'owner';
+function workspaceIdFor(task: ComputerTask): string {
+  return taskActorId(task);
+}
 
 function log(task: ComputerTask, line: string): ComputerTask {
   const next = {
@@ -127,7 +146,7 @@ async function finishInspectStyle(
     error?: string | null;
   },
 ): Promise<ComputerTask> {
-  const wrote = await workspaceWriteFile(WORKSPACE_ID, `/reports/${task.id}.md`, opts.report);
+  const wrote = await workspaceWriteFile(workspaceIdFor(task), `/reports/${task.id}.md`, opts.report);
   return upsertComputerTask({
     ...task,
     status: opts.status,
@@ -233,7 +252,217 @@ async function runGitTask(task: ComputerTask): Promise<ComputerTask> {
   return logged;
 }
 
+async function runScratchTask(task: ComputerTask): Promise<ComputerTask> {
+  const owner = isOwnerComputerTask(task);
+  const backend: ComputerBackend =
+    owner && isCloudflareComputerReady() ? 'cloudflare-worker-shell' : 'local-shim';
+  const note = scratchPayload(task, backend);
+  if (backend === 'cloudflare-worker-shell') {
+    task = log(task, `write ${note.cfPath} on worker-shell`);
+    let body = note.body;
+    if (note.append) {
+      try {
+        const existing = await cfGetFile(note.cfPath);
+        body = `${existing}${note.body}`;
+      } catch {
+        /* new file */
+      }
+    }
+    await cfPutFile(note.cfPath, body);
+    const readBack = await cfGetFile(note.cfPath);
+    const probe = await cfExec('echo ok');
+    const report = [
+      '# write_scratch_file',
+      '',
+      `backend: cloudflare-worker-shell`,
+      `wrote: ${note.cfPath} (${body.length} chars)`,
+      `read back: ${JSON.stringify(readBack.slice(-400))}`,
+      `runtime probe: ${probe.stdout} exit=${probe.exitCode}`,
+      '',
+      'Workspace is a Cloudflare Durable Object (worker-shell).',
+    ].join('\n');
+    await cfPutFile(`/workspace/reports/${task.id}.md`, report);
+    task = upsertComputerTask({
+      ...task,
+      backend,
+      status: 'completed',
+      resultSummary: note.append ? 'Note saved on Cloudflare Computer.' : 'Scratch file wrote on Cloudflare Computer and read back.',
+      filesInspected: [note.cfPath],
+      artifacts: [
+        artifact('scratch', note.cfPath, note.cfPath.split('/').pop() || 'scratch', readBack.slice(-800)),
+        artifact('report', `/workspace/reports/${task.id}.md`, 'scratch report', report),
+      ],
+      completedAt: nowIso(),
+      updatedAt: nowIso(),
+      error: null,
+    });
+    return log(task, 'completed write_scratch_file on worker-shell');
+  }
+
+  task = log(task, `write ${note.shimPath}`);
+  let body = note.body;
+  if (note.append) {
+    try {
+      const existing = await workspaceReadFile(workspaceIdFor(task), note.shimPath);
+      body = `${existing}${note.body}`;
+    } catch {
+      /* new file */
+    }
+  }
+  await workspaceWriteFile(workspaceIdFor(task), note.shimPath, body);
+  const readBack = await workspaceReadFile(workspaceIdFor(task), note.shimPath);
+  const probe = await workspaceRuntimeProbe();
+  const report = [
+    '# write_scratch_file',
+    '',
+    `wrote: ${note.shimPath} (${body.length} chars)`,
+    `read back: ${JSON.stringify(readBack.slice(-400))}`,
+    `runtime probe: ${probe.stdout} exit=${probe.exitCode}`,
+    '',
+    `Workspace is local disk under .data/computer-prototype/ws/${workspaceIdFor(task)}/.`,
+    'Not a Cloudflare Durable Object.',
+  ].join('\n');
+  const wrote = await workspaceWriteFile(workspaceIdFor(task), `/reports/${task.id}.md`, report);
+  task = upsertComputerTask({
+    ...task,
+    backend,
+    status: 'completed',
+    resultSummary: note.append ? 'Note saved in local workspace.' : 'Scratch file wrote and read back. Runtime probe ok.',
+    filesInspected: [note.shimPath],
+    artifacts: [
+      artifact('scratch', note.shimPath, note.shimPath.split('/').pop() || 'scratch', readBack.slice(-800)),
+      artifact('report', wrote.path, 'scratch report', report),
+    ],
+    completedAt: nowIso(),
+    updatedAt: nowIso(),
+    error: null,
+  });
+  return log(task, 'completed write_scratch_file');
+}
+
+function scratchPayload(
+  task: ComputerTask,
+  backend: ComputerBackend,
+): { shimPath: string; cfPath: string; body: string; append: boolean } {
+  const raw = (task.instructions || '').trim();
+  const isProbe =
+    !raw ||
+    /hello\.txt/i.test(raw) ||
+    /write \/scratch/i.test(raw) ||
+    /read it back/i.test(raw);
+  if (isProbe) {
+    return {
+      shimPath: '/scratch/hello.txt',
+      cfPath: '/workspace/scratch/hello.txt',
+      body: `hello from aileena computer\nroute=${task.route}\nbackend=${backend}\n${nowIso()}\n`,
+      append: false,
+    };
+  }
+  const day = nowIso().slice(0, 10);
+  return {
+    shimPath: `/scratch/notes/${day}.txt`,
+    cfPath: `/workspace/scratch/notes/${day}.txt`,
+    body: `${nowIso()}\n${raw.slice(0, 4000)}\n\n`,
+    append: true,
+  };
+}
+
+async function runCfFilesTask(task: ComputerTask): Promise<ComputerTask> {
+  const path = toWorkspacePath(task.instructions || '/workspace') || '/workspace';
+  task = log(task, `cloudflare ${task.taskType} ${path}`);
+  if (task.taskType === 'files_open') {
+    const body = await cfGetFile(path);
+    return finishInspectStyle(task, {
+      status: 'completed',
+      summary: `opened ${path} on worker-shell`,
+      report: `# files_open\n\n${path}\n\n${body}`,
+      preview: body,
+      title: path,
+      kind: 'file',
+      filesInspected: [path],
+    });
+  }
+  if (task.taskType === 'files_search') {
+    const query = clip(workspaceSearchQuery(task.instructions || '') || 'hello', 80);
+    const run = await cfExec(`grep -R -n -F -- ${shellWord(query)} .`);
+    const text = [run.stdout, run.stderr].filter(Boolean).join('\n');
+    return finishInspectStyle(task, {
+      status: run.exitCode === 0 || run.exitCode === 1 ? 'completed' : 'failed',
+      summary: run.exitCode === 1 ? `no matches for ${query}` : `search ${query} on worker-shell`,
+      report: `# files_search\n\n${text}`,
+      preview: text,
+      title: 'workspace search',
+      kind: 'file',
+      error: run.exitCode > 1 ? run.stderr || 'grep failed' : null,
+    });
+  }
+  const run = await cfExec(`ls -la ${path === '/workspace' ? '.' : path}`, '/workspace');
+  const text = [run.stdout, run.stderr].filter(Boolean).join('\n');
+  return finishInspectStyle(task, {
+    status: run.exitCode === 0 ? 'completed' : 'failed',
+    summary: run.exitCode === 0 ? `listed ${path} on worker-shell` : `ls failed ${path}`,
+    report: `# files_tree\n\n${text}`,
+    preview: text,
+    title: path,
+    kind: 'file',
+    filesInspected: [path],
+    error: run.exitCode === 0 ? null : run.stderr || 'ls failed',
+  });
+}
+
+function shellWord(value: string): string {
+  if (/^[A-Za-z0-9_./-]+$/.test(value)) return value;
+  return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
+async function runVisitorShimFiles(task: ComputerTask): Promise<ComputerTask> {
+  const id = workspaceIdFor(task);
+  if (task.taskType === 'files_open') {
+    const next = await finishInspectStyle(task, {
+      status: 'blocked',
+      summary: '⚡ scratch pad only. Cannot open site files.',
+      report: '# files_open\n\nBlocked for visitors. Scratch pad only.\n',
+      preview: 'scratch pad only',
+      title: 'blocked',
+      kind: 'file',
+      error: 'visitor cannot open site files',
+    });
+    return log(next, 'blocked files_open for visitor');
+  }
+  if (task.taskType === 'files_search') {
+    task = log(task, 'search scratch pad (not the site git)');
+    const result = workspaceGrep(id, task.instructions || '');
+    const next = await finishInspectStyle(task, {
+      status: 'completed',
+      summary: result.summary,
+      report: [`# files_search`, '', result.summary, '', ...result.lines].join('\n'),
+      preview: result.lines.join('\n') || result.summary,
+      title: 'scratch search',
+      kind: 'file',
+    });
+    return log(next, result.summary);
+  }
+  task = log(task, 'list scratch pad (not the site git)');
+  const result = workspaceList(id);
+  const next = await finishInspectStyle(task, {
+    status: 'completed',
+    summary: result.summary,
+    report: [`# files_tree`, '', result.summary, '', ...result.lines].join('\n'),
+    preview: result.lines.join('\n') || result.summary,
+    title: 'scratch list',
+    kind: 'file',
+    filesInspected: result.lines.slice(0, 20),
+  });
+  return log(next, result.summary);
+}
+
 async function runFilesTask(task: ComputerTask): Promise<ComputerTask> {
+  if (!isOwnerComputerTask(task)) {
+    return runVisitorShimFiles(task);
+  }
+  if (isCloudflareComputerReady() && isWorkspaceIntent(task.instructions || '/workspace')) {
+    return runCfFilesTask(task);
+  }
   let result: FileInspectResult;
   if (task.taskType === 'files_tree') {
     task = log(task, 'list directory (read-only)');
@@ -322,8 +551,20 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
     status: 'running',
     updatedAt: nowIso(),
   });
-  attachTaskToProof(task.proofItemId, task.id, 'in_progress');
-  task = log(task, 'backend=local-shim (not @cloudflare/computer)');
+  const ownerTask = isOwnerComputerTask(task);
+  if (ownerTask) {
+    attachTaskToProof(task.proofItemId, task.id, 'in_progress');
+  }
+  const backend: ComputerBackend = ownerTask ? reportedBackend() : 'local-shim';
+  task = upsertComputerTask({ ...task, backend });
+  task = log(
+    task,
+    backend === 'cloudflare-worker-shell'
+      ? 'backend=cloudflare-worker-shell'
+      : ownerTask
+        ? 'backend=local-shim (not @cloudflare/computer)'
+        : 'backend=local-shim visitor scratch',
+  );
   // Short pause so owner UI can observe running without a 30s spinner.
   await new Promise((r) => setTimeout(r, 1400));
 
@@ -334,6 +575,18 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
   task = fresh;
 
   try {
+    if (!isOwnerComputerTask(task) && !['write_scratch_file', 'files_tree', 'files_search'].includes(task.taskType)) {
+      const blocked = await finishInspectStyle(task, {
+        status: 'blocked',
+        summary: '⚡ scratch pad only. No site git, no merge.',
+        report: `# ${task.taskType}\n\nBlocked for visitors.\n`,
+        preview: 'scratch pad only',
+        title: 'blocked',
+        kind: 'report',
+        error: 'visitor scratch pad only',
+      });
+      return log(blocked, 'blocked non-scratch task for visitor');
+    }
     if (task.taskType.startsWith('git_')) {
       task = await runGitTask(task);
     } else if (task.taskType.startsWith('files_')) {
@@ -343,36 +596,7 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
     } else if (task.taskType === 'browser_screenshot') {
       task = await runBrowserTask(task);
     } else if (task.taskType === 'write_scratch_file') {
-      task = log(task, 'write /scratch/hello.txt');
-      const payload = `hello from aileena computer shim\nroute=${task.route}\n${nowIso()}\n`;
-      await workspaceWriteFile(WORKSPACE_ID, '/scratch/hello.txt', payload);
-      const readBack = await workspaceReadFile(WORKSPACE_ID, '/scratch/hello.txt');
-      const probe = await workspaceRuntimeProbe();
-      const report = [
-        '# write_scratch_file',
-        '',
-        `wrote: /scratch/hello.txt (${payload.length} chars)`,
-        `read back: ${JSON.stringify(readBack)}`,
-        `runtime probe: ${probe.stdout} exit=${probe.exitCode}`,
-        '',
-        'Workspace is local disk under .data/computer-prototype/ws/owner/.',
-        'Not a Cloudflare Durable Object.',
-      ].join('\n');
-      const wrote = await workspaceWriteFile(WORKSPACE_ID, `/reports/${task.id}.md`, report);
-      task = upsertComputerTask({
-        ...task,
-        status: 'completed',
-        resultSummary: 'Scratch file wrote and read back. Runtime probe ok.',
-        filesInspected: ['/scratch/hello.txt'],
-        artifacts: [
-          artifact('scratch', '/scratch/hello.txt', 'hello.txt', readBack),
-          artifact('report', wrote.path, 'scratch report', report),
-        ],
-        completedAt: nowIso(),
-        updatedAt: nowIso(),
-        error: null,
-      });
-      task = log(task, 'completed write_scratch_file');
+      task = await runScratchTask(task);
     } else {
       const inspectRoute = task.route || '/daily';
       task = log(task, `inspect route ${inspectRoute} (read-only)`);
@@ -424,7 +648,7 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
         '- not requested. not performed. owner approval still required.',
       ].join('\n');
 
-      const wrote = await workspaceWriteFile(WORKSPACE_ID, `/reports/${task.id}.md`, report);
+      const wrote = await workspaceWriteFile(workspaceIdFor(task), `/reports/${task.id}.md`, report);
       const checklist = [
         'Screenshot /daily visitor 390×844',
         'Screenshot /daily owner 390×844 after key',
@@ -432,7 +656,7 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
         'Leave a bubble',
         'Confirm no horizontal overflow',
       ].join('\n');
-      await workspaceWriteFile(WORKSPACE_ID, `/artifacts/${task.id}-screenshot-checklist.txt`, checklist);
+      await workspaceWriteFile(workspaceIdFor(task), `/artifacts/${task.id}-screenshot-checklist.txt`, checklist);
 
       task = upsertComputerTask({
         ...task,
@@ -458,6 +682,7 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
     }
 
     const skipGenericProof =
+      !isOwnerComputerTask(task) ||
       task.taskType.startsWith('git_') ||
       task.taskType.startsWith('files_') ||
       task.taskType.startsWith('email_') ||
@@ -490,7 +715,9 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
       completedAt: nowIso(),
       updatedAt: nowIso(),
     });
-    attachTaskToProof(failed.proofItemId, failed.id, 'observed');
+    if (isOwnerComputerTask(failed)) {
+      attachTaskToProof(failed.proofItemId, failed.id, 'observed');
+    }
     return failed;
   }
 }

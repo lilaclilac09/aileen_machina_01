@@ -7,7 +7,7 @@ export function isVercelProduction(): boolean {
   return process.env.VERCEL_ENV === 'production';
 }
 
-/** True when the prototype APIs may run. Still owner-gated on every route. */
+/** True when the prototype APIs may run. Actor-gated on every route (owner vs visitor scratch). */
 export function isComputerPrototypeEnabled(): boolean {
   if (isVercelProduction()) return false;
   const raw = (process.env.COMPUTER_PROTOTYPE || '').trim().toLowerCase();

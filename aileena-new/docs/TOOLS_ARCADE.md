@@ -92,7 +92,7 @@ Open `/tools` → new tile visible → open tool once end-to-end.
 | `cafe-cursor` | `https://cursor-cafe.aileena.xyz/` | **Useful** — redeem for checked-in Cafe Cursor guests |
 | `inkling-clips` | `/tools/inkling-clips` | **Useful** — YouTube → clips, free-mode workaround |
 | `cafe-recap` | `/tools/cafe-recap` | **Experiment** — local JSON→ffmpeg; not better than CapCut yet |
-| `computer` | `/tools/computer` | **Experiment** — owner computer in the site-agent dialog; local shim; no merge |
+| `computer` | `/tools/computer` | **Experiment** — owner computer in the site-agent dialog; local shim; no merge. Real Cloudflare Computer: [`CLOUDFLARE_COMPUTER.md`](./CLOUDFLARE_COMPUTER.md) (spec only) |
 | `feed-flash` | `/tools/feed-flash` | Paused on hub |
 | `chip-guess` | `/tools/chip-guess` | Paused on hub |
 | `pricing-slot` | `/tools/pricing-slot` | Paused on hub |
