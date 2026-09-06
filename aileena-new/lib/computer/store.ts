@@ -77,7 +77,7 @@ function compactTask(task: ComputerTask, keepPreview: boolean): ComputerTask {
     logsRedacted: task.logsRedacted.slice(-12),
     artifacts: task.artifacts.slice(0, 4).map((a) => ({
       ...a,
-      preview: a.preview.slice(0, keepPreview ? 2000 : 400),
+      preview: (a.preview || '').slice(0, keepPreview ? 2000 : 400),
     })),
   };
 }
@@ -96,7 +96,7 @@ function persistableMap(actorId: string): Record<string, ComputerTask> {
       t.id,
       {
         ...t,
-        artifacts: t.artifacts.map((a) => ({ ...a, preview: a.preview.slice(0, 200) })),
+        artifacts: t.artifacts.map((a) => ({ ...a, preview: (a.preview || '').slice(0, 200) })),
         logsRedacted: t.logsRedacted.slice(-6),
       },
     ]),
