@@ -34,7 +34,7 @@ export function isComputerTaskType(value: unknown): value is ComputerTaskType {
   return typeof value === 'string' && (COMPUTER_TASK_TYPES as readonly string[]).includes(value);
 }
 
-/** Visitors may only touch their own shim workspace. Never git, email, repo files, or proof. */
+/** Visitors may only touch their own scratch workspace. Never git, email, repo files, or proof. */
 export const VISITOR_COMPUTER_TASK_TYPES = ['write_scratch_file', 'files_tree', 'files_search'] as const;
 
 export type VisitorComputerTaskType = (typeof VISITOR_COMPUTER_TASK_TYPES)[number];

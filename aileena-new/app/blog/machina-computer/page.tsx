@@ -69,15 +69,16 @@ export default function MachinaComputerArticle() {
         <SectionLabel>3 · Call path</SectionLabel>
         <pre style={preStyle}>{`visitor ask     →  POST /api/chat          →  existing agent  →  dialog
 owner heavy     →  Edge fast path         →  ⚡ queued. + spoken  →  dialog
-                →  after() Node runner    →  local shim workspace
+                →  Node runner            →  Cloudflare worker-shell (or local shim)
 owner plugin    →  POST /api/agent/computer/tasks  →  same dock
+visitor scratch →  same APIs, own Durable Object   →  no git, no merge
 merge plugin    →  gate only              →  GitHub merge is not a tool
 unlock          →  KeyShield PRF → HKDF → AES-GCM   →  owner cookie  →  dock appears`}</pre>
         <p style={bodyStyle}>
           Chat stays Edge. The runner stays Node. Production (
-          <code style={codeStyle}>VERCEL_ENV === &apos;production&apos;</code>) hard-offs the prototype.
-          The workspace is a local shim under <code style={codeStyle}>.data/computer-prototype/</code> —
-          gitignored. This is not Cloudflare Durable Objects.
+          <code style={codeStyle}>VERCEL_ENV === &apos;production&apos;</code>) turns the computer on
+          only when <code style={codeStyle}>COMPUTER_PROTOTYPE=1</code> and the Worker URL + secret
+          are set. Without those, the APIs stay 404 — Vercel disk is not a computer.
         </p>
 
         <SectionLabel>4 · Why not a computer window</SectionLabel>

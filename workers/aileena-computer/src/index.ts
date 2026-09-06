@@ -1,7 +1,7 @@
 /**
- * Owner small computer. Copied from cloudflare/computer examples/worker-shell,
- * then locked down: bearer auth, name=owner, write/exec allowlists.
- * Do not expose a visitor app. Do not add curl/python in v1.
+ * Small computer. Copied from cloudflare/computer examples/worker-shell,
+ * then locked down: bearer auth, owner + visitor cwid names, write/exec allowlists.
+ * Do not expose a visitor HTML app. Do not add curl/python in v1.
  */
 import { DurableObject } from 'cloudflare:workers';
 import {
@@ -21,6 +21,7 @@ export interface Env {
 }
 
 const OWNER = 'owner';
+const VISITOR_RE = /^v-[a-z0-9]{8,32}$/;
 const MOUNT_ROOT = '/workspace';
 const WRITE_PREFIXES = ['/workspace/scratch/', '/workspace/reports/', '/workspace/artifacts/'];
 const EXEC_ALLOW = new Set(['echo', 'cat', 'ls', 'wc', 'head', 'tail', 'grep', 'mkdir']);
@@ -57,9 +58,10 @@ export default {
           'aileena-computer',
           'backend=cloudflare-worker-shell',
           'GET  /health',
-          'PUT  /c/owner/file/workspace/<path>  (bearer)',
-          'GET  /c/owner/file/workspace/<path>  (bearer)',
-          'POST /c/owner/exec                   (bearer)',
+          'PUT  /c/<name>/file/workspace/<path>  (bearer)',
+          'GET  /c/<name>/file/workspace/<path>  (bearer)',
+          'POST /c/<name>/exec                   (bearer)',
+          'name=owner | v-[a-z0-9]{8,32}',
           '',
         ].join('\n'),
         { headers: { 'content-type': 'text/plain; charset=utf-8' } },
@@ -67,7 +69,7 @@ export default {
     }
 
     if (url.pathname === '/health') {
-      return Response.json({ ok: true, backend: 'cloudflare-worker-shell', name: OWNER });
+      return Response.json({ ok: true, backend: 'cloudflare-worker-shell' });
     }
 
     const denied = requireSecret(request, env);
@@ -75,23 +77,29 @@ export default {
 
     const fileMatch = url.pathname.match(/^\/c\/([^/]+)\/file\/(.+)$/);
     if (fileMatch) {
-      if (fileMatch[1] !== OWNER) return errorJSON(new Error('unknown workspace'), 404);
+      const name = fileMatch[1];
+      if (!isAllowedWorkspaceName(name)) return errorJSON(new Error('unknown workspace'), 404);
       const resolved = resolveMountPath(fileMatch[2]);
       if (resolved === null) {
         return errorJSON(new Error(`path must sit under ${MOUNT_ROOT}`), 400);
       }
-      return handleFile(request, env, resolved);
+      return handleFile(request, env, name, resolved);
     }
 
     const execMatch = url.pathname.match(/^\/c\/([^/]+)\/exec\/?$/);
     if (execMatch) {
-      if (execMatch[1] !== OWNER) return errorJSON(new Error('unknown workspace'), 404);
-      return handleExec(request, env);
+      const name = execMatch[1];
+      if (!isAllowedWorkspaceName(name)) return errorJSON(new Error('unknown workspace'), 404);
+      return handleExec(request, env, name);
     }
 
     return new Response('not found', { status: 404 });
   },
 };
+
+function isAllowedWorkspaceName(name: string): boolean {
+  return name === OWNER || VISITOR_RE.test(name);
+}
 
 function requireSecret(request: Request, env: Env): Response | null {
   const secret = (env.COMPUTER_WORKER_SECRET || '').trim();
@@ -112,13 +120,13 @@ function isWriteAllowed(path: string): boolean {
   return WRITE_PREFIXES.some((p) => path.startsWith(p) && path.length > p.length);
 }
 
-async function workspaceOf(env: Env) {
-  const stub = env.OwnerComputer.get(env.OwnerComputer.idFromName(OWNER));
+async function workspaceOf(env: Env, name: string) {
+  const stub = env.OwnerComputer.get(env.OwnerComputer.idFromName(name));
   return getWorkspace(stub as unknown as Parameters<typeof getWorkspace>[0]);
 }
 
-async function handleFile(request: Request, env: Env, path: string): Promise<Response> {
-  using ws = await workspaceOf(env);
+async function handleFile(request: Request, env: Env, name: string, path: string): Promise<Response> {
+  using ws = await workspaceOf(env, name);
 
   if (request.method === 'PUT') {
     if (!isWriteAllowed(path)) return errorJSON(new Error('write path not allowlisted'), 400);
@@ -151,7 +159,7 @@ async function handleFile(request: Request, env: Env, path: string): Promise<Res
   return new Response('method not allowed', { status: 405, headers: { allow: 'GET, PUT' } });
 }
 
-async function handleExec(request: Request, env: Env): Promise<Response> {
+async function handleExec(request: Request, env: Env, name: string): Promise<Response> {
   if (request.method !== 'POST') {
     return new Response('method not allowed', { status: 405, headers: { allow: 'POST' } });
   }
@@ -187,7 +195,7 @@ async function handleExec(request: Request, env: Env): Promise<Response> {
   const cwd = typeof body.cwd === 'string' && body.cwd.startsWith(MOUNT_ROOT) ? body.cwd : MOUNT_ROOT;
   const command = argv.map(shellQuote).join(' ');
 
-  using ws = await workspaceOf(env);
+  using ws = await workspaceOf(env, name);
   try {
     using handle = await ws.runtime.exec(command, { cwd, encoding: 'utf8' });
     const result = await handle.result();

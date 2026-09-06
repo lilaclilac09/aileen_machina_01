@@ -2,7 +2,8 @@
  * HTTP client for workers/aileena-computer.
  * Do not import @cloudflare/computer here. That package only runs on Workers.
  */
-import { isComputerPrototypeEnabled } from './flag';
+import { isComputerWorkspaceName } from './workspaceName';
+import { hasComputerWorkerEnv, isComputerPrototypeEnabled } from './flag';
 import { clip, redactSecrets } from './redact';
 
 export type ComputerBackend = 'local-shim' | 'cloudflare-worker-shell';
@@ -10,10 +11,7 @@ export type ComputerBackend = 'local-shim' | 'cloudflare-worker-shell';
 const TIMEOUT_MS = 15_000;
 
 export function isCloudflareComputerReady(): boolean {
-  if (!isComputerPrototypeEnabled()) return false;
-  const url = (process.env.COMPUTER_WORKER_URL || '').trim();
-  const secret = (process.env.COMPUTER_WORKER_SECRET || '').trim();
-  return Boolean(url && secret);
+  return isComputerPrototypeEnabled() && hasComputerWorkerEnv();
 }
 
 export function reportedBackend(): ComputerBackend {
@@ -26,6 +24,12 @@ function workerUrl(): string {
 
 function secret(): string {
   return (process.env.COMPUTER_WORKER_SECRET || '').trim();
+}
+
+export function computerWorkspaceName(id: string): string {
+  const name = id.trim();
+  if (!isComputerWorkspaceName(name)) throw new Error('invalid workspace');
+  return name;
 }
 
 export function toWorkspacePath(input: string): string | null {
@@ -82,11 +86,16 @@ export async function cfHealth(): Promise<{ ok: boolean; backend?: string; error
   }
 }
 
-export async function cfPutFile(absPath: string, contents: string): Promise<{ path: string; bytes: number }> {
+export async function cfPutFile(
+  absPath: string,
+  contents: string,
+  workspace: string,
+): Promise<{ path: string; bytes: number }> {
+  const name = computerWorkspaceName(workspace);
   const path = toWorkspacePath(absPath);
   if (!path || path === '/workspace') throw new Error('path_not_allowlisted');
   const rest = path.replace(/^\//, '');
-  const res = await cfFetch(`/c/owner/file/${rest}`, {
+  const res = await cfFetch(`/c/${name}/file/${rest}`, {
     method: 'PUT',
     headers: { 'content-type': 'text/plain; charset=utf-8' },
     body: contents,
@@ -97,11 +106,12 @@ export async function cfPutFile(absPath: string, contents: string): Promise<{ pa
   return { path, bytes: Buffer.byteLength(contents) };
 }
 
-export async function cfGetFile(absPath: string): Promise<string> {
+export async function cfGetFile(absPath: string, workspace: string): Promise<string> {
+  const name = computerWorkspaceName(workspace);
   const path = toWorkspacePath(absPath);
   if (!path) throw new Error('path_not_allowlisted');
   const rest = path.replace(/^\//, '');
-  const res = await cfFetch(`/c/owner/file/${rest}`);
+  const res = await cfFetch(`/c/${name}/file/${rest}`);
   if (res.status === 404) throw new Error('missing');
   if (!res.ok) throw new Error(await readError(res, 'get failed'));
   return clip(await res.text(), 64 * 1024);
@@ -109,9 +119,11 @@ export async function cfGetFile(absPath: string): Promise<string> {
 
 export async function cfExec(
   command: string,
-  cwd = '/workspace',
+  cwd: string,
+  workspace: string,
 ): Promise<{ exitCode: number; stdout: string; stderr: string }> {
-  const res = await cfFetch('/c/owner/exec', {
+  const name = computerWorkspaceName(workspace);
+  const res = await cfFetch(`/c/${name}/exec`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ command, cwd, encoding: 'utf8' }),

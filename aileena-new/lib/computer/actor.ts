@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import { requireOwnerFromRequest } from '@/lib/owner-gate';
+import { CWID_RE, OWNER_COMPUTER_ID } from './workspaceName';
+
+export { CWID_RE, OWNER_COMPUTER_ID, isComputerWorkspaceName } from './workspaceName';
 
 /** Per-visitor scratch-pad id. Not the owner Durable Object. Not `__aileena_vid`. */
 export const COMPUTER_WORKSPACE_COOKIE = '__aileena_cwid';
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
-const CWID_RE = /^v-[a-z0-9]{8,32}$/;
 
 export type ComputerActor = {
   kind: 'owner' | 'visitor';
@@ -37,7 +39,7 @@ export function readComputerWorkspaceId(cookieHeader: string | null): string | n
 
 export async function computerActorFromRequest(req: Request): Promise<ComputerActor> {
   const owner = await requireOwnerFromRequest(req);
-  if (owner) return { kind: 'owner', id: 'owner' };
+  if (owner) return { kind: 'owner', id: OWNER_COMPUTER_ID };
   const existing = readComputerWorkspaceId(req.headers.get('cookie'));
   if (existing) return { kind: 'visitor', id: existing };
   const id = newComputerVisitorId();

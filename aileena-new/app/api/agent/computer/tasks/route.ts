@@ -7,11 +7,11 @@ import {
   isComputerTaskType,
   isVisitorComputerTaskType,
 } from '@/lib/computer/allowlist';
-import { isComputerPrototypeEnabled, prototypeDisabledReason } from '@/lib/computer/flag';
+import { isComputerPrototypeEnabled, isVercelProduction, prototypeDisabledReason } from '@/lib/computer/flag';
 import { isCloudflareComputerReady, reportedBackend } from '@/lib/computer/cfClient';
 import { clip, redactSecrets } from '@/lib/computer/redact';
 import { runComputerTask } from '@/lib/computer/runner';
-import { canEnqueueTask, getComputerTask, listComputerTasks, newId, nowIso, upsertComputerTask } from '@/lib/computer/store';
+import { canEnqueueTask, getComputerTask, hydrateComputerStore, listComputerTasks, newId, nowIso, upsertComputerTask } from '@/lib/computer/store';
 import type { ComputerTask } from '@/lib/computer/types';
 import {
   attachTaskToProof,
@@ -48,15 +48,26 @@ function jsonActor(actor: ComputerActor, body: unknown, status = 200) {
   return applyComputerActorCookie(NextResponse.json(body, { status }), actor);
 }
 
+async function kickComputerTask(id: string): Promise<void> {
+  if (isCloudflareComputerReady() || isVercelProduction()) {
+    await runComputerTask(id);
+    return;
+  }
+  after(async () => {
+    await runComputerTask(id);
+  });
+}
+
 export async function GET(req: Request) {
   if (!isComputerPrototypeEnabled()) return deny(404, prototypeDisabledReason());
   const actor = await computerActorFromRequest(req);
+  await hydrateComputerStore(actor.id);
   if (actor.kind === 'visitor') {
     return jsonActor(actor, {
       ok: true,
       prototype: true,
-      backend: 'local-shim',
-      cloudflareComputer: false,
+      backend: reportedBackend(),
+      cloudflareComputer: isCloudflareComputerReady(),
       tasks: listComputerTasks(actor.id),
       proof: [],
       tabs: COMPUTER_TABS.map((id) => ({ id, wire: TAB_WIRE[id] })),
@@ -121,7 +132,7 @@ export async function POST(req: Request) {
     return applyComputerActorCookie(res, actor);
   }
 
-  const gate = canEnqueueTask(actor.id);
+  const gate = await canEnqueueTask(actor.id);
   if (!gate.ok) return deny(409, gate.error, actor);
 
   const route = clip(typeof body.route === 'string' ? body.route : '/daily', 80) || '/daily';
@@ -149,17 +160,15 @@ export async function POST(req: Request) {
       proposedFilesToChange: [],
       implementationPlan: [],
       risksBlockers: [],
-      backend: 'local-shim',
+      backend: reportedBackend(),
       error: null,
       createdAt: now,
       updatedAt: now,
       completedAt: null,
       cancelled: false,
     };
-    upsertComputerTask(task);
-    after(async () => {
-      await runComputerTask(task.id);
-    });
+    await upsertComputerTask(task);
+    await kickComputerTask(task.id);
     return jsonActor(
       actor,
       {
@@ -167,8 +176,8 @@ export async function POST(req: Request) {
         message: '⚡ queued.',
         spoken: spokenVisitorQueued(task.taskType),
         prototype: true,
-        backend: 'local-shim',
-        cloudflareComputer: false,
+        backend: reportedBackend(),
+        cloudflareComputer: isCloudflareComputerReady(),
         task: getComputerTask(task.id),
         proofItem: null,
         actor: 'visitor',
@@ -254,7 +263,7 @@ export async function POST(req: Request) {
     completedAt: null,
     cancelled: false,
   };
-  upsertComputerTask(task);
+  await upsertComputerTask(task);
   const phrase = typeof body.phrase === 'string' ? body.phrase.trim().slice(0, 40) : '';
   const skipOneOffNote = task.taskType === 'write_scratch_file' && /^note:/i.test(phrase);
   if (!skipOneOffNote) {
@@ -276,9 +285,7 @@ export async function POST(req: Request) {
       : 'approved';
   attachTaskToProof(proofItemId, task.id, proofStatus);
 
-  after(async () => {
-    await runComputerTask(task.id);
-  });
+  await kickComputerTask(task.id);
 
   const spoken = spokenQueued({
     taskType: task.taskType,

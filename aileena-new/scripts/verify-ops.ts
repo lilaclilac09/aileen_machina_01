@@ -576,9 +576,10 @@ function main() {
       /isVisitorComputerTaskType/.test(readFileSync(join(process.cwd(), 'app/api/agent/computer/tasks/route.ts'), 'utf8')) &&
       /runtime = 'nodejs'/.test(readFileSync(join(process.cwd(), 'app/api/agent/computer/tasks/route.ts'), 'utf8')),
   );
+  const flagSrc = readFileSync(join(process.cwd(), 'lib/computer/flag.ts'), 'utf8');
   assert(
-    'computer prototype hard-off on Vercel production',
-    /VERCEL_ENV === 'production'/.test(readFileSync(join(process.cwd(), 'lib/computer/flag.ts'), 'utf8')),
+    'computer prototype production needs worker env',
+    /VERCEL_ENV === 'production'/.test(flagSrc) && /hasComputerWorkerEnv/.test(flagSrc),
   );
   const proofPageSrc = readFileSync(join(process.cwd(), 'app/proof/page.tsx'), 'utf8');
   const unlockFormSrc = readFileSync(join(process.cwd(), 'components/OwnerUnlockForm.tsx'), 'utf8');

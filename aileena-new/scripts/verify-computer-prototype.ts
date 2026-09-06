@@ -13,7 +13,7 @@ import { inspectRouteFiles, analyzeDailyFixPlan } from '../lib/computer/inspect'
 import { parseOwnerComputerCommand, parseVisitorComputerCommand } from '../lib/computer/parseOwnerCommand';
 import { labelForTask, matchLearned, rememberCommand } from '../lib/computer/learned';
 import { redactSecrets } from '../lib/computer/redact';
-import { isComputerPrototypeEnabled } from '../lib/computer/flag';
+import { isComputerPrototypeEnabled, hasComputerWorkerEnv } from '../lib/computer/flag';
 import { HARNESS_PLUGINS } from '../lib/computer/plugins';
 import { spokenQueued } from '../lib/computer/spokenQueue';
 import { gitFindCommit, gitStatus } from '../lib/computer/gitAllowlist';
@@ -73,18 +73,23 @@ function sourceChecks() {
   assert('tasks route is actor-gated', /computerActorFromRequest/.test(tasks));
   assert('visitor POST is scratch-only', /isVisitorComputerTaskType/.test(tasks));
   assert('no arbitrary shell field', /forbiddenShellFields/.test(tasks));
-  assert('production hard-off', /VERCEL_ENV === 'production'/.test(flag));
+  assert('production uses VERCEL_ENV', /VERCEL_ENV === 'production'/.test(flag));
+  assert('production enable needs worker env', /hasComputerWorkerEnv/.test(flag) && /prototypeExplicitOn/.test(flag));
+  assert('production is not unconditional API off', !/if \(isVercelProduction\(\)\) return false;\s*const raw/.test(flag));
   assert('runner does not merge', /not performed/.test(runner) || /owner approval/.test(runner));
   assert('runner still has local-shim fallback', /local-shim/.test(runner));
   const cfClientSrc = readFileSync(join(process.cwd(), 'lib/computer/cfClient.ts'), 'utf8');
   assert('cfClient does not import @cloudflare/computer', !/from ['"]@cloudflare\/computer/.test(cfClientSrc));
+  assert('cfClient routes by workspace name', /\/c\/\$\{name\}\/file/.test(cfClientSrc) && /\/c\/\$\{name\}\/exec/.test(cfClientSrc));
+  const storeSrc = readFileSync(join(process.cwd(), 'lib/computer/store.ts'), 'utf8');
+  assert('task store persists to Durable Object', /TASKS_STORE_PATH/.test(storeSrc) && /hydrateComputerStore/.test(storeSrc));
   assert(
     'worker lives beside the Next app',
     existsSync(join(process.cwd(), '..', 'workers', 'aileena-computer', 'src', 'index.ts')),
   );
   const workerSrc = readFileSync(join(process.cwd(), '..', 'workers', 'aileena-computer', 'src', 'index.ts'), 'utf8');
   assert('worker requires bearer secret', /Bearer/.test(workerSrc) && /COMPUTER_WORKER_SECRET/.test(workerSrc));
-  assert('worker name-locks owner', /OWNER = 'owner'/.test(workerSrc));
+  assert('worker allowlists owner and visitor cwid', /VISITOR_RE/.test(workerSrc) && /idFromName\(name\)/.test(workerSrc));
   assert('runner finds git commits', /git_find_commit/.test(runner) && /gitFindCommit/.test(runner));
   assert('runner blocks email send', /email_send/.test(runner) && /email not connected/.test(runner));
   assert('runner blocks fake browser screenshots', /browser_screenshot/.test(runner) && /No fake screenshots/.test(runner));
@@ -160,6 +165,36 @@ function sourceChecks() {
   assert('KeyShield PRF is 32 bytes', /PRF secret must be 32 bytes/.test(ksPrf) && /128/.test(ks));
   assert('KeyShield PRF is required', /readPrfFirst/.test(unlockSrc) && /prf:/.test(unlockSrc));
   assert('KeyShield register asks for ES256 and RS256', /alg: -7/.test(unlockSrc) && /alg: -257/.test(unlockSrc));
+}
+
+function flagUnit() {
+  const snap = {
+    VERCEL_ENV: process.env.VERCEL_ENV,
+    COMPUTER_PROTOTYPE: process.env.COMPUTER_PROTOTYPE,
+    COMPUTER_WORKER_URL: process.env.COMPUTER_WORKER_URL,
+    COMPUTER_WORKER_SECRET: process.env.COMPUTER_WORKER_SECRET,
+  };
+  const restore = () => {
+    for (const [key, value] of Object.entries(snap)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  };
+  try {
+    process.env.VERCEL_ENV = 'production';
+    process.env.COMPUTER_PROTOTYPE = '1';
+    delete process.env.COMPUTER_WORKER_URL;
+    delete process.env.COMPUTER_WORKER_SECRET;
+    assert('production without worker env is off', isComputerPrototypeEnabled() === false);
+    assert('production without worker env reports missing worker', hasComputerWorkerEnv() === false);
+    process.env.COMPUTER_WORKER_URL = 'https://example.workers.dev';
+    process.env.COMPUTER_WORKER_SECRET = 'test-secret';
+    assert('production with prototype and worker env is on', isComputerPrototypeEnabled() === true);
+    process.env.COMPUTER_PROTOTYPE = '0';
+    assert('production explicit off stays off', isComputerPrototypeEnabled() === false);
+  } finally {
+    restore();
+  }
 }
 
 function unitChecks() {
@@ -450,7 +485,15 @@ async function liveHttp() {
   assert('visitor GET is scratch actor', visitorGetJson.actor === 'visitor', String(visitorGetJson.actor));
   assert('visitor GET has no learned aliases', Array.isArray(visitorGetJson.learned) && visitorGetJson.learned.length === 0);
   assert('visitor GET has no proof queue', Array.isArray(visitorGetJson.proof) && visitorGetJson.proof.length === 0);
-  assert('visitor GET is not worker-shell', visitorGetJson.cloudflareComputer === false);
+  if (process.env.COMPUTER_WORKER_URL && process.env.COMPUTER_WORKER_SECRET) {
+    assert(
+      'visitor GET reports worker-shell when Worker env is set',
+      visitorGetJson.cloudflareComputer === true,
+      String(visitorGetJson.cloudflareComputer),
+    );
+  } else {
+    assert('visitor GET is not worker-shell', visitorGetJson.cloudflareComputer === false);
+  }
 
   const visitorCookie = cookieJar(visitorGet);
   assert('visitor GET mints workspace cookie', /__aileena_cwid=v-/.test(visitorCookie), visitorCookie.slice(0, 80));
@@ -725,6 +768,7 @@ async function main() {
   loadEnvLocal();
   if (!process.env.COMPUTER_PROTOTYPE) process.env.COMPUTER_PROTOTYPE = '1';
   sourceChecks();
+  flagUnit();
   unitChecks();
   await keyshieldUnit();
   await workspaceUnit();

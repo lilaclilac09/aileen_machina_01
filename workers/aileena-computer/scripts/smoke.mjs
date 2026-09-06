@@ -77,7 +77,32 @@ const blockedExec = await req('POST', '/c/owner/exec', {
 assert('curl exec 400', blockedExec.res.status === 400, String(blockedExec.res.status));
 
 const otherName = await req('GET', '/c/visitor/file/workspace/scratch/hello.txt');
-assert('non-owner name 404', otherName.res.status === 404, String(otherName.res.status));
+assert('non-cwid name 404', otherName.res.status === 404, String(otherName.res.status));
+
+const visitorId = 'v-testdevworker01';
+const visitorPayload = `visitor isolation ${new Date().toISOString()}\n`;
+const visitorPut = await req('PUT', `/c/${visitorId}/file/workspace/scratch/hello.txt`, {
+  headers: { 'content-type': 'text/plain' },
+  body: visitorPayload,
+});
+assert('visitor put scratch 204', visitorPut.res.status === 204, String(visitorPut.res.status));
+
+const visitorGet = await req('GET', `/c/${visitorId}/file/workspace/scratch/hello.txt`);
+assert(
+  'visitor get own scratch',
+  visitorGet.res.ok && visitorGet.text.includes('visitor isolation'),
+  `${visitorGet.res.status} ${visitorGet.text.slice(0, 80)}`,
+);
+
+const ownerStill = await req('GET', '/c/owner/file/workspace/scratch/hello.txt');
+assert(
+  'owner scratch is not visitor scratch',
+  ownerStill.res.ok && ownerStill.text.includes('hello from aileena-computer') && !ownerStill.text.includes('visitor isolation'),
+  ownerStill.text.slice(0, 80),
+);
+
+const otherVisitor = await req('GET', '/c/v-otherxxxxxxxx/file/workspace/scratch/hello.txt');
+assert('other visitor missing 404', otherVisitor.res.status === 404, String(otherVisitor.res.status));
 
 if (fails.length) {
   console.error(`\n${fails.length} failed`);
