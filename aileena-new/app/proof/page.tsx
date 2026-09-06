@@ -40,7 +40,7 @@ export default async function ProofPage({
           <p className="max-w-2xl text-[0.88rem] leading-relaxed text-[#1b1713]/55">
             This page is not a harness window. Plugins, proof, and the merge gate
             sit in the site-agent Console — same surface visitors already talk to.
-            Not DeepSeek Harness. Not production.
+            Not DeepSeek Harness. Not a public shell.
           </p>
           <p className="font-mono text-[0.55rem] tracking-[0.14em] text-[#1b1713]/35">
             <Link href="/" className="hover:text-[#008f86]">
@@ -59,7 +59,7 @@ export default async function ProofPage({
 
         {!enabled ? (
           <p className="text-[0.9rem] text-[#1b1713]/60">
-            Prototype is off here (production or COMPUTER_PROTOTYPE=0).
+            Prototype is off here (COMPUTER_PROTOTYPE=0, or Production without the Worker).
           </p>
         ) : !owner ? (
           <div className="border border-[#ded8ce] bg-white px-5 py-6 space-y-4">

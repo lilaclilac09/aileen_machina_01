@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { isComputerPrototypeEnabled, prototypeDisabledReason } from '@/lib/computer/flag';
 import { reportedBackend } from '@/lib/computer/cfClient';
-import { getComputerTask, isOwnerComputerTask, taskActorId } from '@/lib/computer/store';
+import { getComputerTask, hydrateComputerStore, isOwnerComputerTask, taskActorId } from '@/lib/computer/store';
 import { getProofItem } from '@/lib/proofQueue/store';
 import { applyComputerActorCookie, computerActorFromRequest } from '@/lib/computer/actor';
 
@@ -15,6 +15,7 @@ export async function GET(req: Request, ctx: Ctx) {
     return NextResponse.json({ ok: false, error: prototypeDisabledReason() }, { status: 404 });
   }
   const actor = await computerActorFromRequest(req);
+  await hydrateComputerStore(actor.id);
   const { id } = await ctx.params;
   const task = getComputerTask(id);
   if (!task || taskActorId(task) !== actor.id) {
@@ -25,7 +26,7 @@ export async function GET(req: Request, ctx: Ctx) {
     NextResponse.json({
       ok: true,
       prototype: true,
-      backend: owner ? reportedBackend() : 'local-shim',
+      backend: reportedBackend(),
       status: task.status,
       logsSummary: task.logsRedacted,
       artifacts: task.artifacts,

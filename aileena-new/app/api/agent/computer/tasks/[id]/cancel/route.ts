@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { isComputerPrototypeEnabled, prototypeDisabledReason } from '@/lib/computer/flag';
-import { getComputerTask, isOwnerComputerTask, nowIso, taskActorId, upsertComputerTask } from '@/lib/computer/store';
+import { getComputerTask, hydrateComputerStore, isOwnerComputerTask, nowIso, taskActorId, upsertComputerTask } from '@/lib/computer/store';
 import { attachTaskToProof } from '@/lib/proofQueue/store';
 import { applyComputerActorCookie, computerActorFromRequest } from '@/lib/computer/actor';
 
@@ -15,6 +15,7 @@ export async function POST(req: Request, ctx: Ctx) {
   }
   const actor = await computerActorFromRequest(req);
   const { id } = await ctx.params;
+  await hydrateComputerStore(actor.id);
   const task = getComputerTask(id);
   if (!task || taskActorId(task) !== actor.id) {
     return applyComputerActorCookie(NextResponse.json({ ok: false, error: 'missing' }, { status: 404 }), actor);
@@ -25,7 +26,7 @@ export async function POST(req: Request, ctx: Ctx) {
       actor,
     );
   }
-  const next = upsertComputerTask({
+  const next = await upsertComputerTask({
     ...task,
     cancelled: true,
     status: 'failed',

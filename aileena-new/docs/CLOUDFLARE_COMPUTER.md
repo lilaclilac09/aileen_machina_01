@@ -1,6 +1,6 @@
 # Cloudflare Computer — make the small computer usable
 
-Status: **slice A+B coded. Local wrangler + site env still needed for end-to-end.**  
+Status: **production path coded. Needs deployed Worker + Vercel Production env.**  
 Date: 2026-09-05  
 Source repo: [github.com/cloudflare/computer](https://github.com/cloudflare/computer)  
 npm: `@cloudflare/computer@0.2.1` (preview; APIs can move)
@@ -9,9 +9,10 @@ This is the missing half of the Console computer. The dock, KeyShield door, and 
 
 ```txt
 do not install @cloudflare/computer inside aileena-new.
-do not enable on Vercel Production.
 do not merge from the computer.
 do not import DeepSeek Harness.
+production needs COMPUTER_PROTOTYPE=1 and COMPUTER_WORKER_URL + COMPUTER_WORKER_SECRET.
+shim-only production stays off.
 ```
 
 ---
@@ -25,7 +26,7 @@ do not import DeepSeek Harness.
 - `POST /api/agent/computer/tasks` + chat fast path (`⚡ queued.`)
 - Local workspace under `.data/computer-prototype/`
 - `backend: 'local-shim'` · `cloudflareComputer: false`
-- Production hard-off: `VERCEL_ENV === 'production'` → APIs 404
+- Production: APIs stay 404 until `COMPUTER_PROTOTYPE=1` **and** `COMPUTER_WORKER_URL` + `COMPUTER_WORKER_SECRET` are set. Shim-only production is off.
 
 The prototype agent ([bc-c52a6d1e](https://cursor.com/agents/bc-c52a6d1e-e0e5-5b25-bf40-373cab1e9342)) researched [github.com/cloudflare/computer](https://github.com/cloudflare/computer) and correctly refused to install the package in Next.js.
 
@@ -60,7 +61,7 @@ GET  /c/<name>/file/workspace/<path>   read
 POST /c/<name>/exec                    { command | argv, cwd? } → { exitCode, stdout, stderr }
 ```
 
-v1 name is always `owner` (`idFromName("owner")`). One Durable Object. One workspace.
+v1 names: `owner` (`idFromName("owner")`) and visitor scratch `v-[a-z0-9]{8,32}` (`idFromName` per cookie). Visitors never share the owner Durable Object.
 
 ---
 
@@ -194,7 +195,7 @@ Worker (Cloudflare dashboard / `wrangler secret`):
 COMPUTER_WORKER_SECRET
 ```
 
-Next (local + Vercel **Preview** only):
+Next (local, Preview, and Production — Production also needs the Worker):
 
 ```txt
 COMPUTER_PROTOTYPE=1
@@ -202,12 +203,11 @@ COMPUTER_WORKER_URL=https://<worker>.<account>.workers.dev
 COMPUTER_WORKER_SECRET=<same value>
 ```
 
-Production:
+Production without the Worker:
 
 ```txt
-# do not set COMPUTER_PROTOTYPE
-# do not set COMPUTER_WORKER_URL
-# VERCEL_ENV=production already hard-offs the APIs
+# omit COMPUTER_WORKER_URL / COMPUTER_WORKER_SECRET → APIs stay 404
+# Vercel disk shim is never used when VERCEL_ENV=production
 ```
 
 ---
@@ -280,9 +280,9 @@ manual steps:
 - Terminal B: aileena-new/.env.local + pnpm dev (:3000)
 - Browser: http://localhost:3000/proof → enter local experiment → Console dock worker-shell
 - Cloudflare account + wrangler login only if deploying the Worker to Preview
-- wrangler secret put COMPUTER_WORKER_SECRET (preview Worker only)
-- add COMPUTER_WORKER_URL + COMPUTER_WORKER_SECRET to local .env and Vercel Preview only
-- do not add those to Vercel Production
+- wrangler secret put COMPUTER_WORKER_SECRET
+- add COMPUTER_PROTOTYPE=1, COMPUTER_WORKER_URL, COMPUTER_WORKER_SECRET to Vercel Production (same secret as the Worker)
+- redeploy Production after env is set
 ```
 
 ---
@@ -293,4 +293,4 @@ Keep the Console dock. Add a tiny Worker beside the site. That is how the GitHub
 
 **safe to implement after owner says yes to slice A.**  
 **safe to merge this spec:** yes (docs only).  
-**safe to enable on production:** no.
+**safe to enable on production:** yes after Worker deploy + Vercel Production env.

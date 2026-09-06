@@ -1,4 +1,5 @@
 import { createUIMessageStream, createUIMessageStreamResponse } from 'ai';
+import { reportedBackend } from './cfClient';
 
 /** Immediate site-agent reply. Does not wait for the computer worker. */
 export function queuedChatResponse(text: string, extraHeaders: Record<string, string> = {}): Response {
@@ -14,7 +15,7 @@ export function queuedChatResponse(text: string, extraHeaders: Record<string, st
     stream,
     headers: {
       'X-Computer-Fast-Path': '1',
-      'X-Computer-Backend': 'local-shim',
+      'X-Computer-Backend': reportedBackend(),
       ...extraHeaders,
     },
   });

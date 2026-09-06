@@ -119,13 +119,29 @@ If the dock says `local shim`, Terminal A is down or `.env.local` is missing `CO
 
 ## What this computer can and cannot do (v1)
 
-Can: persist files under `/workspace/scratch|reports|artifacts/`, `echo cat ls wc head tail grep mkdir`, owner dock scratch + workspace files, site-repo git inspect on the local checkout.
+Can: persist files under `/workspace/scratch|reports|artifacts/`, `echo cat ls wc head tail grep mkdir`, owner + visitor scratch (separate Durable Objects), site-repo git inspect on a checkout that has `.git`.
 
-Cannot: full Linux, `pnpm build` inside the DO, browser, email send, merge, production `aileena.xyz`, cloning this monorepo into the Worker.
-
-Do not set `COMPUTER_PROTOTYPE` / `COMPUTER_WORKER_*` on Vercel Production.
+Cannot: full Linux, `pnpm build` inside the DO, browser, email send, merge, cloning this monorepo into the Worker, visitor access to the owner DO or site git.
 
 ## Auth
 
 Every `/c/*` route needs `Authorization: Bearer <COMPUTER_WORKER_SECRET>`.
-The only workspace name is `owner`.
+Workspace names: `owner` or `v-[a-z0-9]{8,32}` (visitor cookie). Bearer secret stays on the Next server.
+
+## Production
+
+```txt
+cd workers/aileena-computer
+npx wrangler deploy
+npx wrangler secret put COMPUTER_WORKER_SECRET
+```
+
+Then on the Vercel project that serves `https://www.aileena.xyz`, set Production:
+
+```txt
+COMPUTER_PROTOTYPE=1
+COMPUTER_WORKER_URL=https://<worker>.<account>.workers.dev
+COMPUTER_WORKER_SECRET=<same value>
+```
+
+Redeploy Production. Shim-only Production stays off.

@@ -47,7 +47,15 @@ function workspaceIdFor(task: ComputerTask): string {
   return taskActorId(task);
 }
 
-function log(task: ComputerTask, line: string): ComputerTask {
+function taskBackend(): ComputerBackend {
+  return reportedBackend();
+}
+
+async function ensureCfMount(name: string): Promise<void> {
+  await cfExec('mkdir -p scratch reports artifacts', '/workspace', name);
+}
+
+async function log(task: ComputerTask, line: string): Promise<ComputerTask> {
   const next = {
     ...task,
     logsRedacted: [...task.logsRedacted, redactSecrets(clip(line, 400))].slice(-40),
@@ -146,7 +154,14 @@ async function finishInspectStyle(
     error?: string | null;
   },
 ): Promise<ComputerTask> {
-  const wrote = await workspaceWriteFile(workspaceIdFor(task), `/reports/${task.id}.md`, opts.report);
+  const reportPath = isCloudflareComputerReady()
+    ? `/workspace/reports/${task.id}.md`
+    : `/reports/${task.id}.md`;
+  if (isCloudflareComputerReady()) {
+    await cfPutFile(reportPath, opts.report, workspaceIdFor(task));
+  } else {
+    await workspaceWriteFile(workspaceIdFor(task), reportPath, opts.report);
+  }
   return upsertComputerTask({
     ...task,
     status: opts.status,
@@ -154,7 +169,7 @@ async function finishInspectStyle(
     filesInspected: opts.filesInspected ?? task.filesInspected,
     problemsFound: opts.problemsFound ?? [],
     risksBlockers: opts.risksBlockers ?? [],
-    artifacts: [artifact(opts.kind, wrote.path, opts.title, opts.preview)],
+    artifacts: [artifact(opts.kind, reportPath, opts.title, opts.preview)],
     completedAt: nowIso(),
     updatedAt: nowIso(),
     error: opts.error ?? null,
@@ -164,10 +179,10 @@ async function finishInspectStyle(
 async function runGitTask(task: ComputerTask): Promise<ComputerTask> {
   let result: GitInspectResult;
   if (task.taskType === 'git_status') {
-    task = log(task, 'git status --short (inspect only)');
+    task = await log(task, 'git status --short (inspect only)');
     result = await gitStatus();
   } else if (task.taskType === 'git_log') {
-    task = log(task, 'git log inspect (no mutation)');
+    task = await log(task, 'git log inspect (no mutation)');
     result = await gitLog({
       n: 50,
       since: token(task.instructions, 'since'),
@@ -179,15 +194,15 @@ async function runGitTask(task: ComputerTask): Promise<ComputerTask> {
   } else if (task.taskType === 'git_show') {
     const diff = /\bdiff\s+([0-9a-f]{7,40})\s+([0-9a-f]{7,40})\b/i.exec(task.instructions);
     if (diff) {
-      task = log(task, `git diff --stat ${diff[1]}..${diff[2]}`);
+      task = await log(task, `git diff --stat ${diff[1]}..${diff[2]}`);
       result = await gitDiffStat(diff[1], diff[2]);
     } else {
       const hash = (task.instructions.match(/[0-9a-f]{7,40}/i) || [])[0] || '';
-      task = log(task, `git show --stat ${hash || '(missing hash)'}`);
+      task = await log(task, `git show --stat ${hash || '(missing hash)'}`);
       result = await gitShow(hash);
     }
   } else {
-    task = log(task, 'git find commit (inspect only, no checkout)');
+    task = await log(task, 'git find commit (inspect only, no checkout)');
     result = await gitFindCommit(task.instructions);
   }
 
@@ -218,7 +233,7 @@ async function runGitTask(task: ComputerTask): Promise<ComputerTask> {
     risksBlockers: ['Inspect only. No reset, clean, push, merge, or checkout.'],
     error: result.ok ? null : result.summary,
   });
-  const logged = log(next, result.ok ? `completed ${result.action}; repo unmodified` : `git ${result.action} failed`);
+  const logged = await log(next, result.ok ? `completed ${result.action}; repo unmodified` : `git ${result.action} failed`);
 
   if (task.taskType === 'git_find_commit' && result.candidates.length) {
     const proof = ensureProofItem({
@@ -253,24 +268,24 @@ async function runGitTask(task: ComputerTask): Promise<ComputerTask> {
 }
 
 async function runScratchTask(task: ComputerTask): Promise<ComputerTask> {
-  const owner = isOwnerComputerTask(task);
-  const backend: ComputerBackend =
-    owner && isCloudflareComputerReady() ? 'cloudflare-worker-shell' : 'local-shim';
+  const backend = taskBackend();
+  const name = workspaceIdFor(task);
   const note = scratchPayload(task, backend);
   if (backend === 'cloudflare-worker-shell') {
-    task = log(task, `write ${note.cfPath} on worker-shell`);
+    await ensureCfMount(name);
+    task = await log(task, `write ${note.cfPath} on worker-shell`);
     let body = note.body;
     if (note.append) {
       try {
-        const existing = await cfGetFile(note.cfPath);
+        const existing = await cfGetFile(note.cfPath, name);
         body = `${existing}${note.body}`;
       } catch {
         /* new file */
       }
     }
-    await cfPutFile(note.cfPath, body);
-    const readBack = await cfGetFile(note.cfPath);
-    const probe = await cfExec('echo ok');
+    await cfPutFile(note.cfPath, body, name);
+    const readBack = await cfGetFile(note.cfPath, name);
+    const probe = await cfExec('echo ok', '/workspace', name);
     const report = [
       '# write_scratch_file',
       '',
@@ -281,8 +296,8 @@ async function runScratchTask(task: ComputerTask): Promise<ComputerTask> {
       '',
       'Workspace is a Cloudflare Durable Object (worker-shell).',
     ].join('\n');
-    await cfPutFile(`/workspace/reports/${task.id}.md`, report);
-    task = upsertComputerTask({
+    await cfPutFile(`/workspace/reports/${task.id}.md`, report, name);
+    task = await upsertComputerTask({
       ...task,
       backend,
       status: 'completed',
@@ -296,10 +311,10 @@ async function runScratchTask(task: ComputerTask): Promise<ComputerTask> {
       updatedAt: nowIso(),
       error: null,
     });
-    return log(task, 'completed write_scratch_file on worker-shell');
+    return await log(task, 'completed write_scratch_file on worker-shell');
   }
 
-  task = log(task, `write ${note.shimPath}`);
+  task = await log(task, `write ${note.shimPath}`);
   let body = note.body;
   if (note.append) {
     try {
@@ -323,7 +338,7 @@ async function runScratchTask(task: ComputerTask): Promise<ComputerTask> {
     'Not a Cloudflare Durable Object.',
   ].join('\n');
   const wrote = await workspaceWriteFile(workspaceIdFor(task), `/reports/${task.id}.md`, report);
-  task = upsertComputerTask({
+  task = await upsertComputerTask({
     ...task,
     backend,
     status: 'completed',
@@ -337,7 +352,7 @@ async function runScratchTask(task: ComputerTask): Promise<ComputerTask> {
     updatedAt: nowIso(),
     error: null,
   });
-  return log(task, 'completed write_scratch_file');
+  return await log(task, 'completed write_scratch_file');
 }
 
 function scratchPayload(
@@ -368,10 +383,12 @@ function scratchPayload(
 }
 
 async function runCfFilesTask(task: ComputerTask): Promise<ComputerTask> {
+  const name = workspaceIdFor(task);
+  await ensureCfMount(name);
   const path = toWorkspacePath(task.instructions || '/workspace') || '/workspace';
-  task = log(task, `cloudflare ${task.taskType} ${path}`);
+  task = await log(task, `cloudflare ${task.taskType} ${path}`);
   if (task.taskType === 'files_open') {
-    const body = await cfGetFile(path);
+    const body = await cfGetFile(path, name);
     return finishInspectStyle(task, {
       status: 'completed',
       summary: `opened ${path} on worker-shell`,
@@ -384,7 +401,7 @@ async function runCfFilesTask(task: ComputerTask): Promise<ComputerTask> {
   }
   if (task.taskType === 'files_search') {
     const query = clip(workspaceSearchQuery(task.instructions || '') || 'hello', 80);
-    const run = await cfExec(`grep -R -n -F -- ${shellWord(query)} .`);
+    const run = await cfExec(`grep -R -n -F -- ${shellWord(query)} .`, '/workspace', name);
     const text = [run.stdout, run.stderr].filter(Boolean).join('\n');
     return finishInspectStyle(task, {
       status: run.exitCode === 0 || run.exitCode === 1 ? 'completed' : 'failed',
@@ -396,7 +413,7 @@ async function runCfFilesTask(task: ComputerTask): Promise<ComputerTask> {
       error: run.exitCode > 1 ? run.stderr || 'grep failed' : null,
     });
   }
-  const run = await cfExec(`ls -la ${path === '/workspace' ? '.' : path}`, '/workspace');
+  const run = await cfExec(`ls -la ${path === '/workspace' ? '.' : path}`, '/workspace', name);
   const text = [run.stdout, run.stderr].filter(Boolean).join('\n');
   return finishInspectStyle(task, {
     status: run.exitCode === 0 ? 'completed' : 'failed',
@@ -427,10 +444,10 @@ async function runVisitorShimFiles(task: ComputerTask): Promise<ComputerTask> {
       kind: 'file',
       error: 'visitor cannot open site files',
     });
-    return log(next, 'blocked files_open for visitor');
+    return await log(next, 'blocked files_open for visitor');
   }
   if (task.taskType === 'files_search') {
-    task = log(task, 'search scratch pad (not the site git)');
+    task = await log(task, 'search scratch pad (not the site git)');
     const result = workspaceGrep(id, task.instructions || '');
     const next = await finishInspectStyle(task, {
       status: 'completed',
@@ -440,9 +457,9 @@ async function runVisitorShimFiles(task: ComputerTask): Promise<ComputerTask> {
       title: 'scratch search',
       kind: 'file',
     });
-    return log(next, result.summary);
+    return await log(next, result.summary);
   }
-  task = log(task, 'list scratch pad (not the site git)');
+  task = await log(task, 'list scratch pad (not the site git)');
   const result = workspaceList(id);
   const next = await finishInspectStyle(task, {
     status: 'completed',
@@ -453,11 +470,13 @@ async function runVisitorShimFiles(task: ComputerTask): Promise<ComputerTask> {
     kind: 'file',
     filesInspected: result.lines.slice(0, 20),
   });
-  return log(next, result.summary);
+  return await log(next, result.summary);
 }
 
 async function runFilesTask(task: ComputerTask): Promise<ComputerTask> {
   if (!isOwnerComputerTask(task)) {
+    if (task.taskType === 'files_open') return runVisitorShimFiles(task);
+    if (isCloudflareComputerReady()) return runCfFilesTask(task);
     return runVisitorShimFiles(task);
   }
   if (isCloudflareComputerReady() && isWorkspaceIntent(task.instructions || '/workspace')) {
@@ -465,14 +484,14 @@ async function runFilesTask(task: ComputerTask): Promise<ComputerTask> {
   }
   let result: FileInspectResult;
   if (task.taskType === 'files_tree') {
-    task = log(task, 'list directory (read-only)');
+    task = await log(task, 'list directory (read-only)');
     result = filesTree(task.instructions || 'aileena-new');
   } else if (task.taskType === 'files_search') {
-    task = log(task, `search files (rg -F, secrets blocked)`);
+    task = await log(task, `search files (rg -F, secrets blocked)`);
     result = await filesSearch(task.instructions || 'Sound Lab');
   } else {
     const path = task.instructions.trim() || 'aileena-new/app/sound/page.tsx';
-    task = log(task, `open ${path} read-only`);
+    task = await log(task, `open ${path} read-only`);
     result = filesOpen(path);
   }
 
@@ -490,7 +509,7 @@ async function runFilesTask(task: ComputerTask): Promise<ComputerTask> {
     risksBlockers: ['Read-only. .env, keys, and credentials are blocked.'],
     error: result.ok ? null : result.summary,
   });
-  return log(next, result.ok ? `completed ${result.action}` : result.summary);
+  return await log(next, result.ok ? `completed ${result.action}` : result.summary);
 }
 
 async function runEmailTask(task: ComputerTask): Promise<ComputerTask> {
@@ -505,7 +524,7 @@ async function runEmailTask(task: ComputerTask): Promise<ComputerTask> {
       risksBlockers: ['Email provider is not wired for the computer. Draft/copy only.'],
       error: 'email not connected',
     });
-    return log(next, '⚡ blocked. Email send is not connected.');
+    return await log(next, '⚡ blocked. Email send is not connected.');
   }
   const draft = parseEmailDraft(task.instructions);
   const preview = `To: ${draft.to}\nSubject: ${draft.subject}\n\n${draft.body}`;
@@ -518,7 +537,7 @@ async function runEmailTask(task: ComputerTask): Promise<ComputerTask> {
     kind: 'report',
     risksBlockers: ['Draft only. Send needs explicit owner confirm. Provider not connected.'],
   });
-  return log(next, 'draft stored; not sent');
+  return await log(next, 'draft stored; not sent');
 }
 
 async function runBrowserTask(task: ComputerTask): Promise<ComputerTask> {
@@ -538,7 +557,7 @@ async function runBrowserTask(task: ComputerTask): Promise<ComputerTask> {
     risksBlockers: ['No Playwright computer session. Checklist only.'],
     error: 'browser automation unavailable',
   });
-  return log(next, '⚡ blocked. No fake screenshots.');
+  return await log(next, '⚡ blocked. No fake screenshots.');
 }
 
 export async function runComputerTask(id: string): Promise<ComputerTask | null> {
@@ -546,7 +565,7 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
   if (!existing || existing.cancelled) return existing;
   if (existing.status !== 'queued') return existing;
 
-  let task = upsertComputerTask({
+  let task = await upsertComputerTask({
     ...existing,
     status: 'running',
     updatedAt: nowIso(),
@@ -555,9 +574,9 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
   if (ownerTask) {
     attachTaskToProof(task.proofItemId, task.id, 'in_progress');
   }
-  const backend: ComputerBackend = ownerTask ? reportedBackend() : 'local-shim';
-  task = upsertComputerTask({ ...task, backend });
-  task = log(
+  const backend = taskBackend();
+  task = await upsertComputerTask({ ...task, backend });
+  task = await log(
     task,
     backend === 'cloudflare-worker-shell'
       ? 'backend=cloudflare-worker-shell'
@@ -570,7 +589,9 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
 
   const fresh = getComputerTask(id);
   if (!fresh || fresh.cancelled) {
-    return fresh ? upsertComputerTask({ ...fresh, status: 'failed', error: 'cancelled', completedAt: nowIso() }) : null;
+    return fresh
+      ? upsertComputerTask({ ...fresh, status: 'failed', error: 'cancelled', completedAt: nowIso() })
+      : null;
   }
   task = fresh;
 
@@ -585,7 +606,7 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
         kind: 'report',
         error: 'visitor scratch pad only',
       });
-      return log(blocked, 'blocked non-scratch task for visitor');
+      return await log(blocked, 'blocked non-scratch task for visitor');
     }
     if (task.taskType.startsWith('git_')) {
       task = await runGitTask(task);
@@ -599,7 +620,7 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
       task = await runScratchTask(task);
     } else {
       const inspectRoute = task.route || '/daily';
-      task = log(task, `inspect route ${inspectRoute} (read-only)`);
+      task = await log(task, `inspect route ${inspectRoute} (read-only)`);
       const inspected = inspectRouteFiles(inspectRoute);
       const analysis =
         task.taskType === 'draft_daily_fix_plan' || inspectRoute === '/daily'
@@ -615,7 +636,7 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
       if (task.taskType === 'run_build_check' || task.taskType === 'draft_daily_fix_plan') {
         const check = await runAllowlistedCheck();
         checkSummary = check.summary;
-        task = log(task, checkSummary);
+        task = await log(task, checkSummary);
       }
 
       const filesInspected = inspected.map((f) => `${f.path}${f.exists ? '' : ' (missing)'}`);
@@ -658,7 +679,7 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
       ].join('\n');
       await workspaceWriteFile(workspaceIdFor(task), `/artifacts/${task.id}-screenshot-checklist.txt`, checklist);
 
-      task = upsertComputerTask({
+      task = await upsertComputerTask({
         ...task,
         status: 'completed',
         resultSummary: clip(
@@ -678,7 +699,7 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
         updatedAt: nowIso(),
         error: null,
       });
-      task = log(task, 'completed inspect; repo unmodified');
+      task = await log(task, 'completed inspect; repo unmodified');
     }
 
     const skipGenericProof =
@@ -707,7 +728,7 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
     return getComputerTask(id);
   } catch (err) {
     const message = redactSecrets(err instanceof Error ? err.message : String(err));
-    const failed = upsertComputerTask({
+    const failed = await upsertComputerTask({
       ...task,
       status: 'failed',
       error: message,
