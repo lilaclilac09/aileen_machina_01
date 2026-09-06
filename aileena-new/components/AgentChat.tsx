@@ -192,6 +192,7 @@ export default function AgentChat() {
   const [voiceMode, setVoiceMode] = useState(false);
   const voiceModeRef = useRef(false);
   voiceModeRef.current = voiceMode;
+  const [computerMode, setComputerMode] = useState(false);
   const [voiceLive, setVoiceLive] = useState('');
   /** Start orb listen once after Voice toggle / open-agent-chat autoListen. */
   const [autoListen, setAutoListen] = useState(false);
@@ -743,6 +744,7 @@ export default function AgentChat() {
 
     setVoiceMode(false);
     setVoiceLive('');
+    setComputerMode(false);
     setLeadOpen(false);
     setLeadError(null);
     setOpen(false);
@@ -1767,6 +1769,26 @@ export default function AgentChat() {
             </button>
             <button
               type="button"
+              data-testid="computer-mode-toggle"
+              aria-pressed={computerMode}
+              aria-label={computerMode ? 'Turn computer off' : 'Turn computer on'}
+              title={
+                computerMode
+                  ? 'Computer on — monitor in this dialog'
+                  : 'Tap Computer for the scratch pad in this dialog'
+              }
+              onClick={() => setComputerMode((on) => !on)}
+              className="inline-flex min-h-11 items-center text-[0.55rem] tracking-[0.2em] uppercase px-2 py-0.5 rounded transition-colors sm:min-h-0"
+              style={{
+                color: computerMode ? '#007d75' : 'rgba(27,23,19,0.55)',
+                background: computerMode ? 'rgba(0,168,157,0.1)' : 'transparent',
+                border: computerMode ? '1px solid rgba(0,168,157,0.35)' : '1px solid transparent',
+              }}
+            >
+              {computerMode ? 'computer on' : 'computer'}
+            </button>
+            <button
+              type="button"
               onClick={resetChat}
               aria-label="Reset conversation"
               title="Clear chat and start over"
@@ -1785,7 +1807,7 @@ export default function AgentChat() {
           </div>
         </div>
 
-        {isOwner ? <ComputerConsoleDock /> : null}
+        {computerMode ? <ComputerConsoleDock isOwner={isOwner} /> : null}
 
         {/* Transcript — flex-auto: content-sized when dialog is short; shrinks +
             scrolls when dialog hits sm:max-h-[72vh]. Bottom chrome stays visible.
@@ -2007,8 +2029,10 @@ export default function AgentChat() {
               placeholder={
                 sessionMaxed
                   ? 'come back tomorrow ♡'
-                  : isOwner
-                    ? 'note · find x · git status'
+                  : computerMode
+                    ? isOwner
+                      ? 'note · find x · git status'
+                      : 'note · find x · list'
                     : voiceMode
                       ? 'Or type here'
                       : 'Type a message, or tap Voice'

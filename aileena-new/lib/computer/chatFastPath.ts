@@ -1,11 +1,12 @@
 import { isComputerPrototypeEnabled } from './flag';
-import { parseOwnerComputerCommand } from './parseOwnerCommand';
+import { parseOwnerComputerCommand, parseVisitorComputerCommand } from './parseOwnerCommand';
 import { queuedChatResponse } from './queuedStream';
+import type { ComputerActor } from './actor';
+import { cookieHeaderWithActor } from './actor';
 
 /**
  * Fast owner path for /api/chat (Edge).
  * Enqueues a Node computer task via HTTP and returns immediately.
- * Visitors never enter this path (caller must pass isOwner).
  */
 export async function tryOwnerComputerFastPath(opts: {
   req: Request;
@@ -149,5 +150,45 @@ export async function tryOwnerComputerFastPath(opts: {
   return queuedChatResponse(
     queued.spoken ||
       `⚡ queued. Working ${resolved.route} in the background. I can still answer you. Same dialog. No merge.`,
+  );
+}
+
+/**
+ * Visitor scratch pad. note / list / find in their own shim only.
+ * Never the owner Durable Object, never site git.
+ */
+export async function tryVisitorComputerFastPath(opts: {
+  req: Request;
+  actor: ComputerActor;
+  lastQ: string;
+}): Promise<Response | null> {
+  if (opts.actor.kind !== 'visitor') return null;
+  if (!isComputerPrototypeEnabled()) return null;
+  const resolved = parseVisitorComputerCommand(opts.lastQ);
+  if (!resolved) return null;
+  if (resolved.kind === 'blocked') return queuedChatResponse(resolved.message);
+
+  const origin = new URL(opts.req.url).origin;
+  const cookie = cookieHeaderWithActor(opts.req.headers.get('cookie'), opts.actor);
+  const res = await fetch(`${origin}/api/agent/computer/tasks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', cookie },
+    body: JSON.stringify({
+      taskType: resolved.taskType,
+      route: resolved.route,
+      instructions: resolved.instructions,
+      scope: 'visitor-scratch',
+      phrase: opts.lastQ,
+    }),
+  });
+  if (res.status === 403 || res.status === 401) {
+    return queuedChatResponse('⚡ scratch pad only. No site git, no merge.');
+  }
+  if (res.status === 429) return queuedChatResponse('⚡ Slow down. Rate limit. I am still here.');
+  if (!res.ok) return queuedChatResponse('⚡ Nope. Scratch pad did not accept that. Ask me something else.');
+  const queued = (await res.json()) as { spoken?: string };
+  return queuedChatResponse(
+    queued.spoken ||
+      '⚡ queued. Scratch pad is working in this dialog. Not the site git. No merge.',
   );
 }

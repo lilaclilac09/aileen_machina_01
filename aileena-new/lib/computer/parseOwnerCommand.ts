@@ -135,6 +135,15 @@ export function parseOwnerComputerCommand(text: string): OwnerComputerCommand | 
     };
   }
 
+  if (/^list$/i.test(raw) || /^ls$/i.test(raw)) {
+    return {
+      kind: 'queue_task',
+      taskType: 'files_tree',
+      route: '/proof',
+      instructions: '/workspace',
+    };
+  }
+
   if (/^write scratch(?: file)?\s*$/i.test(raw) || /^scratch hello\s*$/i.test(raw)) {
     return {
       kind: 'queue_task',
@@ -183,4 +192,64 @@ function normalizeRoute(route: string): string {
   const t = route.trim();
   if (!t.startsWith('/') || t.startsWith('//')) return '/daily';
   return t.replace(/\/+$/, '') || '/';
+}
+
+export type VisitorComputerCommand =
+  | {
+      kind: 'queue_task';
+      taskType: 'write_scratch_file' | 'files_tree' | 'files_search';
+      route: string;
+      instructions: string;
+    }
+  | { kind: 'blocked'; message: string };
+
+/**
+ * Visitor scratch-pad commands. Never git, learn, proof, email, or merge.
+ */
+export function parseVisitorComputerCommand(text: string): VisitorComputerCommand | null {
+  const raw = text.trim();
+  if (!raw || raw.length > 2000) return null;
+
+  if (
+    /^learn:/i.test(raw) ||
+    /^git\b/i.test(raw) ||
+    /^show proof queue/i.test(raw) ||
+    /find(?: me)?(?: the)? commit/i.test(raw)
+  ) {
+    return {
+      kind: 'blocked',
+      message: '⚡ scratch pad only. No site git, no merge, no owner computer.',
+    };
+  }
+
+  if (/^list$/i.test(raw) || /^ls$/i.test(raw) || /^files$/i.test(raw)) {
+    return {
+      kind: 'queue_task',
+      taskType: 'files_tree',
+      route: '/proof',
+      instructions: '/workspace',
+    };
+  }
+
+  const note = /^note:\s*(.+)$/i.exec(raw);
+  if (note) {
+    return {
+      kind: 'queue_task',
+      taskType: 'write_scratch_file',
+      route: '/proof',
+      instructions: note[1].trim().slice(0, 4000),
+    };
+  }
+
+  const find = /^find(?: in workspace)?:\s*(.+)$/i.exec(raw) || /^find\s+(.+)$/i.exec(raw);
+  if (find && !/commit/i.test(raw)) {
+    return {
+      kind: 'queue_task',
+      taskType: 'files_search',
+      route: '/proof',
+      instructions: `/workspace ${find[1].trim().slice(0, 80)}`,
+    };
+  }
+
+  return null;
 }

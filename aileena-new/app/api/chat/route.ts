@@ -6,7 +6,8 @@ import { COUNCIL_SYSTEM_PROMPT, formatCouncilLensForPrompt } from '../../../lib/
 import { decideAgentMode, skipVisitorQuota, type AgentMode } from '../../../lib/agentMode';
 import { isCouncilLens } from '../../../lib/councilCopy';
 import { requireOwnerFromRequest } from '../../../lib/owner-gate';
-import { tryOwnerComputerFastPath } from '../../../lib/computer/chatFastPath';
+import { tryOwnerComputerFastPath, tryVisitorComputerFastPath } from '../../../lib/computer/chatFastPath';
+import { computerActorFromRequest, computerActorSetCookie } from '../../../lib/computer/actor';
 import { searchArticles } from '../../../lib/agentSearch';
 import { searchMemories, memoryIndexMeta } from '../../../lib/memorySearch';
 import { agentDataTools, datasetSummary } from '../../../lib/data/tools';
@@ -244,9 +245,15 @@ export async function POST(req: Request) {
     });
   }
 
-  // Owner computer commands skip the model. Visitors never enqueue.
+  // Owner computer / visitor scratch skip the model when the line is a command.
   const lastQEarly = lastUserQuery(messages);
-  if (owner) {
+  const computerActor = await computerActorFromRequest(req);
+  const withComputerCookie = (res: Response): Response => {
+    const header = computerActorSetCookie(computerActor);
+    if (header) res.headers.append('Set-Cookie', header);
+    return res;
+  };
+  if (computerActor.kind === 'owner') {
     const fast = await tryOwnerComputerFastPath({
       req,
       isOwner: true,
@@ -254,7 +261,17 @@ export async function POST(req: Request) {
     });
     if (fast) {
       trace.log('computer_fast_path', { q: lastQEarly.slice(0, 80) });
-      return fast;
+      return withComputerCookie(fast);
+    }
+  } else {
+    const fast = await tryVisitorComputerFastPath({
+      req,
+      actor: computerActor,
+      lastQ: lastQEarly,
+    });
+    if (fast) {
+      trace.log('computer_fast_path', { q: lastQEarly.slice(0, 80), actor: 'visitor' });
+      return withComputerCookie(fast);
     }
   }
   const agentMode: AgentMode = decided.mode;

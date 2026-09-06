@@ -41,11 +41,14 @@ async function waitReady() {
   throw new Error(`proof page not ready at ${BASE}`);
 }
 
-async function openConsole(page: import('playwright').Page) {
+async function openConsole(page: import('playwright').Page, withComputer = true) {
   await page.keyboard.press('Escape');
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('open-agent-chat')));
-  await page.waitForSelector('[data-testid="computer-console-dock"]', { timeout: 15_000, state: 'visible' });
   await page.waitForSelector('[role="dialog"][aria-label="Aileena Console"]', { state: 'visible' });
+  if (withComputer) {
+    await page.locator('[data-testid="computer-mode-toggle"]').click();
+    await page.waitForSelector('[data-testid="computer-console-dock"]', { timeout: 15_000, state: 'visible' });
+  }
   await page.waitForTimeout(400);
 }
 
@@ -131,12 +134,18 @@ async function main() {
   await vPage.keyboard.press('Escape');
   await vPage.evaluate(() => window.dispatchEvent(new CustomEvent('open-agent-chat')));
   await vPage.waitForSelector('[role="dialog"][aria-label="Aileena Console"]', { state: 'visible' });
-  const visitorDock = await vPage.locator('[data-testid="computer-console-dock"]').count();
-  if (visitorDock > 0) throw new Error('visitor saw computer dock');
-  const visitorTabs = await vPage.locator('[data-testid="computer-tabs"]').count();
-  if (visitorTabs > 0) throw new Error('visitor saw computer tabs');
+  const visitorDockOff = await vPage.locator('[data-testid="computer-console-dock"]').count();
+  if (visitorDockOff > 0) throw new Error('visitor saw computer dock before toggle');
   await vPage.locator('[role="dialog"][aria-label="Aileena Console"]').screenshot({
     path: join(OUT, 'agent-tabs-visitor-hidden.png'),
+  });
+  await vPage.locator('[data-testid="computer-mode-toggle"]').click();
+  await vPage.waitForSelector('[data-testid="computer-console-dock"]', { state: 'visible', timeout: 15_000 });
+  const visitorGitChip = await vPage.locator('[data-testid="computer-learned-git-status"]').count();
+  if (visitorGitChip > 0) throw new Error('visitor saw git status chip');
+  await vPage.locator('[data-testid="computer-learned-list"]').waitFor({ state: 'visible' });
+  await vPage.locator('[role="dialog"][aria-label="Aileena Console"]').screenshot({
+    path: join(OUT, 'agent-visitor-computer-on.png'),
   });
 
   const tools = await browser.newContext({ viewport: { width: 1280, height: 800 } });

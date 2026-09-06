@@ -9,8 +9,12 @@ type LearnedChip = { alias: string; taskType: string; instructions: string; rout
 
 const APP_TABS: AppTab[] = ['note', 'find', 'git'];
 
-const STARTER_CHIPS: LearnedChip[] = [
+const OWNER_STARTER_CHIPS: LearnedChip[] = [
   { alias: 'git status', taskType: 'git_status', instructions: 'git status --short', route: '/proof' },
+  { alias: 'list', taskType: 'files_tree', instructions: '/workspace', route: '/proof' },
+];
+
+const VISITOR_STARTER_CHIPS: LearnedChip[] = [
   { alias: 'list', taskType: 'files_tree', instructions: '/workspace', route: '/proof' },
 ];
 
@@ -57,9 +61,9 @@ function chipKey(alias: string): string {
 
 /**
  * Computer lives inside the site-agent dialog. Not a separate window.
- * Owner-only — AgentChat mounts this only when isOwner.
+ * Hidden until the Computer header toggle. Visitors get a scratch pad only.
  */
-export default function ComputerConsoleDock() {
+export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
   const [flash, setFlash] = useState('waiting');
   const [cloudflare, setCloudflare] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -133,7 +137,7 @@ export default function ComputerConsoleDock() {
   const chips = useMemo(() => {
     const seen = new Set<string>();
     const rows: LearnedChip[] = [];
-    for (const row of [...learned, ...STARTER_CHIPS]) {
+    for (const row of [...(isOwner ? learned : []), ...(isOwner ? OWNER_STARTER_CHIPS : VISITOR_STARTER_CHIPS)]) {
       const key = row.alias.trim().toLowerCase();
       if (!key || seen.has(key)) continue;
       seen.add(key);
@@ -141,7 +145,7 @@ export default function ComputerConsoleDock() {
       if (rows.length >= 6) break;
     }
     return rows;
-  }, [learned]);
+  }, [learned, isOwner]);
 
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
@@ -154,6 +158,18 @@ export default function ComputerConsoleDock() {
     proofItemId?: string;
     phrase?: string;
   }) => {
+    if (
+      !isOwner &&
+      (opts.taskType.startsWith('git_') ||
+        opts.taskType === 'files_open' ||
+        opts.taskType.startsWith('email_') ||
+        opts.taskType.startsWith('browser_') ||
+        opts.taskType.startsWith('draft_') ||
+        opts.taskType.startsWith('inspect_'))
+    ) {
+      setFlash('scratch pad only');
+      return;
+    }
     setBusy(true);
     try {
       const res = await fetch('/api/agent/computer/tasks', {

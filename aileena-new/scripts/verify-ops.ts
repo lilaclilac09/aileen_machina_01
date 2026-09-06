@@ -569,9 +569,11 @@ function main() {
   assert('owner auth uses safeEqual', /safeEqual\(key, expected\)/.test(ownerAuthSrc));
   assert('owner auth allows /proof as a room', /\/proof/.test(ownerAuthSrc));
   assert('chat route has owner computer fast path', /tryOwnerComputerFastPath/.test(chatRouteSrc));
+  assert('chat route has visitor scratch fast path', /tryVisitorComputerFastPath/.test(chatRouteSrc));
   assert(
-    'computer tasks API is owner-only node',
-    /requireOwnerFromRequest/.test(readFileSync(join(process.cwd(), 'app/api/agent/computer/tasks/route.ts'), 'utf8')) &&
+    'computer tasks API is actor-gated node',
+    /computerActorFromRequest/.test(readFileSync(join(process.cwd(), 'app/api/agent/computer/tasks/route.ts'), 'utf8')) &&
+      /isVisitorComputerTaskType/.test(readFileSync(join(process.cwd(), 'app/api/agent/computer/tasks/route.ts'), 'utf8')) &&
       /runtime = 'nodejs'/.test(readFileSync(join(process.cwd(), 'app/api/agent/computer/tasks/route.ts'), 'utf8')),
   );
   assert(

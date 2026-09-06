@@ -99,7 +99,7 @@ Owner, localhost / preview only. Production stays off.
 4. Restart wrangler. File is still there (DO SQLite)
 5. Site owner dock → scratch plugin writes that file on the Worker, not only `.data/`
 6. Files tab lists `/workspace` from the Worker
-7. Visitor still sees no dock
+7. Visitor Console: Computer toggle default off. After click, scratch pad only (no git chips, no owner DO).
 8. Merge plugin stays grey
 9. `VERCEL_ENV=production` still 404s the prototype APIs
 10. Unauthenticated `curl` to the Worker is `401`

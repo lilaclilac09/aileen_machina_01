@@ -1,8 +1,12 @@
 import { after } from 'next/server';
 import { NextResponse } from 'next/server';
-import { requireOwnerFromRequest } from '@/lib/owner-gate';
-import { checkRateLimit, COMPUTER_TASK_RATE } from '@/lib/api/ratelimit';
-import { COMPUTER_LIMITS, forbiddenShellFields, isComputerTaskType } from '@/lib/computer/allowlist';
+import { checkRateLimit, COMPUTER_TASK_RATE, COMPUTER_VISITOR_TASK_RATE } from '@/lib/api/ratelimit';
+import {
+  COMPUTER_LIMITS,
+  forbiddenShellFields,
+  isComputerTaskType,
+  isVisitorComputerTaskType,
+} from '@/lib/computer/allowlist';
 import { isComputerPrototypeEnabled, prototypeDisabledReason } from '@/lib/computer/flag';
 import { isCloudflareComputerReady, reportedBackend } from '@/lib/computer/cfClient';
 import { clip, redactSecrets } from '@/lib/computer/redact';
@@ -21,74 +25,157 @@ import {
 } from '@/lib/proofQueue/store';
 import { COMPUTER_TABS, TAB_WIRE } from '@/lib/computer/capabilities';
 import { listHarnessPlugins } from '@/lib/computer/plugins';
-import { spokenQueued } from '@/lib/computer/spokenQueue';
+import { spokenQueued, spokenVisitorQueued } from '@/lib/computer/spokenQueue';
 import { labelForTask, listLearned, rememberCommand } from '@/lib/computer/learned';
+import {
+  applyComputerActorCookie,
+  computerActorFromRequest,
+  type ComputerActor,
+} from '@/lib/computer/actor';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
-function deny(status: number, error: string) {
-  return NextResponse.json({ ok: false, error, prototype: true, backend: reportedBackend() }, { status });
+const VISITOR_PROOF_ID = 'visitor-scratch';
+
+function deny(status: number, error: string, actor?: ComputerActor) {
+  const res = NextResponse.json({ ok: false, error, prototype: true, backend: reportedBackend() }, { status });
+  return actor ? applyComputerActorCookie(res, actor) : res;
+}
+
+function jsonActor(actor: ComputerActor, body: unknown, status = 200) {
+  return applyComputerActorCookie(NextResponse.json(body, { status }), actor);
 }
 
 export async function GET(req: Request) {
   if (!isComputerPrototypeEnabled()) return deny(404, prototypeDisabledReason());
-  const owner = await requireOwnerFromRequest(req);
-  if (!owner) return deny(403, 'Owner only.');
-  return NextResponse.json({
+  const actor = await computerActorFromRequest(req);
+  if (actor.kind === 'visitor') {
+    return jsonActor(actor, {
+      ok: true,
+      prototype: true,
+      backend: 'local-shim',
+      cloudflareComputer: false,
+      tasks: listComputerTasks(actor.id),
+      proof: [],
+      tabs: COMPUTER_TABS.map((id) => ({ id, wire: TAB_WIRE[id] })),
+      plugins: [],
+      learned: [],
+      harness: 'machina-visitor-scratch',
+      deepSeekHarness: false,
+      actor: 'visitor',
+    });
+  }
+  return jsonActor(actor, {
     ok: true,
     prototype: true,
     backend: reportedBackend(),
     cloudflareComputer: isCloudflareComputerReady(),
-    tasks: listComputerTasks(),
+    tasks: listComputerTasks('owner'),
     proof: listProofItems(),
     tabs: COMPUTER_TABS.map((id) => ({ id, wire: TAB_WIRE[id] })),
     plugins: listHarnessPlugins(),
     learned: listLearned(),
     harness: 'machina-owner-prototype',
     deepSeekHarness: false,
+    actor: 'owner',
   });
 }
 
 export async function POST(req: Request) {
   if (!isComputerPrototypeEnabled()) return deny(404, prototypeDisabledReason());
-  const owner = await requireOwnerFromRequest(req);
-  if (!owner) return deny(403, 'Owner only.');
+  const actor = await computerActorFromRequest(req);
 
   let body: Record<string, unknown>;
   try {
     const parsed = await req.json();
     body = parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : {};
   } catch {
-    return deny(400, 'invalid');
+    return deny(400, 'invalid', actor);
   }
 
   const forbidden = forbiddenShellFields(body);
   if (forbidden.length) {
-    return deny(400, `Arbitrary shell is not allowed (${forbidden.join(', ')}).`);
+    return deny(400, `Arbitrary shell is not allowed (${forbidden.join(', ')}).`, actor);
   }
 
   if (!isComputerTaskType(body.taskType)) {
-    return deny(400, 'taskType is not on the allowlist.');
+    return deny(400, 'taskType is not on the allowlist.', actor);
   }
 
-  const rl = checkRateLimit(req, COMPUTER_TASK_RATE, 'computer-tasks');
+  if (actor.kind === 'visitor' && !isVisitorComputerTaskType(body.taskType)) {
+    return deny(403, 'Scratch pad only. No site git, no merge, no owner computer.', actor);
+  }
+
+  const rl = checkRateLimit(
+    req,
+    actor.kind === 'visitor' ? COMPUTER_VISITOR_TASK_RATE : COMPUTER_TASK_RATE,
+    actor.kind === 'visitor' ? 'computer-tasks-visitor' : 'computer-tasks',
+  );
   if (!rl.ok) {
-    return NextResponse.json(
+    const res = NextResponse.json(
       { ok: false, error: 'rate_limit', prototype: true },
       { status: 429, headers: { 'Retry-After': String(rl.retryAfterSec) } },
     );
+    return applyComputerActorCookie(res, actor);
   }
 
-  const gate = canEnqueueTask();
-  if (!gate.ok) return deny(409, gate.error);
+  const gate = canEnqueueTask(actor.id);
+  if (!gate.ok) return deny(409, gate.error, actor);
 
   const route = clip(typeof body.route === 'string' ? body.route : '/daily', 80) || '/daily';
   const scope = clip(typeof body.scope === 'string' ? body.scope : 'prototype', COMPUTER_LIMITS.scopeChars);
   const instructions = redactSecrets(
     clip(typeof body.instructions === 'string' ? body.instructions : '', COMPUTER_LIMITS.instructionChars),
   );
+
+  if (actor.kind === 'visitor') {
+    const now = nowIso();
+    const task: ComputerTask = {
+      id: newId('ctask'),
+      actorId: actor.id,
+      proofItemId: VISITOR_PROOF_ID,
+      taskType: body.taskType,
+      status: 'queued',
+      route,
+      scope,
+      instructions,
+      resultSummary: '',
+      artifacts: [],
+      logsRedacted: ['queued'],
+      filesInspected: [],
+      problemsFound: [],
+      proposedFilesToChange: [],
+      implementationPlan: [],
+      risksBlockers: [],
+      backend: 'local-shim',
+      error: null,
+      createdAt: now,
+      updatedAt: now,
+      completedAt: null,
+      cancelled: false,
+    };
+    upsertComputerTask(task);
+    after(async () => {
+      await runComputerTask(task.id);
+    });
+    return jsonActor(
+      actor,
+      {
+        ok: true,
+        message: '⚡ queued.',
+        spoken: spokenVisitorQueued(task.taskType),
+        prototype: true,
+        backend: 'local-shim',
+        cloudflareComputer: false,
+        task: getComputerTask(task.id),
+        proofItem: null,
+        actor: 'visitor',
+      },
+      202,
+    );
+  }
 
   let proofItemId = typeof body.proofItemId === 'string' ? body.proofItemId.trim() : '';
   let proof = proofItemId ? getProofItem(proofItemId) : null;
@@ -145,6 +232,7 @@ export async function POST(req: Request) {
   const now = nowIso();
   const task: ComputerTask = {
     id: newId('ctask'),
+    actorId: 'owner',
     proofItemId,
     taskType: body.taskType,
     status: 'queued',
@@ -199,7 +287,8 @@ export async function POST(req: Request) {
     proofTitle: proof.title,
   });
 
-  return NextResponse.json(
+  return jsonActor(
+    actor,
     {
       ok: true,
       message: '⚡ queued.',
@@ -209,7 +298,8 @@ export async function POST(req: Request) {
       cloudflareComputer: isCloudflareComputerReady(),
       task: getComputerTask(task.id),
       proofItem: getProofItem(proofItemId),
+      actor: 'owner',
     },
-    { status: 202 },
+    202,
   );
 }
