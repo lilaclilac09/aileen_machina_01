@@ -37,10 +37,10 @@ function parseLine(raw: string): { taskType: string; instructions: string; route
 }
 
 function monitorText(task: ComputerTask | null, backend: string): string {
-  if (!task) return `idle · ${backend}\nwaiting`;
-  const logs = task.logsRedacted.slice(-8).join('\n');
-  const preview = task.artifacts[0]?.preview?.slice(0, 600) || '';
-  return [`${verb(task)} · ${task.status} · ${backend}`, task.resultSummary, logs, preview].filter(Boolean).join('\n');
+  if (!task) return backend;
+  const last = task.logsRedacted.slice(-2).join('\n');
+  const bit = (task.artifacts[0]?.preview || task.resultSummary || '').trim().slice(0, 180);
+  return [`${verb(task)} ${task.status}`, last, bit].filter(Boolean).join('\n');
 }
 
 /**
@@ -169,7 +169,7 @@ export default function ComputerConsoleDock() {
       </pre>
 
       <form
-        className="flex gap-1.5"
+        className="sr-only"
         onSubmit={(e) => {
           e.preventDefault();
           go();
