@@ -168,13 +168,16 @@ export async function POST(req: Request) {
   };
   upsertComputerTask(task);
   const phrase = typeof body.phrase === 'string' ? body.phrase.trim().slice(0, 40) : '';
-  rememberCommand({
-    alias: phrase || labelForTask(task.taskType, task.instructions),
-    expands: phrase || labelForTask(task.taskType, task.instructions),
-    taskType: task.taskType,
-    instructions: task.instructions,
-    route: task.route,
-  });
+  const skipOneOffNote = task.taskType === 'write_scratch_file' && /^note:/i.test(phrase);
+  if (!skipOneOffNote) {
+    rememberCommand({
+      alias: phrase || labelForTask(task.taskType, task.instructions),
+      expands: phrase || labelForTask(task.taskType, task.instructions),
+      taskType: task.taskType,
+      instructions: task.instructions,
+      route: task.route,
+    });
+  }
   const proofStatus =
     typeof body.taskType === 'string' &&
     (body.taskType.startsWith('git_') ||

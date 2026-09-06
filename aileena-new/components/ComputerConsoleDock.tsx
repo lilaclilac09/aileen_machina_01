@@ -45,9 +45,10 @@ function parseLine(raw: string): { taskType: string; instructions: string; route
 function monitorText(task: ComputerTask | null, backend: string): string {
   if (!task) return `idle · ${backend}\nwaiting`;
   const now = `NOW  ${verb(task)} · ${task.status}`;
+  const cmd = task.instructions.replace(/\s+/g, ' ').trim().slice(0, 80);
   const logs = task.logsRedacted.slice(-10).join('\n');
   const bit = (task.error || task.artifacts[0]?.preview || task.resultSummary || '').trim().slice(0, 360);
-  return [now, logs, bit ? `──\n${bit}` : ''].filter(Boolean).join('\n');
+  return [now, cmd, logs, bit ? `──\n${bit}` : ''].filter(Boolean).join('\n');
 }
 
 function chipKey(alias: string): string {
