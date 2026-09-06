@@ -22,6 +22,7 @@ import {
 import { COMPUTER_TABS, TAB_WIRE } from '@/lib/computer/capabilities';
 import { listHarnessPlugins } from '@/lib/computer/plugins';
 import { spokenQueued } from '@/lib/computer/spokenQueue';
+import { labelForTask, listLearned, rememberCommand } from '@/lib/computer/learned';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -44,6 +45,7 @@ export async function GET(req: Request) {
     proof: listProofItems(),
     tabs: COMPUTER_TABS.map((id) => ({ id, wire: TAB_WIRE[id] })),
     plugins: listHarnessPlugins(),
+    learned: listLearned(),
     harness: 'machina-owner-prototype',
     deepSeekHarness: false,
   });
@@ -165,6 +167,14 @@ export async function POST(req: Request) {
     cancelled: false,
   };
   upsertComputerTask(task);
+  const phrase = typeof body.phrase === 'string' ? body.phrase.trim().slice(0, 40) : '';
+  rememberCommand({
+    alias: phrase || labelForTask(task.taskType, task.instructions),
+    expands: phrase || labelForTask(task.taskType, task.instructions),
+    taskType: task.taskType,
+    instructions: task.instructions,
+    route: task.route,
+  });
   const proofStatus =
     typeof body.taskType === 'string' &&
     (body.taskType.startsWith('git_') ||

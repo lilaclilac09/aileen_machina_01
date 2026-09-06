@@ -11,6 +11,7 @@ import { join } from 'node:path';
 import { createOwnerSession, SESSION_COOKIE } from '../lib/auth';
 import { inspectRouteFiles, analyzeDailyFixPlan } from '../lib/computer/inspect';
 import { parseOwnerComputerCommand } from '../lib/computer/parseOwnerCommand';
+import { labelForTask, matchLearned, rememberCommand } from '../lib/computer/learned';
 import { redactSecrets } from '../lib/computer/redact';
 import { isComputerPrototypeEnabled } from '../lib/computer/flag';
 import { HARNESS_PLUGINS } from '../lib/computer/plugins';
@@ -61,7 +62,10 @@ function sourceChecks() {
   const dailySrc = readFileSync(join(process.cwd(), 'components/DailyBoard.tsx'), 'utf8');
   const gitSrc = readFileSync(join(process.cwd(), 'lib/computer/gitAllowlist.ts'), 'utf8');
   const filesSrc = readFileSync(join(process.cwd(), 'lib/computer/filesAllowlist.ts'), 'utf8');
+  const chatFast = readFileSync(join(process.cwd(), 'lib/computer/chatFastPath.ts'), 'utf8');
   assert('chat stays edge', /export const runtime = 'edge'/.test(chat));
+  assert('fast path expands learned aliases', /api\/agent\/computer\/learned/.test(chatFast) && /resolved\.kind !== 'queue_task'/.test(chatFast));
+  assert('fast path passes phrase', /phrase: opts.lastQ/.test(chatFast));
   assert('chat does not import computer runner', !/from ['"].*computer\/runner['"]/.test(chat));
   assert('chat does not import git allowlist', !/from ['"].*computer\/gitAllowlist['"]/.test(chat));
   assert('tasks route is nodejs', /export const runtime = 'nodejs'/.test(tasks));
@@ -98,6 +102,14 @@ function sourceChecks() {
   );
   assert('merge is blocked in the dialog', /harness-merge-blocked/.test(dockSrc) && /canMerge: false/.test(pluginsSrc));
   assert('computer docks in AgentChat', /ComputerConsoleDock/.test(agentChatSrc));
+  const dockAt = agentChatSrc.indexOf('<ComputerConsoleDock');
+  const transAt = agentChatSrc.indexOf('data-agent-transcript');
+  assert('monitor sits above transcript', dockAt > 0 && transAt > 0 && dockAt < transAt);
+  assert('dock always polls', /setInterval\(\(\) => void load\(\), 900\)/.test(dockSrc));
+  assert('dock shows learned chips', /computer-learned/.test(dockSrc) && /computer-monitor/.test(dockSrc));
+  assert('GET tasks includes learned', /learned: listLearned\(\)/.test(tasks));
+  assert('POST remembers phrase', /rememberCommand/.test(tasks) && /body.phrase/.test(tasks));
+  assert('learn route exists', existsSync(join(process.cwd(), 'app/api/agent/computer/learned/route.ts')));
   assert('proof page does not mount ProofQueuePanel', !/ProofQueuePanel/.test(proofPageSrc));
   assert(
     'unlock form is KeyShield not typed secret',
@@ -212,6 +224,20 @@ function unitChecks() {
   assert('draft patch is plan-only', patch?.kind === 'queue_task' && patch.taskType === 'draft_patch');
   const ready = parseOwnerComputerCommand('mark proposal 3 ready');
   assert('mark ready asks for proof first', ready?.kind === 'clarify');
+  const learn = parseOwnerComputerCommand('learn: 仓库 = git status');
+  assert(
+    'learn: stores alias',
+    learn?.kind === 'learn' && learn.alias === '仓库' && learn.expands === 'git status',
+  );
+  const remembered = rememberCommand({
+    alias: '仓库',
+    expands: 'git status',
+    taskType: 'git_status',
+    instructions: 'git status --short',
+    route: '/proof',
+  });
+  assert('remembered alias matches', matchLearned('仓库')?.taskType === 'git_status', remembered.alias);
+  assert('label for git status', labelForTask('git_status', '') === 'git status');
   assert('browser tab is blocked', TAB_WIRE.browser === 'blocked');
   assert('email tab is draft-only', TAB_WIRE.email === 'draft-only');
   assert('code tab is draft-only', TAB_WIRE.code === 'draft-only');

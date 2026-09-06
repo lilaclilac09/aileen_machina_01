@@ -15,29 +15,59 @@ export async function tryOwnerComputerFastPath(opts: {
   if (!opts.isOwner) return null;
   if (!isComputerPrototypeEnabled()) return null;
   const command = parseOwnerComputerCommand(opts.lastQ);
-  if (!command) return null;
+  if (command?.kind === 'learn') {
+    const saved = await fetch(`${new URL(opts.req.url).origin}/api/agent/computer/learned`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', cookie: opts.req.headers.get('cookie') || '' },
+      body: JSON.stringify({ alias: command.alias, expands: command.expands }),
+    });
+    if (!saved.ok) return queuedChatResponse('⚡ could not learn that. Use learn: 仓库 = git status');
+    return queuedChatResponse(`⚡ learned ${command.alias} → ${command.expands}`);
+  }
+
+  let resolved = command;
+  if (!resolved && opts.lastQ.trim().length <= 32 && !/^(hi|hey|hello|你好)\b/i.test(opts.lastQ.trim())) {
+    const listed = await fetch(`${new URL(opts.req.url).origin}/api/agent/computer/learned`, {
+      headers: { cookie: opts.req.headers.get('cookie') || '' },
+    });
+    if (listed.ok) {
+      const body = (await listed.json()) as {
+        learned?: Array<{ alias: string; taskType: string; instructions: string; route: string }>;
+      };
+      const hit = (body.learned || []).find((r) => r.alias.toLowerCase() === opts.lastQ.trim().toLowerCase());
+      if (hit) {
+        resolved = {
+          kind: 'queue_task',
+          taskType: hit.taskType as import('./types').ComputerTaskType,
+          route: hit.route,
+          instructions: hit.instructions,
+        };
+      }
+    }
+  }
+  if (!resolved) return null;
 
   const cookie = opts.req.headers.get('cookie') || '';
   const origin = new URL(opts.req.url).origin;
 
-  if (command.kind === 'clarify') {
-    return queuedChatResponse(command.question);
+  if (resolved.kind === 'clarify') {
+    return queuedChatResponse(resolved.question);
   }
-  if (command.kind === 'blocked') {
-    return queuedChatResponse(command.message);
+  if (resolved.kind === 'blocked') {
+    return queuedChatResponse(resolved.message);
   }
 
-  if (command.kind === 'show_queue') {
+  if (resolved.kind === 'show_queue') {
     return queuedChatResponse(
       '⚡ Computer lives in this dialog — same window as chat. Prototype only. Owner review, no merge.',
     );
   }
 
-  if (command.kind === 'log_issue') {
+  if (resolved.kind === 'log_issue') {
     const res = await fetch(`${origin}/api/agent/proof`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', cookie },
-      body: JSON.stringify({ action: 'create', title: command.title, status: 'observed', route: '/' }),
+      body: JSON.stringify({ action: 'create', title: resolved.title, status: 'observed', route: '/' }),
     });
     if (!res.ok) return queuedChatResponse('⚡ Nope. Proof log failed. Tell me again in this dialog.');
     const body = (await res.json()) as { item?: { id?: string } };
@@ -46,46 +76,47 @@ export async function tryOwnerComputerFastPath(opts: {
     );
   }
 
-  if (command.kind === 'propose_fix') {
+  if (resolved.kind === 'propose_fix') {
     await fetch(`${origin}/api/agent/proof`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', cookie },
       body: JSON.stringify({
         action: 'create',
-        title: `fix ${command.route}`,
-        route: command.route,
-        problem: command.instructions,
+        title: `fix ${resolved.route}`,
+        route: resolved.route,
+        problem: resolved.instructions,
         status: 'proposed',
       }),
     });
     return queuedChatResponse(
-      `⚡ Proposed a fix for ${command.route}. I did not start the computer yet. Queue it from this dialog. I can keep answering here.`,
+      `⚡ Proposed a fix for ${resolved.route}. I did not start the computer yet. Queue it from this dialog. I can keep answering here.`,
     );
   }
 
-  if (command.kind === 'approve' || command.kind === 'reject') {
+  if (resolved.kind === 'approve' || resolved.kind === 'reject') {
     const res = await fetch(`${origin}/api/agent/proof`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', cookie },
-      body: JSON.stringify({ action: command.kind, id: command.id }),
+      body: JSON.stringify({ action: resolved.kind, id: resolved.id }),
     });
     if (!res.ok) return queuedChatResponse('⚡ Nope. That proposal did not move. Stay in this dialog.');
     return queuedChatResponse(
-      command.kind === 'approve'
+      resolved.kind === 'approve'
         ? '⚡ Saved. Still not merged. Computer does not deploy.'
         : '⚡ Rejected. Queue left it. I am still here.',
     );
   }
 
-  if (command.kind === 'prepare_pr') {
+  if (resolved.kind === 'prepare_pr') {
     const res = await fetch(`${origin}/api/agent/computer/tasks`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', cookie },
       body: JSON.stringify({
-        proofItemId: command.id,
+        proofItemId: resolved.id,
         taskType: 'generate_implementation_prompt',
         route: '/proof',
-        instructions: `prepare PR summary for ${command.id}. do not merge.`,
+        instructions: `prepare PR summary for ${resolved.id}. do not merge.`,
+        phrase: opts.lastQ,
       }),
     });
     if (res.status === 403 || res.status === 401) return queuedChatResponse('⚡ Owner only. Unlock with this device first.');
@@ -97,15 +128,18 @@ export async function tryOwnerComputerFastPath(opts: {
     );
   }
 
+  if (resolved.kind !== 'queue_task') return null;
+
   const res = await fetch(`${origin}/api/agent/computer/tasks`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', cookie },
     body: JSON.stringify({
-      taskType: command.taskType,
-      route: command.route,
-      instructions: command.instructions,
+      taskType: resolved.taskType,
+      route: resolved.route,
+      instructions: resolved.instructions,
       scope: 'owner-computer-prototype',
-      proofItemId: command.taskType === 'git_find_commit' ? 'proof-sound-lab-rollback' : undefined,
+      proofItemId: resolved.taskType === 'git_find_commit' ? 'proof-sound-lab-rollback' : undefined,
+      phrase: opts.lastQ,
     }),
   });
   if (res.status === 403 || res.status === 401) return queuedChatResponse('⚡ Owner only. Unlock with this device first.');
@@ -114,6 +148,6 @@ export async function tryOwnerComputerFastPath(opts: {
   const queued = (await res.json()) as { spoken?: string };
   return queuedChatResponse(
     queued.spoken ||
-      `⚡ queued. Working ${command.route} in the background. I can still answer you. Same dialog. No merge.`,
+      `⚡ queued. Working ${resolved.route} in the background. I can still answer you. Same dialog. No merge.`,
   );
 }

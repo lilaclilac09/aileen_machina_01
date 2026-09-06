@@ -5,8 +5,14 @@ import type { ComputerTask } from '../lib/computer/types';
 import type { ProofItem } from '../lib/proofQueue/types';
 
 type AppTab = 'note' | 'find' | 'git';
+type LearnedChip = { alias: string; taskType: string; instructions: string; route: string };
 
 const APP_TABS: AppTab[] = ['note', 'find', 'git'];
+
+const STARTER_CHIPS: LearnedChip[] = [
+  { alias: 'git status', taskType: 'git_status', instructions: 'git status --short', route: '/proof' },
+  { alias: 'list', taskType: 'files_tree', instructions: '/workspace', route: '/proof' },
+];
 
 function verb(task: ComputerTask): string {
   if (task.taskType === 'write_scratch_file') return 'note';
@@ -37,10 +43,15 @@ function parseLine(raw: string): { taskType: string; instructions: string; route
 }
 
 function monitorText(task: ComputerTask | null, backend: string): string {
-  if (!task) return backend;
-  const last = task.logsRedacted.slice(-2).join('\n');
-  const bit = (task.artifacts[0]?.preview || task.resultSummary || '').trim().slice(0, 180);
-  return [`${verb(task)} ${task.status}`, last, bit].filter(Boolean).join('\n');
+  if (!task) return `idle · ${backend}\nwaiting`;
+  const now = `NOW  ${verb(task)} · ${task.status}`;
+  const logs = task.logsRedacted.slice(-10).join('\n');
+  const bit = (task.error || task.artifacts[0]?.preview || task.resultSummary || '').trim().slice(0, 360);
+  return [now, logs, bit ? `──\n${bit}` : ''].filter(Boolean).join('\n');
+}
+
+function chipKey(alias: string): string {
+  return alias.replace(/[^\w\u4e00-\u9fff-]+/g, '-').slice(0, 40) || 'chip';
 }
 
 /**
@@ -53,6 +64,7 @@ export default function ComputerConsoleDock() {
   const [busy, setBusy] = useState(false);
   const [tasks, setTasks] = useState<ComputerTask[]>([]);
   const [proof, setProof] = useState<ProofItem[]>([]);
+  const [learned, setLearned] = useState<LearnedChip[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [tab, setTab] = useState<AppTab>('note');
   const [line, setLine] = useState('');
@@ -66,27 +78,33 @@ export default function ComputerConsoleDock() {
       tasks?: ComputerTask[];
       proof?: ProofItem[];
       cloudflareComputer?: boolean;
+      learned?: LearnedChip[];
     };
     setTasks(Array.isArray(data.tasks) ? data.tasks : []);
     setProof(Array.isArray(data.proof) ? data.proof.filter((p) => p.status !== 'shipped') : []);
     setCloudflare(Boolean(data.cloudflareComputer));
+    setLearned(Array.isArray(data.learned) ? data.learned : []);
   }, []);
 
   useEffect(() => {
     void load();
   }, [load]);
 
-  const open = tasks.some((t) => t.status === 'queued' || t.status === 'running');
   useEffect(() => {
-    if (!open) return;
-    const id = window.setInterval(() => void load(), 700);
+    const id = window.setInterval(() => void load(), 900);
     return () => window.clearInterval(id);
-  }, [open, load]);
+  }, [load]);
 
   useEffect(() => {
     for (const t of tasks) {
       const prev = prevStatus.current[t.id];
-      if (prev && prev !== t.status) {
+      if (!prev) {
+        prevStatus.current[t.id] = t.status;
+        if (t.status === 'queued') setFlash('queued');
+        else if (t.status === 'running') setFlash(`${verb(t)}…`);
+        continue;
+      }
+      if (prev !== t.status) {
         if (t.status === 'completed') setFlash(`${verb(t)} done`);
         else if (t.status === 'blocked') setFlash('blocked');
         else if (t.status === 'failed') setFlash('failed');
@@ -109,12 +127,32 @@ export default function ComputerConsoleDock() {
     null;
 
   const backend = cloudflare ? 'worker-shell' : 'local shim';
+  const live = selectedTask?.status === 'queued' || selectedTask?.status === 'running';
+
+  const chips = useMemo(() => {
+    const seen = new Set<string>();
+    const rows: LearnedChip[] = [];
+    for (const row of [...learned, ...STARTER_CHIPS]) {
+      const key = row.alias.trim().toLowerCase();
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      rows.push(row);
+      if (rows.length >= 6) break;
+    }
+    return rows;
+  }, [learned]);
 
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
   }, [selectedTask?.updatedAt, selectedTask?.logsRedacted.length]);
 
-  const queue = async (opts: { taskType: string; route?: string; instructions?: string; proofItemId?: string }) => {
+  const queue = async (opts: {
+    taskType: string;
+    route?: string;
+    instructions?: string;
+    proofItemId?: string;
+    phrase?: string;
+  }) => {
     setBusy(true);
     try {
       const res = await fetch('/api/agent/computer/tasks', {
@@ -126,6 +164,7 @@ export default function ComputerConsoleDock() {
           route: opts.route ?? '/proof',
           proofItemId: opts.proofItemId,
           instructions: opts.instructions ?? '',
+          phrase: opts.phrase,
         }),
       });
       const data = (await res.json()) as { spoken?: string; error?: string; task?: ComputerTask };
@@ -146,7 +185,7 @@ export default function ComputerConsoleDock() {
     if (!raw) return;
     const parsed = parseLine(raw);
     setTab(parsed.taskType === 'write_scratch_file' ? 'note' : parsed.taskType.startsWith('git_') ? 'git' : 'find');
-    void queue(parsed);
+    void queue({ ...parsed, phrase: raw });
   };
 
   return (
@@ -154,7 +193,7 @@ export default function ComputerConsoleDock() {
       data-testid="computer-console-dock"
       data-harness="machina-owner-prototype"
       data-open-proof={String(proof.length)}
-      className="border-t border-[#e7e0d6] px-3 py-2 space-y-1.5 bg-[#fffcf7]/80"
+      className="border-b border-[#e7e0d6] px-3 py-2 space-y-1.5 bg-[#fffcf7]/90 shrink-0"
     >
       <p className="font-mono text-[0.52rem] tracking-[0.18em] uppercase text-[#008f86]/80" data-testid="proof-flash">
         computer · {backend} · {flash}
@@ -163,10 +202,33 @@ export default function ComputerConsoleDock() {
       <pre
         ref={logRef}
         data-testid="computer-monitor"
-        className="font-mono text-[0.58rem] leading-relaxed text-[#1b1713]/70 whitespace-pre-wrap max-h-28 overflow-y-auto bg-white border border-[#e7e0d6] px-2 py-1.5"
+        data-live={live ? '1' : '0'}
+        className={`font-mono text-[0.58rem] leading-relaxed text-[#1b1713]/75 whitespace-pre-wrap max-h-40 overflow-y-auto bg-white border border-[#e7e0d6] px-2 py-1.5 ${live ? 'border-[#00a89d]/50' : ''}`}
       >
         {monitorText(selectedTask, backend)}
       </pre>
+
+      <div className="flex flex-wrap gap-1" data-testid="computer-learned">
+        {chips.map((chip) => (
+          <button
+            key={chip.alias}
+            type="button"
+            disabled={busy}
+            data-testid={`computer-learned-${chipKey(chip.alias)}`}
+            onClick={() =>
+              void queue({
+                taskType: chip.taskType,
+                route: chip.route,
+                instructions: chip.instructions,
+                phrase: chip.alias,
+              })
+            }
+            className="min-h-9 px-2 font-mono text-[0.52rem] tracking-[0.12em] uppercase text-[#007d75] border border-[#00a89d]/35 bg-white disabled:opacity-40"
+          >
+            {chip.alias}
+          </button>
+        ))}
+      </div>
 
       <form
         className="sr-only"
@@ -201,28 +263,28 @@ export default function ComputerConsoleDock() {
         <button
           type="button"
           data-testid="harness-plugin-find"
-          onClick={() => void queue({ taskType: 'files_search', instructions: `/workspace ${line.trim() || 'hello'}` })}
+          onClick={() => void queue({ taskType: 'files_search', instructions: `/workspace ${line.trim() || 'hello'}`, phrase: `find ${line.trim() || 'hello'}` })}
         >
           find
         </button>
         <button
           type="button"
           data-testid="files-action-workspace"
-          onClick={() => void queue({ taskType: 'files_tree', instructions: '/workspace' })}
+          onClick={() => void queue({ taskType: 'files_tree', instructions: '/workspace', phrase: 'list' })}
         >
           list
         </button>
         <button
           type="button"
           data-testid="git-action-status"
-          onClick={() => void queue({ taskType: 'git_status', instructions: 'git status --short' })}
+          onClick={() => void queue({ taskType: 'git_status', instructions: 'git status --short', phrase: 'git status' })}
         >
           status
         </button>
         <button
           type="button"
           data-testid="git-action-recent"
-          onClick={() => void queue({ taskType: 'git_log', route: '/sound', instructions: 'n:20' })}
+          onClick={() => void queue({ taskType: 'git_log', route: '/sound', instructions: 'n:20', phrase: 'git recent' })}
         >
           recent
         </button>

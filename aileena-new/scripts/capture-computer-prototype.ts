@@ -91,7 +91,10 @@ async function main() {
   await page.locator('[aria-label="note"]').fill('hello from dock');
   await page.locator('[data-testid="harness-plugin-note"]').click();
   await page.waitForFunction(() => document.querySelector('[data-testid="proof-flash"]')?.textContent?.includes('queued'));
+  const monitor = await page.locator('[data-testid="computer-monitor"]').innerText();
+  if (!/NOW|queued|running|note/i.test(monitor)) throw new Error(`monitor idle after queue: ${monitor}`);
   await page.screenshot({ path: join(OUT, 'proof-task-queued.png') });
+  await page.locator('[data-testid="computer-monitor"]').screenshot({ path: join(OUT, 'computer-monitor-live.png') });
 
   await page.waitForFunction(() => {
     return Boolean(document.querySelector('[data-testid="computer-task-completed"]'));
@@ -100,6 +103,14 @@ async function main() {
   await page.waitForSelector('[data-testid="computer-task-detail"]', { timeout: 8_000 });
   await page.screenshot({ path: join(OUT, 'proof-task-result.png') });
   await page.locator('[data-testid="computer-task-detail"]').screenshot({ path: join(OUT, 'computer-task-detail.png') });
+  await page.locator('[data-testid="computer-learned"]').screenshot({ path: join(OUT, 'computer-learned-chips.png') });
+
+  const gitChip = page.locator('[data-testid="computer-learned-git-status"]');
+  if (await gitChip.count()) {
+    await gitChip.click();
+    await page.waitForFunction(() => document.querySelector('[data-testid="proof-flash"]')?.textContent?.includes('queued'));
+    await page.screenshot({ path: join(OUT, 'computer-chip-replay.png') });
+  }
 
   await vPage.goto(`${BASE}/proof`, { waitUntil: 'networkidle' });
   await vPage.keyboard.press('Escape');

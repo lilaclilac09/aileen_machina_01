@@ -47,7 +47,7 @@ export default function MachinaComputerArticle() {
           </li>
           <li>
             <strong style={strong}>Computer dock</strong> —{' '}
-            <code style={codeStyle}>ComputerConsoleDock</code> under the transcript when the owner
+            <code style={codeStyle}>ComputerConsoleDock</code> above the transcript when the owner
             session is on. Plugins: inspect, scratch, screenshots, checks, patch, merge-as-gate. Visitors
             never see it.
           </li>

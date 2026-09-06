@@ -9,6 +9,7 @@ export type OwnerComputerCommand =
   | { kind: 'prepare_pr'; id: string }
   | { kind: 'clarify'; question: string }
   | { kind: 'blocked'; message: string }
+  | { kind: 'learn'; alias: string; expands: string }
   | {
       kind: 'queue_task';
       taskType: ComputerTaskType;
@@ -26,6 +27,11 @@ export function parseOwnerComputerCommand(text: string): OwnerComputerCommand | 
   if (!raw || raw.length > 2000) return null;
 
   if (/^show proof queue\s*$/i.test(raw)) return { kind: 'show_queue' };
+
+  const learn = /^learn:\s*(.+?)\s*=\s*(.+)$/i.exec(raw);
+  if (learn) {
+    return { kind: 'learn', alias: learn[1].trim().slice(0, 40), expands: learn[2].trim().slice(0, 200) };
+  }
 
   const log = /^log issue:\s*(.+)$/i.exec(raw);
   if (log) return { kind: 'log_issue', title: log[1].trim().slice(0, 200) };

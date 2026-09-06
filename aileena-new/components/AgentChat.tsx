@@ -1785,6 +1785,8 @@ export default function AgentChat() {
           </div>
         </div>
 
+        {isOwner ? <ComputerConsoleDock /> : null}
+
         {/* Transcript — flex-auto: content-sized when dialog is short; shrinks +
             scrolls when dialog hits sm:max-h-[72vh]. Bottom chrome stays visible.
             Soft veil only — same thin type, slightly clearer read on blur. */}
@@ -1941,8 +1943,6 @@ export default function AgentChat() {
           )}
 
         </div>
-
-        {isOwner ? <ComputerConsoleDock /> : null}
 
         {/* Bottom chrome: orb → chat input → optional leave-a-note (collapsed). */}
         <div className="shrink-0 flex flex-col">
