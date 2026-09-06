@@ -33,6 +33,7 @@ import {
   isWorkspaceIntent,
   reportedBackend,
   toWorkspacePath,
+  workspaceSearchQuery,
 } from './cfClient';
 import type { ComputerBackend } from './cfClient';
 
@@ -245,18 +246,27 @@ async function runGitTask(task: ComputerTask): Promise<ComputerTask> {
 
 async function runScratchTask(task: ComputerTask): Promise<ComputerTask> {
   const backend: ComputerBackend = reportedBackend();
-  const payload = `hello from aileena computer\nroute=${task.route}\nbackend=${backend}\n${nowIso()}\n`;
+  const note = scratchPayload(task, backend);
   if (backend === 'cloudflare-worker-shell') {
-    task = log(task, 'write /workspace/scratch/hello.txt on worker-shell');
-    await cfPutFile('/workspace/scratch/hello.txt', payload);
-    const readBack = await cfGetFile('/workspace/scratch/hello.txt');
+    task = log(task, `write ${note.cfPath} on worker-shell`);
+    let body = note.body;
+    if (note.append) {
+      try {
+        const existing = await cfGetFile(note.cfPath);
+        body = `${existing}${note.body}`;
+      } catch {
+        /* new file */
+      }
+    }
+    await cfPutFile(note.cfPath, body);
+    const readBack = await cfGetFile(note.cfPath);
     const probe = await cfExec('echo ok');
     const report = [
       '# write_scratch_file',
       '',
       `backend: cloudflare-worker-shell`,
-      `wrote: /workspace/scratch/hello.txt (${payload.length} chars)`,
-      `read back: ${JSON.stringify(readBack)}`,
+      `wrote: ${note.cfPath} (${body.length} chars)`,
+      `read back: ${JSON.stringify(readBack.slice(-400))}`,
       `runtime probe: ${probe.stdout} exit=${probe.exitCode}`,
       '',
       'Workspace is a Cloudflare Durable Object (worker-shell).',
@@ -266,10 +276,10 @@ async function runScratchTask(task: ComputerTask): Promise<ComputerTask> {
       ...task,
       backend,
       status: 'completed',
-      resultSummary: 'Scratch file wrote on Cloudflare Computer and read back.',
-      filesInspected: ['/workspace/scratch/hello.txt'],
+      resultSummary: note.append ? 'Note saved on Cloudflare Computer.' : 'Scratch file wrote on Cloudflare Computer and read back.',
+      filesInspected: [note.cfPath],
       artifacts: [
-        artifact('scratch', '/workspace/scratch/hello.txt', 'hello.txt', readBack),
+        artifact('scratch', note.cfPath, note.cfPath.split('/').pop() || 'scratch', readBack.slice(-800)),
         artifact('report', `/workspace/reports/${task.id}.md`, 'scratch report', report),
       ],
       completedAt: nowIso(),
@@ -279,15 +289,24 @@ async function runScratchTask(task: ComputerTask): Promise<ComputerTask> {
     return log(task, 'completed write_scratch_file on worker-shell');
   }
 
-  task = log(task, 'write /scratch/hello.txt');
-  await workspaceWriteFile(WORKSPACE_ID, '/scratch/hello.txt', payload);
-  const readBack = await workspaceReadFile(WORKSPACE_ID, '/scratch/hello.txt');
+  task = log(task, `write ${note.shimPath}`);
+  let body = note.body;
+  if (note.append) {
+    try {
+      const existing = await workspaceReadFile(WORKSPACE_ID, note.shimPath);
+      body = `${existing}${note.body}`;
+    } catch {
+      /* new file */
+    }
+  }
+  await workspaceWriteFile(WORKSPACE_ID, note.shimPath, body);
+  const readBack = await workspaceReadFile(WORKSPACE_ID, note.shimPath);
   const probe = await workspaceRuntimeProbe();
   const report = [
     '# write_scratch_file',
     '',
-    `wrote: /scratch/hello.txt (${payload.length} chars)`,
-    `read back: ${JSON.stringify(readBack)}`,
+    `wrote: ${note.shimPath} (${body.length} chars)`,
+    `read back: ${JSON.stringify(readBack.slice(-400))}`,
     `runtime probe: ${probe.stdout} exit=${probe.exitCode}`,
     '',
     'Workspace is local disk under .data/computer-prototype/ws/owner/.',
@@ -298,10 +317,10 @@ async function runScratchTask(task: ComputerTask): Promise<ComputerTask> {
     ...task,
     backend,
     status: 'completed',
-    resultSummary: 'Scratch file wrote and read back. Runtime probe ok.',
-    filesInspected: ['/scratch/hello.txt'],
+    resultSummary: note.append ? 'Note saved in local workspace.' : 'Scratch file wrote and read back. Runtime probe ok.',
+    filesInspected: [note.shimPath],
     artifacts: [
-      artifact('scratch', '/scratch/hello.txt', 'hello.txt', readBack),
+      artifact('scratch', note.shimPath, note.shimPath.split('/').pop() || 'scratch', readBack.slice(-800)),
       artifact('report', wrote.path, 'scratch report', report),
     ],
     completedAt: nowIso(),
@@ -309,6 +328,33 @@ async function runScratchTask(task: ComputerTask): Promise<ComputerTask> {
     error: null,
   });
   return log(task, 'completed write_scratch_file');
+}
+
+function scratchPayload(
+  task: ComputerTask,
+  backend: ComputerBackend,
+): { shimPath: string; cfPath: string; body: string; append: boolean } {
+  const raw = (task.instructions || '').trim();
+  const isProbe =
+    !raw ||
+    /hello\.txt/i.test(raw) ||
+    /write \/scratch/i.test(raw) ||
+    /read it back/i.test(raw);
+  if (isProbe) {
+    return {
+      shimPath: '/scratch/hello.txt',
+      cfPath: '/workspace/scratch/hello.txt',
+      body: `hello from aileena computer\nroute=${task.route}\nbackend=${backend}\n${nowIso()}\n`,
+      append: false,
+    };
+  }
+  const day = nowIso().slice(0, 10);
+  return {
+    shimPath: `/scratch/notes/${day}.txt`,
+    cfPath: `/workspace/scratch/notes/${day}.txt`,
+    body: `${nowIso()}\n${raw.slice(0, 4000)}\n\n`,
+    append: true,
+  };
 }
 
 async function runCfFilesTask(task: ComputerTask): Promise<ComputerTask> {
@@ -327,7 +373,7 @@ async function runCfFilesTask(task: ComputerTask): Promise<ComputerTask> {
     });
   }
   if (task.taskType === 'files_search') {
-    const query = clip(task.instructions || '', 80) || 'hello';
+    const query = clip(workspaceSearchQuery(task.instructions || '') || 'hello', 80);
     const run = await cfExec(`grep -R -n -F -- ${shellWord(query)} .`);
     const text = [run.stdout, run.stderr].filter(Boolean).join('\n');
     return finishInspectStyle(task, {

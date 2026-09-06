@@ -138,6 +138,26 @@ export function parseOwnerComputerCommand(text: string): OwnerComputerCommand | 
     };
   }
 
+  const note = /^note:\s*(.+)$/i.exec(raw);
+  if (note) {
+    return {
+      kind: 'queue_task',
+      taskType: 'write_scratch_file',
+      route: '/proof',
+      instructions: note[1].trim().slice(0, 4000),
+    };
+  }
+
+  const find = /^find(?: in workspace)?:\s*(.+)$/i.exec(raw) || /^find\s+(.+)$/i.exec(raw);
+  if (find && !/commit/i.test(raw)) {
+    return {
+      kind: 'queue_task',
+      taskType: 'files_search',
+      route: '/proof',
+      instructions: `/workspace ${find[1].trim().slice(0, 80)}`,
+    };
+  }
+
   const prepareFix = /^prepare fix for\s+(\/\S+)(?:\s+(.+))?$/i.exec(raw);
   if (prepareFix) {
     const route = normalizeRoute(prepareFix[1]);

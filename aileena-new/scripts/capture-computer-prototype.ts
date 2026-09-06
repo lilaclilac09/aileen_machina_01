@@ -88,7 +88,8 @@ async function main() {
   if (overflow) throw new Error('horizontal overflow on console 390');
   await page.screenshot({ path: join(OUT, 'console-computer-dock.png') });
 
-  await page.locator('[data-testid="harness-plugin-inspect"]').click();
+  await page.locator('[aria-label="note"]').fill('hello from dock');
+  await page.locator('[data-testid="harness-plugin-note"]').click();
   await page.waitForFunction(() => document.querySelector('[data-testid="proof-flash"]')?.textContent?.includes('queued'));
   await page.screenshot({ path: join(OUT, 'proof-task-queued.png') });
 
@@ -145,41 +146,19 @@ async function main() {
   await dPage.locator('[data-testid="git-recent-commits"]').scrollIntoViewIfNeeded();
   await dPage.locator('[data-testid="git-recent-commits"]').screenshot({ path: join(OUT, 'git-tab-recent-commits.png') });
 
-  await dPage.locator('[data-testid="git-action-find-sound"]').click();
-  await dPage.waitForFunction(() => {
-    const running = Boolean(document.querySelector('[data-testid="computer-task-running"]'));
-    const el = document.querySelector('[data-testid="git-merge-candidates"]');
-    const text = el?.textContent || '';
-    return !running && /files=/.test(text) && /[0-9a-f]{7}/i.test(text);
-  }, null, { timeout: 45_000 });
-  await dPage.locator('[data-testid="git-merge-candidates"]').scrollIntoViewIfNeeded();
-  await dPage.locator('[data-testid="git-merge-candidates"]').screenshot({
-    path: join(OUT, 'git-tab-sound-merge-candidates.png'),
-  });
-
-  await dPage.locator('[data-testid="computer-tab-files"]').click();
-  await dPage.locator('[data-testid="files-action-open"]').click();
+  await dPage.locator('[data-testid="computer-tab-find"]').click();
+  await dPage.locator('[data-testid="files-action-workspace"]').click();
   await dPage.waitForFunction(() => {
     const running = Boolean(document.querySelector('[data-testid="computer-task-running"]'));
     const el = document.querySelector('[data-testid="files-readonly"]');
     const t = el?.textContent || '';
-    return !running && t.length > 40 && !/open a file to preview/i.test(t);
+    return !running && t.length > 8 && !/⚡ idle/i.test(t);
   }, null, { timeout: 40_000 });
   await dPage.locator('[data-testid="files-readonly"]').scrollIntoViewIfNeeded();
   await dPage.locator('[data-testid="computer-console-dock"]').screenshot({ path: join(OUT, 'files-tab-readonly.png') });
 
-  await dPage.locator('[data-testid="computer-tab-proof"]').click();
-  await dPage.waitForFunction(() => {
-    const el = document.querySelector('[data-testid="proof-attachment"]');
-    const text = el?.textContent || '';
-    return /Sound Lab rollback/i.test(text) && /[0-9a-f]{7}/i.test(text);
-  }, null, { timeout: 15_000 });
-  await dPage.locator('[data-testid="proof-attachment"]').scrollIntoViewIfNeeded();
-  await dPage.locator('[data-testid="proof-attachment"]').screenshot({ path: join(OUT, 'proof-attachment.png') });
-
   await dPage.locator('[data-testid="computer-tab-git"]').click();
   await dPage.locator('[data-testid="git-action-status"]').click();
-  await dPage.locator('[data-testid="computer-tab-tasks"]').click();
   await dPage.waitForSelector('[data-testid="computer-task-running"]', { timeout: 12_000 });
   await dPage.locator('[data-testid="computer-console-dock"]').screenshot({ path: join(OUT, 'tasks-tab-running.png') });
 

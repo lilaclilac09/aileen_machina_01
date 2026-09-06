@@ -183,6 +183,16 @@ function unitChecks() {
     'find Sound Lab merge routes to git_find_commit',
     find?.kind === 'queue_task' && find.taskType === 'git_find_commit',
   );
+  const savedNote = parseOwnerComputerCommand('note: buy oat milk');
+  assert(
+    'note: queues write_scratch_file',
+    savedNote?.kind === 'queue_task' && savedNote.taskType === 'write_scratch_file' && savedNote.instructions === 'buy oat milk',
+  );
+  const findNote = parseOwnerComputerCommand('find oat');
+  assert(
+    'find queues workspace search',
+    findNote?.kind === 'queue_task' && findNote.taskType === 'files_search' && findNote.instructions === '/workspace oat',
+  );
   const recent = parseOwnerComputerCommand('show me recent sound commits');
   assert('recent sound commits routes to git_log', recent?.kind === 'queue_task' && recent.taskType === 'git_log');
   const openSound = parseOwnerComputerCommand('open the /sound file');

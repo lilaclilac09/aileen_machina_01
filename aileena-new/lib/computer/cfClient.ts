@@ -42,7 +42,17 @@ export function toWorkspacePath(input: string): string | null {
 }
 
 export function isWorkspaceIntent(input: string): boolean {
-  return toWorkspacePath(input) !== null;
+  const t = input.trim();
+  if (t === '/workspace' || t.startsWith('/workspace/') || t.startsWith('/workspace ')) return true;
+  return toWorkspacePath(t) !== null;
+}
+
+/** Grep needle when Find sends `/workspace <query>`. */
+export function workspaceSearchQuery(input: string): string {
+  const t = input.trim();
+  if (t.startsWith('/workspace ')) return t.slice('/workspace '.length).trim();
+  if (t === '/workspace' || t.startsWith('/workspace/')) return '';
+  return t;
 }
 
 async function cfFetch(path: string, init: RequestInit = {}): Promise<Response> {
