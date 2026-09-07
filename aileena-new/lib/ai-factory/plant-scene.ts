@@ -71,6 +71,32 @@ function noiseTexture(size: number, tint: [number, number, number], grit = 38) {
   return texture;
 }
 
+function perforatedTexture() {
+  const size = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('canvas');
+  ctx.fillStyle = '#14171a';
+  ctx.fillRect(0, 0, size, size);
+  ctx.fillStyle = '#050607';
+  for (let y = 6; y < size; y += 10) {
+    for (let x = 6; x < size; x += 10) {
+      ctx.beginPath();
+      ctx.arc(x, y, 2.1, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.repeat.set(3, 8);
+  texture.anisotropy = 8;
+  return texture;
+}
+
 function metal(color: number, extras: THREE.MeshPhysicalMaterialParameters = {}) {
   return new THREE.MeshPhysicalMaterial({
     color,
@@ -90,14 +116,19 @@ export function mountPlantScene(
   host: HTMLElement,
   onClick: (hit: Click) => void,
 ): PlantSceneHandle {
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+  const renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    alpha: false,
+    powerPreference: 'high-performance',
+    preserveDrawingBuffer: true,
+  });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(host.clientWidth, host.clientHeight);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
   host.appendChild(renderer.domElement);
 
   const scene = new THREE.Scene();
@@ -105,39 +136,68 @@ export function mountPlantScene(
   scene.fog = new THREE.FogExp2(0x0a0d10, 0.032);
 
   const camera = new THREE.PerspectiveCamera(38, host.clientWidth / Math.max(host.clientHeight, 1), 0.08, 80);
-  camera.position.set(11.2, 6.4, 12.4);
+  camera.position.set(6.8, 3.15, 8.4);
 
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.06;
-  controls.maxPolarAngle = Math.PI * 0.48;
-  controls.minDistance = 1.4;
-  controls.maxDistance = 28;
-  controls.target.set(0, 0.95, 0);
+  controls.maxPolarAngle = Math.PI * 0.49;
+  controls.minDistance = 1.2;
+  controls.maxDistance = 22;
+  controls.target.set(0.2, 1.05, 0.4);
 
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 
-  const concrete = noiseTexture(256, [0.42, 0.41, 0.39], 70);
-  concrete.repeat.set(18, 18);
+  const concrete = noiseTexture(256, [0.38, 0.37, 0.35], 60);
+  concrete.repeat.set(14, 14);
   const steel = noiseTexture(128, [0.55, 0.58, 0.6], 90);
+  const perforate = perforatedTexture();
 
   const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(42, 42),
+    new THREE.PlaneGeometry(36, 28),
     new THREE.MeshPhysicalMaterial({
       map: concrete,
-      roughness: 0.72,
-      metalness: 0.08,
-      envMapIntensity: 0.35,
+      roughness: 0.78,
+      metalness: 0.06,
+      envMapIntensity: 0.28,
     }),
   );
   floor.rotation.x = -Math.PI / 2;
   floor.receiveShadow = true;
   scene.add(floor);
 
-  const tiles = new THREE.GridHelper(24, 32, 0x1c2422, 0x141918);
-  tiles.position.y = 0.002;
+  const tileGeo = new THREE.BoxGeometry(0.58, 0.03, 0.58);
+  const tileMat = new THREE.MeshPhysicalMaterial({
+    color: 0x2a2c2d,
+    roughness: 0.55,
+    metalness: 0.22,
+    map: steel,
+  });
+  const tiles = new THREE.InstancedMesh(tileGeo, tileMat, 28 * 18);
+  const tileDummy = new THREE.Object3D();
+  let tileIndex = 0;
+  for (let x = -8; x < 8; x += 1) {
+    for (let z = -6; z < 6; z += 1) {
+      tileDummy.position.set(x * 0.62 + 0.1, 0.016, z * 0.62);
+      tileDummy.updateMatrix();
+      tiles.setMatrixAt(tileIndex, tileDummy.matrix);
+      tileIndex += 1;
+    }
+  }
+  tiles.instanceMatrix.needsUpdate = true;
+  tiles.receiveShadow = true;
   scene.add(tiles);
+
+  const wallMat = new THREE.MeshPhysicalMaterial({ color: 0x101214, roughness: 0.9, metalness: 0.04, map: concrete });
+  const backWall = new THREE.Mesh(new THREE.PlaneGeometry(36, 7.2), wallMat);
+  backWall.position.set(0, 3.4, -13);
+  const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(28, 7.2), wallMat);
+  leftWall.position.set(-16, 3.4, 0);
+  leftWall.rotation.y = Math.PI / 2;
+  const slab = new THREE.Mesh(new THREE.BoxGeometry(36, 0.18, 28), metal(0x16181a, { roughness: 0.7 }));
+  slab.position.set(0, 5.05, 0);
+  scene.add(backWall, leftWall, slab);
 
   const key = new THREE.DirectionalLight(0xfff4e6, 2.15);
   key.position.set(8.5, 11, 6);
@@ -174,46 +234,72 @@ export function mountPlantScene(
   scene.add(ceiling);
 
   const hallGroup = new THREE.Group();
+  const hallClusters: THREE.Group[] = [];
   const hallCabinets: THREE.Mesh[] = [];
   const hallDoors: THREE.Mesh[] = [];
   const sidecars: THREE.Mesh[] = [];
   const whips: THREE.Mesh[] = [];
-  const cabinetGeo = new THREE.BoxGeometry(RACK_W, RACK_H, RACK_D);
-  const doorGeo = new THREE.BoxGeometry(RACK_W - 0.06, RACK_H - 0.18, 0.02);
-  const sidecarGeo = new THREE.BoxGeometry(SIDECAR_W, RACK_H, RACK_D * 0.82);
-  const cabinetMat = metal(0x17191c, { roughness: 0.34, map: steel });
+  const bodyGeo = new THREE.BoxGeometry(RACK_W - 0.04, RACK_H - 0.12, RACK_D - 0.06);
+  const postGeo = new THREE.BoxGeometry(0.035, RACK_H, 0.035);
+  const plinthGeo = new THREE.BoxGeometry(RACK_W + 0.04, 0.08, RACK_D + 0.04);
+  const capGeo = new THREE.BoxGeometry(RACK_W + 0.02, 0.05, RACK_D + 0.02);
+  const doorGeo = new THREE.BoxGeometry(RACK_W - 0.08, RACK_H - 0.28, 0.018);
+  const sidecarGeo = new THREE.BoxGeometry(SIDECAR_W, RACK_H - 0.1, RACK_D * 0.78);
+  const bodyMat = metal(0x15171a, { roughness: 0.3, map: steel });
+  const postMat = metal(0x0d0e10, { roughness: 0.22 });
   for (let id = 0; id < HALL_SLOTS; id += 1) {
     const pose = hallPose(id);
-    const cabinet = new THREE.Mesh(cabinetGeo, cabinetMat.clone());
-    cabinet.position.set(pose.x, RACK_H / 2, pose.z);
+    const cluster = new THREE.Group();
+    cluster.position.set(pose.x, 0, pose.z);
+    const cabinet = new THREE.Mesh(bodyGeo, bodyMat.clone());
+    cabinet.position.y = RACK_H / 2;
     cabinet.castShadow = true;
     cabinet.receiveShadow = true;
     cabinet.userData = { kind: 'hall', id };
+    const plinth = new THREE.Mesh(plinthGeo, metal(0x0b0c0d, { roughness: 0.45 }));
+    plinth.position.y = 0.04;
+    const cap = new THREE.Mesh(capGeo, metal(0x1a1d20, { roughness: 0.28 }));
+    cap.position.y = RACK_H - 0.02;
     const door = new THREE.Mesh(
       doorGeo,
       new THREE.MeshPhysicalMaterial({
-        color: 0x0c1012,
-        metalness: 0.15,
-        roughness: 0.08,
-        transmission: 0.18,
-        thickness: 0.04,
-        transparent: true,
-        opacity: 0.92,
+        color: 0x171a1d,
+        map: perforate,
+        metalness: 0.72,
+        roughness: 0.38,
+        envMapIntensity: 0.9,
       }),
     );
-    door.position.set(pose.x, RACK_H / 2, pose.z + RACK_D / 2 + 0.012);
+    door.position.set(0, RACK_H / 2, RACK_D / 2 - 0.01);
     door.userData = { kind: 'hall', id };
-    const sidecar = new THREE.Mesh(sidecarGeo, metal(0x2b2118, { roughness: 0.4 }));
-    sidecar.position.set(pose.sidecarX, RACK_H / 2, pose.z);
+    const led = new THREE.Mesh(
+      new THREE.BoxGeometry(0.03, 0.18, 0.012),
+      new THREE.MeshStandardMaterial({ color: 0x00c2b0, emissive: 0x00c2b0, emissiveIntensity: 1.4 }),
+    );
+    led.position.set(RACK_W / 2 - 0.06, RACK_H - 0.22, RACK_D / 2 + 0.002);
+    for (const [sx, sz] of [
+      [-1, -1],
+      [1, -1],
+      [-1, 1],
+      [1, 1],
+    ] as const) {
+      const post = new THREE.Mesh(postGeo, postMat);
+      post.position.set(sx * (RACK_W / 2 - 0.01), RACK_H / 2, sz * (RACK_D / 2 - 0.01));
+      cluster.add(post);
+    }
+    const sidecar = new THREE.Mesh(sidecarGeo, metal(0x2a1d12, { roughness: 0.36 }));
+    sidecar.position.set(pose.sidecarX - pose.x, RACK_H / 2, 0);
     sidecar.castShadow = true;
     sidecar.userData = { kind: 'hall', id };
-    const whip = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 1.1, 8), metal(0x3b2a18, { roughness: 0.6 }));
-    whip.position.set(pose.x + 0.22, 3.1, pose.z);
+    const whip = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.012, 0.42, 8), metal(0x2a2118, { roughness: 0.55 }));
+    whip.position.set(0.18, RACK_H + 0.18, 0.1);
+    hallClusters.push(cluster);
     hallCabinets.push(cabinet);
     hallDoors.push(door);
     sidecars.push(sidecar);
     whips.push(whip);
-    hallGroup.add(cabinet, door, sidecar, whip);
+    cluster.add(cabinet, plinth, cap, door, led, sidecar, whip);
+    hallGroup.add(cluster);
   }
   scene.add(hallGroup);
 
@@ -221,9 +307,12 @@ export function mountPlantScene(
   const cdus: THREE.Mesh[] = [];
   for (let i = 0; i < 6; i += 1) {
     const pose = cduPose(i);
-    const body = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.7, 1.15), metal(0x1d2a2c, { roughness: 0.38 }));
-    body.position.set(pose.x, 0.85, pose.z);
+    const body = new THREE.Mesh(new THREE.BoxGeometry(0.92, 1.78, 1.22), metal(0x1a2628, { roughness: 0.32 }));
+    body.position.set(pose.x, 0.89, pose.z);
     body.castShadow = true;
+    const face = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.42, 0.03), metal(0x0e1213, { roughness: 0.2 }));
+    face.position.set(pose.x, 1.15, pose.z + 0.63);
+    cduGroup.add(face);
     const pipe = new THREE.Mesh(
       new THREE.CylinderGeometry(0.045, 0.045, 1.4, 16),
       new THREE.MeshPhysicalMaterial({
@@ -276,13 +365,32 @@ export function mountPlantScene(
   function buildHero(fact: RackFactSheet) {
     clearHero();
     const frame = metal(0x121416, { roughness: 0.32 });
-    const rails = new THREE.Mesh(new THREE.BoxGeometry(RACK_W + 0.04, RACK_H + 0.04, RACK_D + 0.04), frame);
-    rails.position.set(0, RACK_H / 2, 0);
-    addHeroMesh(rails);
-
-    const inner = new THREE.Mesh(new THREE.BoxGeometry(RACK_W - 0.05, RACK_H - 0.08, RACK_D - 0.08), metal(0x0c0d0f, { roughness: 0.55 }));
-    inner.position.set(0, RACK_H / 2, 0);
-    addHeroMesh(inner);
+    const postGeo = new THREE.BoxGeometry(0.04, RACK_H, 0.04);
+    for (const [sx, sz] of [
+      [-1, -1],
+      [1, -1],
+      [-1, 1],
+      [1, 1],
+    ] as const) {
+      const post = new THREE.Mesh(postGeo, frame);
+      post.position.set(sx * (RACK_W / 2 - 0.01), RACK_H / 2, sz * (RACK_D / 2 - 0.01));
+      addHeroMesh(post);
+    }
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(RACK_W + 0.03, 0.05, RACK_D + 0.03), frame);
+    cap.position.set(0, RACK_H - 0.02, 0);
+    addHeroMesh(cap);
+    const plinth = new THREE.Mesh(new THREE.BoxGeometry(RACK_W + 0.04, 0.07, RACK_D + 0.04), metal(0x0b0c0d, { roughness: 0.45 }));
+    plinth.position.set(0, 0.035, 0);
+    addHeroMesh(plinth);
+    const sideGeo = new THREE.BoxGeometry(0.012, RACK_H - 0.12, RACK_D - 0.08);
+    for (const side of [-1, 1]) {
+      const panel = new THREE.Mesh(sideGeo, metal(0x1a1c1f, { roughness: 0.4 }));
+      panel.position.set(side * (RACK_W / 2 - 0.008), RACK_H / 2, 0);
+      addHeroMesh(panel);
+    }
+    const rear = new THREE.Mesh(new THREE.BoxGeometry(RACK_W - 0.08, RACK_H - 0.14, 0.012), metal(0x101214, { roughness: 0.5 }));
+    rear.position.set(0, RACK_H / 2, -RACK_D / 2 + 0.03);
+    addHeroMesh(rear);
 
     let cursor = RACK_H - 0.08;
     for (const segment of fact.frontStack) {
@@ -352,8 +460,8 @@ export function mountPlantScene(
   function aimCamera(input: PlantSceneInput) {
     const pose = hallPose(input.model.focus.id);
     if (input.cameraMode === 'hall') {
-      desiredCam.set(11.2, 6.4, 12.4);
-      desiredTarget.set(0, 0.95, 0);
+      desiredCam.set(6.8, 3.15, 8.4);
+      desiredTarget.set(0.2, 1.05, 0.4);
     } else if (input.face === 'rear') {
       desiredCam.set(pose.x, 1.45, pose.z - 2.55);
       desiredTarget.set(pose.x, 1.15, pose.z);
@@ -378,6 +486,7 @@ export function mountPlantScene(
       const door = hallDoors[id];
       const sidecar = sidecars[id];
       const whip = whips[id];
+      hallClusters[id].visible = rack.active && !rack.focused;
       cabinet.visible = rack.active && !rack.focused;
       door.visible = rack.active && !rack.focused;
       sidecar.visible = rack.active && usesSidecar(input.powerPath);
@@ -415,6 +524,8 @@ export function mountPlantScene(
     if (input.cameraMode !== lastMode || input.face !== lastFace || input.model.focus.id !== lastFocus) {
       aimCamera(input);
       followCamera = true;
+      camera.position.copy(desiredCam);
+      controls.target.copy(desiredTarget);
       lastMode = input.cameraMode;
       lastFace = input.face;
       lastFocus = input.model.focus.id;
@@ -477,6 +588,7 @@ export function mountPlantScene(
       pmrem.dispose();
       concrete.dispose();
       steel.dispose();
+      perforate.dispose();
       clearHero();
       renderer.dispose();
       renderer.domElement.remove();

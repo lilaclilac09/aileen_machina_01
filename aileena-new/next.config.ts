@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
   // aileena-new/.env.local (COMPUTER_WORKER_URL) was ignored and the dock
   // stayed on local shim. Pin the app directory.
   transpilePackages: ['three'],
+  allowedDevOrigins: ['127.0.0.1'],
   turbopack: {
     root: appRoot,
   },
