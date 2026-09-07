@@ -89,9 +89,9 @@ export const t = {
         'ai-factory-sim': {
           tag: 'SIM',
           title: 'AI Factory Sim',
-          body: 'DSX-inspired rack heat, airflow and power toy model.',
+          body: 'DSX shell with SemiAnalysis-style power, cooling and gap stressors.',
           why: 'Omniverse DSX is too heavy for a personal page; this keeps the digital twin idea touchable.',
-          verdict: 'Experiment. Real controls, illustrative math, no fake stream.',
+          verdict: 'Experiment. 800VDC, VR NVL72 and flaw toggles, no fake stream.',
           statusLabel: 'experiment',
         },
         computer: {
@@ -332,12 +332,19 @@ export const t = {
       aiFactorySim: {
         tag: 'AI FACTORY',
         heading: 'AI Factory Sim',
-        body: 'A small DSX-inspired digital twin: rack density in, heat and power out.',
+        body: 'DSX shell, SemiAnalysis lens: rack density in, hidden bottlenecks out.',
         backToTools: '← Tools',
-        marquee: 'AI FACTORY · RACKS · AIRFLOW · POWER · HEAT',
-        sourceLabel: 'inspired by NVIDIA Omniverse DSX',
+        marquee: 'AI FACTORY · SEMIANALYSIS · 800VDC · VR NVL72 · BOTTLENECKS',
+        sourceLabel: 'DSX shell · SemiAnalysis stress lens',
         presetLabel: 'scenarios',
         variantLabel: 'rack variant',
+        powerPathLabel: 'power path',
+        gapLabel: 'flaw toggles',
+        powerPaths: {
+          'legacy-ac': 'legacy AC',
+          '800v-sidecar': '800V sidecar',
+          'facility-hvdc': 'facility HVDC',
+        },
         controls: {
           racks: 'racks online',
           load: 'AI load',
@@ -349,14 +356,51 @@ export const t = {
           thermal: 'thermal index',
           flow: 'flow margin',
           headroom: 'power headroom',
+          gapTax: 'gap tax',
         },
         status: {
           stable: 'stable twin',
           watch: 'watch airflow',
           hot: 'hot aisle',
+          power: 'power blocked',
         },
+        gaps: {
+          coolingAc: {
+            label: 'cooling still AC',
+            body: '800VDC helps IT power; chillers, pumps and controls still drag.',
+          },
+          gridDelay: {
+            label: 'grid delay',
+            body: 'Megawatts do not arrive on GPU cadence; behind-the-meter fills the hole.',
+          },
+          schedulerTail: {
+            label: 'scheduler tail',
+            body: 'GB300 AgentX-style long contexts pin KV and hide real utilization.',
+          },
+          modularClaims: {
+            label: 'LEGO claim',
+            body: 'Modular vendors say plug-and-play; interfaces still fragment.',
+          },
+        },
+        sourceNotes: [
+          {
+            kicker: 'SemiAnalysis update',
+            title: '800VDC is efficiency, not magic',
+            body: 'Sidecars can cut conversion loss, but the rack still steps down near compute.',
+          },
+          {
+            kicker: 'Rubin update',
+            title: 'VR NVL72 raises the floor',
+            body: '180-220kW racks move the bottleneck from chip supply to power delivery.',
+          },
+          {
+            kicker: 'Flaw',
+            title: 'The missing load is the story',
+            body: 'Cooling, grid wait, scheduler tail and modular mismatch are modeled as gap tax.',
+          },
+        ],
         note:
-          'Toy model only. The real DSX blueprint uses Omniverse Kit, OpenUSD, CFD samples and GPU streaming.',
+          'Toy model only. Numbers are simplified from public SemiAnalysis / InferenceX themes; not CFD, not procurement advice.',
         related: 'Read the rack thesis →',
       },
     },
@@ -1015,9 +1059,9 @@ export const t = {
         'ai-factory-sim': {
           tag: 'SIM',
           title: 'AI Factory Sim',
-          body: 'DSX-inspiriertes Toy Model für Rack-Hitze, Airflow und Power.',
+          body: 'DSX-Hülle mit SemiAnalysis-artigen Power-, Cooling- und Gap-Stressoren.',
           why: 'Omniverse DSX ist zu schwer für eine persönliche Seite; hier bleibt die Digital-Twin-Idee berührbar.',
-          verdict: 'Experiment. Echte Controls, illustrative Mathe, kein Fake-Stream.',
+          verdict: 'Experiment. 800VDC, VR NVL72 und Fehler-Toggles, kein Fake-Stream.',
           statusLabel: 'experiment',
         },
         computer: {
@@ -1257,12 +1301,19 @@ export const t = {
       aiFactorySim: {
         tag: 'AI FACTORY',
         heading: 'AI Factory Sim',
-        body: 'Ein kleiner DSX-inspirierter Digital Twin: Rack-Dichte rein, Hitze und Power raus.',
+        body: 'DSX-Hülle, SemiAnalysis-Linse: Rack-Dichte rein, versteckte Bottlenecks raus.',
         backToTools: '← Tools',
-        marquee: 'AI FACTORY · RACKS · AIRFLOW · POWER · HEAT',
-        sourceLabel: 'inspiriert von NVIDIA Omniverse DSX',
+        marquee: 'AI FACTORY · SEMIANALYSIS · 800VDC · VR NVL72 · BOTTLENECKS',
+        sourceLabel: 'DSX-Hülle · SemiAnalysis-Stresslinse',
         presetLabel: 'Szenarien',
         variantLabel: 'Rack-Variante',
+        powerPathLabel: 'Power Path',
+        gapLabel: 'Fehler-Toggles',
+        powerPaths: {
+          'legacy-ac': 'legacy AC',
+          '800v-sidecar': '800V Sidecar',
+          'facility-hvdc': 'Facility HVDC',
+        },
         controls: {
           racks: 'Racks online',
           load: 'AI-Last',
@@ -1274,14 +1325,51 @@ export const t = {
           thermal: 'Thermal Index',
           flow: 'Flow Margin',
           headroom: 'Power Headroom',
+          gapTax: 'Gap Tax',
         },
         status: {
           stable: 'stable twin',
           watch: 'watch airflow',
           hot: 'hot aisle',
+          power: 'power blocked',
         },
+        gaps: {
+          coolingAc: {
+            label: 'Cooling bleibt AC',
+            body: '800VDC hilft IT-Power; Chiller, Pumpen und Controls schleppen weiter.',
+          },
+          gridDelay: {
+            label: 'Grid Delay',
+            body: 'Megawatt kommen nicht im GPU-Takt; behind-the-meter füllt das Loch.',
+          },
+          schedulerTail: {
+            label: 'Scheduler Tail',
+            body: 'GB300 AgentX-artige Long Contexts pinnen KV und verstecken Utilization.',
+          },
+          modularClaims: {
+            label: 'LEGO Claim',
+            body: 'Modulare Anbieter sagen plug-and-play; Interfaces bleiben fragmentiert.',
+          },
+        },
+        sourceNotes: [
+          {
+            kicker: 'SemiAnalysis Update',
+            title: '800VDC ist Effizienz, keine Magie',
+            body: 'Sidecars senken Conversion Loss, aber der Rack steppt nahe Compute weiter runter.',
+          },
+          {
+            kicker: 'Rubin Update',
+            title: 'VR NVL72 hebt den Boden',
+            body: '180-220kW Racks verschieben den Bottleneck von Chip-Zugang zu Power Delivery.',
+          },
+          {
+            kicker: 'Fehler',
+            title: 'Die versteckte Last ist die Story',
+            body: 'Cooling, Grid Wait, Scheduler Tail und Modular-Mismatch laufen als Gap Tax.',
+          },
+        ],
         note:
-          'Toy Model only. Der echte DSX Blueprint nutzt Omniverse Kit, OpenUSD, CFD-Samples und GPU-Streaming.',
+          'Toy Model only. Zahlen sind aus öffentlichen SemiAnalysis / InferenceX Themes vereinfacht; kein CFD, keine Procurement Advice.',
         related: 'Rack-These lesen →',
       },
     },
