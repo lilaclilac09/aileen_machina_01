@@ -1818,7 +1818,25 @@ export default function AgentChat() {
           </div>
         </div>
 
-        {computerMode ? <ComputerConsoleDock isOwner={isOwner} /> : null}
+        {computerMode ? <ComputerConsoleDock isOwner={isOwner} /> : (
+          <button
+            type="button"
+            data-testid="computer-wake-strip"
+            aria-label="Open the small computer"
+            onClick={() => setComputerMode(true)}
+            className="flex w-full items-center gap-2.5 border-b border-[#e7e0d6] bg-[#f6f0e4] px-3 py-2 text-left transition-colors hover:bg-[#f1e9da]"
+          >
+            <span
+              aria-hidden
+              className="inline-block h-5 w-8 shrink-0 rounded-[3px] border border-[#1b1713]/45 bg-[#0b2422] shadow-[inset_0_0_5px_rgba(0,0,0,0.6)]"
+            >
+              <span className="block pl-1 pt-0.5 font-mono text-[0.45rem] leading-none text-[#8fe6dd]/70">zZ</span>
+            </span>
+            <span className="font-mono text-[0.55rem] tracking-[0.16em] uppercase text-[#007d75]">
+              小电脑 · tap to open
+            </span>
+          </button>
+        )}
 
         {/* Transcript — flex-auto: content-sized when dialog is short; shrinks +
             scrolls when dialog hits sm:max-h-[72vh]. Bottom chrome stays visible.
