@@ -347,6 +347,11 @@ function main() {
   assert('voice-code stays propose-only not dsh', /harness: 'propose-only'/.test(vcodeSrc) && /write_target: null/.test(vcodeSrc) && /not DeepSeek Harness/.test(vcodeSrc));
   assert('voice-code never returns apply true', /apply: false/.test(vcodeSrc) && /wantsWrite/.test(vcodeSrc));
   assert('voice-code does not import dsh', !/from ['"][^'"]*dsh|@deepseek-ai\/dsh|npx @deepseek-ai/.test(vcodeSrc));
+  assert(
+    'voice-code never invents file paths',
+    /NEVER invent file paths/.test(vcodeSrc) && /example only — not the real file/.test(vcodeSrc),
+  );
+  assert('voice-code knows the real Console file', /components\/AgentChat\.tsx/.test(vcodeSrc));
   assert('voice-code fetch sends voiceAccent', /\/api\/voice-code/.test(agentChatSrc) && /prompt: trimmed/.test(agentChatSrc));
   assert(
     'voice-on empty state still teaches voice-code',
