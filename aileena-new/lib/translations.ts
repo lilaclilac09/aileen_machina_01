@@ -86,6 +86,14 @@ export const t = {
           verdict: 'Not better than CapCut yet. Kept as an experiment.',
           statusLabel: 'experiment',
         },
+        'ai-factory-sim': {
+          tag: 'SIM',
+          title: 'AI Factory Sim',
+          body: 'DSX-inspired rack heat, airflow and power toy model.',
+          why: 'Omniverse DSX is too heavy for a personal page; this keeps the digital twin idea touchable.',
+          verdict: 'Experiment. Real controls, illustrative math, no fake stream.',
+          statusLabel: 'experiment',
+        },
         computer: {
           tag: 'AGENT',
           title: 'Computer',
@@ -320,6 +328,36 @@ export const t = {
         openConsole: 'open site agent',
         essay: 'Read the essay →',
         disclaimer: 'Experiment. Local shim. Not Cloudflare Computer. Not DeepSeek Harness. Merge stays blocked.',
+      },
+      aiFactorySim: {
+        tag: 'AI FACTORY',
+        heading: 'AI Factory Sim',
+        body: 'A small DSX-inspired digital twin: rack density in, heat and power out.',
+        backToTools: '← Tools',
+        marquee: 'AI FACTORY · RACKS · AIRFLOW · POWER · HEAT',
+        sourceLabel: 'inspired by NVIDIA Omniverse DSX',
+        presetLabel: 'scenarios',
+        variantLabel: 'rack variant',
+        controls: {
+          racks: 'racks online',
+          load: 'AI load',
+          cooling: 'cooling flow',
+          ambient: 'ambient',
+        },
+        readouts: {
+          power: 'power draw',
+          thermal: 'thermal index',
+          flow: 'flow margin',
+          headroom: 'power headroom',
+        },
+        status: {
+          stable: 'stable twin',
+          watch: 'watch airflow',
+          hot: 'hot aisle',
+        },
+        note:
+          'Toy model only. The real DSX blueprint uses Omniverse Kit, OpenUSD, CFD samples and GPU streaming.',
+        related: 'Read the rack thesis →',
       },
     },
     elsewhere: {
@@ -974,6 +1012,14 @@ export const t = {
           verdict: 'Noch nicht besser als CapCut. Bleibt ein Experiment.',
           statusLabel: 'experiment',
         },
+        'ai-factory-sim': {
+          tag: 'SIM',
+          title: 'AI Factory Sim',
+          body: 'DSX-inspiriertes Toy Model für Rack-Hitze, Airflow und Power.',
+          why: 'Omniverse DSX ist zu schwer für eine persönliche Seite; hier bleibt die Digital-Twin-Idee berührbar.',
+          verdict: 'Experiment. Echte Controls, illustrative Mathe, kein Fake-Stream.',
+          statusLabel: 'experiment',
+        },
         computer: {
           tag: 'AGENT',
           title: 'Computer',
@@ -1207,6 +1253,36 @@ export const t = {
         openConsole: 'Site-Agent öffnen',
         essay: 'Essay lesen →',
         disclaimer: 'Experiment. Lokaler Shim. Nicht Cloudflare Computer. Nicht DeepSeek Harness. Merge bleibt gesperrt.',
+      },
+      aiFactorySim: {
+        tag: 'AI FACTORY',
+        heading: 'AI Factory Sim',
+        body: 'Ein kleiner DSX-inspirierter Digital Twin: Rack-Dichte rein, Hitze und Power raus.',
+        backToTools: '← Tools',
+        marquee: 'AI FACTORY · RACKS · AIRFLOW · POWER · HEAT',
+        sourceLabel: 'inspiriert von NVIDIA Omniverse DSX',
+        presetLabel: 'Szenarien',
+        variantLabel: 'Rack-Variante',
+        controls: {
+          racks: 'Racks online',
+          load: 'AI-Last',
+          cooling: 'Kühlfluss',
+          ambient: 'Umgebung',
+        },
+        readouts: {
+          power: 'Power Draw',
+          thermal: 'Thermal Index',
+          flow: 'Flow Margin',
+          headroom: 'Power Headroom',
+        },
+        status: {
+          stable: 'stable twin',
+          watch: 'watch airflow',
+          hot: 'hot aisle',
+        },
+        note:
+          'Toy Model only. Der echte DSX Blueprint nutzt Omniverse Kit, OpenUSD, CFD-Samples und GPU-Streaming.',
+        related: 'Rack-These lesen →',
       },
     },
     elsewhere: {

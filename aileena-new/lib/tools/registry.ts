@@ -72,6 +72,21 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     },
   },
   {
+    slug: 'ai-factory-sim',
+    tag: 'SIM',
+    title: 'AI Factory Sim',
+    body: 'DSX-inspired rack load, airflow, power and heat toy model.',
+    why: 'Omniverse DSX is too heavy for a personal page; this keeps the twin idea visible in-browser.',
+    verdict: 'Experiment. Real controls, illustrative math, no fake Omniverse stream.',
+    href: '/tools/ai-factory-sim',
+    status: 'experiment',
+    tier: 'experiment',
+    arcade: {
+      glyph: '▦',
+      screenGradient: '#d8eeeb',
+    },
+  },
+  {
     slug: 'computer',
     tag: 'AGENT',
     title: 'Computer',
