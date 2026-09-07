@@ -61,6 +61,12 @@ If you unzipped an old `aileena-new.zip` over an existing folder, or you see `Ca
 rm -rf node_modules .next && pnpm install && pnpm dev
 ```
 
+On a machine that also has a home unzip at `~/aileena-new` (no git), archive it and add a `aileena-dev` alias so Poke’s old `cd ~/aileena-new && pnpm dev` cannot start the black boot UI:
+
+```bash
+bash ../scripts/pin-local-dev.sh
+```
+
 Environment variables:
 
 | Var | Required? | Purpose |
