@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { useLanguage } from '../LanguageProvider';
 import { t } from '../../lib/translations';
 import ArcadeLayout from './ArcadeLayout';
+import { POWER_PATH_FACTS, RACK_FACTS, type EvidenceLevel, type RackFactSheet, type RackVariant } from '../../lib/ai-factory/rack-facts';
 
-type RackVariant = 'GB200 NVL72' | 'GB300 NVL72' | 'VR NVL72';
 type PowerPath = 'legacy-ac' | '800v-sidecar' | 'facility-hvdc';
 type Scenario = 'balanced' | 'overpack' | 'cooldown';
 type GapKey = 'coolingAc' | 'gridDelay' | 'schedulerTail' | 'modularClaims';
@@ -60,11 +60,6 @@ const PRESETS: Preset[] = [
 ];
 
 const RACKS = Array.from({ length: 48 }, (_, i) => i);
-const RACK_POWER_KW: Record<RackVariant, number> = {
-  'GB200 NVL72': 135,
-  'GB300 NVL72': 153,
-  'VR NVL72': 220,
-};
 const POWER_PATHS: PowerPath[] = ['legacy-ac', '800v-sidecar', 'facility-hvdc'];
 const GAP_KEYS: GapKey[] = ['coolingAc', 'gridDelay', 'schedulerTail', 'modularClaims'];
 
@@ -95,11 +90,13 @@ export default function AiFactorySimTool() {
     schedulerTail: false,
     modularClaims: false,
   });
+  const rackFact = RACK_FACTS[variant];
+  const powerPathFact = POWER_PATH_FACTS[powerPath];
 
   const model = useMemo(() => {
-    const rackKw = RACK_POWER_KW[variant];
-    const powerLossRate = powerPath === 'legacy-ac' ? 0.08 : powerPath === '800v-sidecar' ? 0.03 : 0.02;
-    const designMw = powerPath === 'legacy-ac' ? 7.2 : powerPath === '800v-sidecar' ? 8.6 : 9.4;
+    const rackKw = rackFact.rackPowerKw;
+    const powerLossRate = powerPathFact.lossRate;
+    const designMw = (rackCount * rackKw * powerPathFact.envelopeMultiplier) / 1000;
     const itPowerMw = (rackCount * rackKw * (0.42 + aiLoad / 170)) / 1000;
     const gapTaxMw =
       (gaps.coolingAc ? itPowerMw * 0.025 : 0) +
@@ -108,12 +105,16 @@ export default function AiFactorySimTool() {
       (gaps.modularClaims ? 0.18 : 0);
     const facilityMw = itPowerMw * (1 + powerLossRate) + gapTaxMw;
     const powerHeadroom = clamp(((designMw - facilityMw) / designMw) * 100, -40, 100);
+    const liquidCredit = rackFact.coolingLiquidShare * 12;
+    const airRemainderPenalty = rackFact.coolingAirShare * 12;
     const thermalIndex = clamp(
-      aiLoad * 0.58 +
-        rackCount * 0.68 +
+      aiLoad * 0.56 +
+        rackCount * 0.54 +
         ambient * 1.05 -
         cooling * 0.76 +
         powerLossRate * 120 +
+        airRemainderPenalty -
+        liquidCredit +
         (gaps.coolingAc ? 9 : 0) +
         (gaps.schedulerTail ? 4 : 0) +
         (gaps.modularClaims ? 5 : 0),
@@ -124,6 +125,8 @@ export default function AiFactorySimTool() {
         ambient * 0.42 +
         (variant === 'GB200 NVL72' ? 8 : 0) -
         (variant === 'VR NVL72' ? 9 : 0) -
+        rackFact.coolingAirShare * 10 +
+        rackFact.coolingLiquidShare * 8 -
         (gaps.coolingAc ? 8 : 0) -
         (gaps.modularClaims ? 5 : 0),
       -20,
@@ -162,7 +165,11 @@ export default function AiFactorySimTool() {
     gaps.gridDelay,
     gaps.modularClaims,
     gaps.schedulerTail,
-    powerPath,
+    powerPathFact.envelopeMultiplier,
+    powerPathFact.lossRate,
+    rackFact.coolingAirShare,
+    rackFact.coolingLiquidShare,
+    rackFact.rackPowerKw,
     rackCount,
     tx.status.hot,
     tx.status.power,
@@ -236,6 +243,8 @@ export default function AiFactorySimTool() {
               <strong>{model.status}</strong>
             </div>
           </div>
+
+          <RackTwin fact={rackFact} powerPathLabel={powerPathFact.label} powerPathLevel={powerPathFact.level} />
 
           <div className="ai-factory-readouts" aria-live="polite">
             <Readout label={tx.readouts.power} value={`${model.facilityMw.toFixed(1)} MW`} />
@@ -333,6 +342,81 @@ export default function AiFactorySimTool() {
       </section>
     </ArcadeLayout>
   );
+}
+
+function RackTwin({
+  fact,
+  powerPathLabel,
+  powerPathLevel,
+}: {
+  fact: RackFactSheet;
+  powerPathLabel: string;
+  powerPathLevel: EvidenceLevel;
+}) {
+  return (
+    <div className="ai-factory-rack-twin">
+      <div className="ai-factory-rack-visual" aria-label={`${fact.variant} source-backed rack cutaway`}>
+        <div className="ai-factory-rack-title">
+          <span>{fact.generation}</span>
+          <strong>{fact.variant}</strong>
+          <small>{fact.rackPowerLabel}</small>
+        </div>
+        <div className="ai-factory-rack-shell">
+          <div
+            className="ai-factory-rack-face"
+            style={{ gridTemplateRows: fact.frontStack.map((segment) => `${segment.units}fr`).join(' ') }}
+          >
+            {fact.frontStack.map((segment) => (
+              <span
+                key={`${segment.label}-${segment.kind}`}
+                className={`ai-factory-rack-segment ai-factory-rack-segment--${segment.kind}`}
+              >
+                <small>{segment.units}U</small>
+                {segment.label}
+                <EvidenceBadge level={segment.level} />
+              </span>
+            ))}
+          </div>
+          <div className="ai-factory-rack-rear" aria-label="rear systems">
+            {fact.rearSystems.map((system) => (
+              <span key={system.label}>
+                <small>{system.label}</small>
+                {system.value}
+              </span>
+            ))}
+          </div>
+        </div>
+        <p>{fact.visualCaveat}</p>
+      </div>
+
+      <div className="ai-factory-ledger">
+        <article className="ai-factory-path-card">
+          <span>power path</span>
+          <strong>{powerPathLabel}</strong>
+          <EvidenceBadge level={powerPathLevel} />
+        </article>
+        {fact.facts.map((item) => (
+          <article key={item.label} className="ai-factory-fact-card">
+            <span>{item.label}</span>
+            <strong>{item.value}</strong>
+            <p>{item.detail}</p>
+            <EvidenceBadge level={item.level} />
+          </article>
+        ))}
+        <div className="ai-factory-source-list">
+          {fact.sources.map((source) => (
+            <a key={source.href} href={source.href} target="_blank" rel="noopener noreferrer">
+              {source.label} ↗
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EvidenceBadge({ level }: { level: EvidenceLevel }) {
+  return <em className={`ai-factory-evidence ai-factory-evidence--${level}`}>{level}</em>;
 }
 
 function Readout({ label, value }: { label: string; value: string }) {
