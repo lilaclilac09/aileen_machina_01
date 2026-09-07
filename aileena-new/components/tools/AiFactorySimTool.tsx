@@ -229,6 +229,24 @@ function Control({
         onChange={(event) => onChange(Number(event.target.value))}
         data-testid={`ai-factory-${testId}`}
       />
+      <div className="ai-factory-nudges" aria-label={`${label} nudges`}>
+        <button
+          type="button"
+          onClick={() => onChange(clamp(value - 1, min, max))}
+          aria-label={`Lower ${label}`}
+          data-testid={`ai-factory-${testId}-down`}
+        >
+          -
+        </button>
+        <button
+          type="button"
+          onClick={() => onChange(clamp(value + 1, min, max))}
+          aria-label={`Raise ${label}`}
+          data-testid={`ai-factory-${testId}-up`}
+        >
+          +
+        </button>
+      </div>
     </label>
   );
 }

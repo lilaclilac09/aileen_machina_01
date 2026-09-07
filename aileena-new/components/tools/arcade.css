@@ -912,6 +912,28 @@
   accent-color: #00a99f;
 }
 
+.ai-factory-nudges {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.ai-factory-nudges button {
+  border: 0;
+  border-radius: 0;
+  cursor: pointer;
+  min-height: 34px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  color: rgba(20, 17, 12, 0.68);
+  background: #f3f0e8;
+}
+
+.ai-factory-nudges button:hover,
+.ai-factory-nudges button:focus-visible {
+  color: #fffdf8;
+  background: #008f86;
+}
+
 .ai-factory-note {
   margin: 20px 0 12px;
   font-family: 'JetBrains Mono', ui-monospace, monospace;
