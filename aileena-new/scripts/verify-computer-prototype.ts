@@ -115,8 +115,8 @@ function sourceChecks() {
       /computerMode \? <ComputerConsoleDock isOwner=\{isOwner\}/.test(agentChatSrc),
   );
   assert(
-    'computer entry picker has v2 transcript button and v3 composer key',
-    /computer-entry-v2/.test(agentChatSrc) && /computer-entry-v3/.test(agentChatSrc) && /centry/.test(agentChatSrc),
+    'opening the Console turns the computer on',
+    /setOpen\(true\);\s*setComputerMode\(true\)/.test(agentChatSrc),
   );
   assert('visitor chips skip git status', /VISITOR_STARTER_CHIPS/.test(dockSrc) && !/VISITOR_STARTER_CHIPS[\s\S]{0,200}git status/.test(dockSrc));
   assert('dock tells visitors scratch resets monthly', /resets monthly/.test(dockSrc) && /isOwner \? '' : ' · resets monthly'/.test(dockSrc));

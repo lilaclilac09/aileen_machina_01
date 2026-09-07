@@ -193,9 +193,6 @@ export default function AgentChat() {
   const voiceModeRef = useRef(false);
   voiceModeRef.current = voiceMode;
   const [computerMode, setComputerMode] = useState(false);
-  const [computerEntry, setComputerEntry] = useState<0 | 1 | 2 | 3>(0);
-  const computerEntryRef = useRef<0 | 1 | 2 | 3>(0);
-  computerEntryRef.current = computerEntry;
   const [voiceLive, setVoiceLive] = useState('');
   /** Start orb listen once after Voice toggle / open-agent-chat autoListen. */
   const [autoListen, setAutoListen] = useState(false);
@@ -581,7 +578,7 @@ export default function AgentChat() {
         inject?: Array<{ role: 'user' | 'assistant'; text: string }>;
       }>;
       setOpen(true);
-      if (computerEntryRef.current === 1) setComputerMode(true);
+      setComputerMode(true);
       if (ce.detail?.voice || ce.detail?.autoListen) {
         setVoiceMode(true);
         if (ce.detail?.autoListen) setAutoListen(true);
@@ -854,14 +851,6 @@ export default function AgentChat() {
     beginNewRoot(parsed.message, lastAskedRef.current || undefined);
   }, [status, error, beginNewRoot]);
 
-  // Local picker: /?centry=1|2|3 — three easy-open computer entries. Default 0 = header chip.
-  useEffect(() => {
-    const n = Number(new URLSearchParams(window.location.search).get('centry') || '0');
-    const entry = n === 1 || n === 2 || n === 3 ? n : 0;
-    setComputerEntry(entry);
-    if (entry === 1) setComputerMode(true);
-  }, []);
-
   // Phone: lock page scroll while console covers the viewport.
   useEffect(() => {
     if (!open) return;
@@ -885,7 +874,7 @@ export default function AgentChat() {
         if (tag === 'INPUT' || tag === 'TEXTAREA' || t?.isContentEditable) return;
         e.preventDefault();
         setOpen(true);
-        if (computerEntryRef.current === 1) setComputerMode(true);
+        setComputerMode(true);
       }
     }
     window.addEventListener('keydown', onKey);
@@ -1653,7 +1642,7 @@ export default function AgentChat() {
       <SiteLeftChrome
         onOpenConsole={() => {
           setOpen(true);
-          if (computerEntryRef.current === 1) setComputerMode(true);
+          setComputerMode(true);
         }}
         consoleOpen={open}
       />
@@ -1847,21 +1836,6 @@ export default function AgentChat() {
           data-agent-transcript
           className="flex-auto min-h-0 sm:min-h-[9rem] overflow-y-auto overscroll-contain px-4 sm:px-5 py-3 sm:py-4 space-y-3.5 bg-[#fffcf7]/55"
         >
-          {computerEntry === 2 && !computerMode ? (
-            <button
-              type="button"
-              data-testid="computer-entry-v2"
-              onClick={() => setComputerMode(true)}
-              className="w-full min-h-12 mb-3 rounded-[10px] border border-[#d8cfc0] border-b-2 border-b-[#c2b7a3] bg-[#f6f0e4] px-3 py-2 text-left shadow-[0_1px_0_rgba(27,23,19,0.05)]"
-            >
-              <span className="block font-mono text-[0.58rem] tracking-[0.18em] uppercase text-[#007d75]">
-                open computer
-              </span>
-              <span className="block mt-0.5 text-[0.72rem] leading-5 text-[#1b1713]/55 normal-case tracking-normal">
-                scratch pad in this dialog · tap once
-              </span>
-            </button>
-          ) : null}
           {messages.length === 0 && !isOwner ? (
             <>
               <p className="text-[0.62rem] tracking-[0.25em] text-[#1b1713]/55 uppercase mb-2">
@@ -2057,17 +2031,6 @@ export default function AgentChat() {
         <div className="border-t border-[#e7e0d6] px-5 py-2.5 sm:py-3 shrink-0 pb-[max(0.625rem,env(safe-area-inset-bottom,0px))] sm:pb-3">
           <div className="relative flex items-center gap-2 min-w-0">
             <span className={`text-sm ${sessionMaxed ? 'text-[#1b1713]/20' : 'text-[#00a89d]'}`}>&gt;</span>
-            {computerEntry === 3 ? (
-              <button
-                type="button"
-                data-testid="computer-entry-v3"
-                aria-pressed={computerMode}
-                onClick={() => setComputerMode((on) => !on)}
-                className="shrink-0 min-h-11 px-3 rounded-[8px] font-mono text-[0.58rem] tracking-[0.14em] uppercase text-[#007d75] border border-[#d8cfc0] border-b-2 border-b-[#c2b7a3] bg-[#f6f0e4] shadow-[0_1px_0_rgba(27,23,19,0.05)] active:translate-y-[1px] active:border-b"
-              >
-                {computerMode ? 'computer on' : 'computer'}
-              </button>
-            ) : null}
             <textarea
               ref={inputRef}
               value={input}
