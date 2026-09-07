@@ -340,6 +340,10 @@ export const t = {
         variantLabel: 'rack variant',
         powerPathLabel: 'power path',
         gapLabel: 'flaw toggles',
+        inspectLabel: 'inspect',
+        frontView: 'front face',
+        rearView: 'rear face',
+        inspectHint: 'click a tray or rear system',
         powerPaths: {
           'legacy-ac': 'legacy AC',
           '800v-sidecar': '800V sidecar',
@@ -1309,6 +1313,10 @@ export const t = {
         variantLabel: 'Rack-Variante',
         powerPathLabel: 'Power Path',
         gapLabel: 'Fehler-Toggles',
+        inspectLabel: 'prüfen',
+        frontView: 'Front',
+        rearView: 'Rückseite',
+        inspectHint: 'Tray oder Heck anklicken',
         powerPaths: {
           'legacy-ac': 'legacy AC',
           '800v-sidecar': '800V Sidecar',

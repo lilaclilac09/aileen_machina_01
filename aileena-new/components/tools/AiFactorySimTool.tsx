@@ -6,6 +6,14 @@ import { useLanguage } from '../LanguageProvider';
 import { t } from '../../lib/translations';
 import ArcadeLayout from './ArcadeLayout';
 import { POWER_PATH_FACTS, RACK_FACTS, type EvidenceLevel, type RackFactSheet, type RackVariant } from '../../lib/ai-factory/rack-facts';
+import {
+  DEFAULT_INSPECT,
+  RACK_INSPECTORS,
+  REAR_INSPECT_BY_LABEL,
+  type InspectId,
+  type InspectorSheet,
+  type RackFace,
+} from '../../lib/ai-factory/rack-inspectors';
 
 type PowerPath = 'legacy-ac' | '800v-sidecar' | 'facility-hvdc';
 type Scenario = 'balanced' | 'overpack' | 'cooldown';
@@ -90,8 +98,11 @@ export default function AiFactorySimTool() {
     schedulerTail: false,
     modularClaims: false,
   });
+  const [face, setFace] = useState<RackFace>('front');
+  const [inspectId, setInspectId] = useState<InspectId>(DEFAULT_INSPECT);
   const rackFact = RACK_FACTS[variant];
   const powerPathFact = POWER_PATH_FACTS[powerPath];
+  const inspector = RACK_INSPECTORS[variant][inspectId];
 
   const model = useMemo(() => {
     const rackKw = rackFact.rackPowerKw;
@@ -187,6 +198,19 @@ export default function AiFactorySimTool() {
     setCooling(preset.cooling);
     setAmbient(preset.ambient);
     setGaps(preset.gaps);
+    setInspectId(DEFAULT_INSPECT);
+    setFace('front');
+  }
+
+  function selectVariant(nextVariant: RackVariant) {
+    setVariant(nextVariant);
+    setInspectId(DEFAULT_INSPECT);
+    setFace('front');
+  }
+
+  function selectInspect(nextId: InspectId, nextFace?: RackFace) {
+    setInspectId(nextId);
+    if (nextFace) setFace(nextFace);
   }
 
   function toggleGap(key: GapKey) {
@@ -244,7 +268,22 @@ export default function AiFactorySimTool() {
             </div>
           </div>
 
-          <RackTwin fact={rackFact} powerPathLabel={powerPathFact.label} powerPathLevel={powerPathFact.level} />
+          <RackTwin
+            fact={rackFact}
+            inspector={inspector}
+            face={face}
+            inspectId={inspectId}
+            powerPathLabel={powerPathFact.label}
+            powerPathLevel={powerPathFact.level}
+            copy={{
+              inspectLabel: tx.inspectLabel,
+              frontView: tx.frontView,
+              rearView: tx.rearView,
+              inspectHint: tx.inspectHint,
+            }}
+            onFaceChange={setFace}
+            onInspect={selectInspect}
+          />
 
           <div className="ai-factory-readouts" aria-live="polite">
             <Readout label={tx.readouts.power} value={`${model.facilityMw.toFixed(1)} MW`} />
@@ -288,7 +327,7 @@ export default function AiFactorySimTool() {
                 key={nextVariant}
                 type="button"
                 className={variant === nextVariant ? 'ai-factory-chip ai-factory-chip--active' : 'ai-factory-chip'}
-                onClick={() => setVariant(nextVariant)}
+                onClick={() => selectVariant(nextVariant)}
                 aria-pressed={variant === nextVariant}
               >
                 {nextVariant}
@@ -346,12 +385,29 @@ export default function AiFactorySimTool() {
 
 function RackTwin({
   fact,
+  inspector,
+  face,
+  inspectId,
   powerPathLabel,
   powerPathLevel,
+  copy,
+  onFaceChange,
+  onInspect,
 }: {
   fact: RackFactSheet;
+  inspector: InspectorSheet;
+  face: RackFace;
+  inspectId: InspectId;
   powerPathLabel: string;
   powerPathLevel: EvidenceLevel;
+  copy: {
+    inspectLabel: string;
+    frontView: string;
+    rearView: string;
+    inspectHint: string;
+  };
+  onFaceChange: (face: RackFace) => void;
+  onInspect: (id: InspectId, face?: RackFace) => void;
 }) {
   const stackEvidence = Array.from(new Set(fact.frontStack.map((segment) => segment.level)));
 
@@ -363,32 +419,70 @@ function RackTwin({
           <strong>{fact.variant}</strong>
           <small>{fact.rackPowerLabel}</small>
         </div>
-        <div className="ai-factory-rack-shell">
-          <div
-            className="ai-factory-rack-face"
-            style={{ gridTemplateRows: fact.frontStack.map((segment) => `${segment.units}fr`).join(' ') }}
+        <div className="ai-factory-face-toggle" role="group" aria-label={copy.inspectLabel}>
+          <button
+            type="button"
+            className={face === 'front' ? 'ai-factory-chip ai-factory-chip--active' : 'ai-factory-chip'}
+            onClick={() => onFaceChange('front')}
+            aria-pressed={face === 'front'}
+            data-testid="ai-factory-face-front"
           >
-            {fact.frontStack.map((segment) => (
-              <span
-                key={`${segment.label}-${segment.kind}`}
-                className={`ai-factory-rack-segment ai-factory-rack-segment--${segment.kind}`}
-              >
-                <small>{segment.units}U</small>
-                {segment.label}
-                <EvidenceBadge level={segment.level} />
-              </span>
-            ))}
-          </div>
-          <div className="ai-factory-rack-rear" aria-label="rear systems">
-            {fact.rearSystems.map((system) => (
-              <span key={system.label}>
-                <small>{system.label}</small>
-                {system.value}
-              </span>
-            ))}
-          </div>
+            {copy.frontView}
+          </button>
+          <button
+            type="button"
+            className={face === 'rear' ? 'ai-factory-chip ai-factory-chip--active' : 'ai-factory-chip'}
+            onClick={() => onFaceChange('rear')}
+            aria-pressed={face === 'rear'}
+            data-testid="ai-factory-face-rear"
+          >
+            {copy.rearView}
+          </button>
         </div>
-        <p>{fact.visualCaveat}</p>
+        <div className={`ai-factory-rack-shell ai-factory-rack-shell--${face}`}>
+          {face === 'front' ? (
+            <div
+              className="ai-factory-rack-face"
+              style={{ gridTemplateRows: fact.frontStack.map((segment) => `${segment.units}fr`).join(' ') }}
+            >
+              {fact.frontStack.map((segment) => (
+                <button
+                  key={`${segment.label}-${segment.kind}`}
+                  type="button"
+                  className={`ai-factory-rack-segment ai-factory-rack-segment--${segment.kind}${
+                    inspectId === segment.kind ? ' ai-factory-rack-segment--active' : ''
+                  }`}
+                  onClick={() => onInspect(segment.kind, 'front')}
+                  aria-pressed={inspectId === segment.kind}
+                  data-testid={`ai-factory-inspect-${segment.kind}`}
+                >
+                  <small>{segment.units}U</small>
+                  {segment.label}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="ai-factory-rack-rear" aria-label="rear systems">
+              {fact.rearSystems.map((system) => {
+                const rearId = REAR_INSPECT_BY_LABEL[system.label] ?? 'busbar';
+                return (
+                  <button
+                    key={system.label}
+                    type="button"
+                    className={`ai-factory-rear-item${inspectId === rearId ? ' ai-factory-rear-item--active' : ''}`}
+                    onClick={() => onInspect(rearId, 'rear')}
+                    aria-pressed={inspectId === rearId}
+                    data-testid={`ai-factory-inspect-${rearId}`}
+                  >
+                    <small>{system.label}</small>
+                    {system.value}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+        <p>{copy.inspectHint}. {fact.visualCaveat}</p>
         <div className="ai-factory-stack-evidence" aria-label="rack stack evidence">
           {stackEvidence.map((level) => (
             <EvidenceBadge key={level} level={level} />
@@ -397,12 +491,22 @@ function RackTwin({
       </div>
 
       <div className="ai-factory-ledger">
-        <article className="ai-factory-path-card">
-          <span>power path</span>
-          <strong>{powerPathLabel}</strong>
-          <EvidenceBadge level={powerPathLevel} />
+        <article className="ai-factory-path-card" data-testid="ai-factory-inspector">
+          <span>{copy.inspectLabel}</span>
+          <strong>{inspector.title}</strong>
+          <p>{inspector.summary}</p>
+          <EvidenceBadge level={inspector.ports[0]?.level ?? 'assumption'} />
+          <div className="ai-factory-port-list">
+            {inspector.ports.map((port) => (
+              <span key={`${port.label}-${port.value}`} className="ai-factory-port">
+                <small>{port.label}</small>
+                {port.value}
+                <EvidenceBadge level={port.level} />
+              </span>
+            ))}
+          </div>
         </article>
-        {fact.facts.map((item) => (
+        {inspector.internals.map((item) => (
           <article key={item.label} className="ai-factory-fact-card">
             <span>{item.label}</span>
             <strong>{item.value}</strong>
@@ -410,6 +514,11 @@ function RackTwin({
             <EvidenceBadge level={item.level} />
           </article>
         ))}
+        <article className="ai-factory-fact-card">
+          <span>power path</span>
+          <strong>{powerPathLabel}</strong>
+          <EvidenceBadge level={powerPathLevel} />
+        </article>
         <div className="ai-factory-source-list">
           {fact.sources.map((source) => (
             <a key={source.href} href={source.href} target="_blank" rel="noopener noreferrer">
