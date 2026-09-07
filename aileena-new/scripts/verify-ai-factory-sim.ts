@@ -1,4 +1,5 @@
 import { simulatePlant } from '../lib/ai-factory/simulate';
+import { hallPose, usesSidecar, usesWhips } from '../lib/ai-factory/viewport';
 
 const gapsOff = { coolingAc: false, gridDelay: false, schedulerTail: false, modularClaims: false };
 
@@ -83,5 +84,11 @@ const gb200 = simulatePlant({
   focusRack: 1,
 });
 assert('gb200 published busbar is 2900A', gb200.publishedA === 2900);
+
+const origin = hallPose(0);
+const hot = hallPose(3);
+assert('hall poses are unique', origin.x !== hot.x && origin.z === hot.z);
+assert('sidecar only on 800V path', usesSidecar('800v-sidecar') && !usesSidecar('legacy-ac'));
+assert('legacy still has whips', usesWhips('legacy-ac') && !usesWhips('facility-hvdc'));
 
 console.log('ai-factory plant kernel ok');

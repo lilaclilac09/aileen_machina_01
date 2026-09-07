@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
   // Home ~/pnpm-lock.yaml made Next pick the wrong workspace root, so
   // aileena-new/.env.local (COMPUTER_WORKER_URL) was ignored and the dock
   // stayed on local shim. Pin the app directory.
+  transpilePackages: ['three'],
   turbopack: {
     root: appRoot,
   },

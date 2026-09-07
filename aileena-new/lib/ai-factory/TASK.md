@@ -59,7 +59,8 @@ Acceptance:
 - Changing load / cooling / variant / path / gaps / focused hall rack changes tray kW, amps, return C
 - Inspector shows live telemetry next to sourced ports
 - 390 has no horizontal overflow
-- No fake CFD, no fake MTBF, no photoreal claim
+- No fake CFD, no fake MTBF
+- PBR camera is allowed only as a view on this kernel; no vendor-scan / Omniverse claim
 
 ## Phase B — dynamics
 
@@ -76,10 +77,12 @@ Do not start until Phase A is in the UI and checked.
 - CDU row, busway tap-off, whip count
 - Legacy AC vs 800V sidecar vs facility HVDC look different
 
-## Phase D — spatial 3D
+## Phase D — spatial 3D (started)
 
-Only after A–C. CSS/WebGL is a camera on the same kernel.
+WebGL is a camera on the same kernel. Owner asked for photoreal look now.
 
+- PBR hall + focused rack from sourced inventory (48U stack, 18+9 trays, copper busbar, manifolds, CDU count, sidecar vs busway vs whips)
+- Procedural meshes and canvas materials — **not** a Lenovo/NVIDIA scan
 - No second model
 - No Omniverse stream
 - No Unreal photoreal without sourced meshes

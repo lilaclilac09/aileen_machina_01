@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useLanguage } from '../LanguageProvider';
 import { t } from '../../lib/translations';
@@ -16,6 +17,8 @@ import {
 } from '../../lib/ai-factory/rack-inspectors';
 import { simulatePlant, type CellTelemetry, type PlantSim } from '../../lib/ai-factory/simulate';
 import type { PowerPath as PlantPowerPath } from '../../lib/ai-factory/plant';
+
+const PlantViewport = dynamic(() => import('./PlantViewport'), { ssr: false });
 
 type PowerPath = 'legacy-ac' | '800v-sidecar' | 'facility-hvdc';
 type Scenario = 'balanced' | 'overpack' | 'cooldown';
@@ -76,13 +79,6 @@ function clamp(value: number, min = 0, max = 100) {
   return Math.min(max, Math.max(min, value));
 }
 
-function heatTone(score: number) {
-  if (score > 78) return '#e36f45';
-  if (score > 58) return '#d4a24a';
-  if (score > 36) return '#9fc776';
-  return '#64c7bd';
-}
-
 export default function AiFactorySimTool() {
   const { language } = useLanguage();
   const tx = t[language].tools.aiFactorySim;
@@ -102,6 +98,7 @@ export default function AiFactorySimTool() {
   const [face, setFace] = useState<RackFace>('front');
   const [inspectId, setInspectId] = useState<InspectId>(DEFAULT_INSPECT);
   const [focusRack, setFocusRack] = useState(0);
+  const [cameraMode, setCameraMode] = useState<'hall' | 'rack'>('hall');
   const rackFact = RACK_FACTS[variant];
   const powerPathFact = POWER_PATH_FACTS[powerPath];
   const inspector = RACK_INSPECTORS[variant][inspectId];
@@ -134,6 +131,7 @@ export default function AiFactorySimTool() {
     setInspectId(DEFAULT_INSPECT);
     setFace('front');
     setFocusRack(0);
+    setCameraMode('hall');
   }
 
   function selectVariant(nextVariant: RackVariant) {
@@ -141,7 +139,19 @@ export default function AiFactorySimTool() {
     setInspectId(DEFAULT_INSPECT);
     setFace('front');
     setFocusRack(0);
+    setCameraMode('hall');
   }
+
+  const focusFromHall = useCallback((id: number) => {
+    setFocusRack(id);
+    setCameraMode('rack');
+  }, []);
+
+  const inspectFromScene = useCallback((id: InspectId, nextFace?: RackFace) => {
+    setInspectId(id);
+    if (nextFace) setFace(nextFace);
+    setCameraMode('rack');
+  }, []);
 
   function selectInspect(nextId: InspectId, nextFace?: RackFace) {
     setInspectId(nextId);
@@ -168,31 +178,49 @@ export default function AiFactorySimTool() {
             </a>
           </div>
 
-          <div className="ai-factory-stage" data-scenario={scenario}>
-            <div className="ai-factory-stage-grid">
+          <div className="ai-factory-stage" data-scenario={scenario} data-camera={cameraMode}>
+            <PlantViewport
+              model={model}
+              fact={rackFact}
+              face={face}
+              inspectId={inspectId}
+              powerPath={powerPath}
+              cameraMode={cameraMode}
+              onFocusRack={focusFromHall}
+              onInspect={inspectFromScene}
+            />
+            <div className="ai-factory-hall-a11y">
               {model.hall.map((rack) => (
                 <button
                   key={rack.id}
                   type="button"
-                  className={`ai-factory-rack${rack.active ? ' ai-factory-rack--active' : ''}${
-                    rack.focused ? ' ai-factory-rack--focus' : ''
-                  }`}
-                  style={{
-                    background: rack.active ? heatTone(rack.thermal) : 'rgba(20,17,12,0.08)',
-                    opacity: rack.active ? 0.62 + rack.thermal / 280 : 0.24,
-                  }}
                   disabled={!rack.active}
-                  onClick={() => setFocusRack(rack.id)}
+                  onClick={() => focusFromHall(rack.id)}
                   aria-pressed={rack.focused}
                   aria-label={`${tx.hallHint} ${rack.id + 1}`}
                   data-testid={`ai-factory-hall-${rack.id}`}
                 />
               ))}
             </div>
-            <div className="ai-factory-air" style={{ ['--air-speed' as string]: `${Math.max(4, 13 - cooling / 10)}s` }} aria-hidden>
-              <span />
-              <span />
-              <span />
+            <div className="ai-factory-camera" role="group" aria-label="camera">
+              <button
+                type="button"
+                className={cameraMode === 'hall' ? 'ai-factory-chip ai-factory-chip--active' : 'ai-factory-chip'}
+                onClick={() => setCameraMode('hall')}
+                aria-pressed={cameraMode === 'hall'}
+                data-testid="ai-factory-camera-hall"
+              >
+                {tx.viewHall}
+              </button>
+              <button
+                type="button"
+                className={cameraMode === 'rack' ? 'ai-factory-chip ai-factory-chip--active' : 'ai-factory-chip'}
+                onClick={() => setCameraMode('rack')}
+                aria-pressed={cameraMode === 'rack'}
+                data-testid="ai-factory-camera-rack"
+              >
+                {tx.viewRack}
+              </button>
             </div>
             <div className="ai-factory-status">
               <span className="ai-factory-led" style={{ background: model.statusTone }} />
@@ -317,6 +345,7 @@ export default function AiFactorySimTool() {
             ))}
           </div>
 
+          <p className="ai-factory-note">{tx.photorealNote}</p>
           <p className="ai-factory-note">{tx.note}</p>
           <Link href="/blog/dell-nvidia-flywheel" className="ai-factory-link">
             {tx.related}
