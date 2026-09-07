@@ -210,22 +210,39 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
       data-testid="computer-console-dock"
       data-harness="machina-owner-prototype"
       data-open-proof={String(proof.length)}
-      className="border-b border-[#e7e0d6] px-3 py-2 space-y-1.5 bg-[#fffcf7]/90 shrink-0"
+      className="border-b border-[#e7e0d6] px-3 py-2 bg-[#fffcf7]/90 shrink-0"
     >
-      <p className="font-mono text-[0.52rem] tracking-[0.18em] uppercase text-[#008f86]/80" data-testid="proof-flash">
-        computer · {backend} · {flash}
-      </p>
+      {/* Small computer: cream chassis, teal screen, power light, keycaps. */}
+      <div className="rounded-[12px] border border-[#d8cfc0] bg-[#f6f0e4] px-2.5 pt-2 pb-2.5 space-y-1.5 shadow-[inset_0_1px_0_#ffffff,0_2px_6px_rgba(27,23,19,0.08)]">
+        <p className="flex items-center gap-1.5 font-mono text-[0.52rem] tracking-[0.18em] uppercase text-[#008f86]/80" data-testid="proof-flash">
+          <span
+            aria-hidden
+            className={`inline-block h-1.5 w-1.5 shrink-0 rounded-full ${
+              live ? 'bg-[#00a89d] shadow-[0_0_6px_rgba(0,168,157,0.9)]' : 'bg-[#c9bfae]'
+            }`}
+          />
+          <span className="min-w-0 truncate">
+            computer · {backend}
+            {isOwner ? '' : ' · resets monthly'} · {flash}
+          </span>
+        </p>
 
-      <pre
-        ref={logRef}
-        data-testid="computer-monitor"
-        data-live={live ? '1' : '0'}
-        className={`font-mono text-[0.58rem] leading-relaxed text-[#1b1713]/75 whitespace-pre-wrap max-h-40 overflow-y-auto bg-white border border-[#e7e0d6] px-2 py-1.5 ${live ? 'border-[#00a89d]/50' : ''}`}
-      >
-        {monitorText(selectedTask, backend)}
-      </pre>
+        <div
+          className={`rounded-[8px] border p-1 bg-[#0b2422] shadow-[inset_0_2px_8px_rgba(0,0,0,0.55)] ${
+            live ? 'border-[#00a89d]/60' : 'border-[#1b1713]/60'
+          }`}
+        >
+          <pre
+            ref={logRef}
+            data-testid="computer-monitor"
+            data-live={live ? '1' : '0'}
+            className="font-mono text-[0.58rem] leading-relaxed text-[#8fe6dd] whitespace-pre-wrap max-h-40 overflow-y-auto px-2 py-1.5 [text-shadow:0_0_5px_rgba(0,168,157,0.35)]"
+          >
+            {monitorText(selectedTask, backend)}
+          </pre>
+        </div>
 
-      <div className="flex flex-wrap gap-1" data-testid="computer-learned">
+        <div className="flex flex-wrap gap-1.5" data-testid="computer-learned">
         {chips.map((chip) => (
           <button
             key={chip.alias}
@@ -240,7 +257,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
                 phrase: chip.alias,
               })
             }
-            className="min-h-9 px-2 font-mono text-[0.52rem] tracking-[0.12em] uppercase text-[#007d75] border border-[#00a89d]/35 bg-white disabled:opacity-40"
+            className="min-h-9 px-2.5 rounded-[6px] font-mono text-[0.52rem] tracking-[0.12em] uppercase text-[#007d75] border border-[#d8cfc0] border-b-2 border-b-[#c2b7a3] bg-white shadow-[0_1px_0_rgba(27,23,19,0.05)] active:translate-y-[1px] active:border-b disabled:opacity-40"
           >
             {chip.alias}
           </button>
@@ -351,6 +368,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
           <p data-testid="computer-task-summary">{selectedTask.resultSummary || selectedTask.status}</p>
         </div>
       ) : null}
+      </div>
     </div>
   );
 }
