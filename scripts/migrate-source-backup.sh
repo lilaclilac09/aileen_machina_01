@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # Copy git source (not the 300MB zip) to Cloudflare R2 via rclone.
-# R2 rejects S3 CreateBucket — always pass --s3-no-check-bucket.
+# R2 list works; S3 CreateBucket does not — use --s3-no-check-bucket and rclone copy.
 # Does not change DNS, Vercel, or delete aileena-new_rename.zip.
-# tencent_cos is skipped: that remote is Tencent COS (needs bucket-appid), not this R2 bucket.
 set -euo pipefail
 
 ROOT=$(git rev-parse --show-toplevel)
@@ -16,36 +15,41 @@ git -C "$ROOT" archive --format=tar.gz --prefix=aileena-new/ -o "$TAR" HEAD:aile
 echo "packed $TAR"
 ls -lh "$TAR"
 
+upload() {
+  local dir="$1"
+  echo "rclone copy -> $dir"
+  rclone copy "$TAR" "$dir" --s3-no-check-bucket --retries 3
+  echo "listing $dir"
+  rclone lsl "$dir"
+  rclone lsl "$dir" | grep -F "$FILE"
+}
+
 if ! command -v rclone >/dev/null 2>&1; then
   echo "rclone missing. On the Mac:"
-  echo "  rclone copyto $TAR ${REMOTE}:${BUCKET}/backups/$FILE --s3-no-check-bucket"
-  echo "live site stays https://www.aileena.xyz (Vercel)"
+  echo "  rclone copy $TAR ${REMOTE}:${BUCKET}/backups/ --s3-no-check-bucket"
+  echo "  rclone lsl ${REMOTE}:${BUCKET}/backups"
   exit 0
 fi
 
 echo "remotes:"
 rclone listremotes
 
-put() {
-  local dest="$1"
-  echo "rclone copyto -> $dest"
-  rclone copyto "$TAR" "$dest" --s3-no-check-bucket
-  rclone lsl "$(dirname "$dest")"
-}
-
 R2_OK=0
-if put "${REMOTE}:${BUCKET}/backups/${FILE}"; then
+if upload "${REMOTE}:${BUCKET}/backups"; then
   R2_OK=1
-elif put "${REMOTE}:${BUCKET}/${FILE}"; then
-  echo "uploaded at bucket root (backups/ prefix blocked)"
+elif upload "${REMOTE}:${BUCKET}"; then
+  echo "uploaded at bucket root"
   R2_OK=1
 fi
 
 if [ "$R2_OK" -eq 0 ]; then
-  echo "R2 upload failed. Token can list the zip but CreateBucket is denied."
-  echo "retry: rclone copyto $TAR ${REMOTE}:${BUCKET}/backups/$FILE --s3-no-check-bucket"
+  echo "FAIL: R2 still has no $FILE"
+  echo "manual:"
+  echo "  rclone copy $TAR ${REMOTE}:${BUCKET}/backups/ --s3-no-check-bucket"
+  echo "  rclone lsl ${REMOTE}:${BUCKET}"
+  echo "  rclone lsl ${REMOTE}:${BUCKET}/backups"
   exit 1
 fi
 
-echo "ok. did not delete aileena-new_rename.zip"
+echo "OK: $FILE is in R2. aileena-new_rename.zip left in place."
 echo "live site still Vercel https://www.aileena.xyz"
