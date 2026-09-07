@@ -15,7 +15,6 @@
  * Cached at the edge for 6 h — Hard Wax product pages are near-static.
  */
 
-export const runtime = 'edge';
 
 const BROWSER_UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15';

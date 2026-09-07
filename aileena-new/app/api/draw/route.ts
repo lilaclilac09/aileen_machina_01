@@ -8,7 +8,6 @@ import { taipeiDay } from '../../../lib/taipeiDay';
 import { cardById, pickDrawCard, reciteDrawCard, type DrawCard } from '../../../lib/drawDeck';
 import { ensureVisitorId, buildVisitorCookie } from '../../../lib/visitorMemory';
 
-export const runtime = 'edge';
 
 const DRAW_COOKIE = '__aileena_draw';
 

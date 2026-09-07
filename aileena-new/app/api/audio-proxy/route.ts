@@ -14,7 +14,6 @@
  *     so the client can fall back gracefully.
  */
 
-export const runtime = 'edge';
 
 const HARDWAX_HOSTS = new Set([
   'hardwax.com',

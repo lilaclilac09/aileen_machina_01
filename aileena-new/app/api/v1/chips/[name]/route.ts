@@ -3,7 +3,6 @@ import { DATA_RATE } from '../../../../../lib/api/ratelimit';
 import { ok, notFound } from '../../../../../lib/api/jsonResp';
 import { queryChip } from '../../../../../lib/data/sku';
 
-export const runtime = 'edge';
 
 export const GET = withApi({ rate: DATA_RATE, scope: 'chip' }, async (req) => {
   const url = new URL(req.url);

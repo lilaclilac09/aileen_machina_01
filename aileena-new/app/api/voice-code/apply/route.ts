@@ -4,7 +4,6 @@
  * Owner apply: POST /api/owner/voice-code/apply (OWNER_KEY session).
  */
 
-export const runtime = 'edge';
 
 const BODY = {
   ok: false,

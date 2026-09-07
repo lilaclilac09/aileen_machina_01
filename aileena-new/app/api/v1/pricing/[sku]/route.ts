@@ -3,7 +3,6 @@ import { DATA_RATE } from '../../../../../lib/api/ratelimit';
 import { ok } from '../../../../../lib/api/jsonResp';
 import { getPriceHistory } from '../../../../../lib/data/pricing';
 
-export const runtime = 'edge';
 
 const ALLOWED_UNITS = ['per_chip', 'per_card', 'per_server', 'per_hour_cloud', 'per_month_cloud'] as const;
 type Unit = (typeof ALLOWED_UNITS)[number];

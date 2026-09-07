@@ -18,7 +18,7 @@ const nextConfig: NextConfig = {
     const current = config.resolve.modules ?? ["node_modules"];
     config.resolve.modules = [
       appModules,
-      ...current.filter((entry) => entry !== appModules),
+      ...current.filter((entry: string) => entry !== appModules),
     ];
     return config;
   },
@@ -37,3 +37,6 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
+initOpenNextCloudflareForDev();

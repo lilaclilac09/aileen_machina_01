@@ -81,7 +81,7 @@ Rate limits on `/api/chat`:
 
 ## Deploy
 
-Auto-deploys to Vercel on push to `main`. Set the env vars above in the Vercel project's Production + Preview environments.
+Production today is **Vercel** (`https://www.aileena.xyz`). Cloudflare Workers hosting is on branch `cursor/cloudflare-host-aileena-xyz-e9d8` — see [`docs/CLOUDFLARE_HOST.md`](docs/CLOUDFLARE_HOST.md). Do not switch DNS until a `*.workers.dev` preview matches the white Machina homepage.
 
 ## Contributing
 

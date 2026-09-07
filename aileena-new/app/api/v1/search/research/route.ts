@@ -3,7 +3,6 @@ import { DATA_RATE } from '../../../../../lib/api/ratelimit';
 import { ok, err } from '../../../../../lib/api/jsonResp';
 import { searchResearch } from '../../../../../lib/data/docs';
 
-export const runtime = 'edge';
 
 export const GET = withApi({ rate: DATA_RATE, scope: 'search-research' }, async (req) => {
   const url = new URL(req.url);

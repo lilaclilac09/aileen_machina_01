@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { readTtsEnvPins, resolveTtsProfile } from '../../../lib/tts/voiceProfile';
 
-export const runtime = 'edge';
 export const maxDuration = 60;
 
 /**

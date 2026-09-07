@@ -22,7 +22,6 @@ import { parseVoiceAccent } from '../../../lib/voiceAccent';
 import { isVoiceCodeIntent } from '../../../lib/voiceCodeIntent';
 import { buildDownloadablePatch } from '../../../lib/voiceCodePatch';
 
-export const runtime = 'edge';
 export const maxDuration = 30;
 
 export const VCODE_DAILY_LIMIT = 5;

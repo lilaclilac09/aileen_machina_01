@@ -63,7 +63,10 @@ function sourceChecks() {
   const gitSrc = readFileSync(join(process.cwd(), 'lib/computer/gitAllowlist.ts'), 'utf8');
   const filesSrc = readFileSync(join(process.cwd(), 'lib/computer/filesAllowlist.ts'), 'utf8');
   const chatFast = readFileSync(join(process.cwd(), 'lib/computer/chatFastPath.ts'), 'utf8');
-  assert('chat stays edge', /export const runtime = 'edge'/.test(chat));
+  assert(
+    'chat is not Next edge runtime (OpenNext Cloudflare forbids it)',
+    !/export const runtime = 'edge'/.test(chat),
+  );
   assert('fast path expands learned aliases', /api\/agent\/computer\/learned/.test(chatFast) && /resolved\.kind !== 'queue_task'/.test(chatFast));
   assert('visitor fast path exists', /tryVisitorComputerFastPath/.test(chatFast));
   assert('fast path passes phrase', /phrase: opts.lastQ/.test(chatFast));

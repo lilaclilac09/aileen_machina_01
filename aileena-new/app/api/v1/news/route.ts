@@ -3,7 +3,6 @@ import { DATA_RATE } from '../../../../lib/api/ratelimit';
 import { ok } from '../../../../lib/api/jsonResp';
 import { latestNews } from '../../../../lib/data/news';
 
-export const runtime = 'edge';
 
 export const GET = withApi({ rate: DATA_RATE, scope: 'news' }, async (req) => {
   const url = new URL(req.url);
