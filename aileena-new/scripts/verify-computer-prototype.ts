@@ -78,6 +78,14 @@ function sourceChecks() {
   assert('production is not unconditional API off', !/if \(isVercelProduction\(\)\) return false;\s*const raw/.test(flag));
   assert('runner does not merge', /not performed/.test(runner) || /owner approval/.test(runner));
   assert('runner still has local-shim fallback', /local-shim/.test(runner));
+  assert(
+    'visitor scratch resets monthly (lazy 30d TTL)',
+    /VISITOR_SCRATCH_TTL_DAYS = 30/.test(runner) && /ensureVisitorScratchFresh/.test(runner),
+  );
+  assert(
+    'monthly reset never touches the owner workspace',
+    /!isOwnerComputerTask\(task\) && backend === 'cloudflare-worker-shell'/.test(runner),
+  );
   const cfClientSrc = readFileSync(join(process.cwd(), 'lib/computer/cfClient.ts'), 'utf8');
   assert('cfClient does not import @cloudflare/computer', !/from ['"]@cloudflare\/computer/.test(cfClientSrc));
   assert('cfClient routes by workspace name', /\/c\/\$\{name\}\/file/.test(cfClientSrc) && /\/c\/\$\{name\}\/exec/.test(cfClientSrc));
@@ -107,6 +115,7 @@ function sourceChecks() {
       /computerMode \? <ComputerConsoleDock isOwner=\{isOwner\}/.test(agentChatSrc),
   );
   assert('visitor chips skip git status', /VISITOR_STARTER_CHIPS/.test(dockSrc) && !/VISITOR_STARTER_CHIPS[\s\S]{0,200}git status/.test(dockSrc));
+  assert('dock tells visitors scratch resets monthly', /resets monthly/.test(dockSrc) && /isOwner \? '' : ' · resets monthly'/.test(dockSrc));
   assert('does not import @cloudflare/computer', !existsSync(join(process.cwd(), 'node_modules/@cloudflare/computer')));
   assert(
     'plugins are not DeepSeek Harness',
@@ -517,6 +526,44 @@ async function liveHttp() {
     visitorScratchDone.ok && visitorScratchDone.st === 'completed',
     String(visitorScratchDone.ok ? visitorScratchDone.st : visitorScratchDone.status),
   );
+
+  if (process.env.COMPUTER_WORKER_URL && process.env.COMPUTER_WORKER_SECRET) {
+    // Monthly reset (lazy 30d TTL): plant an expired .born, run one visitor
+    // task, then confirm the old note is gone and .born was re-stamped.
+    const workerBase = process.env.COMPUTER_WORKER_URL.replace(/\/$/, '');
+    const bearer = { Authorization: `Bearer ${process.env.COMPUTER_WORKER_SECRET}` };
+    const cwid = (visitorCookie.match(/__aileena_cwid=(v-[a-z0-9]+)/) || [])[1] || '';
+    assert('visitor cwid extracted for reset test', cwid.length > 0, visitorCookie.slice(0, 60));
+    const day = new Date().toISOString().slice(0, 10);
+    const notePath = `/c/${cwid}/file/workspace/scratch/notes/${day}.txt`;
+    const bornPath = `/c/${cwid}/file/workspace/scratch/.born`;
+    const noteBefore = await fetch(`${workerBase}${notePath}`, { headers: bearer });
+    assert('visitor note exists before reset', noteBefore.status === 200, String(noteBefore.status));
+    const planted = '2020-01-01T00:00:00.000Z';
+    const plant = await fetch(`${workerBase}${bornPath}`, { method: 'PUT', headers: bearer, body: planted });
+    assert('expired .born planted', plant.status === 204, String(plant.status));
+    const resetKick = await fetch(`${base}/api/agent/computer/tasks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: visitorCookie },
+      body: JSON.stringify({ taskType: 'files_tree', route: '/proof', instructions: '/workspace' }),
+    });
+    assert('visitor files_tree after expiry → 202', resetKick.status === 202, String(resetKick.status));
+    const resetKickJson = resetKick.status === 202
+      ? ((await resetKick.json()) as { task?: { id?: string } })
+      : {};
+    const resetTaskId = resetKickJson.task?.id || '';
+    const resetDone = resetTaskId ? await pollTask(base, visitorCookie, resetTaskId) : { ok: false as const, status: resetKick.status };
+    assert('visitor task after expiry completed', resetDone.ok && resetDone.st === 'completed', String(resetDone.ok ? resetDone.st : resetDone.status));
+    const noteAfter = await fetch(`${workerBase}${notePath}`, { headers: bearer });
+    assert('monthly reset wiped the old visitor note', noteAfter.status === 404, String(noteAfter.status));
+    const bornAfter = await fetch(`${workerBase}${bornPath}`, { headers: bearer });
+    const bornAfterText = bornAfter.ok ? (await bornAfter.text()).trim() : '';
+    assert(
+      'monthly reset re-stamped .born',
+      bornAfter.status === 200 && Date.parse(bornAfterText) > Date.parse(planted),
+      bornAfterText.slice(0, 40),
+    );
+  }
 
   const otherVisitor = await fetch(`${base}/api/agent/computer/tasks`);
   const otherCookie = cookieJar(otherVisitor);

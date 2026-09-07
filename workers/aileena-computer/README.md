@@ -121,6 +121,8 @@ If the dock says `local shim`, Terminal A is down or `.env.local` is missing `CO
 
 Can: persist files under `/workspace/scratch|reports|artifacts/`, `echo cat ls wc head tail grep mkdir`, owner + visitor scratch (separate Durable Objects), site-repo git inspect on a checkout that has `.git`.
 
+Visitor scratch pads reset monthly: a `.born` stamp is checked lazily on the next task after 30 days, then that visitor's `/workspace/scratch` is wiped (owner workspace never resets). No cron — `idFromName` Durable Objects cannot be enumerated.
+
 Cannot: full Linux, `pnpm build` inside the DO, browser, email send, merge, cloning this monorepo into the Worker, visitor access to the owner DO or site git.
 
 ## Auth

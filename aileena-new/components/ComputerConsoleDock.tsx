@@ -213,7 +213,8 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
       className="border-b border-[#e7e0d6] px-3 py-2 space-y-1.5 bg-[#fffcf7]/90 shrink-0"
     >
       <p className="font-mono text-[0.52rem] tracking-[0.18em] uppercase text-[#008f86]/80" data-testid="proof-flash">
-        computer · {backend} · {flash}
+        computer · {backend}
+        {isOwner ? '' : ' · resets monthly'} · {flash}
       </p>
 
       <pre
