@@ -4,8 +4,7 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '../LanguageProvider';
 import { t } from '../../lib/translations';
-import { getToolBySlug } from '../../lib/tools/registry';
-import ArcadeLayout, { mono } from './ArcadeLayout';
+import ArcadeLayout from './ArcadeLayout';
 
 type RackVariant = 'GB200 NVL72' | 'GB300 NVL72';
 type Scenario = 'balanced' | 'overpack' | 'cooldown';
@@ -42,7 +41,6 @@ function heatTone(score: number) {
 export default function AiFactorySimTool() {
   const { language } = useLanguage();
   const tx = t[language].tools.aiFactorySim;
-  const tool = getToolBySlug('ai-factory-sim');
   const [variant, setVariant] = useState<RackVariant>('GB300 NVL72');
   const [rackCount, setRackCount] = useState(40);
   const [aiLoad, setAiLoad] = useState(76);
