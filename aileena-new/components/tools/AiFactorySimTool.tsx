@@ -14,6 +14,8 @@ import {
   type InspectorSheet,
   type RackFace,
 } from '../../lib/ai-factory/rack-inspectors';
+import { simulatePlant, type CellTelemetry, type PlantSim } from '../../lib/ai-factory/simulate';
+import type { PowerPath as PlantPowerPath } from '../../lib/ai-factory/plant';
 
 type PowerPath = 'legacy-ac' | '800v-sidecar' | 'facility-hvdc';
 type Scenario = 'balanced' | 'overpack' | 'cooldown';
@@ -67,7 +69,6 @@ const PRESETS: Preset[] = [
   },
 ];
 
-const RACKS = Array.from({ length: 48 }, (_, i) => i);
 const POWER_PATHS: PowerPath[] = ['legacy-ac', '800v-sidecar', 'facility-hvdc'];
 const GAP_KEYS: GapKey[] = ['coolingAc', 'gridDelay', 'schedulerTail', 'modularClaims'];
 
@@ -100,94 +101,26 @@ export default function AiFactorySimTool() {
   });
   const [face, setFace] = useState<RackFace>('front');
   const [inspectId, setInspectId] = useState<InspectId>(DEFAULT_INSPECT);
+  const [focusRack, setFocusRack] = useState(0);
   const rackFact = RACK_FACTS[variant];
   const powerPathFact = POWER_PATH_FACTS[powerPath];
   const inspector = RACK_INSPECTORS[variant][inspectId];
 
-  const model = useMemo(() => {
-    const rackKw = rackFact.rackPowerKw;
-    const powerLossRate = powerPathFact.lossRate;
-    const designMw = (rackCount * rackKw * powerPathFact.envelopeMultiplier) / 1000;
-    const itPowerMw = (rackCount * rackKw * (0.42 + aiLoad / 170)) / 1000;
-    const gapTaxMw =
-      (gaps.coolingAc ? itPowerMw * 0.025 : 0) +
-      (gaps.gridDelay ? 0.35 : 0) +
-      (gaps.schedulerTail ? itPowerMw * 0.018 : 0) +
-      (gaps.modularClaims ? 0.18 : 0);
-    const facilityMw = itPowerMw * (1 + powerLossRate) + gapTaxMw;
-    const powerHeadroom = clamp(((designMw - facilityMw) / designMw) * 100, -40, 100);
-    const liquidCredit = rackFact.coolingLiquidShare * 12;
-    const airRemainderPenalty = rackFact.coolingAirShare * 12;
-    const thermalIndex = clamp(
-      aiLoad * 0.56 +
-        rackCount * 0.54 +
-        ambient * 1.05 -
-        cooling * 0.76 +
-        powerLossRate * 120 +
-        airRemainderPenalty -
-        liquidCredit +
-        (gaps.coolingAc ? 9 : 0) +
-        (gaps.schedulerTail ? 4 : 0) +
-        (gaps.modularClaims ? 5 : 0),
-    );
-    const flowMargin = clamp(
-      cooling -
-        aiLoad * 0.36 -
-        ambient * 0.42 +
-        (variant === 'GB200 NVL72' ? 8 : 0) -
-        (variant === 'VR NVL72' ? 9 : 0) -
-        rackFact.coolingAirShare * 10 +
-        rackFact.coolingLiquidShare * 8 -
-        (gaps.coolingAc ? 8 : 0) -
-        (gaps.modularClaims ? 5 : 0),
-      -20,
-      100,
-    );
-    const status =
-      powerHeadroom < 0
-        ? tx.status.power
-        : thermalIndex > 78 || powerHeadroom < 8
-        ? tx.status.hot
-        : flowMargin < 22
-          ? tx.status.watch
-          : tx.status.stable;
-    const statusTone =
-      status === tx.status.power || status === tx.status.hot
-        ? '#e36f45'
-        : status === tx.status.watch
-          ? '#d4a24a'
-          : '#00a99f';
-
-    return {
-      facilityMw,
-      gapTaxMw,
-      itPowerMw,
-      powerHeadroom,
-      thermalIndex,
-      flowMargin,
-      status,
-      statusTone,
-    };
-  }, [
-    ambient,
-    aiLoad,
-    cooling,
-    gaps.coolingAc,
-    gaps.gridDelay,
-    gaps.modularClaims,
-    gaps.schedulerTail,
-    powerPathFact.envelopeMultiplier,
-    powerPathFact.lossRate,
-    rackFact.coolingAirShare,
-    rackFact.coolingLiquidShare,
-    rackFact.rackPowerKw,
-    rackCount,
-    tx.status.hot,
-    tx.status.power,
-    tx.status.stable,
-    tx.status.watch,
-    variant,
-  ]);
+  const model = useMemo(
+    () =>
+      simulatePlant({
+        variant,
+        powerPath: powerPath as PlantPowerPath,
+        rackCount,
+        aiLoad,
+        cooling,
+        ambient,
+        gaps,
+        focusRack,
+      }),
+    [aiLoad, ambient, cooling, focusRack, gaps, powerPath, rackCount, variant],
+  );
+  const statusLabel = tx.status[model.status];
 
   function applyPreset(preset: Preset) {
     setScenario(preset.scenario);
@@ -200,12 +133,14 @@ export default function AiFactorySimTool() {
     setGaps(preset.gaps);
     setInspectId(DEFAULT_INSPECT);
     setFace('front');
+    setFocusRack(0);
   }
 
   function selectVariant(nextVariant: RackVariant) {
     setVariant(nextVariant);
     setInspectId(DEFAULT_INSPECT);
     setFace('front');
+    setFocusRack(0);
   }
 
   function selectInspect(nextId: InspectId, nextFace?: RackFace) {
@@ -234,28 +169,25 @@ export default function AiFactorySimTool() {
           </div>
 
           <div className="ai-factory-stage" data-scenario={scenario}>
-            <div className="ai-factory-stage-grid" aria-hidden>
-              {RACKS.map((rack) => {
-                const active = rack < rackCount;
-                const row = Math.floor(rack / 8);
-                const column = rack % 8;
-                const aislePenalty = column === 3 || column === 4 ? 9 : 0;
-                const edgePenalty = row === 0 || row === 5 ? 7 : 0;
-                const heat = active
-                  ? clamp(model.thermalIndex + aislePenalty + edgePenalty + (rack % 3) * 3 - cooling * 0.12)
-                  : 0;
-                return (
-                  <span
-                    key={rack}
-                    className={active ? 'ai-factory-rack ai-factory-rack--active' : 'ai-factory-rack'}
-                    style={{
-                      background: active ? heatTone(heat) : 'rgba(20,17,12,0.08)',
-                      opacity: active ? 0.62 + heat / 280 : 0.24,
-                    }}
-                    aria-hidden
-                  />
-                );
-              })}
+            <div className="ai-factory-stage-grid">
+              {model.hall.map((rack) => (
+                <button
+                  key={rack.id}
+                  type="button"
+                  className={`ai-factory-rack${rack.active ? ' ai-factory-rack--active' : ''}${
+                    rack.focused ? ' ai-factory-rack--focus' : ''
+                  }`}
+                  style={{
+                    background: rack.active ? heatTone(rack.thermal) : 'rgba(20,17,12,0.08)',
+                    opacity: rack.active ? 0.62 + rack.thermal / 280 : 0.24,
+                  }}
+                  disabled={!rack.active}
+                  onClick={() => setFocusRack(rack.id)}
+                  aria-pressed={rack.focused}
+                  aria-label={`${tx.hallHint} ${rack.id + 1}`}
+                  data-testid={`ai-factory-hall-${rack.id}`}
+                />
+              ))}
             </div>
             <div className="ai-factory-air" style={{ ['--air-speed' as string]: `${Math.max(4, 13 - cooling / 10)}s` }} aria-hidden>
               <span />
@@ -264,7 +196,11 @@ export default function AiFactorySimTool() {
             </div>
             <div className="ai-factory-status">
               <span className="ai-factory-led" style={{ background: model.statusTone }} />
-              <strong>{model.status}</strong>
+              <strong>{statusLabel}</strong>
+              <small>
+                R{model.focus.id + 1} · {model.focus.aisle} aisle
+                {model.focus.edge ? ' · edge' : ''}
+              </small>
             </div>
           </div>
 
@@ -273,6 +209,7 @@ export default function AiFactorySimTool() {
             inspector={inspector}
             face={face}
             inspectId={inspectId}
+            model={model}
             powerPathLabel={powerPathFact.label}
             powerPathLevel={powerPathFact.level}
             copy={{
@@ -280,6 +217,8 @@ export default function AiFactorySimTool() {
               frontView: tx.frontView,
               rearView: tx.rearView,
               inspectHint: tx.inspectHint,
+              liveLabel: tx.liveLabel,
+              cellsLabel: tx.cellsLabel,
             }}
             onFaceChange={setFace}
             onInspect={selectInspect}
@@ -291,6 +230,11 @@ export default function AiFactorySimTool() {
             <Readout label={tx.readouts.flow} value={`${Math.round(model.flowMargin)}%`} />
             <Readout label={tx.readouts.headroom} value={`${Math.round(model.powerHeadroom)}%`} />
             <Readout label={tx.readouts.gapTax} value={`${Math.round(model.gapTaxMw * 1000)} kW`} />
+            <Readout
+              label={tx.readouts.busbar}
+              value={`${Math.round(model.requiredA)}A / ${model.publishedA}A`}
+            />
+            <Readout label={tx.readouts.return} value={`${model.returnC.toFixed(1)}C`} />
           </div>
 
           <div className="ai-factory-source-notes">
@@ -383,11 +327,19 @@ export default function AiFactorySimTool() {
   );
 }
 
+function liveCells(inspectId: InspectId, model: PlantSim): CellTelemetry[] | null {
+  if (inspectId === 'compute') return model.computeCells;
+  if (inspectId === 'switch') return model.switchCells;
+  if (inspectId === 'power') return model.shelfCells;
+  return null;
+}
+
 function RackTwin({
   fact,
   inspector,
   face,
   inspectId,
+  model,
   powerPathLabel,
   powerPathLevel,
   copy,
@@ -398,6 +350,7 @@ function RackTwin({
   inspector: InspectorSheet;
   face: RackFace;
   inspectId: InspectId;
+  model: PlantSim;
   powerPathLabel: string;
   powerPathLevel: EvidenceLevel;
   copy: {
@@ -405,6 +358,8 @@ function RackTwin({
     frontView: string;
     rearView: string;
     inspectHint: string;
+    liveLabel: string;
+    cellsLabel: string;
   };
   onFaceChange: (face: RackFace) => void;
   onInspect: (id: InspectId, face?: RackFace) => void;
@@ -505,6 +460,7 @@ function RackTwin({
               </span>
             ))}
           </div>
+          <LivePlant inspectId={inspectId} model={model} copy={copy} />
         </article>
         {inspector.internals.map((item) => (
           <article key={item.label} className="ai-factory-fact-card">
@@ -517,6 +473,9 @@ function RackTwin({
         <article className="ai-factory-fact-card">
           <span>power path</span>
           <strong>{powerPathLabel}</strong>
+          <p>
+            conversion {model.conversionKwPerRack.toFixed(1)} kW / rack · residual {model.residualKw.toFixed(1)} kW
+          </p>
           <EvidenceBadge level={powerPathLevel} />
         </article>
         <div className="ai-factory-source-list">
@@ -527,6 +486,65 @@ function RackTwin({
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+function LivePlant({
+  inspectId,
+  model,
+  copy,
+}: {
+  inspectId: InspectId;
+  model: PlantSim;
+  copy: { liveLabel: string; cellsLabel: string };
+}) {
+  const cells = liveCells(inspectId, model);
+  const cooling = inspectId === 'cooling' || inspectId === 'manifold';
+  const busbar = inspectId === 'busbar';
+
+  return (
+    <div className="ai-factory-live" data-testid="ai-factory-live">
+      <p className="ai-factory-live-kicker">{copy.liveLabel}</p>
+      <div className="ai-factory-live-grid">
+        {(busbar
+          ? [
+              { label: 'required', value: `${Math.round(model.requiredA)} A`, level: 'derived' as const },
+              { label: 'published', value: `${model.publishedA} A`, level: model.publishedBusbarLevel },
+              { label: 'util', value: `${Math.round(model.busbarUtil * 100)}%`, level: 'derived' as const },
+              { label: 'voltage', value: `${model.busVoltage} V`, level: 'source-backed' as const },
+            ]
+          : cooling
+            ? model.coolingLive
+            : model.live
+        ).map((metric) => (
+          <span key={`${metric.label}-${metric.value}`} className="ai-factory-live-item">
+            <small>{metric.label}</small>
+            {metric.value}
+            <EvidenceBadge level={metric.level} />
+          </span>
+        ))}
+      </div>
+      {busbar ? (
+        <p className="ai-factory-tension" data-testid="ai-factory-busbar-tension">
+          {model.busbarTension}
+        </p>
+      ) : null}
+      {cells ? (
+        <div className="ai-factory-cells" aria-label={copy.cellsLabel}>
+          {cells.map((cell) => (
+            <span
+              key={cell.id}
+              className={`ai-factory-cell ai-factory-cell--${cell.tone}`}
+              data-testid={`ai-factory-cell-${cell.id}`}
+              title={cell.note}
+            >
+              <small>{cell.label}</small>
+              {cell.kw.toFixed(1)}
+            </span>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

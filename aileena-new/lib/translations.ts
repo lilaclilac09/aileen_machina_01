@@ -343,7 +343,10 @@ export const t = {
         inspectLabel: 'inspect',
         frontView: 'front face',
         rearView: 'rear face',
-        inspectHint: 'click a tray or rear system',
+        inspectHint: 'click a tray, rear system, or hall rack',
+        liveLabel: 'live plant',
+        hallHint: 'click a hall rack',
+        cellsLabel: 'cells',
         powerPaths: {
           'legacy-ac': 'legacy AC',
           '800v-sidecar': '800V sidecar',
@@ -361,6 +364,8 @@ export const t = {
           flow: 'flow margin',
           headroom: 'power headroom',
           gapTax: 'gap tax',
+          busbar: 'busbar amps',
+          return: 'return water',
         },
         status: {
           stable: 'stable twin',
@@ -404,7 +409,7 @@ export const t = {
           },
         ],
         note:
-          'Toy model only. Numbers are simplified from public SemiAnalysis / InferenceX themes; not CFD, not procurement advice.',
+          'Plant model. Sourced constants, derived P/V and Q=ṁcpΔT, marked assumptions. Not CFD, not a quote.',
         related: 'Read the rack thesis →',
       },
     },
@@ -1316,7 +1321,10 @@ export const t = {
         inspectLabel: 'prüfen',
         frontView: 'Front',
         rearView: 'Rückseite',
-        inspectHint: 'Tray oder Heck anklicken',
+        inspectHint: 'Tray, Heck oder Hall-Rack anklicken',
+        liveLabel: 'Live Plant',
+        hallHint: 'Hall-Rack anklicken',
+        cellsLabel: 'Zellen',
         powerPaths: {
           'legacy-ac': 'legacy AC',
           '800v-sidecar': '800V Sidecar',
@@ -1334,6 +1342,8 @@ export const t = {
           flow: 'Flow Margin',
           headroom: 'Power Headroom',
           gapTax: 'Gap Tax',
+          busbar: 'Busbar Ampere',
+          return: 'Rücklauf',
         },
         status: {
           stable: 'stable twin',
@@ -1377,7 +1387,7 @@ export const t = {
           },
         ],
         note:
-          'Toy Model only. Zahlen sind aus öffentlichen SemiAnalysis / InferenceX Themes vereinfacht; kein CFD, keine Procurement Advice.',
+          'Plant Model. Sourced Constants, derived P/V und Q=ṁcpΔT, markierte Annahmen. Kein CFD, kein Angebot.',
         related: 'Rack-These lesen →',
       },
     },
