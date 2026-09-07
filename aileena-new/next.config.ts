@@ -10,6 +10,17 @@ const nextConfig: NextConfig = {
   // /Users/<you> instead of aileena-new, and .env.local is ignored.
   // Pin both roots. NEXT_TURBOPACK=0 is not a Next flag — use --webpack.
   outputFileTracingRoot: appRoot,
+  // Dynamic fs in lib/computer + lib/inkling traces the whole app root.
+  // Local Cafe recap takes (DJI .MP4) then get copied into .next/standalone
+  // and fill the disk (ENOSPC) during `pnpm deploy:cf`.
+  outputFileTracingExcludes: {
+    "*": [
+      "./scripts/video-edit/takes/**/*",
+      "./scripts/video-edit/photos/**/*",
+      "./scripts/video-edit/out/**/*",
+      "./scripts/video-edit/work/**/*",
+    ],
+  },
   turbopack: {
     root: appRoot,
   },
