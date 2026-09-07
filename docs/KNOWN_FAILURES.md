@@ -11,6 +11,7 @@
 
 ## CI / build / artifact
 
+- [2026-09-07] `Can't resolve 'tailwindcss' in $HOME` + `NEXT_TURBOPACK=0 next dev` → `NEXT_TURBOPACK=0` **不是** Next 开关（仍走 Turbopack）；父级 `~/pnpm-lock.yaml` 会让 webpack 从 `$HOME` 解析 CSS `@import`。Pin `outputFileTracingRoot` + `turbopack.root` 到 `aileena-new/`，`pnpm dev` 用 `next dev --webpack`；unzip 后必须 `rm -rf node_modules && pnpm install`，不要用 April zip 盖现有目录
 - [2026-08-11] 全仓 `pnpm lint` 在 `main` 上约 ~180 errors → **不要**用全仓 lint 作 automerge gate；只 eslint **本 PR 触及文件**（见 `QA.md`）
 - [2026-08-11] CI 里裸跑 `next build` 缺 index JSON（`agentArticleIndex` / `dataDocIndex` / `memoryIndex`）→ 用 **`pnpm build`**
 - [2026-08-11] `actions/upload-artifact@v4` 默认跳过点目录 → 上传 `aileena-new/.next` 必须 **`include-hidden-files: true`**，否则 playwright 下不到 artifact

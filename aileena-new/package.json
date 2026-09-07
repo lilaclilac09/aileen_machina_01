@@ -4,7 +4,7 @@
   "private": true,
   "license": "AGPL-3.0-or-later",
   "scripts": {
-    "dev": "NEXT_TURBOPACK=0 next dev",
+    "dev": "next dev --webpack",
     "build": "tsx scripts/sync-carousel-evolve.ts && tsx scripts/sync-content-memory.ts && tsx scripts/build-article-index.ts && tsx scripts/build-data-index.ts && tsx scripts/build-memory-index.ts && next build",
     "build:index": "tsx scripts/build-article-index.ts",
     "build:data-index": "tsx scripts/build-data-index.ts",

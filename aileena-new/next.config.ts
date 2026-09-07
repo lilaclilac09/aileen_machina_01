@@ -5,11 +5,22 @@ import type { NextConfig } from "next";
 const appRoot = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
-  // Home ~/pnpm-lock.yaml made Next pick the wrong workspace root, so
-  // aileena-new/.env.local (COMPUTER_WORKER_URL) was ignored and the dock
-  // stayed on local shim. Pin the app directory.
+  // Home ~/pnpm-lock.yaml (or any parent lockfile) makes Next infer the
+  // workspace as ~. Webpack then resolves CSS `@import "tailwindcss"` from
+  // /Users/<you> instead of aileena-new, and .env.local is ignored.
+  // Pin both roots. NEXT_TURBOPACK=0 is not a Next flag — use --webpack.
+  outputFileTracingRoot: appRoot,
   turbopack: {
     root: appRoot,
+  },
+  webpack: (config) => {
+    const appModules = path.join(appRoot, "node_modules");
+    const current = config.resolve.modules ?? ["node_modules"];
+    config.resolve.modules = [
+      appModules,
+      ...current.filter((entry) => entry !== appModules),
+    ];
+    return config;
   },
   // Move the Next.js dev indicator out of the bottom-left so it doesn't sit
   // on top of the AgentChat launcher portrait while developing. Production

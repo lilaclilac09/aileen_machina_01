@@ -52,7 +52,13 @@ public/
 
 ```bash
 pnpm install
-pnpm dev          # starts at http://localhost:3000
+pnpm dev          # webpack, http://localhost:3000
+```
+
+If you unzipped an old `aileena-new.zip` over an existing folder, or you see `Can't resolve 'tailwindcss' in '/Users/…'`, Next picked a parent lockfile (often `~/pnpm-lock.yaml`) and/or `node_modules` is mixed. Use this git checkout, then:
+
+```bash
+rm -rf node_modules .next && pnpm install && pnpm dev
 ```
 
 Environment variables:
