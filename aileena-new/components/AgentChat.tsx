@@ -1796,7 +1796,7 @@ export default function AgentChat() {
                   boxShadow: computerMode ? 'inset 0 0 3px rgba(0,168,157,0.9)' : 'none',
                 }}
               />
-              {computerMode ? '小电脑 on' : '小电脑'}
+              {computerMode ? 'computer on' : 'computer'}
             </button>
             <button
               type="button"
@@ -2021,21 +2021,6 @@ export default function AgentChat() {
 
         {/* Chat input — separate from leave-a-note drawer below. */}
         <div className="border-t border-[#e7e0d6] px-5 py-2.5 sm:py-3 shrink-0 pb-[max(0.625rem,env(safe-area-inset-bottom,0px))] sm:pb-3">
-          {!computerMode ? (
-            <button
-              type="button"
-              data-testid="computer-keycap-open"
-              aria-label="Open the small computer"
-              onClick={() => setComputerMode(true)}
-              className="mb-2 inline-flex min-h-9 items-center gap-2 rounded-[7px] border border-[#d8cfc0] border-b-2 border-b-[#c2b7a3] bg-white px-3 font-mono text-[0.55rem] tracking-[0.16em] uppercase text-[#007d75] shadow-[0_1px_0_rgba(27,23,19,0.05)] active:translate-y-[1px] active:border-b"
-            >
-              <span
-                aria-hidden
-                className="inline-block h-2.5 w-3.5 rounded-[2px] border border-[#007d75]/70 bg-[rgba(0,168,157,0.15)]"
-              />
-              小电脑 · open computer
-            </button>
-          ) : null}
           <div className="relative flex items-center gap-2 min-w-0">
             <span className={`text-sm ${sessionMaxed ? 'text-[#1b1713]/20' : 'text-[#00a89d]'}`}>&gt;</span>
             <textarea
