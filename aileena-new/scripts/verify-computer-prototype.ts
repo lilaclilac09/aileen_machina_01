@@ -114,6 +114,10 @@ function sourceChecks() {
     /computer-mode-toggle/.test(agentChatSrc) &&
       /computerMode \? <ComputerConsoleDock isOwner=\{isOwner\}/.test(agentChatSrc),
   );
+  assert(
+    'computer entry picker has v2 transcript button and v3 composer key',
+    /computer-entry-v2/.test(agentChatSrc) && /computer-entry-v3/.test(agentChatSrc) && /centry/.test(agentChatSrc),
+  );
   assert('visitor chips skip git status', /VISITOR_STARTER_CHIPS/.test(dockSrc) && !/VISITOR_STARTER_CHIPS[\s\S]{0,200}git status/.test(dockSrc));
   assert('dock tells visitors scratch resets monthly', /resets monthly/.test(dockSrc) && /isOwner \? '' : ' · resets monthly'/.test(dockSrc));
   assert('does not import @cloudflare/computer', !existsSync(join(process.cwd(), 'node_modules/@cloudflare/computer')));
