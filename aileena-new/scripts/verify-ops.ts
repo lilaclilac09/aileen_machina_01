@@ -357,6 +357,13 @@ function main() {
     /Voice → code/.test(agentChatSrc) && /\{vcodeRemaining\} left today/.test(agentChatSrc) && /ask\('Voice → code:/.test(agentChatSrc),
   );
   assert('visitor UI has copy + take patch', /copy/.test(agentChatSrc) && /take \.patch/.test(agentChatSrc));
+  assert(
+    'vcode proposal invites email + thanks the visitor',
+    /vcode-leave-note/.test(agentChatSrc) &&
+      /leave email — thank you/.test(agentChatSrc) &&
+      /leadVcodeInvite/.test(agentChatSrc) &&
+      /Thank you for the suggestion/.test(agentChatSrc),
+  );
   assert('visitor UI has no public Apply button', !/['"]Apply['"]/.test(agentChatSrc) && /isOwner \?/.test(agentChatSrc) && /owner apply/.test(agentChatSrc));
   assert('console does not call public apply', !/fetch\(['"]\/api\/voice-code\/apply/.test(agentChatSrc));
   assert('owner apply uses existing owner session', /\/api\/owner\/voice-code\/apply/.test(agentChatSrc));

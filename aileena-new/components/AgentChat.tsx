@@ -187,6 +187,9 @@ export default function AgentChat() {
   const [leadState, setLeadState] = useState<LeadState>('idle');
   const [leadError, setLeadError] = useState<string | null>(null);
   const [leadOpen, setLeadOpen] = useState(false);
+  /** A vcode proposal is a change suggestion — keep the note drawer offered so
+   *  the visitor can leave an email and we can thank them for the feedback. */
+  const [leadVcodeInvite, setLeadVcodeInvite] = useState(false);
   /** null = unknown / probing; false = backend offline → gentle disabled UI */
   const [leadMailReady, setLeadMailReady] = useState<boolean | null>(null);
   const [voiceMode, setVoiceMode] = useState(false);
@@ -1065,6 +1068,10 @@ export default function AgentChat() {
         ),
       );
 
+      if (res.ok && data.ok && (data.patch || data.proposal)) {
+        setLeadVcodeInvite(true);
+      }
+
       if (res.ok && data.ok && typeof data.patch === 'string' && data.patch.length > 0) {
         setVcodeById((prev) => ({
           ...prev,
@@ -1446,7 +1453,9 @@ export default function AgentChat() {
   // Contact: soft invite after a few turns — collapsed link, never mid-flow.
   // Also keep the form available at the visitor limit so owner can unlock via email.
   const showLeadInvite =
-    open && leadState !== 'sent' && (leadSoftNudge || (sessionMaxed && !ownerUnlimited));
+    open &&
+    leadState !== 'sent' &&
+    (leadSoftNudge || leadVcodeInvite || (sessionMaxed && !ownerUnlimited));
 
   function persistLeadState(next: LeadState) {
     setLeadState(next);
@@ -1894,6 +1903,14 @@ export default function AgentChat() {
                       onCopy={() => void copyPatch(m.id, att)}
                       onTake={() => takePatch(att)}
                       onApply={() => void ownerApplyPatch(m.id, att)}
+                      onLeaveNote={
+                        isOwner || leadState === 'sent'
+                          ? undefined
+                          : () => {
+                              setLeadVcodeInvite(true);
+                              void openLeadForm();
+                            }
+                      }
                     />
                   ) : null}
                 </div>
@@ -2174,6 +2191,10 @@ export default function AgentChat() {
                   <p className="text-[0.68rem] leading-5 text-[#1b1713]/45">
                     {CONTACT_OFFLINE_PUBLIC}
                   </p>
+                ) : leadVcodeInvite ? (
+                  <p className="text-[0.68rem] leading-5 text-[#1b1713]/50">
+                    Thank you for the suggestion — leave your email so Aileen can thank you and follow up.
+                  </p>
                 ) : (
                   <p className="text-[0.68rem] leading-5 text-[#1b1713]/50">
                     Optional — email + a short note if you want a reply later. Chat stays open either way.
@@ -2296,12 +2317,15 @@ function VcodeActions({
   onCopy,
   onTake,
   onApply,
+  onLeaveNote,
 }: {
   att: VcodeAttachment;
   isOwner: boolean;
   onCopy: () => void;
   onTake: () => void;
   onApply: () => void;
+  /** Visitor proposed a change — invite them to leave an email so Aileen can thank them. */
+  onLeaveNote?: () => void;
 }) {
   return (
     <div className="pl-5 mt-1 mb-2 flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -2334,6 +2358,16 @@ function VcodeActions({
         <span className="font-mono text-[0.48rem] tracking-[0.16em] text-red-400/70">
           {att.applyError}
         </span>
+      ) : null}
+      {onLeaveNote ? (
+        <button
+          type="button"
+          data-testid="vcode-leave-note"
+          onClick={onLeaveNote}
+          className="font-mono text-[0.48rem] tracking-[0.22em] uppercase text-[#007d75] hover:text-[#008f86]"
+        >
+          leave email — thank you ↗
+        </button>
       ) : null}
     </div>
   );
