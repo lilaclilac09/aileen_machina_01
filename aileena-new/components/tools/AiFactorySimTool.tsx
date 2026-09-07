@@ -353,6 +353,8 @@ function RackTwin({
   powerPathLabel: string;
   powerPathLevel: EvidenceLevel;
 }) {
+  const stackEvidence = Array.from(new Set(fact.frontStack.map((segment) => segment.level)));
+
   return (
     <div className="ai-factory-rack-twin">
       <div className="ai-factory-rack-visual" aria-label={`${fact.variant} source-backed rack cutaway`}>
@@ -387,6 +389,11 @@ function RackTwin({
           </div>
         </div>
         <p>{fact.visualCaveat}</p>
+        <div className="ai-factory-stack-evidence" aria-label="rack stack evidence">
+          {stackEvidence.map((level) => (
+            <EvidenceBadge key={level} level={level} />
+          ))}
+        </div>
       </div>
 
       <div className="ai-factory-ledger">
