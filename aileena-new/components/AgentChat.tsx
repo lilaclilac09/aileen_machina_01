@@ -578,6 +578,7 @@ export default function AgentChat() {
         inject?: Array<{ role: 'user' | 'assistant'; text: string }>;
       }>;
       setOpen(true);
+      setComputerMode(true);
       if (ce.detail?.voice || ce.detail?.autoListen) {
         setVoiceMode(true);
         if (ce.detail?.autoListen) setAutoListen(true);
@@ -873,6 +874,7 @@ export default function AgentChat() {
         if (tag === 'INPUT' || tag === 'TEXTAREA' || t?.isContentEditable) return;
         e.preventDefault();
         setOpen(true);
+        setComputerMode(true);
       }
     }
     window.addEventListener('keydown', onKey);
@@ -1637,7 +1639,13 @@ export default function AgentChat() {
     <>
       {/* Unified top-left chrome: avatar + ← Home (when not on /).
           Pages must not render a second Home in this corner. */}
-      <SiteLeftChrome onOpenConsole={() => setOpen(true)} consoleOpen={open} />
+      <SiteLeftChrome
+        onOpenConsole={() => {
+          setOpen(true);
+          setComputerMode(true);
+        }}
+        consoleOpen={open}
+      />
 
       {/* Backdrop */}
       <div
@@ -1775,16 +1783,27 @@ export default function AgentChat() {
               title={
                 computerMode
                   ? 'Computer on — monitor in this dialog'
-                  : 'Tap Computer for the scratch pad in this dialog'
+                  : 'Tap to open the small computer in this dialog'
               }
               onClick={() => setComputerMode((on) => !on)}
-              className="inline-flex min-h-11 items-center text-[0.55rem] tracking-[0.2em] uppercase px-2 py-0.5 rounded transition-colors sm:min-h-0"
+              className="inline-flex min-h-11 items-center gap-1.5 text-[0.55rem] tracking-[0.14em] uppercase px-2 py-0.5 rounded-[7px] transition-colors sm:min-h-0"
               style={{
-                color: computerMode ? '#007d75' : 'rgba(27,23,19,0.55)',
-                background: computerMode ? 'rgba(0,168,157,0.1)' : 'transparent',
-                border: computerMode ? '1px solid rgba(0,168,157,0.35)' : '1px solid transparent',
+                color: '#007d75',
+                background: computerMode ? 'rgba(0,168,157,0.12)' : '#fffcf7',
+                border: '1px solid rgba(0,168,157,0.45)',
+                boxShadow: computerMode
+                  ? '0 0 8px rgba(0,168,157,0.35)'
+                  : '0 1px 0 rgba(27,23,19,0.06)',
               }}
             >
+              <span
+                aria-hidden
+                className="inline-block h-2.5 w-3.5 rounded-[2px] border border-[#007d75]/70"
+                style={{
+                  background: computerMode ? '#0b2422' : 'rgba(0,168,157,0.15)',
+                  boxShadow: computerMode ? 'inset 0 0 3px rgba(0,168,157,0.9)' : 'none',
+                }}
+              />
               {computerMode ? 'computer on' : 'computer'}
             </button>
             <button

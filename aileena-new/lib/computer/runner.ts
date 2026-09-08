@@ -55,6 +55,41 @@ async function ensureCfMount(name: string): Promise<void> {
   await cfExec('mkdir -p scratch reports artifacts', '/workspace', name);
 }
 
+/**
+ * Visitor scratch pads reset monthly (lazy TTL, checked on next use).
+ * The owner workspace is never wiped. No cron, no DO registry: Durable Objects
+ * created via idFromName cannot be enumerated, so expiry runs per workspace.
+ */
+const VISITOR_SCRATCH_TTL_DAYS = 30;
+const VISITOR_BORN_PATH = '/workspace/scratch/.born';
+
+async function ensureVisitorScratchFresh(name: string): Promise<'kept' | 'reset'> {
+  await ensureCfMount(name);
+  let bornMs = Number.NaN;
+  try {
+    bornMs = Date.parse((await cfGetFile(VISITOR_BORN_PATH, name)).trim());
+  } catch {
+    /* first visit — stamp below */
+  }
+  const ttlMs = VISITOR_SCRATCH_TTL_DAYS * 24 * 60 * 60 * 1000;
+  if (Number.isFinite(bornMs) && Date.now() - bornMs < ttlMs) return 'kept';
+  let wiped = false;
+  if (Number.isFinite(bornMs)) {
+    const { stdout } = await cfExec('ls -1 /workspace/scratch', '/workspace', name);
+    const entries = stdout
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((e) => /^[\w][\w.-]*$/.test(e))
+      .slice(0, 50);
+    for (const entry of entries) {
+      await cfExec(`rm -r /workspace/scratch/${entry}`, '/workspace', name);
+    }
+    wiped = entries.length > 0;
+  }
+  await cfPutFile(VISITOR_BORN_PATH, nowIso(), name);
+  return wiped ? 'reset' : 'kept';
+}
+
 async function log(task: ComputerTask, line: string): Promise<ComputerTask> {
   const next = {
     ...task,
@@ -607,6 +642,15 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
         error: 'visitor scratch pad only',
       });
       return await log(blocked, 'blocked non-scratch task for visitor');
+    }
+    if (!isOwnerComputerTask(task) && backend === 'cloudflare-worker-shell') {
+      try {
+        if ((await ensureVisitorScratchFresh(workspaceIdFor(task))) === 'reset') {
+          task = await log(task, `monthly reset: scratch cleared after ${VISITOR_SCRATCH_TTL_DAYS}d`);
+        }
+      } catch {
+        /* freshness is best-effort; the task itself still runs */
+      }
     }
     if (task.taskType.startsWith('git_')) {
       task = await runGitTask(task);
