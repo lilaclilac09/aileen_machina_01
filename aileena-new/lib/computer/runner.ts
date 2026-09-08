@@ -600,37 +600,37 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
   if (!existing || existing.cancelled) return existing;
   if (existing.status !== 'queued') return existing;
 
-  let task = await upsertComputerTask({
-    ...existing,
-    status: 'running',
-    updatedAt: nowIso(),
-  });
-  const ownerTask = isOwnerComputerTask(task);
-  if (ownerTask) {
-    attachTaskToProof(task.proofItemId, task.id, 'in_progress');
-  }
-  const backend = taskBackend();
-  task = await upsertComputerTask({ ...task, backend });
-  task = await log(
-    task,
-    backend === 'cloudflare-worker-shell'
-      ? 'backend=cloudflare-worker-shell'
-      : ownerTask
-        ? 'backend=local-shim (not @cloudflare/computer)'
-        : 'backend=local-shim visitor scratch',
-  );
-  // Short pause so owner UI can observe running without a 30s spinner.
-  await new Promise((r) => setTimeout(r, 1400));
-
-  const fresh = getComputerTask(id);
-  if (!fresh || fresh.cancelled) {
-    return fresh
-      ? upsertComputerTask({ ...fresh, status: 'failed', error: 'cancelled', completedAt: nowIso() })
-      : null;
-  }
-  task = fresh;
-
+  let task = existing;
   try {
+    task = await upsertComputerTask({
+      ...existing,
+      status: 'running',
+      updatedAt: nowIso(),
+    });
+    const ownerTask = isOwnerComputerTask(task);
+    if (ownerTask) {
+      attachTaskToProof(task.proofItemId, task.id, 'in_progress');
+    }
+    const backend = taskBackend();
+    task = await upsertComputerTask({ ...task, backend });
+    task = await log(
+      task,
+      backend === 'cloudflare-worker-shell'
+        ? 'backend=cloudflare-worker-shell'
+        : ownerTask
+          ? 'backend=local-shim (not @cloudflare/computer)'
+          : 'backend=local-shim visitor scratch',
+    );
+    // Short pause so owner UI can observe running without a 30s spinner.
+    await new Promise((r) => setTimeout(r, 1400));
+
+    const fresh = getComputerTask(id);
+    if (!fresh || fresh.cancelled) {
+      return fresh
+        ? upsertComputerTask({ ...fresh, status: 'failed', error: 'cancelled', completedAt: nowIso() })
+        : null;
+    }
+    task = fresh;
     if (!isOwnerComputerTask(task) && !['write_scratch_file', 'files_tree', 'files_search'].includes(task.taskType)) {
       const blocked = await finishInspectStyle(task, {
         status: 'blocked',

@@ -94,6 +94,9 @@ function sourceChecks() {
   assert('cfClient routes by workspace name', /\/c\/\$\{name\}\/file/.test(cfClientSrc) && /\/c\/\$\{name\}\/exec/.test(cfClientSrc));
   const storeSrc = readFileSync(join(process.cwd(), 'lib/computer/store.ts'), 'utf8');
   assert('task store persists to Durable Object', /TASKS_STORE_PATH/.test(storeSrc) && /hydrateComputerStore/.test(storeSrc));
+  assert('task store does not persist every running tick', /isTerminalStatus/.test(storeSrc) && /reapStaleOpen/.test(storeSrc));
+  assert('task store persist retries and does not throw', /attempt < 3/.test(storeSrc) && /persist failed/.test(storeSrc));
+  assert('kickComputerTask cannot 500 the POST', /kickComputerTask/.test(tasks) && /status: 'failed'/.test(tasks));
   assert(
     'worker lives beside the Next app',
     existsSync(join(process.cwd(), '..', 'workers', 'aileena-computer', 'src', 'index.ts')),
@@ -101,6 +104,7 @@ function sourceChecks() {
   const workerSrc = readFileSync(join(process.cwd(), '..', 'workers', 'aileena-computer', 'src', 'index.ts'), 'utf8');
   assert('worker requires bearer secret', /Bearer/.test(workerSrc) && /COMPUTER_WORKER_SECRET/.test(workerSrc));
   assert('worker allowlists owner and visitor cwid', /VISITOR_RE/.test(workerSrc) && /idFromName\(name\)/.test(workerSrc));
+  assert('worker PUT replaces existing files', /await ws\.fs\.rm\(path\)/.test(workerSrc) && /await using ws/.test(workerSrc));
   assert('runner finds git commits', /git_find_commit/.test(runner) && /gitFindCommit/.test(runner));
   assert('runner blocks email send', /email_send/.test(runner) && /email not connected/.test(runner));
   assert('runner blocks fake browser screenshots', /browser_screenshot/.test(runner) && /No fake screenshots/.test(runner));

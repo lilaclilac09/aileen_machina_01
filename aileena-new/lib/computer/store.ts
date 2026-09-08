@@ -15,6 +15,8 @@ const g = globalThis as typeof globalThis & { __aileenaComputerTasks?: Memory };
 export const TASKS_STORE_PATH = '/workspace/reports/_store/tasks.json';
 const MAX_PERSISTED_TASKS = 5;
 const MAX_STORE_BYTES = 60 * 1024;
+/** Open tasks left behind by a crashed POST (500) must not 409 forever. */
+const STALE_OPEN_MS = 45_000;
 
 function memory(): Memory {
   if (!g.__aileenaComputerTasks) g.__aileenaComputerTasks = { tasks: {} };
@@ -122,6 +124,27 @@ function replaceActorTasks(actorId: string, incoming: Record<string, ComputerTas
   }
 }
 
+function isTerminalStatus(status: ComputerTask['status']): boolean {
+  return status === 'completed' || status === 'failed' || status === 'blocked';
+}
+
+function reapStaleOpen(actorId: string): void {
+  const now = Date.now();
+  for (const task of listComputerTasks(actorId)) {
+    if (!isOpen(task)) continue;
+    const updated = Date.parse(task.updatedAt);
+    if (!Number.isFinite(updated) || now - updated < STALE_OPEN_MS) continue;
+    memory().tasks[task.id] = {
+      ...task,
+      status: 'failed',
+      error: 'stale',
+      resultSummary: 'failed: stale',
+      completedAt: nowIso(),
+      updatedAt: nowIso(),
+    };
+  }
+}
+
 /** Load this actor's tasks from the Durable Object (production) or local disk. */
 export async function hydrateComputerStore(actorId: string): Promise<void> {
   if (isCloudflareComputerReady()) {
@@ -132,18 +155,30 @@ export async function hydrateComputerStore(actorId: string): Promise<void> {
     } catch {
       /* missing or corrupt — keep in-isolate memory */
     }
+    reapStaleOpen(actorId);
     return;
   }
   hydrateDisk();
+  reapStaleOpen(actorId);
 }
 
 async function persistActor(actorId: string): Promise<void> {
-  if (isCloudflareComputerReady()) {
-    const map = persistableMap(actorId);
-    await cfPutFile(TASKS_STORE_PATH, JSON.stringify(map), actorId);
+  if (!isCloudflareComputerReady()) {
+    persistDisk();
     return;
   }
-  persistDisk();
+  const body = JSON.stringify(persistableMap(actorId));
+  let last: unknown;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      await cfPutFile(TASKS_STORE_PATH, body, actorId);
+      return;
+    } catch (err) {
+      last = err;
+      await new Promise((resolve) => setTimeout(resolve, 80 * (attempt + 1)));
+    }
+  }
+  console.error('[computer] persist failed', last instanceof Error ? last.message : last);
 }
 
 export function listComputerTasks(actorId: string): ComputerTask[] {
@@ -158,7 +193,13 @@ export function getComputerTask(id: string): ComputerTask | null {
 
 export async function upsertComputerTask(task: ComputerTask): Promise<ComputerTask> {
   memory().tasks[task.id] = task;
-  await persistActor(taskActorId(task));
+  // Do not PUT tasks.json on every log/running tick. Production POST 500'd
+  // when the second overwrite of that file threw, leaving the task queued.
+  if (isTerminalStatus(task.status) || task.cancelled) {
+    await persistActor(taskActorId(task));
+  } else if (!isCloudflareComputerReady()) {
+    persistDisk();
+  }
   return task;
 }
 

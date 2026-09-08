@@ -154,3 +154,5 @@ COMPUTER_WORKER_SECRET=<same value>
 ```
 
 Redeploy Production. Shim-only Production stays off.
+
+After Worker code changes: `npx wrangler deploy` again. A Vercel Redeploy does not update the Worker.

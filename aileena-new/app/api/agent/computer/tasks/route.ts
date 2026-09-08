@@ -49,13 +49,27 @@ function jsonActor(actor: ComputerActor, body: unknown, status = 200) {
 }
 
 async function kickComputerTask(id: string): Promise<void> {
+  const run = async () => {
+    try {
+      await runComputerTask(id);
+    } catch (err) {
+      const existing = getComputerTask(id);
+      if (!existing) return;
+      await upsertComputerTask({
+        ...existing,
+        status: 'failed',
+        error: redactSecrets(err instanceof Error ? err.message : 'run failed'),
+        resultSummary: `failed: ${redactSecrets(err instanceof Error ? err.message : 'run failed')}`,
+        completedAt: nowIso(),
+        updatedAt: nowIso(),
+      });
+    }
+  };
   if (isCloudflareComputerReady() || isVercelProduction()) {
-    await runComputerTask(id);
+    await run();
     return;
   }
-  after(async () => {
-    await runComputerTask(id);
-  });
+  after(run);
 }
 
 export async function GET(req: Request) {
