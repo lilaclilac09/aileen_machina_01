@@ -2,9 +2,9 @@ import Link from 'next/link';
 import './landing-marquee.css';
 
 const NEWS = [
+  { href: '/tools/ai-factory-sim', label: 'AI factory sim is a live plant' },
   { href: '/daily', label: 'two lines is open' },
   { href: '/sound', label: 'sound lab is learning to mix' },
-  { href: '/updates', label: 'all knobs must have consequences' },
 ] as const;
 
 /** Clickable news whisper on the cinematic opening. Not a banner. */
