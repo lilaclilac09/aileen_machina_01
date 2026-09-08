@@ -23,6 +23,8 @@ export default function PlantViewport({
   onOpenTray,
   onChip,
   onScale,
+  filmPlaying,
+  onUserControl,
 }: {
   model: PlantSim;
   fact: RackFactSheet;
@@ -33,11 +35,13 @@ export default function PlantViewport({
   openKind: TrayKind;
   openChip: ChipId;
   openTrayIndex: number;
+  filmPlaying: boolean;
   onFocusRack: (id: number) => void;
   onInspect: (id: InspectId, face?: RackFace) => void;
   onOpenTray: (kind: TrayKind, index: number) => void;
   onChip: (id: ChipId) => void;
   onScale: (mode: CameraMode) => void;
+  onUserControl: () => void;
 }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<PlantSceneHandle | null>(null);
@@ -45,21 +49,25 @@ export default function PlantViewport({
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return undefined;
-    const scene = mountPlantScene(host, (hit) => {
-      if (hit.kind === 'world' && (hit.id === 'campus' || hit.id === 'hall')) onScale(hit.id);
-      else if (hit.kind === 'cabinet') onScale('rack');
-      else if (hit.kind === 'hall') onFocusRack(Number(hit.id));
-      else if (hit.kind === 'chip') onChip(hit.id as ChipId);
-      else if (hit.kind === 'tray' && (hit.trayKind === 'compute' || hit.trayKind === 'switch')) {
-        onOpenTray(hit.trayKind, hit.trayIndex ?? 0);
-      } else onInspect(hit.id as InspectId, hit.face);
-    });
+    const scene = mountPlantScene(
+      host,
+      (hit) => {
+        if (hit.kind === 'world' && (hit.id === 'campus' || hit.id === 'hall')) onScale(hit.id);
+        else if (hit.kind === 'cabinet') onScale('rack');
+        else if (hit.kind === 'hall') onFocusRack(Number(hit.id));
+        else if (hit.kind === 'chip') onChip(hit.id as ChipId);
+        else if (hit.kind === 'tray' && (hit.trayKind === 'compute' || hit.trayKind === 'switch')) {
+          onOpenTray(hit.trayKind, hit.trayIndex ?? 0);
+        } else onInspect(hit.id as InspectId, hit.face);
+      },
+      onUserControl,
+    );
     sceneRef.current = scene;
     return () => {
       scene.dispose();
       sceneRef.current = null;
     };
-  }, [onChip, onFocusRack, onInspect, onOpenTray, onScale]);
+  }, [onChip, onFocusRack, onInspect, onOpenTray, onScale, onUserControl]);
 
   useEffect(() => {
     sceneRef.current?.update({
@@ -72,8 +80,9 @@ export default function PlantViewport({
       openKind,
       openChip,
       openTrayIndex,
+      filmPlaying,
     });
-  }, [cameraMode, face, fact, inspectId, model, openChip, openKind, openTrayIndex, powerPath]);
+  }, [cameraMode, face, fact, filmPlaying, inspectId, model, openChip, openKind, openTrayIndex, powerPath]);
 
   return <div className="ai-factory-viewport" data-testid="ai-factory-viewport" ref={hostRef} />;
 }

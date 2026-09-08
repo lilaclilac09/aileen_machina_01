@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useLanguage } from '../LanguageProvider';
@@ -19,7 +19,7 @@ import { chipLiveKw, defaultChip, trayKit, type ChipId, type ChipPart, type Tray
 import { simulatePlant, type CellTelemetry, type PlantSim } from '../../lib/ai-factory/simulate';
 import type { PowerPath as PlantPowerPath } from '../../lib/ai-factory/plant';
 import type { CameraMode } from '../../lib/ai-factory/plant-scene';
-import { CAMERA_MODES, SCALE_FACTS } from '../../lib/ai-factory/world';
+import { CAMERA_MODES, SCALE_FACTS, filmHoldMs, nextFilmWaypoint } from '../../lib/ai-factory/world';
 
 const PlantViewport = dynamic(() => import('./PlantViewport'), { ssr: false });
 
@@ -105,6 +105,7 @@ export default function AiFactorySimTool() {
   const [openKind, setOpenKind] = useState<TrayKind>('compute');
   const [openChip, setOpenChip] = useState<ChipId>('gpu');
   const [openTrayIndex, setOpenTrayIndex] = useState(0);
+  const [filmPlaying, setFilmPlaying] = useState(false);
   const rackFact = RACK_FACTS[variant];
   const powerPathFact = POWER_PATH_FACTS[powerPath];
   const inspector = RACK_INSPECTORS[variant][inspectId];
@@ -145,6 +146,7 @@ export default function AiFactorySimTool() {
     setOpenKind('compute');
     setOpenChip('gpu');
     setOpenTrayIndex(0);
+    setFilmPlaying(false);
   }
 
   function selectVariant(nextVariant: RackVariant) {
@@ -156,24 +158,33 @@ export default function AiFactorySimTool() {
     setOpenKind('compute');
     setOpenChip('gpu');
     setOpenTrayIndex(0);
+    setFilmPlaying(false);
   }
 
+  const pauseFilm = useCallback(() => {
+    setFilmPlaying(false);
+  }, []);
+
   const focusFromHall = useCallback((id: number) => {
+    setFilmPlaying(false);
     setFocusRack(id);
     setCameraMode('cabinet');
   }, []);
 
   const scaleFromScene = useCallback((mode: CameraMode) => {
+    setFilmPlaying(false);
     setCameraMode(mode);
   }, []);
 
   const inspectFromScene = useCallback((id: InspectId, nextFace?: RackFace) => {
+    setFilmPlaying(false);
     setInspectId(id);
     if (nextFace) setFace(nextFace);
     setCameraMode('rack');
   }, []);
 
   const openFromScene = useCallback((kind: TrayKind, index: number) => {
+    setFilmPlaying(false);
     setOpenKind(kind);
     setOpenTrayIndex(index);
     setOpenChip(defaultChip(kind));
@@ -183,9 +194,43 @@ export default function AiFactorySimTool() {
   }, []);
 
   const selectChip = useCallback((id: ChipId) => {
+    setFilmPlaying(false);
     setOpenChip(id);
     setCameraMode('open');
   }, []);
+
+  function applyFilmShot(mode: CameraMode) {
+    if (mode === 'open') {
+      setOpenChip(defaultChip(openKind));
+      setInspectId(openKind);
+      setFace('front');
+    }
+    setCameraMode(mode);
+  }
+
+  function toggleFilm() {
+    if (filmPlaying) {
+      setFilmPlaying(false);
+      return;
+    }
+    setFace('front');
+    applyFilmShot('satellite');
+    setFilmPlaying(true);
+  }
+
+  useEffect(() => {
+    if (!filmPlaying) return undefined;
+    const timer = window.setTimeout(() => {
+      const next = nextFilmWaypoint(cameraMode);
+      if (next === 'open') {
+        setOpenChip(defaultChip(openKind));
+        setInspectId(openKind);
+        setFace('front');
+      }
+      setCameraMode(next);
+    }, filmHoldMs(cameraMode));
+    return () => window.clearTimeout(timer);
+  }, [cameraMode, filmPlaying, openKind]);
 
   function selectInspect(nextId: InspectId, nextFace?: RackFace) {
     setInspectId(nextId);
@@ -203,16 +248,21 @@ export default function AiFactorySimTool() {
         <div className="ai-factory-panel ai-factory-panel--wide">
           <div className="ai-factory-topline">
             <span>{tx.sourceLabel}</span>
-            <a
-              href="https://github.com/NVIDIA-Omniverse-blueprints/omniverse-dsx-blueprint-for-ai-factories"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              DSX blueprint ↗
-            </a>
+            <span className="ai-factory-refs">
+              <a
+                href="https://github.com/NVIDIA-Omniverse-blueprints/omniverse-dsx-blueprint-for-ai-factories"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                DSX waypoints ↗
+              </a>
+              <a href="https://github.com/SINRG-Lab/SiliconXR" target="_blank" rel="noopener noreferrer">
+                XRFab ↗
+              </a>
+            </span>
           </div>
 
-          <div className="ai-factory-stage" data-scenario={scenario} data-camera={cameraMode}>
+          <div className="ai-factory-stage" data-scenario={scenario} data-camera={cameraMode} data-film={filmPlaying ? 'play' : 'stop'}>
             <PlantViewport
               model={model}
               fact={rackFact}
@@ -223,11 +273,13 @@ export default function AiFactorySimTool() {
               openKind={openKind}
               openChip={openChip}
               openTrayIndex={openTrayIndex}
+              filmPlaying={filmPlaying}
               onFocusRack={focusFromHall}
               onInspect={inspectFromScene}
               onOpenTray={openFromScene}
               onChip={selectChip}
               onScale={scaleFromScene}
+              onUserControl={pauseFilm}
             />
             <div className="ai-factory-hall-a11y">
               {model.hall.map((rack) => (
@@ -243,12 +295,22 @@ export default function AiFactorySimTool() {
               ))}
             </div>
             <div className="ai-factory-camera" role="group" aria-label="camera">
+              <button
+                type="button"
+                className={filmPlaying ? 'ai-factory-chip ai-factory-chip--active' : 'ai-factory-chip'}
+                onClick={toggleFilm}
+                aria-pressed={filmPlaying}
+                data-testid="ai-factory-film"
+              >
+                {filmPlaying ? tx.filmStop : tx.filmPlay}
+              </button>
               {CAMERA_MODES.map((mode) => (
                 <button
                   key={mode}
                   type="button"
                   className={cameraMode === mode ? 'ai-factory-chip ai-factory-chip--active' : 'ai-factory-chip'}
                   onClick={() => {
+                    setFilmPlaying(false);
                     if (mode === 'open') {
                       setOpenChip(defaultChip(openKind));
                       setInspectId(openKind);

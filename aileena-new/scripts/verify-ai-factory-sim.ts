@@ -2,7 +2,7 @@ import { chipLiveKw, powerShareSum, trayKit, TRAY_KITS } from '../lib/ai-factory
 import type { RackVariant } from '../lib/ai-factory/rack-facts';
 import { simulatePlant } from '../lib/ai-factory/simulate';
 import { hallPose, usesSidecar, usesWhips } from '../lib/ai-factory/viewport';
-import { CAMERA_MODES, SITE, SCALE_FACTS, latLonToUnit, scaleAim } from '../lib/ai-factory/world';
+import { CAMERA_MODES, FILM_WAYPOINTS, SITE, SCALE_FACTS, filmCam, filmCuts, filmHoldMs, latLonToUnit, nextFilmWaypoint, scaleAim } from '../lib/ai-factory/world';
 
 const gapsOff = { coolingAc: false, gridDelay: false, schedulerTail: false, modularClaims: false };
 
@@ -117,6 +117,16 @@ assert(
 });
 
 assert('six camera scales', CAMERA_MODES.length === 6);
+assert('film waypoints match the scale ladder', FILM_WAYPOINTS.join(',') === CAMERA_MODES.join(','));
+assert('film loops die to globe', nextFilmWaypoint('open') === 'satellite');
+assert('film steps satellite to campus', nextFilmWaypoint('satellite') === 'campus');
+assert('open to satellite is a cut', filmCuts('open', 'satellite'));
+assert('rack to satellite is a cut', filmCuts('rack', 'satellite'));
+assert('campus to satellite dollies', !filmCuts('campus', 'satellite'));
+assert('satellite to campus dollies', !filmCuts('satellite', 'campus'));
+assert('film holds are cinematic', filmHoldMs('satellite') >= 3000 && filmHoldMs('open') >= 3000);
+const orbit = filmCam('satellite', origin, 0);
+assert('film satellite orbit stays outside the globe', orbit.cam.length() > 5);
 assert('satellite site is assumption', SITE.level === 'assumption');
 assert('satellite fact is assumption', SCALE_FACTS.satellite.level === 'assumption');
 assert('rack fact stays source-backed', SCALE_FACTS.rack.level === 'source-backed');

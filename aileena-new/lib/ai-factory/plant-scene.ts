@@ -20,7 +20,7 @@ import {
   usesSidecar,
   usesWhips,
 } from './viewport';
-import { buildCampus, buildGlobe, isHallLayer, scaleAim, studioGridTexture, type CameraMode } from './world';
+import { buildCampus, buildGlobe, filmCam, filmCuts, isHallLayer, scaleAim, studioGridTexture, type CameraMode } from './world';
 
 export type { CameraMode } from './world';
 
@@ -34,6 +34,7 @@ export type PlantSceneInput = {
   openKind: TrayKind;
   openChip: ChipId;
   openTrayIndex: number;
+  filmPlaying?: boolean;
 };
 
 export type PlantSceneHandle = {
@@ -155,6 +156,7 @@ function thermalColor(score: number) {
 export function mountPlantScene(
   host: HTMLElement,
   onClick: (hit: Click) => void,
+  onUserControl?: () => void,
 ): PlantSceneHandle {
   const renderer = new THREE.WebGLRenderer({
     antialias: true,
@@ -585,7 +587,7 @@ export function mountPlantScene(
               map: fasciaTexture(fasciaLabel, fill),
             }),
           );
-          fascia.position.set(-0.01, cursor + unitH / 2, RACK_D / 2 - 0.086);
+          fascia.position.set(-0.01, cursor + unitH / 2, RACK_D / 2 - 0.04);
           addHeroMesh(fascia, {
             kind: 'tray',
             id: segment.kind,
@@ -917,6 +919,10 @@ export function mountPlantScene(
   let lastFace: RackFace = 'front';
   let lastFocus = -1;
   let lastOpen = '';
+  let lastFilm = false;
+  let latest: PlantSceneInput | null = null;
+  let filmAge = 0;
+  const clock = new THREE.Clock();
 
   function aimCamera(input: PlantSceneInput) {
     const pose = hallPose(input.model.focus.id);
@@ -941,7 +947,16 @@ export function mountPlantScene(
     controls.maxDistance = aim.max;
   }
 
+  function applyAim(input: PlantSceneInput, age: number) {
+    aimCamera(input);
+    if (!input.filmPlaying) return;
+    const drift = filmCam(input.cameraMode, hallPose(input.model.focus.id), age);
+    desiredCam.copy(drift.cam);
+    desiredTarget.copy(drift.target);
+  }
+
   function update(input: PlantSceneInput) {
+    latest = input;
     if (input.fact.variant !== lastVariant) {
       buildHero(input.fact);
       lastVariant = input.fact.variant;
@@ -1038,14 +1053,24 @@ export function mountPlantScene(
       }
     });
 
-    if (input.cameraMode !== lastMode || input.face !== lastFace || input.model.focus.id !== lastFocus) {
-      aimCamera(input);
+    if (
+      input.cameraMode !== lastMode ||
+      input.face !== lastFace ||
+      input.model.focus.id !== lastFocus ||
+      Boolean(input.filmPlaying) !== lastFilm
+    ) {
+      const cut = !input.filmPlaying || filmCuts(lastMode, input.cameraMode);
+      filmAge = 0;
+      applyAim(input, 0);
       followCamera = true;
-      camera.position.copy(desiredCam);
-      controls.target.copy(desiredTarget);
+      if (cut) {
+        camera.position.copy(desiredCam);
+        controls.target.copy(desiredTarget);
+      }
       lastMode = input.cameraMode;
       lastFace = input.face;
       lastFocus = input.model.focus.id;
+      lastFilm = Boolean(input.filmPlaying);
     }
   }
 
@@ -1075,6 +1100,7 @@ export function mountPlantScene(
 
   function onControlStart() {
     followCamera = false;
+    onUserControl?.();
   }
 
   renderer.domElement.addEventListener('pointerdown', onPointer);
@@ -1094,10 +1120,17 @@ export function mountPlantScene(
   let frame = 0;
   const tick = () => {
     frame = requestAnimationFrame(tick);
-    if (followCamera) {
+    const dt = Math.min(clock.getDelta(), 0.05);
+    filmAge += dt;
+    if (latest?.filmPlaying) {
+      applyAim(latest, filmAge);
+      camera.position.lerp(desiredCam, 0.028);
+      controls.target.lerp(desiredTarget, 0.035);
+    } else if (followCamera) {
       camera.position.lerp(desiredCam, 0.06);
       controls.target.lerp(desiredTarget, 0.08);
     }
+    if (latest?.cameraMode === 'satellite') globe.group.rotation.y += dt * 0.12;
     const fogAttr = heatFog.geometry.getAttribute('position');
     for (let i = 0; i < fogAttr.count; i += 1) {
       const y = fogAttr.getY(i) + 0.004;

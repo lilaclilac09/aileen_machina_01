@@ -5,6 +5,28 @@ import type { HallPose } from './viewport';
 export const CAMERA_MODES = ['satellite', 'campus', 'hall', 'cabinet', 'rack', 'open'] as const;
 export type CameraMode = (typeof CAMERA_MODES)[number];
 
+/** DSX waypoint filmstrip on this kernel — not an Omniverse stream. */
+export const FILM_WAYPOINTS: CameraMode[] = ['satellite', 'campus', 'hall', 'cabinet', 'rack', 'open'];
+
+export const FILM_HOLD_MS: Record<CameraMode, number> = {
+  satellite: 4000,
+  campus: 3200,
+  hall: 3400,
+  cabinet: 3000,
+  rack: 3600,
+  open: 3800,
+};
+
+export function nextFilmWaypoint(mode: CameraMode): CameraMode {
+  const index = FILM_WAYPOINTS.indexOf(mode);
+  const from = index < 0 ? 0 : index;
+  return FILM_WAYPOINTS[(from + 1) % FILM_WAYPOINTS.length];
+}
+
+export function filmHoldMs(mode: CameraMode): number {
+  return FILM_HOLD_MS[mode];
+}
+
 export const SITE = {
   name: 'assumption white-space campus',
   lat: 36.2,
@@ -355,4 +377,26 @@ export function scaleAim(mode: CameraMode, pose: HallPose) {
 
 export function isHallLayer(mode: CameraMode) {
   return mode === 'hall' || mode === 'cabinet' || mode === 'rack' || mode === 'open';
+}
+
+/** Entering space from the hall layer is a cut — no tunnel through the globe. */
+export function filmCuts(from: CameraMode, to: CameraMode): boolean {
+  return to === 'satellite' && isHallLayer(from);
+}
+
+export function filmCam(mode: CameraMode, pose: HallPose, age: number) {
+  const aim = scaleAim(mode, pose);
+  if (mode === 'satellite') {
+    const a = age * 0.22;
+    return {
+      cam: new THREE.Vector3(Math.sin(a) * 6.7, 1.28 + Math.sin(a * 0.55) * 0.42, Math.cos(a) * 6.7),
+      target: new THREE.Vector3(0, 0.05, 0),
+    };
+  }
+  const sway = Math.sin(age * 0.45);
+  const nudge = mode === 'campus' ? 0.7 : mode === 'hall' ? 0.32 : 0.09;
+  return {
+    cam: aim.cam.clone().add(new THREE.Vector3(sway * nudge, Math.cos(age * 0.3) * nudge * 0.4, sway * nudge * 0.35)),
+    target: aim.target.clone(),
+  };
 }
