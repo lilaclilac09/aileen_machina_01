@@ -116,17 +116,20 @@ assert(
   });
 });
 
-assert('six camera scales', CAMERA_MODES.length === 6);
+assert('seven camera scales', CAMERA_MODES.length === 7);
 assert('film waypoints match the scale ladder', FILM_WAYPOINTS.join(',') === CAMERA_MODES.join(','));
 assert('film loops die to globe', nextFilmWaypoint('open') === 'satellite');
-assert('film steps satellite to campus', nextFilmWaypoint('satellite') === 'campus');
+assert('film steps campus to wafer line', nextFilmWaypoint('campus') === 'wafer');
 assert('open to satellite is a cut', filmCuts('open', 'satellite'));
 assert('campus to hall is a cut', filmCuts('campus', 'hall'));
+assert('wafer to hall is a cut', filmCuts('wafer', 'hall'));
 assert('rack to satellite is a cut', filmCuts('rack', 'satellite'));
+assert('campus to wafer dollies', !filmCuts('campus', 'wafer'));
 assert('campus to satellite dollies', !filmCuts('campus', 'satellite'));
 assert('satellite to campus dollies', !filmCuts('satellite', 'campus'));
 assert('hall to cabinet dollies', !filmCuts('hall', 'cabinet'));
 assert('film holds are cinematic', filmHoldMs('satellite') >= 3000 && filmHoldMs('open') >= 3000);
+assert('wafer line is assumption', SCALE_FACTS.wafer.level === 'assumption');
 const orbit = filmCam('satellite', origin, 0);
 assert('film satellite orbit stays outside the globe', orbit.cam.length() > 5);
 assert('satellite site is assumption', SITE.level === 'assumption');

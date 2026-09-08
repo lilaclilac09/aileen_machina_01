@@ -52,7 +52,7 @@ export default function PlantViewport({
     const scene = mountPlantScene(
       host,
       (hit) => {
-        if (hit.kind === 'world' && (hit.id === 'campus' || hit.id === 'hall')) onScale(hit.id);
+        if (hit.kind === 'world' && (hit.id === 'campus' || hit.id === 'hall' || hit.id === 'wafer')) onScale(hit.id);
         else if (hit.kind === 'cabinet') onScale('rack');
         else if (hit.kind === 'hall') onFocusRack(Number(hit.id));
         else if (hit.kind === 'chip') onChip(hit.id as ChipId);

@@ -20,7 +20,7 @@ import {
   usesSidecar,
   usesWhips,
 } from './viewport';
-import { buildCampus, buildGlobe, filmCam, filmCuts, isHallLayer, scaleAim, studioGridTexture, type CameraMode } from './world';
+import { buildCampus, buildFabLine, buildGlobe, filmCam, filmCuts, isHallLayer, scaleAim, studioGridTexture, type CameraMode } from './world';
 
 export type { CameraMode } from './world';
 
@@ -44,7 +44,7 @@ export type PlantSceneHandle = {
 
 type Click = {
   kind: 'hall' | 'tray' | 'rear' | 'chip' | 'world' | 'cabinet';
-  id: number | InspectId | ChipId | CameraMode | 'door' | 'campus' | 'hall';
+  id: number | InspectId | ChipId | CameraMode | 'door' | 'campus' | 'hall' | 'wafer';
   face?: RackFace;
   trayIndex?: number;
   trayKind?: TrayKind;
@@ -382,6 +382,8 @@ export function mountPlantScene(
   scene.add(globe.group);
   const campus = buildCampus();
   scene.add(campus.group);
+  const fab = buildFabLine();
+  scene.add(fab.group);
   const studioMap = studioGridTexture();
   const studio = new THREE.Mesh(
     new THREE.PlaneGeometry(80, 80),
@@ -412,7 +414,7 @@ export function mountPlantScene(
     }),
   );
   scene.add(heatFog);
-  const worldClickables = [...globe.clickables, ...campus.clickables];
+  const worldClickables = [...globe.clickables, ...campus.clickables, ...fab.clickables];
 
   const hero = new THREE.Group();
   scene.add(hero);
@@ -966,6 +968,7 @@ export function mountPlantScene(
     const hallLayer = isHallLayer(input.cameraMode);
     globe.group.visible = input.cameraMode === 'satellite';
     campus.group.visible = input.cameraMode === 'campus';
+    fab.group.visible = input.cameraMode === 'wafer';
     studio.visible = input.cameraMode === 'satellite' || input.cameraMode === 'campus';
     floor.visible = hallLayer;
     tiles.visible = hallLayer;
@@ -982,7 +985,7 @@ export function mountPlantScene(
       input.model.status === 'hot' || input.model.status === 'power' ? 0xff6a3c : 0xc4a24a,
     );
     scene.background = new THREE.Color(
-      input.cameraMode === 'satellite' ? 0x020308 : input.cameraMode === 'campus' ? 0x10140f : 0x07090b,
+      input.cameraMode === 'satellite' ? 0x020308 : input.cameraMode === 'campus' ? 0x10140f : input.cameraMode === 'wafer' ? 0x9aa3a8 : 0x07090b,
     );
     scene.fog = hallLayer ? new THREE.FogExp2(0x0a0d10, 0.024 + (1 - input.model.flowMargin / 100) * 0.02) : null;
 
@@ -1131,6 +1134,12 @@ export function mountPlantScene(
       controls.target.lerp(desiredTarget, 0.08);
     }
     if (latest?.cameraMode === 'satellite') globe.group.rotation.y += dt * 0.12;
+    if (latest?.cameraMode === 'wafer') {
+      fab.foups.forEach((pod, index) => {
+        const x = ((-8 + index * 3.4 + filmAge * 0.55) % 20) - 10;
+        pod.position.x = x;
+      });
+    }
     const fogAttr = heatFog.geometry.getAttribute('position');
     for (let i = 0; i < fogAttr.count; i += 1) {
       const y = fogAttr.getY(i) + 0.004;
@@ -1160,6 +1169,7 @@ export function mountPlantScene(
       studioMap.dispose();
       globe.textures.forEach((texture) => texture.dispose());
       campus.textures.forEach((texture) => texture.dispose());
+      fab.textures.forEach((texture) => texture.dispose());
       fogGeo.dispose();
       (heatFog.material as THREE.PointsMaterial).dispose();
       clearOpen();

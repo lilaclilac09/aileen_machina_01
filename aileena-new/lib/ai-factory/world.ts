@@ -2,15 +2,16 @@ import * as THREE from 'three';
 import type { EvidenceLevel } from './rack-facts';
 import type { HallPose } from './viewport';
 
-export const CAMERA_MODES = ['satellite', 'campus', 'hall', 'cabinet', 'rack', 'open'] as const;
+export const CAMERA_MODES = ['satellite', 'campus', 'wafer', 'hall', 'cabinet', 'rack', 'open'] as const;
 export type CameraMode = (typeof CAMERA_MODES)[number];
 
 /** DSX waypoint filmstrip on this kernel — not an Omniverse stream. */
-export const FILM_WAYPOINTS: CameraMode[] = ['satellite', 'campus', 'hall', 'cabinet', 'rack', 'open'];
+export const FILM_WAYPOINTS: CameraMode[] = ['satellite', 'campus', 'wafer', 'hall', 'cabinet', 'rack', 'open'];
 
 export const FILM_HOLD_MS: Record<CameraMode, number> = {
   satellite: 4000,
   campus: 3200,
+  wafer: 3400,
   hall: 3400,
   cabinet: 3000,
   rack: 3600,
@@ -53,6 +54,12 @@ export const SCALE_FACTS: Record<CameraMode, ScaleFact> = {
     title: 'campus aerial',
     summary: 'Warehouse, cooling yard, substation, parking.',
     detail: 'Layout is a modeling sketch so the camera can fly in. Not a surveyed site.',
+    level: 'assumption',
+  },
+  wafer: {
+    title: 'wafer line',
+    summary: 'Cleanroom aisle, overhead FOUPs, one 300mm wafer.',
+    detail: 'Logistics sketch (FabFlow / XRFab camera grammar). Not lithography physics, not a real fab, not Omniverse USD.',
     level: 'assumption',
   },
   hall: {
@@ -314,6 +321,104 @@ export function buildCampus() {
   return { group, clickables: [hall, door], textures: [map] };
 }
 
+export function waferTexture() {
+  const size = 512;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('canvas');
+  ctx.fillStyle = '#0b1020';
+  ctx.fillRect(0, 0, size, size);
+  const disc = ctx.createRadialGradient(256, 256, 20, 256, 256, 248);
+  disc.addColorStop(0, '#d8e4f0');
+  disc.addColorStop(0.55, '#9eb0c4');
+  disc.addColorStop(1, '#6a7a8c');
+  ctx.fillStyle = disc;
+  ctx.beginPath();
+  ctx.arc(256, 256, 248, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#0b1020';
+  ctx.beginPath();
+  ctx.arc(256, 28, 22, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(20, 24, 32, 0.28)';
+  ctx.lineWidth = 1;
+  for (let x = 70; x < 450; x += 18) {
+    ctx.beginPath();
+    ctx.moveTo(x, 70);
+    ctx.lineTo(x, 450);
+    ctx.stroke();
+  }
+  for (let y = 70; y < 450; y += 18) {
+    ctx.beginPath();
+    ctx.moveTo(70, y);
+    ctx.lineTo(450, y);
+    ctx.stroke();
+  }
+  ctx.fillStyle = 'rgba(244, 239, 228, 0.55)';
+  ctx.font = '600 28px ui-sans-serif, system-ui';
+  ctx.textAlign = 'center';
+  ctx.fillText('300mm', 256, 270);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 8;
+  return texture;
+}
+
+export function buildFabLine() {
+  const group = new THREE.Group();
+  const map = waferTexture();
+  const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(28, 16),
+    new THREE.MeshPhysicalMaterial({ color: 0xd8dde2, roughness: 0.62, metalness: 0.08 }),
+  );
+  floor.rotation.x = -Math.PI / 2;
+  floor.receiveShadow = true;
+  const rail = new THREE.Mesh(new THREE.BoxGeometry(22, 0.06, 0.18), metal(0x8a9096, { roughness: 0.32 }));
+  rail.position.set(0, 2.35, -1.4);
+  const foups: THREE.Mesh[] = [];
+  for (let i = 0; i < 5; i += 1) {
+    const pod = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.36, 0.26), metal(0xc9d4da, { roughness: 0.28, metalness: 0.22 }));
+    pod.position.set(-8 + i * 3.4, 2.05, -1.4);
+    pod.castShadow = true;
+    pod.userData = { kind: 'world', id: 'wafer', foup: i };
+    const window = new THREE.Mesh(
+      new THREE.BoxGeometry(0.18, 0.16, 0.02),
+      new THREE.MeshPhysicalMaterial({ color: 0x1a3338, roughness: 0.12, metalness: 0.05, transparent: true, opacity: 0.55 }),
+    );
+    window.position.set(0, 0.03, 0.14);
+    pod.add(window);
+    foups.push(pod);
+    group.add(pod);
+  }
+  const bays: THREE.Mesh[] = [];
+  for (let i = 0; i < 3; i += 1) {
+    const bay = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.8, 2.1), metal(0xb8c0c6, { roughness: 0.4, metalness: 0.18 }));
+    bay.position.set(-6 + i * 5.2, 0.9, -4.2);
+    bay.castShadow = true;
+    bay.userData = { kind: 'world', id: 'hall' };
+    const port = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.9, 0.06), metal(0x1a2224, { roughness: 0.3 }));
+    port.position.set(-6 + i * 5.2, 0.7, -3.12);
+    port.userData = { kind: 'world', id: 'hall' };
+    bays.push(bay, port);
+    group.add(bay, port);
+  }
+  const chuck = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.48, 0.12, 32), metal(0x4a5056, { roughness: 0.28 }));
+  chuck.position.set(0.6, 0.62, 1.15);
+  const wafer = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.38, 0.38, 0.012, 48),
+    new THREE.MeshPhysicalMaterial({ map, roughness: 0.22, metalness: 0.35, envMapIntensity: 1.1 }),
+  );
+  wafer.position.set(0.6, 0.69, 1.15);
+  wafer.userData = { kind: 'world', id: 'wafer' };
+  const airlock = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.2, 0.12), metal(0x2a3336, { roughness: 0.35 }));
+  airlock.position.set(8.2, 1.1, 0.4);
+  airlock.userData = { kind: 'world', id: 'hall' };
+  group.add(floor, rail, chuck, wafer, airlock);
+  return { group, clickables: [...foups, wafer, airlock, ...bays], textures: [map], foups };
+}
+
 export function scaleAim(mode: CameraMode, pose: HallPose) {
   if (mode === 'satellite') {
     return {
@@ -333,6 +438,16 @@ export function scaleAim(mode: CameraMode, pose: HallPose) {
       far: 80,
       min: 6,
       max: 32,
+    };
+  }
+  if (mode === 'wafer') {
+    return {
+      cam: new THREE.Vector3(3.8, 1.55, 5.6),
+      target: new THREE.Vector3(0.5, 0.85, 0.2),
+      near: 0.08,
+      far: 80,
+      min: 1.4,
+      max: 16,
     };
   }
   if (mode === 'cabinet') {
@@ -394,7 +509,7 @@ export function filmCam(mode: CameraMode, pose: HallPose, age: number) {
     };
   }
   const sway = Math.sin(age * 0.45);
-  const nudge = mode === 'campus' ? 0.7 : mode === 'hall' ? 0.32 : 0.09;
+  const nudge = mode === 'campus' ? 0.7 : mode === 'wafer' ? 0.85 : mode === 'hall' ? 0.32 : 0.09;
   return {
     cam: aim.cam.clone().add(new THREE.Vector3(sway * nudge, Math.cos(age * 0.3) * nudge * 0.4, sway * nudge * 0.35)),
     target: aim.target.clone(),

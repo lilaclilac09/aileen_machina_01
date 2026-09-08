@@ -343,7 +343,7 @@ export const t = {
         inspectLabel: 'inspect',
         frontView: 'front face',
         rearView: 'rear face',
-        inspectHint: 'Play film for a DSX-style waypoint cruise: satellite → campus → hall → cabinet → rack → open tray. Same plant kernel. Globe/aerial are stylized, not live tiles, not Omniverse.',
+        inspectHint: 'Play film: satellite → campus → wafer line → hall → cabinet → rack → open tray. Same plant kernel. Wafer aisle is a logistics sketch, not a fab scan.',
         liveLabel: 'live plant',
         hallHint: 'click a hall rack',
         cellsLabel: 'cells',
@@ -356,6 +356,7 @@ export const t = {
         viewScale: {
           satellite: 'satellite',
           campus: 'campus',
+          wafer: 'wafer line',
           hall: 'hall',
           cabinet: 'cabinet',
           rack: 'rack',
@@ -365,7 +366,7 @@ export const t = {
         filmStop: 'stop film',
         chipLabel: 'chip intro',
         scaleLabel: 'scale',
-        photorealNote: 'Waypoint film copies DSX/XRFab camera grammar only. Stylized globe/aerial — not live tiles, not a vendor scan, not an Omniverse stream.',
+        photorealNote: 'Waypoint film copies DSX/XRFab camera grammar only. Wafer line is a FOUP logistics sketch — not lithography, not live tiles, not Omniverse.',
         powerPaths: {
           'legacy-ac': 'legacy AC',
           '800v-sidecar': '800V sidecar',
@@ -1340,7 +1341,7 @@ export const t = {
         inspectLabel: 'prüfen',
         frontView: 'Front',
         rearView: 'Rückseite',
-        inspectHint: 'Film abspielen: DSX-Waypoint-Fahrt Satellit → Campus → Halle → Schrank → Rack → offenes Tray. Derselbe Pflanzenkern. Globus/Aerial sind stilisiert, keine Live-Kacheln, kein Omniverse.',
+        inspectHint: 'Film: Satellit → Campus → Wafer-Linie → Halle → Schrank → Rack → offenes Tray. Dieselbe Kernel. Wafer-Gang ist Logistikskizze, kein Fab-Scan.',
         liveLabel: 'Live Plant',
         hallHint: 'Hall-Rack anklicken',
         cellsLabel: 'Zellen',
@@ -1353,6 +1354,7 @@ export const t = {
         viewScale: {
           satellite: 'Satellit',
           campus: 'Campus',
+          wafer: 'Wafer-Linie',
           hall: 'Halle',
           cabinet: 'Schrank',
           rack: 'Rack',
@@ -1362,7 +1364,7 @@ export const t = {
         filmStop: 'Film stop',
         chipLabel: 'Chip-Intro',
         scaleLabel: 'Skala',
-        photorealNote: 'Der Waypoint-Film kopiert nur DSX/XRFab-Kameragrammatik. Stilisierter Globus/Aerial — keine Live-Kacheln, kein Vendor-Scan, kein Omniverse-Stream.',
+        photorealNote: 'Der Waypoint-Film kopiert nur DSX/XRFab-Kameragrammatik. Die Wafer-Linie ist eine FOUP-Logistikskizze — keine Lithografie, keine Live-Kacheln, kein Omniverse.',
         powerPaths: {
           'legacy-ac': 'legacy AC',
           '800v-sidecar': '800V Sidecar',

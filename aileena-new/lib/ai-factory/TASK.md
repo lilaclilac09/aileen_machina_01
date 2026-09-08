@@ -93,6 +93,24 @@ WebGL is a camera on the same kernel. Owner asked for photoreal look now.
 - No Omniverse stream
 - No Unreal photoreal without sourced meshes
 
+## Phase E — wafer line (this branch, do not merge yet)
+
+Owner: keep the wafer. Park CAD→USD. Do not merge this slice until asked.
+
+Grammar only (not a second twin):
+
+| Source | Use | Do not use |
+| --- | --- | --- |
+| [SINRG-Lab/SiliconXR](https://github.com/SINRG-Lab/SiliconXR) / XRFab paper | cleanroom scale, spatial labels | empty Unity package as a scene |
+| [srigan-s/microalchemy-demo](https://github.com/srigan-s/microalchemy-demo) | FOUP / carrier aisle in the browser | copy their mesh or call it a real fab |
+| [coder7676mit/vFab-…](https://github.com/coder7676mit/vFab-Digital-twin-of-Semiconductor-fabrication-Photolithography-process) | — | lithography PDE / process DT |
+| [NVIDIA-Omniverse/aif-pipeline-samples](https://github.com/NVIDIA-Omniverse/aif-pipeline-samples) | **parked** | CAD→SimReady USD in this browser |
+| Foxconn FODT / TSMC FabTwin | movie reference only | no GitHub, no clone |
+
+This slice: `wafer` camera between campus and hall. Procedural 300mm wafer + overhead FOUPs. Evidence `assumption`. Same `simulatePlant` kernel. Film cuts wafer→hall.
+
+Later (not this PR): CAD→SimReady USD stays off-site. Do not stream Omniverse.
+
 ## Never
 
 - Parallel twins
