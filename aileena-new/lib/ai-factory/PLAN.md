@@ -41,31 +41,22 @@ Hall / cabinet / rack / open stay on the GB200 / GB300 / VR kernel already on `m
 
 Off-site pipeline only. Do not import CAD, do not stream USD, do not claim SimReady in the browser.
 
-### TPU InferenceX (looked at; not ingested)
+### TPU InferenceX (cited in the UI; not in the kernel)
 
 Article: [TPU Inference Externalization Full Steam Ahead - InferenceX](https://newsletter.semianalysis.com/p/tpu-inferencex-full-steam) — Alec Ibarra, Cam Quilici, Bryan Shan et al., **Sep 07, 2026**. **Paid.**
 
-Looked at the public preview. Did **not** put numbers into `simulatePlant`. Paid charts / BOM / Accelerator Model stay out unless the owner supplies lawful access.
+Public preview is now on `/tools/ai-factory-sim` as `source-backed` notes + rack source links. Did **not** put numbers into `simulatePlant`. Paid charts / BOM / Accelerator Model stay out.
 
-Public-lede facts to park (not kernel constants yet):
+Cited:
 
 - InferenceX Official Preview: TPUv7 Ironwood vs B200 / B300
-- Bring-up model: Qwen3.5 397B FP8; later Kimi K3 / GLM5.3
-- TorchTPU private beta; expected open source around mid-October (PyTorch Conference)
-- External TPU stack does **not** yet have a fully optimized disagg path; GB300 NVL72 disagg still leads in the middle of the Pareto vs TPU **aggregated**
-- Preview datapoint: at 100 tok/s/user, Ironwood ~$0.181 / M tokens vs B200 ~$0.222 vs B300 ~$0.276 (external TCO vs hyperscaler GPU TCO)
-- Preview datapoint: at 20 tok/s/user, Ironwood ~9,364 tok/s/chip vs B200 ~8,903 / B300 ~8,925 — that is the ~50% tokens/$ vs B200 headline
-- TPUv7 has no native FP4; NVIDIA FP4 still leads quality there. TPUv8i native FP4 / Boardfly vs Rubin NVL72 is a later claim
-- Anthropic TPU volume / v8i-v10 shipment tables live in the paid Accelerator Model — **out**
+- Bring-up model: Qwen3.5 397B FP8
+- At 20 tok/s/user: Ironwood 9,364 tok/s/chip vs B200 8,903 / B300 8,925 (~50.4% tokens/$ vs B200)
+- At 100 tok/s/user: $0.181 / M tokens vs B200 $0.222 vs B300 $0.276
+- External TPU stack is still aggregated; GB300 NVL72 disagg still leads the middle of the Pareto
+- TorchTPU private beta; OSS around mid-October
 
-Do not:
-
-- Add a TPU rack variant in this PR
-- Mix TPU TCO into GB300 / VR live kW
-- Reconstruct paywalled InferenceX charts
-- Treat CUDA-moat narrative as a plant number
-
-When the owner asks: new `source-backed` constants file, same evidence badges, same kernel. One vertical slice.
+Still out: TPU rack variant, TPU TCO mixed into GB300 live kW, paywalled charts, Anthropic shipment tables.
 
 ### Hall geometry (TASK Phase C)
 

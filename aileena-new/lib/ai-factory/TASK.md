@@ -27,7 +27,7 @@ Paid SemiAnalysis BOM photos/models stay out unless the owner supplies lawful ac
 | Hall aisle / edge heat | assumption | row geometry, not CFD |
 | Scheduler-tail pin every 5th tray | assumption | AgentX-style KV hold, not a trace |
 | Wafer line LOAD/SORT/METRO/PACK | assumption | XRFab / FabFlow grammar, not a fab scan |
-| TPU InferenceX Ironwood vs B200/B300 | parked | Semi paid 2026-09-07 — public preview only, not in kernel |
+| TPU InferenceX Ironwood vs B200/B300 | source-backed | Semi public preview 2026-09-07 — cited in UI, not in kernel |
 
 ## Done
 
@@ -103,7 +103,7 @@ Full parked plan: [`PLAN.md`](./PLAN.md).
 
 This slice: `wafer` camera between campus and hall. Cleanroom aisle LOAD → SORT → METRO → PACK, overhead FOUPs, one 300mm wafer. Evidence `assumption`. Same `simulatePlant` kernel. Film cuts wafer→hall.
 
-Looked at SemiAnalysis [TPU InferenceX](https://newsletter.semianalysis.com/p/tpu-inferencex-full-steam) (paid, Sep 07 2026). Public preview only — **not** ingested into the plant kernel.
+Looked at SemiAnalysis [TPU InferenceX](https://newsletter.semianalysis.com/p/tpu-inferencex-full-steam) (paid, Sep 07 2026). Public preview is cited on the sim page. **not** ingested into the plant kernel.
 
 Later (not this PR): CAD→SimReady USD stays off-site. TPU rack variant stays parked. Do not stream Omniverse.
 

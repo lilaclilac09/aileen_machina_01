@@ -104,6 +104,10 @@ export const RACK_FACTS: Record<RackVariant, RackFactSheet> = {
         label: 'SemiAnalysis Datacenter Anatomy: Electrical',
         href: 'https://newsletter.semianalysis.com/p/datacenter-anatomy-part-1-electrical',
       },
+      {
+        label: 'SemiAnalysis TPU InferenceX Official Preview',
+        href: 'https://newsletter.semianalysis.com/p/tpu-inferencex-full-steam',
+      },
     ],
   },
   'GB300 NVL72': {
@@ -176,6 +180,10 @@ export const RACK_FACTS: Record<RackVariant, RackFactSheet> = {
         label: 'NVIDIA NVL72 AI Factory Components',
         href: 'https://docs.nvidia.com/enterprise-reference-architectures/nvl72-ai-factory/latest/components.html',
       },
+      {
+        label: 'SemiAnalysis TPU InferenceX Official Preview',
+        href: 'https://newsletter.semianalysis.com/p/tpu-inferencex-full-steam',
+      },
     ],
   },
   'VR NVL72': {
@@ -243,6 +251,10 @@ export const RACK_FACTS: Record<RackVariant, RackFactSheet> = {
       {
         label: 'SemiAnalysis 800VDC Revolution',
         href: 'https://newsletter.semianalysis.com/p/inside-the-800vdc-revolution-part',
+      },
+      {
+        label: 'SemiAnalysis TPU InferenceX Official Preview',
+        href: 'https://newsletter.semianalysis.com/p/tpu-inferencex-full-steam',
       },
     ],
   },

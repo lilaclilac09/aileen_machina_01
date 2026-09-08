@@ -1378,6 +1378,21 @@ button.ai-factory-cell {
   line-height: 1.45;
 }
 
+.ai-factory-source-notes a {
+  display: inline-block;
+  margin-top: 8px;
+  color: #008f86;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(0, 143, 134, 0.26);
+}
+
+.ai-factory-source-notes .ai-factory-evidence {
+  margin-top: 8px;
+}
+
 .ai-factory-kicker {
   margin: 0 0 10px;
 }

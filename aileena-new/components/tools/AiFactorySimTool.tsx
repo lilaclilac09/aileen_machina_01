@@ -20,6 +20,7 @@ import { simulatePlant, type CellTelemetry, type PlantSim } from '../../lib/ai-f
 import type { PowerPath as PlantPowerPath } from '../../lib/ai-factory/plant';
 import type { CameraMode } from '../../lib/ai-factory/plant-scene';
 import { CAMERA_MODES, SCALE_FACTS, filmHoldMs, nextFilmWaypoint } from '../../lib/ai-factory/world';
+import { INFERENCEX_HREF } from '../../lib/ai-factory/inferencex';
 
 const PlantViewport = dynamic(() => import('./PlantViewport'), { ssr: false });
 
@@ -259,6 +260,9 @@ export default function AiFactorySimTool() {
               <a href="https://github.com/SINRG-Lab/SiliconXR" target="_blank" rel="noopener noreferrer">
                 XRFab ↗
               </a>
+              <a href={INFERENCEX_HREF} target="_blank" rel="noopener noreferrer" data-testid="ai-factory-inferencex-ref">
+                InferenceX ↗
+              </a>
             </span>
           </div>
 
@@ -379,12 +383,16 @@ export default function AiFactorySimTool() {
             <Readout label={tx.readouts.return} value={`${model.returnC.toFixed(1)}C`} />
           </div>
 
-          <div className="ai-factory-source-notes">
+          <div className="ai-factory-source-notes" data-testid="ai-factory-inferencex">
             {tx.sourceNotes.map((note) => (
               <article key={note.title}>
                 <span>{note.kicker}</span>
                 <strong>{note.title}</strong>
                 <p>{note.body}</p>
+                <EvidenceBadge level={note.level as EvidenceLevel} />
+                <a href={note.href} target="_blank" rel="noopener noreferrer">
+                  SemiAnalysis ↗
+                </a>
               </article>
             ))}
           </div>
