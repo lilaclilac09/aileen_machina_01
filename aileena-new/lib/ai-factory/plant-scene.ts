@@ -402,7 +402,7 @@ export function mountPlantScene(
     fogGeo,
     new THREE.PointsMaterial({
       color: 0xff7a3c,
-      size: 0.055,
+      size: 0.028,
       transparent: true,
       opacity: 0.16,
       depthWrite: false,
@@ -581,12 +581,8 @@ export function mountPlantScene(
             segment.kind === 'compute' ? '#1d3c40' : segment.kind === 'switch' ? '#17202a' : segment.kind === 'power' ? '#3a2a18' : '#24302c';
           const fascia = new THREE.Mesh(
             new THREE.BoxGeometry(RACK_W - 0.14, Math.max(unitH - 0.006, 0.012), 0.012),
-            new THREE.MeshStandardMaterial({
+            new THREE.MeshBasicMaterial({
               map: fasciaTexture(fasciaLabel, fill),
-              roughness: 0.45,
-              metalness: 0.18,
-              emissive: 0x0c1818,
-              emissiveIntensity: 0.2,
             }),
           );
           fascia.position.set(-0.01, cursor + unitH / 2, RACK_D / 2 - 0.086);
@@ -927,8 +923,8 @@ export function mountPlantScene(
     const aim =
       input.cameraMode === 'rack' && input.face === 'rear'
         ? {
-            cam: new THREE.Vector3(pose.x + 0.42, 1.32, pose.z - 1.55),
-            target: new THREE.Vector3(pose.x, 1.12, pose.z - 0.35),
+            cam: new THREE.Vector3(pose.x + 0.22, 1.2, pose.z - 1.35),
+            target: new THREE.Vector3(pose.x, 1.1, pose.z - 0.52),
             near: 0.06,
             far: 80,
             min: 0.6,
