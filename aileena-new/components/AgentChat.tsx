@@ -187,6 +187,9 @@ export default function AgentChat() {
   const [leadState, setLeadState] = useState<LeadState>('idle');
   const [leadError, setLeadError] = useState<string | null>(null);
   const [leadOpen, setLeadOpen] = useState(false);
+  /** A vcode proposal is a change suggestion — keep the note drawer offered so
+   *  the visitor can leave an email and we can thank them for the feedback. */
+  const [leadVcodeInvite, setLeadVcodeInvite] = useState(false);
   /** null = unknown / probing; false = backend offline → gentle disabled UI */
   const [leadMailReady, setLeadMailReady] = useState<boolean | null>(null);
   const [voiceMode, setVoiceMode] = useState(false);
@@ -578,6 +581,7 @@ export default function AgentChat() {
         inject?: Array<{ role: 'user' | 'assistant'; text: string }>;
       }>;
       setOpen(true);
+      setComputerMode(true);
       if (ce.detail?.voice || ce.detail?.autoListen) {
         setVoiceMode(true);
         if (ce.detail?.autoListen) setAutoListen(true);
@@ -873,6 +877,7 @@ export default function AgentChat() {
         if (tag === 'INPUT' || tag === 'TEXTAREA' || t?.isContentEditable) return;
         e.preventDefault();
         setOpen(true);
+        setComputerMode(true);
       }
     }
     window.addEventListener('keydown', onKey);
@@ -1064,6 +1069,10 @@ export default function AgentChat() {
             : m,
         ),
       );
+
+      if (res.ok && data.ok && (data.patch || data.proposal)) {
+        setLeadVcodeInvite(true);
+      }
 
       if (res.ok && data.ok && typeof data.patch === 'string' && data.patch.length > 0) {
         setVcodeById((prev) => ({
@@ -1446,7 +1455,9 @@ export default function AgentChat() {
   // Contact: soft invite after a few turns — collapsed link, never mid-flow.
   // Also keep the form available at the visitor limit so owner can unlock via email.
   const showLeadInvite =
-    open && leadState !== 'sent' && (leadSoftNudge || (sessionMaxed && !ownerUnlimited));
+    open &&
+    leadState !== 'sent' &&
+    (leadSoftNudge || leadVcodeInvite || (sessionMaxed && !ownerUnlimited));
 
   function persistLeadState(next: LeadState) {
     setLeadState(next);
@@ -1637,7 +1648,13 @@ export default function AgentChat() {
     <>
       {/* Unified top-left chrome: avatar + ← Home (when not on /).
           Pages must not render a second Home in this corner. */}
-      <SiteLeftChrome onOpenConsole={() => setOpen(true)} consoleOpen={open} />
+      <SiteLeftChrome
+        onOpenConsole={() => {
+          setOpen(true);
+          setComputerMode(true);
+        }}
+        consoleOpen={open}
+      />
 
       {/* Backdrop */}
       <div
@@ -1775,16 +1792,27 @@ export default function AgentChat() {
               title={
                 computerMode
                   ? 'Computer on — monitor in this dialog'
-                  : 'Tap Computer for the scratch pad in this dialog'
+                  : 'Tap to open the small computer in this dialog'
               }
               onClick={() => setComputerMode((on) => !on)}
-              className="inline-flex min-h-11 items-center text-[0.55rem] tracking-[0.2em] uppercase px-2 py-0.5 rounded transition-colors sm:min-h-0"
+              className="inline-flex min-h-11 items-center gap-1.5 text-[0.55rem] tracking-[0.14em] uppercase px-2 py-0.5 rounded-[7px] transition-colors sm:min-h-0"
               style={{
-                color: computerMode ? '#007d75' : 'rgba(27,23,19,0.55)',
-                background: computerMode ? 'rgba(0,168,157,0.1)' : 'transparent',
-                border: computerMode ? '1px solid rgba(0,168,157,0.35)' : '1px solid transparent',
+                color: '#007d75',
+                background: computerMode ? 'rgba(0,168,157,0.12)' : '#fffcf7',
+                border: '1px solid rgba(0,168,157,0.45)',
+                boxShadow: computerMode
+                  ? '0 0 8px rgba(0,168,157,0.35)'
+                  : '0 1px 0 rgba(27,23,19,0.06)',
               }}
             >
+              <span
+                aria-hidden
+                className="inline-block h-2.5 w-3.5 rounded-[2px] border border-[#007d75]/70"
+                style={{
+                  background: computerMode ? '#0b2422' : 'rgba(0,168,157,0.15)',
+                  boxShadow: computerMode ? 'inset 0 0 3px rgba(0,168,157,0.9)' : 'none',
+                }}
+              />
               {computerMode ? 'computer on' : 'computer'}
             </button>
             <button
@@ -1894,6 +1922,14 @@ export default function AgentChat() {
                       onCopy={() => void copyPatch(m.id, att)}
                       onTake={() => takePatch(att)}
                       onApply={() => void ownerApplyPatch(m.id, att)}
+                      onLeaveNote={
+                        isOwner || leadState === 'sent'
+                          ? undefined
+                          : () => {
+                              setLeadVcodeInvite(true);
+                              void openLeadForm();
+                            }
+                      }
                     />
                   ) : null}
                 </div>
@@ -2174,6 +2210,10 @@ export default function AgentChat() {
                   <p className="text-[0.68rem] leading-5 text-[#1b1713]/45">
                     {CONTACT_OFFLINE_PUBLIC}
                   </p>
+                ) : leadVcodeInvite ? (
+                  <p className="text-[0.68rem] leading-5 text-[#1b1713]/50">
+                    Thank you for the suggestion — leave your email so Aileen can thank you and follow up.
+                  </p>
                 ) : (
                   <p className="text-[0.68rem] leading-5 text-[#1b1713]/50">
                     Optional — email + a short note if you want a reply later. Chat stays open either way.
@@ -2296,12 +2336,15 @@ function VcodeActions({
   onCopy,
   onTake,
   onApply,
+  onLeaveNote,
 }: {
   att: VcodeAttachment;
   isOwner: boolean;
   onCopy: () => void;
   onTake: () => void;
   onApply: () => void;
+  /** Visitor proposed a change — invite them to leave an email so Aileen can thank them. */
+  onLeaveNote?: () => void;
 }) {
   return (
     <div className="pl-5 mt-1 mb-2 flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -2334,6 +2377,16 @@ function VcodeActions({
         <span className="font-mono text-[0.48rem] tracking-[0.16em] text-red-400/70">
           {att.applyError}
         </span>
+      ) : null}
+      {onLeaveNote ? (
+        <button
+          type="button"
+          data-testid="vcode-leave-note"
+          onClick={onLeaveNote}
+          className="font-mono text-[0.48rem] tracking-[0.22em] uppercase text-[#007d75] hover:text-[#008f86]"
+        >
+          leave email — thank you ↗
+        </button>
       ) : null}
     </div>
   );

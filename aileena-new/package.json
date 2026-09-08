@@ -44,6 +44,7 @@
     "verify:ops": "tsx scripts/verify-ops.ts",
     "verify:tts-session": "tsx scripts/verify-tts-session.ts",
     "verify:agent-rules": "tsx scripts/verify-agent-rules.ts",
+    "verify:ai-factory": "tsx scripts/verify-ai-factory-sim.ts",
     "verify:visual": "tsx scripts/verify-visual.ts",
     "verify:contact": "tsx scripts/verify-contact.ts",
     "qa:mobile": "tsx scripts/qa-mobile.ts",
@@ -87,6 +88,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "resend": "^6.11.0",
+    "three": "^0.185.1",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -96,6 +98,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/three": "^0.185.4",
     "eslint": "^9",
     "eslint-config-next": "16.3.3",
     "playwright": "^1.61.1",

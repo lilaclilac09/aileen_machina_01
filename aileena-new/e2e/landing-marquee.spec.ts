@@ -38,13 +38,13 @@ test.describe('landing news whisper', () => {
 
     const link = page.locator('[data-landing-marquee] a').first();
     await expect(link).toBeVisible();
-    await expect(link).toHaveAttribute('href', '/daily');
+    await expect(link).toHaveAttribute('href', '/tools/ai-factory-sim');
 
     const hit = await link.evaluate(topHrefAtCenter);
-    expect(hit).toBe('/daily');
+    expect(hit).toBe('/tools/ai-factory-sim');
 
     await link.click();
-    await expect(page).toHaveURL(/\/daily/);
+    await expect(page).toHaveURL(/\/tools\/ai-factory-sim/);
   });
 
   test('machina launcher stays clickable beside the whisper', async ({ page }) => {

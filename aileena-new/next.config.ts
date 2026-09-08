@@ -5,10 +5,9 @@ import type { NextConfig } from "next";
 const appRoot = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
-  // Home ~/pnpm-lock.yaml (or any parent lockfile) makes Next infer the
-  // workspace as ~. Webpack then resolves CSS `@import "tailwindcss"` from
-  // /Users/<you> instead of aileena-new, and .env.local is ignored.
-  // Pin both roots. NEXT_TURBOPACK=0 is not a Next flag — use --webpack.
+  // Home ~/pnpm-lock.yaml made Next pick the wrong workspace root, so
+  // aileena-new/.env.local (COMPUTER_WORKER_URL) was ignored and the dock
+  // stayed on local shim. Pin the app directory.
   outputFileTracingRoot: appRoot,
   // Dynamic fs in lib/computer + lib/inkling traces the whole app root.
   // Local Cafe recap takes (DJI .MP4) then get copied into .next/standalone
@@ -21,6 +20,8 @@ const nextConfig: NextConfig = {
       "./scripts/video-edit/work/**/*",
     ],
   },
+  transpilePackages: ['three'],
+  allowedDevOrigins: ['127.0.0.1'],
   turbopack: {
     root: appRoot,
   },

@@ -121,6 +121,8 @@ If the dock says `local shim`, Terminal A is down or `.env.local` is missing `CO
 
 Can: persist files under `/workspace/scratch|reports|artifacts/`, `echo cat ls wc head tail grep mkdir`, owner + visitor scratch (separate Durable Objects), site-repo git inspect on a checkout that has `.git`.
 
+Visitor scratch pads reset monthly: a `.born` stamp is checked lazily on the next task after 30 days, then that visitor's `/workspace/scratch` is wiped (owner workspace never resets). No cron — `idFromName` Durable Objects cannot be enumerated.
+
 Cannot: full Linux, `pnpm build` inside the DO, browser, email send, merge, cloning this monorepo into the Worker, visitor access to the owner DO or site git.
 
 ## Auth
@@ -130,11 +132,18 @@ Workspace names: `owner` or `v-[a-z0-9]{8,32}` (visitor cookie). Bearer secret s
 
 ## Production
 
+`wrangler.jsonc` must **not** include the `experimental` compatibility flag. Production Cloudflare returns **10021** if it is present. Keep `nodejs_compat` + `worker_loaders`. Official `@cloudflare/computer` example still lists `experimental`; do not copy that line.
+
 ```txt
 cd workers/aileena-computer
 npx wrangler deploy
 npx wrangler secret put COMPUTER_WORKER_SECRET
+npx wrangler deployments list
 ```
+
+Do not `curl "$(npx wrangler deployments list)"` — that command is not a URL. After a successful **Upload** (not only Secret Change), copy the workers.dev hostname from the deploy output.
+
+If a secret was printed in chat, generate a new one after deploy succeeds. Do not reuse a leaked value in Vercel.
 
 Then on the Vercel project that serves `https://www.aileena.xyz`, set Production:
 
