@@ -1,12 +1,28 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useLanguage } from '../LanguageProvider';
 import { t } from '../../lib/translations';
 import ArcadeLayout from './ArcadeLayout';
+import { POWER_PATH_FACTS, RACK_FACTS, type EvidenceLevel, type RackFactSheet, type RackVariant } from '../../lib/ai-factory/rack-facts';
+import {
+  DEFAULT_INSPECT,
+  RACK_INSPECTORS,
+  REAR_INSPECT_BY_LABEL,
+  type InspectId,
+  type InspectorSheet,
+  type RackFace,
+} from '../../lib/ai-factory/rack-inspectors';
+import { chipLiveKw, defaultChip, trayKit, type ChipId, type ChipPart, type TrayKit, type TrayKind } from '../../lib/ai-factory/chips';
+import { simulatePlant, type CellTelemetry, type PlantSim } from '../../lib/ai-factory/simulate';
+import type { PowerPath as PlantPowerPath } from '../../lib/ai-factory/plant';
+import type { CameraMode } from '../../lib/ai-factory/plant-scene';
+import { CAMERA_MODES, SCALE_FACTS, filmHoldMs, nextFilmWaypoint } from '../../lib/ai-factory/world';
 
-type RackVariant = 'GB200 NVL72' | 'GB300 NVL72' | 'VR NVL72';
+const PlantViewport = dynamic(() => import('./PlantViewport'), { ssr: false });
+
 type PowerPath = 'legacy-ac' | '800v-sidecar' | 'facility-hvdc';
 type Scenario = 'balanced' | 'overpack' | 'cooldown';
 type GapKey = 'coolingAc' | 'gridDelay' | 'schedulerTail' | 'modularClaims';
@@ -59,24 +75,11 @@ const PRESETS: Preset[] = [
   },
 ];
 
-const RACKS = Array.from({ length: 48 }, (_, i) => i);
-const RACK_POWER_KW: Record<RackVariant, number> = {
-  'GB200 NVL72': 135,
-  'GB300 NVL72': 153,
-  'VR NVL72': 220,
-};
 const POWER_PATHS: PowerPath[] = ['legacy-ac', '800v-sidecar', 'facility-hvdc'];
 const GAP_KEYS: GapKey[] = ['coolingAc', 'gridDelay', 'schedulerTail', 'modularClaims'];
 
 function clamp(value: number, min = 0, max = 100) {
   return Math.min(max, Math.max(min, value));
-}
-
-function heatTone(score: number) {
-  if (score > 78) return '#e36f45';
-  if (score > 58) return '#d4a24a';
-  if (score > 36) return '#9fc776';
-  return '#64c7bd';
 }
 
 export default function AiFactorySimTool() {
@@ -95,81 +98,37 @@ export default function AiFactorySimTool() {
     schedulerTail: false,
     modularClaims: false,
   });
+  const [face, setFace] = useState<RackFace>('front');
+  const [inspectId, setInspectId] = useState<InspectId>(DEFAULT_INSPECT);
+  const [focusRack, setFocusRack] = useState(0);
+  const [cameraMode, setCameraMode] = useState<CameraMode>('satellite');
+  const [openKind, setOpenKind] = useState<TrayKind>('compute');
+  const [openChip, setOpenChip] = useState<ChipId>('gpu');
+  const [openTrayIndex, setOpenTrayIndex] = useState(0);
+  const [filmPlaying, setFilmPlaying] = useState(false);
+  const rackFact = RACK_FACTS[variant];
+  const powerPathFact = POWER_PATH_FACTS[powerPath];
+  const inspector = RACK_INSPECTORS[variant][inspectId];
 
-  const model = useMemo(() => {
-    const rackKw = RACK_POWER_KW[variant];
-    const powerLossRate = powerPath === 'legacy-ac' ? 0.08 : powerPath === '800v-sidecar' ? 0.03 : 0.02;
-    const designMw = powerPath === 'legacy-ac' ? 7.2 : powerPath === '800v-sidecar' ? 8.6 : 9.4;
-    const itPowerMw = (rackCount * rackKw * (0.42 + aiLoad / 170)) / 1000;
-    const gapTaxMw =
-      (gaps.coolingAc ? itPowerMw * 0.025 : 0) +
-      (gaps.gridDelay ? 0.35 : 0) +
-      (gaps.schedulerTail ? itPowerMw * 0.018 : 0) +
-      (gaps.modularClaims ? 0.18 : 0);
-    const facilityMw = itPowerMw * (1 + powerLossRate) + gapTaxMw;
-    const powerHeadroom = clamp(((designMw - facilityMw) / designMw) * 100, -40, 100);
-    const thermalIndex = clamp(
-      aiLoad * 0.58 +
-        rackCount * 0.68 +
-        ambient * 1.05 -
-        cooling * 0.76 +
-        powerLossRate * 120 +
-        (gaps.coolingAc ? 9 : 0) +
-        (gaps.schedulerTail ? 4 : 0) +
-        (gaps.modularClaims ? 5 : 0),
-    );
-    const flowMargin = clamp(
-      cooling -
-        aiLoad * 0.36 -
-        ambient * 0.42 +
-        (variant === 'GB200 NVL72' ? 8 : 0) -
-        (variant === 'VR NVL72' ? 9 : 0) -
-        (gaps.coolingAc ? 8 : 0) -
-        (gaps.modularClaims ? 5 : 0),
-      -20,
-      100,
-    );
-    const status =
-      powerHeadroom < 0
-        ? tx.status.power
-        : thermalIndex > 78 || powerHeadroom < 8
-        ? tx.status.hot
-        : flowMargin < 22
-          ? tx.status.watch
-          : tx.status.stable;
-    const statusTone =
-      status === tx.status.power || status === tx.status.hot
-        ? '#e36f45'
-        : status === tx.status.watch
-          ? '#d4a24a'
-          : '#00a99f';
-
-    return {
-      facilityMw,
-      gapTaxMw,
-      itPowerMw,
-      powerHeadroom,
-      thermalIndex,
-      flowMargin,
-      status,
-      statusTone,
-    };
-  }, [
-    ambient,
-    aiLoad,
-    cooling,
-    gaps.coolingAc,
-    gaps.gridDelay,
-    gaps.modularClaims,
-    gaps.schedulerTail,
-    powerPath,
-    rackCount,
-    tx.status.hot,
-    tx.status.power,
-    tx.status.stable,
-    tx.status.watch,
-    variant,
-  ]);
+  const model = useMemo(
+    () =>
+      simulatePlant({
+        variant,
+        powerPath: powerPath as PlantPowerPath,
+        rackCount,
+        aiLoad,
+        cooling,
+        ambient,
+        gaps,
+        focusRack,
+      }),
+    [aiLoad, ambient, cooling, focusRack, gaps, powerPath, rackCount, variant],
+  );
+  const statusLabel = tx.status[model.status];
+  const kit = trayKit(variant, openKind);
+  const openCell =
+    openKind === 'switch' ? model.switchCells[openTrayIndex] ?? model.switchCells[0] : model.computeCells[openTrayIndex] ?? model.computeCells[0];
+  const openPart = kit.parts.find((part) => part.id === openChip) ?? kit.parts[0];
 
   function applyPreset(preset: Preset) {
     setScenario(preset.scenario);
@@ -180,6 +139,102 @@ export default function AiFactorySimTool() {
     setCooling(preset.cooling);
     setAmbient(preset.ambient);
     setGaps(preset.gaps);
+    setInspectId(DEFAULT_INSPECT);
+    setFace('front');
+    setFocusRack(0);
+    setCameraMode('satellite');
+    setOpenKind('compute');
+    setOpenChip('gpu');
+    setOpenTrayIndex(0);
+    setFilmPlaying(false);
+  }
+
+  function selectVariant(nextVariant: RackVariant) {
+    setVariant(nextVariant);
+    setInspectId(DEFAULT_INSPECT);
+    setFace('front');
+    setFocusRack(0);
+    setCameraMode('satellite');
+    setOpenKind('compute');
+    setOpenChip('gpu');
+    setOpenTrayIndex(0);
+    setFilmPlaying(false);
+  }
+
+  const pauseFilm = useCallback(() => {
+    setFilmPlaying(false);
+  }, []);
+
+  const focusFromHall = useCallback((id: number) => {
+    setFilmPlaying(false);
+    setFocusRack(id);
+    setCameraMode('cabinet');
+  }, []);
+
+  const scaleFromScene = useCallback((mode: CameraMode) => {
+    setFilmPlaying(false);
+    setCameraMode(mode);
+  }, []);
+
+  const inspectFromScene = useCallback((id: InspectId, nextFace?: RackFace) => {
+    setFilmPlaying(false);
+    setInspectId(id);
+    if (nextFace) setFace(nextFace);
+    setCameraMode('rack');
+  }, []);
+
+  const openFromScene = useCallback((kind: TrayKind, index: number) => {
+    setFilmPlaying(false);
+    setOpenKind(kind);
+    setOpenTrayIndex(index);
+    setOpenChip(defaultChip(kind));
+    setInspectId(kind);
+    setFace('front');
+    setCameraMode('open');
+  }, []);
+
+  const selectChip = useCallback((id: ChipId) => {
+    setFilmPlaying(false);
+    setOpenChip(id);
+    setCameraMode('open');
+  }, []);
+
+  function applyFilmShot(mode: CameraMode) {
+    if (mode === 'open') {
+      setOpenChip(defaultChip(openKind));
+      setInspectId(openKind);
+      setFace('front');
+    }
+    setCameraMode(mode);
+  }
+
+  function toggleFilm() {
+    if (filmPlaying) {
+      setFilmPlaying(false);
+      return;
+    }
+    setFace('front');
+    applyFilmShot('satellite');
+    setFilmPlaying(true);
+  }
+
+  useEffect(() => {
+    if (!filmPlaying) return undefined;
+    const timer = window.setTimeout(() => {
+      const next = nextFilmWaypoint(cameraMode);
+      if (next === 'open') {
+        setOpenChip(defaultChip(openKind));
+        setInspectId(openKind);
+        setFace('front');
+      }
+      setCameraMode(next);
+    }, filmHoldMs(cameraMode));
+    return () => window.clearTimeout(timer);
+  }, [cameraMode, filmPlaying, openKind]);
+
+  function selectInspect(nextId: InspectId, nextFace?: RackFace) {
+    setInspectId(nextId);
+    if (nextFace) setFace(nextFace);
   }
 
   function toggleGap(key: GapKey) {
@@ -193,49 +248,123 @@ export default function AiFactorySimTool() {
         <div className="ai-factory-panel ai-factory-panel--wide">
           <div className="ai-factory-topline">
             <span>{tx.sourceLabel}</span>
-            <a
-              href="https://github.com/NVIDIA-Omniverse-blueprints/omniverse-dsx-blueprint-for-ai-factories"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              DSX blueprint ↗
-            </a>
+            <span className="ai-factory-refs">
+              <a
+                href="https://github.com/NVIDIA-Omniverse-blueprints/omniverse-dsx-blueprint-for-ai-factories"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                DSX waypoints ↗
+              </a>
+              <a href="https://github.com/SINRG-Lab/SiliconXR" target="_blank" rel="noopener noreferrer">
+                XRFab ↗
+              </a>
+            </span>
           </div>
 
-          <div className="ai-factory-stage" data-scenario={scenario}>
-            <div className="ai-factory-stage-grid" aria-hidden>
-              {RACKS.map((rack) => {
-                const active = rack < rackCount;
-                const row = Math.floor(rack / 8);
-                const column = rack % 8;
-                const aislePenalty = column === 3 || column === 4 ? 9 : 0;
-                const edgePenalty = row === 0 || row === 5 ? 7 : 0;
-                const heat = active
-                  ? clamp(model.thermalIndex + aislePenalty + edgePenalty + (rack % 3) * 3 - cooling * 0.12)
-                  : 0;
-                return (
-                  <span
-                    key={rack}
-                    className={active ? 'ai-factory-rack ai-factory-rack--active' : 'ai-factory-rack'}
-                    style={{
-                      background: active ? heatTone(heat) : 'rgba(20,17,12,0.08)',
-                      opacity: active ? 0.62 + heat / 280 : 0.24,
-                    }}
-                    aria-hidden
-                  />
-                );
-              })}
+          <div className="ai-factory-stage" data-scenario={scenario} data-camera={cameraMode} data-film={filmPlaying ? 'play' : 'stop'}>
+            <PlantViewport
+              model={model}
+              fact={rackFact}
+              face={face}
+              inspectId={inspectId}
+              powerPath={powerPath}
+              cameraMode={cameraMode}
+              openKind={openKind}
+              openChip={openChip}
+              openTrayIndex={openTrayIndex}
+              filmPlaying={filmPlaying}
+              onFocusRack={focusFromHall}
+              onInspect={inspectFromScene}
+              onOpenTray={openFromScene}
+              onChip={selectChip}
+              onScale={scaleFromScene}
+              onUserControl={pauseFilm}
+            />
+            <div className="ai-factory-hall-a11y">
+              {model.hall.map((rack) => (
+                <button
+                  key={rack.id}
+                  type="button"
+                  disabled={!rack.active}
+                  onClick={() => focusFromHall(rack.id)}
+                  aria-pressed={rack.focused}
+                  aria-label={`${tx.hallHint} ${rack.id + 1}`}
+                  data-testid={`ai-factory-hall-${rack.id}`}
+                />
+              ))}
             </div>
-            <div className="ai-factory-air" style={{ ['--air-speed' as string]: `${Math.max(4, 13 - cooling / 10)}s` }} aria-hidden>
-              <span />
-              <span />
-              <span />
+            <div className="ai-factory-camera" role="group" aria-label="camera">
+              <button
+                type="button"
+                className={filmPlaying ? 'ai-factory-chip ai-factory-chip--active' : 'ai-factory-chip'}
+                onClick={toggleFilm}
+                aria-pressed={filmPlaying}
+                data-testid="ai-factory-film"
+              >
+                {filmPlaying ? tx.filmStop : tx.filmPlay}
+              </button>
+              {CAMERA_MODES.map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  className={cameraMode === mode ? 'ai-factory-chip ai-factory-chip--active' : 'ai-factory-chip'}
+                  onClick={() => {
+                    setFilmPlaying(false);
+                    if (mode === 'open') {
+                      setOpenChip(defaultChip(openKind));
+                      setInspectId(openKind);
+                      setFace('front');
+                    }
+                    setCameraMode(mode);
+                  }}
+                  aria-pressed={cameraMode === mode}
+                  data-testid={`ai-factory-camera-${mode}`}
+                >
+                  {tx.viewScale[mode]}
+                </button>
+              ))}
             </div>
             <div className="ai-factory-status">
               <span className="ai-factory-led" style={{ background: model.statusTone }} />
-              <strong>{model.status}</strong>
+              <strong>{statusLabel}</strong>
+              <small>
+                R{model.focus.id + 1} · {model.focus.aisle} aisle
+                {model.focus.edge ? ' · edge' : ''}
+              </small>
             </div>
           </div>
+
+          <RackTwin
+            fact={rackFact}
+            inspector={inspector}
+            face={face}
+            inspectId={inspectId}
+            model={model}
+            powerPathLabel={powerPathFact.label}
+            powerPathLevel={powerPathFact.level}
+            copy={{
+              inspectLabel: tx.inspectLabel,
+              frontView: tx.frontView,
+              rearView: tx.rearView,
+              inspectHint: tx.inspectHint,
+              liveLabel: tx.liveLabel,
+              cellsLabel: tx.cellsLabel,
+              chipLabel: tx.chipLabel,
+              scaleLabel: tx.scaleLabel,
+            }}
+            cameraMode={cameraMode}
+            onFaceChange={setFace}
+            onInspect={selectInspect}
+            onOpenCell={openFromScene}
+            kit={kit}
+            openPart={openPart}
+            openCellKw={openCell.kw}
+            openCellId={openCell.id}
+            openTrayLabel={openCell.label}
+            openChip={openChip}
+            onChip={selectChip}
+          />
 
           <div className="ai-factory-readouts" aria-live="polite">
             <Readout label={tx.readouts.power} value={`${model.facilityMw.toFixed(1)} MW`} />
@@ -243,6 +372,11 @@ export default function AiFactorySimTool() {
             <Readout label={tx.readouts.flow} value={`${Math.round(model.flowMargin)}%`} />
             <Readout label={tx.readouts.headroom} value={`${Math.round(model.powerHeadroom)}%`} />
             <Readout label={tx.readouts.gapTax} value={`${Math.round(model.gapTaxMw * 1000)} kW`} />
+            <Readout
+              label={tx.readouts.busbar}
+              value={`${Math.round(model.requiredA)}A / ${model.publishedA}A`}
+            />
+            <Readout label={tx.readouts.return} value={`${model.returnC.toFixed(1)}C`} />
           </div>
 
           <div className="ai-factory-source-notes">
@@ -279,7 +413,7 @@ export default function AiFactorySimTool() {
                 key={nextVariant}
                 type="button"
                 className={variant === nextVariant ? 'ai-factory-chip ai-factory-chip--active' : 'ai-factory-chip'}
-                onClick={() => setVariant(nextVariant)}
+                onClick={() => selectVariant(nextVariant)}
                 aria-pressed={variant === nextVariant}
               >
                 {nextVariant}
@@ -325,6 +459,7 @@ export default function AiFactorySimTool() {
             ))}
           </div>
 
+          <p className="ai-factory-note">{tx.photorealNote}</p>
           <p className="ai-factory-note">{tx.note}</p>
           <Link href="/blog/dell-nvidia-flywheel" className="ai-factory-link">
             {tx.related}
@@ -333,6 +468,315 @@ export default function AiFactorySimTool() {
       </section>
     </ArcadeLayout>
   );
+}
+
+function liveCells(inspectId: InspectId, model: PlantSim): CellTelemetry[] | null {
+  if (inspectId === 'compute') return model.computeCells;
+  if (inspectId === 'switch') return model.switchCells;
+  if (inspectId === 'power') return model.shelfCells;
+  return null;
+}
+
+function RackTwin({
+  fact,
+  inspector,
+  face,
+  inspectId,
+  model,
+  powerPathLabel,
+  powerPathLevel,
+  copy,
+  onFaceChange,
+  onInspect,
+  onOpenCell,
+  kit,
+  openPart,
+  openCellKw,
+  openCellId,
+  openTrayLabel,
+  openChip,
+  onChip,
+  cameraMode,
+}: {
+  fact: RackFactSheet;
+  inspector: InspectorSheet;
+  face: RackFace;
+  inspectId: InspectId;
+  model: PlantSim;
+  powerPathLabel: string;
+  powerPathLevel: EvidenceLevel;
+  copy: {
+    inspectLabel: string;
+    frontView: string;
+    rearView: string;
+    inspectHint: string;
+    liveLabel: string;
+    cellsLabel: string;
+    chipLabel: string;
+    scaleLabel: string;
+  };
+  cameraMode: CameraMode;
+  onFaceChange: (face: RackFace) => void;
+  onInspect: (id: InspectId, face?: RackFace) => void;
+  onOpenCell: (kind: TrayKind, index: number) => void;
+  kit: TrayKit;
+  openPart: ChipPart;
+  openCellKw: number;
+  openCellId: string;
+  openTrayLabel: string;
+  openChip: ChipId;
+  onChip: (id: ChipId) => void;
+}) {
+  const chipKw = chipLiveKw(openCellKw, openPart);
+  const scale = SCALE_FACTS[cameraMode];
+  const stackEvidence = Array.from(new Set(fact.frontStack.map((segment) => segment.level)));
+
+  return (
+    <div className="ai-factory-rack-twin">
+      <div className="ai-factory-rack-visual" aria-label={`${fact.variant} source-backed rack cutaway`}>
+        <div className="ai-factory-rack-title">
+          <span>{fact.generation}</span>
+          <strong>{fact.variant}</strong>
+          <small>{fact.rackPowerLabel}</small>
+        </div>
+        <div className="ai-factory-face-toggle" role="group" aria-label={copy.inspectLabel}>
+          <button
+            type="button"
+            className={face === 'front' ? 'ai-factory-chip ai-factory-chip--active' : 'ai-factory-chip'}
+            onClick={() => onFaceChange('front')}
+            aria-pressed={face === 'front'}
+            data-testid="ai-factory-face-front"
+          >
+            {copy.frontView}
+          </button>
+          <button
+            type="button"
+            className={face === 'rear' ? 'ai-factory-chip ai-factory-chip--active' : 'ai-factory-chip'}
+            onClick={() => onFaceChange('rear')}
+            aria-pressed={face === 'rear'}
+            data-testid="ai-factory-face-rear"
+          >
+            {copy.rearView}
+          </button>
+        </div>
+        <div className={`ai-factory-rack-shell ai-factory-rack-shell--${face}`}>
+          {face === 'front' ? (
+            <div
+              className="ai-factory-rack-face"
+              style={{ gridTemplateRows: fact.frontStack.map((segment) => `${segment.units}fr`).join(' ') }}
+            >
+              {fact.frontStack.map((segment) => (
+                <button
+                  key={`${segment.label}-${segment.kind}`}
+                  type="button"
+                  className={`ai-factory-rack-segment ai-factory-rack-segment--${segment.kind}${
+                    inspectId === segment.kind ? ' ai-factory-rack-segment--active' : ''
+                  }`}
+                  onClick={() => onInspect(segment.kind, 'front')}
+                  aria-pressed={inspectId === segment.kind}
+                  data-testid={`ai-factory-inspect-${segment.kind}`}
+                >
+                  <small>{segment.units}U</small>
+                  {segment.label}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="ai-factory-rack-rear" aria-label="rear systems">
+              {fact.rearSystems.map((system) => {
+                const rearId = REAR_INSPECT_BY_LABEL[system.label] ?? 'busbar';
+                return (
+                  <button
+                    key={system.label}
+                    type="button"
+                    className={`ai-factory-rear-item${inspectId === rearId ? ' ai-factory-rear-item--active' : ''}`}
+                    onClick={() => onInspect(rearId, 'rear')}
+                    aria-pressed={inspectId === rearId}
+                    data-testid={`ai-factory-inspect-${rearId}`}
+                  >
+                    <small>{system.label}</small>
+                    {system.value}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+        <p>{copy.inspectHint}. {fact.visualCaveat}</p>
+        <div className="ai-factory-stack-evidence" aria-label="rack stack evidence">
+          {stackEvidence.map((level) => (
+            <EvidenceBadge key={level} level={level} />
+          ))}
+        </div>
+      </div>
+
+      <div className="ai-factory-ledger">
+        <article className="ai-factory-path-card" data-testid="ai-factory-inspector">
+          <span>{copy.inspectLabel}</span>
+          <strong>{inspector.title}</strong>
+          <p>{inspector.summary}</p>
+          <EvidenceBadge level={inspector.ports[0]?.level ?? 'assumption'} />
+          <div className="ai-factory-port-list">
+            {inspector.ports.map((port) => (
+              <span key={`${port.label}-${port.value}`} className="ai-factory-port">
+                <small>{port.label}</small>
+                {port.value}
+                <EvidenceBadge level={port.level} />
+              </span>
+            ))}
+          </div>
+          <LivePlant
+            inspectId={inspectId}
+            model={model}
+            copy={copy}
+            openCellId={openCellId}
+            onOpenCell={onOpenCell}
+          />
+        </article>
+        <article className="ai-factory-scale-card" data-testid="ai-factory-scale-card">
+          <span>{copy.scaleLabel}</span>
+          <strong>{scale.title}</strong>
+          <p>{scale.summary}</p>
+          <p>{scale.detail}</p>
+          <EvidenceBadge level={scale.level} />
+        </article>
+        <article className="ai-factory-chip-card" data-testid="ai-factory-chip-card">
+          <span>{copy.chipLabel}</span>
+          <strong>{openPart.label}</strong>
+          <p>
+            {openTrayLabel} · {kit.title}
+          </p>
+          <p>{openPart.summary}</p>
+          <p>{openPart.detail}</p>
+          <p className="ai-factory-chip-live">
+            live {chipKw.toFixed(2)} kW · share {(openPart.shareOfTrayKw * 100).toFixed(0)}% of tray{' '}
+            {openCellKw.toFixed(1)} kW
+          </p>
+          <EvidenceBadge level={openPart.level} />
+          <div className="ai-factory-chip-picker" role="group" aria-label={copy.chipLabel}>
+            {kit.parts.map((part) => (
+              <button
+                key={part.id}
+                type="button"
+                data-testid={`ai-factory-chip-${part.id}`}
+                className={openChip === part.id ? 'ai-factory-chip ai-factory-chip--active' : 'ai-factory-chip'}
+                onClick={() => onChip(part.id)}
+                aria-pressed={openChip === part.id}
+              >
+                {part.label}
+              </button>
+            ))}
+          </div>
+        </article>
+        {inspector.internals.map((item) => (
+          <article key={item.label} className="ai-factory-fact-card">
+            <span>{item.label}</span>
+            <strong>{item.value}</strong>
+            <p>{item.detail}</p>
+            <EvidenceBadge level={item.level} />
+          </article>
+        ))}
+        <article className="ai-factory-fact-card">
+          <span>power path</span>
+          <strong>{powerPathLabel}</strong>
+          <p>
+            conversion {model.conversionKwPerRack.toFixed(1)} kW / rack · residual {model.residualKw.toFixed(1)} kW
+          </p>
+          <EvidenceBadge level={powerPathLevel} />
+        </article>
+        <div className="ai-factory-source-list">
+          {fact.sources.map((source) => (
+            <a key={source.href} href={source.href} target="_blank" rel="noopener noreferrer">
+              {source.label} ↗
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LivePlant({
+  inspectId,
+  model,
+  copy,
+  openCellId,
+  onOpenCell,
+}: {
+  inspectId: InspectId;
+  model: PlantSim;
+  copy: { liveLabel: string; cellsLabel: string };
+  openCellId: string;
+  onOpenCell: (kind: TrayKind, index: number) => void;
+}) {
+  const cells = liveCells(inspectId, model);
+  const cooling = inspectId === 'cooling' || inspectId === 'manifold';
+  const busbar = inspectId === 'busbar';
+
+  return (
+    <div className="ai-factory-live" data-testid="ai-factory-live">
+      <p className="ai-factory-live-kicker">{copy.liveLabel}</p>
+      <div className="ai-factory-live-grid">
+        {(busbar
+          ? [
+              { label: 'required', value: `${Math.round(model.requiredA)} A`, level: 'derived' as const },
+              { label: 'published', value: `${model.publishedA} A`, level: model.publishedBusbarLevel },
+              { label: 'util', value: `${Math.round(model.busbarUtil * 100)}%`, level: 'derived' as const },
+              { label: 'voltage', value: `${model.busVoltage} V`, level: 'source-backed' as const },
+            ]
+          : cooling
+            ? model.coolingLive
+            : model.live
+        ).map((metric) => (
+          <span key={`${metric.label}-${metric.value}`} className="ai-factory-live-item">
+            <small>{metric.label}</small>
+            {metric.value}
+            <EvidenceBadge level={metric.level} />
+          </span>
+        ))}
+      </div>
+      {busbar ? (
+        <p className="ai-factory-tension" data-testid="ai-factory-busbar-tension">
+          {model.busbarTension}
+        </p>
+      ) : null}
+      {cells ? (
+        <div className="ai-factory-cells" aria-label={copy.cellsLabel}>
+          {cells.map((cell, index) => {
+            const openable = inspectId === 'compute' || inspectId === 'switch';
+            const className = `ai-factory-cell ai-factory-cell--${cell.tone}${
+              cell.id === openCellId ? ' ai-factory-cell--open' : ''
+            }`;
+            if (!openable) {
+              return (
+                <span key={cell.id} className={className} data-testid={`ai-factory-cell-${cell.id}`} title={cell.note}>
+                  <small>{cell.label}</small>
+                  {cell.kw.toFixed(1)}
+                </span>
+              );
+            }
+            return (
+              <button
+                key={cell.id}
+                type="button"
+                className={className}
+                data-testid={`ai-factory-cell-${cell.id}`}
+                title={cell.note ?? `open ${cell.label}`}
+                onClick={() => onOpenCell(inspectId === 'switch' ? 'switch' : 'compute', index)}
+              >
+                <small>{cell.label}</small>
+                {cell.kw.toFixed(1)}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function EvidenceBadge({ level }: { level: EvidenceLevel }) {
+  return <em className={`ai-factory-evidence ai-factory-evidence--${level}`}>{level}</em>;
 }
 
 function Readout({ label, value }: { label: string; value: string }) {

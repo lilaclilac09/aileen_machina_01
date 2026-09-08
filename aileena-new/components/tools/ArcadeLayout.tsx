@@ -44,8 +44,9 @@ export default function ArcadeLayout({
             top: 0,
             zIndex: 50,
             padding: '16px 24px',
-            background: 'rgba(251,250,246,0.9)',
+            background: 'rgba(251,250,246,0.98)',
             backdropFilter: 'blur(12px)',
+            boxShadow: '0 1px 0 rgba(20,17,12,0.08)',
           }}
         >
           <div
