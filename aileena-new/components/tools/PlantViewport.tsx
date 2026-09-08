@@ -22,6 +22,7 @@ export default function PlantViewport({
   onInspect,
   onOpenTray,
   onChip,
+  onScale,
 }: {
   model: PlantSim;
   fact: RackFactSheet;
@@ -36,6 +37,7 @@ export default function PlantViewport({
   onInspect: (id: InspectId, face?: RackFace) => void;
   onOpenTray: (kind: TrayKind, index: number) => void;
   onChip: (id: ChipId) => void;
+  onScale: (mode: CameraMode) => void;
 }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<PlantSceneHandle | null>(null);
@@ -44,7 +46,9 @@ export default function PlantViewport({
     const host = hostRef.current;
     if (!host) return undefined;
     const scene = mountPlantScene(host, (hit) => {
-      if (hit.kind === 'hall') onFocusRack(Number(hit.id));
+      if (hit.kind === 'world' && (hit.id === 'campus' || hit.id === 'hall')) onScale(hit.id);
+      else if (hit.kind === 'cabinet') onScale('rack');
+      else if (hit.kind === 'hall') onFocusRack(Number(hit.id));
       else if (hit.kind === 'chip') onChip(hit.id as ChipId);
       else if (hit.kind === 'tray' && (hit.trayKind === 'compute' || hit.trayKind === 'switch')) {
         onOpenTray(hit.trayKind, hit.trayIndex ?? 0);
@@ -55,7 +59,7 @@ export default function PlantViewport({
       scene.dispose();
       sceneRef.current = null;
     };
-  }, [onChip, onFocusRack, onInspect, onOpenTray]);
+  }, [onChip, onFocusRack, onInspect, onOpenTray, onScale]);
 
   useEffect(() => {
     sceneRef.current?.update({

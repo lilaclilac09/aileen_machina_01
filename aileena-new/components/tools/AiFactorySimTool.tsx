@@ -19,6 +19,7 @@ import { chipLiveKw, defaultChip, trayKit, type ChipId, type ChipPart, type Tray
 import { simulatePlant, type CellTelemetry, type PlantSim } from '../../lib/ai-factory/simulate';
 import type { PowerPath as PlantPowerPath } from '../../lib/ai-factory/plant';
 import type { CameraMode } from '../../lib/ai-factory/plant-scene';
+import { CAMERA_MODES, SCALE_FACTS } from '../../lib/ai-factory/world';
 
 const PlantViewport = dynamic(() => import('./PlantViewport'), { ssr: false });
 
@@ -100,7 +101,7 @@ export default function AiFactorySimTool() {
   const [face, setFace] = useState<RackFace>('front');
   const [inspectId, setInspectId] = useState<InspectId>(DEFAULT_INSPECT);
   const [focusRack, setFocusRack] = useState(0);
-  const [cameraMode, setCameraMode] = useState<CameraMode>('hall');
+  const [cameraMode, setCameraMode] = useState<CameraMode>('satellite');
   const [openKind, setOpenKind] = useState<TrayKind>('compute');
   const [openChip, setOpenChip] = useState<ChipId>('gpu');
   const [openTrayIndex, setOpenTrayIndex] = useState(0);
@@ -140,7 +141,7 @@ export default function AiFactorySimTool() {
     setInspectId(DEFAULT_INSPECT);
     setFace('front');
     setFocusRack(0);
-    setCameraMode('hall');
+    setCameraMode('satellite');
     setOpenKind('compute');
     setOpenChip('gpu');
     setOpenTrayIndex(0);
@@ -151,7 +152,7 @@ export default function AiFactorySimTool() {
     setInspectId(DEFAULT_INSPECT);
     setFace('front');
     setFocusRack(0);
-    setCameraMode('hall');
+    setCameraMode('satellite');
     setOpenKind('compute');
     setOpenChip('gpu');
     setOpenTrayIndex(0);
@@ -159,7 +160,11 @@ export default function AiFactorySimTool() {
 
   const focusFromHall = useCallback((id: number) => {
     setFocusRack(id);
-    setCameraMode('rack');
+    setCameraMode('cabinet');
+  }, []);
+
+  const scaleFromScene = useCallback((mode: CameraMode) => {
+    setCameraMode(mode);
   }, []);
 
   const inspectFromScene = useCallback((id: InspectId, nextFace?: RackFace) => {
@@ -222,6 +227,7 @@ export default function AiFactorySimTool() {
               onInspect={inspectFromScene}
               onOpenTray={openFromScene}
               onChip={selectChip}
+              onScale={scaleFromScene}
             />
             <div className="ai-factory-hall-a11y">
               {model.hall.map((rack) => (
@@ -237,38 +243,25 @@ export default function AiFactorySimTool() {
               ))}
             </div>
             <div className="ai-factory-camera" role="group" aria-label="camera">
-              <button
-                type="button"
-                className={cameraMode === 'hall' ? 'ai-factory-chip ai-factory-chip--active' : 'ai-factory-chip'}
-                onClick={() => setCameraMode('hall')}
-                aria-pressed={cameraMode === 'hall'}
-                data-testid="ai-factory-camera-hall"
-              >
-                {tx.viewHall}
-              </button>
-              <button
-                type="button"
-                className={cameraMode === 'rack' ? 'ai-factory-chip ai-factory-chip--active' : 'ai-factory-chip'}
-                onClick={() => setCameraMode('rack')}
-                aria-pressed={cameraMode === 'rack'}
-                data-testid="ai-factory-camera-rack"
-              >
-                {tx.viewRack}
-              </button>
-              <button
-                type="button"
-                className={cameraMode === 'open' ? 'ai-factory-chip ai-factory-chip--active' : 'ai-factory-chip'}
-                onClick={() => {
-                  setOpenChip(defaultChip(openKind));
-                  setInspectId(openKind);
-                  setFace('front');
-                  setCameraMode('open');
-                }}
-                aria-pressed={cameraMode === 'open'}
-                data-testid="ai-factory-camera-open"
-              >
-                {tx.viewOpen}
-              </button>
+              {CAMERA_MODES.map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  className={cameraMode === mode ? 'ai-factory-chip ai-factory-chip--active' : 'ai-factory-chip'}
+                  onClick={() => {
+                    if (mode === 'open') {
+                      setOpenChip(defaultChip(openKind));
+                      setInspectId(openKind);
+                      setFace('front');
+                    }
+                    setCameraMode(mode);
+                  }}
+                  aria-pressed={cameraMode === mode}
+                  data-testid={`ai-factory-camera-${mode}`}
+                >
+                  {tx.viewScale[mode]}
+                </button>
+              ))}
             </div>
             <div className="ai-factory-status">
               <span className="ai-factory-led" style={{ background: model.statusTone }} />
@@ -296,7 +289,9 @@ export default function AiFactorySimTool() {
               liveLabel: tx.liveLabel,
               cellsLabel: tx.cellsLabel,
               chipLabel: tx.chipLabel,
+              scaleLabel: tx.scaleLabel,
             }}
+            cameraMode={cameraMode}
             onFaceChange={setFace}
             onInspect={selectInspect}
             onOpenCell={openFromScene}
@@ -439,6 +434,7 @@ function RackTwin({
   openTrayLabel,
   openChip,
   onChip,
+  cameraMode,
 }: {
   fact: RackFactSheet;
   inspector: InspectorSheet;
@@ -455,7 +451,9 @@ function RackTwin({
     liveLabel: string;
     cellsLabel: string;
     chipLabel: string;
+    scaleLabel: string;
   };
+  cameraMode: CameraMode;
   onFaceChange: (face: RackFace) => void;
   onInspect: (id: InspectId, face?: RackFace) => void;
   onOpenCell: (kind: TrayKind, index: number) => void;
@@ -468,6 +466,7 @@ function RackTwin({
   onChip: (id: ChipId) => void;
 }) {
   const chipKw = chipLiveKw(openCellKw, openPart);
+  const scale = SCALE_FACTS[cameraMode];
   const stackEvidence = Array.from(new Set(fact.frontStack.map((segment) => segment.level)));
 
   return (
@@ -571,6 +570,13 @@ function RackTwin({
             openCellId={openCellId}
             onOpenCell={onOpenCell}
           />
+        </article>
+        <article className="ai-factory-scale-card" data-testid="ai-factory-scale-card">
+          <span>{copy.scaleLabel}</span>
+          <strong>{scale.title}</strong>
+          <p>{scale.summary}</p>
+          <p>{scale.detail}</p>
+          <EvidenceBadge level={scale.level} />
         </article>
         <article className="ai-factory-chip-card" data-testid="ai-factory-chip-card">
           <span>{copy.chipLabel}</span>

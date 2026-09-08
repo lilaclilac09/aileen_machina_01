@@ -20,8 +20,9 @@ import {
   usesSidecar,
   usesWhips,
 } from './viewport';
+import { buildCampus, buildGlobe, isHallLayer, scaleAim, studioGridTexture, type CameraMode } from './world';
 
-export type CameraMode = 'hall' | 'rack' | 'open';
+export type { CameraMode } from './world';
 
 export type PlantSceneInput = {
   model: PlantSim;
@@ -41,8 +42,8 @@ export type PlantSceneHandle = {
 };
 
 type Click = {
-  kind: 'hall' | 'tray' | 'rear' | 'chip';
-  id: number | InspectId | ChipId;
+  kind: 'hall' | 'tray' | 'rear' | 'chip' | 'world' | 'cabinet';
+  id: number | InspectId | ChipId | CameraMode | 'door' | 'campus' | 'hall';
   face?: RackFace;
   trayIndex?: number;
   trayKind?: TrayKind;
@@ -174,7 +175,7 @@ export function mountPlantScene(
   scene.background = new THREE.Color(0x07090b);
   scene.fog = new THREE.FogExp2(0x0a0d10, 0.032);
 
-  const camera = new THREE.PerspectiveCamera(38, host.clientWidth / Math.max(host.clientHeight, 1), 0.08, 80);
+  const camera = new THREE.PerspectiveCamera(38, host.clientWidth / Math.max(host.clientHeight, 1), 0.08, 120);
   camera.position.set(6.8, 3.15, 8.4);
 
   const controls = new OrbitControls(camera, renderer.domElement);
@@ -375,27 +376,69 @@ export function mountPlantScene(
   busway.position.set(0, 3.55, 0);
   scene.add(busway);
 
+  const globe = buildGlobe();
+  scene.add(globe.group);
+  const campus = buildCampus();
+  scene.add(campus.group);
+  const studioMap = studioGridTexture();
+  const studio = new THREE.Mesh(
+    new THREE.PlaneGeometry(80, 80),
+    new THREE.MeshBasicMaterial({ map: studioMap, transparent: true, opacity: 0.55 }),
+  );
+  studio.rotation.x = -Math.PI / 2;
+  studio.position.y = -0.02;
+  scene.add(studio);
+
+  const fogGeo = new THREE.BufferGeometry();
+  const fogPos = new Float32Array(360 * 3);
+  for (let i = 0; i < 360; i += 1) {
+    fogPos[i * 3] = (Math.random() - 0.5) * 14;
+    fogPos[i * 3 + 1] = 0.3 + Math.random() * 2.1;
+    fogPos[i * 3 + 2] = (Math.random() - 0.5) * 16;
+  }
+  fogGeo.setAttribute('position', new THREE.BufferAttribute(fogPos, 3));
+  const heatFog = new THREE.Points(
+    fogGeo,
+    new THREE.PointsMaterial({
+      color: 0xff7a3c,
+      size: 0.09,
+      transparent: true,
+      opacity: 0.12,
+      depthWrite: false,
+    }),
+  );
+  scene.add(heatFog);
+  const worldClickables = [...globe.clickables, ...campus.clickables];
+
   const hero = new THREE.Group();
   scene.add(hero);
   const openTray = new THREE.Group();
   scene.add(openTray);
-  const clickables: THREE.Object3D[] = [...hallCabinets, ...hallDoors, ...sidecars];
+  const clickables: THREE.Object3D[] = [...hallCabinets, ...hallDoors, ...sidecars, ...worldClickables];
   const computeTrayMeshes: THREE.Mesh[] = [];
   const switchTrayMeshes: THREE.Mesh[] = [];
+
+  function resetHallClicks() {
+    clickables.length = 0;
+    clickables.push(...hallCabinets, ...hallDoors, ...sidecars, ...worldClickables);
+  }
 
   function clearHero() {
     hero.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         child.geometry.dispose();
         const materials = Array.isArray(child.material) ? child.material : [child.material];
-        materials.forEach((material) => material.dispose());
+        materials.forEach((material) => {
+          const map = 'map' in material ? material.map : null;
+          if (map && map !== perforate && map !== pcbMap && map !== steel && map !== concrete) map.dispose();
+          material.dispose();
+        });
       }
     });
     hero.clear();
     computeTrayMeshes.length = 0;
     switchTrayMeshes.length = 0;
-    clickables.length = 0;
-    clickables.push(...hallCabinets, ...hallDoors, ...sidecars);
+    resetHallClicks();
   }
 
   function clearOpen() {
@@ -414,6 +457,27 @@ export function mountPlantScene(
       }
     });
     openTray.clear();
+  }
+
+  function faceLabel(text: string) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 128;
+    canvas.height = 32;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('canvas');
+    ctx.fillStyle = 'rgba(8, 10, 12, 0.82)';
+    ctx.fillRect(0, 0, 128, 32);
+    ctx.fillStyle = '#b8f3e6';
+    ctx.font = '700 20px ui-sans-serif, system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, 64, 16);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return new THREE.Mesh(
+      new THREE.PlaneGeometry(0.1, 0.025),
+      new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false }),
+    );
   }
 
   function addHeroMesh(mesh: THREE.Mesh, click?: Click) {
@@ -485,13 +549,43 @@ export function mountPlantScene(
           );
           port.position.set(-0.16, cursor + unitH / 2, RACK_D / 2 - 0.09);
           addHeroMesh(port);
+          const index = trayKind === 'switch' ? switchTrayMeshes.length : computeTrayMeshes.length;
+          const tag = faceLabel(trayKind === 'switch' ? `NV${String(index).padStart(2, '0')}` : `C${String(index).padStart(2, '0')}`);
+          tag.position.set(0.18, cursor + unitH / 2, RACK_D / 2 - 0.07);
+          addHeroMesh(tag);
+        }
+        if (segment.kind === 'compute' && computeTrayMeshes.length % 3 === 0) {
+          const start = new THREE.Vector3(0.08, cursor + unitH / 2, -RACK_D / 2 + 0.18);
+          const end = new THREE.Vector3(0, RACK_H / 2, -RACK_D / 2 + 0.09);
+          const mid = new THREE.Vector3(0.12, (start.y + end.y) / 2, -RACK_D / 2 + 0.22);
+          const hose = new THREE.Mesh(
+            new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(start, mid, end), 8, 0.005, 5, false),
+            metal(0x1c1612, { roughness: 0.55 }),
+          );
+          addHeroMesh(hose);
         }
       }
     }
 
+    const door = new THREE.Mesh(
+      new THREE.BoxGeometry(RACK_W - 0.06, RACK_H - 0.22, 0.02),
+      new THREE.MeshPhysicalMaterial({
+        color: 0x171a1d,
+        map: perforate,
+        metalness: 0.72,
+        roughness: 0.38,
+        envMapIntensity: 0.9,
+      }),
+    );
+    door.position.set(0, RACK_H / 2, RACK_D / 2 + 0.01);
+    addHeroMesh(door, { kind: 'cabinet', id: 'door', face: 'front' });
+    const handle = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.16, 0.03), metal(0xb87333, { roughness: 0.25 }));
+    handle.position.set(RACK_W / 2 - 0.1, RACK_H / 2, RACK_D / 2 + 0.03);
+    addHeroMesh(handle, { kind: 'cabinet', id: 'door', face: 'front' });
+
     const busbar = new THREE.Mesh(
-      new THREE.BoxGeometry(0.045, RACK_H - 0.28, 0.07),
-      metal(0xb87333, { roughness: 0.18, metalness: 1, emissive: 0x3a1808, emissiveIntensity: 0.15 }),
+      new THREE.BoxGeometry(0.07, RACK_H - 0.24, 0.1),
+      metal(0xb87333, { roughness: 0.16, metalness: 1, emissive: 0x5a2208, emissiveIntensity: 0.28 }),
     );
     busbar.position.set(0, RACK_H / 2, -RACK_D / 2 + 0.08);
     addHeroMesh(busbar, { kind: 'rear', id: 'busbar', face: 'rear' });
@@ -699,19 +793,24 @@ export function mountPlantScene(
 
   function aimCamera(input: PlantSceneInput) {
     const pose = hallPose(input.model.focus.id);
-    if (input.cameraMode === 'hall') {
-      desiredCam.set(6.8, 3.15, 8.4);
-      desiredTarget.set(0.2, 1.05, 0.4);
-    } else if (input.cameraMode === 'open') {
-      desiredCam.set(pose.x + 0.55, 1.72, pose.z + 1.35);
-      desiredTarget.set(pose.x, 1.22, pose.z + 0.72);
-    } else if (input.face === 'rear') {
-      desiredCam.set(pose.x, 1.45, pose.z - 2.55);
-      desiredTarget.set(pose.x, 1.15, pose.z);
-    } else {
-      desiredCam.set(pose.x, 1.45, pose.z + 2.55);
-      desiredTarget.set(pose.x, 1.15, pose.z);
-    }
+    const aim =
+      input.cameraMode === 'rack' && input.face === 'rear'
+        ? {
+            cam: new THREE.Vector3(pose.x, 1.45, pose.z - 2.55),
+            target: new THREE.Vector3(pose.x, 1.15, pose.z),
+            near: 0.08,
+            far: 80,
+            min: 0.8,
+            max: 10,
+          }
+        : scaleAim(input.cameraMode, pose);
+    desiredCam.copy(aim.cam);
+    desiredTarget.copy(aim.target);
+    camera.near = aim.near;
+    camera.far = aim.far;
+    camera.updateProjectionMatrix();
+    controls.minDistance = aim.min;
+    controls.maxDistance = aim.max;
   }
 
   function update(input: PlantSceneInput) {
@@ -721,8 +820,33 @@ export function mountPlantScene(
     }
 
     const pose = hallPose(input.model.focus.id);
+    const hallLayer = isHallLayer(input.cameraMode);
+    globe.group.visible = input.cameraMode === 'satellite';
+    campus.group.visible = input.cameraMode === 'campus';
+    studio.visible = input.cameraMode === 'satellite' || input.cameraMode === 'campus';
+    floor.visible = hallLayer;
+    tiles.visible = hallLayer;
+    backWall.visible = hallLayer;
+    leftWall.visible = hallLayer;
+    slab.visible = hallLayer;
+    ceiling.visible = hallLayer;
+    hallGroup.visible = hallLayer;
+    cduGroup.visible = hallLayer;
+    heatFog.visible = hallLayer;
+    (heatFog.material as THREE.PointsMaterial).opacity = 0.05 + (input.model.thermalIndex / 100) * 0.22;
+    (heatFog.material as THREE.PointsMaterial).color.set(
+      input.model.status === 'hot' || input.model.status === 'power' ? 0xff6a3c : 0xc4a24a,
+    );
+    scene.background = new THREE.Color(
+      input.cameraMode === 'satellite' ? 0x020308 : input.cameraMode === 'campus' ? 0x10140f : 0x07090b,
+    );
+    scene.fog = hallLayer ? new THREE.FogExp2(0x0a0d10, 0.024 + (1 - input.model.flowMargin / 100) * 0.02) : null;
+
     hero.position.set(pose.x, 0, pose.z);
-    hero.visible = input.model.hall[input.model.focus.id]?.active ?? false;
+    hero.visible = hallLayer && (input.model.hall[input.model.focus.id]?.active ?? false);
+    hero.traverse((child) => {
+      if (child.userData.kind === 'cabinet') child.visible = input.cameraMode === 'cabinet';
+    });
 
     const openKey = `${input.fact.variant}-${input.openKind}`;
     if (openKey !== lastOpen) {
@@ -737,11 +861,11 @@ export function mountPlantScene(
       const door = hallDoors[id];
       const sidecar = sidecars[id];
       const whip = whips[id];
-      hallClusters[id].visible = rack.active && !rack.focused;
-      cabinet.visible = rack.active && !rack.focused;
-      door.visible = rack.active && !rack.focused;
-      sidecar.visible = rack.active && usesSidecar(input.powerPath);
-      whip.visible = rack.active && usesWhips(input.powerPath);
+      hallClusters[id].visible = hallLayer && rack.active && !rack.focused;
+      cabinet.visible = hallLayer && rack.active && !rack.focused;
+      door.visible = hallLayer && rack.active && !rack.focused;
+      sidecar.visible = hallLayer && rack.active && usesSidecar(input.powerPath);
+      whip.visible = hallLayer && rack.active && usesWhips(input.powerPath);
       const material = cabinet.material as THREE.MeshPhysicalMaterial;
       material.color.copy(thermalColor(rack.thermal));
       material.emissive = thermalColor(rack.thermal).multiplyScalar(rack.focused ? 0.35 : 0.12);
@@ -758,10 +882,10 @@ export function mountPlantScene(
       material.emissiveIntensity = 0.15 + input.model.cduLoad * 0.4;
     });
 
-    busway.visible = usesOverheadBusway(input.powerPath);
+    busway.visible = hallLayer && usesOverheadBusway(input.powerPath);
+    aisleFill.visible = hallLayer;
     aisleFill.intensity = 1.1 + (input.model.thermalIndex / 100) * 3.4;
     aisleFill.color.set(input.model.status === 'hot' || input.model.status === 'power' ? 0xff6a3c : 0xffc27a);
-    (scene.fog as THREE.FogExp2).density = 0.024 + (1 - input.model.flowMargin / 100) * 0.02;
 
     const trays = input.openKind === 'switch' ? switchTrayMeshes : computeTrayMeshes;
     trays.forEach((mesh, index) => {
@@ -815,6 +939,8 @@ export function mountPlantScene(
     }
     if (data.kind === 'rear') onClick({ kind: 'rear', id: data.id, face: 'rear' });
     if (data.kind === 'chip') onClick({ kind: 'chip', id: data.id });
+    if (data.kind === 'world') onClick({ kind: 'world', id: data.id });
+    if (data.kind === 'cabinet') onClick({ kind: 'cabinet', id: 'door', face: 'front' });
   }
 
   function onControlStart() {
@@ -862,6 +988,11 @@ export function mountPlantScene(
       steel.dispose();
       perforate.dispose();
       pcbMap.dispose();
+      studioMap.dispose();
+      globe.textures.forEach((texture) => texture.dispose());
+      campus.textures.forEach((texture) => texture.dispose());
+      fogGeo.dispose();
+      (heatFog.material as THREE.PointsMaterial).dispose();
       clearOpen();
       clearHero();
       renderer.dispose();

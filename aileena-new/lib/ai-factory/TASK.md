@@ -83,8 +83,11 @@ WebGL is a camera on the same kernel. Owner asked for photoreal look now.
 
 - PBR hall + focused rack from sourced inventory (48U stack, 18+9 trays, copper busbar, manifolds, CDU count, sidecar vs busway vs whips)
 - Open tray camera: pull one compute/switch tray; clickable GPU / CPU / HBM / DPU / OSFP / NVSwitch / PDB / coldplate
+- Scale ladder: satellite globe → campus aerial → hall → closed cabinet → labeled rack → open tray
+- Stylized globe/aerial only — **not** live satellite tiles
 - Ledger chip intro + live kW share from the same `simulatePlant` kernel
 - Live C01–C18 / NV01–NV09 cells open that tray
+- Rack camera: C01–C18 / NV labels, thicker copper busbar, cable sketch, heat fog
 - Procedural meshes and canvas materials — **not** a Lenovo/NVIDIA scan
 - No second model
 - No Omniverse stream

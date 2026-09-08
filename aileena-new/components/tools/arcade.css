@@ -740,6 +740,7 @@
 
 .ai-factory-camera .ai-factory-chip {
   background: rgba(255, 253, 247, 0.88);
+  font-size: 0.58rem;
 }
 
 .ai-factory-stage::before {
@@ -1239,6 +1240,7 @@ button.ai-factory-cell {
   box-shadow: inset 0 0 0 1px rgba(0, 169, 159, 0.18);
 }
 
+.ai-factory-scale-card,
 .ai-factory-chip-card {
   grid-column: 1 / -1;
   display: grid;
@@ -1250,6 +1252,7 @@ button.ai-factory-cell {
   border-left: 2px solid rgba(0, 143, 134, 0.34);
 }
 
+.ai-factory-scale-card span,
 .ai-factory-chip-card span {
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 0.56rem;
@@ -1258,12 +1261,14 @@ button.ai-factory-cell {
   color: rgba(20, 17, 12, 0.42);
 }
 
+.ai-factory-scale-card strong,
 .ai-factory-chip-card strong {
   color: #14110c;
   font-size: 0.98rem;
   line-height: 1.2;
 }
 
+.ai-factory-scale-card p,
 .ai-factory-chip-card p {
   margin: 0;
   color: rgba(20, 17, 12, 0.62);

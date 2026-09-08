@@ -2,6 +2,7 @@ import { chipLiveKw, powerShareSum, trayKit, TRAY_KITS } from '../lib/ai-factory
 import type { RackVariant } from '../lib/ai-factory/rack-facts';
 import { simulatePlant } from '../lib/ai-factory/simulate';
 import { hallPose, usesSidecar, usesWhips } from '../lib/ai-factory/viewport';
+import { CAMERA_MODES, SITE, SCALE_FACTS, latLonToUnit, scaleAim } from '../lib/ai-factory/world';
 
 const gapsOff = { coolingAc: false, gridDelay: false, schedulerTail: false, modularClaims: false };
 
@@ -114,5 +115,15 @@ assert(
     );
   });
 });
+
+assert('six camera scales', CAMERA_MODES.length === 6);
+assert('satellite site is assumption', SITE.level === 'assumption');
+assert('satellite fact is assumption', SCALE_FACTS.satellite.level === 'assumption');
+assert('rack fact stays source-backed', SCALE_FACTS.rack.level === 'source-backed');
+const north = latLonToUnit(90, 0);
+assert('north pole is +Y', north.y > 0.99);
+const campusAim = scaleAim('campus', hallPose(0));
+const cabinetAim = scaleAim('cabinet', hallPose(0));
+assert('campus camera is farther than cabinet', campusAim.cam.length() > cabinetAim.cam.length());
 
 console.log('ai-factory plant kernel ok');
