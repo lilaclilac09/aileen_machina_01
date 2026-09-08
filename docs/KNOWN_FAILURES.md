@@ -35,6 +35,7 @@
 ## Computer / Cloudflare
 
 - [2026-08-26] `@cloudflare/computer` 不能跑在 Vercel Next（要 Worker + Durable Object SQLite）→ **不要**装进 `aileena-new/`；小电脑是独立 `workers/aileena-computer` + worker-shell。见 `aileena-new/docs/CLOUDFLARE_COMPUTER.md`
+- [2026-09-08] `npx wrangler deploy` → API 10021 `The compatibility flag experimental is experimental and cannot yet be used in Workers deployed to Cloudflare` → `workers/aileena-computer/wrangler.jsonc` 只留 `nodejs_compat`；**不要**抄官方 example 的 `experimental`。Paid 解开的是 10195（Dynamic Workers），不是 10021
 
 ## Product / scope（勿重开）
 
