@@ -55,7 +55,6 @@ import {
   ACCENT_SWAP_PING,
 } from '../../../lib/consolePrefix';
 
-export const runtime = 'edge';
 export const maxDuration = 30;
 const DAILY_LIMIT = 20;
 const QUOTA_COOKIE = '__aileena_quota';

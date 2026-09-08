@@ -52,7 +52,19 @@ public/
 
 ```bash
 pnpm install
-pnpm dev          # starts at http://localhost:3000
+pnpm dev          # webpack, http://localhost:3000
+```
+
+If you unzipped an old `aileena-new.zip` over an existing folder, or you see `Can't resolve 'tailwindcss' in '/Users/…'`, Next picked a parent lockfile (often `~/pnpm-lock.yaml`) and/or `node_modules` is mixed. Use this git checkout, then:
+
+```bash
+rm -rf node_modules .next && pnpm install && pnpm dev
+```
+
+On a machine that also has a home unzip at `~/aileena-new` (no git), archive it and add a `aileena-dev` alias so Poke’s old `cd ~/aileena-new && pnpm dev` cannot start the black boot UI:
+
+```bash
+bash ../scripts/pin-local-dev.sh
 ```
 
 Environment variables:
@@ -69,7 +81,7 @@ Rate limits on `/api/chat`:
 
 ## Deploy
 
-Auto-deploys to Vercel on push to `main`. Set the env vars above in the Vercel project's Production + Preview environments.
+Production today is **Vercel** (`https://www.aileena.xyz`). Cloudflare Workers hosting is on branch `cursor/cloudflare-host-aileena-xyz-e9d8` — see [`docs/CLOUDFLARE_HOST.md`](docs/CLOUDFLARE_HOST.md). Do not switch DNS until a `*.workers.dev` preview matches the white Machina homepage.
 
 ## Contributing
 

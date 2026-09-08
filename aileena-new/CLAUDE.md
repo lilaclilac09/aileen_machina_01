@@ -195,7 +195,7 @@ otherwise.
 ## Dev Commands
 
 ```bash
-npm run dev          # Start dev server (port 3000, use NEXT_TURBOPACK=0 if issues)
+pnpm dev             # webpack dev server (port 3000). NEXT_TURBOPACK=0 is not a Next flag.
 npm run build        # Production build
 npm run lint         # ESLint
 pnpm verify:dj-set   # DJ set carousel — screenshots + video + verify-report.json

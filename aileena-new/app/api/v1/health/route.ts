@@ -3,7 +3,6 @@ import { DATA_RATE } from '../../../../lib/api/ratelimit';
 import { ok } from '../../../../lib/api/jsonResp';
 import { datasetSummary } from '../../../../lib/data/tools';
 
-export const runtime = 'edge';
 
 export const GET = withApi({ rate: DATA_RATE, scope: 'health' }, async () => {
   return ok({

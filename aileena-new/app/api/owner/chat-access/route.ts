@@ -6,7 +6,6 @@ import {
 } from '@/lib/owner-access';
 import { NextRequest, NextResponse } from 'next/server';
 
-export const runtime = 'edge';
 
 /**
  * Owner console unlock — enter recognized email → long-lived signed cookie

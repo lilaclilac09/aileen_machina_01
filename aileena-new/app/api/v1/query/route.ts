@@ -23,7 +23,6 @@ import { SYSTEM_PROMPT } from '../../../../lib/agentContext';
 import { searchArticles } from '../../../../lib/agentSearch';
 import { agentDataTools, datasetSummary } from '../../../../lib/data/tools';
 
-export const runtime = 'edge';
 export const maxDuration = 30;
 
 function getModel() {
