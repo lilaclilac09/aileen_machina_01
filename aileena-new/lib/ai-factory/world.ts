@@ -2,15 +2,16 @@ import * as THREE from 'three';
 import type { EvidenceLevel } from './rack-facts';
 import type { HallPose } from './viewport';
 
-export const CAMERA_MODES = ['satellite', 'campus', 'hall', 'cabinet', 'rack', 'open'] as const;
+export const CAMERA_MODES = ['satellite', 'campus', 'wafer', 'hall', 'cabinet', 'rack', 'open'] as const;
 export type CameraMode = (typeof CAMERA_MODES)[number];
 
 /** DSX waypoint filmstrip on this kernel — not an Omniverse stream. */
-export const FILM_WAYPOINTS: CameraMode[] = ['satellite', 'campus', 'hall', 'cabinet', 'rack', 'open'];
+export const FILM_WAYPOINTS: CameraMode[] = ['satellite', 'campus', 'wafer', 'hall', 'cabinet', 'rack', 'open'];
 
 export const FILM_HOLD_MS: Record<CameraMode, number> = {
   satellite: 4000,
   campus: 3200,
+  wafer: 3400,
   hall: 3400,
   cabinet: 3000,
   rack: 3600,
@@ -53,6 +54,12 @@ export const SCALE_FACTS: Record<CameraMode, ScaleFact> = {
     title: 'campus aerial',
     summary: 'Warehouse, cooling yard, substation, parking.',
     detail: 'Layout is a modeling sketch so the camera can fly in. Not a surveyed site.',
+    level: 'assumption',
+  },
+  wafer: {
+    title: 'wafer line',
+    summary: 'Cleanroom aisle: LOAD → SORT → METRO → PACK, overhead FOUPs, one 300mm wafer.',
+    detail: 'Logistics sketch (XRFab / FabFlow camera grammar). Not lithography physics, not a real fab, not Omniverse USD. Pack bay and airlock cut into the plant hall.',
     level: 'assumption',
   },
   hall: {
@@ -314,6 +321,208 @@ export function buildCampus() {
   return { group, clickables: [hall, door], textures: [map] };
 }
 
+export const FAB_LINE = {
+  foupCount: 7,
+  railY: 2.42,
+  railZ: -1.55,
+  railSpan: 24,
+  waferMm: 300,
+  stations: [
+    { id: 'load', label: 'LOAD', x: -9.0, click: 'wafer' as const },
+    { id: 'sort', label: 'SORT', x: -3.4, click: 'wafer' as const },
+    { id: 'metro', label: 'METRO', x: 2.2, click: 'wafer' as const },
+    { id: 'pack', label: 'PACK', x: 7.8, click: 'hall' as const },
+  ],
+  level: 'assumption' as EvidenceLevel,
+};
+
+function fabFloorTexture() {
+  const size = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('canvas');
+  ctx.fillStyle = '#c5ccd3';
+  ctx.fillRect(0, 0, size, size);
+  ctx.strokeStyle = '#9aa3ab';
+  ctx.lineWidth = 3;
+  for (let i = 0; i <= size; i += 32) {
+    ctx.beginPath();
+    ctx.moveTo(i, 0);
+    ctx.lineTo(i, size);
+    ctx.moveTo(0, i);
+    ctx.lineTo(size, i);
+    ctx.stroke();
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(14, 8);
+  texture.anisotropy = 8;
+  return texture;
+}
+
+function fabSign(text: string) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 96;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('canvas');
+  ctx.fillStyle = '#1a2224';
+  ctx.fillRect(0, 0, 512, 96);
+  ctx.fillStyle = '#7ef0d8';
+  ctx.fillRect(0, 0, 10, 96);
+  ctx.fillStyle = '#e8eef2';
+  ctx.font = '600 46px ui-sans-serif, system-ui';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 268, 52);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  const mesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.7, 0.32),
+    new THREE.MeshBasicMaterial({ map: texture }),
+  );
+  return { mesh, texture };
+}
+
+export function waferTexture() {
+  const size = 512;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('canvas');
+  ctx.fillStyle = '#0b1020';
+  ctx.fillRect(0, 0, size, size);
+  const disc = ctx.createRadialGradient(256, 256, 20, 256, 256, 248);
+  disc.addColorStop(0, '#d8e4f0');
+  disc.addColorStop(0.55, '#9eb0c4');
+  disc.addColorStop(1, '#6a7a8c');
+  ctx.fillStyle = disc;
+  ctx.beginPath();
+  ctx.arc(256, 256, 248, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#0b1020';
+  ctx.beginPath();
+  ctx.arc(256, 28, 22, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(20, 24, 32, 0.28)';
+  ctx.lineWidth = 1;
+  for (let x = 70; x < 450; x += 18) {
+    ctx.beginPath();
+    ctx.moveTo(x, 70);
+    ctx.lineTo(x, 450);
+    ctx.stroke();
+  }
+  for (let y = 70; y < 450; y += 18) {
+    ctx.beginPath();
+    ctx.moveTo(70, y);
+    ctx.lineTo(450, y);
+    ctx.stroke();
+  }
+  ctx.fillStyle = 'rgba(244, 239, 228, 0.55)';
+  ctx.font = '600 28px ui-sans-serif, system-ui';
+  ctx.textAlign = 'center';
+  ctx.fillText('300mm', 256, 270);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 8;
+  return texture;
+}
+
+export function buildFabLine() {
+  const group = new THREE.Group();
+  const map = waferTexture();
+  const floorMap = fabFloorTexture();
+  const textures: THREE.CanvasTexture[] = [map, floorMap];
+  const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(28, 16),
+    new THREE.MeshPhysicalMaterial({ map: floorMap, roughness: 0.62, metalness: 0.08 }),
+  );
+  floor.rotation.x = -Math.PI / 2;
+  floor.receiveShadow = true;
+  const stripe = new THREE.Mesh(new THREE.BoxGeometry(24, 0.02, 0.16), metal(0xc4a24a, { roughness: 0.4, metalness: 0.12 }));
+  stripe.position.set(0, 0.02, 0.55);
+  const back = new THREE.Mesh(new THREE.BoxGeometry(28, 3.4, 0.16), metal(0xdce3e8, { roughness: 0.72, metalness: 0.04 }));
+  back.position.set(0, 1.7, -6.35);
+  const left = new THREE.Mesh(new THREE.BoxGeometry(0.16, 3.4, 16), metal(0xdce3e8, { roughness: 0.72, metalness: 0.04 }));
+  left.position.set(-13.9, 1.7, 0);
+  const right = new THREE.Mesh(new THREE.BoxGeometry(0.16, 3.4, 16), metal(0xdce3e8, { roughness: 0.72, metalness: 0.04 }));
+  right.position.set(13.9, 1.7, 0);
+  const ceiling = new THREE.Mesh(new THREE.BoxGeometry(28, 0.08, 16), metal(0xe8eef2, { roughness: 0.55, metalness: 0.06 }));
+  ceiling.position.set(0, 3.28, 0);
+  group.add(floor, stripe, back, left, right, ceiling);
+  for (let i = 0; i < 10; i += 1) {
+    for (let j = 0; j < 4; j += 1) {
+      const ffu = new THREE.Mesh(new THREE.BoxGeometry(2.15, 0.07, 2.4), metal(0xf4f7f8, { roughness: 0.42, metalness: 0.08 }));
+      ffu.position.set(-10.8 + i * 2.4, 3.18, -4.6 + j * 2.6);
+      group.add(ffu);
+    }
+  }
+  const rail = new THREE.Mesh(new THREE.BoxGeometry(FAB_LINE.railSpan, 0.07, 0.2), metal(0x8a9096, { roughness: 0.32 }));
+  rail.position.set(0, FAB_LINE.railY, FAB_LINE.railZ);
+  group.add(rail);
+  const foups: THREE.Mesh[] = [];
+  for (let i = 0; i < FAB_LINE.foupCount; i += 1) {
+    const pod = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.38, 0.28), metal(0xc9d4da, { roughness: 0.28, metalness: 0.22 }));
+    pod.position.set(-10 + i * (FAB_LINE.railSpan / FAB_LINE.foupCount), FAB_LINE.railY - 0.38, FAB_LINE.railZ);
+    pod.castShadow = true;
+    pod.userData = { kind: 'world', id: 'wafer', foup: i };
+    const window = new THREE.Mesh(
+      new THREE.BoxGeometry(0.18, 0.16, 0.02),
+      new THREE.MeshPhysicalMaterial({ color: 0x1a3338, roughness: 0.12, metalness: 0.05, transparent: true, opacity: 0.55 }),
+    );
+    window.position.set(0, 0.03, 0.15);
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.32, 8), metal(0x6a7076, { roughness: 0.35 }));
+    stem.position.set(0, 0.34, 0);
+    pod.add(window, stem);
+    foups.push(pod);
+    group.add(pod);
+  }
+  const bays: THREE.Mesh[] = [];
+  FAB_LINE.stations.forEach((station) => {
+    const bay = new THREE.Mesh(new THREE.BoxGeometry(2.6, 2.05, 2.3), metal(0xb8c0c6, { roughness: 0.4, metalness: 0.18 }));
+    bay.position.set(station.x, 1.02, -4.55);
+    bay.castShadow = true;
+    bay.userData = { kind: 'world', id: station.click };
+    const port = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.95, 0.08), metal(0x1a2224, { roughness: 0.3 }));
+    port.position.set(station.x, 0.78, -3.36);
+    port.userData = { kind: 'world', id: station.click };
+    const sign = fabSign(station.label);
+    sign.mesh.position.set(station.x, 2.22, -3.32);
+    textures.push(sign.texture);
+    bays.push(bay, port);
+    group.add(bay, port, sign.mesh);
+  });
+  const chuck = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.48, 0.12, 32), metal(0x4a5056, { roughness: 0.28 }));
+  chuck.position.set(0.55, 0.62, 1.22);
+  const wafer = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.38, 0.38, 0.012, 48),
+    new THREE.MeshPhysicalMaterial({ map, roughness: 0.22, metalness: 0.35, envMapIntensity: 1.1 }),
+  );
+  wafer.position.set(0.55, 0.69, 1.22);
+  wafer.userData = { kind: 'world', id: 'wafer' };
+  const cassette = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.42, 0.34), metal(0xb8c4ca, { roughness: 0.3, metalness: 0.2 }));
+  cassette.position.set(1.35, 0.52, 1.22);
+  cassette.userData = { kind: 'world', id: 'wafer' };
+  for (let i = 0; i < 4; i += 1) {
+    const slot = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.012, 0.26), metal(0x9eb0c4, { roughness: 0.22, metalness: 0.4 }));
+    slot.position.set(0, -0.12 + i * 0.08, 0);
+    cassette.add(slot);
+  }
+  const airlock = new THREE.Mesh(new THREE.BoxGeometry(1.7, 2.35, 0.14), metal(0x2a3336, { roughness: 0.35 }));
+  airlock.position.set(12.4, 1.18, 0.2);
+  airlock.userData = { kind: 'world', id: 'hall' };
+  const lockSign = fabSign('HALL');
+  lockSign.mesh.position.set(12.4, 2.48, 0.3);
+  textures.push(lockSign.texture);
+  group.add(chuck, wafer, cassette, airlock, lockSign.mesh);
+  return { group, clickables: [...foups, wafer, cassette, airlock, ...bays], textures, foups };
+}
+
 export function scaleAim(mode: CameraMode, pose: HallPose) {
   if (mode === 'satellite') {
     return {
@@ -333,6 +542,16 @@ export function scaleAim(mode: CameraMode, pose: HallPose) {
       far: 80,
       min: 6,
       max: 32,
+    };
+  }
+  if (mode === 'wafer') {
+    return {
+      cam: new THREE.Vector3(1.6, 1.82, 7.15),
+      target: new THREE.Vector3(-0.6, 1.02, -1.05),
+      near: 0.08,
+      far: 80,
+      min: 1.4,
+      max: 16,
     };
   }
   if (mode === 'cabinet') {
@@ -379,9 +598,11 @@ export function isHallLayer(mode: CameraMode) {
   return mode === 'hall' || mode === 'cabinet' || mode === 'rack' || mode === 'open';
 }
 
-/** Crossing the hall-layer boundary is a cut — no fog tunnel from the aerial. */
+/** Crossing a world-layer boundary is a cut — no fog/wall tunnel. */
 export function filmCuts(from: CameraMode, to: CameraMode): boolean {
-  return isHallLayer(from) !== isHallLayer(to);
+  if (isHallLayer(from) !== isHallLayer(to)) return true;
+  if (from === 'wafer' || to === 'wafer') return from !== to;
+  return false;
 }
 
 export function filmCam(mode: CameraMode, pose: HallPose, age: number) {
@@ -394,7 +615,7 @@ export function filmCam(mode: CameraMode, pose: HallPose, age: number) {
     };
   }
   const sway = Math.sin(age * 0.45);
-  const nudge = mode === 'campus' ? 0.7 : mode === 'hall' ? 0.32 : 0.09;
+  const nudge = mode === 'campus' ? 0.7 : mode === 'wafer' ? 0.85 : mode === 'hall' ? 0.32 : 0.09;
   return {
     cam: aim.cam.clone().add(new THREE.Vector3(sway * nudge, Math.cos(age * 0.3) * nudge * 0.4, sway * nudge * 0.35)),
     target: aim.target.clone(),

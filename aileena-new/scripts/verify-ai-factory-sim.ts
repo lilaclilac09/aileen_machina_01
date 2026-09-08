@@ -1,8 +1,9 @@
 import { chipLiveKw, powerShareSum, trayKit, TRAY_KITS } from '../lib/ai-factory/chips';
-import type { RackVariant } from '../lib/ai-factory/rack-facts';
+import { INFERENCEX, INFERENCEX_HREF } from '../lib/ai-factory/inferencex';
+import { RACK_FACTS, type RackVariant } from '../lib/ai-factory/rack-facts';
 import { simulatePlant } from '../lib/ai-factory/simulate';
 import { hallPose, usesSidecar, usesWhips } from '../lib/ai-factory/viewport';
-import { CAMERA_MODES, FILM_WAYPOINTS, SITE, SCALE_FACTS, filmCam, filmCuts, filmHoldMs, latLonToUnit, nextFilmWaypoint, scaleAim } from '../lib/ai-factory/world';
+import { CAMERA_MODES, FAB_LINE, FILM_WAYPOINTS, SITE, SCALE_FACTS, filmCam, filmCuts, filmHoldMs, latLonToUnit, nextFilmWaypoint, scaleAim } from '../lib/ai-factory/world';
 
 const gapsOff = { coolingAc: false, gridDelay: false, schedulerTail: false, modularClaims: false };
 
@@ -116,17 +117,25 @@ assert(
   });
 });
 
-assert('six camera scales', CAMERA_MODES.length === 6);
+assert('seven camera scales', CAMERA_MODES.length === 7);
 assert('film waypoints match the scale ladder', FILM_WAYPOINTS.join(',') === CAMERA_MODES.join(','));
 assert('film loops die to globe', nextFilmWaypoint('open') === 'satellite');
-assert('film steps satellite to campus', nextFilmWaypoint('satellite') === 'campus');
+assert('film steps campus to wafer line', nextFilmWaypoint('campus') === 'wafer');
 assert('open to satellite is a cut', filmCuts('open', 'satellite'));
 assert('campus to hall is a cut', filmCuts('campus', 'hall'));
+assert('wafer to hall is a cut', filmCuts('wafer', 'hall'));
 assert('rack to satellite is a cut', filmCuts('rack', 'satellite'));
+assert('campus to wafer is a cut', filmCuts('campus', 'wafer'));
+assert('wafer to satellite is a cut', filmCuts('wafer', 'satellite'));
 assert('campus to satellite dollies', !filmCuts('campus', 'satellite'));
 assert('satellite to campus dollies', !filmCuts('satellite', 'campus'));
 assert('hall to cabinet dollies', !filmCuts('hall', 'cabinet'));
 assert('film holds are cinematic', filmHoldMs('satellite') >= 3000 && filmHoldMs('open') >= 3000);
+assert('wafer line is assumption', SCALE_FACTS.wafer.level === 'assumption');
+assert('fab line has four stations', FAB_LINE.stations.length === 4);
+assert('pack bay exits to hall', FAB_LINE.stations.find((station) => station.id === 'pack')?.click === 'hall');
+assert('metro stays on wafer', FAB_LINE.stations.find((station) => station.id === 'metro')?.click === 'wafer');
+assert('300mm FOUP aisle is assumption', FAB_LINE.waferMm === 300 && FAB_LINE.foupCount === 7 && FAB_LINE.level === 'assumption');
 const orbit = filmCam('satellite', origin, 0);
 assert('film satellite orbit stays outside the globe', orbit.cam.length() > 5);
 assert('satellite site is assumption', SITE.level === 'assumption');
@@ -140,5 +149,16 @@ const rackAim = scaleAim('rack', hallPose(0));
 assert('campus camera is farther than cabinet', campusAim.cam.length() > cabinetAim.cam.length());
 assert('rack camera is 3/4, not dead-front', Math.abs(rackAim.cam.x - origin.x) > 0.3);
 assert('rack camera is closer than 2m', rackAim.cam.distanceTo(rackAim.target) < 2);
+assert('inferencex href is the sep 7 article', INFERENCEX.href === INFERENCEX_HREF && INFERENCEX_HREF.includes('tpu-inferencex-full-steam'));
+assert('inferencex preview is source-backed', INFERENCEX.level === 'source-backed');
+assert('inferencex 20 tok/s ironwood beats b200', INFERENCEX.at20ToksPerUser.ironwood > INFERENCEX.at20ToksPerUser.b200);
+assert(
+  'gb300 cites inferencex',
+  RACK_FACTS['GB300 NVL72'].sources.some((source) => source.href === INFERENCEX_HREF),
+);
+assert(
+  'gb200 cites inferencex',
+  RACK_FACTS['GB200 NVL72'].sources.some((source) => source.href === INFERENCEX_HREF),
+);
 
 console.log('ai-factory plant kernel ok');
