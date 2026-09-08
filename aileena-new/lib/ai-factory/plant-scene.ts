@@ -20,7 +20,7 @@ import {
   usesSidecar,
   usesWhips,
 } from './viewport';
-import { buildCampus, buildFabLine, buildGlobe, filmCam, filmCuts, isHallLayer, scaleAim, studioGridTexture, type CameraMode } from './world';
+import { buildCampus, buildFabLine, buildGlobe, FAB_LINE, filmCam, filmCuts, isHallLayer, scaleAim, studioGridTexture, type CameraMode } from './world';
 
 export type { CameraMode } from './world';
 
@@ -1135,9 +1135,12 @@ export function mountPlantScene(
     }
     if (latest?.cameraMode === 'satellite') globe.group.rotation.y += dt * 0.12;
     if (latest?.cameraMode === 'wafer') {
+      const span = FAB_LINE.railSpan;
+      const step = span / FAB_LINE.foupCount;
       fab.foups.forEach((pod, index) => {
-        const x = ((-8 + index * 3.4 + filmAge * 0.55) % 20) - 10;
-        pod.position.x = x;
+        pod.position.x = ((-span / 2 + index * step + filmAge * 0.68) % span) - span / 2;
+        pod.position.y = FAB_LINE.railY - 0.38;
+        pod.position.z = FAB_LINE.railZ;
       });
     }
     const fogAttr = heatFog.geometry.getAttribute('position');

@@ -2,7 +2,7 @@ import { chipLiveKw, powerShareSum, trayKit, TRAY_KITS } from '../lib/ai-factory
 import type { RackVariant } from '../lib/ai-factory/rack-facts';
 import { simulatePlant } from '../lib/ai-factory/simulate';
 import { hallPose, usesSidecar, usesWhips } from '../lib/ai-factory/viewport';
-import { CAMERA_MODES, FILM_WAYPOINTS, SITE, SCALE_FACTS, filmCam, filmCuts, filmHoldMs, latLonToUnit, nextFilmWaypoint, scaleAim } from '../lib/ai-factory/world';
+import { CAMERA_MODES, FAB_LINE, FILM_WAYPOINTS, SITE, SCALE_FACTS, filmCam, filmCuts, filmHoldMs, latLonToUnit, nextFilmWaypoint, scaleAim } from '../lib/ai-factory/world';
 
 const gapsOff = { coolingAc: false, gridDelay: false, schedulerTail: false, modularClaims: false };
 
@@ -130,6 +130,10 @@ assert('satellite to campus dollies', !filmCuts('satellite', 'campus'));
 assert('hall to cabinet dollies', !filmCuts('hall', 'cabinet'));
 assert('film holds are cinematic', filmHoldMs('satellite') >= 3000 && filmHoldMs('open') >= 3000);
 assert('wafer line is assumption', SCALE_FACTS.wafer.level === 'assumption');
+assert('fab line has four stations', FAB_LINE.stations.length === 4);
+assert('pack bay exits to hall', FAB_LINE.stations.find((station) => station.id === 'pack')?.click === 'hall');
+assert('metro stays on wafer', FAB_LINE.stations.find((station) => station.id === 'metro')?.click === 'wafer');
+assert('300mm FOUP aisle is assumption', FAB_LINE.waferMm === 300 && FAB_LINE.foupCount === 7 && FAB_LINE.level === 'assumption');
 const orbit = filmCam('satellite', origin, 0);
 assert('film satellite orbit stays outside the globe', orbit.cam.length() > 5);
 assert('satellite site is assumption', SITE.level === 'assumption');

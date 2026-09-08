@@ -26,6 +26,8 @@ Paid SemiAnalysis BOM photos/models stay out unless the owner supplies lawful ac
 | Residual / OOB kW | assumption | leftover BMC, sensors, conversion crumbs |
 | Hall aisle / edge heat | assumption | row geometry, not CFD |
 | Scheduler-tail pin every 5th tray | assumption | AgentX-style KV hold, not a trace |
+| Wafer line LOAD/SORT/METRO/PACK | assumption | XRFab / FabFlow grammar, not a fab scan |
+| TPU InferenceX Ironwood vs B200/B300 | parked | Semi paid 2026-09-07 — public preview only, not in kernel |
 
 ## Done
 
@@ -97,19 +99,13 @@ WebGL is a camera on the same kernel. Owner asked for photoreal look now.
 
 Owner: keep the wafer. Park CAD→USD. Do not merge this slice until asked.
 
-Grammar only (not a second twin):
+Full parked plan: [`PLAN.md`](./PLAN.md).
 
-| Source | Use | Do not use |
-| --- | --- | --- |
-| [SINRG-Lab/SiliconXR](https://github.com/SINRG-Lab/SiliconXR) / XRFab paper | cleanroom scale, spatial labels | empty Unity package as a scene |
-| [srigan-s/microalchemy-demo](https://github.com/srigan-s/microalchemy-demo) | FOUP / carrier aisle in the browser | copy their mesh or call it a real fab |
-| [coder7676mit/vFab-…](https://github.com/coder7676mit/vFab-Digital-twin-of-Semiconductor-fabrication-Photolithography-process) | — | lithography PDE / process DT |
-| [NVIDIA-Omniverse/aif-pipeline-samples](https://github.com/NVIDIA-Omniverse/aif-pipeline-samples) | **parked** | CAD→SimReady USD in this browser |
-| Foxconn FODT / TSMC FabTwin | movie reference only | no GitHub, no clone |
+This slice: `wafer` camera between campus and hall. Cleanroom aisle LOAD → SORT → METRO → PACK, overhead FOUPs, one 300mm wafer. Evidence `assumption`. Same `simulatePlant` kernel. Film cuts wafer→hall.
 
-This slice: `wafer` camera between campus and hall. Procedural 300mm wafer + overhead FOUPs. Evidence `assumption`. Same `simulatePlant` kernel. Film cuts wafer→hall.
+Looked at SemiAnalysis [TPU InferenceX](https://newsletter.semianalysis.com/p/tpu-inferencex-full-steam) (paid, Sep 07 2026). Public preview only — **not** ingested into the plant kernel.
 
-Later (not this PR): CAD→SimReady USD stays off-site. Do not stream Omniverse.
+Later (not this PR): CAD→SimReady USD stays off-site. TPU rack variant stays parked. Do not stream Omniverse.
 
 ## Never
 
