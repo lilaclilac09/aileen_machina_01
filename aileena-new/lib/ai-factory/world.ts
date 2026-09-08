@@ -546,8 +546,8 @@ export function scaleAim(mode: CameraMode, pose: HallPose) {
   }
   if (mode === 'wafer') {
     return {
-      cam: new THREE.Vector3(4.1, 1.72, 6.2),
-      target: new THREE.Vector3(0.4, 0.95, -0.35),
+      cam: new THREE.Vector3(1.6, 1.82, 7.15),
+      target: new THREE.Vector3(-0.6, 1.02, -1.05),
       near: 0.08,
       far: 80,
       min: 1.4,
@@ -598,9 +598,11 @@ export function isHallLayer(mode: CameraMode) {
   return mode === 'hall' || mode === 'cabinet' || mode === 'rack' || mode === 'open';
 }
 
-/** Crossing the hall-layer boundary is a cut — no fog tunnel from the aerial. */
+/** Crossing a world-layer boundary is a cut — no fog/wall tunnel. */
 export function filmCuts(from: CameraMode, to: CameraMode): boolean {
-  return isHallLayer(from) !== isHallLayer(to);
+  if (isHallLayer(from) !== isHallLayer(to)) return true;
+  if (from === 'wafer' || to === 'wafer') return from !== to;
+  return false;
 }
 
 export function filmCam(mode: CameraMode, pose: HallPose, age: number) {
