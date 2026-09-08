@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import type { ChipId, TrayKind } from '../../lib/ai-factory/chips';
 import type { PowerPath } from '../../lib/ai-factory/plant';
-import { mountPlantScene, type PlantSceneHandle } from '../../lib/ai-factory/plant-scene';
+import { mountPlantScene, type CameraMode, type PlantSceneHandle } from '../../lib/ai-factory/plant-scene';
 import type { InspectId, RackFace } from '../../lib/ai-factory/rack-inspectors';
 import type { RackFactSheet } from '../../lib/ai-factory/rack-facts';
 import type { PlantSim } from '../../lib/ai-factory/simulate';
@@ -14,17 +15,27 @@ export default function PlantViewport({
   inspectId,
   powerPath,
   cameraMode,
+  openKind,
+  openChip,
+  openTrayIndex,
   onFocusRack,
   onInspect,
+  onOpenTray,
+  onChip,
 }: {
   model: PlantSim;
   fact: RackFactSheet;
   face: RackFace;
   inspectId: InspectId;
   powerPath: PowerPath;
-  cameraMode: 'hall' | 'rack';
+  cameraMode: CameraMode;
+  openKind: TrayKind;
+  openChip: ChipId;
+  openTrayIndex: number;
   onFocusRack: (id: number) => void;
   onInspect: (id: InspectId, face?: RackFace) => void;
+  onOpenTray: (kind: TrayKind, index: number) => void;
+  onChip: (id: ChipId) => void;
 }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<PlantSceneHandle | null>(null);
@@ -34,18 +45,31 @@ export default function PlantViewport({
     if (!host) return undefined;
     const scene = mountPlantScene(host, (hit) => {
       if (hit.kind === 'hall') onFocusRack(Number(hit.id));
-      else onInspect(hit.id as InspectId, hit.face);
+      else if (hit.kind === 'chip') onChip(hit.id as ChipId);
+      else if (hit.kind === 'tray' && (hit.trayKind === 'compute' || hit.trayKind === 'switch')) {
+        onOpenTray(hit.trayKind, hit.trayIndex ?? 0);
+      } else onInspect(hit.id as InspectId, hit.face);
     });
     sceneRef.current = scene;
     return () => {
       scene.dispose();
       sceneRef.current = null;
     };
-  }, [onFocusRack, onInspect]);
+  }, [onChip, onFocusRack, onInspect, onOpenTray]);
 
   useEffect(() => {
-    sceneRef.current?.update({ model, fact, face, inspectId, powerPath, cameraMode });
-  }, [cameraMode, face, fact, inspectId, model, powerPath]);
+    sceneRef.current?.update({
+      model,
+      fact,
+      face,
+      inspectId,
+      powerPath,
+      cameraMode,
+      openKind,
+      openChip,
+      openTrayIndex,
+    });
+  }, [cameraMode, face, fact, inspectId, model, openChip, openKind, openTrayIndex, powerPath]);
 
   return <div className="ai-factory-viewport" data-testid="ai-factory-viewport" ref={hostRef} />;
 }

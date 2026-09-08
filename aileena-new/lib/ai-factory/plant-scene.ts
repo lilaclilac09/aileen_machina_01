@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import type { ChipId, TrayKind } from './chips';
+import { trayKit } from './chips';
 import type { PowerPath } from './plant';
 import type { InspectId, RackFace } from './rack-inspectors';
 import type { RackFactSheet, RackStackSegment } from './rack-facts';
@@ -19,13 +21,18 @@ import {
   usesWhips,
 } from './viewport';
 
+export type CameraMode = 'hall' | 'rack' | 'open';
+
 export type PlantSceneInput = {
   model: PlantSim;
   fact: RackFactSheet;
   face: RackFace;
   inspectId: InspectId;
   powerPath: PowerPath;
-  cameraMode: 'hall' | 'rack';
+  cameraMode: CameraMode;
+  openKind: TrayKind;
+  openChip: ChipId;
+  openTrayIndex: number;
 };
 
 export type PlantSceneHandle = {
@@ -34,9 +41,11 @@ export type PlantSceneHandle = {
 };
 
 type Click = {
-  kind: 'hall' | 'tray' | 'rear';
-  id: number | InspectId;
+  kind: 'hall' | 'tray' | 'rear' | 'chip';
+  id: number | InspectId | ChipId;
   face?: RackFace;
+  trayIndex?: number;
+  trayKind?: TrayKind;
 };
 
 const TRAY_KIND_COLOR: Record<RackStackSegment['kind'], number> = {
@@ -67,6 +76,36 @@ function noiseTexture(size: number, tint: [number, number, number], grit = 38) {
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
   texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 8;
+  return texture;
+}
+
+function pcbTexture() {
+  const size = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('canvas');
+  ctx.fillStyle = '#0d1f18';
+  ctx.fillRect(0, 0, size, size);
+  ctx.strokeStyle = 'rgba(196, 164, 72, 0.28)';
+  ctx.lineWidth = 1;
+  for (let y = 8; y < size; y += 14) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(size, y + (y % 28 === 0 ? 4 : -3));
+    ctx.stroke();
+  }
+  ctx.fillStyle = 'rgba(196, 164, 72, 0.45)';
+  for (let i = 0; i < 80; i += 1) {
+    ctx.fillRect((i * 37) % size, (i * 19) % size, 3, 3);
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.repeat.set(2, 3);
   texture.anisotropy = 8;
   return texture;
 }
@@ -153,6 +192,7 @@ export function mountPlantScene(
   concrete.repeat.set(14, 14);
   const steel = noiseTexture(128, [0.55, 0.58, 0.6], 90);
   const perforate = perforatedTexture();
+  const pcbMap = pcbTexture();
 
   const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(36, 28),
@@ -337,7 +377,11 @@ export function mountPlantScene(
 
   const hero = new THREE.Group();
   scene.add(hero);
+  const openTray = new THREE.Group();
+  scene.add(openTray);
   const clickables: THREE.Object3D[] = [...hallCabinets, ...hallDoors, ...sidecars];
+  const computeTrayMeshes: THREE.Mesh[] = [];
+  const switchTrayMeshes: THREE.Mesh[] = [];
 
   function clearHero() {
     hero.traverse((child) => {
@@ -348,8 +392,28 @@ export function mountPlantScene(
       }
     });
     hero.clear();
+    computeTrayMeshes.length = 0;
+    switchTrayMeshes.length = 0;
     clickables.length = 0;
     clickables.push(...hallCabinets, ...hallDoors, ...sidecars);
+  }
+
+  function clearOpen() {
+    for (let index = clickables.length - 1; index >= 0; index -= 1) {
+      if (clickables[index].userData.kind === 'chip') clickables.splice(index, 1);
+    }
+    openTray.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.geometry.dispose();
+        const materials = Array.isArray(child.material) ? child.material : [child.material];
+        materials.forEach((material) => {
+          const map = 'map' in material ? material.map : null;
+          if (map && map !== pcbMap) map.dispose();
+          if (material !== pcbMap) material.dispose();
+        });
+      }
+    });
+    openTray.clear();
   }
 
   function addHeroMesh(mesh: THREE.Mesh, click?: Click) {
@@ -403,7 +467,16 @@ export function mountPlantScene(
           metal(TRAY_KIND_COLOR[segment.kind], { roughness: 0.22, metalness: 0.78 }),
         );
         tray.position.set(0, cursor + unitH / 2, 0.02);
-        addHeroMesh(tray, { kind: 'tray', id: segment.kind, face: 'front' });
+        const trayKind = segment.kind === 'switch' ? 'switch' : segment.kind === 'compute' ? 'compute' : undefined;
+        if (trayKind === 'compute') computeTrayMeshes.push(tray);
+        if (trayKind === 'switch') switchTrayMeshes.push(tray);
+        addHeroMesh(tray, {
+          kind: 'tray',
+          id: segment.kind,
+          face: 'front',
+          trayIndex: trayKind ? (trayKind === 'compute' ? computeTrayMeshes.length - 1 : switchTrayMeshes.length - 1) : undefined,
+          trayKind,
+        });
 
         if (segment.kind === 'compute' || segment.kind === 'switch') {
           const port = new THREE.Mesh(
@@ -447,6 +520,172 @@ export function mountPlantScene(
     }
   }
 
+  function addOpenMesh(mesh: THREE.Mesh, chip?: ChipId) {
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    if (chip) {
+      mesh.userData = { kind: 'chip', id: chip };
+      clickables.push(mesh);
+    }
+    openTray.add(mesh);
+  }
+
+  function chipCaption(text: string) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('canvas');
+    ctx.fillStyle = 'rgba(8, 10, 12, 0.78)';
+    ctx.fillRect(0, 0, 256, 64);
+    ctx.fillStyle = '#f4efe4';
+    ctx.font = '600 26px ui-sans-serif, system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, 128, 32);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    const mesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.14, 0.035),
+      new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false }),
+    );
+    mesh.rotation.x = -Math.PI / 2.6;
+    return mesh;
+  }
+
+  function buildOpenTray(variant: RackFactSheet['variant'], kind: TrayKind) {
+    clearOpen();
+    const kit = trayKit(variant, kind);
+    const has = (id: ChipId) => kit.parts.some((part) => part.id === id);
+
+    const sled = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.018, 1.02), metal(0x121416, { roughness: 0.34 }));
+    sled.position.set(0, 0.009, 0);
+    addOpenMesh(sled);
+    const rails = metal(0x8a8f93, { roughness: 0.22, metalness: 0.95 });
+    for (const side of [-1, 1]) {
+      const rail = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.012, 1.02), rails);
+      rail.position.set(side * 0.29, 0.02, 0);
+      addOpenMesh(rail);
+    }
+
+    const pcb = new THREE.Mesh(
+      new THREE.BoxGeometry(0.5, 0.01, 0.92),
+      new THREE.MeshPhysicalMaterial({
+        map: pcbMap,
+        color: 0x16352c,
+        roughness: 0.55,
+        metalness: 0.08,
+      }),
+    );
+    pcb.position.set(0, 0.024, 0);
+    addOpenMesh(pcb);
+
+    const die = (w: number, h: number, d: number, color: number, x: number, z: number, chip: ChipId, glow = 0.2) => {
+      const substrate = new THREE.Mesh(
+        new THREE.BoxGeometry(w + 0.016, 0.004, d + 0.016),
+        metal(0xc4a24a, { roughness: 0.35, metalness: 0.85 }),
+      );
+      substrate.position.set(x, 0.03, z);
+      addOpenMesh(substrate, chip);
+      const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(w, h, d),
+        metal(color, { roughness: 0.2, metalness: 0.7, emissive: color, emissiveIntensity: glow }),
+      );
+      mesh.position.set(x, 0.032 + h / 2, z);
+      addOpenMesh(mesh, chip);
+    };
+
+    const plate = (w: number, d: number, x: number, z: number) => {
+      const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(w, 0.005, d),
+        new THREE.MeshPhysicalMaterial({
+          color: 0x1b8a86,
+          metalness: 0.15,
+          roughness: 0.06,
+          transmission: 0.42,
+          thickness: 0.06,
+          transparent: true,
+          opacity: 0.42,
+        }),
+      );
+      mesh.position.set(x, 0.048, z);
+      addOpenMesh(mesh, 'coldplate');
+    };
+
+    const caption = (text: string, x: number, z: number, chip: ChipId) => {
+      const mesh = chipCaption(text);
+      mesh.position.set(x, 0.062, z);
+      addOpenMesh(mesh, chip);
+    };
+
+    if (kind === 'compute') {
+      const gpuXs = [-0.14, 0.14];
+      const gpuZs = [-0.08, 0.16];
+      gpuXs.forEach((x) => {
+        gpuZs.forEach((z) => {
+          die(0.11, 0.016, 0.11, 0x1a1a1c, x, z, 'gpu', 0.35);
+          if (has('hbm')) die(0.028, 0.012, 0.08, 0x3a3220, x + 0.078, z, 'hbm', 0.12);
+          if (has('coldplate')) plate(0.12, 0.12, x, z);
+        });
+      });
+      caption('GPU', -0.14, -0.08, 'gpu');
+      die(0.1, 0.014, 0.1, 0x2a3038, -0.14, -0.32, 'cpu', 0.22);
+      die(0.1, 0.014, 0.1, 0x2a3038, 0.14, -0.32, 'cpu', 0.22);
+      if (has('coldplate')) {
+        plate(0.11, 0.11, -0.14, -0.32);
+        plate(0.11, 0.11, 0.14, -0.32);
+      }
+      caption('CPU', -0.14, -0.32, 'cpu');
+      if (has('dpu')) {
+        die(0.08, 0.012, 0.06, 0x14322c, -0.16, -0.4, 'dpu', 0.18);
+        caption('DPU', -0.16, -0.4, 'dpu');
+      }
+      if (has('osfp')) {
+        die(0.16, 0.02, 0.05, 0x0b0d10, 0.12, -0.42, 'osfp', 0.4);
+        caption('OSFP', 0.12, -0.42, 'osfp');
+      }
+      if (has('pdb')) {
+        die(0.09, 0.018, 0.07, 0x2b2118, 0, 0.38, 'pdb', 0.08);
+        caption('PDB', 0, 0.38, 'pdb');
+      }
+    } else {
+      die(0.14, 0.018, 0.14, 0x142028, -0.12, 0, 'nvswitch', 0.4);
+      die(0.14, 0.018, 0.14, 0x142028, 0.12, 0, 'nvswitch', 0.4);
+      if (has('coldplate')) {
+        plate(0.15, 0.15, -0.12, 0);
+        plate(0.15, 0.15, 0.12, 0);
+      }
+      caption('NVSW', -0.12, 0, 'nvswitch');
+      if (has('pdb')) {
+        die(0.08, 0.016, 0.06, 0x2b2118, 0, 0.34, 'pdb', 0.08);
+        caption('PDB', 0, 0.34, 'pdb');
+      }
+    }
+
+    const bezel = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.04, 0.04), metal(0x101214, { roughness: 0.3 }));
+    bezel.position.set(0, 0.028, -0.5);
+    addOpenMesh(bezel);
+    const clip = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.03, 0.05), metal(0xb87333, { roughness: 0.18, metalness: 1 }));
+    clip.position.set(0, 0.03, 0.5);
+    addOpenMesh(clip, has('pdb') ? 'pdb' : undefined);
+    for (const side of [-1, 1]) {
+      const qd = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.012, 0.012, 0.05, 12),
+        new THREE.MeshPhysicalMaterial({
+          color: 0x18757c,
+          metalness: 0.12,
+          roughness: 0.05,
+          transmission: 0.5,
+          thickness: 0.12,
+          transparent: true,
+        }),
+      );
+      qd.rotation.z = Math.PI / 2;
+      qd.position.set(side * 0.22, 0.03, 0.48);
+      addOpenMesh(qd, has('coldplate') ? 'coldplate' : undefined);
+    }
+  }
+
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
   const desiredCam = new THREE.Vector3();
@@ -456,12 +695,16 @@ export function mountPlantScene(
   let lastMode: PlantSceneInput['cameraMode'] = 'hall';
   let lastFace: RackFace = 'front';
   let lastFocus = -1;
+  let lastOpen = '';
 
   function aimCamera(input: PlantSceneInput) {
     const pose = hallPose(input.model.focus.id);
     if (input.cameraMode === 'hall') {
       desiredCam.set(6.8, 3.15, 8.4);
       desiredTarget.set(0.2, 1.05, 0.4);
+    } else if (input.cameraMode === 'open') {
+      desiredCam.set(pose.x + 0.55, 1.72, pose.z + 1.35);
+      desiredTarget.set(pose.x, 1.22, pose.z + 0.72);
     } else if (input.face === 'rear') {
       desiredCam.set(pose.x, 1.45, pose.z - 2.55);
       desiredTarget.set(pose.x, 1.15, pose.z);
@@ -480,6 +723,14 @@ export function mountPlantScene(
     const pose = hallPose(input.model.focus.id);
     hero.position.set(pose.x, 0, pose.z);
     hero.visible = input.model.hall[input.model.focus.id]?.active ?? false;
+
+    const openKey = `${input.fact.variant}-${input.openKind}`;
+    if (openKey !== lastOpen) {
+      buildOpenTray(input.fact.variant, input.openKind);
+      lastOpen = openKey;
+    }
+    openTray.visible = input.cameraMode === 'open';
+    openTray.position.set(pose.x, 1.18, pose.z + 0.78);
 
     input.model.hall.forEach((rack: HallRack, id: number) => {
       const cabinet = hallCabinets[id];
@@ -512,6 +763,11 @@ export function mountPlantScene(
     aisleFill.color.set(input.model.status === 'hot' || input.model.status === 'power' ? 0xff6a3c : 0xffc27a);
     (scene.fog as THREE.FogExp2).density = 0.024 + (1 - input.model.flowMargin / 100) * 0.02;
 
+    const trays = input.openKind === 'switch' ? switchTrayMeshes : computeTrayMeshes;
+    trays.forEach((mesh, index) => {
+      mesh.position.z = index === input.openTrayIndex && input.cameraMode === 'open' ? 0.18 : 0.02;
+    });
+
     hero.traverse((child) => {
       if (!(child instanceof THREE.Mesh) || !child.userData.kind) return;
       const selected =
@@ -519,6 +775,13 @@ export function mountPlantScene(
         (child.userData.kind === 'rear' && child.userData.id === input.inspectId);
       const material = child.material as THREE.MeshPhysicalMaterial;
       if (material.emissive) material.emissiveIntensity = selected ? 0.8 : material.emissiveIntensity;
+    });
+    openTray.traverse((child) => {
+      if (!(child instanceof THREE.Mesh) || child.userData.kind !== 'chip') return;
+      const material = child.material as THREE.MeshPhysicalMaterial;
+      if (material.emissive) {
+        material.emissiveIntensity = child.userData.id === input.openChip ? 1.15 : 0.22;
+      }
     });
 
     if (input.cameraMode !== lastMode || input.face !== lastFace || input.model.focus.id !== lastFocus) {
@@ -541,8 +804,17 @@ export function mountPlantScene(
     if (!hit) return;
     const data = hit.object.userData as Click;
     if (data.kind === 'hall') onClick({ kind: 'hall', id: Number(data.id) });
-    if (data.kind === 'tray') onClick({ kind: 'tray', id: data.id, face: 'front' });
+    if (data.kind === 'tray') {
+      onClick({
+        kind: 'tray',
+        id: data.id,
+        face: 'front',
+        trayIndex: data.trayIndex,
+        trayKind: data.trayKind,
+      });
+    }
     if (data.kind === 'rear') onClick({ kind: 'rear', id: data.id, face: 'rear' });
+    if (data.kind === 'chip') onClick({ kind: 'chip', id: data.id });
   }
 
   function onControlStart() {
@@ -589,6 +861,8 @@ export function mountPlantScene(
       concrete.dispose();
       steel.dispose();
       perforate.dispose();
+      pcbMap.dispose();
+      clearOpen();
       clearHero();
       renderer.dispose();
       renderer.domElement.remove();

@@ -1,3 +1,5 @@
+import { chipLiveKw, powerShareSum, trayKit, TRAY_KITS } from '../lib/ai-factory/chips';
+import type { RackVariant } from '../lib/ai-factory/rack-facts';
 import { simulatePlant } from '../lib/ai-factory/simulate';
 import { hallPose, usesSidecar, usesWhips } from '../lib/ai-factory/viewport';
 
@@ -90,5 +92,27 @@ const hot = hallPose(3);
 assert('hall poses are unique', origin.x !== hot.x && origin.z === hot.z);
 assert('sidecar only on 800V path', usesSidecar('800v-sidecar') && !usesSidecar('legacy-ac'));
 assert('legacy still has whips', usesWhips('legacy-ac') && !usesWhips('facility-hvdc'));
+
+const gb300Kit = trayKit('GB300 NVL72', 'compute');
+const gpu = gb300Kit.parts.find((part) => part.id === 'gpu');
+const cpu = gb300Kit.parts.find((part) => part.id === 'cpu');
+assert('gb300 compute has 4 GPUs', gpu?.count === 4);
+assert('gb300 compute has 2 CPUs', cpu?.count === 2);
+assert('gb300 compute shares sum to 1', Math.abs(powerShareSum(gb300Kit) - 1) < 0.001, `${powerShareSum(gb300Kit)}`);
+assert(
+  'chip live kW scales with tray',
+  Boolean(gpu) && Math.abs(chipLiveKw(gb300.computeCells[0].kw, gpu!) - gb300.computeCells[0].kw * gpu!.shareOfTrayKw) < 1e-9,
+);
+
+(Object.keys(TRAY_KITS) as RackVariant[]).forEach((variant) => {
+  (['compute', 'switch'] as const).forEach((kind) => {
+    const kit = trayKit(variant, kind);
+    assert(
+      `${variant} ${kind} shares ~1`,
+      Math.abs(powerShareSum(kit) - 1) < 0.001,
+      `${powerShareSum(kit)}`,
+    );
+  });
+});
 
 console.log('ai-factory plant kernel ok');

@@ -15,8 +15,10 @@ import {
   type InspectorSheet,
   type RackFace,
 } from '../../lib/ai-factory/rack-inspectors';
+import { chipLiveKw, defaultChip, trayKit, type ChipId, type ChipPart, type TrayKit, type TrayKind } from '../../lib/ai-factory/chips';
 import { simulatePlant, type CellTelemetry, type PlantSim } from '../../lib/ai-factory/simulate';
 import type { PowerPath as PlantPowerPath } from '../../lib/ai-factory/plant';
+import type { CameraMode } from '../../lib/ai-factory/plant-scene';
 
 const PlantViewport = dynamic(() => import('./PlantViewport'), { ssr: false });
 
@@ -98,7 +100,10 @@ export default function AiFactorySimTool() {
   const [face, setFace] = useState<RackFace>('front');
   const [inspectId, setInspectId] = useState<InspectId>(DEFAULT_INSPECT);
   const [focusRack, setFocusRack] = useState(0);
-  const [cameraMode, setCameraMode] = useState<'hall' | 'rack'>('hall');
+  const [cameraMode, setCameraMode] = useState<CameraMode>('hall');
+  const [openKind, setOpenKind] = useState<TrayKind>('compute');
+  const [openChip, setOpenChip] = useState<ChipId>('gpu');
+  const [openTrayIndex, setOpenTrayIndex] = useState(0);
   const rackFact = RACK_FACTS[variant];
   const powerPathFact = POWER_PATH_FACTS[powerPath];
   const inspector = RACK_INSPECTORS[variant][inspectId];
@@ -118,6 +123,10 @@ export default function AiFactorySimTool() {
     [aiLoad, ambient, cooling, focusRack, gaps, powerPath, rackCount, variant],
   );
   const statusLabel = tx.status[model.status];
+  const kit = trayKit(variant, openKind);
+  const openCell =
+    openKind === 'switch' ? model.switchCells[openTrayIndex] ?? model.switchCells[0] : model.computeCells[openTrayIndex] ?? model.computeCells[0];
+  const openPart = kit.parts.find((part) => part.id === openChip) ?? kit.parts[0];
 
   function applyPreset(preset: Preset) {
     setScenario(preset.scenario);
@@ -132,6 +141,9 @@ export default function AiFactorySimTool() {
     setFace('front');
     setFocusRack(0);
     setCameraMode('hall');
+    setOpenKind('compute');
+    setOpenChip('gpu');
+    setOpenTrayIndex(0);
   }
 
   function selectVariant(nextVariant: RackVariant) {
@@ -140,6 +152,9 @@ export default function AiFactorySimTool() {
     setFace('front');
     setFocusRack(0);
     setCameraMode('hall');
+    setOpenKind('compute');
+    setOpenChip('gpu');
+    setOpenTrayIndex(0);
   }
 
   const focusFromHall = useCallback((id: number) => {
@@ -151,6 +166,20 @@ export default function AiFactorySimTool() {
     setInspectId(id);
     if (nextFace) setFace(nextFace);
     setCameraMode('rack');
+  }, []);
+
+  const openFromScene = useCallback((kind: TrayKind, index: number) => {
+    setOpenKind(kind);
+    setOpenTrayIndex(index);
+    setOpenChip(defaultChip(kind));
+    setInspectId(kind);
+    setFace('front');
+    setCameraMode('open');
+  }, []);
+
+  const selectChip = useCallback((id: ChipId) => {
+    setOpenChip(id);
+    setCameraMode('open');
   }, []);
 
   function selectInspect(nextId: InspectId, nextFace?: RackFace) {
@@ -186,8 +215,13 @@ export default function AiFactorySimTool() {
               inspectId={inspectId}
               powerPath={powerPath}
               cameraMode={cameraMode}
+              openKind={openKind}
+              openChip={openChip}
+              openTrayIndex={openTrayIndex}
               onFocusRack={focusFromHall}
               onInspect={inspectFromScene}
+              onOpenTray={openFromScene}
+              onChip={selectChip}
             />
             <div className="ai-factory-hall-a11y">
               {model.hall.map((rack) => (
@@ -221,6 +255,20 @@ export default function AiFactorySimTool() {
               >
                 {tx.viewRack}
               </button>
+              <button
+                type="button"
+                className={cameraMode === 'open' ? 'ai-factory-chip ai-factory-chip--active' : 'ai-factory-chip'}
+                onClick={() => {
+                  setOpenChip(defaultChip(openKind));
+                  setInspectId(openKind);
+                  setFace('front');
+                  setCameraMode('open');
+                }}
+                aria-pressed={cameraMode === 'open'}
+                data-testid="ai-factory-camera-open"
+              >
+                {tx.viewOpen}
+              </button>
             </div>
             <div className="ai-factory-status">
               <span className="ai-factory-led" style={{ background: model.statusTone }} />
@@ -247,9 +295,18 @@ export default function AiFactorySimTool() {
               inspectHint: tx.inspectHint,
               liveLabel: tx.liveLabel,
               cellsLabel: tx.cellsLabel,
+              chipLabel: tx.chipLabel,
             }}
             onFaceChange={setFace}
             onInspect={selectInspect}
+            onOpenCell={openFromScene}
+            kit={kit}
+            openPart={openPart}
+            openCellKw={openCell.kw}
+            openCellId={openCell.id}
+            openTrayLabel={openCell.label}
+            openChip={openChip}
+            onChip={selectChip}
           />
 
           <div className="ai-factory-readouts" aria-live="polite">
@@ -374,6 +431,14 @@ function RackTwin({
   copy,
   onFaceChange,
   onInspect,
+  onOpenCell,
+  kit,
+  openPart,
+  openCellKw,
+  openCellId,
+  openTrayLabel,
+  openChip,
+  onChip,
 }: {
   fact: RackFactSheet;
   inspector: InspectorSheet;
@@ -389,10 +454,20 @@ function RackTwin({
     inspectHint: string;
     liveLabel: string;
     cellsLabel: string;
+    chipLabel: string;
   };
   onFaceChange: (face: RackFace) => void;
   onInspect: (id: InspectId, face?: RackFace) => void;
+  onOpenCell: (kind: TrayKind, index: number) => void;
+  kit: TrayKit;
+  openPart: ChipPart;
+  openCellKw: number;
+  openCellId: string;
+  openTrayLabel: string;
+  openChip: ChipId;
+  onChip: (id: ChipId) => void;
 }) {
+  const chipKw = chipLiveKw(openCellKw, openPart);
   const stackEvidence = Array.from(new Set(fact.frontStack.map((segment) => segment.level)));
 
   return (
@@ -489,7 +564,41 @@ function RackTwin({
               </span>
             ))}
           </div>
-          <LivePlant inspectId={inspectId} model={model} copy={copy} />
+          <LivePlant
+            inspectId={inspectId}
+            model={model}
+            copy={copy}
+            openCellId={openCellId}
+            onOpenCell={onOpenCell}
+          />
+        </article>
+        <article className="ai-factory-chip-card" data-testid="ai-factory-chip-card">
+          <span>{copy.chipLabel}</span>
+          <strong>{openPart.label}</strong>
+          <p>
+            {openTrayLabel} · {kit.title}
+          </p>
+          <p>{openPart.summary}</p>
+          <p>{openPart.detail}</p>
+          <p className="ai-factory-chip-live">
+            live {chipKw.toFixed(2)} kW · share {(openPart.shareOfTrayKw * 100).toFixed(0)}% of tray{' '}
+            {openCellKw.toFixed(1)} kW
+          </p>
+          <EvidenceBadge level={openPart.level} />
+          <div className="ai-factory-chip-picker" role="group" aria-label={copy.chipLabel}>
+            {kit.parts.map((part) => (
+              <button
+                key={part.id}
+                type="button"
+                data-testid={`ai-factory-chip-${part.id}`}
+                className={openChip === part.id ? 'ai-factory-chip ai-factory-chip--active' : 'ai-factory-chip'}
+                onClick={() => onChip(part.id)}
+                aria-pressed={openChip === part.id}
+              >
+                {part.label}
+              </button>
+            ))}
+          </div>
         </article>
         {inspector.internals.map((item) => (
           <article key={item.label} className="ai-factory-fact-card">
@@ -523,10 +632,14 @@ function LivePlant({
   inspectId,
   model,
   copy,
+  openCellId,
+  onOpenCell,
 }: {
   inspectId: InspectId;
   model: PlantSim;
   copy: { liveLabel: string; cellsLabel: string };
+  openCellId: string;
+  onOpenCell: (kind: TrayKind, index: number) => void;
 }) {
   const cells = liveCells(inspectId, model);
   const cooling = inspectId === 'cooling' || inspectId === 'manifold';
@@ -561,17 +674,33 @@ function LivePlant({
       ) : null}
       {cells ? (
         <div className="ai-factory-cells" aria-label={copy.cellsLabel}>
-          {cells.map((cell) => (
-            <span
-              key={cell.id}
-              className={`ai-factory-cell ai-factory-cell--${cell.tone}`}
-              data-testid={`ai-factory-cell-${cell.id}`}
-              title={cell.note}
-            >
-              <small>{cell.label}</small>
-              {cell.kw.toFixed(1)}
-            </span>
-          ))}
+          {cells.map((cell, index) => {
+            const openable = inspectId === 'compute' || inspectId === 'switch';
+            const className = `ai-factory-cell ai-factory-cell--${cell.tone}${
+              cell.id === openCellId ? ' ai-factory-cell--open' : ''
+            }`;
+            if (!openable) {
+              return (
+                <span key={cell.id} className={className} data-testid={`ai-factory-cell-${cell.id}`} title={cell.note}>
+                  <small>{cell.label}</small>
+                  {cell.kw.toFixed(1)}
+                </span>
+              );
+            }
+            return (
+              <button
+                key={cell.id}
+                type="button"
+                className={className}
+                data-testid={`ai-factory-cell-${cell.id}`}
+                title={cell.note ?? `open ${cell.label}`}
+                onClick={() => onOpenCell(inspectId === 'switch' ? 'switch' : 'compute', index)}
+              >
+                <small>{cell.label}</small>
+                {cell.kw.toFixed(1)}
+              </button>
+            );
+          })}
         </div>
       ) : null}
     </div>

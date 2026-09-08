@@ -732,7 +732,10 @@
   right: 14px;
   z-index: 2;
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 6px;
+  max-width: calc(100% - 28px);
 }
 
 .ai-factory-camera .ai-factory-chip {
@@ -1223,6 +1226,68 @@
 
 .ai-factory-cell--hot {
   background: rgba(227, 111, 69, 0.22);
+}
+
+button.ai-factory-cell {
+  border: 0;
+  cursor: pointer;
+  color: inherit;
+}
+
+.ai-factory-cell--open {
+  outline: 1px solid rgba(0, 143, 134, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(0, 169, 159, 0.18);
+}
+
+.ai-factory-chip-card {
+  grid-column: 1 / -1;
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  min-width: 0;
+  padding: 12px;
+  background: rgba(216, 238, 235, 0.42);
+  border-left: 2px solid rgba(0, 143, 134, 0.34);
+}
+
+.ai-factory-chip-card span {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.56rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(20, 17, 12, 0.42);
+}
+
+.ai-factory-chip-card strong {
+  color: #14110c;
+  font-size: 0.98rem;
+  line-height: 1.2;
+}
+
+.ai-factory-chip-card p {
+  margin: 0;
+  color: rgba(20, 17, 12, 0.62);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.ai-factory-chip-live {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.68rem !important;
+  letter-spacing: 0.02em;
+  color: #006b65 !important;
+}
+
+.ai-factory-chip-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ai-factory-chip-picker .ai-factory-chip {
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .ai-factory-readouts {
