@@ -132,11 +132,18 @@ Workspace names: `owner` or `v-[a-z0-9]{8,32}` (visitor cookie). Bearer secret s
 
 ## Production
 
+`wrangler.jsonc` must **not** include the `experimental` compatibility flag. Production Cloudflare returns **10021** if it is present. Keep `nodejs_compat` + `worker_loaders`. Official `@cloudflare/computer` example still lists `experimental`; do not copy that line.
+
 ```txt
 cd workers/aileena-computer
 npx wrangler deploy
 npx wrangler secret put COMPUTER_WORKER_SECRET
+npx wrangler deployments list
 ```
+
+Do not `curl "$(npx wrangler deployments list)"` — that command is not a URL. After a successful **Upload** (not only Secret Change), copy the workers.dev hostname from the deploy output.
+
+If a secret was printed in chat, generate a new one after deploy succeeds. Do not reuse a leaked value in Vercel.
 
 Then on the Vercel project that serves `https://www.aileena.xyz`, set Production:
 
