@@ -47,8 +47,8 @@ export const SCALE_FACTS: Record<CameraMode, ScaleFact> = {
   },
   rack: {
     title: 'open rack',
-    summary: '18 compute + 9 switch trays, copper busbar, cables.',
-    detail: 'U stack is source-backed. Cable routes are a modeling sketch.',
+    summary: 'Readable C01–C18 / NV01–NV09 plus a side copper spine.',
+    detail: 'U stack is source-backed. Side busbar is the same 50V rail, pulled forward so the 3/4 camera can read it. Cables and heat fog are modeling sketches.',
     level: 'source-backed',
   },
   open: {
@@ -344,12 +344,12 @@ export function scaleAim(mode: CameraMode, pose: HallPose) {
     };
   }
   return {
-    cam: new THREE.Vector3(pose.x, 1.45, pose.z + 2.55),
-    target: new THREE.Vector3(pose.x, 1.15, pose.z),
-    near: 0.08,
+    cam: new THREE.Vector3(pose.x + 0.52, 1.18, pose.z + 1.58),
+    target: new THREE.Vector3(pose.x - 0.02, 1.06, pose.z + 0.14),
+    near: 0.06,
     far: 80,
-    min: 0.8,
-    max: 10,
+    min: 0.7,
+    max: 8,
   };
 }
 

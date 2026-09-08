@@ -124,6 +124,9 @@ const north = latLonToUnit(90, 0);
 assert('north pole is +Y', north.y > 0.99);
 const campusAim = scaleAim('campus', hallPose(0));
 const cabinetAim = scaleAim('cabinet', hallPose(0));
+const rackAim = scaleAim('rack', hallPose(0));
 assert('campus camera is farther than cabinet', campusAim.cam.length() > cabinetAim.cam.length());
+assert('rack camera is 3/4, not dead-front', Math.abs(rackAim.cam.x - origin.x) > 0.3);
+assert('rack camera is closer than 2m', rackAim.cam.distanceTo(rackAim.target) < 2);
 
 console.log('ai-factory plant kernel ok');

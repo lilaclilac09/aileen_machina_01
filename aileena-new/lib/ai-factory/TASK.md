@@ -87,7 +87,7 @@ WebGL is a camera on the same kernel. Owner asked for photoreal look now.
 - Stylized globe/aerial only — **not** live satellite tiles
 - Ledger chip intro + live kW share from the same `simulatePlant` kernel
 - Live C01–C18 / NV01–NV09 cells open that tray
-- Rack camera: C01–C18 / NV labels, thicker copper busbar, cable sketch, heat fog
+- Rack camera: 3/4 close-up, fascia C01–C18 / NV01–NV09, side 50V copper spine + teeth, liquid/power cables, drifting heat fog, closed-cabinet nameplate/hinges/LEDs
 - Procedural meshes and canvas materials — **not** a Lenovo/NVIDIA scan
 - No second model
 - No Omniverse stream

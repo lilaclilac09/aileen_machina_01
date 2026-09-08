@@ -390,21 +390,23 @@ export function mountPlantScene(
   scene.add(studio);
 
   const fogGeo = new THREE.BufferGeometry();
-  const fogPos = new Float32Array(360 * 3);
-  for (let i = 0; i < 360; i += 1) {
-    fogPos[i * 3] = (Math.random() - 0.5) * 14;
-    fogPos[i * 3 + 1] = 0.3 + Math.random() * 2.1;
-    fogPos[i * 3 + 2] = (Math.random() - 0.5) * 16;
+  const fogCount = 720;
+  const fogPos = new Float32Array(fogCount * 3);
+  for (let i = 0; i < fogCount; i += 1) {
+    fogPos[i * 3] = (Math.random() - 0.5) * 1.1;
+    fogPos[i * 3 + 1] = 0.15 + Math.random() * 2.05;
+    fogPos[i * 3 + 2] = -0.2 - Math.random() * 0.85;
   }
   fogGeo.setAttribute('position', new THREE.BufferAttribute(fogPos, 3));
   const heatFog = new THREE.Points(
     fogGeo,
     new THREE.PointsMaterial({
       color: 0xff7a3c,
-      size: 0.09,
+      size: 0.055,
       transparent: true,
-      opacity: 0.12,
+      opacity: 0.16,
       depthWrite: false,
+      sizeAttenuation: true,
     }),
   );
   scene.add(heatFog);
@@ -459,25 +461,46 @@ export function mountPlantScene(
     openTray.clear();
   }
 
-  function faceLabel(text: string) {
+  function faceLabel(text: string, fill = 'rgba(8, 10, 12, 0.88)', ink = '#f4efe4') {
     const canvas = document.createElement('canvas');
-    canvas.width = 128;
-    canvas.height = 32;
+    canvas.width = 256;
+    canvas.height = 64;
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('canvas');
-    ctx.fillStyle = 'rgba(8, 10, 12, 0.82)';
-    ctx.fillRect(0, 0, 128, 32);
-    ctx.fillStyle = '#b8f3e6';
-    ctx.font = '700 20px ui-sans-serif, system-ui, sans-serif';
+    ctx.fillStyle = fill;
+    ctx.fillRect(0, 0, 256, 64);
+    ctx.fillStyle = ink;
+    ctx.font = '800 34px ui-sans-serif, system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(text, 64, 16);
+    ctx.fillText(text, 128, 32);
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
     return new THREE.Mesh(
-      new THREE.PlaneGeometry(0.16, 0.04),
+      new THREE.PlaneGeometry(0.22, 0.055),
       new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false }),
     );
+  }
+
+  function fasciaTexture(label: string, fill: string) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('canvas');
+    ctx.fillStyle = fill;
+    ctx.fillRect(0, 0, 512, 64);
+    ctx.fillStyle = '#0b0d10';
+    ctx.fillRect(0, 0, 10, 64);
+    ctx.fillStyle = '#f4efe4';
+    ctx.font = '800 40px ui-sans-serif, system-ui, sans-serif';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, 22, 34);
+    ctx.fillStyle = 'rgba(244,239,228,0.28)';
+    ctx.fillRect(430, 16, 62, 32);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
   }
 
   function addHeroMesh(mesh: THREE.Mesh, click?: Click) {
@@ -510,10 +533,10 @@ export function mountPlantScene(
     const plinth = new THREE.Mesh(new THREE.BoxGeometry(RACK_W + 0.04, 0.07, RACK_D + 0.04), metal(0x0b0c0d, { roughness: 0.45 }));
     plinth.position.set(0, 0.035, 0);
     addHeroMesh(plinth);
-    const sideGeo = new THREE.BoxGeometry(0.012, RACK_H - 0.12, RACK_D - 0.08);
+    const sideGeo = new THREE.BoxGeometry(0.012, RACK_H - 0.12, RACK_D * 0.42);
     for (const side of [-1, 1]) {
       const panel = new THREE.Mesh(sideGeo, metal(0x1a1c1f, { roughness: 0.4 }));
-      panel.position.set(side * (RACK_W / 2 - 0.008), RACK_H / 2, 0);
+      panel.position.set(side * (RACK_W / 2 - 0.008), RACK_H / 2, -RACK_D * 0.22);
       addHeroMesh(panel);
     }
     const rear = new THREE.Mesh(new THREE.BoxGeometry(RACK_W - 0.08, RACK_H - 0.14, 0.012), metal(0x101214, { roughness: 0.5 }));
@@ -542,27 +565,93 @@ export function mountPlantScene(
           trayKind,
         });
 
-        if (segment.kind === 'compute' || segment.kind === 'switch') {
-          const port = new THREE.Mesh(
-            new THREE.BoxGeometry(0.22, Math.min(0.018, unitH * 0.4), 0.02),
-            new THREE.MeshStandardMaterial({ color: 0x0b0b0b, emissive: 0x1ec8b8, emissiveIntensity: 0.35 }),
+        const index = trayKind === 'switch' ? switchTrayMeshes.length : trayKind === 'compute' ? computeTrayMeshes.length : i + 1;
+        const fasciaLabel =
+          trayKind === 'switch'
+            ? `NV${String(index).padStart(2, '0')}`
+            : trayKind === 'compute'
+              ? `C${String(index).padStart(2, '0')}`
+              : segment.kind === 'power'
+                ? `PSU ${i + 1}`
+                : segment.kind === 'management'
+                  ? 'OOB'
+                  : '';
+        if (fasciaLabel) {
+          const fill =
+            segment.kind === 'compute' ? '#1d3c40' : segment.kind === 'switch' ? '#17202a' : segment.kind === 'power' ? '#3a2a18' : '#24302c';
+          const fascia = new THREE.Mesh(
+            new THREE.BoxGeometry(RACK_W - 0.14, Math.max(unitH - 0.006, 0.012), 0.012),
+            new THREE.MeshStandardMaterial({
+              map: fasciaTexture(fasciaLabel, fill),
+              roughness: 0.45,
+              metalness: 0.18,
+              emissive: 0x0c1818,
+              emissiveIntensity: 0.2,
+            }),
           );
-          port.position.set(-0.16, cursor + unitH / 2, RACK_D / 2 - 0.09);
-          addHeroMesh(port);
-          const index = trayKind === 'switch' ? switchTrayMeshes.length : computeTrayMeshes.length;
-          const tag = faceLabel(trayKind === 'switch' ? `NV${String(index).padStart(2, '0')}` : `C${String(index).padStart(2, '0')}`);
-          tag.position.set(0.18, cursor + unitH / 2, RACK_D / 2 - 0.07);
-          addHeroMesh(tag);
+          fascia.position.set(-0.01, cursor + unitH / 2, RACK_D / 2 - 0.086);
+          addHeroMesh(fascia, {
+            kind: 'tray',
+            id: segment.kind,
+            face: 'front',
+            trayIndex: trayKind ? index - 1 : undefined,
+            trayKind,
+          });
+          const led = new THREE.Mesh(
+            new THREE.BoxGeometry(0.016, Math.min(0.012, unitH * 0.45), 0.01),
+            new THREE.MeshStandardMaterial({ color: 0x1ec8b8, emissive: 0x1ec8b8, emissiveIntensity: 1.6 }),
+          );
+          led.position.set(-RACK_W / 2 + 0.1, cursor + unitH / 2, RACK_D / 2 - 0.078);
+          addHeroMesh(led);
         }
-        if (segment.kind === 'compute' && computeTrayMeshes.length % 3 === 0) {
-          const start = new THREE.Vector3(0.08, cursor + unitH / 2, -RACK_D / 2 + 0.18);
-          const end = new THREE.Vector3(0, RACK_H / 2, -RACK_D / 2 + 0.09);
-          const mid = new THREE.Vector3(0.12, (start.y + end.y) / 2, -RACK_D / 2 + 0.22);
-          const hose = new THREE.Mesh(
-            new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(start, mid, end), 8, 0.005, 5, false),
-            metal(0x1c1612, { roughness: 0.55 }),
+        if (trayKind === 'compute') {
+          const tooth = new THREE.Mesh(
+            new THREE.BoxGeometry(0.05, Math.min(0.008, unitH * 0.35), 0.03),
+            metal(0xc47a32, { roughness: 0.18, metalness: 1, emissive: 0x5a2208, emissiveIntensity: 0.35 }),
           );
-          addHeroMesh(hose);
+          tooth.position.set(RACK_W / 2 - 0.08, cursor + unitH / 2, 0.12);
+          addHeroMesh(tooth, { kind: 'rear', id: 'busbar', face: 'rear' });
+          if (index % 2 === 0) {
+            const hose = new THREE.Mesh(
+              new THREE.TubeGeometry(
+                new THREE.QuadraticBezierCurve3(
+                  new THREE.Vector3(-0.16, cursor + unitH / 2, -0.2),
+                  new THREE.Vector3(-0.22, cursor + unitH / 2, -0.35),
+                  new THREE.Vector3(-0.2, RACK_H / 2, -RACK_D / 2 + 0.14),
+                ),
+                8,
+                0.004,
+                5,
+                false,
+              ),
+              new THREE.MeshPhysicalMaterial({
+                color: 0x18757c,
+                roughness: 0.08,
+                metalness: 0.1,
+                transmission: 0.35,
+                transparent: true,
+                opacity: 0.9,
+              }),
+            );
+            addHeroMesh(hose, { kind: 'rear', id: 'manifold', face: 'rear' });
+          }
+          if (index % 3 === 0) {
+            const whip = new THREE.Mesh(
+              new THREE.TubeGeometry(
+                new THREE.QuadraticBezierCurve3(
+                  new THREE.Vector3(0.1, cursor + unitH / 2, -0.18),
+                  new THREE.Vector3(0.16, cursor + 0.2, -0.4),
+                  new THREE.Vector3(0, RACK_H - 0.12, -0.1),
+                ),
+                8,
+                0.005,
+                5,
+                false,
+              ),
+              metal(0x1c1612, { roughness: 0.55 }),
+            );
+            addHeroMesh(whip);
+          }
         }
       }
     }
@@ -590,6 +679,30 @@ export function mountPlantScene(
     );
     badge.position.set(-RACK_W / 2 + 0.08, RACK_H - 0.28, RACK_D / 2 + 0.03);
     addHeroMesh(badge, { kind: 'cabinet', id: 'door', face: 'front' });
+    for (let i = 0; i < 3; i += 1) {
+      const lamp = new THREE.Mesh(
+        new THREE.BoxGeometry(0.03, 0.03, 0.012),
+        new THREE.MeshStandardMaterial({
+          color: i === 2 ? 0xff6a3c : 0x1ec8b8,
+          emissive: i === 2 ? 0xff6a3c : 0x1ec8b8,
+          emissiveIntensity: 1.8,
+        }),
+      );
+      lamp.position.set(-0.12 + i * 0.08, RACK_H - 0.22, RACK_D / 2 + 0.028);
+      addHeroMesh(lamp, { kind: 'cabinet', id: 'door', face: 'front' });
+    }
+    const plate = faceLabel('NVL72', '#14110c', '#7ef0d8');
+    plate.position.set(0, RACK_H - 0.18, RACK_D / 2 + 0.03);
+    addHeroMesh(plate);
+    plate.userData = { kind: 'cabinet', id: 'door' };
+    for (const y of [0.45, 1.1, 1.75]) {
+      const hinge = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.06, 10), metal(0x8a8f93, { roughness: 0.28 }));
+      hinge.position.set(-RACK_W / 2 + 0.02, y, RACK_D / 2 + 0.02);
+      addHeroMesh(hinge, { kind: 'cabinet', id: 'door', face: 'front' });
+    }
+    const vent = new THREE.Mesh(new THREE.BoxGeometry(RACK_W - 0.16, 0.08, 0.016), metal(0x1a1c1f, { roughness: 0.5, map: perforate }));
+    vent.position.set(0, 0.22, RACK_D / 2 + 0.024);
+    addHeroMesh(vent, { kind: 'cabinet', id: 'door', face: 'front' });
 
     const busbar = new THREE.Mesh(
       new THREE.BoxGeometry(0.07, RACK_H - 0.24, 0.1),
@@ -597,6 +710,16 @@ export function mountPlantScene(
     );
     busbar.position.set(0, RACK_H / 2, -RACK_D / 2 + 0.08);
     addHeroMesh(busbar, { kind: 'rear', id: 'busbar', face: 'rear' });
+    const spine = new THREE.Mesh(
+      new THREE.BoxGeometry(0.058, RACK_H - 0.18, 0.09),
+      metal(0xc47a32, { roughness: 0.12, metalness: 1, emissive: 0x6a2a08, emissiveIntensity: 0.45 }),
+    );
+    spine.position.set(RACK_W / 2 - 0.03, RACK_H / 2, 0.1);
+    addHeroMesh(spine, { kind: 'rear', id: 'busbar', face: 'rear' });
+    const spineTag = faceLabel('50V', '#5a2a0c', '#f4d7a8');
+    spineTag.position.set(RACK_W / 2 + 0.01, RACK_H / 2, 0.16);
+    spineTag.rotation.y = -Math.PI / 2;
+    addHeroMesh(spineTag);
 
     for (const side of [-1, 1]) {
       const manifold = new THREE.Mesh(
@@ -804,14 +927,15 @@ export function mountPlantScene(
     const aim =
       input.cameraMode === 'rack' && input.face === 'rear'
         ? {
-            cam: new THREE.Vector3(pose.x, 1.45, pose.z - 2.55),
-            target: new THREE.Vector3(pose.x, 1.15, pose.z),
-            near: 0.08,
+            cam: new THREE.Vector3(pose.x + 0.42, 1.32, pose.z - 1.55),
+            target: new THREE.Vector3(pose.x, 1.12, pose.z - 0.35),
+            near: 0.06,
             far: 80,
-            min: 0.8,
-            max: 10,
+            min: 0.6,
+            max: 8,
           }
         : scaleAim(input.cameraMode, pose);
+    camera.fov = input.cameraMode === 'rack' ? 46 : 38;
     desiredCam.copy(aim.cam);
     desiredTarget.copy(aim.target);
     camera.near = aim.near;
@@ -841,6 +965,7 @@ export function mountPlantScene(
     hallGroup.visible = hallLayer;
     cduGroup.visible = hallLayer;
     heatFog.visible = hallLayer;
+    heatFog.position.set(pose.x, 0, pose.z);
     (heatFog.material as THREE.PointsMaterial).opacity = 0.05 + (input.model.thermalIndex / 100) * 0.22;
     (heatFog.material as THREE.PointsMaterial).color.set(
       input.model.status === 'hot' || input.model.status === 'power' ? 0xff6a3c : 0xc4a24a,
@@ -869,9 +994,10 @@ export function mountPlantScene(
       const door = hallDoors[id];
       const sidecar = sidecars[id];
       const whip = whips[id];
-      hallClusters[id].visible = hallLayer && rack.active && !rack.focused;
-      cabinet.visible = hallLayer && rack.active && !rack.focused;
-      door.visible = hallLayer && rack.active && !rack.focused;
+      const neighbors = input.cameraMode === 'hall';
+      hallClusters[id].visible = hallLayer && neighbors && rack.active && !rack.focused;
+      cabinet.visible = hallLayer && neighbors && rack.active && !rack.focused;
+      door.visible = hallLayer && neighbors && rack.active && !rack.focused;
       sidecar.visible = hallLayer && rack.active && usesSidecar(input.powerPath);
       whip.visible = hallLayer && rack.active && usesWhips(input.powerPath);
       const material = cabinet.material as THREE.MeshPhysicalMaterial;
@@ -976,6 +1102,12 @@ export function mountPlantScene(
       camera.position.lerp(desiredCam, 0.06);
       controls.target.lerp(desiredTarget, 0.08);
     }
+    const fogAttr = heatFog.geometry.getAttribute('position');
+    for (let i = 0; i < fogAttr.count; i += 1) {
+      const y = fogAttr.getY(i) + 0.004;
+      fogAttr.setY(i, y > 2.2 ? 0.12 : y);
+    }
+    fogAttr.needsUpdate = true;
     controls.update();
     renderer.render(scene, camera);
   };
