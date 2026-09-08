@@ -344,8 +344,8 @@ export function scaleAim(mode: CameraMode, pose: HallPose) {
     };
   }
   return {
-    cam: new THREE.Vector3(pose.x + 0.34, 1.16, pose.z + 1.42),
-    target: new THREE.Vector3(pose.x - 0.02, 1.1, pose.z + 0.52),
+    cam: new THREE.Vector3(pose.x + 0.4, 1.34, pose.z + 1.62),
+    target: new THREE.Vector3(pose.x, 1.28, pose.z + 0.52),
     near: 0.06,
     far: 80,
     min: 0.7,
