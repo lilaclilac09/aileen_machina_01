@@ -76,6 +76,13 @@ function ToolCover({
               <div className="tools-lab-timeline" />
             </div>
           ) : null}
+          {tool.slug === 'ai-factory-sim' ? (
+            <div className="tools-lab-factory">
+              {Array.from({ length: 24 }, (_, i) => (
+                <span key={i} />
+              ))}
+            </div>
+          ) : null}
           {tool.slug === 'computer' ? (
             <div className="tools-lab-terminal">
               <span>owner@machina:~$</span>

@@ -72,6 +72,21 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     },
   },
   {
+    slug: 'ai-factory-sim',
+    tag: 'SIM',
+    title: 'AI Factory Sim',
+    body: 'DSX shell with SemiAnalysis-style power, cooling and gap stressors.',
+    why: 'Omniverse DSX is too heavy for a personal page; this keeps the twin idea visible in-browser.',
+    verdict: 'Experiment. 800VDC, VR NVL72 and flaw toggles, no fake Omniverse stream.',
+    href: '/tools/ai-factory-sim',
+    status: 'experiment',
+    tier: 'experiment',
+    arcade: {
+      glyph: '▦',
+      screenGradient: '#d8eeeb',
+    },
+  },
+  {
     slug: 'computer',
     tag: 'AGENT',
     title: 'Computer',
