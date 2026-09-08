@@ -379,9 +379,9 @@ export function isHallLayer(mode: CameraMode) {
   return mode === 'hall' || mode === 'cabinet' || mode === 'rack' || mode === 'open';
 }
 
-/** Entering space from the hall layer is a cut — no tunnel through the globe. */
+/** Crossing the hall-layer boundary is a cut — no fog tunnel from the aerial. */
 export function filmCuts(from: CameraMode, to: CameraMode): boolean {
-  return to === 'satellite' && isHallLayer(from);
+  return isHallLayer(from) !== isHallLayer(to);
 }
 
 export function filmCam(mode: CameraMode, pose: HallPose, age: number) {
