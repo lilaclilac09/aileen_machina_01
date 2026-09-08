@@ -550,10 +550,10 @@ export function mountPlantScene(
       for (let i = 0; i < count; i += 1) {
         cursor -= unitH;
         const tray = new THREE.Mesh(
-          new THREE.BoxGeometry(RACK_W - 0.1, unitH - 0.004, RACK_D - 0.16),
+          new THREE.BoxGeometry(RACK_W - 0.1, unitH - 0.004, RACK_D - 0.28),
           metal(TRAY_KIND_COLOR[segment.kind], { roughness: 0.22, metalness: 0.78 }),
         );
-        tray.position.set(0, cursor + unitH / 2, 0.02);
+        tray.position.set(0, cursor + unitH / 2, -0.02);
         const trayKind = segment.kind === 'switch' ? 'switch' : segment.kind === 'compute' ? 'compute' : undefined;
         if (trayKind === 'compute') computeTrayMeshes.push(tray);
         if (trayKind === 'switch') switchTrayMeshes.push(tray);
