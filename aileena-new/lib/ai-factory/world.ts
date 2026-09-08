@@ -315,12 +315,12 @@ export function scaleAim(mode: CameraMode, pose: HallPose) {
   }
   if (mode === 'cabinet') {
     return {
-      cam: new THREE.Vector3(pose.x, 1.35, pose.z + 1.15),
-      target: new THREE.Vector3(pose.x, 1.15, pose.z + 0.55),
+      cam: new THREE.Vector3(pose.x + 0.42, 1.48, pose.z + 1.95),
+      target: new THREE.Vector3(pose.x, 1.12, pose.z + 0.58),
       near: 0.08,
       far: 80,
-      min: 0.6,
-      max: 8,
+      min: 0.8,
+      max: 10,
     };
   }
   if (mode === 'open') {

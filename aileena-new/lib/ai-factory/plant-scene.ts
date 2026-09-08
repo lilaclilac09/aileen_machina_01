@@ -475,7 +475,7 @@ export function mountPlantScene(
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
     return new THREE.Mesh(
-      new THREE.PlaneGeometry(0.1, 0.025),
+      new THREE.PlaneGeometry(0.16, 0.04),
       new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false }),
     );
   }
@@ -570,18 +570,26 @@ export function mountPlantScene(
     const door = new THREE.Mesh(
       new THREE.BoxGeometry(RACK_W - 0.06, RACK_H - 0.22, 0.02),
       new THREE.MeshPhysicalMaterial({
-        color: 0x171a1d,
+        color: 0x2a3036,
         map: perforate,
-        metalness: 0.72,
-        roughness: 0.38,
-        envMapIntensity: 0.9,
+        metalness: 0.58,
+        roughness: 0.42,
+        envMapIntensity: 1.05,
+        emissive: 0x0a1214,
+        emissiveIntensity: 0.25,
       }),
     );
     door.position.set(0, RACK_H / 2, RACK_D / 2 + 0.01);
     addHeroMesh(door, { kind: 'cabinet', id: 'door', face: 'front' });
-    const handle = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.16, 0.03), metal(0xb87333, { roughness: 0.25 }));
-    handle.position.set(RACK_W / 2 - 0.1, RACK_H / 2, RACK_D / 2 + 0.03);
+    const handle = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.2, 0.035), metal(0xc4a24a, { roughness: 0.22 }));
+    handle.position.set(RACK_W / 2 - 0.1, RACK_H / 2, RACK_D / 2 + 0.035);
     addHeroMesh(handle, { kind: 'cabinet', id: 'door', face: 'front' });
+    const badge = new THREE.Mesh(
+      new THREE.BoxGeometry(0.04, 0.22, 0.02),
+      new THREE.MeshStandardMaterial({ color: 0x00c2b0, emissive: 0x00c2b0, emissiveIntensity: 2.2 }),
+    );
+    badge.position.set(-RACK_W / 2 + 0.08, RACK_H - 0.28, RACK_D / 2 + 0.03);
+    addHeroMesh(badge, { kind: 'cabinet', id: 'door', face: 'front' });
 
     const busbar = new THREE.Mesh(
       new THREE.BoxGeometry(0.07, RACK_H - 0.24, 0.1),
