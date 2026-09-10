@@ -20,6 +20,8 @@ Lessons / rule proposals (owner approval): [`ops/lessons/README.md`](ops/lessons
 cd aileena-new
 pnpm qa:mobile         # 390×844 overflow + screenshots when a server is up; always checks safe-area CSS
 pnpm qa:agent          # prompt/rule lint (AGENTS / QA / council vs public / lessons)
+pnpm verify:evolve     # site-agent skill ratchet (sandbox + external verifier)
+pnpm evolve            # one self-evolution cycle; --dry-run to score only
 pnpm qa:contact        # Resend env names, lead route, transcript, offline copy
 pnpm qa:sound          # same as verify:sound
 pnpm verify:visual     # GlassBench / ScrapPhoto no cover-crop

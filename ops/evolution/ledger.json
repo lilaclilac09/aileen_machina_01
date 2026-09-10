@@ -1,0 +1,38 @@
+[
+  {
+    "at": "2026-09-10T14:55:55.212Z",
+    "action": "promote",
+    "skillId": "auto-private-contact",
+    "version": 1,
+    "heldOutBefore": 0,
+    "heldOutAfter": 0.25,
+    "reason": "held-out 0.000 → 0.250"
+  },
+  {
+    "at": "2026-09-10T14:55:55.213Z",
+    "action": "promote",
+    "skillId": "auto-visual",
+    "version": 1,
+    "heldOutBefore": 0.25,
+    "heldOutAfter": 0.5,
+    "reason": "held-out 0.250 → 0.500"
+  },
+  {
+    "at": "2026-09-10T14:55:55.214Z",
+    "action": "promote",
+    "skillId": "auto-compensation",
+    "version": 1,
+    "heldOutBefore": 0.5,
+    "heldOutAfter": 0.75,
+    "reason": "held-out 0.500 → 0.750"
+  },
+  {
+    "at": "2026-09-10T14:55:55.214Z",
+    "action": "promote",
+    "skillId": "auto-latest-content",
+    "version": 1,
+    "heldOutBefore": 0.75,
+    "heldOutAfter": 1,
+    "reason": "held-out 0.750 → 1.000"
+  }
+]

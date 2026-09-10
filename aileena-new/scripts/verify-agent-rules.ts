@@ -95,6 +95,26 @@ function main() {
     'design OS always-on Cursor rule exists',
     existsSync(join(process.cwd(), '..', '.cursor/rules/aileena-design-os.mdc')),
   );
+  assert(
+    'evolution ratchet exists',
+    existsSync(join(process.cwd(), '..', 'ops/evolution/README.md')) &&
+      existsSync(join(process.cwd(), 'scripts/evolve.ts')) &&
+      /held-out/.test(readRepo('ops/evolution/README.md')),
+  );
+  const evolveSrc = read('scripts/evolve.ts');
+  assert(
+    'evolve CLI refuses constitution writes',
+    /Never writes AGENTS\.md/.test(evolveSrc) && !/writeFileSync\([^)]*AGENTS\.md/.test(evolveSrc),
+  );
+  const activeSrc = read('lib/evolution/activeSkills.generated.ts');
+  assert(
+    'active skills snapshot does not import verifiers',
+    !/^import .*(verifiers|ops\/evolution)/m.test(activeSrc) && !/readFileSync/.test(activeSrc),
+  );
+  assert(
+    'chat route does not import evolution engine',
+    !/evolution\/engine/.test(read('app/api/chat/route.ts')),
+  );
 
   const failed = checks.filter((c) => !c.ok);
   console.log(`\nResult: ${checks.length - failed.length}/${checks.length} passed`);
