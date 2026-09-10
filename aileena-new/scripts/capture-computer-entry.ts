@@ -20,7 +20,7 @@ async function main() {
   await page.waitForSelector('[role="dialog"][aria-label="Aileena Console"]', { state: 'visible' });
   await page.waitForSelector('[data-testid="computer-simple-keys"]', { timeout: 15_000, state: 'visible' });
   await page.locator('[data-testid="computer-console-dock"]').screenshot({
-    path: join(OUT, 'computer-simple-keys-visitor-390.png'),
+    path: join(OUT, 'computer-few-tap-idle-390.png'),
   });
   await page.locator('[data-testid="computer-learned-list"]').click();
   await page.waitForFunction(() => {
@@ -28,7 +28,7 @@ async function main() {
     return /find done|FIND DONE|completed/i.test(flash);
   }, null, { timeout: 20_000 });
   await page.locator('[data-testid="computer-console-dock"]').screenshot({
-    path: join(OUT, 'computer-simple-keys-look-done-390.png'),
+    path: join(OUT, 'computer-few-tap-look-390.png'),
   });
   await page.locator('[data-testid="computer-key-note"]').click();
   await page.waitForFunction(() => {
@@ -36,7 +36,7 @@ async function main() {
     return /note done|NOTE DONE|completed/i.test(flash);
   }, null, { timeout: 20_000 });
   await page.locator('[data-testid="computer-console-dock"]').screenshot({
-    path: join(OUT, 'computer-simple-keys-note-done-390.png'),
+    path: join(OUT, 'computer-few-tap-note-390.png'),
   });
   await browser.close();
   console.log('wrote computer-already-on screenshots to', OUT);
