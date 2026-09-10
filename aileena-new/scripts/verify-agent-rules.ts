@@ -115,6 +115,10 @@ function main() {
     'chat route does not import evolution engine',
     !/evolution\/engine/.test(read('app/api/chat/route.ts')),
   );
+  assert(
+    'chat route injects formatSkillsForTurn',
+    /formatSkillsForTurn/.test(read('app/api/chat/route.ts')),
+  );
 
   const failed = checks.filter((c) => !c.ok);
   console.log(`\nResult: ${checks.length - failed.length}/${checks.length} passed`);

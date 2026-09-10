@@ -46,6 +46,7 @@
     "verify:agent-rules": "tsx scripts/verify-agent-rules.ts",
     "verify:evolve": "tsx scripts/verify-evolve.ts",
     "evolve": "tsx scripts/evolve.ts",
+    "evolve:status": "tsx scripts/evolve.ts --status",
     "qa:evolve": "tsx scripts/verify-evolve.ts",
     "verify:ai-factory": "tsx scripts/verify-ai-factory-sim.ts",
     "verify:visual": "tsx scripts/verify-visual.ts",

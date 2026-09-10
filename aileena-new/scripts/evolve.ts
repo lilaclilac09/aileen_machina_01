@@ -3,6 +3,7 @@
  * Site-agent self-evolution CLI.
  *
  *   pnpm evolve                      # until held-out+train stabilize (max 8 rounds)
+ *   pnpm evolve:status               # one line; exit 1 if dirty
  *   pnpm evolve -- --once            # one ratchet round
  *   pnpm evolve -- --dry-run
  *   pnpm evolve -- --from-lesson ../ops/lessons/YYYY-MM-DD-slug.md
@@ -19,6 +20,7 @@ import { rollbackSkill } from '../lib/evolution/engine/ratchet';
 import { lessonFileToSkill } from '../lib/evolution/engine/lessonToSkill';
 import { loadProductionSkills } from '../lib/evolution/engine/bank';
 import { codegenActiveSkills } from '../lib/evolution/engine/codegen';
+import { evolutionStatus } from '../lib/evolution/engine/status';
 
 function arg(flag: string): string | undefined {
   const i = process.argv.indexOf(flag);
@@ -32,6 +34,14 @@ function has(flag: string): boolean {
 
 function main() {
   const root = process.env.EVOLUTION_ROOT || evolutionRoot();
+
+  if (has('--status')) {
+    const status = evolutionStatus(root);
+    console.log(status.line);
+    if (!status.clean) process.exit(1);
+    return;
+  }
+
   console.log(`evolution root: ${root}`);
 
   if (has('--rollback')) {

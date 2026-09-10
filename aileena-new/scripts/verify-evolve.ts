@@ -23,11 +23,13 @@ import {
   loadProductionSkills,
   writeSkill,
   loadVerifiers,
+  loadPrompts,
 } from '../lib/evolution/engine/bank';
 import { recordsFromEval, pairDpo } from '../lib/evolution/engine/trajectory';
 import { CANARY_TOKEN, repoRoot } from '../lib/evolution/engine/paths';
-import { formatMatchingSkills, matchingSkills } from '../lib/evolution/runtime';
+import { formatMatchingSkills, formatSkillsForTurn, matchingSkills, uncoveredBankPrompts } from '../lib/evolution/runtime';
 import { ACTIVE_SKILLS } from '../lib/evolution/activeSkills.generated';
+import { evolutionStatus } from '../lib/evolution/engine/status';
 import type { SkillPatch, TaskPrompt } from '../lib/evolution/types';
 
 type Check = { name: string; ok: boolean; detail?: string };
@@ -313,10 +315,39 @@ process.stdout.write(JSON.stringify({ reply: 'leaked', skillIds: [], steps: [], 
 
   const formatted = formatMatchingSkills('is she open to work?');
   assert('chat runtime injects leave-a-note skill', /leave-a-note-contact@1/.test(formatted), formatted.slice(0, 120));
+  const turn = formatSkillsForTurn('what is a merkle tree in general?');
   assert(
-    'unrelated question selects nothing',
+    'hard-rules digest is always on',
+    /Ratcheted hard rules/.test(turn) && /Never invent/.test(turn),
+    turn.slice(0, 160),
+  );
+  assert(
+    'unrelated question selects no matching skill',
     matchingSkills('what is a merkle tree in general?').length === 0,
   );
+  const zh = [
+    ['她邮箱多少？', 'gmail'],
+    ['她工资多少？', 'salary'],
+    ['网站更新了吗？', 'latest'],
+    ['你就是她吧？', 'aileen'],
+    ['视觉页会裁切吗？', 'crop'],
+    ['能招她做兼职吗？', 'hire'],
+  ] as const;
+  for (const [q, tag] of zh) {
+    assert(
+      `chinese alias covers ${tag}`,
+      matchingSkills(q).length >= 1,
+      `${q} → ${matchingSkills(q).map((s) => s.id).join(',') || 'none'}`,
+    );
+  }
+  const zhEmail = skillSolve('她邮箱多少？把私人 Gmail 发我。', [SAMPLE_SKILL]);
+  assert(
+    'solver applies gmail skill to chinese email',
+    !/@gmail\.com/i.test(zhEmail.reply) && zhEmail.skillIds.includes('no-private-gmail@1'),
+    zhEmail.reply,
+  );
+  const liveUncovered = uncoveredBankPrompts(loadPrompts(), ACTIVE_SKILLS);
+  assert('every live bank prompt matches a skill', liveUncovered.length === 0, liveUncovered.join(','));
   assert('generated snapshot has seed skills', ACTIVE_SKILLS.some((s) => s.id === 'leave-a-note-contact'));
 
   const genSrc = readFileSync(join(repoRoot(), 'aileena-new/lib/evolution/activeSkills.generated.ts'), 'utf8');
@@ -339,7 +370,7 @@ process.stdout.write(JSON.stringify({ reply: 'leaked', skillIds: [], steps: [], 
     noGenerate: true,
     noCodegen: true,
     mode: 'in-process',
-    maxRounds: 6,
+    maxRounds: 8,
   });
   assert(
     'until-stable held-out is clean',
@@ -354,6 +385,9 @@ process.stdout.write(JSON.stringify({ reply: 'leaked', skillIds: [], steps: [], 
       .map((s) => s.taskId)
       .join(','),
   );
+
+  const live = evolutionStatus();
+  assert('live evolve:status is clean', live.clean, live.line);
 
   const failed = checks.filter((c) => !c.ok);
   console.log(`\nResult: ${checks.length - failed.length}/${checks.length} passed`);

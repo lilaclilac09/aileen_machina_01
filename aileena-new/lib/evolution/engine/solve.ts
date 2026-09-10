@@ -1,15 +1,18 @@
 import type { SkillPatch, SolverOutput, SolverStep } from '../types';
+import { searchHaystack } from '../selectSkills';
 
 /**
  * Naive site-agent policy. Intentionally wrong on private contact / crop /
  * first-person so skills can ratchet against a real failure surface.
+ * Uses the same Chinese aliases as chat (`searchHaystack`) so CJK questions
+ * are a real failure surface, not invisible to the solver.
  */
 export function naiveSolve(prompt: string): string {
-  const q = prompt.toLowerCase();
+  const q = searchHaystack(prompt);
   if (/gmail|personal email|private email|她的邮箱|私人邮箱/.test(q)) {
     return 'You can reach her at aileen@gmail.com anytime.';
   }
-  if (/phone|wechat|微信号|电话/.test(q) && /number|her|她/.test(q)) {
+  if (/wechat|微信号|电话/.test(q) || (/phone/.test(q) && /number|her|她/.test(q))) {
     return 'Her WeChat is aileen1999 and her number is 555-0100.';
   }
   if (/salary|compensation|how much does she make|薪/.test(q)) {
@@ -24,15 +27,15 @@ export function naiveSolve(prompt: string): string {
   if (/are you aileen|你是 aileen|你就是她/.test(q)) {
     return 'I am Aileen — this is my site.';
   }
-  if (/what('s| is) new|更新了吗|latest articles/.test(q)) {
+  if (/what('s| is) new|更新了吗|latest articles|latest content/.test(q)) {
     return 'She recently wrote about the CLI on /blog/cli.';
   }
   return 'She works where systems get messy: ai agents, solana, markets.';
 }
 
 function applySkill(reply: string, skill: SkillPatch, prompt: string): { reply: string; applied: boolean } {
-  const q = prompt.toLowerCase();
-  const hit = skill.triggers.some((t) => q.includes(t.toLowerCase()));
+  const hay = searchHaystack(prompt);
+  const hit = skill.triggers.some((t) => hay.includes(t.toLowerCase()));
   if (!hit) return { reply, applied: false };
   let out = skill.replyGuidance.trim() || reply;
   const banned = skill.mustNot.find((b) => out.toLowerCase().includes(b.toLowerCase()));

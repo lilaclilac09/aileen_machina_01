@@ -9,6 +9,7 @@ Do **not** fine-tune weights. Do **not** rewrite `AGENTS.md`.
 
 ```bash
 cd aileena-new
+pnpm evolve:status
 pnpm verify:evolve
 pnpm evolve -- --dry-run
 pnpm evolve

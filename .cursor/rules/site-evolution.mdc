@@ -1,0 +1,17 @@
+---
+description: Site-agent skill ratchet — run evolve, do not rewrite AGENTS.md
+alwaysApply: true
+---
+
+# Site-agent self-evolution
+
+Do **not** fine-tune weights. Do **not** rewrite `AGENTS.md` from a lesson.
+
+```bash
+cd aileena-new
+pnpm evolve:status
+pnpm verify:evolve
+pnpm evolve
+```
+
+Skills live in `ops/evolution/skills/*/SKILL.md`. They inject into the public console session tail (`formatSkillsForTurn`). Council skips them. Verifiers stay in `ops/evolution/bank/verifiers.json` — never import that file from the chat route.

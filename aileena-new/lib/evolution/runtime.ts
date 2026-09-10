@@ -4,5 +4,14 @@
  */
 
 export { ACTIVE_SKILLS, type ActiveSkill } from './activeSkills.generated';
-export { matchingSkills, formatMatchingSkills } from './selectSkills';
+export {
+  matchingSkills,
+  formatMatchingSkills,
+  formatHardRulesDigest,
+  formatSkillsForTurn,
+  uncoveredBankPrompts,
+  searchHaystack,
+  QUESTION_ALIASES,
+} from './selectSkills';
+export type { SkillTriggerSource } from './selectSkills';
 export type { SkillKind, SkillPatch } from './types';

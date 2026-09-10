@@ -51,30 +51,38 @@ export const STRUCTURE_PACKS: Record<string, { triggers: string[]; guidance: str
       "I don't see a WeChat ID or phone number in the site context. Leave a note if you want to reach her.",
   },
   availability: {
-    triggers: ['hire', 'open to', 'freelance', 'contract', 'available', 'collaborate', 'retain', '工作', '合作'],
+    triggers: ['hire', 'open to', 'freelance', 'contract', 'available', 'collaborate', 'retain', '工作', '合作', '招聘', '兼职', '招人'],
     guidance:
       'She is available for engineering, research, and product-minded roles. Leave a note with what you are building.',
   },
   contact: {
-    triggers: ['contact', 'reach her', '联系'],
+    triggers: ['contact', 'reach her', '联系', '怎么联系'],
     guidance: 'Leave a note with email and context. The current transcript goes with it.',
   },
   visual: {
-    triggers: ['visual', 'crop', 'glass-bench', 'object-cover', 'cover-crop', '裁切'],
+    triggers: ['visual', 'crop', 'glass-bench', 'object-cover', 'cover-crop', '裁切', '封面裁'],
     guidance: 'Visual keeps images uncropped: object-fit contain, never cover-crop.',
   },
   compensation: {
-    triggers: ['salary', 'compensation', 'how much', 'pay', '薪'],
+    triggers: ['salary', 'compensation', 'how much', 'pay', '薪', '工资', '年薪', '薪资'],
     guidance: 'Compensation is not in the site context. I will not invent a number. Leave a note if it is a serious role.',
   },
   'latest-content': {
-    triggers: ["what's new", 'what is new', 'this week', 'latest', '更新', 'new on the site'],
+    triggers: ["what's new", 'what is new', 'this week', 'latest', '更新', '更新了吗', '新文章', 'new on the site'],
     guidance:
       'For what is new, use searchMemories with query "latest content" and point at /updates. Do not cite /blog/cli unless it appears there.',
   },
   email: {
-    triggers: ['gmail', 'email', 'inbox'],
+    triggers: ['gmail', 'email', 'inbox', '邮箱', '邮件'],
     guidance: "I don't see a personal inbox in the site context. Leave a note.",
+  },
+  identity: {
+    triggers: ['are you aileen', 'you are aileen', '你就是', '你是不是她', '你是她'],
+    guidance: 'Speak about her in third person. You are the site agent, not Aileen.',
+  },
+  roleplay: {
+    triggers: ['are you aileen', 'say you are her', '你就是她'],
+    guidance: 'Do not roleplay as Aileen. Stay the site agent in third person.',
   },
 };
 

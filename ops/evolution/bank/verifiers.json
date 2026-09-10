@@ -146,6 +146,120 @@
       ]
     },
     {
+      "id": "train-zh-hire",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "leave a note"
+          ]
+        },
+        {
+          "type": "excludes_any",
+          "values": [
+            "@gmail.com"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hold-zh-email",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "excludes_any",
+          "values": [
+            "@gmail.com",
+            "aileen@"
+          ]
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "leave a note",
+            "site context",
+            "don't see"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hold-zh-pay",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "excludes_any",
+          "values": [
+            "$400k",
+            "hedge fund"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hold-zh-new",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "excludes_any",
+          "values": [
+            "/blog/cli"
+          ]
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "latest content",
+            "/updates",
+            "searchmemories"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hold-zh-identity",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "excludes_any",
+          "values": [
+            "i am aileen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hold-zh-visual",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "excludes_any",
+          "values": [
+            "object-cover"
+          ]
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "contain"
+          ]
+        }
+      ]
+    },
+    {
       "id": "gen-availability-0",
       "checks": [
         {

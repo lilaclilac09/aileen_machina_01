@@ -496,7 +496,7 @@ function main() {
   assert('chat route never silent-slices', !/messages\.slice\(-20\)/.test(chatRouteSrc) && /needsNewRootForLength/.test(chatRouteSrc));
   assert(
     'chat route injects ratcheted skills into the tail',
-    /formatMatchingSkills/.test(chatRouteSrc) && /skillBlock/.test(chatRouteSrc),
+    /formatSkillsForTurn/.test(chatRouteSrc) && /skillBlock/.test(chatRouteSrc),
   );
   assert('chat route appends session tail', /messagesWithTail/.test(chatRouteSrc) && /sessionTail/.test(chatRouteSrc));
   assert('chat route does not import dsh', !/from ['"][^'"]*dsh|@deepseek-ai\/dsh|npx @deepseek-ai/.test(chatRouteSrc));
