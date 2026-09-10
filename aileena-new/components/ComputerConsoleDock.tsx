@@ -236,14 +236,120 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
             ref={logRef}
             data-testid="computer-monitor"
             data-live={live ? '1' : '0'}
-            className="font-mono text-[0.58rem] leading-relaxed text-[#8fe6dd] whitespace-pre-wrap max-h-40 overflow-y-auto px-2 py-1.5 [text-shadow:0_0_5px_rgba(0,168,157,0.35)]"
+            className="font-mono text-[0.58rem] leading-relaxed text-[#8fe6dd] whitespace-pre-wrap max-h-24 overflow-y-auto px-2 py-1.5 [text-shadow:0_0_5px_rgba(0,168,157,0.35)]"
           >
             {monitorText(selectedTask, backend)}
           </pre>
         </div>
 
+        <p className="font-mono text-[0.52rem] tracking-[0.14em] uppercase text-[#1b1713]/45">
+          {isOwner ? '1 记  ·  2 看  ·  3 找  ·  4 仓库' : '1 记  ·  2 看  ·  3 找'}
+        </p>
+
+        <div className="flex flex-wrap gap-1.5" data-testid="computer-simple-keys">
+          <button
+            type="button"
+            disabled={busy}
+            data-testid="computer-key-note"
+            onClick={() => {
+              const raw = line.trim();
+              if (!raw) {
+                setFlash('write first');
+                return;
+              }
+              setTab('note');
+              void queue({
+                taskType: 'write_scratch_file',
+                instructions: raw.slice(0, 4000),
+                phrase: raw,
+              });
+              setLine('');
+            }}
+            className="min-h-9 px-2.5 rounded-[6px] font-mono text-[0.58rem] tracking-[0.12em] uppercase text-[#007d75] border border-[#d8cfc0] border-b-2 border-b-[#c2b7a3] bg-white shadow-[0_1px_0_rgba(27,23,19,0.05)] active:translate-y-[1px] active:border-b disabled:opacity-40"
+          >
+            记
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            data-testid="computer-learned-list"
+            onClick={() => {
+              setTab('find');
+              void queue({ taskType: 'files_tree', instructions: '/workspace', phrase: 'list' });
+            }}
+            className="min-h-9 px-2.5 rounded-[6px] font-mono text-[0.58rem] tracking-[0.12em] uppercase text-[#007d75] border border-[#d8cfc0] border-b-2 border-b-[#c2b7a3] bg-white shadow-[0_1px_0_rgba(27,23,19,0.05)] active:translate-y-[1px] active:border-b disabled:opacity-40"
+          >
+            看
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            data-testid="computer-key-find"
+            onClick={() => {
+              const q = line.trim().slice(0, 80);
+              if (!q) {
+                setFlash('type a word');
+                return;
+              }
+              setTab('find');
+              void queue({
+                taskType: 'files_search',
+                instructions: `/workspace ${q}`,
+                phrase: `find ${q}`,
+              });
+            }}
+            className="min-h-9 px-2.5 rounded-[6px] font-mono text-[0.58rem] tracking-[0.12em] uppercase text-[#007d75] border border-[#d8cfc0] border-b-2 border-b-[#c2b7a3] bg-white shadow-[0_1px_0_rgba(27,23,19,0.05)] active:translate-y-[1px] active:border-b disabled:opacity-40"
+          >
+            找
+          </button>
+          {isOwner ? (
+            <button
+              type="button"
+              disabled={busy}
+              data-testid="computer-learned-git-status"
+              onClick={() => {
+                setTab('git');
+                void queue({
+                  taskType: 'git_status',
+                  instructions: 'git status --short',
+                  phrase: 'git status',
+                });
+              }}
+              className="min-h-9 px-2.5 rounded-[6px] font-mono text-[0.58rem] tracking-[0.12em] uppercase text-[#007d75] border border-[#d8cfc0] border-b-2 border-b-[#c2b7a3] bg-white shadow-[0_1px_0_rgba(27,23,19,0.05)] active:translate-y-[1px] active:border-b disabled:opacity-40"
+            >
+              仓库
+            </button>
+          ) : null}
+        </div>
+
+        <form
+          className="flex items-center gap-1.5"
+          onSubmit={(e) => {
+            e.preventDefault();
+            go();
+          }}
+        >
+          <input
+            value={line}
+            onChange={(e) => setLine(e.target.value)}
+            placeholder={isOwner ? '写一句再点 记，或打字找' : '写一句再点 记'}
+            aria-label="note"
+            className="min-h-9 min-w-0 flex-1 font-mono text-[0.72rem] rounded-[6px] border border-[#d8cfc0] bg-white px-2 text-[#1b1713]"
+          />
+          <button
+            type="submit"
+            disabled={busy || !line.trim()}
+            data-testid="harness-plugin-note"
+            className="min-h-9 shrink-0 font-mono text-[0.52rem] tracking-[0.14em] uppercase text-[#007d75] border border-[#d8cfc0] border-b-2 border-b-[#c2b7a3] bg-white px-3 rounded-[6px] disabled:opacity-40"
+          >
+            记
+          </button>
+        </form>
+
         <div className="flex flex-wrap gap-1.5" data-testid="computer-learned">
-        {chips.map((chip) => (
+        {chips
+          .filter((chip) => chip.alias !== 'list' && chip.alias !== 'git status')
+          .map((chip) => (
           <button
             key={chip.alias}
             type="button"
@@ -263,30 +369,6 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
           </button>
         ))}
       </div>
-
-      <form
-        className="sr-only"
-        onSubmit={(e) => {
-          e.preventDefault();
-          go();
-        }}
-      >
-        <input
-          value={line}
-          onChange={(e) => setLine(e.target.value)}
-          placeholder="note,  find word,  git status"
-          aria-label="note"
-          className="min-h-9 flex-1 font-mono text-[0.72rem] border border-[#e7e0d6] bg-white px-2 text-[#1b1713]"
-        />
-        <button
-          type="submit"
-          disabled={busy || !line.trim()}
-          data-testid="harness-plugin-note"
-          className="min-h-9 font-mono text-[0.55rem] tracking-[0.14em] uppercase text-[#007d75] border border-[#00a89d]/40 bg-white px-3 disabled:opacity-40"
-        >
-          go
-        </button>
-      </form>
 
       <div className="sr-only" data-testid="computer-tabs">
         {APP_TABS.map((id) => (

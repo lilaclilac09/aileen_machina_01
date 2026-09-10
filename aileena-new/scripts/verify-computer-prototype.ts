@@ -134,7 +134,7 @@ function sourceChecks() {
   const transAt = agentChatSrc.indexOf('data-agent-transcript');
   assert('monitor sits above transcript', dockAt > 0 && transAt > 0 && dockAt < transAt);
   assert('dock always polls', /setInterval\(\(\) => void load\(\), 900\)/.test(dockSrc));
-  assert('dock shows learned chips', /computer-learned/.test(dockSrc) && /computer-monitor/.test(dockSrc));
+  assert('dock shows simple 记 看 找 keys', /computer-simple-keys/.test(dockSrc) && /computer-key-note/.test(dockSrc) && /computer-key-find/.test(dockSrc));
   assert('starter chips stay before learned', /OWNER_STARTER_CHIPS : VISITOR_STARTER_CHIPS\), \.\.\.\(isOwner \? learned/.test(dockSrc));
   assert('GET tasks includes learned', /learned: listLearned\(\)/.test(tasks));
   assert('POST remembers phrase', /rememberCommand/.test(tasks) && /body.phrase/.test(tasks));
