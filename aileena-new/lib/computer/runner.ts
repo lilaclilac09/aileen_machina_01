@@ -621,8 +621,11 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
           ? 'backend=local-shim (not @cloudflare/computer)'
           : 'backend=local-shim visitor scratch',
     );
-    // Short pause so owner UI can observe running without a 30s spinner.
-    await new Promise((r) => setTimeout(r, 1400));
+    // Local shim: short pause so the dock can paint "running".
+    // Production POST awaits the full worker-shell run — do not burn 1.4s there.
+    if (backend !== 'cloudflare-worker-shell') {
+      await new Promise((r) => setTimeout(r, 1400));
+    }
 
     const fresh = getComputerTask(id);
     if (!fresh || fresh.cancelled) {

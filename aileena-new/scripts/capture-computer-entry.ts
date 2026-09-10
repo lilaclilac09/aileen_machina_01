@@ -18,17 +18,25 @@ async function main() {
   await page.keyboard.press('Escape');
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('open-agent-chat')));
   await page.waitForSelector('[role="dialog"][aria-label="Aileena Console"]', { state: 'visible' });
-  await page.waitForSelector('[data-testid="computer-console-dock"]', { timeout: 15_000, state: 'visible' });
-  await page.locator('[role="dialog"][aria-label="Aileena Console"]').screenshot({
-    path: join(OUT, 'computer-entry-v1-already-on.png'),
+  await page.waitForSelector('[data-testid="computer-simple-keys"]', { timeout: 15_000, state: 'visible' });
+  await page.locator('[data-testid="computer-console-dock"]').screenshot({
+    path: join(OUT, 'computer-few-tap-idle-390.png'),
   });
   await page.locator('[data-testid="computer-learned-list"]').click();
   await page.waitForFunction(() => {
     const flash = document.querySelector('[data-testid="proof-flash"]')?.textContent || '';
     return /find done|FIND DONE|completed/i.test(flash);
   }, null, { timeout: 20_000 });
-  await page.locator('[role="dialog"][aria-label="Aileena Console"]').screenshot({
-    path: join(OUT, 'computer-entry-v1-list-done.png'),
+  await page.locator('[data-testid="computer-console-dock"]').screenshot({
+    path: join(OUT, 'computer-few-tap-look-390.png'),
+  });
+  await page.locator('[data-testid="computer-key-note"]').click();
+  await page.waitForFunction(() => {
+    const flash = document.querySelector('[data-testid="proof-flash"]')?.textContent || '';
+    return /note done|NOTE DONE|completed/i.test(flash);
+  }, null, { timeout: 20_000 });
+  await page.locator('[data-testid="computer-console-dock"]').screenshot({
+    path: join(OUT, 'computer-few-tap-note-390.png'),
   });
   await browser.close();
   console.log('wrote computer-already-on screenshots to', OUT);
