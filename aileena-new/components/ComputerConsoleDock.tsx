@@ -93,8 +93,8 @@ function parseLine(raw: string): { taskType: string; instructions: string; route
   };
 }
 
-function monitorText(task: ComputerTask | null, backend: string): string {
-  if (!task) return `◎\n${backend}`;
+function monitorText(task: ComputerTask | null): string {
+  if (!task) return '';
   const logs = task.logsRedacted.slice(-8).join('\n');
   const bit = (task.error || task.artifacts[0]?.preview || task.resultSummary || '').trim().slice(0, 360);
   return [logs, bit].filter(Boolean).join('\n');
@@ -112,7 +112,7 @@ function chipKey(alias: string): string {
  * Hidden until the Computer header toggle. Visitors get a scratch pad only.
  */
 export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
-  const [flash, setFlash] = useState('◎');
+  const [flash, setFlash] = useState('');
   const [cloudflare, setCloudflare] = useState(false);
   const [busy, setBusy] = useState(false);
   const [tasks, setTasks] = useState<ComputerTask[]>([]);
@@ -154,17 +154,17 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
       if (!prev) {
         prevStatus.current[t.id] = t.status;
         if (t.status === 'queued') setFlash('…');
-        else if (t.status === 'running') setFlash(`${sign(t)}…`);
-        else if (t.status === 'completed') setFlash(sign(t));
+        else if (t.status === 'running') setFlash('…');
+        else if (t.status === 'completed') setFlash('');
         else if (t.status === 'failed') setFlash('×');
         else if (t.status === 'blocked') setFlash('×');
         continue;
       }
       if (prev !== t.status) {
-        if (t.status === 'completed') setFlash(sign(t));
+        if (t.status === 'completed') setFlash('');
         else if (t.status === 'blocked') setFlash('×');
         else if (t.status === 'failed') setFlash('×');
-        else if (t.status === 'running') setFlash(`${sign(t)}…`);
+        else if (t.status === 'running') setFlash('…');
         else if (t.status === 'queued') setFlash('…');
       }
       prevStatus.current[t.id] = t.status;
@@ -241,7 +241,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
         return;
       }
       if (data.task?.id) setSelected(data.task.id);
-      if (data.task?.status === 'completed') setFlash(sign(data.task));
+      if (data.task?.status === 'completed') setFlash('');
       else if (data.task?.status === 'failed') setFlash('×');
       else if (data.task?.status === 'blocked') setFlash('×');
       else setFlash('…');
@@ -311,7 +311,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
             data-live={live ? '1' : '0'}
             className="font-mono text-[0.58rem] leading-relaxed text-[#8fe6dd] whitespace-pre-wrap max-h-24 overflow-y-auto px-2 py-1.5 [text-shadow:0_0_5px_rgba(0,168,157,0.35)]"
           >
-            {monitorText(selectedTask, backend)}
+            {monitorText(selectedTask)}
           </pre>
         </div>
 

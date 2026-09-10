@@ -27,6 +27,10 @@ async function main() {
     await page.locator('[data-testid="computer-mode-toggle"]').click();
     await keys.waitFor({ state: 'visible', timeout: 8_000 });
   }
+  await page.waitForFunction(() => {
+    const flash = document.querySelector('[data-testid="proof-flash"]')?.textContent || '';
+    return /worker-shell/i.test(flash);
+  }, null, { timeout: 8_000 }).catch(() => undefined);
   await page.locator('[data-testid="computer-console-dock"]').screenshot({
     path: join(OUT, 'computer-signs-idle-390.png'),
   });

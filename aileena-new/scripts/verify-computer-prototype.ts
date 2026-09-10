@@ -156,8 +156,8 @@ function sourceChecks() {
   assert('keys have 44px tap targets', /min-h-11/.test(dockSrc) && /KEY_CLASS/.test(dockSrc));
   assert('empty 记 still queues a note', /phrase: raw \|\| 'note'/.test(dockSrc) && !/write first/.test(dockSrc));
   assert('empty 找 falls through to 看', /if \(!q\) \{\s*lookNow\(\);/.test(dockSrc) && !/type a word/.test(dockSrc));
-  assert('idle monitor shows the look sign', /return `◎\\n\$\{backend\}`/.test(dockSrc) && !/点 看/.test(dockSrc));
-  assert('POST completed paints the act sign', /status === 'completed'\) setFlash\(sign/.test(dockSrc));
+  assert('idle monitor is blank until a task', /if \(!task\) return '';/.test(dockSrc) && !/点 看/.test(dockSrc));
+  assert('POST completed clears the flash sign', /status === 'completed'\) setFlash\(''\)/.test(dockSrc));
   assert('starter chips stay before learned', /OWNER_STARTER_CHIPS : VISITOR_STARTER_CHIPS\), \.\.\.\(isOwner \? learned/.test(dockSrc));
   assert('GET tasks includes learned', /learned: listLearned\(\)/.test(tasks));
   assert('POST remembers phrase', /rememberCommand/.test(tasks) && /body.phrase/.test(tasks));
