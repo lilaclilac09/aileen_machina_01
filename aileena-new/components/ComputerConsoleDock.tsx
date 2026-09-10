@@ -47,13 +47,16 @@ function parseLine(raw: string): { taskType: string; instructions: string; route
 }
 
 function monitorText(task: ComputerTask | null, backend: string): string {
-  if (!task) return `idle · ${backend}\nwaiting`;
+  if (!task) return `点 看\n${backend}`;
   const now = `NOW  ${verb(task)} · ${task.status}`;
   const cmd = task.instructions.replace(/\s+/g, ' ').trim().slice(0, 80);
   const logs = task.logsRedacted.slice(-10).join('\n');
   const bit = (task.error || task.artifacts[0]?.preview || task.resultSummary || '').trim().slice(0, 360);
   return [now, cmd, logs, bit ? `──\n${bit}` : ''].filter(Boolean).join('\n');
 }
+
+const KEY_CLASS =
+  'flex-1 min-h-11 min-w-0 px-2 rounded-[8px] font-mono text-[0.72rem] tracking-[0.08em] text-[#007d75] border border-[#d8cfc0] border-b-2 border-b-[#c2b7a3] bg-white shadow-[0_1px_0_rgba(27,23,19,0.05)] active:translate-y-[1px] active:border-b disabled:opacity-40';
 
 function chipKey(alias: string): string {
   return alias.replace(/[^\w\u4e00-\u9fff-]+/g, '-').slice(0, 40) || 'chip';
@@ -64,7 +67,7 @@ function chipKey(alias: string): string {
  * Hidden until the Computer header toggle. Visitors get a scratch pad only.
  */
 export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
-  const [flash, setFlash] = useState('waiting');
+  const [flash, setFlash] = useState('ready');
   const [cloudflare, setCloudflare] = useState(false);
   const [busy, setBusy] = useState(false);
   const [tasks, setTasks] = useState<ComputerTask[]>([]);
@@ -197,12 +200,31 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
     }
   };
 
+  const noteNow = (raw: string) => {
+    setTab('note');
+    void queue({
+      taskType: 'write_scratch_file',
+      instructions: raw.slice(0, 4000),
+      phrase: raw || 'note',
+    });
+    setLine('');
+  };
+
+  const lookNow = () => {
+    setTab('find');
+    void queue({ taskType: 'files_tree', instructions: '/workspace', phrase: 'list' });
+  };
+
   const go = () => {
     const raw = line.trim();
-    if (!raw) return;
+    if (!raw) {
+      noteNow('');
+      return;
+    }
     const parsed = parseLine(raw);
     setTab(parsed.taskType === 'write_scratch_file' ? 'note' : parsed.taskType.startsWith('git_') ? 'git' : 'find');
     void queue({ ...parsed, phrase: raw });
+    setLine('');
   };
 
   return (
@@ -242,30 +264,14 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
           </pre>
         </div>
 
-        <p className="font-mono text-[0.52rem] tracking-[0.14em] uppercase text-[#1b1713]/45">
-          {isOwner ? '1 记  ·  2 看  ·  3 找  ·  4 仓库' : '1 记  ·  2 看  ·  3 找'}
-        </p>
-
-        <div className="flex flex-wrap gap-1.5" data-testid="computer-simple-keys">
+        <div className="flex gap-1.5" data-testid="computer-simple-keys">
           <button
             type="button"
             disabled={busy}
             data-testid="computer-key-note"
-            onClick={() => {
-              const raw = line.trim();
-              if (!raw) {
-                setFlash('write first');
-                return;
-              }
-              setTab('note');
-              void queue({
-                taskType: 'write_scratch_file',
-                instructions: raw.slice(0, 4000),
-                phrase: raw,
-              });
-              setLine('');
-            }}
-            className="min-h-9 px-2.5 rounded-[6px] font-mono text-[0.58rem] tracking-[0.12em] uppercase text-[#007d75] border border-[#d8cfc0] border-b-2 border-b-[#c2b7a3] bg-white shadow-[0_1px_0_rgba(27,23,19,0.05)] active:translate-y-[1px] active:border-b disabled:opacity-40"
+            aria-label="note"
+            onClick={() => noteNow(line.trim())}
+            className={KEY_CLASS}
           >
             记
           </button>
@@ -273,11 +279,9 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
             type="button"
             disabled={busy}
             data-testid="computer-learned-list"
-            onClick={() => {
-              setTab('find');
-              void queue({ taskType: 'files_tree', instructions: '/workspace', phrase: 'list' });
-            }}
-            className="min-h-9 px-2.5 rounded-[6px] font-mono text-[0.58rem] tracking-[0.12em] uppercase text-[#007d75] border border-[#d8cfc0] border-b-2 border-b-[#c2b7a3] bg-white shadow-[0_1px_0_rgba(27,23,19,0.05)] active:translate-y-[1px] active:border-b disabled:opacity-40"
+            aria-label="look"
+            onClick={lookNow}
+            className={KEY_CLASS}
           >
             看
           </button>
@@ -285,10 +289,11 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
             type="button"
             disabled={busy}
             data-testid="computer-key-find"
+            aria-label="find"
             onClick={() => {
               const q = line.trim().slice(0, 80);
               if (!q) {
-                setFlash('type a word');
+                lookNow();
                 return;
               }
               setTab('find');
@@ -298,7 +303,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
                 phrase: `find ${q}`,
               });
             }}
-            className="min-h-9 px-2.5 rounded-[6px] font-mono text-[0.58rem] tracking-[0.12em] uppercase text-[#007d75] border border-[#d8cfc0] border-b-2 border-b-[#c2b7a3] bg-white shadow-[0_1px_0_rgba(27,23,19,0.05)] active:translate-y-[1px] active:border-b disabled:opacity-40"
+            className={KEY_CLASS}
           >
             找
           </button>
@@ -315,7 +320,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
                   phrase: 'git status',
                 });
               }}
-              className="min-h-9 px-2.5 rounded-[6px] font-mono text-[0.58rem] tracking-[0.12em] uppercase text-[#007d75] border border-[#d8cfc0] border-b-2 border-b-[#c2b7a3] bg-white shadow-[0_1px_0_rgba(27,23,19,0.05)] active:translate-y-[1px] active:border-b disabled:opacity-40"
+              className={KEY_CLASS}
             >
               仓库
             </button>
@@ -332,16 +337,10 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
           <input
             value={line}
             onChange={(e) => setLine(e.target.value)}
-            placeholder={isOwner ? '写一句再点 记，或打字找' : '写一句再点 记'}
             aria-label="note"
-            className="min-h-9 min-w-0 flex-1 font-mono text-[0.72rem] rounded-[6px] border border-[#d8cfc0] bg-white px-2 text-[#1b1713]"
+            className="min-h-11 min-w-0 flex-1 font-mono text-[0.8rem] rounded-[8px] border border-[#d8cfc0] bg-white px-2.5 text-[#1b1713]"
           />
-          <button
-            type="submit"
-            disabled={busy || !line.trim()}
-            data-testid="harness-plugin-note"
-            className="min-h-9 shrink-0 font-mono text-[0.52rem] tracking-[0.14em] uppercase text-[#007d75] border border-[#d8cfc0] border-b-2 border-b-[#c2b7a3] bg-white px-3 rounded-[6px] disabled:opacity-40"
-          >
+          <button type="submit" disabled={busy} data-testid="harness-plugin-note" className="sr-only">
             记
           </button>
         </form>

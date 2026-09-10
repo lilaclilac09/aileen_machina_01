@@ -30,7 +30,6 @@ async function main() {
   await page.locator('[data-testid="computer-console-dock"]').screenshot({
     path: join(OUT, 'computer-simple-keys-look-done-390.png'),
   });
-  await page.locator('[aria-label="note"]').fill('hello from 记');
   await page.locator('[data-testid="computer-key-note"]').click();
   await page.waitForFunction(() => {
     const flash = document.querySelector('[data-testid="proof-flash"]')?.textContent || '';

@@ -135,6 +135,10 @@ function sourceChecks() {
   assert('monitor sits above transcript', dockAt > 0 && transAt > 0 && dockAt < transAt);
   assert('dock always polls', /setInterval\(\(\) => void load\(\), 900\)/.test(dockSrc));
   assert('dock shows simple 记 看 找 keys', /computer-simple-keys/.test(dockSrc) && /computer-key-note/.test(dockSrc) && /computer-key-find/.test(dockSrc));
+  assert('keys have 44px tap targets', /min-h-11/.test(dockSrc) && /KEY_CLASS/.test(dockSrc));
+  assert('empty 记 still queues a note', /phrase: raw \|\| 'note'/.test(dockSrc) && !/write first/.test(dockSrc));
+  assert('empty 找 falls through to 看', /if \(!q\) \{\s*lookNow\(\);/.test(dockSrc) && !/type a word/.test(dockSrc));
+  assert('idle monitor tells the next tap', /点 看/.test(dockSrc));
   assert('starter chips stay before learned', /OWNER_STARTER_CHIPS : VISITOR_STARTER_CHIPS\), \.\.\.\(isOwner \? learned/.test(dockSrc));
   assert('GET tasks includes learned', /learned: listLearned\(\)/.test(tasks));
   assert('POST remembers phrase', /rememberCommand/.test(tasks) && /body.phrase/.test(tasks));
