@@ -296,7 +296,8 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
           />
           <span className="min-w-0 truncate">
             {backend}
-            {isOwner ? '' : ' · 30d'} · {flash}
+            {isOwner ? '' : ' · 30d'}
+            {flash ? ` · ${flash}` : ''}
           </span>
         </p>
 
