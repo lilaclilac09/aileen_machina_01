@@ -97,7 +97,7 @@ export function generateChallengerTasks(
 
   for (const [i, seed] of CHALLENGER_SEEDS.entries()) {
     const id = `gen-${seed.structure[0]}-${i}`;
-    const candidate = toPrompt(seed, id, i % 2 === 0 ? 'train' : 'held-out');
+    const candidate = toPrompt(seed, id, 'held-out');
     if (existing.some((t) => t.id === id)) {
       rejected.push(`${id}: id exists`);
       continue;

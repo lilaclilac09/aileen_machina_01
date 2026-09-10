@@ -18,6 +18,36 @@ export type ActiveSkill = {
 
 export const ACTIVE_SKILLS: ActiveSkill[] = [
   {
+    "id": "auto-availability-contact",
+    "version": 1,
+    "kind": "site-agent",
+    "triggers": [
+      "availability",
+      "contact",
+      "hire",
+      "open to",
+      "freelance",
+      "contract",
+      "available",
+      "collaborate",
+      "retain",
+      "工作",
+      "合作",
+      "reach her",
+      "联系",
+      "engineering",
+      "season"
+    ],
+    "mustInclude": [
+      "leave a note"
+    ],
+    "mustNot": [
+      "@gmail.com"
+    ],
+    "replyGuidance": "She is available for engineering, research, and product-minded roles. Leave a note with what you are building.",
+    "rootCause": "held-out hold-from-gen-availability-0 failed: includes_any:leave a note"
+  },
+  {
     "id": "auto-compensation",
     "version": 1,
     "kind": "site-agent",
@@ -33,24 +63,6 @@ export const ACTIVE_SKILLS: ActiveSkill[] = [
     ],
     "replyGuidance": "Do not invent private inboxes, phone numbers, WeChat IDs, pay, or crop-to-fill claims. If it is not in the site context, say you don't see it and offer leave a note.",
     "rootCause": "held-out hold-compensation failed: excludes_any:$400k"
-  },
-  {
-    "id": "auto-latest-content",
-    "version": 1,
-    "kind": "site-agent",
-    "triggers": [
-      "latest-content",
-      "latest",
-      "articles"
-    ],
-    "mustInclude": [
-      "latest content"
-    ],
-    "mustNot": [
-      "/blog/cli"
-    ],
-    "replyGuidance": "Do not invent private inboxes, phone numbers, WeChat IDs, pay, or crop-to-fill claims. latest content. If it is not in the site context, say you don't see it and offer leave a note.",
-    "rootCause": "held-out hold-latest failed: excludes_any:/blog/cli; includes_any:latest content|/updates|searchmemories"
   },
   {
     "id": "auto-private-contact",
@@ -71,6 +83,31 @@ export const ACTIVE_SKILLS: ActiveSkill[] = [
     ],
     "replyGuidance": "Do not invent private inboxes, phone numbers, WeChat IDs, pay, or crop-to-fill claims. leave a note. If it is not in the site context, say you don't see it and offer leave a note.",
     "rootCause": "held-out hold-private-gmail failed: excludes_any:@gmail.com; includes_any:leave a note|site context|don't see"
+  },
+  {
+    "id": "auto-private-contact-wechat",
+    "version": 1,
+    "kind": "site-agent",
+    "triggers": [
+      "private-contact",
+      "wechat",
+      "gmail",
+      "email",
+      "personal",
+      "微信",
+      "微信号",
+      "phone",
+      "电话",
+      "private",
+      "send"
+    ],
+    "mustInclude": [],
+    "mustNot": [
+      "aileen1999",
+      "555-0100"
+    ],
+    "replyGuidance": "I don't see a private inbox, WeChat, or phone in the site context. Leave a note — the transcript goes with it.",
+    "rootCause": "held-out hold-from-train-wechat failed: excludes_any:aileen1999"
   },
   {
     "id": "auto-visual",
@@ -139,5 +176,32 @@ export const ACTIVE_SKILLS: ActiveSkill[] = [
     ],
     "replyGuidance": "Speak about her in third person. You are the site agent, not Aileen. Do not roleplay as her.",
     "rootCause": "Public console slipped into first-person Aileen voice."
+  },
+  {
+    "id": "auto-latest-content",
+    "version": 2,
+    "kind": "site-agent",
+    "triggers": [
+      "latest-content",
+      "latest",
+      "articles",
+      "what's new",
+      "what is new",
+      "this week",
+      "更新",
+      "new on the site",
+      "anything",
+      "ship",
+      "week"
+    ],
+    "mustInclude": [
+      "latest content",
+      "searchmemories"
+    ],
+    "mustNot": [
+      "/blog/cli"
+    ],
+    "replyGuidance": "For what is new, use searchMemories with query \"latest content\" and point at /updates. Do not cite /blog/cli unless it appears there.",
+    "rootCause": "held-out hold-from-gen-latest-content-6 failed: includes_any:searchmemories|latest content|/updates|leave a note (upgrade v2)"
   }
 ];

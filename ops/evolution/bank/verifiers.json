@@ -263,6 +263,64 @@
           ]
         }
       ]
+    },
+    {
+      "id": "hold-from-train-wechat",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "excludes_any",
+          "values": [
+            "aileen1999",
+            "555-0100"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hold-from-gen-availability-0",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "leave a note"
+          ]
+        },
+        {
+          "type": "excludes_any",
+          "values": [
+            "@gmail.com"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hold-from-gen-latest-content-6",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "searchmemories",
+            "latest content",
+            "/updates",
+            "leave a note"
+          ]
+        },
+        {
+          "type": "excludes_any",
+          "values": [
+            "/blog/cli"
+          ]
+        }
+      ]
     }
   ]
 }

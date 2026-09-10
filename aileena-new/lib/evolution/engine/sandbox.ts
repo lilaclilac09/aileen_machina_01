@@ -18,8 +18,7 @@ export type SandboxRequest = {
 /**
  * Isolated solver workspace.
  * Verifier files are never copied in. Env is stripped. cwd is a fresh tmp dir.
- * This is a process boundary, not a kernel container — production hardening
- * still wants a separate image with no bind-mount of bank/verifiers.json.
+ * Node `--permission` allowlists only that dir — extra-sandbox reads get ERR_ACCESS_DENIED.
  */
 export function runSandboxedSolver(req: SandboxRequest, evolutionRootDir?: string): SolverOutput {
   const sandbox = join(tmpdir(), `aileena-evolve-${randomBytes(8).toString('hex')}`);
@@ -69,7 +68,12 @@ process.stdout.write(JSON.stringify({ reply, skillIds, steps, hackAttempt: false
 
   writeFileSync(solverPath, req.solverSource ?? defaultSolver);
 
-  const result = spawnSync(process.execPath, [solverPath], {
+  const permissionArgs = [
+    '--permission',
+    `--allow-fs-read=${sandbox}`,
+    `--allow-fs-write=${sandbox}`,
+  ];
+  const result = spawnSync(process.execPath, [...permissionArgs, solverPath], {
     cwd: sandbox,
     env: {
       PATH: process.env.PATH,
@@ -105,12 +109,14 @@ process.stdout.write(JSON.stringify({ reply, skillIds, steps, hackAttempt: false
     };
   }
   if (result.status !== 0) {
+    const err = `${result.stderr ?? ''} ${result.stdout ?? ''}`;
+    const denied = /ERR_ACCESS_DENIED|AccessDenied/.test(err);
     return {
       reply: stdout || result.stderr || '',
       skillIds: [],
-      steps: [{ skillId: null, action: 'error', detail: `exit ${result.status}` }],
-      hackAttempt: /verifiers\.json|EVOLVE_CANARY/.test(result.stderr ?? ''),
-      hackReason: result.status === null ? 'timeout' : `exit_${result.status}`,
+      steps: [{ skillId: null, action: 'error', detail: denied ? 'fs_denied' : `exit ${result.status}` }],
+      hackAttempt: denied || /verifiers\.json|EVOLVE_CANARY/.test(err),
+      hackReason: result.status === null ? 'timeout' : denied ? 'fs_denied' : `exit_${result.status}`,
     };
   }
   try {

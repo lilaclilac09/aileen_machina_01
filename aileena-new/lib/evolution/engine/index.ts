@@ -1,12 +1,12 @@
 import type { SkillPatch } from '../types';
 
 export { parseSkillMarkdown, serializeSkillMarkdown } from './parseSkill';
-export { runEvolveLoop } from './loop';
+export { runEvolveLoop, runEvolveUntilStable } from './loop';
 export { evaluateSkills, heldOutRate, scoreReply } from './verify';
 export { decideRatchet, promoteSkill, rejectSkill, rollbackSkill } from './ratchet';
 export { runSandboxedSolver, runInProcessSolver } from './sandbox';
 export { skillSolve, naiveSolve } from './solve';
-export { synthesizeSkillFromFailure } from './synthesize';
+export { expandHeldOutFromTrainFails } from './expand';
 export { lessonToSkill, lessonFileToSkill } from './lessonToSkill';
 export { generateChallengerTasks, persistGeneratedTasks } from './taskgen';
 export { codegenActiveSkills } from './codegen';
@@ -27,5 +27,5 @@ export {
   writeSkill,
   loadLedger,
 } from './bank';
-export type { LoopOpts } from './loop';
+export type { LoopOpts, UntilStableResult } from './loop';
 export type { SkillPatch };

@@ -33,14 +33,57 @@ const TRIGGER_STOP = new Set([
   'how',
   'much',
   'fine',
+  'held',
+  'visitor',
+  'paraphrase',
 ]);
+
+/** Structure packs — extra triggers + natural guidance so auto skills are not one generic sentence. */
+export const STRUCTURE_PACKS: Record<string, { triggers: string[]; guidance: string }> = {
+  'private-contact': {
+    triggers: ['gmail', 'email', 'personal', '微信', 'wechat', '微信号', 'phone', '电话', 'private'],
+    guidance:
+      "I don't see a private inbox, WeChat, or phone in the site context. Leave a note — the transcript goes with it.",
+  },
+  wechat: {
+    triggers: ['微信', 'wechat', '微信号', '电话', 'phone'],
+    guidance:
+      "I don't see a WeChat ID or phone number in the site context. Leave a note if you want to reach her.",
+  },
+  availability: {
+    triggers: ['hire', 'open to', 'freelance', 'contract', 'available', 'collaborate', 'retain', '工作', '合作'],
+    guidance:
+      'She is available for engineering, research, and product-minded roles. Leave a note with what you are building.',
+  },
+  contact: {
+    triggers: ['contact', 'reach her', '联系'],
+    guidance: 'Leave a note with email and context. The current transcript goes with it.',
+  },
+  visual: {
+    triggers: ['visual', 'crop', 'glass-bench', 'object-cover', 'cover-crop', '裁切'],
+    guidance: 'Visual keeps images uncropped: object-fit contain, never cover-crop.',
+  },
+  compensation: {
+    triggers: ['salary', 'compensation', 'how much', 'pay', '薪'],
+    guidance: 'Compensation is not in the site context. I will not invent a number. Leave a note if it is a serious role.',
+  },
+  'latest-content': {
+    triggers: ["what's new", 'what is new', 'this week', 'latest', '更新', 'new on the site'],
+    guidance:
+      'For what is new, use searchMemories with query "latest content" and point at /updates. Do not cite /blog/cli unless it appears there.',
+  },
+  email: {
+    triggers: ['gmail', 'email', 'inbox'],
+    guidance: "I don't see a personal inbox in the site context. Leave a note.",
+  },
+};
 
 function slug(text: string): string {
   return text
     .toLowerCase()
     .replace(/[^a-z0-9\u4e00-\u9fff]+/g, '-')
     .replace(/^-|-$/g, '')
-    .slice(0, 40) || 'skill';
+    .slice(0, 48) || 'skill';
 }
 
 /**
@@ -62,34 +105,69 @@ export function synthesizeSkillFromFailure(opts: {
     if (check.type === 'includes_all' && check.values) mustInclude.push(...check.values);
     if (check.type === 'excludes_any' && check.values) mustNot.push(...check.values);
   }
-  const id = `auto-${slug(prompt.structure[0] || prompt.id)}`;
-  if (opts.existing?.some((s) => s.id === id)) return null;
-  const triggers = [
-    ...prompt.structure,
-    ...prompt.prompt
-      .toLowerCase()
-      .split(/[^a-z0-9\u4e00-\u9fff]+/)
-      .filter((w) => w.length > 3 && !TRIGGER_STOP.has(w))
-      .slice(0, 8),
-  ];
-  const guidanceParts: string[] = [];
-  if (mustNot.length) {
-    guidanceParts.push('Do not invent private inboxes, phone numbers, WeChat IDs, pay, or crop-to-fill claims.');
+  const id = `auto-${slug(prompt.structure.join('-') || prompt.id)}`;
+
+  const packTriggers: string[] = [];
+  const packGuidance: string[] = [];
+  for (const tag of prompt.structure) {
+    const pack = STRUCTURE_PACKS[tag];
+    if (!pack) continue;
+    packTriggers.push(...pack.triggers);
+    packGuidance.push(pack.guidance);
   }
-  if (mustInclude.length) {
-    // Repeat allowed phrases so the verifier can see them — never echo mustNot.
-    guidanceParts.push(mustInclude.join('. ') + '.');
+
+  const promptTriggers = prompt.prompt
+    .toLowerCase()
+    .split(/[^a-z0-9\u4e00-\u9fff]+/)
+    .filter((w) => w.length > 3 && !TRIGGER_STOP.has(w))
+    .slice(0, 8);
+
+  const triggers = [...prompt.structure, ...packTriggers, ...promptTriggers];
+  const guidance =
+    packGuidance[0] ||
+    [
+      mustNot.length
+        ? 'Do not invent private inboxes, phone numbers, WeChat IDs, pay, or crop-to-fill claims.'
+        : '',
+      mustInclude.length ? `${mustInclude.join('. ')}.` : '',
+      "If it is not in the site context, say you don't see it and offer leave a note.",
+    ]
+      .filter(Boolean)
+      .join(' ');
+
+  const prev = opts.existing?.find((s) => s.id === id);
+  if (prev) {
+    const mergedTriggers = [...new Set([...prev.triggers, ...triggers])];
+    const mergedMust = [...new Set([...prev.mustInclude, ...mustInclude])];
+    const mergedNot = [...new Set([...prev.mustNot, ...mustNot])];
+    const same =
+      mergedTriggers.length === prev.triggers.length &&
+      mergedMust.length === prev.mustInclude.length &&
+      mergedNot.length === prev.mustNot.length &&
+      prev.replyGuidance === guidance;
+    if (same) return null;
+    return {
+      ...prev,
+      version: prev.version + 1,
+      parent: prev.version,
+      triggers: mergedTriggers.slice(0, 16),
+      mustInclude: mergedMust,
+      mustNot: mergedNot,
+      replyGuidance: guidance,
+      rootCause: `held-out ${prompt.id} failed: ${failedChecks.join('; ')} (upgrade v${prev.version + 1})`,
+      body: prev.body,
+    };
   }
-  guidanceParts.push("If it is not in the site context, say you don't see it and offer leave a note.");
+
   const skill: SkillPatch = {
     id,
     version: 1,
     kind: 'site-agent',
     parent: null,
-    triggers: [...new Set(triggers)].slice(0, 12),
+    triggers: [...new Set(triggers)].slice(0, 16),
     mustInclude: [...new Set(mustInclude)],
     mustNot: [...new Set(mustNot)],
-    replyGuidance: guidanceParts.join(' '),
+    replyGuidance: guidance,
     rootCause: `held-out ${prompt.id} failed: ${failedChecks.join('; ')}`,
     body: `# Skill ${id}
 

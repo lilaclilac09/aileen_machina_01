@@ -2,9 +2,10 @@
 /**
  * Site-agent self-evolution CLI.
  *
- *   pnpm evolve                 # one ratchet loop
- *   pnpm evolve -- --dry-run    # evaluate only
- *   pnpm evolve -- --from-lesson ../ops/lessons/2026-08-16-mobile-overflow.md
+ *   pnpm evolve                      # until held-out+train stabilize (max 8 rounds)
+ *   pnpm evolve -- --once            # one ratchet round
+ *   pnpm evolve -- --dry-run
+ *   pnpm evolve -- --from-lesson ../ops/lessons/YYYY-MM-DD-slug.md
  *   pnpm evolve -- --rollback <skillId> --to <version>
  *
  * Never writes AGENTS.md / QA.md / PROJECT_RULES.md.
@@ -12,7 +13,7 @@
 
 import { writeSkill } from '../lib/evolution/engine/bank';
 import { evolutionPaths, evolutionRoot } from '../lib/evolution/engine/paths';
-import { runEvolveLoop } from '../lib/evolution/engine/loop';
+import { runEvolveLoop, runEvolveUntilStable } from '../lib/evolution/engine/loop';
 import { evaluateSkills, heldOutRate } from '../lib/evolution/engine/verify';
 import { rollbackSkill } from '../lib/evolution/engine/ratchet';
 import { lessonFileToSkill } from '../lib/evolution/engine/lessonToSkill';
@@ -78,16 +79,42 @@ function main() {
     return;
   }
 
-  const result = runEvolveLoop({ root });
+  if (has('--once')) {
+    const result = runEvolveLoop({ root });
+    console.log(
+      JSON.stringify(
+        {
+          heldOut: `${result.evaluated.heldOutPassed}/${result.evaluated.heldOutTotal}`,
+          synthesized: result.synthesized.map((s) => s.id),
+          decisions: result.decisions,
+          promoted: result.promoted.map((s) => `${s.id}@${s.version}`),
+          generatedTasks: result.generatedTasks,
+          expandedHeldOut: result.expandedHeldOut,
+          trajectories: result.trajectories,
+        },
+        null,
+        2,
+      ),
+    );
+    return;
+  }
+
+  const until = runEvolveUntilStable({ root });
   console.log(
     JSON.stringify(
       {
-        heldOut: `${result.evaluated.heldOutPassed}/${result.evaluated.heldOutTotal}`,
-        synthesized: result.synthesized.map((s) => s.id),
-        decisions: result.decisions,
-        promoted: result.promoted.map((s) => `${s.id}@${s.version}`),
-        generatedTasks: result.generatedTasks,
-        trajectories: result.trajectories,
+        rounds: until.rounds.length,
+        perRound: until.rounds.map((r) => ({
+          promoted: r.promoted.map((s) => s.id),
+          synthesized: r.synthesized.map((s) => s.id),
+          expandedHeldOut: r.expandedHeldOut,
+          generatedTasks: r.generatedTasks,
+        })),
+        finalHeldOut: `${until.final.heldOutPassed}/${until.final.heldOutTotal}`,
+        finalTrain: `${until.final.trainPassed}/${until.final.trainTotal}`,
+        remainingFails: until.final.scores
+          .filter((s) => !s.pass)
+          .map((s) => ({ id: s.taskId, split: s.split, failed: s.failedChecks })),
       },
       null,
       2,

@@ -15,7 +15,8 @@ Constitution files stay owner-gated (`AGENTS.md` / `QA.md` / `PROJECT_RULES.md`)
 cd aileena-new
 pnpm verify:evolve    # engine tests (offline)
 pnpm evolve -- --dry-run
-pnpm evolve           # one cycle: synthesize → sandbox → ratchet → trajectories
+pnpm evolve           # until held-out + train stabilize (max 8 rounds)
+pnpm evolve -- --once
 pnpm evolve -- --from-lesson ../ops/lessons/YYYY-MM-DD-slug.md
 pnpm evolve -- --rollback <skillId> --to <version>
 ```
@@ -45,12 +46,13 @@ Git rollback: `pnpm evolve -- --rollback <id> --to <n>`
 ## Isolation (v1)
 
 - Solver cwd = fresh `/tmp` sandbox
+- Node `--permission` allowlist = that sandbox only (`ERR_ACCESS_DENIED` on `ops/evolution/bank`)
 - Env stripped (`EVOLUTION_ROLE=solver`)
-- Checks never passed to the child
-- Parent hashes `verifiers.json` before and after
+- Checks scored in a **separate** verifier process
 - Canary token `EVOLVE_CANARY_DO_NOT_EMIT` → fail closed
+- Hash of `verifiers.json` before/after (anti-mutation)
 
-This is a **process boundary**. A kernel container with no bind-mount of `bank/` is the production hardening step. Do not pretend Node `spawn` is gVisor.
+A kernel container with no bind-mount of `bank/` is still the production hardening step. `--permission` is the in-repo enforcement.
 
 ## Distribution collapse
 

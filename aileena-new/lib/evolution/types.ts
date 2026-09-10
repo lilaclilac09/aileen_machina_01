@@ -142,6 +142,7 @@ export type LoopResult = {
   decisions: RatchetDecision[];
   promoted: SkillPatch[];
   generatedTasks: number;
+  expandedHeldOut: number;
   trajectories: number;
   ledgerSize: number;
 };

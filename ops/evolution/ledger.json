@@ -34,5 +34,32 @@
     "heldOutBefore": 0.75,
     "heldOutAfter": 1,
     "reason": "held-out 0.750 → 1.000"
+  },
+  {
+    "at": "2026-09-10T15:14:34.677Z",
+    "action": "promote",
+    "skillId": "auto-private-contact-wechat",
+    "version": 1,
+    "heldOutBefore": 0.6666666666666666,
+    "heldOutAfter": 0.7777777777777778,
+    "reason": "held-out 0.667 → 0.778"
+  },
+  {
+    "at": "2026-09-10T15:14:35.356Z",
+    "action": "promote",
+    "skillId": "auto-availability-contact",
+    "version": 1,
+    "heldOutBefore": 0.7777777777777778,
+    "heldOutAfter": 0.8888888888888888,
+    "reason": "held-out 0.778 → 0.889"
+  },
+  {
+    "at": "2026-09-10T15:15:41.175Z",
+    "action": "promote",
+    "skillId": "auto-latest-content",
+    "version": 2,
+    "heldOutBefore": 0.8888888888888888,
+    "heldOutAfter": 1,
+    "reason": "held-out 0.889 → 1.000"
   }
 ]

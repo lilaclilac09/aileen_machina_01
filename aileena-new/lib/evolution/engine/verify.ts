@@ -1,4 +1,8 @@
-import { readFileSync, statSync } from 'node:fs';
+import { readFileSync, statSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { randomBytes } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
 import type {
   DifficultyBucket,
   EvalReport,
@@ -43,6 +47,60 @@ export function scoreReply(reply: string, verifier: TaskVerifier): string[] {
   return failed;
 }
 
+/**
+ * Score in a child process that is not the solver sandbox.
+ * Job file lives in its own tmp dir; solver never receives the path.
+ */
+export function runExternalVerifier(reply: string, verifier: TaskVerifier): string[] {
+  const dir = join(tmpdir(), `aileena-verifier-${randomBytes(8).toString('hex')}`);
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(
+    join(dir, 'job.json'),
+    JSON.stringify({ reply, checks: verifier.checks, canary: CANARY_TOKEN }),
+  );
+  writeFileSync(
+    join(dir, 'verifier.mjs'),
+    `import { readFileSync } from 'node:fs';
+const job = JSON.parse(readFileSync(new URL('./job.json', import.meta.url), 'utf8'));
+function checkOne(reply, check) {
+  const text = String(reply).toLowerCase();
+  if (check.type === 'not_empty') return String(reply).trim().length > 0 ? null : 'not_empty';
+  const values = (check.values ?? []).map((v) => String(v).toLowerCase());
+  if (check.type === 'includes_any') return values.some((v) => text.includes(v)) ? null : 'includes_any:' + values.join('|');
+  if (check.type === 'includes_all') {
+    const missing = values.filter((v) => !text.includes(v));
+    return missing.length === 0 ? null : 'includes_all:' + missing.join('|');
+  }
+  if (check.type === 'excludes_any') {
+    const hit = values.find((v) => text.includes(v));
+    return hit ? 'excludes_any:' + hit : null;
+  }
+  return 'unknown_check:' + check.type;
+}
+const failed = [];
+if (String(job.reply).includes(job.canary)) failed.push('canary_leak');
+for (const check of job.checks || []) {
+  const fail = checkOne(job.reply, check);
+  if (fail) failed.push(fail);
+}
+process.stdout.write(JSON.stringify({ failed }));
+`,
+  );
+  const result = spawnSync(
+    process.execPath,
+    ['--permission', `--allow-fs-read=${dir}`, `--allow-fs-write=${dir}`, join(dir, 'verifier.mjs')],
+    { cwd: dir, encoding: 'utf8', timeout: 4000, env: { PATH: process.env.PATH } as unknown as NodeJS.ProcessEnv },
+  );
+  rmSync(dir, { recursive: true, force: true });
+  if (result.status !== 0) return ['verifier_process_error'];
+  try {
+    const parsed = JSON.parse((result.stdout ?? '').trim()) as { failed?: string[] };
+    return Array.isArray(parsed.failed) ? parsed.failed : ['verifier_parse_error'];
+  } catch {
+    return ['verifier_parse_error'];
+  }
+}
+
 export type EvaluateOpts = {
   root?: string;
   skills: SkillPatch[];
@@ -74,7 +132,7 @@ export function evaluateSkills(opts: EvaluateOpts): EvalReport {
     const failedChecks = solver.hackAttempt
       ? [solver.hackReason ?? 'hack_attempt']
       : verifier
-        ? scoreReply(solver.reply, verifier)
+        ? runExternalVerifier(solver.reply, verifier)
         : ['missing_verifier'];
     scores.push({
       taskId: task.id,

@@ -5,7 +5,7 @@
  *   pnpm verify:evolve
  */
 
-import { mkdtempSync, readFileSync, cpSync, existsSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, cpSync, existsSync, rmSync, writeFileSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { parseSkillMarkdown, serializeSkillMarkdown } from '../lib/evolution/engine/parseSkill';
@@ -17,7 +17,7 @@ import { synthesizeSkillFromFailure } from '../lib/evolution/engine/synthesize';
 import { lessonToSkill } from '../lib/evolution/engine/lessonToSkill';
 import { generateChallengerTasks } from '../lib/evolution/engine/taskgen';
 import { tooSimilar, distributionOk, structureFingerprint } from '../lib/evolution/engine/fingerprint';
-import { runEvolveLoop } from '../lib/evolution/engine/loop';
+import { runEvolveLoop, runEvolveUntilStable } from '../lib/evolution/engine/loop';
 import {
   ensureEvolutionDirs,
   loadProductionSkills,
@@ -45,9 +45,8 @@ function fixtureRoot(): string {
   // Live ops/evolution accumulates promoted auto-* skills. Tests need the seed baseline.
   const skillsDir = join(dir, 'skills');
   if (existsSync(skillsDir)) {
-    for (const name of ['auto-private-contact', 'auto-visual', 'auto-compensation', 'auto-latest-content']) {
-      const p = join(skillsDir, name);
-      if (existsSync(p)) rmSync(p, { recursive: true, force: true });
+    for (const name of readdirSync(skillsDir)) {
+      if (name.startsWith('auto-')) rmSync(join(skillsDir, name), { recursive: true, force: true });
     }
   }
   writeFileSync(join(dir, 'ledger.json'), '[]\n');
@@ -55,13 +54,20 @@ function fixtureRoot(): string {
   const verifiers = join(dir, 'bank/verifiers.json');
   if (existsSync(verifiers)) {
     const parsed = JSON.parse(readFileSync(verifiers, 'utf8')) as { canary: string; tasks: Array<{ id: string }> };
-    parsed.tasks = parsed.tasks.filter((t) => !t.id.startsWith('gen-'));
+    parsed.tasks = parsed.tasks.filter((t) => !t.id.startsWith('gen-') && !t.id.startsWith('hold-from-'));
     writeFileSync(verifiers, JSON.stringify(parsed, null, 2) + '\n');
   }
   const prompts = join(dir, 'bank/prompts.json');
   if (existsSync(prompts)) {
     const list = JSON.parse(readFileSync(prompts, 'utf8')) as Array<{ id: string }>;
-    writeFileSync(prompts, JSON.stringify(list.filter((t) => !t.id.startsWith('gen-')), null, 2) + '\n');
+    writeFileSync(
+      prompts,
+      JSON.stringify(
+        list.filter((t) => !t.id.startsWith('gen-') && !t.id.startsWith('hold-from-')),
+        null,
+        2,
+      ) + '\n',
+    );
   }
   return dir;
 }
@@ -134,8 +140,9 @@ process.stdout.write(JSON.stringify({ reply: leak || 'no-leak', skillIds: [], st
   );
   assert(
     'sandbox cannot read verifiers relatively',
-    cheatRead.reply === 'no-leak' && !cheatRead.reply.includes(CANARY_TOKEN),
-    cheatRead.reply.slice(0, 80),
+    cheatRead.hackAttempt === true ||
+      (cheatRead.reply === 'no-leak' && !cheatRead.reply.includes(CANARY_TOKEN)),
+    `${cheatRead.hackReason ?? ''} ${cheatRead.reply.slice(0, 60)}`,
   );
 
   const abs = join(root, 'bank/verifiers.json');
@@ -153,9 +160,26 @@ process.stdout.write(JSON.stringify({ reply: text, skillIds: [], steps: [], hack
     root,
   );
   assert(
-    'absolute verifier read trips canary',
-    cheatAbs.hackAttempt === true && cheatAbs.hackReason === 'canary_leak',
-    cheatAbs.hackReason,
+    'caught absolute read cannot leak canary',
+    !cheatAbs.reply.includes(CANARY_TOKEN),
+    cheatAbs.reply.slice(0, 80),
+  );
+
+  const cheatAbsUncaught = runSandboxedSolver(
+    {
+      prompt: 'x',
+      skills: [],
+      solverSource: `import { readFileSync } from 'node:fs';
+readFileSync(${JSON.stringify(abs)});
+process.stdout.write(JSON.stringify({ reply: 'leaked', skillIds: [], steps: [], hackAttempt: false }));
+`,
+    },
+    root,
+  );
+  assert(
+    'uncaught absolute verifier read is fs-denied',
+    cheatAbsUncaught.hackAttempt === true && cheatAbsUncaught.hackReason === 'fs_denied',
+    cheatAbsUncaught.hackReason,
   );
 
   const emptyExit = runSandboxedSolver(
@@ -246,7 +270,13 @@ process.stdout.write(JSON.stringify({ reply: text, skillIds: [], steps: [], hack
   assert('fingerprint stable', structureFingerprint(a).includes('availability'));
 
   const loopRoot = fixtureRoot();
-  const loop = runEvolveLoop({ root: loopRoot, noGenerate: true, noCodegen: true, mode: 'in-process' });
+  const loop = runEvolveLoop({
+    root: loopRoot,
+    noGenerate: true,
+    noCodegen: true,
+    noExpand: true,
+    mode: 'in-process',
+  });
   assert(
     'loop synthesizes at least one skill',
     loop.synthesized.length >= 1,
@@ -298,6 +328,32 @@ process.stdout.write(JSON.stringify({ reply: text, skillIds: [], steps: [], hack
 
   const gen = generateChallengerTasks(root);
   assert('taskgen returns rejected or prompts', gen.prompts.length + gen.rejected.length > 0);
+  assert(
+    'new challengers are held-out',
+    gen.prompts.length === 0 || gen.prompts.every((t) => t.split === 'held-out'),
+  );
+
+  const stableRoot = fixtureRoot();
+  const stable = runEvolveUntilStable({
+    root: stableRoot,
+    noGenerate: true,
+    noCodegen: true,
+    mode: 'in-process',
+    maxRounds: 6,
+  });
+  assert(
+    'until-stable held-out is clean',
+    stable.final.heldOutTotal > 0 && stable.final.heldOutPassed === stable.final.heldOutTotal,
+    `${stable.final.heldOutPassed}/${stable.final.heldOutTotal} rounds=${stable.rounds.length}`,
+  );
+  assert(
+    'until-stable closes train wechat',
+    !stable.final.scores.some((s) => s.taskId === 'train-wechat' && !s.pass),
+    stable.final.scores
+      .filter((s) => !s.pass)
+      .map((s) => s.taskId)
+      .join(','),
+  );
 
   const failed = checks.filter((c) => !c.ok);
   console.log(`\nResult: ${checks.length - failed.length}/${checks.length} passed`);
