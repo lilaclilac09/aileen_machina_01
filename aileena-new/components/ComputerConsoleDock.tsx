@@ -18,11 +18,58 @@ const VISITOR_STARTER_CHIPS: LearnedChip[] = [
   { alias: 'list', taskType: 'files_tree', instructions: '/workspace', route: '/proof' },
 ];
 
-function verb(task: ComputerTask): string {
-  if (task.taskType === 'write_scratch_file') return 'note';
-  if (task.taskType.startsWith('files_')) return 'find';
-  if (task.taskType.startsWith('git_')) return 'git';
-  return task.taskType;
+/** One mark per act. Screen and keys share these. */
+function sign(task: ComputerTask): string {
+  if (task.taskType === 'write_scratch_file') return '+';
+  if (task.taskType.startsWith('files_')) return '◎';
+  if (task.taskType.startsWith('git_')) return '⎇';
+  return '·';
+}
+
+function SignMark({ kind }: { kind: 'note' | 'look' | 'find' | 'git' }) {
+  const svg = {
+    width: 20,
+    height: 20,
+    viewBox: '0 0 20 20',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.45,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+    'aria-hidden': true,
+  };
+  if (kind === 'note') {
+    return (
+      <svg {...svg}>
+        <rect x="4.5" y="3.2" width="11" height="13.6" rx="1.2" />
+        <path d="M7.2 8.2h5.6M7.2 11.4h3.6" />
+      </svg>
+    );
+  }
+  if (kind === 'look') {
+    return (
+      <svg {...svg}>
+        <ellipse cx="10" cy="10" rx="7.2" ry="4.6" />
+        <circle cx="10" cy="10" r="2" fill="currentColor" stroke="none" />
+      </svg>
+    );
+  }
+  if (kind === 'find') {
+    return (
+      <svg {...svg}>
+        <circle cx="8.4" cy="8.4" r="4.6" />
+        <path d="M11.8 12.2 16 16.4" />
+      </svg>
+    );
+  }
+  return (
+    <svg {...svg}>
+      <circle cx="10" cy="4.4" r="1.55" fill="currentColor" stroke="none" />
+      <circle cx="5.4" cy="15.2" r="1.55" fill="currentColor" stroke="none" />
+      <circle cx="14.6" cy="15.2" r="1.55" fill="currentColor" stroke="none" />
+      <path d="M10 6v3.4M10 9.4 5.4 13.6M10 9.4l4.6 4.2" />
+    </svg>
+  );
 }
 
 function parseLine(raw: string): { taskType: string; instructions: string; route?: string } {
@@ -47,16 +94,14 @@ function parseLine(raw: string): { taskType: string; instructions: string; route
 }
 
 function monitorText(task: ComputerTask | null, backend: string): string {
-  if (!task) return `点 看\n${backend}`;
-  const now = `NOW  ${verb(task)} · ${task.status}`;
-  const cmd = task.instructions.replace(/\s+/g, ' ').trim().slice(0, 80);
-  const logs = task.logsRedacted.slice(-10).join('\n');
+  if (!task) return `◎\n${backend}`;
+  const logs = task.logsRedacted.slice(-8).join('\n');
   const bit = (task.error || task.artifacts[0]?.preview || task.resultSummary || '').trim().slice(0, 360);
-  return [now, cmd, logs, bit ? `──\n${bit}` : ''].filter(Boolean).join('\n');
+  return [logs, bit].filter(Boolean).join('\n');
 }
 
 const KEY_CLASS =
-  'flex-1 min-h-11 min-w-0 px-2 rounded-[8px] font-mono text-[0.72rem] tracking-[0.08em] text-[#007d75] border border-[#d8cfc0] border-b-2 border-b-[#c2b7a3] bg-white shadow-[0_1px_0_rgba(27,23,19,0.05)] active:translate-y-[1px] active:border-b disabled:opacity-40';
+  'inline-flex flex-1 min-h-11 min-w-0 items-center justify-center px-2 rounded-[8px] text-[#007d75] border border-[#d8cfc0] border-b-2 border-b-[#c2b7a3] bg-white shadow-[0_1px_0_rgba(27,23,19,0.05)] active:translate-y-[1px] active:border-b disabled:opacity-40';
 
 function chipKey(alias: string): string {
   return alias.replace(/[^\w\u4e00-\u9fff-]+/g, '-').slice(0, 40) || 'chip';
@@ -67,7 +112,7 @@ function chipKey(alias: string): string {
  * Hidden until the Computer header toggle. Visitors get a scratch pad only.
  */
 export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
-  const [flash, setFlash] = useState('ready');
+  const [flash, setFlash] = useState('◎');
   const [cloudflare, setCloudflare] = useState(false);
   const [busy, setBusy] = useState(false);
   const [tasks, setTasks] = useState<ComputerTask[]>([]);
@@ -108,19 +153,19 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
       const prev = prevStatus.current[t.id];
       if (!prev) {
         prevStatus.current[t.id] = t.status;
-        if (t.status === 'queued') setFlash('queued');
-        else if (t.status === 'running') setFlash(`${verb(t)}…`);
-        else if (t.status === 'completed') setFlash(`${verb(t)} done`);
-        else if (t.status === 'failed') setFlash('failed');
-        else if (t.status === 'blocked') setFlash('blocked');
+        if (t.status === 'queued') setFlash('…');
+        else if (t.status === 'running') setFlash(`${sign(t)}…`);
+        else if (t.status === 'completed') setFlash(sign(t));
+        else if (t.status === 'failed') setFlash('×');
+        else if (t.status === 'blocked') setFlash('×');
         continue;
       }
       if (prev !== t.status) {
-        if (t.status === 'completed') setFlash(`${verb(t)} done`);
-        else if (t.status === 'blocked') setFlash('blocked');
-        else if (t.status === 'failed') setFlash('failed');
-        else if (t.status === 'running') setFlash(`${verb(t)}…`);
-        else if (t.status === 'queued') setFlash('queued');
+        if (t.status === 'completed') setFlash(sign(t));
+        else if (t.status === 'blocked') setFlash('×');
+        else if (t.status === 'failed') setFlash('×');
+        else if (t.status === 'running') setFlash(`${sign(t)}…`);
+        else if (t.status === 'queued') setFlash('…');
       }
       prevStatus.current[t.id] = t.status;
     }
@@ -173,7 +218,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
         opts.taskType.startsWith('draft_') ||
         opts.taskType.startsWith('inspect_'))
     ) {
-      setFlash('scratch pad only');
+      setFlash('×');
       return;
     }
     setBusy(true);
@@ -196,10 +241,10 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
         return;
       }
       if (data.task?.id) setSelected(data.task.id);
-      if (data.task?.status === 'completed') setFlash(`${verb(data.task)} done`);
-      else if (data.task?.status === 'failed') setFlash('failed');
-      else if (data.task?.status === 'blocked') setFlash('blocked');
-      else setFlash('queued');
+      if (data.task?.status === 'completed') setFlash(sign(data.task));
+      else if (data.task?.status === 'failed') setFlash('×');
+      else if (data.task?.status === 'blocked') setFlash('×');
+      else setFlash('…');
       await load();
     } finally {
       setBusy(false);
@@ -250,8 +295,8 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
             }`}
           />
           <span className="min-w-0 truncate">
-            computer · {backend}
-            {isOwner ? '' : ' · resets monthly'} · {flash}
+            {backend}
+            {isOwner ? '' : ' · 30d'} · {flash}
           </span>
         </p>
 
@@ -279,7 +324,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
             onClick={() => noteNow(line.trim())}
             className={KEY_CLASS}
           >
-            记
+            <SignMark kind="note" />
           </button>
           <button
             type="button"
@@ -289,7 +334,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
             onClick={lookNow}
             className={KEY_CLASS}
           >
-            看
+            <SignMark kind="look" />
           </button>
           <button
             type="button"
@@ -311,13 +356,14 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
             }}
             className={KEY_CLASS}
           >
-            找
+            <SignMark kind="find" />
           </button>
           {isOwner ? (
             <button
               type="button"
               disabled={busy}
               data-testid="computer-learned-git-status"
+              aria-label="git"
               onClick={() => {
                 setTab('git');
                 void queue({
@@ -328,7 +374,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
               }}
               className={KEY_CLASS}
             >
-              仓库
+              <SignMark kind="git" />
             </button>
           ) : null}
         </div>
@@ -347,7 +393,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
             className="min-h-11 min-w-0 flex-1 font-mono text-[0.8rem] rounded-[8px] border border-[#d8cfc0] bg-white px-2.5 text-[#1b1713]"
           />
           <button type="submit" disabled={busy} data-testid="harness-plugin-note" className="sr-only">
-            记
+            note
           </button>
         </form>
 
@@ -445,7 +491,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
         {tasks.slice(0, 4).map((task) => (
           <li key={task.id}>
             <button type="button" data-testid={`computer-task-${task.status}`} onClick={() => setSelected(task.id)}>
-              {verb(task)} · {task.status}
+              {sign(task)} · {task.status}
             </button>
           </li>
         ))}

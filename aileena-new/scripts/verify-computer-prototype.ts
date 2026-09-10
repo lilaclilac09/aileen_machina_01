@@ -130,7 +130,7 @@ function sourceChecks() {
     /setOpen\(true\);\s*setComputerMode\(true\)/.test(agentChatSrc),
   );
   assert('visitor chips skip git status', /VISITOR_STARTER_CHIPS/.test(dockSrc) && !/VISITOR_STARTER_CHIPS[\s\S]{0,200}git status/.test(dockSrc));
-  assert('dock tells visitors scratch resets monthly', /resets monthly/.test(dockSrc) && /isOwner \? '' : ' · resets monthly'/.test(dockSrc));
+  assert('dock tells visitors scratch resets on a 30d mark', /isOwner \? '' : ' · 30d'/.test(dockSrc));
   assert('does not import @cloudflare/computer', !existsSync(join(process.cwd(), 'node_modules/@cloudflare/computer')));
   assert(
     'plugins are not DeepSeek Harness',
@@ -144,14 +144,20 @@ function sourceChecks() {
   assert('dock always polls', /setInterval\(\(\) => void load\(\), 900\)/.test(dockSrc));
   assert('dock shows learned chips', /computer-learned/.test(dockSrc) && /computer-monitor/.test(dockSrc));
   assert(
-    'dock shows simple 记 看 找 keys',
-    /computer-simple-keys/.test(dockSrc) && /computer-key-note/.test(dockSrc) && /computer-key-find/.test(dockSrc),
+    'dock shows note/look/find sign keys',
+    /computer-simple-keys/.test(dockSrc) &&
+      /computer-key-note/.test(dockSrc) &&
+      /computer-key-find/.test(dockSrc) &&
+      /SignMark kind="note"/.test(dockSrc) &&
+      /SignMark kind="look"/.test(dockSrc) &&
+      /SignMark kind="find"/.test(dockSrc) &&
+      !/>[\s]*记[\s]*</.test(dockSrc),
   );
   assert('keys have 44px tap targets', /min-h-11/.test(dockSrc) && /KEY_CLASS/.test(dockSrc));
   assert('empty 记 still queues a note', /phrase: raw \|\| 'note'/.test(dockSrc) && !/write first/.test(dockSrc));
   assert('empty 找 falls through to 看', /if \(!q\) \{\s*lookNow\(\);/.test(dockSrc) && !/type a word/.test(dockSrc));
-  assert('idle monitor tells the next tap', /点 看/.test(dockSrc));
-  assert('POST completed paints done not queued', /status === 'completed'\) setFlash\(`\$\{verb/.test(dockSrc));
+  assert('idle monitor shows the look sign', /return `◎\\n\$\{backend\}`/.test(dockSrc) && !/点 看/.test(dockSrc));
+  assert('POST completed paints the act sign', /status === 'completed'\) setFlash\(sign/.test(dockSrc));
   assert('starter chips stay before learned', /OWNER_STARTER_CHIPS : VISITOR_STARTER_CHIPS\), \.\.\.\(isOwner \? learned/.test(dockSrc));
   assert('GET tasks includes learned', /learned: listLearned\(\)/.test(tasks));
   assert('POST remembers phrase', /rememberCommand/.test(tasks) && /body.phrase/.test(tasks));

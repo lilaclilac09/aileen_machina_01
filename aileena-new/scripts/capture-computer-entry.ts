@@ -28,23 +28,23 @@ async function main() {
     await keys.waitFor({ state: 'visible', timeout: 8_000 });
   }
   await page.locator('[data-testid="computer-console-dock"]').screenshot({
-    path: join(OUT, 'computer-few-tap-idle-390.png'),
+    path: join(OUT, 'computer-signs-idle-390.png'),
   });
   await page.locator('[data-testid="computer-learned-list"]').click();
   await page.waitForFunction(() => {
-    const flash = document.querySelector('[data-testid="proof-flash"]')?.textContent || '';
-    return /find done|FIND DONE|completed/i.test(flash);
+    const m = document.querySelector('[data-testid="computer-monitor"]')?.textContent || '';
+    return /scratch|artifacts|reports/i.test(m);
   }, null, { timeout: 20_000 });
   await page.locator('[data-testid="computer-console-dock"]').screenshot({
-    path: join(OUT, 'computer-few-tap-look-390.png'),
+    path: join(OUT, 'computer-signs-look-390.png'),
   });
   await page.locator('[data-testid="computer-key-note"]').click();
   await page.waitForFunction(() => {
-    const flash = document.querySelector('[data-testid="proof-flash"]')?.textContent || '';
-    return /note done|NOTE DONE|completed/i.test(flash);
+    const m = document.querySelector('[data-testid="computer-monitor"]')?.textContent || '';
+    return /hello from aileena computer/i.test(m);
   }, null, { timeout: 20_000 });
   await page.locator('[data-testid="computer-console-dock"]').screenshot({
-    path: join(OUT, 'computer-few-tap-note-390.png'),
+    path: join(OUT, 'computer-signs-note-390.png'),
   });
   await browser.close();
   console.log('wrote computer-already-on screenshots to', OUT);
