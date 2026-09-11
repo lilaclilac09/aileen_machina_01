@@ -119,13 +119,13 @@ If the dock says `local shim`, Terminal A is down or `.env.local` is missing `CO
 
 ## What this computer can and cannot do (v1)
 
-Can: persist files under `/workspace/scratch|reports|artifacts/`, official worker-shell core (`echo cat ls grep mkdir sed awk find tree …`), owner opt-in groups `curl` `jq` `html-to-markdown` `yq` `file` `xan`, owner `>` shell in the Console, site-repo git inspect on a checkout that has `.git`.
+Can: persist files under `/workspace/scratch|reports|artifacts/`, official worker-shell core (`echo cat ls grep mkdir sed awk find tree …`), owner opt-in groups `curl` `jq` `html-to-markdown` `file` `xan`, owner `>` shell in the Console, site-repo git inspect on a checkout that has `.git`.
 
 Machina calling other apps is a **different product** (`aileena-new/lib/mcp` + `/api/agent/mcp`). It is not this Worker. Do not install `@cloudflare/computer` in Next.
 
-Visitor scratch pads reset monthly: a `.born` stamp is checked lazily on the next task after 30 days, then that visitor's `/workspace/scratch` is wiped (owner workspace never resets). Visitors cannot `curl` / `yq` / `file` / `xan` / site git.
+Visitor scratch pads reset monthly: a `.born` stamp is checked lazily on the next task after 30 days, then that visitor's `/workspace/scratch` is wiped (owner workspace never resets). Visitors cannot `curl` / `file` / `xan` / site git.
 
-Cannot: Python in this isolate (just-bash python needs `node:worker_threads`), sqlite helper worker, full Linux, `pnpm` / `npm` / `node` inside the DO, browser, email send, merge, cloning this monorepo into the Worker. Linux needs the container/`computerd` backend — a later paid slice. Health reports `container: false`.
+Cannot: Python in this isolate (just-bash python needs `node:worker_threads`), yq (`node:process` missing in workerd), sqlite helper worker, full Linux, `pnpm` / `npm` / `node` inside the DO, browser, email send, merge, cloning this monorepo into the Worker. Linux needs the container/`computerd` backend — a later paid slice. Health reports `container: false`.
 
 ## Auth
 

@@ -170,17 +170,7 @@ const yq = await req('POST', '/c/owner/exec', {
   headers: { 'content-type': 'application/json' },
   body: JSON.stringify({ command: "printf 'a: 1\\n' | yq .a" }),
 });
-let yqBody = {};
-try {
-  yqBody = JSON.parse(yq.text);
-} catch {
-  yqBody = { raw: yq.text };
-}
-assert(
-  'owner yq',
-  yq.res.ok && String(yqBody.stdout || '').trim() === '1',
-  `${yq.res.status} ${yq.text.slice(0, 160)}`,
-);
+assert('owner yq 400 (node:process missing in workerd)', yq.res.status === 400, String(yq.res.status));
 
 const visitorYq = await req('POST', `/c/${visitorId}/exec`, {
   headers: { 'content-type': 'application/json' },

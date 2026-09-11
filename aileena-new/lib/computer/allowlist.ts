@@ -56,7 +56,6 @@ export const OWNER_SHELL_BINS = [
   'curl',
   'jq',
   'html-to-markdown',
-  'yq',
   'file',
   'xan',
   'find',

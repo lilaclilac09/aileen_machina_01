@@ -11,6 +11,7 @@ import { join } from 'node:path';
 import { createOwnerSession, SESSION_COOKIE } from '../lib/auth';
 import { inspectRouteFiles, analyzeDailyFixPlan } from '../lib/computer/inspect';
 import { parseOwnerComputerCommand, parseVisitorComputerCommand } from '../lib/computer/parseOwnerCommand';
+import { curlFetchCommand, curlHttpsTarget, safeHttpsUrl } from '../lib/computer/allowlist';
 import { parseJsonRpcBody, parseMcpServers } from '../lib/mcp/remote';
 import { githubContentPath, githubReady } from '../lib/mcp/github';
 import { isMcpReadPath } from '../lib/mcp/computer';
@@ -111,7 +112,7 @@ function sourceChecks() {
   const workerSrc = readFileSync(join(process.cwd(), '..', 'workers', 'aileena-computer', 'src', 'index.ts'), 'utf8');
   assert('worker requires bearer secret', /Bearer/.test(workerSrc) && /COMPUTER_WORKER_SECRET/.test(workerSrc));
   assert('worker allowlists owner and visitor cwid', /VISITOR_RE/.test(workerSrc) && /idFromName\(name\)/.test(workerSrc));
-  assert('worker opts into official curl jq html-to-markdown yq file xan groups', /shell\/curl/.test(workerSrc) && /shell\/jq/.test(workerSrc) && /shell\/html-to-markdown/.test(workerSrc) && /shell\/yq/.test(workerSrc) && /shell\/file/.test(workerSrc) && /shell\/xan/.test(workerSrc) && !/shell\/python/.test(workerSrc));
+  assert('worker opts into official curl jq html-to-markdown file xan groups', /shell\/curl/.test(workerSrc) && /shell\/jq/.test(workerSrc) && /shell\/html-to-markdown/.test(workerSrc) && /shell\/file/.test(workerSrc) && /shell\/xan/.test(workerSrc) && !/shell\/python/.test(workerSrc) && !/shell\/yq/.test(workerSrc));
   assert('worker does not bind a Linux container', /container: false/.test(workerSrc) && !/CloudflareContainerBackend/.test(workerSrc));
   assert('worker egress is direct so curl can fetch', /egress: \{ mode: 'direct' \}/.test(workerSrc));
   assert('visitor exec cannot curl', /VISITOR_BINS/.test(workerSrc) && /name === OWNER \? OWNER_BINS : VISITOR_BINS/.test(workerSrc));

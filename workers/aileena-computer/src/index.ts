@@ -1,7 +1,8 @@
 /**
  * Small computer. Official worker-shell (just-bash) with opted-in
- * curl / jq / html-to-markdown / yq / file / xan groups.
+ * curl / jq / html-to-markdown / file / xan groups.
  * python / js-exec need node:worker_threads in workerd — not enabled.
+ * yq needs node:process in workerd — not enabled.
  * sqlite group is not shipped complete in 0.2.1. Container/computerd is
  * not bound (Workers Containers is a later paid slice).
  * Visitors keep core files commands only — no network bins.
@@ -17,7 +18,6 @@ import { WorkerShellBackend } from '@cloudflare/computer/backends/worker-shell';
 import curlModules from '@cloudflare/computer/shell/curl';
 import jqModules from '@cloudflare/computer/shell/jq';
 import htmlToMarkdownModules from '@cloudflare/computer/shell/html-to-markdown';
-import yqModules from '@cloudflare/computer/shell/yq';
 import fileModules from '@cloudflare/computer/shell/file';
 import xanModules from '@cloudflare/computer/shell/xan';
 
@@ -69,7 +69,6 @@ const OWNER_BINS = new Set([
   'curl',
   'jq',
   'html-to-markdown',
-  'yq',
   'file',
   'xan',
   'rm',
@@ -88,7 +87,7 @@ export class OwnerComputer extends withWorkspace(class extends DurableObject {},
         loader: env.LOADER,
         workspace: { binding: 'OwnerComputer', id: ctx.id.toString() },
         ctx,
-        commands: [curlModules, jqModules, htmlToMarkdownModules, yqModules, fileModules, xanModules],
+        commands: [curlModules, jqModules, htmlToMarkdownModules, fileModules, xanModules],
         egress: { mode: 'direct' },
       }),
     ],
@@ -111,7 +110,7 @@ export default {
         [
           'aileena-computer',
           'backend=cloudflare-worker-shell',
-          'groups=curl,jq,html-to-markdown,yq,file,xan',
+          'groups=curl,jq,html-to-markdown,file,xan',
           'container=unbound',
           'GET  /health',
           'PUT  /c/<name>/file/workspace/<path>  (bearer)',
@@ -128,7 +127,7 @@ export default {
       return Response.json({
         ok: true,
         backend: 'cloudflare-worker-shell',
-        groups: ['curl', 'jq', 'html-to-markdown', 'yq', 'file', 'xan'],
+        groups: ['curl', 'jq', 'html-to-markdown', 'file', 'xan'],
         egress: 'direct',
         container: false,
       });
