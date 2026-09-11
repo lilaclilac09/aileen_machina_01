@@ -54,6 +54,7 @@ import {
   MODEL_SWAP_PING,
   ACCENT_SWAP_PING,
 } from '../../../lib/consolePrefix';
+import { formatSkillsForTurn } from '../../../lib/evolution/runtime';
 
 export const maxDuration = 30;
 const DAILY_LIMIT = 20;
@@ -514,6 +515,7 @@ ${memoryPrefetch
     priorTopics,
     lastQuestion: lastQ,
     councilLensBlock: isCouncil ? formatCouncilLensForPrompt(councilLens) : '',
+    skillBlock: isCouncil ? '' : formatSkillsForTurn(lastQ),
   });
   const messagesWithTail: ModelMessage[] = sessionTail
     ? [...modelMessages, { role: 'user', content: sessionTail }]

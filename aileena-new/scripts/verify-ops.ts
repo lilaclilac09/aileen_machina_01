@@ -454,6 +454,28 @@ function main() {
     councilLensBlock: '',
   });
   assert('prefetch lives in the tail', /Memory prefetch/.test(tailSample));
+  const skillTail = buildSessionTail({
+    agentMode: 'public',
+    memoryPrefetchBlock: '',
+    toolRoute: routeToolsForQuestion('is she open to work?'),
+    visitorSoft: { questions: [], topics: [], updatedAt: '', hitCount: 0 },
+    priorTopics: [],
+    lastQuestion: 'is she open to work?',
+    councilLensBlock: '',
+    skillBlock: '# Active skills (ratcheted)\n- leave-a-note-contact@1',
+  });
+  assert('ratcheted skills live in the tail', /leave-a-note-contact@1/.test(skillTail));
+  const councilTail = buildSessionTail({
+    agentMode: 'council',
+    memoryPrefetchBlock: '',
+    toolRoute: routeToolsForQuestion('hi'),
+    visitorSoft: { questions: [], topics: [], updatedAt: '', hitCount: 0 },
+    priorTopics: [],
+    lastQuestion: 'hi',
+    councilLensBlock: '',
+    skillBlock: '# Active skills (ratcheted)\n- should-not-appear',
+  });
+  assert('council tail skips site-agent skills', !/should-not-appear/.test(councilTail));
   assert('compaction pings instead of silent slice', needsNewRootForLength(FROZEN_MAX_MESSAGES + 1) && !needsNewRootForLength(1));
   assert('provider swap needs new root', needsNewRootForProvider('deepseek', 'fallback:gpt-4o-mini'));
   assert('first turn has no provider lock', needsNewRootForProvider(undefined, 'deepseek') === false);
@@ -472,6 +494,10 @@ function main() {
   );
   assert('parses wrapped 409 new_root JSON', nrWrapped?.reason === 'accent_swap' && /Accent changed/.test(nrWrapped.message ?? ''));
   assert('chat route never silent-slices', !/messages\.slice\(-20\)/.test(chatRouteSrc) && /needsNewRootForLength/.test(chatRouteSrc));
+  assert(
+    'chat route injects ratcheted skills into the tail',
+    /formatSkillsForTurn/.test(chatRouteSrc) && /skillBlock/.test(chatRouteSrc),
+  );
   assert('chat route appends session tail', /messagesWithTail/.test(chatRouteSrc) && /sessionTail/.test(chatRouteSrc));
   assert('chat route does not import dsh', !/from ['"][^'"]*dsh|@deepseek-ai\/dsh|npx @deepseek-ai/.test(chatRouteSrc));
   assert('draw route exists', existsSync(join(process.cwd(), 'app/api/draw/route.ts')));
