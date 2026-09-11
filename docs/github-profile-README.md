@@ -14,6 +14,9 @@ DeFi propagation research & hardware supply chain analysis. Writing about why th
 
 ### Process & Precision
 * **Spec-Driven AI Co-authoring**: Treating human-written specs as the source of truth; leveraging AI to generate structural scaffolding, while leaving zero room for LLM drift or hallucination.
+* **Inspect Before Patch**: AI must read the live path, name the root cause, and ship the smallest diff. No parallel rewrite of a working flow. A code read is not acceptance.
+* **Evidence Closer**: Every AI change is graded on root cause, files changed, checks actually run, the user flow, remaining risks, and an explicit safe-to-merge call. Missing a check is reported, not implied.
+* **Production Is the Exam**: Localhost is a lab. Preview Ready ≠ Production Ready. No screenshots / no owner approval = no merge. If it cannot be proven on the live URL, it is not fixed.
 * **Compiler-Guarded Safety**: Using Rust's strict type-system (Type-State pattern, lifetime constraints) as a compile-time firewall. AI writes the code, the borrow checker verifies the logic.
 * **Deterministic Hot Paths**: Strict latency budgeting (50-80ms target in KeyShield), zero-allocation design, and aggressive profiling to keep runtime overhead at absolute zero.
 
