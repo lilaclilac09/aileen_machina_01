@@ -22,21 +22,21 @@ async function main() {
   await page.locator('[data-testid="computer-console-dock"]').screenshot({
     path: join(OUT, 'computer-symbol-keys-idle-390.png'),
   });
-  await page.locator('[data-testid="computer-learned-list"]').click();
-  await page.waitForFunction(() => {
-    const flash = document.querySelector('[data-testid="proof-flash"]')?.textContent || '';
-    return /find done|FIND DONE|completed/i.test(flash);
-  }, null, { timeout: 20_000 });
-  await page.locator('[data-testid="computer-console-dock"]').screenshot({
-    path: join(OUT, 'computer-symbol-keys-look-390.png'),
-  });
   await page.locator('[data-testid="computer-key-note"]').click();
   await page.waitForFunction(() => {
     const flash = document.querySelector('[data-testid="proof-flash"]')?.textContent || '';
     return /note done|NOTE DONE|completed/i.test(flash);
   }, null, { timeout: 20_000 });
   await page.locator('[data-testid="computer-console-dock"]').screenshot({
-    path: join(OUT, 'computer-symbol-keys-note-390.png'),
+    path: join(OUT, 'computer-symbol-plus-note-390.png'),
+  });
+  await page.locator('[data-testid="computer-learned-list"]').click();
+  await page.waitForFunction(() => {
+    const flash = document.querySelector('[data-testid="proof-flash"]')?.textContent || '';
+    return /find done|FIND DONE|completed/i.test(flash);
+  }, null, { timeout: 20_000 });
+  await page.locator('[data-testid="computer-console-dock"]').screenshot({
+    path: join(OUT, 'computer-symbol-list-after-plus-390.png'),
   });
   await browser.close();
   console.log('wrote computer-already-on screenshots to', OUT);
