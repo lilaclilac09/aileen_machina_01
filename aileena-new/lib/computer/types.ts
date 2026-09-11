@@ -15,6 +15,7 @@ export const COMPUTER_TASK_TYPES = [
   'update_proof_queue',
   'draft_daily_fix_plan',
   'write_scratch_file',
+  'shell_exec',
   'git_status',
   'git_log',
   'git_find_commit',

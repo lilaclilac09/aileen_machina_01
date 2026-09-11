@@ -34,7 +34,40 @@ export function isComputerTaskType(value: unknown): value is ComputerTaskType {
   return typeof value === 'string' && (COMPUTER_TASK_TYPES as readonly string[]).includes(value);
 }
 
-/** Visitors may only touch their own scratch workspace. Never git, email, repo files, or proof. */
+export const OWNER_SHELL_BINS = [
+  'echo',
+  'cat',
+  'ls',
+  'wc',
+  'head',
+  'tail',
+  'grep',
+  'mkdir',
+  'sed',
+  'awk',
+  'sort',
+  'uniq',
+  'cut',
+  'tr',
+  'date',
+  'pwd',
+  'printf',
+  'tee',
+  'curl',
+  'jq',
+  'sqlite3',
+  'sqlite',
+  'python',
+  'python3',
+  'rm',
+] as const;
+
+export function isOwnerShellCommand(raw: string): boolean {
+  const bin = raw.trim().split(/\s+/)[0] || '';
+  return (OWNER_SHELL_BINS as readonly string[]).includes(bin);
+}
+
+/** Visitors may only touch their own scratch workspace. Never git, email, repo files, shell, or proof. */
 export const VISITOR_COMPUTER_TASK_TYPES = ['write_scratch_file', 'files_tree', 'files_search'] as const;
 
 export type VisitorComputerTaskType = (typeof VISITOR_COMPUTER_TASK_TYPES)[number];

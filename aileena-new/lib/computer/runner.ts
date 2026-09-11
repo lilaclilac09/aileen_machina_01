@@ -302,6 +302,47 @@ async function runGitTask(task: ComputerTask): Promise<ComputerTask> {
   return logged;
 }
 
+async function runShellTask(task: ComputerTask): Promise<ComputerTask> {
+  const cmd = (task.instructions || '').trim().slice(0, 2000);
+  if (!cmd) {
+    return finishInspectStyle(task, {
+      status: 'failed',
+      summary: '⚡ empty command.',
+      report: '# shell_exec\n\nEmpty.\n',
+      preview: 'empty command',
+      title: 'shell',
+      kind: 'report',
+      error: 'empty command',
+    });
+  }
+  if (!isCloudflareComputerReady()) {
+    return finishInspectStyle(task, {
+      status: 'blocked',
+      summary: '⚡ needs worker-shell.',
+      report: '# shell_exec\n\nLocal shim is not the computer. Set COMPUTER_WORKER_URL.\n',
+      preview: 'needs worker-shell',
+      title: 'shell',
+      kind: 'report',
+      error: 'needs worker-shell',
+    });
+  }
+  const name = workspaceIdFor(task);
+  await ensureCfMount(name);
+  task = await log(task, `$ ${cmd}`);
+  const run = await cfExec(cmd, '/workspace', name);
+  const text = [run.stdout, run.stderr].filter(Boolean).join('\n');
+  const ok = run.exitCode === 0;
+  return finishInspectStyle(task, {
+    status: ok ? 'completed' : 'failed',
+    summary: ok ? `$ ${cmd}` : `exit ${run.exitCode}`,
+    report: `# shell_exec\n\n$ ${cmd}\nexit ${run.exitCode}\n\n${text}`,
+    preview: text || `exit ${run.exitCode}`,
+    title: cmd.slice(0, 40),
+    kind: 'report',
+    error: ok ? null : run.stderr || `exit ${run.exitCode}`,
+  });
+}
+
 async function runScratchTask(task: ComputerTask): Promise<ComputerTask> {
   const backend = taskBackend();
   const name = workspaceIdFor(task);
@@ -658,6 +699,8 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
       task = await runBrowserTask(task);
     } else if (task.taskType === 'write_scratch_file') {
       task = await runScratchTask(task);
+    } else if (task.taskType === 'shell_exec') {
+      task = await runShellTask(task);
     } else {
       const inspectRoute = task.route || '/daily';
       task = await log(task, `inspect route ${inspectRoute} (read-only)`);

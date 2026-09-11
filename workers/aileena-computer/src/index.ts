@@ -1,7 +1,7 @@
 /**
- * Small computer. Copied from cloudflare/computer examples/worker-shell,
- * then locked down: bearer auth, owner + visitor cwid names, write/exec allowlists.
- * Do not expose a visitor HTML app. Do not add curl/python in v1.
+ * Small computer. Official worker-shell (just-bash) with opted-in
+ * curl / jq / sqlite / python groups. Owner gets the full shell.
+ * Visitors keep core files commands only — no network.
  */
 import { DurableObject } from 'cloudflare:workers';
 import {
@@ -11,6 +11,10 @@ import {
   withWorkspace,
 } from '@cloudflare/computer';
 import { WorkerShellBackend } from '@cloudflare/computer/backends/worker-shell';
+import curlModules from '@cloudflare/computer/shell/curl';
+import jqModules from '@cloudflare/computer/shell/jq';
+import pythonModules from '@cloudflare/computer/shell/python';
+import sqliteModules from '@cloudflare/computer/shell/sqlite';
 
 export { WorkspaceServiceProxy };
 
@@ -24,8 +28,37 @@ const OWNER = 'owner';
 const VISITOR_RE = /^v-[a-z0-9]{8,32}$/;
 const MOUNT_ROOT = '/workspace';
 const WRITE_PREFIXES = ['/workspace/scratch/', '/workspace/reports/', '/workspace/artifacts/'];
-const EXEC_ALLOW = new Set(['echo', 'cat', 'ls', 'wc', 'head', 'tail', 'grep', 'mkdir']);
-const RM_ALLOW = new Set(['rm']);
+const CORE_BINS = new Set([
+  'echo',
+  'cat',
+  'ls',
+  'wc',
+  'head',
+  'tail',
+  'grep',
+  'mkdir',
+  'sed',
+  'awk',
+  'sort',
+  'uniq',
+  'cut',
+  'tr',
+  'date',
+  'pwd',
+  'printf',
+  'tee',
+]);
+const OWNER_BINS = new Set([
+  ...CORE_BINS,
+  'curl',
+  'jq',
+  'sqlite3',
+  'sqlite',
+  'python',
+  'python3',
+  'rm',
+]);
+const VISITOR_BINS = new Set([...CORE_BINS, 'rm']);
 
 export class OwnerComputer extends withWorkspace(class extends DurableObject {}, (self) => {
   const { ctx, env } = self as unknown as { ctx: DurableObjectState; env: Env };
@@ -36,6 +69,8 @@ export class OwnerComputer extends withWorkspace(class extends DurableObject {},
         loader: env.LOADER,
         workspace: { binding: 'OwnerComputer', id: ctx.id.toString() },
         ctx,
+        commands: [curlModules, jqModules, sqliteModules, pythonModules],
+        egress: { mode: 'direct' },
       }),
     ],
   };
@@ -57,6 +92,7 @@ export default {
         [
           'aileena-computer',
           'backend=cloudflare-worker-shell',
+          'groups=curl,jq,sqlite,python',
           'GET  /health',
           'PUT  /c/<name>/file/workspace/<path>  (bearer)',
           'GET  /c/<name>/file/workspace/<path>  (bearer)',
@@ -69,7 +105,12 @@ export default {
     }
 
     if (url.pathname === '/health') {
-      return Response.json({ ok: true, backend: 'cloudflare-worker-shell' });
+      return Response.json({
+        ok: true,
+        backend: 'cloudflare-worker-shell',
+        groups: ['curl', 'jq', 'sqlite', 'python'],
+        egress: 'direct',
+      });
     }
 
     const denied = requireSecret(request, env);
@@ -170,22 +211,24 @@ async function handleExec(request: Request, env: Env, name: string): Promise<Res
     return errorJSON(new Error('invalid JSON body'), 400);
   }
 
-  let argv: string[] = [];
-  if (Array.isArray(body.argv) && body.argv.length > 0) {
-    argv = body.argv.map((s) => String(s)).slice(0, 16);
-  } else if (typeof body.command === 'string' && body.command.length > 0) {
-    if (body.command.length > 1000) return errorJSON(new Error('command too long'), 400);
-    argv = body.command.trim().split(/\s+/);
+  let command = '';
+  if (typeof body.command === 'string' && body.command.trim()) {
+    if (body.command.length > 2000) return errorJSON(new Error('command too long'), 400);
+    command = body.command.trim();
+  } else if (Array.isArray(body.argv) && body.argv.length > 0) {
+    command = body.argv.map((s) => String(s)).slice(0, 16).map(shellQuote).join(' ');
   } else {
     return errorJSON(new Error('must provide command or argv'), 400);
   }
 
-  const bin = argv[0] || '';
-  if (!EXEC_ALLOW.has(bin) && !RM_ALLOW.has(bin)) {
+  const bin = command.split(/\s+/)[0] || '';
+  const allow = name === OWNER ? OWNER_BINS : VISITOR_BINS;
+  if (!allow.has(bin)) {
     return errorJSON(new Error(`command not allowlisted: ${bin}`), 400);
   }
-  if (RM_ALLOW.has(bin)) {
-    const target = argv.find((a) => a.startsWith('/workspace/') || (!a.startsWith('-') && a !== 'rm'));
+  if (bin === 'rm') {
+    const parts = command.split(/\s+/).slice(1);
+    const target = parts.find((a) => a.startsWith('/workspace/') || (!a.startsWith('-') && a !== 'rm'));
     const abs = target?.startsWith('/') ? target : `${MOUNT_ROOT}/${target ?? ''}`;
     if (!target || !isWriteAllowed(abs)) {
       return errorJSON(new Error('rm only under scratch/reports/artifacts'), 400);
@@ -193,13 +236,12 @@ async function handleExec(request: Request, env: Env, name: string): Promise<Res
   }
 
   const cwd = typeof body.cwd === 'string' && body.cwd.startsWith(MOUNT_ROOT) ? body.cwd : MOUNT_ROOT;
-  const command = argv.map(shellQuote).join(' ');
 
   using ws = await workspaceOf(env, name);
   try {
     using handle = await ws.runtime.exec(command, { cwd, encoding: 'utf8' });
     const result = await handle.result();
-    const stdout = clip(String(result.stdout ?? ''), 2000);
+    const stdout = clip(String(result.stdout ?? ''), 4000);
     const stderr = clip(String(result.stderr ?? ''), 2000);
     return Response.json({
       exitCode: result.exitCode,

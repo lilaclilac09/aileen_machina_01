@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ComputerTask } from '../lib/computer/types';
 import type { ProofItem } from '../lib/proofQueue/types';
+import { isOwnerShellCommand } from '../lib/computer/allowlist';
 
 type AppTab = 'note' | 'find' | 'git';
 type LearnedChip = { alias: string; taskType: string; instructions: string; route: string };
@@ -20,6 +21,7 @@ const VISITOR_STARTER_CHIPS: LearnedChip[] = [
 
 function verb(task: ComputerTask): string {
   if (task.taskType === 'write_scratch_file') return 'note';
+  if (task.taskType === 'shell_exec') return 'sh';
   if (task.taskType.startsWith('files_')) return 'find';
   if (task.taskType.startsWith('git_')) return 'git';
   return task.taskType;
@@ -46,8 +48,8 @@ function parseLine(raw: string): { taskType: string; instructions: string; route
   };
 }
 
-function monitorText(task: ComputerTask | null, backend: string): string {
-  if (!task) return `≡\n${backend}`;
+function monitorText(task: ComputerTask | null, backend: string, hint: string): string {
+  if (!task) return `${hint}\n${backend}`;
   const now = `NOW  ${verb(task)} · ${task.status}`;
   const cmd = task.instructions.replace(/\s+/g, ' ').trim().slice(0, 80);
   const logs = task.logsRedacted.slice(-10).join('\n');
@@ -164,6 +166,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
     if (
       !isOwner &&
       (opts.taskType.startsWith('git_') ||
+        opts.taskType === 'shell_exec' ||
         opts.taskType === 'files_open' ||
         opts.taskType.startsWith('email_') ||
         opts.taskType.startsWith('browser_') ||
@@ -225,6 +228,12 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
       noteNow('');
       return;
     }
+    if (isOwner && isOwnerShellCommand(raw)) {
+      setTab('find');
+      void queue({ taskType: 'shell_exec', instructions: raw, phrase: raw });
+      setLine('');
+      return;
+    }
     const parsed = parseLine(raw);
     setTab(parsed.taskType === 'write_scratch_file' ? 'note' : parsed.taskType.startsWith('git_') ? 'git' : 'find');
     void queue({ ...parsed, phrase: raw });
@@ -264,7 +273,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
             data-live={live ? '1' : '0'}
             className="font-mono text-[0.58rem] leading-relaxed text-[#8fe6dd] whitespace-pre-wrap max-h-24 overflow-y-auto px-2 py-1.5 [text-shadow:0_0_5px_rgba(0,168,157,0.35)]"
           >
-            {monitorText(selectedTask, backend)}
+            {monitorText(selectedTask, backend, isOwner ? '>' : '≡')}
           </pre>
         </div>
 
@@ -311,6 +320,27 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
           >
             /
           </button>
+          {isOwner ? (
+            <button
+              type="button"
+              disabled={busy}
+              data-testid="computer-key-shell"
+              aria-label="shell"
+              onClick={() => {
+                const raw = line.trim();
+                setTab('find');
+                void queue({
+                  taskType: 'shell_exec',
+                  instructions: raw || 'ls /workspace',
+                  phrase: raw || 'ls',
+                });
+                setLine('');
+              }}
+              className={KEY_CLASS}
+            >
+              &gt;
+            </button>
+          ) : null}
           {isOwner ? (
             <button
               type="button"

@@ -101,6 +101,12 @@ function sourceChecks() {
   const workerSrc = readFileSync(join(process.cwd(), '..', 'workers', 'aileena-computer', 'src', 'index.ts'), 'utf8');
   assert('worker requires bearer secret', /Bearer/.test(workerSrc) && /COMPUTER_WORKER_SECRET/.test(workerSrc));
   assert('worker allowlists owner and visitor cwid', /VISITOR_RE/.test(workerSrc) && /idFromName\(name\)/.test(workerSrc));
+  assert('worker opts into official curl jq sqlite python groups', /shell\/curl/.test(workerSrc) && /shell\/jq/.test(workerSrc) && /shell\/sqlite/.test(workerSrc) && /shell\/python/.test(workerSrc));
+  assert('worker egress is direct so curl can fetch', /egress: \{ mode: 'direct' \}/.test(workerSrc));
+  assert('visitor exec cannot curl', /VISITOR_BINS/.test(workerSrc) && /name === OWNER \? OWNER_BINS : VISITOR_BINS/.test(workerSrc));
+  assert('shell_exec is an owner task type', /'shell_exec'/.test(readFileSync(join(process.cwd(), 'lib/computer/types.ts'), 'utf8')));
+  assert('visitors cannot queue shell_exec', !/VISITOR_COMPUTER_TASK_TYPES[\s\S]{0,200}shell_exec/.test(readFileSync(join(process.cwd(), 'lib/computer/allowlist.ts'), 'utf8')));
+  assert('dock has owner shell key', /computer-key-shell/.test(dockSrc));
   assert('runner finds git commits', /git_find_commit/.test(runner) && /gitFindCommit/.test(runner));
   assert('runner blocks email send', /email_send/.test(runner) && /email not connected/.test(runner));
   assert('runner blocks fake browser screenshots', /browser_screenshot/.test(runner) && /No fake screenshots/.test(runner));
@@ -139,7 +145,7 @@ function sourceChecks() {
   assert('keys have 44px tap targets', /min-h-11/.test(dockSrc) && /KEY_CLASS/.test(dockSrc));
   assert('empty 记 still queues a note', /phrase: raw \|\| 'note'/.test(dockSrc) && !/write first/.test(dockSrc));
   assert('empty 找 falls through to 看', /if \(!q\) \{\s*lookNow\(\);/.test(dockSrc) && !/type a word/.test(dockSrc));
-  assert('idle monitor tells the next tap', /`≡\\n\$\{backend\}`/.test(dockSrc));
+  assert('idle monitor tells the next tap', /isOwner \? '>' : '≡'/.test(dockSrc));
   assert('empty scratch is a dated note not hello probe', /raw \? raw\.slice\(0, 4000\) : '·'/.test(runner) && !/!raw \|\|/.test(runner));
   assert('starter chips stay before learned', /OWNER_STARTER_CHIPS : VISITOR_STARTER_CHIPS\), \.\.\.\(isOwner \? learned/.test(dockSrc));
   assert('GET tasks includes learned', /learned: listLearned\(\)/.test(tasks));
