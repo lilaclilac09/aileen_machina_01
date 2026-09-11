@@ -129,3 +129,22 @@ export function workspaceGrep(workspaceId: string, rawQuery: string): { lines: s
     summary: hits.length ? `${hits.length} matches for ${query}` : `no matches for ${query}`,
   };
 }
+
+/** Newest scratch note in a shim workspace. Skips .born. */
+export async function workspaceLatestNote(
+  workspaceId: string,
+): Promise<{ path: string; body: string; bytes: number } | null> {
+  const { lines } = workspaceList(workspaceId);
+  const files: string[] = [];
+  for (const line of lines) {
+    const m = /^(scratch\/\S+)\s+\d+$/.exec(line.trim());
+    if (!m) continue;
+    if (m[1].includes('.born')) continue;
+    files.push(`/${m[1]}`);
+  }
+  const notes = files.filter((p) => p.startsWith('/scratch/notes/')).sort();
+  const pick = notes.at(-1) ?? files.filter((p) => p.startsWith('/scratch/')).sort().at(-1);
+  if (!pick) return null;
+  const body = await workspaceReadFile(workspaceId, pick);
+  return { path: pick, body, bytes: Buffer.byteLength(body) };
+}

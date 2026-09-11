@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ComputerTask } from '../lib/computer/types';
 import type { ProofItem } from '../lib/proofQueue/types';
+import { curlHeadCommand, isOwnerShellCommand, safeHttpsUrl } from '../lib/computer/allowlist';
 
 type AppTab = 'note' | 'find' | 'git';
 type LearnedChip = { alias: string; taskType: string; instructions: string; route: string };
@@ -21,12 +22,15 @@ const VISITOR_STARTER_CHIPS: LearnedChip[] = [
 /** One mark per act. Screen and keys share these. */
 function sign(task: ComputerTask): string {
   if (task.taskType === 'write_scratch_file') return '+';
+  if (task.taskType === 'scratch_peek') return '○';
+  if (task.taskType === 'scratch_clock') return ':';
+  if (task.taskType === 'shell_exec') return '>';
   if (task.taskType.startsWith('files_')) return '◎';
   if (task.taskType.startsWith('git_')) return '⎇';
   return '·';
 }
 
-function SignMark({ kind }: { kind: 'note' | 'look' | 'find' | 'git' }) {
+function SignMark({ kind }: { kind: 'note' | 'look' | 'find' | 'git' | 'shell' }) {
   const svg = {
     width: 20,
     height: 20,
@@ -59,6 +63,13 @@ function SignMark({ kind }: { kind: 'note' | 'look' | 'find' | 'git' }) {
       <svg {...svg}>
         <circle cx="8.4" cy="8.4" r="4.6" />
         <path d="M11.8 12.2 16 16.4" />
+      </svg>
+    );
+  }
+  if (kind === 'shell') {
+    return (
+      <svg {...svg}>
+        <path d="M5.2 6.2 9.4 10 5.2 13.8M10.4 14.6h4.4" />
       </svg>
     );
   }
@@ -212,6 +223,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
     if (
       !isOwner &&
       (opts.taskType.startsWith('git_') ||
+        opts.taskType === 'shell_exec' ||
         opts.taskType === 'files_open' ||
         opts.taskType.startsWith('email_') ||
         opts.taskType.startsWith('browser_') ||
@@ -272,6 +284,22 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
       noteNow('');
       return;
     }
+    if (isOwner) {
+      const https = safeHttpsUrl(raw);
+      if (https) {
+        const cmd = curlHeadCommand(https);
+        setTab('find');
+        void queue({ taskType: 'shell_exec', instructions: cmd, phrase: cmd });
+        setLine('');
+        return;
+      }
+      if (isOwnerShellCommand(raw)) {
+        setTab('find');
+        void queue({ taskType: 'shell_exec', instructions: raw, phrase: raw });
+        setLine('');
+        return;
+      }
+    }
     const parsed = parseLine(raw);
     setTab(parsed.taskType === 'write_scratch_file' ? 'note' : parsed.taskType.startsWith('git_') ? 'git' : 'find');
     void queue({ ...parsed, phrase: raw });
@@ -316,7 +344,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
           </pre>
         </div>
 
-        <div className="flex gap-1.5" data-testid="computer-simple-keys">
+        <div className="flex flex-wrap gap-1.5" data-testid="computer-simple-keys">
           <button
             type="button"
             disabled={busy}
@@ -359,6 +387,55 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
           >
             <SignMark kind="find" />
           </button>
+          <button
+            type="button"
+            disabled={busy}
+            data-testid="computer-key-peek"
+            aria-label="peek"
+            onClick={() => {
+              setTab('find');
+              void queue({ taskType: 'scratch_peek', instructions: 'last', phrase: 'peek' });
+            }}
+            className={KEY_CLASS}
+          >
+            ○
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            data-testid="computer-key-clock"
+            aria-label="clock"
+            onClick={() => {
+              setTab('note');
+              void queue({ taskType: 'scratch_clock', instructions: 'now', phrase: 'clock' });
+            }}
+            className={KEY_CLASS}
+          >
+            :
+          </button>
+          {isOwner ? (
+            <button
+              type="button"
+              disabled={busy}
+              data-testid="computer-key-shell"
+              aria-label="shell"
+              onClick={() => {
+                const raw = line.trim();
+                const https = safeHttpsUrl(raw);
+                const cmd = https ? curlHeadCommand(https) : raw || 'ls /workspace';
+                setTab('find');
+                void queue({
+                  taskType: 'shell_exec',
+                  instructions: cmd,
+                  phrase: cmd,
+                });
+                setLine('');
+              }}
+              className={KEY_CLASS}
+            >
+              <SignMark kind="shell" />
+            </button>
+          ) : null}
           {isOwner ? (
             <button
               type="button"

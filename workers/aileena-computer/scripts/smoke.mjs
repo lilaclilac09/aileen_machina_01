@@ -72,9 +72,49 @@ assert('write outside allowlist 400', blockedWrite.res.status === 400, String(bl
 
 const blockedExec = await req('POST', '/c/owner/exec', {
   headers: { 'content-type': 'application/json' },
-  body: JSON.stringify({ command: 'curl https://example.com' }),
+  body: JSON.stringify({ command: 'npm install' }),
 });
-assert('curl exec 400', blockedExec.res.status === 400, String(blockedExec.res.status));
+assert('npm exec 400', blockedExec.res.status === 400, String(blockedExec.res.status));
+
+const awk = await req('POST', '/c/owner/exec', {
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ command: "printf 'a b\\n' | awk '{print $1}'" }),
+});
+let awkBody = {};
+try {
+  awkBody = JSON.parse(awk.text);
+} catch {
+  awkBody = { raw: awk.text };
+}
+assert('owner awk', awk.res.ok && String(awkBody.stdout || '').includes('a'), `${awk.res.status} ${awk.text.slice(0, 160)}`);
+
+const curl = await req('POST', '/c/owner/exec', {
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ command: 'curl -sI https://example.com' }),
+});
+let curlBody = {};
+try {
+  curlBody = JSON.parse(curl.text);
+} catch {
+  curlBody = { raw: curl.text };
+}
+assert(
+  'owner curl',
+  curl.res.ok && /HTTP\//i.test(String(curlBody.stdout || '') + String(curlBody.stderr || '')),
+  `${curl.res.status} ${curl.text.slice(0, 200)}`,
+);
+
+const jq = await req('POST', '/c/owner/exec', {
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ command: `printf '{"a":1}' | jq .a` }),
+});
+let jqBody = {};
+try {
+  jqBody = JSON.parse(jq.text);
+} catch {
+  jqBody = { raw: jq.text };
+}
+assert('owner jq', jq.res.ok && String(jqBody.stdout || '').trim() === '1', `${jq.res.status} ${jq.text.slice(0, 160)}`);
 
 const otherName = await req('GET', '/c/visitor/file/workspace/scratch/hello.txt');
 assert('non-cwid name 404', otherName.res.status === 404, String(otherName.res.status));
@@ -103,6 +143,12 @@ assert(
 
 const otherVisitor = await req('GET', '/c/v-otherxxxxxxxx/file/workspace/scratch/hello.txt');
 assert('other visitor missing 404', otherVisitor.res.status === 404, String(otherVisitor.res.status));
+
+const visitorCurl = await req('POST', `/c/${visitorId}/exec`, {
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ command: 'curl -sI https://example.com' }),
+});
+assert('visitor curl 400', visitorCurl.res.status === 400, String(visitorCurl.res.status));
 
 const storePath = '/c/v-testdevworker01/file/workspace/reports/_store/tasks.json';
 const putStore1 = await req('PUT', storePath, {

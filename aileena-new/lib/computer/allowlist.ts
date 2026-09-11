@@ -34,8 +34,65 @@ export function isComputerTaskType(value: unknown): value is ComputerTaskType {
   return typeof value === 'string' && (COMPUTER_TASK_TYPES as readonly string[]).includes(value);
 }
 
-/** Visitors may only touch their own scratch workspace. Never git, email, repo files, or proof. */
-export const VISITOR_COMPUTER_TASK_TYPES = ['write_scratch_file', 'files_tree', 'files_search'] as const;
+export const OWNER_SHELL_BINS = [
+  'echo',
+  'cat',
+  'ls',
+  'wc',
+  'head',
+  'tail',
+  'grep',
+  'mkdir',
+  'sed',
+  'awk',
+  'sort',
+  'uniq',
+  'cut',
+  'tr',
+  'date',
+  'pwd',
+  'printf',
+  'tee',
+  'curl',
+  'jq',
+  'rm',
+] as const;
+
+export function isOwnerShellCommand(raw: string): boolean {
+  const bin = raw.trim().split(/\s+/)[0] || '';
+  return (OWNER_SHELL_BINS as readonly string[]).includes(bin);
+}
+
+/** Public https only. No localhost / RFC1918 / link-local. */
+export function safeHttpsUrl(raw: string): string | null {
+  const t = raw.trim();
+  if (!t || t.length > 200) return null;
+  let u: URL;
+  try {
+    u = new URL(t);
+  } catch {
+    return null;
+  }
+  if (u.protocol !== 'https:') return null;
+  const host = u.hostname.toLowerCase();
+  if (host === 'localhost' || host.endsWith('.local') || host === '0.0.0.0') return null;
+  if (/^(127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[0-1])\.|169\.254\.)/.test(host)) return null;
+  if (host === '::1' || host.startsWith('[')) return null;
+  return u.toString();
+}
+
+export function curlHeadCommand(url: string): string {
+  return `curl -sI --max-time 8 ${url}`;
+}
+
+/** Visitors may only touch their own scratch workspace. Never git, email, repo files, shell, or proof. */
+export const VISITOR_COMPUTER_TASK_TYPES = [
+  'write_scratch_file',
+  'files_tree',
+  'files_search',
+  'scratch_peek',
+  'scratch_clock',
+] as const;
 
 export type VisitorComputerTaskType = (typeof VISITOR_COMPUTER_TASK_TYPES)[number];
 

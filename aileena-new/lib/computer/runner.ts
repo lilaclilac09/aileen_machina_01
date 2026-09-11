@@ -7,6 +7,7 @@ import { getComputerTask, isOwnerComputerTask, nowIso, taskActorId, upsertComput
 import type { ComputerArtifact, ComputerTask, ComputerTaskStatus } from './types';
 import {
   workspaceGrep,
+  workspaceLatestNote,
   workspaceList,
   workspaceReadFile,
   workspaceRuntimeProbe,
@@ -302,6 +303,47 @@ async function runGitTask(task: ComputerTask): Promise<ComputerTask> {
   return logged;
 }
 
+async function runShellTask(task: ComputerTask): Promise<ComputerTask> {
+  const cmd = (task.instructions || '').trim().slice(0, 2000);
+  if (!cmd) {
+    return finishInspectStyle(task, {
+      status: 'failed',
+      summary: '⚡ empty command.',
+      report: '# shell_exec\n\nEmpty.\n',
+      preview: 'empty command',
+      title: 'shell',
+      kind: 'report',
+      error: 'empty command',
+    });
+  }
+  if (!isCloudflareComputerReady()) {
+    return finishInspectStyle(task, {
+      status: 'blocked',
+      summary: '⚡ needs worker-shell.',
+      report: '# shell_exec\n\nLocal shim is not the computer. Set COMPUTER_WORKER_URL.\n',
+      preview: 'needs worker-shell',
+      title: 'shell',
+      kind: 'report',
+      error: 'needs worker-shell',
+    });
+  }
+  const name = workspaceIdFor(task);
+  await ensureCfMount(name);
+  task = await log(task, `$ ${cmd}`);
+  const run = await cfExec(cmd, '/workspace', name);
+  const text = [run.stdout, run.stderr].filter(Boolean).join('\n');
+  const ok = run.exitCode === 0;
+  return finishInspectStyle(task, {
+    status: ok ? 'completed' : 'failed',
+    summary: ok ? `$ ${cmd}` : `exit ${run.exitCode}`,
+    report: `# shell_exec\n\n$ ${cmd}\nexit ${run.exitCode}\n\n${text}`,
+    preview: text || `exit ${run.exitCode}`,
+    title: cmd.slice(0, 40),
+    kind: 'report',
+    error: ok ? null : run.stderr || `exit ${run.exitCode}`,
+  });
+}
+
 async function runScratchTask(task: ComputerTask): Promise<ComputerTask> {
   const backend = taskBackend();
   const name = workspaceIdFor(task);
@@ -395,11 +437,7 @@ function scratchPayload(
   backend: ComputerBackend,
 ): { shimPath: string; cfPath: string; body: string; append: boolean } {
   const raw = (task.instructions || '').trim();
-  const isProbe =
-    !raw ||
-    /hello\.txt/i.test(raw) ||
-    /write \/scratch/i.test(raw) ||
-    /read it back/i.test(raw);
+  const isProbe = /hello\.txt/i.test(raw) || /write \/scratch/i.test(raw) || /read it back/i.test(raw);
   if (isProbe) {
     return {
       shimPath: '/scratch/hello.txt',
@@ -412,9 +450,92 @@ function scratchPayload(
   return {
     shimPath: `/scratch/notes/${day}.txt`,
     cfPath: `/workspace/scratch/notes/${day}.txt`,
-    body: `${nowIso()}\n${raw.slice(0, 4000)}\n\n`,
+    body: `${nowIso()}\n${raw ? raw.slice(0, 4000) : '·'}\n\n`,
     append: true,
   };
+}
+
+async function cfLatestNote(name: string): Promise<{ path: string; body: string } | null> {
+  const ls = await cfExec('ls -1 /workspace/scratch/notes', '/workspace', name);
+  const files = String(ls.stdout || '')
+    .split('\n')
+    .map((s) => s.trim())
+    .filter((s) => s && !s.startsWith('.') && !s.includes('/'));
+  files.sort();
+  const last = files.at(-1);
+  if (last) {
+    const path = `/workspace/scratch/notes/${last}`;
+    try {
+      return { path, body: await cfGetFile(path, name) };
+    } catch {
+      /* fall through */
+    }
+  }
+  try {
+    return { path: '/workspace/scratch/hello.txt', body: await cfGetFile('/workspace/scratch/hello.txt', name) };
+  } catch {
+    return null;
+  }
+}
+
+async function runScratchPeek(task: ComputerTask): Promise<ComputerTask> {
+  const name = workspaceIdFor(task);
+  if (isCloudflareComputerReady()) {
+    await ensureCfMount(name);
+    const note = await cfLatestNote(name);
+    if (!note) {
+      return finishInspectStyle(task, {
+        status: 'completed',
+        summary: 'empty scratch',
+        report: '# scratch_peek\n\nempty\n',
+        preview: 'empty scratch',
+        title: 'peek',
+        kind: 'scratch',
+      });
+    }
+    return finishInspectStyle(task, {
+      status: 'completed',
+      summary: note.path,
+      report: `# scratch_peek\n\n${note.path}\n\n${note.body}`,
+      preview: `${note.path}\n──\n${note.body}`.slice(0, 2000),
+      title: 'peek',
+      kind: 'scratch',
+      filesInspected: [note.path],
+    });
+  }
+  const note = await workspaceLatestNote(name);
+  if (!note) {
+    return finishInspectStyle(task, {
+      status: 'completed',
+      summary: 'empty scratch',
+      report: '# scratch_peek\n\nempty\n',
+      preview: 'empty scratch',
+      title: 'peek',
+      kind: 'scratch',
+    });
+  }
+  return finishInspectStyle(task, {
+    status: 'completed',
+    summary: note.path,
+    report: `# scratch_peek\n\n${note.path} (${note.bytes}b)\n\n${note.body}`,
+    preview: `${note.path} · ${note.bytes}b\n──\n${note.body}`.slice(0, 2000),
+    title: 'peek',
+    kind: 'scratch',
+    filesInspected: [note.path],
+  });
+}
+
+async function runScratchClock(task: ComputerTask): Promise<ComputerTask> {
+  const stamp = nowIso();
+  const line = `${stamp}\n${taskBackend()}`;
+  return finishInspectStyle(task, {
+    status: 'completed',
+    summary: stamp,
+    report: `# scratch_clock\n\n${line}\n`,
+    preview: line,
+    title: 'clock',
+    kind: 'report',
+  });
 }
 
 async function runCfFilesTask(task: ComputerTask): Promise<ComputerTask> {
@@ -634,7 +755,7 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
         : null;
     }
     task = fresh;
-    if (!isOwnerComputerTask(task) && !['write_scratch_file', 'files_tree', 'files_search'].includes(task.taskType)) {
+    if (!isOwnerComputerTask(task) && !['write_scratch_file', 'files_tree', 'files_search', 'scratch_peek', 'scratch_clock'].includes(task.taskType)) {
       const blocked = await finishInspectStyle(task, {
         status: 'blocked',
         summary: '⚡ scratch pad only. No site git, no merge.',
@@ -665,6 +786,12 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
       task = await runBrowserTask(task);
     } else if (task.taskType === 'write_scratch_file') {
       task = await runScratchTask(task);
+    } else if (task.taskType === 'scratch_peek') {
+      task = await runScratchPeek(task);
+    } else if (task.taskType === 'scratch_clock') {
+      task = await runScratchClock(task);
+    } else if (task.taskType === 'shell_exec') {
+      task = await runShellTask(task);
     } else {
       const inspectRoute = task.route || '/daily';
       task = await log(task, `inspect route ${inspectRoute} (read-only)`);

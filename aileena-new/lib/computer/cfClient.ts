@@ -8,7 +8,7 @@ import { clip, redactSecrets } from './redact';
 
 export type ComputerBackend = 'local-shim' | 'cloudflare-worker-shell';
 
-const TIMEOUT_MS = 15_000;
+const TIMEOUT_MS = 25_000;
 
 export function isCloudflareComputerReady(): boolean {
   return isComputerPrototypeEnabled() && hasComputerWorkerEnv();
