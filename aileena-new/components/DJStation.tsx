@@ -1,7 +1,8 @@
 'use client';
-import { useState, useRef, useEffect, useCallback, useMemo, useSyncExternalStore } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import TrackLibraryBrowser from './TrackLibraryBrowser';
 import { allDeckTracks, type DeckTrack } from '../lib/djSetlist';
+import { useDuoLayout } from '../lib/duoPose';
 
 /* ─── Palette — aligned to AgentChat cream + deep green ─── */
 const C = {
@@ -67,25 +68,10 @@ function fmt(ms: number) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
-/* ─── Responsive hook ────────────────────────────────────── */
-function subscribeMobile(onStoreChange: () => void) {
-  const mq = window.matchMedia('(max-width: 639px)');
-  mq.addEventListener('change', onStoreChange);
-  return () => mq.removeEventListener('change', onStoreChange);
-}
-function getMobileSnapshot() {
-  return window.matchMedia('(max-width: 639px)').matches;
-}
-function getMobileServerSnapshot() {
-  return false;
-}
-function useIsMobile() {
-  return useSyncExternalStore(subscribeMobile, getMobileSnapshot, getMobileServerSnapshot);
-}
-
 /* ─── Main ───────────────────────────────────────────────── */
 export default function DJStation() {
-  const isMobile = useIsMobile();
+  const duo = useDuoLayout();
+  const isMobile = duo.stack;
   const [leftTrack,    setLeftTrack]    = useState<Track | null>(DJ_SET[0] ?? null);
   const [rightTrack,   setRightTrack]   = useState<Track | null>(DJ_SET[Math.min(3, DJ_SET.length - 1)] ?? null);
   const [leftPlaying,  setLeftPlaying]  = useState(false);
@@ -213,7 +199,13 @@ export default function DJStation() {
   }, [leftTrack, rightTrack, leftPitch]);
 
   return (
-    <div style={{ userSelect: 'none', width: '100%', background: '#0b0d10' }}>
+    <div
+      className="dj-station"
+      data-duo-pose={duo.pose}
+      data-duo-chrome={duo.chromeEdge}
+      data-testid="dj-duo-pose"
+      style={{ userSelect: 'none', width: '100%', background: '#0b0d10' }}
+    >
 
       {/* ── Spotify embed containers (functional audio) ── */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 6, marginBottom: 8 }}>
@@ -272,9 +264,9 @@ export default function DJStation() {
           </span>
         </div>
 
-        {/* Deck + Mixer grid */}
+        {/* Deck + Mixer — stack on phone/closed; A | xfade | B on book/wide */}
         {isMobile ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 10 }}>
+          <div className="dj-mixer-grid" style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 10 }}>
             <DeckPanel
               side="left" track={leftTrack} playing={leftPlaying} isMobile={true} synced={bpmHint?.type === 'sync'}
               pos={leftPos} dur={leftDur || (leftTrack?.dur ?? 0) * 1000}
@@ -288,7 +280,7 @@ export default function DJStation() {
               onScratchEnd={() => { if (leftWasPlaying.current) leftCtrl.current?.togglePlay(); }}
               onSync={handleSyncLeft}
             />
-            <MixerPanel xfade={xfade} onXfade={handleXfade} isMobile={true} />
+            <MixerPanel xfade={xfade} onXfade={handleXfade} isMobile={true} fatXfade />
             <DeckPanel
               side="right" track={rightTrack} playing={rightPlaying} isMobile={true} synced={bpmHint?.type === 'sync'}
               pos={rightPos} dur={rightDur || (rightTrack?.dur ?? 0) * 1000}
@@ -304,7 +296,15 @@ export default function DJStation() {
             />
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 1fr', gap: 8, marginBottom: 10 }}>
+          <div
+            className="dj-mixer-grid"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: duo.book ? 'minmax(0,1fr) minmax(88px, 132px) minmax(0,1fr)' : '1fr 100px 1fr',
+              gap: duo.book ? '8px 20px' : 8,
+              marginBottom: 10,
+            }}
+          >
             <DeckPanel
               side="left" track={leftTrack} playing={leftPlaying} synced={bpmHint?.type === 'sync'}
               pos={leftPos} dur={leftDur || (leftTrack?.dur ?? 0) * 1000}
@@ -318,7 +318,7 @@ export default function DJStation() {
               onScratchEnd={() => { if (leftWasPlaying.current) leftCtrl.current?.togglePlay(); }}
               onSync={handleSyncLeft}
             />
-            <MixerPanel xfade={xfade} onXfade={handleXfade} />
+            <MixerPanel xfade={xfade} onXfade={handleXfade} foldGutter={duo.foldGutter} />
             <DeckPanel
               side="right" track={rightTrack} playing={rightPlaying} synced={bpmHint?.type === 'sync'}
               pos={rightPos} dur={rightDur || (rightTrack?.dur ?? 0) * 1000}
@@ -625,8 +625,8 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {/* Play/Pause */}
-          <button onClick={onToggle} style={{
-            width: 38, height: 38, borderRadius: '50%', cursor: 'pointer',
+          <button className="dj-tap" onClick={onToggle} aria-label={playing ? 'Pause' : 'Play'} style={{
+            width: 44, height: 44, borderRadius: '50%', cursor: 'pointer',
             background: playing ? `rgba(0,168,157,0.1)` : '#14181e',
             border: `1px solid ${playing ? 'rgba(0,168,157,0.55)' : 'rgba(170,179,187,0.22)'}`,
             boxShadow: playing ? `0 0 10px rgba(0,168,157,0.28)` : 'inset 0 2px 5px rgba(0,0,0,0.4)',
@@ -636,8 +636,8 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
             transition: 'all 0.15s',
           }}>{playing ? '⏸' : '▶'}</button>
           {/* CUE */}
-          <button onClick={() => setCueMs(pos > 0 ? pos : null)} style={{
-            width: 38, height: 38, borderRadius: '50%', cursor: 'pointer',
+          <button className="dj-tap" onClick={() => setCueMs(pos > 0 ? pos : null)} aria-label="Cue" style={{
+            width: 44, height: 44, borderRadius: '50%', cursor: 'pointer',
             background: cueMs !== null ? 'rgba(125,183,255,0.1)' : '#14181e',
             border: `1px solid ${cueMs !== null ? 'rgba(125,183,255,0.55)' : 'rgba(170,179,187,0.22)'}`,
             boxShadow: cueMs !== null ? '0 0 8px rgba(125,183,255,0.25)' : 'inset 0 2px 5px rgba(0,0,0,0.4)',
@@ -709,8 +709,8 @@ function PioneerControls({ side, playing, synced, pos, onSync }: {
         display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap',
       }}>
         {/* SYNC */}
-        <button onClick={onSync} style={{
-          padding: '4px 10px', borderRadius: 4, cursor: 'pointer',
+        <button className="dj-tap" onClick={onSync} style={{
+          padding: '8px 12px', borderRadius: 4, cursor: 'pointer', minHeight: 44,
           background: synced ? 'rgba(0,168,157,0.1)' : '#14181e',
           border: `1px solid ${synced ? 'rgba(0,168,157,0.5)' : 'rgba(170,179,187,0.22)'}`,
           boxShadow: synced ? '0 0 8px rgba(0,168,157,0.25)' : 'inset 0 2px 4px rgba(0,0,0,0.5)',
@@ -802,7 +802,7 @@ function PioneerControls({ side, playing, synced, pos, onSync }: {
                 onPointerDown={() => handleCuePad(i)}
                 title={hasPos ? `Press to clear cue ${String.fromCharCode(65+i)} (${fmt(cuePositions[i])})` : `Press to set cue ${String.fromCharCode(65+i)} at ${fmt(pos)}`}
                 style={{
-                  height: hasPos ? 38 : 32, borderRadius: 4, cursor: 'pointer',
+                  minHeight: 44, height: hasPos ? 44 : 44, borderRadius: 4, cursor: 'pointer',
                   background: hasPos ? `${color}18` : '#14181e',
                   border: `1px solid ${hasPos ? `${color}80` : 'rgba(170,179,187,0.18)'}`,
                   boxShadow: hasPos
@@ -851,7 +851,9 @@ function PioneerControls({ side, playing, synced, pos, onSync }: {
 }
 
 /* ─── Mixer Panel ────────────────────────────────────────── */
-function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: number): void; isMobile?: boolean }) {
+function MixerPanel({ xfade, onXfade, isMobile, fatXfade, foldGutter = 0 }: {
+  xfade: number; onXfade(v: number): void; isMobile?: boolean; fatXfade?: boolean; foldGutter?: number;
+}) {
   const [eqVals, setEqVals] = useState({ hi: 50, mid: 50, lo: 50 });
   const [filterA, setFilterA] = useState(50);
   const [filterB, setFilterB] = useState(50);
@@ -859,8 +861,10 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
   const [fxType, setFxType] = useState<'ECHO'|'REVERB'|'FLANGER'>('ECHO');
 
   return (
-    <div style={{
+    <div className="dj-mixer-center" style={{
       borderRadius: 6, padding: isMobile ? '8px 14px' : '8px 7px',
+      paddingLeft: isMobile ? 14 : 7 + foldGutter,
+      paddingRight: isMobile ? 14 : 7 + foldGutter,
       background: 'linear-gradient(to bottom, #1a1e24, #14181d 55%, #1a1e24)',
       border: '1px solid rgba(170,179,187,0.22)',
       display: 'flex', flexDirection: isMobile ? 'row' : 'column',
@@ -933,16 +937,24 @@ function MixerPanel({ xfade, onXfade, isMobile }: { xfade: number; onXfade(v: nu
         <p style={{ fontFamily: 'monospace', fontSize: '0.26rem', letterSpacing: '0.35em', color: 'rgba(255,255,255,0.2)',
           textAlign: 'center', marginBottom: 4 }}>CROSSFADER</p>
         <div style={{
-          position: 'relative', height: 18, borderRadius: 3,
+          position: 'relative', height: fatXfade ? 44 : 18, borderRadius: 3,
           background: `linear-gradient(to right, rgba(0,168,157,0.18), rgba(18,22,27,0.9) 50%, rgba(255,155,94,0.15))`,
           border: '1px solid rgba(170,179,187,0.15)',
           boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.7)',
         }}>
-          <input type="range" min={0} max={100} value={xfade} onChange={e => onXfade(+e.target.value)}
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer', margin: 0 }} />
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={xfade}
+            onChange={e => onXfade(+e.target.value)}
+            aria-label="Crossfader"
+            className="dj-tap"
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer', margin: 0, touchAction: 'none' }}
+          />
           <div style={{
-            position: 'absolute', width: 18, height: 30, left: `calc(${xfade}% - 9px)`,
-            borderRadius: 3, pointerEvents: 'none', top: -6,
+            position: 'absolute', width: fatXfade ? 28 : 18, height: fatXfade ? 44 : 30, left: `calc(${xfade}% - ${fatXfade ? 14 : 9}px)`,
+            borderRadius: 3, pointerEvents: 'none', top: fatXfade ? 0 : -6,
             background: 'linear-gradient(160deg, #d9e0e6 0%, #b9c0c7 30%, #8e979f 65%, #72797f 100%)',
             boxShadow: '0 2px 10px rgba(0,0,0,0.9), inset 0 1px 0 rgba(217,224,230,0.7)',
             border: '1px solid rgba(100,108,116,0.6)',
@@ -1258,8 +1270,10 @@ function PitchFader({ pitch, onChange }: { pitch: number; onChange(v: number): v
         <div style={{ position: 'absolute', left: 2, width: 10, top: '50%', height: 1,
           background: `rgba(170,179,187,0.25)` }} />
         <input type="range" min={-8} max={8} step={0.1} value={pitch} onChange={e => onChange(+e.target.value)}
+          aria-label="Pitch"
+          className="dj-tap"
           style={{ writingMode: 'vertical-lr', direction: 'rtl', position: 'absolute',
-            height: '100%', width: 30, left: -8, opacity: 0, cursor: 'pointer', margin: 0 }} />
+            height: '100%', width: 44, left: -15, opacity: 0, cursor: 'pointer', margin: 0, touchAction: 'none' }} />
         <div style={{
           position: 'absolute', width: 26, height: 11, top: `calc(${pct}% - 5.5px)`, left: -6,
           borderRadius: 2, pointerEvents: 'none',

@@ -601,9 +601,30 @@ select,
     flex-direction: column !important;
     gap: 8px !important;
   }
+  /* Only real book pose may unstack under 768. Never trust SSR `wide`. */
+  .dj-station[data-duo-pose="book"] .dj-mixer-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(88px, 132px) minmax(0, 1fr) !important;
+    flex-direction: unset !important;
+    column-gap: 20px !important;
+  }
   .dj-tap {
     min-width: 44px !important;
     min-height: 44px !important;
     box-sizing: border-box !important;
+  }
+
+  /* Split View / Duo: chrome hugs the outer edge of this pane */
+  .site-top-nav[data-duo-chrome="start"] {
+    padding-left: max(16px, var(--safe-left)) !important;
+  }
+  .site-top-nav[data-duo-chrome="end"] {
+    padding-right: max(16px, var(--safe-right)) !important;
+  }
+}
+
+@media (horizontal-viewport-segments: 2) {
+  .dj-station[data-duo-pose="book"] .dj-mixer-center {
+    padding-inline: 16px;
   }
 }
