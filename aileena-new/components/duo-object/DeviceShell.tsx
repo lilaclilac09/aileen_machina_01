@@ -6,22 +6,24 @@ import type { DuoMode } from '../../lib/duoObject';
 
 const spring = { type: 'spring' as const, stiffness: 78, damping: 16, mass: 1.15 };
 
+const preserve = { transformStyle: 'preserve-3d' as const };
+
 const device = {
-  tent: { rotateX: 8, rotateY: 0, y: 8, scale: 1 },
-  hold: { rotateX: 2, rotateY: -8, y: -64, scale: 0.84 },
-  rest: { rotateX: 76, rotateY: 18, y: 56, scale: 0.9 },
+  tent: { rotateX: 10, rotateY: -18, y: 12, scale: 1 },
+  hold: { rotateX: 4, rotateY: -4, y: -70, scale: 0.92 },
+  rest: { rotateX: 78, rotateY: 14, y: 64, scale: 0.88 },
 };
 
 const panelA = {
-  tent: { rotateY: -34 },
-  hold: { rotateY: -9 },
-  rest: { rotateY: -3 },
+  tent: { rotateX: 4, rotateY: -12 },
+  hold: { rotateX: 0, rotateY: 0 },
+  rest: { rotateX: 0, rotateY: 0 },
 };
 
 const panelB = {
-  tent: { rotateY: 34 },
-  hold: { rotateY: 9 },
-  rest: { rotateY: 3 },
+  tent: { rotateX: 56, rotateY: 10 },
+  hold: { rotateX: 10, rotateY: 164 },
+  rest: { rotateX: 6, rotateY: 8 },
 };
 
 type Props = {
@@ -41,6 +43,7 @@ export default function DeviceShell({ mode, childrenA, childrenB, onPickUp, onRe
       role="button"
       tabIndex={0}
       aria-label="duo object"
+      style={preserve}
       animate={device[mode]}
       transition={spring}
       onClick={(e) => {
@@ -58,11 +61,21 @@ export default function DeviceShell({ mode, childrenA, childrenB, onPickUp, onRe
         }
       }}
     >
-      <motion.div className="duo-panel duo-panel-a" animate={panelA[mode]} transition={spring}>
+      <motion.div
+        className="duo-panel duo-panel-a"
+        style={preserve}
+        animate={panelA[mode]}
+        transition={spring}
+      >
         {childrenA}
       </motion.div>
       <div className="duo-spine" aria-hidden />
-      <motion.div className="duo-panel duo-panel-b" animate={panelB[mode]} transition={spring}>
+      <motion.div
+        className="duo-panel duo-panel-b"
+        style={preserve}
+        animate={panelB[mode]}
+        transition={spring}
+      >
         {childrenB}
       </motion.div>
     </motion.div>
