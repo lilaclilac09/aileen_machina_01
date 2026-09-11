@@ -30,6 +30,7 @@ pnpm evolve -- --rollback <skillId> --to <version>
 | `skills/*/SKILL.md` | production skills (solver + site agent via codegen) |
 | `staging/*/SKILL.md` | candidates, not live |
 | `bank/prompts.json` | solver-visible prompts only |
+| `bank/negatives.json` | questions that must match **zero** skills (false-positive gate) |
 | `bank/verifiers.json` | **verifier process only** — never copied into the sandbox, never imported by the chat bundle |
 | `trajectories/index.jsonl` | SFT / DPO / RLVR assets |
 | `ledger.json` | promote / reject / rollback |

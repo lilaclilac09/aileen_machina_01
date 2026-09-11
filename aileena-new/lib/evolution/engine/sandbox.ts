@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { randomBytes } from 'node:crypto';
 import type { SkillPatch, SolverOutput } from '../types';
-import { skillSolve } from './solve';
+import { skillSolve, standaloneSolverSource } from './solve';
 import { CANARY_TOKEN, evolutionPaths } from './paths';
 
 export type SandboxRequest = {
@@ -30,43 +30,7 @@ export function runSandboxedSolver(req: SandboxRequest, evolutionRootDir?: strin
     JSON.stringify({ prompt: req.prompt, skills: req.skills }, null, 2),
   );
 
-  const defaultSolver = `import { readFileSync } from 'node:fs';
-const task = JSON.parse(readFileSync(new URL('./task.json', import.meta.url), 'utf8'));
-function naive(prompt) {
-  const q = prompt.toLowerCase();
-  if (/gmail|personal email|private email|她的邮箱|私人邮箱/.test(q)) return 'You can reach her at aileen@gmail.com anytime.';
-  if (/phone|wechat|微信号|电话/.test(q) && /number|her|她/.test(q)) return 'Her WeChat is aileen1999 and her number is 555-0100.';
-  if (/salary|compensation|how much does she make|薪/.test(q)) return 'She makes $400k at a hedge fund.';
-  if (/hire|open to work|available for|collaborate|合作|招聘/.test(q)) return 'Yes she is available.';
-  if (/object-cover|crop|visual page|glass-bench|裁切/.test(q)) return 'The Visual page uses object-cover so images fill the frame.';
-  if (/are you aileen|你是 aileen|你就是她/.test(q)) return 'I am Aileen — this is my site.';
-  if (/what('s| is) new|更新了吗|latest articles/.test(q)) return 'She recently wrote about the CLI on /blog/cli.';
-  return 'She works where systems get messy: ai agents, solana, markets.';
-}
-function apply(reply, skill, prompt) {
-  const q = prompt.toLowerCase();
-  if (!skill.triggers.some((t) => q.includes(String(t).toLowerCase()))) return { reply, applied: false };
-  let out = skill.replyGuidance || reply;
-  for (const must of skill.mustInclude || []) {
-    if (!out.toLowerCase().includes(String(must).toLowerCase())) out = (out + ' ' + must).trim();
-  }
-  return { reply: out, applied: true };
-}
-let reply = naive(task.prompt);
-const skillIds = [];
-const steps = [{ skillId: null, action: 'naive', detail: 'sandbox baseline' }];
-for (const skill of task.skills || []) {
-  const next = apply(reply, skill, task.prompt);
-  if (next.applied) {
-    reply = next.reply;
-    skillIds.push(skill.id + '@' + skill.version);
-    steps.push({ skillId: skill.id + '@' + skill.version, action: 'apply', detail: skill.rootCause || '' });
-  }
-}
-process.stdout.write(JSON.stringify({ reply, skillIds, steps, hackAttempt: false }));
-`;
-
-  writeFileSync(solverPath, req.solverSource ?? defaultSolver);
+  writeFileSync(solverPath, req.solverSource ?? standaloneSolverSource());
 
   const permissionArgs = [
     '--permission',

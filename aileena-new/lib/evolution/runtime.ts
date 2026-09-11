@@ -10,8 +10,11 @@ export {
   formatHardRulesDigest,
   formatSkillsForTurn,
   uncoveredBankPrompts,
+  falsePositiveNegatives,
   searchHaystack,
+  triggerMatches,
   QUESTION_ALIASES,
+  TRIGGER_NOISE,
 } from './selectSkills';
 export type { SkillTriggerSource } from './selectSkills';
 export type { SkillKind, SkillPatch } from './types';

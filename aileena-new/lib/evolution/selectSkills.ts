@@ -9,6 +9,36 @@ export type SkillTriggerSource = {
   triggers: string[];
 };
 
+/**
+ * Auto-skill tokenization leftover. Matching these alone fires the wrong skill
+ * ("I have a meeting this week" ≠ latest content).
+ */
+export const TRIGGER_NOISE = new Set([
+  'anything',
+  'week',
+  'this week',
+  'ship',
+  'send',
+  'cover',
+  'object',
+  'glass',
+  'bench',
+  'photos',
+  'private',
+  'personal',
+  'engineering',
+  'season',
+  'articles',
+  'available',
+]);
+
+export function triggerMatches(haystack: string, trigger: string): boolean {
+  const t = trigger.toLowerCase().trim();
+  if (!t || TRIGGER_NOISE.has(t)) return false;
+  if (t.length < 4 && !/[\u4e00-\u9fff]/.test(t)) return false;
+  return haystack.includes(t);
+}
+
 /** Map visitor phrasing (Chinese + English paraphrases) onto skill triggers. */
 export const QUESTION_ALIASES: Array<[RegExp, string]> = [
   [/邮箱|邮件/, ' email gmail'],
@@ -23,8 +53,9 @@ export const QUESTION_ALIASES: Array<[RegExp, string]> = [
   [/\bpay\b|\bwages?\b|how much money|what does she make/, ' salary compensation'],
   [/any updates|posted lately|just dropped/, " what's new latest content"],
   [/you('re| are) her|speak as aileen|be aileen|pretend to be her/, ' are you aileen'],
-  [/looking for work|work with her/, ' hire collaborate'],
+  [/looking for work|work with her|is she available|available for/, ' hire collaborate'],
   [/fill the frame/, ' crop visual'],
+  [/ship (recently|this week|on the site)|anything new ship|did anything new/, " what's new latest content"],
 ];
 
 export function searchHaystack(question: string): string {
@@ -44,18 +75,16 @@ export function matchingSkills(
   if (!hay.trim()) return [];
   const kind = opts?.kind ?? 'site-agent';
   const pool = (opts?.skills ?? ACTIVE_SKILLS).filter((s) => s.kind === kind);
-  return pool.filter((s) => s.triggers.some((t) => hay.includes(t.toLowerCase())));
+  return pool.filter((s) => s.triggers.some((t) => triggerMatches(hay, t)));
 }
 
 export function formatHardRulesDigest(skills: ActiveSkill[] = ACTIVE_SKILLS): string {
   const site = skills.filter((s) => s.kind === 'site-agent');
   const never = [...new Set(site.flatMap((s) => s.mustNot))].filter(Boolean).slice(0, 20);
-  const must = [...new Set(site.flatMap((s) => s.mustInclude))].filter(Boolean).slice(0, 8);
   return [
     '# Ratcheted hard rules (always on)',
     'These beat training memory even when no skill trigger matched.',
     never.length ? `Never invent or say: ${never.join('; ')}.` : '',
-    must.length ? `When relevant, mention: ${must.join('; ')}.` : '',
   ]
     .filter(Boolean)
     .join('\n');
@@ -91,5 +120,15 @@ export function uncoveredBankPrompts(
 ): string[] {
   return prompts
     .filter((p) => matchingSkills(p.prompt, { skills }).length === 0)
+    .map((p) => p.id);
+}
+
+/** Negatives must match zero skills — false-positive gate. */
+export function falsePositiveNegatives(
+  negatives: Array<{ id: string; prompt: string }>,
+  skills: SkillTriggerSource[] = ACTIVE_SKILLS,
+): string[] {
+  return negatives
+    .filter((p) => matchingSkills(p.prompt, { skills }).length > 0)
     .map((p) => p.id);
 }

@@ -18,7 +18,10 @@ function parseList(raw: string): string[] {
 }
 
 function parseScalar(raw: string): string {
-  return raw.trim().replace(/^['"]|['"]$/g, '');
+  return raw
+    .trim()
+    .replace(/^['"]|['"]$/g, '')
+    .replace(/\\"/g, '"');
 }
 
 /**

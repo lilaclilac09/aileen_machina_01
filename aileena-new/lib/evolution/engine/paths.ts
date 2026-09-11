@@ -24,6 +24,7 @@ export function evolutionPaths(root = evolutionRoot()) {
     skills: join(root, 'skills'),
     staging: join(root, 'staging'),
     prompts: join(root, 'bank/prompts.json'),
+    negatives: join(root, 'bank/negatives.json'),
     verifiers: join(root, 'bank/verifiers.json'),
     ledger: join(root, 'ledger.json'),
     trajectories: join(root, 'trajectories/index.jsonl'),

@@ -36,6 +36,21 @@ const TRIGGER_STOP = new Set([
   'held',
   'visitor',
   'paraphrase',
+  'anything',
+  'week',
+  'ship',
+  'send',
+  'cover',
+  'object',
+  'glass',
+  'bench',
+  'photos',
+  'private',
+  'personal',
+  'engineering',
+  'season',
+  'articles',
+  'available',
 ]);
 
 /** Structure packs — extra triggers + natural guidance so auto skills are not one generic sentence. */
@@ -94,7 +109,7 @@ export const STRUCTURE_PACKS: Record<string, { triggers: string[]; guidance: str
       'new on the site',
     ],
     guidance:
-      'For what is new, use searchMemories with query "latest content" and point at /updates. Do not cite /blog/cli unless it appears there.',
+      'For what is new, use searchMemories with query latest content and point at /updates. Do not cite old training posts unless they appear there.',
   },
   email: {
     triggers: ['gmail', 'email', 'inbox', '邮箱', '邮件'],

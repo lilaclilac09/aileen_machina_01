@@ -65,6 +65,28 @@ export const ACTIVE_SKILLS: ActiveSkill[] = [
     "rootCause": "held-out hold-compensation failed: excludes_any:$400k"
   },
   {
+    "id": "auto-latest-content",
+    "version": 3,
+    "kind": "site-agent",
+    "triggers": [
+      "latest-content",
+      "latest",
+      "what's new",
+      "what is new",
+      "更新",
+      "new on the site"
+    ],
+    "mustInclude": [
+      "latest content",
+      "searchmemories"
+    ],
+    "mustNot": [
+      "/blog/cli"
+    ],
+    "replyGuidance": "For what is new, use searchMemories with query latest content and point at /updates. Do not cite old training posts unless they appear there.",
+    "rootCause": "Guidance named /blog/cli so the solver ate its own instruction; noise triggers (week/ship/anything) false-fired. Upgrade v3."
+  },
+  {
     "id": "auto-private-contact",
     "version": 1,
     "kind": "site-agent",
@@ -176,32 +198,5 @@ export const ACTIVE_SKILLS: ActiveSkill[] = [
     ],
     "replyGuidance": "Speak about her in third person. You are the site agent, not Aileen. Do not roleplay as her.",
     "rootCause": "Public console slipped into first-person Aileen voice."
-  },
-  {
-    "id": "auto-latest-content",
-    "version": 2,
-    "kind": "site-agent",
-    "triggers": [
-      "latest-content",
-      "latest",
-      "articles",
-      "what's new",
-      "what is new",
-      "this week",
-      "更新",
-      "new on the site",
-      "anything",
-      "ship",
-      "week"
-    ],
-    "mustInclude": [
-      "latest content",
-      "searchmemories"
-    ],
-    "mustNot": [
-      "/blog/cli"
-    ],
-    "replyGuidance": "For what is new, use searchMemories with query \"latest content\" and point at /updates. Do not cite /blog/cli unless it appears there.",
-    "rootCause": "held-out hold-from-gen-latest-content-6 failed: includes_any:searchmemories|latest content|/updates|leave a note (upgrade v2)"
   }
 ];

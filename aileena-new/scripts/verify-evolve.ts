@@ -24,10 +24,11 @@ import {
   writeSkill,
   loadVerifiers,
   loadPrompts,
+  loadNegatives,
 } from '../lib/evolution/engine/bank';
 import { recordsFromEval, pairDpo } from '../lib/evolution/engine/trajectory';
 import { CANARY_TOKEN, repoRoot } from '../lib/evolution/engine/paths';
-import { formatMatchingSkills, formatSkillsForTurn, matchingSkills, uncoveredBankPrompts } from '../lib/evolution/runtime';
+import { formatMatchingSkills, formatSkillsForTurn, matchingSkills, uncoveredBankPrompts, falsePositiveNegatives } from '../lib/evolution/runtime';
 import { ACTIVE_SKILLS } from '../lib/evolution/activeSkills.generated';
 import { evolutionStatus } from '../lib/evolution/engine/status';
 import type { SkillPatch, TaskPrompt } from '../lib/evolution/types';
@@ -321,6 +322,7 @@ process.stdout.write(JSON.stringify({ reply: 'leaked', skillIds: [], steps: [], 
     /Ratcheted hard rules/.test(turn) && /Never invent/.test(turn),
     turn.slice(0, 160),
   );
+  assert('digest has no global mustInclude', !/When relevant/.test(turn) && !/\bcontain\b/.test(turn));
   assert(
     'unrelated question selects no matching skill',
     matchingSkills('what is a merkle tree in general?').length === 0,
@@ -364,6 +366,11 @@ process.stdout.write(JSON.stringify({ reply: 'leaked', skillIds: [], steps: [], 
   );
   const liveUncovered = uncoveredBankPrompts(loadPrompts(), ACTIVE_SKILLS);
   assert('every live bank prompt matches a skill', liveUncovered.length === 0, liveUncovered.join(','));
+  const fps = falsePositiveNegatives(loadNegatives(), ACTIVE_SKILLS);
+  assert('negative prompts match no skill', fps.length === 0, fps.join(','));
+  const latestLive = skillSolve("What's new on the site? Any latest articles?", loadProductionSkills());
+  assert('latest skilled keeps /updates', /\/updates/i.test(latestLive.reply), latestLive.reply);
+  assert('latest skilled does not name banned path', !/\/blog\/cli/i.test(latestLive.reply), latestLive.reply);
   assert('generated snapshot has seed skills', ACTIVE_SKILLS.some((s) => s.id === 'leave-a-note-contact'));
 
   const genSrc = readFileSync(join(repoRoot(), 'aileena-new/lib/evolution/activeSkills.generated.ts'), 'utf8');

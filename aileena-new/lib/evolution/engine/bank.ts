@@ -18,6 +18,7 @@ export function ensureEvolutionDirs(root?: string) {
   }
   if (!existsSync(p.ledger)) writeFileSync(p.ledger, '[]\n');
   if (!existsSync(p.generated)) writeFileSync(p.generated, '[]\n');
+  if (!existsSync(p.negatives)) writeFileSync(p.negatives, '[]\n');
   return p;
 }
 
@@ -45,6 +46,10 @@ export function loadProductionSkills(root?: string): SkillPatch[] {
 
 export function loadStagingSkills(root?: string): SkillPatch[] {
   return readSkillsInDir(evolutionPaths(root).staging);
+}
+
+export function loadNegatives(root?: string): Array<{ id: string; prompt: string }> {
+  return loadJson(evolutionPaths(root).negatives, []);
 }
 
 export function loadPrompts(root?: string): TaskPrompt[] {
