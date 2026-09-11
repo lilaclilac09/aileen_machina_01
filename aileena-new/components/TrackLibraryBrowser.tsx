@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, useMemo, useEffect } from 'react';
+import { useState, useRef, useMemo, useEffect, useSyncExternalStore } from 'react';
 
 /**
  * Fallback cover used when a track has no thumb (or its thumb URL 404s).
@@ -357,7 +357,15 @@ function ListTrackRow({ index, track, isPlayingLeft, isPlayingRight, pos, dur,
   return (
     <div
       draggable={true}
-      onDragStart={() => onSetDragTrack?.(track)}
+      onDragStart={(e) => {
+        onSetDragTrack?.(track);
+        try {
+          e.dataTransfer.setData('text/plain', track.id);
+          e.dataTransfer.effectAllowed = 'copy';
+        } catch {
+          /* some browsers throw on setData during tests */
+        }
+      }}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
@@ -457,6 +465,22 @@ function ListTrackRow({ index, track, isPlayingLeft, isPlayingRight, pos, dur,
   );
 }
 
+function subscribeFinePointer(onStoreChange: () => void) {
+  const mq = window.matchMedia('(pointer: fine)');
+  mq.addEventListener('change', onStoreChange);
+  return () => mq.removeEventListener('change', onStoreChange);
+}
+function getFinePointerSnapshot() {
+  return window.matchMedia('(pointer: fine)').matches;
+}
+function getFinePointerServerSnapshot() {
+  return false;
+}
+/** Desktop mouse: HTML5 drag CD → plate. Touch keeps swipe. */
+function useFinePointer() {
+  return useSyncExternalStore(subscribeFinePointer, getFinePointerSnapshot, getFinePointerServerSnapshot);
+}
+
 /* ─── PLAYLIST CAROUSEL ───────────────────────────────────── */
 function PlaylistCarousel({
   tracks: incomingTracks,
@@ -475,6 +499,7 @@ function PlaylistCarousel({
 }) {
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const finePointer = useFinePointer();
 
   // Carousel renders newest-first. Source order in TRACKS stays append-only
   // (so /addmusic just pushes to the end), and we reverse for display here.
@@ -532,7 +557,8 @@ function PlaylistCarousel({
   }
 
   function onPtrDown(e: React.PointerEvent<HTMLDivElement>) {
-    // Ignore secondary buttons; keep HTML5 deck-drop separate from swipe.
+    // Fine pointer uses HTML5 drag-to-plate; swipe capture steals that gesture.
+    if (finePointer) return;
     if (e.button !== 0) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     ptrStartX.current = e.clientX;
@@ -544,7 +570,7 @@ function PlaylistCarousel({
     setDragOffset(0);
   }
   function onPtrMove(e: React.PointerEvent<HTMLDivElement>) {
-    if (ptrStartX.current === null) return;
+    if (finePointer || ptrStartX.current === null) return;
     const now = performance.now();
     const dx = e.clientX - ptrStartX.current;
     const dt = Math.max(1, now - lastMoveT.current);
@@ -555,7 +581,7 @@ function PlaylistCarousel({
     setDragOffset(dx);
   }
   function finishDrag() {
-    if (ptrStartX.current === null) return;
+    if (finePointer || ptrStartX.current === null) return;
     const dx = dragX.current;
     const flick = velocityX.current * 180; // px-ish impulse
     const travel = dx + flick;
@@ -599,7 +625,7 @@ function PlaylistCarousel({
           }}
         >›</button>
 
-        {/* Cards — pointer swipe only (no HTML5 draggable on cards; that fought swipe) */}
+        {/* Desktop: HTML5 drag CD → plate. Touch: swipe only. */}
         <div
           onPointerDown={onPtrDown}
           onPointerMove={onPtrMove}
@@ -628,6 +654,23 @@ function PlaylistCarousel({
               <div
                 key={track.id}
                 data-dj-set-card
+                data-testid="dj-carousel-card"
+                data-track-id={track.id}
+                data-track-title={track.title}
+                draggable={finePointer}
+                onDragStart={(e) => {
+                  if (!finePointer) {
+                    e.preventDefault();
+                    return;
+                  }
+                  onSetDragTrack?.(track);
+                  try {
+                    e.dataTransfer.setData('text/plain', track.id);
+                    e.dataTransfer.effectAllowed = 'copy';
+                  } catch {
+                    /* some browsers throw on setData during tests */
+                  }
+                }}
                 onMouseEnter={() => onCardHover(i, rel)}
                 onMouseLeave={onCardLeave}
                 onClick={() => {
@@ -645,7 +688,9 @@ function PlaylistCarousel({
                     ? 'none'
                     : 'transform 0.34s cubic-bezier(0.22,1,0.36,1), opacity 0.28s ease',
                   zIndex, opacity,
-                  cursor: rel === 0 ? (isDragging ? 'grabbing' : 'grab') : 'pointer',
+                  cursor: finePointer
+                    ? (rel === 0 ? 'grab' : 'pointer')
+                    : rel === 0 ? (isDragging ? 'grabbing' : 'grab') : 'pointer',
                   willChange: isDragging ? 'transform' : undefined,
                 }}
               >
