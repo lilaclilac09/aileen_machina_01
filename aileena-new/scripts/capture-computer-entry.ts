@@ -62,7 +62,7 @@ async function main() {
     }, null, { timeout: 20_000 });
   });
   await page.locator('[data-testid="computer-console-dock"]').screenshot({
-    path: join(OUT, 'computer-extreme-look-390.png'),
+    path: join(OUT, 'computer-extreme-look-v2-390.png'),
   });
   await field.fill('one shot', { force: true });
   await page.locator('[data-testid="computer-key-find"]').click();

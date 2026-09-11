@@ -167,7 +167,7 @@ function sourceChecks() {
   assert('https one-shot rejects localhost', !safeHttpsUrl('https://localhost/x') && !safeHttpsUrl('http://example.com') && Boolean(safeHttpsUrl('https://example.com/')));
   assert('https one-shot is GET not only HEAD', /curlFetchCommand/.test(dockSrc) && /curl -sL --max-time 8/.test(readFileSync(join(process.cwd(), 'lib/computer/allowlist.ts'), 'utf8')));
   assert('clock stamps today\'s note', /appendTodayStamp/.test(runner) && /scratch\/notes/.test(runner));
-  assert('owner fetch saves under scratch/fetch', /scratch\/fetch/.test(runner) && /runOwnerFetch/.test(runner));
+  assert('find greps scratch not the task store', /grep -R -n -F \$\{shellWord\(query\)\} scratch/.test(runner));
   assert('visitor look lists scratch', /isOwner \? '\/workspace' : '\/workspace\/scratch'/.test(dockSrc));
   assert('monitor can show a peek body', /max-h-40/.test(dockSrc));
   assert('keys are signs not 记/看/找 labels', /SignMark/.test(dockSrc) && /○/.test(dockSrc) && !/>记</.test(dockSrc) && !/>看</.test(dockSrc));
@@ -386,7 +386,12 @@ async function workspaceUnit() {
     denied = true;
   }
   assert('workspace rejects non-allowlisted path', denied);
-  await workspaceWriteFile('v-visitorone', '/scratch/notes/x.txt', 'visitor-secret-note');
+  await workspaceWriteFile('v-isoexcerpt', '/scratch/notes/d.txt', '2026-04-08T00:00:00.000Z\nactual pad line\n');
+  const isoList = workspaceList('v-isoexcerpt');
+  assert(
+    'look excerpt skips iso stamp',
+    isoList.lines.some((l) => l.includes('actual pad line')) && !isoList.lines.some((l) => l.includes('·') && l.includes('2026-04-08T00:00:00')),
+  );
   const visitorList = workspaceList('v-visitorone');
   assert('visitor workspace lists own files', visitorList.lines.some((l) => l.includes('scratch')));
   assert('look lists a first-line excerpt', visitorList.lines.some((l) => l.includes('visitor-secret-note')));

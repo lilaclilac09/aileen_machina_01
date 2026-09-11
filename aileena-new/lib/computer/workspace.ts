@@ -61,7 +61,10 @@ export async function workspaceRuntimeProbe(): Promise<{ stdout: string; exitCod
 function firstLineExcerpt(abs: string): string {
   try {
     const text = readFileSync(abs, 'utf8');
-    const first = text.split(/\r?\n/).find((l) => l.trim()) || '';
+    const first =
+      text.split(/\r?\n/).find((l) => l.trim() && !/^\d{4}-\d{2}-\d{2}T/.test(l.trim())) ||
+      text.split(/\r?\n/).find((l) => l.trim()) ||
+      '';
     return first.replace(/\s+/g, ' ').slice(0, 80);
   } catch {
     return '';

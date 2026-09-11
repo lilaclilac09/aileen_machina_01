@@ -618,13 +618,17 @@ async function appendTodayStamp(
   const name = workspaceIdFor(task);
   const day = stamp.slice(0, 10);
   const line = `${stamp}\n`;
+  const join = (existing: string) => {
+    if (!existing) return line;
+    return `${existing.endsWith('\n') ? existing : `${existing}\n`}${line}`;
+  };
   if (isCloudflareComputerReady()) {
     const path = `/workspace/scratch/notes/${day}.txt`;
     await ensureCfMount(name);
     await cfExec('mkdir -p scratch/notes', '/workspace', name);
     let body = line;
     try {
-      body = `${await cfGetFile(path, name)}${line}`;
+      body = join(await cfGetFile(path, name));
     } catch {
       /* first stamp today */
     }
@@ -638,7 +642,7 @@ async function appendTodayStamp(
   } catch {
     /* first stamp today */
   }
-  const body = `${existing}${line}`;
+  const body = join(existing);
   await workspaceWriteFile(name, path, body);
   return { path, body };
 }
@@ -678,7 +682,7 @@ async function runCfFilesTask(task: ComputerTask): Promise<ComputerTask> {
   }
   if (task.taskType === 'files_search') {
     const query = clip(workspaceSearchQuery(task.instructions || '') || 'hello', 80);
-    const run = await cfExec(`grep -R -n -F -- ${shellWord(query)} .`, '/workspace', name);
+    const run = await cfExec(`grep -R -n -F ${shellWord(query)} scratch`, '/workspace', name);
     const text = [run.stdout, run.stderr].filter(Boolean).join('\n');
     return finishInspectStyle(task, {
       status: run.exitCode === 0 || run.exitCode === 1 ? 'completed' : 'failed',
@@ -691,7 +695,7 @@ async function runCfFilesTask(task: ComputerTask): Promise<ComputerTask> {
     });
   }
   const run = await cfExec(`ls -la ${path === '/workspace' ? '.' : path}`, '/workspace', name);
-  const heads = await cfExec('head -n 1 scratch/notes/*.txt', '/workspace', name);
+  const heads = await cfExec('head -n 4 scratch/notes/*.txt', '/workspace', name);
   const excerpt = heads.exitCode === 0 && heads.stdout.trim() ? `\n── notes ──\n${heads.stdout.trim()}` : '';
   const text = [run.stdout, run.stderr].filter(Boolean).join('\n') + excerpt;
   return finishInspectStyle(task, {
