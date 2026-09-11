@@ -11,6 +11,7 @@ import { join } from 'node:path';
 import { createOwnerSession, SESSION_COOKIE } from '../lib/auth';
 import { inspectRouteFiles, analyzeDailyFixPlan } from '../lib/computer/inspect';
 import { parseOwnerComputerCommand, parseVisitorComputerCommand } from '../lib/computer/parseOwnerCommand';
+import { safeHttpsUrl } from '../lib/computer/allowlist';
 import { labelForTask, matchLearned, rememberCommand } from '../lib/computer/learned';
 import { redactSecrets } from '../lib/computer/redact';
 import { isComputerPrototypeEnabled, hasComputerWorkerEnv } from '../lib/computer/flag';
@@ -19,7 +20,7 @@ import { spokenQueued } from '../lib/computer/spokenQueue';
 import { gitFindCommit, gitStatus } from '../lib/computer/gitAllowlist';
 import { filesOpen } from '../lib/computer/filesAllowlist';
 import { TAB_WIRE } from '../lib/computer/capabilities';
-import { workspaceGrep, workspaceList, workspaceReadFile, workspaceRuntimeProbe, workspaceWriteFile } from '../lib/computer/workspace';
+import { workspaceGrep, workspaceLatestNote, workspaceList, workspaceReadFile, workspaceRuntimeProbe, workspaceWriteFile } from '../lib/computer/workspace';
 import { deriveKeyshield, sealOwner, openOwnerSeal } from '../lib/keyshield/prf';
 import { KS_HKDF_MASTER, KS_HKDF_VAULT_ID, KS_PRF_FIRST } from '../lib/keyshield/constants';
 import { b64urlFromBytes, bytesFromB64url } from '../lib/passkey/b64';
@@ -141,6 +142,9 @@ function sourceChecks() {
   assert('monitor sits above transcript', dockAt > 0 && transAt > 0 && dockAt < transAt);
   assert('dock always polls', /setInterval\(\(\) => void load\(\), 900\)/.test(dockSrc));
   assert('dock shows simple 记 看 找 keys', /computer-simple-keys/.test(dockSrc) && /computer-key-note/.test(dockSrc) && /computer-key-find/.test(dockSrc));
+  assert('dock has peek and clock one-shots', /computer-key-peek/.test(dockSrc) && /computer-key-clock/.test(dockSrc) && /scratch_peek/.test(dockSrc));
+  assert('visitors can peek and clock', /scratch_peek/.test(readFileSync(join(process.cwd(), 'lib/computer/allowlist.ts'), 'utf8')) && /scratch_clock/.test(readFileSync(join(process.cwd(), 'lib/computer/allowlist.ts'), 'utf8')));
+  assert('https one-shot rejects localhost', !safeHttpsUrl('https://localhost/x') && !safeHttpsUrl('http://example.com') && Boolean(safeHttpsUrl('https://example.com/')));
   assert('keys are symbols not labels', />\s*\+\s*</.test(dockSrc) && /≡/.test(dockSrc) && !/>记</.test(dockSrc) && !/>看</.test(dockSrc));
   assert('keys have 44px tap targets', /min-h-11/.test(dockSrc) && /KEY_CLASS/.test(dockSrc));
   assert('empty 记 still queues a note', /phrase: raw \|\| 'note'/.test(dockSrc) && !/write first/.test(dockSrc));
@@ -242,6 +246,10 @@ function unitChecks() {
     'visitor list queues files_tree',
     visitorListCmd?.kind === 'queue_task' && visitorListCmd.taskType === 'files_tree',
   );
+  const visitorPeek = parseVisitorComputerCommand('peek');
+  assert('visitor peek queues scratch_peek', visitorPeek?.kind === 'queue_task' && visitorPeek.taskType === 'scratch_peek');
+  const visitorClock = parseVisitorComputerCommand('clock');
+  assert('visitor clock queues scratch_clock', visitorClock?.kind === 'queue_task' && visitorClock.taskType === 'scratch_clock');
   assert(
     'visitor prepare fix is not a scratch command',
     parseVisitorComputerCommand('prepare fix for /daily owner key UI') === null,
@@ -351,6 +359,8 @@ async function workspaceUnit() {
   await workspaceWriteFile('v-visitorone', '/scratch/notes/x.txt', 'visitor-secret-note');
   const visitorList = workspaceList('v-visitorone');
   assert('visitor workspace lists own files', visitorList.lines.some((l) => l.includes('scratch')));
+  const latest = await workspaceLatestNote('v-visitorone');
+  assert('visitor latest note is the scratch file', Boolean(latest && latest.body.includes('visitor-secret-note')), latest?.path);
   const visitorHit = workspaceGrep('v-visitorone', 'visitor-secret-note');
   assert('visitor workspace greps own files', visitorHit.lines.length >= 1);
   const ownerMiss = workspaceGrep('owner', 'visitor-secret-note');

@@ -47,7 +47,7 @@ export function capabilityForTaskType(taskType: string): ComputerTabId {
   ) {
     return 'code';
   }
-  if (taskType === 'write_scratch_file' || taskType === 'shell_exec') return 'files';
+  if (taskType === 'write_scratch_file' || taskType === 'shell_exec' || taskType === 'scratch_peek' || taskType === 'scratch_clock') return 'files';
   if (taskType === 'collect_screenshot_checklist') return 'browser';
   return 'tasks';
 }
