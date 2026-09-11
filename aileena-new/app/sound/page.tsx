@@ -5,12 +5,14 @@ import DJStation from '../../components/DJStation';
 import ScrollUnlock from '../blog/ScrollUnlock';
 import { useLanguage } from '../../components/LanguageProvider';
 import { t } from '../../lib/translations';
+import { useDuoLayout } from '../../lib/duoPose';
 
 const nunito = "'Nunito', system-ui, -apple-system, sans-serif";
 
 export default function SoundPage() {
   const { language } = useLanguage();
   const tx = t[language];
+  const duo = useDuoLayout();
 
   return (
     <div
@@ -26,6 +28,7 @@ export default function SoundPage() {
 
       <header
         className="site-top-nav"
+        data-duo-chrome={duo.chromeEdge}
         style={{
           position: 'sticky',
           top: 0,
@@ -36,7 +39,15 @@ export default function SoundPage() {
           borderBottom: '1px solid rgba(255,253,248,0.08)',
         }}
       >
-        <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+        <div style={{
+          maxWidth: 1400,
+          margin: '0 auto',
+          display: 'flex',
+          justifyContent: duo.chromeEdge === 'start' ? 'flex-start' : 'flex-end',
+          alignItems: 'center',
+          paddingLeft: 'max(0px, env(safe-area-inset-left, 0px))',
+          paddingRight: 'max(0px, env(safe-area-inset-right, 0px))',
+        }}>
           <span
             style={{
               fontFamily: nunito,

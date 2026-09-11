@@ -720,6 +720,41 @@ function PlaylistCarousel({
       </div>
 
       {/* ── Track readout below indicators — Layer 1 + Layer 3 meta ── */}
+      {active && onLoadTrack && (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 14 }}>
+          <button
+            type="button"
+            className="dj-tap"
+            aria-label={`Load ${active.title} to deck A`}
+            onClick={() => onLoadTrack('left', active)}
+            style={{
+              minWidth: 88, minHeight: 44, padding: '0 16px',
+              borderRadius: 8, cursor: 'pointer',
+              background: T.cyanDim, border: `1px solid ${T.cyanGlow}`,
+              color: T.deckA, fontFamily: 'monospace', fontSize: '0.72rem',
+              fontWeight: 700, letterSpacing: '0.14em',
+            }}
+          >
+            → A
+          </button>
+          <button
+            type="button"
+            className="dj-tap"
+            aria-label={`Load ${active.title} to deck B`}
+            onClick={() => onLoadTrack('right', active)}
+            style={{
+              minWidth: 88, minHeight: 44, padding: '0 16px',
+              borderRadius: 8, cursor: 'pointer',
+              background: 'rgba(137,168,224,0.12)', border: '1px solid rgba(137,168,224,0.35)',
+              color: T.deckB, fontFamily: 'monospace', fontSize: '0.72rem',
+              fontWeight: 700, letterSpacing: '0.14em',
+            }}
+          >
+            → B
+          </button>
+        </div>
+      )}
+
       {active && (
         <div style={{
           display: 'flex', alignItems: 'baseline', justifyContent: 'center',
