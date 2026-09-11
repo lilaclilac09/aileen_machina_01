@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import DJStation from '../../components/DJStation';
 import ScrollUnlock from '../blog/ScrollUnlock';
 import { useLanguage } from '../../components/LanguageProvider';
@@ -85,6 +86,19 @@ export default function SoundPage() {
             }}
           >
             {tx.sound.body}
+          </p>
+          <p style={{ marginTop: 16 }}>
+            <Link
+              href="/sound/duo"
+              style={{
+                fontSize: '0.78rem',
+                letterSpacing: '0.1em',
+                color: 'rgba(255,253,248,0.42)',
+                textDecoration: 'none',
+              }}
+            >
+              duo object →
+            </Link>
           </p>
         </div>
 
