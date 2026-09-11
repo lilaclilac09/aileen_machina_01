@@ -31,6 +31,7 @@
     "capture:computer-prototype": "tsx scripts/capture-computer-prototype.ts",
     "capture:daily-board": "tsx scripts/capture-daily-board.ts",
     "test:e2e:daily-board": "playwright test e2e/daily-board.spec.ts --config=playwright.config.ts",
+    "verify:duo-object": "tsx scripts/verify-duo-object.ts",
     "verify:dj-set": "tsx scripts/verify-dj-set.ts",
     "verify:sound": "tsx scripts/verify-dj-set.ts",
     "verify:dj-mixer": "tsx scripts/verify-dj-mixer-math.ts",
