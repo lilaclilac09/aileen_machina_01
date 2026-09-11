@@ -179,7 +179,7 @@ assert('visitor html-to-markdown 400', visitorMd.res.status === 400, String(visi
 
 const getBody = await req('POST', '/c/owner/exec', {
   headers: { 'content-type': 'application/json' },
-  body: JSON.stringify({ command: 'curl -sL --max-time 8 -- https://example.com/' }),
+  body: JSON.stringify({ command: 'curl -sL --max-time 8 https://example.com/' }),
 });
 let getBodyJson = {};
 try {

@@ -404,7 +404,7 @@ async function workspaceUnit() {
   const ownerMiss = workspaceGrep('owner', 'visitor-secret-note');
   assert('owner workspace does not see visitor note', ownerMiss.lines.length === 0);
   assert('curl GET is not localhost HEAD', /curl -sL/.test(curlFetchCommand('https://example.com/')) && curlHttpsTarget('https://example.com/')?.head === false);
-  assert('explicit curl -sI stays HEAD', curlHttpsTarget('curl -sI -- https://example.com/')?.head === true);
+  assert('explicit curl -sI stays HEAD', curlHttpsTarget('curl -sI https://example.com/')?.head === true);
 }
 
 async function gitAndFilesUnit() {

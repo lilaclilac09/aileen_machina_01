@@ -83,12 +83,12 @@ export function safeHttpsUrl(raw: string): string | null {
 }
 
 export function curlHeadCommand(url: string): string {
-  return `curl -sI --max-time 8 -- ${url}`;
+  return `curl -sI --max-time 8 ${url}`;
 }
 
 /** GET body. Saved under scratch/fetch by the runner. */
 export function curlFetchCommand(url: string): string {
-  return `curl -sL --max-time 8 -- ${url}`;
+  return `curl -sL --max-time 8 ${url}`;
 }
 
 /** Pull a public https URL out of a paste or a curl line. */
