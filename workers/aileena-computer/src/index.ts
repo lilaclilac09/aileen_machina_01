@@ -1,9 +1,11 @@
 /**
  * Small computer. Official worker-shell (just-bash) with opted-in
- * curl / jq groups. Owner gets the full opted-in shell.
- * python/sqlite groups are not advertised: just-bash python needs
- * node:worker_threads; sqlite needs a compiled worker the preview
- * package does not ship. Visitors keep core files commands only.
+ * curl / jq / html-to-markdown / file / xan groups.
+ * python / js-exec need node:worker_threads in workerd — not enabled.
+ * yq needs node:process in workerd — not enabled.
+ * sqlite group is not shipped complete in 0.2.1. Container/computerd is
+ * not bound (Workers Containers is a later paid slice).
+ * Visitors keep core files commands only — no network bins.
  */
 import { DurableObject } from 'cloudflare:workers';
 import {
@@ -15,6 +17,9 @@ import {
 import { WorkerShellBackend } from '@cloudflare/computer/backends/worker-shell';
 import curlModules from '@cloudflare/computer/shell/curl';
 import jqModules from '@cloudflare/computer/shell/jq';
+import htmlToMarkdownModules from '@cloudflare/computer/shell/html-to-markdown';
+import fileModules from '@cloudflare/computer/shell/file';
+import xanModules from '@cloudflare/computer/shell/xan';
 
 export { WorkspaceServiceProxy };
 
@@ -47,14 +52,31 @@ const CORE_BINS = new Set([
   'pwd',
   'printf',
   'tee',
+  'find',
+  'tree',
+  'diff',
+  'base64',
+  'stat',
+  'basename',
+  'dirname',
+  'du',
+  'touch',
+  'md5sum',
+  'sha1sum',
 ]);
 const OWNER_BINS = new Set([
   ...CORE_BINS,
   'curl',
   'jq',
+  'html-to-markdown',
+  'file',
+  'xan',
   'rm',
+  'cp',
+  'mv',
 ]);
 const VISITOR_BINS = new Set([...CORE_BINS, 'rm']);
+const WRITE_DEST_BINS = new Set(['rm', 'cp', 'mv', 'touch']);
 
 export class OwnerComputer extends withWorkspace(class extends DurableObject {}, (self) => {
   const { ctx, env } = self as unknown as { ctx: DurableObjectState; env: Env };
@@ -65,7 +87,7 @@ export class OwnerComputer extends withWorkspace(class extends DurableObject {},
         loader: env.LOADER,
         workspace: { binding: 'OwnerComputer', id: ctx.id.toString() },
         ctx,
-        commands: [curlModules, jqModules],
+        commands: [curlModules, jqModules, htmlToMarkdownModules, fileModules, xanModules],
         egress: { mode: 'direct' },
       }),
     ],
@@ -88,7 +110,8 @@ export default {
         [
           'aileena-computer',
           'backend=cloudflare-worker-shell',
-          'groups=curl,jq',
+          'groups=curl,jq,html-to-markdown,file,xan',
+          'container=unbound',
           'GET  /health',
           'PUT  /c/<name>/file/workspace/<path>  (bearer)',
           'GET  /c/<name>/file/workspace/<path>  (bearer)',
@@ -104,8 +127,9 @@ export default {
       return Response.json({
         ok: true,
         backend: 'cloudflare-worker-shell',
-        groups: ['curl', 'jq'],
+        groups: ['curl', 'jq', 'html-to-markdown', 'file', 'xan'],
         egress: 'direct',
+        container: false,
       });
     }
 
@@ -227,12 +251,12 @@ async function handleExec(request: Request, env: Env, name: string): Promise<Res
   if (!allow.has(bin)) {
     return errorJSON(new Error(`command not allowlisted: ${bin}`), 400);
   }
-  if (bin === 'rm') {
-    const parts = command.split(/\s+/).slice(1);
-    const target = parts.find((a) => a.startsWith('/workspace/') || (!a.startsWith('-') && a !== 'rm'));
+  if (WRITE_DEST_BINS.has(bin)) {
+    const parts = command.split(/\s+/).slice(1).filter((a) => a && !a.startsWith('-'));
+    const target = parts.at(-1);
     const abs = target?.startsWith('/') ? target : `${MOUNT_ROOT}/${target ?? ''}`;
     if (!target || !isWriteAllowed(abs)) {
-      return errorJSON(new Error('rm only under scratch/reports/artifacts'), 400);
+      return errorJSON(new Error(`${bin} only under scratch/reports/artifacts`), 400);
     }
   }
 

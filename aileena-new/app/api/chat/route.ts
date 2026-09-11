@@ -8,6 +8,8 @@ import { isCouncilLens } from '../../../lib/councilCopy';
 import { requireOwnerFromRequest } from '../../../lib/owner-gate';
 import { tryOwnerComputerFastPath, tryVisitorComputerFastPath } from '../../../lib/computer/chatFastPath';
 import { computerActorFromRequest, computerActorSetCookie } from '../../../lib/computer/actor';
+import { isComputerPrototypeEnabled } from '../../../lib/computer/flag';
+import { callMcpApp, listMcpApps } from '../../../lib/mcp/catalog';
 import { searchArticles } from '../../../lib/agentSearch';
 import { searchMemories, memoryIndexMeta } from '../../../lib/memorySearch';
 import { agentDataTools, datasetSummary } from '../../../lib/data/tools';
@@ -484,7 +486,13 @@ If the visitor names a specific article, project, product, person, company, tech
 
 # Machina mode tools
 - searchMemories(query, k): required for taste, setlist, culture, frameworks, Dreaming, hardware notes.
-- searchArticles(query, k): optional when visitor asks about her published writing.`;
+- searchArticles(query, k): optional when visitor asks about her published writing.${
+    owner && isComputerPrototypeEnabled()
+      ? `
+- listMcpApps(): owner. What Machina can call: computer (worker-shell), github (token), remote MCP_SERVERS.
+- callMcp({ app, tool, args }): owner. computer.exec / computer.read / github.me|repo|pulls|issues|contents / remote tools. Not merge. Not a laptop OS.`
+      : ''
+  }`;
   const councilToolTable = `
 
 # Council tools
@@ -583,13 +591,36 @@ ${memoryPrefetch
 
     // R2: only expose tools allowed for this question type (hire → none, taste → memories…).
     const routedTools = applyToolRoute(allTools, toolRoute);
-    const guardedTools = wrapToolsWithReactGuard(routedTools, reactGuard);
+    const withMcp =
+      owner && isComputerPrototypeEnabled() && toolRoute.allowed !== 'none'
+        ? {
+            ...routedTools,
+            listMcpApps: tool({
+              description:
+                'Owner. List Machina MCP apps: computer (worker-shell), github (if token), remote MCP_SERVERS. Does not merge. Does not start Linux.',
+              inputSchema: z.object({}),
+              execute: async () => listMcpApps(),
+            }),
+            callMcp: tool({
+              description:
+                'Owner. Call one MCP tool. app=computer|github|<remote name>. computer: exec|read. github: me|repo|pulls|issues|contents. Public https remotes only.',
+              inputSchema: z.object({
+                app: z.string().min(1).max(40),
+                tool: z.string().min(1).max(80),
+                args: z.record(z.any()).optional(),
+              }),
+              execute: async ({ app, tool: mcpTool, args }) =>
+                callMcpApp(app, mcpTool, args ?? {}, computerActor.id),
+            }),
+          }
+        : routedTools;
+    const guardedTools = wrapToolsWithReactGuard(withMcp, reactGuard);
 
     console.log('[chat] tool-route', {
       route: toolRoute.route,
       allowed: toolRoute.allowed,
       preferred: toolRoute.preferred,
-      exposed: Object.keys(routedTools),
+      exposed: Object.keys(withMcp),
     });
 
     const modelSpan = trace.startSpan('model_stream', {

@@ -3,8 +3,8 @@
 const DOING: Record<string, string> = {
   draft_daily_fix_plan: 'Inspecting /daily and drafting a plan',
   write_scratch_file: 'Writing a scratch file in the workspace',
-  scratch_peek: 'Opening the last scratch note',
-  scratch_clock: 'Reading the computer clock',
+  scratch_peek: 'Opening a scratch note',
+  scratch_clock: 'Stamping the clock into today\'s note',
   shell_exec: 'Running a worker-shell command',
   inspect_route_files: 'Inspecting route files',
   generate_implementation_prompt: 'Preparing an implementation prompt / PR summary',

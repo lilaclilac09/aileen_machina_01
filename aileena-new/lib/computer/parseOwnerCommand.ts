@@ -227,16 +227,17 @@ export function parseVisitorComputerCommand(text: string): VisitorComputerComman
       kind: 'queue_task',
       taskType: 'files_tree',
       route: '/proof',
-      instructions: '/workspace',
+      instructions: '/workspace/scratch',
     };
   }
 
-  if (/^(peek|open last|read)$/i.test(raw)) {
+  const peek = /^(peek|open last|read)(?:\s+(.+))?$/i.exec(raw);
+  if (peek) {
     return {
       kind: 'queue_task',
       taskType: 'scratch_peek',
       route: '/proof',
-      instructions: 'last',
+      instructions: (peek[2] || 'last').trim().slice(0, 80),
     };
   }
 

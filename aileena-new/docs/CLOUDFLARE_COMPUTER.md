@@ -78,6 +78,15 @@ owner Console  →  POST /api/agent/computer/tasks   (owner cookie, Vercel Node)
 
 Chat stays Edge. The runner stays Node. The package lives only in the Worker.
 
+Two products, both owner-only:
+
+| Product | What it is | Where |
+|---------|------------|--------|
+| **This computer** | worker-shell (just-bash) in a Durable Object | Console dock + `POST /c/<name>/exec` |
+| **Machina MCP** | Machina calling other apps (computer / github / `MCP_SERVERS`) | Owner chat tools + `GET/POST /api/agent/mcp` |
+
+MCP does **not** turn the site into Linux. Container/`computerd` stays unbound (`container: false`) until a later paid slice.
+
 ```txt
 aileena.xyz (Vercel)     = mouth + dock + owner gate + task queue
 workers/aileena-computer = the actual small computer
@@ -203,6 +212,15 @@ COMPUTER_WORKER_URL=https://<worker>.<account>.workers.dev
 COMPUTER_WORKER_SECRET=<same value>
 ```
 
+Machina MCP (owner Console — a different product from the Worker):
+
+```txt
+GITHUB_TOKEN=
+GITHUB_REPO=lilaclilac09/aileen_machina_01
+# public https MCP servers only
+MCP_SERVERS=[{"name":"example","url":"https://mcp.example/","bearer":""}]
+```
+
 Production without the Worker:
 
 ```txt
@@ -220,10 +238,12 @@ Do one slice per PR. Do not bundle the Worker and a UI redesign.
 |---|--------|--------|
 | **A** | Scaffold `workers/aileena-computer` from official worker-shell. Auth + name lock + write allowlist. No site change. | `wrangler dev` curl PUT/GET/exec + restart persistence |
 | **B** | `cfClient` + scratch + files_* in `runner.ts`. Dock copy can say `cloudflare-worker-shell` when ready. | Owner scratch in Console lands in the DO |
-| **C** | Official shell groups `curl` `jq` + owner `>` `shell_exec`. Visitors stay core-only. Python/sqlite groups do not run in workerd. | wrangler smoke awk/curl/jq; visitor curl 400 |
+| **C** | Official shell groups `curl` `jq` `html-to-markdown` + owner `>` `shell_exec`. Visitors stay core-only. Python/sqlite groups do not run in workerd. | wrangler smoke awk/curl/jq/html-to-markdown; visitor curl 400 |
+| **C′** | Same keys, pushed: find shows matching lines, look shows first-line excerpts, peek names a note, clock stamps today's note, owner https GETs body into `scratch/fetch`. | one-shot 390 stills + verify:computer-prototype |
+| **E** | Deeper shell (`find` `tree` `file` `xan`) + Machina MCP client (computer / github / `MCP_SERVERS`). `yq` skipped (`node:process` missing in workerd). Container/`computerd` still unbound. | wrangler smoke find/file/xan; owner `GET /api/agent/mcp`; visitor 403 |
 | **D** | Optional later: container/`computerd` Linux | new spec |
 
-Out of scope until a later owner ask: container/`computerd`, cloning `aileen_machina_01` into the DO, merge, browser, email send, `@cloudflare/computer/tools` as the chat loop.
+Out of scope until a later owner ask: container/`computerd` (needs Cloudflare Containers bind + image — health reports `container: false`), cloning `aileen_machina_01` into the DO, merge, browser, email send, installing `@cloudflare/computer` inside Next (including `/tools`).
 
 ---
 

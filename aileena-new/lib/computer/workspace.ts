@@ -58,6 +58,19 @@ export async function workspaceRuntimeProbe(): Promise<{ stdout: string; exitCod
   return { stdout: 'ok', exitCode: 0 };
 }
 
+function firstLineExcerpt(abs: string): string {
+  try {
+    const text = readFileSync(abs, 'utf8');
+    const first =
+      text.split(/\r?\n/).find((l) => l.trim() && !/^\d{4}-\d{2}-\d{2}T/.test(l.trim())) ||
+      text.split(/\r?\n/).find((l) => l.trim()) ||
+      '';
+    return first.replace(/\s+/g, ' ').slice(0, 80);
+  } catch {
+    return '';
+  }
+}
+
 function walkWorkspace(dir: string, root: string, out: string[], depth: number): void {
   if (depth > 6 || !existsSync(dir)) return;
   for (const name of readdirSync(dir)) {
@@ -72,8 +85,11 @@ function walkWorkspace(dir: string, root: string, out: string[], depth: number):
     if (st.isDirectory()) {
       out.push(`${rel}/`);
       walkWorkspace(abs, root, out, depth + 1);
-    } else {
+    } else if (name === '.born') {
       out.push(`${rel} ${st.size}`);
+    } else {
+      const excerpt = firstLineExcerpt(abs);
+      out.push(excerpt ? `${rel} ${st.size}  · ${excerpt}` : `${rel} ${st.size}`);
     }
   }
 }
@@ -118,8 +134,12 @@ export function workspaceGrep(workspaceId: string, rawQuery: string): { lines: s
       } catch {
         continue;
       }
-      if (text.includes(query)) {
-        hits.push(`${relative(root, abs).replaceAll('\\', '/')}: match`);
+      const rel = relative(root, abs).replaceAll('\\', '/');
+      const rows = text.split(/\r?\n/);
+      for (let i = 0; i < rows.length; i += 1) {
+        if (!rows[i].includes(query)) continue;
+        hits.push(`${rel}:${i + 1}: ${rows[i].trim().slice(0, 120)}`);
+        if (hits.length >= 50) return;
       }
     }
   };
@@ -130,21 +150,92 @@ export function workspaceGrep(workspaceId: string, rawQuery: string): { lines: s
   };
 }
 
-/** Newest scratch note in a shim workspace. Skips .born. */
-export async function workspaceLatestNote(
-  workspaceId: string,
-): Promise<{ path: string; body: string; bytes: number } | null> {
+function listedScratchFiles(workspaceId: string): string[] {
   const { lines } = workspaceList(workspaceId);
   const files: string[] = [];
   for (const line of lines) {
-    const m = /^(scratch\/\S+)\s+\d+$/.exec(line.trim());
+    const m = /^(scratch\/\S+)\s+\d+/.exec(line.trim());
     if (!m) continue;
     if (m[1].includes('.born')) continue;
     files.push(`/${m[1]}`);
   }
+  return files;
+}
+
+export type PeekSelector =
+  | { kind: 'last' }
+  | { kind: 'nth'; n: number }
+  | { kind: 'date'; day: string }
+  | { kind: 'path'; virtual: string };
+
+/** Empty / last → newest. `YYYY-MM-DD`, `2` (2nd newest), or a scratch path. */
+export function parsePeekSelector(raw: string): PeekSelector {
+  const t = raw.trim().replace(/^(peek|open|read)\s+/i, '');
+  if (!t || /^(last|latest)$/i.test(t)) return { kind: 'last' };
+  if (/^\d{4}-\d{2}-\d{2}$/.test(t)) return { kind: 'date', day: t };
+  if (/^\d{1,2}$/.test(t)) {
+    const n = Number(t);
+    if (n >= 1) return { kind: 'nth', n };
+  }
+  let cleaned = t.replace(/^\/+/, '').replace(/^workspace\//, '');
+  if (cleaned.startsWith('scratch/')) cleaned = cleaned.slice('scratch/'.length);
+  if (!/^[A-Za-z0-9._/-]+$/.test(cleaned) || cleaned.includes('..')) return { kind: 'last' };
+  if (cleaned.startsWith('notes/') || cleaned.includes('/')) {
+    return { kind: 'path', virtual: `/scratch/${cleaned}` };
+  }
+  return { kind: 'path', virtual: `/scratch/notes/${cleaned}` };
+}
+
+async function readNote(
+  workspaceId: string,
+  virtualPath: string,
+): Promise<{ path: string; body: string; bytes: number } | null> {
+  try {
+    const body = await workspaceReadFile(workspaceId, virtualPath);
+    return { path: virtualPath, body, bytes: Buffer.byteLength(body) };
+  } catch {
+    return null;
+  }
+}
+
+/** Newest scratch note in a shim workspace. Skips .born. */
+export async function workspaceLatestNote(
+  workspaceId: string,
+): Promise<{ path: string; body: string; bytes: number } | null> {
+  return workspacePickNote(workspaceId, 'last');
+}
+
+/** Open a named / dated / nth scratch note. Falls through to last only when selector is empty. */
+export async function workspacePickNote(
+  workspaceId: string,
+  raw: string,
+): Promise<{ path: string; body: string; bytes: number } | null> {
+  const sel = parsePeekSelector(raw);
+  const files = listedScratchFiles(workspaceId);
   const notes = files.filter((p) => p.startsWith('/scratch/notes/')).sort();
-  const pick = notes.at(-1) ?? files.filter((p) => p.startsWith('/scratch/')).sort().at(-1);
-  if (!pick) return null;
-  const body = await workspaceReadFile(workspaceId, pick);
-  return { path: pick, body, bytes: Buffer.byteLength(body) };
+  const scratch = files.filter((p) => p.startsWith('/scratch/')).sort();
+
+  if (sel.kind === 'last') {
+    const pick = notes.at(-1) ?? scratch.at(-1);
+    return pick ? readNote(workspaceId, pick) : null;
+  }
+  if (sel.kind === 'nth') {
+    const pick = [...notes].reverse()[sel.n - 1] ?? [...scratch].reverse()[sel.n - 1];
+    return pick ? readNote(workspaceId, pick) : null;
+  }
+  if (sel.kind === 'date') {
+    return readNote(workspaceId, `/scratch/notes/${sel.day}.txt`);
+  }
+
+  const candidates = [
+    sel.virtual,
+    sel.virtual.endsWith('.txt') ? '' : `${sel.virtual}.txt`,
+    sel.virtual.replace('/scratch/notes/', '/scratch/'),
+    `/scratch/${sel.virtual.replace(/^\/scratch\//, '')}`,
+  ].filter(Boolean);
+  for (const path of candidates) {
+    const hit = await readNote(workspaceId, path);
+    if (hit) return hit;
+  }
+  return null;
 }

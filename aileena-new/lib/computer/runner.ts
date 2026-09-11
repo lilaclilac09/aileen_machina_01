@@ -1,14 +1,21 @@
 import { spawn } from 'node:child_process';
 import { join } from 'node:path';
-import { ALLOWED_CHECK_COMMANDS, COMPUTER_LIMITS } from './allowlist';
+import {
+  ALLOWED_CHECK_COMMANDS,
+  COMPUTER_LIMITS,
+  curlFetchCommand,
+  curlHttpsTarget,
+  fetchScratchName,
+} from './allowlist';
 import { analyzeDailyFixPlan, inspectRouteFiles } from './inspect';
 import { clip, redactSecrets } from './redact';
 import { getComputerTask, isOwnerComputerTask, nowIso, taskActorId, upsertComputerTask } from './store';
 import type { ComputerArtifact, ComputerTask, ComputerTaskStatus } from './types';
 import {
+  parsePeekSelector,
   workspaceGrep,
-  workspaceLatestNote,
   workspaceList,
+  workspacePickNote,
   workspaceReadFile,
   workspaceRuntimeProbe,
   workspaceWriteFile,
@@ -303,6 +310,55 @@ async function runGitTask(task: ComputerTask): Promise<ComputerTask> {
   return logged;
 }
 
+async function runOwnerFetch(task: ComputerTask, url: string): Promise<ComputerTask> {
+  const name = workspaceIdFor(task);
+  await ensureCfMount(name);
+  await cfExec('mkdir -p scratch/fetch', '/workspace', name);
+  const cmd = curlFetchCommand(url);
+  task = await log(task, `$ ${cmd}`);
+  const run = await cfExec(cmd, '/workspace', name);
+  const raw = [run.stdout, run.stderr].filter(Boolean).join('\n');
+  if (run.exitCode !== 0) {
+    return finishInspectStyle(task, {
+      status: 'failed',
+      summary: `exit ${run.exitCode}`,
+      report: `# shell_exec\n\n$ ${cmd}\nexit ${run.exitCode}\n\n${raw}`,
+      preview: raw || `exit ${run.exitCode}`,
+      title: url.slice(0, 40),
+      kind: 'report',
+      error: run.stderr || `exit ${run.exitCode}`,
+    });
+  }
+  const body = clip(run.stdout || '', COMPUTER_LIMITS.workspaceFileBytes);
+  const file = `/workspace/scratch/fetch/${fetchScratchName(url)}`;
+  const rel = file.replace(/^\/workspace\//, '');
+  await cfPutFile(file, body, name);
+  const trimmed = body.trim();
+  let extra = '';
+  if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+    const keys = await cfExec(`jq 'if type=="object" then keys else type end' ${shellWord(rel)}`, '/workspace', name);
+    extra = keys.stdout.trim() ? `\n── jq ──\n${keys.stdout.trim()}` : '';
+  } else if (/<!DOCTYPE html/i.test(trimmed) || /<html[\s>]/i.test(trimmed)) {
+    const mdPath = file.replace(/\.txt$/i, '.md');
+    const mdRel = mdPath.replace(/^\/workspace\//, '');
+    const md = await cfExec(`html-to-markdown ${shellWord(rel)}`, '/workspace', name);
+    if (md.exitCode === 0 && md.stdout.trim()) {
+      await cfPutFile(mdPath, clip(md.stdout, COMPUTER_LIMITS.workspaceFileBytes), name);
+      extra = `\n── md ──\n${clip(md.stdout.trim(), 800)}\n${mdRel}`;
+    }
+  }
+  const preview = `${file}\n${clip(body, 1200)}${extra}`;
+  return finishInspectStyle(task, {
+    status: 'completed',
+    summary: file,
+    report: `# shell_exec\n\n$ ${cmd}\n${file}\n\n${body}${extra}`,
+    preview,
+    title: file.split('/').pop() || 'fetch',
+    kind: 'scratch',
+    filesInspected: [file],
+  });
+}
+
 async function runShellTask(task: ComputerTask): Promise<ComputerTask> {
   const cmd = (task.instructions || '').trim().slice(0, 2000);
   if (!cmd) {
@@ -327,6 +383,8 @@ async function runShellTask(task: ComputerTask): Promise<ComputerTask> {
       error: 'needs worker-shell',
     });
   }
+  const target = curlHttpsTarget(cmd);
+  if (target && !target.head) return runOwnerFetch(task, target.url);
   const name = workspaceIdFor(task);
   await ensureCfMount(name);
   task = await log(task, `$ ${cmd}`);
@@ -455,34 +513,62 @@ function scratchPayload(
   };
 }
 
-async function cfLatestNote(name: string): Promise<{ path: string; body: string } | null> {
+async function cfListNotes(name: string): Promise<string[]> {
   const ls = await cfExec('ls -1 /workspace/scratch/notes', '/workspace', name);
-  const files = String(ls.stdout || '')
+  return String(ls.stdout || '')
     .split('\n')
     .map((s) => s.trim())
-    .filter((s) => s && !s.startsWith('.') && !s.includes('/'));
-  files.sort();
-  const last = files.at(-1);
-  if (last) {
-    const path = `/workspace/scratch/notes/${last}`;
-    try {
-      return { path, body: await cfGetFile(path, name) };
-    } catch {
-      /* fall through */
-    }
-  }
+    .filter((s) => s && !s.startsWith('.') && !s.includes('/'))
+    .sort()
+    .map((file) => `/workspace/scratch/notes/${file}`);
+}
+
+async function cfReadNote(name: string, path: string): Promise<{ path: string; body: string } | null> {
   try {
-    return { path: '/workspace/scratch/hello.txt', body: await cfGetFile('/workspace/scratch/hello.txt', name) };
+    return { path, body: await cfGetFile(path, name) };
   } catch {
     return null;
   }
 }
 
+async function cfPickNote(name: string, raw: string): Promise<{ path: string; body: string } | null> {
+  const sel = parsePeekSelector(raw);
+  const notes = await cfListNotes(name);
+
+  const tryPaths = async (paths: string[]) => {
+    for (const path of paths) {
+      const hit = await cfReadNote(name, path);
+      if (hit) return hit;
+    }
+    return null;
+  };
+
+  if (sel.kind === 'last') {
+    const last = notes.at(-1);
+    if (last) return tryPaths([last]);
+    return tryPaths(['/workspace/scratch/hello.txt']);
+  }
+  if (sel.kind === 'nth') {
+    const pick = [...notes].reverse()[sel.n - 1];
+    return pick ? tryPaths([pick]) : null;
+  }
+  if (sel.kind === 'date') {
+    return tryPaths([`/workspace/scratch/notes/${sel.day}.txt`]);
+  }
+  const rel = sel.virtual.replace(/^\/scratch\//, '');
+  return tryPaths([
+    `/workspace/scratch/${rel}`,
+    sel.virtual.endsWith('.txt') ? '' : `/workspace/scratch/${rel}.txt`,
+    `/workspace/scratch/${rel.replace(/^notes\//, '')}`,
+  ].filter(Boolean));
+}
+
 async function runScratchPeek(task: ComputerTask): Promise<ComputerTask> {
   const name = workspaceIdFor(task);
+  const selector = (task.instructions || '').trim() || 'last';
   if (isCloudflareComputerReady()) {
     await ensureCfMount(name);
-    const note = await cfLatestNote(name);
+    const note = await cfPickNote(name, selector);
     if (!note) {
       return finishInspectStyle(task, {
         status: 'completed',
@@ -503,7 +589,7 @@ async function runScratchPeek(task: ComputerTask): Promise<ComputerTask> {
       filesInspected: [note.path],
     });
   }
-  const note = await workspaceLatestNote(name);
+  const note = await workspacePickNote(name, selector);
   if (!note) {
     return finishInspectStyle(task, {
       status: 'completed',
@@ -525,16 +611,55 @@ async function runScratchPeek(task: ComputerTask): Promise<ComputerTask> {
   });
 }
 
+async function appendTodayStamp(
+  task: ComputerTask,
+  stamp: string,
+): Promise<{ path: string; body: string }> {
+  const name = workspaceIdFor(task);
+  const day = stamp.slice(0, 10);
+  const line = `${stamp}\n`;
+  const join = (existing: string) => {
+    if (!existing) return line;
+    return `${existing.endsWith('\n') ? existing : `${existing}\n`}${line}`;
+  };
+  if (isCloudflareComputerReady()) {
+    const path = `/workspace/scratch/notes/${day}.txt`;
+    await ensureCfMount(name);
+    await cfExec('mkdir -p scratch/notes', '/workspace', name);
+    let body = line;
+    try {
+      body = join(await cfGetFile(path, name));
+    } catch {
+      /* first stamp today */
+    }
+    await cfPutFile(path, body, name);
+    return { path, body };
+  }
+  const path = `/scratch/notes/${day}.txt`;
+  let existing = '';
+  try {
+    existing = await workspaceReadFile(name, path);
+  } catch {
+    /* first stamp today */
+  }
+  const body = join(existing);
+  await workspaceWriteFile(name, path, body);
+  return { path, body };
+}
+
 async function runScratchClock(task: ComputerTask): Promise<ComputerTask> {
   const stamp = nowIso();
-  const line = `${stamp}\n${taskBackend()}`;
+  task = await log(task, `stamp ${stamp}`);
+  const note = await appendTodayStamp(task, stamp);
+  const tail = note.body.trim().split(/\n/).slice(-8).join('\n');
   return finishInspectStyle(task, {
     status: 'completed',
     summary: stamp,
-    report: `# scratch_clock\n\n${line}\n`,
-    preview: line,
+    report: `# scratch_clock\n\n${note.path}\n${stamp}\n${taskBackend()}\n\n${tail}\n`,
+    preview: `${note.path}\n${stamp}\n──\n${tail}`,
     title: 'clock',
-    kind: 'report',
+    kind: 'scratch',
+    filesInspected: [note.path],
   });
 }
 
@@ -557,7 +682,7 @@ async function runCfFilesTask(task: ComputerTask): Promise<ComputerTask> {
   }
   if (task.taskType === 'files_search') {
     const query = clip(workspaceSearchQuery(task.instructions || '') || 'hello', 80);
-    const run = await cfExec(`grep -R -n -F -- ${shellWord(query)} .`, '/workspace', name);
+    const run = await cfExec(`grep -R -n -F ${shellWord(query)} scratch`, '/workspace', name);
     const text = [run.stdout, run.stderr].filter(Boolean).join('\n');
     return finishInspectStyle(task, {
       status: run.exitCode === 0 || run.exitCode === 1 ? 'completed' : 'failed',
@@ -570,7 +695,9 @@ async function runCfFilesTask(task: ComputerTask): Promise<ComputerTask> {
     });
   }
   const run = await cfExec(`ls -la ${path === '/workspace' ? '.' : path}`, '/workspace', name);
-  const text = [run.stdout, run.stderr].filter(Boolean).join('\n');
+  const heads = await cfExec('head -n 4 scratch/notes/*.txt', '/workspace', name);
+  const excerpt = heads.exitCode === 0 && heads.stdout.trim() ? `\n── notes ──\n${heads.stdout.trim()}` : '';
+  const text = [run.stdout, run.stderr].filter(Boolean).join('\n') + excerpt;
   return finishInspectStyle(task, {
     status: run.exitCode === 0 ? 'completed' : 'failed',
     summary: run.exitCode === 0 ? `listed ${path} on worker-shell` : `ls failed ${path}`,

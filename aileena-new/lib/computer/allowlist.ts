@@ -55,6 +55,22 @@ export const OWNER_SHELL_BINS = [
   'tee',
   'curl',
   'jq',
+  'html-to-markdown',
+  'file',
+  'xan',
+  'find',
+  'tree',
+  'diff',
+  'base64',
+  'stat',
+  'basename',
+  'dirname',
+  'du',
+  'touch',
+  'md5sum',
+  'sha1sum',
+  'cp',
+  'mv',
   'rm',
 ] as const;
 
@@ -83,6 +99,39 @@ export function safeHttpsUrl(raw: string): string | null {
 
 export function curlHeadCommand(url: string): string {
   return `curl -sI --max-time 8 ${url}`;
+}
+
+/** GET body. Saved under scratch/fetch by the runner. */
+export function curlFetchCommand(url: string): string {
+  return `curl -sL --max-time 8 ${url}`;
+}
+
+/** Pull a public https URL out of a paste or a curl line. */
+export function curlHttpsTarget(raw: string): { url: string; head: boolean } | null {
+  const t = raw.trim();
+  const pasted = safeHttpsUrl(t);
+  if (pasted) return { url: pasted, head: false };
+  if (!/^curl\b/.test(t)) return null;
+  const tokens = t.split(/\s+/);
+  const head = tokens.some((tok) => tok === '--head' || /^-[A-Za-z]*I[A-Za-z]*$/.test(tok));
+  const token = t
+    .split(/\s+/)
+    .map((s) => s.replace(/^['"]|['"]$/g, ''))
+    .find((s) => s.startsWith('https://'));
+  const url = token ? safeHttpsUrl(token) : null;
+  if (!url) return null;
+  return { url, head };
+}
+
+export function fetchScratchName(url: string): string {
+  let host = 'fetch';
+  try {
+    host = new URL(url).hostname.toLowerCase().replace(/[^a-z0-9.-]/g, '').slice(0, 40) || 'fetch';
+  } catch {
+    /* keep fetch */
+  }
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  return `${host}-${stamp}.txt`;
 }
 
 /** Visitors may only touch their own scratch workspace. Never git, email, repo files, shell, or proof. */
