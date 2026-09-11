@@ -260,6 +260,100 @@
       ]
     },
     {
+      "id": "hold-en-inbox",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "excludes_any",
+          "values": [
+            "@gmail.com",
+            "aileen@"
+          ]
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "leave a note",
+            "site context",
+            "don't see"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hold-en-pay",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "excludes_any",
+          "values": [
+            "$400k",
+            "hedge fund"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hold-en-updates",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "excludes_any",
+          "values": [
+            "/blog/cli"
+          ]
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "latest content",
+            "/updates",
+            "searchmemories"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hold-en-identity",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "excludes_any",
+          "values": [
+            "i am aileen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "train-en-looking",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "leave a note"
+          ]
+        },
+        {
+          "type": "excludes_any",
+          "values": [
+            "@gmail.com"
+          ]
+        }
+      ]
+    },
+    {
       "id": "gen-availability-0",
       "checks": [
         {

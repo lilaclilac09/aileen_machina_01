@@ -9,7 +9,7 @@ export type SkillTriggerSource = {
   triggers: string[];
 };
 
-/** Map visitor phrasing (especially Chinese) onto English skill triggers. */
+/** Map visitor phrasing (Chinese + English paraphrases) onto skill triggers. */
 export const QUESTION_ALIASES: Array<[RegExp, string]> = [
   [/邮箱|邮件/, ' email gmail'],
   [/微信|微信号/, ' wechat'],
@@ -19,6 +19,12 @@ export const QUESTION_ALIASES: Array<[RegExp, string]> = [
   [/更新了吗|有什么新|最近更新|新文章/, " what's new latest content"],
   [/你就是|你是不是她|你是她/, ' are you aileen'],
   [/合作|招人|招聘|兼职|外包/, ' hire collaborate'],
+  [/\binbox\b/, ' email gmail'],
+  [/\bpay\b|\bwages?\b|how much money|what does she make/, ' salary compensation'],
+  [/any updates|posted lately|just dropped/, " what's new latest content"],
+  [/you('re| are) her|speak as aileen|be aileen|pretend to be her/, ' are you aileen'],
+  [/looking for work|work with her/, ' hire collaborate'],
+  [/fill the frame/, ' crop visual'],
 ];
 
 export function searchHaystack(question: string): string {

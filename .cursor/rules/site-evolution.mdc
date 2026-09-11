@@ -10,6 +10,7 @@ Do **not** fine-tune weights. Do **not** rewrite `AGENTS.md` from a lesson.
 ```bash
 cd aileena-new
 pnpm evolve:status
+pnpm evolve:effect
 pnpm verify:evolve
 pnpm evolve
 ```

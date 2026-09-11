@@ -4,6 +4,7 @@
  *
  *   pnpm evolve                      # until held-out+train stabilize (max 8 rounds)
  *   pnpm evolve:status               # one line; exit 1 if dirty
+ *   pnpm evolve:effect               # naive vs skilled sheet
  *   pnpm evolve -- --once            # one ratchet round
  *   pnpm evolve -- --dry-run
  *   pnpm evolve -- --from-lesson ../ops/lessons/YYYY-MM-DD-slug.md
@@ -21,6 +22,7 @@ import { lessonFileToSkill } from '../lib/evolution/engine/lessonToSkill';
 import { loadProductionSkills } from '../lib/evolution/engine/bank';
 import { codegenActiveSkills } from '../lib/evolution/engine/codegen';
 import { evolutionStatus } from '../lib/evolution/engine/status';
+import { writeEffectSheet } from '../lib/evolution/engine/effect';
 
 function arg(flag: string): string | undefined {
   const i = process.argv.indexOf(flag);
@@ -39,6 +41,20 @@ function main() {
     const status = evolutionStatus(root);
     console.log(status.line);
     if (!status.clean) process.exit(1);
+    return;
+  }
+
+  if (has('--effect')) {
+    const { path, rows } = writeEffectSheet(root);
+    const failed = rows.filter((r) => !r.pass).map((r) => r.id);
+    console.log(`wrote ${path} (${rows.length} prompts)`);
+    for (const r of rows.filter((row) => row.split === 'held-out')) {
+      console.log(`${r.pass ? 'OK' : 'FAIL'}  ${r.id}  ${r.prompt.slice(0, 64)}`);
+    }
+    if (failed.length) {
+      console.error(`fails: ${failed.join(',')}`);
+      process.exit(1);
+    }
     return;
   }
 

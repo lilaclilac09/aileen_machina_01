@@ -8,6 +8,7 @@ description: Run the aileena site-agent skill ratchet. Use when the site agent h
 ```bash
 cd aileena-new
 pnpm evolve:status    # exit 1 if held-out or train is dirty
+pnpm evolve:effect    # naive vs skilled visitor sheet
 pnpm verify:evolve
 pnpm evolve           # until stable
 ```

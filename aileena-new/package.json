@@ -47,6 +47,7 @@
     "verify:evolve": "tsx scripts/verify-evolve.ts",
     "evolve": "tsx scripts/evolve.ts",
     "evolve:status": "tsx scripts/evolve.ts --status",
+    "evolve:effect": "tsx scripts/evolve.ts --effect",
     "qa:evolve": "tsx scripts/verify-evolve.ts",
     "verify:ai-factory": "tsx scripts/verify-ai-factory-sim.ts",
     "verify:visual": "tsx scripts/verify-visual.ts",
