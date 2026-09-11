@@ -131,6 +131,8 @@ Required screenshots: `landing-desktop.png`, `landing-mobile-390.png`, `landing-
 
 ## DJ
 
+Loop (Cursor / Devin / any agent): [`docs/SOUND_LAB_LOOP.md`](docs/SOUND_LAB_LOOP.md). Gate: `pnpm test:e2e:dnd`. Layout-only: `pnpm qa:sound`. Knobs math: `pnpm verify:dj-mixer`.
+
 - add song
 - appears in carousel
 - drag to deck A

@@ -42,6 +42,9 @@
 
 - 不准平行重写已有 DJ drag / drag-me 实现（`AGENTS.md`）
 - Visual `#glass-bench` **不在** `/sound`（`QA.md` DJ）
+- [2026-09-11] 桌面拖 CD 没反应 → carousel swipe `setPointerCapture` 抢了 HTML5 drag；`pointer: fine` 才 `draggable`，touch 只 swipe（`docs/SOUND_LAB_LOOP.md`）
+- [2026-09-11] 双击封面不 load / 只进 A → `draggable` 吞掉 native `dblclick`；用第二次 press / `click.detail === 2`，`Date.now` 只放 event handler
+- [2026-09-11] 碟标换了 iframe 仍是 Daydreaming → 无 `spotifyId` 时旧代码 skip `loadUri` 且 Deck B fallback 到 DAYDRM；有 id 就 `loadUri`，没有就把 wrapper 里的 leftover iframe 拆掉
 
 ---
 

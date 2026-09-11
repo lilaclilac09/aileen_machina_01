@@ -4,6 +4,8 @@ Agent 总则（**inspect → plan → patch → verify** + 施工队安全条例
 
 新 session 先说：`follow AGENTS.md, QA.md, and /docs/aileena-design-os.md. no screenshots = not done. no owner approval = no merge.`
 
+Sound Lab 另加：`and docs/SOUND_LAB_LOOP.md`
+
 - 设计 / 视觉 OS：[`docs/aileena-design-os.md`](../docs/aileena-design-os.md)
 - 产品事实（mood / orb / Visual / contact / doors）：[`PROJECT_RULES.md`](../PROJECT_RULES.md)
 - QA 清单 + 命令：[`QA.md`](../QA.md)
@@ -19,7 +21,7 @@ Agent 总则（**inspect → plan → patch → verify** + 施工队安全条例
 - §2 编码守则 + evidence Closer
 - §3 验证命令清单
 - §4 DJ Set 验收工作流
-- §5 Prompt 模板（12 个）
+- §5 Prompt 模板（0–12，含 Sound Lab loop）
 - §6 最终确认模板
 
 防乱改一句：`先不要写代码，先读相关文件并给我最小修改计划。`
@@ -30,6 +32,16 @@ UI merge 验收：截图 + 交互都要给看（中间微调别刷屏）— `.cu
 Landing experiment：`.cursor/rules/landing-experiment-gate.mdc` — **no screenshots = no merge recommendation.**
 
 Production ship / 多 PR 合入：见 `AGENTS.md` 施工队安全条例 — **不能在线上证明就不准说修好了**。
+
+Sound Lab（`/sound` 拖碟 / 双击 / iframe / 旋钮）整段 loop，Cursor **和 Devin** 同一份：[`docs/SOUND_LAB_LOOP.md`](../docs/SOUND_LAB_LOOP.md)
+
+```txt
+Run the Sound Lab verify loop in docs/SOUND_LAB_LOOP.md.
+follow AGENTS.md, QA.md, docs/aileena-design-os.md.
+no screenshots = not done. no owner approval = no merge.
+Task: [贴 /sound 任务]
+Prove it on https://www.aileena.xyz/sound before you say done.
+```
 
 Debug / bug：「不对」先走 `.cursor/rules/debug-repro-loop.mdc` — **Repro → Hypotheses → Evidence → Root cause → Fix**；卡住用 `AGENTS.md` fail-closed blocker 表。
 

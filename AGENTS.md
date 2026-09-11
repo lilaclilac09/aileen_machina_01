@@ -312,4 +312,5 @@ Always-on：[`.cursor/rules/debug-repro-loop.mdc`](.cursor/rules/debug-repro-loo
 - UI 截图 + 交互：`.cursor/rules/ui-step-screenshot.mdc`
 - Landing experiment 验收 + 截图 + merge gate：`.cursor/rules/landing-experiment-gate.mdc`（**no screenshots = no merge recommendation**）
 - 完整工作准册：`aileena-new/docs/工作准册.md`
+- Sound Lab 交互 loop（Cursor / Devin 同一份）：[`docs/SOUND_LAB_LOOP.md`](docs/SOUND_LAB_LOOP.md)
 - AI auto-merge：`docs/AI_AUTOMERGE.md`
