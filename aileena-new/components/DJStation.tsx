@@ -3,6 +3,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import TrackLibraryBrowser from './TrackLibraryBrowser';
 import { allDeckTracks, type DeckTrack } from '../lib/djSetlist';
 import { useDuoLayout } from '../lib/duoPose';
+import { KNOB_TICKS, knobAngleDeg, knobValueFromOffset, snapKnobTick } from '../lib/djMixerMath';
 
 /* ─── Palette — aligned to AgentChat cream + deep green ─── */
 const C = {
@@ -304,7 +305,7 @@ export default function DJStation() {
               onScratchEnd={() => { if (leftWasPlaying.current) leftCtrl.current?.togglePlay(); }}
               onSync={handleSyncLeft}
             />
-            <MixerPanel xfade={xfade} onXfade={handleXfade} isMobile={true} fatXfade />
+            <MixerPanel xfade={xfade} onXfade={handleXfade} isMobile fatXfade />
             <DeckPanel
               side="right" track={rightTrack} playing={rightPlaying} isMobile={true} synced={bpmHint?.type === 'sync'}
               pos={rightPos} dur={rightDur || (rightTrack?.dur ?? 0) * 1000}
@@ -658,7 +659,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {/* Play/Pause */}
           <button className="dj-tap" onClick={onToggle} aria-label={playing ? 'Pause' : 'Play'} style={{
-            width: 44, height: 44, borderRadius: '50%', cursor: 'pointer',
+            width: isMobile ? 56 : 44, height: isMobile ? 56 : 44, borderRadius: '50%', cursor: 'pointer',
             background: playing ? `rgba(0,168,157,0.1)` : '#14181e',
             border: `1px solid ${playing ? 'rgba(0,168,157,0.55)' : 'rgba(170,179,187,0.22)'}`,
             boxShadow: playing ? `0 0 10px rgba(0,168,157,0.28)` : 'inset 0 2px 5px rgba(0,0,0,0.4)',
@@ -669,7 +670,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
           }}>{playing ? '⏸' : '▶'}</button>
           {/* CUE */}
           <button className="dj-tap" onClick={() => setCueMs(pos > 0 ? pos : null)} aria-label="Cue" style={{
-            width: 44, height: 44, borderRadius: '50%', cursor: 'pointer',
+            width: isMobile ? 56 : 44, height: isMobile ? 56 : 44, borderRadius: '50%', cursor: 'pointer',
             background: cueMs !== null ? 'rgba(125,183,255,0.1)' : '#14181e',
             border: `1px solid ${cueMs !== null ? 'rgba(125,183,255,0.55)' : 'rgba(170,179,187,0.22)'}`,
             boxShadow: cueMs !== null ? '0 0 8px rgba(125,183,255,0.25)' : 'inset 0 2px 5px rgba(0,0,0,0.4)',
@@ -681,7 +682,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
             {cueMs !== null && <span style={{ fontFamily: 'monospace', fontSize: '0.22rem', opacity: 0.7 }}>{fmt(cueMs)}</span>}
           </button>
         </div>
-        <PitchFader pitch={pitch} onChange={onPitch} />
+        <PitchFader pitch={pitch} onChange={onPitch} fat={!!isMobile} />
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
           <VU active={playing} />
           <MKnob size={22} />
@@ -698,7 +699,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
       </div>
 
       {/* ── Pioneer section: Sync + Loop + Hot Cues ── */}
-      <PioneerControls side={side} playing={playing} synced={!!synced} pos={pos} onSync={onSync} />
+      <PioneerControls side={side} playing={playing} synced={!!synced} pos={pos} onSync={onSync} fat={!!isMobile} />
 
       </div>{/* end info+controls wrapper */}
     </div>
@@ -708,9 +709,9 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
 /* ─── Pioneer Controls ───────────────────────────────────── */
 const HOT_CUE_COLORS = ['#3b82f6','#f97316','#a3e635','#a855f7','#22d3ee','#ef4444','#10b981','#f472b6'];
 
-function PioneerControls({ side, playing, synced, pos, onSync }: {
+function PioneerControls({ side, playing, synced, pos, onSync, fat }: {
   side: 'left'|'right'; playing: boolean; synced: boolean;
-  pos: number; onSync: () => void;
+  pos: number; onSync: () => void; fat?: boolean;
 }) {
   const [loopActive, setLoopActive]   = useState(false);
   const [loopIn,     setLoopIn]       = useState<number | null>(null);
@@ -742,7 +743,7 @@ function PioneerControls({ side, playing, synced, pos, onSync }: {
       }}>
         {/* SYNC */}
         <button className="dj-tap" onClick={onSync} style={{
-          padding: '8px 12px', borderRadius: 4, cursor: 'pointer', minHeight: 44,
+          padding: fat ? '12px 16px' : '8px 12px', borderRadius: 4, cursor: 'pointer', minHeight: fat ? 56 : 44,
           background: synced ? 'rgba(0,168,157,0.1)' : '#14181e',
           border: `1px solid ${synced ? 'rgba(0,168,157,0.5)' : 'rgba(170,179,187,0.22)'}`,
           boxShadow: synced ? '0 0 8px rgba(0,168,157,0.25)' : 'inset 0 2px 4px rgba(0,0,0,0.5)',
@@ -755,8 +756,8 @@ function PioneerControls({ side, playing, synced, pos, onSync }: {
         </button>
 
         {/* LOOP IN */}
-        <button onClick={() => { setLoopIn(pos); setLoopActive(false); }} style={{
-          padding: '4px 8px', borderRadius: 4, cursor: 'pointer',
+        <button className="dj-tap" onClick={() => { setLoopIn(pos); setLoopActive(false); }} style={{
+          padding: fat ? '10px 14px' : '4px 8px', borderRadius: 4, cursor: 'pointer', minHeight: fat ? 56 : undefined,
           background: loopIn !== null ? 'rgba(125,183,255,0.08)' : '#14181e',
           border: `1px solid ${loopIn !== null ? 'rgba(125,183,255,0.45)' : 'rgba(170,179,187,0.22)'}`,
           boxShadow: loopIn !== null ? '0 0 6px rgba(125,183,255,0.2)' : 'inset 0 2px 4px rgba(0,0,0,0.5)',
@@ -770,8 +771,8 @@ function PioneerControls({ side, playing, synced, pos, onSync }: {
         </button>
 
         {/* LOOP OUT */}
-        <button onClick={() => { if (loopIn !== null) { setLoopOut(pos); setLoopActive(true); } }} style={{
-          padding: '4px 8px', borderRadius: 4, cursor: 'pointer',
+        <button className="dj-tap" onClick={() => { if (loopIn !== null) { setLoopOut(pos); setLoopActive(true); } }} style={{
+          padding: fat ? '10px 14px' : '4px 8px', borderRadius: 4, cursor: 'pointer', minHeight: fat ? 56 : undefined,
           background: loopActive ? 'rgba(255,155,94,0.08)' : '#14181e',
           border: `1px solid ${loopActive ? 'rgba(255,155,94,0.45)' : 'rgba(170,179,187,0.22)'}`,
           boxShadow: loopActive ? '0 0 6px rgba(255,155,94,0.2)' : 'inset 0 2px 4px rgba(0,0,0,0.5)',
@@ -787,8 +788,8 @@ function PioneerControls({ side, playing, synced, pos, onSync }: {
         {/* Loop size selector */}
         <div style={{ display: 'flex', gap: 2 }}>
           {loopSizes.map(s => (
-            <button key={s} onClick={() => setLoopSize(s)} style={{
-              width: 26, height: 22, borderRadius: 3, cursor: 'pointer',
+            <button key={s} type="button" className="dj-tap" data-testid={`dj-loop-size-${s}`} onClick={() => setLoopSize(s)} style={{
+              width: fat ? 52 : 26, height: fat ? 52 : 22, minWidth: fat ? 52 : 26, borderRadius: 3, cursor: 'pointer',
               background: loopSize === s ? (loopActive ? 'rgba(255,155,94,0.12)' : 'rgba(125,183,255,0.1)') : '#14181e',
               border: `1px solid ${loopSize === s ? (loopActive ? 'rgba(255,155,94,0.4)' : 'rgba(125,183,255,0.4)') : 'rgba(170,179,187,0.15)'}`,
               fontFamily: 'monospace', fontSize: '0.34rem', fontWeight: 600,
@@ -802,8 +803,8 @@ function PioneerControls({ side, playing, synced, pos, onSync }: {
 
         {/* EXIT LOOP */}
         {loopActive && (
-          <button onClick={() => { setLoopActive(false); setLoopIn(null); setLoopOut(null); }} style={{
-            padding: '4px 7px', borderRadius: 4, cursor: 'pointer',
+          <button className="dj-tap" onClick={() => { setLoopActive(false); setLoopIn(null); setLoopOut(null); }} style={{
+            padding: fat ? '10px 14px' : '4px 7px', borderRadius: 4, cursor: 'pointer', minHeight: fat ? 56 : undefined,
             background: 'rgba(255,155,94,0.08)',
             border: '1px solid rgba(255,155,94,0.4)',
             fontFamily: 'monospace', fontSize: '0.40rem', fontWeight: 600,
@@ -831,10 +832,12 @@ function PioneerControls({ side, playing, synced, pos, onSync }: {
             return (
               <button
                 key={i}
+                type="button"
+                className="dj-tap"
                 onPointerDown={() => handleCuePad(i)}
                 title={hasPos ? `Press to clear cue ${String.fromCharCode(65+i)} (${fmt(cuePositions[i])})` : `Press to set cue ${String.fromCharCode(65+i)} at ${fmt(pos)}`}
                 style={{
-                  minHeight: 44, height: hasPos ? 44 : 44, borderRadius: 4, cursor: 'pointer',
+                  minHeight: fat ? 56 : 44, height: fat ? 56 : 44, borderRadius: 4, cursor: 'pointer',
                   background: hasPos ? `${color}18` : '#14181e',
                   border: `1px solid ${hasPos ? `${color}80` : 'rgba(170,179,187,0.18)'}`,
                   boxShadow: hasPos
@@ -909,25 +912,25 @@ function MixerPanel({ xfade, onXfade, isMobile, fatXfade, foldGutter = 0 }: {
       <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 4 }}>
         <div style={{ display: 'flex', gap: 3 }}>
           {(['ECHO','REVERB','FLANGER'] as const).map(fx => (
-            <button key={fx} onClick={() => { setFxType(fx); setFxOn(true); }} style={{
-              flex: 1, padding: '3px 0', borderRadius: 3, cursor: 'pointer',
+            <button key={fx} type="button" className="dj-tap" data-testid={`dj-fx-${fx.toLowerCase()}`} onClick={() => { setFxType(fx); setFxOn(true); }} style={{
+              flex: 1, padding: isMobile ? '12px 0' : '3px 0', minHeight: isMobile ? 52 : undefined, borderRadius: 3, cursor: 'pointer',
               background: fxOn && fxType === fx ? 'rgba(255,155,94,0.1)' : '#14181e',
               border: `1px solid ${fxOn && fxType === fx ? 'rgba(255,155,94,0.45)' : 'rgba(170,179,187,0.18)'}`,
-              fontFamily: 'monospace', fontSize: '0.30rem', fontWeight: 600, letterSpacing: '0.08em',
+              fontFamily: 'monospace', fontSize: isMobile ? '0.48rem' : '0.30rem', fontWeight: 600, letterSpacing: '0.08em',
               color: fxOn && fxType === fx ? C.orange : C.silverDark,
               transition: 'all 0.12s',
             }}>{fx}</button>
           ))}
-          <button onClick={() => setFxOn(false)} style={{
-            padding: '3px 6px', borderRadius: 3, cursor: 'pointer',
+          <button type="button" className="dj-tap" data-testid="dj-fx-off" onClick={() => setFxOn(false)} style={{
+            padding: isMobile ? '12px 10px' : '3px 6px', minHeight: isMobile ? 52 : undefined, borderRadius: 3, cursor: 'pointer',
             background: !fxOn ? 'rgba(255,155,94,0.08)' : '#14181e',
             border: `1px solid ${!fxOn ? 'rgba(255,155,94,0.35)' : 'rgba(170,179,187,0.18)'}`,
-            fontFamily: 'monospace', fontSize: '0.28rem',
+            fontFamily: 'monospace', fontSize: isMobile ? '0.48rem' : '0.28rem',
             color: !fxOn ? C.orange : C.silverDark,
           }}>OFF</button>
         </div>
         <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <EQKnob label="FX" value={50} size={22} color="#f97316" />
+          <EQKnob label="FX" value={50} size={isMobile ? 48 : 22} fat={isMobile} color="#f97316" />
         </div>
       </div>
 
@@ -941,7 +944,8 @@ function MixerPanel({ xfade, onXfade, isMobile, fatXfade, foldGutter = 0 }: {
             <EQKnob
               label={band.toUpperCase()}
               value={eqVals[band]}
-              size={24}
+              size={isMobile ? 52 : 24}
+              fat={isMobile}
               color={band === 'hi' ? '#38bdf8' : band === 'mid' ? '#a3e635' : '#f97316'}
               onChange={v => setEqVals(p => ({ ...p, [band]: v }))}
             />
@@ -955,7 +959,7 @@ function MixerPanel({ xfade, onXfade, isMobile, fatXfade, foldGutter = 0 }: {
       <div style={{ width: '100%', display: 'flex', justifyContent: 'space-around' }}>
         {([['A', filterA, setFilterA, C.cyan], ['B', filterB, setFilterB, C.orange]] as const).map(([lbl, val, set, col]) => (
           <div key={lbl} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <EQKnob label="FILTER" value={val as number} size={20} color={col as string}
+            <EQKnob label="FILTER" testId={`dj-knob-filter-${String(lbl).toLowerCase()}`} value={val as number} size={isMobile ? 52 : 20} fat={isMobile} color={col as string}
               onChange={v => (set as (n: number) => void)(v)} />
             <span style={{ fontFamily: 'monospace', fontSize: '0.28rem', color: col as string, letterSpacing: '0.1em' }}>{lbl}</span>
           </div>
@@ -1004,88 +1008,169 @@ function MixerPanel({ xfade, onXfade, isMobile, fatXfade, foldGutter = 0 }: {
 
       {/* ── Master ── */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-        <EQKnob label="MASTER" value={75} size={28} color="#22c55e" />
+        <EQKnob label="MASTER" value={75} size={isMobile ? 56 : 28} fat={isMobile} color="#22c55e" />
       </div>
 
     </div>
   );
 }
 
-/* ─── EQ Knob (interactive rotary) ──────────────────────── */
-function EQKnob({ label, value, size, color, onChange }: {
-  label: string; value: number; size: number; color: string; onChange?: (v: number) => void;
+/* ─── EQ Knob (click the ring / ticks to jump; drag to fine-tune) ── */
+function EQKnob({ label, value, size, color, onChange, fat, testId }: {
+  label: string; value: number; size: number; color: string;
+  onChange?: (v: number) => void; fat?: boolean; testId?: string;
 }) {
   const [dragging, setDragging] = useState(false);
   const [localVal, setLocalVal] = useState(value);
   const startY = useRef(0);
   const startVal = useRef(0);
+  const dragMode = useRef<'angle' | 'vertical' | null>(null);
+  const padRef = useRef<HTMLDivElement>(null);
+  const id = testId ?? `dj-knob-${label.toLowerCase()}`;
+  const pad = fat ? Math.max(size + 36, 80) : Math.max(size + 28, 52);
+  const tickHit = fat ? 28 : 18;
 
-  // Angle: 0% = -135deg, 50% = 0deg, 100% = +135deg
-  const angle = -135 + (localVal / 100) * 270;
+  const angle = knobAngleDeg(localVal);
   const isCenter = Math.abs(localVal - 50) < 3;
+
+  function apply(next: number) {
+    const v = Math.max(0, Math.min(100, next));
+    setLocalVal(v);
+    onChange?.(v);
+  }
+
+  function valueAtPointer(clientX: number, clientY: number) {
+    const el = padRef.current;
+    if (!el) return localVal;
+    const rect = el.getBoundingClientRect();
+    return knobValueFromOffset(
+      clientX - (rect.left + rect.width / 2),
+      clientY - (rect.top + rect.height / 2),
+    );
+  }
 
   function onPointerDown(e: React.PointerEvent) {
     if (!onChange) return;
+    const el = padRef.current;
+    if (!el) return;
     e.currentTarget.setPointerCapture(e.pointerId);
+    const rect = el.getBoundingClientRect();
+    const dx = e.clientX - (rect.left + rect.width / 2);
+    const dy = e.clientY - (rect.top + rect.height / 2);
+    const innerR = size * 0.42;
     setDragging(true);
     startY.current = e.clientY;
-    startVal.current = localVal;
+    if (Math.hypot(dx, dy) >= innerR) {
+      dragMode.current = 'angle';
+      const snapped = snapKnobTick(knobValueFromOffset(dx, dy));
+      apply(snapped);
+      startVal.current = snapped;
+    } else {
+      dragMode.current = 'vertical';
+      startVal.current = localVal;
+    }
   }
   function onPointerMove(e: React.PointerEvent) {
     if (!dragging || !onChange) return;
-    const delta = (startY.current - e.clientY) * 0.8;
-    const next = Math.max(0, Math.min(100, startVal.current + delta));
-    setLocalVal(next);
-    onChange(next);
+    if (dragMode.current === 'angle') apply(valueAtPointer(e.clientX, e.clientY));
+    else {
+      const delta = (startY.current - e.clientY) * 0.8;
+      apply(startVal.current + delta);
+    }
   }
-  function onPointerUp() { setDragging(false); }
+  function onPointerUp() {
+    setDragging(false);
+    dragMode.current = null;
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
-      cursor: onChange ? 'ns-resize' : 'default' }}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-    >
-      <div style={{ position: 'relative', width: size, height: size }}>
-        {/* Outer ring — silver channel */}
-        <svg width={size} height={size} viewBox="0 0 40 40" style={{ position: 'absolute', inset: 0 }}>
-          <circle cx="20" cy="20" r="18" fill="none" stroke="rgba(142,151,159,0.2)" strokeWidth="3"/>
-          {/* Arc — silver fill, glows with color at center */}
-          <circle cx="20" cy="20" r="18" fill="none"
-            stroke={isCenter ? color : 'rgba(185,192,199,0.55)'}
-            strokeWidth="2.5"
-            strokeDasharray={`${(localVal / 100) * 113} 200`}
-            strokeDashoffset="85"
-            strokeLinecap="round"
-            style={{ transition: dragging ? 'none' : 'stroke 0.2s',
-              filter: isCenter ? `drop-shadow(0 0 3px ${color}80)` : 'none' }}
-          />
-        </svg>
-        {/* Knob body — dark brushed metal */}
+      cursor: onChange ? 'pointer' : 'default' }}>
+      <div
+        ref={padRef}
+        data-testid={id}
+        data-value={String(Math.round(localVal))}
+        aria-label={`${label} ${Math.round(localVal)}`}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        style={{ position: 'relative', width: pad, height: pad, touchAction: 'none' }}
+      >
+        {KNOB_TICKS.map((tick) => {
+          const rad = (knobAngleDeg(tick) * Math.PI) / 180;
+          const r = pad / 2 - (fat ? 10 : 7);
+          const x = pad / 2 + Math.sin(rad) * r;
+          const y = pad / 2 - Math.cos(rad) * r;
+          const on = Math.abs(localVal - tick) < 8;
+          return (
+            <button
+              key={tick}
+              type="button"
+              data-testid={`${id}-tick-${tick}`}
+              aria-label={`${label} ${tick}`}
+              disabled={!onChange}
+              onPointerDown={(e) => {
+                if (!onChange) return;
+                e.stopPropagation();
+                apply(tick);
+              }}
+              style={{
+                position: 'absolute', left: x - tickHit / 2, top: y - tickHit / 2,
+                width: tickHit, height: tickHit, padding: 0, border: 'none',
+                background: 'transparent', cursor: onChange ? 'pointer' : 'default',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              <span style={{
+                width: fat ? 8 : 5, height: fat ? 8 : 5, borderRadius: '50%',
+                background: on ? color : 'rgba(185,192,199,0.35)',
+                boxShadow: on ? `0 0 5px ${color}` : 'none',
+                pointerEvents: 'none',
+              }} />
+            </button>
+          );
+        })}
         <div style={{
-          position: 'absolute', inset: size * 0.12,
-          borderRadius: '50%',
-          background: `radial-gradient(circle at 38% 35%, #2a2e36, #0e1014)`,
-          boxShadow: `inset 0 2px 4px rgba(0,0,0,0.8), inset 0 -1px 0 rgba(185,192,199,0.08),
-            0 0 ${isCenter ? 8 : 0}px ${color}50`,
-          transition: 'box-shadow 0.2s',
-          border: '1px solid rgba(170,179,187,0.12)',
+          position: 'absolute',
+          width: size, height: size,
+          top: (pad - size) / 2, left: (pad - size) / 2,
         }}>
-          {/* Indicator line */}
+          <svg width={size} height={size} viewBox="0 0 40 40" style={{ position: 'absolute', inset: 0 }}>
+            <circle cx="20" cy="20" r="18" fill="none" stroke="rgba(142,151,159,0.2)" strokeWidth="3"/>
+            <circle cx="20" cy="20" r="18" fill="none"
+              stroke={isCenter ? color : 'rgba(185,192,199,0.55)'}
+              strokeWidth="2.5"
+              strokeDasharray={`${(localVal / 100) * 113} 200`}
+              strokeDashoffset="85"
+              strokeLinecap="round"
+              style={{ transition: dragging ? 'none' : 'stroke 0.2s',
+                filter: isCenter ? `drop-shadow(0 0 3px ${color}80)` : 'none' }}
+            />
+          </svg>
           <div style={{
-            position: 'absolute', top: '12%', left: '50%',
-            width: 2, height: '30%',
-            background: color,
-            borderRadius: 1,
-            transformOrigin: `1px ${size * 0.38 * 0.88 * 0.76}px`,
-            transform: `translateX(-50%) rotate(${angle}deg)`,
-            boxShadow: `0 0 4px ${color}`,
-            transition: dragging ? 'none' : 'transform 0.1s',
-          }} />
+            position: 'absolute', inset: size * 0.12,
+            borderRadius: '50%',
+            background: `radial-gradient(circle at 38% 35%, #2a2e36, #0e1014)`,
+            boxShadow: `inset 0 2px 4px rgba(0,0,0,0.8), inset 0 -1px 0 rgba(185,192,199,0.08),
+              0 0 ${isCenter ? 8 : 0}px ${color}50`,
+            transition: 'box-shadow 0.2s',
+            border: '1px solid rgba(170,179,187,0.12)',
+            pointerEvents: 'none',
+          }}>
+            <div style={{
+              position: 'absolute', top: '12%', left: '50%',
+              width: 2, height: '30%',
+              background: color,
+              borderRadius: 1,
+              transformOrigin: `1px ${size * 0.38 * 0.88 * 0.76}px`,
+              transform: `translateX(-50%) rotate(${angle}deg)`,
+              boxShadow: `0 0 4px ${color}`,
+              transition: dragging ? 'none' : 'transform 0.1s',
+            }} />
+          </div>
         </div>
       </div>
-      <span style={{ fontFamily: 'monospace', fontSize: '0.26rem', letterSpacing: '0.25em',
+      <span style={{ fontFamily: 'monospace', fontSize: fat ? '0.42rem' : '0.26rem', letterSpacing: '0.25em',
         color: isCenter ? color : 'rgba(255,255,255,0.25)', transition: 'color 0.2s' }}>
         {label}
       </span>
@@ -1290,22 +1375,23 @@ function MKnob({ size = 28, lit }: { size?: number; lit?: boolean }) {
   );
 }
 
-function PitchFader({ pitch, onChange }: { pitch: number; onChange(v: number): void }) {
+function PitchFader({ pitch, onChange, fat }: { pitch: number; onChange(v: number): void; fat?: boolean }) {
   const pct = 50 - (pitch / 8) * 44;
+  const hitW = fat ? 56 : 44;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flex: 1 }}>
-      <p style={{ fontFamily: 'monospace', fontSize: '0.26rem', letterSpacing: '0.4em', color: C.dim }}>PITCH</p>
-      <div style={{ position: 'relative', width: 14, height: 78 }}>
-        <div style={{ position: 'absolute', left: 5, width: 4, height: '100%', borderRadius: 3,
+      <p style={{ fontFamily: 'monospace', fontSize: fat ? '0.4rem' : '0.26rem', letterSpacing: '0.4em', color: C.dim }}>PITCH</p>
+      <div style={{ position: 'relative', width: fat ? 22 : 14, height: fat ? 110 : 78 }}>
+        <div style={{ position: 'absolute', left: fat ? 9 : 5, width: fat ? 6 : 4, height: '100%', borderRadius: 3,
           background: '#0a0c0f',
           boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(170,179,187,0.1)' }} />
-        <div style={{ position: 'absolute', left: 2, width: 10, top: '50%', height: 1,
+        <div style={{ position: 'absolute', left: fat ? 6 : 2, width: fat ? 14 : 10, top: '50%', height: 1,
           background: `rgba(170,179,187,0.25)` }} />
         <input type="range" min={-8} max={8} step={0.1} value={pitch} onChange={e => onChange(+e.target.value)}
           aria-label="Pitch"
           className="dj-tap"
           style={{ writingMode: 'vertical-lr', direction: 'rtl', position: 'absolute',
-            height: '100%', width: 44, left: -15, opacity: 0, cursor: 'pointer', margin: 0, touchAction: 'none' }} />
+            height: '100%', width: hitW, left: fat ? -17 : -15, opacity: 0, cursor: 'pointer', margin: 0, touchAction: 'none' }} />
         <div style={{
           position: 'absolute', width: 26, height: 11, top: `calc(${pct}% - 5.5px)`, left: -6,
           borderRadius: 2, pointerEvents: 'none',

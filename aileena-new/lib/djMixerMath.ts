@@ -90,3 +90,36 @@ export function fmtMs(ms: number): string {
 export function fmtSec(sec: number): string {
   return fmtMs(sec * 1000);
 }
+
+/** Rotary sweep used by EQ / filter knobs. 0% = −135°, 50% = 12 o'clock, 100% = +135°. */
+export const KNOB_SWEEP_DEG = 270;
+export const KNOB_START_DEG = -135;
+export const KNOB_TICKS = [0, 25, 50, 75, 100] as const;
+
+export function knobAngleDeg(value0to100: number): number {
+  return KNOB_START_DEG + (clamp(value0to100, 0, 100) / 100) * KNOB_SWEEP_DEG;
+}
+
+/** Map a pointer offset from the knob center to 0–100. `dy` is screen-down. */
+export function knobValueFromOffset(dx: number, dy: number): number {
+  const deg = (Math.atan2(dx, -dy) * 180) / Math.PI;
+  const clamped = clamp(deg, KNOB_START_DEG, KNOB_START_DEG + KNOB_SWEEP_DEG);
+  return ((clamped - KNOB_START_DEG) / KNOB_SWEEP_DEG) * 100;
+}
+
+export function snapKnobTick(
+  value0to100: number,
+  ticks: readonly number[] = KNOB_TICKS,
+): number {
+  const v = clamp(value0to100, 0, 100);
+  let best = ticks[0] ?? 0;
+  let bestD = Infinity;
+  for (const t of ticks) {
+    const d = Math.abs(t - v);
+    if (d < bestD) {
+      bestD = d;
+      best = t;
+    }
+  }
+  return best;
+}
