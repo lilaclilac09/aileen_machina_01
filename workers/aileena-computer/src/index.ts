@@ -163,7 +163,7 @@ async function workspaceOf(env: Env, name: string) {
 }
 
 async function handleFile(request: Request, env: Env, name: string, path: string): Promise<Response> {
-  using ws = await workspaceOf(env, name);
+  await using ws = await workspaceOf(env, name);
 
   if (request.method === 'PUT') {
     if (!isWriteAllowed(path)) return errorJSON(new Error('write path not allowlisted'), 400);
@@ -172,6 +172,11 @@ async function handleFile(request: Request, env: Env, name: string, path: string
     try {
       const parent = path.split('/').slice(0, -1).join('/') || MOUNT_ROOT;
       await ws.fs.mkdir(parent, { recursive: true });
+      try {
+        await ws.fs.rm(path);
+      } catch {
+        /* first write */
+      }
       await ws.fs.writeFile(path, body);
       return new Response(null, { status: 204 });
     } catch (error) {
@@ -233,9 +238,9 @@ async function handleExec(request: Request, env: Env, name: string): Promise<Res
 
   const cwd = typeof body.cwd === 'string' && body.cwd.startsWith(MOUNT_ROOT) ? body.cwd : MOUNT_ROOT;
 
-  using ws = await workspaceOf(env, name);
+  await using ws = await workspaceOf(env, name);
   try {
-    using handle = await ws.runtime.exec(command, { cwd, encoding: 'utf8' });
+    await using handle = await ws.runtime.exec(command, { cwd, encoding: 'utf8' });
     const result = await handle.result();
     const stdout = clip(String(result.stdout ?? ''), 4000);
     const stderr = clip(String(result.stderr ?? ''), 2000);

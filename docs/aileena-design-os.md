@@ -381,6 +381,8 @@ observe → propose → approve → implement → verify → review → merge ma
 No owner approval = no merge.  
 No screenshots = not ready.
 
+Site-agent behavior uses a separate skill ratchet (`ops/evolution/`, `pnpm evolve`): SKILL.md patches promote only when held-out pass rate rises. That loop does not merge the site and does not rewrite constitution files.
+
 ## statuses
 
 observed · proposed · approved · in_progress · needs_screenshots · ready_for_review · rejected · shipped

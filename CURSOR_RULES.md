@@ -19,6 +19,7 @@ no screenshots = not done. no owner approval = no merge.
 6. [`PROJECT_RULES.md`](PROJECT_RULES.md) — product facts (mood, orb, Visual, contact, doors)
 7. [`.github/pull_request_template.md`](.github/pull_request_template.md) — every PR fills this
 8. [`ops/lessons/README.md`](ops/lessons/README.md) — after a failure, write a lesson; propose rules, do not rewrite them
+9. [`ops/evolution/README.md`](ops/evolution/README.md) — site-agent skill ratchet (`pnpm evolve`)
 
 Injected every session (`.cursor/rules/`):
 

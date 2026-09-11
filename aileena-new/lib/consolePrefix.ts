@@ -60,6 +60,8 @@ export type SessionTailInput = {
   priorTopics: string[];
   lastQuestion: string;
   councilLensBlock: string;
+  /** Ratcheted site-agent skills for this question. Council skips. */
+  skillBlock?: string;
 };
 
 export function buildFrozenSystemPrompt(input: FrozenPrefixInput): string {
@@ -84,6 +86,7 @@ export function buildSessionTail(input: SessionTailInput): string {
 
   if (input.memoryPrefetchBlock) parts.push(input.memoryPrefetchBlock);
   if (input.agentMode !== 'council') {
+    if (input.skillBlock) parts.push(input.skillBlock.trim());
     parts.push(formatToolRouteForPrompt(input.toolRoute).trim());
     parts.push(
       formatVisitorSoftMemoryForPrompt(

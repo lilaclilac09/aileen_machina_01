@@ -20,6 +20,11 @@ Lessons / rule proposals (owner approval): [`ops/lessons/README.md`](ops/lessons
 cd aileena-new
 pnpm qa:mobile         # 390×844 overflow + screenshots when a server is up; always checks safe-area CSS
 pnpm qa:agent          # prompt/rule lint (AGENTS / QA / council vs public / lessons)
+pnpm evolve:status     # one line; exit 1 if held-out/train dirty
+pnpm evolve:effect     # naive vs skilled visitor sheet
+pnpm evolve -- --from-question "…"  # ingest a new visitor ask, then ratchet
+pnpm verify:evolve     # site-agent skill ratchet (sandbox + external verifier)
+pnpm evolve            # until held-out + train stabilize; --dry-run to score only
 pnpm qa:contact        # Resend env names, lead route, transcript, offline copy
 pnpm qa:sound          # same as verify:sound
 pnpm verify:visual     # GlassBench / ScrapPhoto no cover-crop
@@ -53,6 +58,7 @@ When the slice has a dedicated test:
 
 ```bash
 cd aileena-new
+pnpm test:e2e:dnd      # carousel CD → Deck A/B plate
 pnpm test:e2e:mobile   # /sound decks + home overflow (390)
 pnpm verify:sound      # /sound + home Visual layout (default production URL)
 pnpm verify:doors-nav  # doors back-link chrome
@@ -128,7 +134,10 @@ Required screenshots: `landing-desktop.png`, `landing-mobile-390.png`, `landing-
 - add song
 - appears in carousel
 - drag to deck A
+- double-click a CD cover loads Deck A, next double-click loads Deck B
 - play / pause works
+- click a knob tick / around the ring jumps to that scale
+- phone mixer / loop / FX taps are large enough to hit
 - deck B works if touched
 - mixer controls affect actual audio if touched
 - Visual / `#glass-bench` is **not** on `/sound`

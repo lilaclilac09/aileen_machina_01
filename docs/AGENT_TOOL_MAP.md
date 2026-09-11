@@ -23,6 +23,7 @@ App 在 `aileena-new/`（`pnpm`）。
 | Contact / Resend | `pnpm lead:test` 或真实投递证据；缺 env → `manual steps` | 新写一套 mailer |
 | Docs-only | diff 自查 + 链接可点 | 假装改了产品行为 |
 | 失败复盘 | `ops/lessons/TEMPLATE.md` + 必要时 `pnpm report:merge -- --blocked "…"` | 直接改 `AGENTS.md` |
+| 站点神自进化 | `pnpm verify:evolve` · `pnpm evolve` · `ops/evolution/README.md` | 改权重 / 把 SKILL 升格进 `AGENTS.md` / 把 verifier 打进 chat bundle |
 | 站点改版 / proof | `/proof` or `/evolution` · `docs/aileena-design-os.md` · `pnpm verify:proof-queue` when that script exists | 自动 merge / 直接改 production |
 | Console TTS / orb voice | `pnpm verify:tts-session` · `pnpm verify:ops` | 每段换口音 / 一次 4000 字 fetch / 假播放 |
 | 布局 / mobile | `pnpm qa:mobile`（390×844 + scrollWidth） | 「overflow hidden 就好了」 |

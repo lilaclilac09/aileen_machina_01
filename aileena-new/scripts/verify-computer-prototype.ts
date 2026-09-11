@@ -94,6 +94,13 @@ function sourceChecks() {
   assert('cfClient routes by workspace name', /\/c\/\$\{name\}\/file/.test(cfClientSrc) && /\/c\/\$\{name\}\/exec/.test(cfClientSrc));
   const storeSrc = readFileSync(join(process.cwd(), 'lib/computer/store.ts'), 'utf8');
   assert('task store persists to Durable Object', /TASKS_STORE_PATH/.test(storeSrc) && /hydrateComputerStore/.test(storeSrc));
+  assert('task store does not persist every running tick', /isTerminalStatus/.test(storeSrc) && /reapStaleOpen/.test(storeSrc));
+  assert('task store persist retries and does not throw', /attempt < 3/.test(storeSrc) && /persist failed/.test(storeSrc));
+  assert('kickComputerTask cannot 500 the POST', /kickComputerTask/.test(tasks) && /status: 'failed'/.test(tasks));
+  assert(
+    'worker-shell skips the 1400ms running pause',
+    /backend !== 'cloudflare-worker-shell'/.test(runner) && /setTimeout\(r, 1400\)/.test(runner),
+  );
   assert(
     'worker lives beside the Next app',
     existsSync(join(process.cwd(), '..', 'workers', 'aileena-computer', 'src', 'index.ts')),
@@ -107,6 +114,7 @@ function sourceChecks() {
   assert('shell_exec is an owner task type', /'shell_exec'/.test(readFileSync(join(process.cwd(), 'lib/computer/types.ts'), 'utf8')));
   assert('visitors cannot queue shell_exec', !/VISITOR_COMPUTER_TASK_TYPES[\s\S]{0,200}shell_exec/.test(readFileSync(join(process.cwd(), 'lib/computer/allowlist.ts'), 'utf8')));
   assert('dock has owner shell key', /computer-key-shell/.test(dockSrc));
+  assert('worker PUT replaces existing files', /await ws\.fs\.rm\(path\)/.test(workerSrc) && /await using ws/.test(workerSrc));
   assert('runner finds git commits', /git_find_commit/.test(runner) && /gitFindCommit/.test(runner));
   assert('runner blocks email send', /email_send/.test(runner) && /email not connected/.test(runner));
   assert('runner blocks fake browser screenshots', /browser_screenshot/.test(runner) && /No fake screenshots/.test(runner));
@@ -128,7 +136,7 @@ function sourceChecks() {
     /setOpen\(true\);\s*setComputerMode\(true\)/.test(agentChatSrc),
   );
   assert('visitor chips skip git status', /VISITOR_STARTER_CHIPS/.test(dockSrc) && !/VISITOR_STARTER_CHIPS[\s\S]{0,200}git status/.test(dockSrc));
-  assert('dock tells visitors scratch resets monthly', /resets monthly/.test(dockSrc) && /isOwner \? '' : ' · resets monthly'/.test(dockSrc));
+  assert('dock tells visitors scratch resets on a 30d mark', /isOwner \? '' : ' · 30d'/.test(dockSrc));
   assert('does not import @cloudflare/computer', !existsSync(join(process.cwd(), 'node_modules/@cloudflare/computer')));
   assert(
     'plugins are not DeepSeek Harness',
@@ -140,13 +148,23 @@ function sourceChecks() {
   const transAt = agentChatSrc.indexOf('data-agent-transcript');
   assert('monitor sits above transcript', dockAt > 0 && transAt > 0 && dockAt < transAt);
   assert('dock always polls', /setInterval\(\(\) => void load\(\), 900\)/.test(dockSrc));
-  assert('dock shows simple 记 看 找 keys', /computer-simple-keys/.test(dockSrc) && /computer-key-note/.test(dockSrc) && /computer-key-find/.test(dockSrc));
-  assert('keys are symbols not labels', />\s*\+\s*</.test(dockSrc) && /≡/.test(dockSrc) && !/>记</.test(dockSrc) && !/>看</.test(dockSrc));
+  assert('dock shows learned chips', /computer-learned/.test(dockSrc) && /computer-monitor/.test(dockSrc));
+  assert(
+    'dock shows note/look/find sign keys',
+    /computer-simple-keys/.test(dockSrc) &&
+      /computer-key-note/.test(dockSrc) &&
+      /computer-key-find/.test(dockSrc) &&
+      /SignMark kind="note"/.test(dockSrc) &&
+      /SignMark kind="look"/.test(dockSrc) &&
+      /SignMark kind="find"/.test(dockSrc) &&
+      /SignMark kind="shell"/.test(dockSrc) &&
+      !/>[\s]*记[\s]*</.test(dockSrc),
+  );
   assert('keys have 44px tap targets', /min-h-11/.test(dockSrc) && /KEY_CLASS/.test(dockSrc));
   assert('empty 记 still queues a note', /phrase: raw \|\| 'note'/.test(dockSrc) && !/write first/.test(dockSrc));
   assert('empty 找 falls through to 看', /if \(!q\) \{\s*lookNow\(\);/.test(dockSrc) && !/type a word/.test(dockSrc));
-  assert('idle monitor tells the next tap', /isOwner \? '>' : '≡'/.test(dockSrc));
-  assert('empty scratch is a dated note not hello probe', /raw \? raw\.slice\(0, 4000\) : '·'/.test(runner) && !/!raw \|\|/.test(runner));
+  assert('idle monitor is blank until a task', /if \(!task\) return '';/.test(dockSrc) && !/点 看/.test(dockSrc));
+  assert('POST completed clears the flash sign', /status === 'completed'\) setFlash\(''\)/.test(dockSrc));
   assert('starter chips stay before learned', /OWNER_STARTER_CHIPS : VISITOR_STARTER_CHIPS\), \.\.\.\(isOwner \? learned/.test(dockSrc));
   assert('GET tasks includes learned', /learned: listLearned\(\)/.test(tasks));
   assert('POST remembers phrase', /rememberCommand/.test(tasks) && /body.phrase/.test(tasks));
@@ -533,9 +551,19 @@ async function liveHttp() {
   });
   assert('visitor POST write_scratch_file → 202', visitorScratch.status === 202, String(visitorScratch.status));
   const visitorScratchJson = visitorScratch.status === 202
-    ? ((await visitorScratch.json()) as { task?: { id?: string; actorId?: string }; proofItem?: unknown })
+    ? ((await visitorScratch.json()) as {
+        task?: { id?: string; actorId?: string; status?: string; backend?: string };
+        proofItem?: unknown;
+      })
     : {};
   assert('visitor scratch has no proof item', visitorScratchJson.proofItem == null);
+  if (process.env.COMPUTER_WORKER_URL && process.env.COMPUTER_WORKER_SECRET) {
+    assert(
+      'visitor note POST returns completed on worker-shell (not left queued)',
+      visitorScratchJson.task?.status === 'completed',
+      `${visitorScratchJson.task?.status ?? 'missing'} backend=${visitorScratchJson.task?.backend ?? ''}`,
+    );
+  }
   const visitorScratchId = visitorScratchJson.task?.id || '';
   const visitorScratchDone = visitorScratchId
     ? await pollTask(base, visitorCookie, visitorScratchId)
@@ -568,8 +596,13 @@ async function liveHttp() {
     });
     assert('visitor files_tree after expiry → 202', resetKick.status === 202, String(resetKick.status));
     const resetKickJson = resetKick.status === 202
-      ? ((await resetKick.json()) as { task?: { id?: string } })
+      ? ((await resetKick.json()) as { task?: { id?: string; status?: string } })
       : {};
+    assert(
+      'visitor 看 POST returns completed on worker-shell (not left queued)',
+      resetKickJson.task?.status === 'completed',
+      String(resetKickJson.task?.status),
+    );
     const resetTaskId = resetKickJson.task?.id || '';
     const resetDone = resetTaskId ? await pollTask(base, visitorCookie, resetTaskId) : { ok: false as const, status: resetKick.status };
     assert('visitor task after expiry completed', resetDone.ok && resetDone.st === 'completed', String(resetDone.ok ? resetDone.st : resetDone.status));

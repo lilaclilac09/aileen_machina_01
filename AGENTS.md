@@ -159,9 +159,12 @@ Failures become lessons. Repeated lessons may be **proposed** — never silently
 - Record: [`ops/lessons/`](ops/lessons/README.md) (copy `TEMPLATE.md`)
 - Propose: [`ops/improvement-queue.md`](ops/improvement-queue.md) — **owner approval** before touching `AGENTS.md` / `QA.md` / `PROJECT_RULES.md`
 - After a PR: [`ops/post-pr-review.md`](ops/post-pr-review.md)
+- Site-agent skills: [`ops/evolution/`](ops/evolution/README.md) — `pnpm evolve` / `pnpm verify:evolve`. Ratchet on held-out. No weight updates. Does not rewrite this file.
 - Do not autonomously refactor the site because a lesson exists
 
-Golden paths: `cd aileena-new && pnpm qa:mobile` · `pnpm qa:agent` · `pnpm qa:contact` · `pnpm qa:sound` · `pnpm audit:runtime` · `pnpm report:merge`
+Golden paths: `cd aileena-new && pnpm qa:mobile` · `pnpm qa:agent` · `pnpm qa:contact` · `pnpm qa:sound` · `pnpm verify:evolve` · `pnpm audit:runtime` · `pnpm report:merge`
+
+Site-agent skill ratchet (not weight updates): [`ops/evolution/`](ops/evolution/README.md). `pnpm evolve` promotes SKILL.md only when held-out improves. It does **not** rewrite this file.
 
 ## Blocker table (when stuck — stop, do not invent a bypass)
 

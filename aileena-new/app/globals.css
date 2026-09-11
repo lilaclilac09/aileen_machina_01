@@ -494,6 +494,18 @@ select,
     -webkit-overflow-scrolling: touch;
   }
 
+  /*
+   * Stacked home on iPhone: sections hug content.
+   * min-height:100dvh + height:auto leaves an unpainted remainder;
+   * body --bg-primary is #000, which reads as a black void between
+   * Doors and Visual (and any other short section). Opening stays
+   * one viewport. Paint the scroller so overscroll cannot flash black.
+   */
+  html:has(.snap-container),
+  body.site-body:has(.snap-container) {
+    background: #ffffff;
+  }
+
   .snap-container {
     height: auto;
     min-height: 100dvh;
@@ -502,11 +514,12 @@ select,
     overflow: visible;
     scroll-snap-type: none;
     overscroll-behavior: auto;
+    background: #ffffff;
   }
 
   .snap-section {
     height: auto;
-    min-height: 100dvh;
+    min-height: 0;
     width: 100%;
     max-width: 100%;
     overflow: visible;
@@ -521,6 +534,23 @@ select,
     min-height: 100dvh;
     height: auto;
     overflow: visible;
+    background: #ffffff;
+  }
+
+  #dock.snap-section {
+    background: #fbfaf6;
+  }
+
+  #watch-hub.snap-section {
+    min-height: 0;
+    height: auto;
+    background: #ffffff;
+  }
+
+  /* Beat the earlier #visual.snap-section { min-height: 100dvh } rule */
+  #visual.snap-section {
+    min-height: 0;
+    background: #efe6d6;
   }
 
   /* Fixed chrome clearance for stacked home / doors content */
@@ -571,9 +601,30 @@ select,
     flex-direction: column !important;
     gap: 8px !important;
   }
+  /* Only real book pose may unstack under 768. Never trust SSR `wide`. */
+  .dj-station[data-duo-pose="book"] .dj-mixer-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(88px, 132px) minmax(0, 1fr) !important;
+    flex-direction: unset !important;
+    column-gap: 20px !important;
+  }
   .dj-tap {
-    min-width: 44px !important;
-    min-height: 44px !important;
+    min-width: 52px !important;
+    min-height: 52px !important;
     box-sizing: border-box !important;
+  }
+
+  /* Split View / Duo: chrome hugs the outer edge of this pane */
+  .site-top-nav[data-duo-chrome="start"] {
+    padding-left: max(16px, var(--safe-left)) !important;
+  }
+  .site-top-nav[data-duo-chrome="end"] {
+    padding-right: max(16px, var(--safe-right)) !important;
+  }
+}
+
+@media (horizontal-viewport-segments: 2) {
+  .dj-station[data-duo-pose="book"] .dj-mixer-center {
+    padding-inline: 16px;
   }
 }

@@ -150,6 +150,19 @@ const visitorCurl = await req('POST', `/c/${visitorId}/exec`, {
 });
 assert('visitor curl 400', visitorCurl.res.status === 400, String(visitorCurl.res.status));
 
+const storePath = '/c/v-testdevworker01/file/workspace/reports/_store/tasks.json';
+const putStore1 = await req('PUT', storePath, {
+  headers: { 'content-type': 'text/plain' },
+  body: '{"n":1}',
+});
+const putStore2 = await req('PUT', storePath, {
+  headers: { 'content-type': 'text/plain' },
+  body: '{"n":2}',
+});
+const getStore = await req('GET', storePath);
+assert('overwrite tasks.json 204', putStore1.res.status === 204 && putStore2.res.status === 204, `${putStore1.res.status} ${putStore2.res.status}`);
+assert('overwrite tasks.json read', getStore.res.ok && getStore.text.includes('"n":2'), `${getStore.res.status} ${getStore.text.slice(0, 80)}`);
+
 if (fails.length) {
   console.error(`\n${fails.length} failed`);
   process.exit(1);
