@@ -83,3 +83,57 @@ test.describe('DJ knob ticks', () => {
     await expect(knob).toHaveAttribute('data-value', '50');
   });
 });
+
+function carouselCard(page: import('@playwright/test').Page, trackId: string) {
+  return page.locator(`[data-testid="dj-carousel-card"][data-track-id="${trackId}"]`);
+}
+
+async function activeCoverId(page: import('@playwright/test').Page) {
+  return (await page.getByTestId('dj-carousel-active-id').getAttribute('data-track-id')) || '';
+}
+
+async function advanceToNextCover(page: import('@playwright/test').Page) {
+  const before = await activeCoverId(page);
+  await page.locator('#dj-set').scrollIntoViewIfNeeded();
+  await page.getByTestId('dj-carousel-next').evaluate((el) => (el as HTMLButtonElement).click());
+  await expect
+    .poll(async () => activeCoverId(page), { timeout: 8_000 })
+    .not.toBe(before);
+  return activeCoverId(page);
+}
+
+async function dblclickCover(page: import('@playwright/test').Page, trackId: string) {
+  const card = carouselCard(page, trackId);
+  await card.scrollIntoViewIfNeeded();
+  await card.click({ clickCount: 2, force: true });
+}
+
+test.describe('DJ double-click CD → A then B', () => {
+  test('first double-click loads Deck A, second loads Deck B', async ({ page }) => {
+    await page.goto('/sound', { waitUntil: 'domcontentloaded' });
+    const deckA = page.getByTestId('dj-deck-a-title');
+    const deckB = page.getByTestId('dj-deck-b-title');
+    await expect(deckA).toBeVisible();
+    await expect(deckB).toBeVisible();
+    const startA = (await deckA.getAttribute('data-track-id')) || '';
+    const startB = (await deckB.getAttribute('data-track-id')) || '';
+
+    const firstId = await advanceToNextCover(page);
+    expect(firstId).toBeTruthy();
+    expect(firstId).not.toBe(startA);
+    await dblclickCover(page, firstId);
+    await expect
+      .poll(async () => (await deckA.getAttribute('data-track-id')) || '', { timeout: 8_000 })
+      .toBe(firstId);
+    expect((await deckB.getAttribute('data-track-id')) || '').toBe(startB);
+
+    const secondId = await advanceToNextCover(page);
+    expect(secondId).toBeTruthy();
+    expect(secondId).not.toBe(firstId);
+    await dblclickCover(page, secondId);
+    await expect
+      .poll(async () => (await deckB.getAttribute('data-track-id')) || '', { timeout: 8_000 })
+      .toBe(secondId);
+    expect((await deckA.getAttribute('data-track-id')) || '').toBe(firstId);
+  });
+});

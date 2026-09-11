@@ -535,6 +535,10 @@ function PlaylistCarousel({
     return () => controller.abort();
   }, [tracks]);
 
+  // Double-click a CD cover loads Deck A first, then Deck B, then A again.
+  const nextDblclickSide = useRef<'left' | 'right'>('left');
+  const lastCoverClick = useRef<{ id: string; t: number } | null>(null);
+  const justLoadedAt = useRef(0);
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const ptrStartX = useRef<number | null>(null);
   const dragX = useRef(0);
@@ -546,6 +550,12 @@ function PlaylistCarousel({
     activeIdxRef.current = activeIdx;
   }, [activeIdx]);
   const active = tracks[activeIdx];
+
+  function loadCoverInOrder(track: Track) {
+    const side = nextDblclickSide.current;
+    onLoadTrack?.(side, track);
+    nextDblclickSide.current = side === 'left' ? 'right' : 'left';
+  }
 
   function onCardHover(i: number, rel: number) {
     if (isDragging || rel === 0) return;
@@ -604,6 +614,9 @@ function PlaylistCarousel({
       <div style={{ position: 'relative', height: CARD + 16, touchAction: 'pan-y' }}>
         {/* Prev arrow */}
         <button
+          type="button"
+          data-testid="dj-carousel-prev"
+          aria-label="Previous CD"
           onClick={() => activeIdx > 0 && setActiveIdx(activeIdx - 1)}
           style={{
             position: 'absolute', left: 6, top: '50%', transform: 'translateY(-50%)',
@@ -615,6 +628,9 @@ function PlaylistCarousel({
         >‹</button>
         {/* Next arrow */}
         <button
+          type="button"
+          data-testid="dj-carousel-next"
+          aria-label="Next CD"
           onClick={() => activeIdx < tracks.length - 1 && setActiveIdx(activeIdx + 1)}
           style={{
             position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)',
@@ -663,6 +679,11 @@ function PlaylistCarousel({
                     e.preventDefault();
                     return;
                   }
+                  const prev = lastCoverClick.current;
+                  if (prev && Date.now() - prev.t < 400) {
+                    e.preventDefault();
+                    return;
+                  }
                   onSetDragTrack?.(track);
                   try {
                     e.dataTransfer.setData('text/plain', track.id);
@@ -671,14 +692,34 @@ function PlaylistCarousel({
                     /* some browsers throw on setData during tests */
                   }
                 }}
+                onPointerUp={(e) => {
+                  if (!finePointer || e.button !== 0 || movedEnough.current) return;
+                  const now = Date.now();
+                  const prev = lastCoverClick.current;
+                  if (prev && prev.id === track.id && now - prev.t < 400) {
+                    if (now - justLoadedAt.current < 80) return;
+                    justLoadedAt.current = now;
+                    loadCoverInOrder(track);
+                    lastCoverClick.current = null;
+                    return;
+                  }
+                  lastCoverClick.current = { id: track.id, t: now };
+                }}
                 onMouseEnter={() => onCardHover(i, rel)}
                 onMouseLeave={onCardLeave}
-                onClick={() => {
+                onClick={(e) => {
                   if (movedEnough.current) return;
+                  if (e.detail === 2) {
+                    const now = Date.now();
+                    if (now - justLoadedAt.current < 80) return;
+                    justLoadedAt.current = now;
+                    loadCoverInOrder(track);
+                    if (rel !== 0) setActiveIdx(i);
+                    return;
+                  }
                   if (rel !== 0) setActiveIdx(i);
                   else onSetDragTrack?.(track);
                 }}
-                onDoubleClick={() => onLoadTrack?.('left', track)}
                 style={{
                   position: 'absolute',
                   width: CARD, height: CARD,
@@ -805,7 +846,10 @@ function PlaylistCarousel({
           display: 'flex', alignItems: 'baseline', justifyContent: 'center',
           gap: '1em', marginTop: 10, marginBottom: 0,
         }}>
-          <span style={{
+          <span
+            data-testid="dj-carousel-active-id"
+            data-track-id={active.id}
+            style={{
             fontFamily: 'monospace',
             fontSize: '0.36rem',
             fontWeight: 600,
