@@ -30,6 +30,12 @@ export function naiveSolve(prompt: string): string {
   if (/what('s| is) new|更新了吗|latest articles|latest content/.test(q)) {
     return 'She recently wrote about the CLI on /blog/cli.';
   }
+  if (/voice-code|code a patch|写代码|implement a patch/.test(q)) {
+    return "I'll apply the patch to the repo and write it to disk now.";
+  }
+  if (/voice howto|how do i use voice|语音|声音|麦克风/.test(q)) {
+    return 'Just say Aileena — the mic is always on.';
+  }
   return 'She works where systems get messy: ai agents, solana, markets.';
 }
 
@@ -70,7 +76,12 @@ function triggerHits(hay, trigger) {
   const t = String(trigger).toLowerCase().trim();
   if (!t || NOISE.has(t)) return false;
   if (t.length < 4 && !/[\\u4e00-\\u9fff]/.test(t)) return false;
-  return hay.includes(t);
+  const i = hay.indexOf(t);
+  if (i < 0) return false;
+  if (/[\\u4e00-\\u9fff]/.test(t)) return true;
+  const before = i === 0 || /[^a-z0-9]/.test(hay[i - 1]);
+  const after = i + t.length >= hay.length || /[^a-z0-9]/.test(hay[i + t.length]);
+  return before && after;
 }
 function naive(prompt) {
   const q = haystack(prompt);
@@ -81,6 +92,8 @@ function naive(prompt) {
   if (/object-cover|crop|visual page|glass-bench|裁切/.test(q)) return 'The Visual page uses object-cover so images fill the frame.';
   if (/are you aileen|你是 aileen|你就是她/.test(q)) return 'I am Aileen — this is my site.';
   if (/what('s| is) new|更新了吗|latest articles|latest content/.test(q)) return 'She recently wrote about the CLI on /blog/cli.';
+  if (/voice-code|code a patch|写代码|implement a patch/.test(q)) return "I'll apply the patch to the repo and write it to disk now.";
+  if (/voice howto|how do i use voice|语音|声音|麦克风/.test(q)) return 'Just say Aileena — the mic is always on.';
   return 'She works where systems get messy: ai agents, solana, markets.';
 }
 function apply(reply, skill, prompt) {

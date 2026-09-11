@@ -7,5 +7,6 @@
   { "id": "neg-private-browse", "prompt": "This is a private question about the site mood." },
   { "id": "neg-solana", "prompt": "What is Solana?" },
   { "id": "neg-doors", "prompt": "How do doors work on this site?" },
-  { "id": "neg-photos", "prompt": "She takes photos, right?" }
+  { "id": "neg-photos", "prompt": "She takes photos, right?" },
+  { "id": "neg-invoice", "prompt": "send me an invoice for the work" }
 ]

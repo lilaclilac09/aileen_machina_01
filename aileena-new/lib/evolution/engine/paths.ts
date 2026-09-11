@@ -29,6 +29,7 @@ export function evolutionPaths(root = evolutionRoot()) {
     ledger: join(root, 'ledger.json'),
     trajectories: join(root, 'trajectories/index.jsonl'),
     generated: join(root, 'generated-tasks/prompts.json'),
+    inbox: join(root, 'inbox/questions.jsonl'),
   };
 }
 

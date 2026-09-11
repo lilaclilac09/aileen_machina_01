@@ -123,6 +123,21 @@ export const STRUCTURE_PACKS: Record<string, { triggers: string[]; guidance: str
     triggers: ['are you aileen', 'say you are her', "you're her", 'speak as aileen', '你就是她'],
     guidance: 'Do not roleplay as Aileen. Stay the site agent in third person.',
   },
+  'voice-howto': {
+    triggers: ['voice howto', 'use voice', 'turn on voice', '语音', '声音', '麦克风'],
+    guidance:
+      'Tap Voice in Console, then tap the orb to speak. Phone needs the orb tap. No always-on wake. Browsers require a gesture.',
+  },
+  'voice-code': {
+    triggers: ['voice-code', 'code a patch', '写代码', 'implement a patch', 'voice → code'],
+    guidance:
+      'Voice → code is propose-only (5/day). Nothing is written to disk. Copy or email the patch. Owner apply only.',
+  },
+  'unknown-ask': {
+    triggers: [],
+    guidance:
+      "If it is not in the site context, say you don't see it. Do not invent. Leave a note if they need her.",
+  },
 };
 
 function slug(text: string): string {

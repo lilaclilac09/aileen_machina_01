@@ -36,7 +36,9 @@ export function triggerMatches(haystack: string, trigger: string): boolean {
   const t = trigger.toLowerCase().trim();
   if (!t || TRIGGER_NOISE.has(t)) return false;
   if (t.length < 4 && !/[\u4e00-\u9fff]/.test(t)) return false;
-  return haystack.includes(t);
+  if (/[\u4e00-\u9fff]/.test(t)) return haystack.includes(t);
+  const escaped = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(?:^|[^a-z0-9])${escaped}(?:$|[^a-z0-9])`).test(haystack);
 }
 
 /** Map visitor phrasing (Chinese + English paraphrases) onto skill triggers. */
@@ -56,6 +58,8 @@ export const QUESTION_ALIASES: Array<[RegExp, string]> = [
   [/looking for work|work with her|is she available|available for/, ' hire collaborate'],
   [/fill the frame/, ' crop visual'],
   [/ship (recently|this week|on the site)|anything new ship|did anything new/, " what's new latest content"],
+  [/声音|语音|麦克风|怎么用 voice|use voice|turn on voice|\bmic\b/, ' voice howto'],
+  [/code a patch|voice\s*→\s*code|voice\s*->\s*code|写代码|改代码|implement a patch|propose-only/, ' voice-code patch'],
 ];
 
 export function searchHaystack(question: string): string {

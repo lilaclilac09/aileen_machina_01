@@ -15,6 +15,7 @@ Constitution files stay owner-gated (`AGENTS.md` / `QA.md` / `PROJECT_RULES.md`)
 cd aileena-new
 pnpm evolve:status    # one line; exit 1 if held-out/train dirty or a prompt matches no skill
 pnpm evolve:effect    # naive vs skilled sheet → ops/evolution/EFFECT.md
+pnpm evolve -- --from-question "code a patch"   # new visitor ask → held-out + ratchet
 pnpm verify:evolve    # engine tests (offline)
 pnpm evolve -- --dry-run
 pnpm evolve           # until held-out + train stabilize (max 8 rounds)

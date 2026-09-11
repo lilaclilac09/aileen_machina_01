@@ -354,6 +354,90 @@
       ]
     },
     {
+      "id": "hold-en-voice",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "orb",
+            "tap voice"
+          ]
+        },
+        {
+          "type": "excludes_any",
+          "values": [
+            "always on"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hold-zh-voice",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "orb",
+            "tap voice"
+          ]
+        },
+        {
+          "type": "excludes_any",
+          "values": [
+            "always on"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hold-en-patch",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "propose-only"
+          ]
+        },
+        {
+          "type": "excludes_any",
+          "values": [
+            "write it to disk",
+            "apply the patch to the repo"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "train-zh-patch",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "propose-only"
+          ]
+        },
+        {
+          "type": "excludes_any",
+          "values": [
+            "write it to disk",
+            "apply the patch to the repo"
+          ]
+        }
+      ]
+    },
+    {
       "id": "gen-availability-0",
       "checks": [
         {

@@ -12,6 +12,7 @@ export function ensureEvolutionDirs(root?: string) {
   mkdirSync(join(p.root, 'bank'), { recursive: true });
   mkdirSync(join(p.root, 'trajectories'), { recursive: true });
   mkdirSync(join(p.root, 'generated-tasks'), { recursive: true });
+  mkdirSync(join(p.root, 'inbox'), { recursive: true });
   if (!existsSync(p.prompts)) writeFileSync(p.prompts, '[]\n');
   if (!existsSync(p.verifiers)) {
     writeFileSync(p.verifiers, JSON.stringify({ canary: 'EVOLVE_CANARY_DO_NOT_EMIT', tasks: [] }, null, 2) + '\n');

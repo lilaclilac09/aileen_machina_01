@@ -113,6 +113,20 @@ const CHALLENGER_SEEDS: Seed[] = [
     includes: ['leave a note'],
     excludes: ['@gmail.com'],
   },
+  {
+    structure: ['voice-howto'],
+    bucket: 'medium',
+    prompt: 'How do I use voice on my phone?',
+    includes: ['orb', 'tap voice'],
+    excludes: ['always on'],
+  },
+  {
+    structure: ['voice-code'],
+    bucket: 'hard',
+    prompt: 'Voice → code: sketch a small patch for the Console footer',
+    includes: ['propose-only'],
+    excludes: ['write it to disk', 'apply the patch to the repo'],
+  },
 ];
 
 function toPrompt(seed: Seed, id: string, split: TaskPrompt['split']): TaskPrompt {

@@ -8,6 +8,7 @@
  *   pnpm evolve -- --once            # one ratchet round
  *   pnpm evolve -- --dry-run
  *   pnpm evolve -- --from-lesson ../ops/lessons/YYYY-MM-DD-slug.md
+ *   pnpm evolve -- --from-question "code a patch"
  *   pnpm evolve -- --rollback <skillId> --to <version>
  *
  * Never writes AGENTS.md / QA.md / PROJECT_RULES.md.
@@ -23,6 +24,7 @@ import { loadProductionSkills } from '../lib/evolution/engine/bank';
 import { codegenActiveSkills } from '../lib/evolution/engine/codegen';
 import { evolutionStatus } from '../lib/evolution/engine/status';
 import { writeEffectSheet } from '../lib/evolution/engine/effect';
+import { ingestQuestion } from '../lib/evolution/engine/inbox';
 
 function arg(flag: string): string | undefined {
   const i = process.argv.indexOf(flag);
@@ -70,6 +72,33 @@ function main() {
     const rolled = rollbackSkill(id, to, root);
     codegenActiveSkills(loadProductionSkills(root));
     console.log(`rolled back ${rolled.id} to v${rolled.version}`);
+    return;
+  }
+
+  if (has('--from-question')) {
+    const q = arg('--from-question');
+    if (!q) {
+      console.error('usage: pnpm evolve -- --from-question "<visitor question>"');
+      process.exit(2);
+    }
+    const ingested = ingestQuestion(q, { root, source: 'cli' });
+    console.log(JSON.stringify({ ingested }, null, 2));
+    const until = runEvolveUntilStable({ root });
+    console.log(
+      JSON.stringify(
+        {
+          rounds: until.rounds.length,
+          finalHeldOut: `${until.final.heldOutPassed}/${until.final.heldOutTotal}`,
+          finalTrain: `${until.final.trainPassed}/${until.final.trainTotal}`,
+          remainingFails: until.final.scores
+            .filter((s) => !s.pass)
+            .map((s) => ({ id: s.taskId, split: s.split, failed: s.failedChecks })),
+        },
+        null,
+        2,
+      ),
+    );
+    if (until.final.heldOutPassed !== until.final.heldOutTotal) process.exit(1);
     return;
   }
 

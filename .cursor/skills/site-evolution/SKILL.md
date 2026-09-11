@@ -15,7 +15,7 @@ pnpm evolve           # until stable
 
 Rules:
 
-1. New behavior is a `SKILL.md` in `ops/evolution/` (or `pnpm evolve -- --from-lesson <file>`).
+1. New visitor questions: `pnpm evolve -- --from-question "…"` (inbox + held-out + ratchet). Or a `SKILL.md` / `--from-lesson`. Does **not** rewrite `AGENTS.md`.
 2. Solver / chat bundle never reads `bank/verifiers.json`.
 3. Promote only if held-out improves (or stay-clean upgrades). Rollback with `--rollback`.
 4. Do not write `AGENTS.md` / `QA.md` / `PROJECT_RULES.md` from this loop.

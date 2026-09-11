@@ -131,5 +131,33 @@
     "bucket": "easy",
     "prompt": "Is she looking for work?",
     "structure": ["availability", "contact"]
+  },
+  {
+    "id": "hold-en-voice",
+    "split": "held-out",
+    "bucket": "medium",
+    "prompt": "How do I use voice?",
+    "structure": ["voice-howto"]
+  },
+  {
+    "id": "hold-zh-voice",
+    "split": "held-out",
+    "bucket": "medium",
+    "prompt": "语音怎么用？",
+    "structure": ["voice-howto"]
+  },
+  {
+    "id": "hold-en-patch",
+    "split": "held-out",
+    "bucket": "hard",
+    "prompt": "code a patch",
+    "structure": ["voice-code"]
+  },
+  {
+    "id": "train-zh-patch",
+    "split": "train",
+    "bucket": "hard",
+    "prompt": "帮我写代码改 footer",
+    "structure": ["voice-code"]
   }
 ]

@@ -198,5 +198,47 @@ export const ACTIVE_SKILLS: ActiveSkill[] = [
     ],
     "replyGuidance": "Speak about her in third person. You are the site agent, not Aileen. Do not roleplay as her.",
     "rootCause": "Public console slipped into first-person Aileen voice."
+  },
+  {
+    "id": "voice-code-patch",
+    "version": 1,
+    "kind": "site-agent",
+    "triggers": [
+      "voice-code",
+      "code a patch",
+      "写代码",
+      "implement a patch",
+      "voice → code"
+    ],
+    "mustInclude": [
+      "propose-only"
+    ],
+    "mustNot": [
+      "write it to disk",
+      "apply the patch to the repo"
+    ],
+    "replyGuidance": "Voice → code is propose-only (5/day). Nothing is written to disk. Copy or email the patch. Owner apply only.",
+    "rootCause": "Visitors thought code a patch would write the repo."
+  },
+  {
+    "id": "voice-howto",
+    "version": 1,
+    "kind": "site-agent",
+    "triggers": [
+      "voice howto",
+      "use voice",
+      "turn on voice",
+      "语音",
+      "声音",
+      "麦克风"
+    ],
+    "mustInclude": [
+      "orb"
+    ],
+    "mustNot": [
+      "always on"
+    ],
+    "replyGuidance": "Tap Voice in Console, then tap the orb to speak. Phone needs the orb tap. No always-on wake. Browsers require a gesture.",
+    "rootCause": "Visitors thought saying Aileena woke an always-on mic."
   }
 ];

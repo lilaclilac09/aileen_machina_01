@@ -24,6 +24,12 @@ function paraphrase(score: ScoreCard): string {
   if (score.structure.includes('private-contact') || score.structure.includes('email')) {
     return 'Held-out visitor: her private email, off-form, right now.';
   }
+  if (score.structure.includes('voice-code')) {
+    return 'Held-out visitor: implement a patch for the Console footer.';
+  }
+  if (score.structure.includes('voice-howto')) {
+    return 'Held-out visitor: how do I turn on voice on my phone?';
+  }
   return `Held-out visitor (paraphrase of ${score.taskId}): ${p}`;
 }
 

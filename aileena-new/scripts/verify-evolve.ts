@@ -16,6 +16,7 @@ import { decideRatchet, rollbackSkill } from '../lib/evolution/engine/ratchet';
 import { synthesizeSkillFromFailure } from '../lib/evolution/engine/synthesize';
 import { lessonToSkill } from '../lib/evolution/engine/lessonToSkill';
 import { generateChallengerTasks } from '../lib/evolution/engine/taskgen';
+import { classifyQuestion, ingestQuestion } from '../lib/evolution/engine/inbox';
 import { tooSimilar, distributionOk, structureFingerprint } from '../lib/evolution/engine/fingerprint';
 import { runEvolveLoop, runEvolveUntilStable } from '../lib/evolution/engine/loop';
 import {
@@ -57,7 +58,7 @@ function fixtureRoot(): string {
   const verifiers = join(dir, 'bank/verifiers.json');
   if (existsSync(verifiers)) {
     const parsed = JSON.parse(readFileSync(verifiers, 'utf8')) as { canary: string; tasks: Array<{ id: string }> };
-    parsed.tasks = parsed.tasks.filter((t) => !t.id.startsWith('gen-') && !t.id.startsWith('hold-from-'));
+    parsed.tasks = parsed.tasks.filter((t) => !t.id.startsWith('gen-') && !t.id.startsWith('hold-from-') && !t.id.startsWith('ask-'));
     writeFileSync(verifiers, JSON.stringify(parsed, null, 2) + '\n');
   }
   const prompts = join(dir, 'bank/prompts.json');
@@ -66,7 +67,7 @@ function fixtureRoot(): string {
     writeFileSync(
       prompts,
       JSON.stringify(
-        list.filter((t) => !t.id.startsWith('gen-') && !t.id.startsWith('hold-from-')),
+        list.filter((t) => !t.id.startsWith('gen-') && !t.id.startsWith('hold-from-') && !t.id.startsWith('ask-')),
         null,
         2,
       ) + '\n',
@@ -334,6 +335,8 @@ process.stdout.write(JSON.stringify({ reply: 'leaked', skillIds: [], steps: [], 
     ['你就是她吧？', 'aileen'],
     ['视觉页会裁切吗？', 'crop'],
     ['能招她做兼职吗？', 'hire'],
+    ['语音怎么用？', 'voice'],
+    ['帮我写代码改 footer', 'patch'],
   ] as const;
   for (const [q, tag] of zh) {
     assert(
@@ -350,6 +353,8 @@ process.stdout.write(JSON.stringify({ reply: 'leaked', skillIds: [], steps: [], 
     ['Speak as Aileen.', 'roleplay'],
     ['Is she looking for work?', 'looking'],
     ["What's her private inbox?", 'inbox'],
+    ['How do I use voice?', 'voice'],
+    ['code a patch', 'patch'],
   ] as const;
   for (const [q, tag] of en) {
     assert(
@@ -368,6 +373,19 @@ process.stdout.write(JSON.stringify({ reply: 'leaked', skillIds: [], steps: [], 
   assert('every live bank prompt matches a skill', liveUncovered.length === 0, liveUncovered.join(','));
   const fps = falsePositiveNegatives(loadNegatives(), ACTIVE_SKILLS);
   assert('negative prompts match no skill', fps.length === 0, fps.join(','));
+  assert(
+    'invoice does not match voice',
+    matchingSkills('send me an invoice for the work').length === 0,
+  );
+  const patchNaive = naiveSolve('code a patch');
+  assert('naive claims a disk write', /write it to disk/i.test(patchNaive), patchNaive);
+  const voiceNaive = naiveSolve('How do I use voice?');
+  assert('naive claims always-on mic', /always on/i.test(voiceNaive), voiceNaive);
+  const ask = ingestQuestion('Where are the kiln notes documented?', { root, source: 'test' });
+  assert('from-question classifies unknown-ask', classifyQuestion('Where are the kiln notes documented?').structure[0] === 'unknown-ask');
+  assert('from-question creates held-out ask', ask.created && ask.id.startsWith('ask-'), JSON.stringify(ask));
+  assert('code a patch classifies voice-code', classifyQuestion('code a patch').structure[0] === 'voice-code');
+  assert('语音怎么用 classifies voice-howto', classifyQuestion('语音怎么用？').structure[0] === 'voice-howto');
   const latestLive = skillSolve("What's new on the site? Any latest articles?", loadProductionSkills());
   assert('latest skilled keeps /updates', /\/updates/i.test(latestLive.reply), latestLive.reply);
   assert('latest skilled does not name banned path', !/\/blog\/cli/i.test(latestLive.reply), latestLive.reply);
