@@ -38,6 +38,11 @@ function spotifyTrackId(track: Track): string | null {
   return null;
 }
 
+function findTrackById(id: string | null | undefined): Track | null {
+  if (!id) return null;
+  return DJ_SET.find((t) => t.id === id || t.spotifyId === id) ?? null;
+}
+
 /* ─── Waveform helper ────────────────────────────────────── */
 function generateWaveform(seed: string, bars: number): number[] {
   let h = 0;
@@ -179,6 +184,25 @@ export default function DJStation() {
     }
   }, []);
 
+  const resolveDropTrack = useCallback((e: React.DragEvent): Track | null => {
+    if (dragTrack.current) return dragTrack.current;
+    let id = '';
+    try {
+      id = e.dataTransfer.getData('text/plain') || '';
+    } catch {
+      id = '';
+    }
+    return findTrackById(id);
+  }, []);
+
+  const dropOnDeck = useCallback((side: 'left' | 'right', e: React.DragEvent) => {
+    e.preventDefault();
+    const track = resolveDropTrack(e);
+    if (track) loadTrack(side, track);
+    dragTrack.current = null;
+    setDropSide(null);
+  }, [loadTrack, resolveDropTrack]);
+
   const handleXfade = useCallback((v: number) => {
     const prev = prevXfade.current;
     setXfade(v); prevXfade.current = v;
@@ -279,9 +303,9 @@ export default function DJStation() {
               side="left" track={leftTrack} playing={leftPlaying} isMobile={true} synced={bpmHint?.type === 'sync'}
               pos={leftPos} dur={leftDur || (leftTrack?.dur ?? 0) * 1000}
               pitch={leftPitch} dim={leftDim} dropActive={dropSide === 'left'}
-              onDragOver={e => { e.preventDefault(); setDropSide('left'); }}
-              onDragLeave={() => setDropSide(null)}
-              onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('left', dragTrack.current); setDropSide(null); }}
+              onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; if (dropSide !== 'left') setDropSide('left'); }}
+              onDragLeave={e => { if (e.relatedTarget instanceof Node && e.currentTarget.contains(e.relatedTarget)) return; setDropSide(null); }}
+              onDrop={e => dropOnDeck('left', e)}
               onToggle={() => leftCtrl.current?.togglePlay()}
               onPitch={setLeftPitch}
               onScratchStart={() => { leftWasPlaying.current = leftPlaying; if (leftPlaying) leftCtrl.current?.togglePlay(); }}
@@ -293,9 +317,9 @@ export default function DJStation() {
               side="right" track={rightTrack} playing={rightPlaying} isMobile={true} synced={bpmHint?.type === 'sync'}
               pos={rightPos} dur={rightDur || (rightTrack?.dur ?? 0) * 1000}
               pitch={rightPitch} dim={rightDim} dropActive={dropSide === 'right'}
-              onDragOver={e => { e.preventDefault(); setDropSide('right'); }}
-              onDragLeave={() => setDropSide(null)}
-              onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('right', dragTrack.current); setDropSide(null); }}
+              onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; if (dropSide !== 'right') setDropSide('right'); }}
+              onDragLeave={e => { if (e.relatedTarget instanceof Node && e.currentTarget.contains(e.relatedTarget)) return; setDropSide(null); }}
+              onDrop={e => dropOnDeck('right', e)}
               onToggle={() => rightCtrl.current?.togglePlay()}
               onPitch={setRightPitch}
               onScratchStart={() => { rightWasPlaying.current = rightPlaying; if (rightPlaying) rightCtrl.current?.togglePlay(); }}
@@ -309,9 +333,9 @@ export default function DJStation() {
               side="left" track={leftTrack} playing={leftPlaying} synced={bpmHint?.type === 'sync'}
               pos={leftPos} dur={leftDur || (leftTrack?.dur ?? 0) * 1000}
               pitch={leftPitch} dim={leftDim} dropActive={dropSide === 'left'}
-              onDragOver={e => { e.preventDefault(); setDropSide('left'); }}
-              onDragLeave={() => setDropSide(null)}
-              onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('left', dragTrack.current); setDropSide(null); }}
+              onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; if (dropSide !== 'left') setDropSide('left'); }}
+              onDragLeave={e => { if (e.relatedTarget instanceof Node && e.currentTarget.contains(e.relatedTarget)) return; setDropSide(null); }}
+              onDrop={e => dropOnDeck('left', e)}
               onToggle={() => leftCtrl.current?.togglePlay()}
               onPitch={setLeftPitch}
               onScratchStart={() => { leftWasPlaying.current = leftPlaying; if (leftPlaying) leftCtrl.current?.togglePlay(); }}
@@ -323,9 +347,9 @@ export default function DJStation() {
               side="right" track={rightTrack} playing={rightPlaying} synced={bpmHint?.type === 'sync'}
               pos={rightPos} dur={rightDur || (rightTrack?.dur ?? 0) * 1000}
               pitch={rightPitch} dim={rightDim} dropActive={dropSide === 'right'}
-              onDragOver={e => { e.preventDefault(); setDropSide('right'); }}
-              onDragLeave={() => setDropSide(null)}
-              onDrop={e => { e.preventDefault(); if (dragTrack.current) loadTrack('right', dragTrack.current); setDropSide(null); }}
+              onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; if (dropSide !== 'right') setDropSide('right'); }}
+              onDragLeave={e => { if (e.relatedTarget instanceof Node && e.currentTarget.contains(e.relatedTarget)) return; setDropSide(null); }}
+              onDrop={e => dropOnDeck('right', e)}
               onToggle={() => rightCtrl.current?.togglePlay()}
               onPitch={setRightPitch}
               onScratchStart={() => { rightWasPlaying.current = rightPlaying; if (rightPlaying) rightCtrl.current?.togglePlay(); }}
@@ -428,7 +452,12 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
     }}>
 
       {/* Platter drop zone */}
-      <div onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop} style={{
+      <div
+        data-testid={side === 'left' ? 'dj-deck-a-drop' : 'dj-deck-b-drop'}
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
+        style={{
         position: 'relative', height: D + 16, borderRadius: 10,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         background: C.bg,
@@ -600,7 +629,10 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
         border: '1px solid rgba(170,179,187,0.1)',
         display: 'flex', flexDirection: 'column', gap: 3,
       }}>
-        <p style={{ fontSize: '0.44rem', letterSpacing: '0.12em',
+        <p
+          data-testid={side === 'left' ? 'dj-deck-a-title' : 'dj-deck-b-title'}
+          data-track-id={track?.id ?? ''}
+          style={{ fontSize: '0.44rem', letterSpacing: '0.12em',
           color: playing ? C.cyan : C.text,
           fontFamily: 'monospace', textTransform: 'uppercase',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
