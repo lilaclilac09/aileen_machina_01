@@ -99,8 +99,15 @@ function getSnapshot(): DuoLayout {
   return cached;
 }
 
+const SERVER_SNAPSHOT: DuoLayout = poseFromMetrics({
+  w: 1100,
+  h: 800,
+  segments: 1,
+  offsetLeft: 0,
+});
+
 function getServerSnapshot(): DuoLayout {
-  return poseFromMetrics({ w: 1100, h: 800, segments: 1, offsetLeft: 0 });
+  return SERVER_SNAPSHOT;
 }
 
 export function useDuoLayout(): DuoLayout {
