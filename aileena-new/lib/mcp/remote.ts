@@ -97,7 +97,8 @@ async function rpc(server: RemoteMcpServer, method: string, params: Record<strin
       { jsonrpc: '2.0', id: 1, method: 'initialize', params: INIT_PARAMS },
       {},
     );
-    const extra = init.sessionId ? { 'mcp-session-id': init.sessionId } : {};
+    const extra: Record<string, string> = {};
+    if (init.sessionId) extra['mcp-session-id'] = init.sessionId;
     try {
       await postRpc(server, { jsonrpc: '2.0', method: 'notifications/initialized' }, extra);
     } catch {
