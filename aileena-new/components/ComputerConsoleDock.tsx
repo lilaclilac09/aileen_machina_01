@@ -478,6 +478,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
             value={line}
             onChange={(e) => setLine(e.target.value)}
             aria-label="note"
+            data-testid="computer-line"
             className="min-h-11 min-w-0 flex-1 font-mono text-[0.8rem] rounded-[8px] border border-[#d8cfc0] bg-white px-2.5 text-[#1b1713]"
           />
           <button type="submit" disabled={busy} data-testid="harness-plugin-note" className="sr-only">

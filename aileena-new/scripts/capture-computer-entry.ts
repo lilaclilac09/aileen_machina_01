@@ -42,9 +42,11 @@ async function main() {
     return /worker-shell/i.test(flash);
   }, null, { timeout: 8_000 }).catch(() => undefined);
   await page.locator('[data-testid="computer-console-dock"]').screenshot({
-    path: join(OUT, 'computer-oneshot-keys-390.png'),
+    path: join(OUT, 'computer-extreme-keys-390.png'),
   });
-  await page.locator('input[aria-label="note"]').fill('one shot from the pad');
+  const field = page.locator('[data-testid="computer-line"]');
+  await field.waitFor({ state: 'attached', timeout: 8_000 });
+  await field.fill('one shot from the pad', { force: true });
   await page.locator('[data-testid="computer-key-note"]').click();
   await flashWait(page, /note done|completed/).catch(async () => {
     await page.waitForFunction(() => {
@@ -60,9 +62,9 @@ async function main() {
     }, null, { timeout: 20_000 });
   });
   await page.locator('[data-testid="computer-console-dock"]').screenshot({
-    path: join(OUT, 'computer-oneshot-look-390.png'),
+    path: join(OUT, 'computer-extreme-look-390.png'),
   });
-  await page.locator('input[aria-label="note"]').fill('one shot');
+  await field.fill('one shot', { force: true });
   await page.locator('[data-testid="computer-key-find"]').click();
   await flashWait(page, /match|search|completed/).catch(async () => {
     await page.waitForFunction(() => {
@@ -71,7 +73,7 @@ async function main() {
     }, null, { timeout: 20_000 });
   });
   await page.locator('[data-testid="computer-console-dock"]').screenshot({
-    path: join(OUT, 'computer-oneshot-find-390.png'),
+    path: join(OUT, 'computer-extreme-find-390.png'),
   });
   await page.locator('[data-testid="computer-key-peek"]').click();
   await flashWait(page, /peek done|completed/).catch(async () => {
@@ -81,7 +83,7 @@ async function main() {
     }, null, { timeout: 20_000 });
   });
   await page.locator('[data-testid="computer-console-dock"]').screenshot({
-    path: join(OUT, 'computer-oneshot-peek-390.png'),
+    path: join(OUT, 'computer-extreme-peek-390.png'),
   });
   await page.locator('[data-testid="computer-key-clock"]').click();
   await flashWait(page, /clock done|completed/).catch(async () => {
@@ -91,7 +93,7 @@ async function main() {
     }, null, { timeout: 20_000 });
   });
   await page.locator('[data-testid="computer-console-dock"]').screenshot({
-    path: join(OUT, 'computer-oneshot-clock-390.png'),
+    path: join(OUT, 'computer-extreme-clock-390.png'),
   });
   await page.locator('[data-testid="computer-key-peek"]').click();
   await flashWait(page, /peek done|completed/).catch(async () => {
@@ -101,7 +103,7 @@ async function main() {
     }, null, { timeout: 20_000 });
   });
   await page.locator('[data-testid="computer-console-dock"]').screenshot({
-    path: join(OUT, 'computer-oneshot-clock-peek-390.png'),
+    path: join(OUT, 'computer-extreme-clock-peek-390.png'),
   });
   await browser.close();
   console.log('wrote one-shot screenshots to', OUT);
