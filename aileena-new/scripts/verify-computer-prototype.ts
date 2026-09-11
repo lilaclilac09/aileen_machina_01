@@ -101,7 +101,7 @@ function sourceChecks() {
   const workerSrc = readFileSync(join(process.cwd(), '..', 'workers', 'aileena-computer', 'src', 'index.ts'), 'utf8');
   assert('worker requires bearer secret', /Bearer/.test(workerSrc) && /COMPUTER_WORKER_SECRET/.test(workerSrc));
   assert('worker allowlists owner and visitor cwid', /VISITOR_RE/.test(workerSrc) && /idFromName\(name\)/.test(workerSrc));
-  assert('worker opts into official curl jq sqlite python groups', /shell\/curl/.test(workerSrc) && /shell\/jq/.test(workerSrc) && /shell\/sqlite/.test(workerSrc) && /shell\/python/.test(workerSrc));
+  assert('worker opts into official curl jq groups', /shell\/curl/.test(workerSrc) && /shell\/jq/.test(workerSrc) && !/shell\/python/.test(workerSrc));
   assert('worker egress is direct so curl can fetch', /egress: \{ mode: 'direct' \}/.test(workerSrc));
   assert('visitor exec cannot curl', /VISITOR_BINS/.test(workerSrc) && /name === OWNER \? OWNER_BINS : VISITOR_BINS/.test(workerSrc));
   assert('shell_exec is an owner task type', /'shell_exec'/.test(readFileSync(join(process.cwd(), 'lib/computer/types.ts'), 'utf8')));

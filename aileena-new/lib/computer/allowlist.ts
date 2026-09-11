@@ -55,10 +55,6 @@ export const OWNER_SHELL_BINS = [
   'tee',
   'curl',
   'jq',
-  'sqlite3',
-  'sqlite',
-  'python',
-  'python3',
   'rm',
 ] as const;
 

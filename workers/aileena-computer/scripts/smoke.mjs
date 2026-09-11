@@ -104,6 +104,18 @@ assert(
   `${curl.res.status} ${curl.text.slice(0, 200)}`,
 );
 
+const jq = await req('POST', '/c/owner/exec', {
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ command: `printf '{"a":1}' | jq .a` }),
+});
+let jqBody = {};
+try {
+  jqBody = JSON.parse(jq.text);
+} catch {
+  jqBody = { raw: jq.text };
+}
+assert('owner jq', jq.res.ok && String(jqBody.stdout || '').trim() === '1', `${jq.res.status} ${jq.text.slice(0, 160)}`);
+
 const otherName = await req('GET', '/c/visitor/file/workspace/scratch/hello.txt');
 assert('non-cwid name 404', otherName.res.status === 404, String(otherName.res.status));
 
