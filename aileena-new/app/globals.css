@@ -571,9 +571,8 @@ select,
     flex-direction: column !important;
     gap: 8px !important;
   }
-  /* Book / open inner — JS pose wins after hydrate; keep fold gutter */
-  .dj-station[data-duo-pose="book"] .dj-mixer-grid,
-  .dj-station[data-duo-pose="wide"] .dj-mixer-grid {
+  /* Only real book pose may unstack under 768. Never trust SSR `wide`. */
+  .dj-station[data-duo-pose="book"] .dj-mixer-grid {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) minmax(88px, 132px) minmax(0, 1fr) !important;
     flex-direction: unset !important;

@@ -99,9 +99,10 @@ function getSnapshot(): DuoLayout {
   return cached;
 }
 
+/** SSR first paint matches iPhone stack; desktop hydrates up to wide/book. */
 const SERVER_SNAPSHOT: DuoLayout = poseFromMetrics({
-  w: 1100,
-  h: 800,
+  w: 390,
+  h: 844,
   segments: 1,
   offsetLeft: 0,
 });
