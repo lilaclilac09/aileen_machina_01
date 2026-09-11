@@ -47,7 +47,7 @@ function parseLine(raw: string): { taskType: string; instructions: string; route
 }
 
 function monitorText(task: ComputerTask | null, backend: string): string {
-  if (!task) return `点 看\n${backend}`;
+  if (!task) return `≡\n${backend}`;
   const now = `NOW  ${verb(task)} · ${task.status}`;
   const cmd = task.instructions.replace(/\s+/g, ' ').trim().slice(0, 80);
   const logs = task.logsRedacted.slice(-10).join('\n');
@@ -56,7 +56,7 @@ function monitorText(task: ComputerTask | null, backend: string): string {
 }
 
 const KEY_CLASS =
-  'flex-1 min-h-11 min-w-0 px-2 rounded-[8px] font-mono text-[0.72rem] tracking-[0.08em] text-[#007d75] border border-[#d8cfc0] border-b-2 border-b-[#c2b7a3] bg-white shadow-[0_1px_0_rgba(27,23,19,0.05)] active:translate-y-[1px] active:border-b disabled:opacity-40';
+  'flex-1 min-h-11 min-w-0 px-2 rounded-[8px] font-mono text-[1.05rem] leading-none tracking-normal text-[#007d75] border border-[#d8cfc0] border-b-2 border-b-[#c2b7a3] bg-white shadow-[0_1px_0_rgba(27,23,19,0.05)] active:translate-y-[1px] active:border-b disabled:opacity-40';
 
 function chipKey(alias: string): string {
   return alias.replace(/[^\w\u4e00-\u9fff-]+/g, '-').slice(0, 40) || 'chip';
@@ -212,7 +212,11 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
 
   const lookNow = () => {
     setTab('find');
-    void queue({ taskType: 'files_tree', instructions: '/workspace', phrase: 'list' });
+    void queue({
+      taskType: 'files_tree',
+      instructions: isOwner ? '/workspace' : '/workspace/scratch',
+      phrase: 'list',
+    });
   };
 
   const go = () => {
@@ -273,7 +277,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
             onClick={() => noteNow(line.trim())}
             className={KEY_CLASS}
           >
-            记
+            +
           </button>
           <button
             type="button"
@@ -283,7 +287,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
             onClick={lookNow}
             className={KEY_CLASS}
           >
-            看
+            ≡
           </button>
           <button
             type="button"
@@ -305,13 +309,14 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
             }}
             className={KEY_CLASS}
           >
-            找
+            /
           </button>
           {isOwner ? (
             <button
               type="button"
               disabled={busy}
               data-testid="computer-learned-git-status"
+              aria-label="repo"
               onClick={() => {
                 setTab('git');
                 void queue({
@@ -322,7 +327,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
               }}
               className={KEY_CLASS}
             >
-              仓库
+              ⎇
             </button>
           ) : null}
         </div>
@@ -341,7 +346,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
             className="min-h-11 min-w-0 flex-1 font-mono text-[0.8rem] rounded-[8px] border border-[#d8cfc0] bg-white px-2.5 text-[#1b1713]"
           />
           <button type="submit" disabled={busy} data-testid="harness-plugin-note" className="sr-only">
-            记
+            note
           </button>
         </form>
 

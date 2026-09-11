@@ -395,11 +395,7 @@ function scratchPayload(
   backend: ComputerBackend,
 ): { shimPath: string; cfPath: string; body: string; append: boolean } {
   const raw = (task.instructions || '').trim();
-  const isProbe =
-    !raw ||
-    /hello\.txt/i.test(raw) ||
-    /write \/scratch/i.test(raw) ||
-    /read it back/i.test(raw);
+  const isProbe = /hello\.txt/i.test(raw) || /write \/scratch/i.test(raw) || /read it back/i.test(raw);
   if (isProbe) {
     return {
       shimPath: '/scratch/hello.txt',
@@ -412,7 +408,7 @@ function scratchPayload(
   return {
     shimPath: `/scratch/notes/${day}.txt`,
     cfPath: `/workspace/scratch/notes/${day}.txt`,
-    body: `${nowIso()}\n${raw.slice(0, 4000)}\n\n`,
+    body: `${nowIso()}\n${raw ? raw.slice(0, 4000) : '·'}\n\n`,
     append: true,
   };
 }
