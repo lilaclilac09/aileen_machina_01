@@ -134,6 +134,7 @@ Required screenshots: `landing-desktop.png`, `landing-mobile-390.png`, `landing-
 - add song
 - appears in carousel
 - drag to deck A
+- double-click a CD cover loads Deck A, next double-click loads Deck B
 - play / pause works
 - click a knob tick / around the ring jumps to that scale
 - phone mixer / loop / FX taps are large enough to hit
