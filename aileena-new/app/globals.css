@@ -523,6 +523,24 @@ select,
     overflow: visible;
   }
 
+  /*
+   * Doors (#watch-hub) is a short list. The blanket
+   * `.snap-section { min-height: 100dvh }` on a height:auto parent
+   * leaves an unpainted band. `min-height: 100%` on the white inner
+   * section cannot resolve against a parent's min-height (only height),
+   * so body --bg-primary (#000) shows as a black gap before Visual.
+   * Hug content; paint the section so overscroll never flashes black.
+   */
+  #watch-hub.snap-section {
+    min-height: 0;
+    height: auto;
+    background: #ffffff;
+  }
+
+  #visual.snap-section {
+    background: #efe6d6;
+  }
+
   /* Fixed chrome clearance for stacked home / doors content */
   .site-top-nav,
   .substack-nav,

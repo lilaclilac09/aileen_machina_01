@@ -45,7 +45,10 @@ export default function DoorsDirectory({
         style={{
           gap: 'clamp(28px, 5vh, 48px)',
           paddingTop: 'max(72px, calc(env(safe-area-inset-top, 0px) + 64px))',
-          paddingBottom: 'max(48px, calc(env(safe-area-inset-bottom, 0px) + 40px))',
+          /* Homepage sits above Visual — no safe-area footer, tight join. */
+          paddingBottom: minFullHeight
+            ? 20
+            : 'max(48px, calc(env(safe-area-inset-bottom, 0px) + 40px))',
         }}
       >
         <div style={{ maxWidth: 520 }}>
