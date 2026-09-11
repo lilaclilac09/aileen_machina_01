@@ -15,6 +15,7 @@ export {
   triggerMatches,
   QUESTION_ALIASES,
   TRIGGER_NOISE,
+  VOICE_HOWTO_RE,
 } from './selectSkills';
 export type { SkillTriggerSource } from './selectSkills';
 export type { SkillKind, SkillPatch } from './types';

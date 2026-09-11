@@ -74,4 +74,14 @@ Other scored rolls → `rlvr`. Hack attempts stay out of SFT.
 
 ## Site agent
 
-`aileena-new/lib/evolution/activeSkills.generated.ts` is the Vercel-safe snapshot. Chat injects **always-on hard rules** plus matching skills into the **session tail** (`formatSkillsForTurn`), not the frozen prefix. Chinese phrasing is aliased onto English triggers (邮箱→email, 工资→salary, 更新了吗→latest, …). Council mode skips them.
+`aileena-new/lib/evolution/activeSkills.generated.ts` is the Vercel-safe snapshot. Chat injects **always-on hard rules** plus matching skills into the **session tail** (`formatSkillsForTurn`), not the frozen prefix. Chinese phrasing is aliased onto English triggers (邮箱→email, 工资→salary, 更新了吗→latest, 其他的 voice→voice howto, …). Council mode skips them.
+
+## New visitor questions
+
+Vercel chat **cannot** write `ops/`. A new ask becomes a skill only when someone runs:
+
+```bash
+pnpm evolve -- --from-question "其他的 voice 怎么用"
+```
+
+That appends `inbox/questions.jsonl`, makes a held-out prompt + verifier, then ratchets. Known packs (`voice-howto`, `voice-code`, `sound-howto`, email, pay, identity) get product answers. Unknown asks get the generic “don't see / leave a note” pack — they do **not** invent a new product page. Seed a pack + `SKILL.md` when the ask is a real door (`/sound`, Voice, Voice → code).

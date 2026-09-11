@@ -2,7 +2,7 @@
   { "id": "neg-merkle", "prompt": "what is a merkle tree in general?" },
   { "id": "neg-meeting-week", "prompt": "I have a meeting this week." },
   { "id": "neg-cover-art", "prompt": "I like the cover art on her playlist." },
-  { "id": "neg-send-link", "prompt": "Send me the link to /sound." },
+  { "id": "neg-send-link", "prompt": "Send me that URL." },
   { "id": "neg-engineer", "prompt": "What does she do as an engineer?" },
   { "id": "neg-private-browse", "prompt": "This is a private question about the site mood." },
   { "id": "neg-solana", "prompt": "What is Solana?" },

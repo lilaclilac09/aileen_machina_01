@@ -386,6 +386,16 @@ process.stdout.write(JSON.stringify({ reply: 'leaked', skillIds: [], steps: [], 
   assert('from-question creates held-out ask', ask.created && ask.id.startsWith('ask-'), JSON.stringify(ask));
   assert('code a patch classifies voice-code', classifyQuestion('code a patch').structure[0] === 'voice-code');
   assert('语音怎么用 classifies voice-howto', classifyQuestion('语音怎么用？').structure[0] === 'voice-howto');
+  assert('其他的 voice classifies voice-howto', classifyQuestion('其他的 voice 怎么用').structure[0] === 'voice-howto');
+  assert(
+    'qitade voice matches voice-howto',
+    matchingSkills('qitade1 voice 怎么用').some((s) => s.id === 'voice-howto'),
+  );
+  assert(
+    'voice on phone does not match wechat',
+    !matchingSkills('How do I use voice on my phone?').some((s) => s.id.includes('wechat')),
+  );
+  assert('DJ mixer classifies sound-howto', classifyQuestion('how do I use the DJ mixer?').structure[0] === 'sound-howto');
   const latestLive = skillSolve("What's new on the site? Any latest articles?", loadProductionSkills());
   assert('latest skilled keeps /updates', /\/updates/i.test(latestLive.reply), latestLive.reply);
   assert('latest skilled does not name banned path', !/\/blog\/cli/i.test(latestLive.reply), latestLive.reply);

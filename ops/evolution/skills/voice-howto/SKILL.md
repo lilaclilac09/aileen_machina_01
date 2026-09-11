@@ -7,6 +7,8 @@ triggers:
   - voice howto
   - use voice
   - turn on voice
+  - the other voice
+  - 其他的 voice
   - 语音
   - 声音
   - 麦克风

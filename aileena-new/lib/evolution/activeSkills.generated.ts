@@ -118,7 +118,7 @@ export const ACTIVE_SKILLS: ActiveSkill[] = [
       "personal",
       "微信",
       "微信号",
-      "phone",
+      "phone number",
       "电话",
       "private",
       "send"
@@ -181,6 +181,22 @@ export const ACTIVE_SKILLS: ActiveSkill[] = [
     "rootCause": "Hire questions skipped leave-a-note and invented a private inbox."
   },
   {
+    "id": "sound-howto",
+    "version": 1,
+    "kind": "site-agent",
+    "triggers": [
+      "dj mixer",
+      "/sound",
+      "混音"
+    ],
+    "mustInclude": [
+      "/sound"
+    ],
+    "mustNot": [],
+    "replyGuidance": "The DJ mixer lives on /sound. Open that door. It is a real mixer, not a fake knob.",
+    "rootCause": "Visitors asked how to use the DJ mixer and the unknown pack said it was missing."
+  },
+  {
     "id": "third-person-site-agent",
     "version": 1,
     "kind": "site-agent",
@@ -228,6 +244,8 @@ export const ACTIVE_SKILLS: ActiveSkill[] = [
       "voice howto",
       "use voice",
       "turn on voice",
+      "the other voice",
+      "其他的 voice",
       "语音",
       "声音",
       "麦克风"

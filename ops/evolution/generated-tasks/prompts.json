@@ -86,5 +86,23 @@
     "structure": [
       "latest-content"
     ]
+  },
+  {
+    "id": "gen-voice-howto-15",
+    "split": "held-out",
+    "bucket": "medium",
+    "prompt": "How do I use voice on my phone?",
+    "structure": [
+      "voice-howto"
+    ]
+  },
+  {
+    "id": "gen-voice-code-16",
+    "split": "held-out",
+    "bucket": "hard",
+    "prompt": "Voice → code: sketch a small patch for the Console footer",
+    "structure": [
+      "voice-code"
+    ]
   }
 ]

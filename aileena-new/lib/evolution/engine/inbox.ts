@@ -5,6 +5,7 @@ import { loadPrompts } from './bank';
 import { persistGeneratedTasks } from './taskgen';
 import { tooSimilar } from './fingerprint';
 import { evolutionPaths } from './paths';
+import { VOICE_HOWTO_RE } from '../selectSkills';
 import { STRUCTURE_PACKS } from './synthesize';
 
 export type InboxLine = {
@@ -45,7 +46,15 @@ export function classifyQuestion(prompt: string): ClassifiedAsk {
       excludes: ['write it to disk', 'apply the patch to the repo'],
     };
   }
-  if (/声音|语音|麦克风|use voice|turn on voice|how do i use voice|怎么用 voice|\bmic\b/.test(q)) {
+  if (/\bdj mixer\b|\/sound|\b混音\b/.test(q)) {
+    return {
+      structure: ['sound-howto'],
+      bucket: 'easy',
+      includes: ['/sound'],
+      excludes: [],
+    };
+  }
+  if (VOICE_HOWTO_RE.test(prompt) || VOICE_HOWTO_RE.test(q)) {
     return {
       structure: ['voice-howto'],
       bucket: 'medium',

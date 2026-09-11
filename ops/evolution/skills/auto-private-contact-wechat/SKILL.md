@@ -11,7 +11,7 @@ triggers:
   - "personal"
   - "微信"
   - "微信号"
-  - "phone"
+  - "phone number"
   - "电话"
   - "private"
   - "send"

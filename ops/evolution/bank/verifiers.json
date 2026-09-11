@@ -396,6 +396,27 @@
       ]
     },
     {
+      "id": "hold-zh-voice-other",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "orb",
+            "tap voice"
+          ]
+        },
+        {
+          "type": "excludes_any",
+          "values": [
+            "always on"
+          ]
+        }
+      ]
+    },
+    {
       "id": "hold-en-patch",
       "checks": [
         {
@@ -412,6 +433,20 @@
           "values": [
             "write it to disk",
             "apply the patch to the repo"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hold-en-sound",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "/sound"
           ]
         }
       ]
@@ -610,6 +645,48 @@
           "type": "excludes_any",
           "values": [
             "/blog/cli"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gen-voice-howto-15",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "orb",
+            "tap voice"
+          ]
+        },
+        {
+          "type": "excludes_any",
+          "values": [
+            "always on"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gen-voice-code-16",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "propose-only"
+          ]
+        },
+        {
+          "type": "excludes_any",
+          "values": [
+            "write it to disk",
+            "apply the patch to the repo"
           ]
         }
       ]

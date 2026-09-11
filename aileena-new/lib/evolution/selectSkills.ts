@@ -30,7 +30,12 @@ export const TRIGGER_NOISE = new Set([
   'season',
   'articles',
   'available',
+  'phone',
 ]);
+
+/** How-to Voice (not Voice → code). Shared by chat aliases, inbox classify, naive solver. */
+export const VOICE_HOWTO_RE =
+  /声音|语音|麦克风|use voice|turn on voice|how do i use voice|how to use (?:the )?voice|voice.{0,12}怎么用|怎么用.{0,8}voice|其他.{0,8}voice|the other voice|voice on (?:my |the )?phone|qitade|\bmic\b/i;
 
 export function triggerMatches(haystack: string, trigger: string): boolean {
   const t = trigger.toLowerCase().trim();
@@ -58,7 +63,8 @@ export const QUESTION_ALIASES: Array<[RegExp, string]> = [
   [/looking for work|work with her|is she available|available for/, ' hire collaborate'],
   [/fill the frame/, ' crop visual'],
   [/ship (recently|this week|on the site)|anything new ship|did anything new/, " what's new latest content"],
-  [/声音|语音|麦克风|怎么用 voice|use voice|turn on voice|\bmic\b/, ' voice howto'],
+  [VOICE_HOWTO_RE, ' voice howto'],
+  [/\bdj mixer\b|\/sound|混音/, ' dj mixer /sound'],
   [/code a patch|voice\s*→\s*code|voice\s*->\s*code|写代码|改代码|implement a patch|propose-only/, ' voice-code patch'],
 ];
 

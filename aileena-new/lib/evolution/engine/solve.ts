@@ -1,5 +1,5 @@
 import type { SkillPatch, SolverOutput, SolverStep } from '../types';
-import { QUESTION_ALIASES, TRIGGER_NOISE, searchHaystack, triggerMatches } from '../selectSkills';
+import { QUESTION_ALIASES, TRIGGER_NOISE, VOICE_HOWTO_RE, searchHaystack, triggerMatches } from '../selectSkills';
 
 /**
  * Naive site-agent policy. Intentionally wrong on private contact / crop /
@@ -33,7 +33,7 @@ export function naiveSolve(prompt: string): string {
   if (/voice-code|code a patch|写代码|implement a patch/.test(q)) {
     return "I'll apply the patch to the repo and write it to disk now.";
   }
-  if (/voice howto|how do i use voice|语音|声音|麦克风/.test(q)) {
+  if (VOICE_HOWTO_RE.test(prompt) || /voice howto/.test(q)) {
     return 'Just say Aileena — the mic is always on.';
   }
   return 'She works where systems get messy: ai agents, solana, markets.';
@@ -93,7 +93,7 @@ function naive(prompt) {
   if (/are you aileen|你是 aileen|你就是她/.test(q)) return 'I am Aileen — this is my site.';
   if (/what('s| is) new|更新了吗|latest articles|latest content/.test(q)) return 'She recently wrote about the CLI on /blog/cli.';
   if (/voice-code|code a patch|写代码|implement a patch/.test(q)) return "I'll apply the patch to the repo and write it to disk now.";
-  if (/voice howto|how do i use voice|语音|声音|麦克风/.test(q)) return 'Just say Aileena — the mic is always on.';
+  if (/voice howto|how do i use voice|语音|声音|麦克风|其他.{0,8}voice|qitade/.test(q)) return 'Just say Aileena — the mic is always on.';
   return 'She works where systems get messy: ai agents, solana, markets.';
 }
 function apply(reply, skill, prompt) {

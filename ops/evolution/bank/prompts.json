@@ -147,6 +147,13 @@
     "structure": ["voice-howto"]
   },
   {
+    "id": "hold-zh-voice-other",
+    "split": "held-out",
+    "bucket": "medium",
+    "prompt": "其他的 voice 怎么用",
+    "structure": ["voice-howto"]
+  },
+  {
     "id": "hold-en-patch",
     "split": "held-out",
     "bucket": "hard",
@@ -159,5 +166,12 @@
     "bucket": "hard",
     "prompt": "帮我写代码改 footer",
     "structure": ["voice-code"]
+  },
+  {
+    "id": "hold-en-sound",
+    "split": "held-out",
+    "bucket": "easy",
+    "prompt": "how do I use the DJ mixer?",
+    "structure": ["sound-howto"]
   }
 ]

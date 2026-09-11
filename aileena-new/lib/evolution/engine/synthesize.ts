@@ -51,17 +51,18 @@ const TRIGGER_STOP = new Set([
   'season',
   'articles',
   'available',
+  'phone',
 ]);
 
 /** Structure packs — extra triggers + natural guidance so auto skills are not one generic sentence. */
 export const STRUCTURE_PACKS: Record<string, { triggers: string[]; guidance: string }> = {
   'private-contact': {
-    triggers: ['gmail', 'email', 'personal', '微信', 'wechat', '微信号', 'phone', '电话', 'private'],
+    triggers: ['gmail', 'email', 'personal', '微信', 'wechat', '微信号', 'phone number', '电话', 'private'],
     guidance:
       "I don't see a private inbox, WeChat, or phone in the site context. Leave a note — the transcript goes with it.",
   },
   wechat: {
-    triggers: ['微信', 'wechat', '微信号', '电话', 'phone'],
+    triggers: ['微信', 'wechat', '微信号', '电话', 'phone number'],
     guidance:
       "I don't see a WeChat ID or phone number in the site context. Leave a note if you want to reach her.",
   },
@@ -122,6 +123,10 @@ export const STRUCTURE_PACKS: Record<string, { triggers: string[]; guidance: str
   roleplay: {
     triggers: ['are you aileen', 'say you are her', "you're her", 'speak as aileen', '你就是她'],
     guidance: 'Do not roleplay as Aileen. Stay the site agent in third person.',
+  },
+  'sound-howto': {
+    triggers: ['dj mixer', '/sound', '混音'],
+    guidance: 'The DJ mixer lives on /sound. Open that door. It is a real mixer, not a fake knob.',
   },
   'voice-howto': {
     triggers: ['voice howto', 'use voice', 'turn on voice', '语音', '声音', '麦克风'],
