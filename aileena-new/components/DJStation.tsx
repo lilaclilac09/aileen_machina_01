@@ -91,6 +91,8 @@ export default function DJStation() {
   const [xfade,        setXfade]        = useState(50);
   const [dropSide,     setDropSide]     = useState<'left'|'right'|null>(null);
 
+  const leftWrapRef       = useRef<HTMLDivElement>(null);
+  const rightWrapRef      = useRef<HTMLDivElement>(null);
   const leftContainerRef  = useRef<HTMLDivElement>(null);
   const rightContainerRef = useRef<HTMLDivElement>(null);
   const leftCtrl          = useRef<SpotifyController | null>(null);
@@ -99,6 +101,69 @@ export default function DJStation() {
   const prevXfade         = useRef(50);
   const leftWasPlaying    = useRef(false);
   const rightWasPlaying   = useRef(false);
+  const spotifyApi        = useRef<IFrameAPI | null>(null);
+  const leftTrackRef      = useRef(leftTrack);
+  const rightTrackRef     = useRef(rightTrack);
+  const embedGen          = useRef({ left: 0, right: 0 });
+  const mountedSid        = useRef<{ left: string | null; right: string | null }>({ left: null, right: null });
+
+  useEffect(() => { leftTrackRef.current = leftTrack; }, [leftTrack]);
+  useEffect(() => { rightTrackRef.current = rightTrack; }, [rightTrack]);
+
+  const stripEmbedIframes = useCallback((side: 'left' | 'right') => {
+    const wrap = side === 'left' ? leftWrapRef.current : rightWrapRef.current;
+    const host = side === 'left' ? leftContainerRef.current : rightContainerRef.current;
+    wrap?.querySelectorAll('iframe').forEach((n) => n.remove());
+    if (host) host.innerHTML = '';
+  }, []);
+
+  const syncSpotifyEmbed = useCallback((side: 'left' | 'right', track: Track | null) => {
+    const sid = track ? spotifyTrackId(track) : null;
+    const ctrlRef = side === 'left' ? leftCtrl : rightCtrl;
+    const elRef = side === 'left' ? leftContainerRef : rightContainerRef;
+    const setPlaying = side === 'left' ? setLeftPlaying : setRightPlaying;
+    const setPos = side === 'left' ? setLeftPos : setRightPos;
+    const setDur = side === 'left' ? setLeftDur : setRightDur;
+
+    if (!sid) {
+      mountedSid.current[side] = null;
+      embedGen.current[side] += 1;
+      ctrlRef.current = null;
+      stripEmbedIframes(side);
+      return;
+    }
+
+    if (ctrlRef.current && mountedSid.current[side] === sid) return;
+
+    if (ctrlRef.current) {
+      mountedSid.current[side] = sid;
+      ctrlRef.current.loadUri(`spotify:track:${sid}`);
+      return;
+    }
+
+    const api = spotifyApi.current;
+    const el = elRef.current;
+    if (!api || !el) {
+      mountedSid.current[side] = sid;
+      return;
+    }
+    mountedSid.current[side] = sid;
+    const token = ++embedGen.current[side];
+    api.createController(el, { uri: `spotify:track:${sid}`, width: '100%', height: '80' }, (ctrl) => {
+      if (embedGen.current[side] !== token) {
+        stripEmbedIframes(side);
+        return;
+      }
+      ctrlRef.current = ctrl;
+      ctrl.addListener('playback_update', (e) => {
+        setPlaying(!e.data.isPaused);
+        if (e.data.duration > 0) {
+          setPos(e.data.position);
+          setDur(e.data.duration);
+        }
+      });
+    });
+  }, [stripEmbedIframes]);
 
   /* ── Spotify API ── */
   useEffect(() => {
@@ -107,38 +172,9 @@ export default function DJStation() {
       onSpotifyIframeApiReady?: (api: IFrameAPI) => void;
     };
     const initControllers = (api: IFrameAPI) => {
-      if (leftContainerRef.current && !leftCtrl.current) {
-        const leftUri = spotifyTrackId(DJ_SET[0]);
-        if (!leftUri) return;
-        api.createController(leftContainerRef.current,
-          { uri: `spotify:track:${leftUri}`, width: '100%', height: '80' },
-          ctrl => {
-            leftCtrl.current = ctrl;
-            ctrl.addListener('playback_update', e => {
-              setLeftPlaying(!e.data.isPaused);
-              if (e.data.duration > 0) {
-                setLeftPos(e.data.position);
-                setLeftDur(e.data.duration);
-              }
-            });
-          });
-      }
-      if (rightContainerRef.current && !rightCtrl.current) {
-        const rightUri = spotifyTrackId(DJ_SET[Math.min(3, DJ_SET.length - 1)]) ?? spotifyTrackId(DJ_SET[0]);
-        if (!rightUri) return;
-        api.createController(rightContainerRef.current,
-          { uri: `spotify:track:${rightUri}`, width: '100%', height: '80' },
-          ctrl => {
-            rightCtrl.current = ctrl;
-            ctrl.addListener('playback_update', e => {
-              setRightPlaying(!e.data.isPaused);
-              if (e.data.duration > 0) {
-                setRightPos(e.data.position);
-                setRightDur(e.data.duration);
-              }
-            });
-          });
-      }
+      spotifyApi.current = api;
+      syncSpotifyEmbed('left', leftTrackRef.current);
+      syncSpotifyEmbed('right', rightTrackRef.current);
     };
 
     if (win.SpotifyIframeApi) { initControllers(win.SpotifyIframeApi); return; }
@@ -154,22 +190,36 @@ export default function DJStation() {
       s.async = true;
       document.head.appendChild(s);
     }
-  }, []);
+  }, [syncSpotifyEmbed]);
+
+  useEffect(() => {
+    if (leftTrack && spotifyTrackId(leftTrack)) return;
+    leftCtrl.current = null;
+    mountedSid.current.left = null;
+    stripEmbedIframes('left');
+  }, [leftTrack, stripEmbedIframes]);
+
+  useEffect(() => {
+    if (rightTrack && spotifyTrackId(rightTrack)) return;
+    rightCtrl.current = null;
+    mountedSid.current.right = null;
+    stripEmbedIframes('right');
+  }, [rightTrack, stripEmbedIframes]);
 
   const loadTrack = useCallback((side: 'left'|'right', track: Track) => {
-    const sid = spotifyTrackId(track);
     if (side === 'left') {
       setLeftTrack(track);
       setLeftPos(0);
       setLeftDur(0);
-      if (sid) leftCtrl.current?.loadUri(`spotify:track:${sid}`);
+      setLeftPlaying(false);
     } else {
       setRightTrack(track);
       setRightPos(0);
       setRightDur(0);
-      if (sid) rightCtrl.current?.loadUri(`spotify:track:${sid}`);
+      setRightPlaying(false);
     }
-  }, []);
+    syncSpotifyEmbed(side, track);
+  }, [syncSpotifyEmbed]);
 
   const resolveDropTrack = useCallback((e: React.DragEvent): Track | null => {
     if (dragTrack.current) return dragTrack.current;
@@ -237,8 +287,15 @@ export default function DJStation() {
         {(['left','right'] as const).map(side => {
           const track = side === 'left' ? leftTrack : rightTrack;
           const ref   = side === 'left' ? leftContainerRef : rightContainerRef;
+          const sid = track ? spotifyTrackId(track) : null;
           return (
-            <div key={side} style={{
+            <div
+              key={side}
+              ref={side === 'left' ? leftWrapRef : rightWrapRef}
+              data-testid={side === 'left' ? 'dj-deck-a-embed' : 'dj-deck-b-embed'}
+              data-track-id={track?.id ?? ''}
+              data-spotify-id={sid ?? ''}
+              style={{
               borderRadius: 6, overflow: 'hidden', background: C.bg,
               border: '1px solid rgba(170,179,187,0.12)', position: 'relative',
             }}>
@@ -250,6 +307,26 @@ export default function DJStation() {
                 }}>
                   <p style={{ fontSize: '0.34rem', letterSpacing: '0.4em', color: C.dim, textTransform: 'uppercase' }}>
                     {side === 'left' ? 'DECK A' : 'DECK B'} — EMPTY
+                  </p>
+                </div>
+              )}
+              {track && !sid && (
+                <div
+                  data-testid={side === 'left' ? 'dj-deck-a-nospotify' : 'dj-deck-b-nospotify'}
+                  style={{
+                    position: 'absolute', inset: 0, zIndex: 1, display: 'flex',
+                    flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    gap: 6, padding: '0 10px', background: '#0a0a0c',
+                  }}
+                >
+                  <p style={{
+                    fontSize: '0.42rem', letterSpacing: '0.18em', color: C.text,
+                    textTransform: 'uppercase', textAlign: 'center',
+                  }}>
+                    {track.title}
+                  </p>
+                  <p style={{ fontSize: '0.34rem', letterSpacing: '0.4em', color: C.dim, textTransform: 'uppercase' }}>
+                    no Spotify
                   </p>
                 </div>
               )}

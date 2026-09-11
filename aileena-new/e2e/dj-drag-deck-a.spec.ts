@@ -137,3 +137,65 @@ test.describe('DJ double-click CD → A then B', () => {
     expect((await deckA.getAttribute('data-track-id')) || '').toBe(firstId);
   });
 });
+
+const SPOTIFY_ID_RE = /^[a-zA-Z0-9]{22}$/;
+const DAYDREAMING_SPOTIFY = '69w5X6uTrOaWM32IetSzvO';
+
+async function iframeSrc(page: import('@playwright/test').Page, embedTestId: string) {
+  const iframe = page.locator(`[data-testid="${embedTestId}"] iframe`).first();
+  if ((await iframe.count()) === 0) return '';
+  return (await iframe.getAttribute('src')) || '';
+}
+
+async function advanceToSpotifyCover(page: import('@playwright/test').Page) {
+  for (let i = 0; i < 12; i++) {
+    const id = await activeCoverId(page);
+    if (SPOTIFY_ID_RE.test(id)) return id;
+    const next = await advanceToNextCover(page);
+    if (SPOTIFY_ID_RE.test(next)) return next;
+  }
+  throw new Error('no Spotify-backed carousel cover');
+}
+
+test.describe('DJ embed follows load', () => {
+  test('Deck B does not keep a Daydreaming iframe when In Touch has no Spotify id', async ({ page }) => {
+    await page.goto('/sound', { waitUntil: 'domcontentloaded' });
+    const embedB = page.getByTestId('dj-deck-b-embed');
+    await expect(embedB).toBeVisible();
+    await expect(embedB).toHaveAttribute('data-track-id', 'INTOUCH');
+    await expect(embedB).toHaveAttribute('data-spotify-id', '');
+    await expect(page.getByTestId('dj-deck-b-nospotify')).toBeVisible();
+    expect(await iframeSrc(page, 'dj-deck-b-embed')).not.toContain(DAYDREAMING_SPOTIFY);
+  });
+
+  test('loading Rainforest onto Deck A drops the Daydreaming iframe', async ({ page }) => {
+    await page.goto('/sound', { waitUntil: 'domcontentloaded' });
+    const embedA = page.getByTestId('dj-deck-a-embed');
+    await expect(embedA).toHaveAttribute('data-track-id', 'DAYDRM');
+
+    const rainId = await advanceToNextCover(page);
+    expect(rainId).toBe('RAINFR');
+    await dblclickCover(page, rainId);
+
+    await expect(page.getByTestId('dj-deck-a-title')).toHaveAttribute('data-track-id', 'RAINFR');
+    await expect(embedA).toHaveAttribute('data-spotify-id', '');
+    await expect(page.getByTestId('dj-deck-a-nospotify')).toBeVisible();
+    await expect(page.getByTestId('dj-deck-a-nospotify')).toContainText(/rainforest/i);
+    await expect
+      .poll(async () => iframeSrc(page, 'dj-deck-a-embed'), { timeout: 8_000 })
+      .not.toContain(DAYDREAMING_SPOTIFY);
+  });
+
+  test('loading a Spotify library track onto Deck A switches the iframe', async ({ page }) => {
+    await page.goto('/sound', { waitUntil: 'domcontentloaded' });
+    const embedA = page.getByTestId('dj-deck-a-embed');
+    const spotifyId = await advanceToSpotifyCover(page);
+    await dblclickCover(page, spotifyId);
+
+    await expect(page.getByTestId('dj-deck-a-title')).toHaveAttribute('data-track-id', spotifyId, { timeout: 8_000 });
+    await expect(embedA).toHaveAttribute('data-spotify-id', spotifyId);
+    await expect
+      .poll(async () => iframeSrc(page, 'dj-deck-a-embed'), { timeout: 15_000 })
+      .toContain(spotifyId);
+  });
+});
