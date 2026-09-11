@@ -44,7 +44,7 @@ async function main() {
   await page.locator('[data-testid="computer-console-dock"]').screenshot({
     path: join(OUT, 'computer-oneshot-keys-390.png'),
   });
-  await page.locator('[aria-label="note"]').fill('one shot from the pad');
+  await page.locator('input[aria-label="note"]').fill('one shot from the pad');
   await page.locator('[data-testid="computer-key-note"]').click();
   await flashWait(page, /note done|completed/).catch(async () => {
     await page.waitForFunction(() => {
