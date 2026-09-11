@@ -168,9 +168,9 @@ assert(
 
 const yq = await req('POST', '/c/owner/exec', {
   headers: { 'content-type': 'application/json' },
-  body: JSON.stringify({ command: "printf 'a: 1\\n' | yq .a" }),
+  body: JSON.stringify({ command: 'yq .' }),
 });
-assert('owner yq 400 (node:process missing in workerd)', yq.res.status === 400, String(yq.res.status));
+assert('owner yq 400 (not allowlisted; node:process missing in workerd)', yq.res.status === 400, String(yq.res.status));
 
 const visitorYq = await req('POST', `/c/${visitorId}/exec`, {
   headers: { 'content-type': 'application/json' },
