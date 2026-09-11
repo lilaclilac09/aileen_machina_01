@@ -11,6 +11,9 @@ import {
   pitchToRate,
   syncPitchPct,
   trimGain,
+  knobAngleDeg,
+  knobValueFromOffset,
+  snapKnobTick,
 } from '../lib/djMixerMath';
 import { buildMixReceipt, receiptToJson } from '../lib/djMixReceipt';
 
@@ -35,6 +38,17 @@ assert.equal(filterFromKnob(90).type, 'highpass');
 assert.ok(Math.abs(barsToSeconds(1, 120) - 2) < 1e-9);
 assert.equal(syncPitchPct(120, 0, 120), 0);
 assert.ok(syncPitchPct(0, 0, 120) === null);
+
+assert.equal(knobAngleDeg(50), 0);
+assert.equal(knobAngleDeg(0), -135);
+assert.equal(knobAngleDeg(100), 135);
+assert.ok(Math.abs(knobValueFromOffset(0, -10) - 50) < 1e-6, 'up = 50');
+assert.ok(Math.abs(knobValueFromOffset(-10, 10) - 0) < 1e-6, 'down-left = 0');
+assert.ok(Math.abs(knobValueFromOffset(10, 10) - 100) < 1e-6, 'down-right = 100');
+assert.equal(snapKnobTick(47), 50);
+assert.equal(snapKnobTick(12), 0);
+assert.equal(snapKnobTick(80), 75);
+assert.equal(snapKnobTick(90), 100);
 
 const receipt = buildMixReceipt({
   recordedAt: new Date('2026-08-16T00:00:00.000Z'),

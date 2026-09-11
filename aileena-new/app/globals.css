@@ -609,8 +609,8 @@ select,
     column-gap: 20px !important;
   }
   .dj-tap {
-    min-width: 44px !important;
-    min-height: 44px !important;
+    min-width: 52px !important;
+    min-height: 52px !important;
     box-sizing: border-box !important;
   }
 

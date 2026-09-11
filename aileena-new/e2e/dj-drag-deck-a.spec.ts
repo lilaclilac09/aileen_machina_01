@@ -65,3 +65,21 @@ test.describe('DJ drag CD → plate', () => {
       .toBe(sourceId);
   });
 });
+
+test.describe('DJ knob ticks', () => {
+  test('clicking a scale tick jumps the HI knob to that value', async ({ page }) => {
+    await page.goto('/sound', { waitUntil: 'domcontentloaded' });
+    const knob = page.getByTestId('dj-knob-hi');
+    await expect(knob).toBeVisible();
+    await expect(knob).toHaveAttribute('data-value', '50');
+
+    await page.getByTestId('dj-knob-hi-tick-0').click();
+    await expect(knob).toHaveAttribute('data-value', '0');
+
+    await page.getByTestId('dj-knob-hi-tick-100').click();
+    await expect(knob).toHaveAttribute('data-value', '100');
+
+    await page.getByTestId('dj-knob-hi-tick-50').click();
+    await expect(knob).toHaveAttribute('data-value', '50');
+  });
+});

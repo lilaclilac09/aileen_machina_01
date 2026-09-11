@@ -24,6 +24,26 @@ test.describe('iOS / mobile layout pass', () => {
     await expect(page.locator('#dj-set')).toBeVisible();
   });
 
+  test('mixer and deck taps are large enough to hit', async ({ page }) => {
+    await page.goto('/sound', { waitUntil: 'domcontentloaded' });
+    const play = page.getByRole('button', { name: 'Play' }).first();
+    await expect(play).toBeVisible();
+    const playBox = await play.boundingBox();
+    expect(playBox?.width ?? 0).toBeGreaterThanOrEqual(52);
+    expect(playBox?.height ?? 0).toBeGreaterThanOrEqual(52);
+
+    const echo = page.getByTestId('dj-fx-echo');
+    await expect(echo).toBeVisible();
+    const echoBox = await echo.boundingBox();
+    expect(echoBox?.height ?? 0).toBeGreaterThanOrEqual(52);
+
+    const loop = page.getByTestId('dj-loop-size-1').first();
+    await expect(loop).toBeVisible();
+    const loopBox = await loop.boundingBox();
+    expect(loopBox?.width ?? 0).toBeGreaterThanOrEqual(52);
+    expect(loopBox?.height ?? 0).toBeGreaterThanOrEqual(52);
+  });
+
   test('console opens and leave-a-note stays in viewport', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
     await page.evaluate(() => window.dispatchEvent(new CustomEvent('open-agent-chat')));

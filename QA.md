@@ -130,6 +130,8 @@ Required screenshots: `landing-desktop.png`, `landing-mobile-390.png`, `landing-
 - appears in carousel
 - drag to deck A
 - play / pause works
+- click a knob tick / around the ring jumps to that scale
+- phone mixer / loop / FX taps are large enough to hit
 - deck B works if touched
 - mixer controls affect actual audio if touched
 - Visual / `#glass-bench` is **not** on `/sound`
