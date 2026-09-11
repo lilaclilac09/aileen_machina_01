@@ -383,7 +383,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
   side: 'left'|'right'; track: Track|null; playing: boolean;
   pos: number; dur: number; pitch: number; dim: number; dropActive: boolean;
   isMobile?: boolean; synced?: boolean;
-  onDragOver(e: React.DragEvent): void; onDragLeave(): void; onDrop(e: React.DragEvent): void;
+  onDragOver(e: React.DragEvent): void; onDragLeave(e: React.DragEvent): void; onDrop(e: React.DragEvent): void;
   onToggle(): void; onPitch(v: number): void;
   onScratchStart(): void; onScratchEnd(): void;
   onSync: () => void;
