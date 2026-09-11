@@ -135,6 +135,7 @@ Required screenshots: `landing-desktop.png`, `landing-mobile-390.png`, `landing-
 - appears in carousel
 - drag to deck A
 - double-click a CD cover loads Deck A, next double-click loads Deck B
+- loaded deck Spotify iframe matches the plate when the track has a Spotify id; no leftover previous-track iframe when it does not
 - play / pause works
 - click a knob tick / around the ring jumps to that scale
 - phone mixer / loop / FX taps are large enough to hit
