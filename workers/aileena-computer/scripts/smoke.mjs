@@ -150,6 +150,116 @@ const visitorCurl = await req('POST', `/c/${visitorId}/exec`, {
 });
 assert('visitor curl 400', visitorCurl.res.status === 400, String(visitorCurl.res.status));
 
+const findCmd = await req('POST', '/c/owner/exec', {
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ command: 'find scratch -name hello.txt', cwd: '/workspace' }),
+});
+let findBody = {};
+try {
+  findBody = JSON.parse(findCmd.text);
+} catch {
+  findBody = { raw: findCmd.text };
+}
+assert(
+  'owner find',
+  findCmd.res.ok && /hello\.txt/.test(String(findBody.stdout || '')),
+  `${findCmd.res.status} ${findCmd.text.slice(0, 160)}`,
+);
+
+const yq = await req('POST', '/c/owner/exec', {
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ command: "printf 'a: 1\\n' | yq .a" }),
+});
+let yqBody = {};
+try {
+  yqBody = JSON.parse(yq.text);
+} catch {
+  yqBody = { raw: yq.text };
+}
+assert(
+  'owner yq',
+  yq.res.ok && String(yqBody.stdout || '').trim() === '1',
+  `${yq.res.status} ${yq.text.slice(0, 160)}`,
+);
+
+const visitorYq = await req('POST', `/c/${visitorId}/exec`, {
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ command: 'yq .' }),
+});
+assert('visitor yq 400', visitorYq.res.status === 400, String(visitorYq.res.status));
+
+const visitorFind = await req('POST', `/c/${visitorId}/exec`, {
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ command: 'find scratch -name hello.txt', cwd: '/workspace' }),
+});
+assert('visitor find allowed', visitorFind.res.ok, String(visitorFind.res.status));
+
+const mkdir = await req('POST', '/c/owner/exec', {
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ command: 'mkdir -p scratch/deeper', cwd: '/workspace' }),
+});
+assert('owner mkdir -p scratch', mkdir.res.ok, String(mkdir.res.status));
+
+const tree = await req('POST', '/c/owner/exec', {
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ command: 'tree scratch', cwd: '/workspace' }),
+});
+let treeBody = {};
+try {
+  treeBody = JSON.parse(tree.text);
+} catch {
+  treeBody = { raw: tree.text };
+}
+assert(
+  'owner tree',
+  tree.res.ok && /hello\.txt/.test(String(treeBody.stdout || '')),
+  `${tree.res.status} ${tree.text.slice(0, 160)}`,
+);
+
+const fileCmd = await req('POST', '/c/owner/exec', {
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ command: 'file scratch/hello.txt', cwd: '/workspace' }),
+});
+let fileBody = {};
+try {
+  fileBody = JSON.parse(fileCmd.text);
+} catch {
+  fileBody = { raw: fileCmd.text };
+}
+assert(
+  'owner file',
+  fileCmd.res.ok && /hello\.txt/.test(String(fileBody.stdout || '')),
+  `${fileCmd.res.status} ${fileCmd.text.slice(0, 160)}`,
+);
+
+const xan = await req('POST', '/c/owner/exec', {
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ command: "printf 'a,b\\n1,2\\n' | xan count" }),
+});
+let xanBody = {};
+try {
+  xanBody = JSON.parse(xan.text);
+} catch {
+  xanBody = { raw: xan.text };
+}
+assert(
+  'owner xan',
+  xan.res.ok && /[12]/.test(String(xanBody.stdout || '')),
+  `${xan.res.status} ${xan.text.slice(0, 160)}`,
+);
+
+const visitorFile = await req('POST', `/c/${visitorId}/exec`, {
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ command: 'file scratch/hello.txt' }),
+});
+assert('visitor file 400', visitorFile.res.status === 400, String(visitorFile.res.status));
+
+const visitorXan = await req('POST', `/c/${visitorId}/exec`, {
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ command: 'xan count' }),
+});
+assert('visitor xan 400', visitorXan.res.status === 400, String(visitorXan.res.status));
+
 const htmlPut = await req('PUT', '/c/owner/file/workspace/scratch/t.html', {
   headers: { 'content-type': 'text/plain' },
   body: '<h1>Hi</h1>',

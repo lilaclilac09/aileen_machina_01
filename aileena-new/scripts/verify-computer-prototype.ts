@@ -11,7 +11,9 @@ import { join } from 'node:path';
 import { createOwnerSession, SESSION_COOKIE } from '../lib/auth';
 import { inspectRouteFiles, analyzeDailyFixPlan } from '../lib/computer/inspect';
 import { parseOwnerComputerCommand, parseVisitorComputerCommand } from '../lib/computer/parseOwnerCommand';
-import { curlFetchCommand, curlHttpsTarget, safeHttpsUrl } from '../lib/computer/allowlist';
+import { parseJsonRpcBody, parseMcpServers } from '../lib/mcp/remote';
+import { githubContentPath, githubReady } from '../lib/mcp/github';
+import { isMcpReadPath } from '../lib/mcp/computer';
 import { labelForTask, matchLearned, rememberCommand } from '../lib/computer/learned';
 import { redactSecrets } from '../lib/computer/redact';
 import { isComputerPrototypeEnabled, hasComputerWorkerEnv } from '../lib/computer/flag';
@@ -109,7 +111,8 @@ function sourceChecks() {
   const workerSrc = readFileSync(join(process.cwd(), '..', 'workers', 'aileena-computer', 'src', 'index.ts'), 'utf8');
   assert('worker requires bearer secret', /Bearer/.test(workerSrc) && /COMPUTER_WORKER_SECRET/.test(workerSrc));
   assert('worker allowlists owner and visitor cwid', /VISITOR_RE/.test(workerSrc) && /idFromName\(name\)/.test(workerSrc));
-  assert('worker opts into official curl jq html-to-markdown groups', /shell\/curl/.test(workerSrc) && /shell\/jq/.test(workerSrc) && /shell\/html-to-markdown/.test(workerSrc) && !/shell\/python/.test(workerSrc));
+  assert('worker opts into official curl jq html-to-markdown yq file xan groups', /shell\/curl/.test(workerSrc) && /shell\/jq/.test(workerSrc) && /shell\/html-to-markdown/.test(workerSrc) && /shell\/yq/.test(workerSrc) && /shell\/file/.test(workerSrc) && /shell\/xan/.test(workerSrc) && !/shell\/python/.test(workerSrc));
+  assert('worker does not bind a Linux container', /container: false/.test(workerSrc) && !/CloudflareContainerBackend/.test(workerSrc));
   assert('worker egress is direct so curl can fetch', /egress: \{ mode: 'direct' \}/.test(workerSrc));
   assert('visitor exec cannot curl', /VISITOR_BINS/.test(workerSrc) && /name === OWNER \? OWNER_BINS : VISITOR_BINS/.test(workerSrc));
   assert('shell_exec is an owner task type', /'shell_exec'/.test(readFileSync(join(process.cwd(), 'lib/computer/types.ts'), 'utf8')));
@@ -180,6 +183,41 @@ function sourceChecks() {
   assert('GET tasks includes learned', /learned: listLearned\(\)/.test(tasks));
   assert('POST remembers phrase', /rememberCommand/.test(tasks) && /body.phrase/.test(tasks));
   assert('learn route exists', existsSync(join(process.cwd(), 'app/api/agent/computer/learned/route.ts')));
+  const mcpRoute = readFileSync(join(process.cwd(), 'app/api/agent/mcp/route.ts'), 'utf8');
+  assert('mcp route is owner only', /actor.kind !== 'owner'/.test(mcpRoute) && /status: 403/.test(mcpRoute));
+  assert('chat MCP tools are owner-gated', /owner && isComputerPrototypeEnabled\(\)/.test(chat) && /listMcpApps/.test(chat) && /callMcp/.test(chat));
+  assert('Next app still does not import @cloudflare/computer/tools', !/from ['"]@cloudflare\/computer/.test(chat));
+  const prevMcp = process.env.MCP_SERVERS;
+  process.env.MCP_SERVERS = JSON.stringify([
+    { name: 'evil', url: 'https://localhost/mcp' },
+    { name: 'computer', url: 'https://example.com/steal' },
+    { name: 'github', url: 'https://example.com/steal' },
+    { name: 'ok', url: 'https://example.com/mcp' },
+    { name: 'lan', url: 'https://10.0.0.8/mcp' },
+  ]);
+  const remotes = parseMcpServers();
+  if (prevMcp === undefined) delete process.env.MCP_SERVERS;
+  else process.env.MCP_SERVERS = prevMcp;
+  assert('MCP_SERVERS drops localhost reserved lan', remotes.length === 1 && remotes[0].name === 'ok');
+  const tok = {
+    GITHUB_TOKEN: process.env.GITHUB_TOKEN,
+    GH_TOKEN: process.env.GH_TOKEN,
+    GITHUB_MCP_TOKEN: process.env.GITHUB_MCP_TOKEN,
+  };
+  delete process.env.GITHUB_TOKEN;
+  delete process.env.GH_TOKEN;
+  delete process.env.GITHUB_MCP_TOKEN;
+  assert('github MCP is fail-closed without token', githubReady().ready === false);
+  if (tok.GITHUB_TOKEN !== undefined) process.env.GITHUB_TOKEN = tok.GITHUB_TOKEN;
+  if (tok.GH_TOKEN !== undefined) process.env.GH_TOKEN = tok.GH_TOKEN;
+  if (tok.GITHUB_MCP_TOKEN !== undefined) process.env.GITHUB_MCP_TOKEN = tok.GITHUB_MCP_TOKEN;
+  assert('mcp read allows scratch files', isMcpReadPath('scratch/hello.txt') && isMcpReadPath('/workspace/reports/a.txt'));
+  assert('mcp read blocks workspace root and etc', !isMcpReadPath('/workspace') && !isMcpReadPath('/workspace/etc/passwd'));
+  assert('github contents blocks .env', githubContentPath('.env.local') === null && Boolean(githubContentPath('README.md')));
+  assert(
+    'mcp SSE JSON-RPC parser',
+    parseJsonRpcBody('event: message\ndata: {"jsonrpc":"2.0","id":1,"result":{"tools":[]}}\n\n').result != null,
+  );
   assert('proof page does not mount ProofQueuePanel', !/ProofQueuePanel/.test(proofPageSrc));
   assert(
     'unlock form is KeyShield not typed secret',
@@ -682,6 +720,13 @@ async function liveHttp() {
   const visitorProof = await fetch(`${base}/api/agent/proof`);
   assert('visitor GET proof → 403', visitorProof.status === 403, String(visitorProof.status));
 
+  const visitorMcp = await fetch(`${base}/api/agent/mcp`);
+  assert(
+    'visitor GET mcp → 403 or 404',
+    visitorMcp.status === 403 || visitorMcp.status === 404,
+    String(visitorMcp.status),
+  );
+
   const shell = await fetch(`${base}/api/agent/computer/tasks`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -722,6 +767,55 @@ async function liveHttp() {
   if (process.env.COMPUTER_WORKER_URL && process.env.COMPUTER_WORKER_SECRET) {
     const cfListed = listed.ok ? ((listedJson as { cloudflareComputer?: boolean }).cloudflareComputer) : false;
     assert('owner GET reports cloudflareComputer when Worker env is set', cfListed === true, String(cfListed));
+  }
+
+  const ownerMcp = await fetch(`${base}/api/agent/mcp`, { headers: { Cookie: cookie } });
+  assert(
+    'owner GET mcp → 200 or 404',
+    ownerMcp.status === 200 || ownerMcp.status === 404,
+    String(ownerMcp.status),
+  );
+  if (ownerMcp.status === 200) {
+    const mcpJson = (await ownerMcp.json()) as {
+      container?: boolean;
+      apps?: { name?: string; ready?: boolean; tools?: { name?: string }[] }[];
+    };
+    assert(
+      'owner mcp lists computer+github',
+      Array.isArray(mcpJson.apps) &&
+        Boolean(mcpJson.apps.some((a) => a.name === 'computer')) &&
+        Boolean(mcpJson.apps.some((a) => a.name === 'github')),
+    );
+    assert('owner mcp container false', mcpJson.container === false);
+    const echo = await fetch(`${base}/api/agent/mcp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      body: JSON.stringify({ app: 'computer', tool: 'exec', args: { command: 'echo mcp-ok' } }),
+    });
+    const echoJson = echo.ok
+      ? ((await echo.json()) as { ok?: boolean; result?: { ok?: boolean; text?: string; blocked?: boolean } })
+      : {};
+    if (process.env.COMPUTER_WORKER_URL && process.env.COMPUTER_WORKER_SECRET) {
+      assert(
+        'owner mcp computer.exec echo',
+        echo.status === 200 && /mcp-ok/.test(echoJson.result?.text || ''),
+        `${echo.status} ${echoJson.result?.text?.slice(0, 120) ?? ''}`,
+      );
+    } else {
+      assert('owner mcp computer.exec fail-closed without worker', echoJson.result?.ok === false);
+    }
+    const blockedRead = await fetch(`${base}/api/agent/mcp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      body: JSON.stringify({ app: 'computer', tool: 'read', args: { path: '/workspace/etc/passwd' } }),
+    });
+    const blockedJson = blockedRead.ok
+      ? ((await blockedRead.json()) as { result?: { blocked?: boolean; ok?: boolean } })
+      : {};
+    assert(
+      'owner mcp computer.read blocks etc',
+      blockedJson.result?.blocked === true || blockedJson.result?.ok === false,
+    );
   }
 
   const ownerShell = await fetch(`${base}/api/agent/computer/tasks`, {
