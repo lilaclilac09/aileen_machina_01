@@ -220,7 +220,8 @@ Do one slice per PR. Do not bundle the Worker and a UI redesign.
 |---|--------|--------|
 | **A** | Scaffold `workers/aileena-computer` from official worker-shell. Auth + name lock + write allowlist. No site change. | `wrangler dev` curl PUT/GET/exec + restart persistence |
 | **B** | `cfClient` + scratch + files_* in `runner.ts`. Dock copy can say `cloudflare-worker-shell` when ready. | Owner scratch in Console lands in the DO |
-| **C** | Official shell groups `curl` `jq` + owner `>` `shell_exec`. Visitors stay core-only. Python/sqlite groups do not run in workerd. | wrangler smoke awk/curl/jq; visitor curl 400 |
+| **C** | Official shell groups `curl` `jq` `html-to-markdown` + owner `>` `shell_exec`. Visitors stay core-only. Python/sqlite groups do not run in workerd. | wrangler smoke awk/curl/jq/html-to-markdown; visitor curl 400 |
+| **C′** | Same keys, pushed: find shows matching lines, look shows first-line excerpts, peek names a note, clock stamps today's note, owner https GETs body into `scratch/fetch`. | one-shot 390 stills + verify:computer-prototype |
 | **D** | Optional later: container/`computerd` Linux | new spec |
 
 Out of scope until a later owner ask: container/`computerd`, cloning `aileen_machina_01` into the DO, merge, browser, email send, `@cloudflare/computer/tools` as the chat loop.

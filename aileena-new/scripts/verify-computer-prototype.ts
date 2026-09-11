@@ -11,7 +11,7 @@ import { join } from 'node:path';
 import { createOwnerSession, SESSION_COOKIE } from '../lib/auth';
 import { inspectRouteFiles, analyzeDailyFixPlan } from '../lib/computer/inspect';
 import { parseOwnerComputerCommand, parseVisitorComputerCommand } from '../lib/computer/parseOwnerCommand';
-import { safeHttpsUrl } from '../lib/computer/allowlist';
+import { curlFetchCommand, curlHttpsTarget, safeHttpsUrl } from '../lib/computer/allowlist';
 import { labelForTask, matchLearned, rememberCommand } from '../lib/computer/learned';
 import { redactSecrets } from '../lib/computer/redact';
 import { isComputerPrototypeEnabled, hasComputerWorkerEnv } from '../lib/computer/flag';
@@ -20,7 +20,7 @@ import { spokenQueued } from '../lib/computer/spokenQueue';
 import { gitFindCommit, gitStatus } from '../lib/computer/gitAllowlist';
 import { filesOpen } from '../lib/computer/filesAllowlist';
 import { TAB_WIRE } from '../lib/computer/capabilities';
-import { workspaceGrep, workspaceLatestNote, workspaceList, workspaceReadFile, workspaceRuntimeProbe, workspaceWriteFile } from '../lib/computer/workspace';
+import { parsePeekSelector, workspaceGrep, workspaceLatestNote, workspaceList, workspacePickNote, workspaceReadFile, workspaceRuntimeProbe, workspaceWriteFile } from '../lib/computer/workspace';
 import { deriveKeyshield, sealOwner, openOwnerSeal } from '../lib/keyshield/prf';
 import { KS_HKDF_MASTER, KS_HKDF_VAULT_ID, KS_PRF_FIRST } from '../lib/keyshield/constants';
 import { b64urlFromBytes, bytesFromB64url } from '../lib/passkey/b64';
@@ -109,7 +109,7 @@ function sourceChecks() {
   const workerSrc = readFileSync(join(process.cwd(), '..', 'workers', 'aileena-computer', 'src', 'index.ts'), 'utf8');
   assert('worker requires bearer secret', /Bearer/.test(workerSrc) && /COMPUTER_WORKER_SECRET/.test(workerSrc));
   assert('worker allowlists owner and visitor cwid', /VISITOR_RE/.test(workerSrc) && /idFromName\(name\)/.test(workerSrc));
-  assert('worker opts into official curl jq groups', /shell\/curl/.test(workerSrc) && /shell\/jq/.test(workerSrc) && !/shell\/python/.test(workerSrc));
+  assert('worker opts into official curl jq html-to-markdown groups', /shell\/curl/.test(workerSrc) && /shell\/jq/.test(workerSrc) && /shell\/html-to-markdown/.test(workerSrc) && !/shell\/python/.test(workerSrc));
   assert('worker egress is direct so curl can fetch', /egress: \{ mode: 'direct' \}/.test(workerSrc));
   assert('visitor exec cannot curl', /VISITOR_BINS/.test(workerSrc) && /name === OWNER \? OWNER_BINS : VISITOR_BINS/.test(workerSrc));
   assert('shell_exec is an owner task type', /'shell_exec'/.test(readFileSync(join(process.cwd(), 'lib/computer/types.ts'), 'utf8')));
@@ -162,8 +162,14 @@ function sourceChecks() {
       !/>[\s]*记[\s]*</.test(dockSrc),
   );
   assert('dock has peek and clock one-shots', /computer-key-peek/.test(dockSrc) && /computer-key-clock/.test(dockSrc) && /scratch_peek/.test(dockSrc));
+  assert('peek uses the field or last', /instructions: raw \|\| 'last'/.test(dockSrc));
   assert('visitors can peek and clock', /scratch_peek/.test(readFileSync(join(process.cwd(), 'lib/computer/allowlist.ts'), 'utf8')) && /scratch_clock/.test(readFileSync(join(process.cwd(), 'lib/computer/allowlist.ts'), 'utf8')));
   assert('https one-shot rejects localhost', !safeHttpsUrl('https://localhost/x') && !safeHttpsUrl('http://example.com') && Boolean(safeHttpsUrl('https://example.com/')));
+  assert('https one-shot is GET not only HEAD', /curlFetchCommand/.test(dockSrc) && /curl -sL --max-time 8/.test(readFileSync(join(process.cwd(), 'lib/computer/allowlist.ts'), 'utf8')));
+  assert('clock stamps today\'s note', /appendTodayStamp/.test(runner) && /scratch\/notes/.test(runner));
+  assert('owner fetch saves under scratch/fetch', /scratch\/fetch/.test(runner) && /runOwnerFetch/.test(runner));
+  assert('visitor look lists scratch', /isOwner \? '\/workspace' : '\/workspace\/scratch'/.test(dockSrc));
+  assert('monitor can show a peek body', /max-h-40/.test(dockSrc));
   assert('keys are signs not 记/看/找 labels', /SignMark/.test(dockSrc) && /○/.test(dockSrc) && !/>记</.test(dockSrc) && !/>看</.test(dockSrc));
   assert('keys have 44px tap targets', /min-h-11/.test(dockSrc) && /KEY_CLASS/.test(dockSrc));
   assert('empty 记 still queues a note', /phrase: raw \|\| 'note'/.test(dockSrc) && !/write first/.test(dockSrc));
@@ -263,10 +269,15 @@ function unitChecks() {
   const visitorListCmd = parseVisitorComputerCommand('list');
   assert(
     'visitor list queues files_tree',
-    visitorListCmd?.kind === 'queue_task' && visitorListCmd.taskType === 'files_tree',
+    visitorListCmd?.kind === 'queue_task' && visitorListCmd.taskType === 'files_tree' && visitorListCmd.instructions === '/workspace/scratch',
   );
   const visitorPeek = parseVisitorComputerCommand('peek');
   assert('visitor peek queues scratch_peek', visitorPeek?.kind === 'queue_task' && visitorPeek.taskType === 'scratch_peek');
+  const visitorPeekNamed = parseVisitorComputerCommand('peek 2026-04-08');
+  assert(
+    'visitor peek date queues that note',
+    visitorPeekNamed?.kind === 'queue_task' && visitorPeekNamed.taskType === 'scratch_peek' && visitorPeekNamed.instructions === '2026-04-08',
+  );
   const visitorClock = parseVisitorComputerCommand('clock');
   assert('visitor clock queues scratch_clock', visitorClock?.kind === 'queue_task' && visitorClock.taskType === 'scratch_clock');
   assert(
@@ -378,12 +389,22 @@ async function workspaceUnit() {
   await workspaceWriteFile('v-visitorone', '/scratch/notes/x.txt', 'visitor-secret-note');
   const visitorList = workspaceList('v-visitorone');
   assert('visitor workspace lists own files', visitorList.lines.some((l) => l.includes('scratch')));
+  assert('look lists a first-line excerpt', visitorList.lines.some((l) => l.includes('visitor-secret-note')));
   const latest = await workspaceLatestNote('v-visitorone');
   assert('visitor latest note is the scratch file', Boolean(latest && latest.body.includes('visitor-secret-note')), latest?.path);
+  const named = await workspacePickNote('v-visitorone', 'x.txt');
+  assert('peek by name opens that note', Boolean(named && named.body.includes('visitor-secret-note')), named?.path);
+  const byDate = parsePeekSelector('2026-04-08');
+  assert('peek date selector', byDate.kind === 'date' && byDate.kind === 'date' && (byDate as { day: string }).day === '2026-04-08');
+  const nth = parsePeekSelector('2');
+  assert('peek nth selector', nth.kind === 'nth' && nth.kind === 'nth' && (nth as { n: number }).n === 2);
   const visitorHit = workspaceGrep('v-visitorone', 'visitor-secret-note');
   assert('visitor workspace greps own files', visitorHit.lines.length >= 1);
+  assert('find shows the matching line', visitorHit.lines.some((l) => /visitor-secret-note/.test(l) && /:\d+:/.test(l)));
   const ownerMiss = workspaceGrep('owner', 'visitor-secret-note');
   assert('owner workspace does not see visitor note', ownerMiss.lines.length === 0);
+  assert('curl GET is not localhost HEAD', /curl -sL/.test(curlFetchCommand('https://example.com/')) && curlHttpsTarget('https://example.com/')?.head === false);
+  assert('explicit curl -sI stays HEAD', curlHttpsTarget('curl -sI -- https://example.com/')?.head === true);
 }
 
 async function gitAndFilesUnit() {

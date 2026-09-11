@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ComputerTask } from '../lib/computer/types';
 import type { ProofItem } from '../lib/proofQueue/types';
-import { curlHeadCommand, isOwnerShellCommand, safeHttpsUrl } from '../lib/computer/allowlist';
+import { curlFetchCommand, isOwnerShellCommand, safeHttpsUrl } from '../lib/computer/allowlist';
 
 type AppTab = 'note' | 'find' | 'git';
 type LearnedChip = { alias: string; taskType: string; instructions: string; route: string };
@@ -83,7 +83,7 @@ function SignMark({ kind }: { kind: 'note' | 'look' | 'find' | 'git' | 'shell' }
   );
 }
 
-function parseLine(raw: string): { taskType: string; instructions: string; route?: string } {
+function parseLine(raw: string, owner: boolean): { taskType: string; instructions: string; route?: string } {
   const t = raw.trim();
   if (/^git(\s+status)?$/i.test(t)) {
     return { taskType: 'git_status', instructions: 'git status --short' };
@@ -92,7 +92,7 @@ function parseLine(raw: string): { taskType: string; instructions: string; route
     return { taskType: 'git_log', route: '/sound', instructions: 'n:20' };
   }
   if (/^list$/i.test(t)) {
-    return { taskType: 'files_tree', instructions: '/workspace' };
+    return { taskType: 'files_tree', instructions: owner ? '/workspace' : '/workspace/scratch' };
   }
   const find = /^find(?:\s+|:\s*)(.+)$/i.exec(t);
   if (find) {
@@ -107,7 +107,7 @@ function parseLine(raw: string): { taskType: string; instructions: string; route
 function monitorText(task: ComputerTask | null): string {
   if (!task) return '';
   const logs = task.logsRedacted.slice(-8).join('\n');
-  const bit = (task.error || task.artifacts[0]?.preview || task.resultSummary || '').trim().slice(0, 360);
+  const bit = (task.error || task.artifacts[0]?.preview || task.resultSummary || '').trim().slice(0, 1400);
   return [logs, bit].filter(Boolean).join('\n');
 }
 
@@ -275,7 +275,11 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
 
   const lookNow = () => {
     setTab('find');
-    void queue({ taskType: 'files_tree', instructions: '/workspace', phrase: 'list' });
+    void queue({
+      taskType: 'files_tree',
+      instructions: isOwner ? '/workspace' : '/workspace/scratch',
+      phrase: 'list',
+    });
   };
 
   const go = () => {
@@ -287,7 +291,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
     if (isOwner) {
       const https = safeHttpsUrl(raw);
       if (https) {
-        const cmd = curlHeadCommand(https);
+        const cmd = curlFetchCommand(https);
         setTab('find');
         void queue({ taskType: 'shell_exec', instructions: cmd, phrase: cmd });
         setLine('');
@@ -300,7 +304,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
         return;
       }
     }
-    const parsed = parseLine(raw);
+    const parsed = parseLine(raw, isOwner);
     setTab(parsed.taskType === 'write_scratch_file' ? 'note' : parsed.taskType.startsWith('git_') ? 'git' : 'find');
     void queue({ ...parsed, phrase: raw });
     setLine('');
@@ -338,7 +342,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
             ref={logRef}
             data-testid="computer-monitor"
             data-live={live ? '1' : '0'}
-            className="font-mono text-[0.58rem] leading-relaxed text-[#8fe6dd] whitespace-pre-wrap max-h-24 overflow-y-auto px-2 py-1.5 [text-shadow:0_0_5px_rgba(0,168,157,0.35)]"
+            className="font-mono text-[0.58rem] leading-relaxed text-[#8fe6dd] whitespace-pre-wrap max-h-40 overflow-y-auto px-2 py-1.5 [text-shadow:0_0_5px_rgba(0,168,157,0.35)]"
           >
             {monitorText(selectedTask)}
           </pre>
@@ -393,8 +397,14 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
             data-testid="computer-key-peek"
             aria-label="peek"
             onClick={() => {
+              const raw = line.trim();
               setTab('find');
-              void queue({ taskType: 'scratch_peek', instructions: 'last', phrase: 'peek' });
+              void queue({
+                taskType: 'scratch_peek',
+                instructions: raw || 'last',
+                phrase: raw ? `peek ${raw}` : 'peek',
+              });
+              setLine('');
             }}
             className={KEY_CLASS}
           >
@@ -422,7 +432,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
               onClick={() => {
                 const raw = line.trim();
                 const https = safeHttpsUrl(raw);
-                const cmd = https ? curlHeadCommand(https) : raw || 'ls /workspace';
+                const cmd = https ? curlFetchCommand(https) : raw || 'ls /workspace';
                 setTab('find');
                 void queue({
                   taskType: 'shell_exec',

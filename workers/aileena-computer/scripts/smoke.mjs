@@ -150,6 +150,49 @@ const visitorCurl = await req('POST', `/c/${visitorId}/exec`, {
 });
 assert('visitor curl 400', visitorCurl.res.status === 400, String(visitorCurl.res.status));
 
+const htmlPut = await req('PUT', '/c/owner/file/workspace/scratch/t.html', {
+  headers: { 'content-type': 'text/plain' },
+  body: '<h1>Hi</h1>',
+});
+assert('put html 204', htmlPut.res.status === 204, String(htmlPut.res.status));
+const md = await req('POST', '/c/owner/exec', {
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ command: 'html-to-markdown scratch/t.html', cwd: '/workspace' }),
+});
+let mdBody = {};
+try {
+  mdBody = JSON.parse(md.text);
+} catch {
+  mdBody = { raw: md.text };
+}
+assert(
+  'owner html-to-markdown',
+  md.res.ok && /Hi/.test(String(mdBody.stdout || '')),
+  `${md.res.status} ${md.text.slice(0, 200)}`,
+);
+
+const visitorMd = await req('POST', `/c/${visitorId}/exec`, {
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ command: 'html-to-markdown scratch/t.html' }),
+});
+assert('visitor html-to-markdown 400', visitorMd.res.status === 400, String(visitorMd.res.status));
+
+const getBody = await req('POST', '/c/owner/exec', {
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ command: 'curl -sL --max-time 8 -- https://example.com/' }),
+});
+let getBodyJson = {};
+try {
+  getBodyJson = JSON.parse(getBody.text);
+} catch {
+  getBodyJson = { raw: getBody.text };
+}
+assert(
+  'owner curl GET body',
+  getBody.res.ok && /Example Domain/i.test(String(getBodyJson.stdout || '')),
+  `${getBody.res.status} ${String(getBodyJson.stdout || getBody.text).slice(0, 160)}`,
+);
+
 const storePath = '/c/v-testdevworker01/file/workspace/reports/_store/tasks.json';
 const putStore1 = await req('PUT', storePath, {
   headers: { 'content-type': 'text/plain' },

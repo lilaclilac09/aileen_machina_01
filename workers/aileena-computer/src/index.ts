@@ -1,6 +1,6 @@
 /**
  * Small computer. Official worker-shell (just-bash) with opted-in
- * curl / jq groups. Owner gets the full opted-in shell.
+ * curl / jq / html-to-markdown groups. Owner gets the full opted-in shell.
  * python/sqlite groups are not advertised: just-bash python needs
  * node:worker_threads; sqlite needs a compiled worker the preview
  * package does not ship. Visitors keep core files commands only.
@@ -15,6 +15,7 @@ import {
 import { WorkerShellBackend } from '@cloudflare/computer/backends/worker-shell';
 import curlModules from '@cloudflare/computer/shell/curl';
 import jqModules from '@cloudflare/computer/shell/jq';
+import htmlToMarkdownModules from '@cloudflare/computer/shell/html-to-markdown';
 
 export { WorkspaceServiceProxy };
 
@@ -52,6 +53,7 @@ const OWNER_BINS = new Set([
   ...CORE_BINS,
   'curl',
   'jq',
+  'html-to-markdown',
   'rm',
 ]);
 const VISITOR_BINS = new Set([...CORE_BINS, 'rm']);
@@ -65,7 +67,7 @@ export class OwnerComputer extends withWorkspace(class extends DurableObject {},
         loader: env.LOADER,
         workspace: { binding: 'OwnerComputer', id: ctx.id.toString() },
         ctx,
-        commands: [curlModules, jqModules],
+        commands: [curlModules, jqModules, htmlToMarkdownModules],
         egress: { mode: 'direct' },
       }),
     ],
@@ -88,7 +90,7 @@ export default {
         [
           'aileena-computer',
           'backend=cloudflare-worker-shell',
-          'groups=curl,jq',
+          'groups=curl,jq,html-to-markdown',
           'GET  /health',
           'PUT  /c/<name>/file/workspace/<path>  (bearer)',
           'GET  /c/<name>/file/workspace/<path>  (bearer)',
@@ -104,7 +106,7 @@ export default {
       return Response.json({
         ok: true,
         backend: 'cloudflare-worker-shell',
-        groups: ['curl', 'jq'],
+        groups: ['curl', 'jq', 'html-to-markdown'],
         egress: 'direct',
       });
     }
