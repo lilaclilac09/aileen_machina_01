@@ -129,11 +129,36 @@ export function trackById(id: string): DuoTrack {
   return DUO_TRACKS.find((t) => t.id === id) ?? DUO_TRACKS[0];
 }
 
-export function lightHue(light: DuoLight, track: DuoTrack, skin: DuoSkinSpec): string {
+export function rgbToHslTriplet(r: number, g: number, b: number): string {
+  const rn = r / 255;
+  const gn = g / 255;
+  const bn = b / 255;
+  const max = Math.max(rn, gn, bn);
+  const min = Math.min(rn, gn, bn);
+  const l = (max + min) / 2;
+  const d = max - min;
+  let h = 0;
+  let s = 0;
+  if (d !== 0) {
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === rn) h = (gn - bn) / d + (gn < bn ? 6 : 0);
+    else if (max === gn) h = (bn - rn) / d + 2;
+    else h = (rn - gn) / d + 4;
+    h /= 6;
+  }
+  return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+}
+
+export function lightHue(
+  light: DuoLight,
+  track: DuoTrack,
+  skin: DuoSkinSpec,
+  extractedHue?: string,
+): string {
   if (light === 'clock') return '12 82% 50%';
   if (light === 'notify') return '188 78% 62%';
   if (light === 'charge') return '32 90% 54%';
-  return track.hue || skin.fallbackHue;
+  return extractedHue || track.hue || skin.fallbackHue;
 }
 
 export function lightPeriod(light: DuoLight): string {

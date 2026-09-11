@@ -79,6 +79,7 @@
   width: min(248px, 64vw);
   height: min(480px, 64dvh);
   transform-style: preserve-3d;
+  -webkit-box-reflect: below 12px linear-gradient(transparent 35%, hsl(var(--duo-hue) / 0.28));
 }
 
 .duo-device {

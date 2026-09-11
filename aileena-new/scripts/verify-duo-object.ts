@@ -6,6 +6,7 @@ import {
   DUO_TRACKS,
   lightHue,
   lightPeriod,
+  rgbToHslTriplet,
   skinById,
   trackById,
 } from '../lib/duoObject';
@@ -19,4 +20,9 @@ assert.equal(trackById('missing').id, 'heat');
 assert.equal(lightHue('clock', DUO_TRACKS[0], DUO_SKINS[0]), '12 82% 50%');
 assert.equal(lightPeriod('notify'), '1.6s');
 assert.equal(lightPeriod('charge'), '4.8s');
-console.log('PASS duo-object catalog 5 skins / 4 lights / 3 modes');
+assert.equal(rgbToHslTriplet(196, 59, 106), '339 54% 50%');
+assert.equal(
+  lightHue('music', DUO_TRACKS[0], DUO_SKINS[0], '12 80% 50%'),
+  '12 80% 50%',
+);
+console.log('PASS duo-object catalog 5 skins / 4 lights / 3 modes + cover hue');

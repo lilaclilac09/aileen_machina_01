@@ -31,11 +31,19 @@ type Props = {
   childrenA: ReactNode;
   childrenB: ReactNode;
   onPickUp: () => void;
+  onSetDown: () => void;
   onRest: () => void;
 };
 
 /** Two glass faces + hinge. Pose is physical, not a route change. */
-export default function DeviceShell({ mode, childrenA, childrenB, onPickUp, onRest }: Props) {
+export default function DeviceShell({
+  mode,
+  childrenA,
+  childrenB,
+  onPickUp,
+  onSetDown,
+  onRest,
+}: Props) {
   return (
     <motion.div
       className="duo-device"
@@ -46,6 +54,13 @@ export default function DeviceShell({ mode, childrenA, childrenB, onPickUp, onRe
       style={preserve}
       animate={device[mode]}
       transition={spring}
+      drag={mode === 'rest' ? false : 'y'}
+      dragConstraints={{ top: -140, bottom: 48 }}
+      dragElastic={0.14}
+      onDragEnd={(_, info) => {
+        if (info.offset.y < -32 || info.velocity.y < -220) onPickUp();
+        else if (info.offset.y > 24 || info.velocity.y > 220) onSetDown();
+      }}
       onClick={(e) => {
         e.stopPropagation();
         onPickUp();

@@ -17,6 +17,7 @@ import ModeController from './ModeController';
 import ScreenA from './ScreenA';
 import ScreenB from './ScreenB';
 import VariantPicker from './VariantPicker';
+import { useCoverHue } from './useCoverHue';
 import './duo-object.css';
 
 const BEDSIDE_CLOCK = '07:04';
@@ -31,7 +32,11 @@ export default function DuoObjectStudio() {
 
   const spec = skinById(skin);
   const track = trackById(trackId);
-  const hue = useMemo(() => lightHue(light, track, spec), [light, track, spec]);
+  const extracted = useCoverHue(track.cover, track.hue);
+  const hue = useMemo(
+    () => lightHue(light, track, spec, extracted),
+    [light, track, spec, extracted],
+  );
 
   useEffect(() => {
     if (!playing) return;
@@ -74,7 +79,8 @@ export default function DuoObjectStudio() {
       <DeskScene onDesk={() => setMode('tent')}>
         <DeviceShell
           mode={mode}
-          onPickUp={() => setMode((m) => (m === 'hold' ? 'tent' : 'hold'))}
+          onPickUp={() => setMode('hold')}
+          onSetDown={() => setMode('tent')}
           onRest={() => setMode('rest')}
           childrenA={
             <ScreenA
