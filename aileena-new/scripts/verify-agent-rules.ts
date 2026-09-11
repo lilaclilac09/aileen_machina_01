@@ -119,6 +119,14 @@ function main() {
     'chat route injects formatSkillsForTurn',
     /formatSkillsForTurn/.test(read('app/api/chat/route.ts')),
   );
+  assert(
+    'chat route enqueues live inbox',
+    /enqueueLiveAsk/.test(read('app/api/chat/route.ts')),
+  );
+  assert(
+    'chat live inbox passes isCouncil',
+    /enqueueLiveAsk\(lastQ, \{ isCouncil \}\)/.test(read('app/api/chat/route.ts')),
+  );
 
   const failed = checks.filter((c) => !c.ok);
   console.log(`\nResult: ${checks.length - failed.length}/${checks.length} passed`);

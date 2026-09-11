@@ -9,22 +9,25 @@
  *   pnpm evolve -- --dry-run
  *   pnpm evolve -- --from-lesson ../ops/lessons/YYYY-MM-DD-slug.md
  *   pnpm evolve -- --from-question "code a patch"
+ *   pnpm evolve -- --from-live     # drain chat Redis inbox, then ratchet
  *   pnpm evolve -- --rollback <skillId> --to <version>
  *
  * Never writes AGENTS.md / QA.md / PROJECT_RULES.md.
  */
 
-import { writeSkill } from '../lib/evolution/engine/bank';
-import { evolutionPaths, evolutionRoot } from '../lib/evolution/engine/paths';
+import { writeSkill, loadProductionSkills } from '../lib/evolution/engine/bank';
+import { evolutionPaths, evolutionRoot, repoRoot } from '../lib/evolution/engine/paths';
 import { runEvolveLoop, runEvolveUntilStable } from '../lib/evolution/engine/loop';
 import { evaluateSkills, heldOutRate } from '../lib/evolution/engine/verify';
 import { rollbackSkill } from '../lib/evolution/engine/ratchet';
 import { lessonFileToSkill } from '../lib/evolution/engine/lessonToSkill';
-import { loadProductionSkills } from '../lib/evolution/engine/bank';
 import { codegenActiveSkills } from '../lib/evolution/engine/codegen';
 import { evolutionStatus } from '../lib/evolution/engine/status';
 import { writeEffectSheet } from '../lib/evolution/engine/effect';
 import { ingestQuestion } from '../lib/evolution/engine/inbox';
+import { drainLiveInbox } from '../lib/evolution/liveInbox';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 function arg(flag: string): string | undefined {
   const i = process.argv.indexOf(flag);
@@ -36,7 +39,21 @@ function has(flag: string): boolean {
   return process.argv.includes(flag);
 }
 
-function main() {
+const CONSTITUTION = ['AGENTS.md', 'QA.md', 'PROJECT_RULES.md'] as const;
+
+function constitutionSnap(): string {
+  const r = repoRoot();
+  return CONSTITUTION.map((f) => `${f}\n${readFileSync(join(r, f), 'utf8')}`).join('\n--\n');
+}
+
+function assertConstitutionUntouched(before: string) {
+  if (constitutionSnap() !== before) {
+    console.error('refusing: AGENTS.md / QA.md / PROJECT_RULES.md changed');
+    process.exit(2);
+  }
+}
+
+async function main() {
   const root = process.env.EVOLUTION_ROOT || evolutionRoot();
 
   if (has('--status')) {
@@ -72,6 +89,38 @@ function main() {
     const rolled = rollbackSkill(id, to, root);
     codegenActiveSkills(loadProductionSkills(root));
     console.log(`rolled back ${rolled.id} to v${rolled.version}`);
+    return;
+  }
+
+  if (has('--from-live')) {
+    const before = constitutionSnap();
+    const drained = await drainLiveInbox(5);
+    const ingested = drained.map((row) =>
+      ingestQuestion(row.prompt, { root, source: 'chat' }),
+    );
+    console.log(JSON.stringify({ drained: drained.map((d) => d.prompt), ingested }, null, 2));
+    if (ingested.some((r) => r.created)) {
+      const until = runEvolveUntilStable({ root });
+      console.log(
+        JSON.stringify(
+          {
+            rounds: until.rounds.length,
+            finalHeldOut: `${until.final.heldOutPassed}/${until.final.heldOutTotal}`,
+            finalTrain: `${until.final.trainPassed}/${until.final.trainTotal}`,
+            remainingFails: until.final.scores
+              .filter((s) => !s.pass)
+              .map((s) => ({ id: s.taskId, split: s.split, failed: s.failedChecks })),
+          },
+          null,
+          2,
+        ),
+      );
+      if (until.final.heldOutPassed !== until.final.heldOutTotal) {
+        assertConstitutionUntouched(before);
+        process.exit(1);
+      }
+    }
+    assertConstitutionUntouched(before);
     return;
   }
 
@@ -177,4 +226,7 @@ function main() {
   );
 }
 
-main();
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

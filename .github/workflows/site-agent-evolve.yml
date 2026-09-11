@@ -1,0 +1,118 @@
+name: Site-agent live evolve
+
+# Drain uncovered visitor asks that public chat enqueued to Redis,
+# then ratchet skills. Promote only if held-out rises.
+# Never commits AGENTS.md / QA.md / PROJECT_RULES.md.
+#
+# Required repo secrets (same as Vercel production):
+#   UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN
+
+on:
+  schedule:
+    - cron: '20 */3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: site-agent-live-evolve
+  cancel-in-progress: false
+
+jobs:
+  evolve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: aileena-new
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check required secrets
+        id: secrets
+        env:
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+        run: |
+          if [ -z "$UPSTASH_REDIS_REST_URL" ] || [ -z "$UPSTASH_REDIS_REST_TOKEN" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Missing UPSTASH_* repo secrets — skip live evolve drain."
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup pnpm
+        if: steps.secrets.outputs.ready == 'true'
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        if: steps.secrets.outputs.ready == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+          cache-dependency-path: aileena-new/pnpm-lock.yaml
+
+      - name: Install
+        if: steps.secrets.outputs.ready == 'true'
+        run: pnpm install --frozen-lockfile || pnpm install --no-frozen-lockfile
+
+      - name: Drain chat inbox + ratchet
+        if: steps.secrets.outputs.ready == 'true'
+        env:
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+        run: pnpm evolve:live
+
+      - name: Refresh effect sheet
+        if: steps.secrets.outputs.ready == 'true'
+        run: pnpm evolve:effect
+
+      - name: Restore constitution if touched
+        if: steps.secrets.outputs.ready == 'true'
+        working-directory: .
+        run: |
+          git checkout -- AGENTS.md QA.md PROJECT_RULES.md 2>/dev/null || true
+
+      - name: Configure Git
+        if: steps.secrets.outputs.ready == 'true'
+        run: |
+          git config user.name "Site Agent Evolve Bot"
+          git config user.email "bot@aileena.xyz"
+
+      - name: Commit skills only
+        if: steps.secrets.outputs.ready == 'true'
+        working-directory: .
+        run: |
+          set -euo pipefail
+          git add \
+            ops/evolution \
+            aileena-new/lib/evolution/activeSkills.generated.ts
+          if git diff --cached --name-only | grep -E '^(AGENTS\.md|QA\.md|PROJECT_RULES\.md)$'; then
+            echo "::error::constitution files staged — refusing commit"
+            exit 1
+          fi
+          if git diff --cached --quiet; then
+            echo "No skill changes to commit"
+            exit 0
+          fi
+          git commit -m "chore(evolve): ratchet skills from live chat inbox [$(date -u +%Y-%m-%d)]"
+          for attempt in 1 2 3 4; do
+            if git push origin HEAD:main; then
+              echo "Evolve skills pushed (attempt ${attempt})"
+              exit 0
+            fi
+            echo "Push rejected (attempt ${attempt}) — rebasing onto origin/main"
+            git fetch origin main
+            git rebase origin/main
+            sleep $((attempt * 2))
+          done
+          echo "::error::Failed to push evolve skills after retries"
+          exit 1

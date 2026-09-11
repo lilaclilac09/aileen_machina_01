@@ -17,6 +17,12 @@ import { synthesizeSkillFromFailure } from '../lib/evolution/engine/synthesize';
 import { lessonToSkill } from '../lib/evolution/engine/lessonToSkill';
 import { generateChallengerTasks } from '../lib/evolution/engine/taskgen';
 import { classifyQuestion, ingestQuestion } from '../lib/evolution/engine/inbox';
+import {
+  drainLiveInbox,
+  enqueueLiveAsk,
+  resetLiveInboxForTests,
+  shouldEnqueueLiveAsk,
+} from '../lib/evolution/liveInbox';
 import { tooSimilar, distributionOk, structureFingerprint } from '../lib/evolution/engine/fingerprint';
 import { runEvolveLoop, runEvolveUntilStable } from '../lib/evolution/engine/loop';
 import {
@@ -90,7 +96,7 @@ const SAMPLE_SKILL: SkillPatch = {
   body: 'Never invent Gmail.',
 };
 
-function main() {
+async function main() {
   const parsed = parseSkillMarkdown(serializeSkillMarkdown(SAMPLE_SKILL));
   assert('roundtrip SKILL.md id', parsed.id === SAMPLE_SKILL.id);
   assert('roundtrip triggers', parsed.triggers.includes('gmail'));
@@ -437,6 +443,43 @@ process.stdout.write(JSON.stringify({ reply: 'leaked', skillIds: [], steps: [], 
       .join(','),
   );
 
+  process.env.EVOLUTION_LIVE_INBOX = 'memory';
+  resetLiveInboxForTests();
+  assert(
+    'live inbox skips council',
+    shouldEnqueueLiveAsk('Where are the kiln notes documented?', { isCouncil: true }).reason === 'council',
+  );
+  assert(
+    'live inbox skips skilled patch',
+    shouldEnqueueLiveAsk('code a patch').reason === 'already-skilled',
+  );
+  assert('live inbox skips greet', shouldEnqueueLiveAsk('thank you').reason === 'greet');
+  assert(
+    'live inbox accepts uncovered ask',
+    shouldEnqueueLiveAsk('Where are the kiln notes documented?').ok,
+  );
+  const queued = await enqueueLiveAsk('Where are the kiln notes documented?');
+  assert('enqueue uncovered kiln', queued.ok && queued.reason === 'queued', JSON.stringify(queued));
+  const dup = await enqueueLiveAsk('Where are the kiln notes documented?');
+  assert('enqueue duplicate skipped', dup.reason === 'duplicate', JSON.stringify(dup));
+  const councilQ = await enqueueLiveAsk('secret council kiln plan goes here', { isCouncil: true });
+  assert('council does not enqueue', councilQ.reason === 'council');
+  const drained = await drainLiveInbox(5);
+  assert(
+    'drain returns uncovered ask',
+    drained.length === 1 && /kiln/.test(drained[0].prompt),
+    JSON.stringify(drained),
+  );
+  const evolveSrc = readFileSync(join(repoRoot(), 'aileena-new/scripts/evolve.ts'), 'utf8');
+  assert(
+    'from-live refuses constitution writes',
+    /assertConstitutionUntouched/.test(evolveSrc) && /AGENTS\.md/.test(evolveSrc),
+  );
+  assert(
+    'live evolve workflow exists',
+    existsSync(join(repoRoot(), '.github/workflows/site-agent-evolve.yml')),
+  );
+
   const live = evolutionStatus();
   assert('live evolve:status is clean', live.clean, live.line);
 
@@ -445,4 +488,7 @@ process.stdout.write(JSON.stringify({ reply: 'leaked', skillIds: [], steps: [], 
   if (failed.length) process.exit(1);
 }
 
-main();
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

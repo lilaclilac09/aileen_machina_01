@@ -78,10 +78,11 @@ Other scored rolls → `rlvr`. Hack attempts stay out of SFT.
 
 ## New visitor questions
 
-Vercel chat **cannot** write `ops/`. A new ask becomes a skill only when someone runs:
+Public chat **enqueues uncovered asks** to Redis (`evolve:inbox`). Council never writes that list. A GitHub Action (`site-agent-evolve.yml`, every 3h) drains up to 5 rows, makes held-out prompts + executable verifiers, and ratchets. Promote only if held-out rises. Constitution files stay owner-gated.
 
 ```bash
-pnpm evolve -- --from-question "其他的 voice 怎么用"
+pnpm evolve -- --from-live                 # drain Redis → ingest → ratchet
+pnpm evolve -- --from-question "其他的 voice 怎么用"  # manual ingest
 ```
 
-That appends `inbox/questions.jsonl`, makes a held-out prompt + verifier, then ratchets. Known packs (`voice-howto`, `voice-code`, `sound-howto`, email, pay, identity) get product answers. Unknown asks get the generic “don't see / leave a note” pack — they do **not** invent a new product page. Seed a pack + `SKILL.md` when the ask is a real door (`/sound`, Voice, Voice → code).
+Known packs (`voice-howto`, `voice-code`, `sound-howto`, email, pay, identity) get product answers. Unknown asks get the generic “don't see / leave a note” pack — they do **not** invent a new product page. Seed a pack + `SKILL.md` when the ask is a real door (`/sound`, Voice, Voice → code). Already-skilled questions are not re-queued.
