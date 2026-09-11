@@ -197,7 +197,7 @@ function normalizeRoute(route: string): string {
 export type VisitorComputerCommand =
   | {
       kind: 'queue_task';
-      taskType: 'write_scratch_file' | 'files_tree' | 'files_search';
+      taskType: 'write_scratch_file' | 'files_tree' | 'files_search' | 'scratch_peek' | 'scratch_clock';
       route: string;
       instructions: string;
     }
@@ -228,6 +228,24 @@ export function parseVisitorComputerCommand(text: string): VisitorComputerComman
       taskType: 'files_tree',
       route: '/proof',
       instructions: '/workspace',
+    };
+  }
+
+  if (/^(peek|open last|read)$/i.test(raw)) {
+    return {
+      kind: 'queue_task',
+      taskType: 'scratch_peek',
+      route: '/proof',
+      instructions: 'last',
+    };
+  }
+
+  if (/^(clock|time|now)$/i.test(raw)) {
+    return {
+      kind: 'queue_task',
+      taskType: 'scratch_clock',
+      route: '/proof',
+      instructions: 'now',
     };
   }
 

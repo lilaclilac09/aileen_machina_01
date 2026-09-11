@@ -7,6 +7,7 @@ import { getComputerTask, isOwnerComputerTask, nowIso, taskActorId, upsertComput
 import type { ComputerArtifact, ComputerTask, ComputerTaskStatus } from './types';
 import {
   workspaceGrep,
+  workspaceLatestNote,
   workspaceList,
   workspaceReadFile,
   workspaceRuntimeProbe,
@@ -454,6 +455,89 @@ function scratchPayload(
   };
 }
 
+async function cfLatestNote(name: string): Promise<{ path: string; body: string } | null> {
+  const ls = await cfExec('ls -1 /workspace/scratch/notes', '/workspace', name);
+  const files = String(ls.stdout || '')
+    .split('\n')
+    .map((s) => s.trim())
+    .filter((s) => s && !s.startsWith('.') && !s.includes('/'));
+  files.sort();
+  const last = files.at(-1);
+  if (last) {
+    const path = `/workspace/scratch/notes/${last}`;
+    try {
+      return { path, body: await cfGetFile(path, name) };
+    } catch {
+      /* fall through */
+    }
+  }
+  try {
+    return { path: '/workspace/scratch/hello.txt', body: await cfGetFile('/workspace/scratch/hello.txt', name) };
+  } catch {
+    return null;
+  }
+}
+
+async function runScratchPeek(task: ComputerTask): Promise<ComputerTask> {
+  const name = workspaceIdFor(task);
+  if (isCloudflareComputerReady()) {
+    await ensureCfMount(name);
+    const note = await cfLatestNote(name);
+    if (!note) {
+      return finishInspectStyle(task, {
+        status: 'completed',
+        summary: 'empty scratch',
+        report: '# scratch_peek\n\nempty\n',
+        preview: 'empty scratch',
+        title: 'peek',
+        kind: 'scratch',
+      });
+    }
+    return finishInspectStyle(task, {
+      status: 'completed',
+      summary: note.path,
+      report: `# scratch_peek\n\n${note.path}\n\n${note.body}`,
+      preview: `${note.path}\n──\n${note.body}`.slice(0, 2000),
+      title: 'peek',
+      kind: 'scratch',
+      filesInspected: [note.path],
+    });
+  }
+  const note = await workspaceLatestNote(name);
+  if (!note) {
+    return finishInspectStyle(task, {
+      status: 'completed',
+      summary: 'empty scratch',
+      report: '# scratch_peek\n\nempty\n',
+      preview: 'empty scratch',
+      title: 'peek',
+      kind: 'scratch',
+    });
+  }
+  return finishInspectStyle(task, {
+    status: 'completed',
+    summary: note.path,
+    report: `# scratch_peek\n\n${note.path} (${note.bytes}b)\n\n${note.body}`,
+    preview: `${note.path} · ${note.bytes}b\n──\n${note.body}`.slice(0, 2000),
+    title: 'peek',
+    kind: 'scratch',
+    filesInspected: [note.path],
+  });
+}
+
+async function runScratchClock(task: ComputerTask): Promise<ComputerTask> {
+  const stamp = nowIso();
+  const line = `${stamp}\n${taskBackend()}`;
+  return finishInspectStyle(task, {
+    status: 'completed',
+    summary: stamp,
+    report: `# scratch_clock\n\n${line}\n`,
+    preview: line,
+    title: 'clock',
+    kind: 'report',
+  });
+}
+
 async function runCfFilesTask(task: ComputerTask): Promise<ComputerTask> {
   const name = workspaceIdFor(task);
   await ensureCfMount(name);
@@ -671,7 +755,7 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
         : null;
     }
     task = fresh;
-    if (!isOwnerComputerTask(task) && !['write_scratch_file', 'files_tree', 'files_search'].includes(task.taskType)) {
+    if (!isOwnerComputerTask(task) && !['write_scratch_file', 'files_tree', 'files_search', 'scratch_peek', 'scratch_clock'].includes(task.taskType)) {
       const blocked = await finishInspectStyle(task, {
         status: 'blocked',
         summary: '⚡ scratch pad only. No site git, no merge.',
@@ -702,6 +786,10 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
       task = await runBrowserTask(task);
     } else if (task.taskType === 'write_scratch_file') {
       task = await runScratchTask(task);
+    } else if (task.taskType === 'scratch_peek') {
+      task = await runScratchPeek(task);
+    } else if (task.taskType === 'scratch_clock') {
+      task = await runScratchClock(task);
     } else if (task.taskType === 'shell_exec') {
       task = await runShellTask(task);
     } else {
