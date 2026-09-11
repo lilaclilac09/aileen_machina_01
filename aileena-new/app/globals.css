@@ -494,6 +494,18 @@ select,
     -webkit-overflow-scrolling: touch;
   }
 
+  /*
+   * Stacked home on iPhone: sections hug content.
+   * min-height:100dvh + height:auto leaves an unpainted remainder;
+   * body --bg-primary is #000, which reads as a black void between
+   * Doors and Visual (and any other short section). Opening stays
+   * one viewport. Paint the scroller so overscroll cannot flash black.
+   */
+  html:has(.snap-container),
+  body.site-body:has(.snap-container) {
+    background: #ffffff;
+  }
+
   .snap-container {
     height: auto;
     min-height: 100dvh;
@@ -502,11 +514,12 @@ select,
     overflow: visible;
     scroll-snap-type: none;
     overscroll-behavior: auto;
+    background: #ffffff;
   }
 
   .snap-section {
     height: auto;
-    min-height: 100dvh;
+    min-height: 0;
     width: 100%;
     max-width: 100%;
     overflow: visible;
@@ -521,6 +534,23 @@ select,
     min-height: 100dvh;
     height: auto;
     overflow: visible;
+    background: #ffffff;
+  }
+
+  #dock.snap-section {
+    background: #fbfaf6;
+  }
+
+  #watch-hub.snap-section {
+    min-height: 0;
+    height: auto;
+    background: #ffffff;
+  }
+
+  /* Beat the earlier #visual.snap-section { min-height: 100dvh } rule */
+  #visual.snap-section {
+    min-height: 0;
+    background: #efe6d6;
   }
 
   /* Fixed chrome clearance for stacked home / doors content */

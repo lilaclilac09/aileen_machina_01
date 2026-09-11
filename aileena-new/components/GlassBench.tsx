@@ -35,6 +35,15 @@ export default function GlassBench({
           height: auto;
           min-height: 0;
           width: 100%;
+          padding:
+            max(64px, calc(env(safe-area-inset-top, 0px) + 56px))
+            clamp(0px, 1.2vw, 12px)
+            max(28px, calc(env(safe-area-inset-bottom, 0px) + 28px));
+        }
+        @media (max-width: 768px) {
+          .glass-bench {
+            padding-top: 36px;
+          }
         }
         .glass-bench-gallery {
           display: grid;
@@ -146,8 +155,6 @@ const glassSectionStyle: CSSProperties = {
   gap: 'clamp(18px, 3vh, 28px)',
   width: '100%',
   maxWidth: '100%',
-  padding:
-    'max(64px, calc(env(safe-area-inset-top, 0px) + 56px)) clamp(0px, 1.2vw, 12px) max(28px, calc(env(safe-area-inset-bottom, 0px) + 28px))',
   background:
     'radial-gradient(120% 80% at 50% 18%, #fffdf8 0%, #f7f1e6 48%, #efe6d6 100%)',
   color: '#14110c',
