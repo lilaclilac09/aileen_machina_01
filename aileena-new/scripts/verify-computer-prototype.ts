@@ -126,6 +126,7 @@ function sourceChecks() {
   assert('dock owner line is a CLI textarea', /data-testid="computer-line"/.test(dockSrc) && /<textarea/.test(dockSrc) && /computer-cli-prompt/.test(dockSrc));
   const e2eSrc = readFileSync(join(process.cwd(), 'scripts/e2e-computer-cli-example.ts'), 'utf8');
   assert('e2e CLI example writes greet.ts + jq', /put greet\.ts/.test(e2eSrc) && /jq -r \.name/.test(e2eSrc));
+  assert('e2e covers help examples vcode', /cmd: 'help'/.test(e2eSrc) && /cmd: 'examples'/.test(e2eSrc) && /vcode scratch\/vcode\/voice\.ts/.test(e2eSrc));
   assert('runner owner CLI uses persisted cwd', /runOwnerShellLine/.test(runner));
   const termSrc = readFileSync(join(process.cwd(), 'lib/computer/terminal.ts'), 'utf8');
   assert('terminal cwd stays under /workspace', /WORKSPACE_ROOT/.test(termSrc) && /parsePut/.test(termSrc));
