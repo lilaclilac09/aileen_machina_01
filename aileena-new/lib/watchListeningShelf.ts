@@ -9,7 +9,7 @@ export type ShelfSection = 'listen' | 'watch' | 'read' | 'living';
 export type ShelfType = 'podcast' | 'film' | 'interview' | 'book' | 'note' | 'video';
 export type ShelfObject = 'cover' | 'cassette' | 'spine' | 'slip';
 export type ShelfRow = 'listen' | 'watch' | 'notes' | 'video' | 'living';
-export type ShelfCoverKind = 'poster' | 'still' | 'spine';
+export type ShelfCoverKind = 'poster' | 'still' | 'spine' | 'object';
 
 export type ShelfItem = {
   id: string;
@@ -192,19 +192,69 @@ export const FILM_RECS = [
 ];
 
 export const EURO_LIFE_GUIDE = [
-  { title: 'Urban roam, not tourism', label: 'walk', body: 'Conversation over landmarks.' },
-  { title: 'See in black and white', label: 'eye', body: 'Less color, more decision.' },
-  { title: 'Language scraps', label: 'FR / IT', body: 'Enough to catch 20% of dialogue.' },
-  { title: 'Wardrobe as Bond cool', label: 'cut', body: 'Fewer colors, better cut.' },
-  { title: 'Slow museum', label: 'one room', body: 'Not the whole building.' },
-  { title: 'Table as ritual', label: 'kitchen', body: 'An ordinary meal, staged.' },
+  {
+    title: 'Urban roam, not tourism',
+    label: 'walk',
+    body: 'Conversation over landmarks.',
+    image: '/shelf/living-urban-roam.jpg',
+  },
+  {
+    title: 'See in black and white',
+    label: 'eye',
+    body: 'Less color, more decision.',
+    image: '/shelf/living-black-and-white.jpg',
+  },
+  {
+    title: 'Language scraps',
+    label: 'FR / IT',
+    body: 'Enough to catch 20% of dialogue.',
+    image: '/shelf/living-language.jpg',
+  },
+  {
+    title: 'Wardrobe as Bond cool',
+    label: 'cut',
+    body: 'Fewer colors, better cut.',
+    image: '/shelf/living-wardrobe.jpg',
+  },
+  {
+    title: 'Slow museum',
+    label: 'one room',
+    body: 'Not the whole building.',
+    image: '/shelf/living-museum.jpg',
+  },
+  {
+    title: 'Table as ritual',
+    label: 'kitchen',
+    body: 'An ordinary meal, staged.',
+    image: '/shelf/living-table.jpg',
+  },
 ];
 
 export const LIFESTYLE_RECS = [
-  { title: 'Urban drift diary', label: 'weekly', body: 'Walk. Note light. Not a trip.' },
-  { title: 'One letter or collage page', label: 'paper', body: 'One page a week.' },
-  { title: 'Soundtrack as room', label: 'listen', body: 'Closer to cinema than algorithm pop.' },
-  { title: 'Watch in pairs, not piles', label: 'pace', body: 'Texture over binge.' },
+  {
+    title: 'Urban drift diary',
+    label: 'weekly',
+    body: 'Walk. Note light. Not a trip.',
+    image: '/shelf/living-diary.jpg',
+  },
+  {
+    title: 'One letter or collage page',
+    label: 'paper',
+    body: 'One page a week.',
+    image: '/shelf/living-letter.jpg',
+  },
+  {
+    title: 'Soundtrack as room',
+    label: 'listen',
+    body: 'Closer to cinema than algorithm pop.',
+    image: '/shelf/living-soundtrack.jpg',
+  },
+  {
+    title: 'Watch in pairs, not piles',
+    label: 'pace',
+    body: 'Texture over binge.',
+    image: '/shelf/living-watch-pairs.jpg',
+  },
 ];
 
 export const CHANNEL_RECS = [
@@ -420,7 +470,9 @@ export const SHELF_ITEMS: ShelfItem[] = [
     row: 'living' as const,
     creator: item.label,
     note: item.body,
-    object: 'slip' as const,
+    cover: item.image,
+    coverKind: 'object' as const,
+    object: 'cover' as const,
   })),
   ...LIFESTYLE_RECS.map((item) => ({
     id: slugify(item.title),
@@ -430,7 +482,9 @@ export const SHELF_ITEMS: ShelfItem[] = [
     row: 'living' as const,
     creator: item.label,
     note: item.body,
-    object: 'slip' as const,
+    cover: item.image,
+    coverKind: 'object' as const,
+    object: 'cover' as const,
   })),
 ];
 

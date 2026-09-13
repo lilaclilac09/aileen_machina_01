@@ -56,6 +56,17 @@ async function main() {
   if (videoCount !== 7) throw new Error(`expected 7 video spines, got ${videoCount}`);
   await page.screenshot({ path: join(OUT, 'shelf_photo_real_video_ridge.png'), fullPage: true });
 
+  await page.locator('#urban-roam-not-tourism').click();
+  await page.waitForFunction(
+    () =>
+      document.querySelector('[data-testid="watch-shelf-detail-title"]')?.textContent?.trim() ===
+      'Urban roam, not tourism',
+  );
+  await page.waitForTimeout(300);
+  const livingCount = await page.locator('[data-testid="watch-shelf-row-living"] li').count();
+  if (livingCount !== 10) throw new Error(`expected 10 living objects, got ${livingCount}`);
+  await page.screenshot({ path: join(OUT, 'shelf_photo_real_living_ridge.png'), fullPage: true });
+
   const mobile = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const mPage = await mobile.newPage();
   await mPage.goto(`${BASE}/blog/watch-listening-shelf`, { waitUntil: 'networkidle' });
@@ -68,6 +79,7 @@ async function main() {
   console.log(`wrote ${OUT}/shelf_watch_films_unchanged.png`);
   console.log(`wrote ${OUT}/shelf_photo_real_book_spines.png`);
   console.log(`wrote ${OUT}/shelf_photo_real_video_ridge.png`);
+  console.log(`wrote ${OUT}/shelf_photo_real_living_ridge.png`);
   console.log(`wrote ${OUT}/shelf_photo_real_mobile_390.png`);
 }
 
