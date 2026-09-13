@@ -15,6 +15,7 @@ import {
   SHELF_ITEMS,
   resolveShelfHash,
   shelfItemById,
+  shelfRowsInSection,
   type ShelfItem,
 } from '../../../lib/watchListeningShelf';
 import './watch-shelf.css';
@@ -42,17 +43,31 @@ function OpenHref({
   );
 }
 
-function ShelfObject({ item, selected }: { item: ShelfItem; selected: boolean }) {
+function coverKindClass(kind: ShelfItem['coverKind']): string {
+  if (kind === 'still') return ' is-still';
+  if (kind === 'spine') return ' is-spine';
+  if (kind === 'object') return ' is-object';
+  return '';
+}
+
+function ShelfObject({ item }: { item: ShelfItem }) {
+  const still = item.coverKind === 'still';
+  const spinePhoto = item.coverKind === 'spine';
+  const objectPhoto = item.coverKind === 'object';
+  const ridgeFill = spinePhoto || objectPhoto;
   return (
-    <span className={`watch-obj watch-obj--${item.object}`} aria-hidden={item.object !== 'cover'}>
+    <span
+      className={`watch-obj watch-obj--${item.object}${coverKindClass(item.coverKind)}`}
+      aria-hidden={item.object !== 'cover'}
+    >
       {item.object === 'cover' && item.cover ? (
         <Image
           src={item.cover}
           alt=""
-          width={72}
-          height={108}
-          className="watch-obj-cover"
-          style={{ objectFit: 'contain' }}
+          width={spinePhoto ? 90 : still || objectPhoto ? 160 : 72}
+          height={spinePhoto ? 160 : still || objectPhoto ? 90 : 108}
+          className={`watch-obj-cover${coverKindClass(item.coverKind)}`}
+          style={{ objectFit: ridgeFill ? 'cover' : 'contain' }}
         />
       ) : null}
       {item.object === 'cassette' ? (
@@ -64,7 +79,6 @@ function ShelfObject({ item, selected }: { item: ShelfItem; selected: boolean })
         </span>
       ) : null}
       {item.object === 'spine' ? <span className="watch-spine">{item.title}</span> : null}
-      {item.object === 'slip' ? <span className="watch-slip-mark" data-on={selected ? '1' : undefined} /> : null}
     </span>
   );
 }
@@ -126,7 +140,7 @@ export default function WatchShelf({ owner }: { owner: boolean }) {
             onKeyDown={onIndexKey}
           >
             {SHELF_GROUPS.map((group) => {
-              const items = SHELF_ITEMS.filter((item) => item.section === group.section);
+              const rows = shelfRowsInSection(group.section);
               return (
                 <section
                   key={group.section}
@@ -139,29 +153,46 @@ export default function WatchShelf({ owner }: { owner: boolean }) {
                   <h2 className="watch-shelf-kicker" id={`shelf-${group.section}`}>
                     {group.label}
                   </h2>
-                  <ul className="watch-shelf-row">
-                    {items.map((item) => {
-                      const on = item.id === selected.id;
-                      return (
-                        <li key={item.id}>
-                          <button
-                            type="button"
-                            id={item.id}
-                            className={`watch-shelf-item${on ? ' is-on' : ''}${item.featured ? ' is-featured' : ''}`}
-                            aria-pressed={on}
-                            aria-current={on ? 'true' : undefined}
-                            onClick={() => select(item.id)}
-                          >
-                            <ShelfObject item={item} selected={on} />
-                            <span className="watch-shelf-item-copy">
-                              <span className="watch-shelf-item-title">{item.title}</span>
-                              <span className="watch-shelf-item-type">{item.type}</span>
-                            </span>
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
+                  {rows.map((row) => {
+                    const ridge =
+                      row.row === 'watch' ||
+                      row.row === 'notes' ||
+                      row.row === 'video' ||
+                      row.row === 'living';
+                    return (
+                      <div key={row.row} className="watch-shelf-lane">
+                        {row.label ? (
+                          <p className="watch-shelf-subkicker">{row.label}</p>
+                        ) : null}
+                        <ul
+                          className={`watch-shelf-row${ridge ? ' watch-shelf-row--ridge' : ''}`}
+                          data-testid={`watch-shelf-row-${row.row}`}
+                        >
+                          {row.items.map((item) => {
+                            const on = item.id === selected.id;
+                            return (
+                              <li key={item.id}>
+                                <button
+                                  type="button"
+                                  id={item.id}
+                                  className={`watch-shelf-item${on ? ' is-on' : ''}${item.featured ? ' is-featured' : ''}${coverKindClass(item.coverKind)}`}
+                                  aria-pressed={on}
+                                  aria-current={on ? 'true' : undefined}
+                                  onClick={() => select(item.id)}
+                                >
+                                  <ShelfObject item={item} />
+                                  <span className="watch-shelf-item-copy">
+                                    <span className="watch-shelf-item-title">{item.title}</span>
+                                    <span className="watch-shelf-item-type">{item.type}</span>
+                                  </span>
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    );
+                  })}
                 </section>
               );
             })}
@@ -173,29 +204,52 @@ export default function WatchShelf({ owner }: { owner: boolean }) {
                 <Image
                   src={selected.cover}
                   alt=""
-                  width={220}
-                  height={320}
-                  className="watch-shelf-detail-image"
+                  width={
+                    selected.coverKind === 'still' || selected.coverKind === 'object'
+                      ? 320
+                      : selected.coverKind === 'spine'
+                        ? 180
+                        : 220
+                  }
+                  height={
+                    selected.coverKind === 'still' || selected.coverKind === 'object'
+                      ? 180
+                      : selected.coverKind === 'spine'
+                        ? 320
+                        : 320
+                  }
+                  className={`watch-shelf-detail-image${coverKindClass(selected.coverKind)}`}
                   style={{ objectFit: 'contain' }}
                 />
               </div>
             ) : (
               <div className="watch-shelf-detail-object" data-object={selected.object}>
-                <ShelfObject item={selected} selected />
+                <ShelfObject item={selected} />
               </div>
             )}
             <p className="watch-shelf-detail-kicker">
               {selected.type}
               {selected.creator ? ` · ${selected.creator}` : ''}
             </p>
-            <h2 className="watch-shelf-detail-title">{selected.title}</h2>
+            <h2 className="watch-shelf-detail-title" data-testid="watch-shelf-detail-title">
+              {selected.title}
+            </h2>
             {selected.source ? <p className="watch-shelf-detail-source">{selected.source}</p> : null}
-            <dl className="watch-shelf-fields">
-              <div>
-                <dt>why it stays</dt>
-                <dd>{selected.note}</dd>
-              </div>
-            </dl>
+            {selected.note ? (
+              <dl className="watch-shelf-fields">
+                <div>
+                  <dt>why it stays</dt>
+                  <dd>{selected.note}</dd>
+                </div>
+              </dl>
+            ) : owner ? (
+              <dl className="watch-shelf-fields">
+                <div>
+                  <dt>why it stays</dt>
+                  <dd className="watch-shelf-note-pending">drop a note later</dd>
+                </div>
+              </dl>
+            ) : null}
             {selected.tags?.length ? (
               <p className="watch-shelf-tags">{selected.tags.join(' / ')}</p>
             ) : null}

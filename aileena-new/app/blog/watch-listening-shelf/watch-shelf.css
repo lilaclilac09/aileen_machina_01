@@ -48,6 +48,24 @@
   text-transform: lowercase;
 }
 
+.watch-shelf-lane {
+  margin: 0 0 12px;
+}
+
+.watch-shelf-lane:last-child {
+  margin-bottom: 0;
+}
+
+.watch-shelf-subkicker {
+  margin: 0 0 8px;
+  color: var(--arc-faint);
+  font-family: var(--arc-sans);
+  font-size: 0.58rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: lowercase;
+}
+
 .watch-shelf-row {
   display: flex;
   flex-wrap: nowrap;
@@ -137,6 +155,86 @@
   width: auto;
   height: 72px;
   background: #efeae0;
+  object-fit: contain;
+}
+
+.watch-obj-cover.is-still {
+  width: auto;
+  height: 48px;
+  max-width: 86px;
+}
+
+.watch-shelf-item.is-still {
+  max-width: 96px;
+}
+
+.watch-shelf-item.is-spine {
+  max-width: 56px;
+}
+
+.watch-obj.is-spine {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 28px;
+  height: 96px;
+}
+
+.watch-obj-cover.is-spine {
+  width: 28px;
+  height: 96px;
+  max-width: 28px;
+  max-height: 96px;
+  background: transparent;
+  object-fit: cover;
+  object-position: center;
+}
+
+.watch-shelf-item.is-object {
+  max-width: 96px;
+}
+
+.watch-obj.is-object {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 88px;
+  height: 52px;
+}
+
+.watch-obj-cover.is-object {
+  width: 88px;
+  height: 52px;
+  max-width: 88px;
+  max-height: 52px;
+  background: transparent;
+  object-fit: cover;
+  object-position: center;
+}
+
+.watch-shelf-detail-image.is-spine {
+  max-width: min(140px, 100%);
+  max-height: 280px;
+  background: transparent;
+}
+
+.watch-shelf-detail-image.is-object {
+  max-width: min(320px, 100%);
+  max-height: 220px;
+  background: transparent;
+}
+
+.watch-shelf-row--ridge {
+  align-items: flex-end;
+  gap: 8px 12px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.watch-shelf-row--ridge::-webkit-scrollbar {
+  display: none;
 }
 
 .watch-cassette {
@@ -193,19 +291,6 @@
   color: var(--arc-teal);
 }
 
-.watch-slip-mark {
-  display: block;
-  width: 72px;
-  height: 44px;
-  border: 1px solid rgba(17, 17, 17, 0.12);
-  background: #f4efe4;
-  box-shadow: 1px 1px 0 rgba(17, 17, 17, 0.06);
-}
-
-.watch-shelf-item.is-on .watch-slip-mark {
-  border-color: var(--arc-teal);
-}
-
 .watch-shelf-detail {
   min-width: 0;
   padding-top: 4px;
@@ -223,12 +308,22 @@
   height: auto;
   max-height: 280px;
   background: #efeae0;
+  object-fit: contain;
+}
+
+.watch-shelf-detail-image.is-still {
+  max-width: min(320px, 100%);
+  max-height: 180px;
+}
+
+.watch-shelf-note-pending {
+  color: var(--arc-faint);
+  font-style: italic;
 }
 
 .watch-shelf-detail-object .watch-obj-cover,
 .watch-shelf-detail-object .watch-cassette,
-.watch-shelf-detail-object .watch-spine,
-.watch-shelf-detail-object .watch-slip-mark {
+.watch-shelf-detail-object .watch-spine {
   transform: scale(1.15);
   transform-origin: left bottom;
 }
@@ -337,6 +432,12 @@
     flex-wrap: wrap;
     overflow: visible;
     padding-bottom: 0;
+  }
+
+  .watch-shelf-row--ridge {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 6px;
   }
 
   .watch-shelf-detail {

@@ -6,20 +6,24 @@ function slugify(value: string): string {
 }
 
 export type ShelfSection = 'listen' | 'watch' | 'read' | 'living';
-export type ShelfType = 'podcast' | 'film' | 'interview' | 'book' | 'note';
+export type ShelfType = 'podcast' | 'film' | 'interview' | 'book' | 'note' | 'video';
 export type ShelfObject = 'cover' | 'cassette' | 'spine' | 'slip';
+export type ShelfRow = 'listen' | 'watch' | 'notes' | 'video' | 'living';
+export type ShelfCoverKind = 'poster' | 'still' | 'spine' | 'object';
 
 export type ShelfItem = {
   id: string;
   title: string;
   type: ShelfType;
   section: ShelfSection;
+  row: ShelfRow;
   creator?: string;
   source?: string;
   note: string;
   tags?: string[];
   href?: string;
   cover?: string;
+  coverKind?: ShelfCoverKind;
   featured?: boolean;
   object: ShelfObject;
 };
@@ -174,22 +178,83 @@ export const FILM_RECS = [
     body: 'Strategy as bloodsport. The voice does the cutting.',
     tags: ['voice'],
   },
+  {
+    title: 'Ladies First',
+    shelfTitle: 'Ladies First',
+    year: '2026',
+    label: 'Pike · Netflix',
+    href: 'https://en.wikipedia.org/wiki/Ladies_First_(2026_film)',
+    image: '/shelf/ladies-first.jpg',
+    note: '',
+    body: '',
+    tags: ['seeing'],
+  },
 ];
 
 export const EURO_LIFE_GUIDE = [
-  { title: 'Urban roam, not tourism', label: 'walk', body: 'Conversation over landmarks.' },
-  { title: 'See in black and white', label: 'eye', body: 'Less color, more decision.' },
-  { title: 'Language scraps', label: 'FR / IT', body: 'Enough to catch 20% of dialogue.' },
-  { title: 'Wardrobe as Bond cool', label: 'cut', body: 'Fewer colors, better cut.' },
-  { title: 'Slow museum', label: 'one room', body: 'Not the whole building.' },
-  { title: 'Table as ritual', label: 'kitchen', body: 'An ordinary meal, staged.' },
+  {
+    title: 'Urban roam, not tourism',
+    label: 'walk',
+    body: 'Conversation over landmarks.',
+    image: '/shelf/living-urban-roam.jpg',
+  },
+  {
+    title: 'See in black and white',
+    label: 'eye',
+    body: 'Less color, more decision.',
+    image: '/shelf/living-black-and-white.jpg',
+  },
+  {
+    title: 'Language scraps',
+    label: 'FR / IT',
+    body: 'Enough to catch 20% of dialogue.',
+    image: '/shelf/living-language.jpg',
+  },
+  {
+    title: 'Wardrobe as Bond cool',
+    label: 'cut',
+    body: 'Fewer colors, better cut.',
+    image: '/shelf/living-wardrobe.jpg',
+  },
+  {
+    title: 'Slow museum',
+    label: 'one room',
+    body: 'Not the whole building.',
+    image: '/shelf/living-museum.jpg',
+  },
+  {
+    title: 'Table as ritual',
+    label: 'kitchen',
+    body: 'An ordinary meal, staged.',
+    image: '/shelf/living-table.jpg',
+  },
 ];
 
 export const LIFESTYLE_RECS = [
-  { title: 'Urban drift diary', label: 'weekly', body: 'Walk. Note light. Not a trip.' },
-  { title: 'One letter or collage page', label: 'paper', body: 'One page a week.' },
-  { title: 'Soundtrack as room', label: 'listen', body: 'Closer to cinema than algorithm pop.' },
-  { title: 'Watch in pairs, not piles', label: 'pace', body: 'Texture over binge.' },
+  {
+    title: 'Urban drift diary',
+    label: 'weekly',
+    body: 'Walk. Note light. Not a trip.',
+    image: '/shelf/living-diary.jpg',
+  },
+  {
+    title: 'One letter or collage page',
+    label: 'paper',
+    body: 'One page a week.',
+    image: '/shelf/living-letter.jpg',
+  },
+  {
+    title: 'Soundtrack as room',
+    label: 'listen',
+    body: 'Closer to cinema than algorithm pop.',
+    image: '/shelf/living-soundtrack.jpg',
+  },
+  {
+    title: 'Watch in pairs, not piles',
+    label: 'pace',
+    body: 'Texture over binge.',
+    image: '/shelf/living-watch-pairs.jpg',
+  },
 ];
 
 export const CHANNEL_RECS = [
@@ -199,6 +264,7 @@ export const CHANNEL_RECS = [
     label: 'markets',
     href: 'https://asymmetricalbets.substack.com',
     body: 'Narrative-driven market reading.',
+    image: '/shelf/spine-asymmetrical-bets.png',
   },
   {
     title: 'SemiAnalysis',
@@ -206,6 +272,7 @@ export const CHANNEL_RECS = [
     label: 'semis',
     href: 'https://www.semianalysis.com',
     body: 'Chips, clusters, bottlenecks.',
+    image: '/shelf/spine-semianalysis.png',
   },
   {
     title: 'Branch Education',
@@ -213,6 +280,7 @@ export const CHANNEL_RECS = [
     label: 'YouTube',
     href: '/blog/semi-basics-review',
     body: 'Cache, PCB, GPU — five-minute review.',
+    kind: 'video' as const,
   },
   {
     title: 'TPU & CPO (high-signal YouTube)',
@@ -220,6 +288,7 @@ export const CHANNEL_RECS = [
     label: 'video',
     href: '/blog/semi-watch-tpu-cpo',
     body: 'Ironwood, systolic array, CPO.',
+    kind: 'video' as const,
   },
   {
     title: 'Software YouTube — MCP',
@@ -227,6 +296,7 @@ export const CHANNEL_RECS = [
     label: 'agents',
     href: '/blog/software-watch',
     body: 'What MCP is, then MCP vs API.',
+    kind: 'video' as const,
   },
   {
     title: 'Post-Training Path',
@@ -234,6 +304,7 @@ export const CHANNEL_RECS = [
     label: 'SFT',
     href: '/blog/post-training-path',
     body: 'Rust, CLI, holdout, LoRA.',
+    image: '/shelf/spine-post-training.png',
   },
   {
     title: 'Know Good Code. Own the Repo.',
@@ -241,6 +312,67 @@ export const CHANNEL_RECS = [
     label: 'taste',
     href: '/blog/own-your-stack',
     body: 'Own the repo before you build.',
+    image: '/shelf/spine-own-the-repo.png',
+  },
+];
+
+/** First-laid clips as photo-real disc spines — notes later. Films stay posters. */
+export const VIDEO_RECS = [
+  {
+    title: 'How does Computer Cache, Memory, and Storage Work?',
+    shelfTitle: 'Cache',
+    label: 'Branch Education',
+    href: '/blog/semi-basics-review',
+    image: '/shelf/spine-video-cache.png',
+    note: '',
+  },
+  {
+    title: 'What are PCBs? How do PCBs Work?',
+    shelfTitle: 'PCB',
+    label: 'Branch Education',
+    href: '/blog/semi-basics-review',
+    image: '/shelf/spine-video-pcb.png',
+    note: '',
+  },
+  {
+    title: 'How do Graphics Cards Work? Exploring GPU Architecture',
+    shelfTitle: 'GPU',
+    label: 'Branch Education',
+    href: '/blog/semi-basics-review',
+    image: '/shelf/spine-video-gpu.png',
+    note: '',
+  },
+  {
+    title: 'NVIDIA official deep dive — CPO switch',
+    shelfTitle: 'NVIDIA CPO',
+    label: 'TPU & CPO',
+    href: '/blog/semi-watch-tpu-cpo',
+    image: '/shelf/spine-video-nvidia-cpo.png',
+    note: '',
+  },
+  {
+    title: 'Broadcom CPO technology breakthrough (official)',
+    shelfTitle: 'Broadcom CPO',
+    label: 'TPU & CPO',
+    href: '/blog/semi-watch-tpu-cpo',
+    image: '/shelf/spine-video-broadcom-cpo.png',
+    note: '',
+  },
+  {
+    title: 'Ironwood (7th-gen TPU) — official unbox + lab footage',
+    shelfTitle: 'Ironwood',
+    label: 'TPU & CPO',
+    href: '/blog/semi-watch-tpu-cpo',
+    image: '/shelf/spine-video-ironwood.png',
+    note: '',
+  },
+  {
+    title: 'What is the Model Context Protocol (MCP)?',
+    shelfTitle: 'MCP',
+    label: 'Software YouTube',
+    href: '/blog/software-watch',
+    image: '/shelf/spine-video-mcp.png',
+    note: '',
   },
 ];
 
@@ -250,8 +382,8 @@ export const SHELF_GROUPS: {
   anchors: string[];
 }[] = [
   { section: 'listen', label: 'listen', anchors: ['featured-listen', 'podcasts'] },
-  { section: 'watch', label: 'watch', anchors: ['watch', 'documentaries', 'films'] },
-  { section: 'read', label: 'read', anchors: ['channels'] },
+  { section: 'watch', label: 'watch', anchors: ['watch', 'films', 'documentaries'] },
+  { section: 'read', label: 'read', anchors: ['channels', 'video'] },
   { section: 'living', label: 'living', anchors: ['euro-life', 'lifestyle'] },
 ];
 
@@ -261,12 +393,14 @@ export const SHELF_ITEMS: ShelfItem[] = [
     title: item.shelfTitle,
     type: 'podcast' as const,
     section: 'listen' as const,
+    row: 'listen' as const,
     creator: item.meta,
     source: item.title,
     note: item.why ?? item.signal ?? item.body,
     tags: item.tags,
     href: item.href,
     cover: item.image,
+    coverKind: item.image ? ('poster' as const) : undefined,
     featured: Boolean(item.featured),
     object: item.image ? ('cover' as const) : ('cassette' as const),
   })),
@@ -275,12 +409,14 @@ export const SHELF_ITEMS: ShelfItem[] = [
     title: item.shelfTitle,
     type: 'film' as const,
     section: 'watch' as const,
+    row: 'watch' as const,
     creator: item.label,
     source: `${item.title} · ${item.year}`,
     note: item.note,
     tags: item.tags,
     href: item.href,
     cover: item.image,
+    coverKind: 'poster' as const,
     object: 'cover' as const,
   })),
   ...FILM_RECS.map((item) => ({
@@ -288,42 +424,67 @@ export const SHELF_ITEMS: ShelfItem[] = [
     title: item.shelfTitle,
     type: 'film' as const,
     section: 'watch' as const,
+    row: 'watch' as const,
     creator: item.label,
     source: `${item.title} · ${item.year}`,
     note: item.note,
     tags: item.tags,
     href: item.href,
     cover: item.image,
+    coverKind: 'poster' as const,
     object: 'cover' as const,
   })),
-  ...CHANNEL_RECS.map((item) => ({
+  ...CHANNEL_RECS.filter((item) => item.kind !== 'video').map((item) => ({
     id: slugify(item.shelfTitle),
     title: item.shelfTitle,
     type: 'note' as const,
     section: 'read' as const,
+    row: 'notes' as const,
     creator: item.label,
     source: item.title,
     note: item.body,
     href: item.href,
-    object: 'spine' as const,
+    cover: item.image,
+    coverKind: item.image ? ('spine' as const) : undefined,
+    object: item.image ? ('cover' as const) : ('spine' as const),
+  })),
+  ...VIDEO_RECS.map((item) => ({
+    id: slugify(item.shelfTitle),
+    title: item.shelfTitle,
+    type: 'video' as const,
+    section: 'read' as const,
+    row: 'video' as const,
+    creator: item.label,
+    source: item.title,
+    note: item.note,
+    href: item.href,
+    cover: item.image,
+    coverKind: 'spine' as const,
+    object: 'cover' as const,
   })),
   ...EURO_LIFE_GUIDE.map((item) => ({
     id: slugify(item.title),
     title: item.title,
     type: 'note' as const,
     section: 'living' as const,
+    row: 'living' as const,
     creator: item.label,
     note: item.body,
-    object: 'slip' as const,
+    cover: item.image,
+    coverKind: 'object' as const,
+    object: 'cover' as const,
   })),
   ...LIFESTYLE_RECS.map((item) => ({
     id: slugify(item.title),
     title: item.title,
     type: 'note' as const,
     section: 'living' as const,
+    row: 'living' as const,
     creator: item.label,
     note: item.body,
-    object: 'slip' as const,
+    cover: item.image,
+    coverKind: 'object' as const,
+    object: 'cover' as const,
   })),
 ];
 
@@ -339,9 +500,32 @@ export const SHELF_HASH_ALIASES: Record<string, string> = {
   films: 'blue-is-the-warmest-color',
   channels: 'asymmetrical-bets',
   read: 'asymmetrical-bets',
+  video: 'cache',
   'euro-life': 'urban-roam-not-tourism',
   lifestyle: 'urban-drift-diary',
 };
+
+export const SHELF_ROW_LABEL: Partial<Record<ShelfRow, string>> = {
+  notes: 'notes',
+  video: 'video',
+};
+
+export function shelfRowsInSection(section: ShelfSection): { row: ShelfRow; label: string | null; items: ShelfItem[] }[] {
+  const rows: { row: ShelfRow; label: string | null; items: ShelfItem[] }[] = [];
+  for (const item of SHELF_ITEMS.filter((entry) => entry.section === section)) {
+    const last = rows[rows.length - 1];
+    if (last && last.row === item.row) {
+      last.items.push(item);
+      continue;
+    }
+    rows.push({
+      row: item.row,
+      label: SHELF_ROW_LABEL[item.row] ?? null,
+      items: [item],
+    });
+  }
+  return rows;
+}
 
 export function shelfItemById(id: string): ShelfItem | undefined {
   return SHELF_ITEMS.find((item) => item.id === id);
