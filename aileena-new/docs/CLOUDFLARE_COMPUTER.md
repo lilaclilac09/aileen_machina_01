@@ -85,6 +85,8 @@ Two products, both owner-only:
 | **This computer** | worker-shell (just-bash) in a Durable Object | Console dock + `POST /c/<name>/exec` |
 | **Machina MCP** | Machina calling other apps (computer / github / `MCP_SERVERS`) | Owner chat tools + `GET/POST /api/agent/mcp` |
 
+Owner Console is a CLI over this worker-shell: Enter runs allowlisted commands, `cd` persists in `/workspace/scratch/.cwd`, `put`/`write` writes under scratch/reports/artifacts, `clear` wipes the transcript. Still just-bash — not Linux, not `pnpm`, not `vim`, not git write.
+
 MCP does **not** turn the site into Linux. Container/`computerd` stays unbound (`container: false`) until a later paid slice.
 
 ```txt

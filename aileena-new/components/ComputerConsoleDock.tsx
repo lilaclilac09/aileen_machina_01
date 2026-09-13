@@ -5,6 +5,11 @@ import type { ComputerTask } from '../lib/computer/types';
 import type { ProofItem } from '../lib/proofQueue/types';
 import { curlFetchCommand, isOwnerShellCommand, safeHttpsUrl } from '../lib/computer/allowlist';
 
+function cliPrompt(cwd: string): string {
+  const short = cwd === '/workspace' ? '/workspace' : cwd.replace(/^\/workspace\/?/, '') || '/workspace';
+  return `${short} $`;
+}
+
 type AppTab = 'note' | 'find' | 'git';
 type LearnedChip = { alias: string; taskType: string; instructions: string; route: string };
 
@@ -111,6 +116,24 @@ function monitorText(task: ComputerTask | null): string {
   return [logs, bit].filter(Boolean).join('\n');
 }
 
+function terminalTranscript(tasks: ComputerTask[]): string {
+  const shells = tasks.filter((t) => t.taskType === 'shell_exec');
+  const clearAt = shells.findIndex((t) => t.instructions.trim() === 'clear' && t.status === 'completed');
+  const rows = (clearAt >= 0 ? shells.slice(0, clearAt) : shells).slice(0, 16).reverse();
+  const lines: string[] = [];
+  for (const t of rows) {
+    const cmd = t.instructions.split('\n')[0] || '';
+    lines.push(t.resultSummary || `$ ${cmd}`);
+    if (t.status === 'queued' || t.status === 'running') {
+      lines.push('…');
+      continue;
+    }
+    const out = (t.artifacts[0]?.preview || t.error || '').trim();
+    if (out) lines.push(out.slice(0, 1600));
+  }
+  return lines.join('\n');
+}
+
 const KEY_CLASS =
   'inline-flex flex-1 min-h-11 min-w-0 items-center justify-center px-2 rounded-[8px] text-[#007d75] border border-[#d8cfc0] border-b-2 border-b-[#c2b7a3] bg-white shadow-[0_1px_0_rgba(27,23,19,0.05)] active:translate-y-[1px] active:border-b disabled:opacity-40';
 
@@ -132,8 +155,11 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [tab, setTab] = useState<AppTab>('note');
   const [line, setLine] = useState('');
+  const [cwd, setCwd] = useState('/workspace');
+  const [termMode, setTermMode] = useState(isOwner);
   const prevStatus = useRef<Record<string, string>>({});
   const logRef = useRef<HTMLPreElement | null>(null);
+  const lineRef = useRef<HTMLTextAreaElement | null>(null);
 
   const load = useCallback(async () => {
     const res = await fetch('/api/agent/computer/tasks', { cache: 'no-store', credentials: 'include' });
@@ -143,11 +169,13 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
       proof?: ProofItem[];
       cloudflareComputer?: boolean;
       learned?: LearnedChip[];
+      cwd?: string;
     };
     setTasks(Array.isArray(data.tasks) ? data.tasks : []);
     setProof(Array.isArray(data.proof) ? data.proof.filter((p) => p.status !== 'shipped') : []);
     setCloudflare(Boolean(data.cloudflareComputer));
     setLearned(Array.isArray(data.learned) ? data.learned : []);
+    if (typeof data.cwd === 'string' && data.cwd.startsWith('/workspace')) setCwd(data.cwd);
   }, []);
 
   useEffect(() => {
@@ -211,7 +239,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
 
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
-  }, [selectedTask?.updatedAt, selectedTask?.logsRedacted.length]);
+  }, [selectedTask?.updatedAt, selectedTask?.logsRedacted.length, tasks]);
 
   const queue = async (opts: {
     taskType: string;
@@ -282,8 +310,20 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
     });
   };
 
+  const runCli = (raw: string) => {
+    const cmd = raw.trim() || 'ls';
+    setTermMode(true);
+    setTab('find');
+    void queue({ taskType: 'shell_exec', instructions: cmd, phrase: cmd.split('\n')[0] });
+    setLine('');
+  };
+
   const go = () => {
     const raw = line.trim();
+    if (isOwner && termMode) {
+      runCli(raw);
+      return;
+    }
     if (!raw) {
       noteNow('');
       return;
@@ -291,16 +331,11 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
     if (isOwner) {
       const https = safeHttpsUrl(raw);
       if (https) {
-        const cmd = curlFetchCommand(https);
-        setTab('find');
-        void queue({ taskType: 'shell_exec', instructions: cmd, phrase: cmd });
-        setLine('');
+        runCli(curlFetchCommand(https));
         return;
       }
       if (isOwnerShellCommand(raw)) {
-        setTab('find');
-        void queue({ taskType: 'shell_exec', instructions: raw, phrase: raw });
-        setLine('');
+        runCli(raw);
         return;
       }
     }
@@ -328,7 +363,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
           />
           <span className="min-w-0 truncate">
             {backend}
-            {isOwner ? '' : ' · 30d'}
+            {isOwner ? ` · cli ${cwd.replace(/^\/workspace\/?/, '') || '/workspace'}` : ' · 30d'}
             {flash ? ` · ${flash}` : ''}
           </span>
         </p>
@@ -342,9 +377,14 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
             ref={logRef}
             data-testid="computer-monitor"
             data-live={live ? '1' : '0'}
-            className="font-mono text-[0.58rem] leading-relaxed text-[#8fe6dd] whitespace-pre-wrap max-h-40 overflow-y-auto px-2 py-1.5 [text-shadow:0_0_5px_rgba(0,168,157,0.35)]"
+            className={`font-mono text-[0.58rem] leading-relaxed text-[#8fe6dd] whitespace-pre-wrap overflow-y-auto px-2 py-1.5 [text-shadow:0_0_5px_rgba(0,168,157,0.35)] ${
+              isOwner && termMode ? 'max-h-56' : 'max-h-40'
+            }`}
+            data-terminal={isOwner && termMode ? '1' : '0'}
           >
-            {monitorText(selectedTask)}
+            {isOwner && termMode
+              ? terminalTranscript(tasks) || `${cliPrompt(cwd)} ls · cat · put scratch/file.ts · cd`
+              : monitorText(selectedTask)}
           </pre>
         </div>
 
@@ -430,16 +470,11 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
               data-testid="computer-key-shell"
               aria-label="shell"
               onClick={() => {
+                setTermMode(true);
+                lineRef.current?.focus();
                 const raw = line.trim();
                 const https = safeHttpsUrl(raw);
-                const cmd = https ? curlFetchCommand(https) : raw || 'ls /workspace';
-                setTab('find');
-                void queue({
-                  taskType: 'shell_exec',
-                  instructions: cmd,
-                  phrase: cmd,
-                });
-                setLine('');
+                runCli(https ? curlFetchCommand(https) : raw || 'ls');
               }}
               className={KEY_CLASS}
             >
@@ -468,18 +503,32 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
         </div>
 
         <form
-          className="flex items-center gap-1.5"
+          className="flex items-end gap-1.5"
           onSubmit={(e) => {
             e.preventDefault();
             go();
           }}
         >
-          <input
+          {isOwner && termMode ? (
+            <span className="pb-2.5 shrink-0 font-mono text-[0.62rem] text-[#007d75]" data-testid="computer-cli-prompt">
+              {cliPrompt(cwd)}
+            </span>
+          ) : null}
+          <textarea
+            ref={lineRef}
             value={line}
+            rows={isOwner && termMode ? 2 : 1}
             onChange={(e) => setLine(e.target.value)}
-            aria-label="note"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                go();
+              }
+            }}
+            aria-label={isOwner && termMode ? 'command' : 'note'}
             data-testid="computer-line"
-            className="min-h-11 min-w-0 flex-1 font-mono text-[0.8rem] rounded-[8px] border border-[#d8cfc0] bg-white px-2.5 text-[#1b1713]"
+            placeholder={isOwner && termMode ? 'put scratch/hi.ts then paste' : ''}
+            className="min-h-11 min-w-0 flex-1 resize-none font-mono text-[0.8rem] rounded-[8px] border border-[#d8cfc0] bg-white px-2.5 py-2 text-[#1b1713]"
           />
           <button type="submit" disabled={busy} data-testid="harness-plugin-note" className="sr-only">
             note

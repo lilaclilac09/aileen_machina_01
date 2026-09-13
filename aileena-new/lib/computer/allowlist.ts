@@ -76,6 +76,7 @@ export const OWNER_SHELL_BINS = [
 
 export function isOwnerShellCommand(raw: string): boolean {
   const bin = raw.trim().split(/\s+/)[0] || '';
+  if (bin === 'cd' || bin === 'put' || bin === 'write' || bin === 'clear') return true;
   return (OWNER_SHELL_BINS as readonly string[]).includes(bin);
 }
 

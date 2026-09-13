@@ -92,11 +92,14 @@ export async function GET(req: Request) {
       actor: 'visitor',
     });
   }
+  const { loadCwd } = await import('@/lib/computer/terminal');
+  const cwd = isCloudflareComputerReady() ? await loadCwd(actor.id) : '/workspace';
   return jsonActor(actor, {
     ok: true,
     prototype: true,
     backend: reportedBackend(),
     cloudflareComputer: isCloudflareComputerReady(),
+    cwd,
     tasks: listComputerTasks('owner'),
     proof: listProofItems(),
     tabs: COMPUTER_TABS.map((id) => ({ id, wire: TAB_WIRE[id] })),
