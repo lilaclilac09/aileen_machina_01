@@ -88,7 +88,8 @@ async function verifyRs256(token: string, jwk: JsonWebKey): Promise<boolean> {
   );
   const sig = bytesFromB64url(s);
   const data = new TextEncoder().encode(`${h}.${p}`);
-  return crypto.subtle.verify('RSASSA-PKCS1-v1_5', key, sig, data);
+  const sigBuf = sig.buffer.slice(sig.byteOffset, sig.byteOffset + sig.byteLength) as ArrayBuffer;
+  return crypto.subtle.verify('RSASSA-PKCS1-v1_5', key, sigBuf, data);
 }
 
 export async function verifyGithubActionsOidc(
