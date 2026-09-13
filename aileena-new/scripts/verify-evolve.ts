@@ -23,6 +23,8 @@ import {
   resetLiveInboxForTests,
   shouldEnqueueLiveAsk,
 } from '../lib/evolution/liveInbox';
+import { handleEvolveDrain, parseEvolveAsksJson } from '../lib/evolution/drainHandler';
+import { assertEvolveOidcClaims, EVOLVE_OIDC_AUD, GITHUB_OIDC_ISS } from '../lib/evolution/githubOidc';
 import { tooSimilar, distributionOk, structureFingerprint } from '../lib/evolution/engine/fingerprint';
 import { runEvolveLoop, runEvolveUntilStable } from '../lib/evolution/engine/loop';
 import {
@@ -478,6 +480,36 @@ process.stdout.write(JSON.stringify({ reply: 'leaked', skillIds: [], steps: [], 
   assert(
     'live evolve workflow exists',
     existsSync(join(repoRoot(), '.github/workflows/site-agent-evolve.yml')),
+  );
+  const wf = readFileSync(join(repoRoot(), '.github/workflows/site-agent-evolve.yml'), 'utf8');
+  assert('live evolve workflow uses OIDC', /id-token: write/.test(wf) && /api\/evolve\/drain/.test(wf));
+  assert('live evolve workflow does not require GitHub UPSTASH', !/Missing UPSTASH/.test(wf));
+  const oidcOk = assertEvolveOidcClaims({
+    iss: GITHUB_OIDC_ISS,
+    aud: EVOLVE_OIDC_AUD,
+    exp: Math.floor(Date.now() / 1000) + 60,
+    repository: 'lilaclilac09/aileen_machina_01',
+    ref: 'refs/heads/main',
+    job_workflow_ref: 'lilaclilac09/aileen_machina_01/.github/workflows/site-agent-evolve.yml@refs/heads/main',
+  });
+  assert('oidc claims accept main evolve workflow', oidcOk.ok, oidcOk.reason);
+  assert(
+    'oidc claims reject other repo',
+    !assertEvolveOidcClaims({
+      iss: GITHUB_OIDC_ISS,
+      aud: EVOLVE_OIDC_AUD,
+      repository: 'evil/repo',
+      ref: 'refs/heads/main',
+      job_workflow_ref: 'evil/repo/.github/workflows/site-agent-evolve.yml@refs/heads/main',
+    }).ok,
+  );
+  const parsedAsks = parseEvolveAsksJson({ asks: [{ prompt: 'Where are the kiln notes documented?' }, { prompt: '  ' }] });
+  assert('parse asks json keeps kiln', parsedAsks.length === 1 && /kiln/.test(parsedAsks[0].prompt));
+  const denied = await handleEvolveDrain(new Request('https://www.aileena.xyz/api/evolve/drain', { method: 'POST' }));
+  assert('drain route 401 without OIDC', denied.status === 401, String(denied.status));
+  assert(
+    'from-asks is wired',
+    /--from-asks/.test(evolveSrc) && /parseEvolveAsksJson/.test(evolveSrc),
   );
 
   const live = evolutionStatus();
