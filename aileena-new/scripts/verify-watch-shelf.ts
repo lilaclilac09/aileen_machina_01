@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 /**
- * Watch / listening shelf: films unchanged; books + videos are photo-real spines.
+ * Watch / listening shelf: films include Ladies First (2026); books + videos are photo-real spines.
  * Run: pnpm verify:watch-shelf
  */
 import { existsSync, readFileSync } from 'node:fs';
@@ -35,11 +35,20 @@ function main() {
     ...FILM_RECS.map((item) => item.shelfTitle),
   ];
 
-  assert('watch starts with Joan Didion (films unchanged)', watch[0]?.id === 'joan-didion', watch[0]?.id);
+  assert('watch starts with Joan Didion', watch[0]?.id === 'joan-didion', watch[0]?.id);
   assert(
-    'watch order is docs then films, original set',
+    'watch order is docs then films',
     watch.map((item) => item.title).join('|') === expectedWatch.join('|'),
   );
+  const ladies = watch.find((item) => item.id === 'ladies-first');
+  assert(
+    'Ladies First 2026 is the last film poster',
+    ladies?.coverKind === 'poster' &&
+      ladies.cover === '/shelf/ladies-first.jpg' &&
+      watch[watch.length - 1]?.id === 'ladies-first',
+    watch[watch.length - 1]?.id,
+  );
+  assert('Ladies First note stays empty for later', ladies?.note === '');
   assert(
     'video ridge uses photo-real spines',
     videos.length === VIDEO_RECS.length &&

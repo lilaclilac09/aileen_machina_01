@@ -178,6 +178,17 @@ export const FILM_RECS = [
     body: 'Strategy as bloodsport. The voice does the cutting.',
     tags: ['voice'],
   },
+  {
+    title: 'Ladies First',
+    shelfTitle: 'Ladies First',
+    year: '2026',
+    label: 'Pike · Netflix',
+    href: 'https://en.wikipedia.org/wiki/Ladies_First_(2026_film)',
+    image: '/shelf/ladies-first.jpg',
+    note: '',
+    body: '',
+    tags: ['seeing'],
+  },
 ];
 
 export const EURO_LIFE_GUIDE = [
