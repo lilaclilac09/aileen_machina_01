@@ -70,34 +70,45 @@ async function main() {
     path: join(OUT, 'computer_cli_idle_390.png'),
   });
 
-  await runLine(page, 'mkdir -p scratch');
-  await runLine(page, 'cd scratch');
+  await runLine(page, 'cd');
+  await runLine(page, 'mkdir -p scratch/cli-demo');
+  await runLine(page, 'cd scratch/cli-demo');
   await page.waitForFunction(() => {
     const p = document.querySelector('[data-testid="computer-cli-prompt"]')?.textContent || '';
-    return /scratch/.test(p);
+    return /cli-demo/.test(p);
   }, null, { timeout: 15_000 });
-  await runLine(page, 'put hi.ts\nexport const n = 1;\n');
+  await runLine(
+    page,
+    'put greet.ts\nexport function greet(name: string): string {\n  return `hello, ${name}`;\n}\n',
+  );
   await page.waitForFunction(() => {
     const m = document.querySelector('[data-testid="computer-monitor"]')?.textContent || '';
-    return /hi\.ts/.test(m);
+    return /greet\.ts/.test(m);
   }, null, { timeout: 15_000 });
-  await runLine(page, 'cat hi.ts');
+  await runLine(
+    page,
+    "put main.ts\nimport { greet } from './greet';\n\nconst who = 'aileena';\nconsole.log(greet(who));\n",
+  );
+  await runLine(page, 'put package.json\n{\n  "name": "cli-demo",\n  "private": true,\n  "type": "module"\n}\n');
+  await runLine(page, 'ls');
+  await runLine(page, 'cat greet.ts');
   await page.waitForFunction(() => {
     const m = document.querySelector('[data-testid="computer-monitor"]')?.textContent || '';
-    return /export const n = 1/.test(m);
+    return /export function greet/.test(m);
   }, null, { timeout: 15_000 });
+  await runLine(page, 'jq -r .name package.json');
   await page.locator('[role="dialog"][aria-label="Aileena Console"]').screenshot({
-    path: join(OUT, 'computer_cli_after_put_390.png'),
+    path: join(OUT, 'computer_cli_e2e_coding_390.png'),
   });
   await page.locator('[data-testid="computer-monitor"]').screenshot({
-    path: join(OUT, 'computer_cli_transcript.png'),
+    path: join(OUT, 'computer_cli_e2e_transcript.png'),
   });
   const video = page.video();
   await page.close();
   await owner.close();
   if (video) {
     const tmp = await video.path();
-    await rename(tmp, join(OUT, 'computer_cli_owner_walkthrough.webm'));
+    await rename(tmp, join(OUT, 'computer_cli_e2e_coding.webm'));
   }
 
   const desktop = await browser.newContext({ viewport: { width: 1280, height: 800 } });
@@ -105,14 +116,14 @@ async function main() {
   const dPage = await desktop.newPage();
   await dPage.goto(`${BASE}/proof`, { waitUntil: 'networkidle' });
   await openConsole(dPage);
-  await dPage.locator('[data-testid="computer-line"]').fill('ls scratch');
+  await dPage.locator('[data-testid="computer-line"]').fill('ls scratch/cli-demo');
   await dPage.locator('[data-testid="computer-line"]').press('Enter');
   await dPage.waitForFunction(() => {
     const m = document.querySelector('[data-testid="computer-monitor"]')?.textContent || '';
-    return /hi\.ts/.test(m);
+    return /greet\.ts|cli-demo/.test(m);
   }, null, { timeout: 15_000 });
   await dPage.locator('[role="dialog"][aria-label="Aileena Console"]').screenshot({
-    path: join(OUT, 'computer_cli_desktop.png'),
+    path: join(OUT, 'computer_cli_e2e_coding_desktop.png'),
   });
 
   const visitor = await browser.newContext({ viewport: { width: 390, height: 844 } });

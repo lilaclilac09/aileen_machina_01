@@ -121,6 +121,8 @@ function sourceChecks() {
   assert('visitors cannot queue shell_exec', !/VISITOR_COMPUTER_TASK_TYPES[\s\S]{0,200}shell_exec/.test(readFileSync(join(process.cwd(), 'lib/computer/allowlist.ts'), 'utf8')));
   assert('dock has owner shell key', /computer-key-shell/.test(dockSrc));
   assert('dock owner line is a CLI textarea', /data-testid="computer-line"/.test(dockSrc) && /<textarea/.test(dockSrc) && /computer-cli-prompt/.test(dockSrc));
+  const e2eSrc = readFileSync(join(process.cwd(), 'scripts/e2e-computer-cli-example.ts'), 'utf8');
+  assert('e2e CLI example writes greet.ts + jq', /put greet\.ts/.test(e2eSrc) && /jq -r \.name/.test(e2eSrc));
   assert('runner owner CLI uses persisted cwd', /runOwnerShellLine/.test(runner));
   const termSrc = readFileSync(join(process.cwd(), 'lib/computer/terminal.ts'), 'utf8');
   assert('terminal cwd stays under /workspace', /WORKSPACE_ROOT/.test(termSrc) && /parsePut/.test(termSrc));
