@@ -5,13 +5,12 @@ import type { ComputerTask } from '../lib/computer/types';
 import type { ProofItem } from '../lib/proofQueue/types';
 import { curlFetchCommand, isOwnerShellCommand, isVisitorSharedShellCommand, safeHttpsUrl } from '../lib/computer/allowlist';
 import { SHARED_ROOM_HELP } from '../lib/computer/helpText';
-import { SHARED_COMPUTER_ROOM_PATH } from '../lib/computer/workspaceName';
-import { COMPUTER_CLI_EVENT } from '../lib/computer/spokenCli';
+import { SHARED_COMPUTER_ROOM_PATH, sharedRoomFromQuery } from '../lib/computer/workspaceName';
+import { COMPUTER_CLI_EVENT, isSpokenVcode, spokenToCli } from '../lib/computer/spokenCli';
 
 function roomFromWindow(): boolean {
   if (typeof window === 'undefined') return false;
-  const room = new URLSearchParams(window.location.search).get('room');
-  return room === 'open' || room === 'share' || room === 'v-sharedroom01';
+  return sharedRoomFromQuery(window.location.search);
 }
 
 function computerTasksUrl(): string {
@@ -105,6 +104,10 @@ function parseLine(raw: string, owner: boolean, shared: boolean): { taskType: st
   const t = raw.trim();
   if (shared && isVisitorSharedShellCommand(t)) {
     return { taskType: 'shell_exec', instructions: t };
+  }
+  if (shared && (/^vcode\b/i.test(t) || isSpokenVcode(t))) {
+    const spoken = spokenToCli(t);
+    return { taskType: 'shell_exec', instructions: spoken.kind === 'vcode' ? spoken.command : t };
   }
   if (/^git(\s+status)?$/i.test(t)) {
     return { taskType: 'git_status', instructions: 'git status --short' };
@@ -392,7 +395,7 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
   };
 
   useEffect(() => {
-    if (!ownerPad) return;
+    if (!ownerPad && !shared) return;
     const onCli = (e: Event) => {
       const text = String((e as CustomEvent<{ text?: string }>).detail?.text || '').trim();
       if (!text) return;
@@ -403,7 +406,7 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
     };
     window.addEventListener(COMPUTER_CLI_EVENT, onCli);
     return () => window.removeEventListener(COMPUTER_CLI_EVENT, onCli);
-  }, [ownerPad]);
+  }, [ownerPad, shared]);
 
   const go = () => {
     const raw = line.trim();
@@ -664,7 +667,7 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
                   ? 'say ls · say write code greet.ts'
                   : 'put scratch/hi.ts · vcode · help'
                 : shared && termMode
-                  ? 'ls · echo hi · note'
+                  ? 'ls · vcode greet.ts · echo hi'
                   : ''
             }
             className="min-h-11 min-w-0 flex-1 resize-none font-mono text-[0.8rem] rounded-[8px] border border-[#d8cfc0] bg-white px-2.5 py-2 text-[#1b1713]"

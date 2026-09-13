@@ -217,7 +217,14 @@ function sourceChecks() {
       parseOfficialDemo('container uname -a') === null,
   );
   assert('dock listens for voice CLI event', /COMPUTER_CLI_EVENT/.test(dockSrc) && /voiceOn/.test(dockSrc));
+  assert('shared dock also listens for voice CLI', /if \(!ownerPad && !shared\) return/.test(dockSrc));
   assert('chat routes owner computer voice to CLI', /spokenToCli/.test(agentChatSrc) && /dispatchComputerCli/.test(agentChatSrc));
+  assert(
+    'shared room pathless Voice → code stays propose-only',
+    /sharedScratchVcode/.test(agentChatSrc) && /isVoiceCodeIntent\(trimmed\)/.test(agentChatSrc),
+  );
+  assert('shared runner special-cases scratch vcode', /isSharedComputerRoom\(name\) && \/\^vcode\\b/.test(runner));
+  assert('vcode is not a shared worker bin', !isVisitorSharedShellCommand('vcode greet.ts'));
   assert('worker PUT replaces existing files', /await ws\.fs\.rm\(path\)/.test(workerSrc) && /await using ws/.test(workerSrc));
   assert('runner finds git commits', /git_find_commit/.test(runner) && /gitFindCommit/.test(runner));
   assert('runner blocks email send', /email_send/.test(runner) && /email not connected/.test(runner));
@@ -926,6 +933,31 @@ async function liveHttp() {
     '/api/agent/computer/tasks?room=open',
   );
   assert('shared room POST git_status → 403', sharedGit.status === 403, String(sharedGit.status));
+
+  const sharedVcode = await postComputerTask(
+    base,
+    sharedCookie,
+    {
+      taskType: 'shell_exec',
+      instructions: 'vcode scratch/vcode/voice.ts\nexport function hello() {\n  return "hi";\n}\n',
+    },
+    '/api/agent/computer/tasks?room=open',
+  );
+  assert('shared room POST vcode → 202', sharedVcode.status === 202, String(sharedVcode.status));
+  const sharedVcodeJson = sharedVcode.status === 202
+    ? ((await sharedVcode.json()) as { task?: { id?: string } })
+    : {};
+  if (sharedVcodeJson.task?.id) {
+    const done = await pollTask(base, sharedCookie, sharedVcodeJson.task.id);
+    const preview = done.ok ? (done.body.task?.artifacts?.[0]?.preview || done.body.task?.resultSummary || '') : '';
+    assert(
+      'shared room vcode writes scratch',
+      done.ok && done.st === 'completed' && /hello|voice\.ts/.test(preview),
+      String(done.ok ? `${done.st} ${preview.slice(0, 160)}` : done.status),
+    );
+  } else {
+    assert('shared room vcode writes scratch', false, String(sharedVcode.status));
+  }
 
   const visitorGit = await fetch(`${base}/api/agent/computer/tasks`, {
     method: 'POST',

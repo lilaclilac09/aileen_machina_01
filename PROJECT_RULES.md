@@ -55,7 +55,7 @@ One slice per change set.
 
 ## Console computer — shared room
 
-Public pad: `https://www.aileena.xyz/proof?room=open` (workspace `v-sharedroom01`). Anyone on that link sees the same files and task list, can write notes / `ls cat echo`, and come back. Private visitor cookies stay private. Owner Linux, git, and merge stay off this pad.
+Public pad: `https://www.aileena.xyz/proof?room=open` (workspace `v-sharedroom01`). Anyone on that link sees the same files and task list, can write notes / `ls cat echo` / scratch `vcode greet.ts`, and come back. Console **Voice → code** stays propose-only (copy / take `.patch`). Private visitor cookies stay private. Owner Linux, git, and merge stay off this pad.
 
 ## Voice → code (two doors)
 

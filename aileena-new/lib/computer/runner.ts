@@ -387,6 +387,45 @@ async function runShellTask(task: ComputerTask): Promise<ComputerTask> {
   }
   const name = workspaceIdFor(task);
   if (!isOwnerComputerTask(task)) {
+    if (isSharedComputerRoom(name) && /^vcode\b/i.test(cmd)) {
+      const { parseVcode, generateScratchFile } = await import('./voiceScratch');
+      const parsed = parseVcode(cmd);
+      if (!parsed) {
+        return finishInspectStyle(task, {
+          status: 'failed',
+          summary: '⚡ vcode: say a file and what to write',
+          report: '# vcode\n\nShared room scratch only. No repo write.\n',
+          preview: 'vcode: say a file and what to write',
+          title: 'vcode',
+          kind: 'scratch',
+          error: 'vcode needs a file',
+        });
+      }
+      await ensureCfMount(name);
+      const made = await generateScratchFile(parsed.prompt, '/workspace', parsed.pathHint);
+      if (!made.ok) {
+        return finishInspectStyle(task, {
+          status: 'failed',
+          summary: made.text.slice(0, 120),
+          report: `# vcode\n\n${made.text}\n`,
+          preview: made.text,
+          title: 'vcode',
+          kind: 'scratch',
+          error: made.text,
+        });
+      }
+      await cfPutFile(made.path, clip(made.body, 64 * 1024), name);
+      task = await log(task, `vcode ${made.path}`);
+      return finishInspectStyle(task, {
+        status: 'completed',
+        summary: made.path,
+        report: `# vcode\n\n${made.path}\n\n${clip(made.body, 800)}\n`,
+        preview: clip(made.body, 800),
+        title: made.path.replace(/^\/workspace\//, ''),
+        kind: 'scratch',
+        error: null,
+      });
+    }
     if (!isSharedComputerRoom(name) || !isVisitorSharedShellCommand(cmd)) {
       return finishInspectStyle(task, {
         status: 'failed',

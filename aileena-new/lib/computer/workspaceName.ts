@@ -20,3 +20,8 @@ export function isSharedComputerRoomToken(value: string | null | undefined): boo
   const raw = (value || '').trim().toLowerCase();
   return raw === SHARED_COMPUTER_ROOM_QUERY || raw === 'share' || raw === SHARED_COMPUTER_ROOM_ID;
 }
+
+export function sharedRoomFromQuery(search: string | null | undefined): boolean {
+  const q = (search || '').replace(/^\?/, '');
+  return isSharedComputerRoomToken(new URLSearchParams(q).get('room'));
+}
