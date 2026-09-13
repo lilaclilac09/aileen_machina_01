@@ -85,9 +85,9 @@ Two products, both owner-only:
 | **This computer** | worker-shell (just-bash) in a Durable Object | Console dock + `POST /c/<name>/exec` |
 | **Machina MCP** | Machina calling other apps (computer / github / `MCP_SERVERS`) | Owner chat tools + `GET/POST /api/agent/mcp` |
 
-Owner Console is a CLI over this worker-shell: Enter runs allowlisted commands, `cd` persists in `/workspace/scratch/.cwd`, `put`/`write` writes under scratch/reports/artifacts, `clear` wipes the transcript. Still just-bash — not Linux, not `pnpm`, not `vim`, not git write.
+Owner Console is a CLI over this workspace: Enter runs allowlisted worker-shell commands, `cd` persists in `/workspace/scratch/.cwd`, `put`/`write` writes under scratch/reports/artifacts, `clear` wipes the transcript. `demo container` / `container <cmd>` is the official computerd Linux backend on the same Durable Object (think-style multi-backend). Visitors never get Linux.
 
-MCP does **not** turn the site into Linux. Container/`computerd` stays unbound (`container: false`) until a later paid slice.
+MCP does **not** turn visitor chat into Linux. Owner MCP reports `container: true` when the Worker health does.
 
 ```txt
 aileena.xyz (Vercel)     = mouth + dock + owner gate + task queue
@@ -242,10 +242,10 @@ Do one slice per PR. Do not bundle the Worker and a UI redesign.
 | **B** | `cfClient` + scratch + files_* in `runner.ts`. Dock copy can say `cloudflare-worker-shell` when ready. | Owner scratch in Console lands in the DO |
 | **C** | Official shell groups `curl` `jq` `html-to-markdown` + owner `>` `shell_exec`. Visitors stay core-only. Python/sqlite groups do not run in workerd. | wrangler smoke awk/curl/jq/html-to-markdown; visitor curl 400 |
 | **C′** | Same keys, pushed: find shows matching lines, look shows first-line excerpts, peek names a note, clock stamps today's note, owner https GETs body into `scratch/fetch`. | one-shot 390 stills + verify:computer-prototype |
-| **E** | Deeper shell (`find` `tree` `file` `xan`) + Machina MCP client (computer / github / `MCP_SERVERS`). `yq` skipped (`node:process` missing in workerd). Container/`computerd` still unbound. | wrangler smoke find/file/xan; owner `GET /api/agent/mcp`; visitor 403 |
-| **D** | Optional later: container/`computerd` Linux | new spec |
+| **E** | Deeper shell (`find` `tree` `file` `xan`) + Machina MCP client (computer / github / `MCP_SERVERS`). `yq` skipped (`node:process` missing in workerd). | wrangler smoke find/file/xan; owner `GET /api/agent/mcp`; visitor 403 |
+| **D** | Official container/`computerd` on the same `OwnerComputer` DO (no R2). | `demo container` prints `uname -a` + `node -v`; visitor container exec 403 |
 
-Out of scope until a later owner ask: container/`computerd` (needs Cloudflare Containers bind + image — health reports `container: false`), cloning `aileen_machina_01` into the DO, merge, browser, email send, installing `@cloudflare/computer` inside Next (including `/tools`).
+Out of scope until a later owner ask: cloning `aileen_machina_01` into the DO, merge, browser, email send, installing `@cloudflare/computer` inside Next (including `/tools`). Production container still needs a paid Workers Containers deploy of this Worker — localhost is not that proof.
 
 ---
 

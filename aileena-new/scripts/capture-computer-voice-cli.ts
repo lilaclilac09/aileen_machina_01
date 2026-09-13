@@ -96,6 +96,14 @@ async function main() {
     const m = document.querySelector('[data-testid="computer-monitor"]')?.textContent || '';
     return /worker-javascript/.test(m);
   }, null, { timeout: 20_000 });
+  await runLine(page, 'demo container');
+  await page.waitForFunction(() => {
+    const m = document.querySelector('[data-testid="computer-monitor"]')?.textContent || '';
+    return /Linux/.test(m);
+  }, null, { timeout: 90_000 });
+  await page.locator('[data-testid="computer-monitor"]').screenshot({
+    path: join(OUT, 'computer_cli_container.png'),
+  });
   await page.locator('[data-testid="computer-monitor"]').screenshot({
     path: join(OUT, 'computer_cli_demo.png'),
   });

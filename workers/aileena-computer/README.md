@@ -1,6 +1,6 @@
 # aileena-computer
 
-Owner-only small computer. Official package: [`@cloudflare/computer`](https://github.com/cloudflare/computer) **worker-shell** (just-bash). Not the Linux container. Not inside `aileena-new/`.
+Owner-only small computer. Official package: [`@cloudflare/computer`](https://github.com/cloudflare/computer) **worker-shell** (just-bash) plus **CloudflareContainerBackend** (computerd Linux) on the same Durable Object. Not inside `aileena-new/`.
 
 Spec: [`aileena-new/docs/CLOUDFLARE_COMPUTER.md`](../../aileena-new/docs/CLOUDFLARE_COMPUTER.md)
 
@@ -125,7 +125,7 @@ Machina calling other apps is a **different product** (`aileena-new/lib/mcp` + `
 
 Visitor scratch pads reset monthly: a `.born` stamp is checked lazily on the next task after 30 days, then that visitor's `/workspace/scratch` is wiped (owner workspace never resets). Visitors cannot `curl` / `file` / `xan` / site git.
 
-Cannot: Python in this isolate (just-bash python needs `node:worker_threads`), yq (`node:process` missing in workerd), sqlite helper worker, full Linux, `pnpm` / `npm` / `node` inside the DO, browser, email send, merge, cloning this monorepo into the Worker. Linux needs the container/`computerd` backend — a later paid slice. Health reports `container: false`.
+Cannot: Python in worker-shell (just-bash python needs `node:worker_threads`), yq (`node:process` missing in workerd), sqlite helper worker, `pnpm` inside the isolate, browser, email send, merge, cloning this monorepo into the Worker. Owner Linux (`uname`, `node`, `npm`, `git`) runs through the bound computerd container — `wrangler dev` needs Docker; production deploy needs Workers Paid + Containers. Visitors never get that backend. Health reports `container: true` when the image is bound.
 
 ## Auth
 

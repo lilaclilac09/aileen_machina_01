@@ -1,16 +1,21 @@
 /**
  * Small computer. Official worker-shell (just-bash) + worker-javascript
- * on the same Durable Object workspace. python / yq / sqlite groups stay
- * off (workerd gaps). Container/computerd is not bound.
- * Visitors keep core files commands only — no network bins, no JS exec.
+ * + CloudflareContainerBackend (computerd Linux) on the same Durable
+ * Object workspace. python / yq / sqlite groups stay off (workerd gaps).
+ * Visitors keep core files commands only — no network bins, no JS, no Linux.
  */
 import { DurableObject } from 'cloudflare:workers';
 import {
   type DurableObjectStorageLike,
   getWorkspace,
+  WorkspaceProxy,
   WorkspaceServiceProxy,
   withWorkspace,
 } from '@cloudflare/computer';
+import {
+  CloudflareContainerBackend,
+  withWorkspaceContainer,
+} from '@cloudflare/computer/backends/container';
 import { WorkerJavaScriptBackend } from '@cloudflare/computer/backends/worker-javascript';
 import { WorkerShellBackend } from '@cloudflare/computer/backends/worker-shell';
 import curlModules from '@cloudflare/computer/shell/curl';
@@ -19,7 +24,7 @@ import htmlToMarkdownModules from '@cloudflare/computer/shell/html-to-markdown';
 import fileModules from '@cloudflare/computer/shell/file';
 import xanModules from '@cloudflare/computer/shell/xan';
 
-export { WorkspaceServiceProxy };
+export { WorkspaceProxy, WorkspaceServiceProxy };
 
 export interface Env {
   OwnerComputer: DurableObjectNamespace;
@@ -75,8 +80,39 @@ const OWNER_BINS = new Set([
 ]);
 const VISITOR_BINS = new Set([...CORE_BINS, 'rm']);
 const WRITE_DEST_BINS = new Set(['rm', 'cp', 'mv', 'touch']);
+const CONTAINER_BINS = new Set([
+  ...CORE_BINS,
+  'uname',
+  'hostname',
+  'id',
+  'whoami',
+  'node',
+  'npm',
+  'npx',
+  'git',
+  'curl',
+  'file',
+  'rm',
+  'cp',
+  'mv',
+  'chmod',
+  'which',
+  'env',
+  'printenv',
+  'sha256sum',
+]);
 
-export class OwnerComputer extends withWorkspace(class extends DurableObject {}, (self) => {
+class ContainerBase extends withWorkspaceContainer(class extends DurableObject {}) {
+  readonly backend = new CloudflareContainerBackend({
+    id: 'container',
+    container: () => this,
+    workspace: { binding: 'OwnerComputer', id: this.ctx.id.toString() },
+    egress: { mode: 'direct' },
+    connectTimeoutMs: 45_000,
+  });
+}
+
+function workspaceOptions(self: InstanceType<typeof ContainerBase>) {
   const { ctx, env } = self as unknown as { ctx: DurableObjectState; env: Env };
   return {
     storage: ctx.storage as unknown as DurableObjectStorageLike,
@@ -99,9 +135,16 @@ export class OwnerComputer extends withWorkspace(class extends DurableObject {},
         loader: env.LOADER,
         globalOutbound: null,
       }),
+      self.backend,
     ],
   };
-}) {}
+}
+
+export class OwnerComputer extends withWorkspace(ContainerBase, workspaceOptions) {
+  override async fetch(request: Request): Promise<Response> {
+    return this.backend.handleFetch(request);
+  }
+}
 
 interface ExecRequest {
   command?: string;
@@ -121,13 +164,13 @@ export default {
       return new Response(
         [
           'aileena-computer',
-          'backend=cloudflare-worker-shell+worker-javascript',
+          'backend=cloudflare-worker-shell+worker-javascript+container',
           'groups=curl,jq,html-to-markdown,file,xan',
-          'container=unbound',
+          'container=bound',
           'GET  /health',
           'PUT  /c/<name>/file/workspace/<path>  (bearer)',
           'GET  /c/<name>/file/workspace/<path>  (bearer)',
-          'POST /c/<name>/exec                   (bearer; backend=worker-shell|worker-javascript)',
+          'POST /c/<name>/exec                   (bearer; backend=worker-shell|worker-javascript|container)',
           'name=owner | v-[a-z0-9]{8,32}',
           '',
         ].join('\n'),
@@ -139,11 +182,11 @@ export default {
       return Response.json({
         ok: true,
         backend: 'cloudflare-worker-shell',
-        backends: ['worker-shell', 'worker-javascript', 'worker-javascript-none'],
+        backends: ['worker-shell', 'worker-javascript', 'worker-javascript-none', 'container'],
         groups: ['curl', 'jq', 'html-to-markdown', 'file', 'xan'],
         egress: 'direct',
         javascript: true,
-        container: false,
+        container: true,
       });
     }
 
@@ -298,9 +341,17 @@ async function handleExec(request: Request, env: Env, name: string): Promise<Res
   }
 
   const bin = command.split(/\s+/)[0] || '';
-  const allow = name === OWNER ? OWNER_BINS : VISITOR_BINS;
-  if (!allow.has(bin)) {
-    return errorJSON(new Error(`command not allowlisted: ${bin}`), 400);
+  const container = backendRaw === 'container';
+  if (container) {
+    if (name !== OWNER) return errorJSON(new Error('container exec is owner only'), 403);
+    if (!CONTAINER_BINS.has(bin)) {
+      return errorJSON(new Error(`command not allowlisted: ${bin}`), 400);
+    }
+  } else {
+    const allow = name === OWNER ? OWNER_BINS : VISITOR_BINS;
+    if (!allow.has(bin)) {
+      return errorJSON(new Error(`command not allowlisted: ${bin}`), 400);
+    }
   }
   if (WRITE_DEST_BINS.has(bin)) {
     const parts = command.split(/\s+/).slice(1).filter((a) => a && !a.startsWith('-'));
@@ -311,9 +362,10 @@ async function handleExec(request: Request, env: Env, name: string): Promise<Res
     }
   }
 
+  const execBackend = container ? 'container' : 'worker-shell';
   await using ws = await workspaceOf(env, name);
   try {
-    await using handle = await ws.runtime.exec(command, { backend: 'worker-shell', cwd, encoding: 'utf8' });
+    await using handle = await ws.runtime.exec(command, { backend: execBackend, cwd, encoding: 'utf8' });
     const result = await handle.result();
     const stdout = clip(String(result.stdout ?? ''), 4000);
     const stderr = clip(String(result.stderr ?? ''), 2000);
@@ -321,7 +373,7 @@ async function handleExec(request: Request, env: Env, name: string): Promise<Res
       exitCode: result.exitCode,
       stdout,
       stderr,
-      backend: 'worker-shell',
+      backend: execBackend,
     });
   } catch (error) {
     return errorJSON(error, 500);

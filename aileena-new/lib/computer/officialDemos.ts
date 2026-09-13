@@ -1,6 +1,6 @@
 /**
  * Official cloudflare/computer catalog, runnable from the owner CLI.
- * Same workspace. No Linux container. No fake success.
+ * Same workspace. Linux goes through the bound computerd container.
  */
 import { callComputer, computerTools } from '../mcp/computer';
 import { cfExec, cfExecJs, cfPutFile } from './cfClient';
@@ -80,12 +80,12 @@ function fail(text: string): OfficialDemoResult {
 
 export function parseOfficialDemo(cmd: string): OfficialDemoName | 'worker-shell' | null {
   const t = cmd.trim();
-  const first = t.split(/\s+/)[0] || '';
-  let rest = '';
-  if (first === 'demo') rest = t.replace(/^demo\b/i, '').trim();
-  else if (OFFICIAL_DEMO_NAMES.includes(first as OfficialDemoName)) rest = first;
+  const parts = t.split(/\s+/);
+  const first = (parts[0] || '').toLowerCase();
+  let key = '';
+  if (first === 'demo') key = (parts[1] || 'worker-shell').toLowerCase();
+  else if (parts.length === 1 && OFFICIAL_DEMO_NAMES.includes(first as OfficialDemoName)) key = first;
   else return null;
-  const key = rest.split(/\s+/)[0]?.toLowerCase() || 'worker-shell';
   if (!key || key === 'worker-shell' || key === 'shell') return 'worker-shell';
   if (key === 'js' || key === 'javascript' || key === 'worker-javascript') return 'js';
   if (key === 'egress') return 'egress';
@@ -116,7 +116,7 @@ export async function runOfficialDemo(
     if (name === 'tutorial') return runTutorialDemo(workspaceId, cwd);
     if (name === 'artifacts') return runArtifactsDemo(workspaceId, cwd);
     if (name === 'assets') return runAssetsDemo(workspaceId, cwd);
-    return runContainerDemo();
+    return runContainerDemo(workspaceId, cwd);
   } catch (err) {
     return fail(err instanceof Error ? err.message : 'demo failed');
   }
@@ -204,7 +204,7 @@ async function runRlmDemo(workspaceId: string, cwd: string): Promise<OfficialDem
     '# Worker JavaScript',
     'ESM reduce reads the workspace.',
     '# Container',
-    'computerd stays unbound.',
+    'computerd Linux is bound on the same workspace.',
     '',
   ].join('\n');
   await cfPutFile('/workspace/scratch/demo/rlm-long.md', long, workspaceId);
@@ -291,14 +291,28 @@ async function runAssetsDemo(workspaceId: string, cwd: string): Promise<Official
   );
 }
 
-function runContainerDemo(): OfficialDemoResult {
-  return ok([
-      'examples/container — not possible on this isolate',
-      'needs Workers Containers + computerd image + CloudflareContainerBackend',
-      'not binding that here (second computer / paid slice)',
-      'type demo js · demo egress · demo compare for the bound official surfaces',
-    ].join('\n'),
+async function runContainerDemo(workspaceId: string, cwd: string): Promise<OfficialDemoResult> {
+  const path = '/workspace/scratch/demo/container-hello.js';
+  await cfPutFile(
+    path,
+    'console.log(JSON.stringify({ example: "container", runtime: process.version, platform: process.platform }));\n',
+    workspaceId,
   );
+  const uname = await cfExec('uname -a', cwd, workspaceId, { backend: 'container' });
+  const nodev = await cfExec('node -v', cwd, workspaceId, { backend: 'container' });
+  const run = await cfExec(`node ${path}`, cwd, workspaceId, { backend: 'container' });
+  const text = [
+    'examples/container — running',
+    'POST /c/owner/exec  backend=container',
+    `uname: ${(uname.stdout || uname.stderr || '').trim()}`,
+    `node: ${(nodev.stdout || nodev.stderr || '').trim()}`,
+    clip((run.stdout || run.stderr || '').trim(), 400),
+  ].join('\n');
+  const linux =
+    /Linux/i.test(`${uname.stdout}\n${uname.stderr}`) &&
+    /^v\d+/.test((nodev.stdout || '').trim()) &&
+    run.exitCode === 0;
+  return linux ? ok(text) : fail(text);
 }
 
 export async function runJsSource(source: string, workspaceId: string): Promise<OfficialDemoResult> {

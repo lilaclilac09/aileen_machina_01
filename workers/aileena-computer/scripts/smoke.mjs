@@ -31,6 +31,11 @@ function assert(name, ok, detail) {
 const health = await fetch(`${base}/health`);
 const healthJson = await health.json();
 assert('health open', health.ok && healthJson.backend === 'cloudflare-worker-shell', String(health.status));
+assert(
+  'health binds container',
+  healthJson.container === true && Array.isArray(healthJson.backends) && healthJson.backends.includes('container'),
+  JSON.stringify({ container: healthJson.container, backends: healthJson.backends }),
+);
 
 const noAuth = await fetch(`${base}/c/owner/exec`, {
   method: 'POST',
@@ -333,6 +338,48 @@ const putStore2 = await req('PUT', storePath, {
 const getStore = await req('GET', storePath);
 assert('overwrite tasks.json 204', putStore1.res.status === 204 && putStore2.res.status === 204, `${putStore1.res.status} ${putStore2.res.status}`);
 assert('overwrite tasks.json read', getStore.res.ok && getStore.text.includes('"n":2'), `${getStore.res.status} ${getStore.text.slice(0, 80)}`);
+
+const visitorContainer = await req('POST', `/c/${visitorId}/exec`, {
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ command: 'uname -a', backend: 'container' }),
+});
+assert('visitor container exec 403', visitorContainer.res.status === 403, String(visitorContainer.res.status));
+
+const containerUname = await req('POST', '/c/owner/exec', {
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ command: 'uname -a', backend: 'container', cwd: '/workspace' }),
+});
+let containerUnameBody = {};
+try {
+  containerUnameBody = JSON.parse(containerUname.text);
+} catch {
+  containerUnameBody = { raw: containerUname.text };
+}
+assert(
+  'owner container uname',
+  containerUname.res.ok &&
+    containerUnameBody.backend === 'container' &&
+    /Linux/i.test(String(containerUnameBody.stdout || '') + String(containerUnameBody.stderr || '')),
+  `${containerUname.res.status} ${containerUname.text.slice(0, 240)}`,
+);
+
+const containerNode = await req('POST', '/c/owner/exec', {
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ command: 'node -v', backend: 'container', cwd: '/workspace' }),
+});
+let containerNodeBody = {};
+try {
+  containerNodeBody = JSON.parse(containerNode.text);
+} catch {
+  containerNodeBody = { raw: containerNode.text };
+}
+assert(
+  'owner container node',
+  containerNode.res.ok &&
+    containerNodeBody.backend === 'container' &&
+    /v\d+/.test(String(containerNodeBody.stdout || '')),
+  `${containerNode.res.status} ${containerNode.text.slice(0, 200)}`,
+);
 
 if (fails.length) {
   console.error(`\n${fails.length} failed`);

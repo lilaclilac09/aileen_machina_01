@@ -20,6 +20,7 @@ import { redactSecrets } from '../lib/computer/redact';
 import { isComputerPrototypeEnabled, hasComputerWorkerEnv } from '../lib/computer/flag';
 import { formatPrompt, isOwnerCliCommand, isWritePath, parseCd, parsePut, resolveCwd } from '../lib/computer/terminal';
 import { OWNER_CLI_EXAMPLES, OWNER_CLI_HELP } from '../lib/computer/helpText';
+import { parseOfficialDemo } from '../lib/computer/officialDemos';
 import { parseVcode, looksLikeSource } from '../lib/computer/voiceScratch';
 import { spokenToCli } from '../lib/computer/spokenCli';
 import { HARNESS_PLUGINS } from '../lib/computer/plugins';
@@ -117,7 +118,22 @@ function sourceChecks() {
   assert('worker requires bearer secret', /Bearer/.test(workerSrc) && /COMPUTER_WORKER_SECRET/.test(workerSrc));
   assert('worker allowlists owner and visitor cwid', /VISITOR_RE/.test(workerSrc) && /idFromName\(name\)/.test(workerSrc));
   assert('worker opts into official curl jq html-to-markdown file xan groups', /shell\/curl/.test(workerSrc) && /shell\/jq/.test(workerSrc) && /shell\/html-to-markdown/.test(workerSrc) && /shell\/file/.test(workerSrc) && /shell\/xan/.test(workerSrc) && !/shell\/python/.test(workerSrc) && !/shell\/yq/.test(workerSrc));
-  assert('worker does not bind a Linux container', /container: false/.test(workerSrc) && !/CloudflareContainerBackend/.test(workerSrc));
+  const wranglerSrc = readFileSync(join(process.cwd(), '..', 'workers', 'aileena-computer', 'wrangler.jsonc'), 'utf8');
+  const dockerSrc = readFileSync(join(process.cwd(), '..', 'workers', 'aileena-computer', 'Dockerfile'), 'utf8');
+  assert(
+    'worker binds official Linux container',
+    /CloudflareContainerBackend/.test(workerSrc) &&
+      /withWorkspaceContainer/.test(workerSrc) &&
+      /id: 'container'/.test(workerSrc) &&
+      /WorkspaceProxy/.test(workerSrc) &&
+      /container: true/.test(workerSrc),
+  );
+  assert(
+    'wrangler binds OwnerComputer computerd image',
+    /"class_name": "OwnerComputer"/.test(wranglerSrc) &&
+      /computer-computerd-linux-x64:0.2.1/.test(dockerSrc) &&
+      /FUSE_MOUNT=auto/.test(dockerSrc),
+  );
   assert('worker egress is direct so curl can fetch', /egress: \{ mode: 'direct' \}/.test(workerSrc));
   assert('visitor exec cannot curl', /VISITOR_BINS/.test(workerSrc) && /name === OWNER \? OWNER_BINS : VISITOR_BINS/.test(workerSrc));
   assert('shell_exec is an owner task type', /'shell_exec'/.test(readFileSync(join(process.cwd(), 'lib/computer/types.ts'), 'utf8')));
@@ -144,7 +160,7 @@ function sourceChecks() {
   assert('parsePut write alias', parsePut('write scratch/hi.ts\nexport const n = 1')?.path === '/workspace/scratch/hi.ts');
   assert('parsePut rejects workspace root file', parsePut('put /workspace/secret.ts\nx', '/workspace') === null);
   assert('isWritePath only scratch reports artifacts', isWritePath('/workspace/scratch/a.ts') && !isWritePath('/workspace/scratch') && !isWritePath('/workspace/lib/x.ts'));
-  assert('isOwnerCliCommand accepts builtins and bins', isOwnerCliCommand('cd scratch') && isOwnerCliCommand('put x.ts') && isOwnerCliCommand('examples') && isOwnerCliCommand('demo js') && isOwnerCliCommand('ls') && !isOwnerCliCommand('vim') && !isOwnerCliCommand('pnpm'));
+  assert('isOwnerCliCommand accepts builtins and bins', isOwnerCliCommand('cd scratch') && isOwnerCliCommand('put x.ts') && isOwnerCliCommand('examples') && isOwnerCliCommand('demo js') && isOwnerCliCommand('container uname -a') && isOwnerCliCommand('ls') && !isOwnerCliCommand('vim') && !isOwnerCliCommand('pnpm'));
   assert('isOwnerShellCommand matches CLI builtins', isOwnerShellCommand('clear') && isOwnerShellCommand('mkdir -p scratch') && !isOwnerShellCommand('git status'));
   assert('formatPrompt shortens under /workspace', formatPrompt('/workspace') === '/workspace $' && formatPrompt('/workspace/scratch/cli-demo') === 'scratch/cli-demo $');
   assert('resolveCwd blocks leaving workspace', resolveCwd('/workspace', '../../etc/passwd') === null);
@@ -160,15 +176,22 @@ function sourceChecks() {
   assert('spoken hi is not CLI', spokenToCli('hi').kind === 'none');
   assert('parseVcode path hint', parseVcode('vcode scratch/vcode/hi.ts\nexport const n = 1')?.pathHint === 'scratch/vcode/hi.ts');
   assert('looksLikeSource detects ts', looksLikeSource('export const n = 1') && !looksLikeSource('please write a file'));
-  assert('help teaches demo js and fail-closed container', /demo js/.test(OWNER_CLI_HELP) && /demo container/.test(OWNER_CLI_HELP) && /fail-closed/.test(OWNER_CLI_HELP));
+  assert('help teaches demo js and live container', /demo js/.test(OWNER_CLI_HELP) && /demo container/.test(OWNER_CLI_HELP) && /computerd Linux/.test(OWNER_CLI_HELP) && !/fail-closed/.test(OWNER_CLI_HELP));
   assert(
     'examples lists runnable official names',
     /demo js/.test(OWNER_CLI_EXAMPLES) &&
       /demo container/.test(OWNER_CLI_EXAMPLES) &&
-      /computerd/.test(OWNER_CLI_EXAMPLES) &&
+      /computerd Linux/.test(OWNER_CLI_EXAMPLES) &&
       /worker-javascript/.test(OWNER_CLI_EXAMPLES),
   );
   assert('spoken demo js alias', spokenToCli('run javascript').command === 'demo js');
+  assert('spoken linux is demo container', spokenToCli('linux').command === 'demo container');
+  assert(
+    'container uname is Linux exec not the demo name',
+    parseOfficialDemo('container') === 'container' &&
+      parseOfficialDemo('demo container') === 'container' &&
+      parseOfficialDemo('container uname -a') === null,
+  );
   assert('dock listens for voice CLI event', /COMPUTER_CLI_EVENT/.test(dockSrc) && /voiceOn/.test(dockSrc));
   assert('chat routes owner computer voice to CLI', /spokenToCli/.test(agentChatSrc) && /dispatchComputerCli/.test(agentChatSrc));
   assert('worker PUT replaces existing files', /await ws\.fs\.rm\(path\)/.test(workerSrc) && /await using ws/.test(workerSrc));
@@ -882,7 +905,11 @@ async function liveHttp() {
         Boolean(mcpJson.apps.some((a) => a.name === 'computer')) &&
         Boolean(mcpJson.apps.some((a) => a.name === 'github')),
     );
-    assert('owner mcp container false', mcpJson.container === false);
+    if (process.env.COMPUTER_WORKER_URL && process.env.COMPUTER_WORKER_SECRET) {
+      assert('owner mcp container bound', mcpJson.container === true, String(mcpJson.container));
+    } else {
+      assert('owner mcp container unbound without worker', mcpJson.container === false);
+    }
     const echo = await fetch(`${base}/api/agent/mcp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Cookie: cookie },

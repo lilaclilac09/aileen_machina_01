@@ -39,7 +39,7 @@ function aliasCommand(raw: string): string | null {
   if (/^(pwd|where am i|where are we)$/i.test(t)) return 'pwd';
   if (/^(help|帮助|what can you do|what commands|available commands|你能做什么)$/i.test(t)) return 'help';
   if (
-    /^(examples|example|官方例子|show examples|what examples|why no container|container example)$/i.test(t)
+    /^(examples|example|官方例子|show examples|what examples|container example)$/i.test(t)
   ) {
     return 'examples';
   }
@@ -59,7 +59,9 @@ function aliasCommand(raw: string): string | null {
   if (/^(demo tutorial|run tutorial)$/i.test(t)) return 'demo tutorial';
   if (/^(demo artifacts|run artifacts)$/i.test(t)) return 'demo artifacts';
   if (/^(demo assets|run assets)$/i.test(t)) return 'demo assets';
-  if (/^(demo container|run container|why no container)$/i.test(t)) return 'demo container';
+  if (/^(demo container|run container|why no container|linux|run linux)$/i.test(t)) {
+    return 'demo container';
+  }
   if (/^(clear|clear screen|wipe)$/i.test(t)) return 'clear';
   if (/^(go home|cd home|go to workspace)$/i.test(t)) return 'cd';
   if (/^(go to scratch|cd scratch|open scratch)$/i.test(t)) return 'cd scratch';

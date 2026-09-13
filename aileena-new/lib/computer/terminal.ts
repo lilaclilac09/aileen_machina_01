@@ -1,6 +1,6 @@
 /**
- * Owner CLI over worker-shell. Not Linux. cd/put stay in Next so
- * just-bash never has to persist cwd itself.
+ * Owner CLI over worker-shell + official computerd container.
+ * cd/put stay in Next so just-bash never has to persist cwd itself.
  */
 import { clip } from './redact';
 import { cfExec, cfGetFile, cfPutFile, isCloudflareComputerReady, toWorkspacePath } from './cfClient';
@@ -115,6 +115,12 @@ export async function runOwnerShellLine(command: string, workspaceId: string): P
   if (/^js\b/i.test(cmd) && cmd.replace(/^js\b/i, '').trim()) {
     const made = await runJsSource(cmd.replace(/^js\b/i, '').trim(), workspaceId);
     return { ok: made.ok, cwd, text: made.text, kind: 'demo' };
+  }
+  const linux = /^container\s+(\S[\s\S]*)$/i.exec(cmd);
+  if (linux) {
+    const run = await cfExec(linux[1].trim(), cwd, workspaceId, { backend: 'container' });
+    const text = [run.stdout, run.stderr].filter(Boolean).join('\n') || `exit ${run.exitCode}`;
+    return { ok: run.exitCode === 0, cwd, text: clip(text, 4000), kind: 'exec' };
   }
   const demoName = parseOfficialDemo(cmd);
   if (demoName) {

@@ -1,13 +1,14 @@
-/** Honest catalog. Runnable names first. Container stays fail-closed. */
+/** Honest catalog. Official names run on this workspace. */
 export const OWNER_CLI_HELP = [
-  'official surfaces on this workspace (same DO · not Linux)',
+  'official surfaces on this workspace (same DO)',
   'demo · demo js · demo egress · demo mcp · demo rlm · demo think',
   'demo compare · demo tutorial · demo artifacts · demo assets',
-  'demo container — fail-closed (needs computerd)',
+  'demo container — computerd Linux on the same workspace',
+  'container <cmd> — owner Linux (uname, node, npm, git, …)',
   'js <module> — ad-hoc worker-javascript',
   'builtins: cd  put|write  clear  help  examples  vcode',
   'bins: ls cat pwd mkdir find tree curl jq file xan html-to-markdown echo grep sed awk',
-  'voice: say demo js · say demo egress · say write code greet.ts',
+  'voice: say demo js · say demo container · say write code greet.ts',
 ].join('\n');
 
 export const OWNER_CLI_EXAMPLES = [
@@ -24,9 +25,8 @@ export const OWNER_CLI_EXAMPLES = [
   '  demo tutorial   examples/tutorial         recipe.md + tiny PDF (not pandoc)',
   '  demo artifacts  examples/artifacts        Worker scaffold (publish needs ARTIFACTS)',
   '  demo assets     examples/assets           SVG file (share needs R2)',
-  '',
-  'fail-closed:',
-  '  demo container  examples/container        needs computerd + Workers Containers',
+  '  demo container  examples/container        computerd Linux · same workspace',
+  '  container uname -a                        Linux on the bound container',
   '',
   'packages/dofs · rpc · computerd · computer are internals, not extra terminals.',
 ].join('\n');

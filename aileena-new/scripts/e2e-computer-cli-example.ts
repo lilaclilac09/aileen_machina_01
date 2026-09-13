@@ -68,7 +68,8 @@ const STEPS: Step[] = [
   { cmd: 'demo', expect: /scratch\/demo\/worker-shell\.json/ },
   { cmd: 'cat scratch/demo/worker-shell.json', expect: /"example": "worker-shell"/ },
   { cmd: 'demo js', expect: /worker-javascript/ },
-  { cmd: 'demo container', expect: /computerd/ },
+  { cmd: 'demo container', expect: /Linux/ },
+  { cmd: 'container node -v', expect: /v\d+/ },
   { cmd: 'demo tutorial', expect: /recipe\.md/ },
   { cmd: 'vcode scratch/vcode/voice.ts\nexport function hello() {\n  return "hi";\n}\n', expect: /voice\.ts/ },
   { cmd: 'cat scratch/vcode/voice.ts', expect: /export function hello/ },
@@ -92,9 +93,9 @@ async function postShell(cookie: string, cmd: string) {
   throw new Error('rate_limit');
 }
 
-async function poll(cookie: string, id: string) {
+async function poll(cookie: string, id: string, timeoutMs = 45_000) {
   const started = Date.now();
-  while (Date.now() - started < 45_000) {
+  while (Date.now() - started < timeoutMs) {
     const res = await fetch(`${BASE}/api/agent/computer/tasks/${id}`, { headers: { Cookie: cookie } });
     if (!res.ok) return { ok: false as const, status: res.status, preview: '', cwd: '' };
     const body = (await res.json()) as {
@@ -133,7 +134,10 @@ async function main() {
     const res = await postShell(cookie, step.cmd);
     const json = res.status === 202 ? ((await res.json()) as { task?: { id?: string } }) : {};
     const id = json.task?.id || '';
-    const done = id ? await poll(cookie, id) : { ok: false as const, status: String(res.status), preview: '', cwd: '' };
+    const long = /^(demo container|container\b)/.test(step.cmd);
+    const done = id
+      ? await poll(cookie, id, long ? 120_000 : 45_000)
+      : { ok: false as const, status: String(res.status), preview: '', cwd: '' };
     const ok = done.ok && match(step.expect, `${done.preview}\n${done.status}`);
     if (!ok) failed += 1;
     lines.push(`## ${ok ? 'PASS' : 'FAIL'}  ${step.cmd.split('\n')[0]}`);
