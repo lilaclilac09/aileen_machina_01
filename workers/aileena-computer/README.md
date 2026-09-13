@@ -138,7 +138,16 @@ Workspace names: `owner` or `v-[a-z0-9]{8,32}` (visitor cookie). Bearer secret s
 
 `wrangler.jsonc` must **not** include the `experimental` compatibility flag. Production Cloudflare returns **10021** if it is present. Keep `nodejs_compat` + `worker_loaders`. Official `@cloudflare/computer` example still lists `experimental`; do not copy that line.
 
-From `aileen@192 ~` this fails: `cd workers/aileena-computer` — that path is not under home. Next time, paste this:
+`wrangler secret list` showing `COMPUTER_WORKER_SECRET` is not enough. If `POST /c/*/exec` returns `503 worker secret not configured`, the isolate value is empty — even after a rollback to an older version. `wrangler.jsonc` now marks that secret as required so later deploys inherit it. To write a real value:
+
+```sh
+# from the Worker directory — never commit this file
+npx wrangler deploy --secrets-file /tmp/aileena-computer.secrets --message "bind COMPUTER_WORKER_SECRET"
+```
+
+The file is one line: `COMPUTER_WORKER_SECRET=<value>`. Then set the **same** value on Vercel Production. Do not put the local `dev-aileena-computer-local` value unless Vercel already uses it.
+
+From `aileen@192 ~` this fails: `cd workers/aileena-computer` — that path is not under home. The Cloud Agent can deploy after `wrangler login`; you do not need to run that `cd` from `~`. If you still deploy from the Mac, paste this:
 
 ```sh
 ls ~/aileen_machina_01/workers/aileena-computer
@@ -150,8 +159,7 @@ git fetch origin
 git checkout cursor/computer-cli-term-7f4a
 git pull origin cursor/computer-cli-term-7f4a
 cd ~/aileen_machina_01/workers/aileena-computer
-npx wrangler deploy
-npx wrangler secret put COMPUTER_WORKER_SECRET
+npx wrangler deploy --secrets-file /tmp/aileena-computer.secrets
 npx wrangler deployments list
 ```
 
