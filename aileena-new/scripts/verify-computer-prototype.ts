@@ -11,7 +11,7 @@ import { join } from 'node:path';
 import { createOwnerSession, SESSION_COOKIE } from '../lib/auth';
 import { inspectRouteFiles, analyzeDailyFixPlan } from '../lib/computer/inspect';
 import { parseOwnerComputerCommand, parseVisitorComputerCommand } from '../lib/computer/parseOwnerCommand';
-import { curlFetchCommand, curlHttpsTarget, isOwnerShellCommand, safeHttpsUrl } from '../lib/computer/allowlist';
+import { curlFetchCommand, curlHttpsTarget, isOwnerShellCommand, isVisitorSharedShellCommand, safeHttpsUrl } from '../lib/computer/allowlist';
 import { parseJsonRpcBody, parseMcpServers } from '../lib/mcp/remote';
 import { githubContentPath, githubReady } from '../lib/mcp/github';
 import { isMcpReadPath } from '../lib/mcp/computer';
@@ -96,8 +96,13 @@ function sourceChecks() {
   );
   assert(
     'monthly reset never touches the owner workspace',
-    /!isOwnerComputerTask\(task\) && backend === 'cloudflare-worker-shell'/.test(runner),
+    /!isOwnerComputerTask\(task\) && !isSharedComputerRoom/.test(runner) &&
+      /backend === 'cloudflare-worker-shell'/.test(runner),
   );
+  assert('shared room id is a visitor cwid', /v-sharedroom01/.test(readFileSync(join(process.cwd(), 'lib/computer/workspaceName.ts'), 'utf8')));
+  assert('actor joins room=open as the public pad', /sharedRoomRequested/.test(readFileSync(join(process.cwd(), 'lib/computer/actor.ts'), 'utf8')));
+  assert('shared room allows worker-shell not linux', /isSharedRoomComputerTaskType/.test(tasks) && /isVisitorSharedShellCommand/.test(runner));
+  assert('dock copies /proof?room=open', /computer-key-share/.test(readFileSync(join(process.cwd(), 'components/ComputerConsoleDock.tsx'), 'utf8')));
   const cfClientSrc = readFileSync(join(process.cwd(), 'lib/computer/cfClient.ts'), 'utf8');
   assert('cfClient does not import @cloudflare/computer', !/from ['"]@cloudflare\/computer/.test(cfClientSrc));
   assert('cfClient routes by workspace name', /\/c\/\$\{name\}\/file/.test(cfClientSrc) && /\/c\/\$\{name\}\/exec/.test(cfClientSrc));
@@ -162,6 +167,14 @@ function sourceChecks() {
   assert('isWritePath only scratch reports artifacts', isWritePath('/workspace/scratch/a.ts') && !isWritePath('/workspace/scratch') && !isWritePath('/workspace/lib/x.ts'));
   assert('isOwnerCliCommand accepts builtins and bins', isOwnerCliCommand('cd scratch') && isOwnerCliCommand('put x.ts') && isOwnerCliCommand('examples') && isOwnerCliCommand('demo js') && isOwnerCliCommand('container uname -a') && isOwnerCliCommand('ls') && !isOwnerCliCommand('vim') && !isOwnerCliCommand('pnpm'));
   assert('isOwnerShellCommand matches CLI builtins', isOwnerShellCommand('clear') && isOwnerShellCommand('mkdir -p scratch') && !isOwnerShellCommand('git status'));
+  assert(
+    'shared room shell is worker-shell only',
+    isVisitorSharedShellCommand('ls') &&
+      isVisitorSharedShellCommand('echo hi') &&
+      !isVisitorSharedShellCommand('uname -a') &&
+      !isVisitorSharedShellCommand('curl https://example.com') &&
+      !isVisitorSharedShellCommand('demo container'),
+  );
   assert('formatPrompt shortens under /workspace', formatPrompt('/workspace') === '/workspace $' && formatPrompt('/workspace/scratch/cli-demo') === 'scratch/cli-demo $');
   assert('resolveCwd blocks leaving workspace', resolveCwd('/workspace', '../../etc/passwd') === null);
   assert('spoken ls alias', spokenToCli('list files').command === 'ls' && spokenToCli('go to scratch').command === 'cd scratch');
@@ -216,7 +229,8 @@ function sourceChecks() {
     /setOpen\(true\);\s*setComputerMode\(true\)/.test(agentChatSrc),
   );
   assert('visitor chips skip git status', /VISITOR_STARTER_CHIPS/.test(dockSrc) && !/VISITOR_STARTER_CHIPS[\s\S]{0,200}git status/.test(dockSrc));
-  assert('dock tells visitors scratch resets on a 30d mark', /isOwner \? ` · cli /.test(dockSrc) && /: ' · 30d'/.test(dockSrc));
+  assert('dock tells visitors scratch resets on a 30d mark', /ownerPad \? ` · cli /.test(dockSrc) && /: ' · 30d'/.test(dockSrc));
+  assert('dock marks the shared room', /· shared/.test(dockSrc) && /computer-key-share/.test(dockSrc));
   assert('does not import @cloudflare/computer', !existsSync(join(process.cwd(), 'node_modules/@cloudflare/computer')));
   assert(
     'plugins are not DeepSeek Harness',
@@ -793,6 +807,84 @@ async function liveHttp() {
     body: JSON.stringify({ taskType: 'shell_exec', instructions: 'ls' }),
   });
   assert('visitor POST shell_exec → 403', visitorCli.status === 403, String(visitorCli.status));
+
+  const sharedGet = await fetch(`${base}/api/agent/computer/tasks?room=open`);
+  assert('shared room GET → 200', sharedGet.status === 200, String(sharedGet.status));
+  const sharedGetJson = sharedGet.ok
+    ? ((await sharedGet.json()) as {
+        actor?: string;
+        room?: string | null;
+        harness?: string;
+        sharePath?: string;
+      })
+    : {};
+  assert('shared room GET is visitor', sharedGetJson.actor === 'visitor', String(sharedGetJson.actor));
+  assert('shared room GET room=open', sharedGetJson.room === 'open', String(sharedGetJson.room));
+  assert('shared room GET harness', sharedGetJson.harness === 'machina-shared-room', String(sharedGetJson.harness));
+  assert('shared room GET sharePath', sharedGetJson.sharePath === '/proof?room=open', String(sharedGetJson.sharePath));
+  const sharedCookie = cookieJar(sharedGet);
+  assert('shared room cookie is v-sharedroom01', /__aileena_cwid=v-sharedroom01/.test(sharedCookie), sharedCookie.slice(0, 80));
+
+  const sharedMark = `share-${Date.now().toString(36)}`;
+  const sharedWrite = await fetch(`${base}/api/agent/computer/tasks?room=open`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Cookie: sharedCookie },
+    body: JSON.stringify({ taskType: 'write_scratch_file', route: '/proof', instructions: sharedMark }),
+  });
+  assert('shared room write → 202', sharedWrite.status === 202, String(sharedWrite.status));
+  const sharedWriteJson = sharedWrite.status === 202
+    ? ((await sharedWrite.json()) as { task?: { id?: string; status?: string } })
+    : {};
+  const sharedWriteId = sharedWriteJson.task?.id || '';
+  if (sharedWriteId) await pollTask(base, sharedCookie, sharedWriteId);
+
+  const sharedPeer = await fetch(`${base}/api/agent/computer/tasks?room=open`);
+  const sharedPeerJson = sharedPeer.ok
+    ? ((await sharedPeer.json()) as { tasks?: { id?: string; instructions?: string }[] })
+    : { tasks: [] };
+  assert(
+    'second visitor on room=open sees the shared task',
+    (sharedPeerJson.tasks || []).some((t) => t.id === sharedWriteId || (t.instructions || '').includes(sharedMark)),
+    String((sharedPeerJson.tasks || []).length),
+  );
+  const privateAgain = await fetch(`${base}/api/agent/computer/tasks`, { headers: { Cookie: otherCookie } });
+  const privateAgainJson = privateAgain.ok
+    ? ((await privateAgain.json()) as { tasks?: { id?: string }[]; room?: string | null })
+    : { tasks: [], room: null };
+  assert(
+    'private visitor still does not see the shared task',
+    privateAgainJson.room !== 'open' && !(privateAgainJson.tasks || []).some((t) => t.id === sharedWriteId),
+  );
+
+  const sharedLs = await fetch(`${base}/api/agent/computer/tasks?room=open`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Cookie: sharedCookie },
+    body: JSON.stringify({ taskType: 'shell_exec', instructions: 'ls' }),
+  });
+  assert('shared room POST shell_exec ls → 202', sharedLs.status === 202, String(sharedLs.status));
+
+  const sharedLinux = await fetch(`${base}/api/agent/computer/tasks?room=open`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Cookie: sharedCookie },
+    body: JSON.stringify({ taskType: 'shell_exec', instructions: 'uname -a' }),
+  });
+  const sharedLinuxJson = sharedLinux.status === 202
+    ? ((await sharedLinux.json()) as { task?: { id?: string; status?: string; error?: string } })
+    : {};
+  if (sharedLinux.status === 202 && sharedLinuxJson.task?.id) {
+    const done = await pollTask(base, sharedCookie, sharedLinuxJson.task.id);
+    const failed = done.ok && (done.st === 'failed' || done.st === 'blocked');
+    assert('shared room uname is not linux', failed, String(done.ok ? done.st : sharedLinux.status));
+  } else {
+    assert('shared room uname rejected', sharedLinux.status === 400 || sharedLinux.status === 403, String(sharedLinux.status));
+  }
+
+  const sharedGit = await fetch(`${base}/api/agent/computer/tasks?room=open`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Cookie: sharedCookie },
+    body: JSON.stringify({ taskType: 'git_status', instructions: 'git status --short' }),
+  });
+  assert('shared room POST git_status → 403', sharedGit.status === 403, String(sharedGit.status));
 
   const visitorGit = await fetch(`${base}/api/agent/computer/tasks`, {
     method: 'POST',

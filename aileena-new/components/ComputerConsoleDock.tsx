@@ -3,8 +3,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ComputerTask } from '../lib/computer/types';
 import type { ProofItem } from '../lib/proofQueue/types';
-import { curlFetchCommand, isOwnerShellCommand, safeHttpsUrl } from '../lib/computer/allowlist';
+import { curlFetchCommand, isOwnerShellCommand, isVisitorSharedShellCommand, safeHttpsUrl } from '../lib/computer/allowlist';
+import { SHARED_ROOM_HELP } from '../lib/computer/helpText';
+import { SHARED_COMPUTER_ROOM_PATH } from '../lib/computer/workspaceName';
 import { COMPUTER_CLI_EVENT } from '../lib/computer/spokenCli';
+
+function roomFromWindow(): boolean {
+  if (typeof window === 'undefined') return false;
+  const room = new URLSearchParams(window.location.search).get('room');
+  return room === 'open' || room === 'share' || room === 'v-sharedroom01';
+}
+
+function computerTasksUrl(): string {
+  return roomFromWindow() ? '/api/agent/computer/tasks?room=open' : '/api/agent/computer/tasks';
+}
 
 function cliPrompt(cwd: string): string {
   const short = cwd === '/workspace' ? '/workspace' : cwd.replace(/^\/workspace\/?/, '') || '/workspace';
@@ -89,8 +101,11 @@ function SignMark({ kind }: { kind: 'note' | 'look' | 'find' | 'git' | 'shell' }
   );
 }
 
-function parseLine(raw: string, owner: boolean): { taskType: string; instructions: string; route?: string } {
+function parseLine(raw: string, owner: boolean, shared: boolean): { taskType: string; instructions: string; route?: string } {
   const t = raw.trim();
+  if (shared && isVisitorSharedShellCommand(t)) {
+    return { taskType: 'shell_exec', instructions: t };
+  }
   if (/^git(\s+status)?$/i.test(t)) {
     return { taskType: 'git_status', instructions: 'git status --short' };
   }
@@ -157,13 +172,17 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
   const [tab, setTab] = useState<AppTab>('note');
   const [line, setLine] = useState('');
   const [cwd, setCwd] = useState('/workspace');
-  const [termMode, setTermMode] = useState(isOwner);
+  const [shared, setShared] = useState(roomFromWindow);
+  const ownerPad = isOwner && !shared;
+  const [termMode, setTermMode] = useState(ownerPad || roomFromWindow());
+  const [shareFlash, setShareFlash] = useState('');
+  const [padHelp, setPadHelp] = useState('');
   const prevStatus = useRef<Record<string, string>>({});
   const logRef = useRef<HTMLPreElement | null>(null);
   const lineRef = useRef<HTMLTextAreaElement | null>(null);
 
   const load = useCallback(async () => {
-    const res = await fetch('/api/agent/computer/tasks', { cache: 'no-store', credentials: 'include' });
+    const res = await fetch(computerTasksUrl(), { cache: 'no-store', credentials: 'include' });
     if (!res.ok) return;
     const data = (await res.json()) as {
       tasks?: ComputerTask[];
@@ -171,12 +190,16 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
       cloudflareComputer?: boolean;
       learned?: LearnedChip[];
       cwd?: string;
+      room?: string | null;
     };
     setTasks(Array.isArray(data.tasks) ? data.tasks : []);
     setProof(Array.isArray(data.proof) ? data.proof.filter((p) => p.status !== 'shipped') : []);
     setCloudflare(Boolean(data.cloudflareComputer));
     setLearned(Array.isArray(data.learned) ? data.learned : []);
     if (typeof data.cwd === 'string' && data.cwd.startsWith('/workspace')) setCwd(data.cwd);
+    const nextShared = data.room === 'open';
+    setShared(nextShared);
+    if (nextShared) setTermMode(true);
   }, []);
 
   useEffect(() => {
@@ -228,7 +251,7 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
   const chips = useMemo(() => {
     const seen = new Set<string>();
     const rows: LearnedChip[] = [];
-    for (const row of [...(isOwner ? OWNER_STARTER_CHIPS : VISITOR_STARTER_CHIPS), ...(isOwner ? learned : [])]) {
+    for (const row of [...(ownerPad ? OWNER_STARTER_CHIPS : VISITOR_STARTER_CHIPS), ...(ownerPad ? learned : [])]) {
       const key = row.alias.trim().toLowerCase();
       if (!key || seen.has(key)) continue;
       seen.add(key);
@@ -236,7 +259,7 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
       if (rows.length >= 6) break;
     }
     return rows;
-  }, [learned, isOwner]);
+  }, [learned, ownerPad]);
 
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
@@ -250,9 +273,9 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
     phrase?: string;
   }) => {
     if (
-      !isOwner &&
+      !ownerPad &&
       (opts.taskType.startsWith('git_') ||
-        opts.taskType === 'shell_exec' ||
+        (opts.taskType === 'shell_exec' && !shared) ||
         opts.taskType === 'files_open' ||
         opts.taskType.startsWith('email_') ||
         opts.taskType.startsWith('browser_') ||
@@ -264,7 +287,7 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
     }
     setBusy(true);
     try {
-      const res = await fetch('/api/agent/computer/tasks', {
+      const res = await fetch(computerTasksUrl(), {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -306,7 +329,7 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
     setTab('find');
     void queue({
       taskType: 'files_tree',
-      instructions: isOwner ? '/workspace' : '/workspace/scratch',
+      instructions: ownerPad ? '/workspace' : '/workspace/scratch',
       phrase: 'list',
     });
   };
@@ -316,14 +339,26 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
 
   const runCli = (raw: string) => {
     const cmd = raw.trim() || 'ls';
+    setPadHelp('');
     setTermMode(true);
     setTab('find');
     void queue({ taskType: 'shell_exec', instructions: cmd, phrase: cmd.split('\n')[0] });
     setLine('');
   };
 
+  const copyShareLink = async () => {
+    const url = `${window.location.origin}${SHARED_COMPUTER_ROOM_PATH}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareFlash('copied');
+    } catch {
+      setShareFlash('share');
+    }
+    window.setTimeout(() => setShareFlash(''), 2000);
+  };
+
   useEffect(() => {
-    if (!isOwner) return;
+    if (!ownerPad) return;
     const onCli = (e: Event) => {
       const text = String((e as CustomEvent<{ text?: string }>).detail?.text || '').trim();
       if (!text) return;
@@ -334,11 +369,16 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
     };
     window.addEventListener(COMPUTER_CLI_EVENT, onCli);
     return () => window.removeEventListener(COMPUTER_CLI_EVENT, onCli);
-  }, [isOwner]);
+  }, [ownerPad]);
 
   const go = () => {
     const raw = line.trim();
-    if (isOwner && termMode) {
+    if (shared && /^help$/i.test(raw)) {
+      setPadHelp(SHARED_ROOM_HELP);
+      setLine('');
+      return;
+    }
+    if ((ownerPad || shared) && termMode) {
       runCli(raw);
       return;
     }
@@ -346,7 +386,7 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
       noteNow('');
       return;
     }
-    if (isOwner) {
+    if (ownerPad) {
       const https = safeHttpsUrl(raw);
       if (https) {
         runCli(curlFetchCommand(https));
@@ -357,7 +397,8 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
         return;
       }
     }
-    const parsed = parseLine(raw, isOwner);
+    const parsed = parseLine(raw, ownerPad, shared);
+    setPadHelp('');
     setTab(parsed.taskType === 'write_scratch_file' ? 'note' : parsed.taskType.startsWith('git_') ? 'git' : 'find');
     void queue({ ...parsed, phrase: raw });
     setLine('');
@@ -366,7 +407,8 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
   return (
     <div
       data-testid="computer-console-dock"
-      data-harness="machina-owner-prototype"
+      data-harness={shared ? 'machina-shared-room' : 'machina-owner-prototype'}
+      data-room={shared ? 'open' : ''}
       data-open-proof={String(proof.length)}
       className="border-b border-[#e7e0d6] px-3 py-2 bg-[#fffcf7]/90 shrink-0"
     >
@@ -381,8 +423,9 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
           />
           <span className="min-w-0 truncate">
             {backend}
-            {isOwner ? ` · cli ${cwd.replace(/^\/workspace\/?/, '') || '/workspace'}` : ' · 30d'}
-            {isOwner && voiceOn ? ' · voice' : ''}
+            {ownerPad ? ` · cli ${cwd.replace(/^\/workspace\/?/, '') || '/workspace'}` : shared ? ' · shared' : ' · 30d'}
+            {ownerPad && voiceOn ? ' · voice' : ''}
+            {shareFlash ? ` · ${shareFlash}` : ''}
             {flash ? ` · ${flash}` : ''}
           </span>
         </p>
@@ -397,13 +440,16 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
             data-testid="computer-monitor"
             data-live={live ? '1' : '0'}
             className={`font-mono text-[0.58rem] leading-relaxed text-[#8fe6dd] whitespace-pre-wrap overflow-y-auto px-2 py-1.5 [text-shadow:0_0_5px_rgba(0,168,157,0.35)] ${
-              isOwner && termMode ? 'max-h-56' : 'max-h-40'
+              ownerPad && termMode ? 'max-h-56' : 'max-h-40'
             }`}
-            data-terminal={isOwner && termMode ? '1' : '0'}
+            data-terminal={(ownerPad || shared) && termMode ? '1' : '0'}
           >
-            {isOwner && termMode
-              ? terminalTranscript(tasks) || `${cliPrompt(cwd)} ls · help · vcode · put · cd`
-              : monitorText(selectedTask)}
+            {padHelp
+              ? padHelp
+              : (ownerPad || shared) && termMode
+                ? terminalTranscript(tasks) ||
+                  (shared ? SHARED_ROOM_HELP : `${cliPrompt(cwd)} ls · help · vcode · put · cd`)
+                : monitorText(selectedTask)}
           </pre>
         </div>
 
@@ -482,7 +528,38 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
           >
             :
           </button>
-          {isOwner ? (
+          <button
+            type="button"
+            data-testid="computer-key-share"
+            aria-label="share"
+            onClick={() => void copyShareLink()}
+            className={KEY_CLASS}
+          >
+            share
+          </button>
+          {shared ? (
+            <button
+              type="button"
+              disabled={busy}
+              data-testid="computer-key-shell"
+              aria-label="shell"
+              onClick={() => {
+                setTermMode(true);
+                lineRef.current?.focus();
+                const raw = line.trim();
+                if (raw && /^help$/i.test(raw)) {
+                  setPadHelp(SHARED_ROOM_HELP);
+                  setLine('');
+                  return;
+                }
+                runCli(raw || 'ls');
+              }}
+              className={KEY_CLASS}
+            >
+              <SignMark kind="shell" />
+            </button>
+          ) : null}
+          {ownerPad ? (
             <button
               type="button"
               disabled={busy}
@@ -500,7 +577,7 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
               <SignMark kind="shell" />
             </button>
           ) : null}
-          {isOwner ? (
+          {ownerPad ? (
             <button
               type="button"
               disabled={busy}
@@ -528,7 +605,7 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
             go();
           }}
         >
-          {isOwner && termMode ? (
+          {(ownerPad || shared) && termMode ? (
             <span className="pb-2.5 shrink-0 font-mono text-[0.62rem] text-[#007d75]" data-testid="computer-cli-prompt">
               {cliPrompt(cwd)}
             </span>
@@ -536,7 +613,7 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
           <textarea
             ref={lineRef}
             value={line}
-            rows={isOwner && termMode ? 2 : 1}
+            rows={(ownerPad || shared) && termMode ? 2 : 1}
             onChange={(e) => setLine(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
@@ -544,14 +621,16 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
                 go();
               }
             }}
-            aria-label={isOwner && termMode ? 'command' : 'note'}
+            aria-label={(ownerPad || shared) && termMode ? 'command' : 'note'}
             data-testid="computer-line"
             placeholder={
-              isOwner && termMode
+              ownerPad && termMode
                 ? voiceOn
                   ? 'say ls · say write code greet.ts'
                   : 'put scratch/hi.ts · vcode · help'
-                : ''
+                : shared && termMode
+                  ? 'ls · echo hi · note'
+                  : ''
             }
             className="min-h-11 min-w-0 flex-1 resize-none font-mono text-[0.8rem] rounded-[8px] border border-[#d8cfc0] bg-white px-2.5 py-2 text-[#1b1713]"
           />
