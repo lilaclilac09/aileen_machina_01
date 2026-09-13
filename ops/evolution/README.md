@@ -78,10 +78,11 @@ Other scored rolls → `rlvr`. Hack attempts stay out of SFT.
 
 ## New visitor questions
 
-Public chat **enqueues uncovered asks** to Redis (`evolve:inbox`). Council never writes that list. A GitHub Action (`site-agent-evolve.yml`, every 3h) drains up to 5 rows, makes held-out prompts + executable verifiers, and ratchets. Promote only if held-out rises. Constitution files stay owner-gated.
+Public chat **enqueues uncovered asks** to Redis (`evolve:inbox`). Council never writes that list. GitHub Actions does **not** need UPSTASH secrets: it presents an OIDC JWT to `POST https://www.aileena.xyz/api/evolve/drain`, which pops ≤5 rows. Then `pnpm evolve -- --from-asks` ratchets. Promote only if held-out rises. Constitution files stay owner-gated.
 
 ```bash
-pnpm evolve -- --from-live                 # drain Redis → ingest → ratchet
+pnpm evolve -- --from-live                 # drain Redis in this env → ingest → ratchet
+pnpm evolve -- --from-asks asks.json       # ingest a drained payload (Actions path)
 pnpm evolve -- --from-question "其他的 voice 怎么用"  # manual ingest
 ```
 

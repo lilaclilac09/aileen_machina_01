@@ -1,6 +1,6 @@
 # aileena-computer
 
-Owner-only small computer. Official package: [`@cloudflare/computer`](https://github.com/cloudflare/computer) **worker-shell** (just-bash). Not the Linux container. Not inside `aileena-new/`.
+Owner-only small computer. Official package: [`@cloudflare/computer`](https://github.com/cloudflare/computer) **worker-shell** (just-bash) plus **CloudflareContainerBackend** (computerd Linux) on the same Durable Object. Not inside `aileena-new/`.
 
 Spec: [`aileena-new/docs/CLOUDFLARE_COMPUTER.md`](../../aileena-new/docs/CLOUDFLARE_COMPUTER.md)
 
@@ -13,7 +13,7 @@ aileen@192 ~ %                          ← home. workers/ and aileena-new/ are 
 ~/aileen_machina_01/workers/aileena-computer/  ← the small computer (pnpm dev → :8787)
 ```
 
-Until [PR #487](https://github.com/lilaclilac09/aileen_machina_01/pull/487) is merged, this folder **does not exist on `main`**. Checkout the PR branch first.
+`workers/aileena-computer` is on `main` (worker-shell). **Linux / computerd** is on `cursor/computer-cli-term-7f4a`. Deploy Linux from that branch, not from `~` and not from an old checkout of `main`.
 
 ---
 
@@ -29,17 +29,17 @@ cd ~
 git clone https://github.com/lilaclilac09/aileen_machina_01.git
 cd ~/aileen_machina_01
 
-# 2. This computer is not on main yet.
+# 2. Linux container lives on this branch.
 git fetch origin
-git checkout cursor/cloudflare-computer-spec-7f4a
-git pull origin cursor/cloudflare-computer-spec-7f4a
+git checkout cursor/computer-cli-term-7f4a
+git pull origin cursor/computer-cli-term-7f4a
 
 # 3. Confirm both folders exist.
 ls workers/aileena-computer
 ls aileena-new
 ```
 
-If `ls workers/aileena-computer` still fails, you are on `main` (or a different clone). Stay on `cursor/cloudflare-computer-spec-7f4a`.
+If `ls workers/aileena-computer` still fails, you are still in `~` or a different clone. The folder is never `~/workers`.
 
 If git says **local changes would be overwritten** (checkout/merge abort): you still have uncommitted edits on the old branch. Stash them, then checkout. Do **not** `cd workers/...` yet. Do **not** `pnpm install` at the repo root.
 
@@ -47,8 +47,8 @@ If git says **local changes would be overwritten** (checkout/merge abort): you s
 # stop a wrong pnpm install with Ctrl+C first
 cd ~/aileen_machina_01
 git stash push -m "local edits before computer branch"
-git checkout cursor/cloudflare-computer-spec-7f4a
-git pull origin cursor/cloudflare-computer-spec-7f4a
+git checkout cursor/computer-cli-term-7f4a
+git pull origin cursor/computer-cli-term-7f4a
 ls workers/aileena-computer
 ```
 
@@ -125,7 +125,9 @@ Machina calling other apps is a **different product** (`aileena-new/lib/mcp` + `
 
 Visitor scratch pads reset monthly: a `.born` stamp is checked lazily on the next task after 30 days, then that visitor's `/workspace/scratch` is wiped (owner workspace never resets). Visitors cannot `curl` / `file` / `xan` / site git.
 
-Cannot: Python in this isolate (just-bash python needs `node:worker_threads`), yq (`node:process` missing in workerd), sqlite helper worker, full Linux, `pnpm` / `npm` / `node` inside the DO, browser, email send, merge, cloning this monorepo into the Worker. Linux needs the container/`computerd` backend — a later paid slice. Health reports `container: false`.
+Cannot: Python in worker-shell (just-bash python needs `node:worker_threads`), yq (`node:process` missing in workerd), sqlite helper worker, `pnpm` inside the isolate, browser, email send, merge, cloning this monorepo into the Worker. Owner Linux (`uname`, `node`, `npm`, `git`) runs through the bound computerd container. Visitors never get that backend. Health reports `container: true` when the image is bound.
+
+`wrangler dev` containers need Docker + buildx. `pnpm dev` starts the NAT REDIRECT sidecar (`aileena-redirect-proxy:local`) so computerd can dial `computer.internal` without kernel TPROXY. Visitors stay 403. Production Workers Containers do not use that sidecar.
 
 ## Auth
 
@@ -136,10 +138,28 @@ Workspace names: `owner` or `v-[a-z0-9]{8,32}` (visitor cookie). Bearer secret s
 
 `wrangler.jsonc` must **not** include the `experimental` compatibility flag. Production Cloudflare returns **10021** if it is present. Keep `nodejs_compat` + `worker_loaders`. Official `@cloudflare/computer` example still lists `experimental`; do not copy that line.
 
-```txt
-cd workers/aileena-computer
-npx wrangler deploy
-npx wrangler secret put COMPUTER_WORKER_SECRET
+`wrangler secret list` showing `COMPUTER_WORKER_SECRET` is not enough. If `POST /c/*/exec` returns `503 worker secret not configured`, the isolate value is empty — even after a rollback to an older version. `wrangler.jsonc` now marks that secret as required so later deploys inherit it. To write a real value:
+
+```sh
+# from the Worker directory — never commit this file
+npx wrangler deploy --secrets-file /tmp/aileena-computer.secrets --message "bind COMPUTER_WORKER_SECRET"
+```
+
+The file is one line: `COMPUTER_WORKER_SECRET=<value>`. Then set the **same** value on Vercel Production. Do not put the local `dev-aileena-computer-local` value unless Vercel already uses it.
+
+From `aileen@192 ~` this fails: `cd workers/aileena-computer` — that path is not under home. The Cloud Agent can deploy after `wrangler login`; you do not need to run that `cd` from `~`. If you still deploy from the Mac, paste this:
+
+```sh
+ls ~/aileen_machina_01/workers/aileena-computer
+# if that fails, the clone is elsewhere:
+ls ~/aileen_machina_01 ~/code/aileen_machina_01 ~/src/aileen_machina_01
+
+cd ~/aileen_machina_01
+git fetch origin
+git checkout cursor/computer-cli-term-7f4a
+git pull origin cursor/computer-cli-term-7f4a
+cd ~/aileen_machina_01/workers/aileena-computer
+npx wrangler deploy --secrets-file /tmp/aileena-computer.secrets
 npx wrangler deployments list
 ```
 

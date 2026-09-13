@@ -1,19 +1,22 @@
 /**
- * Small computer. Official worker-shell (just-bash) with opted-in
- * curl / jq / html-to-markdown / file / xan groups.
- * python / js-exec need node:worker_threads in workerd — not enabled.
- * yq needs node:process in workerd — not enabled.
- * sqlite group is not shipped complete in 0.2.1. Container/computerd is
- * not bound (Workers Containers is a later paid slice).
- * Visitors keep core files commands only — no network bins.
+ * Small computer. Official worker-shell (just-bash) + worker-javascript
+ * + CloudflareContainerBackend (computerd Linux) on the same Durable
+ * Object workspace. python / yq / sqlite groups stay off (workerd gaps).
+ * Visitors keep core files commands only — no network bins, no JS, no Linux.
  */
 import { DurableObject } from 'cloudflare:workers';
 import {
   type DurableObjectStorageLike,
   getWorkspace,
+  WorkspaceProxy,
   WorkspaceServiceProxy,
   withWorkspace,
 } from '@cloudflare/computer';
+import {
+  CloudflareContainerBackend,
+  withWorkspaceContainer,
+} from '@cloudflare/computer/backends/container';
+import { WorkerJavaScriptBackend } from '@cloudflare/computer/backends/worker-javascript';
 import { WorkerShellBackend } from '@cloudflare/computer/backends/worker-shell';
 import curlModules from '@cloudflare/computer/shell/curl';
 import jqModules from '@cloudflare/computer/shell/jq';
@@ -21,7 +24,7 @@ import htmlToMarkdownModules from '@cloudflare/computer/shell/html-to-markdown';
 import fileModules from '@cloudflare/computer/shell/file';
 import xanModules from '@cloudflare/computer/shell/xan';
 
-export { WorkspaceServiceProxy };
+export { WorkspaceProxy, WorkspaceServiceProxy };
 
 export interface Env {
   OwnerComputer: DurableObjectNamespace;
@@ -77,28 +80,80 @@ const OWNER_BINS = new Set([
 ]);
 const VISITOR_BINS = new Set([...CORE_BINS, 'rm']);
 const WRITE_DEST_BINS = new Set(['rm', 'cp', 'mv', 'touch']);
+const CONTAINER_BINS = new Set([
+  ...CORE_BINS,
+  'uname',
+  'hostname',
+  'id',
+  'whoami',
+  'node',
+  'npm',
+  'npx',
+  'git',
+  'curl',
+  'file',
+  'rm',
+  'cp',
+  'mv',
+  'chmod',
+  'which',
+  'env',
+  'printenv',
+  'sha256sum',
+]);
 
-export class OwnerComputer extends withWorkspace(class extends DurableObject {}, (self) => {
+class ContainerBase extends withWorkspaceContainer(class extends DurableObject {}) {
+  readonly backend = new CloudflareContainerBackend({
+    id: 'container',
+    container: () => this,
+    workspace: { binding: 'OwnerComputer', id: this.ctx.id.toString() },
+    egress: { mode: 'direct' },
+    connectTimeoutMs: 45_000,
+  });
+}
+
+function workspaceOptions(self: InstanceType<typeof ContainerBase>) {
   const { ctx, env } = self as unknown as { ctx: DurableObjectState; env: Env };
   return {
     storage: ctx.storage as unknown as DurableObjectStorageLike,
+    useThink: true,
     backends: [
       new WorkerShellBackend({
+        id: 'worker-shell',
         loader: env.LOADER,
         workspace: { binding: 'OwnerComputer', id: ctx.id.toString() },
         ctx,
         commands: [curlModules, jqModules, htmlToMarkdownModules, fileModules, xanModules],
         egress: { mode: 'direct' },
       }),
+      new WorkerJavaScriptBackend({
+        id: 'worker-javascript',
+        loader: env.LOADER,
+      }),
+      new WorkerJavaScriptBackend({
+        id: 'worker-javascript-none',
+        loader: env.LOADER,
+        globalOutbound: null,
+      }),
+      self.backend,
     ],
   };
-}) {}
+}
+
+export class OwnerComputer extends withWorkspace(ContainerBase, workspaceOptions) {
+  override async fetch(request: Request): Promise<Response> {
+    return this.backend.handleFetch(request);
+  }
+}
 
 interface ExecRequest {
   command?: string;
+  source?: string;
+  backend?: string;
   argv?: string[];
   cwd?: string;
   encoding?: 'utf8';
+  input?: unknown;
 }
 
 export default {
@@ -109,13 +164,13 @@ export default {
       return new Response(
         [
           'aileena-computer',
-          'backend=cloudflare-worker-shell',
+          'backend=cloudflare-worker-shell+worker-javascript+container',
           'groups=curl,jq,html-to-markdown,file,xan',
-          'container=unbound',
+          'container=bound',
           'GET  /health',
           'PUT  /c/<name>/file/workspace/<path>  (bearer)',
           'GET  /c/<name>/file/workspace/<path>  (bearer)',
-          'POST /c/<name>/exec                   (bearer)',
+          'POST /c/<name>/exec                   (bearer; backend=worker-shell|worker-javascript|container)',
           'name=owner | v-[a-z0-9]{8,32}',
           '',
         ].join('\n'),
@@ -127,9 +182,11 @@ export default {
       return Response.json({
         ok: true,
         backend: 'cloudflare-worker-shell',
+        backends: ['worker-shell', 'worker-javascript', 'worker-javascript-none', 'container'],
         groups: ['curl', 'jq', 'html-to-markdown', 'file', 'xan'],
         egress: 'direct',
-        container: false,
+        javascript: true,
+        container: true,
       });
     }
 
@@ -236,6 +293,43 @@ async function handleExec(request: Request, env: Env, name: string): Promise<Res
     return errorJSON(new Error('invalid JSON body'), 400);
   }
 
+  const backendRaw = String(body.backend || '').trim();
+  const jsSource = typeof body.source === 'string' ? body.source.trim() : '';
+  const jsBackend =
+    backendRaw === 'worker-javascript-none'
+      ? 'worker-javascript-none'
+      : backendRaw === 'worker-javascript' || backendRaw === 'js' || Boolean(jsSource && !body.command)
+        ? 'worker-javascript'
+        : '';
+
+  const cwd = typeof body.cwd === 'string' && body.cwd.startsWith(MOUNT_ROOT) ? body.cwd : MOUNT_ROOT;
+
+  if (jsBackend) {
+    if (name !== OWNER) return errorJSON(new Error('javascript exec is owner only'), 403);
+    const source = jsSource || (typeof body.command === 'string' ? body.command.trim() : '');
+    if (!source) return errorJSON(new Error('must provide source'), 400);
+    if (source.length > 8000) return errorJSON(new Error('source too long'), 400);
+    await using ws = await workspaceOf(env, name);
+    try {
+      await using handle = await ws.runtime.exec(source, {
+        backend: jsBackend,
+        cwd,
+        encoding: 'utf8',
+        input: body.input,
+      });
+      const result = await handle.result();
+      return Response.json({
+        exitCode: result.exitCode,
+        stdout: clip(String(result.stdout ?? ''), 4000),
+        stderr: clip(String(result.stderr ?? ''), 2000),
+        value: result.value ?? null,
+        backend: jsBackend,
+      });
+    } catch (error) {
+      return errorJSON(error, 500);
+    }
+  }
+
   let command = '';
   if (typeof body.command === 'string' && body.command.trim()) {
     if (body.command.length > 2000) return errorJSON(new Error('command too long'), 400);
@@ -247,9 +341,17 @@ async function handleExec(request: Request, env: Env, name: string): Promise<Res
   }
 
   const bin = command.split(/\s+/)[0] || '';
-  const allow = name === OWNER ? OWNER_BINS : VISITOR_BINS;
-  if (!allow.has(bin)) {
-    return errorJSON(new Error(`command not allowlisted: ${bin}`), 400);
+  const container = backendRaw === 'container';
+  if (container) {
+    if (name !== OWNER) return errorJSON(new Error('container exec is owner only'), 403);
+    if (!CONTAINER_BINS.has(bin)) {
+      return errorJSON(new Error(`command not allowlisted: ${bin}`), 400);
+    }
+  } else {
+    const allow = name === OWNER ? OWNER_BINS : VISITOR_BINS;
+    if (!allow.has(bin)) {
+      return errorJSON(new Error(`command not allowlisted: ${bin}`), 400);
+    }
   }
   if (WRITE_DEST_BINS.has(bin)) {
     const parts = command.split(/\s+/).slice(1).filter((a) => a && !a.startsWith('-'));
@@ -260,11 +362,10 @@ async function handleExec(request: Request, env: Env, name: string): Promise<Res
     }
   }
 
-  const cwd = typeof body.cwd === 'string' && body.cwd.startsWith(MOUNT_ROOT) ? body.cwd : MOUNT_ROOT;
-
+  const execBackend = container ? 'container' : 'worker-shell';
   await using ws = await workspaceOf(env, name);
   try {
-    await using handle = await ws.runtime.exec(command, { cwd, encoding: 'utf8' });
+    await using handle = await ws.runtime.exec(command, { backend: execBackend, cwd, encoding: 'utf8' });
     const result = await handle.result();
     const stdout = clip(String(result.stdout ?? ''), 4000);
     const stderr = clip(String(result.stderr ?? ''), 2000);
@@ -272,6 +373,7 @@ async function handleExec(request: Request, env: Env, name: string): Promise<Res
       exitCode: result.exitCode,
       stdout,
       stderr,
+      backend: execBackend,
     });
   } catch (error) {
     return errorJSON(error, 500);

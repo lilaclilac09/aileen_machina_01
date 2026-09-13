@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { isComputerPrototypeEnabled, prototypeDisabledReason } from '@/lib/computer/flag';
-import { reportedBackend } from '@/lib/computer/cfClient';
+import { cfHealth, reportedBackend } from '@/lib/computer/cfClient';
 import { applyComputerActorCookie, computerActorFromRequest } from '@/lib/computer/actor';
 import { callMcpApp, listMcpApps } from '@/lib/mcp/catalog';
 
@@ -20,8 +20,14 @@ export async function GET(req: Request) {
     );
   }
   const apps = await listMcpApps();
+  const health = await cfHealth();
   return applyComputerActorCookie(
-    NextResponse.json({ ok: true, backend: reportedBackend(), container: false, apps }),
+    NextResponse.json({
+      ok: true,
+      backend: reportedBackend(),
+      container: health.container === true,
+      apps,
+    }),
     actor,
   );
 }

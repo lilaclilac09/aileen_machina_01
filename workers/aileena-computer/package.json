@@ -3,9 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Owner small computer: Cloudflare worker-shell + Durable Object. Not inside aileena-new.",
+  "description": "Owner small computer: Cloudflare worker-shell + official computerd container. Not inside aileena-new.",
   "scripts": {
-    "dev": "wrangler dev --port 8787",
+    "predev": "docker build -t aileena-redirect-proxy:local -f sidecar/Dockerfile sidecar",
+    "dev": "bash ./scripts/dev.sh",
     "deploy": "wrangler deploy",
     "typecheck": "tsc --noEmit",
     "smoke": "node ./scripts/smoke.mjs"

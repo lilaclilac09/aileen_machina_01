@@ -9,6 +9,7 @@ import { clip, redactSecrets } from './redact';
 export type ComputerBackend = 'local-shim' | 'cloudflare-worker-shell';
 
 const TIMEOUT_MS = 25_000;
+const CONTAINER_TIMEOUT_MS = 90_000;
 
 export function isCloudflareComputerReady(): boolean {
   return isComputerPrototypeEnabled() && hasComputerWorkerEnv();
@@ -59,9 +60,9 @@ export function workspaceSearchQuery(input: string): string {
   return t;
 }
 
-async function cfFetch(path: string, init: RequestInit = {}): Promise<Response> {
+async function cfFetch(path: string, init: RequestInit = {}, timeoutMs = TIMEOUT_MS): Promise<Response> {
   const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+  const t = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
     return await fetch(`${workerUrl()}${path}`, {
       ...init,
@@ -76,11 +77,29 @@ async function cfFetch(path: string, init: RequestInit = {}): Promise<Response> 
   }
 }
 
-export async function cfHealth(): Promise<{ ok: boolean; backend?: string; error?: string }> {
+export async function cfHealth(): Promise<{
+  ok: boolean;
+  backend?: string;
+  container?: boolean;
+  backends?: string[];
+  error?: string;
+}> {
   try {
     const res = await fetch(`${workerUrl()}/health`, { signal: AbortSignal.timeout(5000) });
-    const body = (await res.json()) as { ok?: boolean; backend?: string; error?: string };
-    return { ok: Boolean(res.ok && body.ok), backend: body.backend, error: body.error };
+    const body = (await res.json()) as {
+      ok?: boolean;
+      backend?: string;
+      container?: boolean;
+      backends?: string[];
+      error?: string;
+    };
+    return {
+      ok: Boolean(res.ok && body.ok),
+      backend: body.backend,
+      container: Boolean(body.container),
+      backends: Array.isArray(body.backends) ? body.backends : undefined,
+      error: body.error,
+    };
   } catch (err) {
     return { ok: false, error: redactSecrets(err instanceof Error ? err.message : 'health failed') };
   }
@@ -121,17 +140,24 @@ export async function cfExec(
   command: string,
   cwd: string,
   workspace: string,
-): Promise<{ exitCode: number; stdout: string; stderr: string }> {
+  opts: { backend?: 'worker-shell' | 'container' } = {},
+): Promise<{ exitCode: number; stdout: string; stderr: string; backend: string }> {
   const name = computerWorkspaceName(workspace);
-  const res = await cfFetch(`/c/${name}/exec`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ command, cwd, encoding: 'utf8' }),
-  });
+  const backend = opts.backend || 'worker-shell';
+  const res = await cfFetch(
+    `/c/${name}/exec`,
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ command, cwd, encoding: 'utf8', backend }),
+    },
+    backend === 'container' ? CONTAINER_TIMEOUT_MS : TIMEOUT_MS,
+  );
   const body = (await res.json()) as {
     exitCode?: number;
     stdout?: string;
     stderr?: string;
+    backend?: string;
     error?: string;
   };
   if (!res.ok) throw new Error(redactSecrets(body.error || `exec ${res.status}`));
@@ -139,6 +165,42 @@ export async function cfExec(
     exitCode: Number(body.exitCode ?? 1),
     stdout: redactSecrets(clip(String(body.stdout ?? ''), 2000)),
     stderr: redactSecrets(clip(String(body.stderr ?? ''), 2000)),
+    backend: String(body.backend || backend),
+  };
+}
+
+export async function cfExecJs(
+  source: string,
+  workspace: string,
+  opts: { input?: unknown; backend?: 'worker-javascript' | 'worker-javascript-none' } = {},
+): Promise<{ exitCode: number; stdout: string; stderr: string; value: unknown; backend: string }> {
+  const name = computerWorkspaceName(workspace);
+  const res = await cfFetch(`/c/${name}/exec`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      source,
+      backend: opts.backend || 'worker-javascript',
+      cwd: '/workspace',
+      encoding: 'utf8',
+      input: opts.input,
+    }),
+  });
+  const body = (await res.json()) as {
+    exitCode?: number;
+    stdout?: string;
+    stderr?: string;
+    value?: unknown;
+    backend?: string;
+    error?: string;
+  };
+  if (!res.ok) throw new Error(redactSecrets(body.error || `js exec ${res.status}`));
+  return {
+    exitCode: Number(body.exitCode ?? 1),
+    stdout: redactSecrets(clip(String(body.stdout ?? ''), 2000)),
+    stderr: redactSecrets(clip(String(body.stderr ?? ''), 2000)),
+    value: body.value ?? null,
+    backend: String(body.backend || 'worker-javascript'),
   };
 }
 

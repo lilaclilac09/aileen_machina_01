@@ -1,5 +1,5 @@
 import { isOwnerShellCommand } from '../computer/allowlist';
-import { cfExec, cfGetFile, isCloudflareComputerReady, toWorkspacePath } from '../computer/cfClient';
+import { cfGetFile, isCloudflareComputerReady, toWorkspacePath } from '../computer/cfClient';
 import { clip, redactSecrets } from '../computer/redact';
 import type { McpCallResult, McpToolDesc } from './types';
 
@@ -12,7 +12,7 @@ export function isMcpReadPath(input: string): boolean {
 }
 
 const TOOLS: McpToolDesc[] = [
-  { name: 'exec', description: 'Run an allowlisted worker-shell command in /workspace' },
+  { name: 'exec', description: 'Run an allowlisted worker-shell command (cwd persists under /workspace)' },
   { name: 'read', description: 'Read a file under /workspace/scratch|reports|artifacts' },
 ];
 
@@ -61,9 +61,9 @@ export async function callComputer(
       return { ok: false, app: 'computer', tool, text: `command not allowlisted: ${command.split(/\s+/)[0]}`, blocked: true };
     }
     try {
-      const run = await cfExec(command, '/workspace', workspaceId);
-      const text = [run.stdout, run.stderr].filter(Boolean).join('\n') || `exit ${run.exitCode}`;
-      return { ok: run.exitCode === 0, app: 'computer', tool, text: clip(text, 4000) };
+      const { runOwnerShellLine } = await import('../computer/terminal');
+      const run = await runOwnerShellLine(command, workspaceId);
+      return { ok: run.ok, app: 'computer', tool, text: clip(run.text, 4000) };
     } catch (err) {
       return {
         ok: false,

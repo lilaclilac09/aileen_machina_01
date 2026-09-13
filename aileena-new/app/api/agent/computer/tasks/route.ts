@@ -35,7 +35,7 @@ import {
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 const VISITOR_PROOF_ID = 'visitor-scratch';
 
@@ -92,11 +92,14 @@ export async function GET(req: Request) {
       actor: 'visitor',
     });
   }
+  const { loadCwd } = await import('@/lib/computer/terminal');
+  const cwd = isCloudflareComputerReady() ? await loadCwd(actor.id) : '/workspace';
   return jsonActor(actor, {
     ok: true,
     prototype: true,
     backend: reportedBackend(),
     cloudflareComputer: isCloudflareComputerReady(),
+    cwd,
     tasks: listComputerTasks('owner'),
     proof: listProofItems(),
     tabs: COMPUTER_TABS.map((id) => ({ id, wire: TAB_WIRE[id] })),
