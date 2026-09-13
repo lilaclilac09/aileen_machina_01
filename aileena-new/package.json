@@ -29,6 +29,7 @@
     "verify:computer-prototype": "tsx scripts/verify-computer-prototype.ts",
     "verify:proof-queue": "tsx scripts/verify-computer-prototype.ts",
     "capture:computer-prototype": "tsx scripts/capture-computer-prototype.ts",
+    "capture:computer-share-room": "tsx scripts/capture-computer-share-room.ts",
     "e2e:computer-cli": "tsx scripts/e2e-computer-cli-example.ts",
     "capture:computer-cli": "tsx scripts/capture-computer-cli.ts",
     "capture:computer-voice-cli": "tsx scripts/capture-computer-voice-cli.ts",

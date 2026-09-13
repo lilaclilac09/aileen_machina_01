@@ -321,6 +321,10 @@ function sourceChecks() {
   );
   assert('proof page does not mount ProofQueuePanel', !/ProofQueuePanel/.test(proofPageSrc));
   assert(
+    'proof page has a shared room door',
+    /proof-shared-room/.test(proofPageSrc) && /isSharedComputerRoomToken/.test(proofPageSrc),
+  );
+  assert(
     'unlock form is KeyShield not typed secret',
     /owner-passkey-unlock/.test(unlockSrc) &&
       /prf:/.test(unlockSrc) &&
@@ -678,6 +682,17 @@ async function liveHttp() {
   assert('visitor /proof does not name typed owner secret', !/owner key/i.test(html));
   assert('visitor /proof hides queue panel', !html.includes('proof-queue-daily') && !html.includes('proof-queue-panel'));
   assert('local experiment enter is offered', html.includes('proof-experiment-enter') || html.includes('enter local experiment'));
+
+  const sharedPage = await fetch(`${base}/proof?room=open`);
+  const sharedHtml = sharedPage.ok ? await sharedPage.text() : '';
+  assert('GET /proof?room=open', sharedPage.ok, String(sharedPage.status));
+  assert(
+    'share link is a public pad not KeyShield wall',
+    sharedHtml.includes('proof-shared-room') &&
+      sharedHtml.includes('proof-shared-open-console') &&
+      !sharedHtml.includes('This room is not for visitors'),
+    sharedHtml.slice(0, 280),
+  );
 
   const opt = await fetch(`${base}/api/auth/passkey/options`, {
     method: 'POST',
