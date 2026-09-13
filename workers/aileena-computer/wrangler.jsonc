@@ -17,5 +17,8 @@
   "durable_objects": {
     "bindings": [{ "name": "OwnerComputer", "class_name": "OwnerComputer" }]
   },
-  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["OwnerComputer"] }]
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["OwnerComputer"] }],
+  "dev": {
+    "container_engine": "unix:///var/run/docker.sock"
+  }
 }
