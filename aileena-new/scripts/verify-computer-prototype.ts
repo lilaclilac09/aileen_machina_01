@@ -11,13 +11,18 @@ import { join } from 'node:path';
 import { createOwnerSession, SESSION_COOKIE } from '../lib/auth';
 import { inspectRouteFiles, analyzeDailyFixPlan } from '../lib/computer/inspect';
 import { parseOwnerComputerCommand, parseVisitorComputerCommand } from '../lib/computer/parseOwnerCommand';
-import { curlFetchCommand, curlHttpsTarget, safeHttpsUrl } from '../lib/computer/allowlist';
+import { curlFetchCommand, curlHttpsTarget, isOwnerShellCommand, safeHttpsUrl } from '../lib/computer/allowlist';
 import { parseJsonRpcBody, parseMcpServers } from '../lib/mcp/remote';
 import { githubContentPath, githubReady } from '../lib/mcp/github';
 import { isMcpReadPath } from '../lib/mcp/computer';
 import { labelForTask, matchLearned, rememberCommand } from '../lib/computer/learned';
 import { redactSecrets } from '../lib/computer/redact';
 import { isComputerPrototypeEnabled, hasComputerWorkerEnv } from '../lib/computer/flag';
+import { formatPrompt, isOwnerCliCommand, isWritePath, parseCd, parsePut, resolveCwd } from '../lib/computer/terminal';
+import { OWNER_CLI_EXAMPLES, OWNER_CLI_HELP } from '../lib/computer/helpText';
+import { parseOfficialDemo } from '../lib/computer/officialDemos';
+import { parseVcode, looksLikeSource } from '../lib/computer/voiceScratch';
+import { spokenToCli } from '../lib/computer/spokenCli';
 import { HARNESS_PLUGINS } from '../lib/computer/plugins';
 import { spokenQueued } from '../lib/computer/spokenQueue';
 import { gitFindCommit, gitStatus } from '../lib/computer/gitAllowlist';
@@ -113,12 +118,82 @@ function sourceChecks() {
   assert('worker requires bearer secret', /Bearer/.test(workerSrc) && /COMPUTER_WORKER_SECRET/.test(workerSrc));
   assert('worker allowlists owner and visitor cwid', /VISITOR_RE/.test(workerSrc) && /idFromName\(name\)/.test(workerSrc));
   assert('worker opts into official curl jq html-to-markdown file xan groups', /shell\/curl/.test(workerSrc) && /shell\/jq/.test(workerSrc) && /shell\/html-to-markdown/.test(workerSrc) && /shell\/file/.test(workerSrc) && /shell\/xan/.test(workerSrc) && !/shell\/python/.test(workerSrc) && !/shell\/yq/.test(workerSrc));
-  assert('worker does not bind a Linux container', /container: false/.test(workerSrc) && !/CloudflareContainerBackend/.test(workerSrc));
+  const wranglerSrc = readFileSync(join(process.cwd(), '..', 'workers', 'aileena-computer', 'wrangler.jsonc'), 'utf8');
+  const dockerSrc = readFileSync(join(process.cwd(), '..', 'workers', 'aileena-computer', 'Dockerfile'), 'utf8');
+  assert(
+    'worker binds official Linux container',
+    /CloudflareContainerBackend/.test(workerSrc) &&
+      /withWorkspaceContainer/.test(workerSrc) &&
+      /id: 'container'/.test(workerSrc) &&
+      /WorkspaceProxy/.test(workerSrc) &&
+      /container: true/.test(workerSrc),
+  );
+  assert(
+    'wrangler binds OwnerComputer computerd image',
+    /"class_name": "OwnerComputer"/.test(wranglerSrc) &&
+      /computer-computerd-linux-x64:0.2.1/.test(dockerSrc) &&
+      /FUSE_MOUNT=auto/.test(dockerSrc),
+  );
   assert('worker egress is direct so curl can fetch', /egress: \{ mode: 'direct' \}/.test(workerSrc));
   assert('visitor exec cannot curl', /VISITOR_BINS/.test(workerSrc) && /name === OWNER \? OWNER_BINS : VISITOR_BINS/.test(workerSrc));
   assert('shell_exec is an owner task type', /'shell_exec'/.test(readFileSync(join(process.cwd(), 'lib/computer/types.ts'), 'utf8')));
   assert('visitors cannot queue shell_exec', !/VISITOR_COMPUTER_TASK_TYPES[\s\S]{0,200}shell_exec/.test(readFileSync(join(process.cwd(), 'lib/computer/allowlist.ts'), 'utf8')));
   assert('dock has owner shell key', /computer-key-shell/.test(dockSrc));
+  assert('dock owner line is a CLI textarea', /data-testid="computer-line"/.test(dockSrc) && /<textarea/.test(dockSrc) && /computer-cli-prompt/.test(dockSrc));
+  const e2eSrc = readFileSync(join(process.cwd(), 'scripts/e2e-computer-cli-example.ts'), 'utf8');
+  assert('e2e CLI example writes greet.ts + jq', /put greet\.ts/.test(e2eSrc) && /jq -r \.name/.test(e2eSrc));
+  assert('e2e covers help examples vcode', /cmd: 'help'/.test(e2eSrc) && /cmd: 'examples'/.test(e2eSrc) && /vcode scratch\/vcode\/voice\.ts/.test(e2eSrc));
+  assert('e2e covers demo worker-shell surface', /cmd: 'demo'/.test(e2eSrc) && /worker-shell\.json/.test(e2eSrc));
+  assert('e2e covers demo js and container', /cmd: 'demo js'/.test(e2eSrc) && /cmd: 'demo container'/.test(e2eSrc));
+  assert('worker binds official javascript backend', /WorkerJavaScriptBackend/.test(workerSrc) && /worker-javascript-none/.test(workerSrc));
+  assert('runner owner CLI uses persisted cwd', /runOwnerShellLine/.test(runner));
+  const termSrc = readFileSync(join(process.cwd(), 'lib/computer/terminal.ts'), 'utf8');
+  assert('terminal cwd stays under /workspace', /WORKSPACE_ROOT/.test(termSrc) && /parsePut/.test(termSrc));
+  assert('dock does not import terminal.ts', !/from ['"].*computer\/terminal['"]/.test(dockSrc));
+  assert('owner GET exposes cwd', /loadCwd/.test(tasks));
+  assert('resolveCwd stays under /workspace', resolveCwd('/workspace/scratch', '..') === '/workspace' && resolveCwd('/workspace', '../etc') === null);
+  assert('resolveCwd relative', resolveCwd('/workspace/scratch', 'hi.ts') === '/workspace/scratch/hi.ts');
+  assert('parsePut relative uses cwd', parsePut('put hi.ts\nconst x = 1', '/workspace/scratch')?.path === '/workspace/scratch/hi.ts');
+  assert('parsePut rejects repo write', parsePut('put /workspace/lib/secret.ts\nx', '/workspace') === null);
+  assert('parseCd empty goes home', parseCd('cd') === '/workspace');
+  assert('parseCd dest is relative', parseCd('cd scratch/cli-demo') === 'scratch/cli-demo');
+  assert('parsePut write alias', parsePut('write scratch/hi.ts\nexport const n = 1')?.path === '/workspace/scratch/hi.ts');
+  assert('parsePut rejects workspace root file', parsePut('put /workspace/secret.ts\nx', '/workspace') === null);
+  assert('isWritePath only scratch reports artifacts', isWritePath('/workspace/scratch/a.ts') && !isWritePath('/workspace/scratch') && !isWritePath('/workspace/lib/x.ts'));
+  assert('isOwnerCliCommand accepts builtins and bins', isOwnerCliCommand('cd scratch') && isOwnerCliCommand('put x.ts') && isOwnerCliCommand('examples') && isOwnerCliCommand('demo js') && isOwnerCliCommand('container uname -a') && isOwnerCliCommand('ls') && !isOwnerCliCommand('vim') && !isOwnerCliCommand('pnpm'));
+  assert('isOwnerShellCommand matches CLI builtins', isOwnerShellCommand('clear') && isOwnerShellCommand('mkdir -p scratch') && !isOwnerShellCommand('git status'));
+  assert('formatPrompt shortens under /workspace', formatPrompt('/workspace') === '/workspace $' && formatPrompt('/workspace/scratch/cli-demo') === 'scratch/cli-demo $');
+  assert('resolveCwd blocks leaving workspace', resolveCwd('/workspace', '../../etc/passwd') === null);
+  assert('spoken ls alias', spokenToCli('list files').command === 'ls' && spokenToCli('go to scratch').command === 'cd scratch');
+  assert(
+    'spoken write code is vcode with path',
+    spokenToCli('write code greet.ts').kind === 'vcode' &&
+      spokenToCli('write code greet.ts').command.startsWith('vcode greet.ts') &&
+      spokenToCli('写代码').kind === 'vcode',
+  );
+  assert('spoken examples alias', spokenToCli('show examples').command === 'examples');
+  assert('spoken demo alias', spokenToCli('run worker-shell').command === 'demo' && spokenToCli('show me the computer').command === 'demo');
+  assert('spoken hi is not CLI', spokenToCli('hi').kind === 'none');
+  assert('parseVcode path hint', parseVcode('vcode scratch/vcode/hi.ts\nexport const n = 1')?.pathHint === 'scratch/vcode/hi.ts');
+  assert('looksLikeSource detects ts', looksLikeSource('export const n = 1') && !looksLikeSource('please write a file'));
+  assert('help teaches demo js and live container', /demo js/.test(OWNER_CLI_HELP) && /demo container/.test(OWNER_CLI_HELP) && /computerd Linux/.test(OWNER_CLI_HELP) && !/fail-closed/.test(OWNER_CLI_HELP));
+  assert(
+    'examples lists runnable official names',
+    /demo js/.test(OWNER_CLI_EXAMPLES) &&
+      /demo container/.test(OWNER_CLI_EXAMPLES) &&
+      /computerd Linux/.test(OWNER_CLI_EXAMPLES) &&
+      /worker-javascript/.test(OWNER_CLI_EXAMPLES),
+  );
+  assert('spoken demo js alias', spokenToCli('run javascript').command === 'demo js');
+  assert('spoken linux is demo container', spokenToCli('linux').command === 'demo container');
+  assert(
+    'container uname is Linux exec not the demo name',
+    parseOfficialDemo('container') === 'container' &&
+      parseOfficialDemo('demo container') === 'container' &&
+      parseOfficialDemo('container uname -a') === null,
+  );
+  assert('dock listens for voice CLI event', /COMPUTER_CLI_EVENT/.test(dockSrc) && /voiceOn/.test(dockSrc));
+  assert('chat routes owner computer voice to CLI', /spokenToCli/.test(agentChatSrc) && /dispatchComputerCli/.test(agentChatSrc));
   assert('worker PUT replaces existing files', /await ws\.fs\.rm\(path\)/.test(workerSrc) && /await using ws/.test(workerSrc));
   assert('runner finds git commits', /git_find_commit/.test(runner) && /gitFindCommit/.test(runner));
   assert('runner blocks email send', /email_send/.test(runner) && /email not connected/.test(runner));
@@ -141,7 +216,7 @@ function sourceChecks() {
     /setOpen\(true\);\s*setComputerMode\(true\)/.test(agentChatSrc),
   );
   assert('visitor chips skip git status', /VISITOR_STARTER_CHIPS/.test(dockSrc) && !/VISITOR_STARTER_CHIPS[\s\S]{0,200}git status/.test(dockSrc));
-  assert('dock tells visitors scratch resets on a 30d mark', /isOwner \? '' : ' · 30d'/.test(dockSrc));
+  assert('dock tells visitors scratch resets on a 30d mark', /isOwner \? ` · cli /.test(dockSrc) && /: ' · 30d'/.test(dockSrc));
   assert('does not import @cloudflare/computer', !existsSync(join(process.cwd(), 'node_modules/@cloudflare/computer')));
   assert(
     'plugins are not DeepSeek Harness',
@@ -431,6 +506,7 @@ async function workspaceUnit() {
     'look excerpt skips iso stamp',
     isoList.lines.some((l) => l.includes('actual pad line')) && !isoList.lines.some((l) => l.includes('·') && l.includes('2026-04-08T00:00:00')),
   );
+  await workspaceWriteFile('v-visitorone', '/scratch/x.txt', 'visitor-secret-note\n');
   const visitorList = workspaceList('v-visitorone');
   assert('visitor workspace lists own files', visitorList.lines.some((l) => l.includes('scratch')));
   assert('look lists a first-line excerpt', visitorList.lines.some((l) => l.includes('visitor-secret-note')));
@@ -711,6 +787,13 @@ async function liveHttp() {
   });
   assert('visitor POST files_open → 403', visitorOpen.status === 403, String(visitorOpen.status));
 
+  const visitorCli = await fetch(`${base}/api/agent/computer/tasks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Cookie: visitorCookie },
+    body: JSON.stringify({ taskType: 'shell_exec', instructions: 'ls' }),
+  });
+  assert('visitor POST shell_exec → 403', visitorCli.status === 403, String(visitorCli.status));
+
   const visitorGit = await fetch(`${base}/api/agent/computer/tasks`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -757,6 +840,7 @@ async function liveHttp() {
         deepSeekHarness?: boolean;
         tasks?: { id?: string }[];
         cloudflareComputer?: boolean;
+        cwd?: string;
       })
     : {};
   assert('owner GET lists plugins', Array.isArray(listedJson.plugins) && (listedJson.plugins?.length ?? 0) >= 4);
@@ -768,6 +852,40 @@ async function liveHttp() {
   if (process.env.COMPUTER_WORKER_URL && process.env.COMPUTER_WORKER_SECRET) {
     const cfListed = listed.ok ? ((listedJson as { cloudflareComputer?: boolean }).cloudflareComputer) : false;
     assert('owner GET reports cloudflareComputer when Worker env is set', cfListed === true, String(cfListed));
+    assert(
+      'owner GET reports cwd',
+      typeof listedJson.cwd === 'string' && listedJson.cwd.startsWith('/workspace'),
+      String(listedJson.cwd),
+    );
+
+    const runCli = async (cmd: string) => {
+      const res = await postOwnerTask(base, cookie, { taskType: 'shell_exec', route: '/proof', instructions: cmd });
+      const json = res.status === 202 ? ((await res.json()) as { task?: { id?: string; status?: string } }) : {};
+      const id = json.task?.id || '';
+      const done = id ? await pollTask(base, cookie, id) : { ok: false as const, status: res.status };
+      const preview = done.ok ? done.body.task?.artifacts?.[0]?.preview || done.body.task?.resultSummary || '' : '';
+      return { status: res.status, done, preview };
+    };
+
+    const mkdir = await runCli('mkdir -p scratch');
+    assert(
+      'owner CLI mkdir scratch',
+      mkdir.done.ok && mkdir.done.st === 'completed',
+      String(mkdir.done.ok ? mkdir.done.st : mkdir.done.status),
+    );
+    const cd = await runCli('cd scratch');
+    assert('owner CLI cd scratch', cd.done.ok && cd.done.st === 'completed' && /scratch/.test(cd.preview), cd.preview.slice(0, 80));
+    const cwdAfter = await fetch(`${base}/api/agent/computer/tasks`, { headers: { Cookie: cookie } });
+    const cwdJson = cwdAfter.ok ? ((await cwdAfter.json()) as { cwd?: string }) : {};
+    assert('owner cwd persists after cd', cwdJson.cwd === '/workspace/scratch', String(cwdJson.cwd));
+    const put = await runCli('put hi.ts\nexport const n = 1;\n');
+    assert('owner CLI put hi.ts', put.done.ok && put.done.st === 'completed' && /hi\.ts/.test(put.preview), put.preview.slice(0, 80));
+    const cat = await runCli('cat hi.ts');
+    assert('owner CLI cat hi.ts', cat.done.ok && /export const n = 1/.test(cat.preview), cat.preview.slice(0, 120));
+    const ls = await runCli('ls');
+    assert('owner CLI ls shows hi.ts', ls.done.ok && /hi\.ts/.test(ls.preview), ls.preview.slice(0, 120));
+    const home = await runCli('cd');
+    assert('owner CLI cd home', home.done.ok && home.preview.trim() === '/workspace', home.preview.slice(0, 80));
   }
 
   const ownerMcp = await fetch(`${base}/api/agent/mcp`, { headers: { Cookie: cookie } });
@@ -787,7 +905,11 @@ async function liveHttp() {
         Boolean(mcpJson.apps.some((a) => a.name === 'computer')) &&
         Boolean(mcpJson.apps.some((a) => a.name === 'github')),
     );
-    assert('owner mcp container false', mcpJson.container === false);
+    if (process.env.COMPUTER_WORKER_URL && process.env.COMPUTER_WORKER_SECRET) {
+      assert('owner mcp container bound', mcpJson.container === true, String(mcpJson.container));
+    } else {
+      assert('owner mcp container unbound without worker', mcpJson.container === false);
+    }
     const echo = await fetch(`${base}/api/agent/mcp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Cookie: cookie },

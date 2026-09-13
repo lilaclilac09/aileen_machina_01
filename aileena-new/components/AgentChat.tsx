@@ -24,6 +24,7 @@ import {
   VCODE_DAILY_LIMIT,
 } from '../lib/voiceCodeIntent';
 import { isDrawIntent } from '../lib/drawIntent';
+import { dispatchComputerCli, spokenToCli } from '../lib/computer/spokenCli';
 import { taipeiDay } from '../lib/taipeiDay';
 import { cardById, reciteDrawCard, type DrawCard } from '../lib/drawDeck';
 import {
@@ -1359,6 +1360,41 @@ export default function AgentChat() {
       return;
     }
 
+    // Owner + computer on: spoken/typed lines go to the CLI (ls/help/vcode→scratch).
+    // Visitors still get propose-only /api/voice-code. No repo write from here.
+    if (computerMode && isOwnerRef.current) {
+      const spoken = spokenToCli(trimmed);
+      if (spoken.kind === 'cli' || spoken.kind === 'vcode') {
+        dispatchComputerCli(spoken.command);
+        const userId =
+          typeof crypto !== 'undefined' && crypto.randomUUID
+            ? crypto.randomUUID()
+            : `u-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        const assistantId =
+          typeof crypto !== 'undefined' && crypto.randomUUID
+            ? crypto.randomUUID()
+            : `a-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        setMessages((prev) => [
+          ...prev,
+          { id: userId, role: 'user', parts: [{ type: 'text', text: trimmed }] },
+          {
+            id: assistantId,
+            role: 'assistant',
+            parts: [
+              {
+                type: 'text',
+                text:
+                  spoken.kind === 'vcode'
+                    ? '→ computer vcode (scratch only · not Linux · not a merge)'
+                    : `→ computer ${spoken.command.split('\n')[0]}`,
+              },
+            ],
+          },
+        ]);
+        return;
+      }
+    }
+
     // Voice-to-code path — separate 5/day quota; Machina propose-only (no Cursor).
     if (isVoiceCodeIntent(trimmed)) {
       void sendVoiceCode(trimmed);
@@ -1835,7 +1871,7 @@ export default function AgentChat() {
           </div>
         </div>
 
-        {computerMode ? <ComputerConsoleDock isOwner={isOwner} /> : null}
+        {computerMode ? <ComputerConsoleDock isOwner={isOwner} voiceOn={voiceMode} /> : null}
 
         {/* Transcript — flex-auto: content-sized when dialog is short; shrinks +
             scrolls when dialog hits sm:max-h-[72vh]. Bottom chrome stays visible.
@@ -1852,12 +1888,22 @@ export default function AgentChat() {
               </p>
               <p className="text-[0.78rem] leading-[1.7] text-[#1b1713]/62 mb-3">
                 {voiceMode ? (
-                  <>
-                    Tap the <span className="text-[#008f86]">orb</span> to speak. Live caption,
-                    then a reply. Say <span className="text-[#008f86]">fix</span> /{' '}
-                    <span className="text-[#008f86]">写代码</span> for a propose-only patch
-                    (5/day) — nothing is written to disk.
-                  </>
+                  computerMode && isOwner ? (
+                    <>
+                      Tap the <span className="text-[#008f86]">orb</span>. Say{' '}
+                      <span className="text-[#008f86]">ls</span> /{' '}
+                      <span className="text-[#008f86]">help</span> /{' '}
+                      <span className="text-[#008f86]">write code greet.ts</span>. Spoken
+                      lines go to the computer CLI (scratch only · not a merge).
+                    </>
+                  ) : (
+                    <>
+                      Tap the <span className="text-[#008f86]">orb</span> to speak. Live caption,
+                      then a reply. Say <span className="text-[#008f86]">fix</span> /{' '}
+                      <span className="text-[#008f86]">写代码</span> for a propose-only patch
+                      (5/day) — nothing is written to disk.
+                    </>
+                  )
                 ) : (
                   <>
                     Tap <span className="text-[#008f86]">Voice</span>, then tap the{' '}
@@ -2091,10 +2137,13 @@ export default function AgentChat() {
               {voiceMode ? (
                 <>
                   <span className="sm:hidden">
-                    tap <span className="text-[#008f86]/70">orb</span> · say fix → vcode
+                    tap <span className="text-[#008f86]/70">orb</span>
+                    {computerMode && isOwner ? ' · say ls / write code' : ' · say fix → vcode'}
                   </span>
                   <span className="hidden sm:inline">
-                    stream · barge-in · say <span className="text-[#008f86]/70">fix / 写代码</span> → voice→code
+                    {computerMode && isOwner
+                      ? 'orb → computer · say ls · say write code greet.ts'
+                      : 'stream · barge-in · say fix / 写代码 → voice→code'}
                   </span>
                 </>
               ) : isOwner ? (
