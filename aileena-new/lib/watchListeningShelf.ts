@@ -255,14 +255,14 @@ export const CHANNEL_RECS = [
   },
 ];
 
-/** First-laid clips from the YouTube rooms — photo ridge, notes later. */
+/** First-laid clips as photo-real disc spines — notes later. Films stay posters. */
 export const VIDEO_RECS = [
   {
     title: 'How does Computer Cache, Memory, and Storage Work?',
     shelfTitle: 'Cache',
     label: 'Branch Education',
     href: '/blog/semi-basics-review',
-    image: '/shelf/video-branch-cache.jpg',
+    image: '/shelf/spine-video-cache.png',
     note: '',
   },
   {
@@ -270,7 +270,7 @@ export const VIDEO_RECS = [
     shelfTitle: 'PCB',
     label: 'Branch Education',
     href: '/blog/semi-basics-review',
-    image: '/shelf/video-branch-pcb.jpg',
+    image: '/shelf/spine-video-pcb.png',
     note: '',
   },
   {
@@ -278,7 +278,7 @@ export const VIDEO_RECS = [
     shelfTitle: 'GPU',
     label: 'Branch Education',
     href: '/blog/semi-basics-review',
-    image: '/shelf/video-branch-gpu.jpg',
+    image: '/shelf/spine-video-gpu.png',
     note: '',
   },
   {
@@ -286,7 +286,7 @@ export const VIDEO_RECS = [
     shelfTitle: 'NVIDIA CPO',
     label: 'TPU & CPO',
     href: '/blog/semi-watch-tpu-cpo',
-    image: '/shelf/video-nvidia-cpo.jpg',
+    image: '/shelf/spine-video-nvidia-cpo.png',
     note: '',
   },
   {
@@ -294,7 +294,7 @@ export const VIDEO_RECS = [
     shelfTitle: 'Broadcom CPO',
     label: 'TPU & CPO',
     href: '/blog/semi-watch-tpu-cpo',
-    image: '/shelf/video-broadcom-cpo.jpg',
+    image: '/shelf/spine-video-broadcom-cpo.png',
     note: '',
   },
   {
@@ -302,7 +302,7 @@ export const VIDEO_RECS = [
     shelfTitle: 'Ironwood',
     label: 'TPU & CPO',
     href: '/blog/semi-watch-tpu-cpo',
-    image: '/shelf/video-ironwood.jpg',
+    image: '/shelf/spine-video-ironwood.png',
     note: '',
   },
   {
@@ -310,7 +310,7 @@ export const VIDEO_RECS = [
     shelfTitle: 'MCP',
     label: 'Software YouTube',
     href: '/blog/software-watch',
-    image: '/shelf/video-mcp.jpg',
+    image: '/shelf/spine-video-mcp.png',
     note: '',
   },
 ];
@@ -398,7 +398,7 @@ export const SHELF_ITEMS: ShelfItem[] = [
     note: item.note,
     href: item.href,
     cover: item.image,
-    coverKind: 'still' as const,
+    coverKind: 'spine' as const,
     object: 'cover' as const,
   })),
   ...EURO_LIFE_GUIDE.map((item) => ({

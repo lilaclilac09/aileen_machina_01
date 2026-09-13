@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 /**
- * Watch / listening shelf: films unchanged; books + videos are photo-real ridges.
+ * Watch / listening shelf: films unchanged; books + videos are photo-real spines.
  * Run: pnpm verify:watch-shelf
  */
 import { existsSync, readFileSync } from 'node:fs';
@@ -40,9 +40,20 @@ function main() {
     'watch order is docs then films, original set',
     watch.map((item) => item.title).join('|') === expectedWatch.join('|'),
   );
-  assert('video ridge has photo stills', videos.length === VIDEO_RECS.length && videos.every((item) => item.coverKind === 'still' && item.cover));
+  assert(
+    'video ridge uses photo-real spines',
+    videos.length === VIDEO_RECS.length &&
+      videos.every((item) => item.coverKind === 'spine' && Boolean(item.cover) && item.cover.includes('spine-video')),
+  );
   assert('video notes stay empty for later', videos.every((item) => item.note === ''));
-  assert('book ridge uses photo spines', notes.length >= 4 && notes.every((item) => item.coverKind === 'spine' && Boolean(item.cover)));
+  assert(
+    'book ridge uses photo-real spines',
+    notes.length >= 4 && notes.every((item) => item.coverKind === 'spine' && Boolean(item.cover)),
+  );
+  assert(
+    'films stay posters, not spines',
+    SHELF_ITEMS.filter((item) => item.section === 'watch').every((item) => item.coverKind === 'poster'),
+  );
   assert('#watch stays Joan Didion', resolveShelfHash('#watch') === 'joan-didion');
   assert('#films stays Blue', resolveShelfHash('#films') === 'blue-is-the-warmest-color');
   assert('#video lands on first still', resolveShelfHash('#video') === 'cache');

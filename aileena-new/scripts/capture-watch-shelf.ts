@@ -53,7 +53,7 @@ async function main() {
   );
   await page.waitForTimeout(300);
   const videoCount = await page.locator('[data-testid="watch-shelf-row-video"] li').count();
-  if (videoCount !== 7) throw new Error(`expected 7 video stills, got ${videoCount}`);
+  if (videoCount !== 7) throw new Error(`expected 7 video spines, got ${videoCount}`);
   await page.screenshot({ path: join(OUT, 'shelf_photo_real_video_ridge.png'), fullPage: true });
 
   const mobile = await browser.newContext({ viewport: { width: 390, height: 844 } });
