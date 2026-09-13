@@ -5,6 +5,7 @@
 import { clip } from './redact';
 import { cfExec, cfGetFile, cfPutFile, isCloudflareComputerReady, toWorkspacePath } from './cfClient';
 import { isOwnerShellCommand } from './allowlist';
+import { OWNER_CLI_EXAMPLES, OWNER_CLI_HELP } from './helpText';
 
 export const WORKSPACE_ROOT = '/workspace';
 export const CWD_FILE = '/workspace/scratch/.cwd';
@@ -52,7 +53,15 @@ export function parseCd(raw: string): string | null {
 
 export function isTerminalBuiltin(raw: string): boolean {
   const bin = raw.trim().split(/\s+/)[0] || '';
-  return bin === 'cd' || bin === 'put' || bin === 'write' || bin === 'clear';
+  return (
+    bin === 'cd' ||
+    bin === 'put' ||
+    bin === 'write' ||
+    bin === 'clear' ||
+    bin === 'help' ||
+    bin === 'examples' ||
+    bin === 'vcode'
+  );
 }
 
 export function isOwnerCliCommand(raw: string): boolean {
@@ -83,7 +92,7 @@ export type OwnerShellResult = {
   ok: boolean;
   cwd: string;
   text: string;
-  kind: 'exec' | 'cd' | 'put' | 'clear';
+  kind: 'exec' | 'cd' | 'put' | 'clear' | 'help' | 'vcode';
 };
 
 export async function runOwnerShellLine(command: string, workspaceId: string): Promise<OwnerShellResult> {
@@ -91,6 +100,21 @@ export async function runOwnerShellLine(command: string, workspaceId: string): P
   const cwd = await loadCwd(workspaceId);
   if (!cmd) return { ok: false, cwd, text: 'empty command', kind: 'exec' };
   if (cmd === 'clear') return { ok: true, cwd, text: '', kind: 'clear' };
+  if (cmd === 'examples' || /^help\s+examples\b/i.test(cmd)) {
+    return { ok: true, cwd, text: OWNER_CLI_EXAMPLES, kind: 'help' };
+  }
+  if (cmd === 'help' || cmd.startsWith('help ')) {
+    return { ok: true, cwd, text: OWNER_CLI_HELP, kind: 'help' };
+  }
+  if (/^vcode\b/i.test(cmd)) {
+    const { parseVcode, generateScratchFile } = await import('./voiceScratch');
+    const parsed = parseVcode(cmd);
+    if (!parsed) return { ok: false, cwd, text: 'vcode: say a file and what to write', kind: 'vcode' };
+    const made = await generateScratchFile(parsed.prompt, cwd, parsed.pathHint);
+    if (!made.ok) return { ok: false, cwd, text: made.text, kind: 'vcode' };
+    await cfPutFile(made.path, clip(made.body, 64 * 1024), workspaceId);
+    return { ok: true, cwd, text: `${made.path}\n${clip(made.body, 800)}`, kind: 'vcode' };
+  }
 
   const dest = parseCd(cmd);
   if (dest !== null) {

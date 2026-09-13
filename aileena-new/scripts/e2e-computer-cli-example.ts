@@ -63,6 +63,10 @@ const STEPS: Step[] = [
   { cmd: 'cat main.ts', expect: /hello, \$\{name\}|greet\(who\)/ },
   { cmd: 'jq -r .name package.json', expect: 'cli-demo' },
   { cmd: 'cd /workspace', expect: '/workspace' },
+  { cmd: 'help', expect: /not here: container/ },
+  { cmd: 'examples', expect: /examples\/container/ },
+  { cmd: 'vcode scratch/vcode/voice.ts\nexport function hello() {\n  return "hi";\n}\n', expect: /voice\.ts/ },
+  { cmd: 'cat scratch/vcode/voice.ts', expect: /export function hello/ },
   { cmd: 'find scratch/cli-demo -type f', expect: /greet\.ts/ },
 ];
 

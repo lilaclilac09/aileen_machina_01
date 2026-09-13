@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ComputerTask } from '../lib/computer/types';
 import type { ProofItem } from '../lib/proofQueue/types';
 import { curlFetchCommand, isOwnerShellCommand, safeHttpsUrl } from '../lib/computer/allowlist';
+import { COMPUTER_CLI_EVENT } from '../lib/computer/spokenCli';
 
 function cliPrompt(cwd: string): string {
   const short = cwd === '/workspace' ? '/workspace' : cwd.replace(/^\/workspace\/?/, '') || '/workspace';
@@ -145,7 +146,7 @@ function chipKey(alias: string): string {
  * Computer lives inside the site-agent dialog. Not a separate window.
  * Hidden until the Computer header toggle. Visitors get a scratch pad only.
  */
-export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
+export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOwner: boolean; voiceOn?: boolean }) {
   const [flash, setFlash] = useState('');
   const [cloudflare, setCloudflare] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -310,6 +311,9 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
     });
   };
 
+  const queueRef = useRef(queue);
+  queueRef.current = queue;
+
   const runCli = (raw: string) => {
     const cmd = raw.trim() || 'ls';
     setTermMode(true);
@@ -317,6 +321,20 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
     void queue({ taskType: 'shell_exec', instructions: cmd, phrase: cmd.split('\n')[0] });
     setLine('');
   };
+
+  useEffect(() => {
+    if (!isOwner) return;
+    const onCli = (e: Event) => {
+      const text = String((e as CustomEvent<{ text?: string }>).detail?.text || '').trim();
+      if (!text) return;
+      setTermMode(true);
+      setTab('find');
+      void queueRef.current({ taskType: 'shell_exec', instructions: text, phrase: text.split('\n')[0] });
+      setLine('');
+    };
+    window.addEventListener(COMPUTER_CLI_EVENT, onCli);
+    return () => window.removeEventListener(COMPUTER_CLI_EVENT, onCli);
+  }, [isOwner]);
 
   const go = () => {
     const raw = line.trim();
@@ -364,6 +382,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
           <span className="min-w-0 truncate">
             {backend}
             {isOwner ? ` · cli ${cwd.replace(/^\/workspace\/?/, '') || '/workspace'}` : ' · 30d'}
+            {isOwner && voiceOn ? ' · voice' : ''}
             {flash ? ` · ${flash}` : ''}
           </span>
         </p>
@@ -383,7 +402,7 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
             data-terminal={isOwner && termMode ? '1' : '0'}
           >
             {isOwner && termMode
-              ? terminalTranscript(tasks) || `${cliPrompt(cwd)} ls · cat · put scratch/file.ts · cd`
+              ? terminalTranscript(tasks) || `${cliPrompt(cwd)} ls · help · vcode · put · cd`
               : monitorText(selectedTask)}
           </pre>
         </div>
@@ -527,7 +546,13 @@ export default function ComputerConsoleDock({ isOwner }: { isOwner: boolean }) {
             }}
             aria-label={isOwner && termMode ? 'command' : 'note'}
             data-testid="computer-line"
-            placeholder={isOwner && termMode ? 'put scratch/hi.ts then paste' : ''}
+            placeholder={
+              isOwner && termMode
+                ? voiceOn
+                  ? 'say ls · say write code greet.ts'
+                  : 'put scratch/hi.ts · vcode · help'
+                : ''
+            }
             className="min-h-11 min-w-0 flex-1 resize-none font-mono text-[0.8rem] rounded-[8px] border border-[#d8cfc0] bg-white px-2.5 py-2 text-[#1b1713]"
           />
           <button type="submit" disabled={busy} data-testid="harness-plugin-note" className="sr-only">

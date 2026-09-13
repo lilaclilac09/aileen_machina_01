@@ -19,6 +19,9 @@ import { labelForTask, matchLearned, rememberCommand } from '../lib/computer/lea
 import { redactSecrets } from '../lib/computer/redact';
 import { isComputerPrototypeEnabled, hasComputerWorkerEnv } from '../lib/computer/flag';
 import { formatPrompt, isOwnerCliCommand, isWritePath, parseCd, parsePut, resolveCwd } from '../lib/computer/terminal';
+import { OWNER_CLI_EXAMPLES, OWNER_CLI_HELP } from '../lib/computer/helpText';
+import { parseVcode, looksLikeSource } from '../lib/computer/voiceScratch';
+import { spokenToCli } from '../lib/computer/spokenCli';
 import { HARNESS_PLUGINS } from '../lib/computer/plugins';
 import { spokenQueued } from '../lib/computer/spokenQueue';
 import { gitFindCommit, gitStatus } from '../lib/computer/gitAllowlist';
@@ -137,10 +140,28 @@ function sourceChecks() {
   assert('parsePut write alias', parsePut('write scratch/hi.ts\nexport const n = 1')?.path === '/workspace/scratch/hi.ts');
   assert('parsePut rejects workspace root file', parsePut('put /workspace/secret.ts\nx', '/workspace') === null);
   assert('isWritePath only scratch reports artifacts', isWritePath('/workspace/scratch/a.ts') && !isWritePath('/workspace/scratch') && !isWritePath('/workspace/lib/x.ts'));
-  assert('isOwnerCliCommand accepts builtins and bins', isOwnerCliCommand('cd scratch') && isOwnerCliCommand('put x.ts') && isOwnerCliCommand('ls') && !isOwnerCliCommand('vim') && !isOwnerCliCommand('pnpm'));
+  assert('isOwnerCliCommand accepts builtins and bins', isOwnerCliCommand('cd scratch') && isOwnerCliCommand('put x.ts') && isOwnerCliCommand('examples') && isOwnerCliCommand('ls') && !isOwnerCliCommand('vim') && !isOwnerCliCommand('pnpm'));
   assert('isOwnerShellCommand matches CLI builtins', isOwnerShellCommand('clear') && isOwnerShellCommand('mkdir -p scratch') && !isOwnerShellCommand('git status'));
   assert('formatPrompt shortens under /workspace', formatPrompt('/workspace') === '/workspace $' && formatPrompt('/workspace/scratch/cli-demo') === 'scratch/cli-demo $');
   assert('resolveCwd blocks leaving workspace', resolveCwd('/workspace', '../../etc/passwd') === null);
+  assert('spoken ls alias', spokenToCli('list files').command === 'ls' && spokenToCli('go to scratch').command === 'cd scratch');
+  assert(
+    'spoken write code is vcode with path',
+    spokenToCli('write code greet.ts').kind === 'vcode' &&
+      spokenToCli('write code greet.ts').command.startsWith('vcode greet.ts') &&
+      spokenToCli('写代码').kind === 'vcode',
+  );
+  assert('spoken examples alias', spokenToCli('show examples').command === 'examples');
+  assert('spoken hi is not CLI', spokenToCli('hi').kind === 'none');
+  assert('parseVcode path hint', parseVcode('vcode scratch/vcode/hi.ts\nexport const n = 1')?.pathHint === 'scratch/vcode/hi.ts');
+  assert('looksLikeSource detects ts', looksLikeSource('export const n = 1') && !looksLikeSource('please write a file'));
+  assert('help does not offer container', /not here: container/.test(OWNER_CLI_HELP) && /vcode/.test(OWNER_CLI_HELP));
+  assert(
+    'examples lists official catalog as unbound',
+    /examples\/container/.test(OWNER_CLI_EXAMPLES) && /not bound/.test(OWNER_CLI_EXAMPLES) && /worker-shell/.test(OWNER_CLI_EXAMPLES),
+  );
+  assert('dock listens for voice CLI event', /COMPUTER_CLI_EVENT/.test(dockSrc) && /voiceOn/.test(dockSrc));
+  assert('chat routes owner computer voice to CLI', /spokenToCli/.test(agentChatSrc) && /dispatchComputerCli/.test(agentChatSrc));
   assert('worker PUT replaces existing files', /await ws\.fs\.rm\(path\)/.test(workerSrc) && /await using ws/.test(workerSrc));
   assert('runner finds git commits', /git_find_commit/.test(runner) && /gitFindCommit/.test(runner));
   assert('runner blocks email send', /email_send/.test(runner) && /email not connected/.test(runner));
