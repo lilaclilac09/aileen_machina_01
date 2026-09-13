@@ -144,6 +144,34 @@ assert(
 const otherVisitor = await req('GET', '/c/v-otherxxxxxxxx/file/workspace/scratch/hello.txt');
 assert('other visitor missing 404', otherVisitor.res.status === 404, String(otherVisitor.res.status));
 
+const jsExec = await req('POST', '/c/owner/exec', {
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({
+    backend: 'worker-javascript',
+    source: 'export default async () => ({ example: "worker-javascript" });',
+  }),
+});
+let jsBody = {};
+try {
+  jsBody = JSON.parse(jsExec.text);
+} catch {
+  jsBody = { raw: jsExec.text };
+}
+assert(
+  'owner javascript exec',
+  jsExec.res.ok && /worker-javascript/.test(JSON.stringify(jsBody.value || jsBody)),
+  `${jsExec.res.status} ${jsExec.text.slice(0, 200)}`,
+);
+
+const visitorJs = await req('POST', `/c/${visitorId}/exec`, {
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({
+    backend: 'worker-javascript',
+    source: 'export default async () => ({ pwn: true });',
+  }),
+});
+assert('visitor javascript exec 403', visitorJs.res.status === 403, String(visitorJs.res.status));
+
 const visitorCurl = await req('POST', `/c/${visitorId}/exec`, {
   headers: { 'content-type': 'application/json' },
   body: JSON.stringify({ command: 'curl -sI https://example.com' }),

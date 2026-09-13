@@ -126,7 +126,7 @@ export async function cfExec(
   const res = await cfFetch(`/c/${name}/exec`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ command, cwd, encoding: 'utf8' }),
+    body: JSON.stringify({ command, cwd, encoding: 'utf8', backend: 'worker-shell' }),
   });
   const body = (await res.json()) as {
     exitCode?: number;
@@ -139,6 +139,41 @@ export async function cfExec(
     exitCode: Number(body.exitCode ?? 1),
     stdout: redactSecrets(clip(String(body.stdout ?? ''), 2000)),
     stderr: redactSecrets(clip(String(body.stderr ?? ''), 2000)),
+  };
+}
+
+export async function cfExecJs(
+  source: string,
+  workspace: string,
+  opts: { input?: unknown; backend?: 'worker-javascript' | 'worker-javascript-none' } = {},
+): Promise<{ exitCode: number; stdout: string; stderr: string; value: unknown; backend: string }> {
+  const name = computerWorkspaceName(workspace);
+  const res = await cfFetch(`/c/${name}/exec`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      source,
+      backend: opts.backend || 'worker-javascript',
+      cwd: '/workspace',
+      encoding: 'utf8',
+      input: opts.input,
+    }),
+  });
+  const body = (await res.json()) as {
+    exitCode?: number;
+    stdout?: string;
+    stderr?: string;
+    value?: unknown;
+    backend?: string;
+    error?: string;
+  };
+  if (!res.ok) throw new Error(redactSecrets(body.error || `js exec ${res.status}`));
+  return {
+    exitCode: Number(body.exitCode ?? 1),
+    stdout: redactSecrets(clip(String(body.stdout ?? ''), 2000)),
+    stderr: redactSecrets(clip(String(body.stderr ?? ''), 2000)),
+    value: body.value ?? null,
+    backend: String(body.backend || 'worker-javascript'),
   };
 }
 

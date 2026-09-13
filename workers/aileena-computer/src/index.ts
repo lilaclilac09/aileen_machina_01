@@ -1,11 +1,8 @@
 /**
- * Small computer. Official worker-shell (just-bash) with opted-in
- * curl / jq / html-to-markdown / file / xan groups.
- * python / js-exec need node:worker_threads in workerd — not enabled.
- * yq needs node:process in workerd — not enabled.
- * sqlite group is not shipped complete in 0.2.1. Container/computerd is
- * not bound (Workers Containers is a later paid slice).
- * Visitors keep core files commands only — no network bins.
+ * Small computer. Official worker-shell (just-bash) + worker-javascript
+ * on the same Durable Object workspace. python / yq / sqlite groups stay
+ * off (workerd gaps). Container/computerd is not bound.
+ * Visitors keep core files commands only — no network bins, no JS exec.
  */
 import { DurableObject } from 'cloudflare:workers';
 import {
@@ -14,6 +11,7 @@ import {
   WorkspaceServiceProxy,
   withWorkspace,
 } from '@cloudflare/computer';
+import { WorkerJavaScriptBackend } from '@cloudflare/computer/backends/worker-javascript';
 import { WorkerShellBackend } from '@cloudflare/computer/backends/worker-shell';
 import curlModules from '@cloudflare/computer/shell/curl';
 import jqModules from '@cloudflare/computer/shell/jq';
@@ -82,13 +80,24 @@ export class OwnerComputer extends withWorkspace(class extends DurableObject {},
   const { ctx, env } = self as unknown as { ctx: DurableObjectState; env: Env };
   return {
     storage: ctx.storage as unknown as DurableObjectStorageLike,
+    useThink: true,
     backends: [
       new WorkerShellBackend({
+        id: 'worker-shell',
         loader: env.LOADER,
         workspace: { binding: 'OwnerComputer', id: ctx.id.toString() },
         ctx,
         commands: [curlModules, jqModules, htmlToMarkdownModules, fileModules, xanModules],
         egress: { mode: 'direct' },
+      }),
+      new WorkerJavaScriptBackend({
+        id: 'worker-javascript',
+        loader: env.LOADER,
+      }),
+      new WorkerJavaScriptBackend({
+        id: 'worker-javascript-none',
+        loader: env.LOADER,
+        globalOutbound: null,
       }),
     ],
   };
@@ -96,9 +105,12 @@ export class OwnerComputer extends withWorkspace(class extends DurableObject {},
 
 interface ExecRequest {
   command?: string;
+  source?: string;
+  backend?: string;
   argv?: string[];
   cwd?: string;
   encoding?: 'utf8';
+  input?: unknown;
 }
 
 export default {
@@ -109,13 +121,13 @@ export default {
       return new Response(
         [
           'aileena-computer',
-          'backend=cloudflare-worker-shell',
+          'backend=cloudflare-worker-shell+worker-javascript',
           'groups=curl,jq,html-to-markdown,file,xan',
           'container=unbound',
           'GET  /health',
           'PUT  /c/<name>/file/workspace/<path>  (bearer)',
           'GET  /c/<name>/file/workspace/<path>  (bearer)',
-          'POST /c/<name>/exec                   (bearer)',
+          'POST /c/<name>/exec                   (bearer; backend=worker-shell|worker-javascript)',
           'name=owner | v-[a-z0-9]{8,32}',
           '',
         ].join('\n'),
@@ -127,8 +139,10 @@ export default {
       return Response.json({
         ok: true,
         backend: 'cloudflare-worker-shell',
+        backends: ['worker-shell', 'worker-javascript', 'worker-javascript-none'],
         groups: ['curl', 'jq', 'html-to-markdown', 'file', 'xan'],
         egress: 'direct',
+        javascript: true,
         container: false,
       });
     }
@@ -236,6 +250,43 @@ async function handleExec(request: Request, env: Env, name: string): Promise<Res
     return errorJSON(new Error('invalid JSON body'), 400);
   }
 
+  const backendRaw = String(body.backend || '').trim();
+  const jsSource = typeof body.source === 'string' ? body.source.trim() : '';
+  const jsBackend =
+    backendRaw === 'worker-javascript-none'
+      ? 'worker-javascript-none'
+      : backendRaw === 'worker-javascript' || backendRaw === 'js' || Boolean(jsSource && !body.command)
+        ? 'worker-javascript'
+        : '';
+
+  const cwd = typeof body.cwd === 'string' && body.cwd.startsWith(MOUNT_ROOT) ? body.cwd : MOUNT_ROOT;
+
+  if (jsBackend) {
+    if (name !== OWNER) return errorJSON(new Error('javascript exec is owner only'), 403);
+    const source = jsSource || (typeof body.command === 'string' ? body.command.trim() : '');
+    if (!source) return errorJSON(new Error('must provide source'), 400);
+    if (source.length > 8000) return errorJSON(new Error('source too long'), 400);
+    await using ws = await workspaceOf(env, name);
+    try {
+      await using handle = await ws.runtime.exec(source, {
+        backend: jsBackend,
+        cwd,
+        encoding: 'utf8',
+        input: body.input,
+      });
+      const result = await handle.result();
+      return Response.json({
+        exitCode: result.exitCode,
+        stdout: clip(String(result.stdout ?? ''), 4000),
+        stderr: clip(String(result.stderr ?? ''), 2000),
+        value: result.value ?? null,
+        backend: jsBackend,
+      });
+    } catch (error) {
+      return errorJSON(error, 500);
+    }
+  }
+
   let command = '';
   if (typeof body.command === 'string' && body.command.trim()) {
     if (body.command.length > 2000) return errorJSON(new Error('command too long'), 400);
@@ -260,11 +311,9 @@ async function handleExec(request: Request, env: Env, name: string): Promise<Res
     }
   }
 
-  const cwd = typeof body.cwd === 'string' && body.cwd.startsWith(MOUNT_ROOT) ? body.cwd : MOUNT_ROOT;
-
   await using ws = await workspaceOf(env, name);
   try {
-    await using handle = await ws.runtime.exec(command, { cwd, encoding: 'utf8' });
+    await using handle = await ws.runtime.exec(command, { backend: 'worker-shell', cwd, encoding: 'utf8' });
     const result = await handle.result();
     const stdout = clip(String(result.stdout ?? ''), 4000);
     const stderr = clip(String(result.stderr ?? ''), 2000);
@@ -272,6 +321,7 @@ async function handleExec(request: Request, env: Env, name: string): Promise<Res
       exitCode: result.exitCode,
       stdout,
       stderr,
+      backend: 'worker-shell',
     });
   } catch (error) {
     return errorJSON(error, 500);

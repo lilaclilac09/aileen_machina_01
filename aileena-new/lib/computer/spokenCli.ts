@@ -50,6 +50,16 @@ function aliasCommand(raw: string): string | null {
   ) {
     return 'demo';
   }
+  if (/^(run javascript|demo js|worker javascript|show javascript)$/i.test(t)) return 'demo js';
+  if (/^(demo egress|show egress|run egress)$/i.test(t)) return 'demo egress';
+  if (/^(demo mcp|show mcp|run mcp)$/i.test(t)) return 'demo mcp';
+  if (/^(demo rlm|run rlm)$/i.test(t)) return 'demo rlm';
+  if (/^(demo think|run think)$/i.test(t)) return 'demo think';
+  if (/^(demo compare|compare runtimes|think compare)$/i.test(t)) return 'demo compare';
+  if (/^(demo tutorial|run tutorial)$/i.test(t)) return 'demo tutorial';
+  if (/^(demo artifacts|run artifacts)$/i.test(t)) return 'demo artifacts';
+  if (/^(demo assets|run assets)$/i.test(t)) return 'demo assets';
+  if (/^(demo container|run container|why no container)$/i.test(t)) return 'demo container';
   if (/^(clear|clear screen|wipe)$/i.test(t)) return 'clear';
   if (/^(go home|cd home|go to workspace)$/i.test(t)) return 'cd';
   if (/^(go to scratch|cd scratch|open scratch)$/i.test(t)) return 'cd scratch';

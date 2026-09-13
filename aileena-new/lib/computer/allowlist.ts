@@ -84,6 +84,16 @@ export function isOwnerShellCommand(raw: string): boolean {
     bin === 'help' ||
     bin === 'examples' ||
     bin === 'demo' ||
+    bin === 'js' ||
+    bin === 'egress' ||
+    bin === 'mcp' ||
+    bin === 'rlm' ||
+    bin === 'think' ||
+    bin === 'compare' ||
+    bin === 'tutorial' ||
+    bin === 'artifacts' ||
+    bin === 'assets' ||
+    bin === 'container' ||
     bin === 'vcode'
   ) {
     return true;

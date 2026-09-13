@@ -6,6 +6,7 @@ import { clip } from './redact';
 import { cfExec, cfGetFile, cfPutFile, isCloudflareComputerReady, toWorkspacePath } from './cfClient';
 import { isOwnerShellCommand } from './allowlist';
 import { OWNER_CLI_EXAMPLES, OWNER_CLI_HELP } from './helpText';
+import { parseOfficialDemo, runJsSource, runOfficialDemo } from './officialDemos';
 
 export const WORKSPACE_ROOT = '/workspace';
 export const CWD_FILE = '/workspace/scratch/.cwd';
@@ -61,6 +62,16 @@ export function isTerminalBuiltin(raw: string): boolean {
     bin === 'help' ||
     bin === 'examples' ||
     bin === 'demo' ||
+    bin === 'js' ||
+    bin === 'egress' ||
+    bin === 'mcp' ||
+    bin === 'rlm' ||
+    bin === 'think' ||
+    bin === 'compare' ||
+    bin === 'tutorial' ||
+    bin === 'artifacts' ||
+    bin === 'assets' ||
+    bin === 'container' ||
     bin === 'vcode'
   );
 }
@@ -96,43 +107,23 @@ export type OwnerShellResult = {
   kind: 'exec' | 'cd' | 'put' | 'clear' | 'help' | 'vcode' | 'demo';
 };
 
-const DEMO_JSON = `{
-  "example": "worker-shell",
-  "surface": ["PUT /c/owner/file", "GET /c/owner/file", "POST /c/owner/exec"],
-  "backend": "just-bash",
-  "container": false
-}
-`;
-
-async function runWorkerShellDemo(workspaceId: string, cwd: string): Promise<OwnerShellResult> {
-  const path = '/workspace/scratch/demo/worker-shell.json';
-  await cfPutFile(path, DEMO_JSON, workspaceId);
-  const jq = await cfExec('jq -r .example /workspace/scratch/demo/worker-shell.json', cwd, workspaceId);
-  const ls = await cfExec('ls /workspace/scratch/demo', cwd, workspaceId);
-  const named = (jq.stdout || jq.stderr || '').trim() || `exit ${jq.exitCode}`;
-  const listed = (ls.stdout || ls.stderr || '').trim();
-  const text = [
-    'official examples/worker-shell — running now',
-    'PUT  /c/owner/file/workspace/scratch/demo/worker-shell.json',
-    path,
-    'POST /c/owner/exec  jq -r .example',
-    named,
-    'POST /c/owner/exec  ls /workspace/scratch/demo',
-    listed,
-    '',
-    'this is the one official example bound here.',
-    'type examples for the rest (not bound).',
-  ].join('\n');
-  return { ok: jq.exitCode === 0 && /worker-shell/.test(named), cwd, text, kind: 'demo' };
-}
-
 export async function runOwnerShellLine(command: string, workspaceId: string): Promise<OwnerShellResult> {
   const cmd = command.trim().slice(0, 4000);
   const cwd = await loadCwd(workspaceId);
   if (!cmd) return { ok: false, cwd, text: 'empty command', kind: 'exec' };
   if (cmd === 'clear') return { ok: true, cwd, text: '', kind: 'clear' };
-  if (cmd === 'demo' || /^demo\s/.test(cmd) || cmd === 'help demo') {
-    return runWorkerShellDemo(workspaceId, cwd);
+  if (/^js\b/i.test(cmd) && cmd.replace(/^js\b/i, '').trim()) {
+    const made = await runJsSource(cmd.replace(/^js\b/i, '').trim(), workspaceId);
+    return { ok: made.ok, cwd, text: made.text, kind: 'demo' };
+  }
+  const demoName = parseOfficialDemo(cmd);
+  if (demoName) {
+    const made = await runOfficialDemo(demoName, workspaceId, cwd);
+    return { ok: made.ok, cwd, text: made.text, kind: 'demo' };
+  }
+  if (cmd === 'help demo') {
+    const made = await runOfficialDemo('worker-shell', workspaceId, cwd);
+    return { ok: made.ok, cwd, text: made.text, kind: 'demo' };
   }
   if (cmd === 'examples' || /^help\s+examples\b/i.test(cmd)) {
     return { ok: true, cwd, text: OWNER_CLI_EXAMPLES, kind: 'help' };

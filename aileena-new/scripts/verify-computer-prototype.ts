@@ -128,6 +128,8 @@ function sourceChecks() {
   assert('e2e CLI example writes greet.ts + jq', /put greet\.ts/.test(e2eSrc) && /jq -r \.name/.test(e2eSrc));
   assert('e2e covers help examples vcode', /cmd: 'help'/.test(e2eSrc) && /cmd: 'examples'/.test(e2eSrc) && /vcode scratch\/vcode\/voice\.ts/.test(e2eSrc));
   assert('e2e covers demo worker-shell surface', /cmd: 'demo'/.test(e2eSrc) && /worker-shell\.json/.test(e2eSrc));
+  assert('e2e covers demo js and container', /cmd: 'demo js'/.test(e2eSrc) && /cmd: 'demo container'/.test(e2eSrc));
+  assert('worker binds official javascript backend', /WorkerJavaScriptBackend/.test(workerSrc) && /worker-javascript-none/.test(workerSrc));
   assert('runner owner CLI uses persisted cwd', /runOwnerShellLine/.test(runner));
   const termSrc = readFileSync(join(process.cwd(), 'lib/computer/terminal.ts'), 'utf8');
   assert('terminal cwd stays under /workspace', /WORKSPACE_ROOT/.test(termSrc) && /parsePut/.test(termSrc));
@@ -142,7 +144,7 @@ function sourceChecks() {
   assert('parsePut write alias', parsePut('write scratch/hi.ts\nexport const n = 1')?.path === '/workspace/scratch/hi.ts');
   assert('parsePut rejects workspace root file', parsePut('put /workspace/secret.ts\nx', '/workspace') === null);
   assert('isWritePath only scratch reports artifacts', isWritePath('/workspace/scratch/a.ts') && !isWritePath('/workspace/scratch') && !isWritePath('/workspace/lib/x.ts'));
-  assert('isOwnerCliCommand accepts builtins and bins', isOwnerCliCommand('cd scratch') && isOwnerCliCommand('put x.ts') && isOwnerCliCommand('examples') && isOwnerCliCommand('ls') && !isOwnerCliCommand('vim') && !isOwnerCliCommand('pnpm'));
+  assert('isOwnerCliCommand accepts builtins and bins', isOwnerCliCommand('cd scratch') && isOwnerCliCommand('put x.ts') && isOwnerCliCommand('examples') && isOwnerCliCommand('demo js') && isOwnerCliCommand('ls') && !isOwnerCliCommand('vim') && !isOwnerCliCommand('pnpm'));
   assert('isOwnerShellCommand matches CLI builtins', isOwnerShellCommand('clear') && isOwnerShellCommand('mkdir -p scratch') && !isOwnerShellCommand('git status'));
   assert('formatPrompt shortens under /workspace', formatPrompt('/workspace') === '/workspace $' && formatPrompt('/workspace/scratch/cli-demo') === 'scratch/cli-demo $');
   assert('resolveCwd blocks leaving workspace', resolveCwd('/workspace', '../../etc/passwd') === null);
@@ -158,14 +160,15 @@ function sourceChecks() {
   assert('spoken hi is not CLI', spokenToCli('hi').kind === 'none');
   assert('parseVcode path hint', parseVcode('vcode scratch/vcode/hi.ts\nexport const n = 1')?.pathHint === 'scratch/vcode/hi.ts');
   assert('looksLikeSource detects ts', looksLikeSource('export const n = 1') && !looksLikeSource('please write a file'));
-  assert('help does not offer container', /not here: container/.test(OWNER_CLI_HELP) && /vcode/.test(OWNER_CLI_HELP));
+  assert('help teaches demo js and fail-closed container', /demo js/.test(OWNER_CLI_HELP) && /demo container/.test(OWNER_CLI_HELP) && /fail-closed/.test(OWNER_CLI_HELP));
   assert(
-    'examples lists official catalog as unbound',
-    /examples\/container/.test(OWNER_CLI_EXAMPLES) &&
-      /think-compare-runtimes/.test(OWNER_CLI_EXAMPLES) &&
-      /packages\/computerd/.test(OWNER_CLI_EXAMPLES) &&
-      /type demo/.test(OWNER_CLI_EXAMPLES),
+    'examples lists runnable official names',
+    /demo js/.test(OWNER_CLI_EXAMPLES) &&
+      /demo container/.test(OWNER_CLI_EXAMPLES) &&
+      /computerd/.test(OWNER_CLI_EXAMPLES) &&
+      /worker-javascript/.test(OWNER_CLI_EXAMPLES),
   );
+  assert('spoken demo js alias', spokenToCli('run javascript').command === 'demo js');
   assert('dock listens for voice CLI event', /COMPUTER_CLI_EVENT/.test(dockSrc) && /voiceOn/.test(dockSrc));
   assert('chat routes owner computer voice to CLI', /spokenToCli/.test(agentChatSrc) && /dispatchComputerCli/.test(agentChatSrc));
   assert('worker PUT replaces existing files', /await ws\.fs\.rm\(path\)/.test(workerSrc) && /await using ws/.test(workerSrc));
