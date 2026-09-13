@@ -77,7 +77,7 @@ async function main() {
   const ownerPost = await fetch(`${BASE}/api/daily/notes`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Cookie: `${SESSION_COOKIE}=${token}` },
-    body: JSON.stringify({ body: NOTE }),
+    body: JSON.stringify({ body: NOTE, published: true }),
   });
   if (!ownerPost.ok) throw new Error(`owner note ${ownerPost.status}`);
   const { note } = (await ownerPost.json()) as { note: { id: string } };
@@ -160,6 +160,62 @@ async function main() {
   await expectValue(mo, 'daily-owner-textarea', 'typing works here');
   await mo.screenshot({ path: join(OUT, 'mobile-daily-typing.png') });
   await mo.screenshot({ path: join(OUT, 'mobile-daily-editor.png') });
+  await mo.screenshot({ path: join(OUT, 'mobile-daily-publish-pill.png') });
+
+  const snapDataUrl = await mo.evaluate(async () => {
+    const c = document.createElement('canvas');
+    c.width = 640;
+    c.height = 400;
+    const ctx = c.getContext('2d');
+    if (!ctx) return '';
+    ctx.fillStyle = '#f4efe6';
+    ctx.fillRect(0, 0, 640, 400);
+    ctx.fillStyle = '#00a89d';
+    ctx.beginPath();
+    ctx.arc(320, 188, 72, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#2a241c';
+    ctx.font = '28px Georgia, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('one snap', 320, 198);
+    return c.toDataURL('image/jpeg', 0.72);
+  });
+  const snapMatch = snapDataUrl.match(/^data:(image\/jpeg);base64,(.+)$/);
+  if (!snapMatch) throw new Error('snap canvas failed');
+  const snapRes = await fetch(`${BASE}/api/daily/snap`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Cookie: `${SESSION_COOKIE}=${token}` },
+    body: JSON.stringify({ noteId: note.id, mime: snapMatch[1], data: snapMatch[2] }),
+  });
+  if (!snapRes.ok) throw new Error(`owner snap ${snapRes.status}`);
+  await mo.reload({ waitUntil: 'networkidle' });
+  await mo.keyboard.press('Escape');
+  await mo.waitForSelector('[data-testid="daily-owner-snap-preview"]');
+  await mo.waitForTimeout(400);
+  await mo.screenshot({ path: join(OUT, 'mobile-daily-owner-snap.png') });
+
+  const mobileSnap = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    isMobile: true,
+    hasTouch: true,
+  });
+  const ms = await mobileSnap.newPage();
+  await ms.goto(`${BASE}/daily`, { waitUntil: 'networkidle' });
+  await ms.keyboard.press('Escape');
+  await ms.waitForSelector('[data-testid="daily-snap-seal"]');
+  if ((await ms.locator('[data-testid="daily-publish"]').count()) > 0) {
+    throw new Error('visitor must not see PUBLISH');
+  }
+  await ms.waitForTimeout(300);
+  await ms.screenshot({ path: join(OUT, 'mobile-daily-snap-seal.png') });
+  await ms.locator('[data-testid="daily-snap-seal"]').click();
+  await ms.waitForSelector('[data-testid="daily-snap-seen"]');
+  await ms.waitForTimeout(300);
+  await ms.screenshot({ path: join(OUT, 'mobile-daily-snap-seen.png') });
+  await ms.locator('[data-testid="daily-snap-seen"]').click();
+  await ms.waitForSelector('[data-testid="daily-snap-burned"]');
+  await ms.waitForTimeout(200);
+  await ms.screenshot({ path: join(OUT, 'mobile-daily-snap-burned.png') });
 
   const doors = await visitor.newPage();
   await doors.goto(`${BASE}/doors`, { waitUntil: 'networkidle' });

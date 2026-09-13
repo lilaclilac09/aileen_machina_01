@@ -387,18 +387,25 @@ async function runShellTask(task: ComputerTask): Promise<ComputerTask> {
   if (target && !target.head) return runOwnerFetch(task, target.url);
   const name = workspaceIdFor(task);
   await ensureCfMount(name);
-  task = await log(task, `$ ${cmd}`);
-  const run = await cfExec(cmd, '/workspace', name);
-  const text = [run.stdout, run.stderr].filter(Boolean).join('\n');
-  const ok = run.exitCode === 0;
+  const { runOwnerShellLine, formatPrompt } = await import('./terminal');
+  const run = await runOwnerShellLine(cmd, name);
+  const prompt = formatPrompt(run.cwd);
+  task = await log(task, `${prompt} ${cmd.split('\n')[0]}`);
+  const preview = run.kind === 'clear' ? '' : run.text || (run.ok ? '' : 'failed');
   return finishInspectStyle(task, {
-    status: ok ? 'completed' : 'failed',
-    summary: ok ? `$ ${cmd}` : `exit ${run.exitCode}`,
-    report: `# shell_exec\n\n$ ${cmd}\nexit ${run.exitCode}\n\n${text}`,
-    preview: text || `exit ${run.exitCode}`,
-    title: cmd.slice(0, 40),
-    kind: 'report',
-    error: ok ? null : run.stderr || `exit ${run.exitCode}`,
+    status: run.ok ? 'completed' : 'failed',
+    summary: run.ok ? `${prompt} ${cmd.split('\n')[0]}` : run.text.slice(0, 120),
+    report: `# shell_exec\n\n${prompt} ${cmd}\n\n${run.text}\n`,
+    preview,
+    title: cmd.split('\n')[0].slice(0, 40),
+    kind: run.kind === 'put' || run.kind === 'vcode' || run.kind === 'demo' ? 'scratch' : 'report',
+    error: run.ok ? null : run.text,
+    filesInspected:
+      run.kind === 'demo'
+        ? ['/workspace/scratch/demo/worker-shell.json']
+        : run.kind === 'put' || run.kind === 'vcode'
+          ? [run.text.split('\n')[0]]
+          : [],
   });
 }
 

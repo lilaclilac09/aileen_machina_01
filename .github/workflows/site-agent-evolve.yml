@@ -1,11 +1,9 @@
 name: Site-agent live evolve
 
-# Drain uncovered visitor asks that public chat enqueued to Redis,
-# then ratchet skills. Promote only if held-out rises.
+# Drain uncovered visitor asks from production Redis via GitHub OIDC
+# (no UPSTASH secret on GitHub), then ratchet skills.
+# Promote only if held-out rises.
 # Never commits AGENTS.md / QA.md / PROJECT_RULES.md.
-#
-# Required repo secrets (same as Vercel production):
-#   UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN
 
 on:
   schedule:
@@ -14,6 +12,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 concurrency:
   group: site-agent-live-evolve
@@ -21,6 +20,7 @@ concurrency:
 
 jobs:
   evolve:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:
@@ -33,27 +33,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check required secrets
-        id: secrets
-        env:
-          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
-          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
-        run: |
-          if [ -z "$UPSTASH_REDIS_REST_URL" ] || [ -z "$UPSTASH_REDIS_REST_TOKEN" ]; then
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::Missing UPSTASH_* repo secrets — skip live evolve drain."
-          else
-            echo "ready=true" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Setup pnpm
-        if: steps.secrets.outputs.ready == 'true'
         uses: pnpm/action-setup@v4
         with:
           version: 9
 
       - name: Setup Node
-        if: steps.secrets.outputs.ready == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -61,34 +46,40 @@ jobs:
           cache-dependency-path: aileena-new/pnpm-lock.yaml
 
       - name: Install
-        if: steps.secrets.outputs.ready == 'true'
         run: pnpm install --frozen-lockfile || pnpm install --no-frozen-lockfile
 
-      - name: Drain chat inbox + ratchet
-        if: steps.secrets.outputs.ready == 'true'
+      - name: Drain production inbox (OIDC)
         env:
-          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
-          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
-        run: pnpm evolve:live
+          DRAIN_URL: https://www.aileena.xyz/api/evolve/drain
+        run: |
+          set -euo pipefail
+          TOKEN=$(curl -fsSL \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=https://www.aileena.xyz" \
+            | python3 -c 'import json,sys; print(json.load(sys.stdin)["value"])')
+          curl -fsSL -X POST "$DRAIN_URL" \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Accept: application/json" \
+            -o /tmp/evolve-asks.json
+          python3 -c 'import json; raw=json.load(open("/tmp/evolve-asks.json")); asks=raw.get("asks") if isinstance(raw, dict) else raw; print("drained", len(asks) if isinstance(asks, list) else 0, "ask(s)")'
+
+      - name: Ingest drained asks + ratchet
+        run: pnpm evolve -- --from-asks /tmp/evolve-asks.json
 
       - name: Refresh effect sheet
-        if: steps.secrets.outputs.ready == 'true'
         run: pnpm evolve:effect
 
       - name: Restore constitution if touched
-        if: steps.secrets.outputs.ready == 'true'
         working-directory: .
         run: |
           git checkout -- AGENTS.md QA.md PROJECT_RULES.md 2>/dev/null || true
 
       - name: Configure Git
-        if: steps.secrets.outputs.ready == 'true'
         run: |
           git config user.name "Site Agent Evolve Bot"
           git config user.email "bot@aileena.xyz"
 
       - name: Commit skills only
-        if: steps.secrets.outputs.ready == 'true'
         working-directory: .
         run: |
           set -euo pipefail

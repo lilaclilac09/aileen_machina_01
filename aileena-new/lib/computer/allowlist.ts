@@ -8,6 +8,8 @@ export const DAILY_INSPECT_FILES = [
   'aileena-new/app/api/daily/notes/route.ts',
   'aileena-new/app/api/daily/comments/route.ts',
   'aileena-new/app/api/daily/theme/route.ts',
+  'aileena-new/app/api/daily/snap/route.ts',
+  'aileena-new/app/api/daily/snap/open/route.ts',
   'aileena-new/components/DailyBoard.tsx',
   'aileena-new/components/OwnerUnlockForm.tsx',
   'aileena-new/lib/dailyBoard.ts',
@@ -76,6 +78,28 @@ export const OWNER_SHELL_BINS = [
 
 export function isOwnerShellCommand(raw: string): boolean {
   const bin = raw.trim().split(/\s+/)[0] || '';
+  if (
+    bin === 'cd' ||
+    bin === 'put' ||
+    bin === 'write' ||
+    bin === 'clear' ||
+    bin === 'help' ||
+    bin === 'examples' ||
+    bin === 'demo' ||
+    bin === 'js' ||
+    bin === 'egress' ||
+    bin === 'mcp' ||
+    bin === 'rlm' ||
+    bin === 'think' ||
+    bin === 'compare' ||
+    bin === 'tutorial' ||
+    bin === 'artifacts' ||
+    bin === 'assets' ||
+    bin === 'container' ||
+    bin === 'vcode'
+  ) {
+    return true;
+  }
   return (OWNER_SHELL_BINS as readonly string[]).includes(bin);
 }
 
