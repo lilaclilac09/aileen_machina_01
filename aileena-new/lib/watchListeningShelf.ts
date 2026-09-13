@@ -8,8 +8,8 @@ function slugify(value: string): string {
 export type ShelfSection = 'listen' | 'watch' | 'read' | 'living';
 export type ShelfType = 'podcast' | 'film' | 'interview' | 'book' | 'note' | 'video';
 export type ShelfObject = 'cover' | 'cassette' | 'spine' | 'slip';
-export type ShelfRow = 'listen' | 'films' | 'docs' | 'notes' | 'video' | 'living';
-export type ShelfCoverKind = 'poster' | 'still';
+export type ShelfRow = 'listen' | 'watch' | 'notes' | 'video' | 'living';
+export type ShelfCoverKind = 'poster' | 'still' | 'spine';
 
 export type ShelfItem = {
   id: string;
@@ -203,6 +203,7 @@ export const CHANNEL_RECS = [
     label: 'markets',
     href: 'https://asymmetricalbets.substack.com',
     body: 'Narrative-driven market reading.',
+    image: '/shelf/spine-asymmetrical-bets.png',
   },
   {
     title: 'SemiAnalysis',
@@ -210,6 +211,7 @@ export const CHANNEL_RECS = [
     label: 'semis',
     href: 'https://www.semianalysis.com',
     body: 'Chips, clusters, bottlenecks.',
+    image: '/shelf/spine-semianalysis.png',
   },
   {
     title: 'Branch Education',
@@ -241,6 +243,7 @@ export const CHANNEL_RECS = [
     label: 'SFT',
     href: '/blog/post-training-path',
     body: 'Rust, CLI, holdout, LoRA.',
+    image: '/shelf/spine-post-training.png',
   },
   {
     title: 'Know Good Code. Own the Repo.',
@@ -248,6 +251,7 @@ export const CHANNEL_RECS = [
     label: 'taste',
     href: '/blog/own-your-stack',
     body: 'Own the repo before you build.',
+    image: '/shelf/spine-own-the-repo.png',
   },
 ];
 
@@ -339,12 +343,12 @@ export const SHELF_ITEMS: ShelfItem[] = [
     featured: Boolean(item.featured),
     object: item.image ? ('cover' as const) : ('cassette' as const),
   })),
-  ...FILM_RECS.map((item) => ({
+  ...DOCUMENTARY_RECS.map((item) => ({
     id: slugify(item.shelfTitle),
     title: item.shelfTitle,
     type: 'film' as const,
     section: 'watch' as const,
-    row: 'films' as const,
+    row: 'watch' as const,
     creator: item.label,
     source: `${item.title} · ${item.year}`,
     note: item.note,
@@ -354,12 +358,12 @@ export const SHELF_ITEMS: ShelfItem[] = [
     coverKind: 'poster' as const,
     object: 'cover' as const,
   })),
-  ...DOCUMENTARY_RECS.map((item) => ({
+  ...FILM_RECS.map((item) => ({
     id: slugify(item.shelfTitle),
     title: item.shelfTitle,
     type: 'film' as const,
     section: 'watch' as const,
-    row: 'docs' as const,
+    row: 'watch' as const,
     creator: item.label,
     source: `${item.title} · ${item.year}`,
     note: item.note,
@@ -379,7 +383,9 @@ export const SHELF_ITEMS: ShelfItem[] = [
     source: item.title,
     note: item.body,
     href: item.href,
-    object: 'spine' as const,
+    cover: item.image,
+    coverKind: item.image ? ('spine' as const) : undefined,
+    object: item.image ? ('cover' as const) : ('spine' as const),
   })),
   ...VIDEO_RECS.map((item) => ({
     id: slugify(item.shelfTitle),
@@ -424,7 +430,7 @@ export const SHELF_HASH_ALIASES: Record<string, string> = {
   'featured-listen': FEATURED_SHELF_ID,
   podcasts: FEATURED_SHELF_ID,
   listen: FEATURED_SHELF_ID,
-  watch: 'blue-is-the-warmest-color',
+  watch: 'joan-didion',
   documentaries: 'joan-didion',
   films: 'blue-is-the-warmest-color',
   channels: 'asymmetrical-bets',
@@ -435,8 +441,6 @@ export const SHELF_HASH_ALIASES: Record<string, string> = {
 };
 
 export const SHELF_ROW_LABEL: Partial<Record<ShelfRow, string>> = {
-  films: 'films',
-  docs: 'docs',
   notes: 'notes',
   video: 'video',
 };

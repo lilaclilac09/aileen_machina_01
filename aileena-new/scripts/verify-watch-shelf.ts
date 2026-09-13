@@ -1,11 +1,12 @@
 #!/usr/bin/env tsx
 /**
- * Watch / listening shelf: films first, video photo ridge, notes left empty.
+ * Watch / listening shelf: films unchanged; books + videos are photo-real ridges.
  * Run: pnpm verify:watch-shelf
  */
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
+  DOCUMENTARY_RECS,
   FILM_RECS,
   SHELF_ITEMS,
   VIDEO_RECS,
@@ -27,26 +28,28 @@ function read(rel: string): string {
 
 function main() {
   const watch = SHELF_ITEMS.filter((item) => item.section === 'watch');
-  const films = watch.filter((item) => item.row === 'films');
-  const docs = watch.filter((item) => item.row === 'docs');
   const videos = SHELF_ITEMS.filter((item) => item.row === 'video');
   const notes = SHELF_ITEMS.filter((item) => item.row === 'notes');
+  const expectedWatch = [
+    ...DOCUMENTARY_RECS.map((item) => item.shelfTitle),
+    ...FILM_RECS.map((item) => item.shelfTitle),
+  ];
 
-  assert('first watch item is Blue Is the Warmest Color', watch[0]?.id === 'blue-is-the-warmest-color', watch[0]?.id);
-  assert('films row is laid before docs', films.length > 0 && docs.length > 0 && watch[0]?.row === 'films');
+  assert('watch starts with Joan Didion (films unchanged)', watch[0]?.id === 'joan-didion', watch[0]?.id);
   assert(
-    'film ridge matches FILM_RECS order',
-    films.map((item) => item.title).join('|') === FILM_RECS.map((item) => item.shelfTitle).join('|'),
+    'watch order is docs then films, original set',
+    watch.map((item) => item.title).join('|') === expectedWatch.join('|'),
   );
-  assert('video ridge has still covers', videos.length === VIDEO_RECS.length && videos.every((item) => item.coverKind === 'still' && item.cover));
-  assert('video notes are empty for later input', videos.every((item) => item.note === ''));
-  assert('read notes stay spines', notes.length >= 4 && notes.every((item) => item.object === 'spine'));
-  assert('#films and #watch land on Blue', resolveShelfHash('#films') === 'blue-is-the-warmest-color' && resolveShelfHash('#watch') === 'blue-is-the-warmest-color');
+  assert('video ridge has photo stills', videos.length === VIDEO_RECS.length && videos.every((item) => item.coverKind === 'still' && item.cover));
+  assert('video notes stay empty for later', videos.every((item) => item.note === ''));
+  assert('book ridge uses photo spines', notes.length >= 4 && notes.every((item) => item.coverKind === 'spine' && Boolean(item.cover)));
+  assert('#watch stays Joan Didion', resolveShelfHash('#watch') === 'joan-didion');
+  assert('#films stays Blue', resolveShelfHash('#films') === 'blue-is-the-warmest-color');
   assert('#video lands on first still', resolveShelfHash('#video') === 'cache');
 
   const watchRows = shelfRowsInSection('watch').map((row) => row.row).join(',');
   const readRows = shelfRowsInSection('read').map((row) => row.row).join(',');
-  assert('watch rows are films then docs', watchRows === 'films,docs');
+  assert('watch is one row', watchRows === 'watch');
   assert('read rows are notes then video', readRows === 'notes,video');
 
   for (const item of SHELF_ITEMS) {

@@ -29,51 +29,46 @@ async function main() {
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await context.newPage();
-  await page.goto(`${BASE}/blog/watch-listening-shelf#films`, { waitUntil: 'networkidle' });
+
+  await page.goto(`${BASE}/blog/watch-listening-shelf`, { waitUntil: 'networkidle' });
   await page.keyboard.press('Escape');
-  await page.waitForSelector('[data-testid="watch-shelf-row-films"]');
+  await page.waitForSelector('[data-testid="watch-shelf-row-watch"]');
+  await page.locator('#joan-didion').click();
+  await page.waitForFunction(
+    () => document.querySelector('[data-testid="watch-shelf-detail-title"]')?.textContent?.trim() === 'Joan Didion',
+  );
   await page.waitForTimeout(400);
-  const title = (await page.locator('[data-testid="watch-shelf-detail-title"]').textContent())?.trim();
-  if (title !== 'Blue Is the Warmest Color') {
-    throw new Error(`expected Blue first, got ${JSON.stringify(title)}`);
-  }
-  await page.screenshot({ path: join(OUT, 'watch-shelf-films-ridge.png'), fullPage: true });
+  await page.screenshot({ path: join(OUT, 'shelf_watch_films_unchanged.png'), fullPage: true });
+
+  await page.locator('#asymmetrical-bets').click();
+  await page.waitForFunction(
+    () => document.querySelector('[data-testid="watch-shelf-detail-title"]')?.textContent?.trim() === 'Asymmetrical Bets',
+  );
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: join(OUT, 'shelf_photo_real_book_spines.png'), fullPage: true });
 
   await page.locator('#cache').click();
-  await page.waitForFunction(() => {
-    const el = document.querySelector('[data-testid="watch-shelf-detail-title"]');
-    return el?.textContent?.trim() === 'Cache';
-  });
+  await page.waitForFunction(
+    () => document.querySelector('[data-testid="watch-shelf-detail-title"]')?.textContent?.trim() === 'Cache',
+  );
   await page.waitForTimeout(300);
-  await page.screenshot({ path: join(OUT, 'watch-shelf-video-stills.png'), fullPage: true });
-
-  const videoRow = page.locator('[data-testid="watch-shelf-row-video"]');
-  const videoCount = await videoRow.locator('li').count();
+  const videoCount = await page.locator('[data-testid="watch-shelf-row-video"] li').count();
   if (videoCount !== 7) throw new Error(`expected 7 video stills, got ${videoCount}`);
-  await videoRow.evaluate((el) => {
-    el.scrollLeft = el.scrollWidth;
-  });
-  await page.waitForTimeout(200);
-  await page.locator('#mcp').click();
-  await page.waitForFunction(() => {
-    const el = document.querySelector('[data-testid="watch-shelf-detail-title"]');
-    return el?.textContent?.trim() === 'MCP';
-  });
-  await page.screenshot({ path: join(OUT, 'watch-shelf-video-stills-end.png'), fullPage: true });
+  await page.screenshot({ path: join(OUT, 'shelf_photo_real_video_ridge.png'), fullPage: true });
 
   const mobile = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const mPage = await mobile.newPage();
-  await mPage.goto(`${BASE}/blog/watch-listening-shelf#films`, { waitUntil: 'networkidle' });
+  await mPage.goto(`${BASE}/blog/watch-listening-shelf`, { waitUntil: 'networkidle' });
   await mPage.keyboard.press('Escape');
-  await mPage.waitForSelector('[data-testid="watch-shelf-row-films"]');
+  await mPage.waitForSelector('[data-testid="watch-shelf-row-watch"]');
   await mPage.waitForTimeout(400);
-  await mPage.screenshot({ path: join(OUT, 'watch-shelf-mobile-390.png'), fullPage: true });
+  await mPage.screenshot({ path: join(OUT, 'shelf_photo_real_mobile_390.png'), fullPage: true });
 
   await browser.close();
-  console.log(`wrote ${OUT}/watch-shelf-films-ridge.png`);
-  console.log(`wrote ${OUT}/watch-shelf-video-stills.png`);
-  console.log(`wrote ${OUT}/watch-shelf-video-stills-end.png`);
-  console.log(`wrote ${OUT}/watch-shelf-mobile-390.png`);
+  console.log(`wrote ${OUT}/shelf_watch_films_unchanged.png`);
+  console.log(`wrote ${OUT}/shelf_photo_real_book_spines.png`);
+  console.log(`wrote ${OUT}/shelf_photo_real_video_ridge.png`);
+  console.log(`wrote ${OUT}/shelf_photo_real_mobile_390.png`);
 }
 
 main().catch((err) => {

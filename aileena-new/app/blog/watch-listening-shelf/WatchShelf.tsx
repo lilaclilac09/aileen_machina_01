@@ -45,15 +45,16 @@ function OpenHref({
 
 function ShelfObject({ item, selected }: { item: ShelfItem; selected: boolean }) {
   const still = item.coverKind === 'still';
+  const spinePhoto = item.coverKind === 'spine';
   return (
     <span className={`watch-obj watch-obj--${item.object}`} aria-hidden={item.object !== 'cover'}>
       {item.object === 'cover' && item.cover ? (
         <Image
           src={item.cover}
           alt=""
-          width={still ? 160 : 72}
-          height={still ? 90 : 108}
-          className={`watch-obj-cover${still ? ' is-still' : ''}`}
+          width={spinePhoto ? 90 : still ? 160 : 72}
+          height={spinePhoto ? 160 : still ? 90 : 108}
+          className={`watch-obj-cover${still ? ' is-still' : ''}${spinePhoto ? ' is-spine' : ''}`}
           style={{ objectFit: 'contain' }}
         />
       ) : null}
@@ -142,7 +143,7 @@ export default function WatchShelf({ owner }: { owner: boolean }) {
                     {group.label}
                   </h2>
                   {rows.map((row) => {
-                    const ridge = row.row === 'films' || row.row === 'docs' || row.row === 'video';
+                    const ridge = row.row === 'watch' || row.row === 'notes' || row.row === 'video';
                     return (
                       <div key={row.row} className="watch-shelf-lane">
                         {row.label ? (
@@ -159,7 +160,7 @@ export default function WatchShelf({ owner }: { owner: boolean }) {
                                 <button
                                   type="button"
                                   id={item.id}
-                                  className={`watch-shelf-item${on ? ' is-on' : ''}${item.featured ? ' is-featured' : ''}${item.coverKind === 'still' ? ' is-still' : ''}`}
+                                  className={`watch-shelf-item${on ? ' is-on' : ''}${item.featured ? ' is-featured' : ''}${item.coverKind === 'still' ? ' is-still' : ''}${item.coverKind === 'spine' ? ' is-spine' : ''}`}
                                   aria-pressed={on}
                                   aria-current={on ? 'true' : undefined}
                                   onClick={() => select(item.id)}
@@ -188,9 +189,9 @@ export default function WatchShelf({ owner }: { owner: boolean }) {
                 <Image
                   src={selected.cover}
                   alt=""
-                  width={selected.coverKind === 'still' ? 320 : 220}
-                  height={selected.coverKind === 'still' ? 180 : 320}
-                  className={`watch-shelf-detail-image${selected.coverKind === 'still' ? ' is-still' : ''}`}
+                  width={selected.coverKind === 'still' ? 320 : selected.coverKind === 'spine' ? 180 : 220}
+                  height={selected.coverKind === 'still' ? 180 : selected.coverKind === 'spine' ? 320 : 320}
+                  className={`watch-shelf-detail-image${selected.coverKind === 'still' ? ' is-still' : ''}${selected.coverKind === 'spine' ? ' is-spine' : ''}`}
                   style={{ objectFit: 'contain' }}
                 />
               </div>
