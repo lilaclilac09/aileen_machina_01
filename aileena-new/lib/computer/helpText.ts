@@ -30,7 +30,7 @@ export const OWNER_CLI_EXAMPLES = [
   '  examples/assets — Workers AI image + share link',
   '',
   'upstream packages (not extra terminals here):',
-  '  packages/dofs · rpc · computerd · computer',
+  '  packages/dofs · packages/rpc · packages/computerd · packages/computer',
   '  packages/computer-computerd-linux-x64 (Docker image)',
   '',
   'partial here:',
