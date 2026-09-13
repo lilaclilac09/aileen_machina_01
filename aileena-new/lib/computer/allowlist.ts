@@ -171,6 +171,56 @@ export function isVisitorComputerTaskType(value: unknown): value is VisitorCompu
   return typeof value === 'string' && (VISITOR_COMPUTER_TASK_TYPES as readonly string[]).includes(value);
 }
 
+/** Shared public room: same visitor pad plus worker-shell. No git, no Linux, no merge. */
+export const SHARED_ROOM_COMPUTER_TASK_TYPES = [...VISITOR_COMPUTER_TASK_TYPES, 'shell_exec'] as const;
+
+export type SharedRoomComputerTaskType = (typeof SHARED_ROOM_COMPUTER_TASK_TYPES)[number];
+
+export function isSharedRoomComputerTaskType(value: unknown): value is SharedRoomComputerTaskType {
+  return typeof value === 'string' && (SHARED_ROOM_COMPUTER_TASK_TYPES as readonly string[]).includes(value);
+}
+
+/** Worker visitor bins minus rm. Shared-room programming only. */
+export const VISITOR_SHARED_SHELL_BINS = new Set([
+  'echo',
+  'cat',
+  'ls',
+  'wc',
+  'head',
+  'tail',
+  'grep',
+  'mkdir',
+  'sed',
+  'awk',
+  'sort',
+  'uniq',
+  'cut',
+  'tr',
+  'date',
+  'pwd',
+  'printf',
+  'tee',
+  'find',
+  'tree',
+  'diff',
+  'base64',
+  'stat',
+  'basename',
+  'dirname',
+  'du',
+  'touch',
+  'md5sum',
+  'sha1sum',
+]);
+
+export function isVisitorSharedShellCommand(raw: string): boolean {
+  const cmd = raw.trim();
+  if (!cmd || cmd.length > 2000) return false;
+  if (/[;&|`$<>]/.test(cmd)) return false;
+  const bin = cmd.split(/\s+/)[0] || '';
+  return VISITOR_SHARED_SHELL_BINS.has(bin);
+}
+
 export function inspectFilesForRoute(route: string): readonly string[] {
   const key = route.trim() || '/';
   return ROUTE_INSPECT_FILES[key] ?? ROUTE_INSPECT_FILES['/daily'];

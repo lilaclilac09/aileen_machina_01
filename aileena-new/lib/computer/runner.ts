@@ -6,7 +6,9 @@ import {
   curlFetchCommand,
   curlHttpsTarget,
   fetchScratchName,
+  isVisitorSharedShellCommand,
 } from './allowlist';
+import { isSharedComputerRoom } from './workspaceName';
 import { analyzeDailyFixPlan, inspectRouteFiles } from './inspect';
 import { clip, redactSecrets } from './redact';
 import { getComputerTask, isOwnerComputerTask, nowIso, taskActorId, upsertComputerTask } from './store';
@@ -383,9 +385,74 @@ async function runShellTask(task: ComputerTask): Promise<ComputerTask> {
       error: 'needs worker-shell',
     });
   }
+  const name = workspaceIdFor(task);
+  if (!isOwnerComputerTask(task)) {
+    if (isSharedComputerRoom(name) && /^vcode\b/i.test(cmd)) {
+      const { parseVcode, generateScratchFile } = await import('./voiceScratch');
+      const parsed = parseVcode(cmd);
+      if (!parsed) {
+        return finishInspectStyle(task, {
+          status: 'failed',
+          summary: '⚡ vcode: say a file and what to write',
+          report: '# vcode\n\nShared room scratch only. No repo write.\n',
+          preview: 'vcode: say a file and what to write',
+          title: 'vcode',
+          kind: 'scratch',
+          error: 'vcode needs a file',
+        });
+      }
+      await ensureCfMount(name);
+      const made = await generateScratchFile(parsed.prompt, '/workspace', parsed.pathHint);
+      if (!made.ok) {
+        return finishInspectStyle(task, {
+          status: 'failed',
+          summary: made.text.slice(0, 120),
+          report: `# vcode\n\n${made.text}\n`,
+          preview: made.text,
+          title: 'vcode',
+          kind: 'scratch',
+          error: made.text,
+        });
+      }
+      await cfPutFile(made.path, clip(made.body, 64 * 1024), name);
+      task = await log(task, `vcode ${made.path}`);
+      return finishInspectStyle(task, {
+        status: 'completed',
+        summary: made.path,
+        report: `# vcode\n\n${made.path}\n\n${clip(made.body, 800)}\n`,
+        preview: clip(made.body, 800),
+        title: made.path.replace(/^\/workspace\//, ''),
+        kind: 'scratch',
+        error: null,
+      });
+    }
+    if (!isSharedComputerRoom(name) || !isVisitorSharedShellCommand(cmd)) {
+      return finishInspectStyle(task, {
+        status: 'failed',
+        summary: '⚡ shared room shell only.',
+        report: '# shell_exec\n\nShared room: ls cat echo pwd. No curl, no linux, no git.\n',
+        preview: 'shared room shell only',
+        title: 'shell',
+        kind: 'report',
+        error: 'shared room shell only',
+      });
+    }
+    await ensureCfMount(name);
+    const run = await cfExec(cmd, '/workspace', name);
+    const raw = [run.stdout, run.stderr].filter(Boolean).join('\n');
+    task = await log(task, `$ ${cmd.split('\n')[0]}`);
+    return finishInspectStyle(task, {
+      status: run.exitCode === 0 ? 'completed' : 'failed',
+      summary: run.exitCode === 0 ? `$ ${cmd.split('\n')[0]}` : raw.slice(0, 120) || `exit ${run.exitCode}`,
+      report: `# shell_exec\n\n$ ${cmd}\n\n${raw}\n`,
+      preview: raw || (run.exitCode === 0 ? '' : `exit ${run.exitCode}`),
+      title: cmd.split('\n')[0].slice(0, 40),
+      kind: 'report',
+      error: run.exitCode === 0 ? null : raw || `exit ${run.exitCode}`,
+    });
+  }
   const target = curlHttpsTarget(cmd);
   if (target && !target.head) return runOwnerFetch(task, target.url);
-  const name = workspaceIdFor(task);
   await ensureCfMount(name);
   const { runOwnerShellLine, formatPrompt } = await import('./terminal');
   const run = await runOwnerShellLine(cmd, name);
@@ -889,7 +956,13 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
         : null;
     }
     task = fresh;
-    if (!isOwnerComputerTask(task) && !['write_scratch_file', 'files_tree', 'files_search', 'scratch_peek', 'scratch_clock'].includes(task.taskType)) {
+    if (
+      !isOwnerComputerTask(task) &&
+      !(isSharedComputerRoom(workspaceIdFor(task))
+        ? ['write_scratch_file', 'files_tree', 'files_search', 'scratch_peek', 'scratch_clock', 'shell_exec']
+        : ['write_scratch_file', 'files_tree', 'files_search', 'scratch_peek', 'scratch_clock']
+      ).includes(task.taskType)
+    ) {
       const blocked = await finishInspectStyle(task, {
         status: 'blocked',
         summary: '⚡ scratch pad only. No site git, no merge.',
@@ -901,7 +974,7 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
       });
       return await log(blocked, 'blocked non-scratch task for visitor');
     }
-    if (!isOwnerComputerTask(task) && backend === 'cloudflare-worker-shell') {
+    if (!isOwnerComputerTask(task) && !isSharedComputerRoom(workspaceIdFor(task)) && backend === 'cloudflare-worker-shell') {
       try {
         if ((await ensureVisitorScratchFresh(workspaceIdFor(task))) === 'reset') {
           task = await log(task, `monthly reset: scratch cleared after ${VISITOR_SCRATCH_TTL_DAYS}d`);

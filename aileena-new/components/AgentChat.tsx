@@ -24,7 +24,8 @@ import {
   VCODE_DAILY_LIMIT,
 } from '../lib/voiceCodeIntent';
 import { isDrawIntent } from '../lib/drawIntent';
-import { dispatchComputerCli, spokenToCli } from '../lib/computer/spokenCli';
+import { dispatchComputerCli, extractSpokenPath, spokenToCli } from '../lib/computer/spokenCli';
+import { sharedRoomFromQuery } from '../lib/computer/workspaceName';
 import { taipeiDay } from '../lib/taipeiDay';
 import { cardById, reciteDrawCard, type DrawCard } from '../lib/drawDeck';
 import {
@@ -203,6 +204,7 @@ export default function AgentChat() {
   const [vcodeCount, setVcodeCount] = useState(0);
   const [vcodeBusy, setVcodeBusy] = useState(false);
   const [vcodeById, setVcodeById] = useState<Record<string, VcodeAttachment>>({});
+  const [sharedRoom, setSharedRoom] = useState(false);
   const [drawById, setDrawById] = useState<Record<string, DrawAttachment>>({});
   const [drawBusy, setDrawBusy] = useState(false);
   const [drawnToday, setDrawnToday] = useState(false);
@@ -277,6 +279,9 @@ export default function AgentChat() {
   useEffect(() => {
     if (error && !pendingNewRootRef.current) setErrorMuted(false);
   }, [error]);
+  useEffect(() => {
+    setSharedRoom(sharedRoomFromQuery(window.location.search));
+  }, []);
   const showError =
     Boolean(error) &&
     !errorMuted &&
@@ -1360,11 +1365,17 @@ export default function AgentChat() {
       return;
     }
 
-    // Owner + computer on: spoken/typed lines go to the CLI (ls/help/vcode→scratch).
-    // Visitors still get propose-only /api/voice-code. No repo write from here.
-    if (computerMode && isOwnerRef.current) {
+    // Owner pad + computer on: spoken/typed lines go to the CLI (ls/help/vcode→scratch).
+    // Shared room: only path-bearing vcode / allowlisted shell hit the pad.
+    // Voice → code chip and pathless 写代码 stay propose-only. No repo write.
+    const onSharedPad = sharedRoomFromQuery(window.location.search);
+    const ownerPad = computerMode && isOwnerRef.current && !onSharedPad;
+    if (ownerPad || (computerMode && onSharedPad)) {
       const spoken = spokenToCli(trimmed);
-      if (spoken.kind === 'cli' || spoken.kind === 'vcode') {
+      const sharedScratchVcode =
+        onSharedPad && spoken.kind === 'vcode' && Boolean(extractSpokenPath(trimmed));
+      const sharedCli = onSharedPad && spoken.kind === 'cli';
+      if ((ownerPad && (spoken.kind === 'cli' || spoken.kind === 'vcode')) || sharedScratchVcode || sharedCli) {
         dispatchComputerCli(spoken.command);
         const userId =
           typeof crypto !== 'undefined' && crypto.randomUUID
@@ -1881,14 +1892,14 @@ export default function AgentChat() {
           data-agent-transcript
           className="flex-auto min-h-0 sm:min-h-[9rem] overflow-y-auto overscroll-contain px-4 sm:px-5 py-3 sm:py-4 space-y-3.5 bg-[#fffcf7]/55"
         >
-          {messages.length === 0 && !isOwner ? (
+          {messages.length === 0 && (!isOwner || sharedRoom) ? (
             <>
               <p className="text-[0.62rem] tracking-[0.25em] text-[#1b1713]/55 uppercase mb-2">
                 ▸ ready · say hi or ask anything
               </p>
               <p className="text-[0.78rem] leading-[1.7] text-[#1b1713]/62 mb-3">
                 {voiceMode ? (
-                  computerMode && isOwner ? (
+                  computerMode && isOwner && !sharedRoom ? (
                     <>
                       Tap the <span className="text-[#008f86]">orb</span>. Say{' '}
                       <span className="text-[#008f86]">ls</span> /{' '}
@@ -2138,10 +2149,10 @@ export default function AgentChat() {
                 <>
                   <span className="sm:hidden">
                     tap <span className="text-[#008f86]/70">orb</span>
-                    {computerMode && isOwner ? ' · say ls / write code' : ' · say fix → vcode'}
+                    {computerMode && isOwner && !sharedRoom ? ' · say ls / write code' : ' · say fix → vcode'}
                   </span>
                   <span className="hidden sm:inline">
-                    {computerMode && isOwner
+                    {computerMode && isOwner && !sharedRoom
                       ? 'orb → computer · say ls · say write code greet.ts'
                       : 'stream · barge-in · say fix / 写代码 → voice→code'}
                   </span>
@@ -2175,10 +2186,11 @@ export default function AgentChat() {
                       ? 'chat 0'
                       : `chat ${remaining}/${DAILY_LIMIT}`}
               </span>
-              {!isOwner ? (
+              {!isOwner || sharedRoom ? (
                 <>
                   <button
                     type="button"
+                    data-testid="voice-code-chip"
                     disabled={vcodeMaxed || busy}
                     onClick={() =>
                       ask('Voice → code: sketch a small patch for the Console footer')
