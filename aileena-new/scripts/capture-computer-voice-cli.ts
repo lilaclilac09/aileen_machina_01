@@ -89,7 +89,12 @@ async function main() {
   await runLine(page, 'demo');
   await page.waitForFunction(() => {
     const m = document.querySelector('[data-testid="computer-monitor"]')?.textContent || '';
-    return /worker-shell\.json/.test(m) && /running now/.test(m);
+    return /worker-shell/.test(m);
+  }, null, { timeout: 20_000 });
+  await runLine(page, 'demo js');
+  await page.waitForFunction(() => {
+    const m = document.querySelector('[data-testid="computer-monitor"]')?.textContent || '';
+    return /worker-javascript/.test(m);
   }, null, { timeout: 20_000 });
   await page.locator('[data-testid="computer-monitor"]').screenshot({
     path: join(OUT, 'computer_cli_demo.png'),
