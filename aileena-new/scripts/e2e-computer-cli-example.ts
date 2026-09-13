@@ -131,7 +131,7 @@ async function main() {
     lines.push(`status: ${done.status}`);
     lines.push(done.preview || '(empty)');
     lines.push('');
-    console.log(`${ok ? 'PASS' : 'FAIL'}  ${step.cmd.split('\n')[0]}  →  ${(done.preview || done.status).slice(0, 80)}`);
+    console.log(`${ok ? 'PASS' : 'FAIL'}  ${step.cmd.split('\n')[0]}  →  ${(done.preview || String(done.status)).slice(0, 80)}`);
   }
   const listed = await fetch(`${BASE}/api/agent/computer/tasks`, { headers: { Cookie: cookie } });
   const listedJson = listed.ok ? ((await listed.json()) as { cwd?: string; cloudflareComputer?: boolean }) : {};
