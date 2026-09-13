@@ -642,7 +642,7 @@ export default function DailyBoard({
             </h1>
             {owner ? (
               <button
-                type="button"
+                type="submit"
                 data-testid="daily-publish"
                 aria-label="publish"
                 onMouseDown={(e) => e.preventDefault()}
@@ -650,22 +650,22 @@ export default function DailyBoard({
                 disabled={saving}
                 style={{
                   flexShrink: 0,
-                  marginTop: 4,
-                  background: 'transparent',
-                  border: '1.5px solid currentColor',
-                  borderRadius: 999,
-                  color: 'inherit',
+                  marginTop: 8,
+                  background: 'none',
+                  border: 'none',
+                  color: theme.accent,
                   fontFamily: sans,
-                  fontSize: 11,
-                  fontWeight: 600,
-                  letterSpacing: '0.14em',
-                  textTransform: 'uppercase',
-                  padding: '7px 14px',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  letterSpacing: 'normal',
+                  textTransform: 'none',
+                  padding: '8px 0',
+                  minHeight: 44,
                   cursor: saving ? 'wait' : 'pointer',
                   opacity: saving ? 0.45 : 1,
                 }}
               >
-                PUBLISH
+                submit
               </button>
             ) : null}
           </div>

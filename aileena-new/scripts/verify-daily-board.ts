@@ -74,7 +74,7 @@ async function liveHttp() {
 
   const pageHtml = page.ok ? await page.text() : '';
   assert('visitor /daily has no owner writer', !pageHtml.includes('daily-owner-textarea'));
-  assert('visitor /daily has no publish pill', !pageHtml.includes('daily-publish'));
+  assert('visitor /daily has no publish CTA', !pageHtml.includes('daily-publish'));
   assert(
     'visitor /daily shows latest or empty',
     pageHtml.includes('daily-latest') || pageHtml.includes('daily-empty'),
@@ -299,12 +299,20 @@ function sourceChecks() {
   assert('comment hide requires owner', /method: 'DELETE'/.test(comments) || /export async function DELETE/.test(comments));
   assert('doors hub includes /daily', doors.includes("'/daily'"));
   assert('page copy daily board', ui.includes('daily board') && ui.includes('one or two lines a day.'));
+  assert('Nunito is loaded for the submit CTA', read('app/layout.tsx').includes('family=Nunito'));
   assert('owner placeholder', ui.includes('write one or two lines'));
   assert('bubble placeholder', ui.includes('leave a small bubble'));
   assert('empty copy', ui.includes('nothing today yet.'));
   assert('real textarea for empty paper', ui.includes('daily-owner-textarea') && ui.includes('showWriter'));
   assert('writer is owner-only', /const showWriter = owner;/.test(ui) && !/on this phone until you enter/.test(ui));
-  assert('owner publish pill', ui.includes('daily-publish') && ui.includes('draft · only you'));
+  assert(
+    'owner publish is one submit CTA',
+    ui.includes('daily-publish') &&
+      ui.includes('draft · only you') &&
+      /\bsubmit\b/.test(ui) &&
+      !/textTransform: 'uppercase'/.test(ui) &&
+      !/borderRadius: 999/.test(ui),
+  );
   assert('autosave does not publish', ui.includes('...(opts?.published ? { published: true } : {})'));
   assert('visitor snap burns', ui.includes('daily-snap-seal') && ui.includes('tap to see · then it burns'));
   assert('no owner door on daily', !ui.includes('OwnerUnlockForm') && !ui.includes('daily-owner-enter'));
