@@ -43,7 +43,9 @@ function main() {
   assert(
     'video ridge uses photo-real spines',
     videos.length === VIDEO_RECS.length &&
-      videos.every((item) => item.coverKind === 'spine' && Boolean(item.cover) && item.cover.includes('spine-video')),
+      videos.every(
+        (item) => item.coverKind === 'spine' && typeof item.cover === 'string' && item.cover.includes('spine-video'),
+      ),
   );
   assert('video notes stay empty for later', videos.every((item) => item.note === ''));
   assert(
@@ -56,7 +58,7 @@ function main() {
   );
   assert('#watch stays Joan Didion', resolveShelfHash('#watch') === 'joan-didion');
   assert('#films stays Blue', resolveShelfHash('#films') === 'blue-is-the-warmest-color');
-  assert('#video lands on first still', resolveShelfHash('#video') === 'cache');
+  assert('#video lands on first spine', resolveShelfHash('#video') === 'cache');
 
   const watchRows = shelfRowsInSection('watch').map((row) => row.row).join(',');
   const readRows = shelfRowsInSection('read').map((row) => row.row).join(',');
