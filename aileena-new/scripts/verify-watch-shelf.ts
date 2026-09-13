@@ -92,6 +92,11 @@ function main() {
     'living is one ridge row',
     shelfRowsInSection('living').map((row) => row.row).join(',') === 'living',
   );
+  assert(
+    'Ladies First stays a film, not a living object',
+    living.every((item) => item.id !== 'ladies-first') &&
+      SHELF_ITEMS.find((item) => item.id === 'ladies-first')?.row === 'watch',
+  );
 
   for (const item of SHELF_ITEMS) {
     if (!item.cover) continue;
