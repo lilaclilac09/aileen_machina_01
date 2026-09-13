@@ -75,10 +75,78 @@ class EgressState:
             self.port = port
 
 
-def connect_gateway(state: EgressState, dest: str, source: str) -> socket.socket:
+def peek_client(conn: socket.socket) -> Tuple[bytes, str, str]:
+    conn.settimeout(0.5)
+    buf = b""
+    try:
+        while len(buf) < 16384:
+            chunk = conn.recv(4096)
+            if not chunk:
+                break
+            buf += chunk
+            if buf[:1] == b"\x16":
+                break
+            if b"\r\n\r\n" in buf:
+                break
+    except TimeoutError:
+        pass
+    except socket.timeout:
+        pass
+    conn.settimeout(None)
+    sni = ""
+    hostname = ""
+    if buf.startswith(b"\x16\x03"):
+        sni = parse_sni(buf)
+    else:
+        for line in buf.split(b"\r\n"):
+            if line.lower().startswith(b"host:"):
+                raw = line.split(b":", 1)[1].decode("latin1").strip()
+                hostname = raw.split(":")[0].strip()
+                break
+    return buf, sni, hostname
+
+
+def parse_sni(record: bytes) -> str:
+    try:
+        if len(record) < 43:
+            return ""
+        session_len = record[43]
+        pos = 44 + session_len
+        cipher_len = int.from_bytes(record[pos : pos + 2], "big")
+        pos += 2 + cipher_len
+        comp_len = record[pos]
+        pos += 1 + comp_len
+        ext_len = int.from_bytes(record[pos : pos + 2], "big")
+        pos += 2
+        end = pos + ext_len
+        while pos + 4 <= end and pos + 4 <= len(record):
+            ext_type = int.from_bytes(record[pos : pos + 2], "big")
+            length = int.from_bytes(record[pos + 2 : pos + 4], "big")
+            pos += 4
+            if ext_type == 0 and pos + 5 <= len(record):
+                name_len = int.from_bytes(record[pos + 3 : pos + 5], "big")
+                return record[pos + 5 : pos + 5 + name_len].decode("ascii")
+            pos += length
+    except Exception:
+        return ""
+    return ""
+
+
+def connect_gateway(
+    state: EgressState,
+    dest: str,
+    source: str,
+    sni: str = "",
+    hostname: str = "",
+) -> Tuple[socket.socket, bytes]:
     with state.lock:
         gateway = (state.gateway, state.port)
     upstream = socket.create_connection(gateway, timeout=8)
+    extra = ""
+    if sni:
+        extra += f"X-Tls-Sni: {sni}\r\n"
+    if hostname:
+        extra += f"X-Hostname: {hostname}\r\n"
     req = (
         f"CONNECT {dest} HTTP/1.1\r\n"
         f"Host: {dest}\r\n"
@@ -86,6 +154,7 @@ def connect_gateway(state: EgressState, dest: str, source: str) -> socket.socket
         "Connection: close\r\n"
         f"X-Forwarded-For: {source}\r\n"
         "X-Proto: tcp\r\n"
+        f"{extra}"
         "\r\n"
     )
     upstream.sendall(req.encode())
@@ -98,7 +167,8 @@ def connect_gateway(state: EgressState, dest: str, source: str) -> socket.socket
     status = buf.split(b"\r\n", 1)[0]
     if b" 200 " not in status and b" 202 " not in status:
         raise OSError(f"gateway {status!r}")
-    return upstream
+    leftover = buf.split(b"\r\n\r\n", 1)[1]
+    return upstream, leftover
 
 
 def pipe(a: socket.socket, b: socket.socket) -> None:
@@ -120,8 +190,15 @@ def handle_redirect(conn: socket.socket, addr: Tuple[str, int], state: EgressSta
     try:
         dest_ip, dest_port = original_dst(conn)
         dest = f"{dest_ip}:{dest_port}"
-        log(f"redirect {addr[0]} → {dest}")
-        upstream = connect_gateway(state, dest, addr[0])
+        peeked, sni, hostname = peek_client(conn)
+        if dest_ip == EGRESS_HOST and not hostname:
+            hostname = "computer.internal"
+        log(f"redirect {addr[0]} → {dest} host={hostname!r} sni={sni!r} peek={len(peeked)}")
+        upstream, leftover = connect_gateway(state, dest, addr[0], sni=sni, hostname=hostname)
+        if leftover:
+            conn.sendall(leftover)
+        if peeked:
+            upstream.sendall(peeked)
         t = threading.Thread(target=pipe, args=(upstream, conn), daemon=True)
         t.start()
         pipe(conn, upstream)
@@ -146,42 +223,96 @@ def serve_redirect(state: EgressState) -> None:
         threading.Thread(target=handle_redirect, args=(conn, addr, state), daemon=True).start()
 
 
+def parse_hostport(dest: str) -> Tuple[str, int]:
+    dest = dest.strip()
+    if dest.startswith("["):
+        host, port = dest.rsplit("]:", 1)
+        return host[1:], int(port)
+    host, port = dest.rsplit(":", 1)
+    return host, int(port)
+
+
+def ensure_ca() -> None:
+    os.makedirs("/ca", exist_ok=True)
+    if os.path.exists("/ca/ca.crt") and os.path.exists("/ca/ca.key"):
+        return
+    subprocess.check_call(
+        [
+            "openssl",
+            "req",
+            "-x509",
+            "-newkey",
+            "ec",
+            "-pkeyopt",
+            "ec_paramgen_curve:prime256v1",
+            "-days",
+            "3650",
+            "-nodes",
+            "-keyout",
+            "/ca/ca.key",
+            "-out",
+            "/ca/ca.crt",
+            "-subj",
+            "/CN=aileena-redirect-proxy",
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    log("TLS interception CA written to /ca/ca.crt")
+
+
 class IngressHandler(BaseHTTPRequestHandler):
     state: EgressState
 
     def log_message(self, fmt: str, *args: object) -> None:
         log("ingress: " + fmt % args)
 
+    def send_empty(self, code: int) -> None:
+        self.send_response(code)
+        self.end_headers()
+
     def do_PUT(self) -> None:  # noqa: N802
         if urlsplit(self.path).path != "/egress":
-            self.send_error(404)
+            self.send_empty(404)
             return
         length = int(self.headers.get("Content-Length") or "0")
         raw = self.rfile.read(length) if length else b"{}"
         try:
             payload = json.loads(raw.decode() or "{}")
         except json.JSONDecodeError:
-            self.send_error(400)
+            self.send_empty(400)
             return
         port = payload.get("port")
         if port is not None:
             self.state.set_port(int(port))
             log(f"updated shared egress port to {port}")
-        self.send_response(204)
-        self.end_headers()
+        self.send_empty(204)
 
     def do_GET(self) -> None:  # noqa: N802
-        self.send_error(404)
+        if urlsplit(self.path).path != "/ca":
+            self.send_empty(404)
+            return
+        if not os.path.exists("/ca/ca.crt"):
+            self.send_empty(404)
+            return
+        body = open("/ca/ca.crt", "rb").read()
+        self.send_response(200)
+        self.send_header("Content-Type", "application/x-pem-file")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_HEAD(self) -> None:  # noqa: N802
+        self.do_GET()
 
     def do_CONNECT(self) -> None:  # noqa: N802
-        dest = self.headers.get("X-Dst-Addr")
-        if not dest:
-            self.send_error(400)
-            return
+        dest = self.headers.get("X-Dst-Addr") or self.path
         try:
-            origin = socket.create_connection((dest.split(":")[0], int(dest.split(":")[1])), timeout=8)
-        except Exception:
-            self.send_error(400)
+            host, port = parse_hostport(dest)
+            origin = socket.create_connection((host, port), timeout=8)
+        except Exception as err:
+            log(f"ingress CONNECT {dest!r} failed: {err}")
+            self.send_empty(400)
             return
         self.send_response(200)
         self.end_headers()
@@ -221,6 +352,10 @@ def main() -> int:
     gateway = lookup_gateway(args.gateway_ip, args.docker_gateway_cidr)
     state = EgressState(args.http_egress_port, gateway)
     log(f"Proxy address: {LISTEN_HOST}, Port: {LISTEN_PORT} gateway={gateway}:{args.http_egress_port}")
+    try:
+        ensure_ca()
+    except Exception as err:
+        log(f"ca skip: {err}")
     threading.Thread(target=serve_redirect, args=(state,), daemon=True).start()
     if args.http_ingress_address:
         threading.Thread(target=serve_ingress, args=(args.http_ingress_address, state), daemon=True).start()

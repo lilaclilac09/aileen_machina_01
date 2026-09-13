@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
-# Sidecar CONNECTs to the docker gateway. workerd listens on 127.0.0.1.
-# DNAT only docker0 → gateway high ports. Do not DNAT all TCP (breaks apk).
+# workerd already binds the docker0 gateway (172.17.0.1). A DNAT to 127.0.0.1
+# breaks sidecar CONNECT. Remove that rule if a previous run added it.
 set -euo pipefail
 GW="$(ip -4 addr show docker0 2>/dev/null | awk '/inet / {print $2}' | cut -d/ -f1 || true)"
 GW="${GW:-172.17.0.1}"
-sysctl -w net.ipv4.conf.all.route_localnet=1 >/dev/null
-sysctl -w net.ipv4.conf.docker0.route_localnet=1 >/dev/null || true
-if ! iptables -t nat -C PREROUTING -i docker0 -p tcp -d "$GW" --dport 1024:65535 -j DNAT --to-destination 127.0.0.1 2>/dev/null; then
-  iptables -t nat -A PREROUTING -i docker0 -p tcp -d "$GW" --dport 1024:65535 -j DNAT --to-destination 127.0.0.1
-fi
-echo "host egress DNAT docker0 → 127.0.0.1 for ${GW}:1024-65535"
+while iptables -t nat -C PREROUTING -i docker0 -p tcp -d "$GW" --dport 1024:65535 -j DNAT --to-destination 127.0.0.1 2>/dev/null; do
+  iptables -t nat -D PREROUTING -i docker0 -p tcp -d "$GW" --dport 1024:65535 -j DNAT --to-destination 127.0.0.1
+done
+echo "host: workerd listens on ${GW}; no docker0 DNAT"
