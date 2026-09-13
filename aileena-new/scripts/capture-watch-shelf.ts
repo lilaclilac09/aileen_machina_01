@@ -37,7 +37,7 @@ async function main() {
   if (title !== 'Blue Is the Warmest Color') {
     throw new Error(`expected Blue first, got ${JSON.stringify(title)}`);
   }
-  await page.screenshot({ path: join(OUT, 'watch-shelf-films-first.png'), fullPage: true });
+  await page.screenshot({ path: join(OUT, 'watch-shelf-films-ridge.png'), fullPage: true });
 
   await page.locator('#cache').click();
   await page.waitForFunction(() => {
@@ -45,7 +45,21 @@ async function main() {
     return el?.textContent?.trim() === 'Cache';
   });
   await page.waitForTimeout(300);
-  await page.screenshot({ path: join(OUT, 'watch-shelf-video-ridge.png'), fullPage: true });
+  await page.screenshot({ path: join(OUT, 'watch-shelf-video-stills.png'), fullPage: true });
+
+  const videoRow = page.locator('[data-testid="watch-shelf-row-video"]');
+  const videoCount = await videoRow.locator('li').count();
+  if (videoCount !== 7) throw new Error(`expected 7 video stills, got ${videoCount}`);
+  await videoRow.evaluate((el) => {
+    el.scrollLeft = el.scrollWidth;
+  });
+  await page.waitForTimeout(200);
+  await page.locator('#mcp').click();
+  await page.waitForFunction(() => {
+    const el = document.querySelector('[data-testid="watch-shelf-detail-title"]');
+    return el?.textContent?.trim() === 'MCP';
+  });
+  await page.screenshot({ path: join(OUT, 'watch-shelf-video-stills-end.png'), fullPage: true });
 
   const mobile = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const mPage = await mobile.newPage();
@@ -53,12 +67,13 @@ async function main() {
   await mPage.keyboard.press('Escape');
   await mPage.waitForSelector('[data-testid="watch-shelf-row-films"]');
   await mPage.waitForTimeout(400);
-  await mPage.screenshot({ path: join(OUT, 'watch-shelf-films-mobile.png'), fullPage: true });
+  await mPage.screenshot({ path: join(OUT, 'watch-shelf-mobile-390.png'), fullPage: true });
 
   await browser.close();
-  console.log(`wrote ${OUT}/watch-shelf-films-first.png`);
-  console.log(`wrote ${OUT}/watch-shelf-video-ridge.png`);
-  console.log(`wrote ${OUT}/watch-shelf-films-mobile.png`);
+  console.log(`wrote ${OUT}/watch-shelf-films-ridge.png`);
+  console.log(`wrote ${OUT}/watch-shelf-video-stills.png`);
+  console.log(`wrote ${OUT}/watch-shelf-video-stills-end.png`);
+  console.log(`wrote ${OUT}/watch-shelf-mobile-390.png`);
 }
 
 main().catch((err) => {

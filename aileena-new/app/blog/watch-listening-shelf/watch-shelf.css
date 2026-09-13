@@ -171,6 +171,14 @@
 .watch-shelf-row--ridge {
   align-items: flex-end;
   gap: 8px 12px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.watch-shelf-row--ridge::-webkit-scrollbar {
+  display: none;
 }
 
 .watch-cassette {
@@ -382,6 +390,12 @@
     flex-wrap: wrap;
     overflow: visible;
     padding-bottom: 0;
+  }
+
+  .watch-shelf-row--ridge {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 6px;
   }
 
   .watch-shelf-detail {
