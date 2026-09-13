@@ -3,7 +3,7 @@
  * Shared public pad — 390×844 stills + two-visitor interaction into /opt/cursor/artifacts.
  */
 import { existsSync, readFileSync } from 'node:fs';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { chromium } from 'playwright';
 
@@ -60,7 +60,10 @@ async function main() {
   const mark = `share-pad-${Date.now().toString(36)}`;
   const browser = await chromium.launch({ headless: true });
 
-  const a = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const a = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    recordVideo: { dir: join(OUT, 'shared-room-video'), size: { width: 390, height: 844 } },
+  });
   await a.grantPermissions(['clipboard-read', 'clipboard-write']);
   const pageA = await a.newPage();
   await pageA.goto(SHARE, { waitUntil: 'networkidle' });
@@ -153,6 +156,15 @@ async function main() {
     ),
   );
 
+  const video = pageA.video();
+  await pageA.close();
+  await a.close();
+  if (video) {
+    const tmp = await video.path();
+    await rename(tmp, join(OUT, 'shared_room_open_write_share.webm'));
+  }
+  await pageB.close();
+  await b.close();
   await browser.close();
 }
 
