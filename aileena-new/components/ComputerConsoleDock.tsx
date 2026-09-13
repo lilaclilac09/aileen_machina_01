@@ -150,6 +150,40 @@ function terminalTranscript(tasks: ComputerTask[]): string {
   return lines.join('\n');
 }
 
+/** Shared pad: notes + worker-shell on one screen so the next person can read. */
+function sharedTranscript(tasks: ComputerTask[]): string {
+  const rows = tasks
+    .filter(
+      (t) =>
+        t.taskType === 'shell_exec' ||
+        t.taskType === 'write_scratch_file' ||
+        t.taskType === 'scratch_clock' ||
+        t.taskType === 'scratch_peek' ||
+        t.taskType === 'files_tree',
+    )
+    .slice(0, 20)
+    .reverse();
+  const lines: string[] = [];
+  for (const t of rows) {
+    if (t.taskType === 'shell_exec') {
+      const cmd = t.instructions.split('\n')[0] || '';
+      lines.push(t.resultSummary || `$ ${cmd}`);
+      if (t.status === 'queued' || t.status === 'running') {
+        lines.push('…');
+        continue;
+      }
+      const out = (t.artifacts[0]?.preview || t.error || '').trim();
+      if (out) lines.push(out.slice(0, 1600));
+      continue;
+    }
+    const label = t.taskType === 'write_scratch_file' ? 'note' : t.taskType.replace(/^scratch_/, '');
+    lines.push(`${label} · ${t.status}`);
+    const body = (t.artifacts[0]?.preview || t.instructions || t.resultSummary || '').trim();
+    if (body) lines.push(body.slice(0, 800));
+  }
+  return lines.join('\n');
+}
+
 const KEY_CLASS =
   'inline-flex flex-1 min-h-11 min-w-0 items-center justify-center px-2 rounded-[8px] text-[#007d75] border border-[#d8cfc0] border-b-2 border-b-[#c2b7a3] bg-white shadow-[0_1px_0_rgba(27,23,19,0.05)] active:translate-y-[1px] active:border-b disabled:opacity-40';
 
@@ -446,10 +480,11 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
           >
             {padHelp
               ? padHelp
-              : (ownerPad || shared) && termMode
-                ? terminalTranscript(tasks) ||
-                  (shared ? SHARED_ROOM_HELP : `${cliPrompt(cwd)} ls · help · vcode · put · cd`)
-                : monitorText(selectedTask)}
+              : shared && termMode
+                ? sharedTranscript(tasks) || SHARED_ROOM_HELP
+                : ownerPad && termMode
+                  ? terminalTranscript(tasks) || `${cliPrompt(cwd)} ls · help · vcode · put · cd`
+                  : monitorText(selectedTask)}
           </pre>
         </div>
 

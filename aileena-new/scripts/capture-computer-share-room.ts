@@ -55,6 +55,7 @@ async function openConsole(page: import('playwright').Page) {
 async function main() {
   loadEnvLocal();
   await mkdir(OUT, { recursive: true });
+  await writeFile(join(OUT, 'shared-room-capture-start.txt'), `start ${new Date().toISOString()} ${SHARE}\n`);
   await waitReady();
   const mark = `share-pad-${Date.now().toString(36)}`;
   const browser = await chromium.launch({ headless: true });
@@ -91,16 +92,26 @@ async function main() {
   }
   await pageA.screenshot({ path: join(OUT, 'shared-room-share-copied-390.png') });
 
-  await pageA.locator('[data-testid="computer-line"]').fill(mark);
-  await pageA.locator('[data-testid="computer-key-note"]').click();
-  await pageA.waitForFunction(
-    (expect) => {
-      const monitor = document.querySelector('[data-testid="computer-monitor"]')?.textContent || '';
-      return monitor.includes(expect);
-    },
-    mark,
-    { timeout: 20_000 },
-  );
+  let seen = false;
+  for (let attempt = 0; attempt < 4 && !seen; attempt++) {
+    await pageA.locator('[data-testid="computer-line"]').fill(mark);
+    await pageA.locator('[data-testid="computer-key-note"]').click();
+    try {
+      await pageA.waitForFunction(
+        (expect) => (document.querySelector('[data-testid="computer-monitor"]')?.textContent || '').includes(expect),
+        mark,
+        { timeout: 12_000 },
+      );
+      seen = true;
+    } catch {
+      await pageA.waitForTimeout(8000);
+    }
+  }
+  if (!seen) {
+    const dump = await pageA.locator('[data-testid="computer-monitor"]').innerText().catch(() => '');
+    await pageA.screenshot({ path: join(OUT, 'shared-room-note-a-timeout-390.png'), fullPage: true });
+    throw new Error(`visitor A monitor missing ${mark}: ${dump.slice(0, 400)}`);
+  }
   await pageA.screenshot({ path: join(OUT, 'shared-room-note-a-390.png') });
 
   const b = await browser.newContext({ viewport: { width: 390, height: 844 } });

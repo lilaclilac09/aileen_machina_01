@@ -242,6 +242,7 @@ function sourceChecks() {
   assert('visitor chips skip git status', /VISITOR_STARTER_CHIPS/.test(dockSrc) && !/VISITOR_STARTER_CHIPS[\s\S]{0,200}git status/.test(dockSrc));
   assert('dock tells visitors scratch resets on a 30d mark', /ownerPad \? ` · cli /.test(dockSrc) && /: ' · 30d'/.test(dockSrc));
   assert('dock marks the shared room', /· shared/.test(dockSrc) && /computer-key-share/.test(dockSrc));
+  assert('shared monitor shows notes not only shell', /function sharedTranscript/.test(dockSrc) && /write_scratch_file/.test(dockSrc));
   assert('does not import @cloudflare/computer', !existsSync(join(process.cwd(), 'node_modules/@cloudflare/computer')));
   assert(
     'plugins are not DeepSeek Harness',
