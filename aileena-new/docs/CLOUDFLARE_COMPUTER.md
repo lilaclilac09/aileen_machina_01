@@ -283,7 +283,7 @@ Manual QA (390×844, owner):
 
 - Package is **PREVIEW**. Pin the version. Read the official README again before coding; do not memorize APIs.
 - `worker_loaders` + `nodejs_compat` for worker-shell. Do **not** set `experimental` — production deploy returns Cloudflare API **10021** (`The compatibility flag experimental is experimental and cannot yet be used in Workers deployed to Cloudflare`). Worker Loader `allowExperimental` is local-only. The official example still lists `experimental`; production rejects it.
-- just-bash is not Linux. `pnpm build` will never run here.
+- just-bash is not Linux. Owner Linux is the bound computerd container (`demo container` / `container <cmd>`). `pnpm` still does not run in worker-shell.
 - Stub leaks if we skip `using`.
 - Preview Worker URL on the public internet: bearer secret is the only door. Rotate if leaked.
 - Cloudflare account, Workers paid features (DO + loader), and `wrangler login` are **human** steps. Agent cannot invent a bypass.
