@@ -153,7 +153,7 @@ function sourceChecks() {
     /setOpen\(true\);\s*setComputerMode\(true\)/.test(agentChatSrc),
   );
   assert('visitor chips skip git status', /VISITOR_STARTER_CHIPS/.test(dockSrc) && !/VISITOR_STARTER_CHIPS[\s\S]{0,200}git status/.test(dockSrc));
-  assert('dock tells visitors scratch resets on a 30d mark', /isOwner \? '' : ' · 30d'/.test(dockSrc));
+  assert('dock tells visitors scratch resets on a 30d mark', /isOwner \? ` · cli /.test(dockSrc) && /: ' · 30d'/.test(dockSrc));
   assert('does not import @cloudflare/computer', !existsSync(join(process.cwd(), 'node_modules/@cloudflare/computer')));
   assert(
     'plugins are not DeepSeek Harness',
@@ -443,6 +443,7 @@ async function workspaceUnit() {
     'look excerpt skips iso stamp',
     isoList.lines.some((l) => l.includes('actual pad line')) && !isoList.lines.some((l) => l.includes('·') && l.includes('2026-04-08T00:00:00')),
   );
+  await workspaceWriteFile('v-visitorone', '/scratch/x.txt', 'visitor-secret-note\n');
   const visitorList = workspaceList('v-visitorone');
   assert('visitor workspace lists own files', visitorList.lines.some((l) => l.includes('scratch')));
   assert('look lists a first-line excerpt', visitorList.lines.some((l) => l.includes('visitor-secret-note')));
@@ -723,6 +724,13 @@ async function liveHttp() {
   });
   assert('visitor POST files_open → 403', visitorOpen.status === 403, String(visitorOpen.status));
 
+  const visitorCli = await fetch(`${base}/api/agent/computer/tasks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Cookie: visitorCookie },
+    body: JSON.stringify({ taskType: 'shell_exec', instructions: 'ls' }),
+  });
+  assert('visitor POST shell_exec → 403', visitorCli.status === 403, String(visitorCli.status));
+
   const visitorGit = await fetch(`${base}/api/agent/computer/tasks`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -769,6 +777,7 @@ async function liveHttp() {
         deepSeekHarness?: boolean;
         tasks?: { id?: string }[];
         cloudflareComputer?: boolean;
+        cwd?: string;
       })
     : {};
   assert('owner GET lists plugins', Array.isArray(listedJson.plugins) && (listedJson.plugins?.length ?? 0) >= 4);
@@ -780,6 +789,40 @@ async function liveHttp() {
   if (process.env.COMPUTER_WORKER_URL && process.env.COMPUTER_WORKER_SECRET) {
     const cfListed = listed.ok ? ((listedJson as { cloudflareComputer?: boolean }).cloudflareComputer) : false;
     assert('owner GET reports cloudflareComputer when Worker env is set', cfListed === true, String(cfListed));
+    assert(
+      'owner GET reports cwd',
+      typeof listedJson.cwd === 'string' && listedJson.cwd.startsWith('/workspace'),
+      String(listedJson.cwd),
+    );
+
+    const runCli = async (cmd: string) => {
+      const res = await postOwnerTask(base, cookie, { taskType: 'shell_exec', route: '/proof', instructions: cmd });
+      const json = res.status === 202 ? ((await res.json()) as { task?: { id?: string; status?: string } }) : {};
+      const id = json.task?.id || '';
+      const done = id ? await pollTask(base, cookie, id) : { ok: false as const, status: res.status };
+      const preview = done.ok ? done.body.task?.artifacts?.[0]?.preview || done.body.task?.resultSummary || '' : '';
+      return { status: res.status, done, preview };
+    };
+
+    const mkdir = await runCli('mkdir -p scratch');
+    assert(
+      'owner CLI mkdir scratch',
+      mkdir.done.ok && mkdir.done.st === 'completed',
+      String(mkdir.done.ok ? mkdir.done.st : mkdir.done.status),
+    );
+    const cd = await runCli('cd scratch');
+    assert('owner CLI cd scratch', cd.done.ok && cd.done.st === 'completed' && /scratch/.test(cd.preview), cd.preview.slice(0, 80));
+    const cwdAfter = await fetch(`${base}/api/agent/computer/tasks`, { headers: { Cookie: cookie } });
+    const cwdJson = cwdAfter.ok ? ((await cwdAfter.json()) as { cwd?: string }) : {};
+    assert('owner cwd persists after cd', cwdJson.cwd === '/workspace/scratch', String(cwdJson.cwd));
+    const put = await runCli('put hi.ts\nexport const n = 1;\n');
+    assert('owner CLI put hi.ts', put.done.ok && put.done.st === 'completed' && /hi\.ts/.test(put.preview), put.preview.slice(0, 80));
+    const cat = await runCli('cat hi.ts');
+    assert('owner CLI cat hi.ts', cat.done.ok && /export const n = 1/.test(cat.preview), cat.preview.slice(0, 120));
+    const ls = await runCli('ls');
+    assert('owner CLI ls shows hi.ts', ls.done.ok && /hi\.ts/.test(ls.preview), ls.preview.slice(0, 120));
+    const home = await runCli('cd');
+    assert('owner CLI cd home', home.done.ok && home.preview.trim() === '/workspace', home.preview.slice(0, 80));
   }
 
   const ownerMcp = await fetch(`${base}/api/agent/mcp`, { headers: { Cookie: cookie } });

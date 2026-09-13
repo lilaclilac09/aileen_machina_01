@@ -1,5 +1,5 @@
 import { isOwnerShellCommand } from '../computer/allowlist';
-import { cfExec, cfGetFile, isCloudflareComputerReady, toWorkspacePath } from '../computer/cfClient';
+import { cfGetFile, isCloudflareComputerReady, toWorkspacePath } from '../computer/cfClient';
 import { clip, redactSecrets } from '../computer/redact';
 import type { McpCallResult, McpToolDesc } from './types';
 
