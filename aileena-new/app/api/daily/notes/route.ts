@@ -25,6 +25,7 @@ export async function POST(req: Request) {
   const text = typeof rec.body === 'string' ? rec.body : '';
   const title = typeof rec.title === 'string' ? rec.title : '';
   const date = typeof rec.date === 'string' ? rec.date : undefined;
-  const note = await upsertDailyNote({ date, title, body: text });
+  const published = rec.published === true ? true : undefined;
+  const note = await upsertDailyNote({ date, title, body: text, published });
   return NextResponse.json({ note });
 }

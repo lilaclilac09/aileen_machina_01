@@ -34,6 +34,7 @@ test.describe('daily board', () => {
     expect(res.status()).toBe(403);
 
     await expect(page.getByTestId('daily-owner-editor')).toHaveCount(0);
+    await expect(page.getByTestId('daily-publish')).toHaveCount(0);
     await expect(page.getByTestId('daily-persistence')).toBeAttached();
     const latest = page.getByTestId('daily-latest-body');
     const empty = page.getByTestId('daily-empty');
@@ -63,6 +64,7 @@ test.describe('daily board', () => {
       headers: { Cookie: `${SESSION_COOKIE}=${token}` },
       data: {
         body: 'I love part of you and you only like the best part of me\nAnd so are we to the world so you hate me no more',
+        published: true,
       },
     });
     expect(write.ok()).toBeTruthy();
@@ -71,6 +73,7 @@ test.describe('daily board', () => {
     await page.goto('/daily', { waitUntil: 'networkidle' });
     await page.keyboard.press('Escape');
     await expect(page.getByTestId('daily-owner-editor')).toBeVisible();
+    await expect(page.getByTestId('daily-publish')).toBeVisible();
     await expect(page.getByTestId('daily-theme-controls')).toBeVisible();
     await page.getByTestId('daily-owner-textarea').click();
     await page.getByTestId('daily-owner-textarea').fill('typing works for owner');
@@ -92,5 +95,70 @@ test.describe('daily board', () => {
     const again = await request.get('/api/daily');
     const board = (await again.json()) as { comments: Record<string, { body: string }[]> };
     expect(board.comments[note.id]?.some((c) => c.body === 'this hurt nicely')).toBeTruthy();
+  });
+
+  test('dated draft stays private; PUBLISH and snap burn on the public note', async ({ page, context, request }) => {
+    const token = await createOwnerSession();
+    await context.addCookies([
+      {
+        name: SESSION_COOKIE,
+        value: token,
+        url: 'http://127.0.0.1:3000',
+        httpOnly: true,
+      },
+    ]);
+
+    const secret = `private thought ${Date.now()}`;
+    const draft = await request.post('/api/daily/notes', {
+      headers: { Cookie: `${SESSION_COOKIE}=${token}` },
+      data: { date: '2099-06-15', body: secret },
+    });
+    expect(draft.ok()).toBeTruthy();
+    const { note: dated } = (await draft.json()) as { note: { id: string; published?: boolean } };
+    expect(dated.published).toBe(false);
+
+    const visitorBoard = await request.get('/api/daily');
+    const hidden = (await visitorBoard.json()) as { notes: { body?: string; id?: string }[] };
+    expect(hidden.notes.some((n) => n.id === dated.id || n.body?.includes(secret))).toBeFalsy();
+
+    await page.goto('/daily', { waitUntil: 'networkidle' });
+    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('daily-publish')).toBeVisible();
+    const line = `public line ${Date.now()}`;
+    await page.getByTestId('daily-owner-textarea').fill(line);
+    await page.getByTestId('daily-publish').click();
+    await expect(page.getByTestId('daily-toast')).toContainText('published.');
+
+    const ownerBoard = await request.get('/api/daily', {
+      headers: { Cookie: `${SESSION_COOKIE}=${token}` },
+    });
+    const owned = (await ownerBoard.json()) as {
+      notes: { id: string; date: string; published?: boolean }[];
+      today: string;
+    };
+    const todayNote = owned.notes.find((n) => n.date === owned.today);
+    expect(todayNote?.published).toBe(true);
+
+    const png =
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+    const snap = await request.post('/api/daily/snap', {
+      headers: { Cookie: `${SESSION_COOKIE}=${token}` },
+      data: { noteId: todayNote?.id, mime: 'image/png', data: png },
+    });
+    expect(snap.ok()).toBeTruthy();
+
+    await context.clearCookies();
+    await page.goto('/daily', { waitUntil: 'networkidle' });
+    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('daily-latest-body')).toContainText(line);
+    await expect(page.getByTestId('daily-publish')).toHaveCount(0);
+    await expect(page.getByTestId('daily-snap-seal')).toBeVisible();
+    await page.getByTestId('daily-snap-seal').click();
+    await expect(page.getByTestId('daily-snap-seen')).toBeVisible();
+    await page.getByTestId('daily-snap-seen').click();
+    await expect(page.getByTestId('daily-snap-burned')).toBeVisible();
+
+    const burned = await request.post('/api/daily/snap/open', { data: { noteId: todayNote?.id } });
+    expect(burned.status()).toBe(410);
   });
 });

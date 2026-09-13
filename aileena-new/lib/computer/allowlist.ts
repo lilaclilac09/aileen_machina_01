@@ -8,6 +8,8 @@ export const DAILY_INSPECT_FILES = [
   'aileena-new/app/api/daily/notes/route.ts',
   'aileena-new/app/api/daily/comments/route.ts',
   'aileena-new/app/api/daily/theme/route.ts',
+  'aileena-new/app/api/daily/snap/route.ts',
+  'aileena-new/app/api/daily/snap/open/route.ts',
   'aileena-new/components/DailyBoard.tsx',
   'aileena-new/components/OwnerUnlockForm.tsx',
   'aileena-new/lib/dailyBoard.ts',
