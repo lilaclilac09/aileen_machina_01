@@ -127,6 +127,7 @@ function sourceChecks() {
   const e2eSrc = readFileSync(join(process.cwd(), 'scripts/e2e-computer-cli-example.ts'), 'utf8');
   assert('e2e CLI example writes greet.ts + jq', /put greet\.ts/.test(e2eSrc) && /jq -r \.name/.test(e2eSrc));
   assert('e2e covers help examples vcode', /cmd: 'help'/.test(e2eSrc) && /cmd: 'examples'/.test(e2eSrc) && /vcode scratch\/vcode\/voice\.ts/.test(e2eSrc));
+  assert('e2e covers demo worker-shell surface', /cmd: 'demo'/.test(e2eSrc) && /worker-shell\.json/.test(e2eSrc));
   assert('runner owner CLI uses persisted cwd', /runOwnerShellLine/.test(runner));
   const termSrc = readFileSync(join(process.cwd(), 'lib/computer/terminal.ts'), 'utf8');
   assert('terminal cwd stays under /workspace', /WORKSPACE_ROOT/.test(termSrc) && /parsePut/.test(termSrc));
@@ -153,13 +154,17 @@ function sourceChecks() {
       spokenToCli('写代码').kind === 'vcode',
   );
   assert('spoken examples alias', spokenToCli('show examples').command === 'examples');
+  assert('spoken demo alias', spokenToCli('run worker-shell').command === 'demo' && spokenToCli('show me the computer').command === 'demo');
   assert('spoken hi is not CLI', spokenToCli('hi').kind === 'none');
   assert('parseVcode path hint', parseVcode('vcode scratch/vcode/hi.ts\nexport const n = 1')?.pathHint === 'scratch/vcode/hi.ts');
   assert('looksLikeSource detects ts', looksLikeSource('export const n = 1') && !looksLikeSource('please write a file'));
   assert('help does not offer container', /not here: container/.test(OWNER_CLI_HELP) && /vcode/.test(OWNER_CLI_HELP));
   assert(
     'examples lists official catalog as unbound',
-    /examples\/container/.test(OWNER_CLI_EXAMPLES) && /not bound/.test(OWNER_CLI_EXAMPLES) && /worker-shell/.test(OWNER_CLI_EXAMPLES),
+    /examples\/container/.test(OWNER_CLI_EXAMPLES) &&
+      /think-compare-runtimes/.test(OWNER_CLI_EXAMPLES) &&
+      /packages\/computerd/.test(OWNER_CLI_EXAMPLES) &&
+      /type demo/.test(OWNER_CLI_EXAMPLES),
   );
   assert('dock listens for voice CLI event', /COMPUTER_CLI_EVENT/.test(dockSrc) && /voiceOn/.test(dockSrc));
   assert('chat routes owner computer voice to CLI', /spokenToCli/.test(agentChatSrc) && /dispatchComputerCli/.test(agentChatSrc));

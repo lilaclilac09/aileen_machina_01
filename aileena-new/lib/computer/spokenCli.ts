@@ -43,6 +43,13 @@ function aliasCommand(raw: string): string | null {
   ) {
     return 'examples';
   }
+  if (
+    /^(demo|演示|run demo|show demo|run worker-shell|show me the computer|show me one|run an example)$/i.test(
+      t,
+    )
+  ) {
+    return 'demo';
+  }
   if (/^(clear|clear screen|wipe)$/i.test(t)) return 'clear';
   if (/^(go home|cd home|go to workspace)$/i.test(t)) return 'cd';
   if (/^(go to scratch|cd scratch|open scratch)$/i.test(t)) return 'cd scratch';

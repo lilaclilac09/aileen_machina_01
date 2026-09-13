@@ -60,6 +60,7 @@ export function isTerminalBuiltin(raw: string): boolean {
     bin === 'clear' ||
     bin === 'help' ||
     bin === 'examples' ||
+    bin === 'demo' ||
     bin === 'vcode'
   );
 }
@@ -92,14 +93,47 @@ export type OwnerShellResult = {
   ok: boolean;
   cwd: string;
   text: string;
-  kind: 'exec' | 'cd' | 'put' | 'clear' | 'help' | 'vcode';
+  kind: 'exec' | 'cd' | 'put' | 'clear' | 'help' | 'vcode' | 'demo';
 };
+
+const DEMO_JSON = `{
+  "example": "worker-shell",
+  "surface": ["PUT /c/owner/file", "GET /c/owner/file", "POST /c/owner/exec"],
+  "backend": "just-bash",
+  "container": false
+}
+`;
+
+async function runWorkerShellDemo(workspaceId: string, cwd: string): Promise<OwnerShellResult> {
+  const path = '/workspace/scratch/demo/worker-shell.json';
+  await cfPutFile(path, DEMO_JSON, workspaceId);
+  const jq = await cfExec('jq -r .example /workspace/scratch/demo/worker-shell.json', cwd, workspaceId);
+  const ls = await cfExec('ls /workspace/scratch/demo', cwd, workspaceId);
+  const named = (jq.stdout || jq.stderr || '').trim() || `exit ${jq.exitCode}`;
+  const listed = (ls.stdout || ls.stderr || '').trim();
+  const text = [
+    'official examples/worker-shell — running now',
+    'PUT  /c/owner/file/workspace/scratch/demo/worker-shell.json',
+    path,
+    'POST /c/owner/exec  jq -r .example',
+    named,
+    'POST /c/owner/exec  ls /workspace/scratch/demo',
+    listed,
+    '',
+    'this is the one official example bound here.',
+    'type examples for the rest (not bound).',
+  ].join('\n');
+  return { ok: jq.exitCode === 0 && /worker-shell/.test(named), cwd, text, kind: 'demo' };
+}
 
 export async function runOwnerShellLine(command: string, workspaceId: string): Promise<OwnerShellResult> {
   const cmd = command.trim().slice(0, 4000);
   const cwd = await loadCwd(workspaceId);
   if (!cmd) return { ok: false, cwd, text: 'empty command', kind: 'exec' };
   if (cmd === 'clear') return { ok: true, cwd, text: '', kind: 'clear' };
+  if (cmd === 'demo' || /^demo\s/.test(cmd) || cmd === 'help demo') {
+    return runWorkerShellDemo(workspaceId, cwd);
+  }
   if (cmd === 'examples' || /^help\s+examples\b/i.test(cmd)) {
     return { ok: true, cwd, text: OWNER_CLI_EXAMPLES, kind: 'help' };
   }

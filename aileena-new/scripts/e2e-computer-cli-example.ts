@@ -65,6 +65,8 @@ const STEPS: Step[] = [
   { cmd: 'cd /workspace', expect: '/workspace' },
   { cmd: 'help', expect: /not here: container/ },
   { cmd: 'examples', expect: /examples\/container/ },
+  { cmd: 'demo', expect: /scratch\/demo\/worker-shell\.json/ },
+  { cmd: 'cat scratch/demo/worker-shell.json', expect: /"example": "worker-shell"/ },
   { cmd: 'vcode scratch/vcode/voice.ts\nexport function hello() {\n  return "hi";\n}\n', expect: /voice\.ts/ },
   { cmd: 'cat scratch/vcode/voice.ts', expect: /export function hello/ },
   { cmd: 'find scratch/cli-demo -type f', expect: /greet\.ts/ },

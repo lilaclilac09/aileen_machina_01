@@ -398,9 +398,14 @@ async function runShellTask(task: ComputerTask): Promise<ComputerTask> {
     report: `# shell_exec\n\n${prompt} ${cmd}\n\n${run.text}\n`,
     preview,
     title: cmd.split('\n')[0].slice(0, 40),
-    kind: run.kind === 'put' || run.kind === 'vcode' ? 'scratch' : 'report',
+    kind: run.kind === 'put' || run.kind === 'vcode' || run.kind === 'demo' ? 'scratch' : 'report',
     error: run.ok ? null : run.text,
-    filesInspected: run.kind === 'put' || run.kind === 'vcode' ? [run.text.split('\n')[0]] : [],
+    filesInspected:
+      run.kind === 'demo'
+        ? ['/workspace/scratch/demo/worker-shell.json']
+        : run.kind === 'put' || run.kind === 'vcode'
+          ? [run.text.split('\n')[0]]
+          : [],
   });
 }
 
