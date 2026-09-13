@@ -86,6 +86,18 @@ async function main() {
     path: join(OUT, 'computer_cli_examples.png'),
   });
 
+  await runLine(page, 'demo');
+  await page.waitForFunction(() => {
+    const m = document.querySelector('[data-testid="computer-monitor"]')?.textContent || '';
+    return /worker-shell\.json/.test(m) && /running now/.test(m);
+  }, null, { timeout: 20_000 });
+  await page.locator('[data-testid="computer-monitor"]').screenshot({
+    path: join(OUT, 'computer_cli_demo.png'),
+  });
+  await page.locator('[role="dialog"][aria-label="Aileena Console"]').screenshot({
+    path: join(OUT, 'computer_cli_demo_390.png'),
+  });
+
   await runLine(
     page,
     'vcode scratch/vcode/voice.ts\nexport function hello() {\n  return "hi";\n}\n',
