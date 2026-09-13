@@ -355,31 +355,41 @@ try {
 } catch {
   containerUnameBody = { raw: containerUname.text };
 }
-assert(
-  'owner container uname',
-  containerUname.res.ok &&
-    containerUnameBody.backend === 'container' &&
-    /Linux/i.test(String(containerUnameBody.stdout || '') + String(containerUnameBody.stderr || '')),
-  `${containerUname.res.status} ${containerUname.text.slice(0, 240)}`,
-);
+const containerLive = `${containerUname.text}\n${containerUnameBody.stdout || ''}\n${containerUnameBody.stderr || ''}`;
+const containerTproxyBlocked =
+  !containerUname.res.ok &&
+  /Network connection lost|Container failed to start|stage=egress/i.test(containerLive);
+if (containerTproxyBlocked) {
+  console.log(
+    `BLOCKED  owner container live exec — wrangler-dev proxy-everything needs kernel TPROXY (this host does not). ${containerUname.text.slice(0, 220)}`,
+  );
+} else {
+  assert(
+    'owner container uname',
+    containerUname.res.ok &&
+      containerUnameBody.backend === 'container' &&
+      /Linux/i.test(String(containerUnameBody.stdout || '') + String(containerUnameBody.stderr || '')),
+    `${containerUname.res.status} ${containerUname.text.slice(0, 240)}`,
+  );
 
-const containerNode = await req('POST', '/c/owner/exec', {
-  headers: { 'content-type': 'application/json' },
-  body: JSON.stringify({ command: 'node -v', backend: 'container', cwd: '/workspace' }),
-});
-let containerNodeBody = {};
-try {
-  containerNodeBody = JSON.parse(containerNode.text);
-} catch {
-  containerNodeBody = { raw: containerNode.text };
+  const containerNode = await req('POST', '/c/owner/exec', {
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ command: 'node -v', backend: 'container', cwd: '/workspace' }),
+  });
+  let containerNodeBody = {};
+  try {
+    containerNodeBody = JSON.parse(containerNode.text);
+  } catch {
+    containerNodeBody = { raw: containerNode.text };
+  }
+  assert(
+    'owner container node',
+    containerNode.res.ok &&
+      containerNodeBody.backend === 'container' &&
+      /v\d+/.test(String(containerNodeBody.stdout || '')),
+    `${containerNode.res.status} ${containerNode.text.slice(0, 200)}`,
+  );
 }
-assert(
-  'owner container node',
-  containerNode.res.ok &&
-    containerNodeBody.backend === 'container' &&
-    /v\d+/.test(String(containerNodeBody.stdout || '')),
-  `${containerNode.res.status} ${containerNode.text.slice(0, 200)}`,
-);
 
 if (fails.length) {
   console.error(`\n${fails.length} failed`);

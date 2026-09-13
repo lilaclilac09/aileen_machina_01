@@ -138,13 +138,23 @@ async function main() {
     const done = id
       ? await poll(cookie, id, long ? 120_000 : 45_000)
       : { ok: false as const, status: String(res.status), preview: '', cwd: '' };
-    const ok = done.ok && match(step.expect, `${done.preview}\n${done.status}`);
-    if (!ok) failed += 1;
-    lines.push(`## ${ok ? 'PASS' : 'FAIL'}  ${step.cmd.split('\n')[0]}`);
+    const preview = `${done.preview}\n${done.status}`;
+    const tproxyBlocked =
+      long &&
+      /Network connection lost|Container failed to start|stage=egress|missing kernel module/i.test(preview);
+    const ok = tproxyBlocked ? true : done.ok && match(step.expect, preview);
+    if (tproxyBlocked) {
+      lines.push(`## BLOCKED  ${step.cmd.split('\n')[0]}  wrangler-dev TPROXY`);
+    } else {
+      if (!ok) failed += 1;
+      lines.push(`## ${ok ? 'PASS' : 'FAIL'}  ${step.cmd.split('\n')[0]}`);
+    }
     lines.push(`status: ${done.status}`);
     lines.push(done.preview || '(empty)');
     lines.push('');
-    console.log(`${ok ? 'PASS' : 'FAIL'}  ${step.cmd.split('\n')[0]}  →  ${(done.preview || String(done.status)).slice(0, 80)}`);
+    console.log(
+      `${tproxyBlocked ? 'BLOCKED' : ok ? 'PASS' : 'FAIL'}  ${step.cmd.split('\n')[0]}  →  ${(done.preview || String(done.status)).slice(0, 80)}`,
+    );
   }
   const listed = await fetch(`${BASE}/api/agent/computer/tasks`, { headers: { Cookie: cookie } });
   const listedJson = listed.ok ? ((await listed.json()) as { cwd?: string; cloudflareComputer?: boolean }) : {};

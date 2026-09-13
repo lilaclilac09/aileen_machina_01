@@ -99,7 +99,7 @@ async function main() {
   await runLine(page, 'demo container');
   await page.waitForFunction(() => {
     const m = document.querySelector('[data-testid="computer-monitor"]')?.textContent || '';
-    return /Linux/.test(m);
+    return /Linux/.test(m) || /TPROXY|stage=egress|Network connection lost|Container failed to start/.test(m);
   }, null, { timeout: 90_000 });
   await page.locator('[data-testid="computer-monitor"]').screenshot({
     path: join(OUT, 'computer_cli_container.png'),

@@ -125,7 +125,9 @@ Machina calling other apps is a **different product** (`aileena-new/lib/mcp` + `
 
 Visitor scratch pads reset monthly: a `.born` stamp is checked lazily on the next task after 30 days, then that visitor's `/workspace/scratch` is wiped (owner workspace never resets). Visitors cannot `curl` / `file` / `xan` / site git.
 
-Cannot: Python in worker-shell (just-bash python needs `node:worker_threads`), yq (`node:process` missing in workerd), sqlite helper worker, `pnpm` inside the isolate, browser, email send, merge, cloning this monorepo into the Worker. Owner Linux (`uname`, `node`, `npm`, `git`) runs through the bound computerd container — `wrangler dev` needs Docker; production deploy needs Workers Paid + Containers. Visitors never get that backend. Health reports `container: true` when the image is bound.
+Cannot: Python in worker-shell (just-bash python needs `node:worker_threads`), yq (`node:process` missing in workerd), sqlite helper worker, `pnpm` inside the isolate, browser, email send, merge, cloning this monorepo into the Worker. Owner Linux (`uname`, `node`, `npm`, `git`) runs through the bound computerd container. Visitors never get that backend. Health reports `container: true` when the image is bound.
+
+`wrangler dev` containers need Docker + buildx **and** kernel TPROXY (`xt_TPROXY` / `xt_socket`). Wrangler’s local egress sidecar is `cloudflare/proxy-everything`; it dies with `missing kernel module` on hosts that cannot TPROXY. On those hosts the bind is real and visitor Linux stays 403, but `demo container` cannot finish the capnweb upgrade. Docker Desktop and production Workers Containers provide that path. Linux Engine also needs `host.docker.internal` → docker bridge gateway.
 
 ## Auth
 
