@@ -47,7 +47,7 @@ function ShelfObject({ item, selected }: { item: ShelfItem; selected: boolean })
   const still = item.coverKind === 'still';
   const spinePhoto = item.coverKind === 'spine';
   return (
-    <span className={`watch-obj watch-obj--${item.object}`} aria-hidden={item.object !== 'cover'}>
+    <span className={`watch-obj watch-obj--${item.object}${spinePhoto ? ' is-spine' : ''}`} aria-hidden={item.object !== 'cover'}>
       {item.object === 'cover' && item.cover ? (
         <Image
           src={item.cover}

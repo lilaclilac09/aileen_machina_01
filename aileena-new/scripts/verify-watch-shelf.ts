@@ -75,6 +75,7 @@ function main() {
   const css = read('app/blog/watch-listening-shelf/watch-shelf.css');
   assert('covers stay object-fit contain', /objectFit:\s*'contain'/.test(ui) && !/objectFit:\s*'cover'/.test(ui));
   assert('css covers stay contain', /object-fit:\s*contain/.test(css) && !/object-fit:\s*cover/.test(css));
+  assert('spine photos sit in a fixed ridge slot', /\.watch-obj\.is-spine[\s\S]*height:\s*96px/.test(css));
   assert('later-note placeholder exists', /drop a note later/.test(ui));
 
   const failed = checks.filter((c) => !c.ok);

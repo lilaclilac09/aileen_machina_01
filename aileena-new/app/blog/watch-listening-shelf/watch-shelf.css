@@ -172,11 +172,22 @@
   max-width: 56px;
 }
 
-.watch-obj-cover.is-spine {
+.watch-obj.is-spine {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 28px;
   height: 96px;
-  width: auto;
-  max-width: 36px;
+}
+
+.watch-obj-cover.is-spine {
+  width: 28px;
+  height: 96px;
+  max-width: 28px;
+  max-height: 96px;
   background: transparent;
+  object-fit: contain;
+  object-position: center bottom;
 }
 
 .watch-shelf-detail-image.is-spine {
