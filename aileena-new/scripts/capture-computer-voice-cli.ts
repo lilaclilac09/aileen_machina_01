@@ -71,7 +71,7 @@ async function main() {
   await runLine(page, 'help');
   await page.waitForFunction(() => {
     const m = document.querySelector('[data-testid="computer-monitor"]')?.textContent || '';
-    return /not here: container/.test(m);
+    return /demo container/.test(m);
   }, null, { timeout: 15_000 });
   await page.locator('[data-testid="computer-monitor"]').screenshot({
     path: join(OUT, 'computer_cli_help.png'),
@@ -80,7 +80,7 @@ async function main() {
   await runLine(page, 'examples');
   await page.waitForFunction(() => {
     const m = document.querySelector('[data-testid="computer-monitor"]')?.textContent || '';
-    return /examples\/container/.test(m);
+    return /demo js/.test(m) || /computerd/.test(m);
   }, null, { timeout: 15_000 });
   await page.locator('[data-testid="computer-monitor"]').screenshot({
     path: join(OUT, 'computer_cli_examples.png'),
