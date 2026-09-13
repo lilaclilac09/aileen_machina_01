@@ -34,6 +34,7 @@ test.describe('daily board', () => {
     expect(res.status()).toBe(403);
 
     await expect(page.getByTestId('daily-owner-editor')).toHaveCount(0);
+    await expect(page.getByTestId('daily-publish')).toHaveCount(0);
     await expect(page.getByTestId('daily-persistence')).toBeAttached();
     const latest = page.getByTestId('daily-latest-body');
     const empty = page.getByTestId('daily-empty');
@@ -63,6 +64,7 @@ test.describe('daily board', () => {
       headers: { Cookie: `${SESSION_COOKIE}=${token}` },
       data: {
         body: 'I love part of you and you only like the best part of me\nAnd so are we to the world so you hate me no more',
+        published: true,
       },
     });
     expect(write.ok()).toBeTruthy();
@@ -71,6 +73,7 @@ test.describe('daily board', () => {
     await page.goto('/daily', { waitUntil: 'networkidle' });
     await page.keyboard.press('Escape');
     await expect(page.getByTestId('daily-owner-editor')).toBeVisible();
+    await expect(page.getByTestId('daily-publish')).toBeVisible();
     await expect(page.getByTestId('daily-theme-controls')).toBeVisible();
     await page.getByTestId('daily-owner-textarea').click();
     await page.getByTestId('daily-owner-textarea').fill('typing works for owner');
@@ -92,5 +95,59 @@ test.describe('daily board', () => {
     const again = await request.get('/api/daily');
     const board = (await again.json()) as { comments: Record<string, { body: string }[]> };
     expect(board.comments[note.id]?.some((c) => c.body === 'this hurt nicely')).toBeTruthy();
+  });
+
+  test('owner draft is hidden until PUBLISH; snap burns once', async ({ page, context, request }) => {
+    const token = await createOwnerSession();
+    await context.addCookies([
+      {
+        name: SESSION_COOKIE,
+        value: token,
+        url: 'http://127.0.0.1:3000',
+        httpOnly: true,
+      },
+    ]);
+
+    const secret = `private thought ${Date.now()}`;
+    const draft = await request.post('/api/daily/notes', {
+      headers: { Cookie: `${SESSION_COOKIE}=${token}` },
+      data: { body: secret },
+    });
+    expect(draft.ok()).toBeTruthy();
+    const { note } = (await draft.json()) as { note: { id: string; published?: boolean } };
+    expect(note.published).toBe(false);
+
+    const visitorBoard = await request.get('/api/daily');
+    const hidden = (await visitorBoard.json()) as { notes: { body?: string }[] };
+    expect(hidden.notes.some((n) => n.body?.includes(secret))).toBeFalsy();
+
+    await page.goto('/daily', { waitUntil: 'networkidle' });
+    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('daily-publish')).toBeVisible();
+    await expect(page.getByTestId('daily-draft-badge')).toBeVisible();
+    await page.getByTestId('daily-publish').click();
+    await expect(page.getByTestId('daily-published-badge')).toBeVisible();
+
+    const png =
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+    const snap = await request.post('/api/daily/snap', {
+      headers: { Cookie: `${SESSION_COOKIE}=${token}` },
+      data: { noteId: note.id, mime: 'image/png', data: png },
+    });
+    expect(snap.ok()).toBeTruthy();
+
+    await context.clearCookies();
+    await page.goto('/daily', { waitUntil: 'networkidle' });
+    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('daily-latest-body')).toContainText(secret);
+    await expect(page.getByTestId('daily-publish')).toHaveCount(0);
+    await expect(page.getByTestId('daily-snap-seal')).toBeVisible();
+    await page.getByTestId('daily-snap-seal').click();
+    await expect(page.getByTestId('daily-snap-seen')).toBeVisible();
+    await page.getByTestId('daily-snap-seen').click();
+    await expect(page.getByTestId('daily-snap-burned')).toBeVisible();
+
+    const burned = await request.post('/api/daily/snap/open', { data: { noteId: note.id } });
+    expect(burned.status()).toBe(410);
   });
 });

@@ -77,7 +77,7 @@ async function main() {
   const ownerPost = await fetch(`${BASE}/api/daily/notes`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Cookie: `${SESSION_COOKIE}=${token}` },
-    body: JSON.stringify({ body: NOTE }),
+    body: JSON.stringify({ body: NOTE, published: true }),
   });
   if (!ownerPost.ok) throw new Error(`owner note ${ownerPost.status}`);
   const { note } = (await ownerPost.json()) as { note: { id: string } };
