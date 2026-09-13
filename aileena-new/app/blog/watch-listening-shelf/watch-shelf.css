@@ -48,6 +48,24 @@
   text-transform: lowercase;
 }
 
+.watch-shelf-lane {
+  margin: 0 0 12px;
+}
+
+.watch-shelf-lane:last-child {
+  margin-bottom: 0;
+}
+
+.watch-shelf-subkicker {
+  margin: 0 0 8px;
+  color: var(--arc-faint);
+  font-family: var(--arc-sans);
+  font-size: 0.58rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: lowercase;
+}
+
 .watch-shelf-row {
   display: flex;
   flex-wrap: nowrap;
@@ -137,6 +155,22 @@
   width: auto;
   height: 72px;
   background: #efeae0;
+  object-fit: contain;
+}
+
+.watch-obj-cover.is-still {
+  width: auto;
+  height: 48px;
+  max-width: 86px;
+}
+
+.watch-shelf-item.is-still {
+  max-width: 96px;
+}
+
+.watch-shelf-row--ridge {
+  align-items: flex-end;
+  gap: 8px 12px;
 }
 
 .watch-cassette {
@@ -223,6 +257,17 @@
   height: auto;
   max-height: 280px;
   background: #efeae0;
+  object-fit: contain;
+}
+
+.watch-shelf-detail-image.is-still {
+  max-width: min(320px, 100%);
+  max-height: 180px;
+}
+
+.watch-shelf-note-pending {
+  color: var(--arc-faint);
+  font-style: italic;
 }
 
 .watch-shelf-detail-object .watch-obj-cover,

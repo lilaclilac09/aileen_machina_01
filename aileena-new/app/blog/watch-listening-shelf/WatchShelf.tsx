@@ -15,6 +15,7 @@ import {
   SHELF_ITEMS,
   resolveShelfHash,
   shelfItemById,
+  shelfRowsInSection,
   type ShelfItem,
 } from '../../../lib/watchListeningShelf';
 import './watch-shelf.css';
@@ -43,15 +44,16 @@ function OpenHref({
 }
 
 function ShelfObject({ item, selected }: { item: ShelfItem; selected: boolean }) {
+  const still = item.coverKind === 'still';
   return (
     <span className={`watch-obj watch-obj--${item.object}`} aria-hidden={item.object !== 'cover'}>
       {item.object === 'cover' && item.cover ? (
         <Image
           src={item.cover}
           alt=""
-          width={72}
-          height={108}
-          className="watch-obj-cover"
+          width={still ? 160 : 72}
+          height={still ? 90 : 108}
+          className={`watch-obj-cover${still ? ' is-still' : ''}`}
           style={{ objectFit: 'contain' }}
         />
       ) : null}
@@ -126,7 +128,7 @@ export default function WatchShelf({ owner }: { owner: boolean }) {
             onKeyDown={onIndexKey}
           >
             {SHELF_GROUPS.map((group) => {
-              const items = SHELF_ITEMS.filter((item) => item.section === group.section);
+              const rows = shelfRowsInSection(group.section);
               return (
                 <section
                   key={group.section}
@@ -139,29 +141,42 @@ export default function WatchShelf({ owner }: { owner: boolean }) {
                   <h2 className="watch-shelf-kicker" id={`shelf-${group.section}`}>
                     {group.label}
                   </h2>
-                  <ul className="watch-shelf-row">
-                    {items.map((item) => {
-                      const on = item.id === selected.id;
-                      return (
-                        <li key={item.id}>
-                          <button
-                            type="button"
-                            id={item.id}
-                            className={`watch-shelf-item${on ? ' is-on' : ''}${item.featured ? ' is-featured' : ''}`}
-                            aria-pressed={on}
-                            aria-current={on ? 'true' : undefined}
-                            onClick={() => select(item.id)}
-                          >
-                            <ShelfObject item={item} selected={on} />
-                            <span className="watch-shelf-item-copy">
-                              <span className="watch-shelf-item-title">{item.title}</span>
-                              <span className="watch-shelf-item-type">{item.type}</span>
-                            </span>
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
+                  {rows.map((row) => {
+                    const ridge = row.row === 'films' || row.row === 'docs' || row.row === 'video';
+                    return (
+                      <div key={row.row} className="watch-shelf-lane">
+                        {row.label ? (
+                          <p className="watch-shelf-subkicker">{row.label}</p>
+                        ) : null}
+                        <ul
+                          className={`watch-shelf-row${ridge ? ' watch-shelf-row--ridge' : ''}`}
+                          data-testid={`watch-shelf-row-${row.row}`}
+                        >
+                          {row.items.map((item) => {
+                            const on = item.id === selected.id;
+                            return (
+                              <li key={item.id}>
+                                <button
+                                  type="button"
+                                  id={item.id}
+                                  className={`watch-shelf-item${on ? ' is-on' : ''}${item.featured ? ' is-featured' : ''}${item.coverKind === 'still' ? ' is-still' : ''}`}
+                                  aria-pressed={on}
+                                  aria-current={on ? 'true' : undefined}
+                                  onClick={() => select(item.id)}
+                                >
+                                  <ShelfObject item={item} selected={on} />
+                                  <span className="watch-shelf-item-copy">
+                                    <span className="watch-shelf-item-title">{item.title}</span>
+                                    <span className="watch-shelf-item-type">{item.type}</span>
+                                  </span>
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    );
+                  })}
                 </section>
               );
             })}
@@ -173,9 +188,9 @@ export default function WatchShelf({ owner }: { owner: boolean }) {
                 <Image
                   src={selected.cover}
                   alt=""
-                  width={220}
-                  height={320}
-                  className="watch-shelf-detail-image"
+                  width={selected.coverKind === 'still' ? 320 : 220}
+                  height={selected.coverKind === 'still' ? 180 : 320}
+                  className={`watch-shelf-detail-image${selected.coverKind === 'still' ? ' is-still' : ''}`}
                   style={{ objectFit: 'contain' }}
                 />
               </div>
@@ -188,14 +203,25 @@ export default function WatchShelf({ owner }: { owner: boolean }) {
               {selected.type}
               {selected.creator ? ` · ${selected.creator}` : ''}
             </p>
-            <h2 className="watch-shelf-detail-title">{selected.title}</h2>
+            <h2 className="watch-shelf-detail-title" data-testid="watch-shelf-detail-title">
+              {selected.title}
+            </h2>
             {selected.source ? <p className="watch-shelf-detail-source">{selected.source}</p> : null}
-            <dl className="watch-shelf-fields">
-              <div>
-                <dt>why it stays</dt>
-                <dd>{selected.note}</dd>
-              </div>
-            </dl>
+            {selected.note ? (
+              <dl className="watch-shelf-fields">
+                <div>
+                  <dt>why it stays</dt>
+                  <dd>{selected.note}</dd>
+                </div>
+              </dl>
+            ) : owner ? (
+              <dl className="watch-shelf-fields">
+                <div>
+                  <dt>why it stays</dt>
+                  <dd className="watch-shelf-note-pending">drop a note later</dd>
+                </div>
+              </dl>
+            ) : null}
             {selected.tags?.length ? (
               <p className="watch-shelf-tags">{selected.tags.join(' / ')}</p>
             ) : null}

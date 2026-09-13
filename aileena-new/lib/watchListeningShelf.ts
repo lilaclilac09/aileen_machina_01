@@ -6,20 +6,24 @@ function slugify(value: string): string {
 }
 
 export type ShelfSection = 'listen' | 'watch' | 'read' | 'living';
-export type ShelfType = 'podcast' | 'film' | 'interview' | 'book' | 'note';
+export type ShelfType = 'podcast' | 'film' | 'interview' | 'book' | 'note' | 'video';
 export type ShelfObject = 'cover' | 'cassette' | 'spine' | 'slip';
+export type ShelfRow = 'listen' | 'films' | 'docs' | 'notes' | 'video' | 'living';
+export type ShelfCoverKind = 'poster' | 'still';
 
 export type ShelfItem = {
   id: string;
   title: string;
   type: ShelfType;
   section: ShelfSection;
+  row: ShelfRow;
   creator?: string;
   source?: string;
   note: string;
   tags?: string[];
   href?: string;
   cover?: string;
+  coverKind?: ShelfCoverKind;
   featured?: boolean;
   object: ShelfObject;
 };
@@ -213,6 +217,7 @@ export const CHANNEL_RECS = [
     label: 'YouTube',
     href: '/blog/semi-basics-review',
     body: 'Cache, PCB, GPU — five-minute review.',
+    kind: 'video' as const,
   },
   {
     title: 'TPU & CPO (high-signal YouTube)',
@@ -220,6 +225,7 @@ export const CHANNEL_RECS = [
     label: 'video',
     href: '/blog/semi-watch-tpu-cpo',
     body: 'Ironwood, systolic array, CPO.',
+    kind: 'video' as const,
   },
   {
     title: 'Software YouTube — MCP',
@@ -227,6 +233,7 @@ export const CHANNEL_RECS = [
     label: 'agents',
     href: '/blog/software-watch',
     body: 'What MCP is, then MCP vs API.',
+    kind: 'video' as const,
   },
   {
     title: 'Post-Training Path',
@@ -244,14 +251,74 @@ export const CHANNEL_RECS = [
   },
 ];
 
+/** First-laid clips from the YouTube rooms — photo ridge, notes later. */
+export const VIDEO_RECS = [
+  {
+    title: 'How does Computer Cache, Memory, and Storage Work?',
+    shelfTitle: 'Cache',
+    label: 'Branch Education',
+    href: '/blog/semi-basics-review',
+    image: '/shelf/video-branch-cache.jpg',
+    note: '',
+  },
+  {
+    title: 'What are PCBs? How do PCBs Work?',
+    shelfTitle: 'PCB',
+    label: 'Branch Education',
+    href: '/blog/semi-basics-review',
+    image: '/shelf/video-branch-pcb.jpg',
+    note: '',
+  },
+  {
+    title: 'How do Graphics Cards Work? Exploring GPU Architecture',
+    shelfTitle: 'GPU',
+    label: 'Branch Education',
+    href: '/blog/semi-basics-review',
+    image: '/shelf/video-branch-gpu.jpg',
+    note: '',
+  },
+  {
+    title: 'NVIDIA official deep dive — CPO switch',
+    shelfTitle: 'NVIDIA CPO',
+    label: 'TPU & CPO',
+    href: '/blog/semi-watch-tpu-cpo',
+    image: '/shelf/video-nvidia-cpo.jpg',
+    note: '',
+  },
+  {
+    title: 'Broadcom CPO technology breakthrough (official)',
+    shelfTitle: 'Broadcom CPO',
+    label: 'TPU & CPO',
+    href: '/blog/semi-watch-tpu-cpo',
+    image: '/shelf/video-broadcom-cpo.jpg',
+    note: '',
+  },
+  {
+    title: 'Ironwood (7th-gen TPU) — official unbox + lab footage',
+    shelfTitle: 'Ironwood',
+    label: 'TPU & CPO',
+    href: '/blog/semi-watch-tpu-cpo',
+    image: '/shelf/video-ironwood.jpg',
+    note: '',
+  },
+  {
+    title: 'What is the Model Context Protocol (MCP)?',
+    shelfTitle: 'MCP',
+    label: 'Software YouTube',
+    href: '/blog/software-watch',
+    image: '/shelf/video-mcp.jpg',
+    note: '',
+  },
+];
+
 export const SHELF_GROUPS: {
   section: ShelfSection;
   label: string;
   anchors: string[];
 }[] = [
   { section: 'listen', label: 'listen', anchors: ['featured-listen', 'podcasts'] },
-  { section: 'watch', label: 'watch', anchors: ['watch', 'documentaries', 'films'] },
-  { section: 'read', label: 'read', anchors: ['channels'] },
+  { section: 'watch', label: 'watch', anchors: ['watch', 'films', 'documentaries'] },
+  { section: 'read', label: 'read', anchors: ['channels', 'video'] },
   { section: 'living', label: 'living', anchors: ['euro-life', 'lifestyle'] },
 ];
 
@@ -261,57 +328,79 @@ export const SHELF_ITEMS: ShelfItem[] = [
     title: item.shelfTitle,
     type: 'podcast' as const,
     section: 'listen' as const,
+    row: 'listen' as const,
     creator: item.meta,
     source: item.title,
     note: item.why ?? item.signal ?? item.body,
     tags: item.tags,
     href: item.href,
     cover: item.image,
+    coverKind: item.image ? ('poster' as const) : undefined,
     featured: Boolean(item.featured),
     object: item.image ? ('cover' as const) : ('cassette' as const),
-  })),
-  ...DOCUMENTARY_RECS.map((item) => ({
-    id: slugify(item.shelfTitle),
-    title: item.shelfTitle,
-    type: 'film' as const,
-    section: 'watch' as const,
-    creator: item.label,
-    source: `${item.title} · ${item.year}`,
-    note: item.note,
-    tags: item.tags,
-    href: item.href,
-    cover: item.image,
-    object: 'cover' as const,
   })),
   ...FILM_RECS.map((item) => ({
     id: slugify(item.shelfTitle),
     title: item.shelfTitle,
     type: 'film' as const,
     section: 'watch' as const,
+    row: 'films' as const,
     creator: item.label,
     source: `${item.title} · ${item.year}`,
     note: item.note,
     tags: item.tags,
     href: item.href,
     cover: item.image,
+    coverKind: 'poster' as const,
     object: 'cover' as const,
   })),
-  ...CHANNEL_RECS.map((item) => ({
+  ...DOCUMENTARY_RECS.map((item) => ({
+    id: slugify(item.shelfTitle),
+    title: item.shelfTitle,
+    type: 'film' as const,
+    section: 'watch' as const,
+    row: 'docs' as const,
+    creator: item.label,
+    source: `${item.title} · ${item.year}`,
+    note: item.note,
+    tags: item.tags,
+    href: item.href,
+    cover: item.image,
+    coverKind: 'poster' as const,
+    object: 'cover' as const,
+  })),
+  ...CHANNEL_RECS.filter((item) => item.kind !== 'video').map((item) => ({
     id: slugify(item.shelfTitle),
     title: item.shelfTitle,
     type: 'note' as const,
     section: 'read' as const,
+    row: 'notes' as const,
     creator: item.label,
     source: item.title,
     note: item.body,
     href: item.href,
     object: 'spine' as const,
   })),
+  ...VIDEO_RECS.map((item) => ({
+    id: slugify(item.shelfTitle),
+    title: item.shelfTitle,
+    type: 'video' as const,
+    section: 'read' as const,
+    row: 'video' as const,
+    creator: item.label,
+    source: item.title,
+    note: item.note,
+    href: item.href,
+    cover: item.image,
+    coverKind: 'still' as const,
+    object: 'cover' as const,
+  })),
   ...EURO_LIFE_GUIDE.map((item) => ({
     id: slugify(item.title),
     title: item.title,
     type: 'note' as const,
     section: 'living' as const,
+    row: 'living' as const,
     creator: item.label,
     note: item.body,
     object: 'slip' as const,
@@ -321,6 +410,7 @@ export const SHELF_ITEMS: ShelfItem[] = [
     title: item.title,
     type: 'note' as const,
     section: 'living' as const,
+    row: 'living' as const,
     creator: item.label,
     note: item.body,
     object: 'slip' as const,
@@ -334,14 +424,39 @@ export const SHELF_HASH_ALIASES: Record<string, string> = {
   'featured-listen': FEATURED_SHELF_ID,
   podcasts: FEATURED_SHELF_ID,
   listen: FEATURED_SHELF_ID,
-  watch: 'joan-didion',
+  watch: 'blue-is-the-warmest-color',
   documentaries: 'joan-didion',
   films: 'blue-is-the-warmest-color',
   channels: 'asymmetrical-bets',
   read: 'asymmetrical-bets',
+  video: 'cache',
   'euro-life': 'urban-roam-not-tourism',
   lifestyle: 'urban-drift-diary',
 };
+
+export const SHELF_ROW_LABEL: Partial<Record<ShelfRow, string>> = {
+  films: 'films',
+  docs: 'docs',
+  notes: 'notes',
+  video: 'video',
+};
+
+export function shelfRowsInSection(section: ShelfSection): { row: ShelfRow; label: string | null; items: ShelfItem[] }[] {
+  const rows: { row: ShelfRow; label: string | null; items: ShelfItem[] }[] = [];
+  for (const item of SHELF_ITEMS.filter((entry) => entry.section === section)) {
+    const last = rows[rows.length - 1];
+    if (last && last.row === item.row) {
+      last.items.push(item);
+      continue;
+    }
+    rows.push({
+      row: item.row,
+      label: SHELF_ROW_LABEL[item.row] ?? null,
+      items: [item],
+    });
+  }
+  return rows;
+}
 
 export function shelfItemById(id: string): ShelfItem | undefined {
   return SHELF_ITEMS.find((item) => item.id === id);
