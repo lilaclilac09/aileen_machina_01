@@ -294,7 +294,7 @@ Manual QA (390×844, owner):
 
 Copy-paste from home (`~`): [`workers/aileena-computer/README.md`](../../workers/aileena-computer/README.md).
 
-Those folders live in the git repo, not in `~`. Until this PR is on `main`, checkout `cursor/cloudflare-computer-spec-7f4a`.
+Those folders live in the git repo, not in `~`. Linux deploy: checkout `cursor/computer-cli-term-7f4a`, then `cd ~/aileen_machina_01/workers/aileena-computer`. Never `cd workers/…` from home.
 
 ```txt
 manual steps:

@@ -13,7 +13,7 @@ aileen@192 ~ %                          ← home. workers/ and aileena-new/ are 
 ~/aileen_machina_01/workers/aileena-computer/  ← the small computer (pnpm dev → :8787)
 ```
 
-Until [PR #487](https://github.com/lilaclilac09/aileen_machina_01/pull/487) is merged, this folder **does not exist on `main`**. Checkout the PR branch first.
+`workers/aileena-computer` is on `main` (worker-shell). **Linux / computerd** is on `cursor/computer-cli-term-7f4a`. Deploy Linux from that branch, not from `~` and not from an old checkout of `main`.
 
 ---
 
@@ -29,17 +29,17 @@ cd ~
 git clone https://github.com/lilaclilac09/aileen_machina_01.git
 cd ~/aileen_machina_01
 
-# 2. This computer is not on main yet.
+# 2. Linux container lives on this branch.
 git fetch origin
-git checkout cursor/cloudflare-computer-spec-7f4a
-git pull origin cursor/cloudflare-computer-spec-7f4a
+git checkout cursor/computer-cli-term-7f4a
+git pull origin cursor/computer-cli-term-7f4a
 
 # 3. Confirm both folders exist.
 ls workers/aileena-computer
 ls aileena-new
 ```
 
-If `ls workers/aileena-computer` still fails, you are on `main` (or a different clone). Stay on `cursor/cloudflare-computer-spec-7f4a`.
+If `ls workers/aileena-computer` still fails, you are still in `~` or a different clone. The folder is never `~/workers`.
 
 If git says **local changes would be overwritten** (checkout/merge abort): you still have uncommitted edits on the old branch. Stash them, then checkout. Do **not** `cd workers/...` yet. Do **not** `pnpm install` at the repo root.
 
@@ -47,8 +47,8 @@ If git says **local changes would be overwritten** (checkout/merge abort): you s
 # stop a wrong pnpm install with Ctrl+C first
 cd ~/aileen_machina_01
 git stash push -m "local edits before computer branch"
-git checkout cursor/cloudflare-computer-spec-7f4a
-git pull origin cursor/cloudflare-computer-spec-7f4a
+git checkout cursor/computer-cli-term-7f4a
+git pull origin cursor/computer-cli-term-7f4a
 ls workers/aileena-computer
 ```
 
@@ -138,8 +138,18 @@ Workspace names: `owner` or `v-[a-z0-9]{8,32}` (visitor cookie). Bearer secret s
 
 `wrangler.jsonc` must **not** include the `experimental` compatibility flag. Production Cloudflare returns **10021** if it is present. Keep `nodejs_compat` + `worker_loaders`. Official `@cloudflare/computer` example still lists `experimental`; do not copy that line.
 
-```txt
-cd workers/aileena-computer
+From `aileen@192 ~` this fails: `cd workers/aileena-computer` — that path is not under home. Next time, paste this:
+
+```sh
+ls ~/aileen_machina_01/workers/aileena-computer
+# if that fails, the clone is elsewhere:
+ls ~/aileen_machina_01 ~/code/aileen_machina_01 ~/src/aileen_machina_01
+
+cd ~/aileen_machina_01
+git fetch origin
+git checkout cursor/computer-cli-term-7f4a
+git pull origin cursor/computer-cli-term-7f4a
+cd ~/aileen_machina_01/workers/aileena-computer
 npx wrangler deploy
 npx wrangler secret put COMPUTER_WORKER_SECRET
 npx wrangler deployments list
