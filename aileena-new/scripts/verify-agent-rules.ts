@@ -127,6 +127,15 @@ function main() {
     'chat live inbox passes isCouncil',
     /enqueueLiveAsk\(lastQ, \{ isCouncil \}\)/.test(read('app/api/chat/route.ts')),
   );
+  assert(
+    'evolve drain route exists',
+    existsSync(join(process.cwd(), 'app/api/evolve/drain/route.ts')),
+  );
+  assert(
+    'evolve drain uses OIDC not engine',
+    /handleEvolveDrain/.test(read('app/api/evolve/drain/route.ts')) &&
+      !/evolution\/engine/.test(read('app/api/evolve/drain/route.ts')),
+  );
 
   const failed = checks.filter((c) => !c.ok);
   console.log(`\nResult: ${checks.length - failed.length}/${checks.length} passed`);

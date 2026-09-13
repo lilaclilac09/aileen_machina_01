@@ -10,6 +10,7 @@
  *   pnpm evolve -- --from-lesson ../ops/lessons/YYYY-MM-DD-slug.md
  *   pnpm evolve -- --from-question "code a patch"
  *   pnpm evolve -- --from-live     # drain chat Redis inbox, then ratchet
+ *   pnpm evolve -- --from-asks asks.json  # ingest a drained JSON payload
  *   pnpm evolve -- --rollback <skillId> --to <version>
  *
  * Never writes AGENTS.md / QA.md / PROJECT_RULES.md.
@@ -26,6 +27,7 @@ import { evolutionStatus } from '../lib/evolution/engine/status';
 import { writeEffectSheet } from '../lib/evolution/engine/effect';
 import { ingestQuestion } from '../lib/evolution/engine/inbox';
 import { drainLiveInbox } from '../lib/evolution/liveInbox';
+import { parseEvolveAsksJson } from '../lib/evolution/drainHandler';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -51,6 +53,34 @@ function assertConstitutionUntouched(before: string) {
     console.error('refusing: AGENTS.md / QA.md / PROJECT_RULES.md changed');
     process.exit(2);
   }
+}
+
+async function ingestAndRatchet(prompts: string[], root: string, source: string) {
+  const before = constitutionSnap();
+  const ingested = prompts.map((prompt) => ingestQuestion(prompt, { root, source }));
+  console.log(JSON.stringify({ drained: prompts, ingested }, null, 2));
+  if (ingested.some((r) => r.created)) {
+    const until = runEvolveUntilStable({ root });
+    console.log(
+      JSON.stringify(
+        {
+          rounds: until.rounds.length,
+          finalHeldOut: `${until.final.heldOutPassed}/${until.final.heldOutTotal}`,
+          finalTrain: `${until.final.trainPassed}/${until.final.trainTotal}`,
+          remainingFails: until.final.scores
+            .filter((s) => !s.pass)
+            .map((s) => ({ id: s.taskId, split: s.split, failed: s.failedChecks })),
+        },
+        null,
+        2,
+      ),
+    );
+    if (until.final.heldOutPassed !== until.final.heldOutTotal) {
+      assertConstitutionUntouched(before);
+      process.exit(1);
+    }
+  }
+  assertConstitutionUntouched(before);
 }
 
 async function main() {
@@ -92,35 +122,20 @@ async function main() {
     return;
   }
 
-  if (has('--from-live')) {
-    const before = constitutionSnap();
-    const drained = await drainLiveInbox(5);
-    const ingested = drained.map((row) =>
-      ingestQuestion(row.prompt, { root, source: 'chat' }),
-    );
-    console.log(JSON.stringify({ drained: drained.map((d) => d.prompt), ingested }, null, 2));
-    if (ingested.some((r) => r.created)) {
-      const until = runEvolveUntilStable({ root });
-      console.log(
-        JSON.stringify(
-          {
-            rounds: until.rounds.length,
-            finalHeldOut: `${until.final.heldOutPassed}/${until.final.heldOutTotal}`,
-            finalTrain: `${until.final.trainPassed}/${until.final.trainTotal}`,
-            remainingFails: until.final.scores
-              .filter((s) => !s.pass)
-              .map((s) => ({ id: s.taskId, split: s.split, failed: s.failedChecks })),
-          },
-          null,
-          2,
-        ),
-      );
-      if (until.final.heldOutPassed !== until.final.heldOutTotal) {
-        assertConstitutionUntouched(before);
-        process.exit(1);
-      }
+  if (has('--from-asks')) {
+    const file = arg('--from-asks');
+    if (!file) {
+      console.error('usage: pnpm evolve -- --from-asks <asks.json>');
+      process.exit(2);
     }
-    assertConstitutionUntouched(before);
+    const asks = parseEvolveAsksJson(JSON.parse(readFileSync(file, 'utf8')));
+    await ingestAndRatchet(asks.map((a) => a.prompt), root, 'chat');
+    return;
+  }
+
+  if (has('--from-live')) {
+    const drained = await drainLiveInbox(5);
+    await ingestAndRatchet(drained.map((row) => row.prompt), root, 'chat');
     return;
   }
 
