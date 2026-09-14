@@ -1,6 +1,7 @@
 node_modules
 .vercel
 .gstack/
+.amp/portals/*
 
 # Owner computer prototype local workspace
 aileena-new/.data/computer-prototype/
