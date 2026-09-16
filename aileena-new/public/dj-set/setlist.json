@@ -51,6 +51,16 @@
       "key": null,
       "durationSec": null,
       "cover": "/dj-set/assets/covers/rndvz.jpg"
+    },
+    {
+      "id": "BDAY",
+      "title": "BIRTHDAY",
+      "artist": "JEON SOMI",
+      "album": "BIRTHDAY",
+      "bpm": 120,
+      "key": "4A",
+      "durationSec": 185,
+      "cover": "/dj-set/assets/covers/birthday.jpg"
     }
   ]
 }

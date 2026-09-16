@@ -9,6 +9,7 @@ Genre: Techno (personal): harder driving techno — DVS1, Blawan, Rødhåd
 3. **TRACK HIGHTD** — High Tide / John Beltran · Open House
 4. **TRACK INTOUCH** — In Touch / Beatrice M. (140 BPM, 9A)
 5. **TRACK RNDVZ** — Rendezvous / lovegold
+6. **TRACK BDAY** — BIRTHDAY / JEON SOMI (120 BPM, 4A)
 
 ## URL
 
