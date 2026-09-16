@@ -37,7 +37,10 @@ export function spokenQueued(opts: {
   return `⚡ queued. ${doing} for ${opts.route}. Hung on proof ${hung}. Computer stays in this dialog. I can still talk. No merge.`;
 }
 
-export function spokenVisitorQueued(taskType: string): string {
+export function spokenVisitorQueued(taskType: string, shared = false): string {
   const doing = DOING[taskType] || `Running ${taskType}`;
+  if (shared) {
+    return `⚡ queued. ${doing} in the shared room. Same link. Come back. No linux. No merge.`;
+  }
   return `⚡ queued. ${doing} in your scratch pad. Same dialog. Not the site git. No merge.`;
 }
