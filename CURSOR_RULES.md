@@ -29,6 +29,7 @@ Injected every session (`.cursor/rules/`):
 - `debug-repro-loop.mdc` (bugs: repro → hypotheses → evidence → root cause)
 - `ui-step-screenshot.mdc` (UI merge: stills + interaction)
 - `landing-experiment-gate.mdc` (home `/`: cinematic + marquee only; **no screenshots = no merge recommendation**)
+- `mev-dash-only.mdc` (`mev.aileena.xyz`: Dash `app/index.py` only; **never restore** static Visual Analysis / purple / dark / `@A01DZ3RO`)
 
 ## Hard rules (short)
 
@@ -44,6 +45,7 @@ Injected every session (`.cursor/rules/`):
 - UI changes need screenshots
 - no screenshots = not done; no owner approval = no merge
 - landing experiment: **no screenshots = no merge recommendation** (`.cursor/rules/landing-experiment-gate.mdc`)
+- MEV: Dash only — **永远不再用** static Visual Analysis / purple / dark / `@A01DZ3RO` (`.cursor/rules/mev-dash-only.mdc`)
 - env/config issues go in `manual steps` + fail-closed blocker table in `AGENTS.md`
 - end with `safe to merge:`
 - orchestration: see decision table in `.cursor/prompts.md`
