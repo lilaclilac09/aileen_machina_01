@@ -128,8 +128,9 @@ const COVER_BY_SLUG: Record<string, string> = {
   'suffocating-bias': COVER_NEBULA,
   harassment: '/dispatch-covers/harassment.jpg',
 
-  // Recommendations
+  // Listening and Watching Shelf
   'watch-listening-shelf': '/dispatch-covers/books-joan-didion-readings.jpg',
+  'guerrilla-girls': COVER_PORTRAIT,
 };
 
 export function getCover(slug: string): string {
