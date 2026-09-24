@@ -165,10 +165,12 @@ export default function DuoLabClient() {
   const live = useDuoLayout();
   const [pose, setPose] = useState<PoseId>('cover');
   const [rows, setRows] = useState<ApiRow[]>([]);
+  const [mounted, setMounted] = useState(false);
   const [vv, setVv] = useState({ w: 0, h: 0, offsetLeft: 0, scale: 1 });
 
   useEffect(() => {
     const sync = () => {
+      setMounted(true);
       setRows(probeApis());
       const v = window.visualViewport;
       setVv({
@@ -207,70 +209,7 @@ export default function DuoLabClient() {
           foldables.
         </p>
 
-        <section className="mt-10" aria-labelledby="duo-live">
-          <h2 id="duo-live" className="duo-lab-kicker">
-            this window
-          </h2>
-          <dl className="duo-lab-metrics mt-4" data-testid="duo-live-metrics">
-            <div>
-              <dt className="text-[rgba(20,17,12,0.4)]">inner</dt>
-              <dd>
-                {live.pose} · {typeof window === 'undefined' ? '—' : `${Math.round(vv.w)}×${Math.round(vv.h)}`}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-[rgba(20,17,12,0.4)]">surface</dt>
-              <dd>
-                {live.surface}
-                {live.tent ? ' · tent' : ''}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-[rgba(20,17,12,0.4)]">visualViewport.scale</dt>
-              <dd>{vv.scale.toFixed(2)}</dd>
-            </div>
-            <div>
-              <dt className="text-[rgba(20,17,12,0.4)]">offsetLeft / crease</dt>
-              <dd>
-                {Math.round(vv.offsetLeft)} / {live.foldGutter}px
-              </dd>
-            </div>
-          </dl>
-        </section>
-
-        <section className="mt-12" aria-labelledby="duo-apis">
-          <h2 id="duo-apis" className="duo-lab-kicker">
-            iOS web APIs
-          </h2>
-          <div className="mt-4 overflow-x-auto">
-            <table className="duo-lab-api" data-testid="duo-api-table">
-              <thead>
-                <tr>
-                  <th>API</th>
-                  <th>iOS web</th>
-                  <th>this browser</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr key={row.id} data-api={row.id} data-live={row.live}>
-                    <td>
-                      <strong>{row.name}</strong>
-                      <div className="text-[rgba(20,17,12,0.45)] mt-1">{row.note}</div>
-                    </td>
-                    <td>{row.ios}</td>
-                    <td>
-                      <span className={`duo-lab-light ${row.live}`} aria-hidden />
-                      {lightLabel(row.live)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section className="mt-12" aria-labelledby="duo-theater">
+        <section className="mt-10" aria-labelledby="duo-theater">
           <h2 id="duo-theater" className="duo-lab-kicker">
             pose theater
           </h2>
@@ -341,6 +280,69 @@ export default function DuoLabClient() {
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        <section className="mt-12" aria-labelledby="duo-live">
+          <h2 id="duo-live" className="duo-lab-kicker">
+            this window
+          </h2>
+          <dl className="duo-lab-metrics mt-4" data-testid="duo-live-metrics">
+            <div>
+              <dt className="text-[rgba(20,17,12,0.4)]">inner</dt>
+              <dd>
+                {live.pose} · {mounted ? `${Math.round(vv.w)}×${Math.round(vv.h)}` : '—'}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[rgba(20,17,12,0.4)]">surface</dt>
+              <dd>
+                {live.surface}
+                {live.tent ? ' · tent' : ''}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[rgba(20,17,12,0.4)]">visualViewport.scale</dt>
+              <dd>{mounted ? vv.scale.toFixed(2) : '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-[rgba(20,17,12,0.4)]">offsetLeft / crease</dt>
+              <dd>
+                {mounted ? `${Math.round(vv.offsetLeft)} / ${live.foldGutter}px` : '—'}
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <section className="mt-12" aria-labelledby="duo-apis">
+          <h2 id="duo-apis" className="duo-lab-kicker">
+            iOS web APIs
+          </h2>
+          <div className="mt-4 overflow-x-auto">
+            <table className="duo-lab-api" data-testid="duo-api-table">
+              <thead>
+                <tr>
+                  <th>API</th>
+                  <th>iOS web</th>
+                  <th>this browser</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row) => (
+                  <tr key={row.id} data-api={row.id} data-live={row.live}>
+                    <td>
+                      <strong>{row.name}</strong>
+                      <div className="text-[rgba(20,17,12,0.45)] mt-1">{row.note}</div>
+                    </td>
+                    <td>{row.ios}</td>
+                    <td>
+                      <span className={`duo-lab-light ${row.live}`} aria-hidden />
+                      {lightLabel(row.live)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </section>
 

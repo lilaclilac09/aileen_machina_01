@@ -39,7 +39,7 @@ async function liveMobile(base: string) {
 
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
-  const routes = ['/', '/doors', '/sound', '/dispatch'];
+  const routes = ['/', '/doors', '/sound', '/dispatch', '/duo'];
 
   try {
     for (const route of routes) {
