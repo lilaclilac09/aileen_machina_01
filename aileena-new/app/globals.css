@@ -2,6 +2,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Barlow+Condensed:wght@300;400;700&display=swap');
 /* !! LOCKED !! */
 
+/*
+ * iPhone Duo / foldables (additive — existing phone/tablet/desktop stay):
+ *   cover  ~390–520 CSS px  · inner ~580–900+ · desk ≥1100
+ *   @media (horizontal-viewport-segments: 2) + env(viewport-segment-*)
+ *   JS listeners: lib/duoPose.ts  ·  lab: /duo + app/duo/duo-lab.css
+ *   Do not set container-type on html/body (fixed + dvh footgun).
+ */
+
 @import "tailwindcss";
 @source "../components/**/*.tsx";
 @source "../app/**/*.tsx";
@@ -56,7 +64,8 @@ html:has(.dispatch-archive-header) .site-chrome-home,
 html:has(.explainer-article) .site-chrome-home,
 html:has([data-doors-directory]) .site-chrome-home,
 html:has(.arc-page) .site-chrome-home,
-html:has(.arcade-root) .site-chrome-home {
+html:has(.arcade-root) .site-chrome-home,
+html:has(.duo-lab) .site-chrome-home {
   color: rgba(27, 23, 19, 0.58) !important;
 }
 html:has(.substack-article) .site-chrome-home:hover,
@@ -64,7 +73,8 @@ html:has(.dispatch-archive-header) .site-chrome-home:hover,
 html:has(.explainer-article) .site-chrome-home:hover,
 html:has([data-doors-directory]) .site-chrome-home:hover,
 html:has(.arc-page) .site-chrome-home:hover,
-html:has(.arcade-root) .site-chrome-home:hover {
+html:has(.arcade-root) .site-chrome-home:hover,
+html:has(.duo-lab) .site-chrome-home:hover {
   color: rgba(27, 23, 19, 0.95) !important;
 }
 
@@ -433,6 +443,8 @@ select,
   --safe-left: env(safe-area-inset-left, 0px);
   --mobile-page-pad-x: max(16px, var(--safe-left), var(--safe-right));
   --mobile-chrome-clear-top: max(56px, calc(var(--safe-top) + 48px));
+  --duo-crease: 0px;
+  --duo-type-scale: 1;
 }
 
 .mobile-safe-pad {
@@ -626,5 +638,111 @@ select,
 @media (horizontal-viewport-segments: 2) {
   .dj-station[data-duo-pose="book"] .dj-mixer-center {
     padding-inline: 16px;
+  }
+}
+
+/* ── iPhone Duo / foldable glass ────────────────────────────────
+ * Progressive: Chromium foldables + future iOS 27 Viewport Segments.
+ * Size fallbacks live in lib/duoPose.ts. Lab preview: /duo.
+ */
+.duo-shell {
+  container-type: inline-size;
+  container-name: duo;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.duo-hit {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.duo-type {
+  font-size: clamp(0.95rem, 0.4vw + 0.88rem, 1.12rem);
+}
+
+html[data-duo-surface='inner'] {
+  --duo-type-scale: 1.08;
+}
+
+html[data-duo-surface='inner'] .duo-type {
+  font-size: clamp(1.05rem, 2vw + 0.7rem, 1.4rem);
+}
+
+@container duo (min-width: 580px) {
+  .duo-type {
+    font-size: clamp(1.05rem, 1.6cqi + 0.7rem, 1.4rem);
+  }
+}
+
+.duo-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+
+@media (horizontal-viewport-segments: 2) {
+  :root {
+    --duo-crease: max(
+      28px,
+      calc(
+        env(viewport-segment-left 1 0, 28px) -
+          env(viewport-segment-right 0 0, 0px)
+      )
+    );
+  }
+
+  .duo-split {
+    grid-template-columns:
+      minmax(0, env(viewport-segment-width 0 0, 1fr))
+      minmax(0, env(viewport-segment-width 1 0, 1fr));
+    column-gap: var(--duo-crease);
+  }
+
+  .duo-crease-avoid {
+    padding-inline: max(12px, calc(var(--duo-crease) / 2));
+  }
+}
+
+@media (vertical-viewport-segments: 2) {
+  :root {
+    --duo-crease: max(
+      28px,
+      calc(
+        env(viewport-segment-top 0 1, 28px) -
+          env(viewport-segment-bottom 0 0, 0px)
+      )
+    );
+  }
+
+  .duo-crease-avoid {
+    padding-block: max(12px, calc(var(--duo-crease) / 2));
+  }
+}
+
+/* Older Surface Duo / some Android foldables */
+@media (spanning: single-fold-vertical) {
+  :root {
+    --duo-crease: 28px;
+  }
+
+  .duo-split {
+    grid-template-columns: 1fr 1fr;
+    column-gap: var(--duo-crease);
+  }
+}
+
+@container duo (min-width: 700px) {
+  .duo-wide-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .duo-pose-shift {
+    transition: none !important;
   }
 }

@@ -84,6 +84,7 @@ async function liveMobile(base: string) {
 async function main() {
   const css = read('app/globals.css');
   assert('safe-area CSS vars exist', /--safe-top:\s*env\(safe-area-inset-top/.test(css));
+  assert('duo crease CSS var exists', /--duo-crease:/.test(css));
   assert('mobile-page utility exists', /\.mobile-page\s*\{/.test(css));
   assert('mobile overflow-x is clip not a hide-the-bug default', /overflow-x:\s*clip/.test(css));
   assert(

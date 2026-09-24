@@ -1,0 +1,317 @@
+/*
+ * /duo lab — pose theater + API probe.
+ * Site tokens stay cream / teal. Does not restyle home.
+ *
+ * Theater uses container queries (duo-lab) so Split View / half-width
+ * Safari match the simulated cover (~466) vs inner (~890) widths.
+ */
+
+.duo-lab {
+  --ink: #14110c;
+  --mute: rgba(20, 17, 12, 0.56);
+  --line: rgba(20, 17, 12, 0.12);
+  --teal: #00a89d;
+  --paper: #f8f5ee;
+  --card: #fffdf8;
+  color: var(--ink);
+  background: var(--paper);
+  font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+}
+
+.duo-lab-kicker {
+  font-family: ui-monospace, 'JetBrains Mono', SFMono-Regular, Menlo, monospace;
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--teal);
+}
+
+.duo-lab-title {
+  font-size: clamp(1.85rem, 6vw, 2.7rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.duo-lab-lead {
+  color: var(--mute);
+  font-size: clamp(0.92rem, 2.4vw, 1.02rem);
+  line-height: 1.55;
+  max-width: 40rem;
+}
+
+.duo-lab-poses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.duo-lab-poses button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.duo-lab-poses button[aria-pressed='true'] {
+  border-color: var(--teal);
+  color: var(--teal);
+  box-shadow: inset 0 0 0 1px var(--teal);
+}
+
+.duo-lab-stage-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+}
+
+.duo-lab-stage {
+  container-type: inline-size;
+  container-name: duo-lab;
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid var(--line);
+  box-sizing: border-box;
+  overflow: hidden;
+  transition: max-width 180ms ease, aspect-ratio 180ms ease;
+}
+
+.duo-lab-stage.is-cover {
+  max-width: 466px;
+  aspect-ratio: 466 / 678;
+}
+
+.duo-lab-stage.is-inner-p {
+  max-width: 626px;
+  aspect-ratio: 626 / 890;
+}
+
+.duo-lab-stage.is-inner-l {
+  max-width: 890px;
+  aspect-ratio: 890 / 626;
+}
+
+.duo-lab-stage.is-tent {
+  max-width: 890px;
+  aspect-ratio: 890 / 500;
+}
+
+.duo-lab-stage.is-split {
+  max-width: 400px;
+  aspect-ratio: 400 / 800;
+}
+
+.duo-lab-stage.is-phone {
+  max-width: 390px;
+  aspect-ratio: 390 / 844;
+}
+
+.duo-lab-stage.is-ipad {
+  max-width: 1024px;
+  aspect-ratio: 1024 / 768;
+}
+
+.duo-lab-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+  padding: max(12px, env(safe-area-inset-top, 0px))
+    max(14px, env(safe-area-inset-right, 0px))
+    max(14px, env(safe-area-inset-bottom, 0px))
+    max(14px, env(safe-area-inset-left, 0px));
+  box-sizing: border-box;
+}
+
+.duo-lab-hero {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  min-height: 0;
+  flex: 1;
+}
+
+.duo-lab-hero img {
+  width: 100%;
+  height: 100%;
+  max-height: 42%;
+  object-fit: contain;
+  object-position: 22% 8%;
+  background: #efe6d6;
+}
+
+.duo-lab-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 18px;
+  background: var(--teal);
+  color: #fffdf8;
+  text-decoration: none;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  align-self: flex-start;
+}
+
+.duo-lab-cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.duo-lab-card {
+  border: 1px dashed var(--line);
+  padding: 10px 12px;
+  min-height: 44px;
+  font-size: 0.78rem;
+}
+
+.duo-lab-thumb {
+  display: none;
+  pointer-events: none;
+}
+
+.duo-lab-crease {
+  display: none;
+  pointer-events: none;
+}
+
+.duo-lab-stage.is-tent .duo-lab-crease,
+.duo-lab-stage.is-inner-l .duo-lab-crease {
+  display: block;
+  position: absolute;
+  top: 8%;
+  bottom: 8%;
+  left: 50%;
+  width: 28px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(20, 17, 12, 0.06) 40%,
+    rgba(20, 17, 12, 0.1) 50%,
+    rgba(20, 17, 12, 0.06) 60%,
+    transparent
+  );
+  z-index: 2;
+}
+
+.duo-lab-stage.is-cover .duo-lab-thumb,
+.duo-lab-stage.is-phone .duo-lab-thumb,
+.duo-lab-stage.is-split .duo-lab-thumb {
+  display: block;
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 6%;
+  height: 28%;
+  border: 1px dashed rgba(0, 168, 157, 0.45);
+  border-radius: 50% 50% 40% 40%;
+  z-index: 1;
+}
+
+.duo-lab-stage.is-cover .duo-lab-cta,
+.duo-lab-stage.is-phone .duo-lab-cta,
+.duo-lab-stage.is-split .duo-lab-cta {
+  align-self: flex-end;
+  margin-top: auto;
+}
+
+@container duo-lab (min-width: 580px) {
+  .duo-lab-hero {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    align-items: center;
+  }
+
+  .duo-lab-hero img {
+    max-height: none;
+    aspect-ratio: 3 / 4;
+  }
+
+  .duo-lab-cards {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .duo-lab-copy .duo-lab-type {
+    font-size: clamp(1.05rem, 2.2cqi + 0.55rem, 1.45rem);
+  }
+}
+
+.duo-lab-api {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.duo-lab-api th,
+.duo-lab-api td {
+  text-align: left;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+.duo-lab-api th {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--mute);
+  font-weight: 700;
+}
+
+.duo-lab-light {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 99px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.duo-lab-light.on {
+  background: var(--teal);
+}
+
+.duo-lab-light.wait {
+  background: #c9a227;
+}
+
+.duo-lab-light.off {
+  background: rgba(20, 17, 12, 0.22);
+}
+
+.duo-lab-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 16px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+}
+
+@media (min-width: 700px) {
+  .duo-lab-metrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .duo-lab-stage {
+    transition: none;
+  }
+}
