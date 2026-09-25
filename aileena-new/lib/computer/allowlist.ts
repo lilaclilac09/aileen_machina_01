@@ -158,13 +158,14 @@ export function fetchScratchName(url: string): string {
   return `${host}-${stamp}.txt`;
 }
 
-/** Visitors may only touch their own scratch workspace. Never git, email, repo files, shell, or proof. */
+/** Visitors may touch their own scratch workspace. cell_exec is Cloudflare worker-shell only. Never git, email, repo files, owner shell, or proof. */
 export const VISITOR_COMPUTER_TASK_TYPES = [
   'write_scratch_file',
   'files_tree',
   'files_search',
   'scratch_peek',
   'scratch_clock',
+  'cell_exec',
 ] as const;
 
 export type VisitorComputerTaskType = (typeof VISITOR_COMPUTER_TASK_TYPES)[number];

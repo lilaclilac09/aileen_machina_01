@@ -41,6 +41,13 @@ export function decideAgentMode(
     return { ok: true, mode: 'council' };
   }
   if (raw === 'machina') return { ok: true, mode: 'machina' };
+  if (raw === 'night') {
+    return {
+      ok: false,
+      status: 400,
+      error: 'Night Desk is /night. The public console does not take that mode.',
+    };
+  }
   return { ok: true, mode: 'public' };
 }
 
