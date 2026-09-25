@@ -104,6 +104,12 @@ export function noteIdForDate(date: string): string {
   return `n-${date}`;
 }
 
+/** View-only link for one shipped note. Drafts have no path. */
+export function dailySharePath(noteId: string): string | null {
+  if (!/^n-\d{4}-\d{2}-\d{2}$/.test(noteId)) return null;
+  return `/daily/s/${noteId}`;
+}
+
 export function isYmd(value: unknown): value is string {
   return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
