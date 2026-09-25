@@ -94,6 +94,14 @@ export const t = {
           verdict: 'Experiment. Local shim. Not Cloudflare Computer. Merge stays blocked.',
           statusLabel: 'experiment',
         },
+        'agent-gateway': {
+          tag: 'OSS',
+          title: 'Agent-Gateway',
+          body: 'Official keys stay on your box. Agents get a gateway key.',
+          why: 'One local door for a person or a small team, without sharing console keys.',
+          verdict: 'Runs on your machine. This page does not host the gateway.',
+          statusLabel: 'useful',
+        },
         'feed-flash': {
           tag: 'RSS',
           title: 'Feed Flash',
@@ -177,6 +185,94 @@ export const t = {
           jobFailed: 'Run failed.',
           network: 'Network error. Try again.',
         },
+      },
+      agentGateway: {
+        tag: 'OSS',
+        heading: 'Agent-Gateway',
+        body: 'Official keys stay on your box. Agents and teammates only get a gateway key.',
+        marquee: 'AGENT-GATEWAY · LOCAL · OFFICIAL KEYS ONLY',
+        dockerTitle: 'One click',
+        docker: `git clone https://github.com/lilaclilac09/aileen_machina_01.git
+cd aileen_machina_01/agent-gateway-rs
+cp .env.example .env
+docker compose up -d`,
+        cards: [
+          { title: 'Your keys', body: 'OPENAI_API_KEY and ANTHROPIC_API_KEY stay in the server .env.' },
+          { title: 'Their key', body: 'Each agent gets sk-gw-…. Revoke that id and the bearer dies.' },
+          { title: 'Where it listens', body: '127.0.0.1:8787, or your tailnet. Not a public proxy.' },
+          { title: 'Route', body: 'claude* and anthropic* go to Anthropic. Everything else goes to OpenAI.' },
+        ],
+        notTitle: 'Not this',
+        not: [
+          'Subscription sharing',
+          'Codex, Claude Code, or Cursor login import',
+          'OAuth account pools',
+          'Unlimited Claude from Plus',
+          'A public model marketplace',
+          'Billing for resold tokens',
+        ],
+        teammateTitle: 'Teammate',
+        teammate: `OPENAI_BASE_URL=http://127.0.0.1:8787/v1
+OPENAI_API_KEY=sk-gw-...`,
+        gitLabel: 'Git',
+        gitHref: 'https://github.com/lilaclilac09/aileen_machina_01',
+        readmeLabel: 'Install notes',
+        readmeHref: 'https://github.com/lilaclilac09/aileen_machina_01/blob/main/agent-gateway-rs/README.md',
+        previewLabel: 'Dashboard preview',
+        previewHref: '/agent-gateway-preview.html',
+        useLabel: 'Use',
+        useHref: '/tools/agent-gateway/use',
+        runsLocal: 'This page does not run the gateway. It runs on your machine.',
+      },
+      agentGatewayUse: {
+        tag: 'USE',
+        heading: 'How to use',
+        body: 'Two roles. Official keys stay on the operator box. Callers only receive a gateway key.',
+        marquee: 'AGENT-GATEWAY · USE · NO SIGNUP',
+        rolesTitle: 'Two roles',
+        roles: [
+          { title: 'Operator', body: 'Owns the OpenAI and Anthropic console keys. Runs the box. Mints and revokes sk-gw- keys.' },
+          { title: 'Caller', body: 'An agent or teammate. Sets two env lines. Never sees the console keys.' },
+        ],
+        callerTitle: 'Caller, 90 seconds',
+        caller: `OPENAI_BASE_URL=http://127.0.0.1:8787/v1
+OPENAI_API_KEY=sk-gw-...`,
+        callerNote: 'Ask the operator for the host if you are not on the same machine. Then send one chat request. Stop.',
+        cursorTitle: 'Cursor',
+        cursorBody: 'Point the editor at the gateway. Paste the gateway key, not the console key.',
+        curlTitle: 'curl',
+        curl: `curl -s http://127.0.0.1:8787/health
+curl -s http://127.0.0.1:8787/v1/models \\
+  -H "Authorization: Bearer sk-gw-..."
+curl -s http://127.0.0.1:8787/v1/chat/completions \\
+  -H "Authorization: Bearer sk-gw-..." \\
+  -H "Content-Type: application/json" \\
+  -d '{"model":"gpt-4o-mini","messages":[{"role":"user","content":"ping"}]}'`,
+        failTitle: 'When it fails',
+        fails: [
+          { code: '200', mean: 'Upstream accepted the official key.' },
+          { code: '401 upstream', mean: 'Official key rejected. The body is passed through.' },
+          { code: '429', mean: 'Upstream quota, or this key hit RPM / daily cap. Gateway cap sets Retry-After.' },
+          { code: '20s+ or 502', mean: 'Egress. See /troubleshoot on the gateway.' },
+          { code: '400 key missing', mean: 'OPENAI_API_KEY or ANTHROPIC_API_KEY is empty on the server.' },
+          { code: '401 bad gateway key', mean: 'Bearer missing, unknown, or revoked.' },
+        ],
+        hourTitle: 'Operator, first hour',
+        hour: [
+          'docker compose up -d, or ./install.sh. Read the one-time dashboard token and bootstrap key.',
+          'Put official console keys in .env. Leave them off every laptop.',
+          'Open /keys?token=… and mint one teammate key. The secret is shown once.',
+          'Send only the two env lines. Confirm /health and /v1/models.',
+          'Revoke that test id. The same bearer must return 401.',
+        ],
+        teachTitle: 'Teach-back',
+        teach: [
+          'Where do the official keys live?',
+          'Which two lines do you set?',
+          'What happens when your key is revoked?',
+          'What is this not?',
+        ],
+        teachAnswers: 'On the server .env. BASE_URL plus sk-gw-. That bearer dies; console keys stay. Not Plus, not OAuth, not a public proxy.',
       },
       cafeRecap: {
         tag: 'VIDEO',
@@ -403,6 +499,12 @@ export const t = {
         { href: '/updates', label: 'Metal & Pages', hint: 'book club · visual' },
         { href: '/dispatch', label: 'Dispatch', hint: 'essays · news' },
         { href: '/tools', label: 'Tools', hint: 'small utilities' },
+        {
+          href: '/tools/agent-gateway',
+          label: 'Tools / Agent-Gateway',
+          hint: 'official keys on your box',
+          id: 'hub-agent-gateway',
+        },
       ],
     },
     openToWork: {
@@ -988,6 +1090,14 @@ export const t = {
           verdict: 'Experiment. Lokaler Shim. Nicht Cloudflare Computer. Merge bleibt gesperrt.',
           statusLabel: 'experiment',
         },
+        'agent-gateway': {
+          tag: 'OSS',
+          title: 'Agent-Gateway',
+          body: 'Offizielle Keys bleiben auf deiner Maschine. Agents bekommen einen Gateway-Key.',
+          why: 'Eine lokale Tür für eine Person oder ein kleines Team, ohne Console-Keys zu teilen.',
+          verdict: 'Läuft auf deiner Maschine. Diese Seite hostet das Gateway nicht.',
+          statusLabel: 'useful',
+        },
         'feed-flash': {
           tag: 'RSS',
           title: 'Feed Flash',
@@ -1071,6 +1181,94 @@ export const t = {
           jobFailed: 'Run fehlgeschlagen.',
           network: 'Netzwerkfehler. Erneut versuchen.',
         },
+      },
+      agentGateway: {
+        tag: 'OSS',
+        heading: 'Agent-Gateway',
+        body: 'Offizielle Keys bleiben auf deiner Maschine. Agents und Team bekommen nur einen Gateway-Key.',
+        marquee: 'AGENT-GATEWAY · LOKAL · NUR OFFIZIELLE KEYS',
+        dockerTitle: 'Ein Klick',
+        docker: `git clone https://github.com/lilaclilac09/aileen_machina_01.git
+cd aileen_machina_01/agent-gateway-rs
+cp .env.example .env
+docker compose up -d`,
+        cards: [
+          { title: 'Deine Keys', body: 'OPENAI_API_KEY und ANTHROPIC_API_KEY bleiben in der Server-.env.' },
+          { title: 'Ihr Key', body: 'Jeder Agent bekommt sk-gw-…. Revoke, und der Bearer ist tot.' },
+          { title: 'Wo es hört', body: '127.0.0.1:8787, oder dein Tailnet. Kein öffentlicher Proxy.' },
+          { title: 'Route', body: 'claude* und anthropic* gehen zu Anthropic. Alles andere zu OpenAI.' },
+        ],
+        notTitle: 'Nicht das',
+        not: [
+          'Abo teilen',
+          'Codex-, Claude-Code- oder Cursor-Login importieren',
+          'OAuth-Account-Pools',
+          'Unlimited Claude aus Plus',
+          'Ein öffentlicher Model-Markt',
+          'Billing für weiterverkaufte Tokens',
+        ],
+        teammateTitle: 'Teammate',
+        teammate: `OPENAI_BASE_URL=http://127.0.0.1:8787/v1
+OPENAI_API_KEY=sk-gw-...`,
+        gitLabel: 'Git',
+        gitHref: 'https://github.com/lilaclilac09/aileen_machina_01',
+        readmeLabel: 'Installationsnotizen',
+        readmeHref: 'https://github.com/lilaclilac09/aileen_machina_01/blob/main/agent-gateway-rs/README.md',
+        previewLabel: 'Dashboard-Vorschau',
+        previewHref: '/agent-gateway-preview.html',
+        useLabel: 'Use',
+        useHref: '/tools/agent-gateway/use',
+        runsLocal: 'Diese Seite führt das Gateway nicht aus. Es läuft auf deiner Maschine.',
+      },
+      agentGatewayUse: {
+        tag: 'USE',
+        heading: 'Benutzung',
+        body: 'Zwei Rollen. Offizielle Keys bleiben auf der Maschine der Operatorin. Caller bekommen nur einen Gateway-Key.',
+        marquee: 'AGENT-GATEWAY · USE · KEIN SIGNUP',
+        rolesTitle: 'Zwei Rollen',
+        roles: [
+          { title: 'Operator', body: 'Besitzt die OpenAI- und Anthropic-Console-Keys. Betreibt die Maschine. Vergibt und widerruft sk-gw- Keys.' },
+          { title: 'Caller', body: 'Ein Agent oder Teammate. Setzt zwei Env-Zeilen. Sieht die Console-Keys nie.' },
+        ],
+        callerTitle: 'Caller, 90 Sekunden',
+        caller: `OPENAI_BASE_URL=http://127.0.0.1:8787/v1
+OPENAI_API_KEY=sk-gw-...`,
+        callerNote: 'Frag nach dem Host, wenn du nicht auf derselben Maschine bist. Ein Chat-Request. Schluss.',
+        cursorTitle: 'Cursor',
+        cursorBody: 'Zeig den Editor auf das Gateway. Gateway-Key einfügen, nicht den Console-Key.',
+        curlTitle: 'curl',
+        curl: `curl -s http://127.0.0.1:8787/health
+curl -s http://127.0.0.1:8787/v1/models \\
+  -H "Authorization: Bearer sk-gw-..."
+curl -s http://127.0.0.1:8787/v1/chat/completions \\
+  -H "Authorization: Bearer sk-gw-..." \\
+  -H "Content-Type: application/json" \\
+  -d '{"model":"gpt-4o-mini","messages":[{"role":"user","content":"ping"}]}'`,
+        failTitle: 'Wenn es scheitert',
+        fails: [
+          { code: '200', mean: 'Upstream hat den offiziellen Key akzeptiert.' },
+          { code: '401 upstream', mean: 'Offizieller Key abgelehnt. Der Body geht durch.' },
+          { code: '429', mean: 'Upstream-Quota, oder RPM / Tageslimit. Gateway-Limit setzt Retry-After.' },
+          { code: '20s+ oder 502', mean: 'Egress. Siehe /troubleshoot am Gateway.' },
+          { code: '400 key missing', mean: 'OPENAI_API_KEY oder ANTHROPIC_API_KEY ist auf dem Server leer.' },
+          { code: '401 bad gateway key', mean: 'Bearer fehlt, ist unbekannt oder widerrufen.' },
+        ],
+        hourTitle: 'Operator, erste Stunde',
+        hour: [
+          'docker compose up -d oder ./install.sh. Einmalig Token und Bootstrap-Key lesen.',
+          'Offizielle Console-Keys in .env. Auf keinen Laptop kopieren.',
+          '/keys?token=… öffnen und einen Teammate-Key prägen. Das Secret erscheint einmal.',
+          'Nur die zwei Env-Zeilen schicken. /health und /v1/models prüfen.',
+          'Die Test-Id widerrufen. Derselbe Bearer muss 401 liefern.',
+        ],
+        teachTitle: 'Zurückerzählen',
+        teach: [
+          'Wo leben die offiziellen Keys?',
+          'Welche zwei Zeilen setzt du?',
+          'Was passiert, wenn dein Key widerrufen wird?',
+          'Was ist das nicht?',
+        ],
+        teachAnswers: 'In der Server-.env. BASE_URL plus sk-gw-. Der Bearer stirbt; Console-Keys bleiben. Nicht Plus, nicht OAuth, kein öffentlicher Proxy.',
       },
       cafeRecap: {
         tag: 'VIDEO',
@@ -1296,6 +1494,12 @@ export const t = {
         { href: '/updates', label: 'Metal & Pages', hint: 'Buchclub · Visual' },
         { href: '/dispatch', label: 'Dispatch', hint: 'Essays · News' },
         { href: '/tools', label: 'Tools', hint: 'Werkzeuge' },
+        {
+          href: '/tools/agent-gateway',
+          label: 'Tools / Agent-Gateway',
+          hint: 'Keys auf deiner Maschine',
+          id: 'hub-agent-gateway',
+        },
       ],
     },
     openToWork: {

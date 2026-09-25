@@ -92,6 +92,7 @@ Open `/tools` → new tile visible → open tool once end-to-end.
 | `cafe-cursor` | `https://cursor-cafe.aileena.xyz/` | **Useful** — redeem for checked-in Cafe Cursor guests |
 | `inkling-clips` | `/tools/inkling-clips` | **Useful** — YouTube → clips, free-mode workaround |
 | `cafe-recap` | `/tools/cafe-recap` | **Experiment** — local JSON→ffmpeg; not better than CapCut yet |
+| `agent-gateway` | `/tools/agent-gateway` | **Useful** — local official-key ingress. This page does not host it. |
 | `computer` | `/tools/computer` | **Experiment** — computer in the site-agent dialog; Cloudflare worker-shell when env is set; no merge. |
 | `feed-flash` | `/tools/feed-flash` | Paused on hub |
 | `chip-guess` | `/tools/chip-guess` | Paused on hub |
