@@ -67,7 +67,12 @@ function ShelfObject({ item }: { item: ShelfItem }) {
           width={spinePhoto ? 90 : still || objectPhoto ? 160 : 72}
           height={spinePhoto ? 160 : still || objectPhoto ? 90 : 108}
           className={`watch-obj-cover${coverKindClass(item.coverKind)}`}
-          style={{ objectFit: ridgeFill ? 'cover' : 'contain' }}
+          style={{
+            objectFit: ridgeFill ? 'cover' : 'contain',
+            width: ridgeFill ? undefined : 'auto',
+            height: ridgeFill ? undefined : 72,
+            background: 'transparent',
+          }}
         />
       ) : null}
       {item.object === 'cassette' ? (
@@ -219,7 +224,7 @@ export default function WatchShelf({ owner }: { owner: boolean }) {
                         : 320
                   }
                   className={`watch-shelf-detail-image${coverKindClass(selected.coverKind)}`}
-                  style={{ objectFit: 'contain' }}
+                  style={{ objectFit: 'contain', background: 'transparent' }}
                 />
               </div>
             ) : (

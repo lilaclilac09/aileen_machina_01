@@ -45,14 +45,21 @@ function main() {
     watch.map((item) => item.title).join('|') === expectedWatch.join('|'),
   );
   const ladies = watch.find((item) => item.id === 'ladies-first');
+  const tar = watch.find((item) => item.id === 'tar');
   assert(
-    'Ladies First 2026 is the last film poster',
-    ladies?.coverKind === 'poster' &&
-      ladies.cover === '/shelf/ladies-first.jpg' &&
-      watch[watch.length - 1]?.id === 'ladies-first',
-    watch[watch.length - 1]?.id,
+    'Ladies First stays a film poster',
+    ladies?.coverKind === 'poster' && ladies.cover === '/shelf/ladies-first.jpg',
+    ladies?.id,
   );
   assert('Ladies First note stays empty for later', ladies?.note === '');
+  assert(
+    'Tár 2022 is the last film poster',
+    tar?.coverKind === 'poster' &&
+      tar.cover === '/shelf/tar.jpg' &&
+      watch[watch.length - 1]?.id === 'tar',
+    watch[watch.length - 1]?.id,
+  );
+  assert('Tár note stays empty for later', tar?.note === '');
   assert(
     'video ridge uses photo-real spines',
     videos.length === VIDEO_RECS.length &&
@@ -94,8 +101,9 @@ function main() {
   );
   assert(
     'Ladies First stays a film, not a living object',
-    living.every((item) => item.id !== 'ladies-first') &&
-      SHELF_ITEMS.find((item) => item.id === 'ladies-first')?.row === 'watch',
+    living.every((item) => item.id !== 'ladies-first' && item.id !== 'tar') &&
+      SHELF_ITEMS.find((item) => item.id === 'ladies-first')?.row === 'watch' &&
+      SHELF_ITEMS.find((item) => item.id === 'tar')?.row === 'watch',
   );
 
   for (const item of SHELF_ITEMS) {
@@ -115,6 +123,12 @@ function main() {
   assert(
     'css film covers stay contain',
     /\.watch-obj-cover \{[\s\S]*?object-fit:\s*contain/.test(css),
+  );
+  assert(
+    'film posters have no cream frame',
+    /\.watch-obj-cover \{[\s\S]*?background:\s*transparent/.test(css) &&
+      /\.watch-shelf-detail-image \{[\s\S]*?background:\s*transparent/.test(css) &&
+      !/#efeae0/.test(css),
   );
   assert(
     'css spine and living thumbs fill the slot',

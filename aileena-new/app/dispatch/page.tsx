@@ -515,6 +515,8 @@ function WatchListenTab({ post }: { post?: Post }) {
     { title: 'The Capture', image: '/shelf/the-capture.jpg' },
     { title: 'Bodyguard', image: '/shelf/bodyguard.jpg' },
     { title: 'Miss Sloane', image: '/shelf/miss-sloane.jpg' },
+    { title: 'Ladies First', image: '/shelf/ladies-first.jpg' },
+    { title: 'Tár', image: '/shelf/tar.jpg' },
   ];
 
   return (

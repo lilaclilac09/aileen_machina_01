@@ -1,5 +1,7 @@
 function slugify(value: string): string {
   return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
@@ -185,6 +187,17 @@ export const FILM_RECS = [
     label: 'Pike · Netflix',
     href: 'https://en.wikipedia.org/wiki/Ladies_First_(2026_film)',
     image: '/shelf/ladies-first.jpg',
+    note: '',
+    body: '',
+    tags: ['seeing'],
+  },
+  {
+    title: 'Tár',
+    shelfTitle: 'Tár',
+    year: '2022',
+    label: 'Field · Blanchett',
+    href: 'https://en.wikipedia.org/wiki/T%C3%A1r',
+    image: '/shelf/tar.jpg',
     note: '',
     body: '',
     tags: ['seeing'],
