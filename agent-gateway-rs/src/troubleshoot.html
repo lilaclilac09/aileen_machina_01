@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TROUBLESHOOT</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#0B0C0E;color:#E8E4DC;font:14px/1.5 ui-sans-serif,system-ui,sans-serif}
+a{color:#E8E4DC;text-decoration:none}
+.rule{height:2px;background:#E8B86D}
+header,nav,.wrap{max-width:760px;margin:0 auto;padding-left:16px;padding-right:16px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;padding-top:18px}
+.brand{letter-spacing:.14em;font-size:16px}
+.tag{margin-top:4px;color:#8B8680;letter-spacing:.08em;font-size:12px}
+.live{display:flex;align-items:center;gap:8px;color:#8B8680;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+.sq{width:6px;height:6px;background:#C4F542}
+nav{padding-top:14px;padding-bottom:16px;color:#5C5852;letter-spacing:.08em;font-size:12px}
+nav a.on{color:#E8E4DC}
+h2{margin:22px 0 8px;font-size:12px;font-weight:500;letter-spacing:.08em;color:#8B8680}
+p{margin:0 0 10px}
+.card{background:#14161A;border:1px solid #2A2E34;padding:12px 14px;margin:0 0 8px}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+pre{margin:0;white-space:pre-wrap;word-break:break-all}
+.ok{color:#C4F542}.err{color:#FF6B4A}.dim{color:#8B8680}.mute{color:#5C5852}
+table{width:100%;border-collapse:collapse}
+td{padding:8px 8px 8px 0;border-bottom:1px solid #2A2E34;vertical-align:top}
+td:first-child{white-space:nowrap;padding-right:16px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+footer{margin:22px 0 32px;color:#5C5852;font-size:12px}
+</style></head><body>
+<div class="rule"></div>
+<header>
+  <div><div class="brand">AGENT-GATEWAY</div><div class="tag">LOCAL INGRESS · OFFICIAL KEYS ONLY</div></div>
+  <div class="live"><span class="sq"></span>LIVE<span>127.0.0.1:8787</span></div>
+</header>
+<nav><a href="/">DASHBOARD</a> · <a class="on" href="/troubleshoot">TROUBLESHOOT</a></nav>
+<div class="wrap">
+<h2>EGRESS, NOT THE KEY</h2>
+<div class="card">
+<p>Connections from some networks to <code>api.openai.com</code> and <code>api.anthropic.com</code> fail at TCP, during TLS, or mid-stream. That is egress. It is not the nationality of the key. Changing the gateway protocol does not fix it.</p>
+</div>
+<h2>TEST FIRST</h2>
+<div class="card"><pre>curl -m 20 https://api.anthropic.com/v1/models \
+  -H "x-api-key: $ANTHROPIC_API_KEY" \
+  -H "anthropic-version: 2023-06-01"</pre></div>
+<p class="dim">With a proxy, add <code>-x http://127.0.0.1:7890</code> in the same shell and test again.</p>
+<h2>WHAT THE RESULT MEANS</h2>
+<table>
+<tr><td class="ok">fast 200 JSON</td><td>Path works. Point agents at <code>127.0.0.1:8787</code>.</td></tr>
+<tr><td class="ok">fast 401</td><td>Path works. Replace the key with an official console key.</td></tr>
+<tr><td class="ok">fast 429</td><td>Path works. Quota or rate limit.</td></tr>
+<tr><td class="err">20s+ or gateway 502</td><td>Egress cannot reach the official host. Use a VPS or <code>HTTPS_PROXY</code>.</td></tr>
+<tr><td class="err">400 key not set</td><td><code>.env</code> is empty. The gateway returns <code>OPENAI_API_KEY is missing</code> or <code>ANTHROPIC_API_KEY is missing</code>.</td></tr>
+<tr><td class="err">401 bad gateway key</td><td>The agent bearer is missing, unknown, or revoked. Body: <code>missing or bad gateway key</code>.</td></tr>
+</table>
+<h2>OPTION A — VPS (PREFERRED)</h2>
+<div class="card">
+<p>Run the gateway on a network that can reach the official hosts. On this machine:</p>
+<pre>ssh -N -L 8787:127.0.0.1:8787 user@VPS</pre>
+</div>
+<p>Agent:</p>
+<div class="card"><pre>OPENAI_BASE_URL=http://127.0.0.1:8787/v1
+OPENAI_API_KEY=&lt;sk-gw-...&gt;</pre></div>
+<p class="dim">Tailscale or WireGuard can replace the SSH tunnel.</p>
+<h2>OPTION B — HTTPS_PROXY</h2>
+<div class="card">
+<p>Export <code>HTTPS_PROXY</code> and <code>HTTP_PROXY</code> in the gateway process, then start it. The client honors those variables.</p>
+<p class="dim">If <code>curl -x</code> also times out, the proxy itself has no route out.</p>
+</div>
+<h2>DO NOT</h2>
+<div class="card">
+<p>Do not use a foreign subscription account, an account pool, or OAuth. Do not expect this gateway to punch through to the official hosts.</p>
+</div>
+<footer>claude* goes to Anthropic. Everything else goes to OpenAI. Get <code>curl -m 20</code> through before you start a swarm.</footer>
+</div>
+</body></html>

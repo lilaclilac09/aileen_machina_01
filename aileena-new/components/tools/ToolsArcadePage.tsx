@@ -83,6 +83,13 @@ function ToolCover({
               ))}
             </div>
           ) : null}
+          {tool.slug === 'agent-gateway' ? (
+            <div className="tools-lab-gateway">
+              <span>REQ 3</span>
+              <span>TOK 12/40</span>
+              <span>owner 0/60</span>
+            </div>
+          ) : null}
           {tool.slug === 'computer' ? (
             <div className="tools-lab-terminal">
               <span>owner@machina:~$</span>
