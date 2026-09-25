@@ -32,8 +32,30 @@ export type DeckTrack = {
   thumb: string;
 };
 
-/** Curated handoff five — also mirrored in public/dj-set/setlist.json */
+/** Curated handoff set — also mirrored in public/dj-set/setlist.json */
 export const DJ_SET_TRACKS: DjSetTrack[] = [
+  {
+    id: 'ANYMORE',
+    title: 'Anymore',
+    artist: 'JEON SOMI',
+    album: 'XOXO',
+    bpm: 120,
+    key: '4A',
+    durationSec: 197,
+    cover: '/dj-set/assets/covers/xoxo.jpg',
+    spotifyId: '5ysBBGHvIGTqgQb5xdL3Lf',
+  },
+  {
+    id: 'BDAY',
+    title: 'BIRTHDAY',
+    artist: 'JEON SOMI',
+    album: 'BIRTHDAY',
+    bpm: 120,
+    key: '4A',
+    durationSec: 185,
+    cover: '/dj-set/assets/covers/birthday.jpg',
+    spotifyId: '3jsWXhE5NuPWQ4IHplv2zt',
+  },
   {
     id: 'DAYDRM',
     title: 'Daydreaming',
@@ -77,7 +99,7 @@ export const DJ_SET_TRACKS: DjSetTrack[] = [
 
 /**
  * Full Machina deck library that lived in DJStation before the handoff-only cut.
- * Spotify id is the track `id` (22-char). Keep these in the carousel with the handoff five.
+ * Spotify id is the track `id` (22-char). Keep these in the carousel with the handoff set.
  */
 export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
   { id: '189lkmwebOMpyLoyx1zkCS', title: 'Intro', bpm: 112, key: '4A', dur: 102, thumb: 'https://i.scdn.co/image/ab67616d0000b273fca7f5aebfb6010c6da60e00' },
@@ -108,6 +130,12 @@ export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
   { id: '4zDmVNxz1t4zwHqasJt8LT', title: 'Jazz Is the Teacher', bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
   { id: '1qEmFfgcLObUfQm0j1W2CK', title: 'Late Night Talking', bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
   { id: '2IOFZdYYkFxEHVz1w34PoL', title: 'Cherry', bpm: 120, key: '4A', dur: 200, thumb: PLACEHOLDER_THUMB },
+  { id: '6HAbPNraOVHwShFFtRVTik', title: 'DUMB DUMB', bpm: 120, key: '4A', dur: 147, thumb: '/dj-set/assets/covers/xoxo.jpg' },
+  { id: '2ZMkjvuOQOD9HLplTDjbTA', title: 'XOXO', bpm: 120, key: '4A', dur: 207, thumb: '/dj-set/assets/covers/xoxo.jpg' },
+  { id: '0Teq2QVtNUn2lPsG1ZqmFT', title: "Don't Let Me Go", bpm: 120, key: '4A', dur: 179, thumb: '/dj-set/assets/covers/xoxo.jpg' },
+  { id: '21obhV6hdu9pJEqC0jvNnO', title: 'Watermelon', bpm: 120, key: '4A', dur: 182, thumb: '/dj-set/assets/covers/xoxo.jpg' },
+  { id: '26YSv4NFDACPUKGX5Aj079', title: 'What You Waiting For', bpm: 120, key: '4A', dur: 175, thumb: '/dj-set/assets/covers/xoxo.jpg' },
+  { id: '47K7si9sKri95IHuOz9HAA', title: 'Outta My Head', bpm: 120, key: '4A', dur: 188, thumb: '/dj-set/assets/covers/xoxo.jpg' },
 ];
 
 export function djSetToDeckTracks(): DeckTrack[] {
@@ -123,7 +151,7 @@ export function djSetToDeckTracks(): DeckTrack[] {
   }));
 }
 
-/** Everything shown in the /sound deck carousel: handoff five + full library. */
+/** Everything shown in the /sound deck carousel: handoff set + full library. */
 export function allDeckTracks(): DeckTrack[] {
   return [...djSetToDeckTracks(), ...DECK_LIBRARY_TRACKS];
 }

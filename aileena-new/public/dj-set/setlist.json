@@ -4,6 +4,26 @@
   "curation": "User links as-is; search Bleep/Beatport/Bandcamp; cover must match release.",
   "tracks": [
     {
+      "id": "ANYMORE",
+      "title": "Anymore",
+      "artist": "JEON SOMI",
+      "album": "XOXO",
+      "bpm": 120,
+      "key": "4A",
+      "durationSec": 197,
+      "cover": "/dj-set/assets/covers/xoxo.jpg"
+    },
+    {
+      "id": "BDAY",
+      "title": "BIRTHDAY",
+      "artist": "JEON SOMI",
+      "album": "BIRTHDAY",
+      "bpm": 120,
+      "key": "4A",
+      "durationSec": 185,
+      "cover": "/dj-set/assets/covers/birthday.jpg"
+    },
+    {
       "id": "DAYDRM",
       "title": "Daydreaming",
       "artist": "Harry Styles",
