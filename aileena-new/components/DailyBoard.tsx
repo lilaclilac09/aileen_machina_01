@@ -15,7 +15,6 @@ import {
   DAILY_SNAP_MAX_BYTES,
   DAILY_TEXT_SWATCHES,
   DAILY_THEME_DEFAULT,
-  dailySharePath,
   noteIsPublished,
 } from '../lib/dailyBoard';
 
@@ -354,13 +353,9 @@ function NoteBody({
 
 export default function DailyBoard({
   initial = null,
-  shareId = null,
 }: {
   initial?: BoardPayload | null;
-  /** View-only shipped note. Ignores the owner session. */
-  shareId?: string | null;
 }) {
-  const lockShare = Boolean(shareId);
   const [board, setBoard] = useState<BoardPayload | null>(initial);
   const [title, setTitle] = useState(() => {
     const today = initial?.today ?? '';
@@ -386,23 +381,20 @@ export default function DailyBoard({
     const data = (await res.json()) as BoardPayload;
     const notes = Array.isArray(data.notes) ? data.notes : [];
     const today = typeof data.today === 'string' ? data.today : '';
-    const visible = shareId
-      ? notes.filter((n) => n.id === shareId && noteIsPublished(n))
-      : notes;
     setBoard({
       theme: data.theme ?? DAILY_THEME_DEFAULT,
-      notes: visible,
+      notes,
       comments: data.comments ?? {},
       persistence: data.persistence === 'redis' ? 'redis' : 'memory',
       today,
-      owner: shareId ? false : Boolean(data.owner),
+      owner: Boolean(data.owner),
     });
     const todayNote = notes.find((n) => n.date === today);
-    if (todayNote?.body && !shareId) {
+    if (todayNote?.body) {
       setTitle(todayNote.title ?? '');
       setBody(todayNote.body);
     }
-  }, [shareId]);
+  }, []);
 
   const owner = Boolean(board?.owner);
 
@@ -486,18 +478,6 @@ export default function DailyBoard({
     }
     const note = await saveNote(body, title, { published: true });
     if (note) flash('published.');
-  };
-
-  const copyShareLink = async (noteId: string) => {
-    const path = dailySharePath(noteId);
-    if (!path) return;
-    const url = `${window.location.origin}${path}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      flash('link copied.');
-    } catch {
-      flash(url);
-    }
   };
 
   const attachSnap = async (file: File | undefined) => {
@@ -660,55 +640,33 @@ export default function DailyBoard({
             >
               daily board
             </h1>
-            {owner && !lockShare ? (
-              <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginTop: 8, flexShrink: 0 }}>
-                <button
-                  type="button"
-                  data-testid="daily-publish"
-                  aria-label="submit"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => void publishNote()}
-                  disabled={saving}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: theme.accent,
-                    fontFamily: sans,
-                    fontSize: 13,
-                    fontWeight: 500,
-                    letterSpacing: 'normal',
-                    textTransform: 'none',
-                    padding: '8px 0',
-                    minHeight: 44,
-                    cursor: saving ? 'wait' : 'pointer',
-                    opacity: saving ? 0.45 : 1,
-                  }}
-                >
-                  submit
-                </button>
-                {todayNote && noteIsPublished(todayNote) && dailySharePath(todayNote.id) ? (
-                  <button
-                    type="button"
-                    data-testid="daily-share"
-                    aria-label="share"
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => void copyShareLink(todayNote.id)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: theme.accent,
-                      fontFamily: sans,
-                      fontSize: 13,
-                      fontWeight: 500,
-                      padding: '8px 0',
-                      minHeight: 44,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    share
-                  </button>
-                ) : null}
-              </div>
+            {owner ? (
+              <button
+                type="button"
+                data-testid="daily-publish"
+                aria-label="submit"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => void publishNote()}
+                disabled={saving}
+                style={{
+                  flexShrink: 0,
+                  marginTop: 8,
+                  background: 'none',
+                  border: 'none',
+                  color: theme.accent,
+                  fontFamily: sans,
+                  fontSize: 13,
+                  fontWeight: 500,
+                  letterSpacing: 'normal',
+                  textTransform: 'none',
+                  padding: '8px 0',
+                  minHeight: 44,
+                  cursor: saving ? 'wait' : 'pointer',
+                  opacity: saving ? 0.45 : 1,
+                }}
+              >
+                submit
+              </button>
             ) : null}
           </div>
           <p
