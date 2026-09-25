@@ -53,6 +53,10 @@ If those are missing, the site is **degraded** (offline copy). That is an env bl
 
 One slice per change set.
 
+## Console computer — shared room
+
+Public pad: `https://www.aileena.xyz/proof?room=open` (workspace `v-sharedroom01`). Anyone on that link sees the same files and task list, can write notes / `ls cat echo` / scratch `vcode greet.ts`, and come back. Console **Voice → code** stays propose-only (copy / take `.patch`). Private visitor cookies stay private. Owner Linux, git, and merge stay off this pad.
+
 ## Voice → code (two doors)
 
 Public Console: `POST /api/voice-code` is propose-only (unified diff + downloadable `.patch`). Never writes, never `git apply`, never `apply: true`. Visitor UI is Copy + Take `.patch` only.

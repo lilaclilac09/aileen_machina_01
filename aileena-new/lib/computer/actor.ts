@@ -1,8 +1,25 @@
 import { NextResponse } from 'next/server';
 import { requireOwnerFromRequest } from '@/lib/owner-gate';
-import { CWID_RE, OWNER_COMPUTER_ID } from './workspaceName';
+import {
+  CWID_RE,
+  OWNER_COMPUTER_ID,
+  SHARED_COMPUTER_ROOM_HEADER,
+  SHARED_COMPUTER_ROOM_ID,
+  isSharedComputerRoom,
+  isSharedComputerRoomToken,
+} from './workspaceName';
 
-export { CWID_RE, OWNER_COMPUTER_ID, isComputerWorkspaceName } from './workspaceName';
+export {
+  CWID_RE,
+  OWNER_COMPUTER_ID,
+  SHARED_COMPUTER_ROOM_HEADER,
+  SHARED_COMPUTER_ROOM_ID,
+  SHARED_COMPUTER_ROOM_PATH,
+  SHARED_COMPUTER_ROOM_QUERY,
+  isComputerWorkspaceName,
+  isSharedComputerRoom,
+  isSharedComputerRoomToken,
+} from './workspaceName';
 
 /** Per-visitor scratch-pad id. Not the owner Durable Object. Not `__aileena_vid`. */
 export const COMPUTER_WORKSPACE_COOKIE = '__aileena_cwid';
@@ -13,6 +30,8 @@ export type ComputerActor = {
   id: string;
   /** Set when a new visitor workspace cookie must be minted. */
   cookie?: string;
+  /** Public shared pad. Same files + task list for everyone on the link. */
+  room?: 'open';
 };
 
 function newComputerVisitorId(): string {
@@ -37,7 +56,18 @@ export function readComputerWorkspaceId(cookieHeader: string | null): string | n
   return CWID_RE.test(value) ? value : null;
 }
 
+function sharedRoomRequested(req: Request): boolean {
+  const url = new URL(req.url);
+  if (isSharedComputerRoomToken(url.searchParams.get('room'))) return true;
+  if (isSharedComputerRoomToken(req.headers.get(SHARED_COMPUTER_ROOM_HEADER))) return true;
+  const cookieId = readComputerWorkspaceId(req.headers.get('cookie'));
+  return Boolean(cookieId && isSharedComputerRoom(cookieId));
+}
+
 export async function computerActorFromRequest(req: Request): Promise<ComputerActor> {
+  if (sharedRoomRequested(req)) {
+    return { kind: 'visitor', id: SHARED_COMPUTER_ROOM_ID, cookie: SHARED_COMPUTER_ROOM_ID, room: 'open' };
+  }
   const owner = await requireOwnerFromRequest(req);
   if (owner) return { kind: 'owner', id: OWNER_COMPUTER_ID };
   const existing = readComputerWorkspaceId(req.headers.get('cookie'));

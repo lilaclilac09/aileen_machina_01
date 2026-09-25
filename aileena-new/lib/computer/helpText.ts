@@ -1,3 +1,14 @@
+/** Public shared pad. Same files for anyone on /proof?room=open. */
+export const SHARED_ROOM_HELP = [
+  'shared room · same pad as everyone on this link',
+  'come back: /proof?room=open',
+  'write: type a note · ls cat echo pwd tree',
+  'vcode greet.ts — scratch only · say write code greet.ts',
+  'peek · clock · list',
+  'Voice → code chip stays propose-only (copy / take .patch)',
+  'no linux · no git · no merge · not the owner computer',
+].join('\n');
+
 /** Honest catalog. Official names run on this workspace. */
 export const OWNER_CLI_HELP = [
   'official surfaces on this workspace (same DO)',

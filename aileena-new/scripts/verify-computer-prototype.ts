@@ -11,7 +11,7 @@ import { join } from 'node:path';
 import { createOwnerSession, SESSION_COOKIE } from '../lib/auth';
 import { inspectRouteFiles, analyzeDailyFixPlan } from '../lib/computer/inspect';
 import { parseOwnerComputerCommand, parseVisitorComputerCommand } from '../lib/computer/parseOwnerCommand';
-import { curlFetchCommand, curlHttpsTarget, isOwnerShellCommand, safeHttpsUrl } from '../lib/computer/allowlist';
+import { curlFetchCommand, curlHttpsTarget, isOwnerShellCommand, isVisitorSharedShellCommand, safeHttpsUrl } from '../lib/computer/allowlist';
 import { parseJsonRpcBody, parseMcpServers } from '../lib/mcp/remote';
 import { githubContentPath, githubReady } from '../lib/mcp/github';
 import { isMcpReadPath } from '../lib/mcp/computer';
@@ -96,8 +96,13 @@ function sourceChecks() {
   );
   assert(
     'monthly reset never touches the owner workspace',
-    /!isOwnerComputerTask\(task\) && backend === 'cloudflare-worker-shell'/.test(runner),
+    /!isOwnerComputerTask\(task\) && !isSharedComputerRoom/.test(runner) &&
+      /backend === 'cloudflare-worker-shell'/.test(runner),
   );
+  assert('shared room id is a visitor cwid', /v-sharedroom01/.test(readFileSync(join(process.cwd(), 'lib/computer/workspaceName.ts'), 'utf8')));
+  assert('actor joins room=open as the public pad', /sharedRoomRequested/.test(readFileSync(join(process.cwd(), 'lib/computer/actor.ts'), 'utf8')));
+  assert('shared room allows worker-shell not linux', /isSharedRoomComputerTaskType/.test(tasks) && /isVisitorSharedShellCommand/.test(runner));
+  assert('dock copies /proof?room=open', /computer-key-share/.test(readFileSync(join(process.cwd(), 'components/ComputerConsoleDock.tsx'), 'utf8')));
   const cfClientSrc = readFileSync(join(process.cwd(), 'lib/computer/cfClient.ts'), 'utf8');
   assert('cfClient does not import @cloudflare/computer', !/from ['"]@cloudflare\/computer/.test(cfClientSrc));
   assert('cfClient routes by workspace name', /\/c\/\$\{name\}\/file/.test(cfClientSrc) && /\/c\/\$\{name\}\/exec/.test(cfClientSrc));
@@ -137,7 +142,18 @@ function sourceChecks() {
   assert('worker egress is direct so curl can fetch', /egress: \{ mode: 'direct' \}/.test(workerSrc));
   assert('visitor exec cannot curl', /VISITOR_BINS/.test(workerSrc) && /name === OWNER \? OWNER_BINS : VISITOR_BINS/.test(workerSrc));
   assert('shell_exec is an owner task type', /'shell_exec'/.test(readFileSync(join(process.cwd(), 'lib/computer/types.ts'), 'utf8')));
-  assert('visitors cannot queue shell_exec', !/VISITOR_COMPUTER_TASK_TYPES[\s\S]{0,200}shell_exec/.test(readFileSync(join(process.cwd(), 'lib/computer/allowlist.ts'), 'utf8')));
+  const allowlistSrc = readFileSync(join(process.cwd(), 'lib/computer/allowlist.ts'), 'utf8');
+  const visitorTypesMatch = allowlistSrc.match(
+    /export const VISITOR_COMPUTER_TASK_TYPES = \[([\s\S]*?)\] as const/,
+  );
+  assert(
+    'private visitors cannot queue shell_exec',
+    Boolean(visitorTypesMatch) && !/\bshell_exec\b/.test(visitorTypesMatch?.[1] || 'shell_exec'),
+  );
+  assert(
+    'shared room can queue worker-shell',
+    /SHARED_ROOM_COMPUTER_TASK_TYPES[\s\S]{0,120}shell_exec/.test(allowlistSrc),
+  );
   assert('dock has owner shell key', /computer-key-shell/.test(dockSrc));
   assert('dock owner line is a CLI textarea', /data-testid="computer-line"/.test(dockSrc) && /<textarea/.test(dockSrc) && /computer-cli-prompt/.test(dockSrc));
   const e2eSrc = readFileSync(join(process.cwd(), 'scripts/e2e-computer-cli-example.ts'), 'utf8');
@@ -162,6 +178,14 @@ function sourceChecks() {
   assert('isWritePath only scratch reports artifacts', isWritePath('/workspace/scratch/a.ts') && !isWritePath('/workspace/scratch') && !isWritePath('/workspace/lib/x.ts'));
   assert('isOwnerCliCommand accepts builtins and bins', isOwnerCliCommand('cd scratch') && isOwnerCliCommand('put x.ts') && isOwnerCliCommand('examples') && isOwnerCliCommand('demo js') && isOwnerCliCommand('container uname -a') && isOwnerCliCommand('ls') && !isOwnerCliCommand('vim') && !isOwnerCliCommand('pnpm'));
   assert('isOwnerShellCommand matches CLI builtins', isOwnerShellCommand('clear') && isOwnerShellCommand('mkdir -p scratch') && !isOwnerShellCommand('git status'));
+  assert(
+    'shared room shell is worker-shell only',
+    isVisitorSharedShellCommand('ls') &&
+      isVisitorSharedShellCommand('echo hi') &&
+      !isVisitorSharedShellCommand('uname -a') &&
+      !isVisitorSharedShellCommand('curl https://example.com') &&
+      !isVisitorSharedShellCommand('demo container'),
+  );
   assert('formatPrompt shortens under /workspace', formatPrompt('/workspace') === '/workspace $' && formatPrompt('/workspace/scratch/cli-demo') === 'scratch/cli-demo $');
   assert('resolveCwd blocks leaving workspace', resolveCwd('/workspace', '../../etc/passwd') === null);
   assert('spoken ls alias', spokenToCli('list files').command === 'ls' && spokenToCli('go to scratch').command === 'cd scratch');
@@ -193,7 +217,14 @@ function sourceChecks() {
       parseOfficialDemo('container uname -a') === null,
   );
   assert('dock listens for voice CLI event', /COMPUTER_CLI_EVENT/.test(dockSrc) && /voiceOn/.test(dockSrc));
+  assert('shared dock also listens for voice CLI', /if \(!ownerPad && !shared\) return/.test(dockSrc));
   assert('chat routes owner computer voice to CLI', /spokenToCli/.test(agentChatSrc) && /dispatchComputerCli/.test(agentChatSrc));
+  assert(
+    'shared room pathless Voice → code stays propose-only',
+    /sharedScratchVcode/.test(agentChatSrc) && /isVoiceCodeIntent\(trimmed\)/.test(agentChatSrc),
+  );
+  assert('shared runner special-cases scratch vcode', /isSharedComputerRoom\(name\) && \/\^vcode\\b/.test(runner));
+  assert('vcode is not a shared worker bin', !isVisitorSharedShellCommand('vcode greet.ts'));
   assert('worker PUT replaces existing files', /await ws\.fs\.rm\(path\)/.test(workerSrc) && /await using ws/.test(workerSrc));
   assert('runner finds git commits', /git_find_commit/.test(runner) && /gitFindCommit/.test(runner));
   assert('runner blocks email send', /email_send/.test(runner) && /email not connected/.test(runner));
@@ -216,7 +247,9 @@ function sourceChecks() {
     /setOpen\(true\);\s*setComputerMode\(true\)/.test(agentChatSrc),
   );
   assert('visitor chips skip git status', /VISITOR_STARTER_CHIPS/.test(dockSrc) && !/VISITOR_STARTER_CHIPS[\s\S]{0,200}git status/.test(dockSrc));
-  assert('dock tells visitors scratch resets on a 30d mark', /isOwner \? ` · cli /.test(dockSrc) && /: ' · 30d'/.test(dockSrc));
+  assert('dock tells visitors scratch resets on a 30d mark', /ownerPad \? ` · cli /.test(dockSrc) && /: ' · 30d'/.test(dockSrc));
+  assert('dock marks the shared room', /· shared/.test(dockSrc) && /computer-key-share/.test(dockSrc));
+  assert('shared monitor shows notes not only shell', /function sharedTranscript/.test(dockSrc) && /write_scratch_file/.test(dockSrc));
   assert('does not import @cloudflare/computer', !existsSync(join(process.cwd(), 'node_modules/@cloudflare/computer')));
   assert(
     'plugins are not DeepSeek Harness',
@@ -247,7 +280,7 @@ function sourceChecks() {
   assert('https one-shot is GET not only HEAD', /curlFetchCommand/.test(dockSrc) && /curl -sL --max-time 8/.test(readFileSync(join(process.cwd(), 'lib/computer/allowlist.ts'), 'utf8')));
   assert('clock stamps today\'s note', /appendTodayStamp/.test(runner) && /scratch\/notes/.test(runner));
   assert('find greps scratch not the task store', /grep -R -n -F \$\{shellWord\(query\)\} scratch/.test(runner));
-  assert('visitor look lists scratch', /isOwner \? '\/workspace' : '\/workspace\/scratch'/.test(dockSrc));
+  assert('visitor look lists scratch', /ownerPad \? '\/workspace' : '\/workspace\/scratch'/.test(dockSrc));
   assert('monitor can show a peek body', /max-h-40/.test(dockSrc));
   assert('keys are signs not 记/看/找 labels', /SignMark/.test(dockSrc) && /○/.test(dockSrc) && !/>记</.test(dockSrc) && !/>看</.test(dockSrc));
   assert('keys have 44px tap targets', /min-h-11/.test(dockSrc) && /KEY_CLASS/.test(dockSrc));
@@ -255,7 +288,7 @@ function sourceChecks() {
   assert('empty 找 falls through to 看', /if \(!q\) \{\s*lookNow\(\);/.test(dockSrc) && !/type a word/.test(dockSrc));
   assert('idle monitor is blank until a task', /if \(!task\) return '';/.test(dockSrc) && !/点 看/.test(dockSrc));
   assert('POST completed clears the flash sign', /status === 'completed'\) setFlash\(''\)/.test(dockSrc));
-  assert('starter chips stay before learned', /OWNER_STARTER_CHIPS : VISITOR_STARTER_CHIPS\), \.\.\.\(isOwner \? learned/.test(dockSrc));
+  assert('starter chips stay before learned', /OWNER_STARTER_CHIPS : VISITOR_STARTER_CHIPS\), \.\.\.\(ownerPad \? learned/.test(dockSrc));
   assert('GET tasks includes learned', /learned: listLearned\(\)/.test(tasks));
   assert('POST remembers phrase', /rememberCommand/.test(tasks) && /body.phrase/.test(tasks));
   assert('learn route exists', existsSync(join(process.cwd(), 'app/api/agent/computer/learned/route.ts')));
@@ -295,6 +328,10 @@ function sourceChecks() {
     parseJsonRpcBody('event: message\ndata: {"jsonrpc":"2.0","id":1,"result":{"tools":[]}}\n\n').result != null,
   );
   assert('proof page does not mount ProofQueuePanel', !/ProofQueuePanel/.test(proofPageSrc));
+  assert(
+    'proof page has a shared room door',
+    /proof-shared-room/.test(proofPageSrc) && /isSharedComputerRoomToken/.test(proofPageSrc),
+  );
   assert(
     'unlock form is KeyShield not typed secret',
     /owner-passkey-unlock/.test(unlockSrc) &&
@@ -577,9 +614,15 @@ async function keyshieldUnit() {
   assert('KeyShield cross-PRF seal fails', (await openOwnerSeal(other.aes, seal.iv, seal.cipher)) === false);
 }
 
-async function postOwnerTask(base: string, cookie: string, body: Record<string, unknown>) {
+async function postComputerTask(
+  base: string,
+  cookie: string,
+  body: Record<string, unknown>,
+  path = '/api/agent/computer/tasks',
+) {
+  const url = `${base}${path}`;
   for (let attempt = 0; attempt < 5; attempt++) {
-    const res = await fetch(`${base}/api/agent/computer/tasks`, {
+    const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Cookie: cookie },
       body: JSON.stringify(body),
@@ -588,11 +631,15 @@ async function postOwnerTask(base: string, cookie: string, body: Record<string, 
     const waitSec = Math.min(Number(res.headers.get('Retry-After') || 8) + 1, 25);
     await new Promise((r) => setTimeout(r, waitSec * 1000));
   }
-  return fetch(`${base}/api/agent/computer/tasks`, {
+  return fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Cookie: cookie },
     body: JSON.stringify(body),
   });
+}
+
+async function postOwnerTask(base: string, cookie: string, body: Record<string, unknown>) {
+  return postComputerTask(base, cookie, body);
 }
 
 async function pollTask(base: string, cookie: string, id: string) {
@@ -643,6 +690,17 @@ async function liveHttp() {
   assert('visitor /proof does not name typed owner secret', !/owner key/i.test(html));
   assert('visitor /proof hides queue panel', !html.includes('proof-queue-daily') && !html.includes('proof-queue-panel'));
   assert('local experiment enter is offered', html.includes('proof-experiment-enter') || html.includes('enter local experiment'));
+
+  const sharedPage = await fetch(`${base}/proof?room=open`);
+  const sharedHtml = sharedPage.ok ? await sharedPage.text() : '';
+  assert('GET /proof?room=open', sharedPage.ok, String(sharedPage.status));
+  assert(
+    'share link is a public pad not KeyShield wall',
+    sharedHtml.includes('proof-shared-room') &&
+      sharedHtml.includes('proof-shared-open-console') &&
+      !sharedHtml.includes('This room is not for visitors'),
+    sharedHtml.slice(0, 280),
+  );
 
   const opt = await fetch(`${base}/api/auth/passkey/options`, {
     method: 'POST',
@@ -793,6 +851,113 @@ async function liveHttp() {
     body: JSON.stringify({ taskType: 'shell_exec', instructions: 'ls' }),
   });
   assert('visitor POST shell_exec → 403', visitorCli.status === 403, String(visitorCli.status));
+
+  const sharedGet = await fetch(`${base}/api/agent/computer/tasks?room=open`);
+  assert('shared room GET → 200', sharedGet.status === 200, String(sharedGet.status));
+  const sharedGetJson = sharedGet.ok
+    ? ((await sharedGet.json()) as {
+        actor?: string;
+        room?: string | null;
+        harness?: string;
+        sharePath?: string;
+      })
+    : {};
+  assert('shared room GET is visitor', sharedGetJson.actor === 'visitor', String(sharedGetJson.actor));
+  assert('shared room GET room=open', sharedGetJson.room === 'open', String(sharedGetJson.room));
+  assert('shared room GET harness', sharedGetJson.harness === 'machina-shared-room', String(sharedGetJson.harness));
+  assert('shared room GET sharePath', sharedGetJson.sharePath === '/proof?room=open', String(sharedGetJson.sharePath));
+  const sharedCookie = cookieJar(sharedGet);
+  assert('shared room cookie is v-sharedroom01', /__aileena_cwid=v-sharedroom01/.test(sharedCookie), sharedCookie.slice(0, 80));
+
+  const sharedMark = `share-${Date.now().toString(36)}`;
+  const sharedWrite = await postComputerTask(
+    base,
+    sharedCookie,
+    { taskType: 'write_scratch_file', route: '/proof', instructions: sharedMark },
+    '/api/agent/computer/tasks?room=open',
+  );
+  assert('shared room write → 202', sharedWrite.status === 202, String(sharedWrite.status));
+  const sharedWriteJson = sharedWrite.status === 202
+    ? ((await sharedWrite.json()) as { task?: { id?: string; status?: string } })
+    : {};
+  const sharedWriteId = sharedWriteJson.task?.id || '';
+  if (sharedWriteId) await pollTask(base, sharedCookie, sharedWriteId);
+
+  const sharedPeer = await fetch(`${base}/api/agent/computer/tasks?room=open`);
+  const sharedPeerJson = sharedPeer.ok
+    ? ((await sharedPeer.json()) as { tasks?: { id?: string; instructions?: string }[] })
+    : { tasks: [] };
+  assert(
+    'second visitor on room=open sees the shared task',
+    (sharedPeerJson.tasks || []).some((t) => t.id === sharedWriteId || (t.instructions || '').includes(sharedMark)),
+    String((sharedPeerJson.tasks || []).length),
+  );
+  const privateAgain = await fetch(`${base}/api/agent/computer/tasks`, { headers: { Cookie: otherCookie } });
+  const privateAgainJson = privateAgain.ok
+    ? ((await privateAgain.json()) as { tasks?: { id?: string }[]; room?: string | null })
+    : { tasks: [], room: null };
+  assert(
+    'private visitor still does not see the shared task',
+    privateAgainJson.room !== 'open' && !(privateAgainJson.tasks || []).some((t) => t.id === sharedWriteId),
+  );
+
+  const sharedLs = await postComputerTask(
+    base,
+    sharedCookie,
+    { taskType: 'shell_exec', instructions: 'ls' },
+    '/api/agent/computer/tasks?room=open',
+  );
+  assert('shared room POST shell_exec ls → 202', sharedLs.status === 202, String(sharedLs.status));
+
+  const sharedLinux = await postComputerTask(
+    base,
+    sharedCookie,
+    { taskType: 'shell_exec', instructions: 'uname -a' },
+    '/api/agent/computer/tasks?room=open',
+  );
+  const sharedLinuxJson = sharedLinux.status === 202
+    ? ((await sharedLinux.json()) as { task?: { id?: string; status?: string; error?: string } })
+    : {};
+  if (sharedLinux.status === 202 && sharedLinuxJson.task?.id) {
+    const done = await pollTask(base, sharedCookie, sharedLinuxJson.task.id);
+    const failed = done.ok && (done.st === 'failed' || done.st === 'blocked');
+    assert('shared room uname is not linux', failed, String(done.ok ? done.st : sharedLinux.status));
+  } else {
+    assert('shared room uname rejected', sharedLinux.status === 400 || sharedLinux.status === 403, String(sharedLinux.status));
+  }
+
+  const sharedGit = await postComputerTask(
+    base,
+    sharedCookie,
+    { taskType: 'git_status', instructions: 'git status --short' },
+    '/api/agent/computer/tasks?room=open',
+  );
+  assert('shared room POST git_status → 403', sharedGit.status === 403, String(sharedGit.status));
+
+  const sharedVcode = await postComputerTask(
+    base,
+    sharedCookie,
+    {
+      taskType: 'shell_exec',
+      instructions: 'vcode scratch/vcode/voice.ts\nexport function hello() {\n  return "hi";\n}\n',
+    },
+    '/api/agent/computer/tasks?room=open',
+  );
+  assert('shared room POST vcode → 202', sharedVcode.status === 202, String(sharedVcode.status));
+  const sharedVcodeJson = sharedVcode.status === 202
+    ? ((await sharedVcode.json()) as { task?: { id?: string } })
+    : {};
+  if (sharedVcodeJson.task?.id) {
+    const done = await pollTask(base, sharedCookie, sharedVcodeJson.task.id);
+    const preview = done.ok ? (done.body.task?.artifacts?.[0]?.preview || done.body.task?.resultSummary || '') : '';
+    assert(
+      'shared room vcode writes scratch',
+      done.ok && done.st === 'completed' && /hello|voice\.ts/.test(preview),
+      String(done.ok ? `${done.st} ${preview.slice(0, 160)}` : done.status),
+    );
+  } else {
+    assert('shared room vcode writes scratch', false, String(sharedVcode.status));
+  }
 
   const visitorGit = await fetch(`${base}/api/agent/computer/tasks`, {
     method: 'POST',
