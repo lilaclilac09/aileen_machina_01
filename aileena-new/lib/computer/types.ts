@@ -18,6 +18,7 @@ export const COMPUTER_TASK_TYPES = [
   'scratch_peek',
   'scratch_clock',
   'shell_exec',
+  'cell_exec',
   'git_status',
   'git_log',
   'git_find_commit',
