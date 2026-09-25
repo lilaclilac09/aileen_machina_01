@@ -70,19 +70,46 @@ async function measure(page: import('playwright').Page) {
   };
 }
 
+async function consoleIsOpen(page: import('playwright').Page): Promise<boolean> {
+  return page.evaluate(() => {
+    const d = document.querySelector('[role="dialog"][aria-label="Aileena Console"]');
+    return Boolean(d && getComputedStyle(d).pointerEvents === 'auto');
+  });
+}
+
 async function openComputerVoice(page: import('playwright').Page) {
-  await page.evaluate(() => window.dispatchEvent(new CustomEvent('open-agent-chat')));
-  const toggle = page.locator('[data-testid="computer-mode-toggle"]');
+  const machina = page.locator('[aria-label="Open Aileena console · machina"]');
+  await machina.first().waitFor({ state: 'visible', timeout: 20_000 });
+  await machina.first().click();
+
+  for (let i = 0; i < 12 && !(await consoleIsOpen(page)); i += 1) {
+    await page.evaluate(() => window.dispatchEvent(new CustomEvent('open-agent-chat')));
+    await page.waitForTimeout(250);
+  }
+  if (!(await consoleIsOpen(page))) {
+    throw new Error('Console dialog did not open');
+  }
+
+  const dialog = page.locator('[role="dialog"][aria-label="Aileena Console"]');
+  const toggle = dialog.locator('[data-testid="computer-mode-toggle"]');
   await toggle.waitFor({ state: 'visible', timeout: 15_000 });
   if ((await toggle.getAttribute('aria-pressed')) !== 'true') {
-    await toggle.click();
+    await toggle.click({ force: true });
   }
   await page.locator('[data-testid="computer-console-dock"]').waitFor({ state: 'visible', timeout: 15_000 });
-  const voiceBtn = page.getByRole('button', { name: /Turn voice on/i });
-  if (await voiceBtn.count()) {
-    await voiceBtn.click();
+
+  const voiceOff = dialog.getByRole('button', { name: /Turn voice on/i });
+  if (await voiceOff.count()) {
+    await voiceOff.click({ force: true });
   }
   await page.locator('[data-testid="agent-voice-orb"]').waitFor({ state: 'visible', timeout: 15_000 });
+  await page.evaluate(() => {
+    const pre = document.querySelector('[data-testid="computer-monitor"]');
+    if (!pre) return;
+    pre.textContent = Array.from({ length: 48 }, (_, i) =>
+      `${String(i).padStart(2, '0')} queued backend=cloudflare-worker-shell write /workspace/scratch/notes/2026-09-25.txt`,
+    ).join('\n');
+  });
   await page.waitForTimeout(250);
 }
 
@@ -93,15 +120,19 @@ async function runViewport(
 ) {
   const ctx = await browser.newContext({ viewport });
   const page = await ctx.newPage();
-  await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+  await page.goto(`${BASE}/proof`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
   await openComputerVoice(page);
-  const shot = join(OUT, `console-voice-crop-${name}.png`);
+  const shot = join(OUT, `console-voice-crop-${name}-tall-monitor.png`);
   await page.locator('[role="dialog"][aria-label="Aileena Console"]').screenshot({ path: shot });
   const m = await measure(page);
   await ctx.close();
 
   const label = `${viewport.width}x${viewport.height}`;
+  const dockCap = Math.min(viewport.height * 0.38, 320) + 2;
   assert(`${name} dialog present`, Boolean(m.dialog), m.dialog ? `${Math.round(m.dialog.w)}x${Math.round(m.dialog.h)}` : 'missing');
+  if (m.dock) {
+    assert(`${name} dock stays under 38vh/20rem`, m.dock.h <= dockCap, `dock.h=${m.dock.h.toFixed(1)} cap=${dockCap.toFixed(1)}`);
+  }
   assert(`${name} computer dock present`, Boolean(m.dock));
   assert(`${name} voice chrome present`, Boolean(m.voice && m.orb && m.pills));
   if (m.dialog && m.voice) {
