@@ -131,10 +131,16 @@ async function main() {
   }
   await mkdir(OUT, { recursive: true });
 
-  const probe = await fetch(BASE, { redirect: 'follow' }).catch((err: unknown) => err);
-  if (probe instanceof Error || !('ok' in probe) || !probe.ok) {
-    const detail = probe instanceof Error ? probe.message : `HTTP ${'status' in (probe as object) ? (probe as Response).status : '?'}`;
+  let probe: Response;
+  try {
+    probe = await fetch(BASE, { redirect: 'follow' });
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
     assert('dev server reachable', false, `${BASE} — ${detail}`);
+    process.exit(1);
+  }
+  if (!probe.ok) {
+    assert('dev server reachable', false, `${BASE} — HTTP ${probe.status}`);
     process.exit(1);
   }
 
