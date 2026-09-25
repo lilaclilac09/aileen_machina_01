@@ -10,6 +10,7 @@ Genre: Techno (personal): harder driving techno — DVS1, Blawan, Rødhåd
 4. **TRACK INTOUCH** — In Touch / Beatrice M. (140 BPM, 9A)
 5. **TRACK RNDVZ** — Rendezvous / lovegold
 6. **TRACK BDAY** — BIRTHDAY / JEON SOMI (120 BPM, 4A)
+7. **TRACK ANYMORE** — Anymore / JEON SOMI (120 BPM, 4A)
 
 ## URL
 

@@ -84,6 +84,17 @@ export const DJ_SET_TRACKS: DjSetTrack[] = [
     cover: '/dj-set/assets/covers/birthday.jpg',
     spotifyId: '3jsWXhE5NuPWQ4IHplv2zt',
   },
+  {
+    id: 'ANYMORE',
+    title: 'Anymore',
+    artist: 'JEON SOMI',
+    album: 'XOXO',
+    bpm: 120,
+    key: '4A',
+    durationSec: 197,
+    cover: '/dj-set/assets/covers/xoxo.jpg',
+    spotifyId: '5ysBBGHvIGTqgQb5xdL3Lf',
+  },
 ];
 
 /**
@@ -122,7 +133,6 @@ export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
   { id: '6HAbPNraOVHwShFFtRVTik', title: 'DUMB DUMB', bpm: 120, key: '4A', dur: 147, thumb: '/dj-set/assets/covers/xoxo.jpg' },
   { id: '2ZMkjvuOQOD9HLplTDjbTA', title: 'XOXO', bpm: 120, key: '4A', dur: 207, thumb: '/dj-set/assets/covers/xoxo.jpg' },
   { id: '0Teq2QVtNUn2lPsG1ZqmFT', title: "Don't Let Me Go", bpm: 120, key: '4A', dur: 179, thumb: '/dj-set/assets/covers/xoxo.jpg' },
-  { id: '5ysBBGHvIGTqgQb5xdL3Lf', title: 'Anymore', bpm: 120, key: '4A', dur: 197, thumb: '/dj-set/assets/covers/xoxo.jpg' },
   { id: '21obhV6hdu9pJEqC0jvNnO', title: 'Watermelon', bpm: 120, key: '4A', dur: 182, thumb: '/dj-set/assets/covers/xoxo.jpg' },
   { id: '26YSv4NFDACPUKGX5Aj079', title: 'What You Waiting For', bpm: 120, key: '4A', dur: 175, thumb: '/dj-set/assets/covers/xoxo.jpg' },
   { id: '47K7si9sKri95IHuOz9HAA', title: 'Outta My Head', bpm: 120, key: '4A', dur: 188, thumb: '/dj-set/assets/covers/xoxo.jpg' },

@@ -61,6 +61,16 @@
       "key": "4A",
       "durationSec": 185,
       "cover": "/dj-set/assets/covers/birthday.jpg"
+    },
+    {
+      "id": "ANYMORE",
+      "title": "Anymore",
+      "artist": "JEON SOMI",
+      "album": "XOXO",
+      "bpm": 120,
+      "key": "4A",
+      "durationSec": 197,
+      "cover": "/dj-set/assets/covers/xoxo.jpg"
     }
   ]
 }
