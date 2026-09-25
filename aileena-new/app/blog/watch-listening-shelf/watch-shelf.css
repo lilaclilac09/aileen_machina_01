@@ -142,8 +142,12 @@
 }
 
 .watch-shelf-item:focus-visible {
+  outline: none;
+}
+
+.watch-shelf-item:focus-visible .watch-shelf-item-title {
   outline: 1px solid var(--arc-teal);
-  outline-offset: 3px;
+  outline-offset: 2px;
 }
 
 .watch-obj {
@@ -154,7 +158,9 @@
   display: block;
   width: auto;
   height: 72px;
-  background: #efeae0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
   object-fit: contain;
 }
 
@@ -307,7 +313,9 @@
   max-width: min(220px, 100%);
   height: auto;
   max-height: 280px;
-  background: #efeae0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
   object-fit: contain;
 }
 

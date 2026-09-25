@@ -125,6 +125,12 @@ function main() {
     /\.watch-obj-cover \{[\s\S]*?object-fit:\s*contain/.test(css),
   );
   assert(
+    'film posters have no cream frame',
+    /\.watch-obj-cover \{[\s\S]*?background:\s*transparent/.test(css) &&
+      /\.watch-shelf-detail-image \{[\s\S]*?background:\s*transparent/.test(css) &&
+      !/#efeae0/.test(css),
+  );
+  assert(
     'css spine and living thumbs fill the slot',
     /\.watch-obj-cover\.is-spine[\s\S]*?object-fit:\s*cover/.test(css) &&
       /\.watch-obj-cover\.is-object[\s\S]*?object-fit:\s*cover/.test(css),
