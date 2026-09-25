@@ -4,13 +4,13 @@ Handoff tracks on **/sound#dj-set** (`lib/djSetlist.ts` + `public/dj-set/setlist
 
 Genre: Techno (personal): harder driving techno — DVS1, Blawan, Rødhåd
 
-1. **TRACK DAYDRM** — Daydreaming / Harry Styles (120 BPM, 7B)
-2. **TRACK RAINFR** — Rainforest / John Beltran · Open House
-3. **TRACK HIGHTD** — High Tide / John Beltran · Open House
-4. **TRACK INTOUCH** — In Touch / Beatrice M. (140 BPM, 9A)
-5. **TRACK RNDVZ** — Rendezvous / lovegold
-6. **TRACK BDAY** — BIRTHDAY / JEON SOMI (120 BPM, 4A)
-7. **TRACK ANYMORE** — Anymore / JEON SOMI (120 BPM, 4A)
+1. **TRACK ANYMORE** — Anymore / JEON SOMI (120 BPM, 4A)
+2. **TRACK BDAY** — BIRTHDAY / JEON SOMI (120 BPM, 4A)
+3. **TRACK DAYDRM** — Daydreaming / Harry Styles (120 BPM, 7B)
+4. **TRACK RAINFR** — Rainforest / John Beltran · Open House
+5. **TRACK HIGHTD** — High Tide / John Beltran · Open House
+6. **TRACK INTOUCH** — In Touch / Beatrice M. (140 BPM, 9A)
+7. **TRACK RNDVZ** — Rendezvous / lovegold
 
 ## URL
 

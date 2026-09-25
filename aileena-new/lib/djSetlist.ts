@@ -35,6 +35,28 @@ export type DeckTrack = {
 /** Curated handoff set — also mirrored in public/dj-set/setlist.json */
 export const DJ_SET_TRACKS: DjSetTrack[] = [
   {
+    id: 'ANYMORE',
+    title: 'Anymore',
+    artist: 'JEON SOMI',
+    album: 'XOXO',
+    bpm: 120,
+    key: '4A',
+    durationSec: 197,
+    cover: '/dj-set/assets/covers/xoxo.jpg',
+    spotifyId: '5ysBBGHvIGTqgQb5xdL3Lf',
+  },
+  {
+    id: 'BDAY',
+    title: 'BIRTHDAY',
+    artist: 'JEON SOMI',
+    album: 'BIRTHDAY',
+    bpm: 120,
+    key: '4A',
+    durationSec: 185,
+    cover: '/dj-set/assets/covers/birthday.jpg',
+    spotifyId: '3jsWXhE5NuPWQ4IHplv2zt',
+  },
+  {
     id: 'DAYDRM',
     title: 'Daydreaming',
     artist: 'Harry Styles',
@@ -72,28 +94,6 @@ export const DJ_SET_TRACKS: DjSetTrack[] = [
     title: 'Rendezvous',
     artist: 'lovegold',
     cover: '/dj-set/assets/covers/rndvz.jpg',
-  },
-  {
-    id: 'BDAY',
-    title: 'BIRTHDAY',
-    artist: 'JEON SOMI',
-    album: 'BIRTHDAY',
-    bpm: 120,
-    key: '4A',
-    durationSec: 185,
-    cover: '/dj-set/assets/covers/birthday.jpg',
-    spotifyId: '3jsWXhE5NuPWQ4IHplv2zt',
-  },
-  {
-    id: 'ANYMORE',
-    title: 'Anymore',
-    artist: 'JEON SOMI',
-    album: 'XOXO',
-    bpm: 120,
-    key: '4A',
-    durationSec: 197,
-    cover: '/dj-set/assets/covers/xoxo.jpg',
-    spotifyId: '5ysBBGHvIGTqgQb5xdL3Lf',
   },
 ];
 
