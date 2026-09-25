@@ -35,6 +35,17 @@ export type DeckTrack = {
 /** Curated handoff set — also mirrored in public/dj-set/setlist.json */
 export const DJ_SET_TRACKS: DjSetTrack[] = [
   {
+    id: 'RKTMRS',
+    title: 'rocket to mars',
+    artist: 'Matt Jinn',
+    album: 'rocket to mars',
+    bpm: 120,
+    key: '4A',
+    durationSec: 182,
+    cover: '/dj-set/assets/covers/rktmrs.jpg',
+    spotifyId: '2f5QydsbD1566wZ5rjFjaX',
+  },
+  {
     id: 'ANYMORE',
     title: 'Anymore',
     artist: 'JEON SOMI',
