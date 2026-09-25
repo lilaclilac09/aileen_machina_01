@@ -87,6 +87,21 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     },
   },
   {
+    slug: 'agent-gateway',
+    tag: 'OSS',
+    title: 'Agent-Gateway',
+    body: 'Official keys stay on your box. Agents get a gateway key.',
+    why: 'One local door for a person or a small team, without sharing console keys.',
+    verdict: 'Runs on your machine. This page does not host the gateway.',
+    href: '/tools/agent-gateway',
+    status: 'useful',
+    tier: 'utility',
+    arcade: {
+      glyph: '⇄',
+      screenGradient: '#d8eeeb',
+    },
+  },
+  {
     slug: 'computer',
     tag: 'AGENT',
     title: 'Computer',

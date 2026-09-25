@@ -557,6 +557,22 @@
   background: rgba(227, 111, 69, 0.72);
 }
 
+.tools-lab-cover--agent-gateway {
+  background: #0b0c0e;
+}
+.tools-lab-gateway {
+  display: grid;
+  gap: 6px;
+  width: 78%;
+  color: #e8e4dc;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+}
+.tools-lab-gateway span {
+  border-bottom: 1px solid #2a2e34;
+  padding-bottom: 4px;
+}
 .tools-lab-cover--computer {
   background: #12110f;
 }
