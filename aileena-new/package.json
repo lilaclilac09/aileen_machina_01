@@ -42,6 +42,7 @@
     "verify:dj-set:local": "VERIFY_BASE_URL=http://localhost:3011 tsx scripts/verify-dj-set.ts",
     "verify:sound:local": "VERIFY_BASE_URL=http://localhost:3011 tsx scripts/verify-dj-set.ts",
     "verify:memory": "tsx scripts/build-memory-index.ts && tsx scripts/verify-memory.ts",
+    "verify:night": "tsx scripts/verify-night-desk.ts",
     "verify:memory:live": "tsx scripts/build-memory-index.ts && VERIFY_BASE_URL=http://localhost:3000 tsx scripts/verify-memory.ts",
     "verify:react": "tsx scripts/verify-react.ts",
     "verify:ops": "tsx scripts/verify-ops.ts",
@@ -119,6 +120,11 @@
     "wrangler": "^4.129.0"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "sharp", "unrs-resolver", "workerd"]
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp",
+      "unrs-resolver",
+      "workerd"
+    ]
   }
 }

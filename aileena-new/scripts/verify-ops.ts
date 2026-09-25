@@ -241,6 +241,12 @@ function main() {
   assert('site alias is public', siteAlias.ok && siteAlias.mode === 'public');
   const publicNamed = decideAgentMode('public', false);
   assert('public mode is public', publicNamed.ok && publicNamed.mode === 'public');
+  const nightOnPublic = decideAgentMode('night', false);
+  assert(
+    'night mode is refused on public chat',
+    !nightOnPublic.ok && nightOnPublic.status === 400,
+    nightOnPublic.ok ? nightOnPublic.mode : nightOnPublic.error,
+  );
   const unknownMode = decideAgentMode('wizard', true);
   assert('unknown mode is public', unknownMode.ok && unknownMode.mode === 'public');
   assert('visitor cannot skip quota via mode', skipVisitorQuota(false) === false);
