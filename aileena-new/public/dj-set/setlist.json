@@ -4,6 +4,16 @@
   "curation": "User links as-is; search Bleep/Beatport/Bandcamp; cover must match release.",
   "tracks": [
     {
+      "id": "RKTMRS",
+      "title": "rocket to mars",
+      "artist": "Matt Jinn",
+      "album": "rocket to mars",
+      "bpm": 120,
+      "key": "4A",
+      "durationSec": 182,
+      "cover": "/dj-set/assets/covers/rktmrs.jpg"
+    },
+    {
       "id": "ANYMORE",
       "title": "Anymore",
       "artist": "JEON SOMI",
