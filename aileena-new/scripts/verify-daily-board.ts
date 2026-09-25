@@ -8,7 +8,7 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { commentLooksSpammy, dailySharePath, sanitizeNickname, sanitizeTheme } from '../lib/dailyBoard';
+import { commentLooksSpammy, sanitizeNickname, sanitizeTheme } from '../lib/dailyBoard';
 import {
   addDailyComment,
   hideDailyComment,
@@ -234,7 +234,6 @@ async function storeUnit() {
 
   const draft = await upsertDailyNote({ date: '2099-01-01', body: 'secret draft', title: '' });
   assert('new note defaults unpublished', draft.published === false, String(draft.published));
-  assert('draft has a path shape but visitors never receive it', dailySharePath(draft.id) === `/daily/s/${draft.id}`);
   const denied = await addDailyComment({ noteId: draft.id, body: 'nope' });
   assert('bubble on draft is missing_note', 'error' in denied && denied.error === 'missing_note');
   const visitorHidden = await readPublicDailyBoard(false);
@@ -314,15 +313,7 @@ function sourceChecks() {
       !/textTransform: 'uppercase'/.test(ui) &&
       !/borderRadius: 999/.test(ui),
   );
-  const sharePage = read('app/daily/s/[id]/page.tsx');
-  assert(
-    'share link is view-only for a shipped note',
-    ui.includes('daily-share') &&
-      ui.includes('dailySharePath') &&
-      ui.includes('shareId ? false') &&
-      sharePage.includes('notFound') &&
-      sharePage.includes('readPublicDailyBoard(false)'),
-  );
+  assert('published lines stay on /daily', !ui.includes('daily-share') && !ui.includes('dailySharePath') && !existsSync(join(process.cwd(), 'app/daily/s')));
   assert('autosave does not publish', ui.includes('...(opts?.published ? { published: true } : {})'));
   assert('visitor snap burns', ui.includes('daily-snap-seal') && ui.includes('tap to see · then it burns'));
   assert('no owner door on daily', !ui.includes('OwnerUnlockForm') && !ui.includes('daily-owner-enter'));
