@@ -70,13 +70,24 @@ const SLUG_TOPIC: Record<string, string> = {
   'dell-nvidia-flywheel': 'Capital flywheels',
 
   'tech-sales': 'Sales & channels',
+
+  // ── Woman in Tech ─────────────────────────────────────────────
+  lion: 'Perspective',
+  misread: 'Perspective',
+  'third-culture-power': 'Perspective',
+  'suffocating-bias': 'Perspective',
+  harassment: 'Perspective',
+
+  // ── Listening and Watching Shelf ─────────────────────────────
+  'watch-listening-shelf': 'Shelf',
+  'guerrilla-girls': 'Shelf',
 };
 
 const TOPIC_ORDER: Record<string, string[]> = {
   dispatch: ['AI infrastructure', 'On-chain infrastructure', 'MEV & markets', 'Agents & robotics', 'Privacy'],
   investing: ['AI hardware', 'Capital flywheels', 'Sales & channels'],
-  perspective: [],
-  marsAndMoon: [],
+  perspective: ['Perspective'],
+  marsAndMoon: ['Shelf'],
 };
 
 function slugOf(post: Post): string {

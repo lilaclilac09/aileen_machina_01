@@ -642,9 +642,9 @@ export default function DailyBoard({
             </h1>
             {owner ? (
               <button
-                type="submit"
+                type="button"
                 data-testid="daily-publish"
-                aria-label="publish"
+                aria-label="submit"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => void publishNote()}
                 disabled={saving}
@@ -740,134 +740,165 @@ export default function DailyBoard({
 
         {showWriter ? (
           <section data-testid="daily-owner-editor" style={{ marginBottom: 40 }}>
-            <input
-              aria-label="title"
-              placeholder="title, if you want"
-              value={title}
-              maxLength={DAILY_NOTE_TITLE_MAX}
-              onChange={(e) => setTitle(e.target.value)}
-              onBlur={() => {
-                if (owner) void saveNote();
-              }}
-              style={{
-                display: 'block',
-                width: '100%',
-                background: 'transparent',
-                border: 'none',
-                outline: 'none',
-                color: 'inherit',
-                fontFamily: sans,
-                fontSize: 13,
-                opacity: 0.5,
-                marginBottom: 8,
-                padding: 0,
-                userSelect: 'text',
-                WebkitUserSelect: 'text',
-              }}
-            />
-            <textarea
-              ref={textareaRef}
-              data-testid="daily-owner-textarea"
-              placeholder="write one or two lines"
-              value={body}
-              maxLength={DAILY_NOTE_BODY_MAX}
-              rows={5}
-              onBlur={() => {
-                if (owner) void saveNote();
-              }}
-              onChange={(e) => {
-                const next = e.target.value;
-                setBody(next);
-                writeDraft(next);
-                e.target.style.height = 'auto';
-                e.target.style.height = `${Math.max(96, e.target.scrollHeight)}px`;
-              }}
-              onKeyDown={(e) => {
-                if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-                  e.preventDefault();
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16,
+              padding: '20px',
+              border: '1px solid rgba(0,0,0,0.08)',
+              borderRadius: 8,
+              background: 'rgba(255,255,255,0.02)',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 11, opacity: 0.4, fontFamily: sans, letterSpacing: '0.02em' }}>
+                  private draft
+                </span>
+                <span style={{ fontSize: 11, opacity: 0.3, fontFamily: sans }}>
+                  {saving ? 'saving...' : 'auto-saved'}
+                </span>
+              </div>
+              
+              <input
+                aria-label="title"
+                placeholder="title, if you want"
+                value={title}
+                maxLength={DAILY_NOTE_TITLE_MAX}
+                onChange={(e) => setTitle(e.target.value)}
+                onBlur={() => {
                   if (owner) void saveNote();
-                }
-              }}
-              inputMode="text"
-              autoCapitalize="sentences"
-              autoCorrect="on"
-              spellCheck
-              enterKeyHint="done"
-              style={{
-                display: 'block',
-                width: '100%',
-                resize: 'none',
-                overflow: 'hidden',
-                background: 'transparent',
-                border: 'none',
-                outline: 'none',
-                color: 'inherit',
-                caretColor: theme.accent,
-                fontFamily: serif,
-                fontSize: 'max(16px, clamp(1.35rem, 4.6vw, 1.85rem))',
-                lineHeight: 1.45,
-                letterSpacing: '-0.01em',
-                padding: 0,
-                minHeight: 120,
-                cursor: 'text',
-                touchAction: 'manipulation',
-                userSelect: 'text',
-                WebkitUserSelect: 'text',
-              }}
-            />
-            <p style={{ margin: '8px 0 0', fontSize: 11, opacity: 0.4, fontFamily: sans, display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-              <span>{saving ? 'saving' : today ? formatQuietDate(today) : 'today'}</span>
-              <button
-                type="button"
-                data-testid="daily-save"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => void saveNote()}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: theme.accent,
-                  fontFamily: sans,
-                  fontSize: 11,
-                  cursor: 'pointer',
-                  padding: 0,
                 }}
-              >
-                save
-              </button>
-              <button
-                type="button"
-                data-testid="daily-snap-attach"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => snapInputRef.current?.click()}
                 style={{
-                  background: 'none',
+                  display: 'block',
+                  width: '100%',
+                  background: 'transparent',
                   border: 'none',
-                  color: theme.accent,
+                  outline: 'none',
+                  color: 'inherit',
                   fontFamily: sans,
-                  fontSize: 11,
-                  cursor: 'pointer',
+                  fontSize: 13,
+                  opacity: 0.6,
+                  marginBottom: 8,
                   padding: 0,
+                  userSelect: 'text',
+                  WebkitUserSelect: 'text',
                 }}
-              >
-                {todayNote?.snap === 'ready' ? 'replace snap' : 'one snap'}
-              </button>
-            </p>
-            <input
-              ref={snapInputRef}
-              data-testid="daily-snap-input"
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/*"
-              hidden
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                e.target.value = '';
-                void attachSnap(file);
-              }}
-            />
+              />
+              
+              <textarea
+                ref={textareaRef}
+                data-testid="daily-owner-textarea"
+                placeholder="write one or two lines"
+                value={body}
+                maxLength={DAILY_NOTE_BODY_MAX}
+                rows={5}
+                onBlur={() => {
+                  if (owner) void saveNote();
+                }}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setBody(next);
+                  writeDraft(next);
+                  e.target.style.height = 'auto';
+                  e.target.style.height = `${Math.max(96, e.target.scrollHeight)}px`;
+                }}
+                onKeyDown={(e) => {
+                  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    if (owner) void saveNote();
+                  }
+                }}
+                inputMode="text"
+                autoCapitalize="sentences"
+                autoCorrect="on"
+                spellCheck
+                enterKeyHint="done"
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  resize: 'none',
+                  overflow: 'hidden',
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  color: 'inherit',
+                  caretColor: theme.accent,
+                  fontFamily: serif,
+                  fontSize: 'max(16px, clamp(1.35rem, 4.6vw, 1.85rem))',
+                  lineHeight: 1.45,
+                  letterSpacing: '-0.01em',
+                  padding: 0,
+                  minHeight: 120,
+                  cursor: 'text',
+                  touchAction: 'manipulation',
+                  userSelect: 'text',
+                  WebkitUserSelect: 'text',
+                }}
+              />
+              
+              <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  data-testid="daily-save"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => void saveNote()}
+                  style={{
+                    background: 'none',
+                    border: '1px solid rgba(0,0,0,0.12)',
+                    color: theme.text,
+                    fontFamily: sans,
+                    fontSize: 12,
+                    padding: '8px 16px',
+                    borderRadius: 4,
+                    cursor: 'pointer',
+                    opacity: 0.6,
+                  }}
+                >
+                  Save draft
+                </button>
+                
+                <button
+                  type="button"
+                  data-testid="daily-snap-attach"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => snapInputRef.current?.click()}
+                  style={{
+                    background: 'none',
+                    border: '1px solid rgba(0,0,0,0.12)',
+                    color: theme.text,
+                    fontFamily: sans,
+                    fontSize: 12,
+                    padding: '8px 16px',
+                    borderRadius: 4,
+                    cursor: 'pointer',
+                    opacity: 0.6,
+                  }}
+                >
+                  {todayNote?.snap === 'ready' ? 'Replace snap' : 'Add snap'}
+                </button>
+                
+                <span style={{ fontSize: 11, opacity: 0.3, fontFamily: sans }}>
+                  {today ? formatQuietDate(today) : 'today'}
+                </span>
+              </div>
+              
+              <input
+                ref={snapInputRef}
+                data-testid="daily-snap-input"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/*"
+                hidden
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = '';
+                  void attachSnap(file);
+                }}
+              />
+            </div>
+            
             {todayNote?.snap === 'ready' ? <OwnerSnapPreview noteId={todayNote.id} /> : null}
             {todayNote?.snap === 'burned' ? (
               <p data-testid="daily-snap-burned" style={{ margin: '12px 0 0', fontSize: 12, opacity: 0.4 }}>
-                burned. attach another?
+                Snap burned. Attach another?
               </p>
             ) : null}
           </section>
@@ -875,9 +906,14 @@ export default function DailyBoard({
           <section data-testid="daily-latest" style={{ marginBottom: 28 }}>
             {latest ? (
               <>
-                <p style={{ margin: '0 0 10px', fontSize: 12, opacity: 0.45, fontFamily: sans }}>
-                  {formatQuietDate(latest.date)}
-                </p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <p style={{ margin: 0, fontSize: 12, opacity: 0.45, fontFamily: sans }}>
+                    {formatQuietDate(latest.date)}
+                  </p>
+                  <span style={{ fontSize: 10, opacity: 0.3, fontFamily: sans }}>
+                    published
+                  </span>
+                </div>
                 {latest.title ? (
                   <p style={{ margin: '0 0 8px', fontSize: 13, opacity: 0.5, fontFamily: sans }}>{latest.title}</p>
                 ) : null}

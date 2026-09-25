@@ -313,6 +313,7 @@ function sourceChecks() {
       !/textTransform: 'uppercase'/.test(ui) &&
       !/borderRadius: 999/.test(ui),
   );
+  assert('published lines stay on /daily', !ui.includes('daily-share') && !ui.includes('dailySharePath') && !existsSync(join(process.cwd(), 'app/daily/s')));
   assert('autosave does not publish', ui.includes('...(opts?.published ? { published: true } : {})'));
   assert('visitor snap burns', ui.includes('daily-snap-seal') && ui.includes('tap to see · then it burns'));
   assert('no owner door on daily', !ui.includes('OwnerUnlockForm') && !ui.includes('daily-owner-enter'));
