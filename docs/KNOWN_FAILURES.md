@@ -42,6 +42,7 @@
 
 - 不准平行重写已有 DJ drag / drag-me 实现（`AGENTS.md`）
 - Visual `#glass-bench` **不在** `/sound`（`QA.md` DJ）
+- [2026-09-17] `mev.aileena.xyz` 误还原静态 Visual Analysis / 紫页 / 暗色 dashboard → **永远不再用**。只保留 Dash `app/index.py`（`2b61bf27`，H1 Solana MEV Report，footer `@aileengf1`）。见 `.cursor/rules/mev-dash-only.mdc`
 
 ---
 

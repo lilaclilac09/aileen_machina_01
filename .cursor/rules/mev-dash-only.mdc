@@ -1,0 +1,31 @@
+---
+description: MEV live UI is Dash only — never restore static Visual Analysis, purple, or dark dashboards.
+alwaysApply: true
+---
+
+# MEV dashboard — Dash only (owner lock)
+
+Owner confirmed (2026-09-17): **永远不再用** any other MEV website version.
+
+The only MEV UI to keep / restore / ship is:
+
+- repo: `lilaclilac09/solana-pamm-MEV-binary-monte-analysis-contagious-pools`
+- commit: `2b61bf27` (`app/index.py`)
+- Dash Python · white Plotly · H1 **Solana MEV Report**
+- hero + colored TOP STORIES stats
+- footer **@aileengf1** (`https://x.com/aileengf1`) — never `@A01DZ3RO`
+
+```txt
+never restore other MEV site versions. never serve them locally. never ship them to mev.aileena.xyz.
+```
+
+Do **not** restore, preview, or deploy as `mev.aileena.xyz`:
+
+- static `public/index.html` “Visual Analysis”
+- purple/pink `app/index.html` / `4e0333c` “Solana MEV Attack Analysis”
+- dark dashboard HTML
+- any footer still using `@A01DZ3RO`
+
+Do **not** start `python3 -m http.server` on those HTML trees. If a preview is needed, run **only** `python3 app/index.py` (port 8050).
+
+Production today may still be the static page until MEV repo write + Vercel auth exist. That does **not** authorize bringing the rejected UIs back. Do not claim `mev.aileena.xyz` is Dash until a production URL proves it.

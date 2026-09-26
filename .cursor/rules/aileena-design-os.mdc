@@ -16,6 +16,7 @@ This is a personal machine, not a portfolio. Visual-first. Less text. Real inter
 Do not put `OWNER KEY` or “Visitors cannot…” in public page flow.  
 Do not fake knobs, exports, comments, or status lights.  
 Do not merge without screenshots + owner approval.  
-Do not restore rejected home experiments (ascii / moodboard / serials / zine) — see `landing-experiment-gate.mdc`.
+Do not restore rejected home experiments (ascii / moodboard / serials / zine) — see `landing-experiment-gate.mdc`.  
+Do not restore rejected MEV site versions (static Visual Analysis / purple / dark / `@A01DZ3RO`) — see `mev-dash-only.mdc`. Dash `app/index.py` + `@aileengf1` only.
 
 Engineering loop stays in `AGENTS.md`. This file is how the site should look and behave.
