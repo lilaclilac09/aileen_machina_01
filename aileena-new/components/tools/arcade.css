@@ -557,6 +557,28 @@
   background: rgba(227, 111, 69, 0.72);
 }
 
+.tools-lab-cover--machina-college {
+  background: #e7efe8;
+}
+
+.tools-lab-college {
+  position: absolute;
+  inset: 22% 14%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 8px;
+  color: #14110c;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+}
+
+.tools-lab-college span {
+  border-bottom: 1px solid rgba(20, 17, 12, 0.16);
+  padding-bottom: 4px;
+}
+
 .tools-lab-cover--agent-gateway {
   background: #0b0c0e;
 }
