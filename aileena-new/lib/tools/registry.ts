@@ -87,6 +87,21 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     },
   },
   {
+    slug: 'machina-college',
+    tag: 'DESK',
+    title: 'Machina College',
+    body: 'Hear the sentence, then one book. Not a diagnosis. Not a therapist.',
+    why: 'The console already had the shelf. The tools hub had no door for it.',
+    verdict: 'Psychoeducation. One school, one title. Maps are not a license.',
+    href: '/tools/machina-college',
+    status: 'useful',
+    tier: 'utility',
+    arcade: {
+      glyph: '¶',
+      screenGradient: '#e7efe8',
+    },
+  },
+  {
     slug: 'agent-gateway',
     tag: 'OSS',
     title: 'Agent-Gateway',

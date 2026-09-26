@@ -83,6 +83,12 @@ function ToolCover({
               ))}
             </div>
           ) : null}
+          {tool.slug === 'machina-college' ? (
+            <div className="tools-lab-college">
+              <span>ONE BOOK</span>
+              <span>NOT A DX</span>
+            </div>
+          ) : null}
           {tool.slug === 'agent-gateway' ? (
             <div className="tools-lab-gateway">
               <span>REQ 3</span>
