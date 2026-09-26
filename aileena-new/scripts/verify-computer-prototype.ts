@@ -11,6 +11,7 @@ import { join } from 'node:path';
 import { createOwnerSession, SESSION_COOKIE } from '../lib/auth';
 import { inspectRouteFiles, analyzeDailyFixPlan } from '../lib/computer/inspect';
 import { parseOwnerComputerCommand, parseVisitorComputerCommand } from '../lib/computer/parseOwnerCommand';
+import { railwaySshArgs } from '../lib/computer/railwayVm';
 import { curlFetchCommand, curlHttpsTarget, isOwnerShellCommand, safeHttpsUrl } from '../lib/computer/allowlist';
 import { parseJsonRpcBody, parseMcpServers } from '../lib/mcp/remote';
 import { githubContentPath, githubReady } from '../lib/mcp/github';
@@ -369,6 +370,16 @@ function flagUnit() {
 }
 
 function unitChecks() {
+  const railway = parseOwnerComputerCommand('railway vm');
+  assert(
+    'owner railway vm opens ssh sandbox',
+    railway?.kind === 'queue_task' &&
+      railway.taskType === 'shell_exec' &&
+      railway.instructions === 'railway-ssh',
+  );
+  assert('visitor railway vm stays off the owner computer', parseVisitorComputerCommand('railway vm')?.kind === 'blocked');
+  const sshArgs = railwaySshArgs().join(' ');
+  assert('railway ssh stays on sandbox@railway.new', sshArgs.includes('BatchMode=yes') && sshArgs.endsWith('sandbox@railway.new'));
   assert('hi is not a computer command', parseOwnerComputerCommand('hi') === null);
   assert('visitor hi is not a scratch command', parseVisitorComputerCommand('hi') === null);
   assert(

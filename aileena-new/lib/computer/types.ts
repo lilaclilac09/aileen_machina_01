@@ -72,7 +72,7 @@ export type ComputerTask = {
   proposedFilesToChange: string[];
   implementationPlan: string[];
   risksBlockers: string[];
-  backend: 'local-shim' | 'cloudflare-worker-shell';
+  backend: 'local-shim' | 'cloudflare-worker-shell' | 'railway-ssh';
   error: string | null;
   createdAt: string;
   updatedAt: string;

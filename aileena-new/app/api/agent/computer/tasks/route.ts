@@ -309,6 +309,7 @@ export async function POST(req: Request) {
     route,
     proofItemId,
     proofTitle: proof.title,
+    instructions: task.instructions,
   });
 
   return jsonActor(

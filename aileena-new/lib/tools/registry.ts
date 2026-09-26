@@ -117,6 +117,21 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     },
   },
   {
+    slug: 'computers',
+    tag: 'AGENT',
+    title: 'Computers',
+    body: 'Two machines for the site agent. Cloudflare worker-shell, and a Railway sandbox over SSH.',
+    why: 'The dialog had one computer. Railway SSH is a second VM, opened with ssh sandbox@railway.new.',
+    verdict: 'Experiment. The page does not open a shell. Say railway vm in the owner dialog.',
+    href: '/tools/computers',
+    status: 'experiment',
+    tier: 'experiment',
+    arcade: {
+      glyph: '⌨',
+      screenGradient: '#e7efe8',
+    },
+  },
+  {
     slug: 'computer',
     tag: 'AGENT',
     title: 'Computer',

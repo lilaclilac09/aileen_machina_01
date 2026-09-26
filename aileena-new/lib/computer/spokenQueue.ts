@@ -30,8 +30,12 @@ export function spokenQueued(opts: {
   route: string;
   proofItemId: string;
   proofTitle?: string;
+  instructions?: string;
 }): string {
-  const doing = DOING[opts.taskType] || `Running ${opts.taskType}`;
+  const doing =
+    opts.instructions?.trim() === 'railway-ssh'
+      ? 'Opening the Railway sandbox over ssh sandbox@railway.new'
+      : DOING[opts.taskType] || `Running ${opts.taskType}`;
   const hung = opts.proofTitle
     ? `${opts.proofItemId} (${opts.proofTitle})`
     : opts.proofItemId;

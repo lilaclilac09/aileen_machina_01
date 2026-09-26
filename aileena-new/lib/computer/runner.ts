@@ -50,6 +50,7 @@ import {
   workspaceSearchQuery,
 } from './cfClient';
 import type { ComputerBackend } from './cfClient';
+import { openRailwaySandbox } from './railwayVm';
 
 function workspaceIdFor(task: ComputerTask): string {
   return taskActorId(task);
@@ -387,7 +388,39 @@ async function runCellTask(task: ComputerTask): Promise<ComputerTask> {
   });
 }
 
+async function runRailwayVmTask(task: ComputerTask): Promise<ComputerTask> {
+  task = await log(task, 'ssh sandbox@railway.new');
+  const run = await openRailwaySandbox();
+  const report = `# railway-ssh\n\n$ ssh sandbox@railway.new\n${run.summary}\n\n${run.text}\n`;
+  return finishInspectStyle(
+    { ...task, backend: 'railway-ssh' },
+    {
+      status: run.ok ? 'completed' : 'blocked',
+      summary: run.ok ? 'Railway sandbox handoff' : `⚡ ${run.summary}`,
+      report,
+      preview: run.text || run.summary,
+      title: 'railway.new',
+      kind: 'report',
+      error: run.ok ? null : run.summary,
+    },
+  );
+}
+
 async function runShellTask(task: ComputerTask): Promise<ComputerTask> {
+  if ((task.instructions || '').trim() === 'railway-ssh') {
+    if (!isOwnerComputerTask(task)) {
+      return finishInspectStyle(task, {
+        status: 'blocked',
+        summary: '⚡ scratch pad only.',
+        report: '# railway-ssh\n\nOwner dialog only.\n',
+        preview: 'owner dialog only',
+        title: 'railway.new',
+        kind: 'report',
+        error: 'owner dialog only',
+      });
+    }
+    return runRailwayVmTask(task);
+  }
   const cmd = (task.instructions || '').trim().slice(0, 2000);
   if (!cmd) {
     return finishInspectStyle(task, {
@@ -894,15 +927,18 @@ export async function runComputerTask(id: string): Promise<ComputerTask | null> 
     if (ownerTask) {
       attachTaskToProof(task.proofItemId, task.id, 'in_progress');
     }
-    const backend = taskBackend();
+    const railway = isOwnerComputerTask(task) && task.instructions.trim() === 'railway-ssh';
+    const backend: ComputerBackend | 'railway-ssh' = railway ? 'railway-ssh' : taskBackend();
     task = await upsertComputerTask({ ...task, backend });
     task = await log(
       task,
-      backend === 'cloudflare-worker-shell'
-        ? 'backend=cloudflare-worker-shell'
-        : ownerTask
-          ? 'backend=local-shim (not @cloudflare/computer)'
-          : 'backend=local-shim visitor scratch',
+      backend === 'railway-ssh'
+        ? 'backend=railway-ssh sandbox@railway.new'
+        : backend === 'cloudflare-worker-shell'
+          ? 'backend=cloudflare-worker-shell'
+          : ownerTask
+            ? 'backend=local-shim (not @cloudflare/computer)'
+            : 'backend=local-shim visitor scratch',
     );
     // Local shim: short pause so the dock can paint "running".
     // Production POST awaits the full worker-shell run — do not burn 1.4s there.

@@ -1,4 +1,5 @@
 import type { ComputerTaskType } from './types';
+import { isRailwayVmPhrase } from './railwayVm';
 
 export type OwnerComputerCommand =
   | { kind: 'show_queue' }
@@ -25,6 +26,15 @@ export type OwnerComputerCommand =
 export function parseOwnerComputerCommand(text: string): OwnerComputerCommand | null {
   const raw = text.trim();
   if (!raw || raw.length > 2000) return null;
+
+  if (isRailwayVmPhrase(raw)) {
+    return {
+      kind: 'queue_task',
+      taskType: 'shell_exec',
+      route: '/tools/computers',
+      instructions: 'railway-ssh',
+    };
+  }
 
   if (/^show proof queue\s*$/i.test(raw)) return { kind: 'show_queue' };
 
@@ -252,7 +262,8 @@ export function parseVisitorComputerCommand(text: string): VisitorComputerComman
     /^learn:/i.test(raw) ||
     /^git\b/i.test(raw) ||
     /^show proof queue/i.test(raw) ||
-    /find(?: me)?(?: the)? commit/i.test(raw)
+    /find(?: me)?(?: the)? commit/i.test(raw) ||
+    isRailwayVmPhrase(raw)
   ) {
     return {
       kind: 'blocked',

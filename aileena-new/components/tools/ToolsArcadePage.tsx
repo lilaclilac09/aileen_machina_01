@@ -103,6 +103,12 @@ function ToolCover({
               <span className="tools-lab-terminal-cursor">█</span>
             </div>
           ) : null}
+          {tool.slug === 'computers' ? (
+            <div className="tools-lab-computers">
+              <span>CF worker-shell</span>
+              <span>RW railway.new</span>
+            </div>
+          ) : null}
           {tool.slug === 'feed-flash' ? (
             <div className="tools-lab-headlines">
               <span />

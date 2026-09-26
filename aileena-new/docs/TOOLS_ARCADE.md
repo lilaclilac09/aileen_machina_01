@@ -95,6 +95,7 @@ Open `/tools` → new tile visible → open tool once end-to-end.
 | `agent-gateway` | `/tools/agent-gateway` | **Useful** — local official-key ingress. This page does not host it. |
 | `machina-college` | `/tools/machina-college` | **Useful** — one book after hearing. Not a diagnosis. |
 | `computer` | `/tools/computer` | **Experiment** — computer in the site-agent dialog; Cloudflare worker-shell when env is set; no merge. |
+| `computers` | `/tools/computers` | **Experiment** — worker-shell plus a Railway sandbox via `ssh sandbox@railway.new`. Owner dialog: `railway vm`. This page does not open a shell. |
 | `feed-flash` | `/tools/feed-flash` | Paused on hub |
 | `chip-guess` | `/tools/chip-guess` | Paused on hub |
 | `pricing-slot` | `/tools/pricing-slot` | Paused on hub |
