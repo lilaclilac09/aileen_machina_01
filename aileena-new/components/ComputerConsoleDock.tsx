@@ -368,7 +368,7 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
       data-testid="computer-console-dock"
       data-harness="machina-owner-prototype"
       data-open-proof={String(proof.length)}
-      className="border-b border-[#e7e0d6] px-3 py-2 bg-[#fffcf7]/90 shrink-0"
+      className="border-b border-[#e7e0d6] px-3 py-2 bg-[#fffcf7]/90 min-h-[6.5rem] max-h-[min(38vh,20rem)] overflow-y-auto shrink"
     >
       {/* Small computer: cream chassis, teal screen, power light, keycaps. */}
       <div className="rounded-[12px] border border-[#d8cfc0] bg-[#f6f0e4] px-2.5 pt-2 pb-2.5 space-y-1.5 shadow-[inset_0_1px_0_#ffffff,0_2px_6px_rgba(27,23,19,0.08)]">

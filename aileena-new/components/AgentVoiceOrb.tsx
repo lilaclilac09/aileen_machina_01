@@ -1559,7 +1559,10 @@ export default function AgentVoiceOrb({
                 : 'Tap speak to start';
 
   return (
-    <div className="border-t border-[#e7e0d6] px-5 py-2.5 sm:py-3 bg-[#faf7f0]/80">
+    <div
+      data-testid="agent-voice-orb"
+      className="border-t border-[#e7e0d6] px-5 py-2.5 sm:py-3 bg-[#faf7f0]/80"
+    >
       {/* Compact but ceremonial — instrument panel, not a squashed form row. */}
       <div className="flex flex-wrap items-center gap-3 sm:flex-nowrap sm:gap-4">
         <button

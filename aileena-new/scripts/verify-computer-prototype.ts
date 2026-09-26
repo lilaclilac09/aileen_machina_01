@@ -227,6 +227,18 @@ function sourceChecks() {
   const dockAt = agentChatSrc.indexOf('<ComputerConsoleDock');
   const transAt = agentChatSrc.indexOf('data-agent-transcript');
   assert('monitor sits above transcript', dockAt > 0 && transAt > 0 && dockAt < transAt);
+  assert(
+    'dock yields height so voice is not cropped',
+    /max-h-\[min\(38vh,20rem\)\]/.test(dockSrc) && /overflow-y-auto/.test(dockSrc) && /min-h-\[6\.5rem\]/.test(dockSrc),
+  );
+  assert(
+    'voice chrome is not max-height clipped',
+    /console-bottom-chrome/.test(agentChatSrc) && !/max-h-\[128px\]/.test(agentChatSrc),
+  );
+  assert(
+    'computer mode raises the dialog before clipping voice',
+    /computerMode \? 'sm:max-h-\[88vh\]' : 'sm:max-h-\[72vh\]'/.test(agentChatSrc),
+  );
   assert('dock always polls', /setInterval\(\(\) => void load\(\), 900\)/.test(dockSrc));
   assert('dock shows learned chips', /computer-learned/.test(dockSrc) && /computer-monitor/.test(dockSrc));
   assert(

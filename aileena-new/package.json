@@ -27,6 +27,7 @@
     "verify:doors-nav": "tsx scripts/verify-doors-nav.ts",
     "verify:daily-board": "tsx scripts/verify-daily-board.ts",
     "verify:computer-prototype": "tsx scripts/verify-computer-prototype.ts",
+    "verify:console-voice-crop": "tsx scripts/verify-console-voice-crop.ts",
     "verify:proof-queue": "tsx scripts/verify-computer-prototype.ts",
     "capture:computer-prototype": "tsx scripts/capture-computer-prototype.ts",
     "e2e:computer-cli": "tsx scripts/e2e-computer-cli-example.ts",
