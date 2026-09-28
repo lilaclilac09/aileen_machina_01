@@ -1,6 +1,6 @@
 Techno（personal）：harder driving techno — DVS1, Blawan, Rødhåd
 
-当前 set（/sound#dj-set — updated 2026-09-25）：
+当前 set（/sound#dj-set — updated 2026-09-28）：
 1. TRACK RKTMRS — rocket to mars / Matt Jinn (120 BPM, 4A)
 2. TRACK ANYMORE — Anymore / JEON SOMI (120 BPM, 4A)
 3. TRACK BDAY — BIRTHDAY / JEON SOMI (120 BPM, 4A)
