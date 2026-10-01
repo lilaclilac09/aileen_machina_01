@@ -170,7 +170,8 @@ export async function tryVisitorComputerFastPath(opts: {
 
   const origin = new URL(opts.req.url).origin;
   const cookie = cookieHeaderWithActor(opts.req.headers.get('cookie'), opts.actor);
-  const res = await fetch(`${origin}/api/agent/computer/tasks`, {
+  const roomQs = opts.actor.room === 'open' ? '?room=open' : '';
+  const res = await fetch(`${origin}/api/agent/computer/tasks${roomQs}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', cookie },
     body: JSON.stringify({

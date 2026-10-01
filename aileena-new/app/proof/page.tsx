@@ -4,6 +4,7 @@ import { getOwnerIdentity } from '@/lib/owner-gate';
 import OwnerUnlockForm from '@/components/OwnerUnlockForm';
 import OpenAgentChatButton from '@/components/OpenAgentChatButton';
 import { isComputerPrototypeEnabled, isLocalExperimentUnlockAllowed } from '@/lib/computer/flag';
+import { isSharedComputerRoomToken } from '@/lib/computer/workspaceName';
 
 export const metadata: Metadata = {
   title: 'Proof · AILEENA',
@@ -18,7 +19,7 @@ export const dynamic = 'force-dynamic';
 export default async function ProofPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; experiment?: string }>;
+  searchParams: Promise<{ error?: string; experiment?: string; room?: string }>;
 }) {
   const owner = await getOwnerIdentity();
   const params = await searchParams;
@@ -26,21 +27,22 @@ export default async function ProofPage({
   const experiment = params.experiment === '1';
   const enabled = isComputerPrototypeEnabled();
   const localUnlock = isLocalExperimentUnlockAllowed();
+  const sharedRoom = isSharedComputerRoomToken(params.room);
 
   return (
     <main className="mobile-page min-h-[100dvh] bg-[#fbfaf7] text-[#1b1713] pb-[max(1.5rem,env(safe-area-inset-bottom,0px))]">
       <div className="mx-auto max-w-3xl px-5 sm:px-8 py-10 sm:py-14 pt-[max(2.5rem,calc(env(safe-area-inset-top,0px)+2.5rem))] w-full min-w-0 box-border">
         <header className="mb-8 space-y-2">
           <p className="font-mono text-[0.55rem] tracking-[0.28em] uppercase text-[#008f86]/85">
-            owner · keyshield door
+            {sharedRoom ? 'shared pad · everyone on this link' : 'owner · keyshield door'}
           </p>
           <h1 className="font-serif text-[1.85rem] sm:text-[2.15rem] tracking-tight text-[#1b1713]">
-            computer is in the dialog
+            {sharedRoom ? 'same notes. come back.' : 'computer is in the dialog'}
           </h1>
           <p className="max-w-2xl text-[0.88rem] leading-relaxed text-[#1b1713]/55">
-            This page is not a harness window. Plugins, proof, and the merge gate
-            sit in the site-agent Console — same surface visitors already talk to.
-            Not DeepSeek Harness. Not a public shell.
+            {sharedRoom
+              ? 'One public pad. Write a note, look, ls / echo. Come back on this link. Not Linux. Not git. Not the owner computer.'
+              : 'This page is not a harness window. Plugins, proof, and the merge gate sit in the site-agent Console — same surface visitors already talk to. Not DeepSeek Harness. Not a public shell.'}
           </p>
           <p className="font-mono text-[0.55rem] tracking-[0.14em] text-[#1b1713]/35">
             <Link href="/" className="hover:text-[#008f86]">
@@ -61,6 +63,17 @@ export default async function ProofPage({
           <p className="text-[0.9rem] text-[#1b1713]/60">
             Prototype is off here (COMPUTER_PROTOTYPE=0, or Production without the Worker).
           </p>
+        ) : sharedRoom ? (
+          <div className="border border-[#ded8ce] bg-white px-5 py-6 space-y-4" data-testid="proof-shared-room">
+            <p className="font-mono text-[0.55rem] tracking-[0.18em] uppercase text-[#c46b2e]">
+              shared pad · same files · come back
+            </p>
+            <p className="text-[0.9rem] leading-relaxed text-[#1b1713]/70">
+              Open the Console. Everyone on this link shares the same scratch. Private
+              visitor pads stay private. Linux / git / merge stay off.
+            </p>
+            <OpenAgentChatButton label="open shared pad" testId="proof-shared-open-console" />
+          </div>
         ) : !owner ? (
           <div className="border border-[#ded8ce] bg-white px-5 py-6 space-y-4">
             <p className="text-[0.9rem] leading-relaxed text-[#1b1713]/70">

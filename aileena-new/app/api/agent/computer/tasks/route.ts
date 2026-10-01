@@ -5,8 +5,10 @@ import {
   COMPUTER_LIMITS,
   forbiddenShellFields,
   isComputerTaskType,
+  isSharedRoomComputerTaskType,
   isVisitorComputerTaskType,
 } from '@/lib/computer/allowlist';
+import { SHARED_COMPUTER_ROOM_PATH, isSharedComputerRoom } from '@/lib/computer/workspaceName';
 import { isComputerPrototypeEnabled, isVercelProduction, prototypeDisabledReason } from '@/lib/computer/flag';
 import { isCloudflareComputerReady, reportedBackend } from '@/lib/computer/cfClient';
 import { clip, redactSecrets } from '@/lib/computer/redact';
@@ -77,19 +79,28 @@ export async function GET(req: Request) {
   const actor = await computerActorFromRequest(req);
   await hydrateComputerStore(actor.id);
   if (actor.kind === 'visitor') {
+    const shared = isSharedComputerRoom(actor.id);
+    let cwd = '/workspace';
+    if (shared && isCloudflareComputerReady()) {
+      const { loadCwd } = await import('@/lib/computer/terminal');
+      cwd = await loadCwd(actor.id);
+    }
     return jsonActor(actor, {
       ok: true,
       prototype: true,
       backend: reportedBackend(),
       cloudflareComputer: isCloudflareComputerReady(),
+      cwd,
       tasks: listComputerTasks(actor.id),
       proof: [],
       tabs: COMPUTER_TABS.map((id) => ({ id, wire: TAB_WIRE[id] })),
       plugins: [],
       learned: [],
-      harness: 'machina-visitor-scratch',
+      harness: shared ? 'machina-shared-room' : 'machina-visitor-scratch',
       deepSeekHarness: false,
       actor: 'visitor',
+      room: shared ? 'open' : null,
+      sharePath: SHARED_COMPUTER_ROOM_PATH,
     });
   }
   const { loadCwd } = await import('@/lib/computer/terminal');
@@ -108,6 +119,8 @@ export async function GET(req: Request) {
     harness: 'machina-owner-prototype',
     deepSeekHarness: false,
     actor: 'owner',
+    room: null,
+    sharePath: SHARED_COMPUTER_ROOM_PATH,
   });
 }
 
@@ -132,8 +145,13 @@ export async function POST(req: Request) {
     return deny(400, 'taskType is not on the allowlist.', actor);
   }
 
-  if (actor.kind === 'visitor' && !isVisitorComputerTaskType(body.taskType)) {
-    return deny(403, 'Scratch pad only. No site git, no merge, no owner computer.', actor);
+  if (actor.kind === 'visitor') {
+    const allowed = isSharedComputerRoom(actor.id)
+      ? isSharedRoomComputerTaskType(body.taskType)
+      : isVisitorComputerTaskType(body.taskType);
+    if (!allowed) {
+      return deny(403, 'Scratch pad only. No site git, no merge, no owner computer.', actor);
+    }
   }
 
   const rl = checkRateLimit(
@@ -191,7 +209,7 @@ export async function POST(req: Request) {
       {
         ok: true,
         message: '⚡ queued.',
-        spoken: spokenVisitorQueued(task.taskType),
+        spoken: spokenVisitorQueued(task.taskType, isSharedComputerRoom(actor.id)),
         prototype: true,
         backend: reportedBackend(),
         cloudflareComputer: isCloudflareComputerReady(),
