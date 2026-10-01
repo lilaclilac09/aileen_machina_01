@@ -114,6 +114,7 @@ export default function FeedFlashTool() {
       title={tx.heading}
       subtitle={tx.body}
       marquee={tx.marquee}
+      demoVideo="/demos/feed-flash.mp4"
     >
       <div
         style={{

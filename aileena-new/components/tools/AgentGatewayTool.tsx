@@ -9,7 +9,7 @@ export default function AgentGatewayTool() {
   const tx = t[language].tools.agentGateway;
 
   return (
-    <ArcadeLayout tag={tx.tag} title={tx.heading} subtitle={tx.body} marquee={tx.marquee}>
+    <ArcadeLayout tag={tx.tag} title={tx.heading} subtitle={tx.body} marquee={tx.marquee} demoVideo="/demos/agent-gateway.mp4">
       <div style={{ display: 'grid', gap: 28, maxWidth: 980 }}>
         <section style={panel} data-testid="agent-gateway-dashboard">
           <div style={rule} />

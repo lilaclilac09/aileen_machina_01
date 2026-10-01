@@ -244,7 +244,7 @@ export default function AiFactorySimTool() {
   }
 
   return (
-    <ArcadeLayout tag={tx.tag} title={tx.heading} subtitle={tx.body} marquee={tx.marquee}>
+    <ArcadeLayout tag={tx.tag} title={tx.heading} subtitle={tx.body} marquee={tx.marquee} demoVideo="/demos/ai-factory-sim.mp4">
       <section className="ai-factory-sim" data-testid="ai-factory-sim">
         <div className="ai-factory-panel ai-factory-panel--wide">
           <div className="ai-factory-topline">

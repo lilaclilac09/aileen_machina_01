@@ -60,6 +60,7 @@ export default function CafeRecapTool() {
       title={tx.heading}
       subtitle={tx.body}
       marquee={tx.marquee}
+      demoVideo="/demos/cafe-recap.mp4"
     >
       <div style={{ display: 'grid', gap: 28, maxWidth: 720, margin: '0 auto' }}>
         <ArcadeCabinetFrame

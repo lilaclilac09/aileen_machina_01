@@ -130,6 +130,7 @@ export default function ChipGuessTool() {
       title={tx.heading}
       subtitle={tx.body}
       marquee={tx.marquee}
+      demoVideo="/demos/chip-guess.mp4"
     >
       <div
         style={{

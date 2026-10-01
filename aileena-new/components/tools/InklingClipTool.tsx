@@ -246,6 +246,7 @@ export default function InklingClipTool() {
       title={tx.heading}
       subtitle={tx.body}
       marquee={`AUDIO CLIPPING · FREE LOCAL · NOT INKLING · CLI`}
+      demoVideo="/demos/inkling-clips.mp4"
     >
       <ArcadeCabinetFrame
         glyph={tool?.arcade.glyph ?? '▶'}
