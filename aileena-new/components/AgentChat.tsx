@@ -1700,14 +1700,14 @@ export default function AgentChat() {
       />
 
       {/* Console card — full-bleed on phone.
-          Flex column: header / flexible transcript / compact controls / input.
-          Desktop is wider + shorter (≤72vh) so the orb reads as a control node,
-          not a hero. Layout/proportions only. */}
+          Flex column: header / optional computer / flexible transcript / voice / input.
+          Desktop stays short (≤72vh) so the orb reads as a control, not a hero.
+          Computer on: 88vh + dock yields so the voice row is never cropped. */}
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Aileena Console"
-        className={`fixed z-[80] inset-0 sm:inset-x-auto sm:inset-y-auto sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[min(760px,calc(100vw-2.5rem))] sm:max-w-[calc(100vw-2.5rem)] h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[72vh] flex flex-col overflow-hidden bg-[#fffdf8] sm:bg-[#fffdf8]/95 border-0 sm:border sm:border-[#ded8ce] shadow-none sm:shadow-[0_24px_80px_-34px_rgba(31,26,20,0.42)] backdrop-blur-none sm:backdrop-blur-md transition-all duration-200 pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] sm:pt-0 sm:pb-0 ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-[0.98] sm:scale-[0.96] pointer-events-none'} font-mono`}
+        className={`fixed z-[80] inset-0 sm:inset-x-auto sm:inset-y-auto sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[min(760px,calc(100vw-2.5rem))] sm:max-w-[calc(100vw-2.5rem)] h-[100dvh] sm:h-auto max-h-[100dvh] ${computerMode ? 'sm:max-h-[88vh]' : 'sm:max-h-[72vh]'} flex flex-col overflow-hidden bg-[#fffdf8] sm:bg-[#fffdf8]/95 border-0 sm:border sm:border-[#ded8ce] shadow-none sm:shadow-[0_24px_80px_-34px_rgba(31,26,20,0.42)] backdrop-blur-none sm:backdrop-blur-md transition-all duration-200 pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] sm:pt-0 sm:pb-0 ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-[0.98] sm:scale-[0.96] pointer-events-none'} font-mono`}
         style={{
           fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace',
           ...phoneConsoleStyle,
@@ -1874,12 +1874,12 @@ export default function AgentChat() {
         {computerMode ? <ComputerConsoleDock isOwner={isOwner} voiceOn={voiceMode} /> : null}
 
         {/* Transcript — flex-auto: content-sized when dialog is short; shrinks +
-            scrolls when dialog hits sm:max-h-[72vh]. Bottom chrome stays visible.
-            Soft veil only — same thin type, slightly clearer read on blur. */}
+            scrolls when the dialog hits its max-height. Computer on: no 9rem
+            floor — the dock already takes the room; voice chrome stays visible. */}
         <div
           ref={scrollRef}
           data-agent-transcript
-          className="flex-auto min-h-0 sm:min-h-[9rem] overflow-y-auto overscroll-contain px-4 sm:px-5 py-3 sm:py-4 space-y-3.5 bg-[#fffcf7]/55"
+          className={`flex-auto min-h-0 ${computerMode ? '' : 'sm:min-h-[9rem]'} overflow-y-auto overscroll-contain px-4 sm:px-5 py-3 sm:py-4 space-y-3.5 bg-[#fffcf7]/55`}
         >
           {messages.length === 0 && !isOwner ? (
             <>
@@ -2048,10 +2048,10 @@ export default function AgentChat() {
 
         </div>
 
-        {/* Bottom chrome: orb → chat input → optional leave-a-note (collapsed). */}
-        <div className="shrink-0 flex flex-col">
-        {/* Stream + barge-in orb: compact but ceremonial instrument panel. */}
-        <div className={`shrink-0 overflow-hidden ${leadOpen ? 'max-h-[88px] sm:max-h-[128px]' : 'max-h-[128px]'}`}>
+        {/* Bottom chrome: orb → chat input → optional leave-a-note (collapsed).
+            Never clip the orb / city pills — the computer dock yields instead. */}
+        <div className="shrink-0 flex flex-col" data-testid="console-bottom-chrome">
+        <div className="shrink-0">
           <AgentVoiceOrb
             active={open && voiceMode}
             autoListen={autoListen}

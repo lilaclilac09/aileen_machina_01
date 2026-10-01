@@ -137,6 +137,7 @@ export default function PricingSlotTool() {
       title={tx.heading}
       subtitle={tx.body}
       marquee={tx.marquee}
+      demoVideo="/demos/pricing-slot.mp4"
     >
       <p style={{ margin: '0 0 16px', fontFamily: mono, fontSize: '0.72rem', color: 'rgba(20,17,12,0.45)' }}>
         {tx.spins}: <span style={{ color: '#c9872f' }}>{spins}</span>

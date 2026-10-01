@@ -17,6 +17,8 @@ type ArcadeLayoutProps = {
   marquee?: string;
   /** Tools hub is a centered shelf. Tool pages stay start-aligned. */
   align?: 'start' | 'center';
+  /** Walkthrough on this tool, same player as the intent demo. */
+  demoVideo?: string;
   children: ReactNode;
 };
 
@@ -28,6 +30,7 @@ export default function ArcadeLayout({
   backHref = '/tools',
   marquee,
   align = 'start',
+  demoVideo,
   children,
 }: ArcadeLayoutProps) {
   const marqueeText =
@@ -152,6 +155,14 @@ export default function ArcadeLayout({
               </p>
             ) : null}
           </div>
+          {demoVideo ? (
+            <figure className="tool-demo-video">
+              <video controls playsInline preload="metadata" src={demoVideo}>
+                Demo
+              </video>
+              <figcaption>Demo</figcaption>
+            </figure>
+          ) : null}
           {children}
         </main>
       </div>
