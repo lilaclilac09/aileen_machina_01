@@ -4,6 +4,66 @@
   "curation": "User links as-is; search Bleep/Beatport/Bandcamp; cover must match release.",
   "tracks": [
     {
+      "id": "ACQSCN",
+      "title": "Acquiescence",
+      "artist": "Eden Aurelius",
+      "album": "Entre Nous",
+      "bpm": 107,
+      "key": "4A",
+      "durationSec": 394,
+      "cover": "/dj-set/assets/covers/entre-nous.jpg"
+    },
+    {
+      "id": "ENTRNS",
+      "title": "Entre Nous",
+      "artist": "Eden Aurelius",
+      "album": "Entre Nous",
+      "bpm": 120,
+      "key": "4A",
+      "durationSec": 430,
+      "cover": "/dj-set/assets/covers/entre-nous.jpg"
+    },
+    {
+      "id": "PASSNG",
+      "title": "Passing",
+      "artist": "Eden Aurelius",
+      "album": "Entre Nous",
+      "bpm": 120,
+      "key": "4A",
+      "durationSec": 387,
+      "cover": "/dj-set/assets/covers/entre-nous.jpg"
+    },
+    {
+      "id": "IONPST",
+      "title": "Ion",
+      "artist": "Eden Aurelius · Pontiac Streator",
+      "album": "Entre Nous",
+      "bpm": 113,
+      "key": "2A",
+      "durationSec": 219,
+      "cover": "/dj-set/assets/covers/entre-nous.jpg"
+    },
+    {
+      "id": "DRKRM",
+      "title": "Darkroom",
+      "artist": "Eden Aurelius",
+      "album": "Entre Nous",
+      "bpm": 120,
+      "key": "4A",
+      "durationSec": 371,
+      "cover": "/dj-set/assets/covers/entre-nous.jpg"
+    },
+    {
+      "id": "ECLIPS",
+      "title": "Eclipse",
+      "artist": "Eden Aurelius",
+      "album": "Entre Nous",
+      "bpm": 120,
+      "key": "4A",
+      "durationSec": 392,
+      "cover": "/dj-set/assets/covers/entre-nous.jpg"
+    },
+    {
       "id": "RKTMRS",
       "title": "rocket to mars",
       "artist": "Matt Jinn",
