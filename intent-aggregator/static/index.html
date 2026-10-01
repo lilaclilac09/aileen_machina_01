@@ -5,64 +5,198 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>意图聚合器 Demo</title>
     <style>
-      :root { color-scheme: light; }
+      :root {
+        color-scheme: light;
+        --bg: #f4f6f8;
+        --card: #ffffff;
+        --ink: #1c2430;
+        --muted: #5c6778;
+        --line: #e6ebf1;
+        --accent: #0f6e6a;
+        --accent-soft: #e7f4f3;
+        --warn: #8a5a12;
+        --shadow: 0 10px 28px rgba(28, 36, 48, 0.06);
+      }
       * { box-sizing: border-box; }
       body {
         margin: 0;
-        background: #fbfaf6;
-        color: #14110c;
-        font: 16px/1.5 "Nunito", "PingFang SC", "Noto Sans SC", sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        font: 16px/1.55 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", sans-serif;
       }
-      main { max-width: 760px; margin: 0 auto; padding: 28px 16px 72px; display: grid; gap: 18px; }
-      header { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
-      h1 { margin: 0; font-weight: 560; font-size: 1.6rem; }
-      .badge, .tag, label, .note, .meta {
-        font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
-        letter-spacing: 0.04em;
+      main {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 28px 16px 80px;
+        display: grid;
+        gap: 20px;
+      }
+      header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 16px;
+        align-items: center;
+        justify-content: space-between;
+      }
+      h1 {
+        margin: 0;
+        font-size: 1.55rem;
+        font-weight: 620;
+        letter-spacing: -0.02em;
       }
       .badge {
-        font-size: 0.72rem;
-        padding: 4px 8px;
-        background: #efe6d4;
-        color: #6b5428;
+        font-size: 0.78rem;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #fff4df;
+        color: var(--warn);
       }
-      label { display: grid; gap: 6px; font-size: 0.72rem; text-transform: uppercase; color: rgba(20,17,12,0.5); }
-      select, textarea, button, input[type="file"] { font: inherit; color: #14110c; }
+      .panel, .card {
+        background: var(--card);
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+      }
+      .panel {
+        padding: 18px;
+        display: grid;
+        gap: 14px;
+      }
+      label {
+        display: grid;
+        gap: 8px;
+        font-size: 0.82rem;
+        color: var(--muted);
+      }
+      select, textarea, button {
+        font: inherit;
+        color: var(--ink);
+      }
       select, textarea {
         width: 100%;
-        border: none;
-        background: #f4f0e8;
-        padding: 12px;
-      }
-      textarea { min-height: 140px; resize: vertical; }
-      .row { display: flex; flex-wrap: wrap; gap: 8px; }
-      button, .file {
-        border: none;
-        background: #1f6f68;
-        color: #fbfaf6;
+        border: 1px solid var(--line);
+        background: #fbfcfd;
+        border-radius: 12px;
         padding: 12px 14px;
-        letter-spacing: 0.08em;
+      }
+      textarea { min-height: 148px; resize: vertical; }
+      .row { display: flex; flex-wrap: wrap; gap: 10px; }
+      button, .file {
+        border: 0;
+        border-radius: 12px;
+        padding: 12px 16px;
         cursor: pointer;
       }
-      button.ghost, .file { background: #14110c; }
-      button:disabled { opacity: 0.5; cursor: default; }
-      .file { display: inline-block; }
-      .card { display: grid; gap: 8px; padding: 14px 0; border-top: 1px solid rgba(20,17,12,0.08); }
-      .card.low { opacity: 0.48; }
-      .card h2, .card h3 { margin: 0; font-size: 0.95rem; font-weight: 600; }
-      .tag { font-size: 0.72rem; color: #6b5428; }
-      .bar { display: grid; grid-template-columns: minmax(72px, 120px) 1fr 42px; gap: 8px; align-items: center; font-family: ui-monospace, monospace; font-size: 0.72rem; }
-      .track { height: 8px; background: rgba(20,17,12,0.08); }
-      .fill { display: block; height: 100%; background: #1f6f68; }
-      .scale { display: flex; gap: 6px; }
-      .scale span { flex: 1; text-align: center; padding: 8px 0; background: rgba(20,17,12,0.06); font-family: ui-monospace, monospace; font-size: 0.72rem; }
-      .scale span.on { background: #1f6f68; color: #fbfaf6; }
-      .gauge { height: 8px; background: linear-gradient(90deg, #d8eeeb, #8a3b2a); position: relative; }
-      .gauge i { position: absolute; top: -4px; width: 2px; height: 16px; background: #14110c; }
-      .note { font-size: 0.75rem; color: rgba(20,17,12,0.55); white-space: pre-wrap; }
-      .err { color: #8a3b2a; margin: 0; }
-      @media (max-width: 640px) {
-        .bar { grid-template-columns: 1fr; }
+      button {
+        background: var(--accent);
+        color: #f7fffe;
+      }
+      button.ghost, .file {
+        background: #eef2f6;
+        color: var(--ink);
+      }
+      .file { display: inline-flex; align-items: center; }
+      button:disabled { opacity: 0.55; cursor: default; }
+      #out { display: grid; gap: 14px; }
+      .card { padding: 18px 18px 16px; display: grid; gap: 12px; }
+      .card.low {
+        background: #f3f4f6;
+        box-shadow: none;
+        color: #6b7280;
+      }
+      .card.low .fill, .card.low .pin, .card.low .mark { background: #9aa3af; }
+      .head { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: baseline; justify-content: space-between; }
+      .card h2, .card h3 { margin: 0; font-size: 0.95rem; font-weight: 620; }
+      .value { font-size: 1.15rem; font-weight: 620; }
+      .meta { font-size: 0.82rem; color: var(--muted); }
+      .card.low .meta { color: #6b7280; }
+      .tag {
+        display: inline-block;
+        font-size: 0.75rem;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: #eceff3;
+        color: #4b5563;
+      }
+      .bar {
+        display: grid;
+        grid-template-columns: minmax(4.5rem, 6.5rem) 1fr 2.6rem;
+        gap: 10px;
+        align-items: center;
+        font-size: 0.82rem;
+      }
+      .track {
+        height: 8px;
+        border-radius: 999px;
+        background: #e8edf2;
+        overflow: hidden;
+      }
+      .fill {
+        display: block;
+        height: 100%;
+        background: var(--accent);
+        border-radius: inherit;
+      }
+      .score { display: grid; gap: 8px; }
+      .score-rail {
+        position: relative;
+        height: 8px;
+        margin: 14px 8px 0;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #d7ebe9, #0f6e6a);
+      }
+      .pin {
+        position: absolute;
+        top: 50%;
+        width: 14px;
+        height: 14px;
+        margin: -7px 0 0 -7px;
+        border-radius: 50%;
+        background: var(--ink);
+        box-shadow: 0 0 0 3px #fff;
+      }
+      .ticks {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+        font-size: 0.75rem;
+        color: var(--muted);
+        text-align: center;
+      }
+      .gauge-wrap { display: grid; gap: 6px; }
+      .gauge-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.78rem;
+        color: var(--muted);
+      }
+      .gauge {
+        position: relative;
+        height: 10px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #d5ddd9, #c4553a);
+      }
+      .mark {
+        position: absolute;
+        top: -4px;
+        width: 3px;
+        height: 18px;
+        margin-left: -1px;
+        border-radius: 2px;
+        background: var(--ink);
+      }
+      .note {
+        margin: 0;
+        font-size: 0.8rem;
+        color: var(--muted);
+        white-space: pre-wrap;
+      }
+      .err { color: #9a3412; margin: 0; }
+      @media (min-width: 720px) {
+        main { padding-top: 48px; }
+      }
+      @media (max-width: 520px) {
+        .bar { grid-template-columns: 1fr; gap: 4px; }
+        .ticks { font-size: 0.7rem; }
       }
     </style>
   </head>
@@ -72,86 +206,127 @@
         <h1>意图聚合器 Demo</h1>
         <span class="badge">演示数据，未调用真实 API</span>
       </header>
-      <label>场景
-        <select id="scenario">
-          <option value="customer">客户意图</option>
-          <option value="meeting">会议判断</option>
-          <option value="ticket">工单路由</option>
-        </select>
-      </label>
-      <label>原文
-        <textarea id="text" placeholder="贴一段客户消息、会议记录或工单。"></textarea>
-      </label>
-      <div class="row">
-        <button type="button" id="sample" class="ghost">填入示例</button>
-        <label class="file">上传音频
-          <input id="audio" type="file" accept=".mp3,.wav,.m4a,audio/*" hidden />
+      <section class="panel">
+        <label>场景
+          <select id="scenario">
+            <option value="customer">客户意图</option>
+            <option value="meeting">会议判断</option>
+            <option value="ticket">工单路由</option>
+          </select>
         </label>
-        <button type="button" id="go">分析意图</button>
-      </div>
+        <label>原文
+          <textarea id="text" placeholder="贴一段客户消息、会议记录或工单。"></textarea>
+        </label>
+        <div class="row">
+          <button type="button" id="sample" class="ghost">填入示例</button>
+          <label class="file">上传音频
+            <input id="audio" type="file" accept=".mp3,.wav,.m4a,audio/*" hidden />
+          </label>
+          <button type="button" id="go">分析意图</button>
+        </div>
+      </section>
       <p id="error" class="err" hidden></p>
       <section id="out"></section>
       <p class="note">如何接真实后端
-把下面的 fetch 接到 POST /api/analyze，body 为 {scenario, text}。演示按钮目前只用本地样例。
+把分析按钮改成请求 POST /api/analyze，body 为 { scenario, text }。现在按钮只读本地演示数据。
 TODO:
-// const res = await fetch("/api/analyze", {
+// fetch("/api/analyze", {
 //   method: "POST",
 //   headers: { "Content-Type": "application/json" },
 //   body: JSON.stringify({ scenario, text })
-// });
-// const body = await res.json();</p>
+// })</p>
     </main>
     <script>
       const EXAMPLES = {
-        customer: "我上个月买的耳机第三天就坏了，客服一直不回。我要全额退款，今天就要处理，不然我就去投诉。",
-        meeting: "这个方案方向我认可，但预算超了四成。市场部的投放先砍掉，下周拿一版砍过的数字再来。",
-        ticket: "发票抬头写错了，三月的账单扣了两次，请把多扣的 860 元退回原支付账户。"
+        customer: "订单已经晚了五天还没送到。我今天就要全额退款，不然我就发到社交平台公开投诉你们。",
+        meeting: "周会摘录：老板两次打断，说获客成本还在涨。他要看每个渠道的投入产出，这个方案先不拍板，决定推迟。",
+        ticket: "我的发票显示这个月被扣了两次款，请尽快改掉。"
       };
+
       const MOCK = {
         customer: {
-          suggested_action: "escalate_human",
+          suggested_action: "转人工",
           answers: {
-            intent: { type: "choice", choice: "refund", confidence: 0.91, probabilities: { refund: 0.91, complaint: 0.07, undecided: 0.02 } },
-            urgency: { type: "score", score: 2.4, confidence: 0.84, legend: { "0": "不急", "1": "可等", "2": "尽快", "3": "立刻" }, probabilities: { "0": 0.02, "1": 0.08, "2": 0.55, "3": 0.35 } },
-            needs_human: { type: "noul", noul: 0.86 },
-            next_action: { type: "choice", choice: "escalate_human", confidence: 0.42, probabilities: { escalate_human: 0.42, create_ticket: 0.31, follow_up: 0.27 } }
+            intent: {
+              type: "choice",
+              choice: "退款",
+              confidence: 0.78,
+              probabilities: { "下单": 0.01, "咨询": 0.02, "投诉": 0.13, "退款": 0.82, "比价": 0.0, "闲聊": 0.0, "无法判断": 0.02 }
+            },
+            urgency: {
+              type: "score",
+              score: 2.4,
+              confidence: 0.81,
+              legend: { "0": "不急", "1": "一般", "2": "急", "3": "非常急" }
+            },
+            needs_human: { type: "noul", noul: 0.91 },
+            next_action: {
+              type: "choice",
+              choice: "转人工",
+              confidence: 0.42,
+              probabilities: { "自动回复": 0.18, "建工单": 0.27, "转人工": 0.42, "跟进回访": 0.13 }
+            }
           }
         },
         meeting: {
-          suggested_action: "prepare_revision",
+          suggested_action: "准备修改版",
           answers: {
-            stance: { type: "choice", choice: "skeptical", confidence: 0.78, probabilities: { skeptical: 0.62, support: 0.28, oppose: 0.1 } },
-            resistance: { type: "score", score: 2.1, confidence: 0.8, legend: { "0": "无阻力", "1": "犹豫", "2": "明确反对", "3": "强烈反对" }, probabilities: { "0": 0.02, "1": 0.18, "2": 0.62, "3": 0.18 } },
-            wants_revision: { type: "noul", noul: 0.9 },
-            next_action: { type: "choice", choice: "revise", confidence: 0.83, probabilities: { revise: 0.83, shelve: 0.1, approve: 0.07 } }
+            stance: {
+              type: "choice",
+              choice: "存疑",
+              confidence: 0.74,
+              probabilities: { "支持": 0.16, "存疑": 0.61, "反对": 0.14, "无法判断": 0.09 }
+            },
+            resistance: {
+              type: "score",
+              score: 1.8,
+              confidence: 0.7,
+              legend: { "0": "无抵触", "1": "轻微疑虑", "2": "明显抵触", "3": "强烈反对" }
+            },
+            wants_revision: { type: "noul", noul: 0.88 },
+            next_action: {
+              type: "choice",
+              choice: "打回修改",
+              confidence: 0.76,
+              probabilities: { "通过": 0.08, "打回修改": 0.71, "搁置": 0.16, "上报": 0.05 }
+            }
           }
         },
         ticket: {
-          suggested_action: "handle_immediately",
+          suggested_action: "账单组加急",
           answers: {
-            department: { type: "choice", choice: "billing", confidence: 0.88, probabilities: { billing: 0.88, technical: 0.08, sales: 0.04 } },
-            is_urgent: { type: "noul", noul: 0.8 }
+            department: {
+              type: "choice",
+              choice: "账单",
+              confidence: 0.86,
+              probabilities: { "账单": 0.84, "技术": 0.09, "销售": 0.07 }
+            },
+            is_urgent: { type: "noul", noul: 0.93 }
           }
         }
       };
+
       const LABELS = {
-        intent: "客户想做什么",
-        urgency: "有多急",
-        needs_human: "要不要人工",
+        intent: "意图",
+        urgency: "紧急程度",
+        needs_human: "是否转人工",
         next_action: "下一步",
         stance: "立场",
-        resistance: "阻力",
-        wants_revision: "是否要改方案",
-        department: "交给哪个组",
+        resistance: "抵触程度",
+        wants_revision: "是否要求实质性修改",
+        department: "部门",
         is_urgent: "是否紧急"
       };
+
       const scenario = document.querySelector("#scenario");
       const text = document.querySelector("#text");
       const error = document.querySelector("#error");
       const out = document.querySelector("#out");
+
       document.querySelector("#sample").onclick = () => {
         text.value = EXAMPLES[scenario.value];
       };
+
       document.querySelector("#audio").onchange = async (event) => {
         const file = event.target.files && event.target.files[0];
         if (!file) return;
@@ -172,77 +347,125 @@ TODO:
           error.textContent = "转写失败";
         }
       };
+
       document.querySelector("#go").onclick = () => {
         error.hidden = true;
         out.replaceChildren();
         const data = MOCK[scenario.value];
+        // TODO: replace this mock with
+        // fetch("/api/analyze", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ scenario: scenario.value, text: text.value }) })
         const action = document.createElement("article");
         action.className = "card";
-        action.innerHTML = "<h2>建议动作</h2><div></div>";
-        action.lastChild.textContent = data.suggested_action;
+        action.innerHTML = "<h2>建议动作</h2>";
+        const actionValue = document.createElement("div");
+        actionValue.className = "value";
+        actionValue.textContent = data.suggested_action;
+        action.append(actionValue);
         out.append(action);
+
         for (const [id, answer] of Object.entries(data.answers)) {
           const card = document.createElement("article");
-          const low = typeof answer.confidence === "number" && answer.confidence < 0.5;
+          const confidence = displayConfidence(answer);
+          const low = confidence < 0.5;
           card.className = low ? "card low" : "card";
+
+          const head = document.createElement("div");
+          head.className = "head";
           const title = document.createElement("h3");
           title.textContent = LABELS[id] || id;
-          card.append(title);
-          const value = document.createElement("div");
-          const shown = answer.choice ?? answer.score ?? (answer.noul < 0.5 ? "否" : "是");
-          value.textContent = typeof answer.confidence === "number"
-            ? shown + "    置信度 " + answer.confidence.toFixed(2)
-            : "是非概率 " + Number(answer.noul).toFixed(2);
-          card.append(value);
+          head.append(title);
           if (low) {
-            const tag = document.createElement("div");
+            const tag = document.createElement("span");
             tag.className = "tag";
             tag.textContent = "仅供参考";
-            card.append(tag);
+            head.append(tag);
           }
-          if (answer.type === "choice" && answer.probabilities) bars(card, answer);
-          if (answer.type === "score") scale(card, answer);
+          card.append(head);
+
+          const value = document.createElement("div");
+          value.className = "value";
+          value.textContent = winning(answer);
+          card.append(value);
+
+          const meta = document.createElement("div");
+          meta.className = "meta";
+          meta.textContent = "置信度 " + confidence.toFixed(2);
+          card.append(meta);
+
+          if (answer.type === "choice") bars(card, answer);
+          if (answer.type === "score") scoreScale(card, answer);
           if (answer.type === "noul") gauge(card, answer.noul);
           out.append(card);
         }
       };
+
+      // displayConfidence is for the demo UI only.
+      // A real noul answer is { "noul": number } and has no confidence field.
+      function displayConfidence(answer) {
+        if (typeof answer.confidence === "number") return answer.confidence;
+        const noul = Number(answer.noul);
+        return Math.min(0.95, 0.55 + Math.abs(noul - 0.5));
+      }
+
+      function winning(answer) {
+        if (answer.type === "choice") return answer.choice;
+        if (answer.type === "score") {
+          const nearest = String(Math.max(0, Math.min(3, Math.round(answer.score))));
+          const label = answer.legend && answer.legend[nearest];
+          return answer.score.toFixed(1) + (label ? " · " + label : "");
+        }
+        return Number(answer.noul) >= 0.5 ? "是" : "否";
+      }
+
       function bars(card, answer) {
         for (const [key, prob] of Object.entries(answer.probabilities)) {
           const row = document.createElement("div");
           row.className = "bar";
-          const width = Math.max(0, Math.min(100, Math.round(prob * 100)));
-          row.innerHTML = '<span></span><span class="track"><span class="fill"></span></span><span></span>';
-          row.children[0].textContent = (answer.legend && answer.legend[key]) || key;
+          const width = Math.max(0, Math.min(100, Math.round(Number(prob) * 100)));
+          row.innerHTML = "<span></span><span class=\"track\"><span class=\"fill\"></span></span><span></span>";
+          row.children[0].textContent = key;
           row.children[1].firstChild.style.width = width + "%";
           row.children[2].textContent = width + "%";
           card.append(row);
         }
       }
-      function scale(card, answer) {
+
+      function scoreScale(card, answer) {
         const wrap = document.createElement("div");
-        wrap.className = "scale";
-        const level = Math.max(0, Math.min(3, Math.round(answer.score)));
+        wrap.className = "score";
+        const rail = document.createElement("div");
+        rail.className = "score-rail";
+        const pin = document.createElement("i");
+        pin.className = "pin";
+        const ratio = Math.max(0, Math.min(1, Number(answer.score) / 3));
+        pin.style.left = (ratio * 100) + "%";
+        rail.append(pin);
+        const ticks = document.createElement("div");
+        ticks.className = "ticks";
         for (let i = 0; i <= 3; i += 1) {
           const cell = document.createElement("span");
-          cell.textContent = (answer.legend && answer.legend[String(i)]) || String(i);
-          if (i === level) cell.className = "on";
-          wrap.append(cell);
+          const label = (answer.legend && answer.legend[String(i)]) || String(i);
+          cell.textContent = i + " " + label;
+          ticks.append(cell);
         }
+        wrap.append(rail, ticks);
         card.append(wrap);
       }
+
       function gauge(card, noul) {
         const wrap = document.createElement("div");
-        wrap.className = "gauge";
+        wrap.className = "gauge-wrap";
+        const labels = document.createElement("div");
+        labels.className = "gauge-labels";
+        labels.innerHTML = "<span>否</span><span>是 " + Math.round(noul * 100) + "%</span>";
+        const rail = document.createElement("div");
+        rail.className = "gauge";
         const mark = document.createElement("i");
+        mark.className = "mark";
         mark.style.left = Math.max(0, Math.min(100, noul * 100)) + "%";
-        wrap.append(mark);
+        rail.append(mark);
+        wrap.append(labels, rail);
         card.append(wrap);
-        if (Math.abs(noul - 0.5) < 0.1) {
-          const note = document.createElement("div");
-          note.className = "tag";
-          note.textContent = "是和否一样可能，不是中等";
-          card.append(note);
-        }
       }
     </script>
   </body>
