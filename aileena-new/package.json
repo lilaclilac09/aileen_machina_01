@@ -25,6 +25,7 @@
     "memory:workflow": "tsx scripts/sync-carousel-evolve.ts && tsx scripts/sync-content-memory.ts && tsx scripts/dreaming-consolidate.ts && tsx scripts/build-memory-index.ts",
     "memory:on-article": "tsx scripts/sync-carousel-evolve.ts && tsx scripts/sync-content-memory.ts && tsx scripts/dreaming-consolidate.ts && tsx scripts/build-memory-index.ts",
     "verify:doors-nav": "tsx scripts/verify-doors-nav.ts",
+    "verify:duo": "tsx scripts/verify-duo-pose.ts",
     "verify:daily-board": "tsx scripts/verify-daily-board.ts",
     "verify:computer-prototype": "tsx scripts/verify-computer-prototype.ts",
     "verify:proof-queue": "tsx scripts/verify-computer-prototype.ts",

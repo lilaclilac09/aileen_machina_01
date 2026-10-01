@@ -16,7 +16,7 @@ export default function SoundPage() {
   return (
     <div
       style={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         background: '#000',
         color: 'rgba(255,253,248,0.86)',
         fontFamily: nunito,
