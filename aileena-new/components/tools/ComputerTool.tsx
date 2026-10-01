@@ -13,7 +13,7 @@ export default function ComputerTool() {
   const tool = getToolBySlug('computer');
 
   return (
-    <ArcadeLayout tag={tx.tag} title={tx.heading} subtitle={tx.body} marquee={tx.marquee}>
+    <ArcadeLayout tag={tx.tag} title={tx.heading} subtitle={tx.body} marquee={tx.marquee} demoVideo="/demos/computer.mp4">
       <div style={{ display: 'grid', gap: 28, maxWidth: 720, margin: '0 auto' }}>
         <ArcadeCabinetFrame
           glyph={tool?.arcade.glyph ?? '⌘'}
