@@ -33,7 +33,7 @@ const refundNow = {
 };
 assert(
   'urgent refund escalates even if the model says auto_reply',
-  suggestedAction('customer', refundNow) === 'escalate_human',
+  suggestedAction('customer', refundNow).action === 'escalate_human',
 );
 
 assert(
@@ -43,60 +43,59 @@ assert(
     needs_human: { type: 'noul', noul: 0.71 },
     urgency: { type: 'score', score: 0 },
     intent: { type: 'choice', choice: 'inquiry', confidence: 0.9 },
-  }) === 'escalate_human',
+  }).action === 'escalate_human',
 );
 
 assert(
   'calm inquiry auto-replies',
   suggestedAction('customer', {
     intent: { type: 'choice', choice: 'inquiry', confidence: 0.8 },
-    urgency: { type: 'score', score: 0.2 },
+    urgency: { type: 'score', score: 0.2, confidence: 0.8 },
     needs_human: { type: 'noul', noul: 0.1 },
-  }) === 'auto_reply',
+  }).action === 'auto_reply',
 );
 
-assert(
-  'low confidence intent is follow_up',
-  suggestedAction('customer', {
-    intent: { type: 'choice', choice: 'inquiry', confidence: 0.4 },
-    urgency: { type: 'score', score: 0 },
-    needs_human: { type: 'noul', noul: 0.1 },
-  }) === 'follow_up',
-);
+const low = suggestedAction('customer', {
+  intent: { type: 'choice', choice: 'inquiry', confidence: 0.4 },
+  urgency: { type: 'score', score: 0, confidence: 0.9 },
+  needs_human: { type: 'noul', noul: 0.95 },
+});
+assert('low confidence is review_manually', low.action === 'review_manually' && low.lowConfidence[0] === 'intent');
 
 assert(
-  'opposed high resistance escalates the meeting',
+  'opposed meeting is shelved',
   suggestedAction('meeting', {
     stance: { type: 'choice', choice: 'oppose', confidence: 0.88 },
-    resistance: { type: 'score', score: 2.2 },
+    resistance: { type: 'score', score: 2.2, confidence: 0.8 },
     wants_revision: { type: 'noul', noul: 0.2 },
     next_action: { type: 'choice', choice: 'approve', confidence: 0.9 },
-  }) === 'escalate',
+  }).action === 'shelve',
 );
 
 assert(
   'supported quiet meeting approves',
   suggestedAction('meeting', {
     stance: { type: 'choice', choice: 'support', confidence: 0.9 },
-    resistance: { type: 'score', score: 0.2 },
+    resistance: { type: 'score', score: 0.2, confidence: 0.8 },
     wants_revision: { type: 'noul', noul: 0.1 },
-  }) === 'approve',
+    next_action: { type: 'choice', choice: 'approve', confidence: 0.9 },
+  }).action === 'approve',
 );
 
 assert(
-  'urgent billing ticket is urgent_billing',
+  'urgent billing ticket is handle_immediately',
   suggestedAction('ticket', {
     department: { type: 'choice', choice: 'billing', confidence: 0.88 },
     is_urgent: { type: 'noul', noul: 0.95 },
-  }) === 'urgent_billing',
+  }).action === 'handle_immediately',
 );
 
 assert(
-  'unsure department holds',
+  'unsure department is review_manually',
   suggestedAction('ticket', {
     department: { type: 'choice', choice: 'billing', confidence: 0.2 },
     is_urgent: { type: 'noul', noul: 0.95 },
-  }) === 'hold',
+  }).action === 'review_manually',
 );
 
 async function main() {
@@ -115,7 +114,7 @@ async function main() {
   }
 
   const seen = await analyzeIntent('customer', '  refund today  ', async (body) => {
-    assert('state is trimmed text', body.state === 'refund today');
+    assert('state is trimmed text', body.state.text === 'refund today' && body.state.scenario === 'customer');
     assert('model is jev-latest', body.model === 'jev-latest');
     assert('one request contains every customer question', Object.keys(body.questions).length === 4);
     return {

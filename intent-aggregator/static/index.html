@@ -1,118 +1,249 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Intent Aggregator</title>
+    <title>意图聚合器 Demo</title>
     <style>
-      body { margin: 0; background: #fbfaf6; color: #14110c; font: 16px/1.5 Nunito, system-ui, sans-serif; }
-      main { max-width: 720px; margin: 0 auto; padding: 32px 20px 64px; display: grid; gap: 18px; }
-      h1 { font-weight: 500; font-size: 1.6rem; margin: 0; }
-      p { margin: 0; color: rgba(20,17,12,0.62); }
-      label { display: grid; gap: 6px; font-family: ui-monospace, monospace; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(20,17,12,0.48); }
-      select, textarea, button { font: inherit; color: #14110c; }
-      select, textarea { background: #f7f4ee; border: none; padding: 12px; }
-      button { background: #1f6f68; color: #fbfaf6; border: none; padding: 12px 16px; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; }
-      button:disabled { opacity: 0.5; }
-      article { display: grid; gap: 6px; }
-      .low { opacity: 0.55; }
-      .bar { display: grid; grid-template-columns: 140px 1fr 42px; gap: 8px; align-items: center; font-family: ui-monospace, monospace; font-size: 0.72rem; }
+      :root { color-scheme: light; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: #fbfaf6;
+        color: #14110c;
+        font: 16px/1.5 "Nunito", "PingFang SC", "Noto Sans SC", sans-serif;
+      }
+      main { max-width: 760px; margin: 0 auto; padding: 28px 16px 72px; display: grid; gap: 18px; }
+      header { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+      h1 { margin: 0; font-weight: 560; font-size: 1.6rem; }
+      .badge, .tag, label, .note, .meta {
+        font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+        letter-spacing: 0.04em;
+      }
+      .badge {
+        font-size: 0.72rem;
+        padding: 4px 8px;
+        background: #efe6d4;
+        color: #6b5428;
+      }
+      label { display: grid; gap: 6px; font-size: 0.72rem; text-transform: uppercase; color: rgba(20,17,12,0.5); }
+      select, textarea, button, input[type="file"] { font: inherit; color: #14110c; }
+      select, textarea {
+        width: 100%;
+        border: none;
+        background: #f4f0e8;
+        padding: 12px;
+      }
+      textarea { min-height: 140px; resize: vertical; }
+      .row { display: flex; flex-wrap: wrap; gap: 8px; }
+      button, .file {
+        border: none;
+        background: #1f6f68;
+        color: #fbfaf6;
+        padding: 12px 14px;
+        letter-spacing: 0.08em;
+        cursor: pointer;
+      }
+      button.ghost, .file { background: #14110c; }
+      button:disabled { opacity: 0.5; cursor: default; }
+      .file { display: inline-block; }
+      .card { display: grid; gap: 8px; padding: 14px 0; border-top: 1px solid rgba(20,17,12,0.08); }
+      .card.low { opacity: 0.48; }
+      .card h2, .card h3 { margin: 0; font-size: 0.95rem; font-weight: 600; }
+      .tag { font-size: 0.72rem; color: #6b5428; }
+      .bar { display: grid; grid-template-columns: minmax(72px, 120px) 1fr 42px; gap: 8px; align-items: center; font-family: ui-monospace, monospace; font-size: 0.72rem; }
       .track { height: 8px; background: rgba(20,17,12,0.08); }
-      .fill { height: 100%; background: #1f6f68; }
-      .err { color: #8a3b2a; }
+      .fill { display: block; height: 100%; background: #1f6f68; }
+      .scale { display: flex; gap: 6px; }
+      .scale span { flex: 1; text-align: center; padding: 8px 0; background: rgba(20,17,12,0.06); font-family: ui-monospace, monospace; font-size: 0.72rem; }
+      .scale span.on { background: #1f6f68; color: #fbfaf6; }
+      .gauge { height: 8px; background: linear-gradient(90deg, #d8eeeb, #8a3b2a); position: relative; }
+      .gauge i { position: absolute; top: -4px; width: 2px; height: 16px; background: #14110c; }
+      .note { font-size: 0.75rem; color: rgba(20,17,12,0.55); white-space: pre-wrap; }
+      .err { color: #8a3b2a; margin: 0; }
+      @media (max-width: 640px) {
+        .bar { grid-template-columns: 1fr; }
+      }
     </style>
   </head>
   <body>
     <main>
-      <h1>Intent Aggregator</h1>
-      <p>Text in. Structured intent out. Confidence under 0.5 is for reference only.</p>
-      <form id="form">
-        <label>Scenario
-          <select id="scenario" name="scenario">
-            <option value="customer">Customer</option>
-            <option value="meeting">Meeting</option>
-            <option value="ticket">Ticket</option>
-          </select>
+      <header>
+        <h1>意图聚合器 Demo</h1>
+        <span class="badge">演示数据，未调用真实 API</span>
+      </header>
+      <label>场景
+        <select id="scenario">
+          <option value="customer">客户意图</option>
+          <option value="meeting">会议判断</option>
+          <option value="ticket">工单路由</option>
+        </select>
+      </label>
+      <label>原文
+        <textarea id="text" placeholder="贴一段客户消息、会议记录或工单。"></textarea>
+      </label>
+      <div class="row">
+        <button type="button" id="sample" class="ghost">填入示例</button>
+        <label class="file">上传音频
+          <input id="audio" type="file" accept=".mp3,.wav,.m4a,audio/*" hidden />
         </label>
-        <label style="margin-top:12px">Text
-          <textarea id="text" name="text" rows="7" placeholder="A customer message, meeting note, or ticket."></textarea>
-        </label>
-        <button id="go" type="submit" style="margin-top:12px">Analyze</button>
-      </form>
+        <button type="button" id="go">分析意图</button>
+      </div>
       <p id="error" class="err" hidden></p>
       <section id="out"></section>
+      <p class="note">如何接真实后端
+把下面的 fetch 接到 POST /api/analyze，body 为 {scenario, text}。演示按钮目前只用本地样例。
+TODO:
+// const res = await fetch("/api/analyze", {
+//   method: "POST",
+//   headers: { "Content-Type": "application/json" },
+//   body: JSON.stringify({ scenario, text })
+// });
+// const body = await res.json();</p>
     </main>
     <script>
-      const form = document.querySelector('#form');
-      const error = document.querySelector('#error');
-      const out = document.querySelector('#out');
-      const go = document.querySelector('#go');
-      form.addEventListener('submit', async (event) => {
-        event.preventDefault();
+      const EXAMPLES = {
+        customer: "我上个月买的耳机第三天就坏了，客服一直不回。我要全额退款，今天就要处理，不然我就去投诉。",
+        meeting: "这个方案方向我认可，但预算超了四成。市场部的投放先砍掉，下周拿一版砍过的数字再来。",
+        ticket: "发票抬头写错了，三月的账单扣了两次，请把多扣的 860 元退回原支付账户。"
+      };
+      const MOCK = {
+        customer: {
+          suggested_action: "escalate_human",
+          answers: {
+            intent: { type: "choice", choice: "refund", confidence: 0.91, probabilities: { refund: 0.91, complaint: 0.07, undecided: 0.02 } },
+            urgency: { type: "score", score: 2.4, confidence: 0.84, legend: { "0": "不急", "1": "可等", "2": "尽快", "3": "立刻" }, probabilities: { "0": 0.02, "1": 0.08, "2": 0.55, "3": 0.35 } },
+            needs_human: { type: "noul", noul: 0.86 },
+            next_action: { type: "choice", choice: "escalate_human", confidence: 0.42, probabilities: { escalate_human: 0.42, create_ticket: 0.31, follow_up: 0.27 } }
+          }
+        },
+        meeting: {
+          suggested_action: "prepare_revision",
+          answers: {
+            stance: { type: "choice", choice: "skeptical", confidence: 0.78, probabilities: { skeptical: 0.62, support: 0.28, oppose: 0.1 } },
+            resistance: { type: "score", score: 2.1, confidence: 0.8, legend: { "0": "无阻力", "1": "犹豫", "2": "明确反对", "3": "强烈反对" }, probabilities: { "0": 0.02, "1": 0.18, "2": 0.62, "3": 0.18 } },
+            wants_revision: { type: "noul", noul: 0.9 },
+            next_action: { type: "choice", choice: "revise", confidence: 0.83, probabilities: { revise: 0.83, shelve: 0.1, approve: 0.07 } }
+          }
+        },
+        ticket: {
+          suggested_action: "handle_immediately",
+          answers: {
+            department: { type: "choice", choice: "billing", confidence: 0.88, probabilities: { billing: 0.88, technical: 0.08, sales: 0.04 } },
+            is_urgent: { type: "noul", noul: 0.8 }
+          }
+        }
+      };
+      const LABELS = {
+        intent: "客户想做什么",
+        urgency: "有多急",
+        needs_human: "要不要人工",
+        next_action: "下一步",
+        stance: "立场",
+        resistance: "阻力",
+        wants_revision: "是否要改方案",
+        department: "交给哪个组",
+        is_urgent: "是否紧急"
+      };
+      const scenario = document.querySelector("#scenario");
+      const text = document.querySelector("#text");
+      const error = document.querySelector("#error");
+      const out = document.querySelector("#out");
+      document.querySelector("#sample").onclick = () => {
+        text.value = EXAMPLES[scenario.value];
+      };
+      document.querySelector("#audio").onchange = async (event) => {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
         error.hidden = true;
-        out.replaceChildren();
-        go.disabled = true;
+        const body = new FormData();
+        body.append("file", file);
         try {
-          const res = await fetch('/api/analyze', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              scenario: document.querySelector('#scenario').value,
-              text: document.querySelector('#text').value,
-            }),
-          });
-          const body = await res.json();
+          const res = await fetch("/api/transcribe", { method: "POST", body });
+          const payload = await res.json();
           if (!res.ok) {
             error.hidden = false;
-            error.textContent = body.error || 'failed';
+            error.textContent = payload.error || "转写失败";
             return;
           }
-          const action = document.createElement('p');
-          action.textContent = body.suggested_action || '';
-          out.append(action);
-          for (const [id, answer] of Object.entries(body.answers || {})) {
-            const card = document.createElement('article');
-            const low = typeof answer.confidence === 'number' && answer.confidence < 0.5;
-            if (low) card.className = 'low';
-            const title = document.createElement('strong');
-            title.textContent = id;
-            const value = document.createElement('div');
-            const shown = answer.choice ?? answer.score ?? answer.noul ?? '';
-            value.textContent = typeof answer.confidence === 'number'
-              ? shown + '  confidence ' + answer.confidence.toFixed(2)
-              : String(shown);
-            card.append(title, value);
-            if (low) {
-              const note = document.createElement('div');
-              note.textContent = 'for reference only';
-              card.append(note);
-            }
-            if (answer.type === 'noul' && typeof answer.noul === 'number' && Math.abs(answer.noul - 0.5) < 0.1) {
-              const note = document.createElement('div');
-              note.textContent = 'yes and no are equally likely';
-              card.append(note);
-            }
-            if (answer.probabilities) {
-              for (const [key, prob] of Object.entries(answer.probabilities)) {
-                const row = document.createElement('div');
-                row.className = 'bar';
-                const width = Math.max(0, Math.min(100, Math.round(prob * 100)));
-                row.innerHTML = '<span></span><span class="track"><span class="fill"></span></span><span></span>';
-                row.children[0].textContent = (answer.legend && answer.legend[key]) || key;
-                row.children[1].firstChild.style.width = width + '%';
-                row.children[2].textContent = width + '%';
-                card.append(row);
-              }
-            }
-            out.append(card);
-          }
+          text.value = payload.text || "";
         } catch {
           error.hidden = false;
-          error.textContent = 'failed';
-        } finally {
-          go.disabled = false;
+          error.textContent = "转写失败";
         }
-      });
+      };
+      document.querySelector("#go").onclick = () => {
+        error.hidden = true;
+        out.replaceChildren();
+        const data = MOCK[scenario.value];
+        const action = document.createElement("article");
+        action.className = "card";
+        action.innerHTML = "<h2>建议动作</h2><div></div>";
+        action.lastChild.textContent = data.suggested_action;
+        out.append(action);
+        for (const [id, answer] of Object.entries(data.answers)) {
+          const card = document.createElement("article");
+          const low = typeof answer.confidence === "number" && answer.confidence < 0.5;
+          card.className = low ? "card low" : "card";
+          const title = document.createElement("h3");
+          title.textContent = LABELS[id] || id;
+          card.append(title);
+          const value = document.createElement("div");
+          const shown = answer.choice ?? answer.score ?? (answer.noul < 0.5 ? "否" : "是");
+          value.textContent = typeof answer.confidence === "number"
+            ? shown + "    置信度 " + answer.confidence.toFixed(2)
+            : "是非概率 " + Number(answer.noul).toFixed(2);
+          card.append(value);
+          if (low) {
+            const tag = document.createElement("div");
+            tag.className = "tag";
+            tag.textContent = "仅供参考";
+            card.append(tag);
+          }
+          if (answer.type === "choice" && answer.probabilities) bars(card, answer);
+          if (answer.type === "score") scale(card, answer);
+          if (answer.type === "noul") gauge(card, answer.noul);
+          out.append(card);
+        }
+      };
+      function bars(card, answer) {
+        for (const [key, prob] of Object.entries(answer.probabilities)) {
+          const row = document.createElement("div");
+          row.className = "bar";
+          const width = Math.max(0, Math.min(100, Math.round(prob * 100)));
+          row.innerHTML = '<span></span><span class="track"><span class="fill"></span></span><span></span>';
+          row.children[0].textContent = (answer.legend && answer.legend[key]) || key;
+          row.children[1].firstChild.style.width = width + "%";
+          row.children[2].textContent = width + "%";
+          card.append(row);
+        }
+      }
+      function scale(card, answer) {
+        const wrap = document.createElement("div");
+        wrap.className = "scale";
+        const level = Math.max(0, Math.min(3, Math.round(answer.score)));
+        for (let i = 0; i <= 3; i += 1) {
+          const cell = document.createElement("span");
+          cell.textContent = (answer.legend && answer.legend[String(i)]) || String(i);
+          if (i === level) cell.className = "on";
+          wrap.append(cell);
+        }
+        card.append(wrap);
+      }
+      function gauge(card, noul) {
+        const wrap = document.createElement("div");
+        wrap.className = "gauge";
+        const mark = document.createElement("i");
+        mark.style.left = Math.max(0, Math.min(100, noul * 100)) + "%";
+        wrap.append(mark);
+        card.append(wrap);
+        if (Math.abs(noul - 0.5) < 0.1) {
+          const note = document.createElement("div");
+          note.className = "tag";
+          note.textContent = "是和否一样可能，不是中等";
+          card.append(note);
+        }
+      }
     </script>
   </body>
 </html>

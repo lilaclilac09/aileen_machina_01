@@ -54,7 +54,7 @@ fn choice(instructions: &'static str, pairs: &[(&'static str, &'static str)]) ->
     }
 }
 
-fn noul(instructions: &'static str, yes: &'static str, no: &'static str) -> Question {
+pub fn noul(instructions: &'static str, yes: &'static str, no: &'static str) -> Question {
     Question::Noul {
         instructions,
         criteria: NoulCriteria { yes, no },

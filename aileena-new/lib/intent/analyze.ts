@@ -17,6 +17,7 @@ export class IntentError extends Error {
 export type AnalyzeResult = {
   answers: AnswerMap;
   suggested_action: string;
+  low_confidence?: string[];
 };
 
 type JevPayload = {
@@ -24,7 +25,7 @@ type JevPayload = {
 };
 
 export type JevCaller = (body: {
-  state: string;
+  state: { scenario: Scenario; text: string };
   model: 'jev-latest';
   questions: ReturnType<typeof questionsFor>;
 }) => Promise<JevPayload>;
@@ -60,7 +61,7 @@ export function publicMessage(code: string): string {
 
 /** Server-side Jev call. The key never leaves this process. */
 export async function callJev(body: {
-  state: string;
+  state: { scenario: Scenario; text: string };
   model: 'jev-latest';
   questions: ReturnType<typeof questionsFor>;
 }): Promise<JevPayload> {
@@ -116,7 +117,7 @@ export async function analyzeIntent(
   if (trimmed.length > MAX_TEXT) throw new IntentError('text_too_long', 400);
 
   const jev = await call({
-    state: trimmed,
+    state: { scenario, text: trimmed },
     model: 'jev-latest',
     questions: questionsFor(scenario),
   });
@@ -125,8 +126,10 @@ export async function analyzeIntent(
     throw new IntentError('bad_upstream', 502);
   }
 
+  const decision = suggestedAction(scenario, answers);
   return {
     answers,
-    suggested_action: suggestedAction(scenario, answers),
+    suggested_action: decision.action,
+    ...(decision.lowConfidence.length > 0 ? { low_confidence: decision.lowConfidence } : {}),
   };
 }

@@ -1,25 +1,29 @@
 /**
- * Thresholds live here. Branching lives here.
+ * Same gates as intent-aggregator/src/decide.rs.
  * The model's next_action answer is not the action we return.
  */
 
 import type { Scenario } from './questions';
 
 export const THRESHOLDS = {
-  escalateNoul: 0.7,
-  urgentScore: 2,
   lowConfidence: 0.5,
-  reviseNoul: 0.7,
-  highResistance: 2,
-  approveResistance: 1,
-  approveRevision: 0.5,
+  needsHumanNoul: 0.7,
+  wantsRevisionNoul: 0.7,
+  isUrgentNoul: 0.7,
+  urgentScore: 2,
+  quietResistance: 1,
 } as const;
 
 export type AnswerMap = Record<string, unknown>;
 
 type ChoiceAnswer = { choice?: unknown; confidence?: unknown };
-type ScoreAnswer = { score?: unknown };
+type ScoreAnswer = { score?: unknown; confidence?: unknown };
 type NoulAnswer = { noul?: unknown };
+
+export type Decision = {
+  action: string;
+  lowConfidence: string[];
+};
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
@@ -45,55 +49,55 @@ function noulOf(answers: AnswerMap, id: string): number | null {
   return row.noul;
 }
 
-function customerAction(answers: AnswerMap): string {
-  const human = noulOf(answers, 'needs_human');
-  const urgency = scoreOf(answers, 'urgency');
-  const intent = choiceOf(answers, 'intent');
-  if (human == null || urgency == null || intent == null) return 'follow_up';
-  if (human >= THRESHOLDS.escalateNoul) return 'escalate_human';
-  if (intent.choice === 'complaint' || intent.choice === 'refund') {
-    if (urgency >= THRESHOLDS.urgentScore) return 'escalate_human';
-    return 'create_ticket';
+function lowConfidenceIds(answers: AnswerMap): string[] {
+  const ids: string[] = [];
+  for (const [id, value] of Object.entries(answers)) {
+    const row = asRecord(value);
+    if (!row || typeof row.confidence !== 'number') continue;
+    if (row.confidence < THRESHOLDS.lowConfidence) ids.push(id);
   }
-  if (intent.choice === 'undecided' || intent.confidence < THRESHOLDS.lowConfidence) {
-    return 'follow_up';
-  }
-  if (intent.choice === 'purchase' || intent.choice === 'price_comparison') return 'follow_up';
-  return 'auto_reply';
+  return ids;
 }
 
-function meetingAction(answers: AnswerMap): string {
-  const stance = choiceOf(answers, 'stance');
-  const resistance = scoreOf(answers, 'resistance');
-  const revision = noulOf(answers, 'wants_revision');
-  if (stance == null || resistance == null || revision == null) return 'shelve';
-  if (stance.choice === 'oppose' && resistance >= THRESHOLDS.highResistance) return 'escalate';
-  if (stance.choice === 'oppose') return 'shelve';
-  if (revision >= THRESHOLDS.reviseNoul || stance.choice === 'skeptical') return 'revise';
-  if (stance.choice === 'undecided' || stance.confidence < THRESHOLDS.lowConfidence) return 'shelve';
-  if (
-    stance.choice === 'support' &&
-    resistance < THRESHOLDS.approveResistance &&
-    revision < THRESHOLDS.approveRevision
-  ) {
-    return 'approve';
+function mapScenario(scenario: Scenario, answers: AnswerMap): string {
+  if (scenario === 'customer') {
+    const intent = choiceOf(answers, 'intent');
+    if (!intent) return 'review_manually';
+    const urgency = scoreOf(answers, 'urgency') ?? 0;
+    if (intent.choice === 'purchase' || intent.choice === 'price_comparison') return 'follow_up';
+    if (intent.choice === 'inquiry' || intent.choice === 'chitchat') return 'auto_reply';
+    if (intent.choice === 'complaint' || intent.choice === 'refund') {
+      return urgency >= THRESHOLDS.urgentScore ? 'escalate_human' : 'create_ticket';
+    }
+    return 'review_manually';
   }
-  return 'revise';
-}
-
-function ticketAction(answers: AnswerMap): string {
+  if (scenario === 'meeting') {
+    const stance = choiceOf(answers, 'stance');
+    if (!stance) return 'review_manually';
+    const resistance = scoreOf(answers, 'resistance') ?? 0;
+    if (stance.choice === 'support' && resistance < THRESHOLDS.quietResistance) return 'approve';
+    if (stance.choice === 'support' || stance.choice === 'skeptical') return 'prepare_revision';
+    if (stance.choice === 'oppose') return 'shelve';
+    return 'review_manually';
+  }
   const department = choiceOf(answers, 'department');
-  const urgent = noulOf(answers, 'is_urgent');
-  if (department == null || urgent == null) return 'hold';
-  if (department.choice === 'undecided' || department.confidence < THRESHOLDS.lowConfidence) {
-    return 'hold';
+  if (!department) return 'review_manually';
+  if (department.choice === 'billing' || department.choice === 'technical' || department.choice === 'sales') {
+    return `route_${department.choice}`;
   }
-  if (urgent >= THRESHOLDS.escalateNoul) return `urgent_${department.choice}`;
-  return `route_${department.choice}`;
+  return 'review_manually';
 }
 
-export function suggestedAction(scenario: Scenario, answers: AnswerMap): string {
-  if (scenario === 'customer') return customerAction(answers);
-  if (scenario === 'meeting') return meetingAction(answers);
-  return ticketAction(answers);
+export function suggestedAction(scenario: Scenario, answers: AnswerMap): Decision {
+  const lowConfidence = lowConfidenceIds(answers);
+  if (lowConfidence.length > 0) return { action: 'review_manually', lowConfidence };
+  const human = noulOf(answers, 'needs_human');
+  if (human != null && human > THRESHOLDS.needsHumanNoul) return { action: 'escalate_human', lowConfidence };
+  const revision = noulOf(answers, 'wants_revision');
+  if (revision != null && revision > THRESHOLDS.wantsRevisionNoul) {
+    return { action: 'prepare_revision', lowConfidence };
+  }
+  const urgent = noulOf(answers, 'is_urgent');
+  if (urgent != null && urgent > THRESHOLDS.isUrgentNoul) return { action: 'handle_immediately', lowConfidence };
+  return { action: mapScenario(scenario, answers), lowConfidence };
 }
