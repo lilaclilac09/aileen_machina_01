@@ -139,6 +139,12 @@ export default function IntentAggregatorTool() {
     >
       <div className="intent-demo" data-testid="intent-aggregator">
         <span className="intent-demo-badge">Demo data. Real API not called.</span>
+        <figure className="intent-demo-video">
+          <video controls playsInline preload="metadata" src="/demos/intent-aggregator.mp4">
+            Demo of Fill example and Analyze across the three scenarios.
+          </video>
+          <figcaption>Demo</figcaption>
+        </figure>
         <ArcadeCabinetFrame glyph={tool?.arcade.glyph ?? '∴'} screenGradient={tool?.arcade.screenGradient ?? '#e7e4f0'}>
           <form
             style={{ display: 'grid', gap: 14 }}
