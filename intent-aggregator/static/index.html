@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Intent Aggregator</title>
+    <style>
+      body { margin: 0; background: #fbfaf6; color: #14110c; font: 16px/1.5 Nunito, system-ui, sans-serif; }
+      main { max-width: 720px; margin: 0 auto; padding: 32px 20px 64px; display: grid; gap: 18px; }
+      h1 { font-weight: 500; font-size: 1.6rem; margin: 0; }
+      p { margin: 0; color: rgba(20,17,12,0.62); }
+      label { display: grid; gap: 6px; font-family: ui-monospace, monospace; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(20,17,12,0.48); }
+      select, textarea, button { font: inherit; color: #14110c; }
+      select, textarea { background: #f7f4ee; border: none; padding: 12px; }
+      button { background: #1f6f68; color: #fbfaf6; border: none; padding: 12px 16px; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; }
+      button:disabled { opacity: 0.5; }
+      article { display: grid; gap: 6px; }
+      .low { opacity: 0.55; }
+      .bar { display: grid; grid-template-columns: 140px 1fr 42px; gap: 8px; align-items: center; font-family: ui-monospace, monospace; font-size: 0.72rem; }
+      .track { height: 8px; background: rgba(20,17,12,0.08); }
+      .fill { height: 100%; background: #1f6f68; }
+      .err { color: #8a3b2a; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Intent Aggregator</h1>
+      <p>Text in. Structured intent out. Confidence under 0.5 is for reference only.</p>
+      <form id="form">
+        <label>Scenario
+          <select id="scenario" name="scenario">
+            <option value="customer">Customer</option>
+            <option value="meeting">Meeting</option>
+            <option value="ticket">Ticket</option>
+          </select>
+        </label>
+        <label style="margin-top:12px">Text
+          <textarea id="text" name="text" rows="7" placeholder="A customer message, meeting note, or ticket."></textarea>
+        </label>
+        <button id="go" type="submit" style="margin-top:12px">Analyze</button>
+      </form>
+      <p id="error" class="err" hidden></p>
+      <section id="out"></section>
+    </main>
+    <script>
+      const form = document.querySelector('#form');
+      const error = document.querySelector('#error');
+      const out = document.querySelector('#out');
+      const go = document.querySelector('#go');
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        error.hidden = true;
+        out.replaceChildren();
+        go.disabled = true;
+        try {
+          const res = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              scenario: document.querySelector('#scenario').value,
+              text: document.querySelector('#text').value,
+            }),
+          });
+          const body = await res.json();
+          if (!res.ok) {
+            error.hidden = false;
+            error.textContent = body.error || 'failed';
+            return;
+          }
+          const action = document.createElement('p');
+          action.textContent = body.suggested_action || '';
+          out.append(action);
+          for (const [id, answer] of Object.entries(body.answers || {})) {
+            const card = document.createElement('article');
+            const low = typeof answer.confidence === 'number' && answer.confidence < 0.5;
+            if (low) card.className = 'low';
+            const title = document.createElement('strong');
+            title.textContent = id;
+            const value = document.createElement('div');
+            value.textContent = answer.choice ?? answer.score ?? answer.noul ?? '';
+            card.append(title, value);
+            if (low) {
+              const note = document.createElement('div');
+              note.textContent = 'for reference only';
+              card.append(note);
+            }
+            if (answer.type === 'noul' && typeof answer.noul === 'number' && Math.abs(answer.noul - 0.5) < 0.1) {
+              const note = document.createElement('div');
+              note.textContent = 'yes and no are equally likely';
+              card.append(note);
+            }
+            if (answer.probabilities) {
+              for (const [key, prob] of Object.entries(answer.probabilities)) {
+                const row = document.createElement('div');
+                row.className = 'bar';
+                const width = Math.max(0, Math.min(100, Math.round(prob * 100)));
+                row.innerHTML = '<span></span><span class="track"><span class="fill"></span></span><span></span>';
+                row.children[0].textContent = (answer.legend && answer.legend[key]) || key;
+                row.children[1].firstChild.style.width = width + '%';
+                row.children[2].textContent = width + '%';
+                card.append(row);
+              }
+            }
+            out.append(card);
+          }
+        } catch {
+          error.hidden = false;
+          error.textContent = 'failed';
+        } finally {
+          go.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

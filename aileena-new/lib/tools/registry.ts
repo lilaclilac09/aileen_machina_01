@@ -87,6 +87,21 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     },
   },
   {
+    slug: 'intent',
+    tag: 'READ',
+    title: 'Intent Aggregator',
+    body: 'Any text in. Structured intent, confidence, and a next step out.',
+    why: 'Jev judges. The code decides the action. No audio, no stored transcript.',
+    verdict: 'Experiment. Needs a server-side TypeSafe key. No mock answers.',
+    href: '/tools/intent',
+    status: 'experiment',
+    tier: 'experiment',
+    arcade: {
+      glyph: '∴',
+      screenGradient: '#e7e4f0',
+    },
+  },
+  {
     slug: 'machina-college',
     tag: 'DESK',
     title: 'Machina College',
