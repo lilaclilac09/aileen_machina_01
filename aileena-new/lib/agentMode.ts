@@ -15,7 +15,7 @@ export type AgentMode = 'public' | 'machina' | 'council';
 
 export type AgentModeDecision =
   | { ok: true; mode: AgentMode }
-  | { ok: false; status: 403; error: string };
+  | { ok: false; status: 400 | 403; error: string };
 
 function normalizeRequested(requested: string | undefined): string {
   if (!requested) return 'public';
@@ -41,6 +41,13 @@ export function decideAgentMode(
     return { ok: true, mode: 'council' };
   }
   if (raw === 'machina') return { ok: true, mode: 'machina' };
+  if (raw === 'night') {
+    return {
+      ok: false,
+      status: 400,
+      error: 'Night Desk is /night. The public console does not take that mode.',
+    };
+  }
   return { ok: true, mode: 'public' };
 }
 

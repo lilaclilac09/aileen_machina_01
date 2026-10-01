@@ -1,0 +1,18 @@
+[package]
+name = "agent-gateway"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+async-stream = "0.3"
+axum = "0.7"
+bytes = "1"
+dotenvy = "0.15"
+futures-util = "0.3"
+ipnet = "2"
+sha2 = "0.10"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "sync"] }
+uuid = { version = "1", features = ["v4"] }

@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/next';
 import { LanguageProvider } from '../components/LanguageProvider';
 import { ThemeProvider } from '../components/ThemeProvider';
 import AgentChat from '../components/AgentChat';
+import DuoDocumentSync from '../components/DuoDocumentSync';
 
 export const metadata: Metadata = {
   title: 'AILEENA — MACHINA',
@@ -32,12 +33,13 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Allura&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Allura&family=Nunito:wght@400;500;600;700&display=swap"
         />
       </head>
       <body className="site-body">
         <ThemeProvider>
           <LanguageProvider>{children}</LanguageProvider>
+          <DuoDocumentSync />
           <AgentChat />
         </ThemeProvider>
         <Analytics />

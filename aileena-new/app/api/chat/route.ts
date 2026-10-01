@@ -7,6 +7,8 @@ import { decideAgentMode, skipVisitorQuota, type AgentMode } from '../../../lib/
 import { isCouncilLens } from '../../../lib/councilCopy';
 import { requireOwnerFromRequest } from '../../../lib/owner-gate';
 import { tryOwnerComputerFastPath, tryVisitorComputerFastPath } from '../../../lib/computer/chatFastPath';
+import { queuedChatResponse } from '../../../lib/computer/queuedStream';
+import { answerSiteLane } from '../../../lib/siteLanes';
 import { computerActorFromRequest, computerActorSetCookie } from '../../../lib/computer/actor';
 import { isComputerPrototypeEnabled } from '../../../lib/computer/flag';
 import { callMcpApp, listMcpApps } from '../../../lib/mcp/catalog';
@@ -276,6 +278,11 @@ export async function POST(req: Request) {
       trace.log('computer_fast_path', { q: lastQEarly.slice(0, 80), actor: 'visitor' });
       return withComputerCookie(fast);
     }
+  }
+  const laneText = await answerSiteLane(lastQEarly, computerActor.id);
+  if (laneText) {
+    trace.log('site_lane', { q: lastQEarly.slice(0, 80) });
+    return withComputerCookie(queuedChatResponse(laneText));
   }
   const agentMode: AgentMode = decided.mode;
   const isCouncil = agentMode === 'council';

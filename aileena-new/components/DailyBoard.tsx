@@ -12,8 +12,10 @@ import {
   DAILY_COMMENT_MAX,
   DAILY_NOTE_BODY_MAX,
   DAILY_NOTE_TITLE_MAX,
+  DAILY_SNAP_MAX_BYTES,
   DAILY_TEXT_SWATCHES,
   DAILY_THEME_DEFAULT,
+  noteIsPublished,
 } from '../lib/dailyBoard';
 
 const serif = "'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif";
@@ -111,6 +113,211 @@ function Caret() {
   return <span className="daily-caret" aria-hidden data-testid="daily-caret" />;
 }
 
+async function fileToSnap(
+  file: File,
+): Promise<{ mime: string; data: string } | { error: 'too_large' | 'invalid' }> {
+  const toB64 = async (blob: Blob, mime: string) => {
+    if (blob.size > DAILY_SNAP_MAX_BYTES) return { error: 'too_large' as const };
+    const buf = new Uint8Array(await blob.arrayBuffer());
+    let bin = '';
+    const chunk = 0x8000;
+    for (let i = 0; i < buf.length; i += chunk) {
+      bin += String.fromCharCode(...buf.subarray(i, i + chunk));
+    }
+    return { mime, data: btoa(bin) };
+  };
+
+  try {
+    const bitmap = await createImageBitmap(file);
+    const maxEdge = 1200;
+    const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height, 1));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return { error: 'invalid' };
+    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    if ('close' in bitmap && typeof bitmap.close === 'function') bitmap.close();
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.72));
+    if (!blob) return { error: 'invalid' };
+    return toB64(blob, 'image/jpeg');
+  } catch {
+    if (!file.type || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      return { error: 'invalid' };
+    }
+    return toB64(file, file.type);
+  }
+}
+
+function snapImgStyle(): CSSProperties {
+  return {
+    display: 'block',
+    width: '100%',
+    maxHeight: 360,
+    height: 'auto',
+    objectFit: 'contain',
+    background: 'transparent',
+  };
+}
+
+function OwnerSnapPreview({ noteId }: { noteId: string }) {
+  const [src, setSrc] = useState<string | null>(null);
+  const [missing, setMissing] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const res = await fetch(`/api/daily/snap?noteId=${encodeURIComponent(noteId)}`, {
+        cache: 'no-store',
+        credentials: 'include',
+      });
+      if (cancelled) return;
+      if (!res.ok) {
+        setMissing(true);
+        return;
+      }
+      const json = (await res.json()) as { mime?: string; data?: string };
+      if (json.mime && json.data) setSrc(`data:${json.mime};base64,${json.data}`);
+      else setMissing(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [noteId]);
+
+  if (missing) {
+    return (
+      <p data-testid="daily-owner-snap-missing" style={{ margin: 0, fontSize: 11, opacity: 0.4 }}>
+        snap missing.
+      </p>
+    );
+  }
+  if (!src) {
+    return (
+      <p style={{ margin: 0, fontSize: 11, opacity: 0.4 }} data-testid="daily-owner-snap-loading">
+        loading snap…
+      </p>
+    );
+  }
+  return (
+    <figure data-testid="daily-owner-snap-preview" style={{ margin: '12px 0 0' }}>
+      {/* data URL; Next/Image cannot host a view-once blob */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt="your snap" style={snapImgStyle()} />
+      <figcaption style={{ marginTop: 6, fontSize: 11, opacity: 0.4 }}>
+        you can look — it burns for them
+      </figcaption>
+    </figure>
+  );
+}
+
+function VisitorSnap({ note }: { note: DailyNote }) {
+  const [phase, setPhase] = useState<'none' | 'seal' | 'seen' | 'burned'>(
+    note.snap === 'ready' ? 'seal' : note.snap === 'burned' ? 'burned' : 'none',
+  );
+  const [src, setSrc] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    setPhase(note.snap === 'ready' ? 'seal' : note.snap === 'burned' ? 'burned' : 'none');
+    setSrc(null);
+  }, [note.id, note.snap]);
+
+  if (phase === 'none') return null;
+
+  const open = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const res = await fetch('/api/daily/snap/open', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ noteId: note.id }),
+      });
+      if (res.status === 410 || res.status === 404) {
+        setPhase('burned');
+        setSrc(null);
+        return;
+      }
+      if (!res.ok) return;
+      const json = (await res.json()) as { mime?: string; data?: string };
+      if (json.mime && json.data) {
+        setSrc(`data:${json.mime};base64,${json.data}`);
+        setPhase('seen');
+      } else {
+        setPhase('burned');
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (phase === 'burned') {
+    return (
+      <p data-testid="daily-snap-burned" style={{ margin: '12px 0 0', fontSize: 12, opacity: 0.4 }}>
+        burned.
+      </p>
+    );
+  }
+
+  if (phase === 'seen' && src) {
+    return (
+      <button
+        type="button"
+        data-testid="daily-snap-seen"
+        onClick={() => {
+          setPhase('burned');
+          setSrc(null);
+        }}
+        style={{
+          display: 'block',
+          width: '100%',
+          marginTop: 12,
+          padding: 0,
+          border: 'none',
+          background: 'none',
+          cursor: 'pointer',
+          color: 'inherit',
+        }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={src} alt="snap" style={snapImgStyle()} />
+        <span style={{ display: 'block', marginTop: 6, fontSize: 11, opacity: 0.4 }}>
+          tap to burn
+        </span>
+      </button>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      data-testid="daily-snap-seal"
+      onClick={() => void open()}
+      disabled={busy}
+      style={{
+        display: 'block',
+        width: '100%',
+        marginTop: 14,
+        minHeight: 88,
+        padding: '18px 14px',
+        border: '1px dashed color-mix(in srgb, currentColor 28%, transparent)',
+        borderRadius: 10,
+        background: 'transparent',
+        color: 'inherit',
+        fontFamily: sans,
+        fontSize: 13,
+        letterSpacing: '0.02em',
+        opacity: busy ? 0.45 : 0.7,
+        cursor: busy ? 'wait' : 'pointer',
+      }}
+    >
+      tap to see · then it burns
+    </button>
+  );
+}
+
 function NoteBody({
   text,
   caret,
@@ -164,6 +371,7 @@ export default function DailyBoard({
   const [toast, setToast] = useState<string | null>(null);
   const [toastFail, setToastFail] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const snapInputRef = useRef<HTMLInputElement | null>(null);
   const toastTimer = useRef<number | null>(null);
   const didRestoreDraft = useRef(false);
 
@@ -215,7 +423,10 @@ export default function DailyBoard({
   const showWriter = owner;
   const older = owner ? notes.filter((n) => n.date !== today) : notes.slice(1);
   const showDecorativeCaret = !showWriter;
-  const commentNote = todayNote ?? latest;
+  const commentNote =
+    todayNote && noteIsPublished(todayNote) ? todayNote : notes.find((n) => noteIsPublished(n)) ?? null;
+  const showBubbles = Boolean(commentNote && noteIsPublished(commentNote));
+  const todayIsDraft = owner && (!todayNote || !noteIsPublished(todayNote));
 
   const flash = (msg: string, fail = false) => {
     setToast(msg);
@@ -224,33 +435,85 @@ export default function DailyBoard({
     toastTimer.current = window.setTimeout(() => setToast(null), 2200);
   };
 
-  const saveNote = async (nextBody = body, nextTitle = title) => {
-    if (!owner) return;
+  const saveNote = async (nextBody = body, nextTitle = title, opts?: { published?: boolean }) => {
+    if (!owner) return null;
     setSaving(true);
     try {
       const res = await fetch('/api/daily/notes', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: nextTitle, body: nextBody }),
+        body: JSON.stringify({
+          title: nextTitle,
+          body: nextBody,
+          ...(opts?.published ? { published: true } : {}),
+        }),
       });
       if (res.status === 403) {
         flash('Not allowed.', true);
-        return;
+        return null;
       }
       if (res.status === 503) {
         flash('Nope.', true);
-        return;
+        return null;
       }
       if (!res.ok) {
         flash('Save failed.', true);
-        return;
+        return null;
       }
       writeDraft('');
+      const json = (await res.json()) as { note?: DailyNote };
       await load();
+      return json.note ?? null;
     } finally {
       setSaving(false);
     }
+  };
+
+  const publishNote = async () => {
+    if (!owner) return;
+    if (!body.trim() && !title.trim() && todayNote?.snap !== 'ready') {
+      flash('nothing to publish.', true);
+      return;
+    }
+    const note = await saveNote(body, title, { published: true });
+    if (note) flash('published.');
+  };
+
+  const attachSnap = async (file: File | undefined) => {
+    if (!owner || !file) return;
+    const packed = await fileToSnap(file);
+    if ('error' in packed) {
+      flash(packed.error === 'too_large' ? 'snap too large.' : 'snap failed.', true);
+      return;
+    }
+    let note = todayNote;
+    if (!note) {
+      note = await saveNote(body, title);
+    }
+    if (!note?.id) {
+      flash('Save failed.', true);
+      return;
+    }
+    const res = await fetch('/api/daily/snap', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ noteId: note.id, mime: packed.mime, data: packed.data }),
+    });
+    if (res.status === 403) {
+      flash('Not allowed.', true);
+      return;
+    }
+    if (res.status === 503) {
+      flash('Nope.', true);
+      return;
+    }
+    if (!res.ok) {
+      flash('snap failed.', true);
+      return;
+    }
+    await load();
   };
 
   useEffect(() => {
@@ -356,19 +619,56 @@ export default function DailyBoard({
         }}
       >
         <header style={{ marginBottom: 36 }}>
-          <h1
-            data-testid="daily-title"
+          <div
             style={{
-              margin: 0,
-              fontFamily: serif,
-              fontSize: 'clamp(1.85rem, 6vw, 2.4rem)',
-              fontWeight: 400,
-              letterSpacing: '-0.03em',
-              lineHeight: 1.1,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              gap: 16,
             }}
           >
-            daily board
-          </h1>
+            <h1
+              data-testid="daily-title"
+              style={{
+                margin: 0,
+                fontFamily: serif,
+                fontSize: 'clamp(1.85rem, 6vw, 2.4rem)',
+                fontWeight: 400,
+                letterSpacing: '-0.03em',
+                lineHeight: 1.1,
+              }}
+            >
+              daily board
+            </h1>
+            {owner ? (
+              <button
+                type="button"
+                data-testid="daily-publish"
+                aria-label="submit"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => void publishNote()}
+                disabled={saving}
+                style={{
+                  flexShrink: 0,
+                  marginTop: 8,
+                  background: 'none',
+                  border: 'none',
+                  color: theme.accent,
+                  fontFamily: sans,
+                  fontSize: 13,
+                  fontWeight: 500,
+                  letterSpacing: 'normal',
+                  textTransform: 'none',
+                  padding: '8px 0',
+                  minHeight: 44,
+                  cursor: saving ? 'wait' : 'pointer',
+                  opacity: saving ? 0.45 : 1,
+                }}
+              >
+                submit
+              </button>
+            ) : null}
+          </div>
           <p
             style={{
               margin: '8px 0 0',
@@ -380,6 +680,33 @@ export default function DailyBoard({
           >
             one or two lines a day.
           </p>
+          {todayIsDraft ? (
+            <p
+              data-testid="daily-draft-badge"
+              style={{
+                margin: '6px 0 0',
+                fontFamily: sans,
+                fontSize: 11,
+                opacity: 0.45,
+                fontWeight: 500,
+              }}
+            >
+              draft · only you
+            </p>
+          ) : owner && todayNote && noteIsPublished(todayNote) ? (
+            <p
+              data-testid="daily-published-badge"
+              style={{
+                margin: '6px 0 0',
+                fontFamily: sans,
+                fontSize: 11,
+                opacity: 0.4,
+                fontWeight: 500,
+              }}
+            >
+              published
+            </p>
+          ) : null}
           {board?.persistence === 'memory' ? (
             <p
               data-testid="daily-persistence"
@@ -413,115 +740,187 @@ export default function DailyBoard({
 
         {showWriter ? (
           <section data-testid="daily-owner-editor" style={{ marginBottom: 40 }}>
-            <input
-              aria-label="title"
-              placeholder="title, if you want"
-              value={title}
-              maxLength={DAILY_NOTE_TITLE_MAX}
-              onChange={(e) => setTitle(e.target.value)}
-              onBlur={() => {
-                if (owner) void saveNote();
-              }}
-              style={{
-                display: 'block',
-                width: '100%',
-                background: 'transparent',
-                border: 'none',
-                outline: 'none',
-                color: 'inherit',
-                fontFamily: sans,
-                fontSize: 13,
-                opacity: 0.5,
-                marginBottom: 8,
-                padding: 0,
-                userSelect: 'text',
-                WebkitUserSelect: 'text',
-              }}
-            />
-            <textarea
-              ref={textareaRef}
-              data-testid="daily-owner-textarea"
-              placeholder="write one or two lines"
-              value={body}
-              maxLength={DAILY_NOTE_BODY_MAX}
-              rows={5}
-              onBlur={() => {
-                if (owner) void saveNote();
-              }}
-              onChange={(e) => {
-                const next = e.target.value;
-                setBody(next);
-                writeDraft(next);
-                e.target.style.height = 'auto';
-                e.target.style.height = `${Math.max(96, e.target.scrollHeight)}px`;
-              }}
-              onKeyDown={(e) => {
-                if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-                  e.preventDefault();
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16,
+              padding: '20px',
+              border: '1px solid rgba(0,0,0,0.08)',
+              borderRadius: 8,
+              background: 'rgba(255,255,255,0.02)',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 11, opacity: 0.4, fontFamily: sans, letterSpacing: '0.02em' }}>
+                  private draft
+                </span>
+                <span style={{ fontSize: 11, opacity: 0.3, fontFamily: sans }}>
+                  {saving ? 'saving...' : 'auto-saved'}
+                </span>
+              </div>
+              
+              <input
+                aria-label="title"
+                placeholder="title, if you want"
+                value={title}
+                maxLength={DAILY_NOTE_TITLE_MAX}
+                onChange={(e) => setTitle(e.target.value)}
+                onBlur={() => {
                   if (owner) void saveNote();
-                }
-              }}
-              inputMode="text"
-              autoCapitalize="sentences"
-              autoCorrect="on"
-              spellCheck
-              enterKeyHint="done"
-              style={{
-                display: 'block',
-                width: '100%',
-                resize: 'none',
-                overflow: 'hidden',
-                background: 'transparent',
-                border: 'none',
-                outline: 'none',
-                color: 'inherit',
-                caretColor: theme.accent,
-                fontFamily: serif,
-                fontSize: 'max(16px, clamp(1.35rem, 4.6vw, 1.85rem))',
-                lineHeight: 1.45,
-                letterSpacing: '-0.01em',
-                padding: 0,
-                minHeight: 120,
-                cursor: 'text',
-                touchAction: 'manipulation',
-                userSelect: 'text',
-                WebkitUserSelect: 'text',
-              }}
-            />
-            <p style={{ margin: '8px 0 0', fontSize: 11, opacity: 0.4, fontFamily: sans, display: 'flex', gap: 12 }}>
-              <span>{saving ? 'saving' : today ? formatQuietDate(today) : 'today'}</span>
-              <button
-                type="button"
-                data-testid="daily-save"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => void saveNote()}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: theme.accent,
-                  fontFamily: sans,
-                  fontSize: 11,
-                  cursor: 'pointer',
-                  padding: 0,
                 }}
-              >
-                save
-              </button>
-            </p>
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  color: 'inherit',
+                  fontFamily: sans,
+                  fontSize: 13,
+                  opacity: 0.6,
+                  marginBottom: 8,
+                  padding: 0,
+                  userSelect: 'text',
+                  WebkitUserSelect: 'text',
+                }}
+              />
+              
+              <textarea
+                ref={textareaRef}
+                data-testid="daily-owner-textarea"
+                placeholder="write one or two lines"
+                value={body}
+                maxLength={DAILY_NOTE_BODY_MAX}
+                rows={5}
+                onBlur={() => {
+                  if (owner) void saveNote();
+                }}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setBody(next);
+                  writeDraft(next);
+                  e.target.style.height = 'auto';
+                  e.target.style.height = `${Math.max(96, e.target.scrollHeight)}px`;
+                }}
+                onKeyDown={(e) => {
+                  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    if (owner) void saveNote();
+                  }
+                }}
+                inputMode="text"
+                autoCapitalize="sentences"
+                autoCorrect="on"
+                spellCheck
+                enterKeyHint="done"
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  resize: 'none',
+                  overflow: 'hidden',
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  color: 'inherit',
+                  caretColor: theme.accent,
+                  fontFamily: serif,
+                  fontSize: 'max(16px, clamp(1.35rem, 4.6vw, 1.85rem))',
+                  lineHeight: 1.45,
+                  letterSpacing: '-0.01em',
+                  padding: 0,
+                  minHeight: 120,
+                  cursor: 'text',
+                  touchAction: 'manipulation',
+                  userSelect: 'text',
+                  WebkitUserSelect: 'text',
+                }}
+              />
+              
+              <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  data-testid="daily-save"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => void saveNote()}
+                  style={{
+                    background: 'none',
+                    border: '1px solid rgba(0,0,0,0.12)',
+                    color: theme.text,
+                    fontFamily: sans,
+                    fontSize: 12,
+                    padding: '8px 16px',
+                    borderRadius: 4,
+                    cursor: 'pointer',
+                    opacity: 0.6,
+                  }}
+                >
+                  Save draft
+                </button>
+                
+                <button
+                  type="button"
+                  data-testid="daily-snap-attach"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => snapInputRef.current?.click()}
+                  style={{
+                    background: 'none',
+                    border: '1px solid rgba(0,0,0,0.12)',
+                    color: theme.text,
+                    fontFamily: sans,
+                    fontSize: 12,
+                    padding: '8px 16px',
+                    borderRadius: 4,
+                    cursor: 'pointer',
+                    opacity: 0.6,
+                  }}
+                >
+                  {todayNote?.snap === 'ready' ? 'Replace snap' : 'Add snap'}
+                </button>
+                
+                <span style={{ fontSize: 11, opacity: 0.3, fontFamily: sans }}>
+                  {today ? formatQuietDate(today) : 'today'}
+                </span>
+              </div>
+              
+              <input
+                ref={snapInputRef}
+                data-testid="daily-snap-input"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/*"
+                hidden
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = '';
+                  void attachSnap(file);
+                }}
+              />
+            </div>
+            
+            {todayNote?.snap === 'ready' ? <OwnerSnapPreview noteId={todayNote.id} /> : null}
+            {todayNote?.snap === 'burned' ? (
+              <p data-testid="daily-snap-burned" style={{ margin: '12px 0 0', fontSize: 12, opacity: 0.4 }}>
+                Snap burned. Attach another?
+              </p>
+            ) : null}
           </section>
         ) : (
           <section data-testid="daily-latest" style={{ marginBottom: 28 }}>
             {latest ? (
               <>
-                <p style={{ margin: '0 0 10px', fontSize: 12, opacity: 0.45, fontFamily: sans }}>
-                  {formatQuietDate(latest.date)}
-                </p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <p style={{ margin: 0, fontSize: 12, opacity: 0.45, fontFamily: sans }}>
+                    {formatQuietDate(latest.date)}
+                  </p>
+                  <span style={{ fontSize: 10, opacity: 0.3, fontFamily: sans }}>
+                    published
+                  </span>
+                </div>
                 {latest.title ? (
                   <p style={{ margin: '0 0 8px', fontSize: 13, opacity: 0.5, fontFamily: sans }}>{latest.title}</p>
                 ) : null}
                 <div style={{ fontSize: 'clamp(1.35rem, 4.6vw, 1.85rem)' }}>
                   <NoteBody text={latest.body} caret={showDecorativeCaret} />
                 </div>
+                <VisitorSnap note={latest} />
               </>
             ) : (
               <p
@@ -541,7 +940,7 @@ export default function DailyBoard({
           </section>
         )}
 
-        {commentNote ? (
+        {showBubbles && commentNote ? (
           <div data-testid="daily-comments" style={{ display: 'grid', gap: 10, marginBottom: 36 }}>
             {commentsFor(commentNote.id).map((c) => (
               <div
@@ -682,6 +1081,13 @@ export default function DailyBoard({
             <div style={{ fontSize: 'clamp(1.05rem, 3.2vw, 1.25rem)' }}>
               <NoteBody text={note.body} />
             </div>
+            {owner && note.snap === 'ready' ? <OwnerSnapPreview noteId={note.id} /> : null}
+            {owner && note.snap === 'burned' ? (
+              <p data-testid="daily-snap-burned" style={{ margin: '8px 0 0', fontSize: 12, opacity: 0.5 }}>
+                burned.
+              </p>
+            ) : null}
+            {!owner ? <VisitorSnap note={note} /> : null}
             <div style={{ display: 'grid', gap: 8, marginTop: 12 }}>
               {commentsFor(note.id).map((c) => (
                 <div

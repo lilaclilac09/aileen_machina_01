@@ -9,16 +9,23 @@ import { taipeiDay } from './taipeiDay';
 import {
   type DailyComment,
   type DailyNote,
+  type DailySnapState,
   type DailyTheme,
   DAILY_COMMENT_MAX,
   DAILY_NOTE_BODY_MAX,
   DAILY_NOTE_TITLE_MAX,
+  DAILY_SNAP_MAX_BYTES,
   clipText,
+  coerceDailyNote,
+  isDailySnapMime,
   isYmd,
+  normalizeSnapBase64,
   noteIdForDate,
+  noteIsPublished,
   publicComment,
   sanitizeNickname,
   sanitizeTheme,
+  snapByteLength,
 } from './dailyBoard';
 
 const THEME_KEY = 'daily:theme';
@@ -28,18 +35,26 @@ function commentsKey(noteId: string): string {
   return `daily:comments:${noteId}`;
 }
 
+function snapBlobKey(noteId: string): string {
+  return `daily:snap:blob:${noteId}`;
+}
+
+type SnapBlob = { mime: string; data: string };
+
 type Memory = {
   theme: DailyTheme;
   notes: DailyNote[];
   comments: Record<string, DailyComment[]>;
+  snaps: Record<string, SnapBlob>;
 };
 
 const g = globalThis as typeof globalThis & { __aileenaDailyBoard?: Memory };
 
 function memory(): Memory {
   if (!g.__aileenaDailyBoard) {
-    g.__aileenaDailyBoard = { theme: sanitizeTheme(null), notes: [], comments: {} };
+    g.__aileenaDailyBoard = { theme: sanitizeTheme(null), notes: [], comments: {}, snaps: {} };
   }
+  if (!g.__aileenaDailyBoard.snaps) g.__aileenaDailyBoard.snaps = {};
   return g.__aileenaDailyBoard;
 }
 
@@ -99,18 +114,9 @@ export async function readDailyNotes(): Promise<DailyNote[]> {
   const redis = getVisitorRedis();
   if (!redis) return sortNotes(memory().notes);
   const raw = await redis.get(NOTES_KEY);
-  const parsed = parseJson<DailyNote[]>(raw);
+  const parsed = parseJson<unknown[]>(raw);
   if (!Array.isArray(parsed)) return [];
-  return sortNotes(
-    parsed.filter(
-      (n) =>
-        n &&
-        typeof n === 'object' &&
-        typeof n.id === 'string' &&
-        isYmd(n.date) &&
-        typeof n.body === 'string',
-    ),
-  );
+  return sortNotes(parsed.map(coerceDailyNote).filter((n): n is DailyNote => Boolean(n)));
 }
 
 async function writeDailyNotes(notes: DailyNote[]): Promise<void> {
@@ -127,12 +133,21 @@ export async function upsertDailyNote(input: {
   date?: string;
   title?: string;
   body: string;
+  published?: boolean;
 }): Promise<DailyNote> {
   const date = isYmd(input.date) ? input.date : taipeiDay();
   const id = noteIdForDate(date);
   const now = new Date().toISOString();
   const notes = await readDailyNotes();
   const existing = notes.find((n) => n.id === id || n.date === date);
+  const published =
+    input.published === true
+      ? true
+      : input.published === false
+        ? false
+        : existing
+          ? noteIsPublished(existing)
+          : false;
   const note: DailyNote = {
     id,
     date,
@@ -140,6 +155,8 @@ export async function upsertDailyNote(input: {
     body: clipText(input.body, DAILY_NOTE_BODY_MAX),
     createdAt: existing?.createdAt ?? now,
     updatedAt: now,
+    published,
+    snap: existing?.snap ?? 'none',
   };
   const rest = notes.filter((n) => n.id !== id && n.date !== date);
   await writeDailyNotes([note, ...rest]);
@@ -182,7 +199,8 @@ export async function addDailyComment(input: {
   const body = clipText(input.body, DAILY_COMMENT_MAX).trim();
   if (!noteId || !body) return { error: 'empty' };
   const notes = await readDailyNotes();
-  if (!notes.some((n) => n.id === noteId)) return { error: 'missing_note' };
+  const note = notes.find((n) => n.id === noteId);
+  if (!note || !noteIsPublished(note)) return { error: 'missing_note' };
   const comment: DailyComment = {
     id: newCommentId(),
     noteId,
@@ -209,6 +227,83 @@ export async function hideDailyComment(commentId: string): Promise<boolean> {
     }
   }
   return false;
+}
+
+async function persistNoteSnap(noteId: string, snap: DailySnapState): Promise<DailyNote | null> {
+  const notes = await readDailyNotes();
+  const existing = notes.find((n) => n.id === noteId);
+  if (!existing) return null;
+  const next: DailyNote = { ...existing, snap, updatedAt: new Date().toISOString() };
+  await writeDailyNotes(notes.map((n) => (n.id === noteId ? next : n)));
+  return next;
+}
+
+export async function writeDailySnap(input: {
+  noteId: string;
+  mime: unknown;
+  data: unknown;
+}): Promise<DailyNote | { error: 'missing_note' | 'invalid' | 'too_large' }> {
+  const noteId = clipText(input.noteId, 80).trim();
+  if (!noteId || !isDailySnapMime(input.mime)) return { error: 'invalid' };
+  const data = normalizeSnapBase64(input.data);
+  if (!data) return { error: 'invalid' };
+  if (snapByteLength(data) > DAILY_SNAP_MAX_BYTES) return { error: 'too_large' };
+
+  const notes = await readDailyNotes();
+  if (!notes.some((n) => n.id === noteId)) return { error: 'missing_note' };
+
+  const blob: SnapBlob = { mime: input.mime, data };
+  const key = snapBlobKey(noteId);
+  const redis = getVisitorRedis();
+  if (redis) {
+    await redis.set(key, blob);
+  } else {
+    memory().snaps[key] = blob;
+  }
+  const note = await persistNoteSnap(noteId, 'ready');
+  return note || { error: 'missing_note' };
+}
+
+export async function readDailySnapBlob(noteId: string): Promise<SnapBlob | null> {
+  const id = clipText(noteId, 80).trim();
+  if (!id) return null;
+  const key = snapBlobKey(id);
+  const redis = getVisitorRedis();
+  if (redis) {
+    const raw = await redis.get(key);
+    const parsed = parseJson<SnapBlob>(raw);
+    if (!parsed || !isDailySnapMime(parsed.mime) || typeof parsed.data !== 'string') return null;
+    return parsed;
+  }
+  return memory().snaps[key] || null;
+}
+
+async function deleteDailySnapBlob(noteId: string) {
+  const key = snapBlobKey(noteId);
+  const redis = getVisitorRedis();
+  if (redis) {
+    await redis.del(key);
+    return;
+  }
+  delete memory().snaps[key];
+}
+
+export async function openAndBurnDailySnap(
+  noteId: string,
+): Promise<{ status: 'ready'; blob: SnapBlob } | { status: 'burned' } | { status: 'none' }> {
+  const id = clipText(noteId, 80).trim();
+  if (!id) return { status: 'none' };
+  const notes = await readDailyNotes();
+  const note = notes.find((n) => n.id === id);
+  if (!note || !noteIsPublished(note)) return { status: 'none' };
+  if (note.snap === 'burned') return { status: 'burned' };
+  if (note.snap !== 'ready') return { status: 'none' };
+
+  const blob = await readDailySnapBlob(id);
+  await deleteDailySnapBlob(id);
+  await persistNoteSnap(id, 'burned');
+  if (!blob) return { status: 'burned' };
+  return { status: 'ready', blob };
 }
 
 export async function readDailyBoard(opts?: { owner?: boolean }) {
@@ -239,13 +334,15 @@ export type PublicDailyBoard = {
 
 export async function readPublicDailyBoard(owner: boolean): Promise<PublicDailyBoard> {
   const board = await readDailyBoard({ owner });
+  const notes = owner ? board.notes : board.notes.filter((n) => noteIsPublished(n));
   const comments: PublicDailyBoard['comments'] = {};
-  for (const [noteId, list] of Object.entries(board.comments)) {
-    comments[noteId] = list.filter((c) => !c.hidden).map(publicComment);
+  for (const note of notes) {
+    const list = board.comments[note.id] ?? [];
+    comments[note.id] = list.filter((c) => !c.hidden).map(publicComment);
   }
   return {
     theme: board.theme,
-    notes: board.notes,
+    notes,
     comments,
     persistence: board.persistence,
     today: board.today,

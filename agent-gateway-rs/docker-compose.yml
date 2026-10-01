@@ -1,0 +1,14 @@
+services:
+  gateway:
+    build: .
+    environment:
+      HOST: 0.0.0.0
+      ALLOW_LAN: "1"
+      ALLOWLIST: 127.0.0.1/32,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,100.64.0.0/10,fd7a:115c:a1e0::/48
+    ports:
+      - "127.0.0.1:8787:8787"
+    volumes:
+      - gateway-data:/app
+    restart: unless-stopped
+volumes:
+  gateway-data:

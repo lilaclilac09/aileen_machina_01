@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+node_version="22.23.2"
+pnpm_version="9.15.9"
+node_root="$HOME/.local/share/aileena-node/node-v${node_version}"
+
+step() {
+  local label="$1"
+  shift
+  local started elapsed
+  started="$(date +%s)"
+  printf '\n==> %s\n' "$label"
+  "$@"
+  elapsed=$(( $(date +%s) - started ))
+  printf '<== %s (%ss)\n' "$label" "$elapsed"
+}
+
+install_node() {
+  if [[ -x "$node_root/bin/node" ]] && [[ "$($node_root/bin/node --version)" == "v${node_version}" ]]; then
+    return
+  fi
+
+  local machine archive base tmp expected
+  case "$(uname -m)" in
+    x86_64) machine="x64" ;;
+    aarch64|arm64) machine="arm64" ;;
+    *) printf 'Unsupported architecture: %s\n' "$(uname -m)" >&2; return 1 ;;
+  esac
+  archive="node-v${node_version}-linux-${machine}.tar.xz"
+  base="https://nodejs.org/dist/v${node_version}"
+  tmp="$(mktemp -d)"
+  trap "rm -rf -- '$tmp'" EXIT
+
+  curl -fsSL "$base/$archive" -o "$tmp/$archive"
+  expected="$(curl -fsSL "$base/SHASUMS256.txt" | awk -v file="$archive" '$2 == file { print $1 }')"
+  [[ -n "$expected" ]]
+  printf '%s  %s\n' "$expected" "$tmp/$archive" | sha256sum -c -
+
+  rm -rf "$node_root"
+  mkdir -p "$node_root"
+  tar -xJf "$tmp/$archive" --strip-components=1 -C "$node_root"
+  rm -rf -- "$tmp"
+  trap - EXIT
+}
+
+link_toolchain() {
+  mkdir -p "$HOME/.local/bin"
+  for tool in node npm npx corepack; do
+    ln -sfn "$node_root/bin/$tool" "$HOME/.local/bin/$tool"
+  done
+  export PATH="$HOME/.local/bin:$PATH"
+
+  if [[ ! -x "$HOME/.local/bin/pnpm" ]] || [[ "$(pnpm --version 2>/dev/null || true)" != "$pnpm_version" ]]; then
+    "$node_root/bin/npm" install --global --prefix "$HOME/.local" "pnpm@${pnpm_version}"
+  fi
+}
+
+install_npm_project() {
+  local dir="$1"
+  local digest marker
+  digest="$(cat "$dir/package.json" "$dir/package-lock.json" | sha256sum | cut -d' ' -f1)"
+  marker="$dir/node_modules/.amp-lock-$digest"
+  if [[ -f "$marker" ]]; then
+    printf '%s dependencies match lockfile\n' "${dir#"$repo_root/"}"
+    return
+  fi
+
+  npm --prefix "$dir" ci
+  find "$dir/node_modules" -maxdepth 1 -type f -name '.amp-lock-*' -delete
+  touch "$marker"
+}
+
+step "Install Node.js v${node_version}" install_node
+step "Activate Node.js and pnpm ${pnpm_version}" link_toolchain
+
+export PATH="$HOME/.local/bin:$PATH"
+step "Install aileena-new dependencies" env CI=1 pnpm --dir "$repo_root/aileena-new" --ignore-workspace install --frozen-lockfile
+step "Install Cloudflare Computer worker dependencies" env CI=1 pnpm --dir "$repo_root/workers/aileena-computer" --ignore-workspace install --frozen-lockfile
+step "Install album dependencies" install_npm_project "$repo_root/album"
+step "Install cafe-cursor dependencies" install_npm_project "$repo_root/cafe-cursor"
+step "Generate article index" pnpm --dir "$repo_root/aileena-new" --ignore-workspace build:index
+step "Generate data indexes" pnpm --dir "$repo_root/aileena-new" --ignore-workspace build:data-index
+step "Generate memory index" pnpm --dir "$repo_root/aileena-new" --ignore-workspace build:memory-index
+step "Install Playwright Chromium" pnpm --dir "$repo_root/aileena-new" --ignore-workspace exec playwright install chromium
+
+printf '\nOrb setup ready: node %s, pnpm %s\n' "$(node --version)" "$(pnpm --version)"

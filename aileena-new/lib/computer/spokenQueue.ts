@@ -6,6 +6,7 @@ const DOING: Record<string, string> = {
   scratch_peek: 'Opening a scratch note',
   scratch_clock: 'Stamping the clock into today\'s note',
   shell_exec: 'Running a worker-shell command',
+  cell_exec: 'Running on the Cloudflare desk',
   inspect_route_files: 'Inspecting route files',
   generate_implementation_prompt: 'Preparing an implementation prompt / PR summary',
   draft_patch: 'Drafting a patch plan (not applying it)',

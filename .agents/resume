@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+node_root="$HOME/.local/share/aileena-node/node-v22.23.2"
+mkdir -p "$HOME/.local/bin"
+
+for tool in node npm npx corepack; do
+  [[ -x "$node_root/bin/$tool" ]] || { printf 'Missing orb toolchain: %s\n' "$node_root/bin/$tool" >&2; exit 1; }
+  ln -sfn "$node_root/bin/$tool" "$HOME/.local/bin/$tool"
+done
+
+export PATH="$HOME/.local/bin:$PATH"
+[[ "$(node --version)" == "v22.23.2" ]]
+[[ "$(pnpm --version)" == "9.15.9" ]]

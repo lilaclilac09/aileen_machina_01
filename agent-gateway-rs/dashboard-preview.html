@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AGENT-GATEWAY</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#0B0C0E;color:#E8E4DC;font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+a{color:#E8E4DC;text-decoration:none}
+.rule{height:2px;background:#E8B86D}
+header,nav,.wrap{max-width:980px;margin:0 auto;padding-left:16px;padding-right:16px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;padding-top:18px}
+.brand{letter-spacing:.14em;font-size:16px}
+.tag{margin-top:4px;color:#8B8680;letter-spacing:.08em;font-size:12px}
+.live{display:flex;align-items:center;gap:8px;color:#8B8680;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+.sq{width:6px;height:6px;background:#C4F542}
+nav{padding-top:14px;padding-bottom:16px;color:#5C5852;letter-spacing:.08em;font-size:12px}
+nav a.on{color:#E8E4DC}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.card{background:#14161A;border:1px solid #2A2E34;padding:12px 14px}
+.k{color:#8B8680;font-size:11px;letter-spacing:.08em}
+.num{margin-top:8px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:28px;font-variant-numeric:tabular-nums;font-weight:400}
+.ok{color:#C4F542}.err{color:#FF6B4A}.amber{color:#E8B86D}
+.keys,.tools{margin:12px 0;color:#8B8680;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+.tools{display:flex;gap:16px;align-items:center}
+button{background:transparent;color:#E8E4DC;border:1px solid #2A2E34;padding:4px 8px;font:12px ui-monospace,SFMono-Regular,Menlo,monospace;cursor:pointer}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+th,td{text-align:left;padding:8px 8px 8px 0;border-bottom:1px solid #2A2E34}
+th{color:#8B8680;font-weight:500;letter-spacing:.06em}
+tbody tr:hover{background:#1A1D22}
+.sse{color:#E8B86D;letter-spacing:.08em;margin-left:8px}
+footer{margin:18px 0 32px;color:#5C5852;letter-spacing:.06em;font-size:12px}
+@media(max-width:700px){.cards{grid-template-columns:repeat(2,1fr)}header{flex-direction:column;align-items:flex-start}}
+</style></head><body>
+<div class="rule"></div>
+<header>
+  <div><div class="brand">AGENT-GATEWAY</div><div class="tag">LOCAL INGRESS · OFFICIAL KEYS ONLY</div></div>
+  <div class="live"><span class="sq"></span>LIVE<span id="bind">127.0.0.1:8787</span></div>
+</header>
+<nav><a class="on" href="/">DASHBOARD</a> · <a href="/troubleshoot">TROUBLESHOOT</a></nav>
+<div class="wrap">
+<div class="cards">
+  <div class="card"><div class="k">REQUESTS</div><div class="num" id="requests">3</div></div>
+  <div class="card"><div class="k">OK / ERR</div><div class="num" id="okerr"><span class="ok">2</span> / <span class="err">1</span></div></div>
+  <div class="card"><div class="k">TOKENS in / out</div><div class="num" id="tokens">12 / 40</div></div>
+  <div class="card"><div class="k">UPTIME</div><div class="num" id="uptime">3840s</div></div>
+</div>
+<p class="keys" id="keys">openai sk-proj…abcd · anthropic OFF · gateway sk-gate…e-me</p>
+<div class="tools"><span id="ago">updated 2s ago</span><button type="button" id="pause">PAUSE</button><button type="button" id="copy">COPY ENDPOINT</button></div>
+<table><thead><tr><th>TIME</th><th>MODEL</th><th>VENDOR</th><th>MS</th><th>TOK</th><th>STATUS</th></tr></thead>
+<tbody id="rows"></tbody></table>
+<footer>AGENTS USE OPENAI_BASE_URL=http://127.0.0.1:8787/v1</footer>
+</div>
+<script>
+const ENDPOINT = "http://127.0.0.1:8787/v1";
+const rows = [
+  {time:"3s", model:"gpt-4o-mini", vendor:"openai", ms:842, tok:"12/40", status:"200", ok:true, sse:false},
+  {time:"2m", model:"claude-sonnet-4-6", vendor:"anthropic", ms:1204, tok:"0/0", status:"200", ok:true, sse:true},
+  {time:"1h", model:"gpt-4.1", vendor:"openai", ms:8, tok:"0/0", status:"400 OPENAI_API_KEY is missing", ok:false, sse:false}
+];
+function esc(s){return String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+document.getElementById("rows").innerHTML = rows.map(row => {
+  const sse = row.sse ? '<span class="sse">SSE</span>' : "";
+  const cls = row.ok ? "ok" : "err";
+  return "<tr><td>"+esc(row.time)+"</td><td>"+esc(row.model)+sse+"</td><td>"+esc(row.vendor)+"</td><td>"+esc(row.ms)+"</td><td>"+esc(row.tok)+"</td><td class=\""+cls+"\">"+esc(row.status)+"</td></tr>";
+}).join("");
+let paused = false;
+let age = 2;
+setInterval(() => { if (!paused) { age += 1; document.getElementById("ago").textContent = "updated " + age + "s ago"; } }, 1000);
+document.getElementById("pause").onclick = () => {
+  paused = !paused;
+  document.getElementById("pause").textContent = paused ? "RESUME" : "PAUSE";
+};
+document.getElementById("copy").onclick = async () => {
+  try { await navigator.clipboard.writeText(ENDPOINT); document.getElementById("copy").textContent = "COPIED"; }
+  catch (e) { document.getElementById("copy").textContent = ENDPOINT; }
+};
+</script>
+</body></html>

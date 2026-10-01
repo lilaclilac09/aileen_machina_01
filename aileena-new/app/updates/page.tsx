@@ -146,6 +146,13 @@ const SHELF_GROUPS: ShelfGroup[] = [
 
 const UPDATES: UpdateNote[] = [
   {
+    date: '2026.09.21',
+    kind: 'exhibition',
+    title: 'How to Be a Guerrilla Girl',
+    body: 'Found this at Tate London. It means freedom to girls more than ever — just the young people make you less hypocritical. Getty exhibition (Nov 18, 2025–Apr 12, 2026) on the anonymous feminist art collective\'s 40-year commitment to equity for women and artists of color.',
+    href: '/blog/guerrilla-girls',
+  },
+  {
     date: '2026.08.16',
     kind: 'design',
     title: 'Book club as a room',

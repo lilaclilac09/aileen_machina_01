@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AGENT-GATEWAY SETUP</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#0B0C0E;color:#E8E4DC;font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+.rule{height:2px;background:#E8B86D}
+.wrap{max-width:720px;margin:0 auto;padding:18px 16px 40px}
+.tag{color:#8B8680;letter-spacing:.08em;font-size:12px}
+pre,button{font:13px ui-monospace,SFMono-Regular,Menlo,monospace}
+button{background:transparent;color:#E8E4DC;border:1px solid #2A2E34;padding:6px 10px;cursor:pointer}
+pre{background:#14161A;border:1px solid #2A2E34;padding:12px;white-space:pre-wrap}
+</style></head><body>
+<div class="rule"></div>
+<div class="wrap">
+<div class="tag">FIRST RUN · ONE PERSONAL KEY</div>
+<h1>AGENT-GATEWAY</h1>
+<p id="bind">bind —</p>
+<button type="button" id="go">GENERATE KEY</button>
+<pre id="out">The secret is shown once. Official API keys stay on this machine.</pre>
+</div>
+<script>
+const token = new URLSearchParams(location.search).get("setup") || "";
+document.getElementById("go").onclick = async () => {
+  const headers = {};
+  if (token) headers["x-setup-token"] = token;
+  const res = await fetch("/setup", {method:"POST", headers});
+  const data = await res.json();
+  if (!res.ok) { document.getElementById("out").textContent = data.error || "setup closed"; return; }
+  document.getElementById("bind").textContent = data.base_url;
+  document.getElementById("out").textContent = "OPENAI_BASE_URL="+data.base_url+"\nOPENAI_API_KEY="+data.key;
+};
+</script>
+</body></html>

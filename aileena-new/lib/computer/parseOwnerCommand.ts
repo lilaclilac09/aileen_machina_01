@@ -197,14 +197,52 @@ function normalizeRoute(route: string): string {
 export type VisitorComputerCommand =
   | {
       kind: 'queue_task';
-      taskType: 'write_scratch_file' | 'files_tree' | 'files_search' | 'scratch_peek' | 'scratch_clock';
+      taskType:
+        | 'write_scratch_file'
+        | 'files_tree'
+        | 'files_search'
+        | 'scratch_peek'
+        | 'scratch_clock'
+        | 'cell_exec';
       route: string;
       instructions: string;
     }
   | { kind: 'blocked'; message: string };
 
+const CELL_BINS = new Set(['echo', 'ls', 'pwd', 'cat', 'printf', 'touch']);
+
+function visitorCellLine(raw: string): VisitorComputerCommand | null {
+  let cmd = raw.trim();
+  if (cmd.includes('开电脑')) cmd = 'pwd';
+  else if (/^run\s+/i.test(cmd)) cmd = cmd.replace(/^run\s+/i, '').trim();
+  else if (cmd.startsWith('$')) cmd = cmd.slice(1).trim();
+  else return null;
+  if (!cmd) {
+    return { kind: 'blocked', message: '⚡ empty cell command.' };
+  }
+  const bin = cmd.split(/\s+/)[0] || '';
+  if (
+    !CELL_BINS.has(bin) ||
+    cmd.includes('..') ||
+    /[;&|`]/.test(cmd) ||
+    /\b(sudo|ssh|vercel|git)\b/i.test(cmd)
+  ) {
+    return {
+      kind: 'blocked',
+      message: '⚡ cell only runs echo, ls, pwd, cat, printf, touch on the Cloudflare desk. No git, no deploy.',
+    };
+  }
+  return {
+    kind: 'queue_task',
+    taskType: 'cell_exec',
+    route: '/proof',
+    instructions: cmd.slice(0, 200),
+  };
+}
+
 /**
  * Visitor scratch-pad commands. Never git, learn, proof, email, or merge.
+ * cell_exec is the visitor desk on Cloudflare worker-shell, not a host shell.
  */
 export function parseVisitorComputerCommand(text: string): VisitorComputerCommand | null {
   const raw = text.trim();
@@ -221,6 +259,9 @@ export function parseVisitorComputerCommand(text: string): VisitorComputerComman
       message: '⚡ scratch pad only. No site git, no merge, no owner computer.',
     };
   }
+
+  const cell = visitorCellLine(raw);
+  if (cell) return cell;
 
   if (/^list$/i.test(raw) || /^ls$/i.test(raw) || /^files$/i.test(raw)) {
     return {

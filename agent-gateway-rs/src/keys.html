@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AGENT-GATEWAY KEYS</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#0B0C0E;color:#E8E4DC;font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+a{color:#E8E4DC;text-decoration:none}
+.rule{height:2px;background:#E8B86D}
+header,nav,.wrap{max-width:980px;margin:0 auto;padding-left:16px;padding-right:16px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;padding-top:18px}
+.brand{letter-spacing:.14em;font-size:16px}
+.tag{margin-top:4px;color:#8B8680;letter-spacing:.08em;font-size:12px}
+nav{padding-top:14px;padding-bottom:16px;color:#5C5852;letter-spacing:.08em;font-size:12px}
+nav a.on{color:#E8E4DC}
+.tools{margin:12px 0;display:flex;gap:16px;align-items:center;color:#8B8680;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+button,input{background:transparent;color:#E8E4DC;border:1px solid #2A2E34;padding:4px 8px;font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+th,td{text-align:left;padding:8px 8px 8px 0;border-bottom:1px solid #2A2E34}
+th{color:#8B8680;font-weight:500;letter-spacing:.06em}
+.err{color:#FF6B4A}.ok{color:#C4F542}
+pre{white-space:pre-wrap;background:#14161A;border:1px solid #2A2E34;padding:12px;font:13px ui-monospace,SFMono-Regular,Menlo,monospace}
+</style></head><body>
+<div class="rule"></div>
+<header>
+  <div><div class="brand">AGENT-GATEWAY</div><div class="tag">KEYS · OFFICIAL KEYS STAY ON THIS BOX</div></div>
+</header>
+<nav><a href="/">DASHBOARD</a> · <a class="on" href="/keys">KEYS</a> · <a href="/troubleshoot">TROUBLESHOOT</a></nav>
+<div class="wrap">
+<div class="tools">
+  <input id="id" value="teammate" maxlength="32">
+  <button type="button" id="newkey">NEW KEY</button>
+  <span id="msg"></span>
+</div>
+<table><thead><tr><th>ID</th><th>RPM USED</th><th>TODAY</th><th>CAP</th><th></th></tr></thead>
+<tbody id="people"><tr><td colspan="5">TOKEN REQUIRED</td></tr></tbody></table>
+<pre id="snippet">The secret is shown once. Send only the two lines.</pre>
+</div>
+<script>
+const q = new URLSearchParams(location.search);
+const token = q.get("token") || "";
+if (token) history.replaceState(null, "", "/keys");
+function esc(s){return String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+async function authFetch(url, opt){
+  const headers = Object.assign({}, (opt && opt.headers) || {});
+  if (token) headers["x-dashboard-token"] = token;
+  return fetch(url, Object.assign({}, opt, {headers}));
+}
+async function load(){
+  const res = await authFetch("/api/stats");
+  const box = document.getElementById("people");
+  if (res.status === 401) { box.innerHTML = "<tr><td colspan=\"5\">TOKEN REQUIRED</td></tr>"; return; }
+  if (!res.ok) return;
+  const data = await res.json();
+  const keys = data.keys || [];
+  if (!keys.length) { box.innerHTML = "<tr><td colspan=\"5\">NO KEYS</td></tr>"; return; }
+  const editing = document.activeElement && document.activeElement.dataset && document.activeElement.dataset.field;
+  if (editing) return;
+  box.innerHTML = keys.map(k => {
+    const state = k.revoked ? '<span class="err">REVOKED</span>' : '<span class="ok">LIVE</span>';
+    const cap = k.daily_tokens || 0;
+    const edit = k.revoked ? "" : "<input data-field=\"rpm\" data-id=\""+esc(k.id)+"\" value=\""+esc(k.rpm)+"\" size=\"4\">";
+    const capIn = k.revoked ? esc(cap) : "<input data-field=\"cap\" data-id=\""+esc(k.id)+"\" value=\""+esc(cap)+"\" size=\"8\">";
+    const act = k.revoked ? state : "<button type=\"button\" data-save=\""+esc(k.id)+"\">SAVE</button> <button type=\"button\" data-revoke=\""+esc(k.id)+"\">REVOKE</button>";
+    return "<tr><td>"+esc(k.id)+"</td><td>"+esc(k.rpm_used)+" / "+edit+"</td><td>"+esc(k.tokens)+"</td><td>"+capIn+"</td><td>"+act+"</td></tr>";
+  }).join("");
+  box.querySelectorAll("[data-save]").forEach(btn => btn.onclick = () => saveLimits(btn.getAttribute("data-save")));
+  box.querySelectorAll("[data-revoke]").forEach(btn => btn.onclick = async () => {
+    await authFetch("/api/keys/"+encodeURIComponent(btn.getAttribute("data-revoke")), {method:"DELETE"});
+    load();
+  });
+}
+async function saveLimits(id){
+  const rpm = document.querySelector('[data-field="rpm"][data-id="'+id+'"]').value;
+  const cap = document.querySelector('[data-field="cap"][data-id="'+id+'"]').value;
+  await authFetch("/api/keys/"+encodeURIComponent(id), {method:"PATCH", headers:{"content-type":"application/json"}, body: JSON.stringify({rpm: Number(rpm), daily_tokens: Number(cap)})});
+  load();
+}
+document.getElementById("newkey").onclick = async () => {
+  const id = document.getElementById("id").value.trim();
+  const res = await authFetch("/api/keys", {method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({id})});
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) { document.getElementById("msg").textContent = data.error || "failed"; return; }
+  document.getElementById("msg").textContent = "shown once";
+  document.getElementById("snippet").textContent = data.snippet;
+  load();
+};
+load();
+</script>
+</body></html>

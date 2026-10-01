@@ -10,6 +10,8 @@ export type DailyTheme = {
   bubble: string;
 };
 
+export type DailySnapState = 'none' | 'ready' | 'burned';
+
 export type DailyNote = {
   id: string;
   date: string;
@@ -17,6 +19,9 @@ export type DailyNote = {
   body: string;
   createdAt: string;
   updatedAt: string;
+  /** Missing on old notes → treat as published. New drafts default false. */
+  published: boolean;
+  snap: DailySnapState;
 };
 
 export type DailyComment = {
@@ -35,10 +40,12 @@ export const DAILY_THEME_DEFAULT: DailyTheme = {
   bubble: '#ece6dc',
 };
 
-export const DAILY_NOTE_BODY_MAX = 400;
+export const DAILY_NOTE_BODY_MAX = 4000;
 export const DAILY_NOTE_TITLE_MAX = 80;
 export const DAILY_COMMENT_MAX = 160;
 export const DAILY_NICK_MAX = 24;
+export const DAILY_SNAP_MAX_BYTES = 350_000;
+export const DAILY_SNAP_MIMES = ['image/jpeg', 'image/png', 'image/webp'] as const;
 
 export const DAILY_BG_SWATCHES = [
   '#f4efe6',
@@ -120,6 +127,45 @@ export function commentLooksSpammy(body: string): boolean {
   if (urls.length === 1 && trimmed === urls[0]) return true;
   if ((body.match(/@/g) ?? []).length >= 3) return true;
   return false;
+}
+
+export function isDailySnapMime(value: unknown): value is (typeof DAILY_SNAP_MIMES)[number] {
+  return typeof value === 'string' && (DAILY_SNAP_MIMES as readonly string[]).includes(value);
+}
+
+export function coerceDailyNote(raw: unknown): DailyNote | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const n = raw as Record<string, unknown>;
+  if (typeof n.id !== 'string' || !isYmd(n.date) || typeof n.body !== 'string') return null;
+  const snap: DailySnapState =
+    n.snap === 'ready' || n.snap === 'burned' ? n.snap : 'none';
+  return {
+    id: n.id,
+    date: n.date,
+    title: typeof n.title === 'string' ? n.title : '',
+    body: n.body,
+    createdAt: typeof n.createdAt === 'string' ? n.createdAt : '',
+    updatedAt: typeof n.updatedAt === 'string' ? n.updatedAt : '',
+    published: n.published !== false,
+    snap,
+  };
+}
+
+export function noteIsPublished(note: Pick<DailyNote, 'published'>): boolean {
+  return note.published !== false;
+}
+
+export function normalizeSnapBase64(raw: unknown): string | null {
+  if (typeof raw !== 'string' || !raw) return null;
+  const stripped = raw.replace(/^data:image\/[a-zA-Z0-9+.-]+;base64,/, '').replace(/\s/g, '');
+  if (!stripped || stripped.length > DAILY_SNAP_MAX_BYTES * 2) return null;
+  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(stripped)) return null;
+  return stripped;
+}
+
+export function snapByteLength(b64: string): number {
+  const pad = b64.endsWith('==') ? 2 : b64.endsWith('=') ? 1 : 0;
+  return Math.max(0, Math.floor((b64.length * 3) / 4) - pad);
 }
 
 export function publicComment(c: DailyComment): Omit<DailyComment, 'hidden'> {

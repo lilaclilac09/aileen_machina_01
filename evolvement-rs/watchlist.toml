@@ -1,0 +1,14 @@
+# One slug per line. Prefix ! to keep the repo off `harvest --star`.
+# Qdrant stays on the catalogue card. It does not replace TF-IDF.
+rust-lang/rust
+tokio-rs/tokio
+tokio-rs/axum
+tokio-rs/tracing
+Aandreba/snes-rs
+quickwit-oss/tantivy
+!qdrant/qdrant
+lancedb/lancedb
+0xPlaygrounds/rig
+anza-xyz/agave
+jito-foundation/jito-solana
+lilaclilac09/aileen_machina_01
