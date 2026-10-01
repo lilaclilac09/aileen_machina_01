@@ -2,7 +2,7 @@
 
 Text in. Structured intent out. Jev judges. This crate decides the next step.
 
-The Chinese page at `/` is demo data. It does not call Jev. The badge says so.
+The page at `/` is an English demo. It does not call Jev. The badge says so.
 `POST /api/analyze` is the real backend. `POST /api/transcribe` is the audio step in front of it.
 
 ## Run locally

@@ -115,7 +115,7 @@ export const t = {
           title: 'Intent Aggregator',
           body: 'Any text in. Structured intent, confidence, and a next step out.',
           why: 'Jev judges. The code decides the action. No audio, no stored transcript.',
-          verdict: 'Experiment. The tools page is the Chinese demo. Live judgments still need a server-side TypeSafe key.',
+          verdict: 'Experiment. The tools page is an English demo. Live judgments still need a server-side TypeSafe key.',
           statusLabel: 'experiment',
         },
         'feed-flash': {
@@ -1270,7 +1270,7 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
           title: 'Intent Aggregator',
           body: 'Text rein. Strukturierte Absicht, Confidence und nächster Schritt raus.',
           why: 'Jev urteilt. Der Code entscheidet die Aktion. Kein Audio, kein gespeichertes Transkript.',
-          verdict: 'Experiment. Diese Seite ist die chinesische Demo. Echte Urteile brauchen weiter einen TypeSafe-Key auf dem Server.',
+          verdict: 'Experiment. Diese Seite ist die englische Demo. Echte Urteile brauchen weiter einen TypeSafe-Key auf dem Server.',
           statusLabel: 'experiment',
         },
         'feed-flash': {

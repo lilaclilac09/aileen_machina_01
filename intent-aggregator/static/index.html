@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>意图聚合器 Demo</title>
+    <title>Intent Aggregator Demo</title>
     <style>
       :root {
         color-scheme: light;
@@ -119,7 +119,7 @@
       }
       .bar {
         display: grid;
-        grid-template-columns: minmax(4.5rem, 6.5rem) 1fr 2.6rem;
+        grid-template-columns: minmax(7rem, 9.5rem) 1fr 2.8rem;
         gap: 10px;
         align-items: center;
         font-size: 0.82rem;
@@ -203,32 +203,32 @@
   <body>
     <main>
       <header>
-        <h1>意图聚合器 Demo</h1>
-        <span class="badge">演示数据，未调用真实 API</span>
+        <h1>Intent Aggregator Demo</h1>
+        <span class="badge">Demo data. Real API not called.</span>
       </header>
       <section class="panel">
-        <label>场景
+        <label>Scenario
           <select id="scenario">
-            <option value="customer">客户意图</option>
-            <option value="meeting">会议判断</option>
-            <option value="ticket">工单路由</option>
+            <option value="customer">Customer intent</option>
+            <option value="meeting">Meeting read</option>
+            <option value="ticket">Ticket routing</option>
           </select>
         </label>
-        <label>原文
-          <textarea id="text" placeholder="贴一段客户消息、会议记录或工单。"></textarea>
+        <label>Text
+          <textarea id="text" placeholder="Paste a customer message, meeting note, or ticket."></textarea>
         </label>
         <div class="row">
-          <button type="button" id="sample" class="ghost">填入示例</button>
-          <label class="file">上传音频
+          <button type="button" id="sample" class="ghost">Fill example</button>
+          <label class="file">Upload audio
             <input id="audio" type="file" accept=".mp3,.wav,.m4a,audio/*" hidden />
           </label>
-          <button type="button" id="go">分析意图</button>
+          <button type="button" id="go">Analyze</button>
         </div>
       </section>
       <p id="error" class="err" hidden></p>
       <section id="out"></section>
-      <p class="note">如何接真实后端
-把分析按钮改成请求 POST /api/analyze，body 为 { scenario, text }。现在按钮只读本地演示数据。
+      <p class="note">How to connect a real backend
+Point Analyze at POST /api/analyze with body { scenario, text }. The button currently reads local demo data.
 TODO:
 // fetch("/api/analyze", {
 //   method: "POST",
@@ -238,68 +238,68 @@ TODO:
     </main>
     <script>
       const EXAMPLES = {
-        customer: "订单已经晚了五天还没送到。我今天就要全额退款，不然我就发到社交平台公开投诉你们。",
-        meeting: "周会摘录：老板两次打断，说获客成本还在涨。他要看每个渠道的投入产出，这个方案先不拍板，决定推迟。",
-        ticket: "我的发票显示这个月被扣了两次款，请尽快改掉。"
+        customer: "The order is five days late and still not here. I want a full refund today, or I will post a public complaint.",
+        meeting: "Weekly meeting: the boss interrupted twice about rising CAC. They want ROI by channel and postponed the decision.",
+        ticket: "My invoice shows a double charge this month. Please fix it ASAP."
       };
 
       const MOCK = {
         customer: {
-          suggested_action: "转人工",
+          suggested_action: "Hand off",
           answers: {
             intent: {
               type: "choice",
-              choice: "退款",
+              choice: "Refund",
               confidence: 0.78,
-              probabilities: { "下单": 0.01, "咨询": 0.02, "投诉": 0.13, "退款": 0.82, "比价": 0.0, "闲聊": 0.0, "无法判断": 0.02 }
+              probabilities: { "Order": 0.01, "Ask": 0.02, "Complaint": 0.13, "Refund": 0.82, "Compare": 0.0, "Chat": 0.0, "Unclear": 0.02 }
             },
             urgency: {
               type: "score",
               score: 2.4,
               confidence: 0.81,
-              legend: { "0": "不急", "1": "一般", "2": "急", "3": "非常急" }
+              legend: { "0": "Not urgent", "1": "Normal", "2": "Urgent", "3": "Critical" }
             },
             needs_human: { type: "noul", noul: 0.91 },
             next_action: {
               type: "choice",
-              choice: "转人工",
+              choice: "Hand off",
               confidence: 0.42,
-              probabilities: { "自动回复": 0.18, "建工单": 0.27, "转人工": 0.42, "跟进回访": 0.13 }
+              probabilities: { "Auto-reply": 0.18, "Open a ticket": 0.27, "Hand off": 0.42, "Follow up": 0.13 }
             }
           }
         },
         meeting: {
-          suggested_action: "准备修改版",
+          suggested_action: "Prepare a revision",
           answers: {
             stance: {
               type: "choice",
-              choice: "存疑",
+              choice: "Unsure",
               confidence: 0.74,
-              probabilities: { "支持": 0.16, "存疑": 0.61, "反对": 0.14, "无法判断": 0.09 }
+              probabilities: { "Support": 0.16, "Unsure": 0.61, "Oppose": 0.14, "Unclear": 0.09 }
             },
             resistance: {
               type: "score",
               score: 1.8,
               confidence: 0.7,
-              legend: { "0": "无抵触", "1": "轻微疑虑", "2": "明显抵触", "3": "强烈反对" }
+              legend: { "0": "None", "1": "Slight doubt", "2": "Pushback", "3": "Strong no" }
             },
             wants_revision: { type: "noul", noul: 0.88 },
             next_action: {
               type: "choice",
-              choice: "打回修改",
+              choice: "Send back",
               confidence: 0.76,
-              probabilities: { "通过": 0.08, "打回修改": 0.71, "搁置": 0.16, "上报": 0.05 }
+              probabilities: { "Approve": 0.08, "Send back": 0.71, "Shelve": 0.16, "Escalate": 0.05 }
             }
           }
         },
         ticket: {
-          suggested_action: "账单组加急",
+          suggested_action: "Rush billing",
           answers: {
             department: {
               type: "choice",
-              choice: "账单",
+              choice: "Billing",
               confidence: 0.86,
-              probabilities: { "账单": 0.84, "技术": 0.09, "销售": 0.07 }
+              probabilities: { "Billing": 0.84, "Technical": 0.09, "Sales": 0.07 }
             },
             is_urgent: { type: "noul", noul: 0.93 }
           }
@@ -307,15 +307,15 @@ TODO:
       };
 
       const LABELS = {
-        intent: "意图",
-        urgency: "紧急程度",
-        needs_human: "是否转人工",
-        next_action: "下一步",
-        stance: "立场",
-        resistance: "抵触程度",
-        wants_revision: "是否要求实质性修改",
-        department: "部门",
-        is_urgent: "是否紧急"
+        intent: "Intent",
+        urgency: "Urgency",
+        needs_human: "Needs a person",
+        next_action: "Next step",
+        stance: "Stance",
+        resistance: "Pushback",
+        wants_revision: "Wants a real edit",
+        department: "Department",
+        is_urgent: "Urgent"
       };
 
       const scenario = document.querySelector("#scenario");
@@ -338,13 +338,13 @@ TODO:
           const payload = await res.json();
           if (!res.ok) {
             error.hidden = false;
-            error.textContent = payload.error || "转写失败";
+            error.textContent = payload.error || "Transcription failed";
             return;
           }
           text.value = payload.text || "";
         } catch {
           error.hidden = false;
-          error.textContent = "转写失败";
+          error.textContent = "Transcription failed";
         }
       };
 
@@ -356,7 +356,7 @@ TODO:
         // fetch("/api/analyze", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ scenario: scenario.value, text: text.value }) })
         const action = document.createElement("article");
         action.className = "card";
-        action.innerHTML = "<h2>建议动作</h2>";
+        action.innerHTML = "<h2>Suggested action</h2>";
         const actionValue = document.createElement("div");
         actionValue.className = "value";
         actionValue.textContent = data.suggested_action;
@@ -377,7 +377,7 @@ TODO:
           if (low) {
             const tag = document.createElement("span");
             tag.className = "tag";
-            tag.textContent = "仅供参考";
+            tag.textContent = "For reference only";
             head.append(tag);
           }
           card.append(head);
@@ -389,7 +389,7 @@ TODO:
 
           const meta = document.createElement("div");
           meta.className = "meta";
-          meta.textContent = "置信度 " + confidence.toFixed(2);
+          meta.textContent = "Confidence " + confidence.toFixed(2);
           card.append(meta);
 
           if (answer.type === "choice") bars(card, answer);
@@ -414,7 +414,7 @@ TODO:
           const label = answer.legend && answer.legend[nearest];
           return answer.score.toFixed(1) + (label ? " · " + label : "");
         }
-        return Number(answer.noul) >= 0.5 ? "是" : "否";
+        return Number(answer.noul) >= 0.5 ? "Yes" : "No";
       }
 
       function bars(card, answer) {
@@ -457,7 +457,7 @@ TODO:
         wrap.className = "gauge-wrap";
         const labels = document.createElement("div");
         labels.className = "gauge-labels";
-        labels.innerHTML = "<span>否</span><span>是 " + Math.round(noul * 100) + "%</span>";
+        labels.innerHTML = "<span>No</span><span>Yes " + Math.round(noul * 100) + "%</span>";
         const rail = document.createElement("div");
         rail.className = "gauge";
         const mark = document.createElement("i");

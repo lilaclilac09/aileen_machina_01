@@ -1960,7 +1960,7 @@ button.ai-factory-cell {
 
 .intent-demo-bar {
   display: grid;
-  grid-template-columns: minmax(4.5rem, 6.5rem) 1fr 2.6rem;
+  grid-template-columns: minmax(7rem, 9.5rem) 1fr 2.8rem;
   gap: 10px;
   align-items: center;
   font-size: 0.82rem;
