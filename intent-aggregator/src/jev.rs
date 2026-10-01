@@ -11,7 +11,7 @@ use crate::questions::{questions_for, Scenario};
 struct JevRequest {
     state: String,
     model: &'static str,
-    questions: std::collections::BTreeMap<&'static str, crate::questions::Question>,
+    questions: indexmap::IndexMap<&'static str, crate::questions::Question>,
 }
 
 pub enum JevError {

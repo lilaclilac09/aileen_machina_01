@@ -77,7 +77,10 @@
             const title = document.createElement('strong');
             title.textContent = id;
             const value = document.createElement('div');
-            value.textContent = answer.choice ?? answer.score ?? answer.noul ?? '';
+            const shown = answer.choice ?? answer.score ?? answer.noul ?? '';
+            value.textContent = typeof answer.confidence === 'number'
+              ? shown + '  confidence ' + answer.confidence.toFixed(2)
+              : String(shown);
             card.append(title, value);
             if (low) {
               const note = document.createElement('div');

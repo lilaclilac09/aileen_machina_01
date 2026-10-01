@@ -1,5 +1,4 @@
-use std::collections::BTreeMap;
-
+use indexmap::IndexMap;
 use serde::Serialize;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -34,7 +33,7 @@ pub enum Question {
     #[serde(rename = "choice")]
     Choice {
         instructions: &'static str,
-        criteria: BTreeMap<&'static str, &'static str>,
+        criteria: IndexMap<&'static str, &'static str>,
     },
     #[serde(rename = "score")]
     Score {
@@ -62,8 +61,8 @@ fn noul(instructions: &'static str, yes: &'static str, no: &'static str) -> Ques
     }
 }
 
-pub fn questions_for(scenario: Scenario) -> BTreeMap<&'static str, Question> {
-    let mut map = BTreeMap::new();
+pub fn questions_for(scenario: Scenario) -> IndexMap<&'static str, Question> {
+    let mut map = IndexMap::new();
     match scenario {
         Scenario::Customer => {
             map.insert(
@@ -186,4 +185,34 @@ pub fn questions_for(scenario: Scenario) -> BTreeMap<&'static str, Question> {
         }
     }
     map
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn customer_intent_options_keep_spec_order() {
+        let questions = questions_for(Scenario::Customer);
+        let raw = serde_json::to_string(questions.get("intent").unwrap()).unwrap();
+        let at = |key: &str| raw.find(&format!("\"{key}\"")).unwrap();
+        let order = [
+            "purchase",
+            "inquiry",
+            "complaint",
+            "refund",
+            "price_comparison",
+            "chitchat",
+            "undecided",
+        ];
+        let positions: Vec<_> = order.iter().map(|key| at(key)).collect();
+        assert!(positions.windows(2).all(|pair| pair[0] < pair[1]), "{raw}");
+        assert!(raw.contains("\"type\":\"choice\""));
+
+        let noul = serde_json::to_value(questions.get("needs_human").unwrap()).unwrap();
+        assert_eq!(noul["type"], "noul");
+        assert!(noul.get("confidence").is_none());
+        let urgency = serde_json::to_value(questions.get("urgency").unwrap()).unwrap();
+        assert_eq!(urgency["criteria"].as_array().unwrap().len(), 4);
+    }
 }
