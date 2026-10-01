@@ -164,10 +164,6 @@ export default function InklingClipTool() {
   const remoteApi = Boolean(clipsApiBase());
   const freeOnly = host?.api?.ok !== true;
 
-  useEffect(() => {
-    if (freeOnly && mode === 'query') setMode('best');
-  }, [freeOnly, mode]);
-
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
@@ -325,7 +321,7 @@ export default function InklingClipTool() {
             </p>
           ) : null}
 
-          {mode === 'query' ? (
+          {!freeOnly && mode === 'query' ? (
             <div>
               <label
                 htmlFor="topic"
