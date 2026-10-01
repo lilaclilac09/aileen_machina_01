@@ -15,7 +15,7 @@ export type AgentMode = 'public' | 'machina' | 'council';
 
 export type AgentModeDecision =
   | { ok: true; mode: AgentMode }
-  | { ok: false; status: 403; error: string };
+  | { ok: false; status: 400 | 403; error: string };
 
 function normalizeRequested(requested: string | undefined): string {
   if (!requested) return 'public';

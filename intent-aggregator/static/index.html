@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Intent Aggregator Demo</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4f6f8;
+        --card: #ffffff;
+        --ink: #1c2430;
+        --muted: #5c6778;
+        --line: #e6ebf1;
+        --accent: #0f6e6a;
+        --accent-soft: #e7f4f3;
+        --warn: #8a5a12;
+        --shadow: 0 10px 28px rgba(28, 36, 48, 0.06);
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 16px/1.55 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      }
+      main {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 28px 16px 80px;
+        display: grid;
+        gap: 20px;
+      }
+      header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 16px;
+        align-items: center;
+        justify-content: space-between;
+      }
+      h1 {
+        margin: 0;
+        font-size: 1.55rem;
+        font-weight: 620;
+        letter-spacing: -0.02em;
+      }
+      .badge {
+        font-size: 0.78rem;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #fff4df;
+        color: var(--warn);
+      }
+      .panel, .card {
+        background: var(--card);
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+      }
+      .panel {
+        padding: 18px;
+        display: grid;
+        gap: 14px;
+      }
+      label {
+        display: grid;
+        gap: 8px;
+        font-size: 0.82rem;
+        color: var(--muted);
+      }
+      select, textarea, button {
+        font: inherit;
+        color: var(--ink);
+      }
+      select, textarea {
+        width: 100%;
+        border: 1px solid var(--line);
+        background: #fbfcfd;
+        border-radius: 12px;
+        padding: 12px 14px;
+      }
+      textarea { min-height: 148px; resize: vertical; }
+      .row { display: flex; flex-wrap: wrap; gap: 10px; }
+      button, .file {
+        border: 0;
+        border-radius: 12px;
+        padding: 12px 16px;
+        cursor: pointer;
+      }
+      button {
+        background: var(--accent);
+        color: #f7fffe;
+      }
+      button.ghost, .file {
+        background: #eef2f6;
+        color: var(--ink);
+      }
+      .file { display: inline-flex; align-items: center; }
+      button:disabled { opacity: 0.55; cursor: default; }
+      #out { display: grid; gap: 14px; }
+      .card { padding: 18px 18px 16px; display: grid; gap: 12px; }
+      .card.low {
+        background: #f3f4f6;
+        box-shadow: none;
+        color: #6b7280;
+      }
+      .card.low .fill, .card.low .pin, .card.low .mark { background: #9aa3af; }
+      .head { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: baseline; justify-content: space-between; }
+      .card h2, .card h3 { margin: 0; font-size: 0.95rem; font-weight: 620; }
+      .value { font-size: 1.15rem; font-weight: 620; }
+      .meta { font-size: 0.82rem; color: var(--muted); }
+      .card.low .meta { color: #6b7280; }
+      .tag {
+        display: inline-block;
+        font-size: 0.75rem;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: #eceff3;
+        color: #4b5563;
+      }
+      .bar {
+        display: grid;
+        grid-template-columns: minmax(7rem, 9.5rem) 1fr 2.8rem;
+        gap: 10px;
+        align-items: center;
+        font-size: 0.82rem;
+      }
+      .track {
+        height: 8px;
+        border-radius: 999px;
+        background: #e8edf2;
+        overflow: hidden;
+      }
+      .fill {
+        display: block;
+        height: 100%;
+        background: var(--accent);
+        border-radius: inherit;
+      }
+      .score { display: grid; gap: 8px; }
+      .score-rail {
+        position: relative;
+        height: 8px;
+        margin: 14px 8px 0;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #d7ebe9, #0f6e6a);
+      }
+      .pin {
+        position: absolute;
+        top: 50%;
+        width: 14px;
+        height: 14px;
+        margin: -7px 0 0 -7px;
+        border-radius: 50%;
+        background: var(--ink);
+        box-shadow: 0 0 0 3px #fff;
+      }
+      .ticks {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+        font-size: 0.75rem;
+        color: var(--muted);
+        text-align: center;
+      }
+      .gauge-wrap { display: grid; gap: 6px; }
+      .gauge-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.78rem;
+        color: var(--muted);
+      }
+      .gauge {
+        position: relative;
+        height: 10px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #d5ddd9, #c4553a);
+      }
+      .mark {
+        position: absolute;
+        top: -4px;
+        width: 3px;
+        height: 18px;
+        margin-left: -1px;
+        border-radius: 2px;
+        background: var(--ink);
+      }
+      .note {
+        margin: 0;
+        font-size: 0.8rem;
+        color: var(--muted);
+        white-space: pre-wrap;
+      }
+      .err { color: #9a3412; margin: 0; }
+      @media (min-width: 720px) {
+        main { padding-top: 48px; }
+      }
+      @media (max-width: 520px) {
+        .bar { grid-template-columns: 1fr; gap: 4px; }
+        .ticks { font-size: 0.7rem; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Intent Aggregator Demo</h1>
+        <span class="badge">Demo data. Real API not called.</span>
+      </header>
+      <section class="panel">
+        <label>Scenario
+          <select id="scenario">
+            <option value="customer">Customer intent</option>
+            <option value="meeting">Meeting read</option>
+            <option value="ticket">Ticket routing</option>
+          </select>
+        </label>
+        <label>Text
+          <textarea id="text" placeholder="Paste a customer message, meeting note, or ticket."></textarea>
+        </label>
+        <div class="row">
+          <button type="button" id="sample" class="ghost">Fill example</button>
+          <label class="file">Upload audio
+            <input id="audio" type="file" accept=".mp3,.wav,.m4a,audio/*" hidden />
+          </label>
+          <button type="button" id="go">Analyze</button>
+        </div>
+      </section>
+      <p id="error" class="err" hidden></p>
+      <section id="out"></section>
+      <p class="note">How to connect a real backend
+Point Analyze at POST /api/analyze with body { scenario, text }. The button currently reads local demo data.
+TODO:
+// fetch("/api/analyze", {
+//   method: "POST",
+//   headers: { "Content-Type": "application/json" },
+//   body: JSON.stringify({ scenario, text })
+// })</p>
+    </main>
+    <script>
+      const EXAMPLES = {
+        customer: "The order is five days late and still not here. I want a full refund today, or I will post a public complaint.",
+        meeting: "Weekly meeting: the boss interrupted twice about rising CAC. They want ROI by channel and postponed the decision.",
+        ticket: "My invoice shows a double charge this month. Please fix it ASAP."
+      };
+
+      const MOCK = {
+        customer: {
+          suggested_action: "Hand off",
+          answers: {
+            intent: {
+              type: "choice",
+              choice: "Refund",
+              confidence: 0.78,
+              probabilities: { "Order": 0.01, "Ask": 0.02, "Complaint": 0.13, "Refund": 0.82, "Compare": 0.0, "Chat": 0.0, "Unclear": 0.02 }
+            },
+            urgency: {
+              type: "score",
+              score: 2.4,
+              confidence: 0.81,
+              legend: { "0": "Not urgent", "1": "Normal", "2": "Urgent", "3": "Critical" }
+            },
+            needs_human: { type: "noul", noul: 0.91 },
+            next_action: {
+              type: "choice",
+              choice: "Hand off",
+              confidence: 0.42,
+              probabilities: { "Auto-reply": 0.18, "Open a ticket": 0.27, "Hand off": 0.42, "Follow up": 0.13 }
+            }
+          }
+        },
+        meeting: {
+          suggested_action: "Prepare a revision",
+          answers: {
+            stance: {
+              type: "choice",
+              choice: "Unsure",
+              confidence: 0.74,
+              probabilities: { "Support": 0.16, "Unsure": 0.61, "Oppose": 0.14, "Unclear": 0.09 }
+            },
+            resistance: {
+              type: "score",
+              score: 1.8,
+              confidence: 0.7,
+              legend: { "0": "None", "1": "Slight doubt", "2": "Pushback", "3": "Strong no" }
+            },
+            wants_revision: { type: "noul", noul: 0.88 },
+            next_action: {
+              type: "choice",
+              choice: "Send back",
+              confidence: 0.76,
+              probabilities: { "Approve": 0.08, "Send back": 0.71, "Shelve": 0.16, "Escalate": 0.05 }
+            }
+          }
+        },
+        ticket: {
+          suggested_action: "Rush billing",
+          answers: {
+            department: {
+              type: "choice",
+              choice: "Billing",
+              confidence: 0.86,
+              probabilities: { "Billing": 0.84, "Technical": 0.09, "Sales": 0.07 }
+            },
+            is_urgent: { type: "noul", noul: 0.93 }
+          }
+        }
+      };
+
+      const LABELS = {
+        intent: "Intent",
+        urgency: "Urgency",
+        needs_human: "Needs a person",
+        next_action: "Next step",
+        stance: "Stance",
+        resistance: "Pushback",
+        wants_revision: "Wants a real edit",
+        department: "Department",
+        is_urgent: "Urgent"
+      };
+
+      const scenario = document.querySelector("#scenario");
+      const text = document.querySelector("#text");
+      const error = document.querySelector("#error");
+      const out = document.querySelector("#out");
+
+      document.querySelector("#sample").onclick = () => {
+        text.value = EXAMPLES[scenario.value];
+      };
+
+      document.querySelector("#audio").onchange = async (event) => {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        error.hidden = true;
+        const body = new FormData();
+        body.append("file", file);
+        try {
+          const res = await fetch("/api/transcribe", { method: "POST", body });
+          const payload = await res.json();
+          if (!res.ok) {
+            error.hidden = false;
+            error.textContent = payload.error || "Transcription failed";
+            return;
+          }
+          text.value = payload.text || "";
+        } catch {
+          error.hidden = false;
+          error.textContent = "Transcription failed";
+        }
+      };
+
+      document.querySelector("#go").onclick = () => {
+        error.hidden = true;
+        out.replaceChildren();
+        const data = MOCK[scenario.value];
+        // TODO: replace this mock with
+        // fetch("/api/analyze", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ scenario: scenario.value, text: text.value }) })
+        const action = document.createElement("article");
+        action.className = "card";
+        action.innerHTML = "<h2>Suggested action</h2>";
+        const actionValue = document.createElement("div");
+        actionValue.className = "value";
+        actionValue.textContent = data.suggested_action;
+        action.append(actionValue);
+        out.append(action);
+
+        for (const [id, answer] of Object.entries(data.answers)) {
+          const card = document.createElement("article");
+          const confidence = displayConfidence(answer);
+          const low = confidence < 0.5;
+          card.className = low ? "card low" : "card";
+
+          const head = document.createElement("div");
+          head.className = "head";
+          const title = document.createElement("h3");
+          title.textContent = LABELS[id] || id;
+          head.append(title);
+          if (low) {
+            const tag = document.createElement("span");
+            tag.className = "tag";
+            tag.textContent = "For reference only";
+            head.append(tag);
+          }
+          card.append(head);
+
+          const value = document.createElement("div");
+          value.className = "value";
+          value.textContent = winning(answer);
+          card.append(value);
+
+          const meta = document.createElement("div");
+          meta.className = "meta";
+          meta.textContent = "Confidence " + confidence.toFixed(2);
+          card.append(meta);
+
+          if (answer.type === "choice") bars(card, answer);
+          if (answer.type === "score") scoreScale(card, answer);
+          if (answer.type === "noul") gauge(card, answer.noul);
+          out.append(card);
+        }
+      };
+
+      // displayConfidence is for the demo UI only.
+      // A real noul answer is { "noul": number } and has no confidence field.
+      function displayConfidence(answer) {
+        if (typeof answer.confidence === "number") return answer.confidence;
+        const noul = Number(answer.noul);
+        return Math.min(0.95, 0.55 + Math.abs(noul - 0.5));
+      }
+
+      function winning(answer) {
+        if (answer.type === "choice") return answer.choice;
+        if (answer.type === "score") {
+          const nearest = String(Math.max(0, Math.min(3, Math.round(answer.score))));
+          const label = answer.legend && answer.legend[nearest];
+          return answer.score.toFixed(1) + (label ? " · " + label : "");
+        }
+        return Number(answer.noul) >= 0.5 ? "Yes" : "No";
+      }
+
+      function bars(card, answer) {
+        for (const [key, prob] of Object.entries(answer.probabilities)) {
+          const row = document.createElement("div");
+          row.className = "bar";
+          const width = Math.max(0, Math.min(100, Math.round(Number(prob) * 100)));
+          row.innerHTML = "<span></span><span class=\"track\"><span class=\"fill\"></span></span><span></span>";
+          row.children[0].textContent = key;
+          row.children[1].firstChild.style.width = width + "%";
+          row.children[2].textContent = width + "%";
+          card.append(row);
+        }
+      }
+
+      function scoreScale(card, answer) {
+        const wrap = document.createElement("div");
+        wrap.className = "score";
+        const rail = document.createElement("div");
+        rail.className = "score-rail";
+        const pin = document.createElement("i");
+        pin.className = "pin";
+        const ratio = Math.max(0, Math.min(1, Number(answer.score) / 3));
+        pin.style.left = (ratio * 100) + "%";
+        rail.append(pin);
+        const ticks = document.createElement("div");
+        ticks.className = "ticks";
+        for (let i = 0; i <= 3; i += 1) {
+          const cell = document.createElement("span");
+          const label = (answer.legend && answer.legend[String(i)]) || String(i);
+          cell.textContent = i + " " + label;
+          ticks.append(cell);
+        }
+        wrap.append(rail, ticks);
+        card.append(wrap);
+      }
+
+      function gauge(card, noul) {
+        const wrap = document.createElement("div");
+        wrap.className = "gauge-wrap";
+        const labels = document.createElement("div");
+        labels.className = "gauge-labels";
+        labels.innerHTML = "<span>No</span><span>Yes " + Math.round(noul * 100) + "%</span>";
+        const rail = document.createElement("div");
+        rail.className = "gauge";
+        const mark = document.createElement("i");
+        mark.className = "mark";
+        mark.style.left = Math.max(0, Math.min(100, noul * 100)) + "%";
+        rail.append(mark);
+        wrap.append(labels, rail);
+        card.append(wrap);
+      }
+    </script>
+  </body>
+</html>
