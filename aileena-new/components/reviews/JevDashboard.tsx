@@ -473,20 +473,6 @@ export default function JevDashboard() {
     setSelected(next);
   }, []);
 
-  const loadOne = useCallback(async (id: string) => {
-    const res = await fetch(`/api/owner/reviews/${id}`, { cache: 'no-store', credentials: 'include' });
-    const data = (await res.json()) as StoredReview;
-    if (!res.ok && data.status !== 'error' && data.status !== 'empty') {
-      setView({ status: 'offline' });
-      return;
-    }
-    if (data.status === 'ok') {
-      setView({ status: 'ok', savedAt: data.savedAt, writable: data.writable, report: data.report });
-      return;
-    }
-    setView(data.status === 'error' ? data : { status: 'empty' });
-  }, []);
-
   useEffect(() => {
     let cancelled = false;
     void (async () => {
@@ -504,13 +490,28 @@ export default function JevDashboard() {
   }, [loadList]);
 
   useEffect(() => {
-    if (!selected) return;
-    if (isLayoutSampleId(selected)) {
-      setView(layoutView(selected));
-      return;
-    }
-    void loadOne(selected);
-  }, [selected, loadOne]);
+    if (!selected || isLayoutSampleId(selected)) return;
+    let cancelled = false;
+    const id = selected;
+    void (async () => {
+      const res = await fetch(`/api/owner/reviews/${id}`, { cache: 'no-store', credentials: 'include' });
+      if (cancelled) return;
+      const data = (await res.json()) as StoredReview;
+      if (cancelled) return;
+      if (!res.ok && data.status !== 'error' && data.status !== 'empty') {
+        setView({ status: 'offline' });
+        return;
+      }
+      if (data.status === 'ok') {
+        setView({ status: 'ok', savedAt: data.savedAt, writable: data.writable, report: data.report });
+        return;
+      }
+      setView(data.status === 'error' ? data : { status: 'empty' });
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [selected]);
 
   async function onFile(file: File | undefined) {
     if (!file) return;
@@ -546,10 +547,11 @@ export default function JevDashboard() {
     await loadList();
   }
 
+  const display = selected && isLayoutSampleId(selected) ? layoutView(selected) : view;
   const current = reviews.find((row) => row.id === selected);
   const modeLabel =
-    view.status === 'ok'
-      ? view.report.mode === 'codebase'
+    display.status === 'ok'
+      ? display.report.mode === 'codebase'
         ? 'Codebase scan'
         : 'Change review'
       : current?.mode === 'codebase'
@@ -572,7 +574,7 @@ export default function JevDashboard() {
             Jev review
           </h1>
           <p className="meta" id="meta">
-            {view.status === 'ok' ? (
+            {display.status === 'ok' ? (
               <>
                 <span className="mode" title={modeLabel}>
                   {modeLabel}
@@ -580,14 +582,14 @@ export default function JevDashboard() {
                 <span className="sep" aria-hidden="true">
                   ·
                 </span>
-                <span className="scope" title={view.report.scope}>
-                  {scopeName(view.report.scope)}
+                <span className="scope" title={display.report.scope}>
+                  {scopeName(display.report.scope)}
                 </span>
                 <span className="sep" aria-hidden="true">
                   ·
                 </span>
-                <time dateTime={view.savedAt} title={new Date(view.savedAt).toLocaleString()}>
-                  {ago(view.savedAt)}
+                <time dateTime={display.savedAt} title={new Date(display.savedAt).toLocaleString()}>
+                  {ago(display.savedAt)}
                 </time>
               </>
             ) : null}
@@ -627,7 +629,7 @@ export default function JevDashboard() {
                 </button>
               </li>
             ))}
-            {view.status === 'ok' && view.writable ? (
+            {display.status === 'ok' && display.writable ? (
               <li>
                 <button type="button" onClick={() => void removeSelected()}>
                   Remove
@@ -642,23 +644,23 @@ export default function JevDashboard() {
             <p className="section-note">Layout sample, so this room is visible before a saved review. Add a JSON to replace it.</p>
           ) : null}
           {pane === 'flow' ? <ReviewFlow onOpenReport={() => setPane('report')} /> : null}
-          {pane === 'report' && view.status === 'ok' ? (
-            <ReportBody report={view.report} showValues={showValues} onToggle={() => setShowValues((v) => !v)} />
+          {pane === 'report' && display.status === 'ok' ? (
+            <ReportBody report={display.report} showValues={showValues} onToggle={() => setShowValues((v) => !v)} />
           ) : null}
-          {view.status === 'empty' ? (
+          {display.status === 'empty' ? (
             <div className="quiet">
               <p className="quiet-title">No review yet</p>
               <code className="quiet-command">npm run review:changes:save -- &lt;path&gt;</code>
               <p className="quiet-detail">Add the saved JSON. Only this owner session can read the list.</p>
             </div>
           ) : null}
-          {view.status === 'error' ? (
+          {display.status === 'error' ? (
             <div className="quiet">
               <p className="quiet-title">Unreadable report</p>
-              <p className="quiet-detail">{view.message}</p>
+              <p className="quiet-detail">{display.message}</p>
             </div>
           ) : null}
-          {view.status === 'offline' ? (
+          {display.status === 'offline' ? (
             <div className="quiet">
               <p className="quiet-title">Server unavailable</p>
             </div>
