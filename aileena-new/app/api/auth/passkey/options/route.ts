@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createWebauthnChallenge } from '@/lib/auth';
 import { isVercelProduction } from '@/lib/computer/flag';
-import { hasPasskeys, listPasskeys } from '@/lib/passkey/store';
+import { hasPasskeys, listPasskeys, loadPasskeys } from '@/lib/passkey/store';
 import { rpIdFromHost } from '@/lib/passkey/webauthn';
 import { KS_PRF_FIRST } from '@/lib/keyshield/constants';
 import { requireOwnerFromRequest } from '@/lib/owner-gate';
@@ -18,6 +18,7 @@ function hostOf(req: Request): string {
 export async function POST(req: Request) {
   const body = (await req.json().catch(() => ({}))) as { mode?: string };
   const mode = body.mode === 'register' ? 'register' : 'unlock';
+  await loadPasskeys();
   const owner = await requireOwnerFromRequest(req);
   if (mode === 'register') {
     if (hasPasskeys() && !owner) {
