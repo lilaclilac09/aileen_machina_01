@@ -6,6 +6,7 @@
  * Centaur forces articles/research, etc.
  */
 
+import { isSiteNavQuestion, siteMapTail } from './product-surface/lookup';
 import {
   chooseVisitorStance,
   inferVisitorIntents,
@@ -75,7 +76,7 @@ function emptySoft(): VisitorSoftMemory {
 }
 
 /** Named-entity / topic hard routes (checked before soft intents). */
-function hardRoute(q: string): ToolRoute | null {
+function hardRoute(q: string, surface = '/'): ToolRoute | null {
   const t = q.toLowerCase();
 
   // What's new / 更新 — force latest-content shelf (Chinese queries miss TF-IDF otherwise).
@@ -101,6 +102,17 @@ function hardRoute(q: string): ToolRoute | null {
       preferred: [],
       reason: 'hire/CV/contact — static prompt only',
       hint: 'No tools this turn. Answer from the static CV / contact context. Do not call searchMemories or chip tools.',
+    };
+  }
+
+  // Where is a room — a short path, not the product graph.
+  if (isSiteNavQuestion(q)) {
+    return {
+      route: 'site_map',
+      allowed: 'none',
+      preferred: [],
+      reason: 'where to go → one product-surface path',
+      hint: `No tools. ${siteMapTail(q, surface)}`,
     };
   }
 
@@ -195,8 +207,9 @@ export function routeToolsForQuestion(
   lastQuestion: string,
   soft: VisitorSoftMemory = emptySoft(),
   clientPriorTopics: string[] = [],
+  surface = '/',
 ): ToolRoute {
-  const hard = hardRoute(lastQuestion);
+  const hard = hardRoute(lastQuestion, surface);
   if (hard) return hard;
 
   const intents = inferVisitorIntents(lastQuestion, soft, clientPriorTopics);

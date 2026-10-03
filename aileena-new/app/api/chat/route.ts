@@ -221,6 +221,7 @@ export async function POST(req: Request) {
     voiceAccent?: string;
     sessionProvider?: string;
     sessionVoiceAccent?: string;
+    surface?: string;
   };
   try {
     body = await req.json();
@@ -380,7 +381,9 @@ export async function POST(req: Request) {
   // Council never enqueues. Does not write AGENTS.md / QA.md / PROJECT_RULES.md.
   if (lastQ) void enqueueLiveAsk(lastQ, { isCouncil });
 
-  const toolRoute = routeToolsForQuestion(lastQ, visitorSoft, priorTopics);
+  const surface =
+    typeof body.surface === 'string' && /^\/[a-z0-9/_-]{0,80}$/.test(body.surface) ? body.surface : '/';
+  const toolRoute = routeToolsForQuestion(lastQ, visitorSoft, priorTopics, surface);
   const modelDecision = routeModel({
     toolRoute: toolRoute.route,
     lastQuestion: lastQ,

@@ -2,6 +2,7 @@
 
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
+import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { SYSTEM_PROMPT_LITE } from '../lib/agentContextLite';
@@ -35,7 +36,9 @@ import {
   parseNewRootError,
   pingForNewRootReason,
 } from '../lib/consolePrefixCopy';
+import { formatSiteSteps, planSitePath, type SiteStep } from '../lib/product-surface/lookup';
 import SiteLeftChrome from './SiteLeftChrome';
+import SiteMapSteps from './SiteMapSteps';
 import AgentVoiceOrb from './AgentVoiceOrb';
 import ComputerConsoleDock from './ComputerConsoleDock';
 
@@ -218,6 +221,10 @@ export default function AgentChat() {
   );
   const pendingNewRootRef = useRef<{ message: string; resend?: string } | null>(null);
   const lastAskedRef = useRef('');
+  const pathname = usePathname() || '/';
+  const pathnameRef = useRef(pathname);
+  pathnameRef.current = pathname;
+  const [siteMaps, setSiteMaps] = useState<Record<string, SiteStep[]>>({});
   const beginNewRootRef = useRef<(ping: string, resend?: string) => void>(() => {});
 
   const { messages, setMessages, sendMessage, status, error, stop, clearError } = useChat({
@@ -250,6 +257,7 @@ export default function AgentChat() {
           voiceAccent: live ?? undefined,
           sessionProvider: sessionProviderRef.current ?? '',
           sessionVoiceAccent: freeze === undefined ? '' : (freeze ?? 'off'),
+          surface: pathnameRef.current,
         };
       },
       fetch: async (input, init) => {
@@ -920,7 +928,7 @@ export default function AgentChat() {
     return session;
   }
 
-  async function sendBrowser(text: string) {
+  async function sendBrowser(text: string, steps: SiteStep[] | null) {
     setBrowserBusy(true);
     browserAbortRef.current?.abort();
     const ac = new AbortController();
@@ -947,7 +955,10 @@ export default function AgentChat() {
     try {
       const session = await ensureBrowserSession();
       if (!session) throw new Error('On-device agent unavailable on this browser.');
-      const stream = session.promptStreaming(text, { signal: ac.signal });
+      const prompt = steps?.length
+        ? `${text}\n\n[site map — say only these steps. Do not invent a room.]\n${formatSiteSteps(steps)}`
+        : text;
+      const stream = session.promptStreaming(prompt, { signal: ac.signal });
       let acc = '';
       for await (const chunk of stream) {
         acc += chunk;
@@ -1354,6 +1365,10 @@ export default function AgentChat() {
     // for both runtimes so a visitor's browser-mode questions also seed
     // their future cloud-mode visits and vice versa.
     appendUserTopic(trimmed);
+    const planned = planSitePath(trimmed, pathnameRef.current);
+    if (planned?.length) {
+      setSiteMaps((prev) => ({ ...prev, [trimmed]: planned }));
+    }
 
     if (isDrawIntent(trimmed)) {
       void sendDraw(trimmed);
@@ -1442,7 +1457,7 @@ export default function AgentChat() {
     }
 
     if (activeRuntime === 'browser') {
-      void sendBrowser(trimmed);
+      void sendBrowser(trimmed, planned);
     } else {
       lastAskedRef.current = trimmed;
       if (!isOwnerRef.current && !ownerUnlimited) pendingDailyBumpRef.current = true;
@@ -1942,6 +1957,7 @@ export default function AgentChat() {
           ) : (
             messages.map((m) => {
               const text = getMessageText(m);
+              const steps = m.role === 'user' ? siteMaps[text.trim()] : undefined;
               // While the model is mid-tool-call (or about to start a step)
               // with no text yet, render a muted activity hint instead of
               // an empty bubble. As soon as the first answer token arrives,
@@ -1949,7 +1965,12 @@ export default function AgentChat() {
               if (m.role === 'assistant' && !text.trim()) {
                 const activity = getMessageActivity(m);
                 if (activity) {
-                  return <Line key={m.id} role="assistant" text={activity} muted />;
+                  return (
+                    <div key={m.id}>
+                      <Line role="assistant" text={activity} muted />
+                      {steps ? <SiteMapSteps steps={steps} /> : null}
+                    </div>
+                  );
                 }
               }
               const att = m.role === 'assistant' ? vcodeById[m.id] : undefined;
@@ -1960,6 +1981,7 @@ export default function AgentChat() {
                     role={m.role === 'user' ? 'user' : 'assistant'}
                     text={text}
                   />
+                  {steps ? <SiteMapSteps steps={steps} /> : null}
                   {draw ? <DrawCardTail att={draw} /> : null}
                   {att ? (
                     <VcodeActions
