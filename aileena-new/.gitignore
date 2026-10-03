@@ -48,6 +48,9 @@ yarn-error.log*
 # Owner computer prototype workspace (local shim; never commit)
 .data/computer-prototype/
 
+# Owner code-review uploads (instance only; committed reports live in data/reviews)
+.data/reviews/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
