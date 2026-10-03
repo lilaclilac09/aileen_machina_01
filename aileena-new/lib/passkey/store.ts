@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { getVisitorRedis } from '../visitorMemory';
 
 export type StoredPasskey = {
   id: string;
@@ -21,8 +22,14 @@ function memory(): Memory {
   return g.__aileenaPasskeys;
 }
 
+const REDIS_KEY = 'owner:passkeys:v1';
+
 function storePath(): string {
   return join(process.cwd(), '.data', 'computer-prototype', 'passkeys.json');
+}
+
+function keep(rows: StoredPasskey[]): StoredPasskey[] {
+  return rows.filter((k) => k?.id && k.vaultId && k.sealIv && k.sealCipher && k.publicKeySpki);
 }
 
 function persist(): void {
@@ -39,12 +46,36 @@ function hydrate(): void {
   try {
     if (existsSync(storePath())) {
       const parsed = JSON.parse(readFileSync(storePath(), 'utf8')) as StoredPasskey[];
-      if (Array.isArray(parsed)) {
-        memory().keys = parsed.filter((k) => k?.id && k.vaultId && k.sealIv && k.sealCipher);
-      }
+      if (Array.isArray(parsed)) memory().keys = keep(parsed);
     }
   } catch {
     /* ignore */
+  }
+}
+
+/** File first, then Redis. Production disk does not keep a passkey across instances. */
+export async function loadPasskeys(): Promise<void> {
+  hydrate();
+  if (memory().keys.length > 0) return;
+  const redis = getVisitorRedis();
+  if (!redis) return;
+  try {
+    const raw = await redis.get<StoredPasskey[] | string>(REDIS_KEY);
+    const parsed = typeof raw === 'string' ? (JSON.parse(raw) as StoredPasskey[]) : raw;
+    if (Array.isArray(parsed)) memory().keys = keep(parsed);
+  } catch {
+    /* unlock can still use the admin password */
+  }
+}
+
+export async function savePasskeys(): Promise<void> {
+  persist();
+  const redis = getVisitorRedis();
+  if (!redis) return;
+  try {
+    await redis.set(REDIS_KEY, memory().keys);
+  } catch {
+    /* this instance still has them in memory */
   }
 }
 

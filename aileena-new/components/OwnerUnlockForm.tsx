@@ -19,7 +19,7 @@ export default function OwnerUnlockForm({
   enterLabel = 'unlock',
   denied = false,
 }: {
-  next: '/council' | '/cabinet' | '/inbox' | '/daily' | '/proof' | '/';
+  next: '/council' | '/cabinet' | '/inbox' | '/daily' | '/proof' | '/reviews' | '/';
   enterLabel?: string;
   denied?: boolean;
 }) {

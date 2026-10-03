@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { SESSION_COOKIE, OWNER_MAX_AGE, createOwnerSession, readWebauthnChallenge } from '@/lib/auth';
 import { isLocalExperimentUnlockAllowed, isVercelProduction } from '@/lib/computer/flag';
-import { getPasskey, hasPasskeys, upsertPasskey } from '@/lib/passkey/store';
+import { getPasskey, hasPasskeys, loadPasskeys, savePasskeys, upsertPasskey } from '@/lib/passkey/store';
 import { parseClientData, readCounter, userVerified, verifyEs256 } from '@/lib/passkey/webauthn';
 import { bytesFromB64url } from '@/lib/passkey/b64';
 import { requireOwnerFromRequest } from '@/lib/owner-gate';
@@ -75,6 +75,7 @@ export async function POST(req: Request) {
   if (!originLocal) return NextResponse.json({ error: 'origin' }, { status: 400 });
 
   const mode = body.mode === 'register' ? 'register' : 'unlock';
+  await loadPasskeys();
   const owner = await requireOwnerFromRequest(req);
 
   if (mode === 'register') {
@@ -96,6 +97,7 @@ export async function POST(req: Request) {
       sealCipher: body.sealCipher,
       createdAt: new Date().toISOString(),
     });
+    await savePasskeys();
     const res = NextResponse.json({ ok: true, owner: true, mode: 'register' });
     return setSession(req, res);
   }
@@ -119,6 +121,7 @@ export async function POST(req: Request) {
   const counter = readCounter(authData);
   if (counter < stored.counter) return NextResponse.json({ error: 'counter' }, { status: 401 });
   upsertPasskey({ ...stored, counter });
+  await savePasskeys();
   const res = NextResponse.json({ ok: true, owner: true, mode: 'unlock' });
   return setSession(req, res);
 }
