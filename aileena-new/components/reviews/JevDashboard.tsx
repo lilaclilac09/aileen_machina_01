@@ -439,8 +439,10 @@ export default function JevDashboard() {
   const [pane, setPane] = useState<'report' | 'flow'>('report');
   const [showValues, setShowValues] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
-  const selectedRef = useRef<string | null>(null);
-  selectedRef.current = selected;
+  const selectedRef = useRef<string | null>(selected);
+  useEffect(() => {
+    selectedRef.current = selected;
+  }, [selected]);
 
   const loadList = useCallback(async (prefer?: string) => {
     const res = await fetch('/api/owner/reviews', { cache: 'no-store', credentials: 'include' });
