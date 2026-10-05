@@ -5,6 +5,7 @@ node_modules
 
 # Owner computer prototype local workspace
 aileena-new/.data/computer-prototype/
+aileena-new/.data/keyshield/
 
 .projects/cache
 .projects/vault

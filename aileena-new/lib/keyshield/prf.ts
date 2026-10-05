@@ -68,14 +68,26 @@ export async function sealOwner(aes: CryptoKey): Promise<{ iv: string; cipher: s
 }
 
 export async function openOwnerSeal(aes: CryptoKey, iv: string, cipher: string): Promise<boolean> {
+  const pt = await openText(aes, iv, cipher);
+  return pt === KS_OWNER_PLAINTEXT;
+}
+
+/** AES-GCM envelope for a vault secret. Server stores iv + cipher only. */
+export async function sealText(aes: CryptoKey, plaintext: string): Promise<{ iv: string; cipher: string }> {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const cipher = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, aes, enc.encode(plaintext));
+  return { iv: b64urlFromBytes(iv), cipher: b64urlFromBuf(cipher) };
+}
+
+export async function openText(aes: CryptoKey, iv: string, cipher: string): Promise<string | null> {
   try {
     const pt = await crypto.subtle.decrypt(
       { name: 'AES-GCM', iv: bytesFromB64url(iv) },
       aes,
       bytesFromB64url(cipher),
     );
-    return dec.decode(pt) === KS_OWNER_PLAINTEXT;
+    return dec.decode(pt);
   } catch {
-    return false;
+    return null;
   }
 }

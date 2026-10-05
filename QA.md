@@ -27,6 +27,7 @@ pnpm verify:evolve     # site-agent skill ratchet (sandbox + external verifier)
 pnpm evolve            # until held-out + train stabilize; --dry-run to score only
 pnpm qa:contact        # Resend env names, lead route, transcript, offline copy
 pnpm qa:sound          # same as verify:sound
+pnpm verify:keyshield  # /ks vault uses latest keyshield-prf-v1 functions; host rewrite for app.ks.aileena.xyz
 pnpm verify:visual     # GlassBench / ScrapPhoto no cover-crop
 pnpm verify:tts-session # site-agent TTS profile + chunk queue + cancel
 pnpm audit:runtime     # known /api routes keep expected runtime

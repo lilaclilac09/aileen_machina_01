@@ -29,6 +29,7 @@ App 在 `aileena-new/`（`pnpm`）。
 | 布局 / mobile | `pnpm qa:mobile`（390×844 + scrollWidth） | 「overflow hidden 就好了」 |
 | Visual 裁切 | `pnpm verify:visual` | 给内容图加 `object-cover` |
 | Contact / 文案 | `pnpm qa:contact` | 新写一套 mailer |
+| KeyShield `app.ks` / `/ks` | `pnpm verify:keyshield`；ship 时 prod `https://app.ks.aileena.xyz` 或 `/ks` | 指回 Railway / `ks-prf-salt-v1` |
 
 ## 优先工具（收紧，不扩张）
 
