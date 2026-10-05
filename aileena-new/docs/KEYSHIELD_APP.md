@@ -5,7 +5,7 @@ Public vault UI is `/ks` in `aileena-new/`. Same Vercel project as aileena.xyz.
 Door matches the live SPA at `keyshield-sync-worker.vercel.app`:
 
 - **Wallet first** — Phantom · Solflare · Backpack · OKX (injected providers, ed25519 sign)
-- **Passkey second** — Face ID / Touch ID / hardware key after this device is trusted
+- **Passkey second** — not automatic. Register once on this site, then Face ID / Touch ID / iCloud Keychain (Apple Passkeys) unlock. Other sites' iCloud passkeys are not imported. RP ID is `aileena.xyz`. `/.well-known/webauthn` + `/.well-known/passkey-endpoints` are the Apple / Passwords hooks.
 - Dashboard tabs: Vault, Activity, Agents, Sharing, Sessions, Settings, Developer, Docs, Reports, X402 Trust
 
 Crypto is `lib/keyshield` (`keyshield-prf-v1:*`). Wallet IKM is `SHA-256(sig of keyshield-prf-v1:vault-master-secret)` then the same HKDF as PRF. Server stores ciphertext only. The login signature never includes the vault IKM.

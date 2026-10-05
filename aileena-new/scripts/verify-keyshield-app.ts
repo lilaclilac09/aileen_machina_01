@@ -20,7 +20,10 @@ import {
 } from '../lib/keyshield/constants';
 import { deriveKeyshield, deriveKeyshieldFromWallet, openText, sealText } from '../lib/keyshield/prf';
 import { GET as healthGet } from '../app/api/ks/health/route';
+import { GET as passkeyEndpointsGet } from '../app/.well-known/passkey-endpoints/route';
+import { GET as webauthnWellKnownGet } from '../app/.well-known/webauthn/route';
 import { POST as optionsPost } from '../app/api/ks/passkey/options/route';
+import { KS_RP_ID, ksRpIdFromHost } from '../lib/keyshield/rpid';
 import { GET as vaultGet } from '../app/api/ks/vault/route';
 import { GET as walletChallengeGet } from '../app/api/ks/wallet/challenge/route';
 
@@ -105,6 +108,14 @@ async function main() {
   assert('agent context has live KeyShield URL', agent.includes('https://app.ks.aileena.xyz'));
   assert('no Railway fallback in app', !/keyshield-production\.up\.railway\.app/.test(appSrc));
   assert('wallet is not deferred to another repo', !/Wallet fallback stays in the original/.test(appSrc));
+  assert('door always offers Sign in with Passkey', /Sign in with Passkey/.test(appSrc));
+  assert('door still requires in-app register', /Register a passkey on this device/.test(appSrc));
+  assert('Apple passkeys are not auto-imported', /Other sites.*Apple passkeys are not imported/.test(appSrc));
+  assert('Safari conditional mediation', /mediation: 'conditional'/.test(appSrc) && /username webauthn/.test(appSrc));
+  assert('register omits forced platform attachment', !/authenticatorAttachment: 'platform'/.test(appSrc));
+  assert('rpId www → aileena.xyz', ksRpIdFromHost('www.aileena.xyz') === KS_RP_ID);
+  assert('rpId app.ks → aileena.xyz', ksRpIdFromHost('app.ks.aileena.xyz:443') === KS_RP_ID);
+  assert('rpId localhost stays local', ksRpIdFromHost('localhost:3000') === 'localhost');
 
   const health = await healthGet();
   const healthJson = (await health.json()) as {
@@ -124,10 +135,34 @@ async function main() {
       body: JSON.stringify({ mode: 'unlock' }),
     }),
   );
-  const optJson = (await optRes.json()) as { method?: string; prfFirst?: string; rpName?: string };
+  const optJson = (await optRes.json()) as { method?: string; prfFirst?: string; rpName?: string; rpId?: string };
   assert('options method is keyshield', optRes.ok && optJson.method === 'keyshield', JSON.stringify(optJson));
   assert('options PRF is latest', optJson.prfFirst === KS_PRF_FIRST);
   assert('options rpName is KeyShield', optJson.rpName === 'KeyShield');
+  assert('options localhost rpId', optJson.rpId === 'localhost');
+
+  const prodOpt = await optionsPost(
+    new Request('http://localhost/api/ks/passkey/options', {
+      method: 'POST',
+      headers: { host: 'www.aileena.xyz', 'content-type': 'application/json' },
+      body: JSON.stringify({ mode: 'register' }),
+    }),
+  );
+  const prodJson = (await prodOpt.json()) as { rpId?: string; hints?: string[] };
+  assert('options production rpId is aileena.xyz', prodJson.rpId === KS_RP_ID, JSON.stringify(prodJson));
+  assert('options advertise hybrid + device hints', (prodJson.hints || []).includes('hybrid'));
+
+  const origins = (await webauthnWellKnownGet().json()) as { origins?: string[] };
+  assert(
+    'well-known webauthn lists www + app.ks',
+    (origins.origins || []).includes('https://www.aileena.xyz') &&
+      (origins.origins || []).includes('https://app.ks.aileena.xyz'),
+  );
+  const endpoints = (await passkeyEndpointsGet().json()) as { enroll?: string; manage?: string };
+  assert(
+    'Apple passkey-endpoints point at /ks',
+    endpoints.enroll === 'https://www.aileena.xyz/ks' && endpoints.manage === 'https://www.aileena.xyz/ks',
+  );
 
   const vaultRes = await vaultGet(new Request('http://localhost/api/ks/vault'));
   assert('vault GET without session is 401', vaultRes.status === 401);

@@ -102,6 +102,41 @@ function pushAudit(action: string, label: string) {
   }
 }
 
+type PasskeyOpt = {
+  challenge?: string;
+  rpId?: string;
+  rpName?: string;
+  prfFirst?: string;
+};
+
+async function fetchPasskeyOptions(mode: 'unlock' | 'register'): Promise<PasskeyOpt | null> {
+  const optRes = await fetch('/api/ks/passkey/options', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mode }),
+  });
+  const opt = (await optRes.json()) as PasskeyOpt & { error?: string };
+  if (!optRes.ok) return null;
+  if (opt.prfFirst && opt.prfFirst !== KS_PRF_FIRST) return null;
+  return opt;
+}
+
+function passkeyRequest(
+  opt: PasskeyOpt,
+  extra: Partial<PublicKeyCredentialRequestOptions> = {},
+): PublicKeyCredentialRequestOptions {
+  return {
+    challenge: bytesFromB64url(opt.challenge || ''),
+    rpId: opt.rpId,
+    userVerification: 'required',
+    timeout: 60_000,
+    allowCredentials: [],
+    extensions: { prf: { eval: { first: prfFirstBytes() } } },
+    ...extra,
+  } as PublicKeyCredentialRequestOptions;
+}
+
 function parseSecret(pt: string, entry: KsVaultEntry): SecretRow | null {
   try {
     const parsed = JSON.parse(pt) as Partial<KsSecretPlain> & { secret?: string; label?: string };
@@ -136,7 +171,6 @@ export default function KeyShieldApp() {
   const [walletSub, setWalletSub] = useState<string | null>(null);
   const [rows, setRows] = useState<SecretRow[]>([]);
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
-  const [hasSession, setHasSession] = useState(false);
   const [tab, setTab] = useState<KsNavId>('vault');
   const [walletPhase, setWalletPhase] = useState<WalletPhase>('idle');
   const [forceWallet, setForceWallet] = useState(false);
@@ -166,15 +200,14 @@ export default function KeyShieldApp() {
   const [audit, setAudit] = useState<AuditRow[]>([]);
   const [deviceName, setDeviceName] = useState('');
   const [trusted, setTrusted] = useState(false);
+  const condAbort = useRef<AbortController | null>(null);
 
   const loadVault = useCallback(async (aes: CryptoKey) => {
     const res = await fetch('/api/ks/vault', { credentials: 'include' });
     if (res.status === 401) {
-      setHasSession(false);
       return;
     }
     const json = (await res.json()) as { entries?: KsVaultEntry[]; vaultId?: string };
-    setHasSession(true);
     if (json.vaultId) setVaultId(json.vaultId);
     const next: SecretRow[] = [];
     for (const entry of json.entries || []) {
@@ -232,7 +265,6 @@ export default function KeyShieldApp() {
   useEffect(() => {
     void (async () => {
       const res = await fetch('/api/ks/vault', { credentials: 'include' });
-      setHasSession(res.ok);
       if (!res.ok) return;
       const stored = sessionStorage.getItem(IKM_KEY);
       if (!stored) return;
@@ -247,6 +279,48 @@ export default function KeyShieldApp() {
       }
     })();
   }, [openDoor]);
+
+  useEffect(() => {
+    if (door !== 'locked') {
+      abortConditional();
+      return;
+    }
+    // finishUnlock is recreated each render; abort is ref-scoped.
+    if (typeof window === 'undefined' || !window.PublicKeyCredential) return;
+    const available = (
+      window.PublicKeyCredential as typeof PublicKeyCredential & {
+        isConditionalMediationAvailable?: () => Promise<boolean>;
+      }
+    ).isConditionalMediationAvailable;
+    let cancelled = false;
+    const ac = new AbortController();
+    condAbort.current = ac;
+    void (async () => {
+      if (typeof available === 'function' && !(await available())) return;
+      const opt = await fetchPasskeyOptions('unlock');
+      if (!opt || cancelled) return;
+      try {
+        const cred = (await navigator.credentials.get({
+          mediation: 'conditional',
+          signal: ac.signal,
+          publicKey: passkeyRequest(opt),
+        })) as PublicKeyCredential | null;
+        if (!cred || cancelled) return;
+        setBusy(true);
+        setError(null);
+        await finishUnlock(cred);
+      } catch {
+        /* idle Safari autofill — not an error */
+      } finally {
+        if (!cancelled) setBusy(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      ac.abort();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- finishUnlock closes over door state
+  }, [door]);
 
   async function runWallet(id: KsWalletId) {
     setBusy(true);
@@ -291,7 +365,73 @@ export default function KeyShieldApp() {
     }
   }
 
+  function abortConditional() {
+    condAbort.current?.abort();
+    condAbort.current = null;
+  }
+
+  async function finishUnlock(cred: PublicKeyCredential) {
+    const prf = readPrfFirst(cred);
+    if (!prf) {
+      setError(
+        'Apple Face ID ran, but this passkey has no KeyShield PRF. Register a KeyShield passkey here (Safari 18+ / Chrome 116+). iCloud passkeys from other sites are not imported.',
+      );
+      return;
+    }
+    const wrap = await deriveKeyshield(prf);
+    const id = b64urlFromBuf(cred.rawId);
+    const envelopeRes = await fetch('/api/ks/passkey/envelope', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
+    if (!envelopeRes.ok) {
+      setError('No seal for this passkey. Register this device first — Apple does not auto-connect.');
+      return;
+    }
+    const envelope = (await envelopeRes.json()) as { iv?: string; cipher?: string };
+    if (!envelope.iv || !envelope.cipher) {
+      setError('Empty KeyShield seal.');
+      return;
+    }
+    const opened = await openText(wrap.aes, envelope.iv, envelope.cipher);
+    const wrapped = opened ? unwrapVaultIkm(opened) : null;
+    const legacyOk = opened === KS_OWNER_PLAINTEXT || (!opened && (await openOwnerSeal(wrap.aes, envelope.iv, envelope.cipher)));
+    let derived = wrap;
+    let ikm = new Uint8Array(prf);
+    if (wrapped) {
+      derived = await deriveKeyshield(wrapped.ikm);
+      ikm = wrapped.ikm;
+    } else if (!legacyOk) {
+      setError('Seal did not open. Wrong device or old PRF salt.');
+      return;
+    }
+    const ass = cred.response as AuthenticatorAssertionResponse;
+    const verify = await fetch('/api/ks/passkey/verify', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mode: 'unlock',
+        id,
+        clientDataJSON: b64urlFromBuf(ass.clientDataJSON),
+        authenticatorData: b64urlFromBuf(ass.authenticatorData),
+        signature: b64urlFromBuf(ass.signature),
+        vaultId: derived.vaultId,
+      }),
+    });
+    if (!verify.ok) {
+      setError('KeyShield did not verify.');
+      return;
+    }
+    pushAudit('passkey', 'unlock');
+    setAudit(readAudit());
+    await openDoor(derived.aes, ikm, derived.vaultId, localStorage.getItem(WALLET_SUB) || undefined);
+  }
+
   async function runPasskey(mode: 'unlock' | 'register') {
+    abortConditional();
     setBusy(true);
     setError(null);
     try {
@@ -299,25 +439,9 @@ export default function KeyShieldApp() {
         setError('This browser has no WebAuthn / passkey.');
         return;
       }
-      const optRes = await fetch('/api/ks/passkey/options', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode }),
-      });
-      const opt = (await optRes.json()) as {
-        error?: string;
-        challenge?: string;
-        rpId?: string;
-        rpName?: string;
-        prfFirst?: string;
-      };
-      if (!optRes.ok) {
+      const opt = await fetchPasskeyOptions(mode);
+      if (!opt) {
         setError('Could not start KeyShield.');
-        return;
-      }
-      if (opt.prfFirst && opt.prfFirst !== KS_PRF_FIRST) {
-        setError('Server PRF salt does not match keyshield-prf-v1.');
         return;
       }
       const prfEval = { eval: { first: prfFirstBytes() } };
@@ -330,20 +454,22 @@ export default function KeyShieldApp() {
             rp: { name: opt.rpName || 'KeyShield', id: opt.rpId },
             user: {
               id: crypto.getRandomValues(new Uint8Array(16)),
-              name: deviceName || 'vault',
-              displayName: deviceName || 'KeyShield vault',
+              name: deviceName || 'aileena.xyz',
+              displayName: deviceName || 'KeyShield',
             },
             pubKeyCredParams: [
               { type: 'public-key', alg: -7 },
               { type: 'public-key', alg: -257 },
             ],
             authenticatorSelection: {
-              authenticatorAttachment: 'platform',
               userVerification: 'required',
               residentKey: 'required',
+              requireResidentKey: true,
             },
+            attestation: 'none',
             timeout: 60_000,
             extensions: { prf: prfEval },
+            hints: ['client-device', 'hybrid'],
           } as PublicKeyCredentialCreationOptions,
         })) as PublicKeyCredential | null;
         if (!cred) {
@@ -353,19 +479,14 @@ export default function KeyShieldApp() {
         let prf = readPrfFirst(cred);
         if (!prf) {
           const got = (await navigator.credentials.get({
-            publicKey: {
-              challenge,
-              rpId: opt.rpId,
-              userVerification: 'required',
-              timeout: 60_000,
-              allowCredentials: [{ type: 'public-key', id: cred.rawId }],
-              extensions: { prf: prfEval },
-            } as PublicKeyCredentialRequestOptions,
+            publicKey: passkeyRequest(opt, { allowCredentials: [{ type: 'public-key', id: cred.rawId }] }),
           })) as PublicKeyCredential | null;
           prf = got ? readPrfFirst(got) : null;
         }
         if (!prf) {
-          setError('This device has no KeyShield PRF. Need Chrome 116+ / Safari 17+ / Windows Hello with PRF.');
+          setError(
+            'This Apple / platform passkey has no PRF. KeyShield needs Safari 18+ or Chrome 116+ so Face ID can derive the vault key. Other iCloud passkeys are not imported.',
+          );
           return;
         }
         const wrap = await deriveKeyshield(prf);
@@ -413,74 +534,13 @@ export default function KeyShieldApp() {
       }
 
       const cred = (await navigator.credentials.get({
-        publicKey: {
-          challenge,
-          rpId: opt.rpId,
-          userVerification: 'required',
-          timeout: 60_000,
-          allowCredentials: [],
-          extensions: { prf: prfEval },
-        } as PublicKeyCredentialRequestOptions,
+        publicKey: passkeyRequest(opt),
       })) as PublicKeyCredential | null;
       if (!cred) {
         setError('No passkey.');
         return;
       }
-      const prf = readPrfFirst(cred);
-      if (!prf) {
-        setError('PRF missing. Fingerprint ran, but this authenticator did not yield a vault key.');
-        return;
-      }
-      const wrap = await deriveKeyshield(prf);
-      const id = b64urlFromBuf(cred.rawId);
-      const envelopeRes = await fetch('/api/ks/passkey/envelope', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      });
-      if (!envelopeRes.ok) {
-        setError('No seal for this passkey. Register this device first.');
-        return;
-      }
-      const envelope = (await envelopeRes.json()) as { iv?: string; cipher?: string };
-      if (!envelope.iv || !envelope.cipher) {
-        setError('Empty KeyShield seal.');
-        return;
-      }
-      const opened = await openText(wrap.aes, envelope.iv, envelope.cipher);
-      const wrapped = opened ? unwrapVaultIkm(opened) : null;
-      const legacyOk = opened === KS_OWNER_PLAINTEXT || (!opened && (await openOwnerSeal(wrap.aes, envelope.iv, envelope.cipher)));
-      let derived = wrap;
-      let ikm = new Uint8Array(prf);
-      if (wrapped) {
-        derived = await deriveKeyshield(wrapped.ikm);
-        ikm = wrapped.ikm;
-      } else if (!legacyOk) {
-        setError('Seal did not open. Wrong device or old PRF salt.');
-        return;
-      }
-      const ass = cred.response as AuthenticatorAssertionResponse;
-      const verify = await fetch('/api/ks/passkey/verify', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mode: 'unlock',
-          id,
-          clientDataJSON: b64urlFromBuf(ass.clientDataJSON),
-          authenticatorData: b64urlFromBuf(ass.authenticatorData),
-          signature: b64urlFromBuf(ass.signature),
-          vaultId: derived.vaultId,
-        }),
-      });
-      if (!verify.ok) {
-        setError('KeyShield did not verify.');
-        return;
-      }
-      pushAudit('passkey', 'unlock');
-      setAudit(readAudit());
-      await openDoor(derived.aes, ikm, derived.vaultId, localStorage.getItem(WALLET_SUB) || undefined);
+      await finishUnlock(cred);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'KeyShield cancelled.');
     } finally {
@@ -648,8 +708,8 @@ export default function KeyShieldApp() {
           <h1>KeyShield</h1>
           <p className="ks-dek">
             {trusted
-              ? 'Welcome back. Sign in with Face ID, Touch ID, or your hardware key.'
-              : 'Connect your Solana wallet to access your encrypted secrets.'}
+              ? 'Welcome back. Sign in with Face ID, Touch ID, or iCloud Keychain.'
+              : 'Connect your Solana wallet, or a KeyShield passkey you already registered on this site.'}
           </p>
 
           <section className="ks-door" data-testid="keyshield-door">
@@ -707,15 +767,24 @@ export default function KeyShieldApp() {
                 <p className="ks-wallets" data-testid="keyshield-wallets">
                   Phantom · Solflare · Backpack · OKX
                 </p>
-                {hasSession ? (
-                  <button type="button" className="ks-ghost" data-testid="keyshield-unlock" disabled={busy} onClick={() => void runPasskey('unlock')}>
-                    Sign in with Face ID
-                  </button>
-                ) : (
-                  <button type="button" className="ks-ghost" data-testid="keyshield-register" disabled={busy} onClick={() => void runPasskey('register')}>
-                    Register a passkey on this device
-                  </button>
-                )}
+                <input
+                  className="ks-passkey-autofill"
+                  type="text"
+                  name="username"
+                  autoComplete="username webauthn"
+                  tabIndex={-1}
+                  aria-hidden="true"
+                  data-testid="keyshield-passkey-autofill"
+                />
+                <button type="button" className="ks-ghost" data-testid="keyshield-unlock" disabled={busy} onClick={() => void runPasskey('unlock')}>
+                  {busy ? 'Verifying…' : 'Sign in with Passkey'}
+                </button>
+                <button type="button" className="ks-ghost" data-testid="keyshield-register" disabled={busy} onClick={() => void runPasskey('register')}>
+                  Register a passkey on this device
+                </button>
+                <p className="ks-method" data-testid="keyshield-passkey-note">
+                  Passkey is not automatic. Register once here — Face ID / Touch ID / iCloud Keychain then unlock. Other sites&apos; Apple passkeys are not imported.
+                </p>
               </>
             )}
             <p className="ks-method" data-testid="keyshield-method">
@@ -1081,7 +1150,10 @@ export default function KeyShieldApp() {
             </article>
             <article className="ks-card">
               <h2>Trusted Devices</h2>
-              <p>Each passkey = one device that can sign in with Face ID / Touch ID / hardware key.</p>
+              <p>
+                Each passkey is one KeyShield registration — Face ID / Touch ID / iCloud Keychain after you add it here.
+                Apple does not auto-import passkeys from other sites.
+              </p>
               <label>
                 Device name (e.g. MacBook, iPhone)
                 <input value={deviceName} onChange={(e) => setDeviceName(e.target.value)} />
