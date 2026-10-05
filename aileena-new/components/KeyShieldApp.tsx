@@ -665,7 +665,6 @@ export default function KeyShieldApp() {
     }
     setDoor('locked');
     setRows([]);
-    setHasSession(false);
     setWalletPhase('idle');
     setCliToken(null);
   }
