@@ -105,6 +105,8 @@ async function main() {
       appSrc.includes('KS_EXTENSION_HREF') &&
       tx.includes(KS_EXTENSION_HREF),
   );
+  assert('door tells people to open Chrome', /Open this page in Google Chrome/.test(appSrc));
+  assert('door describes the vault extension', /Detects API keys on any page/.test(appSrc));
   assert('agent context has live KeyShield URL', agent.includes('https://app.ks.aileena.xyz'));
   assert('no Railway fallback in app', !/keyshield-production\.up\.railway\.app/.test(appSrc));
   assert('wallet is not deferred to another repo', !/Wallet fallback stays in the original/.test(appSrc));

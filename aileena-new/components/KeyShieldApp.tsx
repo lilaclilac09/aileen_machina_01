@@ -792,12 +792,15 @@ export default function KeyShieldApp() {
             <p className="ks-method">
               {KS_PRF_FIRST} → {KS_HKDF_MASTER} / {KS_HKDF_VAULT_ID}
             </p>
+            <p className="ks-ext-note" data-testid="keyshield-chrome-hint">
+              Open this page in Google Chrome. Connect Wallet and the vault extension need Chrome.
+            </p>
             <a className="ks-ext" data-testid="keyshield-extension" href={KS_EXTENSION_HREF} target="_blank" rel="noopener noreferrer">
-              Install browser extension →
+              Install KeyShield extension →
             </a>
-            <p className="ks-ext-note">
-              Chrome / Edge / Brave / Arc: <code>chrome://extensions</code> → Developer mode → Load unpacked →{' '}
-              <code>src/extension</code>
+            <p className="ks-ext-note" data-testid="keyshield-extension-hint">
+              Detects API keys on any page and saves them to your encrypted vault.{' '}
+              <code>chrome://extensions</code> → Developer mode → Load unpacked → <code>src/extension</code>
             </p>
           </section>
           {error ? (
@@ -1183,9 +1186,14 @@ export default function KeyShieldApp() {
                 ))}
               </ul>
             </article>
+            <p className="ks-ext-note">Open this page in Google Chrome. The vault extension needs Chrome.</p>
             <a className="ks-ext" href={KS_EXTENSION_HREF} target="_blank" rel="noopener noreferrer">
-              Install browser extension →
+              Install KeyShield extension →
             </a>
+            <p className="ks-ext-note">
+              Detects API keys on any page and saves them to your encrypted vault.{' '}
+              <code>chrome://extensions</code> → Developer mode → Load unpacked → <code>src/extension</code>
+            </p>
           </section>
         ) : null}
 
@@ -1233,8 +1241,9 @@ export default function KeyShieldApp() {
           <section className="ks-panel ks-docs-panel">
             <h2>CHAPTER 1 · Run this in your terminal</h2>
             <p>
-              Use the unpacked extension while signed in here. Clone or download the repo, then Developer mode → Load
-              unpacked → <code>src/extension</code>.
+              Open KeyShield in Google Chrome. Install the unpacked extension while signed in here:{' '}
+              <a href={KS_EXTENSION_HREF}>src/extension</a>. Then <code>chrome://extensions</code> → Developer mode →
+              Load unpacked. It detects API keys on the page and saves them to your vault.
             </p>
             <h2>CHAPTER 2 · Core Concepts</h2>
             <p>Your API keys, encrypted with AES-256-GCM. The decryption key never leaves your machine.</p>
