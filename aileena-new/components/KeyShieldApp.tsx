@@ -206,6 +206,23 @@ export default function KeyShieldApp() {
     setDoor('open');
     setAudit(readAudit());
     await loadVault(aes);
+    try {
+      const sess = await fetch('/api/ks/sessions', { credentials: 'include' });
+      if (sess.ok) {
+        const json = (await sess.json()) as { sessions?: SessionRow[] };
+        const current = json.sessions?.find((row) => row.current);
+        if (current?.sub) {
+          setWalletSub(current.sub);
+          try {
+            localStorage.setItem(WALLET_SUB, current.sub);
+          } catch {
+            /* ignore */
+          }
+        }
+      }
+    } catch {
+      /* door is already open */
+    }
   }, [loadVault]);
 
   useEffect(() => {
@@ -1015,7 +1032,12 @@ export default function KeyShieldApp() {
 
         {tab === 'sessions' ? (
           <section className="ks-panel">
-            <p>Current Session · {walletSub ? 'Solana wallet · ed25519' : 'Passkey · WebAuthn'}</p>
+            <p>
+              Current Session ·{' '}
+              {(sessions.find((row) => row.current)?.via || (walletSub ? 'wallet' : 'passkey')) === 'wallet'
+                ? 'Solana wallet · ed25519'
+                : 'Passkey · WebAuthn'}
+            </p>
             <ul className="ks-list" data-testid="keyshield-sessions">
               {sessions.length === 0 ? <li className="ks-empty">No other devices signed in</li> : null}
               {sessions.map((row) => (
