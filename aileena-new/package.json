@@ -63,6 +63,7 @@
     "verify:watch-shelf": "tsx scripts/verify-watch-shelf.ts",
     "capture:watch-shelf": "tsx scripts/capture-watch-shelf.ts",
     "verify:contact": "tsx scripts/verify-contact.ts",
+    "verify:keyshield": "tsx scripts/verify-keyshield-app.ts",
     "qa:mobile": "tsx scripts/qa-mobile.ts",
     "qa:agent": "tsx scripts/verify-agent-rules.ts",
     "qa:contact": "tsx scripts/verify-contact.ts",

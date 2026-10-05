@@ -46,6 +46,17 @@ const nextConfig: NextConfig = {
       { source: "/dj-set/", destination: "/sound#dj-set", permanent: true },
     ];
   },
+  async rewrites() {
+    return {
+      beforeFiles: [
+        {
+          source: "/",
+          has: [{ type: "host", value: "app.ks.aileena.xyz" }],
+          destination: "/ks",
+        },
+      ],
+    };
+  },
 };
 
 export default nextConfig;

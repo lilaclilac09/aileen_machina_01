@@ -1,4 +1,11 @@
 {
   "installCommand": "pnpm install --no-frozen-lockfile",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "app.ks.aileena.xyz" }],
+      "destination": "/ks"
+    }
+  ]
 }

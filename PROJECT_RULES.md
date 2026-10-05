@@ -67,6 +67,15 @@ Public apply: `POST /api/voice-code/apply` is always **403**, never 200, never w
 
 Do **not** vendor DeepSeek Harness / dsh onto the public site. Shanghai accent = DeepSeek the model via `lib/modelRouter`. harness-cli / council stay local/owner tools.
 
+## KeyShield live (`app.ks.aileena.xyz`)
+
+Public vault UI lives at `/ks` on this site and is rewritten to `/` on `app.ks.aileena.xyz`.
+
+- Door is **wallet first** (Phantom / Solflare / Backpack / OKX) plus passkey. Do not ship a passkey-only slice.
+- Crypto: `lib/keyshield` — `keyshield-prf-v1:vault-master-secret` → HKDF → AES-256-GCM
+- Server stores ciphertext only. Never restore `ks-prf-salt-v1` or `keyshield-production.up.railway.app`
+- DNS + Vercel domain bind are owner manual steps (Cloudflare CNAME `app.ks` → Vercel)
+
 ## Console prefix + daily draw
 
 System prompt + tool table are one **frozen root** per visitor session. RAG hits, draw recitation, vcode quota chip, Whisper transcripts, and tool RESULTS append at the tail only — never rewrite the prefix mid-thread.

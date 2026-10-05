@@ -141,6 +141,21 @@ export default function WorksPage() {
                     Live
                   </a>
                 ) : null}
+                {'extHref' in item && item.extHref ? (
+                  <a
+                    href={item.extHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      fontSize: '0.8rem',
+                      color: 'rgba(0,255,234,0.7)',
+                      textDecoration: 'none',
+                      fontWeight: 500,
+                    }}
+                  >
+                    Extension
+                  </a>
+                ) : null}
                 {'pdfHref' in item && item.pdfHref ? (
                   <a
                     href={item.pdfHref}

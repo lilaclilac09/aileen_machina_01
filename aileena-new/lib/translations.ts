@@ -697,8 +697,9 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
       featured: [
         {
           name: 'KeyShield',
-          why: 'Wallet signatures replace API keys. A small experiment in trust without exposure.',
+          why: 'Passkey PRF → HKDF → AES-GCM. Store a key once; the server holds ciphertext only.',
           href: 'https://github.com/lilaclilac09/keyshield',
+          liveHref: 'https://app.ks.aileena.xyz',
         },
         {
           name: 'PAMM MEV',
@@ -734,10 +735,12 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
         {
           name: 'KeyShield',
           tags: ['TypeScript', 'Rust', 'API Security'],
-          description: 'API vault where wallet signatures replace keys. Credentials never leave the server.',
+          description: 'API vault: WebAuthn PRF derives the key on-device. Server stores ciphertext only. Live at app.ks.aileena.xyz.',
           href: 'https://github.com/lilaclilac09/keyshield',
           image: '/projects/keyshield.png',
-          cta: 'View →',
+          cta: 'Source →',
+          liveHref: 'https://app.ks.aileena.xyz',
+          extHref: 'https://github.com/lilaclilac09/keyshield/tree/main/src/extension',
         },
         {
           name: 'RPCsol P&L',
@@ -1136,6 +1139,8 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
           links: [
             { label: 'MEV Dashboard', href: 'https://mev.aileena.xyz' },
             { label: 'Finance', href: 'https://finance.aileena.xyz' },
+            { label: 'KeyShield', href: 'https://app.ks.aileena.xyz' },
+            { label: 'KeyShield extension', href: 'https://github.com/lilaclilac09/keyshield/tree/main/src/extension' },
             { label: 'Gather · 共影', href: 'https://album.aileena.xyz' },
             { label: 'GitHub', href: 'https://github.com/lilaclilac09' },
           ],
@@ -1851,8 +1856,9 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
       featured: [
         {
           name: 'KeyShield',
-          why: 'Wallet-Signaturen ersetzen API-Keys. Ein kleines Experiment zu Vertrauen ohne Exposition.',
+          why: 'Passkey PRF → HKDF → AES-GCM. Schlüssel einmal ablegen; der Server hält nur Ciphertext.',
           href: 'https://github.com/lilaclilac09/keyshield',
+          liveHref: 'https://app.ks.aileena.xyz',
         },
         {
           name: 'PAMM MEV',
@@ -1888,10 +1894,12 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
         {
           name: 'KeyShield',
           tags: ['TypeScript', 'Rust', 'API Security'],
-          description: 'API-Tresor, bei dem Wallet-Signaturen Keys ersetzen. Credentials verlassen nie den Server.',
+          description: 'API-Tresor: WebAuthn-PRF leitet den Schlüssel auf dem Gerät ab. Server speichert nur Ciphertext. Live: app.ks.aileena.xyz.',
           href: 'https://github.com/lilaclilac09/keyshield',
           image: '/projects/keyshield.png',
-          cta: 'Ansehen →',
+          cta: 'Source →',
+          liveHref: 'https://app.ks.aileena.xyz',
+          extHref: 'https://github.com/lilaclilac09/keyshield/tree/main/src/extension',
         },
         {
           name: 'RPCsol P&L',
@@ -2290,6 +2298,8 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
           links: [
             { label: 'MEV Dashboard', href: 'https://mev.aileena.xyz' },
             { label: 'Finance', href: 'https://finance.aileena.xyz' },
+            { label: 'KeyShield', href: 'https://app.ks.aileena.xyz' },
+            { label: 'KeyShield extension', href: 'https://github.com/lilaclilac09/keyshield/tree/main/src/extension' },
             { label: 'Gather · 共影', href: 'https://album.aileena.xyz' },
             { label: 'GitHub', href: 'https://github.com/lilaclilac09' },
           ],

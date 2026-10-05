@@ -48,6 +48,9 @@ yarn-error.log*
 # Owner computer prototype workspace (local shim; never commit)
 .data/computer-prototype/
 
+# Public KeyShield vault ciphertext (local only)
+.data/keyshield/
+
 # Owner code-review uploads (instance only; committed reports live in data/reviews)
 .data/reviews/
 

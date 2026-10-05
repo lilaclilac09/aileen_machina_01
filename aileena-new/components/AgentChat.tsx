@@ -3,6 +3,7 @@
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { flushSync } from 'react-dom';
 import { SYSTEM_PROMPT_LITE } from '../lib/agentContextLite';
 import {
@@ -179,6 +180,7 @@ function writeStoredDrawDay(date: string, cardId: string): void {
 }
 
 export default function AgentChat() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
   const [sessionCount, setSessionCount] = useState(0);
@@ -1690,6 +1692,8 @@ export default function AgentChat() {
     }
     return text;
   })();
+
+  if (pathname === '/ks' || pathname.startsWith('/ks/')) return null;
 
   return (
     <>

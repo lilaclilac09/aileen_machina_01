@@ -43,6 +43,18 @@ function asPrfSecret(prfFirst: BufferSource): Uint8Array<ArrayBuffer> {
   return copyBytes(u8);
 }
 
+export async function sha256Bytes(input: BufferSource): Promise<Uint8Array<ArrayBuffer>> {
+  const digest = await crypto.subtle.digest('SHA-256', input);
+  return new Uint8Array(digest);
+}
+
+/** Wallet path: SHA-256(ed25519 sig of KS_WALLET_VAULT_MSG) → same HKDF as PRF. */
+export async function deriveKeyshieldFromWallet(signature: BufferSource): Promise<{ aes: CryptoKey; vaultId: string; ikm: Uint8Array<ArrayBuffer> }> {
+  const ikm = await sha256Bytes(signature);
+  const derived = await deriveKeyshield(ikm);
+  return { ...derived, ikm };
+}
+
 export async function deriveKeyshield(prfFirst: BufferSource): Promise<{ aes: CryptoKey; vaultId: string }> {
   const prfSecret = asPrfSecret(prfFirst);
   const ikm = await crypto.subtle.importKey('raw', prfSecret, 'HKDF', false, ['deriveKey', 'deriveBits']);
@@ -68,14 +80,42 @@ export async function sealOwner(aes: CryptoKey): Promise<{ iv: string; cipher: s
 }
 
 export async function openOwnerSeal(aes: CryptoKey, iv: string, cipher: string): Promise<boolean> {
+  const pt = await openText(aes, iv, cipher);
+  return pt === KS_OWNER_PLAINTEXT;
+}
+
+/** AES-GCM envelope for a vault secret. Server stores iv + cipher only. */
+export async function sealText(aes: CryptoKey, plaintext: string): Promise<{ iv: string; cipher: string }> {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const cipher = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, aes, enc.encode(plaintext));
+  return { iv: b64urlFromBytes(iv), cipher: b64urlFromBuf(cipher) };
+}
+
+export function wrapVaultIkm(ikm: Uint8Array, vaultId: string): string {
+  return JSON.stringify({ v: 1, ikm: b64urlFromBytes(ikm), vaultId });
+}
+
+export function unwrapVaultIkm(pt: string): { ikm: Uint8Array<ArrayBuffer>; vaultId: string } | null {
+  try {
+    const parsed = JSON.parse(pt) as { v?: number; ikm?: string; vaultId?: string };
+    if (parsed.v !== 1 || !parsed.ikm || !parsed.vaultId) return null;
+    const ikm = bytesFromB64url(parsed.ikm);
+    if (ikm.byteLength !== 32) return null;
+    return { ikm, vaultId: parsed.vaultId };
+  } catch {
+    return null;
+  }
+}
+
+export async function openText(aes: CryptoKey, iv: string, cipher: string): Promise<string | null> {
   try {
     const pt = await crypto.subtle.decrypt(
       { name: 'AES-GCM', iv: bytesFromB64url(iv) },
       aes,
       bytesFromB64url(cipher),
     );
-    return dec.decode(pt) === KS_OWNER_PLAINTEXT;
+    return dec.decode(pt);
   } catch {
-    return false;
+    return null;
   }
 }
