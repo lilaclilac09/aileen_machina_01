@@ -42,11 +42,11 @@ Second record (marketing). Vercel already has `ks.aileena.xyz` on **keyshield-la
 
 https://keyshield-landing.vercel.app → production deploy `dpl_9ehtxkM88AaYS3PXX6yXd9yvRCyn` (`f40e177`, original `sites/landing`).
 
-`ks.aileena.xyz` is still NXDOMAIN until this record exists:
+Owner added this record (verified 2026-10-05). `https://ks.aileena.xyz` is 200.
 
 - Type: `CNAME`
 - Name: `ks`
-- Target: `came.vercel-dns.com` (same family as `app.ks`) or the value Vercel shows on keyshield-landing → Domains
+- Target: `came.vercel-dns.com`
 - Proxy: DNS only (grey cloud)
 
 ### 3. Confirm
@@ -61,7 +61,7 @@ curl -sSI https://ks.aileena.xyz
 # 200 + title KeyShield — Stop copy-pasting API keys.
 ```
 
-Until the `ks` CNAME exists, use https://keyshield-landing.vercel.app (or `/ks-landing` on this site after deploy). After DNS is up, point the `keyshield-landing.vercel.app` 307 back to `ks.aileena.xyz`.
+Marketing: https://ks.aileena.xyz. `keyshield-landing.vercel.app` 307s there. Dashboard: https://app.ks.aileena.xyz.
 
 Browser extension install (unpacked, no Chrome Web Store listing yet):
 
