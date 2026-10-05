@@ -141,6 +141,21 @@ export default function WorksPage() {
                     Live
                   </a>
                 ) : null}
+                {'siteHref' in item && item.siteHref ? (
+                  <a
+                    href={item.siteHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      fontSize: '0.8rem',
+                      color: 'rgba(0,255,234,0.7)',
+                      textDecoration: 'none',
+                      fontWeight: 500,
+                    }}
+                  >
+                    Site
+                  </a>
+                ) : null}
                 {'extHref' in item && item.extHref ? (
                   <a
                     href={item.extHref}

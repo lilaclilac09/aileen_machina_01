@@ -1,6 +1,7 @@
-# KeyShield live — `app.ks.aileena.xyz`
+# KeyShield live — `app.ks.aileena.xyz` · marketing `ks.aileena.xyz`
 
 Public vault UI is `/ks` in `aileena-new/`. Same Vercel project as aileena.xyz.
+Marketing landing is the original `keyshield/sites/landing` HTML at `/ks-landing` and on host `ks.aileena.xyz`.
 
 Door matches the live SPA at `keyshield-sync-worker.vercel.app`:
 
@@ -24,6 +25,8 @@ On the **aileena.xyz / aileen-machina-01** project (root = `aileena-new`):
 
 Settings → Domains → Add `app.ks.aileena.xyz`
 
+`ks.aileena.xyz` is already on the **keyshield-landing** Vercel project (`prj_KRVd7hA59ozWSLAZQ25noZpRKdkq`). Do not steal that domain onto this Next app unless you also remove it there.
+
 ### 2. Cloudflare DNS
 
 `aileena.xyz` NS is Cloudflare (`jason.ns.cloudflare.com`).
@@ -33,6 +36,13 @@ DNS → Add record:
 - Type: `CNAME`
 - Name: `app.ks`
 - Target: `cname.vercel-dns.com` (or the value Vercel shows)
+- Proxy: DNS only (grey cloud) unless Vercel says otherwise
+
+Second record (marketing):
+
+- Type: `CNAME`
+- Name: `ks`
+- Target: `cname.vercel-dns.com` (or the value Vercel shows for **keyshield-landing**)
 - Proxy: DNS only (grey cloud) unless Vercel says otherwise
 
 ### 3. Confirm

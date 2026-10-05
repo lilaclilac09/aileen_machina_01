@@ -735,11 +735,12 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
         {
           name: 'KeyShield',
           tags: ['TypeScript', 'Rust', 'API Security'],
-          description: 'API vault: WebAuthn PRF derives the key on-device. Server stores ciphertext only. Live at app.ks.aileena.xyz.',
+          description: 'API vault: WebAuthn PRF derives the key on-device. Server stores ciphertext only. Live at app.ks.aileena.xyz. Marketing at ks.aileena.xyz.',
           href: 'https://github.com/lilaclilac09/keyshield',
           image: '/projects/keyshield.png',
           cta: 'Source →',
           liveHref: 'https://app.ks.aileena.xyz',
+          siteHref: 'https://ks.aileena.xyz',
           extHref: 'https://github.com/lilaclilac09/keyshield/tree/main/src/extension',
         },
         {
@@ -1140,6 +1141,7 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
             { label: 'MEV Dashboard', href: 'https://mev.aileena.xyz' },
             { label: 'Finance', href: 'https://finance.aileena.xyz' },
             { label: 'KeyShield', href: 'https://app.ks.aileena.xyz' },
+            { label: 'KeyShield site', href: 'https://ks.aileena.xyz' },
             { label: 'KeyShield extension', href: 'https://github.com/lilaclilac09/keyshield/tree/main/src/extension' },
             { label: 'Gather · 共影', href: 'https://album.aileena.xyz' },
             { label: 'GitHub', href: 'https://github.com/lilaclilac09' },
@@ -1894,11 +1896,12 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
         {
           name: 'KeyShield',
           tags: ['TypeScript', 'Rust', 'API Security'],
-          description: 'API-Tresor: WebAuthn-PRF leitet den Schlüssel auf dem Gerät ab. Server speichert nur Ciphertext. Live: app.ks.aileena.xyz.',
+          description: 'API-Tresor: WebAuthn-PRF leitet den Schlüssel auf dem Gerät ab. Server speichert nur Ciphertext. Live: app.ks.aileena.xyz. Marketing: ks.aileena.xyz.',
           href: 'https://github.com/lilaclilac09/keyshield',
           image: '/projects/keyshield.png',
           cta: 'Source →',
           liveHref: 'https://app.ks.aileena.xyz',
+          siteHref: 'https://ks.aileena.xyz',
           extHref: 'https://github.com/lilaclilac09/keyshield/tree/main/src/extension',
         },
         {
@@ -2299,6 +2302,7 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
             { label: 'MEV Dashboard', href: 'https://mev.aileena.xyz' },
             { label: 'Finance', href: 'https://finance.aileena.xyz' },
             { label: 'KeyShield', href: 'https://app.ks.aileena.xyz' },
+            { label: 'KeyShield site', href: 'https://ks.aileena.xyz' },
             { label: 'KeyShield extension', href: 'https://github.com/lilaclilac09/keyshield/tree/main/src/extension' },
             { label: 'Gather · 共影', href: 'https://album.aileena.xyz' },
             { label: 'GitHub', href: 'https://github.com/lilaclilac09' },
