@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createWebauthnChallenge } from '@/lib/auth';
 import { KS_PRF_FIRST } from '@/lib/keyshield/constants';
-import { rpIdFromHost } from '@/lib/passkey/webauthn';
+import { ksRpIdFromHost } from '@/lib/keyshield/rpid';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
   const mode = body.mode === 'register' ? 'register' : 'unlock';
   const { token, challenge } = await createWebauthnChallenge();
   const host = hostOf(req);
-  const rpId = rpIdFromHost(host);
+  const rpId = ksRpIdFromHost(host);
   const res = NextResponse.json({
     ok: true,
     challenge,
@@ -27,8 +27,11 @@ export async function POST(req: Request) {
     method: 'keyshield',
     prfFirst: KS_PRF_FIRST,
     mode,
-    // Discoverable resident keys — do not dump every public vault credential.
+    // Discoverable resident keys — Apple Passkeys / iCloud Keychain.
+    // Do not dump every public vault credential.
     allowCredentials: [],
+    residentKey: 'required',
+    hints: ['client-device', 'hybrid'],
   });
   res.cookies.set(CH_COOKIE, token, {
     path: '/',
