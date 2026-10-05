@@ -37,4 +37,10 @@ curl -sS https://app.ks.aileena.xyz/api/ks/health
 
 Until those two clicks exist, use `https://www.aileena.xyz/ks` after this PR is on production.
 
+Browser extension install (unpacked, no Chrome Web Store listing yet):
+
+`https://github.com/lilaclilac09/keyshield/tree/main/src/extension`
+
+Chromium: `chrome://extensions` → Developer mode → Load unpacked → `src/extension`.
+
 `api.ks` / `sync.ks` stay unset. This slice does not revive the Rust proxy or the extension sync worker.

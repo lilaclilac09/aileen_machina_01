@@ -7,7 +7,14 @@
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { KS_APP_HOST, KS_APP_URL, KS_HKDF_MASTER, KS_HKDF_VAULT_ID, KS_PRF_FIRST } from '../lib/keyshield/constants';
+import {
+  KS_APP_HOST,
+  KS_APP_URL,
+  KS_EXTENSION_HREF,
+  KS_HKDF_MASTER,
+  KS_HKDF_VAULT_ID,
+  KS_PRF_FIRST,
+} from '../lib/keyshield/constants';
 import { deriveKeyshield, openText, sealText } from '../lib/keyshield/prf';
 import { GET as healthGet } from '../app/api/ks/health/route';
 import { POST as optionsPost } from '../app/api/ks/passkey/options/route';
@@ -63,6 +70,12 @@ async function main() {
   );
   assert('Console chrome hidden on /ks', /pathname === '\/ks'/.test(chat));
   assert('works + footer point at app.ks', (tx.match(/https:\/\/app\.ks\.aileena\.xyz/g) || []).length >= 6);
+  assert(
+    'extension install is src/extension',
+    KS_EXTENSION_HREF === 'https://github.com/lilaclilac09/keyshield/tree/main/src/extension' &&
+      appSrc.includes('KS_EXTENSION_HREF') &&
+      tx.includes(KS_EXTENSION_HREF),
+  );
   assert('agent context has live KeyShield URL', agent.includes('https://app.ks.aileena.xyz'));
   assert('no Railway fallback in app', !/keyshield-production\.up\.railway\.app/.test(appSrc));
 
@@ -92,6 +105,7 @@ async function main() {
     const html = await page.text();
     assert('/ks renders', page.ok && /keyshield-app/.test(html), `status=${page.status}`);
     assert('/ks shows latest PRF method', html.includes(KS_PRF_FIRST));
+    assert('/ks has extension install link', html.includes(KS_EXTENSION_HREF));
     assert('/ks has no old PRF salt', !html.includes('ks-prf-salt-v1'));
     const liveHealth = await fetch(`${base}/api/ks/health`);
     const liveJson = (await liveHealth.json()) as { railway?: boolean; prfFirst?: string };

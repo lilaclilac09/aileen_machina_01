@@ -147,6 +147,26 @@
   font-size: 0.85rem;
 }
 
-.ks-foot a {
+.ks-foot a,
+.ks-ext {
   color: #8ad4c8;
+}
+
+.ks-ext {
+  display: inline-block;
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.ks-ext-note {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: #8a96c2;
+}
+
+.ks-ext-note code {
+  font-family: ui-monospace, 'JetBrains Mono', monospace;
+  color: #e8ecff;
 }

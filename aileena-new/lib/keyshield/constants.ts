@@ -16,6 +16,8 @@ export const KS_VAULT_ID_BITS = 128;
 export const KS_APP_HOST = 'app.ks.aileena.xyz';
 export const KS_APP_URL = `https://${KS_APP_HOST}`;
 export const KS_APP_PATH = '/ks';
+/** Unpacked Chromium install. No Chrome Web Store listing yet. */
+export const KS_EXTENSION_HREF = 'https://github.com/lilaclilac09/keyshield/tree/main/src/extension';
 export const KS_SESSION_COOKIE = '__ks_vault';
 export const KS_MAX_ENTRIES = 40;
 export const KS_MAX_PLAINTEXT = 8_192;

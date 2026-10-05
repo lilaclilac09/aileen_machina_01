@@ -740,6 +740,7 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
           image: '/projects/keyshield.png',
           cta: 'Source →',
           liveHref: 'https://app.ks.aileena.xyz',
+          extHref: 'https://github.com/lilaclilac09/keyshield/tree/main/src/extension',
         },
         {
           name: 'RPCsol P&L',
@@ -1139,6 +1140,7 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
             { label: 'MEV Dashboard', href: 'https://mev.aileena.xyz' },
             { label: 'Finance', href: 'https://finance.aileena.xyz' },
             { label: 'KeyShield', href: 'https://app.ks.aileena.xyz' },
+            { label: 'KeyShield extension', href: 'https://github.com/lilaclilac09/keyshield/tree/main/src/extension' },
             { label: 'Gather · 共影', href: 'https://album.aileena.xyz' },
             { label: 'GitHub', href: 'https://github.com/lilaclilac09' },
           ],
@@ -1897,6 +1899,7 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
           image: '/projects/keyshield.png',
           cta: 'Source →',
           liveHref: 'https://app.ks.aileena.xyz',
+          extHref: 'https://github.com/lilaclilac09/keyshield/tree/main/src/extension',
         },
         {
           name: 'RPCsol P&L',
@@ -2296,6 +2299,7 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
             { label: 'MEV Dashboard', href: 'https://mev.aileena.xyz' },
             { label: 'Finance', href: 'https://finance.aileena.xyz' },
             { label: 'KeyShield', href: 'https://app.ks.aileena.xyz' },
+            { label: 'KeyShield extension', href: 'https://github.com/lilaclilac09/keyshield/tree/main/src/extension' },
             { label: 'Gather · 共影', href: 'https://album.aileena.xyz' },
             { label: 'GitHub', href: 'https://github.com/lilaclilac09' },
           ],

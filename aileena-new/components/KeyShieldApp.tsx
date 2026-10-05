@@ -1,7 +1,14 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { KS_APP_HOST, KS_HKDF_MASTER, KS_HKDF_VAULT_ID, KS_MAX_PLAINTEXT, KS_PRF_FIRST } from '../lib/keyshield/constants';
+import {
+  KS_APP_HOST,
+  KS_EXTENSION_HREF,
+  KS_HKDF_MASTER,
+  KS_HKDF_VAULT_ID,
+  KS_MAX_PLAINTEXT,
+  KS_PRF_FIRST,
+} from '../lib/keyshield/constants';
 import { deriveKeyshield, openText, readPrfFirst, prfFirstBytes, sealOwner, sealText, openOwnerSeal } from '../lib/keyshield/prf';
 import { b64urlFromBuf, bytesFromB64url } from '../lib/passkey/b64';
 import type { KsVaultEntry } from '../lib/keyshield/types';
@@ -341,6 +348,19 @@ export default function KeyShieldApp() {
           <p className="ks-method" data-testid="keyshield-method">
             {KS_PRF_FIRST} → {KS_HKDF_MASTER} / {KS_HKDF_VAULT_ID} → AES-256-GCM
           </p>
+          <a
+            className="ks-ext"
+            data-testid="keyshield-extension"
+            href={KS_EXTENSION_HREF}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Install browser extension →
+          </a>
+          <p className="ks-ext-note">
+            Chrome / Edge / Brave / Arc: <code>chrome://extensions</code> → Developer mode → Load
+            unpacked → <code>src/extension</code>
+          </p>
         </section>
       ) : (
         <section className="ks-vault" data-testid="keyshield-vault">
@@ -410,6 +430,8 @@ export default function KeyShieldApp() {
         </p>
         <p>
           <a href="https://www.aileena.xyz">aileena.xyz</a>
+          {' · '}
+          <a href={KS_EXTENSION_HREF}>extension</a>
           {' · '}
           <a href="https://github.com/lilaclilac09/keyshield">source</a>
         </p>
