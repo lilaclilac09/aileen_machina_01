@@ -11,9 +11,11 @@ Door matches the live SPA at `keyshield-sync-worker.vercel.app`:
 
 Crypto is `lib/keyshield` (`keyshield-prf-v1:*`). Wallet IKM is `SHA-256(sig of keyshield-prf-v1:vault-master-secret)` then the same HKDF as PRF. Server stores ciphertext only. The login signature never includes the vault IKM.
 
-The old SPA still talks to a dead Railway API (`keyshield-production.up.railway.app` → 404) and uses `ks-prf-salt-v1`. Do not point `app.ks` at that project.
+`app.ks.aileena.xyz` is this Next `/ks` door (wallet + passkey, `keyshield-prf-v1:*`, `railway: false`). Do not point that host at Railway.
 
-Rust proxy / MPP / x402 meters stay unbound until `api.ks` / `sync.ks` exist. Activity shows that honestly — no fake call counts.
+The Chrome extension and original KeyShield SPA talk to Railway `https://keyshield-production.up.railway.app` (live v2.0). That is the API, not the dashboard.
+
+Rust proxy / MPP / x402 meters stay unbound on the Next door until `api.ks` / `sync.ks` exist. Activity on `/ks` shows that honestly — no fake call counts.
 
 ## Manual steps (owner)
 
@@ -63,8 +65,21 @@ curl -sSI https://ks.aileena.xyz
 
 Marketing: https://ks.aileena.xyz. `keyshield-landing.vercel.app` 307s there. Dashboard: https://app.ks.aileena.xyz.
 
-Browser extension install (unpacked, no Chrome Web Store listing yet):
+## Install the Chrome extension (humans)
 
-`https://github.com/lilaclilac09/keyshield/tree/main/src/extension`
+Not on the Chrome Web Store. Unpacked Manifest V3. **No build.** Agents
+do not install this — they use a session token (see the KeyShield
+README *How agents register*).
 
-Chromium: `chrome://extensions` → Developer mode → Load unpacked → `src/extension`.
+1. Open **Google Chrome**.
+2. Download / clone `src/extension` from
+   `https://github.com/lilaclilac09/keyshield/tree/main/src/extension`
+3. Go to `chrome://extensions` → Developer mode → **Load unpacked** →
+   select `src/extension`.
+4. Click **Sign in to KeyShield** in the toolbar. That opens
+   https://app.ks.aileena.xyz. Connect a wallet so the popup can store a
+   token.
+
+Same steps live in the KeyShield repo [`src/extension/README.md`](https://github.com/lilaclilac09/keyshield/blob/main/src/extension/README.md)
+and [`docs/EXTENSION.md`](https://github.com/lilaclilac09/keyshield/blob/main/docs/EXTENSION.md).
+Do not load a `frontend/` folder — that path is gone.
