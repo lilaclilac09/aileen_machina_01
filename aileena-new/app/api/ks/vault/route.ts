@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { KS_MAX_ENTRIES } from '@/lib/keyshield/constants';
-import { cookieFromRequest, KS_SESSION_COOKIE, readKsSession } from '@/lib/keyshield/session';
+import { ksSessionOf } from '@/lib/keyshield/request';
 import { getKsVault, putKsVault } from '@/lib/keyshield/store';
 import type { KsVaultEntry } from '@/lib/keyshield/types';
 
@@ -8,7 +8,8 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 async function vaultIdOf(req: Request): Promise<string | null> {
-  return readKsSession(cookieFromRequest(req, KS_SESSION_COOKIE));
+  const session = await ksSessionOf(req);
+  return session?.vaultId ?? null;
 }
 
 export async function GET(req: Request) {

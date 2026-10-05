@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { readWebauthnChallenge } from '@/lib/auth';
-import { KS_SESSION_MAX_AGE } from '@/lib/keyshield/session';
-import { cookieFromRequest, createKsSession, KS_SESSION_COOKIE } from '@/lib/keyshield/session';
+import { cookieFromRequest } from '@/lib/keyshield/session';
+import { mintKsSession } from '@/lib/keyshield/request';
 import { getKsPasskey, putKsPasskey } from '@/lib/keyshield/store';
 import { bytesFromB64url } from '@/lib/passkey/b64';
 import { parseClientData, readCounter, userVerified, verifyEs256 } from '@/lib/passkey/webauthn';
@@ -19,17 +19,8 @@ function originOf(req: Request): string {
   return `${proto}://${host}`;
 }
 
-async function setSession(req: Request, res: NextResponse, vaultId: string) {
-  const https =
-    new URL(req.url).protocol === 'https:' || req.headers.get('x-forwarded-proto') === 'https';
-  const token = await createKsSession(vaultId);
-  res.cookies.set(KS_SESSION_COOKIE, token, {
-    path: '/',
-    maxAge: KS_SESSION_MAX_AGE,
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: https,
-  });
+async function setSession(req: Request, res: NextResponse, vaultId: string, sub: string) {
+  await mintKsSession(req, res, vaultId, { via: 'passkey', sub });
   res.cookies.set(CH_COOKIE, '', { path: '/', maxAge: 0 });
   return res;
 }
@@ -78,7 +69,7 @@ export async function POST(req: Request) {
       createdAt: new Date().toISOString(),
     });
     const res = NextResponse.json({ ok: true, mode: 'register', vaultId: body.vaultId });
-    return setSession(req, res, body.vaultId);
+    return setSession(req, res, body.vaultId, body.id);
   }
 
   if (client.type !== 'webauthn.get') return NextResponse.json({ error: 'type' }, { status: 400 });
@@ -101,5 +92,5 @@ export async function POST(req: Request) {
   if (counter < stored.counter) return NextResponse.json({ error: 'counter' }, { status: 401 });
   await putKsPasskey({ ...stored, counter });
   const res = NextResponse.json({ ok: true, mode: 'unlock', vaultId: body.vaultId });
-  return setSession(req, res, body.vaultId);
+  return setSession(req, res, body.vaultId, stored.id);
 }

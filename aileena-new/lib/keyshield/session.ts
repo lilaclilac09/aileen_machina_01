@@ -1,13 +1,16 @@
 /**
  * Public KeyShield vault session. Separate from owner `__aileena_pass`.
- * Payload is vaultId only — never PRF or AES material.
+ * Payload is vaultId + door — never PRF or AES material.
  */
 
 import { KS_SESSION_COOKIE } from './constants';
+import type { KsSessionVia } from './types';
 
 export { KS_SESSION_COOKIE };
+export type { KsSessionVia };
 
 const MAX_AGE = 60 * 60 * 24 * 30;
+const CLI_MAX_AGE = 60 * 60 * 24;
 
 function secret(): string {
   const s = process.env.AUTH_SECRET || process.env.CHAT_QUOTA_SECRET || '';
@@ -52,18 +55,40 @@ function timingSafeEqual(a: string, b: string): boolean {
   return diff === 0;
 }
 
-type Payload = { t: 'ks'; vaultId: string; exp: number };
+type Payload = {
+  t: 'ks' | 'kscli';
+  vaultId: string;
+  exp: number;
+  via?: KsSessionVia;
+  sub?: string;
+  sid?: string;
+};
 
-export async function createKsSession(vaultId: string): Promise<string> {
+export type KsSession = {
+  vaultId: string;
+  via?: KsSessionVia;
+  sub?: string;
+  sid?: string;
+  cli?: boolean;
+};
+
+export async function createKsSession(
+  vaultId: string,
+  extra: { via?: KsSessionVia; sub?: string; sid?: string; ttlSec?: number; cli?: boolean } = {},
+): Promise<string> {
+  const ttl = extra.ttlSec ?? (extra.cli ? CLI_MAX_AGE : MAX_AGE);
   const enc = b64urlFromBytes(new TextEncoder().encode(JSON.stringify({
-    t: 'ks',
+    t: extra.cli ? 'kscli' : 'ks',
     vaultId,
-    exp: Date.now() + MAX_AGE * 1000,
+    exp: Date.now() + ttl * 1000,
+    via: extra.via,
+    sub: extra.sub,
+    sid: extra.sid,
   } satisfies Payload)));
   return `${enc}.${await hmac(enc)}`;
 }
 
-export async function readKsSession(token: string | undefined | null): Promise<string | null> {
+export async function readKsSession(token: string | undefined | null): Promise<KsSession | null> {
   if (!token) return null;
   const dot = token.indexOf('.');
   if (dot < 0) return null;
@@ -72,15 +97,27 @@ export async function readKsSession(token: string | undefined | null): Promise<s
   if (!timingSafeEqual(sig, await hmac(enc))) return null;
   try {
     const p = JSON.parse(new TextDecoder().decode(bytesFromB64url(enc))) as Payload;
-    if (p.t !== 'ks' || typeof p.vaultId !== 'string' || !p.vaultId) return null;
+    if ((p.t !== 'ks' && p.t !== 'kscli') || typeof p.vaultId !== 'string' || !p.vaultId) return null;
     if (typeof p.exp !== 'number' || p.exp < Date.now()) return null;
-    return p.vaultId;
+    return {
+      vaultId: p.vaultId,
+      via: p.via,
+      sub: p.sub,
+      sid: p.sid,
+      cli: p.t === 'kscli',
+    };
   } catch {
     return null;
   }
 }
 
+export async function readKsVaultId(token: string | undefined | null): Promise<string | null> {
+  const s = await readKsSession(token);
+  return s?.vaultId ?? null;
+}
+
 export const KS_SESSION_MAX_AGE = MAX_AGE;
+export const KS_CLI_MAX_AGE = CLI_MAX_AGE;
 
 export function cookieFromRequest(req: Request, name: string): string | null {
   const raw = req.headers.get('cookie') || '';
@@ -91,4 +128,28 @@ export function cookieFromRequest(req: Request, name: string): string | null {
   } catch {
     return match[1];
   }
+}
+
+export function bearerFromRequest(req: Request): string | null {
+  const raw = req.headers.get('authorization') || '';
+  const m = raw.match(/^Bearer\s+(.+)$/i);
+  return m ? m[1].trim() : null;
+}
+
+export function ksSecure(req: Request): boolean {
+  return new URL(req.url).protocol === 'https:' || req.headers.get('x-forwarded-proto') === 'https';
+}
+
+export function applyKsSessionCookie(req: Request, res: { cookies: { set: (name: string, value: string, opts: object) => void } }, token: string, maxAge = MAX_AGE) {
+  res.cookies.set(KS_SESSION_COOKIE, token, {
+    path: '/',
+    maxAge,
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: ksSecure(req),
+  });
+}
+
+export function clearKsSessionCookie(res: { cookies: { set: (name: string, value: string, opts: object) => void } }) {
+  res.cookies.set(KS_SESSION_COOKIE, '', { path: '/', maxAge: 0 });
 }

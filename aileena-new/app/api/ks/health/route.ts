@@ -13,6 +13,8 @@ export async function GET() {
     prfFirst: KS_PRF_FIRST,
     hkdfMaster: KS_HKDF_MASTER,
     hkdfVaultId: KS_HKDF_VAULT_ID,
+    doors: ['wallet', 'passkey'],
+    wallets: ['Phantom', 'Solflare', 'Backpack', 'OKX'],
     railway: false,
   });
 }

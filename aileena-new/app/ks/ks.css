@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
 [data-ks-app] {
   min-height: 100dvh;
   background: #0b1226;
@@ -5,90 +7,359 @@
   font-family: 'Montserrat', 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
 
-.ks-app {
-  max-width: 42rem;
-  margin: 0 auto;
-  padding: 2.4rem 1.25rem 4rem;
+.ks-door-page {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
 }
 
-.ks-kicker {
-  font-family: ui-monospace, 'JetBrains Mono', monospace;
-  font-size: 0.62rem;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: #8a96c2;
+.ks-door-card {
+  width: min(28rem, 100%);
+  text-align: center;
 }
 
-.ks-app h1 {
-  margin: 0.35rem 0 0.6rem;
+.ks-shield {
+  width: 5rem;
+  height: 5rem;
+  margin: 0 auto 2rem;
+  border-radius: 12px;
+  border: 1px solid #243365;
+  background: #131c39;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ks-shield-sm {
+  width: 1.4rem;
+  height: 1.4rem;
+  margin: 0;
+  border-radius: 6px;
+}
+
+.ks-door-card h1,
+.ks-head h1 {
+  margin: 0;
   font-size: 2.1rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  color: #fff;
 }
 
 .ks-dek,
 .ks-method,
-.ks-foot,
-.ks-error,
-.ks-vault-id,
-.ks-empty {
+.ks-ext-note,
+.ks-honest,
+.ks-head p,
+.ks-empty,
+.ks-host,
+.ks-card p,
+.ks-panel > p {
   color: #a8b3d8;
   line-height: 1.55;
 }
 
 .ks-door,
-.ks-vault,
+.ks-wait,
+.ks-picker,
+.ks-card,
+.ks-empty-card,
+.ks-list li,
 .ks-add,
-.ks-list li {
+.ks-modal-card,
+.ks-side-foot {
   border: 1px solid #243365;
   background: #131c39;
   border-radius: 12px;
 }
 
-.ks-door,
-.ks-vault {
-  margin-top: 1.5rem;
-  padding: 1.25rem;
-}
-
 .ks-door {
+  margin-top: 2.5rem;
+  padding: 0.5rem;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   gap: 0.75rem;
 }
 
 .ks-door button,
-.ks-add button,
-.ks-list button {
-  min-height: 44px;
-  padding: 0 1rem;
-  border-radius: 2px;
-  border: 1px solid #fff;
-  background: #fff;
-  color: #000;
+.ks-head-actions button,
+.ks-add button[type='submit'],
+.ks-modal-card button[type='submit'],
+.ks-side-foot .ks-ghost {
+  min-height: 52px;
+  width: 100%;
+  padding: 0 1.25rem;
+  border-radius: 12px;
+  border: 1px solid #2e4585;
+  background: #0e1631;
+  color: #fff;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
+.ks-door button:not(.ks-ghost):not(.ks-text),
+.ks-head-actions button,
+.ks-add button[type='submit'],
+.ks-modal-card button[type='submit'] {
+  background: #fff;
+  border-color: #fff;
+  color: #000;
+}
+
 .ks-door button.ks-ghost,
-.ks-list button {
+.ks-list button,
+.ks-kinds button,
+.ks-card button {
   background: transparent;
   color: #e8ecff;
-  border-color: #3e4a72;
+  border: 1px solid #3e4a72;
+  min-height: 44px;
+  border-radius: 10px;
+  padding: 0 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
+.ks-text,
+.ks-muted {
+  background: none !important;
+  border: none !important;
+  color: #8a96c2 !important;
+  min-height: auto !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-weight: 500 !important;
+}
+
+.ks-muted {
+  color: #5e6a91 !important;
+}
+
+.ks-wallets,
 .ks-method {
-  margin-top: 1rem;
-  font-family: ui-monospace, 'JetBrains Mono', monospace;
-  font-size: 0.68rem;
-  word-break: break-word;
+  margin: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
 }
 
-.ks-vault-id {
-  font-family: ui-monospace, 'JetBrains Mono', monospace;
-  font-size: 0.7rem;
+.ks-wait {
+  padding: 1.1rem 1.25rem;
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ks-picker {
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.ks-ext {
+  color: #8ad4c8;
+  font-weight: 600;
+}
+
+.ks-ext-note {
+  margin: 0;
+  font-size: 0.75rem;
+}
+
+.ks-ext-note code,
+.ks-list code,
+.ks-token,
+.ks-docs-panel code,
+.ks-honest code {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  color: #e8ecff;
+}
+
+.ks-error {
+  margin-top: 1rem;
+  color: #ffb4b4;
+}
+
+.ks-shell {
+  min-height: 100dvh;
+  display: flex;
+  background: #0b1226;
+}
+
+.ks-side {
+  width: 14rem;
+  flex-shrink: 0;
+  border-right: 1px solid #243365;
+  background: #0e1631;
+  display: flex;
+  flex-direction: column;
+}
+
+.ks-brand {
+  height: 3.5rem;
+  padding: 0 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  border-bottom: 1px solid #243365;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  font-size: 0.72rem;
+}
+
+.ks-side nav {
+  flex: 1;
+  padding: 0.75rem;
+  display: grid;
+  align-content: start;
+  gap: 0.2rem;
+  overflow: auto;
+}
+
+.ks-side nav button {
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: #8a96c2;
+  padding: 0.55rem 0.75rem;
+  border-radius: 10px;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.ks-side nav button.is-on {
+  background: #fff;
+  color: #000;
+}
+
+.ks-side-foot {
+  margin: 0.75rem;
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.ks-dot {
+  margin: 0;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8a96c2;
+}
+
+.ks-dot.is-on::before,
+.ks-dot::before {
+  content: '';
+  display: inline-block;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: #3e4a72;
+  margin-right: 0.4rem;
+}
+
+.ks-dot.is-on::before {
+  background: #34d399;
+}
+
+.ks-addr {
+  border: 1px solid #243365;
+  background: #0e1631;
+  color: #e8ecff;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.72rem;
+  border-radius: 8px;
+  padding: 0.45rem 0.6rem;
+}
+
+.ks-main {
+  flex: 1;
+  min-width: 0;
+  padding: 1.25rem 1.5rem 3rem;
+  overflow: auto;
+}
+
+.ks-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+
+.ks-head h1 {
+  font-size: 1.15rem;
+}
+
+.ks-head p {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+}
+
+.ks-head-actions {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.ks-head-actions input,
+.ks-add input,
+.ks-add select,
+.ks-card input {
+  min-height: 44px;
+  border: 1px solid #243365;
+  background: #0e1631;
+  color: #e8ecff;
+  padding: 0 0.75rem;
+  border-radius: 8px;
+}
+
+.ks-head-actions button {
+  width: auto;
+  min-height: 44px;
+  border-radius: 8px;
+}
+
+.ks-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.ks-stats article,
+.ks-card,
+.ks-empty-card {
+  padding: 1rem;
+}
+
+.ks-stats span,
+.ks-add label,
+.ks-card h2,
+.ks-docs-panel h2 {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8a96c2;
+}
+
+.ks-stats strong {
+  display: block;
+  margin: 0.35rem 0;
+  font-size: 1.6rem;
+}
+
+.ks-stats em {
+  font-style: normal;
+  color: #8a96c2;
+  font-size: 0.75rem;
 }
 
 .ks-add {
@@ -96,23 +367,6 @@
   gap: 0.75rem;
   padding: 1rem;
   margin: 1rem 0;
-}
-
-.ks-add label {
-  display: grid;
-  gap: 0.35rem;
-  font-size: 0.72rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: #8a96c2;
-}
-
-.ks-add input {
-  min-height: 44px;
-  border: 1px solid #243365;
-  background: #0b1226;
-  color: #e8ecff;
-  padding: 0 0.75rem;
 }
 
 .ks-list {
@@ -130,43 +384,145 @@
   padding: 0.85rem 1rem;
 }
 
+.ks-list small {
+  display: block;
+  color: #8a96c2;
+  margin-top: 0.2rem;
+}
+
 .ks-list code {
   display: block;
   margin-top: 0.35rem;
-  font-family: ui-monospace, 'JetBrains Mono', monospace;
-  color: #e8ecff;
+  word-break: break-all;
 }
 
-.ks-error {
-  margin-top: 1rem;
-  color: #ffb4b4;
-}
-
-.ks-foot {
-  margin-top: 2rem;
-  font-size: 0.85rem;
-}
-
-.ks-foot a,
-.ks-ext {
-  color: #8ad4c8;
-}
-
-.ks-ext {
-  display: inline-block;
-  margin-top: 0.35rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-.ks-ext-note {
-  margin: 0;
-  font-size: 0.75rem;
-  line-height: 1.5;
+.ks-how {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  justify-content: center;
   color: #8a96c2;
+  font-size: 0.72rem;
 }
 
-.ks-ext-note code {
-  font-family: ui-monospace, 'JetBrains Mono', monospace;
-  color: #e8ecff;
+.ks-how em {
+  font-style: normal;
+  border: 1px solid #243365;
+  background: #131c39;
+  padding: 0.2rem 0.45rem;
+  border-radius: 6px;
+  color: #fff;
+}
+
+.ks-how i {
+  width: 0.7rem;
+  height: 1px;
+  background: #3e4a72;
+}
+
+.ks-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 10, 22, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 20;
+}
+
+.ks-modal-card {
+  width: min(36rem, 100%);
+  max-height: 90dvh;
+  overflow: auto;
+  padding: 0 0 1rem;
+}
+
+.ks-modal-card header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #243365;
+}
+
+.ks-kinds {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.4rem;
+  padding: 0.85rem 1.25rem 0;
+}
+
+.ks-kinds button.is-on {
+  background: #fff;
+  color: #000;
+  border-color: #fff;
+}
+
+.ks-docs,
+.ks-docs-panel {
+  padding-left: 1.1rem;
+  color: #a8b3d8;
+}
+
+.ks-token {
+  display: block;
+  margin-top: 0.75rem;
+  word-break: break-all;
+}
+
+.ks-host {
+  margin-top: 2rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.ks-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (max-width: 840px) {
+  .ks-shell {
+    flex-direction: column;
+  }
+
+  .ks-side {
+    width: 100%;
+    border-right: 0;
+    border-bottom: 1px solid #243365;
+  }
+
+  .ks-side nav {
+    display: flex;
+    overflow-x: auto;
+    gap: 0.35rem;
+  }
+
+  .ks-side nav button {
+    width: auto;
+    white-space: nowrap;
+  }
+
+  .ks-side-foot {
+    display: none;
+  }
+
+  .ks-stats,
+  .ks-kinds {
+    grid-template-columns: 1fr;
+  }
+
+  .ks-head,
+  .ks-head-actions,
+  .ks-list li {
+    flex-direction: column;
+  }
+
+  .ks-head-actions,
+  .ks-head-actions button {
+    width: 100%;
+  }
 }

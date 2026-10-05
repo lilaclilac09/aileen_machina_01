@@ -2,9 +2,17 @@
 
 Public vault UI is `/ks` in `aileena-new/`. Same Vercel project as aileena.xyz.
 
-Crypto is `lib/keyshield` (`keyshield-prf-v1:*`). Server stores ciphertext only.
+Door matches the live SPA at `keyshield-sync-worker.vercel.app`:
 
-The old SPA at `keyshield-sync-worker.vercel.app` still talks to a dead Railway API (`keyshield-production.up.railway.app` → 404) and uses `ks-prf-salt-v1`. Do not point `app.ks` at that project.
+- **Wallet first** — Phantom · Solflare · Backpack · OKX (injected providers, ed25519 sign)
+- **Passkey second** — Face ID / Touch ID / hardware key after this device is trusted
+- Dashboard tabs: Vault, Activity, Agents, Sharing, Sessions, Settings, Developer, Docs, Reports, X402 Trust
+
+Crypto is `lib/keyshield` (`keyshield-prf-v1:*`). Wallet IKM is `SHA-256(sig of keyshield-prf-v1:vault-master-secret)` then the same HKDF as PRF. Server stores ciphertext only. The login signature never includes the vault IKM.
+
+The old SPA still talks to a dead Railway API (`keyshield-production.up.railway.app` → 404) and uses `ks-prf-salt-v1`. Do not point `app.ks` at that project.
+
+Rust proxy / MPP / x402 meters stay unbound until `api.ks` / `sync.ks` exist. Activity shows that honestly — no fake call counts.
 
 ## Manual steps (owner)
 
@@ -32,7 +40,7 @@ DNS → Add record:
 ```bash
 dig +short app.ks.aileena.xyz CNAME
 curl -sS https://app.ks.aileena.xyz/api/ks/health
-# {"ok":true,"method":"keyshield","prfFirst":"keyshield-prf-v1:vault-master-secret","railway":false}
+# {"ok":true,"method":"keyshield","doors":["wallet","passkey"],"railway":false}
 ```
 
 Until those two clicks exist, use `https://www.aileena.xyz/ks` after this PR is on production.
@@ -42,5 +50,3 @@ Browser extension install (unpacked, no Chrome Web Store listing yet):
 `https://github.com/lilaclilac09/keyshield/tree/main/src/extension`
 
 Chromium: `chrome://extensions` → Developer mode → Load unpacked → `src/extension`.
-
-`api.ks` / `sync.ks` stay unset. This slice does not revive the Rust proxy or the extension sync worker.

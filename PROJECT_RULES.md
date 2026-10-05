@@ -71,6 +71,7 @@ Do **not** vendor DeepSeek Harness / dsh onto the public site. Shanghai accent =
 
 Public vault UI lives at `/ks` on this site and is rewritten to `/` on `app.ks.aileena.xyz`.
 
+- Door is **wallet first** (Phantom / Solflare / Backpack / OKX) plus passkey. Do not ship a passkey-only slice.
 - Crypto: `lib/keyshield` — `keyshield-prf-v1:vault-master-secret` → HKDF → AES-256-GCM
 - Server stores ciphertext only. Never restore `ks-prf-salt-v1` or `keyshield-production.up.railway.app`
 - DNS + Vercel domain bind are owner manual steps (Cloudflare CNAME `app.ks` → Vercel)

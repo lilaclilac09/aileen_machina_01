@@ -44,6 +44,7 @@
 - Visual `#glass-bench` **不在** `/sound`（`QA.md` DJ）
 - [2026-09-17] `mev.aileena.xyz` 误还原静态 Visual Analysis / 紫页 / 暗色 dashboard → **永远不再用**。只保留 Dash `app/index.py`（`2b61bf27`，H1 Solana MEV Report，footer `@aileengf1`）。见 `.cursor/rules/mev-dash-only.mdc`
 - [2026-10-05] `app.ks.aileena.xyz` 是 NXDOMAIN；`keyshield-production.up.railway.app` 404 (`x-railway-fallback`); live SPA 仍用 `ks-prf-salt-v1` / `ks-extension-vault-v1` → 上 `/ks` + `keyshield-prf-v1:*`。不要把 live 指回 Railway 或旧 PRF salt
+- [2026-10-05] `/ks` 不能做成 passkey-only 门。Live SPA 是钱包优先（Phantom / Solflare / Backpack / OKX）。Wallet 登录是产品门，不是“原 repo 里的 fallback”。
 
 ---
 

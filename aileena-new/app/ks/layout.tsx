@@ -3,9 +3,9 @@ import { KS_APP_HOST, KS_APP_URL } from '@/lib/keyshield/constants';
 import './ks.css';
 
 export const metadata: Metadata = {
-  title: 'KeyShield — encrypted secret vault',
+  title: 'KeyShield — Zero-Trust API Key Vault',
   description:
-    'Passkey PRF → HKDF → AES-256-GCM. Server stores ciphertext only. Live at app.ks.aileena.xyz.',
+    'Connect a Solana wallet or passkey. AES-256-GCM on device. Server stores ciphertext only.',
   alternates: { canonical: KS_APP_URL },
 };
 
