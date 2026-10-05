@@ -38,12 +38,16 @@ DNS → Add record:
 - Target: `cname.vercel-dns.com` (or the value Vercel shows)
 - Proxy: DNS only (grey cloud) unless Vercel says otherwise
 
-Second record (marketing):
+Second record (marketing). Vercel already has `ks.aileena.xyz` on **keyshield-landing**. The page is live at:
+
+https://keyshield-landing.vercel.app → production deploy `dpl_9ehtxkM88AaYS3PXX6yXd9yvRCyn` (`f40e177`, original `sites/landing`).
+
+`ks.aileena.xyz` is still NXDOMAIN until this record exists:
 
 - Type: `CNAME`
 - Name: `ks`
-- Target: `cname.vercel-dns.com` (or the value Vercel shows for **keyshield-landing**)
-- Proxy: DNS only (grey cloud) unless Vercel says otherwise
+- Target: `came.vercel-dns.com` (same family as `app.ks`) or the value Vercel shows on keyshield-landing → Domains
+- Proxy: DNS only (grey cloud)
 
 ### 3. Confirm
 
@@ -51,9 +55,13 @@ Second record (marketing):
 dig +short app.ks.aileena.xyz CNAME
 curl -sS https://app.ks.aileena.xyz/api/ks/health
 # {"ok":true,"method":"keyshield","doors":["wallet","passkey"],"railway":false}
+
+dig +short ks.aileena.xyz CNAME
+curl -sSI https://ks.aileena.xyz
+# 200 + title KeyShield — Stop copy-pasting API keys.
 ```
 
-Until those two clicks exist, use `https://www.aileena.xyz/ks` after this PR is on production.
+Until the `ks` CNAME exists, use https://keyshield-landing.vercel.app (or `/ks-landing` on this site after deploy). After DNS is up, point the `keyshield-landing.vercel.app` 307 back to `ks.aileena.xyz`.
 
 Browser extension install (unpacked, no Chrome Web Store listing yet):
 
