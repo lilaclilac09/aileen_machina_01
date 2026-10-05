@@ -11,6 +11,8 @@ import {
   KS_APP_HOST,
   KS_APP_URL,
   KS_EXTENSION_HREF,
+  KS_SITE_HOST,
+  KS_SITE_URL,
   KS_HKDF_MASTER,
   KS_HKDF_VAULT_ID,
   KS_PRF_FIRST,
@@ -48,6 +50,7 @@ async function main() {
   assert('HKDF master is encryption-key', KS_HKDF_MASTER === 'keyshield-prf-v1:encryption-key');
   assert('HKDF vault id is vault-id', KS_HKDF_VAULT_ID === 'keyshield-prf-v1:vault-id');
   assert('public host is app.ks.aileena.xyz', KS_APP_HOST === 'app.ks.aileena.xyz' && KS_APP_URL === 'https://app.ks.aileena.xyz');
+  assert('marketing host is ks.aileena.xyz', KS_SITE_HOST === 'ks.aileena.xyz' && KS_SITE_URL === 'https://ks.aileena.xyz');
   assert('wallet vault message is latest PRF first', KS_WALLET_VAULT_MSG === KS_PRF_FIRST);
   assert(
     'wallet adapters listed',
@@ -97,6 +100,26 @@ async function main() {
     'next host rewrite',
     /app\.ks\.aileena\.xyz/.test(nextCfg) && /destination: "\/ks"/.test(nextCfg),
   );
+  const landing = read('public/ks-landing/index.html');
+  assert(
+    'vercel marketing host rewrite',
+    /ks\.aileena\.xyz/.test(vercel) && /"destination": "\/ks-landing\/index.html"/.test(vercel),
+  );
+  assert(
+    'next marketing host rewrite',
+    /ks\.aileena\.xyz/.test(nextCfg) && /destination: "\/ks-landing\/index.html"/.test(nextCfg),
+  );
+  assert(
+    'marketing landing is original KeyShield page',
+    /Stop copy-pasting API keys/.test(landing) && /Try It Free/.test(landing),
+  );
+  assert(
+    'marketing landing has Chrome + extension install',
+    landing.includes(KS_EXTENSION_HREF) &&
+      /Open the dashboard in Google Chrome/.test(landing) &&
+      /Detects API keys on any page/.test(landing) &&
+      /chrome:\/\/extensions/.test(landing),
+  );
   assert('Console chrome hidden on /ks', /pathname === '\/ks'/.test(chat));
   assert('works + footer point at app.ks', (tx.match(/https:\/\/app\.ks\.aileena\.xyz/g) || []).length >= 6);
   assert(
@@ -105,7 +128,10 @@ async function main() {
       appSrc.includes('KS_EXTENSION_HREF') &&
       tx.includes(KS_EXTENSION_HREF),
   );
+  assert('door tells people to open Chrome', /Open this page in Google Chrome/.test(appSrc));
+  assert('door describes the vault extension', /Detects API keys on any page/.test(appSrc));
   assert('agent context has live KeyShield URL', agent.includes('https://app.ks.aileena.xyz'));
+  assert('agent context has marketing KeyShield URL', agent.includes('https://ks.aileena.xyz'));
   assert('no Railway fallback in app', !/keyshield-production\.up\.railway\.app/.test(appSrc));
   assert('wallet is not deferred to another repo', !/Wallet fallback stays in the original/.test(appSrc));
   assert('door always offers Sign in with Passkey', /Sign in with Passkey/.test(appSrc));
@@ -185,6 +211,11 @@ async function main() {
     assert('/ks lists wallets', html.includes('Phantom') && html.includes('Solflare') && html.includes('Backpack') && html.includes('OKX'));
     assert('/ks has extension install link', html.includes(KS_EXTENSION_HREF));
     assert('/ks has no old PRF salt', !html.includes('ks-prf-salt-v1'));
+    const site = await fetch(`${base}/ks-landing/index.html`);
+    const siteHtml = await site.text();
+    assert('/ks-landing renders original marketing', site.ok && /Stop copy-pasting API keys/.test(siteHtml), `status=${site.status}`);
+    assert('/ks-landing has extension install', siteHtml.includes(KS_EXTENSION_HREF));
+    assert('/ks-landing hints Chrome', /Open the dashboard in Google Chrome/.test(siteHtml));
     const liveHealth = await fetch(`${base}/api/ks/health`);
     const liveJson = (await liveHealth.json()) as { railway?: boolean; prfFirst?: string; doors?: string[] };
     assert('live health', liveHealth.ok && liveJson.railway === false && liveJson.prfFirst === KS_PRF_FIRST);

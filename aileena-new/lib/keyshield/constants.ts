@@ -16,6 +16,10 @@ export const KS_VAULT_ID_BITS = 128;
 export const KS_APP_HOST = 'app.ks.aileena.xyz';
 export const KS_APP_URL = `https://${KS_APP_HOST}`;
 export const KS_APP_PATH = '/ks';
+/** Original marketing landing (`sites/landing`). Cloudflare CNAME + Vercel bind required. */
+export const KS_SITE_HOST = 'ks.aileena.xyz';
+export const KS_SITE_URL = `https://${KS_SITE_HOST}`;
+export const KS_SITE_PATH = '/ks-landing';
 /** Unpacked Chromium install. No Chrome Web Store listing yet. */
 export const KS_EXTENSION_HREF = 'https://github.com/lilaclilac09/keyshield/tree/main/src/extension';
 export const KS_SOURCE_HREF = 'https://github.com/lilaclilac09/keyshield';

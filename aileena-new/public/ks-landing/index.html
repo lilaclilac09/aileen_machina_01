@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="description" content="KeyShield — one vault for you and your agents. Dashboard for humans, SDK &amp; CLI for agents. Store once, plug in anywhere, calls get accelerated." />
+  <meta name="theme-color" content="#05060d" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="KeyShield — One vault for you and your agents." />
+  <meta property="og:description" content="Dashboard for humans, SDK &amp; CLI for agents. Store API keys once, plug in anywhere, calls get accelerated." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="KeyShield" />
+  <meta name="twitter:description" content="iCloud Keychain for API keys. Store once, plug in anywhere, calls get accelerated." />
+  <title>KeyShield — Stop copy-pasting API keys.</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235b8cff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #05060d;
+      color: #e6e8ef;
+      -webkit-font-smoothing: antialiased;
+      font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    }
+    .hero-glow {
+      background:
+        radial-gradient(55% 50% at 50% 0%, rgba(91,140,255,0.18) 0%, transparent 70%),
+        radial-gradient(35% 35% at 75% 20%, rgba(52,211,153,0.07) 0%, transparent 70%);
+    }
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(28,34,56,0.5) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(28,34,56,0.5) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: radial-gradient(ellipse 80% 55% at 50% 0%, black 30%, transparent 70%);
+      -webkit-mask-image: radial-gradient(ellipse 80% 55% at 50% 0%, black 30%, transparent 70%);
+    }
+    .nav-blur { backdrop-filter: saturate(140%) blur(10px); -webkit-backdrop-filter: saturate(140%) blur(10px); background: rgba(5,6,13,0.72); }
+    .reveal { opacity: 0; transform: translateY(16px); transition: opacity 700ms cubic-bezier(0.22,1,0.36,1), transform 700ms cubic-bezier(0.22,1,0.36,1); }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .btn-p { transition: background 180ms, transform 120ms, box-shadow 180ms; }
+    .btn-p:hover { background: #7aa1ff; box-shadow: 0 10px 40px -10px rgba(91,140,255,0.5); }
+    .btn-p:active { transform: translateY(1px); }
+    .btn-s { transition: border-color 180ms, background 180ms, color 180ms; }
+    .btn-s:hover { border-color: #5b8cff; color: #fff; background: rgba(91,140,255,0.06); }
+    .pain-card { transition: transform 200ms, border-color 200ms; }
+    .pain-card:hover { transform: translateY(-2px); border-color: #2a3358; }
+    .moat-card { transition: transform 220ms ease, border-color 220ms ease, background 220ms ease; }
+    .moat-card:hover { transform: translateY(-3px); border-color: rgba(91,140,255,0.4); background: #0c1228; }
+    .code-bl {
+      background: #070912; border: 1px solid #1c2238; border-radius: 12px;
+      padding: 18px 20px; font-family: 'JetBrains Mono', monospace; font-size: 13px;
+      line-height: 1.7; color: #cdd3e4; overflow-x: auto;
+    }
+    .code-bl .k { color: #7aa1ff; } .code-bl .s { color: #34d399; }
+    .code-bl .c { color: #6b7494; font-style: italic; } .code-bl .f { color: #fbbf24; }
+    .flow-line { position: relative; }
+    .flow-line::before { content:''; position:absolute; left:19px; top:40px; bottom:-20px; width:2px; background: linear-gradient(to bottom, #5b8cff 0%, #1c2238 100%); }
+    .flow-line:last-child::before { display: none; }
+    .cmp-table { border-collapse: collapse; width: 100%; font-size: 14px; }
+    .cmp-table th { text-align: left; padding: 12px 16px; color: #5b8cff; font-weight: 600; border-bottom: 2px solid #1c2238; font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; }
+    .cmp-table td { padding: 12px 16px; border-bottom: 1px solid #111830; color: #a4abc2; }
+    .cmp-table tr:hover td { background: rgba(91,140,255,0.03); }
+    .cmp-table td:first-child { color: #cdd3e4; font-weight: 500; }
+    .quote-mark { font-size: 72px; line-height: 1; color: rgba(91,140,255,0.15); font-family: Georgia, serif; }
+    #why-10x { scroll-margin-top: 5.5rem; }
+    @media (max-width: 640px) { .code-bl { font-size: 11.5px; padding: 14px; } }
+  </style>
+</head>
+<body class="min-h-screen antialiased">
+
+  <!-- NAV -->
+  <header class="sticky top-0 z-40 nav-blur border-b border-[#1c2238]">
+    <div class="max-w-5xl mx-auto px-5 sm:px-8 h-14 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2 group">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#5b8cff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span class="font-semibold text-[15px] text-white group-hover:text-[#7aa1ff] transition-colors">KeyShield</span>
+      </a>
+      <nav class="flex items-center gap-1 text-[13.5px]">
+        <a href="#problem" class="px-3 py-1.5 rounded-md text-[#a4abc2] hover:text-white hover:bg-[#0e1430] transition-colors hidden sm:block">Problem</a>
+        <a href="#solution" class="px-3 py-1.5 rounded-md text-[#a4abc2] hover:text-white hover:bg-[#0e1430] transition-colors hidden sm:block">Solution</a>
+        <a href="#why-10x" class="px-3 py-1.5 rounded-md text-[#a4abc2] hover:text-white hover:bg-[#0e1430] transition-colors hidden lg:block">Why 10×</a>
+        <a href="#moat" class="px-3 py-1.5 rounded-md text-[#a4abc2] hover:text-white hover:bg-[#0e1430] transition-colors">Why us</a>
+        <a href="#proof" class="px-3 py-1.5 rounded-md text-[#a4abc2] hover:text-white hover:bg-[#0e1430] transition-colors">Proof</a>
+        <a href="https://github.com/lilaclilac09/keyshield/tree/main/src/extension" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-md text-[#a4abc2] hover:text-white hover:bg-[#0e1430] transition-colors hidden sm:block">Extension</a>
+        <a href="https://app.ks.aileena.xyz" class="ml-1 px-4 py-1.5 rounded-lg bg-[#5b8cff]/10 text-[#7aa1ff] hover:bg-[#5b8cff]/20 transition-colors font-medium">Dashboard</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ━━━ HERO ━━━ -->
+    <section class="relative overflow-hidden">
+      <div class="absolute inset-0 grid-bg pointer-events-none"></div>
+      <div class="absolute inset-0 hero-glow pointer-events-none"></div>
+      <div class="relative max-w-5xl mx-auto px-5 sm:px-8 pt-20 sm:pt-32 pb-20 sm:pb-28">
+        <div class="reveal max-w-3xl mx-auto text-center sm:text-left">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#1c2238] bg-[#070912]/70 text-[11px] font-mono text-[#7aa1ff] mb-7 mx-auto sm:mx-0">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#34d399] animate-pulse"></span>
+            privacy hack 2026 &middot; live on solana devnet
+          </div>
+
+          <h1 class="text-[38px] sm:text-[48px] lg:text-[52px] font-extrabold tracking-[-0.02em] text-white leading-[1.12] text-center">
+            Match your API calls to<br/>
+            <span class="bg-gradient-to-r from-[#5b8cff] to-[#34d399] bg-clip-text text-transparent">your digital creation &mdash; without hesitation.</span>
+          </h1>
+          <p class="mt-3 text-center text-lg sm:text-base leading-none opacity-90 select-none" aria-hidden="true">🌼</p>
+
+          <p class="mt-6 text-[15px] sm:text-[16px] text-[#7b8399] max-w-[34rem] mx-auto leading-relaxed font-medium tracking-[-0.01em] text-center">
+            Match your stack to your flow, or wire the path that best fits how you ship. Keys stay in your vault, calls run through a fast lane, comfy trust all day long.
+          </p>
+
+          <div class="mt-10 flex flex-wrap justify-center gap-4 text-[15px]">
+            <a href="#why-10x" class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#5b8cff]/25 bg-[#5b8cff]/5 text-[#7aa1ff] hover:border-[#5b8cff]/45 transition-colors">
+              <span class="font-bold text-white">10&times;</span> smoother experience
+            </a>
+            <a href="#why-10x" class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#34d399]/25 bg-[#34d399]/5 text-[#34d399] hover:border-[#34d399]/45 transition-colors">
+              <span class="font-bold text-white">10&times;</span> more secure self-custody vault
+            </a>
+            <a href="#why-10x" class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#fb923c]/25 bg-[#fb923c]/5 text-[#fb923c] hover:border-[#fb923c]/45 transition-colors">
+              <span class="font-bold text-white">10&times;</span> faster API calls
+            </a>
+          </div>
+
+          <div class="mt-9 flex flex-wrap items-center justify-center gap-3">
+            <a href="https://app.ks.aileena.xyz" class="btn-p inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#5b8cff] text-white font-semibold text-[15px] shadow-[0_12px_40px_-10px_rgba(91,140,255,0.55)]">
+              Try It Free
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+            </a>
+            <a href="https://github.com/lilaclilac09/keyshield/tree/main/src/extension" target="_blank" rel="noopener noreferrer" class="btn-s inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border border-[#5b8cff]/35 text-[#7aa1ff] font-medium text-[15px]">
+              Install KeyShield extension →
+            </a>
+            <a href="https://github.com/lilaclilac09/keyshield" target="_blank" rel="noopener noreferrer" class="btn-s inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border border-[#1c2238] text-[#cdd3e4] font-medium text-[15px]">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12 .5a11.5 11.5 0 0 0-3.63 22.41c.57.1.78-.25.78-.55v-2.07c-3.2.7-3.88-1.36-3.88-1.36-.52-1.34-1.28-1.7-1.28-1.7-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.2 1.77 1.2 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.18-3.08-.12-.29-.51-1.45.11-3.02 0 0 .97-.31 3.18 1.18a11.04 11.04 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.62 1.57.23 2.73.11 3.02.74.8 1.18 1.82 1.18 3.08 0 4.42-2.7 5.39-5.27 5.68.41.36.78 1.06.78 2.13v3.16c0 .31.2.66.79.55A11.5 11.5 0 0 0 12 .5z"/></svg>
+              View Source
+            </a>
+          </div>
+          <p class="mt-5 text-[13px] text-[#8b92a8] max-w-lg mx-auto text-center leading-relaxed">
+            Open the dashboard in Google Chrome. Connect Wallet and the vault extension need Chrome.
+          </p>
+          <p class="mt-2 text-[12px] text-[#6b7494] max-w-lg mx-auto text-center leading-relaxed">
+            Detects API keys on any page and saves them to your encrypted vault.
+            <span class="font-mono text-[11px] text-[#8b92a8]">chrome://extensions</span>
+            → Developer mode → Load unpacked →
+            <span class="font-mono text-[11px] text-[#8b92a8]">src/extension</span>
+          </p>
+        </div>
+
+        <div id="why-10x" class="mt-16 max-w-5xl mx-auto border-t border-[#1c2238] pt-14">
+          <div class="max-w-3xl mx-auto text-center sm:text-left">
+            <h2 class="text-[11px] uppercase tracking-[0.16em] text-[#6b7494] font-semibold mb-3 text-center sm:text-left">Why each 10&times; is grounded in the stack</h2>
+            <p class="text-[12px] sm:text-[13px] text-[#6b7494] leading-relaxed text-center sm:text-left">
+              Three product pillars &mdash; extension capture, Path A vault, HeliusClient &mdash; map directly to the claims above.
+            </p>
+          </div>
+
+          <div class="mt-8 grid sm:grid-cols-3 gap-5 text-left">
+            <article class="moat-card rounded-2xl border border-[#1c2238] bg-[#0a0e1e] p-6">
+              <h3 class="text-[15px] sm:text-[16px] font-bold text-white leading-snug">
+                10&times; smoother &mdash; Chrome extension + dashboard
+              </h3>
+              <p class="mt-3 text-[14px] text-[#a4abc2] leading-relaxed">
+                Detect API-style fields, one-tap 🔑 capture, encrypt before the backend sees data; dashboard rotations propagate everywhere; fewer <span class="font-mono text-[12px] text-[#8b92a8]">.env</span> / copy-paste loops.
+              </p>
+            </article>
+            <article class="moat-card rounded-2xl border border-[#1c2238] bg-[#0a0e1e] p-6">
+              <h3 class="text-[15px] sm:text-[16px] font-bold text-white leading-snug">
+                10&times; vault security &mdash; Self-custody, zero-knowledge
+              </h3>
+              <p class="mt-3 text-[14px] text-[#a4abc2] leading-relaxed">
+                Path A in the browser: WebAuthn PRF / wallet &rarr; HKDF &rarr; AES-256-GCM; plaintext never leaves the device; sync/API only see ciphertext.
+              </p>
+            </article>
+            <article class="moat-card rounded-2xl border border-[#1c2238] bg-[#0a0e1e] p-6">
+              <h3 class="text-[15px] sm:text-[16px] font-bold text-white leading-snug">
+                10&times; call speed &mdash; HeliusClient in the Rust proxy
+              </h3>
+              <p class="mt-3 text-[14px] text-[#a4abc2] leading-relaxed">
+                Two-tier cache + single-flight dedup; duplicate RPCs share one upstream hop (example: <span class="font-mono text-[12px] text-[#8b92a8]">getBalance</span>).
+              </p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━━ THE PROBLEM — we've all been there ━━━ -->
+    <section id="problem" class="border-t border-[#1c2238]">
+      <div class="max-w-5xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
+        <div class="max-w-3xl mb-14 reveal">
+          <p class="text-[11px] uppercase tracking-[0.2em] text-[#f43f5e] font-semibold mb-3">We've all been there</p>
+          <h2 class="text-3xl sm:text-[40px] font-bold tracking-tight text-white leading-tight">
+            You write great code.<br/>Then this happens.
+          </h2>
+        </div>
+
+        <div class="grid sm:grid-cols-3 gap-5">
+          <article class="pain-card reveal rounded-2xl border border-[#1c2238] bg-[#0a0e1e] p-7">
+            <div class="w-12 h-12 rounded-xl bg-[#f43f5e]/10 border border-[#f43f5e]/20 flex items-center justify-center mb-5">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#f43f5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </div>
+            <h3 class="text-[17px] font-bold text-white mb-2">Copy-paste everywhere.</h3>
+            <p class="text-[14.5px] text-[#a4abc2] leading-relaxed">
+              Every new project, every CI pipeline, every teammate &mdash; you're copying <span class="font-mono text-[13px] text-[#cdd3e4]">sk-proj-...</span> into yet another <span class="font-mono text-[13px] text-[#cdd3e4]">.env</span> file. By the third project, your key lives in a dozen places you can't track.
+            </p>
+          </article>
+
+          <article class="pain-card reveal rounded-2xl border border-[#1c2238] bg-[#0a0e1e] p-7">
+            <div class="w-12 h-12 rounded-xl bg-[#f43f5e]/10 border border-[#f43f5e]/20 flex items-center justify-center mb-5">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#f43f5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <h3 class="text-[17px] font-bold text-white mb-2">One leak. Big bill.</h3>
+            <p class="text-[14.5px] text-[#a4abc2] leading-relaxed">
+              It shows up in logs, in crash dumps, in <span class="font-mono text-[13px] text-[#cdd3e4]">git history</span>. Someone scrapes it. You wake up to a $4,500 bill from OpenAI. Rotating the key means touching every project again.
+            </p>
+          </article>
+
+          <article class="pain-card reveal rounded-2xl border border-[#1c2238] bg-[#0a0e1e] p-7">
+            <div class="w-12 h-12 rounded-xl bg-[#f43f5e]/10 border border-[#f43f5e]/20 flex items-center justify-center mb-5">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#f43f5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+            </div>
+            <h3 class="text-[17px] font-bold text-white mb-2">Agents make it worse.</h3>
+            <p class="text-[14.5px] text-[#a4abc2] leading-relaxed">
+              Now your AI agent needs keys too. But it can't click "approve." It can't swipe a credit card. And once you hand it a key, there's no spending cap, no scope limit, no kill switch.
+            </p>
+          </article>
+        </div>
+
+        <!-- The feeling -->
+        <div class="reveal mt-14 max-w-2xl mx-auto text-center">
+          <p class="quote-mark">&ldquo;</p>
+          <p class="text-[20px] sm:text-[22px] text-white font-medium leading-relaxed -mt-8">
+            I just want to build software.<br/>
+            Why is managing API keys <em class="text-[#f43f5e] not-italic font-semibold">still</em> this painful?
+          </p>
+          <p class="mt-4 text-[14px] text-[#6b7494]">&mdash; every developer, eventually</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━━ THE SOLUTION — 10x smoother ━━━ -->
+    <section id="solution" class="border-t border-[#1c2238] bg-[#070912]/60">
+      <div class="max-w-5xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
+        <div class="max-w-2xl mb-14 reveal">
+          <p class="text-[11px] uppercase tracking-[0.2em] text-[#34d399] font-semibold mb-3">10&times; smoother</p>
+          <h2 class="text-3xl sm:text-[40px] font-bold tracking-tight text-white leading-tight">
+            iCloud Keychain for your API keys.
+          </h2>
+          <p class="mt-5 text-[18px] text-[#a4abc2] leading-relaxed">
+            You already collect passwords and accounts in iCloud Keychain. <strong class="text-white">What if you could do the same with API keys?</strong> Store them once, securely. Whenever you're building software, just plug in our vault. The API calls will be accelerated. That's it.
+          </p>
+        </div>
+
+        <!-- How it works — three steps -->
+        <div class="max-w-xl space-y-8 reveal">
+          <div class="flow-line flex items-start gap-5">
+            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-[#5b8cff]/15 border border-[#5b8cff]/30 flex items-center justify-center text-[#5b8cff] font-bold text-[14px]">1</div>
+            <div>
+              <h3 class="text-[16px] font-bold text-white">Collect your keys in one vault.</h3>
+              <p class="mt-1 text-[14.5px] text-[#a4abc2] leading-relaxed">OpenAI, Anthropic, Helius, any provider. Paste them in the dashboard, <strong class="text-[#cdd3e4]">or use the Chrome extension</strong> &mdash; it spots API-key fields on the pages you already use and offers one-tap capture. Everything is encrypted on your device before upload; we only store ciphertext.</p>
+            </div>
+          </div>
+          <div class="flow-line flex items-start gap-5">
+            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-[#5b8cff]/15 border border-[#5b8cff]/30 flex items-center justify-center text-[#5b8cff] font-bold text-[14px]">2</div>
+            <div>
+              <h3 class="text-[16px] font-bold text-white">Plug in our vault. Write your code.</h3>
+              <p class="mt-1 text-[14.5px] text-[#a4abc2] leading-relaxed">Same OpenAI SDK. Same code you already write. Three lines and your app is connected. No .env files. No copy-pasting. Rotate a key from the dashboard &mdash; every project picks it up instantly.</p>
+            </div>
+          </div>
+          <div class="flow-line flex items-start gap-5">
+            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-[#5b8cff]/15 border border-[#5b8cff]/30 flex items-center justify-center text-[#5b8cff] font-bold text-[14px]">3</div>
+            <div>
+              <h3 class="text-[16px] font-bold text-white">Calls get accelerated. That's it.</h3>
+              <p class="mt-1 text-[14.5px] text-[#a4abc2] leading-relaxed">Traffic goes through our Rust proxy's <strong class="text-[#cdd3e4]">HeliusClient</strong>: in-memory cache, disk-backed fallback, and single-flight dedup &mdash; duplicate RPCs share one upstream hop. Typical Solana reads land in the <strong class="text-[#cdd3e4]">50&ndash;80ms</strong> band without you changing client code.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dual panel: Human vs Agent -->
+        <div class="mt-16 reveal">
+          <p class="text-[11px] uppercase tracking-[0.2em] text-[#7aa1ff] font-semibold mb-6">Same vault. Two interfaces.</p>
+          <div class="grid sm:grid-cols-2 gap-5">
+
+            <!-- HUMAN panel -->
+            <div class="rounded-2xl border border-[#1c2238] bg-[#0a0e1e] p-7">
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-[#5b8cff]/10 border border-[#5b8cff]/20 flex items-center justify-center">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#5b8cff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
+                <div>
+                  <h3 class="text-[16px] font-bold text-white">For You</h3>
+                  <p class="text-[12px] text-[#6b7494]">Dashboard &middot; Chrome Extension</p>
+                </div>
+              </div>
+              <ul class="space-y-3 text-[14.5px] text-[#a4abc2] leading-relaxed">
+                <li class="flex items-start gap-2.5"><span class="text-[#5b8cff] mt-0.5">&#10003;</span> Add keys in the dashboard or <strong class="text-[#cdd3e4]">capture from any site</strong> via the extension (one-tap 🔑 on detected fields)</li>
+                <li class="flex items-start gap-2.5"><span class="text-[#5b8cff] mt-0.5">&#10003;</span> One-click rotate &mdash; every project picks it up</li>
+                <li class="flex items-start gap-2.5"><span class="text-[#5b8cff] mt-0.5">&#10003;</span> See usage, costs, and audit logs</li>
+                <li class="flex items-start gap-2.5"><span class="text-[#5b8cff] mt-0.5">&#10003;</span> Share keys with teammates (scoped, revocable)</li>
+              </ul>
+              <div class="mt-5 code-bl text-[13px]" style="font-size:13px;">
+<span class="c"># Or use the CLI if you prefer terminal</span>
+<span class="f">source</span> keyshield-cli.sh
+<span class="f">ks_store</span> openai <span class="s">"sk-proj-..."</span>
+<span class="f">ks_store</span> helius <span class="s">"your-key"</span>
+              </div>
+            </div>
+
+            <!-- AGENT panel -->
+            <div class="rounded-2xl border border-[#1c2238] bg-[#0a0e1e] p-7">
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-[#34d399]/10 border border-[#34d399]/20 flex items-center justify-center">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></svg>
+                </div>
+                <div>
+                  <h3 class="text-[16px] font-bold text-white">For Your Agent</h3>
+                  <p class="text-[12px] text-[#6b7494]">Python SDK &middot; CLI &middot; REST API</p>
+                </div>
+              </div>
+              <ul class="space-y-3 text-[14.5px] text-[#a4abc2] leading-relaxed">
+                <li class="flex items-start gap-2.5"><span class="text-[#34d399] mt-0.5">&#10003;</span> Session token &mdash; agent never sees the raw key</li>
+                <li class="flex items-start gap-2.5"><span class="text-[#34d399] mt-0.5">&#10003;</span> Spending cap per agent (SOL micropayments)</li>
+                <li class="flex items-start gap-2.5"><span class="text-[#34d399] mt-0.5">&#10003;</span> Scope limits &amp; kill switch from your dashboard</li>
+                <li class="flex items-start gap-2.5"><span class="text-[#34d399] mt-0.5">&#10003;</span> Works with Cursor, OpenClaw, Hermes, any bot</li>
+              </ul>
+              <div class="mt-5 code-bl text-[13px]" style="font-size:13px;">
+<span class="k">from</span> keyshield <span class="k">import</span> KeyShield
+
+ks = <span class="f">KeyShield</span>(token=os.environ[<span class="s">"KS_TOKEN"</span>])
+client = ks.<span class="f">openai_client</span>()  <span class="c"># zero raw keys</span>
+              </div>
+            </div>
+          </div>
+          <p class="mt-5 text-center text-[14px] text-[#6b7494]">Human stores the key. Agent gets a scoped token. No .env anywhere.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━━ WHY US / MOAT ━━━ -->
+    <section id="moat" class="border-t border-[#1c2238]">
+      <div class="max-w-5xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
+        <div class="max-w-2xl mb-12 reveal">
+          <p class="text-[11px] uppercase tracking-[0.2em] text-[#5b8cff] font-semibold mb-3">Why we're different</p>
+          <h2 class="text-3xl sm:text-[40px] font-bold tracking-tight text-white leading-tight">
+            Not another secrets manager.<br/>Built for the age of agents.
+          </h2>
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-5">
+          <article class="moat-card reveal rounded-2xl border border-[#1c2238] bg-[#0a0e1e] p-7">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-lg bg-[#5b8cff]/10 border border-[#5b8cff]/30 flex items-center justify-center">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#5b8cff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </div>
+              <span class="font-mono text-[11px] px-2.5 py-1 rounded-md bg-[#34d399]/10 text-[#34d399] border border-[#34d399]/20">zero knowledge</span>
+            </div>
+            <h3 class="text-[18px] font-bold text-white mb-2">We can't read your keys. By design.</h3>
+            <p class="text-[14.5px] text-[#a4abc2] leading-relaxed">
+              Your wallet signature derives an AES-256-GCM key. Encryption happens in your browser. Our server only stores ciphertext. Even if we get breached, your keys are safe. Same model as iCloud Keychain &mdash; built for API keys.
+            </p>
+          </article>
+
+          <article class="moat-card reveal rounded-2xl border border-[#1c2238] bg-[#0a0e1e] p-7">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-lg bg-[#5b8cff]/10 border border-[#5b8cff]/30 flex items-center justify-center">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#5b8cff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </div>
+              <span class="font-mono text-[11px] px-2.5 py-1 rounded-md bg-[#34d399]/10 text-[#34d399] border border-[#34d399]/20">agent wallet</span>
+            </div>
+            <h3 class="text-[18px] font-bold text-white mb-2">Give your agent a wallet, not a key.</h3>
+            <p class="text-[14.5px] text-[#a4abc2] leading-relaxed">
+              Mint an on-chain wallet for your agent. Top it up with USDC. Set a spending cap the blockchain enforces. Your agent pays for API calls directly &mdash; no credit card, no human in the loop, and it physically can't overspend.
+            </p>
+          </article>
+
+          <article class="moat-card reveal rounded-2xl border border-[#1c2238] bg-[#0a0e1e] p-7">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-lg bg-[#5b8cff]/10 border border-[#5b8cff]/30 flex items-center justify-center">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#5b8cff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+              </div>
+              <span class="font-mono text-[11px] px-2.5 py-1 rounded-md bg-[#34d399]/10 text-[#34d399] border border-[#34d399]/20">batch billing</span>
+            </div>
+            <h3 class="text-[18px] font-bold text-white mb-2">10,000 calls. One transaction.</h3>
+            <p class="text-[14.5px] text-[#a4abc2] leading-relaxed">
+              Paying per API call is too expensive for real agents. Our Metered Payment Protocol batches thousands of calls and settles once every 60 seconds on Solana. One fee. Streaming that actually scales.
+            </p>
+          </article>
+
+          <article class="moat-card reveal rounded-2xl border border-[#1c2238] bg-[#0a0e1e] p-7">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-lg bg-[#5b8cff]/10 border border-[#5b8cff]/30 flex items-center justify-center">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#5b8cff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              </div>
+              <span class="font-mono text-[11px] px-2.5 py-1 rounded-md bg-[#34d399]/10 text-[#34d399] border border-[#34d399]/20">50&ndash;80ms</span>
+            </div>
+            <h3 class="text-[18px] font-bold text-white mb-2">Rust proxy. Helius accelerator.</h3>
+            <p class="text-[14.5px] text-[#a4abc2] leading-relaxed">
+              The hot path is compiled Rust with two-tier caching. Solana RPC calls go through our HeliusClient: memory cache + disk fallback + single-flight dedup. 50 identical calls hit the network once. Your reads: 50&ndash;80ms.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━━ COMPARISON TABLE ━━━ -->
+    <section class="border-t border-[#1c2238] bg-[#070912]/60">
+      <div class="max-w-5xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
+        <div class="max-w-2xl mb-10 reveal">
+          <p class="text-[11px] uppercase tracking-[0.2em] text-[#5b8cff] font-semibold mb-3">Side by side</p>
+          <h2 class="text-3xl sm:text-[36px] font-bold tracking-tight text-white leading-tight">
+            iCloud Keychain security.<br/>Agent superpowers on top.
+          </h2>
+        </div>
+        <div class="reveal rounded-2xl border border-[#1c2238] bg-[#0a0e1e] overflow-x-auto">
+          <table class="cmp-table">
+            <thead><tr><th class="w-1/3">Property</th><th class="w-1/3">iCloud Keychain</th><th class="w-1/3">KeyShield</th></tr></thead>
+            <tbody>
+              <tr><td>Server sees plaintext</td><td>Never</td><td class="text-[#34d399] font-semibold">Never</td></tr>
+              <tr><td>Encryption</td><td>AES-256-GCM</td><td>AES-256-GCM</td></tr>
+              <tr><td>Key derivation</td><td>Secure Enclave</td><td>Wallet sig &rarr; HKDF-SHA256</td></tr>
+              <tr><td>Cross-device sync</td><td>iCloud E2E</td><td class="text-[#34d399]">Same wallet = same key</td></tr>
+              <tr><td>Auto-fill</td><td>Safari only</td><td class="text-[#34d399]">Chrome extension, any site</td></tr>
+              <tr><td>Agent delegation</td><td class="text-[#f43f5e]">Not possible</td><td class="text-[#34d399]">Scoped access + instant revoke</td></tr>
+              <tr><td>Spending cap</td><td class="text-[#f43f5e]">N/A</td><td class="text-[#34d399]">On-chain enforced per agent</td></tr>
+              <tr><td>Payment rail</td><td class="text-[#f43f5e]">N/A</td><td class="text-[#34d399]">USDC on Solana, batch-settled</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━━ PROOF ━━━ -->
+    <section id="proof" class="border-t border-[#1c2238]">
+      <div class="max-w-5xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
+        <div class="max-w-2xl mb-10 reveal">
+          <p class="text-[11px] uppercase tracking-[0.2em] text-[#34d399] font-semibold mb-3">Not a pitch. A proof.</p>
+          <h2 class="text-3xl sm:text-[40px] font-bold tracking-tight text-white leading-tight">
+            Live on Solana devnet.<br/>Click any transaction.
+          </h2>
+          <p class="mt-4 text-[15px] text-[#a4abc2]">
+            Program <span class="font-mono text-[13px] text-[#cdd3e4]">41P2wHKAr69aSgLgt1QdKH6VVgK6uFYKM7hpKAyBxr9j</span>
+          </p>
+        </div>
+
+        <div class="reveal space-y-3">
+          <a href="https://explorer.solana.com/tx/678bqTSq4gYspz2TWwdK3wCzZwEHuuDqseDUS2NcEPVQ45472iNPRykVh6K1zGEbq4nPmbLfDKKSiUx2nrT6XTQc?cluster=devnet" target="_blank" rel="noopener noreferrer"
+             class="flex items-center gap-4 px-5 py-4 rounded-xl border border-[#1c2238] bg-[#0a0e1e] hover:border-[#2a3358] hover:bg-[#0c1228] transition-all group">
+            <span class="text-[#34d399] text-lg flex-shrink-0">&#x2705;</span>
+            <span class="text-[15px] text-[#cdd3e4] flex-1">Open MPP payment stream</span>
+            <span class="font-mono text-[12px] text-[#5b8cff] group-hover:text-[#7aa1ff] transition-colors">678bqTSq&hellip;XTQc &nearr;</span>
+          </a>
+          <a href="https://explorer.solana.com/address/E5sMx86o3MWV562BxbWk6SxfqTFBWpCitj3AU9i6DgfR?cluster=devnet" target="_blank" rel="noopener noreferrer"
+             class="flex items-center gap-4 px-5 py-4 rounded-xl border border-[#1c2238] bg-[#0a0e1e] hover:border-[#2a3358] hover:bg-[#0c1228] transition-all group">
+            <span class="text-[#34d399] text-lg flex-shrink-0">&#x2705;</span>
+            <span class="text-[15px] text-[#cdd3e4] flex-1">Stream PDA created on-chain</span>
+            <span class="font-mono text-[12px] text-[#5b8cff] group-hover:text-[#7aa1ff] transition-colors">E5sMx86o&hellip;DgfR &nearr;</span>
+          </a>
+          <a href="https://explorer.solana.com/address/6QtooE6QVFF9pJ9Pa9DgAFAWpEWkB8VtjEytc5FyFtBH?cluster=devnet" target="_blank" rel="noopener noreferrer"
+             class="flex items-center gap-4 px-5 py-4 rounded-xl border border-[#1c2238] bg-[#0a0e1e] hover:border-[#2a3358] hover:bg-[#0c1228] transition-all group">
+            <span class="text-[#34d399] text-lg flex-shrink-0">&#x2705;</span>
+            <span class="text-[15px] text-[#cdd3e4] flex-1">USDC token account funded</span>
+            <span class="font-mono text-[12px] text-[#5b8cff] group-hover:text-[#7aa1ff] transition-colors">6QtooE6Q&hellip;FtBH &nearr;</span>
+          </a>
+          <div class="flex items-center gap-4 px-5 py-4 rounded-xl border border-[#1c2238] bg-[#0a0e1e]">
+            <span class="text-[#34d399] text-lg flex-shrink-0">&#x2705;</span>
+            <span class="text-[15px] text-[#cdd3e4] flex-1">Settle round-trip verified &mdash; no OwnerMismatch</span>
+            <span class="font-mono text-[12px] text-[#34d399]">clean &check;</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━━ WHAT'S SHIPPED ━━━ -->
+    <section class="border-t border-[#1c2238] bg-[#070912]/60">
+      <div class="max-w-5xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
+        <div class="max-w-2xl mb-10 reveal">
+          <p class="text-[11px] uppercase tracking-[0.2em] text-[#5b8cff] font-semibold mb-3">Shipped</p>
+          <h2 class="text-3xl sm:text-[36px] font-bold tracking-tight text-white">Everything that's live today.</h2>
+        </div>
+        <div class="reveal grid sm:grid-cols-2 gap-x-8 gap-y-4">
+          <div class="flex items-start gap-3 py-2"><span class="text-[#34d399] mt-0.5 flex-shrink-0">&#x2713;</span><span class="text-[15px] text-[#cdd3e4]"><strong class="text-white">Zero-Knowledge Vault</strong> &mdash; WebAuthn PRF &rarr; HKDF &rarr; AES-256-GCM</span></div>
+          <div class="flex items-start gap-3 py-2"><span class="text-[#34d399] mt-0.5 flex-shrink-0">&#x2713;</span><span class="text-[15px] text-[#cdd3e4]"><strong class="text-white">Wallet Auth</strong> &mdash; Phantom, Solflare, Backpack + passkeys</span></div>
+          <div class="flex items-start gap-3 py-2"><span class="text-[#34d399] mt-0.5 flex-shrink-0">&#x2713;</span><span class="text-[15px] text-[#cdd3e4]"><strong class="text-white">Ephemeral Signer</strong> &mdash; on-chain agent wallet with spending cap</span></div>
+          <div class="flex items-start gap-3 py-2"><span class="text-[#34d399] mt-0.5 flex-shrink-0">&#x2713;</span><span class="text-[15px] text-[#cdd3e4]"><strong class="text-white">x402 Auto-Pay</strong> &mdash; HTTP 402 + USDC, verified on Solana</span></div>
+          <div class="flex items-start gap-3 py-2"><span class="text-[#34d399] mt-0.5 flex-shrink-0">&#x2713;</span><span class="text-[15px] text-[#cdd3e4]"><strong class="text-white">MPP Streaming</strong> &mdash; open / record / settle / close, devnet-verified</span></div>
+          <div class="flex items-start gap-3 py-2"><span class="text-[#34d399] mt-0.5 flex-shrink-0">&#x2713;</span><span class="text-[15px] text-[#cdd3e4]"><strong class="text-white">HeliusClient</strong> &mdash; two-tier cache + single-flight dedup + multi-tenant</span></div>
+          <div class="flex items-start gap-3 py-2"><span class="text-[#34d399] mt-0.5 flex-shrink-0">&#x2713;</span><span class="text-[15px] text-[#cdd3e4]"><strong class="text-white">Chrome Extension</strong> &mdash; auto-fill, cross-device sync, encrypted backup</span></div>
+          <div class="flex items-start gap-3 py-2"><span class="text-[#34d399] mt-0.5 flex-shrink-0">&#x2713;</span><span class="text-[15px] text-[#cdd3e4]"><strong class="text-white">Agent Delegation</strong> &mdash; scoped access, CRL revocation, key sharing</span></div>
+          <div class="flex items-start gap-3 py-2"><span class="text-[#34d399] mt-0.5 flex-shrink-0">&#x2713;</span><span class="text-[15px] text-[#cdd3e4]"><strong class="text-white">Python SDK</strong> &mdash; <span class="font-mono text-[13px]">keyshield_sdk</span> &mdash; 3 lines to connect any agent</span></div>
+          <div class="flex items-start gap-3 py-2"><span class="text-[#34d399] mt-0.5 flex-shrink-0">&#x2713;</span><span class="text-[15px] text-[#cdd3e4]"><strong class="text-white">CLI</strong> &mdash; <span class="font-mono text-[13px]">keyshield-cli.sh</span> &mdash; store, login, rotate from terminal</span></div>
+          <div class="flex items-start gap-3 py-2"><span class="text-[#34d399] mt-0.5 flex-shrink-0">&#x2713;</span><span class="text-[15px] text-[#cdd3e4]"><strong class="text-white">Rust Proxy</strong> &mdash; 6 crates, 78 oracle tests, 50&ndash;80ms median</span></div>
+          <div class="flex items-start gap-3 py-2"><span class="text-[#34d399] mt-0.5 flex-shrink-0">&#x2713;</span><span class="text-[15px] text-[#cdd3e4]"><strong class="text-white">Production hosts</strong> &mdash; Vercel + Railway + Cloudflare Workers</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━━ CTA (buttons only — hero holds the headline) ━━━ -->
+    <section class="relative overflow-hidden border-t border-[#1c2238]">
+      <div class="absolute inset-0 hero-glow pointer-events-none opacity-70"></div>
+      <div class="relative max-w-5xl mx-auto px-5 sm:px-8 py-20 sm:py-24 text-center reveal">
+        <p class="text-[17px] text-[#a4abc2] max-w-2xl mx-auto leading-relaxed">
+          Store your API keys once. Plug in anywhere &mdash; extension, CLI, SDK, or dashboard. Smoother collection, keys that never live on our disks in plaintext, and accelerated upstream calls through the Helius stack. Your agents stay on a scoped leash.
+        </p>
+
+        <div class="mt-9 flex flex-wrap items-center justify-center gap-3">
+          <a href="https://app.ks.aileena.xyz" class="btn-p inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#5b8cff] text-white font-semibold text-[15px] shadow-[0_12px_40px_-10px_rgba(91,140,255,0.55)]">
+            Open Dashboard
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </a>
+          <a href="https://github.com/lilaclilac09/keyshield" target="_blank" rel="noopener noreferrer" class="btn-s inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border border-[#1c2238] text-[#cdd3e4] font-medium text-[15px]">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12 .5a11.5 11.5 0 0 0-3.63 22.41c.57.1.78-.25.78-.55v-2.07c-3.2.7-3.88-1.36-3.88-1.36-.52-1.34-1.28-1.7-1.28-1.7-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.2 1.77 1.2 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.18-3.08-.12-.29-.51-1.45.11-3.02 0 0 .97-.31 3.18 1.18a11.04 11.04 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.62 1.57.23 2.73.11 3.02.74.8 1.18 1.82 1.18 3.08 0 4.42-2.7 5.39-5.27 5.68.41.36.78 1.06.78 2.13v3.16c0 .31.2.66.79.55A11.5 11.5 0 0 0 12 .5z"/></svg>
+            View Source
+          </a>
+          <a href="https://github.com/lilaclilac09/keyshield/blob/main/docs/API.md" target="_blank" class="btn-s inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border border-[#1c2238] text-[#cdd3e4] font-medium text-[15px]">
+            API Docs
+          </a>
+          <a href="https://github.com/lilaclilac09/keyshield/tree/main/src/sdk" target="_blank" class="btn-s inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border border-[#34d399]/30 text-[#34d399] font-medium text-[15px]">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></svg>
+            Agent SDK
+          </a>
+          <a href="https://github.com/lilaclilac09/keyshield/tree/main/src/extension" target="_blank" rel="noopener noreferrer" class="btn-s inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border border-[#5b8cff]/35 text-[#7aa1ff] font-medium text-[15px]">
+            Install KeyShield extension →
+          </a>
+        </div>
+        <p class="mt-5 text-[13px] text-[#8b92a8] max-w-lg mx-auto leading-relaxed">
+          Open in Google Chrome. Unpacked Chromium only —
+          <span class="font-mono text-[11px]">chrome://extensions</span>
+          → Developer mode → Load unpacked →
+          <span class="font-mono text-[11px]">src/extension</span>.
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="border-t border-[#1c2238]">
+    <div class="max-w-5xl mx-auto px-5 sm:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#5b8cff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span class="text-[13px] text-[#6b7494] font-medium">KeyShield</span>
+      </div>
+      <p class="text-[12.5px] text-[#6b7494] font-mono">Privacy Hack 2026 &middot; MIT &middot; Aileen + agents</p>
+    </div>
+  </footer>
+
+  <script>
+    !function(){var e=document.querySelectorAll(".reveal");if(!("IntersectionObserver"in window)){e.forEach(function(e){e.classList.add("visible")});return}var o=new IntersectionObserver(function(e){e.forEach(function(e){e.isIntersecting&&(e.target.classList.add("visible"),o.unobserve(e.target))})},{threshold:.06,rootMargin:"0px 0px -30px 0px"});e.forEach(function(e){o.observe(e)})}();
+  </script>
+</body>
+</html>

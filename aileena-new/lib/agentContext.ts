@@ -242,7 +242,7 @@ Software engineer and on-chain researcher. Solana ecosystem focus. Builds AI age
 # Selected work
 1. PAMM MEV Analysis — Python · Solana · Monte Carlo. https://mev.aileena.xyz · github.com/lilaclilac09/solana-pamm-MEV-binary-monte-analysis-contagious-pools
 2. Prop AMM — Rust · Solana · DeFi. https://pamm.aileena.xyz · github.com/lilaclilac09/pamm-a
-3. KeyShield — TypeScript · Rust · API security. https://app.ks.aileena.xyz · github.com/lilaclilac09/keyshield
+3. KeyShield — TypeScript · Rust · API security. https://ks.aileena.xyz · https://app.ks.aileena.xyz · github.com/lilaclilac09/keyshield
 4. RPCsol P&L — JavaScript · Rust · Solana. github.com/lilaclilac09/RPCsol_pnl
 5. US Stocks Analysis — TypeScript · Payload CMS · Supabase. https://finance.aileena.xyz · github.com/lilaclilac09/US-STOCKS-DEEP-ANALYSIS
 6. Zen Fortune Cookie — Rust · Solana · Anchor + Next.js. https://fortune-cookie-sand.vercel.app · github.com/lilaclilac09/fortune_cookie
