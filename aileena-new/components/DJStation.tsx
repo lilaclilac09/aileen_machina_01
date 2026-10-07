@@ -442,7 +442,7 @@ export default function DJStation() {
       <div id="dj-set" style={{ marginTop: 10 }}>
         <TrackLibraryBrowser
           tracks={DJ_SET}
-          reverseCarousel={false}
+          reverseCarousel={true}
           onLoadTrack={loadTrack}
           onSetDragTrack={(t) => { dragTrack.current = t; }}
           playingLeft={leftPlaying ? (leftTrack?.id ?? null) : null}

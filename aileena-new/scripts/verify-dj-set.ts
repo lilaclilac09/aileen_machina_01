@@ -97,7 +97,8 @@ async function runBrowser(checks: Check[]): Promise<void> {
     await page.screenshot({ path: join(OUT_DIR, '02-sound-full-page.png'), fullPage: true });
     await carousel.screenshot({ path: join(OUT_DIR, '03-deck-carousel-closeup.png') });
 
-    const expectedTracks = allDeckTracks();
+    // Display order is newest-first (DECK_LIBRARY appends; carousel reverses).
+    const expectedTracks = [...allDeckTracks()].reverse();
     const expected = expectedTracks.length;
     const titles: string[] = [];
 
