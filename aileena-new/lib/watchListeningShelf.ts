@@ -387,6 +387,14 @@ export const VIDEO_RECS = [
     image: '/shelf/spine-video-mcp.png',
     note: '',
   },
+  {
+    title: 'Harry Styles — Behind the Album (all performances)',
+    shelfTitle: 'Behind the Album',
+    label: 'YouTube · Harry Styles',
+    href: 'https://www.youtube.com/watch?v=xEoCVtZcY2E',
+    image: '/shelf/spine-video-behind-the-album.png',
+    note: '',
+  },
 ];
 
 export const SHELF_GROUPS: {

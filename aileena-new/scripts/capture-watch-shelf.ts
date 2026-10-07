@@ -53,8 +53,17 @@ async function main() {
   );
   await page.waitForTimeout(300);
   const videoCount = await page.locator('[data-testid="watch-shelf-row-video"] li').count();
-  if (videoCount !== 7) throw new Error(`expected 7 video spines, got ${videoCount}`);
+  if (videoCount !== 8) throw new Error(`expected 8 video spines, got ${videoCount}`);
   await page.screenshot({ path: join(OUT, 'shelf_photo_real_video_ridge.png'), fullPage: true });
+
+  await page.locator('#behind-the-album').click();
+  await page.waitForFunction(
+    () =>
+      document.querySelector('[data-testid="watch-shelf-detail-title"]')?.textContent?.trim() ===
+      'Behind the Album',
+  );
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: join(OUT, 'shelf_behind_the_album.png'), fullPage: true });
 
   await page.locator('#urban-roam-not-tourism').click();
   await page.waitForFunction(
@@ -79,6 +88,7 @@ async function main() {
   console.log(`wrote ${OUT}/shelf_watch_films_unchanged.png`);
   console.log(`wrote ${OUT}/shelf_photo_real_book_spines.png`);
   console.log(`wrote ${OUT}/shelf_photo_real_video_ridge.png`);
+  console.log(`wrote ${OUT}/shelf_behind_the_album.png`);
   console.log(`wrote ${OUT}/shelf_photo_real_living_ridge.png`);
   console.log(`wrote ${OUT}/shelf_photo_real_mobile_390.png`);
 }

@@ -213,6 +213,8 @@ export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
   { id: '21obhV6hdu9pJEqC0jvNnO', title: 'Watermelon', bpm: 120, key: '4A', dur: 182, thumb: '/dj-set/assets/covers/xoxo.jpg' },
   { id: '26YSv4NFDACPUKGX5Aj079', title: 'What You Waiting For', bpm: 120, key: '4A', dur: 175, thumb: '/dj-set/assets/covers/xoxo.jpg' },
   { id: '47K7si9sKri95IHuOz9HAA', title: 'Outta My Head', bpm: 120, key: '4A', dur: 188, thumb: '/dj-set/assets/covers/xoxo.jpg' },
+  { id: '5Lbsc65org0b85kNsPkluY', title: 'Only Angel', bpm: 114, key: '7B', dur: 291, thumb: '/dj-set/assets/covers/harry-styles.jpg' },
+  { id: '33SNO8AaciGbNaQFkxvPrW', title: 'Kiwi', bpm: 144, key: '10B', dur: 176, thumb: '/dj-set/assets/covers/harry-styles.jpg' },
 ];
 
 export function djSetToDeckTracks(): DeckTrack[] {

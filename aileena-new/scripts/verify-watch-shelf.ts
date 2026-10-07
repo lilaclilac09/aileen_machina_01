@@ -68,6 +68,14 @@ function main() {
       ),
   );
   assert('video notes stay empty for later', videos.every((item) => item.note === ''));
+  const behind = videos.find((item) => item.id === 'behind-the-album');
+  assert(
+    'Behind the Album is the Harry Styles YouTube spine',
+    behind?.href === 'https://www.youtube.com/watch?v=xEoCVtZcY2E' &&
+      behind.cover === '/shelf/spine-video-behind-the-album.png' &&
+      behind.creator === 'YouTube · Harry Styles',
+    behind?.id,
+  );
   assert(
     'book ridge uses photo-real spines',
     notes.length >= 4 && notes.every((item) => item.coverKind === 'spine' && Boolean(item.cover)),
