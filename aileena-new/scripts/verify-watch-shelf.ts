@@ -8,6 +8,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   DOCUMENTARY_RECS,
+  CANDLE_RECS,
   EURO_LIFE_GUIDE,
   FILM_RECS,
   LIFESTYLE_RECS,
@@ -34,6 +35,7 @@ function main() {
   const videos = SHELF_ITEMS.filter((item) => item.row === 'video');
   const notes = SHELF_ITEMS.filter((item) => item.row === 'notes');
   const living = SHELF_ITEMS.filter((item) => item.row === 'living');
+  const scent = SHELF_ITEMS.filter((item) => item.row === 'scent');
   const expectedWatch = [
     ...DOCUMENTARY_RECS.map((item) => item.shelfTitle),
     ...FILM_RECS.map((item) => item.shelfTitle),
@@ -108,9 +110,25 @@ function main() {
     String(living.length),
   );
   assert(
-    'living is one ridge row',
-    shelfRowsInSection('living').map((row) => row.row).join(',') === 'living',
+    'living then duft sit as two living-section rows',
+    shelfRowsInSection('living').map((row) => row.row).join(',') === 'living,scent',
   );
+  assert(
+    'duft ridge uses trimmed cutouts',
+    scent.length === CANDLE_RECS.length &&
+      scent[0]?.id === 'figuier-600g' &&
+      scent.some((item) => item.id === 'raeucherkerze' || item.id === 'raucherkerze') &&
+      scent.every(
+        (item) =>
+          item.coverKind === 'cutout' &&
+          item.type === 'scent' &&
+          typeof item.cover === 'string' &&
+          item.cover.startsWith('/shelf/scent-') &&
+          item.cover.endsWith('.png'),
+      ),
+    scent.map((item) => item.id).join(','),
+  );
+  assert('#duft lands on Figuier 600g', resolveShelfHash('#duft') === 'figuier-600g');
   assert(
     'Ladies First stays a film, not a living object',
     living.every((item) => item.id !== 'ladies-first' && item.id !== 'tar' && item.id !== 'behind-the-album') &&
@@ -128,6 +146,7 @@ function main() {
   const ui = read('app/blog/watch-listening-shelf/WatchShelf.tsx');
   const css = read('app/blog/watch-listening-shelf/watch-shelf.css');
   assert('living row sits on the ridge', /row\.row === 'living'/.test(ui));
+  assert('duft row sits on the ridge', /row\.row === 'scent'/.test(ui));
   assert('no CSS slip frames', !/watch-slip-mark/.test(ui) && !/watch-slip-mark/.test(css));
   assert(
     'film posters stay contain; ridge thumbs use cover',
@@ -147,6 +166,12 @@ function main() {
     'css spine and living thumbs fill the slot',
     /\.watch-obj-cover\.is-spine[\s\S]*?object-fit:\s*cover/.test(css) &&
       /\.watch-obj-cover\.is-object[\s\S]*?object-fit:\s*cover/.test(css),
+  );
+  assert(
+    'css scent cutouts stay contain with no frame',
+    /\.watch-obj-cover\.is-cutout[\s\S]*?object-fit:\s*contain/.test(css) &&
+      /\.watch-obj-cover\.is-cutout[\s\S]*?background:\s*transparent/.test(css) &&
+      /\.watch-shelf-detail-image\.is-cutout[\s\S]*?background:\s*transparent/.test(css),
   );
   assert('spine photos sit in a fixed ridge slot', /\.watch-obj\.is-spine[\s\S]*height:\s*96px/.test(css));
   assert('later-note placeholder exists', /drop a note later/.test(ui));

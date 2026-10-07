@@ -8,10 +8,10 @@ function slugify(value: string): string {
 }
 
 export type ShelfSection = 'listen' | 'watch' | 'read' | 'living';
-export type ShelfType = 'podcast' | 'film' | 'interview' | 'book' | 'note' | 'video';
+export type ShelfType = 'podcast' | 'film' | 'interview' | 'book' | 'note' | 'video' | 'scent';
 export type ShelfObject = 'cover' | 'cassette' | 'spine' | 'slip';
-export type ShelfRow = 'listen' | 'watch' | 'notes' | 'video' | 'living';
-export type ShelfCoverKind = 'poster' | 'still' | 'spine' | 'object';
+export type ShelfRow = 'listen' | 'watch' | 'notes' | 'video' | 'living' | 'scent';
+export type ShelfCoverKind = 'poster' | 'still' | 'spine' | 'object' | 'cutout';
 
 export type ShelfItem = {
   id: string;
@@ -254,6 +254,70 @@ export const EURO_LIFE_GUIDE = [
   },
 ];
 
+/** Real product cutouts — sit beside living. Official large Figuier is 600g (FI600), not 700g. */
+export const CANDLE_RECS = [
+  {
+    title: 'Figuier 600g',
+    shelfTitle: 'Figuier 600g',
+    label: 'Diptyque · ceramic',
+    href: 'https://uk.diptyqueparis.com/products/large-candle-figuier-fig-tree-fi600',
+    image: '/shelf/scent-figuier.png',
+    note: 'The large fig tree. Green ceramic, FI600.',
+    body: 'The large fig tree. Green ceramic, FI600.',
+    tags: ['scent', 'duft'],
+  },
+  {
+    title: 'Baies',
+    shelfTitle: 'Baies',
+    label: 'Diptyque · 190g',
+    href: 'https://uk.diptyqueparis.com/products/classic-candle-baies-berries-b2',
+    image: '/shelf/scent-baies.png',
+    note: 'Berries in glass. The house default.',
+    body: 'Berries in glass. The house default.',
+    tags: ['scent', 'duft'],
+  },
+  {
+    title: 'Feu de Bois',
+    shelfTitle: 'Feu de Bois',
+    label: 'Diptyque · 190g',
+    href: 'https://uk.diptyqueparis.com/products/classic-candle-feu-de-bois-wood-fire-fb2',
+    image: '/shelf/scent-feu-de-bois.png',
+    note: 'Wood fire. A winter room.',
+    body: 'Wood fire. A winter room.',
+    tags: ['scent', 'duft'],
+  },
+  {
+    title: 'Räucherkerze',
+    shelfTitle: 'Räucherkerze',
+    label: 'Erzgebirge · Christmas',
+    href: 'https://de.wikipedia.org/wiki/R%C3%A4ucherkerze',
+    image: '/shelf/scent-raeucherkerze.png',
+    note: 'One Christmas cone, lit.',
+    body: 'One Christmas cone, lit.',
+    tags: ['scent', 'duft'],
+  },
+  {
+    title: 'Räucherkerzen',
+    shelfTitle: 'Räucherkerzen',
+    label: 'Knox · Crottendorfer · Huss',
+    href: 'https://commons.wikimedia.org/wiki/Category:R%C3%A4ucherkerzen',
+    image: '/shelf/scent-raeucherkerzen.png',
+    note: 'The German Christmas boxes.',
+    body: 'The German Christmas boxes.',
+    tags: ['scent', 'duft'],
+  },
+  {
+    title: 'Räucherhäuschen',
+    shelfTitle: 'Räucherhäuschen',
+    label: 'Crottendorfer',
+    href: 'https://de.wikipedia.org/wiki/R%C3%A4ucherhaus',
+    image: '/shelf/scent-raeucherhaeuschen.png',
+    note: 'Smoke house. Cone in the chimney.',
+    body: 'Smoke house. Cone in the chimney.',
+    tags: ['scent', 'duft'],
+  },
+];
+
 export const LIFESTYLE_RECS = [
   {
     title: 'Urban drift diary',
@@ -408,7 +472,7 @@ export const SHELF_GROUPS: {
   { section: 'listen', label: 'listen', anchors: ['featured-listen', 'podcasts'] },
   { section: 'watch', label: 'watch', anchors: ['watch', 'films', 'documentaries'] },
   { section: 'read', label: 'read', anchors: ['channels', 'video'] },
-  { section: 'living', label: 'living', anchors: ['euro-life', 'lifestyle'] },
+  { section: 'living', label: 'living', anchors: ['euro-life', 'lifestyle', 'duft'] },
 ];
 
 export const SHELF_ITEMS: ShelfItem[] = [
@@ -510,6 +574,21 @@ export const SHELF_ITEMS: ShelfItem[] = [
     coverKind: 'object' as const,
     object: 'cover' as const,
   })),
+  ...CANDLE_RECS.map((item) => ({
+    id: slugify(item.shelfTitle),
+    title: item.shelfTitle,
+    type: 'scent' as const,
+    section: 'living' as const,
+    row: 'scent' as const,
+    creator: item.label,
+    source: item.title,
+    note: item.note,
+    tags: item.tags,
+    href: item.href,
+    cover: item.image,
+    coverKind: 'cutout' as const,
+    object: 'cover' as const,
+  })),
 ];
 
 export const FEATURED_SHELF_ID =
@@ -527,11 +606,14 @@ export const SHELF_HASH_ALIASES: Record<string, string> = {
   video: 'cache',
   'euro-life': 'urban-roam-not-tourism',
   lifestyle: 'urban-drift-diary',
+  duft: 'figuier-600g',
+  scent: 'figuier-600g',
 };
 
 export const SHELF_ROW_LABEL: Partial<Record<ShelfRow, string>> = {
   notes: 'notes',
   video: 'video',
+  scent: 'duft',
 };
 
 export function shelfRowsInSection(section: ShelfSection): { row: ShelfRow; label: string | null; items: ShelfItem[] }[] {

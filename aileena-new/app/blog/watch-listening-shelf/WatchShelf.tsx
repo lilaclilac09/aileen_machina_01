@@ -47,6 +47,7 @@ function coverKindClass(kind: ShelfItem['coverKind']): string {
   if (kind === 'still') return ' is-still';
   if (kind === 'spine') return ' is-spine';
   if (kind === 'object') return ' is-object';
+  if (kind === 'cutout') return ' is-cutout';
   return '';
 }
 
@@ -54,6 +55,7 @@ function ShelfObject({ item }: { item: ShelfItem }) {
   const still = item.coverKind === 'still';
   const spinePhoto = item.coverKind === 'spine';
   const objectPhoto = item.coverKind === 'object';
+  const cutout = item.coverKind === 'cutout';
   const ridgeFill = spinePhoto || objectPhoto;
   return (
     <span
@@ -64,13 +66,13 @@ function ShelfObject({ item }: { item: ShelfItem }) {
         <Image
           src={item.cover}
           alt=""
-          width={spinePhoto ? 90 : still || objectPhoto ? 160 : 72}
-          height={spinePhoto ? 160 : still || objectPhoto ? 90 : 108}
+          width={cutout ? 140 : spinePhoto ? 90 : still || objectPhoto ? 160 : 72}
+          height={cutout ? 180 : spinePhoto ? 160 : still || objectPhoto ? 90 : 108}
           className={`watch-obj-cover${coverKindClass(item.coverKind)}`}
           style={{
             objectFit: ridgeFill ? 'cover' : 'contain',
             width: ridgeFill ? undefined : 'auto',
-            height: ridgeFill ? undefined : 72,
+            height: ridgeFill ? undefined : cutout ? 92 : 72,
             background: 'transparent',
           }}
         />
@@ -163,7 +165,8 @@ export default function WatchShelf({ owner }: { owner: boolean }) {
                       row.row === 'watch' ||
                       row.row === 'notes' ||
                       row.row === 'video' ||
-                      row.row === 'living';
+                      row.row === 'living' ||
+                      row.row === 'scent';
                     return (
                       <div key={row.row} className="watch-shelf-lane">
                         {row.label ? (
@@ -212,16 +215,20 @@ export default function WatchShelf({ owner }: { owner: boolean }) {
                   width={
                     selected.coverKind === 'still' || selected.coverKind === 'object'
                       ? 320
-                      : selected.coverKind === 'spine'
-                        ? 180
-                        : 220
+                      : selected.coverKind === 'cutout'
+                        ? 280
+                        : selected.coverKind === 'spine'
+                          ? 180
+                          : 220
                   }
                   height={
                     selected.coverKind === 'still' || selected.coverKind === 'object'
                       ? 180
-                      : selected.coverKind === 'spine'
-                        ? 320
-                        : 320
+                      : selected.coverKind === 'cutout'
+                        ? 360
+                        : selected.coverKind === 'spine'
+                          ? 320
+                          : 320
                   }
                   className={`watch-shelf-detail-image${coverKindClass(selected.coverKind)}`}
                   style={{ objectFit: 'contain', background: 'transparent' }}

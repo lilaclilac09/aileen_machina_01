@@ -76,6 +76,21 @@ async function main() {
   if (livingCount !== 10) throw new Error(`expected 10 living objects, got ${livingCount}`);
   await page.screenshot({ path: join(OUT, 'shelf_photo_real_living_ridge.png'), fullPage: true });
 
+  await page.locator('#figuier-600g').click();
+  await page.waitForFunction(
+    () =>
+      document.querySelector('[data-testid="watch-shelf-detail-title"]')?.textContent?.trim() ===
+      'Figuier 600g',
+  );
+  await page.waitForTimeout(300);
+  const scentCount = await page.locator('[data-testid="watch-shelf-row-scent"] li').count();
+  if (scentCount !== 6) throw new Error(`expected 6 scent cutouts, got ${scentCount}`);
+  await page.screenshot({ path: join(OUT, 'shelf_scent_duft_ridge.png'), fullPage: true });
+
+  await page.locator('#raucherkerze').click();
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: join(OUT, 'shelf_scent_raeucherkerze.png'), fullPage: true });
+
   const mobile = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const mPage = await mobile.newPage();
   await mPage.goto(`${BASE}/blog/watch-listening-shelf`, { waitUntil: 'networkidle' });
@@ -90,6 +105,8 @@ async function main() {
   console.log(`wrote ${OUT}/shelf_photo_real_video_ridge.png`);
   console.log(`wrote ${OUT}/shelf_behind_the_album.png`);
   console.log(`wrote ${OUT}/shelf_photo_real_living_ridge.png`);
+  console.log(`wrote ${OUT}/shelf_scent_duft_ridge.png`);
+  console.log(`wrote ${OUT}/shelf_scent_raeucherkerze.png`);
   console.log(`wrote ${OUT}/shelf_photo_real_mobile_390.png`);
 }
 
