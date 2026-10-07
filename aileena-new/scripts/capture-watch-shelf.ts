@@ -53,7 +53,7 @@ async function main() {
   );
   await page.waitForTimeout(300);
   const videoCount = await page.locator('[data-testid="watch-shelf-row-video"] li').count();
-  if (videoCount !== 8) throw new Error(`expected 8 video spines, got ${videoCount}`);
+  if (videoCount !== 7) throw new Error(`expected 7 video spines, got ${videoCount}`);
   await page.screenshot({ path: join(OUT, 'shelf_photo_real_video_ridge.png'), fullPage: true });
 
   await page.locator('#behind-the-album').click();

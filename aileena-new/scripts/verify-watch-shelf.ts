@@ -53,13 +53,21 @@ function main() {
   );
   assert('Ladies First note stays empty for later', ladies?.note === '');
   assert(
-    'Tár 2022 is the last film poster',
-    tar?.coverKind === 'poster' &&
-      tar.cover === '/shelf/tar.jpg' &&
-      watch[watch.length - 1]?.id === 'tar',
-    watch[watch.length - 1]?.id,
+    'Tár 2022 stays a film poster',
+    tar?.coverKind === 'poster' && tar.cover === '/shelf/tar.jpg',
+    tar?.id,
   );
   assert('Tár note stays empty for later', tar?.note === '');
+  const behind = watch.find((item) => item.id === 'behind-the-album');
+  assert(
+    'Behind the Album is the last film poster',
+    behind?.coverKind === 'poster' &&
+      behind.cover === '/shelf/behind-the-album.jpg' &&
+      behind.href === 'https://www.youtube.com/watch?v=xEoCVtZcY2E' &&
+      watch[watch.length - 1]?.id === 'behind-the-album',
+    watch[watch.length - 1]?.id,
+  );
+  assert('Behind the Album note stays empty for later', behind?.note === '');
   assert(
     'video ridge uses photo-real spines',
     videos.length === VIDEO_RECS.length &&
@@ -68,13 +76,9 @@ function main() {
       ),
   );
   assert('video notes stay empty for later', videos.every((item) => item.note === ''));
-  const behind = videos.find((item) => item.id === 'behind-the-album');
   assert(
-    'Behind the Album is the Harry Styles YouTube spine',
-    behind?.href === 'https://www.youtube.com/watch?v=xEoCVtZcY2E' &&
-      behind.cover === '/shelf/spine-video-behind-the-album.png' &&
-      behind.creator === 'YouTube · Harry Styles',
-    behind?.id,
+    'Behind the Album is not a video spine',
+    videos.every((item) => item.id !== 'behind-the-album'),
   );
   assert(
     'book ridge uses photo-real spines',
@@ -109,9 +113,10 @@ function main() {
   );
   assert(
     'Ladies First stays a film, not a living object',
-    living.every((item) => item.id !== 'ladies-first' && item.id !== 'tar') &&
+    living.every((item) => item.id !== 'ladies-first' && item.id !== 'tar' && item.id !== 'behind-the-album') &&
       SHELF_ITEMS.find((item) => item.id === 'ladies-first')?.row === 'watch' &&
-      SHELF_ITEMS.find((item) => item.id === 'tar')?.row === 'watch',
+      SHELF_ITEMS.find((item) => item.id === 'tar')?.row === 'watch' &&
+      SHELF_ITEMS.find((item) => item.id === 'behind-the-album')?.row === 'watch',
   );
 
   for (const item of SHELF_ITEMS) {

@@ -202,6 +202,17 @@ export const FILM_RECS = [
     body: '',
     tags: ['seeing'],
   },
+  {
+    title: 'Harry Styles — Behind the Album (all performances)',
+    shelfTitle: 'Behind the Album',
+    year: '2017',
+    label: 'YouTube · performances',
+    href: 'https://www.youtube.com/watch?v=xEoCVtZcY2E',
+    image: '/shelf/behind-the-album.jpg',
+    note: '',
+    body: '',
+    tags: ['seeing'],
+  },
 ];
 
 export const EURO_LIFE_GUIDE = [
@@ -385,14 +396,6 @@ export const VIDEO_RECS = [
     label: 'Software YouTube',
     href: '/blog/software-watch',
     image: '/shelf/spine-video-mcp.png',
-    note: '',
-  },
-  {
-    title: 'Harry Styles — Behind the Album (all performances)',
-    shelfTitle: 'Behind the Album',
-    label: 'YouTube · Harry Styles',
-    href: 'https://www.youtube.com/watch?v=xEoCVtZcY2E',
-    image: '/shelf/spine-video-behind-the-album.png',
     note: '',
   },
 ];
