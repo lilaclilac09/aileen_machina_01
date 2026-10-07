@@ -33,6 +33,9 @@ const C = {
 /* ─── Full deck library: handoff five + previous tracks ───── */
 const DJ_SET = allDeckTracks();
 type Track = DeckTrack;
+/** Tail of the append-only library — same newest-first rule as the carousel. */
+const OPEN_LEFT = DJ_SET.at(-1) ?? DJ_SET[0] ?? null;
+const OPEN_RIGHT = DJ_SET.at(-2) ?? OPEN_LEFT;
 
 function spotifyTrackId(track: Track): string | null {
   if (track.spotifyId) return track.spotifyId;
@@ -78,8 +81,8 @@ function fmt(ms: number) {
 export default function DJStation() {
   const duo = useDuoLayout();
   const isMobile = duo.stack;
-  const [leftTrack,    setLeftTrack]    = useState<Track | null>(DJ_SET[0] ?? null);
-  const [rightTrack,   setRightTrack]   = useState<Track | null>(DJ_SET[Math.min(3, DJ_SET.length - 1)] ?? null);
+  const [leftTrack,    setLeftTrack]    = useState<Track | null>(OPEN_LEFT);
+  const [rightTrack,   setRightTrack]   = useState<Track | null>(OPEN_RIGHT);
   const [leftPlaying,  setLeftPlaying]  = useState(false);
   const [rightPlaying, setRightPlaying] = useState(false);
   const [leftPos,      setLeftPos]      = useState(0);

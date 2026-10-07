@@ -89,6 +89,20 @@ async function runBrowser(checks: Check[]): Promise<void> {
       detail: `found ${legacyCarousel}`,
     });
 
+    const newest = [...allDeckTracks()].reverse();
+    const deckA = (await page.getByTestId('dj-deck-a-title').innerText()).trim();
+    const deckB = (await page.getByTestId('dj-deck-b-title').innerText()).trim();
+    checks.push({
+      name: 'deck A opens on newest track',
+      ok: deckA.toLowerCase() === (newest[0]?.title ?? '').toLowerCase(),
+      detail: `${deckA} (expected ${newest[0]?.title})`,
+    });
+    checks.push({
+      name: 'deck B opens on next-newest track',
+      ok: deckB.toLowerCase() === (newest[1]?.title ?? '').toLowerCase(),
+      detail: `${deckB} (expected ${newest[1]?.title})`,
+    });
+
     const carousel = page.locator('#dj-set');
     await carousel.waitFor({ state: 'visible', timeout: 15_000 });
     await carousel.scrollIntoViewIfNeeded();
