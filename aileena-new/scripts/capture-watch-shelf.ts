@@ -63,6 +63,14 @@ async function main() {
       'Behind the Album',
   );
   await page.waitForTimeout(300);
+  const openHref = await page.locator('.watch-shelf-open').getAttribute('href');
+  if (openHref !== 'https://www.youtube.com/watch?v=xEoCVtZcY2E') {
+    throw new Error(`open href ${openHref}`);
+  }
+  const coverBox = await page.locator('.watch-shelf-detail-image').boundingBox();
+  if (!coverBox || coverBox.width / coverBox.height < 1.5) {
+    throw new Error(`detail cover not 16:9 landscape ${coverBox?.width}x${coverBox?.height}`);
+  }
   await page.screenshot({ path: join(OUT, 'shelf_behind_the_album.png'), fullPage: true });
 
   await page.locator('#urban-roam-not-tourism').click();

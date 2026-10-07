@@ -209,6 +209,7 @@ export const FILM_RECS = [
     label: 'YouTube · performances',
     href: 'https://www.youtube.com/watch?v=xEoCVtZcY2E',
     image: '/shelf/behind-the-album.jpg',
+    coverKind: 'still' as const,
     note: '',
     body: '',
     tags: ['seeing'],
@@ -519,7 +520,7 @@ export const SHELF_ITEMS: ShelfItem[] = [
     tags: item.tags,
     href: item.href,
     cover: item.image,
-    coverKind: 'poster' as const,
+    coverKind: 'coverKind' in item && item.coverKind === 'still' ? ('still' as const) : ('poster' as const),
     object: 'cover' as const,
   })),
   ...CHANNEL_RECS.filter((item) => item.kind !== 'video').map((item) => ({

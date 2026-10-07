@@ -30,6 +30,20 @@ function read(rel: string): string {
   return readFileSync(join(process.cwd(), rel), 'utf8');
 }
 
+function jpegSize(buf: Buffer): { w: number; h: number } {
+  let i = 2;
+  while (i < buf.length - 8) {
+    if (buf[i] !== 0xff) break;
+    const marker = buf[i + 1];
+    const len = buf.readUInt16BE(i + 2);
+    if (marker >= 0xc0 && marker <= 0xc3) {
+      return { h: buf.readUInt16BE(i + 5), w: buf.readUInt16BE(i + 7) };
+    }
+    i += 2 + len;
+  }
+  throw new Error('no JPEG SOF');
+}
+
 function main() {
   const watch = SHELF_ITEMS.filter((item) => item.section === 'watch');
   const videos = SHELF_ITEMS.filter((item) => item.row === 'video');
@@ -61,15 +75,26 @@ function main() {
   );
   assert('Tár note stays empty for later', tar?.note === '');
   const behind = watch.find((item) => item.id === 'behind-the-album');
+  const tarIdx = watch.findIndex((item) => item.id === 'tar');
   assert(
-    'Behind the Album is the last film poster',
-    behind?.coverKind === 'poster' &&
+    'Behind the Album is the 16:9 still after Tár',
+    behind?.coverKind === 'still' &&
       behind.cover === '/shelf/behind-the-album.jpg' &&
       behind.href === 'https://www.youtube.com/watch?v=xEoCVtZcY2E' &&
+      tarIdx >= 0 &&
+      watch[tarIdx + 1]?.id === 'behind-the-album' &&
       watch[watch.length - 1]?.id === 'behind-the-album',
     watch[watch.length - 1]?.id,
   );
   assert('Behind the Album note stays empty for later', behind?.note === '');
+  const behindJpg = join(process.cwd(), 'public', 'shelf', 'behind-the-album.jpg');
+  const behindSize = jpegSize(readFileSync(behindJpg));
+  const behindAspect = behindSize.w / behindSize.h;
+  assert(
+    'Behind the Album cover is landscape 16:9 without a vertical crop',
+    behindSize.w > behindSize.h && behindAspect > 1.7 && behindAspect < 1.85,
+    `${behindSize.w}x${behindSize.h} (${behindAspect.toFixed(3)})`,
+  );
   assert(
     'video ridge uses photo-real spines',
     videos.length === VIDEO_RECS.length &&
@@ -87,8 +112,10 @@ function main() {
     notes.length >= 4 && notes.every((item) => item.coverKind === 'spine' && Boolean(item.cover)),
   );
   assert(
-    'films stay posters, not spines',
-    SHELF_ITEMS.filter((item) => item.section === 'watch').every((item) => item.coverKind === 'poster'),
+    'films stay posters except the Behind the Album still',
+    SHELF_ITEMS.filter((item) => item.section === 'watch' && item.id !== 'behind-the-album').every(
+      (item) => item.coverKind === 'poster',
+    ) && SHELF_ITEMS.find((item) => item.id === 'behind-the-album')?.coverKind === 'still',
   );
   assert('#watch stays Joan Didion', resolveShelfHash('#watch') === 'joan-didion');
   assert('#films stays Blue', resolveShelfHash('#films') === 'blue-is-the-warmest-color');
