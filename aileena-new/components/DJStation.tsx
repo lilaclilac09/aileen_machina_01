@@ -1,7 +1,7 @@
 'use client';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import TrackLibraryBrowser from './TrackLibraryBrowser';
-import { allDeckTracks, type DeckTrack } from '../lib/djSetlist';
+import { allDeckTracks, PINNED_DECK_A_ID, PINNED_DECK_B_ID, type DeckTrack } from '../lib/djSetlist';
 import { useDuoLayout } from '../lib/duoPose';
 import { KNOB_TICKS, knobAngleDeg, knobValueFromOffset, snapKnobTick } from '../lib/djMixerMath';
 
@@ -33,6 +33,9 @@ const C = {
 /* ─── Full deck library: handoff five + previous tracks ───── */
 const DJ_SET = allDeckTracks();
 type Track = DeckTrack;
+/** Pinned openers — new carousel appends must not steal Deck A / B. */
+const OPEN_LEFT = DJ_SET.find((t) => t.id === PINNED_DECK_A_ID) ?? DJ_SET.at(-1) ?? DJ_SET[0] ?? null;
+const OPEN_RIGHT = DJ_SET.find((t) => t.id === PINNED_DECK_B_ID) ?? DJ_SET.at(-2) ?? OPEN_LEFT;
 
 function spotifyTrackId(track: Track): string | null {
   if (track.spotifyId) return track.spotifyId;
@@ -78,8 +81,8 @@ function fmt(ms: number) {
 export default function DJStation() {
   const duo = useDuoLayout();
   const isMobile = duo.stack;
-  const [leftTrack,    setLeftTrack]    = useState<Track | null>(DJ_SET[0] ?? null);
-  const [rightTrack,   setRightTrack]   = useState<Track | null>(DJ_SET[Math.min(3, DJ_SET.length - 1)] ?? null);
+  const [leftTrack,    setLeftTrack]    = useState<Track | null>(OPEN_LEFT);
+  const [rightTrack,   setRightTrack]   = useState<Track | null>(OPEN_RIGHT);
   const [leftPlaying,  setLeftPlaying]  = useState(false);
   const [rightPlaying, setRightPlaying] = useState(false);
   const [leftPos,      setLeftPos]      = useState(0);
@@ -442,7 +445,7 @@ export default function DJStation() {
       <div id="dj-set" style={{ marginTop: 10 }}>
         <TrackLibraryBrowser
           tracks={DJ_SET}
-          reverseCarousel={false}
+          reverseCarousel={true}
           onLoadTrack={loadTrack}
           onSetDragTrack={(t) => { dragTrack.current = t; }}
           playingLeft={leftPlaying ? (leftTrack?.id ?? null) : null}

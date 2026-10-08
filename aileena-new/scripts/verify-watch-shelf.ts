@@ -8,6 +8,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   DOCUMENTARY_RECS,
+  CANDLE_RECS,
   EURO_LIFE_GUIDE,
   FILM_RECS,
   LIFESTYLE_RECS,
@@ -29,11 +30,26 @@ function read(rel: string): string {
   return readFileSync(join(process.cwd(), rel), 'utf8');
 }
 
+function jpegSize(buf: Buffer): { w: number; h: number } {
+  let i = 2;
+  while (i < buf.length - 8) {
+    if (buf[i] !== 0xff) break;
+    const marker = buf[i + 1];
+    const len = buf.readUInt16BE(i + 2);
+    if (marker >= 0xc0 && marker <= 0xc3) {
+      return { h: buf.readUInt16BE(i + 5), w: buf.readUInt16BE(i + 7) };
+    }
+    i += 2 + len;
+  }
+  throw new Error('no JPEG SOF');
+}
+
 function main() {
   const watch = SHELF_ITEMS.filter((item) => item.section === 'watch');
   const videos = SHELF_ITEMS.filter((item) => item.row === 'video');
   const notes = SHELF_ITEMS.filter((item) => item.row === 'notes');
   const living = SHELF_ITEMS.filter((item) => item.row === 'living');
+  const scent = SHELF_ITEMS.filter((item) => item.row === 'scent');
   const expectedWatch = [
     ...DOCUMENTARY_RECS.map((item) => item.shelfTitle),
     ...FILM_RECS.map((item) => item.shelfTitle),
@@ -53,13 +69,32 @@ function main() {
   );
   assert('Ladies First note stays empty for later', ladies?.note === '');
   assert(
-    'Tár 2022 is the last film poster',
-    tar?.coverKind === 'poster' &&
-      tar.cover === '/shelf/tar.jpg' &&
-      watch[watch.length - 1]?.id === 'tar',
-    watch[watch.length - 1]?.id,
+    'Tár 2022 stays a film poster',
+    tar?.coverKind === 'poster' && tar.cover === '/shelf/tar.jpg',
+    tar?.id,
   );
   assert('Tár note stays empty for later', tar?.note === '');
+  const behind = watch.find((item) => item.id === 'behind-the-album');
+  const tarIdx = watch.findIndex((item) => item.id === 'tar');
+  assert(
+    'Behind the Album is the 16:9 still after Tár',
+    behind?.coverKind === 'still' &&
+      behind.cover === '/shelf/behind-the-album.jpg' &&
+      behind.href === 'https://www.youtube.com/watch?v=xEoCVtZcY2E' &&
+      tarIdx >= 0 &&
+      watch[tarIdx + 1]?.id === 'behind-the-album' &&
+      watch[watch.length - 1]?.id === 'behind-the-album',
+    watch[watch.length - 1]?.id,
+  );
+  assert('Behind the Album note stays empty for later', behind?.note === '');
+  const behindJpg = join(process.cwd(), 'public', 'shelf', 'behind-the-album.jpg');
+  const behindSize = jpegSize(readFileSync(behindJpg));
+  const behindAspect = behindSize.w / behindSize.h;
+  assert(
+    'Behind the Album cover is landscape 16:9 without a vertical crop',
+    behindSize.w > behindSize.h && behindAspect > 1.7 && behindAspect < 1.85,
+    `${behindSize.w}x${behindSize.h} (${behindAspect.toFixed(3)})`,
+  );
   assert(
     'video ridge uses photo-real spines',
     videos.length === VIDEO_RECS.length &&
@@ -69,12 +104,18 @@ function main() {
   );
   assert('video notes stay empty for later', videos.every((item) => item.note === ''));
   assert(
+    'Behind the Album is not a video spine',
+    videos.every((item) => item.id !== 'behind-the-album'),
+  );
+  assert(
     'book ridge uses photo-real spines',
     notes.length >= 4 && notes.every((item) => item.coverKind === 'spine' && Boolean(item.cover)),
   );
   assert(
-    'films stay posters, not spines',
-    SHELF_ITEMS.filter((item) => item.section === 'watch').every((item) => item.coverKind === 'poster'),
+    'films stay posters except the Behind the Album still',
+    SHELF_ITEMS.filter((item) => item.section === 'watch' && item.id !== 'behind-the-album').every(
+      (item) => item.coverKind === 'poster',
+    ) && SHELF_ITEMS.find((item) => item.id === 'behind-the-album')?.coverKind === 'still',
   );
   assert('#watch stays Joan Didion', resolveShelfHash('#watch') === 'joan-didion');
   assert('#films stays Blue', resolveShelfHash('#films') === 'blue-is-the-warmest-color');
@@ -96,14 +137,31 @@ function main() {
     String(living.length),
   );
   assert(
-    'living is one ridge row',
-    shelfRowsInSection('living').map((row) => row.row).join(',') === 'living',
+    'living then duft sit as two living-section rows',
+    shelfRowsInSection('living').map((row) => row.row).join(',') === 'living,scent',
   );
   assert(
+    'duft ridge uses trimmed cutouts',
+    scent.length === CANDLE_RECS.length &&
+      scent[0]?.id === 'figuier-600g' &&
+      scent.some((item) => item.id === 'raeucherkerze' || item.id === 'raucherkerze') &&
+      scent.every(
+        (item) =>
+          item.coverKind === 'cutout' &&
+          item.type === 'scent' &&
+          typeof item.cover === 'string' &&
+          item.cover.startsWith('/shelf/scent-') &&
+          item.cover.endsWith('.png'),
+      ),
+    scent.map((item) => item.id).join(','),
+  );
+  assert('#duft lands on Figuier 600g', resolveShelfHash('#duft') === 'figuier-600g');
+  assert(
     'Ladies First stays a film, not a living object',
-    living.every((item) => item.id !== 'ladies-first' && item.id !== 'tar') &&
+    living.every((item) => item.id !== 'ladies-first' && item.id !== 'tar' && item.id !== 'behind-the-album') &&
       SHELF_ITEMS.find((item) => item.id === 'ladies-first')?.row === 'watch' &&
-      SHELF_ITEMS.find((item) => item.id === 'tar')?.row === 'watch',
+      SHELF_ITEMS.find((item) => item.id === 'tar')?.row === 'watch' &&
+      SHELF_ITEMS.find((item) => item.id === 'behind-the-album')?.row === 'watch',
   );
 
   for (const item of SHELF_ITEMS) {
@@ -115,6 +173,7 @@ function main() {
   const ui = read('app/blog/watch-listening-shelf/WatchShelf.tsx');
   const css = read('app/blog/watch-listening-shelf/watch-shelf.css');
   assert('living row sits on the ridge', /row\.row === 'living'/.test(ui));
+  assert('duft row sits on the ridge', /row\.row === 'scent'/.test(ui));
   assert('no CSS slip frames', !/watch-slip-mark/.test(ui) && !/watch-slip-mark/.test(css));
   assert(
     'film posters stay contain; ridge thumbs use cover',
@@ -134,6 +193,12 @@ function main() {
     'css spine and living thumbs fill the slot',
     /\.watch-obj-cover\.is-spine[\s\S]*?object-fit:\s*cover/.test(css) &&
       /\.watch-obj-cover\.is-object[\s\S]*?object-fit:\s*cover/.test(css),
+  );
+  assert(
+    'css scent cutouts stay contain with no frame',
+    /\.watch-obj-cover\.is-cutout[\s\S]*?object-fit:\s*contain/.test(css) &&
+      /\.watch-obj-cover\.is-cutout[\s\S]*?background:\s*transparent/.test(css) &&
+      /\.watch-shelf-detail-image\.is-cutout[\s\S]*?background:\s*transparent/.test(css),
   );
   assert('spine photos sit in a fixed ridge slot', /\.watch-obj\.is-spine[\s\S]*height:\s*96px/.test(css));
   assert('later-note placeholder exists', /drop a note later/.test(ui));
