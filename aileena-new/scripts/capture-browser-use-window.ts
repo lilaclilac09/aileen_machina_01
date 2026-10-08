@@ -45,6 +45,22 @@ async function main() {
   await page.locator('[data-testid="browser-use-would-run"]').waitFor({ state: 'visible', timeout: 8_000 });
   await page.screenshot({ path: join(OUT, 'browser-use-prepare-390.png') });
 
+  const day = new Date().toISOString().slice(0, 10);
+  const exhausted = encodeURIComponent(Buffer.from(JSON.stringify({ date: day, count: 20 })).toString('base64'));
+  await mobile.addCookies([
+    {
+      name: '__aileena_quota',
+      value: exhausted,
+      url: BASE,
+      path: '/',
+      httpOnly: true,
+    },
+  ]);
+  await page.locator('[data-testid="browser-use-task"]').fill('browse: open https://news.ycombinator.com');
+  await page.locator('[data-testid="browser-use-prepare"]').click();
+  await page.locator('[data-testid="browser-use-quota"]').waitFor({ state: 'visible', timeout: 8_000 });
+  await page.screenshot({ path: join(OUT, 'browser-use-quota-429-390.png') });
+
   const voice = page.locator('[aria-label="Turn voice on"]');
   if (await voice.count()) {
     await voice.click();

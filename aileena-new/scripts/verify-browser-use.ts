@@ -146,14 +146,16 @@ async function main() {
   );
 
   assert('same 20/day cookie helper', /CHAT_DAILY_LIMIT = 20/.test(quotaSrc) && /takeVisitorChatTurn/.test(quotaSrc));
+  const browseBlock = chatSrc.slice(chatSrc.indexOf('const browse = tryBrowserUseFastPath'));
+  const computerCall = browseBlock.indexOf('tryOwnerComputerFastPath');
   assert(
     'chat browse fast path uses visitor chat quota',
-    /takeVisitorChatTurn/.test(chatSrc) &&
-      chatSrc.indexOf('tryBrowserUseFastPath') !== -1 &&
-      chatSrc.indexOf('takeVisitorChatTurn') < chatSrc.indexOf('tryOwnerComputerFastPath'),
+    browseBlock.indexOf('takeVisitorChatTurn') !== -1 &&
+      computerCall !== -1 &&
+      browseBlock.indexOf('takeVisitorChatTurn') < computerCall,
   );
-  const getSrc = apiSrc.slice(0, apiSrc.indexOf('export async function POST'));
-  assert('browser-use GET stays free', !/takeVisitorChatTurn/.test(getSrc));
+  const getFn = apiSrc.slice(apiSrc.indexOf('export async function GET'), apiSrc.indexOf('export async function POST'));
+  assert('browser-use GET stays free', /pack\(undefined/.test(getFn) && !/takeVisitorChatTurn/.test(getFn));
   assert(
     'browser-use POST uses same quota',
     /takeVisitorChatTurn/.test(apiSrc) && /QUOTA_EXHAUSTED_MSG/.test(apiSrc) && !/runs\.create/.test(apiSrc),
