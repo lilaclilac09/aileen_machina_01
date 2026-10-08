@@ -929,14 +929,15 @@ async function runEmailTask(task: ComputerTask): Promise<ComputerTask> {
 
 async function runBrowserTask(task: ComputerTask): Promise<ComputerTask> {
   const checklist = [
-    'Browser automation is not wired on this computer.',
+    'Cloudflare computer does not drive a browser.',
+    'Browser Use Cloud (API v4) is the browse path. Dry-run until BROWSER_USE_LIVE=1.',
     'Do not invent screenshot names.',
     'Required later: /daily QA, /sound QA, landing, mobile 390px, link clicks.',
     'Desktop + mobile screenshots before any visual change is ready_for_review.',
   ].join('\n');
   const next = await finishInspectStyle(task, {
     status: 'blocked',
-    summary: '⚡ blocked. Browser automation is not wired. No fake screenshots.',
+    summary: '⚡ blocked. Cloudflare computer is not the browser. No fake screenshots.',
     report: `# browser_screenshot\n\n${checklist}\n`,
     preview: checklist,
     title: 'browser blocked',

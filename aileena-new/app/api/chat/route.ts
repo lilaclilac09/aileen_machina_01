@@ -6,6 +6,8 @@ import { COUNCIL_SYSTEM_PROMPT, formatCouncilLensForPrompt } from '../../../lib/
 import { decideAgentMode, skipVisitorQuota, type AgentMode } from '../../../lib/agentMode';
 import { isCouncilLens } from '../../../lib/councilCopy';
 import { requireOwnerFromRequest } from '../../../lib/owner-gate';
+import { tryOwnerBrowserUseFastPath } from '../../../lib/browserUse/chatFastPath';
+import { prepareBrowseResult } from '../../../lib/browserUse/status';
 import { tryOwnerComputerFastPath, tryVisitorComputerFastPath } from '../../../lib/computer/chatFastPath';
 import { queuedChatResponse } from '../../../lib/computer/queuedStream';
 import { answerSiteLane } from '../../../lib/siteLanes';
@@ -259,6 +261,14 @@ export async function POST(req: Request) {
     return res;
   };
   if (computerActor.kind === 'owner') {
+    const browse = tryOwnerBrowserUseFastPath({
+      isOwner: true,
+      lastQ: lastQEarly,
+    });
+    if (browse) {
+      trace.log('browser_use_fast_path', { q: lastQEarly.slice(0, 80) });
+      return withComputerCookie(browse);
+    }
     const fast = await tryOwnerComputerFastPath({
       req,
       isOwner: true,
@@ -494,10 +504,15 @@ If the visitor names a specific article, project, product, person, company, tech
 # Machina mode tools
 - searchMemories(query, k): required for taste, setlist, culture, frameworks, Dreaming, hardware notes.
 - searchArticles(query, k): optional when visitor asks about her published writing.${
+    owner
+      ? `
+- browseWeb({ task? }): owner. Browser Use Cloud API v4. Dry-run — no paid browser. Cloudflare computer is not the browser.`
+      : ''
+  }${
     owner && isComputerPrototypeEnabled()
       ? `
-- listMcpApps(): owner. What Machina can call: computer (worker-shell), github (token), remote MCP_SERVERS.
-- callMcp({ app, tool, args }): owner. computer.exec / computer.read / github.me|repo|pulls|issues|contents / remote tools. Not merge. Not a laptop OS.`
+- listMcpApps(): owner. browser-use first (Cloud API v4, dry-run), then computer (worker-shell), github (token), remote MCP_SERVERS.
+- callMcp({ app, tool, args }): owner. browser-use.status|prepare (never run). computer.exec / computer.read / github.me|repo|pulls|issues|contents / remote tools. Not merge. Not a laptop OS.`
       : ''
   }`;
   const councilToolTable = `
@@ -598,19 +613,33 @@ ${memoryPrefetch
 
     // R2: only expose tools allowed for this question type (hire → none, taste → memories…).
     const routedTools = applyToolRoute(allTools, toolRoute);
+    const withBrowse =
+      owner && toolRoute.allowed !== 'none'
+        ? {
+            ...routedTools,
+            browseWeb: tool({
+              description:
+                'Owner. Browser Use Cloud API v4 status or dry-run prepare. Does not start a paid browser. Cloudflare computer is not the browser path.',
+              inputSchema: z.object({
+                task: z.string().min(2).max(4000).optional().describe('Browse goal. Omit for wiring status only.'),
+              }),
+              execute: async ({ task }) => prepareBrowseResult(task),
+            }),
+          }
+        : routedTools;
     const withMcp =
       owner && isComputerPrototypeEnabled() && toolRoute.allowed !== 'none'
         ? {
-            ...routedTools,
+            ...withBrowse,
             listMcpApps: tool({
               description:
-                'Owner. List Machina MCP apps: computer (worker-shell), github (if token), remote MCP_SERVERS. Does not merge. Does not start Linux.',
+                'Owner. List Machina MCP apps: browser-use (Cloud API v4, dry-run) first, then computer (worker-shell), github (if token), remote MCP_SERVERS. Does not merge. Does not start Linux.',
               inputSchema: z.object({}),
               execute: async () => listMcpApps(),
             }),
             callMcp: tool({
               description:
-                'Owner. Call one MCP tool. app=computer|github|<remote name>. computer: exec|read. github: me|repo|pulls|issues|contents. Public https remotes only.',
+                'Owner. Call one MCP tool. app=browser-use|computer|github|<remote name>. browser-use: status|prepare (never run). computer: exec|read. github: me|repo|pulls|issues|contents. Public https remotes only.',
               inputSchema: z.object({
                 app: z.string().min(1).max(40),
                 tool: z.string().min(1).max(80),
@@ -620,7 +649,7 @@ ${memoryPrefetch
                 callMcpApp(app, mcpTool, args ?? {}, computerActor.id),
             }),
           }
-        : routedTools;
+        : withBrowse;
     const guardedTools = wrapToolsWithReactGuard(withMcp, reactGuard);
 
     console.log('[chat] tool-route', {

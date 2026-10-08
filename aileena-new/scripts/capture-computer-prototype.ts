@@ -46,6 +46,10 @@ async function openConsole(page: import('playwright').Page, withComputer = true)
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('open-agent-chat')));
   await page.waitForSelector('[role="dialog"][aria-label="Aileena Console"]', { state: 'visible' });
   if (withComputer) {
+    const toggle = page.locator('[data-testid="computer-mode-toggle"]');
+    if ((await toggle.getAttribute('aria-pressed')) !== 'true') {
+      await toggle.click({ force: true });
+    }
     await page.waitForSelector('[data-testid="computer-console-dock"]', { timeout: 15_000, state: 'visible' });
   }
   await page.waitForTimeout(400);
@@ -133,6 +137,10 @@ async function main() {
   await vPage.keyboard.press('Escape');
   await vPage.evaluate(() => window.dispatchEvent(new CustomEvent('open-agent-chat')));
   await vPage.waitForSelector('[role="dialog"][aria-label="Aileena Console"]', { state: 'visible' });
+  const visitorToggle = vPage.locator('[data-testid="computer-mode-toggle"]');
+  if ((await visitorToggle.getAttribute('aria-pressed')) !== 'true') {
+    await visitorToggle.click({ force: true });
+  }
   const visitorDockOn = await vPage.locator('[data-testid="computer-console-dock"]').count();
   if (visitorDockOn < 1) throw new Error('visitor console opened without computer dock');
   await vPage.locator('[role="dialog"][aria-label="Aileena Console"]').screenshot({

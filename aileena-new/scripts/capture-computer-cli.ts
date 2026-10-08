@@ -34,10 +34,7 @@ async function openConsole(page: import('playwright').Page) {
   await page.waitForTimeout(300);
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('open-agent-chat')));
   const toggle = page.locator('[data-testid="computer-mode-toggle"]');
-  await page.waitForFunction(() => {
-    const t = document.querySelector('[data-testid="computer-mode-toggle"]');
-    return t?.getAttribute('aria-pressed') === 'true';
-  }, null, { timeout: 15_000 });
+  await toggle.waitFor({ state: 'visible', timeout: 15_000 });
   if ((await toggle.getAttribute('aria-pressed')) !== 'true') {
     await toggle.click({ force: true });
   }
