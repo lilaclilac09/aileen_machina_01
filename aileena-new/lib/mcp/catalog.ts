@@ -1,3 +1,4 @@
+import { browserUseAppStatus, callBrowserUse } from '../browserUse/mcp';
 import { callComputer, computerReady, computerTools } from './computer';
 import { callGithub, githubReady, githubTools } from './github';
 import { callRemote, listRemoteTools, parseMcpServers } from './remote';
@@ -7,6 +8,7 @@ export async function listMcpApps(): Promise<McpAppStatus[]> {
   const computer = computerReady();
   const github = githubReady();
   const apps: McpAppStatus[] = [
+    browserUseAppStatus(),
     {
       name: 'computer',
       kind: 'in-process',
@@ -59,6 +61,7 @@ export async function callMcpApp(
   if (!name || !toolName) {
     return { ok: false, app, tool, text: 'app and tool required' };
   }
+  if (name === 'browser-use') return callBrowserUse(toolName, args);
   if (name === 'computer') return callComputer(toolName, args, workspaceId);
   if (name === 'github') return callGithub(toolName, args);
   const remote = parseMcpServers().find((s) => s.name === name);

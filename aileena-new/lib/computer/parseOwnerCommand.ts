@@ -115,7 +115,7 @@ export function parseOwnerComputerCommand(text: string): OwnerComputerCommand | 
   if (/screenshot|take pictures of/i.test(raw) && /(\/daily|\/sound|\/ |landing|mobile)/i.test(raw)) {
     return {
       kind: 'blocked',
-      message: '⚡ blocked. Browser automation is not wired. No fake screenshots.',
+      message: '⚡ blocked on the Cloudflare computer. Browser Use Cloud is the browse path. No fake screenshots.',
     };
   }
 

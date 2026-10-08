@@ -1,6 +1,6 @@
 /** Machina calling other apps. Not the worker-shell computer. No @cloudflare/computer in Next. */
 
-export type McpAppName = 'computer' | 'github' | string;
+export type McpAppName = 'browser-use' | 'computer' | 'github' | string;
 
 export type McpToolDesc = {
   name: string;
