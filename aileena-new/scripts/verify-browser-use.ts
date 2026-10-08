@@ -129,8 +129,10 @@ async function main() {
   );
   assert('voice/browse click-through opens the window', /parseOwnerBrowseCommand/.test(agentChatSrc) && /setBrowseMode\(true\)/.test(agentChatSrc));
   assert(
-    'Cloudflare desk is a packed chart next to voice, browser aside',
+    'Cloudflare desk is a packed chart above voice, browser aside',
     /CloudflareDeskChart/.test(agentChatSrc) &&
+      agentChatSrc.indexOf('<CloudflareDeskChart') < agentChatSrc.indexOf('<AgentVoiceOrb') &&
+      !/aside=\{/.test(agentChatSrc) &&
       /data-browser="aside"/.test(read('components/CloudflareDeskChart.tsx')),
   );
 

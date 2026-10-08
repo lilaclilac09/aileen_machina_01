@@ -16,7 +16,7 @@
  * Live caption + barge-in. Voice path: Console → Voice → speak.
  */
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ELEVEN_VOICE_ID,
   parseVoiceAccent,
@@ -57,8 +57,6 @@ type Props = {
   onRegisterUnlock?: (unlock: () => void) => void;
   /** City accent changed — parent starts a new frozen root when one is live. */
   onAccentChange?: (key: VoiceAccent) => void;
-  /** Packed Cloudflare desk chart — sits next to the orb. */
-  aside?: ReactNode;
 };
 
 const WAKE_STRIP_RE = /^(hey\s+)?aileena\b[,!.?]?\s*/i;
@@ -237,7 +235,6 @@ export default function AgentVoiceOrb({
   onRegisterStart,
   onRegisterUnlock,
   onAccentChange,
-  aside,
 }: Props) {
   // Default tts:false — live Production often has no ElevenLabs; browser voice must work first.
   const [caps, setCaps] = useState<Caps>({ whisper: false, tts: false, mode: 'webspeech' });
@@ -1530,21 +1527,7 @@ export default function AgentVoiceOrb({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (!active) {
-    if (!aside) return null;
-    return (
-      <div
-        data-testid="agent-voice-orb"
-        data-voice="off"
-        className="border-t border-[#e7e0d6] px-5 py-2.5 sm:py-3 bg-[#faf7f0]/80 flex items-center justify-between gap-3"
-      >
-        <span className="font-mono text-[0.48rem] tracking-[0.18em] uppercase text-[#1b1713]/32">
-          voice
-        </span>
-        {aside}
-      </div>
-    );
-  }
+  if (!active) return null;
 
   const activeAccent = ACCENTS.find((p) => p.key === accentKey) ?? ACCENTS[0];
   const hintIsError =
@@ -1605,8 +1588,6 @@ export default function AgentVoiceOrb({
             {needsHearTap ? 'Hear' : listening ? (phase === 'speaking' ? '…' : 'Stop') : 'Speak'}
           </span>
         </button>
-
-        {aside}
 
         <div
           className="relative grid h-11 min-h-11 sm:h-12 flex-1 min-w-[16rem] max-w-[20rem] sm:max-w-[22rem] grid-cols-3 items-stretch rounded-full border border-[#00a89d]/28 bg-[#e8f7f4]/90 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"

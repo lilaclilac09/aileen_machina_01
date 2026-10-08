@@ -2133,6 +2133,16 @@ export default function AgentChat() {
         {/* Bottom chrome: orb → chat input → optional leave-a-note (collapsed).
             Never clip the orb / city pills — the computer dock yields instead. */}
         <div className="shrink-0 flex flex-col" data-testid="console-bottom-chrome">
+        <CloudflareDeskChart
+          packed={!computerExpanded}
+          onToggle={() => {
+            setComputerExpanded((on) => {
+              const next = !on;
+              if (next) setComputerMode(true);
+              return next;
+            });
+          }}
+        />
         {computerExpanded ? <ComputerConsoleDock isOwner={isOwner} voiceOn={voiceMode} /> : null}
         <div className="shrink-0">
           <AgentVoiceOrb
@@ -2140,18 +2150,6 @@ export default function AgentChat() {
             autoListen={autoListen}
             busy={busy}
             disabled={sessionMaxed}
-            aside={
-              <CloudflareDeskChart
-                packed={!computerExpanded}
-                onToggle={() => {
-                  setComputerExpanded((on) => {
-                    const next = !on;
-                    if (next) setComputerMode(true);
-                    return next;
-                  });
-                }}
-              />
-            }
             speakText={voiceSpeakReady && !busy ? lastAssistant.text : ''}
             speakId={voiceSpeakReady && !busy ? lastAssistant.id : ''}
             onRegisterStart={(start) => {

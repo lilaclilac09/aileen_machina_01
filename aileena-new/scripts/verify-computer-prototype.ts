@@ -262,12 +262,13 @@ function sourceChecks() {
   const chromeAt = agentChatSrc.indexOf('console-bottom-chrome');
   const chartAt = agentChatSrc.indexOf('<CloudflareDeskChart');
   assert(
-    'packed Cloudflare chart sits next to voice; open dock stays in bottom chrome',
+    'packed Cloudflare chart sits above voice, not beside the orb',
     chartAt > 0 &&
       chromeAt > 0 &&
       dockAt > transAt &&
       dockAt > chromeAt &&
-      /aside=\{/.test(agentChatSrc) &&
+      chartAt < agentChatSrc.indexOf('<AgentVoiceOrb') &&
+      !/aside=\{/.test(agentChatSrc) &&
       /data-testid="cloudflare-desk-chart"/.test(readFileSync(join(process.cwd(), 'components/CloudflareDeskChart.tsx'), 'utf8')),
   );
   const chartSrc = readFileSync(join(process.cwd(), 'components/CloudflareDeskChart.tsx'), 'utf8');
