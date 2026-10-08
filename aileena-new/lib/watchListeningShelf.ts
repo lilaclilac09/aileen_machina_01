@@ -7,11 +7,11 @@ function slugify(value: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-export type ShelfSection = 'listen' | 'watch' | 'read' | 'living';
-export type ShelfType = 'podcast' | 'film' | 'interview' | 'book' | 'note' | 'video' | 'scent';
+export type ShelfSection = 'listen' | 'watch' | 'read' | 'living' | 'gallery';
+export type ShelfType = 'podcast' | 'film' | 'interview' | 'book' | 'note' | 'video' | 'scent' | 'painting';
 export type ShelfObject = 'cover' | 'cassette' | 'spine' | 'slip';
-export type ShelfRow = 'listen' | 'watch' | 'notes' | 'video' | 'living' | 'scent';
-export type ShelfCoverKind = 'poster' | 'still' | 'spine' | 'object' | 'cutout';
+export type ShelfRow = 'listen' | 'watch' | 'notes' | 'video' | 'living' | 'scent' | 'gallery';
+export type ShelfCoverKind = 'poster' | 'still' | 'spine' | 'object' | 'cutout' | 'framed';
 
 export type ShelfItem = {
   id: string;
@@ -474,6 +474,21 @@ export const SHELF_GROUPS: {
   { section: 'watch', label: 'watch', anchors: ['watch', 'films', 'documentaries'] },
   { section: 'read', label: 'read', anchors: ['channels', 'video'] },
   { section: 'living', label: 'living', anchors: ['euro-life', 'lifestyle', 'duft'] },
+  { section: 'gallery', label: 'online gallery', anchors: ['gallery'] },
+];
+
+/** First hang: Chardin. Commons PD canvas, edge-to-edge — no CSS mat. Louvre gilt-frame photo is RMN ©. */
+export const GALLERY_RECS = [
+  {
+    title: 'Le Panier de fraises des bois',
+    shelfTitle: 'Wild Strawberries',
+    label: 'Chardin · 1761',
+    href: 'https://collections.louvre.fr/ark:/53355/cl010509181',
+    image: '/shelf/gallery-chardin-fraises.jpg',
+    note: '野草莓. The red pile holds the room.',
+    body: '野草莓. The red pile holds the room.',
+    tags: ['seeing', 'colour'],
+  },
 ];
 
 export const SHELF_ITEMS: ShelfItem[] = [
@@ -590,6 +605,21 @@ export const SHELF_ITEMS: ShelfItem[] = [
     coverKind: 'cutout' as const,
     object: 'cover' as const,
   })),
+  ...GALLERY_RECS.map((item) => ({
+    id: slugify(item.shelfTitle),
+    title: item.shelfTitle,
+    type: 'painting' as const,
+    section: 'gallery' as const,
+    row: 'gallery' as const,
+    creator: item.label,
+    source: `${item.title} · 野草莓 · 1761 · Louvre`,
+    note: item.note,
+    tags: item.tags,
+    href: item.href,
+    cover: item.image,
+    coverKind: 'framed' as const,
+    object: 'cover' as const,
+  })),
 ];
 
 export const FEATURED_SHELF_ID =
@@ -609,6 +639,8 @@ export const SHELF_HASH_ALIASES: Record<string, string> = {
   lifestyle: 'urban-drift-diary',
   duft: 'figuier-600g',
   scent: 'figuier-600g',
+  gallery: 'wild-strawberries',
+  'online-gallery': 'wild-strawberries',
 };
 
 export const SHELF_ROW_LABEL: Partial<Record<ShelfRow, string>> = {

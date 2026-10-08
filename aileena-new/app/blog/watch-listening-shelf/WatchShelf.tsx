@@ -48,6 +48,7 @@ function coverKindClass(kind: ShelfItem['coverKind']): string {
   if (kind === 'spine') return ' is-spine';
   if (kind === 'object') return ' is-object';
   if (kind === 'cutout') return ' is-cutout';
+  if (kind === 'framed') return ' is-framed';
   return '';
 }
 
@@ -56,6 +57,7 @@ function ShelfObject({ item }: { item: ShelfItem }) {
   const spinePhoto = item.coverKind === 'spine';
   const objectPhoto = item.coverKind === 'object';
   const cutout = item.coverKind === 'cutout';
+  const framed = item.coverKind === 'framed';
   const ridgeFill = spinePhoto || objectPhoto;
   return (
     <span
@@ -66,13 +68,13 @@ function ShelfObject({ item }: { item: ShelfItem }) {
         <Image
           src={item.cover}
           alt=""
-          width={cutout ? 140 : spinePhoto ? 90 : still || objectPhoto ? 160 : 72}
-          height={cutout ? 180 : spinePhoto ? 160 : still || objectPhoto ? 90 : 108}
+          width={cutout ? 140 : framed ? 160 : spinePhoto ? 90 : still || objectPhoto ? 160 : 72}
+          height={cutout ? 180 : framed ? 130 : spinePhoto ? 160 : still || objectPhoto ? 90 : 108}
           className={`watch-obj-cover${coverKindClass(item.coverKind)}`}
           style={{
             objectFit: ridgeFill ? 'cover' : 'contain',
             width: ridgeFill ? undefined : 'auto',
-            height: ridgeFill ? undefined : cutout ? 92 : 72,
+            height: ridgeFill ? undefined : cutout ? 92 : framed ? 76 : 72,
             background: 'transparent',
           }}
         />
@@ -166,7 +168,8 @@ export default function WatchShelf({ owner }: { owner: boolean }) {
                       row.row === 'notes' ||
                       row.row === 'video' ||
                       row.row === 'living' ||
-                      row.row === 'scent';
+                      row.row === 'scent' ||
+                      row.row === 'gallery';
                     return (
                       <div key={row.row} className="watch-shelf-lane">
                         {row.label ? (
@@ -213,24 +216,32 @@ export default function WatchShelf({ owner }: { owner: boolean }) {
                   src={selected.cover}
                   alt=""
                   width={
-                    selected.coverKind === 'still' || selected.coverKind === 'object'
-                      ? 320
-                      : selected.coverKind === 'cutout'
-                        ? 280
-                        : selected.coverKind === 'spine'
-                          ? 180
-                          : 220
+                    selected.coverKind === 'framed'
+                      ? 880
+                      : selected.coverKind === 'still' || selected.coverKind === 'object'
+                        ? 320
+                        : selected.coverKind === 'cutout'
+                          ? 280
+                          : selected.coverKind === 'spine'
+                            ? 180
+                            : 220
                   }
                   height={
-                    selected.coverKind === 'still' || selected.coverKind === 'object'
-                      ? 180
-                      : selected.coverKind === 'cutout'
-                        ? 360
-                        : selected.coverKind === 'spine'
-                          ? 320
-                          : 320
+                    selected.coverKind === 'framed'
+                      ? 714
+                      : selected.coverKind === 'still' || selected.coverKind === 'object'
+                        ? 180
+                        : selected.coverKind === 'cutout'
+                          ? 360
+                          : selected.coverKind === 'spine'
+                            ? 320
+                            : 320
                   }
                   className={`watch-shelf-detail-image${coverKindClass(selected.coverKind)}`}
+                  quality={selected.coverKind === 'framed' ? 90 : undefined}
+                  sizes={
+                    selected.coverKind === 'framed' ? '(min-width: 900px) 560px, 92vw' : undefined
+                  }
                   style={{ objectFit: 'contain', background: 'transparent' }}
                 />
               </div>
