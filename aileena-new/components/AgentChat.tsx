@@ -42,6 +42,7 @@ import SiteLeftChrome from './SiteLeftChrome';
 import AgentVoiceOrb from './AgentVoiceOrb';
 import BrowserUseIcon from './BrowserUseIcon';
 import BrowserUseWindow from './BrowserUseWindow';
+import CloudflareDeskChart from './CloudflareDeskChart';
 import ComputerConsoleDock from './ComputerConsoleDock';
 
 const STARTER_PROMPTS = [
@@ -203,6 +204,7 @@ export default function AgentChat() {
   const voiceModeRef = useRef(false);
   voiceModeRef.current = voiceMode;
   const [computerMode, setComputerMode] = useState(false);
+  const [computerExpanded, setComputerExpanded] = useState(false);
   const [browseMode, setBrowseMode] = useState(false);
   const [browseTask, setBrowseTask] = useState('');
   const [voiceLive, setVoiceLive] = useState('');
@@ -595,6 +597,7 @@ export default function AgentChat() {
       }>;
       setOpen(true);
       setComputerMode(true);
+      setComputerExpanded(sharedRoomFromQuery(window.location.search));
       if (ce.detail?.voice || ce.detail?.autoListen) {
         setVoiceMode(true);
         if (ce.detail?.autoListen) setAutoListen(true);
@@ -762,6 +765,7 @@ export default function AgentChat() {
     setVoiceMode(false);
     setVoiceLive('');
     setComputerMode(false);
+    setComputerExpanded(false);
     setLeadOpen(false);
     setLeadError(null);
     setOpen(false);
@@ -895,6 +899,7 @@ export default function AgentChat() {
         e.preventDefault();
         setOpen(true);
         setComputerMode(true);
+        setComputerExpanded(sharedRoomFromQuery(window.location.search));
       }
     }
     window.addEventListener('keydown', onKey);
@@ -1718,6 +1723,7 @@ export default function AgentChat() {
         onOpenConsole={() => {
           setOpen(true);
           setComputerMode(true);
+          setComputerExpanded(sharedRoomFromQuery(window.location.search));
         }}
         consoleOpen={open}
       />
@@ -1751,14 +1757,14 @@ export default function AgentChat() {
       />
 
       {/* Console card — full-bleed on phone.
-          Flex column: header / optional computer / flexible transcript / voice / input.
+          Flex column: header / transcript / packed Cloudflare chart beside voice / input.
           Desktop stays short (≤72vh) so the orb reads as a control, not a hero.
-          Computer on: 88vh + dock yields so the voice row is never cropped. */}
+          Desk open: 88vh + dock yields so the voice row is never cropped. */}
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Aileena Console"
-        className={`fixed z-[80] inset-0 sm:inset-x-auto sm:inset-y-auto sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[min(760px,calc(100vw-2.5rem))] sm:max-w-[calc(100vw-2.5rem)] h-[100dvh] sm:h-auto max-h-[100dvh] ${computerMode ? 'sm:max-h-[88vh]' : 'sm:max-h-[72vh]'} flex flex-col overflow-hidden bg-[#fffdf8] sm:bg-[#fffdf8]/95 border-0 sm:border sm:border-[#ded8ce] shadow-none sm:shadow-[0_24px_80px_-34px_rgba(31,26,20,0.42)] backdrop-blur-none sm:backdrop-blur-md transition-all duration-200 pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] sm:pt-0 sm:pb-0 ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-[0.98] sm:scale-[0.96] pointer-events-none'} font-mono`}
+        className={`fixed z-[80] inset-0 sm:inset-x-auto sm:inset-y-auto sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[min(760px,calc(100vw-2.5rem))] sm:max-w-[calc(100vw-2.5rem)] h-[100dvh] sm:h-auto max-h-[100dvh] ${computerExpanded ? 'sm:max-h-[88vh]' : 'sm:max-h-[72vh]'} flex flex-col overflow-hidden bg-[#fffdf8] sm:bg-[#fffdf8]/95 border-0 sm:border sm:border-[#ded8ce] shadow-none sm:shadow-[0_24px_80px_-34px_rgba(31,26,20,0.42)] backdrop-blur-none sm:backdrop-blur-md transition-all duration-200 pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] sm:pt-0 sm:pb-0 ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-[0.98] sm:scale-[0.96] pointer-events-none'} font-mono`}
         style={{
           fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace',
           ...phoneConsoleStyle,
@@ -1895,20 +1901,26 @@ export default function AgentChat() {
             <button
               type="button"
               data-testid="computer-mode-toggle"
-              aria-pressed={computerMode}
-              aria-label={computerMode ? 'Turn computer off' : 'Turn computer on'}
+              aria-pressed={computerExpanded}
+              aria-label={computerExpanded ? 'Pack Cloudflare desk' : 'Open Cloudflare files/shell desk'}
               title={
-                computerMode
-                  ? 'Computer on — monitor in this dialog'
-                  : 'Tap to open the small computer in this dialog'
+                computerExpanded
+                  ? 'Desk open — worker-shell files/shell. Browser stays aside.'
+                  : 'Cloudflare desk packed — files/shell, browser aside'
               }
-              onClick={() => setComputerMode((on) => !on)}
+              onClick={() => {
+                setComputerExpanded((on) => {
+                  const next = !on;
+                  if (next) setComputerMode(true);
+                  return next;
+                });
+              }}
               className="inline-flex min-h-11 items-center gap-1.5 text-[0.55rem] tracking-[0.14em] uppercase px-2 py-0.5 rounded-[7px] transition-colors sm:min-h-0"
               style={{
                 color: '#007d75',
-                background: computerMode ? 'rgba(0,168,157,0.12)' : '#fffcf7',
+                background: computerExpanded ? 'rgba(0,168,157,0.12)' : '#fffcf7',
                 border: '1px solid rgba(0,168,157,0.45)',
-                boxShadow: computerMode
+                boxShadow: computerExpanded
                   ? '0 0 8px rgba(0,168,157,0.35)'
                   : '0 1px 0 rgba(27,23,19,0.06)',
               }}
@@ -1917,11 +1929,11 @@ export default function AgentChat() {
                 aria-hidden
                 className="inline-block h-2.5 w-3.5 rounded-[2px] border border-[#007d75]/70"
                 style={{
-                  background: computerMode ? '#0b2422' : 'rgba(0,168,157,0.15)',
-                  boxShadow: computerMode ? 'inset 0 0 3px rgba(0,168,157,0.9)' : 'none',
+                  background: computerExpanded ? '#0b2422' : 'rgba(0,168,157,0.15)',
+                  boxShadow: computerExpanded ? 'inset 0 0 3px rgba(0,168,157,0.9)' : 'none',
                 }}
               />
-              {computerMode ? 'computer on' : 'computer'}
+              {computerExpanded ? 'desk on' : 'desk'}
             </button>
             <button
               type="button"
@@ -1943,15 +1955,13 @@ export default function AgentChat() {
           </div>
         </div>
 
-        {computerMode ? <ComputerConsoleDock isOwner={isOwner} voiceOn={voiceMode} /> : null}
-
         {/* Transcript — flex-auto: content-sized when dialog is short; shrinks +
-            scrolls when the dialog hits its max-height. Computer on: no 9rem
+            scrolls when the dialog hits its max-height. Desk open: no 9rem
             floor — the dock already takes the room; voice chrome stays visible. */}
         <div
           ref={scrollRef}
           data-agent-transcript
-          className={`flex-auto min-h-0 ${computerMode ? '' : 'sm:min-h-[9rem]'} overflow-y-auto overscroll-contain px-4 sm:px-5 py-3 sm:py-4 space-y-3.5 bg-[#fffcf7]/55`}
+          className={`flex-auto min-h-0 ${computerExpanded ? '' : 'sm:min-h-[9rem]'} overflow-y-auto overscroll-contain px-4 sm:px-5 py-3 sm:py-4 space-y-3.5 bg-[#fffcf7]/55`}
         >
           {messages.length === 0 && (!isOwner || sharedRoom) ? (
             <>
@@ -2123,12 +2133,25 @@ export default function AgentChat() {
         {/* Bottom chrome: orb → chat input → optional leave-a-note (collapsed).
             Never clip the orb / city pills — the computer dock yields instead. */}
         <div className="shrink-0 flex flex-col" data-testid="console-bottom-chrome">
+        {computerExpanded ? <ComputerConsoleDock isOwner={isOwner} voiceOn={voiceMode} /> : null}
         <div className="shrink-0">
           <AgentVoiceOrb
             active={open && voiceMode}
             autoListen={autoListen}
             busy={busy}
             disabled={sessionMaxed}
+            aside={
+              <CloudflareDeskChart
+                packed={!computerExpanded}
+                onToggle={() => {
+                  setComputerExpanded((on) => {
+                    const next = !on;
+                    if (next) setComputerMode(true);
+                    return next;
+                  });
+                }}
+              />
+            }
             speakText={voiceSpeakReady && !busy ? lastAssistant.text : ''}
             speakId={voiceSpeakReady && !busy ? lastAssistant.id : ''}
             onRegisterStart={(start) => {

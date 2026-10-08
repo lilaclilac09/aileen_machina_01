@@ -128,6 +128,11 @@ async function main() {
       !/ComputerConsoleDock[\s\S]{0,80}BrowserUseWindow/.test(agentChatSrc),
   );
   assert('voice/browse click-through opens the window', /parseOwnerBrowseCommand/.test(agentChatSrc) && /setBrowseMode\(true\)/.test(agentChatSrc));
+  assert(
+    'Cloudflare desk is a packed chart next to voice, browser aside',
+    /CloudflareDeskChart/.test(agentChatSrc) &&
+      /data-browser="aside"/.test(read('components/CloudflareDeskChart.tsx')),
+  );
 
   const failed = checks.filter((c) => !c.ok);
   console.log(`\nResult: ${checks.length - failed.length}/${checks.length} passed`);
