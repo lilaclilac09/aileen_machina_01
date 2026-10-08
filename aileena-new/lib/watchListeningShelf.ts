@@ -485,8 +485,8 @@ export const GALLERY_RECS = [
     label: 'Chardin · 1761',
     href: 'https://collections.louvre.fr/ark:/53355/cl010509181',
     image: '/shelf/gallery-chardin-fraises.jpg',
-    note: '野草莓. The red pile holds the room.',
-    body: '野草莓. The red pile holds the room.',
+    note: 'Luxury is an eye for the ordinary, held in an invisible life — against the fog and the bind, toward real freedom.',
+    body: 'Luxury is an eye for the ordinary, held in an invisible life — against the fog and the bind, toward real freedom.',
     tags: ['seeing', 'colour'],
   },
 ];

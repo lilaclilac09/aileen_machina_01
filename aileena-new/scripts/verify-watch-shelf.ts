@@ -173,7 +173,9 @@ function main() {
       strawberries.coverKind === 'framed' &&
       strawberries.cover === '/shelf/gallery-chardin-fraises.jpg' &&
       strawberries.href === 'https://collections.louvre.fr/ark:/53355/cl010509181' &&
-      strawberries.source?.includes('野草莓'),
+      strawberries.source?.includes('野草莓') &&
+      strawberries.note ===
+        'Luxury is an eye for the ordinary, held in an invisible life — against the fog and the bind, toward real freedom.',
     strawberries?.id,
   );
   const chardinJpg = join(process.cwd(), 'public', 'shelf', 'gallery-chardin-fraises.jpg');
