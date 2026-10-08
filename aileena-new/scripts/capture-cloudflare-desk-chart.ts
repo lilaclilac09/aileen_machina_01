@@ -18,7 +18,9 @@ async function openConsole(page: import('playwright').Page) {
   await machina.click();
   await page.waitForFunction(() => {
     const d = document.querySelector('[role="dialog"][aria-label="Aileena Console"]');
-    return Boolean(d && getComputedStyle(d).pointerEvents === 'auto');
+    if (!d) return false;
+    const s = getComputedStyle(d);
+    return s.pointerEvents === 'auto' && Number(s.opacity) > 0.9;
   }, null, { timeout: 15_000 });
 }
 
