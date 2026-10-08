@@ -485,8 +485,8 @@ export const GALLERY_RECS = [
     label: 'Chardin · 1761',
     href: 'https://collections.louvre.fr/ark:/53355/cl010509181',
     image: '/shelf/gallery-chardin-fraises.jpg',
-    note: 'Luxury is an eye for the ordinary, held in an invisible life — against the fog and the bind, toward real freedom.',
-    body: 'Luxury is an eye for the ordinary, held in an invisible life — against the fog and the bind, toward real freedom.',
+    note: 'Luxury is having, in an invisible life, an eye that can still appreciate the ordinary — to stand against the fog and bindings of living, and to find real freedom.',
+    body: 'Luxury is having, in an invisible life, an eye that can still appreciate the ordinary — to stand against the fog and bindings of living, and to find real freedom.',
     tags: ['seeing', 'colour'],
   },
 ];
