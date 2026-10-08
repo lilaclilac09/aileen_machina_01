@@ -46,13 +46,12 @@ async function main() {
   await page.screenshot({ path: join(OUT, 'browser-use-prepare-390.png') });
 
   const day = new Date().toISOString().slice(0, 10);
-  const exhausted = encodeURIComponent(Buffer.from(JSON.stringify({ date: day, count: 20 })).toString('base64'));
+  const exhausted = Buffer.from(JSON.stringify({ date: day, count: 20 })).toString('base64');
   await mobile.addCookies([
     {
       name: '__aileena_quota',
       value: exhausted,
       url: BASE,
-      path: '/',
       httpOnly: true,
     },
   ]);
