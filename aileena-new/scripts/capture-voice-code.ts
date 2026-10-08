@@ -32,6 +32,10 @@ async function openConsole(page: import('playwright').Page) {
   await page.keyboard.press('Escape');
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('open-agent-chat')));
   await page.waitForSelector('[role="dialog"][aria-label="Aileena Console"]', { state: 'visible' });
+  const toggle = page.locator('[data-testid="computer-mode-toggle"]');
+  if ((await toggle.getAttribute('aria-pressed')) !== 'true') {
+    await toggle.click({ force: true });
+  }
   await page.waitForSelector('[data-testid="computer-console-dock"]', { timeout: 15_000, state: 'visible' });
   await page.waitForTimeout(400);
 }
