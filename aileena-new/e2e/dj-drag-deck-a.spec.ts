@@ -233,8 +233,13 @@ test.describe('DJ double-click vocals + covers → decks', () => {
 
   test('double-click a list row loads Deck A', async ({ page }) => {
     await page.goto('/sound', { waitUntil: 'domcontentloaded' });
-    await page.getByTestId('dj-view-list').click();
+    await expect(page.getByTestId('dj-deck-a-title')).toBeVisible();
+    const switcher = page.getByTestId('dj-view-list');
+    await switcher.scrollIntoViewIfNeeded();
+    await switcher.click();
+    await expect(page.getByTestId('dj-list-row').first()).toBeVisible({ timeout: 15_000 });
     const row = page.locator('[data-testid="dj-list-row"][data-track-id="23OBmlZUnRpatDl4q2RoIQ"]');
+    await row.scrollIntoViewIfNeeded();
     await expect(row).toBeVisible();
     await row.dblclick();
     await expect
