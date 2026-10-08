@@ -1,6 +1,7 @@
 'use client';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import TrackLibraryBrowser from './TrackLibraryBrowser';
+import VocalSampleRack from './VocalSampleRack';
 import { allDeckTracks, PINNED_DECK_A_ID, PINNED_DECK_B_ID, type DeckTrack } from '../lib/djSetlist';
 import { useDuoLayout } from '../lib/duoPose';
 import { KNOB_TICKS, knobAngleDeg, knobValueFromOffset, snapKnobTick } from '../lib/djMixerMath';
@@ -284,6 +285,24 @@ export default function DJStation() {
       data-testid="dj-duo-pose"
       style={{ userSelect: 'none', width: '100%', background: '#0b0d10' }}
     >
+      <p
+        data-testid="dj-neon-sign"
+        aria-label="the show must go on"
+        style={{
+          margin: '0 0 16px',
+          textAlign: 'center',
+          fontFamily: 'Georgia, Times, serif',
+          fontStyle: 'italic',
+          fontWeight: 600,
+          fontSize: 'clamp(1.15rem, 3.4vw, 1.85rem)',
+          letterSpacing: '0.06em',
+          color: '#7ff6ec',
+          textShadow:
+            '0 0 6px rgba(0,168,157,0.95), 0 0 18px rgba(0,168,157,0.65), 0 0 42px rgba(0,168,157,0.35)',
+        }}
+      >
+        the show must go on
+      </p>
 
       {/* ── Spotify embed containers (functional audio) ── */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 6, marginBottom: 8 }}>
@@ -454,6 +473,8 @@ export default function DJStation() {
           rightPos={rightPos} rightDur={rightDur}
         />
       </div>
+
+      <VocalSampleRack />
     </div>
   );
 }
