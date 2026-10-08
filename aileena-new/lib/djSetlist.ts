@@ -219,6 +219,8 @@ export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
   { id: '0YQ2IRqkQjdeBppIJeNiwx', title: 'My Love Turns to Liquid', artist: 'Dream 2 Science', album: 'Dream 2 Science', bpm: 120, key: '12A', dur: 322, thumb: '/dj-set/assets/covers/dream-2-science.jpg' },
   { id: 'DELSIN', title: 'Sinners', artist: 'Delian Sound', album: 'Secrets EP', bpm: 130, key: '4A', dur: 200, thumb: '/dj-set/assets/covers/secrets-ep.jpg' },
   { id: 'DELSEC', title: 'Secrets', artist: 'Delian Sound', album: 'Secrets EP', bpm: 130, key: '4A', dur: 200, thumb: '/dj-set/assets/covers/secrets-ep.jpg' },
+  { id: 'FINAMS', title: 'Amsterdam', artist: 'Finlay Shakespeare', album: 'Domestic Economy', bpm: 120, key: '4A', dur: 364, thumb: '/dj-set/assets/covers/domestic-economy.jpg' },
+  { id: '23OBmlZUnRpatDl4q2RoIQ', title: 'Absolutely', artist: 'Klein Zage', album: 'Womanhood EP', bpm: 130, key: '11A', dur: 241, thumb: '/dj-set/assets/covers/womanhood-ep.jpg' },
 ];
 
 /** Top /sound decks stay on Kiwi / Only Angel when the carousel library grows. */
