@@ -26,6 +26,7 @@ export type DeckTrack = {
   spotifyId?: string;
   title: string;
   artist?: string;
+  album?: string;
   bpm: number;
   key: string;
   dur: number;
@@ -213,11 +214,11 @@ export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
   { id: '21obhV6hdu9pJEqC0jvNnO', title: 'Watermelon', bpm: 120, key: '4A', dur: 182, thumb: '/dj-set/assets/covers/xoxo.jpg' },
   { id: '26YSv4NFDACPUKGX5Aj079', title: 'What You Waiting For', bpm: 120, key: '4A', dur: 175, thumb: '/dj-set/assets/covers/xoxo.jpg' },
   { id: '47K7si9sKri95IHuOz9HAA', title: 'Outta My Head', bpm: 120, key: '4A', dur: 188, thumb: '/dj-set/assets/covers/xoxo.jpg' },
-  { id: '5Lbsc65org0b85kNsPkluY', title: 'Only Angel', bpm: 114, key: '7B', dur: 291, thumb: '/dj-set/assets/covers/harry-styles.jpg' },
-  { id: '33SNO8AaciGbNaQFkxvPrW', title: 'Kiwi', bpm: 144, key: '10B', dur: 176, thumb: '/dj-set/assets/covers/harry-styles.jpg' },
-  { id: '0YQ2IRqkQjdeBppIJeNiwx', title: 'My Love Turns to Liquid', artist: 'Dream 2 Science', bpm: 120, key: '12A', dur: 322, thumb: '/dj-set/assets/covers/dream-2-science.jpg' },
-  { id: 'DELSIN', title: 'Sinners', artist: 'Delian Sound', bpm: 130, key: '4A', dur: 200, thumb: '/dj-set/assets/covers/secrets-ep.jpg' },
-  { id: 'DELSEC', title: 'Secrets', artist: 'Delian Sound', bpm: 130, key: '4A', dur: 200, thumb: '/dj-set/assets/covers/secrets-ep.jpg' },
+  { id: '5Lbsc65org0b85kNsPkluY', title: 'Only Angel', artist: 'Harry Styles', album: 'Harry Styles', bpm: 114, key: '7B', dur: 291, thumb: '/dj-set/assets/covers/harry-styles.jpg' },
+  { id: '33SNO8AaciGbNaQFkxvPrW', title: 'Kiwi', artist: 'Harry Styles', album: 'Harry Styles', bpm: 144, key: '10B', dur: 176, thumb: '/dj-set/assets/covers/harry-styles.jpg' },
+  { id: '0YQ2IRqkQjdeBppIJeNiwx', title: 'My Love Turns to Liquid', artist: 'Dream 2 Science', album: 'Dream 2 Science', bpm: 120, key: '12A', dur: 322, thumb: '/dj-set/assets/covers/dream-2-science.jpg' },
+  { id: 'DELSIN', title: 'Sinners', artist: 'Delian Sound', album: 'Secrets EP', bpm: 130, key: '4A', dur: 200, thumb: '/dj-set/assets/covers/secrets-ep.jpg' },
+  { id: 'DELSEC', title: 'Secrets', artist: 'Delian Sound', album: 'Secrets EP', bpm: 130, key: '4A', dur: 200, thumb: '/dj-set/assets/covers/secrets-ep.jpg' },
 ];
 
 /** Top /sound decks stay on Kiwi / Only Angel when the carousel library grows. */
@@ -230,6 +231,7 @@ export function djSetToDeckTracks(): DeckTrack[] {
     spotifyId: t.spotifyId,
     title: t.title,
     artist: t.artist,
+    album: t.album,
     bpm: t.bpm ?? 120,
     key: t.key ?? '—',
     dur: t.durationSec ?? 200,
