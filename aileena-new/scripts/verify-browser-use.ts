@@ -10,6 +10,7 @@ import { browserUseStatus, formatBrowserUseSpoken, formatBrowserUsePublicSpoken 
 import { hasBrowserUseApiKey, isBrowserUseLiveEnabled } from '../lib/browserUse/env';
 import { runBrowserUseTask } from '../lib/browserUse/runTask';
 import { browserUseAppStatus, callBrowserUse } from '../lib/browserUse/mcp';
+import { CHAT_DAILY_LIMIT, QUOTA_COOKIE, takeVisitorChatTurn } from '../lib/chatQuota';
 
 type Check = { name: string; ok: boolean; detail?: string };
 const checks: Check[] = [];
@@ -29,6 +30,7 @@ async function main() {
   const clientSrc = read('lib/browserUse/client.ts');
   const exampleSrc = read('scripts/browser-use-example.ts');
   const chatSrc = read('app/api/chat/route.ts');
+  const quotaSrc = read('lib/chatQuota.ts');
   const catalogSrc = read('lib/mcp/catalog.ts');
   const parseComputer = read('lib/computer/parseOwnerCommand.ts');
   const runner = read('lib/computer/runner.ts');
@@ -142,6 +144,44 @@ async function main() {
       !/aside=\{/.test(agentChatSrc) &&
       /data-browser="aside"/.test(read('components/CloudflareDeskChart.tsx')),
   );
+
+  assert('same 20/day cookie helper', /CHAT_DAILY_LIMIT = 20/.test(quotaSrc) && /takeVisitorChatTurn/.test(quotaSrc));
+  assert(
+    'chat browse fast path uses visitor chat quota',
+    /takeVisitorChatTurn/.test(chatSrc) &&
+      chatSrc.indexOf('tryBrowserUseFastPath') !== -1 &&
+      chatSrc.indexOf('takeVisitorChatTurn') < chatSrc.indexOf('tryOwnerComputerFastPath'),
+  );
+  const getSrc = apiSrc.slice(0, apiSrc.indexOf('export async function POST'));
+  assert('browser-use GET stays free', !/takeVisitorChatTurn/.test(getSrc));
+  assert(
+    'browser-use POST uses same quota',
+    /takeVisitorChatTurn/.test(apiSrc) && /QUOTA_EXHAUSTED_MSG/.test(apiSrc) && !/runs\.create/.test(apiSrc),
+  );
+  assert(
+    'window sends X-Quota-Day and shows 429',
+    /X-Quota-Day/.test(windowSrc) && /quotaDayKey/.test(windowSrc) && /browser-use-quota/.test(windowSrc),
+  );
+
+  const unlimited = await takeVisitorChatTurn(new Request('https://aileena.xyz/api/agent/browser-use'), true);
+  assert('owner unlimited skips cookie', unlimited.ok && unlimited.remaining === 'unlimited' && unlimited.cookie === null);
+
+  const first = await takeVisitorChatTurn(new Request('https://aileena.xyz/api/agent/browser-use'), false);
+  assert(
+    'visitor first prepare counts as 1 of 20',
+    first.ok && first.remaining === String(CHAT_DAILY_LIMIT - 1) && Boolean(first.cookie),
+    first.ok ? first.remaining : 'blocked',
+  );
+
+  const day = new Date().toISOString().slice(0, 10);
+  const maxedCookie = `${QUOTA_COOKIE}=${encodeURIComponent(btoa(JSON.stringify({ date: day, count: CHAT_DAILY_LIMIT })))}`;
+  const maxed = await takeVisitorChatTurn(
+    new Request('https://aileena.xyz/api/agent/browser-use', {
+      headers: { cookie: maxedCookie, 'x-quota-day': day },
+    }),
+    false,
+  );
+  assert('visitor at 20 is exhausted', !maxed.ok && maxed.remaining === '0');
 
   const failed = checks.filter((c) => !c.ok);
   console.log(`\nResult: ${checks.length - failed.length}/${checks.length} passed`);

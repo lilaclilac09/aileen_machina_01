@@ -47,6 +47,13 @@ import {
   visitorSoftMemoryEnabled,
 } from '../../../lib/visitorMemory';
 import { hasOwnerUnlimitedChat } from '../../../lib/owner-access';
+import {
+  CHAT_DAILY_LIMIT,
+  QUOTA_EXHAUSTED_MSG,
+  readQuota,
+  buildQuotaCookie,
+  takeVisitorChatTurn,
+} from '../../../lib/chatQuota';
 import { parseVoiceAccent } from '../../../lib/voiceAccent';
 import {
   buildFrozenSystemPrompt,
@@ -64,113 +71,7 @@ import { formatSkillsForTurn } from '../../../lib/evolution/runtime';
 import { enqueueLiveAsk } from '../../../lib/evolution/liveInbox';
 
 export const maxDuration = 30;
-const DAILY_LIMIT = 20;
-const QUOTA_COOKIE = '__aileena_quota';
-
-/**
- * Per-visitor daily rate limiting via a signed cookie.
- *
- * Counter is stored in the visitor's own cookie. We sign it with HMAC so
- * the client can't trivially fake a lower count. Bypassable by clearing
- * cookies / using incognito, but that's a known and accepted trade-off for
- * a portfolio site — the alternative was provisioning a Vercel KV store.
- *
- * Day key must match the visitor's local calendar day (client sends
- * `X-Quota-Day: YYYY-MM-DD`). UTC-only keys made Asia/Europe visitors look
- * like the counter never reset between local midnight and UTC midnight.
- *
- * If CHAT_QUOTA_SECRET is unset we skip signature verification but still
- * use the counter (so the limit works, just isn't tamper-proof).
- */
-
-function utcDay(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
-/** Prefer visitor-local day from header; fall back to UTC; reject absurd skew. */
-function resolveQuotaDay(req: Request): string {
-  const header = (req.headers.get('x-quota-day') ?? '').trim();
-  const utc = utcDay();
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(header)) return utc;
-  const clientNoon = Date.parse(`${header}T12:00:00.000Z`);
-  const utcNoon = Date.parse(`${utc}T12:00:00.000Z`);
-  if (!Number.isFinite(clientNoon) || !Number.isFinite(utcNoon)) return utc;
-  // All civil timezones sit within ±14h of UTC; allow ~36h slack for clock skew.
-  if (Math.abs(clientNoon - utcNoon) > 36 * 60 * 60 * 1000) return utc;
-  return header;
-}
-
-function b64urlEncode(bytes: Uint8Array): string {
-  let s = '';
-  for (const b of bytes) s += String.fromCharCode(b);
-  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-
-async function hmac(value: string, secret: string): Promise<string> {
-  const enc = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    'raw',
-    enc.encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign'],
-  );
-  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(value));
-  return b64urlEncode(new Uint8Array(sig));
-}
-
-type QuotaState = { date: string; count: number };
-
-async function readQuota(req: Request): Promise<QuotaState> {
-  const today = resolveQuotaDay(req);
-  const cookieHeader = req.headers.get('cookie') ?? '';
-  const match = cookieHeader.match(new RegExp(`${QUOTA_COOKIE}=([^;]+)`));
-  if (!match) return { date: today, count: 0 };
-
-  try {
-    const raw = decodeURIComponent(match[1]);
-    const dot = raw.indexOf('.');
-    const encoded = dot === -1 ? raw : raw.slice(0, dot);
-    const sig = dot === -1 ? '' : raw.slice(dot + 1);
-
-    const secret = process.env.CHAT_QUOTA_SECRET ?? '';
-    if (secret) {
-      if (!sig) {
-        console.warn('[chat] readQuota: cookie signature missing but CHAT_QUOTA_SECRET is set');
-        return { date: today, count: 0 };
-      }
-      const expected = await hmac(encoded, secret);
-      if (expected !== sig) {
-        console.warn('[chat] readQuota: cookie signature mismatch');
-        return { date: today, count: 0 };
-      }
-    }
-
-    const decoded = JSON.parse(atob(encoded)) as Partial<QuotaState>;
-    if (decoded.date !== today || typeof decoded.count !== 'number') {
-      // New local day (or UTC roll) → fresh counter.
-      return { date: today, count: 0 };
-    }
-    return { date: decoded.date, count: Math.max(0, Math.min(decoded.count, 99)) };
-  } catch (err) {
-    console.error('[chat] readQuota: error parsing/verifying quota cookie', err);
-    return { date: today, count: 0 };
-  }
-}
-
-async function buildQuotaCookie(state: QuotaState): Promise<string> {
-  try {
-    const encoded = btoa(JSON.stringify(state));
-    const secret = process.env.CHAT_QUOTA_SECRET ?? '';
-    const sig = secret ? await hmac(encoded, secret) : '';
-    const value = sig ? `${encoded}.${sig}` : encoded;
-    // 25 hours so the cookie naturally expires across the day boundary.
-    return `${QUOTA_COOKIE}=${encodeURIComponent(value)}; Path=/; Max-Age=90000; HttpOnly; Secure; SameSite=Strict`;
-  } catch (err) {
-    console.error('[chat] buildQuotaCookie: error building cookie', err);
-    return '';
-  }
-}
+const DAILY_LIMIT = CHAT_DAILY_LIMIT;
 
 function jsonError(
   message: string,
@@ -262,6 +163,20 @@ export async function POST(req: Request) {
   };
   const browse = tryBrowserUseFastPath({ lastQ: lastQEarly });
   if (browse) {
+    const ownerUnlimitedBrowse = await hasOwnerUnlimitedChat(req);
+    const unlimitedBrowse = skipVisitorQuota(Boolean(owner)) || ownerUnlimitedBrowse;
+    const turn = await takeVisitorChatTurn(req, unlimitedBrowse);
+    if (!turn.ok) {
+      const exhausted = await buildQuotaCookie(turn.quota);
+      return jsonError(QUOTA_EXHAUSTED_MSG, 429, trace.traceId, {
+        ...(exhausted ? { 'Set-Cookie': exhausted } : {}),
+        'X-Daily-Remaining': '0',
+        'X-Quota-Day': turn.quota.date,
+      });
+    }
+    if (turn.cookie) browse.headers.append('Set-Cookie', turn.cookie);
+    browse.headers.set('X-Daily-Remaining', turn.remaining);
+    browse.headers.set('X-Quota-Day', turn.quota.date);
     trace.log('browser_use_fast_path', { q: lastQEarly.slice(0, 80) });
     return withComputerCookie(browse);
   }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import BrowserUseIcon from './BrowserUseIcon';
+import { quotaDayKey } from '@/lib/voiceCodeIntent';
 
 type Status = {
   api: 'v4';
@@ -27,6 +28,7 @@ export default function BrowserUseWindow({
 }) {
   const [status, setStatus] = useState<Status | null>(null);
   const [busy, setBusy] = useState(false);
+  const [quotaNote, setQuotaNote] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -48,12 +50,25 @@ export default function BrowserUseWindow({
     const next = task.trim();
     if (!next || busy) return;
     setBusy(true);
+    setQuotaNote(null);
     try {
       const res = await fetch('/api/agent/browser-use', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Quota-Day': quotaDayKey(),
+        },
         body: JSON.stringify({ task: next }),
       });
+      if (res.status === 429) {
+        const body = (await res.json().catch(() => null)) as { error?: string } | null;
+        setQuotaNote(
+          typeof body?.error === 'string' && body.error.trim()
+            ? body.error
+            : "You've used today's 20 messages. A fresh set lands tomorrow — see you then.",
+        );
+        return;
+      }
       if (res.ok) {
         const body = (await res.json()) as Status;
         setStatus(body);
@@ -130,6 +145,11 @@ export default function BrowserUseWindow({
           {status?.wouldRunTask ? (
             <p data-testid="browser-use-would-run" className="text-[0.65rem] leading-5 text-[#007d75]/90">
               would run: {status.wouldRunTask}
+            </p>
+          ) : null}
+          {quotaNote ? (
+            <p data-testid="browser-use-quota" className="text-[0.65rem] leading-5 text-[#1b1713]/55">
+              {quotaNote}
             </p>
           ) : null}
         </div>
