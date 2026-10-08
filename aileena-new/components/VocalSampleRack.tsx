@@ -1,7 +1,14 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { VOCAL_LANGS, VOCAL_SAMPLES, type VocalLang } from '../lib/djVocalSamples';
+import { useMemo, useRef, useState } from 'react';
+import {
+  VOCAL_LANGS,
+  VOCAL_SAMPLES,
+  vocalToDeckTrack,
+  type VocalLang,
+  type VocalSample,
+} from '../lib/djVocalSamples';
+import type { DeckTrack } from '../lib/djSetlist';
 
 const T = {
   text: '#fffdf8',
@@ -13,7 +20,13 @@ const T = {
   border: 'rgba(170,179,187,0.14)',
 };
 
-export default function VocalSampleRack() {
+export default function VocalSampleRack({
+  onLoadNext,
+  onSetDragTrack,
+}: {
+  onLoadNext?: (track: DeckTrack) => void;
+  onSetDragTrack?: (track: DeckTrack) => void;
+}) {
   const [lang, setLang] = useState<VocalLang>('fr');
   const clips = useMemo(
     () => VOCAL_SAMPLES.filter((s) => s.lang === lang),
@@ -93,31 +106,104 @@ export default function VocalSampleRack() {
           </li>
         ) : (
           clips.map((clip) => (
-            <li key={clip.id}>
-              <a
-                href={clip.href}
-                target="_blank"
-                rel="noreferrer"
-                data-testid={`dj-vocals-clip-${clip.id}`}
-                style={{
-                  display: 'block',
-                  padding: '9px 10px',
-                  borderRadius: 6,
-                  border: `1px solid ${T.border}`,
-                  color: T.text,
-                  textDecoration: 'none',
-                  fontFamily: 'monospace',
-                  fontSize: '0.72rem',
-                  letterSpacing: '0.02em',
-                  lineHeight: 1.45,
-                }}
-              >
-                {clip.source}
-              </a>
-            </li>
+            <VocalClipRow
+              key={clip.id}
+              clip={clip}
+              onLoadNext={onLoadNext}
+              onSetDragTrack={onSetDragTrack}
+            />
           ))
         )}
       </ul>
     </section>
+  );
+}
+
+function VocalClipRow({
+  clip,
+  onLoadNext,
+  onSetDragTrack,
+}: {
+  clip: VocalSample;
+  onLoadNext?: (track: DeckTrack) => void;
+  onSetDragTrack?: (track: DeckTrack) => void;
+}) {
+  const lastClick = useRef(0);
+
+  function load() {
+    onLoadNext?.(vocalToDeckTrack(clip));
+  }
+
+  return (
+    <li>
+      <a
+        href={clip.href}
+        target="_blank"
+        rel="noreferrer"
+        draggable
+        data-testid={`dj-vocals-clip-${clip.id}`}
+        data-track-id={clip.id}
+        aria-label={`${clip.source}. Double-click to load a deck.`}
+        onDragStart={(e) => {
+          const track = vocalToDeckTrack(clip);
+          onSetDragTrack?.(track);
+          try {
+            e.dataTransfer.setData('text/plain', clip.id);
+            e.dataTransfer.effectAllowed = 'copy';
+          } catch {
+            /* some browsers throw on setData during tests */
+          }
+        }}
+        onClick={(e) => {
+          if (e.detail > 1) {
+            e.preventDefault();
+            return;
+          }
+        }}
+        onDoubleClick={(e) => {
+          e.preventDefault();
+          const now = Date.now();
+          if (now - lastClick.current < 80) return;
+          lastClick.current = now;
+          load();
+        }}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          padding: '7px 10px 7px 7px',
+          borderRadius: 6,
+          border: `1px solid ${T.border}`,
+          color: T.text,
+          textDecoration: 'none',
+          cursor: 'grab',
+        }}
+      >
+        <img
+          src={clip.thumb}
+          alt=""
+          draggable={false}
+          data-testid={`dj-vocals-cover-${clip.id}`}
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: 3,
+            objectFit: 'cover',
+            flexShrink: 0,
+            background: '#0b0d10',
+          }}
+        />
+        <span
+          style={{
+            fontFamily: 'monospace',
+            fontSize: '0.72rem',
+            letterSpacing: '0.02em',
+            lineHeight: 1.45,
+          }}
+        >
+          {clip.source}
+        </span>
+      </a>
+    </li>
   );
 }

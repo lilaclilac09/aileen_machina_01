@@ -3,6 +3,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import TrackLibraryBrowser from './TrackLibraryBrowser';
 import VocalSampleRack from './VocalSampleRack';
 import { allDeckTracks, PINNED_DECK_A_ID, PINNED_DECK_B_ID, type DeckTrack } from '../lib/djSetlist';
+import { findVocalTrack } from '../lib/djVocalSamples';
 import { useDuoLayout } from '../lib/duoPose';
 import { KNOB_TICKS, knobAngleDeg, knobValueFromOffset, snapKnobTick } from '../lib/djMixerMath';
 
@@ -46,7 +47,7 @@ function spotifyTrackId(track: Track): string | null {
 
 function findTrackById(id: string | null | undefined): Track | null {
   if (!id) return null;
-  return DJ_SET.find((t) => t.id === id || t.spotifyId === id) ?? null;
+  return DJ_SET.find((t) => t.id === id || t.spotifyId === id) ?? findVocalTrack(id);
 }
 
 /* ─── Waveform helper ────────────────────────────────────── */
@@ -225,6 +226,13 @@ export default function DJStation() {
     syncSpotifyEmbed(side, track);
   }, [syncSpotifyEmbed]);
 
+  const nextDblclickSide = useRef<'left' | 'right'>('left');
+  const loadNextDeck = useCallback((track: Track) => {
+    const side = nextDblclickSide.current;
+    loadTrack(side, track);
+    nextDblclickSide.current = side === 'left' ? 'right' : 'left';
+  }, [loadTrack]);
+
   const resolveDropTrack = useCallback((e: React.DragEvent): Track | null => {
     if (dragTrack.current) return dragTrack.current;
     let id = '';
@@ -335,21 +343,51 @@ export default function DJStation() {
               {track && !sid && (
                 <div
                   data-testid={side === 'left' ? 'dj-deck-a-nospotify' : 'dj-deck-b-nospotify'}
+                  data-href={track.href ?? ''}
                   style={{
                     position: 'absolute', inset: 0, zIndex: 1, display: 'flex',
                     flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                    gap: 6, padding: '0 10px', background: '#0a0a0c',
+                    gap: 6, padding: '8px 10px', background: '#0a0a0c',
                   }}
                 >
+                  {track.thumb ? (
+                    <img
+                      src={track.thumb}
+                      alt=""
+                      style={{
+                        width: 56, height: 56, borderRadius: 3, objectFit: 'cover',
+                        border: '1px solid rgba(170,179,187,0.18)',
+                      }}
+                    />
+                  ) : null}
                   <p style={{
-                    fontSize: '0.42rem', letterSpacing: '0.18em', color: C.text,
-                    textTransform: 'uppercase', textAlign: 'center',
+                    fontSize: '0.42rem',
+                    letterSpacing: track.href ? '0.04em' : '0.18em',
+                    color: C.text,
+                    textTransform: track.href ? 'none' : 'uppercase',
+                    textAlign: 'center',
+                    lineHeight: 1.35,
                   }}>
                     {track.title}
                   </p>
-                  <p style={{ fontSize: '0.34rem', letterSpacing: '0.4em', color: C.dim, textTransform: 'uppercase' }}>
-                    no Spotify
-                  </p>
+                  {track.href ? (
+                    <a
+                      href={track.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      data-testid={side === 'left' ? 'dj-deck-a-source' : 'dj-deck-b-source'}
+                      style={{
+                        fontSize: '0.34rem', letterSpacing: '0.28em', color: C.cyan,
+                        textTransform: 'uppercase', textDecoration: 'none',
+                      }}
+                    >
+                      open ↗
+                    </a>
+                  ) : (
+                    <p style={{ fontSize: '0.34rem', letterSpacing: '0.4em', color: C.dim, textTransform: 'uppercase' }}>
+                      no Spotify
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -466,6 +504,7 @@ export default function DJStation() {
           tracks={DJ_SET}
           reverseCarousel={true}
           onLoadTrack={loadTrack}
+          onLoadNext={loadNextDeck}
           onSetDragTrack={(t) => { dragTrack.current = t; }}
           playingLeft={leftPlaying ? (leftTrack?.id ?? null) : null}
           playingRight={rightPlaying ? (rightTrack?.id ?? null) : null}
@@ -474,7 +513,10 @@ export default function DJStation() {
         />
       </div>
 
-      <VocalSampleRack />
+      <VocalSampleRack
+        onLoadNext={loadNextDeck}
+        onSetDragTrack={(t) => { dragTrack.current = t; }}
+      />
     </div>
   );
 }

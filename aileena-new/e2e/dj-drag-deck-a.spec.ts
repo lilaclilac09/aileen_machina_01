@@ -199,3 +199,62 @@ test.describe('DJ embed follows load', () => {
       .toContain(spotifyId);
   });
 });
+
+test.describe('DJ double-click vocals + covers → decks', () => {
+  test('double-click a vocal still loads Deck A, next vocal loads Deck B', async ({ page }) => {
+    await page.goto('/sound', { waitUntil: 'domcontentloaded' });
+    const deckA = page.getByTestId('dj-deck-a-title');
+    const deckB = page.getByTestId('dj-deck-b-title');
+    await expect(deckA).toBeVisible();
+    await expect(page.getByTestId('dj-vocals')).toBeVisible();
+
+    const first = page.getByTestId('dj-vocals-clip-fr-20min-montangon-attal');
+    const second = page.getByTestId('dj-vocals-clip-fr-lci-elwan-pujadas');
+    await expect(page.getByTestId('dj-vocals-cover-fr-20min-montangon-attal')).toBeVisible();
+    await first.scrollIntoViewIfNeeded();
+    await first.dblclick();
+
+    await expect
+      .poll(async () => (await deckA.getAttribute('data-track-id')) || '', { timeout: 8_000 })
+      .toBe('fr-20min-montangon-attal');
+    await expect(page.getByTestId('dj-deck-a-nospotify')).toBeVisible();
+    await expect(page.getByTestId('dj-deck-a-source')).toHaveAttribute(
+      'href',
+      /20min\.ch/,
+    );
+    expect(page.url()).toContain('/sound');
+
+    await second.dblclick();
+    await expect
+      .poll(async () => (await deckB.getAttribute('data-track-id')) || '', { timeout: 8_000 })
+      .toBe('fr-lci-elwan-pujadas');
+    await expect(deckA).toHaveAttribute('data-track-id', 'fr-20min-montangon-attal');
+  });
+
+  test('double-click a list row loads Deck A', async ({ page }) => {
+    await page.goto('/sound', { waitUntil: 'domcontentloaded' });
+    await page.getByTestId('dj-view-list').click();
+    const row = page.locator('[data-testid="dj-list-row"][data-track-id="23OBmlZUnRpatDl4q2RoIQ"]');
+    await expect(row).toBeVisible();
+    await row.dblclick();
+    await expect
+      .poll(async () => (await page.getByTestId('dj-deck-a-title').getAttribute('data-track-id')) || '', {
+        timeout: 8_000,
+      })
+      .toBe('23OBmlZUnRpatDl4q2RoIQ');
+  });
+
+  test('double-click a carousel cover still loads the next open deck', async ({ page }) => {
+    await page.goto('/sound', { waitUntil: 'domcontentloaded' });
+    const deckA = page.getByTestId('dj-deck-a-title');
+    await expect(deckA).toBeVisible();
+    const startA = (await deckA.getAttribute('data-track-id')) || '';
+
+    const firstId = await advanceToNextCover(page);
+    expect(firstId).not.toBe(startA);
+    await dblclickCover(page, firstId);
+    await expect
+      .poll(async () => (await deckA.getAttribute('data-track-id')) || '', { timeout: 8_000 })
+      .toBe(firstId);
+  });
+});
