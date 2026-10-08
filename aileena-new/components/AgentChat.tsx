@@ -37,8 +37,11 @@ import {
   parseNewRootError,
   pingForNewRootReason,
 } from '../lib/consolePrefixCopy';
+import { parseOwnerBrowseCommand } from '../lib/browserUse/parseBrowseCommand';
 import SiteLeftChrome from './SiteLeftChrome';
 import AgentVoiceOrb from './AgentVoiceOrb';
+import BrowserUseIcon from './BrowserUseIcon';
+import BrowserUseWindow from './BrowserUseWindow';
 import ComputerConsoleDock from './ComputerConsoleDock';
 
 const STARTER_PROMPTS = [
@@ -200,6 +203,8 @@ export default function AgentChat() {
   const voiceModeRef = useRef(false);
   voiceModeRef.current = voiceMode;
   const [computerMode, setComputerMode] = useState(false);
+  const [browseMode, setBrowseMode] = useState(false);
+  const [browseTask, setBrowseTask] = useState('');
   const [voiceLive, setVoiceLive] = useState('');
   /** Start orb listen once after Voice toggle / open-agent-chat autoListen. */
   const [autoListen, setAutoListen] = useState(false);
@@ -876,6 +881,10 @@ export default function AgentChat() {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') {
+        if (browseMode) {
+          setBrowseMode(false);
+          return;
+        }
         closeConsole();
         return;
       }
@@ -890,7 +899,7 @@ export default function AgentChat() {
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open, closeConsole]);
+  }, [open, browseMode, closeConsole]);
 
   // After an assistant response settles (status drops out of streaming),
   // schedule a debounced forward.
@@ -1362,6 +1371,12 @@ export default function AgentChat() {
     // their future cloud-mode visits and vice versa.
     appendUserTopic(trimmed);
 
+    const browse = parseOwnerBrowseCommand(trimmed);
+    if (browse) {
+      setBrowseMode(true);
+      if (browse.kind === 'prepare') setBrowseTask(browse.task);
+    }
+
     if (isDrawIntent(trimmed)) {
       void sendDraw(trimmed);
       return;
@@ -1707,6 +1722,27 @@ export default function AgentChat() {
         consoleOpen={open}
       />
 
+      {browseMode && !open ? (
+        <button
+          type="button"
+          data-testid="browser-use-site-icon"
+          onClick={() => setBrowseMode((on) => !on)}
+          aria-label="Browser Use window"
+          title="Browser Use — separate window"
+          className="fixed z-[62] top-3 left-[4.85rem] sm:top-4 sm:left-[5.1rem] inline-grid h-11 w-11 sm:h-9 sm:w-9 place-items-center rounded-full bg-[#fffdf8] text-[#007d75] ring-1 ring-[#00a89d]/45"
+        >
+          <BrowserUseIcon />
+        </button>
+      ) : null}
+
+      <BrowserUseWindow
+        open={browseMode}
+        task={browseTask}
+        isOwner={isOwner}
+        onTaskChange={setBrowseTask}
+        onClose={() => setBrowseMode(false)}
+      />
+
       {/* Backdrop */}
       <div
         onClick={closeConsole}
@@ -1731,7 +1767,7 @@ export default function AgentChat() {
         {/* Header bar */}
         <div className="flex items-center justify-between gap-2 border-b border-[#e7e0d6] px-3 sm:px-4 py-2.5 shrink-0">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="text-[0.6rem] tracking-[0.3em] text-[#00ffea]/80 uppercase truncate">aileena · console</span>
+            <span className="hidden sm:inline text-[0.6rem] tracking-[0.3em] text-[#00ffea]/80 uppercase truncate">aileena · console</span>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             {/* Runtime toggle — cloud (server) ↔ local (Chrome Prompt API).
@@ -1834,6 +1870,27 @@ export default function AgentChat() {
                 }}
               />
               {voiceMode ? 'orb on' : 'voice'}
+            </button>
+            <button
+              type="button"
+              data-testid="browse-mode-toggle"
+              aria-pressed={browseMode}
+              aria-label={browseMode ? 'Hide Browser Use window' : 'Open Browser Use window'}
+              title={
+                browseMode
+                  ? 'Browse window on — separate from Console'
+                  : 'Open Browser Use in a separate window'
+              }
+              onClick={() => setBrowseMode((on) => !on)}
+              className="inline-flex min-h-11 items-center gap-1 text-[0.55rem] tracking-[0.14em] uppercase px-1.5 py-0.5 rounded-[7px] transition-colors sm:min-h-0 sm:px-2"
+              style={{
+                color: '#007d75',
+                background: browseMode ? 'rgba(0,168,157,0.12)' : 'transparent',
+                border: browseMode ? '1px solid rgba(0,168,157,0.45)' : '1px solid transparent',
+              }}
+            >
+              <BrowserUseIcon />
+              <span className="hidden sm:inline">{browseMode ? 'browse on' : 'browse'}</span>
             </button>
             <button
               type="button"
@@ -2153,12 +2210,12 @@ export default function AgentChat() {
                 <>
                   <span className="sm:hidden">
                     tap <span className="text-[#008f86]/70">orb</span>
-                    {computerMode && isOwner && !sharedRoom ? ' · say ls / write code' : ' · say fix → vcode'}
+                    {computerMode && isOwner && !sharedRoom ? ' · say ls / write code' : ' · say browse · say fix → vcode'}
                   </span>
                   <span className="hidden sm:inline">
                     {computerMode && isOwner && !sharedRoom
                       ? 'orb → computer · say ls · say write code greet.ts'
-                      : 'stream · barge-in · say fix / 写代码 → voice→code'}
+                      : 'stream · barge-in · say browse · say fix / 写代码 → voice→code'}
                   </span>
                 </>
               ) : isOwner ? (
@@ -2171,6 +2228,17 @@ export default function AgentChat() {
               )}
             </span>
             <span className="flex flex-wrap gap-x-3 gap-y-1 justify-end shrink-0">
+              <button
+                type="button"
+                data-testid="browser-use-voice-icon"
+                onClick={() => setBrowseMode(true)}
+                title="Open Browser Use — separate window"
+                aria-label="Open Browser Use window"
+                className="inline-flex items-center gap-1 text-[#007d75]/70 hover:text-[#008f86] uppercase"
+              >
+                <BrowserUseIcon />
+                <span>browse</span>
+              </button>
               <span
                 className={
                   isOwner || ownerUnlimited

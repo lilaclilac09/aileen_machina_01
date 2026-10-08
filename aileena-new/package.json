@@ -54,6 +54,7 @@
     "verify:agent-rules": "tsx scripts/verify-agent-rules.ts",
     "browser-use:example": "tsx scripts/browser-use-example.ts",
     "verify:browser-use": "tsx scripts/verify-browser-use.ts",
+    "capture:browser-use-window": "tsx scripts/capture-browser-use-window.ts",
     "verify:evolve": "tsx scripts/verify-evolve.ts",
     "evolve": "tsx scripts/evolve.ts",
     "evolve:status": "tsx scripts/evolve.ts --status",

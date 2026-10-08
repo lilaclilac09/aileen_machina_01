@@ -58,6 +58,13 @@ async function main() {
     parseOwnerBrowseCommand('take screenshots of /daily mobile')?.kind === 'prepare',
   );
   assert('ordinary question is not a browse command', parseOwnerBrowseCommand('what did she write about Centaur?') === null);
+  assert('open browser opens the window status', parseOwnerBrowseCommand('open browser')?.kind === 'status');
+  const host = parseOwnerBrowseCommand('browse example.com');
+  assert(
+    'browse host parse',
+    host?.kind === 'prepare' && host.task.includes('example.com'),
+    host && host.kind === 'prepare' ? host.task : 'no task',
+  );
 
   const poison = 'bu_this_is_not_a_real_key_do_not_print';
   const prevKey = process.env.BROWSER_USE_API_KEY;
@@ -100,6 +107,27 @@ async function main() {
     /No fake screenshots/.test(parseComputer) && /No fake screenshots/.test(runner),
   );
   assert('cloudflare runner points browse at Browser Use', /Browser Use Cloud/.test(runner));
+
+  const agentChatSrc = read('components/AgentChat.tsx');
+  const windowSrc = read('components/BrowserUseWindow.tsx');
+  const iconSrc = read('components/BrowserUseIcon.tsx');
+  const apiSrc = read('app/api/agent/browser-use/route.ts');
+  assert('browse window component exists', /data-testid="browser-use-window"/.test(windowSrc));
+  assert('corresponding browse icon exists', /viewBox="0 0 14 12"/.test(iconSrc));
+  assert('status API never creates a run', /prepareBrowseResult/.test(apiSrc) && !/runs\.create/.test(apiSrc));
+  assert(
+    'AgentChat has browse toggle + voice icon + site leftover',
+    /browse-mode-toggle/.test(agentChatSrc) &&
+      /browser-use-voice-icon/.test(agentChatSrc) &&
+      /browser-use-site-icon/.test(agentChatSrc),
+  );
+  assert(
+    'Browser Use window is a sibling of Console, not the computer dock',
+    agentChatSrc.indexOf('<BrowserUseWindow') !== -1 &&
+      agentChatSrc.indexOf('<BrowserUseWindow') < agentChatSrc.indexOf('aria-label="Aileena Console"') &&
+      !/ComputerConsoleDock[\s\S]{0,80}BrowserUseWindow/.test(agentChatSrc),
+  );
+  assert('voice/browse click-through opens the window', /parseOwnerBrowseCommand/.test(agentChatSrc) && /setBrowseMode\(true\)/.test(agentChatSrc));
 
   const failed = checks.filter((c) => !c.ok);
   console.log(`\nResult: ${checks.length - failed.length}/${checks.length} passed`);
