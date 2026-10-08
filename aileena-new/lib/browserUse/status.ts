@@ -32,6 +32,26 @@ export function formatBrowserUseSpoken(status: BrowserUseStatus): string {
   return `⚡ Browser Use Cloud API v4 is wired. Dry-run — no cloud browser started. ${key} ${live} Cloudflare computer is not the browser.${task}`;
 }
 
+/** Public copy — no key / live flags. Anyone can prepare. */
+export function formatBrowserUsePublicSpoken(status: BrowserUseStatus): string {
+  const task = status.wouldRunTask ? ` Task would be: ${status.wouldRunTask}` : '';
+  return `⚡ Browser Use Cloud API v4. Dry-run — no cloud browser started. Anyone can prepare a page. Cloudflare computer is not the browser.${task}`;
+}
+
+export type PublicBrowseResult = Omit<BrowserUseStatus, 'key' | 'live'>;
+
+export function publicPrepareBrowseResult(task?: string): PublicBrowseResult {
+  const full = browserUseStatus(task);
+  return {
+    api: full.api,
+    sdk: full.sdk,
+    dryRun: true,
+    billed: false,
+    cloudflareBrowser: 'aside',
+    wouldRunTask: full.wouldRunTask,
+  };
+}
+
 export function prepareBrowseResult(task?: string): BrowserUseStatus {
   return browserUseStatus(task);
 }

@@ -1,6 +1,6 @@
 import { createUIMessageStream, createUIMessageStreamResponse } from 'ai';
 import { parseOwnerBrowseCommand } from './parseBrowseCommand';
-import { browserUseStatus, formatBrowserUseSpoken } from './status';
+import { browserUseStatus, formatBrowserUsePublicSpoken } from './status';
 
 function browserUseQueuedResponse(text: string): Response {
   const stream = createUIMessageStream({
@@ -21,17 +21,13 @@ function browserUseQueuedResponse(text: string): Response {
 }
 
 /**
- * Owner browse / screenshot lines skip the Cloudflare computer.
- * Never creates a Cloud run.
+ * Anyone's browse / screenshot lines skip the Cloudflare computer.
+ * Never creates a Cloud run. Spoken copy never names the API key.
  */
-export function tryOwnerBrowserUseFastPath(opts: {
-  isOwner: boolean;
-  lastQ: string;
-}): Response | null {
-  if (!opts.isOwner) return null;
+export function tryBrowserUseFastPath(opts: { lastQ: string }): Response | null {
   const command = parseOwnerBrowseCommand(opts.lastQ);
   if (!command) return null;
 
   const status = browserUseStatus(command.kind === 'prepare' ? command.task : undefined);
-  return browserUseQueuedResponse(formatBrowserUseSpoken(status));
+  return browserUseQueuedResponse(formatBrowserUsePublicSpoken(status));
 }

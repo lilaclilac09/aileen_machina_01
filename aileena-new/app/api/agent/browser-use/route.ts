@@ -1,14 +1,21 @@
-import { prepareBrowseResult } from '@/lib/browserUse/status';
+import { requireOwnerFromRequest } from '@/lib/owner-gate';
+import { prepareBrowseResult, publicPrepareBrowseResult } from '@/lib/browserUse/status';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-/** Dry status only. Never creates a Cloud run. */
-export async function GET() {
-  return Response.json(prepareBrowseResult());
+function pack(task?: string, owner?: unknown) {
+  return owner ? prepareBrowseResult(task) : publicPrepareBrowseResult(task);
+}
+
+/** Dry status only. Never creates a Cloud run. Visitors do not see key/live. */
+export async function GET(req: Request) {
+  const owner = await requireOwnerFromRequest(req);
+  return Response.json(pack(undefined, owner));
 }
 
 export async function POST(req: Request) {
+  const owner = await requireOwnerFromRequest(req);
   let task = '';
   try {
     const body = (await req.json()) as { task?: unknown };
@@ -16,5 +23,5 @@ export async function POST(req: Request) {
   } catch {
     task = '';
   }
-  return Response.json(prepareBrowseResult(task));
+  return Response.json(pack(task, owner));
 }

@@ -6,8 +6,8 @@ import { COUNCIL_SYSTEM_PROMPT, formatCouncilLensForPrompt } from '../../../lib/
 import { decideAgentMode, skipVisitorQuota, type AgentMode } from '../../../lib/agentMode';
 import { isCouncilLens } from '../../../lib/councilCopy';
 import { requireOwnerFromRequest } from '../../../lib/owner-gate';
-import { tryOwnerBrowserUseFastPath } from '../../../lib/browserUse/chatFastPath';
-import { prepareBrowseResult } from '../../../lib/browserUse/status';
+import { tryBrowserUseFastPath } from '../../../lib/browserUse/chatFastPath';
+import { publicPrepareBrowseResult } from '../../../lib/browserUse/status';
 import { tryOwnerComputerFastPath, tryVisitorComputerFastPath } from '../../../lib/computer/chatFastPath';
 import { queuedChatResponse } from '../../../lib/computer/queuedStream';
 import { answerSiteLane } from '../../../lib/siteLanes';
@@ -260,15 +260,12 @@ export async function POST(req: Request) {
     if (header) res.headers.append('Set-Cookie', header);
     return res;
   };
+  const browse = tryBrowserUseFastPath({ lastQ: lastQEarly });
+  if (browse) {
+    trace.log('browser_use_fast_path', { q: lastQEarly.slice(0, 80) });
+    return withComputerCookie(browse);
+  }
   if (computerActor.kind === 'owner') {
-    const browse = tryOwnerBrowserUseFastPath({
-      isOwner: true,
-      lastQ: lastQEarly,
-    });
-    if (browse) {
-      trace.log('browser_use_fast_path', { q: lastQEarly.slice(0, 80) });
-      return withComputerCookie(browse);
-    }
     const fast = await tryOwnerComputerFastPath({
       req,
       isOwner: true,
@@ -503,12 +500,8 @@ If the visitor names a specific article, project, product, person, company, tech
 
 # Machina mode tools
 - searchMemories(query, k): required for taste, setlist, culture, frameworks, Dreaming, hardware notes.
-- searchArticles(query, k): optional when visitor asks about her published writing.${
-    owner
-      ? `
-- browseWeb({ task? }): owner. Browser Use Cloud API v4. Dry-run — no paid browser. Cloudflare computer is not the browser.`
-      : ''
-  }${
+- searchArticles(query, k): optional when visitor asks about her published writing.
+- browseWeb({ task? }): anyone. Browser Use Cloud API v4. Dry-run — no paid browser. Cloudflare computer is not the browser.${
     owner && isComputerPrototypeEnabled()
       ? `
 - listMcpApps(): owner. browser-use first (Cloud API v4, dry-run), then computer (worker-shell), github (token), remote MCP_SERVERS.
@@ -614,16 +607,16 @@ ${memoryPrefetch
     // R2: only expose tools allowed for this question type (hire → none, taste → memories…).
     const routedTools = applyToolRoute(allTools, toolRoute);
     const withBrowse =
-      owner && toolRoute.allowed !== 'none'
+      toolRoute.allowed !== 'none'
         ? {
             ...routedTools,
             browseWeb: tool({
               description:
-                'Owner. Browser Use Cloud API v4 status or dry-run prepare. Does not start a paid browser. Cloudflare computer is not the browser path.',
+                'Anyone. Browser Use Cloud API v4 status or dry-run prepare. Does not start a paid browser. Cloudflare computer is not the browser path.',
               inputSchema: z.object({
                 task: z.string().min(2).max(4000).optional().describe('Browse goal. Omit for wiring status only.'),
               }),
-              execute: async ({ task }) => prepareBrowseResult(task),
+              execute: async ({ task }) => publicPrepareBrowseResult(task),
             }),
           }
         : routedTools;

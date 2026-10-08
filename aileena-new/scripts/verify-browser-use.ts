@@ -6,7 +6,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseOwnerBrowseCommand } from '../lib/browserUse/parseBrowseCommand';
-import { browserUseStatus, formatBrowserUseSpoken } from '../lib/browserUse/status';
+import { browserUseStatus, formatBrowserUseSpoken, formatBrowserUsePublicSpoken } from '../lib/browserUse/status';
 import { hasBrowserUseApiKey, isBrowserUseLiveEnabled } from '../lib/browserUse/env';
 import { runBrowserUseTask } from '../lib/browserUse/runTask';
 import { browserUseAppStatus, callBrowserUse } from '../lib/browserUse/mcp';
@@ -72,8 +72,13 @@ async function main() {
   process.env.BROWSER_USE_API_KEY = poison;
   process.env.BROWSER_USE_LIVE = '';
   const spoken = formatBrowserUseSpoken(browserUseStatus('Find the top Hacker News story'));
+  const publicSpoken = formatBrowserUsePublicSpoken(browserUseStatus('Find the top Hacker News story'));
   assert('status reports key present without leaking it', hasBrowserUseApiKey() && spoken.includes('Key: present.') && !spoken.includes(poison));
   assert('status spoken is dry', /Dry-run/.test(spoken) && /no cloud browser started/.test(spoken));
+  assert(
+    'public spoken is dry and hides the key',
+    /Anyone can prepare/.test(publicSpoken) && !/Key:/.test(publicSpoken) && !publicSpoken.includes(poison),
+  );
   assert('live flag off', isBrowserUseLiveEnabled() === false);
 
   const dryRun = await runBrowserUseTask('Find the top Hacker News story', { live: false });
@@ -91,11 +96,13 @@ async function main() {
   if (prevLive === undefined) delete process.env.BROWSER_USE_LIVE;
   else process.env.BROWSER_USE_LIVE = prevLive;
 
-  const browseIdx = chatSrc.indexOf('tryOwnerBrowserUseFastPath');
+  const browseIdx = chatSrc.indexOf('tryBrowserUseFastPath');
   const computerIdx = chatSrc.indexOf('tryOwnerComputerFastPath');
+  const visitorIdx = chatSrc.indexOf('tryVisitorComputerFastPath');
   assert('chat imports Browser Use fast path', browseIdx !== -1);
   assert('chat runs Browser Use before Cloudflare computer', browseIdx !== -1 && computerIdx !== -1 && browseIdx < computerIdx);
-  assert('chat exposes owner browseWeb', /browseWeb:\s*tool\(/.test(chatSrc));
+  assert('chat runs Browser Use before visitor computer', browseIdx !== -1 && visitorIdx !== -1 && browseIdx < visitorIdx);
+  assert('chat exposes public browseWeb', /browseWeb:\s*tool\(/.test(chatSrc) && /Anyone\. Browser Use/.test(chatSrc));
   const appsBlock = catalogSrc.slice(catalogSrc.indexOf('const apps'));
   assert(
     'mcp catalog lists browser-use first',

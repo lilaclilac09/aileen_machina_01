@@ -97,10 +97,10 @@ export default function BrowserUseWindow({
         </div>
         <div className="px-3 py-2.5 space-y-2">
           <p data-testid="browser-use-window-status" className="text-[0.7rem] leading-5 tracking-normal text-[#1b1713]/70">
-            Cloud API v4. Separate from Console. No paid browser started.
+            Cloud API v4. Anyone can prepare. No paid browser started.
             {isOwner && status
               ? ` Key ${status.key ?? 'missing'}. Live ${status.live ? 'on' : 'off'}.`
-              : ' Cloudflare computer stays aside.'}
+              : ' Type a page. Cloudflare computer stays aside.'}
           </p>
           <label className="block">
             <span className="sr-only">Browse task</span>
