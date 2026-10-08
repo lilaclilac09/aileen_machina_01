@@ -215,7 +215,14 @@ export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
   { id: '47K7si9sKri95IHuOz9HAA', title: 'Outta My Head', bpm: 120, key: '4A', dur: 188, thumb: '/dj-set/assets/covers/xoxo.jpg' },
   { id: '5Lbsc65org0b85kNsPkluY', title: 'Only Angel', bpm: 114, key: '7B', dur: 291, thumb: '/dj-set/assets/covers/harry-styles.jpg' },
   { id: '33SNO8AaciGbNaQFkxvPrW', title: 'Kiwi', bpm: 144, key: '10B', dur: 176, thumb: '/dj-set/assets/covers/harry-styles.jpg' },
+  { id: '0YQ2IRqkQjdeBppIJeNiwx', title: 'My Love Turns to Liquid', artist: 'Dream 2 Science', bpm: 120, key: '12A', dur: 322, thumb: '/dj-set/assets/covers/dream-2-science.jpg' },
+  { id: 'DELSIN', title: 'Sinners', artist: 'Delian Sound', bpm: 130, key: '4A', dur: 200, thumb: '/dj-set/assets/covers/secrets-ep.jpg' },
+  { id: 'DELSEC', title: 'Secrets', artist: 'Delian Sound', bpm: 130, key: '4A', dur: 200, thumb: '/dj-set/assets/covers/secrets-ep.jpg' },
 ];
+
+/** Top /sound decks stay on Kiwi / Only Angel when the carousel library grows. */
+export const PINNED_DECK_A_ID = '33SNO8AaciGbNaQFkxvPrW';
+export const PINNED_DECK_B_ID = '5Lbsc65org0b85kNsPkluY';
 
 export function djSetToDeckTracks(): DeckTrack[] {
   return DJ_SET_TRACKS.map((t) => ({

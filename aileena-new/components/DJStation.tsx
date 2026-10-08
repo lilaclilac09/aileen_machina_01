@@ -1,7 +1,7 @@
 'use client';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import TrackLibraryBrowser from './TrackLibraryBrowser';
-import { allDeckTracks, type DeckTrack } from '../lib/djSetlist';
+import { allDeckTracks, PINNED_DECK_A_ID, PINNED_DECK_B_ID, type DeckTrack } from '../lib/djSetlist';
 import { useDuoLayout } from '../lib/duoPose';
 import { KNOB_TICKS, knobAngleDeg, knobValueFromOffset, snapKnobTick } from '../lib/djMixerMath';
 
@@ -33,9 +33,9 @@ const C = {
 /* ─── Full deck library: handoff five + previous tracks ───── */
 const DJ_SET = allDeckTracks();
 type Track = DeckTrack;
-/** Tail of the append-only library — same newest-first rule as the carousel. */
-const OPEN_LEFT = DJ_SET.at(-1) ?? DJ_SET[0] ?? null;
-const OPEN_RIGHT = DJ_SET.at(-2) ?? OPEN_LEFT;
+/** Pinned openers — new carousel appends must not steal Deck A / B. */
+const OPEN_LEFT = DJ_SET.find((t) => t.id === PINNED_DECK_A_ID) ?? DJ_SET.at(-1) ?? DJ_SET[0] ?? null;
+const OPEN_RIGHT = DJ_SET.find((t) => t.id === PINNED_DECK_B_ID) ?? DJ_SET.at(-2) ?? OPEN_LEFT;
 
 function spotifyTrackId(track: Track): string | null {
   if (track.spotifyId) return track.spotifyId;
