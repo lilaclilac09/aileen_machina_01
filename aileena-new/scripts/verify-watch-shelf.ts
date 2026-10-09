@@ -173,7 +173,7 @@ function main() {
       strawberries.coverKind === 'framed' &&
       strawberries.cover === '/shelf/gallery-chardin-fraises.jpg' &&
       strawberries.href === 'https://collections.louvre.fr/ark:/53355/cl010509181' &&
-      strawberries.source?.includes('野草莓') &&
+      Boolean(strawberries.source?.includes('野草莓')) &&
       strawberries.note ===
         'Luxury is having, in an invisible life, an eye that can still appreciate the ordinary — to stand against the fog and bindings of living, and to find real freedom.',
     strawberries?.id,
