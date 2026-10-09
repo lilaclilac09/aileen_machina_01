@@ -3,8 +3,8 @@ export type OwnerBrowseCommand =
   | { kind: 'prepare'; task: string };
 
 /**
- * Owner-only site-agent browse lines. Narrow so ordinary questions
- * stay on retrieval tools. Visitors never match this.
+ * Public site-agent browse lines. Narrow so ordinary questions
+ * stay on retrieval tools. Anyone may prepare; nobody starts a paid run.
  */
 export function parseOwnerBrowseCommand(text: string): OwnerBrowseCommand | null {
   const raw = text.trim();

@@ -619,8 +619,8 @@ function main() {
   assert('chat route has visitor scratch fast path', /tryVisitorComputerFastPath/.test(chatRouteSrc));
   assert(
     'chat route runs Browser Use before Cloudflare computer',
-    /tryOwnerBrowserUseFastPath/.test(chatRouteSrc) &&
-      chatRouteSrc.indexOf('tryOwnerBrowserUseFastPath') < chatRouteSrc.indexOf('tryOwnerComputerFastPath'),
+    /tryBrowserUseFastPath/.test(chatRouteSrc) &&
+      chatRouteSrc.indexOf('tryBrowserUseFastPath') < chatRouteSrc.indexOf('tryOwnerComputerFastPath'),
   );
   assert(
     'computer tasks API is actor-gated node',

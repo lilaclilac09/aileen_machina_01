@@ -16,12 +16,18 @@ async function openConsole(page: import('playwright').Page) {
   await machina.waitFor({ state: 'visible', timeout: 20_000 });
   await page.waitForTimeout(400);
   await machina.click();
-  await page.waitForFunction(() => {
-    const d = document.querySelector('[role="dialog"][aria-label="Aileena Console"]');
-    if (!d) return false;
-    const s = getComputedStyle(d);
-    return s.pointerEvents === 'auto' && Number(s.opacity) > 0.9;
-  }, null, { timeout: 15_000 });
+  for (let i = 0; i < 12; i += 1) {
+    const open = await page.evaluate(() => {
+      const d = document.querySelector('[role="dialog"][aria-label="Aileena Console"]');
+      if (!d) return false;
+      const s = getComputedStyle(d);
+      return s.pointerEvents === 'auto' && Number(s.opacity) > 0.9;
+    });
+    if (open) return;
+    await page.evaluate(() => window.dispatchEvent(new CustomEvent('open-agent-chat')));
+    await page.waitForTimeout(250);
+  }
+  throw new Error('Console dialog did not open');
 }
 
 async function main() {

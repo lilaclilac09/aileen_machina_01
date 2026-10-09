@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import BrowserUseIcon from './BrowserUseIcon';
+import { quotaDayKey } from '@/lib/voiceCodeIntent';
 
 type Status = {
   api: 'v4';
@@ -27,6 +28,7 @@ export default function BrowserUseWindow({
 }) {
   const [status, setStatus] = useState<Status | null>(null);
   const [busy, setBusy] = useState(false);
+  const [quotaNote, setQuotaNote] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -48,12 +50,25 @@ export default function BrowserUseWindow({
     const next = task.trim();
     if (!next || busy) return;
     setBusy(true);
+    setQuotaNote(null);
     try {
       const res = await fetch('/api/agent/browser-use', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Quota-Day': quotaDayKey(),
+        },
         body: JSON.stringify({ task: next }),
       });
+      if (res.status === 429) {
+        const body = (await res.json().catch(() => null)) as { error?: string } | null;
+        setQuotaNote(
+          typeof body?.error === 'string' && body.error.trim()
+            ? body.error
+            : "You've used today's 20 messages. A fresh set lands tomorrow — see you then.",
+        );
+        return;
+      }
       if (res.ok) {
         const body = (await res.json()) as Status;
         setStatus(body);
@@ -97,10 +112,10 @@ export default function BrowserUseWindow({
         </div>
         <div className="px-3 py-2.5 space-y-2">
           <p data-testid="browser-use-window-status" className="text-[0.7rem] leading-5 tracking-normal text-[#1b1713]/70">
-            Cloud API v4. Separate from Console. No paid browser started.
+            Cloud API v4. Anyone can prepare. No paid browser started.
             {isOwner && status
               ? ` Key ${status.key ?? 'missing'}. Live ${status.live ? 'on' : 'off'}.`
-              : ' Cloudflare computer stays aside.'}
+              : ' Type a page. Cloudflare computer stays aside.'}
           </p>
           <label className="block">
             <span className="sr-only">Browse task</span>
@@ -130,6 +145,11 @@ export default function BrowserUseWindow({
           {status?.wouldRunTask ? (
             <p data-testid="browser-use-would-run" className="text-[0.65rem] leading-5 text-[#007d75]/90">
               would run: {status.wouldRunTask}
+            </p>
+          ) : null}
+          {quotaNote ? (
+            <p data-testid="browser-use-quota" className="text-[0.65rem] leading-5 text-[#1b1713]/55">
+              {quotaNote}
             </p>
           ) : null}
         </div>
