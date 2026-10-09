@@ -11,7 +11,7 @@
 import { chromium } from 'playwright';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { DJ_SET_TRACKS, allDeckTracks } from '../lib/djSetlist';
+import { DJ_SET_TRACKS, PINNED_DECK_A_ID, PINNED_DECK_B_ID, allDeckTracks } from '../lib/djSetlist';
 
 const BASE_URL = (process.env.VERIFY_BASE_URL ?? 'https://www.aileena.xyz').replace(/\/$/, '');
 const OUT_DIR = process.env.VERIFY_OUT_DIR ?? join(process.cwd(), '.verify-screenshots');
@@ -89,6 +89,21 @@ async function runBrowser(checks: Check[]): Promise<void> {
       detail: `found ${legacyCarousel}`,
     });
 
+    const pinnedA = allDeckTracks().find((t) => t.id === PINNED_DECK_A_ID);
+    const pinnedB = allDeckTracks().find((t) => t.id === PINNED_DECK_B_ID);
+    const deckA = (await page.getByTestId('dj-deck-a-title').innerText()).trim();
+    const deckB = (await page.getByTestId('dj-deck-b-title').innerText()).trim();
+    checks.push({
+      name: 'deck A stays pinned (Kiwi)',
+      ok: deckA.toLowerCase() === (pinnedA?.title ?? '').toLowerCase(),
+      detail: `${deckA} (expected ${pinnedA?.title})`,
+    });
+    checks.push({
+      name: 'deck B stays pinned (Only Angel)',
+      ok: deckB.toLowerCase() === (pinnedB?.title ?? '').toLowerCase(),
+      detail: `${deckB} (expected ${pinnedB?.title})`,
+    });
+
     const carousel = page.locator('#dj-set');
     await carousel.waitFor({ state: 'visible', timeout: 15_000 });
     await carousel.scrollIntoViewIfNeeded();
@@ -97,7 +112,8 @@ async function runBrowser(checks: Check[]): Promise<void> {
     await page.screenshot({ path: join(OUT_DIR, '02-sound-full-page.png'), fullPage: true });
     await carousel.screenshot({ path: join(OUT_DIR, '03-deck-carousel-closeup.png') });
 
-    const expectedTracks = allDeckTracks();
+    // Display order is newest-first (DECK_LIBRARY appends; carousel reverses).
+    const expectedTracks = [...allDeckTracks()].reverse();
     const expected = expectedTracks.length;
     const titles: string[] = [];
 

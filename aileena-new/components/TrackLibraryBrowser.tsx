@@ -33,6 +33,7 @@ type Track = {
   spotifyId?: string;
   title: string;
   artist?: string;
+  album?: string;
   bpm: number;
   key: string;
   dur: number;
@@ -44,6 +45,10 @@ type ViewMode = 'list' | 'playlist';
 /* ─── Duration formatter ─────────────────────────────────── */
 function fmtDur(s: number): string {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
+function albumLabel(track: Track): string {
+  return track.album?.trim() || track.title;
 }
 
 /* ─── Waveform generator (same seed logic as DJStation) ──── */
@@ -775,7 +780,7 @@ function PlaylistCarousel({
                         textAlign: 'center',
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                         margin: 0,
-                      }}>{track.title}</p>
+                      }}>{albumLabel(track)}</p>
                     </div>
                   )}
                 </div>
@@ -849,6 +854,7 @@ function PlaylistCarousel({
           <span
             data-testid="dj-carousel-active-id"
             data-track-id={active.id}
+            data-album={albumLabel(active)}
             style={{
             fontFamily: 'monospace',
             fontSize: '0.36rem',
@@ -857,7 +863,7 @@ function PlaylistCarousel({
             color: T.l1,
             textTransform: 'uppercase',
           }}>
-            TRACK {active.id}
+            {albumLabel(active)}
           </span>
           <span style={{
             fontFamily: 'monospace',
