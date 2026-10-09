@@ -11,6 +11,7 @@ import {
   CANDLE_RECS,
   EURO_LIFE_GUIDE,
   FILM_RECS,
+  GALLERY_RECS,
   LIFESTYLE_RECS,
   SHELF_ITEMS,
   VIDEO_RECS,
@@ -156,6 +157,35 @@ function main() {
     scent.map((item) => item.id).join(','),
   );
   assert('#duft lands on Figuier 600g', resolveShelfHash('#duft') === 'figuier-600g');
+  const gallery = SHELF_ITEMS.filter((item) => item.section === 'gallery');
+  const strawberries = gallery.find((item) => item.id === 'wild-strawberries');
+  assert(
+    'online gallery is its own section after living',
+    SHELF_ITEMS.filter((item) => item.section === 'gallery').length === GALLERY_RECS.length &&
+      gallery[0]?.id === 'wild-strawberries' &&
+      shelfRowsInSection('gallery').map((row) => row.row).join(',') === 'gallery',
+    gallery.map((item) => item.id).join(','),
+  );
+  assert(
+    'first hang is Chardin Wild Strawberries',
+    strawberries?.title === 'Wild Strawberries' &&
+      strawberries.type === 'painting' &&
+      strawberries.coverKind === 'framed' &&
+      strawberries.cover === '/shelf/gallery-chardin-fraises.jpg' &&
+      strawberries.href === 'https://collections.louvre.fr/ark:/53355/cl010509181' &&
+      strawberries.source?.includes('野草莓') &&
+      strawberries.note ===
+        'Luxury is having, in an invisible life, an eye that can still appreciate the ordinary — to stand against the fog and bindings of living, and to find real freedom.',
+    strawberries?.id,
+  );
+  const chardinJpg = join(process.cwd(), 'public', 'shelf', 'gallery-chardin-fraises.jpg');
+  const chardinSize = jpegSize(readFileSync(chardinJpg));
+  assert(
+    'Chardin still is ultra-HD landscape canvas',
+    chardinSize.w >= 4000 && chardinSize.h >= 3200 && chardinSize.w > chardinSize.h,
+    `${chardinSize.w}x${chardinSize.h}`,
+  );
+  assert('#gallery lands on Wild Strawberries', resolveShelfHash('#gallery') === 'wild-strawberries');
   assert(
     'Ladies First stays a film, not a living object',
     living.every((item) => item.id !== 'ladies-first' && item.id !== 'tar' && item.id !== 'behind-the-album') &&
@@ -174,6 +204,7 @@ function main() {
   const css = read('app/blog/watch-listening-shelf/watch-shelf.css');
   assert('living row sits on the ridge', /row\.row === 'living'/.test(ui));
   assert('duft row sits on the ridge', /row\.row === 'scent'/.test(ui));
+  assert('gallery row sits on the ridge', /row\.row === 'gallery'/.test(ui));
   assert('no CSS slip frames', !/watch-slip-mark/.test(ui) && !/watch-slip-mark/.test(css));
   assert(
     'film posters stay contain; ridge thumbs use cover',
@@ -199,6 +230,16 @@ function main() {
     /\.watch-obj-cover\.is-cutout[\s\S]*?object-fit:\s*contain/.test(css) &&
       /\.watch-obj-cover\.is-cutout[\s\S]*?background:\s*transparent/.test(css) &&
       /\.watch-shelf-detail-image\.is-cutout[\s\S]*?background:\s*transparent/.test(css),
+  );
+  assert(
+    'gallery paintings stay contain with no CSS border or gilt fake',
+    /\.watch-obj-cover\.is-framed[\s\S]*?object-fit:\s*contain/.test(css) &&
+      /\.watch-obj-cover\.is-framed[\s\S]*?border:\s*0/.test(css) &&
+      /\.watch-obj-cover\.is-framed[\s\S]*?box-shadow:\s*none/.test(css) &&
+      /\.watch-shelf-detail-image\.is-framed[\s\S]*?border:\s*0/.test(css) &&
+      /\.watch-shelf-detail-image\.is-framed[\s\S]*?background:\s*transparent/.test(css) &&
+      !/#c9a227/.test(css) &&
+      !/gold/.test(css),
   );
   assert('spine photos sit in a fixed ridge slot', /\.watch-obj\.is-spine[\s\S]*height:\s*96px/.test(css));
   assert('later-note placeholder exists', /drop a note later/.test(ui));

@@ -99,6 +99,34 @@ async function main() {
   await page.waitForTimeout(300);
   await page.screenshot({ path: join(OUT, 'shelf_scent_raeucherkerze.png'), fullPage: true });
 
+  await page.locator('#wild-strawberries').click();
+  await page.waitForFunction(
+    () =>
+      document.querySelector('[data-testid="watch-shelf-detail-title"]')?.textContent?.trim() ===
+      'Wild Strawberries',
+  );
+  await page.waitForTimeout(400);
+  const galleryCount = await page.locator('[data-testid="watch-shelf-row-gallery"] li').count();
+  if (galleryCount !== 1) throw new Error(`expected 1 gallery painting, got ${galleryCount}`);
+  const galleryHref = await page.locator('.watch-shelf-open').getAttribute('href');
+  if (galleryHref !== 'https://collections.louvre.fr/ark:/53355/cl010509181') {
+    throw new Error(`gallery open href ${galleryHref}`);
+  }
+  const framed = page.locator('.watch-shelf-detail-image.is-framed');
+  const framedBox = await framed.boundingBox();
+  if (!framedBox || framedBox.width < 300) {
+    throw new Error(`framed detail too small ${framedBox?.width}x${framedBox?.height}`);
+  }
+  const framedCss = await framed.evaluate((el) => {
+    const s = getComputedStyle(el);
+    return { border: s.borderWidth, shadow: s.boxShadow, fit: s.objectFit, bg: s.backgroundColor };
+  });
+  if (framedCss.fit !== 'contain' || framedCss.border !== '0px') {
+    throw new Error(`framed css ${JSON.stringify(framedCss)}`);
+  }
+  await page.screenshot({ path: join(OUT, 'shelf_gallery_chardin.png'), fullPage: true });
+  await framed.screenshot({ path: join(OUT, 'shelf_gallery_chardin_still.png') });
+
   const mobile = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const mPage = await mobile.newPage();
   await mPage.goto(`${BASE}/blog/watch-listening-shelf`, { waitUntil: 'networkidle' });
@@ -106,6 +134,14 @@ async function main() {
   await mPage.waitForSelector('[data-testid="watch-shelf-row-watch"]');
   await mPage.waitForTimeout(400);
   await mPage.screenshot({ path: join(OUT, 'shelf_photo_real_mobile_390.png'), fullPage: true });
+  await mPage.locator('#wild-strawberries').click();
+  await mPage.waitForFunction(
+    () =>
+      document.querySelector('[data-testid="watch-shelf-detail-title"]')?.textContent?.trim() ===
+      'Wild Strawberries',
+  );
+  await mPage.waitForTimeout(400);
+  await mPage.screenshot({ path: join(OUT, 'shelf_gallery_chardin_mobile_390.png'), fullPage: true });
 
   await browser.close();
   console.log(`wrote ${OUT}/shelf_watch_films_unchanged.png`);
@@ -115,7 +151,10 @@ async function main() {
   console.log(`wrote ${OUT}/shelf_photo_real_living_ridge.png`);
   console.log(`wrote ${OUT}/shelf_scent_duft_ridge.png`);
   console.log(`wrote ${OUT}/shelf_scent_raeucherkerze.png`);
+  console.log(`wrote ${OUT}/shelf_gallery_chardin.png`);
+  console.log(`wrote ${OUT}/shelf_gallery_chardin_still.png`);
   console.log(`wrote ${OUT}/shelf_photo_real_mobile_390.png`);
+  console.log(`wrote ${OUT}/shelf_gallery_chardin_mobile_390.png`);
 }
 
 main().catch((err) => {
