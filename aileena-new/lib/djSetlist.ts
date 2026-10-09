@@ -31,6 +31,8 @@ export type DeckTrack = {
   key: string;
   dur: number;
   thumb: string;
+  /** Spoken clip / external source — deck shows still + open, no Spotify. */
+  href?: string;
 };
 
 /** Curated handoff set — also mirrored in public/dj-set/setlist.json */

@@ -94,11 +94,12 @@ const T = {
   deckB:  '#89a8e0',
 };
 
-export default function TrackLibraryBrowser({ tracks, reverseCarousel = true, onLoadTrack, onSetDragTrack,
+export default function TrackLibraryBrowser({ tracks, reverseCarousel = true, onLoadTrack, onLoadNext, onSetDragTrack,
   playingLeft, playingRight, leftPos, leftDur, rightPos, rightDur }: {
   tracks: Track[];
   reverseCarousel?: boolean;
   onLoadTrack?: (side: 'left' | 'right', track: Track) => void;
+  onLoadNext?: (track: Track) => void;
   onSetDragTrack?: (track: Track) => void;
   playingLeft?: string | null;
   playingRight?: string | null;
@@ -124,6 +125,7 @@ export default function TrackLibraryBrowser({ tracks, reverseCarousel = true, on
       {mode === 'list' ? (
         <ListView
           tracks={filtered} query={query} onQuery={setQuery}
+          onLoadNext={onLoadNext}
           onSetDragTrack={onSetDragTrack}
           playingLeft={playingLeft} playingRight={playingRight}
           leftPos={leftPos} leftDur={leftDur}
@@ -136,6 +138,7 @@ export default function TrackLibraryBrowser({ tracks, reverseCarousel = true, on
           activeIdx={playlistIdx}
           setActiveIdx={setPlaylistIdx}
           onLoadTrack={onLoadTrack}
+          onLoadNext={onLoadNext}
           onSetDragTrack={onSetDragTrack}
         />
       )}
@@ -187,6 +190,9 @@ export default function TrackLibraryBrowser({ tracks, reverseCarousel = true, on
             return (
               <button
                 key={m}
+                type="button"
+                data-testid={m === 'list' ? 'dj-view-list' : 'dj-view-covers'}
+                aria-label={m === 'list' ? 'List' : 'Covers'}
                 onClick={() => setMode(m)}
                 style={{
                   width: 46, height: 34,
@@ -212,10 +218,11 @@ export default function TrackLibraryBrowser({ tracks, reverseCarousel = true, on
 
 /* ─── LIST VIEW ─────────────────────────────────────────── */
 function ListView({
-  tracks, query, onQuery, onSetDragTrack,
+  tracks, query, onQuery, onLoadNext, onSetDragTrack,
   playingLeft, playingRight, leftPos, leftDur, rightPos, rightDur,
 }: {
   tracks: Track[]; query: string; onQuery: (q: string) => void;
+  onLoadNext?: (track: Track) => void;
   onSetDragTrack?: (track: Track) => void;
   playingLeft?: string | null; playingRight?: string | null;
   leftPos?: number; leftDur?: number;
@@ -336,6 +343,7 @@ function ListView({
             isPlayingLeft={isLeft} isPlayingRight={isRight}
             pos={isLeft ? (leftPos ?? 0) : isRight ? (rightPos ?? 0) : 0}
             dur={isLeft ? (leftDur ?? 0) : isRight ? (rightDur ?? 0) : 0}
+            onLoadNext={onLoadNext}
             onSetDragTrack={onSetDragTrack}
           />
         );
@@ -345,10 +353,11 @@ function ListView({
 }
 
 function ListTrackRow({ index, track, isPlayingLeft, isPlayingRight, pos, dur,
-  onSetDragTrack }: {
+  onLoadNext, onSetDragTrack }: {
   index: number; track: Track;
   isPlayingLeft: boolean; isPlayingRight: boolean;
   pos: number; dur: number;
+  onLoadNext?: (track: Track) => void;
   onSetDragTrack?: (track: Track) => void;
 }) {
   const [hov, setHov] = useState(false);
@@ -361,6 +370,8 @@ function ListTrackRow({ index, track, isPlayingLeft, isPlayingRight, pos, dur,
 
   return (
     <div
+      data-testid="dj-list-row"
+      data-track-id={track.id}
       draggable={true}
       onDragStart={(e) => {
         onSetDragTrack?.(track);
@@ -371,6 +382,7 @@ function ListTrackRow({ index, track, isPlayingLeft, isPlayingRight, pos, dur,
           /* some browsers throw on setData during tests */
         }
       }}
+      onDoubleClick={() => onLoadNext?.(track)}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
@@ -493,6 +505,7 @@ function PlaylistCarousel({
   activeIdx,
   setActiveIdx,
   onLoadTrack,
+  onLoadNext,
   onSetDragTrack,
 }: {
   tracks: Track[];
@@ -500,6 +513,7 @@ function PlaylistCarousel({
   activeIdx: number;
   setActiveIdx: (i: number) => void;
   onLoadTrack?: (side: 'left' | 'right', track: Track) => void;
+  onLoadNext?: (track: Track) => void;
   onSetDragTrack?: (track: Track) => void;
 }) {
   const [dragOffset, setDragOffset] = useState(0);
@@ -557,6 +571,10 @@ function PlaylistCarousel({
   const active = tracks[activeIdx];
 
   function loadCoverInOrder(track: Track) {
+    if (onLoadNext) {
+      onLoadNext(track);
+      return;
+    }
     const side = nextDblclickSide.current;
     onLoadTrack?.(side, track);
     nextDblclickSide.current = side === 'left' ? 'right' : 'left';
