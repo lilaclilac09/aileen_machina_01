@@ -240,7 +240,7 @@ function sourceChecks() {
   assert(
     'computer toggle gates the dock',
     /computer-mode-toggle/.test(agentChatSrc) &&
-      /computerMode \? <ComputerConsoleDock isOwner=\{isOwner\}/.test(agentChatSrc),
+      /computerExpanded \? <ComputerConsoleDock isOwner=\{isOwner\}/.test(agentChatSrc),
   );
   assert(
     'opening the Console turns the computer on',
@@ -259,7 +259,25 @@ function sourceChecks() {
   assert('computer docks in AgentChat', /ComputerConsoleDock/.test(agentChatSrc));
   const dockAt = agentChatSrc.indexOf('<ComputerConsoleDock');
   const transAt = agentChatSrc.indexOf('data-agent-transcript');
-  assert('monitor sits above transcript', dockAt > 0 && transAt > 0 && dockAt < transAt);
+  const chromeAt = agentChatSrc.indexOf('console-bottom-chrome');
+  const chartAt = agentChatSrc.indexOf('<CloudflareDeskChart');
+  assert(
+    'packed Cloudflare chart sits next to voice; open dock stays in bottom chrome',
+    chartAt > 0 &&
+      chromeAt > 0 &&
+      dockAt > transAt &&
+      dockAt > chromeAt &&
+      /aside=\{/.test(agentChatSrc) &&
+      /data-testid="cloudflare-desk-chart"/.test(readFileSync(join(process.cwd(), 'components/CloudflareDeskChart.tsx'), 'utf8')),
+  );
+  const chartSrc = readFileSync(join(process.cwd(), 'components/CloudflareDeskChart.tsx'), 'utf8');
+  assert(
+    'Cloudflare chart marks files/shell and browser aside',
+    /data-mark="worker-shell"/.test(chartSrc) &&
+      /data-browser="aside"/.test(chartSrc) &&
+      /files · shell/.test(chartSrc) &&
+      /browse aside/.test(chartSrc),
+  );
   assert(
     'dock yields height so voice is not cropped',
     /max-h-\[min\(38vh,20rem\)\]/.test(dockSrc) && /overflow-y-auto/.test(dockSrc) && /min-h-\[6\.5rem\]/.test(dockSrc),
@@ -270,7 +288,7 @@ function sourceChecks() {
   );
   assert(
     'computer mode raises the dialog before clipping voice',
-    /computerMode \? 'sm:max-h-\[88vh\]' : 'sm:max-h-\[72vh\]'/.test(agentChatSrc),
+    /computerExpanded \? 'sm:max-h-\[88vh\]' : 'sm:max-h-\[72vh\]'/.test(agentChatSrc),
   );
   assert('dock always polls', /setInterval\(\(\) => void load\(\), 900\)/.test(dockSrc));
   assert('dock shows learned chips', /computer-learned/.test(dockSrc) && /computer-monitor/.test(dockSrc));

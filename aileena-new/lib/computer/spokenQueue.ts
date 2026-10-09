@@ -22,7 +22,7 @@ const DOING: Record<string, string> = {
   files_open: 'Opening a file read-only',
   email_draft: 'Drafting email (not sending)',
   email_send: 'Email send is blocked until owner confirms',
-  browser_screenshot: 'Browser automation is blocked',
+  browser_screenshot: 'Cloudflare computer cannot browse. Use Browser Use Cloud',
 };
 
 export function spokenQueued(opts: {
