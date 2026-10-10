@@ -1,6 +1,6 @@
 Techno（personal）：harder driving techno — DVS1, Blawan, Rødhåd
 
-当前 set（/sound#dj-set — updated 2026-10-09）：
+当前 set（/sound#dj-set — updated 2026-10-10）：
 1. TRACK ACQSCN — Acquiescence / Eden Aurelius (107 BPM, 4A)
 2. TRACK ENTRNS — Entre Nous / Eden Aurelius (120 BPM, 4A)
 3. TRACK PASSNG — Passing / Eden Aurelius (120 BPM, 4A)
