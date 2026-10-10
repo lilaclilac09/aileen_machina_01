@@ -41,6 +41,20 @@ function main() {
   );
   assert('scrap-photo.css uses contain', /object-fit:\s*contain/.test(scrapCss) && !/object-fit:\s*cover/.test(scrapCss));
 
+  const page = read('app/page.tsx');
+  assert(
+    'clipping desk clamps scraps on-stage (#347/#350 leftover)',
+    /clampToStage/.test(page) && /data-atrium-stage/.test(page),
+  );
+
+  const albumGrid = readFileSync(join(process.cwd(), '..', 'album/components/PhotoGrid.tsx'), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\/\/.*$/gm, '');
+  assert(
+    'album PhotoGrid does not cover-crop (#357 leftover)',
+    !/object-cover|objectFit:\s*['"]cover['"]|object-fit:\s*cover/.test(albumGrid),
+  );
+
   const contentFiles = [
     'components/GlassBench.tsx',
     'components/zine/ScrapPhoto.tsx',
