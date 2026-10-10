@@ -507,6 +507,23 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
     node.style.transition = 'none';
     node.style.transform = `translate3d(${x}px, ${y}px, 0) ${base}`;
   };
+  /** Keep scraps on the clipping desk — leftover from closed #347/#350. */
+  const clampToStage = (node: HTMLElement, id: string, x: number, y: number) => {
+    const stage = node.closest('[data-atrium-stage]') as HTMLElement | null;
+    paint(node, id, x, y);
+    if (!stage) return { x, y };
+    const margin = 12;
+    const nr = node.getBoundingClientRect();
+    const sr = stage.getBoundingClientRect();
+    let cx = x;
+    let cy = y;
+    if (nr.left < sr.left + margin) cx += sr.left + margin - nr.left;
+    if (nr.top < sr.top + margin) cy += sr.top + margin - nr.top;
+    if (nr.right > sr.right - margin) cx -= nr.right - (sr.right - margin);
+    if (nr.bottom > sr.bottom - margin) cy -= nr.bottom - (sr.bottom - margin);
+    if (cx !== x || cy !== y) paint(node, id, cx, cy);
+    return { x: cx, y: cy };
+  };
   const dragTransform = (id: string, baseTransform: string) => {
     const offset = getDragOffset(id);
     const translate = `translate3d(${offset.x}px, ${offset.y}px, 0)`;
@@ -561,9 +578,8 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
     drag.moved = true;
     // Keep 「drag me」 painted while moving — never bare grabbing.
     node.style.cursor = dragMeCursorForId(drag.id, rooms);
-    const next = { x: drag.originX + dx, y: drag.originY + dy };
+    const next = clampToStage(node, drag.id, drag.originX + dx, drag.originY + dy);
     dragOffsetsRef.current[drag.id] = next;
-    paint(node, drag.id, next.x, next.y);
   };
   const onWindowPointerUp = (event: PointerEvent) => {
     const drag = dragStateRef.current;
