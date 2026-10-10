@@ -3,12 +3,12 @@
 DeFi propagation research & hardware supply chain analysis. Writing about why things break and DJing while they keep running.
 
 ### ✦ Featured Dispatch
-* **[Building KeyShield, Spec-First](./keyshield.md)** — Engineering a zero-knowledge "iCloud Keychain" for agent credentials. Enforcing client-side encryption invariants (WebAuthn PRF → HKDF → AES-256-GCM), instant revocation, and proxy-level spending caps via high-performance Rust proxying (50–80ms hot path).
+* **[Building KeyShield, Spec-First](./keyshield.md)** — Engineering a zero-knowledge "iCloud Keychain" for agent credentials. Enforcing client-side encryption invariants (WebAuthn PRF → HKDF → AES-256-GCM), instant revocation, and proxy-level spending caps. Latency is a measured target, not a published SLA.
 
 ---
 
 ### Research & Builds
-* **KeyShield (Solana Mini Hack SG #5)**: Zero-knowledge credential isolation proxy for autonomous agents. Built with a Rust reverse proxy, AES-256-GCM, and a 50–80ms hot path to secure session-scoped credentials.
+* **KeyShield (Solana Mini Hack SG #5)**: Zero-knowledge credential isolation proxy for autonomous agents. Built with a Rust reverse proxy and AES-256-GCM to secure session-scoped credentials. Quote measured proxy hops; do not publish 10× or 50–80ms until a named environment is timed.
 * **Solana MEV Contagion**: Multi-pool shock propagation modeling and prop AMM risk mechanics.
 * **Semiconductor Supply Chain**: Mapping the physical and economic dependencies of AI silicon — focusing on Co-Packaged Optics (CPO) and NVIDIA GB200/GB300 packaging bottlenecks.
 
@@ -18,7 +18,7 @@ DeFi propagation research & hardware supply chain analysis. Writing about why th
 * **Evidence Closer**: Every AI change is graded on root cause, files changed, checks actually run, the user flow, remaining risks, and an explicit safe-to-merge call. Missing a check is reported, not implied.
 * **Production Is the Exam**: Localhost is a lab. Preview Ready ≠ Production Ready. No screenshots / no owner approval = no merge. If it cannot be proven on the live URL, it is not fixed.
 * **Compiler-Guarded Safety**: Using Rust's strict type-system (Type-State pattern, lifetime constraints) as a compile-time firewall. AI writes the code, the borrow checker verifies the logic.
-* **Deterministic Hot Paths**: Strict latency budgeting (50-80ms target in KeyShield), zero-allocation design, and aggressive profiling to keep runtime overhead at absolute zero.
+* **Deterministic Hot Paths**: Strict latency budgeting on the KeyShield proxy (quote the milliseconds a Call actually timed — never invent 10× or sub-80ms), zero-allocation design, and aggressive profiling to keep runtime overhead at absolute zero.
 
 ### Stack
 * Rust, TypeScript, Python
