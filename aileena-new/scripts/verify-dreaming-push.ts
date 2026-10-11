@@ -4,8 +4,9 @@
  *
  *   pnpm verify:dreaming-push
  *
- * Proves the Cognition write-one path: rejected push of generated reports
- * must abort rebase, reset to latest main, regenerate, then push one file.
+ * Proves the Agent Memory Repo write-one path
+ * (https://github.com/AgentMemoryRepo/agentmemoryrepo): rejected push of
+ * generated reports must abort rebase, read both versions, write one.
  */
 
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -53,8 +54,16 @@ function main() {
     job.includes('bash .github/scripts/push-generated-memory.sh'),
   );
   assert(
+    'job pulls latest main ff-only before Dreaming',
+    /git pull --ff-only origin main/.test(job) && /Agent Memory Repo/.test(job),
+  );
+  assert(
     'job does not rebase generated reports',
     !/git rebase origin\/main/.test(job),
+  );
+  assert(
+    'push script cites AgentMemoryRepo and reads both versions',
+    /AgentMemoryRepo\/agentmemoryrepo/.test(pushSh) && /read both versions/.test(pushSh),
   );
   assert(
     'push script writes one after rejected push',
@@ -144,6 +153,10 @@ function main() {
       'recovery logs write-one regenerate',
       /Regenerating Dreaming on latest/.test(result.stdout + result.stderr),
       (result.stdout + result.stderr).slice(0, 400),
+    );
+    assert(
+      'recovery logs Agent Memory Repo read-both',
+      /read both versions/.test(result.stdout + result.stderr),
     );
 
     const verify = join(tmp, 'verify');

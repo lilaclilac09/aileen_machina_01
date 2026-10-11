@@ -174,7 +174,7 @@ Local one-shot: `pnpm memory:on-article` (= `pnpm memory:workflow`).
 
 Steps: **`sync:content-memory`** → `pnpm dreaming` → `pnpm build:memory-index` → commit `latest-content.md`, changelogs, Dreaming reports to `main`.
 
-Push resilience: `fetch-depth: 0`, concurrency group `machina-memory-dreaming`, regenerate-on-latest-main (do not rebase generated reports). Cognition Agent Memory Repo: on rejected push, read both versions then write one.
+Push resilience: `fetch-depth: 0`, concurrency group `machina-memory-dreaming`, `pull --ff-only` before Dreaming, then regenerate-on-latest-main (do not rebase generated reports). Spec: [Agent Memory Repo](https://github.com/AgentMemoryRepo/agentmemoryrepo) — on rejected push, read both versions then write one.
 
 Bot commits only touch `aileena_second_brain/**` (+ setlist assets) — **outside** the fixed path filter — so the Action does not loop.
 
