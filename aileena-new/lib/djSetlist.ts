@@ -223,6 +223,7 @@ export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
   { id: 'DELSEC', title: 'Secrets', artist: 'Delian Sound', album: 'Secrets EP', bpm: 130, key: '4A', dur: 200, thumb: '/dj-set/assets/covers/secrets-ep.jpg' },
   { id: 'FINAMS', title: 'Amsterdam', artist: 'Finlay Shakespeare', album: 'Domestic Economy', bpm: 120, key: '4A', dur: 364, thumb: '/dj-set/assets/covers/domestic-economy.jpg' },
   { id: '23OBmlZUnRpatDl4q2RoIQ', title: 'Absolutely', artist: 'Klein Zage', album: 'Womanhood EP', bpm: 130, key: '11A', dur: 241, thumb: '/dj-set/assets/covers/womanhood-ep.jpg' },
+  { id: '1KrJHAYW5IomyHw7ly8Bdd', title: 'Vertigo', artist: 'U2', album: 'How To Dismantle An Atomic Bomb', bpm: 140, key: '10A', dur: 194, thumb: '/dj-set/assets/covers/vertigo.jpg' },
 ];
 
 /** Top /sound decks stay on Kiwi / Only Angel when the carousel library grows. */
