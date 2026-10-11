@@ -70,9 +70,19 @@ function cleanTitle(title) {
     .replace(/\.$/, '')
 }
 
-function listMerged(repo, days) {
+function rankMerged(items) {
+  return items
+    .filter((it) => it.title && isSignalTitle(it.title))
+    .sort((a, b) => {
+      const af = /^(feat\b|feat\()/i.test(a.title) ? 0 : 1
+      const bf = /^(feat\b|feat\()/i.test(b.title) ? 0 : 1
+      if (af !== bf) return af - bf
+      return String(b.mergedAt).localeCompare(String(a.mergedAt))
+    })
+}
+
+function listMergedViaSearch(repo, days) {
   const since = sinceIso(days)
-  // search is more reliable across pagination for merged window
   const q = `repo:${repo} is:pr is:merged merged:>=${since.slice(0, 10)}`
   const data = ghJson([
     'search/issues',
@@ -86,20 +96,62 @@ function listMerged(repo, days) {
     'sort=updated',
   ])
   const items = data?.items || []
-  return items
-    .map((it) => ({
+  return rankMerged(
+    items.map((it) => ({
       number: it.number,
       title: it.title,
       mergedAt: it.closed_at,
       url: it.html_url,
-    }))
-    .filter((it) => it.title && isSignalTitle(it.title))
-    .sort((a, b) => {
-      const af = /^(feat\b|feat\()/i.test(a.title) ? 0 : 1
-      const bf = /^(feat\b|feat\()/i.test(b.title) ? 0 : 1
-      if (af !== bf) return af - bf
-      return String(b.mergedAt).localeCompare(String(a.mergedAt))
-    })
+    })),
+  )
+}
+
+function listMergedViaPulls(repo, days) {
+  const since = sinceIso(days)
+  const items = []
+  for (let page = 1; page <= 3; page++) {
+    const data = ghJson([
+      `repos/${repo}/pulls`,
+      '-X',
+      'GET',
+      '-f',
+      'state=closed',
+      '-f',
+      'per_page=50',
+      '-f',
+      `page=${page}`,
+      '-f',
+      'sort=updated',
+      '-f',
+      'direction=desc',
+    ])
+    if (!Array.isArray(data) || data.length === 0) break
+    for (const it of data) {
+      if (!it.merged_at) continue
+      if (it.merged_at < since) continue
+      items.push({
+        number: it.number,
+        title: it.title,
+        mergedAt: it.merged_at,
+        url: it.html_url,
+      })
+    }
+  }
+  return rankMerged(items)
+}
+
+function listMerged(repo, days) {
+  try {
+    return listMergedViaSearch(repo, days)
+  } catch (e) {
+    console.warn(`search/issues failed for ${repo}: ${e.message} — falling back to pulls API`)
+    try {
+      return listMergedViaPulls(repo, days)
+    } catch (err) {
+      console.warn(`pulls API failed for ${repo}: ${err.message} — skip this repo`)
+      return []
+    }
+  }
 }
 
 function classifySite(title) {
