@@ -27,18 +27,17 @@ DeFi propagation research & hardware supply chain analysis. Writing about why th
 ---
 
 ### Recently Updated
-<!-- profile:synced-at 2026-08-11T13:23:00.000Z -->
+<!-- profile:synced-at 2026-10-11T16:08:54.930Z -->
 <!-- profile:recently-updated:start -->
-* **[aileena.xyz](https://aileena.xyz) Console**: On-site voice agent — listen / accumulate / speak turn-taking, ceremonial compact voice bar, and durable chat forwards.
+* **[aileena.xyz](https://aileena.xyz) Console**: Browser Use dry browse for anyone + Cloudflare desk packed above voice, KeyShield: Chrome extension install + restore ks.aileena.xyz marketing, Open the owner review room on aileena.xyz, and small computer no longer crops the voice orb.
 * **Cafe Cursor**: Credits distribution and user support tooling at [cursor-cafe.aileena.xyz](https://cursor-cafe.aileena.xyz).
-* **Machina memory**: How the Site Remembers — Machina memory essay, and watchlist-only RSS ingest + Dreaming.
+* **Machina memory**: AgentMemoryRepo Dreaming — read both, write one.
 <!-- profile:recently-updated:end -->
 
 ### Recently Added
 <!-- profile:recently-added:start -->
-* **On-site voice agent**: Console voice orb on [aileena.xyz](https://aileena.xyz) — Web Speech listen → turn accumulation → soft auntie TTS reply, with mic-blocked hints and visitor-safe quotas.
-* **Machina memory**: Site memory loop and *[How the Site Remembers](https://aileena.xyz/blog/machina-memory)* dispatch — Dreaming reports plus watchlist-only RSS ingest.
 * **Console voice-code**: Orb voice to DeepSeek propose-only patches without Cursor API tokens, with visitor quota and live eval gates.
+* **Machina memory**: Site memory loop and *[How the Site Remembers](https://aileena.xyz/blog/machina-memory)* dispatch — Dreaming reports plus watchlist-only RSS ingest.
 <!-- profile:recently-added:end -->
 
 ---
