@@ -38,7 +38,6 @@ const ROOMS: Room[] = [
   { id: 'sound', name: 'DJ', href: '/sound', description: 'Sound decks DJ 声音 音乐', path: 'app/sound/page.tsx' },
   { id: 'daily', name: 'Daily', href: '/daily', description: 'Daily notes 每日', path: 'app/daily/page.tsx' },
   { id: 'shelf', name: 'Shelf', href: '/blog/watch-listening-shelf', description: 'Films podcasts shelf 书架 电影', path: 'app/blog/watch-listening-shelf/page.tsx' },
-  { id: 'night', name: 'Night Desk', href: '/night', description: 'Late desk night 夜间', path: 'app/night/page.tsx' },
   { id: 'updates', name: 'Metal & Pages', href: '/updates', description: 'Book club visual metal pages 金属', path: 'app/updates/page.tsx' },
   { id: 'dispatch', name: 'Dispatch', href: '/dispatch', description: 'Essays news dispatch 文章', path: 'app/dispatch/page.tsx' },
   { id: 'tools', name: 'Tools', href: '/tools', description: 'Small utilities tools 工具', path: 'app/tools/page.tsx' },

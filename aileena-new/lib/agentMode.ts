@@ -45,7 +45,7 @@ export function decideAgentMode(
     return {
       ok: false,
       status: 400,
-      error: 'Night Desk is /night. The public console does not take that mode.',
+      error: 'Night Desk is gone. The public console does not take that mode.',
     };
   }
   return { ok: true, mode: 'public' };

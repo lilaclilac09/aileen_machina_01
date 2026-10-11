@@ -1,14 +1,11 @@
 import { collegeReply } from './collegeCite';
 import { cfPutFile, isCloudflareComputerReady } from './computer/cfClient';
-import { consoleNightReply, NIGHT_TTL_SECONDS, nightKey, readNight, touchNight, writeNight } from './nightDesk';
-import { getVisitorRedis } from './visitorMemory';
 
-export type SiteLane = 'night' | 'forge';
+export type SiteLane = 'forge';
 
 export function classifySiteLane(message: string): SiteLane | null {
   const m = message.toLowerCase();
   if (m.startsWith('run ') || m.startsWith('$') || m.includes('开电脑')) return null;
-  if (m.includes('今晚') || m.includes('陪') || m.includes('night')) return 'night';
   if (
     m.includes('forge') ||
     m.includes('open a pr') ||
@@ -25,19 +22,6 @@ export async function answerSiteLane(message: string, visitorId: string): Promis
     return 'Not a partner. Not a therapist. Not a girlfriend SKU. The desk is the room.';
   }
   const lane = classifySiteLane(message);
-  if (lane === 'night') {
-    const reply = consoleNightReply(message);
-    if (reply.store) {
-      const id = visitorId.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 32) || 'desk';
-      const next = touchNight(readNight(id), message.trim().slice(0, 160), new Date().toISOString());
-      writeNight(next);
-      const redis = getVisitorRedis();
-      if (redis) {
-        await redis.set(nightKey(id), JSON.stringify(next), { ex: NIGHT_TTL_SECONDS });
-      }
-    }
-    return reply.text;
-  }
   if (lane === 'forge') return writeForgePatch(visitorId);
   return collegeReply(message);
 }
