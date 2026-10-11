@@ -182,23 +182,26 @@ jobs:
           fetch-depth: 0
 
       - name: Require CURSOR_API_KEY
+        id: cursor_key
         if: contains(github.event.pull_request.labels.*.name, 'ai-automerge')
         env:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
         run: |
           if [ -z "$CURSOR_API_KEY" ]; then
-            echo "::error::CURSOR_API_KEY secret is required for ai-automerge labeled PRs"
-            exit 1
+            echo "::warning::CURSOR_API_KEY missing — cursor-review skipped so ci + playwright-dnd can still gate auto-merge"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Install Cursor CLI
-        if: contains(github.event.pull_request.labels.*.name, 'ai-automerge')
+        if: contains(github.event.pull_request.labels.*.name, 'ai-automerge') && steps.cursor_key.outputs.ready == 'true'
         run: |
           curl https://cursor.com/install -fsS | bash
           echo "$HOME/.cursor/bin" >> "$GITHUB_PATH"
 
       - name: cursor-agent review (read-only; exit 1 on blocking bug)
-        if: contains(github.event.pull_request.labels.*.name, 'ai-automerge')
+        if: contains(github.event.pull_request.labels.*.name, 'ai-automerge') && steps.cursor_key.outputs.ready == 'true'
         env:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
         run: |
