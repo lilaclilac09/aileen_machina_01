@@ -50,19 +50,6 @@ function findTrackById(id: string | null | undefined): Track | null {
   return DJ_SET.find((t) => t.id === id || t.spotifyId === id) ?? findVocalTrack(id);
 }
 
-/* ─── Waveform helper ────────────────────────────────────── */
-function generateWaveform(seed: string, bars: number): number[] {
-  let h = 0;
-  for (const c of seed) h = (h << 5) - h + c.charCodeAt(0);
-  const out: number[] = [];
-  for (let i = 0; i < bars; i++) {
-    h = ((h * 1103515245) + 12345) & 0x7fffffff;
-    const env = Math.sin((i / bars) * Math.PI) * 0.45 + 0.55;
-    out.push(0.06 + ((h % 100) / 100) * env * 0.94);
-  }
-  return out;
-}
-
 /* ─── Spotify IFrame API types ───────────────────────────── */
 interface SpotifyController {
   togglePlay(): void;
@@ -351,6 +338,7 @@ export default function DJStation() {
                   }}
                 >
                   {track.thumb ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- Spotify/CDN thumbs; next/image needs remote allowlist
                     <img
                       src={track.thumb}
                       alt=""
@@ -842,7 +830,7 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
       </div>
 
       {/* ── Pioneer section: Sync + Loop + Hot Cues ── */}
-      <PioneerControls side={side} playing={playing} synced={!!synced} pos={pos} onSync={onSync} fat={!!isMobile} />
+      <PioneerControls side={side} synced={!!synced} pos={pos} onSync={onSync} fat={!!isMobile} />
 
       </div>{/* end info+controls wrapper */}
     </div>
@@ -852,8 +840,8 @@ function DeckPanel({ side, track, playing, pos, dur, pitch, dim, dropActive, isM
 /* ─── Pioneer Controls ───────────────────────────────────── */
 const HOT_CUE_COLORS = ['#3b82f6','#f97316','#a3e635','#a855f7','#22d3ee','#ef4444','#10b981','#f472b6'];
 
-function PioneerControls({ side, playing, synced, pos, onSync, fat }: {
-  side: 'left'|'right'; playing: boolean; synced: boolean;
+function PioneerControls({ side, synced, pos, onSync, fat }: {
+  side: 'left'|'right'; synced: boolean;
   pos: number; onSync: () => void; fat?: boolean;
 }) {
   const [loopActive, setLoopActive]   = useState(false);
@@ -1317,180 +1305,6 @@ function EQKnob({ label, value, size, color, onChange, fat, testId }: {
         color: isCenter ? color : 'rgba(255,255,255,0.25)', transition: 'color 0.2s' }}>
         {label}
       </span>
-    </div>
-  );
-}
-
-/* ─── Crate / Track Strip ────────────────────────────────── */
-function CrateStrip({ tracks, query, onQuery, loadedLeft, loadedRight, onDragStart, onDragEnd, onLoad }: {
-  tracks: Track[];
-  query: string;
-  onQuery(q: string): void;
-  loadedLeft: Track | null;
-  loadedRight: Track | null;
-  onDragStart(t: Track): void;
-  onDragEnd(): void;
-  onLoad(side: 'left'|'right', t: Track): void;
-}) {
-  return (
-    <div style={{ marginTop: 10 }}>
-      {/* Crate header + search */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 10,
-        padding: '6px 10px', borderRadius: '6px 6px 0 0',
-        background: C.panel, border: 'none', borderBottom: 'none',
-      }}>
-        <span style={{ fontFamily: 'monospace', fontSize: '0.32rem', letterSpacing: '0.45em', color: C.dim, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
-          CRATE
-        </span>
-        <input
-          value={query} onChange={e => onQuery(e.target.value)}
-          placeholder="search title · bpm · key"
-          style={{
-            flex: 1, background: 'transparent',
-            border: 'none', outline: 'none',
-            fontFamily: 'monospace', fontSize: '0.36rem', letterSpacing: '0.2em',
-            color: C.text,
-          }}
-        />
-        <span style={{ fontFamily: 'monospace', fontSize: '0.28rem', letterSpacing: '0.3em', color: C.dim }}>
-          {tracks.length} tracks
-        </span>
-      </div>
-
-      {/* Column headers */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '32px 1fr 110px 52px 38px 52px 60px',
-        gap: 0, padding: '4px 10px',
-        background: '#0f0f12', border: 'none', borderTop: 'none', borderBottom: 'none',
-      }}>
-        {['#','TITLE','WAVEFORM','BPM','KEY','DUR','DECK'].map(h => (
-          <span key={h} style={{ fontFamily: 'monospace', fontSize: '0.26rem', letterSpacing: '0.35em',
-            color: C.dim, textTransform: 'uppercase' }}>{h}</span>
-        ))}
-      </div>
-
-      {/* Track rows */}
-      <div style={{ border: 'none', borderTop: 'none', borderRadius: '0 0 6px 6px', overflow: 'hidden' }}>
-        {tracks.map((track, i) => (
-          <TrackRow
-            key={track.id}
-            index={i + 1}
-            track={track}
-            isLeft={loadedLeft?.id === track.id}
-            isRight={loadedRight?.id === track.id}
-            onDragStart={() => onDragStart(track)}
-            onDragEnd={onDragEnd}
-            onLoadLeft={() => onLoad('left', track)}
-            onLoadRight={() => onLoad('right', track)}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/* ─── Track Row ──────────────────────────────────────────── */
-const BARS = 52;
-function TrackRow({ index, track, isLeft, isRight, onDragStart, onDragEnd, onLoadLeft, onLoadRight }: {
-  index: number; track: Track; isLeft: boolean; isRight: boolean;
-  onDragStart(): void; onDragEnd(): void;
-  onLoadLeft(): void; onLoadRight(): void;
-}) {
-  const [hov = false, setHov] = useState<boolean>(false);
-  const bars = useMemo(() => generateWaveform(track.id, BARS), [track.id]);
-  const active = isLeft || isRight;
-
-  return (
-    <div
-      draggable
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      style={{
-        display: 'grid',
-        gridTemplateColumns: '32px 1fr 110px 52px 38px 52px 60px',
-        alignItems: 'center', gap: 0,
-        padding: '5px 10px',
-        background: hov ? '#1c1c24' : active ? '#16161e' : '#111114',
-        borderBottom: `1px solid ${C.border}`,
-        cursor: 'grab',
-        transition: 'background 0.15s',
-      }}
-    >
-      {/* Index */}
-      <span style={{ fontFamily: 'monospace', fontSize: '0.3rem', color: C.dim, letterSpacing: '0.2em' }}>
-        {String(index).padStart(2, '0')}
-      </span>
-
-      {/* Title + thumb */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
-        <div style={{ width: 28, height: 28, borderRadius: 3, overflow: 'hidden', flexShrink: 0,
-          border: active ? `1px solid ${isLeft ? C.cyan : C.blue}` : `1px solid ${C.border}` }}>
-          <img src={track.thumb} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        </div>
-        <div style={{ minWidth: 0 }}>
-          <p style={{ fontFamily: 'monospace', fontSize: '0.38rem', letterSpacing: '0.1em',
-            color: active ? (isLeft ? C.cyan : C.blue) : C.text,
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            transition: 'color 0.3s',
-          }}>{track.title}</p>
-        </div>
-      </div>
-
-      {/* Waveform */}
-      <svg width="110" height="26" style={{ display: 'block' }}>
-        {bars.map((h, i) => {
-          const barH = Math.max(2, h * 24);
-          const x = (i / BARS) * 110;
-          const barW = (110 / BARS) * 0.7;
-          return (
-            <rect key={i}
-              x={x} y={(26 - barH) / 2} width={barW} height={barH}
-              fill={active ? `${isLeft ? C.cyan : C.blue}CC` : 'rgba(255,255,255,0.2)'}
-              rx="0.5"
-            />
-          );
-        })}
-      </svg>
-
-      {/* BPM */}
-      <span style={{ fontFamily: 'monospace', fontSize: '0.42rem', letterSpacing: '0.05em',
-        color: C.text, textAlign: 'center' as const }}>
-        {track.bpm}
-      </span>
-
-      {/* Key */}
-      <span style={{ fontFamily: 'monospace', fontSize: '0.38rem', letterSpacing: '0.05em',
-        color: C.sub, textAlign: 'center' as const }}>
-        {track.key}
-      </span>
-
-      {/* Duration */}
-      <span style={{ fontFamily: 'monospace', fontSize: '0.38rem', letterSpacing: '0.05em',
-        color: C.sub }}>
-        {fmt(track.dur * 1000)}
-      </span>
-
-      {/* Load A / B buttons */}
-      <div style={{ display: 'flex', gap: 4 }}>
-        <button onClick={e => { e.stopPropagation(); onLoadLeft(); }} style={{
-          padding: '2px 5px', borderRadius: 3, border: `1px solid ${C.cyan}00`,
-          background: isLeft ? `${C.cyan}25` : 'transparent',
-          color: isLeft ? C.cyan : C.sub,
-          fontFamily: 'monospace', fontSize: '0.28rem', cursor: 'pointer',
-          letterSpacing: '0.1em',
-        }}>A</button>
-        <button onClick={e => { e.stopPropagation(); onLoadRight(); }} style={{
-          padding: '2px 5px', borderRadius: 3, border: `1px solid ${C.blue}00`,
-          background: isRight ? `${C.blue}25` : 'transparent',
-          color: isRight ? C.blue : C.sub,
-          fontFamily: 'monospace', fontSize: '0.28rem', cursor: 'pointer',
-          letterSpacing: '0.1em',
-        }}>B</button>
-      </div>
     </div>
   );
 }
