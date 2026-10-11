@@ -770,6 +770,7 @@ function PlaylistCarousel({
                   position: 'relative',
                   background: '#0b0d10',
                 }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element -- carousel thumbs + onError fallback; next/image would crop */}
                   <img
                     src={resolvedCovers[track.id] || track.thumb || PLACEHOLDER_THUMB} alt={track.title}
                     onError={(e) => {
