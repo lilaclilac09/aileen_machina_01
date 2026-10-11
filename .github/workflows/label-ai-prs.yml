@@ -19,10 +19,12 @@ jobs:
       - name: Ensure label exists and apply
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
         run: |
           gh label create ai-automerge \
+            --repo "$GH_REPO" \
             --color BFDADC \
             --description "Guardrailed auto-merge: CI + Playwright DnD + cursor-agent review" \
             --force || true
-          gh pr edit "$PR" --add-label ai-automerge
+          gh pr edit "$PR" --repo "$GH_REPO" --add-label ai-automerge

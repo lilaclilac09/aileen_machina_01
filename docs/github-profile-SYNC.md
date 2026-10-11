@@ -29,6 +29,8 @@ Cloud Agent / `GITHUB_TOKEN` cannot write `lilaclilac09/lilaclilac09` (403).
 
 Without the secret, the workflow still refreshes `docs/github-profile-README.md` on this repo.
 
+`search/issues` 422s when the token cannot see `polar-lab` (private / missing). The script falls back to `repos/*/pulls` and skips a repo it cannot read so the daily cron stays green.
+
 ## Append-only policy
 
 Keep Featured Dispatch / Research & Builds / Process & Precision unless explicitly asked.
