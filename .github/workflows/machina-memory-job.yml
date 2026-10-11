@@ -66,36 +66,6 @@ jobs:
       - name: Commit Dreaming report + content memory
         if: ${{ !inputs.skip_commit }}
         working-directory: .
-        run: |
-          set -euo pipefail
-          git add \
-            aileena-new/public/dj-set/setlist.json \
-            aileena-new/public/dj-set/assets/covers/*.svg \
-            aileena-new/aileena_second_brain/memories/semantic/latest-content.md \
-            aileena-new/aileena_second_brain/memories/semantic/setlist.md \
-            aileena-new/aileena_second_brain/memories/semantic/self-evolution-log.md \
-            aileena-new/aileena_second_brain/memories/semantic/carousel-sync-state.json \
-            aileena-new/aileena_second_brain/prompts/music-taste.md \
-            aileena-new/aileena_second_brain/memories/episodic/content-changelog-*.md \
-            aileena-new/aileena_second_brain/memories/episodic/content-baseline-*.md \
-            aileena-new/aileena_second_brain/memories/episodic/evolve-carousel-*.md \
-            aileena-new/aileena_second_brain/memories/episodic/social-changelog-*.md \
-            aileena-new/aileena_second_brain/memories/archived/consolidate-report-*.md || true
-          if git diff --cached --quiet; then
-            echo "No new dreaming report to commit"
-            exit 0
-          fi
-          git commit -m "chore(memory): sync latest content + Dreaming report [$(date -u +%Y-%m-%d)] (${{ inputs.reason }})"
-
-          for attempt in 1 2 3 4; do
-            if git push origin HEAD:main; then
-              echo "Dreaming report pushed (attempt ${attempt})"
-              exit 0
-            fi
-            echo "Push rejected (attempt ${attempt}) — rebasing onto origin/main"
-            git fetch origin main
-            git rebase origin/main
-            sleep $((attempt * 2))
-          done
-          echo "::error::Failed to push Dreaming report after retries"
-          exit 1
+        env:
+          MEMORY_REASON: ${{ inputs.reason }}
+        run: bash .github/scripts/push-generated-memory.sh
