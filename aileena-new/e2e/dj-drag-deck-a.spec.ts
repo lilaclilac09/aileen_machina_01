@@ -140,11 +140,22 @@ test.describe('DJ double-click CD → A then B', () => {
 
 const SPOTIFY_ID_RE = /^[a-zA-Z0-9]{22}$/;
 const DAYDREAMING_SPOTIFY = '69w5X6uTrOaWM32IetSzvO';
+/** Keep in sync with `PINNED_DECK_*` in `lib/djSetlist.ts`. */
+const PINNED_DECK_A_ID = '33SNO8AaciGbNaQFkxvPrW';
+const PINNED_DECK_B_ID = '5Lbsc65org0b85kNsPkluY';
 
 async function iframeSrc(page: import('@playwright/test').Page, embedTestId: string) {
   const iframe = page.locator(`[data-testid="${embedTestId}"] iframe`).first();
   if ((await iframe.count()) === 0) return '';
   return (await iframe.getAttribute('src')) || '';
+}
+
+async function seekCover(page: import('@playwright/test').Page, trackId: string) {
+  for (let i = 0; i < 48; i++) {
+    if ((await activeCoverId(page)) === trackId) return;
+    await advanceToNextCover(page);
+  }
+  throw new Error(`carousel never reached ${trackId}`);
 }
 
 async function advanceToSpotifyCover(page: import('@playwright/test').Page) {
@@ -158,22 +169,22 @@ async function advanceToSpotifyCover(page: import('@playwright/test').Page) {
 }
 
 test.describe('DJ embed follows load', () => {
-  test('Deck B does not keep a Daydreaming iframe when In Touch has no Spotify id', async ({ page }) => {
+  test('Deck B opener is pinned Only Angel, not a leftover Daydreaming iframe', async ({ page }) => {
     await page.goto('/sound', { waitUntil: 'domcontentloaded' });
     const embedB = page.getByTestId('dj-deck-b-embed');
     await expect(embedB).toBeVisible();
-    await expect(embedB).toHaveAttribute('data-track-id', 'INTOUCH');
-    await expect(embedB).toHaveAttribute('data-spotify-id', '');
-    await expect(page.getByTestId('dj-deck-b-nospotify')).toBeVisible();
+    await expect(embedB).toHaveAttribute('data-track-id', PINNED_DECK_B_ID);
+    await expect(embedB).toHaveAttribute('data-spotify-id', PINNED_DECK_B_ID);
     expect(await iframeSrc(page, 'dj-deck-b-embed')).not.toContain(DAYDREAMING_SPOTIFY);
   });
 
-  test('loading Rainforest onto Deck A drops the Daydreaming iframe', async ({ page }) => {
+  test('loading Rainforest onto Deck A drops the pinned opener iframe', async ({ page }) => {
     await page.goto('/sound', { waitUntil: 'domcontentloaded' });
     const embedA = page.getByTestId('dj-deck-a-embed');
-    await expect(embedA).toHaveAttribute('data-track-id', 'DAYDRM');
+    await expect(embedA).toHaveAttribute('data-track-id', PINNED_DECK_A_ID);
 
-    const rainId = await advanceToNextCover(page);
+    await seekCover(page, 'RAINFR');
+    const rainId = await activeCoverId(page);
     expect(rainId).toBe('RAINFR');
     await dblclickCover(page, rainId);
 
