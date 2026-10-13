@@ -27,7 +27,7 @@ DeFi propagation research & hardware supply chain analysis. Writing about why th
 ---
 
 ### Recently Updated
-<!-- profile:synced-at 2026-10-12T19:37:38.966Z -->
+<!-- profile:synced-at 2026-10-13T17:21:46.964Z -->
 <!-- profile:recently-updated:start -->
 * **[aileena.xyz](https://aileena.xyz) Console**: Browser Use dry browse for anyone + Cloudflare desk packed above voice, KeyShield: Chrome extension install + restore ks.aileena.xyz marketing, Open the owner review room on aileena.xyz, and small computer no longer crops the voice orb.
 * **Cafe Cursor**: Credits distribution and user support tooling at [cursor-cafe.aileena.xyz](https://cursor-cafe.aileena.xyz).
