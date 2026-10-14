@@ -152,6 +152,7 @@ export const t = {
         },
       },
       tamperCheckContext: {
+        repo: 'Repo',
         watchDemo: 'Watch demo',
         whyHeading: 'Why',
         why: [
@@ -1333,6 +1334,7 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
         },
       },
       tamperCheckContext: {
+        repo: 'Repo',
         watchDemo: 'Demo ansehen',
         whyHeading: 'Warum',
         why: [
