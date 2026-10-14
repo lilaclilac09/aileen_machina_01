@@ -20,7 +20,7 @@ const lab: React.CSSProperties = { display: 'block', fontSize: 14, color: '#555'
 /** One step of the two-scale setup, drawn top-down. */
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
-    <figure style={{ margin: 0, flex: '1 1 220px', background: '#f7f7f5', borderRadius: 12, padding: 12 }}>
+    <figure style={{ margin: 0, flex: '1 1 200px', maxWidth: 225, background: '#f7f7f5', borderRadius: 12, padding: 12 }}>
       <svg viewBox="0 0 240 130" style={{ width: '100%', display: 'block' }}>{children}</svg>
       <figcaption style={{ fontSize: 15, marginTop: 6 }}><b>{n}.</b> {title}</figcaption>
     </figure>
