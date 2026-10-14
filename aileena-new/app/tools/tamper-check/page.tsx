@@ -7,5 +7,10 @@ export const metadata: Metadata = {
 };
 
 export default function TamperCheckPage() {
-  return <TamperCheckLab />;
+  // html/body are overflow:hidden site-wide (globals.css); this page owns its scroll container.
+  return (
+    <div data-testid="tc-scroll" style={{ position: 'fixed', inset: 0, overflowY: 'auto', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', background: '#f6f5f2' }}>
+      <TamperCheckLab />
+    </div>
+  );
 }
