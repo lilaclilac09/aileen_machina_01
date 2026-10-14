@@ -154,6 +154,7 @@ export const t = {
       tamperCheckContext: {
         repo: 'Repo',
         watchDemo: 'Watch demo',
+        tryIt: 'Try it',
         whyHeading: 'Why',
         why: [
           'Oct 2026: CryptoBilis implants found in resold Ledgers. An extra eSIM board sends the seed out over cellular.',
@@ -1336,6 +1337,7 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
       tamperCheckContext: {
         repo: 'Repo',
         watchDemo: 'Demo ansehen',
+        tryIt: 'Ausprobieren',
         whyHeading: 'Warum',
         why: [
           'Okt. 2026: CryptoBilis-Implantate in weiterverkauften Ledgern. Eine zusätzliche eSIM-Platine schickt den Seed per Mobilfunk raus.',
