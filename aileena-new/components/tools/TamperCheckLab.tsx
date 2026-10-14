@@ -60,9 +60,9 @@ function Scale({ x, y, s, value, label, testid }: { x: number; y: number; s: num
       <rect x={x} y={y} width={s} height={s} rx={18} fill="#17181b" stroke="#2c2e33" strokeWidth={3} />
       <rect x={x + 8} y={y + 8} width={s - 16} height={s - 16} rx={12} fill="#1e2024" />
       <text x={x + s / 2} y={y + 34} textAnchor="middle" fill="#cfd2d6" fontSize={18} fontWeight={700} letterSpacing={4}>mg SCALE</text>
-      <rect x={x + s * 0.16} y={y + s - 78} width={s * 0.68} height={56} rx={6} fill="#0a1a10" stroke="#30443a" />
-      <text x={x + s * 0.5} y={y + s - 37} textAnchor="middle" fill="#7dff95" fontSize={38} fontFamily="ui-monospace,monospace" fontWeight={700} data-testid={testid}>{value}</text>
-      <text x={x + s * 0.88} y={y + s - 38} textAnchor="middle" fill="#7dff95" fontSize={16}>g</text>
+      <rect x={x + s * 0.08} y={y + s * 0.62 - 10} width={s * 0.84} height={s * 0.3} rx={6} fill="#0a1a10" stroke="#30443a" />
+      <text x={x + s * 0.47} y={y + s * 0.62 + s * 0.15 + s * 0.06 - 10} textAnchor="middle" fill="#7dff95" fontSize={s * 0.17} fontFamily="ui-monospace,monospace" fontWeight={700} data-testid={testid}>{value}</text>
+      <text x={x + s * 0.88} y={y + s * 0.62 + s * 0.2} textAnchor="middle" fill="#7dff95" fontSize={s * 0.06}>g</text>
       {label ? <text x={x + s / 2} y={y + s + 30} textAnchor="middle" fill="#333" fontSize={20} fontWeight={700}>{label}</text> : null}
     </g>
   );
@@ -143,7 +143,7 @@ export default function TamperCheckLab() {
           <image href={`${IMG}marble.jpg`} x={0} y={0} width={1000} height={520} preserveAspectRatio="xMidYMid slice" />
           <Scale x={120} y={70} s={380} value={!tared1 && lcd1 == null ? '- - -' : (lcd1 ?? 0).toFixed(3)} testid="tc-lcd1" />
           <g style={{ transform: `translateY(${on1 ? 0 : -420}px)`, transition: 'transform .45s ease-out', opacity: on1 ? 1 : 0 }}>
-            <Wallet model={model} ppm={model.includes('nano') ? 4 : 3.4} cx={310} cy={220} rot={0} />
+            <Wallet model={model} ppm={model.includes('nano') ? 4 : 3.4} cx={310} cy={200} rot={0} />
           </g>
           <g transform="rotate(-3 790 260)">
             <rect x={600} y={60} width={340} height={400} fill="#fffef2" stroke="#e2dfc8" />
@@ -151,14 +151,14 @@ export default function TamperCheckLab() {
             <line x1={640} y1={60} x2={640} y2={460} stroke="#f2a1a1" />
             <text x={655} y={100} fontFamily="TCHand, cursive" fontSize={28} fill={ink}>{REFS[model].name.replace(' (EXAMPLE values)', '')}</text>
             {notes.map((v, i) => (
-              <text key={i} x={655} y={150 + i * 40} fontFamily="TCHand, cursive" fontSize={32} fill={ink} data-testid={`tc-note-${i}`}>#{i + 1}   {v.toFixed(3)} g</text>
+              <text key={i} x={655} y={152 + i * 46} fontFamily="TCHand, cursive" fontSize={42} fill={ink} data-testid={`tc-note-${i}`}>#{i + 1}   {v.toFixed(3)} g</text>
             ))}
             {avg != null ? (
               <>
-                <line x1={650} y1={262} x2={900} y2={262} stroke={ink} strokeWidth={2} />
-                <text x={655} y={300} fontFamily="TCHand, cursive" fontSize={32} fill={ink} data-testid="tc-avg">avg  {avg.toFixed(3)} g</text>
-                <text x={655} y={344} fontFamily="TCHand, cursive" fontSize={28} fill="#555">ref  {ref.weight_g.toFixed(3)} g (example)</text>
-                <text x={655} y={392} fontFamily="TCHand, cursive" fontSize={36} fill={r1 ? vc(r1) : ink}>Δ {(avg - ref.weight_g >= 0 ? '+' : '') + (avg - ref.weight_g).toFixed(3)} g</text>
+                <line x1={650} y1={285} x2={920} y2={285} stroke={ink} strokeWidth={2} />
+                <text x={655} y={328} fontFamily="TCHand, cursive" fontSize={42} fill={ink} data-testid="tc-avg">avg  {avg.toFixed(3)} g</text>
+                <text x={655} y={372} fontFamily="TCHand, cursive" fontSize={28} fill="#555">ref  {ref.weight_g.toFixed(3)} g (example)</text>
+                <text x={655} y={430} fontFamily="TCHand, cursive" fontSize={52} fill={r1 ? vc(r1) : ink}>Δ {(avg - ref.weight_g >= 0 ? '+' : '') + (avg - ref.weight_g).toFixed(3)} g</text>
               </>
             ) : null}
           </g>
