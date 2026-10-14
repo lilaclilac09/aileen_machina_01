@@ -15,6 +15,9 @@ export type ToolDefinition = {
   tier: ToolTier;
   /** Existing public asset only. Omit when none exists. */
   screenshot?: string;
+  /** Hosted demo video (public path). Shown muted/looping on the cover plus a Watch demo link. */
+  demoVideo?: string;
+  demoPoster?: string;
   arcade: {
     glyph: string;
     /** Flat fill for the geometric block (no border chrome). */
@@ -177,6 +180,27 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     },
   },
   {
+    slug: 'tamper-check',
+    tag: 'HW',
+    title: 'Tamper Check',
+    body: 'Weigh a Ledger against a same-batch reference. Added boards have mass.',
+    why: 'Bugged Ledgers with an eSIM implant still passed Genuine Check. A $15 milligram scale does not care.',
+    verdict: 'Weigh before you trust. 3D centre-of-mass view, optional SDR burst check. Runs locally.',
+    href: 'https://github.com/lilaclilac09/tamper-check',
+    demoVideo: '/demos/tamper-check.mp4',
+    demoPoster: '/demos/tamper-check-poster.jpg',
+    status: 'useful',
+    tier: 'utility',
+    arcade: {
+      glyph: '⚖',
+      screenGradient: '#e4ece6',
+    },
+  },
+];
+
+/** Kept routable at /tools/<slug>, but no longer shown on the hub. */
+const UNLISTED_TOOL_DEFINITIONS: ToolDefinition[] = [
+  {
     slug: 'pricing-slot',
     tag: 'DATA',
     title: 'Pricing Lookup',
@@ -194,5 +218,5 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
 ];
 
 export function getToolBySlug(slug: string): ToolDefinition | undefined {
-  return TOOL_DEFINITIONS.find((t) => t.slug === slug);
+  return [...TOOL_DEFINITIONS, ...UNLISTED_TOOL_DEFINITIONS].find((t) => t.slug === slug);
 }

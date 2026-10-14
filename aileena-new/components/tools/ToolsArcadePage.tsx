@@ -56,7 +56,19 @@ function ToolCover({
           : undefined
       }
     >
-      {tool.screenshot ? null : (
+      {tool.demoVideo ? (
+        <video
+          className="tools-lab-cover-video"
+          src={tool.demoVideo}
+          poster={tool.demoPoster}
+          muted
+          autoPlay
+          loop
+          playsInline
+          preload="metadata"
+          aria-label={`${tool.title} demo video`}
+        />
+      ) : tool.screenshot ? null : (
         <div className="tools-lab-cover-css" aria-hidden>
           {tool.slug === 'cafe-cursor' ? (
             <div className="tools-lab-receipt">
@@ -118,6 +130,13 @@ function ToolCover({
             </div>
           ) : null}
           {tool.slug === 'chip-guess' ? <div className="tools-lab-die" /> : null}
+          {tool.slug === 'tamper-check' ? (
+            <div className="tools-lab-scale">
+              <span>REF 31.40 g</span>
+              <span>UNIT 31.71 g</span>
+              <span className="tools-lab-scale-delta">Δ +310 mg</span>
+            </div>
+          ) : null}
           {tool.slug === 'pricing-slot' ? (
             <div className="tools-lab-sku">
               <span />
@@ -138,16 +157,27 @@ function ToolCover({
   );
 }
 
+type ToolContext = {
+  watchDemo: string;
+  whyHeading: string;
+  why: readonly string[];
+  howHeading: string;
+  how: readonly string[];
+  sources: readonly { label: string; href: string }[];
+};
+
 function LabCard({
   tool,
   copy,
   openLabel,
   featured,
+  context,
 }: {
   tool: ToolDefinition;
   copy?: ItemCopy;
   openLabel: string;
   featured?: boolean;
+  context?: ToolContext;
 }) {
   const paused = tool.status === 'paused';
   const title = copy?.title ?? tool.title;
@@ -187,6 +217,57 @@ function LabCard({
     return (
       <div className="tools-lab-wrap tools-lab-wrap--paused" data-testid={`tools-card-${tool.slug}`}>
         {inner}
+      </div>
+    );
+  }
+
+  if (external && tool.demoVideo) {
+    return (
+      <div className={`tools-lab-wrap${featured ? ' tools-lab-wrap--featured' : ''}`} data-testid={`tools-card-${tool.slug}`}>
+        <a
+          href={tool.href}
+          className="arcade-cabinet-link tools-lab-wrap"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`${title} — opens ${host ?? tool.href}`}
+        >
+          {inner}
+        </a>
+        <a
+          href={tool.demoVideo}
+          className="tools-lab-cta tools-lab-demo-link"
+          target="_blank"
+          rel="noopener noreferrer"
+          data-testid={`tools-demo-${tool.slug}`}
+        >
+          {context?.watchDemo ?? 'Watch demo'} ▶
+        </a>
+        {context ? (
+          <div className="tools-lab-context" data-testid={`tools-context-${tool.slug}`}>
+            <h3>{context.whyHeading}</h3>
+            <ul>
+              {context.why.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+            <h3>{context.howHeading}</h3>
+            <ol>
+              {context.how.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ol>
+            <p className="tools-lab-context-sources">
+              {context.sources.map((src, i) => (
+                <span key={src.href}>
+                  {i ? ' · ' : ''}
+                  <a href={src.href} target="_blank" rel="noopener noreferrer">
+                    {src.label}
+                  </a>
+                </span>
+              ))}
+            </p>
+          </div>
+        ) : null}
       </div>
     );
   }
@@ -241,6 +322,7 @@ export default function ToolsArcadePage() {
               copy={tx.items[tool.slug as keyof typeof tx.items]}
               openLabel={tx.openTool}
               featured={tool.tier === 'featured'}
+              context={tool.slug === 'tamper-check' ? tx.tamperCheckContext : undefined}
             />
           ))}
           {paused.map((tool) => (
