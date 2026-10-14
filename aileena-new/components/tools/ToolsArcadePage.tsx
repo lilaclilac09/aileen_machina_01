@@ -158,6 +158,7 @@ function ToolCover({
 }
 
 type ToolContext = {
+  repo: string;
   watchDemo: string;
   whyHeading: string;
   why: readonly string[];
@@ -203,7 +204,23 @@ function LabCard({
         <p className="tools-lab-card-kicker">
           {statusLabel} · {tag}
         </p>
-        {paused ? null : (
+        {paused ? null : tool.demoVideo ? (
+          <span className="tools-lab-cta-row">
+            <a href={tool.href} className="tools-lab-cta" target="_blank" rel="noopener noreferrer">
+              {context?.repo ?? 'Repo'} ↗
+            </a>
+            <span aria-hidden> · </span>
+            <a
+              href={tool.demoVideo}
+              className="tools-lab-cta"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid={`tools-demo-${tool.slug}`}
+            >
+              {context?.watchDemo ?? 'Watch demo'} ▶
+            </a>
+          </span>
+        ) : (
           <span className="tools-lab-cta">{external ? `${openLabel} ↗` : `${openLabel} →`}</span>
         )}
       </div>
@@ -224,24 +241,7 @@ function LabCard({
   if (external && tool.demoVideo) {
     return (
       <div className={`tools-lab-wrap${featured ? ' tools-lab-wrap--featured' : ''}`} data-testid={`tools-card-${tool.slug}`}>
-        <a
-          href={tool.href}
-          className="arcade-cabinet-link tools-lab-wrap"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={`${title} — opens ${host ?? tool.href}`}
-        >
-          {inner}
-        </a>
-        <a
-          href={tool.demoVideo}
-          className="tools-lab-cta tools-lab-demo-link"
-          target="_blank"
-          rel="noopener noreferrer"
-          data-testid={`tools-demo-${tool.slug}`}
-        >
-          {context?.watchDemo ?? 'Watch demo'} ▶
-        </a>
+        {inner}
         {context ? (
           <div className="tools-lab-context" data-testid={`tools-context-${tool.slug}`}>
             <h3>{context.whyHeading}</h3>
