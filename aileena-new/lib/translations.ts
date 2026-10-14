@@ -151,6 +151,26 @@ export const t = {
           statusLabel: 'paused',
         },
       },
+      tamperCheckContext: {
+        watchDemo: 'Watch demo',
+        whyHeading: 'Why',
+        why: [
+          'Oct 2026: CryptoBilis implants found in resold Ledgers. An extra eSIM board sends the seed out over cellular.',
+          '~$86–93M taken from 300+ wallets (CoinDesk). One reseller. 7 markets told to halt Ledger sales (Cointelegraph).',
+          'Genuine Check still passes. It verifies the chip, not a board sitting next to it.',
+        ],
+        howHeading: 'How it works',
+        how: [
+          'Weigh 3+ times on a 0.001 g scale against a same-batch reference.',
+          'Read the 3D centre-of-mass view: an implant pulls it off-axis.',
+          'Optional: SDR check for cellular bursts from a powered-off device in a Faraday bag.',
+          'Flagged? Do not enter your seed. Move funds to a new device bought directly from Ledger.',
+        ],
+        sources: [
+          { label: 'CoinDesk', href: 'https://www.coindesk.com/tech/2026/10/12/ledger-says-unauthorized-implant-found-in-at-least-one-device-sold-by-cryptobilis' },
+          { label: 'Cointelegraph', href: 'https://cointelegraph.com/news/ledger-asks-resellers-to-halt-sales-in-southeast-asia-and-hong-kong' },
+        ],
+      },
       inklingClips: {
         tag: 'AUDIO',
         heading: 'Audio Clipping',
@@ -1311,6 +1331,26 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
           verdict: 'Pausiert. Noch kein Produkt.',
           statusLabel: 'paused',
         },
+      },
+      tamperCheckContext: {
+        watchDemo: 'Demo ansehen',
+        whyHeading: 'Warum',
+        why: [
+          'Okt. 2026: CryptoBilis-Implantate in weiterverkauften Ledgern. Eine zusätzliche eSIM-Platine schickt den Seed per Mobilfunk raus.',
+          '~86–93 Mio. $ aus 300+ Wallets (CoinDesk). Ein Händler. 7 Märkte sollen den Ledger-Verkauf stoppen (Cointelegraph).',
+          'Der Genuine Check besteht trotzdem. Er prüft den Chip, nicht eine Platine daneben.',
+        ],
+        howHeading: 'So funktioniert es',
+        how: [
+          '3+ Mal auf einer 0,001-g-Waage wiegen, gegen eine Referenz aus derselben Charge.',
+          '3D-Schwerpunktansicht lesen: ein Implantat zieht ihn aus der Achse.',
+          'Optional: SDR-Check auf Mobilfunk-Bursts eines ausgeschalteten Geräts im Faraday-Beutel.',
+          'Auffällig? Seed nicht eingeben. Guthaben auf ein neues, direkt bei Ledger gekauftes Gerät verschieben.',
+        ],
+        sources: [
+          { label: 'CoinDesk', href: 'https://www.coindesk.com/tech/2026/10/12/ledger-says-unauthorized-implant-found-in-at-least-one-device-sold-by-cryptobilis' },
+          { label: 'Cointelegraph', href: 'https://cointelegraph.com/news/ledger-asks-resellers-to-halt-sales-in-southeast-asia-and-hong-kong' },
+        ],
       },
       inklingClips: {
         tag: 'AUDIO',

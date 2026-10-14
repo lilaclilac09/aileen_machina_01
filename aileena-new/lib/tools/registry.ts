@@ -15,6 +15,9 @@ export type ToolDefinition = {
   tier: ToolTier;
   /** Existing public asset only. Omit when none exists. */
   screenshot?: string;
+  /** Hosted demo video (public path). Shown muted/looping on the cover plus a Watch demo link. */
+  demoVideo?: string;
+  demoPoster?: string;
   arcade: {
     glyph: string;
     /** Flat fill for the geometric block (no border chrome). */
@@ -184,6 +187,8 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     why: 'Bugged Ledgers with an eSIM implant still passed Genuine Check. A $15 milligram scale does not care.',
     verdict: 'Weigh before you trust. 3D centre-of-mass view, optional SDR burst check. Runs locally.',
     href: 'https://github.com/lilaclilac09/tamper-check',
+    demoVideo: '/demos/tamper-check.mp4',
+    demoPoster: '/demos/tamper-check-poster.jpg',
     status: 'useful',
     tier: 'utility',
     arcade: {
