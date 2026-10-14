@@ -18,6 +18,8 @@ export type ToolDefinition = {
   /** Hosted demo video (public path). Shown muted/looping on the cover plus a Watch demo link. */
   demoVideo?: string;
   demoPoster?: string;
+  /** Live hosted app (opens in a new tab as "Try it"). */
+  liveUrl?: string;
   arcade: {
     glyph: string;
     /** Flat fill for the geometric block (no border chrome). */
@@ -188,6 +190,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     verdict: 'Weigh before you trust. 3D centre-of-mass view, optional SDR burst check. Runs locally.',
     href: 'https://github.com/lilaclilac09/tamper-check',
     demoVideo: '/demos/tamper-check.mp4',
+    liveUrl: 'https://check.aileena.xyz',
     demoPoster: '/demos/tamper-check-poster.jpg',
     status: 'useful',
     tier: 'utility',

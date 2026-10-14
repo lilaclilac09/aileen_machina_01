@@ -160,6 +160,7 @@ function ToolCover({
 type ToolContext = {
   repo: string;
   watchDemo: string;
+  tryIt?: string;
   whyHeading: string;
   why: readonly string[];
   howHeading: string;
@@ -219,6 +220,20 @@ function LabCard({
             >
               {context?.watchDemo ?? 'Watch demo'} ▶
             </a>
+            {tool.liveUrl ? (
+              <>
+                <span aria-hidden> · </span>
+                <a
+                  href={tool.liveUrl}
+                  className="tools-lab-cta"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-testid={`tools-live-${tool.slug}`}
+                >
+                  {context?.tryIt ?? 'Try it'} ↗
+                </a>
+              </>
+            ) : null}
           </span>
         ) : (
           <span className="tools-lab-cta">{external ? `${openLabel} ↗` : `${openLabel} →`}</span>
