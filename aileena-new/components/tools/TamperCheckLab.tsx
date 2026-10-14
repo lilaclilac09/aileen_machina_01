@@ -20,16 +20,18 @@ const lab: React.CSSProperties = { display: 'block', fontSize: 14, color: '#555'
 /** One step of the two-scale setup, drawn top-down. */
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
-    <figure style={{ margin: 0, flex: '1 1 200px', maxWidth: 225, background: '#f7f7f5', borderRadius: 12, padding: 12 }}>
-      <svg viewBox="0 0 240 130" style={{ width: '100%', display: 'block' }}>{children}</svg>
-      <figcaption style={{ fontSize: 15, marginTop: 6 }}><b>{n}.</b> {title}</figcaption>
-    </figure>
+    <div style={{ background: '#f7f7f5', borderRadius: 12, padding: 12, minWidth: 0, height: 'auto', overflow: 'visible' }}>
+      <svg viewBox="0 0 240 130" style={{ width: '100%', height: 'auto', display: 'block' }}>{children}</svg>
+      <div style={{ fontSize: 15, lineHeight: 1.4, marginTop: 6, whiteSpace: 'normal', overflow: 'visible' }}><b>{n}.</b> {title}</div>
+    </div>
   );
 }
 const ScaleL = ({ v }: { v?: string }) => (<g><rect x={10} y={40} width={70} height={70} rx={8} fill="#1b1c1f" /><rect x={18} y={84} width={54} height={20} rx={3} fill="#0b2213" /><text x={45} y={99} textAnchor="middle" fontSize={13} fill="#7dff95" fontFamily="monospace">{v ?? '0.000'}</text></g>);
 const ScaleR = ({ v }: { v?: string }) => (<g><rect x={160} y={40} width={70} height={70} rx={8} fill="#1b1c1f" /><rect x={168} y={84} width={54} height={20} rx={3} fill="#0b2213" /><text x={195} y={99} textAnchor="middle" fontSize={13} fill="#7dff95" fontFamily="monospace">{v ?? '0.000'}</text></g>);
 const Ruler = () => (<g><rect x={20} y={52} width={200} height={12} rx={2} fill="#d6d9de" stroke="#8a9099" /><line x1={120} y1={46} x2={120} y2={70} stroke={GREEN} strokeWidth={3} /></g>);
 const Wallet = ({ flip }: { flip?: boolean }) => (<g transform={flip ? 'rotate(180 120 58)' : undefined}><rect x={92} y={44} width={56} height={28} rx={5} fill="#2b2e33" /><rect x={97} y={49} width={30} height={18} rx={2} fill="#e9e9e4" /><rect x={142} y={46} width={4} height={24} rx={2} fill={GREEN} /></g>);
+
+const Conf = ({ c }: { c: number }) => (<span data-testid="tc-conf" style={{ display: 'inline-block', fontSize: 15, fontWeight: 800, padding: '4px 12px', borderRadius: 999, background: c === 2 ? '#111' : c === 1 ? '#555' : '#ddd', color: c === 0 ? '#111' : '#fff', marginLeft: 10, verticalAlign: 'middle' }}>CONFIDENCE: {['LOW','MEDIUM','HIGH'][c]}</span>);
 
 export default function TamperCheckLab() {
   const [model, setModel] = useState('ledger-flex');
@@ -47,6 +49,30 @@ export default function TamperCheckLab() {
   const off = two ? Math.abs(two.offset_mm) : 0;
   const v2 = two?.flipped ? (off <= ref.com_tol_mm ? ['CENTRED', GREEN] : off <= 2 * ref.com_tol_mm ? ['OFF-CENTRE', AMBER] : ['OFF-CENTRE', RED]) : null;
   const follows = two?.flipped && Math.sign(num(f.R) - num(f.L)) !== Math.sign(num(f.R2) - num(f.L2)) && off > ref.com_tol_mm;
+
+  // Confidence (example rules, see "How we judge")
+  const absd = d != null ? Math.abs(d) : 0, tol = ref.weight_tol_g;
+  const wFlag = d != null && absd > tol, cFlag = !!v2 && off > ref.com_tol_mm, cOk = !!v2 && !cFlag;
+  let c1 = -1;
+  if (d != null) {
+    c1 = d >= 0.3 - 1e-6 ? 2 : absd > 2 * tol ? 1 : absd > tol ? 0 : 1;
+    if (readings.length < 3 && c1 < 2) c1 = Math.max(0, c1 - 1);
+    if ((wFlag && cFlag) || (!wFlag && cOk && readings.length >= 3)) c1 = 2;
+  }
+  let c2 = -1;
+  if (v2) { c2 = off > 2 * ref.com_tol_mm ? 1 : off > ref.com_tol_mm ? 0 : 1; if (follows) c2 = Math.max(c2, 1); if ((wFlag && cFlag) || (d != null && !wFlag && cOk)) c2 = 2; }
+  const th: React.CSSProperties = { textAlign: 'left', padding: '8px 10px', borderBottom: '2px solid #111', fontSize: 14 };
+  const td: React.CSSProperties = { padding: '8px 10px', borderBottom: '1px solid #e5e5e5', fontSize: 15, verticalAlign: 'top' };
+  const rows: [string, string, string, string][] = [
+    ['Weight Δ within ±' + tol.toFixed(3) + ' g', 'Normal', GREEN, 'Medium (High if CoM is also centred)'],
+    ['Weight Δ > ' + tol.toFixed(3) + ' g', 'Slightly heavy: suspicious', AMBER, 'Low'],
+    ['Weight Δ > ' + (2 * tol).toFixed(3) + ' g (2× tolerance)', 'Significant: suspicious', AMBER, 'Medium'],
+    ['Weight Δ ≥ +0.300 g (board-sized)', 'TAMPERED: DO NOT USE', RED, 'High'],
+    ['CoM offset ≤ ' + ref.com_tol_mm.toFixed(1) + ' mm', 'Centred', GREEN, 'Medium'],
+    ['CoM offset ' + ref.com_tol_mm.toFixed(1) + '–' + (2 * ref.com_tol_mm).toFixed(1) + ' mm', 'Mild off-centre', AMBER, 'Low'],
+    ['CoM offset > ' + (2 * ref.com_tol_mm).toFixed(1) + ' mm', 'Significant off-centre', RED, 'Medium'],
+    ['Heavy side follows the wallet after 180°', 'Mass is inside the device', RED, 'Medium or higher'],
+  ];
 
   return (
     <main style={{ maxWidth: 980, margin: '0 auto', padding: '28px 20px 60px', color: '#111', background: '#f6f5f2', borderRadius: 18, fontFamily: 'system-ui, sans-serif' }}>
@@ -72,7 +98,7 @@ export default function TamperCheckLab() {
         {avg != null && d != null && v1 ? (
           <div style={{ marginTop: 20 }} data-testid="tc-v1">
             <div style={{ fontSize: 20, fontFamily: 'ui-monospace,monospace' }}>average <b style={{ fontSize: 30 }}>{avg.toFixed(3)} g</b> · reference {ref.weight_g.toFixed(3)} g · <b style={{ fontSize: 30, color: v1[1] }}>Δ {(d >= 0 ? '+' : '') + d.toFixed(3)} g</b></div>
-            <div style={{ fontSize: 44, fontWeight: 900, color: v1[1], marginTop: 6 }}>{v1[0]}</div>
+            <div style={{ fontSize: 44, fontWeight: 900, color: v1[1], marginTop: 6 }}>{v1[0]}<Conf c={c1} /></div>
             <div style={{ color: '#555' }}>Allowed difference ±{ref.weight_tol_g.toFixed(3)} g.{readings.length < 3 ? ' Add all 3 readings for a reliable result.' : ''} {r1.risk >= 25 ? 'Do not enter a seed on this device.' : ''}</div>
           </div>
         ) : null}
@@ -81,7 +107,7 @@ export default function TamperCheckLab() {
 
       <section style={card} data-testid="tc-step2">
         <h2 style={{ margin: '0 0 4px' }}>2 · Find where the extra mass is (two scales + a ruler)</h2>
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', margin: '12px 0 18px' }}>
+        <div className="tc-steps" style={{ display: 'grid', gap: 12, margin: '12px 0 18px' }}>
           <Step n={1} title="Two scales side by side, a rigid ruler across both. Tare both to 0.000."><ScaleL /><ScaleR /><Ruler /></Step>
           <Step n={2} title="Put the wallet exactly on the ruler's middle mark."><ScaleL v="—" /><ScaleR v="—" /><Ruler /><Wallet /></Step>
           <Step n={3} title="Read Left and Right."><ScaleL v="28.517" /><ScaleR v="29.693" /><Ruler /><Wallet /></Step>
@@ -96,13 +122,27 @@ export default function TamperCheckLab() {
         </div>
         {two ? (
           <div style={{ marginTop: 20 }} data-testid="tc-v2">
-            {v2 ? <div style={{ fontSize: 44, fontWeight: 900, color: v2[1] }}>{v2[0]}</div> : <div style={{ fontSize: 20, color: '#555' }}>Now rotate 180° and enter the second pair.</div>}
+            {v2 ? <div style={{ fontSize: 44, fontWeight: 900, color: v2[1] }}>{v2[0]}<Conf c={c2} /></div> : <div style={{ fontSize: 20, color: '#555' }}>Now rotate 180° and enter the second pair.</div>}
             {two.flipped ? <div style={{ fontSize: 20 }}>offset <b style={{ fontSize: 30 }}>{(two.offset_mm >= 0 ? '+' : '') + two.offset_mm.toFixed(2)} mm</b> (allowed ±{ref.com_tol_mm} mm)</div> : null}
             {v2 ? <div style={{ color: '#444', fontSize: 17, marginTop: 4 }}>{off <= ref.com_tol_mm ? 'Equal before and after rotating: the mass is centred.' : follows ? 'The heavy side moved with the wallet when you rotated it: extra mass inside that end.' : 'The balance point is off-centre.'}</div> : null}
           </div>
         ) : null}
       </section>
 
+      <section style={card} data-testid="tc-criteria">
+        <h2 style={{ margin: '0 0 4px' }}>How we judge</h2>
+        <p style={{ margin: '0 0 12px', color: '#555' }}>Thresholds for the selected model ({ref.name}). All numbers are examples.</p>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 520 }}>
+            <thead><tr><th style={th}>Measurement</th><th style={th}>Result</th><th style={th}>Confidence</th></tr></thead>
+            <tbody>{rows.map(([m, r, c, k]) => (<tr key={m}><td style={td}>{m}</td><td style={{ ...td, color: c, fontWeight: 700 }}>{r}</td><td style={td}>{k}</td></tr>))}</tbody>
+          </table>
+        </div>
+        <p style={{ margin: '14px 0 6px', fontSize: 15 }}><b>Confidence goes up when signals agree.</b> If the weight is high <i>and</i> the CoM is off-centre, confidence is High. A normal weight plus a centred CoM is also High. Fewer than 3 weight readings lowers confidence one level. A board-sized overweight (≥ 0.3 g) is High on its own.</p>
+        <p style={{ margin: 0, fontSize: 14, color: '#777' }}>Reference weights and tolerances are examples, not Ledger specs. Calibrate with a known-genuine unit from the same batch, weighed on the same scale, and use its weight as your reference.</p>
+      </section>
+
+      <style>{`.tc-steps{grid-template-columns:repeat(4,minmax(0,1fr))}@media (max-width:760px){.tc-steps{grid-template-columns:repeat(2,minmax(0,1fr))}}`}</style>
       <p style={{ fontSize: 14, color: '#555' }}>Until it&apos;s verified, keep the wallet in a Faraday bag (test the bag: call a phone inside it). Open source: <a href="https://github.com/lilaclilac09/tamper-check">github.com/lilaclilac09/tamper-check</a></p>
     </main>
   );
