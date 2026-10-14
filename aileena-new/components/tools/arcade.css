@@ -2079,3 +2079,26 @@ button.ai-factory-cell {
   }
 }
 
+
+.tools-lab-cover--tamper-check {
+  background: linear-gradient(180deg, #eef3ef 0%, #dde8e2 100%);
+}
+.tools-lab-scale {
+  position: absolute;
+  inset: 20% 14%;
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  color: #2a2620;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.78rem;
+}
+.tools-lab-scale span {
+  border-bottom: 1px solid rgba(20, 17, 12, 0.14);
+  padding-bottom: 4px;
+}
+.tools-lab-scale .tools-lab-scale-delta {
+  color: #c2410c;
+  font-weight: 600;
+  border-bottom: none;
+}

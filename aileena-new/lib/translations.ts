@@ -134,6 +134,14 @@ export const t = {
           verdict: 'Paused. Not a product yet.',
           statusLabel: 'paused',
         },
+        'tamper-check': {
+          tag: 'HW',
+          title: 'Tamper Check',
+          body: 'Weigh a Ledger against a same-batch reference. Added boards have mass.',
+          why: 'Bugged Ledgers with an eSIM implant still passed Genuine Check. A $15 milligram scale does not care.',
+          verdict: 'Weigh before you trust. 3D centre-of-mass view, optional SDR burst check. Runs locally.',
+          statusLabel: 'useful',
+        },
         'pricing-slot': {
           tag: 'DATA',
           title: 'Pricing Lookup',
@@ -1286,6 +1294,14 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
           why: 'Ein Schreibtischspiel gegen den Chip-Katalog.',
           verdict: 'Pausiert. Noch kein Produkt.',
           statusLabel: 'paused',
+        },
+        'tamper-check': {
+          tag: 'HW',
+          title: 'Tamper Check',
+          body: 'Ledger gegen eine Referenz aus derselben Charge wiegen. Zusätzliche Platinen haben Masse.',
+          why: 'Verwanzte Ledger mit eSIM-Implantat bestanden trotzdem den Genuine Check. Eine 15-$-Milligrammwaage interessiert das nicht.',
+          verdict: 'Erst wiegen, dann vertrauen. 3D-Schwerpunktansicht, optionaler SDR-Burst-Check. Läuft lokal.',
+          statusLabel: 'useful',
         },
         'pricing-slot': {
           tag: 'DATA',

@@ -98,7 +98,7 @@ Open `/tools` → new tile visible → open tool once end-to-end.
 | `computer` | `/tools/computer` | **Experiment** — computer in the site-agent dialog; Cloudflare worker-shell when env is set; no merge. |
 | `feed-flash` | `/tools/feed-flash` | Paused on hub |
 | `chip-guess` | `/tools/chip-guess` | Paused on hub |
-| `pricing-slot` | `/tools/pricing-slot` | Paused on hub |
+| `pricing-slot` | `/tools/pricing-slot` | Unlisted (hub slot now `tamper-check`, external) |
 
 Nav: homepage dock `{ label: 'tools', href: '/tools' }`.
 

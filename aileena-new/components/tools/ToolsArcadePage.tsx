@@ -118,6 +118,13 @@ function ToolCover({
             </div>
           ) : null}
           {tool.slug === 'chip-guess' ? <div className="tools-lab-die" /> : null}
+          {tool.slug === 'tamper-check' ? (
+            <div className="tools-lab-scale">
+              <span>REF 31.40 g</span>
+              <span>UNIT 31.71 g</span>
+              <span className="tools-lab-scale-delta">Δ +310 mg</span>
+            </div>
+          ) : null}
           {tool.slug === 'pricing-slot' ? (
             <div className="tools-lab-sku">
               <span />
