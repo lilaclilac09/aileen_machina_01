@@ -18,6 +18,8 @@ export type ToolDefinition = {
   /** Hosted demo video (public path). Shown muted/looping on the cover plus a Watch demo link. */
   demoVideo?: string;
   demoPoster?: string;
+  /** Live hosted app (opens in a new tab as "Try it"). */
+  liveUrl?: string;
   arcade: {
     glyph: string;
     /** Flat fill for the geometric block (no border chrome). */
@@ -29,6 +31,24 @@ export type ToolDefinition = {
 export const CAFE_CURSOR_URL = 'https://cursor-cafe.aileena.xyz/';
 
 export const TOOL_DEFINITIONS: ToolDefinition[] = [
+  {
+    slug: 'tamper-check',
+    tag: 'HW',
+    title: 'Tamper Check',
+    body: 'Weigh a Ledger against a same-batch reference. Added boards have mass.',
+    why: 'Bugged Ledgers with an eSIM implant still passed Genuine Check. A $15 milligram scale does not care.',
+    verdict: 'Weigh before you trust. Interactive mg-scale lab: weigh 3×, then two scales + a ruler find the centre of mass. Runs in your browser.',
+    href: 'https://github.com/lilaclilac09/tamper-check',
+    demoVideo: '/demos/tamper-check.mp4',
+    liveUrl: '/tools/tamper-check',
+    demoPoster: '/demos/tamper-check-poster.jpg',
+    status: 'useful',
+    tier: 'featured',
+    arcade: {
+      glyph: '⚖',
+      screenGradient: '#e4ece6',
+    },
+  },
   {
     slug: 'cafe-cursor',
     tag: 'EVENT',
@@ -177,23 +197,6 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     arcade: {
       glyph: '◇',
       screenGradient: '#e4e8f0',
-    },
-  },
-  {
-    slug: 'tamper-check',
-    tag: 'HW',
-    title: 'Tamper Check',
-    body: 'Weigh a Ledger against a same-batch reference. Added boards have mass.',
-    why: 'Bugged Ledgers with an eSIM implant still passed Genuine Check. A $15 milligram scale does not care.',
-    verdict: 'Weigh before you trust. 3D centre-of-mass view, optional SDR burst check. Runs locally.',
-    href: 'https://github.com/lilaclilac09/tamper-check',
-    demoVideo: '/demos/tamper-check.mp4',
-    demoPoster: '/demos/tamper-check-poster.jpg',
-    status: 'useful',
-    tier: 'utility',
-    arcade: {
-      glyph: '⚖',
-      screenGradient: '#e4ece6',
     },
   },
 ];

@@ -54,6 +54,11 @@ const nextConfig: NextConfig = {
           has: [{ type: "host", value: "app.ks.aileena.xyz" }],
           destination: "/ks",
         },
+        {
+          source: "/",
+          has: [{ type: "host", value: "check.aileena.xyz" }],
+          destination: "/tools/tamper-check",
+        },
       ],
     };
   },

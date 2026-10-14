@@ -1,0 +1,4 @@
+ledger-nano-s-plus https://images.ctfassets.net/ge894kijjvls/4Dncaugb7OI9uDJhxspu5C/5542a00355fe52dbf86633a9834a8054/og_pdp_lnsp_1x.webp
+ledger-nano-x https://images.ctfassets.net/ge894kijjvls/6S8DUAZnSj8qEgBRXXdT0H/63684c9f37de661b3ef752a31d03ed38/og_pdp_lnx_1x.webp
+ledger-stax https://images.ctfassets.net/ge894kijjvls/nXeVnAaA1r82OkpOHZZdt/ca6a9286f13d9d012de02984dfba8d05/og_pdp_stax_1x.webp
+ledger-flex https://images.ctfassets.net/ge894kijjvls/6vpOFE5oxWpPEvYeM5aO5a/82357950b44c008a4f06bcdb7c1aecf7/og_pdp_flex_1x.webp
