@@ -39,6 +39,7 @@ export class TurnGuard {
   private readonly corpus = new GroundingCorpus();
   private protectedText = '';
   private inputHits = 0;
+  private droppedParts = 0;
   private readonly counts = new Map<GuardAction, number>();
 
   constructor(init: TurnGuardInit) {
@@ -47,16 +48,22 @@ export class TurnGuard {
     this.locale = detectLocale(init.lastQuestion);
   }
 
-  /** (a) Neutralize forged markers in the client-supplied transcript. Council (owner-only) is left as typed. */
+  /**
+   * (a) Accept only text from the client: drop system messages and tool /
+   * reasoning / file parts, neutralize forged markers. Council (owner-only)
+   * keeps its text as typed but still loses non-text parts.
+   */
   guardTranscript(messages: UIMessage[]): UIMessage[] {
-    if (this.mode === 'council') return messages;
-    const r = guardTranscript(messages);
+    const r = guardTranscript(messages, { neutralize: this.mode !== 'council' });
     this.inputHits = r.hits;
-    for (const m of r.messages) {
-      if (m.role !== 'user') continue;
-      for (const p of m.parts ?? []) if (p.type === 'text') this.corpus.addText(p.text);
-    }
+    this.droppedParts = r.droppedParts;
+    // Visitor text is deliberately NOT grounding: "the H200 has 94GB, right?"
+    // must not let the model repeat 94GB. Only prompt, tail and tool data ground figures.
     return r.messages;
+  }
+
+  get droppedClientParts(): number {
+    return this.droppedParts;
   }
 
   get inputGuardHits(): number {
@@ -172,6 +179,7 @@ export class TurnGuard {
       mode: this.mode,
       locale: this.locale,
       inputGuardHits: this.inputHits,
+      droppedClientParts: this.droppedParts,
       output: Object.fromEntries(this.counts),
     };
   }

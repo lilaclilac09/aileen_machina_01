@@ -6,6 +6,7 @@ import { COUNCIL_SYSTEM_PROMPT, formatCouncilLensForPrompt } from '../../../lib/
 import { decideAgentMode, skipVisitorQuota, type AgentMode } from '../../../lib/agentMode';
 import { isCouncilLens } from '../../../lib/councilCopy';
 import { requireOwnerFromRequest } from '../../../lib/owner-gate';
+import { isAgentCaller } from '../../../lib/agentCaller';
 import { tryBrowserUseFastPath } from '../../../lib/browserUse/chatFastPath';
 import { publicPrepareBrowseResult } from '../../../lib/browserUse/status';
 import { tryOwnerComputerFastPath, tryVisitorComputerFastPath } from '../../../lib/computer/chatFastPath';
@@ -70,6 +71,7 @@ import {
 import { formatSkillsForTurn } from '../../../lib/evolution/runtime';
 import { enqueueLiveAsk } from '../../../lib/evolution/liveInbox';
 import { TurnGuard } from '../../../lib/agentGuard/turnGuard';
+import { prefixHash } from '../../../lib/agentGuard/prefixHash';
 
 export const maxDuration = 30;
 const DAILY_LIMIT = CHAT_DAILY_LIMIT;
@@ -146,8 +148,12 @@ export async function POST(req: Request) {
         .slice(0, 5)
     : [];
 
-  const owner = await requireOwnerFromRequest(req);
-  const decided = decideAgentMode(body.agentMode, Boolean(owner));
+  // Agent callers (/api/mcp) are public visitors: no owner, no council, no side effects.
+  const agentCaller = isAgentCaller(req);
+  const owner = agentCaller ? null : await requireOwnerFromRequest(req);
+  const decidedRaw = decideAgentMode(body.agentMode, Boolean(owner));
+  const decided =
+    agentCaller && decidedRaw.ok ? { ok: true as const, mode: 'public' as AgentMode } : decidedRaw;
   if (!decided.ok) {
     return jsonError(decided.error, decided.status, trace.traceId, {
       'X-Agent-Mode': 'forbidden',
@@ -163,7 +169,7 @@ export async function POST(req: Request) {
     return res;
   };
   const browse = tryBrowserUseFastPath({ lastQ: lastQEarly });
-  if (browse) {
+  if (browse && !agentCaller) {
     const ownerUnlimitedBrowse = await hasOwnerUnlimitedChat(req);
     const unlimitedBrowse = skipVisitorQuota(Boolean(owner)) || ownerUnlimitedBrowse;
     const turn = await takeVisitorChatTurn(req, unlimitedBrowse);
@@ -181,7 +187,9 @@ export async function POST(req: Request) {
     trace.log('browser_use_fast_path', { q: lastQEarly.slice(0, 80) });
     return withComputerCookie(browse);
   }
-  if (computerActor.kind === 'owner') {
+  if (agentCaller) {
+    // no computer desk for agent callers
+  } else if (computerActor.kind === 'owner') {
     const fast = await tryOwnerComputerFastPath({
       req,
       isOwner: true,
@@ -202,7 +210,7 @@ export async function POST(req: Request) {
       return withComputerCookie(fast);
     }
   }
-  const laneText = await answerSiteLane(lastQEarly, computerActor.id);
+  const laneText = await answerSiteLane(lastQEarly, computerActor.id, { allowSideEffects: !agentCaller });
   if (laneText) {
     trace.log('site_lane', { q: lastQEarly.slice(0, 80) });
     return withComputerCookie(queuedChatResponse(laneText));
@@ -270,8 +278,15 @@ export async function POST(req: Request) {
     lastQuestion: lastQEarly,
   });
   const trimmed = guard.guardTranscript(messages);
-  if (guard.inputGuardHits > 0) {
-    trace.log('input_guard', { hits: guard.inputGuardHits, mode: agentMode });
+  if (trimmed.length === 0) {
+    return jsonError('No messages provided.', 400, trace.traceId);
+  }
+  if (guard.inputGuardHits > 0 || guard.droppedClientParts > 0) {
+    trace.log('input_guard', {
+      hits: guard.inputGuardHits,
+      droppedClientParts: guard.droppedClientParts,
+      mode: agentMode,
+    });
   }
   let modelMessages: ModelMessage[];
   try {
@@ -315,7 +330,7 @@ export async function POST(req: Request) {
   }
   // Uncovered public asks → Redis live inbox. Drain ratchets held-out only.
   // Council never enqueues. Does not write AGENTS.md / QA.md / PROJECT_RULES.md.
-  if (lastQ) void enqueueLiveAsk(lastQ, { isCouncil });
+  if (lastQ && !agentCaller) void enqueueLiveAsk(lastQ, { isCouncil });
 
   const toolRoute = routeToolsForQuestion(lastQ, visitorSoft, priorTopics);
   const modelDecision = routeModel({
@@ -539,24 +554,23 @@ ${memoryPrefetch
         ...agentDataTools,
     };
 
-    // R2: only expose tools allowed for this question type (hire → none, taste → memories…).
+    // R2: the tool table stays the same every turn (prefix cache). Tools this
+    // route doesn't allow are wrapped to return {blocked, reason:'wrong_route'};
+    // route 'none' (hire / CV) also sets toolChoice 'none' below.
     const routedTools = applyToolRoute(allTools, toolRoute);
-    const withBrowse =
-      toolRoute.allowed !== 'none'
-        ? {
-            ...routedTools,
-            browseWeb: tool({
-              description:
-                'Anyone. Browser Use Cloud API v4 status or dry-run prepare. Does not start a paid browser. Cloudflare computer is not the browser path.',
-              inputSchema: z.object({
-                task: z.string().min(2).max(4000).optional().describe('Browse goal. Omit for wiring status only.'),
-              }),
-              execute: async ({ task }) => publicPrepareBrowseResult(task),
-            }),
-          }
-        : routedTools;
+    const withBrowse = {
+      ...routedTools,
+      browseWeb: tool({
+        description:
+          'Anyone. Browser Use Cloud API v4 status or dry-run prepare. Does not start a paid browser. Cloudflare computer is not the browser path.',
+        inputSchema: z.object({
+          task: z.string().min(2).max(4000).optional().describe('Browse goal. Omit for wiring status only.'),
+        }),
+        execute: async ({ task }) => publicPrepareBrowseResult(task),
+      }),
+    };
     const withMcp =
-      owner && isComputerPrototypeEnabled() && toolRoute.allowed !== 'none'
+      owner && isComputerPrototypeEnabled()
         ? {
             ...withBrowse,
             listMcpApps: tool({
@@ -588,6 +602,8 @@ ${memoryPrefetch
       exposed: Object.keys(withMcp),
     });
 
+    const turnPrefixHash = await prefixHash(frozenSystem, withMcp);
+    trace.log('prefix', { prefixHash: turnPrefixHash, route: toolRoute.route, tools: Object.keys(withMcp).length });
     const modelSpan = trace.startSpan('model_stream', {
       provider: picked.provider,
       budgetMs: MODEL_TOTAL_BUDGET_MS,
@@ -607,6 +623,8 @@ ${memoryPrefetch
       // Cap so a confused model can't burn quota looping forever.
       stopWhen: stepCountIs(REACT_MAX_STEPS),
       tools: Object.keys(guardedTools).length > 0 ? guardedTools : undefined,
+      // Hire / CV route: same tool table (prefix cache holds), but no calls.
+      toolChoice: toolRoute.allowed === 'none' ? 'none' : 'auto',
       abortSignal,
       // (b)(c) Output guard + number grounding, sentence-buffered on the stream.
       experimental_transform: guard.transform(),
@@ -693,10 +711,11 @@ ${memoryPrefetch
     headers.set('X-Voice-Accent', voiceAccent ?? 'off');
     headers.set('X-Tool-Route', toolRoute.route);
     headers.set('X-Trace-Id', trace.traceId);
+    // Hash only (no content): lets the harness check the prefix stays stable per session.
+    headers.set('X-Prefix-Hash', turnPrefixHash);
     if (showDebugHeaders) {
       headers.set('X-Model-Tier', picked.tier);
       headers.set('X-System-Prompt-Chars', String(frozenSystem.length));
-      headers.set('X-Frozen-Prefix', '1');
       headers.set('X-Session-Tail-Chars', String(wrappedTail.length));
       headers.set('X-Visitor-Soft-Memory', visitorSoftMemoryEnabled() ? 'redis' : 'off');
       headers.set('X-React-Max-Steps', String(REACT_MAX_STEPS));

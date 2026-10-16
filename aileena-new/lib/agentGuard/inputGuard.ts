@@ -23,7 +23,8 @@ const FORGED: RegExp[] = [
   // Chat-template control tokens.
   /<\|[^|>\n]{1,40}\|>/g,
   // Prompt section headings visitors copy from leaks.
-  /^\s*#{1,3}\s*(?:frozen prefix|agent tools|tool-use rules|hard rules|this root|session tail|council tools|machina mode tools)\b[^\n]*$/gim,
+  /^\s*#{1,3}\s*(?:frozen prefix|agent tools|tool-use rules|hard rules|this root|session tail|council tools|machina mode tools|tool route|active skills|memory prefetch|this visitor|server notes)\b[^\n]*$/gim,
+  /^\s*(?:reply language|input guard)\s*:[^\n]*$/gim,
   /\bowner[\s_-]*(?:verified|authenticated|unlocked|mode\s*(?:on|enabled))\b/gi,
   /\b(?:agent[\s_-]*mode|mode)\s*[=:]\s*["']?(?:council|owner|admin|machina|night)\b["']?/gi,
   /\bcouncil[\s_-]+online\b\.?/gi,
@@ -45,27 +46,44 @@ export function neutralizeVisitorText(text: string): InputGuardResult {
 }
 
 /**
- * Neutralize forged markers in every user and assistant text part. Assistant
- * history also comes from the client, so a forged "COUNCIL ONLINE" turn is
- * cleaned the same way.
+ * The client may only contribute text. For every message:
+ * - system messages are dropped (only the server writes system text);
+ * - tool calls / tool results / reasoning / files / data parts are dropped,
+ *   so a forged {queryChip → H200 94GB} result never reaches the model;
+ * - text parts of user and assistant turns are neutralized (unless
+ *   neutralize=false, used for the owner-only council).
  */
-export function guardTranscript(messages: UIMessage[]): { messages: UIMessage[]; hits: number } {
+export function guardTranscript(
+  messages: UIMessage[],
+  opts: { neutralize?: boolean } = {},
+): { messages: UIMessage[]; hits: number; droppedParts: number } {
+  const neutralize = opts.neutralize ?? true;
   let hits = 0;
-  const cleaned = messages.map((m) => {
-    if (m.role !== 'user' && m.role !== 'assistant') return m;
-    if (!m.parts?.length) return m;
-    let changed = false;
-    const parts = m.parts.map((p) => {
-      if (p.type !== 'text') return p;
+  let droppedParts = 0;
+  const cleaned: UIMessage[] = [];
+  for (const m of messages) {
+    if (m.role !== 'user' && m.role !== 'assistant') {
+      droppedParts += m.parts?.length ?? 1;
+      continue;
+    }
+    const parts: UIMessage['parts'] = [];
+    for (const p of m.parts ?? []) {
+      if (p.type !== 'text' || typeof p.text !== 'string') {
+        droppedParts++;
+        continue;
+      }
+      if (!neutralize) {
+        parts.push({ type: 'text', text: p.text });
+        continue;
+      }
       const r = neutralizeVisitorText(p.text);
-      if (r.hits === 0) return p;
       hits += r.hits;
-      changed = true;
-      return { ...p, text: r.text };
-    });
-    return changed ? ({ ...m, parts } as UIMessage) : m;
-  });
-  return { messages: cleaned, hits };
+      parts.push({ type: 'text', text: r.text });
+    }
+    if (parts.length === 0) continue;
+    cleaned.push({ id: m.id, role: m.role, parts } as UIMessage);
+  }
+  return { messages: cleaned, hits, droppedParts };
 }
 
 /** Per-request nonce that delimits the genuine session tail. Never sent to the client. */

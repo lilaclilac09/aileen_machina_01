@@ -12,12 +12,19 @@ export function classifySiteLane(message: string): SiteLane | null {
   return null;
 }
 
-export async function answerSiteLane(message: string, visitorId: string): Promise<string | null> {
+export async function answerSiteLane(
+  message: string,
+  visitorId: string,
+  opts: { allowSideEffects?: boolean } = {},
+): Promise<string | null> {
   if (/girlfriend|boyfriend|be my (partner|therapist)|你是我(女朋友|对象|治疗师)|陪我谈恋爱/.test(message.toLowerCase())) {
     return 'Not a partner. Not a therapist. Not a girlfriend SKU. The desk is the room.';
   }
   const lane = classifySiteLane(message);
-  if (lane === 'forge') return writeForgePatch(visitorId);
+  if (lane === 'forge') {
+    if (opts.allowSideEffects === false) return null;
+    return writeForgePatch(visitorId);
+  }
   return collegeReply(message);
 }
 

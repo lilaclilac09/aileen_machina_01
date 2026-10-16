@@ -12,7 +12,7 @@ import {
   type Availability as BrowserAvailability,
   type BrowserSession,
 } from '../lib/browserAgent';
-import { appendUserTopic, readTopicMemory, buildCatchUpGreeting, buildCatchUpHint, clearTopicMemory } from '../lib/articleTopicMemory';
+import { appendUserTopic, readTopicMemory, buildCatchUpGreeting, clearTopicMemory } from '../lib/articleTopicMemory';
 import { matchCanned } from '../lib/agentCannedResponses';
 import { composeSoftHint } from '../lib/softOracle';
 import { CONTACT_OFFLINE_PUBLIC } from '../lib/mail-transcript';
@@ -44,13 +44,16 @@ import BrowserUseIcon from './BrowserUseIcon';
 import BrowserUseWindow from './BrowserUseWindow';
 import CloudflareDeskChart from './CloudflareDeskChart';
 import ComputerConsoleDock from './ComputerConsoleDock';
+import { pickOpening, type Opening } from '../lib/agentEngage/opening';
+import {
+  fetchRegionOnce,
+  readVisitorContext,
+  recordPageView,
+  sendEngageEvent,
+} from '../lib/agentEngage/clientContext';
 
-const STARTER_PROMPTS = [
-  "what's her solana stack?",
-  'show me her writing on mev',
-  'is she available for hire?',
-  'Voice → code: sketch a small patch for the Console footer',
-];
+/** Voice-mode starter (text starters come from lib/agentEngage/opening.ts). */
+const VOICE_STARTER = 'Voice → code: sketch a small patch for the Console footer';
 
 const DAILY_LIMIT = 20;
 const SESSION_KEY = 'aileena_chat_count_daily_v3'; // { date: 'YYYY-MM-DD' local, count: number }
@@ -185,6 +188,12 @@ function writeStoredDrawDay(date: string, cardId: string): void {
 
 export default function AgentChat() {
   const pathname = usePathname();
+  // Personalized opening (source / landing / pages / language / device). Session-only, no cookies.
+  const [opening, setOpening] = useState<Opening | null>(null);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    recordPageView(pathname || '/');
+  }, [pathname]);
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
   const [sessionCount, setSessionCount] = useState(0);
@@ -291,6 +300,12 @@ export default function AgentChat() {
   useEffect(() => {
     setSharedRoom(sharedRoomFromQuery(window.location.search));
   }, []);
+  const noUserMessageYet = !messages.some((m) => m.role === 'user');
+  const startersVisible = open && noUserMessageYet && (!isOwner || sharedRoom) && Boolean(opening);
+  useEffect(() => {
+    if (startersVisible) sendEngageEvent('starters_seen', { topic: opening?.topic });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startersVisible]);
   const showError =
     Boolean(error) &&
     !errorMuted &&
@@ -305,9 +320,12 @@ export default function AgentChat() {
     if (welcomedRef.current || messages.length > 0) return;
     welcomedRef.current = true;
     const topics = readTopicMemory().topics;
+    // First-time visitors get the personalized opening + starters (rendered
+    // instantly in the empty state). Only returning visitors get a catch-up line.
+    if (topics.length === 0) return;
     const greeting = buildCatchUpGreeting(topics);
     const soft = composeSoftHint(topics);
-    const text = `${greeting}\n\n— Soft hint: ${soft}`;
+    const text = `${greeting}\n\n${soft}`;
     const id =
       typeof crypto !== 'undefined' && crypto.randomUUID
         ? crypto.randomUUID()
@@ -634,6 +652,18 @@ export default function AgentChat() {
     window.addEventListener('open-agent-chat', handler);
     return () => window.removeEventListener('open-agent-chat', handler);
   }, [setMessages]);
+
+  // Opening + engagement events. Computed synchronously on open so the
+  // greeting and starters paint with the dialog (no network wait).
+  useEffect(() => {
+    if (!open) return;
+    const o = pickOpening(readVisitorContext());
+    setOpening(o);
+    if (isOwner && !sharedRoom) return;
+    sendEngageEvent('open', { topic: o.topic });
+    void fetchRegionOnce();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   // Focus input when opened — skip on touch so iOS keyboard does not cover Console.
   useEffect(() => {
@@ -1370,6 +1400,7 @@ export default function AgentChat() {
     }
 
     setInput('');
+    if (!isOwner || sharedRoom) sendEngageEvent('first_message', { topic: opening?.topic });
 
     // Record what the visitor asked about for cross-session memory. Done
     // for both runtimes so a visitor's browser-mode questions also seed
@@ -1963,66 +1994,7 @@ export default function AgentChat() {
           data-agent-transcript
           className={`flex-auto min-h-0 ${computerExpanded ? '' : 'sm:min-h-[9rem]'} overflow-y-auto overscroll-contain px-4 sm:px-5 py-3 sm:py-4 space-y-3.5 bg-[#fffcf7]/55`}
         >
-          {messages.length === 0 && (!isOwner || sharedRoom) ? (
-            <>
-              <p className="text-[0.62rem] tracking-[0.25em] text-[#1b1713]/55 uppercase mb-2">
-                ▸ ready · say hi or ask anything
-              </p>
-              <p className="text-[0.78rem] leading-[1.7] text-[#1b1713]/62 mb-3">
-                {voiceMode ? (
-                  computerMode && isOwner && !sharedRoom ? (
-                    <>
-                      Tap the <span className="text-[#008f86]">orb</span>. Say{' '}
-                      <span className="text-[#008f86]">ls</span> /{' '}
-                      <span className="text-[#008f86]">help</span> /{' '}
-                      <span className="text-[#008f86]">write code greet.ts</span>. Spoken
-                      lines go to the computer CLI (scratch only · not a merge).
-                    </>
-                  ) : (
-                    <>
-                      Tap the <span className="text-[#008f86]">orb</span> to speak. Live caption,
-                      then a reply. Say <span className="text-[#008f86]">fix</span> /{' '}
-                      <span className="text-[#008f86]">写代码</span> for a propose-only patch
-                      (5/day) — nothing is written to disk.
-                    </>
-                  )
-                ) : (
-                  <>
-                    Tap <span className="text-[#008f86]">Voice</span>, then tap the{' '}
-                    <span className="text-[#008f86]">orb</span> to speak (phone needs the orb tap).
-                    {' '}Say <span className="text-[#008f86]">fix</span> /{' '}
-                    <span className="text-[#008f86]">implement</span> /{' '}
-                    <span className="text-[#008f86]">写代码</span> /{' '}
-                    <span className="text-[#008f86]">Voice → code</span> for a
-                    propose-only patch (5/day).
-                  </>
-                )}
-              </p>
-              {!voiceMode && buildCatchUpHint(readTopicMemory().topics) && (
-                <p className="text-[0.75rem] leading-[1.7] text-[#008f86]/85 mb-2">
-                  {buildCatchUpHint(readTopicMemory().topics)}
-                </p>
-              )}
-              <ul className="space-y-2">
-                {(voiceMode
-                  ? STARTER_PROMPTS.filter((p) => /voice\s*→\s*code/i.test(p))
-                  : STARTER_PROMPTS
-                ).map((p) => (
-                  <li key={p}>
-                    <button
-                      type="button"
-                      onClick={() => ask(p)}
-                      className="text-left text-[0.82rem] sm:text-sm leading-[1.7] text-[#1b1713]/72 hover:text-[#008f86] transition-colors w-full"
-                    >
-                      <span className="text-[#00a89d]/45 mr-2">&gt;</span>
-                      {p}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </>
-          ) : (
-            messages.map((m) => {
+          {messages.map((m) => {
               const text = getMessageText(m);
               // While the model is mid-tool-call (or about to start a step)
               // with no text yet, render a muted activity hint instead of
@@ -2062,8 +2034,44 @@ export default function AgentChat() {
                   ) : null}
                 </div>
               );
-            })
-          )}
+            })}
+
+          {noUserMessageYet && (!isOwner || sharedRoom) && opening ? (
+            <div data-testid="agent-empty-state" className="space-y-3">
+              {messages.length === 0 ? (
+                <div data-testid="agent-greeting">
+                  <Line role="assistant" text={opening.greeting} />
+                </div>
+              ) : null}
+              {voiceMode ? (
+                <p className="text-[0.75rem] leading-[1.7] text-[#1b1713]/55">
+                  Tap the <span className="text-[#008f86]">orb</span> to speak. Say{' '}
+                  <span className="text-[#008f86]">fix</span> for a propose-only patch (5/day). Nothing is written to disk.
+                </p>
+              ) : null}
+              <ul className="flex flex-wrap gap-2" data-testid="agent-starters">
+                {(voiceMode ? [{ id: 'voice-code', text: VOICE_STARTER }] : opening.starters).map((st) => (
+                  <li key={st.id}>
+                    <button
+                      type="button"
+                      data-testid="agent-starter"
+                      data-starter={st.id}
+                      onClick={() => {
+                        sendEngageEvent('starter_tap', { starter: st.id, topic: opening.topic });
+                        ask(st.text);
+                      }}
+                      className="text-left text-[0.8rem] sm:text-[0.82rem] leading-snug text-[#1b1713]/80 hover:text-[#007d75] border border-[#d9e9e6] hover:border-[#00a89d]/60 bg-white/70 rounded-[10px] px-3 py-2 min-h-11 sm:min-h-0 transition-colors"
+                    >
+                      {st.text}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-[0.6rem] leading-4 text-[#1b1713]/40" data-testid="agent-privacy-note">
+                {opening.privacyNote}
+              </p>
+            </div>
+          ) : null}
 
           {busy && messages[messages.length - 1]?.role !== 'assistant' && (
             <Line role="assistant" text="…" muted />
@@ -2189,6 +2197,7 @@ export default function AgentChat() {
             <span className={`text-sm ${sessionMaxed ? 'text-[#1b1713]/20' : 'text-[#00a89d]'}`}>&gt;</span>
             <textarea
               ref={inputRef}
+              data-testid="agent-input"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onFocus={() => {
@@ -2204,13 +2213,13 @@ export default function AgentChat() {
               placeholder={
                 sessionMaxed
                   ? 'come back tomorrow ♡'
-                  : computerMode
+                  : computerMode && (isOwner || computerExpanded)
                     ? isOwner
                       ? 'note · find x · git status'
-                      : 'note · find x · list'
+                      : 'note · find: x · list'
                     : voiceMode
                       ? 'Or type here'
-                      : 'Type a message, or tap Voice'
+                      : (opening?.placeholder ?? 'Ask about her projects, writing or music…')
               }
               disabled={sessionMaxed}
               rows={1}

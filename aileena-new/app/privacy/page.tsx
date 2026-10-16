@@ -83,6 +83,15 @@ export default function PrivacyPage() {
           counter &mdash; see &ldquo;Analytics&rdquo; below.
         </p>
 
+        <p>
+          <strong>Console opening.</strong> The agent picks its greeting and
+          suggested questions from the page you came from, the pages you
+          viewed in this tab and your browser language. It counts opens,
+          suggestion taps and first messages as aggregates with your country
+          code only. No IPs, no cities and no message text are stored for
+          this; unique counts use a salted hash that changes every day.
+        </p>
+
         <h2 style={h2}>Where it goes</h2>
         <p>
           Anything you send through the agent lead-capture flow — your

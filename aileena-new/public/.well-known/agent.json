@@ -1,0 +1,39 @@
+{
+  "name": "Aileen's site agent",
+  "description": "Public agent for aileena.xyz (Aileen Choo): Solana/MEV research, security tools such as Tamper Check and KeyShield, AI infra notes, writing and DJ sets. Public mode only.",
+  "url": "https://aileena.xyz",
+  "provider": { "organization": "Aileen Choo", "url": "https://aileena.xyz" },
+  "version": "1.0.0",
+  "documentationUrl": "https://aileena.xyz/llms.txt",
+  "defaultInputModes": ["text/plain"],
+  "defaultOutputModes": ["text/plain"],
+  "interfaces": [
+    {
+      "type": "mcp",
+      "transport": "streamable-http",
+      "url": "https://aileena.xyz/api/mcp",
+      "auth": "none"
+    }
+  ],
+  "skills": [
+    {
+      "id": "ask_aileen_agent",
+      "name": "Ask Aileen's site agent",
+      "description": "Ask a question about Aileen's public work. Same guards as the website console. Answers may follow the language of the question.",
+      "tags": ["portfolio", "solana", "mev", "security", "ai-infra", "music"],
+      "examples": ["What is Tamper Check and how does it work?", "What does KeyShield do?"]
+    },
+    {
+      "id": "lookup_project",
+      "name": "Look up a project",
+      "description": "Find a public project or tool by name or keyword and get its stack, summary and links.",
+      "tags": ["projects", "links"],
+      "examples": ["keyshield", "mev", "all"]
+    }
+  ],
+  "limits": {
+    "ask_aileen_agent": "5 per minute and 20 per day per caller",
+    "lookup_project": "30 per minute and 300 per day per caller"
+  },
+  "policy": "Public mode only. Owner, council and private notes are not reachable. No raw IPs are stored; callers are counted with a salted hash that rotates daily."
+}

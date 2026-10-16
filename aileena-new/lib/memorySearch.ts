@@ -121,7 +121,7 @@ function makeSnippet(text: string, qByIdf: string[]): string {
     if (i !== -1) {
       const half = Math.floor(WINDOW / 2);
       let start = Math.max(0, i - half);
-      let end = Math.min(text.length, start + WINDOW);
+      const end = Math.min(text.length, start + WINDOW);
       if (end - start < WINDOW) start = Math.max(0, end - WINDOW);
       let snip = text.slice(start, end).trim();
       if (start > 0) snip = '…' + snip;
