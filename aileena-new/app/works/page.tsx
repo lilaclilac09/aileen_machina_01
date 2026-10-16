@@ -156,6 +156,22 @@ export default function WorksPage() {
                     Extension
                   </a>
                 ) : null}
+                {'demoHref' in item && item.demoHref ? (
+                  <a
+                    href={item.demoHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-testid="works-demo-link"
+                    style={{
+                      fontSize: '0.8rem',
+                      color: 'rgba(0,255,234,0.7)',
+                      textDecoration: 'none',
+                      fontWeight: 500,
+                    }}
+                  >
+                    {tx.pow.watchDemo} ▶
+                  </a>
+                ) : null}
                 {'pdfHref' in item && item.pdfHref ? (
                   <a
                     href={item.pdfHref}

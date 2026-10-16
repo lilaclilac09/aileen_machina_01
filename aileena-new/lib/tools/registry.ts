@@ -230,6 +230,7 @@ const UNLISTED_TOOL_DEFINITIONS: ToolDefinition[] = [
     why: 'A slot for prices already in the site corpus.',
     verdict: 'Paused. Not a product yet.',
     href: '/tools/pricing-slot',
+    demoVideo: '/demos/pricing-slot.mp4',
     status: 'paused',
     tier: 'paused',
     arcade: {
