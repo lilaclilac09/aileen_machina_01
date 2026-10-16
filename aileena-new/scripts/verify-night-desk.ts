@@ -39,7 +39,8 @@ assert('product graph has no /night room', !graph.includes("href: '/night'"));
 
 assert('console night keyword is not a lane', classifySiteLane('今晚还在吗') === null);
 assert('plain night is not a lane', classifySiteLane('night desk') === null);
-assert('forge lane still works', classifySiteLane('open a pr') === 'forge');
+assert('forge lane still works', classifySiteLane('forge: fix the typo') === 'forge');
+assert('a pull-request question is not forge', classifySiteLane('open a pr') === null);
 
 const nightChat = decideAgentMode('night', false);
 assert('public chat rejects night mode', !nightChat.ok && nightChat.status === 400);

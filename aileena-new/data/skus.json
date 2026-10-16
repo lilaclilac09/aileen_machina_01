@@ -24,6 +24,25 @@
     "sources": ["https://www.nvidia.com/en-us/data-center/h100/"]
   },
   {
+    "sku": "NVIDIA H200 SXM 141GB",
+    "vendor": "nvidia",
+    "family": "Hopper",
+    "category": "gpu",
+    "released": "2023-11",
+    "process": "TSMC 4N",
+    "flopsBf16Tflops": 989,
+    "flopsFp8Tflops": 1979,
+    "memType": "HBM3E",
+    "memGB": 141,
+    "memBandwidthGBps": 4800,
+    "interconnect": "NVLink 4 (900 GB/s)",
+    "tdpW": 700,
+    "formFactor": "SXM5",
+    "status": "shipping",
+    "notes": "Dense BF16 / FP8 TFLOPS (NVIDIA's sheet lists the with-sparsity figures, 1,979 / 3,958). TDP is up to 700 W, configurable.",
+    "sources": ["https://www.nvidia.com/en-us/data-center/h200/"]
+  },
+  {
     "sku": "NVIDIA GB200 NVL72",
     "vendor": "nvidia",
     "family": "Blackwell",

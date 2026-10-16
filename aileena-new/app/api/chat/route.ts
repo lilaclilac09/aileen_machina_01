@@ -69,6 +69,7 @@ import {
 } from '../../../lib/consolePrefix';
 import { formatSkillsForTurn } from '../../../lib/evolution/runtime';
 import { enqueueLiveAsk } from '../../../lib/evolution/liveInbox';
+import { TurnGuard } from '../../../lib/agentGuard/turnGuard';
 
 export const maxDuration = 30;
 const DAILY_LIMIT = CHAT_DAILY_LIMIT;
@@ -208,6 +209,8 @@ export async function POST(req: Request) {
   }
   const agentMode: AgentMode = decided.mode;
   const isCouncil = agentMode === 'council';
+  // Debug headers (prompt sizes, budgets, tiers) are for the owner only.
+  const showDebugHeaders = Boolean(owner);
   const skipQuota = skipVisitorQuota(Boolean(owner));
   const councilLens = isCouncil && isCouncilLens(body.councilLens) ? body.councilLens : undefined;
   const voiceAccent = isCouncil ? null : parseVoiceAccent(body.voiceAccent);
@@ -258,7 +261,18 @@ export async function POST(req: Request) {
       reason: 'compaction',
     });
   }
-  const trimmed = messages;
+  // One TurnGuard owns all guard state for this request: (a) input guard,
+  // (b) output guard, (c) number grounding, (d) locale. Council is owner-only
+  // and keeps its own layout; secrets are still redacted there.
+  const guard = new TurnGuard({
+    mode: agentMode,
+    isOwner: Boolean(owner),
+    lastQuestion: lastQEarly,
+  });
+  const trimmed = guard.guardTranscript(messages);
+  if (guard.inputGuardHits > 0) {
+    trace.log('input_guard', { hits: guard.inputGuardHits, mode: agentMode });
+  }
   let modelMessages: ModelMessage[];
   try {
     modelMessages = await convertToModelMessages(trimmed);
@@ -271,7 +285,7 @@ export async function POST(req: Request) {
     isCouncil
       ? COUNCIL_SYSTEM_PROMPT
       : agentMode === 'machina'
-        ? buildMachinaSystemPrompt()
+        ? buildMachinaSystemPrompt({ visitor: !owner })
         : SYSTEM_PROMPT;
 
   const lastQ = lastUserQuery(trimmed);
@@ -280,6 +294,7 @@ export async function POST(req: Request) {
     ? searchMemories(
         isLatestUpdatesQuestion(lastQ) ? LATEST_CONTENT_MEMORY_QUERY : lastQ,
         isLatestUpdatesQuestion(lastQ) ? 4 : 2,
+        { publicOnly: !owner },
       )
     : [];
   const memMeta = memoryIndexMeta();
@@ -458,9 +473,14 @@ ${memoryPrefetch
     lastQuestion: lastQ,
     councilLensBlock: isCouncil ? formatCouncilLensForPrompt(councilLens) : '',
     skillBlock: isCouncil ? '' : formatSkillsForTurn(lastQ),
+    languageNote: isCouncil ? '' : guard.languageNote(),
   });
-  const messagesWithTail: ModelMessage[] = sessionTail
-    ? [...modelMessages, { role: 'user', content: sessionTail }]
+  guard.setSystem(frozenSystem);
+  // The genuine tail is wrapped in this request's nonce; visitor copies of the
+  // marker were neutralized above, so only the server can open this block.
+  const wrappedTail = sessionTail ? guard.wrapTail(sessionTail) : '';
+  const messagesWithTail: ModelMessage[] = wrappedTail
+    ? [...modelMessages, { role: 'user', content: wrappedTail }]
     : modelMessages;
 
   try {
@@ -474,7 +494,7 @@ ${memoryPrefetch
             k: z.number().int().min(1).max(5).optional().describe('Top passages. Default 3.'),
           }),
           execute: async ({ query, k }) => {
-            return searchMemories(query, k ?? 3).map((h) => ({
+            return searchMemories(query, k ?? 3, { publicOnly: !owner }).map((h) => ({
               path: h.path,
               tier: h.tier,
               title: h.title,
@@ -561,6 +581,7 @@ ${memoryPrefetch
     const guardedTools = wrapToolsWithReactGuard(withMcp, reactGuard);
 
     console.log('[chat] tool-route', {
+      traceId: trace.traceId,
       route: toolRoute.route,
       allowed: toolRoute.allowed,
       preferred: toolRoute.preferred,
@@ -587,6 +608,8 @@ ${memoryPrefetch
       stopWhen: stepCountIs(REACT_MAX_STEPS),
       tools: Object.keys(guardedTools).length > 0 ? guardedTools : undefined,
       abortSignal,
+      // (b)(c) Output guard + number grounding, sentence-buffered on the stream.
+      experimental_transform: guard.transform(),
       onFinish: ({ finishReason, steps }) => {
         trace.endSpan(modelSpan, true, {
           finishReason,
@@ -618,7 +641,9 @@ ${memoryPrefetch
             obsChars: c.obsChars,
           })),
           traceSummary: trace.summary(),
+          guard: guard.summary(),
         });
+        trace.log('guard', guard.summary());
       },
     });
 
@@ -662,18 +687,21 @@ ${memoryPrefetch
       headers.set('X-Owner-Unlimited', '1');
     }
     headers.set('X-Quota-Day', quota.date);
+    // X-Provider stays public: the console uses it as the session provider lock.
     headers.set('X-Provider', picked.provider);
-    headers.set('X-Model-Tier', picked.tier);
-    headers.set('X-System-Prompt-Chars', String(frozenSystem.length));
-    headers.set('X-Frozen-Prefix', '1');
-    headers.set('X-Session-Tail-Chars', String(sessionTail.length));
     headers.set('X-Agent-Mode', agentMode);
     headers.set('X-Voice-Accent', voiceAccent ?? 'off');
-    headers.set('X-Visitor-Soft-Memory', visitorSoftMemoryEnabled() ? 'redis' : 'off');
-    headers.set('X-React-Max-Steps', String(REACT_MAX_STEPS));
     headers.set('X-Tool-Route', toolRoute.route);
     headers.set('X-Trace-Id', trace.traceId);
-    headers.set('X-Model-Budget-Ms', String(MODEL_TOTAL_BUDGET_MS));
+    if (showDebugHeaders) {
+      headers.set('X-Model-Tier', picked.tier);
+      headers.set('X-System-Prompt-Chars', String(frozenSystem.length));
+      headers.set('X-Frozen-Prefix', '1');
+      headers.set('X-Session-Tail-Chars', String(wrappedTail.length));
+      headers.set('X-Visitor-Soft-Memory', visitorSoftMemoryEnabled() ? 'redis' : 'off');
+      headers.set('X-React-Max-Steps', String(REACT_MAX_STEPS));
+      headers.set('X-Model-Budget-Ms', String(MODEL_TOTAL_BUDGET_MS));
+    }
 
     console.log('[chat] POST: stream response initialized', { traceId: trace.traceId });
     return new Response(stream.body, { status: stream.status, headers });

@@ -301,7 +301,9 @@ export function parseVisitorComputerCommand(text: string): VisitorComputerComman
     };
   }
 
-  const find = /^find(?: in workspace)?:\s*(.+)$/i.exec(raw) || /^find\s+(.+)$/i.exec(raw);
+  // Visitors must type the explicit "find:" command. "find her tamper-check project"
+  // is a question for the agent, not a scratch-pad search.
+  const find = /^find(?: in workspace)?:\s*(.+)$/i.exec(raw);
   if (find && !/commit/i.test(raw)) {
     return {
       kind: 'queue_task',

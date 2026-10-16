@@ -6,14 +6,9 @@ export type SiteLane = 'forge';
 export function classifySiteLane(message: string): SiteLane | null {
   const m = message.toLowerCase();
   if (m.startsWith('run ') || m.startsWith('$') || m.includes('开电脑')) return null;
-  if (
-    m.includes('forge') ||
-    m.includes('open a pr') ||
-    m.includes('pull request') ||
-    m.includes('改代码')
-  ) {
-    return 'forge';
-  }
+  // Forge writes a file on the Cloudflare desk, so it fires only when the visitor
+  // names it. Questions that merely mention a pull request are for the model.
+  if (/\bforge\b/.test(m) || m.includes('改代码')) return 'forge';
   return null;
 }
 
