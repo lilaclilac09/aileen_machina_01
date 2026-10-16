@@ -1,0 +1,91 @@
+{
+  "harness": "aileena site-agent harness v0.1",
+  "target": {
+    "name": "live",
+    "base": "https://www.aileena.xyz",
+    "live": true
+  },
+  "startedAt": "2026-10-16T08:12:52.691Z",
+  "durationMs": 3777,
+  "judge": false,
+  "summary": {
+    "total": 1,
+    "pass": 1,
+    "fail": 0,
+    "warn": 0,
+    "skipped": 0
+  },
+  "passive": [
+    {
+      "id": "quota-cookie-signed",
+      "ok": false,
+      "severity": "medium",
+      "detail": "Quota cookie is unsigned base64 JSON ({\"date\":\"2026-10-16\",\"count\":1}). CHAT_QUOTA_SECRET appears unset in this environment, so the 20/day cap is client-forgeable; dropping the cookie also resets it."
+    },
+    {
+      "id": "debug-headers-exposed",
+      "ok": false,
+      "severity": "low",
+      "detail": "Responses expose X-System-Prompt-Chars=19191, X-Session-Tail-Chars, X-Provider, X-Tool-Route, X-Model-Budget-Ms. Useful for this harness; also a free fingerprint for anyone probing the prompt."
+    }
+  ],
+  "results": [
+    {
+      "id": "tool-chip-spec",
+      "category": "tool-calls",
+      "lastUser": "From her chip data, how much HBM does the H100 SXM have?",
+      "skipped": false,
+      "pass": true,
+      "warnings": 0,
+      "status": 200,
+      "route": "chips",
+      "agentMode": "public",
+      "provider": "deepseek",
+      "traceId": "harness-tool-chip-spec",
+      "dailyRemaining": "19",
+      "tools": [
+        "queryChip"
+      ],
+      "ms": 3776,
+      "text": "H100 SXM5 in her catalogue: **80 GB of HBM3**, at ~3,350 GB/s bandwidth — 700 W, SXM5 form factor, listed MSRP $30,000.\n\nThat's the 80GB SXM part, not the 94GB H200 refresh. If you want the memory-capacity ladder across Hopper/Blackwell, say the word and I'll pull the comparison.",
+      "headers": {
+        "x-accel-buffering": "no",
+        "x-agent-mode": "public",
+        "x-daily-remaining": "19",
+        "x-frozen-prefix": "1",
+        "x-matched-path": "/api/chat",
+        "x-model-budget-ms": "22000",
+        "x-model-tier": "primary",
+        "x-provider": "deepseek",
+        "x-quota-day": "2026-10-16",
+        "x-react-max-steps": "4",
+        "x-session-tail-chars": "3489",
+        "x-system-prompt-chars": "19191",
+        "x-tool-route": "chips",
+        "x-trace-id": "harness-tool-chip-spec",
+        "x-visitor-soft-memory": "off",
+        "x-voice-accent": "off"
+      },
+      "checks": [
+        {
+          "name": "status",
+          "ok": true,
+          "severity": "fail",
+          "detail": "got 200, want 200"
+        },
+        {
+          "name": "text ~ any(1)",
+          "ok": true,
+          "severity": "fail",
+          "detail": ""
+        },
+        {
+          "name": "tool any(queryChip|compareChips|listChips)",
+          "ok": true,
+          "severity": "fail",
+          "detail": "called: queryChip"
+        }
+      ]
+    }
+  ]
+}
