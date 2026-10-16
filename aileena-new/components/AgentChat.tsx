@@ -45,6 +45,7 @@ import BrowserUseWindow from './BrowserUseWindow';
 import CloudflareDeskChart from './CloudflareDeskChart';
 import ComputerConsoleDock from './ComputerConsoleDock';
 import { pickOpening, type Opening } from '../lib/agentEngage/opening';
+import { ownerModelTierBody } from '../lib/modelTierPref';
 import {
   fetchRegionOnce,
   readVisitorContext,
@@ -287,6 +288,8 @@ export default function AgentChat() {
           voiceAccent: live ?? undefined,
           sessionProvider: sessionProviderRef.current ?? '',
           sessionVoiceAccent: freeze === undefined ? '' : (freeze ?? 'off'),
+          // Owner-only GPU tier preference (set on /agent-analytics). The server ignores it for visitors.
+          ...(isOwnerRef.current ? ownerModelTierBody() : {}),
         };
       },
       fetch: async (input, init) => {

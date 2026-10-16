@@ -70,7 +70,7 @@ async function main() {
   check('AbortError is a cancellation', isCancellation(abortErr));
   const timeoutErr = Object.assign(new Error('signal timed out'), { name: 'TimeoutError' });
   check('budget timeout is NOT a cancellation (counts)', !isCancellation(timeoutErr));
-  check('route combines req.signal with budget', /AbortSignal\.any\(\[req\.signal, budgetSignal\]\)/.test(route));
+  check('route combines req.signal with budget', /AbortSignal\.any\(\[req\.signal, budgetSignal, attemptCtl\.signal\]\)/.test(route));
   check('route onAbort → cancelled, no commit', /onAbort:[\s\S]{0,400}stopReason: 'cancelled'[\s\S]{0,80}committed: false/.test(route));
   check('route skips breaker failure on cancel', /if \(!cancelled\) void breakerFailure/.test(route));
   {
@@ -102,7 +102,7 @@ async function main() {
   await breakerSuccess('deepseek');
   const closed = await breakerGate('deepseek', later + 1);
   check('probe success closes breaker', closed.allowed && !closed.probe);
-  check('route falls back to fallback model instead of 503', /const fb = buildFallback\(\);[\s\S]{0,300}picked = fb;/.test(route));
+  check('route falls back to fallback model instead of 503', /const f = await tryPick\(fallback, 'fallback'\);/.test(readFileSync(join(root, 'lib/agentRuntime/router.ts'), 'utf8')) && /fallback: fallbackPick/.test(route));
 
   // ── P2.8 events + cache ──
   const ex = deepSeekCacheExtractor.createStreamExtractor();

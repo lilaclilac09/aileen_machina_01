@@ -527,7 +527,7 @@ function main() {
   );
   assert(
     'chat route identity is this-root lock or pick',
-    /rootProvider: sessionProvider \?\? picked\.provider/.test(chatRouteSrc),
+    /rootProvider: sessionProvider \?\? pick\.provider/.test(chatRouteSrc) && /frozenFor\(picked\)/.test(chatRouteSrc),
   );
   assert(
     'console canned model identity uses root provider',

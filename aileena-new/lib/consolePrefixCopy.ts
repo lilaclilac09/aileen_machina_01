@@ -41,17 +41,23 @@ export function parseNewRootError(raw: string): { reason: NewRootReason | string
 }
 
 /** This root's speaking model. Empty lock is unset — never default to DeepSeek. */
-export type RootKind = 'unset' | 'deepseek' | 'on-device' | 'qwen' | 'fallback' | 'named';
+export type RootKind = 'unset' | 'deepseek' | 'on-device' | 'qwen' | 'gpu' | 'fallback' | 'named';
 
+/**
+ * Hosted ids (gpu:*, fallback:*) are classified BEFORE the on-device checks:
+ * a self-hosted open model named "gpu:qwen3-8b" or a fallback "fallback:qwen-plus"
+ * is not on-device and must never be described as such.
+ */
 export function classifyRootProvider(provider: string | undefined): RootKind {
   const p = (provider ?? '').trim().toLowerCase();
   if (!p) return 'unset';
   if (p === 'deepseek' || p.startsWith('deepseek')) return 'deepseek';
-  if (p.includes('qwen')) return 'qwen';
+  if (p === 'gpu' || p.startsWith('gpu:')) return 'gpu';
+  if (p.startsWith('fallback:') || p === 'fallback') return 'fallback';
+  if (p === 'qwen' || /^(on-device|browser|local)[:/-]qwen/.test(p)) return 'qwen';
   if (p === 'on-device' || p === 'browser' || p === 'nano' || p.includes('gemini')) {
     return 'on-device';
   }
-  if (p.startsWith('fallback:') || p === 'fallback') return 'fallback';
   return 'named';
 }
 
@@ -77,6 +83,9 @@ export function machinaRootSpoken(provider: string | undefined, lang: 'en' | 'zh
     if (kind === 'on-device') {
       return 'Machina，Aileen 站点上的控制台。这一根跑在端上，不是 DeepSeek，也不是 dsh。';
     }
+    if (kind === 'gpu') {
+      return 'Machina，Aileen 站点上的控制台。这一根是 Aileen 自己在租来的 GPU 上跑的开源模型，不是 DeepSeek，也不是 dsh。';
+    }
     if (kind === 'fallback') {
       return 'Machina，Aileen 站点上的控制台。这一根是 modelRouter 的备用模型，不是 DeepSeek Harness。';
     }
@@ -93,6 +102,9 @@ export function machinaRootSpoken(provider: string | undefined, lang: 'en' | 'zh
   }
   if (kind === 'on-device') {
     return "Machina — Aileen's site console. This root is on-device, not DeepSeek and not dsh.";
+  }
+  if (kind === 'gpu') {
+    return "Machina — Aileen's site console. This root is an open model Aileen self-hosts on a rented GPU, not DeepSeek and not dsh.";
   }
   if (kind === 'fallback') {
     return "Machina — Aileen's site console. This root is a fallback via modelRouter, not DeepSeek Harness.";
@@ -113,6 +125,8 @@ export function frozenRootIdentity(provider: string | undefined): string {
         ? "This root's speaking model is Qwen on-device. You are not DeepSeek and not DeepSeek Harness (dsh)."
         : kind === 'on-device'
           ? "This root's speaking model is on-device (Chrome Prompt API). You are not DeepSeek and not DeepSeek Harness (dsh)."
+          : kind === 'gpu'
+            ? "This root's speaking model is an open model Aileen self-hosts on a rented GPU (OpenAI-compatible inference via modelRouter). You are not DeepSeek and not DeepSeek Harness (dsh)."
           : kind === 'fallback'
             ? "This root's speaking model is a fallback via modelRouter. You are not DeepSeek Harness (dsh)."
             : kind === 'named'

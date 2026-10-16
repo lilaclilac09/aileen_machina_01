@@ -113,10 +113,12 @@ Logs: `[chat] tool-route` + react-audit includes `route`.
 
 ### Model route + circuit (resilience)
 
-`lib/modelRouter.ts`:
+`lib/modelRouter.ts` (provider registry) + `lib/agentRuntime/router.ts` (`chooseProvider`):
 
-- Primary: DeepSeek; optional fallback via `AGENT_FALLBACK_BASE_URL` + `AGENT_FALLBACK_API_KEY`
-- Circuit: 3 consecutive provider failures → open 60s → degrade (503 + fixed/canned copy)
+- Primary: DeepSeek `deepseek-flash` with thinking disabled (`DEEPSEEK_MODEL` overrides; a rejected id latches `deepseek-chat` for 1 h)
+- Optional fallback via `AGENT_FALLBACK_BASE_URL` + `AGENT_FALLBACK_API_KEY`
+- Optional self-hosted GPU tier (`AGENT_GPU_*`, off by default): see `infra/gpu/README.md`
+- Circuit: per-provider Redis breaker (`breaker:v1:<provider>`), 3 consecutive failures → open 60s → half-open probe; all open → 503 + fixed/canned copy. The legacy in-process circuit no longer gates `/api/chat`
 - Deadline: `AbortSignal` budget **22s** inside Vercel `maxDuration=30`
 - Headers: `X-Model-Tier`, `X-Model-Budget-Ms`, `X-Degrade-Reason` (when degraded)
 
