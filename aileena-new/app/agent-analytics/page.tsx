@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getOwnerIdentity } from '@/lib/owner-gate';
 import OwnerUnlockForm from '@/components/OwnerUnlockForm';
+import GpuRouterPanel from '@/components/GpuRouterPanel';
 import { readEngageStats, type EngageStats } from '@/lib/agentEngage/store';
 
 export const metadata: Metadata = {
@@ -121,6 +122,7 @@ export default async function AgentAnalyticsPage({
               ))}
             </section>
             <Funnel f={stats.funnel} />
+            <GpuRouterPanel />
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <Breakdown title="Source" rows={stats.breakdown.source} asked={stats.askedBy.source} />
               <Breakdown title="Landing" rows={stats.breakdown.landing} asked={stats.askedBy.landing} />

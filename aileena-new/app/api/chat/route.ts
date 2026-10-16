@@ -32,6 +32,11 @@ import {
 import {
   routeModel,
   buildFallback,
+  buildGpu,
+  buildPrimary,
+  isModelMissingError,
+  noteDeepSeekModelMissing,
+  type ModelPick,
   cacheTokensFromSteps,
   createModelAbortSignal,
   classifyModelError,
@@ -39,6 +44,9 @@ import {
   MODEL_TOTAL_BUDGET_MS,
 } from '../../../lib/modelRouter';
 import { breakerFailure, breakerGate, breakerSuccess, isCancellation } from '../../../lib/agentRuntime/breaker';
+import { readGpuConfig, markGpuWarm, markGpuCold } from '../../../lib/agentRuntime/gpu';
+import { chooseProvider, estimateTokens, peekFirstToken } from '../../../lib/agentRuntime/router';
+import { addSpend, estimateTurnMicroUsd, noteTtft, noteTurnDone, noteTurnStart, recordRouterTurn } from '../../../lib/agentRuntime/load';
 import { commitTurn, findCommittedTurn, readLedger, rebuildTranscript, validLedgerId } from '../../../lib/agentRuntime/ledger';
 import { chargeRedisQuota, quotaKeyFor, readRedisQuota, redisQuotaEnabled } from '../../../lib/agentRuntime/quota';
 import { createSummaryToken, summaryTailBlock, verifySummaryToken } from '../../../lib/agentRuntime/summaryToken';
@@ -138,6 +146,8 @@ export async function POST(req: Request) {
     turnId?: string;
     /** Signed summary from a 409 compaction; seeds this new root. */
     summaryToken?: string;
+    /** Owner-only model tier preference ('gpu' | 'deepseek'). Ignored for visitors. */
+    modelTier?: string;
   };
   try {
     body = await req.json();
@@ -380,6 +390,9 @@ export async function POST(req: Request) {
     toolRoute: toolRoute.route,
     lastQuestion: lastQ,
     voiceAccent,
+    // The Redis per-provider breaker below gates /api/chat; the legacy
+    // in-isolate circuit belongs to the side surfaces (voice-code, scratch).
+    ignoreLegacyCircuit: true,
   });
   trace.endSpan(prepSpan, true, {
     toolRoute: toolRoute.route,
@@ -403,36 +416,46 @@ export async function POST(req: Request) {
     });
   }
 
-  // P1.6 per-provider breaker (Redis, one half-open probe). An open primary
-  // falls back to the fallback model; the provider lock then answers 409 and
-  // the client starts a new root on the fallback instead of seeing a 503.
-  let picked = modelDecision.pick;
-  let probe = false;
-  {
-    const gate = await breakerGate(picked.provider);
-    if (gate.allowed) {
-      probe = gate.probe;
-    } else {
-      const fb = buildFallback();
-      const fbGate = fb ? await breakerGate(fb.provider) : null;
-      if (fb && fbGate?.allowed) {
-        trace.log('breaker', { provider: picked.provider, state: gate.reason, fallback: fb.provider });
-        picked = fb;
-        probe = fbGate.probe;
-      } else {
-        trace.log('breaker', { provider: picked.provider, state: gate.reason, fallback: 'none' });
-        return jsonError(degradeMessage('circuit_open', lastQ), 503, trace.traceId, {
-          'X-Degrade-Reason': 'circuit_open',
-          'X-Tool-Route': toolRoute.route,
-          'X-Agent-Mode': agentMode,
-        });
-      }
-    }
-  }
+  // Model tier: P1.6 per-provider breaker (Redis, one half-open probe) + the
+  // state-based GPU tier (lib/agentRuntime/router.ts). With AGENT_GPU_MODE unset
+  // this is exactly today's chain: primary → fallback (provider lock answers
+  // 409 and the client starts a new root) → 503.
   const sessionProvider = readSessionProviderLock(
     body.sessionProvider,
     req.headers.get('x-session-provider'),
   );
+  const gpuCfg = readGpuConfig();
+  const gpuPick = buildGpu(gpuCfg);
+  const fallbackPick = buildFallback();
+  const routed = await chooseProvider({
+    primary: modelDecision.pick,
+    gpu: gpuPick,
+    fallback: fallbackPick,
+    cfg: gpuCfg,
+    sessionProvider,
+    isOwner: Boolean(owner),
+    // Owner-only. Visitors and agent callers cannot pick a tier.
+    requestedTier: owner && (body.modelTier === 'gpu' || body.modelTier === 'deepseek') ? body.modelTier : undefined,
+    estTokens: estimateTokens(baseSystem.length + JSON.stringify(trimmed).length + 6_000),
+    toolRoute: toolRoute.route,
+    rootKey: body.sessionId || visitorId,
+    shanghaiVoice: voiceAccent === 'shanghai',
+  });
+  if (!routed.ok) {
+    trace.log('breaker', { provider: modelDecision.pick.provider, state: routed.blocked, fallback: 'none' });
+    return jsonError(degradeMessage('circuit_open', lastQ), 503, trace.traceId, {
+      'X-Degrade-Reason': 'circuit_open',
+      'X-Tool-Route': toolRoute.route,
+      'X-Agent-Mode': agentMode,
+    });
+  }
+  if (routed.blocked) {
+    trace.log('breaker', { provider: modelDecision.pick.provider, state: routed.blocked, fallback: routed.pick.provider });
+  }
+  let picked = routed.pick;
+  let probe = routed.probe;
+  let routeRule: string = routed.rule;
+  trace.log('route', { rule: routed.rule, provider: picked.provider, gpuState: routed.gpuState, wake: routed.wakeSent });
   if (needsNewRootForProvider(sessionProvider, picked.provider)) {
     return jsonError(MODEL_SWAP_PING, 409, trace.traceId, { 'X-New-Root': 'model_swap' }, {
       code: 'new_root',
@@ -526,17 +549,21 @@ If the visitor names a specific article, project, product, person, company, tech
 # Council tools
 Same retrieval tools as the site. Use them for evidence (articles, memory, chips, prices). Do not pad answers to look busy. Drafts (emails, scopes, site copy) may run longer than five sentences; decisions stay short: judgment / leverage / next move / do not.`;
 
-  const frozenSystem = buildFrozenSystemPrompt({
-    baseSystem,
-    agentMode,
-    voiceAccent,
-    // THIS root only — lock matches pick or we already 409'd. New root may be Qwen.
-    rootProvider: sessionProvider ?? picked.provider,
-    memoryIndexLine,
-    publicToolTable,
-    machinaToolTable,
-    councilToolTable,
-  });
+  // Frozen root per provider: the identity line names THIS root's provider, so
+  // a pre-first-token GPU failover rebuilds it for the provider that answers.
+  const frozenFor = (pick: ModelPick) =>
+    buildFrozenSystemPrompt({
+      baseSystem,
+      agentMode,
+      voiceAccent,
+      // THIS root only — lock matches pick or we already 409'd. New root may be Qwen.
+      rootProvider: sessionProvider ?? pick.provider,
+      memoryIndexLine,
+      publicToolTable,
+      machinaToolTable,
+      councilToolTable,
+    });
+  let frozenSystem = frozenFor(picked);
   const memoryPrefetchBlock =
     memoryPrefetch.length > 0
       ? `# Memory prefetch (top hits for this turn — verify with searchMemories if unsure)
@@ -675,127 +702,212 @@ ${memoryPrefetch
       exposed: Object.keys(withMcp),
     });
 
-    const turnPrefixHash = await prefixHash(frozenSystem, withMcp);
+    let turnPrefixHash = await prefixHash(frozenSystem, withMcp);
     trace.log('prefix', { prefixHash: turnPrefixHash, route: toolRoute.route, tools: Object.keys(withMcp).length });
-    const modelSpan = trace.startSpan('model_stream', {
-      provider: picked.provider,
-      budgetMs: MODEL_TOTAL_BUDGET_MS,
-    });
     // P1.4: real cancel. The visitor closing the tab aborts the model and the
     // tools (they get this signal via their execute options); the budget still
-    // caps the turn.
+    // caps the turn (shared across a GPU attempt and its failover).
     const budgetSignal = createModelAbortSignal(MODEL_TOTAL_BUDGET_MS);
-    const abortSignal =
-      typeof AbortSignal.any === 'function' && req.signal ? AbortSignal.any([req.signal, budgetSignal]) : budgetSignal;
-    let turnSettled = false;
-    const turnEvent = (extra: Record<string, unknown>) => {
-      if (turnSettled) return;
-      turnSettled = true;
-      const audit = reactGuard.summary();
-      trace.log('turn', {
-        prefixHash: turnPrefixHash,
-        route: toolRoute.route,
-        mode: agentMode,
-        provider: picked.provider,
-        probe,
-        tools: audit.calls.map((c) => c.tool),
-        blockedTools: audit.calls.filter((c) => c.blocked).length,
-        transcript: rebuilt.source,
-        quotaStore: redisQuotaKey ? 'redis' : unlimitedChat ? 'unlimited' : 'cookie',
-        ...extra,
+    const gpuLoadNotes = gpuCfg?.mode === 'public';
+
+    // One model attempt. A GPU attempt that fails before its first token is
+    // abandoned (callbacks go quiet) and the turn restarts on DeepSeek.
+    const startAttempt = (pick: ModelPick, attemptProbe: boolean, system: string, attemptPrefixHash: string) => {
+      const attemptCtl = new AbortController();
+      const abortSignal =
+        typeof AbortSignal.any === 'function' && req.signal ? AbortSignal.any([req.signal, budgetSignal, attemptCtl.signal]) : budgetSignal;
+      let abandoned = false;
+      const startedAt = Date.now();
+      let firstChunkAt = 0;
+      if (gpuLoadNotes) void noteTurnStart(pick.provider).catch(() => {});
+      const modelSpan = trace.startSpan('model_stream', {
+        provider: pick.provider,
+        budgetMs: MODEL_TOTAL_BUDGET_MS,
       });
+      let turnSettled = false;
+      const turnEvent = (extra: Record<string, unknown>) => {
+        if (turnSettled || abandoned) return;
+        turnSettled = true;
+        const audit = reactGuard.summary();
+        if (gpuLoadNotes) void noteTurnDone(pick.provider).catch(() => {});
+        void recordRouterTurn({ provider: pick.provider, rule: routeRule, committed: extra.committed === true }).catch(() => {});
+        trace.log('turn', {
+          prefixHash: attemptPrefixHash,
+          route: toolRoute.route,
+          mode: agentMode,
+          provider: pick.provider,
+          model: pick.modelId,
+          rule: routeRule,
+          gpuState: routed.gpuState,
+          failoverFrom,
+          ttftMs: firstChunkAt ? firstChunkAt - startedAt : null,
+          probe: attemptProbe,
+          tools: audit.calls.map((c) => c.tool),
+          blockedTools: audit.calls.filter((c) => c.blocked).length,
+          transcript: rebuilt.source,
+          quotaStore: redisQuotaKey ? 'redis' : unlimitedChat ? 'unlimited' : 'cookie',
+          ...extra,
+        });
+      };
+
+      const result = streamText({
+        model: pick.model,
+        system,
+        messages: messagesWithTail,
+        temperature: 0.4,
+        // GPU: no SDK retries; a failed first token fails over instead.
+        ...(pick.tier === 'gpu' ? { maxRetries: 0 } : {}),
+        // Cap final ASSISTANT-text response at 200 tokens; tool calls
+        // themselves don't count against this. The Helius-style 2-3
+        // sentence answer is still the target.
+        maxOutputTokens: isCouncil ? 900 : 200,
+        // ReAct short loop: think → tool → observe → … then answer.
+        // Cap so a confused model can't burn quota looping forever.
+        stopWhen: stepCountIs(REACT_MAX_STEPS),
+        tools: Object.keys(guardedTools).length > 0 ? guardedTools : undefined,
+        // Hire / CV route: same tool table (prefix cache holds), but no calls.
+        toolChoice: toolRoute.allowed === 'none' ? 'none' : 'auto',
+        // P1.5: the last step must answer, not call another tool.
+        prepareStep: ({ stepNumber }) => (stepNumber >= REACT_MAX_STEPS - 1 ? { toolChoice: 'none' as const } : {}),
+        abortSignal,
+        onChunk: () => {
+          if (firstChunkAt) return;
+          firstChunkAt = Date.now();
+          if (gpuLoadNotes && gpuCfg) void noteTtft(pick.provider, firstChunkAt - startedAt, gpuCfg.spillTtftMs).catch(() => {});
+        },
+        onAbort: ({ steps }) => {
+          if (abandoned) return;
+          // P1.4: cancelled turns are not committed, not charged and not breaker failures.
+          trace.endSpan(modelSpan, false, { reason: 'cancelled', steps: steps?.length ?? 0 });
+          reactGuard.markCancelled();
+          if (attemptProbe) void breakerSuccess(pick.provider).catch(() => {});
+          turnEvent({ stopReason: 'cancelled', finishReason: 'abort', committed: false, steps: steps?.length ?? 0 });
+        },
+        // (b)(c) Output guard + number grounding, sentence-buffered on the stream.
+        experimental_transform: guard.transform(),
+        onFinish: async ({ finishReason, steps, text, totalUsage }) => {
+          if (abandoned) return;
+          trace.endSpan(modelSpan, true, {
+            finishReason,
+            steps: steps?.length ?? 0,
+          });
+          void breakerSuccess(pick.provider).catch(() => {});
+          if (pick.tier === 'gpu') void markGpuWarm().catch(() => {});
+          // P1.3: commit + charge only when the model actually finished.
+          const committed = finishReason === 'stop' || finishReason === 'length';
+          if (committed) {
+            try {
+              if (redisQuotaKey) await chargeRedisQuota(redisQuotaKey);
+              if (ledgerSessionId) {
+                await commitTurn(ledgerSessionId, {
+                  turnId: ledgerTurnId ?? `${trace.traceId}`,
+                  user: lastQ,
+                  assistant: text ?? '',
+                  finishReason,
+                  at: Date.now(),
+                });
+              }
+            } catch (err) {
+              console.error('[chat] commit failed', err instanceof Error ? err.message : String(err), { traceId: trace.traceId });
+            }
+          }
+          const cache = cacheTokensFromSteps(steps as unknown as Parameters<typeof cacheTokensFromSteps>[0]);
+          if (pick.provider === 'deepseek') {
+            const inTok = totalUsage?.inputTokens ?? 0;
+            const hit = cache?.promptCacheHitTokens ?? 0;
+            const miss = cache ? cache.promptCacheMissTokens : Math.max(0, inTok - hit);
+            void addSpend(pick.provider, estimateTurnMicroUsd({ hit, miss, out: totalUsage?.outputTokens ?? 0 })).catch(() => {});
+          }
+          if (finishReason === 'stop' || finishReason === 'length') {
+            reactGuard.noteStop('model_finish');
+          }
+          if ((steps?.length ?? 0) >= REACT_MAX_STEPS) {
+            reactGuard.noteStop('max_steps');
+          }
+          const audit = reactGuard.summary();
+          console.log('[chat] react-audit', {
+            traceId: trace.traceId,
+            finishReason,
+            steps: steps?.length ?? 0,
+            route: toolRoute.route,
+            stopReason: audit.stopReasonPrimary,
+            toolCalls: audit.calls.length,
+            duplicateBlocks: audit.duplicateBlocks,
+            emptyRecalls: audit.emptyRecalls,
+            toolErrors: audit.toolErrors,
+            tools: audit.calls.map((c) => ({
+              step: c.step,
+              tool: c.tool,
+              blocked: c.blocked,
+              empty: c.empty,
+              obsChars: c.obsChars,
+            })),
+            traceSummary: trace.summary(),
+            guard: guard.summary(),
+          });
+          trace.log('guard', guard.summary());
+          turnEvent({
+            stopReason: audit.stopReasonPrimary,
+            finishReason,
+            committed,
+            steps: steps?.length ?? 0,
+            promptCacheHitTokens: cache?.promptCacheHitTokens ?? null,
+            promptCacheMissTokens: cache?.promptCacheMissTokens ?? null,
+          });
+        },
+      });
+      const abandon = () => {
+        abandoned = true;
+        trace.endSpan(modelSpan, false, { reason: 'gpu_failover' });
+        attemptCtl.abort(new Error('gpu_failover'));
+      };
+      return { result, modelSpan, turnEvent, abandon };
     };
 
-    const result = streamText({
-      model: picked.model,
-      system: frozenSystem,
-      messages: messagesWithTail,
-      temperature: 0.4,
-      // Cap final ASSISTANT-text response at 200 tokens; tool calls
-      // themselves don't count against this. The Helius-style 2-3
-      // sentence answer is still the target.
-      maxOutputTokens: isCouncil ? 900 : 200,
-      // ReAct short loop: think → tool → observe → … then answer.
-      // Cap so a confused model can't burn quota looping forever.
-      stopWhen: stepCountIs(REACT_MAX_STEPS),
-      tools: Object.keys(guardedTools).length > 0 ? guardedTools : undefined,
-      // Hire / CV route: same tool table (prefix cache holds), but no calls.
-      toolChoice: toolRoute.allowed === 'none' ? 'none' : 'auto',
-      // P1.5: the last step must answer, not call another tool.
-      prepareStep: ({ stepNumber }) => (stepNumber >= REACT_MAX_STEPS - 1 ? { toolChoice: 'none' as const } : {}),
-      abortSignal,
-      onAbort: ({ steps }) => {
-        // P1.4: cancelled turns are not committed, not charged and not breaker failures.
-        trace.endSpan(modelSpan, false, { reason: 'cancelled', steps: steps?.length ?? 0 });
-        reactGuard.markCancelled();
-        if (probe) void breakerSuccess(picked.provider).catch(() => {});
-        turnEvent({ stopReason: 'cancelled', finishReason: 'abort', committed: false, steps: steps?.length ?? 0 });
-      },
-      // (b)(c) Output guard + number grounding, sentence-buffered on the stream.
-      experimental_transform: guard.transform(),
-      onFinish: async ({ finishReason, steps, text }) => {
-        trace.endSpan(modelSpan, true, {
-          finishReason,
-          steps: steps?.length ?? 0,
-        });
-        void breakerSuccess(picked.provider).catch(() => {});
-        // P1.3: commit + charge only when the model actually finished.
-        const committed = finishReason === 'stop' || finishReason === 'length';
-        if (committed) {
-          try {
-            if (redisQuotaKey) await chargeRedisQuota(redisQuotaKey);
-            if (ledgerSessionId) {
-              await commitTurn(ledgerSessionId, {
-                turnId: ledgerTurnId ?? `${trace.traceId}`,
-                user: lastQ,
-                assistant: text ?? '',
-                finishReason,
-                at: Date.now(),
-              });
-            }
-          } catch (err) {
-            console.error('[chat] commit failed', err instanceof Error ? err.message : String(err), { traceId: trace.traceId });
-          }
+    let failoverFrom: string | null = null;
+    let att = startAttempt(picked, probe, frozenSystem, turnPrefixHash);
+
+    // GPU tier: switch providers only before the first token. A GPU that
+    // errors or stays silent past AGENT_GPU_TTFT_MS is a breaker failure and
+    // the turn restarts on DeepSeek (or the fallback); the visitor never waits
+    // on a cold GPU because the router only picks a WARM one.
+    if (picked.tier === 'gpu' && gpuCfg) {
+      const first = await peekFirstToken(att.result.fullStream, gpuCfg.ttftMs);
+      if (!first.ok && !req.signal?.aborted) {
+        const failedProvider = picked.provider;
+        att.abandon();
+        void breakerFailure(failedProvider).catch(() => {});
+        void markGpuCold().catch(() => {});
+        trace.log('gpu_failover', { provider: failedProvider, reason: first.reason });
+        const primaryPick = buildPrimary();
+        const primaryGate = primaryPick ? await breakerGate(primaryPick.provider) : null;
+        const fbGate = !primaryGate?.allowed && fallbackPick ? await breakerGate(fallbackPick.provider) : null;
+        const next = primaryPick && primaryGate?.allowed ? { pick: primaryPick, probe: primaryGate.probe } : fallbackPick && fbGate?.allowed ? { pick: fallbackPick, probe: fbGate.probe } : null;
+        if (!next) {
+          return jsonError(degradeMessage('circuit_open', lastQ), 503, trace.traceId, {
+            'X-Degrade-Reason': 'circuit_open',
+            'X-Tool-Route': toolRoute.route,
+            'X-Agent-Mode': agentMode,
+          });
         }
-        const cache = cacheTokensFromSteps(steps as unknown as Parameters<typeof cacheTokensFromSteps>[0]);
-        if (finishReason === 'stop' || finishReason === 'length') {
-          reactGuard.noteStop('model_finish');
+        // A root already locked to the GPU cannot silently change speaker.
+        if (needsNewRootForProvider(sessionProvider, next.pick.provider)) {
+          return jsonError(MODEL_SWAP_PING, 409, trace.traceId, { 'X-New-Root': 'model_swap' }, {
+            code: 'new_root',
+            reason: 'model_swap',
+          });
         }
-        if ((steps?.length ?? 0) >= REACT_MAX_STEPS) {
-          reactGuard.noteStop('max_steps');
-        }
-        const audit = reactGuard.summary();
-        console.log('[chat] react-audit', {
-          traceId: trace.traceId,
-          finishReason,
-          steps: steps?.length ?? 0,
-          route: toolRoute.route,
-          stopReason: audit.stopReasonPrimary,
-          toolCalls: audit.calls.length,
-          duplicateBlocks: audit.duplicateBlocks,
-          emptyRecalls: audit.emptyRecalls,
-          toolErrors: audit.toolErrors,
-          tools: audit.calls.map((c) => ({
-            step: c.step,
-            tool: c.tool,
-            blocked: c.blocked,
-            empty: c.empty,
-            obsChars: c.obsChars,
-          })),
-          traceSummary: trace.summary(),
-          guard: guard.summary(),
-        });
-        trace.log('guard', guard.summary());
-        turnEvent({
-          stopReason: audit.stopReasonPrimary,
-          finishReason,
-          committed,
-          steps: steps?.length ?? 0,
-          promptCacheHitTokens: cache?.promptCacheHitTokens ?? null,
-          promptCacheMissTokens: cache?.promptCacheMissTokens ?? null,
-        });
-      },
-    });
+        failoverFrom = failedProvider;
+        routeRule = 'gpu_failover';
+        picked = next.pick;
+        probe = next.probe;
+        frozenSystem = frozenFor(picked);
+        guard.setSystem(frozenSystem);
+        turnPrefixHash = await prefixHash(frozenSystem, withMcp);
+        att = startAttempt(picked, probe, frozenSystem, turnPrefixHash);
+      }
+    }
+    const result = att.result;
 
     // Owner unlimited (session or email cookie): do not burn the visitor counter.
     // Cookie quota (no Redis): charged up front exactly as before. With Redis
@@ -812,8 +924,9 @@ ${memoryPrefetch
         const classified = classifyModelError(err);
         const cancelled = isCancellation(err, req.signal);
         if (!cancelled) void breakerFailure(picked.provider).catch(() => {});
-        trace.endSpan(modelSpan, false, { error: msg.slice(0, 160), reason: cancelled ? 'cancelled' : classified.reason });
-        turnEvent({ stopReason: cancelled ? 'cancelled' : 'error', finishReason: 'error', committed: false, error: classified.reason });
+        if (!cancelled && picked.provider === 'deepseek' && isModelMissingError(err)) noteDeepSeekModelMissing();
+        trace.endSpan(att.modelSpan, false, { error: msg.slice(0, 160), reason: cancelled ? 'cancelled' : classified.reason });
+        att.turnEvent({ stopReason: cancelled ? 'cancelled' : 'error', finishReason: 'error', committed: false, error: classified.reason });
         console.error('[chat] streamText: provider=%s error: %s', picked.provider, msg, {
           traceId: trace.traceId,
         });

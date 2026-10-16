@@ -10,6 +10,8 @@ export type Kv = {
   get<T>(key: string): Promise<T | null>;
   set(key: string, value: unknown, opts?: { ex?: number; nx?: boolean }): Promise<boolean>;
   incr(key: string, ttlSec: number): Promise<number>;
+  /** Add `by` (integer) and return the new total; TTL is set when the key is created. */
+  incrBy(key: string, by: number, ttlSec: number): Promise<number>;
   del(key: string): Promise<void>;
 };
 
@@ -41,9 +43,12 @@ const memoryKv: Kv = {
     return true;
   },
   async incr(key, ttlSec) {
+    return memoryKv.incrBy(key, 1, ttlSec);
+  },
+  async incrBy(key, by, ttlSec) {
     const m = mem();
     const e = live(m.get(key));
-    const n = (typeof e?.v === 'number' ? e.v : 0) + 1;
+    const n = (typeof e?.v === 'number' ? e.v : 0) + Math.trunc(by);
     m.set(key, { v: n, exp: e?.exp || Date.now() + ttlSec * 1000 });
     return n;
   },
@@ -90,6 +95,15 @@ export function runtimeKv(): Kv {
         return n;
       } catch {
         return memoryKv.incr(key, ttlSec);
+      }
+    },
+    async incrBy(key, by, ttlSec) {
+      try {
+        const n = await redis.incrby(key, Math.trunc(by));
+        if (n === Math.trunc(by)) await redis.expire(key, ttlSec);
+        return n;
+      } catch {
+        return memoryKv.incrBy(key, by, ttlSec);
       }
     },
     async del(key) {

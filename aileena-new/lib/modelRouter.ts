@@ -1,13 +1,18 @@
 /**
  * Model routing + circuit breaker + degrade (site-agent scale).
  *
- * Not a multi-tenant model mesh — one primary (DeepSeek), optional fallback
- * via env, in-isolate circuit breaker, fixed degrade copy when open/timeout.
+ * Provider registry: DeepSeek (primary), an optional self-hosted GPU tier
+ * (OpenAI-compatible, ships off — see lib/agentRuntime/gpu.ts) and an optional
+ * hosted fallback via env. /api/chat gates each provider with the Redis-backed
+ * per-provider breaker (lib/agentRuntime/breaker.ts). The in-isolate circuit
+ * below is legacy: it still guards the side surfaces (council CLI, voice-code,
+ * scratch) but /api/chat ignores it, so a voice-code failure can never 503 chat.
  */
 
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import type { LanguageModel } from 'ai';
 import { matchCanned } from './agentCannedResponses';
+import type { GpuConfig } from './agentRuntime/gpu';
 import type { VoiceAccent } from './voiceAccent';
 
 /** Total model budget inside Vercel maxDuration=30s */
@@ -20,8 +25,17 @@ export const CIRCUIT_COOLDOWN_MS = 60_000;
 export type ModelPick = {
   model: LanguageModel;
   provider: string;
-  tier: 'primary' | 'fallback';
+  tier: 'primary' | 'gpu' | 'fallback';
+  /** Upstream model id actually requested (e.g. deepseek-flash). */
+  modelId?: string;
 };
+
+/** DeepSeek model ids. `deepseek-chat` is the legacy alias (discontinued per DeepSeek's 2026-04-24 notice). */
+export const DEEPSEEK_DEFAULT_MODEL = 'deepseek-flash';
+export const DEEPSEEK_LEGACY_MODEL = 'deepseek-chat';
+export const DEEPSEEK_DEFAULT_BASE_URL = 'https://api.deepseek.com';
+/** How long a "model id does not exist" answer pins the legacy id. */
+export const DEEPSEEK_MODEL_LATCH_MS = 60 * 60 * 1000;
 
 export type ModelRouteDecision =
   | { mode: 'llm'; pick: ModelPick; reason: string }
@@ -106,7 +120,7 @@ export const deepSeekCacheExtractor = {
   },
 };
 
-/** Sum DeepSeek cache tokens over all steps of one turn. */
+/** Sum prefix-cache tokens (DeepSeek or GPU) over all steps of one turn. */
 export function cacheTokensFromSteps(
   steps: Array<{ providerMetadata?: Record<string, Record<string, unknown>> | undefined }> | undefined,
 ): DeepSeekCacheMeta | null {
@@ -114,7 +128,7 @@ export function cacheTokensFromSteps(
   let miss = 0;
   let seen = false;
   for (const st of steps ?? []) {
-    const d = st.providerMetadata?.deepseek;
+    const d = st.providerMetadata?.deepseek ?? st.providerMetadata?.gpu;
     if (!d) continue;
     seen = true;
     hit += Number(d.promptCacheHitTokens) || 0;
@@ -123,22 +137,119 @@ export function cacheTokensFromSteps(
   return seen ? { promptCacheHitTokens: hit, promptCacheMissTokens: miss } : null;
 }
 
+// In-isolate latch: when DeepSeek answers "model does not exist" for the
+// configured id, use the legacy id for an hour instead of failing every turn.
+let deepSeekLegacyUntil = 0;
+
+export function noteDeepSeekModelMissing(now = Date.now()): void {
+  deepSeekLegacyUntil = now + DEEPSEEK_MODEL_LATCH_MS;
+  console.warn('[modelRouter] deepseek model id missing — using legacy id for 1h', { legacy: DEEPSEEK_LEGACY_MODEL });
+}
+
+export function resetDeepSeekModelLatchForTests(): void {
+  deepSeekLegacyUntil = 0;
+}
+
+/** Model id for the next DeepSeek call: DEEPSEEK_MODEL (default deepseek-flash), or the legacy id while latched. */
+export function deepSeekModelId(now = Date.now()): string {
+  if (now < deepSeekLegacyUntil) return DEEPSEEK_LEGACY_MODEL;
+  return (process.env.DEEPSEEK_MODEL ?? '').trim() || DEEPSEEK_DEFAULT_MODEL;
+}
+
+/**
+ * DeepSeek V4+ defaults to thinking mode. The site agent answers in 2-3
+ * sentences under a 200-token cap, so thinking is switched off explicitly:
+ * `{"thinking":{"type":"disabled"}}` (https://api-docs.deepseek.com/guides/thinking_mode).
+ * The legacy alias was already non-thinking and never gets the field.
+ */
+export function deepSeekRequestBody(modelId: string, args: Record<string, unknown>): Record<string, unknown> {
+  if (modelId === DEEPSEEK_LEGACY_MODEL) return args;
+  return { ...args, thinking: { type: 'disabled' } };
+}
+
 function buildDeepSeek(apiKey: string, name: string): ModelPick | null {
   try {
+    const modelId = deepSeekModelId();
     const ds = createOpenAICompatible({
       name,
-      baseURL: 'https://api.deepseek.com',
+      baseURL: (process.env.DEEPSEEK_BASE_URL ?? '').trim() || DEEPSEEK_DEFAULT_BASE_URL,
       apiKey,
       includeUsage: true,
       metadataExtractor: deepSeekCacheExtractor,
+      transformRequestBody: (args) => deepSeekRequestBody(modelId, args),
     });
     return {
-      model: ds.chatModel('deepseek-chat'),
+      model: ds.chatModel(modelId),
       provider: 'deepseek',
       tier: 'primary',
+      modelId,
     };
   } catch (err) {
     console.error('[modelRouter] deepseek init failed', err);
+    return null;
+  }
+}
+
+/** Primary pick on its own (used by the GPU failover path). */
+export function buildPrimary(): ModelPick | null {
+  const key = process.env.DEEPSEEK_API_KEY || process.env.AGENT_API_KEY;
+  return key ? buildDeepSeek(key, 'aileena-deepseek') : null;
+}
+
+/**
+ * vLLM reports prefix-cache reuse as usage.prompt_tokens_details.cached_tokens
+ * (server flag --enable-prompt-tokens-details). Surfaced under `gpu` so the
+ * per-turn event logs GPU cache hits next to DeepSeek's.
+ */
+function readOpenAiCachedUsage(body: unknown): DeepSeekCacheMeta | null {
+  const usage = (body as { usage?: { prompt_tokens?: unknown; prompt_tokens_details?: { cached_tokens?: unknown } } } | null)?.usage;
+  if (!usage || typeof usage !== 'object') return null;
+  const prompt = Number(usage.prompt_tokens);
+  const cached = Number(usage.prompt_tokens_details?.cached_tokens);
+  if (!Number.isFinite(prompt)) return null;
+  const hit = Number.isFinite(cached) ? cached : 0;
+  return { promptCacheHitTokens: hit, promptCacheMissTokens: Math.max(0, prompt - hit) };
+}
+
+export const gpuCacheExtractor = {
+  extractMetadata: async ({ parsedBody }: { parsedBody: unknown }) => {
+    const c = readOpenAiCachedUsage(parsedBody);
+    return c ? { gpu: c } : undefined;
+  },
+  createStreamExtractor: () => {
+    let last: DeepSeekCacheMeta | null = null;
+    return {
+      processChunk(chunk: unknown) {
+        const c = readOpenAiCachedUsage(chunk);
+        if (c) last = c;
+      },
+      buildMetadata() {
+        return last ? { gpu: last } : undefined;
+      },
+    };
+  },
+};
+
+/** Request body for the GPU tier: Qwen3-style templates take enable_thinking. */
+export function gpuRequestBody(disableThinking: boolean, args: Record<string, unknown>): Record<string, unknown> {
+  if (!disableThinking) return args;
+  return { ...args, chat_template_kwargs: { enable_thinking: false } };
+}
+
+export function buildGpu(cfg: GpuConfig | null): ModelPick | null {
+  if (!cfg) return null;
+  try {
+    const client = createOpenAICompatible({
+      name: 'aileena-gpu',
+      baseURL: cfg.baseURL,
+      apiKey: cfg.apiKey,
+      includeUsage: true,
+      metadataExtractor: gpuCacheExtractor,
+      transformRequestBody: (args) => gpuRequestBody(cfg.disableThinking, args),
+    });
+    return { model: client.chatModel(cfg.model), provider: cfg.providerId, tier: 'gpu', modelId: cfg.model };
+  } catch (err) {
+    console.error('[modelRouter] gpu init failed', err);
     return null;
   }
 }
@@ -185,7 +296,8 @@ export function degradeMessage(reason: string, lastQuestion?: string): string {
 }
 
 /**
- * Choose LLM or degrade. Task type can prefer fallback later; today primary=DeepSeek.
+ * Choose LLM or degrade. Primary = DeepSeek. The GPU tier is chosen later by
+ * lib/agentRuntime/router.ts (state-based), never here.
  * Shanghai orb keeps DeepSeek when the key exists — that is the Chinese-native path.
  * DeepSeek Harness (dsh) is a separate local coding agent; not this router.
  *
@@ -197,8 +309,10 @@ export function routeModel(opts: {
   lastQuestion: string;
   preferFallback?: boolean;
   voiceAccent?: VoiceAccent | null;
+  /** /api/chat gates providers with the Redis per-provider breaker instead. */
+  ignoreLegacyCircuit?: boolean;
 }): ModelRouteDecision {
-  if (isCircuitOpen()) {
+  if (!opts.ignoreLegacyCircuit && isCircuitOpen()) {
     return {
       mode: 'degrade',
       reason: 'circuit_open',
@@ -207,8 +321,7 @@ export function routeModel(opts: {
     };
   }
 
-  const primaryKey = process.env.DEEPSEEK_API_KEY || process.env.AGENT_API_KEY;
-  const primary = primaryKey ? buildDeepSeek(primaryKey, 'aileena-deepseek') : null;
+  const primary = buildPrimary();
   const fallback = buildFallback();
 
   // Shanghai voice: stay on DeepSeek even if something asked for fallback.
@@ -257,4 +370,10 @@ export function classifyModelError(err: unknown): {
     return { reason: 'timeout', retryable: true };
   }
   return { reason: 'provider', retryable: true };
+}
+
+/** DeepSeek's answer when a model id is unknown/retired. Pins the legacy id (see deepSeekModelId). */
+export function isModelMissingError(err: unknown): boolean {
+  const msg = err instanceof Error ? `${err.message} ${(err as { responseBody?: unknown }).responseBody ?? ''}` : String(err);
+  return /model not exist|model_not_found|model .{0,40}does not exist|unknown model|invalid model|no such model/i.test(msg);
 }
