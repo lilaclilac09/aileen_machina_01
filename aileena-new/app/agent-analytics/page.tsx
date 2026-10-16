@@ -92,6 +92,8 @@ export default async function AgentAnalyticsPage({
           </p>
           <p className="font-mono text-[0.55rem] tracking-[0.14em] text-[#1b1713]/35">
             <Link href="/inbox" className="hover:text-[#008f86]">← cabinet</Link>
+            {' · '}
+            <Link href="/agent-analytics/performance" className="hover:text-[#008f86]">inference performance →</Link>
           </p>
         </header>
 

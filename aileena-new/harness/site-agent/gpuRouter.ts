@@ -137,6 +137,11 @@ const server = createServer(async (req, res) => {
     sse(res, textAnswer('Hello from the fallback.'));
     return;
   }
+  if (url.startsWith('/gpu/v1/models')) {
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ data: [{ id: 'open-8b', root: 'Qwen/Qwen3-8B' }] }));
+    return;
+  }
   if (url.startsWith('/gpu/v1/')) {
     mock.gpuReqs.push(body);
     res.on('close', () => {

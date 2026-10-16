@@ -11,6 +11,7 @@
  * is answered by DeepSeek meanwhile.
  */
 import { runtimeKv } from './kv';
+import { recordPerfEvent } from './perf';
 
 export type GpuMode = 'off' | 'owner' | 'public';
 export type GpuLifecycle = 'COLD' | 'WARMING' | 'WARM' | 'DRAINING';
@@ -132,20 +133,28 @@ export async function markGpuWarm(now = Date.now()): Promise<void> {
   const cur = await readGpuState(now);
   if (cur.state === 'DRAINING') return;
   await writeState({ state: 'WARM', at: now }, GPU_WARM_TTL_SEC);
+  if (cur.state !== 'WARM') {
+    // WARMING → WARM after a wake: `ms` is the observed cold start.
+    void recordPerfEvent({ kind: 'gpu', from: cur.state, to: 'WARM', ...(cur.wakeAt ? { ms: now - cur.wakeAt } : {}) });
+  }
 }
 
 export async function markGpuCold(now = Date.now()): Promise<void> {
   const cur = await readGpuState(now);
   if (cur.state === 'DRAINING') return;
   await runtimeKv().del(STATE_KEY);
+  if (cur.state !== 'COLD') void recordPerfEvent({ kind: 'gpu', from: cur.state, to: 'COLD' });
 }
 
 export async function drainGpu(now = Date.now()): Promise<void> {
+  const cur = await readGpuState(now);
   await writeState({ state: 'DRAINING', at: now }, GPU_DRAIN_TTL_SEC);
+  void recordPerfEvent({ kind: 'gpu', from: cur.state, to: 'DRAINING' });
 }
 
 export async function undrainGpu(): Promise<void> {
   await runtimeKv().del(STATE_KEY);
+  void recordPerfEvent({ kind: 'gpu', from: 'DRAINING', to: 'COLD' });
 }
 
 export type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
@@ -186,6 +195,7 @@ export async function wakeGpu(
   if (cur.state !== 'WARMING') {
     await writeState({ state: 'WARMING', at: now, wakeAt: now }, Math.max(60, cfg.startupTimeoutS));
   }
+  void recordPerfEvent({ kind: 'wake', from: cur.state, to: 'WARMING' });
   const done = checkGpuHealth(cfg, opts.fetchImpl)
     .then(async (ok) => {
       if (ok) await markGpuWarm();
@@ -227,4 +237,41 @@ export async function probeGpu(
     return { probed: true, state: 'COLD' };
   }
   return { probed: true, state: cur.state };
+}
+
+/**
+ * GPU optimisation tag for the performance dashboard ("Compare" view).
+ * AGENT_GPU_VARIANT wins; otherwise read once per 10 min from the server's
+ * /v1/models: infra/gpu/vllm_server.py serves an extra alias
+ * `<name>.<variant>` (e.g. open-8b.fp8-ngram); else guess from the HF root.
+ */
+const VARIANT_TTL_MS = 10 * 60_000;
+export async function readGpuVariant(cfg: GpuConfig, fetchImpl: FetchLike = fetch): Promise<string | undefined> {
+  const pinned = (process.env.AGENT_GPU_VARIANT || '').trim();
+  if (pinned) return pinned.slice(0, 40);
+  const g = globalThis as { __aileenaGpuVariant?: { at: number; v?: string } };
+  if (g.__aileenaGpuVariant && Date.now() - g.__aileenaGpuVariant.at < VARIANT_TTL_MS) return g.__aileenaGpuVariant.v;
+  let v: string | undefined;
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), GPU_HEALTH_TIMEOUT_MS);
+  try {
+    const res = await fetchImpl(`${cfg.baseURL.replace(/\/$/, '')}/models`, {
+      headers: { Authorization: `Bearer ${cfg.apiKey}` },
+      signal: ctl.signal,
+      cache: 'no-store',
+    });
+    if (res.ok) {
+      const body = (await res.json()) as { data?: Array<{ id?: string; root?: string }> };
+      const ids = (body.data ?? []).map((m) => String(m.id ?? ''));
+      const alias = ids.find((id) => id.startsWith(`${cfg.model}.`));
+      const root = String(body.data?.[0]?.root ?? '').toLowerCase();
+      v = alias ? alias.slice(cfg.model.length + 1) : /awq/.test(root) ? 'awq' : /fp8/.test(root) ? 'fp8' : ids.length ? 'base' : undefined;
+    }
+  } catch {
+    /* unknown */
+  } finally {
+    clearTimeout(t);
+  }
+  g.__aileenaGpuVariant = { at: Date.now(), v };
+  return v;
 }
