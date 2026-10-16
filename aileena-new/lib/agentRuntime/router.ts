@@ -212,37 +212,49 @@ export async function chooseProvider(input: RouterInput): Promise<RouterDecision
   return primaryOrFallback('default');
 }
 
+export type PeekResult =
+  | { ok: true; kind: 'token' | 'finish' | 'abort' }
+  | { ok: false; reason: 'timeout' | 'error' | 'empty'; error?: unknown };
+
+const TOKEN_PARTS = new Set(['text-start', 'text-delta', 'reasoning-start', 'reasoning-delta', 'tool-input-start', 'tool-call']);
+const CONTENT_PARTS = new Set(['tool-input-start', 'tool-call', 'tool-result']);
+
 /**
- * Wait for the first model event of a streamText result (pre-first-token
- * failover). Reads a tee of fullStream, so the response stream still gets
- * every part from the start.
+ * Peek a tee of `fullStream` before the Response is returned (pre-first-token
+ * failover and empty-answer retry). The response stream still gets every part.
+ * - default: ok at the first token of any kind (TTFT check for the GPU tier).
+ * - requireContent: ok only at visible output (non-whitespace text or a tool
+ *   call); a stream that finishes without any is `{ok:false, reason:'empty'}`.
+ *   The timeout (when > 0) still only measures time to the first token.
  */
 export async function peekFirstToken(
   fullStream: AsyncIterable<{ type: string; error?: unknown }> & ReadableStream<{ type: string; error?: unknown }>,
   timeoutMs: number,
-): Promise<{ ok: true; kind: 'token' | 'finish' | 'abort' } | { ok: false; reason: 'timeout' | 'error'; error?: unknown }> {
+  opts: { requireContent?: boolean } = {},
+): Promise<PeekResult> {
   const reader = fullStream.getReader();
   let timer: ReturnType<typeof setTimeout> | undefined;
-  const timeout = new Promise<{ ok: false; reason: 'timeout' }>((resolve) => {
-    timer = setTimeout(() => resolve({ ok: false, reason: 'timeout' }), timeoutMs);
+  const timeout = new Promise<PeekResult>((resolve) => {
+    if (timeoutMs > 0) timer = setTimeout(() => resolve({ ok: false, reason: 'timeout' }), timeoutMs);
   });
-  const read = (async () => {
+  const ended = (): PeekResult => (opts.requireContent ? { ok: false, reason: 'empty' } : { ok: true, kind: 'finish' });
+  const read = (async (): Promise<PeekResult> => {
     for (;;) {
       const { value, done } = await reader.read();
-      if (done) return { ok: true as const, kind: 'finish' as const };
+      if (done) return ended();
       const t = value.type;
-      if (t === 'error') return { ok: false as const, reason: 'error' as const, error: value.error };
-      if (t === 'abort') return { ok: true as const, kind: 'abort' as const };
-      if (t === 'finish') return { ok: true as const, kind: 'finish' as const };
-      if (
-        t === 'text-start' ||
-        t === 'text-delta' ||
-        t === 'reasoning-start' ||
-        t === 'reasoning-delta' ||
-        t === 'tool-input-start' ||
-        t === 'tool-call'
-      ) {
-        return { ok: true as const, kind: 'token' as const };
+      if (t === 'error') return { ok: false, reason: 'error', error: value.error };
+      if (t === 'abort') return { ok: true, kind: 'abort' };
+      if (t === 'finish') return ended();
+      if (!TOKEN_PARTS.has(t) && !CONTENT_PARTS.has(t)) continue;
+      if (!opts.requireContent) return { ok: true, kind: 'token' };
+      if (timer) {
+        clearTimeout(timer);
+        timer = undefined;
+      }
+      const text = (value as { text?: unknown }).text;
+      if (CONTENT_PARTS.has(t) || (t === 'text-delta' && typeof text === 'string' && text.trim())) {
+        return { ok: true, kind: 'token' };
       }
     }
   })();

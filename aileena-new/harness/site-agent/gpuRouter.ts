@@ -48,13 +48,15 @@ const rows: Row[] = [];
 const check = (name: string, ok: boolean, detail = '') => rows.push({ name, ok, detail });
 
 // ── Mock OpenAI-compatible server ──────────────────────────────────────────
-type GpuBehavior = 'ok' | 'error503' | 'silent' | 'midstream' | 'slowstream' | 'tool-always' | 'tool-once';
+type GpuBehavior = 'ok' | 'empty' | 'error503' | 'silent' | 'midstream' | 'slowstream' | 'tool-always' | 'tool-once';
 const mock = {
   gpu: 'ok' as GpuBehavior,
   health: 200,
   healthHits: 0,
   dsMissingFlash: false,
   dsMidstream: false,
+  dsQueue: [] as Array<'empty' | 'ws' | 'ok'>,
+  fb: 0,
   ds: [] as Record<string, unknown>[],
   gpuReqs: [] as Record<string, unknown>[],
   gpuClosedEarly: 0,
@@ -84,6 +86,7 @@ const usage = (prompt: number, cached: number) => ({
   usage: { prompt_tokens: prompt, completion_tokens: 6, total_tokens: prompt + 6, prompt_tokens_details: { cached_tokens: cached }, prompt_cache_hit_tokens: cached, prompt_cache_miss_tokens: prompt - cached },
 });
 const textAnswer = (text: string) => [delta({ role: 'assistant', content: '' }), delta({ content: text }), delta({}, 'stop'), usage(900, 640)];
+const emptyAnswer = (ws = false) => [delta({ role: 'assistant', content: '' }), ...(ws ? [delta({ content: '  \n ' })] : []), delta({}, 'stop'), usage(900, 640)];
 const toolCall = (id: string) => [
   delta({ role: 'assistant', content: null, tool_calls: [{ index: 0, id, type: 'function', function: { name: 'searchArticles', arguments: '{"query":"pcb article"}' } }] }),
   delta({}, 'tool_calls'),
@@ -116,12 +119,22 @@ const server = createServer(async (req, res) => {
       res.end(JSON.stringify({ error: { message: 'Model Not Exist', type: 'invalid_request_error' } }));
       return;
     }
+    const queued = mock.dsQueue.shift();
+    if (queued === 'empty' || queued === 'ws') {
+      sse(res, emptyAnswer(queued === 'ws'));
+      return;
+    }
     if (mock.dsMidstream) {
       sse(res, [delta({ role: 'assistant', content: '' }), delta({ content: 'Hello from the primary. ' })], false);
       setTimeout(() => res.destroy(), 50);
       return;
     }
     sse(res, textAnswer('Hello from the primary model.'));
+    return;
+  }
+  if (url.startsWith('/fb/')) {
+    mock.fb++;
+    sse(res, textAnswer('Hello from the fallback.'));
     return;
   }
   if (url.startsWith('/gpu/v1/')) {
@@ -133,6 +146,10 @@ const server = createServer(async (req, res) => {
     if (b === 'error503') {
       res.writeHead(503);
       res.end('cold');
+      return;
+    }
+    if (b === 'empty') {
+      sse(res, emptyAnswer());
       return;
     }
     if (b === 'silent') {
@@ -192,6 +209,10 @@ function reset() {
   mock.healthHits = 0;
   mock.dsMissingFlash = false;
   mock.dsMidstream = false;
+  mock.dsQueue = [];
+  mock.fb = 0;
+  delete process.env.AGENT_FALLBACK_BASE_URL;
+  delete process.env.AGENT_FALLBACK_API_KEY;
   mock.ds = [];
   mock.gpuReqs = [];
   mock.gpuClosedEarly = 0;
@@ -394,6 +415,7 @@ async function main() {
   const dayKey = new Date().toISOString().slice(0, 10);
   const ipReq = () => new Request('https://aileena.xyz', { headers: { 'x-forwarded-for': '203.0.113.7' } });
   check('T7 mid-stream error stays on gpu (bytes already sent, no switch)', t7.res.headers.get('x-provider') === 'gpu:open-8b');
+  check('T7 mid-stream drop ends with the degrade copy (error part), not a broken body', /"type":"error","errorText":"[^"]*(quiet|again)/.test(t7.text) && /Hello from the GPU/.test(t7.text) && t7.text.trimEnd().endsWith('[DONE]'), JSON.stringify(t7.text.slice(-200)));
   check('T7 mid-stream error → turn not charged', (await readRedisQuota(await quotaKeyFor(ipReq(), 'harness-mid-visitor', dayKey))) === 0);
   check('T7 mid-stream error → GPU called once (no retry)', mock.gpuReqs.length === 1);
   // Parity: a socket reset mid-SSE terminates the body the same way on DeepSeek (pre-existing on main).
@@ -405,7 +427,68 @@ async function main() {
   await chat({ messages: [msg(q)] }, { cookie: '__aileena_vid=harness-mid-control' });
   await new Promise((r) => setTimeout(r, 50));
   check('T7 control: a completed turn IS charged', (await readRedisQuota(await quotaKeyFor(ipReq(), 'harness-mid-control', dayKey))) === 1);
+  check('T7 deepseek mid-stream drop also ends with the degrade copy', /"type":"error","errorText"/.test(t7b.text), JSON.stringify(t7b.text.slice(-200)));
   check('T7 parity: deepseek mid-stream reset not charged either', t7b.res.status === 200 && (await readRedisQuota(await quotaKeyFor(ipReq(), 'harness-mid-visitor2', dayKey))) === 0);
+
+  // ── E: empty-answer retry ──
+  const textOf = (body: string) =>
+    body
+      .split('\n')
+      .filter((l) => l.startsWith('data: {'))
+      .map((l) => JSON.parse(l.slice(6)) as { type: string; delta?: string })
+      .filter((p) => p.type === 'text-delta')
+      .map((p) => p.delta ?? '')
+      .join('');
+  const charged = async (vid: string) => readRedisQuota(await quotaKeyFor(ipReq(), vid, dayKey));
+  const odd = 'zxqv empty probe: tell me one thing about the site';
+  reset();
+  setGpuEnv({});
+  mock.dsQueue = ['empty'];
+  const e1 = await chat({ messages: [msg(odd)] }, { cookie: '__aileena_vid=harness-empty-1' });
+  await new Promise((r) => setTimeout(r, 50));
+  check('E1 empty stream → retried once on the same provider → answer', e1.res.status === 200 && textOf(e1.text) === 'Hello from the primary model.' && mock.ds.length === 2, `ds=${mock.ds.length} text=${JSON.stringify(textOf(e1.text))}`);
+  check('E1 no degrade header on a recovered turn', e1.res.headers.get('x-degrade-reason') === null && e1.res.headers.get('x-provider') === 'deepseek');
+  check('E1 charged exactly once', (await charged('harness-empty-1')) === 1);
+  check('E1 retry keeps the same prefix (same root)', systemOf(mock.ds[0]) === systemOf(mock.ds[1]));
+
+  reset();
+  setGpuEnv({});
+  mock.dsQueue = ['empty', 'ws'];
+  const e2 = await chat({ messages: [msg(odd)] }, { cookie: '__aileena_vid=harness-empty-2' });
+  await new Promise((r) => setTimeout(r, 50));
+  check('E2 empty twice (2nd whitespace-only) → degrade copy, not an empty bubble', /Something went quiet/.test(textOf(e2.text)) && e2.res.headers.get('x-degrade-reason') === 'empty_answer', JSON.stringify(textOf(e2.text)));
+  check('E2 exactly two upstream attempts', mock.ds.length === 2);
+  check('E2 not charged (at most once)', (await charged('harness-empty-2')) === 0);
+  check('E2 stream is a well-formed UI stream', /"type":"start"/.test(e2.text) && /"type":"finish"/.test(e2.text) && e2.text.trimEnd().endsWith('[DONE]'));
+
+  reset();
+  setGpuEnv({});
+  process.env.AGENT_FALLBACK_BASE_URL = `${base}/fb`;
+  process.env.AGENT_FALLBACK_API_KEY = 'test-fb-key';
+  mock.dsQueue = ['empty', 'empty'];
+  const e3 = await chat({ messages: [msg(odd)] }, { cookie: '__aileena_vid=harness-empty-3' });
+  await new Promise((r) => setTimeout(r, 50));
+  check('E3 empty twice + fallback configured (new root) → fallback answers', textOf(e3.text) === 'Hello from the fallback.' && (e3.res.headers.get('x-provider') ?? '').startsWith('fallback:') && mock.fb === 1, `${e3.res.headers.get('x-provider')} ${JSON.stringify(textOf(e3.text))}`);
+  check('E3 charged exactly once', (await charged('harness-empty-3')) === 1);
+  mock.dsQueue = ['empty', 'empty'];
+  const e3b = await chat({ messages: [msg(odd)], sessionProvider: 'deepseek' }, { cookie: '__aileena_vid=harness-empty-3b' });
+  await new Promise((r) => setTimeout(r, 50));
+  check('E3 root locked to deepseek never switches speaker → degrade copy', /Something went quiet/.test(textOf(e3b.text)) && mock.fb === 1 && e3b.res.headers.get('x-provider') === 'deepseek');
+  check('E3 locked-root degrade not charged', (await charged('harness-empty-3b')) === 0);
+
+  reset();
+  setGpuEnv({ AGENT_GPU_MODE: 'owner' });
+  await markGpuWarm();
+  mock.gpu = 'empty';
+  const e4 = await chat({ messages: [msg(odd)], modelTier: 'gpu' }, { owner: true });
+  check('E4 GPU empty twice → retried on GPU, then DeepSeek answers', textOf(e4.text) === 'Hello from the primary model.' && mock.gpuReqs.length === 2 && e4.res.headers.get('x-provider') === 'deepseek', `gpu=${mock.gpuReqs.length} ${e4.res.headers.get('x-provider')}`);
+  const g4 = await breakerGate('gpu:open-8b');
+  check('E4 empty answers are not breaker failures', g4.allowed && !g4.probe);
+
+  reset();
+  setGpuEnv({});
+  const e5 = await chat({ messages: [msg('what does her PCB article say?')] }, { cookie: '__aileena_vid=harness-empty-5' });
+  check('E5 normal turn: one upstream call, no retry', mock.ds.length === 1 && textOf(e5.text) === 'Hello from the primary model.');
 
   // ── T8: cancel on a GPU turn ──
   reset();
@@ -515,6 +598,15 @@ async function main() {
   check('peek: error', !(await peekFirstToken(mk([{ type: 'start' }, { type: 'error' }]), 200)).ok);
   const slow = await peekFirstToken(mk([{ type: 'start' }, { type: 'text-delta' }], 300), 100);
   check('peek: timeout', !slow.ok && slow.reason === 'timeout');
+  const pe = await peekFirstToken(mk([{ type: 'start' }, { type: 'text-start' }, { type: 'text-end' }, { type: 'finish' }]), 0, { requireContent: true });
+  check('peek(requireContent): empty finish → empty', !pe.ok && pe.reason === 'empty');
+  const pw = await peekFirstToken(mk([{ type: 'text-start' }, { type: 'text-delta', text: ' \n' } as { type: string }, { type: 'finish' }]), 0, { requireContent: true });
+  check('peek(requireContent): whitespace-only → empty', !pw.ok && pw.reason === 'empty');
+  const pt = await peekFirstToken(mk([{ type: 'text-start' }, { type: 'text-delta', text: 'Hi' } as { type: string }]), 0, { requireContent: true });
+  const pc = await peekFirstToken(mk([{ type: 'tool-call' }, { type: 'finish' }]), 0, { requireContent: true });
+  check('peek(requireContent): text or tool call → ok', pt.ok && pc.ok);
+  const pslow = await peekFirstToken(mk([{ type: 'text-start' }, { type: 'text-delta', text: 'Hi' } as { type: string }], 80), 120, { requireContent: true });
+  check('peek(requireContent): timeout measures first token only', pslow.ok);
 
   server.close();
   const failed = rows.filter((r) => !r.ok);

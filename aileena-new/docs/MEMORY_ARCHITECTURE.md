@@ -119,6 +119,8 @@ Logs: `[chat] tool-route` + react-audit includes `route`.
 - Optional fallback via `AGENT_FALLBACK_BASE_URL` + `AGENT_FALLBACK_API_KEY`
 - Optional self-hosted GPU tier (`AGENT_GPU_*`, off by default): see `infra/gpu/README.md`
 - Circuit: per-provider Redis breaker (`breaker:v1:<provider>`), 3 consecutive failures → open 60s → half-open probe; all open → 503 + fixed/canned copy. The legacy in-process circuit no longer gates `/api/chat`
+- Empty answers: a turn that finishes with no visible output (no text, no tool call) before any byte is sent is retried once on the same provider, then once on the next provider routing allows (never across a locked root); still empty → degrade copy (`X-Degrade-Reason: empty_answer`). Empty attempts are not committed or charged
+- Mid-stream connection drop: the stream ends with an error part carrying the degrade copy instead of a broken body; not committed or charged
 - Deadline: `AbortSignal` budget **22s** inside Vercel `maxDuration=30`
 - Headers: `X-Model-Tier`, `X-Model-Budget-Ms`, `X-Degrade-Reason` (when degraded)
 

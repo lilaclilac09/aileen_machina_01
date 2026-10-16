@@ -60,7 +60,7 @@ async function main() {
   check('20 charged → exhausted', quotaExhausted(await readRedisQuota(k1)));
   check('route charges Redis only in onFinish on committed turns', /if \(committed\) \{[\s\S]{0,80}chargeRedisQuota\(redisQuotaKey\)/.test(route));
   check('route cookie path unchanged without Redis (+1 up front)', /redisQuotaKey \? quota\.count : quota\.count \+ 1/.test(route));
-  check('committed = stop|length only', /const committed = finishReason === 'stop' \|\| finishReason === 'length'/.test(route));
+  check('committed = stop|length with visible output only', /const committed = !empty && \(finishReason === 'stop' \|\| finishReason === 'length'\)/.test(route));
 
   // ── P1.4 cancel ──
   const ac = new AbortController();
