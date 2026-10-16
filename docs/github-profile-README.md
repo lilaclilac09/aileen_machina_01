@@ -27,9 +27,9 @@ DeFi propagation research & hardware supply chain analysis. Writing about why th
 ---
 
 ### Recently Updated
-<!-- profile:synced-at 2026-10-15T14:40:34.828Z -->
+<!-- profile:synced-at 2026-10-16T14:33:06.925Z -->
 <!-- profile:recently-updated:start -->
-* **[aileena.xyz](https://aileena.xyz) Console**: Browser Use dry browse for anyone + Cloudflare desk packed above voice, KeyShield: Chrome extension install + restore ks.aileena.xyz marketing, and Open the owner review room on aileena.xyz.
+* **[aileena.xyz](https://aileena.xyz) Console**: Site agent: runtime guards, P0, console starters + owner analytics, public MCP endpoint.
 * **Cafe Cursor**: Credits distribution and user support tooling at [cursor-cafe.aileena.xyz](https://cursor-cafe.aileena.xyz).
 * **Machina memory**: AgentMemoryRepo Dreaming — read both, write one.
 <!-- profile:recently-updated:end -->
