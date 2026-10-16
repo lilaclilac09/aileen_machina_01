@@ -2,7 +2,12 @@ name: Site-agent live evolve
 
 # Drain uncovered visitor asks from production Redis via GitHub OIDC
 # (no UPSTASH secret on GitHub), then ratchet skills.
-# Promote only if held-out rises.
+# Promote only if held-out rises AND the trigger-quality gate passes.
+# Never pushes to main: changes land as a PR labelled `self-improve`, gated by
+# a real-agent replay (next start + DeepSeek) of the prompts the changed
+# skills trigger on plus every held-out prompt. Without DEEPSEEK_API_KEY the
+# replay is skipped and the PR stays a draft labelled `replay-skipped`.
+# Promotions are revertible: `pnpm evolve -- --rollback <skill> --to <version>`.
 # Never commits AGENTS.md / QA.md / PROJECT_RULES.md.
 
 on:
@@ -12,6 +17,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
   id-token: write
 
 concurrency:
@@ -79,7 +85,8 @@ jobs:
           git config user.name "Site Agent Evolve Bot"
           git config user.email "bot@aileena.xyz"
 
-      - name: Commit skills only
+      - name: Commit skills to a self-improve branch
+        id: commit
         working-directory: .
         run: |
           set -euo pipefail
@@ -92,18 +99,60 @@ jobs:
           fi
           if git diff --cached --quiet; then
             echo "No skill changes to commit"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+          BRANCH="self-improve/$(date -u +%Y-%m-%d)-${GITHUB_RUN_ID}"
+          git switch -c "$BRANCH"
           git commit -m "chore(evolve): ratchet skills from live chat inbox [$(date -u +%Y-%m-%d)]"
-          for attempt in 1 2 3 4; do
-            if git push origin HEAD:main; then
-              echo "Evolve skills pushed (attempt ${attempt})"
-              exit 0
-            fi
-            echo "Push rejected (attempt ${attempt}) — rebasing onto origin/main"
-            git fetch origin main
-            git rebase origin/main
-            sleep $((attempt * 2))
-          done
-          echo "::error::Failed to push evolve skills after retries"
-          exit 1
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+
+      - name: Real-agent replay gate
+        id: replay
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          RUNTIME_KV: memory
+        run: |
+          set +e
+          if [ -z "${DEEPSEEK_API_KEY}" ]; then
+            echo "status=skipped" >> "$GITHUB_OUTPUT"
+            echo '{"skipped":true,"reason":"no DEEPSEEK_API_KEY secret"}' > /tmp/evolve-replay.json
+            exit 0
+          fi
+          pnpm build > /tmp/build.log 2>&1 || { tail -50 /tmp/build.log; echo "status=build_failed" >> "$GITHUB_OUTPUT"; exit 1; }
+          (pnpm start -p 3123 > /tmp/start.log 2>&1 &)
+          for i in $(seq 1 60); do curl -fsS -o /dev/null http://localhost:3123/ && break; sleep 2; done
+          pnpm evolve:replay -- --base http://localhost:3123 --changed-from origin/main --out /tmp/evolve-replay.json
+          code=$?
+          if [ $code -eq 0 ]; then echo "status=passed" >> "$GITHUB_OUTPUT"; else echo "status=failed" >> "$GITHUB_OUTPUT"; fi
+          exit $code
+
+      - name: Open self-improve PR
+        if: steps.commit.outputs.changed == 'true' && (steps.replay.outputs.status == 'passed' || steps.replay.outputs.status == 'skipped')
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ steps.commit.outputs.branch }}
+          REPLAY: ${{ steps.replay.outputs.status }}
+        run: |
+          set -euo pipefail
+          git push origin "$BRANCH"
+          gh label create self-improve --color 5319e7 --description "Evolution loop skill ratchet" --force
+          gh label create replay-skipped --color fbca04 --description "Real-agent replay did not run" --force
+          {
+            echo "Automated skill ratchet from the live chat inbox."
+            echo
+            echo "- Held-out must rise; trigger-quality gate enforced by the ratchet."
+            echo "- Real-agent replay: **${REPLAY}**"
+            echo "- Revert a promotion: \`pnpm evolve -- --rollback <skill> --to <version>\`"
+            echo
+            echo '```json'
+            head -c 6000 /tmp/evolve-replay.json
+            echo
+            echo '```'
+          } > /tmp/pr-body.md
+          ARGS=(--base main --head "$BRANCH" --title "self-improve: skill ratchet $(date -u +%Y-%m-%d)" --body-file /tmp/pr-body.md --label self-improve)
+          if [ "$REPLAY" != "passed" ]; then ARGS+=(--draft --label replay-skipped); fi
+          gh pr create "${ARGS[@]}"

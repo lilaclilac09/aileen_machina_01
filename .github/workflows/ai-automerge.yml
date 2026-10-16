@@ -69,6 +69,11 @@ jobs:
           pnpm exec tsx harness/site-agent/offline.ts
           pnpm exec tsx harness/site-agent/guards.ts
           pnpm exec tsx harness/site-agent/engage.ts
+          pnpm exec tsx harness/site-agent/runtime.ts
+          pnpm exec tsx harness/site-agent/promptContract.ts
+          pnpm exec tsx scripts/verify-evolve.ts
+          pnpm exec tsx scripts/verify-ops.ts
+          pnpm exec tsx scripts/verify-agent-rules.ts
           pnpm exec tsx scripts/verify-react.ts
           pnpm exec tsx scripts/verify-night-desk.ts
           pnpm exec tsx scripts/verify-browser-use.ts

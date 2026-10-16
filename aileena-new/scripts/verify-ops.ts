@@ -504,7 +504,7 @@ function main() {
     'chat route injects ratcheted skills into the tail',
     /formatSkillsForTurn/.test(chatRouteSrc) && /skillBlock/.test(chatRouteSrc),
   );
-  assert('chat route enqueues live inbox', /enqueueLiveAsk\(lastQ, \{ isCouncil \}\)/.test(chatRouteSrc));
+  assert('chat route enqueues live inbox', /enqueueLiveAsk\(lastQ, \{ isCouncil[,} ]/.test(chatRouteSrc));
   assert('chat route does not import evolution engine', !/evolution\/engine/.test(chatRouteSrc));
   assert('evolve drain route exists', existsSync(join(process.cwd(), 'app/api/evolve/drain/route.ts')));
   assert('chat route appends session tail', /messagesWithTail/.test(chatRouteSrc) && /sessionTail/.test(chatRouteSrc));

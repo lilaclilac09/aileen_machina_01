@@ -30,6 +30,8 @@ export function evolutionPaths(root = evolutionRoot()) {
     trajectories: join(root, 'trajectories/index.jsonl'),
     generated: join(root, 'generated-tasks/prompts.json'),
     inbox: join(root, 'inbox/questions.jsonl'),
+    /** Snapshots of every promoted skill version, so promotions are revertible. */
+    history: join(root, 'history'),
   };
 }
 

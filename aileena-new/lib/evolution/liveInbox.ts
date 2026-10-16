@@ -8,6 +8,10 @@
 
 import { getVisitorRedis } from '../visitorMemory';
 import { matchingSkills } from './selectSkills';
+import { takeAgentRate } from '../agentMcp/rateLimit';
+
+/** Uncovered asks one visitor can add to the inbox per day. */
+export const LIVE_INBOX_PER_VISITOR_DAY = 5;
 
 export const LIVE_INBOX_KEY = 'evolve:inbox';
 export const LIVE_SEEN_PREFIX = 'evolve:seen:';
@@ -34,6 +38,8 @@ export type EnqueueResult = {
     | 'duplicate'
     | 'full'
     | 'no-store'
+    | 'harness'
+    | 'rate-limited'
     | 'error';
 };
 
@@ -62,11 +68,17 @@ function fingerprint(prompt: string): string {
   return prompt.toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 120);
 }
 
-export function shouldEnqueueLiveAsk(
-  prompt: string,
-  opts?: { isCouncil?: boolean },
-): EnqueueResult {
+export type EnqueueOpts = {
+  isCouncil?: boolean;
+  /** Salted daily visitor hash (never a raw IP). Enables the per-visitor cap. */
+  visitorKey?: string;
+  /** Request trace id. Harness traffic (harness-*) never feeds evolution. */
+  traceId?: string;
+};
+
+export function shouldEnqueueLiveAsk(prompt: string, opts?: EnqueueOpts): EnqueueResult {
   if (opts?.isCouncil) return { ok: false, reason: 'council' };
+  if (opts?.traceId && /^harness/i.test(opts.traceId)) return { ok: false, reason: 'harness' };
   const t = prompt.replace(/\s+/g, ' ').trim();
   if (!t) return { ok: false, reason: 'empty' };
   if (t.length < 8) return { ok: false, reason: 'short' };
@@ -83,13 +95,16 @@ function seenKey(fp: string): string {
 /**
  * Fire-and-forget from /api/chat. No-ops when Redis is missing on Vercel.
  */
-export async function enqueueLiveAsk(
-  prompt: string,
-  opts?: { isCouncil?: boolean },
-): Promise<EnqueueResult> {
+export async function enqueueLiveAsk(prompt: string, opts?: EnqueueOpts): Promise<EnqueueResult> {
   try {
     const gate = shouldEnqueueLiveAsk(prompt, opts);
     if (!gate.ok) return gate;
+    if (opts?.visitorKey) {
+      const rl = await takeAgentRate(`inbox:${opts.visitorKey}`, [
+        { name: 'inbox-day', limit: LIVE_INBOX_PER_VISITOR_DAY, windowSec: 86_400 },
+      ]);
+      if (!rl.ok) return { ok: false, reason: 'rate-limited' };
+    }
     const row: LiveAsk = {
       at: new Date().toISOString(),
       prompt: prompt.replace(/\s+/g, ' ').trim(),

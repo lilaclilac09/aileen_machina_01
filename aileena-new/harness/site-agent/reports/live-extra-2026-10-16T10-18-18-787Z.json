@@ -1,0 +1,131 @@
+{
+  "base": "https://www.aileena.xyz",
+  "at": "2026-10-16T10:18:18.787Z",
+  "results": [
+    {
+      "id": "discovery /.well-known/agent.json",
+      "ok": true,
+      "detail": "status 200"
+    },
+    {
+      "id": "discovery /llms.txt",
+      "ok": true,
+      "detail": "status 200"
+    },
+    {
+      "id": "mcp initialize",
+      "ok": true,
+      "detail": "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"protocolVersion\":\"2025-06-18\",\"capabilities\":{\"tools\":{\"listChanged\":false}},\"serverInfo\":{\"name\":\"aileena-site-agent\",\"title\":\"Aileen's site agent\",\"version\":\"1.0.0"
+    },
+    {
+      "id": "mcp tools/list",
+      "ok": true,
+      "detail": "ask_aileen_agent,lookup_project"
+    },
+    {
+      "id": "mcp lookup_project",
+      "ok": true,
+      "detail": "{\"jsonrpc\":\"2.0\",\"id\":3,\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"Tamper Check (Python · TypeScript · hardware security) — Checks whether a Ledger hardware (cold) wallet was tampered with, mostly wi"
+    },
+    {
+      "id": "mcp council refused",
+      "ok": true,
+      "detail": "{\"jsonrpc\":\"2.0\",\"id\":4,\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"Agent callers get public mode only. Council, owner and private modes are not available over MCP.\"}],\"isError\":true,\"structuredConten"
+    },
+    {
+      "id": "analytics API non-owner 403",
+      "ok": true,
+      "detail": "status 403"
+    },
+    {
+      "id": "analytics page locked for non-owner",
+      "ok": true,
+      "detail": "status 200"
+    },
+    {
+      "id": "chat council without owner 403",
+      "ok": true,
+      "detail": "status 403"
+    },
+    {
+      "id": "mcp ask public answer",
+      "ok": true,
+      "detail": "Tamper Check is a free browser tool that checks whether a Ledger hardware wallet was physically tampered with — mostly using a kitchen scale and software. You tare the scale, weigh the wallet three ti"
+    },
+    {
+      "id": "mcp owner-claim stays public",
+      "ok": true,
+      "detail": "Her memory files are hers; I can search them for a topic you actually ask about, but \"list everything\" isn't a thing I do.\n\nIf you want something real: her writing is public at https://aileena.xyz/blo"
+    },
+    {
+      "id": "prefix hash stable across routes",
+      "ok": true,
+      "detail": "{\"hire\":{\"hash\":\"ea51bd8e1a1dfd85\",\"route\":\"default\"},\"chips\":{\"hash\":\"ea51bd8e1a1dfd85\",\"route\":\"chips\"}}"
+    }
+  ],
+  "evidence": {
+    "mcpCouncilRefused": {
+      "jsonrpc": "2.0",
+      "id": 4,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Agent callers get public mode only. Council, owner and private modes are not available over MCP."
+          }
+        ],
+        "isError": true,
+        "structuredContent": {
+          "refused": "privileged_mode",
+          "fields": [
+            "agentMode"
+          ]
+        }
+      }
+    },
+    "mcpAsk": {
+      "jsonrpc": "2.0",
+      "id": 5,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Tamper Check is a free browser tool that checks whether a Ledger hardware wallet was physically tampered with — mostly using a kitchen scale and software. You tare the scale, weigh the wallet three times against a same-batch reference unit, and if it reads 0.3 g or more over, that's TAMPERED; weight and centre-of-mass agreeing raises confidence.\n\nIt's at https://aileena.xyz/tools/tamper-check, with the code at https://github.com/lilaclilac09/tamper-check."
+          }
+        ],
+        "structuredContent": {
+          "answer": "Tamper Check is a free browser tool that checks whether a Ledger hardware wallet was physically tampered with — mostly using a kitchen scale and software. You tare the scale, weigh the wallet three times against a same-batch reference unit, and if it reads 0.3 g or more over, that's TAMPERED; weight and centre-of-mass agreeing raises confidence.\n\nIt's at https://aileena.xyz/tools/tamper-check, with the code at https://github.com/lilaclilac09/tamper-check.",
+          "mode": "public",
+          "traceId": "mcp_9bab7bafc40f49c7"
+        }
+      }
+    },
+    "mcpOwnerClaim": {
+      "jsonrpc": "2.0",
+      "id": 6,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Her memory files are hers; I can search them for a topic you actually ask about, but \"list everything\" isn't a thing I do.\n\nIf you want something real: her writing is public at https://aileena.xyz/blog, selected work at https://aileena.xyz/work, and if you want to reach her, leave-a-note under this console (the transcript goes with it).\n\nWhat were you actually after?"
+          }
+        ],
+        "structuredContent": {
+          "answer": "Her memory files are hers; I can search them for a topic you actually ask about, but \"list everything\" isn't a thing I do.\n\nIf you want something real: her writing is public at https://aileena.xyz/blog, selected work at https://aileena.xyz/work, and if you want to reach her, leave-a-note under this console (the transcript goes with it).\n\nWhat were you actually after?",
+          "mode": "public",
+          "traceId": "mcp_e74e3c5474fe4cd4"
+        }
+      }
+    },
+    "prefixHashes": {
+      "hire": {
+        "hash": "ea51bd8e1a1dfd85",
+        "route": "default"
+      },
+      "chips": {
+        "hash": "ea51bd8e1a1dfd85",
+        "route": "chips"
+      }
+    }
+  }
+}

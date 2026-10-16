@@ -125,7 +125,7 @@ function main() {
   );
   assert(
     'chat live inbox passes isCouncil',
-    /enqueueLiveAsk\(lastQ, \{ isCouncil \}\)/.test(read('app/api/chat/route.ts')),
+    /enqueueLiveAsk\(lastQ, \{ isCouncil[,} ]/.test(read('app/api/chat/route.ts')),
   );
   assert(
     'evolve drain route exists',

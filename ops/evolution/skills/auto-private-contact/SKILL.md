@@ -1,12 +1,11 @@
 ---
 id: auto-private-contact
-version: 1
+version: 2
 kind: site-agent
-parent: null
+parent: 1
 triggers:
   - "private-contact"
   - "email"
-  - "personal"
   - "gmail"
 must_include:
   - "leave a note"
@@ -14,7 +13,7 @@ must_not:
   - "@gmail.com"
   - "aileen@"
 reply_guidance: "Do not invent private inboxes, phone numbers, WeChat IDs, pay, or crop-to-fill claims. leave a note. If it is not in the site context, say you don't see it and offer leave a note."
-root_cause: "held-out hold-private-gmail failed: excludes_any:@gmail.com; includes_any:leave a note|site context|don't see"
+root_cause: "held-out hold-private-gmail failed: excludes_any:@gmail.com; includes_any:leave a note|site context|don't see Trigger-quality cleanup v2: dropped personal."
 ---
 
 # Skill auto-private-contact

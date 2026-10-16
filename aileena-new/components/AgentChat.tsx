@@ -52,6 +52,14 @@ import {
   sendEngageEvent,
 } from '../lib/agentEngage/clientContext';
 
+function newClientId(prefix: string): string {
+  const raw =
+    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID().replace(/-/g, '')
+      : `${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+  return `${prefix}${raw.slice(0, 24)}`;
+}
+
 /** Voice-mode starter (text starters come from lib/agentEngage/opening.ts). */
 const VOICE_STARTER = 'Voice → code: sketch a small patch for the Console footer';
 
@@ -233,6 +241,11 @@ export default function AgentChat() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const welcomedRef = useRef(false);
   const sessionProviderRef = useRef<string | undefined>(undefined);
+  // Server turn ledger: one id per frozen root, one id per visitor turn (retries reuse it).
+  const rootIdRef = useRef<string | undefined>(undefined);
+  const turnSeqRef = useRef(0);
+  // Signed summary from a 409 compaction; seeds the next root (server verifies it).
+  const summaryTokenRef = useRef<string | undefined>(undefined);
   const rootVoiceAccentRef = useRef<ReturnType<typeof readStoredVoiceAccent> | null | undefined>(
     undefined,
   );
@@ -264,7 +277,11 @@ export default function AgentChat() {
         }
         const freeze = rootVoiceAccentRef.current;
         const live = voiceModeRef.current ? readStoredVoiceAccent() : freeze;
+        rootIdRef.current ??= newClientId('r');
         return {
+          sessionId: rootIdRef.current,
+          turnId: `${rootIdRef.current}-${turnSeqRef.current}`,
+          ...(summaryTokenRef.current ? { summaryToken: summaryTokenRef.current } : {}),
           priorTopics: readTopicMemory().topics,
           agentMode: 'public' as const,
           voiceAccent: live ?? undefined,
@@ -280,6 +297,12 @@ export default function AgentChat() {
           const text = await res.clone().text().catch(() => '');
           const parsed = parseNewRootError(text);
           const reason = res.headers.get('X-New-Root') || parsed?.reason;
+          try {
+            const j = JSON.parse(text) as { summaryToken?: unknown };
+            if (typeof j.summaryToken === 'string') summaryTokenRef.current = j.summaryToken;
+          } catch {
+            /* not JSON */
+          }
           if (parsed || reason) {
             pendingNewRootRef.current = {
               message: parsed?.message || pingForNewRootReason(reason, COMPACTION_PING),
@@ -783,6 +806,8 @@ export default function AgentChat() {
     welcomedRef.current = false;
     lastForwardedHashRef.current = '';
     sessionProviderRef.current = undefined;
+    rootIdRef.current = undefined;
+    summaryTokenRef.current = undefined;
     rootVoiceAccentRef.current = undefined;
     setDrawById({});
     lastAskedRef.current = '';
@@ -822,6 +847,8 @@ export default function AgentChat() {
     welcomedRef.current = false;
     lastForwardedHashRef.current = '';
     sessionProviderRef.current = undefined;
+    rootIdRef.current = undefined;
+    summaryTokenRef.current = undefined;
     rootVoiceAccentRef.current = undefined;
     setDrawById({});
     lastAskedRef.current = '';
@@ -850,6 +877,7 @@ export default function AgentChat() {
       setBrowserBusy(false);
 
       sessionProviderRef.current = undefined;
+      rootIdRef.current = undefined;
       rootVoiceAccentRef.current = undefined;
       lastAskedRef.current = '';
       setDrawById({});
@@ -1400,6 +1428,7 @@ export default function AgentChat() {
     }
 
     setInput('');
+    turnSeqRef.current += 1;
     if (!isOwner || sharedRoom) sendEngageEvent('first_message', { topic: opening?.topic });
 
     // Record what the visitor asked about for cross-session memory. Done

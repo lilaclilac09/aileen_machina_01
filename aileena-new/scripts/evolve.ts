@@ -118,7 +118,7 @@ async function main() {
     }
     const rolled = rollbackSkill(id, to, root);
     codegenActiveSkills(loadProductionSkills(root));
-    console.log(`rolled back ${rolled.id} to v${rolled.version}`);
+    console.log(rolled ? `rolled back ${rolled.id} to v${rolled.version}` : `removed ${id} (reverted its first promotion)`);
     return;
   }
 

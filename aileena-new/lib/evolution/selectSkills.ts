@@ -31,7 +31,34 @@ export const TRIGGER_NOISE = new Set([
   'articles',
   'available',
   'phone',
+  'contract',
+  '工作',
 ]);
+
+/**
+ * Trigger-quality gate (shared by runtime matching, synthesis and the ratchet).
+ * CJK triggers of 2 characters or fewer fire on unrelated questions (工作 in
+ * "她现在的工作是什么？" is a CV question, not a hire request), so CJK phrasing
+ * reaches skills through the reviewed QUESTION_ALIASES map instead.
+ */
+export function triggerQualityIssue(trigger: string): string | null {
+  const t = trigger.toLowerCase().trim();
+  if (!t) return 'empty';
+  if (TRIGGER_NOISE.has(t)) return 'noise';
+  const cjk = /[\u4e00-\u9fff]/.test(t);
+  if (cjk && Array.from(t.replace(/\s+/g, '')).length <= 2) return 'cjk_too_short';
+  if (!cjk && t.length < 4) return 'too_short';
+  return null;
+}
+
+export function cleanTriggers(triggers: string[]): string[] {
+  const out: string[] = [];
+  for (const t of triggers) {
+    const v = t.trim();
+    if (!triggerQualityIssue(v) && !out.some((o) => o.toLowerCase() === v.toLowerCase())) out.push(v);
+  }
+  return out;
+}
 
 /** How-to Voice (not Voice → code). Shared by chat aliases, inbox classify, naive solver. */
 export const VOICE_HOWTO_RE =
@@ -39,8 +66,7 @@ export const VOICE_HOWTO_RE =
 
 export function triggerMatches(haystack: string, trigger: string): boolean {
   const t = trigger.toLowerCase().trim();
-  if (!t || TRIGGER_NOISE.has(t)) return false;
-  if (t.length < 4 && !/[\u4e00-\u9fff]/.test(t)) return false;
+  if (triggerQualityIssue(t)) return false;
   if (/[\u4e00-\u9fff]/.test(t)) return haystack.includes(t);
   const escaped = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   return new RegExp(`(?:^|[^a-z0-9])${escaped}(?:$|[^a-z0-9])`).test(haystack);
@@ -50,10 +76,11 @@ export function triggerMatches(haystack: string, trigger: string): boolean {
 export const QUESTION_ALIASES: Array<[RegExp, string]> = [
   [/邮箱|邮件/, ' email gmail'],
   [/微信|微信号/, ' wechat'],
-  [/电话|手机号/, ' phone'],
+  [/电话|手机号/, ' phone number'],
+  [/联系/, ' contact'],
   [/工资|薪资|年薪|薪水|多少钱/, ' salary compensation'],
   [/裁切|封面裁|玻璃台/, ' crop visual'],
-  [/更新了吗|有什么新|最近更新|新文章/, " what's new latest content"],
+  [/更新了吗|有什么新|最近更新|新文章|有更新/, " what's new latest content"],
   [/你就是|你是不是她|你是她/, ' are you aileen'],
   [/合作|招人|招聘|兼职|外包/, ' hire collaborate'],
   [/\binbox\b/, ' email gmail'],

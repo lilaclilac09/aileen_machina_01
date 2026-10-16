@@ -15,6 +15,7 @@ type Sku = {
   memGB?: number;
   memBandwidthGBps?: number;
   tdpW?: number;
+  [key: string]: unknown;
 };
 
 const SKUS = skusRaw as Sku[];
@@ -148,6 +149,29 @@ export function catalogueCorrection(sentence: string, f: Figure): string | null 
   return null;
 }
 
+/** Catalogue values of one kind for a SKU, in base units (GB, GB/s, W, TFLOPS). */
+function catalogueValues(s: Sku, kind: UnitKind): number[] {
+  if (kind === 'mem') return typeof s.memGB === 'number' ? [s.memGB] : [];
+  if (kind === 'bw') return typeof s.memBandwidthGBps === 'number' ? [s.memBandwidthGBps] : [];
+  if (kind === 'power') return typeof s.tdpW === 'number' ? [s.tdpW] : [];
+  if (kind === 'compute') {
+    return Object.entries(s)
+      .filter(([k, v]) => /tflops|tops/i.test(k) && typeof v === 'number')
+      .map(([, v]) => v as number);
+  }
+  return [];
+}
+
+/**
+ * A figure is also grounded when it matches the catalogue (data/skus.json) for
+ * a SKU named in the same sentence, e.g. a comparison line that cites the H100
+ * while only the H200 was looked up. This is still "numbers from data".
+ */
+export function catalogueSupports(sentence: string, f: Figure): boolean {
+  const skus = [...new Set(ALIAS_INDEX.filter((a) => a.alias.test(sentence)).map((a) => a.sku))];
+  return skus.some((s) => catalogueValues(s, f.kind).some((v) => Math.abs(v - f.base) <= Math.max(0.02 * v, 0.01)));
+}
+
 export type GroundingResult = {
   text: string;
   corrected: Array<{ from: string; to: string }>;
@@ -163,6 +187,7 @@ export function groundSentence(sentence: string, corpus: GroundingCorpus): Groun
   // Right-to-left so earlier indexes stay valid while we splice.
   for (const f of [...figures].reverse()) {
     if (corpus.has(f)) continue;
+    if (catalogueSupports(sentence, f)) continue;
     const fix = catalogueCorrection(sentence, f);
     if (!fix) return { text: '', corrected, dropped: true };
     text = text.slice(0, f.index) + text.slice(f.index).replace(f.raw, fix);

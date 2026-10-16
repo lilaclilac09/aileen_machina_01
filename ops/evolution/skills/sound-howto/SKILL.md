@@ -1,17 +1,16 @@
 ---
 id: sound-howto
-version: 1
+version: 2
 kind: site-agent
-parent: null
+parent: 1
 triggers:
-  - dj mixer
-  - /sound
-  - 混音
+  - "dj mixer"
+  - "/sound"
 must_include:
-  - /sound
-must_not: []
-reply_guidance: The DJ mixer lives on /sound. Open that door. It is a real mixer, not a fake knob.
-root_cause: Visitors asked how to use the DJ mixer and the unknown pack said it was missing.
+  - "/sound"
+must_not:[]
+reply_guidance: "The DJ mixer lives on /sound. Open that door. It is a real mixer, not a fake knob."
+root_cause: "Visitors asked how to use the DJ mixer and the unknown pack said it was missing. Trigger-quality cleanup v2: dropped 混音."
 ---
 
 # Skill: sound-howto

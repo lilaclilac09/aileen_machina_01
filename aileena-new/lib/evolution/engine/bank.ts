@@ -102,3 +102,18 @@ export function appendLedger(entry: LedgerEntry, root?: string) {
   prev.push(entry);
   writeFileSync(p.ledger, JSON.stringify(prev, null, 2) + '\n');
 }
+
+/** Store the exact SKILL.md of one version so a later promotion can be reverted. */
+export function snapshotSkill(skill: SkillPatch, root?: string): string {
+  const dir = join(evolutionPaths(root).history, skill.id);
+  mkdirSync(dir, { recursive: true });
+  const file = join(dir, `v${skill.version}.md`);
+  if (!existsSync(file)) writeFileSync(file, serializeSkillMarkdown(skill));
+  return file;
+}
+
+export function loadSkillSnapshot(skillId: string, version: number, root?: string): SkillPatch | null {
+  const file = join(evolutionPaths(root).history, skillId, `v${version}.md`);
+  if (!existsSync(file)) return null;
+  return parseSkillMarkdown(readFileSync(file, 'utf8'));
+}

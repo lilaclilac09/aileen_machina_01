@@ -182,6 +182,18 @@ check('3: prompt forbids naming internal paths', /Never name internal file paths
   const corpus = new GroundingCorpus();
   corpus.addText('memory: 80 GB');
   check('c: unit kind matters (80 GB does not ground 80 W)', groundSentence('It draws 80W.', corpus).dropped === true);
+  {
+    // Live finding 2026-10-16: an H200 answer that compared against the H100 lost its
+    // whole line because the H100 figures were not in this turn's tool output.
+    const h200Only = new GroundingCorpus();
+    h200Only.addToolOutput({ found: true, chip: { sku: 'NVIDIA H200 SXM 141GB', memGB: 141, memBandwidthGBps: 4800 } });
+    const cmp = groundSentence("The H200 has 141 GB of HBM3e at 4.8 TB/s, up from the H100's 80 GB at 3.35 TB/s.", h200Only);
+    check('c: catalogue grounds a named SKU in a comparison line', !cmp.dropped && cmp.corrected.length === 0, JSON.stringify(cmp));
+    const wrong = groundSentence('The H100 has 96 GB of memory.', new GroundingCorpus());
+    check('c: catalogue still corrects a wrong figure for a named SKU', wrong.text.includes('80 GB'), JSON.stringify(wrong));
+    const unnamed = groundSentence('That card has 96 GB of memory.', new GroundingCorpus());
+    check('c: no SKU named, unknown figure → dropped', unnamed.dropped === true);
+  }
   check('c: council is not grounded (owner drafts carry their own numbers)', (() => {
     const c = new TurnGuard({ mode: 'council', isOwner: true, lastQuestion: 'x' });
     c.setSystem('');
