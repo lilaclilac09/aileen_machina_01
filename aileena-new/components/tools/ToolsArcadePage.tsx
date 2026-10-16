@@ -190,6 +190,51 @@ function LabCard({
   const statusLabel = copy?.statusLabel ?? tool.status;
   const external = /^https?:\/\//i.test(tool.href);
   const host = hostLabel(tool.href);
+  const openHref = tool.liveUrl && !external ? tool.href : tool.href;
+  const primaryLabel = external
+    ? tool.href.includes('github.com')
+      ? (context?.repo ?? 'Repo')
+      : openLabel
+    : openLabel;
+  const primarySuffix = external || (tool.liveUrl?.startsWith('http') ?? false) ? '↗' : '→';
+
+  const ctaRow = tool.demoVideo ? (
+    <span className="tools-lab-cta-row">
+      <a
+        href={openHref}
+        className="tools-lab-cta"
+        {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+        data-testid={`tools-open-${tool.slug}`}
+      >
+        {primaryLabel} {primarySuffix}
+      </a>
+      <span aria-hidden> · </span>
+      <a
+        href={tool.demoVideo}
+        className="tools-lab-cta"
+        target="_blank"
+        rel="noopener noreferrer"
+        data-testid={`tools-demo-${tool.slug}`}
+      >
+        {context?.watchDemo ?? 'Watch demo'} ▶
+      </a>
+      {tool.liveUrl && tool.liveUrl !== tool.href ? (
+        <>
+          <span aria-hidden> · </span>
+          <a
+            href={tool.liveUrl}
+            className="tools-lab-cta"
+            {...(tool.liveUrl.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+            data-testid={`tools-live-${tool.slug}`}
+          >
+            {context?.tryIt ?? 'Try it'} ↗
+          </a>
+        </>
+      ) : null}
+    </span>
+  ) : paused ? null : (
+    <span className="tools-lab-cta">{external ? `${openLabel} ↗` : `${openLabel} →`}</span>
+  );
 
   const inner = (
     <article
@@ -205,38 +250,7 @@ function LabCard({
         <p className="tools-lab-card-kicker">
           {statusLabel} · {tag}
         </p>
-        {paused ? null : tool.demoVideo ? (
-          <span className="tools-lab-cta-row">
-            <a href={tool.href} className="tools-lab-cta" target="_blank" rel="noopener noreferrer">
-              {context?.repo ?? 'Repo'} ↗
-            </a>
-            <span aria-hidden> · </span>
-            <a
-              href={tool.demoVideo}
-              className="tools-lab-cta"
-              target="_blank"
-              rel="noopener noreferrer"
-              data-testid={`tools-demo-${tool.slug}`}
-            >
-              {context?.watchDemo ?? 'Watch demo'} ▶
-            </a>
-            {tool.liveUrl ? (
-              <>
-                <span aria-hidden> · </span>
-                <a
-                  href={tool.liveUrl}
-                  className="tools-lab-cta"
-                  {...(tool.liveUrl.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                  data-testid={`tools-live-${tool.slug}`}
-                >
-                  {context?.tryIt ?? 'Try it'} ↗
-                </a>
-              </>
-            ) : null}
-          </span>
-        ) : (
-          <span className="tools-lab-cta">{external ? `${openLabel} ↗` : `${openLabel} →`}</span>
-        )}
+        {ctaRow}
       </div>
       <p className="tools-lab-card-detail">
         {why} {verdict}
@@ -244,44 +258,53 @@ function LabCard({
     </article>
   );
 
-  if (paused) {
+  const contextBlock =
+    context && context.why.length > 0 ? (
+      <div className="tools-lab-context" data-testid={`tools-context-${tool.slug}`}>
+        <h3>{context.whyHeading}</h3>
+        <ul>
+          {context.why.map((line) => (
+            <li key={line}>{line}</li>
+          ))}
+        </ul>
+        <h3>{context.howHeading}</h3>
+        <ol>
+          {context.how.map((line) => (
+            <li key={line}>{line}</li>
+          ))}
+        </ol>
+        <p className="tools-lab-context-sources">
+          {context.sources.map((src, i) => (
+            <span key={src.href}>
+              {i ? ' · ' : ''}
+              <a href={src.href} target="_blank" rel="noopener noreferrer">
+                {src.label}
+              </a>
+            </span>
+          ))}
+        </p>
+      </div>
+    ) : null;
+
+  // Demo CTAs need their own anchors — do not wrap the whole card.
+  if (tool.demoVideo) {
     return (
-      <div className="tools-lab-wrap tools-lab-wrap--paused" data-testid={`tools-card-${tool.slug}`}>
+      <div
+        className={`tools-lab-wrap${featured ? ' tools-lab-wrap--featured' : ''}${
+          paused ? ' tools-lab-wrap--paused' : ''
+        }`}
+        data-testid={`tools-card-${tool.slug}`}
+      >
         {inner}
+        {contextBlock}
       </div>
     );
   }
 
-  if (external && tool.demoVideo) {
+  if (paused) {
     return (
-      <div className={`tools-lab-wrap${featured ? ' tools-lab-wrap--featured' : ''}`} data-testid={`tools-card-${tool.slug}`}>
+      <div className="tools-lab-wrap tools-lab-wrap--paused" data-testid={`tools-card-${tool.slug}`}>
         {inner}
-        {context ? (
-          <div className="tools-lab-context" data-testid={`tools-context-${tool.slug}`}>
-            <h3>{context.whyHeading}</h3>
-            <ul>
-              {context.why.map((line) => (
-                <li key={line}>{line}</li>
-              ))}
-            </ul>
-            <h3>{context.howHeading}</h3>
-            <ol>
-              {context.how.map((line) => (
-                <li key={line}>{line}</li>
-              ))}
-            </ol>
-            <p className="tools-lab-context-sources">
-              {context.sources.map((src, i) => (
-                <span key={src.href}>
-                  {i ? ' · ' : ''}
-                  <a href={src.href} target="_blank" rel="noopener noreferrer">
-                    {src.label}
-                  </a>
-                </span>
-              ))}
-            </p>
-          </div>
-        ) : null}
       </div>
     );
   }
@@ -336,7 +359,20 @@ export default function ToolsArcadePage() {
               copy={tx.items[tool.slug as keyof typeof tx.items]}
               openLabel={tx.openTool}
               featured={tool.tier === 'featured'}
-              context={tool.slug === 'tamper-check' ? tx.tamperCheckContext : undefined}
+              context={
+                tool.slug === 'tamper-check'
+                  ? tx.tamperCheckContext
+                  : {
+                      repo: tx.repo,
+                      watchDemo: tx.watchDemo,
+                      tryIt: tx.tryIt,
+                      whyHeading: '',
+                      why: [],
+                      howHeading: '',
+                      how: [],
+                      sources: [],
+                    }
+              }
             />
           ))}
           {paused.map((tool) => (
@@ -345,6 +381,16 @@ export default function ToolsArcadePage() {
               tool={tool}
               copy={tx.items[tool.slug as keyof typeof tx.items]}
               openLabel={tx.openTool}
+              context={{
+                repo: tx.repo,
+                watchDemo: tx.watchDemo,
+                tryIt: tx.tryIt,
+                whyHeading: '',
+                why: [],
+                howHeading: '',
+                how: [],
+                sources: [],
+              }}
             />
           ))}
         </div>

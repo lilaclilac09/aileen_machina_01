@@ -57,6 +57,9 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     why: 'The room needed a redeem path that was not a spreadsheet.',
     verdict: 'Actually useful when the room is real.',
     href: CAFE_CURSOR_URL,
+    demoVideo: '/demos/cafe-cursor.mp4',
+    demoPoster: '/demos/cafe-cursor-poster.jpg',
+    liveUrl: 'https://cursor-cafe.aileena.xyz/',
     status: 'useful',
     tier: 'featured',
     arcade: {
@@ -72,6 +75,8 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     why: 'Needed a cut without paying a listening API.',
     verdict: 'Small, ugly, useful.',
     href: '/tools/inkling-clips',
+    demoVideo: '/demos/inkling-clips.mp4',
+    liveUrl: '/tools/inkling-clips',
     status: 'useful',
     tier: 'utility',
     arcade: {
@@ -87,6 +92,8 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     why: 'A receipt from trying to edit an IRL night without opening CapCut first.',
     verdict: 'Not better than CapCut yet. Kept as an experiment.',
     href: '/tools/cafe-recap',
+    demoVideo: '/demos/cafe-recap.mp4',
+    liveUrl: '/tools/cafe-recap',
     status: 'experiment',
     tier: 'experiment',
     arcade: {
@@ -102,6 +109,8 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     why: 'Omniverse DSX is too heavy for a personal page; this keeps the twin idea visible in-browser.',
     verdict: 'Experiment. 800VDC, VR NVL72 and flaw toggles, no fake Omniverse stream.',
     href: '/tools/ai-factory-sim',
+    demoVideo: '/demos/ai-factory-sim.mp4',
+    liveUrl: '/tools/ai-factory-sim',
     status: 'experiment',
     tier: 'experiment',
     arcade: {
@@ -117,6 +126,8 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     why: 'Jev judges. The code decides the action. No audio, no stored transcript.',
     verdict: 'Experiment. The tools page is an English demo. Live judgments still need a server-side TypeSafe key.',
     href: '/tools/intent',
+    demoVideo: '/demos/intent.mp4',
+    liveUrl: '/tools/intent',
     status: 'experiment',
     tier: 'experiment',
     arcade: {
@@ -132,6 +143,8 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     why: 'The console already had the shelf. The tools hub had no door for it.',
     verdict: 'Psychoeducation. One school, one title. Maps are not a license.',
     href: '/tools/machina-college',
+    demoVideo: '/demos/machina-college.mp4',
+    liveUrl: '/tools/machina-college',
     status: 'useful',
     tier: 'utility',
     arcade: {
@@ -147,6 +160,8 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     why: 'One local door for a person or a small team, without sharing console keys.',
     verdict: 'Runs on your machine. This page does not host the gateway.',
     href: '/tools/agent-gateway',
+    demoVideo: '/demos/agent-gateway.mp4',
+    liveUrl: '/tools/agent-gateway',
     status: 'useful',
     tier: 'utility',
     arcade: {
@@ -162,6 +177,8 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     why: 'Heavy work was growing a window next to Console. The dialog already had a mouth.',
     verdict: 'Experiment. Local shim. Not Cloudflare Computer. Merge stays blocked.',
     href: '/tools/computer',
+    demoVideo: '/demos/computer.mp4',
+    liveUrl: '/tools/computer',
     status: 'experiment',
     tier: 'experiment',
     arcade: {
@@ -177,6 +194,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     why: 'Wanted a thin RSS surface on the same stack.',
     verdict: 'Paused. Not a product yet.',
     href: '/tools/feed-flash',
+    demoVideo: '/demos/feed-flash.mp4',
     status: 'paused',
     tier: 'paused',
     arcade: {
@@ -192,6 +210,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     why: 'A desk toy against the chip catalogue.',
     verdict: 'Paused. Not a product yet.',
     href: '/tools/chip-guess',
+    demoVideo: '/demos/chip-guess.mp4',
     status: 'paused',
     tier: 'paused',
     arcade: {
