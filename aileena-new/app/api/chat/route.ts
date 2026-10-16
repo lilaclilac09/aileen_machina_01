@@ -1,4 +1,15 @@
-import { streamText, convertToModelMessages, tool, stepCountIs, type UIMessage, type ModelMessage } from 'ai';
+import {
+  streamText,
+  convertToModelMessages,
+  tool,
+  stepCountIs,
+  createUIMessageStream,
+  createUIMessageStreamResponse,
+  type UIMessage,
+  type ModelMessage,
+  type TextStreamPart,
+  type ToolSet,
+} from 'ai';
 import { z } from 'zod';
 import { SYSTEM_PROMPT } from '../../../lib/agentContext';
 import { buildMachinaSystemPrompt } from '../../../lib/aileenaSecondBrain';
@@ -44,7 +55,7 @@ import {
   MODEL_TOTAL_BUDGET_MS,
 } from '../../../lib/modelRouter';
 import { breakerFailure, breakerGate, breakerSuccess, isCancellation } from '../../../lib/agentRuntime/breaker';
-import { readGpuConfig, markGpuWarm, markGpuCold } from '../../../lib/agentRuntime/gpu';
+import { readGpuConfig, markGpuWarm, markGpuCold, readGpuState } from '../../../lib/agentRuntime/gpu';
 import { chooseProvider, estimateTokens, peekFirstToken } from '../../../lib/agentRuntime/router';
 import { addSpend, estimateTurnMicroUsd, noteTtft, noteTurnDone, noteTurnStart, recordRouterTurn } from '../../../lib/agentRuntime/load';
 import { commitTurn, findCommittedTurn, readLedger, rebuildTranscript, validLedgerId } from '../../../lib/agentRuntime/ledger';
@@ -126,6 +137,50 @@ function lastUserQuery(messages: UIMessage[]): string {
     if (t) return t;
   }
   return '';
+}
+
+/** A one-message UI stream carrying fixed copy (empty-answer degrade). */
+function degradeTextResponse(text: string): Response {
+  return createUIMessageStreamResponse({
+    stream: createUIMessageStream({
+      execute: ({ writer }) => {
+        writer.write({ type: 'start' });
+        writer.write({ type: 'text-start', id: 'degrade' });
+        writer.write({ type: 'text-delta', id: 'degrade', delta: text });
+        writer.write({ type: 'text-end', id: 'degrade' });
+        writer.write({ type: 'finish' });
+      },
+    }),
+  });
+}
+
+/**
+ * Pass an SSE UI stream through; if it throws (upstream socket reset), append
+ * an error part with `onThrow`'s copy and close cleanly. `null` = rethrow-free
+ * close without a message (client cancelled).
+ */
+function endWithDegradeOnThrow(body: ReadableStream<Uint8Array>, onThrow: (err: unknown) => string | null): ReadableStream<Uint8Array> {
+  const reader = body.getReader();
+  const enc = new TextEncoder();
+  return new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      try {
+        const { value, done } = await reader.read();
+        if (done) controller.close();
+        else controller.enqueue(value);
+      } catch (err) {
+        const text = onThrow(err);
+        if (text) {
+          controller.enqueue(enc.encode(`data: ${JSON.stringify({ type: 'error', errorText: text })}\n\n`));
+          controller.enqueue(enc.encode('data: [DONE]\n\n'));
+        }
+        controller.close();
+      }
+    },
+    cancel(reason) {
+      return reader.cancel(reason);
+    },
+  });
 }
 
 export async function POST(req: Request) {
@@ -724,6 +779,20 @@ ${memoryPrefetch
         provider: pick.provider,
         budgetMs: MODEL_TOTAL_BUDGET_MS,
       });
+      // Visible output seen on this attempt (after the output guard). A turn
+      // that finishes without any is not committed or charged, and is retried.
+      let hasContent = false;
+      const contentTap = <TOOLS extends ToolSet>() =>
+        new TransformStream<TextStreamPart<TOOLS>, TextStreamPart<TOOLS>>({
+          transform(part, controller) {
+            if (!hasContent) {
+              if (part.type === 'text-delta' ? part.text.trim().length > 0 : part.type === 'tool-call' || part.type === 'tool-input-start') {
+                hasContent = true;
+              }
+            }
+            controller.enqueue(part);
+          },
+        });
       let turnSettled = false;
       const turnEvent = (extra: Record<string, unknown>) => {
         if (turnSettled || abandoned) return;
@@ -784,7 +853,7 @@ ${memoryPrefetch
           turnEvent({ stopReason: 'cancelled', finishReason: 'abort', committed: false, steps: steps?.length ?? 0 });
         },
         // (b)(c) Output guard + number grounding, sentence-buffered on the stream.
-        experimental_transform: guard.transform(),
+        experimental_transform: [guard.transform(), contentTap],
         onFinish: async ({ finishReason, steps, text, totalUsage }) => {
           if (abandoned) return;
           trace.endSpan(modelSpan, true, {
@@ -793,8 +862,10 @@ ${memoryPrefetch
           });
           void breakerSuccess(pick.provider).catch(() => {});
           if (pick.tier === 'gpu') void markGpuWarm().catch(() => {});
-          // P1.3: commit + charge only when the model actually finished.
-          const committed = finishReason === 'stop' || finishReason === 'length';
+          // P1.3: commit + charge only when the model actually finished with output.
+          const empty = !hasContent;
+          if (empty) trace.log('empty_answer', { provider: pick.provider, finishReason, steps: steps?.length ?? 0 });
+          const committed = !empty && (finishReason === 'stop' || finishReason === 'length');
           if (committed) {
             try {
               if (redisQuotaKey) await chargeRedisQuota(redisQuotaKey);
@@ -847,7 +918,7 @@ ${memoryPrefetch
           });
           trace.log('guard', guard.summary());
           turnEvent({
-            stopReason: audit.stopReasonPrimary,
+            stopReason: empty ? 'empty' : audit.stopReasonPrimary,
             finishReason,
             committed,
             steps: steps?.length ?? 0,
@@ -856,10 +927,11 @@ ${memoryPrefetch
           });
         },
       });
-      const abandon = () => {
+      const abandon = (reason = 'gpu_failover') => {
+        if (abandoned) return;
         abandoned = true;
-        trace.endSpan(modelSpan, false, { reason: 'gpu_failover' });
-        attemptCtl.abort(new Error('gpu_failover'));
+        trace.endSpan(modelSpan, false, { reason });
+        attemptCtl.abort(new Error(reason));
       };
       return { result, modelSpan, turnEvent, abandon };
     };
@@ -867,45 +939,89 @@ ${memoryPrefetch
     let failoverFrom: string | null = null;
     let att = startAttempt(picked, probe, frozenSystem, turnPrefixHash);
 
-    // GPU tier: switch providers only before the first token. A GPU that
-    // errors or stays silent past AGENT_GPU_TTFT_MS is a breaker failure and
-    // the turn restarts on DeepSeek (or the fallback); the visitor never waits
-    // on a cold GPU because the router only picks a WARM one.
-    if (picked.tier === 'gpu' && gpuCfg) {
-      const first = await peekFirstToken(att.result.fullStream, gpuCfg.ttftMs);
-      if (!first.ok && !req.signal?.aborted) {
-        const failedProvider = picked.provider;
-        att.abandon();
-        void breakerFailure(failedProvider).catch(() => {});
-        void markGpuCold().catch(() => {});
-        trace.log('gpu_failover', { provider: failedProvider, reason: first.reason });
-        const primaryPick = buildPrimary();
-        const primaryGate = primaryPick ? await breakerGate(primaryPick.provider) : null;
-        const fbGate = !primaryGate?.allowed && fallbackPick ? await breakerGate(fallbackPick.provider) : null;
-        const next = primaryPick && primaryGate?.allowed ? { pick: primaryPick, probe: primaryGate.probe } : fallbackPick && fbGate?.allowed ? { pick: fallbackPick, probe: fbGate.probe } : null;
-        if (!next) {
-          return jsonError(degradeMessage('circuit_open', lastQ), 503, trace.traceId, {
-            'X-Degrade-Reason': 'circuit_open',
-            'X-Tool-Route': toolRoute.route,
-            'X-Agent-Mode': agentMode,
-          });
+    // Before any byte reaches the client:
+    // - GPU tier: a GPU that errors or stays silent past AGENT_GPU_TTFT_MS is a
+    //   breaker failure and the turn restarts on DeepSeek (or the fallback); the
+    //   visitor never waits on a cold GPU because the router only picks a WARM one.
+    // - Any provider: a turn that finishes with no visible output (no text, no
+    //   tool call) is retried once on the same provider, then once on the next
+    //   provider the routing allows; still empty -> the degrade copy, not an
+    //   empty bubble. Empty attempts are never committed or charged.
+    const switchTo = async (next: { pick: ModelPick; probe: boolean }, from: string, rule: string) => {
+      failoverFrom = from;
+      routeRule = rule;
+      picked = next.pick;
+      probe = next.probe;
+      frozenSystem = frozenFor(picked);
+      guard.setSystem(frozenSystem);
+      turnPrefixHash = await prefixHash(frozenSystem, withMcp);
+      att = startAttempt(picked, probe, frozenSystem, turnPrefixHash);
+    };
+    const gated = async (pick: ModelPick | null) => {
+      if (!pick) return null;
+      const gate = await breakerGate(pick.provider);
+      return gate.allowed ? { pick, probe: gate.probe } : null;
+    };
+    let emptyTries = 0;
+    let emptyAnswer = false;
+    for (;;) {
+      const peek = await peekFirstToken(att.result.fullStream, picked.tier === 'gpu' && gpuCfg ? gpuCfg.ttftMs : 0, {
+        requireContent: true,
+      });
+      if (peek.ok || req.signal?.aborted) break;
+      if (peek.reason === 'empty') {
+        att.abandon('empty_answer');
+        emptyTries += 1;
+        trace.log('empty_retry', { provider: picked.provider, attempt: emptyTries });
+        if (emptyTries === 1) {
+          att = startAttempt(picked, false, frozenSystem, turnPrefixHash);
+          continue;
         }
-        // A root already locked to the GPU cannot silently change speaker.
-        if (needsNewRootForProvider(sessionProvider, next.pick.provider)) {
-          return jsonError(MODEL_SWAP_PING, 409, trace.traceId, { 'X-New-Root': 'model_swap' }, {
-            code: 'new_root',
-            reason: 'model_swap',
-          });
+        if (emptyTries === 2) {
+          const gpuOk =
+            !!gpuCfg &&
+            gpuPick !== null &&
+            picked.tier !== 'gpu' &&
+            (gpuCfg.mode === 'public' ? gpuCfg.failover : Boolean(owner)) &&
+            (await readGpuState()).state === 'WARM';
+          const candidates = picked.tier === 'gpu' ? [buildPrimary(), fallbackPick] : [fallbackPick, gpuOk ? gpuPick : null];
+          let next: { pick: ModelPick; probe: boolean } | null = null;
+          for (const c of candidates) {
+            if (!c || c.provider === picked.provider || needsNewRootForProvider(sessionProvider, c.provider)) continue;
+            next = await gated(c);
+            if (next) break;
+          }
+          if (next) {
+            await switchTo(next, picked.provider, 'empty_retry');
+            continue;
+          }
         }
-        failoverFrom = failedProvider;
-        routeRule = 'gpu_failover';
-        picked = next.pick;
-        probe = next.probe;
-        frozenSystem = frozenFor(picked);
-        guard.setSystem(frozenSystem);
-        turnPrefixHash = await prefixHash(frozenSystem, withMcp);
-        att = startAttempt(picked, probe, frozenSystem, turnPrefixHash);
+        emptyAnswer = true;
+        break;
       }
+      // Errors on DeepSeek / the fallback stream through onError as before.
+      if (picked.tier !== 'gpu') break;
+      const failedProvider = picked.provider;
+      att.abandon();
+      void breakerFailure(failedProvider).catch(() => {});
+      void markGpuCold().catch(() => {});
+      trace.log('gpu_failover', { provider: failedProvider, reason: peek.reason });
+      const next = (await gated(buildPrimary())) ?? (await gated(fallbackPick));
+      if (!next) {
+        return jsonError(degradeMessage('circuit_open', lastQ), 503, trace.traceId, {
+          'X-Degrade-Reason': 'circuit_open',
+          'X-Tool-Route': toolRoute.route,
+          'X-Agent-Mode': agentMode,
+        });
+      }
+      // A root already locked to the GPU cannot silently change speaker.
+      if (needsNewRootForProvider(sessionProvider, next.pick.provider)) {
+        return jsonError(MODEL_SWAP_PING, 409, trace.traceId, { 'X-New-Root': 'model_swap' }, {
+          code: 'new_root',
+          reason: 'model_swap',
+        });
+      }
+      await switchTo(next, failedProvider, 'gpu_failover');
     }
     const result = att.result;
 
@@ -918,7 +1034,9 @@ ${memoryPrefetch
     // Always refresh visitor cookie Max-Age so browser id tracks the 90d Redis TTL.
     const visitorCookie = await buildVisitorCookie(visitorId);
 
-    const stream = result.toUIMessageStreamResponse({
+    const stream = emptyAnswer
+      ? degradeTextResponse(degradeMessage('empty', lastQ))
+      : result.toUIMessageStreamResponse({
       onError: (err) => {
         const msg = err instanceof Error ? err.message : String(err);
         const classified = classifyModelError(err);
@@ -971,8 +1089,25 @@ ${memoryPrefetch
       headers.set('X-Model-Budget-Ms', String(MODEL_TOTAL_BUDGET_MS));
     }
 
+    if (emptyAnswer) headers.set('X-Degrade-Reason', 'empty_answer');
+
+    // A connection drop mid-answer makes the body stream throw instead of
+    // emitting an error part. End it with the same degrade copy onError uses;
+    // the turn never reached onFinish, so it is not committed or charged.
+    const body = stream.body
+      ? endWithDegradeOnThrow(stream.body, (err) => {
+          if (isCancellation(err, req.signal)) return null;
+          const classified = classifyModelError(err);
+          void breakerFailure(picked.provider).catch(() => {});
+          trace.endSpan(att.modelSpan, false, { error: (err instanceof Error ? err.message : String(err)).slice(0, 160), reason: 'stream_dropped' });
+          att.turnEvent({ stopReason: 'error', finishReason: 'error', committed: false, error: 'stream_dropped' });
+          console.error('[chat] stream dropped: provider=%s', picked.provider, { traceId: trace.traceId });
+          return degradeMessage(classified.reason, lastQ);
+        })
+      : null;
+
     console.log('[chat] POST: stream response initialized', { traceId: trace.traceId });
-    return new Response(stream.body, { status: stream.status, headers });
+    return new Response(body, { status: stream.status, headers });
   } catch (err) {
     if (!isCancellation(err, req.signal)) void breakerFailure(picked.provider).catch(() => {});
     const classified = classifyModelError(err);
