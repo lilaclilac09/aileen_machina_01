@@ -5,6 +5,7 @@
  * Client cancels are not failures (P1.4).
  */
 import { runtimeKv } from './kv';
+import { recordPerfEvent } from './perf';
 
 export const BREAKER_THRESHOLD = 3;
 export const BREAKER_COOLDOWN_MS = 60_000;
@@ -34,13 +35,27 @@ export async function breakerGate(provider: string, now = Date.now()): Promise<B
   if (now < s.openUntil) return { allowed: false, reason: 'open', retryInMs: s.openUntil - now };
   // Half-open: one probe at a time.
   const got = await runtimeKv().set(`${key(provider)}:probe`, String(now), { nx: true, ex: BREAKER_PROBE_LEASE_SEC });
-  if (got) return { allowed: true, probe: true };
+  if (got) {
+    void recordPerfEvent({ kind: 'breaker', provider, from: 'open', to: 'half-open' });
+    return { allowed: true, probe: true };
+  }
   return { allowed: false, reason: 'probe_in_flight', retryInMs: BREAKER_PROBE_LEASE_SEC * 1000 };
+}
+
+/** Read-only state for dashboards: never takes the half-open probe lease. */
+export async function breakerPeek(provider: string, now = Date.now()): Promise<'closed' | 'open' | 'half-open'> {
+  const s = await read(provider);
+  if (s.failures < BREAKER_THRESHOLD) return 'closed';
+  return now < s.openUntil ? 'open' : 'half-open';
 }
 
 export async function breakerSuccess(provider: string): Promise<void> {
   const kv = runtimeKv();
-  await kv.set(key(provider), JSON.stringify({ failures: 0, openUntil: 0 }), { ex: 3600 });
+  const s = await read(provider);
+  if (s.failures > 0) {
+    await kv.set(key(provider), JSON.stringify({ failures: 0, openUntil: 0 }), { ex: 3600 });
+    if (s.failures >= BREAKER_THRESHOLD) void recordPerfEvent({ kind: 'breaker', provider, from: 'half-open', to: 'closed' });
+  }
   await kv.del(`${key(provider)}:probe`);
 }
 
@@ -51,7 +66,10 @@ export async function breakerFailure(provider: string, now = Date.now()): Promis
   const next: State = { failures, openUntil: failures >= BREAKER_THRESHOLD ? now + BREAKER_COOLDOWN_MS : 0 };
   await kv.set(key(provider), JSON.stringify(next), { ex: 3600 });
   await kv.del(`${key(provider)}:probe`);
-  if (failures >= BREAKER_THRESHOLD) console.warn('[breaker] open', { provider, failures, openUntil: next.openUntil });
+  if (failures >= BREAKER_THRESHOLD) {
+    console.warn('[breaker] open', { provider, failures, openUntil: next.openUntil });
+    void recordPerfEvent({ kind: 'breaker', provider, from: s.failures >= BREAKER_THRESHOLD ? 'half-open' : 'closed', to: 'open' });
+  }
   return next;
 }
 

@@ -55,7 +55,9 @@ import {
   MODEL_TOTAL_BUDGET_MS,
 } from '../../../lib/modelRouter';
 import { breakerFailure, breakerGate, breakerSuccess, isCancellation } from '../../../lib/agentRuntime/breaker';
-import { readGpuConfig, markGpuWarm, markGpuCold, readGpuState } from '../../../lib/agentRuntime/gpu';
+import { readGpuConfig, markGpuWarm, markGpuCold, readGpuState, readGpuVariant } from '../../../lib/agentRuntime/gpu';
+import { newPerfId, perfLabel, recordPerfTurn, type PerfOutcome } from '../../../lib/agentRuntime/perf';
+import { estimateTurnCostUsd } from '../../../lib/agentRuntime/pricing';
 import { chooseProvider, estimateTokens, peekFirstToken } from '../../../lib/agentRuntime/router';
 import { addSpend, estimateTurnMicroUsd, noteTtft, noteTurnDone, noteTurnStart, recordRouterTurn } from '../../../lib/agentRuntime/load';
 import { commitTurn, findCommittedTurn, readLedger, rebuildTranscript, validLedgerId } from '../../../lib/agentRuntime/ledger';
@@ -183,8 +185,51 @@ function endWithDegradeOnThrow(body: ReadableStream<Uint8Array>, onThrow: (err: 
   });
 }
 
+/** A turn that got fixed degrade copy without a model answer (breaker open, all empty). */
+function perfDegradeTurn(o: {
+  at: number;
+  src: 'site' | 'bench';
+  run?: string;
+  provider: string;
+  tier: string;
+  model?: string;
+  rule: string;
+  toolRoute: string;
+  retries: number;
+  outcome?: PerfOutcome;
+}) {
+  const now = Date.now();
+  void recordPerfTurn({
+    v: 1,
+    id: newPerfId(),
+    at: o.at,
+    src: o.src,
+    run: o.run,
+    provider: o.provider,
+    tier: o.tier,
+    model: o.model,
+    rule: o.rule,
+    toolRoute: o.toolRoute,
+    ttftMs: null,
+    prepMs: now - o.at,
+    latencyMs: now - o.at,
+    modelMs: 0,
+    inTok: 0,
+    outTok: 0,
+    cacheHit: null,
+    cacheMiss: null,
+    costUsd: null,
+    steps: 0,
+    tools: 0,
+    finish: o.outcome ?? 'degrade',
+    outcome: o.outcome ?? 'degrade',
+    retries: o.retries,
+  });
+}
+
 export async function POST(req: Request) {
   const trace = createRequestTrace(req.headers.get('x-trace-id'));
+  const reqStartedAt = Date.now();
   trace.log('request_start');
 
   let body: {
@@ -227,6 +272,9 @@ export async function POST(req: Request) {
   // Agent callers (/api/mcp) are public visitors: no owner, no council, no side effects.
   const agentCaller = isAgentCaller(req);
   const owner = agentCaller ? null : await requireOwnerFromRequest(req);
+  // Owner bench runs (`pnpm bench:inference`) are tagged so the dashboard can separate them.
+  const perfSrc: 'site' | 'bench' = owner && req.headers.get('x-perf-source') === 'bench' ? 'bench' : 'site';
+  const perfRun = perfSrc === 'bench' ? perfLabel(req.headers.get('x-perf-run'), 40) || undefined : undefined;
   const decidedRaw = decideAgentMode(body.agentMode, Boolean(owner));
   const decided =
     agentCaller && decidedRaw.ok ? { ok: true as const, mode: 'public' as AgentMode } : decidedRaw;
@@ -498,6 +546,7 @@ export async function POST(req: Request) {
   });
   if (!routed.ok) {
     trace.log('breaker', { provider: modelDecision.pick.provider, state: routed.blocked, fallback: 'none' });
+    perfDegradeTurn({ at: reqStartedAt, src: perfSrc, run: perfRun, provider: 'none', tier: 'none', rule: 'circuit_open', toolRoute: toolRoute.route, retries: 0 });
     return jsonError(degradeMessage('circuit_open', lastQ), 503, trace.traceId, {
       'X-Degrade-Reason': 'circuit_open',
       'X-Tool-Route': toolRoute.route,
@@ -767,6 +816,7 @@ ${memoryPrefetch
 
     // One model attempt. A GPU attempt that fails before its first token is
     // abandoned (callbacks go quiet) and the turn restarts on DeepSeek.
+    let emptyTries = 0;
     const startAttempt = (pick: ModelPick, attemptProbe: boolean, system: string, attemptPrefixHash: string) => {
       const attemptCtl = new AbortController();
       const abortSignal =
@@ -817,6 +867,56 @@ ${memoryPrefetch
           quotaStore: redisQuotaKey ? 'redis' : unlimitedChat ? 'unlimited' : 'cookie',
           ...extra,
         });
+        // Owner performance dashboard: numbers and labels only, never text or ids.
+        const endAt = Date.now();
+        const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
+        const outcome: PerfOutcome =
+          extra.stopReason === 'cancelled'
+            ? 'cancelled'
+            : extra.error === 'stream_dropped'
+              ? 'drop'
+              : extra.stopReason === 'error'
+                ? 'error'
+                : extra.stopReason === 'empty'
+                  ? 'empty'
+                  : 'ok';
+        const hit = typeof extra.promptCacheHitTokens === 'number' ? extra.promptCacheHitTokens : null;
+        const miss = typeof extra.promptCacheMissTokens === 'number' ? extra.promptCacheMissTokens : null;
+        const inTok = num(extra.inputTokens);
+        const outTok = num(extra.outputTokens);
+        const at = reqStartedAt;
+        void (async () => {
+          const variant = pick.tier === 'gpu' && gpuCfg ? await readGpuVariant(gpuCfg) : undefined;
+          await recordPerfTurn({
+            v: 1,
+            id: newPerfId(),
+            at,
+            src: perfSrc,
+            run: perfRun,
+            provider: pick.provider,
+            tier: pick.tier,
+            model: pick.modelId,
+            variant,
+            rule: routeRule,
+            toolRoute: toolRoute.route,
+            failoverFrom,
+            ttftMs: firstChunkAt ? firstChunkAt - reqStartedAt : null,
+            prepMs: startedAt - reqStartedAt,
+            latencyMs: endAt - reqStartedAt,
+            modelMs: endAt - startedAt,
+            inTok,
+            outTok,
+            cacheHit: hit,
+            cacheMiss: miss,
+            costUsd: estimateTurnCostUsd({ provider: pick.provider, model: pick.modelId, at, inTok, outTok, hit, miss, modelMs: endAt - startedAt }),
+            steps: num(extra.steps),
+            tools: audit.calls.length,
+            finish: String(extra.finishReason ?? ''),
+            outcome,
+            retries: emptyTries + (failoverFrom ? 1 : 0),
+            gpuState: routed.gpuState,
+          });
+        })().catch(() => {});
       };
 
       const result = streamText({
@@ -924,6 +1024,8 @@ ${memoryPrefetch
             steps: steps?.length ?? 0,
             promptCacheHitTokens: cache?.promptCacheHitTokens ?? null,
             promptCacheMissTokens: cache?.promptCacheMissTokens ?? null,
+            inputTokens: totalUsage?.inputTokens ?? 0,
+            outputTokens: totalUsage?.outputTokens ?? 0,
           });
         },
       });
@@ -933,7 +1035,7 @@ ${memoryPrefetch
         trace.endSpan(modelSpan, false, { reason });
         attemptCtl.abort(new Error(reason));
       };
-      return { result, modelSpan, turnEvent, abandon };
+      return { result, modelSpan, turnEvent, abandon, settled: () => turnSettled };
     };
 
     let failoverFrom: string | null = null;
@@ -962,7 +1064,6 @@ ${memoryPrefetch
       const gate = await breakerGate(pick.provider);
       return gate.allowed ? { pick, probe: gate.probe } : null;
     };
-    let emptyTries = 0;
     let emptyAnswer = false;
     for (;;) {
       const peek = await peekFirstToken(att.result.fullStream, picked.tier === 'gpu' && gpuCfg ? gpuCfg.ttftMs : 0, {
@@ -970,6 +1071,10 @@ ${memoryPrefetch
       });
       if (peek.ok || req.signal?.aborted) break;
       if (peek.reason === 'empty') {
+        // onFinish may not have run yet; record the thrown-away attempt once.
+        if (!att.settled()) {
+          perfDegradeTurn({ at: reqStartedAt, src: perfSrc, run: perfRun, provider: picked.provider, tier: picked.tier, model: picked.modelId, rule: routeRule, toolRoute: toolRoute.route, retries: emptyTries, outcome: 'empty' });
+        }
         att.abandon('empty_answer');
         emptyTries += 1;
         trace.log('empty_retry', { provider: picked.provider, attempt: emptyTries });
@@ -997,6 +1102,7 @@ ${memoryPrefetch
           }
         }
         emptyAnswer = true;
+        perfDegradeTurn({ at: reqStartedAt, src: perfSrc, run: perfRun, provider: picked.provider, tier: picked.tier, rule: 'empty_answer', toolRoute: toolRoute.route, retries: emptyTries });
         break;
       }
       // Errors on DeepSeek / the fallback stream through onError as before.
@@ -1008,6 +1114,7 @@ ${memoryPrefetch
       trace.log('gpu_failover', { provider: failedProvider, reason: peek.reason });
       const next = (await gated(buildPrimary())) ?? (await gated(fallbackPick));
       if (!next) {
+        perfDegradeTurn({ at: reqStartedAt, src: perfSrc, run: perfRun, provider: 'none', tier: 'none', rule: 'circuit_open', toolRoute: toolRoute.route, retries: 1 });
         return jsonError(degradeMessage('circuit_open', lastQ), 503, trace.traceId, {
           'X-Degrade-Reason': 'circuit_open',
           'X-Tool-Route': toolRoute.route,

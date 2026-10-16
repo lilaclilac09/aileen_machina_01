@@ -120,6 +120,18 @@ Modal's Starter plan includes $30/month of credit. For comparison,
 per 1M output tokens, so the GPU tier is about resilience and control,
 not saving money at low traffic.
 
+## Measuring optimisations
+
+The owner page **/agent-analytics/performance** records every chat turn
+(TTFT, latency, tokens, prefix-cache hits, estimated cost). The server also
+serves the alias `open-8b.<variant>` (e.g. `open-8b.fp8-ngram`, `open-8b.base-eager`);
+the site reads it from `/v1/models` and the **Compare** tab splits GPU turns by
+variant. Override with `AGENT_GPU_VARIANT`. GPU turn cost uses `AGENT_GPU_TYPE`
+(default `L40S`) or `AGENT_GPU_USD_PER_HOUR`.
+
+To compare variants: deploy one, run `pnpm bench:inference --tier gpu --run fp8`
+(see `scripts/bench-inference.ts`), redeploy with other knobs, run again.
+
 ## Bench
 
 ```bash

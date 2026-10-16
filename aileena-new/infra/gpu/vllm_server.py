@@ -78,6 +78,16 @@ vllm_cache_vol = modal.Volume.from_name("aileena-vllm-cache", create_if_missing=
 app = modal.App("aileena-gpu")
 
 
+def variant_tag(cfg: dict) -> str:
+    """e.g. base, fp8, awq-ngram, base-draft-eager. Shown in the dashboard's Compare view."""
+    parts = [cfg["AILEENA_GPU_QUANT"] or "base"]
+    if cfg["AILEENA_GPU_SPEC"]:
+        parts.append(cfg["AILEENA_GPU_SPEC"])
+    if cfg["AILEENA_GPU_FAST_BOOT"] == "1":
+        parts.append("eager")
+    return "-".join(parts)
+
+
 def build_vllm_command(cfg: dict, api_key: str) -> list:
     """The exact `vllm serve` argv. Kept pure so it can be checked without a GPU."""
     if not api_key:
@@ -89,7 +99,9 @@ def build_vllm_command(cfg: dict, api_key: str) -> list:
     cmd = [
         "vllm", "serve", model,
         "--revision", cfg["AILEENA_GPU_REVISION"],
-        "--served-model-name", cfg["AILEENA_GPU_SERVED_NAME"],
+        # Second alias `<name>.<variant>` lets the site's performance dashboard
+        # tag GPU turns by optimisation (read from /v1/models).
+        "--served-model-name", cfg["AILEENA_GPU_SERVED_NAME"], f'{cfg["AILEENA_GPU_SERVED_NAME"]}.{variant_tag(cfg)}',
         "--host", "0.0.0.0",
         "--port", str(VLLM_PORT),
         "--api-key", api_key,
