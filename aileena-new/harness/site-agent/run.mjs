@@ -24,8 +24,10 @@ const CHAT_PATH = '/api/chat'; // the ONLY path this runner ever POSTs to. Never
 // (lib/siteLanes.ts forge lane, lib/computer/parseOwnerCommand.ts visitor scratch,
 // lib/browserUse/parseBrowseCommand.ts). Matching turns are refused on live.
 const SIDE_EFFECT_TRIGGERS = [
-  /forge|open a pr|pull request|改代码/i,
-  /^\s*(note:|learn:|find\b|list$|ls$|files$|peek|open last|read\b|clock$|time$|now$|git\b|run |\$)/i,
+  // Mirrors lib/siteLanes.ts + lib/computer/parseOwnerCommand.ts after the routing fix:
+  // forge fires only when named; visitor find needs an explicit "find:" prefix.
+  /\bforge\b|改代码/i,
+  /^\s*(note:|learn:|find:|find in workspace:|list$|ls$|files$|peek|open last|read\b|clock$|time$|now$|git\b|run |\$)/i,
   /^\s*(browse|browser use)\b/i,
   /screenshot|take pictures of/i,
   /开电脑/,

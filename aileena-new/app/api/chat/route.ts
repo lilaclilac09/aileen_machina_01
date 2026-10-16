@@ -6,6 +6,7 @@ import { COUNCIL_SYSTEM_PROMPT, formatCouncilLensForPrompt } from '../../../lib/
 import { decideAgentMode, skipVisitorQuota, type AgentMode } from '../../../lib/agentMode';
 import { isCouncilLens } from '../../../lib/councilCopy';
 import { requireOwnerFromRequest } from '../../../lib/owner-gate';
+import { isAgentCaller } from '../../../lib/agentCaller';
 import { tryBrowserUseFastPath } from '../../../lib/browserUse/chatFastPath';
 import { publicPrepareBrowseResult } from '../../../lib/browserUse/status';
 import { tryOwnerComputerFastPath, tryVisitorComputerFastPath } from '../../../lib/computer/chatFastPath';
@@ -69,6 +70,8 @@ import {
 } from '../../../lib/consolePrefix';
 import { formatSkillsForTurn } from '../../../lib/evolution/runtime';
 import { enqueueLiveAsk } from '../../../lib/evolution/liveInbox';
+import { TurnGuard } from '../../../lib/agentGuard/turnGuard';
+import { prefixHash } from '../../../lib/agentGuard/prefixHash';
 
 export const maxDuration = 30;
 const DAILY_LIMIT = CHAT_DAILY_LIMIT;
@@ -145,8 +148,12 @@ export async function POST(req: Request) {
         .slice(0, 5)
     : [];
 
-  const owner = await requireOwnerFromRequest(req);
-  const decided = decideAgentMode(body.agentMode, Boolean(owner));
+  // Agent callers (/api/mcp) are public visitors: no owner, no council, no side effects.
+  const agentCaller = isAgentCaller(req);
+  const owner = agentCaller ? null : await requireOwnerFromRequest(req);
+  const decidedRaw = decideAgentMode(body.agentMode, Boolean(owner));
+  const decided =
+    agentCaller && decidedRaw.ok ? { ok: true as const, mode: 'public' as AgentMode } : decidedRaw;
   if (!decided.ok) {
     return jsonError(decided.error, decided.status, trace.traceId, {
       'X-Agent-Mode': 'forbidden',
@@ -162,7 +169,7 @@ export async function POST(req: Request) {
     return res;
   };
   const browse = tryBrowserUseFastPath({ lastQ: lastQEarly });
-  if (browse) {
+  if (browse && !agentCaller) {
     const ownerUnlimitedBrowse = await hasOwnerUnlimitedChat(req);
     const unlimitedBrowse = skipVisitorQuota(Boolean(owner)) || ownerUnlimitedBrowse;
     const turn = await takeVisitorChatTurn(req, unlimitedBrowse);
@@ -180,7 +187,9 @@ export async function POST(req: Request) {
     trace.log('browser_use_fast_path', { q: lastQEarly.slice(0, 80) });
     return withComputerCookie(browse);
   }
-  if (computerActor.kind === 'owner') {
+  if (agentCaller) {
+    // no computer desk for agent callers
+  } else if (computerActor.kind === 'owner') {
     const fast = await tryOwnerComputerFastPath({
       req,
       isOwner: true,
@@ -201,13 +210,15 @@ export async function POST(req: Request) {
       return withComputerCookie(fast);
     }
   }
-  const laneText = await answerSiteLane(lastQEarly, computerActor.id);
+  const laneText = await answerSiteLane(lastQEarly, computerActor.id, { allowSideEffects: !agentCaller });
   if (laneText) {
     trace.log('site_lane', { q: lastQEarly.slice(0, 80) });
     return withComputerCookie(queuedChatResponse(laneText));
   }
   const agentMode: AgentMode = decided.mode;
   const isCouncil = agentMode === 'council';
+  // Debug headers (prompt sizes, budgets, tiers) are for the owner only.
+  const showDebugHeaders = Boolean(owner);
   const skipQuota = skipVisitorQuota(Boolean(owner));
   const councilLens = isCouncil && isCouncilLens(body.councilLens) ? body.councilLens : undefined;
   const voiceAccent = isCouncil ? null : parseVoiceAccent(body.voiceAccent);
@@ -258,7 +269,25 @@ export async function POST(req: Request) {
       reason: 'compaction',
     });
   }
-  const trimmed = messages;
+  // One TurnGuard owns all guard state for this request: (a) input guard,
+  // (b) output guard, (c) number grounding, (d) locale. Council is owner-only
+  // and keeps its own layout; secrets are still redacted there.
+  const guard = new TurnGuard({
+    mode: agentMode,
+    isOwner: Boolean(owner),
+    lastQuestion: lastQEarly,
+  });
+  const trimmed = guard.guardTranscript(messages);
+  if (trimmed.length === 0) {
+    return jsonError('No messages provided.', 400, trace.traceId);
+  }
+  if (guard.inputGuardHits > 0 || guard.droppedClientParts > 0) {
+    trace.log('input_guard', {
+      hits: guard.inputGuardHits,
+      droppedClientParts: guard.droppedClientParts,
+      mode: agentMode,
+    });
+  }
   let modelMessages: ModelMessage[];
   try {
     modelMessages = await convertToModelMessages(trimmed);
@@ -271,7 +300,7 @@ export async function POST(req: Request) {
     isCouncil
       ? COUNCIL_SYSTEM_PROMPT
       : agentMode === 'machina'
-        ? buildMachinaSystemPrompt()
+        ? buildMachinaSystemPrompt({ visitor: !owner })
         : SYSTEM_PROMPT;
 
   const lastQ = lastUserQuery(trimmed);
@@ -280,6 +309,7 @@ export async function POST(req: Request) {
     ? searchMemories(
         isLatestUpdatesQuestion(lastQ) ? LATEST_CONTENT_MEMORY_QUERY : lastQ,
         isLatestUpdatesQuestion(lastQ) ? 4 : 2,
+        { publicOnly: !owner },
       )
     : [];
   const memMeta = memoryIndexMeta();
@@ -300,7 +330,7 @@ export async function POST(req: Request) {
   }
   // Uncovered public asks → Redis live inbox. Drain ratchets held-out only.
   // Council never enqueues. Does not write AGENTS.md / QA.md / PROJECT_RULES.md.
-  if (lastQ) void enqueueLiveAsk(lastQ, { isCouncil });
+  if (lastQ && !agentCaller) void enqueueLiveAsk(lastQ, { isCouncil });
 
   const toolRoute = routeToolsForQuestion(lastQ, visitorSoft, priorTopics);
   const modelDecision = routeModel({
@@ -458,9 +488,14 @@ ${memoryPrefetch
     lastQuestion: lastQ,
     councilLensBlock: isCouncil ? formatCouncilLensForPrompt(councilLens) : '',
     skillBlock: isCouncil ? '' : formatSkillsForTurn(lastQ),
+    languageNote: isCouncil ? '' : guard.languageNote(),
   });
-  const messagesWithTail: ModelMessage[] = sessionTail
-    ? [...modelMessages, { role: 'user', content: sessionTail }]
+  guard.setSystem(frozenSystem);
+  // The genuine tail is wrapped in this request's nonce; visitor copies of the
+  // marker were neutralized above, so only the server can open this block.
+  const wrappedTail = sessionTail ? guard.wrapTail(sessionTail) : '';
+  const messagesWithTail: ModelMessage[] = wrappedTail
+    ? [...modelMessages, { role: 'user', content: wrappedTail }]
     : modelMessages;
 
   try {
@@ -474,7 +509,7 @@ ${memoryPrefetch
             k: z.number().int().min(1).max(5).optional().describe('Top passages. Default 3.'),
           }),
           execute: async ({ query, k }) => {
-            return searchMemories(query, k ?? 3).map((h) => ({
+            return searchMemories(query, k ?? 3, { publicOnly: !owner }).map((h) => ({
               path: h.path,
               tier: h.tier,
               title: h.title,
@@ -519,24 +554,23 @@ ${memoryPrefetch
         ...agentDataTools,
     };
 
-    // R2: only expose tools allowed for this question type (hire → none, taste → memories…).
+    // R2: the tool table stays the same every turn (prefix cache). Tools this
+    // route doesn't allow are wrapped to return {blocked, reason:'wrong_route'};
+    // route 'none' (hire / CV) also sets toolChoice 'none' below.
     const routedTools = applyToolRoute(allTools, toolRoute);
-    const withBrowse =
-      toolRoute.allowed !== 'none'
-        ? {
-            ...routedTools,
-            browseWeb: tool({
-              description:
-                'Anyone. Browser Use Cloud API v4 status or dry-run prepare. Does not start a paid browser. Cloudflare computer is not the browser path.',
-              inputSchema: z.object({
-                task: z.string().min(2).max(4000).optional().describe('Browse goal. Omit for wiring status only.'),
-              }),
-              execute: async ({ task }) => publicPrepareBrowseResult(task),
-            }),
-          }
-        : routedTools;
+    const withBrowse = {
+      ...routedTools,
+      browseWeb: tool({
+        description:
+          'Anyone. Browser Use Cloud API v4 status or dry-run prepare. Does not start a paid browser. Cloudflare computer is not the browser path.',
+        inputSchema: z.object({
+          task: z.string().min(2).max(4000).optional().describe('Browse goal. Omit for wiring status only.'),
+        }),
+        execute: async ({ task }) => publicPrepareBrowseResult(task),
+      }),
+    };
     const withMcp =
-      owner && isComputerPrototypeEnabled() && toolRoute.allowed !== 'none'
+      owner && isComputerPrototypeEnabled()
         ? {
             ...withBrowse,
             listMcpApps: tool({
@@ -561,12 +595,15 @@ ${memoryPrefetch
     const guardedTools = wrapToolsWithReactGuard(withMcp, reactGuard);
 
     console.log('[chat] tool-route', {
+      traceId: trace.traceId,
       route: toolRoute.route,
       allowed: toolRoute.allowed,
       preferred: toolRoute.preferred,
       exposed: Object.keys(withMcp),
     });
 
+    const turnPrefixHash = await prefixHash(frozenSystem, withMcp);
+    trace.log('prefix', { prefixHash: turnPrefixHash, route: toolRoute.route, tools: Object.keys(withMcp).length });
     const modelSpan = trace.startSpan('model_stream', {
       provider: picked.provider,
       budgetMs: MODEL_TOTAL_BUDGET_MS,
@@ -586,7 +623,11 @@ ${memoryPrefetch
       // Cap so a confused model can't burn quota looping forever.
       stopWhen: stepCountIs(REACT_MAX_STEPS),
       tools: Object.keys(guardedTools).length > 0 ? guardedTools : undefined,
+      // Hire / CV route: same tool table (prefix cache holds), but no calls.
+      toolChoice: toolRoute.allowed === 'none' ? 'none' : 'auto',
       abortSignal,
+      // (b)(c) Output guard + number grounding, sentence-buffered on the stream.
+      experimental_transform: guard.transform(),
       onFinish: ({ finishReason, steps }) => {
         trace.endSpan(modelSpan, true, {
           finishReason,
@@ -618,7 +659,9 @@ ${memoryPrefetch
             obsChars: c.obsChars,
           })),
           traceSummary: trace.summary(),
+          guard: guard.summary(),
         });
+        trace.log('guard', guard.summary());
       },
     });
 
@@ -662,18 +705,22 @@ ${memoryPrefetch
       headers.set('X-Owner-Unlimited', '1');
     }
     headers.set('X-Quota-Day', quota.date);
+    // X-Provider stays public: the console uses it as the session provider lock.
     headers.set('X-Provider', picked.provider);
-    headers.set('X-Model-Tier', picked.tier);
-    headers.set('X-System-Prompt-Chars', String(frozenSystem.length));
-    headers.set('X-Frozen-Prefix', '1');
-    headers.set('X-Session-Tail-Chars', String(sessionTail.length));
     headers.set('X-Agent-Mode', agentMode);
     headers.set('X-Voice-Accent', voiceAccent ?? 'off');
-    headers.set('X-Visitor-Soft-Memory', visitorSoftMemoryEnabled() ? 'redis' : 'off');
-    headers.set('X-React-Max-Steps', String(REACT_MAX_STEPS));
     headers.set('X-Tool-Route', toolRoute.route);
     headers.set('X-Trace-Id', trace.traceId);
-    headers.set('X-Model-Budget-Ms', String(MODEL_TOTAL_BUDGET_MS));
+    // Hash only (no content): lets the harness check the prefix stays stable per session.
+    headers.set('X-Prefix-Hash', turnPrefixHash);
+    if (showDebugHeaders) {
+      headers.set('X-Model-Tier', picked.tier);
+      headers.set('X-System-Prompt-Chars', String(frozenSystem.length));
+      headers.set('X-Session-Tail-Chars', String(wrappedTail.length));
+      headers.set('X-Visitor-Soft-Memory', visitorSoftMemoryEnabled() ? 'redis' : 'off');
+      headers.set('X-React-Max-Steps', String(REACT_MAX_STEPS));
+      headers.set('X-Model-Budget-Ms', String(MODEL_TOTAL_BUDGET_MS));
+    }
 
     console.log('[chat] POST: stream response initialized', { traceId: trace.traceId });
     return new Response(stream.body, { status: stream.status, headers });

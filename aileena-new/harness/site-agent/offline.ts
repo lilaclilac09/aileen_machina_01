@@ -35,14 +35,20 @@ eq('forward: plain visitor note → public', isCouncilPipelineRequest({ note: 'H
 eq('browse: plain question is not a browse command', parseOwnerBrowseCommand('what does she browse for music?'), null);
 eq('browse: "browse: x" is a dry-run prepare', parseOwnerBrowseCommand('browse: aileena.xyz')?.kind, 'prepare');
 eq('lane: "forge" → forge', classifySiteLane('use forge to fix the header'), 'forge');
-eq('lane: a question mentioning "pull request" does not fire forge', classifySiteLane('has she ever opened a pull request to solana?'), null, true);
-eq('scratch: "find her tamper-check project" stays a question', parseVisitorComputerCommand('find her tamper-check project'), null, true);
+eq('lane: a question mentioning "pull request" does not fire forge', classifySiteLane('has she ever opened a pull request to solana?'), null);
+eq('lane: "open a pull request for the typo" does not fire forge', classifySiteLane('open a pull request for the typo'), null);
+eq('scratch: "find her tamper-check project" stays a question', parseVisitorComputerCommand('find her tamper-check project'), null);
+eq('scratch: explicit "find: x" is still a scratch search', parseVisitorComputerCommand('find: oat')?.kind, 'queue_task');
 eq('scratch: "note: hi" is a scratch write', parseVisitorComputerCommand('note: hi')?.kind, 'queue_task');
 
 // College lane: crisis copy and CV-in-Chinese collision.
-eq('college: crisis line answers before model', Boolean(collegeReply('我不想活了')?.includes('988')), true);
-eq('college: crisis copy includes a CN hotline for zh speakers', /12356|400-161-9995|希望24/.test(collegeReply('我不想活了') ?? ''), true, true);
-eq('college: "她现在的工作是什么" is not a CBT card', collegeReply('她现在的工作是什么？'), null, true);
+eq('college: crisis line answers before model', Boolean(collegeReply('我不想活了')), true);
+eq('college: zh crisis copy gives 12356 + HK 2389 2222 + TW 1925', ['12356', '2389 2222', '1925'].every((n) => (collegeReply('我不想活了') ?? '').includes(n)), true);
+eq('college: de crisis copy gives TelefonSeelsorge + 112', ['0800 111 0 111', '116 123', '112'].every((n) => (collegeReply('Ich will nicht mehr leben') ?? '').includes(n)), true);
+eq('college: en crisis copy gives 988 + findahelpline', ['988', 'findahelpline.com'].every((n) => (collegeReply('I want to kill myself') ?? '').includes(n)), true);
+eq('college: "她现在的工作是什么" is not a CBT card', collegeReply('她现在的工作是什么？'), null);
+eq('college: "what does she do for work" is not a CBT card', collegeReply('what does she do for work, should I hire her?'), null);
+eq('college: a visitor\'s own work stress still gets the shelf', /Judith Beck/.test(collegeReply('我工作好累，老板总说我应该加班') ?? ''), true);
 eq('college: "solana" question bypasses shelf', collegeReply('她在 solana 上的工作'), null);
 
 // Frozen root + accent lock.

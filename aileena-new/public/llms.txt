@@ -1,0 +1,20 @@
+# aileena.xyz
+
+> Personal site of Aileen Choo: Solana/MEV research, security tools (Tamper Check, KeyShield), AI infra notes, essays and DJ sets. Has a public site agent that other agents can call over MCP.
+
+## Agent access (MCP)
+
+- Endpoint: https://aileena.xyz/api/mcp (Streamable HTTP, stateless, JSON-RPC 2.0, no auth)
+- Tools: `ask_aileen_agent` (question → answer, public mode only) and `lookup_project` (name/keyword → title, stack, summary, links)
+- Limits: ask 5/min and 20/day per caller; lookup 30/min and 300/day per caller
+- Policy: public mode only. Owner, council and private notes are not reachable. Same input/output guards as the website console.
+- Discovery card: https://aileena.xyz/.well-known/agent.json
+
+## Pages
+
+- [Home](https://aileena.xyz/): projects and the site console
+- [Tools](https://aileena.xyz/tools): Tamper Check and other tools
+- [Tamper Check](https://aileena.xyz/tools/tamper-check): weigh a Ledger against a same-batch reference
+- [Writing](https://aileena.xyz/blog): research dispatches and essays
+- [Sound](https://aileena.xyz/sound#dj-set): DJ sets
+- [Privacy](https://aileena.xyz/privacy)

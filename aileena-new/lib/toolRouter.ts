@@ -281,30 +281,38 @@ type AnyTool = {
   [key: string]: unknown;
 };
 
+export const WRONG_ROUTE = 'wrong_route' as const;
+
+/** Observation a disallowed tool returns instead of running. The prompt promises exactly this shape. */
+export function wrongRouteObservation(name: string, route: ToolRoute) {
+  return {
+    blocked: true as const,
+    reason: WRONG_ROUTE,
+    tool: name,
+    route: route.route,
+    allowed: route.allowed === 'all' ? 'all' : route.allowed === 'none' ? [] : route.allowed,
+  };
+}
+
 /**
- * Drop disallowed tools (hire → empty), or wrap so wrong-route calls
- * return a blocked observation instead of running.
+ * Keep the tool table stable for the whole session (same names, descriptions
+ * and schemas every turn, so the provider's prefix cache holds). Tools this
+ * route does not allow stay visible but are wrapped: calling one returns
+ * {blocked:true, reason:'wrong_route'} without running. For route 'none'
+ * (hire / CV) the route also sets toolChoice 'none' in /api/chat.
  */
 export function applyToolRoute<T extends Record<string, AnyTool>>(
   tools: T,
   route: ToolRoute,
 ): T {
   if (route.allowed === 'all') return tools;
-
-  if (route.allowed === 'none') {
-    return {} as T;
-  }
-
-  const allowed = new Set(route.allowed);
+  const allowed = new Set(route.allowed === 'none' ? [] : route.allowed);
   const out: Record<string, AnyTool> = {};
-
   for (const [name, t] of Object.entries(tools)) {
-    if (!allowed.has(name as AgentToolName)) continue;
-    out[name] = t;
+    out[name] = allowed.has(name as AgentToolName)
+      ? t
+      : { ...t, execute: async () => wrongRouteObservation(name, route) };
   }
-
-  // Also keep a stub for common wrong tools? Better: only expose allowed —
-  // model can't call what it doesn't see. Strongest R2 effect.
   return out as T;
 }
 

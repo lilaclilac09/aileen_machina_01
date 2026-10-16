@@ -1,3 +1,5 @@
+import { crisisReply } from './agentGuard/locale';
+
 type ShelfCard = {
   test: RegExp;
   person: string;
@@ -51,14 +53,25 @@ const SHELF: ShelfCard[] = [
   },
 ];
 
+/**
+ * A CV / work question about Aileen ("她现在的工作是什么？", "what does she do for work")
+ * is for the site agent, not a life door, even though it contains 工作.
+ */
+export function isQuestionAboutAileen(raw: string): boolean {
+  const aboutHer = /她|aileena?|\bher\b|\bshe\b|\bsie\b|\bihre?\b/i.test(raw);
+  const cv = /工作|职位|職位|做什么|在做|公司|项目|項目|经历|經歷|简历|履历|job|role|work|career|employ|hire|arbeit|beruf|stelle/i.test(raw);
+  return aboutHer && cv;
+}
+
 /** Psychoeducation desk. One book. Not a diagnosis. Null means this sentence is not a life door. */
 export function collegeReply(message: string): string | null {
   const raw = message.trim();
   if (!raw) return null;
-  if (/suicid|kill myself|不想活|自杀|想死/.test(raw.toLowerCase())) {
-    return '这桌还在。你现在的怕和痛我听见了。若有危险，美国请打或发短信 988。IASP https://www.iasp.info/suicidalthoughts/ 。不给方法。Herman 的安全停在这里。';
-  }
+  // Crisis first, in the visitor's language (ZH / DE / EN lines, numbers in lib/agentGuard/locale.ts).
+  const crisis = crisisReply(raw);
+  if (crisis) return crisis;
   if (/更新了什么|hire|solana|techno|音乐|github|what's her|作品/.test(raw.toLowerCase())) return null;
+  if (isQuestionAboutAileen(raw)) return null;
   const card = SHELF.find((item) => item.test.test(raw));
   if (!card) return null;
   const heard = raw.slice(0, 80);

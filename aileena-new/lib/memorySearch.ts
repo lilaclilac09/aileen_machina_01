@@ -62,7 +62,17 @@ for (const [t, freq] of df.entries()) {
   idf.set(t, Math.log(1 + (N - freq + 0.5) / (freq + 0.5)));
 }
 
-export function searchMemories(query: string, k: number = 3): MemorySearchHit[] {
+/**
+ * Tiers a public visitor may read. personal / episodic (conversation traces) /
+ * archived (consolidation reports) stay owner-only.
+ */
+export const PUBLIC_MEMORY_TIERS = new Set(['semantic', 'procedural', 'prompt']);
+
+export function searchMemories(
+  query: string,
+  k: number = 3,
+  opts: { publicOnly?: boolean } = {},
+): MemorySearchHit[] {
   const qTokens = tokenize(query);
   if (qTokens.length === 0 || N === 0) return [];
 
@@ -79,6 +89,7 @@ export function searchMemories(query: string, k: number = 3): MemorySearchHit[] 
     }
     // Prefer semantic + personal over archived
     const tier = CHUNKS[i].tier;
+    if (opts.publicOnly && !PUBLIC_MEMORY_TIERS.has(tier)) continue;
     if (tier === 'semantic' || tier === 'personal') score *= 1.15;
     if (tier === 'archived') score *= 0.85;
     if (score > 0) scored.push({ idx: i, score });
@@ -110,7 +121,7 @@ function makeSnippet(text: string, qByIdf: string[]): string {
     if (i !== -1) {
       const half = Math.floor(WINDOW / 2);
       let start = Math.max(0, i - half);
-      let end = Math.min(text.length, start + WINDOW);
+      const end = Math.min(text.length, start + WINDOW);
       if (end - start < WINDOW) start = Math.max(0, end - WINDOW);
       let snip = text.slice(start, end).trim();
       if (start > 0) snip = '…' + snip;

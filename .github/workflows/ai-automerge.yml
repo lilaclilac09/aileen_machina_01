@@ -61,6 +61,18 @@ jobs:
           pnpm build:memory-index
           pnpm exec tsc --noEmit
 
+      # Site-agent regression gate (offline, no model calls, no secrets):
+      # input/output guards, grounding, locale, trace, routing findings,
+      # console opening + analytics gate, and the public MCP endpoint.
+      - name: Site-agent harness (offline)
+        run: |
+          pnpm exec tsx harness/site-agent/offline.ts
+          pnpm exec tsx harness/site-agent/guards.ts
+          pnpm exec tsx harness/site-agent/engage.ts
+          pnpm exec tsx scripts/verify-react.ts
+          pnpm exec tsx scripts/verify-night-desk.ts
+          pnpm exec tsx scripts/verify-browser-use.ts
+
       - name: Lint (changed files)
         working-directory: .
         run: |
@@ -164,6 +176,7 @@ jobs:
           done
           curl -sf "$BASE_URL/sound" >/dev/null
           pnpm test:e2e:dnd
+          pnpm test:e2e:agent-starters
 
   cursor-review:
     name: cursor-review

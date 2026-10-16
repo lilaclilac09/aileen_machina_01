@@ -58,14 +58,24 @@ O-Mem L4（第二推荐，可选）：
 - 完整：OPPO O-Mem memory_chain + embedding
 - Markdown 仍是真相源，O-Mem 只做对话→persona 回写`;
 
-/** Full stack for a Machina-mode chat session */
-export function buildMachinaSystemPrompt(): string {
+/** Machina for anyone who is not the owner: published taste only, no "I know her private side". */
+export const MACHINA_PUBLIC_VOICE_PROMPT = `- 中文可中英自然切换
+- 只说她公开过的：站点、文章、公开的 DJ set（/sound#dj-set）。没公开的偏好就说「这个她没公开说过」，不要替她透露，也不要把任何一条说成「私下的 / private」。
+- 作品具体到：艺术家、标题、平台
+- 像很熟的朋友帮你整理品味`;
+
+/**
+ * Full stack for a Machina-mode chat session. Visitors (non-owner) get the
+ * public voice and the music lane without the "personal" label.
+ */
+export function buildMachinaSystemPrompt(opts: { visitor?: boolean } = {}): string {
+  const visitor = opts.visitor ?? true;
   return [
     MACHINA_SYSTEM_PROMPT,
     '# Voice',
-    MACHINA_VOICE_PROMPT,
+    visitor ? MACHINA_PUBLIC_VOICE_PROMPT : MACHINA_VOICE_PROMPT,
     '# Music taste',
-    MACHINA_MUSIC_PROMPT,
+    visitor ? MACHINA_MUSIC_PROMPT.replace('Techno（personal）', 'Techno（她自己的方向，公开在 /sound#dj-set）') : MACHINA_MUSIC_PROMPT,
     '# Culture',
     MACHINA_CULTURE_PROMPT,
     '# Memory evolution',

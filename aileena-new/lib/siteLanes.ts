@@ -6,23 +6,25 @@ export type SiteLane = 'forge';
 export function classifySiteLane(message: string): SiteLane | null {
   const m = message.toLowerCase();
   if (m.startsWith('run ') || m.startsWith('$') || m.includes('开电脑')) return null;
-  if (
-    m.includes('forge') ||
-    m.includes('open a pr') ||
-    m.includes('pull request') ||
-    m.includes('改代码')
-  ) {
-    return 'forge';
-  }
+  // Forge writes a file on the Cloudflare desk, so it fires only when the visitor
+  // names it. Questions that merely mention a pull request are for the model.
+  if (/\bforge\b/.test(m) || m.includes('改代码')) return 'forge';
   return null;
 }
 
-export async function answerSiteLane(message: string, visitorId: string): Promise<string | null> {
+export async function answerSiteLane(
+  message: string,
+  visitorId: string,
+  opts: { allowSideEffects?: boolean } = {},
+): Promise<string | null> {
   if (/girlfriend|boyfriend|be my (partner|therapist)|你是我(女朋友|对象|治疗师)|陪我谈恋爱/.test(message.toLowerCase())) {
     return 'Not a partner. Not a therapist. Not a girlfriend SKU. The desk is the room.';
   }
   const lane = classifySiteLane(message);
-  if (lane === 'forge') return writeForgePatch(visitorId);
+  if (lane === 'forge') {
+    if (opts.allowSideEffects === false) return null;
+    return writeForgePatch(visitorId);
+  }
   return collegeReply(message);
 }
 

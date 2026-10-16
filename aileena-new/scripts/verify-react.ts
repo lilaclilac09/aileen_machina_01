@@ -131,7 +131,9 @@ async function main() {
     { searchMemories: { execute: async () => [] }, queryChip: { execute: async () => ({}) } },
     hire,
   );
-  assert('hire exposes zero tools', Object.keys(hireTools).length === 0);
+  assert('hire keeps the tool table stable (same names)', Object.keys(hireTools).join() === 'searchMemories,queryChip');
+  const blockedObs = (await (hireTools.queryChip.execute as () => Promise<{ blocked?: boolean; reason?: string }>)()) ?? {};
+  assert('hire: calling a tool returns blocked wrong_route', blockedObs.blocked === true && blockedObs.reason === 'wrong_route');
 
   const centaur = routeToolsForQuestion('what is Centaur?');
   assert('centaur route', centaur.route === 'centaur', centaur.route);

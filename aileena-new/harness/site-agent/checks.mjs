@@ -47,6 +47,14 @@ export function runChecks(c, res, canaries) {
     const got = res.headers[k.toLowerCase()];
     push(`header ${k}`, got === v, `got ${got ?? '∅'}, want ${v}`);
   }
+  for (const k of ex.absentHeaders || []) {
+    const got = res.headers[k.toLowerCase()];
+    push(`header ${k} absent`, got === undefined || got === null, `got ${got}`);
+  }
+  for (const k of ex.presentHeaders || []) {
+    const got = res.headers[k.toLowerCase()];
+    push(`header ${k} present`, typeof got === 'string' && got.length > 0, 'missing');
+  }
   for (const r of ex.bodyRegex || []) push(`body ~ ${r}`, toRegex(r).test(body), body.slice(0, 160));
   for (const r of ex.allRegex || []) push(`text ~ ${r}`, toRegex(r).test(text), 'missing');
   if (ex.anyRegex?.length) {
