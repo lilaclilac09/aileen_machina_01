@@ -70,5 +70,77 @@
     "heldOutBefore": 0.9545454545454546,
     "heldOutAfter": 1,
     "reason": "held-out 0.955 → 1.000"
+  },
+  {
+    "at": "2026-10-16T10:27:44.089Z",
+    "action": "promote",
+    "skillId": "auto-availability-contact",
+    "version": 2,
+    "heldOutBefore": 1,
+    "heldOutAfter": 1,
+    "reason": "trigger-quality cleanup: dropped contract, available, 工作, 合作, 联系, engineering, season"
+  },
+  {
+    "at": "2026-10-16T10:27:44.091Z",
+    "action": "promote",
+    "skillId": "auto-latest-content",
+    "version": 4,
+    "heldOutBefore": 1,
+    "heldOutAfter": 1,
+    "reason": "trigger-quality cleanup: dropped 更新"
+  },
+  {
+    "at": "2026-10-16T10:27:44.091Z",
+    "action": "promote",
+    "skillId": "auto-private-contact",
+    "version": 2,
+    "heldOutBefore": 1,
+    "heldOutAfter": 1,
+    "reason": "trigger-quality cleanup: dropped personal"
+  },
+  {
+    "at": "2026-10-16T10:27:44.092Z",
+    "action": "promote",
+    "skillId": "auto-private-contact-wechat",
+    "version": 2,
+    "heldOutBefore": 1,
+    "heldOutAfter": 1,
+    "reason": "trigger-quality cleanup: dropped personal, 微信, 电话, private, send"
+  },
+  {
+    "at": "2026-10-16T10:27:44.092Z",
+    "action": "promote",
+    "skillId": "auto-visual",
+    "version": 2,
+    "heldOutBefore": 1,
+    "heldOutAfter": 1,
+    "reason": "trigger-quality cleanup: dropped glass, bench, photos, object, cover"
+  },
+  {
+    "at": "2026-10-16T10:27:44.093Z",
+    "action": "promote",
+    "skillId": "leave-a-note-contact",
+    "version": 2,
+    "heldOutBefore": 1,
+    "heldOutAfter": 1,
+    "reason": "trigger-quality cleanup: dropped available, 工作, 合作, 联系"
+  },
+  {
+    "at": "2026-10-16T10:27:44.093Z",
+    "action": "promote",
+    "skillId": "sound-howto",
+    "version": 2,
+    "heldOutBefore": 1,
+    "heldOutAfter": 1,
+    "reason": "trigger-quality cleanup: dropped 混音"
+  },
+  {
+    "at": "2026-10-16T10:27:44.094Z",
+    "action": "promote",
+    "skillId": "voice-howto",
+    "version": 2,
+    "heldOutBefore": 1,
+    "heldOutAfter": 1,
+    "reason": "trigger-quality cleanup: dropped 语音, 声音"
   }
 ]

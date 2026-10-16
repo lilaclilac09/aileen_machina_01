@@ -1,30 +1,23 @@
 ---
 id: auto-availability-contact
-version: 1
+version: 2
 kind: site-agent
-parent: null
+parent: 1
 triggers:
   - "availability"
   - "contact"
   - "hire"
   - "open to"
   - "freelance"
-  - "contract"
-  - "available"
   - "collaborate"
   - "retain"
-  - "工作"
-  - "合作"
   - "reach her"
-  - "联系"
-  - "engineering"
-  - "season"
 must_include:
   - "leave a note"
 must_not:
   - "@gmail.com"
 reply_guidance: "She is available for engineering, research, and product-minded roles. Leave a note with what you are building."
-root_cause: "held-out hold-from-gen-availability-0 failed: includes_any:leave a note"
+root_cause: "held-out hold-from-gen-availability-0 failed: includes_any:leave a note Trigger-quality cleanup v2: dropped contract, available, 工作, 合作, 联系, engineering, season."
 ---
 
 # Skill auto-availability-contact

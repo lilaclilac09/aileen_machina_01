@@ -71,12 +71,66 @@ export function isCircuitOpen(): boolean {
   return true;
 }
 
+/**
+ * DeepSeek reports prefix-cache usage as prompt_cache_hit_tokens /
+ * prompt_cache_miss_tokens on the usage chunk. Surface them as provider
+ * metadata so the per-turn event can log cache hits (P2.8).
+ */
+export type DeepSeekCacheMeta = { promptCacheHitTokens: number; promptCacheMissTokens: number };
+
+function readCacheUsage(body: unknown): DeepSeekCacheMeta | null {
+  const usage = (body as { usage?: Record<string, unknown> } | null)?.usage;
+  if (!usage || typeof usage !== 'object') return null;
+  const hit = Number(usage.prompt_cache_hit_tokens);
+  const miss = Number(usage.prompt_cache_miss_tokens);
+  if (!Number.isFinite(hit) && !Number.isFinite(miss)) return null;
+  return { promptCacheHitTokens: Number.isFinite(hit) ? hit : 0, promptCacheMissTokens: Number.isFinite(miss) ? miss : 0 };
+}
+
+export const deepSeekCacheExtractor = {
+  extractMetadata: async ({ parsedBody }: { parsedBody: unknown }) => {
+    const c = readCacheUsage(parsedBody);
+    return c ? { deepseek: c } : undefined;
+  },
+  createStreamExtractor: () => {
+    let last: DeepSeekCacheMeta | null = null;
+    return {
+      processChunk(chunk: unknown) {
+        const c = readCacheUsage(chunk);
+        if (c) last = c;
+      },
+      buildMetadata() {
+        return last ? { deepseek: last } : undefined;
+      },
+    };
+  },
+};
+
+/** Sum DeepSeek cache tokens over all steps of one turn. */
+export function cacheTokensFromSteps(
+  steps: Array<{ providerMetadata?: Record<string, Record<string, unknown>> | undefined }> | undefined,
+): DeepSeekCacheMeta | null {
+  let hit = 0;
+  let miss = 0;
+  let seen = false;
+  for (const st of steps ?? []) {
+    const d = st.providerMetadata?.deepseek;
+    if (!d) continue;
+    seen = true;
+    hit += Number(d.promptCacheHitTokens) || 0;
+    miss += Number(d.promptCacheMissTokens) || 0;
+  }
+  return seen ? { promptCacheHitTokens: hit, promptCacheMissTokens: miss } : null;
+}
+
 function buildDeepSeek(apiKey: string, name: string): ModelPick | null {
   try {
     const ds = createOpenAICompatible({
       name,
       baseURL: 'https://api.deepseek.com',
       apiKey,
+      includeUsage: true,
+      metadataExtractor: deepSeekCacheExtractor,
     });
     return {
       model: ds.chatModel('deepseek-chat'),
@@ -89,7 +143,7 @@ function buildDeepSeek(apiKey: string, name: string): ModelPick | null {
   }
 }
 
-function buildFallback(): ModelPick | null {
+export function buildFallback(): ModelPick | null {
   const baseURL = process.env.AGENT_FALLBACK_BASE_URL;
   const apiKey = process.env.AGENT_FALLBACK_API_KEY || process.env.AGENT_API_KEY;
   const modelId = process.env.AGENT_FALLBACK_MODEL || 'gpt-4o-mini';

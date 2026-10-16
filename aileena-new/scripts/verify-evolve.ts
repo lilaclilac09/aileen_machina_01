@@ -20,6 +20,7 @@ import { classifyQuestion, ingestQuestion } from '../lib/evolution/engine/inbox'
 import {
   drainLiveInbox,
   enqueueLiveAsk,
+  LIVE_INBOX_PER_VISITOR_DAY,
   resetLiveInboxForTests,
   shouldEnqueueLiveAsk,
 } from '../lib/evolution/liveInbox';
@@ -38,6 +39,7 @@ import {
 import { recordsFromEval, pairDpo } from '../lib/evolution/engine/trajectory';
 import { CANARY_TOKEN, repoRoot } from '../lib/evolution/engine/paths';
 import { formatMatchingSkills, formatSkillsForTurn, matchingSkills, uncoveredBankPrompts, falsePositiveNegatives } from '../lib/evolution/runtime';
+import { triggerMatches, triggerQualityIssue } from '../lib/evolution/selectSkills';
 import { ACTIVE_SKILLS } from '../lib/evolution/activeSkills.generated';
 import { evolutionStatus } from '../lib/evolution/engine/status';
 import type { SkillPatch, TaskPrompt } from '../lib/evolution/types';
@@ -321,10 +323,27 @@ process.stdout.write(JSON.stringify({ reply: 'leaked', skillIds: [], steps: [], 
   const v2: SkillPatch = { ...loop.promoted[0], version: 2, parent: 1 };
   writeSkill(join(loopRoot, 'skills'), v2);
   const rolled = rollbackSkill(v2.id, 1, loopRoot);
-  assert('rollback stamps older version', rolled.version === 1, String(rolled.version));
+  assert('rollback stamps older version', rolled?.version === 1, String(rolled?.version));
+  assert(
+    'rollback restores the promoted v1 snapshot body',
+    rolled?.replyGuidance === loop.promoted[0].replyGuidance && JSON.stringify(rolled?.triggers) === JSON.stringify(loop.promoted[0].triggers),
+  );
+  const removed = rollbackSkill(v2.id, 0, loopRoot);
+  assert('rollback to v0 reverts a first promotion', removed === null && !loadProductionSkills(loopRoot).some((s) => s.id === v2.id));
+
+  const noisy: SkillPatch = { ...loop.promoted[0], id: 'auto-noisy', triggers: ['工作', 'season', 'open to work'] };
+  const noisyDecision = decideRatchet({ candidate: noisy, baseline: loop.evaluated, candidateEval: loop.evaluated });
+  assert('ratchet rejects low-quality triggers', !noisyDecision.promote && /trigger quality/.test(noisyDecision.reason), noisyDecision.reason);
+  assert('runtime ignores CJK ≤2 triggers', !triggerMatches('她现在的工作是什么？', '工作') && !triggerMatches('合作', '合作'));
+  assert('runtime keeps 3-char CJK triggers', triggerMatches('她的微信号是多少', '微信号'));
+  assert(
+    'shipped skills pass the trigger-quality gate',
+    ACTIVE_SKILLS.every((sk) => sk.triggers.every((t) => !triggerQualityIssue(t))),
+    ACTIVE_SKILLS.flatMap((sk) => sk.triggers.filter((t) => triggerQualityIssue(t)).map((t) => `${sk.id}:${t}`)).join(', '),
+  );
 
   const formatted = formatMatchingSkills('is she open to work?');
-  assert('chat runtime injects leave-a-note skill', /leave-a-note-contact@1/.test(formatted), formatted.slice(0, 120));
+  assert('chat runtime injects leave-a-note skill', /leave-a-note-contact@\d+/.test(formatted), formatted.slice(0, 120));
   const turn = formatSkillsForTurn('what is a merkle tree in general?');
   assert(
     'hard-rules digest is always on',
@@ -466,12 +485,28 @@ process.stdout.write(JSON.stringify({ reply: 'leaked', skillIds: [], steps: [], 
   assert('enqueue duplicate skipped', dup.reason === 'duplicate', JSON.stringify(dup));
   const councilQ = await enqueueLiveAsk('secret council kiln plan goes here', { isCouncil: true });
   assert('council does not enqueue', councilQ.reason === 'council');
+  const harnessQ = await enqueueLiveAsk('Where is the glaze ledger kept?', { traceId: 'harness-case-1' });
+  assert('harness traffic never enqueues', harnessQ.reason === 'harness', JSON.stringify(harnessQ));
   const drained = await drainLiveInbox(5);
   assert(
     'drain returns uncovered ask',
     drained.length === 1 && /kiln/.test(drained[0].prompt),
     JSON.stringify(drained),
   );
+  {
+    const reasons: string[] = [];
+    for (let i = 0; i < LIVE_INBOX_PER_VISITOR_DAY + 1; i++) {
+      const r = await enqueueLiveAsk(`Where is the pottery ledger number ${i} kept?`, { visitorKey: 'v-rate' });
+      reasons.push(r.reason);
+    }
+    assert(
+      `inbox rate limit ${LIVE_INBOX_PER_VISITOR_DAY}/visitor/day`,
+      reasons.slice(0, LIVE_INBOX_PER_VISITOR_DAY).every((r) => r === 'queued') && reasons[LIVE_INBOX_PER_VISITOR_DAY] === 'rate-limited',
+      JSON.stringify(reasons),
+    );
+    // clear the rate-limit rows
+    await drainLiveInbox(LIVE_INBOX_PER_VISITOR_DAY);
+  }
   const evolveSrc = readFileSync(join(repoRoot(), 'aileena-new/scripts/evolve.ts'), 'utf8');
   assert(
     'from-live refuses constitution writes',

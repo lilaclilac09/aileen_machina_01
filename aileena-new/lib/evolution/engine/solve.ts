@@ -76,6 +76,7 @@ function triggerHits(hay, trigger) {
   const t = String(trigger).toLowerCase().trim();
   if (!t || NOISE.has(t)) return false;
   if (t.length < 4 && !/[\\u4e00-\\u9fff]/.test(t)) return false;
+  if (/[\\u4e00-\\u9fff]/.test(t) && Array.from(t.replace(/\\s+/g, '')).length <= 2) return false;
   const i = hay.indexOf(t);
   if (i < 0) return false;
   if (/[\\u4e00-\\u9fff]/.test(t)) return true;

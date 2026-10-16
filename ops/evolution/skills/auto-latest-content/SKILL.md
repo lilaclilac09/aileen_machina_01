@@ -1,22 +1,21 @@
 ---
 id: auto-latest-content
-version: 3
+version: 4
 kind: site-agent
-parent: 2
+parent: 3
 triggers:
   - "latest-content"
   - "latest"
   - "what's new"
   - "what is new"
-  - "更新"
   - "new on the site"
 must_include:
   - "latest content"
   - "searchmemories"
 must_not:
   - "/blog/cli"
-reply_guidance: For what is new, use searchMemories with query latest content and point at /updates. Do not cite old training posts unless they appear there.
-root_cause: "Guidance named /blog/cli so the solver ate its own instruction; noise triggers (week/ship/anything) false-fired. Upgrade v3."
+reply_guidance: "For what is new, use searchMemories with query latest content and point at /updates. Do not cite old training posts unless they appear there."
+root_cause: "Guidance named /blog/cli so the solver ate its own instruction; noise triggers (week/ship/anything) false-fired. Upgrade v3. Trigger-quality cleanup v4: dropped 更新."
 ---
 
 # Skill auto-latest-content

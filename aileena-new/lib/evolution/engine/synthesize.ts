@@ -1,5 +1,6 @@
 import type { SkillPatch, TaskPrompt, TaskVerifier } from '../types';
 import { serializeSkillMarkdown } from './parseSkill';
+import { cleanTriggers } from '../selectSkills';
 
 const TRIGGER_STOP = new Set([
   'what',
@@ -189,7 +190,8 @@ export function synthesizeSkillFromFailure(opts: {
     .filter((w) => w.length > 3 && !TRIGGER_STOP.has(w))
     .slice(0, 8);
 
-  const triggers = [...prompt.structure, ...packTriggers, ...promptTriggers];
+  // Trigger-quality gate: no noise words, no CJK triggers of 2 characters or fewer.
+  const triggers = cleanTriggers([...prompt.structure, ...packTriggers, ...promptTriggers]);
   const guidance =
     packGuidance[0] ||
     [

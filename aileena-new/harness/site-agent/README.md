@@ -34,7 +34,7 @@ The runner needs Node 20 and nothing else: no install and no new packages.
 - Cases tagged `live: false` or `sideEffect` are skipped on live. On local they run only with `--include-side-effects`.
 - Live defaults: 2.5 s between requests and at most 24 requests per run. Forged owner cookies are sent only on the case that tests them.
 - The reports drop `Set-Cookie` values, so visitor ids are never committed.
-- Every live question still lands in the evolution live inbox (`enqueueLiveAsk`) like any visitor's. The `X-Trace-Id: harness-<case>` header makes those rows easy to spot and drop.
+- Every live question still lands in the evolution live inbox (`enqueueLiveAsk`) unless the trace id starts with `harness` (the `X-Trace-Id: harness-<case>` header): those are dropped before they reach the inbox (reason `harness`).
 
 ## Local dev
 

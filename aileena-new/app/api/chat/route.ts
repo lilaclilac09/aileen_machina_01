@@ -31,13 +31,18 @@ import {
 } from '../../../lib/toolRouter';
 import {
   routeModel,
-  recordModelSuccess,
-  recordModelFailure,
+  buildFallback,
+  cacheTokensFromSteps,
   createModelAbortSignal,
   classifyModelError,
   degradeMessage,
   MODEL_TOTAL_BUDGET_MS,
 } from '../../../lib/modelRouter';
+import { breakerFailure, breakerGate, breakerSuccess, isCancellation } from '../../../lib/agentRuntime/breaker';
+import { commitTurn, findCommittedTurn, readLedger, rebuildTranscript, validLedgerId } from '../../../lib/agentRuntime/ledger';
+import { chargeRedisQuota, quotaKeyFor, readRedisQuota, redisQuotaEnabled } from '../../../lib/agentRuntime/quota';
+import { createSummaryToken, summaryTailBlock, verifySummaryToken } from '../../../lib/agentRuntime/summaryToken';
+import { neutralizeVisitorText } from '../../../lib/agentGuard/inputGuard';
 import { createRequestTrace } from '../../../lib/requestTrace';
 import {
   ensureVisitorId,
@@ -127,6 +132,12 @@ export async function POST(req: Request) {
     voiceAccent?: string;
     sessionProvider?: string;
     sessionVoiceAccent?: string;
+    /** Frozen-root id for the server turn ledger. */
+    sessionId?: string;
+    /** Per visitor turn; a retry with the same id is replayed, not re-run. */
+    turnId?: string;
+    /** Signed summary from a 409 compaction; seeds this new root. */
+    summaryToken?: string;
   };
   try {
     body = await req.json();
@@ -232,17 +243,39 @@ export async function POST(req: Request) {
     });
   }
 
+  // P1.3 turn ledger: a retry of a committed turn is replayed (no model, no charge).
+  // The ledger is bound to this visitor cookie and mode, so a leaked sessionId
+  // alone never opens someone else's thread.
+  const { id: visitorId, isNew: newVisitorCookie } = await ensureVisitorId(req);
+  const ledgerSessionId =
+    !isCouncil && validLedgerId(body.sessionId) ? `${agentMode}:${visitorId}:${body.sessionId}` : null;
+  const ledgerTurnId = ledgerSessionId && validLedgerId(body.turnId) ? body.turnId : null;
+  if (ledgerSessionId && ledgerTurnId) {
+    const done = await findCommittedTurn(ledgerSessionId, ledgerTurnId);
+    if (done) {
+      trace.log('turn', { stopReason: 'replay', committed: true, route: 'replay', turnId: ledgerTurnId });
+      return queuedChatResponse(done.assistant, { 'X-Turn-Replay': '1', 'X-Trace-Id': trace.traceId, 'X-Agent-Mode': agentMode });
+    }
+  }
+
   // Daily quota — public visitors only. OWNER_KEY session or recognized
   // owner-email cookie skips the 20/day cap. Forged agentMode cannot bypass this.
+  // The cap is CHAT_DAILY_LIMIT (20/day, unchanged). With Redis, the counter is
+  // keyed by a salted daily hash of visitor id + IP and charged only when the
+  // turn commits; without Redis the signed cookie works exactly as before.
   const quotaSpan = trace.startSpan('quota');
   const ownerUnlimited = await hasOwnerUnlimitedChat(req);
   const unlimitedChat = skipQuota || ownerUnlimited;
-  const quota = await readQuota(req);
+  const cookieQuota = await readQuota(req);
+  const redisQuotaKey = !unlimitedChat && redisQuotaEnabled() ? await quotaKeyFor(req, visitorId, cookieQuota.date) : null;
+  const redisCount = redisQuotaKey ? await readRedisQuota(redisQuotaKey) : 0;
+  const quota = { date: cookieQuota.date, count: Math.max(cookieQuota.count, redisCount) };
   trace.endSpan(quotaSpan, true, {
     count: quota.count,
     date: quota.date,
     skipQuota,
     ownerUnlimited,
+    store: redisQuotaKey ? 'redis' : 'cookie',
   });
   if (!unlimitedChat && quota.count >= DAILY_LIMIT) {
     console.warn('[chat] POST: daily limit reached for user', { count: quota.count, date: quota.date, traceId: trace.traceId });
@@ -264,11 +297,17 @@ export async function POST(req: Request) {
   const prepSpan = trace.startSpan('prepare');
   if (needsNewRootForLength(messages.length)) {
     trace.endSpan(prepSpan, true, { reason: 'compaction' });
+    // P2.9: hand the client a signed summary to seed the next root.
+    const summaryToken = await createSummaryToken(messages);
     return jsonError(COMPACTION_PING, 409, trace.traceId, { 'X-New-Root': 'compaction' }, {
       code: 'new_root',
       reason: 'compaction',
+      summaryToken,
     });
   }
+  const seededSummary = !isCouncil ? await verifySummaryToken(body.summaryToken) : null;
+  const ledgerTurns = ledgerSessionId ? await readLedger(ledgerSessionId) : [];
+  const rebuilt = rebuildTranscript(messages, ledgerTurns);
   // One TurnGuard owns all guard state for this request: (a) input guard,
   // (b) output guard, (c) number grounding, (d) locale. Council is owner-only
   // and keeps its own layout; secrets are still redacted there.
@@ -277,15 +316,18 @@ export async function POST(req: Request) {
     isOwner: Boolean(owner),
     lastQuestion: lastQEarly,
   });
-  const trimmed = guard.guardTranscript(messages);
+  const trimmed = guard.guardTranscript(rebuilt.messages);
   if (trimmed.length === 0) {
     return jsonError('No messages provided.', 400, trace.traceId);
   }
-  if (guard.inputGuardHits > 0 || guard.droppedClientParts > 0) {
+  if (guard.inputGuardHits > 0 || guard.droppedClientParts > 0 || rebuilt.source === 'ledger') {
     trace.log('input_guard', {
       hits: guard.inputGuardHits,
       droppedClientParts: guard.droppedClientParts,
       mode: agentMode,
+      transcript: rebuilt.source,
+      ledgerTurns: ledgerTurns.length,
+      replacedAssistant: rebuilt.replacedAssistant,
     });
   }
   let modelMessages: ModelMessage[];
@@ -316,7 +358,6 @@ export async function POST(req: Request) {
 
   // Per-visitor soft memory: one Redis GET on the hot path; merge locally for
   // this turn's prompt; SET is fire-and-forget so TTFT isn't blocked by write RTT.
-  const { id: visitorId, isNew: newVisitorCookie } = await ensureVisitorId(req);
   const visitorSoftLoaded = isCouncil
     ? { questions: [] as string[], topics: [] as string[], updatedAt: '', hitCount: 0 }
     : await loadVisitorSoftMemory(visitorId);
@@ -330,7 +371,9 @@ export async function POST(req: Request) {
   }
   // Uncovered public asks → Redis live inbox. Drain ratchets held-out only.
   // Council never enqueues. Does not write AGENTS.md / QA.md / PROJECT_RULES.md.
-  if (lastQ && !agentCaller) void enqueueLiveAsk(lastQ, { isCouncil });
+  if (lastQ && !agentCaller) {
+    void enqueueLiveAsk(lastQ, { isCouncil, traceId: trace.traceId, visitorKey: redisQuotaKey ?? visitorId });
+  }
 
   const toolRoute = routeToolsForQuestion(lastQ, visitorSoft, priorTopics);
   const modelDecision = routeModel({
@@ -360,7 +403,32 @@ export async function POST(req: Request) {
     });
   }
 
-  const picked = modelDecision.pick;
+  // P1.6 per-provider breaker (Redis, one half-open probe). An open primary
+  // falls back to the fallback model; the provider lock then answers 409 and
+  // the client starts a new root on the fallback instead of seeing a 503.
+  let picked = modelDecision.pick;
+  let probe = false;
+  {
+    const gate = await breakerGate(picked.provider);
+    if (gate.allowed) {
+      probe = gate.probe;
+    } else {
+      const fb = buildFallback();
+      const fbGate = fb ? await breakerGate(fb.provider) : null;
+      if (fb && fbGate?.allowed) {
+        trace.log('breaker', { provider: picked.provider, state: gate.reason, fallback: fb.provider });
+        picked = fb;
+        probe = fbGate.probe;
+      } else {
+        trace.log('breaker', { provider: picked.provider, state: gate.reason, fallback: 'none' });
+        return jsonError(degradeMessage('circuit_open', lastQ), 503, trace.traceId, {
+          'X-Degrade-Reason': 'circuit_open',
+          'X-Tool-Route': toolRoute.route,
+          'X-Agent-Mode': agentMode,
+        });
+      }
+    }
+  }
   const sessionProvider = readSessionProviderLock(
     body.sessionProvider,
     req.headers.get('x-session-provider'),
@@ -479,7 +547,7 @@ ${memoryPrefetch
   )
   .join('\n')}`
       : '';
-  const sessionTail = buildSessionTail({
+  const sessionTailCore = buildSessionTail({
     agentMode,
     memoryPrefetchBlock,
     toolRoute,
@@ -490,6 +558,11 @@ ${memoryPrefetch
     skillBlock: isCouncil ? '' : formatSkillsForTurn(lastQ),
     languageNote: isCouncil ? '' : guard.languageNote(),
   });
+  // P2.9: a verified compaction summary seeds this root (visitor text, neutralized).
+  const summaryBlock = seededSummary
+    ? summaryTailBlock({ ...seededSummary, questions: seededSummary.questions.map((q) => neutralizeVisitorText(q).text) })
+    : '';
+  const sessionTail = [summaryBlock, sessionTailCore].filter(Boolean).join('\n\n');
   guard.setSystem(frozenSystem);
   // The genuine tail is wrapped in this request's nonce; visitor copies of the
   // marker were neutralized above, so only the server can open this block.
@@ -608,7 +681,30 @@ ${memoryPrefetch
       provider: picked.provider,
       budgetMs: MODEL_TOTAL_BUDGET_MS,
     });
-    const abortSignal = createModelAbortSignal(MODEL_TOTAL_BUDGET_MS);
+    // P1.4: real cancel. The visitor closing the tab aborts the model and the
+    // tools (they get this signal via their execute options); the budget still
+    // caps the turn.
+    const budgetSignal = createModelAbortSignal(MODEL_TOTAL_BUDGET_MS);
+    const abortSignal =
+      typeof AbortSignal.any === 'function' && req.signal ? AbortSignal.any([req.signal, budgetSignal]) : budgetSignal;
+    let turnSettled = false;
+    const turnEvent = (extra: Record<string, unknown>) => {
+      if (turnSettled) return;
+      turnSettled = true;
+      const audit = reactGuard.summary();
+      trace.log('turn', {
+        prefixHash: turnPrefixHash,
+        route: toolRoute.route,
+        mode: agentMode,
+        provider: picked.provider,
+        probe,
+        tools: audit.calls.map((c) => c.tool),
+        blockedTools: audit.calls.filter((c) => c.blocked).length,
+        transcript: rebuilt.source,
+        quotaStore: redisQuotaKey ? 'redis' : unlimitedChat ? 'unlimited' : 'cookie',
+        ...extra,
+      });
+    };
 
     const result = streamText({
       model: picked.model,
@@ -625,15 +721,43 @@ ${memoryPrefetch
       tools: Object.keys(guardedTools).length > 0 ? guardedTools : undefined,
       // Hire / CV route: same tool table (prefix cache holds), but no calls.
       toolChoice: toolRoute.allowed === 'none' ? 'none' : 'auto',
+      // P1.5: the last step must answer, not call another tool.
+      prepareStep: ({ stepNumber }) => (stepNumber >= REACT_MAX_STEPS - 1 ? { toolChoice: 'none' as const } : {}),
       abortSignal,
+      onAbort: ({ steps }) => {
+        // P1.4: cancelled turns are not committed, not charged and not breaker failures.
+        trace.endSpan(modelSpan, false, { reason: 'cancelled', steps: steps?.length ?? 0 });
+        reactGuard.markCancelled();
+        if (probe) void breakerSuccess(picked.provider).catch(() => {});
+        turnEvent({ stopReason: 'cancelled', finishReason: 'abort', committed: false, steps: steps?.length ?? 0 });
+      },
       // (b)(c) Output guard + number grounding, sentence-buffered on the stream.
       experimental_transform: guard.transform(),
-      onFinish: ({ finishReason, steps }) => {
+      onFinish: async ({ finishReason, steps, text }) => {
         trace.endSpan(modelSpan, true, {
           finishReason,
           steps: steps?.length ?? 0,
         });
-        recordModelSuccess();
+        void breakerSuccess(picked.provider).catch(() => {});
+        // P1.3: commit + charge only when the model actually finished.
+        const committed = finishReason === 'stop' || finishReason === 'length';
+        if (committed) {
+          try {
+            if (redisQuotaKey) await chargeRedisQuota(redisQuotaKey);
+            if (ledgerSessionId) {
+              await commitTurn(ledgerSessionId, {
+                turnId: ledgerTurnId ?? `${trace.traceId}`,
+                user: lastQ,
+                assistant: text ?? '',
+                finishReason,
+                at: Date.now(),
+              });
+            }
+          } catch (err) {
+            console.error('[chat] commit failed', err instanceof Error ? err.message : String(err), { traceId: trace.traceId });
+          }
+        }
+        const cache = cacheTokensFromSteps(steps as unknown as Parameters<typeof cacheTokensFromSteps>[0]);
         if (finishReason === 'stop' || finishReason === 'length') {
           reactGuard.noteStop('model_finish');
         }
@@ -662,13 +786,23 @@ ${memoryPrefetch
           guard: guard.summary(),
         });
         trace.log('guard', guard.summary());
+        turnEvent({
+          stopReason: audit.stopReasonPrimary,
+          finishReason,
+          committed,
+          steps: steps?.length ?? 0,
+          promptCacheHitTokens: cache?.promptCacheHitTokens ?? null,
+          promptCacheMissTokens: cache?.promptCacheMissTokens ?? null,
+        });
       },
     });
 
     // Owner unlimited (session or email cookie): do not burn the visitor counter.
+    // Cookie quota (no Redis): charged up front exactly as before. With Redis
+    // the cookie just mirrors the current count; the charge happens on commit.
     const setCookie = unlimitedChat
       ? null
-      : await buildQuotaCookie({ date: quota.date, count: quota.count + 1 });
+      : await buildQuotaCookie({ date: quota.date, count: redisQuotaKey ? quota.count : quota.count + 1 });
     // Always refresh visitor cookie Max-Age so browser id tracks the 90d Redis TTL.
     const visitorCookie = await buildVisitorCookie(visitorId);
 
@@ -676,8 +810,10 @@ ${memoryPrefetch
       onError: (err) => {
         const msg = err instanceof Error ? err.message : String(err);
         const classified = classifyModelError(err);
-        recordModelFailure(err);
-        trace.endSpan(modelSpan, false, { error: msg.slice(0, 160), reason: classified.reason });
+        const cancelled = isCancellation(err, req.signal);
+        if (!cancelled) void breakerFailure(picked.provider).catch(() => {});
+        trace.endSpan(modelSpan, false, { error: msg.slice(0, 160), reason: cancelled ? 'cancelled' : classified.reason });
+        turnEvent({ stopReason: cancelled ? 'cancelled' : 'error', finishReason: 'error', committed: false, error: classified.reason });
         console.error('[chat] streamText: provider=%s error: %s', picked.provider, msg, {
           traceId: trace.traceId,
         });
@@ -725,7 +861,7 @@ ${memoryPrefetch
     console.log('[chat] POST: stream response initialized', { traceId: trace.traceId });
     return new Response(stream.body, { status: stream.status, headers });
   } catch (err) {
-    recordModelFailure(err);
+    if (!isCancellation(err, req.signal)) void breakerFailure(picked.provider).catch(() => {});
     const classified = classifyModelError(err);
     console.error('[chat] POST: unexpected error during stream setup', err, {
       traceId: trace.traceId,

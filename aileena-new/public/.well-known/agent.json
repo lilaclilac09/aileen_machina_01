@@ -4,14 +4,14 @@
   "url": "https://aileena.xyz",
   "provider": { "organization": "Aileen Choo", "url": "https://aileena.xyz" },
   "version": "1.0.0",
-  "documentationUrl": "https://aileena.xyz/llms.txt",
+  "documentationUrl": "https://www.aileena.xyz/llms.txt",
   "defaultInputModes": ["text/plain"],
   "defaultOutputModes": ["text/plain"],
   "interfaces": [
     {
       "type": "mcp",
       "transport": "streamable-http",
-      "url": "https://aileena.xyz/api/mcp",
+      "url": "https://www.aileena.xyz/api/mcp",
       "auth": "none"
     }
   ],

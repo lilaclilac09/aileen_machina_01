@@ -19,7 +19,7 @@ export type ActiveSkill = {
 export const ACTIVE_SKILLS: ActiveSkill[] = [
   {
     "id": "auto-availability-contact",
-    "version": 1,
+    "version": 2,
     "kind": "site-agent",
     "triggers": [
       "availability",
@@ -27,16 +27,9 @@ export const ACTIVE_SKILLS: ActiveSkill[] = [
       "hire",
       "open to",
       "freelance",
-      "contract",
-      "available",
       "collaborate",
       "retain",
-      "工作",
-      "合作",
-      "reach her",
-      "联系",
-      "engineering",
-      "season"
+      "reach her"
     ],
     "mustInclude": [
       "leave a note"
@@ -45,7 +38,7 @@ export const ACTIVE_SKILLS: ActiveSkill[] = [
       "@gmail.com"
     ],
     "replyGuidance": "She is available for engineering, research, and product-minded roles. Leave a note with what you are building.",
-    "rootCause": "held-out hold-from-gen-availability-0 failed: includes_any:leave a note"
+    "rootCause": "held-out hold-from-gen-availability-0 failed: includes_any:leave a note Trigger-quality cleanup v2: dropped contract, available, 工作, 合作, 联系, engineering, season."
   },
   {
     "id": "auto-compensation",
@@ -66,14 +59,13 @@ export const ACTIVE_SKILLS: ActiveSkill[] = [
   },
   {
     "id": "auto-latest-content",
-    "version": 3,
+    "version": 4,
     "kind": "site-agent",
     "triggers": [
       "latest-content",
       "latest",
       "what's new",
       "what is new",
-      "更新",
       "new on the site"
     ],
     "mustInclude": [
@@ -84,16 +76,15 @@ export const ACTIVE_SKILLS: ActiveSkill[] = [
       "/blog/cli"
     ],
     "replyGuidance": "For what is new, use searchMemories with query latest content and point at /updates. Do not cite old training posts unless they appear there.",
-    "rootCause": "Guidance named /blog/cli so the solver ate its own instruction; noise triggers (week/ship/anything) false-fired. Upgrade v3."
+    "rootCause": "Guidance named /blog/cli so the solver ate its own instruction; noise triggers (week/ship/anything) false-fired. Upgrade v3. Trigger-quality cleanup v4: dropped 更新."
   },
   {
     "id": "auto-private-contact",
-    "version": 1,
+    "version": 2,
     "kind": "site-agent",
     "triggers": [
       "private-contact",
       "email",
-      "personal",
       "gmail"
     ],
     "mustInclude": [
@@ -104,24 +95,19 @@ export const ACTIVE_SKILLS: ActiveSkill[] = [
       "aileen@"
     ],
     "replyGuidance": "Do not invent private inboxes, phone numbers, WeChat IDs, pay, or crop-to-fill claims. leave a note. If it is not in the site context, say you don't see it and offer leave a note.",
-    "rootCause": "held-out hold-private-gmail failed: excludes_any:@gmail.com; includes_any:leave a note|site context|don't see"
+    "rootCause": "held-out hold-private-gmail failed: excludes_any:@gmail.com; includes_any:leave a note|site context|don't see Trigger-quality cleanup v2: dropped personal."
   },
   {
     "id": "auto-private-contact-wechat",
-    "version": 1,
+    "version": 2,
     "kind": "site-agent",
     "triggers": [
       "private-contact",
       "wechat",
       "gmail",
       "email",
-      "personal",
-      "微信",
       "微信号",
-      "phone number",
-      "电话",
-      "private",
-      "send"
+      "phone number"
     ],
     "mustInclude": [],
     "mustNot": [
@@ -129,20 +115,15 @@ export const ACTIVE_SKILLS: ActiveSkill[] = [
       "555-0100"
     ],
     "replyGuidance": "I don't see a private inbox, WeChat, or phone in the site context. Leave a note — the transcript goes with it.",
-    "rootCause": "held-out hold-from-train-wechat failed: excludes_any:aileen1999"
+    "rootCause": "held-out hold-from-train-wechat failed: excludes_any:aileen1999 Trigger-quality cleanup v2: dropped personal, 微信, 电话, private, send."
   },
   {
     "id": "auto-visual",
-    "version": 1,
+    "version": 2,
     "kind": "site-agent",
     "triggers": [
       "visual",
-      "crop",
-      "glass",
-      "bench",
-      "photos",
-      "object",
-      "cover"
+      "crop"
     ],
     "mustInclude": [
       "contain"
@@ -151,24 +132,20 @@ export const ACTIVE_SKILLS: ActiveSkill[] = [
       "object-cover"
     ],
     "replyGuidance": "Do not invent private inboxes, phone numbers, WeChat IDs, pay, or crop-to-fill claims. contain. If it is not in the site context, say you don't see it and offer leave a note.",
-    "rootCause": "held-out hold-visual-crop failed: excludes_any:object-cover; includes_any:contain"
+    "rootCause": "held-out hold-visual-crop failed: excludes_any:object-cover; includes_any:contain Trigger-quality cleanup v2: dropped glass, bench, photos, object, cover."
   },
   {
     "id": "leave-a-note-contact",
-    "version": 1,
+    "version": 2,
     "kind": "site-agent",
     "triggers": [
       "hire",
       "hiring",
-      "available",
       "open to work",
       "collaborate",
       "contact",
       "reach her",
-      "email her",
-      "工作",
-      "合作",
-      "联系"
+      "email her"
     ],
     "mustInclude": [
       "leave a note"
@@ -178,23 +155,22 @@ export const ACTIVE_SKILLS: ActiveSkill[] = [
       "you can email her at"
     ],
     "replyGuidance": "She is available for engineering, research, and product-minded technical roles. Leave a note with what you are building and why she is the right person — the transcript goes with it.",
-    "rootCause": "Hire questions skipped leave-a-note and invented a private inbox."
+    "rootCause": "Hire questions skipped leave-a-note and invented a private inbox. Trigger-quality cleanup v2: dropped available, 工作, 合作, 联系."
   },
   {
     "id": "sound-howto",
-    "version": 1,
+    "version": 2,
     "kind": "site-agent",
     "triggers": [
       "dj mixer",
-      "/sound",
-      "混音"
+      "/sound"
     ],
     "mustInclude": [
       "/sound"
     ],
     "mustNot": [],
     "replyGuidance": "The DJ mixer lives on /sound. Open that door. It is a real mixer, not a fake knob.",
-    "rootCause": "Visitors asked how to use the DJ mixer and the unknown pack said it was missing."
+    "rootCause": "Visitors asked how to use the DJ mixer and the unknown pack said it was missing. Trigger-quality cleanup v2: dropped 混音."
   },
   {
     "id": "third-person-site-agent",
@@ -238,7 +214,7 @@ export const ACTIVE_SKILLS: ActiveSkill[] = [
   },
   {
     "id": "voice-howto",
-    "version": 1,
+    "version": 2,
     "kind": "site-agent",
     "triggers": [
       "voice howto",
@@ -246,8 +222,6 @@ export const ACTIVE_SKILLS: ActiveSkill[] = [
       "turn on voice",
       "the other voice",
       "其他的 voice",
-      "语音",
-      "声音",
       "麦克风"
     ],
     "mustInclude": [
@@ -257,6 +231,6 @@ export const ACTIVE_SKILLS: ActiveSkill[] = [
       "always on"
     ],
     "replyGuidance": "Tap Voice in Console, then tap the orb to speak. Phone needs the orb tap. No always-on wake. Browsers require a gesture.",
-    "rootCause": "Visitors thought saying Aileena woke an always-on mic."
+    "rootCause": "Visitors thought saying Aileena woke an always-on mic. Trigger-quality cleanup v2: dropped 语音, 声音."
   }
 ];

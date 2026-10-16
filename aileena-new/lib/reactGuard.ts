@@ -18,6 +18,7 @@ export type ReactStopReason =
   | 'empty_recall'
   | 'tool_error'
   | 'model_finish'
+  | 'cancelled'
   | 'unknown';
 
 export type ReactToolCallRecord = {
@@ -131,6 +132,8 @@ export type ReactGuardSession = {
   afterError: (tool: string, args: unknown, err: unknown) => Record<string, unknown>;
   noteStop: (reason: ReactStopReason) => void;
   summary: () => ReactAudit & { stopReasonPrimary: ReactStopReason };
+  /** Record that the turn was cancelled (abort signal fired). */
+  markCancelled: () => void;
 };
 
 export function createReactGuardSession(): ReactGuardSession {
@@ -220,8 +223,9 @@ export function createReactGuardSession(): ReactGuardSession {
     },
 
     summary() {
-      const primary: ReactStopReason =
-        audit.duplicateBlocks > 0
+      const primary: ReactStopReason = audit.stopReasons.includes('cancelled')
+        ? 'cancelled'
+        : audit.duplicateBlocks > 0
           ? 'duplicate_tool'
           : audit.toolErrors > 0
             ? 'tool_error'
@@ -231,6 +235,9 @@ export function createReactGuardSession(): ReactGuardSession {
                 ? 'model_finish'
                 : audit.stopReasons[audit.stopReasons.length - 1] ?? 'unknown';
       return { ...audit, stopReasonPrimary: primary };
+    },
+    markCancelled() {
+      if (!audit.stopReasons.includes('cancelled')) audit.stopReasons.push('cancelled');
     },
   };
 }
@@ -258,6 +265,13 @@ export function wrapToolsWithReactGuard<T extends Record<string, AnyTool>>(
     out[name] = {
       ...t,
       execute: async (args: unknown, opts: unknown) => {
+        // P1.4: the turn's AbortSignal reaches every tool via its options.
+        // A cancelled turn starts no new tool work.
+        const signal = (opts as { abortSignal?: AbortSignal } | undefined)?.abortSignal;
+        if (signal?.aborted) {
+          session.markCancelled();
+          return { blocked: true, reason: 'cancelled', note: 'The visitor cancelled this turn.' };
+        }
         const gate = session.beforeCall(name, args);
         if (!gate.allowed) return gate.observation;
         try {
