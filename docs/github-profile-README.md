@@ -27,7 +27,7 @@ DeFi propagation research & hardware supply chain analysis. Writing about why th
 ---
 
 ### Recently Updated
-<!-- profile:synced-at 2026-10-16T14:33:06.925Z -->
+<!-- profile:synced-at 2026-10-17T13:27:50.679Z -->
 <!-- profile:recently-updated:start -->
 * **[aileena.xyz](https://aileena.xyz) Console**: Site agent: runtime guards, P0, console starters + owner analytics, public MCP endpoint.
 * **Cafe Cursor**: Credits distribution and user support tooling at [cursor-cafe.aileena.xyz](https://cursor-cafe.aileena.xyz).
