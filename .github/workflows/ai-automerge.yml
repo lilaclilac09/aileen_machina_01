@@ -76,6 +76,7 @@ jobs:
           pnpm exec tsx harness/site-agent/actions.ts
           pnpm exec tsx harness/site-agent/codeMode.ts
           pnpm exec tsx harness/site-agent/mcpCode.ts
+          pnpm exec tsx harness/site-agent/codeReview.ts
           pnpm exec tsx scripts/verify-evolve.ts
           pnpm exec tsx scripts/verify-ops.ts
           pnpm exec tsx scripts/verify-agent-rules.ts
@@ -266,8 +267,10 @@ jobs:
   enable-automerge:
     name: enable-automerge
     needs: [ci, playwright-dnd, cursor-review]
+    # Machina code-mode PRs (machina/code-*) are never auto-merged, even if labeled.
     if: |
       always() &&
+      !startsWith(github.head_ref, 'machina/code-') &&
       contains(github.event.pull_request.labels.*.name, 'ai-automerge') &&
       needs.ci.result == 'success' &&
       needs.playwright-dnd.result == 'success' &&

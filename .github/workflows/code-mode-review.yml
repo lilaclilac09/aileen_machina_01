@@ -1,0 +1,162 @@
+# Automatic review + score for Machina code-mode PRs (head branch machina/code-*).
+#
+# Threat model: the PR was written by an AI agent and its contents are untrusted.
+#   - `checks` runs the PR's code (install, tsc, lint, offline tests, build)
+#     with a read-only token, no secrets and no cache, and with git credentials
+#     not persisted. It reports only step outcomes, as job outputs the runner
+#     computes, never as files the PR could write.
+#   - `review` runs this file and .github/scripts/code-review.mjs from the BASE
+#     branch (pull_request_target), never executes PR code, reads the diff
+#     from the API, and may send it to DeepSeek as untrusted data. Its token
+#     can only comment: no contents write, no approvals, no merges.
+#   - Code-mode PRs are never auto-merged (see ai-automerge.yml). A human merges.
+name: code-mode-review
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: code-mode-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: code-mode checks (sandboxed)
+    if: startsWith(github.event.pull_request.head.ref, 'machina/code-') && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    outputs:
+      touched: ${{ steps.touched.outputs.touched }}
+      install: ${{ steps.install.outcome }}
+      typecheck: ${{ steps.typecheck.outcome }}
+      lint: ${{ steps.lint.outcome }}
+      tests: ${{ steps.tests.outcome }}
+      build: ${{ steps.build.outcome }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Touched packages
+        id: touched
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          if git diff --name-only "$BASE_SHA...HEAD" | grep -q '^aileena-new/'; then
+            echo "touched=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "touched=0" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: pnpm/action-setup@v4
+        if: steps.touched.outputs.touched == '1'
+        with:
+          version: 9
+
+      # No dependency cache on purpose: this job runs untrusted code.
+      - uses: actions/setup-node@v4
+        if: steps.touched.outputs.touched == '1'
+        with:
+          node-version: 22
+
+      - name: Install
+        id: install
+        if: steps.touched.outputs.touched == '1'
+        continue-on-error: true
+        working-directory: aileena-new
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        id: typecheck
+        if: steps.touched.outputs.touched == '1' && steps.install.outcome == 'success'
+        continue-on-error: true
+        working-directory: aileena-new
+        run: |
+          pnpm build:index
+          pnpm build:data-index
+          pnpm build:memory-index
+          pnpm exec tsc --noEmit
+
+      - name: Lint (changed files)
+        id: lint
+        if: steps.touched.outputs.touched == '1' && steps.install.outcome == 'success'
+        continue-on-error: true
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          mapfile -t rel < <(git diff --name-only --diff-filter=d "$BASE_SHA...HEAD" -- 'aileena-new/**/*.ts' 'aileena-new/**/*.tsx' 'aileena-new/**/*.js' 'aileena-new/**/*.jsx' 'aileena-new/**/*.mjs' | sed 's#^aileena-new/##')
+          if [ ${#rel[@]} -eq 0 ]; then echo "No changed TS/JS files."; exit 0; fi
+          cd aileena-new
+          pnpm exec eslint -- "${rel[@]}"
+
+      - name: Offline tests
+        id: tests
+        if: steps.touched.outputs.touched == '1' && steps.install.outcome == 'success'
+        continue-on-error: true
+        working-directory: aileena-new
+        run: |
+          set -euo pipefail
+          for f in harness/site-agent/offline.ts harness/site-agent/guards.ts harness/site-agent/engage.ts \
+                   harness/site-agent/runtime.ts harness/site-agent/promptContract.ts harness/site-agent/gpuRouter.ts \
+                   harness/site-agent/perf.ts harness/site-agent/actions.ts harness/site-agent/codeMode.ts \
+                   harness/site-agent/mcpCode.ts harness/site-agent/codeReview.ts scripts/verify-agent-rules.ts scripts/verify-react.ts; do
+            [ -f "$f" ] || continue
+            echo "::group::$f"
+            pnpm exec tsx "$f"
+            echo "::endgroup::"
+          done
+
+      - name: Build
+        id: build
+        if: steps.touched.outputs.touched == '1' && steps.install.outcome == 'success'
+        continue-on-error: true
+        working-directory: aileena-new
+        run: pnpm build
+
+  review:
+    name: code-mode review
+    needs: checks
+    if: always() && startsWith(github.event.pull_request.head.ref, 'machina/code-') && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      # Base branch only (pull_request_target default). PR code is never checked out here.
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/scripts
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Score, review and comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          ALLOW_WORKFLOWS: ${{ vars.AGENT_CODE_ALLOW_WORKFLOWS }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          OUT_INSTALL: ${{ needs.checks.outputs.install }}
+          OUT_TYPECHECK: ${{ needs.checks.outputs.typecheck }}
+          OUT_LINT: ${{ needs.checks.outputs.lint }}
+          OUT_TESTS: ${{ needs.checks.outputs.tests }}
+          OUT_BUILD: ${{ needs.checks.outputs.build }}
+        run: node .github/scripts/code-review.mjs
