@@ -16,6 +16,7 @@ export type CodeLimits = {
   maxListEntries: number;
 };
 
+// Limits are per code-mode turn; owners can raise them via AGENT_CODE_MAX_* env vars.
 export const DEFAULT_LIMITS: CodeLimits = {
   maxSteps: 16,
   maxFiles: 8,
