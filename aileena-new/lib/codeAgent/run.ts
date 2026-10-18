@@ -51,7 +51,7 @@ export function ownerCodeConfig(): CodeConfig {
   return { token, repo };
 }
 
-function defaultModel(): ChatClient | null {
+export function defaultCodeModel(): ChatClient | null {
   const apiKey = process.env.AGENT_CODE_API_KEY || process.env.DEEPSEEK_API_KEY || process.env.AGENT_API_KEY;
   if (!apiKey) return null;
   return openAiCompatibleClient({
@@ -122,7 +122,7 @@ export async function runCodeTurn(opts: {
   if (command.kind === 'help') return { text: CODE_HELP, status: 'help' };
   const cfg = opts.config ?? ownerCodeConfig();
   if ('off' in cfg) return { text: cfg.off, status: 'off' };
-  const client = opts.deps && 'client' in opts.deps ? opts.deps.client : defaultModel();
+  const client = opts.deps && 'client' in opts.deps ? opts.deps.client : defaultCodeModel();
   if (!client) return { text: 'Code mode needs a model key (DEEPSEEK_API_KEY or AGENT_CODE_API_KEY).', status: 'off' };
   const now = opts.deps?.now ?? Date.now;
   const started = now();
@@ -163,7 +163,7 @@ export async function runCodeTurn(opts: {
 
     if (rec.status === 'working') {
       const agent = new Agent(client, githubWorkspace(gh, rec.base.sha), policy);
-      const out = await agent.run(rec.agent, started + budget - 7_000);
+      const out = await agent.run(rec.agent, started + budget - 7_000, started + budget + 3_000);
       if (out.status === 'paused' || out.status === 'error') {
         await kv.set(runKey(runId), forStorage(rec), { ex: RUN_TTL });
         await audit(rec, actor, out.status);

@@ -37,7 +37,8 @@ export type Message = {
 
 export type ChatClient = {
   model: string;
-  chat(messages: Message[], tools: ToolSchema[]): Promise<Message>;
+  /** timeoutMs: hard cap for this one call (the request deadline). */
+  chat(messages: Message[], tools: ToolSchema[], opts?: { timeoutMs?: number }): Promise<Message>;
 };
 
 export type ToolSchema = { type: 'function'; function: { name: string; description: string; parameters: Record<string, unknown> } };
@@ -47,7 +48,7 @@ export function openAiCompatibleClient(opts: { baseURL: string; apiKey: string; 
   const isDeepSeek = /deepseek\.com/i.test(opts.baseURL);
   return {
     model: opts.model,
-    async chat(messages, tools) {
+    async chat(messages, tools, callOpts) {
       const res = await fetch(`${opts.baseURL.replace(/\/+$/, '')}/chat/completions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${opts.apiKey}` },
@@ -58,7 +59,7 @@ export function openAiCompatibleClient(opts: { baseURL: string; apiKey: string; 
           ...(tools.length ? { tools } : {}),
           ...(isDeepSeek ? { thinking: { type: opts.thinking ? 'enabled' : 'disabled' } } : {}),
         }),
-        signal: AbortSignal.timeout(25_000),
+        signal: AbortSignal.timeout(Math.max(1_000, Math.min(25_000, callOpts?.timeoutMs ?? 25_000))),
       });
       const text = await res.text();
       if (!res.ok) throw new Error(`model API returned ${res.status}: ${text.slice(0, 200)}`);
@@ -274,7 +275,7 @@ export class Agent {
    * message. Loop: inference → run requested tools → send results → repeat,
    * until the model answers in text, the step cap hits, or the deadline nears.
    */
-  async run(state: AgentState, deadlineMs: number): Promise<RunOutcome> {
+  async run(state: AgentState, deadlineMs: number, hardDeadlineMs = deadlineMs + 10_000): Promise<RunOutcome> {
     const audit = () => this.guard.summary();
     for (;;) {
       if (state.steps >= this.policy.limits.maxSteps) {
@@ -286,7 +287,7 @@ export class Agent {
       state.steps += 1;
       let message: Message;
       try {
-        message = await this.runInference(state.conversation);
+        message = await this.runInference(state.conversation, hardDeadlineMs - Date.now());
       } catch (err) {
         return { status: 'error', text: err instanceof Error ? err.message : String(err), audit: audit() };
       }
@@ -333,8 +334,8 @@ export class Agent {
     }
   }
 
-  private runInference(conversation: Message[]): Promise<Message> {
+  private runInference(conversation: Message[], timeoutMs: number): Promise<Message> {
     const tools: ToolSchema[] = this.tools.map((t) => ({ type: 'function', function: { name: t.name, description: t.description, parameters: t.inputSchema } }));
-    return this.client.chat(conversation, tools);
+    return this.client.chat(conversation, tools, { timeoutMs });
   }
 }
