@@ -220,7 +220,7 @@ async function main() {
   check('mcp:notification-no-response', (await handleMcpMessage({ jsonrpc: '2.0', method: 'notifications/initialized' }, deps)) === null);
   const list = await handleMcpMessage({ jsonrpc: '2.0', id: 2, method: 'tools/list' }, deps);
   const names = list && 'result' in list ? (list.result as { tools: Array<{ name: string }> }).tools.map((t) => t.name) : [];
-  check('mcp:tools/list', names.join(',') === 'ask_aileen_agent,lookup_project', names.join(','));
+  check('mcp:tools/list', names.join(',') === 'ask_aileen_agent,lookup_project,suggest_patch', names.join(','));
   check('mcp:tool-schemas-have-no-mode-field', !JSON.stringify(MCP_TOOLS).match(/"(agentMode|mode|council)"/));
   const ask = await handleMcpMessage(
     { jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'ask_aileen_agent', arguments: { question: 'What is Tamper Check?' } } },

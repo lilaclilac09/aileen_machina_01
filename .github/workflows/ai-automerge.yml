@@ -75,6 +75,7 @@ jobs:
           pnpm exec tsx harness/site-agent/perf.ts
           pnpm exec tsx harness/site-agent/actions.ts
           pnpm exec tsx harness/site-agent/codeMode.ts
+          pnpm exec tsx harness/site-agent/mcpCode.ts
           pnpm exec tsx scripts/verify-evolve.ts
           pnpm exec tsx scripts/verify-ops.ts
           pnpm exec tsx scripts/verify-agent-rules.ts

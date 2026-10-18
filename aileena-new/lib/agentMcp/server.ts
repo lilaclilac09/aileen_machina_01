@@ -5,6 +5,7 @@
  * private second-brain content are not reachable from here.
  */
 import { lookupProjects, type PublicProject } from './projects';
+import type { PatchInput, PatchResult } from '../codeAgent/patch';
 
 export const MCP_SERVER_INFO = { name: 'aileena-site-agent', title: "Aileen's site agent", version: '1.0.0' };
 export const SUPPORTED_PROTOCOL_VERSIONS = ['2025-11-25', '2025-06-18', '2025-03-26', '2024-11-05'];
@@ -13,7 +14,9 @@ export const MAX_QUESTION_CHARS = 1500;
 export const MCP_INSTRUCTIONS =
   "Public agent for aileena.xyz (Aileen Choo: Solana/MEV research, security tools, AI infra writing, DJ sets). " +
   'Use ask_aileen_agent for questions about her public work and lookup_project for structured project links. ' +
-  'Public mode only: owner, council and private notes are not available. Rate limited per caller.';
+  'Public mode only: owner, council and private notes are not available. Rate limited per caller. ' +
+  'For code: suggest_patch takes a task plus the file contents and returns unified diffs and full new file contents. It has no repo access; ' +
+  'pair it with the GitHub MCP server (get_file_contents to fetch files, then create_branch, push_files and create_pull_request with your own credentials) and open a PR, never push to the default branch.';
 
 export const MCP_TOOLS = [
   {
@@ -48,6 +51,36 @@ export const MCP_TOOLS = [
     },
     annotations: { readOnlyHint: true, openWorldHint: false },
   },
+  {
+    name: 'suggest_patch',
+    title: 'Suggest a code patch',
+    description:
+      "Machina's code-editing loop (read_file / list_files / search_files / edit_file, ported from github.com/lilaclilac09/aileena-code) run over the files you send. " +
+      'Returns a summary, unified diffs and the full new content of each changed file. No repo access and no writes: apply the result yourself, ' +
+      'e.g. with the GitHub MCP server (create_branch, push_files, create_pull_request). File contents are treated as untrusted data. ' +
+      'Limits: 20 files, 200 KB total; .env files, keys, secrets and CI workflows are skipped.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        task: { type: 'string', description: 'What to change, plain text.', maxLength: 2000 },
+        files: {
+          type: 'array',
+          maxItems: 20,
+          description: 'The files the change needs, with repo-relative paths.',
+          items: {
+            type: 'object',
+            properties: { path: { type: 'string' }, content: { type: 'string' } },
+            required: ['path', 'content'],
+            additionalProperties: false,
+          },
+        },
+        repo: { type: 'string', description: 'Optional owner/repo label, for context only.' },
+      },
+      required: ['task', 'files'],
+      additionalProperties: false,
+    },
+    annotations: { readOnlyHint: true, openWorldHint: false },
+  },
 ] as const;
 
 export type JsonRpcRequest = { jsonrpc: '2.0'; id?: string | number | null; method: string; params?: Record<string, unknown> };
@@ -61,7 +94,9 @@ export type AskResult =
 
 export type McpDeps = {
   ask: (question: string) => Promise<AskResult>;
-  rate: (kind: 'ask' | 'lookup') => Promise<{ ok: true } | { ok: false; retryAfterSec: number }>;
+  rate: (kind: 'ask' | 'lookup' | 'patch') => Promise<{ ok: true } | { ok: false; retryAfterSec: number }>;
+  /** suggest_patch backend. Absent → the tool reports it is unavailable. */
+  patch?: (input: PatchInput) => Promise<PatchResult>;
   onAsk?: () => void;
 };
 
@@ -164,6 +199,29 @@ export async function handleMcpMessage(msg: JsonRpcRequest, deps: McpDeps): Prom
           jsonrpc: '2.0',
           id: msg.id ?? null,
           result: { content: [{ type: 'text', text: projectText(projects) }], structuredContent: { projects } },
+        };
+      }
+      if (name === 'suggest_patch') {
+        if (!deps.patch) return { jsonrpc: '2.0', id: msg.id ?? null, result: toolError('suggest_patch is not available on this server.') };
+        const task = typeof args.task === 'string' ? args.task : '';
+        if (!task.trim()) return err(msg.id, -32602, 'task is required');
+        if (!Array.isArray(args.files)) return err(msg.id, -32602, 'files must be an array of { path, content }');
+        const rl = await deps.rate('patch');
+        if (!rl.ok) {
+          return { jsonrpc: '2.0', id: msg.id ?? null, result: toolError(`Rate limited. Try again in ${rl.retryAfterSec}s.`, { rateLimited: true, retryAfterSec: rl.retryAfterSec }) };
+        }
+        const r = await deps.patch({ task, files: args.files as PatchInput['files'], repo: typeof args.repo === 'string' ? args.repo : undefined });
+        if (!r.ok) return { jsonrpc: '2.0', id: msg.id ?? null, result: toolError(r.error) };
+        const text = [
+          r.summary || (r.changes.length ? 'Patch ready.' : 'No changes suggested.'),
+          ...r.changes.map((c) => `\n${c.diff}`),
+          ...(r.skipped.length ? [`\nSkipped: ${r.skipped.map((x) => `${x.path} (${x.reason})`).join('; ')}`] : []),
+          r.changes.length ? '\nApply on a new branch and open a pull request; do not push to the default branch.' : '',
+        ].join('\n');
+        return {
+          jsonrpc: '2.0',
+          id: msg.id ?? null,
+          result: { content: [{ type: 'text', text }], structuredContent: { status: r.status, summary: r.summary, changes: r.changes, skipped: r.skipped } },
         };
       }
       return err(msg.id, -32602, `Unknown tool: ${String(name)}`);

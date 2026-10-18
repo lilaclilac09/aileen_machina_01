@@ -11,6 +11,7 @@ import {
 import { clientIpTransient, countryFromRequest, dailyVisitorHash } from '../../../lib/agentEngage/visitorHash';
 import { recordEngageEvent } from '../../../lib/agentEngage/store';
 import { traceLine } from '../../../lib/requestTrace';
+import { suggestPatch } from '../../../lib/codeAgent/patch';
 
 export const maxDuration = 30;
 export const dynamic = 'force-dynamic';
@@ -85,15 +86,16 @@ export async function POST(req: Request): Promise<Response> {
 
   const deps = {
     ask: (q: string) => askChat(q, traceId),
-    rate: async (kind: 'ask' | 'lookup') => {
+    rate: async (kind: 'ask' | 'lookup' | 'patch') => {
       const own = await takeAgentRate(callerKey, AGENT_LIMITS[kind]);
       if (!own.ok) return own;
-      if (kind === 'ask') {
-        const global = await takeAgentRate('all', AGENT_LIMITS.globalAsk);
+      if (kind === 'ask' || kind === 'patch') {
+        const global = await takeAgentRate('all', kind === 'ask' ? AGENT_LIMITS.globalAsk : AGENT_LIMITS.globalPatch);
         if (!global.ok) return global;
       }
       return { ok: true as const };
     },
+    patch: (input: Parameters<typeof suggestPatch>[0]) => suggestPatch(input, { caller: callerKey, budgetMs: 22_000 }),
     onAsk: () => {
       void recordEngageEvent({
         type: 'agent_ask',
