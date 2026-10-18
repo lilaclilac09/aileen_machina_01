@@ -12,6 +12,8 @@
  * sessions. Never an IP, never a city, never message text.
  */
 
+import { actionId, claimOnce } from '../agentRuntime/actions';
+import { resetRuntimeKvForTests } from '../agentRuntime/kv';
 import { getVisitorRedis } from '../visitorMemory';
 
 export type EngageDims = {
@@ -164,6 +166,7 @@ export function engageBackend(): Backend {
 /** For tests: force the in-memory backend and clear it. */
 export function resetEngageStoreForTests(): void {
   (globalThis as { __aileenaEngage?: unknown }).__aileenaEngage = undefined;
+  resetRuntimeKvForTests();
   backend = memoryBackend();
 }
 
@@ -175,7 +178,18 @@ const COUNTER: Record<EngageEvent['type'], string> = {
   agent_ask: 'agent_asks',
 };
 
+/**
+ * Funnel events that mean "this session did X" count once per session. The
+ * client already sends open / first_message once (sessionStorage), but a
+ * re-delivered beacon, a fetch fallback after a lost beacon or a replayed
+ * request used to bump every counter again. One SET NX per event (action
+ * ledger `claimOnce`); starter_tap and agent_ask stay per event.
+ */
+const ONCE_PER_SESSION = new Set<EngageEvent['type']>(['open', 'starters_seen', 'first_message']);
+const ENGAGE_ONCE_TTL_SEC = 60 * 60 * 24 * 2;
+
 export async function recordEngageEvent(e: EngageEvent): Promise<void> {
+  if (ONCE_PER_SESSION.has(e.type) && !(await claimOnce(await actionId('engage', e.type, e.sid), ENGAGE_ONCE_TTL_SEC))) return;
   const b = engageBackend();
   const day = dayKey(e.at);
   const counter = COUNTER[e.type];

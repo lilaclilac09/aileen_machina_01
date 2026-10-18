@@ -58,3 +58,21 @@ export function resendFailureMessage(error: unknown): {
     logDetail: detail,
   };
 }
+
+/**
+ * Resend idempotency answers that mean "this key was already used" (docs:
+ * https://resend.com/docs/dashboard/emails/idempotency-keys#possible-responses
+ * and https://resend.com/docs/api-reference/errors):
+ * - 409 `invalid_idempotent_request`: the key was already used within 24 h with
+ *   a different payload (the earlier request with this key was processed).
+ * - 409 `concurrent_idempotent_requests`: another request with the key is in
+ *   progress (that request is the one that sends).
+ * Callers send one email per action id, so both mean "already sent / being
+ * sent": report success and mark the action succeeded instead of failing and
+ * letting the resend job send a second copy. A same-key, same-payload retry
+ * already gets the original 200 + email id from Resend.
+ */
+export function resendIdempotentDuplicate(error: unknown): 'invalid_idempotent_request' | 'concurrent_idempotent_requests' | null {
+  const name = error && typeof error === 'object' ? String((error as { name?: unknown }).name ?? '') : '';
+  return name === 'invalid_idempotent_request' || name === 'concurrent_idempotent_requests' ? name : null;
+}

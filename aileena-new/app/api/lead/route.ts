@@ -11,7 +11,7 @@ import {
   createOwnerChatToken,
   isOwnerEmail,
 } from '@/lib/owner-access';
-import { getResendFrom, resendFailureMessage } from '@/lib/resend-from';
+import { getResendFrom, resendFailureMessage, resendIdempotentDuplicate } from '@/lib/resend-from';
 import { isCouncilPipelineRequest } from '@/lib/agentMode';
 import { checkRateLimit, LLM_RATE } from '@/lib/api/ratelimit';
 import { Resend } from 'resend';
@@ -168,7 +168,6 @@ export async function POST(req: NextRequest) {
   const transcriptHtml = renderTranscriptHtml(lines);
   const referer = context || req.headers.get('referer') || '(none)';
   const ua = req.headers.get('user-agent') ?? '(unknown)';
-  const capturedAt = new Date().toISOString();
 
   const inbox = getContactInbox();
   if (!inbox) {
@@ -191,7 +190,6 @@ export async function POST(req: NextRequest) {
     '',
     `Page: ${referer}`,
     `User agent: ${ua}`,
-    `Captured at: ${capturedAt}`,
   ].join('\n');
 
   const html = `
@@ -202,7 +200,7 @@ export async function POST(req: NextRequest) {
       <h3 style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#007d75">Transcript</h3>
       ${transcriptHtml}
       <hr style="border:none;border-top:1px solid #e7e0d6;margin:16px 0" />
-      <p style="color:#888;font-size:11px">Page: ${escapeHtml(referer)}<br/>Captured: ${escapeHtml(capturedAt)}</p>
+      <p style="color:#888;font-size:11px">Page: ${escapeHtml(referer)}</p>
     </div>
   `;
 
@@ -224,6 +222,8 @@ export async function POST(req: NextRequest) {
         { from, to: inbox, replyTo: email, subject, text, html },
         { idempotencyKey: leadActionId },
       );
+      const dup = resendIdempotentDuplicate(error);
+      if (dup) return { ok: true as const, resendId: null, deduped: dup };
       if (error) {
         const { publicError, logDetail } = resendFailureMessage(error);
         return { ok: false as const, publicError, logDetail };
@@ -254,7 +254,8 @@ export async function POST(req: NextRequest) {
       { status: 502 },
     );
   }
-  const data = { id: outcome.resendId };
+  if ('deduped' in outcome) console.info('[api/lead] Resend says already sent', { reason: outcome.deduped, actionId: leadActionId });
+  const data = { id: outcome.resendId ?? leadActionId };
 
   console.info('[api/lead] Resend ok', { id: data.id, to: maskEmail(inbox) });
 

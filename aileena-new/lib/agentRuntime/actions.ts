@@ -80,6 +80,17 @@ async function writeAction(rec: ActionRecord, ttlSec: number): Promise<void> {
   await runtimeKv().set(recKey(rec.id), JSON.stringify(rec), { ex: ttlSec });
 }
 
+/**
+ * One round trip "first delivery wins" for cheap fire-and-forget effects
+ * (analytics counters): writes a succeeded record with SET NX. True → this
+ * delivery owns the effect; false → a duplicate, skip it. Not for effects that
+ * must be retried on failure (use `runOnce`).
+ */
+export async function claimOnce(id: string, ttlSec = ACTION_TTL_SEC): Promise<boolean> {
+  const rec: ActionRecord = { id, status: 'succeeded', attempts: 1, at: Date.now() };
+  return runtimeKv().set(recKey(id), JSON.stringify(rec), { nx: true, ex: ttlSec });
+}
+
 /** Mark an action succeeded from outside `runOnce` (e.g. a resend job that confirmed delivery). */
 export async function markActionSucceeded<T>(id: string, result: T, ttlSec = ACTION_TTL_SEC): Promise<void> {
   const prev = await readAction(id);
