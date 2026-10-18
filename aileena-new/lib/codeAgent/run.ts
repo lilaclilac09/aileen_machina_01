@@ -227,7 +227,7 @@ export async function runCodeTurn(opts: {
     }
     rec.pr = steps.results.pr as { url: string; number: number };
     rec.status = 'done';
-    rec.answer = `${rec.summary || 'Done.'}\n\nDraft PR: ${rec.pr.url}\nBranch \`${branch}\` · ${Object.keys(rec.agent.staged).length} file(s) · Action-Id \`${commitActionId}\``;
+    rec.answer = `${rec.summary || 'Done.'}\n\nDraft PR: ${rec.pr.url}\nBranch \`${branch}\` · ${Object.keys(rec.agent.staged).length} file(s) · Action-Id \`${commitActionId}\`\n\nThe automatic code-mode review (typecheck, lint, tests, build, protected paths, size, score) will comment on the PR in a few minutes. It never merges; you do.`;
     await kv.set(runKey(runId), forStorage(rec), { ex: RUN_TTL });
     await audit(rec, actor, 'pr_opened');
     return { text: rec.answer, status: 'done', prUrl: rec.pr.url, runId };

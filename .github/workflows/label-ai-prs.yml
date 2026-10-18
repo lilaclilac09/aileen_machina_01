@@ -13,6 +13,7 @@ permissions:
 
 jobs:
   label:
+    # Never machina/code-* (Machina code mode): those PRs are reviewed, never auto-merged.
     if: startsWith(github.head_ref, 'cursor/') || startsWith(github.head_ref, 'ai/')
     runs-on: ubuntu-latest
     steps:
