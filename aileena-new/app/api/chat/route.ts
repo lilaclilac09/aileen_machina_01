@@ -60,6 +60,8 @@ import { newPerfId, perfLabel, recordPerfTurn, type PerfOutcome } from '../../..
 import { estimateTurnCostUsd } from '../../../lib/agentRuntime/pricing';
 import { chooseProvider, estimateTokens, peekFirstToken } from '../../../lib/agentRuntime/router';
 import { addSpend, estimateTurnMicroUsd, noteTtft, noteTurnDone, noteTurnStart, recordRouterTurn } from '../../../lib/agentRuntime/load';
+import { postResponseWork } from '../../../lib/agentRuntime/afterResponse';
+import { redisHealth } from '../../../lib/agentRuntime/redisHealth';
 import { commitTurn, findCommittedTurn, LEDGER_TTL_SEC, readLedger, rebuildTranscript, validLedgerId } from '../../../lib/agentRuntime/ledger';
 import { actionId, runOnce } from '../../../lib/agentRuntime/actions';
 import { chargeRedisQuota, quotaKeyFor, readRedisQuota, redisQuotaEnabled } from '../../../lib/agentRuntime/quota';
@@ -726,6 +728,8 @@ ${memoryPrefetch
     ? [...modelMessages, { role: 'user', content: wrappedTail }]
     : modelMessages;
 
+  // Post-stream writes (commit, charge, ledger, perf) are kept alive with after().
+  let post: ReturnType<typeof postResponseWork> | null = null;
   try {
     const reactGuard = createReactGuardSession();
     const allTools = {
@@ -848,6 +852,8 @@ ${memoryPrefetch
     // One model attempt. A GPU attempt that fails before its first token is
     // abandoned (callbacks go quiet) and the turn restarts on DeepSeek.
     let emptyTries = 0;
+    const work = postResponseWork();
+    post = work;
     const startAttempt = (pick: ModelPick, attemptProbe: boolean, system: string, attemptPrefixHash: string) => {
       const attemptCtl = new AbortController();
       const abortSignal =
@@ -916,7 +922,7 @@ ${memoryPrefetch
         const inTok = num(extra.inputTokens);
         const outTok = num(extra.outputTokens);
         const at = reqStartedAt;
-        void (async () => {
+        const perfWrite = (async () => {
           const variant = pick.tier === 'gpu' && gpuCfg ? await readGpuVariant(gpuCfg) : undefined;
           await recordPerfTurn({
             v: 1,
@@ -948,6 +954,8 @@ ${memoryPrefetch
             gpuState: routed.gpuState,
           });
         })().catch(() => {});
+        work.track(perfWrite);
+        work.release();
       };
 
       const result = streamText({
@@ -1014,9 +1022,9 @@ ${memoryPrefetch
               };
               // Action ledger: concurrent duplicates of one turnId charge and commit once.
               if (turnCommitId) {
-                const r = await runOnce(turnCommitId, commit, { ttlSec: LEDGER_TTL_SEC });
+                const r = await work.track(runOnce(turnCommitId, commit, { ttlSec: LEDGER_TTL_SEC }));
                 if (r.state !== 'done') trace.log('turn_commit', { action: turnCommitId, state: r.state });
-              } else await commit();
+              } else await work.track(commit());
             } catch (err) {
               console.error('[chat] commit failed', err instanceof Error ? err.message : String(err), { traceId: trace.traceId });
             }
@@ -1141,6 +1149,7 @@ ${memoryPrefetch
           }
         }
         emptyAnswer = true;
+        work.release();
         perfDegradeTurn({ at: reqStartedAt, src: perfSrc, run: perfRun, provider: picked.provider, tier: picked.tier, rule: 'empty_answer', toolRoute: toolRoute.route, retries: emptyTries });
         break;
       }
@@ -1154,6 +1163,7 @@ ${memoryPrefetch
       const next = (await gated(buildPrimary())) ?? (await gated(fallbackPick));
       if (!next) {
         perfDegradeTurn({ at: reqStartedAt, src: perfSrc, run: perfRun, provider: 'none', tier: 'none', rule: 'circuit_open', toolRoute: toolRoute.route, retries: 1 });
+        work.release();
         return jsonError(degradeMessage('circuit_open', lastQ), 503, trace.traceId, {
           'X-Degrade-Reason': 'circuit_open',
           'X-Tool-Route': toolRoute.route,
@@ -1162,6 +1172,7 @@ ${memoryPrefetch
       }
       // A root already locked to the GPU cannot silently change speaker.
       if (needsNewRootForProvider(sessionProvider, next.pick.provider)) {
+        work.release();
         return jsonError(MODEL_SWAP_PING, 409, trace.traceId, { 'X-New-Root': 'model_swap' }, {
           code: 'new_root',
           reason: 'model_swap',
@@ -1172,11 +1183,10 @@ ${memoryPrefetch
     const result = att.result;
 
     // Owner unlimited (session or email cookie): do not burn the visitor counter.
-    // Cookie quota (no Redis): charged up front exactly as before. With Redis
-    // the cookie just mirrors the current count; the charge happens on commit.
-    const setCookie = unlimitedChat
-      ? null
-      : await buildQuotaCookie({ date: quota.date, count: redisQuotaKey ? quota.count : quota.count + 1 });
+    // The signed cookie is always charged up front (+1), Redis or not; Redis is
+    // charged again on commit and the next turn enforces max(cookie, redis).
+    // So a Redis write that fails (or never lands) cannot unlock the limit.
+    const setCookie = unlimitedChat ? null : await buildQuotaCookie({ date: quota.date, count: quota.count + 1 });
     // Always refresh visitor cookie Max-Age so browser id tracks the 90d Redis TTL.
     const visitorCookie = await buildVisitorCookie(visitorId);
 
@@ -1231,6 +1241,7 @@ ${memoryPrefetch
       headers.set('X-System-Prompt-Chars', String(frozenSystem.length));
       headers.set('X-Session-Tail-Chars', String(wrappedTail.length));
       headers.set('X-Visitor-Soft-Memory', visitorSoftMemoryEnabled() ? 'redis' : 'off');
+      headers.set('X-Runtime-Kv', redisQuotaKey ? (redisHealth().degraded ? 'redis-degraded' : 'redis') : 'memory');
       headers.set('X-React-Max-Steps', String(REACT_MAX_STEPS));
       headers.set('X-Model-Budget-Ms', String(MODEL_TOTAL_BUDGET_MS));
     }
@@ -1255,6 +1266,7 @@ ${memoryPrefetch
     console.log('[chat] POST: stream response initialized', { traceId: trace.traceId });
     return new Response(body, { status: stream.status, headers });
   } catch (err) {
+    post?.release();
     if (!isCancellation(err, req.signal)) void breakerFailure(picked.provider).catch(() => {});
     const classified = classifyModelError(err);
     console.error('[chat] POST: unexpected error during stream setup', err, {

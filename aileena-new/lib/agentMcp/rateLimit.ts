@@ -1,4 +1,5 @@
 import { getVisitorRedis } from '../visitorMemory';
+import { noteRedisError } from '../agentRuntime/redisHealth';
 
 /**
  * Fixed-window counters for agent callers. The key is a salted daily hash of the
@@ -45,7 +46,8 @@ export async function takeAgentRate(callerKey: string, windows: RateWindow[], no
       try {
         count = await redis.incr(key);
         if (count === 1) await redis.expire(key, w.windowSec + 5);
-      } catch {
+      } catch (err) {
+        noteRedisError('rateLimit', err);
         count = memIncr(key, now, w.windowSec);
       }
     } else {

@@ -1,4 +1,4 @@
-import { Redis } from '@upstash/redis';
+import { getVisitorRedis } from '../visitorMemory';
 import type { ClipCandidate } from './clips';
 import type { PipelinePhase, PipelineProgress, PipelineResult } from './pipeline';
 
@@ -44,10 +44,9 @@ function memoryStore(): JobStore {
 }
 
 function redisStore(): JobStore | null {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) return null;
-  const redis = new Redis({ url, token });
+  // Same client + env names (UPSTASH_REDIS_REST_* or KV_REST_API_*) as the rest of the app.
+  const redis = getVisitorRedis();
+  if (!redis) return null;
   return {
     async get(id) {
       return (await redis.get<InklingJob>(`${KEY_PREFIX}${id}`)) ?? null;
