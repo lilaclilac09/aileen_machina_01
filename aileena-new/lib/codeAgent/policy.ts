@@ -1,4 +1,5 @@
 /**
+ * (Review test: this line exists only on machina/code-test and is never merged.)
  * Code-mode guardrails. These are enforced in code, not in the prompt: repo
  * content is untrusted, so nothing a file says can widen what the tools do.
  *
