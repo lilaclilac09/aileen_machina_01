@@ -1,0 +1,199 @@
+name: Site-agent replay gate
+
+# Real-agent replay for an EXISTING self-improve PR (opened by the evolve
+# workflow, e.g. while DEEPSEEK_API_KEY was missing). Builds the PR head,
+# replays the changed-skill prompts plus every held-out prompt through the
+# real chat route (`next start` + DeepSeek) and, optionally, the same prompts
+# against main as the "before" baseline. Then:
+#   passed → mark ready for review, drop `replay-skipped`, comment the summary
+#   failed → stays draft, label `replay-failed`, comment the failures
+# Never merges, approves or pushes. Aileen reviews and merges.
+#
+# Only bot-authored self-improve/evolve-<24hex> PRs from this repo are accepted:
+# the replay job runs the PR's code with the DeepSeek secret, but with a
+# read-only token and no persisted credentials.
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: Self-improve PR number
+        required: true
+      baseline:
+        description: Also replay against main (before score)
+        type: boolean
+        default: true
+
+permissions: {}
+
+concurrency:
+  group: site-agent-replay-${{ inputs.pr }}
+  cancel-in-progress: false
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: read
+      contents: read
+    outputs:
+      sha: ${{ steps.pr.outputs.sha }}
+      branch: ${{ steps.pr.outputs.branch }}
+    steps:
+      - name: Validate PR
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ inputs.pr }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          [[ "$PR" =~ ^[0-9]+$ ]] || { echo "::error::pr must be a number"; exit 1; }
+          gh api "repos/$REPO/pulls/$PR" > /tmp/pr.json
+          read -r STATE HEAD_REPO REF SHA AUTHOR < <(jq -r '[.state, .head.repo.full_name, .head.ref, .head.sha, .user.login] | @tsv' /tmp/pr.json)
+          [ "$STATE" = open ] || { echo "::error::PR is $STATE"; exit 1; }
+          [ "$HEAD_REPO" = "$REPO" ] || { echo "::error::head is from a fork"; exit 1; }
+          [[ "$REF" =~ ^self-improve/evolve-[0-9a-f]{24}$ ]] || { echo "::error::not a self-improve branch: $REF"; exit 1; }
+          [ "$AUTHOR" = "github-actions[bot]" ] || { echo "::error::PR not opened by the evolve workflow"; exit 1; }
+          jq -e '[.labels[].name] | index("self-improve")' /tmp/pr.json >/dev/null || { echo "::error::missing self-improve label"; exit 1; }
+          BAD=$(gh api "repos/$REPO/pulls/$PR/commits" --paginate --jq '.[] | select(.commit.author.email != "bot@aileena.xyz") | .sha')
+          [ -z "$BAD" ] || { echo "::error::non-bot commits on the branch: $BAD"; exit 1; }
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "branch=$REF" >> "$GITHUB_OUTPUT"
+
+  replay:
+    needs: resolve
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: aileena-new
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.resolve.outputs.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Use main's replay driver
+        # The driver only talks to the local server; take main's version so the
+        # report shape (split, timing) does not depend on how old the branch is.
+        run: git checkout origin/main -- scripts/evolve-replay.ts
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install + build candidate
+        run: |
+          pnpm install --frozen-lockfile || pnpm install --no-frozen-lockfile
+          pnpm build > /tmp/build.log 2>&1 || { tail -60 /tmp/build.log; exit 1; }
+
+      - name: Install + build baseline (main)
+        if: inputs.baseline
+        run: |
+          git worktree add /tmp/base origin/main
+          cd /tmp/base/aileena-new
+          pnpm install --frozen-lockfile || pnpm install --no-frozen-lockfile
+          pnpm build > /tmp/build-base.log 2>&1 || { tail -60 /tmp/build-base.log; exit 1; }
+
+      - name: Replay
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          RUNTIME_KV: memory
+        run: |
+          set +e
+          mkdir -p /tmp/replay
+          if [ -z "${DEEPSEEK_API_KEY}" ]; then
+            echo '{"skipped":true,"reason":"no DEEPSEEK_API_KEY secret"}' > /tmp/replay/after.json
+            exit 0
+          fi
+          wait_up() { for i in $(seq 1 60); do curl -fsS -o /dev/null "http://localhost:$1/" && return 0; sleep 2; done; return 1; }
+          (pnpm start -p 3123 > /tmp/start.log 2>&1 &)
+          if [ "${{ inputs.baseline }}" = "true" ]; then (cd /tmp/base/aileena-new && pnpm start -p 3124 > /tmp/start-base.log 2>&1 &); fi
+          wait_up 3123 || { tail -40 /tmp/start.log; }
+          pnpm evolve:replay -- --base http://localhost:3123 --changed-from origin/main --out /tmp/replay/after.json
+          echo "after exit=$?"
+          if [ "${{ inputs.baseline }}" = "true" ]; then
+            wait_up 3124 || { tail -40 /tmp/start-base.log; }
+            # Same prompt set (candidate bank + changed skills), served by main.
+            pnpm evolve:replay -- --base http://localhost:3124 --changed-from origin/main --out /tmp/replay/before.json
+            echo "before exit=$?"
+          fi
+          cp ../ops/evolution/ledger.json /tmp/replay/ledger.json
+          git show origin/main:ops/evolution/ledger.json > /tmp/replay/base-ledger.json
+          exit 0
+
+      - name: Upload replay JSON
+        uses: actions/upload-artifact@v4
+        with:
+          name: evolve-replay
+          path: /tmp/replay
+          retention-days: 14
+
+  report:
+    needs: [resolve, replay]
+    if: always() && needs.resolve.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Checkout scripts (main)
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+          persist-credentials: false
+
+      - name: Download replay JSON
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: evolve-replay
+          path: /tmp/replay
+
+      - name: Update PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ inputs.pr }}
+          SHA: ${{ needs.resolve.outputs.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          node .github/scripts/evolve-replay-report.mjs \
+            --after /tmp/replay/after.json --before /tmp/replay/before.json \
+            --ledger /tmp/replay/ledger.json --base-ledger /tmp/replay/base-ledger.json \
+            --sha "$SHA" --run "$RUN_URL" --out /tmp/comment.md | tee /tmp/summary.json
+          STATUS=$(jq -r .status /tmp/summary.json)
+          # Head moved since resolve → do not flip the PR state on a stale result.
+          NOW=$(gh api "repos/$GH_REPO/pulls/$PR" --jq .head.sha)
+          if [ "$NOW" != "$SHA" ]; then STATUS=stale; printf '\n\n_Head moved to `%s` during the replay; re-run the gate._\n' "${NOW:0:12}" >> /tmp/comment.md; fi
+          ID=$(gh api "repos/$GH_REPO/issues/$PR/comments" --paginate --jq '.[] | select(.user.type == "Bot" and (.body | startswith("<!-- machina-evolve-replay -->"))) | .id' | head -1)
+          if [ -n "$ID" ]; then
+            gh api -X PATCH "repos/$GH_REPO/issues/comments/$ID" -F body=@/tmp/comment.md > /dev/null
+          else
+            gh api -X POST "repos/$GH_REPO/issues/$PR/comments" -F body=@/tmp/comment.md > /dev/null
+          fi
+          gh label create replay-failed --color d93f0b --description "Real-agent replay found regressions" --force
+          if [ "$STATUS" = passed ]; then
+            gh pr ready "$PR"
+            for L in replay-skipped replay-failed; do gh api -X DELETE "repos/$GH_REPO/issues/$PR/labels/$L" > /dev/null 2>&1 || true; done
+          elif [ "$STATUS" = failed ]; then
+            gh api -X DELETE "repos/$GH_REPO/issues/$PR/labels/replay-skipped" > /dev/null 2>&1 || true
+            gh pr edit "$PR" --add-label replay-failed
+          fi
+          echo "status=$STATUS"
+          [ "$STATUS" = passed ]

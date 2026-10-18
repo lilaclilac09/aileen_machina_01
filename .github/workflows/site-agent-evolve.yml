@@ -6,7 +6,8 @@ name: Site-agent live evolve
 # Never pushes to main: changes land as a PR labelled `self-improve`, gated by
 # a real-agent replay (next start + DeepSeek) of the prompts the changed
 # skills trigger on plus every held-out prompt. Without DEEPSEEK_API_KEY the
-# replay is skipped and the PR stays a draft labelled `replay-skipped`.
+# replay is skipped and the PR stays a draft labelled `replay-skipped`; run
+# "Site-agent replay gate" (site-agent-replay.yml) on it once the secret exists.
 # Promotions are revertible: `pnpm evolve -- --rollback <skill> --to <version>`.
 # Never commits AGENTS.md / QA.md / PROJECT_RULES.md.
 
