@@ -18,6 +18,9 @@ export type GithubOidcClaims = {
   ref?: string;
   job_workflow_ref?: string;
   workflow_ref?: string;
+  /** Workflow run id; stays the same across "Re-run jobs" attempts. */
+  run_id?: string;
+  run_attempt?: string;
 };
 
 type Jwks = { keys: Array<JsonWebKey & { kid?: string; alg?: string; kty?: string }> };

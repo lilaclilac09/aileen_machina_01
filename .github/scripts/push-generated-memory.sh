@@ -43,7 +43,7 @@ commit_if_dirty() {
     echo "No new dreaming report to commit"
     return 1
   fi
-  git commit -m "chore(memory): sync latest content + Dreaming report [$(date -u +%Y-%m-%d)] (${REASON})"
+  git commit -m "chore(memory): sync latest content + Dreaming report [$(date -u +%Y-%m-%d)] (${REASON})" -m "Action-Id: $(bash .github/scripts/action-id.sh memory)"
   return 0
 }
 

@@ -66,7 +66,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "No social data changes"
           else
-            git commit -m "chore(social): free RSS + numbers sync [$(date -u +%Y-%m-%dT%H:%MZ)]"
+            git commit -m "chore(social): free RSS + numbers sync [$(date -u +%Y-%m-%dT%H:%MZ)]" -m "Action-Id: $(bash .github/scripts/action-id.sh social-rss)"
             git push
             echo "Pushed social RSS updates"
           fi

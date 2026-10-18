@@ -67,7 +67,9 @@ jobs:
             -H "Authorization: Bearer $TOKEN" \
             -H "Accept: application/json" \
             -o /tmp/evolve-asks.json
-          python3 -c 'import json; raw=json.load(open("/tmp/evolve-asks.json")); asks=raw.get("asks") if isinstance(raw, dict) else raw; print("drained", len(asks) if isinstance(asks, list) else 0, "ask(s)")'
+          # The drain is checkpointed per run_id (action ledger): "Re-run jobs" gets
+          # the same asks back, and asks of an earlier run that never acked are adopted.
+          python3 -c 'import json; raw=json.load(open("/tmp/evolve-asks.json")); asks=raw.get("asks") if isinstance(raw, dict) else raw; print("drained", len(asks) if isinstance(asks, list) else 0, "ask(s)", "replay" if isinstance(raw, dict) and raw.get("replay") else "", "adopted", raw.get("adopted", 0) if isinstance(raw, dict) else 0)'
 
       - name: Ingest drained asks + ratchet
         run: pnpm evolve -- --from-asks /tmp/evolve-asks.json
@@ -102,11 +104,23 @@ jobs:
             echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          BRANCH="self-improve/$(date -u +%Y-%m-%d)-${GITHUB_RUN_ID}"
-          git switch -c "$BRANCH"
-          git commit -m "chore(evolve): ratchet skills from live chat inbox [$(date -u +%Y-%m-%d)]"
-          echo "changed=true" >> "$GITHUB_OUTPUT"
+          # Action-Id from stable inputs (drained asks + generated skill table), never
+          # from time or run id: a re-run or a later run with the same result maps to
+          # the same branch, commit trailer and PR, so nothing is opened twice.
+          ACTION_ID="evolve-$( { python3 -c 'import json; raw=json.load(open("/tmp/evolve-asks.json")); asks=raw.get("asks") if isinstance(raw, dict) else raw; print(json.dumps(sorted(a.get("prompt","") if isinstance(a, dict) else str(a) for a in (asks or []))))'; git show :aileena-new/lib/evolution/activeSkills.generated.ts; } | sha256sum | cut -c1-24)"
+          BRANCH="self-improve/${ACTION_ID}"
+          echo "action_id=$ACTION_ID" >> "$GITHUB_OUTPUT"
           echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+            # Checkpoint: this commit was already pushed by an earlier attempt. Resume from there.
+            echo "Action-Id ${ACTION_ID}: branch already pushed, skipping commit"
+            echo "pushed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git switch -c "$BRANCH"
+          git commit -m "chore(evolve): ratchet skills from live chat inbox [$(date -u +%Y-%m-%d)]" -m "Action-Id: ${ACTION_ID}"
+          echo "pushed=false" >> "$GITHUB_OUTPUT"
 
       - name: Real-agent replay gate
         id: replay
@@ -136,9 +150,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           BRANCH: ${{ steps.commit.outputs.branch }}
           REPLAY: ${{ steps.replay.outputs.status }}
+          ACTION_ID: ${{ steps.commit.outputs.action_id }}
+          PUSHED: ${{ steps.commit.outputs.pushed }}
         run: |
           set -euo pipefail
-          git push origin "$BRANCH"
+          if [ "$PUSHED" != "true" ]; then git push origin "$BRANCH"; fi
+          EXISTING=$(gh pr list --head "$BRANCH" --state all --json number,state -q '.[0] | select(.) | "#\(.number) \(.state)"')
+          if [ -n "$EXISTING" ]; then
+            echo "Action-Id ${ACTION_ID}: PR already exists (${EXISTING}), not opening another"
+            exit 0
+          fi
           gh label create self-improve --color 5319e7 --description "Evolution loop skill ratchet" --force
           gh label create replay-skipped --color fbca04 --description "Real-agent replay did not run" --force
           {
@@ -147,6 +168,7 @@ jobs:
             echo "- Held-out must rise; trigger-quality gate enforced by the ratchet."
             echo "- Real-agent replay: **${REPLAY}**"
             echo "- Revert a promotion: \`pnpm evolve -- --rollback <skill> --to <version>\`"
+            echo "- Action-Id: \`${ACTION_ID}\`"
             echo
             echo '```json'
             head -c 6000 /tmp/evolve-replay.json
@@ -156,3 +178,18 @@ jobs:
           ARGS=(--base main --head "$BRANCH" --title "self-improve: skill ratchet $(date -u +%Y-%m-%d)" --body-file /tmp/pr-body.md --label self-improve)
           if [ "$REPLAY" != "passed" ]; then ARGS+=(--draft --label replay-skipped); fi
           gh pr create "${ARGS[@]}"
+
+      - name: Ack drain checkpoint
+        # Only after the PR step (or no change), or when the replay gate rejected the
+        # change: the drained asks are consumed. A run that crashes before this point
+        # leaves them for the next run to adopt (within 24 h).
+        if: success() || steps.replay.outputs.status == 'failed'
+        env:
+          DRAIN_URL: https://www.aileena.xyz/api/evolve/drain?ack=1
+        run: |
+          set -euo pipefail
+          TOKEN=$(curl -fsSL \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=https://www.aileena.xyz" \
+            | python3 -c 'import json,sys; print(json.load(sys.stdin)["value"])')
+          curl -fsSL -X POST "$DRAIN_URL" -H "Authorization: Bearer $TOKEN" -H "Accept: application/json"

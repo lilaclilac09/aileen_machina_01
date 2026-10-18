@@ -15,6 +15,7 @@ import { getResendFrom, resendFailureMessage } from '@/lib/resend-from';
 import { isCouncilPipelineRequest } from '@/lib/agentMode';
 import { checkRateLimit, LLM_RATE } from '@/lib/api/ratelimit';
 import { Resend } from 'resend';
+import { actionId, runOnce } from '@/lib/agentRuntime/actions';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
@@ -212,18 +213,33 @@ export async function POST(req: NextRequest) {
     subject,
   });
 
+  // Action ledger: a double submit (or client retry) of the same lead sends one
+  // email; the stored Resend id is replayed. Resend dedupes the key for 24 h too.
+  const leadActionId = await actionId('email.lead', email.toLowerCase(), memo, transcriptText);
   const resend = new Resend(process.env.RESEND_API_KEY);
-  const { data, error } = await resend.emails.send({
-    from,
-    to: inbox,
-    replyTo: email,
-    subject,
-    text,
-    html,
-  });
-
-  if (error) {
-    const { publicError, logDetail } = resendFailureMessage(error);
+  const sent = await runOnce(
+    leadActionId,
+    async () => {
+      const { data, error } = await resend.emails.send(
+        { from, to: inbox, replyTo: email, subject, text, html },
+        { idempotencyKey: leadActionId },
+      );
+      if (error) {
+        const { publicError, logDetail } = resendFailureMessage(error);
+        return { ok: false as const, publicError, logDetail };
+      }
+      if (!data?.id) return { ok: false as const, publicError: CONTACT_OFFLINE_PUBLIC, logDetail: 'Resend returned no id.' };
+      return { ok: true as const, resendId: data.id };
+    },
+    { isFailure: (r) => (r.ok ? null : r.logDetail) },
+  );
+  if (sent.state === 'running') {
+    return NextResponse.json({ ok: true, inFlight: true }, { status: 202 });
+  }
+  const outcome = sent.state === 'failed' ? null : sent.result;
+  if (!outcome?.ok) {
+    const publicError = outcome && !outcome.ok ? outcome.publicError : CONTACT_OFFLINE_PUBLIC;
+    const logDetail = outcome && !outcome.ok ? outcome.logDetail : sent.state === 'failed' ? sent.error : 'send failed';
     console.error('[api/lead] Resend failed', {
       from,
       to: maskEmail(inbox),
@@ -232,20 +248,13 @@ export async function POST(req: NextRequest) {
     const soft =
       /inbox|configured|api key|verify a domain|resend\.dev|sender not ready|offline/i.test(
         publicError,
-      ) || /verify a domain|onboarding@resend\.dev|testing emails/i.test(logDetail);
+      ) || /verify a domain|onboarding@resend\.dev|testing emails|no id/i.test(logDetail);
     return NextResponse.json(
       { ok: false, error: soft ? CONTACT_OFFLINE_PUBLIC : publicError },
       { status: 502 },
     );
   }
-
-  if (!data?.id) {
-    console.error('[api/lead] Resend returned no id', { data });
-    return NextResponse.json(
-      { ok: false, error: CONTACT_OFFLINE_PUBLIC },
-      { status: 502 },
-    );
-  }
+  const data = { id: outcome.resendId };
 
   console.info('[api/lead] Resend ok', { id: data.id, to: maskEmail(inbox) });
 

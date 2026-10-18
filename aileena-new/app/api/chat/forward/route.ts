@@ -10,11 +10,13 @@ import { getResendFrom, resendFailureMessage } from '@/lib/resend-from';
 import { isCouncilPipelineRequest } from '@/lib/agentMode';
 import { checkRateLimit, LLM_RATE } from '@/lib/api/ratelimit';
 import {
+  forwardSendActionId,
   makeForwardId,
   saveChatForward,
   type ChatForwardMessage,
 } from '@/lib/chatForwardStore';
 import { Resend } from 'resend';
+import { runOnce } from '@/lib/agentRuntime/actions';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
@@ -204,17 +206,31 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Action ledger: one email per forward id (deterministic from session +
+  // transcript). A duplicate delivery replays; a failed send can be retried
+  // (here or by scripts/resend-pending-chat-forwards.ts, same action id).
+  // Resend also dedupes the same Idempotency-Key for 24 h.
+  const sendActionId = await forwardSendActionId(id);
   const resend = new Resend(process.env.RESEND_API_KEY);
-  const { data, error } = await resend.emails.send({
-    from,
-    to: inbox,
-    subject,
-    text,
-    html,
-  });
+  const sent = await runOnce(
+    sendActionId,
+    async () => {
+      const { data, error } = await resend.emails.send({ from, to: inbox, subject, text, html }, { idempotencyKey: sendActionId });
+      if (error) return { ok: false as const, detail: resendFailureMessage(error).logDetail };
+      if (!data?.id) return { ok: false as const, detail: 'Resend returned no id.' };
+      return { ok: true as const, resendId: data.id };
+    },
+    { isFailure: (r) => (r.ok ? null : r.detail) },
+  );
 
-  if (error) {
-    const { logDetail } = resendFailureMessage(error);
+  if (sent.state === 'replay' && sent.result.ok) {
+    return NextResponse.json({ ok: true, id: sent.result.resendId, replay: true });
+  }
+  if (sent.state === 'running') {
+    return NextResponse.json({ ok: true, id, inFlight: true }, { status: 202 });
+  }
+  if (sent.state !== 'done' || !sent.result.ok) {
+    const logDetail = sent.state === 'failed' ? sent.error : 'send failed';
     console.error('[api/chat/forward] Resend failed', {
       from,
       to: maskEmail(inbox),
@@ -230,19 +246,7 @@ export async function POST(req: NextRequest) {
       { status: 502 },
     );
   }
-
-  if (!data?.id) {
-    console.error('[api/chat/forward] Resend returned no id', { data });
-    await saveChatForward({
-      ...baseRecord,
-      status: 'failed',
-      error: 'Resend returned no id.',
-    });
-    return NextResponse.json(
-      { ok: false, error: CONTACT_OFFLINE_PUBLIC, id },
-      { status: 502 },
-    );
-  }
+  const data = { id: sent.result.resendId };
 
   console.info('[api/chat/forward] Resend ok', {
     id: data.id,

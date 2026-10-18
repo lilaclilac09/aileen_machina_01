@@ -58,7 +58,7 @@ async function main() {
   check('19 charged → not exhausted', !quotaExhausted(await readRedisQuota(k1)));
   await chargeRedisQuota(k1);
   check('20 charged → exhausted', quotaExhausted(await readRedisQuota(k1)));
-  check('route charges Redis only in onFinish on committed turns', /if \(committed\) \{[\s\S]{0,80}chargeRedisQuota\(redisQuotaKey\)/.test(route));
+  check('route charges Redis only in onFinish on committed turns', /if \(committed\) \{[\s\S]{0,160}chargeRedisQuota\(redisQuotaKey\)/.test(route) && /runOnce\(turnCommitId, commit/.test(route));
   check('route cookie path unchanged without Redis (+1 up front)', /redisQuotaKey \? quota\.count : quota\.count \+ 1/.test(route));
   check('committed = stop|length with visible output only', /const committed = !empty && \(finishReason === 'stop' \|\| finishReason === 'length'\)/.test(route));
 
