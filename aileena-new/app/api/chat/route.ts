@@ -15,6 +15,7 @@ import { SYSTEM_PROMPT } from '../../../lib/agentContext';
 import { buildMachinaSystemPrompt } from '../../../lib/aileenaSecondBrain';
 import { COUNCIL_SYSTEM_PROMPT, formatCouncilLensForPrompt } from '../../../lib/aileenaCouncil';
 import { decideAgentMode, skipVisitorQuota, type AgentMode } from '../../../lib/agentMode';
+import { parseCodeCommand, runCodeTurn } from '../../../lib/codeAgent/run';
 import { isCouncilLens } from '../../../lib/councilCopy';
 import { requireOwnerFromRequest } from '../../../lib/owner-gate';
 import { isAgentCaller } from '../../../lib/agentCaller';
@@ -238,7 +239,7 @@ export async function POST(req: Request) {
   let body: {
     messages?: UIMessage[];
     priorTopics?: string[];
-    agentMode?: 'public' | 'site' | 'machina' | 'council';
+    agentMode?: 'public' | 'site' | 'machina' | 'council' | 'code';
     councilLens?: string;
     voiceAccent?: string;
     sessionProvider?: string;
@@ -278,6 +279,30 @@ export async function POST(req: Request) {
   // Owner bench runs (`pnpm bench:inference`) are tagged so the dashboard can separate them.
   const perfSrc: 'site' | 'bench' = owner && req.headers.get('x-perf-source') === 'bench' ? 'bench' : 'site';
   const perfRun = perfSrc === 'bench' ? perfLabel(req.headers.get('x-perf-run'), 40) || undefined : undefined;
+  // Code mode (`/code …` or agentMode 'code'): owner-only, decided here on the
+  // server. Visitors and agent callers (/api/mcp) are refused, never downgraded.
+  const lastQCode = lastUserQuery(messages);
+  const codeCmd =
+    parseCodeCommand(lastQCode) ??
+    (body.agentMode === 'code' && lastQCode.trim() ? { kind: 'task' as const, task: lastQCode.trim() } : null);
+  if (codeCmd) {
+    if (agentCaller || !owner) {
+      trace.log('code_mode_refused', { agentCaller });
+      return jsonError('Code mode is owner-only.', 403, trace.traceId, { 'X-Agent-Mode': 'forbidden' });
+    }
+    const turnKey =
+      validLedgerId(body.sessionId) && validLedgerId(body.turnId)
+        ? `${body.sessionId}:${body.turnId}`
+        : `${new Date().toISOString().slice(0, 15)}:${lastQCode.trim().slice(0, 500)}`;
+    const out = await runCodeTurn({ actor: 'owner', command: codeCmd, turnKey });
+    trace.log('code_mode', { status: out.status, runId: out.runId ?? null, pr: out.prUrl ?? null });
+    return queuedChatResponse(out.text, {
+      'X-Agent-Mode': 'code',
+      'X-Trace-Id': trace.traceId,
+      'X-Code-Status': out.status,
+      ...(out.prUrl ? { 'X-Code-PR': out.prUrl } : {}),
+    });
+  }
   const decidedRaw = decideAgentMode(body.agentMode, Boolean(owner));
   const decided =
     agentCaller && decidedRaw.ok ? { ok: true as const, mode: 'public' as AgentMode } : decidedRaw;
