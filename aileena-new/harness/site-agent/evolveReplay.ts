@@ -47,7 +47,8 @@ async function main() {
   check('workflow: dispatch only', /on:\s*\n\s*workflow_dispatch:/.test(wf) && !/pull_request/.test(wf));
   check('workflow: top-level permissions {}', /^permissions: \{\}$/m.test(wf));
   check('workflow: self-improve ref pattern enforced', wf.includes('^self-improve/evolve-[0-9a-f]{24}$'));
-  check('workflow: bot-opened, bot-committed, same-repo only', wf.includes('github-actions[bot]') && wf.includes('bot@aileena.xyz') && wf.includes('head is from a fork'));
+  check('workflow: bot-opened, same-repo only', wf.includes('github-actions[bot]') && wf.includes('head is from a fork'));
+  check('workflow: commits only from the evolve bot or the repo owner', wf.includes('bot@aileena.xyz') && wf.includes('OWNER: ${{ github.repository_owner }}') && wf.includes('!= $ENV.OWNER'));
   const replayJob = wf.slice(wf.indexOf('\n  replay:'), wf.indexOf('\n  report:'));
   check('workflow: replay job read-only, no persisted creds', /permissions:\s*\n\s*contents: read\s*\n\s*defaults/.test(replayJob) && replayJob.includes('persist-credentials: false') && !/write/.test(replayJob));
   check('workflow: secret only in replay job', (wf.match(/secrets\./g) || []).length === 1 && replayJob.includes('secrets.DEEPSEEK_API_KEY'));

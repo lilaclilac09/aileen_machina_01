@@ -9,7 +9,8 @@ name: Site-agent replay gate
 #   failed → stays draft, label `replay-failed`, comment the failures
 # Never merges, approves or pushes. Aileen reviews and merges.
 #
-# Only bot-authored self-improve/evolve-<24hex> PRs from this repo are accepted:
+# Only bot-opened self-improve/evolve-<24hex> PRs from this repo, with commits
+# from the evolve bot or the repo owner, are accepted:
 # the replay job runs the PR's code with the DeepSeek secret, but with a
 # read-only token and no persisted credentials.
 
@@ -47,6 +48,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ inputs.pr }}
           REPO: ${{ github.repository }}
+          OWNER: ${{ github.repository_owner }}
         run: |
           set -euo pipefail
           [[ "$PR" =~ ^[0-9]+$ ]] || { echo "::error::pr must be a number"; exit 1; }
@@ -57,8 +59,10 @@ jobs:
           [[ "$REF" =~ ^self-improve/evolve-[0-9a-f]{24}$ ]] || { echo "::error::not a self-improve branch: $REF"; exit 1; }
           [ "$AUTHOR" = "github-actions[bot]" ] || { echo "::error::PR not opened by the evolve workflow"; exit 1; }
           jq -e '[.labels[].name] | index("self-improve")' /tmp/pr.json >/dev/null || { echo "::error::missing self-improve label"; exit 1; }
-          BAD=$(gh api "repos/$REPO/pulls/$PR/commits" --paginate --jq '.[] | select(.commit.author.email != "bot@aileena.xyz") | .sha')
-          [ -z "$BAD" ] || { echo "::error::non-bot commits on the branch: $BAD"; exit 1; }
+          # Commits must come from the evolve bot or the repo owner's GitHub account
+          # (owner fixes to a bot PR, e.g. corrected verifiers). Anyone else → refuse.
+          BAD=$(gh api "repos/$REPO/pulls/$PR/commits" --paginate --jq '.[] | select(.commit.author.email != "bot@aileena.xyz" and (.author.login // "") != $ENV.OWNER) | .sha')
+          [ -z "$BAD" ] || { echo "::error::commits not from the evolve bot or the repo owner: $BAD"; exit 1; }
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"
           echo "branch=$REF" >> "$GITHUB_OUTPUT"
 
