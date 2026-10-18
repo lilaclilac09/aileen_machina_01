@@ -142,5 +142,32 @@
     "heldOutBefore": 1,
     "heldOutAfter": 1,
     "reason": "trigger-quality cleanup: dropped 语音, 声音"
+  },
+  {
+    "at": "2026-10-18T10:50:42.238Z",
+    "action": "promote",
+    "skillId": "auto-unknown-ask",
+    "version": 1,
+    "heldOutBefore": 0.8333333333333334,
+    "heldOutAfter": 0.9,
+    "reason": "held-out 0.833 → 0.900"
+  },
+  {
+    "at": "2026-10-18T10:50:46.254Z",
+    "action": "promote",
+    "skillId": "auto-unknown-ask",
+    "version": 2,
+    "heldOutBefore": 0.9,
+    "heldOutAfter": 0.9666666666666667,
+    "reason": "held-out 0.900 → 0.967"
+  },
+  {
+    "at": "2026-10-18T10:50:50.212Z",
+    "action": "promote",
+    "skillId": "auto-unknown-ask",
+    "version": 3,
+    "heldOutBefore": 0.9666666666666667,
+    "heldOutAfter": 1,
+    "reason": "held-out 0.967 → 1.000"
   }
 ]
