@@ -34,19 +34,41 @@ const EMPTY: VisitorSoftMemory = {
 
 let redisClient: Redis | null | undefined;
 
+const URL_NAMES = ['UPSTASH_REDIS_REST_URL', 'KV_REST_API_URL'] as const;
+const TOKEN_NAMES = ['UPSTASH_REDIS_REST_TOKEN', 'KV_REST_API_TOKEN'] as const;
+/** Related names some integrations inject; reported by name only, never read as credentials here. */
+const OTHER_NAMES = ['KV_REST_API_READ_ONLY_TOKEN', 'KV_URL', 'REDIS_URL'] as const;
+
 /** Bracket access so Next does not inline empty Redis URLs at build time. */
+function envVal(name: string): string {
+  return (process.env[name] || '').trim();
+}
+
 function redisRestEnv(): { url: string; token: string } {
-  const url = (
-    process.env['UPSTASH_REDIS_REST_URL'] ||
-    process.env['KV_REST_API_URL'] ||
-    ''
-  ).trim();
-  const token = (
-    process.env['UPSTASH_REDIS_REST_TOKEN'] ||
-    process.env['KV_REST_API_TOKEN'] ||
-    ''
-  ).trim();
-  return { url, token };
+  const urlName = URL_NAMES.find((n) => envVal(n));
+  const tokenName = TOKEN_NAMES.find((n) => envVal(n));
+  return { url: urlName ? envVal(urlName) : '', token: tokenName ? envVal(tokenName) : '' };
+}
+
+/**
+ * Which Redis env names are in use (names only, never values). `shadowed`
+ * lists set names that lose to a higher-precedence one; `tokenIsReadOnly` is
+ * true when the token in use equals KV_REST_API_READ_ONLY_TOKEN.
+ */
+export function redisEnvNames(): {
+  url: string | null;
+  token: string | null;
+  shadowed: string[];
+  present: string[];
+  tokenIsReadOnly: boolean;
+} {
+  const all = [...URL_NAMES, ...TOKEN_NAMES, ...OTHER_NAMES];
+  const present = all.filter((n) => envVal(n));
+  const url = URL_NAMES.find((n) => envVal(n)) ?? null;
+  const token = TOKEN_NAMES.find((n) => envVal(n)) ?? null;
+  const shadowed = [...URL_NAMES, ...TOKEN_NAMES].filter((n) => envVal(n) && n !== url && n !== token);
+  const ro = envVal('KV_REST_API_READ_ONLY_TOKEN');
+  return { url, token, shadowed, present, tokenIsReadOnly: Boolean(token && ro && envVal(token) === ro) };
 }
 
 export function getVisitorRedis(): Redis | null {
@@ -58,6 +80,11 @@ export function getVisitorRedis(): Redis | null {
   }
   redisClient = new Redis({ url, token });
   return redisClient;
+}
+
+/** Tests: inject a fake client (or null); `undefined` re-reads env on next use. */
+export function setVisitorRedisForTests(client: Redis | null | undefined): void {
+  redisClient = client;
 }
 
 export function visitorSoftMemoryEnabled(): boolean {

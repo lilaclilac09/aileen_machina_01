@@ -1,4 +1,5 @@
 import { getVisitorRedis } from '../visitorMemory';
+import { noteRedisError, redisHealth } from './redisHealth';
 
 /**
  * Tiny key-value seam for the runtime state owners (ledger, quota, breaker).
@@ -98,8 +99,11 @@ export function runtimeKv(): Kv {
     backend: 'redis',
     async get<T>(key: string) {
       try {
-        return ((await redis.get(key)) as T) ?? null;
-      } catch {
+        const v = ((await redis.get(key)) as T) ?? null;
+        // Degraded (some writes fell back to memory): a Redis miss may live there.
+        return v === null && redisHealth().degraded ? memoryKv.get<T>(key) : v;
+      } catch (err) {
+        noteRedisError('get', err);
         return memoryKv.get<T>(key);
       }
     },
@@ -113,7 +117,8 @@ export function runtimeKv(): Kv {
             ? await redis.set(key, value as never, { ex: opts.ex })
             : await redis.set(key, value as never);
         return r === 'OK' || r === true || (r !== null && r !== undefined);
-      } catch {
+      } catch (err) {
+        noteRedisError('set', err);
         return memoryKv.set(key, value, opts);
       }
     },
@@ -122,7 +127,8 @@ export function runtimeKv(): Kv {
         const n = await redis.incr(key);
         if (n === 1) await redis.expire(key, ttlSec);
         return n;
-      } catch {
+      } catch (err) {
+        noteRedisError('incr', err);
         return memoryKv.incr(key, ttlSec);
       }
     },
@@ -131,14 +137,16 @@ export function runtimeKv(): Kv {
         const n = await redis.incrby(key, Math.trunc(by));
         if (n === Math.trunc(by)) await redis.expire(key, ttlSec);
         return n;
-      } catch {
+      } catch (err) {
+        noteRedisError('incrBy', err);
         return memoryKv.incrBy(key, by, ttlSec);
       }
     },
     async del(key) {
       try {
         await redis.del(key);
-      } catch {
+      } catch (err) {
+        noteRedisError('del', err);
         await memoryKv.del(key);
       }
     },
@@ -149,7 +157,8 @@ export function runtimeKv(): Kv {
         p.ltrim(key, 0, cap - 1);
         p.expire(key, ttlSec);
         await p.exec();
-      } catch {
+      } catch (err) {
+        noteRedisError('listPush', err);
         await memoryKv.listPush(key, values, cap, ttlSec);
       }
     },
@@ -165,7 +174,8 @@ export function runtimeKv(): Kv {
             }
           })
           .filter((x): x is Awaited<T> => x !== null) as T[];
-      } catch {
+      } catch (err) {
+        noteRedisError('listRange', err);
         return memoryKv.listRange<T>(key, limit);
       }
     },
@@ -175,7 +185,8 @@ export function runtimeKv(): Kv {
         for (const [f, by] of Object.entries(fields)) if (by) p.hincrby(key, f, Math.trunc(by));
         p.expire(key, ttlSec);
         await p.exec();
-      } catch {
+      } catch (err) {
+        noteRedisError('hashIncr', err);
         await memoryKv.hashIncr(key, fields, ttlSec);
       }
     },
@@ -183,7 +194,8 @@ export function runtimeKv(): Kv {
       try {
         const h = ((await redis.hgetall(key)) ?? {}) as Record<string, unknown>;
         return Object.fromEntries(Object.entries(h).map(([k, v]) => [k, Number(v) || 0]));
-      } catch {
+      } catch (err) {
+        noteRedisError('hashGetAll', err);
         return memoryKv.hashGetAll(key);
       }
     },
