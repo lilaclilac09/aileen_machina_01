@@ -6,7 +6,7 @@ import {
   renderTranscriptHtml,
   renderTranscriptText,
 } from '@/lib/mail-transcript';
-import { getResendFrom, resendFailureMessage } from '@/lib/resend-from';
+import { getResendFrom, resendFailureMessage, resendIdempotentDuplicate } from '@/lib/resend-from';
 import { isCouncilPipelineRequest } from '@/lib/agentMode';
 import { checkRateLimit, LLM_RATE } from '@/lib/api/ratelimit';
 import {
@@ -138,7 +138,6 @@ export async function POST(req: NextRequest) {
   const text = [
     `Session: ${sessionId}`,
     `ForwardId: ${id}`,
-    `Captured: ${createdAt}`,
     `Referer:  ${referer}`,
     `UA:       ${ua}`,
     '',
@@ -151,7 +150,6 @@ export async function POST(req: NextRequest) {
     <div style="font-family:ui-monospace,Menlo,monospace;font-size:13px;color:#1b1713;line-height:1.5">
       <p><strong>Session:</strong> ${escapeHtml(sessionId)}</p>
       <p><strong>ForwardId:</strong> ${escapeHtml(id)}</p>
-      <p><strong>Captured:</strong> ${escapeHtml(createdAt)}</p>
       <p><strong>Page:</strong> ${escapeHtml(referer)}</p>
       <hr style="border:none;border-top:1px solid #e7e0d6;margin:16px 0" />
       <h3 style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#007d75">Transcript</h3>
@@ -216,6 +214,8 @@ export async function POST(req: NextRequest) {
     sendActionId,
     async () => {
       const { data, error } = await resend.emails.send({ from, to: inbox, subject, text, html }, { idempotencyKey: sendActionId });
+      const dup = resendIdempotentDuplicate(error);
+      if (dup) return { ok: true as const, resendId: null, deduped: dup };
       if (error) return { ok: false as const, detail: resendFailureMessage(error).logDetail };
       if (!data?.id) return { ok: false as const, detail: 'Resend returned no id.' };
       return { ok: true as const, resendId: data.id };
@@ -224,7 +224,7 @@ export async function POST(req: NextRequest) {
   );
 
   if (sent.state === 'replay' && sent.result.ok) {
-    return NextResponse.json({ ok: true, id: sent.result.resendId, replay: true });
+    return NextResponse.json({ ok: true, id: sent.result.resendId ?? id, replay: true });
   }
   if (sent.state === 'running') {
     return NextResponse.json({ ok: true, id, inFlight: true }, { status: 202 });
@@ -246,7 +246,8 @@ export async function POST(req: NextRequest) {
       { status: 502 },
     );
   }
-  const data = { id: sent.result.resendId };
+  if ('deduped' in sent.result) console.info('[api/chat/forward] Resend says already sent', { reason: sent.result.deduped, actionId: sendActionId });
+  const data = { id: sent.result.resendId ?? id };
 
   console.info('[api/chat/forward] Resend ok', {
     id: data.id,

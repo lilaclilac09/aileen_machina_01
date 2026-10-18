@@ -11,7 +11,7 @@
 
 import { Resend } from 'resend';
 import { getContactInbox } from '../lib/contact-inbox';
-import { getResendFrom, resendFailureMessage } from '../lib/resend-from';
+import { getResendFrom, resendFailureMessage, resendIdempotentDuplicate } from '../lib/resend-from';
 import {
   listChatForwards,
   forwardSendActionId,
@@ -43,7 +43,6 @@ async function sendOne(rec: ChatForwardRecord, dryRun: boolean): Promise<boolean
     `Session: ${rec.sessionId}`,
     `ForwardId: ${rec.id}`,
     `Original: ${rec.createdAt}`,
-    `Resent:   ${new Date().toISOString()}`,
     `Referer:  ${rec.referer ?? '(none)'}`,
     `UA:       ${rec.ua ?? '(unknown)'}`,
     '',
@@ -76,6 +75,7 @@ async function sendOne(rec: ChatForwardRecord, dryRun: boolean): Promise<boolean
         },
         { idempotencyKey: `${sendActionId}.resend` },
       );
+      if (resendIdempotentDuplicate(error)) return { ok: true as const };
       return error ? { ok: false as const, detail: resendFailureMessage(error).logDetail } : { ok: true as const };
     },
     { isFailure: (r) => (r.ok ? null : r.detail) },

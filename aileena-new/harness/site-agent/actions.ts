@@ -63,19 +63,29 @@ const server = createServer(async (req, res) => {
 });
 
 // ── Resend mock: intercept api.resend.com, count sends and idempotency keys ──
-const resend = { sends: 0, keys: [] as string[], fail: 0, delayMs: 0 };
+// Emulates Resend's documented idempotency: same key + same body → the original
+// 200 + id, nothing sent; same key + other body → 409 invalid_idempotent_request.
+const resend = { sends: 0, keys: [] as string[], fail: 0, delayMs: 0, force409: '' as string, byKey: new Map<string, { body: string; id: string }>(), bodies: [] as string[] };
+const err409 = (name: string) => new Response(JSON.stringify({ statusCode: 409, name, message: name }), { status: 409, headers: { 'content-type': 'application/json' } });
 const realFetch = globalThis.fetch;
 globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
   const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
   if (url.startsWith('https://api.resend.com/')) {
     const h = new Headers(init?.headers);
-    resend.keys.push(h.get('idempotency-key') ?? '');
+    const key = h.get('idempotency-key') ?? '';
+    const body = String(init?.body ?? '');
+    resend.keys.push(key);
+    resend.bodies.push(body);
     if (resend.delayMs) await sleep(resend.delayMs);
+    if (resend.force409) return err409(resend.force409);
+    const seen = key ? resend.byKey.get(key) : undefined;
+    if (seen) return seen.body === body ? new Response(JSON.stringify({ id: seen.id }), { status: 200, headers: { 'content-type': 'application/json' } }) : err409('invalid_idempotent_request');
     if (resend.fail > 0) {
       resend.fail--;
       return new Response(JSON.stringify({ statusCode: 500, name: 'internal_server_error', message: 'mock outage' }), { status: 500, headers: { 'content-type': 'application/json' } });
     }
     resend.sends++;
+    if (key) resend.byKey.set(key, { body, id: `email_${resend.sends}` });
     return new Response(JSON.stringify({ id: `email_${resend.sends}` }), { status: 200, headers: { 'content-type': 'application/json' } });
   }
   return realFetch(input as RequestInfo, init);
@@ -205,16 +215,70 @@ async function main() {
 
   // ── Lead email: double submit → one email ──
   const { POST: lead } = await import('../../app/api/lead/route');
-  const leadReq = () =>
+  const leadReq = (note = 'Building a validator dashboard') =>
     lead(new NextRequest('https://aileena.xyz/api/lead', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-forwarded-for': `198.51.100.${++ipSeq}` },
-      body: JSON.stringify({ email: 'visitor@example.com', note: 'Building a validator dashboard', transcript: [{ role: 'user', text: 'Can she help?' }] }),
+      body: JSON.stringify({ email: 'visitor@example.com', note, transcript: [{ role: 'user', text: 'Can she help?' }] }),
     }));
   const before = resend.sends;
   const l1 = await leadReq();
   const l2 = await leadReq();
   check('lead: double submit → one email', l1.status === 200 && l2.status === 200 && resend.sends === before + 1, `${l1.status} ${l2.status} sends=${resend.sends - before}`);
+
+  // ── Resend idempotency without a shared ledger (no Upstash: another instance) ──
+  resetRuntimeKvForTests();
+  const sendsBefore = resend.sends;
+  const i1 = await fwd('fwdsession04');
+  const bodyA = resend.bodies[resend.bodies.length - 1];
+  await sleep(15);
+  resetRuntimeKvForTests(); // the duplicate lands on an instance that never saw the first
+  const i2 = await fwd('fwdsession04');
+  const bodyB = resend.bodies[resend.bodies.length - 1];
+  check('forward: body is deterministic for one action id (no capture time)', bodyA === bodyB && !/Captured/.test(bodyA), bodyA.slice(0, 120));
+  check('forward: cross-instance duplicate → Resend returns the original, one email', i1.status === 200 && i2.status === 200 && resend.sends === sendsBefore + 1, `${i1.status} ${i2.status}`);
+  resetRuntimeKvForTests();
+  const l3 = await leadReq('Second lead from another instance');
+  const lbA = resend.bodies[resend.bodies.length - 1];
+  await sleep(15);
+  resetRuntimeKvForTests();
+  const l4 = await leadReq('Second lead from another instance');
+  const lbB = resend.bodies[resend.bodies.length - 1];
+  check('lead: body deterministic + cross-instance duplicate → one email', lbA === lbB && !/Captured/.test(lbA) && l3.status === 200 && l4.status === 200 && resend.sends === sendsBefore + 2, `${l3.status} ${l4.status}`);
+
+  // ── Resend 409 idempotency answers count as "already sent" ──
+  for (const name of ['invalid_idempotent_request', 'concurrent_idempotent_requests']) {
+    resetRuntimeKvForTests();
+    resend.force409 = name;
+    const before409 = resend.sends;
+    const f = await fwd(`fwd409${name.slice(0, 6)}`);
+    const fj = (await f.json()) as { ok?: boolean };
+    const { forwardSendActionId } = await import('../../lib/chatForwardStore');
+    const { makeForwardId } = await import('../../lib/chatForwardStore');
+    const fid409 = await forwardSendActionId(makeForwardId(`fwd409${name.slice(0, 6)}`, [{ role: 'user', text: 'Please pass this on to her.' }, { role: 'assistant', text: 'Sent.' }] as never));
+    const recF = await readAction(fid409);
+    const l = await leadReq(`lead during ${name}`);
+    resend.force409 = '';
+    check(`forward: 409 ${name} → success to visitor, ledger succeeded`, f.status === 200 && fj.ok === true && recF?.status === 'succeeded' && resend.sends === before409, `${f.status} ${recF?.status}`);
+    check(`lead: 409 ${name} → success to visitor`, l.status === 200, String(l.status));
+    const again = await fwd(`fwd409${name.slice(0, 6)}`);
+    check(`forward: after 409 ${name} a retry replays (no new Resend call)`, again.status === 200 && ((await again.json()) as { replay?: boolean }).replay === true);
+  }
+
+  // ── Visitor analytics: duplicate beacons count once per session ──
+  const { recordEngageEvent, readEngageStats, resetEngageStoreForTests } = await import('../../lib/agentEngage/store');
+  resetEngageStoreForTests();
+  const dims = { source: 'direct', landing: '/', country: 'XX', locale: 'en', device: 'desktop', caller: 'visitor' as const };
+  for (let i = 0; i < 3; i++) {
+    await recordEngageEvent({ type: 'open', sid: 'dupsess0001', dims, at: Date.now() });
+    await recordEngageEvent({ type: 'first_message', sid: 'dupsess0001', dims, at: Date.now() });
+  }
+  await recordEngageEvent({ type: 'starter_tap', sid: 'dupsess0001', starter: 'work', dims, at: Date.now() });
+  await recordEngageEvent({ type: 'starter_tap', sid: 'dupsess0001', starter: 'work', dims, at: Date.now() });
+  await recordEngageEvent({ type: 'open', sid: 'dupsess0002', dims, at: Date.now() });
+  const es = await readEngageStats();
+  check('engage: duplicate open / first_message count once per session', es.totals.opens === 2 && es.totals.first_messages === 1, JSON.stringify(es.totals));
+  check('engage: starter taps still count per tap', es.totals.starter_taps === 2, JSON.stringify(es.totals));
 
   // ── Evolve drain checkpoint ──
   resetRuntimeKvForTests();
