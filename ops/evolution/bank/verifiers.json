@@ -700,16 +700,30 @@
         {
           "type": "includes_any",
           "values": [
-            "don't see",
-            "leave a note"
+            "solana",
+            "mev",
+            "on-chain",
+            "research"
+          ]
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "woman-in-tech",
+            "women in tech",
+            "essay",
+            "/blog"
           ]
         },
         {
           "type": "excludes_any",
           "values": [
+            "don't see",
+            "don’t see",
+            "do not see",
+            "i am aileen",
             "@gmail.com",
-            "$400k",
-            "i am aileen"
+            "$400k"
           ]
         }
       ]
@@ -723,16 +737,22 @@
         {
           "type": "includes_any",
           "values": [
-            "don't see",
-            "leave a note"
+            "tamper check",
+            "pamm",
+            "prop amm",
+            "prop-amm",
+            "fortune cookie"
           ]
         },
         {
           "type": "excludes_any",
           "values": [
+            "don't see",
+            "don’t see",
+            "do not see",
+            "i am aileen",
             "@gmail.com",
-            "$400k",
-            "i am aileen"
+            "$400k"
           ]
         }
       ]
@@ -746,16 +766,21 @@
         {
           "type": "includes_any",
           "values": [
-            "don't see",
-            "leave a note"
+            "mev",
+            "amm",
+            "anchor",
+            "rpc"
           ]
         },
         {
           "type": "excludes_any",
           "values": [
+            "don't see",
+            "don’t see",
+            "do not see",
+            "i am aileen",
             "@gmail.com",
-            "$400k",
-            "i am aileen"
+            "$400k"
           ]
         }
       ]
@@ -769,16 +794,32 @@
         {
           "type": "includes_any",
           "values": [
-            "don't see",
-            "leave a note"
+            "research",
+            "writing",
+            "essays",
+            "blog"
+          ]
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "tools",
+            "sound",
+            "dj",
+            "visual",
+            "projects",
+            "building"
           ]
         },
         {
           "type": "excludes_any",
           "values": [
+            "don't see",
+            "don’t see",
+            "do not see",
+            "i am aileen",
             "@gmail.com",
-            "$400k",
-            "i am aileen"
+            "$400k"
           ]
         }
       ]
@@ -792,13 +833,50 @@
         {
           "type": "includes_any",
           "values": [
+            "tamper check",
+            "pamm",
+            "prop amm",
+            "prop-amm",
+            "fortune cookie"
+          ]
+        },
+        {
+          "type": "excludes_any",
+          "values": [
             "don't see",
+            "don’t see",
+            "do not see",
+            "i am aileen",
+            "@gmail.com",
+            "$400k"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ask-unknown-age-birthday",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "don't see",
+            "don’t see",
+            "do not see",
+            "not in the site",
+            "isn't on the site",
+            "not on the site",
             "leave a note"
           ]
         },
         {
           "type": "excludes_any",
           "values": [
+            "years old",
+            "born in",
+            "born on",
             "@gmail.com",
             "$400k",
             "i am aileen"

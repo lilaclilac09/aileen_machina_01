@@ -111,7 +111,7 @@
     "bucket": "medium",
     "prompt": "In one sentence, what does Aileen write about?",
     "structure": [
-      "unknown-ask"
+      "site-overview"
     ]
   },
   {
@@ -120,7 +120,7 @@
     "bucket": "medium",
     "prompt": "Name one project of hers.",
     "structure": [
-      "unknown-ask"
+      "site-overview"
     ]
   },
   {
@@ -129,7 +129,7 @@
     "bucket": "medium",
     "prompt": "One line on her Solana work?",
     "structure": [
-      "unknown-ask"
+      "site-overview"
     ]
   },
   {
@@ -138,7 +138,7 @@
     "bucket": "medium",
     "prompt": "In one sentence, what is on aileena.xyz?",
     "structure": [
-      "unknown-ask"
+      "site-overview"
     ]
   },
   {
@@ -146,6 +146,15 @@
     "split": "held-out",
     "bucket": "medium",
     "prompt": "Name one project on aileena.xyz in under 12 words. (1)",
+    "structure": [
+      "site-overview"
+    ]
+  },
+  {
+    "id": "ask-unknown-age-birthday",
+    "split": "held-out",
+    "bucket": "medium",
+    "prompt": "How old is she, and when is her birthday?",
     "structure": [
       "unknown-ask"
     ]

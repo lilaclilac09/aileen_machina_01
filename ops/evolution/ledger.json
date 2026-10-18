@@ -169,5 +169,23 @@
     "heldOutBefore": 0.9666666666666667,
     "heldOutAfter": 1,
     "reason": "held-out 0.967 → 1.000"
+  },
+  {
+    "at": "2026-10-18T13:41:53.086Z",
+    "action": "promote",
+    "skillId": "auto-unknown-ask",
+    "version": 4,
+    "heldOutBefore": 0.8064516129032258,
+    "heldOutAfter": 1,
+    "reason": "narrow to genuinely unknown asks after real-agent replay (fp on 4 negatives)"
+  },
+  {
+    "at": "2026-10-18T13:41:53.086Z",
+    "action": "promote",
+    "skillId": "site-overview-grounded",
+    "version": 1,
+    "heldOutBefore": 0.8064516129032258,
+    "heldOutAfter": 1,
+    "reason": "ground answerable site questions (writing, projects, Solana, site overview)"
   }
 ]
