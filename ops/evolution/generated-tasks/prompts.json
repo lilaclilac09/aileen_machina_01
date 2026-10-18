@@ -104,5 +104,14 @@
     "structure": [
       "voice-code"
     ]
+  },
+  {
+    "id": "ask-what-is-tamper-check",
+    "split": "held-out",
+    "bucket": "medium",
+    "prompt": "What is tamper-check?",
+    "structure": [
+      "unknown-ask"
+    ]
   }
 ]
