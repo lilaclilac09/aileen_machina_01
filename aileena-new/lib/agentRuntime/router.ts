@@ -60,7 +60,15 @@ export type RouterInput = {
 
 export type RouterDecision =
   | { ok: true; pick: ModelPick; probe: boolean; rule: RouterRule; gpuState: GpuLifecycle | 'off'; wakeSent: boolean; blocked?: string }
-  | { ok: false; rule: 'circuit_open'; gpuState: GpuLifecycle | 'off'; wakeSent: boolean; blocked: string };
+  | {
+      ok: false;
+      rule: 'circuit_open';
+      gpuState: GpuLifecycle | 'off';
+      wakeSent: boolean;
+      blocked: string;
+      /** The only usable tier (GPU) was skipped because the prompt is over its context: compact and route again. */
+      contextTooLong?: boolean;
+    };
 
 /** Rough prompt-token estimate: characters / 3.5. Good enough for a context guard. */
 export function estimateTokens(chars: number): number {
@@ -93,6 +101,7 @@ export async function chooseProvider(input: RouterInput): Promise<RouterDecision
     void probeGpu(cfg, { now, fetchImpl: input.fetchImpl }).catch(() => {});
   }
   const gpuWarm = () => gpuState === 'WARM';
+  const ctxFits = !cfg || input.estTokens + GPU_CONTEXT_HEADROOM <= cfg.maxContext;
   const wake = async () => {
     if (!cfg || gpuState === 'WARM' || gpuState === 'DRAINING') return;
     const w = await wakeGpu(cfg, { now, fetchImpl: input.fetchImpl });
@@ -137,13 +146,15 @@ export async function chooseProvider(input: RouterInput): Promise<RouterDecision
     const pg = await gateOf(primary.provider);
     const blocked = pg.allowed ? 'unknown' : pg.reason;
     const allowGpuFailover = gpuOn && cfg && (cfg.mode === 'public' ? cfg.failover : input.isOwner);
-    if (allowGpuFailover) {
+    // Never fail open: a prompt over the GPU context window is not sent there.
+    const gpuSkippedForContext = Boolean(allowGpuFailover && !ctxFits && gpuWarm());
+    if (allowGpuFailover && ctxFits) {
       const g = await tryGpu('primary_blocked');
       if (g) return { ...g, blocked };
     }
     const f = await tryPick(fallback, 'fallback');
     if (f) return { ...f, blocked };
-    return { ok: false, rule: 'circuit_open', gpuState, wakeSent, blocked };
+    return { ok: false, rule: 'circuit_open', gpuState, wakeSent, blocked, ...(gpuSkippedForContext ? { contextTooLong: true } : {}) };
   };
 
   // 1. GPU off → unchanged behavior.
@@ -168,8 +179,7 @@ export async function chooseProvider(input: RouterInput): Promise<RouterDecision
   if (lock) return primaryOrFallback(lock === primary.provider ? 'sticky' : 'default');
 
   // 3. Context guard: new roots only (a locked GPU root was sized when it started).
-  const ctxOk = input.estTokens + GPU_CONTEXT_HEADROOM <= cfg.maxContext;
-  if (!ctxOk) {
+  if (!ctxFits) {
     return primaryOrFallback('context_guard');
   }
 

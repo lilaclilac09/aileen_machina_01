@@ -9,6 +9,7 @@
 
 import { createHash } from 'crypto';
 import { getVisitorRedis } from './visitorMemory';
+import { actionId } from './agentRuntime/actions';
 import {
   decryptPrivateJson,
   encryptPrivateJson,
@@ -77,6 +78,11 @@ export function makeForwardId(sessionId: string, transcript: ChatForwardMessage[
     .digest('hex')
     .slice(0, 20);
   return `${sessionId.slice(0, 8)}-${h}`;
+}
+
+/** Action id of the one email for this forward (shared by the route and the resend job). */
+export function forwardSendActionId(forwardId: string): Promise<string> {
+  return actionId('email.forward', forwardId);
 }
 
 export function encodeForwardRecord(record: ChatForwardRecord): RedisForwardRow | null {

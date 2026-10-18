@@ -46,7 +46,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "No profile README changes"
           else
-            git commit -m "chore(profile-readme): daily sync [$(date -u +%Y-%m-%d)]"
+            git commit -m "chore(profile-readme): daily sync [$(date -u +%Y-%m-%d)]" -m "Action-Id: $(bash .github/scripts/action-id.sh profile-readme)"
             git push
             echo "Pushed docs/github-profile-README.md"
           fi

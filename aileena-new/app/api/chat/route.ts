@@ -60,9 +60,10 @@ import { newPerfId, perfLabel, recordPerfTurn, type PerfOutcome } from '../../..
 import { estimateTurnCostUsd } from '../../../lib/agentRuntime/pricing';
 import { chooseProvider, estimateTokens, peekFirstToken } from '../../../lib/agentRuntime/router';
 import { addSpend, estimateTurnMicroUsd, noteTtft, noteTurnDone, noteTurnStart, recordRouterTurn } from '../../../lib/agentRuntime/load';
-import { commitTurn, findCommittedTurn, readLedger, rebuildTranscript, validLedgerId } from '../../../lib/agentRuntime/ledger';
+import { commitTurn, findCommittedTurn, LEDGER_TTL_SEC, readLedger, rebuildTranscript, validLedgerId } from '../../../lib/agentRuntime/ledger';
+import { actionId, runOnce } from '../../../lib/agentRuntime/actions';
 import { chargeRedisQuota, quotaKeyFor, readRedisQuota, redisQuotaEnabled } from '../../../lib/agentRuntime/quota';
-import { createSummaryToken, summaryTailBlock, verifySummaryToken } from '../../../lib/agentRuntime/summaryToken';
+import { compactTranscript, createSummaryToken, summaryTailBlock, verifySummaryToken } from '../../../lib/agentRuntime/summaryToken';
 import { neutralizeVisitorText } from '../../../lib/agentGuard/inputGuard';
 import { createRequestTrace } from '../../../lib/requestTrace';
 import {
@@ -363,6 +364,7 @@ export async function POST(req: Request) {
   const ledgerSessionId =
     !isCouncil && validLedgerId(body.sessionId) ? `${agentMode}:${visitorId}:${body.sessionId}` : null;
   const ledgerTurnId = ledgerSessionId && validLedgerId(body.turnId) ? body.turnId : null;
+  const turnCommitId = ledgerSessionId && ledgerTurnId ? await actionId('turn.commit', ledgerSessionId, ledgerTurnId) : null;
   if (ledgerSessionId && ledgerTurnId) {
     const done = await findCommittedTurn(ledgerSessionId, ledgerTurnId);
     if (done) {
@@ -418,7 +420,7 @@ export async function POST(req: Request) {
       summaryToken,
     });
   }
-  const seededSummary = !isCouncil ? await verifySummaryToken(body.summaryToken) : null;
+  let seededSummary = !isCouncil ? await verifySummaryToken(body.summaryToken) : null;
   const ledgerTurns = ledgerSessionId ? await readLedger(ledgerSessionId) : [];
   const rebuilt = rebuildTranscript(messages, ledgerTurns);
   // One TurnGuard owns all guard state for this request: (a) input guard,
@@ -429,7 +431,7 @@ export async function POST(req: Request) {
     isOwner: Boolean(owner),
     lastQuestion: lastQEarly,
   });
-  const trimmed = guard.guardTranscript(rebuilt.messages);
+  let trimmed = guard.guardTranscript(rebuilt.messages);
   if (trimmed.length === 0) {
     return jsonError('No messages provided.', 400, trace.traceId);
   }
@@ -530,7 +532,7 @@ export async function POST(req: Request) {
   const gpuCfg = readGpuConfig();
   const gpuPick = buildGpu(gpuCfg);
   const fallbackPick = buildFallback();
-  const routed = await chooseProvider({
+  const routeOnce = (msgs: UIMessage[], extraChars: number) => chooseProvider({
     primary: modelDecision.pick,
     gpu: gpuPick,
     fallback: fallbackPick,
@@ -539,11 +541,33 @@ export async function POST(req: Request) {
     isOwner: Boolean(owner),
     // Owner-only. Visitors and agent callers cannot pick a tier.
     requestedTier: owner && (body.modelTier === 'gpu' || body.modelTier === 'deepseek') ? body.modelTier : undefined,
-    estTokens: estimateTokens(baseSystem.length + JSON.stringify(trimmed).length + 6_000),
+    estTokens: estimateTokens(baseSystem.length + JSON.stringify(msgs).length + extraChars + 6_000),
     toolRoute: toolRoute.route,
     rootKey: body.sessionId || visitorId,
     shanghaiVoice: voiceAccent === 'shanghai',
   });
+  let routed = await routeOnce(trimmed, 0);
+  // Lesson from long-context safety checks: when the only usable tier skipped this
+  // turn because the context is too long, compact (same summary as the signed
+  // token) and check again instead of denying. Still too long → the 503 below.
+  for (const keep of [6, 2]) {
+    if (routed.ok || !routed.contextTooLong || isCouncil) break;
+    const compacted = compactTranscript(trimmed, keep, seededSummary);
+    if (!compacted) break;
+    const extra = summaryTailBlock(compacted.summary).length;
+    const again = await routeOnce(compacted.messages, extra);
+    trace.log('context_compact', { keep, before: trimmed.length, after: compacted.messages.length, ok: again.ok });
+    if (again.ok || !again.contextTooLong) {
+      try {
+        modelMessages = await convertToModelMessages(compacted.messages);
+      } catch {
+        break;
+      }
+      trimmed = compacted.messages;
+      seededSummary = compacted.summary;
+    }
+    routed = again;
+  }
   if (!routed.ok) {
     trace.log('breaker', { provider: modelDecision.pick.provider, state: routed.blocked, fallback: 'none' });
     perfDegradeTurn({ at: reqStartedAt, src: perfSrc, run: perfRun, provider: 'none', tier: 'none', rule: 'circuit_open', toolRoute: toolRoute.route, retries: 0 });
@@ -791,8 +815,15 @@ ${memoryPrefetch
                 tool: z.string().min(1).max(80),
                 args: z.record(z.any()).optional(),
               }),
-              execute: async ({ app, tool: mcpTool, args }) =>
-                callMcpApp(app, mcpTool, args ?? {}, computerActor.id),
+              // Action ledger: the same call in a retried attempt (empty-answer retry,
+              // GPU failover, client retry of this turnId) replays the stored result.
+              execute: async ({ app, tool: mcpTool, args }) => {
+                const id = await actionId('mcp.call', ledgerTurnId ? [ledgerSessionId, ledgerTurnId] : trace.traceId, app, mcpTool, args ?? {});
+                const r = await runOnce(id, () => callMcpApp(app, mcpTool, args ?? {}, computerActor.id), { ttlSec: LEDGER_TTL_SEC });
+                if (r.state === 'done' || r.state === 'replay') return r.result;
+                if (r.state === 'running') return { ok: false, app, tool: mcpTool, blocked: true, text: 'The same call is already running for this turn.' };
+                return { ok: false, app, tool: mcpTool, text: r.error };
+              },
             }),
           }
         : withBrowse;
@@ -968,16 +999,24 @@ ${memoryPrefetch
           const committed = !empty && (finishReason === 'stop' || finishReason === 'length');
           if (committed) {
             try {
-              if (redisQuotaKey) await chargeRedisQuota(redisQuotaKey);
-              if (ledgerSessionId) {
-                await commitTurn(ledgerSessionId, {
-                  turnId: ledgerTurnId ?? `${trace.traceId}`,
-                  user: lastQ,
-                  assistant: text ?? '',
-                  finishReason,
-                  at: Date.now(),
-                });
-              }
+              const commit = async () => {
+                if (redisQuotaKey) await chargeRedisQuota(redisQuotaKey);
+                if (ledgerSessionId) {
+                  await commitTurn(ledgerSessionId, {
+                    turnId: ledgerTurnId ?? `${trace.traceId}`,
+                    user: lastQ,
+                    assistant: text ?? '',
+                    finishReason,
+                    at: Date.now(),
+                  });
+                }
+                return true;
+              };
+              // Action ledger: concurrent duplicates of one turnId charge and commit once.
+              if (turnCommitId) {
+                const r = await runOnce(turnCommitId, commit, { ttlSec: LEDGER_TTL_SEC });
+                if (r.state !== 'done') trace.log('turn_commit', { action: turnCommitId, state: r.state });
+              } else await commit();
             } catch (err) {
               console.error('[chat] commit failed', err instanceof Error ? err.message : String(err), { traceId: trace.traceId });
             }

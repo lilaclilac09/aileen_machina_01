@@ -14,11 +14,13 @@ import { getContactInbox } from '../lib/contact-inbox';
 import { getResendFrom, resendFailureMessage } from '../lib/resend-from';
 import {
   listChatForwards,
+  forwardSendActionId,
   markChatForwardSent,
   saveChatForward,
   type ChatForwardRecord,
 } from '../lib/chatForwardStore';
 import { visitorSoftMemoryEnabled } from '../lib/visitorMemory';
+import { runOnce } from '../lib/agentRuntime/actions';
 
 function renderTranscript(rec: ChatForwardRecord): string {
   return rec.transcript
@@ -55,28 +57,45 @@ async function sendOne(rec: ChatForwardRecord, dryRun: boolean): Promise<boolean
     return true;
   }
 
+  // Action ledger: same action id as /api/chat/forward, so a forward that was
+  // delivered (by the route or an earlier run of this job) is never sent again.
+  // The Idempotency-Key differs from the route's because the body differs
+  // (Resend rejects one key with two payloads); it is stable across job runs.
+  const sendActionId = await forwardSendActionId(rec.id);
   const resend = new Resend(process.env.RESEND_API_KEY);
   const from = getResendFrom();
-  const { error } = await resend.emails.send({
-    from,
-    to: inbox,
-    subject: rec.subject.startsWith('[AILEENA Chat')
-      ? rec.subject
-      : `[AILEENA Chat RESEND] ${rec.subject}`,
-    text,
-  });
+  const sent = await runOnce(
+    sendActionId,
+    async () => {
+      const { error } = await resend.emails.send(
+        {
+          from,
+          to: inbox,
+          subject: rec.subject.startsWith('[AILEENA Chat') ? rec.subject : `[AILEENA Chat RESEND] ${rec.subject}`,
+          text,
+        },
+        { idempotencyKey: `${sendActionId}.resend` },
+      );
+      return error ? { ok: false as const, detail: resendFailureMessage(error).logDetail } : { ok: true as const };
+    },
+    { isFailure: (r) => (r.ok ? null : r.detail) },
+  );
 
-  if (error) {
-    const { logDetail } = resendFailureMessage(error);
-    console.error(`[fail] ${rec.id}`, logDetail);
+  if (sent.state === 'running') {
+    console.log(`[busy] ${rec.id} is being sent by another delivery`);
+    return true;
+  }
+  if (sent.state === 'failed') {
+    console.error(`[fail] ${rec.id}`, sent.error);
     await saveChatForward({
       ...rec,
       status: 'failed',
-      error: logDetail,
+      error: sent.error,
       createdAt: rec.createdAt,
     });
     return false;
   }
+  if (sent.state === 'replay') console.log(`[skip] ${rec.id} already delivered (${sendActionId})`);
 
   await markChatForwardSent(rec.id, { status: 'sent', sentAt: new Date().toISOString() });
   console.log(`[sent] ${rec.id} → ${inbox}`);
