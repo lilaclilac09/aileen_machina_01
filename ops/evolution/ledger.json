@@ -142,5 +142,14 @@
     "heldOutBefore": 1,
     "heldOutAfter": 1,
     "reason": "trigger-quality cleanup: dropped 语音, 声音"
+  },
+  {
+    "at": "2026-10-19T20:37:43.082Z",
+    "action": "promote",
+    "skillId": "auto-unknown-ask",
+    "version": 1,
+    "heldOutBefore": 0.9615384615384616,
+    "heldOutAfter": 1,
+    "reason": "held-out 0.962 → 1.000"
   }
 ]

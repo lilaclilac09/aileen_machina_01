@@ -232,5 +232,24 @@ export const ACTIVE_SKILLS: ActiveSkill[] = [
     ],
     "replyGuidance": "Tap Voice in Console, then tap the orb to speak. Phone needs the orb tap. No always-on wake. Browsers require a gesture.",
     "rootCause": "Visitors thought saying Aileena woke an always-on mic. Trigger-quality cleanup v2: dropped 语音, 声音."
+  },
+  {
+    "id": "auto-unknown-ask",
+    "version": 1,
+    "kind": "site-agent",
+    "triggers": [
+      "unknown-ask",
+      "hellosdosacjkshc"
+    ],
+    "mustInclude": [
+      "don't see"
+    ],
+    "mustNot": [
+      "@gmail.com",
+      "$400k",
+      "i am aileen"
+    ],
+    "replyGuidance": "If it is not in the site context, say you don't see it. Do not invent. Leave a note if they need her.",
+    "rootCause": "held-out ask-hellosdosacjkshc failed: includes_any:don't see|leave a note"
   }
 ];

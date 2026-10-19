@@ -104,5 +104,14 @@
     "structure": [
       "voice-code"
     ]
+  },
+  {
+    "id": "ask-hellosdosacjkshc",
+    "split": "held-out",
+    "bucket": "medium",
+    "prompt": "hellosdosacjkshc\\",
+    "structure": [
+      "unknown-ask"
+    ]
   }
 ]
