@@ -27,11 +27,10 @@ DeFi propagation research & hardware supply chain analysis. Writing about why th
 ---
 
 ### Recently Updated
-<!-- profile:synced-at 2026-10-18T13:46:15.605Z -->
+<!-- profile:synced-at 2026-10-19T16:47:59.317Z -->
 <!-- profile:recently-updated:start -->
 * **[aileena.xyz](https://aileena.xyz) Console**: owner-only code mode (/code) — aileena-code loop on GitHub, draft PRs only, and Site agent: runtime guards, P0, console starters + owner analytics, public MCP endpoint.
 * **Cafe Cursor**: Credits distribution and user support tooling at [cursor-cafe.aileena.xyz](https://cursor-cafe.aileena.xyz).
-* **Machina memory**: AgentMemoryRepo Dreaming — read both, write one.
 <!-- profile:recently-updated:end -->
 
 ### Recently Added
