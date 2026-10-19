@@ -204,6 +204,42 @@ export async function cfExecJs(
   };
 }
 
+/**
+ * One call for mkdir + 30d visitor scratch reset (worker `/c/<name>/scratch/ensure`).
+ * Returns null when the deployed worker predates that endpoint, so callers can
+ * fall back to the old per-step calls until `wrangler deploy` runs.
+ */
+let ensureEndpointMissing = false;
+
+export async function cfEnsureScratch(
+  workspace: string,
+  ttlDays: number,
+): Promise<{ status: 'kept' | 'reset'; wiped: number } | null> {
+  if (ensureEndpointMissing) return null;
+  const name = computerWorkspaceName(workspace);
+  const res = await cfFetch(`/c/${name}/scratch/ensure`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ ttlDays }),
+  });
+  if (res.status === 404 || res.status === 405) {
+    // Old worker answers plain-text "not found" for unknown routes.
+    const type = res.headers.get('content-type') || '';
+    if (!type.includes('application/json')) {
+      ensureEndpointMissing = true;
+      return null;
+    }
+  }
+  if (!res.ok) throw new Error(await readError(res, 'ensure failed'));
+  const body = (await res.json()) as { status?: string; wiped?: number };
+  return { status: body.status === 'reset' ? 'reset' : 'kept', wiped: Number(body.wiped ?? 0) };
+}
+
+/** Test hook: forget that the worker lacked the ensure endpoint. */
+export function resetEnsureEndpointProbe(): void {
+  ensureEndpointMissing = false;
+}
+
 async function readError(res: Response, fallback: string): Promise<string> {
   try {
     const body = (await res.json()) as { error?: string };

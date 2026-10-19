@@ -34,6 +34,18 @@ export interface Env {
 
 const OWNER = 'owner';
 const VISITOR_RE = /^v-[a-z0-9]{8,32}$/;
+/** Stop the owner container this long after the last container exec (P5, "sleepAfter"). */
+const CONTAINER_IDLE_MS = 2 * 60 * 1000;
+/** Visitor Durable Objects wipe themselves after this much inactivity (P3). Owner never expires. */
+const VISITOR_IDLE_MS = 30 * 24 * 60 * 60 * 1000;
+/** Re-arm the visitor expiry at most this often per isolate, so activity costs ~0 extra DO writes. */
+const VISITOR_TOUCH_EVERY_MS = 6 * 60 * 60 * 1000;
+const SCRATCH_DIR = '/workspace/scratch';
+const SCRATCH_BORN = `${SCRATCH_DIR}/.born`;
+const MOUNT_DIRS = ['/workspace/scratch', '/workspace/reports', '/workspace/artifacts'];
+const K_NAME = '__aileena_name';
+const K_EXPIRES = '__aileena_visitor_expires_at';
+const K_CONTAINER_LAST = '__aileena_container_last_use';
 const MOUNT_ROOT = '/workspace';
 const WRITE_PREFIXES = ['/workspace/scratch/', '/workspace/reports/', '/workspace/artifacts/'];
 const CORE_BINS = new Set([
@@ -140,9 +152,112 @@ function workspaceOptions(self: InstanceType<typeof ContainerBase>) {
   };
 }
 
+export type ActivityKind = 'visit' | 'container-start' | 'container-end';
+
 export class OwnerComputer extends withWorkspace(ContainerBase, workspaceOptions) {
   override async fetch(request: Request): Promise<Response> {
     return this.backend.handleFetch(request);
+  }
+
+  /**
+   * Record activity and (re)arm one alarm for the earliest pending deadline.
+   * - visit: visitor pads only. Push the 30-day wipe forward.
+   * - container-*: stop the container 2 minutes after the last container exec.
+   * The alarm is one-shot: it only re-arms for a deadline that is still pending.
+   */
+  async noteActivity(name: string, kind: ActivityKind): Promise<void> {
+    const { storage } = this.ctx;
+    const now = Date.now();
+    if ((await storage.get<string>(K_NAME)) !== name) await storage.put(K_NAME, name);
+    if (kind === 'visit') {
+      if (name === OWNER || !VISITOR_RE.test(name)) return;
+      await storage.put(K_EXPIRES, now + VISITOR_IDLE_MS);
+    } else {
+      await storage.put(K_CONTAINER_LAST, now);
+    }
+    await this.armAlarm();
+  }
+
+  override async alarm(): Promise<void> {
+    const { storage } = this.ctx;
+    const now = Date.now();
+    const last = await storage.get<number>(K_CONTAINER_LAST);
+    if (typeof last === 'number' && now - last >= CONTAINER_IDLE_MS) {
+      const container = this.ctx.container;
+      if (container?.running) {
+        try {
+          await container.destroy();
+        } catch {
+          /* already stopping; the library relaunches on next exec */
+        }
+      }
+      await storage.delete(K_CONTAINER_LAST);
+    }
+    const name = await storage.get<string>(K_NAME);
+    const expires = await storage.get<number>(K_EXPIRES);
+    if (
+      typeof expires === 'number' &&
+      now >= expires &&
+      typeof name === 'string' &&
+      name !== OWNER &&
+      VISITOR_RE.test(name)
+    ) {
+      // Visitor pad idle for 30 days: drop everything (VFS tables included). Never the owner.
+      await storage.deleteAlarm();
+      await storage.deleteAll();
+      // The in-memory workspace still points at the dropped VFS tables. Reset the
+      // instance so the next visit builds a fresh pad instead of failing.
+      this.ctx.abort('visitor pad expired');
+      return;
+    }
+    await this.armAlarm();
+  }
+
+  private async armAlarm(): Promise<void> {
+    const { storage } = this.ctx;
+    const deadlines: number[] = [];
+    const last = await storage.get<number>(K_CONTAINER_LAST);
+    if (typeof last === 'number') deadlines.push(last + CONTAINER_IDLE_MS);
+    const name = await storage.get<string>(K_NAME);
+    const expires = await storage.get<number>(K_EXPIRES);
+    if (typeof expires === 'number' && name !== OWNER) deadlines.push(expires);
+    if (deadlines.length === 0) {
+      await storage.deleteAlarm();
+      return;
+    }
+    const next = Math.max(Math.min(...deadlines), Date.now() + 1000);
+    const current = await storage.getAlarm();
+    if (current !== next) await storage.setAlarm(next);
+  }
+}
+
+/** Per-isolate throttle so visitor expiry re-arming is cheap. */
+const lastVisitTouch = new Map<string, number>();
+
+function stubOf(env: Env, name: string): DurableObjectStub<OwnerComputer> {
+  const ns = env.OwnerComputer as unknown as DurableObjectNamespace<OwnerComputer>;
+  return ns.get(ns.idFromName(name));
+}
+
+async function noteVisit(env: Env, name: string): Promise<void> {
+  if (name === OWNER || !VISITOR_RE.test(name)) return;
+  const now = Date.now();
+  const prev = lastVisitTouch.get(name);
+  if (prev !== undefined && now - prev < VISITOR_TOUCH_EVERY_MS) return;
+  lastVisitTouch.set(name, now);
+  if (lastVisitTouch.size > 2000) lastVisitTouch.clear();
+  try {
+    await stubOf(env, name).noteActivity(name, 'visit');
+  } catch {
+    lastVisitTouch.delete(name);
+  }
+}
+
+async function noteContainer(env: Env, name: string, kind: 'container-start' | 'container-end'): Promise<void> {
+  try {
+    await stubOf(env, name).noteActivity(name, kind);
+  } catch {
+    /* best effort; never block the exec */
   }
 }
 
@@ -157,7 +272,7 @@ interface ExecRequest {
 }
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
     if (url.pathname === '/' || url.pathname === '') {
@@ -171,6 +286,7 @@ export default {
           'PUT  /c/<name>/file/workspace/<path>  (bearer)',
           'GET  /c/<name>/file/workspace/<path>  (bearer)',
           'POST /c/<name>/exec                   (bearer; backend=worker-shell|worker-javascript|container)',
+          'POST /c/<name>/scratch/ensure         (bearer; mkdir + 30d visitor scratch reset in one call)',
           'name=owner | v-[a-z0-9]{8,32}',
           '',
         ].join('\n'),
@@ -193,6 +309,14 @@ export default {
     const denied = requireSecret(request, env);
     if (denied) return denied;
 
+    const ensureMatch = url.pathname.match(/^\/c\/([^/]+)\/scratch\/ensure\/?$/);
+    if (ensureMatch) {
+      const name = ensureMatch[1];
+      if (!isAllowedWorkspaceName(name)) return errorJSON(new Error('unknown workspace'), 404);
+      ctx.waitUntil(noteVisit(env, name));
+      return handleEnsureScratch(request, env, name);
+    }
+
     const fileMatch = url.pathname.match(/^\/c\/([^/]+)\/file\/(.+)$/);
     if (fileMatch) {
       const name = fileMatch[1];
@@ -201,6 +325,7 @@ export default {
       if (resolved === null) {
         return errorJSON(new Error(`path must sit under ${MOUNT_ROOT}`), 400);
       }
+      ctx.waitUntil(noteVisit(env, name));
       return handleFile(request, env, name, resolved);
     }
 
@@ -208,6 +333,7 @@ export default {
     if (execMatch) {
       const name = execMatch[1];
       if (!isAllowedWorkspaceName(name)) return errorJSON(new Error('unknown workspace'), 404);
+      ctx.waitUntil(noteVisit(env, name));
       return handleExec(request, env, name);
     }
 
@@ -363,6 +489,7 @@ async function handleExec(request: Request, env: Env, name: string): Promise<Res
   }
 
   const execBackend = container ? 'container' : 'worker-shell';
+  if (container) await noteContainer(env, name, 'container-start');
   await using ws = await workspaceOf(env, name);
   try {
     await using handle = await ws.runtime.exec(command, { backend: execBackend, cwd, encoding: 'utf8' });
@@ -375,6 +502,60 @@ async function handleExec(request: Request, env: Env, name: string): Promise<Res
       stderr,
       backend: execBackend,
     });
+  } catch (error) {
+    return errorJSON(error, 500);
+  } finally {
+    if (container) await noteContainer(env, name, 'container-end');
+  }
+}
+
+/**
+ * One round trip for what the site used to do in 3 to 53 calls:
+ * mkdir scratch/reports/artifacts, read scratch/.born, wipe scratch when the
+ * TTL passed (visitor pads only), stamp a fresh .born. Owner is never wiped.
+ */
+async function handleEnsureScratch(request: Request, env: Env, name: string): Promise<Response> {
+  if (request.method !== 'POST') {
+    return new Response('method not allowed', { status: 405, headers: { allow: 'POST' } });
+  }
+  let ttlDays = 30;
+  try {
+    const body = (await request.json()) as { ttlDays?: unknown };
+    const n = Number(body?.ttlDays);
+    if (Number.isFinite(n) && n >= 1 && n <= 365) ttlDays = n;
+  } catch {
+    /* empty body keeps the default */
+  }
+  await using ws = await workspaceOf(env, name);
+  try {
+    for (const dir of MOUNT_DIRS) await ws.fs.mkdir(dir, { recursive: true });
+    if (name === OWNER) return Response.json({ status: 'kept', wiped: 0 });
+    let bornMs = Number.NaN;
+    try {
+      bornMs = Date.parse(String(await ws.fs.readFile(SCRATCH_BORN, 'utf8')).trim());
+    } catch {
+      /* first visit */
+    }
+    const ttlMs = ttlDays * 24 * 60 * 60 * 1000;
+    if (Number.isFinite(bornMs) && Date.now() - bornMs < ttlMs) {
+      return Response.json({ status: 'kept', wiped: 0 });
+    }
+    let wiped = 0;
+    if (Number.isFinite(bornMs)) {
+      const entries = await ws.fs.readdir(SCRATCH_DIR, { limit: 500 });
+      for (const entry of entries) {
+        if (entry.name === '.born') continue;
+        await ws.fs.rm(`${SCRATCH_DIR}/${entry.name}`, { recursive: true, force: true });
+        wiped += 1;
+      }
+    }
+    try {
+      await ws.fs.rm(SCRATCH_BORN, { force: true });
+    } catch {
+      /* first write */
+    }
+    await ws.fs.writeFile(SCRATCH_BORN, new TextEncoder().encode(new Date().toISOString()));
+    return Response.json({ status: wiped > 0 ? 'reset' : 'kept', wiped });
   } catch (error) {
     return errorJSON(error, 500);
   }

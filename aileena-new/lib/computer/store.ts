@@ -146,12 +146,28 @@ function reapStaleOpen(actorId: string): void {
 }
 
 /** Load this actor's tasks from the Durable Object (production) or local disk. */
-export async function hydrateComputerStore(actorId: string): Promise<void> {
+const hydratedAt = new Map<string, number>();
+
+/** Poll reads may reuse a hydrate this fresh (ms). Writes and enqueue checks never do. */
+export const POLL_HYDRATE_MAX_AGE_MS = 1500;
+
+export async function hydrateComputerStore(
+  actorId: string,
+  opts: { maxAgeMs?: number } = {},
+): Promise<void> {
   if (isCloudflareComputerReady()) {
+    const maxAge = opts.maxAgeMs ?? 0;
+    const at = hydratedAt.get(actorId);
+    if (maxAge > 0 && at !== undefined && Date.now() - at < maxAge) {
+      reapStaleOpen(actorId);
+      return;
+    }
     try {
       const raw = await cfGetFile(TASKS_STORE_PATH, actorId);
       const parsed = JSON.parse(raw) as Record<string, ComputerTask>;
       if (parsed && typeof parsed === 'object') replaceActorTasks(actorId, parsed);
+      hydratedAt.set(actorId, Date.now());
+      if (hydratedAt.size > 2000) hydratedAt.clear();
     } catch {
       /* missing or corrupt — keep in-isolate memory */
     }
