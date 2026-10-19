@@ -85,11 +85,18 @@ export function formatPrompt(cwd: string): string {
   return `${short} $`;
 }
 
-export async function loadCwd(workspaceId: string): Promise<string> {
+const cwdCache = new Map<string, { cwd: string; at: number }>();
+
+/** `maxAgeMs` lets dock polls reuse a recent read; commands always read fresh (default 0). */
+export async function loadCwd(workspaceId: string, maxAgeMs = 0): Promise<string> {
   if (!isCloudflareComputerReady()) return WORKSPACE_ROOT;
+  const hit = cwdCache.get(workspaceId);
+  if (maxAgeMs > 0 && hit && Date.now() - hit.at < maxAgeMs) return hit.cwd;
   try {
     const raw = (await cfGetFile(CWD_FILE, workspaceId)).trim();
-    return resolveCwd(WORKSPACE_ROOT, raw) || WORKSPACE_ROOT;
+    const cwd = resolveCwd(WORKSPACE_ROOT, raw) || WORKSPACE_ROOT;
+    cwdCache.set(workspaceId, { cwd, at: Date.now() });
+    return cwd;
   } catch {
     return WORKSPACE_ROOT;
   }
@@ -98,6 +105,7 @@ export async function loadCwd(workspaceId: string): Promise<string> {
 export async function saveCwd(workspaceId: string, cwd: string): Promise<void> {
   const next = resolveCwd(WORKSPACE_ROOT, cwd) || WORKSPACE_ROOT;
   await cfPutFile(CWD_FILE, `${next}\n`, workspaceId);
+  cwdCache.set(workspaceId, { cwd: next, at: Date.now() });
 }
 
 export type OwnerShellResult = {

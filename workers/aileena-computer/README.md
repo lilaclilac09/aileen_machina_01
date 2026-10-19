@@ -178,3 +178,12 @@ COMPUTER_WORKER_SECRET=<same value>
 Redeploy Production. Shim-only Production stays off.
 
 After Worker code changes: `npx wrangler deploy` again. A Vercel Redeploy does not update the Worker.
+
+## Cost guards (Oct 2026 audit)
+
+- `POST /c/<name>/scratch/ensure` does mkdir + the 30-day visitor scratch reset in one call. The site falls back to the old per-step calls (with one batched `rm`) while an older worker is still deployed, so deploy order does not matter.
+- Visitor pads (`v-*`) arm one Durable Object alarm 30 days after their last activity. When it fires the pad wipes its storage (`deleteAll`) and resets. The owner pad never arms it. Activity re-arms it at most every 6 hours per isolate.
+- The owner container stops 2 minutes after the last container exec (the alarm calls `ctx.container.destroy()`; the next exec relaunches it). `@cloudflare/computer` drives `ctx.container` directly, so there is no `sleepAfter` option to set.
+- `limits.cpu_ms` is 10000. Observability stays off; the commented block in `wrangler.jsonc` samples 10% if you turn it on.
+
+Deploy from the clone (not `~`): `cd ~/aileen_machina_01 && git pull && cd workers/aileena-computer && pnpm install && npx wrangler deploy`.

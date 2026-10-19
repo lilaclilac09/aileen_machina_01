@@ -7,14 +7,17 @@ import { curlFetchCommand, isOwnerShellCommand, isVisitorSharedShellCommand, saf
 import { SHARED_ROOM_HELP } from '../lib/computer/helpText';
 import { SHARED_COMPUTER_ROOM_PATH, sharedRoomFromQuery } from '../lib/computer/workspaceName';
 import { COMPUTER_CLI_EVENT, isSpokenVcode, spokenToCli } from '../lib/computer/spokenCli';
+import { hasActiveTask, nextBackoff, nextPollDelay, POLL_MIN_MS, taskSignature } from '../lib/computer/pollSchedule';
 
 function roomFromWindow(): boolean {
   if (typeof window === 'undefined') return false;
   return sharedRoomFromQuery(window.location.search);
 }
 
-function computerTasksUrl(): string {
-  return roomFromWindow() ? '/api/agent/computer/tasks?room=open' : '/api/agent/computer/tasks';
+function computerTasksUrl(fresh = false): string {
+  const base = roomFromWindow() ? '/api/agent/computer/tasks?room=open' : '/api/agent/computer/tasks';
+  if (!fresh) return base;
+  return `${base}${base.includes('?') ? '&' : '?'}fresh=1`;
 }
 
 function cliPrompt(cwd: string): string {
@@ -218,9 +221,14 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
   const logRef = useRef<HTMLPreElement | null>(null);
   const lineRef = useRef<HTMLTextAreaElement | null>(null);
 
-  const load = useCallback(async () => {
-    const res = await fetch(computerTasksUrl(), { cache: 'no-store', credentials: 'include' });
-    if (!res.ok) return;
+  const load = useCallback(async (opts: { fresh?: boolean } = {}): Promise<ComputerTask[] | null> => {
+    let res: Response;
+    try {
+      res = await fetch(computerTasksUrl(Boolean(opts.fresh)), { cache: 'no-store', credentials: 'include' });
+    } catch {
+      return null;
+    }
+    if (!res.ok) return null;
     const data = (await res.json()) as {
       tasks?: ComputerTask[];
       proof?: ProofItem[];
@@ -237,15 +245,71 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
     const nextShared = data.room === 'open';
     setShared(nextShared);
     if (nextShared) setTermMode(true);
+    return Array.isArray(data.tasks) ? data.tasks : [];
   }, []);
 
-  useEffect(() => {
-    void load();
-  }, [load]);
+  /** Poll now (fresh read) and restart the schedule. Used after a POST and on tab resume. */
+  const pollNow = useRef<() => Promise<void>>(async () => {});
+  /** A POST just started: poll at 1s while it runs, even if the last list was idle. */
+  const pollSoon = useRef<() => void>(() => {});
 
+  // Poll only while a task is queued/running: 1s, backing off to 10s while nothing
+  // changes. Pause while the tab is hidden, stop when idle (shared room: slow 15s
+  // refresh). Each poll wakes the Cloudflare worker + Durable Object, so idle
+  // tabs must cost nothing.
   useEffect(() => {
-    const id = window.setInterval(() => void load(), 900);
-    return () => window.clearInterval(id);
+    let stopped = false;
+    let timer: number | undefined;
+    let delay = POLL_MIN_MS;
+    let sig = '';
+    let active = false;
+    let seq = 0;
+    const clear = () => {
+      if (timer !== undefined) window.clearTimeout(timer);
+      timer = undefined;
+    };
+    const tick = async (fresh: boolean) => {
+      clear();
+      if (stopped) return;
+      const mine = ++seq;
+      const list = await load({ fresh });
+      if (stopped || mine !== seq) return;
+      if (list) {
+        const nextSig = taskSignature(list);
+        delay = nextBackoff(delay, nextSig !== sig);
+        sig = nextSig;
+        active = hasActiveTask(list);
+      } else {
+        delay = nextBackoff(delay, false);
+      }
+      const wait = nextPollDelay({ active, shared: roomFromWindow(), hidden: document.hidden, delayMs: delay });
+      if (wait !== null) timer = window.setTimeout(() => void tick(false), wait);
+    };
+    pollNow.current = () => {
+      delay = POLL_MIN_MS;
+      return tick(true);
+    };
+    pollSoon.current = () => {
+      active = true;
+      delay = POLL_MIN_MS;
+      if (timer === undefined && !document.hidden) timer = window.setTimeout(() => void tick(false), POLL_MIN_MS);
+    };
+    const onVisibility = () => {
+      if (document.hidden) clear();
+      else void pollNow.current();
+    };
+    const onFocus = () => {
+      if (!document.hidden && timer === undefined) void pollNow.current();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('focus', onFocus);
+    void tick(true);
+    return () => {
+      stopped = true;
+      clear();
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('focus', onFocus);
+    };
   }, [load]);
 
   useEffect(() => {
@@ -323,6 +387,7 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
       return;
     }
     setBusy(true);
+    pollSoon.current();
     try {
       const res = await fetch(computerTasksUrl(), {
         method: 'POST',
@@ -346,7 +411,7 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
       else if (data.task?.status === 'failed') setFlash('×');
       else if (data.task?.status === 'blocked') setFlash('×');
       else setFlash('…');
-      await load();
+      await pollNow.current();
     } finally {
       setBusy(false);
     }

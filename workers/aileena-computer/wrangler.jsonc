@@ -3,6 +3,14 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-05-26",
   "compatibility_flags": ["nodejs_compat"],
+  // CPU cap per invocation (Worker and its Durable Object). Real work: Worker p99
+  // was 4.3 ms over the last 30 days; the heavy path is the DO applying a
+  // container sync (e.g. after `git clone`) into the SQLite VFS. 10 s leaves
+  // ~2000x headroom over p99 while stopping a runaway loop well before the 30 s
+  // default. Raise it if a large container sync ever hits "exceeded CPU".
+  "limits": { "cpu_ms": 10000 },
+  // Observability stays off (cost). To turn it on, sample 10%:
+  // "observability": { "enabled": true, "head_sampling_rate": 0.1 },
   "worker_loaders": [{ "binding": "LOADER" }],
   "containers": [
     {

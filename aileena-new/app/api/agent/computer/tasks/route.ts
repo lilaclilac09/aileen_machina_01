@@ -13,7 +13,7 @@ import { isComputerPrototypeEnabled, isVercelProduction, prototypeDisabledReason
 import { isCloudflareComputerReady, reportedBackend } from '@/lib/computer/cfClient';
 import { clip, redactSecrets } from '@/lib/computer/redact';
 import { runComputerTask } from '@/lib/computer/runner';
-import { canEnqueueTask, getComputerTask, hydrateComputerStore, listComputerTasks, newId, nowIso, upsertComputerTask } from '@/lib/computer/store';
+import { canEnqueueTask, getComputerTask, hydrateComputerStore, POLL_HYDRATE_MAX_AGE_MS, listComputerTasks, newId, nowIso, upsertComputerTask } from '@/lib/computer/store';
 import type { ComputerTask } from '@/lib/computer/types';
 import {
   attachTaskToProof,
@@ -77,13 +77,15 @@ async function kickComputerTask(id: string): Promise<void> {
 export async function GET(req: Request) {
   if (!isComputerPrototypeEnabled()) return deny(404, prototypeDisabledReason());
   const actor = await computerActorFromRequest(req);
-  await hydrateComputerStore(actor.id);
+  // Dock polls reuse a hydrate up to 1.5s old; `?fresh=1` (after a POST, on tab resume) always reads.
+  const fresh = new URL(req.url).searchParams.get('fresh') === '1';
+  await hydrateComputerStore(actor.id, { maxAgeMs: fresh ? 0 : POLL_HYDRATE_MAX_AGE_MS });
   if (actor.kind === 'visitor') {
     const shared = isSharedComputerRoom(actor.id);
     let cwd = '/workspace';
     if (shared && isCloudflareComputerReady()) {
       const { loadCwd } = await import('@/lib/computer/terminal');
-      cwd = await loadCwd(actor.id);
+      cwd = await loadCwd(actor.id, fresh ? 0 : POLL_HYDRATE_MAX_AGE_MS);
     }
     return jsonActor(actor, {
       ok: true,
@@ -104,7 +106,7 @@ export async function GET(req: Request) {
     });
   }
   const { loadCwd } = await import('@/lib/computer/terminal');
-  const cwd = isCloudflareComputerReady() ? await loadCwd(actor.id) : '/workspace';
+  const cwd = isCloudflareComputerReady() ? await loadCwd(actor.id, fresh ? 0 : POLL_HYDRATE_MAX_AGE_MS) : '/workspace';
   return jsonActor(actor, {
     ok: true,
     prototype: true,

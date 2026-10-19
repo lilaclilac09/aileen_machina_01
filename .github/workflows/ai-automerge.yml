@@ -84,6 +84,7 @@ jobs:
           pnpm exec tsx scripts/verify-react.ts
           pnpm exec tsx scripts/verify-night-desk.ts
           pnpm exec tsx scripts/verify-browser-use.ts
+          pnpm exec tsx scripts/verify-computer-poll.ts
 
       - name: Lint (changed files)
         working-directory: .
