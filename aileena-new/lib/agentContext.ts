@@ -194,6 +194,7 @@ aileena.xyz is a personal machine for technical research, building, writing, sou
 - magazine / writing: essays, women in tech, power, systems
 - sound: DJ / music shelf (/sound#dj-set)
 - visual: kiln / glass / process (home #glass-bench — not on /sound)
+  - glass-bench photos use object-fit: contain (natural aspect, full image visible, never cropped; not object-cover)
 - doors: main directory
 - tools: https://aileena.xyz/tools — small free tools, each with a demo video. Tamper Check is pinned first.
 - contact / leave-a-note (console panel)
