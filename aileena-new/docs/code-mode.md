@@ -80,3 +80,34 @@ state is saved.
 - `lib/codeAgent/github.ts`: the GitHub REST calls (read at the base commit; commit, branch, draft PR)
 - `lib/codeAgent/run.ts`: one chat turn: run ids, pause and resume, publish steps, audit
 - `harness/site-agent/codeMode.ts`: offline tests (mock GitHub, scripted model), run in CI
+
+## Automatic review of code-mode PRs
+
+Every PR from a `machina/code-*` branch gets one comment from
+`.github/workflows/code-mode-review.yml`, updated in place on each push:
+
+| Check | Weight |
+| --- | --- |
+| Protected paths (same denylist as code mode; renames count) | 20, **blocking** (a hit means score 0, "Blocked") |
+| Size limits (≤ 8 files, ≤ 1,500 changed lines, ≤ 800 per file, no binaries) | 10 |
+| Typecheck (`tsc`) | 25 |
+| Lint (changed files) | 10 |
+| Offline tests (site-agent harness) | 25 |
+| Build (`pnpm build`) | 10 |
+
+The score is out of 100 over the checks that apply. Checks are skipped when
+nothing under `aileena-new/` changed. Verdicts are Pass, Needs work (≥ 70),
+Fail and Blocked.
+
+- **LLM review (optional):** with a `DEEPSEEK_API_KEY` repository secret,
+  DeepSeek reads the diff as untrusted data and adds an advisory section.
+  Without the secret, the comment says the review was skipped.
+- **Safety:** the job that runs PR code has a read-only token, no secrets and
+  no cache. The job that comments runs from `main`, never executes PR code, and
+  can only comment. Nothing approves, pushes or merges. `machina/code-*` PRs
+  are excluded from auto-merge. You merge by hand.
+- **Idempotent:** the comment carries a marker and
+  `Action-Id: code-review:<hash of PR number + head sha>`. A re-run on the same
+  head changes nothing; a new push updates the same comment.
+- To allow workflow edits in reviews too, set the repository variable
+  `AGENT_CODE_ALLOW_WORKFLOWS=1`.

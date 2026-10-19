@@ -16,6 +16,12 @@ export const AGENT_LIMITS = {
     { name: 'lookup-min', limit: 30, windowSec: 60 },
     { name: 'lookup-day', limit: 300, windowSec: 86_400 },
   ],
+  /** suggest_patch runs up to 8 model calls, so it is the tightest. */
+  patch: [
+    { name: 'patch-min', limit: 2, windowSec: 60 },
+    { name: 'patch-day', limit: 10, windowSec: 86_400 },
+  ],
+  globalPatch: [{ name: 'patch-global-day', limit: 200, windowSec: 86_400 }],
   /** All agent callers together, so a botnet cannot drain the model budget. */
   globalAsk: [{ name: 'ask-global-day', limit: 500, windowSec: 86_400 }],
 } satisfies Record<string, RateWindow[]>;

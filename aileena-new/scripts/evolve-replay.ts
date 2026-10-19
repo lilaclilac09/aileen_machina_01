@@ -61,19 +61,23 @@ async function main() {
   for (const p of prompts) if (p.split === 'held-out') picked.set(p.id, p);
   const tasks = [...picked.values()].filter((p) => verifiers.has(p.id)).slice(0, max);
 
-  const rows: Array<{ id: string; status: number; failed: string[]; reply: string }> = [];
+  const rows: Array<{ id: string; split: string; status: number; failed: string[]; ms: number; reply: string }> = [];
+  const started = Date.now();
   for (const t of tasks) {
+    const t0 = Date.now();
     try {
       const r = await ask(t.prompt, t.id);
       const failed = r.status === 200 ? scoreReply(r.reply.toLowerCase(), verifiers.get(t.id)!) : [`http_${r.status}`];
-      rows.push({ id: t.id, status: r.status, failed, reply: r.reply.slice(0, 600) });
+      rows.push({ id: t.id, split: t.split, status: r.status, failed, ms: Date.now() - t0, reply: r.reply.slice(0, 600) });
     } catch (err) {
-      rows.push({ id: t.id, status: 0, failed: [`error: ${err instanceof Error ? err.message : String(err)}`], reply: '' });
+      rows.push({ id: t.id, split: t.split, status: 0, failed: [`error: ${err instanceof Error ? err.message : String(err)}`], ms: Date.now() - t0, reply: '' });
     }
   }
   const unreachable = rows.length > 0 && rows.every((r) => r.status === 0 || r.status >= 500);
   const fails = rows.filter((r) => r.failed.length);
-  const report = { base, changedFrom, changedSkills: changed, replayed: rows.length, passed: rows.length - fails.length, unreachable, rows };
+  const held = rows.filter((r) => r.split === 'held-out');
+  const heldOut = { replayed: held.length, passed: held.filter((r) => !r.failed.length).length };
+  const report = { base, changedFrom, changedSkills: changed, replayed: rows.length, passed: rows.length - fails.length, heldOut, elapsedMs: Date.now() - started, unreachable, rows };
   writeFileSync(out, JSON.stringify(report, null, 2));
   console.log(`replay: ${report.passed}/${report.replayed} passed (changed skills: ${changed.join(', ') || 'none'})`);
   for (const f of fails) console.log(`FAIL ${f.id}: ${f.failed.join('; ')}`);
