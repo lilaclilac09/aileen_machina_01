@@ -46,6 +46,7 @@ import CloudflareDeskChart from './CloudflareDeskChart';
 import ComputerConsoleDock from './ComputerConsoleDock';
 import { pickOpening, type Opening } from '../lib/agentEngage/opening';
 import { ownerModelTierBody } from '../lib/modelTierPref';
+import { splitLinks } from '../lib/linkifyText';
 import {
   fetchRegionOnce,
   readVisitorContext,
@@ -2648,20 +2649,9 @@ function getMessageActivity(m: { parts?: Array<{ type: string }> }): string | nu
 }
 
 function linkify(text: string) {
-  // Match either a full http(s) URL or a bare domain.tld/path that the LLM
-  // sometimes emits (e.g. "aileena.xyz/blog/centaur"). For the bare form we
-  // build the href by prepending https://, so even if the model forgets the
-  // protocol the user gets a clickable link instead of plain text.
-  const re = /(https?:\/\/[^\s)]+|(?:[a-z0-9-]+\.)+[a-z]{2,}\/[^\s)]+)/gi;
-  const parts: Array<string | { url: string }> = [];
-  let last = 0;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(text)) !== null) {
-    if (m.index > last) parts.push(text.slice(last, m.index));
-    parts.push({ url: m[0] });
-    last = re.lastIndex;
-  }
-  if (last < text.length) parts.push(text.slice(last));
+  // Full http(s) URLs and bare domain.tld/path forms (href gets https://).
+  // splitLinks stops at non-ASCII (CJK, ，。) and trims trailing .,;:!?'"
+  const parts = splitLinks(text);
   return parts.map((p, i) =>
     typeof p === 'string' ? (
       <span key={i}>{p}</span>
