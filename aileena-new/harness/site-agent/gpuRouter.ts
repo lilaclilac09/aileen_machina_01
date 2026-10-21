@@ -253,7 +253,17 @@ async function main() {
   await new Promise<void>((r) => server.listen(0, '127.0.0.1', () => r()));
   base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
   process.env.DEEPSEEK_API_KEY = 'test-ds-key';
-  process.env.DEEPSEEK_BASE_URL = `${base}/ds`;
+  // DeepSeek stays on its default host (api.deepseek.com) so the DeepSeek-only
+  // request fields and the model-missing latch apply; requests are rewritten
+  // in-process to the mock and never leave the box.
+  delete process.env.DEEPSEEK_BASE_URL;
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+    const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+    const u = new URL(url);
+    if (u.hostname === 'api.deepseek.com') return realFetch(`${base}/ds${u.pathname}${u.search}`, init);
+    return realFetch(input, init);
+  }) as typeof fetch;
   ownerCookie = await createOwnerSession();
   const q = 'hi, what does she work on?';
 

@@ -13,6 +13,7 @@ import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import type { LanguageModel } from 'ai';
 import { matchCanned } from './agentCannedResponses';
 import type { GpuConfig } from './agentRuntime/gpu';
+import { primaryPriceOverride } from './agentRuntime/pricing';
 import type { VoiceAccent } from './voiceAccent';
 
 /** Total model budget inside Vercel maxDuration=30s */
@@ -141,9 +142,17 @@ export function cacheTokensFromSteps(
 // configured id, use the legacy id for an hour instead of failing every turn.
 let deepSeekLegacyUntil = 0;
 
-export function noteDeepSeekModelMissing(now = Date.now()): void {
+/**
+ * The legacy-id latch is DeepSeek-specific: it only arms when the primary host
+ * is api.deepseek.com. On any other host a missing model id is just a provider
+ * failure (the breaker counts it and /api/chat falls through to the hosted
+ * fallback once it opens). Returns whether the latch armed.
+ */
+export function noteDeepSeekModelMissing(now = Date.now(), baseURL = primaryBaseURL()): boolean {
+  if (!isDeepSeekHost(baseURL)) return false;
   deepSeekLegacyUntil = now + DEEPSEEK_MODEL_LATCH_MS;
   console.warn('[modelRouter] deepseek model id missing — using legacy id for 1h', { legacy: DEEPSEEK_LEGACY_MODEL });
+  return true;
 }
 
 export function resetDeepSeekModelLatchForTests(): void {
@@ -178,9 +187,13 @@ export function deepSeekRequestBody(modelId: string, args: Record<string, unknow
 export function primaryModelConfig(now = Date.now()): { provider: 'deepseek'; baseURL: string; modelId: string } {
   return {
     provider: 'deepseek',
-    baseURL: (process.env.DEEPSEEK_BASE_URL ?? '').trim() || DEEPSEEK_DEFAULT_BASE_URL,
+    baseURL: primaryBaseURL(),
     modelId: deepSeekModelId(now),
   };
+}
+
+function primaryBaseURL(): string {
+  return (process.env.DEEPSEEK_BASE_URL ?? '').trim() || DEEPSEEK_DEFAULT_BASE_URL;
 }
 
 /**
@@ -199,28 +212,47 @@ export const PUBLIC_DOOR_SAMPLING = Object.freeze({
   seed: 42,
 });
 
-/** False only for DeepSeek's own API, which does not document a seed parameter. */
-export function providerAcceptsSeed(baseURL: string): boolean {
+function hostOf(baseURL: string): string | null {
   try {
-    return new URL(baseURL).hostname !== new URL(DEEPSEEK_DEFAULT_BASE_URL).hostname;
+    return new URL(baseURL).hostname;
   } catch {
-    return false;
+    return null;
   }
 }
 
-/** Primary request body: thinking off for V4+ ids; seed dropped where the host has none. */
+/** True only when the base URL points at DeepSeek's own API (api.deepseek.com). */
+export function isDeepSeekHost(baseURL: string): boolean {
+  return hostOf(baseURL) === hostOf(DEEPSEEK_DEFAULT_BASE_URL);
+}
+
+/** False only for DeepSeek's own API, which does not document a seed parameter. */
+export function providerAcceptsSeed(baseURL: string): boolean {
+  const host = hostOf(baseURL);
+  return host !== null && !isDeepSeekHost(baseURL);
+}
+
+/**
+ * Primary request body. api.deepseek.com: thinking off for V4+ ids, seed dropped.
+ * Any other host: the DeepSeek-only `thinking` field is not sent; seed is kept.
+ */
 export function primaryRequestBody(cfg: { baseURL: string; modelId: string }, args: Record<string, unknown>): Record<string, unknown> {
-  const body = deepSeekRequestBody(cfg.modelId, args);
+  const body = isDeepSeekHost(cfg.baseURL) ? deepSeekRequestBody(cfg.modelId, args) : args;
   if (!('seed' in body) || providerAcceptsSeed(cfg.baseURL)) return body;
   const rest = { ...body };
   delete rest.seed;
   return rest;
 }
 
+let warnedPrimaryPricing = false;
+
 function buildDeepSeek(apiKey: string, name: string): ModelPick | null {
   try {
     const cfg = primaryModelConfig();
     const modelId = cfg.modelId;
+    if (!warnedPrimaryPricing && !isDeepSeekHost(cfg.baseURL) && !primaryPriceOverride()) {
+      warnedPrimaryPricing = true;
+      console.warn('[modelRouter] primary host is not api.deepseek.com and PRIMARY_PRICE_IN/OUT are unset — spend estimates use DeepSeek list prices', { host: hostOf(cfg.baseURL) });
+    }
     const ds = createOpenAICompatible({
       name,
       baseURL: cfg.baseURL,

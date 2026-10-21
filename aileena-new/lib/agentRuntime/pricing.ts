@@ -36,6 +36,34 @@ export function deepSeekPrice(model: string | undefined, at: number): TokenPrice
   return { inHit: peak.inHit / 2, inMiss: peak.inMiss / 2, out: peak.out / 2 };
 }
 
+/**
+ * Optional price override for the primary tier (provider id 'deepseek'), USD
+ * per 1M tokens: PRIMARY_PRICE_IN (all input, cache hit or miss) and
+ * PRIMARY_PRICE_OUT. Set them when DEEPSEEK_BASE_URL points at another host;
+ * without them estimates stay at DeepSeek list prices, which need not match
+ * that host's bill. Empty, non-numeric or negative values are ignored; an
+ * unset field keeps its DeepSeek default.
+ */
+export function primaryPriceOverride(): { in?: number; out?: number } | null {
+  const read = (k: string): number | undefined => {
+    const raw = (process.env[k] ?? '').trim();
+    if (!raw) return undefined;
+    const n = Number(raw);
+    return Number.isFinite(n) && n >= 0 ? n : undefined;
+  };
+  const inP = read('PRIMARY_PRICE_IN');
+  const outP = read('PRIMARY_PRICE_OUT');
+  if (inP === undefined && outP === undefined) return null;
+  return { in: inP, out: outP };
+}
+
+/** PRIMARY_PRICE_IN/OUT (when set) layered over a DeepSeek default price. */
+export function applyPrimaryPriceOverride(base: TokenPrice): TokenPrice {
+  const o = primaryPriceOverride();
+  if (!o) return base;
+  return { inHit: o.in ?? base.inHit, inMiss: o.in ?? base.inMiss, out: o.out ?? base.out };
+}
+
 /** USD for one turn's tokens. Without a hit/miss split all input is priced as a miss. */
 export function tokenCostUsd(p: TokenPrice, u: { inTok: number; hit: number | null; miss: number | null; outTok: number }): number {
   const hit = u.hit ?? 0;
@@ -78,7 +106,8 @@ export function estimateTurnCostUsd(t: {
   modelMs: number;
 }): number | null {
   if (t.provider === 'deepseek') {
-    const p = deepSeekPrice(t.model, t.at);
+    const ds = deepSeekPrice(t.model, t.at);
+    const p = primaryPriceOverride() ? applyPrimaryPriceOverride(ds ?? DEEPSEEK_PRICES_PEAK['deepseek-flash']) : ds;
     return p ? tokenCostUsd(p, { inTok: t.inTok, hit: t.hit, miss: t.miss, outTok: t.outTok }) : null;
   }
   if (t.provider.startsWith('gpu')) return (Math.max(0, t.modelMs) / 1000) * gpuUsdPerSec();
