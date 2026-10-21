@@ -7,7 +7,7 @@ import { readPerfDashboard, type PerfDashboard, type PerfSource, type PerfTurn }
 import type { PerfSummary, SeriesPoint } from '@/lib/agentRuntime/perfStats';
 
 export const metadata: Metadata = {
-  title: 'Inference performance · AILEENA MACHINA',
+  title: 'Inference performance',
   robots: { index: false, follow: false },
 };
 

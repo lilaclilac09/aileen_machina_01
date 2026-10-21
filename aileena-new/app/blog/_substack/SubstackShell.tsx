@@ -1,5 +1,8 @@
 'use client';
 import Link from 'next/link';
+import { isValidElement, type ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
+import { SITE_URL, blogPostingJsonLd, jsonLdString } from '../../../lib/jsonLd';
 import ScrollUnlock from '../ScrollUnlock';
 import ArticleNarration from '../../../components/ArticleNarration';
 import ArticleModeMemory, { setArticleMode } from './ArticleModeMemory';
@@ -17,6 +20,15 @@ export interface SubstackShellProps {
   showNarration?: boolean;
 }
 
+/** Plain text of a title/dek node (strings, arrays, and element children). */
+function nodeText(node: ReactNode): string {
+  if (node == null || typeof node === 'boolean') return '';
+  if (typeof node === 'string' || typeof node === 'number') return String(node);
+  if (Array.isArray(node)) return node.map(nodeText).join('');
+  if (isValidElement<{ children?: ReactNode }>(node)) return nodeText(node.props.children);
+  return '';
+}
+
 export default function SubstackShell({
   date,
   category,
@@ -28,8 +40,17 @@ export default function SubstackShell({
   explainerHref,
   showNarration = true,
 }: SubstackShellProps) {
+  const pathname = usePathname() ?? '';
+  const jsonLd = blogPostingJsonLd({
+    url: `${SITE_URL}${pathname}`,
+    headline: nodeText(title).replace(/\s+/g, ' ').trim(),
+    description: nodeText(dek).replace(/\s+/g, ' ').trim(),
+    date,
+    keywords: tags,
+  });
   return (
     <div className="substack-article">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(jsonLd) }} />
       <ScrollUnlock />
       {explainerHref ? (
         <ArticleModeMemory currentMode="dense" altHref={explainerHref} />

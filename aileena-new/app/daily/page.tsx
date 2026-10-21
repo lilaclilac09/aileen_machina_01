@@ -5,7 +5,7 @@ import { getOwnerIdentity } from '@/lib/owner-gate';
 import { readPublicDailyBoard } from '@/lib/dailyBoardStore';
 
 export const metadata: Metadata = {
-  title: 'daily board · AILEENA',
+  title: 'daily board',
   description: 'one or two lines a day.',
 };
 

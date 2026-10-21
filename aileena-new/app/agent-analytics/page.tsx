@@ -6,7 +6,7 @@ import GpuRouterPanel from '@/components/GpuRouterPanel';
 import { readEngageStats, type EngageStats } from '@/lib/agentEngage/store';
 
 export const metadata: Metadata = {
-  title: 'Console analytics · AILEENA MACHINA',
+  title: 'Console analytics',
   robots: { index: false, follow: false },
 };
 
