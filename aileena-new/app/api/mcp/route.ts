@@ -1,10 +1,7 @@
-import { POST as chatPOST } from '../chat/route';
-import { markAgentCaller } from '../../../lib/agentCaller';
 import { AGENT_LIMITS, takeAgentRate } from '../../../lib/agentMcp/rateLimit';
+import { askChat } from '../../../lib/agentMcp/askChat';
 import {
-  collectUiStreamText,
   handleMcpMessage,
-  type AskResult,
   type JsonRpcRequest,
   type JsonRpcResponse,
 } from '../../../lib/agentMcp/server';
@@ -28,33 +25,6 @@ function json(body: unknown, status = 200, extra: Record<string, string> = {}): 
     status,
     headers: { ...(body === null ? {} : { 'Content-Type': 'application/json' }), 'Cache-Control': 'no-store', ...CORS, ...extra },
   });
-}
-
-/** Run one question through the public chat handler, in-process, as an agent caller. */
-async function askChat(question: string, traceId: string): Promise<AskResult> {
-  const chatReq = markAgentCaller(
-    new Request('https://aileena.xyz/api/chat', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-trace-id': traceId },
-      body: JSON.stringify({
-        agentMode: 'public',
-        messages: [{ id: `mcp-${traceId}`, role: 'user', parts: [{ type: 'text', text: question }] }],
-      }),
-    }),
-  );
-  const res = await chatPOST(chatReq);
-  if (!res.ok) {
-    let error = `Agent unavailable (${res.status}).`;
-    try {
-      const j = (await res.json()) as { error?: string };
-      if (j?.error) error = j.error;
-    } catch {
-      /* ignore */
-    }
-    return { ok: false, status: res.status, error };
-  }
-  const text = await collectUiStreamText(res);
-  return text ? { ok: true, text, traceId: res.headers.get('x-trace-id') ?? traceId } : { ok: false, status: 502, error: 'Empty answer.' };
 }
 
 export async function OPTIONS(): Promise<Response> {
