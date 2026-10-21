@@ -167,20 +167,71 @@ export function deepSeekRequestBody(modelId: string, args: Record<string, unknow
   return { ...args, thinking: { type: 'disabled' } };
 }
 
+/**
+ * Primary (public-door) model config, read from the existing env names with
+ * today's values as defaults: DEEPSEEK_BASE_URL (https://api.deepseek.com) and
+ * DEEPSEEK_MODEL (deepseek-flash). Point both at any OpenAI-compatible host
+ * (DeepInfra, Together, Fireworks, self-hosted vLLM) to swap where Machina runs.
+ * The adapter stays OpenAI-compatible and the internal provider id stays
+ * 'deepseek': breaker, spend, session lock and the frozen identity line key on it.
+ */
+export function primaryModelConfig(now = Date.now()): { provider: 'deepseek'; baseURL: string; modelId: string } {
+  return {
+    provider: 'deepseek',
+    baseURL: (process.env.DEEPSEEK_BASE_URL ?? '').trim() || DEEPSEEK_DEFAULT_BASE_URL,
+    modelId: deepSeekModelId(now),
+  };
+}
+
+/**
+ * Public-door sampling, pinned in one place so the same question gets the
+ * same answer as far as the provider allows. maxOutputTokens is today's
+ * public cap (200). Council turns keep their own settings in /api/chat.
+ * - temperature 0: greedy. DeepSeek honors it in non-thinking mode (thinking is off here).
+ * - topP 1: DeepSeek fixes top_p at 1.0 in non-thinking mode, so this only makes it explicit.
+ * - seed: DeepSeek's API documents no seed, so it is stripped for api.deepseek.com
+ *   (see providerAcceptsSeed); vLLM, DeepInfra, Together and Fireworks accept it.
+ */
+export const PUBLIC_DOOR_SAMPLING = Object.freeze({
+  temperature: 0,
+  topP: 1,
+  maxOutputTokens: 200,
+  seed: 42,
+});
+
+/** False only for DeepSeek's own API, which does not document a seed parameter. */
+export function providerAcceptsSeed(baseURL: string): boolean {
+  try {
+    return new URL(baseURL).hostname !== new URL(DEEPSEEK_DEFAULT_BASE_URL).hostname;
+  } catch {
+    return false;
+  }
+}
+
+/** Primary request body: thinking off for V4+ ids; seed dropped where the host has none. */
+export function primaryRequestBody(cfg: { baseURL: string; modelId: string }, args: Record<string, unknown>): Record<string, unknown> {
+  const body = deepSeekRequestBody(cfg.modelId, args);
+  if (!('seed' in body) || providerAcceptsSeed(cfg.baseURL)) return body;
+  const rest = { ...body };
+  delete rest.seed;
+  return rest;
+}
+
 function buildDeepSeek(apiKey: string, name: string): ModelPick | null {
   try {
-    const modelId = deepSeekModelId();
+    const cfg = primaryModelConfig();
+    const modelId = cfg.modelId;
     const ds = createOpenAICompatible({
       name,
-      baseURL: (process.env.DEEPSEEK_BASE_URL ?? '').trim() || DEEPSEEK_DEFAULT_BASE_URL,
+      baseURL: cfg.baseURL,
       apiKey,
       includeUsage: true,
       metadataExtractor: deepSeekCacheExtractor,
-      transformRequestBody: (args) => deepSeekRequestBody(modelId, args),
+      transformRequestBody: (args) => primaryRequestBody(cfg, args),
     });
     return {
       model: ds.chatModel(modelId),
-      provider: 'deepseek',
+      provider: cfg.provider,
       tier: 'primary',
       modelId,
     };
