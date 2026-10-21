@@ -11,7 +11,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import robots from '../../app/robots';
 import sitemap from '../../app/sitemap';
-import { SITE_URL, blogPosts, postMetadata } from '../../lib/seo';
+import { DEFAULT_TITLE, EXTRA_POSTS, SITE_URL, blogPosts, postMetadata } from '../../lib/seo';
 
 type Row = { name: string; ok: boolean; detail?: string };
 const rows: Row[] = [];
@@ -80,6 +80,28 @@ check('blog: post canonical = own path', posts.every((p) => postMetadata(p.href)
 const explainers = [...pageRoutes].filter((p) => /^\/blog\/[^/]+\/explainer$/.test(p));
 const orphanExpl = explainers.filter((p) => !existsSync(join('app', p.replace(/\/explainer$/, ''), 'layout.tsx')));
 check(`blog: ${explainers.length} explainers inherit parent canonical layout`, explainers.length > 0 && orphanExpl.length === 0, orphanExpl.join(', '));
+
+// ── off-rail posts: copied from the page's own SubstackShell props, listed + wired ──
+for (const p of EXTRA_POSTS) {
+  const src = readFileSync(join('app', p.href, 'page.tsx'), 'utf8');
+  check(`extra post ${p.href}: title + date from page`, src.includes(`title="${p.title}"`) && src.includes(`date="${p.date}"`));
+  check(`extra post ${p.href}: in sitemap`, paths.includes(p.href));
+}
+const dispatchHtmlSource = readFileSync('app/dispatch/layout.tsx', 'utf8');
+check('dispatch index lists every post incl. off-rail (blogPosts())', dispatchHtmlSource.includes('blogPosts().map') && posts.length === new Set(posts.map((p) => p.href)).size);
+
+// ── one brand per title: template adds ' · Aileen Choo', so no title may carry a site brand ──
+const BRAND = /AILEENA|Aileena|aileena\.xyz|Aileen Choo/;
+const literalTitles: string[] = [];
+for (const f of appFiles.filter((f) => /\.(tsx|ts)$/.test(f) && !f.includes(`${sep}api${sep}`))) {
+  const src = readFileSync(f, 'utf8');
+  if (!/export const metadata|opengraph-image/.test(src)) continue;
+  for (const m of src.matchAll(/(?:^|\n)\s*(?:title|alt)\s*[:=]\s*(['"`])((?:(?!\1).)*)\1/g)) literalTitles.push(`${relative('app', f)}: ${m[2]}`);
+}
+const titled = [...literalTitles, ...posts.map((p) => `post ${p.href}: ${postMetadata(p.href).title}`)];
+const branded = titled.filter((x) => BRAND.test(x.slice(x.indexOf(': ') + 2)));
+check(`titles: no site brand in ${titled.length} page/post titles (no double branding)`, branded.length === 0, branded.join(' | '));
+check("titles: default title is a single brand", DEFAULT_TITLE === 'Aileen Choo');
 
 // ── root layout + misc ──
 const root = readFileSync('app/layout.tsx', 'utf8');

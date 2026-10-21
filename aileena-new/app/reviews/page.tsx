@@ -5,7 +5,7 @@ import OwnerUnlockForm from '@/components/OwnerUnlockForm';
 import JevDashboard from '@/components/reviews/JevDashboard';
 
 export const metadata: Metadata = {
-  title: 'Jev review · AILEENA',
+  title: 'Jev review',
   robots: { index: false, follow: false },
 };
 

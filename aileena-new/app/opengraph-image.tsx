@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og';
 
-export const alt = 'AILEENA MACHINA · Aileen Choo';
+export const alt = 'Aileen Choo · research, tools, essays, sound';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 

@@ -7,7 +7,7 @@ import { isComputerPrototypeEnabled, isLocalExperimentUnlockAllowed } from '@/li
 import { isSharedComputerRoomToken } from '@/lib/computer/workspaceName';
 
 export const metadata: Metadata = {
-  title: 'Proof · AILEENA',
+  title: 'Proof',
   robots: { index: false, follow: false },
 };
 

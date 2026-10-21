@@ -5,7 +5,8 @@
 export const SITE_URL = 'https://www.aileena.xyz';
 export const SITE_NAME = 'AILEENA MACHINA';
 export const AUTHOR_NAME = 'Aileen Choo';
-export const DEFAULT_TITLE = `${SITE_NAME} · ${AUTHOR_NAME}`;
+/** One brand per title: the template appends ' · Aileen Choo', so the default is the name alone. */
+export const DEFAULT_TITLE = AUTHOR_NAME;
 export const DEFAULT_DESCRIPTION =
   'Personal site of Aileen Choo: Solana/MEV research, security tools (Tamper Check, KeyShield), AI infra notes, essays and DJ sets.';
 /** Only profiles already linked from the site (footer). */

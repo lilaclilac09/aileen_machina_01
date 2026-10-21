@@ -4,7 +4,7 @@ import { DONATE_ENABLED } from '../../lib/donate';
 import Donate from '../../components/Donate';
 
 export const metadata: Metadata = {
-  title: 'Support · AILEENA MACHINA',
+  title: 'Support',
   robots: { index: false, follow: false },
 };
 

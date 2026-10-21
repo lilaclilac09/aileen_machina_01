@@ -3,7 +3,7 @@ import AudioClippingProductPage from '../../components/tools/AudioClippingProduc
 import '../../components/tools/arcade.css';
 
 export const metadata: Metadata = {
-  title: 'Audio Clipping — Aileena',
+  title: 'Audio Clipping',
   description:
     'Long-form YouTube to short clips. Free local silence-gap mode — no Inkling / Together API key required. Optional Inkling when you have a key.',
 };
