@@ -9,11 +9,17 @@
  * (MACHINA_EXPECT_PREFIX_SHA=<sha> pins it); (c) defaults = today's provider,
  * base URL and model.
  *
+ * Host-swap gaps (non-api.deepseek.com primary): (d) the DeepSeek-only
+ * `thinking` field is sent only to api.deepseek.com; (e) spend estimates read
+ * PRIMARY_PRICE_IN / PRIMARY_PRICE_OUT (USD per 1M) with DeepSeek defaults;
+ * (f) the deepseek-chat model-missing latch arms only on api.deepseek.com,
+ * other hosts fall through to the breaker + hosted fallback.
+ *
  * Run: npx -y tsx harness/site-agent/sampling.ts
  */
 process.env.RUNTIME_KV = 'memory';
 process.env.AUTH_SECRET ||= 'harness-offline-secret-0123456789abcdef0123456789';
-for (const k of ['UPSTASH_REDIS_REST_URL', 'UPSTASH_REDIS_REST_TOKEN', 'KV_REST_API_URL', 'KV_REST_API_TOKEN', 'AGENT_FALLBACK_BASE_URL', 'AGENT_FALLBACK_API_KEY', 'AGENT_API_KEY', 'DEEPSEEK_MODEL', 'DEEPSEEK_BASE_URL']) {
+for (const k of ['UPSTASH_REDIS_REST_URL', 'UPSTASH_REDIS_REST_TOKEN', 'KV_REST_API_URL', 'KV_REST_API_TOKEN', 'AGENT_FALLBACK_BASE_URL', 'AGENT_FALLBACK_API_KEY', 'AGENT_API_KEY', 'DEEPSEEK_MODEL', 'DEEPSEEK_BASE_URL', 'AGENT_FALLBACK_MODEL', 'PRIMARY_PRICE_IN', 'PRIMARY_PRICE_OUT']) {
   delete process.env[k];
 }
 for (const k of Object.keys(process.env)) if (k.startsWith('AGENT_GPU_')) delete process.env[k];
@@ -21,8 +27,13 @@ import { createHash } from 'node:crypto';
 import { createServer, type IncomingMessage } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { resetRuntimeKvForTests } from '../../lib/agentRuntime/kv';
+import { estimateTurnMicroUsd } from '../../lib/agentRuntime/load';
+import { estimateTurnCostUsd } from '../../lib/agentRuntime/pricing';
 import {
   buildPrimary,
+  deepSeekModelId,
+  isDeepSeekHost,
+  noteDeepSeekModelMissing,
   primaryModelConfig,
   primaryRequestBody,
   providerAcceptsSeed,
@@ -43,6 +54,9 @@ const sseBody = (text: string) =>
 
 // ── Mock OpenAI-compatible host on 127.0.0.1 (stands in for DeepInfra/vLLM/…) ──
 const seen: Record<string, unknown>[] = [];
+// (f) when set, the mock answers like an OpenAI-compatible host that lacks the model id.
+let mockModelMissing = false;
+const MODEL_MISSING_BODY = JSON.stringify({ error: { message: 'The model `deepseek-flash` does not exist', type: 'invalid_request_error', code: 'model_not_found' } });
 async function readBody(req: IncomingMessage): Promise<Record<string, unknown>> {
   const parts: Buffer[] = [];
   for await (const c of req) parts.push(c as Buffer);
@@ -53,18 +67,26 @@ async function readBody(req: IncomingMessage): Promise<Record<string, unknown>> 
   }
 }
 const server = createServer(async (req, res) => {
-  seen.push(await readBody(req));
+  const b = await readBody(req);
+  seen.push(b);
+  if (mockModelMissing && req.url?.startsWith('/v1/')) {
+    res.writeHead(404, { 'content-type': 'application/json' });
+    res.end(MODEL_MISSING_BODY);
+    return;
+  }
   res.writeHead(200, { 'content-type': 'text/event-stream' });
   res.end(sseBody('Hello from the mock host.'));
 });
 
 // ── In-process stand-in for api.deepseek.com: never reaches the network ──
 const dsSeen: Record<string, unknown>[] = [];
+let dsModelMissing = false;
 const realFetch = globalThis.fetch;
 globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
   const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
   if (new URL(url).hostname === 'api.deepseek.com') {
     dsSeen.push(JSON.parse(String(init?.body ?? '{}')) as Record<string, unknown>);
+    if (dsModelMissing) return new Response(MODEL_MISSING_BODY, { status: 404, headers: { 'content-type': 'application/json' } });
     return new Response(sseBody('Hello from DeepSeek (intercepted).'), { status: 200, headers: { 'content-type': 'text/event-stream' } });
   }
   return realFetch(input, init);
@@ -118,6 +140,37 @@ async function main() {
   check('unit: deepseek body drops seed, keeps thinking', JSON.stringify(primaryRequestBody({ baseURL: 'https://api.deepseek.com', modelId: 'deepseek-flash' }, { a: 1, seed: 42 })) === '{"a":1,"thinking":{"type":"disabled"}}');
   check('unit: other host keeps seed', JSON.stringify(primaryRequestBody({ baseURL: 'https://api.deepinfra.com/v1/openai', modelId: 'deepseek-chat' }, { a: 1, seed: 42 })) === '{"a":1,"seed":42}');
 
+  // ── (d) thinking only on api.deepseek.com ──
+  check('d: isDeepSeekHost only for api.deepseek.com', isDeepSeekHost('https://api.deepseek.com') && isDeepSeekHost('https://api.deepseek.com/beta') && !isDeepSeekHost('https://api.deepinfra.com/v1/openai') && !isDeepSeekHost('http://127.0.0.1:8000/v1') && !isDeepSeekHost('https://deepseek.com.evil.example') && !isDeepSeekHost('not a url'));
+  check('d: deepseek-flash on other host → no thinking', JSON.stringify(primaryRequestBody({ baseURL: 'https://api.deepinfra.com/v1/openai', modelId: 'deepseek-flash' }, { a: 1, seed: 42 })) === '{"a":1,"seed":42}');
+  check('d: legacy deepseek-chat on api.deepseek.com still has no thinking', JSON.stringify(primaryRequestBody({ baseURL: 'https://api.deepseek.com', modelId: 'deepseek-chat' }, { a: 1, seed: 42 })) === '{"a":1}');
+
+  // ── (e) spend estimate prices: env override, DeepSeek defaults ──
+  const u = { hit: 1_000_000, miss: 1_000_000, out: 1_000_000 };
+  const turn = (model: string) => estimateTurnCostUsd({ provider: 'deepseek', model, at: Date.parse('2026-10-16T02:00:00Z'), inTok: 2_000_000, outTok: 1_000_000, hit: 1_000_000, miss: 1_000_000, modelMs: 1 });
+  check('e: defaults = DeepSeek flash peak (0.006/0.3/1.2)', estimateTurnMicroUsd(u) === 1_506_000 && Math.abs((turn('deepseek-flash') ?? 0) - 1.506) < 1e-9, `${estimateTurnMicroUsd(u)} ${turn('deepseek-flash')}`);
+  check('e: unknown model id without env → no per-turn cost (unchanged)', turn('deepseek-ai/DeepSeek-V3') === null);
+  for (const [i, o] of [['', ''], ['abc', 'NaN'], ['-1', '-5'], ['  ', 'Infinity']]) {
+    process.env.PRIMARY_PRICE_IN = i;
+    process.env.PRIMARY_PRICE_OUT = o;
+    check(`e: invalid env (${JSON.stringify(i)}, ${JSON.stringify(o)}) → defaults`, estimateTurnMicroUsd(u) === 1_506_000 && Math.abs((turn('deepseek-flash') ?? 0) - 1.506) < 1e-9);
+  }
+  process.env.PRIMARY_PRICE_IN = '0.5';
+  process.env.PRIMARY_PRICE_OUT = '2';
+  check('e: PRIMARY_PRICE_IN/OUT override budget estimate', estimateTurnMicroUsd(u) === 3_000_000, String(estimateTurnMicroUsd(u)));
+  check('e: PRIMARY_PRICE_IN/OUT override per-turn cost, any model id', Math.abs((turn('deepseek-ai/DeepSeek-V3') ?? 0) - 3) < 1e-9 && Math.abs((turn('deepseek-flash') ?? 0) - 3) < 1e-9, String(turn('deepseek-ai/DeepSeek-V3')));
+  process.env.PRIMARY_PRICE_IN = '';
+  process.env.PRIMARY_PRICE_OUT = '0';
+  check('e: one field set → other keeps default (out=0 is valid)', estimateTurnMicroUsd(u) === 306_000, String(estimateTurnMicroUsd(u)));
+  delete process.env.PRIMARY_PRICE_IN;
+  delete process.env.PRIMARY_PRICE_OUT;
+
+  // ── (f) model-missing latch: units ──
+  resetDeepSeekModelLatchForTests();
+  check('f: latch does not arm on other host', noteDeepSeekModelMissing(Date.now(), 'https://api.deepinfra.com/v1/openai') === false && deepSeekModelId() === 'deepseek-flash');
+  check('f: latch arms on api.deepseek.com', noteDeepSeekModelMissing(Date.now(), 'https://api.deepseek.com') === true && deepSeekModelId() === 'deepseek-chat');
+  resetDeepSeekModelLatchForTests();
+
   // ── (a) real /api/chat → DeepSeek default host (intercepted) ──
   resetRuntimeKvForTests();
   const r1 = await chat(q);
@@ -133,6 +186,8 @@ async function main() {
   const r2 = await chat(q);
   const m1 = seen[seen.length - 1];
   check('a: mock host answers 200', r2.res.status === 200 && /mock host/.test(r2.body), String(r2.res.status));
+  check('d: mock host request has no thinking field', m1 !== undefined && !('thinking' in m1), JSON.stringify(m1?.thinking ?? null));
+  check('d: mock host keeps model id + provider id deepseek', m1?.model === 'deepseek-flash' && r2.res.headers.get('x-provider') === 'deepseek');
   check('a: mock host request pinned incl. seed 42', m1?.temperature === 0 && m1?.top_p === 1 && m1?.max_tokens === 200 && m1?.seed === 42, JSON.stringify({ t: m1?.temperature, p: m1?.top_p, m: m1?.max_tokens, s: m1?.seed }));
   resetRuntimeKvForTests();
   await chat(q);
@@ -157,7 +212,41 @@ async function main() {
   const rc = await chat('what should I ship next?', { agentMode: 'council', cookie: ownerCookie });
   const c1 = seen[seen.length - 1];
   check('council: unchanged (temp 0.4, max_tokens 900, no top_p/seed)', rc.res.status === 200 && c1 !== m2 && c1?.temperature === 0.4 && c1?.max_tokens === 900 && !('top_p' in (c1 ?? {})) && !('seed' in (c1 ?? {})), JSON.stringify({ s: rc.res.status, t: c1?.temperature, m: c1?.max_tokens }));
+
+  // ── (f) model-missing through real /api/chat ──
+  // api.deepseek.com (intercepted): latch arms, next DeepSeek request uses deepseek-chat (as on main).
   delete process.env.DEEPSEEK_BASE_URL;
+  resetRuntimeKvForTests();
+  resetDeepSeekModelLatchForTests();
+  dsModelMissing = true;
+  await chat(q);
+  dsModelMissing = false;
+  check('f: api.deepseek.com model-missing arms latch', deepSeekModelId() === 'deepseek-chat');
+  resetRuntimeKvForTests();
+  await chat(q);
+  const dLegacy = dsSeen[dsSeen.length - 1];
+  check('f: next api.deepseek.com request uses deepseek-chat, no thinking', dLegacy?.model === 'deepseek-chat' && !('thinking' in (dLegacy ?? {})), String(dLegacy?.model));
+  resetDeepSeekModelLatchForTests();
+
+  // Other host: no latch; three failures open the breaker; the hosted fallback answers.
+  process.env.DEEPSEEK_BASE_URL = `${base}/v1`;
+  process.env.AGENT_FALLBACK_BASE_URL = `${base}/fb`;
+  process.env.AGENT_FALLBACK_API_KEY = 'test-fb-key';
+  process.env.AGENT_FALLBACK_MODEL = 'mock-fallback';
+  resetRuntimeKvForTests();
+  mockModelMissing = true;
+  const primaryModels: unknown[] = [];
+  for (let i = 0; i < 3; i++) {
+    const before = seen.length;
+    await chat(q);
+    primaryModels.push(...seen.slice(before).map((b) => b.model));
+  }
+  check('f: other host model-missing does not arm latch', deepSeekModelId() === 'deepseek-flash' && primaryModels.length > 0 && primaryModels.every((m) => m === 'deepseek-flash'), JSON.stringify(primaryModels));
+  const rf = await chat(q);
+  const fb = seen[seen.length - 1];
+  mockModelMissing = false;
+  check('f: other host falls through to hosted fallback', rf.res.status === 200 && rf.res.headers.get('x-provider') === 'fallback:mock-fallback' && fb?.model === 'mock-fallback', `${rf.res.status} ${rf.res.headers.get('x-provider')} ${String(fb?.model)}`);
+  for (const k of ['DEEPSEEK_BASE_URL', 'AGENT_FALLBACK_BASE_URL', 'AGENT_FALLBACK_API_KEY', 'AGENT_FALLBACK_MODEL']) delete process.env[k];
 
   server.close();
   globalThis.fetch = realFetch;
