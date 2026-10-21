@@ -75,6 +75,7 @@ jobs:
           pnpm exec tsx harness/site-agent/sampling.ts
           pnpm exec tsx harness/site-agent/answerCache.ts
           pnpm exec tsx harness/site-agent/linkify.ts
+          pnpm exec tsx harness/site-agent/askPaid.ts
           pnpm exec tsx harness/site-agent/perf.ts
           pnpm exec tsx harness/site-agent/actions.ts
           pnpm exec tsx harness/site-agent/codeMode.ts

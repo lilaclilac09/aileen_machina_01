@@ -21,6 +21,9 @@ const nextConfig: NextConfig = {
     ],
   },
   transpilePackages: ['three'],
+  // mppx (/api/ask-paid) lazily imports optional peers (@modelcontextprotocol/sdk)
+  // that this app does not install; load it from node_modules at runtime.
+  serverExternalPackages: ['mppx'],
   allowedDevOrigins: ['127.0.0.1'],
   turbopack: {
     root: appRoot,
