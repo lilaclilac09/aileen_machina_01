@@ -73,6 +73,7 @@ jobs:
           pnpm exec tsx harness/site-agent/promptContract.ts
           pnpm exec tsx harness/site-agent/gpuRouter.ts
           pnpm exec tsx harness/site-agent/sampling.ts
+          pnpm exec tsx harness/site-agent/answerCache.ts
           pnpm exec tsx harness/site-agent/linkify.ts
           pnpm exec tsx harness/site-agent/perf.ts
           pnpm exec tsx harness/site-agent/actions.ts
