@@ -54,6 +54,7 @@ import {
   classifyModelError,
   degradeMessage,
   MODEL_TOTAL_BUDGET_MS,
+  PUBLIC_DOOR_SAMPLING,
 } from '../../../lib/modelRouter';
 import { breakerFailure, breakerGate, breakerSuccess, isCancellation } from '../../../lib/agentRuntime/breaker';
 import { readGpuConfig, markGpuWarm, markGpuCold, readGpuState, readGpuVariant } from '../../../lib/agentRuntime/gpu';
@@ -987,13 +988,12 @@ ${memoryPrefetch
         model: pick.model,
         system,
         messages: messagesWithTail,
-        temperature: 0.4,
+        // Public door: pinned sampling from one config spot (temperature 0,
+        // top_p 1, seed where the host accepts one, 200-token cap). Council
+        // keeps its own settings. Tool calls don't count against the cap.
+        ...(isCouncil ? { temperature: 0.4, maxOutputTokens: 900 } : PUBLIC_DOOR_SAMPLING),
         // GPU: no SDK retries; a failed first token fails over instead.
         ...(pick.tier === 'gpu' ? { maxRetries: 0 } : {}),
-        // Cap final ASSISTANT-text response at 200 tokens; tool calls
-        // themselves don't count against this. The Helius-style 2-3
-        // sentence answer is still the target.
-        maxOutputTokens: isCouncil ? 900 : 200,
         // ReAct short loop: think → tool → observe → … then answer.
         // Cap so a confused model can't burn quota looping forever.
         stopWhen: stepCountIs(REACT_MAX_STEPS),
