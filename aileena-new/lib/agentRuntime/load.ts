@@ -4,7 +4,7 @@
  * a crashed instance never leaks an "in flight" count: buckets just expire.
  */
 import { runtimeKv } from './kv';
-import { DEEPSEEK_PRICES_PEAK } from './pricing';
+import { applyPrimaryPriceOverride, DEEPSEEK_PRICES_PEAK } from './pricing';
 
 const BUCKET_MS = 60_000;
 const BUCKET_TTL_SEC = 5 * 60;
@@ -68,8 +68,9 @@ export async function slowTurns(provider: string, now = Date.now()): Promise<num
 // Budget rule uses the peak price on purpose (conservative); see pricing.ts for the source.
 export const DEEPSEEK_FLASH_PEAK_USD_PER_MTOK = DEEPSEEK_PRICES_PEAK['deepseek-flash'];
 
+/** PRIMARY_PRICE_IN / PRIMARY_PRICE_OUT (USD per 1M, see pricing.ts) override the default. */
 export function estimateTurnMicroUsd(u: { hit: number; miss: number; out: number }): number {
-  const p = DEEPSEEK_FLASH_PEAK_USD_PER_MTOK;
+  const p = applyPrimaryPriceOverride(DEEPSEEK_FLASH_PEAK_USD_PER_MTOK);
   // USD per 1M tokens == micro-USD per token.
   return Math.ceil(u.hit * p.inHit + u.miss * p.inMiss + u.out * p.out);
 }

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'aileena.xyz · Data API',
+  title: 'Data API',
   description:
     'Public HTTP API for chip specs, pricing, news, earnings transcripts, and analyst research that Aileen tracks.',
 };

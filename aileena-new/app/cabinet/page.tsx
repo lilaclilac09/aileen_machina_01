@@ -5,7 +5,7 @@ import OwnerChatInboxClient from '@/components/OwnerChatInboxClient';
 import OwnerUnlockForm from '@/components/OwnerUnlockForm';
 
 export const metadata: Metadata = {
-  title: 'Cabinet · AILEENA MACHINA',
+  title: 'Cabinet',
   robots: { index: false, follow: false },
 };
 

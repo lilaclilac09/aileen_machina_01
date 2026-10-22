@@ -54,6 +54,8 @@ import {
   classifyModelError,
   degradeMessage,
   MODEL_TOTAL_BUDGET_MS,
+  PUBLIC_DOOR_SAMPLING,
+  primaryModelConfig,
 } from '../../../lib/modelRouter';
 import { breakerFailure, breakerGate, breakerSuccess, isCancellation } from '../../../lib/agentRuntime/breaker';
 import { readGpuConfig, markGpuWarm, markGpuCold, readGpuState, readGpuVariant } from '../../../lib/agentRuntime/gpu';
@@ -63,6 +65,7 @@ import { chooseProvider, estimateTokens, peekFirstToken } from '../../../lib/age
 import { addSpend, estimateTurnMicroUsd, noteTtft, noteTurnDone, noteTurnStart, recordRouterTurn } from '../../../lib/agentRuntime/load';
 import { postResponseWork } from '../../../lib/agentRuntime/afterResponse';
 import { redisHealth } from '../../../lib/agentRuntime/redisHealth';
+import { answerCacheKey, readCachedAnswer, storeCachedAnswer } from '../../../lib/agentRuntime/answerCache';
 import { commitTurn, findCommittedTurn, LEDGER_TTL_SEC, readLedger, rebuildTranscript, validLedgerId } from '../../../lib/agentRuntime/ledger';
 import { actionId, runOnce } from '../../../lib/agentRuntime/actions';
 import { chargeRedisQuota, quotaKeyFor, readRedisQuota, redisQuotaEnabled } from '../../../lib/agentRuntime/quota';
@@ -472,6 +475,20 @@ export async function POST(req: Request) {
       replacedAssistant: rebuilt.replacedAssistant,
     });
   }
+  // Public-door answer cache: public visitor, exactly one user message, no
+  // ledger history or seeded summary, nothing neutralized by the input guard.
+  const answerCacheEligible =
+    agentMode === 'public' &&
+    !owner &&
+    !unlimitedChat &&
+    messages.length === 1 &&
+    messages[0]?.role === 'user' &&
+    trimmed.length === 1 &&
+    ledgerTurns.length === 0 &&
+    !seededSummary &&
+    !body.summaryToken &&
+    guard.inputGuardHits === 0 &&
+    guard.droppedClientParts === 0;
   let modelMessages: ModelMessage[];
   try {
     modelMessages = await convertToModelMessages(trimmed);
@@ -511,6 +528,10 @@ export async function POST(req: Request) {
       void recordVisitorQuestion(visitorId, lastQ, visitorSoftLoaded);
     }
   }
+  // Answers are stored only from a visitor with no soft-memory history or
+  // client topics, so a stored answer can never carry another visitor's past.
+  const answerStoreEligible =
+    answerCacheEligible && visitorSoftLoaded.questions.length === 0 && visitorSoftLoaded.topics.length === 0 && priorTopics.length === 0;
   // Uncovered public asks → Redis live inbox. Drain ratchets held-out only.
   // Council never enqueues. Does not write AGENTS.md / QA.md / PROJECT_RULES.md.
   if (lastQ && !agentCaller) {
@@ -879,6 +900,91 @@ ${memoryPrefetch
     let emptyTries = 0;
     const work = postResponseWork();
     post = work;
+    // Answer-cache key for one attempt: primary tier only (never GPU or the hosted fallback).
+    const answerKeyFor = (pick: ModelPick, attemptPrefixHash: string): Promise<string | null> =>
+      answerCacheEligible && pick.tier === 'primary' && pick.modelId
+        ? answerCacheKey({
+            question: lastQ,
+            prefixHash: attemptPrefixHash,
+            provider: pick.provider,
+            baseURL: primaryModelConfig().baseURL,
+            modelId: pick.modelId,
+            sampling: PUBLIC_DOOR_SAMPLING,
+            toolRoute: toolRoute.route,
+          })
+        : Promise.resolve(null);
+    // Owner unlimited (session or email cookie): do not burn the visitor counter.
+    // The signed cookie is always charged up front (+1), Redis or not; Redis is
+    // charged again on commit and the next turn enforces max(cookie, redis).
+    // So a Redis write that fails (or never lands) cannot unlock the limit.
+    const applyTurnHeaders = async (headers: Headers) => {
+      const setCookie = unlimitedChat ? null : await buildQuotaCookie({ date: quota.date, count: quota.count + 1 });
+      // Always refresh visitor cookie Max-Age so browser id tracks the 90d Redis TTL.
+      const visitorCookie = await buildVisitorCookie(visitorId);
+      if (setCookie) {
+        headers.append('Set-Cookie', setCookie);
+      }
+      if (visitorCookie) {
+        headers.append('Set-Cookie', visitorCookie);
+      }
+
+      headers.set(
+        'X-Daily-Remaining',
+        unlimitedChat
+          ? skipQuota
+            ? 'owner'
+            : 'unlimited'
+          : String(DAILY_LIMIT - (quota.count + 1)),
+      );
+      if (unlimitedChat) {
+        headers.set('X-Owner-Unlimited', '1');
+      }
+      headers.set('X-Quota-Day', quota.date);
+      // X-Provider stays public: the console uses it as the session provider lock.
+      headers.set('X-Provider', picked.provider);
+      headers.set('X-Agent-Mode', agentMode);
+      headers.set('X-Voice-Accent', voiceAccent ?? 'off');
+      headers.set('X-Tool-Route', toolRoute.route);
+      headers.set('X-Trace-Id', trace.traceId);
+      // Hash only (no content): lets the harness check the prefix stays stable per session.
+      headers.set('X-Prefix-Hash', turnPrefixHash);
+      if (showDebugHeaders) {
+        headers.set('X-Model-Tier', picked.tier);
+        headers.set('X-System-Prompt-Chars', String(frozenSystem.length));
+        headers.set('X-Session-Tail-Chars', String(wrappedTail.length));
+        headers.set('X-Visitor-Soft-Memory', visitorSoftMemoryEnabled() ? 'redis' : 'off');
+        headers.set('X-Runtime-Kv', redisQuotaKey ? (redisHealth().degraded ? 'redis-degraded' : 'redis') : 'memory');
+        headers.set('X-React-Max-Steps', String(REACT_MAX_STEPS));
+        headers.set('X-Model-Budget-Ms', String(MODEL_TOTAL_BUDGET_MS));
+      }
+    };
+
+    // Hit: replay the stored answer (no model call). Quota was checked above and
+    // is charged exactly like a committed turn (cookie +1, Redis +1, ledger).
+    const answerKey = await answerKeyFor(picked, turnPrefixHash);
+    const cachedAnswer = answerKey ? await readCachedAnswer(answerKey) : null;
+    if (cachedAnswer !== null) {
+      // Same commit as a model turn's onFinish: Redis quota +1 and the ledger turn, once per turnId.
+      const commitHit = async () => {
+        if (redisQuotaKey) await chargeRedisQuota(redisQuotaKey);
+        if (ledgerSessionId) {
+          await commitTurn(ledgerSessionId, { turnId: ledgerTurnId ?? `${trace.traceId}`, user: lastQ, assistant: cachedAnswer, finishReason: 'stop', at: Date.now() });
+        }
+        return true;
+      };
+      try {
+        if (turnCommitId) await runOnce(turnCommitId, commitHit, { ttlSec: LEDGER_TTL_SEC });
+        else await commitHit();
+      } catch (err) {
+        console.error('[chat] commit failed', err instanceof Error ? err.message : String(err), { traceId: trace.traceId });
+      }
+      work.release();
+      trace.log('turn', { stopReason: 'answer_cache', committed: true, route: toolRoute.route, mode: agentMode, provider: picked.provider, prefixHash: turnPrefixHash });
+      const hit = queuedChatResponse(cachedAnswer);
+      await applyTurnHeaders(hit.headers);
+      hit.headers.set('X-Answer-Cache', 'hit');
+      return hit;
+    }
     const startAttempt = (pick: ModelPick, attemptProbe: boolean, system: string, attemptPrefixHash: string) => {
       const attemptCtl = new AbortController();
       const abortSignal =
@@ -987,13 +1093,12 @@ ${memoryPrefetch
         model: pick.model,
         system,
         messages: messagesWithTail,
-        temperature: 0.4,
+        // Public door: pinned sampling from one config spot (temperature 0,
+        // top_p 1, seed where the host accepts one, 200-token cap). Council
+        // keeps its own settings. Tool calls don't count against the cap.
+        ...(isCouncil ? { temperature: 0.4, maxOutputTokens: 900 } : PUBLIC_DOOR_SAMPLING),
         // GPU: no SDK retries; a failed first token fails over instead.
         ...(pick.tier === 'gpu' ? { maxRetries: 0 } : {}),
-        // Cap final ASSISTANT-text response at 200 tokens; tool calls
-        // themselves don't count against this. The Helius-style 2-3
-        // sentence answer is still the target.
-        maxOutputTokens: isCouncil ? 900 : 200,
         // ReAct short loop: think → tool → observe → … then answer.
         // Cap so a confused model can't burn quota looping forever.
         stopWhen: stepCountIs(REACT_MAX_STEPS),
@@ -1053,6 +1158,18 @@ ${memoryPrefetch
             } catch (err) {
               console.error('[chat] commit failed', err instanceof Error ? err.message : String(err), { traceId: trace.traceId });
             }
+          }
+          // Answer cache: only a clean stop with zero tool calls and an untouched output guard.
+          if (
+            committed &&
+            finishReason === 'stop' &&
+            answerStoreEligible &&
+            reactGuard.summary().calls.length === 0 &&
+            (steps ?? []).every((s) => (s.toolCalls?.length ?? 0) === 0) &&
+            Object.values((guard.summary().output ?? {}) as Record<string, number>).every((n) => !n)
+          ) {
+            const key = await answerKeyFor(pick, attemptPrefixHash);
+            if (key) await work.track(storeCachedAnswer(key, text ?? ''));
           }
           const cache = cacheTokensFromSteps(steps as unknown as Parameters<typeof cacheTokensFromSteps>[0]);
           if (pick.provider === 'deepseek') {
@@ -1207,14 +1324,6 @@ ${memoryPrefetch
     }
     const result = att.result;
 
-    // Owner unlimited (session or email cookie): do not burn the visitor counter.
-    // The signed cookie is always charged up front (+1), Redis or not; Redis is
-    // charged again on commit and the next turn enforces max(cookie, redis).
-    // So a Redis write that fails (or never lands) cannot unlock the limit.
-    const setCookie = unlimitedChat ? null : await buildQuotaCookie({ date: quota.date, count: quota.count + 1 });
-    // Always refresh visitor cookie Max-Age so browser id tracks the 90d Redis TTL.
-    const visitorCookie = await buildVisitorCookie(visitorId);
-
     const stream = emptyAnswer
       ? degradeTextResponse(degradeMessage('empty', lastQ))
       : result.toUIMessageStreamResponse({
@@ -1234,42 +1343,8 @@ ${memoryPrefetch
     });
 
     const headers = new Headers(stream.headers);
-    if (setCookie) {
-      headers.append('Set-Cookie', setCookie);
-    }
-    if (visitorCookie) {
-      headers.append('Set-Cookie', visitorCookie);
-    }
-
-    headers.set(
-      'X-Daily-Remaining',
-      unlimitedChat
-        ? skipQuota
-          ? 'owner'
-          : 'unlimited'
-        : String(DAILY_LIMIT - (quota.count + 1)),
-    );
-    if (unlimitedChat) {
-      headers.set('X-Owner-Unlimited', '1');
-    }
-    headers.set('X-Quota-Day', quota.date);
-    // X-Provider stays public: the console uses it as the session provider lock.
-    headers.set('X-Provider', picked.provider);
-    headers.set('X-Agent-Mode', agentMode);
-    headers.set('X-Voice-Accent', voiceAccent ?? 'off');
-    headers.set('X-Tool-Route', toolRoute.route);
-    headers.set('X-Trace-Id', trace.traceId);
-    // Hash only (no content): lets the harness check the prefix stays stable per session.
-    headers.set('X-Prefix-Hash', turnPrefixHash);
-    if (showDebugHeaders) {
-      headers.set('X-Model-Tier', picked.tier);
-      headers.set('X-System-Prompt-Chars', String(frozenSystem.length));
-      headers.set('X-Session-Tail-Chars', String(wrappedTail.length));
-      headers.set('X-Visitor-Soft-Memory', visitorSoftMemoryEnabled() ? 'redis' : 'off');
-      headers.set('X-Runtime-Kv', redisQuotaKey ? (redisHealth().degraded ? 'redis-degraded' : 'redis') : 'memory');
-      headers.set('X-React-Max-Steps', String(REACT_MAX_STEPS));
-      headers.set('X-Model-Budget-Ms', String(MODEL_TOTAL_BUDGET_MS));
-    }
+    await applyTurnHeaders(headers);
+    headers.set('X-Answer-Cache', 'miss');
 
     if (emptyAnswer) headers.set('X-Degrade-Reason', 'empty_answer');
 

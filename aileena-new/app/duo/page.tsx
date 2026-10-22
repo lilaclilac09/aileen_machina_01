@@ -3,7 +3,7 @@ import DuoLabClient from '../../components/DuoLabClient';
 import './duo-lab.css';
 
 export const metadata: Metadata = {
-  title: 'Duo lab · AILEENA',
+  title: 'Duo lab',
   description: 'iPhone Duo / iOS web foldable API lab — cover, inner, tent.',
   robots: { index: false, follow: false },
 };

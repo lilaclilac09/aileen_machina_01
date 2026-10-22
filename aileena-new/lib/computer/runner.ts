@@ -44,6 +44,7 @@ import {
 } from './gitAllowlist';
 import { filesOpen, filesSearch, filesTree, type FileInspectResult } from './filesAllowlist';
 import {
+  cfEnsureScratch,
   cfExec,
   cfGetFile,
   cfPutFile,
@@ -63,8 +64,32 @@ function taskBackend(): ComputerBackend {
   return reportedBackend();
 }
 
+/** mkdir -p is idempotent; skip repeating it for the same pad within one isolate. */
+const MOUNT_MEMO_MS = 5 * 60 * 1000;
+const mountedAt = new Map<string, number>();
+
 async function ensureCfMount(name: string): Promise<void> {
+  const at = mountedAt.get(name);
+  if (at !== undefined && Date.now() - at < MOUNT_MEMO_MS) return;
   await cfExec('mkdir -p scratch reports artifacts', '/workspace', name);
+  mountedAt.set(name, Date.now());
+  if (mountedAt.size > 500) mountedAt.clear();
+}
+
+/** Batch `rm -r` so a reset is one exec, not one per entry. Last arg stays under scratch. */
+export function scratchRmBatches(entries: string[], maxLen = 1800): string[] {
+  const out: string[] = [];
+  let cur = '';
+  for (const e of entries) {
+    const word = `/workspace/scratch/${e}`;
+    if (cur && cur.length + 1 + word.length > maxLen) {
+      out.push(cur);
+      cur = '';
+    }
+    cur = cur ? `${cur} ${word}` : `rm -r ${word}`;
+  }
+  if (cur) out.push(cur);
+  return out;
 }
 
 /**
@@ -76,6 +101,13 @@ const VISITOR_SCRATCH_TTL_DAYS = 30;
 const VISITOR_BORN_PATH = '/workspace/scratch/.born';
 
 async function ensureVisitorScratchFresh(name: string): Promise<'kept' | 'reset'> {
+  // New worker: mkdir + TTL check + wipe + stamp in a single request.
+  const one = await cfEnsureScratch(name, VISITOR_SCRATCH_TTL_DAYS);
+  if (one) {
+    mountedAt.set(name, Date.now());
+    return one.status;
+  }
+  // Old worker (before redeploy): same steps, but the wipe is one batched rm.
   await ensureCfMount(name);
   let bornMs = Number.NaN;
   try {
@@ -93,8 +125,8 @@ async function ensureVisitorScratchFresh(name: string): Promise<'kept' | 'reset'
       .map((l) => l.trim())
       .filter((e) => /^[\w][\w.-]*$/.test(e))
       .slice(0, 50);
-    for (const entry of entries) {
-      await cfExec(`rm -r /workspace/scratch/${entry}`, '/workspace', name);
+    for (const cmd of scratchRmBatches(entries)) {
+      await cfExec(cmd, '/workspace', name);
     }
     wiped = entries.length > 0;
   }

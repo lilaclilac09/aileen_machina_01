@@ -72,6 +72,11 @@ jobs:
           pnpm exec tsx harness/site-agent/runtime.ts
           pnpm exec tsx harness/site-agent/promptContract.ts
           pnpm exec tsx harness/site-agent/gpuRouter.ts
+          pnpm exec tsx harness/site-agent/sampling.ts
+          pnpm exec tsx harness/site-agent/answerCache.ts
+          pnpm exec tsx harness/site-agent/linkify.ts
+          pnpm exec tsx harness/site-agent/askPaid.ts
+          pnpm exec tsx harness/site-agent/seo.ts
           pnpm exec tsx harness/site-agent/perf.ts
           pnpm exec tsx harness/site-agent/actions.ts
           pnpm exec tsx harness/site-agent/codeMode.ts
@@ -84,6 +89,7 @@ jobs:
           pnpm exec tsx scripts/verify-react.ts
           pnpm exec tsx scripts/verify-night-desk.ts
           pnpm exec tsx scripts/verify-browser-use.ts
+          pnpm exec tsx scripts/verify-computer-poll.ts
 
       - name: Lint (changed files)
         working-directory: .

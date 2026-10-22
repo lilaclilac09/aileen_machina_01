@@ -4,7 +4,7 @@ import ScrollUnlock from '../blog/ScrollUnlock';
 import '../blog/_substack/substack.css';
 
 export const metadata: Metadata = {
-  title: 'Privacy · AILEENA MACHINA',
+  title: 'Privacy',
   description: 'What this site collects, where it goes, and how to delete it.',
 };
 

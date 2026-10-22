@@ -291,7 +291,13 @@ function sourceChecks() {
     'computer mode raises the dialog before clipping voice',
     /computerExpanded \? 'sm:max-h-\[88vh\]' : 'sm:max-h-\[72vh\]'/.test(agentChatSrc),
   );
-  assert('dock always polls', /setInterval\(\(\) => void load\(\), 900\)/.test(dockSrc));
+  assert(
+    'dock polls only while active, pauses when hidden',
+    !/setInterval\(\(\) => void load\(\)/.test(dockSrc) &&
+      /nextPollDelay\(/.test(dockSrc) &&
+      /visibilitychange/.test(dockSrc) &&
+      /document\.hidden/.test(dockSrc),
+  );
   assert('dock shows learned chips', /computer-learned/.test(dockSrc) && /computer-monitor/.test(dockSrc));
   assert(
     'dock shows note/look/find sign keys',

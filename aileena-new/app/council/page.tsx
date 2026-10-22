@@ -5,7 +5,7 @@ import CouncilChat from '@/components/CouncilChat';
 import OwnerUnlockForm from '@/components/OwnerUnlockForm';
 
 export const metadata: Metadata = {
-  title: 'Council · AILEENA MACHINA',
+  title: 'Council',
   robots: { index: false, follow: false },
 };
 

@@ -5,10 +5,15 @@ import { LanguageProvider } from '../components/LanguageProvider';
 import { ThemeProvider } from '../components/ThemeProvider';
 import AgentChat from '../components/AgentChat';
 import DuoDocumentSync from '../components/DuoDocumentSync';
+import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, SITE_NAME, SITE_URL, TITLE_BRAND, jsonLdString, siteJsonLd } from '../lib/jsonLd';
 
 export const metadata: Metadata = {
-  title: 'AILEENA — MACHINA',
-  description: 'AILEENA MACHINA - EST 2025',
+  metadataBase: new URL(SITE_URL),
+  title: { default: DEFAULT_TITLE, template: `%s · ${TITLE_BRAND}` },
+  description: DEFAULT_DESCRIPTION,
+  alternates: { canonical: './' },
+  openGraph: { type: 'website', siteName: SITE_NAME, title: DEFAULT_TITLE, description: DEFAULT_DESCRIPTION, url: './' },
+  twitter: { card: 'summary_large_image', title: DEFAULT_TITLE, description: DEFAULT_DESCRIPTION },
 };
 
 /** iPhone Safari: env(safe-area-inset-*) only applies with viewport-fit=cover. */
@@ -37,6 +42,7 @@ export default function RootLayout({
         />
       </head>
       <body className="site-body">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(siteJsonLd()) }} />
         <ThemeProvider>
           <LanguageProvider>{children}</LanguageProvider>
           <DuoDocumentSync />
