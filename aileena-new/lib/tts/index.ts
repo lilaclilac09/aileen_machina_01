@@ -24,3 +24,4 @@ export {
   type TtsFetchResult,
   type TtsUiStatus,
 } from './runQueue';
+export { pickNaturalVoice, replySpeechLang, ttsPitchForLang, ttsRateForLang } from './browserVoice';

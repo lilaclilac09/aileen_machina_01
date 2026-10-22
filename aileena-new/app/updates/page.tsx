@@ -85,6 +85,54 @@ const DIDION_SHELF: Book[] = [
     tags: ['essays'],
     body: 'later pieces, same steel',
   },
+  {
+    title: 'Didion & Babitz',
+    author: 'Lili Anolik',
+    tags: ['biography'],
+    body: 'two LA writers, one shared orbit',
+  },
+];
+
+const CHURCHILL_SHELF: Book[] = [
+  {
+    title: 'My Early Life',
+    author: 'Winston Churchill',
+    tags: ['memoir'],
+    body: 'Churchill on his own youth, before the legend',
+  },
+];
+
+const TO_READ: Book[] = [
+  {
+    title: 'Churchill: Walking with Destiny',
+    author: 'Andrew Roberts',
+    tags: ['biography'],
+    body: 'Widely seen as the best single-volume life; fresh sources, fluent prose. For readers who want the whole life properly.',
+  },
+  {
+    title: 'The Churchill Factor',
+    author: 'Boris Johnson',
+    tags: ['biography'],
+    body: 'Lighter, funny, opinionated, and shorter. An easy way in.',
+  },
+  {
+    title: 'The Last Lion',
+    author: 'William Manchester',
+    tags: ['biography'],
+    body: 'Strong storytelling; reads like a novel. For lovers of narrative.',
+  },
+  {
+    title: 'This Is Shakespeare',
+    author: 'Emma Smith',
+    tags: ['criticism'],
+    body: 'An Oxford guide to the plays, one play per chapter.',
+  },
+  {
+    title: 'The Land Where Lemons Grow: The Story of Italy and Its Citrus Fruit',
+    author: 'Helena Attlee',
+    tags: ['history'],
+    body: 'Italy told through its citrus.',
+  },
 ];
 
 const SYSTEMS_SHELF: Book[] = [
@@ -141,6 +189,18 @@ const SHELF_GROUPS: ShelfGroup[] = [
     title: 'women writing',
     dek: 'the same voltage: identity, grief, the social eye.',
     books: ADJACENT,
+  },
+  {
+    id: 'churchill',
+    title: 'churchill',
+    dek: 'the life, first in his own words.',
+    books: CHURCHILL_SHELF,
+  },
+  {
+    id: 'to-read',
+    title: 'want to read',
+    dek: 'next on the desk: Churchill three ways, then Shakespeare and Italian citrus.',
+    books: TO_READ,
   },
 ];
 
@@ -312,6 +372,26 @@ function FoldRow({
   );
 }
 
+/** One book standing on the shelf: the spine is the summary, the note opens as a caption under the planks. */
+function BookSpine({ book }: { book: Book }) {
+  const tag = book.status ?? book.tags[0];
+  return (
+    <details id={slugify(book.title)} className="book" name="shelf-book">
+      <summary className="book-spine" title={`${book.title} — ${book.author}`}>
+        <span className="book-spine-title">{book.title}</span>
+        <span className="book-spine-author">{book.author}</span>
+      </summary>
+      <div className="book-caption">
+        <p className="book-caption-meta">
+          {book.author}
+          {tag ? ` · ${tag}` : null}
+        </p>
+        <p className="book-caption-note">{book.body}</p>
+      </div>
+    </details>
+  );
+}
+
 export default function UpdatesPage() {
   const [active, setActive] = useState(INDEX[0]?.id ?? 'latest');
 
@@ -444,22 +524,16 @@ export default function UpdatesPage() {
           <Drawer id="archive" label="archive" testId="updates-drawer-archive">
             <span id="didion-shelf" className="shelf-hash-alias" />
             {SHELF_GROUPS.map((group) => (
-              <div key={group.id} className="updates-month" id={group.id}>
+              <div key={group.id} className="updates-month updates-shelf" id={group.id}>
                 <p className="updates-shelf-label" id={`${group.id}-title`}>
                   {group.title}
                 </p>
                 <p className="updates-shelf-dek">{group.dek}</p>
-                {group.books.map((book) => (
-                  <FoldRow
-                    key={book.title}
-                    id={slugify(book.title)}
-                    title={book.title}
-                    tag={book.status ?? book.tags[0]}
-                    meta={book.author}
-                  >
-                    <p>{book.body}</p>
-                  </FoldRow>
-                ))}
+                <div className="bookshelf" data-testid={`bookshelf-${group.id}`}>
+                  {group.books.map((book) => (
+                    <BookSpine key={book.title} book={book} />
+                  ))}
+                </div>
               </div>
             ))}
           </Drawer>

@@ -44,6 +44,7 @@ import BrowserUseIcon from './BrowserUseIcon';
 import BrowserUseWindow from './BrowserUseWindow';
 import CloudflareDeskChart from './CloudflareDeskChart';
 import ComputerConsoleDock from './ComputerConsoleDock';
+import SpeakReplyButton, { stopReplySpeech } from './SpeakReplyButton';
 import { pickOpening, type Opening } from '../lib/agentEngage/opening';
 import { ownerModelTierBody } from '../lib/modelTierPref';
 import { splitLinks } from '../lib/linkifyText';
@@ -435,6 +436,10 @@ export default function AgentChat() {
   }, [open, activeRuntime]);
 
   const busy = status === 'submitted' || status === 'streaming' || browserBusy || vcodeBusy || drawBusy;
+  // A new message (sent or arriving) stops any reply being read aloud.
+  useEffect(() => {
+    stopReplySpeech();
+  }, [messages.length]);
   // Visitors hard-stop at 20/day. Owner KeyShield session or owner-email cookie is unlimited.
   const sessionMaxed = !isOwner && !ownerUnlimited && sessionCount >= DAILY_LIMIT;
   const vcodeMaxed = vcodeCount >= VCODE_DAILY_LIMIT;
@@ -2047,6 +2052,9 @@ export default function AgentChat() {
                     role={m.role === 'user' ? 'user' : 'assistant'}
                     text={text}
                   />
+                  {m.role === 'assistant' && text.trim() && !(busy && m.id === messages[messages.length - 1]?.id) ? (
+                    <SpeakReplyButton text={text} />
+                  ) : null}
                   {draw ? <DrawCardTail att={draw} /> : null}
                   {att ? (
                     <VcodeActions

@@ -60,8 +60,10 @@ jobs:
           [ "$AUTHOR" = "github-actions[bot]" ] || { echo "::error::PR not opened by the evolve workflow"; exit 1; }
           jq -e '[.labels[].name] | index("self-improve")' /tmp/pr.json >/dev/null || { echo "::error::missing self-improve label"; exit 1; }
           # Commits must come from the evolve bot or the repo owner's GitHub account
-          # (owner fixes to a bot PR, e.g. corrected verifiers). Anyone else → refuse.
-          BAD=$(gh api "repos/$REPO/pulls/$PR/commits" --paginate --jq '.[] | select(.commit.author.email != "bot@aileena.xyz" and (.author.login // "") != $ENV.OWNER) | .sha')
+          # (owner fixes to a bot PR, e.g. corrected verifiers). Owner commits must be
+          # signature-verified, authored by the owner and committed by the owner or
+          # web-flow (GitHub web UI); a null author/committer never matches. Anyone else → refuse.
+          BAD=$(gh api "repos/$REPO/pulls/$PR/commits" --paginate --jq '.[] | select(.commit.author.email != "bot@aileena.xyz" and ((.commit.verification.verified == true and .author.login == $ENV.OWNER and (.committer.login == $ENV.OWNER or .committer.login == "web-flow")) | not)) | .sha')
           [ -z "$BAD" ] || { echo "::error::commits not from the evolve bot or the repo owner: $BAD"; exit 1; }
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"
           echo "branch=$REF" >> "$GITHUB_OUTPUT"
