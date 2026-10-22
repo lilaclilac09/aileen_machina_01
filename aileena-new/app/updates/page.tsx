@@ -107,25 +107,25 @@ const TO_READ: Book[] = [
     title: 'Churchill: Walking with Destiny',
     author: 'Andrew Roberts',
     tags: ['biography'],
-    body: '目前公认最好的单卷本传记，资料新、写得流畅；适合想认真了解一生的人。',
+    body: 'Widely seen as the best single-volume life; fresh sources, fluent prose. For readers who want the whole life properly.',
   },
   {
     title: 'The Churchill Factor',
     author: 'Boris Johnson',
     tags: ['biography'],
-    body: '更轻松、有趣、有观点，篇幅相对短；适合想先轻松入门的人。',
+    body: 'Lighter, funny, opinionated, and shorter. An easy way in.',
   },
   {
     title: 'The Last Lion',
     author: 'William Manchester',
     tags: ['biography'],
-    body: '故事性很强，读起来像小说；适合喜欢叙事风格的人。',
+    body: 'Strong storytelling; reads like a novel. For lovers of narrative.',
   },
   {
     title: 'This Is Shakespeare',
     author: 'Emma Smith',
     tags: ['criticism'],
-    body: '牛津学者 Emma Smith 的莎剧导读，一章一部戏。',
+    body: 'An Oxford guide to the plays, one play per chapter.',
   },
   {
     title: 'The Land Where Lemons Grow: The Story of Italy and Its Citrus Fruit',
@@ -198,7 +198,7 @@ const SHELF_GROUPS: ShelfGroup[] = [
   },
   {
     id: 'to-read',
-    title: '等待阅读',
+    title: 'want to read',
     dek: 'next on the desk: Churchill three ways, then Shakespeare and Italian citrus.',
     books: TO_READ,
   },
