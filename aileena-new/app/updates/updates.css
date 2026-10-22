@@ -250,38 +250,197 @@
   line-height: 1.4;
 }
 
-/* Shelf groups (archive drawer): labels on the row text line, air between
-   groups, tag off the right edge, notes quieter than titles. */
+/* Archive shelf: books stand as spines on planks. Each flex line is one
+   --shelf-line tall and the container paints one plank per line, so
+   wrapped spines land on their own plank. The open book's note shows as a
+   caption under the last plank. Pure CSS, archive palette. */
+.updates-shelf {
+  --shelf-line: 236px;
+  --shelf-plank: 14px;
+  --shelf-wood: #c2a983;
+  --shelf-wood-edge: #a68a62;
+}
+
 .updates-shelf + .updates-shelf {
-  margin-top: 18px;
+  margin-top: 26px;
 }
 
 .updates-shelf .updates-shelf-label,
 .updates-shelf .updates-shelf-dek {
-  padding-left: 14px;
+  padding-left: 12px;
 }
 
 .updates-shelf .updates-shelf-dek {
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
-.updates-shelf .updates-row-summary {
-  padding-right: 4px;
+.bookshelf {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0 4px;
+  padding: 0 12px;
+  background-image: linear-gradient(
+    to bottom,
+    transparent 0 calc(var(--shelf-line) - var(--shelf-plank) - 4px),
+    var(--shelf-wood) calc(var(--shelf-line) - var(--shelf-plank) - 4px)
+      calc(var(--shelf-line) - var(--shelf-plank) - 1px),
+    var(--shelf-wood-edge) calc(var(--shelf-line) - var(--shelf-plank) - 1px) calc(var(--shelf-line) - 4px),
+    rgba(17, 17, 17, 0.1) calc(var(--shelf-line) - 4px),
+    transparent var(--shelf-line)
+  );
+  background-size: 100% var(--shelf-line);
+  background-repeat: repeat-y;
 }
 
-.updates-shelf .updates-row-title {
-  white-space: normal;
+.bookshelf:has(> .book[open]) {
+  padding-bottom: 5.5rem;
 }
 
-.updates-shelf .updates-row-panel {
-  padding-top: 0;
-  padding-bottom: 12px;
+.book {
+  display: flex;
+  align-items: flex-end;
+  height: var(--shelf-line);
+  padding-bottom: calc(var(--shelf-plank) + 4px);
+  scroll-margin-top: 88px;
 }
 
-.updates-shelf .updates-row-panel p {
+.book-spine {
+  --spine-bg: #2f5652;
+  --spine-ink: #f4efe4;
+  --spine-h: 196px;
+  /* vertical-rl: the flex row runs top→bottom along the spine, and the
+     spine grows thicker when a long title wraps to a second line */
+  writing-mode: vertical-rl;
+  text-orientation: sideways;
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  inline-size: var(--spine-h);
+  min-block-size: 34px;
+  padding: 14px 8px 12px;
+  border-radius: 2px 2px 0 0;
+  background: var(--spine-bg);
+  color: var(--spine-ink);
+  box-shadow:
+    inset 2px 0 0 rgba(255, 255, 255, 0.12),
+    inset -2px 0 0 rgba(0, 0, 0, 0.14),
+    inset 0 7px 0 -4px rgba(255, 255, 255, 0.18),
+    inset 0 -9px 0 -6px rgba(255, 255, 255, 0.14);
+  transition: transform 0.16s ease;
+}
+
+.book-spine::-webkit-details-marker {
+  display: none;
+}
+
+.book-spine-title {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+}
+
+.book-spine-author {
+  flex: 0 0 auto;
+  max-inline-size: 50%;
+  overflow: hidden;
+  font-family: var(--arc-sans);
+  font-size: 0.56rem;
+  letter-spacing: 0.08em;
+  opacity: 0.78;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.book:nth-child(4n + 2) > .book-spine { --spine-h: 182px; }
+.book:nth-child(4n + 3) > .book-spine { --spine-h: 208px; }
+.book:nth-child(4n + 4) > .book-spine { --spine-h: 190px; }
+
+.book:nth-child(5n + 2) > .book-spine { --spine-bg: #6e4a46; }
+.book:nth-child(5n + 3) > .book-spine { --spine-bg: #3d4858; }
+.book:nth-child(5n + 4) > .book-spine { --spine-bg: #d9ccb2; --spine-ink: rgba(17, 17, 17, 0.82); }
+.book:nth-child(5n + 5) > .book-spine { --spine-bg: #6b6a48; }
+
+.book-spine:hover,
+.book[open] > .book-spine {
+  transform: translateY(-6px);
+}
+
+.book-spine:focus-visible {
+  outline: 2px solid var(--arc-teal);
+  outline-offset: 2px;
+}
+
+.book-caption {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+  height: 4.75rem;
+  overflow: hidden;
+  padding-top: 8px;
+}
+
+.book-caption p {
+  margin: 0;
+  max-width: 36em;
+}
+
+.book-caption-meta {
   color: var(--arc-faint);
-  font-size: 0.88rem;
-  line-height: 1.5;
+  font-family: var(--arc-sans);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+}
+
+.book-caption-note {
+  margin-top: 4px !important;
+  color: var(--arc-mute);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 560px) {
+  .updates-shelf {
+    --shelf-line: 220px;
+  }
+
+  .bookshelf {
+    gap: 0 3px;
+    padding: 0 6px;
+  }
+
+  .book-spine {
+    --spine-h: 184px;
+    min-block-size: 30px;
+    padding: 12px 6px 10px;
+  }
+
+  .book:nth-child(4n + 2) > .book-spine { --spine-h: 170px; }
+  .book:nth-child(4n + 3) > .book-spine { --spine-h: 194px; }
+  .book:nth-child(4n + 4) > .book-spine { --spine-h: 176px; }
+
+  .book-spine-title {
+    font-size: 0.74rem;
+  }
+
+  .bookshelf:has(> .book[open]) {
+    padding-bottom: 7rem;
+  }
+
+  .book-caption {
+    left: 6px;
+    right: 6px;
+    height: 6.5rem;
+  }
 }
 
 @media (min-width: 820px) {

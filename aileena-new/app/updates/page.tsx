@@ -372,6 +372,26 @@ function FoldRow({
   );
 }
 
+/** One book standing on the shelf: the spine is the summary, the note opens as a caption under the planks. */
+function BookSpine({ book }: { book: Book }) {
+  const tag = book.status ?? book.tags[0];
+  return (
+    <details id={slugify(book.title)} className="book" name="shelf-book">
+      <summary className="book-spine" title={`${book.title} — ${book.author}`}>
+        <span className="book-spine-title">{book.title}</span>
+        <span className="book-spine-author">{book.author}</span>
+      </summary>
+      <div className="book-caption">
+        <p className="book-caption-meta">
+          {book.author}
+          {tag ? ` · ${tag}` : null}
+        </p>
+        <p className="book-caption-note">{book.body}</p>
+      </div>
+    </details>
+  );
+}
+
 export default function UpdatesPage() {
   const [active, setActive] = useState(INDEX[0]?.id ?? 'latest');
 
@@ -509,17 +529,11 @@ export default function UpdatesPage() {
                   {group.title}
                 </p>
                 <p className="updates-shelf-dek">{group.dek}</p>
-                {group.books.map((book) => (
-                  <FoldRow
-                    key={book.title}
-                    id={slugify(book.title)}
-                    title={book.title}
-                    tag={book.status ?? book.tags[0]}
-                    meta={book.author}
-                  >
-                    <p>{book.body}</p>
-                  </FoldRow>
-                ))}
+                <div className="bookshelf" data-testid={`bookshelf-${group.id}`}>
+                  {group.books.map((book) => (
+                    <BookSpine key={book.title} book={book} />
+                  ))}
+                </div>
               </div>
             ))}
           </Drawer>
