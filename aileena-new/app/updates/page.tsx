@@ -85,6 +85,54 @@ const DIDION_SHELF: Book[] = [
     tags: ['essays'],
     body: 'later pieces, same steel',
   },
+  {
+    title: 'Didion & Babitz',
+    author: 'Lili Anolik',
+    tags: ['biography'],
+    body: 'two LA writers, one shared orbit',
+  },
+];
+
+const CHURCHILL_SHELF: Book[] = [
+  {
+    title: 'My Early Life',
+    author: 'Winston Churchill',
+    tags: ['memoir'],
+    body: 'Churchill on his own youth, before the legend',
+  },
+];
+
+const TO_READ: Book[] = [
+  {
+    title: 'Churchill: Walking with Destiny',
+    author: 'Andrew Roberts',
+    tags: ['biography'],
+    body: '目前公认最好的单卷本传记，资料新、写得流畅；适合想认真了解一生的人。',
+  },
+  {
+    title: 'The Churchill Factor',
+    author: 'Boris Johnson',
+    tags: ['biography'],
+    body: '更轻松、有趣、有观点，篇幅相对短；适合想先轻松入门的人。',
+  },
+  {
+    title: 'The Last Lion',
+    author: 'William Manchester',
+    tags: ['biography'],
+    body: '故事性很强，读起来像小说；适合喜欢叙事风格的人。',
+  },
+  {
+    title: 'This Is Shakespeare',
+    author: 'Emma Smith',
+    tags: ['criticism'],
+    body: '牛津学者 Emma Smith 的莎剧导读，一章一部戏。',
+  },
+  {
+    title: 'The Land Where Lemons Grow: The Story of Italy and Its Citrus Fruit',
+    author: 'Helena Attlee',
+    tags: ['history'],
+    body: 'Italy told through its citrus.',
+  },
 ];
 
 const SYSTEMS_SHELF: Book[] = [
@@ -141,6 +189,18 @@ const SHELF_GROUPS: ShelfGroup[] = [
     title: 'women writing',
     dek: 'the same voltage: identity, grief, the social eye.',
     books: ADJACENT,
+  },
+  {
+    id: 'churchill',
+    title: 'churchill',
+    dek: 'the life, first in his own words.',
+    books: CHURCHILL_SHELF,
+  },
+  {
+    id: 'to-read',
+    title: '等待阅读',
+    dek: 'next on the desk: Churchill three ways, then Shakespeare and Italian citrus.',
+    books: TO_READ,
   },
 ];
 
@@ -444,7 +504,7 @@ export default function UpdatesPage() {
           <Drawer id="archive" label="archive" testId="updates-drawer-archive">
             <span id="didion-shelf" className="shelf-hash-alias" />
             {SHELF_GROUPS.map((group) => (
-              <div key={group.id} className="updates-month" id={group.id}>
+              <div key={group.id} className="updates-month updates-shelf" id={group.id}>
                 <p className="updates-shelf-label" id={`${group.id}-title`}>
                   {group.title}
                 </p>

@@ -80,6 +80,11 @@
   transition: transform 0.16s ease;
 }
 
+/* grid summaries put the abspos chevron at the padding edge; pin it to the title line */
+.updates-row-summary::before {
+  top: 13px;
+}
+
 .updates-drawer:not([open]) > .updates-drawer-label::before,
 .updates-row:not([open]) > .updates-row-summary::before {
   transform: rotate(0deg);
@@ -243,6 +248,40 @@
   color: var(--arc-ink);
   font-size: 0.92rem;
   line-height: 1.4;
+}
+
+/* Shelf groups (archive drawer): labels on the row text line, air between
+   groups, tag off the right edge, notes quieter than titles. */
+.updates-shelf + .updates-shelf {
+  margin-top: 18px;
+}
+
+.updates-shelf .updates-shelf-label,
+.updates-shelf .updates-shelf-dek {
+  padding-left: 14px;
+}
+
+.updates-shelf .updates-shelf-dek {
+  margin-bottom: 8px;
+}
+
+.updates-shelf .updates-row-summary {
+  padding-right: 4px;
+}
+
+.updates-shelf .updates-row-title {
+  white-space: normal;
+}
+
+.updates-shelf .updates-row-panel {
+  padding-top: 0;
+  padding-bottom: 12px;
+}
+
+.updates-shelf .updates-row-panel p {
+  color: var(--arc-faint);
+  font-size: 0.88rem;
+  line-height: 1.5;
 }
 
 @media (min-width: 820px) {
