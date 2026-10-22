@@ -119,11 +119,11 @@ export const STRUCTURE_PACKS: Record<string, { triggers: string[]; guidance: str
   },
   identity: {
     triggers: ['are you aileen', 'you are aileen', "you're her", 'speak as aileen', '你就是', '你是不是她', '你是她'],
-    guidance: 'Speak about her in third person. You are the site agent, not Aileen.',
+    guidance: 'Speak as Aileen in first person, but be honest: this is my site agent speaking in my voice from my published writing — not me live. Never claim to be a live human.',
   },
   roleplay: {
     triggers: ['are you aileen', 'say you are her', "you're her", 'speak as aileen', '你就是她'],
-    guidance: 'Do not roleplay as Aileen. Stay the site agent in third person.',
+    guidance: 'Speak as Aileen in first person, but be honest: this is my site agent speaking in my voice from my published writing — not me live. Never claim to be a live human.',
   },
   'sound-howto': {
     triggers: ['dj mixer', '/sound', '混音'],

@@ -82,19 +82,19 @@ const RULES: Rule[] = [
     name: 'who-are-you',
     test: /\b(who\s*are\s*you|what\s*are\s*you|are\s*you\s*(real|human|ai|a\s*bot|chatgpt|gpt))\b/i,
     reply:
-      "I'm the small machine inside aileena.xyz — a guide to her work, writing, and music shelf. Not Aileen. Not customer support.",
+      "This is my site agent — Aileen's voice, built from what I've published, not me live. Ask about my work, writing, or the music shelf. Not customer support.",
   },
   {
     name: 'who-built-this',
     test: /\b(who\s*(built|made|wrote|coded)\s*(this|you|the\s*agent|the\s*chat))\b/i,
     reply:
-      'Aileen did. Fresh implementation on Vercel AI SDK + Next.js, model via modelRouter (this root\'s lock), build-time TF-IDF RAG over her own article corpus. No frameworks borrowed.',
+      'I did. Fresh implementation on Vercel AI SDK + Next.js, model via modelRouter (this root\'s lock), build-time TF-IDF RAG over my own article corpus. No frameworks borrowed.',
   },
   {
     name: 'who-is-aileen',
     test: /^(\s*who(\s+is|'s)\s+aileen|tell\s+me\s+about\s+aileen|what\s+does\s+aileen\s+do)\b/i,
     reply:
-      "Software engineer + on-chain researcher, Solana focus. M.Sc. Statistics, Humboldt Berlin. Builds AI agents in production. Solana SG Mini Hackathon Winner 2026. Open to serious collaboration — leave a note if the fit is real.",
+      "That's me — software engineer + on-chain researcher, Solana focus. M.Sc. Statistics, Humboldt Berlin. I build AI agents in production. Solana SG Mini Hackathon Winner 2026. Open to serious collaboration — leave a note if the fit is real.",
   },
 
   // ── Availability / hire ────────────────────────────────────────────────
@@ -102,7 +102,7 @@ const RULES: Rule[] = [
     name: 'availability',
     test: /\b(available|hire|hiring|open\s*to\s*work|job|role|position|looking\s*for\s*work)\b/i,
     reply:
-      "She's open to serious collaboration — engineering, research, product-minded technical work. Leave a note with what you're building and why she's the right person. Vague asks tend to die here.",
+      "I'm open to serious collaboration — engineering, research, product-minded technical work. Leave a note with what you're building and why I'm the right person. Vague asks tend to die here.",
   },
   {
     name: 'contact',
@@ -114,7 +114,7 @@ const RULES: Rule[] = [
     name: 'contact-zh',
     test: /(怎么联系|联系方式|留个联系|加微信|如何联系)/,
     reply:
-      '在下方面板留下邮箱即可（可附微信/备注），会直接到她收件箱；聊天照样继续。代码相关可看 GitHub: github.com/lilaclilac09。',
+      '在下方面板留下邮箱即可（可附微信/备注），会直接到我的收件箱；聊天照样继续。代码相关可看 GitHub: github.com/lilaclilac09。',
   },
 
   // ── Stack one-liner ────────────────────────────────────────────────────

@@ -132,7 +132,7 @@ check('a: frozen prefix explains server notes + nonce', /\[session tail · <id>\
   const g = publicGuard();
   const out = g.guardReply('She lists it in `lib/tools/registry.ts`, see memories/semantic/music-taste.md. The router is modelRouter.');
   check('b: repo path redacted', !/lib\/tools\/registry\.ts/.test(out), out);
-  check('b: memory path becomes "her notes"', /her notes/.test(out) && !/music-taste\.md/.test(out), out);
+  check('b: memory path becomes "my notes"', /my notes/.test(out) && !/music-taste\.md/.test(out), out);
   check('b: module name redacted', !/modelRouter/.test(out), out);
   const url = g.guardReply('Code: https://github.com/lilaclilac09/tamper-check/blob/main/lib/engine.ts and https://aileena.xyz/tools/tamper-check.');
   check('b: URLs are left intact', url.includes('https://github.com/lilaclilac09/tamper-check/blob/main/lib/engine.ts') && url.includes('https://aileena.xyz/tools/tamper-check'), url);
@@ -145,7 +145,7 @@ check('a: frozen prefix explains server notes + nonce', /\[session tail · <id>\
     const o = g.guardReply(`Sure. Here it is: ${canary} and more.`);
     check(`b: prompt canary dropped (${canary.slice(0, 24)})`, !o.includes(canary), o);
   }
-  const rule = 'Do not claim she is available for something unless this prompt or retrieved site copy says so.';
+  const rule = 'Do not claim I am available for something unless this prompt or retrieved site copy says so.';
   check('b: verbatim instruction echo dropped', SYSTEM_PROMPT.includes(rule) && !g.guardReply(`My rules say: ${rule}`).includes('retrieved site copy'));
   const persona = SYSTEM_PROMPT.split('\n').find((l) => l.startsWith('You are a calm, sharp')) ?? '';
   check('b: verbatim persona line dropped', persona.length > 60 && !g.guardReply(persona).includes('slightly strange guide'));

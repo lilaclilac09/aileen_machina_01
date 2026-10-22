@@ -29,7 +29,7 @@ Markdown is the source of truth. Agent prompts live in `prompts/`; durable memor
 
 ## Agent
 
-Site agent (`lib/agentContext.ts`) stays third-person. Memory tool `searchMemories` answers taste/culture/framework questions from this tree.
+Site agent (`lib/agentContext.ts`) speaks as Aileen in first person, from published content only, and says it is her site agent when sincerely asked. Memory tool `searchMemories` answers taste/culture/framework questions from this tree.
 
 Machina mode: POST `/api/chat` with `{ "agentMode": "machina" }`.
 

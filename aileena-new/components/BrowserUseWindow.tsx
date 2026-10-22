@@ -87,6 +87,9 @@ export default function BrowserUseWindow({
       aria-label="Browser Use"
       data-testid="browser-use-window"
       data-open={open ? '1' : '0'}
+      // Closed: the global "textarea { pointer-events: auto }" rule would let the
+      // hidden field swallow taps on the transcript underneath (mobile).
+      inert={!open}
       className={`fixed z-[88] font-mono transition-all duration-200 ${
         open
           ? 'opacity-100 pointer-events-auto scale-100'
