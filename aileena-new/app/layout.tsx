@@ -5,11 +5,11 @@ import { LanguageProvider } from '../components/LanguageProvider';
 import { ThemeProvider } from '../components/ThemeProvider';
 import AgentChat from '../components/AgentChat';
 import DuoDocumentSync from '../components/DuoDocumentSync';
-import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, SITE_NAME, SITE_URL, jsonLdString, siteJsonLd } from '../lib/jsonLd';
+import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, SITE_NAME, SITE_URL, TITLE_BRAND, jsonLdString, siteJsonLd } from '../lib/jsonLd';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: DEFAULT_TITLE, template: '%s · Aileen Choo' },
+  title: { default: DEFAULT_TITLE, template: `%s · ${TITLE_BRAND}` },
   description: DEFAULT_DESCRIPTION,
   alternates: { canonical: './' },
   openGraph: { type: 'website', siteName: SITE_NAME, title: DEFAULT_TITLE, description: DEFAULT_DESCRIPTION, url: './' },
