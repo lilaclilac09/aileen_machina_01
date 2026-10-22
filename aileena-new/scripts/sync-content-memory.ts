@@ -226,7 +226,7 @@ function parseUpdatesPage(): { books: BookRow[]; notes: UpdateNote[] } {
     if (title) books.push({ title, author, status, label: 'featured' });
   }
 
-  for (const name of ['DIDION_SHELF', 'SYSTEMS_SHELF', 'ADJACENT'] as const) {
+  for (const name of ['DIDION_SHELF', 'SYSTEMS_SHELF', 'ADJACENT', 'CHURCHILL_SHELF', 'TO_READ'] as const) {
     const block = extractConstBlock(src, name);
     if (!block) continue;
     const objects = block.match(/\{[^{}]*\}/g) ?? [];
