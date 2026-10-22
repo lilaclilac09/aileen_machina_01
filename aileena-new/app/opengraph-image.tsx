@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og';
 
-export const alt = 'Aileen Choo · research, tools, essays, sound';
+export const alt = 'Aileen · research, tools, essays, sound';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -24,7 +24,7 @@ export default function OpengraphImage() {
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', fontSize: 96, fontWeight: 700, letterSpacing: -2 }}>AILEENA MACHINA</div>
           <div style={{ display: 'flex', fontSize: 36, marginTop: 20, color: 'rgba(27, 23, 19, 0.7)' }}>
-            Aileen Choo · research, tools, essays, sound
+            Aileen · research, tools, essays, sound
           </div>
         </div>
         <div style={{ display: 'flex', height: 6, width: 160, background: '#008f84' }} />

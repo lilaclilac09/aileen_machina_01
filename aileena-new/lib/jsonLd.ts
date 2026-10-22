@@ -5,8 +5,10 @@
 export const SITE_URL = 'https://www.aileena.xyz';
 export const SITE_NAME = 'AILEENA MACHINA';
 export const AUTHOR_NAME = 'Aileen Choo';
-/** One brand per title: the template appends ' · Aileen Choo', so the default is the name alone. */
-export const DEFAULT_TITLE = AUTHOR_NAME;
+/** Short brand used in page titles and the share card; JSON-LD keeps AUTHOR_NAME. */
+export const TITLE_BRAND = 'Aileen';
+/** One brand per title: the template appends ' · Aileen', so the default is the brand alone. */
+export const DEFAULT_TITLE = TITLE_BRAND;
 export const DEFAULT_DESCRIPTION =
   'Personal site of Aileen Choo: Solana/MEV research, security tools (Tamper Check, KeyShield), AI infra notes, essays and DJ sets.';
 /** Only profiles already linked from the site (footer). */

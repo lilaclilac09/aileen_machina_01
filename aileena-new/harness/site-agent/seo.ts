@@ -11,7 +11,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import robots from '../../app/robots';
 import sitemap from '../../app/sitemap';
-import { DEFAULT_TITLE, EXTRA_POSTS, SITE_URL, blogPosts, postMetadata } from '../../lib/seo';
+import { DEFAULT_TITLE, EXTRA_POSTS, TITLE_BRAND, SITE_URL, blogPosts, postMetadata } from '../../lib/seo';
 
 type Row = { name: string; ok: boolean; detail?: string };
 const rows: Row[] = [];
@@ -90,8 +90,8 @@ for (const p of EXTRA_POSTS) {
 const dispatchHtmlSource = readFileSync('app/dispatch/layout.tsx', 'utf8');
 check('dispatch index lists every post incl. off-rail (blogPosts())', dispatchHtmlSource.includes('blogPosts().map') && posts.length === new Set(posts.map((p) => p.href)).size);
 
-// ── one brand per title: template adds ' · Aileen Choo', so no title may carry a site brand ──
-const BRAND = /AILEENA|Aileena|aileena\.xyz|Aileen Choo/;
+// ── one brand per title: template adds ' · Aileen', so no title may carry a site brand ──
+const BRAND = /AILEENA|Aileena|aileena\.xyz|\bAileen\b/;
 const literalTitles: string[] = [];
 for (const f of appFiles.filter((f) => /\.(tsx|ts)$/.test(f) && !f.includes(`${sep}api${sep}`))) {
   const src = readFileSync(f, 'utf8');
@@ -101,12 +101,17 @@ for (const f of appFiles.filter((f) => /\.(tsx|ts)$/.test(f) && !f.includes(`${s
 const titled = [...literalTitles, ...posts.map((p) => `post ${p.href}: ${postMetadata(p.href).title}`)];
 const branded = titled.filter((x) => BRAND.test(x.slice(x.indexOf(': ') + 2)));
 check(`titles: no site brand in ${titled.length} page/post titles (no double branding)`, branded.length === 0, branded.join(' | '));
-check("titles: default title is a single brand", DEFAULT_TITLE === 'Aileen Choo');
+check("titles: default title is the short brand 'Aileen'", DEFAULT_TITLE === 'Aileen' && TITLE_BRAND === 'Aileen');
+const rendered = [DEFAULT_TITLE, ...titled.map((x) => `${x.slice(x.indexOf(': ') + 2)} · ${TITLE_BRAND}`)];
+const fullName = rendered.filter((x) => x.includes('Aileen Choo'));
+check(`titles: no rendered <title> contains 'Aileen Choo' (${rendered.length})`, fullName.length === 0, fullName.join(' | '));
+check('og image: share card text + alt use the short brand', !readFileSync('app/opengraph-image.tsx', 'utf8').includes('Aileen Choo'));
+check("JSON-LD Person keeps real name 'Aileen Choo' + alternateName", /name: AUTHOR_NAME/.test(readFileSync('lib/jsonLd.ts', 'utf8')) && readFileSync('lib/jsonLd.ts', 'utf8').includes("alternateName: 'lilaclilac09'"));
 
 // ── root layout + misc ──
 const root = readFileSync('app/layout.tsx', 'utf8');
 check('layout: metadataBase', /metadataBase:\s*new URL\(SITE_URL\)/.test(root));
-check("layout: title template '%s · Aileen Choo'", root.includes("template: '%s · Aileen Choo'"));
+check("layout: title template '%s · Aileen'", root.includes('template: `%s · ${TITLE_BRAND}`'));
 check("layout: canonical './'", root.includes("canonical: './'"));
 check('layout: Person + WebSite JSON-LD', root.includes('siteJsonLd()') && readFileSync('lib/jsonLd.ts', 'utf8').includes("'@type': 'WebSite'"));
 check('SubstackShell: BlogPosting JSON-LD', readFileSync('app/blog/_substack/SubstackShell.tsx', 'utf8').includes('blogPostingJsonLd('));
