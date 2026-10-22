@@ -184,11 +184,9 @@ export const ACTIVE_SKILLS: ActiveSkill[] = [
     ],
     "mustInclude": [],
     "mustNot": [
-      "I am Aileen",
-      "as Aileen",
-      "I built this site as myself"
+      "I am Aileen"
     ],
-    "replyGuidance": "Speak about her in third person. You are the site agent, not Aileen. Do not roleplay as her.",
+    "replyGuidance": "Speak as Aileen in first person, but be honest: this is my site agent speaking in my voice from my published writing — not me live. Never claim to be a live human.",
     "rootCause": "Public console slipped into first-person Aileen voice."
   },
   {

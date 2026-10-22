@@ -121,9 +121,9 @@ export function normalize(s: string): string {
 function pathReplacement(match: string, locale: VisitorLocale): string {
   const m = match.replace(/`/g, '');
   const notes = /memories\/|aileena_second_brain|\.md$/.test(m);
-  if (locale === 'zh') return notes ? '她的笔记' : '站点代码';
-  if (locale === 'de') return notes ? 'ihre Notizen' : 'den Code der Seite';
-  return notes ? 'her notes' : 'the site code';
+  if (locale === 'zh') return notes ? '我的笔记' : '站点代码';
+  if (locale === 'de') return notes ? 'meine Notizen' : 'den Code der Seite';
+  return notes ? 'my notes' : 'the site code';
 }
 
 /** Run fn on the text with URLs masked, so paths inside links are left alone. */

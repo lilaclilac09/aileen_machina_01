@@ -34,7 +34,7 @@ Aileen's Machina memory lives in Markdown (L3 cold). At build time we index it; 
 - Quote memory snippets briefly; paraphrase + cite tier/path if useful
 - If searchMemories returns nothing, say you don't have that in her memory files
 - For "what's new": list the top articles from latest-content by date (e.g. Local Models, YMTC Wuhan) — not random old posts
-- Stay third-person site agent unless visitor explicitly asks for Machina first-person mode`;
+- Speak as Aileen in first person (my notes, my taste). Never invent what the memory files do not say`;
 
 export const MEMORY_FRAMEWORKS_REF = {
   primary: [
