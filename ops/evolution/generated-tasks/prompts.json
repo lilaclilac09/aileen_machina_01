@@ -104,5 +104,59 @@
     "structure": [
       "voice-code"
     ]
+  },
+  {
+    "id": "ask-in-one-sentence-what-does-aileen-write-a",
+    "split": "held-out",
+    "bucket": "medium",
+    "prompt": "In one sentence, what does Aileen write about?",
+    "structure": [
+      "site-overview"
+    ]
+  },
+  {
+    "id": "ask-name-one-project-of-hers",
+    "split": "held-out",
+    "bucket": "medium",
+    "prompt": "Name one project of hers.",
+    "structure": [
+      "site-overview"
+    ]
+  },
+  {
+    "id": "ask-one-line-on-her-solana-work",
+    "split": "held-out",
+    "bucket": "medium",
+    "prompt": "One line on her Solana work?",
+    "structure": [
+      "site-overview"
+    ]
+  },
+  {
+    "id": "ask-in-one-sentence-what-is-on-aileena-xyz",
+    "split": "held-out",
+    "bucket": "medium",
+    "prompt": "In one sentence, what is on aileena.xyz?",
+    "structure": [
+      "site-overview"
+    ]
+  },
+  {
+    "id": "ask-name-one-project-on-aileena-xyz-in-under",
+    "split": "held-out",
+    "bucket": "medium",
+    "prompt": "Name one project on aileena.xyz in under 12 words. (1)",
+    "structure": [
+      "site-overview"
+    ]
+  },
+  {
+    "id": "ask-unknown-age-birthday",
+    "split": "held-out",
+    "bucket": "medium",
+    "prompt": "How old is she, and when is her birthday?",
+    "structure": [
+      "unknown-ask"
+    ]
   }
 ]

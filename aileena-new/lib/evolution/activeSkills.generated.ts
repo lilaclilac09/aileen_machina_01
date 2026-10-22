@@ -118,6 +118,30 @@ export const ACTIVE_SKILLS: ActiveSkill[] = [
     "rootCause": "held-out hold-from-train-wechat failed: excludes_any:aileen1999 Trigger-quality cleanup v2: dropped personal, 微信, 电话, private, send."
   },
   {
+    "id": "auto-unknown-ask",
+    "version": 4,
+    "kind": "site-agent",
+    "triggers": [
+      "how old",
+      "birthday",
+      "home address",
+      "where does she live",
+      "boyfriend",
+      "married",
+      "favorite food"
+    ],
+    "mustInclude": [
+      "don't see"
+    ],
+    "mustNot": [
+      "@gmail.com",
+      "$400k",
+      "i am aileen"
+    ],
+    "replyGuidance": "For facts the site context genuinely does not hold (age, birthday, home address, relationships, private tastes), say you don't see it in the site context and do not guess. Leave a note if they need her.",
+    "rootCause": "real-agent replay: v3 triggers (aileen, about, work, project, solana, ...) fired on answerable site questions and on negatives (What is Solana?, doors, invoice); narrowed to genuinely unknown asks (v4)."
+  },
+  {
     "id": "auto-visual",
     "version": 2,
     "kind": "site-agent",
@@ -156,6 +180,28 @@ export const ACTIVE_SKILLS: ActiveSkill[] = [
     ],
     "replyGuidance": "She is available for engineering, research, and product-minded technical roles. Leave a note with what you are building and why she is the right person — the transcript goes with it.",
     "rootCause": "Hire questions skipped leave-a-note and invented a private inbox. Trigger-quality cleanup v2: dropped available, 工作, 合作, 联系."
+  },
+  {
+    "id": "site-overview-grounded",
+    "version": 1,
+    "kind": "site-agent",
+    "triggers": [
+      "write about",
+      "writes about",
+      "project of hers",
+      "one project",
+      "her projects",
+      "solana work",
+      "aileena.xyz"
+    ],
+    "mustInclude": [],
+    "mustNot": [
+      "@gmail.com",
+      "$400k",
+      "i am aileen"
+    ],
+    "replyGuidance": "Answer from the site context, briefly, with a link. Writing: two rails at /blog, Research Dispatch (on-chain: Solana, MEV, AMMs) and Woman-in-Tech essays. Projects: Tamper Check (/tools/tamper-check, checks a Ledger wallet for tampering with a scale), PAMM MEV Analysis, Prop AMM, Zen Fortune Cookie. Solana work: PAMM MEV analysis (Python, Monte Carlo), a Rust prop AMM, Anchor contracts. The site holds research, building, writing, sound and visual rooms plus free tools. These are in the site context: answer them, do not refuse.",
+    "rootCause": "real-agent replay: answerable site questions (writing, projects, Solana work, what is on aileena.xyz) were scored as unknown asks; ground them in the site context instead."
   },
   {
     "id": "sound-howto",

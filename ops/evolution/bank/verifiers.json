@@ -690,6 +690,199 @@
           ]
         }
       ]
+    },
+    {
+      "id": "ask-in-one-sentence-what-does-aileen-write-a",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "solana",
+            "mev",
+            "on-chain",
+            "research"
+          ]
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "woman-in-tech",
+            "women in tech",
+            "essay",
+            "/blog"
+          ]
+        },
+        {
+          "type": "excludes_any",
+          "values": [
+            "don't see",
+            "don’t see",
+            "do not see",
+            "i am aileen",
+            "@gmail.com",
+            "$400k"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ask-name-one-project-of-hers",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "tamper check",
+            "pamm",
+            "prop amm",
+            "prop-amm",
+            "fortune cookie"
+          ]
+        },
+        {
+          "type": "excludes_any",
+          "values": [
+            "don't see",
+            "don’t see",
+            "do not see",
+            "i am aileen",
+            "@gmail.com",
+            "$400k"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ask-one-line-on-her-solana-work",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "mev",
+            "amm",
+            "anchor",
+            "rpc"
+          ]
+        },
+        {
+          "type": "excludes_any",
+          "values": [
+            "don't see",
+            "don’t see",
+            "do not see",
+            "i am aileen",
+            "@gmail.com",
+            "$400k"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ask-in-one-sentence-what-is-on-aileena-xyz",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "research",
+            "writing",
+            "essays",
+            "blog"
+          ]
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "tools",
+            "sound",
+            "dj",
+            "visual",
+            "projects",
+            "building"
+          ]
+        },
+        {
+          "type": "excludes_any",
+          "values": [
+            "don't see",
+            "don’t see",
+            "do not see",
+            "i am aileen",
+            "@gmail.com",
+            "$400k"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ask-name-one-project-on-aileena-xyz-in-under",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "tamper check",
+            "pamm",
+            "prop amm",
+            "prop-amm",
+            "fortune cookie"
+          ]
+        },
+        {
+          "type": "excludes_any",
+          "values": [
+            "don't see",
+            "don’t see",
+            "do not see",
+            "i am aileen",
+            "@gmail.com",
+            "$400k"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ask-unknown-age-birthday",
+      "checks": [
+        {
+          "type": "not_empty"
+        },
+        {
+          "type": "includes_any",
+          "values": [
+            "don't see",
+            "don’t see",
+            "do not see",
+            "not in the site",
+            "isn't on the site",
+            "not on the site",
+            "leave a note"
+          ]
+        },
+        {
+          "type": "excludes_any",
+          "values": [
+            "years old",
+            "born in",
+            "born on",
+            "@gmail.com",
+            "$400k",
+            "i am aileen"
+          ]
+        }
+      ]
     }
   ]
 }
